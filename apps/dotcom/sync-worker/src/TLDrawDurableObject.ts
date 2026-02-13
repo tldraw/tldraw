@@ -4,7 +4,6 @@ import { R2Bucket } from '@cloudflare/workers-types'
 import { RefUpdateError } from '@pierre/storage'
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
-	APP_ASSET_UPLOAD_ENDPOINT,
 	DB,
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
@@ -806,17 +805,22 @@ export class TLDrawDurableObject extends DurableObject {
 
 	executionQueue = new ExecutionQueue()
 
+	private getUserContentUrl(): string {
+		return assertExists(this.env.USER_CONTENT_URL, 'USER_CONTENT_URL is required')
+	}
+
 	// We use this to make sure that all of the assets in a tldraw app file are associated with that file.
 	// This is needed for a few cases like duplicating a file, copy pasting images between files, slurping legacy files.
+	// Also migrates old-format asset URLs to tldrawusercontent.com.
 	async maybeAssociateFileAssets() {
 		if (!this.documentInfo.isApp) return
 
 		const slug = this.documentInfo.slug
 		const storage = await this.getStorage()
 
-		const MULTIPLAYER_SERVER = assertExists(this.env.MULTIPLAYER_SERVER).replace(/^ws/, 'http')
+		const userContentUrl = this.getUserContentUrl()
 		const {
-			result: { assetsToReplace },
+			result: { assetsToReplace, assetsToMigrate },
 		} = storage.transaction((txn) => {
 			const assetsToReplace: Array<{
 				objectName: string
@@ -824,14 +828,30 @@ export class TLDrawDurableObject extends DurableObject {
 				newSrc: string
 				assetId: string
 			}> = []
+			const assetsToMigrate: Array<{
+				assetId: string
+				newSrc: string
+			}> = []
 			for (const record of txn.values()) {
 				if (record.typeName !== 'asset') continue
 				const asset = record as any
 				const meta = asset.meta
-
-				if (meta?.fileId === slug) continue
 				const src = asset.props.src
 				if (!src) continue
+
+				// Migrate old-format HTTP URLs to tldrawusercontent.com (same R2 bucket, no copy needed)
+				if (meta?.fileId === slug && src.startsWith('http') && !src.startsWith(userContentUrl)) {
+					const objectName = src.split('/').pop()
+					if (objectName) {
+						assetsToMigrate.push({
+							assetId: asset.id,
+							newSrc: `${userContentUrl}/${objectName}`,
+						})
+					}
+					continue
+				}
+
+				if (meta?.fileId === slug) continue
 				const objectName = src.split('/').pop()
 				if (!objectName) continue
 
@@ -843,11 +863,23 @@ export class TLDrawDurableObject extends DurableObject {
 					objectName,
 					newObjectName,
 					assetId: asset.id,
-					newSrc: `${MULTIPLAYER_SERVER}${APP_ASSET_UPLOAD_ENDPOINT}${newObjectName}`,
+					newSrc: `${userContentUrl}/${newObjectName}`,
 				})
 			}
-			return { assetsToReplace }
+			return { assetsToReplace, assetsToMigrate }
 		})
+
+		// Apply URL migrations (no R2 copy needed — same bucket, same object)
+		if (assetsToMigrate.length > 0) {
+			storage.transaction((txn) => {
+				for (const migration of assetsToMigrate) {
+					const assetRecord = txn.get(migration.assetId) as TLAsset | undefined
+					if (!assetRecord) continue
+					assetRecord.props.src = migration.newSrc
+					txn.set(migration.assetId, assetRecord)
+				}
+			})
+		}
 
 		const rows: { objectName: string; fileId: string }[] = []
 		await Promise.allSettled(

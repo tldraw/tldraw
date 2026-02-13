@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "Tiedosto on saavuttanut kokorajoituksensa, eikä muutoksia ehkä enää tallenneta. Poista sisältöä tai aloita uusi tiedosto."
   },
-  "0ab1ef22a3": {
-    "translation": "Puhu ryhmälle…"
-  },
   "0b27918290": {
     "translation": "Tiedosto"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "Julkaista"
-  },
-  "11a755d598": {
-    "translation": "Stop"
   },
   "129b9e34ea": {
     "translation": "Poistu ryhmästä"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "Tietoja tldraw'sta"
   },
-  "284d5cd0dd": {
-    "translation": "Malli:"
-  },
   "299cb00a7a": {
     "translation": "Lataus epäonnistui"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "Toimittaja"
-  },
-  "34e34c43ec": {
-    "translation": "Hallitse"
-  },
-  "3596c1b1f7": {
-    "translation": "Lopeta seuraaminen"
-  },
-  "3903aab323": {
-    "translation": "Seuraa"
-  },
-  "3b6c2b4caa": {
-    "translation": "Palveluehdot"
   },
   "3bc7d6ea2f": {
     "translation": "Jatka sähköpostitse"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "Nimi"
   },
-  "4c41e0bd95": {
-    "translation": "Valitse kaikki"
-  },
   "4d0d3ddec9": {
     "translation": "Tämä sivusto käyttää evästeitä sovelluksen toiminnan varmistamiseksi ja analytiikkatietojen keräämiseksi."
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "Poista ryhmä…"
-  },
-  "4dab36ac83": {
-    "translation": "Lisää vaihtoehtoja"
   },
   "4e6fbf032b": {
     "translation": "Haluatko varmasti poistaa tämän ryhmän? Tätä toimintoa ei voi perua."
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "Tietosuojakäytäntö"
   },
-  "5a2ccdc00a": {
-    "translation": "Kutsukoodin lunastus epäonnistui"
-  },
   "5a86b22fa0": {
     "translation": "Vedä tiedostot tähän, <create>luo tiedosto</create> tai <invite>kopioi kutsulinkki</invite> aloittaaksesi."
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "Myöhemmin"
   },
-  "61daf2e53d": {
-    "translation": "Puhu käyttäjälle {name}…"
-  },
   "625fd29749": {
     "translation": "Vanhempi"
   },
   "639bae9ac6": {
     "translation": "sinä"
-  },
-  "6602bbeb29": {
-    "translation": "Opas"
   },
   "6609dd239e": {
     "translation": "Jotain meni pieleen"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "Anna sähköpostiosoitteesi"
-  },
-  "68d390535e": {
-    "translation": "Kirjoita viestisi"
   },
   "6a26f54883": {
     "translation": "Auttaa"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "Onko sinulla bugi, ongelma tai idea tldraw'hun liittyen? Kerro meille! Täytä tämä lomake, niin otamme sinuun tarvittaessa yhteyttä sähköpostitse. Voit myös <discord>chattailla kanssamme Discordissa</discord> tai <github>lähettää ongelman GitHubissa</github>."
   },
-  "81aa2078d1": {
-    "translation": "Tyhjennä kaikki"
-  },
-  "83218ac34c": {
-    "translation": "Tervetuloa"
-  },
   "85a082de1b": {
     "translation": "Päivitä sivu saadaksesi tldraw:n uusimman version."
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "Nimeä tiedosto uudelleen"
   },
-  "8726ef8909": {
-    "translation": "Pakkolunastus"
-  },
   "8ad4303b83": {
     "translation": "Ei kiitos"
   },
   "8c2d3d730c": {
     "translation": "Tarkista sähköpostistasi vahvistuskoodi."
   },
-  "8cf04a9734": {
-    "translation": "Kotiin"
-  },
   "8eb2c00e96": {
     "translation": "Jaettu kanssasi"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Noin"
   },
   "8ff3d0a705": {
     "translation": "Hinta rajoitettu"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "Kutsulinkki kopioitu"
   },
-  "94186070ef": {
-    "translation": "Poista valinta"
-  },
   "9489b2f82a": {
     "translation": "Olet jo tämän ryhmän jäsen"
-  },
-  "94966d9074": {
-    "translation": "Lähetä"
   },
   "95aacd4d4a": {
     "translation": "Kirjaudu sisään Googlella"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "Kevyt"
-  },
-  "9953e9946b": {
-    "translation": "Virheenkorjausnäkymä"
   },
   "9b33f5c63c": {
     "translation": "Etkö saanut koodia? <resend>Lähetä uudelleen</resend>."
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "Vie kuva"
   },
-  "a286d9991c": {
-    "translation": "Liity"
-  },
   "a3debabee7": {
     "translation": "Evästekäytäntö"
   },
   "a4d3b161ce": {
     "translation": "Lähetä"
-  },
-  "a603905470": {
-    "translation": "Virheenjäljitys"
   },
   "a6cc403d56": {
     "translation": "Kaikki, joilla on linkki"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "Tiedosto kasvaa suureksi"
-  },
-  "a917baaf14": {
-    "translation": "Uusi keskustelu"
   },
   "a9ded1e5ce": {
     "translation": "Tausta"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "Tiedosto on täynnä"
-  },
-  "b34a671e2c": {
-    "translation": "Lokin vasteaika"
   },
   "b357b524e7": {
     "translation": "Sähköpostiosoite"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "Tiedostoa ei voi julkaista."
   },
-  "c3bf447eab": {
-    "translation": "Avata"
-  },
-  "c3eb5c3b90": {
-    "translation": "Ymmärrän"
-  },
   "c4b39a1cc3": {
     "translation": "Välttämättömät evästeet"
   },
-  "c54a624f46": {
-    "translation": "Hyväksy kutsu"
-  },
   "c6155aaecc": {
     "translation": "Ryhmän nimi"
-  },
-  "c64518704c": {
-    "translation": "Käyttö"
   },
   "c655b27b1e": {
     "translation": "i18n: Pitkä merkkijono"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "Vain kutsu"
   },
-  "dc30bc0c79": {
-    "translation": "Tyhjennä"
-  },
   "dcdaa754fe": {
     "translation": "Virheellinen tldraw-tiedoston URL-osoite"
   },
   "dfdb78a4e4": {
     "translation": "Sovelluksen virheenkorjausliput"
-  },
-  "e062622261": {
-    "translation": "Valitse"
   },
   "e0c88179b3": {
     "translation": "Kutsu jäseniä"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "Palveluehdot"
-  },
-  "e43ec38a93": {
-    "translation": "Siirry osoitteeseen"
   },
   "e81c4e4f2b": {
     "translation": "tai"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "Lue lisää <a>evästekäytännöstämme</a>."
   },
-  "eee6f05922": {
-    "translation": "Hajoaminen"
-  },
   "ef53538ae4": {
     "translation": "Jäsenet"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "Käyttäjäasetukset"
-  },
-  "f1206f9fad": {
-    "translation": "Määritä"
   },
   "f2569594b2": {
     "translation": "Käytämme näitä evästeitä tiedostojesi ja asetuksiesi tallentamiseen."

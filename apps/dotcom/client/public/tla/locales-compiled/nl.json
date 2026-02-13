@@ -51,12 +51,6 @@
       "value": "Dit bestand heeft de maximale bestandsgrootte bereikt en wijzigingen worden mogelijk niet meer opgeslagen. Verwijder wat inhoud of begin een nieuw bestand."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Spreek tot de groep…"
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -79,12 +73,6 @@
     {
       "type": 0,
       "value": "Publiceren"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Stop"
     }
   ],
   "129b9e34ea": [
@@ -153,12 +141,6 @@
       "value": "Over tldraw"
     }
   ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Model:"
-    }
-  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -205,30 +187,6 @@
     {
       "type": 0,
       "value": "Editor"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Beheren"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "Ontvolgen"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Volgen"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Servicevoorwaarden"
     }
   ],
   "3bc7d6ea2f": [
@@ -309,12 +267,6 @@
       "value": "Naam"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Selecteer alles"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -331,12 +283,6 @@
     {
       "type": 0,
       "value": "Groep verwijderen…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Meer opties"
     }
   ],
   "4e6fbf032b": [
@@ -401,12 +347,6 @@
     {
       "type": 0,
       "value": "Privacybeleid"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Het is niet gelukt om de uitnodigingscode in te wisselen"
     }
   ],
   "5a86b22fa0": [
@@ -491,20 +431,6 @@
       "value": "Later"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "Praat met "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -515,12 +441,6 @@
     {
       "type": 0,
       "value": "Jij"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Gids"
     }
   ],
   "6609dd239e": [
@@ -539,12 +459,6 @@
     {
       "type": 0,
       "value": "Voer uw e-mailadres in"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Voer uw bericht in"
     }
   ],
   "6a26f54883": [
@@ -737,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Alles wissen"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Welkom"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -771,12 +673,6 @@
       "value": "Bestand hernoemen"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Harde reset"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -789,22 +685,10 @@
       "value": "Controleer uw e-mail voor een verificatiecode."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Thuis"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Gedeeld met jou"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "Over"
     }
   ],
   "8ff3d0a705": [
@@ -837,22 +721,10 @@
       "value": "Gekopieerde uitnodigingslink"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Deselect"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Je bent al lid van deze groep"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Versturen"
     }
   ],
   "95aacd4d4a": [
@@ -889,12 +761,6 @@
     {
       "type": 0,
       "value": "Licht"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Debugweergave"
     }
   ],
   "9b33f5c63c": [
@@ -971,12 +837,6 @@
       "value": "Afbeelding exporteren"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Meedoen"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -987,12 +847,6 @@
     {
       "type": 0,
       "value": "Verzenden"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Foutopsporing"
     }
   ],
   "a6cc403d56": [
@@ -1011,12 +865,6 @@
     {
       "type": 0,
       "value": "Het bestand wordt groot"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Nieuwe chat"
     }
   ],
   "a9ded1e5ce": [
@@ -1053,12 +901,6 @@
     {
       "type": 0,
       "value": "Bestand is vol"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Logreactietijd"
     }
   ],
   "b357b524e7": [
@@ -1187,40 +1029,16 @@
       "value": "Het bestand kan niet worden gepubliceerd."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Open"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "Ik begrijp"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Essentiële cookies"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Uitnodiging accepteren"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Groepsnaam"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Gebruik"
     }
   ],
   "c655b27b1e": [
@@ -1365,12 +1183,6 @@
       "value": "Alleen op uitnodiging"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Duidelijk"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
@@ -1381,12 +1193,6 @@
     {
       "type": 0,
       "value": "App-debug vlaggen"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Selecteer"
     }
   ],
   "e0c88179b3": [
@@ -1417,12 +1223,6 @@
     {
       "type": 0,
       "value": "Servicevoorwaarden"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Ga naar"
     }
   ],
   "e81c4e4f2b": [
@@ -1493,12 +1293,6 @@
       "value": " voor meer informatie."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Ontbinden"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1521,12 +1315,6 @@
     {
       "type": 0,
       "value": "Gebruikersinstellingen"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Configure"
     }
   ],
   "f2569594b2": [

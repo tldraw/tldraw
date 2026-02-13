@@ -51,12 +51,6 @@
       "value": "Den här filen har nått sin storleksgräns och ändringarna kanske inte längre sparas. Ta bort en del innehåll eller skapa en ny fil."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Prata med gruppen…"
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -79,12 +73,6 @@
     {
       "type": 0,
       "value": "Publicera"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Stopp"
     }
   ],
   "129b9e34ea": [
@@ -153,12 +141,6 @@
       "value": "Om tldraw"
     }
   ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Modell:"
-    }
-  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -205,30 +187,6 @@
     {
       "type": 0,
       "value": "Redigeringsverktyg"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Hantera"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "Sluta följa"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Följa"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Användarvillkor"
     }
   ],
   "3bc7d6ea2f": [
@@ -309,12 +267,6 @@
       "value": "Namn"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Markera alla"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -331,12 +283,6 @@
     {
       "type": 0,
       "value": "Radera grupp…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Fler alternativ"
     }
   ],
   "4e6fbf032b": [
@@ -401,12 +347,6 @@
     {
       "type": 0,
       "value": "Sekretesspolicy"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Det gick inte att lösa in inbjudningskoden"
     }
   ],
   "5a86b22fa0": [
@@ -491,20 +431,6 @@
       "value": "Senare"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "Prata med "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -515,12 +441,6 @@
     {
       "type": 0,
       "value": "du"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Guide"
     }
   ],
   "6609dd239e": [
@@ -539,12 +459,6 @@
     {
       "type": 0,
       "value": "Ange din e-postadress"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Ange ditt meddelande"
     }
   ],
   "6a26f54883": [
@@ -737,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Rensa alla"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Välkomna"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -775,12 +677,6 @@
       "value": "Byt namn på filen"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Hård återställning"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -793,22 +689,10 @@
       "value": "Kontrollera din e-post för en verifieringskod."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Hem"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Delas med dig"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "Om"
     }
   ],
   "8ff3d0a705": [
@@ -841,22 +725,10 @@
       "value": "Kopierad inbjudningslänk"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Välja bort"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Du är redan medlem i den här gruppen"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Skicka"
     }
   ],
   "95aacd4d4a": [
@@ -893,12 +765,6 @@
     {
       "type": 0,
       "value": "Ljus"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Felsökningsvy"
     }
   ],
   "9b33f5c63c": [
@@ -975,12 +841,6 @@
       "value": "Exportera bild"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Ansluta sig till"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -991,12 +851,6 @@
     {
       "type": 0,
       "value": "Överlämna"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Felsök"
     }
   ],
   "a6cc403d56": [
@@ -1015,12 +869,6 @@
     {
       "type": 0,
       "value": "Filen blir stor"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Ny chatt"
     }
   ],
   "a9ded1e5ce": [
@@ -1057,12 +905,6 @@
     {
       "type": 0,
       "value": "Filen är full"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Loggsvarstid"
     }
   ],
   "b357b524e7": [
@@ -1191,40 +1033,16 @@
       "value": "Det gick inte att publicera filen."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Öppna"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "Jag förstår"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Viktiga cookies"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Acceptera inbjudan"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Gruppnamn"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Användande"
     }
   ],
   "c655b27b1e": [
@@ -1369,12 +1187,6 @@
       "value": "Endast inbjudan"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Rensa"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
@@ -1385,12 +1197,6 @@
     {
       "type": 0,
       "value": "Appfelsökningsflaggor"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Välja"
     }
   ],
   "e0c88179b3": [
@@ -1421,12 +1227,6 @@
     {
       "type": 0,
       "value": "Användarvillkor"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Gå till"
     }
   ],
   "e81c4e4f2b": [
@@ -1497,12 +1297,6 @@
       "value": " för att lära dig mer."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Upplösa"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1525,12 +1319,6 @@
     {
       "type": 0,
       "value": "Användarinställningar"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Konfigurera"
     }
   ],
   "f2569594b2": [

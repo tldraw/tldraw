@@ -51,10 +51,10 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		return {}
 	}
 
-	override canBind({ toShapeType, bindingType }: TLShapeUtilCanBindOpts<PinShape>) {
+	override canBind({ toShape, bindingType }: TLShapeUtilCanBindOpts<PinShape>) {
 		if (bindingType === PIN_TYPE) {
 			// pins cannot bind to other pins!
-			return toShapeType !== PIN_TYPE
+			return toShape.type !== PIN_TYPE
 		}
 		// Allow pins to participate in other bindings, e.g. arrows
 		return true

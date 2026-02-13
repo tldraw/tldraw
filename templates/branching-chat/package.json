@@ -15,7 +15,7 @@
 			"name": "Branching chat",
 			"description": "Chat with an AI using a branching conversation interface.",
 			"shortDescription": "A branching chat interface.",
-			"order": 6
+			"order": 7
 		},
 		"scripts": {
 			"lint": null

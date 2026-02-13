@@ -38,8 +38,8 @@ import { hasNotAcceptedLegal } from '../utils/auth'
 import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
 import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
-	clearLocalSessionState,
 	getLocalSessionState,
+	resetLocalSessionStateButKeepTheme,
 	updateLocalSessionState,
 } from '../utils/local-session-state'
 
@@ -79,7 +79,9 @@ export function Component() {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
 	// TODO: this needs to default to the global setting of whatever the last chosen locale was, not 'en'
 	const [locale, setLocale] = useState<string>('en')
-	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
+	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(
+		() => getLocalSessionState().theme
+	)
 	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
 	const handleLocaleChange = (locale: string) => {
 		setLocale(locale)
@@ -225,10 +227,12 @@ function SignedInProvider({
 			updateLocalSessionState(() => ({
 				auth: { userId: auth.userId },
 			}))
-		} else {
-			clearLocalSessionState()
+		} else if (auth.isLoaded) {
+			// auth.isSignedIn and auth.userId initialize as undefined, so we have to check if auth is loaded
+			// otherwise the local session state gets cleared on signin erroneously
+			resetLocalSessionStateButKeepTheme()
 		}
-	}, [auth.userId, auth.isSignedIn])
+	}, [auth.userId, auth.isSignedIn, auth.isLoaded])
 
 	if (!auth.isLoaded) return null
 

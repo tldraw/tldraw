@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "Este ficheiro alcanzou o seu límite de tamaño e é posible que os cambios xa non se garden. Elimina parte do contido ou comeza un ficheiro novo."
   },
-  "0ab1ef22a3": {
-    "translation": "Fala co grupo…"
-  },
   "0b27918290": {
     "translation": "Arquivo"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "Publicar"
-  },
-  "11a755d598": {
-    "translation": "Parar"
   },
   "129b9e34ea": {
     "translation": "Abandonar o grupo"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "Acerca de tldraw"
   },
-  "284d5cd0dd": {
-    "translation": "Modelo:"
-  },
   "299cb00a7a": {
     "translation": "Produciuse un erro na carga"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34e34c43ec": {
-    "translation": "Xestionar"
-  },
-  "3596c1b1f7": {
-    "translation": "Deixar de seguir"
-  },
-  "3903aab323": {
-    "translation": "Seguir"
-  },
-  "3b6c2b4caa": {
-    "translation": "Condicións de servizo"
   },
   "3bc7d6ea2f": {
     "translation": "Continuar co correo electrónico"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "Nome"
   },
-  "4c41e0bd95": {
-    "translation": "Seleccionar todo"
-  },
   "4d0d3ddec9": {
     "translation": "Este sitio usa cookies para que a aplicación funcione e para recompilar análises."
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "Eliminar grupo…"
-  },
-  "4dab36ac83": {
-    "translation": "Máis opcións"
   },
   "4e6fbf032b": {
     "translation": "Seguro que queres eliminar este grupo? Esta acción non se pode desfacer."
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "Política de privacidade"
   },
-  "5a2ccdc00a": {
-    "translation": "Non se puido trocar o código de invitación"
-  },
   "5a86b22fa0": {
     "translation": "Arrastra ficheiros aquí, <create>crea un ficheiro</create> ou <invite>copia a ligazón de invitación</invite> para comezar."
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "Máis tarde"
   },
-  "61daf2e53d": {
-    "translation": "Fala con {name}…"
-  },
   "625fd29749": {
     "translation": "Máis vello"
   },
   "639bae9ac6": {
     "translation": "ti"
-  },
-  "6602bbeb29": {
-    "translation": "Guía"
   },
   "6609dd239e": {
     "translation": "Algo saíu mal"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "Introduce o teu enderezo de correo electrónico"
-  },
-  "68d390535e": {
-    "translation": "Introduce a túa mensaxe"
   },
   "6a26f54883": {
     "translation": "Axuda"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "Tes algún erro, problema ou idea para tldraw? Avísanos! Completa este formulario e poñerémonos en contacto connosco por correo electrónico se é necesario. Tamén podes <discord>chatear connosco en Discord</discord> ou <github>enviar un problema en GitHub</github>."
   },
-  "81aa2078d1": {
-    "translation": "Borrar todo"
-  },
-  "83218ac34c": {
-    "translation": "Benvido/a"
-  },
   "85a082de1b": {
     "translation": "Actualiza a páxina para obter a última versión de tldraw."
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "Cambiar o nome do ficheiro"
   },
-  "8726ef8909": {
-    "translation": "Reinicio completo"
-  },
   "8ad4303b83": {
     "translation": "Non, grazas."
   },
   "8c2d3d730c": {
     "translation": "Consulta o teu correo electrónico para obter un código de verificación."
   },
-  "8cf04a9734": {
-    "translation": "Inicio"
-  },
   "8eb2c00e96": {
     "translation": "Compartido contigo"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Acerca de"
   },
   "8ff3d0a705": {
     "translation": "Tarifa limitada"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "Ligazón de invitación copiada"
   },
-  "94186070ef": {
-    "translation": "Deseleccionar"
-  },
   "9489b2f82a": {
     "translation": "Xa es membro deste grupo"
-  },
-  "94966d9074": {
-    "translation": "Enviar"
   },
   "95aacd4d4a": {
     "translation": "Iniciar sesión con Google"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "Luz"
-  },
-  "9953e9946b": {
-    "translation": "Vista de depuración"
   },
   "9b33f5c63c": {
     "translation": "Non recibiches o código? <resend>Volver enviar</resend>."
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "Exportar imaxe"
   },
-  "a286d9991c": {
-    "translation": "Unirse"
-  },
   "a3debabee7": {
     "translation": "Política de cookies"
   },
   "a4d3b161ce": {
     "translation": "Enviar"
-  },
-  "a603905470": {
-    "translation": "Depurar"
   },
   "a6cc403d56": {
     "translation": "Calquera persoa coa ligazón"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "O ficheiro está a facerse grande"
-  },
-  "a917baaf14": {
-    "translation": "Novo chat"
   },
   "a9ded1e5ce": {
     "translation": "Fondo"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "O ficheiro está cheo"
-  },
-  "b34a671e2c": {
-    "translation": "Tempo de resposta do rexistro"
   },
   "b357b524e7": {
     "translation": "Enderezo de correo electrónico"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "Non se puido publicar o ficheiro."
   },
-  "c3bf447eab": {
-    "translation": "Abrir"
-  },
-  "c3eb5c3b90": {
-    "translation": "Entendo"
-  },
   "c4b39a1cc3": {
     "translation": "Galletas esenciais"
   },
-  "c54a624f46": {
-    "translation": "Aceptar a invitación"
-  },
   "c6155aaecc": {
     "translation": "Nome do grupo"
-  },
-  "c64518704c": {
-    "translation": "Uso"
   },
   "c655b27b1e": {
     "translation": "i18n: Corda longa"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "Só invitar"
   },
-  "dc30bc0c79": {
-    "translation": "Limpar"
-  },
   "dcdaa754fe": {
     "translation": "URL de ficheiro tldraw non válida"
   },
   "dfdb78a4e4": {
     "translation": "Marcadores de depuración de aplicacións"
-  },
-  "e062622261": {
-    "translation": "Seleccionar"
   },
   "e0c88179b3": {
     "translation": "Convidar membros"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "Condicións do servizo"
-  },
-  "e43ec38a93": {
-    "translation": "Ir a"
   },
   "e81c4e4f2b": {
     "translation": "ou"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "Lea a nosa <a>política de cookies</a> para obter máis información."
   },
-  "eee6f05922": {
-    "translation": "Disolver"
-  },
   "ef53538ae4": {
     "translation": "Membros"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "Configuración do usuario"
-  },
-  "f1206f9fad": {
-    "translation": "Configurar"
   },
   "f2569594b2": {
     "translation": "Usamos estas cookies para gardar os teus ficheiros e a túa configuración."

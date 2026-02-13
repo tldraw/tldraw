@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "Naabot na ng file na ito ang limitasyon sa laki nito at maaaring hindi na ma-save ang mga pagbabago. Mag-alis ng ilang content o magsimula ng bagong file."
   },
-  "0ab1ef22a3": {
-    "translation": "Makipag-usap sa grupo..."
-  },
   "0b27918290": {
     "translation": "file"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "I-publish"
-  },
-  "11a755d598": {
-    "translation": "Tumigil ka"
   },
   "129b9e34ea": {
     "translation": "Umalis sa grupo"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "Tungkol sa tldraw"
   },
-  "284d5cd0dd": {
-    "translation": "modelo:"
-  },
   "299cb00a7a": {
     "translation": "Nabigo ang pag-upload"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34e34c43ec": {
-    "translation": "Pamahalaan"
-  },
-  "3596c1b1f7": {
-    "translation": "I-unfollow"
-  },
-  "3903aab323": {
-    "translation": "Sundin"
-  },
-  "3b6c2b4caa": {
-    "translation": "Mga Tuntunin ng Serbisyo"
   },
   "3bc7d6ea2f": {
     "translation": "Magpatuloy sa email"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "Pangalan"
   },
-  "4c41e0bd95": {
-    "translation": "Piliin lahat"
-  },
   "4d0d3ddec9": {
     "translation": "Gumagamit ang site na ito ng cookies para gumana ang app at para mangolekta ng analytics."
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "Tanggalin ang pangkat…"
-  },
-  "4dab36ac83": {
-    "translation": "Higit pang mga pagpipilian"
   },
   "4e6fbf032b": {
     "translation": "Sigurado ka bang gusto mong tanggalin ang pangkat na ito? Ang pagkilos na ito ay hindi maaaring i-undo."
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "Patakaran sa privacy"
   },
-  "5a2ccdc00a": {
-    "translation": "Nabigong ma-redeem ang code ng imbitasyon"
-  },
   "5a86b22fa0": {
     "translation": "I-drag ang mga file dito, <create>lumikha ng file</create>, o <invite>copy invite link</invite> para makapagsimula."
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "Mamaya"
   },
-  "61daf2e53d": {
-    "translation": "Kausapin si {name}..."
-  },
   "625fd29749": {
     "translation": "Mas matanda"
   },
   "639bae9ac6": {
     "translation": "ikaw"
-  },
-  "6602bbeb29": {
-    "translation": "Patnubay"
   },
   "6609dd239e": {
     "translation": "Nagkaproblema"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "Ilagay ang iyong email address"
-  },
-  "68d390535e": {
-    "translation": "Ilagay ang iyong mensahe"
   },
   "6a26f54883": {
     "translation": "Tulong"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "May bug, isyu, o ideya para sa tldraw? Ipaalam sa amin! Punan ang form na ito at susubaybayan namin ang email kung kinakailangan. Maaari ka ring <discord>makipag-chat sa amin sa Discord</discord> o <github>magsumite ng isyu sa GitHub</github>."
   },
-  "81aa2078d1": {
-    "translation": "I-clear lahat"
-  },
-  "83218ac34c": {
-    "translation": "Maligayang pagdating"
-  },
   "85a082de1b": {
     "translation": "Paki-refresh ang page para makuha ang pinakabagong bersyon ng tldraw."
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "Palitan ang pangalan ng file"
   },
-  "8726ef8909": {
-    "translation": "Hard reset"
-  },
   "8ad4303b83": {
     "translation": "Hindi salamat"
   },
   "8c2d3d730c": {
     "translation": "Tingnan ang iyong email para sa isang verification code."
   },
-  "8cf04a9734": {
-    "translation": "Bahay"
-  },
   "8eb2c00e96": {
     "translation": "Ibinahagi sa iyo"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Tungkol sa"
   },
   "8ff3d0a705": {
     "translation": "Limitado ang rate"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "Kinopya ang link ng imbitasyon"
   },
-  "94186070ef": {
-    "translation": "Alisin sa pagkakapili"
-  },
   "9489b2f82a": {
     "translation": "Miyembro ka na ng grupong ito"
-  },
-  "94966d9074": {
-    "translation": "Ipadala"
   },
   "95aacd4d4a": {
     "translation": "Mag-sign in gamit ang Google"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "Liwanag"
-  },
-  "9953e9946b": {
-    "translation": "Pag-debug ng view"
   },
   "9b33f5c63c": {
     "translation": "Hindi nakatanggap ng code? <resend>Muling ipadala</resend>."
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "I-export ang larawan"
   },
-  "a286d9991c": {
-    "translation": "Sumali"
-  },
   "a3debabee7": {
     "translation": "Patakaran sa cookie"
   },
   "a4d3b161ce": {
     "translation": "Isumite"
-  },
-  "a603905470": {
-    "translation": "I-debug"
   },
   "a6cc403d56": {
     "translation": "Sinumang may link"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "Lumalaki ang file"
-  },
-  "a917baaf14": {
-    "translation": "Bagong chat"
   },
   "a9ded1e5ce": {
     "translation": "Background"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "Puno na ang file"
-  },
-  "b34a671e2c": {
-    "translation": "Mag-log ng oras ng pagtugon"
   },
   "b357b524e7": {
     "translation": "Email address"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "Hindi ma-publish ang file."
   },
-  "c3bf447eab": {
-    "translation": "Bukas"
-  },
-  "c3eb5c3b90": {
-    "translation": "naiintindihan ko"
-  },
   "c4b39a1cc3": {
     "translation": "Mahahalagang cookies"
   },
-  "c54a624f46": {
-    "translation": "Tanggapin ang imbitasyon"
-  },
   "c6155aaecc": {
     "translation": "Pangalan ng grupo"
-  },
-  "c64518704c": {
-    "translation": "Paggamit"
   },
   "c655b27b1e": {
     "translation": "i18n: Mahabang String"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "Mag-imbita lang"
   },
-  "dc30bc0c79": {
-    "translation": "Maaliwalas"
-  },
   "dcdaa754fe": {
     "translation": "Di-wastong tldraw file URL"
   },
   "dfdb78a4e4": {
     "translation": "Mga flag ng pag-debug ng app"
-  },
-  "e062622261": {
-    "translation": "Pumili"
   },
   "e0c88179b3": {
     "translation": "Mag-imbita ng mga miyembro"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "Mga tuntunin ng serbisyo"
-  },
-  "e43ec38a93": {
-    "translation": "Pumunta sa"
   },
   "e81c4e4f2b": {
     "translation": "o"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "Basahin ang aming <a>patakaran sa cookie</a> upang matuto nang higit pa."
   },
-  "eee6f05922": {
-    "translation": "Disband"
-  },
   "ef53538ae4": {
     "translation": "Mga miyembro"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "Mga setting ng user"
-  },
-  "f1206f9fad": {
-    "translation": "I-configure"
   },
   "f2569594b2": {
     "translation": "Ginagamit namin ang cookies na ito para i-save ang iyong mga file at setting."

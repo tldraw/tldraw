@@ -51,12 +51,6 @@
       "value": "Acest fișier a atins limita de dimensiune și este posibil ca modificările să nu mai fie salvate. Eliminați o parte din conținut sau începeți un fișier nou."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Vorbește cu grupul…"
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -79,12 +73,6 @@
     {
       "type": 0,
       "value": "Publica"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Stop"
     }
   ],
   "129b9e34ea": [
@@ -153,12 +141,6 @@
       "value": "Despre tldraw"
     }
   ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Model:"
-    }
-  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -205,30 +187,6 @@
     {
       "type": 0,
       "value": "Editor"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Gestionează"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "Nu urmăriți"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Urmărește"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Termeni și condiții"
     }
   ],
   "3bc7d6ea2f": [
@@ -309,12 +267,6 @@
       "value": "Nume"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Selectați tot"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -331,12 +283,6 @@
     {
       "type": 0,
       "value": "Ștergeți grupul…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Mai multe opțiuni"
     }
   ],
   "4e6fbf032b": [
@@ -401,12 +347,6 @@
     {
       "type": 0,
       "value": "Politica de confidențialitate"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Codul de invitație nu a putut fi valorificat"
     }
   ],
   "5a86b22fa0": [
@@ -491,20 +431,6 @@
       "value": "Mai târziu"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "Vorbește cu "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -515,12 +441,6 @@
     {
       "type": 0,
       "value": "tu"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Ghid"
     }
   ],
   "6609dd239e": [
@@ -539,12 +459,6 @@
     {
       "type": 0,
       "value": "Introdu adresa ta de e-mail"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Introdu mesajul tău"
     }
   ],
   "6a26f54883": [
@@ -737,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Ștergeți tot"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Bun venit"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -775,12 +677,6 @@
       "value": "Redenumiți fișierul"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Resetare completă"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -793,22 +689,10 @@
       "value": "Verifică-ți e-mailul pentru un cod de verificare."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Acasă"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Împărtășită cu tine"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "Despre"
     }
   ],
   "8ff3d0a705": [
@@ -841,22 +725,10 @@
       "value": "Link de invitație copiat"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Deselectați"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Ești deja membru al acestui grup"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Trimite"
     }
   ],
   "95aacd4d4a": [
@@ -893,12 +765,6 @@
     {
       "type": 0,
       "value": "Aprinde"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Vizualizare de depanare"
     }
   ],
   "9b33f5c63c": [
@@ -975,12 +841,6 @@
       "value": "Exportați imaginea"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Alătură-te"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -991,12 +851,6 @@
     {
       "type": 0,
       "value": "Trimiteți"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Depanare"
     }
   ],
   "a6cc403d56": [
@@ -1015,12 +869,6 @@
     {
       "type": 0,
       "value": "Fișierul devine mare"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Chat nou"
     }
   ],
   "a9ded1e5ce": [
@@ -1057,12 +905,6 @@
     {
       "type": 0,
       "value": "Fișierul este plin"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Timp de răspuns în jurnal"
     }
   ],
   "b357b524e7": [
@@ -1195,40 +1037,16 @@
       "value": "Nu se poate publica fișierul."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Deschide"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "Am înțeles"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Cookie-uri esențiale"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Acceptă invitația"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Numele grupului"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Utilizare"
     }
   ],
   "c655b27b1e": [
@@ -1373,12 +1191,6 @@
       "value": "Numai cu invitație"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Clar"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
@@ -1389,12 +1201,6 @@
     {
       "type": 0,
       "value": "Indicatori de depanare a aplicației"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Selecta"
     }
   ],
   "e0c88179b3": [
@@ -1425,12 +1231,6 @@
     {
       "type": 0,
       "value": "Termeni și condiții"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Mergi la"
     }
   ],
   "e81c4e4f2b": [
@@ -1501,12 +1301,6 @@
       "value": " pentru a afla mai multe."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Dizolva"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1529,12 +1323,6 @@
     {
       "type": 0,
       "value": "Setări utilizator"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Configurați"
     }
   ],
   "f2569594b2": [

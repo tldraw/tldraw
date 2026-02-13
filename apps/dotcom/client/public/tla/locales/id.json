@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "Berkas ini telah mencapai batas ukuran dan perubahan mungkin tidak dapat disimpan lagi. Hapus sebagian konten atau buat berkas baru."
   },
-  "0ab1ef22a3": {
-    "translation": "Bicaralah kepada kelompok…"
-  },
   "0b27918290": {
     "translation": "File"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "Terbitkan"
-  },
-  "11a755d598": {
-    "translation": "Berhenti"
   },
   "129b9e34ea": {
     "translation": "Keluar dari grup"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "Tentang tldraw"
   },
-  "284d5cd0dd": {
-    "translation": "Model:"
-  },
   "299cb00a7a": {
     "translation": "Pengunggahan gagal"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34e34c43ec": {
-    "translation": "Mengelola"
-  },
-  "3596c1b1f7": {
-    "translation": "Berhenti mengikuti"
-  },
-  "3903aab323": {
-    "translation": "Mengikuti"
-  },
-  "3b6c2b4caa": {
-    "translation": "Ketentuan Layanan"
   },
   "3bc7d6ea2f": {
     "translation": "Lanjutkan dengan email"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "Nama"
   },
-  "4c41e0bd95": {
-    "translation": "Pilih semua"
-  },
   "4d0d3ddec9": {
     "translation": "Situs ini menggunakan cookie untuk membuat aplikasi berfungsi dan mengumpulkan analitik."
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "Hapus grup…"
-  },
-  "4dab36ac83": {
-    "translation": "Lebih banyak pilihan"
   },
   "4e6fbf032b": {
     "translation": "Yakin ingin menghapus grup ini? Tindakan ini tidak dapat dibatalkan."
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "Kebijakan privasi"
   },
-  "5a2ccdc00a": {
-    "translation": "Gagal menebus kode undangan"
-  },
   "5a86b22fa0": {
     "translation": "Seret file ke sini, <create>buat file</create>,create atau <invite>salin tautan undangan</invite> untuk memulai."
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "Nanti"
   },
-  "61daf2e53d": {
-    "translation": "Bicaralah dengan {name}…"
-  },
   "625fd29749": {
     "translation": "Lebih lama"
   },
   "639bae9ac6": {
     "translation": "Anda"
-  },
-  "6602bbeb29": {
-    "translation": "Memandu"
   },
   "6609dd239e": {
     "translation": "Terjadi kesalahan"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "Masukkan alamat email Anda"
-  },
-  "68d390535e": {
-    "translation": "Masukkan pesan Anda"
   },
   "6a26f54883": {
     "translation": "Bantuan"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "Punya bug, masalah, atau ide untuk tldraw? Beri tahu kami! Isi formulir ini dan kami akan menindaklanjutinya melalui email jika diperlukan. Anda juga dapat <discord>mengobrol dengan kami di Discord</discord> atau <github>mengajukan masalah di GitHub</github>."
   },
-  "81aa2078d1": {
-    "translation": "Hapus semua"
-  },
-  "83218ac34c": {
-    "translation": "Selamat datang"
-  },
   "85a082de1b": {
     "translation": "Muat ulang halaman untuk mendapatkan versi terbaru tldraw."
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "Ganti nama berkas"
   },
-  "8726ef8909": {
-    "translation": "Reset keras"
-  },
   "8ad4303b83": {
     "translation": "Tidak, terima kasih"
   },
   "8c2d3d730c": {
     "translation": "Periksa email Anda untuk mendapatkan kode verifikasi."
   },
-  "8cf04a9734": {
-    "translation": "Rumah"
-  },
   "8eb2c00e96": {
     "translation": "Dibagikan kepada Anda"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Tentang"
   },
   "8ff3d0a705": {
     "translation": "Laju dibatasi"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "Salin tautan undangan"
   },
-  "94186070ef": {
-    "translation": "Batalkan pilihan"
-  },
   "9489b2f82a": {
     "translation": "Anda sudah menjadi anggota grup ini"
-  },
-  "94966d9074": {
-    "translation": "Mengirim"
   },
   "95aacd4d4a": {
     "translation": "Masuk dengan Google"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "Cahaya"
-  },
-  "9953e9946b": {
-    "translation": "Tampilan debug"
   },
   "9b33f5c63c": {
     "translation": "Tidak menerima kode? <resend>Kirim ulang</resend>."
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "Ekspor gambar"
   },
-  "a286d9991c": {
-    "translation": "Bergabung"
-  },
   "a3debabee7": {
     "translation": "Kebijakan cookie"
   },
   "a4d3b161ce": {
     "translation": "Kirim"
-  },
-  "a603905470": {
-    "translation": "Debug"
   },
   "a6cc403d56": {
     "translation": "Siapa pun yang memiliki tautan"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "File menjadi besar"
-  },
-  "a917baaf14": {
-    "translation": "Obrolan baru"
   },
   "a9ded1e5ce": {
     "translation": "Latar belakang"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "File sudah penuh"
-  },
-  "b34a671e2c": {
-    "translation": "Catat waktu respons"
   },
   "b357b524e7": {
     "translation": "Alamat email"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "Tidak dapat menerbitkan file."
   },
-  "c3bf447eab": {
-    "translation": "Membuka"
-  },
-  "c3eb5c3b90": {
-    "translation": "saya mengerti"
-  },
   "c4b39a1cc3": {
     "translation": "Cookie penting"
   },
-  "c54a624f46": {
-    "translation": "Terima undangan"
-  },
   "c6155aaecc": {
     "translation": "Nama grup"
-  },
-  "c64518704c": {
-    "translation": "Penggunaan"
   },
   "c655b27b1e": {
     "translation": "i18n: Deret Panjang"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "Hanya mengundang"
   },
-  "dc30bc0c79": {
-    "translation": "Jernih"
-  },
   "dcdaa754fe": {
     "translation": "URL file tldraw tidak valid"
   },
   "dfdb78a4e4": {
     "translation": "Bendera debug aplikasi"
-  },
-  "e062622261": {
-    "translation": "Memilih"
   },
   "e0c88179b3": {
     "translation": "Undang anggota"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "Ketentuan Layanan"
-  },
-  "e43ec38a93": {
-    "translation": "Pergi ke"
   },
   "e81c4e4f2b": {
     "translation": "atau"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "Baca <a>kebijakan cookie</a> kami untuk mempelajari lebih lanjut."
   },
-  "eee6f05922": {
-    "translation": "Bubar"
-  },
   "ef53538ae4": {
     "translation": "Anggota"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "Pengaturan pengguna"
-  },
-  "f1206f9fad": {
-    "translation": "Konfigurasi"
   },
   "f2569594b2": {
     "translation": "Kami menggunakan cookie ini untuk menyimpan berkas dan pengaturan Anda."

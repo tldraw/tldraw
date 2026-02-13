@@ -51,12 +51,6 @@
       "value": "Questo file ha raggiunto il limite di dimensione e le modifiche potrebbero non essere più salvate. Rimuovi parte del contenuto o crea un nuovo file."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Parla con il gruppo…"
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -79,12 +73,6 @@
     {
       "type": 0,
       "value": "Pubblica"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Fermare"
     }
   ],
   "129b9e34ea": [
@@ -153,12 +141,6 @@
       "value": "Informazioni su tldraw"
     }
   ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Modello:"
-    }
-  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -205,30 +187,6 @@
     {
       "type": 0,
       "value": "Editor"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Maneggio"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "Non seguire più"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Seguire"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Termini di servizio"
     }
   ],
   "3bc7d6ea2f": [
@@ -309,12 +267,6 @@
       "value": "Nome"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Seleziona tutto"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -331,12 +283,6 @@
     {
       "type": 0,
       "value": "Elimina gruppo…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Altre opzioni"
     }
   ],
   "4e6fbf032b": [
@@ -401,12 +347,6 @@
     {
       "type": 0,
       "value": "Politica sulla riservatezza"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Impossibile riscattare il codice di invito"
     }
   ],
   "5a86b22fa0": [
@@ -491,20 +431,6 @@
       "value": "Più tardi"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "Parla con "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -515,12 +441,6 @@
     {
       "type": 0,
       "value": "Voi"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Guida"
     }
   ],
   "6609dd239e": [
@@ -539,12 +459,6 @@
     {
       "type": 0,
       "value": "Inserisci il tuo indirizzo email"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Inserisci il tuo messaggio"
     }
   ],
   "6a26f54883": [
@@ -737,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Cancella tutto"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Benvenuto"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -775,12 +677,6 @@
       "value": "Rinomina file"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Ripristino completo"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -793,22 +689,10 @@
       "value": "Controlla la tua email per un codice di verifica."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Casa"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Condivisi con te"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "Di"
     }
   ],
   "8ff3d0a705": [
@@ -841,22 +725,10 @@
       "value": "Link di invito copiato"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Deseleziona"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Sei già un membro di questo gruppo"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Inviare"
     }
   ],
   "95aacd4d4a": [
@@ -893,12 +765,6 @@
     {
       "type": 0,
       "value": "Chiaro"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Vista di debug"
     }
   ],
   "9b33f5c63c": [
@@ -975,12 +841,6 @@
       "value": "Esporta immagine"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Giuntura"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -991,12 +851,6 @@
     {
       "type": 0,
       "value": "Invia"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Debug"
     }
   ],
   "a6cc403d56": [
@@ -1015,12 +869,6 @@
     {
       "type": 0,
       "value": "Il file sta diventando grande"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Nuova chat"
     }
   ],
   "a9ded1e5ce": [
@@ -1057,12 +905,6 @@
     {
       "type": 0,
       "value": "Il file è pieno"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Tempo di risposta del registro"
     }
   ],
   "b357b524e7": [
@@ -1191,40 +1033,16 @@
       "value": "Impossibile pubblicare il file."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Aprire"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "Capisco"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Cookie essenziali"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Accetta l'invito"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Nome del gruppo"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Utilizzo"
     }
   ],
   "c655b27b1e": [
@@ -1369,12 +1187,6 @@
       "value": "Solo su invito"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Chiaro"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
@@ -1385,12 +1197,6 @@
     {
       "type": 0,
       "value": "Flag di debug dell'app"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Selezionare"
     }
   ],
   "e0c88179b3": [
@@ -1421,12 +1227,6 @@
     {
       "type": 0,
       "value": "Termini di servizio"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Vai a"
     }
   ],
   "e81c4e4f2b": [
@@ -1497,12 +1297,6 @@
       "value": "."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Sciogliere"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1525,12 +1319,6 @@
     {
       "type": 0,
       "value": "Impostazioni utente"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Configurare"
     }
   ],
   "f2569594b2": [

@@ -51,12 +51,6 @@
       "value": "Faylkan waxa uu gaadhay xadka cabbirkiisa waxaana laga yaabaa in isbeddelada aan la kaydin. Ka saar qaar ka mid ah nuxurka ama bilow fayl cusub."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "La hadal kooxda..."
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -79,12 +73,6 @@
     {
       "type": 0,
       "value": "Daabac"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Jooji"
     }
   ],
   "129b9e34ea": [
@@ -153,12 +141,6 @@
       "value": "Ku saabsan tldraw"
     }
   ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Qaabka:"
-    }
-  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -205,30 +187,6 @@
     {
       "type": 0,
       "value": "Tafatire"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Maamul"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "Lasoco"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Raac"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Shuruudaha Adeegga"
     }
   ],
   "3bc7d6ea2f": [
@@ -309,12 +267,6 @@
       "value": "Magaca"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Dhammaan dooro"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -331,12 +283,6 @@
     {
       "type": 0,
       "value": "Tirtir kooxda…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Ikhtiyaar badan"
     }
   ],
   "4e6fbf032b": [
@@ -401,12 +347,6 @@
     {
       "type": 0,
       "value": "Siyaasada gaarka ah"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Ku guuldarraystay inuu soo furto summada martiqaadka"
     }
   ],
   "5a86b22fa0": [
@@ -491,20 +431,6 @@
       "value": "Ka dib"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "La hadal "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -515,12 +441,6 @@
     {
       "type": 0,
       "value": "adiga"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Hagaha"
     }
   ],
   "6609dd239e": [
@@ -539,12 +459,6 @@
     {
       "type": 0,
       "value": "Geli ciwaanka iimaylkaaga"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Geli fariintaada"
     }
   ],
   "6a26f54883": [
@@ -737,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Nadiifi dhammaan"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Soo dhawoow"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -775,12 +677,6 @@
       "value": "Magaca beddelo faylka"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Dib u dejin adag"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -793,22 +689,10 @@
       "value": "Hubi iimaylkaga koodka xaqiijinta"
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Guriga"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "kula wadaagay"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "Ku saabsan"
     }
   ],
   "8ff3d0a705": [
@@ -841,22 +725,10 @@
       "value": "Xiriirinta martiqaadka oo la guuriyay"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Ha dooran"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Horay ayaad xubin uga ahayd kooxdan"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Dir"
     }
   ],
   "95aacd4d4a": [
@@ -893,12 +765,6 @@
     {
       "type": 0,
       "value": "Iftiin"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Aragtida qaladka"
     }
   ],
   "9b33f5c63c": [
@@ -975,12 +841,6 @@
       "value": "Dhoofinta sawirka"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Ku biir"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -991,12 +851,6 @@
     {
       "type": 0,
       "value": "Gudbi"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Ciribtirka"
     }
   ],
   "a6cc403d56": [
@@ -1015,12 +869,6 @@
     {
       "type": 0,
       "value": "Faylku wuu weynaaday"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Sheeko cusub"
     }
   ],
   "a9ded1e5ce": [
@@ -1057,12 +905,6 @@
     {
       "type": 0,
       "value": "Faylku wuu buuxaa"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Log waqtiga jawaabta"
     }
   ],
   "b357b524e7": [
@@ -1191,40 +1033,16 @@
       "value": "Aan awoodin in la daabaco faylka"
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Furan"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "waan fahmay"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Kukiyada muhiimka ah"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Aqbal martiqaadka"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Magaca kooxda"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Isticmaalka"
     }
   ],
   "c655b27b1e": [
@@ -1369,12 +1187,6 @@
       "value": "martiqaad kaliya"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Cad"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
@@ -1385,12 +1197,6 @@
     {
       "type": 0,
       "value": "Calaamadaha cilladaha abka"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Dooro"
     }
   ],
   "e0c88179b3": [
@@ -1421,12 +1227,6 @@
     {
       "type": 0,
       "value": "Shuruudaha adeegga"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Tag"
     }
   ],
   "e81c4e4f2b": [
@@ -1493,12 +1293,6 @@
       "value": "a"
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Kala dir"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1521,12 +1315,6 @@
     {
       "type": 0,
       "value": "Dejinta isticmaalaha"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Habee"
     }
   ],
   "f2569594b2": [

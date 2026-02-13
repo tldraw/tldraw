@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Run our setup
         uses: ./.github/actions/setup
@@ -53,7 +53,7 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GIT_COMMIT: ${{ github.sha }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: playwright-report
