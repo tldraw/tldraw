@@ -41,7 +41,7 @@ jobs:
       #     content: 'Preparing ${{ env.TLDRAW_ENV }} dotcom deploy: ${{ github.event.head_commit.message }} by ${{ github.event.head_commit.author.name }}'
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 0
@@ -78,7 +78,7 @@ jobs:
       - id: create-branch
         # only run on PR branches
         if: github.event_name == 'pull_request'
-        uses: neondatabase/create-branch-action@v5
+        uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           username: 'dotcom_owner'
@@ -96,7 +96,7 @@ jobs:
 
       - name: Configure AWS credentials using OIDC
         if: env.DEPLOY_ZERO == 'sst'
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_NUMBER }}:role/huppy-bot
           aws-region: ${{ env.AWS_REGION }}
