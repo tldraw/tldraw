@@ -51,14 +51,14 @@ New select dropdown primitive wrapping Radix UI's Select, following existing tld
 
 ```tsx
 <TldrawUiSelect value={value} onValueChange={setValue}>
-  <TldrawUiSelectTrigger>
-    <TldrawUiSelectValue placeholder="Select...">{value}</TldrawUiSelectValue>
-  </TldrawUiSelectTrigger>
-  <TldrawUiSelectContent>
-    <TldrawUiSelectItem value="small" label="Small" icon="size-small" />
-    <TldrawUiSelectItem value="medium" label="Medium" icon="size-medium" />
-    <TldrawUiSelectItem value="large" label="Large" icon="size-large" />
-  </TldrawUiSelectContent>
+	<TldrawUiSelectTrigger>
+		<TldrawUiSelectValue placeholder="Select...">{value}</TldrawUiSelectValue>
+	</TldrawUiSelectTrigger>
+	<TldrawUiSelectContent>
+		<TldrawUiSelectItem value="small" label="Small" icon="size-small" />
+		<TldrawUiSelectItem value="medium" label="Medium" icon="size-medium" />
+		<TldrawUiSelectItem value="large" label="Large" icon="size-large" />
+	</TldrawUiSelectContent>
 </TldrawUiSelect>
 ```
 
@@ -70,6 +70,7 @@ New select dropdown primitive wrapping Radix UI's Select, following existing tld
 <summary>Migration guide</summary>
 
 Before:
+
 ```ts
 canBind({ fromShapeType, toShapeType }) {
   return fromShapeType !== 'group'
@@ -77,6 +78,7 @@ canBind({ fromShapeType, toShapeType }) {
 ```
 
 After:
+
 ```ts
 canBind({ fromShape, toShape }) {
   return fromShape.type !== 'group'
