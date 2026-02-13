@@ -97,10 +97,10 @@ jobs:
           restore-keys: |
             build-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', 'lazy.config.ts') }}-
 
-      - name: Build all projects
+      - name: Build packages
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
-        run: "yarn build | sed -E 's/^.*? ::/::/'"
+        run: "yarn build-package | sed -E 's/^.*? ::/::/'"
 
       - name: Pack public packages
         run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"
