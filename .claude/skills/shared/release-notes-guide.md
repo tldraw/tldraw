@@ -61,6 +61,8 @@ Also skip:
 - Reverts, unless they fix something user-facing
 - Fixes for bugs introduced in the same release cycle (i.e., the bug was caused by a PR that is also in `next.mdx` and was not in the previous release)
 
+When a PR is reverted, also remove the original PR's entry from `next.mdx` if it is present.
+
 ## Team members (do not credit)
 
 angrycaptain19, AniKrisn, ds300, kostyafarber, max-dra, mimecuvalo, MitjaBezensek, profdl, Siobhantldraw, steveruizok, tldrawdaniel, huppy-bot, github-actions, Somehats, todepond, Taha-Hassan-Git, alex-mckenna-1, max-drake
