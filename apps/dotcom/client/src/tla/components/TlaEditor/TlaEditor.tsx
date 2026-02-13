@@ -21,6 +21,7 @@ import {
 	useEvent,
 	useValue,
 } from 'tldraw'
+import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
@@ -250,6 +251,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
+				<SneakyMermaidHandler />
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
