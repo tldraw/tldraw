@@ -360,7 +360,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		)
 	}
 
-	override async webSocketClose(ws: WebSocket, _code: number, _reason: string, _wasClean: boolean) {
+	override async webSocketClose(ws: WebSocket, code: number, reason: string, _wasClean: boolean) {
+		// Must reciprocate the close to complete the handshake, otherwise clients get 1006 errors
+		ws.close(code, reason)
 		this.assemblers.delete(ws)
 	}
 
