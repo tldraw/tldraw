@@ -18,15 +18,15 @@ notes: "Strong problem framing and genuine insights (counter-rotating shadow, XO
 
 # Resize handles on rotated shapes
 
-When you select a shape on a canvas application, handles appear around it for resizing and rotating. Each handle gets a cursor that shows what dragging it would do—a double-headed arrow pointing in the resize direction, or a curved arrow for rotation.
+When you select a shape on a canvas application, handles should appear so that you can resize and rotate it. Each handle gets a cursor that shows what dragging it would do. This is usually a double-headed arrow pointing in the resize direction, or a curved arrow for rotation.
 
-Browsers provide these cursor icons (`nw-resize`, `e-resize`, etc.) but they're fixed at their predefined angles—you can't rotate them. So if a shape on your canvas app is rotated, the mismatch would look like this:
+Browsers provide resize cursor icons - but if a shape on your canvas app is rotated, the mismatch would look like this:
 
 [gif]
 
-In tldraw, like other canvas apps, the cursor rotates with the shape so it always matches the handle's direction. Getting this to feel right means handling a surprising number of small details—custom SVG cursors, counter-rotating shadows, flip logic, theming, and zoom. This post walks through them.
+In tldraw, like other canvas apps, the cursor rotates with the shape so it always matches the handle's direction. Getting this to feel right meant handling a surprising number of small details—custom SVG cursors, counter-rotating shadows, flip logic, theming, and zoom. We walk through these details below.
 
-## Browsers give you eight cursors
+## Cursors in the browser
 
 The CSS `cursor` property gives you eight fixed orientations for resize cursors: `nwse-resize` and `nesw-resize` for diagonals, and `ew-resize` and `ns-resize` for edges:
 
@@ -34,13 +34,9 @@ The CSS `cursor` property gives you eight fixed orientations for resize cursors:
 
 When shapes are aligned with the axes of the page, the cursors are positioned correctly - but as soon as a shape rotates, the cursor becomes misleading. A handle at the visual "top" of a 45-degree rotated square should show the same `ns-resize` cursor, but rotated by 45 degrees.
 
-We could snap to the nearest of the eight available angles, but that creates jarring jumps as rotation crosses thresholds. A shape rotating smoothly from 0 to 90 degrees would cause the cursor to suddenly flip from one diagonal to another. And for rotations near 22.5, 67.5, or other midpoints between the fixed angles, you'd always be visibly wrong.
+## Text all the way down
 
-## SVG in a data URI
-
-The CSS `cursor` property does accept one escape hatch: the `url()` function. You can point it at a custom image. The obvious approach would be to pre-render cursor images at every angle—but that's hundreds of images, and you'd still be snapping to the nearest pre-rendered angle.
-
-SVG changes the equation. Because SVG is a text format, you can build it as a string, set the rotation to whatever angle you need, and generate a new cursor on the fly. And because browsers accept data URIs in `cursor: url(...)`, you can inline the whole thing—no files, no network requests, just a string in a style property.
+There's an escape hatch: the CSS `cursor` property accepts a `url()` pointing to a custom image. Since SVG is a text format, you can build it as a string, set the rotation to whatever angle you need, and then generate a new cursor for that angle. Browsers accept data URIs in `cursor: url(...)`, so you can inline the whole thing without needing to serve any files.
 
 ```typescript
 function getCursorCss(
@@ -52,10 +48,10 @@ function getCursorCss(
 	hotspotX = 16,
 	hotspotY = 16
 ) {
-	const a = (-tr - r) * (PI / 180) // Convert to radians
+	const a = (-tr - r) * (PI / 180)
 	const s = Math.sin(a)
 	const c = Math.cos(a)
-	const dx = 1 * c - 1 * s // Rotated drop shadow offset
+	const dx = 1 * c - 1 * s
 	const dy = 1 * s + 1 * c
 
 	return `url("data:image/svg+xml,<svg height='32' width='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg' style='color: ${color};'>
@@ -71,23 +67,27 @@ function getCursorCss(
 }
 ```
 
-The cursor canvas is 32x32 pixels, but since the cursors are SVG they scale cleanly to any display density. The hotspot sits at (16, 16)—the center—so the visual cursor graphic rotates around the point where the user is clicking.
+The cursor is 32x32 pixels, and since they're SVGs they can scale cleanly to any display density. The hotspot sits at (16, 16)—the center—so the visual cursor graphic rotates around the point where the user is clicking.
 
 The SVG content comes from predefined path strings for corner and edge handles:
 
 ```typescript
-const CORNER_SVG = `<path d='m19.7432 17.0869-4.072 4.068 2.829 2.828-8.473-.013-.013-8.47 2.841 2.842 4.075-4.068 1.414-1.415-2.844-2.842h8.486v8.484l-2.83-2.827z' fill='%23fff'/><path d='m18.6826 16.7334-4.427 4.424 1.828 1.828-5.056-.016-.014-5.054 1.842 1.841 4.428-4.422 2.474-2.475-1.844-1.843h5.073v5.071l-1.83-1.828z' fill='%23000'/>`
-
-const EDGE_SVG = `<path d='m9 17.9907v.005l5.997 5.996.001-3.999h1.999 2.02v4l5.98-6.001-5.98-5.999.001 4.019-2.021.002h-2l.001-4.022zm1.411.003 3.587-3.588-.001 2.587h3.5 2.521v-2.585l3.565 3.586-3.564 3.585-.001-2.585h-2.521l-3.499-.001-.001 2.586z' fill='%23fff'/><path d='m17.4971 18.9932h2.521v2.586l3.565-3.586-3.565-3.585v2.605h-2.521-3.5v-2.607l-3.586 3.587 3.586 3.586v-2.587z' fill='%23000'/>`
+const CORNER_SVG = `<path d='m19.7432 17.0869...' fill='%23fff'/><path d='m18.6826 16.7334...' fill='%23000'/>`
+const EDGE_SVG = `<path d='m9 17.9907...' fill='%23fff'/><path d='m17.4971 18.9932...' fill='%23000'/>`
+const ROTATE_CORNER_SVG = `<path d="M22.4789 9.45728..." fill="black"/><path d="M21.4789 7.03223..." fill="white"/>`
 ```
 
 Each SVG has a white outline and black fill to stay visible against any background. We wrap them in a group with a rotation transform: `rotate(${r + tr} 16 16)` rotates around the center point by the sum of the shape's rotation and any additional offset.
 
 ## The shadow always points down
 
-Cursors need drop shadows to stay readable—without one, a thin arrow can vanish against busy canvas content. But shadows introduce a subtle problem. A drop shadow has a direction: it falls down and to the right, matching the way light falls on screen UI. If we just rotated the entire SVG including the shadow filter, the shadow would rotate with the cursor graphic. A cursor rotated 180 degrees would have its shadow pointing upward, which looks wrong.
+There were a few lines in `getCursorCss` above that we didn't explain: the `dx` and `dy` shadow offset. Cursors need drop shadows to stay readable. Without this, a thin arrow can vanish against busy canvas content. But shadows introduce a subtle problem: a drop shadow has a direction - it falls down and to the right, matching the way light falls on screen UI from the top left of the screen. If we just rotated the entire SVG including the shadow filter, the shadow would rotate with the cursor graphic. A cursor rotated 180 degrees would have its shadow pointing upward, which looks wrong:
 
-We want the cursor graphic itself to rotate, but the shadow to always fall "downward" in screen space. The fix is to rotate the shadow's offset vector by the _negative_ of the cursor rotation:
+[gif]
+
+We want the cursor graphic to rotate, but the shadow to always fall "downward" in screen space. The shadow is defined as an SVG filter with a `dx` and `dy` offset—normally (1, 1), meaning one pixel right and one pixel down. But the filter sits inside the rotated `<g>` group, so its coordinate system rotates along with everything else. If the group rotates 180°, the filter's "down-right" becomes "up-left" in screen space.
+
+To fix this, we pre-rotate the shadow offset by the _negative_ of the cursor's rotation. Think of it this way: if the group is about to rotate 90° clockwise, we point the shadow offset 90° counter-clockwise. When the group's transform then applies on top, the two rotations cancel out and the shadow lands back at its original screen-space direction:
 
 ```typescript
 const a = (-tr - r) * (PI / 180) // Negate the rotation
@@ -97,9 +97,7 @@ const dx = 1 * c - 1 * s // Standard rotation matrix
 const dy = 1 * s + 1 * c
 ```
 
-This is a 2D rotation matrix applied to the vector (1, 1). When the cursor rotates, the shadow offset rotates in the opposite direction by the same amount, keeping the shadow in a consistent downward-right direction relative to the screen.
-
-The shadow is defined in the SVG filter as `<feDropShadow dx='${dx}' dy='${dy}' .../>`, using the calculated offset values. The result is a cursor that rotates freely while maintaining a consistent lighting direction.
+This is a 2D rotation applied to the vector (1, 1) — the shadow's default "one pixel right, one pixel down" offset. Since `a` is the _negation_ of the cursor's rotation, this rotates the offset backward by exactly the amount the SVG group will rotate forward. The two cancel out, and the shadow always lands at its original screen-space direction regardless of cursor angle.
 
 ## Cursor types and rotation offsets
 
@@ -149,80 +147,20 @@ The SVG rendering also receives the flip flag and applies a scale transform: `sc
 
 ## Theme and color
 
-A black cursor disappears on a dark canvas. The cursor SVGs already have both a white outline and a black fill for contrast, but the overall color needs to match the theme:
+A black cursor disappears on a dark canvas. Each cursor SVG has a white outline behind a black fill for contrast, but the overall color flips with the theme: white in dark mode, black in light mode.
 
-```typescript
-getCursor(type, rotation, isDarkMode ? 'white' : 'black')
-```
+[gif]
 
-In dark mode, cursors are white. In light mode, black. The SVG paths already have both colors—white outline, black fill—so they stay visible against any background. The `color` parameter sets the foreground color for the overall SVG, but the paths override it with explicit fills.
+## Zoom
 
-This theme awareness happens in a reactive hook:
-
-```typescript
-useQuickReactor(
-	'useCursor',
-	() => {
-		const { type, rotation } = editor.getInstanceState().cursor
-
-		if (STATIC_CURSORS.includes(type)) {
-			container.style.setProperty('--tl-cursor', `var(--tl-cursor-${type})`)
-			return
-		}
-
-		container.style.setProperty(
-			'--tl-cursor',
-			getCursor(type, rotation, isDarkMode ? 'white' : 'black')
-		)
-	},
-	[editor, container, isDarkMode]
-)
-```
-
-Static cursors like `pointer`, `grab`, and `text` use CSS variables. Only resize and rotate cursors get the dynamic SVG treatment.
-
-## Handle distance scales with zoom
-
-Resize handles sit directly on the selection box, but rotation cursors need to sit just outside each corner—close enough to discover, far enough to not overlap the resize handles.
-
-[img]
-
-The tricky part is zoom. If that gap were a fixed number of canvas units, it would balloon when you zoom in and vanish when you zoom out. We need it to stay the same visual size on screen regardless of zoom level:
+Handles and rotation zones need to stay the same visual size on screen regardless of zoom level. If their size were fixed in canvas units, they'd balloon when you zoom in and vanish when you zoom out. The fix is to divide by zoom:
 
 ```typescript
 const targetSize = (6 / zoom) * mobileHandleMultiplier
 ```
 
-Each rotation zone is an invisible rectangle, `targetSize * 3` wide and tall, positioned `targetSize * 3` beyond the corner:
+This single value controls the size of every handle and rotation zone. On touch devices, `mobileHandleMultiplier` bumps it up by 75% to accommodate finger taps.
 
-```typescript
-<rect
-  x={cx - targetSize * 3}
-  y={cy - targetSize * 3}
-  width={Math.max(1, targetSize * 3)}
-  height={Math.max(1, targetSize * 3)}
-/>
-```
+--
 
-At 2x zoom, `targetSize` is 3 canvas units. At 0.5x, it's 12. The rotation zones—and all the resize handles—scale inversely with zoom, staying the same visual size on screen. Zoom in on a shape and the handles don't grow to dominate the canvas. Zoom out and they don't shrink to subpixel invisibility.
-
-The same `targetSize` controls the resize handle hit areas (3× targetSize for corners, 2× for edges) and adjusts for touch input—on coarse pointer devices, `mobileHandleMultiplier` is 1.75, making handles 75% larger to accommodate finger taps.
-
-## The multi-selection compromise
-
-When multiple shapes with different rotations are selected together, showing a rotated cursor would be misleading—it couldn't match all the shapes. We show an unrotated cursor instead:
-
-```typescript
-this.editor.setCursor({
-	type: cursorType,
-	rotation: selected.length === 1 ? this.editor.getSelectionRotation() : 0,
-})
-```
-
-Single selection: cursor rotates with the shape. Multiple selection: cursor stays axis-aligned. This is a pragmatic choice—there's no "correct" cursor direction when shapes are rotated differently, so we fall back to the browser's standard cursors.
-
-## The tradeoff
-
-We traded native cursor rendering for rotational freedom. The browser's built-in cursors are pixel-perfect at their intended size and consistent across platforms. Our SVG cursors scale with DPI but might look slightly different across browsers, and every cursor update constructs a new data URI string—potentially many times per second during hover and resize.
-
-In practice, the cost is negligible. String construction is fast, browsers cache cursor rendering, and the whole implementation is about 30 lines. The payoff—correct rotation at any angle, consistent shadows, theme-aware colors, and flip handling—would be impossible with the browser's eight fixed cursors.
+All of this—counter-rotating shadows, XOR flip logic, theme colors, zoom-compensated hit areas—lives in a single function that builds a string. Each detail is small on its own, but together they're what makes the cursor feel like it belongs to the shape rather than floating above it.
