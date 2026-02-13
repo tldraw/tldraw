@@ -69,7 +69,6 @@ jobs:
             e2e/tests/file-not-found.spec.ts
         working-directory: apps/dotcom/client
         env:
-          E2E_WORKERS: 6
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
         if: ${{!contains(github.event.pull_request.labels.*.name, 'e2e-x10') }}
