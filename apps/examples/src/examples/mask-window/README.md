@@ -2,7 +2,18 @@
 title: Canvas mask
 component: ./MaskWindowExample.tsx
 category: use-cases
-keywords: [mask, window, clip]
+keywords:
+  [
+    mask,
+    clip,
+    clippath,
+    overlay,
+    selection bounds,
+    getselectionrotatedscreenbounds,
+    usequickreactor,
+    css,
+    viewport,
+  ]
 priority: 2
 ---
 

@@ -5,6 +5,12 @@ permissions:
 
 on:
   pull_request:
+    paths:
+      - 'apps/analytics-worker/**'
+      - 'internal/scripts/deploy-analytics.ts'
+      - 'internal/scripts/lib/deploy.ts'
+      - '.github/workflows/deploy-analytics.yml'
+      - '.github/actions/setup/**'
   push:
     branches:
       - main
@@ -29,7 +35,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           submodules: true
 

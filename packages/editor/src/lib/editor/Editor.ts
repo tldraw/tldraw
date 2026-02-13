@@ -109,7 +109,6 @@ import {
 	MIDDLE_MOUSE_BUTTON,
 	RIGHT_MOUSE_BUTTON,
 	STYLUS_ERASER_BUTTON,
-	ZOOM_TO_FIT_PADDING,
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
 import { getSvgAsImage } from '../exports/getSvgAsImage'
@@ -151,10 +150,17 @@ import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
+import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
-import { ShapeUtil, TLEditStartInfo, TLGeometryOpts, TLResizeMode } from './shapes/ShapeUtil'
+import {
+	ShapeUtil,
+	TLEditStartInfo,
+	TLGeometryOpts,
+	TLResizeMode,
+	TLShapeUtilCanBindOpts,
+} from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -229,10 +235,17 @@ export interface TLEditorOptions {
 	inferDarkMode?: boolean
 	/**
 	 * Options for the editor's camera.
+	 *
+	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-	textOptions?: TLTextOptions
 	options?: Partial<TldrawOptions>
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
@@ -290,12 +303,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		bindingUtils,
 		tools,
 		getContainer,
+		// needs to be here for backwards compatibility with TldrawEditor
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		cameraOptions,
-		textOptions,
 		initialState,
 		autoFocus,
 		inferDarkMode,
-		options,
+		options: _options,
+		// needs to be here for backwards compatibility with TldrawEditor
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		textOptions: _textOptions,
 		getShapeVisibility,
 		onDropOnCanvas,
 		fontAssetUrls,
@@ -304,6 +321,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._getShapeVisibility = getShapeVisibility
 		this._onDropOnCanvas = onDropOnCanvas
+
+		// Merge deprecated textOptions prop with options.text
+		// options.text takes precedence over the deprecated textOptions prop
+		const options = _textOptions ? { ..._options, text: _options?.text ?? _textOptions } : _options
 
 		this.options = { ...defaultTldrawOptions, ...options }
 
@@ -318,11 +339,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.snaps = new SnapManager(this)
 
+		this._spatialIndex = new SpatialIndexManager(this)
+		this.disposables.add(() => this._spatialIndex.dispose())
+
 		this.disposables.add(this.timers.dispose)
 
-		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
+		// Merge camera options: options.cameraOptions takes precedence over deprecated cameraOptions prop
+		this._cameraOptions.set({
+			...DEFAULT_CAMERA_OPTIONS,
+			...cameraOptions,
+			...options?.camera,
+		})
 
-		this._textOptions = atom('text options', textOptions ?? null)
+		this._textOptions = atom('text options', options?.text ?? null)
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())
@@ -449,6 +478,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const deletedShapeIds = new Set<TLShapeId>()
 		const invalidParents = new Set<TLShapeId>()
 		let invalidBindingTypes = new Set<TLBinding['type']>()
+
 		this.disposables.add(
 			this.sideEffects.registerOperationCompleteHandler(() => {
 				// this needs to be cleared here because further effects may delete more shapes
@@ -906,6 +936,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly snaps: SnapManager
+
+	private readonly _spatialIndex: SpatialIndexManager
 
 	/**
 	 * A manager for the any asynchronous events and making sure they're
@@ -2778,7 +2810,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the efficient zoom level. This returns the current zoom level if there are less than 300 shapes on the page,
+	 * Get the efficient zoom level. This returns the current zoom level if there are less than a certain number of shapes on the page,
 	 * otherwise it returns the debounced zoom level. This can be used to avoid expensive re-renders during camera movements.
 	 *
 	 * @public
@@ -3231,7 +3263,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToFit(opts?: TLCameraMoveOptions): this {
-		const ids = [...this.getCurrentPageShapeIds()]
+		const ids = [...this.getCurrentPageShapeIds()].filter((id) => !this.isShapeHidden(id))
 		if (ids.length <= 0) return this
 		const pageBounds = Box.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
 		this.zoomToBounds(pageBounds, opts)
@@ -3388,10 +3420,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const selectionPageBounds = this.getSelectionPageBounds()
 		if (selectionPageBounds) {
-			this.zoomToBounds(selectionPageBounds, {
-				targetZoom: Math.max(1, this.getZoomLevel()),
-				...opts,
-			})
+			const currentZoom = this.getZoomLevel()
+			// If already at 100%, zoom to fit the selection in the viewport
+			// Otherwise, zoom to 100% centered on the selection
+			if (Math.abs(currentZoom - 1) < 0.01) {
+				this.zoomToBounds(selectionPageBounds, opts)
+			} else {
+				this.zoomToBounds(selectionPageBounds, {
+					targetZoom: 1,
+					...opts,
+				})
+			}
 		}
 		return this
 	}
@@ -3448,7 +3487,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const viewportScreenBounds = this.getViewportScreenBounds()
 
-		const inset = opts?.inset ?? Math.min(ZOOM_TO_FIT_PADDING, viewportScreenBounds.width * 0.28)
+		const inset =
+			opts?.inset ?? Math.min(this.options.zoomToFitPadding, viewportScreenBounds.width * 0.28)
 
 		const baseZoom = this.getBaseZoom()
 		const zoomMin = cameraOptions.zoomSteps[0]
@@ -4178,22 +4218,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// unmount / remount in the DOM, which is expensive; and computing visibility is
 	// also expensive in large projects. For this reason, we use a second bounding
 	// box just for rendering, and we only update after the camera stops moving.
-	private _cameraState = atom('camera state', 'idle' as 'idle' | 'moving')
 	private _cameraStateTimeoutRemaining = 0
 	private _decayCameraStateTimeout(elapsed: number) {
 		this._cameraStateTimeoutRemaining -= elapsed
 		if (this._cameraStateTimeoutRemaining > 0) return
 		this.off('tick', this._decayCameraStateTimeout)
-		this._cameraState.set('idle')
+		this._setCameraState('idle')
 	}
 	private _tickCameraState() {
 		// always reset the timeout
 		this._cameraStateTimeoutRemaining = this.options.cameraMovingTimeoutMs
 		// If the state is idle, then start the tick
-		if (this._cameraState.__unsafe__getWithoutCapture() !== 'idle') return
-		this._cameraState.set('moving')
+		if (this.getInstanceState().cameraState !== 'idle') return
+		this._setCameraState('moving')
 		this._debouncedZoomLevel.set(unsafe__withoutCapture(() => this.getCamera().z))
 		this.on('tick', this._decayCameraStateTimeout)
+	}
+	private _setCameraState(cameraState: 'idle' | 'moving') {
+		this.updateInstanceState({ cameraState }, { history: 'ignore' })
 	}
 
 	/**
@@ -4207,7 +4249,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getCameraState() {
-		return this._cameraState.get()
+		return this.getInstanceState().cameraState
 	}
 
 	/**
@@ -5139,6 +5181,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _notVisibleShapes = notVisibleShapes(this)
+	private _culledShapesCache: Set<TLShapeId> | null = null
 
 	/**
 	 * Get culled shapes (those that should not render), taking into account which shapes are selected or editing.
@@ -5150,16 +5193,41 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const notVisibleShapes = this.getNotVisibleShapes()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const editingId = this.getEditingShapeId()
-		const culledShapes = new Set<TLShapeId>(notVisibleShapes)
+		const nextValue = new Set<TLShapeId>(notVisibleShapes)
 		// we don't cull the shape we are editing
 		if (editingId) {
-			culledShapes.delete(editingId)
+			nextValue.delete(editingId)
 		}
 		// we also don't cull selected shapes
 		selectedShapeIds.forEach((id) => {
-			culledShapes.delete(id)
+			nextValue.delete(id)
 		})
-		return culledShapes
+
+		// Cache optimization: return same Set object if contents unchanged
+		// This allows consumers to use === comparison and prevents unnecessary re-renders
+		const prevValue = this._culledShapesCache
+		if (prevValue) {
+			// If sizes differ, contents must differ
+			if (prevValue.size !== nextValue.size) {
+				this._culledShapesCache = nextValue
+				return nextValue
+			}
+
+			// Check if all elements are the same
+			for (const id of prevValue) {
+				if (!nextValue.has(id)) {
+					// Found a difference, update cache and return new set
+					this._culledShapesCache = nextValue
+					return nextValue
+				}
+			}
+
+			// Loop completed without finding differences - contents identical
+			return prevValue
+		}
+
+		this._culledShapesCache = nextValue
+		return nextValue
 	}
 
 	/**
@@ -5171,6 +5239,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let commonBounds: Box | undefined
 
 		this.getCurrentPageShapeIdsSorted().forEach((shapeId) => {
+			if (this.isShapeHidden(shapeId)) return
 			const bounds = this.getShapeMaskedPageBounds(shapeId)
 			if (!bounds) return
 			if (!commonBounds) {
@@ -5226,11 +5295,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
+		// Use larger margin for spatial search to account for edge distance checks
+		const searchMargin = Math.max(innerMargin, outerMargin, this.options.hitTestMargin / zoomLevel)
+		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, searchMargin)
+
 		const shapesToCheck = (
 			opts.renderingOnly
 				? this.getCurrentPageRenderingShapesSorted()
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
+			// Frames have labels positioned above the shape (outside bounds), so always include them
+			if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
+
 			if (
 				(shape.isLocked && !hitLocked) ||
 				this.isShapeHidden(shape) ||
@@ -5416,9 +5492,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
+		const margin = opts.margin ?? 0
+		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, margin)
+
+		// Get all page shapes in z-index order and filter to candidates that pass isPointInShape
+		// Frames are always checked because their labels can be outside their bounds
 		return this.getCurrentPageShapesSorted()
-			.filter((shape) => !this.isShapeHidden(shape) && this.isPointInShape(shape, point, opts))
+			.filter((shape) => {
+				if (this.isShapeHidden(shape)) return false
+				if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
+				return this.isPointInShape(shape, point, opts)
+			})
 			.reverse()
+	}
+
+	/**
+	 * Get shape IDs within the given bounds.
+	 *
+	 * Note: Uses shape page bounds only. Frames with labels outside their bounds
+	 * may not be included even if the label is within the search bounds.
+	 *
+	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
+	 * ```ts
+	 * const candidates = editor.getShapeIdsInsideBounds(bounds)
+	 * const sorted = editor.getCurrentPageShapesSorted().filter(s => candidates.has(s.id))
+	 * ```
+	 *
+	 * @param bounds - The bounds to search within.
+	 * @returns Unordered set of shape IDs within the given bounds.
+	 *
+	 * @public
+	 */
+	getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId> {
+		return this._spatialIndex.getShapeIdsInsideBounds(bounds)
 	}
 
 	/**
@@ -6180,7 +6286,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const toShapeType = typeof toShape === 'string' ? toShape : toShape.type
 		const bindingType = typeof binding === 'string' ? binding : binding.type
 
-		const canBindOpts = { fromShapeType, toShapeType, bindingType } as const
+		const canBindOpts: TLShapeUtilCanBindOpts = {
+			fromShape: typeof fromShape === 'string' ? { type: fromShape } : fromShape,
+			toShape: typeof toShape === 'string' ? { type: toShape } : toShape,
+			bindingType,
+			fromShapeType,
+			toShapeType,
+		}
 
 		if (fromShapeType === toShapeType) {
 			return this.getShapeUtil(fromShapeType).canBind(canBindOpts)
@@ -7773,6 +7885,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			initialShape: options.initialShape,
 			initialBounds: options.initialBounds,
 			isAspectRatioLocked: options.isAspectRatioLocked,
+			initialPageTransform: options.initialPageTransform,
 		})
 
 		// then if the shape is flipped in one axis only, we need to apply an extra rotation
@@ -8259,7 +8372,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		)
 		const sortedShapeIds = shapesToGroup.sort(sortByIndex).map((s) => s.id)
-		const pageBounds = Box.Common(compact(shapesToGroup.map((id) => this.getShapePageBounds(id))))
+		const childBounds = compact(shapesToGroup.map((shape) => this.getShapePageBounds(shape)))
+		const pageBounds = Box.Common(childBounds)
+
+		if (!pageBounds.isValid()) {
+			throw Error(`Editor.groupShapes: group bounds are invalid (NaN).`)
+		}
 
 		const { x, y } = pageBounds.point
 
@@ -9891,7 +10009,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Handles navigating to the content specified by the query param in the given URL.
 	 *
-	 * Use {@link Editor#createDeepLink} to create a URL with a deep link query param.
+	 * Use {@link Editor.createDeepLink} to create a URL with a deep link query param.
 	 *
 	 * If no URL is provided, it will look for the param in the current `window.location.href`.
 	 *
@@ -10350,9 +10468,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (inputs.getIsPinching()) return
 
 						if (!inputs.getIsEditing()) {
-							if (!this._selectedShapeIdsAtPointerDown.length) {
-								this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
-							}
+							// Always capture the current selection when pinch starts.
+							// This ensures Safari (which uses gesture events instead of wheel)
+							// doesn't restore a stale selection from an earlier pointer_down.
+							this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
 
 							this._didPinch = true
 
@@ -10474,7 +10593,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 								}
 							}
 
-							const zoom = cz + (delta ?? 0) * zoomSpeed * cz
+							// because we can't for sure detect whether a user is using a mouse or a trackpad,
+							// we need to check the input mode preference, and only invert the zoom direction
+							// if the user has specifically set it to a mouse.
+							const isZoomDirectionInverted =
+								(this.user.getUserPreferences().isZoomDirectionInverted && inputMode === 'mouse') ??
+								false
+							const deltaValue = delta ?? 0
+							const finalDelta = isZoomDirectionInverted ? -deltaValue : deltaValue
+
+							const zoom = cz + finalDelta * zoomSpeed * cz
 							this._setCamera(new Vec(cx + x / zoom - x / cz, cy + y / zoom - y / cz, zoom), {
 								immediate: true,
 							})
@@ -10654,6 +10782,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 								this.setCurrentTool(this._restoreToolId)
 							}
 						}
+
+						// Clear the stashed selection so the next pinch captures fresh state.
+						// This fixes Safari pinch zoom restoring outdated selections.
+						this._selectedShapeIdsAtPointerDown = []
+
 						break
 					}
 				}

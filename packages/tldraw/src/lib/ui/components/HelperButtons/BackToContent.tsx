@@ -18,7 +18,7 @@ export function BackToContent() {
 			const shapeIds = editor.getCurrentPageShapeIds()
 			let showBackToContentNow = false
 			if (shapeIds.size) {
-				showBackToContentNow = shapeIds.size === editor.getCulledShapes().size
+				showBackToContentNow = shapeIds.size === editor.getNotVisibleShapes().size
 			}
 
 			if (showBackToContentPrev !== showBackToContentNow) {

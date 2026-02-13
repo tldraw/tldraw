@@ -1,6 +1,32 @@
 import react from '@vitejs/plugin-react-swc'
 import path from 'path'
-import { PluginOption, defineConfig } from 'vite'
+import { Plugin, PluginOption, defineConfig } from 'vite'
+
+/**
+ * Plugin to enable SPA fallback for vite preview.
+ * In dev mode, Vite handles SPA routing automatically.
+ * In preview mode, we need to rewrite page-like URLs to /index.html
+ * so the static file server (sirv) serves the SPA entry point.
+ */
+function spaFallbackPlugin(): Plugin {
+	return {
+		name: 'spa-fallback',
+		configurePreviewServer(server) {
+			server.middlewares.use((req, res, next) => {
+				const url = req.url || '/'
+				const pathname = url.split('?')[0]
+				const ext = path.extname(pathname)
+
+				// If this looks like a page request (no file extension),
+				// rewrite to index.html so sirv serves the SPA
+				if (!ext) {
+					req.url = '/index.html' + (url.includes('?') ? url.substring(url.indexOf('?')) : '')
+				}
+				next()
+			})
+		},
+	}
+}
 
 const PR_NUMBER = process.env.VERCEL_GIT_PULL_REQUEST_ID
 
@@ -47,7 +73,7 @@ const TLDRAW_BEMO_URL_STRING =
 				: undefined
 
 export default defineConfig(({ mode }) => ({
-	plugins: [react({ tsDecorators: true }), exampleReadmePlugin()],
+	plugins: [spaFallbackPlugin(), react({ tsDecorators: true }), exampleReadmePlugin()],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
 	build: {
@@ -62,6 +88,9 @@ export default defineConfig(({ mode }) => ({
 	server: {
 		port: 5420,
 		allowedHosts: true,
+	},
+	preview: {
+		port: 5420,
 	},
 	clearScreen: false,
 	optimizeDeps: {

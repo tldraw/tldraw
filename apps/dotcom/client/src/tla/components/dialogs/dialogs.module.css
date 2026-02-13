@@ -100,7 +100,7 @@
 }
 
 .cookieAcceptButton {
-	color: var(--tla-color-contrast);
+	color: var(--tla-color-sidebar);
 	background-color: var(--tla-color-text-1);
 	overflow: hidden;
 	position: relative;
@@ -140,7 +140,7 @@
 
 @media (hover: hover) {
 	.cookieAcceptButton:hover {
-		color: var(--tla-color-contrast);
+		color: var(--tla-color-sidebar);
 		background-color: var(--tla-color-text-1);
 	}
 }
@@ -149,7 +149,7 @@
 	position: fixed;
 	bottom: 0;
 	right: 0;
-	z-index: var(--tl-layer-canvas-in-front);
+	z-index: var(--tl-layer-toasts);
 	width: fit-content;
 }
 

@@ -2,7 +2,19 @@
 title: Popup shape
 component: ./PopupShapeExample.tsx
 category: shapes/tools
-keywords: [dynamic shadows, css]
+keywords:
+  [
+    3d effect,
+    css transform,
+    perspective,
+    shadows,
+    animation,
+    interaction,
+    double click,
+    htmlcontainer,
+    transform origin,
+    visual effects,
+  ]
 priority: 100
 ---
 

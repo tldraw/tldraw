@@ -51,12 +51,6 @@
       "value": "Ce fichier a atteint sa limite de taille et les modifications risquent de ne plus être enregistrées. Supprimez du contenu ou créez un nouveau fichier."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Parlez au groupe…"
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -69,12 +63,6 @@
       "value": "Menu du fichier"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "fées"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -85,12 +73,6 @@
     {
       "type": 0,
       "value": "Publier"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Arrêt"
     }
   ],
   "129b9e34ea": [
@@ -147,18 +129,6 @@
       "value": "Aujourd'hui"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Votre limite hebdomadaire d'utilisation des fées a été atteinte. Elle sera réinitialisée au début de la semaine prochaine."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Dormir"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,24 +139,6 @@
     {
       "type": 0,
       "value": "À propos de tldraw"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Vos fées vous attendent"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Invoquer tout"
-    }
-  ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Modèle:"
     }
   ],
   "299cb00a7a": [
@@ -201,26 +153,6 @@
       "value": "Mes fichiers"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "Une volée de "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "fées"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": " est arrivée sur tldraw pour le mois de décembre. Pour en savoir plus, trouvez la fée et cliquez dessus."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +163,6 @@
     {
       "type": 0,
       "value": "i18n : surlignement manquant"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "trois fées"
     }
   ],
   "32210b37e4": [
@@ -257,46 +183,10 @@
       "value": "Veuillez essayer de recharger la page."
     }
   ],
-  "34140869c6": [
-    {
-      "type": 0,
-      "value": "Un vent de féerie soufflera sur tldraw pour le mois de décembre. Rendez-vous le 1er décembre !"
-    }
-  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Éditeur"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Dormez tout"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Gérer"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "Se désabonner"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Suivre"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Conditions d'utilisation"
     }
   ],
   "3bc7d6ea2f": [
@@ -335,36 +225,10 @@
       "value": "Obtenir de l'aide sur Discord"
     }
   ],
-  "45b43c2d28": [
-    {
-      "type": 0,
-      "value": "Les "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "fées"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " sont venues à tldraw pour le mois de décembre."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Merci de nous aider à améliorer tldraw !"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "Aucune fée sélectionnée"
     }
   ],
   "477df802ca": [
@@ -403,12 +267,6 @@
       "value": "Nom"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Tout sélectionner"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -425,12 +283,6 @@
     {
       "type": 0,
       "value": "Supprimer le groupe…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Plus d'options"
     }
   ],
   "4e6fbf032b": [
@@ -495,12 +347,6 @@
     {
       "type": 0,
       "value": "Politique de confidentialité"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Impossible d'utiliser le code d'invitation"
     }
   ],
   "5a86b22fa0": [
@@ -585,20 +431,6 @@
       "value": "Plus tard"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "Parlez à "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -609,12 +441,6 @@
     {
       "type": 0,
       "value": "toi"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Guide"
     }
   ],
   "6609dd239e": [
@@ -633,30 +459,6 @@
     {
       "type": 0,
       "value": "Saisissez votre adresse e-mail"
-    }
-  ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Se réveiller"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Saisissez votre message"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "Nom de la fée"
-    }
-  ],
-  "695c3e899d": [
-    {
-      "type": 0,
-      "value": "fées de débogage"
     }
   ],
   "6a26f54883": [
@@ -749,22 +551,6 @@
       "value": "Demande invalide."
     }
   ],
-  "77f0abf1aa": [
-    {
-      "type": 0,
-      "value": "Vous avez été invité à "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "dessiner des fées"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -781,12 +567,6 @@
     {
       "type": 0,
       "value": "Soumettre un problème sur GitHub"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "Une fée est un petit être qui peut vous accompagner sur la toile. Les fées peuvent travailler seules ou en équipe. Leurs possibilités sont infinies. Nul ne sait d'où elles viennent."
     }
   ],
   "7b1329f5ca": [
@@ -871,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Effacer tout"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Accueillir"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -909,28 +677,10 @@
       "value": "Renommer le fichier"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Réinitialisation matérielle"
-    }
-  ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Achetez le pack féerique"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Non merci"
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "paiement unique"
     }
   ],
   "8c2d3d730c": [
@@ -939,22 +689,10 @@
       "value": "Consultez votre boîte mail pour obtenir un code de vérification."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Maison"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Partagé avec vous"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "À propos"
     }
   ],
   "8ff3d0a705": [
@@ -987,22 +725,10 @@
       "value": "Lien d'invitation copié"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Désélectionner"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Vous êtes déjà membre de ce groupe"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Envoyer"
     }
   ],
   "95aacd4d4a": [
@@ -1039,12 +765,6 @@
     {
       "type": 0,
       "value": "Clair"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Vue de débogage"
     }
   ],
   "9b33f5c63c": [
@@ -1121,12 +841,6 @@
       "value": "Exporter l'image"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Rejoindre"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1137,12 +851,6 @@
     {
       "type": 0,
       "value": "Soumettre"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Déboguer"
     }
   ],
   "a6cc403d56": [
@@ -1161,18 +869,6 @@
     {
       "type": 0,
       "value": "Le fichier devient volumineux."
-    }
-  ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Limite hebdomadaire de fées atteinte"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Nouvelle conversation"
     }
   ],
   "a9ded1e5ce": [
@@ -1209,12 +905,6 @@
     {
       "type": 0,
       "value": "Le fichier est plein"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Journalisation du temps de réponse"
     }
   ],
   "b357b524e7": [
@@ -1311,12 +1001,6 @@
       "value": "ownerName"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Zoom sur la fée"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1349,40 +1033,16 @@
       "value": "Impossible de publier le fichier."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Ouvrir"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "Je comprends"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Cookies essentiels"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Accepter l'invitation"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Nom du groupe"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Usage"
     }
   ],
   "c655b27b1e": [
@@ -1431,12 +1091,6 @@
     {
       "type": 0,
       "value": "Ce fichier approche de sa limite de taille. Pensez à supprimer du contenu ou à créer un nouveau fichier."
-    }
-  ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "Vous avez déjà accès aux fées !"
     }
   ],
   "cea291e45e": [
@@ -1521,12 +1175,6 @@
       "value": "Le contenu se trouve ici"
     }
   ],
-  "d9bfb9789a": [
-    {
-      "type": 0,
-      "value": "Activer les fées"
-    }
-  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1539,48 +1187,16 @@
       "value": "Invitation uniquement"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Clair"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "URL de fichier tldraw invalide"
     }
   ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "Les fées sont une fonctionnalité "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "temporaire"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": ". Le 1er janvier 2026, elles seront retirées de l'application. Elles reviendront peut-être un jour. Votre achat vous donne accès aux fées uniquement pour le mois de décembre 2025."
-    }
-  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Indicateurs de débogage de l'application"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Sélectionner"
     }
   ],
   "e0c88179b3": [
@@ -1611,12 +1227,6 @@
     {
       "type": 0,
       "value": "Conditions d'utilisation"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Allez à"
     }
   ],
   "e81c4e4f2b": [
@@ -1687,12 +1297,6 @@
       "value": " pour en savoir plus."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Dissoudre"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1705,12 +1309,6 @@
       "value": "choisi"
     }
   ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Convoquer"
-    }
-  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1721,12 +1319,6 @@
     {
       "type": 0,
       "value": "Paramètres utilisateur"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Configure"
     }
   ],
   "f2569594b2": [

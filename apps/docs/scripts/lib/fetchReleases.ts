@@ -72,6 +72,8 @@ export async function fetchReleases() {
 						.replace(/<([^>]+)\/?>(?=\s|$)/g, '`<$1>`')
 						.replace(/`<image(.*) \/>`/g, '<image$1 />')
 						.replace(/`<img(.*) \/>`/g, '<img$1 />')
+						.replace(/`<(\/?)details>`/g, '<$1details>')
+						.replace(/`<(\/?)summary>`/g, '<$1summary>')
 						.replace(/\/\/>/g, '/>')
 
 					m += body

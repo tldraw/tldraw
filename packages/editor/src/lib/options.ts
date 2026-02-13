@@ -1,4 +1,8 @@
 import { ComponentType, Fragment } from 'react'
+import { DEFAULT_CAMERA_OPTIONS } from './constants'
+import { TLCameraOptions } from './editor/types/misc-types'
+import { TLDeepLinkOptions } from './utils/deepLinks'
+import { TLTextOptions } from './utils/richText'
 
 /**
  * Options for configuring tldraw. For defaults, see {@link defaultTldrawOptions}.
@@ -54,6 +58,12 @@ export interface TldrawOptions {
 	readonly flattenImageBoundsExpand: number
 	readonly flattenImageBoundsPadding: number
 	readonly laserDelayMs: number
+	/**
+	 * How long (in milliseconds) to fade all laser scribbles after the session ends.
+	 * The total points across all scribbles will be removed proportionally over this duration.
+	 * Defaults to 500ms (0.5 seconds).
+	 */
+	readonly laserFadeoutMs: number
 	readonly maxExportDelayMs: number
 	readonly tooltipDelayMs: number
 	/**
@@ -89,13 +99,13 @@ export interface TldrawOptions {
 	readonly branding?: string
 	/**
 	 * Whether to use debounced zoom level for certain rendering optimizations. When true,
-	 * `editor.getDebouncedZoomLevel()` returns a cached zoom value while the camera is moving,
+	 * `editor.getEfficientZoomLevel()` returns a cached zoom value while the camera is moving,
 	 * reducing re-renders. When false, it always returns the current zoom level.
 	 */
 	readonly debouncedZoom: boolean
 	/**
 	 * The number of shapes that must be on the page for the debounced zoom level to be used.
-	 * Defaults to 300 shapes.
+	 * Defaults to 500 shapes.
 	 */
 	readonly debouncedZoomThreshold: number
 	/**
@@ -103,6 +113,48 @@ export interface TldrawOptions {
 	 * When false, the spacebar will not pan the camera.
 	 */
 	readonly spacebarPanning: boolean
+	/**
+	 * The default padding (in pixels) used when zooming to fit content in the viewport.
+	 * This affects methods like `zoomToFit()`, `zoomToSelection()`, and `zoomToBounds()`.
+	 * The actual padding used is the minimum of this value and 28% of the viewport width.
+	 * Defaults to 128 pixels.
+	 */
+	readonly zoomToFitPadding: number
+	/**
+	 * The distance (in screen pixels) at which shapes snap to guides and other shapes.
+	 */
+	readonly snapThreshold: number
+	/**
+	 * Options for the editor's camera. These are the initial camera options.
+	 * Use {@link Editor.setCameraOptions} to update camera options at runtime.
+	 */
+	readonly camera: Partial<TLCameraOptions>
+	/**
+	 * Options for the editor's text rendering. These include TipTap configuration and
+	 * font handling. These are the initial text options and cannot be changed at runtime.
+	 */
+	readonly text: TLTextOptions
+	/**
+	 * Options for syncing the editor's camera state with the URL. Set to `true` to enable
+	 * with default options, or pass an options object to customize behavior.
+	 *
+	 * @example
+	 * ```tsx
+	 * // Enable with defaults
+	 * <Tldraw options={{ deepLinks: true }} />
+	 *
+	 * // Enable with custom options
+	 * <Tldraw options={{ deepLinks: { param: 'd', debounceMs: 500 } }} />
+	 * ```
+	 */
+	readonly deepLinks: true | TLDeepLinkOptions | undefined
+	/**
+	 * Whether the quick-zoom brush preserves its screen-pixel size when the user
+	 * zooms the overview. When true, zooming in shrinks the target viewport (higher
+	 * return zoom); zooming out expands it. When false, the brush keeps the original
+	 * viewport's page dimensions regardless of overview zoom changes.
+	 */
+	readonly quickZoomPreservesScreenBounds: boolean
 }
 
 /** @public */
@@ -146,6 +198,7 @@ export const defaultTldrawOptions = {
 	flattenImageBoundsExpand: 64,
 	flattenImageBoundsPadding: 16,
 	laserDelayMs: 1200,
+	laserFadeoutMs: 500,
 	maxExportDelayMs: 5000,
 	tooltipDelayMs: 700,
 	temporaryAssetPreviewLifetimeMs: 180000,
@@ -158,4 +211,10 @@ export const defaultTldrawOptions = {
 	debouncedZoom: true,
 	debouncedZoomThreshold: 500,
 	spacebarPanning: true,
+	zoomToFitPadding: 128,
+	snapThreshold: 8,
+	camera: DEFAULT_CAMERA_OPTIONS,
+	text: {},
+	deepLinks: undefined,
+	quickZoomPreservesScreenBounds: true,
 } as const satisfies TldrawOptions

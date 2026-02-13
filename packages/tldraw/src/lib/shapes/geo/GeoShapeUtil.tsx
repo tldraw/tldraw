@@ -246,6 +246,29 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		})
 	}
 
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {
+		const isForceSolid = this.editor.getEfficientZoomLevel() < shape.props.scale * 0.25
+
+		const { size, dash, scale } = shape.props
+		const strokeWidth = STROKE_SIZES[size]
+
+		const path = getGeoShapePath(shape)
+
+		return path.toPath2D({
+			style: dash === 'draw' ? 'draw' : 'solid',
+			strokeWidth: 1,
+			passes: 1,
+			randomSeed: shape.id,
+			offset: 0,
+			roundness: strokeWidth * 2 * scale,
+			forceSolid: isForceSolid,
+		})
+	}
+
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
 		const scale = shape.props.scale
 		// We need to scale the shape to 1x for export
@@ -305,17 +328,26 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		let overShrinkY = 0
 
 		if (!isEmptyRichText(shape.props.richText)) {
-			// Use initialShape for label measurement to hit the cache.
-			// Creating a temp shape with new dimensions would break WeakCache and cause
-			// expensive measurements on every resize frame.
-			const unscaledLabelSize = getUnscaledLabelSize(this.editor, initialShape)
-
 			const absUnscaledW = Math.abs(unscaledW)
 			const absUnscaledH = Math.abs(unscaledH)
 
-			// Constrain to label size (primary constraint) and min size with label (secondary)
-			const constrainedW = Math.max(absUnscaledW, unscaledLabelSize.w, MIN_SIZE_WITH_LABEL)
-			const constrainedH = Math.max(absUnscaledH, unscaledLabelSize.h, MIN_SIZE_WITH_LABEL)
+			// Measure the label at the constrained target dimensions so text wrapping is
+			// accounted for. We call measureUnscaledLabelSize directly (bypassing WeakCache)
+			// since temp shapes with resize dimensions change every frame. The WeakCache
+			// still helps getGeometry, onBeforeCreate, and onBeforeUpdate.
+			const measureW = Math.max(absUnscaledW, MIN_SIZE_WITH_LABEL)
+			const measureH = Math.max(absUnscaledH, MIN_SIZE_WITH_LABEL)
+			const unscaledLabelSize = measureUnscaledLabelSize(this.editor, {
+				...shape,
+				props: {
+					...shape.props,
+					w: measureW * shape.props.scale,
+					h: measureH * shape.props.scale,
+				},
+			} as TLGeoShape)
+
+			const constrainedW = Math.max(absUnscaledW, unscaledLabelSize.w)
+			const constrainedH = Math.max(absUnscaledH, unscaledLabelSize.h)
 
 			overShrinkX = constrainedW - absUnscaledW
 			overShrinkY = constrainedH - absUnscaledH

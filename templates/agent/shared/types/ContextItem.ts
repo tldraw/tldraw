@@ -1,18 +1,18 @@
 import { BoxModel, Editor, VecModel } from 'tldraw'
-import { AgentIconType } from '../../client/components/icons/AgentIcon'
-import { SimpleShape } from '../format/SimpleShape'
+import { FocusedShape } from '../format/FocusedShape'
+import { AgentIconType } from '../icons/AgentIcon'
 
 export type ContextItem = ShapeContextItem | AreaContextItem | PointContextItem | ShapesContextItem
 
 export interface ShapeContextItem {
 	type: 'shape'
-	shape: SimpleShape
+	shape: FocusedShape
 	source: 'agent' | 'user'
 }
 
 export interface ShapesContextItem {
 	type: 'shapes'
-	shapes: SimpleShape[]
+	shapes: FocusedShape[]
 	source: 'agent' | 'user'
 }
 

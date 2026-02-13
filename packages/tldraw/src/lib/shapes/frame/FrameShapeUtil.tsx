@@ -333,13 +333,17 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	indicator(shape: TLFrameShape) {
-		return (
-			<rect
-				width={toDomPrecision(shape.props.w)}
-				height={toDomPrecision(shape.props.h)}
-				className={`tl-frame-indicator`}
-			/>
-		)
+		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
+	}
+
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLFrameShape): Path2D {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 
 	override providesBackgroundForChildren(): boolean {

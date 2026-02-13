@@ -1,4 +1,5 @@
 import {
+	Box,
 	Geometry2d,
 	StateNode,
 	TLShape,
@@ -80,8 +81,6 @@ export class ScribbleBrushing extends StateNode {
 
 	private updateScribbleSelection(addPoint: boolean) {
 		const { editor } = this
-		// const zoomLevel = this.editor.getZoomLevel()
-		const currentPageShapes = this.editor.getCurrentPageRenderingShapesSorted()
 		const shiftKey = this.editor.inputs.getShiftKey()
 		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 		const previousPagePoint = this.editor.inputs.getPreviousPagePoint()
@@ -93,10 +92,32 @@ export class ScribbleBrushing extends StateNode {
 			this.pushPointToScribble()
 		}
 
+		const minDist = 0 // this.editor.options.hitTestMargin / zoomLevel
+
+		// Create bounds around line segment with margin
+		const lineBounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(minDist)
+		const candidateIds = editor.getShapeIdsInsideBounds(lineBounds)
+
+		// Early return if no candidates - avoid expensive getCurrentPageRenderingShapesSorted()
+		// But still update selection based on current state
+		if (candidateIds.size === 0) {
+			const current = editor.getSelectedShapeIds()
+			const next = new Set<TLShapeId>(
+				shiftKey
+					? [...newlySelectedShapeIds, ...initialSelectedShapeIds]
+					: [...newlySelectedShapeIds]
+			)
+			if (current.length !== next.size || current.some((id) => !next.has(id))) {
+				this.editor.setSelectedShapes(Array.from(next))
+			}
+			return
+		}
+
+		const allShapes = this.editor.getCurrentPageRenderingShapesSorted()
+		const currentPageShapes = allShapes.filter((shape) => candidateIds.has(shape.id))
+
 		const shapes = currentPageShapes
 		let shape: TLShape, geometry: Geometry2d, A: Vec, B: Vec
-
-		const minDist = 0 // this.editor.options.hitTestMargin / zoomLevel
 
 		for (let i = 0, n = shapes.length; i < n; i++) {
 			shape = shapes[i]

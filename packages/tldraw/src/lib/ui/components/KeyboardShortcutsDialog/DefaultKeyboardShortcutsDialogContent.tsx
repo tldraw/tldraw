@@ -49,11 +49,20 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="duplicate" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.view" id="view">
+				<TldrawUiMenuActionItem actionId="select-zoom-tool" />
 				<TldrawUiMenuActionItem actionId="zoom-in" />
 				<TldrawUiMenuActionItem actionId="zoom-out" />
 				<TldrawUiMenuActionItem actionId="zoom-to-100" />
 				<TldrawUiMenuActionItem actionId="zoom-to-fit" />
 				<TldrawUiMenuActionItem actionId="zoom-to-selection" />
+				<TldrawUiMenuItem
+					id="zoom-quick"
+					label="action.zoom-quick"
+					kbd="shift+z"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.transform" id="transform">
 				<TldrawUiMenuActionItem actionId="bring-to-front" />

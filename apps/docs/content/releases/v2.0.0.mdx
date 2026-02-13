@@ -1,0 +1,179 @@
+---
+title: 'v2.0.0'
+created_at: 02/29/2024
+updated_at: 02/29/2024
+keywords:
+  - changelog
+  - release
+  - v2.0
+  - v2.0.0
+  - v2.0.1
+  - v2.0.2
+  - initial-release
+  - sdk
+  - editor
+  - shapes
+  - tools
+status: published
+---
+
+This is the initial public release of the tldraw SDK—a TypeScript library for creating infinite canvas experiences in React. After an extensive alpha and beta period, the SDK is ready for production use.
+
+## What's new
+
+### The editor
+
+At the heart of tldraw is the `Editor` class, a single object that manages all editor state and provides the API for programmatic control. The editor maintains document state through a reactive store system containing JSON-serializable records.
+
+```tsx
+import { Tldraw } from 'tldraw'
+
+function App() {
+	return (
+		<Tldraw
+			onMount={(editor) => {
+				// Full programmatic control
+				editor.createShapes([{ type: 'geo', x: 100, y: 100 }])
+				editor.selectAll()
+				editor.zoomToFit()
+			}}
+		/>
+	)
+}
+```
+
+### Default shapes
+
+The SDK ships with a complete set of default shapes:
+
+- **Geo shapes**: Rectangle, ellipse, triangle, diamond, pentagon, hexagon, octagon, star, rhombus, oval, trapezoid, arrow-shapes, cloud, and x-box
+- **Draw**: Freehand drawing with pressure sensitivity support
+- **Arrow**: Connectable arrows with labels, multiple arrowhead styles, and curved/straight/elbow routing
+- **Text**: Rich text with font, size, and alignment options
+- **Note**: Sticky notes with customizable colors
+- **Image & Video**: Media embedding with cropping support
+- **Frame**: Grouping containers that clip their contents
+- **Line**: Multi-point lines with various spline options
+- **Highlight**: Transparent highlight strokes
+- **Embed**: Web content embedding (YouTube, Figma, Google Maps, and more)
+- **Bookmark**: URL previews with metadata
+
+### Default tools
+
+A full set of tools for interacting with the canvas:
+
+- **Select**: Selection, multi-select, resize, rotate, and transform shapes
+- **Hand**: Pan the canvas
+- **Draw**: Freehand drawing
+- **Eraser**: Remove shapes by drawing over them
+- **Arrow, Line, Geo, Text, Note, Frame, Highlight**: Shape creation tools
+- **Laser**: Temporary pointer for presentations
+- **Zoom**: Zoom in/out with click or marquee
+
+### State management
+
+The SDK uses a reactive signals system for state management. All editor state is observable, with automatic dependency tracking to prevent unnecessary re-renders.
+
+```tsx
+import { track, useEditor } from 'tldraw'
+
+const SelectedShapeCount = track(() => {
+	const editor = useEditor()
+	return <div>{editor.getSelectedShapeIds().length} selected</div>
+})
+```
+
+### The store
+
+Document data lives in a `TLStore`—a reactive client-side database that supports:
+
+- JSON-serializable records for shapes, pages, assets, and instance state
+- Reactive updates via signals
+- Snapshot export/import for persistence
+- Schema migrations for backwards compatibility
+
+### Tool system
+
+Tools are implemented as hierarchical state machines using `StateNode`. Events flow through a state chart, enabling complex multi-step interactions:
+
+```tsx
+class MyTool extends StateNode {
+	static id = 'my-tool'
+
+	onPointerDown(info) {
+		const point = this.editor.inputs.currentPagePoint
+		this.editor.createShape({ type: 'geo', x: point.x, y: point.y })
+	}
+}
+```
+
+### Shape system
+
+Every shape type has a `ShapeUtil` class defining its behavior—geometry, rendering, interactions, and more. Create custom shapes by extending `ShapeUtil`:
+
+```tsx
+class CardShapeUtil extends ShapeUtil<CardShape> {
+	static type = 'card'
+
+	getGeometry(shape) {
+		return new Rectangle2d({ width: shape.props.w, height: shape.props.h })
+	}
+
+	component(shape) {
+		return <div className="card">{shape.props.title}</div>
+	}
+}
+```
+
+### User interface
+
+A complete, responsive UI system with:
+
+- Toolbar with tool selection and shape-specific options
+- Style panel for colors, fills, fonts, and more
+- Context menus with shape actions
+- Keyboard shortcuts dialog
+- Page management
+- Zoom controls and minimap
+- Actions menu and quick actions bar
+- Help menu and debug panel
+
+All UI components can be overridden or extended via the `components` prop.
+
+### Features
+
+- **Multi-page documents**: Create and manage multiple pages per document
+- **Undo/redo**: Full history management with marks and batching
+- **Copy/paste**: Between pages, documents, and external applications
+- **Export**: SVG, PNG, and JSON export
+- **Zoom & pan**: Pinch, scroll, keyboard shortcuts, and programmatic control
+- **Grid & snapping**: Align shapes to grid and each other
+- **Grouping**: Group shapes together
+- **Locking**: Prevent shape modification
+- **Duplication**: Alt-drag to duplicate
+- **Alignment & distribution**: Align and distribute selected shapes
+- **Flip**: Horizontal and vertical flipping
+- **Styles**: Color, fill, dash, size, font, and more
+- **Dark mode**: Full dark mode support
+- **Localization**: 30+ languages supported
+- **Accessibility**: Keyboard navigation and screen reader support
+- **Touch support**: Full touch and pen input support
+- **Pressure sensitivity**: For supported devices
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.0.0)
+
+---
+
+## Patch releases
+
+### v2.0.1
+
+- Avoid randomness at init time, improving consistency for SSR and testing scenarios. ([#3076](https://github.com/tldraw/tldraw/pull/3076))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.0.1)
+
+### v2.0.2
+
+- Fix JPG export functionality. ([#3199](https://github.com/tldraw/tldraw/pull/3199))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.0.2)

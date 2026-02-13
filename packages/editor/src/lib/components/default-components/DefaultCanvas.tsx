@@ -16,6 +16,7 @@ import { useGestureEvents } from '../../hooks/useGestureEvents'
 import { useHandleEvents } from '../../hooks/useHandleEvents'
 import { useSharedSafeId } from '../../hooks/useSafeId'
 import { useScreenBounds } from '../../hooks/useScreenBounds'
+import { ShapeCullingProvider, useShapeCulling } from '../../hooks/useShapeCulling'
 import { Box } from '../../primitives/Box'
 import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
@@ -26,6 +27,7 @@ import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
 import { Shape } from '../Shape'
+import { CanvasShapeIndicators } from './CanvasShapeIndicators'
 
 /** @public */
 export interface TLCanvasComponentProps {
@@ -159,6 +161,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 				</div>
 				<div className="tl-overlays">
+					<CanvasShapeIndicators />
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}
 						<BrushWrapper />
@@ -412,11 +415,7 @@ function ReflowIfNeeded() {
 		'reflow for culled shapes',
 		() => {
 			const culledShapes = editor.getCulledShapes()
-			if (
-				culledShapesRef.current.size === culledShapes.size &&
-				[...culledShapes].every((id) => culledShapesRef.current.has(id))
-			)
-				return
+			if (culledShapesRef.current === culledShapes) return
 
 			culledShapesRef.current = culledShapes
 			const canvas = document.getElementsByClassName('tl-canvas')
@@ -430,18 +429,39 @@ function ReflowIfNeeded() {
 	return null
 }
 
+/**
+ * Centralized culling controller that updates shape container visibility.
+ * This single reactor replaces per-shape subscriptions for O(1) instead of O(N) subscriptions.
+ */
+function CullingController() {
+	const editor = useEditor()
+	const { updateCulling } = useShapeCulling()
+
+	useQuickReactor(
+		'update shape culling',
+		() => {
+			const culledShapes = editor.getCulledShapes()
+			updateCulling(culledShapes)
+		},
+		[editor, updateCulling]
+	)
+
+	return null
+}
+
 function ShapesToDisplay() {
 	const editor = useEditor()
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
 	return (
-		<>
+		<ShapeCullingProvider>
 			{renderingShapes.map((result) => (
 				<Shape key={result.id + '_shape'} {...result} />
 			))}
+			<CullingController />
 			{tlenv.isSafari && <ReflowIfNeeded />}
-		</>
+		</ShapeCullingProvider>
 	)
 }
 
@@ -449,7 +469,19 @@ function HintedShapeIndicator() {
 	const editor = useEditor()
 	const { ShapeIndicator } = useEditorComponents()
 
-	const ids = useValue('hinting shape ids', () => dedupe(editor.getHintingShapeIds()), [editor])
+	const ids = useValue(
+		'hinting shape ids without canvas indicator',
+		() => {
+			// Filter to only shapes that use legacy SVG indicators
+			return dedupe(editor.getHintingShapeIds()).filter((id) => {
+				const shape = editor.getShape(id)
+				if (!shape) return false
+				const util = editor.getShapeUtil(shape)
+				return util.useLegacyIndicator()
+			})
+		},
+		[editor]
+	)
 
 	if (!ids.length) return null
 	if (!ShapeIndicator) return null

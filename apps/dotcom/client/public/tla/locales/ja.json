@@ -23,26 +23,17 @@
   "0a91f7fa87": {
     "translation": "このファイルはサイズ制限に達したため、変更を保存できない可能性があります。一部のコンテンツを削除するか、新しいファイルを作成してください。"
   },
-  "0ab1ef22a3": {
-    "translation": "グループに話しかける…"
-  },
   "0b27918290": {
     "translation": "ファイル"
   },
   "0b9a4cde72": {
     "translation": "ファイルメニュー"
   },
-  "0befa10111": {
-    "translation": "妖精たち"
-  },
   "0d1f2bb523": {
     "translation": "フィードバックを送信"
   },
   "110a4b01be": {
     "translation": "公開"
-  },
-  "11a755d598": {
-    "translation": "停止"
   },
   "129b9e34ea": {
     "translation": "グループを脱退"
@@ -71,26 +62,11 @@
   "1dd1c5fb7f": {
     "translation": "今日"
   },
-  "23f879f41a": {
-    "translation": "妖精の週間使用制限に達しました。来週初めにリセットされます。"
-  },
-  "243924bfd5": {
-    "translation": "寝る"
-  },
   "2445e5e347": {
     "translation": "グループを作成"
   },
   "250ddea65c": {
     "translation": "tldrawについて"
-  },
-  "269097080b": {
-    "translation": "あなたの妖精たちが待っています"
-  },
-  "275173253d": {
-    "translation": "全員召喚"
-  },
-  "284d5cd0dd": {
-    "translation": "モデル："
   },
   "299cb00a7a": {
     "translation": "アップロードに失敗しました"
@@ -98,17 +74,11 @@
   "2c3ef76333": {
     "translation": "私のファイル"
   },
-  "30cd34258a": {
-    "translation": "12月はtldrawにたくさんの<b>妖精</b>がやって来ます。詳しく知りたい場合は、妖精を見つけてクリックしてください。"
-  },
   "31246941ad": {
     "translation": "このファイルを閲覧するにはサインインしてください。"
   },
   "31418ce4ad": {
     "translation": "i18n：ハイライト不足"
-  },
-  "3209f407ed": {
-    "translation": "3人の妖精"
   },
   "32210b37e4": {
     "translation": "リンクを追加"
@@ -119,26 +89,8 @@
   "335defdafe": {
     "translation": "ページの再読み込みをお試しください。"
   },
-  "34140869c6": {
-    "translation": "12月はtldrawにたくさんの妖精たちがやって来ます。12月1日にまたチェックしてください。"
-  },
   "344a7f427f": {
     "translation": "エディタ"
-  },
-  "34abfe7a0d": {
-    "translation": "みんな寝る"
-  },
-  "34e34c43ec": {
-    "translation": "管理"
-  },
-  "3596c1b1f7": {
-    "translation": "フォロー解除"
-  },
-  "3903aab323": {
-    "translation": "フォローする"
-  },
-  "3b6c2b4caa": {
-    "translation": "利用規約"
   },
   "3bc7d6ea2f": {
     "translation": "メールで続行"
@@ -158,14 +110,8 @@
   "44db318ee5": {
     "translation": "Discordで問い合わせる"
   },
-  "45b43c2d28": {
-    "translation": "12月は<strong>妖精たち</strong>がtldrawにやって来ます。"
-  },
   "46137245cd": {
     "translation": "tldraw の改善にご協力いただきありがとうございます。"
-  },
-  "465a8a92a4": {
-    "translation": "妖精が選択されていません"
   },
   "477df802ca": {
     "translation": "編集を続けるには、ファイルをファイルにコピーしてください。"
@@ -185,9 +131,6 @@
   "49ee308734": {
     "translation": "名前"
   },
-  "4c41e0bd95": {
-    "translation": "すべて選択"
-  },
   "4d0d3ddec9": {
     "translation": "このサイトでは、アプリの動作と分析情報の収集のために Cookie を使用します。"
   },
@@ -196,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "グループを削除…"
-  },
-  "4dab36ac83": {
-    "translation": "その他のオプション"
   },
   "4e6fbf032b": {
     "translation": "このグループを削除してもよろしいですか? この操作は元に戻せません。"
@@ -227,9 +167,6 @@
   "56c34c6410": {
     "translation": "プライバシーポリシー"
   },
-  "5a2ccdc00a": {
-    "translation": "招待コードの引き換えに失敗しました"
-  },
   "5a86b22fa0": {
     "translation": "開始するには、ファイルをここにドラッグするか、<create>ファイルを作成</create>するか、<invite>招待リンクをコピー</invite>してください。"
   },
@@ -257,17 +194,11 @@
   "61057a0c84": {
     "translation": "後で"
   },
-  "61daf2e53d": {
-    "translation": "{name}と話してください…"
-  },
   "625fd29749": {
     "translation": "より古い"
   },
   "639bae9ac6": {
     "translation": "あなた"
-  },
-  "6602bbeb29": {
-    "translation": "ガイド"
   },
   "6609dd239e": {
     "translation": "エラーが発生しました"
@@ -277,18 +208,6 @@
   },
   "6832ac5936": {
     "translation": "メールアドレスを入力してください"
-  },
-  "688761c83e": {
-    "translation": "ウェイク"
-  },
-  "68d390535e": {
-    "translation": "メッセージを入力してください"
-  },
-  "6910bbdc82": {
-    "translation": "妖精の名前"
-  },
-  "695c3e899d": {
-    "translation": "デバッグ妖精"
   },
   "6a26f54883": {
     "translation": "ヘルプ"
@@ -335,9 +254,6 @@
   "777f9e90cf": {
     "translation": "無効なリクエストです。"
   },
-  "77f0abf1aa": {
-    "translation": "<strong>tldraw fairies</strong> に招待されました"
-  },
   "7827371d1a": {
     "translation": "この匿名tldrawマルチプレイヤーファイルは読み取り専用になりました。編集を続けるには、サインインしてファイルにコピーしてください。"
   },
@@ -346,9 +262,6 @@
   },
   "797799f35e": {
     "translation": "GitHubで問題を提出する"
-  },
-  "79cc22ac6b": {
-    "translation": "妖精はキャンバスの上であなたと一緒に作業してくれる小さな生き物です。妖精は一人でもチームでも作業できます。妖精のできることには限界がありません。妖精がどこから来たのかは誰も知りません。"
   },
   "7b1329f5ca": {
     "translation": "ユーザーマニュアル"
@@ -377,12 +290,6 @@
   "815e116a2e": {
     "translation": "tldraw に関するバグ、問題、またはアイデアがありましたら、ぜひお知らせください。こちらのフォームにご記入いただければ、必要に応じてメールでご連絡いたします。また、<discord>Discord でチャット</discord>、<github>GitHub で問題を提出</github>することも可能です。"
   },
-  "81aa2078d1": {
-    "translation": "すべてクリア"
-  },
-  "83218ac34c": {
-    "translation": "いらっしゃいませ"
-  },
   "85a082de1b": {
     "translation": "tldrawの最新バージョンを取得するには、ページを再読み込みしてください。"
   },
@@ -392,29 +299,14 @@
   "86c66437fd": {
     "translation": "ファイル名を変更する"
   },
-  "8726ef8909": {
-    "translation": "ハードリセット"
-  },
-  "88e83b88c5": {
-    "translation": "妖精バンドルを購入"
-  },
   "8ad4303b83": {
     "translation": "結構です"
-  },
-  "8be569f100": {
-    "translation": "1回限りの支払い"
   },
   "8c2d3d730c": {
     "translation": "確認コードをメールで確認してください。"
   },
-  "8cf04a9734": {
-    "translation": "家"
-  },
   "8eb2c00e96": {
     "translation": "あなたと共有しました"
-  },
-  "8f7f4c1ce7": {
-    "translation": "について"
   },
   "8ff3d0a705": {
     "translation": "レートが制限されています"
@@ -431,14 +323,8 @@
   "930390d222": {
     "translation": "招待リンクをコピーしました"
   },
-  "94186070ef": {
-    "translation": "選択解除"
-  },
   "9489b2f82a": {
     "translation": "あなたはすでにこのグループのメンバーです"
-  },
-  "94966d9074": {
-    "translation": "送信"
   },
   "95aacd4d4a": {
     "translation": "Googleでログイン"
@@ -457,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "ライト"
-  },
-  "9953e9946b": {
-    "translation": "デバッグビュー"
   },
   "9b33f5c63c": {
     "translation": "コードが届きませんか？ <resend>再送信</resend>"
@@ -491,17 +374,11 @@
   "a239905023": {
     "translation": "画像をエクスポート"
   },
-  "a286d9991c": {
-    "translation": "参加する"
-  },
   "a3debabee7": {
     "translation": "クッキーポリシー"
   },
   "a4d3b161ce": {
     "translation": "提出する"
-  },
-  "a603905470": {
-    "translation": "デバッグ"
   },
   "a6cc403d56": {
     "translation": "リンクを持つ人なら誰でも"
@@ -511,12 +388,6 @@
   },
   "a8873770ab": {
     "translation": "ファイルが大きくなりつつあります"
-  },
-  "a8de4c27a8": {
-    "translation": "週間妖精制限に達しました"
-  },
-  "a917baaf14": {
-    "translation": "新しいチャット"
   },
   "a9ded1e5ce": {
     "translation": "背景"
@@ -533,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "ファイルがいっぱいです"
-  },
-  "b34a671e2c": {
-    "translation": "ログ応答時間"
   },
   "b357b524e7": {
     "translation": "電子メールアドレス"
@@ -564,9 +432,6 @@
   "bc88b0e89e": {
     "translation": "{ownerName}さんが共有"
   },
-  "be4f1c62d3": {
-    "translation": "妖精にズーム"
-  },
   "c2276c9127": {
     "translation": "共有についてさらに詳しく。"
   },
@@ -576,23 +441,11 @@
   "c303bd1095": {
     "translation": "ファイルを公開できません"
   },
-  "c3bf447eab": {
-    "translation": "開ける"
-  },
-  "c3eb5c3b90": {
-    "translation": "わかりました"
-  },
   "c4b39a1cc3": {
     "translation": "必須クッキー"
   },
-  "c54a624f46": {
-    "translation": "招待を承諾する"
-  },
   "c6155aaecc": {
     "translation": "グループ名"
-  },
-  "c64518704c": {
-    "translation": "使用法"
   },
   "c655b27b1e": {
     "translation": "i18n：長い文字列"
@@ -617,9 +470,6 @@
   },
   "ce0547606c": {
     "translation": "このファイルのサイズ制限に近づいています。一部のコンテンツを削除するか、新しいファイルを作成することを検討してください。"
-  },
-  "ce1424d44b": {
-    "translation": "あなたはすでに妖精へのアクセス権を持っています!"
   },
   "cea291e45e": {
     "translation": "公開についてさらに詳しく。"
@@ -648,29 +498,17 @@
   "d9100f3e10": {
     "translation": "コンテンツを見るにはこちらへ移動してください"
   },
-  "d9bfb9789a": {
-    "translation": "妖精を有効にする"
-  },
   "d9e35d0f55": {
     "translation": "グループの最大数に達しました。新しいグループを作成する前に、古いグループを削除する必要があります。"
   },
   "dbbebf3c03": {
     "translation": "招待のみ"
   },
-  "dc30bc0c79": {
-    "translation": "クリア"
-  },
   "dcdaa754fe": {
     "translation": "無効なtldrawファイルURL"
   },
-  "df6ff49394": {
-    "translation": "妖精は<strong>一時的な</strong>機能です。2026年1月1日以降、すべての妖精がアプリから削除されます。もしかしたら、いつかまた戻ってくるかもしれません。ご購入いただいた妖精へのアクセスは、2025年12月のみ有効です。"
-  },
   "dfdb78a4e4": {
     "translation": "デバッグのフラグを追加"
-  },
-  "e062622261": {
-    "translation": "選択"
   },
   "e0c88179b3": {
     "translation": "メンバーを招待する"
@@ -686,9 +524,6 @@
   },
   "e404559826": {
     "translation": "利用規約"
-  },
-  "e43ec38a93": {
-    "translation": "へ移動"
   },
   "e81c4e4f2b": {
     "translation": "または"
@@ -717,26 +552,17 @@
   "ede55d955f": {
     "translation": "詳細については、<a>Cookie ポリシー</a> をお読みください。"
   },
-  "eee6f05922": {
-    "translation": "解散"
-  },
   "ef53538ae4": {
     "translation": "メンバー"
   },
   "ef7de3f485": {
     "translation": "選択された"
   },
-  "efde983742": {
-    "translation": "召喚"
-  },
   "f09b16bc5f": {
     "translation": "弊社では、ログイン状態を維持し、ファイルを同期し、tldraw を改善するための分析情報を収集するために Cookie を使用します。"
   },
   "f0e8bff6f9": {
     "translation": "ユーザー設定"
-  },
-  "f1206f9fad": {
-    "translation": "設定"
   },
   "f2569594b2": {
     "translation": "これらの Cookie は、ファイルと設定を保存するために使用されます。"

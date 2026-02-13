@@ -1,12 +1,12 @@
-import { atom, transact } from '@tldraw/state'
+import { atom, EMPTY_ARRAY, transact } from '@tldraw/state'
 import {
-	RecordsDiff,
-	Store,
-	UnknownRecord,
 	createEmptyRecordsDiff,
 	isRecordsDiffEmpty,
+	RecordsDiff,
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
+	Store,
+	UnknownRecord,
 } from '@tldraw/store'
 import { exhaustiveSwitchError, noop } from '@tldraw/utils'
 import { TLHistoryBatchOptions, TLHistoryEntry } from '../../types/history-types'
@@ -312,8 +312,8 @@ export class HistoryManager<R extends UnknownRecord> {
 	debug() {
 		const { undos, redos } = this.stacks.get()
 		return {
-			undos: undos.toArray(),
-			redos: redos.toArray(),
+			undos: stackToArray(undos),
+			redos: stackToArray(redos),
 			pendingDiff: this.pendingDiff.debug(),
 			state: this.state as string,
 		}
@@ -351,22 +351,13 @@ class PendingDiff<R extends UnknownRecord> {
 	}
 }
 
-import { EMPTY_ARRAY } from '@tldraw/state'
+type Stack<T> = StackItem<T> | EmptyStackItem<T>
 
-export type Stack<T> = StackItem<T> | EmptyStackItem<T>
-
-export function stack<T>(items?: Array<T>): Stack<T> {
-	if (items) {
-		let result = EMPTY_STACK_ITEM as Stack<T>
-		while (items.length) {
-			result = result.push(items.pop()!)
-		}
-		return result
-	}
+function stack<T>(): Stack<T> {
 	return EMPTY_STACK_ITEM as any
 }
 
-class EmptyStackItem<T> implements Iterable<T> {
+class EmptyStackItem<T> {
 	readonly length = 0
 	readonly head = null
 	readonly tail: Stack<T> = this
@@ -374,23 +365,11 @@ class EmptyStackItem<T> implements Iterable<T> {
 	push(head: T): Stack<T> {
 		return new StackItem<T>(head, this)
 	}
-
-	toArray() {
-		return EMPTY_ARRAY
-	}
-
-	[Symbol.iterator]() {
-		return {
-			next() {
-				return { value: undefined, done: true as const }
-			},
-		}
-	}
 }
 
 const EMPTY_STACK_ITEM = new EmptyStackItem()
 
-class StackItem<T> implements Iterable<T> {
+class StackItem<T> {
 	length: number
 	constructor(
 		public readonly head: T,
@@ -402,23 +381,16 @@ class StackItem<T> implements Iterable<T> {
 	push(head: T): Stack<T> {
 		return new StackItem(head, this)
 	}
+}
 
-	toArray() {
-		return Array.from(this)
+function stackToArray<T>(stack: Stack<T>) {
+	if (!stack.length) {
+		return EMPTY_ARRAY
 	}
-
-	[Symbol.iterator]() {
-		let stack = this as Stack<T>
-		return {
-			next() {
-				if (stack.length) {
-					const value = stack.head!
-					stack = stack.tail
-					return { value, done: false as const }
-				} else {
-					return { value: undefined, done: true as const }
-				}
-			},
-		}
+	const arr: T[] = []
+	while (stack.length) {
+		arr.push(stack.head!)
+		stack = stack.tail
 	}
+	return arr
 }

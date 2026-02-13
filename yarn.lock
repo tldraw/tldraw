@@ -9619,45 +9619,23 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/benchmark": "npm:^2.1.5"
-    "@types/core-js": "npm:^2.5.8"
+    "@types/rbush": "npm:^3.0.0"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@types/wicg-file-system-access": "npm:^2020.9.8"
     "@use-gesture/react": "npm:^10.3.1"
     benchmark: "npm:^2.1.4"
     classnames: "npm:^2.5.1"
-    core-js: "npm:^3.40.0"
     eventemitter3: "npm:^4.0.7"
     fake-indexeddb: "npm:^4.0.2"
     idb: "npm:^7.1.1"
     is-plain-object: "npm:^5.0.0"
     lazyrepo: "npm:0.0.0-alpha.27"
+    rbush: "npm:^3.0.1"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     resize-observer-polyfill: "npm:^1.5.1"
     vitest: "npm:^3.2.4"
-  peerDependencies:
-    react: ^18.2.0 || ^19.2.1
-    react-dom: ^18.2.0 || ^19.2.1
-  languageName: unknown
-  linkType: soft
-
-"@tldraw/fairy-shared@workspace:*, @tldraw/fairy-shared@workspace:packages/fairy-shared":
-  version: 0.0.0-use.local
-  resolution: "@tldraw/fairy-shared@workspace:packages/fairy-shared"
-  dependencies:
-    "@tldraw/editor": "workspace:*"
-    "@tldraw/state": "workspace:*"
-    "@tldraw/store": "workspace:*"
-    "@tldraw/tlschema": "workspace:*"
-    "@tldraw/utils": "workspace:*"
-    "@types/react": "npm:^19.2.7"
-    "@types/react-dom": "npm:^19.2.3"
-    ai: "npm:^5.0.63"
-    react: "npm:^19.2.1"
-    react-dom: "npm:^19.2.1"
-    tldraw: "workspace:*"
-    zod: "npm:^4.1.8"
   peerDependencies:
     react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
@@ -9677,6 +9655,7 @@ __metadata:
     "@next/eslint-plugin-next": "npm:^15.1.6"
     "@sentry/cli": "npm:^2.41.1"
     "@swc/core": "npm:^1.10.11"
+    "@types/adm-zip": "npm:^0.5.7"
     "@types/aws-lambda": "npm:8.10.148"
     "@types/glob": "npm:^8.1.0"
     "@types/node": "npm:^22.15.31"
@@ -9688,7 +9667,9 @@ __metadata:
     "@vitest/coverage-v8": "npm:^3.2.4"
     "@vitest/ui": "npm:^3.2.4"
     "@yarnpkg/types": "npm:^4.0.0"
+    adm-zip: "npm:^0.5.16"
     cross-env: "npm:^7.0.3"
+    docx: "npm:^9.5.1"
     esbuild: "npm:^0.25.6"
     eslint: "npm:^9.19.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -9716,7 +9697,7 @@ __metadata:
     typescript: "npm:^5.8.3"
     vercel: "npm:^34.4.0"
     vitest: "npm:^3.2.4"
-    vitest-canvas-mock: "npm:^0.3.3"
+    vitest-canvas-mock: "npm:^1.1.3"
   languageName: unknown
   linkType: soft
 
@@ -10123,6 +10104,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/adm-zip@npm:^0.5.7":
+  version: 0.5.7
+  resolution: "@types/adm-zip@npm:0.5.7"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10/24e9842bd6838879c60fe833af267489d8bc6b582d5feac6179543bf7a0b01a749931a9c6f21a20b8454e83925937a63bae0190493fa269d33a35c6daf4df209
+  languageName: node
+  linkType: hard
+
 "@types/argparse@npm:1.0.38":
   version: 1.0.38
   resolution: "@types/argparse@npm:1.0.38"
@@ -10229,13 +10219,6 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 10/7eb1bc5342a9604facd57598a6c62621e244822442976c443efb84ff745246b10d06e8b309b6e80130026a396f19bf6793b7cecd7380169f369dac3bfc46fb99
-  languageName: node
-  linkType: hard
-
-"@types/core-js@npm:^2.5.8":
-  version: 2.5.8
-  resolution: "@types/core-js@npm:2.5.8"
-  checksum: 10/58c4b86102b13b778d3631d38913c788ef7f688d99fbd741f6241a9cedc7e986e670011bdccd58b32e28e97b9c0fa6fffedef6ba0f670a005b321788a5a01a65
   languageName: node
   linkType: hard
 
@@ -10707,6 +10690,13 @@ __metadata:
   version: 1.2.7
   resolution: "@types/range-parser@npm:1.2.7"
   checksum: 10/95640233b689dfbd85b8c6ee268812a732cf36d5affead89e806fe30da9a430767af8ef2cd661024fd97e19d61f3dec75af2df5e80ec3bea000019ab7028629a
+  languageName: node
+  linkType: hard
+
+"@types/rbush@npm:^3.0.0":
+  version: 3.0.4
+  resolution: "@types/rbush@npm:3.0.4"
+  checksum: 10/3f3b723f0f2542c7e2d493286c81177f3f2850c944c2f5d3296c86e02d4c206a447be7c982b23b82b95da9a2adc210d07cf870c1564f68b58eaa46d43073e013
   languageName: node
   linkType: hard
 
@@ -12165,6 +12155,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"adm-zip@npm:^0.5.16":
+  version: 0.5.16
+  resolution: "adm-zip@npm:0.5.16"
+  checksum: 10/e167d1b9e60cde37334efda828fa514680af9facbd4183952f36526390e5c7da9a90ca1e6880dfd3aba7b3517f1506c6178e0dc29cd630b26b98c795f97fc599
+  languageName: node
+  linkType: hard
+
 "ag-charts-types@npm:10.3.3":
   version: 10.3.3
   resolution: "ag-charts-types@npm:10.3.3"
@@ -13518,9 +13515,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001579, caniuse-lite@npm:^1.0.30001646, caniuse-lite@npm:^1.0.30001688":
-  version: 1.0.30001695
-  resolution: "caniuse-lite@npm:1.0.30001695"
-  checksum: 10/8107c5e89b86c7a2fd506b93c658ff945c98c6518260c3b28af9f02bd83bf83939696241f0b413545c5b9895c86bcae64c9370388576440e74e9b848f04170d3
+  version: 1.0.30001766
+  resolution: "caniuse-lite@npm:1.0.30001766"
+  checksum: 10/0edeb69bdb741c98deda609b75e35e5c31e944537e9873ea89a4cf9e9baa3e158675b224951a6f3a212d1f0c328a8494ace323c551ca1fa58ce4915562c4e4d3
   languageName: node
   linkType: hard
 
@@ -14231,7 +14228,7 @@ __metadata:
     "@peculiar/webcrypto": "npm:^1.5.0"
     jest-matcher-utils: "npm:^30.0.5"
     lazyrepo: "npm:0.0.0-alpha.27"
-    vitest-canvas-mock: "npm:^0.3.3"
+    vitest-canvas-mock: "npm:^1.1.3"
   languageName: unknown
   linkType: soft
 
@@ -14309,7 +14306,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^3.38.1, core-js@npm:^3.40.0":
+"core-js@npm:^3.38.1":
   version: 3.40.0
   resolution: "core-js@npm:3.40.0"
   checksum: 10/9c7e7d2839db6c3c7b72725a3ce5edf6dd61fc771e1551e08b5622ca7da330f2f5d3c7dcd6a6e7889baa8d4cc5a909ba75b4add0d1f3da940a2a60a3e0603be5
@@ -14907,6 +14904,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"docx@npm:^9.5.1":
+  version: 9.5.1
+  resolution: "docx@npm:9.5.1"
+  dependencies:
+    "@types/node": "npm:^24.0.1"
+    hash.js: "npm:^1.1.7"
+    jszip: "npm:^3.10.1"
+    nanoid: "npm:^5.1.3"
+    xml: "npm:^1.0.1"
+    xml-js: "npm:^1.6.8"
+  checksum: 10/28f87d3c76352bdd40713468f565c13454927ebb6bc15511cf981bf40f54aecdd50b156bd3bc39bbd21988f6bf3e798964d21555f17939741c7ac3c956039695
+  languageName: node
+  linkType: hard
+
 "dom-accessibility-api@npm:^0.5.9":
   version: 0.5.16
   resolution: "dom-accessibility-api@npm:0.5.16"
@@ -14984,19 +14995,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"dotcom-fairy-worker@workspace:apps/dotcom/fairy-worker":
+"dotcom-tldrawusercontent@workspace:apps/dotcom/tldrawusercontent-worker":
   version: 0.0.0-use.local
-  resolution: "dotcom-fairy-worker@workspace:apps/dotcom/fairy-worker"
+  resolution: "dotcom-tldrawusercontent@workspace:apps/dotcom/tldrawusercontent-worker"
   dependencies:
-    "@ai-sdk/anthropic": "npm:^2.0.2"
-    "@ai-sdk/google": "npm:^2.0.14"
-    "@ai-sdk/openai": "npm:^2.0.24"
-    "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20250913.0"
-    "@tldraw/fairy-shared": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
-    ai: "npm:^5.0.63"
-    esbuild: "npm:^0.25.6"
+    "@types/ws": "npm:^8.18.1"
     itty-router: "npm:^5.0.18"
     lazyrepo: "npm:0.0.0-alpha.27"
     wrangler: "npm:^4.37.1"
@@ -15019,7 +15024,6 @@ __metadata:
     "@swc/plugin-formatjs": "npm:^5.1.1"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
-    "@tldraw/fairy-shared": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
@@ -18119,6 +18123,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hash.js@npm:^1.1.7":
+  version: 1.1.7
+  resolution: "hash.js@npm:1.1.7"
+  dependencies:
+    inherits: "npm:^2.0.3"
+    minimalistic-assert: "npm:^1.0.1"
+  checksum: 10/0c89ee4006606a40f92df5cc3c263342e7fea68110f3e9ef032bd2083650430505db01b6b7926953489517d4027535e4fdc7f970412893d3031c361d3ec8f4b3
+  languageName: node
+  linkType: hard
+
 "hasown@npm:^2.0.0, hasown@npm:^2.0.2":
   version: 2.0.2
   resolution: "hasown@npm:2.0.2"
@@ -19601,16 +19615,6 @@ __metadata:
   dependencies:
     "@isaacs/cliui": "npm:^8.0.2"
   checksum: 10/ffceb270ec286841f48413bfb4a50b188662dfd599378ce142b6540f3f0a66821dc9dcb1e9ebc55c6c3b24dc2226c96e5819ba9bd7a241bd29031b61911718c7
-  languageName: node
-  linkType: hard
-
-"jest-canvas-mock@npm:~2.5.2":
-  version: 2.5.2
-  resolution: "jest-canvas-mock@npm:2.5.2"
-  dependencies:
-    cssfontparser: "npm:^1.2.1"
-    moo-color: "npm:^1.0.2"
-  checksum: 10/094e2e1c773c658fab7e91e9279027fc38a55060865b5b6a3c9acc47fc912fb9d3451ab4fdf544d016578f77b975626707c3a62e396575aa878f46d939c7ca5e
   languageName: node
   linkType: hard
 
@@ -21721,6 +21725,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"minimalistic-assert@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "minimalistic-assert@npm:1.0.1"
+  checksum: 10/cc7974a9268fbf130fb055aff76700d7e2d8be5f761fb5c60318d0ed010d839ab3661a533ad29a5d37653133385204c503bfac995aaa4236f4e847461ea32ba7
+  languageName: node
+  linkType: hard
+
 "minimatch@npm:10.0.3":
   version: 10.0.3
   resolution: "minimatch@npm:10.0.3"
@@ -22052,7 +22063,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"moo-color@npm:^1.0.2":
+"moo-color@npm:^1.0.3":
   version: 1.0.3
   resolution: "moo-color@npm:1.0.3"
   dependencies:
@@ -22182,12 +22193,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:^5.1.0, nanoid@npm:^5.1.2":
-  version: 5.1.5
-  resolution: "nanoid@npm:5.1.5"
+"nanoid@npm:^5.1.0, nanoid@npm:^5.1.2, nanoid@npm:^5.1.3":
+  version: 5.1.6
+  resolution: "nanoid@npm:5.1.6"
   bin:
     nanoid: bin/nanoid.js
-  checksum: 10/6de2d006b51c983be385ef7ee285f7f2a57bd96f8c0ca881c4111461644bd81fafc2544f8e07cb834ca0f3e0f3f676c1fe78052183f008b0809efe6e273119f5
+  checksum: 10/4109dbcf596d7f297a9b42f459b8f01694a03ebbdd2f41408d963ad54e5ec7234cbe7b4acad137751f31add11bb4fb3415a3e688082516745812811f05570014
   languageName: node
   linkType: hard
 
@@ -24617,6 +24628,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"quickselect@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "quickselect@npm:2.0.0"
+  checksum: 10/ed2e78431050d223fb75da20ee98011aef1a03f7cb04e1a32ee893402e640be3cfb76d72e9dbe01edf3bb457ff6a62e5c2d85748424d1aa531f6ba50daef098c
+  languageName: node
+  linkType: hard
+
 "radix-ui@npm:^1.4.2":
   version: 1.4.2
   resolution: "radix-ui@npm:1.4.2"
@@ -24736,6 +24754,15 @@ __metadata:
     iconv-lite: "npm:0.6.3"
     unpipe: "npm:1.0.0"
   checksum: 10/2443429bbb2f9ae5c50d3d2a6c342533dfbde6b3173740b70fa0302b30914ff400c6d31a46b3ceacbe7d0925dc07d4413928278b494b04a65736fc17ca33e30c
+  languageName: node
+  linkType: hard
+
+"rbush@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "rbush@npm:3.0.1"
+  dependencies:
+    quickselect: "npm:^2.0.0"
+  checksum: 10/489e2e7d9889888ad533518f194e3ab7cc19b1f1365a38ee99fbdda542a47f41cda7dc89870180050f4d04ea402e9ff294e1d767d03c0f1694e0028b7609eec9
   languageName: node
   linkType: hard
 
@@ -25966,10 +25993,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sax@npm:>=0.6.0":
-  version: 1.3.0
-  resolution: "sax@npm:1.3.0"
-  checksum: 10/bb571b31d30ecb0353c2ff5f87b117a03e5fb9eb4c1519141854c1a8fbee0a77ddbe8045f413259e711833aa03da210887df8527d19cdc55f299822dbf4b34de
+"sax@npm:>=0.6.0, sax@npm:^1.2.4":
+  version: 1.4.3
+  resolution: "sax@npm:1.4.3"
+  checksum: 10/99161215f23e0b13bc7f94adbaa63a6a2f188fe291c450790d92b5bc3cd7966d574a15dcd5918c30917e17ed68129e34cc3168564263b967f9b8f61869d6ccc4
   languageName: node
   linkType: hard
 
@@ -27984,6 +28011,26 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"tldraw-image-pipeline@workspace:templates/image-pipeline":
+  version: 0.0.0-use.local
+  resolution: "tldraw-image-pipeline@workspace:templates/image-pipeline"
+  dependencies:
+    "@cloudflare/vite-plugin": "npm:^1.13.2"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    "@vitejs/plugin-react-swc": "npm:^3.10.2"
+    classnames: "npm:^2.5.1"
+    itty-router: "npm:^5.0.18"
+    radix-ui: "npm:^1.4.2"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^7.0.1"
+    wrangler: "npm:^4.37.1"
+  languageName: unknown
+  linkType: soft
+
 "tldraw-nextjs-app-example@workspace:templates/nextjs":
   version: 0.0.0-use.local
   resolution: "tldraw-nextjs-app-example@workspace:templates/nextjs"
@@ -29619,14 +29666,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest-canvas-mock@npm:^0.3.3":
-  version: 0.3.3
-  resolution: "vitest-canvas-mock@npm:0.3.3"
+"vitest-canvas-mock@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "vitest-canvas-mock@npm:1.1.3"
   dependencies:
-    jest-canvas-mock: "npm:~2.5.2"
+    cssfontparser: "npm:^1.2.1"
+    moo-color: "npm:^1.0.3"
   peerDependencies:
-    vitest: "*"
-  checksum: 10/bf564fe0cb701f228eb20cacdbd3abb9eb83c948bebbbea7fe907082ef830b2f8d7865277eade77fd84806bd1ddccdf1426c85ad716b8da8a977ae6b82e4f85f
+    vitest: ^3.0.0 || ^4.0.0
+  checksum: 10/0885142f98d543dca70993e36d63664ca8585a0d8533933b19bf28c5819c8419760462b017f9372ae0050f351625cabfb0ffecdcb8e6997f2bde5324396c8222
   languageName: node
   linkType: hard
 
@@ -30268,6 +30316,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"xml-js@npm:^1.6.8":
+  version: 1.6.11
+  resolution: "xml-js@npm:1.6.11"
+  dependencies:
+    sax: "npm:^1.2.4"
+  bin:
+    xml-js: ./bin/cli.js
+  checksum: 10/55ce342a47bf14a138a3fcea0c9e325b81484cfc1a8aac78df13b4d6ca01f20e32820572bc3e927cd9b61b9da9cdee4657cb2f304e460343d8d85d6a3659d749
+  languageName: node
+  linkType: hard
+
 "xml-name-validator@npm:^5.0.0":
   version: 5.0.0
   resolution: "xml-name-validator@npm:5.0.0"
@@ -30302,6 +30361,13 @@ __metadata:
     sax: "npm:>=0.6.0"
     xmlbuilder: "npm:~11.0.0"
   checksum: 10/27c4d759214e99be5ec87ee5cb1290add427fa43df509d3b92d10152b3806fd2f7c9609697a18b158ccf2caa01e96af067cdba93196f69ca10c90e4f79a08896
+  languageName: node
+  linkType: hard
+
+"xml@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "xml@npm:1.0.1"
+  checksum: 10/6c4c31a1308e45732e5ac6b50edbca0e8f7abe5cb5de10215d8e3c688819fe7c7706e056f6fb59b1a23fdf1000c2d7a8bba0a89e94aa1796cd2376d9a5ba401e
   languageName: node
   linkType: hard
 

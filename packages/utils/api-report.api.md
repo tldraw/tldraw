@@ -122,6 +122,21 @@ export function filterEntries<Key extends string, Value>(object: {
     [K in Key]: Value;
 };
 
+// @public
+export class FpsScheduler {
+    constructor(targetFps?: number);
+    fpsThrottle(fn: {
+        (): void;
+        cancel?(): void;
+    }): {
+        (): void;
+        cancel?(): void;
+    };
+    throttleToNextFrame(fn: () => void): () => void;
+    // (undocumented)
+    updateTargetFps(targetFps: number): void;
+}
+
 // @internal
 export function fpsThrottle(fn: {
     (): void;

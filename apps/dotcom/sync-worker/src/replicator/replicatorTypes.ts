@@ -1,4 +1,4 @@
-import { TlaFile, TlaFileFairy, TlaRow, TlaUserFairy } from '@tldraw/dotcom-shared'
+import { TlaFile, TlaRow } from '@tldraw/dotcom-shared'
 import { stringEnum } from '@tldraw/utils'
 
 export type Topic = `user:${string}` | `file:${string}` | `group:${string}`
@@ -13,7 +13,6 @@ export const replicatedTables = stringEnum(
 	'group_file'
 )
 export type ReplicatedTable = keyof typeof replicatedTables
-export type ReplicatedRow = Exclude<TlaRow, TlaUserFairy | TlaFileFairy>
 
 export interface ReplicationEvent {
 	command: 'insert' | 'update' | 'delete'

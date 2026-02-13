@@ -3,7 +3,17 @@ title: Meta migrations
 component: ./MetaMigrations.tsx
 category: data/assets
 priority: 6
-keywords: [records, snapshot, sequence]
+keywords:
+  [
+    migrations,
+    meta,
+    schema,
+    createmigrationids,
+    createmigrationsequence,
+    versioning,
+    upgrade,
+    snapshot,
+  ]
 ---
 
 Create custom migrations for `meta` properties.

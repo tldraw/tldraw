@@ -91,6 +91,50 @@ import './example.css'
 
 Do not include extensive "inline styles" using the `styles` prop.
 
+#### Control panels
+
+For examples that need buttons or controls, use the `TopPanel` component slot with `TldrawUiButton`:
+
+```tsx
+import { Tldraw, TldrawUiButton, useEditor } from 'tldraw'
+import 'tldraw/tldraw.css'
+import './my-example.css'
+
+function MyControls() {
+	const editor = useEditor()
+	return (
+		<div className="tlui-menu my-controls">
+			<TldrawUiButton type="normal" onClick={() => editor.zoomIn()}>
+				Zoom in
+			</TldrawUiButton>
+			<TldrawUiButton type="normal" onClick={() => editor.zoomOut()}>
+				Zoom out
+			</TldrawUiButton>
+		</div>
+	)
+}
+
+export default function MyExampleExample() {
+	return (
+		<div className="tldraw__editor">
+			<Tldraw components={{ TopPanel: MyControls }} />
+		</div>
+	)
+}
+```
+
+CSS for control panels:
+
+```css
+.my-controls {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 8px;
+}
+```
+
+The `tlui-menu` class provides default tldraw styling. The custom class handles layout.
+
 #### Other files
 
 While you should attempt to create small examples that do not require splitting code into other files, feel free to do so if the split-out code would be distracting from the content of the example. For example, if the example has a complex input, but the example isn't _about_ the input, then it may be better to place that code in an `Input.tsx` file and import it.

@@ -51,12 +51,6 @@
       "value": "Naabot na ng file na ito ang limitasyon sa laki nito at maaaring hindi na ma-save ang mga pagbabago. Mag-alis ng ilang content o magsimula ng bagong file."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Makipag-usap sa grupo..."
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -69,12 +63,6 @@
       "value": "Menu ng file"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "Mga diwata"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -85,12 +73,6 @@
     {
       "type": 0,
       "value": "I-publish"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Tumigil ka"
     }
   ],
   "129b9e34ea": [
@@ -147,18 +129,6 @@
       "value": "Ngayong araw"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Naabot na ang iyong lingguhang limitasyon sa paggamit ng engkanto. Ire-reset ito sa simula ng susunod na linggo."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Matulog"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,24 +139,6 @@
     {
       "type": 0,
       "value": "Tungkol sa tldraw"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Naghihintay ang iyong mga diwata"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Ipatawag lahat"
-    }
-  ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "modelo:"
     }
   ],
   "299cb00a7a": [
@@ -201,26 +153,6 @@
       "value": "Aking mga file"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "Dumating ang isang kumag na "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "mga engkanto"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": " sa tldraw para sa buwan ng Disyembre. Para mag-imbestiga pa, hanapin ang diwata at i-click ito."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +163,6 @@
     {
       "type": 0,
       "value": "i18n: Nawawala ang Highlight"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "tatlong diwata"
     }
   ],
   "32210b37e4": [
@@ -257,46 +183,10 @@
       "value": "Pakisubukang i-refresh ang page."
     }
   ],
-  "34140869c6": [
-    {
-      "type": 0,
-      "value": "Isang kumpas ng mga diwata ang darating sa tldraw para sa buwan ng Disyembre. Mangyaring bumalik sa ika-1 ng Disyembre."
-    }
-  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Editor"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Tulog lahat"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Pamahalaan"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "I-unfollow"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Sundin"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Mga Tuntunin ng Serbisyo"
     }
   ],
   "3bc7d6ea2f": [
@@ -335,32 +225,10 @@
       "value": "Humingi ng tulong sa Discord"
     }
   ],
-  "45b43c2d28": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Mga diwata"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " ay dumating upang tldraw para sa buwan ng Disyembre."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Salamat sa pagtulong sa amin na mapabuti ang tldraw!"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "Walang napiling mga engkanto"
     }
   ],
   "477df802ca": [
@@ -399,12 +267,6 @@
       "value": "Pangalan"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Piliin lahat"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -421,12 +283,6 @@
     {
       "type": 0,
       "value": "Tanggalin ang pangkat…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Higit pang mga pagpipilian"
     }
   ],
   "4e6fbf032b": [
@@ -491,12 +347,6 @@
     {
       "type": 0,
       "value": "Patakaran sa privacy"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Nabigong ma-redeem ang code ng imbitasyon"
     }
   ],
   "5a86b22fa0": [
@@ -581,20 +431,6 @@
       "value": "Mamaya"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "Kausapin si "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "..."
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -605,12 +441,6 @@
     {
       "type": 0,
       "value": "ikaw"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Patnubay"
     }
   ],
   "6609dd239e": [
@@ -629,30 +459,6 @@
     {
       "type": 0,
       "value": "Ilagay ang iyong email address"
-    }
-  ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Gumising ka"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Ilagay ang iyong mensahe"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "pangalan ng diwata"
-    }
-  ],
-  "695c3e899d": [
-    {
-      "type": 0,
-      "value": "I-debug ang mga engkanto"
     }
   ],
   "6a26f54883": [
@@ -745,22 +551,6 @@
       "value": "Di-wastong kahilingan."
     }
   ],
-  "77f0abf1aa": [
-    {
-      "type": 0,
-      "value": "Inimbitahan ka sa "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "tldraw fairies"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -777,12 +567,6 @@
     {
       "type": 0,
       "value": "Magsumite ng isyu sa GitHub"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "Ang isang engkanto ay isang maliit na tao na maaaring makipagtulungan sa iyo sa canvas. Ang mga diwata ay maaaring magtrabaho nang mag-isa o bilang isang pangkat. Walang limitasyon ang kayang gawin ng isang diwata. Walang nakakaalam kung saan sila nanggaling."
     }
   ],
   "7b1329f5ca": [
@@ -867,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "I-clear lahat"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Maligayang pagdating"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -905,28 +677,10 @@
       "value": "Palitan ang pangalan ng file"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Hard reset"
-    }
-  ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Bumili ng Fairy Bundle"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Hindi salamat"
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "isang beses na pagbabayad"
     }
   ],
   "8c2d3d730c": [
@@ -935,22 +689,10 @@
       "value": "Tingnan ang iyong email para sa isang verification code."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Bahay"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Ibinahagi sa iyo"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "Tungkol sa"
     }
   ],
   "8ff3d0a705": [
@@ -983,22 +725,10 @@
       "value": "Kinopya ang link ng imbitasyon"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Alisin sa pagkakapili"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Miyembro ka na ng grupong ito"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Ipadala"
     }
   ],
   "95aacd4d4a": [
@@ -1035,12 +765,6 @@
     {
       "type": 0,
       "value": "Liwanag"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Pag-debug ng view"
     }
   ],
   "9b33f5c63c": [
@@ -1117,12 +841,6 @@
       "value": "I-export ang larawan"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Sumali"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1133,12 +851,6 @@
     {
       "type": 0,
       "value": "Isumite"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "I-debug"
     }
   ],
   "a6cc403d56": [
@@ -1157,18 +869,6 @@
     {
       "type": 0,
       "value": "Lumalaki ang file"
-    }
-  ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Naabot na ang lingguhang limitasyon ng engkanto"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Bagong chat"
     }
   ],
   "a9ded1e5ce": [
@@ -1205,12 +905,6 @@
     {
       "type": 0,
       "value": "Puno na ang file"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Mag-log ng oras ng pagtugon"
     }
   ],
   "b357b524e7": [
@@ -1323,12 +1017,6 @@
       "value": "ownerName"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Mag-zoom sa diwata"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1361,40 +1049,16 @@
       "value": "Hindi ma-publish ang file."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Bukas"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "naiintindihan ko"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Mahahalagang cookies"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Tanggapin ang imbitasyon"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Pangalan ng grupo"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Paggamit"
     }
   ],
   "c655b27b1e": [
@@ -1443,12 +1107,6 @@
     {
       "type": 0,
       "value": "Ang file na ito ay papalapit na sa limitasyon ng laki nito. Pag-isipang mag-alis ng ilang content o magsimula ng bagong file."
-    }
-  ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "May fairy access ka na!"
     }
   ],
   "cea291e45e": [
@@ -1533,12 +1191,6 @@
       "value": "Pumunta dito upang makita ang nilalaman"
     }
   ],
-  "d9bfb9789a": [
-    {
-      "type": 0,
-      "value": "Paganahin ang mga diwata"
-    }
-  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1551,48 +1203,16 @@
       "value": "Mag-imbita lang"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Maaliwalas"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "Di-wastong tldraw file URL"
     }
   ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "Ang mga engkanto ay isang "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "pansamantalang"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " na tampok. Sa ika-1 ng Enero, 2026, ang lahat ng mga engkanto ay aalisin sa aplikasyon. Baka balang araw babalik din sila. Ang iyong pagbili ay para sa pag-access sa mga engkanto para sa Disyembre 2025 lamang."
-    }
-  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Mga flag ng pag-debug ng app"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Pumili"
     }
   ],
   "e0c88179b3": [
@@ -1623,12 +1243,6 @@
     {
       "type": 0,
       "value": "Mga tuntunin ng serbisyo"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Pumunta sa"
     }
   ],
   "e81c4e4f2b": [
@@ -1699,12 +1313,6 @@
       "value": " upang matuto nang higit pa."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Disband"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1717,12 +1325,6 @@
       "value": "pinili"
     }
   ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Ipatawag"
-    }
-  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1733,12 +1335,6 @@
     {
       "type": 0,
       "value": "Mga setting ng user"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "I-configure"
     }
   ],
   "f2569594b2": [

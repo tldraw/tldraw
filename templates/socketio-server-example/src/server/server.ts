@@ -111,6 +111,9 @@ app.get('/uploads/:id', async (req, res) => {
 	try {
 		const id = req.params.id
 		const data = await loadAsset(id)
+		// Prevent XSS from user-uploaded SVGs
+		res.header('Content-Security-Policy', "default-src 'none'")
+		res.header('X-Content-Type-Options', 'nosniff')
 		res.send(data)
 	} catch (error) {
 		console.error('Asset download error:', error)

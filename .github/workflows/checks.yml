@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - uses: ./.github/actions/setup
 
@@ -34,6 +34,20 @@ jobs:
 
       - name: Check packages
         run: yarn check-packages
+
+      - name: Restore build tool caches
+        uses: actions/cache@v3
+        with:
+          path: |
+            .lazy
+            **/.lazy
+            .eslintcache
+            **/.tsbuild
+            **/*.tsbuildinfo
+            node_modules/.cache/prettier
+          key: test-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', 'eslint.config.mjs', 'lazy.config.ts') }}-${{ github.sha }}
+          restore-keys: |
+            test-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', 'eslint.config.mjs', 'lazy.config.ts') }}-
 
       - name: Typecheck
         run: yarn build-types
@@ -67,9 +81,21 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - uses: ./.github/actions/setup
+
+      - name: Restore build tool caches
+        uses: actions/cache@v3
+        with:
+          path: |
+            .lazy
+            **/.lazy
+            **/.tsbuild
+            **/*.tsbuildinfo
+          key: build-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', 'lazy.config.ts') }}-${{ github.sha }}
+          restore-keys: |
+            build-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', 'lazy.config.ts') }}-
 
       - name: Build all projects
         # the sed pipe makes sure that github annotations come through without

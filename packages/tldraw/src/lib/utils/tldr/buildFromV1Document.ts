@@ -385,7 +385,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 										dash: getV2Dash(v1Shape.style.dash),
 										isPen: false,
 										isComplete: v1Shape.isComplete,
-										segments: [{ type: 'free', points: base64Points }],
+										segments: [{ type: 'free', path: base64Points }],
 										scale: 1,
 										scaleX: 1,
 										scaleY: 1,

@@ -2,7 +2,17 @@
 title: Note resizing
 component: ./ResizeNoteExample.tsx
 category: configuration
-keywords: [note, resize, sticky]
+keywords:
+  [
+    note shape,
+    resize,
+    sticky note,
+    resizemode,
+    scale,
+    configure,
+    shapeutil configuration,
+    note scaling,
+  ]
 priority: 5
 ---
 

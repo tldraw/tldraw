@@ -1,5 +1,5 @@
 import { computed, isUninitialized } from '@tldraw/state'
-import { TLShapeId } from '@tldraw/tlschema'
+import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { Editor } from '../Editor'
 
 /**
@@ -9,60 +9,56 @@ import { Editor } from '../Editor'
  * @returns Incremental derivation of non visible shapes.
  */
 export function notVisibleShapes(editor: Editor) {
-	return computed<Set<TLShapeId>>('notVisibleShapes', function updateNotVisibleShapes(prevValue) {
-		const shapeIds = editor.getCurrentPageShapeIds()
-		const nextValue = new Set<TLShapeId>()
+	const emptySet = new Set<TLShapeId>()
 
-		// Extract viewport bounds once to avoid repeated property access
+	return computed<Set<TLShapeId>>('notVisibleShapes', function (prevValue) {
+		const allShapes = editor.getCurrentPageShapes()
 		const viewportPageBounds = editor.getViewportPageBounds()
-		const viewMinX = viewportPageBounds.minX
-		const viewMinY = viewportPageBounds.minY
-		const viewMaxX = viewportPageBounds.maxX
-		const viewMaxY = viewportPageBounds.maxY
+		const visibleIds = editor.getShapeIdsInsideBounds(viewportPageBounds)
 
-		for (const id of shapeIds) {
-			const pageBounds = editor.getShapePageBounds(id)
+		let shape: TLShape | undefined
 
-			// Hybrid check: if bounds exist and shape overlaps viewport, it's visible.
-			// This inlines Box.Collides to avoid function call overhead and the
-			// redundant Contains check that Box.Includes was doing.
-			if (
-				pageBounds !== undefined &&
-				pageBounds.maxX >= viewMinX &&
-				pageBounds.minX <= viewMaxX &&
-				pageBounds.maxY >= viewMinY &&
-				pageBounds.minY <= viewMaxY
-			) {
-				continue
+		// Fast path: if all shapes are visible, return empty set
+		if (visibleIds.size === allShapes.length) {
+			if (isUninitialized(prevValue) || prevValue.size > 0) {
+				return emptySet
 			}
-
-			// Shape is outside viewport or has no bounds - check if it can be culled.
-			// We defer getShape and canCull checks until here since most shapes are
-			// typically visible and we can skip these calls for them.
-			const shape = editor.getShape(id)
-			if (!shape) continue
-
-			const canCull = editor.getShapeUtil(shape.type).canCull(shape)
-			if (!canCull) continue
-
-			nextValue.add(id)
+			return prevValue
 		}
 
+		// First run: compute from scratch
 		if (isUninitialized(prevValue)) {
+			const nextValue = new Set<TLShapeId>()
+			for (let i = 0; i < allShapes.length; i++) {
+				shape = allShapes[i]
+				if (visibleIds.has(shape.id)) continue
+				if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
+				nextValue.add(shape.id)
+			}
 			return nextValue
 		}
 
-		// If there are more or less shapes, we know there's a change
-		if (prevValue.size !== nextValue.size) return nextValue
-
-		// If any of the old shapes are not in the new set, we know there's a change
-		for (const prev of prevValue) {
-			if (!nextValue.has(prev)) {
-				return nextValue
-			}
+		// Subsequent runs: single pass to collect IDs and detect changes
+		const notVisibleIds: TLShapeId[] = []
+		for (let i = 0; i < allShapes.length; i++) {
+			shape = allShapes[i]
+			if (visibleIds.has(shape.id)) continue
+			if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
+			notVisibleIds.push(shape.id)
 		}
 
-		// If we've made it here, we know that the set is the same
-		return prevValue
+		// Check if the result changed
+		if (notVisibleIds.length === prevValue.size) {
+			let same = true
+			for (let i = 0; i < notVisibleIds.length; i++) {
+				if (!prevValue.has(notVisibleIds[i])) {
+					same = false
+					break
+				}
+			}
+			if (same) return prevValue
+		}
+
+		return new Set(notVisibleIds)
 	})
 }

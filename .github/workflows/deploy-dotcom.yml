@@ -41,7 +41,7 @@ jobs:
       #     content: 'Preparing ${{ env.TLDRAW_ENV }} dotcom deploy: ${{ github.event.head_commit.message }} by ${{ github.event.head_commit.author.name }}'
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 0
@@ -78,7 +78,7 @@ jobs:
       - id: create-branch
         # only run on PR branches
         if: github.event_name == 'pull_request'
-        uses: neondatabase/create-branch-action@v5
+        uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           username: 'dotcom_owner'
@@ -96,7 +96,7 @@ jobs:
 
       - name: Configure AWS credentials using OIDC
         if: env.DEPLOY_ZERO == 'sst'
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_NUMBER }}:role/huppy-bot
           aws-region: ${{ env.AWS_REGION }}
@@ -120,9 +120,9 @@ jobs:
           APP_ORIGIN: ${{ vars.APP_ORIGIN }}
           ASSET_UPLOAD: ${{ vars.ASSET_UPLOAD }}
           IMAGE_WORKER: ${{ vars.IMAGE_WORKER }}
-          FAIRY_MODEL: ${{ vars.FAIRY_MODEL }}
-          FAIRY_WORKER: ${{ vars.FAIRY_WORKER }}
           MULTIPLAYER_SERVER: ${{ vars.MULTIPLAYER_SERVER }}
+          USER_CONTENT_SENTRY_DSN: ${{ secrets.USER_CONTENT_SENTRY_DSN }}
+          USER_CONTENT_URL: ${{ vars.USER_CONTENT_URL }}
           NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER: ${{ vars.NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER }}
           SUPABASE_LITE_URL: ${{ vars.SUPABASE_LITE_URL }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
@@ -140,17 +140,11 @@ jobs:
           DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
           DISCORD_FEEDBACK_WEBHOOK_URL: ${{ secrets.DISCORD_FEEDBACK_WEBHOOK_URL }}
           DISCORD_HEALTH_WEBHOOK_URL: ${{ secrets.DISCORD_HEALTH_WEBHOOK_URL }}
-          DISCORD_FAIRY_PURCHASE_WEBHOOK_URL: ${{ secrets.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL }}
-          FAIRY_WORKER_SENTRY_DSN: ${{ secrets.FAIRY_WORKER_SENTRY_DSN }}
           GC_MAPS_API_KEY: ${{ secrets.GC_MAPS_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           HEALTH_CHECK_BEARER_TOKEN: ${{ secrets.HEALTH_CHECK_BEARER_TOKEN }}
           HEALTH_WORKER_UPDOWN_WEBHOOK_PATH: ${{ secrets.HEALTH_WORKER_UPDOWN_WEBHOOK_PATH }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          PADDLE_CLIENT_TOKEN: ${{ secrets.PADDLE_CLIENT_TOKEN }}
-          PADDLE_ENVIRONMENT: ${{ secrets.PADDLE_ENVIRONMENT }}
-          PADDLE_FAIRY_PRICE_ID: ${{ secrets.PADDLE_FAIRY_PRICE_ID }}
-          PADDLE_WEBHOOK_SECRET: ${{ secrets.PADDLE_WEBHOOK_SECRET }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}

@@ -3,7 +3,7 @@ title: Create a video shape
 component: ./LocalVideosExample.tsx
 category: editor-api
 priority: 2
-keywords: [asset, video]
+keywords: [video, asset, assetrecordtype, createassets, local, static, mp4, videoshape]
 ---
 
 Create a video shape using a local asset.

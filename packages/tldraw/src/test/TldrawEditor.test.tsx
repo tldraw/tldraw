@@ -29,10 +29,12 @@ function checkAllShapes(editor: Editor, shapes: string[]) {
 	expect(Object.keys(editor!.shapeUtils)).toStrictEqual(shapes)
 }
 
-const textOptions = {
-	addFontsFromNode: defaultAddFontsFromNode,
-	tipTapConfig: {
-		extensions: tipTapDefaultExtensions,
+const options = {
+	text: {
+		addFontsFromNode: defaultAddFontsFromNode,
+		tipTapConfig: {
+			extensions: tipTapDefaultExtensions,
+		},
 	},
 }
 
@@ -178,7 +180,7 @@ describe('<TldrawEditor />', () => {
 				onMount={(editorApp) => {
 					editor = editorApp
 				}}
-				textOptions={textOptions}
+				options={options}
 			/>,
 			{ waitForPatterns: false }
 		)
@@ -253,10 +255,8 @@ describe('<TldrawEditor />', () => {
 			shapeTypesToTest.length
 		)
 
-		// Check that all shape indicators are present
-		expect(document.querySelectorAll('.tl-shape-indicator').length).toBeGreaterThanOrEqual(
-			shapeTypesToTest.length
-		)
+		// Check that the canvas indicators element is present
+		expect(document.querySelector('.tl-canvas-indicators')).toBeTruthy()
 
 		// Select one of the shapes (the note shape)
 		const noteShapeId = shapeIds[9] // note is at index 9
@@ -304,7 +304,7 @@ describe('<TldrawEditor />', () => {
 		expect(editors.length).toBe(1)
 		expect(editors[0].getCameraOptions().isLocked).toBe(false)
 
-		renderer.rerender(<TldrawEditor onMount={onMount} cameraOptions={{ isLocked: true }} />)
+		renderer.rerender(<TldrawEditor onMount={onMount} options={{ camera: { isLocked: true } }} />)
 		expect(editors.length).toBe(1)
 		expect(editors[0].getCameraOptions().isLocked).toBe(true)
 	})
@@ -391,7 +391,7 @@ describe('<TldrawEditor />', () => {
 					onMount={onMount}
 					shapeUtils={defaultShapeUtils}
 					snapshot={snapshot}
-					textOptions={textOptions}
+					options={options}
 				/>
 			),
 			{ waitForPatterns: true }
