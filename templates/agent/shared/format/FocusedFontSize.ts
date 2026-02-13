@@ -1,5 +1,9 @@
-import { FONT_SIZES } from 'tldraw'
+import { defaultSizeTokens } from 'tldraw'
 import { z } from 'zod'
+
+const FONT_SIZES = Object.fromEntries(
+	Object.entries(defaultSizeTokens).map(([k, v]) => [k, v.font])
+) as Record<keyof typeof defaultSizeTokens, number>
 
 export const FocusedFontSize = z.number()
 

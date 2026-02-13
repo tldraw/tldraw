@@ -107,7 +107,7 @@ export {
 	type TLStraightArrowInfo,
 } from './lib/shapes/arrow/arrow-types'
 export { ArrowShapeTool } from './lib/shapes/arrow/ArrowShapeTool'
-export { ArrowShapeUtil } from './lib/shapes/arrow/ArrowShapeUtil'
+export { ArrowShapeUtil, type TLArrowShapeResolvedStyles } from './lib/shapes/arrow/ArrowShapeUtil'
 export {
 	clearArrowTargetState,
 	getArrowTargetState,
@@ -139,22 +139,35 @@ export {
 export { createBookmarkFromUrl } from './lib/shapes/bookmark/bookmarks'
 export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
-export { DrawShapeUtil, type DrawShapeOptions } from './lib/shapes/draw/DrawShapeUtil'
+export {
+	DrawShapeUtil,
+	type DrawShapeOptions,
+	type TLDrawShapeResolvedStyles,
+} from './lib/shapes/draw/DrawShapeUtil'
 export { EmbedShapeUtil } from './lib/shapes/embed/EmbedShapeUtil'
 export { FrameShapeTool } from './lib/shapes/frame/FrameShapeTool'
-export { FrameShapeUtil, type FrameShapeOptions } from './lib/shapes/frame/FrameShapeUtil'
+export {
+	FrameShapeUtil,
+	type FrameShapeOptions,
+	type TLFrameShapeResolvedStyles,
+} from './lib/shapes/frame/FrameShapeUtil'
 export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
-export { GeoShapeUtil } from './lib/shapes/geo/GeoShapeUtil'
+export { GeoShapeUtil, type TLGeoShapeResolvedStyles } from './lib/shapes/geo/GeoShapeUtil'
 export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
 export {
 	HighlightShapeUtil,
 	type HighlightShapeOptions,
+	type TLHighlightShapeResolvedStyles,
 } from './lib/shapes/highlight/HighlightShapeUtil'
 export { ImageShapeUtil } from './lib/shapes/image/ImageShapeUtil'
 export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
-export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
+export { LineShapeUtil, type TLLineShapeResolvedStyles } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
-export { NoteShapeUtil, type NoteShapeOptions } from './lib/shapes/note/NoteShapeUtil'
+export {
+	NoteShapeUtil,
+	type NoteShapeOptions,
+	type TLNoteShapeResolvedStyles,
+} from './lib/shapes/note/NoteShapeUtil'
 export {
 	ASPECT_RATIO_OPTIONS,
 	ASPECT_RATIO_TO_VALUE,
@@ -201,7 +214,11 @@ export {
 export { PlainTextArea } from './lib/shapes/text/PlainTextArea'
 export { RichTextArea, type TextAreaProps } from './lib/shapes/text/RichTextArea'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
-export { TextShapeUtil, type TextShapeOptions } from './lib/shapes/text/TextShapeUtil'
+export {
+	TextShapeUtil,
+	type TextShapeOptions,
+	type TLTextShapeResolvedStyles,
+} from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil, type VideoShapeOptions } from './lib/shapes/video/VideoShapeUtil'
 export { type StyleValuesForUi } from './lib/styles'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'

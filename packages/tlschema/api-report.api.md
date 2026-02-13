@@ -219,6 +219,9 @@ export const DefaultFontFamilies: {
     serif: string;
 };
 
+// @public (undocumented)
+export const defaultFontNames: readonly ["draw", "sans", "serif", "mono"];
+
 // @public
 export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
 
@@ -284,8 +287,14 @@ export const defaultShapeSchemas: {
     };
 };
 
+// @public (undocumented)
+export const defaultSizeNames: readonly ["s", "m", "l", "xl"];
+
 // @public
 export const DefaultSizeStyle: EnumStyleProp<"l" | "m" | "s" | "xl">;
+
+// @public
+export const defaultSizeTokens: Record<(typeof defaultSizeNames)[number], TLSizeTokenDefinition>;
 
 // @public
 export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
@@ -318,8 +327,12 @@ export const embedShapeProps: RecordProps<TLEmbedShape>;
 export class EnumStyleProp<T> extends StyleProp<T> {
     // @internal
     constructor(id: string, defaultValue: T, values: readonly T[]);
+    addValues(values: T[]): void;
+    removeValues(values: T[]): void;
     // (undocumented)
     readonly values: readonly T[];
+    // @internal (undocumented)
+    readonly _valuesSet: Set<T>;
 }
 
 // @public
@@ -915,6 +928,10 @@ export type TLCameraId = RecordId<TLCamera>;
 export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
 
 // @public
+export interface TLColorStyleExtensions {
+}
+
+// @public
 export type TLCreateShapePartial<T extends TLShape = TLShape> = T extends T ? {
     meta?: Partial<T['meta']>;
     props?: Partial<T['props']>;
@@ -934,7 +951,7 @@ export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
+export type TLDefaultColorStyle = keyof TLColorStyleExtensions | T.TypeOf<typeof DefaultColorStyle>;
 
 // @public
 export type TLDefaultColorTheme = Expand<{
@@ -983,7 +1000,7 @@ export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
 export type TLDefaultFillStyle = T.TypeOf<typeof DefaultFillStyle>;
 
 // @public
-export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
+export type TLDefaultFontStyle = keyof TLFontStyleExtensions | T.TypeOf<typeof DefaultFontStyle>;
 
 // @public
 export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
@@ -992,7 +1009,7 @@ export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAli
 export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public
-export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
+export type TLDefaultSizeStyle = keyof TLSizeStyleExtensions | T.TypeOf<typeof DefaultSizeStyle>;
 
 // @public
 export type TLDefaultTextAlignStyle = T.TypeOf<typeof DefaultTextAlignStyle>;
@@ -1042,6 +1059,10 @@ export interface TLEmbedShapeProps {
     h: number;
     url: string;
     w: number;
+}
+
+// @public
+export interface TLFontStyleExtensions {
 }
 
 // @public
@@ -1467,6 +1488,18 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     props?: Partial<T['props']>;
     type: T['type'];
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
+
+// @public
+export interface TLSizeStyleExtensions {
+}
+
+// @public
+export interface TLSizeTokenDefinition {
+    arrowLabelFont: number;
+    font: number;
+    labelFont: number;
+    stroke: number;
+}
 
 // @public
 export type TLStore = Store<TLRecord, TLStoreProps>;

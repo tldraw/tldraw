@@ -8,6 +8,7 @@ import {
 	TLHighlightShape,
 	TLHighlightShapeProps,
 	TLResizeInfo,
+	TLStyleContext,
 	VecLike,
 	getColorValue,
 	highlightShapeMigrations,
@@ -15,18 +16,18 @@ import {
 	last,
 	lerp,
 	rng,
+	useEditor,
 	useValue,
 } from '@tldraw/editor'
 
 import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw/getPath'
-import { FONT_SIZES } from '../shared/default-shape-constants'
+
 import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { useColorSpace } from '../shared/useColorSpace'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
 /** @public */
 export interface HighlightShapeOptions {
@@ -74,8 +75,19 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		}
 	}
 
+	override getDefaultStyles(
+		shape: TLHighlightShape,
+		ctx: TLStyleContext
+	): TLHighlightShapeResolvedStyles {
+		return {
+			strokeWidth: ctx.sizes[shape.props.size].font * 1.12,
+			highlightColorSrgb: getColorValue(ctx.theme, shape.props.color, 'highlightSrgb'),
+			highlightColorP3: getColorValue(ctx.theme, shape.props.color, 'highlightP3'),
+		}
+	}
+
 	getGeometry(shape: TLHighlightShape) {
-		const strokeWidth = getStrokeWidth(shape)
+		const strokeWidth = getStrokeWidth(this.editor, shape)
 		if (getIsDot(shape)) {
 			return new Circle2d({
 				x: -strokeWidth / 2,
@@ -97,7 +109,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	component(shape: TLHighlightShape) {
 		const forceSolid = useHighlightForceSolid(this.editor, shape)
-		const strokeWidth = getStrokeWidth(shape)
+		const strokeWidth = getStrokeWidth(this.editor, shape)
 
 		return (
 			<SVGContainer>
@@ -113,7 +125,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	override backgroundComponent(shape: TLHighlightShape) {
 		const forceSolid = useHighlightForceSolid(this.editor, shape)
-		const strokeWidth = getStrokeWidth(shape)
+		const strokeWidth = getStrokeWidth(this.editor, shape)
 		return (
 			<SVGContainer>
 				<HighlightRenderer
@@ -128,7 +140,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	indicator(shape: TLHighlightShape) {
 		const forceSolid = useHighlightForceSolid(this.editor, shape)
-		const strokeWidth = getStrokeWidth(shape)
+		const strokeWidth = getStrokeWidth(this.editor, shape)
 
 		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
 		const allPointsFromSegments = getPointsFromDrawSegments(
@@ -152,7 +164,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override getIndicatorPath(shape: TLHighlightShape): Path2D {
-		const strokeWidth = getStrokeWidth(shape)
+		const strokeWidth = getStrokeWidth(this.editor, shape)
 		const zoomLevel = this.editor.getEfficientZoomLevel()
 		const forceSolid = strokeWidth / zoomLevel < 1.5
 
@@ -174,7 +186,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override toSvg(shape: TLHighlightShape) {
-		const strokeWidth = getStrokeWidth(shape)
+		const strokeWidth = getStrokeWidth(this.editor, shape)
 		const forceSolid = strokeWidth < 1.5
 		const scaleFactor = 1 / shape.props.scale
 		return (
@@ -190,7 +202,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override toBackgroundSvg(shape: TLHighlightShape) {
-		const strokeWidth = getStrokeWidth(shape)
+		const strokeWidth = getStrokeWidth(this.editor, shape)
 		const forceSolid = strokeWidth < 1.5
 		const scaleFactor = 1 / shape.props.scale
 		return (
@@ -270,8 +282,21 @@ function getHighlightStrokePoints(
 	return { strokePoints, sw }
 }
 
-function getStrokeWidth(shape: TLHighlightShape) {
-	return FONT_SIZES[shape.props.size] * 1.12 * shape.props.scale
+/** @public */
+export interface TLHighlightShapeResolvedStyles {
+	strokeWidth: number
+	highlightColorSrgb: string
+	highlightColorP3: string
+}
+
+declare module '@tldraw/editor' {
+	interface TLShapeStylesMap {
+		highlight: TLHighlightShapeResolvedStyles
+	}
+}
+
+function getStrokeWidth(editor: Editor, shape: TLHighlightShape) {
+	return editor.getShapeStyles(shape).strokeWidth * shape.props.scale
 }
 
 function getIsDot(shape: TLHighlightShape) {
@@ -293,7 +318,8 @@ function HighlightRenderer({
 	shape: TLHighlightShape
 	opacity: number
 }) {
-	const theme = useDefaultColorTheme()
+	const editor = useEditor()
+	const styles = editor.getShapeStyles(shape)
 
 	const allPointsFromSegments = getPointsFromDrawSegments(
 		shape.props.segments,
@@ -320,11 +346,7 @@ function HighlightRenderer({
 
 	const colorSpace = useColorSpace()
 
-	const color = getColorValue(
-		theme,
-		shape.props.color,
-		colorSpace === 'p3' ? 'highlightP3' : 'highlightSrgb'
-	)
+	const color = colorSpace === 'p3' ? styles.highlightColorP3 : styles.highlightColorSrgb
 
 	return (
 		<path
@@ -343,7 +365,7 @@ function useHighlightForceSolid(editor: Editor, shape: TLHighlightShape) {
 	return useValue(
 		'forceSolid',
 		() => {
-			const sw = getStrokeWidth(shape)
+			const sw = getStrokeWidth(editor, shape)
 			const zoomLevel = editor.getEfficientZoomLevel()
 			if (sw / zoomLevel < 1.5) {
 				return true

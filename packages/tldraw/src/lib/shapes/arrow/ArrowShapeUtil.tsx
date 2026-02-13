@@ -24,6 +24,7 @@ import {
 	TLShapeUtilCanBeLaidOutOpts,
 	TLShapeUtilCanBindOpts,
 	TLShapeUtilCanvasSvgDef,
+	TLStyleContext,
 	Vec,
 	WeakCache,
 	arrowShapeMigrations,
@@ -32,7 +33,6 @@ import {
 	debugFlags,
 	exhaustiveSwitchError,
 	getColorValue,
-	getDefaultColorTheme,
 	getFontsFromRichText,
 	invLerp,
 	lerp,
@@ -52,17 +52,12 @@ import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/r
 import { PathBuilder } from '../shared/PathBuilder'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
-import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { ARROW_LABEL_PADDING, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { getArrowBodyPath, getArrowBodyPathBuilder, getArrowHandlePath } from './ArrowPath'
 import { ArrowShapeOptions } from './arrow-types'
-import {
-	getArrowLabelDefaultPosition,
-	getArrowLabelFontSize,
-	getArrowLabelPosition,
-} from './arrowLabel'
+import { getArrowLabelDefaultPosition, getArrowLabelPosition } from './arrowLabel'
 import { updateArrowTargetState } from './arrowTargetState'
 import { getArrowheadPathForType } from './arrowheads'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
@@ -97,10 +92,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			xl: 66,
 		},
 		minElbowLegLength: {
-			s: STROKE_SIZES.s * 3,
-			m: STROKE_SIZES.m * 3,
-			l: STROKE_SIZES.l * 3,
-			xl: STROKE_SIZES.xl * 3,
+			s: 6,
+			m: 10.5,
+			l: 15,
+			xl: 30,
 		},
 		minElbowHandleDistance: 16,
 
@@ -192,6 +187,16 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			labelPosition: 0.5,
 			font: 'draw',
 			scale: 1,
+		}
+	}
+
+	override getDefaultStyles(shape: TLArrowShape, ctx: TLStyleContext): TLArrowShapeResolvedStyles {
+		return {
+			strokeWidth: ctx.sizes[shape.props.size].stroke,
+			strokeColor: getColorValue(ctx.theme, shape.props.color, 'solid'),
+			labelColor: getColorValue(ctx.theme, shape.props.labelColor, 'solid'),
+			labelFontSize: ctx.sizes[shape.props.size].arrowLabelFont,
+			fontFamily: ctx.fonts[shape.props.font],
 		}
 	}
 
@@ -754,8 +759,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	component(shape: TLArrowShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
+		const styles = this.editor.getShapeStyles(shape)
 		const onlySelectedShape = this.editor.getOnlySelectedShape()
 		const shouldDisplayHandles =
 			this.editor.isInAny(
@@ -790,11 +794,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						shapeId={shape.id}
 						type="arrow"
 						font={shape.props.font}
-						fontSize={getArrowLabelFontSize(shape)}
+						fontSize={styles.labelFontSize}
 						lineHeight={TEXT_PROPS.lineHeight}
 						align="middle"
 						verticalAlign="middle"
-						labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
+						labelColor={styles.labelColor}
 						richText={shape.props.richText}
 						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
 						isSelected={isSelected}
@@ -827,7 +831,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		if (Vec.Equals(start, end)) return null
 
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const styles = this.editor.getShapeStyles(shape)
+		const strokeWidth = styles.strokeWidth * shape.props.scale
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -936,7 +941,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		if (Vec.Equals(start, end)) return undefined
 
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const styles = this.editor.getShapeStyles(shape)
+		const strokeWidth = styles.strokeWidth * shape.props.scale
 
 		// If editing and has label, just return the label rect
 		if (isEditing && labelGeometry) {
@@ -1058,18 +1064,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		const theme = getDefaultColorTheme(ctx)
+		const styles = this.editor.getShapeStyles(shape)
 		const scaleFactor = 1 / shape.props.scale
 
 		return (
 			<g transform={`scale(${scaleFactor})`}>
 				<ArrowSvg shape={shape} shouldDisplayHandles={false} />
 				<RichTextSVG
-					fontSize={getArrowLabelFontSize(shape)}
+					fontSize={styles.labelFontSize}
 					font={shape.props.font}
 					align="middle"
 					verticalAlign="middle"
-					labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
+					labelColor={styles.labelColor}
 					richText={shape.props.richText}
 					bounds={getArrowLabelPosition(this.editor, shape)
 						.box.clone()
@@ -1126,6 +1132,21 @@ export function getArrowLength(editor: Editor, shape: TLArrowShape): number {
 			: info.route.distance
 }
 
+/** @public */
+export interface TLArrowShapeResolvedStyles {
+	strokeWidth: number
+	strokeColor: string
+	labelColor: string
+	labelFontSize: number
+	fontFamily: string
+}
+
+declare module '@tldraw/editor' {
+	interface TLShapeStylesMap {
+		arrow: TLArrowShapeResolvedStyles
+	}
+}
+
 const ArrowSvg = track(function ArrowSvg({
 	shape,
 	shouldDisplayHandles,
@@ -1134,7 +1155,7 @@ const ArrowSvg = track(function ArrowSvg({
 	shouldDisplayHandles: boolean
 }) {
 	const editor = useEditor()
-	const theme = useDefaultColorTheme()
+	const theme = editor.getStyleContext().theme
 	const info = getArrowInfo(editor, shape)
 	const isForceSolid = useEfficientZoomThreshold(shape.props.scale * 0.25)
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
@@ -1149,7 +1170,8 @@ const ArrowSvg = track(function ArrowSvg({
 
 	if (!info?.isValid) return null
 
-	const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+	const styles = editor.getShapeStyles(shape)
+	const strokeWidth = styles.strokeWidth * shape.props.scale
 
 	const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 	const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -1206,7 +1228,7 @@ const ArrowSvg = track(function ArrowSvg({
 			</defs>
 			<g
 				fill="none"
-				stroke={getColorValue(theme, shape.props.color, 'solid')}
+				stroke={styles.strokeColor}
 				strokeWidth={strokeWidth}
 				strokeLinejoin="round"
 				strokeLinecap="round"

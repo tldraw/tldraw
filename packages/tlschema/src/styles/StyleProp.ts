@@ -111,12 +111,43 @@ export class StyleProp<Type> implements T.Validatable<Type> {
  */
 export class EnumStyleProp<T> extends StyleProp<T> {
 	/** @internal */
+	readonly _valuesSet: Set<T>
+
+	/** @internal */
 	constructor(
 		id: string,
 		defaultValue: T,
 		readonly values: readonly T[]
 	) {
-		super(id, defaultValue, T.literalEnum(...values))
+		const set = new Set(values)
+		super(id, defaultValue, T.setEnum(set))
+		this._valuesSet = set
+	}
+
+	/**
+	 * Register additional allowed values for this enum style prop.
+	 * This extends the runtime validator to accept the new values.
+	 *
+	 * @param values - The values to add.
+	 * @public
+	 */
+	addValues(values: T[]) {
+		for (const v of values) {
+			this._valuesSet.add(v)
+		}
+	}
+
+	/**
+	 * Remove allowed values from this enum style prop.
+	 * The runtime validator will reject these values after removal.
+	 *
+	 * @param values - The values to remove.
+	 * @public
+	 */
+	removeValues(values: T[]) {
+		for (const v of values) {
+			this._valuesSet.delete(v)
+		}
 	}
 }
 

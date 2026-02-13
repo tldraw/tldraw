@@ -9,7 +9,7 @@ export const TEXT_PROPS = {
 	padding: '0px',
 }
 
-/** @public */
+/** @public @deprecated Use `editor.getShapeStyles(shape).strokeWidth` instead. */
 export const STROKE_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 2,
 	m: 3.5,
@@ -17,7 +17,7 @@ export const STROKE_SIZES: Record<TLDefaultSizeStyle, number> = {
 	xl: 10,
 }
 
-/** @public */
+/** @public @deprecated Use `editor.getShapeStyles(shape).fontSize` instead. */
 export const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 18,
 	m: 24,
@@ -25,7 +25,7 @@ export const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	xl: 44,
 }
 
-/** @public */
+/** @public @deprecated Use `editor.getShapeStyles(shape).labelFontSize` instead. */
 export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 18,
 	m: 22,
@@ -33,7 +33,7 @@ export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	xl: 32,
 }
 
-/** @public */
+/** @public @deprecated Use `editor.getShapeStyles(shape).labelFontSize` instead. */
 export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 18,
 	m: 20,
@@ -41,7 +41,7 @@ export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	xl: 28,
 }
 
-/** @public */
+/** @public @deprecated Use `editor.getShapeStyles(shape).fontFamily` instead. */
 export const FONT_FAMILIES: Record<TLDefaultFontStyle, string> = {
 	draw: 'var(--tl-font-draw)',
 	sans: 'var(--tl-font-sans)',

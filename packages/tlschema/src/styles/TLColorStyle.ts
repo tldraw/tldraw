@@ -651,26 +651,30 @@ export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', 
 })
 
 /**
- * Type representing a default color style value.
- * This is a union type of all available default color names.
+ * Empty interface for module augmentation. Extend this to add custom color tokens.
  *
  * @example
  * ```ts
- * import { TLDefaultColorStyle } from '@tldraw/tlschema'
- *
- * // Valid color values
- * const redColor: TLDefaultColorStyle = 'red'
- * const blueColor: TLDefaultColorStyle = 'blue'
- *
- * // Type guard usage
- * function isValidColor(color: string): color is TLDefaultColorStyle {
- *   return ['black', 'red', 'blue'].includes(color as TLDefaultColorStyle)
+ * declare module '@tldraw/tlschema' {
+ *   interface TLColorStyleExtensions {
+ *     coral: true
+ *     forest: true
+ *   }
  * }
  * ```
  *
  * @public
  */
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface TLColorStyleExtensions {}
+
+/**
+ * Type representing a default color style value.
+ * This is a union type of all available default color names, plus any extensions.
+ *
+ * @public
+ */
+export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle> | keyof TLColorStyleExtensions
 
 const defaultColorNamesSet = new Set(defaultColorNames)
 

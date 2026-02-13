@@ -39,28 +39,33 @@ export const DefaultFontStyle = StyleProp.defineEnum('tldraw:font', {
 })
 
 /**
- * Type representing a default font style value.
- * This is a union type of all available font style options.
+ * Empty interface for module augmentation. Extend this to add custom font tokens.
  *
  * @example
  * ```ts
- * import { TLDefaultFontStyle } from '@tldraw/tlschema'
- *
- * // Valid font style values
- * const drawFont: TLDefaultFontStyle = 'draw'
- * const sansFont: TLDefaultFontStyle = 'sans'
- * const serifFont: TLDefaultFontStyle = 'serif'
- * const monoFont: TLDefaultFontStyle = 'mono'
- *
- * // Use in a function parameter
- * function setTextFont(font: TLDefaultFontStyle) {
- *   // Apply font style to text
+ * declare module '@tldraw/tlschema' {
+ *   interface TLFontStyleExtensions {
+ *     comic: true
+ *     handwriting: true
+ *   }
  * }
  * ```
  *
  * @public
  */
-export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface TLFontStyleExtensions {}
+
+/** @public */
+export const defaultFontNames = ['draw', 'sans', 'serif', 'mono'] as const
+
+/**
+ * Type representing a default font style value.
+ * This is a union type of all available font style options, plus any extensions.
+ *
+ * @public
+ */
+export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle> | keyof TLFontStyleExtensions
 
 /**
  * Mapping of font style names to their corresponding CSS font-family declarations.

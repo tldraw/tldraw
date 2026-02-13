@@ -16,12 +16,12 @@ import {
 	TLShape,
 	TLShapePartial,
 	TLShapeUtilConstructor,
+	TLStyleContext,
 	clamp,
 	compact,
 	frameShapeMigrations,
 	frameShapeProps,
 	getColorValue,
-	getDefaultColorTheme,
 	lerp,
 	resizeBox,
 	toDomPrecision,
@@ -33,7 +33,6 @@ import {
 	TLCreateTextJsxFromSpansOpts,
 	createTextJsxFromSpans,
 } from '../shared/createTextJsxFromSpans'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
 import {
 	getFrameHeadingOpts,
@@ -112,6 +111,22 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override getDefaultProps(): TLFrameShape['props'] {
 		return { w: 160 * 2, h: 90 * 2, name: '', color: 'black' }
+	}
+
+	override getDefaultStyles(shape: TLFrameShape, ctx: TLStyleContext): TLFrameShapeResolvedStyles {
+		const showColors = this.options.showColors
+		const colorToUse = showColors ? shape.props.color : 'black'
+		return {
+			frameFillColor: getColorValue(ctx.theme, colorToUse, 'frameFill'),
+			frameStrokeColor: getColorValue(ctx.theme, colorToUse, 'frameStroke'),
+			frameHeadingStrokeColor: showColors
+				? getColorValue(ctx.theme, colorToUse, 'frameHeadingStroke')
+				: ctx.theme.background,
+			frameHeadingFillColor: showColors
+				? getColorValue(ctx.theme, colorToUse, 'frameHeadingFill')
+				: ctx.theme.background,
+			frameTextColor: getColorValue(ctx.theme, colorToUse, 'frameText'),
+		}
 	}
 
 	override getAriaDescriptor(shape: TLFrameShape) {
@@ -213,8 +228,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override component(shape: TLFrameShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
+		const styles = this.editor.getShapeStyles(shape)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isCreating = useValue(
@@ -231,25 +245,13 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			[shape.id]
 		)
 
-		const showFrameColors = this.options.showColors
-		const colorToUse = showFrameColors ? shape.props.color : 'black'
-		const frameFill = getColorValue(theme, colorToUse, 'frameFill')
-		const frameStroke = getColorValue(theme, colorToUse, 'frameStroke')
-		const frameHeadingStroke = showFrameColors
-			? getColorValue(theme, colorToUse, 'frameHeadingStroke')
-			: theme.background
-		const frameHeadingFill = showFrameColors
-			? getColorValue(theme, colorToUse, 'frameHeadingFill')
-			: theme.background
-		const frameHeadingText = getColorValue(theme, colorToUse, 'frameText')
-
 		return (
 			<>
 				<SVGContainer>
 					<rect
 						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
-						fill={frameFill}
-						stroke={frameStroke}
+						fill={styles.frameFillColor}
+						stroke={styles.frameStrokeColor}
 						style={{
 							width: `calc(${shape.props.w}px + 1px / var(--tl-zoom))`,
 							height: `calc(${shape.props.h}px + 1px / var(--tl-zoom))`,
@@ -261,12 +263,12 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 					<FrameHeading
 						id={shape.id}
 						name={shape.props.name}
-						fill={frameHeadingFill}
-						stroke={frameHeadingStroke}
-						color={frameHeadingText}
+						fill={styles.frameHeadingFillColor}
+						stroke={styles.frameHeadingStrokeColor}
+						color={styles.frameTextColor}
 						width={shape.props.w}
 						height={shape.props.h}
-						offsetX={showFrameColors ? -1 : -7}
+						offsetX={this.options.showColors ? -1 : -7}
 						showColors={this.options.showColors}
 					/>
 				)}
@@ -274,8 +276,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 	}
 
-	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
+	override toSvg(shape: TLFrameShape, _ctx: SvgExportContext) {
+		const styles = this.editor.getShapeStyles(shape)
 
 		// rotate right 45 deg
 		const labelSide = getFrameHeadingSide(this.editor, shape)
@@ -291,42 +293,30 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const spans = this.editor.textMeasure.measureTextSpans(frameTitle, opts)
 		const text = createTextJsxFromSpans(this.editor, spans, opts)
 
-		const showFrameColors = this.options.showColors
-		const colorToUse = showFrameColors ? shape.props.color : 'black'
-		const frameFill = getColorValue(theme, colorToUse, 'frameFill')
-		const frameStroke = getColorValue(theme, colorToUse, 'frameStroke')
-		const frameHeadingStroke = showFrameColors
-			? getColorValue(theme, colorToUse, 'frameHeadingStroke')
-			: theme.background
-		const frameHeadingFill = showFrameColors
-			? getColorValue(theme, colorToUse, 'frameHeadingFill')
-			: theme.background
-		const frameHeadingText = getColorValue(theme, colorToUse, 'frameText')
-
 		return (
 			<>
 				<rect
 					width={shape.props.w}
 					height={shape.props.h}
-					fill={frameFill}
-					stroke={frameStroke}
+					fill={styles.frameFillColor}
+					stroke={styles.frameStrokeColor}
 					strokeWidth={1}
 					x={0}
 					rx={0}
 					ry={0}
 				/>
-				<g fill={frameHeadingText} transform={labelTranslate}>
+				<g fill={styles.frameTextColor} transform={labelTranslate}>
 					<rect
-						x={labelBounds.x - (showFrameColors ? 0 : 6)}
+						x={labelBounds.x - (this.options.showColors ? 0 : 6)}
 						y={labelBounds.y - 6}
 						width={Math.min(rotatedTopEdgeWidth, labelBounds.width + 12)}
 						height={labelBounds.height}
-						fill={frameHeadingFill}
-						stroke={frameHeadingStroke}
+						fill={styles.frameHeadingFillColor}
+						stroke={styles.frameHeadingStrokeColor}
 						rx={4}
 						ry={4}
 					/>
-					<g transform={`translate(${showFrameColors ? 8 : 0}, 4)`}>{text}</g>
+					<g transform={`translate(${this.options.showColors ? 8 : 0}, 4)`}>{text}</g>
 				</g>
 			</>
 		)
@@ -478,5 +468,20 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				editor.getCurrentPageId()
 			)
 		}
+	}
+}
+
+/** @public */
+export interface TLFrameShapeResolvedStyles {
+	frameFillColor: string
+	frameStrokeColor: string
+	frameHeadingStrokeColor: string
+	frameHeadingFillColor: string
+	frameTextColor: string
+}
+
+declare module '@tldraw/editor' {
+	interface TLShapeStylesMap {
+		frame: TLFrameShapeResolvedStyles
 	}
 }

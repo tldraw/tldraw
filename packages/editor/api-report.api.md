@@ -60,6 +60,8 @@ import { TLCamera } from '@tldraw/tlschema';
 import { TLCreateShapePartial } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
+import { TLDefaultColorTheme } from '@tldraw/tlschema';
+import { TLDefaultColorThemeColor } from '@tldraw/tlschema';
 import { TLDefaultDashStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
@@ -81,6 +83,7 @@ import { TLShape } from '@tldraw/tlschema';
 import { TLShapeCrop } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
+import { TLSizeTokenDefinition } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStoreSchema } from '@tldraw/tlschema';
@@ -132,6 +135,11 @@ export class Arc2d extends Geometry2d {
 
 // @public
 export function areAnglesCompatible(a: number, b: number): boolean;
+
+// @public
+export type AsStyleOverrides<T> = {
+    [K in keyof T]?: Themeable<T[K]>;
+};
 
 // @public (undocumented)
 export function average(A: VecLike, B: VecLike): string;
@@ -508,7 +516,7 @@ export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | 
 export function createTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, assets, onMount, collaboration, ...rest }?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, assets, onMount, collaboration, stylesConfig, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function createTLUser(opts?: {
@@ -813,7 +821,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls, getShapeStyleOverrides, stylesConfig, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1305,6 +1313,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapesSharedRotation(shapeIds: TLShapeId[]): number;
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
+    getShapeStyles<T extends TLShape>(shape: T): TLResolvedStyles<T>;
     getShapeUtil<K extends TLShape['type']>(type: K): ShapeUtil<Extract<TLShape, {
         type: K;
     }>>;
@@ -1318,6 +1327,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSnapshot(): TLEditorSnapshot;
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
+    getStyleContext(): TLStyleContext;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
         height: number;
@@ -2785,6 +2795,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     getClipPath?(shape: Shape): undefined | Vec[];
     abstract getDefaultProps(): Shape['props'];
+    getDefaultStyles(shape: Shape, ctx: TLStyleContext): object | undefined;
     getFontFaces(shape: Shape): TLFontFace[];
     abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
@@ -3112,6 +3123,12 @@ export class TextManager {
     }[];
 }
 
+// @public
+export type Themeable<T> = {
+    dark: T;
+    light: T;
+} | T;
+
 // @internal (undocumented)
 export class TickManager {
     constructor(editor: Editor);
@@ -3425,6 +3442,7 @@ export interface TldrawEditorBaseProps {
     components?: TLEditorComponents;
     // @deprecated
     deepLinks?: TLDeepLinkOptions | true;
+    getShapeStyleOverrides?: TLGetShapeStyleOverrides;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     inferDarkMode?: boolean;
     initialState?: string;
@@ -3432,6 +3450,7 @@ export interface TldrawEditorBaseProps {
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    stylesConfig?: TLStylesConfig;
     // @deprecated
     textOptions?: TLTextOptions;
     tools?: readonly TLStateNodeConstructor[];
@@ -3645,6 +3664,7 @@ export interface TLEditorOptions {
         [key: string]: string | undefined;
     };
     getContainer(): HTMLElement;
+    getShapeStyleOverrides?: TLGetShapeStyleOverrides;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     inferDarkMode?: boolean;
     initialState?: string;
@@ -3654,6 +3674,7 @@ export interface TLEditorOptions {
     options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
+    stylesConfig?: TLStylesConfig;
     // @deprecated
     textOptions?: TLTextOptions;
     tools: readonly TLStateNodeConstructor[];
@@ -3940,6 +3961,9 @@ export interface TLGetShapeAtPointOptions {
     margin?: [number, number] | number;
     renderingOnly?: boolean;
 }
+
+// @public
+export type TLGetShapeStyleOverrides = (shape: TLShape, ctx: TLStyleContext) => AsStyleOverrides<Record<string, unknown>> | undefined | void;
 
 // @public (undocumented)
 export interface TLGridProps {
@@ -4236,6 +4260,9 @@ export type TLResizeShapeOptions = Partial<{
     skipStartAndEndCallbacks: boolean;
 }>;
 
+// @public
+export type TLResolvedStyles<T extends TLShape> = T['type'] extends keyof TLShapeStylesMap ? TLShapeStylesMap[T['type']] : Record<string, unknown>;
+
 // @internal (undocumented)
 export interface TLRotationSnapshot {
     // (undocumented)
@@ -4348,6 +4375,10 @@ export interface TLShapeIndicatorsProps {
 }
 
 // @public
+export interface TLShapeStylesMap {
+}
+
+// @public
 export interface TLShapeUtilCanBeLaidOutOpts {
     shapes?: TLShape[];
     type?: 'align' | 'distribute' | 'flip' | 'pack' | 'stack' | 'stretch';
@@ -4428,6 +4459,7 @@ export interface TLStoreBaseOptions {
     initialData?: SerializedStore<TLRecord>;
     onMount?(editor: Editor): (() => void) | void;
     snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
+    stylesConfig?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -4474,6 +4506,29 @@ export type TLStoreWithStatus = {
     readonly status: 'synced-local';
     readonly store: TLStore;
 };
+
+// @public
+export interface TLStyleContext {
+    fonts: Record<string, string>;
+    isDarkMode: boolean;
+    sizes: Record<string, TLSizeTokenDefinition>;
+    theme: TLDefaultColorTheme;
+}
+
+// @public
+export interface TLStylesColorDefinition {
+    // (undocumented)
+    dark: Partial<TLDefaultColorThemeColor>;
+    // (undocumented)
+    light: Partial<TLDefaultColorThemeColor>;
+}
+
+// @public
+export interface TLStylesConfig {
+    colors?: Record<string, null | Partial<TLStylesColorDefinition>>;
+    fonts?: Record<string, null | string>;
+    sizes?: Record<string, null | Partial<TLSizeTokenDefinition>>;
+}
 
 // @public (undocumented)
 export interface TLSvgExportOptions {
@@ -4851,6 +4906,9 @@ export function useShallowArrayIdentity<T extends null | readonly any[] | undefi
 
 // @internal (undocumented)
 export function useShallowObjectIdentity<T extends null | object | undefined>(obj: T): T;
+
+// @public
+export function useShapeStyles<T extends TLShape>(shape: T): TLResolvedStyles<T>;
 
 // @public
 export function useSharedSafeId(id: string): SafeId;

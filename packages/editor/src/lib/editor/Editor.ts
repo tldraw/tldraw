@@ -49,11 +49,14 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	TLSizeTokenDefinition,
 	TLStore,
 	TLStoreSnapshot,
 	TLVideoAsset,
 	createBindingId,
 	createShapeId,
+	defaultSizeTokens,
+	getDefaultColorTheme,
 	getShapePropKeysByStyle,
 	isPageId,
 	isShapeId,
@@ -136,6 +139,13 @@ import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
+import {
+	TLGetShapeStyleOverrides,
+	TLResolvedStyles,
+	TLStyleContext,
+	TLStylesConfig,
+	extendStyleValidators,
+} from './TLShapeStyles'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
@@ -266,6 +276,17 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+
+	/**
+	 * Runtime override callback for shape styles. Called after `getDefaultStyles()` to
+	 * allow dynamic customization of resolved style values.
+	 */
+	getShapeStyleOverrides?: TLGetShapeStyleOverrides
+
+	/**
+	 * Style configuration for customizing color and size tokens.
+	 */
+	stylesConfig?: TLStylesConfig
 }
 
 /**
@@ -284,6 +305,13 @@ export interface TLRenderingShape {
 	index: number
 	backgroundIndex: number
 	opacity: number
+}
+
+const DEFAULT_FONT_TOKENS: Record<string, string> = {
+	draw: 'var(--tl-font-draw)',
+	sans: 'var(--tl-font-sans)',
+	serif: 'var(--tl-font-serif)',
+	mono: 'var(--tl-font-mono)',
 }
 
 /** @public */
@@ -308,10 +336,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 		textOptions: _textOptions,
 		getShapeVisibility,
 		fontAssetUrls,
+		getShapeStyleOverrides,
+		stylesConfig,
 	}: TLEditorOptions) {
 		super()
 
 		this._getShapeVisibility = getShapeVisibility
+		this._getShapeStyleOverrides = getShapeStyleOverrides
+		this._stylesConfig = stylesConfig
+
+		// Extend runtime validators for custom style tokens. This is also
+		// done earlier in TldrawEditor (before the store loads), but we
+		// repeat it here so direct Editor usage without TldrawEditor works.
+		extendStyleValidators(stylesConfig)
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop
@@ -818,6 +855,93 @@ export class Editor extends EventEmitter<TLEventMap> {
 				})
 			)
 		}
+	}
+
+	private readonly _getShapeStyleOverrides?: TLGetShapeStyleOverrides
+	private readonly _stylesConfig?: TLStylesConfig
+
+	/**
+	 * Get the style context containing resolved theme and size tokens.
+	 * Includes any custom tokens from the `styles` config.
+	 *
+	 * @public
+	 */
+	getStyleContext(): TLStyleContext {
+		const isDarkMode = this.user.getIsDarkMode()
+		const baseTheme = getDefaultColorTheme({ isDarkMode })
+
+		// Merge custom color tokens into theme
+		let theme = baseTheme
+		if (this._stylesConfig?.colors) {
+			const themeColors: Record<string, any> = {}
+			for (const [name, def] of Object.entries(this._stylesConfig.colors)) {
+				if (def === null) continue // removed tokens - skip
+				const modeKey = isDarkMode ? 'dark' : 'light'
+				const baseColor = (baseTheme as any)[name]
+				themeColors[name] = { ...baseColor, ...def[modeKey] }
+			}
+			theme = { ...baseTheme, ...themeColors }
+		}
+
+		// Merge custom size tokens with defaults
+		const sizes: Record<string, TLSizeTokenDefinition> = { ...defaultSizeTokens }
+		if (this._stylesConfig?.sizes) {
+			for (const [name, def] of Object.entries(this._stylesConfig.sizes)) {
+				if (def === null) {
+					delete sizes[name]
+				} else {
+					sizes[name] = { ...sizes[name], ...def }
+				}
+			}
+		}
+
+		// Merge custom font tokens with defaults
+		const fonts: Record<string, string> = { ...DEFAULT_FONT_TOKENS }
+		if (this._stylesConfig?.fonts) {
+			for (const [name, def] of Object.entries(this._stylesConfig.fonts)) {
+				if (def === null) {
+					delete fonts[name]
+				} else {
+					fonts[name] = def
+				}
+			}
+		}
+
+		return { isDarkMode, theme, sizes, fonts }
+	}
+
+	/**
+	 * Get the resolved styles for a shape. Calls the shape util's `getDefaultStyles()`,
+	 * then applies any runtime overrides from `getShapeStyleOverrides`.
+	 *
+	 * @param shape - The shape to get styles for.
+	 * @returns The resolved style values for the shape.
+	 *
+	 * @public
+	 */
+	getShapeStyles<T extends TLShape>(shape: T): TLResolvedStyles<T> {
+		const util = this.getShapeUtil(shape)
+		const ctx = this.getStyleContext()
+		let styles: object = util.getDefaultStyles(shape, ctx) ?? {}
+
+		if (this._getShapeStyleOverrides) {
+			const overrides = this._getShapeStyleOverrides(shape, ctx)
+			if (overrides) {
+				const resolvedOverrides: Record<string, unknown> = {}
+				for (const [key, value] of Object.entries(overrides)) {
+					if (value && typeof value === 'object' && 'light' in value && 'dark' in value) {
+						resolvedOverrides[key] = ctx.isDarkMode
+							? (value as { light: unknown; dark: unknown }).dark
+							: (value as { light: unknown; dark: unknown }).light
+					} else {
+						resolvedOverrides[key] = value
+					}
+				}
+				styles = { ...styles, ...resolvedOverrides }
+			}
+		}
+
+		return styles as TLResolvedStyles<T>
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']

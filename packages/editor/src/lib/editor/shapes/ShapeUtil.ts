@@ -18,6 +18,7 @@ import { Box, SelectionHandle } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
+import type { TLStyleContext } from '../TLShapeStyles'
 import { TLFontFace } from '../managers/FontManager/FontManager'
 import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
@@ -174,6 +175,23 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @public
 	 */
 	abstract getDefaultProps(): Shape['props']
+
+	/**
+	 * Get the resolved concrete style values for a shape. Override this to define how
+	 * abstract style tokens (size, color) map to pixel values for this shape type.
+	 *
+	 * The returned object is cached and available via `editor.getShapeStyles(shape)`
+	 * and `useShapeStyles(shape)`.
+	 *
+	 * @param shape - The shape.
+	 * @param ctx - The style context containing resolved theme and size tokens.
+	 * @returns Resolved style values, or undefined if this shape doesn't use resolved styles.
+	 *
+	 * @public
+	 */
+	getDefaultStyles(shape: Shape, ctx: TLStyleContext): object | undefined {
+		return undefined
+	}
 
 	/**
 	 * Get the shape's geometry.

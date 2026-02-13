@@ -3,6 +3,16 @@
 	"extends": "../../internal/config/api-extractor.json",
 	// the file paths in the shared api-extractor.json don't work for us here, so we specify them manually:
 	"mainEntryPointFilePath": "<projectFolder>/packages/namespaced-tldraw/.tsbuild-api/index.d.ts",
+	"bundledPackages": [
+		"tldraw",
+		"@tldraw/editor",
+		"@tldraw/tlschema",
+		"@tldraw/utils",
+		"@tldraw/state",
+		"@tldraw/state-react",
+		"@tldraw/store",
+		"@tldraw/validate"
+	],
 	"compiler": {
 		"tsconfigFilePath": "<projectFolder>/packages/namespaced-tldraw/tsconfig.json"
 	},

@@ -8,6 +8,7 @@ import {
 	TLLineShape,
 	TLLineShapePoint,
 	TLResizeInfo,
+	TLStyleContext,
 	Vec,
 	WeakCache,
 	ZERO_INDEX_KEY,
@@ -22,11 +23,10 @@ import {
 	mapObjectMapValues,
 	maybeSnapToGrid,
 	sortByIndex,
+	useEditor,
 } from '@tldraw/editor'
 
-import { STROKE_SIZES } from '../arrow/shared'
 import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
 const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
 
@@ -64,6 +64,13 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				[end]: { id: end, index: end, x: 0.1, y: 0.1 },
 			},
 			scale: 1,
+		}
+	}
+
+	override getDefaultStyles(shape: TLLineShape, ctx: TLStyleContext): TLLineShapeResolvedStyles {
+		return {
+			strokeWidth: ctx.sizes[shape.props.size].stroke,
+			strokeColor: getColorValue(ctx.theme, shape.props.color, 'solid'),
 		}
 	}
 
@@ -190,7 +197,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	indicator(shape: TLLineShape) {
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const styles = this.editor.getShapeStyles(shape)
+		const strokeWidth = styles.strokeWidth * shape.props.scale
 		const path = getPathForLineShape(shape)
 		const { dash } = shape.props
 
@@ -210,7 +218,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override getIndicatorPath(shape: TLLineShape): Path2D {
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const styles = this.editor.getShapeStyles(shape)
+		const strokeWidth = styles.strokeWidth * shape.props.scale
 		const path = getPathForLineShape(shape)
 		const { dash } = shape.props
 
@@ -344,6 +353,18 @@ function getPathForLineShape(shape: TLLineShape): PathBuilder {
 	})
 }
 
+/** @public */
+export interface TLLineShapeResolvedStyles {
+	strokeWidth: number
+	strokeColor: string
+}
+
+declare module '@tldraw/editor' {
+	interface TLShapeStylesMap {
+		line: TLLineShapeResolvedStyles
+	}
+}
+
 function LineShapeSvg({
 	shape,
 	shouldScale = false,
@@ -353,16 +374,17 @@ function LineShapeSvg({
 	shouldScale?: boolean
 	forceSolid?: boolean
 }) {
-	const theme = useDefaultColorTheme()
+	const editor = useEditor()
+	const styles = editor.getShapeStyles(shape)
 
 	const path = getPathForLineShape(shape)
-	const { dash, color, size } = shape.props
+	const { dash } = shape.props
 
 	const scaleFactor = 1 / shape.props.scale
 
 	const scale = shouldScale ? scaleFactor : 1
 
-	const strokeWidth = STROKE_SIZES[size] * shape.props.scale
+	const strokeWidth = styles.strokeWidth * shape.props.scale
 
 	return path.toSvg({
 		style: dash,
@@ -371,7 +393,7 @@ function LineShapeSvg({
 		randomSeed: shape.id,
 		props: {
 			transform: `scale(${scale})`,
-			stroke: getColorValue(theme, color, 'solid'),
+			stroke: styles.strokeColor,
 			fill: 'none',
 		},
 	})
