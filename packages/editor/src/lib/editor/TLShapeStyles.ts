@@ -42,6 +42,10 @@ export type AsStyleOverrides<T> = {
  *
  * @public
  */
+// NOTE: This empty interface causes api-extractor to fail for the namespaced-tldraw
+// package ("Unsupported export"). It can't handle empty interfaces re-exported through
+// `export *` chains. We need this exported for TLResolvedStyles to work, and users need
+// it for module augmentation. TODO: find a targeted api-extractor fix.
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface TLShapeStylesMap {}
 
