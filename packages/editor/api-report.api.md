@@ -2472,6 +2472,9 @@ export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;
 // @public
 export function MenuClickCapture(): false | JSX.Element;
 
+// @public
+export function mergeStylesIntoContext(ctx: TLStyleContext, config: TLStylesConfig): TLStyleContext;
+
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
     x: number;

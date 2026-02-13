@@ -740,9 +740,10 @@ export function getColorValue(
 	color: TLDefaultColorStyle,
 	variant: keyof TLDefaultColorThemeColor
 ): string {
-	if (!isDefaultThemeColor(color)) {
-		return color
+	const themeColor = (theme as unknown as Record<string, TLDefaultColorThemeColor>)[color]
+	if (themeColor) {
+		return themeColor[variant]
 	}
 
-	return theme[color][variant]
+	return color
 }

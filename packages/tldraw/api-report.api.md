@@ -243,6 +243,7 @@ export interface ArrowShapeOptions {
     shouldBeExact(editor: Editor, isPrecise: boolean): boolean;
     shouldIgnoreTargets(editor: Editor): boolean;
     readonly showTextOutline: boolean;
+    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -1155,6 +1156,7 @@ export interface DrawPathBuilderOpts extends BasePathBuilderOpts, DrawPathBuilde
 // @public (undocumented)
 export interface DrawShapeOptions {
     readonly maxPointsPerShape: number;
+    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -1554,6 +1556,7 @@ export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 export interface FrameShapeOptions {
     resizeChildren: boolean;
     showColors: boolean;
+    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -1642,6 +1645,12 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 // @public (undocumented)
 export function FrameToolbarItem(): JSX.Element;
+
+// @public (undocumented)
+export interface GeoShapeOptions {
+    showTextOutline: boolean;
+    styles?: TLStylesConfig;
+}
 
 // @public (undocumented)
 export class GeoShapeTool extends StateNode {
@@ -1788,9 +1797,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     };
     // (undocumented)
-    options: {
-        showTextOutline: boolean;
-    };
+    options: GeoShapeOptions;
     // (undocumented)
     static props: RecordProps<TLGeoShape>;
     // (undocumented)
@@ -1908,6 +1915,7 @@ export interface HighlightShapeOptions {
     readonly maxPointsPerShape: number;
     // (undocumented)
     readonly overlayOpacity: number;
+    styles?: TLStylesConfig;
     // (undocumented)
     readonly underlayOpacity: number;
 }
@@ -2056,6 +2064,11 @@ export class LaserTool extends StateNode {
 export function LaserToolbarItem(): JSX.Element;
 
 // @public (undocumented)
+export interface LineShapeOptions {
+    styles?: TLStylesConfig;
+}
+
+// @public (undocumented)
 export class LineShapeTool extends StateNode {
     // (undocumented)
     static children(): TLStateNodeConstructor[];
@@ -2173,6 +2186,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         };
     };
     // (undocumented)
+    options: LineShapeOptions;
+    // (undocumented)
     static props: RecordProps<TLLineShape>;
     // (undocumented)
     toSvg(shape: TLLineShape): JSX.Element;
@@ -2216,6 +2231,7 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
 // @public (undocumented)
 export interface NoteShapeOptions {
     resizeMode: 'none' | 'scale';
+    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -3070,6 +3086,7 @@ export interface TextAreaProps {
 export interface TextShapeOptions {
     extraArrowHorizontalPadding: number;
     showTextOutline: boolean;
+    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
