@@ -1,11 +1,12 @@
 import { PI, TLShapeId } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 import { TL } from '../test-jsx'
 
 let editor: TestEditor
 let ids: Record<string, TLShapeId>
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 function createVideoShape() {
 	return editor.createShapesFromJsx(<TL.video ref="video1" x={0} y={0} w={160} h={90} />).video1
@@ -26,10 +27,10 @@ beforeEach(() => {
 describe('when less than two shapes are selected', () => {
 	it('does nothing', () => {
 		editor.setSelectedShapes([ids.boxB])
-		const fn = jest.fn()
+		const fn = vi.fn()
 		editor.store.listen(fn)
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'horizontal')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		expect(fn).not.toHaveBeenCalled()
 	})
@@ -39,7 +40,7 @@ describe('when multiple shapes are selected', () => {
 	it('stretches horizontally', () => {
 		editor.selectAll()
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'horizontal')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 		editor.expectShapeToMatch(
 			{ id: ids.boxA, x: 0, y: 0, props: { w: 500 } },
 			{ id: ids.boxB, x: 0, y: 100, props: { w: 500 } },
@@ -52,7 +53,7 @@ describe('when multiple shapes are selected', () => {
 		editor.selectAll()
 		expect(editor.getSelectedShapes().length).toBe(4)
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'horizontal')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 		const newHeight = (500 * 9) / 16
 		editor.expectShapeToMatch(
 			{ id: ids.boxA, x: 0, y: 0, props: { w: 500 } },
@@ -65,7 +66,7 @@ describe('when multiple shapes are selected', () => {
 	it('stretches vertically', () => {
 		editor.selectAll()
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'vertical')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 		editor.expectShapeToMatch(
 			{ id: ids.boxA, x: 0, y: 0, props: { h: 500 } },
 			{ id: ids.boxB, x: 100, y: 0, props: { h: 500 } },
@@ -78,7 +79,7 @@ describe('when multiple shapes are selected', () => {
 		editor.selectAll()
 		expect(editor.getSelectedShapes().length).toBe(4)
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'vertical')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 		const newWidth = (500 * 16) / 9
 		editor.expectShapeToMatch(
 			{ id: ids.boxA, x: 0, y: 0, props: { h: 500 } },
@@ -91,7 +92,7 @@ describe('when multiple shapes are selected', () => {
 	it('does, undoes and redoes command', () => {
 		editor.markHistoryStoppingPoint('stretch')
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'horizontal')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch({ id: ids.boxB, x: 0, props: { w: 500 } })
 		editor.undo()
@@ -106,7 +107,7 @@ describe('When shapes are the child of another shape.', () => {
 		editor.reparentShapes([ids.boxB], ids.boxA)
 		editor.select(ids.boxB, ids.boxC)
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'horizontal')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 		editor.expectShapeToMatch(
 			{ id: ids.boxB, x: 100, y: 100, props: { w: 400 } },
 			{ id: ids.boxC, x: 100, y: 400, props: { w: 400 } }
@@ -117,7 +118,7 @@ describe('When shapes are the child of another shape.', () => {
 		editor.reparentShapes([ids.boxB], ids.boxA)
 		editor.select(ids.boxB, ids.boxC)
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'vertical')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 		editor.expectShapeToMatch(
 			{ id: ids.boxB, x: 100, y: 100, props: { h: 400 } },
 			{ id: ids.boxC, x: 400, y: 100, props: { h: 400 } }
@@ -140,7 +141,7 @@ describe('When shapes are the child of a rotated shape.', () => {
 
 		editor.select(ids.boxA, ids.boxC)
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'horizontal')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 		editor.expectShapeToMatch(
 			{
 				id: ids.boxA,
@@ -184,7 +185,7 @@ describe('When shapes are the child of a rotated shape.', () => {
 		editor.selectAll()
 
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'vertical')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 		editor.expectShapeToMatch(
 			{
 				id: ids.boxA,

@@ -1,7 +1,5 @@
 import { TLAssetStore, uniqueId } from 'tldraw'
 
-const WORKER_URL = process.env.TLDRAW_WORKER_URL
-
 // How does our server handle assets like images and videos?
 export const multiplayerAssetStore: TLAssetStore = {
 	// to upload an asset, we...
@@ -9,7 +7,7 @@ export const multiplayerAssetStore: TLAssetStore = {
 		// ...create a unique name & URL...
 		const id = uniqueId()
 		const objectName = `${id}-${file.name}`.replace(/[^a-zA-Z0-9.]/g, '-')
-		const url = `${WORKER_URL}/uploads/${objectName}`
+		const url = `/api/uploads/${objectName}`
 
 		// ...POST it to out worker to upload it...
 		const response = await fetch(url, {

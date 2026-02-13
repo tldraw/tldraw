@@ -1,11 +1,10 @@
 import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo, TLShapeId } from '@tldraw/editor'
+import { startEditingShapeWithRichText } from '../../../tools/SelectTool/selectHelpers'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetState'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
-
-	options = this.editor.getShapeUtil<ArrowShapeUtil>('arrow').options
 
 	isPrecise = false
 	isPreciseTimerId: number | null = null
@@ -42,31 +41,21 @@ export class Idle extends StateNode {
 	override onKeyUp(info: TLKeyboardEventInfo) {
 		this.update()
 		if (info.key === 'Enter') {
-			if (this.editor.getIsReadonly()) return null
 			const onlySelectedShape = this.editor.getOnlySelectedShape()
-			// If the only selected shape is editable, start editing it
-			if (
-				onlySelectedShape &&
-				this.editor.getShapeUtil(onlySelectedShape).canEdit(onlySelectedShape)
-			) {
-				this.editor.setCurrentTool('select')
-				this.editor.setEditingShape(onlySelectedShape.id)
-				this.editor.root.getCurrent()?.transition('editing_shape', {
-					...info,
-					target: 'shape',
-					shape: onlySelectedShape,
-				})
+			if (this.editor.canEditShape(onlySelectedShape)) {
+				startEditingShapeWithRichText(this.editor, onlySelectedShape, { selectAll: true })
 			}
 		}
 	}
 
 	update() {
+		const arrowUtil = this.editor.getShapeUtil<ArrowShapeUtil>('arrow')
+
 		const targetState = updateArrowTargetState({
 			editor: this.editor,
-			pointInPageSpace: this.editor.inputs.currentPagePoint,
+			pointInPageSpace: this.editor.inputs.getCurrentPagePoint(),
 			arrow: undefined,
 			isPrecise: this.isPrecise,
-			isExact: this.editor.inputs.altKey,
 			currentBinding: undefined,
 			oppositeBinding: undefined,
 		})
@@ -80,7 +69,7 @@ export class Idle extends StateNode {
 			this.isPreciseTimerId = this.editor.timers.setTimeout(() => {
 				this.isPrecise = true
 				this.update()
-			}, this.options.hoverPreciseTimeout)
+			}, arrowUtil.options.hoverPreciseTimeout)
 		} else if (!targetState && this.preciseTargetId) {
 			this.isPrecise = false
 			this.preciseTargetId = null

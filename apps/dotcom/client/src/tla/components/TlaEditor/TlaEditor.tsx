@@ -1,11 +1,15 @@
+import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
+	DefaultDebugMenu,
+	DefaultDebugMenuContent,
 	Editor,
 	TLComponents,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
 	Tldraw,
+	TldrawUiMenuItem,
 	createSessionStateSnapshotSignal,
 	parseDeepLinkString,
 	react,
@@ -15,27 +19,37 @@ import {
 	useDialogs,
 	useEditor,
 	useEvent,
+	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
-import { useHandleUiEvents } from '../../../utils/analytics'
+
+import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
+import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
+import { isProductionEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
-import { SneakyDarkModeSync } from './SneakyDarkModeSync'
+import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
-import { SneakyHandToolEmptyPage } from './sneaky/SneakyHandToolEmptyPage'
+import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
+import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
+import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 /** @internal */
@@ -96,8 +110,13 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		})
 	}, [hideAllShapes])
 
+	const trackRoomLoaded = useRoomLoadTracking()
+	const trackNewRoomCreation = useNewRoomCreationTracking()
+
 	const handleMount = useCallback(
 		(editor: Editor) => {
+			trackRoomLoaded(editor)
+			trackNewRoomCreation(app, fileId)
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally
@@ -121,21 +140,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			} else if (deepLink) {
 				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 			}
-			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
-			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
-				app.onFileSessionStateUpdate(fileId, state)
-			}, 5000)
-			// don't want to update if they only open the file and didn't look around
-			let firstTime = true
-			const cleanup = react('update session state', () => {
-				const state = sessionState$.get()
-				if (!state) return
-				if (firstTime) {
-					firstTime = false
-					return
-				}
-				updateSessionState(state)
-			})
+			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)
 
 			const abortController = new AbortController()
 			maybeSlurp({
@@ -148,12 +153,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}).then(setIsReady)
 
 			return () => {
-				updateSessionState.flush()
+				fileStateUpdater.dispose()
 				abortController.abort()
-				cleanup()
 			}
 		},
-		[addDialog, app, fileId, remountImageShapes, setIsReady]
+		[addDialog, trackRoomLoaded, trackNewRoomCreation, app, fileId, remountImageShapes, setIsReady]
 	)
 
 	const user = useTldrawUser()
@@ -162,8 +166,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	})
 	const hasUser = !!user
 	const assets = useMemo(() => {
-		return multiplayerAssetStore(() => fileId)
-	}, [fileId])
+		return multiplayerAssetStore({ getFileId: () => fileId, getToken: getUserToken })
+	}, [fileId, getUserToken])
 
 	const store = useSync({
 		uri: useCallback(async () => {
@@ -175,14 +179,23 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		userInfo: app?.tlUser.userPreferences,
+		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
+			trackEvent(message.type)
+		}, []),
 	})
+
+	// we need to prevent calling onFileExit if the store is in an error state
+	const storeError = useRef(false)
+	if (store.status === 'error') {
+		storeError.current = true
+	}
 
 	// Handle entering and exiting the file, with some protection against rapid enters/exits
 	useEffect(() => {
 		if (!app) return
 		if (store.status !== 'synced-remote') return
 		let didEnter = false
-		let timer: any
+		let timer: number
 
 		const fileState = app.getFileState(fileId)
 
@@ -204,59 +217,150 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 		return () => {
 			clearTimeout(timer)
-			if (didEnter) {
-				app.onFileExit(fileId)
+			if (didEnter && !storeError.current) {
+				app.updateFileState(fileId, { lastVisitAt: Date.now() })
 			}
 		}
 	}, [app, fileId, store.status])
 
 	const overrides = useFileEditorOverrides({ fileSlug })
+	const extraDragIconOverrides = useExtraDragIconOverrides()
+
+	const instanceComponents = useMemo((): TLComponents => {
+		return {
+			...components,
+			DebugMenu: () => <CustomDebugMenu />,
+		}
+	}, [])
 
 	return (
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
+				licenseKey={getLicenseKey()}
 				store={store}
 				assetUrls={assetUrls}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
-				components={components}
-				options={{ actionShortcutsLocation: 'toolbar' }}
-				deepLinks={deepLinks || undefined}
-				overrides={overrides}
+				components={instanceComponents}
+				options={{ actionShortcutsLocation: 'toolbar', deepLinks: deepLinks ? true : undefined }}
+				overrides={[overrides, extraDragIconOverrides]}
 				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
-				<SneakyHandToolEmptyPage />
+				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
-				<SneakyFileUpdateHandler fileId={fileId} />
+				<SneakyLargeFileHander />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
 }
 
-function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
+function CustomDebugMenu() {
 	const app = useMaybeApp()
+	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
-	useEffect(() => {
-		const onChange = throttle(
-			() => {
-				if (!app) return
-				app.onFileEdit(fileId)
-			},
-			// This is used to update the lastEditAt time in the database, and to let the local
-			// room know that an edit has been made.
-			// It doesn't need to be super fast or accurate so we can throttle it a lot
-			10_000
-		)
-		const unsub = editor.store.listen(onChange, { scope: 'document', source: 'user' })
-		return () => {
-			onChange.flush()
-			unsub()
-		}
-	}, [app, fileId, editor])
+	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+	return (
+		<DefaultDebugMenu>
+			<A11yAudit />
+			{!isReadOnly && app && (
+				<>
+					<TldrawUiMenuItem
+						id="user-manual"
+						label="File history"
+						readonlyOk
+						onSelect={() => {
+							const url = new URL(window.location.href)
+							url.pathname += '/history'
+							openAndTrack(url.toString())
+						}}
+					/>
+					{!isProductionEnv && (
+						<TldrawUiMenuItem
+							id="user-manual"
+							label="File history (pierre)"
+							readonlyOk
+							onSelect={() => {
+								const url = new URL(window.location.href)
+								url.pathname += '/pierre-history'
+								openAndTrack(url.toString())
+							}}
+						/>
+					)}
+				</>
+			)}
+			<DefaultDebugMenuContent />
+		</DefaultDebugMenu>
+	)
+}
 
-	return null
+const FILE_STATE_UPDATE_INTERVAL = 10_000
+class FileStateUpdater {
+	disposables = new Set<() => void>()
+	constructor(
+		private readonly app: TldrawApp,
+		private readonly fileId: string,
+		editor: Editor
+	) {
+		this.disposables.add(
+			editor.store.listen(
+				() => {
+					this.didDocumentChange = true
+					this.update()
+				},
+				{ scope: 'document', source: 'user' }
+			)
+		)
+		const flush = () => {
+			this.update.flush()
+		}
+		window.addEventListener('beforeunload', flush)
+		this.disposables.add(() => {
+			window.removeEventListener('beforeunload', flush)
+		})
+
+		const sessionState$ = createSessionStateSnapshotSignal(editor.store)
+		let firstTime = true
+		this.disposables.add(
+			react('update session state', () => {
+				const state = sessionState$.get()
+				if (firstTime) {
+					firstTime = false
+					return
+				}
+				if (!state) return
+				this.nextSessionState = state
+				this.update()
+			})
+		)
+	}
+
+	private nextSessionState: TLSessionStateSnapshot | null = null
+	private didDocumentChange = false
+
+	private update = throttle(
+		() => {
+			if (!this.nextSessionState && !this.didDocumentChange) return
+			const state = this.nextSessionState
+			this.nextSessionState = null
+			const didChange = this.didDocumentChange
+			this.didDocumentChange = false
+			this.app.updateFileState(this.fileId, {
+				lastSessionState: state ? JSON.stringify(state) : undefined,
+				lastEditAt: didChange ? Date.now() : undefined,
+				lastVisitAt: Date.now(),
+			})
+		},
+		FILE_STATE_UPDATE_INTERVAL,
+		{ trailing: true, leading: false }
+	)
+
+	dispose() {
+		this.update.flush()
+		this.disposables.forEach((dispose) => dispose())
+		this.disposables.clear()
+	}
 }

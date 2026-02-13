@@ -3,7 +3,6 @@ import {
 	Editor,
 	IndexKey,
 	TLImageAsset,
-	TLImageShape,
 	TLShape,
 	TLShapeId,
 	Vec,
@@ -166,7 +165,7 @@ export async function flattenShapesToImages(
 			const shapeId = createShapeId()
 
 			// create an image shape in the same place as the shapes
-			editor.createShape<TLImageShape>({
+			editor.createShape({
 				id: shapeId,
 				type: 'image',
 				index,

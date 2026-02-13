@@ -14,6 +14,7 @@ import {
 	loadSnapshot,
 	react,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -33,7 +34,7 @@ beforeEach(() => {
 	editor = new TestEditor({})
 
 	editor.createShapes([
-		// on it's own
+		// on its own
 		{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 		// in a frame
 		{ id: ids.frame1, type: 'frame', x: 100, y: 100, props: { w: 100, h: 100 } },
@@ -49,7 +50,7 @@ beforeEach(() => {
 })
 
 const moveShapesToPage2 = () => {
-	// directly maniuplate parentId like would happen in multiplayer situations
+	// directly manipulate parentId like would happen in multiplayer situations
 
 	editor.updateShapes([
 		{ id: ids.box1, type: 'geo', parentId: ids.page2 },
@@ -142,17 +143,17 @@ describe('shapes that are moved to another page', () => {
 it('Begins dragging from pointer move', () => {
 	editor.pointerDown(0, 0)
 	editor.pointerMove(2, 2)
-	expect(editor.inputs.isDragging).toBe(false)
+	expect(editor.inputs.getIsDragging()).toBe(false)
 	editor.pointerMove(10, 10)
-	expect(editor.inputs.isDragging).toBe(true)
+	expect(editor.inputs.getIsDragging()).toBe(true)
 })
 
 it('Begins dragging from wheel', () => {
 	editor.pointerDown(0, 0)
 	editor.wheel(2, 2)
-	expect(editor.inputs.isDragging).toBe(false)
+	expect(editor.inputs.getIsDragging()).toBe(false)
 	editor.wheel(10, 10)
-	expect(editor.inputs.isDragging).toBe(true)
+	expect(editor.inputs.getIsDragging()).toBe(true)
 })
 
 it('Does not create an undo stack item when first clicking on an empty canvas', () => {
@@ -265,36 +266,47 @@ describe('Editor.TickManager', () => {
 		// usually this is called by the app's tick manager, using the elapsed time
 		// between two animation frames, but we're calling it directly here.
 		const tick = (ms: number) => {
-			// @ts-ignore
-			editor._tickManager.updatePointerVelocity(ms)
+			editor.inputs.updatePointerVelocity(ms)
 		}
 
 		// 1. pointer velocity should be 0 when there is no movement
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0, y: 0 })
+		expect(editor.inputs.getPointerVelocity().toJson()).toCloselyMatchObject({ x: 0, y: 0 })
 
 		editor.pointerMove(10, 10)
 
 		// 2. moving is not enough, we also need to wait a frame before the velocity is updated
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0, y: 0 })
+		expect(editor.inputs.getPointerVelocity().toJson()).toCloselyMatchObject({ x: 0, y: 0 })
 
 		// 3. once time passes, the pointer velocity should be updated
 		tick(16)
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.3125, y: 0.3125 })
+		expect(editor.inputs.getPointerVelocity().toJson()).toCloselyMatchObject({
+			x: 0.3125,
+			y: 0.3125,
+		})
 
 		// 4. let's do it again, it should be updated again. move, tick, measure
 		editor.pointerMove(20, 20)
 		tick(16)
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.46875, y: 0.46875 })
+		expect(editor.inputs.getPointerVelocity().toJson()).toCloselyMatchObject({
+			x: 0.46875,
+			y: 0.46875,
+		})
 
 		// 5. if we tick again without movement, the velocity should decay
 		tick(16)
 
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.23437, y: 0.23437 })
+		expect(editor.inputs.getPointerVelocity().toJson()).toCloselyMatchObject({
+			x: 0.23437,
+			y: 0.23437,
+		})
 
 		// 6. if updatePointerVelocity is (for whatever reason) called with an elapsed time of zero milliseconds, it should be ignored
 		tick(0)
 
-		expect(editor.inputs.pointerVelocity.toJson()).toCloselyMatchObject({ x: 0.23437, y: 0.23437 })
+		expect(editor.inputs.getPointerVelocity().toJson()).toCloselyMatchObject({
+			x: 0.23437,
+			y: 0.23437,
+		})
 	})
 })
 
@@ -415,24 +427,24 @@ describe('isFocused', () => {
 	})
 
 	it('becomes true when the container div receives a focus event', () => {
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 
 		editor.elm.focus()
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(true)
 	})
 
 	it('becomes false when the container div receives a blur event', () => {
 		editor.elm.focus()
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(true)
 
 		editor.elm.blur()
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
@@ -444,13 +456,13 @@ describe('isFocused', () => {
 		editor.elm.blur()
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 		child.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(true)
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
@@ -466,17 +478,25 @@ describe('isFocused', () => {
 
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 })
+
+const BLORG_TYPE = 'blorg'
+
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[BLORG_TYPE]: { w: number; h: number }
+	}
+}
 
 describe('getShapeUtil', () => {
 	let myUtil: any
 
 	beforeEach(() => {
 		class _MyFakeShapeUtil extends BaseBoxShapeUtil<any> {
-			static override type = 'blorg'
+			static override type = BLORG_TYPE
 
 			getDefaultProps() {
 				return {
@@ -518,16 +538,22 @@ describe('getShapeUtil', () => {
 	})
 
 	it('throws if that shape type isnt registered', () => {
-		const myMissingShape = { type: 'missing' } as TLShape
-		expect(() => editor.getShapeUtil(myMissingShape)).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type "missing""`
-		)
+		const myMissingShape = { type: 'missing' }
+		expect(() =>
+			editor.getShapeUtil(
+				// @ts-expect-error
+				myMissingShape
+			)
+		).toThrowErrorMatchingInlineSnapshot(`[Error: No shape util found for type "missing"]`)
 	})
 
 	it('throws if that type isnt registered', () => {
-		expect(() => editor.getShapeUtil('missing')).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type "missing""`
-		)
+		expect(() =>
+			editor.getShapeUtil(
+				// @ts-expect-error
+				'missing'
+			)
+		).toThrowErrorMatchingInlineSnapshot(`[Error: No shape util found for type "missing"]`)
 	})
 })
 
@@ -603,14 +629,14 @@ describe('snapshots', () => {
 
 describe('when the user prefers dark UI', () => {
 	beforeEach(() => {
-		window.matchMedia = jest.fn().mockImplementation((query) => {
+		window.matchMedia = vi.fn().mockImplementation((query) => {
 			return {
 				matches: query === '(prefers-color-scheme: dark)',
 				media: query,
 				onchange: null,
-				addEventListener: jest.fn(),
-				removeEventListener: jest.fn(),
-				dispatchEvent: jest.fn(),
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
+				dispatchEvent: vi.fn(),
 			}
 		})
 	})
@@ -630,14 +656,14 @@ describe('when the user prefers dark UI', () => {
 
 describe('when the user prefers light UI', () => {
 	beforeEach(() => {
-		window.matchMedia = jest.fn().mockImplementation((query) => {
+		window.matchMedia = vi.fn().mockImplementation((query) => {
 			return {
 				matches: false,
 				media: query,
 				onchange: null,
-				addEventListener: jest.fn(),
-				removeEventListener: jest.fn(),
-				dispatchEvent: jest.fn(),
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
+				dispatchEvent: vi.fn(),
 			}
 		})
 	})
@@ -662,9 +688,9 @@ describe('middle-click panning', () => {
 			button: 1,
 		})
 		editor.pointerMove(100, 100)
-		expect(editor.inputs.isPanning).toBe(true)
+		expect(editor.inputs.getIsPanning()).toBe(true)
 		editor.pointerUp(100, 100)
-		expect(editor.inputs.isPanning).toBe(false)
+		expect(editor.inputs.getIsPanning()).toBe(false)
 	})
 
 	it('does not clear thee isPanning state if the space bar is down', () => {
@@ -673,56 +699,56 @@ describe('middle-click panning', () => {
 			button: 1,
 		})
 		editor.pointerMove(100, 100)
-		expect(editor.inputs.isPanning).toBe(true)
+		expect(editor.inputs.getIsPanning()).toBe(true)
 		editor.keyDown(' ')
 		editor.pointerUp(100, 100, {
 			button: 1,
 		})
-		expect(editor.inputs.isPanning).toBe(true)
+		expect(editor.inputs.getIsPanning()).toBe(true)
 
 		editor.keyUp(' ')
-		expect(editor.inputs.isPanning).toBe(false)
+		expect(editor.inputs.getIsPanning()).toBe(false)
 	})
 })
 
 describe('dragging', () => {
 	it('drags correctly at 100% zoom', () => {
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 0).pointerDown()
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 1)
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 5)
-		expect(editor.inputs.isDragging).toBe(true)
+		expect(editor.inputs.getIsDragging()).toBe(true)
 	})
 
 	it('drags correctly at 150% zoom', () => {
 		editor.setCamera({ x: 0, y: 0, z: 8 }).forceTick()
 
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 0).pointerDown()
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 2)
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 5)
-		expect(editor.inputs.isDragging).toBe(true)
+		expect(editor.inputs.getIsDragging()).toBe(true)
 	})
 
 	it('drags correctly at 50% zoom', () => {
 		editor.setCamera({ x: 0, y: 0, z: 0.1 }).forceTick()
 
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 0).pointerDown()
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 2)
-		expect(editor.inputs.isDragging).toBe(false)
+		expect(editor.inputs.getIsDragging()).toBe(false)
 		editor.pointerMove(0, 5)
-		expect(editor.inputs.isDragging).toBe(true)
+		expect(editor.inputs.getIsDragging()).toBe(true)
 	})
 })
 
 describe('getShapeVisibility', () => {
-	const getShapeVisibility = jest.fn(((shape: TLShape) => {
+	const getShapeVisibility = vi.fn(((shape: TLShape) => {
 		return shape.meta.visibility as any
 	}) satisfies TldrawEditorProps['getShapeVisibility'])
 
@@ -865,9 +891,19 @@ describe('instance.isReadonly', () => {
 	})
 })
 
+const MY_CUSTOM_SHAPE_TYPE = 'myCustomShape'
+
+type MyCustomShape = TLShape<typeof MY_CUSTOM_SHAPE_TYPE>
+
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[MY_CUSTOM_SHAPE_TYPE]: { w: number; h: number }
+	}
+}
+
 describe('the geometry cache', () => {
-	class CustomShapeUtil extends BaseBoxShapeUtil<any> {
-		static override type = 'custom'
+	class CustomShapeUtil extends BaseBoxShapeUtil<MyCustomShape> {
+		static override type = MY_CUSTOM_SHAPE_TYPE
 
 		getDefaultProps() {
 			return {
@@ -893,9 +929,78 @@ describe('the geometry cache', () => {
 		editor = new TestEditor({
 			shapeUtils: [CustomShapeUtil],
 		})
-		const { A } = editor.createShapesFromJsx([<TL.custom ref="A" x={0} y={0} w={100} h={100} />])
+		const { A } = editor.createShapesFromJsx([
+			<TL.myCustomShape ref="A" x={0} y={0} w={100} h={100} />,
+		])
 		expect(editor.getShapePageBounds(A)!.width).toBe(100)
-		editor.updateShape({ id: A, type: 'custom', meta: { double: true } })
+		editor.updateShape({ id: A, type: 'myCustomShape', meta: { double: true } })
 		expect(editor.getShapePageBounds(A)!.width).toBe(200)
+	})
+})
+describe('editor.getShapePageBounds', () => {
+	it('calculates axis aligned bounds correctly', () => {
+		editor.createShape({
+			type: 'geo',
+			x: 99,
+			y: 88,
+			props: {
+				w: 199,
+				h: 188,
+			},
+		})
+		const shape = editor.getLastCreatedShape()
+		expect(editor.getShapePageBounds(shape)!).toMatchInlineSnapshot(`
+	Box {
+	  "h": 188,
+	  "w": 199,
+	  "x": 99,
+	  "y": 88,
+	}
+`)
+	})
+
+	it('calculates rotated bounds correctly', () => {
+		editor.createShape({
+			type: 'geo',
+			x: 99,
+			y: 88,
+			rotation: Math.PI / 4,
+			props: {
+				w: 199,
+				h: 188,
+			},
+		})
+		const shape = editor.getLastCreatedShape()
+		expect(editor.getShapePageBounds(shape)!).toMatchInlineSnapshot(`
+	Box {
+	  "h": 273.65032431919394,
+	  "w": 273.6503243191939,
+	  "x": -33.93607486307093,
+	  "y": 88,
+	}
+`)
+	})
+
+	it('calculates bounds based on vertices, not corners', () => {
+		editor.createShape({
+			type: 'geo',
+			x: 99,
+			y: 88,
+			rotation: Math.PI / 4,
+			props: {
+				geo: 'ellipse',
+				w: 199,
+				h: 188,
+			},
+		})
+		const shape = editor.getLastCreatedShape()
+		expect(editor.getShapePageBounds(shape)!).toMatchInlineSnapshot(`
+	Box {
+	  "h": 193.49999999999997,
+	  "w": 193.50000000000003,
+	  "x": 6.139087296526014,
+	  "y": 128.07516215959694,
+	}
+`)
 	})
 })

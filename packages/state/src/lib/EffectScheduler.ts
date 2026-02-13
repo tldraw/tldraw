@@ -34,13 +34,14 @@ export interface EffectSchedulerOptions {
 	 * ```
 	 *
 	 * @param execute - A function that will execute the effect.
-	 * @returns
+	 * @returns void
 	 */
 	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	scheduleEffect?: (execute: () => void) => void
 }
 
 class __EffectScheduler__<Result> implements EffectScheduler<Result> {
+	/** @internal */
 	private _isActivelyListening = false
 	/**
 	 * Whether this scheduler is attached and actively listening to its parents.
@@ -53,8 +54,12 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	/** @internal */
 	lastTraversedEpoch = GLOBAL_START_EPOCH
 
+	/** @internal */
 	private lastReactedEpoch = GLOBAL_START_EPOCH
+
+	/** @internal */
 	private _scheduleCount = 0
+	/** @internal */
 	__debug_ancestor_epochs__: Map<Signal<any, any>, number> | null = null
 
 	/**
@@ -72,6 +77,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	readonly parentEpochs: number[] = []
 	/** @internal */
 	readonly parents: Signal<any, any>[] = []
+	/** @internal */
 	private readonly _scheduleEffect?: (execute: () => void) => void
 	constructor(
 		public readonly name: string,
@@ -133,6 +139,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	/**
 	 * Makes this scheduler stop 'actively listening' to its parents.
 	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until `EffectScheduler.attach` is called again.
+	 * @public
 	 */
 	detach() {
 		this._isActivelyListening = false
@@ -144,6 +151,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	/**
 	 * Executes the effect immediately and returns the result.
 	 * @returns The result of the effect.
+	 * @public
 	 */
 	execute(): Result {
 		try {
@@ -190,7 +198,6 @@ export const EffectScheduler = singleton(
 )
 /** @public */
 export interface EffectScheduler<Result> {
-	/** @internal */
 	/**
 	 * Whether this scheduler is attached and actively listening to its parents.
 	 * @public
@@ -241,12 +248,14 @@ export interface EffectScheduler<Result> {
 	/**
 	 * Makes this scheduler stop 'actively listening' to its parents.
 	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until `EffectScheduler.attach` is called again.
+	 * @public
 	 */
 	detach(): void
 
 	/**
 	 * Executes the effect immediately and returns the result.
 	 * @returns The result of the effect.
+	 * @public
 	 */
 	execute(): Result
 }

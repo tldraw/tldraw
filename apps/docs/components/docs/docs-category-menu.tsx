@@ -2,19 +2,19 @@
 
 import { NavigationLink } from '@/components/navigation/link'
 import { RocketLaunchIcon } from '@heroicons/react/16/solid'
-import { AcademicCapIcon, CommandLineIcon, PlayIcon } from '@heroicons/react/20/solid'
+import { AcademicCapIcon, CommandLineIcon, CubeIcon, PlayIcon } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
 
 const categoryLinks = [
 	{
-		caption: 'Quick Start',
+		caption: 'Quick start',
 		icon: RocketLaunchIcon,
 		href: '/quick-start',
 		active: (pathname: string) =>
 			['/quick-start', '/installation', '/releases'].some((e) => pathname.startsWith(e)),
 	},
 	{
-		caption: 'Guides',
+		caption: 'Documentation',
 		icon: AcademicCapIcon,
 		href: '/docs/editor',
 		active: (pathname: string) => ['/docs', '/community'].some((e) => pathname.startsWith(e)),
@@ -24,6 +24,12 @@ const categoryLinks = [
 		icon: CommandLineIcon,
 		href: '/reference/editor/Editor',
 		active: (pathname: string) => pathname.startsWith('/reference'),
+	},
+	{
+		caption: 'Starter kits',
+		icon: CubeIcon,
+		href: '/starter-kits/overview',
+		active: (pathname: string) => ['/starter-kits'].some((e) => pathname.startsWith(e)),
 	},
 	{
 		caption: 'Examples',
@@ -36,7 +42,7 @@ const categoryLinks = [
 export function DocsCategoryMenu() {
 	const pathname = usePathname()
 	return (
-		<ul className="flex flex-col gap-3 shrink-0">
+		<ul className="flex flex-col gap-3 shrink-0 pb-4">
 			{categoryLinks.map((item, index) => (
 				<li key={index}>
 					<NavigationLink {...item} active={item.active(pathname)} />

@@ -13,24 +13,25 @@ import {
 	TLAsset,
 	TLBindingCreate,
 	TLShapePartial,
-	TLTextShape,
 	degreesToRadians,
 	mapObjectMapValues,
 	mockUniqueId,
 	toRichText,
 } from 'tldraw'
-import { TL, shapesFromJsx } from 'tldraw/src/test/test-jsx'
+import { TL, createDrawSegments, shapesFromJsx } from 'tldraw/src/test/test-jsx'
 import { EndToEndApi } from '../../src/misc/EndToEndApi'
-import { setup } from '../shared-e2e'
+import test, { ApiFixture } from '../fixtures/fixtures'
+import { hardResetEditor, setup } from '../shared-e2e'
 import {
 	convexDrawShape,
 	frameContent,
 	heyDrawShape,
 	manAsset,
 	manCrop,
+	manCropAsCircle,
 	richText,
+	richTextForArrow,
 } from './export-snapshots-data'
-import test, { ApiFixture } from './fixtures/fixtures'
 
 declare const editor: Editor
 declare const tldrawApi: EndToEndApi
@@ -45,19 +46,40 @@ interface Snapshots {
 const snapshots: Snapshots = {
 	'Text rendering': {
 		'geo text': {
-			'leading line breaks': <TL.geo richText={toRichText('\n\n\n\n\n\ntext')} w={100} h={30} />,
-			'trailing line breaks': <TL.geo richText={toRichText('text\n\n\n\n\n\n')} w={100} h={30} />,
-			'mixed RTL': (
-				<TL.geo richText={toRichText('unicode is cool!\nكتابة باللغة  العرب!')} w={300} h={300} />
+			'leading line breaks': (
+				<TL.geo dash="solid" richText={toRichText('\n\n\n\n\n\ntext')} w={100} h={30} />
 			),
-			'rich text': <TL.geo richText={richText} align="start" w={300} h={300} />,
+			'trailing line breaks': (
+				<TL.geo dash="solid" richText={toRichText('text\n\n\n\n\n\n')} w={100} h={30} />
+			),
+			'mixed RTL': (
+				<TL.geo
+					dash="solid"
+					richText={toRichText('unicode is cool!\nكتابة باللغة  العرب!')}
+					w={300}
+					h={300}
+				/>
+			),
+			'overflowing text with small scale': (
+				<TL.geo
+					dash="solid"
+					richText={toRichText('\n\n\n\n\n\ntext')}
+					w={100}
+					h={30}
+					scale={0.25}
+				/>
+			),
+			'overflowing text with large scale': (
+				<TL.geo dash="solid" richText={toRichText('\n\n\n\n\n\ntext')} w={200} h={30} scale={2} />
+			),
+			'rich text': <TL.geo dash="solid" richText={richText} align="start" w={300} h={300} />,
 		},
 	},
 	Fills: Object.fromEntries(
 		DefaultFillStyle.values.map((fill) => [
 			`fill=${fill}`,
 			{
-				geo: <TL.geo fill={fill} color="green" w={100} h={100} />,
+				geo: <TL.geo dash="solid" fill={fill} color="green" w={100} h={100} />,
 				arrow: (
 					<TL.arrow
 						fill={fill}
@@ -73,37 +95,28 @@ const snapshots: Snapshots = {
 					<TL.draw
 						fill={fill}
 						color="light-violet"
-						segments={[
-							{ type: 'straight', points: [{ x: 0, y: 0 }] },
-							{
-								type: 'straight',
-								points: [
+						segments={createDrawSegments(
+							[
+								[{ x: 0, y: 0 }],
+								[
 									{ x: 0, y: 0 },
 									{ x: 100, y: 0 },
 								],
-							},
-							{
-								type: 'straight',
-								points: [
+								[
 									{ x: 100, y: 0 },
 									{ x: 0, y: 100 },
 								],
-							},
-							{
-								type: 'straight',
-								points: [
+								[
 									{ x: 0, y: 100 },
 									{ x: 100, y: 100 },
 								],
-							},
-							{
-								type: 'straight',
-								points: [
+								[
 									{ x: 100, y: 100 },
 									{ x: 0, y: 0 },
 								],
-							},
-						]}
+							],
+							'straight'
+						)}
 						isClosed
 						isComplete
 					/>
@@ -115,7 +128,7 @@ const snapshots: Snapshots = {
 		DefaultFontStyle.values.map((font) => [
 			`font=${font}`,
 			{
-				geo: <TL.geo font={font} richText={toRichText('test')} w={100} h={100} />,
+				geo: <TL.geo dash="solid" font={font} richText={toRichText('test')} w={100} h={100} />,
 				arrow: (
 					<TL.arrow
 						font={font}
@@ -126,7 +139,7 @@ const snapshots: Snapshots = {
 						start={{ x: 0, y: 0 }}
 						end={{ x: 100, y: 100 }}
 						bend={20}
-						text="test"
+						richText={toRichText('test')}
 					/>
 				),
 				note: <TL.note font={font} color="violet" richText={toRichText('test')} />,
@@ -164,7 +177,7 @@ const snapshots: Snapshots = {
 			),
 			nested: (
 				<TL.frame w={200} h={100} name="tilted" rotation={degreesToRadians(10)}>
-					<TL.geo x={-10} y={-10} w={220} h={120} fill="solid" color="light-blue" />
+					<TL.geo dash="solid" x={-10} y={-10} w={220} h={120} fill="solid" color="light-blue" />
 					{frameContent}
 					<TL.frame
 						x={140}
@@ -174,7 +187,7 @@ const snapshots: Snapshots = {
 						name="ttiilltteedd"
 						rotation={degreesToRadians(10)}
 					>
-						<TL.geo x={-10} y={-10} w={220} h={120} fill="solid" color="light-green" />
+						<TL.geo dash="solid" x={-10} y={-10} w={220} h={120} fill="solid" color="light-green" />
 						{frameContent}
 					</TL.frame>
 				</TL.frame>
@@ -204,6 +217,9 @@ const snapshots: Snapshots = {
 			flipX: <TL.image w={100} h={100} assetId={manAsset} flipX crop={manCrop} />,
 			flipY: <TL.image w={100} h={100} assetId={manAsset} flipY crop={manCrop} />,
 			flipXY: <TL.image w={100} h={100} assetId={manAsset} flipX flipY crop={manCrop} />,
+			withCircle: (
+				<TL.image w={100} h={100} assetId={manAsset} flipX flipY crop={manCropAsCircle} />
+			),
 			rotated: (
 				<TL.image
 					w={100}
@@ -496,7 +512,7 @@ const snapshots: Snapshots = {
 					size="xl"
 					arrowheadStart="pipe"
 					arrowheadEnd="diamond"
-					text="with text"
+					richText={richTextForArrow}
 				/>
 			),
 			Arrow4: (
@@ -529,14 +545,33 @@ const snapshots: Snapshots = {
 				</TL.frame>
 			),
 		},
+		'#6391': {
+			'Circles at 45deg from each other': (
+				<>
+					<TL.geo geo="ellipse" ref="a" w={40} h={40} />
+					<TL.geo geo="ellipse" ref="b" w={40} h={40} x={80} y={80} />
+					<TL.arrow>
+						<TL.binding.arrow to="a" terminal="start" />
+						<TL.binding.arrow to="b" terminal="end" />
+					</TL.arrow>
+
+					<TL.geo geo="ellipse" ref="c" w={40} h={40} x={200} />
+					<TL.geo geo="ellipse" ref="d" w={40} h={40} x={280} y={80} />
+					<TL.arrow bend={10}>
+						<TL.binding.arrow to="c" terminal="start" />
+						<TL.binding.arrow to="d" terminal="end" />
+					</TL.arrow>
+				</>
+			),
+		},
 	},
 	'Weird elbow arrows': {
 		'Small segments, contained': {
 			A: (
 				<>
-					<TL.geo w={150} h={150} ref="a" />
-					<TL.geo w={30} h={30} x={15} y={15} ref="b" />
-					<TL.arrow kind="elbow">
+					<TL.geo dash="solid" w={150} h={150} ref="a" />
+					<TL.geo dash="solid" w={30} h={30} x={15} y={15} ref="b" />
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow to="a" terminal="start" />
 						<TL.binding.arrow
 							to="b"
@@ -550,9 +585,9 @@ const snapshots: Snapshots = {
 			),
 			B: (
 				<>
-					<TL.geo w={150} h={150} ref="a" />
-					<TL.geo w={30} h={30} x={25} y={15} ref="b" />
-					<TL.arrow kind="elbow">
+					<TL.geo dash="solid" w={150} h={150} ref="a" />
+					<TL.geo dash="solid" w={30} h={30} x={25} y={15} ref="b" />
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow to="a" terminal="start" />
 						<TL.binding.arrow
 							to="b"
@@ -566,9 +601,9 @@ const snapshots: Snapshots = {
 			),
 			'Exact match': (
 				<>
-					<TL.geo w={150} h={150} ref="a" />
-					<TL.geo w={30} h={30} x={45} y={15} ref="b" />
-					<TL.arrow kind="elbow">
+					<TL.geo dash="solid" w={150} h={150} ref="a" />
+					<TL.geo dash="solid" w={30} h={30} x={45} y={15} ref="b" />
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow to="a" terminal="start" />
 						<TL.binding.arrow
 							to="b"
@@ -582,9 +617,9 @@ const snapshots: Snapshots = {
 			),
 			C: (
 				<>
-					<TL.geo w={150} h={150} ref="a" />
-					<TL.geo w={30} h={30} x={50} y={15} ref="b" />
-					<TL.arrow kind="elbow">
+					<TL.geo dash="solid" w={150} h={150} ref="a" />
+					<TL.geo dash="solid" w={30} h={30} x={50} y={15} ref="b" />
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow to="a" terminal="start" />
 						<TL.binding.arrow
 							to="b"
@@ -598,9 +633,9 @@ const snapshots: Snapshots = {
 			),
 			D: (
 				<>
-					<TL.geo w={150} h={150} ref="a" />
-					<TL.geo w={30} h={30} x={70} y={15} ref="b" />
-					<TL.arrow kind="elbow">
+					<TL.geo dash="solid" w={150} h={150} ref="a" />
+					<TL.geo dash="solid" w={30} h={30} x={70} y={15} ref="b" />
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow to="a" terminal="start" />
 						<TL.binding.arrow
 							to="b"
@@ -617,7 +652,7 @@ const snapshots: Snapshots = {
 			'Hey, near': (
 				<>
 					{heyDrawShape}
-					<TL.arrow kind="elbow" x={-50} y={20}>
+					<TL.arrow dash="solid" kind="elbow" x={-50} y={20}>
 						<TL.binding.arrow
 							to="hey"
 							terminal="end"
@@ -631,7 +666,7 @@ const snapshots: Snapshots = {
 			'Hey, far': (
 				<>
 					{heyDrawShape}
-					<TL.arrow kind="elbow" x={-50} y={20}>
+					<TL.arrow dash="solid" kind="elbow" x={-50} y={20}>
 						<TL.binding.arrow
 							to="hey"
 							terminal="end"
@@ -645,7 +680,7 @@ const snapshots: Snapshots = {
 			'Hey, within': (
 				<>
 					{heyDrawShape}
-					<TL.arrow kind="elbow" x={-50} y={20}>
+					<TL.arrow dash="solid" kind="elbow" x={-50} y={20}>
 						<TL.binding.arrow
 							to="hey"
 							terminal="end"
@@ -659,7 +694,7 @@ const snapshots: Snapshots = {
 			'Convex, far': (
 				<>
 					{convexDrawShape}
-					<TL.arrow kind="elbow" x={-50} y={20}>
+					<TL.arrow dash="solid" kind="elbow" x={-50} y={20}>
 						<TL.binding.arrow
 							to="convex"
 							terminal="end"
@@ -673,7 +708,7 @@ const snapshots: Snapshots = {
 			'Convex, edge': (
 				<>
 					{convexDrawShape}
-					<TL.arrow kind="elbow" x={-50} y={20}>
+					<TL.arrow dash="solid" kind="elbow" x={-50} y={20}>
 						<TL.binding.arrow
 							to="convex"
 							terminal="end"
@@ -689,7 +724,7 @@ const snapshots: Snapshots = {
 			'Draw shape,\nsame-edge': (
 				<>
 					{convexDrawShape}
-					<TL.arrow kind="elbow">
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow
 							to="convex"
 							terminal="start"
@@ -709,8 +744,8 @@ const snapshots: Snapshots = {
 			),
 			'Box,\nsame edge': (
 				<>
-					<TL.geo w={100} h={100} ref="a" />
-					<TL.arrow kind="elbow">
+					<TL.geo dash="solid" w={100} h={100} ref="a" />
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow
 							to="a"
 							terminal="start"
@@ -730,8 +765,8 @@ const snapshots: Snapshots = {
 			),
 			'Triangle,\nopposites': (
 				<>
-					<TL.geo w={100} h={100} geo="triangle" ref="a" />
-					<TL.arrow kind="elbow">
+					<TL.geo dash="solid" w={100} h={100} geo="triangle" ref="a" />
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow
 							to="a"
 							terminal="start"
@@ -751,8 +786,8 @@ const snapshots: Snapshots = {
 			),
 			Outside: (
 				<>
-					<TL.geo w={100} h={100} geo="triangle" ref="a" />
-					<TL.arrow kind="elbow">
+					<TL.geo dash="solid" w={100} h={100} geo="triangle" ref="a" />
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow
 							to="a"
 							terminal="start"
@@ -774,9 +809,9 @@ const snapshots: Snapshots = {
 		'Regressions 1': {
 			'ENG-3332 ✅': (
 				<>
-					<TL.geo w={100} h={100} ref="a" />
-					<TL.geo w={30} h={30} x={60} y={10} ref="b" />
-					<TL.arrow kind="elbow">
+					<TL.geo dash="solid" w={100} h={100} ref="a" />
+					<TL.geo dash="solid" w={30} h={30} x={60} y={10} ref="b" />
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow
 							to="a"
 							terminal="start"
@@ -796,9 +831,9 @@ const snapshots: Snapshots = {
 			),
 			'ENG-3333 🚫': (
 				<>
-					<TL.geo w={50} h={50} ref="box" />
+					<TL.geo dash="solid" w={50} h={50} ref="box" />
 					<TL.text richText={toRichText('text')} x={70} y={30} ref="text" />
-					<TL.arrow kind="elbow">
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow
 							to="box"
 							terminal="start"
@@ -818,9 +853,9 @@ const snapshots: Snapshots = {
 			),
 			'ENG-3335 🚫': (
 				<>
-					<TL.geo w={100} h={100} ref="a" />
-					<TL.geo w={30} h={30} x={-30} y={70} ref="b" />
-					<TL.arrow kind="elbow" arrowheadStart="arrow" arrowheadEnd="arrow">
+					<TL.geo dash="solid" w={100} h={100} ref="a" />
+					<TL.geo dash="solid" w={30} h={30} x={-30} y={70} ref="b" />
+					<TL.arrow dash="solid" kind="elbow" arrowheadStart="arrow" arrowheadEnd="arrow">
 						<TL.binding.arrow
 							to="a"
 							terminal="start"
@@ -844,7 +879,7 @@ const snapshots: Snapshots = {
 				<>
 					<TL.text richText={toRichText('one')} ref="a" />
 					<TL.text richText={toRichText('two')} y={50} ref="b" />
-					<TL.arrow kind="arc" arrowheadStart="arrow" arrowheadEnd="arrow" bend={10}>
+					<TL.arrow dash="solid" kind="arc" arrowheadStart="arrow" arrowheadEnd="arrow" bend={10}>
 						<TL.binding.arrow to="a" terminal="start" />
 						<TL.binding.arrow to="b" terminal="end" />
 					</TL.arrow>
@@ -852,9 +887,9 @@ const snapshots: Snapshots = {
 			),
 			'ENG-3342 ✅': (
 				<>
-					<TL.geo w={50} h={50} ref="a" />
-					<TL.geo w={50} h={50} x={40} y={-10} ref="b" />
-					<TL.arrow kind="elbow">
+					<TL.geo dash="solid" w={50} h={50} ref="a" />
+					<TL.geo dash="solid" w={50} h={50} x={40} y={-10} ref="b" />
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow
 							to="a"
 							terminal="start"
@@ -876,9 +911,9 @@ const snapshots: Snapshots = {
 		'Regressions 2': {
 			'ENG-3366 ✅': (
 				<>
-					<TL.geo w={30} h={30} ref="a" />
-					<TL.geo w={30} h={30} x={80} y={10} ref="b" />
-					<TL.arrow kind="elbow">
+					<TL.geo dash="solid" w={30} h={30} ref="a" />
+					<TL.geo dash="solid" w={30} h={30} x={80} y={10} ref="b" />
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow to="a" terminal="start" />
 						<TL.binding.arrow
 							to="b"
@@ -893,7 +928,7 @@ const snapshots: Snapshots = {
 			'ENG-3371 ✅': (
 				<>
 					<TL.text ref="text" richText={toRichText('hi')} />
-					<TL.arrow kind="elbow" end={{ x: 70, y: 30 }}>
+					<TL.arrow dash="solid" kind="elbow" end={{ x: 70, y: 30 }}>
 						<TL.binding.arrow to="text" terminal="start" />
 					</TL.arrow>
 				</>
@@ -901,7 +936,7 @@ const snapshots: Snapshots = {
 			'ENG-3375 ✅': (
 				<>
 					{heyDrawShape}
-					<TL.arrow kind="elbow">
+					<TL.arrow dash="solid" kind="elbow">
 						<TL.binding.arrow
 							to="hey"
 							terminal="start"
@@ -932,7 +967,14 @@ interface SnapshotWithoutJsx {
 test.describe('Export snapshots', () => {
 	const snapshotsToTest = Object.entries(snapshots)
 
-	test.beforeEach(setup)
+	test.beforeEach(async ({ page, context }) => {
+		const url = page.url()
+		if (!url.includes('end-to-end')) {
+			await setup({ page, context } as any)
+		} else {
+			await hardResetEditor(page)
+		}
+	})
 
 	for (const [name, snapshotWithJsx] of snapshotsToTest) {
 		for (const colorScheme of ['light', 'dark'] as const) {
@@ -962,7 +1004,7 @@ test.describe('Export snapshots', () => {
 							.deleteShapes(editor.getSelectedShapeIds())
 
 						const titleId = tldrawApi.createShapeId()
-						editor.createShape<TLTextShape>({
+						editor.createShape({
 							id: titleId,
 							type: 'text',
 							x: 0,
@@ -974,7 +1016,7 @@ test.describe('Export snapshots', () => {
 
 						for (const [rowName, testCases] of Object.entries(snapshot)) {
 							const rowTitleId = tldrawApi.createShapeId()
-							editor.createShape<TLTextShape>({
+							editor.createShape({
 								id: rowTitleId,
 								type: 'text',
 								x: 0,
@@ -989,7 +1031,7 @@ test.describe('Export snapshots', () => {
 								testCases
 							)) {
 								const testCaseTitleId = tldrawApi.createShapeId()
-								editor.createShape<TLTextShape>({
+								editor.createShape({
 									id: testCaseTitleId,
 									type: 'text',
 									x,

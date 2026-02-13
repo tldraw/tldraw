@@ -1,4 +1,5 @@
 import { LANGUAGES, RecursivePartial, getDefaultCdnBaseUrl } from '@tldraw/editor'
+import { useMemo } from 'react'
 import { DEFAULT_EMBED_DEFINITIONS } from '../defaultEmbedDefinitions'
 import { TLEditorAssetUrls, defaultEditorAssetUrls } from '../utils/static-assets/assetUrls'
 import { TLUiIconType, iconTypes } from './icon-types'
@@ -41,15 +42,17 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls) {
 export function useDefaultUiAssetUrlsWithOverrides(
 	overrides?: TLUiAssetUrlOverrides
 ): TLUiAssetUrls {
-	if (!overrides) return defaultUiAssetUrls
+	return useMemo(() => {
+		if (!overrides) return defaultUiAssetUrls
 
-	return {
-		fonts: Object.assign({ ...defaultUiAssetUrls.fonts }, { ...overrides?.fonts }),
-		icons: Object.assign({ ...defaultUiAssetUrls.icons }, { ...overrides?.icons }),
-		embedIcons: Object.assign({ ...defaultUiAssetUrls.embedIcons }, { ...overrides?.embedIcons }),
-		translations: Object.assign(
-			{ ...defaultUiAssetUrls.translations },
-			{ ...overrides?.translations }
-		),
-	}
+		return {
+			fonts: Object.assign({ ...defaultUiAssetUrls.fonts }, { ...overrides?.fonts }),
+			icons: Object.assign({ ...defaultUiAssetUrls.icons }, { ...overrides?.icons }),
+			embedIcons: Object.assign({ ...defaultUiAssetUrls.embedIcons }, { ...overrides?.embedIcons }),
+			translations: Object.assign(
+				{ ...defaultUiAssetUrls.translations },
+				{ ...overrides?.translations }
+			),
+		}
+	}, [overrides])
 }

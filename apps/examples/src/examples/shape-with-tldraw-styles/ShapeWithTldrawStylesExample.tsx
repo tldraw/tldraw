@@ -2,15 +2,29 @@ import {
 	BaseBoxShapeUtil,
 	DefaultColorStyle,
 	DefaultSizeStyle,
+	getColorValue,
 	HTMLContainer,
 	T,
-	TLBaseShape,
 	TLDefaultColorStyle,
 	TLDefaultSizeStyle,
 	Tldraw,
+	TLShape,
 	useDefaultColorTheme,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+
+const MY_SHAPE_WITH_TLDRAW_STYLES_TYPE = 'myshapewithtldrawstyles' as const
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[MY_SHAPE_WITH_TLDRAW_STYLES_TYPE]: {
+			w: number
+			h: number
+			size: TLDefaultSizeStyle
+			color: TLDefaultColorStyle
+		}
+	}
+}
 
 // There's a guide at the bottom of this file!
 
@@ -21,19 +35,10 @@ const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	xl: 48,
 }
 
-type IMyShape = TLBaseShape<
-	'myshape',
-	{
-		w: number
-		h: number
-		// [1]
-		size: TLDefaultSizeStyle
-		color: TLDefaultColorStyle
-	}
->
+type IMyShape = TLShape<typeof MY_SHAPE_WITH_TLDRAW_STYLES_TYPE>
 
 class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
-	static override type = 'myshape' as const
+	static override type = MY_SHAPE_WITH_TLDRAW_STYLES_TYPE
 
 	// [2]
 	static override props = {
@@ -59,13 +64,13 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 		return (
 			<HTMLContainer
 				id={shape.id}
-				style={{ backgroundColor: 'var(--color-low-border)', overflow: 'hidden' }}
+				style={{ backgroundColor: 'var(--tl-color-low-border)', overflow: 'hidden' }}
 			>
 				<div
 					style={{
 						// [3]
 						fontSize: FONT_SIZES[shape.props.size],
-						color: theme[shape.props.color].solid,
+						color: getColorValue(theme, shape.props.color, 'solid'),
 					}}
 				>
 					Select the shape and use the style panel to change the font size and color
@@ -87,16 +92,16 @@ export default function ShapeWithTldrawStylesExample() {
 			<Tldraw
 				shapeUtils={customShapeUtils}
 				onMount={(editor) => {
-					editor.createShape({ type: 'myshape', x: 100, y: 100 })
+					editor.createShape({ type: 'myshapewithtldrawstyles', x: 100, y: 100 })
 				}}
 			/>
 		</div>
 	)
 }
 
-/* 
+/*
 
-This file shows a custom shape that uses tldraw's default styles. 
+This file shows a custom shape that uses tldraw's default styles.
 For more on custom shapes, see our Custom Shape example.
 
 [1]

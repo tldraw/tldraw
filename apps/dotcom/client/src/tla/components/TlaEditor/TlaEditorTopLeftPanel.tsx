@@ -1,4 +1,3 @@
-import { SignInButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -17,21 +16,26 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
+	TldrawUiMenuSubmenu,
 	ViewSubmenu,
+	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsFileOwner } from '../../hooks/useIsFileOwner'
+import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
-import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
-import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
+import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
+import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import {
+	CookieConsentMenuItem,
 	GiveUsFeedbackMenuItem,
 	LegalSummaryMenuItem,
 	UserManualMenuItem,
@@ -41,6 +45,7 @@ import styles from './top.module.css'
 
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
+	file: { defaultMessage: 'File' },
 	pageMenu: { defaultMessage: 'Page menu' },
 	brand: { defaultMessage: 'tldraw' },
 	untitledProject: { defaultMessage: 'Untitled file' },
@@ -63,7 +68,6 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 
 export function TlaEditorTopLeftPanelAnonymous() {
 	const separator = '/'
-	const brandMsg = useMsg(messages.brand)
 	const pageMenuLbl = useMsg(messages.pageMenu)
 	// GOTCHA: 'anonymous' doesn't always mean logged out
 	// we show this version of the panel for published files as well.
@@ -88,10 +92,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	return (
 		<>
 			<Link to="/" className={styles.topLeftOfflineLogo}>
-				<TlaIconWrapper data-size="m" data-testid="tla-sidebar-logo-icon">
-					<TlaIcon icon="tldraw" ariaLabel="tldraw" />
-				</TlaIconWrapper>
-				<div className={classNames('tla-text_ui__title', 'notranslate')}>{brandMsg}</div>
+				<TlaLogo data-testid="tla-top-left-logo-icon" />
 			</Link>
 			{anonFileName && (
 				<>
@@ -121,7 +122,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 						<button
 							className={styles.topLeftMainMenuTrigger}
 							title={pageMenuLbl}
-							data-testid="tla-page-menu"
+							data-testid="tla-main-menu"
 						>
 							<TlaIcon icon="dots-vertical-strong" />
 						</button>
@@ -140,6 +141,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 							<UserManualMenuItem />
 							<GiveUsFeedbackMenuItem />
 							<LegalSummaryMenuItem />
+							<CookieConsentMenuItem />
 						</TldrawUiMenuGroup>
 						{!app && (
 							<TldrawUiMenuGroup id="signin">
@@ -158,11 +160,12 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const intl = useIntl()
 	const [isRenaming, setIsRenaming] = useState(false)
 	const pageMenuLbl = useMsg(messages.pageMenu)
+	const fileSubmenuMsg = useMsg(messages.file)
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
-	const isOwner = useIsFileOwner(fileSlug)
+	const isOwner = useHasFileAdminRights(fileSlug)
 
 	const app = useApp()
 	const fileId = useCurrentFileId()!
@@ -214,7 +217,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	return (
 		<>
 			{/* spacer for the sidebar toggle button */}
-			{isEmbed ? null : <div style={{ width: 40 }} />}
+			{isEmbed ? null : <div style={{ width: 40, flexShrink: 0 }} />}
 			<TlaFileNameEditor
 				source="file-header"
 				isRenaming={isRenaming}
@@ -226,19 +229,28 @@ export function TlaEditorTopLeftPanelSignedIn() {
 			<DefaultPageMenu />
 			<TlaFileMenu
 				fileId={fileId}
+				groupId={null}
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={
 					<button
 						className={styles.topLeftMainMenuTrigger}
 						title={pageMenuLbl}
-						data-testid="tla-page-menu"
+						data-testid="tla-main-menu"
 					>
 						<TlaIcon icon="dots-vertical-strong" />
 					</button>
 				}
 			>
 				<TldrawUiMenuGroup id="regular-stuff">
+					<TldrawUiMenuSubmenu id="file" label={fileSubmenuMsg}>
+						<FileItems
+							source="file-header"
+							fileId={fileId}
+							onRenameAction={handleRenameAction}
+							groupId={null}
+						/>
+					</TldrawUiMenuSubmenu>
 					<EditSubmenu />
 					<ViewSubmenu />
 					<ExportFileContentSubMenu />
@@ -285,7 +297,8 @@ function TlaFileNameEditor({
 	const handleEditingEnd = useCallback(() => {
 		if (!onChange) return
 		setIsEditing(false)
-	}, [onChange])
+		onEnd?.()
+	}, [onChange, onEnd])
 
 	const handleEditingComplete = useCallback(
 		(name: string) => {
@@ -384,16 +397,18 @@ function TlaFileNameEditorInput({
 
 function SignInMenuItem() {
 	const msg = useMsg(messages.signIn)
+	const { addDialog } = useDialogs()
+
 	return (
-		<SignInButton
-			mode="modal"
-			forceRedirectUrl={location.pathname + location.search}
-			signUpForceRedirectUrl={location.pathname + location.search}
+		<TldrawUiButton
+			type="menu"
+			data-testid="tla-sign-in-menu-button"
+			onClick={() => {
+				addDialog({ component: TlaSignInDialog })
+			}}
 		>
-			<TldrawUiButton type="menu" data-testid="tla-sign-in-menu-button">
-				<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
-				<TlaIcon icon="sign-in" />
-			</TldrawUiButton>
-		</SignInButton>
+			<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
+			<TlaIcon icon="sign-in" />
+		</TldrawUiButton>
 	)
 }

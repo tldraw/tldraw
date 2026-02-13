@@ -51,7 +51,7 @@ function createDemoShapes(editor: Editor) {
 		},
 		...[50, 180, 310].map((x) => ({
 			id: createShapeId(),
-			type: 'geo',
+			type: 'geo' as const,
 			parentId: frameId,
 			x,
 			y: 120,

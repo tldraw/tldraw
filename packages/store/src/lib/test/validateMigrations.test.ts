@@ -18,7 +18,7 @@ describe(validateMigrations, () => {
 				sequenceId: 'foo',
 			})
 		).toThrowErrorMatchingInlineSnapshot(
-			`"Every migration in sequence 'foo' must have an id starting with 'foo/'. Got invalid id: 'foo.1'"`
+			`[Error: Every migration in sequence 'foo' must have an id starting with 'foo/'. Got invalid id: 'foo.1']`
 		)
 
 		expect(() =>
@@ -36,7 +36,7 @@ describe(validateMigrations, () => {
 
 				sequenceId: 'foo',
 			})
-		).toThrowErrorMatchingInlineSnapshot(`"Invalid migration id: 'foo/one'"`)
+		).toThrowErrorMatchingInlineSnapshot(`[Error: Invalid migration id: 'foo/one']`)
 
 		expect(() =>
 			validateMigrations({
@@ -61,7 +61,7 @@ describe(validateMigrations, () => {
 				sequenceId: 'foo',
 			})
 		).toThrowErrorMatchingInlineSnapshot(
-			`"Every migration in sequence 'foo' must have an id starting with 'foo/'. Got invalid id: 'foo.2'"`
+			`[Error: Every migration in sequence 'foo' must have an id starting with 'foo/'. Got invalid id: 'foo.2']`
 		)
 
 		expect(() =>
@@ -86,7 +86,7 @@ describe(validateMigrations, () => {
 
 				sequenceId: 'foo',
 			})
-		).toThrowErrorMatchingInlineSnapshot(`"Invalid migration id: 'foo/two'"`)
+		).toThrowErrorMatchingInlineSnapshot(`[Error: Invalid migration id: 'foo/two']`)
 	})
 
 	it('should throw if the sequenceId is invalid', () => {
@@ -96,7 +96,7 @@ describe(validateMigrations, () => {
 				sequence: [],
 				sequenceId: 'foo/bar',
 			})
-		).toThrowErrorMatchingInlineSnapshot(`"sequenceId cannot contain a '/', got foo/bar"`)
+		).toThrowErrorMatchingInlineSnapshot(`[Error: sequenceId cannot contain a '/', got foo/bar]`)
 
 		expect(() =>
 			validateMigrations({
@@ -104,7 +104,7 @@ describe(validateMigrations, () => {
 				sequence: [],
 				sequenceId: '',
 			})
-		).toThrowErrorMatchingInlineSnapshot(`"sequenceId must be a non-empty string"`)
+		).toThrowErrorMatchingInlineSnapshot(`[Error: sequenceId must be a non-empty string]`)
 	})
 
 	it('should throw if the version numbers do not start at 1', () => {
@@ -124,7 +124,7 @@ describe(validateMigrations, () => {
 				sequenceId: 'foo',
 			})
 		).toThrowErrorMatchingInlineSnapshot(
-			`"Expected the first migrationId to be 'foo/1' but got 'foo/2'"`
+			`[Error: Expected the first migrationId to be 'foo/1' but got 'foo/2']`
 		)
 	})
 
@@ -159,7 +159,7 @@ describe(validateMigrations, () => {
 				sequenceId: 'foo',
 			})
 		).toThrowErrorMatchingInlineSnapshot(
-			`"Migration id numbers must increase in increments of 1, expected foo/3 but got 'foo/4'"`
+			`[Error: Migration id numbers must increase in increments of 1, expected foo/3 but got 'foo/4']`
 		)
 	})
 })

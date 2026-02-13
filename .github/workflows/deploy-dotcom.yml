@@ -2,6 +2,7 @@ name: Deploy .com
 
 on:
   pull_request:
+    types: [opened, synchronize, labeled, unlabeled]
   push:
     branches:
       - main
@@ -27,6 +28,9 @@ jobs:
     runs-on: ubuntu-latest-16-cores-open
     environment: ${{ github.ref == 'refs/heads/production' && 'deploy-production' || 'deploy-staging' }}
     concurrency: dotcom-${{ github.ref == 'refs/heads/production' && 'deploy-production' || github.ref }}
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dotcom-preview-please'))
 
     steps:
       # - name: Notify initial start
@@ -37,7 +41,7 @@ jobs:
       #     content: 'Preparing ${{ env.TLDRAW_ENV }} dotcom deploy: ${{ github.event.head_commit.message }} by ${{ github.event.head_commit.author.name }}'
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 0
@@ -64,7 +68,7 @@ jobs:
           fi
 
       - name: Delete Neon Branch
-        uses: neondatabase/delete-branch-action@v3.1.3
+        uses: neondatabase/delete-branch-action@v3.2.0
         if: contains(github.event.pull_request.labels.*.name, 'reset-preview-db')
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
@@ -74,7 +78,7 @@ jobs:
       - id: create-branch
         # only run on PR branches
         if: github.event_name == 'pull_request'
-        uses: neondatabase/create-branch-action@v5
+        uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           username: 'dotcom_owner'
@@ -92,7 +96,7 @@ jobs:
 
       - name: Configure AWS credentials using OIDC
         if: env.DEPLOY_ZERO == 'sst'
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_NUMBER }}:role/huppy-bot
           aws-region: ${{ env.AWS_REGION }}
@@ -117,11 +121,16 @@ jobs:
           ASSET_UPLOAD: ${{ vars.ASSET_UPLOAD }}
           IMAGE_WORKER: ${{ vars.IMAGE_WORKER }}
           MULTIPLAYER_SERVER: ${{ vars.MULTIPLAYER_SERVER }}
+          USER_CONTENT_SENTRY_DSN: ${{ secrets.USER_CONTENT_SENTRY_DSN }}
+          USER_CONTENT_URL: ${{ vars.USER_CONTENT_URL }}
           NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER: ${{ vars.NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER }}
           SUPABASE_LITE_URL: ${{ vars.SUPABASE_LITE_URL }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_DOTCOM_PROJECT_ID }}
 
+          ANALYTICS_API_URL: ${{ secrets.ANALYTICS_API_URL }}
+          ANALYTICS_API_TOKEN: ${{ secrets.ANALYTICS_API_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ASSET_UPLOAD_SENTRY_DSN: ${{ secrets.ASSET_UPLOAD_SENTRY_DSN }}
           BOTCOM_POSTGRES_CONNECTION_STRING: ${{ env.NEON_PREVIEW_DB_CONNECTION_STRING || secrets.BOTCOM_POSTGRES_CONNECTION_STRING }}
           BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: ${{ env.NEON_PREVIEW_DB_POOLED_CONNECTION_STRING || secrets.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING }}
@@ -132,8 +141,10 @@ jobs:
           DISCORD_FEEDBACK_WEBHOOK_URL: ${{ secrets.DISCORD_FEEDBACK_WEBHOOK_URL }}
           DISCORD_HEALTH_WEBHOOK_URL: ${{ secrets.DISCORD_HEALTH_WEBHOOK_URL }}
           GC_MAPS_API_KEY: ${{ secrets.GC_MAPS_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           HEALTH_CHECK_BEARER_TOKEN: ${{ secrets.HEALTH_CHECK_BEARER_TOKEN }}
           HEALTH_WORKER_UPDOWN_WEBHOOK_PATH: ${{ secrets.HEALTH_WORKER_UPDOWN_WEBHOOK_PATH }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -147,3 +158,4 @@ jobs:
           VITE_GA4_MEASUREMENT_ID: ${{ secrets.VITE_GA4_MEASUREMENT_ID }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          PIERRE_KEY: ${{ secrets.PIERRE_KEY }}

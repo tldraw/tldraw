@@ -510,6 +510,132 @@ describe('Box', () => {
 		})
 	})
 
+	describe('Box.ContainsApproximately', () => {
+		it('returns true when first box exactly contains second', () => {
+			const boxA = new Box(0, 0, 100, 100)
+			const boxB = new Box(10, 10, 50, 50)
+			expect(Box.ContainsApproximately(boxA, boxB)).toBe(true)
+		})
+
+		it('returns false when first box clearly does not contain second', () => {
+			const boxA = new Box(0, 0, 50, 50)
+			const boxB = new Box(10, 10, 100, 100)
+			expect(Box.ContainsApproximately(boxA, boxB)).toBe(false)
+		})
+
+		it('returns true when containment is within default precision tolerance', () => {
+			// Box B extends very slightly outside A (within floating-point precision)
+			const boxA = new Box(0, 0, 100, 100)
+			const boxB = new Box(10, 10, 80, 80)
+			// Move B's max edges just slightly outside A's bounds
+			boxB.w = 90.000000000001 // maxX = 100.000000000001 (slightly beyond 100)
+			boxB.h = 90.000000000001 // maxY = 100.000000000001 (slightly beyond 100)
+
+			expect(Box.ContainsApproximately(boxA, boxB)).toBe(true)
+			expect(Box.Contains(boxA, boxB)).toBe(false) // strict contains would fail
+		})
+
+		it('returns false when containment exceeds default precision tolerance', () => {
+			const boxA = new Box(0, 0, 100, 100)
+			const boxB = new Box(10, 10, 80, 80)
+			// Move B's max edges clearly outside A's bounds
+			boxB.w = 95 // maxX = 105 (clearly beyond 100)
+			boxB.h = 95 // maxY = 105 (clearly beyond 100)
+
+			expect(Box.ContainsApproximately(boxA, boxB)).toBe(false)
+		})
+
+		it('respects custom precision parameter', () => {
+			const boxA = new Box(0, 0, 100, 100)
+			const boxB = new Box(10, 10, 85, 85) // maxX=95, maxY=95
+
+			// With loose precision (10), should contain (95 is within 100-10=90 tolerance)
+			expect(Box.ContainsApproximately(boxA, boxB, 10)).toBe(true)
+
+			// With tight precision (4), should still contain (95 is within 100-4=96)
+			expect(Box.ContainsApproximately(boxA, boxB, 4)).toBe(true)
+
+			// Since 95 < 100, the precision parameter doesn't affect containment here
+			expect(Box.ContainsApproximately(boxA, boxB, 4.9)).toBe(true)
+		})
+
+		it('handles negative coordinates correctly', () => {
+			const boxA = new Box(-50, -50, 100, 100) // bounds: (-50,-50) to (50,50)
+			const boxB = new Box(-40, -40, 79.999999999, 79.999999999) // bounds: (-40,-40) to (39.999999999, 39.999999999)
+
+			expect(Box.ContainsApproximately(boxA, boxB)).toBe(true)
+		})
+
+		it('handles edge case where boxes are identical', () => {
+			const boxA = new Box(10, 20, 100, 200)
+			const boxB = new Box(10, 20, 100, 200)
+
+			expect(Box.ContainsApproximately(boxA, boxB)).toBe(true)
+		})
+
+		it('handles edge case where inner box touches outer box edges', () => {
+			const boxA = new Box(0, 0, 100, 100)
+			const boxB = new Box(0, 0, 100, 100) // exactly the same
+
+			expect(Box.ContainsApproximately(boxA, boxB)).toBe(true)
+
+			// Slightly smaller inner box
+			const boxC = new Box(0.000001, 0.000001, 99.999998, 99.999998)
+			expect(Box.ContainsApproximately(boxA, boxC)).toBe(true)
+		})
+
+		it('handles floating-point precision issues in real-world scenarios', () => {
+			// Simulate common floating-point arithmetic issues
+			const containerBox = new Box(0, 0, 100, 100)
+
+			// Box that should be contained but has floating-point errors
+			const innerBox = new Box(10, 10, 80, 80)
+			// Simulate floating-point arithmetic that results in tiny overruns
+			innerBox.w = 90.00000000000001 // maxX = 100.00000000000001 (tiny overrun)
+			innerBox.h = 90.00000000000001 // maxY = 100.00000000000001 (tiny overrun)
+
+			expect(Box.ContainsApproximately(containerBox, innerBox)).toBe(true)
+			expect(Box.Contains(containerBox, innerBox)).toBe(false) // strict contains fails due to precision
+		})
+
+		it('fails when any edge exceeds tolerance', () => {
+			const boxA = new Box(10, 10, 100, 100) // bounds: (10,10) to (110,110)
+
+			// Test each edge exceeding tolerance
+			const testCases = [
+				{ name: 'left edge', box: new Box(5, 20, 80, 80) }, // minX too small
+				{ name: 'top edge', box: new Box(20, 5, 80, 80) }, // minY too small
+				{ name: 'right edge', box: new Box(20, 20, 95, 80) }, // maxX too large (20+95=115 > 110)
+				{ name: 'bottom edge', box: new Box(20, 20, 80, 95) }, // maxY too large (20+95=115 > 110)
+			]
+
+			testCases.forEach(({ box }) => {
+				expect(Box.ContainsApproximately(boxA, box, 1)).toBe(false) // tight precision
+			})
+		})
+
+		it('works with zero-sized dimensions', () => {
+			const boxA = new Box(0, 0, 100, 100)
+			const boxB = new Box(50, 50, 0, 0) // zero-sized box (point)
+
+			expect(Box.ContainsApproximately(boxA, boxB)).toBe(true)
+		})
+
+		it('handles precision parameter edge cases', () => {
+			const boxA = new Box(0, 0, 100, 100)
+			const boxB = new Box(10, 10, 91, 91) // maxX=101, maxY=101 (clearly outside)
+
+			// Zero precision should work like strict Contains
+			expect(Box.ContainsApproximately(boxA, boxB, 0)).toBe(false)
+
+			// Small precision should still fail (101 > 100)
+			expect(Box.ContainsApproximately(boxA, boxB, 0.5)).toBe(false)
+
+			// Sufficient precision should succeed (101 <= 100 + 2)
+			expect(Box.ContainsApproximately(boxA, boxB, 2)).toBe(true)
+		})
+	})
+
 	describe('Box.Includes', () => {
 		it('returns true when boxes collide or contain', () => {
 			const boxA = new Box(0, 0, 50, 50)

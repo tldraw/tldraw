@@ -3,7 +3,19 @@ title: Store events
 component: ./StoreEventsExample.tsx
 category: events
 priority: 1
-keywords: [listen, changes]
+keywords:
+  [
+    store,
+    events,
+    listen,
+    changes,
+    transactions,
+    added,
+    updated,
+    removed,
+    tleventmaphandler,
+    subscribe,
+  ]
 ---
 
 Listen to changes from tldraw's store.

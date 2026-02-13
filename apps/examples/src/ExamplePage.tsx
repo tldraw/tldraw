@@ -1,5 +1,5 @@
 import { AlertDialog as _AlertDialog } from 'radix-ui'
-import { Dispatch, createContext, useContext, useState } from 'react'
+import { Dispatch, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Example, examples } from './examples'
 
@@ -31,7 +31,21 @@ export function ExamplePage({
 	const [filterValue, setFilterValue] = useState('')
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
+		history.replaceState(
+			{},
+			'',
+			e.target.value ? `/?filter=${encodeURIComponent(e.target.value)}` : '/'
+		)
 	}
+
+	useEffect(() => {
+		const urlParams = new URLSearchParams(window.location.search)
+		const filter = urlParams.get('filter')
+		if (filter) {
+			setFilterValue(decodeURIComponent(filter))
+		}
+	}, [])
+
 	return (
 		<DialogContextProvider>
 			<div className="example">
@@ -149,32 +163,43 @@ function ExampleSidebarListItem({
 	isActive?: boolean
 	showDescriptionWhenInactive?: boolean
 }) {
+	const ref = useRef<HTMLLIElement>(null)
 	const { setExampleDialog } = useContext(dialogContext)
 
+	useEffect(() => {
+		if (isActive) {
+			if (!ref.current) return
+			const rect = ref.current.getBoundingClientRect()
+			if (rect.top < 0 || rect.bottom > window.innerHeight) {
+				ref.current.scrollIntoView({ behavior: 'instant', block: 'start' })
+			}
+		}
+	}, [isActive])
+
 	return (
-		<li className="examples__sidebar__item" data-active={isActive}>
+		<li ref={ref} className="examples__sidebar__item" data-active={isActive}>
 			<Link to={example.path} className="examples__sidebar__item__link">
-				{example.title}
+				<span className="examples__sidebar__item__title">{example.title}</span>
+				{isActive && (
+					<div className="example__sidebar__item__buttons">
+						<button
+							className="example__sidebar__item__button hoverable"
+							onClick={() => setExampleDialog(example)}
+							aria-label="Info"
+						>
+							<InfoIcon />
+						</button>
+						<Link
+							to={`${example.path}/full`}
+							className="example__sidebar__item__button hoverable"
+							aria-label="Standalone"
+							title="View standalone example"
+						>
+							<StandaloneIcon />
+						</Link>
+					</div>
+				)}
 			</Link>
-			{isActive && (
-				<div className="example__sidebar__item__buttons">
-					<button
-						className="example__sidebar__item__button hoverable"
-						onClick={() => setExampleDialog(example)}
-						aria-label="Info"
-					>
-						<InfoIcon />
-					</button>
-					<Link
-						to={`${example.path}/full`}
-						className="example__sidebar__item__button hoverable"
-						aria-label="Standalone"
-						title="View standalone example"
-					>
-						<StandaloneIcon />
-					</Link>
-				</div>
-			)}
 		</li>
 	)
 }

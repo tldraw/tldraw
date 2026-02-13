@@ -1,0 +1,103 @@
+---
+title: Branching chat starter kit
+sidebarTitle: Branching chat
+status: published
+author: tldraw
+date: 9/16/2024
+order: 5
+description: The Branching Chat Starter Kit demonstrates how to build visual conversation interfaces where users create branching chat trees with AI integration. It features interactive dialogue nodes that connect to form conversation flows, with real-time AI responses and context-aware message handling. You can use this foundation to create interactive chatbots, conversation design tools, or storytelling applications.
+embed: branching-chat
+githubLink: https://github.com/tldraw/tldraw/tree/main/templates/branching-chat
+keywords:
+  - branching
+  - chat
+  - conversation
+  - dialogue
+  - tree
+readability: 8
+voice: 6
+completeness: 8
+accuracy: 8
+notes: "'Use Cases' heading should be sentence case. Uses bolded bullet format. Good architecture explanation and file references."
+---
+
+To build with a branching chat starter kit, run this command in your terminal:
+
+```bash
+npm create tldraw@latest -- --template branching-chat
+```
+
+---
+
+## Use cases
+
+Use the branching chat starter kit to build:
+
+<StarterKitBento type="branching" />
+
+---
+
+## How it works
+
+![Diagram showing how nodes, ports, and connections form a flow of operations. Two shapes, Node A and Node B illustrate that connections link specific ports, defined as start or end points.](/images/starter-kits/chart-branching-chat.png)
+
+### 1. Visual node system: Interactive message containers
+
+Each conversation message appears as a draggable node on the infinite canvas. The `NodeShapeUtil` class extends tldraw's shape system to create custom chat message containers. These containers dynamically resize based on content length and provide input fields for user messages, areas for AI responses, and connection ports for linking conversations. You can also create nodes directly from the toolbar.
+
+### 2. Connection architecture: Conversation flow management
+
+The `ConnectionBindingUtil` manages relationships between message nodes and creates visual lines that represent conversation flow. You create connections by dragging between node ports to branch conversations and link context. When users send a message, the system traces backwards through connected nodes to build complete conversation history. This gives AI responses the full dialogue context.
+
+### 3. AI streaming integration: Real-time response handling
+
+The backend uses Cloudflare Workers with the Vercel AI SDK to stream responses from Google's Gemini API. As AI text generates, the streaming fetch implementation decodes response chunks and updates the tldraw document state in real time. Users see responses appear progressively within the connected node.
+
+### 4. Port-based connection system: Visual conversation linking
+
+Nodes feature input and output ports that let users create branching dialogue structures by dragging connections between messages. You can build complex conversation trees where multiple messages feed into a single AI response or diverge into parallel branches. Connected nodes automatically establish context relationships across different paths in the dialogue graph.
+
+---
+
+## Customization
+
+This starter kit is built on top of tldraw's extensible architecture. You can customize everything. The canvas renders using React DOM, so you can use familiar React patterns, components, and state management across your conversation interface. Let's have a look at some ways to change this starter kit.
+
+### Adding custom node types
+
+To create new types of conversation nodes beyond basic messages, you can extend the node system with custom node definitions. The system uses a pluggable architecture where each node type defines its own behavior, rendering, and port configuration.
+
+See `client/nodes/types/MessageNode.tsx` as an example. This file shows how to define a complete node type with TypeScript validation, React component rendering, AI streaming integration, and dynamic sizing based on content length.
+
+### Customizing AI integration
+
+To integrate with different AI providers or modify response behavior, you can customize the streaming implementation and API endpoints. The system uses the Vercel AI SDK which supports multiple providers including OpenAI, Anthropic, and Google.
+
+See `worker/worker.ts` as an example. This file demonstrates how to configure AI providers, handle streaming responses, and process conversation context from connected nodes.
+
+### Customizing node appearance
+
+To modify how conversation nodes look and behave, you can override the node rendering and styling system. Each node type has complete control over its visual presentation while maintaining integration with tldraw's interaction system.
+
+See `client/nodes/NodeShapeUtil.tsx` as an example. This file shows how the shape utility defines node geometry, interaction behavior, and visual indicators including port positioning and selection bounds.
+
+### Customizing connection behavior
+
+To modify how conversation flows connect and interact, you can customize the connection and binding system. This controls how nodes link together, how context flows between connected messages, and how the visual connections appear.
+
+See `client/connection/ConnectionBindingUtil.tsx` as an example. This file demonstrates how to define binding behavior between shapes, including automatic cleanup when nodes are deleted and visual feedback during connection creation.
+
+---
+
+## Further reading
+
+- [Workflow Starter Kit](/starter-kits/workflow): Learn how to build visual programming interfaces with node-based workflows on infinite canvas.
+- [Shape Utilities](/docs/shapes#Custom-shapes-1): Learn how to create custom shapes and extend tldraw's shape system with advanced geometry, rendering, and interaction patterns.
+- [Binding System](/docs/binding): Learn more about tldraw's binding system for creating relationships between shapes, automatic updates, and connection management.
+- [Editor State Management](/docs/editor): Learn how to work with tldraw's reactive state system, editor lifecycle, and event handling for complex canvas applications.
+
+---
+
+## Building with this starter kit?
+
+If you build something great, please share it with us in our [#show-and-tell](https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink) channel on Discord. We want to see what you've built!

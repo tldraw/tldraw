@@ -3,7 +3,20 @@ title: External UI (using state)
 component: ./ExternalUiExample.tsx
 category: layout
 priority: 20
-keywords: [outside, editor]
+keywords:
+  [
+    custom ui,
+    toolbar,
+    buttons,
+    state,
+    usestate,
+    onmount,
+    getcurrenttoolid,
+    setcurrenttool,
+    getstylefornextshape,
+    setstylefornextshapes,
+    usevalue,
+  ]
 ---
 
 This example shows how to control the tldraw editor from an external UI, using state.

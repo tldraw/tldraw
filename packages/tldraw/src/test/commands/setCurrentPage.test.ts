@@ -1,4 +1,5 @@
 import { IndexKey, PageRecordType, TLPageId, createShapeId } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -76,7 +77,7 @@ describe('setCurrentPage', () => {
 	it('logs an error when trying to navigate to a page that does not exist', () => {
 		const initialPageId = editor.getCurrentPageId()
 		expect(editor.getCurrentPageId()).toBe(initialPageId)
-		console.error = jest.fn()
+		console.error = vi.fn()
 
 		expect(() => {
 			editor.setCurrentPage('page:does-not-exist' as TLPageId)
@@ -105,7 +106,7 @@ describe('setCurrentPage', () => {
 	})
 
 	it('applies camera constraints', () => {
-		const spy = jest.spyOn(editor, 'setCamera')
+		const spy = vi.spyOn(editor, 'setCamera')
 
 		let currentPageId = editor.getCurrentPageId()
 		expect(currentPageId).toMatchInlineSnapshot(`"page:page"`)

@@ -2,11 +2,13 @@ import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
 	TlaFile,
-	TlaFilePartial,
 	TlaFileState,
-	TlaFileStatePartial,
+	TlaGroup,
+	TlaGroupFile,
+	TlaGroupUser,
+	TlaRow,
+	TlaRowPartial,
 	TlaUser,
-	TlaUserPartial,
 } from './tlaSchema'
 
 export interface Snapshot {
@@ -38,6 +40,11 @@ export type CreateSnapshotResponseBody =
 export interface GetReadonlySlugResponseBody {
 	slug: string
 	isLegacy: boolean
+}
+
+export interface HistoryResponseBody {
+	timestamps: string[]
+	hasMore: boolean
 }
 
 /* ----------------------- App ---------------------- */
@@ -75,35 +82,65 @@ export type UnpublishFileResponseBody =
 			message: string
 	  }
 
-export interface ZStoreDataV1 {
-	files: TlaFile[]
-	fileStates: TlaFileState[]
-	user: TlaUser
-	lsn: string
-}
+export type GetInviteInfoResponseBody =
+	| {
+			error: false
+			groupId: string
+			groupName: string
+			isValid: true
+			inviteSecret: string
+	  }
+	| {
+			error: true
+			message: string
+	  }
+
+export type AcceptInviteResponseBody =
+	| {
+			error: false
+			message: string
+			groupId: string
+			groupName: string
+			success: true
+	  }
+	| {
+			error: false
+			message: string
+			groupId: string
+			groupName: string
+			alreadyMember: true
+	  }
+	| {
+			error: true
+			message: string
+	  }
 
 export interface ZStoreData {
 	file: TlaFile[]
 	file_state: TlaFileState[]
 	user: TlaUser[]
+	group: TlaGroup[]
+	group_user: TlaGroupUser[]
+	group_file: TlaGroupFile[]
 	lsn: string
 }
 
 export type ZRowUpdate = ZRowInsert | ZRowDeleteOrUpdate
 
 export interface ZRowInsert {
-	row: TlaFile | TlaFileState | TlaUser
+	row: TlaRow
 	table: ZTable
 	event: 'insert'
 }
 
 export interface ZRowDeleteOrUpdate {
-	row: TlaFilePartial | TlaFileStatePartial | TlaUserPartial
+	row: TlaRowPartial
 	table: ZTable
 	event: 'update' | 'delete'
 }
 
-export type ZTable = 'file' | 'file_state' | 'user'
+export type ZTable = 'file' | 'file_state' | 'user' | 'group' | 'group_user' | 'group_file'
+
 export type ZEvent = 'insert' | 'update' | 'delete'
 
 export const ZErrorCode = stringEnum(
@@ -115,23 +152,15 @@ export const ZErrorCode = stringEnum(
 	'forbidden',
 	'bad_request',
 	'rate_limit_exceeded',
+	'max_groups_reached',
 	'max_files_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
 
 // increment this to force clients to reload
 // e.g. if we make backwards-incompatible changes to the schema
-export const Z_PROTOCOL_VERSION = 2
-export const MIN_Z_PROTOCOL_VERSION = 1
-
-export function downgradeZStoreData(data: ZStoreData): ZStoreDataV1 {
-	return {
-		files: data.file,
-		fileStates: data.file_state,
-		user: data.user[0] ?? null,
-		lsn: data.lsn,
-	}
-}
+export const Z_PROTOCOL_VERSION = 3
+export const MIN_Z_PROTOCOL_VERSION = 3
 
 export type ZServerSentPacket =
 	| {
@@ -154,28 +183,26 @@ export type ZServerSentPacket =
 
 export type ZServerSentMessage = ZServerSentPacket[]
 
-export type ZClientSentMessage =
-	| {
-			type: 'mutate'
-			mutationId: string
-			updates: ZRowUpdate[]
-	  }
-	| {
-			type: 'mutator'
-			mutationId: string
-			name: string
-			props: object
-	  }
+export interface ZClientSentMessage {
+	type: 'mutator'
+	mutationId: string
+	name: string
+	props: object
+}
 
 export const UserPreferencesKeys = [
 	'locale',
 	'animationSpeed',
+	'areKeyboardShortcutsEnabled',
 	'edgeScrollSpeed',
 	'colorScheme',
 	'isSnapMode',
 	'isWrapMode',
 	'isDynamicSizeMode',
 	'isPasteAtCursorMode',
+	'enhancedA11yMode',
+	'inputMode',
+	'isZoomDirectionInverted',
 	'name',
 	'color',
 ] as const satisfies Array<keyof TlaUser>
@@ -183,6 +210,18 @@ export const UserPreferencesKeys = [
 export interface SubmitFeedbackRequestBody {
 	description: string
 	allowContact: boolean
+	url: string
 }
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
+
+export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persistence_bad' }
+
+/* ----------------------- Feature Flags ---------------------- */
+
+export type FeatureFlagKey = 'sqlite_file_storage'
+
+export interface FeatureFlagValue {
+	enabled: boolean
+	description: string
+}

@@ -1,8 +1,16 @@
 import { Editor } from '@tldraw/editor'
+import { updateHoveredShapeId } from './tools/selection-logic/updateHoveredShapeId'
 
 /** @public */
 export function registerDefaultSideEffects(editor: Editor) {
 	return editor.sideEffects.register({
+		instance: {
+			afterChange: (prev, next) => {
+				if (prev.cameraState !== next.cameraState && next.cameraState === 'idle') {
+					updateHoveredShapeId(editor)
+				}
+			},
+		},
 		instance_page_state: {
 			afterChange: (prev, next) => {
 				if (prev.croppingShapeId !== next.croppingShapeId) {
@@ -34,10 +42,15 @@ export function registerDefaultSideEffects(editor: Editor) {
 								editor.getInstanceState().isToolLocked
 							) {
 								editor.setCurrentTool('select.editing_shape', {
+									target: 'shape',
+									shape: shape,
 									isCreatingTextWhileToolLocked: true,
 								})
 							} else {
-								editor.setCurrentTool('select.editing_shape')
+								editor.setCurrentTool('select.editing_shape', {
+									target: 'shape',
+									shape: shape,
+								})
 							}
 						}
 					} else if (prev.editingShapeId && !next.editingShapeId) {

@@ -32,7 +32,6 @@ import {
 	TLUiStylePanelProps,
 	useEditor,
 	useIsToolSelected,
-	useRelevantStyles,
 	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -192,10 +191,6 @@ function CustomQuickActions() {
 function CustomStylePanel(props: TLUiStylePanelProps) {
 	const editor = useEditor()
 
-	// Styles are complex, sorry. Check our DefaultStylePanel for an example.
-
-	const styles = useRelevantStyles()
-
 	return (
 		<DefaultStylePanel {...props}>
 			<div style={{ backgroundColor: 'thistle' }}>
@@ -218,7 +213,7 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 					<TldrawUiButtonLabel>Green</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</div>
-			<DefaultStylePanelContent styles={styles} />
+			<DefaultStylePanelContent />
 		</DefaultStylePanel>
 	)
 }
@@ -233,14 +228,15 @@ function CustomToolbar() {
 				<TldrawUiMenuItem {...tools['rhombus-2']} isSelected={isScreenshotSelected} />
 
 				<DefaultToolbarContent />
-				<button
+				<TldrawUiButton
+					type="icon"
 					onClick={() => {
 						editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 					}}
 					title="delete all"
 				>
 					🧨
-				</button>
+				</TldrawUiButton>
 			</DefaultToolbar>
 		</div>
 	)

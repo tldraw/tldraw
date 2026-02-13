@@ -9,6 +9,7 @@ export const TlaButton = forwardRef<
 		isLoading?: boolean
 		icon?: string
 		iconRight?: string
+		iconRightClassName?: string
 		ghost?: boolean
 		variant?: 'primary' | 'secondary' | 'warning' | 'cta'
 	}
@@ -18,6 +19,7 @@ export const TlaButton = forwardRef<
 		className = '',
 		icon = '',
 		iconRight = '',
+		iconRightClassName = '',
 		ghost = false,
 		variant = 'primary',
 		isLoading = false,
@@ -34,7 +36,7 @@ export const TlaButton = forwardRef<
 			data-state={isLoading ? 'loading' : 'ready'}
 			className={classNames(
 				'tla-button',
-				styles.button,
+				styles.tlaButton,
 				{
 					[styles.cta]: variant === 'cta',
 					[styles.primary]: variant === 'primary',
@@ -54,11 +56,14 @@ export const TlaButton = forwardRef<
 					{children && <span>{children}</span>}
 					{iconRight &&
 						(isLoading ? (
-							<div className={styles.iconRight}>
-								<TlaIcon icon={iconRight} className={classNames(styles.spinner)} />
+							<div className={classNames(styles.iconRight, iconRightClassName)}>
+								<TlaIcon icon={iconRight} className={styles.spinner} />
 							</div>
 						) : (
-							<TlaIcon icon={iconRight} className={styles.iconRight} />
+							<TlaIcon
+								icon={iconRight}
+								className={classNames(styles.iconRight, iconRightClassName)}
+							/>
 						))}
 				</>
 			)}

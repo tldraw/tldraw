@@ -7,9 +7,11 @@ import {
 	SVGContainer,
 	SvgExportContext,
 	TLClickEventInfo,
+	TLDragShapesOutInfo,
+	TLDragShapesOverInfo,
+	TLEditStartInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
-	TLGroupShape,
 	TLResizeInfo,
 	TLShape,
 	TLShapePartial,
@@ -18,6 +20,7 @@ import {
 	compact,
 	frameShapeMigrations,
 	frameShapeProps,
+	getColorValue,
 	getDefaultColorTheme,
 	lerp,
 	resizeBox,
@@ -51,6 +54,10 @@ export interface FrameShapeOptions {
 	 * When true, the frame will display colors for the shape's headings and background.
 	 */
 	showColors: boolean
+	/**
+	 * When true, the frame will resize its children when the frame itself is resized.
+	 */
+	resizeChildren: boolean
 }
 
 export function defaultEmptyAs(str: string, dflt: string) {
@@ -68,6 +75,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override options: FrameShapeOptions = {
 		showColors: false,
+		resizeChildren: false,
 	}
 
 	// evil crimes :)
@@ -86,8 +94,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return withOptions
 	}
 
-	override canEdit() {
-		return true
+	override canEdit(shape: TLFrameShape, info: TLEditStartInfo) {
+		return info.type === 'click-header' || info.type === 'unknown'
 	}
 
 	override canResize() {
@@ -95,7 +103,11 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override canResizeChildren() {
-		return false
+		return this.options.resizeChildren
+	}
+
+	override isExportBoundsContainer(): boolean {
+		return true
 	}
 
 	override getDefaultProps(): TLFrameShape['props'] {
@@ -109,7 +121,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override getGeometry(shape: TLFrameShape): Geometry2d {
 		const { editor } = this
 
-		const z = editor.getZoomLevel()
+		const z = editor.getEfficientZoomLevel()
 
 		// Which dimension measures the top edge after rotation?
 		const labelSide = getFrameHeadingSide(editor, shape)
@@ -190,6 +202,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 					height,
 					isFilled: true,
 					isLabel: true,
+					excludeFromShapeBounds: true,
 				}),
 			],
 		})
@@ -218,29 +231,30 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			[shape.id]
 		)
 
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const zoomLevel = useValue('zoom level', () => this.editor.getZoomLevel(), [this.editor])
-
 		const showFrameColors = this.options.showColors
-
-		const color = theme[shape.props.color]
-		const frameFill = showFrameColors ? color.frame.fill : theme.black.frame.fill
-		const frameStroke = showFrameColors ? color.frame.stroke : theme.black.frame.stroke
-		const frameHeadingStroke = showFrameColors ? color.frame.headingStroke : theme.background
-		const frameHeadingFill = showFrameColors ? color.frame.headingFill : theme.background
-		const frameHeadingText = showFrameColors ? color.frame.text : theme.text
+		const colorToUse = showFrameColors ? shape.props.color : 'black'
+		const frameFill = getColorValue(theme, colorToUse, 'frameFill')
+		const frameStroke = getColorValue(theme, colorToUse, 'frameStroke')
+		const frameHeadingStroke = showFrameColors
+			? getColorValue(theme, colorToUse, 'frameHeadingStroke')
+			: theme.background
+		const frameHeadingFill = showFrameColors
+			? getColorValue(theme, colorToUse, 'frameHeadingFill')
+			: theme.background
+		const frameHeadingText = getColorValue(theme, colorToUse, 'frameText')
 
 		return (
 			<>
 				<SVGContainer>
 					<rect
 						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
-						width={shape.props.w + 1 / zoomLevel}
-						height={shape.props.h + 1 / zoomLevel}
 						fill={frameFill}
 						stroke={frameStroke}
-						y={-0.5 / zoomLevel}
-						x={-0.5 / zoomLevel}
+						style={{
+							width: `calc(${shape.props.w}px + 1px / var(--tl-zoom))`,
+							height: `calc(${shape.props.h}px + 1px / var(--tl-zoom))`,
+							transform: `translate(calc(-0.5px / var(--tl-zoom)), calc(-0.5px / var(--tl-zoom)))`,
+						}}
 					/>
 				</SVGContainer>
 				{isCreating ? null : (
@@ -278,13 +292,16 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const text = createTextJsxFromSpans(this.editor, spans, opts)
 
 		const showFrameColors = this.options.showColors
-
-		const color = theme[shape.props.color]
-		const frameFill = showFrameColors ? color.frame.fill : theme.black.frame.fill
-		const frameStroke = showFrameColors ? color.frame.stroke : theme.black.frame.stroke
-		const frameHeadingStroke = showFrameColors ? color.frame.headingStroke : theme.background
-		const frameHeadingFill = showFrameColors ? color.frame.headingFill : theme.background
-		const frameHeadingText = showFrameColors ? color.frame.text : theme.text
+		const colorToUse = showFrameColors ? shape.props.color : 'black'
+		const frameFill = getColorValue(theme, colorToUse, 'frameFill')
+		const frameStroke = getColorValue(theme, colorToUse, 'frameStroke')
+		const frameHeadingStroke = showFrameColors
+			? getColorValue(theme, colorToUse, 'frameHeadingStroke')
+			: theme.background
+		const frameHeadingFill = showFrameColors
+			? getColorValue(theme, colorToUse, 'frameHeadingFill')
+			: theme.background
+		const frameHeadingText = getColorValue(theme, colorToUse, 'frameText')
 
 		return (
 			<>
@@ -316,45 +333,29 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	indicator(shape: TLFrameShape) {
-		return (
-			<rect
-				width={toDomPrecision(shape.props.w)}
-				height={toDomPrecision(shape.props.h)}
-				className={`tl-frame-indicator`}
-			/>
-		)
+		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
-	override canReceiveNewChildrenOfType(shape: TLShape, _type: TLShape['type']) {
-		return !shape.isLocked
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLFrameShape): Path2D {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 
 	override providesBackgroundForChildren(): boolean {
 		return true
 	}
 
-	override canDropShapes(shape: TLFrameShape, _shapes: TLShape[]): boolean {
+	override getClipPath(shape: TLFrameShape) {
+		return this.editor.getShapeGeometry(shape.id).vertices
+	}
+
+	override canReceiveNewChildrenOfType(shape: TLShape) {
 		return !shape.isLocked
-	}
-
-	override onDragShapesOver(frame: TLFrameShape, shapes: TLShape[]) {
-		if (!shapes.every((child) => child.parentId === frame.id)) {
-			this.editor.reparentShapes(shapes, frame.id)
-		}
-	}
-
-	override onDragShapesOut(_shape: TLFrameShape, shapes: TLShape[]): void {
-		const parent = this.editor.getShape(_shape.parentId)
-		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
-
-		// If frame is in a group, keep the shape
-		// moved out in that group
-
-		if (isInGroup) {
-			this.editor.reparentShapes(shapes, parent.id)
-		} else {
-			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
-		}
 	}
 
 	override onResize(shape: any, info: TLResizeInfo<any>) {
@@ -418,6 +419,64 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return {
 			id: shape.id,
 			type: shape.type,
+		}
+	}
+
+	override onDragShapesIn(
+		shape: TLFrameShape,
+		draggingShapes: TLShape[],
+		{ initialParentIds, initialIndices }: TLDragShapesOverInfo
+	) {
+		const { editor } = this
+
+		if (draggingShapes.every((s) => s.parentId === shape.id)) return
+
+		// Check to see whether any of the shapes can have their old index restored
+		let canRestoreOriginalIndices = false
+		const previousChildren = draggingShapes.filter((s) => shape.id === initialParentIds.get(s.id))
+
+		if (previousChildren.length > 0) {
+			const currentChildren = compact(
+				editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
+			)
+			if (previousChildren.every((s) => !currentChildren.find((c) => c.index === s.index))) {
+				canRestoreOriginalIndices = true
+			}
+		}
+
+		// I can't imagine this happening, but if any of the children are the ancestor of the frame, quit here
+		if (draggingShapes.some((s) => editor.hasAncestor(shape, s.id))) return
+
+		// Reparent the shapes to the new parent
+		editor.reparentShapes(draggingShapes, shape.id)
+
+		// If we can restore the original indices, then do so
+		if (canRestoreOriginalIndices) {
+			for (const shape of previousChildren) {
+				editor.updateShape({
+					id: shape.id,
+					type: shape.type,
+					index: initialIndices.get(shape.id),
+				})
+			}
+		}
+	}
+
+	override onDragShapesOut(
+		shape: TLFrameShape,
+		draggingShapes: TLShape[],
+		info: TLDragShapesOutInfo
+	): void {
+		const { editor } = this
+		// When a user drags shapes out of a frame, and if we're not dragging into a new shape, then reparent
+		// the dragging shapes (that are current children of the frame) onto the current page instead
+		if (!info.nextDraggingOverShapeId) {
+			editor.reparentShapes(
+				draggingShapes.filter(
+					(s) => s.parentId === shape.id && this.canReceiveNewChildrenOfType(s)
+				),
+				editor.getCurrentPageId()
+			)
 		}
 	}
 }

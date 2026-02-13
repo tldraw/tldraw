@@ -1,12 +1,13 @@
 import { createTLSchema } from '@tldraw/tlschema'
 import { openDB } from 'idb'
+import { vi } from 'vitest'
 import { hardReset } from './hardReset'
 import { getAllIndexDbNames, LocalIndexedDb } from './LocalIndexedDb'
 
 const schema = createTLSchema({ shapes: {}, bindings: {} })
 describe('LocalIndexedDb', () => {
 	beforeEach(() => {
-		jest.useRealTimers()
+		vi.useRealTimers()
 	})
 	afterEach(async () => {
 		await hardReset({ shouldReload: false })

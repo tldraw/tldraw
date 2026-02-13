@@ -1,4 +1,5 @@
 import { react, transaction } from '@tldraw/state'
+import { vi } from 'vitest'
 import { AtomMap } from '../AtomMap'
 
 describe('AtomMap', () => {
@@ -11,7 +12,7 @@ describe('AtomMap', () => {
 	})
 
 	function testReactor(name: string, fn: () => any) {
-		const cb = jest.fn(fn)
+		const cb = vi.fn(fn)
 		const cleanup = react(name, cb)
 		cleanupFns.push(() => cleanup())
 		return cb

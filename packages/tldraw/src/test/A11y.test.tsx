@@ -1,16 +1,17 @@
 import { createShapeId, toRichText } from '@tldraw/editor'
+import { Mock, vi } from 'vitest'
 import { generateShapeAnnouncementMessage } from '../lib/ui/components/A11y'
 import { TestEditor } from './TestEditor'
 
 describe('A11y Shape Announcements', () => {
 	let editor: TestEditor
-	let mockTranslate: jest.Mock
+	let mockTranslate: Mock
 
 	beforeEach(() => {
 		editor = new TestEditor()
 
 		// Create a simple translation mock
-		mockTranslate = jest.fn((key) => {
+		mockTranslate = vi.fn((key) => {
 			if (key === 'a11y.multiple-shapes') return '{num} shapes selected'
 			if (key === 'a11y.shape') return 'Shape'
 			if (key === 'a11y.text') return 'Text'

@@ -1,9 +1,10 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import { TLShape, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
-import { Required, annotateError } from '@tldraw/utils'
+import { annotateError, Required } from '@tldraw/utils'
+import classNames from 'classnames'
 import React, {
-	ReactNode,
 	memo,
+	ReactNode,
 	useCallback,
 	useEffect,
 	useLayoutEffect,
@@ -12,16 +13,14 @@ import React, {
 	useState,
 	useSyncExternalStore,
 } from 'react'
-
-import classNames from 'classnames'
 import { version } from '../version'
-import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
-import { TLEditorSnapshot } from './config/TLEditorSnapshot'
+import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { TLStoreBaseOptions } from './config/createTLStore'
-import { TLUser, createTLUser } from './config/createTLUser'
+import { createTLUser, TLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
+import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
@@ -39,12 +38,12 @@ import { useForceUpdate } from './hooks/useForceUpdate'
 import { useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
+import { useStateAttribute } from './hooks/useStateAttribute'
 import { useZoomCss } from './hooks/useZoomCss'
 import { LicenseProvider } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { TLDeepLinkOptions } from './utils/deepLinks'
-import { stopEventPropagation } from './utils/dom'
 import { TLTextOptions } from './utils/richText'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
@@ -165,18 +164,22 @@ export interface TldrawEditorBaseProps {
 
 	/**
 	 * Camera options for the editor.
+	 *
+	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-
-	/**
-	 * Text options for the editor.
-	 */
-	textOptions?: TLTextOptions
 
 	/**
 	 * Options for the editor.
 	 */
 	options?: Partial<TldrawOptions>
+
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 
 	/**
 	 * The license key.
@@ -185,21 +188,16 @@ export interface TldrawEditorBaseProps {
 
 	/**
 	 * Options for syncing the editor's camera state with the URL.
+	 *
+	 * @deprecated Use `options.deepLinks` instead. This prop will be removed in a future release.
 	 */
 	deepLinks?: true | TLDeepLinkOptions
-
-	/**
-	 * Predicate for whether or not a shape should be hidden.
-	 *
-	 * @deprecated Use {@link TldrawEditorBaseProps#getShapeVisibility} instead.
-	 */
-	isShapeHidden?(shape: TLShape, editor: Editor): boolean
 
 	/**
 	 * Provides a way to hide shapes.
 	 *
 	 * Hidden shapes will not render in the editor, and they will not be eligible for hit test via
-	 * {@link Editor#getShapeAtPoint} and {@link Editor#getShapesAtPoint}. But otherwise they will
+	 * {@link @tldraw/editor#Editor.getShapeAtPoint} and {@link @tldraw/editor#Editor.getShapesAtPoint}. But otherwise they will
 	 * remain in the store and participate in all other operations.
 	 *
 	 * @example
@@ -256,6 +254,10 @@ export const TldrawEditor = memo(function TldrawEditor({
 	className,
 	user: _user,
 	options: _options,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
+	textOptions: _textOptions,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
+	deepLinks: _deepLinks,
 	...rest
 }: TldrawEditorProps) {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
@@ -263,6 +265,19 @@ export const TldrawEditor = memo(function TldrawEditor({
 
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
+
+	// Merge deprecated props with options
+	// options values take precedence over the deprecated props
+	const mergedOptions = useMemo(() => {
+		let result = _options
+		if (_textOptions) {
+			result = { ...result, text: result?.text ?? _textOptions }
+		}
+		if (_deepLinks !== undefined) {
+			result = { ...result, deepLinks: result?.deepLinks ?? _deepLinks }
+		}
+		return result
+	}, [_options, _textOptions, _deepLinks])
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
@@ -273,7 +288,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		bindingUtils: rest.bindingUtils ?? EMPTY_BINDING_UTILS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
 		components,
-		options: useShallowObjectIdentity(_options),
+		options: useShallowObjectIdentity(mergedOptions),
 	}
 
 	return (
@@ -282,7 +297,6 @@ export const TldrawEditor = memo(function TldrawEditor({
 			data-tldraw={version}
 			draggable={false}
 			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
-			onPointerDown={stopEventPropagation}
 			tabIndex={-1}
 			role="application"
 			aria-label={_options?.branding ?? 'tldraw'}
@@ -406,13 +420,10 @@ function TldrawEditorWithReadyStore({
 	initialState,
 	autoFocus = true,
 	inferDarkMode,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	cameraOptions,
-	textOptions,
 	options,
 	licenseKey,
-	deepLinks: _deepLinks,
-	// eslint-disable-next-line @typescript-eslint/no-deprecated
-	isShapeHidden,
 	getShapeVisibility,
 	assetUrls,
 }: Required<
@@ -429,6 +440,7 @@ function TldrawEditorWithReadyStore({
 
 	const canvasRef = useRef<HTMLDivElement | null>(null)
 
+	const _deepLinks = options?.deepLinks
 	const deepLinks = useShallowObjectIdentity(_deepLinks === true ? {} : _deepLinks)
 
 	// props in this ref can be changed without causing the editor to be recreated.
@@ -469,10 +481,8 @@ function TldrawEditorWithReadyStore({
 				autoFocus,
 				inferDarkMode,
 				cameraOptions,
-				textOptions,
 				options,
 				licenseKey,
-				isShapeHidden,
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
 			})
@@ -508,9 +518,7 @@ function TldrawEditorWithReadyStore({
 			user,
 			setEditor,
 			licenseKey,
-			isShapeHidden,
 			getShapeVisibility,
-			textOptions,
 			assetUrls,
 		]
 	)
@@ -523,11 +531,12 @@ function TldrawEditorWithReadyStore({
 	}, [editor, deepLinks])
 
 	// keep the editor up to date with the latest camera options
+	// options.cameraOptions takes precedence over the deprecated cameraOptions prop
 	useLayoutEffect(() => {
-		if (editor && cameraOptions) {
-			editor.setCameraOptions(cameraOptions)
+		if (editor && (cameraOptions || options?.camera)) {
+			editor.setCameraOptions({ ...cameraOptions, ...options?.camera })
 		}
-	}, [editor, cameraOptions])
+	}, [editor, cameraOptions, options?.camera])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(
@@ -585,8 +594,13 @@ function TldrawEditorWithReadyStore({
 	if (editor !== fontLoadingState?.editor) {
 		fontLoadingState = null
 	}
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!editor) return
+		if (editor.options.maxFontsToLoadBeforeRender === 0) {
+			setFontLoadingState({ editor, isLoaded: true })
+			return
+		}
+
 		let isCancelled = false
 
 		setFontLoadingState({ editor, isLoaded: false })
@@ -646,6 +660,7 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useCursor()
 	useDarkMode()
 	useForceUpdate()
+	useStateAttribute()
 	useOnMount((editor) => {
 		const teardownStore = editor.store.props.onMount(editor)
 		const teardownCallback = onMount?.(editor)

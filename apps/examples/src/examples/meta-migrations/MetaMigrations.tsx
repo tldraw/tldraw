@@ -43,7 +43,7 @@ const migrations = createMigrationSequence({
 		{
 			id: versions.RemovePurple,
 			// `scope: 'record` tells the schema to call this migration on individual records.
-			// `scope: 'store'` would call it on the entire snapshot, to allow for actions like deleting/creating records.
+			// `scope: 'storage'` would pass a storage object with get/set/delete methods, to allow for actions like deleting/creating records.
 			scope: 'record',
 			// When `scope` is 'record', you can specify a filter function to only apply the migration to records that match the filter.
 			filter: (record) => record.typeName === 'page',

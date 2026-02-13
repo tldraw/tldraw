@@ -1,6 +1,23 @@
 import React, { forwardRef, FunctionComponent, memo } from 'react'
 import { useStateTracking } from './useStateTracking'
 
+/**
+ * Proxy handlers object used to intercept function calls to React components.
+ * This enables automatic signal tracking by wrapping component execution
+ * in reactive tracking context.
+ *
+ * The proxy intercepts the function call (apply trap) and wraps it with
+ * useStateTracking to enable automatic dependency tracking for signals
+ * accessed during render.
+ *
+ * @example
+ * ```ts
+ * // Used internally by track() function
+ * const ProxiedComponent = new Proxy(MyComponent, ProxyHandlers)
+ * ```
+ *
+ * @internal
+ */
 export const ProxyHandlers = {
 	/**
 	 * This is a function call trap for functional components. When this is called, we know it means
@@ -21,7 +38,30 @@ export const ProxyHandlers = {
 	},
 }
 
+/**
+ * React internal symbol for identifying memoized components.
+ * Used to detect if a component is already wrapped with React.memo().
+ *
+ * @example
+ * ```ts
+ * const isMemoComponent = component['$$typeof'] === ReactMemoSymbol
+ * ```
+ *
+ * @internal
+ */
 export const ReactMemoSymbol = Symbol.for('react.memo')
+
+/**
+ * React internal symbol for identifying forward ref components.
+ * Used to detect if a component is wrapped with React.forwardRef().
+ *
+ * @example
+ * ```ts
+ * const isForwardRefComponent = component['$$typeof'] === ReactForwardRefSymbol
+ * ```
+ *
+ * @internal
+ */
 export const ReactForwardRefSymbol = Symbol.for('react.forward_ref')
 
 /**
@@ -29,18 +69,41 @@ export const ReactForwardRefSymbol = Symbol.for('react.forward_ref')
  * Any signals whose values are read while the component renders will be tracked.
  * If any of the tracked signals change later it will cause the component to re-render.
  *
- * This also wraps the component in a React.memo() call, so it will only re-render if the props change.
+ * This also wraps the component in a React.memo() call, so it will only re-render
+ * when props change OR when any tracked signals change. This provides optimal
+ * performance by preventing unnecessary re-renders while maintaining reactivity.
+ *
+ * The function handles special React component types like forwardRef and memo
+ * components automatically, preserving their behavior while adding reactivity.
+ *
+ * @param baseComponent - The React functional component to make reactive to signal changes
+ * @returns A memoized component that re-renders when props or tracked signals change
  *
  * @example
  * ```ts
+ * import { atom } from '@tldraw/state'
+ * import { track, useAtom } from '@tldraw/state-react'
+ *
  * const Counter = track(function Counter(props: CounterProps) {
  *   const count = useAtom('count', 0)
  *   const increment = useCallback(() => count.set(count.get() + 1), [count])
  *   return <button onClick={increment}>{count.get()}</button>
  * })
+ *
+ * // Component automatically re-renders when count signal changes
  * ```
  *
- * @param baseComponent - The base component to track.
+ * @example
+ * ```ts
+ * // Works with forwardRef components
+ * const TrackedInput = track(React.forwardRef<HTMLInputElement, InputProps>(
+ *   function TrackedInput(props, ref) {
+ *     const theme = useValue(themeSignal)
+ *     return <input ref={ref} style={{ color: theme.textColor }} {...props} />
+ *   }
+ * ))
+ * ```
+ *
  * @public
  */
 export function track<T extends FunctionComponent<any>>(

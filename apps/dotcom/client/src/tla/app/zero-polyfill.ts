@@ -1,6 +1,4 @@
 import { MakeEntityQueriesFromSchema } from '@rocicorp/zero'
-import type { MakeCustomMutatorInterfaces } from '@rocicorp/zero/out/zero-client/src/client/custom'
-import type { SchemaCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	OptimisticAppStore,
 	TlaMutators,
@@ -18,10 +16,14 @@ import {
 	deferAsyncEffects,
 	mapObjectMapValues,
 	objectMapKeys,
+	promiseWithResolve,
+	react,
 	sleep,
 	transact,
 	uniqueId,
 } from 'tldraw'
+import type { MakeCustomMutatorInterfaces } from '../../../../../../node_modules/@rocicorp/zero/out/zero-client/src/client/custom'
+import type { SchemaCRUD } from '../../../../../../node_modules/@rocicorp/zero/out/zql/src/mutate/custom'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 import { ClientCRUD } from './ClientCRUD'
 import { ClientQuery } from './ClientQuery'
@@ -92,8 +94,9 @@ export class Zero {
 		})
 		const mutationQueue = new ExecutionQueue()
 		const mutatorWrapper = (name: string, mutatorFn: any) => {
-			return async (props: any) => {
-				await mutationQueue.push(async () => {
+			return (props: any) => {
+				const server = promiseWithResolve()
+				const client = mutationQueue.push(async () => {
 					if (this.clientTooOld) {
 						this.opts.onMutationRejected('client_too_old')
 						return
@@ -104,9 +107,24 @@ export class Zero {
 					const query = this.makeQuery(controller.signal)
 					try {
 						await deferAsyncEffects(() => mutatorFn({ mutate, query, location: 'client' }, props))
+					} catch (e) {
+						console.error(e)
+						throw e
 					} finally {
 						controller.abort()
 					}
+					let didResolve = false
+					const unlisten = react('resolve server promise', () => {
+						if (
+							!didResolve &&
+							this.store.getOptimisticUpdates().filter((u) => u.mutationId === mutationId)
+								.length === 0
+						) {
+							didResolve = true
+							server.resolve(null)
+							queueMicrotask(() => unlisten?.())
+						}
+					})
 					this.pendingUpdates.push({
 						type: 'mutator',
 						mutationId,
@@ -119,6 +137,7 @@ export class Zero {
 						}, 50)
 					}
 				})
+				return { client, server }
 			}
 		}
 		const mutators = createMutators(opts.userId) as any

@@ -1,5 +1,6 @@
 import { computed } from '@tldraw/state'
 import { RecordId, Store, StoreSchema, UnknownRecord, createRecordType } from '@tldraw/store'
+import { vi } from 'vitest'
 import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 import { RecordOpType } from '../lib/diff'
 import { TestServer } from './TestServer'
@@ -49,7 +50,12 @@ const schemaWithoutValidator = StoreSchema.create<Book | Presence>({
 })
 
 const disposables: Array<() => void> = []
+let consoleSpy: ReturnType<typeof vi.spyOn>
+beforeEach(() => {
+	consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+})
 afterEach(() => {
+	consoleSpy.mockRestore()
 	for (const dispose of disposables) {
 		dispose()
 	}
@@ -68,9 +74,9 @@ async function makeTestInstance() {
 			socketPair.flushServerSentEvents()
 		}
 	}
-	let onSyncError = jest.fn()
+	let onSyncError = vi.fn()
 	const client = await new Promise<TLSyncClient<Book | Presence>>((resolve, reject) => {
-		onSyncError = jest.fn(reject)
+		onSyncError = vi.fn(reject)
 		const client = new TLSyncClient({
 			store: new Store<Book | Presence, unknown>({ schema: schemaWithoutValidator, props: {} }),
 			socket: socketPair.clientSocket as any,
@@ -94,7 +100,7 @@ async function makeTestInstance() {
 it('rejects invalid put operations that create a new document', async () => {
 	const { client, flush, onSyncError, server } = await makeTestInstance()
 
-	const prevServerDocs = server.room.getSnapshot().documents
+	const prevServerDocs = server.storage.getSnapshot().documents
 
 	client.store.put([
 		{
@@ -108,20 +114,20 @@ it('rejects invalid put operations that create a new document', async () => {
 
 	expect(onSyncError).toHaveBeenCalledTimes(1)
 	expect(onSyncError).toHaveBeenLastCalledWith(TLSyncErrorCloseEventReason.INVALID_RECORD)
-	expect(server.room.getSnapshot().documents).toStrictEqual(prevServerDocs)
+	expect(server.storage.getSnapshot().documents).toStrictEqual(prevServerDocs)
 })
 
 it('rejects invalid put operations that replace an existing document', async () => {
 	const { client, flush, onSyncError, server } = await makeTestInstance()
 
-	let prevServerDocs = server.room.getSnapshot().documents
+	let prevServerDocs = server.storage.getSnapshot().documents
 	const book: Book = { typeName: 'book', id: Book.createId('1'), title: 'Annihilation' }
 	client.store.put([book])
 	await flush()
 
 	expect(onSyncError).toHaveBeenCalledTimes(0)
-	expect(server.room.getSnapshot().documents).not.toStrictEqual(prevServerDocs)
-	prevServerDocs = server.room.getSnapshot().documents
+	expect(server.storage.getSnapshot().documents).not.toStrictEqual(prevServerDocs)
+	prevServerDocs = server.storage.getSnapshot().documents
 
 	client.socket.sendMessage({
 		type: 'push',
@@ -142,13 +148,13 @@ it('rejects invalid put operations that replace an existing document', async () 
 
 	expect(onSyncError).toHaveBeenCalledTimes(1)
 	expect(onSyncError).toHaveBeenLastCalledWith(TLSyncErrorCloseEventReason.INVALID_RECORD)
-	expect(server.room.getSnapshot().documents).toStrictEqual(prevServerDocs)
+	expect(server.storage.getSnapshot().documents).toStrictEqual(prevServerDocs)
 })
 
 it('rejects invalid update operations', async () => {
 	const { client, flush, onSyncError, server } = await makeTestInstance()
 
-	let prevServerDocs = server.room.getSnapshot().documents
+	let prevServerDocs = server.storage.getSnapshot().documents
 
 	// create the book
 	client.store.put([
@@ -161,8 +167,8 @@ it('rejects invalid update operations', async () => {
 	await flush()
 
 	expect(onSyncError).toHaveBeenCalledTimes(0)
-	expect(server.room.getSnapshot().documents).not.toStrictEqual(prevServerDocs)
-	prevServerDocs = server.room.getSnapshot().documents
+	expect(server.storage.getSnapshot().documents).not.toStrictEqual(prevServerDocs)
+	prevServerDocs = server.storage.getSnapshot().documents
 
 	// update the title to be wrong
 	client.store.put([
@@ -176,5 +182,5 @@ it('rejects invalid update operations', async () => {
 	await flush()
 	expect(onSyncError).toHaveBeenCalledTimes(1)
 	expect(onSyncError).toHaveBeenLastCalledWith(TLSyncErrorCloseEventReason.INVALID_RECORD)
-	expect(server.room.getSnapshot().documents).toStrictEqual(prevServerDocs)
+	expect(server.storage.getSnapshot().documents).toStrictEqual(prevServerDocs)
 })

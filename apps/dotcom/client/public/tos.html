@@ -1,0 +1,707 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Terms of Service</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 70ch;
+		padding: 0 2em;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="1583e4c3-24c0-800f-95a2-f4d7d71c73ed" class="page sans"><header><div class="page-header-icon undefined"><span class="icon">📄</span></div><h1 class="page-title">Terms of Service</h1><p class="page-description"></p></header><div class="page-body"><p id="2b53e4c3-24c0-8067-a942-ca07bfd40d29" class=""><strong>Terms of Service</strong></p><p id="2b53e4c3-24c0-8072-af90-cc7cae2c89ce" class=""><strong>Effective Date: November 24th, 2025</strong></p><p id="2b53e4c3-24c0-80c3-b54f-fced2da3be33" class=""><strong>Last Updated Date: November 24th, 2025</strong></p><p id="2b53e4c3-24c0-8021-88cc-f8d35592ffda" class="">Please read this Terms of Service Agreement (&quot;<strong>agreement</strong>&quot;) carefully. The website (&quot;<strong>Website</strong>&quot;) of tldraw, Inc. (&quot;<strong>tldraw</strong>&quot;), THE WEB APPLICATION (&quot;<strong>APPLICATION</strong>&quot;) and the information on THE WEBSITE AND APPLICATION are controlled by tldraw. These Terms of Service govern (i) the use of the Website and APPLICATION AND apply to all users using the Website OR APPLICATION in any way AND (II) the services, SOFTWARE, and resources available or enabled via the Website OR APPLICATION (each, a &quot;<strong>Service</strong>&quot; and collectively, the &quot;<strong>Services</strong>&quot;). THE SERVICES, AND THIS AGREEMENT, ALSO INCLUDE ANY USE OF BOARDS (AS DEFINED BELOW) LINKED TO YOUR ACCOUNT ON THE TLDRAW WEBSITE AND/OR APPLICATION.</p><p id="2b53e4c3-24c0-8048-9b9a-d0a6f384e872" class="">By clicking the &quot;Accept&quot; button, completing the registration process, using any of the Services, and/or browsing the Website, you represent that (1) you have read, understand, and agree to be bound by the Terms of Service, (2) you are of legal age to form a binding contract with tldraw, and (3) you have the authority to enter into this Agreement personally or on behalf of the entity you have named as the user, and to bind that entity to this Agreement. The term &quot;<strong>you</strong>&quot; refers to the individual or legal entity, as applicable, identified as the user when you registered for an Account with tldraw through the Services.</p><p id="2b53e4c3-24c0-8035-a851-fb673da7f0bb" class=""><strong>If you do not agree to be bound by this Agreement, you may not access or use the Services.</strong></p><p id="2b53e4c3-24c0-80a5-a8fd-f6fc40f5a763" class=""><strong>SECTION 13 CONTAINS PROVISIONS THAT GOVERN HOW TO RESOLVE DISPUTES BETWEEN YOU AND TLDRAW. AMONG OTHER THINGS, SECTION 13 INCLUDES AN AGREEMENT TO ARBITRATE WHICH REQUIRES, WITH LIMITED EXCEPTIONS, THAT ALL DISPUTES BETWEEN YOU AND US SHALL BE RESOLVED BY BINDING AND FINAL ARBITRATION. SECTION 13 ALSO CONTAINS A CLASS ACTION AND JURY TRIAL WAIVER. PLEASE READ SECTION 13 CAREFULLY. UNLESS YOU OPT OUT OF THE ARBITRATION AGREEMENT (AS DEFINED IN SECTION 13) WITHIN THIRTY (30) DAYS IN ACCORDANCE WITH SECTION 13.10: (1) YOU WILL ONLY BE PERMITTED TO PURSUE DISPUTES OR CLAIMS AND SEEK RELIEF AGAINST US ON AN INDIVIDUAL BASIS, NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY CLASS OR REPRESENTATIVE ACTION OR PROCEEDING, AND YOU WAIVE YOUR RIGHT TO PARTICIPATE IN A CLASS ACTION LAWSUIT OR CLASS-WIDE ARBITRATION; AND (2) YOU ARE WAIVING YOUR RIGHT TO PURSUE DISPUTES OR CLAIMS AND SEEK RELIEF IN A COURT OF LAW AND TO HAVE A JURY TRIAL.</strong></p><p id="2b53e4c3-24c0-80e1-843a-d1802f4aa025" class="">The Agreement IS subject to change by Tldraw in its sole discretion at any time AS SET FORTH IN SECTION 14.6.</p><p id="2b53e4c3-24c0-8021-a824-e37b4341a1c0" class=""><strong>1 Services; License Grant</strong></p><p id="2b53e4c3-24c0-8018-96ac-d2abb7494e4f" class=""><strong>1.1 Overview</strong>. The Services are intended to be an online collaborative whiteboard that allows users to create and share canvas-based experiences in the following ways: (i) users can use predefined assets and objects to create canvas-based experiences (each, a &quot;<strong>Board</strong>&quot;) and save and/or delete such Boards to their Accounts, (b) users can share and unshare Boards with other Registered Users or unregistered users.</p><p id="2b53e4c3-24c0-8019-a1dd-e3d3a5273226" class=""><strong>1.2 License.</strong> Subject to the terms and conditions of this Agreement, during the Subscription Term (as defined below), tldraw hereby grants you a non-exclusive, worldwide, royalty-free, non-transferable, non-sub-licensable right for you to access and use the Services on a remote basis, including any software programs and associated interfaces and related technology that tldraw makes available pursuant to this Agreement, in accordance with the standard end-user technical documentation, specifications, materials and other information tldraw may make available electronically (the &quot;<strong>Documentation</strong>&quot;).</p><p id="2b53e4c3-24c0-8007-9aac-fc0cc1d61b5b" class=""><strong>1.3 License Restrictions. </strong>You agree that you will not, and will not permit any other party to, directly or indirectly: (a) access or use the Services or use the Documentation except as expressly permitted herein; (b) modify, adapt, alter or translate the Services or Documentation, except as expressly allowed herein; (c) sublicense, lease, rent, loan, distribute, or otherwise transfer the Services or Documentation to any third party; (d) reverse engineer, decompile, disassemble, or otherwise derive or determine or attempt to derive or determine the source code (or the underlying ideas, algorithms, structure or organization) of the Services; (e) use or copy the Services or Documentation except as expressly allowed under this Agreement; or (f) disclose or transmit any data contained in the Services to any individual, except as expressly allowed herein. You acknowledge and agree that the Services and Documentation will not be used, and are not licensed for use, in connection with any of your time-critical or mission-critical functions.</p><p id="2b53e4c3-24c0-805a-9056-d3b4f74e8ea6" class=""><strong>1.4 Supplemental Terms</strong>. Your use of the Services is also subject to any additional terms, conditions and policies that we separately post on the Website and/or the Application (&quot;<strong>Supplemental Terms</strong>&quot;), which are subject to, and incorporated by reference into, this Agreement. To the extent there is any conflict between this Agreement and any Supplemental Terms, such Supplemental Terms will control with respect to the subject matter of such conflict.</p><p id="2b53e4c3-24c0-8042-8292-f4494252839c" class=""><strong>2 Your Account</strong></p><p id="2b53e4c3-24c0-80ee-aca8-ca4e8777c85a" class=""><strong>2.1 Registering Your Account</strong>. In order to access the Services, you will be required to become a Registered User. For purposes of this Agreement, a &quot;<strong>Registered User</strong>&quot; is a user who has registered an account on the Website (&quot;<strong>Account</strong>&quot;).</p><p id="2b53e4c3-24c0-80bc-b747-ea4c34449649" class=""><strong>2.2 Registration Data</strong>. In registering an account on the Website, you agree to (a) provide true, accurate, current and complete information about yourself as prompted by the registration form (the &quot;<strong>Registration Data</strong>&quot;); and (b) maintain and promptly update the Registration Data to keep it true, accurate, current and complete.</p><p id="2b53e4c3-24c0-8087-96d6-d9354b6e2ef4" class=""><strong>2.3 Your Account</strong>. Notwithstanding anything to the contrary herein, you acknowledge and agree that you shall have no ownership or other property interest in your Account, and you further acknowledge and agree that all rights in and to your Account are and shall forever be owned by and inure to the benefit of tldraw. Furthermore, you are responsible for all activities that occur under your Account. You agree that you shall monitor your Account to restrict use by minors, and you will accept full responsibility for any unauthorized use of the Website and Services by minors. However, if you conclude that the Website and/or Services are appropriate for a minor for whom you are responsible, you may exercise your judgment to allow such minor to use the Website and/or Services under your close supervision; provided that you will remain responsible for any such use by such minor.</p><p id="2b53e4c3-24c0-80d4-aa28-c7899f2d8615" class="">You may not share your Account or password with anyone, and you agree to (y) notify tldraw immediately of any unauthorized use of your password or any other breach of security; and (z) exit from your Account at the end of each session. If you provide any information that is untrue, inaccurate, not current or incomplete, or tldraw has reasonable grounds to suspect that any information you provide is untrue, inaccurate, not current or incomplete, tldraw has the right to suspend or terminate your Account and refuse any and all current or future use of the Website or Services (or any portion thereof).</p><p id="2b53e4c3-24c0-8080-8b48-d928842cc892" class="">You agree not to create an Account using a false identity or information, or on behalf of someone other than yourself. You agree that you shall not have more than one Account at any given time. tldraw reserves the right to remove or reclaim any usernames at any time and for any reason, including claims by a third party that a username violates the third party&#x27;s rights. You agree not to create an Account or use any Services if you have been previously removed by tldraw, or if you have been previously banned from any of the Services.</p><p id="2b53e4c3-24c0-8027-ae89-ca0db7080e5a" class=""><strong>3 Proprietary Rights</strong></p><p id="2b53e4c3-24c0-8002-bd12-cbc9f33e9d78" class=""><strong>3.1 Ownership by tldraw.</strong> The Services and Documentation are licensed and not sold to you, and no title or ownership to such Services, Documentation, or the intellectual property rights embodied therein passes as a result of this Agreement or any act pursuant to this Agreement. The Services and Documentation, and all intellectual property rights therein are the exclusive property of tldraw and its suppliers, and all rights in and to the Services and Documentation not expressly granted to you in this Agreement are reserved by tldraw. tldraw and its suppliers own all rights, title, and interest to the Services and Documentation. Nothing in this Agreement will be deemed to grant, by implication, estoppel or otherwise, a license under any existing or future patents of tldraw, except to the extent necessary for you to use the Services and Documentation as expressly permitted under this Agreement. You will not remove, alter or obscure any copyright, trademark, service mark or other proprietary rights notices incorporated in or accompanying the Services or the Documentation.</p><p id="2b53e4c3-24c0-80df-82b9-f23f6d5cb386" class=""><strong>3.2 Trademarks. </strong>The tldraw logo and all related graphics, logos, service marks and trade names used on or in connection with any of the Services are the trademarks of tldraw or its suppliers and may not be used without permission in connection with your, or any third-party, products or services.</p><p id="2b53e4c3-24c0-80a2-b70c-ccdecd22a747" class=""><strong>3.3 Feedback. </strong>You hereby grant to tldraw a royalty-free, worldwide, transferable, sublicensable, irrevocable, perpetual license to use or incorporate into the Services or any other products or services of tldraw, any suggestions, enhancement requests, recommendations or other feedback provided by you, relating to the Services. tldraw will not identify you as the source of any such feedback.</p><p id="2b53e4c3-24c0-80ff-82fc-cb10bbc714f3" class=""><strong>4 Your Data and Responsibilities</strong></p><p id="2b53e4c3-24c0-8022-8a48-ddbfe1ece9f4" class=""><strong>4.1 Your Data.</strong> &quot;<strong>Your Data</strong>&quot; consists of data, models, content, materials, text and other information made available to us by you through the use of the Services under this Agreement, including any Boards. You instruct us to use and disclose Your Data as necessary to (a) provide the Services consistent with this Agreement, including detecting, preventing, and investigating security incidents, fraud, spam, or unlawful use of the Services, and (b) respond to any technical problems or your queries and ensure the proper working of the Services. You acknowledge that the Internet and telecommunications providers&#x27; networks are inherently insecure. Accordingly, you agree tldraw is not liable for any changes to, interception of, or loss of Your Data while in transit via the Internet or a telecommunications provider&#x27;s network.</p><p id="2b53e4c3-24c0-8020-b102-fbee67ea28f9" class=""><strong>4.2 License; Ownership</strong>. You are solely responsible for the accuracy, quality and legality of Your Data. You will obtain all third party licenses, consents and permissions needed for tldraw to use Your Data to provide the Services. Without limiting the foregoing, you will be solely responsible for obtaining from third parties all necessary rights for tldraw to use Your Data submitted by or on behalf of you for the purposes set forth in this Agreement. You grant tldraw a non-exclusive, worldwide, royalty-free and fully paid license (a) during the Term, to use Your Data as necessary for purposes of providing and improving the Services, and (b) during and after the Term, to use Your Data in an aggregated and anonymized form to: (i) improve the Services and tldraw&#x27;s related products and services; (ii) create analytics and benchmarks; and (iii) generate and disclose statistics regarding use of the Services, provided, however, that no individually identifiable statistics will be disclosed to third parties without your consent. Your Data, and all worldwide intellectual property rights in it, is your exclusive property. All rights in and to Your Data not expressly granted to tldraw in this Agreement are reserved by you.</p><p id="2b53e4c3-24c0-800a-9b19-e233d8452225" class=""><strong>4.3 Your Warranty</strong>. You represent and warrant that: (i) any Board you share or publish by using the Services is truthful, accurate, not misleading, and offered in good faith; (ii) you own the Board you post on or through the Services or otherwise have the right to grant the license set forth in this Agreement; (iii) the publication of your Boards on the Services will not require tldraw to obtain any further licenses from or pay any royalties, fees, compensation or other amounts or provide any attribution to any third parties; and (iv) the publication of your Boards on the Services does not result in a breach of contract between you and any third party. You further represent and warrant that any of Your Data will not (a) infringe any copyright, trademark, or patent; (b) misappropriate any trade secret; (c) be deceptive, defamatory, obscene, pornographic or unlawful; (d) contain any viruses, worms or other malicious computer programming codes intended to damage tldraw&#x27;s system or data; and (e) otherwise violate the rights, including privacy or publicity rights, of a third party. tldraw is not obligated to back up any of Your Data; you are solely responsible for creating backup copies of any of Your Data at your sole cost and expense. You agree that any use of the Services contrary to or in violation of your representations and warranties in this Section 4 constitutes unauthorized and improper use of the Services.</p><p id="2b53e4c3-24c0-80ee-8bb9-cdc87f00d977" class=""><strong>4.4 Your Responsibility for Data and Security</strong>. You will have access to Your Data and will be responsible for all changes to and/or deletions of Your Data and the security of all passwords and other access protocols required in order to access the Services. You will have the ability to export Your Data out of the Services and are encouraged to make its own back-ups of Your Data. You will have the sole responsibility for the accuracy, quality, integrity, legality, reliability, and appropriateness of all of Your Data.</p><p id="2b53e4c3-24c0-802b-9937-c1d40467ad2b" class=""><strong>5 Confidentiality</strong></p><p id="2b53e4c3-24c0-80ff-9c3b-ee4d5c9b9f1b" class=""><strong>5.1 Confidential Information</strong>. Subject to Section 5.3, all information disclosed by tldraw to you during the Term of this Agreement, whether oral, written, graphic or electronic, shall be deemed &quot;<strong>Confidential Information</strong>&quot;. The Services, Documentation, and all enhancements and improvements thereto shall be Confidential Information of tldraw. All data, other than Your Data, provided by tldraw to you in connection with the Services shall be tldraw&#x27;s Confidential Information.</p><p id="2b53e4c3-24c0-80ae-9410-f10dc102e52b" class=""><strong>5.2 Protection of Confidential Information</strong>. You will not use any Confidential Information of tldraw for any purpose not permitted by this Agreement, and will disclose the Confidential Information of tldraw only to your employees or contractors who have a need to know such Confidential Information for purposes of this Agreement and are under a duty of confidentiality no less restrictive than your duties hereunder. You will protect tldraw&#x27;s Confidential Information from unauthorized use, access, or disclosure in the same manner as you protect your own confidential or proprietary information of a similar nature but with no less than reasonable care.</p><p id="2b53e4c3-24c0-8019-91b3-ed993f34bdd0" class=""><strong>5.3 Exceptions</strong>. Your obligations under Section 5.2 with respect to Confidential Information of tldraw will not apply to any information that: (a) was already known to you at the time of disclosure by tldraw free of any obligation of confidentiality; (b) is disclosed to you free of any obligation of confidentiality by a third party who had the right to make such disclosure; (c) is, or through no fault of you has become, generally available to the public; or (d) is independently developed by you without access to, or use of, tldraw&#x27;s Confidential Information. In addition, you will be allowed to disclose Confidential Information of tldraw to the extent that such disclosure is (i) approved in writing by tldraw, (ii) necessary for you to enforce its rights under this Agreement in connection with a legal proceeding; or (iii) required by law or by the order or a court of similar judicial or administrative body, provided that you notify tldraw of such required disclosure promptly and in writing and cooperates with tldraw, at tldraw&#x27;s reasonable request and expense, in any lawful action to contest or limit the scope of such required disclosure.</p><p id="2b53e4c3-24c0-8040-9b5d-f79079cb05b5" class=""><strong>6 Third-Party Links</strong></p><p id="2b53e4c3-24c0-8033-900b-d132e3f07b77" class="">The Services may contain links to third-party services such as third-party payment processors, websites, applications, or ads (&quot;<strong>Third-Party Links</strong>&quot;). When you click on such a link, we will not warn you that you have left the Services. tldraw does not control and is not responsible for Third-Party Links or any content, products or services accessible through such links. tldraw provides these Third-Party Links only as a convenience and does not review, approve, monitor, endorse, warrant, or make any representations with respect to them, or any content, products or services accessible through such links. TLDRAW IS NOT RESPONSIBLE FOR THE CONTENTS OF, OR THE CONSEQUENCES OF ACCESSING, ANY SUCH THIRD-PARTY LINKS AND DISCLAIM ANY RESPONSIBILITY FOR THE ACCURACY OR APPROPRIATENESS OF THE INFORMATION CONTAINED THEREIN. YOUR USE OF ALL THIRD-PARTY LINKS IS AT YOUR OWN RISK.</p><p id="2b53e4c3-24c0-8084-86cf-ff7877b0903d" class=""><strong>7 Fees and Purchase Terms</strong></p><p id="2b53e4c3-24c0-80bd-8631-e474f4fbd25b" class=""><strong>7.1</strong> <strong>Paid Features</strong>. Certain features or portions of the Service may be offered on a paid basis, and if you elect to purchase such features and pay via credit card or other electronic means, you expressly authorize tldraw and its designated third‑party payment processor to charge all applicable fees to your selected payment method. Your use of such third‑party payment processors may be subject to their terms and conditions. Third‑party payment processors are considered Third-Party Links and tldraw disclaims all such liability as set forth in Section 6 above. You are responsible for providing complete, current, and accurate billing and contact information and for promptly updating such information to ensure successful processing of payments. If any fees become overdue, tldraw may suspend or terminate your access to the Service until all outstanding amounts are paid in full.</p><p id="2b53e4c3-24c0-80ce-858b-fb686b82f1d8" class=""><strong>7.2</strong> <strong>Taxes</strong>. You are responsible for all taxes (excluding taxes on our net income), and tldraw will charge tax if required to do so by law.</p><p id="2b53e4c3-24c0-80fa-abf0-e19ce8f1373f" class=""><strong>7.3</strong> <strong>Automatic Renewal</strong>. Unless you cancel the Service before the renewal date associated with your Account, your subscription will automatically renew by default, and you authorize tldraw to charge the applicable renewal fees to your designated payment method on or after that renewal date. tldraw may revise the fees for the Service from time to time and will provide you with email notice of any changes in fees at least thirty (30) days prior to your Service renewal date.</p><p id="2b53e4c3-24c0-802c-bd05-c236acf32967" class=""><strong>7.4</strong> <strong>Refund Policy</strong>. If you are dissatisfied with any paid component of the Service, you may request a refund for the most recent billing cycle by contacting us at <a href="mailto:refunds@tldraw.com">refunds@tldraw.com</a> and providing your first name, last name, and email address. Refunds will be issued to the original payment method within a reasonable period of time. tldraw may decline refund requests or revoke refund privileges if tldraw reasonably determines that this policy is being abused. This section does not affect any statutory rights you may have under applicable consumer protection laws.</p><p id="2b53e4c3-24c0-80aa-babf-f833158c7c14" class=""><strong>8 Indemnification</strong></p><p id="2b53e4c3-24c0-80c1-97e4-c190d246d987" class="">You shall indemnify and hold tldraw, its parents, subsidiaries, affiliates, officers, employees, agents, partners, suppliers, and licensors (each, a <strong>&quot;tldraw Party&quot;</strong> and collectively, the <strong>&quot;tldraw Parties&quot;</strong>) harmless from any losses, costs, liabilities and expenses (including reasonable attorneys&#x27; fees) relating to or arising out of any and all of the following: (i) Your Data; (ii) your use of, or inability to use, the Services; (iii) your violation of this Agreement; (iv) your violation of any rights of another party, including any user; or (v) your violation of any applicable laws, rules or regulations. tldraw reserves the right, at its own cost, to assume the exclusive defense and control of any matter otherwise subject to indemnification by you, in which event you will fully cooperate with tldraw in asserting any available defenses. This provision does not require you to indemnify any of the tldraw Parties for any unconscionable commercial practice by such party or for such party&#x27;s fraud, deception, false promise, misrepresentation or concealment, or suppression or omission of any material fact in connection with the Services provided hereunder. You agree that the provisions in this section will survive any termination of your Account, this Agreement and/or your access to the Services.</p><p id="2b53e4c3-24c0-8065-996a-c0909b90be75" class=""><strong>9 Disclaimer of Warranties.</strong></p><p id="2b53e4c3-24c0-8099-b8c9-ff026f3ba83b" class=""><strong>9.1 As Is. </strong>YOU EXPRESSLY UNDERSTAND AND AGREE THAT TO THE EXTENT PERMITTED BY APPLICABLE LAW, YOUR USE OF THE SERVICES IS AT YOUR SOLE RISK, AND THE SERVICES ARE PROVIDED ON AN &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; BASIS, WITH ALL FAULTS. TO THE FULLEST EXTENT PERMITTED UNDER APPLICABLE LAW, TLDRAW EXPRESSLY DISCLAIMS ALL WARRANTIES, REPRESENTATIONS, AND CONDITIONS OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING THE IMPLIED WARRANTIES OR CONDITIONS OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT, ARISING FROM USE OF THE SERVICES.</p><p id="2b53e4c3-24c0-803c-9dd0-ea3401e2a883" class=""><strong>9.1.1 </strong>TLDRAW MAKES NO WARRANTY, REPRESENTATION OR CONDITION THAT: (1) THE SERVICES WILL MEET YOUR REQUIREMENTS; (2) YOUR USE OF THE SERVICES WILL BE UNINTERRUPTED, TIMELY, SECURE OR ERROR-FREE; OR (3) THE RESULTS THAT MAY BE OBTAINED FROM USE OF THE SERVICES WILL BE ACCURATE OR RELIABLE.</p><p id="2b53e4c3-24c0-8073-bd6b-d596d7adb2d5" class=""><strong>9.1.2 </strong>ANY CONTENT DOWNLOADED FROM OR OTHERWISE ACCESSED THROUGH THE SERVICES IS ACCESSED AT YOUR OWN RISK, AND YOU SHALL BE SOLELY RESPONSIBLE FOR ANY DAMAGE TO YOUR PROPERTY, INCLUDING YOUR COMPUTER SYSTEM AND ANY DEVICE YOU USE TO ACCESS THE SERVICES, OR ANY OTHER LOSS THAT RESULTS FROM ACCESSING SUCH CONTENT.</p><p id="2b53e4c3-24c0-809d-8c37-e75eb3394d02" class=""><strong>9.1.3 </strong>THE SERVICES MAY BE SUBJECT TO DELAYS, CANCELLATIONS AND OTHER DISRUPTIONS. TLDRAW MAKES NO WARRANTY, REPRESENTATION OR CONDITION WITH RESPECT TO SERVICES, INCLUDING THE QUALITY, EFFECTIVENESS, REPUTATION AND OTHER CHARACTERISTICS OF SERVICES.</p><p id="2b53e4c3-24c0-8004-ac27-c687ba1978f1" class=""><strong>9.1.4 </strong>NO ADVICE OR INFORMATION, WHETHER ORAL OR WRITTEN, OBTAINED FROM TLDRAW OR THROUGH THE SERVICES WILL CREATE ANY WARRANTY NOT EXPRESSLY MADE HEREIN.</p><p id="2b53e4c3-24c0-806f-9214-c1840a63757c" class=""><strong>9.1.5</strong> From time to time, tldraw may offer new &quot;beta&quot; features or tools with which its users may experiment. Such features or tools are offered solely for experimental purposes and without any warranty of any kind, and may be modified or discontinued at tldraw&#x27;s sole discretion. The provisions of this section apply with full force to such features or tools.</p><p id="2b53e4c3-24c0-803c-9e9a-e954092b8276" class=""><strong>9.2 No Liability for Conduct of Third Parties. </strong>YOU ACKNOWLEDGE AND AGREE THAT TLDRAW IS NOT LIABLE, AND YOU AGREE NOT TO SEEK TO HOLD TLDRAW LIABLE, FOR THE CONDUCT OF THIRD PARTIES, INCLUDING OTHER USERS OF THE SERVICES AND OPERATORS OF EXTERNAL SITES, AND THAT THE RISK OF INJURY FROM SUCH THIRD PARTIES RESTS ENTIRELY WITH YOU.</p><p id="2b53e4c3-24c0-80f4-88c6-f319baf0c7db" class=""><strong>10 Limitation of Liability</strong></p><p id="2b53e4c3-24c0-8051-bf03-c0e18623a5eb" class=""><strong>10.1 </strong>TO THE FULLEST EXTENT PROVIDED BY LAW, IN NO EVENT WILL TLDRAW BE LIABLE TO YOU OR ANY OTHER PARTY FOR ANY SPECIAL, PUNITIVE, INDIRECT, INCIDENTAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES ARISING OUT OF OR RELATED TO THIS AGREEMENT, OR ANY SERVICES OR SUPPORT SERVICES PROVIDED HEREIN, UNDER ANY LEGAL THEORY, INCLUDING LOSS OF DATA, LOSS OF THE USE OR PERFORMANCE OF ANY PRODUCTS OR SERVICES, LOSS OF REVENUES, LOSS OF PROFITS, OR BUSINESS INTERRUPTION, EVEN IF TLDRAW KNOWS OF OR SHOULD HAVE KNOWN OF THE POSSIBILITY OF SUCH DAMAGES. TO THE FULLEST EXTENT PROVIDED BY LAW, IN NO EVENT WILL TLDRAW PARTIES BE LIABLE TO YOU FOR MORE THAN THE GREATER OF: (I) $100; OR (II) IF APPLICABLE, THE STATUTORY REMEDY OR PENALTY IMPOSED BY THE STATUTE UNDER WHICH SUCH CLAIM ARISES. THE FOREGOING CAP ON LIABILITY DOES NOT APPLY TO LIABILITY OF A TLDRAW PARTY FOR (A) DEATH OR PERSONAL INJURY CAUSED BY A TLDRAW PARTY&#x27;S NEGLIGENCE; OR (B) ANY INJURY CAUSED BY A TLDRAW PARTY&#x27;S FRAUD OR FRAUDULENT MISREPRESENTATION.</p><p id="2b53e4c3-24c0-80c4-a675-c08aeb0139b1" class=""><strong>10.2 </strong>EXCEPT FOR TLDRAW&#x27;S OBLIGATIONS TO PROTECT YOUR PERSONAL INFORMATION AS SET FORTH IN TLDRAW&#x27;S PRIVACY POLICY, TLDRAW ASSUMES NO RESPONSIBILITY FOR THE TIMELINESS, DELETION, MIS-DELIVERY OR FAILURE TO STORE ANY DATA (INCLUDING YOUR DATA), USER COMMUNICATIONS OR PERSONALIZATION SETTINGS.</p><p id="2b53e4c3-24c0-80c2-8c2d-ff640ef345be" class=""><strong>10.3 </strong>THE LIMITATIONS OF DAMAGES SET FORTH ABOVE ARE FUNDAMENTAL ELEMENTS OF THE BASIS OF THE BARGAIN BETWEEN TLDRAW AND YOU.</p><p id="2b53e4c3-24c0-80a1-b426-c8025452ef4c" class=""><strong>11 Procedure for Making Claims of Copyright Infringement</strong></p><p id="2b53e4c3-24c0-80d6-84c0-d89fa79221a9" class="">It is tldraw&#x27;s policy to terminate membership privileges of any Registered User who repeatedly infringes copyright upon prompt notification to tldraw by the copyright owner or the copyright owner&#x27;s legal agent. Without limiting the foregoing, if you believe that your work has been copied and posted on the Services in a way that constitutes copyright infringement, please provide our Copyright Agent with the following information: (a) an electronic or physical signature of the person authorized to act on behalf of the owner of the copyright interest; (b) a description of the copyrighted work that you claim has been infringed; (c) a description of the location on the Services of the material that you claim is infringing; (d) your address, telephone number and e-mail address; (e) a written statement by you that you have a good faith belief that the disputed use is not authorized by the copyright owner, its agent or the law; and (f) a statement by you, made under penalty of perjury, that the above information in your notice is accurate and that you are the copyright owner or authorized to act on the copyright owner&#x27;s behalf. Contact information for tldraw&#x27;s Copyright Agent for notice of claims of copyright infringement is as follows: Stephen Ruiz, CEO, tldraw GB Ltd., Floor 3, The Arts Building, Morris Pl, Finsbury Park, London N4 3JG.</p><p id="2b53e4c3-24c0-8033-93bb-e1d7d29e2ae8" class=""><strong>12 Term and Termination</strong></p><p id="2b53e4c3-24c0-80a0-b7fc-c35f1f49ea13" class=""><strong>12.1 </strong>This Agreement will begin on the date that you accept it (in accordance with the preamble) (the &quot;<strong>Effective Date</strong>&quot;) and continue until terminated in accordance with the terms herein (the &quot;<strong>Term</strong>&quot;).</p><p id="2b53e4c3-24c0-8065-a2e8-e29f317e0f9f" class=""><strong>12.2 Termination of Agreement. </strong>If you have materially breached any provision of this Agreement, or if Company is required to do so by law (e.g., where the provision of the Services is, or becomes, unlawful), tldraw has the right to, immediately and without notice, suspend or terminate any Service provided to you. tldraw reserves the right to terminate this Agreement or your access to the Services at any time without cause upon notice to you. If you want to terminate this Agreement, you may do so by (i) notifying tldraw at any time and (ii) closing your Account for the Services. Your notice should be sent, in writing, to tldraw&#x27;s address set forth below.</p><p id="2b53e4c3-24c0-80d1-a08d-e7378695d8ea" class=""><strong>12.3 Effect of Termination. </strong>Termination of any Service includes removal of access to such Service and barring of further use of the Services and the termination of any applicable licenses or rights. Termination of the Agreement or all Services also includes deletion of your password and all related information associated with or inside your Account (or any part thereof). Upon termination of any Service, your right to use such Services will automatically terminate immediately. tldraw will not have any liability whatsoever to you for any suspension or termination. Notwithstanding the foregoing, if tldraw terminates this Agreement for any reason other than your breach, tldraw will refund any prepaid fees for the remainder of the terminated portion of the Subscription Term.</p><p id="2b53e4c3-24c0-808a-baab-c823e46e632a" class=""><strong>12.4 </strong>Sections 1.3, 3, 7.3, 7.4, 9-14 will survive the termination of this Agreement.</p><p id="2b53e4c3-24c0-8038-b2d3-e72edfe17274" class=""><strong>13 Arbitration Agreement</strong></p><p id="2b53e4c3-24c0-80d5-851e-e59f854e156b" class=""><strong>Please read this section (the &quot;Arbitration Agreement&quot;) carefully. It is part of your contract with tldraw and affects your rights. It contains procedures for MANDATORY BINDING ARBITRATION AND A CLASS ACTION WAIVER.</strong></p><p id="2b53e4c3-24c0-80f6-8de2-fe2bf48b0e82" class=""><strong>13.1 Applicability of Arbitration Agreement. </strong>Subject to the terms of this Arbitration Agreement, you and tldraw agree that any dispute, claim, disagreements arising out of or relating in any way to your access to or use of the Services, any communications you receive, any products sold or distributed through the Services or this Agreement and prior versions of this Agreement, including claims and disputes that arose between you and us before the effective date of this Agreement (each, a <strong>&quot;Dispute&quot;</strong>) will be resolved by binding arbitration, rather than in court, except that: (i) you and tldraw may assert claims or seek relief in small claims court if such claims qualify and remain in small claims court; and (ii) you or tldraw may seek equitable relief in court for infringement or other misuse of intellectual property rights (such as trademarks, trade dress, domain names, trade secrets, copyrights, and patents). For purposes of this Arbitration Agreement, &quot;Dispute&quot; will also include disputes that arose or involve facts occurring before the existence of this or any prior versions of this Agreement as well as claims that may arise after the termination of this Agreement.</p><p id="2b53e4c3-24c0-80d6-be7a-f3a47c88e671" class=""><strong>13.2 Informal Dispute Resolution. </strong>There might be instances when a Dispute arises between you and tldraw. If that occurs, tldraw is committed to working with you to reach a reasonable resolution. You and tldraw agree that good faith informal efforts to resolve Disputes can result in a prompt, low‐cost and mutually beneficial outcome (<strong>&quot;Informal Dispute Resolution&quot;</strong>). You and tldraw therefore agree that before either party commences arbitration against the other (or initiates an action in small claims court if a party so elects), we will personally meet and confer telephonically or via videoconference, in a good faith effort to resolve informally any Dispute covered by this Arbitration Agreement (<strong>&quot;Informal Dispute Resolution Conference&quot;</strong>). If you are represented by counsel, your counsel may participate in the conference, but you will also participate in the conference.</p><p id="2b53e4c3-24c0-80f9-a9da-e7a363b9afe6" class="">The party initiating a Dispute must give notice to the other party in writing of its intent to initiate an Informal Dispute Resolution Conference (<strong>&quot;Notice&quot;</strong>), which shall occur within forty-five (45) days after the other party receives such Notice, unless an extension is mutually agreed upon by the parties. Notice to tldraw that you intend to initiate an Informal Dispute Resolution Conference should be sent by email to <a href="mailto:legal@tldraw.com">legal@tldraw.com</a> or regular mail to our offices located at 548 Market Street - Suite 85507, San Francisco, CA 94104. The Notice must include: (1) your name, telephone number, mailing address, e‐mail address associated with your Account (if you have one); (2) the name, telephone number, mailing address and e‐mail address of your counsel, if any; and (3) a description of your Dispute.</p><p id="2b53e4c3-24c0-8005-b14d-f7ce7c837fe4" class="">The Informal Dispute Resolution Conference shall be individualized such that a separate conference must be held each time either party initiates a Dispute, even if the same law firm or group of law firms represents multiple users in similar cases, unless all parties agree; multiple individuals initiating a Dispute cannot participate in the same Informal Dispute Resolution Conference unless all parties agree. In the time between a party receiving the Notice and the Informal Dispute Resolution Conference, nothing in this Arbitration Agreement shall prohibit the parties from engaging in informal communications to resolve the initiating party&#x27;s Dispute. Engaging in the Informal Dispute Resolution Conference is a condition precedent and requirement that must be fulfilled before commencing arbitration. The statute of limitations and any filing fee deadlines shall be tolled while the parties engage in the Informal Dispute Resolution Conference process required by this section.</p><p id="2b53e4c3-24c0-809d-8700-fe613944677c" class=""><strong>13.3 Waiver of Jury Trial. </strong>YOU AND TLDRAW HEREBY WAIVE ANY CONSTITUTIONAL AND STATUTORY RIGHTS TO SUE IN COURT AND HAVE A TRIAL IN FRONT OF A JUDGE OR A JURY. You and tldraw are instead electing that all Disputes shall be resolved by arbitration under this Arbitration Agreement, except as specified in Section 1. There is no judge or jury in arbitration, and court review of an arbitration award is subject to very limited review.</p><p id="2b53e4c3-24c0-8012-87e4-e79f0e8973d5" class=""><strong>13.4 Waiver of Class and Other Non-Individualized Relief. </strong>YOU AND TLDRAW AGREE THAT, EXCEPT AS SPECIFIED IN SECTION 9, EACH OF US MAY BRING CLAIMS AGAINST THE OTHER ONLY ON AN INDIVIDUAL BASIS AND NOT ON A CLASS, REPRESENTATIVE, OR COLLECTIVE BASIS, AND THE PARTIES HEREBY WAIVE ALL RIGHTS TO HAVE ANY DISPUTE BE BROUGHT, HEARD, ADMINISTERED, RESOLVED, OR ARBITRATED ON A CLASS, COLLECTIVE, REPRESENTATIVE, OR MASS ACTION BASIS. ONLY INDIVIDUAL RELIEF IS AVAILABLE, AND DISPUTES OF MORE THAN ONE CUSTOMER OR USER CANNOT BE ARBITRATED OR CONSOLIDATED WITH THOSE OF ANY OTHER CUSTOMER OR USER. Subject to this Arbitration Agreement, the arbitrator may award declaratory or injunctive relief only in favor of the individual party seeking relief and only to the extent necessary to provide relief warranted by the party&#x27;s individual claim. Nothing in this paragraph is intended to, nor shall it, affect the terms and conditions under Section 13.9. Notwithstanding anything to the contrary in this Arbitration Agreement, if a court decides by means of a final decision, not subject to any further appeal or recourse, that the limitations of this section are invalid or unenforceable as to a particular claim or request for relief (such as a request for public injunctive relief), you and tldraw agree that that particular claim or request for relief (and only that particular claim or request for relief) shall be severed from the arbitration and may be litigated in the state or federal courts located in the State of California. All other Disputes shall be arbitrated or litigated in small claims court. This section does not prevent you or tldraw from participating in a class-wide settlement of claims.</p><p id="2b53e4c3-24c0-8042-9452-d6d07aa3edee" class=""><strong>13.5 Rules and Forum.</strong> This Agreement evidences a transaction involving interstate commerce; and notwithstanding any other provision herein with respect to the applicable substantive law, the Federal Arbitration Act, 9 U.S.C. § 1 <em>et seq.</em>, will govern the interpretation and enforcement of this Arbitration Agreement and any arbitration proceedings. If the Informal Dispute Resolution process described above does not resolve satisfactorily within sixty (60) days after receipt of your Notice, you and tldraw agree that either party shall have the right to finally resolve the Dispute through binding arbitration. The arbitration will be administered by the American Arbitration Association (<strong>&quot;AAA&quot;</strong>), in accordance with the Consumer Arbitration Rules (the <strong>&quot;AAA Rules&quot;</strong>) then in effect, except as modified by this section of this Arbitration Agreement. The AAA Rules are currently available at: <a href="https://www.adr.org/sites/default/files/Consumer%20Rules.pdf">https://www.adr.org/sites/default/files/Consumer%20Rules.pdf</a><a href="https://www.adr.org/sites/default/files/Consumer%2520Rules.pdf">.</a></p><p id="2b53e4c3-24c0-80f9-b30b-cde796c68421" class="">A party who wishes to initiate arbitration must provide the other party with a request for arbitration (the <strong>&quot;Request&quot;</strong>). The Request must include: (1) the name, telephone number, mailing address, e‐mail address of the party seeking arbitration and the account username (if applicable) as well as the email address associated with any applicable Account; (2) a statement of the legal claims being asserted and the factual bases of those claims; (3) a description of the remedy sought and an accurate, good‐faith calculation of the amount in controversy in United States dollars; (4) a statement certifying completion of the Informal Dispute Resolution process as described above; and (5) evidence that the requesting party has paid any necessary filing fees in connection with such arbitration.</p><p id="2b53e4c3-24c0-80b8-9b55-c4f30c1fe069" class="">If the party requesting arbitration is represented by counsel, the Request shall also include counsel&#x27;s name, telephone number, mailing address, and email address. Such counsel must also sign the Request. By signing the Request, counsel certifies to the best of counsel&#x27;s knowledge, information, and belief, formed after an inquiry reasonable under the circumstances, that: (1) the Request is not being presented for any improper purpose, such as to harass, cause unnecessary delay, or needlessly increase the cost of dispute resolution; (2) the claims, defenses and other legal contentions are warranted by existing law or by a nonfrivolous argument for extending, modifying, or reversing existing law or for establishing new law; and (3) the factual and damages contentions have evidentiary support or, if specifically so identified, will likely have evidentiary support after a reasonable opportunity for further investigation or discovery.</p><p id="2b53e4c3-24c0-8019-bd03-f9aa98967bb1" class="">Unless you and tldraw otherwise agree, or the Batch Arbitration process discussed in Section 13.9 is triggered, the arbitration will be conducted in the county where you reside. Subject to the AAA Rules, the arbitrator may direct a limited and reasonable exchange of information between the parties, consistent with the expedited nature of the arbitration. If the AAA is not available to arbitrate, the parties will select an alternative arbitral forum. Your responsibility to pay any AAA fees and costs will be solely set forth in the applicable AAA Rules.</p><p id="2b53e4c3-24c0-80ac-9fbf-d02bed84e947" class="">You and tldraw agree that all materials and documents exchanged during the arbitration proceedings shall be kept confidential and shall not be shared with anyone except the parties&#x27; attorneys, accountants, or business advisors, and shall be subject to the condition that they agree to keep all materials and documents exchanged during the arbitration proceedings confidential.</p><p id="2b53e4c3-24c0-8069-998e-dec937db2190" class=""><strong>13.6 Arbitrator. </strong>The arbitrator will be either a retired judge or an attorney licensed to practice law in the State of California and will be selected by the parties from the AAA&#x27;s roster of consumer dispute arbitrators. If the parties are unable to agree upon an arbitrator within thirty-five (35) days of delivery of the Request, then the AAA will appoint the arbitrator in accordance with the AAA Rules, provided that if the Batch Arbitration process under Section 13.9 is triggered, the AAA will appoint the arbitrator for each batch.</p><p id="2b53e4c3-24c0-80dd-bf78-f39f2b022aa3" class=""><strong>13.7 Authority of Arbitrator. </strong>The arbitrator shall have exclusive authority to resolve any Dispute, including, without limitation, disputes arising out of or related to the interpretation or application of the Arbitration Agreement, including the enforceability, revocability, scope, or validity of the Arbitration Agreement or any portion of the Arbitration Agreement, except for the following: (1) all Disputes arising out of or relating to Section 4, including any claim that all or part of Section 13.4 is unenforceable, illegal, void or voidable, or that such Section 13.4 has been breached, shall be decided by a court of competent jurisdiction and not by an arbitrator; (2) except as expressly contemplated in Section 13.9, all Disputes about the payment of arbitration fees shall be decided only by a court of competent jurisdiction and not by an arbitrator; (3) all Disputes about whether either party has satisfied any condition precedent to arbitration shall be decided only by a court of competent jurisdiction and not by an arbitrator; and (4) all Disputes about which version of the Arbitration Agreement applies shall be decided only by a court of competent jurisdiction and not by an arbitrator. The arbitration proceeding will not be consolidated with any other matters or joined with any other cases or parties, except as expressly provided in Section 13.9. The arbitrator shall have the authority to grant motions dispositive of all or part of any Dispute. The arbitrator shall issue a written award and statement of decision describing the essential findings and conclusions on which the award is based, including the calculation of any damages awarded. The award of the arbitrator is final and binding upon you and us. Judgment on the arbitration award may be entered in any court having jurisdiction.</p><p id="2b53e4c3-24c0-8002-b5b7-d96b9168c6f7" class=""><strong>13.8 Attorneys&#x27; Fees and Costs. </strong>The parties shall bear their own attorneys&#x27; fees and costs in arbitration unless the arbitrator finds that either the substance of the Dispute or the relief sought in the Request was frivolous or was brought for an improper purpose (as measured by the standards set forth in Federal Rule of Civil Procedure 11(b)). If you or tldraw need to invoke the authority of a court of competent jurisdiction to compel arbitration, then the party that obtains an order compelling arbitration in such action shall have the right to collect from the other party its reasonable costs, necessary disbursements, and reasonable attorneys&#x27; fees incurred in securing an order compelling arbitration. The prevailing party in any court action relating to whether either party has satisfied any condition precedent to arbitration, including the Informal Dispute Resolution process, is entitled to recover their reasonable costs, necessary disbursements, and reasonable attorneys&#x27; fees and costs.</p><p id="2b53e4c3-24c0-809a-9569-c1e23da1f566" class=""><strong>13.9 Batch Arbitration. </strong>To increase the efficiency of administration and resolution of arbitrations, you and agree that tldraw in the event that there are one-hundred (100) or more individual Requests of a substantially similar nature filed against tldraw by or with the assistance of the same law firm, group of law firms, or organizations, within a thirty (30) day period (or as soon as possible thereafter), the AAA shall (1) administer the arbitration demands in batches of 100 Requests per batch (plus, to the extent there are less than 100 Requests left over after the batching described above, a final batch consisting of the remaining Requests); (2) appoint one arbitrator for each batch; and (3) provide for the resolution of each batch as a single consolidated arbitration with one set of filing and administrative fees due per side per batch, one procedural calendar, one hearing (if any) in a place to be determined by the arbitrator, and one final award (<strong>&quot;Batch Arbitration&quot;</strong>).</p><p id="2b53e4c3-24c0-8088-9882-d384f395f168" class="">All parties agree that Requests are of a &quot;substantially similar nature&quot; if they arise out of or relate to the same event or factual scenario and raise the same or similar legal issues and seek the same or similar relief. To the extent the parties disagree on the application of the Batch Arbitration process, the disagreeing party shall advise the AAA, and the AAA shall appoint a sole standing arbitrator to determine the applicability of the Batch Arbitration process (<strong>&quot;Administrative Arbitrator&quot;</strong>). In an effort to expedite resolution of any such dispute by the Administrative Arbitrator, the parties agree the Administrative Arbitrator may set forth such procedures as are necessary to resolve any disputes promptly. The Administrative Arbitrator&#x27;s fees shall be paid by tldraw.</p><p id="2b53e4c3-24c0-806d-84ef-ea95c51d7db7" class="">You and tldraw agree to cooperate in good faith with the AAA to implement the Batch Arbitration process including the payment of single filing and administrative fees for batches of Requests, as well as any steps to minimize the time and costs of arbitration, which may include: (1) the appointment of a discovery special master to assist the arbitrator in the resolution of discovery disputes; and (2) the adoption of an expedited calendar of the arbitration proceedings.</p><p id="2b53e4c3-24c0-80c7-b203-d3d3969badd2" class="">This Batch Arbitration provision shall in no way be interpreted as authorizing a class, collective and/or mass arbitration or action of any kind, or arbitration involving joint or consolidated claims under any circumstances, except as expressly set forth in this provision.</p><p id="2b53e4c3-24c0-80d7-af39-f82a3e7c1ef8" class=""><strong>13.10 30-Day Right to Opt Out. </strong>You have the right to opt out of the provisions of this Arbitration Agreement by sending written notice of your decision to opt out to: 548 Market Street - Suite 85507, San Francisco, CA 94104, within thirty (30) days after first becoming subject to this Arbitration Agreement. Your notice must include your name and address, the email address associated with your Account (if you have one), and an unequivocal statement that you want to opt out of this Arbitration Agreement. If you opt out of this Arbitration Agreement, all other parts of this Agreement will continue to apply to you. Opting out of this Arbitration Agreement has no effect on any other arbitration agreements that you may currently have, or may enter in the future, with us.</p><p id="2b53e4c3-24c0-8093-8ab3-f01911acb611" class=""><strong>13.11 Invalidity, Expiration. </strong>Except as provided in Section 4, if any part or parts of this Arbitration Agreement are found under the law to be invalid or unenforceable, then such specific part or parts shall be of no force and effect and shall be severed and the remainder of the Arbitration Agreement shall continue in full force and effect. You further agree that any Dispute that you have with tldraw as detailed in this Arbitration Agreement must be initiated via arbitration within the applicable statute of limitation for that claim or controversy, or it will be forever time barred. Likewise, you agree that all applicable statutes of limitation will apply to such arbitration in the same manner as those statutes of limitation would apply in the applicable court of competent jurisdiction.</p><p id="2b53e4c3-24c0-80da-98cc-cc61feaac217" class=""><strong>13.12 Modification</strong>. Notwithstanding any provision in this Agreement to the contrary, we agree that if tldraw makes any future material change to this Arbitration Agreement, we will notify you. Unless you reject the change within thirty (30) days of such change become effective by writing to tldraw at 548 Market Street - Suite 85507, San Francisco, CA 94104, your continued use of the Services, including the acceptance of products and services offered on the Services following the posting of changes to this Arbitration Agreement constitutes your acceptance of any such changes. Changes to this Arbitration Agreement do not provide you with a new opportunity to opt out of the Arbitration Agreement if you have previously agreed to a version of this Agreement and did not validly opt out of arbitration. If you reject any change or update to this Arbitration Agreement, and you were bound by an existing agreement to arbitrate Disputes arising out of or relating in any way to your access to or use of the Services, any communications you receive, any products sold or distributed through the Services or this Agreement, the provisions of this Arbitration Agreement as of the date you first accepted this Agreement (or accepted any subsequent changes to this Agreement) remain in full force and effect. tldraw will continue to honor any valid opt outs of the Arbitration Agreement that you made to a prior version of this Agreement.</p><p id="2b53e4c3-24c0-80ba-93d1-f95a855a05ab" class=""><strong>14 General Provisions</strong></p><p id="2b53e4c3-24c0-8038-9373-f98f85c23521" class=""><strong>14.1 Electronic Communications.</strong> The communications between you and tldraw may take place via electronic means, whether you visit any of the Services or send tldraw e-mails, or whether tldraw posts notices on the Website or other Services or communicates with you via e-mail. For contractual purposes, you (a) consent to receive communications from tldraw in an electronic form; and (b) agree that all terms and conditions, agreements, notices, disclosures, and other communications that tldraw provides to you electronically satisfy any legal requirement that such communications would satisfy if it were to be in writing. The foregoing does not affect your statutory rights, including the Electronic Signatures in Global and National Commerce Act at 15 U.S.C. §7001 et seq. (&quot;<strong>E-Sign</strong>&quot;).</p><p id="2b53e4c3-24c0-8079-afa9-e462ad467ac2" class=""><strong>14.2 Assignment. </strong>The Agreement, and your rights and obligations hereunder, may not be assigned, subcontracted, delegated or otherwise transferred by you without tldraw&#x27;s prior written consent. tldraw may, without your consent, freely assign and transfer this Agreement, including any of its rights, obligations, or licenses granted under this Agreement. Any attempted assignment, subcontract, delegation, or transfer in violation of the foregoing will be null and void.</p><p id="2b53e4c3-24c0-80f9-a144-e14886af6fa7" class=""><strong>14.3 Force Majeure. </strong>tldraw shall not be liable for any delay or failure to perform resulting from causes outside its reasonable control, including, but not limited to, acts of God, war, terrorism, riots, embargos, acts of civil or military authorities, fire, floods, accidents, pandemics, strikes or shortages of transportation facilities, fuel, energy, labor or materials.</p><p id="2b53e4c3-24c0-802b-bca9-d22aeab08a74" class=""><strong>14.4 Questions, Complaints, Claims.</strong> If you have any questions, complaints or claims with respect to the Services, please contact us at: tldraw, Inc., 548 Market Street - Suite 85507, San Francisco, CA 94104. We will do our best to address your concerns. If you feel that your concerns have been addressed incompletely, we invite you to let us know for further investigation.</p><p id="2b53e4c3-24c0-80be-a753-cde3d36a153d" class=""><strong>14.5 Consumer Complaints.</strong> In accordance with California Civil Code §1789.3, you may report complaints to the Complaint Assistance Unit of the Division of Consumer Service of the California Department of Consumer Affairs by contacting them in writing at 1625 North Market Blvd., Suite N 112, Sacramento, CA 95834, or by telephone at (800) 952-5210.</p><p id="2b53e4c3-24c0-80fa-9cf3-ddd1ce929cc9" class=""><strong>14.6 Agreement Updates. </strong>When changes are made, tldraw will make a new copy of this Terms of Use and/or Supplemental Terms, as applicable, available on the Services, and we will also update the &quot;Last Updated&quot; date at the top of this Agreement. If we make any material changes and you have registered an Account with us, we will also send an email with an updated copy of this Agreement to you at the email address associated with your Account. Unless otherwise stated in such update, any changes to this Agreement will be effective immediately for users without an Account and thirty (30) days after posting for users with an Account. tldraw may require you to provide consent to the updated Agreement in a specified manner before further use of the Services is permitted. IF YOU DO NOT AGREE TO ANY CHANGE(S) AFTER RECEIVING A NOTICE OF SUCH CHANGE(S), YOU SHALL STOP USING THE SERVICES.</p><p id="2b53e4c3-24c0-8048-81ff-c4e03a8d1fbd" class=""><strong>14.7 Governing Law.</strong> THIS AGREEMENT and any action related thereto will be governed and interpreted by and under the laws of the State of CALIFORNIA, consistent with the Federal Arbitration Act, without giving effect to any principles that provide for the application of the law of another jurisdiction. The United Nations Convention on Contracts for the International Sale of Goods does not apply to the AGREEMENT.</p><p id="2b53e4c3-24c0-8033-ad68-f8b71ff19c0e" class=""><strong>14.8 Notice. </strong>Where tldraw requires that you provide an email address, you are responsible for providing tldraw with a valid and current email address. In the event that the email address you provide to tldraw is not valid, or for any reason is not capable of delivering to you any notices required by this Agreement, tldraw&#x27;s dispatch of the email containing such notice will nonetheless constitute effective notice. You may give notice to tldraw at the following address: tldraw, Inc., 548 Market Street - Suite 85507, San Francisco, CA 94104. Such notice shall be deemed given when received by tldraw by letter delivered by nationally recognized overnight delivery service or first class postage prepaid mail at the above address.</p><p id="2b53e4c3-24c0-80d8-a98f-c8528b1f4d14" class=""><strong>14.9 Waiver. </strong>Any waiver or failure to enforce any provision of this Agreement on one occasion will not be deemed a waiver of any other provision or of such provision on any other occasion.</p><p id="2b53e4c3-24c0-8010-9416-ed98685513ce" class=""><strong>14.10 Severability. </strong>If any portion of this Agreement is held invalid or unenforceable, that portion must be construed in a manner to reflect, as nearly as possible, the original intention of the parties, and the remaining portions must remain in full force and effect.</p><p id="2b53e4c3-24c0-8008-984b-e9722f46c5f9" class=""><strong>14.11 Export Control. </strong>You may not use, export, import, or transfer the Services except as authorized by U.S. law, the laws of the jurisdiction in which you obtained the Service, and any other applicable laws. In particular, but without limitation, the Services may not be exported or re-exported (i) into any United States embargoed countries, or (ii) to anyone on the U.S. Treasury Department&#x27;s list of Specially Designated Nationals or the U.S. Department of Commerce&#x27;s Denied Person&#x27;s List or Entity List. By using the Service, you represent and warrant that (A) you are not located in a country that is subject to a U.S. Government embargo, or that has been designated by the U.S. Government as a &quot;terrorist supporting&quot; country and (B) you are not listed on any U.S. Government list of prohibited or restricted parties. You also will not use the Services for any purpose prohibited by U.S. law, including the development, design, manufacture or production of missiles, nuclear, chemical or biological weapons. You acknowledge and agree that products, services or technology provided by tldraw are subject to the export control laws and regulations of the United States. You shall comply with these laws and regulations and shall not, without prior U.S. government authorization, export, re-export, or transfer tldraw products, services or technology, either directly or indirectly, to any country in violation of such laws and regulations.</p><p id="2b53e4c3-24c0-8046-8c69-d8f9b44f95a3" class=""><strong>14.12 Entire Agreement.</strong> The Agreement is the final, complete and exclusive agreement of the parties with respect to the subject matter hereof and supersedes and merges all prior discussions between the parties with respect to such subject matter.</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

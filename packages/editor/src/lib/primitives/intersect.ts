@@ -1,5 +1,5 @@
 import { Box } from './Box'
-import { pointInPolygon } from './utils'
+import { approximately, approximatelyLte, pointInPolygon } from './utils'
 import { Vec, VecLike } from './Vec'
 
 // need even more intersections? See https://gist.github.com/steveruizok/35c02d526c707003a5c79761bfb89a52
@@ -17,7 +17,8 @@ export function intersectLineSegmentLineSegment(
 	a1: VecLike,
 	a2: VecLike,
 	b1: VecLike,
-	b2: VecLike
+	b2: VecLike,
+	precision = 1e-10
 ) {
 	const ABx = a1.x - b1.x
 	const ABy = a1.y - b1.y
@@ -29,14 +30,19 @@ export function intersectLineSegmentLineSegment(
 	const ub_t = AVx * ABy - AVy * ABx
 	const u_b = BVy * AVx - BVx * AVy
 
-	if (ua_t === 0 || ub_t === 0) return null // coincident
+	if (approximately(ua_t, 0, precision) || approximately(ub_t, 0, precision)) return null // coincident
 
-	if (u_b === 0) return null // parallel
+	if (approximately(u_b, 0, precision)) return null // parallel
 
 	if (u_b !== 0) {
 		const ua = ua_t / u_b
 		const ub = ub_t / u_b
-		if (0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
+		if (
+			approximatelyLte(0, ua, precision) &&
+			approximatelyLte(ua, 1, precision) &&
+			approximatelyLte(0, ub, precision) &&
+			approximatelyLte(ub, 1, precision)
+		) {
 			return Vec.AddXY(a1, ua * AVx, ua * AVy)
 		}
 	}
@@ -125,6 +131,7 @@ export function intersectLineSegmentPolygon(a1: VecLike, a2: VecLike, points: Ve
 			points[i - 1],
 			points[i % points.length]
 		)
+
 		if (segmentIntersection) result.push(segmentIntersection)
 	}
 

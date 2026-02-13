@@ -1,4 +1,4 @@
-import { TLGeoShape } from '@tldraw/editor'
+import { getColorValue, TLGeoShape } from '@tldraw/editor'
 import { ShapeFill } from '../../shared/ShapeFill'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { useDefaultColorTheme } from '../../shared/useDefaultColorTheme'
@@ -33,7 +33,7 @@ export function GeoShapeBody({
 				strokeWidth,
 				forceSolid,
 				randomSeed: shape.id,
-				props: { fill: 'none', stroke: theme[color].solid },
+				props: { fill: 'none', stroke: getColorValue(theme, color, 'solid') },
 			})}
 		</>
 	)

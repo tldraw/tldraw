@@ -7,22 +7,21 @@
 	"scripts": {
 		"build": "tsc && vite build --outDir public",
 		"dev": "vite",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
 		"js-cookie": "^3.0.5",
-		"posthog-js": "^1.248.1",
-		"radix-ui": "^1.3.4",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1",
-		"react-ga4": "^2.1.0"
+		"posthog-js": "^1.281.0"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250913.0",
 		"@types/js-cookie": "^3.0.6",
-		"@types/react": "^18.3.18",
-		"@types/react-dom": "^18.3.5",
-		"@vitejs/plugin-react": "^4.3.4",
-		"typescript": "~5.4.5",
-		"vite": "^5.4.14"
+		"typescript": "^5.8.3",
+		"vite": "^7.0.1",
+		"vitest": "^3.2.4",
+		"wrangler": "^4.37.1"
 	}
 }

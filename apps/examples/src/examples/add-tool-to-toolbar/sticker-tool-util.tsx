@@ -1,4 +1,4 @@
-import { StateNode, TLTextShape, toRichText } from 'tldraw'
+import { StateNode, toRichText } from 'tldraw'
 
 // Check out the custom tool example for a more detailed explanation of the tool class.
 
@@ -11,8 +11,8 @@ export class StickerTool extends StateNode {
 	}
 
 	override onPointerDown() {
-		const { currentPagePoint } = this.editor.inputs
-		this.editor.createShape<TLTextShape>({
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
+		this.editor.createShape({
 			type: 'text',
 			x: currentPagePoint.x - OFFSET,
 			y: currentPagePoint.y - OFFSET,

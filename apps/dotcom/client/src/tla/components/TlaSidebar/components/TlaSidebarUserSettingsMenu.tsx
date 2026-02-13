@@ -27,6 +27,7 @@ export function TlaUserSettingsMenu() {
 	const app = useApp()
 	const userMenuLbl = useMsg(messages.userMenu)
 	const user = useValue('auth', () => app.getUser(), [app])
+
 	if (!user) return null
 
 	return (
@@ -45,7 +46,7 @@ export function TlaUserSettingsMenu() {
 								'notranslate'
 							)}
 						>
-							{user.name ?? <F defaultMessage="Account" />}
+							{user.name || <F defaultMessage="Account" />}
 						</div>
 						<div className={styles.sidebarUserSettingsIcon}>
 							<TlaIcon icon="dots-vertical-strong" />

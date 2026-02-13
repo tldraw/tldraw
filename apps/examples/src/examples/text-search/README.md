@@ -2,8 +2,19 @@
 title: Search text on the canvas
 component: ./TextSearchExample.tsx
 category: editor-api
-priority: 1
-keywords: [zoom, pan, camera bounds, search, text]
+priority: 2
+keywords:
+  [
+    search,
+    text search,
+    find text,
+    keyboard shortcut,
+    helpers,
+    helperButtons,
+    filter shapes,
+    overrides,
+    actions,
+  ]
 ---
 
 Search through all the text on the canvas.

@@ -15,11 +15,12 @@ import {
 } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
+import { signoutAnalytics } from '../../../utils/analytics'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import { clearLocalSessionState } from '../../utils/local-session-state'
+import { resetLocalSessionStateButKeepTheme } from '../../utils/local-session-state'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
 
@@ -29,6 +30,7 @@ const messages = defineMessages({
 	accountMenu: { defaultMessage: 'User settings' },
 	signOut: { defaultMessage: 'Sign out' },
 	importFile: { defaultMessage: 'Import file…' },
+	dotdev: { defaultMessage: 'Try the tldraw SDK' },
 	// account menu
 	getHelp: { defaultMessage: 'User manual' },
 	legalSummary: { defaultMessage: 'Legal summary' },
@@ -53,7 +55,8 @@ export function SignOutMenuItem() {
 	const label = useMsg(messages.signOut)
 
 	const handleSignout = useCallback(() => {
-		auth.signOut().then(clearLocalSessionState)
+		signoutAnalytics()
+		auth.signOut().then(resetLocalSessionStateButKeepTheme)
 		trackEvent('sign-out-clicked', { source: 'sidebar' })
 	}, [auth, trackEvent])
 
@@ -65,6 +68,7 @@ export function SignOutMenuItem() {
 				data-testid="tla-user-sign-out"
 				onSelect={handleSignout}
 				label={label}
+				readonlyOk
 			/>
 		</TldrawUiMenuGroup>
 	)
@@ -120,6 +124,24 @@ export function GiveUsFeedbackMenuItem() {
 	)
 }
 
+export function DotDevMenuItem() {
+	const openAndTrack = useOpenUrlAndTrack('main-menu')
+	return (
+		<TldrawUiMenuItem
+			id="tos"
+			label={useMsg(messages.dotdev)}
+			iconLeft="external-link"
+			readonlyOk
+			onSelect={() => {
+				openAndTrack(
+					'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-menu',
+					true
+				)
+			}}
+		/>
+	)
+}
+
 export function LegalSummaryMenuItem() {
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 	return (
@@ -128,7 +150,7 @@ export function LegalSummaryMenuItem() {
 			label={useMsg(messages.legalSummary)}
 			readonlyOk
 			onSelect={() => {
-				openAndTrack('https://tldraw.notion.site/legal')
+				openAndTrack('/legal.html')
 			}}
 		/>
 	)
@@ -146,7 +168,6 @@ export function ImportFileActionItem() {
 		<TldrawUiMenuItem
 			id="about"
 			label={importFileMsg}
-			icon="import"
 			readonlyOk
 			onSelect={async () => {
 				const editor = getCurrentEditor()
@@ -162,8 +183,8 @@ export function ImportFileActionItem() {
 						description: 'tldraw project',
 					})
 
-					app.uploadTldrFiles(tldrawFiles, (file) => {
-						navigate(routes.tlaFile(file.id), { state: { mode: 'create' } })
+					app.uploadTldrFiles(tldrawFiles, (fileId) => {
+						navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
 					})
 				} catch {
 					// user cancelled

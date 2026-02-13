@@ -4,6 +4,7 @@ on:
   schedule:
     # run once per day at midnight or whatever
     - cron: '0 0 * * *'
+  workflow_dispatch:
 
 permissions:
   id-token: 'write'
@@ -24,7 +25,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 0
@@ -35,7 +36,7 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Configure AWS credentials using OIDC
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::571248596162:role/huppy-bot
           aws-region: 'eu-north-1'

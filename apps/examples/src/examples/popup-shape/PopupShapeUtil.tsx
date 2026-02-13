@@ -1,25 +1,19 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useEffect, useRef, useState } from 'react'
-import {
-	BaseBoxShapeUtil,
-	HTMLContainer,
-	RecordProps,
-	T,
-	TLBaseShape,
-	stopEventPropagation,
-} from 'tldraw'
+import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLShape } from 'tldraw'
 
-type IMyPopupShape = TLBaseShape<
-	'my-popup-shape',
-	{
-		w: number
-		h: number
-		animal: number
+const MY_POPUP_SHAPE_TYPE = 'my-popup-shape'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[MY_POPUP_SHAPE_TYPE]: { w: number; h: number; animal: number }
 	}
->
+}
+
+export type IMyPopupShape = TLShape<typeof MY_POPUP_SHAPE_TYPE>
 
 export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
-	static override type = 'my-popup-shape' as const
+	static override type = MY_POPUP_SHAPE_TYPE
 	static override props: RecordProps<IMyPopupShape> = {
 		w: T.number,
 		h: T.number,
@@ -71,10 +65,10 @@ export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
 					perspective: `${Math.max(vpb.w, vpb.h)}px`,
 					perspectiveOrigin: `${px}px ${py}px`,
 				}}
-				onPointerDown={stopEventPropagation}
+				onPointerDown={this.editor.markEventAsHandled}
 				onDoubleClick={(e) => {
 					setPopped((p) => !p)
-					stopEventPropagation(e)
+					this.editor.markEventAsHandled(e)
 				}}
 			>
 				<div

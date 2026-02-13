@@ -48,23 +48,23 @@
 
 .ImageAnnotator .ImageOverlayScreen {
 	pointer-events: none;
-	fill: var(--color-background);
+	fill: var(--tl-color-background);
 	fill-opacity: 0.8;
 	stroke: none;
 }
 
 .ImageAnnotator .DoneButton {
 	font: inherit;
-	background: var(--color-primary);
+	background: var(--tl-color-primary);
 	border: none;
-	color: var(--color-selected-contrast);
+	color: var(--tl-color-selected-contrast);
 	font-size: 1rem;
 	padding: 0.5rem 1rem;
 	border-radius: 6px;
 	margin: 6px;
 	pointer-events: all;
-	z-index: var(--layer-panels);
-	border: 2px solid var(--color-background);
+	z-index: var(--tl-layer-panels);
+	border: 2px solid var(--tl-color-background);
 	cursor: pointer;
 }
 .ImageAnnotator .DoneButton:hover {

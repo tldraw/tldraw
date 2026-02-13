@@ -16,7 +16,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 
 	return React.useMemo(() => {
 		const onPointerDown = (e: React.PointerEvent) => {
-			if ((e as any).isKilled) return
+			if (editor.wasEventAlreadyHandled(e)) return
 
 			// Must set pointer capture on an HTML element!
 			const target = loopToHtmlElement(e.currentTarget)
@@ -32,7 +32,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 				handle,
 				shape,
 				name: 'pointer_down',
-				...getPointerInfo(e),
+				...getPointerInfo(editor, e),
 			})
 		}
 
@@ -40,7 +40,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 		let lastX: number, lastY: number
 
 		const onPointerMove = (e: React.PointerEvent) => {
-			if ((e as any).isKilled) return
+			if (editor.wasEventAlreadyHandled(e)) return
 			if (e.clientX === lastX && e.clientY === lastY) return
 			lastX = e.clientX
 			lastY = e.clientY
@@ -55,12 +55,12 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 				handle,
 				shape,
 				name: 'pointer_move',
-				...getPointerInfo(e),
+				...getPointerInfo(editor, e),
 			})
 		}
 
 		const onPointerUp = (e: React.PointerEvent) => {
-			if ((e as any).isKilled) return
+			if (editor.wasEventAlreadyHandled(e)) return
 
 			const target = loopToHtmlElement(e.currentTarget)
 			releasePointerCapture(target, e)
@@ -75,7 +75,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 				handle,
 				shape,
 				name: 'pointer_up',
-				...getPointerInfo(e),
+				...getPointerInfo(editor, e),
 			})
 		}
 

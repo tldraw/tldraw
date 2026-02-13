@@ -49,11 +49,20 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="duplicate" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.view" id="view">
+				<TldrawUiMenuActionItem actionId="select-zoom-tool" />
 				<TldrawUiMenuActionItem actionId="zoom-in" />
 				<TldrawUiMenuActionItem actionId="zoom-out" />
 				<TldrawUiMenuActionItem actionId="zoom-to-100" />
 				<TldrawUiMenuActionItem actionId="zoom-to-fit" />
 				<TldrawUiMenuActionItem actionId="zoom-to-selection" />
+				<TldrawUiMenuItem
+					id="zoom-quick"
+					label="action.zoom-quick"
+					kbd="shift+z"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.transform" id="transform">
 				<TldrawUiMenuActionItem actionId="bring-to-front" />
@@ -123,7 +132,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem
 					id="text-header"
 					label="tool.rich-text-header"
-					kbd="cmd+shift+[[1-6]]"
+					kbd="cmd+alt+[[1-6]]"
 					onSelect={() => {
 						/* do nothing */
 					}}
@@ -157,7 +166,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem
 					id="a11y-select-next-shape-direction"
 					label="a11y.select-shape-direction"
-					kbd="cmd+↑→↓←"
+					kbd="cmd+[[↑→↓←]]"
 					onSelect={() => {
 						/* do nothing */
 					}}
@@ -165,7 +174,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem
 					id="a11y-select-next-shape-container"
 					label="a11y.enter-leave-container"
-					kbd="cmd+shift+↑→"
+					kbd="cmd+shift+[[↑↓]]"
 					onSelect={() => {
 						/* do nothing */
 					}}
@@ -173,7 +182,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem
 					id="a11y-pan-camera"
 					label="a11y.pan-camera"
-					kbd="[[Space]]+↑→↓←"
+					kbd="[[Space]]+[[↑→↓←]]"
 					onSelect={() => {
 						/* do nothing */
 					}}
@@ -181,7 +190,15 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem
 					id="adjust-shape-styles"
 					label="a11y.adjust-shape-styles"
-					kbd="$+[[Enter]]"
+					kbd="cmd+[[Enter]]"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="open-context-menu"
+					label="a11y.open-context-menu"
+					kbd="cmd+shift+[[Enter]]"
 					onSelect={() => {
 						/* do nothing */
 					}}
@@ -189,7 +206,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem
 					id="a11y-move-shape"
 					label="a11y.move-shape"
-					kbd="↑→↓←"
+					kbd="[[↑→↓←]]"
 					onSelect={() => {
 						/* do nothing */
 					}}
@@ -197,7 +214,39 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem
 					id="a11y-move-shape-faster"
 					label="a11y.move-shape-faster"
-					kbd="shift+↑→↓←"
+					kbd="shift+[[↑→↓←]]"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="a11y-rotate-shape-cw"
+					label="a11y.rotate-shape-cw"
+					kbd="shift+﹥"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="a11y-rotate-shape-cw-fine"
+					label="a11y.rotate-shape-cw-fine"
+					kbd="shift+alt+﹥"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="a11y-rotate-shape-ccw"
+					label="a11y.rotate-shape-ccw"
+					kbd="shift+﹤"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
+				<TldrawUiMenuItem
+					id="a11y-rotate-shape-ccw-fine"
+					label="a11y.rotate-shape-ccw-fine"
+					kbd="shift+alt+﹤"
 					onSelect={() => {
 						/* do nothing */
 					}}
@@ -205,6 +254,14 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="enlarge-shapes" />
 				<TldrawUiMenuActionItem actionId="shrink-shapes" />
 				<TldrawUiMenuActionItem actionId="a11y-repeat-shape-announce" />
+				<TldrawUiMenuItem
+					id="a11y-open-keyboard-shortcuts"
+					label="a11y.open-keyboard-shortcuts"
+					kbd="cmd+alt+/"
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
 			</TldrawUiMenuGroup>
 			{showCollaborationUi && (
 				<TldrawUiMenuGroup label="shortcuts-dialog.collaboration" id="collaboration">

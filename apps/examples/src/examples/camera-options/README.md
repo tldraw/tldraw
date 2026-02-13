@@ -3,7 +3,18 @@ title: Camera options
 component: ./CameraOptionsExample.tsx
 category: configuration
 priority: 0.5
-keywords: [api, fixed, constraints, camera bounds, pan speed, zoom speed]
+keywords:
+  [
+    camera,
+    cameraoptions,
+    zoom constraints,
+    pan constraints,
+    camera bounds,
+    zoom speed,
+    pan speed,
+    viewport,
+    isfixed,
+  ]
 ---
 
 Configure the camera's options and constraints.

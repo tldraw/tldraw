@@ -1,5 +1,6 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { assertExists, atom } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
@@ -23,6 +24,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	if (!auth.isSignedIn || !user || !isLoaded) {
 		throw new Error('should have redirected in TlaRootProviders')
 	}
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		let _app: TldrawApp
@@ -33,9 +35,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			if (!token) throw new Error('no token')
 			TldrawApp.create({
 				userId: auth.userId,
-				fullName: user.fullName || '',
-				email: user.emailAddresses[0]?.emailAddress || '',
-				avatar: user.imageUrl || '',
 				getToken: async () => {
 					const token = await auth.getToken()
 					return token || undefined
@@ -44,6 +43,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 					isClientTooOld$.set(true)
 				},
 				trackEvent,
+				navigate,
 			}).then(({ app }) => {
 				if (didCancel) {
 					app.dispose()

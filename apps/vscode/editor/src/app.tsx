@@ -27,6 +27,9 @@ import { vscode } from './utils/vscode'
 
 setRuntimeOverrides({
 	openWindow: (url, target) => {
+		if (url.includes('utm_campaign=watermark')) {
+			url = url.replace('utm_source=sdk', 'utm_source=extension')
+		}
 		vscode.postMessage({
 			type: 'vscode:open-window',
 			data: {

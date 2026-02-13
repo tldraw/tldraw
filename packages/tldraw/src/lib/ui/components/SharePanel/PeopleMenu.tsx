@@ -1,8 +1,12 @@
 import { useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
 import { Popover as _Popover } from 'radix-ui'
 import { ReactNode } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { useBreakpoint } from '../../context/breakpoints'
+import { useCollaborationStatus } from '../../hooks/useCollaborationStatus'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { OfflineIndicator } from '../OfflineIndicator/OfflineIndicator'
 import { PeopleMenuAvatar } from './PeopleMenuAvatar'
 import { PeopleMenuItem } from './PeopleMenuItem'
 import { PeopleMenuMore } from './PeopleMenuMore'
@@ -25,6 +29,14 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 	const userName = useValue('user', () => editor.user.getName(), [editor])
 
 	const [isOpen, onOpenChange] = useMenuIsOpen('people menu')
+	const breakpoint = useBreakpoint()
+	const maxAvatars = breakpoint <= PORTRAIT_BREAKPOINT.MOBILE_XS ? 1 : 5
+
+	const collaborationStatus = useCollaborationStatus()
+
+	if (collaborationStatus === 'offline') {
+		return <OfflineIndicator />
+	}
 
 	if (!userIds.length) return null
 
@@ -32,9 +44,8 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
 			<_Popover.Trigger dir="ltr" asChild>
 				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
-					{userIds.length > 5 && <PeopleMenuMore count={userIds.length - 5} />}
 					<div className="tlui-people-menu__avatars">
-						{userIds.slice(-5).map((userId) => (
+						{userIds.slice(-maxAvatars).map((userId) => (
 							<PeopleMenuAvatar key={userId} userId={userId} />
 						))}
 						{userIds.length > 0 && (
@@ -47,6 +58,7 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 								{userName?.[0] ?? ''}
 							</div>
 						)}
+						{userIds.length > maxAvatars && <PeopleMenuMore count={userIds.length - maxAvatars} />}
 					</div>
 				</button>
 			</_Popover.Trigger>

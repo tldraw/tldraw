@@ -11,12 +11,13 @@ export function useExportAs() {
 	const msg = useTranslation()
 
 	return useCallback(
-		(ids: TLShapeId[], format: TLExportType = 'png', name: string | undefined) => {
+		(ids: TLShapeId[], opts: { format?: TLExportType; name?: string; scale?: number } = {}) => {
 			assert(editor, 'useExportAs: editor is required')
+			const { format = 'png', name, scale = 1 } = opts
 			exportAs(editor, ids, {
 				format,
 				name,
-				scale: 1,
+				scale,
 			}).catch((e) => {
 				console.error(e.message)
 				addToast({

@@ -5,16 +5,16 @@ import {
 	SvgExportContext,
 	TLAsset,
 	TLVideoShape,
+	WeakCache,
 	toDomPrecision,
 	useEditor,
 	useEditorComponents,
 	useIsEditing,
 	videoShapeMigrations,
 	videoShapeProps,
-	WeakCache,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { memo, ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
+import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
@@ -73,14 +73,25 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
-	override async toSvg(shape: TLVideoShape, ctx: SvgExportContext) {
-		if (!shape.props.assetId) return null
+	override useLegacyIndicator() {
+		return false
+	}
 
-		const asset = this.editor.getAsset<TLAsset>(shape.props.assetId)
+	override getIndicatorPath(shape: TLVideoShape): Path2D {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
+	}
+
+	override async toSvg(shape: TLVideoShape, ctx: SvgExportContext) {
+		const props = shape.props
+		if (!props.assetId) return null
+
+		const asset = this.editor.getAsset<TLAsset>(props.assetId)
 		if (!asset) return null
 
 		const src = await videoSvgExportCache.get(asset, async () => {
-			const assetUrl = await ctx.resolveAssetUrl(asset.id, shape.props.w)
+			const assetUrl = await ctx.resolveAssetUrl(asset.id, props.w)
 			if (!assetUrl) return null
 			const video = await MediaHelpers.loadVideo(assetUrl)
 			return await MediaHelpers.getVideoFrameAsDataUrl(video, 0)
@@ -88,13 +99,14 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 		if (!src) return null
 
-		return <image href={src} width={shape.props.w} height={shape.props.h} />
+		return <image href={src} width={props.w} height={props.h} aria-label={shape.props.altText} />
 	}
 }
 
 const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) {
 	const editor = useEditor()
-	const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
+	const showControls =
+		editor.getShapeGeometry(shape).bounds.w * editor.getEfficientZoomLevel() >= 110
 	const isEditing = useIsEditing(shape.id)
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const { Spinner } = useEditorComponents()
@@ -141,9 +153,9 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 			<HTMLContainer
 				id={shape.id}
 				style={{
-					color: 'var(--color-text-3)',
-					backgroundColor: asset ? 'transparent' : 'var(--color-low)',
-					border: asset ? 'none' : '1px solid var(--color-low-border)',
+					color: 'var(--tl-color-text-3)',
+					backgroundColor: asset ? 'transparent' : 'var(--tl-color-low)',
+					border: asset ? 'none' : '1px solid var(--tl-color-low-border)',
 				}}
 			>
 				<div className="tl-counter-scaled">
@@ -155,6 +167,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 						) : url ? (
 							<>
 								<video
+									key={url}
 									ref={rVideo}
 									style={
 										isEditing
@@ -178,6 +191,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									controls={isEditing && showControls}
 									onLoadedData={handleLoadedData}
 									hidden={!isLoaded}
+									aria-label={shape.props.altText}
 								>
 									<source src={url} />
 								</video>

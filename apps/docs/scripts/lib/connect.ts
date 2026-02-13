@@ -65,6 +65,7 @@ export async function connect(opts: { reset?: boolean; mode: 'readonly' | 'readw
 			sectionId TEXT NOT NULL,
 			authorId TEXT NOT NULL,
 			title TEXT NOT NULL,
+			sidebarTitle TEXT,
 			description TEXT,
 			hero TEXT,
 			thumbnail TEXT,
@@ -78,6 +79,8 @@ export async function connect(opts: { reset?: boolean; mode: 'readonly' | 'readw
 			apiTags TEXT,
 			content TEXT NOT NULL,
 			path TEXT,
+			githubLink TEXT,
+			embed TEXT,
 			FOREIGN KEY (authorId) REFERENCES authors(id),
 			FOREIGN KEY (sectionId) REFERENCES sections(id),
 			FOREIGN KEY (categoryId) REFERENCES categories(id)

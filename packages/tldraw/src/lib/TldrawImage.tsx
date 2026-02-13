@@ -7,6 +7,7 @@ import {
 	TLPageId,
 	TLStoreSnapshot,
 	TLTextOptions,
+	TldrawOptions,
 	mergeArraysAndReplaceDefaults,
 	useShallowArrayIdentity,
 	useTLStore,
@@ -15,6 +16,7 @@ import { memo, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { TLUiAssetUrlOverrides } from './ui/assetUrls'
+import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from './utils/text/richText'
 
 /** @public */
@@ -51,20 +53,28 @@ export interface TldrawImageProps extends TLImageExportOptions {
 	 */
 	assetUrls?: TLUiAssetUrlOverrides
 	/**
+	 * Options for the editor.
+	 */
+	options?: Partial<TldrawOptions>
+	/**
 	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
 	 */
 	textOptions?: TLTextOptions
 }
 
-const defaultTextOptions = {
-	tipTapConfig: {
-		extensions: tipTapDefaultExtensions,
+const defaultOptions: Partial<TldrawOptions> = {
+	text: {
+		tipTapConfig: {
+			extensions: tipTapDefaultExtensions,
+		},
+		addFontsFromNode: defaultAddFontsFromNode,
 	},
-	addFontsFromNode: defaultAddFontsFromNode,
 }
 
 /**
- * A renderered SVG image of a Tldraw snapshot.
+ * A rendered SVG image of a Tldraw snapshot.
  *
  * @example
  * ```tsx
@@ -109,8 +119,23 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		format = 'svg',
 		licenseKey,
 		assetUrls,
-		textOptions = defaultTextOptions,
+		options: _options,
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		textOptions: _textOptions,
 	} = props
+
+	const options = useMemo(
+		() => ({
+			...defaultOptions,
+			..._options,
+			text: {
+				...defaultOptions.text,
+				...(_options?.text ?? _textOptions),
+			},
+		}),
+		[_options, _textOptions]
+	)
+	const assetUrlsWithOverrides = useDefaultEditorAssetsWithOverrides(assetUrls)
 
 	useLayoutEffect(() => {
 		if (!container) return
@@ -129,8 +154,8 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 			tools: [],
 			getContainer: () => tempElm,
 			licenseKey,
-			fontAssetUrls: assetUrls?.fonts,
-			textOptions,
+			fontAssetUrls: assetUrlsWithOverrides.fonts,
+			options,
 		})
 
 		if (pageId) editor.setCurrentPage(pageId)
@@ -138,6 +163,8 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		const shapeIds = editor.getCurrentPageShapeIds()
 
 		async function setSvg() {
+			// We have to wait for the fonts to load so that we can correctly measure text sizes
+			await editor.fonts.loadRequiredFontsForCurrentPage(editor.options.maxFontsToLoadBeforeRender)
 			const imageResult = await editor.toImage([...shapeIds], {
 				bounds,
 				scale,
@@ -175,8 +202,8 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		preserveAspectRatio,
 		licenseKey,
 		pixelRatio,
-		assetUrls,
-		textOptions,
+		assetUrlsWithOverrides,
+		options,
 	])
 
 	useEffect(() => {

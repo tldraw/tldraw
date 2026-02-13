@@ -39,12 +39,12 @@ export function DefaultCollaboratorHint({
 	const cursorHintId = useSharedSafeId('cursor_hint')
 
 	return (
-		<svg ref={rSvg} className={classNames('tl-overlays__item', className)}>
+		<svg ref={rSvg} className={classNames('tl-overlays__item', className)} aria-hidden="true">
 			<use
 				href={`#${cursorHintId}`}
 				color={color}
 				strokeWidth={3}
-				stroke="var(--color-background)"
+				stroke="var(--tl-color-background)"
 			/>
 			<use href={`#${cursorHintId}`} color={color} opacity={opacity} />
 		</svg>

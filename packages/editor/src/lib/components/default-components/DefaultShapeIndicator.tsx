@@ -32,6 +32,11 @@ const InnerIndicator = memo(({ editor, id }: { editor: Editor; id: TLShapeId }) 
 
 	if (!shape || shape.isLocked) return null
 
+	const util = editor.getShapeUtil(shape)
+
+	// If the shape uses canvas indicators, it will be rendered by CanvasShapeIndicators
+	if (!util.useLegacyIndicator()) return null
+
 	return (
 		<OptionalErrorBoundary
 			fallback={ShapeIndicatorErrorFallback}
@@ -39,7 +44,7 @@ const InnerIndicator = memo(({ editor, id }: { editor: Editor; id: TLShapeId }) 
 				editor.annotateError(error, { origin: 'react.shapeIndicator', willCrashApp: false })
 			}
 		>
-			<EvenInnererIndicator key={shape.id} shape={shape} util={editor.getShapeUtil(shape)} />
+			<EvenInnererIndicator key={shape.id} shape={shape} util={util} />
 		</OptionalErrorBoundary>
 	)
 })
@@ -86,8 +91,12 @@ export const DefaultShapeIndicator = memo(function DefaultShapeIndicator({
 	}, [hidden])
 
 	return (
-		<svg ref={rIndicator} className={classNames('tl-overlays__item', className)}>
-			<g className="tl-shape-indicator" stroke={color ?? 'var(--color-selected)'} opacity={opacity}>
+		<svg ref={rIndicator} className={classNames('tl-overlays__item', className)} aria-hidden="true">
+			<g
+				className="tl-shape-indicator"
+				stroke={color ?? 'var(--tl-color-selected)'}
+				opacity={opacity}
+			>
 				<InnerIndicator editor={editor} id={shapeId} />
 			</g>
 		</svg>

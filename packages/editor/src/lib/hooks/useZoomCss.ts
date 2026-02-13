@@ -12,14 +12,9 @@ export function useZoomCss() {
 		const setScale = (s: number) => container.style.setProperty('--tl-zoom', s.toString())
 		const setScaleDebounced = debounce(setScale, 100)
 
-		const scheduler = new EffectScheduler('useZoomCss', () => {
-			const numShapes = editor.getCurrentPageShapeIds().size
-			if (numShapes < 300) {
-				setScale(editor.getZoomLevel())
-			} else {
-				setScaleDebounced(editor.getZoomLevel())
-			}
-		})
+		const scheduler = new EffectScheduler('useZoomCss', () =>
+			setScale(editor.getEfficientZoomLevel())
+		)
 
 		scheduler.attach()
 		scheduler.execute()

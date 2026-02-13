@@ -1,45 +1,42 @@
-import { computed, isUninitialized, RESET_VALUE } from '@tldraw/state'
-import { RecordsDiff } from '@tldraw/store'
+import { Computed, computed, isUninitialized, RESET_VALUE } from '@tldraw/state'
+import { CollectionDiff, RecordsDiff } from '@tldraw/store'
 import { isShape, TLParentId, TLRecord, TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
-import { compact, sortByIndex } from '@tldraw/utils'
+import { sortByIndex } from '@tldraw/utils'
 
-type Parents2Children = Record<TLParentId, TLShapeId[]>
+type ParentShapeIdsToChildShapeIds = Record<TLParentId, TLShapeId[]>
+
+function fromScratch(
+	shapeIdsQuery: Computed<Set<TLShapeId>, CollectionDiff<TLShapeId>>,
+	store: TLStore
+) {
+	const result: ParentShapeIdsToChildShapeIds = {}
+	const shapeIds = shapeIdsQuery.get()
+	const sortedShapes = Array.from(shapeIds, (id) => store.get(id)!).sort(sortByIndex)
+
+	// Populate the result object with an array for each parent.
+	sortedShapes.forEach((shape) => {
+		result[shape.parentId] ??= []
+		result[shape.parentId].push(shape.id)
+	})
+
+	return result
+}
 
 export const parentsToChildren = (store: TLStore) => {
 	const shapeIdsQuery = store.query.ids<'shape'>('shape')
 	const shapeHistory = store.query.filterHistory('shape')
 
-	function fromScratch() {
-		const result: Parents2Children = {}
-		const shapeIds = shapeIdsQuery.get()
-		const shapes = Array(shapeIds.size) as TLShape[]
-		shapeIds.forEach((id) => shapes.push(store.get(id)!))
-
-		// Sort the shapes by index
-		shapes.sort(sortByIndex)
-
-		// Populate the result object with an array for each parent.
-		shapes.forEach((shape) => {
-			if (!result[shape.parentId]) {
-				result[shape.parentId] = []
-			}
-			result[shape.parentId].push(shape.id)
-		})
-
-		return result
-	}
-
-	return computed<Parents2Children>(
+	return computed<ParentShapeIdsToChildShapeIds>(
 		'parentsToChildrenWithIndexes',
 		(lastValue, lastComputedEpoch) => {
 			if (isUninitialized(lastValue)) {
-				return fromScratch()
+				return fromScratch(shapeIdsQuery, store)
 			}
 
 			const diff = shapeHistory.getDiffSince(lastComputedEpoch)
 
 			if (diff === RESET_VALUE) {
-				return fromScratch()
+				return fromScratch(shapeIdsQuery, store)
 			}
 
 			if (diff.length === 0) return lastValue
@@ -101,12 +98,23 @@ export const parentsToChildren = (store: TLStore) => {
 				}
 			}
 
-			// Sort the arrays that have been marked for sorting
+			// Sort the arrays that have been marked for sorting (in-place to avoid intermediate arrays)
 			for (const arr of toSort) {
-				// It's possible that some of the shapes may be deleted. But in which case would this be so?
-				const shapesInArr = compact(arr.map((id) => store.get(id)))
-				shapesInArr.sort(sortByIndex)
-				arr.splice(0, arr.length, ...shapesInArr.map((shape) => shape.id))
+				// Filter out any deleted shapes in-place
+				let writeIdx = 0
+				for (let readIdx = 0; readIdx < arr.length; readIdx++) {
+					if (store.get(arr[readIdx])) {
+						arr[writeIdx++] = arr[readIdx]
+					}
+				}
+				arr.length = writeIdx
+
+				// Sort in-place by index
+				arr.sort((a, b) => {
+					const shapeA = store.get(a) as TLShape
+					const shapeB = store.get(b) as TLShape
+					return sortByIndex(shapeA, shapeB)
+				})
 			}
 
 			return newValue ?? lastValue

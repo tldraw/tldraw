@@ -8,6 +8,7 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	computed,
+	createShapeId,
 	track,
 	useIsToolSelected,
 	useTools,
@@ -101,6 +102,25 @@ const SlidesExample = track(() => {
 				tools={[SlideShapeTool]}
 				components={components}
 				overrides={overrides}
+				onMount={(editor) => {
+					const existingSlides = getSlides(editor)
+					if (existingSlides.length === 0) {
+						editor.createShape({
+							id: createShapeId(),
+							type: 'slide',
+							x: 100,
+							y: 100,
+							props: { w: 720, h: 480 },
+						})
+						editor.createShape({
+							id: createShapeId(),
+							type: 'slide',
+							x: 900,
+							y: 100,
+							props: { w: 720, h: 480 },
+						})
+					}
+				}}
 			/>
 		</div>
 	)

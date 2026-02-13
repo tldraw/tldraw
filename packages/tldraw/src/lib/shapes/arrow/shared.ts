@@ -1,6 +1,7 @@
 import {
 	Editor,
 	Geometry2d,
+	isEqualAllowingForFloatingPointErrors,
 	Mat,
 	TLArrowBinding,
 	TLArrowBindingProps,
@@ -37,7 +38,7 @@ export function getBoundShapeInfoForTerminal(
 	terminalName: 'start' | 'end'
 ): BoundShapeInfo | undefined {
 	const binding = editor
-		.getBindingsFromShape<TLArrowBinding>(arrow, 'arrow')
+		.getBindingsFromShape(arrow, 'arrow')
 		.find((b) => b.props.terminal === terminalName)
 	if (!binding) return
 
@@ -101,24 +102,35 @@ export interface TLArrowBindings {
 	end: TLArrowBinding | undefined
 }
 
+const arrowBindingsCache = createComputedCache(
+	'arrow bindings',
+	(editor: Editor, arrow: TLArrowShape) => {
+		const bindings = editor.getBindingsFromShape(arrow.id, 'arrow')
+		return {
+			start: bindings.find((b) => b.props.terminal === 'start'),
+			end: bindings.find((b) => b.props.terminal === 'end'),
+		}
+	},
+	{
+		// we only look at the arrow IDs:
+		areRecordsEqual: (a, b) => a.id === b.id,
+		// the records should stay the same:
+		areResultsEqual: (a, b) => a.start === b.start && a.end === b.end,
+	}
+)
+
 /** @public */
 export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings {
-	const bindings = editor.getBindingsFromShape<TLArrowBinding>(shape, 'arrow')
-	return {
-		start: bindings.find((b) => b.props.terminal === 'start'),
-		end: bindings.find((b) => b.props.terminal === 'end'),
-	}
+	return arrowBindingsCache.get(editor, shape.id)!
 }
 
-const arrowInfoCache = createComputedCache(
+const arrowInfoCache = createComputedCache<Editor, TLArrowInfo, TLArrowShape>(
 	'arrow info',
 	(editor: Editor, shape: TLArrowShape): TLArrowInfo => {
 		const bindings = getArrowBindings(editor, shape)
 		if (shape.props.kind === 'elbow') {
 			const elbowInfo = getElbowArrowInfo(editor, shape, bindings)
-			if (!elbowInfo?.route) {
-				return getStraightArrowInfo(editor, shape, bindings)
-			}
+			if (!elbowInfo?.route) return getStraightArrowInfo(editor, shape, bindings)
 
 			const start = elbowInfo.swapOrder ? elbowInfo.B : elbowInfo.A
 			const end = elbowInfo.swapOrder ? elbowInfo.A : elbowInfo.B
@@ -144,16 +156,20 @@ const arrowInfoCache = createComputedCache(
 
 		if (getIsArrowStraight(shape)) {
 			return getStraightArrowInfo(editor, shape, bindings)
+		} else {
+			return getCurvedArrowInfo(editor, shape, bindings)
 		}
-
-		return getCurvedArrowInfo(editor, shape, bindings)
+	},
+	{
+		areRecordsEqual: (a, b) => a.props === b.props,
+		areResultsEqual: isEqualAllowingForFloatingPointErrors,
 	}
 )
 
 /** @public */
-export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId): TLArrowInfo {
+export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId) {
 	const id = typeof shape === 'string' ? shape : shape.id
-	return arrowInfoCache.get(editor, id) as TLArrowInfo
+	return arrowInfoCache.get(editor, id)
 }
 
 /** @public */
@@ -207,7 +223,7 @@ export function createOrUpdateArrowBinding(
 	const targetId = typeof target === 'string' ? target : target.id
 
 	const existingMany = editor
-		.getBindingsFromShape<TLArrowBinding>(arrowId, 'arrow')
+		.getBindingsFromShape(arrowId, 'arrow')
 		.filter((b) => b.props.terminal === props.terminal)
 
 	// if we've somehow ended up with too many bindings, delete the extras
@@ -238,7 +254,7 @@ export function createOrUpdateArrowBinding(
  */
 export function removeArrowBinding(editor: Editor, arrow: TLArrowShape, terminal: 'start' | 'end') {
 	const existing = editor
-		.getBindingsFromShape<TLArrowBinding>(arrow, 'arrow')
+		.getBindingsFromShape(arrow, 'arrow')
 		.filter((b) => b.props.terminal === terminal)
 
 	editor.deleteBindings(existing)

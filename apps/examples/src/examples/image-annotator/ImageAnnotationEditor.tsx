@@ -52,7 +52,7 @@ export function ImageAnnotationEditor({
 			},
 		])
 		const shapeId = createShapeId()
-		editor.createShape<TLImageShape>({
+		editor.createShape({
 			id: shapeId,
 			type: 'image',
 			x: 0,

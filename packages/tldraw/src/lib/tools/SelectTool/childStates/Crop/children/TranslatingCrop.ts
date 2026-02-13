@@ -94,7 +94,8 @@ export class TranslatingCrop extends StateNode {
 
 		if (!shape) return
 
-		const { originPagePoint, currentPagePoint } = this.editor.inputs
+		const originPagePoint = this.editor.inputs.getOriginPagePoint()
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		const delta = currentPagePoint.clone().sub(originPagePoint)
 		const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
 

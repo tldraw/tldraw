@@ -1,53 +1,48 @@
-// eslint-disable @typescript-eslint/no-deprecated
 import { CustomMutatorImpl } from '@rocicorp/zero'
-import { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/custom'
+import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/custom'
 import {
 	DB,
-	TlaFile,
+	MIN_Z_PROTOCOL_VERSION,
 	TlaSchema,
+	TlaUserPartial,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZServerSentPacket,
 	createMutators,
-	downgradeZStoreData,
 	schema,
 } from '@tldraw/dotcom-shared'
-import { ExecutionQueue, assert, assertExists, mapObjectMapValues, sleep } from '@tldraw/utils'
+import {
+	JsonChunkAssembler,
+	TLSyncErrorCloseEventCode,
+	TLSyncErrorCloseEventReason,
+} from '@tldraw/sync-core'
+import { ExecutionQueue, IndexKey, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import { Kysely, PostgresDialect, PostgresPoolClient, Transaction, sql } from 'kysely'
+import { Kysely, PostgresDialect, Transaction, sql } from 'kysely'
+import { Pool, PoolClient } from 'pg'
 import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
-import { TLPostgresPool } from './postgres'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
-import { PerfHackHooks, ServerCRUD } from './zero/ServerCrud'
+import { getClerkClient } from './utils/tla/getAuth'
+import { ChangeAccumulator, ServerCRUD } from './zero/ServerCrud'
 import { ServerQuery } from './zero/ServerQuery'
 import { ZMutationError } from './zero/ZMutationError'
-import { legacy_assertValidMutation } from './zero/legacy_assertValidMutation'
-
-interface SocketMetadata {
-	version: number
-	protocolVersion: number
-	sessionId: string
-	userId: string
-}
-
-const SOCKET_METADATA_VERSION = 1
 
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
 	private measure: Analytics | undefined
 
 	private readonly sentry
-	// eslint-disable-next-line local/prefer-class-methods
-	private captureException = (exception: unknown, extras?: Record<string, unknown>) => {
+	private captureException(exception: unknown, extras?: Record<string, unknown>) {
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.withScope((scope) => {
 			if (extras) scope.setExtras(extras)
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry?.captureException(exception) as any
 		})
 		if (!this.sentry) {
@@ -64,8 +59,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		this.sentry = createSentry(ctx, env)
 
-		this.log = new Logger(env, 'TLUserDurableObject', this.sentry)
-		this.pool = new TLPostgresPool(env, this.log)
+		this.pool = new Pool({
+			connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			application_name: 'user-do',
+			idleTimeoutMillis: 3_000,
+			max: 1,
+		})
 
 		this.db = new Kysely<DB>({
 			dialect: new PostgresDialect({ pool: this.pool }),
@@ -74,7 +73,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.measure = env.MEASURE
 
 		// debug logging in preview envs by default
-		this.log.debug('TLUserDurableObject constructor', this.ctx.getWebSockets().length)
+		this.log = new Logger(env, 'TLUserDurableObject', this.sentry)
 	}
 
 	private userId: string | null = null
@@ -83,17 +82,88 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
 			if (!this.userId) {
-				this.userId = req.params.userId
+				const id = (this.userId = req.params.userId)
+				const user = await this.db
+					.selectFrom('user')
+					.where('id', '=', id)
+					.select('id')
+					.executeTakeFirst()
+				if (!user) {
+					// auth is checked in the main worker, before it gets here, so the clerk
+					// user definitely exists at this point.
+					const clerk = getClerkClient(this.env)
+					const clerkUser = await clerk.users.getUser(id)
+					assert(clerkUser, 'Clerk user not found')
+					await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, id))
+					await this.db.transaction().execute(async (tx) => {
+						// check that user wasn't added by another request in between the auth check and the snapshot deletion
+						if (await tx.selectFrom('user').where('id', '=', id).select('id').executeTakeFirst()) {
+							return
+						}
+						const now = Date.now()
+						await tx
+							.insertInto('user')
+							.values({
+								id,
+								name: clerkUser.fullName ?? '',
+								email: clerkUser.emailAddresses[0].emailAddress,
+								avatar: clerkUser.imageUrl,
+								color: '___INIT___',
+								exportFormat: 'png',
+								exportTheme: 'light',
+								exportBackground: true,
+								exportPadding: true,
+								createdAt: now,
+								updatedAt: now,
+								flags: 'groups_backend',
+							})
+							.execute()
+						await tx
+							.insertInto('group')
+							.values({
+								id,
+								name: clerkUser.fullName ?? '',
+								createdAt: now,
+								updatedAt: now,
+								isDeleted: false,
+								inviteSecret: null,
+							})
+							.execute()
+						await tx
+							.insertInto('group_user')
+							.values({
+								userId: id,
+								groupId: id,
+								createdAt: now,
+								updatedAt: now,
+								role: 'owner',
+								index: 'a1' as IndexKey,
+								userName: clerkUser.fullName ?? '',
+								userColor: '',
+							})
+							.execute()
+					})
+				}
 			}
-
-			const rateLimited = await isRateLimited(this.env, this.userId)
+			const rateLimited = await isRateLimited(this.env, this.userId!)
 			if (rateLimited) {
 				this.log.debug('rate limited')
 				this.logEvent({ type: 'rate_limited', id: this.userId })
 				throw new Error('Rate limited')
 			}
-
-			await this.ensureCache()
+			if (!this.cache) {
+				this.coldStartStartTime = Date.now()
+				this.log.debug('creating cache', this.userId)
+				this.cache = new UserDataSyncer(
+					this.ctx,
+					this.env,
+					this.db,
+					this.userId,
+					(message) => this.broadcast(message),
+					this.logEvent.bind(this),
+					this.log
+				)
+			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
 
@@ -106,6 +176,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return await this.router.fetch(req)
 		} catch (err) {
 			if (sentry) {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
 				sentry?.captureException(err)
 			} else {
 				console.error(err)
@@ -117,63 +188,50 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	private async ensureCache(): Promise<void> {
-		if (this.cache) return
-
-		// This could be called from hibernation wake-up, so we need to ensure userId is set
-		if (!this.userId) {
-			// Try to get userId from any connected hibernated socket metadata
-			const hibernatedSockets = this.ctx.getWebSockets()
-			for (const socket of hibernatedSockets) {
-				const metadata = this.deserializeSocketMetadata(socket)
-				if (metadata?.userId) {
-					this.userId = metadata.userId
-					this.log.debug('hibernation: restored userId from socket metadata', this.userId)
-					break
-				}
-			}
-
-			// If we still don't have userId, we can't proceed
-			if (!this.userId) {
-				throw new Error('Cannot initialize cache: userId not available during hibernation wake-up')
-			}
-		}
-
-		this.coldStartStartTime = Date.now()
-		this.log.debug('hibernation: creating cache during wake-up', this.userId)
-		this.cache = new UserDataSyncer(
-			this.ctx,
-			this.env,
-			this.db,
-			this.userId,
-			(message) => this.broadcast(message),
-			this.logEvent.bind(this),
-			this.log
-		)
-	}
-
-	private async assertCache(): Promise<void> {
-		await this.ensureCache()
-		assert(this.cache, 'cache should exist after ensureCache')
+	private assertCache(): asserts this is { cache: UserDataSyncer } {
+		assert(this.cache, 'no cache')
 	}
 
 	interval: NodeJS.Timeout | null = null
 
+	private maybeStartInterval() {
+		if (!this.interval) {
+			this.interval = setInterval(() => {
+				// do cache persist + cleanup
+				this.cache?.onInterval()
+
+				// clean up closed sockets if there are any
+				for (const socket of this.sockets.keys()) {
+					if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
+						this.sockets.delete(socket)
+					}
+				}
+
+				if (this.sockets.size === 0 && typeof this.interval === 'number') {
+					clearInterval(this.interval)
+					this.interval = null
+				}
+			}, 2000)
+		}
+	}
+
+	private readonly sockets = new Map<WebSocket, { protocolVersion: number; sessionId: string }>()
+
 	private makeCrud(
-		client: PostgresPoolClient,
+		client: PoolClient,
 		signal: AbortSignal,
-		perfHackHooks: PerfHackHooks
+		changeAccumulator: ChangeAccumulator
 	): SchemaCRUD<TlaSchema> {
 		return mapObjectMapValues(
 			schema.tables,
-			(_, table) => new ServerCRUD(client, table, signal, perfHackHooks)
+			(_, table) => new ServerCRUD(client, table, signal, changeAccumulator)
 		)
 	}
 
-	private makeQuery(client: PostgresPoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
+	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
 		return mapObjectMapValues(
 			schema.tables,
-			(tableName) => new ServerQuery(signal, client, true, tableName) as any
+			(tableName) => new ServerQuery(signal, client, false, tableName) as any
 		)
 	}
 
@@ -190,40 +248,13 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.outgoingBuffer = null
 		if (!buffer) return
 
-		// Use ctx.getWebSockets() for hibernation-compatible socket access
-		const hibernatedSockets = this.ctx.getWebSockets()
-
-		for (const socket of hibernatedSockets) {
+		for (const [socket] of this.sockets.entries()) {
 			if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
+				this.sockets.delete(socket)
 				continue
 			}
 			if (socket.readyState !== WebSocket.OPEN) {
 				continue
-			}
-
-			// Get socket metadata from hibernation attachment
-			const socketMeta = socket.deserializeAttachment() as SocketMetadata
-			if (!socketMeta) {
-				this.captureException(new Error('Socket metadata not found'), {
-					source: 'flushBuffer',
-					userId: this.userId,
-					socketReadyState: socket.readyState,
-				})
-				continue
-			}
-
-			// maybe downgrade the data for the client
-			if (socketMeta.protocolVersion === 1) {
-				for (let msg of buffer) {
-					if (msg.type === 'initial_data') {
-						msg = {
-							type: 'initial_data',
-							initialData: downgradeZStoreData(msg.initialData) as any,
-						}
-					}
-					socket.send(JSON.stringify(msg))
-				}
-				return
 			}
 
 			socket.send(JSON.stringify(buffer))
@@ -243,53 +274,73 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 	private readonly messageQueue = new ExecutionQueue()
 
-	async onRequest(req: IRequest): Promise<Response> {
+	async onRequest(req: IRequest) {
+		assert(this.userId, 'User ID not set')
+		// handle legacy param names
+
 		const url = new URL(req.url)
-		const params = Object.fromEntries(url.searchParams)
-		const protocolVersion = parseInt(params.protocolVersion)
+		const params = Object.fromEntries(url.searchParams.entries())
+		const { sessionId } = params
+
+		// before we sent the protocolVersion param, the protocol was the same as v1
+		const protocolVersion = params.protocolVersion ? Number(params.protocolVersion) : 1
+
+		assert(sessionId, 'Session ID is required')
 		assert(Number.isFinite(protocolVersion), `Invalid protocol version ${params.protocolVersion}`)
 
-		// Get sessionId from query params - it's required
-		const sessionId = params.sessionId
-		assert(sessionId, 'sessionId is required')
-
-		await this.assertCache()
-		assert(this.cache, 'cache should exist after assertCache')
-		assert(this.userId, 'userId should be set after cache initialization')
+		this.assertCache()
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
+		serverWebSocket.accept()
 
-		// Use hibernation API instead of legacy WebSocket API
-		this.ctx.acceptWebSocket(serverWebSocket)
+		if (protocolVersion < MIN_Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
+			serverWebSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+			return new Response(null, { status: 101, webSocket: clientWebSocket })
+		}
 
-		// Set up socket metadata for hibernation with versioning
-		const metadata: SocketMetadata = {
-			version: SOCKET_METADATA_VERSION,
+		const assembler = new JsonChunkAssembler()
+		serverWebSocket.addEventListener('message', (e) => {
+			const res = assembler.handleMessage(e.data.toString())
+			if (!res) {
+				// not enough chunks yet
+				return
+			}
+			if ('error' in res) {
+				this.captureException(res.error, { source: 'serverWebSocket "message" event, bad chunk' })
+				return
+			}
+
+			this.messageQueue.push(() =>
+				this.handleSocketMessage(serverWebSocket, res.stringified).catch((e) =>
+					this.captureException(e, { source: 'serverWebSocket "message" event' })
+				)
+			)
+		})
+		serverWebSocket.addEventListener('close', () => {
+			this.sockets.delete(serverWebSocket)
+		})
+		serverWebSocket.addEventListener('error', (e) => {
+			this.captureException(e, { source: 'serverWebSocket "error" event' })
+			this.sockets.delete(serverWebSocket)
+		})
+
+		this.sockets.set(serverWebSocket, {
 			protocolVersion,
 			sessionId,
-			userId: this.userId,
-		}
-		serverWebSocket.serializeAttachment(metadata)
-
-		// Start LSN update alarm if this is the first socket
-		await this.maybeStartLsnUpdateAlarm()
+		})
+		this.maybeStartInterval()
 
 		const initialData = this.cache.store.getCommittedData()
 		if (initialData) {
 			this.log.debug('sending initial data on connect', this.userId)
 			serverWebSocket.send(
-				protocolVersion === 1
-					? JSON.stringify({
-							type: 'initial_data',
-							initialData: downgradeZStoreData(initialData),
-						})
-					: JSON.stringify([
-							{
-								type: 'initial_data',
-								initialData,
-							} satisfies ZServerSentPacket,
-						])
+				JSON.stringify([
+					{
+						type: 'initial_data',
+						initialData,
+					} satisfies ZServerSentPacket,
+				])
 			)
 		} else {
 			this.log.debug('no initial data to send, waiting for boot to finish', this.userId)
@@ -298,53 +349,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
 
-	// Hibernation handler for incoming WebSocket messages
-	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
-		await this.assertCache()
-		// Handle both string and ArrayBuffer message types
-		const messageString = typeof message === 'string' ? message : new TextDecoder().decode(message)
-
-		await this.messageQueue.push(() =>
-			this.handleSocketMessage(ws, messageString).catch((e) =>
-				this.captureException(e, { source: 'hibernation webSocketMessage handler' })
-			)
-		)
-	}
-
-	// Hibernation handler for WebSocket close events
-	override async webSocketClose(ws: WebSocket, code: number, reason: string, wasClean: boolean) {
-		this.log.debug('hibernation: webSocketClose', this.userId, {
-			code,
-			reason,
-			wasClean,
-			meta: ws.deserializeAttachment(),
-		})
-	}
-
-	// Hibernation handler for WebSocket errors
-	override async webSocketError(_ws: WebSocket, error: unknown) {
-		this.log.debug('hibernation: webSocketError', this.userId, error)
-		this.captureException(error, { source: 'hibernation webSocketError handler' })
-		// No need to manually clean up - hibernation handles socket lifecycle
-	}
-
 	private async handleSocketMessage(socket: WebSocket, message: string) {
 		const rateLimited = await isRateLimited(this.env, this.userId!)
-		await this.assertCache() // Now async and hibernation-aware
-
-		// Log hibernation wake-up and metadata restoration
-		const socketMeta = this.deserializeSocketMetadata(socket)
-		if (socketMeta) {
-			this.log.debug('hibernation: handling message with restored metadata', this.userId, {
-				sessionId: socketMeta.sessionId,
-				protocolVersion: socketMeta.protocolVersion,
-				metadataVersion: socketMeta.version,
-			})
-		}
+		this.assertCache()
 
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
-			case 'mutate':
 			case 'mutator':
 				if (rateLimited) {
 					this.logEvent({ type: 'rate_limited', id: this.userId! })
@@ -376,13 +386,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
-		await this.assertCache()
-		assert(this.cache, 'cache should exist after assertCache')
-
-		const socketMeta = assertExists(
-			socket.deserializeAttachment(),
-			'Socket metadata not found'
-		) as SocketMetadata
+		this.assertCache()
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		this.cache.store.rejectMutation(mutationId)
 		this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== mutationId)
@@ -393,57 +397,57 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			errorCode,
 		}
 
-		socket?.send(JSON.stringify(socketMeta.protocolVersion === 1 ? msg : [msg]))
+		socket?.send(JSON.stringify([msg]))
 	}
 
-	private pool: TLPostgresPool
+	private pool: Pool
 
 	private async _doMutate(msg: ZClientSentMessage) {
-		await this.assertCache()
-		assert(this.cache, 'cache should exist after assertCache')
-
+		this.log.debug('doMutate', this.userId, msg)
+		assert(msg.type === 'mutator', 'Invalid message type')
+		this.assertCache()
 		const client = await this.pool.connect()
 
 		try {
-			const newFiles = [] as TlaFile[]
+			const changeAccumulator: ChangeAccumulator = {
+				file: { added: [] },
+			}
 
-			await client.query('BEGIN', [])
+			await client.query('BEGIN')
+
+			// Acquire shared advisory lock to coordinate with migration
+			// This will wait if migrate_user_to_groups is running (which uses exclusive lock)
+			// but won't block other mutations (which also use shared locks)
+			// Lock will be automatically released when transaction ends
+			await client.query('SELECT pg_advisory_xact_lock_shared(hashtext($1))', [this.userId])
 
 			const controller = new AbortController()
-			const mutate = this.makeCrud(client, controller.signal, { newFiles })
+			const mutate = this.makeCrud(client, controller.signal, changeAccumulator)
 			try {
-				if (msg.type === 'mutate') {
-					// legacy
-					for (const update of msg.updates) {
-						await legacy_assertValidMutation(this.userId!, client, update)
-						await mutate[update.table][update.event](update.row as any)
-					}
-				} else {
-					// new
-					const mutators = createMutators(this.userId!)
-					const path = msg.name.split('.')
-					assert(path.length <= 2, 'Invalid mutation path')
-					const mutator: CustomMutatorImpl<TlaSchema> =
-						path.length === 1 ? (mutators as any)[path[0]] : (mutators as any)[path[0]][path[1]]
-					assert(mutator, 'Invalid mutator path')
-					await mutator(
-						{
-							clientID: '',
-							dbTransaction: {
-								wrappedTransaction: null as any,
-								async query(sqlString: string, params: unknown[]): Promise<any[]> {
-									return client.query(sqlString, params).then((res) => res.rows)
-								},
+				// new
+				const mutators = createMutators(this.userId!)
+				const path = msg.name.split('.')
+				assert(path.length <= 2, 'Invalid mutation path')
+				const mutator: CustomMutatorImpl<TlaSchema> =
+					path.length === 1 ? (mutators as any)[path[0]] : (mutators as any)[path[0]][path[1]]
+				assert(mutator, 'Invalid mutator path')
+				await mutator(
+					{
+						clientID: '',
+						dbTransaction: {
+							wrappedTransaction: null as any,
+							async query(sqlString: string, params: unknown[]): Promise<any[]> {
+								return client.query(sqlString, params).then((res) => res.rows)
 							},
-							mutate,
-							location: 'server',
-							reason: 'authoritative',
-							mutationID: 0,
-							query: this.makeQuery(client, controller.signal),
 						},
-						msg.props
-					)
-				}
+						mutate,
+						location: 'server',
+						reason: 'authoritative',
+						mutationID: 0,
+						query: this.makeQuery(client, controller.signal),
+					},
+					msg.props
+				)
 			} finally {
 				controller.abort()
 			}
@@ -467,22 +471,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				timestamp: Date.now(),
 			})
 
-			await client.query('COMMIT', [])
+			await client.query('COMMIT')
 
-			// Check mutation status after 5 seconds
-			setTimeout(() => {
-				this.cache?.checkMutationDidCommit(msg.mutationId).catch(this.captureException)
-			}, 5000)
-
-			for (const file of newFiles) {
-				if (file.ownerId !== this.userId) {
-					this.cache.addGuestFile(file)
-				} else {
-					getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
-				}
-			}
+			await this.cache?.incorporateUnsyncedChanges(changeAccumulator)
 		} catch (e) {
-			await client.query('ROLLBACK', [])
+			await client.query('ROLLBACK')
 			throw e
 		} finally {
 			client.release()
@@ -490,15 +483,14 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	private async handleMutate(socket: WebSocket, msg: ZClientSentMessage) {
-		await this.assertCache()
-		assert(this.cache, 'cache should exist after assertCache')
-
+		this.assertCache()
 		while (!this.cache.store.getCommittedData()) {
 			// this could happen if the cache was cleared due to a full db reboot
 			await sleep(100)
 		}
 		this.log.debug('mutation', this.userId, msg)
 		try {
+			assert(msg.type === 'mutator', 'Invalid message type')
 			// we connect to pg via a pooler, so in the case that the pool is exhausted
 			// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
 			await retryOnConnectionFailure(
@@ -522,7 +514,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.log.debug('replication event', event, !!this.cache)
-		if (await this.notActive()) {
+		if (!this.cache) {
+			this.logEvent({ type: 'woken_up_by_replication_event', id: this.userId ?? 'anon' })
 			this.log.debug('requesting to unregister')
 			return 'unregister'
 		}
@@ -534,10 +527,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 
 		return 'ok'
-	}
-
-	async notActive() {
-		return !this.cache
 	}
 
 	/* --------------  */
@@ -574,9 +563,110 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return
 		}
 		this.__test__isForceDowngraded = isDowngraded
-		for (const socket of this.ctx.getWebSockets()) {
+		for (const socket of this.sockets.keys()) {
 			socket.close()
 		}
+	}
+
+	async __test__prepareForTest(userId: string) {
+		if (this.env.IS_LOCAL !== 'true') {
+			return
+		}
+		this.userId ??= userId
+
+		await this.db.transaction().execute(async (tx) => {
+			const user = await tx
+				.selectFrom('user')
+				.where('id', '=', userId)
+				.selectAll()
+				.executeTakeFirst()
+			if (!user) {
+				console.error('User not found', userId)
+				return
+			}
+
+			await tx
+				.updateTable('user')
+				.set({
+					flags: 'groups_backend',
+					allowAnalyticsCookie: null,
+					enhancedA11yMode: null,
+					colorScheme: null,
+					locale: null,
+					exportBackground: true,
+					exportPadding: true,
+					exportFormat: 'png',
+					inputMode: null,
+				} satisfies Omit<TlaUserPartial, 'id'>)
+				.where('id', '=', userId)
+				.execute()
+
+			// Get all groups the user is a member of and delete them
+			// CASCADE will automatically delete group_user, group_file, and owned files
+			const userGroups = await tx
+				.selectFrom('group_user')
+				.where('userId', '=', userId)
+				.select('groupId')
+				.execute()
+			const groupIds = userGroups.map((g) => g.groupId)
+
+			if (groupIds.length > 0) {
+				await tx.deleteFrom('group').where('id', 'in', groupIds).execute()
+			}
+
+			// Re-create the home group
+			await tx
+				.insertInto('group')
+				.values({
+					id: userId,
+					name: '',
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+					isDeleted: false,
+					inviteSecret: null,
+				})
+				.onConflict((oc) => oc.doNothing())
+				.execute()
+			await tx
+				.insertInto('group_user')
+				.values({
+					userId: userId,
+					groupId: userId,
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+					role: 'owner',
+					index: 'a1' as IndexKey,
+					userColor: '',
+					userName: '',
+				})
+				.onConflict((oc) => oc.doNothing())
+				.execute()
+		})
+
+		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
+	}
+
+	async admin_migrateToGroups(userId: string, inviteSecret: string | null = null) {
+		console.error('admin_migrateToGroups', userId, inviteSecret)
+		this.userId ??= userId
+
+		this.log.debug('migrating to groups', userId, inviteSecret)
+		// Call the Postgres migration function
+		const result = await sql<{
+			files_migrated: number
+			pinned_files_migrated: number
+			flag_added: boolean
+		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
+		console.error('admin_migrateToGroups result', result.rows)
+
+		this.log.debug('migration result', result.rows[0])
+
+		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
+		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
+
+		this.log.debug('migration complete, user rebooted')
+
+		return result.rows[0]
 	}
 
 	async admin_forceHardReboot(userId: string) {
@@ -585,6 +675,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		} else {
 			await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		}
+		// Close all websocket connections to force reconnect with fresh data
+		for (const socket of this.sockets.keys()) {
+			socket.close()
+		}
+		this.sockets.clear()
 	}
 
 	async admin_getData(userId: string) {
@@ -605,45 +700,27 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		return cache.store.getCommittedData()
 	}
 
-	private deserializeSocketMetadata(socket: WebSocket): SocketMetadata | null {
-		const metadata = socket.deserializeAttachment() as SocketMetadata
-		if (metadata && metadata.version === SOCKET_METADATA_VERSION) {
-			return metadata
+	async admin_delete(userId: string) {
+		// Close all websocket connections
+		for (const socket of this.sockets.keys()) {
+			socket.close()
 		}
-		return null
-	}
+		this.sockets.clear()
 
-	// Durable Object alarm handler for periodic LSN updates
-	override async alarm() {
-		try {
-			const hibernatedSockets = this.ctx.getWebSockets()
-
-			if (hibernatedSockets.length === 0) {
-				this.log.debug('hibernation: stopping LSN update alarm - no active sockets')
-				return
-			}
-
-			await this.ensureCache()
-			if (this.cache) {
-				this.log.debug('hibernation: running scheduled LSN update')
-				this.cache.maybeRequestLsnUpdate()
-			}
-
-			// Schedule next alarm in 10 minutes
-			await this.maybeStartLsnUpdateAlarm()
-		} catch (e) {
-			this.captureException(e, { source: 'alarm handler' })
+		// Clear the cache/state
+		if (this.cache) {
+			this.cache = null
 		}
-	}
 
-	private async maybeStartLsnUpdateAlarm() {
-		const hibernatedSockets = this.ctx.getWebSockets()
+		// Delete R2 data snapshot
+		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 
-		if (hibernatedSockets.length > 0) {
-			// Schedule alarm for 10 minutes from now
-			const alarmTime = Date.now() + 10 * 60 * 1000 // 10 minutes
-			await this.ctx.storage.setAlarm(alarmTime)
-			this.log.debug('hibernation: scheduled LSN update alarm', { alarmTime: new Date(alarmTime) })
+		// Clear any intervals
+		if (this.interval) {
+			clearInterval(this.interval)
+			this.interval = null
 		}
+
+		await this.db.destroy()
 	}
 }

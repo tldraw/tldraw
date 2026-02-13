@@ -1,6 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../../context/actions'
-import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
+import { TldrawUiMenuItem, type TLUiMenuItemProps } from '../primitives/menus/TldrawUiMenuItem'
 
 export function StopFollowing() {
 	const editor = useEditor()
@@ -13,5 +13,5 @@ export function StopFollowing() {
 	)
 	if (!followingUser) return null
 
-	return <TldrawUiMenuItem {...actions['stop-following']} />
+	return <TldrawUiMenuItem {...(actions['stop-following'] as TLUiMenuItemProps)} />
 }

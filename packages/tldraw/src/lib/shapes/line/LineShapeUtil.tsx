@@ -12,6 +12,7 @@ import {
 	WeakCache,
 	ZERO_INDEX_KEY,
 	assert,
+	getColorValue,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
@@ -35,9 +36,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override props = lineShapeProps
 	static override migrations = lineShapeMigrations
 
-	override canTabTo() {
-		return false
-	}
 	override hideResizeHandles() {
 		return true
 	}
@@ -48,6 +46,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return true
 	}
 	override hideSelectionBoundsBg() {
+		return true
+	}
+	override hideInMinimap() {
 		return true
 	}
 
@@ -148,8 +149,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override onHandleDrag(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>) {
-		// we should only ever be dragging vertex handles
-		if (handle.type !== 'vertex') return
 		const newPoint = maybeSnapToGrid(new Vec(handle.x, handle.y), this.editor)
 		return {
 			...shape,
@@ -161,6 +160,25 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				},
 			},
 		}
+	}
+
+	override onHandleDragStart(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>) {
+		// For line shapes, if we're dragging a "create" handle, then
+		// create a new vertex handle at that point; and make this handle
+		// the handle that we're dragging.
+		if (handle.type === 'create') {
+			return {
+				...shape,
+				props: {
+					...shape.props,
+					points: {
+						...shape.props.points,
+						[handle.index]: { id: handle.index, index: handle.index, x: handle.x, y: handle.y },
+					},
+				},
+			}
+		}
+		return
 	}
 
 	component(shape: TLLineShape) {
@@ -184,6 +202,25 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			offset: 0,
 			roundness: strokeWidth * 2,
 			props: { strokeWidth: undefined },
+		})
+	}
+
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLLineShape): Path2D {
+		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const path = getPathForLineShape(shape)
+		const { dash } = shape.props
+
+		return path.toPath2D({
+			style: dash === 'draw' ? 'draw' : 'solid',
+			strokeWidth: 1,
+			passes: 1,
+			randomSeed: shape.id,
+			offset: 0,
+			roundness: strokeWidth * 2,
 		})
 	}
 
@@ -332,6 +369,10 @@ function LineShapeSvg({
 		strokeWidth,
 		forceSolid,
 		randomSeed: shape.id,
-		props: { transform: `scale(${scale})`, stroke: theme[color].solid, fill: 'none' },
+		props: {
+			transform: `scale(${scale})`,
+			stroke: getColorValue(theme, color, 'solid'),
+			fill: 'none',
+		},
 	})
 }

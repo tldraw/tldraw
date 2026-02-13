@@ -5,8 +5,6 @@ import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetSta
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	options = this.editor.getShapeUtil<ArrowShapeUtil>('arrow').options
-
 	shape?: TLArrowShape
 
 	isPrecise = false
@@ -20,16 +18,19 @@ export class Pointing extends StateNode {
 
 		const targetState = updateArrowTargetState({
 			editor: this.editor,
-			pointInPageSpace: this.editor.inputs.currentPagePoint,
+			pointInPageSpace: this.editor.inputs.getCurrentPagePoint(),
 			arrow: undefined,
 			isPrecise: this.isPrecise,
-			isExact: this.editor.inputs.altKey,
 			currentBinding: undefined,
 			oppositeBinding: undefined,
 		})
 
 		if (!targetState) {
 			this.createArrowShape()
+			if (!this.shape) {
+				this.cancel()
+				return
+			}
 		}
 
 		this.startPreciseTimeout()
@@ -42,12 +43,15 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerMove() {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			if (!this.shape) {
 				this.createArrowShape()
 			}
 
-			if (!this.shape) throw Error(`expected shape`)
+			if (!this.shape) {
+				this.cancel()
+				return
+			}
 
 			this.updateArrowShapeEndHandle()
 
@@ -86,13 +90,13 @@ export class Pointing extends StateNode {
 	}
 
 	createArrowShape() {
-		const { originPagePoint } = this.editor.inputs
+		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
 		const id = createShapeId()
 
 		this.markId = this.editor.markHistoryStoppingPoint(`creating_arrow:${id}`)
 		const newPoint = maybeSnapToGrid(originPagePoint, this.editor)
-		this.editor.createShape<TLArrowShape>({
+		this.editor.createShape({
 			id,
 			type: 'arrow',
 			x: newPoint.x,
@@ -103,7 +107,7 @@ export class Pointing extends StateNode {
 		})
 
 		const shape = this.editor.getShape<TLArrowShape>(id)
-		if (!shape) throw Error(`expected shape`)
+		if (!shape) return
 
 		const handles = this.editor.getShapeHandles(shape)
 		if (!handles) throw Error(`expected handles for arrow`)
@@ -114,6 +118,7 @@ export class Pointing extends StateNode {
 		const change = util.onHandleDrag?.(shape, {
 			handle: { ...startHandle, x: 0, y: 0 },
 			isPrecise: true,
+			isCreatingShape: true,
 			initial: initial,
 		})
 
@@ -141,6 +146,7 @@ export class Pointing extends StateNode {
 			const change = util.onHandleDrag?.(shape, {
 				handle: { ...startHandle, x: 0, y: 0 },
 				isPrecise: this.isPrecise,
+				isCreatingShape: true,
 				initial: initial,
 			})
 
@@ -153,11 +159,15 @@ export class Pointing extends StateNode {
 		{
 			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
 			const initial = this.shape
-			const point = this.editor.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
+			const point = this.editor.getPointInShapeSpace(
+				shape,
+				this.editor.inputs.getCurrentPagePoint()
+			)
 			const endHandle = handles.find((h) => h.id === 'end')!
 			const change = util.onHandleDrag?.(this.editor.getShape(shape)!, {
 				handle: { ...endHandle, x: point.x, y: point.y },
-				isPrecise: false,
+				isPrecise: this.isPrecise,
+				isCreatingShape: true,
 				initial: initial,
 			})
 
@@ -171,11 +181,14 @@ export class Pointing extends StateNode {
 	}
 
 	private startPreciseTimeout() {
+		const arrowUtil = this.editor.getShapeUtil<ArrowShapeUtil>('arrow')
+
 		this.isPreciseTimerId = this.editor.timers.setTimeout(() => {
 			if (!this.getIsActive()) return
 			this.isPrecise = true
-		}, this.options.pointingPreciseTimeout)
+		}, arrowUtil.options.pointingPreciseTimeout)
 	}
+
 	private clearPreciseTimeout() {
 		if (this.isPreciseTimerId !== null) {
 			clearTimeout(this.isPreciseTimerId)

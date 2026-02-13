@@ -2,7 +2,19 @@
 title: Data grid shape
 component: ./DataGridExample.tsx
 category: shapes/tools
-keywords: [data grid ag grid]
+keywords:
+  [
+    custom shape,
+    shapeutil,
+    baseboxshapeutil,
+    ag grid,
+    data grid,
+    table,
+    spreadsheet,
+    canedit,
+    canscroll,
+    usedelaysvgexport,
+  ]
 priority: 5
 ---
 

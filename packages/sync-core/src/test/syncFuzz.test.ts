@@ -1,7 +1,5 @@
 import {
 	Editor,
-	TLArrowBinding,
-	TLArrowShape,
 	TLRecord,
 	TLStore,
 	computed,
@@ -14,6 +12,7 @@ import {
 } from 'tldraw'
 import uuid from 'uuid-by-string'
 import readable from 'uuid-readable'
+import { vi } from 'vitest'
 import { prettyPrintDiff } from '../../../tldraw/src/test/testutils/pretty'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { FuzzEditor, Op } from './FuzzEditor'
@@ -23,7 +22,7 @@ import { TestSocketPair } from './TestSocketPair'
 
 const schema = createTLSchema()
 
-jest.mock('@tldraw/editor/src/lib/editor/managers/TickManager.ts', () => {
+vi.mock('@tldraw/editor/src/lib/editor/managers/TickManager/TickManager.ts', () => {
 	return {
 		TickManager: class {
 			start() {
@@ -110,9 +109,9 @@ let totalNumShapes = 0
 let totalNumPages = 0
 
 function arrowsAreSound(editor: Editor) {
-	const arrows = editor.getCurrentPageShapes().filter((s): s is TLArrowShape => s.type === 'arrow')
+	const arrows = editor.getCurrentPageShapes().filter((s) => s.type === 'arrow')
 	for (const arrow of arrows) {
-		const bindings = editor.getBindingsFromShape<TLArrowBinding>(arrow, 'arrow')
+		const bindings = editor.getBindingsFromShape(arrow, 'arrow')
 		const terminalsSeen = new Set()
 		for (const binding of bindings) {
 			if (terminalsSeen.has(binding.props.terminal)) {

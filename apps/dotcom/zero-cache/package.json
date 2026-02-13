@@ -19,7 +19,10 @@
 		"docker-down": "docker compose --env-file .env -f ./docker/docker-compose.yml down",
 		"migrate": "yarn tsx ./migrate.ts",
 		"clean": "yarn docker-down && ./clean.sh",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"type": "module",
 	"dependencies": {
@@ -30,7 +33,7 @@
 	"devDependencies": {
 		"concurrently": "^9.1.2",
 		"dotenv": "^16.4.7",
-		"esbuild": "^0.24.2",
+		"esbuild": "^0.25.6",
 		"lazyrepo": "0.0.0-alpha.27",
 		"nodemon": "^3.1.9",
 		"tsx": "^4.19.2"

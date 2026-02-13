@@ -12,34 +12,42 @@ import {
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useApp } from '../../hooks/useAppState'
-import { useIsFileOwner } from '../../hooks/useIsFileOwner'
+import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { F } from '../../utils/i18n'
 
-export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClose(): void }) {
+export function TlaDeleteFileDialog({
+	fileId,
+	groupId,
+	onClose,
+}: {
+	fileId: string
+	groupId: string
+	onClose(): void
+}) {
 	const app = useApp()
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
 	const auth = useAuth()
 
-	const isOwner = useIsFileOwner(fileId)
+	const isOwner = useHasFileAdminRights(fileId)
 
 	const handleDelete = useCallback(async () => {
 		const token = await auth.getToken()
 		if (!token) throw new Error('No token')
 		trackEvent('delete-file', { source: 'file-menu' })
-		await app.deleteOrForgetFile(fileId)
-		const recentFiles = app.getUserRecentFiles()
+		await app.deleteOrForgetFile(fileId, groupId)
+		const recentFiles = app.getMyFiles()
 		if (recentFiles.length === 0) {
 			const result = await app.createFile()
 			if (result.ok) {
-				navigate(routes.tlaFile(result.value.file.id))
+				navigate(routes.tlaFile(result.value.fileId))
 			}
 		} else {
 			navigate(routes.tlaFile(recentFiles[0].fileId))
 		}
 		onClose()
-	}, [auth, app, fileId, onClose, navigate, trackEvent])
+	}, [auth, app, fileId, groupId, onClose, navigate, trackEvent])
 
 	return (
 		<>

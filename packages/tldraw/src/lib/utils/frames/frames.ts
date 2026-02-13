@@ -7,6 +7,7 @@ import {
 	TLShapePartial,
 	Vec,
 	compact,
+	kickoutOccludedShapes,
 } from '@tldraw/editor'
 
 /**
@@ -21,7 +22,7 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]) {
 	const frames = compact(
 		ids
 			.map((id) => editor.getShape<TLFrameShape>(id))
-			.filter((f) => f && editor.isShapeOfType<TLFrameShape>(f, 'frame'))
+			.filter((f) => f && editor.isShapeOfType(f, 'frame'))
 	)
 	if (!frames.length) return
 
@@ -30,7 +31,9 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]) {
 		frames.map((frame) => {
 			const children = editor.getSortedChildIdsForParent(frame.id)
 			if (children.length) {
-				editor.reparentShapes(children, frame.parentId, frame.index)
+				kickoutOccludedShapes(editor, children, {
+					filter: (s) => !frames.find((f) => f.id === s.id),
+				})
 				allChildren.push(...children)
 			}
 		})

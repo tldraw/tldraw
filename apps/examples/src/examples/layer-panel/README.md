@@ -2,8 +2,21 @@
 title: Layer panel
 component: ./LayerPanelExample.tsx
 category: ui
-priority: 4
-keywords: []
+priority: 5
+keywords:
+  [
+    layers,
+    panel,
+    tree view,
+    hierarchy,
+    visibility,
+    show,
+    hide,
+    getsortedchildidsforparent,
+    getshapevisibility,
+    meta,
+    infrontofthecanvas,
+  ]
 ---
 
 Implementing a minimal layers panel for tldraw.

@@ -1,0 +1,307 @@
+---
+title: Store
+created_at: 12/29/2025
+updated_at: 12/29/2025
+keywords:
+  - store
+  - records
+  - state
+  - persistence
+  - snapshots
+  - queries
+  - schema
+status: published
+date: 12/29/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+The store is tldraw's reactive database. It holds all shapes, pages, bindings, assets, and other records that make up your document. The store is reactive: when data changes, the UI updates automatically. It validates all records against a schema and tracks every change for undo/redo, persistence, and synchronization.
+
+In most cases you won't interact with the store directly—the editor wraps it with higher-level methods like [Editor#createShapes](?) and [Editor#getCurrentPageShapes](?). But understanding the store helps when you need snapshots for persistence, want to listen for changes, or need direct access to records.
+
+## Records
+
+Everything in the store is a record. A record is a JSON object with an `id` and a `typeName`. Here's what a shape record looks like:
+
+```ts
+{
+  id: 'shape:abc123',
+  typeName: 'shape',
+  type: 'geo',
+  x: 100,
+  y: 200,
+  props: {
+    geo: 'rectangle',
+    w: 300,
+    h: 150,
+    color: 'blue',
+  },
+  // ... other fields
+}
+```
+
+The `id` is a branded string that includes the type prefix (`shape:`, `page:`, `binding:`). This prevents accidentally mixing up IDs from different record types.
+
+### Record scopes
+
+Records have a scope that determines how they're persisted and synchronized:
+
+| Scope      | Persisted | Synced to other users | Example                          |
+| ---------- | --------- | --------------------- | -------------------------------- |
+| `document` | Yes       | Yes                   | Shapes, pages, bindings          |
+| `session`  | Optional  | No                    | Current page, camera position    |
+| `presence` | No        | Yes                   | Cursor positions, user selection |
+
+Document records are your actual drawing data—saved to storage and synced across instances. Session records are local to one editor instance, like which page you're viewing. Presence records sync to other users in real-time but aren't saved—they're for showing cursors and selections in multiplayer.
+
+## Basic operations
+
+### Reading records
+
+The store provides reactive and non-reactive access to records:
+
+```ts
+// Reactive — creates a dependency, component will re-render when record changes
+const shape = editor.store.get(shapeId)
+
+// Non-reactive — for hot paths where you don't want re-renders
+const shape = editor.store.unsafeGetWithoutCapture(shapeId)
+
+// Check if a record exists
+const exists = editor.store.has(shapeId)
+
+// Get all records
+const allRecords = editor.store.allRecords()
+```
+
+The reactive [Store#get](?) integrates with tldraw's signals system. When you call it inside a tracked component or computed, the component re-renders when that record changes.
+
+### Creating and updating records
+
+The [Store#put](?) method handles both creation and updates:
+
+```ts
+// Create a new record
+editor.store.put([
+	{
+		id: 'shape:my-shape' as TLShapeId,
+		typeName: 'shape',
+		type: 'geo',
+		x: 0,
+		y: 0,
+		// ... all required fields
+	},
+])
+
+// Update an existing record (put with same id)
+const shape = editor.store.get(shapeId)
+editor.store.put([{ ...shape, x: 100 }])
+```
+
+The [Store#update](?) helper is more convenient for single-record updates:
+
+```ts
+editor.store.update(shapeId, (shape) => ({
+	...shape,
+	x: shape.x + 50,
+}))
+```
+
+### Deleting records
+
+```ts
+// Remove specific records
+editor.store.remove([shapeId])
+
+// Clear everything
+editor.store.clear()
+```
+
+## Listening to changes
+
+Subscribe to store changes with [Store#listen](?). The callback receives a diff describing what changed:
+
+```ts
+const cleanup = editor.store.listen((entry) => {
+	// Records that were created
+	for (const record of Object.values(entry.changes.added)) {
+		console.log('Added:', record.typeName, record.id)
+	}
+
+	// Records that were updated [before, after]
+	for (const [prev, next] of Object.values(entry.changes.updated)) {
+		console.log('Updated:', next.id)
+	}
+
+	// Records that were deleted
+	for (const record of Object.values(entry.changes.removed)) {
+		console.log('Removed:', record.id)
+	}
+})
+
+// Stop listening
+cleanup()
+```
+
+### Filtering listeners
+
+You can filter by source and scope:
+
+```ts
+// Only listen to user changes (not remote sync)
+editor.store.listen(handleChanges, { source: 'user', scope: 'all' })
+
+// Only document records
+editor.store.listen(handleChanges, { source: 'all', scope: 'document' })
+```
+
+The `source` indicates where the change came from: `'user'` for local edits, `'remote'` for synchronized changes from other users.
+
+For maintaining internal consistency—like cleaning up bindings when a shape is deleted—use [side effects](/docs/side-effects) instead. Side effects are lifecycle hooks that can intercept and modify records during operations.
+
+## Snapshots
+
+Snapshots serialize the store for persistence or transfer.
+
+### Saving state
+
+```ts
+import { getSnapshot } from 'tldraw'
+
+// Get a snapshot of document and session state
+const { document, session } = getSnapshot(editor.store)
+
+// Save to storage
+localStorage.setItem('my-drawing', JSON.stringify({ document, session }))
+```
+
+The `document` snapshot contains shapes, pages, bindings, and assets—everything that makes up the drawing itself. The `session` snapshot contains per-instance state like the current page and camera position.
+
+For multiplayer apps, you typically save document state to your server and session state per-user locally.
+
+### Loading state
+
+```ts
+import { loadSnapshot } from 'tldraw'
+
+const saved = JSON.parse(localStorage.getItem('my-drawing'))
+loadSnapshot(editor.store, saved)
+```
+
+See [getSnapshot](?) and [loadSnapshot](?) for more details.
+
+You can load document and session separately:
+
+```ts
+// Load just the document
+loadSnapshot(editor.store, { document: saved.document })
+
+// Later, restore session state
+loadSnapshot(editor.store, { session: saved.session })
+```
+
+### Initial state
+
+Pass a snapshot to the `Tldraw` component to initialize with saved data:
+
+```tsx
+function App() {
+	return <Tldraw snapshot={savedSnapshot} />
+}
+```
+
+### Migrations
+
+Snapshots include schema version information. When you load a snapshot from an older schema version, the store migrates it automatically:
+
+```ts
+// Migrate a snapshot without loading it
+const migrated = editor.store.migrateSnapshot(oldSnapshot)
+```
+
+The migration system handles schema changes between tldraw versions. You can also define custom migrations for your own record types—see [persistence](/docs/persistence) for details.
+
+## Queries
+
+The store provides indexed queries for efficient lookups through [Store#query](?):
+
+```ts
+// Create an index by property value
+const shapesByParent = editor.store.query.index('shape', 'parentId')
+
+// Get all shapes with a specific parent
+const childShapes = shapesByParent.get().get(frameId) ?? new Set()
+```
+
+Indexes are reactive computed values. They update automatically when records change and track dependencies like any other signal.
+
+```ts
+// Filter by type and query expression
+const textShapes = editor.store.query.records('shape', () => ({
+	type: { eq: 'text' },
+}))
+
+// Get all records of a type
+const allShapes = editor.store.query.records('shape')
+```
+
+Query expressions support `eq` for exact matches. The `records()` method returns a computed array that updates when matching records change, while `index()` returns a map from property values to record IDs.
+
+## Transactions
+
+Batch multiple changes into a single update with `Store.atomic`:
+
+```ts
+editor.store.atomic(() => {
+	editor.store.put([shape1, shape2])
+	editor.store.update(shape3Id, (s) => ({ ...s, x: 100 }))
+	editor.store.remove([shape4Id])
+})
+// All changes applied together, listeners notified once
+```
+
+Without batching, each operation triggers listeners separately. Transactions ensure observers see a consistent state and reduce re-renders.
+
+## Computed caches
+
+For expensive derived data, use [Store#createComputedCache](?):
+
+```ts
+const boundsCache = editor.store.createComputedCache('shape-bounds', (shape: TLShape) => {
+	return calculateBounds(shape)
+})
+
+// Get cached value (recalculates only when shape changes)
+const bounds = boundsCache.get(shapeId)
+```
+
+The cache lazily computes values when accessed and invalidates them when the underlying record changes. This is how the editor efficiently maintains shape bounds, geometry, and other derived data.
+
+## Creating a standalone store
+
+Most of the time you use the store through the editor. But you can create a standalone store for testing or headless scenarios using [createTLStore](?):
+
+```ts
+import { createTLStore, loadSnapshot } from 'tldraw'
+
+// Create a store and load saved data
+const store = createTLStore()
+loadSnapshot(store, savedSnapshot)
+
+// Pass the pre-loaded store to Tldraw
+function App() {
+	return <Tldraw store={store} />
+}
+```
+
+Creating your own store is useful when you need to load data before mounting the editor, share a store between multiple components, or work with tldraw data without rendering the editor at all.
+
+## Related examples
+
+- **[Store events](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/store-events)** — Listening to store changes and displaying them in real-time.
+- **[Snapshots](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/snapshots)** — Saving and loading editor state with `getSnapshot` and `loadSnapshot`.
+- **[Local storage](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/local-storage)** — Persisting to localStorage with throttled saves.

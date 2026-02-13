@@ -3,12 +3,17 @@ import fs from 'fs'
 import path from 'path'
 import { Editor } from './Editor'
 import { ErrorPage } from './ErrorPages'
+import { GroupInviteDialog } from './GroupInviteDialog'
 import { HomePage } from './HomePage'
 import { ShareMenu } from './ShareMenu'
 import { Sidebar } from './Sidebar'
 
 export type UserName = 'huppy' | 'suppy'
 type UserProps = { user: UserName; index: number } | undefined
+
+export function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
 export async function openNewTab(
 	browser: Browser,
@@ -29,7 +34,8 @@ export async function openNewTab(
 			await newContext.grantPermissions(['clipboard-read', 'clipboard-write'])
 		}
 		const newPage = await newContext.newPage()
-		const { newEditor, newHomePage, newShareMenu, errorPage } = createFixtures(newPage)
+		const { newSidebar, newEditor, newHomePage, newShareMenu, newGroupInviteDialog, errorPage } =
+			createFixtures(newPage)
 		if (url) {
 			await newPage.goto(url)
 		} else {
@@ -37,7 +43,16 @@ export async function openNewTab(
 		}
 
 		await newHomePage.isLoaded()
-		return { newPage, newContext, newHomePage, newEditor, newShareMenu, errorPage }
+		return {
+			newPage,
+			newContext,
+			newSidebar,
+			newHomePage,
+			newEditor,
+			newShareMenu,
+			newGroupInviteDialog,
+			errorPage,
+		}
 	})
 }
 
@@ -63,8 +78,9 @@ export function createFixtures(page: Page) {
 	const newEditor = new Editor(page, newSidebar)
 	const newHomePage = new HomePage(page, newEditor)
 	const newShareMenu = new ShareMenu(page)
+	const newGroupInviteDialog = new GroupInviteDialog(page)
 	const errorPage = new ErrorPage(page)
-	return { newSidebar, newEditor, newHomePage, newShareMenu, errorPage }
+	return { newSidebar, newEditor, newHomePage, newShareMenu, newGroupInviteDialog, errorPage }
 }
 
 export function getRandomName() {
@@ -75,4 +91,26 @@ export function getRandomName() {
 		result += characters[randomIndex]
 	}
 	return result
+}
+
+const PROPAGATE_CHANGES_TIMEOUT = 100
+/**
+ * Ensures that the provided expectations are met both before and after a page reload.
+ *
+ * @param fn - An asynchronous function containing the expectations to be tested.
+ * @param page - The Playwright Page object representing the browser page.
+ *
+ * The function performs the following steps:
+ * 1. Executes the provided expectations and ensures they pass.
+ * 2. Waits for a specified timeout to allow optimistic changes to propagate to the server.
+ * 3. Reloads the page.
+ * 4. Executes the provided expectations again and ensures they pass.
+ */
+export async function expectBeforeAndAfterReload(fn: () => Promise<void>, page: Page) {
+	await fn()
+	await sleep(PROPAGATE_CHANGES_TIMEOUT)
+	await page.reload()
+	const { newHomePage } = createFixtures(page)
+	await newHomePage.isLoaded()
+	await fn()
 }

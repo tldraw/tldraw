@@ -1,4 +1,4 @@
-import { createShapeId, Editor, TLArrowBinding, TLArrowShape, Tldraw, TLShapeId, Vec } from 'tldraw'
+import { createShapeId, Editor, TLArrowBinding, Tldraw, TLShapeId, Vec } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -101,7 +101,7 @@ function createArrowBetweenShapes(
 	const arrowId = createShapeId()
 	editor.run(() => {
 		editor.markHistoryStoppingPoint('creating_arrow')
-		editor.createShape<TLArrowShape>({
+		editor.createShape({
 			id: arrowId,
 			type: 'arrow',
 			// [2]
@@ -120,7 +120,7 @@ function createArrowBetweenShapes(
 			},
 		})
 
-		editor.createBindings<TLArrowBinding>([
+		editor.createBindings([
 			{
 				fromId: arrowId,
 				toId: startShapeId,
@@ -152,7 +152,7 @@ Introduction:
 
 This example shows how to create an arrow between two shapes.
 
-[1] 
+[1]
 The normalized anchor is the position inside the shape that the arrow connects to, where 0 0 is the
 top left corner and 1 1 is the bottom right. `isPrecise` needs to be enabled for this position to be
 used, otherwise it targets the center of the shape.

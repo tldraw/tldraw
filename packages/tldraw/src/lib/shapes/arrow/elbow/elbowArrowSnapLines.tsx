@@ -39,17 +39,17 @@ export function getElbowArrowSnapLines(editor: Editor) {
 		.get(editor, (editor) => {
 			const currentSelectedArrowShape = computed('current selected arrow shape', () => {
 				const shape = editor.getOnlySelectedShape()
-				if (!shape || !editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) return null
+				if (!shape || !editor.isShapeOfType(shape, 'arrow')) return null
 				return shape.id
 			})
 
 			const unselectedArrowShapeIds = editor.store.query.ids('shape', () => {
 				const activeArrowShapeId = currentSelectedArrowShape.get()
-				if (!activeArrowShapeId) return { type: { eq: 'arrow' } }
+				if (!activeArrowShapeId) return { type: { eq: 'arrow' } } as const
 				return {
 					type: { eq: 'arrow' },
 					id: { neq: activeArrowShapeId },
-				}
+				} as const
 			})
 
 			return computed('elbow arrow snap lines', () => {
@@ -71,13 +71,16 @@ export function getElbowArrowSnapLines(editor: Editor) {
 					if (!shapeBounds || !viewportBounds.includes(shapeBounds)) continue
 
 					const bindings = getArrowBindings(editor, shape)
+					const pageTransform = editor.getShapePageTransform(id)
+					if (!pageTransform) continue
 
-					const geometry = editor.getShapePageGeometry(id)
-					const vertices = geometry.getVertices({ includeInternal: false, includeLabels: false })
+					const geometry = editor.getShapeGeometry(id)
 
-					for (let i = 1; i < vertices.length; i++) {
-						const prev = vertices[i - 1]
-						const curr = vertices[i]
+					const pageVertices = pageTransform.applyToPoints(geometry.vertices)
+
+					for (let i = 1; i < pageVertices.length; i++) {
+						const prev = pageVertices[i - 1]
+						const curr = pageVertices[i]
 
 						let angle = Vec.Angle(prev, curr)
 

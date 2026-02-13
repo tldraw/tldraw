@@ -24,7 +24,7 @@ export function DefaultMinimap() {
 	const rCanvas = React.useRef<HTMLCanvasElement>(null!)
 	const rPointing = React.useRef(false)
 
-	const minimapRef = React.useRef<MinimapManager>()
+	const minimapRef = React.useRef<MinimapManager | undefined>(undefined)
 
 	React.useEffect(() => {
 		try {
@@ -159,7 +159,7 @@ export function DefaultMinimap() {
 				type: 'pointer',
 				target: 'canvas',
 				name: 'pointer_move',
-				...getPointerInfo(e),
+				...getPointerInfo(editor, e),
 				point: screenPoint,
 				isPen: editor.getInstanceState().isPenMode,
 			}
@@ -204,6 +204,7 @@ export function DefaultMinimap() {
 			<canvas
 				role="img"
 				aria-label={msg('navigation-zone.minimap')}
+				data-testid="minimap.canvas"
 				ref={rCanvas}
 				className="tlui-minimap__canvas"
 				onDoubleClick={onDoubleClick}
