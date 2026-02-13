@@ -1,3 +1,4 @@
+import { isComputed } from './Computed'
 import { attach, detach, singleton } from './helpers'
 import type { Child, Signal } from './types'
 
@@ -47,11 +48,55 @@ export function unsafe__withoutCapture<T>(fn: () => T): T {
 	}
 }
 
+/**
+ * Begins capturing parent signal dependencies for the given child signal.
+ *
+ * This function initiates a capture session where any signal accessed via `.get()`
+ * will be automatically registered as a dependency of the child signal. It sets up
+ * the capture stack frame and clears the existing parent set to prepare for fresh
+ * dependency tracking.
+ *
+ * @param child - The child signal (computed or effect) that will capture dependencies
+ *
+ * @example
+ * ```ts
+ * const effect = createEffect('myEffect', () => { /* ... *\/ })
+ * startCapturingParents(effect)
+ * // Now any signal.get() calls will be captured as dependencies
+ * ```
+ *
+ * @internal
+ */
 export function startCapturingParents(child: Child) {
 	inst.stack = new CaptureStackFrame(inst.stack, child)
+	if (child.__debug_ancestor_epochs__) {
+		const previousAncestorEpochs = child.__debug_ancestor_epochs__
+		child.__debug_ancestor_epochs__ = null
+		for (const p of child.parents) {
+			p.__unsafe__getWithoutCapture(true)
+		}
+		logChangedAncestors(child, previousAncestorEpochs)
+	}
 	child.parentSet.clear()
 }
 
+/**
+ * Completes the parent dependency capture session and finalizes the dependency graph.
+ *
+ * This function cleans up the capture session by removing dependencies that are no
+ * longer needed, detaching signals that should no longer be parents, and updating
+ * the dependency arrays to reflect the current set of captured parents. It must be
+ * called after `startCapturingParents` to complete the capture cycle.
+ *
+ * @example
+ * ```ts
+ * startCapturingParents(effect)
+ * // ... signal.get() calls happen here ...
+ * stopCapturingParents() // Finalizes the dependency graph
+ * ```
+ *
+ * @internal
+ */
 export function stopCapturingParents() {
 	const frame = inst.stack!
 	inst.stack = frame.below
@@ -76,9 +121,32 @@ export function stopCapturingParents() {
 			}
 		}
 	}
+
+	if (frame.child.__debug_ancestor_epochs__) {
+		captureAncestorEpochs(frame.child, frame.child.__debug_ancestor_epochs__)
+	}
 }
 
-// this must be called after the parent is up to date
+/**
+ * Conditionally captures a signal as a parent dependency during an active capture session.
+ *
+ * This function is called whenever a signal's `.get()` method is invoked during a
+ * capture session. It checks if the signal should be added as a dependency and manages
+ * the parent-child relationship in the reactive graph. The function handles deduplication,
+ * attachment/detachment, and tracks changes in dependency order.
+ *
+ * Note: This must be called after the parent signal is up to date.
+ *
+ * @param p - The signal that might be captured as a parent dependency
+ *
+ * @example
+ * ```ts
+ * // This is called internally when you do:
+ * const value = someAtom.get() // maybeCaptureParent(someAtom) is called
+ * ```
+ *
+ * @internal
+ */
 export function maybeCaptureParent(p: Signal<any, any>) {
 	if (inst.stack) {
 		const wasCapturedAlready = inst.stack.child.parentSet.has(p)
@@ -138,30 +206,71 @@ export function whyAmIRunning() {
 	if (!child) {
 		throw new Error('whyAmIRunning() called outside of a reactive context')
 	}
+	child.__debug_ancestor_epochs__ = new Map()
+}
 
-	const changedParents = []
+function captureAncestorEpochs(child: Child, ancestorEpochs: Map<Signal<any>, number>) {
 	for (let i = 0; i < child.parents.length; i++) {
 		const parent = child.parents[i]
+		const epoch = child.parentEpochs[i]
+		ancestorEpochs.set(parent, epoch)
+		if (isComputed(parent)) {
+			captureAncestorEpochs(parent as any, ancestorEpochs)
+		}
+	}
+	return ancestorEpochs
+}
 
-		if (parent.lastChangedEpoch > child.parentEpochs[i]) {
-			changedParents.push(parent)
+type ChangeTree = { [signalName: string]: ChangeTree } | null
+function collectChangedAncestors(
+	child: Child,
+	ancestorEpochs: Map<Signal<any>, number>
+): NonNullable<ChangeTree> {
+	const changeTree: ChangeTree = {}
+	for (let i = 0; i < child.parents.length; i++) {
+		const parent = child.parents[i]
+		if (!ancestorEpochs.has(parent)) {
+			continue
+		}
+		const prevEpoch = ancestorEpochs.get(parent)
+		const currentEpoch = parent.lastChangedEpoch
+		if (currentEpoch !== prevEpoch) {
+			if (isComputed(parent)) {
+				changeTree[parent.name] = collectChangedAncestors(parent as any, ancestorEpochs)
+			} else {
+				changeTree[parent.name] = null
+			}
+		}
+	}
+	return changeTree
+}
+
+function logChangedAncestors(child: Child, ancestorEpochs: Map<Signal<any>, number>) {
+	const changeTree = collectChangedAncestors(child, ancestorEpochs)
+	if (Object.keys(changeTree).length === 0) {
+		// eslint-disable-next-line no-console
+		console.log(`Effect(${child.name}) was executed manually.`)
+		return
+	}
+
+	let str = isComputed(child)
+		? `Computed(${child.name}) is recomputing because:`
+		: `Effect(${child.name}) is executing because:`
+
+	function logParent(tree: NonNullable<ChangeTree>, indent: number) {
+		const indentStr = '\n' + ' '.repeat(indent) + '↳ '
+		for (const [name, val] of Object.entries(tree)) {
+			if (val) {
+				str += `${indentStr}Computed(${name}) changed`
+				logParent(val, indent + 2)
+			} else {
+				str += `${indentStr}Atom(${name}) changed`
+			}
 		}
 	}
 
-	if (changedParents.length === 0) {
-		// eslint-disable-next-line no-console
-		console.log((child as any).name, 'is running but none of the parents changed')
-	} else {
-		// eslint-disable-next-line no-console
-		console.log((child as any).name, 'is running because:')
-		for (const changedParent of changedParents) {
-			// eslint-disable-next-line no-console
-			console.log(
-				'\t',
-				(changedParent as any).name,
-				'changed =>',
-				changedParent.__unsafe__getWithoutCapture(true)
-			)
-		}
-	}
+	logParent(changeTree, 1)
+
+	// eslint-disable-next-line no-console
+	console.log(str)
 }

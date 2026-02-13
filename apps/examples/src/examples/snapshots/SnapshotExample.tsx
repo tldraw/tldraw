@@ -88,7 +88,7 @@ You probably need to store these separately if you're building a multi-user app,
 For this example we'll just store them together in localStorage.
 
 [4] Call `loadSnapshot()` to load a snapshot into the editor
-You can omit the `session` state, or load it later on it's own.
+You can omit the `session` state, or load it later on its own.
 e.g.
 	loadSnapshot(editor.store, { document })
 then optionally later

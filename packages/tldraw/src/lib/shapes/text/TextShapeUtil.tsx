@@ -5,15 +5,16 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
-	TLFontFace,
 	TLGeometryOpts,
 	TLResizeInfo,
 	TLShapeId,
 	TLTextShape,
 	Vec,
 	createComputedCache,
+	getColorValue,
 	getDefaultColorTheme,
 	getFontsFromRichText,
+	isEqual,
 	resizeScaled,
 	textShapeMigrations,
 	textShapeProps,
@@ -21,7 +22,6 @@ import {
 	toRichText,
 	useEditor,
 } from '@tldraw/editor'
-import isEqual from 'lodash.isequal'
 import { useCallback } from 'react'
 import {
 	renderHtmlFromRichTextForMeasurement,
@@ -43,6 +43,8 @@ const sizeCache = createComputedCache(
 export interface TextShapeOptions {
 	/** How much addition padding should be added to the horizontal geometry of the shape when binding to an arrow? */
 	extraArrowHorizontalPadding: number
+	/** Whether to show the outline of the text shape (using the same color as the canvas). This helps with overlapping shapes. It does not show up on Safari, where text outline is a performance issues. */
+	showTextOutline: boolean
 }
 
 /** @public */
@@ -53,6 +55,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	override options: TextShapeOptions = {
 		extraArrowHorizontalPadding: 10,
+		showTextOutline: true,
 	}
 
 	getDefaultProps(): TLTextShape['props'] {
@@ -78,10 +81,14 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const context = opts?.context ?? 'none'
 		return new Rectangle2d({
 			x:
-				(context === '@tldraw/arrow-start' ? -this.options.extraArrowHorizontalPadding : 0) * scale,
+				(context === '@tldraw/arrow-without-arrowhead'
+					? -this.options.extraArrowHorizontalPadding
+					: 0) * scale,
 			width:
 				(width +
-					(context === '@tldraw/arrow-start' ? this.options.extraArrowHorizontalPadding * 2 : 0)) *
+					(context === '@tldraw/arrow-without-arrowhead'
+						? this.options.extraArrowHorizontalPadding * 2
+						: 0)) *
 				scale,
 			height: height * scale,
 			isFilled: true,
@@ -89,7 +96,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		})
 	}
 
-	override getFontFaces(shape: TLTextShape): TLFontFace[] {
+	override getFontFaces(shape: TLTextShape) {
+		// no need for an empty rich text check here
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',
@@ -131,10 +139,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				align={textAlign}
 				verticalAlign="middle"
 				richText={richText}
-				labelColor={theme[color].solid}
+				labelColor={getColorValue(theme, color, 'solid')}
 				isSelected={isSelected}
 				textWidth={width}
 				textHeight={height}
+				showTextOutline={this.options.showTextOutline}
 				style={{
 					transform: `scale(${scale})`,
 					transformOrigin: 'top left',
@@ -152,6 +161,18 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLTextShape): Path2D | undefined {
+		if (shape.props.autoSize && this.editor.getEditingShapeId() === shape.id) return undefined
+		const bounds = this.editor.getShapeGeometry(shape).bounds
+		const path = new Path2D()
+		path.rect(0, 0, bounds.width, bounds.height)
+		return path
+	}
+
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const width = bounds.width / (shape.props.scale ?? 1)
@@ -167,9 +188,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				align={shape.props.textAlign}
 				verticalAlign="middle"
 				richText={shape.props.richText}
-				labelColor={theme[shape.props.color].solid}
+				labelColor={getColorValue(theme, shape.props.color, 'solid')}
 				bounds={exportBounds}
 				padding={0}
+				showTextOutline={this.options.showTextOutline}
 			/>
 		)
 	}
@@ -202,6 +224,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override onEditEnd(shape: TLTextShape) {
+		// todo: find a way to check if the rich text has any nodes that aren't empty spaces
 		const trimmedText = renderPlaintextFromRichText(this.editor, shape.props.richText).trimEnd()
 
 		if (trimmedText.length === 0) {
@@ -298,33 +321,26 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 }
 
 function getTextSize(editor: Editor, props: TLTextShape['props']) {
-	const { font, richText, autoSize, size, w } = props
+	const { font, richText, size, w } = props
 
-	const minWidth = autoSize ? 16 : Math.max(16, w)
+	const minWidth = 16
 	const fontSize = FONT_SIZES[size]
 
-	const cw = autoSize
-		? null
-		: // `measureText` floors the number so we need to do the same here to avoid issues.
-			Math.floor(Math.max(minWidth, w))
+	const maybeFixedWidth = props.autoSize ? null : Math.max(minWidth, Math.floor(w))
 
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 	const result = editor.textMeasure.measureHtml(html, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: fontSize,
-		maxWidth: cw,
+		maxWidth: maybeFixedWidth,
 	})
 
 	// If we're autosizing the measureText will essentially `Math.floor`
 	// the numbers so `19` rather than `19.3`, this means we must +1 to
 	// whatever we get to avoid wrapping.
-	if (autoSize) {
-		result.w += 1
-	}
-
 	return {
-		width: Math.max(minWidth, result.w),
+		width: maybeFixedWidth ?? Math.max(minWidth, result.w + 1),
 		height: Math.max(fontSize, result.h),
 	}
 }

@@ -1,13 +1,14 @@
 ---
-title: Controlling the editor
+title: Controlling the canvas
 component: ./APIExample.tsx
 category: editor-api
-priority: 1
-keywords: [api, create shape, update shape, mount, context]
+priority: 0
+keywords: [editor api, createshapes, updateshape, rotateshapesby, zoomtofit, select, useeditor, onmount, setstyle, context]
 ---
 
 Manipulate the contents of the canvas using the editor API.
 
 ---
 
-This example creates and updates shapes, selects and rotates them, and zooms the camera.
+
+You can manipulate the contents of the canvas using the editor API. This example creates and updates shapes, selects and rotates them, and zooms the camera.

@@ -240,7 +240,7 @@ test.describe('signed in user on someone elses file', () => {
 		await expect(newPage.getByTestId('tla-error-icon')).not.toBeVisible()
 		// We should also see the file in the sidebar and a guest badge icon next to it
 		await expect(newPage.getByTestId('tla-sidebar').getByText(newName)).toBeVisible()
-		await expect(newPage.getByTestId(`guest-badge-${newName}`).getByRole('button')).toBeVisible()
+		await expect(newPage.getByTestId(`guest-badge-${newName}`)).toBeVisible()
 	})
 
 	test('tabs work correctly', async ({ browser, sidebar, shareMenu }) => {
@@ -428,7 +428,7 @@ test.describe('logged out user on published file', () => {
 
 		// download the file
 		await newEditor.openPageMenu()
-		const downloadButton = newEditor.page.getByText('Download file')
+		const downloadButton = newEditor.page.getByText('Download')
 		await expect(downloadButton).toBeVisible()
 
 		// check that the file downloaded
@@ -459,4 +459,56 @@ test('can export a file as an image', async ({ page, shareMenu }) => {
 	expect(fs.existsSync(filePath)).toBeTruthy()
 	const stats = fs.statSync(filePath)
 	expect(stats.size).toBeGreaterThan(0)
+})
+
+test('can follow a deep link to a never-seen file', async ({ editor, browser, shareMenu }) => {
+	const text = Math.random().toString(36).substring(2, 15)
+	await editor.createNewPage()
+	await editor.createTextShape(text)
+
+	await shareMenu.open()
+	expect(await shareMenu.isInviteButtonVisible()).toBe(true)
+	const url = await shareMenu.copyLink()
+	// close the share menu
+	await shareMenu.page.keyboard.press('Escape')
+	// create a new empty page
+	await editor.createNewPage()
+
+	const { newEditor } = await openNewTab(browser, {
+		url,
+		allowClipboard: true,
+		userProps: { user: 'suppy', index: test.info().parallelIndex },
+	})
+
+	await newEditor.expectShapesCount(1)
+	expect(newEditor.page.getByText(text).last()).toBeVisible()
+})
+
+test('can follow a deep link to an already-seen file', async ({ editor, shareMenu, browser }) => {
+	const text = Math.random().toString(36).substring(2, 15)
+
+	await shareMenu.open()
+	await shareMenu.inviteTabButton.click()
+	// close the share menu
+	await shareMenu.page.keyboard.press('Escape')
+
+	const { newEditor, newShareMenu } = await openNewTab(browser, {
+		url: editor.page.url(),
+		allowClipboard: true,
+		userProps: { user: 'suppy', index: test.info().parallelIndex },
+	})
+
+	await newEditor.createNewPage()
+	await newEditor.createTextShape(text)
+	await newEditor.expectShapesCount(1)
+
+	await newShareMenu.open()
+	await newShareMenu.anonShareTabButton.click()
+	const url = await newShareMenu.copyLink()
+
+	await newEditor.createNewPage()
+
+	await editor.page.goto(url)
+	await editor.expectShapesCount(1)
+	await expect(editor.page.getByText(text).last()).toBeVisible()
 })

@@ -4,7 +4,7 @@ import { BaseBoxShapeTool, TLShape, TLShapeId } from '@tldraw/editor'
 export class FrameShapeTool extends BaseBoxShapeTool {
 	static override id = 'frame'
 	static override initial = 'idle'
-	override shapeType = 'frame'
+	override shapeType = 'frame' as const
 
 	override onCreate(shape: TLShape | null): void {
 		if (!shape) return

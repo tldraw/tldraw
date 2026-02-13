@@ -163,7 +163,7 @@ export interface TLSnapIndicatorProps {
 /** @public @react */
 export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps) {
 	return (
-		<svg className={classNames('tl-overlays__item', className)}>
+		<svg className={classNames('tl-overlays__item', className)} aria-hidden="true">
 			{line.type === 'points' ? (
 				<PointsSnapIndicator {...line} zoom={zoom} />
 			) : line.type === 'gaps' ? (

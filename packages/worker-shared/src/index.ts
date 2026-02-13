@@ -2,7 +2,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 export { handleExtractBookmarkMetadataRequest } from './bookmarks'
-export { notFound } from './errors'
+export { forbidden, notFound } from './errors'
 export {
 	createRouter,
 	handleApiRequest,
@@ -10,5 +10,6 @@ export {
 	type ApiRoute,
 	type ApiRouter,
 } from './handleRequest'
+export { blockUnknownOrigins, isAllowedOrigin } from './origins'
 export { createSentry } from './sentry'
 export { handleUserAssetGet, handleUserAssetUpload } from './userAssetUploads'

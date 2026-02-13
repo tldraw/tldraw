@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Analytics Banner Preview</title>
+		<style>
+			body {
+				width: 100%;
+				height: 100%;
+				background-color: white;
+				color: black;
+			}
+			body.dark {
+				background-color: black;
+				color: white;
+			}
+		</style>
+	</head>
+	<body>
+		<button id="toggle-theme">toggle theme</button>
+		<button id="cookie-dialog">show cookie preferences</button>
+	</body>
+	<script>
+		const button = document.getElementById('toggle-theme')
+		button.addEventListener('click', () => {
+			document.body.classList.toggle('dark')
+			document.body.setAttribute(
+				'data-theme',
+				document.body.classList.contains('dark') ? 'dark' : 'light'
+			)
+		})
+
+		const cookieButton = document.getElementById('cookie-dialog')
+		cookieButton.addEventListener('click', () => {
+			window.tlanalytics.openPrivacySettings()
+		})
+	</script>
+	<script src="./public/tl-analytics.js"></script>
+</html>

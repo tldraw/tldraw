@@ -1,12 +1,15 @@
 ---
-title: Hide UI
+title: Hide the entire UI
 component: ./HideUiExample.tsx
 category: ui
-keywords: []
+priority: 1.5
+keywords: [hideui, bare editor, minimal, custom ui, headless]
 ---
 
 Hide tldraw's UI with the `hideUi` prop.
 
 ---
 
-Useful for a bare-bones editor, or if you want to build your own UI.
+Hide tldraw's UI with the `hideUi` prop.
+
+This can be useful if you want a bare-bones editor, or if you want to build your own UI.

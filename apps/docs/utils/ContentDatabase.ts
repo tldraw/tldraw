@@ -1,8 +1,8 @@
 import { connect } from '@/scripts/lib/connect'
 import { assert } from '@tldraw/utils'
-import { Database } from 'sqlite'
-import sqlite3 from 'sqlite3'
-import {
+import type { Database } from 'sqlite'
+import type sqlite3 from 'sqlite3'
+import type {
 	Article,
 	ArticleHeading,
 	ArticleLinks,
@@ -90,7 +90,7 @@ export class ContentDatabase {
 	async getCategoryArticles(sectionId: string, categoryId: string) {
 		const db = await this.getDb()
 		const articles = await db.all<Article[]>(
-			'SELECT id, title, description, sectionId, categoryId, authorId, hero, date, path FROM articles WHERE sectionId = ? AND categoryId = ?',
+			'SELECT id, title, description, sectionId, categoryId, authorId, priority, hero, thumbnail, socialImage, date, path FROM articles WHERE sectionId = ? AND categoryId = ?',
 			sectionId,
 			categoryId
 		)
@@ -109,7 +109,7 @@ export class ContentDatabase {
 			`SELECT id, title, categoryId, sectionId, path FROM articles
 			   WHERE articles.sectionId = ?
 				   AND ((articles.groupId = ? AND ? IS NOT NULL) OR (articles.groupId IS NULL AND ? is NULL))
-					 AND articles.sectionIndex < ? 
+					 AND articles.sectionIndex < ?
 			   ORDER BY articles.sectionIndex DESC LIMIT 1`,
 			article.sectionId,
 			article.groupId,
@@ -180,6 +180,7 @@ export class ContentDatabase {
 	private _sidebarContentLinks: SidebarContentLink[] | undefined
 	private _sidebarReferenceContentLinks: SidebarContentLink[] | undefined
 	private _sidebarExamplesContentLinks: SidebarContentLink[] | undefined
+	private _sidebarStarterKitsContentLinks: SidebarContentLink[] | undefined
 
 	async getSidebarContentList({
 		sectionId,
@@ -197,7 +198,9 @@ export class ContentDatabase {
 				? this._sidebarExamplesContentLinks
 				: sectionId === 'reference'
 					? this._sidebarReferenceContentLinks
-					: this._sidebarContentLinks
+					: sectionId === 'starter-kits'
+						? this._sidebarStarterKitsContentLinks
+						: this._sidebarContentLinks
 		if (cachedLinks && process.env.NODE_ENV !== 'development') {
 			// Use the previously cached sidebar links
 			links = cachedLinks
@@ -231,6 +234,13 @@ export class ContentDatabase {
 					continue
 				}
 
+				if (
+					(sectionId === 'starter-kits' && section.id !== 'starter-kits') ||
+					(sectionId !== 'starter-kits' && section.id === 'starter-kits')
+				) {
+					continue
+				}
+
 				if (section.sidebar_behavior === 'show-title') {
 					links.push({
 						type: 'article',
@@ -241,10 +251,6 @@ export class ContentDatabase {
 					})
 					continue
 				}
-
-				// If the article is in the getting-started section
-				// ... we place it at the top level of the sidebar
-				// ... so let's simplify its URL to reflect that
 
 				const categoriesForSection = await db.all<Category[]>(
 					`SELECT * FROM categories WHERE categories.sectionId = ? ORDER BY sectionIndex ASC`,
@@ -266,7 +272,7 @@ export class ContentDatabase {
 							const sidebarArticleLink: SidebarContentArticleLink = {
 								type: 'article',
 								articleId: article.id,
-								title: article.title,
+								title: article.sidebarTitle ?? article.title,
 								url: article.path,
 								groupId: article.groupId,
 							}
@@ -307,13 +313,20 @@ export class ContentDatabase {
 				children.push(...ucg)
 
 				// Push the section to the sidebar
-				links.push({ type: 'section', title: section.title, url: section.path, children })
+				links.push({
+					type: 'section',
+					title: section.title,
+					url: section.path,
+					children,
+				})
 
 				// Cache the links structure for next time
 				if (sectionId === 'examples') {
 					this._sidebarExamplesContentLinks = links
 				} else if (sectionId === 'reference') {
 					this._sidebarReferenceContentLinks = links
+				} else if (sectionId === 'starter-kits') {
+					this._sidebarStarterKitsContentLinks = links
 				} else {
 					this._sidebarContentLinks = links
 				}

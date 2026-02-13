@@ -1,7 +1,9 @@
+import { TLUiIconJsx } from './ui/components/primitives/TldrawUiIcon'
+
 /** @public */
 export type StyleValuesForUi<T> = readonly {
 	readonly value: T
-	readonly icon: string
+	readonly icon: string | TLUiIconJsx
 }[]
 
 // todo: default styles prop?
@@ -24,8 +26,11 @@ export const STYLES = {
 		{ value: 'none', icon: 'fill-none' },
 		{ value: 'semi', icon: 'fill-semi' },
 		{ value: 'solid', icon: 'fill-solid' },
+	],
+	fillExtra: [
 		{ value: 'pattern', icon: 'fill-pattern' },
-		// { value: 'fill', icon: 'fill-fill' },
+		{ value: 'lined-fill', icon: 'fill-lined-fill' },
+		{ value: 'fill', icon: 'fill-fill' },
 	],
 	dash: [
 		{ value: 'draw', icon: 'dash-draw' },
@@ -81,6 +86,10 @@ export const STYLES = {
 		{ value: 'x-box', icon: 'geo-x-box' },
 		{ value: 'check-box', icon: 'geo-check-box' },
 		{ value: 'heart', icon: 'geo-heart' },
+	],
+	arrowKind: [
+		{ value: 'arc', icon: 'arrow-arc' },
+		{ value: 'elbow', icon: 'arrow-elbow' },
 	],
 	arrowheadStart: [
 		{ value: 'none', icon: 'arrowhead-none' },

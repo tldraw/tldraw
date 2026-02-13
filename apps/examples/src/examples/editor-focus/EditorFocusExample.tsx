@@ -6,7 +6,7 @@ import './editor-focus.css'
 export default function EditorFocusExample() {
 	const editorRef = useRef<Editor | null>(null)
 	return (
-		<div style={{ padding: 32 }}>
+		<div style={{ padding: 32, minHeight: '120vh' }}>
 			<input type="text" placeholder="Test me" />
 			<p>
 				You should be able to type in this text input without worrying about triggering editor
@@ -19,10 +19,12 @@ export default function EditorFocusExample() {
 						id="focus"
 						type="checkbox"
 						onChange={(e) => {
+							const editor = editorRef.current
+							if (!editor) return
 							if (e.target.checked) {
-								editorRef.current?.focus()
+								editor.focus() // optional
 							} else {
-								editorRef.current?.blur()
+								editor.blur() // optional
 							}
 						}}
 					/>
@@ -31,8 +33,9 @@ export default function EditorFocusExample() {
 			</div>
 			<p>The checkbox focuses and blurs the editor.</p>
 			<p>
-				When the editor is “focused”, its keyboard shortcuts will work. When it is not focused, the
-				keyboard shortcuts will not work.
+				When the editor is “focused”, its keyboard shortcuts will work and scrolling over the editor
+				will scroll the canvas. When it is not focused, the keyboard shortcuts will not work and
+				scrolling over the editor will not move the canvas.
 			</p>
 			<div style={{ width: 800, maxWidth: '100%', height: 500 }}>
 				<Tldraw

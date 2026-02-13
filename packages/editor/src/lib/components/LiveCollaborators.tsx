@@ -6,6 +6,11 @@ import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { usePeerIds } from '../hooks/usePeerIds'
 import { usePresence } from '../hooks/usePresence'
+import {
+	CollaboratorState,
+	getCollaboratorStateFromElapsedTime,
+	shouldShowCollaborator,
+} from '../utils/collaboratorState'
 
 export const LiveCollaborators = track(function Collaborators() {
 	const peerIds = usePeerIds()
@@ -26,30 +31,8 @@ const CollaboratorGuard = track(function CollaboratorGuard({
 		return null
 	}
 
-	switch (collaboratorState) {
-		case 'inactive': {
-			const { followingUserId, highlightedUserIds } = editor.getInstanceState()
-			// If they're inactive and unless we're following them or they're highlighted, hide them
-			if (!(followingUserId === presence.userId || highlightedUserIds.includes(presence.userId))) {
-				return null
-			}
-			break
-		}
-		case 'idle': {
-			const { highlightedUserIds } = editor.getInstanceState()
-			// If they're idle and following us and unless they have a chat message or are highlighted, hide them
-			if (
-				presence.followingUserId === editor.user.getId() &&
-				!(presence.chatMessage || highlightedUserIds.includes(presence.userId))
-			) {
-				return null
-			}
-			break
-		}
-		case 'active': {
-			// If they're active, show them
-			break
-		}
+	if (!shouldShowCollaborator(editor, presence, collaboratorState)) {
+		return null
 	}
 
 	return <Collaborator latestPresence={presence} />
@@ -137,7 +120,16 @@ const Collaborator = track(function Collaborator({
 			) : null}
 			{CollaboratorShapeIndicator &&
 				selectedShapeIds
-					.filter((id) => !editor.isShapeHidden(id))
+					.filter((id) => {
+						// Skip hidden shapes
+						if (editor.isShapeHidden(id)) return false
+						// Only render SVG indicators for shapes that use legacy indicators
+						// Canvas-based indicators are handled by CanvasShapeIndicators
+						const shape = editor.getShape(id)
+						if (!shape) return false
+						const util = editor.getShapeUtil(shape)
+						return util.useLegacyIndicator()
+					})
 					.map((shapeId) => (
 						<CollaboratorShapeIndicator
 							className="tl-collaborator__shape-indicator"
@@ -152,24 +144,21 @@ const Collaborator = track(function Collaborator({
 	)
 })
 
-function getStateFromElapsedTime(editor: Editor, elapsed: number) {
-	return elapsed > editor.options.collaboratorInactiveTimeoutMs
-		? 'inactive'
-		: elapsed > editor.options.collaboratorIdleTimeoutMs
-			? 'idle'
-			: 'active'
-}
-
-function useCollaboratorState(editor: Editor, latestPresence: TLInstancePresence | null) {
+function useCollaboratorState(
+	editor: Editor,
+	latestPresence: TLInstancePresence | null
+): CollaboratorState {
 	const rLastActivityTimestamp = useRef(latestPresence?.lastActivityTimestamp ?? -1)
 
-	const [state, setState] = useState<'active' | 'idle' | 'inactive'>(() =>
-		getStateFromElapsedTime(editor, Date.now() - rLastActivityTimestamp.current)
+	const [state, setState] = useState<CollaboratorState>(() =>
+		getCollaboratorStateFromElapsedTime(editor, Date.now() - rLastActivityTimestamp.current)
 	)
 
 	useEffect(() => {
 		const interval = editor.timers.setInterval(() => {
-			setState(getStateFromElapsedTime(editor, Date.now() - rLastActivityTimestamp.current))
+			setState(
+				getCollaboratorStateFromElapsedTime(editor, Date.now() - rLastActivityTimestamp.current)
+			)
 		}, editor.options.collaboratorCheckIntervalMs)
 
 		return () => clearInterval(interval)

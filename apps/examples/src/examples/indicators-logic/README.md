@@ -1,10 +1,23 @@
 ---
-title: Indicators logic
+title: Custom indicators
 component: ./IndicatorsLogicExample.tsx
-category: editor-api
-keywords: [indicators]
+category: ui
+priority: 3
+keywords:
+  [
+    indicators,
+    shapeindicator,
+    onthecanvas,
+    getrenderingshapes,
+    useeditorcomponents,
+    defaultshapeindicators,
+    showall,
+    hideall,
+  ]
 ---
+
+Change when indicators are shown and how they appear.
 
 ---
 
-If for some reason you wanted to show indicators yourself, here's an example of that.
+This example shows how you can change when indicators are shown and how they appear.

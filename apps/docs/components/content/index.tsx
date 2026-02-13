@@ -1,24 +1,28 @@
-import { A } from '@/components/content/a'
 import { ApiHeading } from '@/components/content/api-heading'
+import { StarterKitBento } from '@/components/content/bento'
 import { Blockquote } from '@/components/content/blockquote'
 import { Callout } from '@/components/content/callout'
+import { CheckItem } from '@/components/content/check-item'
 import { Code, CodeLinks, FocusLines } from '@/components/content/code'
-import { Embed } from '@/components/content/embed'
+import { Embed, StarterKitEmbed } from '@/components/content/embed'
+import { Feature } from '@/components/content/feature'
 import { Image } from '@/components/content/image'
 import { ParametersTable } from '@/components/content/parameters-table'
 import { ParametersTableDescription } from '@/components/content/parameters-table-description'
 import { ParametersTableName } from '@/components/content/parameters-table-name'
 import { ParametersTableRow } from '@/components/content/parameters-table-row'
 import { Pre } from '@/components/content/pre'
+import { SideBySideImages } from '@/components/content/side-by-side-images'
 import { ApiMemberTitle } from '@/components/content/title-with-source-link'
 import { Video } from '@/components/content/video'
 import { YouTube } from '@/components/content/youtube'
 import { cn } from '@/utils/cn'
 import shikiRehype from '@shikijs/rehype'
-import { MDXRemote } from 'next-mdx-remote/rsc'
+import { MDXRemote } from 'next-mdx-remote-client/rsc'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeSlug from 'rehype-slug-custom-id'
 import remarkGfm from 'remark-gfm'
+import { TldrawLink } from '../common/tldraw-link'
 
 export function Content({ mdx, type }: { mdx: string; type?: string }) {
 	return (
@@ -40,13 +44,16 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 			<MDXRemote
 				source={mdx}
 				components={{
-					a: A,
+					a: TldrawLink,
 					Embed,
+					StarterKitEmbed,
 					pre: Pre,
 					code: Code,
 					Image,
 					img: Image,
 					ApiHeading,
+					StarterKitBento,
+					Feature,
 					Callout,
 					FocusLines,
 					CodeLinks,
@@ -55,16 +62,25 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 					ParametersTableName,
 					ParametersTableRow,
 					ApiMemberTitle,
+					CheckItem,
 					blockquote: Blockquote,
 					Video,
 					YouTube,
+					TwoImages: SideBySideImages,
 				}}
 				options={{
 					mdxOptions: {
 						remarkPlugins: [remarkGfm],
 						rehypePlugins: [
 							[rehypeAutolinkHeadings, {}],
-							[rehypeSlug, { enableCustomId: true, maintainCase: true, removeAccents: true }],
+							[
+								rehypeSlug,
+								{
+									enableCustomId: true,
+									maintainCase: true,
+									removeAccents: true,
+								},
+							],
 							[
 								shikiRehype as any,
 								{

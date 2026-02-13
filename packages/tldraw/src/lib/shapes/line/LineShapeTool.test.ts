@@ -1,4 +1,4 @@
-import { TLLineShape, assert } from '@tldraw/editor'
+import { assert } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
@@ -127,7 +127,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(20, 10)
 
 		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
-		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
+		assert(editor.isShapeOfType(line, 'line'))
 		expect(Object.keys(line.props.points).length).toBe(3)
 	})
 
@@ -143,7 +143,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(30, 10)
 
 		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
-		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
+		assert(editor.isShapeOfType(line, 'line'))
 		expect(Object.keys(line.props.points).length).toBe(2)
 	})
 
@@ -160,7 +160,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(30, 10)
 
 		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
-		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
+		assert(editor.isShapeOfType(line, 'line'))
 		expect(Object.keys(line.props.points).length).toBe(3)
 	})
 
@@ -179,7 +179,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(30, 10)
 
 		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
-		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
+		assert(editor.isShapeOfType(line, 'line'))
 		expect(Object.keys(line.props.points).length).toBe(3)
 	})
 
@@ -200,7 +200,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(40, 10)
 
 		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
-		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
+		assert(editor.isShapeOfType(line, 'line'))
 		expect(Object.keys(line.props.points).length).toBe(3)
 	})
 })

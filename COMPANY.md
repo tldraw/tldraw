@@ -1,0 +1,5 @@
+# Company
+
+tldraw is a Series A startup that builds the tldraw editor and the tldraw SDK. It is an American company (tldraw, Inc.) with an operating subsidiary based in the United Kingdom (tldraw GB Ltd.). The company's product, design, and engineering team is based in London.
+
+Learn more about tldraw at tldraw.dev.

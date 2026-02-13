@@ -1,0 +1,707 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Privacy Policy</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 70ch;
+		padding: 0 2em;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="1583e4c3-24c0-8087-9905-d15759ecaa96" class="page sans"><header><div class="page-header-icon undefined"><span class="icon">📄</span></div><h1 class="page-title">Privacy Policy</h1><p class="page-description"></p></header><div class="page-body"><p id="1843e4c3-24c0-8086-b0fe-e2ce68f1d4a8" class=""><strong>Effective as of November 24th, 2024. </strong></p><p id="1843e4c3-24c0-8004-a532-f745077cd4fb" class="">This Privacy Policy describes how tldraw Inc. (&quot;tldraw,&quot; &quot;we&quot;, “us” or &quot;our&quot;) processes personal information that we collect through our digital or online properties or services that link to this Privacy Policy (including as applicable, our website and the application functionality on our website, marketing activities, and other activities described in this Privacy Policy (collectively, the “Service”)).</p><h3 id="1843e4c3-24c0-805b-82e7-eafe312a9e9a" class="">Personal information we collect</h3><p id="1843e4c3-24c0-808c-8064-d8389f6fdca5" class=""><strong>Information you provide to us. </strong>Personal information you may provide to us through the Service or otherwise includes: </p><ul id="1843e4c3-24c0-806f-b259-c2ede777a8c9" class="bulleted-list"><li style="list-style-type:disc"><strong>Contact data</strong>, such as your first and last name, salutation, email address, address, and phone number.</li></ul><ul id="1843e4c3-24c0-806f-8771-fd23be12ddea" class="bulleted-list"><li style="list-style-type:disc"><strong>Profile data</strong>, such as the username and password that you may set to establish an online account with us, interests, preferences, and any other information that you add to your account profile.</li></ul><ul id="1843e4c3-24c0-8059-ad32-e48ed71a75a6" class="bulleted-list"><li style="list-style-type:disc"><strong>Communications data </strong>based on our exchanges with you, including when you contact us through the Service, social media, or otherwise.</li></ul><ul id="1843e4c3-24c0-802f-831f-d8d7b24dffa1" class="bulleted-list"><li style="list-style-type:disc"><strong>Marketing data</strong>, such as your preferences for receiving our marketing communications and details about your engagement with them.</li></ul><ul id="2b53e4c3-24c0-8018-be1a-d9b00751fc85" class="bulleted-list"><li style="list-style-type:disc"><strong>Payment data</strong>, such as billing address, billing zip code, and limited payment card details that are processed by our payment processor when you use paid portions of our services.</li></ul><ul id="1843e4c3-24c0-800b-b810-e18c4e1329e9" class="bulleted-list"><li style="list-style-type:disc"><strong>User-generated content data</strong>, such as photos, images, music, videos, comments, questions, messages, works of authorship, and other content or information that you generate, transmit, or otherwise make available on the Service, as well as associated metadata. Metadata includes information on how, when, where and by whom a piece of content was collected and how that content has been formatted or edited. Metadata also includes information that users can add or can have added to their content, such as keywords, geographical or location information, and other similar data.</li></ul><ul id="1843e4c3-24c0-80da-89cb-ecb59bf95592" class="bulleted-list"><li style="list-style-type:disc"><strong>Other data </strong>not specifically listed here, which we will use as described in this Privacy Policy or as otherwise disclosed at the time of collection.</li></ul><p id="1843e4c3-24c0-80ae-b77a-cf82db62f04c" class=""><strong>Third-party sources.</strong> We may combine personal information we receive from you with personal information we obtain from other sources, such as:</p><ul id="1843e4c3-24c0-8001-9ce8-e3391b2b23e3" class="bulleted-list"><li style="list-style-type:disc"><strong>Public sources</strong>, such as government agencies, public records, social media platforms, and other publicly available sources.</li></ul><ul id="1843e4c3-24c0-80e9-a249-cd10a23f6225" class="bulleted-list"><li style="list-style-type:disc"><strong>Data providers</strong>, such as information services and data licensors that provide demographic and other information.</li></ul><ul id="1843e4c3-24c0-80f5-9931-c8ade7dce688" class="bulleted-list"><li style="list-style-type:disc"><strong>Service providers</strong> that provide services on our behalf or help us operate the Service or our business.</li></ul><ul id="1843e4c3-24c0-805d-9d00-c705da13f6fe" class="bulleted-list"><li style="list-style-type:disc"><strong>Partners</strong>, such as marketing partners and event co-sponsors.</li></ul><ul id="1843e4c3-24c0-805e-97d3-f3ae73be1d71" class="bulleted-list"><li style="list-style-type:disc"><strong>Business transaction partners</strong>. We may receive personal information in connection with an actual or prospective business transaction. For example, we may receive your personal information from an entity we acquire or are acquired by, a successor, or assignee or any party involved in a business transaction such as a merger, acquisition, sale of assets, or similar transaction, and/or in the context of an insolvency, bankruptcy, or receivership.</li></ul><ul id="1843e4c3-24c0-804b-a267-e3d090053f2f" class="bulleted-list"><li style="list-style-type:disc"><strong>Third-party services</strong>, such as social media services, that you use to log into, or otherwise link to, your Service account. This data may include your username, profile picture and other information associated with your account on that third-party service that is made available to us based on your account settings on that service.</li></ul><p id="1843e4c3-24c0-8013-bfb4-fb12f40a32c1" class=""><strong>Automatic data collection.</strong> We, our service providers, and our business partners may automatically log information about you, your computer or mobile device, and your interaction over time with the Service, our communications and other online services, such as: </p><ul id="1843e4c3-24c0-802f-b887-df58d558318f" class="bulleted-list"><li style="list-style-type:disc"><strong>Device data</strong>,<strong> </strong>such as your computer or mobile device’s operating system type and version, manufacturer and model, browser type, screen resolution, RAM and disk size, CPU usage, device type (e.g., phone, tablet), IP address, unique identifiers (including identifiers used for advertising purposes), language settings, mobile device carrier, radio/network information (e.g., Wi-Fi, LTE, 3G), and general location information such as city, state or geographic area.</li></ul><ul id="1843e4c3-24c0-802b-8f02-c5bb7afe04f7" class="bulleted-list"><li style="list-style-type:disc"><strong>Online activity data</strong>, such as pages or screens you viewed, how long you spent on a page or screen, the website you visited before browsing to the Service, navigation paths between pages or screens, information about your activity on a page or screen, access times and duration of access, and whether you have opened our emails or clicked links within them.</li></ul><ul id="1843e4c3-24c0-800e-993a-c9cbb927659d" class="bulleted-list"><li style="list-style-type:disc"><strong>Communication interaction data </strong>such<strong> </strong>as your interactions with our email, text or other communications (e.g., whether you open and/or forward emails) – we may do this through use of pixel tags (which are also known as clear GIFs), which may be embedded invisibly in our emails.</li></ul><p id="1843e4c3-24c0-80bb-9264-d2d568ea8bb8" class=""><strong>Cookies and similar technologies.</strong> Some of the automatic collection described above is facilitated by the following technologies: </p><ul id="1843e4c3-24c0-80e5-884a-d24b2f1f8cdf" class="bulleted-list"><li style="list-style-type:disc"><strong>Cookies</strong>, which are small text files that websites store on user devices and that allow web servers to record users’ web browsing activities and remember their submissions, preferences, and login status as they navigate a site. Cookies used on our sites include both “session cookies” that are deleted when a session ends, “persistent cookies” that remain longer, “first party” cookies that we place and “third party” cookies that our third-party business partners and service providers place.</li></ul><ul id="1843e4c3-24c0-80af-8aae-d491b1d8de65" class="bulleted-list"><li style="list-style-type:disc"><strong>Local storage technologies</strong>, like HTML5, that provide cookie-equivalent functionality but can store larger amounts of data on your device outside of your browser in connection with specific applications.</li></ul><ul id="1843e4c3-24c0-8037-ba49-fd2145e2898b" class="bulleted-list"><li style="list-style-type:disc"><strong>Web beacons</strong>, also known as pixel tags or clear GIFs, which are used to demonstrate that a webpage or email was accessed or opened, or that certain content was viewed or clicked.</li></ul><p id="1843e4c3-24c0-806f-bb7e-c1fbb0480abb" class=""><strong>Data about others. </strong>We may offer features that help users invite their friends or contacts to use the Service, and we may collect contact details about these invitees so we can deliver their invitations. Please do not refer someone to us or share their contact details with us unless you have their permission to do so.</p><h3 id="1843e4c3-24c0-8054-8593-d9391eeeff9f" class="">How we use your personal information</h3><p id="1843e4c3-24c0-8083-afa9-f60996a8f317" class="">We may use your personal information for the following purposes or as otherwise described at the time of collection:</p><p id="1843e4c3-24c0-80a9-b8a2-c01f1f3afef4" class=""><strong>Service delivery and operations. </strong>We may use your personal information to: </p><ul id="1843e4c3-24c0-80f1-a475-f88fac905b15" class="bulleted-list"><li style="list-style-type:disc">provide, operate and improve the Service and our business;</li></ul><ul id="1843e4c3-24c0-803d-9bc5-df9e790ebb56" class="bulleted-list"><li style="list-style-type:disc">personalize the service, including remembering the devices from which you have previously logged in and remembering your selections and preferences as you navigate the Service;</li></ul><ul id="1843e4c3-24c0-80fd-8c28-db350cbcecbd" class="bulleted-list"><li style="list-style-type:disc">establish and maintain your user profile on the Service;</li></ul><ul id="1843e4c3-24c0-8008-894f-d193a22ee740" class="bulleted-list"><li style="list-style-type:disc">facilitate your invitations to friends who you want to invite to join the Service;</li></ul><ul id="1843e4c3-24c0-80ec-a951-f437d490334e" class="bulleted-list"><li style="list-style-type:disc">enable security features of the Service, such as by sending you security codes via email or SMS, and remembering devices from which you have previously logged in;</li></ul><ul id="1843e4c3-24c0-805c-be84-d7b16eb84b2a" class="bulleted-list"><li style="list-style-type:disc">communicate with you about the Service, including by sending Service-related announcements, updates, security alerts, and support and administrative messages;</li></ul><ul id="1843e4c3-24c0-80a2-9b24-f5b7ac821440" class="bulleted-list"><li style="list-style-type:disc">communicate with you about events or contests in which you participate;</li></ul><ul id="1843e4c3-24c0-8058-b11f-c2a0b55d1306" class="bulleted-list"><li style="list-style-type:disc">understand your needs and interests, and personalize your experience with the Service and our communications; and</li></ul><ul id="1843e4c3-24c0-80ac-a3f4-f34bda42c4b7" class="bulleted-list"><li style="list-style-type:disc">provide support for the Service, and respond to your requests, questions and feedback.</li></ul><p id="1843e4c3-24c0-800a-b6dc-f7f766bc04bd" class=""><strong>Research and development.</strong> We may use your personal information for research and development purposes, including to analyze and improve the Service and our business and to develop new products and services. As part of these activities, we may create aggregated, de-identified and/or anonymized data from personal information we collect. We make personal information into de-identified or anonymized data by removing information that makes the data personally identifiable to you. We may use this aggregated, de-identified or otherwise anonymized data and share it with third parties for our lawful business purposes, including to analyze and improve the Service and promote our business.</p><ul id="1843e4c3-24c0-8033-bc84-ca52dc3c7576" class="bulleted-list"><li style="list-style-type:disc"><strong>Direct marketing.</strong> We may send you direct marketing communications and may personalize these messages based on your needs and interests. You may opt-out of our marketing communications as described in the <a href="https://www.notion.so/Privacy-Policy-1583e4c324c080879905d15759ecaa96?pvs=21">Opt-out of marketing</a> section below.</li></ul><p id="1843e4c3-24c0-806e-b046-fa46dca4421b" class=""><strong>Service improvement and analytics.</strong> We may use your personal information to analyze your usage of the Service, improve the Service, improve the rest of our business, help us understand user activity on the Service, including which pages are most and least visited and how visitors move around the Service, as well as user interactions with our emails, and to develop new products and services. For example, we use Sentry Analytics for this purpose. You can learn more about Sentry Analytics here: https://sentry.io/privacy/. </p><p id="1843e4c3-24c0-8067-8788-d5ff60930ccd" class=""><strong>Compliance and protection.</strong> We may use your personal information to: </p><ul id="1843e4c3-24c0-80a8-bd69-c6c57c34a468" class="bulleted-list"><li style="list-style-type:disc">comply with applicable laws, lawful requests, and legal process, such as to respond to subpoenas, investigations or requests from government authorities;</li></ul><ul id="1843e4c3-24c0-8059-b969-fef2a1d89630" class="bulleted-list"><li style="list-style-type:disc">protect our, your or others’ rights, privacy, safety or property (including by making and defending legal claims);</li></ul><ul id="1843e4c3-24c0-804b-a48a-c69adfa987e2" class="bulleted-list"><li style="list-style-type:disc">audit our internal processes for compliance with legal and contractual requirements or our internal policies;</li></ul><ul id="1843e4c3-24c0-8013-a151-e8adfa38089b" class="bulleted-list"><li style="list-style-type:disc">enforce the terms and conditions that govern the Service; and</li></ul><ul id="1843e4c3-24c0-806d-a5ef-f99f0221b31f" class="bulleted-list"><li style="list-style-type:disc">prevent, identify, investigate and deter fraudulent, harmful, unauthorized, unethical or illegal activity, including cyberattacks and identity theft.</li></ul><p id="1843e4c3-24c0-805b-9a10-c81b8cd88e30" class=""><strong>Cookies and similar technologies.</strong> In addition to the other uses included in this section, we may use the Cookies and similar technologies described above for the following purposes: </p><ul id="1843e4c3-24c0-807e-b3d8-f971457c9582" class="bulleted-list"><li style="list-style-type:disc"><strong>Technical operation</strong>. To allow the technical operation of the Service, such as by remembering your selections and preferences as you navigate the site, and whether you are logged in when you visit password protected areas of the Service.</li></ul><ul id="1843e4c3-24c0-8043-ac56-ea353174a1e3" class="bulleted-list"><li style="list-style-type:disc"><strong>Functionality</strong>. To enhance the performance and functionality of our services.</li></ul><ul id="1843e4c3-24c0-80e7-8f0f-cc38852e027c" class="bulleted-list"><li style="list-style-type:disc"><strong>Advertising</strong>. To help our third-party advertising partners collect information about how you use the Service and other online services over time, which they use to show you ads on other online services they believe will interest you and measure how the ads perform.</li></ul><ul id="1843e4c3-24c0-80a5-b313-cf27509314e9" class="bulleted-list"><li style="list-style-type:disc"><strong>Analytics</strong>. To help us understand user activity on the Service, including which pages are most and least visited and how visitors move around the Service, as well as user interactions with our emails.</li></ul><p id="1843e4c3-24c0-8025-a40a-eb1e272cb9b8" class=""><strong>With your consent. </strong>In some cases, we may specifically ask for your consent to collect, use or share your personal information, such as when required by law. </p><h3 id="1843e4c3-24c0-80ae-a9ab-e3a9cf63b7a6" class="">How we share your personal information</h3><p id="1843e4c3-24c0-80ce-ba39-d1f058c293d5" class="">We may share your personal information with the following parties and as otherwise described in this Privacy Policy, in other applicable notices, or at the time of collection.</p><p id="1843e4c3-24c0-8002-b3b1-dd6ecde1d874" class=""><strong>Affiliates. </strong>Our corporate parent, subsidiaries, and affiliates.</p><p id="1843e4c3-24c0-809d-96e3-c84ee41096d5" class=""><strong>Service providers.</strong> Third parties<strong> </strong>that provide services on our behalf or help us operate the Service or our business (such as hosting, information technology, customer support, email delivery, marketing, payment processing, consumer research and website analytics).</p><p id="1843e4c3-24c0-800c-955c-fdffb5810509" class=""><strong>Advertising partners.  </strong>Third-party advertising companies for the <a href="https://www.notion.so/Privacy-Policy-1583e4c324c080879905d15759ecaa96?pvs=21">interest-based advertising purposes</a> described above.</p><p id="1843e4c3-24c0-80f1-ae37-c15b13c7cb9f" class=""><strong>Business and marketing partners. </strong>Third parties<strong> </strong>with whom we co-sponsor events or promotions, with whom we jointly offer products or services, or whose products or services may be of interest to you.</p><p id="1843e4c3-24c0-808e-8f6f-f94bafeb43be" class=""><strong>Professional advisors.</strong> Professional advisors, such as lawyers, auditors, bankers and insurers, where necessary in the course of the professional services that they render to us.</p><p id="1843e4c3-24c0-801e-bca7-cf0e76675555" class=""><strong>Authorities and others. </strong>Law enforcement, government authorities, and private parties, as we believe in good faith to be necessary or appropriate for the <a href="https://www.notion.so/Privacy-Policy-1583e4c324c080879905d15759ecaa96?pvs=21">Compliance and protection purposes</a> described above.</p><p id="1843e4c3-24c0-80d5-84e8-df51f2cb74e5" class=""><strong>Business transferees</strong>. We may disclose personal information in the context of actual or prospective business transactions (<em>e.g.,</em> investments in tldraw, financing of tldraw, public stock offerings, or the sale, transfer or merger of all or part of our business, assets or shares), for example, we may need to share certain personal information with prospective counterparties and their advisers. We may also disclose your personal information to an acquirer, successor, or assignee of tldraw as part of any merger, acquisition, sale of assets, or similar transaction, and/or in the event of an insolvency, bankruptcy, or receivership in which personal information is transferred to one or more third parties as one of our business assets.</p><p id="1843e4c3-24c0-8097-8147-d324dbee20ab" class=""><strong>Other users and the public. </strong>Your profile and other user-generated content data may be visible to other users of the Service and the public. For example, other users of the Service or the public may have access to your information if you chose to make your forum account profile or other personal information available to them through the Service, such as when you provide comments, reviews, survey responses, or share other content.  This information can be seen, collected and used by others, including being cached, copied, screen captured or stored elsewhere by others (e.g., search engines), and we are not responsible for any such use of this information.</p><h3 id="1843e4c3-24c0-80e4-b9c8-ecf8fc89afba" class="">Your choices</h3><p id="1843e4c3-24c0-8066-830b-cf2eca557d5f" class=""><strong>Access or update your information.</strong> If you have registered for an account with us through the Service, you may review and update certain account information by logging into the account.</p><p id="1843e4c3-24c0-805e-bf9d-d11878601924" class=""><strong>Opt-out of communications.</strong> You may opt-out of marketing-related emails by following the opt-out or unsubscribe instructions at the bottom of the email, or by <a href="https://www.notion.so/Privacy-Policy-1583e4c324c080879905d15759ecaa96?pvs=21">contacting us</a>. Please note that if you choose to opt-out of marketing-related emails, you may continue to receive service-related and other non-marketing emails.</p><p id="1843e4c3-24c0-808f-85c8-e72cdeadaec3" class=""><strong>Cookies.</strong> Most browsers let you remove or reject cookies.  To do this, follow the instructions in your browser settings.  Many browsers accept cookies by default until you change your settings.  Please note that if you set your browser to disable cookies, the Service may not work properly.  For more information about cookies, including how to see what cookies have been set on your browser and how to manage and delete them, visit <a href="http://www.allaboutcookies.org/">www.allaboutcookies.org</a>.</p><p id="1843e4c3-24c0-801b-bb99-f195d71cec1f" class=""><strong>Blocking images/clear gifs: </strong>Most browsers and devices allow you to configure your device to prevent images from loading. To do this, follow the instructions in your particular browser or device settings.</p><p id="1843e4c3-24c0-80f3-9f8a-f8d8c81ec8ac" class=""><strong>Mobile location data. </strong>You can disable our access to your device’s precise geolocation in your mobile device settings.</p><p id="1843e4c3-24c0-8039-bf10-dc6c11c39f24" class=""><strong>Privacy settings. </strong>We make available certain privacy settings on the Service, including options to control. To modify these settings, visit your Account Settings.</p><p id="1843e4c3-24c0-80b3-af47-f90d51ad7dc2" class=""><strong>Do Not Track.</strong> Some Internet browsers may be configured to send “Do Not Track” signals to the online services that you visit. We currently do not respond to “Do Not Track” signals. To find out more about “Do Not Track,” please visit <a href="http://www.allaboutdnt.com/">http://www.allaboutdnt.com</a>.</p><p id="1843e4c3-24c0-80fd-a141-f98107657f21" class=""><strong>Declining to provide information.</strong> We need to collect personal information to provide certain services. If you do not provide the information we identify as required or mandatory, we may not be able to provide those services.</p><p id="1843e4c3-24c0-80bc-b13a-dc9fb976dbba" class=""><strong>Remove or anonymize your content. </strong>You may request that the content that you posted to the Service be removed or anonymized such that your personal information will not be publicly identifiable on the Service by <a href="https://www.notion.so/Privacy-Policy-1583e4c324c080879905d15759ecaa96?pvs=21">contacting us</a>. We may decline to process your request as consistent with law. Please note that even if we process your request, it does not ensure complete or comprehensive removal of the content or information posted on the Service.</p><p id="1843e4c3-24c0-803a-b6cb-dacea0e2b880" class=""><strong>Delete your content or close your account.</strong> You can choose to delete certain content through your account. If you wish to request to close your account, please <a href="https://www.notion.so/Privacy-Policy-1583e4c324c080879905d15759ecaa96?pvs=21">contact us</a>.</p><h3 id="1843e4c3-24c0-8000-9772-c513ef637bd8" class="">Other sites and services</h3><p id="1843e4c3-24c0-80a3-b9b3-fb5e47b1efc4" class="">The Service may contain links to websites, mobile applications, and other online services operated by third parties. In addition, our content may be integrated into web pages or other online services that are not associated with us. These links and integrations are not an endorsement of, or representation that we are affiliated with, any third party. We do not control websites, mobile applications or online services operated by third parties, and we are not responsible for their actions. We encourage you to read the privacy policies of the other websites, mobile applications and online services you use.</p><h3 id="1843e4c3-24c0-8065-b441-c3f3bc4fceeb" class="">Security</h3><p id="1843e4c3-24c0-80f4-992e-c9733a9619b4" class="">We employ a number of technical, organizational and physical safeguards designed to protect the personal information we collect. However, security risk is inherent in all internet and information technologies and we cannot guarantee the security of your personal information.</p><h3 id="1843e4c3-24c0-8000-bacb-e156fde667ab" class="">International data transfer</h3><p id="1843e4c3-24c0-806d-b941-d146d23c216f" class="">We are headquartered in the United States and may use service providers that operate in other countries. Your personal information may be transferred to the United States or other locations where privacy laws may not be as protective as those in your state, province, or country.</p><h3 id="1843e4c3-24c0-803d-84b9-dea664fac6fe" class="">Children</h3><p id="1843e4c3-24c0-807b-b600-fed8ec89e636" class="">The Service is not intended for use by anyone under 13 years of age. If you are a parent or guardian of a child from whom you believe we have collected personal information in a manner prohibited by law, please <a href="https://www.notion.so/Privacy-Policy-1583e4c324c080879905d15759ecaa96?pvs=21">contact us</a>. If we learn that we have collected personal information through the Service from a child without the consent of the child’s parent or guardian as required by law, we will comply with applicable legal requirements to delete the information.</p><h3 id="1843e4c3-24c0-80c4-80a5-ffed3a11e3c0" class="">Changes to this Privacy Policy</h3><p id="1843e4c3-24c0-80e8-88af-cc748ca22e2f" class="">We reserve the right to modify this Privacy Policy at any time. If we make material changes to this Privacy Policy, we will notify you by updating the date of this Privacy Policy and posting it on the Service or other appropriate means. Any modifications to this Privacy Policy will be effective upon our posting the modified version (or as otherwise indicated at the time of posting). In all cases, your use of the Service after the effective date of any modified Privacy Policy indicates your acknowledging that the modified Privacy Policy applies to your interactions with the Service and our business.</p><h3 id="1843e4c3-24c0-800e-8814-f70604ee7db6" class="">How to contact us</h3><ul id="1843e4c3-24c0-8081-af92-e39d4482adbe" class="bulleted-list"><li style="list-style-type:disc"><strong>Email</strong>: <a href="mailto:hello@tldraw.com">hello@tldraw.com</a></li></ul><ul id="1843e4c3-24c0-808e-a917-ea480bc6da7a" class="bulleted-list"><li style="list-style-type:disc"><strong>Mail</strong>: Floor 3, The Arts Building, Morris Pl, Finsbury Park, London N4 3JG</li></ul><ul id="1843e4c3-24c0-804f-9f79-d1606fb6042c" class="bulleted-list"><li style="list-style-type:disc"><strong>Phone</strong>: +44 7481 806757</li></ul></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

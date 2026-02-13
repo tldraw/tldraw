@@ -9,7 +9,7 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 	const stroke = getStroke(scribble.points, {
 		size: scribble.size / zoom,
 		start: { taper: scribble.taper, easing: EASINGS.linear },
-		last: scribble.state === 'stopping',
+		last: scribble.state === 'complete' || scribble.state === 'stopping',
 		simulatePressure: false,
 		streamline: 0.32,
 	})
@@ -31,7 +31,7 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 			<path
 				className="tl-scribble"
 				d={d}
-				fill={color ?? `var(--color-${scribble.color})`}
+				fill={color ?? `var(--tl-color-${scribble.color})`}
 				opacity={opacity ?? scribble.opacity}
 			/>
 		</svg>

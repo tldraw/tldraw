@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { stopEventPropagation, Tldraw, TLEditorComponents, track, useEditor } from 'tldraw'
+import { Tldraw, TLEditorComponents, track, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -7,6 +7,7 @@ import 'tldraw/tldraw.css'
 // [1]
 function MyComponent() {
 	const [state, setState] = useState(0)
+	const editor = useEditor()
 
 	return (
 		<>
@@ -23,8 +24,7 @@ function MyComponent() {
 					userSelect: 'unset',
 					boxShadow: '0 0 0 1px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.1)',
 				}}
-				onPointerDown={stopEventPropagation}
-				onPointerMove={stopEventPropagation}
+				onPointerDown={editor.markEventAsHandled}
 			>
 				<p>The count is {state}! </p>
 				<button onClick={() => setState((s) => s - 1)}>-1</button>
@@ -43,8 +43,7 @@ function MyComponent() {
 					userSelect: 'unset',
 					boxShadow: '0 0 0 1px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.1)',
 				}}
-				onPointerDown={stopEventPropagation}
-				onPointerMove={stopEventPropagation}
+				onPointerDown={editor.markEventAsHandled}
 			>
 				<p>The count is {state}! </p>
 				<button onClick={() => setState((s) => s + 1)}>+1</button>
@@ -116,7 +115,7 @@ so that we don't accidentally select shapes when interacting with the component.
 This is our inFrontOfTheCanvas component. We want to render this next to a selected shape,
 so we need to make sure it's reactive to changes in the editor. We use the track function
 to make sure the component is re-rendered whenever the selection changes. Check out the
-Signia docs for more info: https://signia.tldraw.dev/docs/API/signia_react/functions/track
+signals example for more info: https://tldraw.dev/examples/signals
 
 Using the editor instance we can get the bounds of the selection box and convert them to
 screen coordinates. We then render the component at those coordinates.

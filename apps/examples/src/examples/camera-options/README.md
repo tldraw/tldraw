@@ -1,13 +1,24 @@
 ---
 title: Camera options
 component: ./CameraOptionsExample.tsx
-category: editor-api
-priority: 3
-keywords: [api, fixed, constraints, camera bounds, pan speed, zoom speed]
+category: configuration
+priority: 0.5
+keywords:
+  [
+    camera,
+    cameraoptions,
+    zoom constraints,
+    pan constraints,
+    camera bounds,
+    zoom speed,
+    pan speed,
+    viewport,
+    isfixed,
+  ]
 ---
 
-You can set the camera's options and constraints.
+Configure the camera's options and constraints.
 
 ---
 
-The `Tldraw` component provides a prop, `cameraOptions`, that can be used to set the camera's constraints, zoom behavior, and other options.
+The `Tldraw` component provides a prop, `cameraOptions`, that can be used to set the camera's constraints, zoom behavior, and other options. This example lets you modify those options to see how they affect the camera's behavior.

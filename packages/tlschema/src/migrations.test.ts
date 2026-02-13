@@ -3,6 +3,8 @@ import { getTestMigration, testSchema } from './__tests__/migrationTestUtils'
 import { bookmarkAssetVersions } from './assets/TLBookmarkAsset'
 import { imageAssetVersions } from './assets/TLImageAsset'
 import { videoAssetVersions } from './assets/TLVideoAsset'
+import { arrowBindingVersions } from './bindings/TLArrowBinding'
+import { b64Vecs } from './misc/b64Vecs'
 import { toRichText } from './misc/TLRichText'
 import { assetVersions } from './records/TLAsset'
 import { cameraVersions } from './records/TLCamera'
@@ -17,6 +19,7 @@ import { arrowShapeVersions } from './shapes/TLArrowShape'
 import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
 import { drawShapeVersions } from './shapes/TLDrawShape'
 import { embedShapeVersions } from './shapes/TLEmbedShape'
+import { frameShapeVersions } from './shapes/TLFrameShape'
 import { geoShapeVersions } from './shapes/TLGeoShape'
 import { highlightShapeVersions } from './shapes/TLHighlightShape'
 import { imageShapeVersions } from './shapes/TLImageShape'
@@ -222,6 +225,50 @@ describe('Store removing Icon and Code shapes', () => {
 		)
 		const fixed = up(snapshot)
 		expect(Object.entries(fixed)).toHaveLength(1)
+	})
+})
+
+describe('Fixing index keys', () => {
+	const { up, down } = getTestMigration(storeVersions.FixIndexKeys)
+	test('up works as expected', () => {
+		const snapshot = [
+			ShapeRecord.create({
+				type: 'shape',
+				id: 'shape:1',
+				parentId: 'page:any',
+				index: 'a0',
+			} as any),
+			ShapeRecord.create({
+				type: 'shape',
+				id: 'shape:2',
+				parentId: 'page:any',
+				index: 'a00',
+			} as any),
+			ShapeRecord.create({
+				type: 'shape',
+				id: 'shape:3',
+				parentId: 'page:any',
+				index: 'a111',
+			} as any),
+		]
+		const fixed = snapshot.map((shape) => up(shape))
+		expect(fixed.find((s) => s.id === 'shape:1')?.index).toBe('a0')
+		expect(fixed.find((s) => s.id === 'shape:2')?.index).not.toBe('a00')
+		expect(fixed.find((s) => s.id === 'shape:2')?.index).toMatch(/^a0[1-9A-Za-z]{3}$/)
+		expect(fixed.find((s) => s.id === 'shape:3')?.index).toBe('a111')
+	})
+
+	test('down works as expected', () => {
+		const snapshot = [
+			ShapeRecord.create({
+				type: 'shape',
+				id: 'shape:1',
+				parentId: 'page:any',
+				index: 'a00',
+			} as any),
+		]
+		const unchanged = snapshot.map((shape) => down(shape))
+		expect(unchanged.find((s) => s.id === 'shape:1')?.index).toBe('a00')
 	})
 })
 
@@ -1383,6 +1430,7 @@ describe('Add rich text', () => {
 		['text shape', getTestMigration(textShapeVersions.AddRichText)],
 		['geo shape', getTestMigration(geoShapeVersions.AddRichText)],
 		['note shape', getTestMigration(noteShapeVersions.AddRichText)],
+		['arrow shape', getTestMigration(arrowShapeVersions.AddRichText)],
 	] as const
 
 	for (const [shapeName, { up }] of migrations) {
@@ -1393,6 +1441,32 @@ describe('Add rich text', () => {
 			})
 			// N.B. Explicitly no down state so that we force clients to update.
 			// expect(down(originalShape)).toEqual(shape)
+		})
+	}
+})
+
+describe('Add rich text attrs', () => {
+	const migrations = [
+		['text shape', getTestMigration(textShapeVersions.AddRichTextAttrs)],
+		['geo shape', getTestMigration(geoShapeVersions.AddRichTextAttrs)],
+		['note shape', getTestMigration(noteShapeVersions.AddRichTextAttrs)],
+		['arrow shape', getTestMigration(arrowShapeVersions.AddRichTextAttrs)],
+	] as const
+
+	for (const [shapeName, { up, down }] of migrations) {
+		it(`works for ${shapeName}`, () => {
+			const shape = { props: { richText: toRichText('hello, world') } }
+			const shapeWithAttrs = {
+				props: { richText: { ...toRichText('hello, world'), attrs: { test: 'value' } } },
+			}
+
+			// Up migration should be a noop
+			expect(up(shape)).toEqual(shape)
+			expect(up(shapeWithAttrs)).toEqual(shapeWithAttrs)
+
+			// Down migration should remove attrs
+			expect(down(shapeWithAttrs)).toEqual(shape)
+			expect(down(shape)).toEqual(shape)
 		})
 	}
 })
@@ -1683,6 +1757,18 @@ describe('removes can move camera', () => {
 
 	test('down works as expected', () => {
 		expect(down({})).toStrictEqual({ canMoveCamera: true })
+	})
+})
+
+describe('Add camera state to instance', () => {
+	const { up, down } = getTestMigration(instanceVersions.AddCameraState)
+
+	test('up works as expected', () => {
+		expect(up({})).toStrictEqual({ cameraState: 'idle' })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ cameraState: 'idle' })).toStrictEqual({})
 	})
 })
 
@@ -2028,6 +2114,30 @@ describe('Add flipX, flipY to image shape', () => {
 	})
 })
 
+describe('Add alt text to image shape', () => {
+	const { up, down } = getTestMigration(imageShapeVersions.AddAltText)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { altText: '' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { altText: 'yo' } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add alt text to video shape', () => {
+	const { up, down } = getTestMigration(videoShapeVersions.AddAltText)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { altText: '' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { altText: 'yo' } })).toEqual({ props: {} })
+	})
+})
+
 describe('Make video asset file size optional', () => {
 	const { up, down } = getTestMigration(videoAssetVersions.MakeFileSizeOptional)
 
@@ -2117,6 +2227,364 @@ describe('TLPresence NullableCameraCursor', () => {
 			chatMessage: '',
 			meta: {},
 		})
+	})
+})
+
+describe('Adding color to frame shapes', () => {
+	const { up, down } = getTestMigration(frameShapeVersions.AddColorProp)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { color: 'black' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { color: 'black' } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add elbow kind to arrow shape', () => {
+	const { up, down } = getTestMigration(arrowShapeVersions.AddElbow)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { kind: 'arc', elbowMidPoint: 0.5 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { kind: 'arc', elbowMidPoint: 0.5, wow: true } })).toEqual({
+			props: { wow: true },
+		})
+		expect(down({ props: { kind: 'elbow', elbowMidPoint: 0.5, wow: true } })).toEqual({
+			props: { wow: true },
+		})
+	})
+})
+
+describe('Add side to arrow binding', () => {
+	const { up, down } = getTestMigration(arrowBindingVersions.AddSnap)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { snap: 'none' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { snap: 'none' } })).toEqual({ props: {} })
+		expect(down({ props: { snap: 'edge' } })).toEqual({ props: {} })
+	})
+})
+
+describe('TLVideoAsset AddAutoplay', () => {
+	const { up, down } = getTestMigration(videoShapeVersions.AddAutoplay)
+
+	test('down works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { autoplay: true } })
+		expect(down({ props: { autoplay: true } })).toEqual({ props: {} })
+	})
+})
+
+describe('Base64 encoding for draw shape', () => {
+	const { up, down } = getTestMigration(drawShapeVersions.Base64)
+
+	test('up converts VecModel[] array directly to delta-encoded path', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+				],
+			},
+		]
+		const result = up({ props: { segments: legacySegments } })
+
+		expect(result.props.scaleX).toBe(1)
+		expect(result.props.scaleY).toBe(1)
+		expect(typeof result.props.segments[0].path).toBe('string')
+		expect(result.props.segments[0].points).toBeUndefined()
+
+		const decodedPoints = b64Vecs.decodePoints(result.props.segments[0].path)
+		expect(decodedPoints.length).toBe(2)
+		expect(decodedPoints[0].x).toBeCloseTo(0, 0)
+		expect(decodedPoints[1].x).toBeCloseTo(10, 0)
+	})
+
+	test('down converts path back to VecModel[] array in points', () => {
+		const path = b64Vecs.encodePoints([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.6 },
+		])
+		const result = down({
+			props: {
+				scaleX: 1,
+				scaleY: 1,
+				segments: [{ type: 'free', path }],
+			},
+		})
+
+		expect(result.props.scaleX).toBeUndefined()
+		expect(result.props.scaleY).toBeUndefined()
+		expect(Array.isArray(result.props.segments[0].points)).toBe(true)
+		expect(result.props.segments[0].points.length).toBe(2)
+		expect(result.props.segments[0].path).toBeUndefined()
+	})
+})
+
+describe('LegacyPointsConversion migration for draw shape', () => {
+	const { up, down } = getTestMigration(drawShapeVersions.LegacyPointsConversion)
+
+	test('up converts legacy points (absolute base64) to path', () => {
+		// Data that was already migrated to v3 with the old absolute Float16 format
+		const absoluteBase64 = b64Vecs._legacyEncodePoints([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.6 },
+		])
+		const result = up({ props: { segments: [{ type: 'free', points: absoluteBase64 }] } })
+
+		expect(result.props.segments[0].path).toBeDefined()
+		expect(result.props.segments[0].points).toBeUndefined()
+
+		const decodedPoints = b64Vecs.decodePoints(result.props.segments[0].path)
+		expect(decodedPoints.length).toBe(2)
+		expect(decodedPoints[0].x).toBeCloseTo(0, 0)
+		expect(decodedPoints[1].x).toBeCloseTo(10, 0)
+	})
+
+	test('up converts legacy b64 string with multiple segments', () => {
+		// Test with multiple segments containing legacy absolute Float16 data
+		const legacyPoints1 = b64Vecs._legacyEncodePoints([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.6 },
+		])
+		const legacyPoints2 = b64Vecs._legacyEncodePoints([
+			{ x: 20, y: 20, z: 0.5 },
+			{ x: 30, y: 30, z: 0.7 },
+		])
+		const result = up({
+			props: {
+				segments: [
+					{ type: 'free', points: legacyPoints1 },
+					{ type: 'straight', points: legacyPoints2 },
+				],
+			},
+		})
+
+		expect(result.props.segments[0].path).toBeDefined()
+		expect(result.props.segments[0].points).toBeUndefined()
+		expect(result.props.segments[1].path).toBeDefined()
+		expect(result.props.segments[1].points).toBeUndefined()
+
+		const decoded1 = b64Vecs.decodePoints(result.props.segments[0].path)
+		expect(decoded1[0].x).toBeCloseTo(0, 0)
+		expect(decoded1[1].x).toBeCloseTo(10, 0)
+
+		const decoded2 = b64Vecs.decodePoints(result.props.segments[1].path)
+		expect(decoded2[0].x).toBeCloseTo(20, 0)
+		expect(decoded2[1].x).toBeCloseTo(30, 0)
+	})
+
+	test('up handles empty points gracefully', () => {
+		// Test with empty points array encoded as empty string
+		const result = up({ props: { segments: [{ type: 'free', points: '' }] } })
+
+		expect(result.props.segments[0].path).toBe('')
+		expect(result.props.segments[0].points).toBeUndefined()
+	})
+
+	test('up handles single point segment', () => {
+		const absoluteBase64 = b64Vecs._legacyEncodePoints([{ x: 100, y: 200, z: 0.75 }])
+		const result = up({ props: { segments: [{ type: 'free', points: absoluteBase64 }] } })
+
+		const decodedPoints = b64Vecs.decodePoints(result.props.segments[0].path)
+		expect(decodedPoints.length).toBe(1)
+		expect(decodedPoints[0].x).toBeCloseTo(100, 0)
+		expect(decodedPoints[0].y).toBeCloseTo(200, 0)
+		expect(decodedPoints[0].z).toBeCloseTo(0.75, 1)
+	})
+
+	test('up leaves already-converted path unchanged', () => {
+		const deltaPath = b64Vecs.encodePoints([
+			{ x: 100, y: 200, z: 0.5 },
+			{ x: 101, y: 201, z: 0.6 },
+		])
+		const result = up({ props: { segments: [{ type: 'free', path: deltaPath }] } })
+
+		// Should pass through unchanged
+		expect(result.props.segments[0].path).toBe(deltaPath)
+	})
+
+	test('down is a no-op (handled by Base64 down migration)', () => {
+		const deltaPath = b64Vecs.encodePoints([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.6 },
+		])
+		const result = down({ props: { segments: [{ type: 'free', path: deltaPath }] } })
+
+		// LegacyPointsConversion.down is a no-op; Base64.down handles the conversion
+		expect(result.props.segments[0].path).toBe(deltaPath)
+	})
+
+	test('migration converts legacy Float16 data to delta encoding format', () => {
+		// This test verifies the migration converts from legacy absolute Float16 format
+		// to the new delta encoding format. Note: precision already lost in legacy Float16
+		// cannot be recovered - this just tests the format conversion works.
+		const largeCoordPoints = [
+			{ x: 10000, y: 10000, z: 0.5 },
+			{ x: 10001, y: 10001, z: 0.5 },
+			{ x: 10002, y: 10002, z: 0.6 },
+		]
+
+		// Legacy Float16 at 10000 has step size of 8, so 10001 and 10002 collapse to 10000
+		const legacyAbsoluteB64 = b64Vecs._legacyEncodePoints(largeCoordPoints)
+		const result = up({ props: { segments: [{ type: 'free', points: legacyAbsoluteB64 }] } })
+
+		// Verify migration converted to path format
+		expect(result.props.segments[0].path).toBeDefined()
+		expect(result.props.segments[0].points).toBeUndefined()
+
+		// Verify the new format is decodable and produces valid data
+		const decoded = b64Vecs.decodePoints(result.props.segments[0].path)
+		expect(decoded).toHaveLength(3)
+
+		// Data is valid (not NaN, not Infinity)
+		expect(Number.isFinite(decoded[0].x)).toBe(true)
+		expect(Number.isFinite(decoded[1].x)).toBe(true)
+		expect(Number.isFinite(decoded[2].x)).toBe(true)
+	})
+})
+
+describe('Base64 migration handles scaleX and scaleY', () => {
+	const { up } = getTestMigration(drawShapeVersions.Base64)
+
+	test('up adds scaleX and scaleY when missing', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+				],
+			},
+		]
+		const result = up({ props: { segments: legacySegments } })
+
+		expect(result.props.scaleX).toBe(1)
+		expect(result.props.scaleY).toBe(1)
+	})
+
+	test('up preserves existing scaleX and scaleY', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+				],
+			},
+		]
+		const result = up({ props: { segments: legacySegments, scaleX: 1.5, scaleY: 2.0 } })
+
+		expect(result.props.scaleX).toBe(1.5)
+		expect(result.props.scaleY).toBe(2.0)
+	})
+})
+
+describe('Base64 encoding for highlight shape', () => {
+	const { up, down } = getTestMigration(highlightShapeVersions.Base64)
+
+	test('up converts VecModel[] array directly to delta-encoded path', () => {
+		const legacySegments = [
+			{
+				type: 'free',
+				points: [
+					{ x: 0, y: 0, z: 0.5 },
+					{ x: 10, y: 10, z: 0.6 },
+				],
+			},
+		]
+		const result = up({ props: { segments: legacySegments } })
+
+		expect(result.props.scaleX).toBe(1)
+		expect(result.props.scaleY).toBe(1)
+		expect(typeof result.props.segments[0].path).toBe('string')
+		expect(result.props.segments[0].points).toBeUndefined()
+	})
+
+	test('down converts path back to VecModel[] array in points', () => {
+		const path = b64Vecs.encodePoints([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.6 },
+		])
+		const result = down({
+			props: {
+				scaleX: 1,
+				scaleY: 1,
+				segments: [{ type: 'free', path }],
+			},
+		})
+
+		expect(result.props.scaleX).toBeUndefined()
+		expect(result.props.scaleY).toBeUndefined()
+		expect(Array.isArray(result.props.segments[0].points)).toBe(true)
+		expect(result.props.segments[0].path).toBeUndefined()
+	})
+})
+
+describe('LegacyPointsConversion migration for highlight shape', () => {
+	const { up, down } = getTestMigration(highlightShapeVersions.LegacyPointsConversion)
+
+	test('up converts legacy points (absolute base64) to path', () => {
+		const absoluteBase64 = b64Vecs._legacyEncodePoints([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.6 },
+		])
+		const result = up({ props: { segments: [{ type: 'free', points: absoluteBase64 }] } })
+
+		expect(result.props.segments[0].path).toBeDefined()
+		expect(result.props.segments[0].points).toBeUndefined()
+	})
+
+	test('up converts legacy b64 string with multiple segments', () => {
+		const legacyPoints1 = b64Vecs._legacyEncodePoints([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.6 },
+		])
+		const legacyPoints2 = b64Vecs._legacyEncodePoints([{ x: 20, y: 20, z: 0.5 }])
+		const result = up({
+			props: {
+				segments: [
+					{ type: 'free', points: legacyPoints1 },
+					{ type: 'free', points: legacyPoints2 },
+				],
+			},
+		})
+
+		expect(result.props.segments[0].path).toBeDefined()
+		expect(result.props.segments[0].points).toBeUndefined()
+		expect(result.props.segments[1].path).toBeDefined()
+
+		const decoded1 = b64Vecs.decodePoints(result.props.segments[0].path)
+		expect(decoded1[0].x).toBeCloseTo(0, 0)
+		expect(decoded1[1].x).toBeCloseTo(10, 0)
+	})
+
+	test('up leaves already-converted path unchanged', () => {
+		const deltaPath = b64Vecs.encodePoints([
+			{ x: 100, y: 200, z: 0.5 },
+			{ x: 101, y: 201, z: 0.6 },
+		])
+		const result = up({ props: { segments: [{ type: 'free', path: deltaPath }] } })
+
+		expect(result.props.segments[0].path).toBe(deltaPath)
+	})
+
+	test('down is a no-op (handled by Base64 down migration)', () => {
+		const deltaPath = b64Vecs.encodePoints([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.6 },
+		])
+		const result = down({ props: { segments: [{ type: 'free', path: deltaPath }] } })
+
+		// LegacyPointsConversion.down is a no-op; Base64.down handles the conversion
+		expect(result.props.segments[0].path).toBe(deltaPath)
 	})
 })
 

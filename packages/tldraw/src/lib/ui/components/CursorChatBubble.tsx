@@ -46,14 +46,14 @@ export const CursorChatBubble = track(function CursorChatBubble() {
 	return chatMessage.trim() ? <NotEditingChatMessage chatMessage={chatMessage} /> : null
 })
 
-function usePositionBubble(ref: RefObject<HTMLInputElement>) {
+function usePositionBubble(ref: RefObject<HTMLInputElement | null>) {
 	const editor = useEditor()
 
 	useLayoutEffect(() => {
 		const elm = ref.current
 		if (!elm) return
 
-		const { x, y } = editor.inputs.currentScreenPoint
+		const { x, y } = editor.inputs.getCurrentScreenPoint()
 		ref.current?.style.setProperty('transform', `translate(${x}px, ${y}px)`)
 
 		// Positioning the chat bubble

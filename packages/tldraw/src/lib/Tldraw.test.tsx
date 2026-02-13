@@ -1,7 +1,10 @@
 import { act, screen } from '@testing-library/react'
-import { BaseBoxShapeUtil, Editor } from '@tldraw/editor'
+import { BaseBoxShapeUtil, Editor, StateNode, TLStateNodeConstructor } from '@tldraw/editor'
 import { useState } from 'react'
-import { renderTldrawComponent } from '../test/testutils/renderTldrawComponent'
+import {
+	renderTldrawComponent,
+	renderTldrawComponentWithEditor,
+} from '../test/testutils/renderTldrawComponent'
 import { Tldraw } from './Tldraw'
 
 describe('<Tldraw />', () => {
@@ -74,5 +77,97 @@ describe('<Tldraw />', () => {
 			)
 		})
 		await screen.findByTestId('canvas-2')
+	})
+
+	it('correctly merges custom tools with default tools, allowing custom tools to override defaults', async () => {
+		// Create a custom tool that overrides a default tool
+		class CustomSelectTool extends StateNode {
+			static override id = 'select' // This should override the default select tool
+			static override initial = 'idle'
+			static override children(): TLStateNodeConstructor[] {
+				return [CustomIdleState]
+			}
+		}
+
+		class CustomIdleState extends StateNode {
+			static override id = 'idle'
+		}
+
+		// Create a custom tool that doesn't conflict with defaults
+		class CustomTool extends StateNode {
+			static override id = 'custom-tool'
+			static override initial = 'idle'
+			static override children(): TLStateNodeConstructor[] {
+				return [CustomToolIdleState]
+			}
+		}
+
+		class CustomToolIdleState extends StateNode {
+			static override id = 'idle'
+		}
+
+		let editor: Editor
+		await renderTldrawComponent(
+			<Tldraw
+				tools={[CustomSelectTool, CustomTool]}
+				onMount={(e) => {
+					editor = e
+				}}
+			/>,
+			{ waitForPatterns: false }
+		)
+
+		// Verify that the custom select tool overrides the default select tool
+		expect(editor!.root.children!['select']).toBeInstanceOf(CustomSelectTool)
+
+		// Verify that the custom tool is also available
+		expect(editor!.root.children!['custom-tool']).toBeInstanceOf(CustomTool)
+
+		// Verify that other default tools are still available
+		expect(editor!.root.children!['eraser']).toBeDefined()
+		expect(editor!.root.children!['hand']).toBeDefined()
+		expect(editor!.root.children!['zoom']).toBeDefined()
+	})
+
+	it('keyboard shortcuts work when hideUi is true', async () => {
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw hideUi onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+
+		// Focus the editor so keyboard shortcuts are active
+		await act(async () => {
+			editor.focus()
+		})
+
+		// Start on select tool
+		expect(editor.getCurrentToolId()).toBe('select')
+
+		// Simulate pressing 'd' key to switch to draw tool
+		// hotkeys-js uses keyCode to identify keys, so we need to include it
+		await act(async () => {
+			document.body.dispatchEvent(
+				new KeyboardEvent('keydown', { key: 'd', code: 'KeyD', keyCode: 68, bubbles: true })
+			)
+			document.body.dispatchEvent(
+				new KeyboardEvent('keyup', { key: 'd', code: 'KeyD', keyCode: 68, bubbles: true })
+			)
+		})
+
+		// Should now be on draw tool
+		expect(editor.getCurrentToolId()).toBe('draw')
+
+		// Simulate pressing 'h' key to switch to hand tool
+		await act(async () => {
+			document.body.dispatchEvent(
+				new KeyboardEvent('keydown', { key: 'h', code: 'KeyH', keyCode: 72, bubbles: true })
+			)
+			document.body.dispatchEvent(
+				new KeyboardEvent('keyup', { key: 'h', code: 'KeyH', keyCode: 72, bubbles: true })
+			)
+		})
+
+		// Should now be on hand tool
+		expect(editor.getCurrentToolId()).toBe('hand')
 	})
 })

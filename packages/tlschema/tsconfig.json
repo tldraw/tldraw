@@ -2,22 +2,11 @@
 	"extends": "../../internal/config/tsconfig.base.json",
 	"include": ["src", "scripts"],
 	"exclude": ["node_modules", "docs", "dist", ".tsbuild*"],
-	"compilerOptions": {
-		"outDir": "./.tsbuild",
-		"rootDir": "src"
-	},
+	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
 	"references": [
-		{
-			"path": "../state"
-		},
-		{
-			"path": "../store"
-		},
-		{
-			"path": "../utils"
-		},
-		{
-			"path": "../validate"
-		}
+		{ "path": "../state" },
+		{ "path": "../store" },
+		{ "path": "../utils" },
+		{ "path": "../validate" }
 	]
 }

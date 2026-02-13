@@ -1,4 +1,4 @@
-import { stopEventPropagation, tlenv, tltime, useMaybeEditor } from '@tldraw/editor'
+import { tlenv, tltime, useMaybeEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -12,6 +12,7 @@ export interface TLUiInputProps {
 	label?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
 	icon?: TLUiIconType | Exclude<string, TLUiIconType>
 	iconLeft?: TLUiIconType | Exclude<string, TLUiIconType>
+	iconLabel?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
 	autoFocus?: boolean
 	autoSelect?: boolean
 	children?: React.ReactNode
@@ -34,6 +35,7 @@ export interface TLUiInputProps {
 	shouldManuallyMaintainScrollPositionWhenFocused?: boolean
 	value?: string
 	'data-testid'?: string
+	'aria-label'?: string
 }
 
 /** @public @react */
@@ -44,6 +46,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			label,
 			icon,
 			iconLeft,
+			iconLabel,
 			autoSelect = false,
 			autoFocus = false,
 			defaultValue,
@@ -57,6 +60,8 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			children,
 			value,
 			'data-testid': dataTestId,
+			disabled,
+			'aria-label': ariaLabel,
 		},
 		ref
 	) {
@@ -115,7 +120,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 						// `onChange` with a duplicated text value.
 						if (isComposing.current) return
 						e.currentTarget.blur()
-						stopEventPropagation(e)
+						e.stopPropagation()
 						onComplete?.(e.currentTarget.value)
 						break
 					}
@@ -123,7 +128,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 						e.currentTarget.value = rInitialValue.current
 						onCancel?.(e.currentTarget.value)
 						e.currentTarget.blur()
-						stopEventPropagation(e)
+						e.stopPropagation()
 						break
 					}
 				}
@@ -175,7 +180,14 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			<div draggable={false} className="tlui-input__wrapper">
 				{children}
 				{label && <label>{msg(label)}</label>}
-				{iconLeft && <TldrawUiIcon icon={iconLeft} className="tlui-icon-left" small />}
+				{iconLeft && (
+					<TldrawUiIcon
+						label={iconLabel ? msg(iconLabel) : ''}
+						icon={iconLeft}
+						className="tlui-icon-left"
+						small
+					/>
+				)}
 				<input
 					ref={rInputRef}
 					className={classNames('tlui-input', className)}
@@ -188,11 +200,15 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					onCompositionStart={handleCompositionStart}
 					onCompositionEnd={handleCompositionEnd}
 					autoFocus={autoFocus}
+					aria-label={ariaLabel}
 					placeholder={placeholder}
 					value={value}
 					data-testid={dataTestId}
+					disabled={disabled}
 				/>
-				{icon && <TldrawUiIcon icon={icon} small={!!label} />}
+				{icon && (
+					<TldrawUiIcon label={iconLabel ? msg(iconLabel) : ''} icon={icon} small={!!label} />
+				)}
 			</div>
 		)
 	}

@@ -1,4 +1,5 @@
 import {
+	Box,
 	HALF_PI,
 	Mat,
 	PI,
@@ -6,19 +7,18 @@ import {
 	SelectionCorner,
 	SelectionEdge,
 	StateNode,
-	TLFrameShape,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-	TLTextShape,
 	TLTickEventInfo,
 	Vec,
 	VecLike,
 	areAnglesCompatible,
 	compact,
+	isAccelKey,
+	kickoutOccludedShapes,
 } from '@tldraw/editor'
-import { kickoutOccludedShapes } from '../selectHelpers'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -27,7 +27,7 @@ export type ResizingInfo = TLPointerEventInfo & {
 	creatingMarkId?: string
 	onCreate?(shape: TLShape | null): void
 	creationCursorOffset?: VecLike
-	onInteractionEnd?: string
+	onInteractionEnd?: string | (() => void)
 }
 
 export class Resizing extends StateNode {
@@ -53,7 +53,9 @@ export class Resizing extends StateNode {
 		this.info = info
 		this.didHoldCommand = false
 
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.creationCursorOffset = creationCursorOffset
 
 		try {
@@ -93,6 +95,7 @@ export class Resizing extends StateNode {
 
 	override onTick({ elapsed }: TLTickEventInfo) {
 		const { editor } = this
+		if (!editor.inputs.getIsDragging() || editor.inputs.getIsPanning()) return
 		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 
@@ -120,13 +123,29 @@ export class Resizing extends StateNode {
 	}
 
 	private cancel() {
-		// Restore initial models
+		// Call onResizeCancel callback before resetting
+		const { shapeSnapshots } = this.snapshot
+
+		shapeSnapshots.forEach(({ shape }) => {
+			const current = this.editor.getShape(shape.id)
+			if (current) {
+				const util = this.editor.getShapeUtil(shape)
+				util.onResizeCancel?.(shape, current)
+			}
+		})
+
 		this.editor.bailToMark(this.markId)
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-		} else {
-			this.parent.transition('idle')
+
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, {})
+			} else {
+				onInteractionEnd()
+			}
+			return
 		}
+		this.parent.transition('idle')
 	}
 
 	private complete() {
@@ -139,9 +158,17 @@ export class Resizing extends StateNode {
 			return
 		}
 
-		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-			return
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				if (this.editor.getInstanceState().isToolLocked) {
+					this.editor.setCurrentTool(onInteractionEnd, {})
+					return
+				}
+			} else {
+				onInteractionEnd()
+				return
+			}
 		}
 
 		this.parent.transition('idle')
@@ -185,7 +212,8 @@ export class Resizing extends StateNode {
 	}
 
 	private updateShapes() {
-		const { altKey, shiftKey } = this.editor.inputs
+		const altKey = this.editor.inputs.getAltKey()
+		const shiftKey = this.editor.inputs.getShiftKey()
 		const {
 			frames,
 			shapeSnapshots,
@@ -200,7 +228,7 @@ export class Resizing extends StateNode {
 
 		if (shapeSnapshots.size === 1) {
 			const onlySnapshot = [...shapeSnapshots.values()][0]!
-			if (this.editor.isShapeOfType<TLTextShape>(onlySnapshot.shape, 'text')) {
+			if (this.editor.isShapeOfType(onlySnapshot.shape, 'text')) {
 				isAspectRatioLocked = !(this.info.handle === 'left' || this.info.handle === 'right')
 			}
 		}
@@ -238,16 +266,17 @@ export class Resizing extends StateNode {
 		//                            │
 		//                   cursorHandleOffset.x
 
-		const { ctrlKey } = this.editor.inputs
+		const isHoldingAccel = isAccelKey(this.editor.inputs)
 
-		const currentPagePoint = this.editor.inputs.currentPagePoint
+		const currentPagePoint = this.editor.inputs
+			.getCurrentPagePoint()
 			.clone()
 			.sub(cursorHandleOffset)
 			.sub(this.creationCursorOffset)
 
-		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
+		const originPagePoint = this.editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
 
-		if (this.editor.getInstanceState().isGridMode && !ctrlKey) {
+		if (this.editor.getInstanceState().isGridMode && !isHoldingAccel) {
 			const { gridSize } = this.editor.getDocumentSettings()
 			currentPagePoint.snapToGrid(gridSize)
 		}
@@ -257,7 +286,7 @@ export class Resizing extends StateNode {
 
 		this.editor.snaps.clearIndicators()
 
-		const shouldSnap = this.editor.user.getIsSnapMode() ? !ctrlKey : ctrlKey
+		const shouldSnap = this.editor.user.getIsSnapMode() ? !isHoldingAccel : isHoldingAccel
 
 		if (shouldSnap && selectionRotation % HALF_PI === 0) {
 			const { nudge } = this.editor.snaps.shapeBounds.snapResizeShapes({
@@ -353,7 +382,10 @@ export class Resizing extends StateNode {
 			})
 		}
 
-		if (this.editor.inputs.ctrlKey) {
+		// If there's only one shape snapshot and it's a frame and the user is holding ctrl,
+		// then we preserve the position of the frame's children, almost like the user is cropping
+		// the frame rather than resizing it.
+		if (isHoldingAccel) {
 			this.didHoldCommand = true
 
 			for (const { id, children } of frames) {
@@ -362,7 +394,6 @@ export class Resizing extends StateNode {
 				const current = this.editor.getShape(id)!
 				if (!(initial && current)) continue
 
-				// If the user is holding ctrl, then preseve the position of the frame's children
 				const dx = current.x - initial.x
 				const dy = current.y - initial.y
 
@@ -380,6 +411,7 @@ export class Resizing extends StateNode {
 				}
 			}
 		} else if (this.didHoldCommand) {
+			// If we're no longer holding the command key...
 			this.didHoldCommand = false
 
 			for (const { children } of frames) {
@@ -441,15 +473,13 @@ export class Resizing extends StateNode {
 		this.editor.snaps.clearIndicators()
 	}
 
-	_createSnapshot() {
-		const selectedShapeIds = this.editor.getSelectedShapeIds()
-		const selectionRotation = this.editor.getSelectionRotation()
-		const {
-			inputs: { originPagePoint },
-		} = this.editor
+	private _createSnapshot() {
+		const { editor } = this
+		const selectedShapeIds = editor.getSelectedShapeIds()
+		const selectionRotation = editor.getSelectionRotation()
+		const originPagePoint = editor.inputs.getOriginPagePoint()
 
-		const selectionBounds = this.editor.getSelectionRotatedPageBounds()!
-
+		const selectionBounds = editor.getSelectionRotatedPageBounds()
 		if (!selectionBounds) throw Error('Resizing but nothing is selected')
 
 		const dragHandlePoint = Vec.RotWith(
@@ -460,37 +490,60 @@ export class Resizing extends StateNode {
 
 		const cursorHandleOffset = Vec.Sub(originPagePoint, dragHandlePoint)
 
-		const shapeSnapshots = new Map<TLShapeId, ShapeSnapshot>()
+		const shapeSnapshots = new Map<
+			TLShapeId,
+			{
+				shape: TLShape
+				bounds: Box
+				pageTransform: Mat
+				pageRotation: number
+				isAspectRatioLocked: boolean
+			}
+		>()
 
 		const frames: { id: TLShapeId; children: TLShape[] }[] = []
 
-		selectedShapeIds.forEach((id) => {
-			const shape = this.editor.getShape(id)
-			if (shape) {
-				if (shape.type === 'frame') {
-					frames.push({
-						id,
-						children: compact(
-							this.editor.getSortedChildIdsForParent(shape).map((id) => this.editor.getShape(id))
-						),
-					})
-				}
-				shapeSnapshots.set(shape.id, this._createShapeSnapshot(shape))
-				if (
-					this.editor.isShapeOfType<TLFrameShape>(shape, 'frame') &&
-					selectedShapeIds.length === 1
-				)
-					return
-				this.editor.visitDescendants(shape.id, (descendantId) => {
-					const descendent = this.editor.getShape(descendantId)
-					if (descendent) {
-						shapeSnapshots.set(descendent.id, this._createShapeSnapshot(descendent))
-						if (this.editor.isShapeOfType<TLFrameShape>(descendent, 'frame')) {
-							return false
-						}
-					}
+		const populateResizingShapes = (shapeId: TLShapeId): false | undefined => {
+			const shape = editor.getShape(shapeId)
+			if (!shape) return false
+
+			const util = editor.getShapeUtil(shape)
+
+			// If the shape can resize, add it to the resizing shapes snapshots
+			if (util.canResize(shape)) {
+				const pageTransform = editor.getShapePageTransform(shape)!
+				shapeSnapshots.set(shape.id, {
+					shape,
+					bounds: editor.getShapeGeometry(shape).bounds,
+					pageTransform,
+					pageRotation: Mat.Decompose(pageTransform).rotation,
+					isAspectRatioLocked: util.isAspectRatioLocked(shape),
 				})
 			}
+
+			// Special case:
+			// For frames, we don't want to resize children but we DO want to get a snapshot of their children so that we can restore their
+			// positions with the accel key behavior. We could break this further into APIs, for example by collecting snapshots of all
+			// descendants (easy) but also flagging with behavior like "resize" or "keep absolute position" or "reposition only with accel key",
+			// though I'm not sure where that would be defined; perhaps better handled with onResizeStart / onResize callbacks on the util, and
+			// pass `accelKeyIsPressed` as well as `accelKeyWasPressed`?
+			if (editor.isShapeOfType(shape, 'frame')) {
+				frames.push({
+					id: shape.id,
+					children: compact(
+						editor.getSortedChildIdsForParent(shape).map((id) => editor.getShape(id))
+					),
+				})
+			}
+
+			// This will stop the traversal of descendants
+			if (!util.canResizeChildren(shape)) return false
+		}
+
+		selectedShapeIds.forEach((shapeId) => {
+			const keepDescending = populateResizingShapes(shapeId)
+			if (keepDescending === false) return
+			editor.visitDescendants(shapeId, populateResizingShapes)
 		})
 
 		const canShapesDeform = ![...shapeSnapshots.values()].some(
@@ -509,23 +562,9 @@ export class Resizing extends StateNode {
 			frames,
 		}
 	}
-
-	_createShapeSnapshot(shape: TLShape) {
-		const pageTransform = this.editor.getShapePageTransform(shape)!
-		const util = this.editor.getShapeUtil(shape)
-
-		return {
-			shape,
-			bounds: this.editor.getShapeGeometry(shape).bounds,
-			pageTransform,
-			pageRotation: Mat.Decompose(pageTransform!).rotation,
-			isAspectRatioLocked: util.isAspectRatioLocked(shape),
-		}
-	}
 }
 
 type Snapshot = ReturnType<Resizing['_createSnapshot']>
-type ShapeSnapshot = ReturnType<Resizing['_createShapeSnapshot']>
 
 const ORDERED_SELECTION_HANDLES: (SelectionEdge | SelectionCorner)[] = [
 	'top',

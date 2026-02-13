@@ -1,9 +1,10 @@
 import {
+	Editor,
+	ExtractShapeByProps,
 	TLShapeId,
-	TLUnknownShape,
 	getPointerInfo,
 	noop,
-	stopEventPropagation,
+	preventDefault,
 	tlenv,
 	useEditor,
 	useValue,
@@ -12,7 +13,11 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { TextHelpers } from './TextHelpers'
 
 /** @public */
-export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: string) {
+export function useEditablePlainText(
+	shapeId: TLShapeId,
+	type: ExtractShapeByProps<{ text: string }>['type'],
+	text?: string
+) {
 	const commonUseEditableTextHandlers = useEditableTextCommon(shapeId)
 	const isEditing = commonUseEditableTextHandlers.isEditing
 	const editor = useEditor()
@@ -74,7 +79,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
 			if (editor.getEditingShapeId() !== shapeId) return
 
 			const normalizedPlaintext = TextHelpers.normalizeText(plaintext || '')
-			editor.updateShape<TLUnknownShape & { props: { text: string } }>({
+			editor.updateShape({
 				id: shapeId,
 				type,
 				props: { text: normalizedPlaintext },
@@ -93,12 +98,26 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
 }
 
 /** @internal */
+export function useIsReadyForEditing(editor: Editor, shapeId: TLShapeId) {
+	return useValue(
+		'isReadyForEditing',
+		() => {
+			const editingShapeId = editor.getEditingShapeId()
+			return (
+				// something's being editing... and either it's this shape OR this shape is hovered
+				editingShapeId !== null &&
+				(editingShapeId === shapeId || editor.getHoveredShapeId() === shapeId)
+			)
+		},
+		[editor, shapeId]
+	)
+}
+
+/** @internal */
 export function useEditableTextCommon(shapeId: TLShapeId) {
 	const editor = useEditor()
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === shapeId, [editor])
-	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
-		editor,
-	])
+	const isReadyForEditing = useIsReadyForEditing(editor, shapeId)
 
 	const handleInputPointerDown = useCallback(
 		(e: React.PointerEvent) => {
@@ -113,14 +132,30 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 			// partially if we didn't dispatch/stop below.
 
 			editor.dispatch({
-				...getPointerInfo(e),
+				...getPointerInfo(editor, e),
 				type: 'pointer',
 				name: 'pointer_down',
 				target: 'shape',
 				shape: editor.getShape(shapeId)!,
 			})
 
-			stopEventPropagation(e) // we need to prevent blurring the input
+			e.stopPropagation() // we need to prevent blurring the input
+		},
+		[editor, shapeId]
+	)
+
+	const handlePaste = useCallback(
+		(e: ClipboardEvent | React.ClipboardEvent<HTMLTextAreaElement>) => {
+			if (editor.getEditingShapeId() !== shapeId) return
+			if (e.clipboardData) {
+				// find html in the clipboard and look for the tldraw data
+				const html = e.clipboardData.getData('text/html')
+				if (html) {
+					if (html.includes('<div data-tldraw')) {
+						preventDefault(e)
+					}
+				}
+			}
 		},
 		[editor, shapeId]
 	)
@@ -129,14 +164,9 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		handleFocus: noop,
 		handleBlur: noop,
 		handleInputPointerDown,
-		handleDoubleClick: stopEventPropagation,
+		handleDoubleClick: editor.markEventAsHandled,
+		handlePaste,
 		isEditing,
-		isEditingAnything,
+		isReadyForEditing,
 	}
 }
-
-/**
- * @deprecated Use `useEditablePlainText` instead.
- * @public
- */
-export const useEditableText = useEditablePlainText

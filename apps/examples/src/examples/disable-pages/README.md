@@ -1,9 +1,9 @@
 ---
-title: Disable Pages
+title: Disable pages
 component: ./DisablePagesExample.tsx
-category: basic
+category: configuration
 priority: 10
-keywords: [basic, intro, simple, quick, start, page]
+keywords: [maxpages, single page, options, page selector, configuration]
 ---
 
 Disabling page-related UI for single-page use cases.

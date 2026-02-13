@@ -1,10 +1,5 @@
-import {
-	ContextMenuPortal,
-	ContextMenuSub,
-	ContextMenuSubContent,
-	ContextMenuSubTrigger,
-} from '@radix-ui/react-context-menu'
 import { useContainer } from '@tldraw/editor'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
@@ -67,7 +62,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 
 			return (
 				<ContextMenuSubWithMenu id={`${sourceId}-sub.${id}`}>
-					<ContextMenuSubTrigger dir="ltr" disabled={disabled} asChild>
+					<_ContextMenu.ContextMenuSubTrigger dir="ltr" disabled={disabled} asChild>
 						<TldrawUiButton
 							data-testid={`${sourceId}-sub.${id}-button`}
 							type="menu"
@@ -76,9 +71,9 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 							<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
 							<TldrawUiButtonIcon icon="chevron-right" small />
 						</TldrawUiButton>
-					</ContextMenuSubTrigger>
-					<ContextMenuPortal container={container}>
-						<ContextMenuSubContent
+					</_ContextMenu.ContextMenuSubTrigger>
+					<_ContextMenu.ContextMenuPortal container={container}>
+						<_ContextMenu.ContextMenuSubContent
 							data-testid={`${sourceId}-sub.${id}-content`}
 							className="tlui-menu tlui-menu__submenu__content"
 							alignOffset={-1}
@@ -87,8 +82,8 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 							data-size={size}
 						>
 							{children}
-						</ContextMenuSubContent>
-					</ContextMenuPortal>
+						</_ContextMenu.ContextMenuSubContent>
+					</_ContextMenu.ContextMenuPortal>
 				</ContextMenuSubWithMenu>
 			)
 		}
@@ -110,8 +105,8 @@ export function ContextMenuSubWithMenu({ id, children }: TLUiContextMenuSubProps
 	const [open, onOpenChange] = useMenuIsOpen(id)
 
 	return (
-		<ContextMenuSub open={open} onOpenChange={onOpenChange}>
+		<_ContextMenu.ContextMenuSub open={open} onOpenChange={onOpenChange}>
 			{children}
-		</ContextMenuSub>
+		</_ContextMenu.ContextMenuSub>
 	)
 }

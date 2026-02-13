@@ -1,0 +1,252 @@
+---
+title: Parenting and ancestors
+created_at: 12/28/2025
+updated_at: 12/28/2025
+keywords:
+  - parent
+  - ancestors
+  - hierarchy
+  - reparent
+  - children
+  - nesting
+status: published
+date: 12/28/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+Every shape in tldraw has a parent. A shape's parent is either the page it lives on or another shape that contains it. This parent-child relationship creates a hierarchy that affects how shapes move, transform, and render. Groups and frames use this hierarchy to contain other shapes; the editor tracks this hierarchy to manage transforms, selection, and rendering order.
+
+## The parentId property
+
+Every shape record has a `parentId` property that points to its parent. For shapes directly on the canvas, this is a page ID. For shapes inside groups or frames, it's the containing shape's ID:
+
+```typescript
+// A shape on the page
+const shape = editor.getShape(myShapeId)
+console.log(shape.parentId) // "page:somePage"
+
+// A shape inside a group
+const groupedShape = editor.getShape(childShapeId)
+console.log(groupedShape.parentId) // "shape:someGroup"
+```
+
+You can check what type of parent a shape has using `isPageId` and `isShapeId` from `@tldraw/tlschema`:
+
+```typescript
+import { isPageId, isShapeId } from 'tldraw'
+
+if (isPageId(shape.parentId)) {
+	// Shape is directly on a page
+}
+
+if (isShapeId(shape.parentId)) {
+	// Shape is inside another shape (group, frame, etc.)
+}
+```
+
+## Getting a shape's parent
+
+Use [Editor#getShapeParent](?) to get the parent shape. It returns `undefined` if the shape is directly on a page:
+
+```typescript
+const parent = editor.getShapeParent(myShape)
+
+if (parent) {
+	console.log('Parent shape:', parent.type)
+} else {
+	console.log('Shape is on the page')
+}
+```
+
+## Getting ancestors
+
+The ancestor chain is the path from a shape up to the page. Use [Editor#getShapeAncestors](?) to get all ancestors in order from the root to the immediate parent:
+
+```typescript
+// For a deeply nested shape:
+// page > frameA > groupB > myShape
+const ancestors = editor.getShapeAncestors(myShapeId)
+// Returns: [frameA, groupB]
+```
+
+The array is ordered from root ancestor to immediate parent. The page itself is never included—ancestors only contain shapes.
+
+### Finding a specific ancestor
+
+Use [Editor#findShapeAncestor](?) to find the first ancestor matching a condition:
+
+```typescript
+// Find the containing frame
+const frame = editor.findShapeAncestor(myShape, (ancestor) => ancestor.type === 'frame')
+
+// Find the first locked ancestor
+const lockedAncestor = editor.findShapeAncestor(myShape, (ancestor) => ancestor.isLocked)
+```
+
+### Checking for a specific ancestor
+
+Use [Editor#hasAncestor](?) to check if a shape is inside a specific container:
+
+```typescript
+if (editor.hasAncestor(myShape, frameId)) {
+	// myShape is somewhere inside this frame
+}
+```
+
+### Finding the common ancestor
+
+When working with multiple shapes, use [Editor#findCommonAncestor](?) to find their nearest shared parent:
+
+```typescript
+const shapeIds = [shapeA, shapeB, shapeC]
+const commonAncestorId = editor.findCommonAncestor(shapeIds)
+
+if (commonAncestorId) {
+	// All shapes share this ancestor
+} else {
+	// Shapes are on the page with no common parent shape
+}
+```
+
+You can also filter by a predicate:
+
+```typescript
+// Find the common frame ancestor
+const commonFrame = editor.findCommonAncestor(shapeIds, (shape) => shape.type === 'frame')
+```
+
+## Getting children
+
+Use [Editor#getSortedChildIdsForParent](?) to get a shape's children in z-index order:
+
+```typescript
+const childIds = editor.getSortedChildIdsForParent(groupId)
+// Returns child IDs sorted from back to front
+```
+
+This works for pages too:
+
+```typescript
+const topLevelShapes = editor.getSortedChildIdsForParent(editor.getCurrentPageId())
+```
+
+### Visiting descendants
+
+For recursive traversal, use [Editor#visitDescendants](?):
+
+```typescript
+editor.visitDescendants(frameId, (childId) => {
+	const child = editor.getShape(childId)
+	console.log('Found:', child.type)
+	// Return false to skip this shape's children
+})
+```
+
+To collect all descendants including the shape itself, use [Editor#getShapeAndDescendantIds](?):
+
+```typescript
+const allIds = editor.getShapeAndDescendantIds([frameId])
+// Returns a Set containing frameId and all nested shape IDs
+```
+
+## Reparenting shapes
+
+Use [Editor#reparentShapes](?) to move shapes into a new parent. This preserves the shapes' page positions—only their local coordinates change to match the new parent's coordinate space:
+
+```typescript
+// Move shapes into a frame
+editor.reparentShapes([shapeA, shapeB], frameId)
+
+// Move shapes to the page root
+editor.reparentShapes([shapeA, shapeB], editor.getCurrentPageId())
+```
+
+The method handles coordinate transformation automatically. If the parent is rotated, children's positions and rotations are adjusted so they appear in the same place on the page.
+
+You can optionally specify an insert index to control z-ordering:
+
+```typescript
+// Insert at a specific position in the parent's child stack
+editor.reparentShapes([newChild], parentId, insertIndex)
+```
+
+## Transforms and coordinates
+
+Parent-child relationships affect coordinate systems. A child shape's `x` and `y` are relative to its parent, not the page.
+
+To convert between coordinate systems:
+
+```typescript
+// Convert a page point to a shape's local space ([Editor#getPointInShapeSpace](?))
+const localPoint = editor.getPointInShapeSpace(parentShape, pagePoint)
+
+// Get a shape's position in page coordinates ([Editor#getShapePageTransform](?))
+const pageTransform = editor.getShapePageTransform(childShape)
+const pagePoint = pageTransform.point()
+```
+
+When you move a parent, all children move with it. Their local coordinates stay the same, but their page coordinates change.
+
+For more about coordinate systems and transforms, see [Coordinates](/docs/sdk-features/coordinates).
+
+## Checking page membership
+
+Use [Editor#isShapeInPage](?) to check if a shape is on a specific page (even if nested):
+
+```typescript
+if (editor.isShapeInPage(myShape, pageId)) {
+	// Shape is on this page (directly or nested)
+}
+```
+
+To get the page a shape belongs to, use [Editor#getAncestorPageId](?):
+
+```typescript
+const pageId = editor.getAncestorPageId(myShape)
+```
+
+## Locked ancestors
+
+A shape is effectively locked if any of its ancestors are locked. Use [Editor#isShapeOrAncestorLocked](?) to check:
+
+```typescript
+if (editor.isShapeOrAncestorLocked(myShape)) {
+	// Shape can't be interacted with
+}
+```
+
+This is what the editor uses internally to determine if shapes should respond to interactions.
+
+## Hidden shapes
+
+The editor can track shape visibility through [Editor#isShapeHidden](?). This only works if you provide a `getShapeVisibility` callback when creating the editor:
+
+```typescript
+const editor = new Editor({
+	getShapeVisibility: (shape, editor) => {
+		// Return 'hidden', 'visible', or 'inherit'
+		return shape.meta.hidden ? 'hidden' : 'inherit'
+	},
+	// ... other options
+})
+
+// Now you can check visibility
+if (editor.isShapeHidden(myShape)) {
+	// Shape won't render (either it or an ancestor is hidden)
+}
+```
+
+A shape is hidden if its visibility is `'hidden'` or if any ancestor is hidden (unless the shape explicitly overrides with `'visible'`). Without a `getShapeVisibility` callback, `isShapeHidden()` always returns `false`.
+
+## The focused group
+
+The editor tracks a "focused group" that determines which level of the hierarchy you're working in. When you're focused inside a group, new shapes are created as children of that group. See [Groups](/docs/sdk-features/groups) for details on focused groups.
+
+## Related examples
+
+- **[Layer panel](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/layer-panel)** - Build a hierarchical layer panel that shows parent-child relationships.
+- **[Drag and drop](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/drag-and-drop)** - Handle reparenting when dropping shapes onto containers.

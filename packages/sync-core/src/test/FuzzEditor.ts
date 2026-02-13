@@ -1,7 +1,6 @@
 import {
 	Editor,
 	PageRecordType,
-	TLArrowBinding,
 	TLPage,
 	TLPageId,
 	TLShape,
@@ -41,8 +40,8 @@ export type Op =
 	  }
 	| {
 			type: 'create-arrow'
-			start: TLArrowBinding | VecModel
-			end: TLArrowBinding | VecModel
+			start: VecModel
+			end: VecModel
 	  }
 	| {
 			type: 'delete-shape'
@@ -106,10 +105,12 @@ export class FuzzEditor extends RandomSource {
 			initialState: 'select',
 			store,
 			getContainer: () => document.createElement('div'),
-			textOptions: {
-				addFontsFromNode: defaultAddFontsFromNode,
-				tipTapConfig: {
-					extensions: tipTapDefaultExtensions,
+			options: {
+				text: {
+					addFontsFromNode: defaultAddFontsFromNode,
+					tipTapConfig: {
+						extensions: tipTapDefaultExtensions,
+					},
 				},
 			},
 		})
@@ -315,8 +316,8 @@ export class FuzzEditor extends RandomSource {
 					x: 0,
 					y: 0,
 					props: {
-						start: op.start,
-						end: op.end,
+						start: op.start as any,
+						end: op.end as any,
 					},
 				})
 				break

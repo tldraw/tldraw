@@ -9,6 +9,7 @@ export interface PageItemInputProps {
 	id: TLPageId
 	isCurrentPage: boolean
 	onCancel(): void
+	onComplete?(): void
 }
 
 /** @public @react */
@@ -17,6 +18,7 @@ export const PageItemInput = function PageItemInput({
 	id,
 	isCurrentPage,
 	onCancel,
+	onComplete,
 }: PageItemInputProps) {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
@@ -46,9 +48,12 @@ export const PageItemInput = function PageItemInput({
 	return (
 		<TldrawUiInput
 			className="tlui-page-menu__item__input"
-			ref={(el) => (rInput.current = el)}
+			ref={(el) => {
+				rInput.current = el
+			}}
 			defaultValue={name}
 			onValueChange={handleChange}
+			onComplete={onComplete}
 			onCancel={handleCancel}
 			onFocus={handleFocus}
 			shouldManuallyMaintainScrollPositionWhenFocused

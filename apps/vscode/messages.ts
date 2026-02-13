@@ -25,9 +25,36 @@ type BookmarkError = {
 	}
 }
 
+type GetFileRequest = {
+	type: 'vscode:get-file/request'
+	uuid: string
+	data: {
+		url: string
+	}
+}
+
+type GetFileResponse = {
+	type: 'vscode:get-file/response'
+	uuid: string
+	data: {
+		fileName: string
+		file: number[]
+		mimeType: string
+	}
+}
+
+type GetFileError = {
+	type: 'vscode:get-file/error'
+	uuid: string
+	data: {
+		error: string
+	}
+}
+
 /** @public */
 export type VscodeMessagePairs = {
 	'vscode:bookmark': { request: BookmarkRequest; response: BookmarkResponse; error: BookmarkError }
+	'vscode:get-file': { request: GetFileRequest; response: GetFileResponse; error: GetFileError }
 }
 
 /** @public */
@@ -89,3 +116,5 @@ export type VscodeMessage =
 	| { type: 'vscode:hard-reset' }
 	| BookmarkRequest
 	| BookmarkResponse
+	| GetFileRequest
+	| GetFileResponse

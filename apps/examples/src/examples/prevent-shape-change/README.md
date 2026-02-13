@@ -1,10 +1,24 @@
 ---
-title: Prevent shape change
+title: Prevent shape changes
 component: ./PreventShapeChangeExample.tsx
-category: editor-api
-keywords: [side, effect, move, prevent]
+category: events
+priority: 2
+keywords:
+  [
+    prevent transform,
+    lock shape,
+    registerbeforechangehandler,
+    side effects,
+    immutable shape,
+    disable move,
+    disable resize,
+    disable rotate,
+    shape protection,
+  ]
 ---
+
+Prevent changes to a shape's properties.
 
 ---
 
-You can use Editor's side effects API to prevent certain changes from occuring in a shape. In this example, we prevent any changes to the shape's position, rotation, or size.
+You can use Editor's side effects API to prevent certain changes from occurring in a shape. In this example, we prevent any changes to the shape's position, rotation, or size.

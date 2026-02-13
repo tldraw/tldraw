@@ -1,0 +1,66 @@
+/* Pulse shape container */
+.pulse-shape {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: all;
+	background-color: var(--tl-color-low);
+	border: 1px solid var(--tl-color-low-border);
+	border-radius: var(--tl-radius-3);
+}
+
+.pulse-shape__content {
+	text-align: center;
+}
+
+.pulse-shape__label {
+	font-size: 14px;
+	color: var(--tl-color-text-1);
+}
+
+/* Shared pulse indicator styles */
+.pulse-indicator,
+.pulse-indicator--static {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	margin: 0 auto 16px;
+}
+
+/* Animated indicator */
+.pulse-indicator {
+	background-color: var(--tl-color-primary);
+	animation: pulse 2s ease-in-out infinite;
+}
+
+/* Static indicator - no animation */
+.pulse-indicator--static {
+	background-color: var(--tl-color-text-3);
+}
+
+@keyframes pulse {
+	0%,
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+	50% {
+		transform: scale(1.2);
+		opacity: 0.7;
+	}
+}
+
+/* Motion toggle */
+.motion-toggle {
+	position: absolute;
+	top: 100px;
+	left: 20px;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	pointer-events: all;
+}
+
+.motion-toggle__label {
+	font-size: 14px;
+}

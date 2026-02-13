@@ -1,0 +1,365 @@
+/* Utility Classes */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
+}
+
+/* Auth Dialog Container */
+.authContainer {
+	width: 450px;
+	max-width: 95vw;
+	overflow-y: auto;
+}
+
+.authDialogBody {
+	padding: 0;
+}
+
+.authBody {
+	display: flex;
+	flex-direction: column;
+	padding: 8px 40px 36px 40px;
+	gap: 24px;
+}
+
+/* Logo */
+.authLogoWrapper {
+	display: flex;
+	justify-content: center;
+}
+
+.authLogo {
+	width: 128px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 8px;
+}
+
+.authLogo span {
+	width: 100%;
+	height: 100%;
+}
+
+.authVerificationTitle {
+	text-align: center;
+	color: var(--tl-color-text-2);
+	font-size: 14px;
+	margin: 0;
+	line-height: 1.5;
+	text-wrap: balance;
+	font-weight: 600;
+}
+
+/* Description Text */
+.authDescription {
+	text-align: center;
+	color: var(--tl-color-text-2);
+	font-size: 14px;
+	margin: 0;
+	line-height: 1.5;
+	text-wrap: balance;
+}
+
+/* Cta button */
+.authCtaButton {
+	height: 40px;
+	width: 100%;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+/* The google logo in the cta button on the sign in dialog */
+.authCtaButton img {
+	width: 22px;
+	height: 22px;
+	padding: 4px;
+	z-index: 2;
+	background-color: var(--tl-color-selected-contrast);
+	border-radius: 100%;
+}
+
+/* Divider */
+.authDivider {
+	display: flex;
+	align-items: center;
+	text-align: center;
+	color: var(--tl-color-text-3);
+	font-size: 14px;
+	margin: var(--tl-space-2) 0;
+}
+
+.authDivider::before,
+.authDivider::after {
+	content: '';
+	flex: 1;
+	border-bottom: 1px solid var(--tl-color-muted-1);
+}
+
+.authDivider span {
+	padding: 0 var(--tl-space-4);
+}
+
+/* Form Field */
+.authField {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-3);
+}
+
+.authLabel {
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--tl-color-text-1);
+}
+
+.authInput {
+	width: 100%;
+	padding: var(--tl-space-2) var(--tl-space-4);
+	background-color: var(--tl-color-muted-0);
+	border: 1px solid var(--tl-color-muted-2);
+	border-radius: var(--tl-radius-2);
+	font-size: 14px;
+	height: 40px;
+	color: var(--tl-color-text-0);
+}
+
+.authInput:focus {
+	outline: none;
+	border-color: var(--tl-color-focus);
+	background-color: var(--tl-color-background);
+}
+
+.authInput::placeholder {
+	color: var(--tl-color-text-3);
+}
+
+/* Error Message */
+.authError {
+	font-size: 12px;
+	color: var(--tl-color-danger);
+	margin-top: var(--tl-space-1);
+	text-align: center;
+	text-wrap: balance;
+	font-weight: 500;
+}
+
+.clerkCaptcha:not(:empty) {
+	padding: var(--tl-space-8);
+	margin-top: calc(-1 * var(--tl-space-8));
+}
+
+.authTermsOfUse {
+	font-size: 12px;
+	color: var(--tl-color-text-2);
+	margin-top: var(--tl-space-8);
+	text-align: center;
+	text-wrap: balance;
+	font-weight: 500;
+}
+
+/* Continue Button */
+/* .authContinueButton {
+	width: 100%;
+	position: relative;
+	padding: 0;
+	font-size: 14px;
+	font-weight: 500;
+	justify-content: center;
+	color: var(--tl-color-text-1);
+	background-color: var(--tl-color-muted-2);
+	border: 1px solid var(--tl-color-muted-1);
+	border-radius: var(--tl-radius-2);
+	transition: background-color 0.12s ease;
+	margin-top: 16px;
+} */
+
+.authContinueWithEmailButton {
+	margin-top: var(--tl-space-4);
+}
+
+.authButtonArrow {
+	margin-left: var(--tl-space-2);
+	font-size: 14px;
+}
+
+/* Checkbox */
+.authCheckboxLabel {
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	gap: var(--tl-space-4);
+	cursor: pointer;
+	font-size: 14px;
+	color: var(--tl-color-text-1);
+	line-height: 1.5;
+}
+
+.authCheckboxLabel a {
+	color: var(--tl-color-selected);
+}
+
+.authCheckbox {
+	width: 18px;
+	height: 18px;
+	min-width: 18px;
+	margin-top: 2px;
+	cursor: pointer;
+	accent-color: var(--tl-color-selected);
+}
+
+/* Verification Code */
+.authVerificationWrapper {
+	display: flex;
+	justify-content: center;
+	margin: var(--tl-space-4) 0;
+	position: relative;
+}
+
+.authVerificationInput {
+	display: none;
+}
+
+/* OTP boxes */
+.authOtpBoxes {
+	display: grid;
+	grid-template-columns: repeat(6, 40px);
+	gap: 8px;
+}
+
+.authOtpBox {
+	height: 48px;
+	width: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid var(--tl-color-muted-2);
+	border-radius: var(--tl-radius-2);
+	font-size: 20px;
+	background: var(--tl-color-muted-0);
+}
+
+.authOtpBoxFocused {
+	border: 1px solid var(--tl-color-selected);
+}
+
+.authOtpBoxFilled {
+	background: var(--tl-color-background);
+}
+
+.authOtpCaret {
+	width: 1px;
+	height: 22px;
+	background: var(--tl-color-text-0);
+	display: inline-block;
+	animation: otpCaretBlink 1s step-start infinite;
+}
+
+@keyframes otpCaretBlink {
+	50% {
+		opacity: 0;
+	}
+}
+
+.authOtpHiddenInput {
+	position: absolute;
+	left: 0;
+	top: 0;
+	opacity: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: auto;
+}
+
+/* Resend Code */
+.authResendWrapper {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 14px;
+	margin-top: var(--tl-space-3);
+}
+
+.authResendText {
+	color: var(--tl-color-text-2);
+}
+
+.authResendButton {
+	background: none;
+	border: none;
+	color: var(--tl-color-selected);
+	cursor: pointer;
+	padding: 0;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.authResendButton:disabled {
+	color: var(--tl-color-text-3);
+	cursor: not-allowed;
+}
+
+/* Switch Mode */
+.authSwitchMode {
+	text-align: center;
+	font-size: 14px;
+	color: var(--tl-color-text-2);
+	margin-top: var(--tl-space-2);
+}
+
+.authSwitchModeButton {
+	background: none;
+	border: none;
+	color: var(--tl-color-selected);
+	text-decoration: underline;
+	cursor: pointer;
+	padding: 0;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.authTermsAcceptAndContinueButton {
+	margin-top: var(--tl-space-4);
+}
+
+@media (max-width: 450px) {
+	.authLogo {
+		width: 108px;
+		margin-bottom: 0;
+	}
+
+	.authContainer {
+		max-width: 90vw;
+	}
+
+	.authCtaButton {
+		height: 36px;
+	}
+
+	.authBody {
+		gap: 24px;
+		padding: 8px 32px 24px 32px;
+	}
+
+	.authCtaButton img {
+		height: 18px;
+		width: 18px;
+	}
+
+	/* Inputs have 16px fontsize */
+	.authInput {
+		font-size: 16px;
+	}
+
+	.authInput::placeholder {
+		font-size: 14px;
+	}
+}

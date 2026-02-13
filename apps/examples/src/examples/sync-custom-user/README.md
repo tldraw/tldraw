@@ -1,11 +1,24 @@
 ---
-title: …with custom user data
+title: Multiplayer sync with custom user data
 component: ./SyncCustomUser.tsx
 category: collaboration
 priority: 3
-keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration, custom shape]
+keywords:
+  [
+    multiplayer,
+    sync,
+    useSyncDemo,
+    user preferences,
+    useTldrawUser,
+    user info,
+    userInfo,
+    collaboration,
+    presence,
+  ]
 multiplayer: true
 ---
+
+Integrate your own user data into tldraw sync.
 
 ---
 

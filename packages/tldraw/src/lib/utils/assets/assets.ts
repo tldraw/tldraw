@@ -58,11 +58,14 @@ export async function downsizeImage(
 	height: number,
 	opts = {} as { type?: string; quality?: number }
 ): Promise<Blob> {
-	const image = await MediaHelpers.usingObjectURL(blob, MediaHelpers.loadImage)
+	const { w, h, image } = await MediaHelpers.usingObjectURL(
+		blob,
+		MediaHelpers.getImageAndDimensions
+	)
 	const { type = blob.type, quality = 0.85 } = opts
 	const [desiredWidth, desiredHeight] = clampToBrowserMaxCanvasSize(
-		Math.min(width * 2, image.naturalWidth),
-		Math.min(height * 2, image.naturalHeight)
+		Math.min(width * 2, w),
+		Math.min(height * 2, h)
 	)
 
 	const canvas = document.createElement('canvas')

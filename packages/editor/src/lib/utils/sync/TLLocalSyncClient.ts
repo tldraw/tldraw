@@ -266,7 +266,6 @@ export class TLLocalSyncClient {
 
 	private isPersisting = false
 	private didLastWriteError = false
-	// eslint-disable-next-line no-restricted-globals
 	private scheduledPersistTimeout: ReturnType<typeof setTimeout> | null = null
 
 	/**

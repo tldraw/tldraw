@@ -1,11 +1,12 @@
 ---
-title: Editor focus
+title: Focus the editor
 component: ./EditorFocusExample.tsx
 category: editor-api
-keywords: [instance, state, keyboard shortcuts]
+priority: 2
+keywords: [focus, blur, autofocus, keyboard shortcuts, multiple editors, scrolling, instance state]
 ---
 
-The editor's keyboard shortcuts only work when the editor is "focused".
+Manually manage the editor's focus to enable or disable keyboard shortcuts.
 
 ---
 

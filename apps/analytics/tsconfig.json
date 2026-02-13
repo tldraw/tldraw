@@ -1,0 +1,17 @@
+{
+	"extends": "../../internal/config/tsconfig.base.json",
+	"compilerOptions": {
+		"moduleResolution": "bundler",
+		"composite": false,
+		"declaration": false,
+		"declarationMap": false,
+		"noEmit": true,
+		"emitDeclarationOnly": false,
+		"incremental": false,
+		"types": ["vite/client", "vitest/globals"],
+		"lib": ["dom", "DOM.Iterable", "esnext"]
+	},
+	"exclude": ["node_modules", "public", ".tsbuild*", "worker"],
+	"include": ["src", "./vite.config.ts", "./vitest.config.ts"],
+	"references": []
+}

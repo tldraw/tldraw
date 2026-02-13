@@ -1,129 +1,50 @@
 import {
 	Editor,
-	Geometry2d,
-	Mat,
+	ExtractShapeByProps,
+	richTextValidator,
+	TLEventInfo,
+	TLRichText,
 	TLShape,
 	TLShapeId,
-	Vec,
-	compact,
-	pointInPolygon,
-	polygonIntersectsPolyline,
-	polygonsIntersect,
 } from '@tldraw/editor'
 
 /** @internal */
-export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
-	// const shapes = shapeIds.map((id) => editor.getShape(id)).filter((s) => s) as TLShape[]
-	const parentsToCheck = new Set<TLShape>()
-	for (const id of shapeIds) {
-		// If the shape exists and the shape has an onDragShapesOut
-		// function, add it to the set
-		const shape = editor.getShape(id)
-		if (!shape) continue
-		if (editor.getShapeUtil(shape).onDragShapesOut) {
-			parentsToCheck.add(shape)
-		}
-		// If the shape's parent is a shape and the shape's parent
-		// has an onDragShapesOut function, add it to the set
-		const parent = editor.getShape(shape.parentId)
-		if (!parent) continue
-		if (editor.getShapeUtil(parent).onDragShapesOut) {
-			parentsToCheck.add(parent)
-		}
-	}
-
-	const parentsWithKickedOutChildren = new Map<TLShape, TLShapeId[]>()
-
-	for (const parent of parentsToCheck) {
-		const occludedChildren = getOccludedChildren(editor, parent)
-		if (occludedChildren.length) {
-			parentsWithKickedOutChildren.set(parent, occludedChildren)
-		}
-	}
-
-	// now call onDragShapesOut for each parent
-	for (const [parent, kickedOutChildrenIds] of parentsWithKickedOutChildren) {
-		const shapeUtil = editor.getShapeUtil(parent)
-		const kickedOutChildren = compact(kickedOutChildrenIds.map((id) => editor.getShape(id)))
-		shapeUtil.onDragShapesOut?.(parent, kickedOutChildren)
-	}
+export function hasRichText(
+	shape: TLShape
+): shape is ExtractShapeByProps<{ richText: TLRichText }> {
+	return 'richText' in shape.props && richTextValidator.isValid(shape.props.richText)
 }
+/**
+ * Start editing a shape that has rich text, such as text, note, geo, or arrow shapes.
+ * This will enter the editing state for the shape and optionally select all the text.
+ *
+ * @param editor - The editor instance.
+ * @param shapeOrId - The shape to start editing. This shape must have a richText property with a TLRichText value.
+ * @param options - Options: selectAll or info (TLEventInfo)
+ *
+ * @public
+ */
+export function startEditingShapeWithRichText(
+	editor: Editor,
+	shapeOrId: TLShape | TLShapeId,
+	options: { selectAll?: boolean; info?: TLEventInfo } = {}
+) {
+	const shape = typeof shapeOrId === 'string' ? editor.getShape(shapeOrId) : shapeOrId
+	if (!shape) return
 
-/** @public */
-export function getOccludedChildren(editor: Editor, parent: TLShape) {
-	const childIds = editor.getSortedChildIdsForParent(parent.id)
-	if (childIds.length === 0) return []
-	const parentPageBounds = editor.getShapePageBounds(parent)
-	if (!parentPageBounds) return []
+	if (!editor.canEditShape(shape)) return
 
-	let parentGeometry: Geometry2d | undefined
-	let parentPageTransform: Mat | undefined
-	let parentPageCorners: Vec[] | undefined
-
-	const results: TLShapeId[] = []
-
-	for (const childId of childIds) {
-		const shapePageBounds = editor.getShapePageBounds(childId)
-		if (!shapePageBounds) {
-			// Not occluded, shape doesn't exist
-			continue
-		}
-
-		if (!parentPageBounds.includes(shapePageBounds)) {
-			// Not in shape's bounds, shape is occluded
-			results.push(childId)
-			continue
-		}
-
-		// There might be a lot of children; we don't want to do this for all of them,
-		// but we also don't want to do it at all if we don't have to. ??= to the rescue!
-
-		parentGeometry ??= editor.getShapeGeometry(parent)
-		parentPageTransform ??= editor.getShapePageTransform(parent)
-		parentPageCorners ??= parentPageTransform.applyToPoints(parentGeometry.vertices)
-
-		const parentCornersInShapeSpace = editor
-			.getShapePageTransform(childId)
-			.clone()
-			.invert()
-			.applyToPoints(parentPageCorners)
-
-		// If any of the shape's vertices are inside the occluder, it's not occluded
-		const { vertices, isClosed } = editor.getShapeGeometry(childId)
-
-		if (vertices.some((v) => pointInPolygon(v, parentCornersInShapeSpace))) {
-			// not occluded, vertices are in the occluder's corners
-			continue
-		}
-
-		// If any the shape's vertices intersect the edge of the occluder, it's not occluded
-		if (isClosed) {
-			if (polygonsIntersect(parentCornersInShapeSpace, vertices)) {
-				// not occluded, vertices intersect parent's corners
-				continue
-			}
-		} else if (polygonIntersectsPolyline(parentCornersInShapeSpace, vertices)) {
-			// not occluded, vertices intersect parent's corners
-			continue
-		}
-
-		// Passed all checks, shape is occluded
-		results.push(childId)
+	if (!hasRichText(shape)) {
+		throw new Error('Shape does not have rich text')
 	}
-
-	return results
-}
-
-/** @internal */
-export function startEditingShapeWithLabel(editor: Editor, shape: TLShape, selectAll = false) {
 	// Finish this shape and start editing the next one
-	editor.select(shape)
 	editor.setEditingShape(shape)
 	editor.setCurrentTool('select.editing_shape', {
+		...options.info,
 		target: 'shape',
 		shape: shape,
 	})
-	if (selectAll) {
+	if (options.selectAll) {
 		editor.emit('select-all-text', { shapeId: shape.id })
 	}
 }

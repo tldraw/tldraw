@@ -3,7 +3,6 @@ import {
 	Editor,
 	IndexKey,
 	TLImageAsset,
-	TLImageShape,
 	TLShape,
 	TLShapeId,
 	Vec,
@@ -97,6 +96,7 @@ export async function flattenShapesToImages(
 		// get an image for the shapes
 		const svgResult = await editor.getSvgString(group.shapes, {
 			padding,
+			background: false,
 		})
 		if (!svgResult?.svg) continue
 
@@ -165,7 +165,7 @@ export async function flattenShapesToImages(
 			const shapeId = createShapeId()
 
 			// create an image shape in the same place as the shapes
-			editor.createShape<TLImageShape>({
+			editor.createShape({
 				id: shapeId,
 				type: 'image',
 				index,

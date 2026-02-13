@@ -1,13 +1,25 @@
 ---
-title: Rich text with custom extension and custom toolbar
+title: Rich text with custom extension and toolbar
 component: ./RichTextCustomExtension.tsx
 category: shapes/tools
-priority: 1
-keywords: [text, tip, tap, extension, toolbar]
+priority: 20
+keywords:
+  [
+    tiptap,
+    rich text,
+    custom extension,
+    text editor,
+    mark,
+    toolbar button,
+    textoptions,
+    wavy text,
+    text effects,
+    defaultrichtexttoolbar,
+  ]
 ---
 
-Extend the TipTap text editor.
+Extend the TipTap text editor by adding a custom extension and toolbar.
 
 ---
 
-The text editor can be extended by setting the `textOptions` prop.
+This example shows how to add a custom extension and toolbar to the TipTap text editor by setting the `textOptions` prop.

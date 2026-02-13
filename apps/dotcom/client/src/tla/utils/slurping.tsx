@@ -71,7 +71,7 @@ interface SlurperOpts {
 
 export async function maybeSlurp(opts: SlurperOpts) {
 	if (opts.abortSignal.aborted) return
-	if (!opts.app.isFileOwner(opts.fileId)) return
+	if (!opts.app.canUpdateFile(opts.fileId)) return
 	const file = opts.app.getFile(opts.fileId)
 	const persistenceKey =
 		(opts.editor.getDocumentSettings().meta.slurpPersistenceKey as string | undefined) ||
@@ -85,7 +85,7 @@ export class Slurper {
 	constructor(private opts: SlurperOpts & { slurpPersistenceKey: string }) {}
 
 	async slurp() {
-		if (!this.opts.editor.getDocumentSettings().meta.slurpPersistenceKey) {
+		if (this.opts.editor.store.query.records('shape').get().length === 0) {
 			// This is a one-time operation.
 			// So we need to wait a tick for react strict mode to finish
 			// doing its nasty business before we start the migration.

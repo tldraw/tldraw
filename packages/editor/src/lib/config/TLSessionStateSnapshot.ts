@@ -14,12 +14,12 @@ import {
 import {
 	deleteFromSessionStorage,
 	getFromSessionStorage,
+	isEqual,
 	setInSessionStorage,
 	structuredClone,
 	uniqueId,
 } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import isEqual from 'lodash.isequal'
 import { tlenv } from '../globals/environment'
 
 const tabIdKey = 'TLDRAW_TAB_ID_v2' as const

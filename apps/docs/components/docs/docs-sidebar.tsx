@@ -1,6 +1,7 @@
-import { Aside } from '@/components/common/aside'
+import { Navigation } from '@/components/common/navigation'
 import { DocsCategoryMenu } from '@/components/docs/docs-category-menu'
 import { DocsSidebarMenus } from '@/components/docs/docs-sidebar-menus'
+import { processSidebarContent } from '@/components/docs/docs-sidebar-utils'
 import { db } from '@/utils/ContentDatabase'
 
 export async function DocsSidebar({
@@ -13,14 +14,12 @@ export async function DocsSidebar({
 	articleId?: string
 }) {
 	const sidebar = await db.getSidebarContentList({ sectionId, categoryId, articleId })
-	const skipFirstLevel = ['reference', 'examples'].includes(sectionId ?? '')
-	// @ts-ignore
-	const elements = skipFirstLevel ? sidebar.links[0].children : sidebar.links
+	const elements = processSidebarContent(sidebar, sectionId)
 
 	return (
-		<Aside className="hidden md:flex">
+		<Navigation className="hidden md:flex">
 			<DocsCategoryMenu />
 			<DocsSidebarMenus menus={elements} />
-		</Aside>
+		</Navigation>
 	)
 }

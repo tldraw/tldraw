@@ -8,9 +8,6 @@
   "043973ec1f": {
     "translation": "Har du fortfarande problem? {GetHelpLink}"
   },
-  "05596b840b": {
-    "translation": "Öppna tldraw."
-  },
   "06b9281e39": {
     "translation": "Auto"
   },
@@ -20,23 +17,44 @@
   "08331c1710": {
     "translation": "Hastighetsgränsen har överskridits, försök igen senare."
   },
+  "08bd40c754": {
+    "translation": "Konto"
+  },
+  "0a91f7fa87": {
+    "translation": "Den här filen har nått sin storleksgräns och ändringarna kanske inte längre sparas. Ta bort en del innehåll eller skapa en ny fil."
+  },
   "0b27918290": {
     "translation": "Fil"
   },
   "0b9a4cde72": {
     "translation": "Arkivmenyn"
   },
+  "0d1f2bb523": {
+    "translation": "Skicka feedback"
+  },
   "110a4b01be": {
     "translation": "Publicera"
+  },
+  "129b9e34ea": {
+    "translation": "Lämna gruppen"
+  },
+  "12a6766ba1": {
+    "translation": "Lossa filen"
+  },
+  "12c8a9838c": {
+    "translation": "Testa tldraw SDK:et"
   },
   "13ddd375ad": {
     "translation": "Exportera som"
   },
+  "146ffe2fd9": {
+    "translation": "Visa mer"
+  },
+  "14d65465b7": {
+    "translation": "Ta bort grupp"
+  },
   "181b90f889": {
     "translation": "Skapa fil"
-  },
-  "1bef75f760": {
-    "translation": "Tillåt tldraw att mejla mig om detta"
   },
   "1da2e8106b": {
     "translation": "Ett oväntat fel inträffade."
@@ -44,11 +62,17 @@
   "1dd1c5fb7f": {
     "translation": "Idag"
   },
-  "26e5b44256": {
-    "translation": "Ge oss feedback"
+  "2445e5e347": {
+    "translation": "Skapa grupp"
+  },
+  "250ddea65c": {
+    "translation": "Om tldraw"
   },
   "299cb00a7a": {
     "translation": "Uppladdningen misslyckades"
+  },
+  "2c3ef76333": {
+    "translation": "Mina filer"
   },
   "31246941ad": {
     "translation": "Du måste logga in för att se den här filen."
@@ -56,8 +80,11 @@
   "31418ce4ad": {
     "translation": "i18n: Markering saknas"
   },
-  "32656a600c": {
-    "translation": "Ser du något fel? Har du en idé att förbättra tldraw? Vi vill gärna höra det!"
+  "32210b37e4": {
+    "translation": "Lägg till länk"
+  },
+  "324a0f3182": {
+    "translation": "Tillbaka till tldraw"
   },
   "335defdafe": {
     "translation": "Försök att uppdatera sidan."
@@ -65,11 +92,17 @@
   "344a7f427f": {
     "translation": "Redigeringsverktyg"
   },
+  "3bc7d6ea2f": {
+    "translation": "Fortsätt med e-post"
+  },
   "3bd1b98dbd": {
     "translation": "Det gick inte att publicera ändringarna."
   },
   "3c5e891bff": {
     "translation": "Fastnålad"
+  },
+  "3d0238bf16": {
+    "translation": "Acceptera alla"
   },
   "42e53c47c1": {
     "translation": "Kontakta ägaren för att begära åtkomst."
@@ -80,20 +113,35 @@
   "46137245cd": {
     "translation": "Tack för att du hjälper oss att förbättra tldraw!"
   },
-  "4778b9f3f2": {
-    "translation": "Sekretessinställningar"
+  "477df802ca": {
+    "translation": "För att fortsätta redigera, kopiera filen till dina filer."
   },
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "Fäst fil"
+  },
+  "49049467ff": {
+    "translation": "Klistra in tldraw-filens URL..."
+  },
   "4908687e50": {
     "translation": "Är du säker på att du vill glömma den här filen?"
   },
-  "4c06678729": {
-    "translation": "Vi använder förstapartscookies för att förbättra våra tjänster. <a>Läs mer</a>"
+  "49ee308734": {
+    "translation": "Namn"
+  },
+  "4d0d3ddec9": {
+    "translation": "Den här webbplatsen använder cookies för att appen ska fungera och för att samla in analyser."
   },
   "4d1c8263ba": {
     "translation": "Ladda om"
+  },
+  "4da5988a2e": {
+    "translation": "Radera grupp…"
+  },
+  "4e6fbf032b": {
+    "translation": "Är du säker på att du vill ta bort den här gruppen? Åtgärden kan inte ångras."
   },
   "50db1b7e1e": {
     "translation": "Det gick inte att avpublicera filen."
@@ -101,11 +149,11 @@
   "517bb809d9": {
     "translation": "Sidmenyn"
   },
+  "542248f0ba": {
+    "translation": "Den här filen är nu skrivskyddad"
+  },
   "54286b1d01": {
     "translation": "Medarbetargräns har nåtts"
-  },
-  "54d240fa41": {
-    "translation": "Vänligen sakta ner."
   },
   "554a05155c": {
     "translation": "Har du fortfarande problem? <a>Rapportera ett problem</a>"
@@ -113,23 +161,29 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5677e381d2": {
+    "translation": "Vi använder analyscookies för att förbättra tldraw."
+  },
   "56c34c6410": {
     "translation": "Sekretesspolicy"
   },
-  "5817f82c16": {
-    "translation": "Valfritt — Hjälp oss förstå hur människor använder tldraw och hur vi kan göra det bättre."
+  "5a86b22fa0": {
+    "translation": "Dra filer hit, <create>skapa en fil</create> eller <invite>kopiera inbjudningslänken</invite> för att komma igång."
   },
   "5a95a425f7": {
     "translation": "Dela"
   },
-  "5d160eb095": {
-    "translation": "Din session"
+  "5bec508475": {
+    "translation": "Gammal webbläsare upptäckt. Uppdatera din webbläsare för att använda den här appen."
+  },
+  "5c6fe42bc2": {
+    "translation": "Återkalla den här länken och skapa en ny."
   },
   "5d26ae7550": {
     "translation": "Vi kunde inte ladda upp en del av innehållet du skapade innan du loggade in."
   },
-  "5db1e9a8ca": {
-    "translation": "Fyll i det här formuläret, <discord>chatta med oss ​​på Discord</discord> eller <github>skicka in ett ärende på GitHub</github>."
+  "5ea8bb44be": {
+    "translation": "Du har blivit inbjuden att gå med i gruppen:"
   },
   "5f3c333678": {
     "translation": "Feedback har skickats"
@@ -143,11 +197,17 @@
   "625fd29749": {
     "translation": "Äldre"
   },
+  "639bae9ac6": {
+    "translation": "du"
+  },
   "6609dd239e": {
     "translation": "Något gick fel"
   },
   "6637a98151": {
     "translation": "En ny version av tldraw är tillgänglig. Ladda om sidan för att fortsätta."
+  },
+  "6832ac5936": {
+    "translation": "Ange din e-postadress"
   },
   "6a26f54883": {
     "translation": "Hjälp"
@@ -158,8 +218,14 @@
   "6dfc62f621": {
     "translation": "Följ dessa steg för att importera innehållet manuellt:"
   },
+  "70222abcfc": {
+    "translation": "Gruppinställningar"
+  },
   "70a6facb9d": {
     "translation": "Denna vecka"
+  },
+  "71a29b007b": {
+    "translation": "Har du en bugg, ett problem eller en idé för tldraw? Låt oss veta!"
   },
   "73ab799383": {
     "translation": "Denna version av tldraw stöds inte längre."
@@ -182,14 +248,35 @@
   "764671e008": {
     "translation": "Chatta med oss ​​på Discord"
   },
+  "76dea3c9ca": {
+    "translation": "tldraw är en gratis whiteboardtavla online. Skapa ett konto för att spara dina filer och arbeta med dina vänner."
+  },
   "777f9e90cf": {
     "translation": "Ogiltig begäran."
+  },
+  "7827371d1a": {
+    "translation": "Denna anonyma tldraw-multiplayerfil är nu skrivskyddad. För att fortsätta redigera, vänligen logga in och kopiera den till dina filer."
+  },
+  "78e9815992": {
+    "translation": "Förstod"
   },
   "797799f35e": {
     "translation": "Skicka ett problem på GitHub"
   },
+  "7b1329f5ca": {
+    "translation": "Användarmanual"
+  },
+  "7be10fc592": {
+    "translation": "Återställ version"
+  },
+  "7c0747a5df": {
+    "translation": "Öppna tldraw"
+  },
   "7cb5f8b4a5": {
     "translation": "Glöm"
+  },
+  "7cfe6c43dc": {
+    "translation": "Lämna gruppen…"
   },
   "7daeced9ff": {
     "translation": "Publicera ändringar"
@@ -197,8 +284,11 @@
   "7fcdcc6455": {
     "translation": "Glöm filen"
   },
-  "81d389ac80": {
-    "translation": "Exportera innehållet som en .tldr-fil: Välj \"Ladda ner fil\" i den övre vänstra menyn."
+  "801ab24683": {
+    "translation": "Ladda ner"
+  },
+  "815e116a2e": {
+    "translation": "Har du en bugg, ett problem eller en idé för tldraw? Låt oss veta! Fyll i det här formuläret så återkommer vi via e-post om det behövs. Du kan också <discord>chatta med oss ​​på Discord</discord> eller <github>skicka in ett ärende på GitHub</github>."
   },
   "85a082de1b": {
     "translation": "Uppdatera sidan för att få den senaste versionen av tldraw."
@@ -209,11 +299,14 @@
   "86c66437fd": {
     "translation": "Byt namn på filen"
   },
+  "8ad4303b83": {
+    "translation": "Nej tack"
+  },
+  "8c2d3d730c": {
+    "translation": "Kontrollera din e-post för en verifieringskod."
+  },
   "8eb2c00e96": {
     "translation": "Delas med dig"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Om"
   },
   "8ff3d0a705": {
     "translation": "Begränsad hastighet"
@@ -227,11 +320,32 @@
   "91e49bb0eb": {
     "translation": "Kopiera till mina filer"
   },
+  "930390d222": {
+    "translation": "Kopierad inbjudningslänk"
+  },
+  "9489b2f82a": {
+    "translation": "Du är redan medlem i den här gruppen"
+  },
+  "95aacd4d4a": {
+    "translation": "Logga in med Google"
+  },
+  "95d2109dc8": {
+    "translation": "Bygg med tldraw SDK"
+  },
   "96165d6df5": {
     "translation": "Denna månad"
   },
+  "985a4b720f": {
+    "translation": "Användarvillkor"
+  },
+  "98c997a27e": {
+    "translation": "Lägg till fillänk"
+  },
   "9914a0ce04": {
     "translation": "Ljus"
+  },
+  "9b33f5c63c": {
+    "translation": "Fick du ingen kod? <resend>Skicka igen</resend>."
   },
   "9bef626805": {
     "translation": "Ta bort fil"
@@ -244,6 +358,9 @@
   },
   "9e93c98d88": {
     "translation": "Välj bort"
+  },
+  "a0da245992": {
+    "translation": "Exportera innehållet som en .tldr-fil: Välj \"Ladda ner\" i menyn uppe till vänster."
   },
   "a104439641": {
     "translation": "Utfyllnad"
@@ -269,6 +386,9 @@
   "a768caa988": {
     "translation": "Analytics"
   },
+  "a8873770ab": {
+    "translation": "Filen blir stor"
+  },
   "a9ded1e5ce": {
     "translation": "Bakgrund"
   },
@@ -279,14 +399,32 @@
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Senast publicerad <date></date>"
   },
+  "b028909917": {
+    "translation": "Gästanvändare"
+  },
+  "b2c3c2e30c": {
+    "translation": "Filen är full"
+  },
+  "b357b524e7": {
+    "translation": "E-postadress"
+  },
+  "b3d2db69fe": {
+    "translation": "Fil-URL"
+  },
   "b6d4223e60": {
     "translation": "Logga in"
+  },
+  "b6f4a2ec63": {
+    "translation": "Ägare"
   },
   "b758336699": {
     "translation": "Kopiera länk"
   },
-  "bb792693e2": {
-    "translation": "Ta bort nål"
+  "ba0318cb81": {
+    "translation": "Logga in för att dela"
+  },
+  "bb93a7590f": {
+    "translation": "Godkänn och gå med i gruppen"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Laddar upp .tldr-fil...} other {Laddar upp {uploaded} av {total} .tldr-filer...}}"
@@ -294,17 +432,20 @@
   "bc88b0e89e": {
     "translation": "Delas av {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "Ladda upp .tldr-filer"
-  },
   "c2276c9127": {
     "translation": "Läs mer om delning."
+  },
+  "c28aed8348": {
+    "translation": "Tillåt <cookies>analytics</cookies> för att hjälpa oss att förbättra tldraw."
   },
   "c303bd1095": {
     "translation": "Det gick inte att publicera filen."
   },
-  "c4408d3350": {
-    "translation": "Acceptera"
+  "c4b39a1cc3": {
+    "translation": "Viktiga cookies"
+  },
+  "c6155aaecc": {
+    "translation": "Gruppnamn"
   },
   "c655b27b1e": {
     "translation": "i18n: Lång sträng"
@@ -312,8 +453,14 @@
   "c6a00f137b": {
     "translation": "Bjud in"
   },
+  "c74ea6dbff": {
+    "translation": "Visa mindre"
+  },
   "c87aacf567": {
     "translation": "Logga ut"
+  },
+  "c9cc8cce24": {
+    "translation": "Spara"
   },
   "cceaefbc20": {
     "translation": "Dela den här filen"
@@ -321,8 +468,8 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
-  "cd16f555de": {
-    "translation": "Viktigt – Krävs för att spara dina filer och inställningar och synkronisera dem mellan dina enheter."
+  "ce0547606c": {
+    "translation": "Den här filen närmar sig sin storleksgräns. Överväg att ta bort en del innehåll eller starta en ny fil."
   },
   "cea291e45e": {
     "translation": "Läs mer om publicering."
@@ -330,11 +477,14 @@
   "d3d2e61733": {
     "translation": "Stäng"
   },
+  "d46632fe1f": {
+    "translation": "För många förfrågningar. Var vänlig och sakta ner."
+  },
   "d4bbf74f3e": {
     "translation": "Aktivera sidofältet"
   },
-  "d5ef96e383": {
-    "translation": "Ladda ner filen"
+  "d638a3344b": {
+    "translation": "Innan du börjar, vänligen acceptera våra <tos>användarvillkor</tos> och <privacy>sekretesspolicy</privacy>."
   },
   "d721757161": {
     "translation": "Tema"
@@ -342,26 +492,44 @@
   "d876a9fe1a": {
     "translation": "Försök igen"
   },
+  "d88ad2dc74": {
+    "translation": "Acceptera och fortsätt"
+  },
   "d9100f3e10": {
     "translation": "Gå hit för att se innehållet"
+  },
+  "d9e35d0f55": {
+    "translation": "Du har nått det maximala antalet grupper. Du måste ta bort gamla grupper innan du skapar nya."
   },
   "dbbebf3c03": {
     "translation": "Endast inbjudan"
   },
+  "dcdaa754fe": {
+    "translation": "Ogiltig URL för tldraw-fil"
+  },
   "dfdb78a4e4": {
     "translation": "Appfelsökningsflaggor"
   },
-  "e371526ad0": {
-    "translation": "Denna cookie krävs för att tldraw ska fungera och kan inte inaktiveras."
+  "e0c88179b3": {
+    "translation": "Bjud in medlemmar"
+  },
+  "e2198d6228": {
+    "translation": "Kopiera inbjudningslänken"
+  },
+  "e2ae80a510": {
+    "translation": "Juridisk sammanfattning"
+  },
+  "e3afed0047": {
+    "translation": "Administration"
   },
   "e404559826": {
     "translation": "Användarvillkor"
   },
-  "e78e14c5f1": {
-    "translation": "Nåla fast"
+  "e81c4e4f2b": {
+    "translation": "eller"
   },
-  "e8d1090cb9": {
-    "translation": "Vi använder cookies för att hålla dig inloggad, för att synkronisera dina filer och för att samla in analyser för att hjälpa oss att förbättra tldraw. Läs vår <a>cookiepolicy</a> om du vill veta mer."
+  "ea0626ac5a": {
+    "translation": "Riskzon"
   },
   "ea4788705e": {
     "translation": "Avbryt"
@@ -381,11 +549,35 @@
   "ed75712b0e": {
     "translation": "Duplicera"
   },
+  "ede55d955f": {
+    "translation": "Läs vår <a>cookiepolicy</a> för att lära dig mer."
+  },
+  "ef53538ae4": {
+    "translation": "Medlemmar"
+  },
+  "ef7de3f485": {
+    "translation": "vald"
+  },
+  "f09b16bc5f": {
+    "translation": "Vi använder cookies för att hålla dig inloggad, för att synkronisera dina filer och för att samla in analyser som hjälper oss att förbättra tldraw."
+  },
+  "f0e8bff6f9": {
+    "translation": "Användarinställningar"
+  },
+  "f2569594b2": {
+    "translation": "Vi använder dessa cookies för att spara dina filer och inställningar."
+  },
   "f2a6c498fb": {
     "translation": "Radera"
   },
-  "f43fb62093": {
-    "translation": "Tillbaka till tldraw."
+  "f4f70727dc": {
+    "translation": "Inställningar"
+  },
+  "f714e36843": {
+    "translation": "Är du säker på att du vill lämna den här gruppen?"
+  },
+  "fa2ead697d": {
+    "translation": "Integritetspolicy"
   },
   "fb15c53f22": {
     "translation": "Visningsverktyg"
@@ -395,5 +587,11 @@
   },
   "fed5ec05eb": {
     "translation": "Länk kopierad"
+  },
+  "ff7a814974": {
+    "translation": "Lägg till fillänk…"
+  },
+  "ffcd73e997": {
+    "translation": "Importera fil…"
   }
 }

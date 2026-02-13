@@ -1,5 +1,6 @@
 import { useShallowObjectIdentity } from '@tldraw/editor'
 import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
+import { DefaultA11yAnnouncer } from '../components/A11y'
 import {
 	DefaultActionsMenu,
 	TLUiActionsMenuProps,
@@ -11,6 +12,7 @@ import {
 import { CursorChatBubble } from '../components/CursorChatBubble'
 import { DefaultDebugMenu } from '../components/DebugMenu/DefaultDebugMenu'
 import { DefaultDebugPanel } from '../components/DefaultDebugPanel'
+import { DefaultFollowingIndicator } from '../components/DefaultFollowingIndicator'
 import { DefaultMenuPanel } from '../components/DefaultMenuPanel'
 import { DefaultDialogs } from '../components/Dialogs'
 import { TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
@@ -33,14 +35,15 @@ import {
 import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
 import { DefaultToasts } from '../components/Toasts'
+import { DefaultImageToolbar } from '../components/Toolbar/DefaultImageToolbar'
 import {
 	DefaultRichTextToolbar,
 	TLUiRichTextToolbarProps,
 } from '../components/Toolbar/DefaultRichTextToolbar'
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
-import { DefaultTopPanel } from '../components/TopPanel/DefaultTopPanel'
+import { DefaultVideoToolbar } from '../components/Toolbar/DefaultVideoToolbar'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
-import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
+import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 
 /** @public */
 export interface TLUiComponents {
@@ -55,6 +58,8 @@ export interface TLUiComponents {
 	NavigationPanel?: ComponentType | null
 	Toolbar?: ComponentType | null
 	RichTextToolbar?: ComponentType<TLUiRichTextToolbarProps> | null
+	ImageToolbar?: ComponentType | null
+	VideoToolbar?: ComponentType | null
 	KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null
 	QuickActions?: ComponentType<TLUiQuickActionsProps> | null
 	HelperButtons?: ComponentType<TLUiHelperButtonsProps> | null
@@ -66,6 +71,8 @@ export interface TLUiComponents {
 	CursorChatBubble?: ComponentType | null
 	Dialogs?: ComponentType | null
 	Toasts?: ComponentType | null
+	A11y?: ComponentType | null
+	FollowingIndicator?: ComponentType | null
 }
 
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
@@ -99,6 +106,8 @@ export function TldrawUiComponentsProvider({
 					NavigationPanel: DefaultNavigationPanel,
 					Toolbar: DefaultToolbar,
 					RichTextToolbar: DefaultRichTextToolbar,
+					ImageToolbar: DefaultImageToolbar,
+					VideoToolbar: DefaultVideoToolbar,
 					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
 					QuickActions: DefaultQuickActions,
 					HelperButtons: DefaultHelperButtons,
@@ -107,9 +116,11 @@ export function TldrawUiComponentsProvider({
 					MenuPanel: DefaultMenuPanel,
 					SharePanel: showCollaborationUi ? DefaultSharePanel : null,
 					CursorChatBubble: showCollaborationUi ? CursorChatBubble : null,
-					TopPanel: showCollaborationUi ? DefaultTopPanel : null,
+					TopPanel: null,
 					Dialogs: DefaultDialogs,
 					Toasts: DefaultToasts,
+					A11y: DefaultA11yAnnouncer,
+					FollowingIndicator: DefaultFollowingIndicator,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]

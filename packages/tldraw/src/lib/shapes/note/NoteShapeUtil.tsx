@@ -1,13 +1,13 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Box,
+	EMPTY_ARRAY,
 	Editor,
 	Group2d,
 	IndexKey,
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
-	TLFontFace,
 	TLHandle,
 	TLNoteShape,
 	TLNoteShapeProps,
@@ -17,8 +17,10 @@ import {
 	Vec,
 	WeakCache,
 	exhaustiveSwitchError,
+	getColorValue,
 	getDefaultColorTheme,
 	getFontsFromRichText,
+	isEqual,
 	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -29,8 +31,14 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { useCallback } from 'react'
-import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
+import { useCallback, useContext } from 'react'
+import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
+import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
+import {
+	isEmptyRichText,
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+} from '../../utils/text/richText'
 import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
@@ -40,15 +48,9 @@ import {
 	LABEL_PADDING,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-
-import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
-
-import isEqual from 'lodash.isequal'
-import {
-	renderHtmlFromRichTextForMeasurement,
-	renderPlaintextFromRichText,
-} from '../../utils/text/richText'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { useIsReadyForEditing } from '../shared/useEditablePlainText'
+import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import {
 	CLONE_HANDLE_MARGIN,
 	NOTE_CENTER_OFFSET,
@@ -146,6 +148,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					height: lh,
 					isFilled: true,
 					isLabel: true,
+					excludeFromShapeBounds: true,
 				}),
 			],
 		})
@@ -156,7 +159,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const isCoarsePointer = this.editor.getInstanceState().isCoarsePointer
 		if (isCoarsePointer) return []
 
-		const zoom = this.editor.getZoomLevel()
+		const zoom = this.editor.getEfficientZoomLevel()
 		if (zoom * scale < 0.25) return []
 
 		const nh = getNoteHeight(shape)
@@ -226,7 +229,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
-	override getFontFaces(shape: TLNoteShape): TLFontFace[] {
+	override getFontFaces(shape: TLNoteShape) {
+		if (isEmptyRichText(shape.props.richText)) {
+			return EMPTY_ARRAY
+		}
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',
@@ -263,16 +269,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			[this.editor]
 		)
 
-		// todo: consider hiding shadows on dark mode if they're invisible anyway
-
-		const hideShadows = useValue('zoom', () => this.editor.getZoomLevel() < 0.35 / scale, [
-			scale,
-			this.editor,
-		])
-
 		const isDarkMode = useValue('dark mode', () => this.editor.user.getIsDarkMode(), [this.editor])
 
+		// Shadows are hidden when zoomed out far enough or in dark mode
+		let hideShadows = useEfficientZoomThreshold(scale * 0.25)
+		if (isDarkMode) hideShadows = true
+
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+
+		const isReadyForEditing = useIsReadyForEditing(this.editor, shape.id)
+		const isEmpty = isEmptyRichText(richText)
 
 		return (
 			<>
@@ -282,7 +288,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					style={{
 						width: nw,
 						height: nh,
-						backgroundColor: theme[color].note.fill,
+						backgroundColor: getColorValue(theme, color, 'noteFill'),
 						borderBottom: hideShadows
 							? isDarkMode
 								? `${2 * scale}px solid rgb(20, 20, 20)`
@@ -291,21 +297,29 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						boxShadow: hideShadows ? 'none' : getNoteShadow(shape.id, rotation, scale),
 					}}
 				>
-					<RichTextLabel
-						shapeId={id}
-						type={type}
-						font={font}
-						fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
-						lineHeight={TEXT_PROPS.lineHeight}
-						align={align}
-						verticalAlign={verticalAlign}
-						richText={richText}
-						isSelected={isSelected}
-						labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
-						wrap
-						padding={LABEL_PADDING * scale}
-						onKeyDown={handleKeyDown}
-					/>
+					{(isSelected || isReadyForEditing || !isEmpty) && (
+						<RichTextLabel
+							shapeId={id}
+							type={type}
+							font={font}
+							fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
+							lineHeight={TEXT_PROPS.lineHeight}
+							align={align}
+							verticalAlign={verticalAlign}
+							richText={richText}
+							isSelected={isSelected}
+							labelColor={
+								labelColor === 'black'
+									? getColorValue(theme, color, 'noteText')
+									: getColorValue(theme, labelColor, 'fill')
+							}
+							wrap
+							padding={LABEL_PADDING * scale}
+							hasCustomTabBehavior
+							showTextOutline={false}
+							onKeyDown={handleKeyDown}
+						/>
+					)}
 				</div>
 				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</>
@@ -323,6 +337,17 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLNoteShape): Path2D {
+		const { scale } = shape.props
+		const path = new Path2D()
+		path.roundRect(0, 0, NOTE_SIZE * scale, getNoteHeight(shape), scale)
+		return path
+	}
+
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const bounds = getBoundsForSVG(shape)
@@ -334,9 +359,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				align={shape.props.align}
 				verticalAlign={shape.props.verticalAlign}
 				richText={shape.props.richText}
-				labelColor={theme[shape.props.color].note.text}
+				labelColor={getColorValue(theme, shape.props.color, 'noteText')}
 				bounds={bounds}
-				padding={LABEL_PADDING * shape.props.scale}
+				padding={LABEL_PADDING}
+				showTextOutline={false}
 			/>
 		)
 
@@ -347,7 +373,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					rx={1}
 					width={NOTE_SIZE}
 					height={bounds.h}
-					fill={theme[shape.props.color].note.fill}
+					fill={getColorValue(theme, shape.props.color, 'noteFill')}
 				/>
 				{textLabel}
 			</>
@@ -408,7 +434,7 @@ function getNoteSizeAdjustments(editor: Editor, shape: TLNoteShape) {
 function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 	const { richText } = shape.props
 
-	if (!renderPlaintextFromRichText(editor, richText)) {
+	if (isEmptyRichText(richText)) {
 		const minHeight = LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2
 		return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 0 }
 	}
@@ -436,6 +462,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 			fontSize: fontSizeAdjustment,
 			maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
 			disableOverflowWrapBreaking: true,
+			measureScrollWidth: true,
 		})
 
 		labelHeight = nextTextSize.h + LABEL_PADDING * 2
@@ -476,7 +503,8 @@ function getLabelSize(editor: Editor, shape: TLNoteShape) {
 
 function useNoteKeydownHandler(id: TLShapeId) {
 	const editor = useEditor()
-	const translation = useCurrentTranslation()
+	// Try to get the translation context, but fallback to ltr if it doesn't exist
+	const translation = useContext(TranslationsContext)
 
 	return useCallback(
 		(e: KeyboardEvent) => {
@@ -495,7 +523,8 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				// tab controls x axis (shift inverts direction set by RTL)
 				// cmd enter is the y axis (shift inverts direction)
 				const isRTL = !!(
-					translation.dir === 'rtl' ||
+					translation?.dir === 'rtl' ||
+					// todo: can we check a partial of the text, so that we don't have to render the whole thing?
 					isRightToLeftLanguage(renderPlaintextFromRichText(editor, shape.props.richText))
 				)
 
@@ -518,12 +547,11 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
 
 				if (newNote) {
-					editor.markHistoryStoppingPoint('editing adjacent shape')
-					startEditingShapeWithLabel(editor, newNote, true /* selectAll */)
+					startEditingShapeWithRichText(editor, newNote, { selectAll: true })
 				}
 			}
 		},
-		[id, editor, translation.dir]
+		[id, editor, translation?.dir]
 	)
 }
 

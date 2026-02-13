@@ -3,8 +3,6 @@ import {
 	Mat,
 	StateNode,
 	TLCancelEventInfo,
-	TLFrameShape,
-	TLGroupShape,
 	TLKeyboardEventInfo,
 	TLPageId,
 	TLPointerEventInfo,
@@ -14,6 +12,7 @@ import {
 	Vec,
 	pointInPolygon,
 	polygonsIntersect,
+	react,
 } from '@tldraw/editor'
 
 export class Brushing extends StateNode {
@@ -25,13 +24,27 @@ export class Brushing extends StateNode {
 	excludedShapeIds = new Set<TLShapeId>()
 	isWrapMode = false
 
-	// The shape that the brush started on
-	initialStartShape: TLShape | null = null
+	viewportDidChange = false
+	cleanupViewportChangeReactor() {
+		void null
+	} // cleanup function for the viewport reactor
 
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
-		const { altKey, currentPagePoint } = this.editor.inputs
+		const { editor } = this
+		const altKey = editor.inputs.getAltKey()
 
-		this.isWrapMode = this.editor.user.getIsWrapMode()
+		this.isWrapMode = editor.user.getIsWrapMode()
+
+		this.viewportDidChange = false
+
+		let isInitialCheck = true
+
+		this.cleanupViewportChangeReactor = react('viewport change while brushing', () => {
+			editor.getViewportPageBounds() // capture the viewport change
+			if (!isInitialCheck && !this.viewportDidChange) {
+				this.viewportDidChange = true
+			}
+		})
 
 		if (altKey) {
 			this.parent.transition('scribble_brushing', info)
@@ -39,29 +52,30 @@ export class Brushing extends StateNode {
 		}
 
 		this.excludedShapeIds = new Set(
-			this.editor
+			editor
 				.getCurrentPageShapes()
 				.filter(
-					(shape) =>
-						this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
-						this.editor.isShapeOrAncestorLocked(shape)
+					(shape) => editor.isShapeOfType(shape, 'group') || editor.isShapeOrAncestorLocked(shape)
 				)
 				.map((shape) => shape.id)
 		)
 
 		this.info = info
-		this.initialSelectedShapeIds = this.editor.getSelectedShapeIds().slice()
-		this.initialStartShape = this.editor.getShapesAtPoint(currentPagePoint)[0]
+		this.initialSelectedShapeIds = editor.getSelectedShapeIds().slice()
 		this.hitTestShapes()
+		isInitialCheck = false
 	}
 
 	override onExit() {
 		this.initialSelectedShapeIds = []
 		this.editor.updateInstanceState({ brush: null })
+
+		this.cleanupViewportChangeReactor()
 	}
 
 	override onTick({ elapsed }: TLTickEventInfo) {
 		const { editor } = this
+		if (!editor.inputs.getIsDragging() || editor.inputs.getIsPanning()) return
 		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 
@@ -83,7 +97,7 @@ export class Brushing extends StateNode {
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
-		if (this.editor.inputs.altKey) {
+		if (this.editor.inputs.getAltKey()) {
 			this.parent.transition('scribble_brushing', info)
 		} else {
 			this.hitTestShapes()
@@ -101,9 +115,10 @@ export class Brushing extends StateNode {
 
 	private hitTestShapes() {
 		const { editor, excludedShapeIds, isWrapMode } = this
-		const {
-			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
-		} = editor
+		const originPagePoint = editor.inputs.getOriginPagePoint()
+		const currentPagePoint = editor.inputs.getCurrentPagePoint()
+		const shiftKey = editor.inputs.getShiftKey()
+		const ctrlKey = editor.inputs.getCtrlKey()
 
 		// We'll be collecting shape ids of selected shapes; if we're holding shift key, we start from our initial shapes
 		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])
@@ -124,11 +139,48 @@ export class Brushing extends StateNode {
 			pageTransform: Mat | undefined,
 			localCorners: Vec[]
 
-		const currentPageShapes = editor.getCurrentPageRenderingShapesSorted()
+		// Some notes on optimization. We could easily cache all of the shape positions at
+		// the start of the interaction and then do very fast checks against them, but that
+		// would mean changes introduced by other collaborators wouldn't be reflected—a user
+		// could select a shape by selecting where it _used_ to be.
+
+		// We still want to avoid hit tests as much as possible, however, so we test only the
+		// shapes that are on screen UNLESS: the user has scrolled their viewpor; or the user
+		// is dragging outside of the screen (e.g. in a window). In those cases, we need to
+		// test all shapes.
+
+		// On a page with ~5000 shapes, on-screen hit tests are about 2x faster than
+		// testing all shapes.
+
+		const brushBoxIsInsideViewport = editor.getViewportPageBounds().contains(brush)
 		const currentPageId = editor.getCurrentPageId()
 
-		testAllShapes: for (let i = 0, n = currentPageShapes.length; i < n; i++) {
-			shape = currentPageShapes[i]
+		// Use spatial index to filter candidates
+		const candidateIds = editor.getShapeIdsInsideBounds(brush)
+
+		// Early return if no candidates - avoid expensive getCurrentPageShapesSorted()
+		// But still update brush visual and selection
+		if (candidateIds.size === 0) {
+			const currentBrush = editor.getInstanceState().brush
+			if (!currentBrush || !brush.equals(currentBrush)) {
+				editor.updateInstanceState({ brush: { ...brush.toJson() } })
+			}
+
+			const current = editor.getSelectedShapeIds()
+			if (current.length !== results.size || current.some((id) => !results.has(id))) {
+				editor.setSelectedShapes(Array.from(results))
+			}
+			return
+		}
+
+		const allShapes =
+			brushBoxIsInsideViewport && !this.viewportDidChange
+				? editor.getCurrentPageRenderingShapesSorted()
+				: editor.getCurrentPageShapesSorted()
+		const shapesToHitTest = allShapes.filter((shape) => candidateIds.has(shape.id))
+
+		testAllShapes: for (let i = 0, n = shapesToHitTest.length; i < n; i++) {
+			shape = shapesToHitTest[i]
 			if (excludedShapeIds.has(shape.id) || results.has(shape.id)) continue testAllShapes
 
 			pageBounds = editor.getShapePageBounds(shape)
@@ -142,7 +194,7 @@ export class Brushing extends StateNode {
 
 			// If we're in wrap mode and the brush did not fully encloses the shape, it's a miss
 			// We also skip frames unless we've completely selected the frame.
-			if (isWrapping || editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+			if (isWrapping || editor.isShapeOfType(shape, 'frame')) {
 				continue testAllShapes
 			}
 

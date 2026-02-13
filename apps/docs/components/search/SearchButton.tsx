@@ -27,10 +27,11 @@ export function SearchButton({
 		if (layout !== 'desktop' && layout !== 'keyboard-shortcut-only') return
 
 		const onKeyDown = (e: KeyboardEvent) => {
-			if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+			if (e.key === '/') {
+				setOpen(true)
+			} else if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
 				setOpen((open) => !open)
-			}
-			if (e.key === 'Escape') {
+			} else if (e.key === 'Escape') {
 				setOpen(false)
 			}
 		}

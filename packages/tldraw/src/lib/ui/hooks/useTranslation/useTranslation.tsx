@@ -23,7 +23,8 @@ export interface TLUiTranslationProviderProps {
 /** @public */
 export type TLUiTranslationContextType = TLUiTranslation
 
-const TranslationsContext = React.createContext<TLUiTranslationContextType | null>(null)
+/** @internal */
+export const TranslationsContext = React.createContext<TLUiTranslationContextType | null>(null)
 
 /** @public */
 export function useCurrentTranslation() {

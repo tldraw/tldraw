@@ -1,11 +1,13 @@
 import {
 	Box,
+	ExtractShapeByProps,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
 	TLShapeId,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import React from 'react'
 import { PlainTextArea } from '../text/PlainTextArea'
 import { TextHelpers } from './TextHelpers'
@@ -15,7 +17,7 @@ import { useEditablePlainText } from './useEditablePlainText'
 /** @public */
 export interface PlainTextLabelProps {
 	shapeId: TLShapeId
-	type: string
+	type: ExtractShapeByProps<{ text: string }>['type']
 	font: TLDefaultFontStyle
 	fontSize: number
 	lineHeight: number
@@ -33,6 +35,7 @@ export interface PlainTextLabelProps {
 	textWidth?: number
 	textHeight?: number
 	padding?: number
+	showTextOutline?: boolean
 }
 
 /**
@@ -60,8 +63,9 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 	style,
 	textWidth,
 	textHeight,
+	showTextOutline = true,
 }: PlainTextLabelProps) {
-	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } =
+	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
 		useEditablePlainText(shapeId, type, plaintext)
 
 	const finalPlainText = TextHelpers.normalizeTextForDom(plaintext || '')
@@ -74,15 +78,19 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 	}
 
 	// TODO: probably combine tl-text and tl-arrow eventually
+	// In case you're grepping for this, it breaks down as follows:
+	// tl-text-label, tl-text-label__inner, tl-text-shape-label, tl-text
+	// tl-arrow-label, tl-arrow-label__inner, tl-arrow
 	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div
 			className={`${cssPrefix}-label tl-text-wrapper tl-plain-text-wrapper`}
+			aria-hidden={!isEditing}
 			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
-			data-iseditinganything={isEditingAnything}
+			data-is-ready-for-editing={isReadyForEditing}
 			data-textwrap={!!wrap}
 			data-isselected={isSelected}
 			style={{
@@ -96,7 +104,7 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
 					fontSize,
-					lineHeight: Math.floor(fontSize * lineHeight) + 'px',
+					lineHeight: lineHeight.toString(),
 					minHeight: Math.floor(fontSize * lineHeight) + 'px',
 					minWidth: Math.ceil(textWidth || 0),
 					color: labelColor,
@@ -104,14 +112,20 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 					height: textHeight ? Math.ceil(textHeight) : undefined,
 				}}
 			>
-				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
+				<div
+					className={classNames(
+						`${cssPrefix} tl-text tl-text-content`,
+						showTextOutline ? 'tl-text__outline' : 'tl-text__no-outline'
+					)}
+					dir="auto"
+				>
 					{finalPlainText.split('\n').map((lineOfText, index) => (
 						<div key={index} dir="auto">
 							{lineOfText}
 						</div>
 					))}
 				</div>
-				{(isEditingAnything || isSelected) && (
+				{(isReadyForEditing || isSelected) && (
 					<PlainTextArea
 						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
 						ref={rInput as any}
@@ -126,9 +140,3 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 		</div>
 	)
 })
-
-/**
- * @deprecated Use `PlainTextLabel` instead.
- * @public
- */
-export const TextLabel = PlainTextLabel

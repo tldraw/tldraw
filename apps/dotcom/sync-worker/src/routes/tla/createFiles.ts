@@ -20,48 +20,34 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 	const slugs: string[] = []
 	const data = (await request.json()) as CreateFilesRequestBody
 
-	for (const snapshot of data.snapshots) {
+	for (const _snapshot of data.snapshots) {
 		// There's a chance the data will be invalid, so we check it first
 		// need to maybe migrate the snapshot
-		const snapshotResult = validateSnapshot(snapshot)
+		const snapshotResult = validateSnapshot(_snapshot)
 		if (!snapshotResult.ok) {
 			return Response.json({ error: true, message: snapshotResult.error }, { status: 400 })
 		}
 
-		try {
-			// Create the new snapshot
-			const snapshot: RoomSnapshot = {
-				schema: createTLSchema().serialize(),
-				clock: 0,
-				documents: Object.values(snapshotResult.value).map((r) => ({
-					state: r,
-					lastChangedClock: 0,
-				})),
-				tombstones: {},
-			}
-
-			const serializedSnapshot = JSON.stringify(snapshot)
-
-			// Create a new slug for the room
-			const newSlug = uniqueId()
-
-			// Bang the snapshot into the database
-			await env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot)
-
-			// Now create a new file in the app durable object belonging to the user
-			// const app = getTldrawAppDurableObject(env)
-			// TODO: make the backend talk to zero
-			// await app.createNewFile(
-			// 	TldrawAppFileRecordType.create({
-			// 		id: TldrawAppFileRecordType.createId(newSlug),
-			// 		ownerId: userId,
-			// 	})
-			// )
-
-			slugs.push(newSlug)
-		} catch (e: any) {
-			return new Response(JSON.stringify({ error: true, message: e.message }), { status: 500 })
+		// Create the new snapshot
+		const snapshot: RoomSnapshot = {
+			schema: createTLSchema().serialize(),
+			clock: 0,
+			documents: Object.values(snapshotResult.value).map((r) => ({
+				state: r,
+				lastChangedClock: 0,
+			})),
+			tombstones: {},
 		}
+
+		const serializedSnapshot = JSON.stringify(snapshot)
+
+		// Create a new slug for the room
+		const newSlug = uniqueId()
+
+		// Bang the snapshot into the database
+		await env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot)
+
+		slugs.push(newSlug)
 	}
 	return new Response(JSON.stringify({ error: false, slugs }))
 }

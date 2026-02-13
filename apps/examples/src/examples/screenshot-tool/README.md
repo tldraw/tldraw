@@ -2,12 +2,27 @@
 title: Custom tool (screenshot)
 component: ./ScreenshotToolExample.tsx
 category: shapes/tools
-priority: 2
-keywords: [state chart, state machine, child states]
+priority: 0.5
+keywords:
+  [
+    custom tool,
+    statenode,
+    screenshot,
+    export,
+    state machine,
+    child states,
+    brush selection,
+    dragging state,
+    overrides,
+    toolbar,
+    asset urls,
+  ]
 ---
 
-Draw a box on the canvas to capture a screenshot of that area.
+A custom tool that takes a screenshot of the canvas.
 
 ---
 
 Tools are the parts of tldraw's state chart. Most interactions in tldraw are tools.
+
+This example shows how to create a custom tool that takes a screenshot of a specific area of the canvas.

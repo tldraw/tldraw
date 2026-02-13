@@ -27,24 +27,38 @@ const sectionConfig: Record<string, SearchConfig | null> = {
 		priority: 9,
 		splitHeadings: true,
 	},
+	'sdk-features': {
+		index: 'docs',
+		priority: 9,
+		splitHeadings: true,
+	},
 	examples: {
 		index: 'docs',
 		priority: 8,
 		splitHeadings: false,
 	},
-	reference: {
+	'starter-kits': {
 		index: 'docs',
 		priority: 7,
+		splitHeadings: false,
+	},
+	reference: {
+		index: 'docs',
+		priority: 6,
 		splitHeadings: true,
 		excludeHeadingLevels: [2],
 		formatHeading(article, heading) {
 			return `${article.title}.${heading}`
 		},
 	},
-
+	changelog: {
+		index: 'docs',
+		priority: 5,
+		splitHeadings: false,
+	},
 	releases: {
 		index: 'docs',
-		priority: 6,
+		priority: 5,
 		splitHeadings: false,
 	},
 	community: {
@@ -258,8 +272,22 @@ async function updateAlgoliaIndex() {
 				{ autoGenerateObjectIDIfNotExist: true }
 			)
 			await index.setSettings({
-				searchableAttributes: ['titleHeadingFirst', 'title', 'description', 'keywords', 'content'],
-				camelCaseAttributes: ['titleHeadingFirst', 'title', 'description', 'keywords', 'content'],
+				searchableAttributes: [
+					'section',
+					'titleHeadingFirst',
+					'title',
+					'description',
+					'keywords',
+					'content',
+				],
+				camelCaseAttributes: [
+					'section',
+					'titleHeadingFirst',
+					'title',
+					'description',
+					'keywords',
+					'content',
+				],
 				// these are only applied _after_ keyword search is complete. if two entries have
 				// the same keyword search score, this will be used to tiebreak them.
 				customRanking: [
@@ -273,8 +301,9 @@ async function updateAlgoliaIndex() {
 					'asc(articleIndex)',
 					'asc(headingIndex)',
 				],
-				distinct: 4,
+				distinct: 3,
 				attributeForDistinct: 'section',
+				advancedSyntax: true,
 			})
 
 			const resultsToShowForEmptySearch = entries

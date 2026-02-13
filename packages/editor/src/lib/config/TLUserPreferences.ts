@@ -17,12 +17,16 @@ export interface TLUserPreferences {
 	// N.B. These are duplicated in TLdrawAppUser.
 	locale?: string | null
 	animationSpeed?: number | null
+	areKeyboardShortcutsEnabled?: boolean | null
 	edgeScrollSpeed?: number | null
 	colorScheme?: 'light' | 'dark' | 'system'
 	isSnapMode?: boolean | null
 	isWrapMode?: boolean | null
 	isDynamicSizeMode?: boolean | null
 	isPasteAtCursorMode?: boolean | null
+	enhancedA11yMode?: boolean | null
+	inputMode?: 'trackpad' | 'mouse' | null
+	isZoomDirectionInverted?: boolean | null
 }
 
 interface UserDataSnapshot {
@@ -44,12 +48,16 @@ export const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUser
 	// N.B. These are duplicated in TLdrawAppUser.
 	locale: T.string.nullable().optional(),
 	animationSpeed: T.number.nullable().optional(),
+	areKeyboardShortcutsEnabled: T.boolean.nullable().optional(),
 	edgeScrollSpeed: T.number.nullable().optional(),
 	colorScheme: T.literalEnum('light', 'dark', 'system').optional(),
 	isSnapMode: T.boolean.nullable().optional(),
 	isWrapMode: T.boolean.nullable().optional(),
 	isDynamicSizeMode: T.boolean.nullable().optional(),
 	isPasteAtCursorMode: T.boolean.nullable().optional(),
+	enhancedA11yMode: T.boolean.nullable().optional(),
+	inputMode: T.literalEnum('trackpad', 'mouse').nullable().optional(),
+	isZoomDirectionInverted: T.boolean.nullable().optional(),
 })
 
 const Versions = {
@@ -61,6 +69,11 @@ const Versions = {
 	AddDynamicSizeMode: 6,
 	AllowSystemColorScheme: 7,
 	AddPasteAtCursor: 8,
+	AddKeyboardShortcuts: 9,
+	AddShowUiLabels: 10,
+	AddPointerPeripheral: 11,
+	RenameShowUiLabelsToEnhancedA11yMode: 12,
+	AddZoomDirectionInverted: 13,
 } as const
 
 const CURRENT_VERSION = Math.max(...Object.values(Versions))
@@ -96,6 +109,24 @@ function migrateSnapshot(data: { version: number; user: any }) {
 	if (data.version < Versions.AddPasteAtCursor) {
 		data.user.isPasteAtCursorMode = false
 	}
+	if (data.version < Versions.AddKeyboardShortcuts) {
+		data.user.areKeyboardShortcutsEnabled = true
+	}
+	if (data.version < Versions.AddShowUiLabels) {
+		data.user.showUiLabels = false
+	}
+	if (data.version < Versions.RenameShowUiLabelsToEnhancedA11yMode) {
+		data.user.enhancedA11yMode = data.user.showUiLabels
+		delete data.user.showUiLabels
+	}
+
+	if (data.version < Versions.AddPointerPeripheral) {
+		data.user.inputMode = null
+	}
+
+	if (data.version < Versions.AddZoomDirectionInverted) {
+		data.user.isZoomDirectionInverted = false
+	}
 
 	// finally
 	data.version = CURRENT_VERSION
@@ -123,7 +154,7 @@ function getRandomColor() {
 
 /** @internal */
 export function userPrefersReducedMotion() {
-	if (typeof window !== 'undefined' && 'matchMedia' in window) {
+	if (typeof window !== 'undefined' && window.matchMedia) {
 		return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
 	}
 
@@ -139,11 +170,15 @@ export const defaultUserPreferences = Object.freeze({
 	// N.B. These are duplicated in TLdrawAppUser.
 	edgeScrollSpeed: 1,
 	animationSpeed: userPrefersReducedMotion() ? 0 : 1,
+	areKeyboardShortcutsEnabled: true,
 	isSnapMode: false,
 	isWrapMode: false,
 	isDynamicSizeMode: false,
 	isPasteAtCursorMode: false,
+	enhancedA11yMode: false,
 	colorScheme: 'light',
+	inputMode: null,
+	isZoomDirectionInverted: false,
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
 /** @public */

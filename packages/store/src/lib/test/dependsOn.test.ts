@@ -26,7 +26,7 @@ describe('dependsOn', () => {
 				}
 			)
 		}).toThrowErrorMatchingInlineSnapshot(
-			`"Migration 'foo/1' depends on missing migration 'bar/1'"`
+			`[Error: Migration 'foo/1' depends on missing migration 'bar/1']`
 		)
 	})
 
@@ -108,7 +108,7 @@ describe('standalone dependsOn', () => {
 				}
 			)
 		}).toThrowErrorMatchingInlineSnapshot(
-			`"Migration 'foo/1' depends on missing migration 'bar/1'"`
+			`[Error: Migration 'foo/1' depends on missing migration 'bar/1']`
 		)
 	})
 

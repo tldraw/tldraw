@@ -1,20 +1,13 @@
 ---
-title: Blocking events
+title: Block events
 component: ./EventBlockerExample.tsx
-category: ui
-priority: 3
-keywords:
-  - event
-  - block
-  - propagation
-  - stop
-  - no
-  - select
-  - user-select
+category: events
+priority: 2
+keywords: [event, block, propagation, stop, select, user-select]
 ---
 
 Stop events from reaching the canvas.
 
 ---
 
-If you don't want the user's interactions from reaching the canvas, you can call `stopPropagation` on the user's pointer events.
+If you don't want the user's interactions to reach the canvas, you can call `stopPropagation` on the user's pointer events.

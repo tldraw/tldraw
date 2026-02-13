@@ -10,6 +10,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
+import { vi, type Mock } from 'vitest'
 import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 import { RoomSnapshot, TLRoomSocket } from '../lib/TLSyncRoom'
 import { RecordOpType, ValueOpType } from '../lib/diff'
@@ -17,23 +18,23 @@ import { TLSocketServerSentEvent, getTlsyncProtocolVersion } from '../lib/protoc
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
 
-const actualProtocol = jest.requireActual('../lib/protocol')
+const actualProtocol = (await vi.importActual('../lib/protocol')) as any
 
-jest.mock('../lib/protocol', () => {
-	const actual = jest.requireActual('../lib/protocol')
+vi.mock('../lib/protocol', async () => {
+	const actual = (await vi.importActual('../lib/protocol')) as any
 	return {
 		...actual,
-		getTlsyncProtocolVersion: jest.fn(actual.getTlsyncProtocolVersion),
+		getTlsyncProtocolVersion: vi.fn(actual.getTlsyncProtocolVersion),
 	}
 })
 
-const mockGetTlsyncProtocolVersion = getTlsyncProtocolVersion as jest.Mock
+const mockGetTlsyncProtocolVersion = getTlsyncProtocolVersion as Mock
 
 function mockSocket<R extends UnknownRecord>(): TLRoomSocket<R> {
 	return {
 		isOpen: true,
-		sendMessage: jest.fn(),
-		close: jest.fn(),
+		sendMessage: vi.fn(),
+		close: vi.fn(),
 	}
 }
 
@@ -181,7 +182,7 @@ class TestInstance {
 			onLoad: () => {
 				this.hasLoaded = true
 			},
-			onSyncError: jest.fn((reason) => {
+			onSyncError: vi.fn((reason) => {
 				throw new Error('onSyncError: ' + reason)
 			}),
 			presence: computed('', () => null),
@@ -193,7 +194,7 @@ class TestInstance {
 			onLoad: () => {
 				this.hasLoaded = true
 			},
-			onSyncError: jest.fn((reason) => {
+			onSyncError: vi.fn((reason) => {
 				throw new Error('onSyncError: ' + reason)
 			}),
 			presence: computed('', () => null),
@@ -227,11 +228,11 @@ test('the server can handle receiving v1 stuff from the client', () => {
 	t.oldClient.store.put([user])
 	t.flush()
 
-	expect(t.server.room.state.get().documents[user.id].state).toMatchObject({
+	expect(t.server.storage.documents.get(user.id)?.state).toMatchObject({
 		name: 'bob',
 		birthdate: null,
 	})
-	expect(t.server.room.state.get().documents[user.id].state).not.toMatchObject({
+	expect(t.server.storage.documents.get(user.id)?.state).not.toMatchObject({
 		name: 'bob',
 		age: 10,
 	})
@@ -253,7 +254,7 @@ test('the server can send v2 stuff to the v1 client', () => {
 	t.newClient.store.put([user])
 	t.flush()
 
-	expect(t.server.room.state.get().documents[user.id].state).toMatchObject({
+	expect(t.server.storage.documents.get(user.id)?.state).toMatchObject({
 		name: 'bob',
 		birthdate: '2022-01-09',
 	})
@@ -286,14 +287,14 @@ test('the server will run schema migrations on a snapshot', () => {
 		schemaV3
 	)
 
-	expect(t.server.room.state.get().documents[bob.id].state).toMatchObject({
+	expect(t.server.storage.documents.get(bob.id)?.state).toMatchObject({
 		name: 'bob',
 		birthdate: null,
 	})
-	expect(t.server.room.state.get().documents[joe.id]).toBeUndefined()
+	expect(t.server.storage.documents.get(joe.id)).toBeUndefined()
 
 	// there should be someone named steve
-	const snapshot = t.server.room.getSnapshot()
+	const snapshot = t.server.storage.getSnapshot()
 	expect(snapshot.documents.find((u: any) => u.state.name === 'steve')).toBeDefined()
 })
 
@@ -308,7 +309,7 @@ test('clients will receive updates from a snapshot migration upon connection', (
 	t.newClient.store.put([bob, joe])
 	t.flush()
 
-	const snapshot = t.server.room.getSnapshot()
+	const snapshot = t.server.storage.getSnapshot()
 
 	t.oldSocketPair.disconnect()
 	t.newSocketPair.disconnect()
@@ -318,7 +319,7 @@ test('clients will receive updates from a snapshot migration upon connection', (
 	const newClientSocketPair = new TestSocketPair('test_upgrade__brand_new', newServer)
 
 	// need to set these two things to get the message through
-	newClientSocketPair.callbacks['onReceiveMessage'] = jest.fn()
+	newClientSocketPair.callbacks['onReceiveMessage'] = vi.fn()
 	newClientSocketPair.clientSocket.connectionStatus = 'online'
 
 	const id = 'test_upgrade_brand_new'
@@ -332,12 +333,12 @@ test('clients will receive updates from a snapshot migration upon connection', (
 	newServer.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
-		lastServerClock: snapshot.clock,
+		lastServerClock: snapshot.documentClock ?? snapshot.clock ?? 0,
 		protocolVersion: getTlsyncProtocolVersion(),
 		schema: schemaV3.serialize(),
 	})
 
-	expect((newClientSocket.sendMessage as jest.Mock).mock.calls[0][0]).toMatchObject({
+	expect((newClientSocket.sendMessage as Mock).mock.calls[0][0]).toMatchObject({
 		// we should have added steve and deleted joe
 		diff: {
 			[joe.id]: [RecordOpType.Remove],
@@ -528,12 +529,12 @@ describe('when the client is too old', () => {
 		const v2Id = 'test_upgrade_v2'
 		const v2Socket = mockSocket<RV2>()
 
-		const v2SendMessage = v2Socket.sendMessage as jest.Mock
+		const v2SendMessage = v2Socket.sendMessage as Mock
 
 		const v1Id = 'test_upgrade_v1'
 		const v1Socket = mockSocket<RV1>()
 
-		const v1SendMessage = v1Socket.sendMessage as jest.Mock
+		const v1SendMessage = v1Socket.sendMessage as Mock
 
 		v2Server.room.handleNewSession({
 			sessionId: v1Id,
@@ -669,6 +670,288 @@ describe('when the client is too old', () => {
 	})
 })
 
+describe('migration failure during push (TLSyncError handling)', () => {
+	let consoleSpy: ReturnType<typeof vi.spyOn>
+	beforeEach(() => {
+		consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+	})
+	afterEach(() => {
+		consoleSpy.mockRestore()
+	})
+
+	// Create a schema where migrations will fail during push
+	const UserVersionsWithFailure = createMigrationIds('com.tldraw.user.failure', {
+		AddNickname: 1,
+	} as const)
+
+	interface UserWithNickname extends BaseRecord<'user_fail', RecordId<UserWithNickname>> {
+		name: string
+		nickname: string
+	}
+
+	const UserWithNicknameType = createRecordType<UserWithNickname>('user_fail', {
+		scope: 'document',
+		validator: { validate: (value) => value as UserWithNickname },
+	})
+
+	interface UserWithoutNickname extends BaseRecord<'user_fail', RecordId<UserWithoutNickname>> {
+		name: string
+	}
+
+	const UserWithoutNicknameType = createRecordType<UserWithoutNickname>('user_fail', {
+		scope: 'document',
+		validator: { validate: (value) => value as UserWithoutNickname },
+	})
+
+	// Server schema with migration that throws on specific conditions
+	// - up() throws when name === 'FAIL_UP_MIGRATION'
+	// - down() throws when nickname === 'FAIL_DOWN_MIGRATION'
+	const serverSchemaWithThrowingMigration = StoreSchema.create<UserWithNickname>(
+		{ user_fail: UserWithNicknameType },
+		{
+			migrations: [
+				createRecordMigrationSequence({
+					sequenceId: 'com.tldraw.user.failure',
+					recordType: 'user_fail',
+					sequence: [
+						{
+							id: UserVersionsWithFailure.AddNickname,
+							up(record: any) {
+								// Simulate UP migration failure for specific data
+								if (record.name === 'FAIL_UP_MIGRATION') {
+									throw new Error('UP migration intentionally failed for testing')
+								}
+								return {
+									...record,
+									nickname: record.name.toUpperCase(),
+								}
+							},
+							down(record: any) {
+								// Simulate DOWN migration failure for specific data
+								if (record.nickname === 'FAIL_DOWN_MIGRATION') {
+									throw new Error('DOWN migration intentionally failed for testing')
+								}
+								const { nickname: _, ...rest } = record
+								return rest
+							},
+						},
+					],
+				}),
+			],
+		}
+	)
+
+	// Client schema (old version without nickname)
+	const clientSchemaWithoutNickname = StoreSchema.create<UserWithoutNickname>(
+		{ user_fail: UserWithoutNicknameType },
+		{
+			migrations: [
+				createMigrationSequence({
+					sequenceId: 'com.tldraw.user.failure',
+					sequence: [],
+					retroactive: true,
+				}),
+			],
+		}
+	)
+
+	it('rejects session when addDocument UP migration throws during PUT', () => {
+		const server = new TestServer(serverSchemaWithThrowingMigration)
+
+		const sessionId = 'failing-migration-session'
+		const socket = mockSocket<UserWithNickname>()
+
+		server.room.handleNewSession({
+			sessionId,
+			socket: socket as any,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		// Connect with old schema - should succeed since migration has down function
+		server.room.handleMessage(sessionId, {
+			type: 'connect',
+			connectRequestId: 'test',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: clientSchemaWithoutNickname.serialize(),
+		})
+
+		expect(server.room.sessions.get(sessionId)?.state).toBe('connected')
+		;(socket.sendMessage as Mock).mockClear()
+
+		// Push a record that will cause the UP migration to throw
+		const failingRecord = UserWithoutNicknameType.create({
+			id: UserWithoutNicknameType.createId('fail'),
+			name: 'FAIL_UP_MIGRATION', // This name triggers the UP throw
+		})
+
+		server.room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[failingRecord.id]: [RecordOpType.Put, failingRecord as any],
+			},
+		})
+
+		// Session should be rejected due to migration failure (TLSyncError)
+		expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+	})
+
+	it('successfully migrates records when migration does not throw', () => {
+		const server = new TestServer(serverSchemaWithThrowingMigration)
+
+		const sessionId = 'successful-migration-session'
+		const socket = mockSocket<UserWithNickname>()
+
+		server.room.handleNewSession({
+			sessionId,
+			socket: socket as any,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		// Connect with old schema
+		server.room.handleMessage(sessionId, {
+			type: 'connect',
+			connectRequestId: 'test',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: clientSchemaWithoutNickname.serialize(),
+		})
+
+		expect(server.room.sessions.get(sessionId)?.state).toBe('connected')
+		;(socket.sendMessage as Mock).mockClear()
+
+		// Push a record that will NOT cause the migration to throw
+		const validRecord = UserWithoutNicknameType.create({
+			id: UserWithoutNicknameType.createId('valid'),
+			name: 'ValidName', // This name does not trigger the throw
+		})
+
+		server.room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[validRecord.id]: [RecordOpType.Put, validRecord as any],
+			},
+		})
+
+		// Session should still be connected
+		expect(server.room.sessions.get(sessionId)?.state).toBe('connected')
+
+		// Record should be migrated and stored
+		const storedRecord = server.storage.documents.get(validRecord.id)?.state as UserWithNickname
+		expect(storedRecord).toBeDefined()
+		expect(storedRecord.nickname).toBe('VALIDNAME') // Uppercase from migration
+	})
+
+	it('rejects session when patchDocument DOWN migration throws', () => {
+		// Create a server with a document that has a nickname that will fail DOWN migration
+		const existingUser = UserWithNicknameType.create({
+			id: UserWithNicknameType.createId('existing_down_fail'),
+			name: 'ExistingUser',
+			nickname: 'FAIL_DOWN_MIGRATION', // This nickname triggers the DOWN throw
+		})
+
+		const server = new TestServer(serverSchemaWithThrowingMigration, {
+			clock: 10,
+			documents: [{ state: existingUser, lastChangedClock: 10 }],
+			schema: serverSchemaWithThrowingMigration.serialize(),
+			tombstones: {},
+		})
+
+		const sessionId = 'patch-down-migration-session'
+		const socket = mockSocket<UserWithNickname>()
+
+		server.room.handleNewSession({
+			sessionId,
+			socket: socket as any,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		// Connect with old schema
+		server.room.handleMessage(sessionId, {
+			type: 'connect',
+			connectRequestId: 'test',
+			lastServerClock: 10,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: clientSchemaWithoutNickname.serialize(),
+		})
+
+		expect(server.room.sessions.get(sessionId)?.state).toBe('connected')
+		;(socket.sendMessage as Mock).mockClear()
+
+		// Patch the existing record - the DOWN migration will fail because nickname is 'FAIL_DOWN_MIGRATION'
+		// This tests line 951 in TLSyncRoom.ts
+		server.room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[existingUser.id]: [RecordOpType.Patch, { name: [ValueOpType.Put, 'NewName'] }],
+			},
+		})
+
+		// Session should be rejected due to DOWN migration failure
+		expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+	})
+
+	it('rejects session when patchDocument UP migration throws (after successful DOWN migration)', () => {
+		// Create a server with a document that will pass DOWN migration but fail UP migration
+		const existingUser = UserWithNicknameType.create({
+			id: UserWithNicknameType.createId('existing_up_fail'),
+			name: 'ExistingUser',
+			nickname: 'EXISTINGUSER', // Normal nickname, DOWN migration will succeed
+		})
+
+		const server = new TestServer(serverSchemaWithThrowingMigration, {
+			clock: 10,
+			documents: [{ state: existingUser, lastChangedClock: 10 }],
+			schema: serverSchemaWithThrowingMigration.serialize(),
+			tombstones: {},
+		})
+
+		const sessionId = 'patch-up-migration-session'
+		const socket = mockSocket<UserWithNickname>()
+
+		server.room.handleNewSession({
+			sessionId,
+			socket: socket as any,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		// Connect with old schema
+		server.room.handleMessage(sessionId, {
+			type: 'connect',
+			connectRequestId: 'test',
+			lastServerClock: 10,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: clientSchemaWithoutNickname.serialize(),
+		})
+
+		expect(server.room.sessions.get(sessionId)?.state).toBe('connected')
+		;(socket.sendMessage as Mock).mockClear()
+
+		// Patch the existing record - changes the name to 'FAIL_UP_MIGRATION'
+		// 1. DOWN migration: {name: 'ExistingUser', nickname: 'EXISTINGUSER'} -> {name: 'ExistingUser'} (succeeds)
+		// 2. Patch applied: {name: 'ExistingUser'} -> {name: 'FAIL_UP_MIGRATION'}
+		// 3. UP migration: {name: 'FAIL_UP_MIGRATION'} -> THROWS
+		// This tests line 972 in TLSyncRoom.ts
+		server.room.handleMessage(sessionId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[existingUser.id]: [RecordOpType.Patch, { name: [ValueOpType.Put, 'FAIL_UP_MIGRATION'] }],
+			},
+		})
+
+		// Session should be rejected due to UP migration failure during patch
+		expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+	})
+})
+
 describe('when the client is the same version', () => {
 	function setup() {
 		const steve = UserV2.create({
@@ -743,15 +1026,15 @@ describe('when the client is the same version', () => {
 			serverClock: 10,
 			isReadonly: false,
 		} satisfies TLSocketServerSentEvent<RV2>)
-		;(aSocket.sendMessage as jest.Mock).mockClear()
-		;(bSocket.sendMessage as jest.Mock).mockClear()
+		;(aSocket.sendMessage as Mock).mockClear()
+		;(bSocket.sendMessage as Mock).mockClear()
 
 		return {
 			v2Server,
 			aId,
 			bId,
-			v2ClientASendMessage: aSocket.sendMessage as jest.Mock,
-			v2ClientBSendMessage: bSocket.sendMessage as jest.Mock,
+			v2ClientASendMessage: aSocket.sendMessage as Mock,
+			v2ClientBSendMessage: bSocket.sendMessage as Mock,
 			steve,
 		}
 	}

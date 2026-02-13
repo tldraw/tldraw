@@ -1,49 +1,64 @@
 import { computed, isUninitialized } from '@tldraw/state'
-import { TLShapeId } from '@tldraw/tlschema'
-import { Box } from '../../primitives/Box'
+import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { Editor } from '../Editor'
 
-function isShapeNotVisible(editor: Editor, id: TLShapeId, viewportPageBounds: Box): boolean {
-	const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
-	// if the shape is fully outside of its parent's clipping bounds...
-	if (maskedPageBounds === undefined) return true
-
-	// if the shape is fully outside of the viewport page bounds...
-	return !viewportPageBounds.includes(maskedPageBounds)
-}
-
 /**
- * Incremental derivation of not visible shapes.
- * Non visible shapes are shapes outside of the viewport page bounds and shapes outside of parent's clipping bounds.
+ * Non visible shapes are shapes outside of the viewport page bounds.
  *
  * @param editor - Instance of the tldraw Editor.
  * @returns Incremental derivation of non visible shapes.
  */
-export const notVisibleShapes = (editor: Editor) => {
-	function fromScratch(editor: Editor): Set<TLShapeId> {
-		const shapes = editor.getCurrentPageShapeIds()
+export function notVisibleShapes(editor: Editor) {
+	const emptySet = new Set<TLShapeId>()
+
+	return computed<Set<TLShapeId>>('notVisibleShapes', function (prevValue) {
+		const allShapes = editor.getCurrentPageShapes()
 		const viewportPageBounds = editor.getViewportPageBounds()
-		const notVisibleShapes = new Set<TLShapeId>()
-		shapes.forEach((id) => {
-			if (isShapeNotVisible(editor, id, viewportPageBounds)) {
-				notVisibleShapes.add(id)
+		const visibleIds = editor.getShapeIdsInsideBounds(viewportPageBounds)
+
+		let shape: TLShape | undefined
+
+		// Fast path: if all shapes are visible, return empty set
+		if (visibleIds.size === allShapes.length) {
+			if (isUninitialized(prevValue) || prevValue.size > 0) {
+				return emptySet
 			}
-		})
-		return notVisibleShapes
-	}
-	return computed<Set<TLShapeId>>('getCulledShapes', (prevValue) => {
+			return prevValue
+		}
+
+		// First run: compute from scratch
 		if (isUninitialized(prevValue)) {
-			return fromScratch(editor)
-		}
-
-		const nextValue = fromScratch(editor)
-
-		if (prevValue.size !== nextValue.size) return nextValue
-		for (const prev of prevValue) {
-			if (!nextValue.has(prev)) {
-				return nextValue
+			const nextValue = new Set<TLShapeId>()
+			for (let i = 0; i < allShapes.length; i++) {
+				shape = allShapes[i]
+				if (visibleIds.has(shape.id)) continue
+				if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
+				nextValue.add(shape.id)
 			}
+			return nextValue
 		}
-		return prevValue
+
+		// Subsequent runs: single pass to collect IDs and detect changes
+		const notVisibleIds: TLShapeId[] = []
+		for (let i = 0; i < allShapes.length; i++) {
+			shape = allShapes[i]
+			if (visibleIds.has(shape.id)) continue
+			if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
+			notVisibleIds.push(shape.id)
+		}
+
+		// Check if the result changed
+		if (notVisibleIds.length === prevValue.size) {
+			let same = true
+			for (let i = 0; i < notVisibleIds.length; i++) {
+				if (!prevValue.has(notVisibleIds[i])) {
+					same = false
+					break
+				}
+			}
+			if (same) return prevValue
+		}
+
+		return new Set(notVisibleIds)
 	})
 }

@@ -2,25 +2,12 @@
 	"extends": "../../internal/config/tsconfig.base.json",
 	"include": ["src"],
 	"exclude": ["node_modules", "docs", ".tsbuild*"],
-	"compilerOptions": {
-		"outDir": "./.tsbuild",
-		"rootDir": "src"
-	},
+	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
 	"references": [
-		{
-			"path": "../state"
-		},
-		{
-			"path": "../store"
-		},
-		{
-			"path": "../tldraw"
-		},
-		{
-			"path": "../tlschema"
-		},
-		{
-			"path": "../utils"
-		}
+		{ "path": "../state" },
+		{ "path": "../store" },
+		{ "path": "../tldraw" },
+		{ "path": "../tlschema" },
+		{ "path": "../utils" }
 	]
 }

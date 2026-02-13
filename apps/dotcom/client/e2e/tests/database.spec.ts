@@ -1,5 +1,5 @@
-import { sleep } from 'tldraw'
 import { Editor } from '../fixtures/Editor'
+import { sleep } from '../fixtures/helpers'
 import { HomePage } from '../fixtures/HomePage'
 import { Sidebar } from '../fixtures/Sidebar'
 import { expect, test } from '../fixtures/tla-test'

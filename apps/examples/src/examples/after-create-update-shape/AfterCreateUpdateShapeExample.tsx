@@ -1,5 +1,7 @@
 import { Editor, TLShape, TLShapeId, Tldraw, createShapeId, toRichText } from 'tldraw'
 
+type ShapeWithColor = Extract<TLShape, { props: { color: string } }>
+
 // this function takes a shape ID, and if that shape is red, sets all other red shapes on the same
 // page to black.
 function ensureOnlyOneRedShape(editor: Editor, shapeId: TLShapeId) {
@@ -13,7 +15,10 @@ function ensureOnlyOneRedShape(editor: Editor, shapeId: TLShapeId) {
 	// find any other red shapes on the same page:
 	const otherRedShapesOnPage = Array.from(editor.getPageShapeIds(pageId))
 		.map((id) => editor.getShape(id)!)
-		.filter((otherShape) => otherShape.id !== shape.id && isRedShape(otherShape))
+		.filter(
+			(otherShape): otherShape is ShapeWithColor =>
+				otherShape.id !== shape.id && isRedShape(otherShape)
+		)
 
 	// set the color of all those shapes to black:
 	editor.updateShapes(

@@ -1,12 +1,22 @@
 ---
-title: Deep Links
+title: Deep links
 component: ./DeepLinksExample.tsx
-category: basic
+category: configuration
 priority: 4
-keywords: [basic, intro, simple, quick, start]
+keywords:
+  [
+    deep links,
+    url,
+    navigation,
+    viewport,
+    search params,
+    createdeeplink,
+    navigatetodeeplink,
+    routing,
+  ]
 ---
 
-Allow linking to specific parts of a tldraw document
+Allow linking to specific parts of a tldraw canvas.
 
 ---
 
