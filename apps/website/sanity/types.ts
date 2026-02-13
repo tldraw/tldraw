@@ -134,6 +134,55 @@ export interface FeaturePage {
 	seo?: Seo
 }
 
+// Feature page custom block types
+export interface IconGridItem {
+	_key: string
+	icon?: string
+	title: string
+	description?: string
+}
+
+export interface IconGridBlock {
+	_type: 'iconGrid'
+	_key: string
+	heading?: string
+	subtitle?: string
+	columns?: 2 | 3 | 4
+	items?: IconGridItem[]
+	sideImage?: SanityImage
+}
+
+export interface ImageCardRowCard {
+	_key: string
+	image?: SanityImage
+	icon?: string
+	title: string
+	description?: string
+}
+
+export interface ImageCardRowBlock {
+	_type: 'imageCardRow'
+	_key: string
+	cards?: ImageCardRowCard[]
+}
+
+export interface BenefitCard {
+	_key: string
+	icon?: string
+	title: string
+	description?: string
+	bullets?: string[]
+	linkLabel?: string
+	linkUrl?: string
+}
+
+export interface BenefitCardsBlock {
+	_type: 'benefitCards'
+	_key: string
+	heading?: string
+	cards?: BenefitCard[]
+}
+
 export interface ShowcaseEntryDoc {
 	_id: string
 	_type: 'showcaseEntry'

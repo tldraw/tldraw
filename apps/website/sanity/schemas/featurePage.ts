@@ -33,7 +33,143 @@ export const featurePage = defineType({
 			name: 'body',
 			title: 'Body',
 			type: 'array',
-			of: [{ type: 'block' }],
+			of: [
+				{ type: 'block' },
+				{ type: 'image', options: { hotspot: true } },
+				{
+					type: 'object',
+					name: 'iconGrid',
+					title: 'Icon grid',
+					fields: [
+						defineField({ name: 'heading', title: 'Heading', type: 'string' }),
+						defineField({ name: 'subtitle', title: 'Subtitle', type: 'text', rows: 2 }),
+						defineField({
+							name: 'columns',
+							title: 'Columns',
+							type: 'number',
+							options: { list: [2, 3, 4] },
+							initialValue: 4,
+						}),
+						defineField({
+							name: 'items',
+							title: 'Items',
+							type: 'array',
+							of: [
+								{
+									type: 'object',
+									fields: [
+										defineField({ name: 'icon', title: 'Icon', type: 'string' }),
+										defineField({ name: 'title', title: 'Title', type: 'string' }),
+										defineField({
+											name: 'description',
+											title: 'Description',
+											type: 'text',
+											rows: 2,
+										}),
+									],
+									preview: { select: { title: 'title', subtitle: 'description' } },
+								},
+							],
+						}),
+						defineField({
+							name: 'sideImage',
+							title: 'Side image',
+							type: 'image',
+							options: { hotspot: true },
+							description: 'Optional image displayed beside the grid.',
+						}),
+					],
+					preview: {
+						select: { title: 'heading' },
+						prepare: ({ title }) => ({ title: title || 'Icon grid' }),
+					},
+				},
+				{
+					type: 'object',
+					name: 'imageCardRow',
+					title: 'Image card row',
+					fields: [
+						defineField({
+							name: 'cards',
+							title: 'Cards',
+							type: 'array',
+							of: [
+								{
+									type: 'object',
+									fields: [
+										defineField({
+											name: 'image',
+											title: 'Image',
+											type: 'image',
+											options: { hotspot: true },
+										}),
+										defineField({ name: 'icon', title: 'Icon', type: 'string' }),
+										defineField({ name: 'title', title: 'Title', type: 'string' }),
+										defineField({
+											name: 'description',
+											title: 'Description',
+											type: 'text',
+											rows: 2,
+										}),
+									],
+									preview: { select: { title: 'title', media: 'image' } },
+								},
+							],
+						}),
+					],
+					preview: {
+						select: { cards: 'cards' },
+						prepare: ({ cards }) => ({
+							title: `Image card row (${cards?.length ?? 0} cards)`,
+						}),
+					},
+				},
+				{
+					type: 'object',
+					name: 'benefitCards',
+					title: 'Benefit cards',
+					fields: [
+						defineField({ name: 'heading', title: 'Heading', type: 'string' }),
+						defineField({
+							name: 'cards',
+							title: 'Cards',
+							type: 'array',
+							of: [
+								{
+									type: 'object',
+									fields: [
+										defineField({ name: 'icon', title: 'Icon', type: 'string' }),
+										defineField({ name: 'title', title: 'Title', type: 'string' }),
+										defineField({
+											name: 'description',
+											title: 'Description',
+											type: 'text',
+											rows: 3,
+										}),
+										defineField({
+											name: 'bullets',
+											title: 'Bullet points',
+											type: 'array',
+											of: [{ type: 'string' }],
+										}),
+										defineField({
+											name: 'linkLabel',
+											title: 'Link label',
+											type: 'string',
+										}),
+										defineField({ name: 'linkUrl', title: 'Link URL', type: 'url' }),
+									],
+									preview: { select: { title: 'title', subtitle: 'description' } },
+								},
+							],
+						}),
+					],
+					preview: {
+						select: { title: 'heading' },
+						prepare: ({ title }) => ({ title: title || 'Benefit cards' }),
+					},
+				},
+			],
 		}),
 		defineField({
 			name: 'icon',

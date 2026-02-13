@@ -179,6 +179,10 @@
 	column-span: all;
 }
 
+.prose-feature .not-prose {
+	column-span: all;
+}
+
 @media (max-width: 480px) {
 	.prose-feature {
 		columns: 1;
