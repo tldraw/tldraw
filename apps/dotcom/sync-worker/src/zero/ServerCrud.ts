@@ -15,9 +15,11 @@ import {
 	Kysely,
 	PostgresAdapter,
 	PostgresIntrospector,
+	PostgresPoolClient,
 	PostgresQueryCompiler,
+	PostgresQueryResult,
 } from 'kysely'
-import { PoolClient, QueryResult, QueryResultRow } from 'pg'
+import { QueryResultRow } from 'pg'
 import { ZMutationError } from './ZMutationError'
 const quote = (s: string) => '"' + s.replace(/"/g, '""') + '"'
 
@@ -43,7 +45,7 @@ export class ServerCRUD
 	implements TableMutator<TlaSchema['tables'][keyof TlaSchema['tables']] & TableSchema>
 {
 	constructor(
-		private readonly client: PoolClient,
+		private readonly client: PostgresPoolClient,
 		private readonly table: TlaSchema['tables'][keyof TlaSchema['tables']],
 		private readonly signal: AbortSignal,
 		private readonly changeAccumulator?: ChangeAccumulator
@@ -70,7 +72,7 @@ export class ServerCRUD
 				this.table.primaryKey.map((key) => data[key])
 			)
 			assert(res.rowCount === 1, 'row not found')
-			this.changeAccumulator[this.table.name]?.added!.push(res.rows[0])
+			this.changeAccumulator[this.table.name]?.added!.push(res.rows[0] as TlaRow)
 		}
 	}
 
@@ -84,7 +86,7 @@ export class ServerCRUD
 			this.table.primaryKey.map((key) => data[key])
 		)
 		assert(res.rowCount === 1, 'row not found')
-		this.changeAccumulator[this.table.name]?.updated!.push(res.rows[0])
+		this.changeAccumulator[this.table.name]?.updated!.push(res.rows[0] as TlaRow)
 	}
 
 	private async _trackRemoved(data: any) {
@@ -99,7 +101,7 @@ export class ServerCRUD
 
 	private async _exec<T extends QueryResultRow>(query: {
 		compile(): CompiledQuery<T>
-	}): Promise<QueryResult<T>> {
+	}): Promise<PostgresQueryResult<T>> {
 		const { sql, parameters } = query.compile()
 		return await this.client.query<T>(sql, parameters as any)
 	}
