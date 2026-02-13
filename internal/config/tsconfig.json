@@ -1,0 +1,6 @@
+{
+	"extends": "./tsconfig.base.json",
+	"include": ["vitest"],
+	"exclude": ["node_modules", ".tsbuild*"],
+	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "." }
+}

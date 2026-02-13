@@ -7,7 +7,17 @@ concurrency:
   group: npm-publish
 
 # Package publishing is manually triggered on github actions dashboard
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The version to publish
+        required: true
+        default: e.g. 3.12.1
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   deploy:
@@ -35,13 +45,13 @@ jobs:
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
           TLDRAW_BEMO_URL: https://demo.tldraw.xyz
+          TLDRAW_VERSION_STRING: ${{ inputs.version }}
 
   publish_templates:
     name: Publishes code templates to separate repositories
     uses: tldraw/tldraw/.github/workflows/publish-templates.yml@main
     if: ${{ needs.deploy.outputs.is_latest_version == 'true' }}
     secrets:
-      VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
-      NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
-      CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
+      HUPPY_PRIVATE_KEY: ${{ secrets.HUPPY_PRIVATE_KEY }}
+      HUPPY_APP_ID: ${{ vars.HUPPY_APP_ID }}
     needs: deploy

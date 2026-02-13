@@ -1,0 +1,264 @@
+---
+title: Handles
+status: published
+date: 3/22/2023
+order: 4
+keywords:
+  - handles
+  - custom
+  - shapes
+  - control points
+  - snapping
+---
+
+In tldraw, handles are interactive control points on shapes that let users manipulate shapes. Arrows have handles at their endpoints, lines have handles at each vertex, and notes have clone handles for quick duplication.
+
+## Handle basics
+
+Handles appear when a shape is selected. Each handle has a position, type, and optional snapping behavior. You define handles by implementing `getHandles` on your [ShapeUtil](?):
+
+```tsx
+import { ShapeUtil, TLHandle, ZERO_INDEX_KEY } from 'tldraw'
+
+class MyShapeUtil extends ShapeUtil<MyShape> {
+	// ...
+
+	override getHandles(shape: MyShape): TLHandle[] {
+		return [
+			{
+				id: 'point',
+				type: 'vertex',
+				index: ZERO_INDEX_KEY,
+				x: shape.props.pointX,
+				y: shape.props.pointY,
+			},
+		]
+	}
+}
+```
+
+Handle coordinates are in the shape's local coordinate system, where `(0, 0)` is the shape's top-left corner.
+
+## Handle types
+
+There are four handle types:
+
+| Type      | Description                                                                 |
+| --------- | --------------------------------------------------------------------------- |
+| `vertex`  | A primary control point that defines part of the shape's geometry           |
+| `virtual` | A secondary handle between vertices, often used for adding new points       |
+| `create`  | A handle for extending geometry, like adding a point to the end of a line   |
+| `clone`   | A handle for duplicating the shape, used by notes for quick adjacent copies |
+
+Most custom shapes use `vertex` handles. The `virtual` and `create` types are used by the line shape to let users add points to a path.
+
+## Responding to handle drags
+
+When a user drags a handle, tldraw calls `onHandleDrag` with the updated handle position. Return the new shape props:
+
+```tsx
+import { ShapeUtil, TLHandleDragInfo } from 'tldraw'
+
+class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
+	// ...
+
+	override onHandleDrag(shape: SpeechBubbleShape, { handle }: TLHandleDragInfo<SpeechBubbleShape>) {
+		return {
+			...shape,
+			props: {
+				...shape.props,
+				tailX: handle.x,
+				tailY: handle.y,
+			},
+		}
+	}
+}
+```
+
+The `handle` object in `TLHandleDragInfo` contains the updated `x` and `y` coordinates. Use these to update your shape's props.
+
+### Lifecycle callbacks
+
+For more control over handle interactions, implement these additional methods:
+
+| Method               | When it's called                    |
+| -------------------- | ----------------------------------- |
+| `onHandleDragStart`  | When the user starts dragging       |
+| `onHandleDragEnd`    | When the user releases the handle   |
+| `onHandleDragCancel` | When the drag is cancelled (escape) |
+
+## Handle snapping
+
+Handles can snap to other shapes' geometry. Set `snapType` on the handle:
+
+```tsx
+{
+	id: 'end',
+	type: 'vertex',
+	index: ZERO_INDEX_KEY,
+	x: shape.props.endX,
+	y: shape.props.endY,
+	snapType: 'point', // Snap to points on other shapes
+}
+```
+
+The `snapType` options are:
+
+| Value     | Behavior                                               |
+| --------- | ------------------------------------------------------ |
+| `'point'` | Snaps to key points on other shapes (corners, centers) |
+| `'align'` | Snaps to alignment guides from other shapes            |
+
+### Angle snapping
+
+When the user holds Shift while dragging, handles snap to 15-degree angles. By default, this is relative to the shape's position. You can snap relative to another handle by setting `snapReferenceHandleId`:
+
+```tsx
+{
+	id: 'controlPoint',
+	type: 'vertex',
+	index: indices[1],
+	x: shape.props.cpX,
+	y: shape.props.cpY,
+	snapType: 'align',
+	snapReferenceHandleId: 'start', // Angle snaps relative to 'start' handle
+}
+```
+
+This is useful for bezier curves where control points should snap to angles relative to their associated endpoint.
+
+### Custom snap geometry
+
+By default, handles snap to a shape's outline and key points. Override `getHandleSnapGeometry` to customize what handles snap to:
+
+```tsx
+import { HandleSnapGeometry, ShapeUtil } from 'tldraw'
+
+class BezierCurveUtil extends ShapeUtil<BezierCurveShape> {
+	// ...
+
+	override getHandleSnapGeometry(shape: BezierCurveShape): HandleSnapGeometry {
+		return {
+			// Points other shapes' handles can snap to
+			points: [shape.props.start, shape.props.end],
+
+			// Points this shape's own handles can snap to (for self-snapping)
+			getSelfSnapPoints: (handle) => {
+				if (handle.id === 'controlPoint') {
+					return [shape.props.start, shape.props.end]
+				}
+				return []
+			},
+		}
+	}
+}
+```
+
+The `HandleSnapGeometry` object has these properties:
+
+| Property             | Description                                                    |
+| -------------------- | -------------------------------------------------------------- |
+| `outline`            | Custom outline geometry for snapping (default: shape geometry) |
+| `points`             | Key points to snap to (corners, centers, etc.)                 |
+| `getSelfSnapOutline` | Returns outline for self-snapping given a handle               |
+| `getSelfSnapPoints`  | Returns points for self-snapping given a handle                |
+
+## Complete example
+
+Here's a speech bubble shape with a draggable tail handle:
+
+```tsx
+import { Polygon2d, ShapeUtil, TLHandle, TLHandleDragInfo, TLShape, ZERO_INDEX_KEY } from 'tldraw'
+
+const SPEECH_BUBBLE_TYPE = 'speech-bubble'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[SPEECH_BUBBLE_TYPE]: { w: number; h: number; tailX: number; tailY: number }
+	}
+}
+
+type SpeechBubbleShape = TLShape<typeof SPEECH_BUBBLE_TYPE>
+
+class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
+	static override type = SPEECH_BUBBLE_TYPE
+
+	getDefaultProps(): SpeechBubbleShape['props'] {
+		return { w: 200, h: 100, tailX: 100, tailY: 150 }
+	}
+
+	getGeometry(shape: SpeechBubbleShape) {
+		const { w, h, tailX, tailY } = shape.props
+		return new Polygon2d({
+			points: [
+				{ x: 0, y: 0 },
+				{ x: w, y: 0 },
+				{ x: w, y: h },
+				{ x: w * 0.7, y: h },
+				{ x: tailX, y: tailY },
+				{ x: w * 0.3, y: h },
+				{ x: 0, y: h },
+			],
+			isFilled: true,
+		})
+	}
+
+	override getHandles(shape: SpeechBubbleShape): TLHandle[] {
+		return [
+			{
+				id: 'tail',
+				type: 'vertex',
+				label: 'Move tail',
+				index: ZERO_INDEX_KEY,
+				x: shape.props.tailX,
+				y: shape.props.tailY,
+			},
+		]
+	}
+
+	override onHandleDrag(shape: SpeechBubbleShape, { handle }: TLHandleDragInfo<SpeechBubbleShape>) {
+		return {
+			...shape,
+			props: {
+				...shape.props,
+				tailX: handle.x,
+				tailY: handle.y,
+			},
+		}
+	}
+
+	component(shape: SpeechBubbleShape) {
+		const geometry = this.getGeometry(shape)
+		return (
+			<svg className="tl-svg-container">
+				<path d={geometry.getSvgPathData()} fill="white" stroke="black" />
+			</svg>
+		)
+	}
+
+	indicator(shape: SpeechBubbleShape) {
+		const geometry = this.getGeometry(shape)
+		return <path d={geometry.getSvgPathData()} />
+	}
+}
+```
+
+## Reading handles
+
+Use [Editor#getShapeHandles](?) to get the handles for any shape:
+
+```ts
+const handles = editor.getShapeHandles(shape)
+if (handles) {
+	for (const handle of handles) {
+		console.log(handle.id, handle.x, handle.y)
+	}
+}
+```
+
+Returns `undefined` if the shape doesn't have handles.
+
+## Examples
+
+- [Custom shape with handles](/examples/shapes/tools/speech-bubble) — A speech bubble shape with a draggable tail handle
+- [Cubic bezier curve shape](/examples/shapes/tools/cubic-bezier-shape) — Multiple handles with custom snapping and control point behavior

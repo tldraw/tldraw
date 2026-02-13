@@ -1,12 +1,22 @@
 ---
-title: Custom embed
+title: Custom embeds
 component: ./CustomEmbedExample.tsx
-category: shapes/tools
-priority: 1
-keywords: [embed, custom]
+category: configuration
+priority: 2
+keywords:
+  [
+    embed,
+    iframe,
+    CustomEmbedDefinition,
+    DEFAULT_EMBED_DEFINITIONS,
+    toEmbedUrl,
+    fromEmbedUrl,
+    jsfiddle,
+    url parsing,
+  ]
 ---
 
-Create custom embeds
+Allow custom embeds.
 
 ---
 

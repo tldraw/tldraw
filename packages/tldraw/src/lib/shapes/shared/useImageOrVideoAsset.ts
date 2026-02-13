@@ -59,10 +59,25 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 	// A flag for whether we've resolved the asset URL at least once, after which we can debounce
 	const didAlreadyResolve = useRef(false)
 
+	// Track the previous assetId to detect when the asset itself changes
+	const previousAssetId = useRef<TLAssetId | null>(null)
+
+	// Track whether we should run immediately (skip debouncing) for the next resolution
+	const shouldRunImmediately = useRef(false)
+
 	// The last URL that we've seen for the shape
 	const previousUrl = useRef<string | null>(null)
 
 	useEffect(() => {
+		// Check if the assetId changed (not just resolution/scale updates)
+		const assetIdChanged = previousAssetId.current !== assetId
+		previousAssetId.current = assetId
+
+		// Set flag to run immediately (skip debouncing) for the next resolution
+		if (assetIdChanged) {
+			shouldRunImmediately.current = true
+		}
+
 		if (!assetId) return
 
 		let isCancelled = false
@@ -96,7 +111,7 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 
 			const screenScale = exportInfo
 				? exportInfo.scale * (width / asset.props.w)
-				: editor.getZoomLevel() * (width / asset.props.w)
+				: editor.getEfficientZoomLevel() * (width / asset.props.w)
 
 			function resolve(asset: TLImageAsset | TLVideoAsset, url: string | null) {
 				if (isCancelled) return // don't update if the hook has remounted
@@ -107,8 +122,9 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 				exportIsReady() // let the SVG export know we're ready for export
 			}
 
-			// If we already resolved the URL, debounce fetching potentially multiple image variations.
-			if (didAlreadyResolve.current) {
+			// Debounce fetching potentially multiple image variations (e.g. during zoom or resize).
+			// Don't debounce when the asset itself changes - resolve immediately.
+			if (didAlreadyResolve.current && !shouldRunImmediately.current) {
 				let tick = 0
 
 				const resolveAssetAfterAWhile = () => {
@@ -124,7 +140,12 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 				editor.on('tick', resolveAssetAfterAWhile)
 				cancelDebounceFn = () => editor.off('tick', resolveAssetAfterAWhile)
 			} else {
+				// Resolve immediately when: first resolution, or the asset itself changed.
+				// Cancel any pending debounce to prevent stale updates.
+				cancelDebounceFn?.()
 				resolveAssetUrl(editor, assetId, screenScale, exportInfo, (url) => resolve(asset, url))
+				// Reset the flag after immediate resolution so subsequent updates are debounced
+				shouldRunImmediately.current = false
 			}
 		})
 
@@ -158,10 +179,3 @@ function resolveAssetUrl(
 			callback(url)
 		})
 }
-
-/**
- * @deprecated Use {@link useImageOrVideoAsset} instead.
- *
- * @public
- */
-export const useAsset = useImageOrVideoAsset

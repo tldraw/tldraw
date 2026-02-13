@@ -13,6 +13,7 @@
 		"resolveJsonModule": true,
 		"incremental": true,
 		"jsx": "react-jsx",
+		"jsxImportSource": "react",
 		"lib": ["dom", "DOM.Iterable", "esnext"],
 		"module": "esnext",
 		"target": "esnext",
@@ -28,7 +29,7 @@
 		"strictNullChecks": true,
 		"useDefineForClassFields": true,
 		"noImplicitOverride": true,
-		"types": ["node", "@types/jest"]
+		"types": ["node", "vitest/globals"]
 	},
 	"exclude": ["node_modules"]
 }

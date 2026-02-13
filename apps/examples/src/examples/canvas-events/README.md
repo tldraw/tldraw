@@ -1,13 +1,24 @@
 ---
 title: Canvas events
 component: ./CanvasEventsExample.tsx
-category: editor-api
-priority: 2
-keywords: [cursor, pointer, mouse, click, keyboard, handler, input]
+category: events
+priority: 1
+keywords:
+  [
+    events,
+    pointer events,
+    mouse events,
+    click,
+    keyboard events,
+    canvas events,
+    event listeners,
+    oncanvasmove,
+    oncanvasclick,
+  ]
 ---
 
 Listen to events from tldraw's canvas.
 
 ---
 
-These are the input events that the editor interprets. Try moving your cursor, dragging, using modifier keys, etc.
+This example listens to events from tldraw's canvas and shows them on the right-hand-side. Try moving your cursor, dragging, using modifier keys, etc.

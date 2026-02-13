@@ -15,7 +15,7 @@ import { getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
 const defaultDocumentKey = 'TLDRAW_DEFAULT_DOCUMENT_NAME_v2'
 
 export function getScratchPersistenceKey() {
-	return getFromLocalStorage(defaultDocumentKey) ?? 'tldraw_document_v3'
+	return getFromLocalStorage(defaultDocumentKey) ?? 'tldraw_document_v3_' + uniqueId()
 }
 
 setInLocalStorage(defaultDocumentKey, getScratchPersistenceKey())

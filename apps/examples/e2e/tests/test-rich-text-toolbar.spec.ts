@@ -1,12 +1,12 @@
 import { expect } from '@playwright/test'
-import { Editor, sleep } from 'tldraw'
-import { setup } from '../shared-e2e'
-import test from './fixtures/fixtures'
+import { type Editor } from 'tldraw'
+import test from '../fixtures/fixtures'
+import { setupOrReset, sleep } from '../shared-e2e'
 
 declare const editor: Editor
 
 test.describe('Rich text behaviour', () => {
-	test.beforeEach(setup)
+	test.beforeEach(setupOrReset)
 	test.beforeEach(async ({ page, toolbar, isMobile }) => {
 		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
 		if (isMobile) return
@@ -47,7 +47,7 @@ test.describe('Rich text behaviour', () => {
 
 		const toolsForHTMLStyle = [
 			{ name: 'bold', tag: 'strong' },
-			// { name: 'italic', tag: 'emphasis' },
+			{ name: 'italic', tag: 'em' },
 			// // { name: 'strike', tag: 's' },
 			{ name: 'highlight', tag: 'mark' },
 			{ name: 'code', tag: 'code' },
@@ -200,6 +200,7 @@ test.describe('Rich text behaviour', () => {
 		await expect(richTextToolbar.container).toHaveCount(0)
 
 		await page.mouse.click(150, 150) // select the shape
+		await page.locator('.tl-container').first().focus() // explicitly focus the container
 		await page.keyboard.press('Enter') // to start editing the shape
 
 		// bar should be visible (all of the text should be selected)
@@ -222,6 +223,7 @@ test.describe('Rich text behaviour', () => {
 
 		// select it and start editing it again
 		await page.mouse.click(150, 150)
+		await page.locator('.tl-container').first().focus() // explicitly focus the container
 		await page.keyboard.press('Enter')
 
 		// bar should be visible (all of the text should be selected)
@@ -364,6 +366,7 @@ test.describe('Rich text behaviour', () => {
 			Math.round(selectedTextRect!.y - toolbarRect!.height - 8)
 		)
 
+		// historically this has been flaky without the sleep
 		await sleep(2000)
 	})
 
@@ -467,6 +470,7 @@ test.describe('Rich text behaviour', () => {
 		await expect(richTextToolbar.container).toHaveCSS('opacity', '1')
 		await expect(richTextToolbar.container).toHaveCSS('pointer-events', 'all')
 
+		// historically this has been flaky without the sleep
 		await sleep(2000)
 	})
 

@@ -95,7 +95,7 @@ function ScreenshotBox() {
 				transform: `translate(${screenshotBrush.x}px, ${screenshotBrush.y}px)`,
 				width: screenshotBrush.w,
 				height: screenshotBrush.h,
-				border: '1px solid var(--color-text-0)',
+				border: '1px solid var(--tl-color-text-0)',
 				zIndex: 999,
 			}}
 		/>

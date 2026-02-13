@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '0 10 * * 1'
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   download:
     name: 'Download latest strings'
@@ -21,7 +25,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - uses: ./.github/actions/setup
 
@@ -39,18 +43,25 @@ jobs:
         run: 'yarn i18n-check -f react-intl --locales ./apps/dotcom/client/public/tla/locales/ --source en'
 
       - name: Commit and push changes
-        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
-          git checkout -b update-i18n-strings
-          git add "*.json"
-          if git diff-index --quiet HEAD --; then
+
+          # Check if there are any changes to JSON files
+          if ! git diff --quiet '*.json' || ! git diff --cached --quiet '*.json'; then
+            echo "Changes detected, creating PR..."
+          else
             echo "No changes to commit"
             exit 0
           fi
+
+          # Delete the branch if it already exists
+          git push origin --delete update-i18n-strings 2>/dev/null || true
+
+          git checkout -b update-i18n-strings
+          git add "*.json"
           git commit --no-verify -m '[automated] update i18n strings'
           git push --set-upstream origin update-i18n-strings
           gh pr create --title "[automated] update i18n strings" --body "This PR updates the i18n strings.

@@ -1,0 +1,67 @@
+---
+title: 'v2.3.0'
+created_at: 6/25/2024
+updated_at: 6/25/2024
+keywords:
+  - changelog
+  - release
+  - v2.3
+  - v2.3.0
+  - indexeddb
+  - cdn
+  - image-performance
+  - flatten
+  - security
+status: published
+---
+
+This release focuses on image and video storage improvements, a new fonts/icons CDN, image performance optimizations, and a new flatten feature.
+
+## What's new
+
+### Image and video storage improvements ([#3836](https://github.com/tldraw/tldraw/pull/3836))
+
+When using local-only storage, images and videos are now stored in a separate IndexedDB table instead of as base64-encoded blobs in the room's JSON. This significantly improves performance and reduces the size of room data.
+
+### Fonts and icons CDN ([#3923](https://github.com/tldraw/tldraw/pull/3923))
+
+Improved our CDN for assets (fonts and icons). We were using unpkg before, but now we're using Cloudflare directly for more fine-grained control and better performance. ([#3927](https://github.com/tldraw/tldraw/pull/3927))
+
+### Image level-of-detail ([#3827](https://github.com/tldraw/tldraw/pull/3827))
+
+For higher-resolution images (over a couple megabytes), the image gets transformed to an appropriate size depending on your viewport, zoom level, and network speed. This helps with bandwidth and browser memory usage when you have multiple high-res images on the board.
+
+### Flatten ([#3933](https://github.com/tldraw/tldraw/pull/3933))
+
+You can now select multiple shapes and flatten them into a single image. For those moments when you need to press things together.
+
+### Security improvements ([#3884](https://github.com/tldraw/tldraw/pull/3884))
+
+Locked down referrer network requests to make sure we weren't leaking tldraw rooms to external media/iframe requests. ([#3881](https://github.com/tldraw/tldraw/pull/3881))
+
+## API changes
+
+- Add fill-fill style, accessible via `Alt`+`F`. ([#3966](https://github.com/tldraw/tldraw/pull/3966))
+- Make `ArrowBindingUtil` public. ([#3913](https://github.com/tldraw/tldraw/pull/3913))
+- Add `getSnapshot` and `loadSnapshot` methods to `Editor` class. ([#3912](https://github.com/tldraw/tldraw/pull/3912))
+
+## Improvements
+
+- Allow users to use system appearance (dark/light) mode. ([#3703](https://github.com/tldraw/tldraw/pull/3703))
+- Remove ability to rename document while in readonly mode. ([#3911](https://github.com/tldraw/tldraw/pull/3911))
+- Add delay and easing to edge scrolling. ([#3950](https://github.com/tldraw/tldraw/pull/3950))
+
+## Bug fixes
+
+- Fix copy/paste for older versions of Firefox. ([#4008](https://github.com/tldraw/tldraw/pull/4008))
+- Fix copy/paste in Firefox 127+. ([#4003](https://github.com/tldraw/tldraw/pull/4003))
+- Fix not allowing editing locked shapes when switching edit modes. ([#4007](https://github.com/tldraw/tldraw/pull/4007))
+- Fix text shape measurement in React strict mode. ([#4001](https://github.com/tldraw/tldraw/pull/4001))
+- Fix border color for following user. ([#3975](https://github.com/tldraw/tldraw/pull/3975))
+- Fix scale issue with new draw lines. ([#3971](https://github.com/tldraw/tldraw/pull/3971))
+- Fix edge scrolling at odd browser zoom levels. ([#3973](https://github.com/tldraw/tldraw/pull/3973))
+- Fix appearance of solid-style heart shapes. ([#3963](https://github.com/tldraw/tldraw/pull/3963))
+- Fix position of multiple assets when pasted/dropped onto canvas. ([#3965](https://github.com/tldraw/tldraw/pull/3965))
+- Fix indicator for stylus-drawn draw shapes. ([#3962](https://github.com/tldraw/tldraw/pull/3962))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.3.0)

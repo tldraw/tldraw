@@ -1,12 +1,12 @@
 ---
-title: Local images
+title: Create an image shape
 component: ./LocalImagesExample.tsx
-category: data/assets
+category: editor-api
 priority: 2
-keywords: [asset, record, create asset]
+keywords: [image, asset, assetrecordtype, createassets, local, static, png, jpg, imageshape]
 ---
 
-How to use local images in the built-in `ImageShape` shape.
+Create an image shape using a local asset.
 
 ---
 

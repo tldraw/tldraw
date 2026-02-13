@@ -1,9 +1,20 @@
 ---
 title: Shape meta (on change)
 component: ./OnChangeShapeMetaExample.tsx
-category: data/assets
-priority: 3
-keywords: [side, effects, register, change, initial]
+category: events
+priority: 7
+keywords:
+  [
+    meta,
+    metadata,
+    side effects,
+    registerbeforechangehandler,
+    getinitialmeta,
+    onchange,
+    tracking,
+    audit,
+    custom data,
+  ]
 ---
 
 Add custom metadata to shapes when they're changed.

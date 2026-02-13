@@ -38,6 +38,7 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 			isPrecise: false,
 			isExact: false,
 			normalizedAnchor: { x: 0.5, y: 0.5 },
+			snap: 'none',
 		}
 	}
 
@@ -57,13 +58,37 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 
 	// when the arrow itself changes
 	override onAfterChangeFromShape({
+		shapeBefore,
 		shapeAfter,
+		reason,
 	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
+		// When translating arrows together with their bound shapes, only x/y changes.
+		// In this case, bindings remain valid and no reparenting is needed.
+		// This is a significant performance optimization when moving many bound shapes.
+		if (
+			reason !== 'ancestry' &&
+			shapeBefore.parentId === shapeAfter.parentId &&
+			shapeBefore.index === shapeAfter.index
+		) {
+			return
+		}
 		arrowDidUpdate(this.editor, shapeAfter as TLArrowShape)
 	}
 
 	// when the shape an arrow is bound to changes
-	override onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<TLArrowBinding>): void {
+	override onAfterChangeToShape({
+		binding,
+		shapeBefore,
+		shapeAfter,
+		reason,
+	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
+		if (
+			reason !== 'ancestry' &&
+			shapeBefore.parentId === shapeAfter.parentId &&
+			shapeBefore.index === shapeAfter.index
+		) {
+			return
+		}
 		reparentArrow(this.editor, binding.fromId)
 	}
 
@@ -167,7 +192,7 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 	}
 
 	if (finalIndex !== reparentedArrow.index) {
-		editor.updateShapes<TLArrowShape>([{ id: arrowId, type: 'arrow', index: finalIndex }])
+		editor.updateShapes([{ id: arrowId, type: 'arrow', index: finalIndex }])
 	}
 }
 
@@ -223,7 +248,7 @@ export function updateArrowTerminal({
 	} satisfies TLShapePartial<TLArrowShape>
 
 	// fix up the bend:
-	if (!info.isStraight) {
+	if (info.type === 'arc') {
 		// find the new start/end points of the resulting arrow
 		const newStart = terminal === 'start' ? startPoint : info.start.handle
 		const newEnd = terminal === 'end' ? endPoint : info.end.handle

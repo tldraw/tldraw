@@ -12,7 +12,7 @@ const initialState = { error: null }
 
 /** @public */
 export class ErrorBoundary extends React.Component<
-	React.PropsWithRef<React.PropsWithChildren<TLErrorBoundaryProps>>,
+	React.PropsWithChildren<TLErrorBoundaryProps>,
 	{ error: Error | null }
 > {
 	static getDerivedStateFromError(error: Error) {

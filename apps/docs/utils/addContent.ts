@@ -1,7 +1,7 @@
-import { Article, GeneratedContent } from '@/types/content-types'
+import type { Article, GeneratedContent } from '@/types/content-types'
 import console from 'console'
-import { Database } from 'sqlite'
-import sqlite3 from 'sqlite3'
+import type { Database } from 'sqlite'
+import type sqlite3 from 'sqlite3'
 import { parseMarkdown } from './parse-markdown'
 
 export async function addContentToDb(
@@ -25,14 +25,18 @@ export async function addContentToDb(
       id,
       groupIndex,
       categoryIndex,
+	  priority,
       sectionIndex,
       groupId,
       categoryId,
       sectionId,
       authorId,
       title,
+	  sidebarTitle,
       description,
       hero,
+	  thumbnail,
+	  socialImage,
       status,
       date,
       sourceUrl,
@@ -41,8 +45,10 @@ export async function addContentToDb(
       keywords,
 	  apiTags,
       content,
-			path
-    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			path,
+			embed,
+			githubLink
+    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	)
 
 	for (let i = 0; i < content.sections.length; i++) {
@@ -86,6 +92,7 @@ export async function addContentToDb(
 				article.id,
 				article.groupIndex,
 				article.categoryIndex,
+				article.priority,
 				article.sectionIndex,
 				article.groupId,
 				article.categoryId,
@@ -96,8 +103,11 @@ export async function addContentToDb(
 						: article.author.join(', ')
 					: null,
 				article.title,
+				article.sidebarTitle,
 				article.description,
 				article.hero,
+				article.thumbnail,
+				article.socialImage,
 				article.status,
 				article.date,
 				article.sourceUrl,
@@ -106,7 +116,9 @@ export async function addContentToDb(
 				article.keywords.join(', '),
 				article.apiTags,
 				article.content,
-				article.path
+				article.path,
+				article.embed,
+				article.githubLink
 			)
 		} catch (e: any) {
 			console.error(`ERROR: Could not add article with id '${article.id}'`)

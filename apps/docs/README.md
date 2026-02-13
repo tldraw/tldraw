@@ -1,11 +1,5 @@
 # tldraw-docs
 
-<div alt style="text-align: center; transform: scale(.5);">
-	<picture>
-		<img alt="tldraw" src="https://github.com/tldraw/tldraw-lite/raw/main/docs/public/card_repo.png" />
-	</picture>
-</div>
-
 Welcome to the source for the [tldraw docs site](https://tldraw.dev).
 
 This site is a [Next.js](https://nextjs.org/) app that uses [MDX](https://mdxjs.com/) for content. It contains human-written docs in the `content` folder as well as generated docs in the `api` folder.
@@ -125,6 +119,26 @@ The `keywords` are used to find an article through the site's search feature.
 ## Auto-generated content
 
 The auto-generated docs content is created using [tsdoc](https://tsdoc.org/) and [API extractor](https://api-extractor.com/). The source is the API documentation created by `yarn build` or `yarn build-api`. The output is placed in the `gen` folder.
+
+## Release notes
+
+Release notes live in `content/releases/` and are the source of truth for SDK release documentation.
+
+### File structure
+
+- `next.mdx` - Accumulates changes for the upcoming release
+- `vX.Y.0.mdx` - Published release notes (one file per minor release)
+
+### Workflow
+
+1. As PRs merge to main, update `next.mdx` with release notes using the `/update-changelog` command or `write-changelog` skill
+2. When publishing a release:
+   - Rename `next.mdx` to `vX.Y.0.mdx`
+   - Update the frontmatter `order` field
+   - Create a new `next.mdx` for the next version
+3. The release notes can then be copied to GitHub releases
+
+See `.claude/skills/write-changelog/` for detailed formatting guidelines.
 
 ## Developing the docs
 

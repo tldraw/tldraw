@@ -1,17 +1,18 @@
 import { MouseEvent } from 'react'
-import {
-	BaseBoxShapeTool,
-	BaseBoxShapeUtil,
-	HTMLContainer,
-	T,
-	TLBaseShape,
-	stopEventPropagation,
-} from 'tldraw'
+import { BaseBoxShapeTool, BaseBoxShapeUtil, HTMLContainer, T, TLShape } from 'tldraw'
 
-type CounterShape = TLBaseShape<'counter', { w: number; h: number; count: number }>
+const COUNTER_TYPE = 'counter'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[COUNTER_TYPE]: { w: number; h: number; count: number }
+	}
+}
+
+export type CounterShape = TLShape<typeof COUNTER_TYPE>
 
 export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
-	static override type = 'counter' as const
+	static override type = COUNTER_TYPE
 	static override props = {
 		w: T.positiveNumber,
 		h: T.positiveNumber,
@@ -31,7 +32,7 @@ export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
 			event.stopPropagation()
 			this.editor.updateShape({
 				id: shape.id,
-				type: 'counter',
+				type: COUNTER_TYPE,
 				props: { count: shape.props.count + change },
 			})
 		}
@@ -47,11 +48,11 @@ export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
 					gap: 8,
 				}}
 			>
-				<button onClick={(e) => onClick(e, -1)} onPointerDown={stopEventPropagation}>
+				<button onClick={(e) => onClick(e, -1)} onPointerDown={this.editor.markEventAsHandled}>
 					-
 				</button>
 				<span>{shape.props.count}</span>
-				<button onClick={(e) => onClick(e, 1)} onPointerDown={stopEventPropagation}>
+				<button onClick={(e) => onClick(e, 1)} onPointerDown={this.editor.markEventAsHandled}>
 					+
 				</button>
 			</HTMLContainer>
@@ -65,5 +66,5 @@ export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
 
 export class CounterShapeTool extends BaseBoxShapeTool {
 	static override id = 'counter'
-	override shapeType = 'counter'
+	override shapeType = 'counter' as const
 }

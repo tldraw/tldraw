@@ -1,5 +1,12 @@
 User-agent: *
 Disallow: /
 Allow: /$
+Allow: /favicon*
+Allow: /sitemap.xml
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /assets/*
+Allow: /manifest.webmanifest
 
 Sitemap: https://www.tldraw.com/sitemap.xml

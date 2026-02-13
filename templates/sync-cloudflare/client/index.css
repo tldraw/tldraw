@@ -5,3 +5,84 @@ body {
 	font-family: 'Inter', sans-serif;
 	overscroll-behavior: none;
 }
+
+.RoomWrapper {
+	--background: white;
+	--text: hsl(0, 0%, 20%);
+	--gray-light: #f5f5f5;
+	--gray-dark: #e5e5e5;
+	--black-transparent-lighter: rgba(0, 0, 0, 0.15);
+	--black-transparent-light: rgba(0, 0, 0, 0.4);
+	--black-transparent-dark: rgba(0, 0, 0, 0.6);
+	--black-transparent-darker: rgba(0, 0, 0, 0.7);
+	--focus: hsl(217, 89%, 61%);
+	--whiteboard: hsl(240, 5%, 96%);
+	color-scheme: light;
+}
+
+:root:has(.tl-theme__dark) .RoomWrapper {
+	--background: black;
+	--text: hsl(0, 9%, 94%);
+	--gray-light: #333;
+	--gray-dark: #444;
+	--black-transparent-lighter: rgba(255, 255, 255, 0.15);
+	--black-transparent-light: rgba(255, 255, 255, 0.4);
+	--black-transparent-dark: rgba(255, 255, 255, 0.6);
+	--black-transparent-darker: rgba(255, 255, 255, 0.7);
+	--focus: hsl(217, 89%, 61%);
+	--whiteboard: hsl(240, 5%, 6.5%);
+	color-scheme: dark;
+}
+
+.RoomWrapper {
+	display: flex;
+	flex-direction: column;
+	position: absolute;
+	inset: 0px;
+}
+
+.RoomWrapper-header {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: center;
+	padding: 8px 16px;
+	gap: 16px;
+	background: var(--background);
+	border-bottom: 1px solid var(--gray-dark);
+	color: var(--text);
+	font-size: 14px;
+}
+
+.RoomWrapper-copy {
+	background: var(--black-transparent-lighter);
+	border: 1px solid var(--gray-dark);
+	border-radius: 4px;
+	padding: 4px 12px;
+	height: 24px;
+	cursor: pointer;
+	position: relative;
+	text-align: center;
+}
+
+.RoomWrapper-copy:has(.RoomWrapper-copied) {
+	color: transparent;
+}
+
+.RoomWrapper-copied {
+	color: var(--text);
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.RoomWrapper-copy:hover {
+	border: 1px solid var(--black-transparent-lighter);
+}
+
+.RoomWrapper-content {
+	position: relative;
+	flex: 1;
+}

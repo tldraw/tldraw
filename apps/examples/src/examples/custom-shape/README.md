@@ -2,8 +2,20 @@
 title: Custom shape
 component: ./CustomShapeExample.tsx
 category: shapes/tools
-priority: 1
-keywords: [util]
+priority: 0
+keywords:
+  [
+    shapeutil,
+    custom shape,
+    getGeometry,
+    component,
+    indicator,
+    HTMLContainer,
+    Rectangle2d,
+    getDefaultProps,
+    props,
+    validator,
+  ]
 ---
 
 A simple custom shape.

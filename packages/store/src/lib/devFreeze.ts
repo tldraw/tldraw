@@ -1,4 +1,5 @@
 import { STRUCTURED_CLONE_OBJECT_PROTOTYPE } from '@tldraw/utils'
+import { isDev } from './isDev'
 
 /**
  * Freeze an object when in development mode. Copied from
@@ -15,9 +16,8 @@ import { STRUCTURED_CLONE_OBJECT_PROTOTYPE } from '@tldraw/utils'
  * @public
  */
 export function devFreeze<T>(object: T): T {
-	if (process.env.NODE_ENV === 'production') {
-		return object
-	}
+	if (!isDev()) return object
+
 	const proto = Object.getPrototypeOf(object)
 	if (
 		proto &&
@@ -30,6 +30,10 @@ export function devFreeze<T>(object: T): T {
 	) {
 		console.error('cannot include non-js data in a record', object)
 		throw new Error('cannot include non-js data in a record')
+	}
+
+	if (Object.isFrozen(object)) {
+		return object
 	}
 
 	// Retrieve the property names defined on object

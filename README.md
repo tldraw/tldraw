@@ -1,11 +1,13 @@
 # tldraw
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tldraw/tldraw)
+
 Welcome to the public monorepo for [tldraw](https://github.com/tldraw/tldraw). tldraw is a library for creating infinite canvas experiences in React. It's the software behind the digital whiteboard [tldraw.com](https://tldraw.com).
 
 - Read the docs and learn more at [tldraw.dev](https://tldraw.dev).
 - Learn about [our license](https://github.com/tldraw/tldraw#License).
 
-> [Click here](https://tldraw.dev/#pricing) to learn about our license and pricing.
+> [Click here](https://tldraw.dev/pricing) to learn about our license and pricing.
 
 ## Installation
 
@@ -39,7 +41,7 @@ To run the local development server, first clone this repo.
 Enable [corepack](https://nodejs.org/api/corepack.html) to make sure you have the right version of `yarn`:
 
 ```bash
-corepack enable
+npm i -g corepack
 ```
 
 Install dependencies:
@@ -60,7 +62,7 @@ Open the example project at `localhost:5420`.
 
 The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
-You can use the tldraw SDK in commercial or non-commercial projects so long as you preserve the "Made with tldraw" watermark on the canvas. To remove the watermark, you can purchase a [business license](https://tldraw.dev#pricing). Visit [tldraw.dev](https://tldraw.dev) to learn more.
+You can use the tldraw SDK in commercial or non-commercial projects so long as you preserve the "Made with tldraw" watermark on the canvas. To remove the watermark, you can purchase a [business license](https://tldraw.dev/pricing). Visit [tldraw.dev](https://tldraw.dev) to learn more.
 
 ## Trademarks
 

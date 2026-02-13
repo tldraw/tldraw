@@ -1,0 +1,44 @@
+main = "src/worker.ts"
+compatibility_date = "2024-06-20"
+upload_source_maps = true
+
+#################### Environment names ####################
+
+# Dev environment
+[env.dev]
+name = "tldraw-consent-dev"
+
+# Staging environment
+[env.staging]
+name = "tldraw-consent-staging"
+
+# Staging environment
+[env.preview]
+name = "tldraw-consent-preview"
+
+# Production environment
+[env.production]
+name = "tldraw-consent"
+
+#################### Routes ####################
+# in production, we use a custom domain. others get a default *.tldraw.workers.dev domain
+[[env.production.routes]]
+pattern = 'consent.tldraw.xyz'
+custom_domain = true
+zone_name = 'tldraw.xyz'
+
+#################### Version metadata ####################
+[version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.dev.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.preview.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.staging.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.production.version_metadata]
+binding = "CF_VERSION_METADATA"

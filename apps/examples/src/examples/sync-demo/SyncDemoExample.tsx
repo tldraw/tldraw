@@ -6,7 +6,7 @@ export default function SyncDemoExample({ roomId }: { roomId: string }) {
 	const store = useSyncDemo({ roomId })
 	return (
 		<div className="tldraw__editor">
-			<Tldraw store={store} deepLinks />
+			<Tldraw store={store} options={{ deepLinks: true }} />
 		</div>
 	)
 }

@@ -3,9 +3,11 @@ title: Multiplayer sync
 component: ./SyncDemoExample.tsx
 category: collaboration
 priority: 1
-keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration]
+keywords: [multiplayer, sync, useSyncDemo, collaboration, real-time, websocket, co-editing]
 multiplayer: true
 ---
+
+Use tldraw sync for multiplayer collaboration.
 
 ---
 

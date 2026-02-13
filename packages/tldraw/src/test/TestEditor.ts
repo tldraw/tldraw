@@ -10,12 +10,12 @@ import {
 	RequiredKeys,
 	RotateCorner,
 	SelectionHandle,
-	TLArrowBinding,
 	TLArrowShape,
 	TLContent,
 	TLEditorOptions,
 	TLEventInfo,
 	TLKeyboardEventInfo,
+	TLMeasureTextOpts,
 	TLPinchEventInfo,
 	TLPointerEventInfo,
 	TLShape,
@@ -33,6 +33,7 @@ import {
 	rotateSelectionHandle,
 	tlenv,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
@@ -41,7 +42,14 @@ import { defaultTools } from '../lib/defaultTools'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
 import { shapesFromJsx } from './test-jsx'
 
-jest.useFakeTimers()
+declare module 'vitest' {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	interface Matchers<T = any> {
+		toCloselyMatchObject(expected: any, roundToNearest?: number): void
+	}
+}
+
+vi.useFakeTimers()
 
 Object.assign(navigator, {
 	clipboard: {
@@ -53,16 +61,6 @@ Object.assign(navigator, {
 
 // @ts-expect-error
 window.ClipboardItem = class {}
-
-declare global {
-	// eslint-disable-next-line @typescript-eslint/no-namespace
-	namespace jest {
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		interface Matchers<R> {
-			toCloselyMatchObject(value: any, precision?: number): void
-		}
-	}
-}
 
 export class TestEditor extends Editor {
 	constructor(
@@ -81,14 +79,20 @@ export class TestEditor extends Editor {
 			right: 1080,
 		}
 		// make the app full screen for the sake of the insets property
-		jest.spyOn(document.body, 'scrollWidth', 'get').mockImplementation(() => bounds.width)
-		jest.spyOn(document.body, 'scrollHeight', 'get').mockImplementation(() => bounds.height)
+		vi.spyOn(document.body, 'scrollWidth', 'get').mockImplementation(() => bounds.width)
+		vi.spyOn(document.body, 'scrollHeight', 'get').mockImplementation(() => bounds.height)
 
 		elm.tabIndex = 0
 		elm.getBoundingClientRect = () => bounds as DOMRect
 
-		const shapeUtilsWithDefaults = [...defaultShapeUtils, ...(options.shapeUtils ?? [])]
-		const bindingUtilsWithDefaults = [...defaultBindingUtils, ...(options.bindingUtils ?? [])]
+		const shapeUtilsWithDefaults = [
+			...defaultShapeUtils.filter((s) => !options.shapeUtils?.some((su) => su.type === s.type)),
+			...(options.shapeUtils ?? []),
+		]
+		const bindingUtilsWithDefaults = [
+			...defaultBindingUtils.filter((b) => !options.bindingUtils?.some((bu) => bu.type === b.type)),
+			...(options.bindingUtils ?? []),
+		]
 
 		super({
 			...options,
@@ -102,10 +106,14 @@ export class TestEditor extends Editor {
 			}),
 			getContainer: () => elm,
 			initialState: 'select',
-			textOptions: {
-				addFontsFromNode: defaultAddFontsFromNode,
-				tipTapConfig: {
-					extensions: tipTapDefaultExtensions,
+			options: {
+				...options.options,
+				text: {
+					addFontsFromNode: defaultAddFontsFromNode,
+					tipTapConfig: {
+						extensions: tipTapDefaultExtensions,
+					},
+					...options.options?.text,
 				},
 			},
 		})
@@ -117,15 +125,7 @@ export class TestEditor extends Editor {
 
 		this.textMeasure.measureText = (
 			textToMeasure: string,
-			opts: {
-				fontStyle: string
-				fontWeight: string
-				fontFamily: string
-				fontSize: number
-				lineHeight: number
-				maxWidth: null | number
-				padding: string
-			}
+			opts: TLMeasureTextOpts
 		): BoxModel & { scrollWidth: number } => {
 			const breaks = textToMeasure.split('\n')
 			const longest = breaks.reduce((acc, curr) => {
@@ -139,23 +139,19 @@ export class TestEditor extends Editor {
 				y: 0,
 				w: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
 				h:
-					(opts.maxWidth === null ? breaks.length : Math.ceil(w % opts.maxWidth) + breaks.length) *
+					(opts.maxWidth === null ? breaks.length : Math.ceil(w / opts.maxWidth) + breaks.length) *
 					opts.fontSize,
-				scrollWidth: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
+				scrollWidth: opts.measureScrollWidth
+					? opts.maxWidth === null
+						? w
+						: Math.max(w, opts.maxWidth)
+					: 0,
 			}
 		}
 
 		this.textMeasure.measureHtml = (
 			html: string,
-			opts: {
-				fontStyle: string
-				fontWeight: string
-				fontFamily: string
-				fontSize: number
-				lineHeight: number
-				maxWidth: null | number
-				padding: string
-			}
+			opts: TLMeasureTextOpts
 		): BoxModel & { scrollWidth: number } => {
 			const textToMeasure = html
 				.split('</p><p dir="auto">')
@@ -267,7 +263,7 @@ export class TestEditor extends Editor {
 
 	paste(point?: VecLike) {
 		if (this.clipboard !== null) {
-			const p = this.inputs.shiftKey ? this.inputs.currentPagePoint : point
+			const p = this.inputs.getShiftKey() ? this.inputs.getCurrentPagePoint() : point
 
 			this.markHistoryStoppingPoint('pasting')
 			this.putContentOntoCurrentPage(this.clipboard, {
@@ -283,12 +279,12 @@ export class TestEditor extends Editor {
 	 * methods, or call mockRestore() to restore the actual implementation (e.g.
 	 * _transformPointerDownSpy.mockRestore())
 	 */
-	_transformPointerDownSpy = jest
+	_transformPointerDownSpy = vi
 		.spyOn(this._clickManager, 'handlePointerEvent')
 		.mockImplementation((info) => {
 			return info
 		})
-	_transformPointerUpSpy = jest
+	_transformPointerUpSpy = vi
 		.spyOn(this._clickManager, 'handlePointerEvent')
 		.mockImplementation((info) => {
 			return info
@@ -357,8 +353,8 @@ export class TestEditor extends Editor {
 	}
 
 	protected getPointerEventInfo(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: Partial<TLPointerEventInfo> | TLShapeId,
 		modifiers?: EventModifiers
 	) {
@@ -371,11 +367,11 @@ export class TestEditor extends Editor {
 			name: 'pointer_down',
 			type: 'pointer',
 			pointerId: 1,
-			shiftKey: this.inputs.shiftKey,
-			ctrlKey: this.inputs.ctrlKey,
-			altKey: this.inputs.altKey,
-			metaKey: this.inputs.metaKey,
-			accelKey: isAccelKey({ ...this.inputs, ...modifiers }),
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
+			accelKey: isAccelKey({ ...this.inputs.toJson(), ...modifiers }),
 			point: { x, y, z: null },
 			button: 0,
 			isPen: false,
@@ -434,8 +430,8 @@ export class TestEditor extends Editor {
 	}
 
 	pointerMove(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
@@ -447,8 +443,8 @@ export class TestEditor extends Editor {
 	}
 
 	pointerDown(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
@@ -460,8 +456,8 @@ export class TestEditor extends Editor {
 	}
 
 	pointerUp(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
@@ -473,8 +469,8 @@ export class TestEditor extends Editor {
 	}
 
 	click(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
@@ -484,8 +480,8 @@ export class TestEditor extends Editor {
 	}
 
 	rightClick(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
@@ -503,8 +499,8 @@ export class TestEditor extends Editor {
 	}
 
 	doubleClick(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
@@ -525,6 +521,12 @@ export class TestEditor extends Editor {
 		return this
 	}
 
+	keyPress(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
+		this.keyDown(key, options)
+		this.keyUp(key, options)
+		return this
+	}
+
 	keyDown(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
 		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) }).forceTick()
 		return this
@@ -538,10 +540,10 @@ export class TestEditor extends Editor {
 	keyUp(key: string, options = {} as Partial<Omit<TLKeyboardEventInfo, 'key'>>) {
 		this.dispatch({
 			...this.getKeyboardEventInfo(key, 'key_up', {
-				shiftKey: this.inputs.shiftKey && key !== 'Shift',
-				ctrlKey: this.inputs.ctrlKey && !(key === 'Control' || key === 'Meta'),
-				altKey: this.inputs.altKey && key !== 'Alt',
-				metaKey: this.inputs.metaKey && key !== 'Meta',
+				shiftKey: this.inputs.getShiftKey() && key !== 'Shift',
+				ctrlKey: this.inputs.getCtrlKey() && !(key === 'Control' || key === 'Meta'),
+				altKey: this.inputs.getAltKey() && key !== 'Alt',
+				metaKey: this.inputs.getMetaKey() && key !== 'Meta',
 				...options,
 			}),
 		}).forceTick()
@@ -549,14 +551,15 @@ export class TestEditor extends Editor {
 	}
 
 	wheel(dx: number, dy: number, options = {} as Partial<Omit<TLWheelEventInfo, 'delta'>>) {
+		const currentScreenPoint = this.inputs.getCurrentScreenPoint()
 		this.dispatch({
 			type: 'wheel',
 			name: 'wheel',
-			point: new Vec(this.inputs.currentScreenPoint.x, this.inputs.currentScreenPoint.y),
-			shiftKey: this.inputs.shiftKey,
-			ctrlKey: this.inputs.ctrlKey,
-			altKey: this.inputs.altKey,
-			metaKey: this.inputs.metaKey,
+			point: new Vec(currentScreenPoint.x, currentScreenPoint.y),
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
 			accelKey: isAccelKey(this.inputs),
 			...options,
 			delta: { x: dx, y: dy },
@@ -575,8 +578,8 @@ export class TestEditor extends Editor {
 	}
 
 	pinchStart(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		z: number,
 		dx: number,
 		dy: number,
@@ -586,10 +589,10 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			type: 'pinch',
 			name: 'pinch_start',
-			shiftKey: this.inputs.shiftKey,
-			ctrlKey: this.inputs.ctrlKey,
-			altKey: this.inputs.altKey,
-			metaKey: this.inputs.metaKey,
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
 			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
@@ -599,8 +602,8 @@ export class TestEditor extends Editor {
 	}
 
 	pinchTo(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		z: number,
 		dx: number,
 		dy: number,
@@ -610,10 +613,10 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			type: 'pinch',
 			name: 'pinch_start',
-			shiftKey: this.inputs.shiftKey,
-			ctrlKey: this.inputs.ctrlKey,
-			altKey: this.inputs.altKey,
-			metaKey: this.inputs.metaKey,
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
 			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
@@ -623,8 +626,8 @@ export class TestEditor extends Editor {
 	}
 
 	pinchEnd(
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
+		x = this.inputs.getCurrentScreenPoint().x,
+		y = this.inputs.getCurrentScreenPoint().y,
 		z: number,
 		dx: number,
 		dy: number,
@@ -634,10 +637,10 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			type: 'pinch',
 			name: 'pinch_end',
-			shiftKey: this.inputs.shiftKey,
-			ctrlKey: this.inputs.ctrlKey,
-			altKey: this.inputs.altKey,
-			metaKey: this.inputs.metaKey,
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
 			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
@@ -741,12 +744,11 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	createShapesFromJsx(
-		shapesJsx: React.JSX.Element | React.JSX.Element[]
-	): Record<string, TLShapeId> {
-		const { shapes, assets, ids } = shapesFromJsx(shapesJsx)
+	createShapesFromJsx(shapesJsx: React.JSX.Element | React.JSX.Element[]) {
+		const { shapes, assets, ids, bindings } = shapesFromJsx(shapesJsx)
 		this.createAssets(assets)
 		this.createShapes(shapes)
+		this.createBindings(bindings)
 		return ids
 	}
 
@@ -792,9 +794,7 @@ export class TestEditor extends Editor {
 	}
 
 	getArrowsBoundTo(shapeId: TLShapeId) {
-		const ids = new Set(
-			this.getBindingsToShape<TLArrowBinding>(shapeId, 'arrow').map((b) => b.fromId)
-		)
+		const ids = new Set(this.getBindingsToShape(shapeId, 'arrow').map((b) => b.fromId))
 		return compact(Array.from(ids, (id) => this.getShape<TLArrowShape>(id)))
 	}
 }

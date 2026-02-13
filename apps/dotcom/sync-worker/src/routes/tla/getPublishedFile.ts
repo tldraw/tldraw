@@ -33,23 +33,20 @@ export async function getPublishedFile(request: IRequest, env: Environment): Pro
 		return Response.json({ error: true, message: 'Room ID is required' }, { status: 400 })
 	}
 
-	try {
-		const publishedRoomSnapshot = await getPublishedRoomSnapshot(env, roomId)
-		if (!publishedRoomSnapshot) throw Error('not found')
+	const publishedRoomSnapshot = await getPublishedRoomSnapshot(env, roomId)
+	if (!publishedRoomSnapshot)
+		return Response.json({ error: true, message: 'Room not found' }, { status: 404 })
 
-		const { documents, schema } = publishedRoomSnapshot
+	const { documents, schema } = publishedRoomSnapshot
 
-		return new Response(
-			JSON.stringify({
-				records: documents.map((d) => d.state),
-				schema: schema,
-				error: false,
-			}),
-			{
-				headers: { 'content-type': 'application/json' },
-			}
-		)
-	} catch (e: any) {
-		return new Response(JSON.stringify({ error: true, message: e.message }), { status: 500 })
-	}
+	return new Response(
+		JSON.stringify({
+			records: documents.map((d) => d.state),
+			schema: schema,
+			error: false,
+		}),
+		{
+			headers: { 'content-type': 'application/json' },
+		}
+	)
 }

@@ -86,6 +86,8 @@ export interface Group extends ContentPage {
 
 export interface Article extends ContentPage {
 	type: 'article'
+	/** The version of the article's title to show in the sidebar. */
+	sidebarTitle: string | null
 	/** The id of the group to which this article belongs. */
 	groupId: string | null
 	/** The index of this article inside of the article's group. */
@@ -94,6 +96,8 @@ export interface Article extends ContentPage {
 	categoryId: string
 	/** The index of this article inside of the article's category. */
 	categoryIndex: number
+	/** The chosen priority of this article (optional). */
+	priority: number | null
 	/** The id of the section to which this article belongs. */
 	sectionId: string
 	/** The index of this article inside of the article's section. */
@@ -104,6 +108,10 @@ export interface Article extends ContentPage {
 	authorId: string
 	/** The article's hero image (optional). */
 	hero: string | null
+	/** The article's thumbnail image (optional). */
+	thumbnail: string | null
+	/** The article's social image (optional). */
+	socialImage: string | null
 	/** The article's status (draft, published, hidden, etc) */
 	status: ArticleStatus
 	/** The date on which the article was published (optional). */
@@ -114,10 +122,16 @@ export interface Article extends ContentPage {
 	sourceUrl: string | null
 	/** The article's code example (optional). */
 	componentCode: string | null
+	/** The article's code example filename (optional). */
+	componentCodeFilename: string | null
 	/** The article's code example files, JSON stringified (optional). */
 	componentCodeFiles: string | null
 	/** Tags for this item if it's a reference page */
 	apiTags: string | null
+	/** The id of the Starter Kit embed */
+	embed: string | null
+	/** The URL where the Starter Kit's source can be found. */
+	githubLink: string | null
 }
 
 export enum ArticleStatus {

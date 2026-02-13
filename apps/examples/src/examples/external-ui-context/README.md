@@ -1,12 +1,25 @@
 ---
-title: External UI (Context)
+title: External UI (using context)
 component: ./ExternalUiContextExample.tsx
-category: ui
-priority: 2
-keywords: [outside, editor, context]
+category: layout
+priority: 20
+keywords:
+  [
+    custom ui,
+    toolbar,
+    buttons,
+    context,
+    createcontext,
+    usecontext,
+    onmount,
+    getcurrenttoolid,
+    setcurrenttool,
+    getstylefornextshape,
+    setstylefornextshapes,
+  ]
 ---
 
-This example shows how to control the tldraw editor from an external UI, outside of the `Tldraw` component. This example shows how to pass a reference to the editor around using React Context.
+This example shows how to control the tldraw editor from an external UI, using React context.
 
 ---
 

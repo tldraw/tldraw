@@ -1,0 +1,12 @@
+name = "branching-chat-template"
+main = "worker/worker.ts"
+compatibility_date = "2024-12-30"
+assets = { not_found_handling = "single-page-application" }
+preview_urls = true
+
+[observability]
+enabled = true
+
+[[routes]]
+pattern = "branching-chat.templates.tldraw.dev"
+custom_domain = true

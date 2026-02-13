@@ -364,4 +364,5 @@ test('parseCssValueUrls', () => {
 		  },
 		]
 	`)
+	expect(parseCssValueUrls(`url(#arrowhead)`)).toMatchInlineSnapshot(`[]`)
 })

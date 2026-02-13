@@ -1,0 +1,27 @@
+{
+	"name": "@tldraw/analytics",
+	"version": "0.1.0",
+	"license": "",
+	"private": true,
+	"main": "dist/index.js",
+	"scripts": {
+		"build": "tsc && vite build --outDir public",
+		"dev": "vite",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+	},
+	"dependencies": {
+		"js-cookie": "^3.0.5",
+		"posthog-js": "^1.281.0"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250913.0",
+		"@types/js-cookie": "^3.0.6",
+		"typescript": "^5.8.3",
+		"vite": "^7.0.1",
+		"vitest": "^3.2.4",
+		"wrangler": "^4.37.1"
+	}
+}

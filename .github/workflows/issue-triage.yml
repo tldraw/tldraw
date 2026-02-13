@@ -1,0 +1,119 @@
+name: Issue Triage
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to triage (for testing)'
+        required: true
+        type: number
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    env:
+      ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Get issue details
+        id: issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue view ${{ env.ISSUE_NUMBER }} --json title,body,labels,state > /tmp/issue.json
+          # Fetch issue type via API (not yet supported in gh CLI)
+          ISSUE_TYPE=$(gh api repos/${{ github.repository }}/issues/${{ env.ISSUE_NUMBER }} --jq '.type.name // "none"')
+          # Merge the type into the JSON
+          jq --arg type "$ISSUE_TYPE" '. + {issueType: $type}' /tmp/issue.json > /tmp/issue_with_type.json
+          echo "details<<EOF" >> $GITHUB_OUTPUT
+          cat /tmp/issue_with_type.json >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Triage Issue with Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are an issue triage bot for the tldraw repository. Tidy up issue #${{ env.ISSUE_NUMBER }}.
+
+            ## Issue details
+            ```json
+            ${{ steps.issue.outputs.details }}
+            ```
+
+            ## Tasks
+
+            ### 1. Improve the title (if needed)
+            - Make sure the title is clear and descriptive
+            - Use sentence case (capitalize only first word and proper nouns)
+            - For bugs: describe the symptom (e.g., "Arrow bindings break with rotated shapes")
+            - For features: use imperative mood (e.g., "Add padding option to zoomToFit")
+            - If the title is already good, leave it as-is
+
+            ### 2. Improve the body (if needed)
+            - If the issue is written in a language other than English, add an English translation at the top of the body (keep the original text below)
+            - Make sure the body has enough context to understand the issue
+            - If the body is already good, leave it as-is
+
+            To update the title or body:
+            ```bash
+            gh issue edit ${{ env.ISSUE_NUMBER }} --title "New title" --body "New body"
+            ```
+
+            ### 3. Set the issue type
+            Determine if this is a:
+            - **Bug**: Something is broken or not working as designed (crashes, rendering errors, data loss)
+            - **Feature**: A request for new functionality or enhancements (including UX preferences like "I wish X worked like Y")
+            - **Task**: Internal team task
+            - **Example**: Request for a new SDK example
+
+            Important: Distinguish between TRUE bugs and UX preferences disguised as bugs:
+            - TRUE BUG: "Clicking save crashes the app" or "Text doesn't render correctly"
+            - NOT A BUG (use Feature): "I don't like the color of the button" or "The menu should be on the left instead of right"
+
+            To set or change the issue type:
+            ```bash
+            gh api repos/${{ github.repository }}/issues/${{ env.ISSUE_NUMBER }} -X PATCH -f type="Bug"
+            ```
+            Replace "Bug" with the appropriate type (Bug, Feature, Task, or Example).
+
+            ### 4. Apply appropriate labels
+            Use these labels as appropriate:
+            - `sdk` - Affects the tldraw SDK (@tldraw/tldraw package)
+            - `dotcom` - Related to tldraw.com
+            - `docs` - Changes only affect documentation
+            - `examples` - Request for a new SDK example
+            - `performance` - Performance-related issues
+            - `a11y` - Accessibility-related issues
+            - `bugfix` - For confirmed bug fixes
+            - `feature` - For new features
+            - `improvement` - For product improvements
+            - `More Info Needed` - If the issue lacks critical information needed to understand or reproduce
+
+            ### 5. Assign a milestone (if appropriate)
+            If the issue clearly fits one of these milestones, assign it. Otherwise, leave the milestone empty.
+
+            Available milestones:
+            - **Improve developer resources**: For examples, documentation, improved code comments, starter kits, and `npm create tldraw` improvements
+            - **Improve automations**: For GitHub Actions, review bots, CI/CD, and other automation improvements
+
+            To assign a milestone:
+            ```bash
+            gh issue edit ${{ env.ISSUE_NUMBER }} --milestone "Milestone Name"
+            ```
+
+            Only assign a milestone if there's a clear fit. Most issues won't need a milestone.
+
+            ## Output format
+            Use the GitHub CLI (`gh`) to make any changes. Do NOT add comments to the issue.
+          claude_args: '--allowedTools "Bash(gh issue:*),Bash(gh api:*)"'

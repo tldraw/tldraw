@@ -1,5 +1,6 @@
-import { Migration, MigrationId } from '@tldraw/store'
+import { devFreeze, Migration, MigrationId } from '@tldraw/store'
 import { mockUniqueId, structuredClone } from '@tldraw/utils'
+import { vi } from 'vitest'
 import { createTLSchema } from '../createTLSchema'
 
 let nextNanoId = 0
@@ -9,9 +10,9 @@ export const testSchema = createTLSchema()
 
 // mock all migrator fns
 for (const migration of testSchema.sortedMigrations) {
-	;(migration as any).up = jest.fn(migration.up as any)
+	;(migration as any).up = vi.fn(migration.up as any)
 	if (typeof migration.down === 'function') {
-		;(migration as any).down = jest.fn(migration.down as any)
+		;(migration as any).down = vi.fn(migration.down as any)
 	}
 }
 
@@ -24,8 +25,14 @@ export function getTestMigration(migrationId: MigrationId) {
 		id: migrationId,
 		up: (stuff: any) => {
 			nextNanoId = 0
-			const result = structuredClone(stuff)
-			return migration.up(result) ?? result
+			if (migration.scope === 'record' || migration.scope === 'store') {
+				const result = structuredClone(stuff)
+				return migration.up(result) ?? result
+			}
+			const storage =
+				typeof stuff.entries === 'function' ? stuff : new Map(Object.entries(stuff).map(devFreeze))
+			migration.up(storage)
+			return typeof stuff.entries === 'function' ? storage : Object.fromEntries(storage.entries())
 		},
 		down: (stuff: any) => {
 			nextNanoId = 0

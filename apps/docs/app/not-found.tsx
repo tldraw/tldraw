@@ -12,7 +12,7 @@ import Link from 'next/link'
 
 const links = [
 	{
-		caption: 'Quick Start',
+		caption: 'Quick start',
 		icon: RocketLaunchIcon,
 		href: '/quick-start',
 	},
@@ -29,7 +29,7 @@ const links = [
 	{
 		caption: 'Examples',
 		icon: PlayIcon,
-		href: '/examples/basic/basic',
+		href: '/examples',
 	},
 	{
 		caption: 'Blog',

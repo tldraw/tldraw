@@ -5,11 +5,11 @@ import {
 	Polygon2d,
 	SVGContainer,
 	ShapeUtil,
-	TLDrawShapeSegment,
 	TLHighlightShape,
 	TLHighlightShapeProps,
 	TLResizeInfo,
 	VecLike,
+	getColorValue,
 	highlightShapeMigrations,
 	highlightShapeProps,
 	last,
@@ -18,7 +18,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 
-import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
+import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
 import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
@@ -69,6 +69,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			isComplete: false,
 			isPen: false,
 			scale: 1,
+			scaleX: 1,
+			scaleY: 1,
 		}
 	}
 
@@ -129,7 +131,11 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		const strokeWidth = getStrokeWidth(shape)
 
 		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
-		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+		const allPointsFromSegments = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
 
 		let strokePath
 		if (strokePoints.length < 2) {
@@ -139,6 +145,32 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		}
 
 		return <path d={strokePath} />
+	}
+
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLHighlightShape): Path2D {
+		const strokeWidth = getStrokeWidth(shape)
+		const zoomLevel = this.editor.getEfficientZoomLevel()
+		const forceSolid = strokeWidth / zoomLevel < 1.5
+
+		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
+		const allPointsFromSegments = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
+
+		let strokePath
+		if (strokePoints.length < 2) {
+			strokePath = getIndicatorDot(allPointsFromSegments[0], sw)
+		} else {
+			strokePath = getSvgPathFromStrokePoints(strokePoints, false)
+		}
+
+		return new Path2D(strokePath)
 	}
 
 	override toSvg(shape: TLHighlightShape) {
@@ -176,24 +208,10 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	override onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>) {
 		const { scaleX, scaleY } = info
 
-		const newSegments: TLDrawShapeSegment[] = []
-
-		for (const segment of shape.props.segments) {
-			newSegments.push({
-				...segment,
-				points: segment.points.map(({ x, y, z }) => {
-					return {
-						x: scaleX * x,
-						y: scaleY * y,
-						z,
-					}
-				}),
-			})
-		}
-
 		return {
 			props: {
-				segments: newSegments,
+				scaleX: scaleX * shape.props.scaleX,
+				scaleY: scaleY * shape.props.scaleY,
 			},
 		}
 	}
@@ -230,7 +248,11 @@ function getHighlightStrokePoints(
 	strokeWidth: number,
 	forceSolid: boolean
 ) {
-	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+	const allPointsFromSegments = getPointsFromDrawSegments(
+		shape.props.segments,
+		shape.props.scaleX,
+		shape.props.scaleY
+	)
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
 	let sw = strokeWidth
@@ -253,7 +275,11 @@ function getStrokeWidth(shape: TLHighlightShape) {
 }
 
 function getIsDot(shape: TLHighlightShape) {
-	return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 2
+	// First point is 16 base64 chars (3 Float32s = 12 bytes)
+	// Each delta point is 8 base64 chars (3 Float16s = 6 bytes)
+	// 1 point = 16 chars, 2 points = 24 chars
+	// Check if we have less than 2 points without decoding
+	return shape.props.segments.length === 1 && shape.props.segments[0].path.length < 24
 }
 
 function HighlightRenderer({
@@ -269,7 +295,11 @@ function HighlightRenderer({
 }) {
 	const theme = useDefaultColorTheme()
 
-	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+	const allPointsFromSegments = getPointsFromDrawSegments(
+		shape.props.segments,
+		shape.props.scaleX,
+		shape.props.scaleY
+	)
 
 	let sw = strokeWidth
 	if (!forceSolid && !shape.props.isPen && allPointsFromSegments.length === 1) {
@@ -286,10 +316,15 @@ function HighlightRenderer({
 	const solidStrokePath =
 		strokePoints.length > 1
 			? getSvgPathFromStrokePoints(strokePoints, false)
-			: getShapeDot(shape.props.segments[0].points[0])
+			: getShapeDot(allPointsFromSegments[0])
 
 	const colorSpace = useColorSpace()
-	const color = theme[shape.props.color].highlight[colorSpace]
+
+	const color = getColorValue(
+		theme,
+		shape.props.color,
+		colorSpace === 'p3' ? 'highlightP3' : 'highlightSrgb'
+	)
 
 	return (
 		<path
@@ -309,7 +344,7 @@ function useHighlightForceSolid(editor: Editor, shape: TLHighlightShape) {
 		'forceSolid',
 		() => {
 			const sw = getStrokeWidth(shape)
-			const zoomLevel = editor.getZoomLevel()
+			const zoomLevel = editor.getEfficientZoomLevel()
 			if (sw / zoomLevel < 1.5) {
 				return true
 			}

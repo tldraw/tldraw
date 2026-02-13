@@ -28,6 +28,14 @@ export class TestSocketPair<R extends UnknownRecord> {
 		})
 	}
 
+	async flushAllEvents() {
+		await Promise.resolve()
+		while (this.getNeedsFlushing()) {
+			this.flushClientSentEvents()
+			this.flushServerSentEvents()
+		}
+	}
+
 	getNeedsFlushing() {
 		return this.serverSentEventQueue.length > 0 || this.clientSentEventQueue.length > 0
 	}
@@ -54,7 +62,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 	}
 	didReceiveFromClient?: (msg: TLSocketClientSentEvent<R>) => void = undefined
 	clientDisconnected?: () => void = undefined
-	clientSocket: TLPersistentClientSocket<R> = {
+	clientSocket: TLPersistentClientSocket<TLSocketClientSentEvent<R>, TLSocketServerSentEvent<R>> = {
 		connectionStatus: 'offline',
 		onStatusChange: (cb) => {
 			this.callbacks.onStatusChange = cb
@@ -68,7 +76,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 				this.callbacks.onReceiveMessage = null
 			}
 		},
-		sendMessage: (msg: TLSocketClientSentEvent<R>) => {
+		sendMessage: (msg) => {
 			if (this.clientSocket.connectionStatus !== 'online') {
 				throw new Error('trying to send before open')
 			}
@@ -78,6 +86,9 @@ export class TestSocketPair<R extends UnknownRecord> {
 		restart: () => {
 			this.disconnect()
 			this.connect()
+		},
+		close: () => {
+			this.disconnect()
 		},
 	}
 

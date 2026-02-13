@@ -1,9 +1,9 @@
-import { preventDefault, TiptapEditor } from '@tldraw/editor'
+import { isAccelKey, preventDefault, TiptapEditor } from '@tldraw/editor'
 import { useEffect, useMemo, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
 /** @public */
 export interface DefaultRichTextToolbarContentProps {
@@ -37,9 +37,26 @@ export function DefaultRichTextToolbarContent({
 		[textEditor]
 	)
 
+	useEffect(() => {
+		function handleKeyDown(event: KeyboardEvent) {
+			if (onEditLinkStart && isAccelKey(event) && event.shiftKey && event.key === 'k') {
+				event.preventDefault()
+				onEditLinkStart()
+			}
+		}
+
+		document.addEventListener('keydown', handleKeyDown)
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown)
+		}
+	}, [onEditLinkStart])
+
 	// todo: we could make this a prop
 	const actions = useMemo(() => {
 		function handleOp(name: string, op: string) {
+			// Check if the editor view is available before calling operations
+			if (!textEditor.view) return
+
 			trackEvent('rich-text', { operation: name as any, source })
 			// @ts-expect-error typing this is annoying at the moment.
 			textEditor.chain().focus()[op]().run()
@@ -95,18 +112,21 @@ export function DefaultRichTextToolbarContent({
 	}, [textEditor, trackEvent, onEditLinkStart])
 
 	return actions.map(({ name, attrs, onSelect }) => {
+		const isActive = textEditor.view ? textEditor.isActive(name, attrs) : false
 		return (
-			<TldrawUiButton
+			<TldrawUiToolbarButton
 				key={name}
 				title={msg(`tool.rich-text-${name}`)}
 				data-testid={`rich-text.${name}`}
 				type="icon"
-				isActive={textEditor.isActive(name, attrs)} // todo: we need to update this only when the text editor "settles", ie not during a change of selection
+				isActive={isActive} // todo: we need to update this only when the text editor "settles", ie not during a change of selection
 				onPointerDown={preventDefault}
 				onClick={onSelect}
+				role="option"
+				aria-pressed={isActive}
 			>
 				<TldrawUiButtonIcon small icon={name} />
-			</TldrawUiButton>
+			</TldrawUiToolbarButton>
 		)
 	})
 }

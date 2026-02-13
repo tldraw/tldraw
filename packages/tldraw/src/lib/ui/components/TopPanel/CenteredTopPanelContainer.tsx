@@ -3,7 +3,7 @@ import { useBreakpoint } from '../../context/breakpoints'
 
 /** @public */
 export interface CenteredTopPanelContainerProps {
-	children: ReactNode
+	children?: ReactNode
 	maxWidth?: number
 	ignoreRightWidth?: number
 	stylePanelWidth?: number

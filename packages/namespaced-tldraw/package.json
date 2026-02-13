@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "3.11.0",
+	"version": "4.3.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -17,6 +17,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
@@ -27,10 +28,11 @@
 	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
+	"type": "module",
 	"scripts": {
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
-		"test-coverage": "lazy inherit",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"predev": "node ./scripts/copy-css-files.mjs",
 		"dev": "chokidar '../tldraw/tldraw.css' -c 'node ./scripts/copy-css-files.mjs'",
 		"prebuild": "node ./scripts/copy-css-files.mjs",
@@ -48,35 +50,15 @@
 		"tldraw": "workspace:*"
 	},
 	"peerDependencies": {
-		"react": "^18.2.0 || ^19.0.0",
-		"react-dom": "^18.2.0 || ^19.0.0"
+		"react": "^18.2.0 || ^19.2.1",
+		"react-dom": "^18.2.0 || ^19.2.1"
 	},
 	"devDependencies": {
-		"@types/react": "^18.3.18",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
 		"chokidar-cli": "^3.0.0",
 		"lazyrepo": "0.0.0-alpha.27",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
-		"fakeTimers": {
-			"enableGlobally": true
-		},
-		"testPathIgnorePatterns": [
-			"^.+\\.*.css$"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1",
-			"\\.(css|less|scss|sass)$": "identity-obj-proxy"
-		},
-		"setupFiles": [
-			"raf/polyfill",
-			"jest-canvas-mock"
-		],
-		"setupFilesAfterEnv": [
-			"../../internal/config/setupJest.ts"
-		]
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1"
 	}
 }

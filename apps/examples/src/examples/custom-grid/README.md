@@ -1,10 +1,22 @@
 ---
-title: Custom Grid Example
+title: Custom grid
 component: ./CustomGridExample.tsx
 category: ui
-priority: 12
-keywords: [grid, background, ui, layout]
+priority: 2
+keywords:
+  [
+    grid,
+    canvas,
+    2d context,
+    Grid component,
+    getViewportPageBounds,
+    devicePixelRatio,
+    camera,
+    custom rendering,
+  ]
 ---
+
+Draw a custom grid on the canvas.
 
 ---
 

@@ -1,6 +1,7 @@
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 let editor: TestEditor
 

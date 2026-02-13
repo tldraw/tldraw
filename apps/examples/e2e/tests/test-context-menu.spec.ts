@@ -1,5 +1,5 @@
 import test, { Page, expect } from '@playwright/test'
-import { setupPage, setupPageWithShapes, withMenu } from '../shared-e2e'
+import { hardResetEditor, setupPage, setupPageWithShapes, withMenu } from '../shared-e2e'
 
 declare const __tldraw_ui_event: { name: string }
 
@@ -9,8 +9,12 @@ let page: Page
 
 test.describe('Context menu', async () => {
 	test.beforeEach(async ({ browser }) => {
-		page = await browser.newPage()
-		await setupPage(page)
+		if (!page) {
+			page = await browser.newPage()
+			await setupPage(page)
+		} else {
+			await hardResetEditor(page)
+		}
 		await setupPageWithShapes(page)
 	})
 

@@ -1,7 +1,7 @@
 import { ReactNode, useEffect } from 'react'
 import { useUrl } from '../hooks/useUrl'
+import { trackEvent } from '../utils/analytics'
 import { getParentOrigin, isInIframe } from '../utils/iFrame'
-import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 
 export const ROOM_CONTEXT = {
 	PUBLIC_MULTIPLAYER: 'public-multiplayer',
@@ -49,7 +49,7 @@ export function IFrameProtector({
 
 	useEffect(() => {
 		if (embeddedState === EMBEDDED_STATE.IFRAME_NOT_ALLOWED) {
-			trackAnalyticsEvent('connect_to_room_in_iframe', {
+			trackEvent('connect_to_room_in_iframe', {
 				slug,
 				context,
 				origin: getParentOrigin(),
@@ -58,7 +58,7 @@ export function IFrameProtector({
 	}, [embeddedState, slug, context])
 
 	if (embeddedState === EMBEDDED_STATE.IFRAME_NOT_ALLOWED) {
-		// We're in an iframe and its not one of ours
+		// We're in an iframe and its not one of ours.
 		return (
 			<div className="tldraw__editor tl-container">
 				<div className="iframe-warning__container">

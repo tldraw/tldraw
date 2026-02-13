@@ -14,10 +14,11 @@ export function LanguageMenu() {
 
 	return (
 		<TldrawUiMenuSubmenu id="help menu language" label="menu.language">
-			<TldrawUiMenuGroup id="languages">
+			<TldrawUiMenuGroup id="languages" className="tlui-language-menu">
 				{LANGUAGES.map(({ locale, label }) => (
 					<TldrawUiMenuCheckboxItem
 						id={`language-${locale}`}
+						lang={locale}
 						key={locale}
 						title={locale}
 						label={label}

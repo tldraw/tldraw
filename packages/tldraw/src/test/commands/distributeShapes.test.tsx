@@ -1,8 +1,9 @@
 import { PI, TLShapeId, createShapeId } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 import { TL } from '../test-jsx'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 let editor: TestEditor
 
@@ -46,10 +47,10 @@ describe('distributeShapes command', () => {
 	describe('when less than three shapes are selected', () => {
 		it('does nothing', () => {
 			editor.setSelectedShapes([ids.boxA, ids.boxB])
-			const fn = jest.fn()
+			const fn = vi.fn()
 			editor.store.listen(fn)
 			editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
-			jest.advanceTimersByTime(1000)
+			vi.advanceTimersByTime(1000)
 			expect(fn).not.toHaveBeenCalled()
 		})
 	})
@@ -58,7 +59,7 @@ describe('distributeShapes command', () => {
 		it('distributeShapes horizontally', () => {
 			editor.selectAll()
 			editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
-			jest.advanceTimersByTime(1000)
+			vi.advanceTimersByTime(1000)
 			editor.expectShapeToMatch(
 				{ id: ids.boxA, x: 0 },
 				{ id: ids.boxB, x: 200 },
@@ -70,7 +71,7 @@ describe('distributeShapes command', () => {
 			editor.updateShapes([{ id: ids.boxC, type: 'geo', x: 25 }])
 			editor.selectAll()
 			editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
-			jest.advanceTimersByTime(1000)
+			vi.advanceTimersByTime(1000)
 			editor.expectShapeToMatch(
 				{ id: ids.boxA, x: 0 },
 				{ id: ids.boxB, x: 100 },
@@ -81,7 +82,7 @@ describe('distributeShapes command', () => {
 		it('distributeShapes vertically', () => {
 			editor.selectAll()
 			editor.distributeShapes(editor.getSelectedShapeIds(), 'vertical')
-			jest.advanceTimersByTime(1000)
+			vi.advanceTimersByTime(1000)
 			editor.expectShapeToMatch(
 				{ id: ids.boxA, y: 0 },
 				{ id: ids.boxB, y: 200 },
@@ -93,7 +94,7 @@ describe('distributeShapes command', () => {
 			editor.updateShapes([{ id: ids.boxC, type: 'geo', y: 25 }])
 			editor.selectAll()
 			editor.distributeShapes(editor.getSelectedShapeIds(), 'vertical')
-			jest.advanceTimersByTime(1000)
+			vi.advanceTimersByTime(1000)
 			editor.expectShapeToMatch(
 				{ id: ids.boxA, y: 0 },
 				{ id: ids.boxB, y: 100 },
@@ -135,7 +136,7 @@ describe('distributeShapes command', () => {
 		editor.setSelectedShapes([ids.boxB, ids.boxC, ids.boxD])
 
 		editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch(
 			{ id: ids.boxB, x: 100 },
@@ -177,7 +178,7 @@ describe('distributeShapes command', () => {
 		editor.setSelectedShapes([ids.boxB, ids.boxC, ids.boxD])
 
 		editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch(
 			{ id: ids.boxB, x: 100 },
@@ -222,7 +223,7 @@ describe('distributeShapes command', () => {
 		editor.setSelectedShapes([ids.boxB, ids.boxC, ids.boxD])
 
 		editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch(
 			{ id: ids.boxB, x: 100 },
@@ -251,7 +252,7 @@ describe('when shapes are overlapping', () => {
 	})
 
 	it('distributes horizontally', () => {
-		editor.selectAll().distributeShapes(Object.values(ids), 'horizontal')
+		editor.selectAll().distributeShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD], 'horizontal')
 		// total range is 150 (boxA.maxX = 200, boxD.minX = 350)
 		// spaced used by inner shapes is 100 (50 + 50)
 		// gap should be ((150 - 100) / 3) = 16.666666666666668
@@ -265,7 +266,7 @@ describe('when shapes are overlapping', () => {
 	})
 
 	it('aligns horizontally', () => {
-		editor.selectAll().distributeShapes(Object.values(ids), 'vertical')
+		editor.selectAll().distributeShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD], 'vertical')
 		// total range is 150 (boxA.maxX = 200, boxD.minX = 350)
 		// spaced used by inner shapes is 100 (50 + 50)
 		// gap should be ((150 - 100) / 3) = 16.666666666666668
@@ -295,7 +296,7 @@ it('preserves common bounds when distributing shapes with a lot of overlap', () 
 
 	const prevBounds = editor.getSelectionPageBounds()!
 
-	editor.distributeShapes(Object.values(ids), 'horizontal')
+	editor.distributeShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD, ids.boxE], 'horizontal')
 
 	// If we didn't clamp this, then the right side of boxD would be to the right of boxE's right side
 	expect(editor.getShapePageBounds(ids.boxD)!.maxX).toEqual(
@@ -314,7 +315,7 @@ it('preserves common bounds when distributing shapes with a lot of overlap', () 
 	// const xsBefore = objectMapFromEntries(
 	// 	Object.entries(ids).map(([id, shapeId]) => [id, editor.getShapePageBounds(shapeId)!.x])
 	// )
-	// editor.distributeShapes(Object.values(ids), 'horizontal')
+	// editor.distributeShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD], 'horizontal')
 	// expect(editor.getSelectionPageBounds()!).toCloselyMatchObject(prevBounds)
 
 	// const xsAfter = objectMapFromEntries(

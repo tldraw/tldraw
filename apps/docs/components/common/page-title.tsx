@@ -8,7 +8,12 @@ export function PageTitle({
 	className?: string
 }) {
 	return (
-		<h1 className={cn('font-black text-black dark:text-white text-3xl sm:text-4xl', className)}>
+		<h1
+			className={cn(
+				'font-black text-black dark:text-white text-3xl sm:text-4xl break-words max-w-full',
+				className
+			)}
+		>
 			{children}
 		</h1>
 	)

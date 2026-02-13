@@ -1,0 +1,266 @@
+---
+title: Performance
+status: published
+author: steveruizok
+date: 1/31/2026
+keywords:
+  - performance
+  - optimization
+  - culling
+  - signals
+  - batching
+  - zoom
+  - rendering
+  - LOD
+  - level of detail
+  - image resolution
+---
+
+The tldraw SDK uses several techniques to maintain smooth performance even with thousands of shapes on the canvas. Understanding these systems helps you build custom shapes that perform well and avoid common pitfalls.
+
+## How tldraw optimizes rendering
+
+### Viewport culling
+
+Shapes outside the viewport don't need to render. The editor maintains a spatial index that tracks which shapes are visible, and hides off-screen shapes by setting `display: none` on their DOM elements. This means a canvas with 10,000 shapes might only render 50 if the rest are out of view.
+
+Culling happens automatically for all shapes. The shapes remain in the store and can still be selected or updated—they just don't incur rendering cost. See [Culling](/docs/culling) for details on how to control this behavior for custom shapes.
+
+### Reactive signals
+
+The SDK uses reactive [signals](/docs/signals) instead of React's built-in state management. Signals automatically track dependencies and update only the parts of your application that actually depend on changed data.
+
+When a shape's props change, only that shape's component re-renders—not the entire canvas. The system tracks dependencies at a granular level, so changing a shape's color won't trigger updates for shapes that don't care about color.
+
+This is why methods like `editor.getSelectedShapeIds()` return reactive values. If you access them inside a `track()` component or `useValue()` hook, your code automatically re-runs when the underlying data changes.
+
+### Batched store updates
+
+The [store](/docs/store) batches multiple changes into single updates. When you call methods like `editor.createShapes()` or `editor.updateShapes()` with multiple shapes, observers receive one notification with all changes rather than one per shape:
+
+```ts
+// These changes are batched automatically
+editor.updateShapes([
+	{ id: shape1.id, type: 'geo', x: 100 },
+	{ id: shape2.id, type: 'geo', x: 200 },
+	{ id: shape3.id, type: 'geo', x: 300 },
+])
+```
+
+For complex operations spanning multiple calls, wrap them in `editor.run()`:
+
+```ts
+editor.run(() => {
+	editor.createShapes([...])
+	editor.updateShapes([...])
+	editor.deleteShapes([...])
+})
+// All changes applied together, listeners notified once
+```
+
+### Debounced zoom
+
+When the camera moves, shape components receive the new zoom level to scale stroke widths and other visual properties. On documents with many shapes, recalculating everything mid-zoom causes jank.
+
+The editor provides `editor.getEfficientZoomLevel()` which returns a stable value during camera movement when the document has more than 500 shapes (configurable via the `debouncedZoomThreshold` option). Once the camera stops, the value updates to the true zoom level.
+
+Shape components should use this value rather than `editor.getZoomLevel()` for properties that affect rendering:
+
+```tsx
+function MyShapeComponent({ shape }) {
+	const editor = useEditor()
+	const zoom = useValue('zoom', () => editor.getEfficientZoomLevel(), [editor])
+
+	// Stroke width stays stable during camera movement
+	const strokeWidth = 2 / zoom
+
+	return <path strokeWidth={strokeWidth} ... />
+}
+```
+
+### Geometry caching
+
+Computing a shape's geometry—bounds, hit test regions, outline—can be expensive. The editor caches these computations and invalidates them only when a shape's props change.
+
+Access cached geometry through `editor.getShapeGeometry(shapeId)` rather than calling `shapeUtil.getGeometry()` directly. The editor handles caching, transforms, and bounds calculation.
+
+### Level of detail
+
+tldraw adjusts rendering fidelity based on zoom level and on-screen size, a technique called level of detail (LOD). When a shape is small on screen, rendering every pixel of a high-resolution image or every detail of a complex shape is wasted work.
+
+**Image resolution scaling**
+
+When you zoom out or resize an image shape, tldraw requests a lower-resolution version from your asset store. The `resolve` method on [TLAssetStore](?) receives a [TLAssetContext](?) with `steppedScreenScale`—the ratio of the shape's on-screen size to the image's native size, rounded up to the nearest power of two. Use this to serve appropriately sized images:
+
+```ts
+const assetStore: TLAssetStore = {
+	async resolve(asset, context) {
+		if (asset.type !== 'image') return asset.props.src
+
+		// Request a version of the image scaled to what's actually visible on screen
+		const width = Math.ceil(asset.props.w * context.steppedScreenScale * context.dpr)
+		return `${asset.props.src}?w=${width}`
+	},
+}
+```
+
+A 4000px-wide photo zoomed out to take up 200px on screen only needs 200 device pixels worth of data. This reduces memory usage and decoding cost. Resolution updates are debounced so images don't thrash between sizes during zooming.
+
+**Built-in shape simplifications**
+
+The built-in shapes reduce rendering complexity at low zoom levels:
+
+- **Note shadows** — Box shadows on sticky notes are hidden when zoomed out far enough, replaced by a simple border
+- **Draw shapes** — Freehand strokes switch from their detailed "draw" style to solid paths
+- **Pattern fills** — Hatch and cross-hatch fills switch to solid colors
+- **Text outlines** — Text shadow outlines disable below the `textShadowLod` threshold (default 0.35) to reduce compositing cost
+
+These transitions use [Editor#getEfficientZoomLevel](?) so they stay stable during camera movement rather than updating every frame. Custom shapes can use the same technique—see [Simplify at small sizes](#simplify-at-small-sizes) below.
+
+## Tips for custom shapes
+
+### Simplify at small sizes
+
+When shapes are very small on screen, fine details become invisible. Rendering simpler geometry at low zoom levels improves performance without visible quality loss.
+
+Use `editor.getEfficientZoomLevel()` to detect when shapes are small enough to simplify:
+
+```tsx
+function MyShapeComponent({ shape }) {
+	const editor = useEditor()
+	const isSmall = useValue(
+		'is small',
+		() => {
+			const zoom = editor.getEfficientZoomLevel()
+			// Shape is small if its screen size is under 50px
+			return shape.props.w * zoom < 50
+		},
+		[editor, shape.props.w]
+	)
+
+	if (isSmall) {
+		// Render simplified version
+		return <rect width={shape.props.w} height={shape.props.h} fill="currentColor" />
+	}
+
+	// Render full detail version
+	return <ComplexShapeContent shape={shape} />
+}
+```
+
+The built-in shapes use this pattern. Pattern fills switch to solid colors when zoomed out far enough, and text shadows disable at low zoom levels (controlled by the `textShadowLod` option).
+
+### Avoid shape animations
+
+Animating shape properties causes continuous re-renders. A spinning shape triggers updates every frame. If you have many shapes or complex rendering, this adds up quickly.
+
+If you need animation, consider:
+
+- **CSS animations** for purely visual effects that don't change shape data
+- **Canvas rendering** for particle systems or complex animations
+- **Limiting concurrent animations** to a small number of shapes
+
+The [Animation](/docs/animation) article covers the editor's animation system. The animation system handles camera movement and occasional shape transitions. It's not designed for continuous per-shape animation.
+
+### Use stable values for zoom-dependent calculations
+
+When calculating values that depend on zoom (stroke widths, font sizes, handle positions), use `getEfficientZoomLevel()` rather than `getZoomLevel()`. This prevents recalculations during camera movement:
+
+```tsx
+// Avoid: causes re-renders during zoom
+const strokeWidth = 2 / editor.getZoomLevel()
+
+// Better: stable during camera movement
+const strokeWidth = 2 / editor.getEfficientZoomLevel()
+```
+
+### Keep component functions cheap
+
+Shape components render frequently. Avoid expensive operations inside them:
+
+```tsx
+// Avoid: expensive calculation every render
+function MyShapeComponent({ shape }) {
+	const complexData = computeExpensiveData(shape) // runs every render
+	return <div>{complexData}</div>
+}
+
+// Better: use memoization or move to getGeometry
+function MyShapeComponent({ shape }) {
+	const complexData = useMemo(() => computeExpensiveData(shape), [shape.props.relevantProp])
+	return <div>{complexData}</div>
+}
+```
+
+For calculations that affect hit testing or bounds, put them in `getGeometry()` instead. The editor caches geometry automatically.
+
+### Disable culling only when necessary
+
+By default, all shapes participate in culling. Override `canCull()` to return `false` only for shapes that genuinely need to stay rendered off-screen:
+
+```ts
+class MyShapeUtil extends ShapeUtil<MyShape> {
+	override canCull(shape: MyShape): boolean {
+		// Only disable culling for shapes that measure their DOM
+		return !shape.props.dynamicSize
+	}
+}
+```
+
+Common reasons to disable culling:
+
+- Shapes that measure their DOM content to determine size
+- Shapes with visual effects (shadows, glows) that extend beyond bounds
+- Shapes running animations that should continue off-screen
+
+For most shapes, leave culling enabled.
+
+## Editor options for performance
+
+Several [editor options](/docs/options) affect performance:
+
+| Option                   | Default | Description                                      |
+| ------------------------ | ------- | ------------------------------------------------ |
+| `debouncedZoom`          | `true`  | Use stable zoom during camera movement           |
+| `debouncedZoomThreshold` | 500     | Shape count above which debounced zoom activates |
+| `maxShapesPerPage`       | 4000    | Maximum shapes allowed per page                  |
+| `textShadowLod`          | 0.35    | Zoom threshold below which text shadows disable  |
+
+```tsx
+import { Tldraw } from 'tldraw'
+
+function App() {
+	return (
+		<Tldraw
+			options={{
+				debouncedZoomThreshold: 1000, // Higher threshold for simpler documents
+				maxShapesPerPage: 10000, // Allow more shapes if needed
+			}}
+		/>
+	)
+}
+```
+
+## Measuring performance
+
+When investigating performance issues:
+
+1. **Check shape count** — `editor.getCurrentPageShapeIds().size` tells you how many shapes are on the current page
+2. **Check culled shapes** — `editor.getCulledShapes().size` shows how many are hidden by culling
+3. **Use browser profiler** — React DevTools and Chrome's Performance tab help identify slow components
+4. **Test with production builds** — Development mode has overhead that production builds don't
+
+If performance degrades with many shapes, look for:
+
+- Shapes that disable culling unnecessarily
+- Components that use `getZoomLevel()` instead of `getEfficientZoomLevel()`
+- Expensive calculations inside component render functions
+- Continuous animations on many shapes
+
+## Related
+
+- [Culling](/docs/culling) — How viewport culling works and how to control it
+- [Signals](/docs/signals) — The reactive state system
+- [Store](/docs/store) — How the reactive database batches changes
+- [Options](/docs/options) — All available editor options
+- [Animation](/docs/animation) — The shape and camera animation systems

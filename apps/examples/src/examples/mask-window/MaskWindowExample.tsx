@@ -22,8 +22,10 @@ function MaskWindow() {
 				return
 			}
 
-			// Expand the box and get the corners
-			const { corners } = box.clone().expandBy(20)
+			const vsb = editor.getViewportScreenBounds()
+
+			// Expand the box, offset it by the viewport screen bounds, and get the corners
+			const { corners } = box.clone().translate(vsb.point.clone().neg()).expandBy(20)
 
 			// Account for rotation by rotating the points of the rectangle
 			const [tl, tr, br, bl] = corners.map((p) => p.rotWith(box.point, rotation))

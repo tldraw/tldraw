@@ -168,8 +168,8 @@
 
 - New laser tool!
 - New checkbox shape!
-- Add veritcal alignment options to Notes and Geo shapes.
-- Change how horizontal alignemnt works.
+- Add vertical alignment options to Notes and Geo shapes.
+- Change how horizontal alignment works.
 - Improve exporting and saving to svgs.
 
 ## 2.0.6

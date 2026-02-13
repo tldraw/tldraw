@@ -1,0 +1,70 @@
+name: Add Framer Rewrites
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  CI: 1
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  add-rewrites:
+    name: 'Add Framer Rewrites'
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Check for changes before running script
+        id: before
+        run: |
+          echo "BEFORE_HASH=$(md5sum apps/docs/next.config.js | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+
+      - name: Run add-framer-rewrites script
+        run: yarn add-framer-rewrites
+
+      - name: Check for changes after running script
+        id: after
+        run: |
+          echo "AFTER_HASH=$(md5sum apps/docs/next.config.js | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+
+      - name: Create PR if changes detected
+        if: steps.before.outputs.BEFORE_HASH != steps.after.outputs.AFTER_HASH
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH_NAME="framer-rewrites-$(date +%Y%m%d-%H%M%S)"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$BRANCH_NAME"
+          git add apps/docs/next.config.js
+          git commit -m "Add missing Framer rewrites to next.config.js"
+          git push origin "$BRANCH_NAME"
+
+          gh pr create \
+            --title "Add missing Framer rewrites" \
+            --body "Adds missing rewrites for new Framer marketing pages to \`apps/docs/next.config.js\`.
+
+          ### Change type
+
+          - [x] \`improvement\`" \
+            --label "docs-hotfix-please"
+
+      - name: No changes detected
+        if: steps.before.outputs.BEFORE_HASH == steps.after.outputs.AFTER_HASH
+        run: |
+          echo "✔ No changes detected. All Framer paths already have rewrites configured."

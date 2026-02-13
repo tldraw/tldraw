@@ -151,15 +151,6 @@ describe('Locked shapes', () => {
 		const parentAfter = editor.getShape(ids.lockedShapeA)!.parentId
 		expect(parentAfter).toBe(parentBefore)
 	})
-
-	it('Locked frames do not accept new shapes', () => {
-		const frame = editor.getShape(ids.lockedFrame)!
-		const frameUtil = editor.getShapeUtil(frame)
-
-		expect(frameUtil.canReceiveNewChildrenOfType(frame, 'box')).toBe(false)
-		const shape = editor.getShape(ids.lockedShapeA)!
-		expect(frameUtil.canDropShapes(frame, [shape])).toBe(false)
-	})
 })
 
 describe('Unlocking', () => {

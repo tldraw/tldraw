@@ -2,8 +2,22 @@
 title: Fog of war
 component: ./FogOfWarExample.tsx
 category: use-cases
-keywords: [ui, fog, overlay]
+keywords:
+  [
+    canvas,
+    overlay,
+    infrontofthecanvas,
+    html canvas,
+    usereactor,
+    getcurrentpageshapes,
+    getshapepagebounds,
+    getshapegeometry,
+    collision detection,
+  ]
+priority: 3
 ---
+
+Create a fog of war effect by keeping an HTML canvas in sync with canvas content.
 
 ---
 

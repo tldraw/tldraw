@@ -3,6 +3,7 @@
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
+	Rectangle2d,
 	TLEmbedShape,
 	TLEmbedShapeProps,
 	TLResizeInfo,
@@ -24,6 +25,8 @@ import {
 	embedShapePermissionDefaults,
 } from '../../defaultEmbedDefinitions'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
+import { BookmarkIndicatorComponent, BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
+import { BOOKMARK_JUST_URL_HEIGHT, BOOKMARK_WIDTH } from '../bookmark/bookmarks'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
@@ -39,6 +42,12 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
 	private static embedDefinitions: readonly EmbedDefinition[] = DEFAULT_EMBED_DEFINITIONS
+
+	override canEditWhileLocked(shape: TLEmbedShape) {
+		const result = this.getEmbedDefinition(shape.props.url)
+		if (!result) return true
+		return result.definition.canEditWhileLocked ?? true
+	}
 
 	static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]) {
 		EmbedShapeUtil.embedDefinitions = embedDefinitions
@@ -56,6 +65,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return shape.props.url
 	}
 
+	override getAriaDescriptor(shape: TLEmbedShape) {
+		const embedInfo = this.getEmbedDefinition(shape.props.url)
+		return embedInfo?.definition.title
+	}
+
 	override hideSelectionBoundsFg(shape: TLEmbedShape) {
 		return !this.canResize(shape)
 	}
@@ -65,7 +79,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	override canResize(shape: TLEmbedShape) {
 		return !!this.getEmbedDefinition(shape.props.url)?.definition?.doesResize
 	}
-	override canEditInReadOnly() {
+	override canEditInReadonly() {
 		return true
 	}
 
@@ -75,6 +89,18 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			h: 300,
 			url: '',
 		}
+	}
+
+	override getGeometry(shape: TLEmbedShape) {
+		const embedInfo = this.getEmbedDefinition(shape.props.url)
+		if (!embedInfo?.definition) {
+			return new Rectangle2d({
+				width: BOOKMARK_WIDTH,
+				height: BOOKMARK_JUST_URL_HEIGHT,
+				isFilled: true,
+			})
+		}
+		return super.getGeometry(shape)
 	}
 
 	override isAspectRatioLocked(shape: TLEmbedShape) {
@@ -117,7 +143,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 				if (editingShapeId && hoveredShapeId !== editingShapeId) {
 					const editingShape = this.editor.getShape(editingShapeId)
-					if (editingShape && this.editor.isShapeOfType<TLEmbedShape>(editingShape, 'embed')) {
+					if (editingShape && this.editor.isShapeOfType(editingShape, 'embed')) {
 						return true
 					}
 				}
@@ -139,7 +165,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 							border: 0,
 							boxShadow: getRotatedBoxShadow(pageRotation),
 							borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
-							background: embedInfo?.definition.backgroundColor ?? 'var(--color-background)',
+							background: embedInfo?.definition.backgroundColor ?? 'var(--tl-color-background)',
 							width: w,
 							height: h,
 						}}
@@ -190,6 +216,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						// eslint-disable-next-line @typescript-eslint/no-deprecated
 						frameBorder="0"
 						referrerPolicy="no-referrer-when-downgrade"
+						tabIndex={isEditing ? 0 : -1}
+						allowFullScreen
 						style={{
 							border: 0,
 							pointerEvents: isInteractive ? 'auto' : 'none',
@@ -200,22 +228,52 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 							background: embedInfo?.definition.backgroundColor,
 						}}
 					/>
-				) : null}
+				) : (
+					<BookmarkShapeComponent
+						url={url}
+						h={h}
+						rotation={pageRotation}
+						assetId={null}
+						showImageContainer={false}
+					/>
+				)}
 			</HTMLContainer>
 		)
 	}
 
 	override indicator(shape: TLEmbedShape) {
 		const embedInfo = this.getEmbedDefinition(shape.props.url)
-		return (
+
+		return embedInfo?.definition ? (
 			<rect
 				width={toDomPrecision(shape.props.w)}
 				height={toDomPrecision(shape.props.h)}
 				rx={embedInfo?.definition.overrideOutlineRadius ?? 8}
 				ry={embedInfo?.definition.overrideOutlineRadius ?? 8}
 			/>
+		) : (
+			<BookmarkIndicatorComponent w={BOOKMARK_WIDTH} h={BOOKMARK_JUST_URL_HEIGHT} />
 		)
 	}
+
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLEmbedShape): Path2D {
+		const path = new Path2D()
+		const embedInfo = this.getEmbedDefinition(shape.props.url)
+
+		if (embedInfo?.definition) {
+			const radius = embedInfo.definition.overrideOutlineRadius ?? 8
+			path.roundRect(0, 0, shape.props.w, shape.props.h, radius)
+		} else {
+			// Fallback to bookmark indicator
+			path.roundRect(0, 0, BOOKMARK_WIDTH, BOOKMARK_JUST_URL_HEIGHT, 6)
+		}
+		return path
+	}
+
 	override getInterpolatedProps(
 		startShape: TLEmbedShape,
 		endShape: TLEmbedShape,
@@ -265,6 +323,7 @@ function Gist({
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			scrolling="no"
 			referrerPolicy="no-referrer-when-downgrade"
+			tabIndex={isInteractive ? 0 : -1}
 			style={{
 				...style,
 				pointerEvents: isInteractive ? 'all' : 'none',

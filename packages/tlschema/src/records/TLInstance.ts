@@ -17,9 +17,25 @@ import { pageIdValidator, TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
 
 /**
- * TLInstance
+ * State that is particular to a single browser tab. The TLInstance record stores
+ * all session-specific state including cursor position, selected tools, UI preferences,
+ * and temporary interaction state.
  *
- * State that is particular to a single browser tab
+ * Each browser tab has exactly one TLInstance record that persists for the duration
+ * of the session and tracks the user's current interaction state.
+ *
+ * @example
+ * ```ts
+ * const instance: TLInstance = {
+ *   id: 'instance:instance',
+ *   typeName: 'instance',
+ *   currentPageId: 'page:page1',
+ *   cursor: { type: 'default', rotation: 0 },
+ *   screenBounds: { x: 0, y: 0, w: 1920, h: 1080 },
+ *   isFocusMode: false,
+ *   isGridMode: true
+ * }
+ * ```
  *
  * @public
  */
@@ -66,9 +82,21 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 			y: number
 		}
 	} | null
+	/**
+	 * Whether the camera is currently moving or idle. Used to optimize rendering
+	 * and hit-testing during panning/zooming.
+	 */
+	cameraState: 'idle' | 'moving'
 }
 
-/** @internal */
+/**
+ * Configuration object defining which TLInstance properties should be preserved
+ * when loading snapshots across browser sessions. Properties marked as `true`
+ * represent user preferences that should persist, while `false` indicates
+ * temporary state that should reset.
+ *
+ * @internal
+ */
 export const shouldKeyBePreservedBetweenSessions = {
 	// This object defines keys that should be preserved across calls to loadSnapshot()
 
@@ -106,9 +134,18 @@ export const shouldKeyBePreservedBetweenSessions = {
 	isReadonly: true, // preserves because it's a config option
 	meta: false, // does not preserve because who knows what's in there, leave it up to sdk users to save and reinstate
 	duplicateProps: false, //
+	cameraState: false, // does not preserve because it's a temporary state
 } as const satisfies { [K in keyof TLInstance]: boolean }
 
-/** @internal */
+/**
+ * Extracts only the properties from a TLInstance that should be preserved
+ * between browser sessions, filtering out temporary state.
+ *
+ * @param val - The TLInstance to filter, or null/undefined
+ * @returns A partial TLInstance containing only preservable properties, or null
+ *
+ * @internal
+ */
 export function pluckPreservingValues(val?: TLInstance | null): null | Partial<TLInstance> {
 	return val
 		? (filterEntries(val, (key) => {
@@ -117,12 +154,51 @@ export function pluckPreservingValues(val?: TLInstance | null): null | Partial<T
 		: null
 }
 
-/** @public */
+/**
+ * A unique identifier for TLInstance records.
+ *
+ * TLInstance IDs are always the constant 'instance:instance' since there
+ * is exactly one instance record per browser tab.
+ *
+ * @public
+ */
 export type TLInstanceId = RecordId<TLInstance>
 
-/** @public */
+/**
+ * Validator for TLInstanceId values. Ensures the ID follows the correct
+ * format for instance records.
+ *
+ * @example
+ * ```ts
+ * const isValid = instanceIdValidator.isValid('instance:instance') // true
+ * const isValid2 = instanceIdValidator.isValid('invalid') // false
+ * ```
+ *
+ * @public
+ */
 export const instanceIdValidator = idValidator<TLInstanceId>('instance')
 
+/**
+ * Creates the record type definition for TLInstance records, including validation
+ * and default properties. The function takes a map of available style properties
+ * to configure validation for the stylesForNextShape field.
+ *
+ * @param stylesById - Map of style property IDs to their corresponding StyleProp definitions
+ * @returns A configured RecordType for TLInstance records
+ *
+ * @example
+ * ```ts
+ * const stylesMap = new Map([['color', DefaultColorStyle]])
+ * const InstanceRecordType = createInstanceRecordType(stylesMap)
+ *
+ * const instance = InstanceRecordType.create({
+ *   id: 'instance:instance',
+ *   currentPageId: 'page:page1'
+ * })
+ * ```
+ *
+ * @public
+ */
 export function createInstanceRecordType(stylesById: Map<string, StyleProp<unknown>>) {
 	const stylesForNextShapeValidators = {} as Record<string, T.Validator<unknown>>
 	for (const [id, style] of stylesById) {
@@ -168,6 +244,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 					y: T.number,
 				}),
 			}).nullable(),
+			cameraState: T.literalEnum('idle', 'moving'),
 		})
 	)
 
@@ -204,6 +281,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isChangingStyle: true,
 			isReadonly: true,
 			duplicateProps: true,
+			cameraState: true,
 		},
 	}).withDefaultProperties(
 		(): Omit<TLInstance, 'typeName' | 'id' | 'currentPageId'> => ({
@@ -237,11 +315,20 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isReadonly: false,
 			meta: {},
 			duplicateProps: null,
+			cameraState: 'idle',
 		})
 	)
 }
 
-/** @public */
+/**
+ * Migration version identifiers for TLInstance records. Each version represents
+ * a schema change that requires data transformation when loading older documents.
+ *
+ * The versions track the evolution of the instance record structure over time,
+ * enabling backward and forward compatibility.
+ *
+ * @public
+ */
 export const instanceVersions = createMigrationIds('com.tldraw.instance', {
 	AddTransparentExportBgs: 1,
 	RemoveDialog: 2,
@@ -268,11 +355,27 @@ export const instanceVersions = createMigrationIds('com.tldraw.instance', {
 	AddInset: 23,
 	AddDuplicateProps: 24,
 	RemoveCanMoveCamera: 25,
+	AddCameraState: 26,
 } as const)
 
 // TODO: rewrite these to use mutation
 
-/** @public */
+/**
+ * Migration sequence for TLInstance records. Defines how to transform instance
+ * records between different schema versions, ensuring data compatibility when
+ * loading documents created with different versions of tldraw.
+ *
+ * Each migration includes an 'up' function to migrate forward and optionally
+ * a 'down' function for reverse migration.
+ *
+ * @example
+ * ```ts
+ * // Migrations are applied automatically when loading documents
+ * const migratedInstance = instanceMigrations.migrate(oldInstance, targetVersion)
+ * ```
+ *
+ * @public
+ */
 export const instanceMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.instance',
 	recordType: 'instance',
@@ -521,8 +624,32 @@ export const instanceMigrations = createRecordMigrationSequence({
 				return { ...instance, canMoveCamera: true }
 			},
 		},
+		{
+			id: instanceVersions.AddCameraState,
+			up: (record) => {
+				return { ...record, cameraState: 'idle' }
+			},
+			down: ({ cameraState: _, ...record }: any) => {
+				return record
+			},
+		},
 	],
 })
 
-/** @public */
+/**
+ * The constant ID used for the singleton TLInstance record.
+ *
+ * Since each browser tab has exactly one instance, this constant ID
+ * is used universally across the application.
+ *
+ * @example
+ * ```ts
+ * const instance = store.get(TLINSTANCE_ID)
+ * if (instance) {
+ *   console.log('Current page:', instance.currentPageId)
+ * }
+ * ```
+ *
+ * @public
+ */
 export const TLINSTANCE_ID = 'instance:instance' as TLInstanceId

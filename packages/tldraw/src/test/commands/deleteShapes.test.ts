@@ -1,4 +1,5 @@
 import { createBindingId, createShapeId } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { getArrowBindings } from '../../lib/shapes/arrow/shared'
 import { TestEditor } from '../TestEditor'
 
@@ -12,7 +13,7 @@ const ids = {
 	arrow1: createShapeId('arrow1'),
 }
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 beforeEach(() => {
 	editor = new TestEditor()

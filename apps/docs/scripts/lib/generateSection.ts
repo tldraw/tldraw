@@ -2,14 +2,15 @@ import fs from 'fs'
 import matter from 'gray-matter'
 import path from 'path'
 import {
-	Article,
+	type Article,
 	ArticleStatus,
-	Articles,
-	Category,
-	InputCategory,
-	InputSection,
-	Section,
+	type Articles,
+	type Category,
+	type InputCategory,
+	type InputSection,
+	type Section,
 } from '../../types/content-types'
+import { getArticleKey } from './getArticleKey'
 import { CONTENT_DIR } from './utils'
 
 export function generateSection(section: InputSection, articles: Articles, index: number): Section {
@@ -41,6 +42,9 @@ export function generateSection(section: InputSection, articles: Articles, index
 	for (const file of files) {
 		const filename = file.toString()
 		if (filename.startsWith('.')) continue
+		if (!isExamplesSection && !filename.endsWith('.mdx') && !filename.endsWith('.md')) {
+			throw new Error(`no non .md / mdx files pls: ${filename}`)
+		}
 
 		// Get the parsed file content using matter
 		const pathname = isExamplesSection
@@ -61,6 +65,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 			isGenerated: isReferenceSection,
 			extension,
 			componentCode: getComponentCode({ dir, filename, parsed }),
+			componentCodeFilename: getComponentCodeFilename({ parsed }),
 			componentCodeFiles: getComponentCodeFiles({ dir, filename, parsed }),
 		})
 
@@ -68,7 +73,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 			// The article is an index page, ie docs/docs
 			article.categoryIndex = -1
 			article.sectionIndex = -1
-			assignToArticles(section.id + '_index', article)
+			assignToArticles(getArticleKey(article), article)
 		} else {
 			// If the article is in a category and that category exists...
 			if (article.categoryId && sectionCategoryArticles[article.categoryId]) {
@@ -76,7 +81,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 				if (article.id === article.categoryId) {
 					article.categoryIndex = -1
 					article.sectionIndex = -1
-					assignToArticles(article.categoryId + '_index', article)
+					assignToArticles(getArticleKey(article), article)
 				} else {
 					// Otherwise, add it to the category's list of articles
 					sectionCategoryArticles[article.categoryId].push(article)
@@ -88,7 +93,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 		}
 	}
 
-	// Crate the categories
+	// Create the categories
 	const categories: Category[] = [
 		{
 			id: section.id + '_ucg',
@@ -126,7 +131,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 		categoryArticles.sort(sortArticles).forEach((article, i) => {
 			article.categoryIndex = i
 			article.sectionIndex = articleSectionIndex
-			assignToArticles(article.id, article)
+			assignToArticles(getArticleKey(article), article)
 			articleSectionIndex++
 		})
 	})
@@ -160,6 +165,7 @@ function getArticleData({
 	isGenerated,
 	extension,
 	componentCode,
+	componentCodeFilename,
 	componentCodeFiles,
 }: {
 	articleId: Article['id']
@@ -168,15 +174,19 @@ function getArticleData({
 	isGenerated: boolean
 	extension: string
 	componentCode: string | null
+	componentCodeFilename: string | null
 	componentCodeFiles: { [key: string]: string }
 }): Article {
 	const {
 		group = null,
 		priority = -1,
 		hero = null,
+		thumbnail = null,
+		socialImage = null,
 		author = 'api',
 		status = ArticleStatus.Draft,
 		title = 'Untitled article',
+		sidebarTitle = null,
 		description = null,
 		keywords = [],
 		date = null,
@@ -186,23 +196,30 @@ function getArticleData({
 		category: categoryId = sectionId + '_ucg',
 	} = parsed.data
 
+	const githubLink = sectionId === 'starter-kits' ? (parsed.data.githubLink ?? null) : null
+	const embed = sectionId === 'starter-kits' ? (parsed.data.embed ?? null) : null
+
 	const { content } = parsed
 
 	const article: Article = {
-		id: articleId,
+		id: getArticleKey({ sectionId, categoryId, id: articleId } as Article),
 		type: 'article',
 		sectionIndex: 0,
 		groupIndex: -1,
 		groupId: group,
 		categoryIndex: order ?? priority,
+		priority,
 		sectionId: sectionId,
 		author: [author],
 		authorId: author,
 		categoryId,
 		status,
 		title,
+		sidebarTitle,
 		description,
 		hero,
+		thumbnail,
+		socialImage,
 		date: date ? new Date(date).toISOString() : null,
 		keywords,
 		sourceUrl: isGenerated // if it's a generated API doc, then we don't have a link
@@ -210,14 +227,12 @@ function getArticleData({
 			: `${sectionId}/${articleId}${extension}`,
 		content,
 		apiTags,
-		path:
-			sectionId === 'getting-started'
-				? `/${articleId}`
-				: categoryId === sectionId + '_ucg'
-					? `/${sectionId}/${articleId}` // index page
-					: `/${sectionId}/${categoryId}/${articleId}`,
+		path: getArticlePath({ sectionId, categoryId, articleId }),
 		componentCode,
+		componentCodeFilename,
 		componentCodeFiles: componentCode ? JSON.stringify(componentCodeFiles) : null,
+		embed,
+		githubLink,
 	}
 
 	if (sectionId === 'examples' && article.content) {
@@ -225,8 +240,31 @@ function getArticleData({
 		article.description = splitUp[0]
 		article.content = splitUp.slice(1).join('---\n')
 	}
-
 	return article
+}
+
+function getArticlePath({
+	sectionId,
+	categoryId,
+	articleId,
+}: {
+	sectionId: Section['id']
+	categoryId: Category['id']
+	articleId: Article['id']
+}): string {
+	if (sectionId === 'examples') {
+		return `/${sectionId}/${articleId}`
+	}
+	if (sectionId === 'getting-started') {
+		// We used to remove the getting-started prefix from this path
+		// but it causes issues with clashing names folders (eg: "releases" page and "releases" folder)
+		// so now we apply that change with rewrites instead
+		return `/${sectionId}/${articleId}`
+	}
+	if (categoryId === sectionId + '_ucg') {
+		return `/${sectionId}/${articleId}` // index page
+	}
+	return `/${sectionId}/${categoryId}/${articleId}`
 }
 
 function getComponentCode({
@@ -251,6 +289,14 @@ function getComponentCode({
 		: null
 }
 
+function getComponentCodeFilename({ parsed }: { parsed: matter.GrayMatterFile<string> }) {
+	if (!parsed.data.component) return null
+	const component = parsed.data.component as string
+	// Remove leading ./ if present and ensure .tsx extension
+	const name = component.replace(/^\.\//, '')
+	return name.endsWith('.tsx') ? name : `${name}.tsx`
+}
+
 function getComponentCodeFiles({
 	dir,
 	filename,
@@ -272,13 +318,21 @@ function getComponentCodeFiles({
 			.filter(
 				(file) =>
 					!file.isDirectory() &&
+					(file.name.endsWith('.tsx') ||
+						file.name.endsWith('.ts') ||
+						file.name.endsWith('.js') ||
+						file.name.endsWith('.jsx') ||
+						file.name.endsWith('.css') ||
+						file.name.endsWith('.svg')) &&
 					file.name !== 'README.md' &&
 					file.name.replace('.tsx', '') !==
 						parsed.data.component.replace('./', '').replace('.tsx', '')
 			)
 			// For each of these component files, read the file and add it to the componentCodeFiles object
 			.forEach((file) => {
-				componentCodeFiles[file.name] = fs.readFileSync(path.join(file.path, file.name)).toString()
+				componentCodeFiles[file.name] = fs
+					.readFileSync(path.join(file.parentPath, file.name))
+					.toString()
 			})
 	}
 

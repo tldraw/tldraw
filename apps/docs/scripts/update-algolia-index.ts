@@ -27,24 +27,38 @@ const sectionConfig: Record<string, SearchConfig | null> = {
 		priority: 9,
 		splitHeadings: true,
 	},
+	'sdk-features': {
+		index: 'docs',
+		priority: 9,
+		splitHeadings: true,
+	},
 	examples: {
 		index: 'docs',
 		priority: 8,
 		splitHeadings: false,
 	},
-	reference: {
+	'starter-kits': {
 		index: 'docs',
 		priority: 7,
+		splitHeadings: false,
+	},
+	reference: {
+		index: 'docs',
+		priority: 6,
 		splitHeadings: true,
 		excludeHeadingLevels: [2],
 		formatHeading(article, heading) {
 			return `${article.title}.${heading}`
 		},
 	},
-
+	changelog: {
+		index: 'docs',
+		priority: 5,
+		splitHeadings: false,
+	},
 	releases: {
 		index: 'docs',
-		priority: 6,
+		priority: 5,
 		splitHeadings: false,
 	},
 	community: {
