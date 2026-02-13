@@ -821,6 +821,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
+
 	@computed
 	private getIsShapeHiddenCache() {
 		if (!this._getShapeVisibility) return null

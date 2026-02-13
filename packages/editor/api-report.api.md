@@ -695,6 +695,7 @@ export const defaultTldrawOptions: {
     readonly edgeScrollEaseDuration: 200;
     readonly edgeScrollSpeed: 25;
     readonly enableToolbarKeyboardShortcuts: true;
+    readonly experimental__onDropOnCanvas: undefined;
     readonly exportProvider: ExoticComponent<FragmentProps>;
     readonly flattenImageBoundsExpand: 64;
     readonly flattenImageBoundsPadding: 16;
@@ -3505,6 +3506,10 @@ export interface TldrawOptions {
     // (undocumented)
     readonly edgeScrollSpeed: number;
     readonly enableToolbarKeyboardShortcuts: boolean;
+    experimental__onDropOnCanvas?(options: {
+        event: React.DragEvent<Element>;
+        point: VecLike;
+    }): boolean;
     readonly exportProvider: ComponentType<{
         children: React.ReactNode;
     }>;
