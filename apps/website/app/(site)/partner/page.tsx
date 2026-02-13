@@ -1,6 +1,6 @@
-import { RichText } from '@/components/portable-text'
+import { Markdown } from '@/components/markdown'
 import { PageHeader } from '@/components/ui/page-header'
-import { getPage } from '@/sanity/queries'
+import { db } from '@/utils/ContentDatabase'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 }
 
 export default async function PartnerPage() {
-	const page = await getPage('partner')
+	const page = await db.getPage('/partner')
 
 	return (
 		<>
@@ -18,8 +18,8 @@ export default async function PartnerPage() {
 				description="Build the future of creative tools together."
 			/>
 			<div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-24 lg:px-8">
-				{page?.body ? (
-					<RichText value={page.body} />
+				{page?.content ? (
+					<Markdown content={page.content} />
 				) : (
 					<p className="text-center text-zinc-500 dark:text-zinc-400">
 						Partner information coming soon.

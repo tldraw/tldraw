@@ -1,0 +1,5 @@
+{
+	"name": "jobs",
+	"itemTitleField": "title",
+	"requiredFields": ["title", "department", "location", "type"]
+}

@@ -1,10 +1,11 @@
 import { communityContent } from '@/content/homepage'
 
-interface CommunityStat {
+export interface CommunityStat {
 	value: string
 	label: string
 	linkText: string
 	url: string
+	chartData?: number[]
 }
 
 const REVALIDATE = 86400 // 24 hours
@@ -42,10 +43,20 @@ async function fetchNpmDownloads(): Promise<string> {
 	return formatNumber(data.downloads)
 }
 
+async function fetchNpmDownloadRange(): Promise<number[]> {
+	const res = await fetch('https://api.npmjs.org/downloads/range/last-month/tldraw', {
+		next: { revalidate: REVALIDATE },
+	})
+	if (!res.ok) throw new Error(`npm range API ${res.status}`)
+	const data = await res.json()
+	return (data.downloads as { downloads: number; day: string }[]).map((d) => d.downloads)
+}
+
 export async function getCommunityStats(): Promise<CommunityStat[]> {
-	const [githubStars, npmDownloads] = await Promise.allSettled([
+	const [githubStars, npmDownloads, npmRange] = await Promise.allSettled([
 		fetchGitHubStars(),
 		fetchNpmDownloads(),
+		fetchNpmDownloadRange(),
 	])
 
 	return fallbackStats.map((stat) => {
@@ -53,7 +64,11 @@ export async function getCommunityStats(): Promise<CommunityStat[]> {
 			return { ...stat, value: githubStars.value }
 		}
 		if (stat.linkText === 'npm' && npmDownloads.status === 'fulfilled') {
-			return { ...stat, value: npmDownloads.value }
+			return {
+				...stat,
+				value: npmDownloads.value,
+				chartData: npmRange.status === 'fulfilled' ? npmRange.value : undefined,
+			}
 		}
 		return stat
 	})

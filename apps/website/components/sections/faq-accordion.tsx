@@ -1,13 +1,10 @@
 'use client'
 
-import type { FaqItem } from '@/sanity/types'
-import { PortableText, type PortableTextBlock } from '@portabletext/react'
 import { useState } from 'react'
 
-// FAQ item with either plain string or PortableText answer
 export interface FaqAccordionItem {
 	question: string
-	answer: string | PortableTextBlock[]
+	answer: string
 }
 
 // Grouped FAQ section with heading and description
@@ -18,7 +15,7 @@ export interface FaqAccordionSection {
 }
 
 interface FAQAccordionProps {
-	items: FaqItem[]
+	items: FaqAccordionItem[]
 }
 
 interface FAQAccordionGroupedProps {
@@ -70,14 +67,10 @@ function AccordionItem({
 	)
 }
 
-function FaqAnswer({ answer }: { answer: string | PortableTextBlock[] }) {
-	if (typeof answer === 'string') {
-		return <p>{answer}</p>
-	}
-	return <PortableText value={answer} />
+function FaqAnswer({ answer }: { answer: string }) {
+	return <p>{answer}</p>
 }
 
-/** Accordion for Sanity FaqItem[] with PortableText answers */
 export function FAQAccordion({ items }: FAQAccordionProps) {
 	const [openIndex, setOpenIndex] = useState<number | null>(null)
 
@@ -85,12 +78,12 @@ export function FAQAccordion({ items }: FAQAccordionProps) {
 		<div className="divide-y divide-zinc-200 dark:divide-zinc-800">
 			{items.map((item, i) => (
 				<AccordionItem
-					key={item._id}
+					key={item.question}
 					question={item.question}
 					isOpen={openIndex === i}
 					onToggle={() => setOpenIndex(openIndex === i ? null : i)}
 				>
-					<PortableText value={item.answer} />
+					<FaqAnswer answer={item.answer} />
 				</AccordionItem>
 			))}
 		</div>

@@ -1,0 +1,5 @@
+{
+	"name": "team",
+	"itemTitleField": "name",
+	"requiredFields": ["name", "role"]
+}

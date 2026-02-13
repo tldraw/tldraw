@@ -1,10 +1,13 @@
-import { getBlogPosts, getFeaturePages } from '@/sanity/queries'
+import { db } from '@/utils/ContentDatabase'
 import type { MetadataRoute } from 'next'
 
 const BASE_URL = 'https://tldraw.dev'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-	const [posts, features] = await Promise.all([getBlogPosts(), getFeaturePages()])
+	const [blogPages, featurePages] = await Promise.all([
+		db.getPagesBySection('blog'),
+		db.getPagesBySection('features'),
+	])
 
 	const staticPages: MetadataRoute.Sitemap = [
 		{ url: BASE_URL, changeFrequency: 'weekly', priority: 1.0 },
@@ -21,20 +24,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		{ url: `${BASE_URL}/get-a-license`, changeFrequency: 'monthly', priority: 0.7 },
 	]
 
-	const blogPages: MetadataRoute.Sitemap =
-		posts?.map((post) => ({
-			url: `${BASE_URL}/blog/${post.slug.current}`,
-			lastModified: post.publishedAt,
-			changeFrequency: 'monthly' as const,
-			priority: 0.7,
-		})) || []
+	const blogEntries: MetadataRoute.Sitemap = blogPages.map((post) => ({
+		url: `${BASE_URL}${post.path}`,
+		lastModified: post.date ?? undefined,
+		changeFrequency: 'monthly' as const,
+		priority: 0.7,
+	}))
 
-	const featurePages: MetadataRoute.Sitemap =
-		features?.map((f) => ({
-			url: `${BASE_URL}/features/${f.slug.current}`,
-			changeFrequency: 'monthly' as const,
-			priority: 0.7,
-		})) || []
+	const featureEntries: MetadataRoute.Sitemap = featurePages.map((f) => ({
+		url: `${BASE_URL}${f.path}`,
+		changeFrequency: 'monthly' as const,
+		priority: 0.7,
+	}))
 
-	return [...staticPages, ...blogPages, ...featurePages]
+	return [...staticPages, ...blogEntries, ...featureEntries]
 }

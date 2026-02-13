@@ -5,7 +5,9 @@ import { ShowAndTellForm } from '@/components/sections/show-and-tell-form'
 import { ShowcaseGallery } from '@/components/sections/showcase-gallery'
 import { TestimonialFeature } from '@/components/sections/testimonial-feature'
 import { PageHeader } from '@/components/ui/page-header'
-import { getSharedSections, getShowcaseEntries, getShowcasePage } from '@/sanity/queries'
+import { db } from '@/utils/ContentDatabase'
+import { getLogoBarEntries, getShowcaseEntries } from '@/utils/collections'
+import { getSharedSections } from '@/utils/shared-sections'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -14,51 +16,69 @@ export const metadata: Metadata = {
 }
 
 export default async function ShowcasePage() {
-	const [sanityPage, sanityEntries, shared] = await Promise.all([
-		getShowcasePage(),
+	const [page, showcaseItems, logoBarItems, shared] = await Promise.all([
+		db.getPage('/showcase'),
 		getShowcaseEntries(),
+		getLogoBarEntries(),
 		getSharedSections(),
 	])
 
-	if (!sanityPage) return null
+	const meta = page?.metadata ? JSON.parse(page.metadata) : {}
+
+	const entries = showcaseItems.map((e) => ({
+		_id: e.id,
+		name: e.data.name,
+		category: e.data.category,
+		description: e.data.description,
+		url: e.data.url,
+		caseStudyUrl: e.data.caseStudyUrl,
+		logo: e.data.logo,
+		coverImage: e.data.coverImage,
+	}))
+
+	const logoEntries = logoBarItems.map((e) => ({
+		_key: e.id,
+		name: e.data.name,
+		logo: e.data.logo,
+	}))
 
 	return (
 		<>
-			<PageHeader title={sanityPage.heroTitle} description={sanityPage.heroSubtitle} />
-
-			{sanityPage.logoBarEntries && sanityPage.logoBarEntries.length > 0 && (
-				<LogoBar entries={sanityPage.logoBarEntries} />
-			)}
-
-			<ShowcaseGallery
-				title={sanityPage.showcaseTitle}
-				subtitle={sanityPage.showcaseSubtitle}
-				items={sanityEntries}
+			<PageHeader
+				title={meta.heroTitle ?? page?.title ?? 'Showcase'}
+				description={meta.heroSubtitle}
 			/>
 
-			{sanityPage.showAndTellTitle && sanityPage.showAndTellDescription && (
-				<ShowAndTellForm
-					title={sanityPage.showAndTellTitle}
-					description={sanityPage.showAndTellDescription}
-				/>
+			{logoEntries.length > 0 && <LogoBar entries={logoEntries} />}
+
+			<ShowcaseGallery
+				title={meta.showcaseTitle}
+				subtitle={meta.showcaseSubtitle}
+				items={entries}
+			/>
+
+			{meta.showAndTellTitle && meta.showAndTellDescription && (
+				<ShowAndTellForm title={meta.showAndTellTitle} description={meta.showAndTellDescription} />
 			)}
 
-			{sanityPage.projectsTitle && sanityPage.projectsSubtitle && sanityPage.projects && (
+			{meta.projectsTitle && meta.projectsSubtitle && meta.projects && (
 				<ProjectsGrid
-					title={sanityPage.projectsTitle}
-					subtitle={sanityPage.projectsSubtitle}
-					projects={sanityPage.projects}
+					title={meta.projectsTitle}
+					subtitle={meta.projectsSubtitle}
+					projects={meta.projects}
 				/>
 			)}
 
-			{sanityPage.testimonial && sanityPage.caseStudySummaries && (
+			{meta.testimonial && meta.caseStudySummaries && (
 				<TestimonialFeature
-					testimonials={[sanityPage.testimonial]}
-					caseStudies={sanityPage.caseStudySummaries.map((s) => ({
-						company: s.heading,
-						description: s.description,
-						url: s.url,
-					}))}
+					testimonials={[meta.testimonial]}
+					caseStudies={meta.caseStudySummaries.map(
+						(s: { heading: string; description: string; url: string }) => ({
+							company: s.heading,
+							description: s.description,
+							url: s.url,
+						})
+					)}
 				/>
 			)}
 

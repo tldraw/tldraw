@@ -2,10 +2,16 @@
 
 import { Section } from '@/components/ui/section'
 import { SectionHeading } from '@/components/ui/section-heading'
-import { urlFor } from '@/sanity/image'
-import type { Testimonial } from '@/sanity/types'
 import Image from 'next/image'
 import { useState } from 'react'
+
+interface Testimonial {
+	quote: string
+	author: string
+	role: string
+	company: string
+	avatar?: string
+}
 
 interface TestimonialCarouselProps {
 	title?: string
@@ -22,13 +28,13 @@ export function TestimonialCarousel({ title, testimonials }: TestimonialCarousel
 			{title && <SectionHeading title={title} align="center" />}
 			<div className="mt-12">
 				<div className="mx-auto max-w-3xl text-center">
-					<blockquote className="text-xl font-semibold italic leading-[1.3] text-black dark:text-white sm:text-2xl">
+					<blockquote className="text-xl leading-[1.3] font-semibold text-black italic sm:text-2xl dark:text-white">
 						&ldquo;{testimonials[current].quote}&rdquo;
 					</blockquote>
 					<div className="mt-8 flex items-center justify-center gap-4">
 						{testimonials[current].avatar && (
 							<Image
-								src={urlFor(testimonials[current].avatar!).width(48).height(48).url()}
+								src={testimonials[current].avatar!}
 								alt={testimonials[current].author}
 								width={48}
 								height={48}
@@ -39,7 +45,7 @@ export function TestimonialCarousel({ title, testimonials }: TestimonialCarousel
 							<p className="font-semibold text-black dark:text-white">
 								{testimonials[current].author}
 							</p>
-							<p className="text-sm text-body dark:text-zinc-400">
+							<p className="text-body text-sm dark:text-zinc-400">
 								{testimonials[current].role}, {testimonials[current].company}
 							</p>
 						</div>

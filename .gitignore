@@ -131,3 +131,8 @@ opencode.json
 _comparison
 _reference
 .claude/skills/iterate-website-page/assets
+
+.claude/scratchpad
+
+# Content databases (generated at build time)
+content.db

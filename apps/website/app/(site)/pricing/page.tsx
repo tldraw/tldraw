@@ -2,7 +2,9 @@ import { CommunitySection } from '@/components/sections/community-section'
 import { PricingSingle } from '@/components/sections/pricing-single'
 import { TestimonialFeature } from '@/components/sections/testimonial-feature'
 import { PageHeader } from '@/components/ui/page-header'
-import { getPricingPage, getPullQuoteTestimonials, getSharedSections } from '@/sanity/queries'
+import { db } from '@/utils/ContentDatabase'
+import { getTestimonials } from '@/utils/collections'
+import { getSharedSections } from '@/utils/shared-sections'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -11,28 +13,36 @@ export const metadata: Metadata = {
 }
 
 export default async function PricingPage() {
-	const [pricing, shared, pullQuoteTestimonials] = await Promise.all([
-		getPricingPage(),
+	const [page, shared, pullQuoteTestimonials] = await Promise.all([
+		db.getPage('/pricing'),
 		getSharedSections(),
-		getPullQuoteTestimonials(),
+		getTestimonials('pull-quote'),
 	])
+
+	const meta = page?.metadata ? JSON.parse(page.metadata) : {}
+
+	const testimonials = pullQuoteTestimonials.map((t) => ({
+		quote: t.data.quote,
+		author: t.data.author,
+		role: t.data.role,
+		company: t.data.company,
+		avatar: t.data.avatar,
+	}))
 
 	return (
 		<>
-			<PageHeader title={pricing?.title ?? ''} description={pricing?.subtitle ?? ''} />
+			<PageHeader title={meta.title ?? page?.title ?? ''} description={meta.subtitle ?? ''} />
 			<div className="pb-12 sm:pb-24">
-				{pricing?.sdkLicense && (
+				{meta.sdkLicense && (
 					<PricingSingle
-						title={pricing.sdkLicense.title}
-						description={pricing.sdkLicense.description}
-						features={pricing.sdkLicense.features}
-						ctaPrimary={pricing.sdkLicense.ctaPrimary}
-						ctaSecondary={pricing.sdkLicense.ctaSecondary}
-						premiumNote={pricing.premiumNote}
-						startup={
-							pricing.startupCard ?? { title: '', description: '', ctaLabel: '', ctaUrl: '' }
-						}
-						hobby={pricing.hobbyCard ?? { description: '', ctaLabel: '', ctaUrl: '' }}
+						title={meta.sdkLicense.title}
+						description={meta.sdkLicense.description}
+						features={meta.sdkLicense.features}
+						ctaPrimary={meta.sdkLicense.ctaPrimary}
+						ctaSecondary={meta.sdkLicense.ctaSecondary}
+						premiumNote={meta.premiumNote}
+						startup={meta.startupCard ?? { title: '', description: '', ctaLabel: '', ctaUrl: '' }}
+						hobby={meta.hobbyCard ?? { description: '', ctaLabel: '', ctaUrl: '' }}
 					/>
 				)}
 			</div>
@@ -41,7 +51,7 @@ export default async function PricingPage() {
 			</div>
 			{shared?.testimonialSection && (
 				<TestimonialFeature
-					testimonials={pullQuoteTestimonials}
+					testimonials={testimonials}
 					caseStudies={shared.testimonialSection.caseStudies.slice(0, 1)}
 				/>
 			)}

@@ -1,0 +1,5 @@
+{
+	"name": "showcase",
+	"itemTitleField": "name",
+	"requiredFields": ["name", "description", "url"]
+}

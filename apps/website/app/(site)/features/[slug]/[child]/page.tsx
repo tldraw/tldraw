@@ -1,4 +1,4 @@
-import { RichText } from '@/components/portable-text'
+import { Markdown } from '@/components/markdown'
 import { CommunitySection } from '@/components/sections/community-section'
 import { CoverImage } from '@/components/sections/cover-image'
 import { FeatureHero } from '@/components/sections/feature-hero'
@@ -6,13 +6,9 @@ import { FinalCtaSection } from '@/components/sections/final-cta-section'
 import { StarterKitsSection } from '@/components/sections/starter-kits-section'
 import { TestimonialFeature } from '@/components/sections/testimonial-feature'
 import { Divider } from '@/components/ui/divider'
-import { splitAtFirstH2, stripLeadingHero } from '@/lib/portable-text-utils'
-import {
-	getFeaturePageByParentAndSlug,
-	getFeaturePages,
-	getPullQuoteTestimonials,
-	getSharedSections,
-} from '@/sanity/queries'
+import { db } from '@/utils/ContentDatabase'
+import { getTestimonials } from '@/utils/collections'
+import { getSharedSections } from '@/utils/shared-sections'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
@@ -22,58 +18,62 @@ interface ChildFeaturePageProps {
 
 export async function generateMetadata({ params }: ChildFeaturePageProps): Promise<Metadata> {
 	const { slug, child } = await params
-	const feature = await getFeaturePageByParentAndSlug(slug, child)
-	if (!feature) return {}
+	const page = await db.getPage(`/features/${slug}/${child}`)
+	if (!page) return {}
+	const meta = page.metadata ? JSON.parse(page.metadata) : {}
 	return {
-		title: feature.seo?.metaTitle || feature.title,
-		description: feature.seo?.metaDescription || feature.description,
+		title: meta.metaTitle || page.title,
+		description: meta.metaDescription || page.description,
 	}
 }
 
 export async function generateStaticParams() {
-	const features = await getFeaturePages()
-	if (!features) return []
+	const pages = await db.getPagesBySection('features')
+	return pages
+		.filter((p) => {
+			const segments = p.path.replace('/features/', '').split('/')
+			return segments.length === 2
+		})
+		.map((p) => {
+			const segments = p.path.replace('/features/', '').split('/')
+			return { slug: segments[0], child: segments[1] }
+		})
+}
 
-	const capabilities = features.filter((f) => f.category === 'capability' && f.parentGroup)
-	const standaloneParams = capabilities.map((f) => ({
-		slug: f.parentGroup!,
-		child: f.slug.current,
-	}))
-
-	const groups = features.filter((f) => f.category === 'group')
-	const embeddedParams = groups.flatMap((g) =>
-		(g.children ?? []).map((c) => ({
-			slug: g.slug.current,
-			child: c.slug,
-		}))
-	)
-
-	const seen = new Set(standaloneParams.map((p) => `${p.slug}/${p.child}`))
-	const uniqueEmbedded = embeddedParams.filter((p) => !seen.has(`${p.slug}/${p.child}`))
-
-	return [...standaloneParams, ...uniqueEmbedded]
+/** Split markdown content at the first ## heading. */
+function splitAtFirstH2(content: string): [string, string] {
+	const idx = content.indexOf('\n## ')
+	if (idx === -1) return [content, '']
+	return [content.slice(0, idx), content.slice(idx)]
 }
 
 export default async function ChildFeaturePage({ params }: ChildFeaturePageProps) {
 	const { slug, child } = await params
-	const [feature, shared, pullQuoteTestimonials] = await Promise.all([
-		getFeaturePageByParentAndSlug(slug, child),
+	const [page, shared, pullQuoteTestimonials] = await Promise.all([
+		db.getPage(`/features/${slug}/${child}`),
 		getSharedSections(),
-		getPullQuoteTestimonials(),
+		getTestimonials('pull-quote'),
 	])
 
-	if (!feature) notFound()
+	if (!page) notFound()
 
-	const bodyBlocks =
-		feature.body && feature.body.length > 0 ? stripLeadingHero(feature.body, feature.title) : []
-	const [bodyTop, bodyBottom] = splitAtFirstH2(bodyBlocks)
+	const meta = page.metadata ? JSON.parse(page.metadata) : {}
+	const [bodyTop, bodyBottom] = page.content ? splitAtFirstH2(page.content) : ['', '']
+
+	const testimonials = pullQuoteTestimonials.map((t) => ({
+		quote: t.data.quote,
+		author: t.data.author,
+		role: t.data.role,
+		company: t.data.company,
+		avatar: t.data.avatar,
+	}))
 
 	return (
 		<>
 			<FeatureHero
-				eyebrow={feature.eyebrow}
-				title={feature.title}
-				subtitle={feature.heroSubtitle || feature.description}
+				eyebrow={meta.eyebrow}
+				title={page.title}
+				subtitle={meta.heroSubtitle || page.description || ''}
 				ctaPrimary={shared?.hero?.ctaPrimary}
 				ctaSecondary={shared?.hero?.ctaSecondary}
 			/>
@@ -81,22 +81,22 @@ export default async function ChildFeaturePage({ params }: ChildFeaturePageProps
 			<Divider />
 
 			{/* Body content — first section (before first h2 break) */}
-			{bodyTop.length > 0 && (
+			{bodyTop && (
 				<section className="pb-12 sm:pb-16">
 					<div className="max-w-content mx-auto px-5 sm:px-8">
-						<RichText value={bodyTop} variant="feature" />
+						<Markdown content={bodyTop} />
 					</div>
 				</section>
 			)}
 
 			{/* Cover image */}
-			{feature.coverImage && <CoverImage image={feature.coverImage} alt={feature.title} />}
+			{meta.coverImage && <CoverImage src={meta.coverImage} alt={page.title} />}
 
 			{/* Body content — remaining sections (after first h2 break) */}
-			{bodyBottom.length > 0 && (
+			{bodyBottom && (
 				<section className="pb-16 sm:pb-24">
 					<div className="max-w-content mx-auto px-5 sm:px-8">
-						<RichText value={bodyBottom} variant="feature" />
+						<Markdown content={bodyBottom} />
 					</div>
 				</section>
 			)}
@@ -115,7 +115,7 @@ export default async function ChildFeaturePage({ params }: ChildFeaturePageProps
 			{/* Testimonial */}
 			{shared?.testimonialSection && (
 				<TestimonialFeature
-					testimonials={pullQuoteTestimonials}
+					testimonials={testimonials}
 					caseStudies={shared.testimonialSection.caseStudies}
 				/>
 			)}

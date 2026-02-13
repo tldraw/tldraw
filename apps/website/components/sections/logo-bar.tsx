@@ -1,26 +1,22 @@
-import { urlFor } from '@/sanity/image'
-import { getLogoBarEntries } from '@/sanity/queries'
-import type { ShowcaseEntryDoc } from '@/sanity/types'
 import Image from 'next/image'
 
-interface LogoBarProps {
-	/** Pass entries when parent already has them (e.g. showcase page). Otherwise fetches from Sanity. */
-	entries?: ShowcaseEntryDoc[]
+interface LogoBarEntry {
+	_key: string
+	name: string
+	logo?: string
 }
 
-function LogoItems({
-	entries,
-	keyPrefix,
-}: {
-	entries: { name: string; logo: NonNullable<ShowcaseEntryDoc['logo']> }[]
-	keyPrefix: string
-}) {
+interface LogoBarProps {
+	entries: LogoBarEntry[]
+}
+
+function LogoItems({ entries, keyPrefix }: { entries: LogoBarEntry[]; keyPrefix: string }) {
 	return (
 		<>
 			{entries.map((entry) => (
 				<Image
 					key={`${keyPrefix}-${entry.name}`}
-					src={urlFor(entry.logo).height(20).url()}
+					src={entry.logo!}
 					alt={entry.name}
 					width={100}
 					height={20}
@@ -31,11 +27,8 @@ function LogoItems({
 	)
 }
 
-export async function LogoBar({ entries: entriesProp }: LogoBarProps = {}) {
-	const entries = entriesProp ?? (await getLogoBarEntries())
-	const logosWithImages = entries.filter(
-		(e): e is typeof e & { logo: NonNullable<(typeof e)['logo']> } => !!e.logo
-	)
+export function LogoBar({ entries }: LogoBarProps) {
+	const logosWithImages = entries.filter((e) => !!e.logo)
 	if (logosWithImages.length === 0) return null
 
 	return (

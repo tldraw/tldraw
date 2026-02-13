@@ -1,8 +1,6 @@
 import { ActionLink } from '@/components/ui/action-link'
 import { Section } from '@/components/ui/section'
 import { SectionHeading } from '@/components/ui/section-heading'
-import { urlFor } from '@/sanity/image'
-import type { SanityImage } from '@/sanity/types'
 import Image from 'next/image'
 
 interface Project {
@@ -10,8 +8,7 @@ interface Project {
 	description: string
 	url: string
 	linkLabel?: string
-	/** Sanity image (from CMS) */
-	coverImage?: SanityImage
+	coverImage?: string
 	/** Local image path in /public (fallback) */
 	image?: string
 }
@@ -29,9 +26,7 @@ export function ProjectsGrid({ title, subtitle, projects }: ProjectsGridProps) {
 
 			<div className="mt-12 grid gap-8 sm:grid-cols-2">
 				{projects.map((project) => {
-					const imgSrc = project.coverImage
-						? urlFor(project.coverImage).width(640).height(360).url()
-						: project.image
+					const imgSrc = project.coverImage ?? project.image
 
 					return (
 						<div

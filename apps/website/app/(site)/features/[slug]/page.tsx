@@ -1,4 +1,4 @@
-import { RichText } from '@/components/portable-text'
+import { Markdown } from '@/components/markdown'
 import { CommunitySection } from '@/components/sections/community-section'
 import { CoverImage } from '@/components/sections/cover-image'
 import { FeatureHero } from '@/components/sections/feature-hero'
@@ -8,13 +8,9 @@ import { TestimonialFeature } from '@/components/sections/testimonial-feature'
 import { ActionLink } from '@/components/ui/action-link'
 import { Card } from '@/components/ui/card'
 import { Divider } from '@/components/ui/divider'
-import { splitAtFirstH2, stripLeadingHero } from '@/lib/portable-text-utils'
-import {
-	getFeaturePage,
-	getFeaturePages,
-	getPullQuoteTestimonials,
-	getSharedSections,
-} from '@/sanity/queries'
+import { db } from '@/utils/ContentDatabase'
+import { getTestimonials } from '@/utils/collections'
+import { getSharedSections } from '@/utils/shared-sections'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -25,45 +21,74 @@ interface FeaturePageProps {
 
 export async function generateMetadata({ params }: FeaturePageProps): Promise<Metadata> {
 	const { slug } = await params
-	const feature = await getFeaturePage(slug)
-	if (!feature) return {}
+	const page = await db.getPage(`/features/${slug}`)
+	if (!page) return {}
+	const meta = page.metadata ? JSON.parse(page.metadata) : {}
 	return {
-		title: feature.seo?.metaTitle || feature.title,
-		description: feature.seo?.metaDescription || feature.description,
+		title: meta.metaTitle || page.title,
+		description: meta.metaDescription || page.description,
 	}
 }
 
 export async function generateStaticParams() {
-	const features = await getFeaturePages()
-	return (
-		features
-			?.filter((f) => f.category === 'group' || f.category === 'featured')
-			.map((f) => ({ slug: f.slug.current })) || []
-	)
+	const pages = await db.getPagesBySection('features')
+	return pages
+		.filter((p) => {
+			const slug = p.path.replace('/features/', '')
+			return slug && !slug.includes('/')
+		})
+		.map((p) => ({ slug: p.path.replace('/features/', '') }))
+}
+
+/** Split markdown content at the first ## heading. */
+function splitAtFirstH2(content: string): [string, string] {
+	const idx = content.indexOf('\n## ')
+	if (idx === -1) return [content, '']
+	return [content.slice(0, idx), content.slice(idx)]
 }
 
 export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 	const { slug } = await params
-	const [feature, shared, pullQuoteTestimonials] = await Promise.all([
-		getFeaturePage(slug),
+	const [page, shared, pullQuoteTestimonials] = await Promise.all([
+		db.getPage(`/features/${slug}`),
 		getSharedSections(),
-		getPullQuoteTestimonials(),
+		getTestimonials('pull-quote'),
 	])
 
-	if (!feature) notFound()
+	if (!page) notFound()
 
-	const isGroup = feature.category === 'group'
+	const meta = page.metadata ? JSON.parse(page.metadata) : {}
+	const isGroup = meta.category === 'group'
 
-	const bodyBlocks =
-		feature.body && feature.body.length > 0 ? stripLeadingHero(feature.body, feature.title) : []
-	const [bodyTop, bodyBottom] = splitAtFirstH2(bodyBlocks)
+	// Find child pages for group pages
+	const childPages = isGroup
+		? (await db.getPagesByPathPrefix(`/features/${slug}/`)).map((child) => {
+				const childMeta = child.metadata ? JSON.parse(child.metadata) : {}
+				return {
+					slug: child.path.split('/').pop()!,
+					title: child.title,
+					description: child.description ?? '',
+					eyebrow: childMeta.eyebrow,
+				}
+			})
+		: []
+
+	const [bodyTop, bodyBottom] = page.content ? splitAtFirstH2(page.content) : ['', '']
+
+	const testimonials = pullQuoteTestimonials.map((t) => ({
+		quote: t.data.quote,
+		author: t.data.author,
+		role: t.data.role,
+		company: t.data.company,
+		avatar: t.data.avatar,
+	}))
 
 	return (
 		<>
 			<FeatureHero
-				eyebrow={feature.eyebrow}
-				title={feature.title}
-				subtitle={feature.heroSubtitle || feature.description}
+				eyebrow={meta.eyebrow}
+				title={page.title}
+				subtitle={meta.heroSubtitle || page.description || ''}
 				ctaPrimary={shared?.hero?.ctaPrimary}
 				ctaSecondary={shared?.hero?.ctaSecondary}
 			/>
@@ -71,11 +96,11 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 			<Divider />
 
 			{/* Child capabilities list (for group pages) */}
-			{isGroup && feature.children && feature.children.length > 0 && (
+			{isGroup && childPages.length > 0 && (
 				<section className="pb-12 sm:pb-16">
 					<div className="max-w-content mx-auto px-5 sm:px-8">
 						<div className="grid gap-6 sm:grid-cols-2">
-							{feature.children.map((child) => (
+							{childPages.map((child) => (
 								<Card key={child.slug} hover className="group">
 									<Link href={`/features/${slug}/${child.slug}`} className="block">
 										<h3 className="text-lg font-semibold text-black dark:text-white">
@@ -96,22 +121,22 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 			)}
 
 			{/* Cover image */}
-			{feature.coverImage && <CoverImage image={feature.coverImage} alt={feature.title} />}
+			{meta.coverImage && <CoverImage src={meta.coverImage} alt={page.title} />}
 
 			{/* Body content — first section */}
-			{bodyTop.length > 0 && (
+			{bodyTop && (
 				<section className="pb-12 sm:pb-16">
 					<div className="max-w-content mx-auto px-5 sm:px-8">
-						<RichText value={bodyTop} variant="feature" />
+						<Markdown content={bodyTop} />
 					</div>
 				</section>
 			)}
 
 			{/* Body content — remaining sections */}
-			{bodyBottom.length > 0 && (
+			{bodyBottom && (
 				<section className="pb-16 sm:pb-24">
 					<div className="max-w-content mx-auto px-5 sm:px-8">
-						<RichText value={bodyBottom} variant="feature" />
+						<Markdown content={bodyBottom} />
 					</div>
 				</section>
 			)}
@@ -119,7 +144,7 @@ export default async function FeatureDetailPage({ params }: FeaturePageProps) {
 			{/* Testimonial */}
 			{shared?.testimonialSection && (
 				<TestimonialFeature
-					testimonials={pullQuoteTestimonials}
+					testimonials={testimonials}
 					caseStudies={shared.testimonialSection.caseStudies}
 				/>
 			)}

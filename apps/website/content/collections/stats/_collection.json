@@ -1,0 +1,34 @@
+{
+	"name": "stats",
+	"inline": true,
+	"items": [
+		{
+			"id": "github",
+			"label": "Source available on",
+			"value": "45K",
+			"linkText": "GitHub",
+			"url": "https://github.com/tldraw/tldraw"
+		},
+		{
+			"id": "twitter",
+			"label": "followers on",
+			"value": "72K",
+			"linkText": "X",
+			"url": "https://x.com/tldraw"
+		},
+		{
+			"id": "npm",
+			"label": "weekly downloads on",
+			"value": "115.0K",
+			"linkText": "npm",
+			"url": "https://www.npmjs.com/package/tldraw"
+		},
+		{
+			"id": "discord",
+			"label": "members on",
+			"value": "8.75K",
+			"linkText": "Discord",
+			"url": "https://discord.tldraw.com/"
+		}
+	]
+}

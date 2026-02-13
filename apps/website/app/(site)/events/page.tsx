@@ -1,8 +1,8 @@
 import { Card } from '@/components/ui/card'
 import { PageHeader } from '@/components/ui/page-header'
 import { formatDate } from '@/lib/utils'
-import { urlFor } from '@/sanity/image'
-import { getEvents } from '@/sanity/queries'
+import type { CollectionItem, EventData } from '@/types/content-types'
+import { getEvents } from '@/utils/collections'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 
 export default async function EventsPage() {
 	const events = await getEvents()
-	const upcoming = events?.filter((e) => e.isUpcoming) || []
-	const past = events?.filter((e) => !e.isUpcoming) || []
+	const upcoming = events.filter((e) => e.data.isUpcoming)
+	const past = events.filter((e) => !e.data.isUpcoming)
 
 	return (
 		<>
@@ -28,7 +28,7 @@ export default async function EventsPage() {
 						<h2 className="mb-6 text-2xl font-bold text-zinc-900 dark:text-white">Upcoming</h2>
 						<div className="space-y-6">
 							{upcoming.map((event) => (
-								<EventCard key={event._id} event={event} />
+								<EventCard key={event.id} event={event} />
 							))}
 						</div>
 					</div>
@@ -38,12 +38,12 @@ export default async function EventsPage() {
 						<h2 className="mb-6 text-2xl font-bold text-zinc-900 dark:text-white">Past</h2>
 						<div className="space-y-6">
 							{past.map((event) => (
-								<EventCard key={event._id} event={event} />
+								<EventCard key={event.id} event={event} />
 							))}
 						</div>
 					</div>
 				)}
-				{!events?.length && (
+				{events.length === 0 && (
 					<p className="text-center text-zinc-500 dark:text-zinc-400">
 						No events scheduled. Check back soon.
 					</p>
@@ -53,38 +53,34 @@ export default async function EventsPage() {
 	)
 }
 
-function EventCard({
-	event,
-}: {
-	event: NonNullable<Awaited<ReturnType<typeof getEvents>>>[number]
-}) {
+function EventCard({ event }: { event: CollectionItem<EventData> }) {
 	const content = (
 		<Card className="flex gap-6">
-			{event.coverImage && (
+			{event.data.coverImage && (
 				<Image
-					src={urlFor(event.coverImage).width(120).height(120).url()}
-					alt={event.title}
+					src={event.data.coverImage}
+					alt={event.data.title}
 					width={120}
 					height={120}
 					className="hidden rounded-md object-cover sm:block"
 				/>
 			)}
 			<div>
-				<h3 className="text-lg font-semibold text-zinc-900 dark:text-white">{event.title}</h3>
+				<h3 className="text-lg font-semibold text-zinc-900 dark:text-white">{event.data.title}</h3>
 				<p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-					{formatDate(event.date)} &middot; {event.location}
+					{formatDate(event.data.date)} &middot; {event.data.location}
 				</p>
-				{event.description && (
-					<p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{event.description}</p>
+				{event.data.description && (
+					<p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{event.data.description}</p>
 				)}
 			</div>
 		</Card>
 	)
 
-	if (event.url) {
+	if (event.data.url) {
 		return (
 			<a
-				href={event.url}
+				href={event.data.url}
 				target="_blank"
 				rel="noopener noreferrer"
 				className="block transition-opacity hover:opacity-80"

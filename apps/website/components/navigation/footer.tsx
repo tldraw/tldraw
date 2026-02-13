@@ -1,4 +1,4 @@
-import type { FooterColumn, NavItem } from '@/sanity/types'
+import type { FooterColumn, NavItem } from '@/types/content-types'
 import Link from 'next/link'
 
 const socialIcons: Record<string, React.ReactNode> = {
@@ -41,7 +41,7 @@ interface FooterProps {
 export function Footer({ tagline, columns, socialLinks }: FooterProps) {
 	return (
 		<footer className="bg-black text-white">
-			<div className="mx-auto max-w-content px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+			<div className="max-w-content mx-auto px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
 				<div className="flex flex-col lg:flex-row lg:gap-16">
 					{/* Logo, tagline, social */}
 					<div className="mb-12 lg:mb-0 lg:w-1/3 lg:shrink-0">
@@ -106,7 +106,7 @@ export function Footer({ tagline, columns, socialLinks }: FooterProps) {
 					<div className="grid grid-cols-2 gap-x-16 gap-y-12 lg:flex-1 lg:grid-cols-4">
 						{columns.map((column) => (
 							<div key={column.heading}>
-								<h3 className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+								<h3 className="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
 									{column.heading}
 								</h3>
 								<ul className="mt-4 space-y-3">

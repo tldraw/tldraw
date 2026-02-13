@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import type { NavGroup, NavItem } from '@/sanity/types'
+import type { NavGroup, NavItem } from '@/types/content-types'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'

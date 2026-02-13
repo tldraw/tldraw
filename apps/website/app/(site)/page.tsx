@@ -9,78 +9,50 @@ import { TestimonialFeature } from '@/components/sections/testimonial-feature'
 import { WhatsInsideGrid } from '@/components/sections/whats-inside-grid'
 import { WhiteboardKitSection } from '@/components/sections/whiteboard-kit-section'
 import { WhyTldrawGrid } from '@/components/sections/why-tldraw-grid'
-import {
-	finalCtaContent,
-	heroContent,
-	showcaseContent,
-	starterKitsContent,
-	testimonialContent,
-	whatsInsideContent,
-	whiteboardKitContent,
-	whyTldrawContent,
-} from '@/content/homepage'
 import { heroDemoCodeSnippet } from '@/lib/hero-demo-code'
-import { getHomepage, getPullQuoteTestimonials } from '@/sanity/queries'
+import { db } from '@/utils/ContentDatabase'
+import { getLogoBarEntries, getTestimonials } from '@/utils/collections'
 import { codeToHtml } from 'shiki'
 
-function toHomepageSection<T>(items: T[]): (T & { _key: string })[] {
+function addKeys<T>(items: T[]): (T & { _key: string })[] {
 	return items.map((item, i) => ({ ...item, _key: `item-${i}` }))
 }
 
 export default async function HomePage() {
-	const [hp, pullQuoteTestimonials] = await Promise.all([getHomepage(), getPullQuoteTestimonials()])
-	const data = hp ?? {
-		_id: 'homepage',
-		_type: 'homepage' as const,
-		hero: {
-			title: heroContent.title,
-			subtitle: heroContent.subtitle,
-			subtitleHighlight: heroContent.subtitleHighlight,
-			ctaPrimary: heroContent.ctaPrimary,
-			ctaSecondary: heroContent.ctaSecondary,
-		},
-		whyTldraw: {
-			title: whyTldrawContent.title,
-			items: toHomepageSection(whyTldrawContent.items),
-		},
-		showcaseSection: {
-			title: showcaseContent.title,
-			subtitle: showcaseContent.subtitle,
-			ctaLabel: showcaseContent.ctaLabel,
-			ctaUrl: showcaseContent.ctaUrl,
-			items: showcaseContent.items,
-		},
-		whatsInside: {
-			title: whatsInsideContent.title,
-			subtitle: whatsInsideContent.subtitle,
-			items: toHomepageSection(whatsInsideContent.items),
-		},
-		whiteboardKit: {
-			eyebrow: whiteboardKitContent.eyebrow,
-			title: whiteboardKitContent.title,
-			description: whiteboardKitContent.description,
-			ctaLabel: whiteboardKitContent.ctaLabel,
-			ctaUrl: whiteboardKitContent.ctaUrl,
-			features: toHomepageSection(whiteboardKitContent.features),
-		},
-		starterKits: {
-			title: starterKitsContent.title,
-			subtitle: starterKitsContent.subtitle,
-			ctaLabel: starterKitsContent.ctaLabel,
-			ctaUrl: starterKitsContent.ctaUrl,
-			kits: toHomepageSection(starterKitsContent.kits),
-		},
-		testimonialSection: {
-			caseStudies: testimonialContent.caseStudies,
-		},
-		finalCta: {
-			title: finalCtaContent.title,
-			description: finalCtaContent.description,
-			descriptionBold: finalCtaContent.descriptionBold,
-			ctaPrimary: finalCtaContent.ctaPrimary,
-			ctaSecondary: finalCtaContent.ctaSecondary,
-		},
+	const [page, pullQuoteTestimonials, logoBarItems] = await Promise.all([
+		db.getPage('/'),
+		getTestimonials('pull-quote'),
+		getLogoBarEntries(),
+	])
+
+	const meta = page?.metadata ? JSON.parse(page.metadata) : {}
+
+	const data = {
+		hero: meta.hero,
+		whyTldraw: meta.whyTldraw
+			? { ...meta.whyTldraw, items: addKeys(meta.whyTldraw.items) }
+			: undefined,
+		showcaseSection: meta.showcaseSection,
+		whatsInside: meta.whatsInside
+			? { ...meta.whatsInside, items: addKeys(meta.whatsInside.items) }
+			: undefined,
+		whiteboardKit: meta.whiteboardKit
+			? { ...meta.whiteboardKit, features: addKeys(meta.whiteboardKit.features) }
+			: undefined,
+		starterKits: meta.starterKits
+			? { ...meta.starterKits, kits: addKeys(meta.starterKits.kits) }
+			: undefined,
+		testimonialSection: meta.testimonialSection,
+		finalCta: meta.finalCta,
 	}
+
+	const testimonials = pullQuoteTestimonials.map((t) => ({
+		quote: t.data.quote,
+		author: t.data.author,
+		role: t.data.role,
+		company: t.data.company,
+		avatar: t.data.avatar,
+	}))
 
 	const [heroCodeHtml, heroDemoCodeHtml] = await Promise.all([
 		data.hero?.ctaPrimary?.variant === 'code'
@@ -108,7 +80,13 @@ export default async function HomePage() {
 						heroImage={<HeroDemoClient codeHtml={heroDemoCodeHtml} />}
 						codeHtml={heroCodeHtml}
 					/>
-					<LogoBar />
+					<LogoBar
+						entries={logoBarItems.map((e) => ({
+							_key: e.id,
+							name: e.data.name,
+							logo: e.data.logo,
+						}))}
+					/>
 				</>
 			)}
 			{data.whyTldraw && (
@@ -152,9 +130,7 @@ export default async function HomePage() {
 			)}
 			{data.testimonialSection && (
 				<TestimonialFeature
-					testimonials={
-						pullQuoteTestimonials.length > 0 ? pullQuoteTestimonials : [testimonialContent.featured]
-					}
+					testimonials={testimonials.length > 0 ? testimonials : []}
 					caseStudies={data.testimonialSection.caseStudies}
 				/>
 			)}

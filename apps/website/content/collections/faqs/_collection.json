@@ -1,0 +1,5 @@
+{
+	"name": "faqs",
+	"itemTitleField": "question",
+	"requiredFields": ["question", "answer", "section"]
+}

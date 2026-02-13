@@ -1,8 +1,19 @@
 import { Card } from '@/components/ui/card'
 import { CheckIcon } from '@/components/ui/check-icon'
 import { cn } from '@/lib/utils'
-import type { PricingTier } from '@/sanity/types'
 import Link from 'next/link'
+
+interface PricingTier {
+	_id: string
+	name: string
+	price: string
+	period?: string
+	description: string
+	features: string[]
+	ctaUrl: string
+	ctaLabel: string
+	isHighlighted?: boolean
+}
 
 interface PricingTableProps {
 	tiers: PricingTier[]
@@ -10,17 +21,17 @@ interface PricingTableProps {
 
 export function PricingTable({ tiers }: PricingTableProps) {
 	return (
-		<div className="mx-auto grid max-w-content gap-8 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
+		<div className="max-w-content mx-auto grid gap-8 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
 			{tiers.map((tier) => (
 				<Card
 					key={tier._id}
 					className={cn(
 						'relative rounded-2xl p-8',
-						tier.isHighlighted && 'border-brand-blue shadow-lg dark:border-brand-blue'
+						tier.isHighlighted && 'border-brand-blue dark:border-brand-blue shadow-lg'
 					)}
 				>
 					{tier.isHighlighted && (
-						<div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-blue px-3 py-1 text-xs font-medium text-white dark:bg-brand-blue dark:text-white">
+						<div className="bg-brand-blue dark:bg-brand-blue absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-xs font-medium text-white dark:text-white">
 							Most popular
 						</div>
 					)}
@@ -31,12 +42,12 @@ export function PricingTable({ tiers }: PricingTableProps) {
 							<span className="ml-1 text-sm text-zinc-500 dark:text-zinc-400">/{tier.period}</span>
 						)}
 					</div>
-					<p className="mt-4 text-sm text-body dark:text-zinc-400">{tier.description}</p>
+					<p className="text-body mt-4 text-sm dark:text-zinc-400">{tier.description}</p>
 					<ul className="mt-8 space-y-3">
 						{tier.features.map((feature) => (
 							<li
 								key={feature}
-								className="flex items-start gap-3 text-sm text-body dark:text-zinc-400"
+								className="text-body flex items-start gap-3 text-sm dark:text-zinc-400"
 							>
 								<CheckIcon />
 								{feature}
@@ -48,7 +59,7 @@ export function PricingTable({ tiers }: PricingTableProps) {
 						className={cn(
 							'mt-8 block w-full rounded-md py-3 text-center text-sm font-semibold transition-colors',
 							tier.isHighlighted
-								? 'bg-brand-blue text-white hover:bg-blue-700 dark:bg-brand-blue dark:text-white dark:hover:bg-blue-700'
+								? 'bg-brand-blue dark:bg-brand-blue text-white hover:bg-blue-700 dark:text-white dark:hover:bg-blue-700'
 								: 'border border-zinc-300 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800'
 						)}
 					>

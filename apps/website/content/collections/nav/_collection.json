@@ -1,0 +1,302 @@
+{
+	"name": "nav",
+	"inline": true,
+	"items": [
+		{ "id": "standalone-showcase", "label": "Showcase", "href": "/showcase", "area": "header" },
+		{ "id": "standalone-pricing", "label": "Pricing", "href": "/pricing", "area": "header" },
+		{ "id": "standalone-blog", "label": "Blog", "href": "/blog", "area": "header" },
+		{
+			"id": "standalone-docs",
+			"label": "Docs",
+			"href": "https://tldraw.dev/docs",
+			"area": "header"
+		},
+
+		{
+			"id": "nav-product-whiteboard",
+			"label": "Whiteboard",
+			"href": "/features/out-of-the-box-whiteboard",
+			"area": "header",
+			"group": "Product"
+		},
+		{
+			"id": "nav-product-features",
+			"label": "Features",
+			"href": "/features",
+			"area": "header",
+			"group": "Product"
+		},
+		{
+			"id": "nav-product-kits",
+			"label": "Starter kits",
+			"href": "/starter-kits/overview",
+			"area": "header",
+			"group": "Product"
+		},
+		{
+			"id": "nav-product-showcase",
+			"label": "Showcase",
+			"href": "/showcase",
+			"area": "header",
+			"group": "Product"
+		},
+
+		{
+			"id": "nav-dev-docs",
+			"label": "Documentation",
+			"href": "/quick-start",
+			"area": "header",
+			"group": "Developers"
+		},
+		{
+			"id": "nav-dev-quickstart",
+			"label": "Quick start guides",
+			"href": "/quick-start",
+			"area": "header",
+			"group": "Developers"
+		},
+		{
+			"id": "nav-dev-kits",
+			"label": "Starter kits",
+			"href": "/starter-kits/overview",
+			"area": "header",
+			"group": "Developers"
+		},
+		{
+			"id": "nav-dev-examples",
+			"label": "Examples",
+			"href": "/examples",
+			"area": "header",
+			"group": "Developers"
+		},
+		{
+			"id": "nav-dev-releases",
+			"label": "Releases",
+			"href": "/releases",
+			"area": "header",
+			"group": "Developers"
+		},
+		{
+			"id": "nav-dev-github",
+			"label": "GitHub",
+			"href": "https://github.com/tldraw/tldraw",
+			"area": "header",
+			"group": "Developers"
+		},
+		{
+			"id": "nav-dev-discord",
+			"label": "Discord",
+			"href": "https://discord.tldraw.com/",
+			"area": "header",
+			"group": "Developers"
+		},
+
+		{ "id": "nav-res-faq", "label": "FAQ", "href": "/faq", "area": "header", "group": "Resources" },
+		{
+			"id": "nav-res-blog",
+			"label": "Blog",
+			"href": "/blog",
+			"area": "header",
+			"group": "Resources"
+		},
+		{
+			"id": "nav-res-showcase",
+			"label": "Showcase",
+			"href": "/showcase",
+			"area": "header",
+			"group": "Resources"
+		},
+		{
+			"id": "nav-res-videos",
+			"label": "Videos",
+			"href": "/blog/events",
+			"area": "header",
+			"group": "Resources"
+		},
+		{
+			"id": "nav-res-careers",
+			"label": "Careers",
+			"href": "/careers",
+			"area": "header",
+			"group": "Resources"
+		},
+		{
+			"id": "nav-res-company",
+			"label": "Company",
+			"href": "/company",
+			"area": "header",
+			"group": "Resources"
+		},
+		{
+			"id": "nav-res-sales",
+			"label": "Contact sales",
+			"href": "/get-a-license/plans",
+			"area": "header",
+			"group": "Resources"
+		},
+		{
+			"id": "nav-res-partner",
+			"label": "Become a partner",
+			"href": "/partner",
+			"area": "header",
+			"group": "Resources"
+		},
+
+		{
+			"id": "footer-product-whiteboard",
+			"label": "Whiteboard",
+			"href": "/features/out-of-the-box-whiteboard",
+			"area": "footer",
+			"column": "Product"
+		},
+		{
+			"id": "footer-product-pricing",
+			"label": "Pricing",
+			"href": "/pricing",
+			"area": "footer",
+			"column": "Product"
+		},
+		{
+			"id": "footer-product-faq",
+			"label": "FAQ",
+			"href": "/faq",
+			"area": "footer",
+			"column": "Product"
+		},
+
+		{
+			"id": "footer-dev-quickstart",
+			"label": "Quick start",
+			"href": "/quick-start",
+			"area": "footer",
+			"column": "Developers"
+		},
+		{
+			"id": "footer-dev-kits",
+			"label": "Starter kits",
+			"href": "/starter-kits/overview",
+			"area": "footer",
+			"column": "Developers"
+		},
+		{
+			"id": "footer-dev-examples",
+			"label": "Examples",
+			"href": "/examples/basic",
+			"area": "footer",
+			"column": "Developers"
+		},
+		{
+			"id": "footer-dev-releases",
+			"label": "Releases",
+			"href": "/releases",
+			"area": "footer",
+			"column": "Developers"
+		},
+		{
+			"id": "footer-dev-docs",
+			"label": "Docs",
+			"href": "/quick-start",
+			"area": "footer",
+			"column": "Developers"
+		},
+
+		{
+			"id": "footer-community-github",
+			"label": "GitHub",
+			"href": "https://github.com/tldraw/tldraw",
+			"area": "footer",
+			"column": "Community"
+		},
+		{
+			"id": "footer-community-discord",
+			"label": "Discord",
+			"href": "https://discord.tldraw.com/",
+			"area": "footer",
+			"column": "Community"
+		},
+		{
+			"id": "footer-community-x",
+			"label": "X",
+			"href": "https://x.com/tldraw",
+			"area": "footer",
+			"column": "Community"
+		},
+		{
+			"id": "footer-community-linkedin",
+			"label": "LinkedIn",
+			"href": "https://www.linkedin.com/company/tldraw",
+			"area": "footer",
+			"column": "Community"
+		},
+		{
+			"id": "footer-community-bluesky",
+			"label": "Bluesky",
+			"href": "https://bsky.app/profile/tldraw.com",
+			"area": "footer",
+			"column": "Community"
+		},
+		{
+			"id": "footer-community-mastodon",
+			"label": "Mastodon",
+			"href": "https://mas.to/@tldraw",
+			"area": "footer",
+			"column": "Community"
+		},
+
+		{
+			"id": "footer-company-careers",
+			"label": "Careers",
+			"href": "/careers",
+			"area": "footer",
+			"column": "Company"
+		},
+		{
+			"id": "footer-company-videos",
+			"label": "Videos",
+			"href": "/blog/events",
+			"area": "footer",
+			"column": "Company"
+		},
+		{
+			"id": "footer-company-license",
+			"label": "License",
+			"href": "/community/license",
+			"area": "footer",
+			"column": "Company"
+		},
+		{
+			"id": "footer-company-trademark",
+			"label": "Trademark",
+			"href": "/legal/trademark-guidelines",
+			"area": "footer",
+			"column": "Company"
+		},
+		{
+			"id": "footer-company-cla",
+			"label": "CLA",
+			"href": "/legal/contributor-license-agreement",
+			"area": "footer",
+			"column": "Company"
+		},
+
+		{
+			"id": "social-github",
+			"label": "GitHub",
+			"href": "https://github.com/tldraw",
+			"area": "social"
+		},
+		{
+			"id": "social-discord",
+			"label": "Discord",
+			"href": "https://discord.tldraw.com/",
+			"area": "social"
+		},
+		{ "id": "social-x", "label": "X", "href": "https://x.com/tldraw", "area": "social" },
+		{
+			"id": "social-linkedin",
+			"label": "LinkedIn",
+			"href": "https://www.linkedin.com/company/tldraw",
+			"area": "social"
+		}
+	]
+}

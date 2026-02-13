@@ -1,5 +1,5 @@
-import { RichText } from '@/components/portable-text'
-import { getPage } from '@/sanity/queries'
+import { Markdown } from '@/components/markdown'
+import { db } from '@/utils/ContentDatabase'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
@@ -9,19 +9,20 @@ interface LicensePageProps {
 
 export async function generateMetadata({ params }: LicensePageProps): Promise<Metadata> {
 	const { slug } = await params
-	const path = slug ? `get-a-license/${slug.join('/')}` : 'get-a-license'
-	const page = await getPage(path)
+	const path = slug ? `/get-a-license/${slug.join('/')}` : '/get-a-license'
+	const page = await db.getPage(path)
 	if (!page) return {}
+	const meta = page.metadata ? JSON.parse(page.metadata) : {}
 	return {
-		title: page.seo?.metaTitle || page.title,
-		description: page.seo?.metaDescription,
+		title: meta.metaTitle || page.title,
+		description: meta.metaDescription || page.description,
 	}
 }
 
 export default async function LicensePage({ params }: LicensePageProps) {
 	const { slug } = await params
-	const path = slug ? `get-a-license/${slug.join('/')}` : 'get-a-license'
-	const page = await getPage(path)
+	const path = slug ? `/get-a-license/${slug.join('/')}` : '/get-a-license'
+	const page = await db.getPage(path)
 
 	if (!page) notFound()
 
@@ -30,9 +31,9 @@ export default async function LicensePage({ params }: LicensePageProps) {
 			<h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">
 				{page.title}
 			</h1>
-			{page.body && (
+			{page.content && (
 				<div className="mt-8">
-					<RichText value={page.body} />
+					<Markdown content={page.content} />
 				</div>
 			)}
 		</article>

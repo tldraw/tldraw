@@ -1,56 +1,55 @@
 import { Footer } from '@/components/navigation/footer'
 import { Header } from '@/components/navigation/header'
-import { getFeaturePagesByCategory, getSiteSettings } from '@/sanity/queries'
+import { db } from '@/utils/ContentDatabase'
+import { getNavigation } from '@/utils/collections'
 import { ThemeProvider } from 'next-themes'
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-	const [settings, featurePages] = await Promise.all([
-		getSiteSettings(),
-		getFeaturePagesByCategory(),
-	])
+	const nav = await getNavigation()
 
-	const navGroups = settings?.navGroups ?? []
-	const standaloneNavLinks = settings?.standaloneNavLinks ?? []
-	const footerData = {
-		tagline: settings?.footerTagline ?? '',
-		columns: settings?.footerColumns ?? [],
-		socialLinks: settings?.socialLinks ?? [],
-	}
+	// Build product mega menu from feature pages in the content DB
+	const featurePages = await db.getPagesBySection('features')
+	const productMenuGroups: {
+		label: string
+		slug: string
+		items: { label: string; href: string }[]
+	}[] = []
+	let productMenuFeatured: { title: string; description: string; href: string } | undefined
 
-	// Build product mega menu data from feature pages
-	const groups = featurePages.filter((f) => f.category === 'group')
-	const featured = featurePages.find((f) => f.category === 'featured')
-
-	const productMenuGroups = groups.map((g) => ({
-		label: g.eyebrow || g.title,
-		slug: g.slug.current,
-		items: (g.children ?? []).map((c) => ({
-			label: c.title,
-			href: `/features/${g.slug.current}/${c.slug}`,
-		})),
-	}))
-
-	const productMenuFeatured = featured
-		? {
-				title: featured.title,
-				description: featured.description,
-				href: `/features/${featured.slug.current}`,
+	for (const page of featurePages) {
+		const meta = page.metadata ? JSON.parse(page.metadata) : {}
+		if (meta.category === 'group') {
+			const slug = page.path.replace('/features/', '')
+			productMenuGroups.push({
+				label: meta.eyebrow || page.title,
+				slug,
+				items: (meta.children ?? []).map((c: { title: string; slug: string }) => ({
+					label: c.title,
+					href: `/features/${slug}/${c.slug}`,
+				})),
+			})
+		} else if (meta.category === 'featured') {
+			productMenuFeatured = {
+				title: page.title,
+				description: page.description ?? '',
+				href: page.path,
 			}
-		: undefined
+		}
+	}
 
 	return (
 		<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
 			<Header
-				navGroups={navGroups}
-				standaloneNavLinks={standaloneNavLinks}
+				navGroups={nav.navGroups}
+				standaloneNavLinks={nav.standaloneNavLinks}
 				productMenuGroups={productMenuGroups}
 				productMenuFeatured={productMenuFeatured}
 			/>
 			<main>{children}</main>
 			<Footer
-				tagline={footerData.tagline}
-				columns={footerData.columns}
-				socialLinks={footerData.socialLinks}
+				tagline={nav.footerTagline}
+				columns={nav.footerColumns}
+				socialLinks={nav.socialLinks}
 			/>
 		</ThemeProvider>
 	)
