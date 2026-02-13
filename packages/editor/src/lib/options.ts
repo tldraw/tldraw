@@ -1,6 +1,7 @@
 import { ComponentType, Fragment } from 'react'
 import { DEFAULT_CAMERA_OPTIONS } from './constants'
 import { TLCameraOptions } from './editor/types/misc-types'
+import { VecLike } from './primitives/Vec'
 import { TLDeepLinkOptions } from './utils/deepLinks'
 import { TLTextOptions } from './utils/richText'
 
@@ -155,6 +156,15 @@ export interface TldrawOptions {
 	 * viewport's page dimensions regardless of overview zoom changes.
 	 */
 	readonly quickZoomPreservesScreenBounds: boolean
+	/**
+	 * Called when content is dropped on the canvas. Provides the page position
+	 * where the drop occurred and the underlying drag event object.
+	 * Return true to prevent default drop handling (files, URLs, etc.)
+	 */
+	experimental__onDropOnCanvas?(options: {
+		point: VecLike
+		event: React.DragEvent<Element>
+	}): boolean
 }
 
 /** @public */
@@ -217,4 +227,5 @@ export const defaultTldrawOptions = {
 	text: {},
 	deepLinks: undefined,
 	quickZoomPreservesScreenBounds: true,
+	experimental__onDropOnCanvas: undefined,
 } as const satisfies TldrawOptions

@@ -15,6 +15,20 @@ defaults:
     shell: bash
 
 jobs:
+  lint:
+    name: 'Lint'
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores-open
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - uses: ./.github/actions/setup
+
+      - name: Lint
+        run: yarn lint
+
   test:
     name: 'Tests & checks'
     timeout-minutes: 15
@@ -60,9 +74,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      - name: Lint
-        run: yarn lint
-
       - name: Check API declarations and docs work as intended
         run: yarn api-check
 
@@ -101,6 +112,3 @@ jobs:
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
         run: "yarn build-package | sed -E 's/^.*? ::/::/'"
-
-      - name: Pack public packages
-        run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"
