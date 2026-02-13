@@ -24,10 +24,26 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v6
 
+      - name: Check for relevant changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            relevant:
+              - 'packages/**'
+              - 'apps/examples/**'
+              - '.github/workflows/playwright-examples.yml'
+              - '.github/actions/**'
+              - 'yarn.lock'
+              - '!**/*.md'
+              - '!**/*.mdx'
+
       - name: Run our setup
+        if: steps.filter.outputs.relevant == 'true'
         uses: ./.github/actions/setup
 
       - name: Get installed Playwright version
+        if: steps.filter.outputs.relevant == 'true'
         id: playwright-version
         run: |
           cd apps/examples
@@ -35,6 +51,7 @@ jobs:
           echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./playwright.json').children.Version)")" >> $GITHUB_ENV
 
       - uses: actions/cache@v3
+        if: steps.filter.outputs.relevant == 'true'
         name: Check for Playwright browsers cache
         id: playwright-cache
         with:
@@ -44,9 +61,10 @@ jobs:
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium chrome
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.filter.outputs.relevant == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
 
       - name: Run Playwright tests
+        if: steps.filter.outputs.relevant == 'true'
         run: 'yarn e2e'
         working-directory: apps/examples
         env:
@@ -54,7 +72,7 @@ jobs:
           GIT_COMMIT: ${{ github.sha }}
 
       - uses: actions/upload-artifact@v6
-        if: always()
+        if: always() && steps.filter.outputs.relevant == 'true'
         with:
           name: playwright-report
           path: apps/examples/playwright-report
@@ -64,7 +82,7 @@ jobs:
         # only upload if we have AWS credentials:
         env:
           HAS_AWS_KEY: ${{ secrets.AWS_S3_SECRET_KEY && '1' || '' }}
-        if: always() && env.HAS_AWS_KEY == '1'
+        if: always() && steps.filter.outputs.relevant == 'true' && env.HAS_AWS_KEY == '1'
         name: Upload S3
         id: s3
         with:
@@ -74,7 +92,7 @@ jobs:
           source_dir: apps/examples/playwright-report
 
       - name: Log report to summary
-        if: always()
+        if: always() && steps.filter.outputs.relevant == 'true'
         run: |
           report_url="https://playwright.tldraw.xyz/${{ steps.s3.outputs.object_key }}/index.html"
           echo "Report: $report_url"
