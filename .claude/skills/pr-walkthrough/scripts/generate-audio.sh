@@ -114,7 +114,7 @@ print(f"  Words: {word_count}")
 # The Gemini TTS model has a max output audio duration. At ~150 wpm, 800 words
 # produces ~5.3 min of speech which is safely within the limit. For longer
 # narrations, we split into chunks, generate audio per chunk, then concatenate.
-MAX_WORDS_PER_CHUNK = 800
+MAX_WORDS_PER_CHUNK = 600
 
 def build_prompt(segment_texts, start_index):
     """Build a TTS prompt for a subset of segments."""
