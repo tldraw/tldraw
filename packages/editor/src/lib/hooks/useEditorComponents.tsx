@@ -3,7 +3,9 @@ import { DefaultBackground } from '../components/default-components/DefaultBackg
 import { DefaultBrush, TLBrushProps } from '../components/default-components/DefaultBrush'
 import {
 	DefaultCanvas,
+	DefaultShapeRenderer,
 	TLCanvasComponentProps,
+	TLShapeRendererProps,
 } from '../components/default-components/DefaultCanvas'
 import {
 	DefaultCollaboratorHint,
@@ -72,6 +74,7 @@ export interface TLEditorComponents {
 	SelectionForeground?: ComponentType<TLSelectionForegroundProps> | null
 	ShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
 	ShapeIndicators?: ComponentType | null
+	ShapeRenderer?: ComponentType<TLShapeRendererProps> | null
 	ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null
 	SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null
 	Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null
@@ -119,6 +122,7 @@ export function EditorComponentsProvider({
 			SelectionForeground: DefaultSelectionForeground,
 			ShapeIndicator: DefaultShapeIndicator,
 			ShapeIndicators: DefaultShapeIndicators,
+			ShapeRenderer: DefaultShapeRenderer,
 			ShapeWrapper: DefaultShapeWrapper,
 			SnapIndicator: DefaultSnapIndicator,
 			Spinner: DefaultSpinner,

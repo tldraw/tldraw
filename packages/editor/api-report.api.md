@@ -21,6 +21,7 @@ import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { JSX } from 'react/jsx-runtime';
+import { JSXElementConstructor } from 'react';
 import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
@@ -656,6 +657,9 @@ export const DefaultShapeIndicator: NamedExoticComponent<TLShapeIndicatorProps>;
 
 // @public (undocumented)
 export const DefaultShapeIndicators: NamedExoticComponent<TLShapeIndicatorsProps>;
+
+// @public (undocumented)
+export function DefaultShapeRenderer({ renderShape }: TLShapeRendererProps): ReactElement<unknown, JSXElementConstructor<any> | string>[];
 
 // @public (undocumented)
 export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps & RefAttributes<HTMLDivElement>>;
@@ -3618,6 +3622,8 @@ export interface TLEditorComponents {
     // (undocumented)
     ShapeIndicators?: ComponentType | null;
     // (undocumented)
+    ShapeRenderer?: ComponentType<TLShapeRendererProps> | null;
+    // (undocumented)
     ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null;
     // (undocumented)
     SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null;
@@ -4340,6 +4346,12 @@ export interface TLShapeIndicatorProps {
 export interface TLShapeIndicatorsProps {
     hideAll?: boolean;
     showAll?: boolean;
+}
+
+// @public (undocumented)
+export interface TLShapeRendererProps {
+    // (undocumented)
+    renderShape(shape: TLRenderingShape): ReactElement;
 }
 
 // @public

@@ -3,7 +3,8 @@ import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
-import { Fragment, JSX, useEffect, useRef, useState } from 'react'
+import { Fragment, JSX, ReactElement, useEffect, useRef, useState } from 'react'
+import type { TLRenderingShape } from '../../editor/Editor'
 import { tlenv } from '../../globals/environment'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
@@ -450,19 +451,28 @@ function CullingController() {
 }
 
 function ShapesToDisplay() {
-	const editor = useEditor()
-
-	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
+	const { ShapeRenderer } = useEditorComponents()
+	const Renderer = ShapeRenderer ?? DefaultShapeRenderer
 
 	return (
 		<ShapeCullingProvider>
-			{renderingShapes.map((result) => (
-				<Shape key={result.id + '_shape'} {...result} />
-			))}
+			<Renderer renderShape={(shape) => <Shape key={shape.id + '_shape'} {...shape} />} />
 			<CullingController />
 			{tlenv.isSafari && <ReflowIfNeeded />}
 		</ShapeCullingProvider>
 	)
+}
+
+/** @public */
+export interface TLShapeRendererProps {
+	renderShape(shape: TLRenderingShape): ReactElement
+}
+
+/** @public @react */
+export function DefaultShapeRenderer({ renderShape }: TLShapeRendererProps) {
+	const editor = useEditor()
+	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
+	return renderingShapes.map((shape) => renderShape(shape))
 }
 
 function HintedShapeIndicator() {

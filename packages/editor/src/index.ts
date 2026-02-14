@@ -17,7 +17,9 @@ export { DefaultBackground } from './lib/components/default-components/DefaultBa
 export { DefaultBrush, type TLBrushProps } from './lib/components/default-components/DefaultBrush'
 export {
 	DefaultCanvas,
+	DefaultShapeRenderer,
 	type TLCanvasComponentProps,
+	type TLShapeRendererProps,
 } from './lib/components/default-components/DefaultCanvas'
 export {
 	DefaultCollaboratorHint,
