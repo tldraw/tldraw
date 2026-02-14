@@ -294,19 +294,17 @@ describe('version utilities', () => {
 			expect(mockConsoleLog).not.toHaveBeenCalled()
 		})
 
-		it('should handle package manager deduplication scenario', () => {
-			// The current implementation actually treats multiple registrations of the same
-			// package+version+modules as duplicates, so this will trigger a warning
+		it('should ignore duplicate registrations of the same library', () => {
+			// Re-registering the same library with the same version and module type
+			// (e.g. due to module re-evaluation in Next.js dev mode) should not
+			// trigger a warning
 			registerTldrawLibraryVersion('@tldraw/editor', '2.0.0', 'esm')
 			registerTldrawLibraryVersion('@tldraw/editor', '2.0.0', 'esm')
 			registerTldrawLibraryVersion('@tldraw/editor', '2.0.0', 'esm')
 
 			vi.runAllTimers()
 
-			// Multiple registrations of same version are detected as module duplicates
-			expect(mockConsoleLog).toHaveBeenCalled()
-			const logMessage = mockConsoleLog.mock.calls[0][0]
-			expect(logMessage).toContain('multiple instances')
+			expect(mockConsoleLog).not.toHaveBeenCalled()
 		})
 
 		it('should handle bundler misconfiguration scenario', () => {
