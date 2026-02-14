@@ -386,6 +386,32 @@ describe('When interacting with a shape...', () => {
 		expect(editor.getSelectedShapeIds().length).toBe(0)
 	})
 
+	it('Allows dragging to translate a shape with an onClick handler', () => {
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
+
+		const fnClick = vi.fn()
+		util.onClick = fnClick
+
+		// The shape is not selected
+		expect(editor.getSelectedShapeIds()).toEqual([])
+
+		// Pointer down on the shape, then drag far enough to trigger isDragging
+		editor.pointerDown(50, 50, ids.frame1)
+		editor.expectToBeIn('select.pointing_shape')
+
+		// Move far enough to exceed the drag threshold (4px)
+		editor.pointerMove(60, 60)
+
+		// The shape should now be selected and translating
+		expect(editor.getSelectedShapeIds()).toEqual([ids.frame1])
+		editor.expectToBeIn('select.translating')
+
+		editor.pointerUp(60, 60)
+
+		// onClick should not have been called since this was a drag
+		expect(fnClick).not.toHaveBeenCalled()
+	})
+
 	it('Fires handle dragging events', () => {
 		const util = editor.getShapeUtil<TLLineShape>('line')
 
