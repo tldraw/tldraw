@@ -8,7 +8,7 @@ status: published
 last_version: v4.3.1
 ---
 
-This release adds a consolidated `options` prop, quick zoom navigation, a fill styles dropdown, a new `TldrawUiSelect` component, and shape-aware binding checks. It also includes 2D canvas rendering for shape indicators, R-tree spatial indexing, telestrator-style laser behavior, significant performance improvements for large canvases, and various bug fixes.
+This release adds a consolidated `options` prop, quick zoom navigation, a fill styles dropdown, a new `TldrawUiSelect` component, shape-aware binding checks, and an experimental canvas drop handler. It also includes 2D canvas rendering for shape indicators, R-tree spatial indexing, telestrator-style laser behavior, significant performance improvements for large canvases, and various bug fixes.
 
 ## What's new
 
@@ -87,6 +87,21 @@ canBind({ fromShape, toShape }) {
 
 </details>
 
+### Experimental canvas drop handler ([#7911](https://github.com/tldraw/tldraw/pull/7911))
+
+A new `experimental__onDropOnCanvas` callback in `TldrawOptions` lets you intercept and customize drag-and-drop behavior on the canvas. The callback receives the page-space drop coordinates and the original drag event. Return `true` to prevent the default file/URL drop handling.
+
+```tsx
+<Tldraw
+	options={{
+		experimental__onDropOnCanvas: (point, event) => {
+			// Custom drop handling
+			return true // prevents default behavior
+		},
+	}}
+/>
+```
+
 ### 2D canvas rendering for shape indicators ([#7708](https://github.com/tldraw/tldraw/pull/7708))
 
 Shape indicators (selection outlines, hover states) now render using a 2D canvas instead of SVG elements. This significantly improves performance when selecting or hovering over many shapes, with up to 25x faster rendering in some scenarios.
@@ -157,6 +172,7 @@ New options in `TldrawOptions`:
 - Add `complete` to `TL_SCRIBBLE_STATES` enum and `ScribbleManager.complete(id)` method for marking scribbles as complete before fading. ([#7760](https://github.com/tldraw/tldraw/pull/7760))
 - Add `ScribbleManager.endLaserSession()` and `ScribbleManager.isScribbleInLaserSession()` methods for controlling laser sessions. Add `laserSessionTimeoutMs` and `laserMaxSessionDurationMs` to `TldrawOptions`. ([#7681](https://github.com/tldraw/tldraw/pull/7681))
 - Add `FpsScheduler` class to create FPS-throttled function queues with configurable target rates. ([#7418](https://github.com/tldraw/tldraw/pull/7418))
+- Add `TldrawOptions.experimental__onDropOnCanvas` callback for intercepting canvas drop events. ([#7911](https://github.com/tldraw/tldraw/pull/7911))
 
 ## Improvements
 
@@ -192,3 +208,5 @@ New options in `TldrawOptions`:
 - Fix rich text content not updating correctly with message squashing due to reference comparison. ([#7758](https://github.com/tldraw/tldraw/pull/7758))
 - Fix keyboard shortcut menu item labels to use consistent ellipsis formatting. ([#7757](https://github.com/tldraw/tldraw/pull/7757))
 - Fix spatial index not removing shapes when moved to a different page. ([#7700](https://github.com/tldraw/tldraw/pull/7700))
+- Fix tldraw failing to load in CJS environments (tsx, ts-node, Jest) due to ESM-only rbush dependency. ([#7905](https://github.com/tldraw/tldraw/pull/7905))
+- Fix draw shapes not rendering correctly on tablets that report zero pen pressure. ([#5693](https://github.com/tldraw/tldraw/pull/5693))
