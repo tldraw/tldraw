@@ -153,7 +153,13 @@ import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndex
 import { TextManager } from './managers/TextManager/TextManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
-import { ShapeUtil, TLEditStartInfo, TLGeometryOpts, TLResizeMode } from './shapes/ShapeUtil'
+import {
+	ShapeUtil,
+	TLEditStartInfo,
+	TLGeometryOpts,
+	TLResizeMode,
+	TLShapeUtilCanBindOpts,
+} from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -228,10 +234,17 @@ export interface TLEditorOptions {
 	inferDarkMode?: boolean
 	/**
 	 * Options for the editor's camera.
+	 *
+	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-	textOptions?: TLTextOptions
 	options?: Partial<TldrawOptions>
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
@@ -283,18 +296,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 		bindingUtils,
 		tools,
 		getContainer,
+		// needs to be here for backwards compatibility with TldrawEditor
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		cameraOptions,
-		textOptions,
 		initialState,
 		autoFocus,
 		inferDarkMode,
-		options,
+		options: _options,
+		// needs to be here for backwards compatibility with TldrawEditor
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		textOptions: _textOptions,
 		getShapeVisibility,
 		fontAssetUrls,
 	}: TLEditorOptions) {
 		super()
 
 		this._getShapeVisibility = getShapeVisibility
+
+		// Merge deprecated textOptions prop with options.text
+		// options.text takes precedence over the deprecated textOptions prop
+		const options = _textOptions ? { ..._options, text: _options?.text ?? _textOptions } : _options
 
 		this.options = { ...defaultTldrawOptions, ...options }
 
@@ -314,9 +335,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.disposables.add(this.timers.dispose)
 
-		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
+		// Merge camera options: options.cameraOptions takes precedence over deprecated cameraOptions prop
+		this._cameraOptions.set({
+			...DEFAULT_CAMERA_OPTIONS,
+			...cameraOptions,
+			...options?.camera,
+		})
 
-		this._textOptions = atom('text options', textOptions ?? null)
+		this._textOptions = atom('text options', options?.text ?? null)
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())
@@ -795,6 +821,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
+
 	@computed
 	private getIsShapeHiddenCache() {
 		if (!this._getShapeVisibility) return null
@@ -6249,7 +6276,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const toShapeType = typeof toShape === 'string' ? toShape : toShape.type
 		const bindingType = typeof binding === 'string' ? binding : binding.type
 
-		const canBindOpts = { fromShapeType, toShapeType, bindingType } as const
+		const canBindOpts: TLShapeUtilCanBindOpts = {
+			fromShape: typeof fromShape === 'string' ? { type: fromShape } : fromShape,
+			toShape: typeof toShape === 'string' ? { type: toShape } : toShape,
+			bindingType,
+			fromShapeType,
+			toShapeType,
+		}
 
 		if (fromShapeType === toShapeType) {
 			return this.getShapeUtil(fromShapeType).canBind(canBindOpts)

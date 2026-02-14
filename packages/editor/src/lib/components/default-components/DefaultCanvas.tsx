@@ -16,6 +16,7 @@ import { useGestureEvents } from '../../hooks/useGestureEvents'
 import { useHandleEvents } from '../../hooks/useHandleEvents'
 import { useSharedSafeId } from '../../hooks/useSafeId'
 import { useScreenBounds } from '../../hooks/useScreenBounds'
+import { ShapeCullingProvider, useShapeCulling } from '../../hooks/useShapeCulling'
 import { Box } from '../../primitives/Box'
 import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
@@ -428,18 +429,39 @@ function ReflowIfNeeded() {
 	return null
 }
 
+/**
+ * Centralized culling controller that updates shape container visibility.
+ * This single reactor replaces per-shape subscriptions for O(1) instead of O(N) subscriptions.
+ */
+function CullingController() {
+	const editor = useEditor()
+	const { updateCulling } = useShapeCulling()
+
+	useQuickReactor(
+		'update shape culling',
+		() => {
+			const culledShapes = editor.getCulledShapes()
+			updateCulling(culledShapes)
+		},
+		[editor, updateCulling]
+	)
+
+	return null
+}
+
 function ShapesToDisplay() {
 	const editor = useEditor()
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
 	return (
-		<>
+		<ShapeCullingProvider>
 			{renderingShapes.map((result) => (
 				<Shape key={result.id + '_shape'} {...result} />
 			))}
+			<CullingController />
 			{tlenv.isSafari && <ReflowIfNeeded />}
-		</>
+		</ShapeCullingProvider>
 	)
 }
 

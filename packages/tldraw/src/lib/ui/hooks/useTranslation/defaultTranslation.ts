@@ -129,6 +129,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.zoom-to-100': 'Zoom to 100%',
 	'action.zoom-to-fit': 'Zoom to fit',
 	'action.zoom-to-selection': 'Zoom to selection',
+	'action.zoom-quick': 'Quick zoom',
 	'action.select-zoom-tool': 'Zoom',
 	'assets.files.size-too-big': 'File size is too big',
 	'assets.files.maximum-size': 'Maximum file size is {size}',

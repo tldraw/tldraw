@@ -22,14 +22,25 @@
 	--tl-radius-3: 9px;
 	--tl-radius-4: 11px;
 
-	/* Canvas z-index */
+	/*
+	 * Canvas z-index
+	 *
+	 * .tl-canvas has `contain: strict` which creates its own stacking context.
+	 * background, grid, shapes, overlays, and blocker are all children of .tl-canvas,
+	 * so their z-indices are relative to the canvas, not the container.
+	 *
+	 * watermark and canvas-in-front are siblings of .tl-canvas (outside it),
+	 * so they compete with the UI layer (.tlui-layout at z-index 300).
+	 * canvas-in-front must be below the UI layer (300) to sit between
+	 * the canvas and the UI.
+	 */
 	--tl-layer-canvas-hidden: -999999;
 	--tl-layer-canvas-background: 100;
 	--tl-layer-canvas-grid: 150;
 	--tl-layer-watermark: 200;
+	--tl-layer-canvas-in-front: 250;
 	--tl-layer-canvas-shapes: 300;
 	--tl-layer-canvas-overlays: 500;
-	--tl-layer-canvas-in-front: 600;
 	--tl-layer-canvas-blocker: 10000;
 
 	/* Canvas overlays z-index */

@@ -1,0 +1,28 @@
+{
+	"name": "dotcom-tldrawusercontent",
+	"description": "A Cloudflare Worker to upload and serve user assets from tldrawusercontent.com",
+	"version": "0.0.0",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"main": "src/index.ts",
+	"scripts": {
+		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --inspector-port 9450",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
+	},
+	"dependencies": {
+		"@tldraw/worker-shared": "workspace:*",
+		"itty-router": "^5.0.18"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250913.0",
+		"@types/ws": "^8.18.1",
+		"lazyrepo": "0.0.0-alpha.27",
+		"wrangler": "^4.37.1"
+	}
+}

@@ -21,7 +21,7 @@ jobs:
       ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
