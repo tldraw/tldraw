@@ -4481,6 +4481,8 @@ export type TLStoreWithStatus = {
 export interface TLSvgExportOptions {
     background?: boolean;
     bounds?: Box;
+    // @internal
+    _captureVisualOverflow?: boolean;
     darkMode?: boolean;
     padding?: number;
     pixelRatio?: number;

@@ -59,9 +59,13 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	const singleFrameShapeId =
 		ids.length === 1 && editor.isShapeOfType(editor.getShape(ids[0])!, 'frame') ? ids[0] : null
 
-	// Always render with at least the default padding to capture visual overflow
-	// (shapes often render beyond their geometry bounds due to strokes, arrowheads, etc.)
-	const renderPadding = Math.max(padding, editor.options.defaultSvgPadding)
+	// When capturing visual overflow for bitmap exports, render with at least the default
+	// padding so strokes/arrowheads that extend beyond geometry bounds are not clipped.
+	// The extra padding will be trimmed by pixel-scanning after rendering to canvas.
+	const captureOverflow = opts._captureVisualOverflow ?? false
+	const renderPadding = captureOverflow
+		? Math.max(padding, editor.options.defaultSvgPadding)
+		: padding
 
 	let bbox: null | Box = null
 	let paddingWasApplied = true

@@ -56,6 +56,15 @@ export interface TLSvgExportOptions {
 	 * attribute of the SVG element.
 	 */
 	preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
+
+	/**
+	 * @internal
+	 * When true, the SVG will be rendered with extra padding beyond what the user requested
+	 * to capture visual overflow (strokes, arrowheads extending beyond geometry bounds).
+	 * The extra padding is reported as `extraPadding` in the result for later trimming.
+	 * Only set this for bitmap exports where pixel-scanning can trim the extra padding.
+	 */
+	_captureVisualOverflow?: boolean
 }
 
 /** @public */
