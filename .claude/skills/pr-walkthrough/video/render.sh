@@ -26,6 +26,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PUBLIC_DIR="$SCRIPT_DIR/public"
 MANIFEST_DIR="$(dirname "$MANIFEST")"
 
+# Clean public/ to avoid stale assets from previous renders
+rm -rf "$PUBLIC_DIR"
 mkdir -p "$PUBLIC_DIR"
 mkdir -p "$(dirname "$OUTPUT")"
 
@@ -82,6 +84,8 @@ echo "  Rendering..."
 RENDER_OUTPUT="$OUTPUT"
 # Render to a temp file first so we can re-encode for smaller size
 TEMP_RENDER="$(dirname "$OUTPUT")/.render-temp-$$.mp4"
+cleanup_temp() { rm -f "$TEMP_RENDER"; }
+trap cleanup_temp EXIT
 (cd "$SCRIPT_DIR" && npx remotion render Walkthrough "$TEMP_RENDER" \
   --props='{"manifestPath":"manifest.json"}' \
   --log=error)

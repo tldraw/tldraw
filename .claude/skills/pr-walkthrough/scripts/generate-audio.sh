@@ -370,10 +370,17 @@ for i in range(len(slides)):
     num = f"{i:02d}"
     raw_start = cut_points[i]
     # Pad earlier to avoid clipping the first syllable (alignment timestamps
-    # can be slightly late). Don't pad before the previous segment's start.
+    # can be slightly late). Don't pad before the previous segment's *padded* start,
+    # and shorten the previous segment's end to match so clips never overlap.
     prev_start = cut_points[i - 1] if i > 0 else 0.0
     start = max(prev_start, raw_start - SPLIT_PAD) if i > 0 else raw_start
-    end = cut_points[i + 1] if i + 1 < len(cut_points) else end_time
+    raw_end = cut_points[i + 1] if i + 1 < len(cut_points) else end_time
+    # Pull end back by SPLIT_PAD so the next segment's padded start doesn't
+    # overlap with this segment's end.
+    if i + 1 < len(cut_points):
+        end = max(start, raw_end - SPLIT_PAD)
+    else:
+        end = raw_end
     dur = end - start
 
     out_path = os.path.join(output_dir, f"audio-{num}.wav")

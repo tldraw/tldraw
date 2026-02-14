@@ -26,6 +26,8 @@ export function parseDiff(diff: string): DiffLine[] {
 		} else if (raw.startsWith('-')) {
 			lines.push({ type: 'remove', content: raw.slice(1), oldNum })
 			oldNum++
+		} else if (raw.startsWith('\\ ')) {
+			// Skip diff metadata lines like "\ No newline at end of file"
 		} else {
 			const content = raw.startsWith(' ') ? raw.slice(1) : raw
 			if (raw.length > 0) {
