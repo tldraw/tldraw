@@ -78,7 +78,7 @@ const config = {
 		},
 		lint: {
 			execution: 'independent',
-			runsAfter: { 'build-types': {} },
+			runsAfter: { 'build-eslint-plugin': {} },
 			cache: {
 				inputs: {
 					exclude: ['*.tsbuildinfo'],

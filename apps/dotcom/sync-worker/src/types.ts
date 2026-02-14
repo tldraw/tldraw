@@ -61,6 +61,7 @@ export interface Environment {
 	IS_LOCAL: string | undefined
 	WORKER_NAME: string | undefined
 	ASSET_UPLOAD_ORIGIN: string | undefined
+	USER_CONTENT_URL: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined

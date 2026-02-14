@@ -42,7 +42,7 @@ export default function SyncCustomUserExample({ roomId }: { roomId: string }) {
 	// [3]
 	return (
 		<div className="tldraw__editor">
-			<Tldraw store={store} deepLinks />
+			<Tldraw store={store} options={{ deepLinks: true }} />
 		</div>
 	)
 }

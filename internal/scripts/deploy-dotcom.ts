@@ -32,6 +32,10 @@ const imageResize = path.relative(
 	process.cwd(),
 	path.resolve(REPO_ROOT, './apps/dotcom/image-resize-worker')
 )
+const tldrawusercontent = path.relative(
+	process.cwd(),
+	path.resolve(REPO_ROOT, './apps/dotcom/tldrawusercontent-worker')
+)
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
 const zeroCacheFolder = path.relative(
 	process.cwd(),
@@ -84,6 +88,8 @@ const env = makeEnv([
 	'WORKER_SENTRY_DSN',
 	'BOTCOM_POSTGRES_CONNECTION_STRING',
 	'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
+	'USER_CONTENT_SENTRY_DSN',
+	'USER_CONTENT_URL',
 	'DEPLOY_ZERO',
 ])
 
@@ -101,7 +107,7 @@ const clerkJWKSUrl =
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 	shouldNotify: env.TLDRAW_ENV === 'production',
-	totalSteps: previewId ? 9 : 8,
+	totalSteps: previewId ? 10 : 9,
 	messagePrefix: '[DOTCOM]',
 })
 
@@ -111,6 +117,7 @@ if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
 	env.IMAGE_WORKER = `https://${previewId}-images.tldraw.xyz`
+	env.USER_CONTENT_URL = `https://${previewId}-tldrawusercontent.tldraw.workers.dev`
 }
 
 const zeroPushUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/push`
@@ -144,6 +151,7 @@ async function main() {
 		await deployAssetUploadWorker({ dryRun: true })
 		await deployHealthWorker({ dryRun: true })
 		await deployTlsyncWorker({ dryRun: true })
+		await deployTldrawUserContentWorker({ dryRun: true })
 		await deployImageResizeWorker({ dryRun: true })
 	})
 
@@ -157,6 +165,9 @@ async function main() {
 	})
 	await discord.step('deploying multiplayer worker to cloudflare', async () => {
 		await deployTlsyncWorker({ dryRun: false })
+	})
+	await discord.step('deploying tldrawusercontent worker to cloudflare', async () => {
+		await deployTldrawUserContentWorker({ dryRun: false })
 	})
 	await discord.step('deploying image resizer to cloudflare', async () => {
 		await deployImageResizeWorker({ dryRun: false })
@@ -219,9 +230,8 @@ async function prepareDotcomApp() {
 	await exec('yarn', ['build-app'], {
 		env: {
 			NEXT_PUBLIC_TLDRAW_RELEASE_INFO: `${env.RELEASE_COMMIT_HASH} ${new Date().toISOString()}`,
-			ASSET_UPLOAD: env.ASSET_UPLOAD,
-			IMAGE_WORKER: env.IMAGE_WORKER,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
+			USER_CONTENT_URL: env.USER_CONTENT_URL,
 			ZERO_SERVER: getZeroUrl(),
 			NEXT_PUBLIC_GC_API_KEY: env.GC_MAPS_API_KEY,
 			SENTRY_AUTH_TOKEN: env.SENTRY_AUTH_TOKEN,
@@ -253,6 +263,36 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 		},
 		sentry: {
 			project: 'asset-upload-worker',
+			authToken: env.SENTRY_AUTH_TOKEN,
+		},
+	})
+}
+
+let didUpdateTldrawUserContentWorker = false
+async function deployTldrawUserContentWorker({ dryRun }: { dryRun: boolean }) {
+	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldrawusercontent`
+	if (previewId && !didUpdateTldrawUserContentWorker) {
+		await setWranglerPreviewConfig(tldrawusercontent, {
+			name: workerId,
+			serviceBinding: {
+				binding: 'SYNC_WORKER',
+				service: `${previewId}-tldraw-multiplayer`,
+			},
+		})
+		didUpdateTldrawUserContentWorker = true
+	}
+
+	await wranglerDeploy({
+		location: tldrawusercontent,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {
+			SENTRY_DSN: env.USER_CONTENT_SENTRY_DSN,
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			WORKER_NAME: workerId,
+		},
+		sentry: {
+			project: 'tldrawusercontent-worker',
 			authToken: env.SENTRY_AUTH_TOKEN,
 		},
 	})
@@ -295,6 +335,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			TLDRAW_ENV: env.TLDRAW_ENV,
 			PIERRE_KEY: pierreKey,
 			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
+			USER_CONTENT_URL: env.USER_CONTENT_URL,
 			WORKER_NAME: workerId,
 			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
 			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,

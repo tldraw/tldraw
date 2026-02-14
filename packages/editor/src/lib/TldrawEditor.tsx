@@ -164,18 +164,22 @@ export interface TldrawEditorBaseProps {
 
 	/**
 	 * Camera options for the editor.
+	 *
+	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-
-	/**
-	 * Text options for the editor.
-	 */
-	textOptions?: TLTextOptions
 
 	/**
 	 * Options for the editor.
 	 */
 	options?: Partial<TldrawOptions>
+
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 
 	/**
 	 * The license key.
@@ -184,6 +188,8 @@ export interface TldrawEditorBaseProps {
 
 	/**
 	 * Options for syncing the editor's camera state with the URL.
+	 *
+	 * @deprecated Use `options.deepLinks` instead. This prop will be removed in a future release.
 	 */
 	deepLinks?: true | TLDeepLinkOptions
 
@@ -248,6 +254,10 @@ export const TldrawEditor = memo(function TldrawEditor({
 	className,
 	user: _user,
 	options: _options,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
+	textOptions: _textOptions,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
+	deepLinks: _deepLinks,
 	...rest
 }: TldrawEditorProps) {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
@@ -255,6 +265,19 @@ export const TldrawEditor = memo(function TldrawEditor({
 
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
+
+	// Merge deprecated props with options
+	// options values take precedence over the deprecated props
+	const mergedOptions = useMemo(() => {
+		let result = _options
+		if (_textOptions) {
+			result = { ...result, text: result?.text ?? _textOptions }
+		}
+		if (_deepLinks !== undefined) {
+			result = { ...result, deepLinks: result?.deepLinks ?? _deepLinks }
+		}
+		return result
+	}, [_options, _textOptions, _deepLinks])
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
@@ -265,7 +288,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		bindingUtils: rest.bindingUtils ?? EMPTY_BINDING_UTILS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
 		components,
-		options: useShallowObjectIdentity(_options),
+		options: useShallowObjectIdentity(mergedOptions),
 	}
 
 	return (
@@ -397,11 +420,10 @@ function TldrawEditorWithReadyStore({
 	initialState,
 	autoFocus = true,
 	inferDarkMode,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	cameraOptions,
-	textOptions,
 	options,
 	licenseKey,
-	deepLinks: _deepLinks,
 	getShapeVisibility,
 	assetUrls,
 }: Required<
@@ -418,6 +440,7 @@ function TldrawEditorWithReadyStore({
 
 	const canvasRef = useRef<HTMLDivElement | null>(null)
 
+	const _deepLinks = options?.deepLinks
 	const deepLinks = useShallowObjectIdentity(_deepLinks === true ? {} : _deepLinks)
 
 	// props in this ref can be changed without causing the editor to be recreated.
@@ -458,7 +481,6 @@ function TldrawEditorWithReadyStore({
 				autoFocus,
 				inferDarkMode,
 				cameraOptions,
-				textOptions,
 				options,
 				licenseKey,
 				getShapeVisibility,
@@ -497,7 +519,6 @@ function TldrawEditorWithReadyStore({
 			setEditor,
 			licenseKey,
 			getShapeVisibility,
-			textOptions,
 			assetUrls,
 		]
 	)
@@ -510,11 +531,12 @@ function TldrawEditorWithReadyStore({
 	}, [editor, deepLinks])
 
 	// keep the editor up to date with the latest camera options
+	// options.cameraOptions takes precedence over the deprecated cameraOptions prop
 	useLayoutEffect(() => {
-		if (editor && cameraOptions) {
-			editor.setCameraOptions(cameraOptions)
+		if (editor && (cameraOptions || options?.camera)) {
+			editor.setCameraOptions({ ...cameraOptions, ...options?.camera })
 		}
-	}, [editor, cameraOptions])
+	}, [editor, cameraOptions, options?.camera])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(

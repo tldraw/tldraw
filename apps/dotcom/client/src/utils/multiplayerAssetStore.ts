@@ -1,35 +1,46 @@
 import { MediaHelpers, TLAssetStore, clamp, fetch, uniqueId } from 'tldraw'
 import { loadLocalFile } from '../tla/utils/slurping'
-import { ASSET_UPLOADER_URL, IMAGE_WORKER } from './config'
-import { isDevelopmentEnv } from './env'
-// This fixes an issue with vitest importing zero
-// eslint-disable-next-line local/no-internal-imports
-import { APP_ASSET_UPLOAD_ENDPOINT } from '@tldraw/dotcom-shared/src/routes'
+import { USER_CONTENT_URL } from './config'
+import { isDevelopmentEnv, isPreviewEnv } from './env'
 
+// Assets are uploaded to and served from a separate tldrawusercontent worker (USER_CONTENT_URL).
+// Same R2 bucket as before — the worker just adds auth gating and Cloudflare Image Transformations.
+// For app files, a fileId query param triggers server-side write-access validation and DB association.
 async function getUrl(file: File, fileId: string | undefined) {
 	const id = uniqueId()
 
 	const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
+	const url = `${USER_CONTENT_URL}/${objectName}`
 	if (fileId) {
-		const url = `${window.location.origin}${APP_ASSET_UPLOAD_ENDPOINT}${objectName}`
 		return {
 			fetchUrl: `${url}?${new URLSearchParams({ fileId }).toString()}`,
 			src: url,
 		}
 	}
-	const url = `${ASSET_UPLOADER_URL}/uploads/${objectName}`
 	return { fetchUrl: url, src: url }
 }
 
-export function multiplayerAssetStore(getFileId?: () => string) {
+export function multiplayerAssetStore(opts?: {
+	getFileId?(): string
+	getToken?(): Promise<string | undefined>
+}) {
+	const { getFileId, getToken } = opts ?? {}
 	return {
 		upload: async (_asset, file, abortSignal?) => {
 			const fileId = getFileId?.()
 			const { fetchUrl, src } = await getUrl(file, fileId)
+			const headers: Record<string, string> = {}
+			if (fileId && getToken) {
+				const token = await getToken()
+				if (token && token !== 'not-logged-in') {
+					headers['Authorization'] = `Bearer ${token}`
+				}
+			}
 			const response = await fetch(fetchUrl, {
 				method: 'POST',
 				body: file,
 				signal: abortSignal,
+				headers,
 			})
 
 			if (!response.ok) {
@@ -73,19 +84,38 @@ export function multiplayerAssetStore(getFileId?: () => string) {
 			if (MediaHelpers.isAnimatedImageType(asset?.props.mimeType) || asset.props.isAnimated)
 				return asset.props.src
 
-			// Don't try to transform vector images.
-			if (MediaHelpers.isVectorImageType(asset?.props.mimeType)) return asset.props.src
-
 			const url = new URL(asset.props.src)
 
 			// we only transform images that are hosted on domains we control
 			const isTldrawImage =
-				isDevelopmentEnv || /\.tldraw\.(?:com|xyz|dev|workers\.dev)$/.test(url.host)
+				isDevelopmentEnv ||
+				/\.tldraw\.(?:com|xyz|dev|workers\.dev)$/.test(url.host) ||
+				/(?:^|\.)tldrawusercontent\.com$/.test(url.host)
 
 			if (!isTldrawImage) return asset.props.src
 
-			// Assets that are under a certain file size aren't worth transforming (and incurring cost).
-			// We still send them through the image worker to get them optimized though.
+			// Extract the objectName (last path segment)
+			const objectName = url.pathname.split('/').pop()
+			if (!objectName) return asset.props.src
+
+			// /cdn-cgi/image/ is Cloudflare's Image Transformations endpoint:
+			// https://developers.cloudflare.com/images/transform-images/transform-via-url/
+			// Only works with zone-level setup (production/staging). In dev/preview, serve raw file.
+			if (isDevelopmentEnv || isPreviewEnv) {
+				return `${USER_CONTENT_URL}/${objectName}`
+			}
+
+			const isVector = MediaHelpers.isVectorImageType(asset?.props.mimeType)
+
+			// SVGs are routed through cdn-cgi/image for sanitization (strips scripts,
+			// hyperlinks, cross-origin refs) but not resized.
+			// https://developers.cloudflare.com/images/transform-images/
+			if (isVector) {
+				return `${USER_CONTENT_URL}/cdn-cgi/image/format=auto/${objectName}`
+			}
+
+			// Assets that are under a certain file size aren't worth resizing.
+			// We still send them through image optimization for format conversion.
 			const { fileSize = 0 } = asset.props
 			const isWorthResizing = fileSize >= 1024 * 1024 * 1.5
 
@@ -105,10 +135,10 @@ export function multiplayerAssetStore(getFileId?: () => string) {
 					)
 				)
 
-				url.searchParams.set('w', width.toString())
+				return `${USER_CONTENT_URL}/cdn-cgi/image/w=${width},format=auto/${objectName}`
 			}
 
-			return `${IMAGE_WORKER}/${url.host}/${url.toString().slice(url.origin.length + 1)}`
+			return `${USER_CONTENT_URL}/cdn-cgi/image/format=auto/${objectName}`
 		},
 	} satisfies TLAssetStore
 }

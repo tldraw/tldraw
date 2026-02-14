@@ -35,17 +35,31 @@ export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T
 
 /**
  * Options passed to {@link ShapeUtil.canBind}. A binding that could be made. At least one of
- * `fromShapeType` or `toShapeType` will belong to this shape util.
+ * `fromShape` or `toShape` will belong to this shape util.
+ *
+ * The shapes may be full {@link @tldraw/tlschema#TLShape} objects when available, or just
+ * `{ type }` stubs when the shape hasn't been created yet (e.g. during arrow creation). Use
+ * `'id' in shape` to check whether the full shape is available.
  *
  * @public
  */
 export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
-	/** The type of shape referenced by the `fromId` of the binding. */
-	fromShapeType: TLShape['type']
-	/** The type of shape referenced by the `toId` of the binding. */
-	toShapeType: TLShape['type']
+	/** The shape referenced by the `fromId` of the binding, or a `{ type }` stub if unavailable. */
+	fromShape: TLShape | { type: TLShape['type'] }
+	/** The shape referenced by the `toId` of the binding, or a `{ type }` stub if unavailable. */
+	toShape: TLShape | { type: TLShape['type'] }
 	/** The type of binding. */
 	bindingType: string
+	/**
+	 * The type of shape referenced by the `fromId` of the binding.
+	 * @deprecated Use `fromShape.type` instead.
+	 */
+	fromShapeType: TLShape['type']
+	/**
+	 * The type of shape referenced by the `toId` of the binding.
+	 * @deprecated Use `toShape.type` instead.
+	 */
+	toShapeType: TLShape['type']
 }
 
 /**

@@ -19,7 +19,7 @@ import {
 	notFound,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { cors, json } from 'itty-router'
+import { IRequest, cors, json } from 'itty-router'
 import {
 	PostgresJSConnection,
 	PushProcessor,
@@ -226,6 +226,59 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			}
 			throw err
 		})
+	}
+
+	// RPC methods — only callable by workers with a service binding, not from the public internet.
+
+	// Validates auth + file write access before the upload is written to R2.
+	async validateUpload(
+		fileId: string,
+		authorizationHeader: string | null
+	): Promise<{ ok: true; userId: string | null } | { ok: false; error: string }> {
+		const db = createPostgresConnectionPool(this.env, 'sync-worker')
+		try {
+			const file = await db
+				.selectFrom('file')
+				.where('id', '=', fileId)
+				.select(['ownerId', 'owningGroupId', 'shared', 'sharedLinkType'])
+				.executeTakeFirst()
+			if (!file) return { ok: false, error: 'File not found' }
+
+			let userId: string | null = null
+			if (authorizationHeader) {
+				const fakeReq = new Request('https://internal', {
+					headers: { Authorization: authorizationHeader },
+				}) as unknown as IRequest
+				const auth = await getAuth(fakeReq, this.env)
+				userId = auth?.userId ?? null
+			}
+
+			const isSharedEdit = file.shared && file.sharedLinkType === 'edit'
+			if (userId && file.ownerId === userId) {
+				// owner
+			} else if (isSharedEdit) {
+				// shared for editing
+			} else if (userId && file.owningGroupId) {
+				const member = await db
+					.selectFrom('group_user')
+					.select('role')
+					.where('groupId', '=', file.owningGroupId)
+					.where('userId', '=', userId)
+					.executeTakeFirst()
+				if (!member) return { ok: false, error: 'Forbidden' }
+			} else {
+				return { ok: false, error: 'Forbidden' }
+			}
+
+			return { ok: true, userId }
+		} finally {
+			await db.destroy()
+		}
+	}
+
+	// Queues the DB association after a successful R2 upload.
+	async confirmUpload(objectName: string, fileId: string, userId: string | null): Promise<void> {
+		await this.env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId })
 	}
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {

@@ -132,6 +132,8 @@ const textOptions: Partial<TLTextOptions> = {
 	},
 }
 
+const options = { text: textOptions }
+
 export default function RichTextFontExtensionExample() {
 	const fontFaces = Object.values(extensionFontFamilies)
 		.map((fontFamily) => Object.values(fontFamily))
@@ -153,7 +155,7 @@ export default function RichTextFontExtensionExample() {
 			<Tldraw
 				persistenceKey="rich-text-font-extension"
 				components={components}
-				textOptions={textOptions}
+				options={options}
 				// If you want to override one of the custom fonts,
 				// you can do so by providing an assetUrls prop.
 				assetUrls={{
