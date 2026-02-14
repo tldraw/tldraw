@@ -70,7 +70,7 @@ export async function exportToSvg(
 		// apply any styles directly to the elements themselves.
 		await applyChangesToForeignObjects(svg)
 
-		return { svg, width: result.width, height: result.height }
+		return { svg, width: result.width, height: result.height, extraPadding: result.extraPadding }
 	} finally {
 		// eslint-disable-next-line no-restricted-globals
 		setTimeout(() => {

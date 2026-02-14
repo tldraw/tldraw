@@ -110,7 +110,7 @@ import {
 	STYLUS_ERASER_BUTTON,
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
-import { getSvgAsImage } from '../exports/getSvgAsImage'
+import { getSvgAsImageWithOptions } from '../exports/getSvgAsImage'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
@@ -9679,6 +9679,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			svg: serializer.serializeToString(result.svg),
 			width: result.width,
 			height: result.height,
+			extraPadding: result.extraPadding,
 		}
 	}
 
@@ -9711,21 +9712,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 			case 'jpeg':
 			case 'png':
 			case 'webp': {
-				const blob = await getSvgAsImage(result.svg, {
+				const imageResult = await getSvgAsImageWithOptions(result.svg, {
 					type: withDefaults.format,
 					quality: withDefaults.quality,
 					pixelRatio: withDefaults.pixelRatio,
 					width: result.width,
 					height: result.height,
+					extraPadding: result.extraPadding,
+					scale: withDefaults.scale,
 				})
-				if (!blob) {
+				if (!imageResult) {
 					throw new Error('Could not construct image.')
 				}
-				return {
-					blob,
-					width: result.width,
-					height: result.height,
-				}
+				return imageResult
 			}
 			default: {
 				exhaustiveSwitchError(withDefaults.format)

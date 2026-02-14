@@ -59,15 +59,31 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	const singleFrameShapeId =
 		ids.length === 1 && editor.isShapeOfType(editor.getShape(ids[0])!, 'frame') ? ids[0] : null
 
+	// Always render with at least the default padding to capture visual overflow
+	// (shapes often render beyond their geometry bounds due to strokes, arrowheads, etc.)
+	const renderPadding = Math.max(padding, editor.options.defaultSvgPadding)
+
 	let bbox: null | Box = null
+	let paddingWasApplied = true
 	if (opts.bounds) {
-		bbox = opts.bounds.clone().expandBy(padding)
+		bbox = opts.bounds.clone().expandBy(renderPadding)
 	} else {
-		bbox = getExportDefaultBounds(editor, renderingShapes, padding, singleFrameShapeId)
+		const result = getExportDefaultBounds(
+			editor,
+			renderingShapes,
+			renderPadding,
+			singleFrameShapeId
+		)
+		bbox = result.box
+		paddingWasApplied = result.paddingApplied
 	}
 
 	// no unmasked shapes to export
 	if (!bbox) return
+
+	// Extra padding beyond what the user requested (for capturing visual overflow).
+	// This will be trimmed after rendering based on actual pixel content.
+	const extraPadding = paddingWasApplied ? renderPadding - padding : 0
 
 	// We want the svg image to be BIGGER THAN USUAL to account for image quality
 	const w = bbox.width * scale
@@ -102,7 +118,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		</SvgExport>
 	)
 
-	return { jsx: svg, width: w, height: h, exportDelay }
+	return { jsx: svg, width: w, height: h, exportDelay, extraPadding }
 }
 
 /**
@@ -126,7 +142,7 @@ export function getExportDefaultBounds(
 	renderingShapes: TLRenderingShape[],
 	padding: number,
 	singleFrameShapeId: TLShapeId | null
-) {
+): { box: Box; paddingApplied: boolean } | { box: null; paddingApplied: false } {
 	let isBoundedByContainer = false
 	let bbox: null | Box = null
 
@@ -162,16 +178,17 @@ export function getExportDefaultBounds(
 	}
 
 	// No unmasked shapes to export
-	if (!bbox) return null
+	if (!bbox) return { box: null, paddingApplied: false }
 
 	// Only apply padding if:
 	// - Not exporting a single frame (frames have their own padding rules)
 	// - Not bounded by a container (containers define their own bounds precisely)
-	if (!singleFrameShapeId && !isBoundedByContainer) {
+	const paddingApplied = !singleFrameShapeId && !isBoundedByContainer
+	if (paddingApplied) {
 		bbox.expandBy(padding)
 	}
 
-	return bbox
+	return { box: bbox, paddingApplied }
 }
 
 function SvgExport({

@@ -1320,11 +1320,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
+        extraPadding: number;
         height: number;
         svg: SVGSVGElement;
         width: number;
     } | undefined>;
     getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
+        extraPadding: number;
         height: number;
         svg: string;
         width: number;
