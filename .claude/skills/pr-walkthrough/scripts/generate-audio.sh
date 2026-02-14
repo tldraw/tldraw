@@ -71,7 +71,7 @@ SPEED=1.2  # Speed up narration (1.0 = no change)
 
 # --- Run everything in Python for reliability ---
 "$PYTHON" - "$SCRIPT_JSON" "$OUTPUT_DIR" "$GEMINI_API_KEY" "$TTS_MODEL" "$TTS_ENDPOINT" "$SPEED" "$ALIGN_ENDPOINT" "$UPLOAD_ENDPOINT" "$FILES_ENDPOINT" <<'PYTHON_SCRIPT'
-import json, sys, os, subprocess, base64, time, urllib.request, re
+import json, sys, os, subprocess, base64, time, urllib.request, re, atexit
 
 script_json = sys.argv[1]
 output_dir = sys.argv[2]
@@ -264,6 +264,18 @@ file_name = upload_response["file"]["name"]  # e.g. "files/abc123"
 file_id = file_name.split("/")[-1] if "/" in file_name else file_name
 print(f"  [upload] Done: {file_name}")
 
+# Register cleanup so the remote file is deleted even on early exit
+def _cleanup_uploaded_file():
+    try:
+        req = urllib.request.Request(
+            f"{files_endpoint}/{file_id}?key={api_key}",
+            method="DELETE",
+        )
+        urllib.request.urlopen(req)
+    except Exception:
+        pass
+atexit.register(_cleanup_uploaded_file)
+
 # Wait for file to be processed
 for attempt in range(30):
     status_req = urllib.request.Request(
@@ -418,15 +430,23 @@ for i in range(len(slides)):
             if leading_silence > MAX_SILENCE:
                 trim_start = leading_silence - MAX_SILENCE
 
-    # Find trailing silence: silence that ends at ~clip_dur
+    # Find trailing silence: silence that starts near the end and extends to clip end.
     # Skip trailing trim on last segment — it's followed by the outro and
     # the silence detector often clips the final word.
     trim_end = clip_dur
     is_last = (i == len(slides) - 1)
     if not is_last and silence_starts:
         last_silence_start = float(silence_starts[-1])
-        # Check if this silence extends to end of clip
-        if last_silence_start > 0.05:  # not the leading silence
+        # Verify this silence actually extends to the clip end (not an internal pause).
+        # If there's a corresponding silence_end after last_silence_start that is before
+        # clip_dur, this is an internal pause — skip it.
+        last_silence_is_trailing = True
+        for se in silence_ends:
+            se_val = float(se)
+            if se_val > last_silence_start and se_val < clip_dur - 0.05:
+                last_silence_is_trailing = False
+                break
+        if last_silence_is_trailing and last_silence_start > 0.05:  # not the leading silence
             trailing_silence = clip_dur - last_silence_start
             if trailing_silence > MAX_SILENCE:
                 trim_end = last_silence_start + MAX_SILENCE
@@ -450,16 +470,6 @@ durations_path = os.path.join(output_dir, "durations.json")
 with open(durations_path, "w") as f:
     json.dump(durations, f, indent=2)
 print(f"\n  Wrote durations.json ({len(durations)} entries)")
-
-# --- Clean up uploaded file ---
-try:
-    delete_req = urllib.request.Request(
-        f"{files_endpoint}/{file_id}?key={api_key}",
-        method="DELETE",
-    )
-    urllib.request.urlopen(delete_req)
-except Exception:
-    pass  # best-effort cleanup
 
 print()
 print("=== Done ===")

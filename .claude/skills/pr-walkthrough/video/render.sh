@@ -54,6 +54,7 @@ print('\n'.join(sorted(files)))
 for FILE in $REFERENCED_FILES; do
   SRC="$MANIFEST_DIR/$FILE"
   if [ -f "$SRC" ]; then
+    mkdir -p "$(dirname "$PUBLIC_DIR/$FILE")"
     cp "$SRC" "$PUBLIC_DIR/$FILE"
     echo "  Copied: $FILE"
   else
