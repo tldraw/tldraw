@@ -127,4 +127,9 @@ license-report.md
 opencode.json
 
 # PR walkthrough intermediate files
-pr-walkthrough/tmp
+.claude/skills/pr-walkthrough/tmp
+.claude/skills/pr-walkthrough/out
+.claude/skills/pr-walkthrough/video/node_modules
+.claude/skills/pr-walkthrough/video/dist
+.claude/skills/pr-walkthrough/video/public/audio-*
+.claude/skills/pr-walkthrough/video/public/manifest.json
