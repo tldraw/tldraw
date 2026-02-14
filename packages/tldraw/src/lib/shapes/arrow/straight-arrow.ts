@@ -6,6 +6,7 @@ import {
 	MIN_ARROW_LENGTH,
 	STROKE_SIZES,
 	TLArrowBindings,
+	clampArrowTerminalToMask,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
 	getBoundShapeRelationships,
@@ -65,6 +66,16 @@ export function getStraightArrowInfo(
 	updateArrowheadPointWithBoundShape(
 		a, // <-- will be mutated
 		terminalsInArrowSpace.end,
+		arrowPageTransform,
+		startShapeInfo
+	)
+
+	// Clamp terminals to mask boundaries if the bound shape is clipped (e.g. by a frame)
+	clampArrowTerminalToMask(editor, b, terminalsInArrowSpace.end, arrowPageTransform, endShapeInfo)
+	clampArrowTerminalToMask(
+		editor,
+		a,
+		terminalsInArrowSpace.start,
 		arrowPageTransform,
 		startShapeInfo
 	)

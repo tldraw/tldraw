@@ -18,6 +18,7 @@ import {
 	STROKE_SIZES,
 	TLArrowBindings,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
+	clampArrowTerminalToMask,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
 	getBoundShapeRelationships,
@@ -265,6 +266,10 @@ export function getCurvedArrowInfo(
 			}
 		}
 	}
+
+	// Clamp terminals to mask boundaries if the bound shape is clipped (e.g. by a frame)
+	clampArrowTerminalToMask(editor, tempA, a, arrowPageTransform, startShapeInfo)
+	clampArrowTerminalToMask(editor, tempB, b, arrowPageTransform, endShapeInfo)
 
 	// Apply arrowhead offsets
 
