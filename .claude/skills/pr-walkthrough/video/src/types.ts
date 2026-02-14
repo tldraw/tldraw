@@ -58,29 +58,6 @@ export interface ImageSlide {
 	durationInSeconds: number
 }
 
-export interface CameraFocusPoint {
-	/** X position to center on */
-	x: number
-	/** Y position to center on */
-	y: number
-	/** Zoom level (1 = 100%) */
-	z: number
-	/** When to arrive at this position, as a fraction of slide duration (0–1) */
-	at: number
-}
-
-export interface TldrawSlide {
-	type: 'tldraw'
-	/** TLStoreSnapshot JSON to load into the editor */
-	snapshot: unknown
-	/** Camera animation keyframes. If omitted, uses the camera from the snapshot. */
-	camera?: CameraFocusPoint[]
-	/** Whether to show the UI chrome (default: false) */
-	showUi?: boolean
-	audio: string
-	durationInSeconds: number
-}
-
 export interface SegmentSlide {
 	type: 'segment'
 	title: string
@@ -99,7 +76,6 @@ export type Slide =
 	| TextSlide
 	| ListSlide
 	| ImageSlide
-	| TldrawSlide
 	| SegmentSlide
 	| OutroSlide
 

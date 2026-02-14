@@ -7,7 +7,6 @@ import { ListSlide } from './slides/ListSlide'
 import { OutroSlide } from './slides/OutroSlide'
 import { SegmentSlide } from './slides/SegmentSlide'
 import { TextSlide } from './slides/TextSlide'
-import { TldrawSlide } from './slides/TldrawSlide'
 import { FPS } from './styles'
 import type { Manifest, Slide } from './types'
 
@@ -25,8 +24,6 @@ function renderSlide(slide: Slide) {
 			return <ListSlide slide={slide} />
 		case 'image':
 			return <ImageSlide src={slide.src} />
-		case 'tldraw':
-			return <TldrawSlide slide={slide} />
 		case 'segment':
 			return <SegmentSlide slide={slide} />
 		case 'outro':

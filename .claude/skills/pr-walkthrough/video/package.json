@@ -11,8 +11,7 @@
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"remotion": "4.0.301",
-		"shiki": "^3.2.1",
-		"tldraw": "npm:@tldraw/tldraw@canary"
+		"shiki": "^3.2.1"
 	},
 	"devDependencies": {
 		"@types/react": "^18.3.1",

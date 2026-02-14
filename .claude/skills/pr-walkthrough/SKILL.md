@@ -163,33 +163,8 @@ Read the `durations.json` from step 3 to get the duration (in seconds) for each 
 | `text`    | `title`, `audio`, `durationInSeconds`                        | Title + optional `subtitle`        |
 | `list`    | `title`, `items`, `audio`, `durationInSeconds`               | Title + numbered items             |
 | `image`   | `src`, `audio`, `durationInSeconds`                          | Pre-rendered image (fallback)      |
-| `tldraw`  | `snapshot`, `audio`, `durationInSeconds`                     | Live tldraw canvas with shapes     |
 | `segment` | `title`, `durationInSeconds`                                 | Silent title card between segments |
 | `outro`   | `durationInSeconds`                                          | Logo only, no audio                |
-
-#### Tldraw canvas slides
-
-For PRs that affect visual behavior, you can show the actual tldraw canvas with shapes loaded from a snapshot. The editor renders in read-only mode with the UI hidden by default.
-
-```json
-{
-	"type": "tldraw",
-	"snapshot": { "store": { ... } },
-	"camera": [
-		{ "x": 0, "y": 0, "z": 1, "at": 0 },
-		{ "x": 500, "y": 200, "z": 1.5, "at": 0.5 },
-		{ "x": 1000, "y": 0, "z": 1, "at": 1 }
-	],
-	"audio": "audio-03.wav",
-	"durationInSeconds": 20
-}
-```
-
-- **`snapshot`** — A `TLStoreSnapshot` object (the JSON from `editor.store.getStoreSnapshot()`). To capture one: load the feature in tldraw, set up the shapes you want to show, then grab the snapshot from the browser console or programmatically.
-- **`camera`** — Optional array of camera keyframes. Each has `x`, `y` (canvas coordinates to center on) and `z` (zoom level, 1 = 100%). The `at` field is a fraction of slide duration (0–1). The camera interpolates smoothly between points. If omitted, uses the camera position from the snapshot.
-- **`showUi`** — Optional boolean (default `false`). Set to `true` to show the tldraw toolbar/panels.
-
-**When to use:** Demonstrating arrow binding behavior, showing how shapes interact, before/after visual comparisons, or any PR where the visual canvas result is the point.
 
 #### Animated scroll with `focus`
 
