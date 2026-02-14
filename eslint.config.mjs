@@ -96,7 +96,7 @@ export default [
 			sourceType: 'script',
 
 			parserOptions: {
-				project: true,
+				projectService: true,
 			},
 		},
 
