@@ -358,16 +358,18 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		ctx.addExportDef({
 			key: filterId,
 			getElement: () => (
-				<filter id={filterId} x="-10%" y="-10%" width="140%" height="140%">
-					<feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur1" />
-					<feOffset in="blur1" dy="2" result="offsetBlur1" />
+				<filter id={filterId} x="-10%" y="-10%" width="130%" height="150%">
+					<feMorphology in="SourceAlpha" operator="erode" radius="3" result="erode1" />
+					<feGaussianBlur in="erode1" stdDeviation="3" result="blur1" />
+					<feOffset in="blur1" dy="3" result="offsetBlur1" />
 					<feComponentTransfer in="offsetBlur1" result="shadow1">
-						<feFuncA type="linear" slope="0.24" />
+						<feFuncA type="linear" slope="0.5" />
 					</feComponentTransfer>
-					<feGaussianBlur in="SourceAlpha" stdDeviation="6" result="blur2" />
-					<feOffset in="blur2" dy="4" result="offsetBlur2" />
+					<feMorphology in="SourceAlpha" operator="erode" radius="10" result="erode2" />
+					<feGaussianBlur in="erode2" stdDeviation="6" result="blur2" />
+					<feOffset in="blur2" dy="6" result="offsetBlur2" />
 					<feComponentTransfer in="offsetBlur2" result="shadow2">
-						<feFuncA type="linear" slope="0.15" />
+						<feFuncA type="linear" slope="0.5" />
 					</feComponentTransfer>
 					<feMerge>
 						<feMergeNode in="shadow1" />
