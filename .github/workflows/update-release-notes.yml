@@ -75,8 +75,20 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         run: |
           gh pr create \
-            --title "Update release notes" \
-            --body "Automated release notes update using Claude Code." \
+            --title "docs: update release notes" \
+            --body "$(cat <<'EOF'
+          In order to keep the release notes up to date, this PR adds entries for PRs merged since the last update.
+
+          ### Change type
+
+          - [x] `other`
+
+          ### Test plan
+
+          - [ ] Unit tests
+          - [ ] End to end tests
+          EOF
+          )" \
             --base main \
             --head "${{ steps.branch.outputs.branch_name }}"
         env:
