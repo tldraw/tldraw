@@ -9695,7 +9695,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const withDefaults = {
 			format: 'png',
 			scale: 1,
-			pixelRatio: opts.format === 'svg' ? undefined : 2,
+			pixelRatio: opts.format === 'svg' ? undefined : 1,
 			...opts,
 		} satisfies TLImageExportOptions
 		const result = await this.getSvgString(shapes, withDefaults)

@@ -29,7 +29,7 @@ export interface TLSvgExportOptions {
 	 * by this number.
 	 *
 	 * For SVG exports, this defaults to undefined - which means we'll request original-quality
-	 * assets. For bitmap exports, this defaults to 2.
+	 * assets. For bitmap exports, this defaults to 1.
 	 */
 	pixelRatio?: number
 

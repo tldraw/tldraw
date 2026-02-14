@@ -14,7 +14,7 @@ export async function getSvgAsImage(
 		pixelRatio?: number
 	}
 ) {
-	const { type, width, height, quality = 1, pixelRatio = 2 } = options
+	const { type, width, height, quality = 1, pixelRatio = 1 } = options
 
 	let [clampedWidth, clampedHeight] = clampToBrowserMaxCanvasSize(
 		width * pixelRatio,
