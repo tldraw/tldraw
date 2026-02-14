@@ -96,7 +96,7 @@ Write a `narration.json` file, then run the `generate-audio.sh` CLI tool:
 
 **Do NOT use** `[pause long]` or `[pause medium]` markup tags in the narration text — the model may read them aloud literally.
 
-**TTS truncation:** If `generate-audio.sh` fails because the TTS output was truncated (zero-length clips at the end), **do not shorten the narration**. Instead, reduce `MAX_WORDS_PER_CHUNK` in the script (e.g., from 800 to 500) so the narration is split across more TTS API calls. The script already supports multi-chunk generation — it generates each chunk separately and concatenates the results. The fix is always to split into more chunks, never to cut content from the script.
+**TTS truncation:** If `generate-audio.sh` fails because the TTS output was truncated (zero-length clips at the end), **do not shorten the narration**. Instead, reduce `MAX_WORDS_PER_CHUNK` in the script (e.g., from 600 to 400) so the narration is split across more TTS API calls. The script already supports multi-chunk generation — it generates each chunk separately and concatenates the results. The fix is always to split into more chunks, never to cut content from the script.
 
 ### Step 4: Write the manifest
 
@@ -252,13 +252,11 @@ The script copies manifest + audio files into the Remotion project's `public/` d
 
 ## File organization
 
-Final output lives in `.claude/skills/pr-walkthrough/`. Shared assets live in `.claude/skills/pr-walkthrough/assets/`. All intermediate files go in `.claude/skills/pr-walkthrough/tmp/` (gitignored):
+Final output lives in `.claude/skills/pr-walkthrough/`. All intermediate files go in `.claude/skills/pr-walkthrough/tmp/` (gitignored):
 
 ```
 .claude/skills/pr-walkthrough/
 ├── SKILL.md                    # This file
-├── assets/                     # Shared assets (checked in)
-│   └── tldraw.svg              # Logo for slides
 ├── scripts/                    # CLI tools (checked in)
 │   └── generate-audio.sh       # narration.json → per-slide WAVs + durations.json
 ├── video/                      # Remotion project (checked in)
