@@ -1,5 +1,5 @@
 import { LoadingScreen } from '../../TldrawEditor'
-import { useEditorComponents } from '../../hooks/useEditorComponents'
+import { useEditorComponents } from '../../hooks/EditorComponentsContext'
 
 /** @public @react */
 export const DefaultLoadingScreen = () => {

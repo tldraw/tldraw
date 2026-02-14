@@ -1,8 +1,12 @@
 import { _Atom } from './Atom'
-import { EffectScheduler } from './EffectScheduler'
 import { GLOBAL_START_EPOCH } from './constants'
 import { singleton } from './helpers'
 import { Child, Signal } from './types'
+
+interface Reactor {
+	maybeScheduleEffect(): void
+	lastTraversedEpoch: number
+}
 
 class Transaction {
 	asyncProcessCount = 0
@@ -74,7 +78,7 @@ const inst = singleton('transactions', () => ({
 	globalIsReacting: false,
 	currentTransaction: null as Transaction | null,
 
-	cleanupReactors: null as null | Set<EffectScheduler<unknown>>,
+	cleanupReactors: null as null | Set<Reactor>,
 	reactionEpoch: GLOBAL_START_EPOCH + 1,
 }))
 
@@ -112,7 +116,7 @@ export function getIsReacting() {
 }
 
 // Reusable state for traverse to avoid closure allocation
-let traverseReactors: Set<EffectScheduler<unknown>>
+let traverseReactors: Set<Reactor>
 
 function traverseChild(child: Child) {
 	if (child.lastTraversedEpoch === inst.globalEpoch) {
@@ -121,14 +125,14 @@ function traverseChild(child: Child) {
 
 	child.lastTraversedEpoch = inst.globalEpoch
 
-	if (child instanceof EffectScheduler) {
-		traverseReactors.add(child)
+	if ('__isEffectScheduler' in child) {
+		traverseReactors.add(child as unknown as Reactor)
 	} else {
 		;(child as any as Signal<any>).children.visit(traverseChild)
 	}
 }
 
-function traverse(reactors: Set<EffectScheduler<unknown>>, child: Child) {
+function traverse(reactors: Set<Reactor>, child: Child) {
 	traverseReactors = reactors
 	traverseChild(child)
 }
@@ -151,7 +155,7 @@ function flushChanges(atoms: Iterable<_Atom>) {
 		inst.reactionEpoch = inst.globalEpoch
 
 		// Collect all of the visited reactors.
-		const reactors = new Set<EffectScheduler<unknown>>()
+		const reactors = new Set<Reactor>()
 
 		for (const atom of atoms) {
 			atom.children.visit((child) => traverse(reactors, child))

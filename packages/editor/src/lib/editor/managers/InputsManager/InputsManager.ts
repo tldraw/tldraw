@@ -4,7 +4,7 @@ import { TLINSTANCE_ID, TLPOINTER_ID } from '@tldraw/tlschema'
 import { INTERNAL_POINTER_IDS } from '../../../constants'
 import { Vec } from '../../../primitives/Vec'
 import { isAccelKey } from '../../../utils/keyboard'
-import { Editor } from '../../Editor'
+import type { Editor } from '../../Editor'
 import { TLPinchEventInfo, TLPointerEventInfo, TLWheelEventInfo } from '../../types/event-types'
 
 /** @public */
