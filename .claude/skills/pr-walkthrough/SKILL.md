@@ -96,6 +96,8 @@ Write a `narration.json` file, then run the `generate-audio.sh` CLI tool:
 
 **Do NOT use** `[pause long]` or `[pause medium]` markup tags in the narration text — the model may read them aloud literally.
 
+**TTS truncation:** If `generate-audio.sh` fails because the TTS output was truncated (zero-length clips at the end), **do not shorten the narration**. Instead, reduce `MAX_WORDS_PER_CHUNK` in the script (e.g., from 800 to 500) so the narration is split across more TTS API calls. The script already supports multi-chunk generation — it generates each chunk separately and concatenates the results. The fix is always to split into more chunks, never to cut content from the script.
+
 ### Step 4: Write the manifest
 
 The manifest is a JSON file that describes every slide in the video. It bridges the narration/audio step and the Remotion renderer.
@@ -153,16 +155,17 @@ Read the `durations.json` from step 3 to get the duration (in seconds) for each 
 
 #### Slide types
 
-| Type     | Required fields                                              | Description                     |
-| -------- | ------------------------------------------------------------ | ------------------------------- |
-| `intro`  | `title`, `date`, `audio`, `durationInSeconds`                | Logo + title + date             |
-| `diff`   | `filename`, `language`, `diff`, `audio`, `durationInSeconds` | Syntax-highlighted unified diff |
-| `code`   | `filename`, `language`, `code`, `audio`, `durationInSeconds` | Syntax-highlighted source code  |
-| `text`   | `title`, `audio`, `durationInSeconds`                        | Title + optional `subtitle`     |
-| `list`   | `title`, `items`, `audio`, `durationInSeconds`               | Title + numbered items          |
-| `image`  | `src`, `audio`, `durationInSeconds`                          | Pre-rendered image (fallback)   |
-| `tldraw` | `snapshot`, `audio`, `durationInSeconds`                     | Live tldraw canvas with shapes  |
-| `outro`  | `durationInSeconds`                                          | Logo only, no audio             |
+| Type      | Required fields                                              | Description                        |
+| --------- | ------------------------------------------------------------ | ---------------------------------- |
+| `intro`   | `title`, `date`, `audio`, `durationInSeconds`                | Logo + title + date                |
+| `diff`    | `filename`, `language`, `diff`, `audio`, `durationInSeconds` | Syntax-highlighted unified diff    |
+| `code`    | `filename`, `language`, `code`, `audio`, `durationInSeconds` | Syntax-highlighted source code     |
+| `text`    | `title`, `audio`, `durationInSeconds`                        | Title + optional `subtitle`        |
+| `list`    | `title`, `items`, `audio`, `durationInSeconds`               | Title + numbered items             |
+| `image`   | `src`, `audio`, `durationInSeconds`                          | Pre-rendered image (fallback)      |
+| `tldraw`  | `snapshot`, `audio`, `durationInSeconds`                     | Live tldraw canvas with shapes     |
+| `segment` | `title`, `durationInSeconds`                                 | Silent title card between segments |
+| `outro`   | `durationInSeconds`                                          | Logo only, no audio                |
 
 #### Tldraw canvas slides
 
@@ -230,6 +233,33 @@ git diff main..HEAD -- path/to/file.ts
 Include only the relevant hunks, not the entire file diff. Strip the `diff --git` and `---`/`+++` header lines — start from the `@@` hunk header.
 
 For `code` slides, paste the relevant source code (a function, a class, a section). No diff prefixes needed.
+
+#### Segment title slides
+
+Insert a **`segment` slide** before each content segment to introduce it — except before the intro and context/overview segments. This includes code walkthrough segments and the summary/conclusion. Each segment slide is **3 seconds of silence** with the segment title centered on screen.
+
+```json
+{
+	"type": "segment",
+	"title": "Zoom state machine",
+	"durationInSeconds": 3
+}
+```
+
+These provide clear visual breaks between sections and give the viewer a moment to orient before each new topic.
+
+#### Segment title labels on code/diff slides
+
+Add a `title` field to `code` and `diff` slides to show a small label in the top-left corner identifying which segment the viewer is in. Use the same title as the preceding `segment` slide. This helps orient viewers, especially when a segment spans multiple slides.
+
+```json
+{
+	"type": "diff",
+	"title": "Zoom state machine",
+	"filename": "packages/editor/src/lib/ZoomTool.ts",
+	...
+}
+```
 
 ### Step 5: Render the video
 

@@ -81,6 +81,12 @@ export interface TldrawSlide {
 	durationInSeconds: number
 }
 
+export interface SegmentSlide {
+	type: 'segment'
+	title: string
+	durationInSeconds: number
+}
+
 export interface OutroSlide {
 	type: 'outro'
 	durationInSeconds: number
@@ -94,6 +100,7 @@ export type Slide =
 	| ListSlide
 	| ImageSlide
 	| TldrawSlide
+	| SegmentSlide
 	| OutroSlide
 
 export interface Manifest {

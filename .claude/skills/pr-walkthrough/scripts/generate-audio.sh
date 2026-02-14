@@ -104,64 +104,120 @@ style = data.get("style",
     "Read the following in a calm, steady, professional tone. "
     "Speak at a measured pace. Between each numbered section, pause briefly.")
 
+word_count = sum(len(s.split()) for s in slides)
 print(f"=== Generating narration audio ===")
 print(f"  Voice: {voice}")
 print(f"  Slides: {len(slides)}")
+print(f"  Words: {word_count}")
 
-# --- Build prompt ---
-parts = [style, ""]
-for i, text in enumerate(slides):
-    parts.append(f"[{i + 1}]")
-    parts.append(text)
-    parts.append("")
-prompt = "\n".join(parts)
+# --- Chunking ---
+# The Gemini TTS model has a max output audio duration. At ~150 wpm, 800 words
+# produces ~5.3 min of speech which is safely within the limit. For longer
+# narrations, we split into chunks, generate audio per chunk, then concatenate.
+MAX_WORDS_PER_CHUNK = 800
 
-# --- Call TTS API ---
-print(f"  [tts] Calling {tts_model}...")
-try:
-    response = api_call(tts_endpoint, {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "responseModalities": ["AUDIO"],
-            "speechConfig": {
-                "voiceConfig": {
-                    "prebuiltVoiceConfig": {
-                        "voiceName": voice
+def build_prompt(segment_texts, start_index):
+    """Build a TTS prompt for a subset of segments."""
+    parts = [style, ""]
+    for j, text in enumerate(segment_texts):
+        parts.append(f"[{start_index + j + 1}]")
+        parts.append(text)
+        parts.append("")
+    return "\n".join(parts)
+
+def call_tts(prompt_text, label=""):
+    """Make a single TTS API call and return raw PCM bytes."""
+    print(f"  [tts] Calling {tts_model}{label}...")
+    try:
+        response = api_call(tts_endpoint, {
+            "contents": [{"parts": [{"text": prompt_text}]}],
+            "generationConfig": {
+                "responseModalities": ["AUDIO"],
+                "speechConfig": {
+                    "voiceConfig": {
+                        "prebuiltVoiceConfig": {
+                            "voiceName": voice
+                        }
                     }
                 }
             }
-        }
-    })
-except urllib.error.HTTPError as e:
-    error_body = e.read().decode()
-    print(f"  [error] TTS failed ({e.code}): {error_body[:500]}")
-    sys.exit(1)
+        })
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode()
+        print(f"  [error] TTS failed ({e.code}): {error_body[:500]}")
+        sys.exit(1)
 
-# Check for API error
-error_msg = response.get("error", {}).get("message", "")
-if error_msg:
-    print(f"  [error] TTS failed: {error_msg}")
-    sys.exit(1)
+    error_msg = response.get("error", {}).get("message", "")
+    if error_msg:
+        print(f"  [error] TTS failed: {error_msg}")
+        sys.exit(1)
 
-# Extract audio
-audio_b64 = response["candidates"][0]["content"]["parts"][0]["inlineData"]["data"]
-pcm_data = base64.b64decode(audio_b64)
+    return base64.b64decode(response["candidates"][0]["content"]["parts"][0]["inlineData"]["data"])
 
-pcm_path = os.path.join(output_dir, "full-narration.pcm")
+def pcm_to_wav(pcm_bytes, out_wav):
+    """Convert raw 24kHz PCM to 48kHz WAV with speed adjustment."""
+    pcm_tmp = out_wav + ".pcm"
+    with open(pcm_tmp, "wb") as f:
+        f.write(pcm_bytes)
+    subprocess.run([
+        "ffmpeg", "-y", "-f", "s16le", "-ar", "24000", "-ac", "1",
+        "-i", pcm_tmp, "-af", f"atempo={speed}", "-ar", "48000", out_wav
+    ], capture_output=True, check=True)
+    os.remove(pcm_tmp)
+
+# --- Split slides into chunks by word count ---
+chunks = []  # list of (start_index, [segment_texts])
+current_chunk = []
+current_words = 0
+current_start = 0
+
+for i, text in enumerate(slides):
+    wc = len(text.split())
+    if current_chunk and current_words + wc > MAX_WORDS_PER_CHUNK:
+        chunks.append((current_start, current_chunk))
+        current_start = i
+        current_chunk = [text]
+        current_words = wc
+    else:
+        current_chunk.append(text)
+        current_words += wc
+if current_chunk:
+    chunks.append((current_start, current_chunk))
+
 wav_path = os.path.join(output_dir, "full-narration.wav")
 
-with open(pcm_path, "wb") as f:
-    f.write(pcm_data)
+if len(chunks) == 1:
+    # Single chunk — same as before
+    prompt = build_prompt(slides, 0)
+    pcm_data = call_tts(prompt)
+    pcm_to_wav(pcm_data, wav_path)
+else:
+    # Multiple chunks — generate each, then concatenate
+    print(f"  [tts] Narration is {word_count} words — splitting into {len(chunks)} chunks")
+    chunk_wavs = []
+    for ci, (start_idx, chunk_slides) in enumerate(chunks):
+        chunk_wc = sum(len(s.split()) for s in chunk_slides)
+        label = f" (chunk {ci + 1}/{len(chunks)}, segments {start_idx}-{start_idx + len(chunk_slides) - 1}, {chunk_wc} words)"
+        prompt = build_prompt(chunk_slides, start_idx)
+        pcm_data = call_tts(prompt, label)
+        chunk_wav = os.path.join(output_dir, f"chunk-{ci:02d}.wav")
+        pcm_to_wav(pcm_data, chunk_wav)
+        chunk_wavs.append(chunk_wav)
 
-# Convert PCM to WAV with speed adjustment and resample to 48kHz.
-# The TTS API outputs 24kHz PCM. We resample to 48kHz here because AAC
-# encoding at 24kHz causes duration mismatches when concatenating segments
-# with ffmpeg (reported duration ~2x actual runtime).
-subprocess.run([
-    "ffmpeg", "-y", "-f", "s16le", "-ar", "24000", "-ac", "1",
-    "-i", pcm_path, "-af", f"atempo={speed}", "-ar", "48000", wav_path
-], capture_output=True, check=True)
-os.remove(pcm_path)
+    # Concatenate chunk WAVs
+    concat_path = os.path.join(output_dir, "chunk-concat.txt")
+    with open(concat_path, "w") as f:
+        for cw in chunk_wavs:
+            f.write(f"file '{cw}'\n")
+    subprocess.run([
+        "ffmpeg", "-y", "-f", "concat", "-safe", "0",
+        "-i", concat_path, "-c", "copy", wav_path
+    ], capture_output=True, check=True)
+
+    # Clean up chunk files
+    os.remove(concat_path)
+    for cw in chunk_wavs:
+        os.remove(cw)
 
 # Get duration
 dur_result = subprocess.run(
@@ -172,7 +228,6 @@ total_dur = float(dur_result.stdout.strip())
 print(f"  [done] full-narration.wav ({total_dur:.1f}s, {speed}x speed)")
 
 # --- Duration sanity check ---
-word_count = sum(len(s.split()) for s in slides)
 expected_dur = word_count / 2.5  # ~150 wpm
 if total_dur > expected_dur * 3:
     print(f"  [warn] Audio is {total_dur:.0f}s but expected ~{expected_dur:.0f}s for {word_count} words")
@@ -297,9 +352,15 @@ print()
 print("=== Splitting into per-slide audio ===")
 durations = {}
 
+SPLIT_PAD = 0.4  # seconds to start before detected boundary to avoid clipping speech onset
+
 for i in range(len(slides)):
     num = f"{i:02d}"
-    start = cut_points[i]
+    raw_start = cut_points[i]
+    # Pad earlier to avoid clipping the first syllable (alignment timestamps
+    # can be slightly late). Don't pad before the previous segment's start.
+    prev_start = cut_points[i - 1] if i > 0 else 0.0
+    start = max(prev_start, raw_start - SPLIT_PAD) if i > 0 else raw_start
     end = cut_points[i + 1] if i + 1 < len(cut_points) else end_time
     dur = end - start
 
@@ -321,10 +382,10 @@ if empty_clips:
     sys.exit(1)
 
 # --- Trim silence from each clip ---
-MAX_SILENCE = 1.5  # max seconds of leading/trailing silence per clip (~3s total gap between slides)
+MAX_SILENCE = 0.15  # strip nearly all silence — segment title slides handle inter-slide pauses
 SILENCE_THRESHOLD = "-40dB"
 print()
-print("=== Trimming silence (max 1s lead/trail) ===")
+print("=== Trimming silence ===")
 
 for i in range(len(slides)):
     num = f"{i:02d}"

@@ -105,6 +105,7 @@ body {
 	color: var(--tl-color-text);
 	text-align: center;
 	text-wrap: balance;
+	min-width: 80%;
 	line-height: 1.5;
 }
 

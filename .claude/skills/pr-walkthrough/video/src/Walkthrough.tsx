@@ -5,6 +5,7 @@ import { ImageSlide } from './slides/ImageSlide'
 import { IntroSlide } from './slides/IntroSlide'
 import { ListSlide } from './slides/ListSlide'
 import { OutroSlide } from './slides/OutroSlide'
+import { SegmentSlide } from './slides/SegmentSlide'
 import { TextSlide } from './slides/TextSlide'
 import { TldrawSlide } from './slides/TldrawSlide'
 import { FPS } from './styles'
@@ -26,6 +27,8 @@ function renderSlide(slide: Slide) {
 			return <ImageSlide src={slide.src} />
 		case 'tldraw':
 			return <TldrawSlide slide={slide} />
+		case 'segment':
+			return <SegmentSlide slide={slide} />
 		case 'outro':
 			return <OutroSlide />
 	}

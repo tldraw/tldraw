@@ -78,9 +78,24 @@ fi
 # --- Render ---
 echo ""
 echo "  Rendering..."
-(cd "$SCRIPT_DIR" && npx remotion render Walkthrough "$OUTPUT" \
+RENDER_OUTPUT="$OUTPUT"
+# Render to a temp file first so we can re-encode for smaller size
+TEMP_RENDER="$(dirname "$OUTPUT")/.render-temp-$$.mp4"
+(cd "$SCRIPT_DIR" && npx remotion render Walkthrough "$TEMP_RENDER" \
   --props='{"manifestPath":"manifest.json"}' \
   --log=error)
+
+# --- Re-encode for smaller file size ---
+# Remotion's defaults produce ~2.5 Mbps video which is excessive for mostly-static
+# code slides. CRF 28 with preset slow gives identical visual quality at ~5x smaller.
+if [ -f "$TEMP_RENDER" ]; then
+  echo "  Compressing..."
+  ffmpeg -i "$TEMP_RENDER" \
+    -c:v libx264 -crf 28 -preset slow \
+    -c:a aac -b:a 128k \
+    -y "$OUTPUT" 2>/dev/null
+  rm -f "$TEMP_RENDER"
+fi
 
 # --- Report ---
 if [ -f "$OUTPUT" ]; then
