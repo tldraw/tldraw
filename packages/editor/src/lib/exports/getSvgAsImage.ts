@@ -27,11 +27,11 @@ export async function getSvgAsImageWithOptions(
 		height: number
 		quality?: number
 		pixelRatio?: number
-		extraPadding?: number
+		trimPadding?: number
 		scale?: number
 	}
 ): Promise<{ blob: Blob; width: number; height: number } | null> {
-	const { type, width, height, quality = 1, pixelRatio = 2, extraPadding = 0, scale = 1 } = options
+	const { type, width, height, quality = 1, pixelRatio = 2, trimPadding = 0, scale = 1 } = options
 
 	let [clampedWidth, clampedHeight] = clampToBrowserMaxCanvasSize(
 		width * pixelRatio,
@@ -85,8 +85,8 @@ export async function getSvgAsImageWithOptions(
 
 	// If we rendered with extra padding to capture visual overflow, trim it now
 	const outputCanvas =
-		extraPadding > 0
-			? trimExtraPadding(canvas, extraPadding * scale * pixelRatio)
+		trimPadding > 0
+			? trimExtraPadding(canvas, trimPadding * scale * pixelRatio)
 			: { canvas, width: clampedWidth, height: clampedHeight }
 
 	const blob = await new Promise<Blob | null>((resolve) =>
@@ -127,13 +127,13 @@ export async function getSvgAsImageWithOptions(
  */
 function trimExtraPadding(
 	canvas: HTMLCanvasElement,
-	extraPaddingPx: number
+	trimPaddingPx: number
 ): { canvas: HTMLCanvasElement; width: number; height: number } {
 	const w = canvas.width
 	const h = canvas.height
 	const ctx = canvas.getContext('2d')!
 
-	const extraPx = Math.ceil(extraPaddingPx)
+	const extraPx = Math.ceil(trimPaddingPx)
 
 	// Nothing to trim if the extra padding is negligible
 	if (extraPx <= 0) return { canvas, width: w, height: h }

@@ -1320,15 +1320,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
-        extraPadding: number;
         height: number;
         svg: SVGSVGElement;
+        trimPadding: number;
         width: number;
     } | undefined>;
     getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
-        extraPadding: number;
         height: number;
         svg: string;
+        trimPadding: number;
         width: number;
     } | undefined>;
     getTemporaryAssetPreview(assetId: TLAssetId): string | undefined;
@@ -4481,8 +4481,6 @@ export type TLStoreWithStatus = {
 export interface TLSvgExportOptions {
     background?: boolean;
     bounds?: Box;
-    // @internal
-    _captureVisualOverflow?: boolean;
     darkMode?: boolean;
     padding?: number;
     pixelRatio?: number;

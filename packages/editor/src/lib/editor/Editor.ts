@@ -9679,7 +9679,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			svg: serializer.serializeToString(result.svg),
 			width: result.width,
 			height: result.height,
-			extraPadding: result.extraPadding,
+			trimPadding: result.trimPadding,
 		}
 	}
 
@@ -9699,34 +9699,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 			pixelRatio: opts.format === 'svg' ? undefined : 2,
 			...opts,
 		} satisfies TLImageExportOptions
+		const result = await this.getSvgString(shapes, withDefaults)
+		if (!result) throw new Error('Could not create SVG')
 
 		switch (withDefaults.format) {
-			case 'svg': {
-				const result = await this.getSvgString(shapes, withDefaults)
-				if (!result) throw new Error('Could not create SVG')
+			case 'svg':
 				return {
 					blob: new Blob([result.svg], { type: 'image/svg+xml' }),
 					width: result.width,
 					height: result.height,
 				}
-			}
 			case 'jpeg':
 			case 'png':
 			case 'webp': {
-				// For bitmap exports, capture visual overflow by rendering with extra padding
-				// that will be trimmed by pixel-scanning after rasterization.
-				const result = await this.getSvgString(shapes, {
-					...withDefaults,
-					_captureVisualOverflow: true,
-				})
-				if (!result) throw new Error('Could not create SVG')
 				const imageResult = await getSvgAsImageWithOptions(result.svg, {
 					type: withDefaults.format,
 					quality: withDefaults.quality,
 					pixelRatio: withDefaults.pixelRatio,
 					width: result.width,
 					height: result.height,
-					extraPadding: result.extraPadding,
+					trimPadding: result.trimPadding,
 					scale: withDefaults.scale,
 				})
 				if (!imageResult) {

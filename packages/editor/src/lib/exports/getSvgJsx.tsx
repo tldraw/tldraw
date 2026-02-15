@@ -59,25 +59,12 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	const singleFrameShapeId =
 		ids.length === 1 && editor.isShapeOfType(editor.getShape(ids[0])!, 'frame') ? ids[0] : null
 
-	// When capturing visual overflow for bitmap exports, render with at least the default
-	// padding so strokes/arrowheads that extend beyond geometry bounds are not clipped.
-	// The extra padding will be trimmed by pixel-scanning after rendering to canvas.
-	const captureOverflow = opts._captureVisualOverflow ?? false
-	const renderPadding = captureOverflow
-		? Math.max(padding, editor.options.defaultSvgPadding)
-		: padding
-
 	let bbox: null | Box = null
 	let paddingWasApplied = true
 	if (opts.bounds) {
-		bbox = opts.bounds.clone().expandBy(renderPadding)
+		bbox = opts.bounds.clone().expandBy(padding)
 	} else {
-		const result = getExportDefaultBounds(
-			editor,
-			renderingShapes,
-			renderPadding,
-			singleFrameShapeId
-		)
+		const result = getExportDefaultBounds(editor, renderingShapes, padding, singleFrameShapeId)
 		bbox = result.box
 		paddingWasApplied = result.paddingApplied
 	}
@@ -85,9 +72,13 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	// no unmasked shapes to export
 	if (!bbox) return
 
-	// Extra padding beyond what the user requested (for capturing visual overflow).
-	// This will be trimmed after rendering based on actual pixel content.
-	const extraPadding = paddingWasApplied ? renderPadding - padding : 0
+	// When padding was not explicitly specified by the caller, the default padding is
+	// trimmable: bitmap exports will scan pixels from each edge inward and trim to the
+	// actual visual content bounds. This ensures visual overflow (strokes, arrowheads)
+	// is captured without unnecessary whitespace. When padding IS explicitly set, or
+	// when frame/container rules define tight bounds, we honor the bounds exactly.
+	const paddingIsTrimable = opts.padding === undefined && paddingWasApplied
+	const trimPadding = paddingIsTrimable ? padding : 0
 
 	// We want the svg image to be BIGGER THAN USUAL to account for image quality
 	const w = bbox.width * scale
@@ -122,7 +113,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		</SvgExport>
 	)
 
-	return { jsx: svg, width: w, height: h, exportDelay, extraPadding }
+	return { jsx: svg, width: w, height: h, exportDelay, trimPadding }
 }
 
 /**
