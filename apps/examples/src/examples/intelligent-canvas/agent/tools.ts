@@ -303,7 +303,7 @@ function executeAnalyzeCanvasArea(editor: Editor, input: Record<string, unknown>
 	const results: Record<string, unknown>[] = []
 
 	for (const shape of shapes) {
-		if (shape.type === 'arrow') continue
+		if (shape.type === 'arrow' || shape.type === 'highlight') continue
 		const bounds = editor.getShapePageBounds(shape.id)
 		if (!bounds) continue
 

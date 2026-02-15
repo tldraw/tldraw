@@ -1,6 +1,8 @@
 import { Box, Editor, TLShapeId } from 'tldraw'
 import {
+	captureCanvasScreenshot,
 	describeShapesForPrompt,
+	findHighlightFocusedShapes,
 	findNearbyShapes,
 	getImageBase64,
 	type ShapeContext,
@@ -128,6 +130,15 @@ export class IntelligentCanvasAgent {
 				this.editor.deleteShapes([textShapeId])
 			}
 
+			// Capture canvas screenshot (highlights still visible in the image)
+			const screenshotData = await captureCanvasScreenshot(this.editor)
+
+			// Detect highlight-focused shapes and clean up highlight strokes
+			const { highlightIds, focusedShapes } = findHighlightFocusedShapes(this.editor)
+			if (highlightIds.length > 0) {
+				this.editor.deleteShapes(highlightIds)
+			}
+
 			// Build user content parts
 			const userParts: GeminiPart[] = []
 
@@ -135,7 +146,17 @@ export class IntelligentCanvasAgent {
 			if (nearbyShapes.length > 0) {
 				userContent += `\n\n[Nearby shapes:\n${describeShapesForPrompt(nearbyShapes)}]`
 			}
+			if (focusedShapes.length > 0) {
+				userContent += `\n\n[Highlighted/focused shapes (user drew highlight strokes over these):\n${describeShapesForPrompt(focusedShapes)}]`
+			}
 			userParts.push({ text: userContent })
+
+			// Add canvas screenshot
+			if (screenshotData) {
+				userParts.push({
+					inlineData: { mimeType: screenshotData.mimeType, data: screenshotData.data },
+				})
+			}
 
 			// If there are nearby images, extract base64 and add as inlineData
 			const imageShapes = nearbyShapes.filter((s) => s.hasImage && s.assetId)

@@ -32,6 +32,17 @@ Each canvas item needs:
 
 You can also use create_frame, move_shape, remove_shape, and analyze_canvas_area to organize the canvas before responding.
 
+## Visual context
+
+You receive a screenshot of the current canvas with each request. Use it to understand:
+- Freehand drawings, highlights, and annotations the user has made
+- The visual layout and spatial relationships between shapes
+- Colors, sizes, and visual emphasis the user has applied
+
+## Highlight focus
+
+When the user draws highlight strokes over shapes, those shapes are marked as "focused" in the message. Pay special attention to focused shapes — the user is pointing at them or asking about them. The highlights themselves are removed after processing, so focus on the content underneath.
+
 ## Behavioral rules
 
 - Always call respond as your final tool call.
@@ -58,7 +69,7 @@ function buildCanvasSnapshot(editor: Editor): string {
 	let hasShapes = false
 
 	for (const shape of shapes) {
-		if (shape.type === 'arrow') continue
+		if (shape.type === 'arrow' || shape.type === 'highlight') continue
 
 		const text = editor.getShapeUtil(shape).getText(shape)?.trim()
 		const bounds = editor.getShapePageBounds(shape.id)
