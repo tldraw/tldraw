@@ -36,6 +36,8 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { getUncroppedSize } from '../shared/crop'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
+import { getAlphaData, preloadAlphaData } from './ImageAlphaCache'
+import { ImageRectangle2d } from './ImageRectangle2d'
 
 async function getDataURIFromURL(url: string): Promise<string> {
 	const response = await fetch(url)
@@ -81,6 +83,26 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				width: shape.props.w,
 				height: shape.props.h,
 				isFilled: true,
+			})
+		}
+
+		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
+		const mimeType = asset && 'mimeType' in asset.props ? asset.props.mimeType : null
+		const supportsTransparency =
+			mimeType != null &&
+			(mimeType.includes('png') || mimeType.includes('webp') || mimeType.includes('gif'))
+		const assetSrc = asset && 'src' in asset.props ? asset.props.src : null
+
+		if (supportsTransparency && assetSrc) {
+			const src = assetSrc
+			return new ImageRectangle2d({
+				width: shape.props.w,
+				height: shape.props.h,
+				isFilled: true,
+				alphaDataGetter: () => getAlphaData(src),
+				crop: shape.props.crop,
+				flipX: shape.props.flipX,
+				flipY: shape.props.flipY,
 			})
 		}
 
@@ -307,6 +329,17 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 			}
 		}
 	}, [editor, isAnimated, prefersReducedMotion, url])
+
+	const mimeType = asset && 'mimeType' in asset.props ? asset.props.mimeType : null
+	const supportsTransparency =
+		mimeType != null &&
+		(mimeType.includes('png') || mimeType.includes('webp') || mimeType.includes('gif'))
+
+	useEffect(() => {
+		if (url && supportsTransparency) {
+			preloadAlphaData(url)
+		}
+	}, [url, supportsTransparency])
 
 	const showCropPreview = useValue(
 		'show crop preview',

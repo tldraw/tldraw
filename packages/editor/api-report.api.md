@@ -1759,6 +1759,7 @@ export abstract class Geometry2d {
     abstract nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec;
     // (undocumented)
     overlapsPolygon(_polygon: VecLike[]): boolean;
+    rejectHit(_point: VecLike): boolean;
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
@@ -4681,6 +4682,8 @@ export class TransformedGeometry2d extends Geometry2d {
     intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
     nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec;
+    // (undocumented)
+    rejectHit(point: VecLike): boolean;
     // (undocumented)
     transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d;
 }

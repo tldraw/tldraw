@@ -5403,6 +5403,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Are we close to the shape's edge?
 				if (distance <= outerMargin || (hitInside && distance <= 0 && distance > -innerMargin)) {
 					if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
+						// If the geometry rejects this hit (e.g. transparent image pixel),
+						// skip this shape and check shapes behind it.
+						if (geometry.rejectHit(pointInShapeSpace)) {
+							continue
+						}
 						// If the shape is filled, then it's a hit. Remember, we're
 						// starting from the TOP-MOST shape in z-index order, so any
 						// other hits would be occluded by the shape.
