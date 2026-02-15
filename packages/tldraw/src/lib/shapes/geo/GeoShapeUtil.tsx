@@ -671,6 +671,11 @@ const labelSizesForGeo = new WeakCache<TLGeoShape, { w: number; h: number }>()
 
 // Returns cached label size for the shape. Don't call with empty rich text.
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
+	// Check the batch cache first (set by Resizing.ts during multi-shape resize).
+	// This avoids re-measuring labels that were already batch-measured.
+	const batchCached = _batchLabelSizeCache?.get(shape.id)
+	if (batchCached) return batchCached
+
 	return labelSizesForGeo.get(shape, () => {
 		return measureUnscaledLabelSize(editor, shape)
 	})
