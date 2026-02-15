@@ -245,8 +245,6 @@ function ScriptPanel() {
 
 	if (!controllerRef.current) {
 		controllerRef.current = new EditorController(editor)
-		// Center the camera at the origin on first load
-		editor.centerOnPoint({ x: 0, y: 0 })
 	}
 
 	const selected = scripts[selectedIndex] || scripts[0]
