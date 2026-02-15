@@ -1,0 +1,216 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
+@import url('tldraw/tldraw.css');
+
+body {
+	font-family: 'Inter', sans-serif;
+	overscroll-behavior: none;
+}
+
+.RoomWrapper {
+	--background: white;
+	--text: hsl(0, 0%, 20%);
+	--gray-light: #f5f5f5;
+	--gray-dark: #e5e5e5;
+	--black-transparent-lighter: rgba(0, 0, 0, 0.15);
+	--black-transparent-light: rgba(0, 0, 0, 0.4);
+	--black-transparent-dark: rgba(0, 0, 0, 0.6);
+	--black-transparent-darker: rgba(0, 0, 0, 0.7);
+	--focus: hsl(217, 89%, 61%);
+	--whiteboard: hsl(240, 5%, 96%);
+	color-scheme: light;
+}
+
+:root:has(.tl-theme__dark) .RoomWrapper {
+	--background: black;
+	--text: hsl(0, 9%, 94%);
+	--gray-light: #333;
+	--gray-dark: #444;
+	--black-transparent-lighter: rgba(255, 255, 255, 0.15);
+	--black-transparent-light: rgba(255, 255, 255, 0.4);
+	--black-transparent-dark: rgba(255, 255, 255, 0.6);
+	--black-transparent-darker: rgba(255, 255, 255, 0.7);
+	--focus: hsl(217, 89%, 61%);
+	--whiteboard: hsl(240, 5%, 6.5%);
+	color-scheme: dark;
+}
+
+.RoomWrapper {
+	display: flex;
+	flex-direction: column;
+	position: absolute;
+	inset: 0px;
+}
+
+.RoomWrapper-header {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: center;
+	padding: 8px 16px;
+	gap: 16px;
+	background: var(--background);
+	border-bottom: 1px solid var(--gray-dark);
+	color: var(--text);
+	font-size: 14px;
+}
+
+.RoomWrapper-copy {
+	background: var(--black-transparent-lighter);
+	border: 1px solid var(--gray-dark);
+	border-radius: 4px;
+	padding: 4px 12px;
+	height: 24px;
+	cursor: pointer;
+	position: relative;
+	text-align: center;
+}
+
+.RoomWrapper-copy:has(.RoomWrapper-copied) {
+	color: transparent;
+}
+
+.RoomWrapper-copied {
+	color: var(--text);
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.RoomWrapper-copy:hover {
+	border: 1px solid var(--black-transparent-lighter);
+}
+
+.RoomWrapper-content {
+	position: relative;
+	flex: 1;
+}
+
+/* Video chat overlay */
+.video-overlay {
+	position: absolute;
+	bottom: 16px;
+	right: 16px;
+	z-index: 1000;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 8px;
+	pointer-events: auto;
+}
+
+.video-join-btn {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 16px;
+	border-radius: 20px;
+	border: 1px solid var(--gray-dark);
+	background: var(--background);
+	color: var(--text);
+	font-size: 13px;
+	font-family: inherit;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+	transition: background 0.15s;
+}
+
+.video-join-btn:hover {
+	background: var(--gray-light);
+}
+
+.video-tiles {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	max-height: 50vh;
+	overflow-y: auto;
+}
+
+.participant-tile {
+	position: relative;
+	width: 160px;
+	height: 120px;
+	border-radius: 10px;
+	overflow: hidden;
+	background: #1a1a1a;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+	border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.participant-tile.mirrored video {
+	transform: scaleX(-1);
+}
+
+.participant-tile video {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.participant-tile video.hidden {
+	display: none;
+}
+
+.participant-avatar {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 32px;
+	font-weight: 700;
+	color: rgba(255, 255, 255, 0.7);
+	background: #333;
+}
+
+.participant-label {
+	position: absolute;
+	bottom: 4px;
+	left: 6px;
+	font-size: 11px;
+	color: white;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+	pointer-events: none;
+}
+
+.media-controls {
+	display: flex;
+	gap: 6px;
+}
+
+.media-btn {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	border: 1px solid var(--gray-dark);
+	background: var(--background);
+	color: var(--text);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.15s;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.media-btn:hover {
+	background: var(--gray-light);
+}
+
+.media-btn.off {
+	background: rgba(200, 50, 50, 0.15);
+	border-color: rgba(200, 50, 50, 0.3);
+	color: #c83232;
+}
+
+.media-btn.leave {
+	background: #dc2626;
+	border-color: #dc2626;
+	color: white;
+}
+
+.media-btn.leave:hover {
+	background: #b91c1c;
+}
