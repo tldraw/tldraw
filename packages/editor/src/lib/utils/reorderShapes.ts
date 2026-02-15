@@ -2,6 +2,15 @@ import { TLParentId, TLShape, TLShapeId, TLShapePartial } from '@tldraw/tlschema
 import { IndexKey, compact, getIndicesBetween, sortByIndex } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 
+/**
+ * Gets the changes for reordering shapes.
+ * @param editor - The editor.
+ * @param operation - The operation to perform.
+ * @param ids - The ids of the shapes to reorder.
+ * @param opts - The options.
+ * @returns The changes.
+ * @public
+ */
 export function getReorderingShapesChanges(
 	editor: Editor,
 	operation: 'toBack' | 'toFront' | 'forward' | 'backward',
@@ -160,7 +169,7 @@ function getOverlapChecker(editor: Editor, moving: Set<TLShape>) {
 			return { shape, bounds }
 		})
 	)
-	const isOverlapping = (child: TLShape) => {
+	const isContaining = (child: TLShape) => {
 		const bounds = editor.getShapePageBounds(child)
 		if (!bounds) return false
 		return movingBounds.some((other) => {
@@ -168,7 +177,7 @@ function getOverlapChecker(editor: Editor, moving: Set<TLShape>) {
 		})
 	}
 
-	return isOverlapping
+	return isContaining
 }
 
 /**
@@ -187,7 +196,7 @@ function reorderForward(
 	changes: TLShapePartial[],
 	opts?: { considerAllShapes?: boolean }
 ) {
-	const isOverlapping = getOverlapChecker(editor, moving)
+	const isContaining = getOverlapChecker(editor, moving)
 
 	const len = children.length
 
@@ -211,7 +220,7 @@ function reorderForward(
 			}
 			case 'selecting': {
 				if (isMoving) continue
-				if (!opts?.considerAllShapes && !isOverlapping(children[i])) continue
+				if (!opts?.considerAllShapes && !isContaining(children[i])) continue
 				// if we find a non-moving and overlapping shape while selecting, move all selected
 				// shapes in front of the not moving shape; and start skipping
 				const { selectIndex } = state
@@ -246,7 +255,7 @@ function reorderBackward(
 	changes: TLShapePartial[],
 	opts?: { considerAllShapes?: boolean }
 ) {
-	const isOverlapping = getOverlapChecker(editor, moving)
+	const isContaining = getOverlapChecker(editor, moving)
 
 	const len = children.length
 
@@ -269,9 +278,9 @@ function reorderBackward(
 			}
 			case 'selecting': {
 				if (isMoving) continue
-				if (!opts?.considerAllShapes && !isOverlapping(children[i])) continue
+				if (!opts?.considerAllShapes && !isContaining(children[i])) continue
 				// if we find a non-moving and overlapping shape while selecting, move all selected
-				// shapes in behind of the not moving shape; and start skipping
+				// shapes behind the non-moving shape; and start skipping
 				getIndicesBetween(children[i - 1]?.index, children[i].index, state.selectIndex - i).forEach(
 					(index, k) => {
 						const child = children[i + k + 1]
