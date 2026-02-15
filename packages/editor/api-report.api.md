@@ -3097,6 +3097,12 @@ export class TextManager {
     measureHtml(html: string, opts: TLMeasureTextOpts): BoxModel & {
         scrollWidth: number;
     };
+    measureHtmlBatch(requests: Array<{
+        html: string;
+        opts: TLMeasureTextOpts;
+    }>): Array<BoxModel & {
+        scrollWidth: number;
+    }>;
     // (undocumented)
     measureText(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & {
         scrollWidth: number;
