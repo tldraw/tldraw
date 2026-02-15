@@ -9,7 +9,6 @@ import {
 } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
-import { TL } from './test-jsx'
 
 const UNCULLABLE_TYPE = 'uncullable'
 
@@ -57,14 +56,19 @@ beforeEach(() => {
 })
 
 function createShapes() {
-	return editor.createShapesFromJsx([
-		<TL.geo ref="A" x={100} y={100} w={100} h={100} />,
-		<TL.frame ref="B" x={200} y={200} w={300} h={300}>
-			<TL.geo ref="C" x={200} y={200} w={50} h={50} />
-			{/* this is outside of the frames clipping bounds, so it should never be rendered */}
-			<TL.geo ref="D" x={1000} y={1000} w={50} h={50} />
-		</TL.frame>,
+	const ids = {
+		A: createShapeId('A'),
+		B: createShapeId('B'),
+		C: createShapeId('C'),
+		D: createShapeId('D'),
+	}
+	editor.createShapes([
+		{ id: ids.A, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+		{ id: ids.B, type: 'frame', x: 200, y: 200, props: { w: 300, h: 300 } },
+		{ id: ids.C, type: 'geo', x: 200, y: 200, parentId: ids.B, props: { w: 50, h: 50 } },
+		{ id: ids.D, type: 'geo', x: 1000, y: 1000, parentId: ids.B, props: { w: 50, h: 50 } },
 	])
+	return ids
 }
 
 it('lists shapes in viewport', () => {

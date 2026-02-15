@@ -13,7 +13,6 @@ import {
 } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
-import { TL } from './test-jsx'
 
 let editor: TestEditor
 
@@ -124,11 +123,11 @@ class TestBindingUtil extends BindingUtil {
 beforeEach(() => {
 	editor = new TestEditor({ bindingUtils: [TestBindingUtil] })
 
-	editor.createShapesFromJsx([
-		<TL.geo id={ids.box1} x={0} y={0} />,
-		<TL.geo id={ids.box2} x={0} y={0} />,
-		<TL.geo id={ids.box3} x={0} y={0} />,
-		<TL.geo id={ids.box4} x={0} y={0} />,
+	editor.createShapes([
+		{ id: ids.box1, type: 'geo', x: 0, y: 0, props: {} },
+		{ id: ids.box2, type: 'geo', x: 0, y: 0, props: {} },
+		{ id: ids.box3, type: 'geo', x: 0, y: 0, props: {} },
+		{ id: ids.box4, type: 'geo', x: 0, y: 0, props: {} },
 	])
 
 	mockOnOperationComplete.mockReset()

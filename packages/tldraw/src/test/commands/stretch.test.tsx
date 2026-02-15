@@ -1,7 +1,6 @@
-import { PI, TLShapeId } from '@tldraw/editor'
+import { createShapeId, PI, TLShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
-import { TL } from '../test-jsx'
 
 let editor: TestEditor
 let ids: Record<string, TLShapeId>
@@ -9,17 +8,24 @@ let ids: Record<string, TLShapeId>
 vi.useFakeTimers()
 
 function createVideoShape() {
-	return editor.createShapesFromJsx(<TL.video ref="video1" x={0} y={0} w={160} h={90} />).video1
+	const ids = { video1: createShapeId('video1') }
+	editor.createShapes([{ id: ids.video1, type: 'video', x: 0, y: 0, props: { w: 160, h: 90 } }])
+	return ids.video1
 }
 
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.selectAll()
 	editor.deleteShapes(editor.getSelectedShapeIds())
-	ids = editor.createShapesFromJsx([
-		<TL.geo ref="boxA" x={0} y={0} w={100} h={100} />,
-		<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />,
-		<TL.geo ref="boxC" x={400} y={400} w={100} h={100} />,
+	ids = {
+		boxA: createShapeId('boxA'),
+		boxB: createShapeId('boxB'),
+		boxC: createShapeId('boxC'),
+	}
+	editor.createShapes([
+		{ id: ids.boxA, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		{ id: ids.boxB, type: 'geo', x: 100, y: 100, props: { w: 50, h: 50 } },
+		{ id: ids.boxC, type: 'geo', x: 400, y: 400, props: { w: 100, h: 100 } },
 	])
 	editor.selectAll()
 })
@@ -131,11 +137,15 @@ describe('When shapes are the child of a rotated shape.', () => {
 		editor = new TestEditor()
 		editor.selectAll()
 		editor.deleteShapes(editor.getSelectedShapeIds())
-		ids = editor.createShapesFromJsx([
-			<TL.geo ref="boxA" x={0} y={0} w={100} h={100} rotation={PI / 3}>
-				<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />
-			</TL.geo>,
-			<TL.geo ref="boxC" x={200} y={200} w={100} h={100} />,
+		ids = {
+			boxA: createShapeId('boxA'),
+			boxB: createShapeId('boxB'),
+			boxC: createShapeId('boxC'),
+		}
+		editor.createShapes([
+			{ id: ids.boxA, type: 'geo', x: 0, y: 0, rotation: PI / 3, props: { w: 100, h: 100 } },
+			{ id: ids.boxB, type: 'geo', x: 100, y: 100, parentId: ids.boxA, props: { w: 50, h: 50 } },
+			{ id: ids.boxC, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
 		])
 		editor.selectAll()
 
@@ -177,10 +187,15 @@ describe('When shapes are the child of a rotated shape.', () => {
 		editor = new TestEditor()
 		editor.selectAll()
 		editor.deleteShapes(editor.getSelectedShapeIds())
-		ids = editor.createShapesFromJsx([
-			<TL.geo ref="boxA" x={0} y={0} w={100} h={100} rotation={PI / 2} />,
-			<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />,
-			<TL.geo ref="boxC" x={200} y={200} w={100} h={100} />,
+		ids = {
+			boxA: createShapeId('boxA'),
+			boxB: createShapeId('boxB'),
+			boxC: createShapeId('boxC'),
+		}
+		editor.createShapes([
+			{ id: ids.boxA, type: 'geo', x: 0, y: 0, rotation: PI / 2, props: { w: 100, h: 100 } },
+			{ id: ids.boxB, type: 'geo', x: 100, y: 100, props: { w: 50, h: 50 } },
+			{ id: ids.boxC, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
 		])
 		editor.selectAll()
 

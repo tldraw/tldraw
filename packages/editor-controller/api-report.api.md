@@ -31,6 +31,8 @@ export class EditorController {
     readonly editor: Editor;
     forceTick(count?: number): this;
     getArrowsBoundTo(shapeId: TLShapeId): TLArrowShape[];
+    getLastCreatedShape<T extends TLShape>(): T;
+    getLastCreatedShapes(count?: number): TLShape[];
     getPageCenter(shape: TLShape): null | Vec;
     getPageRotation(shape: TLShape): number;
     getPageRotationById(id: TLShapeId): number;

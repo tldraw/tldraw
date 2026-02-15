@@ -38,10 +38,32 @@ export type EventModifiers = Partial<Pick<TLPointerEventInfo, 'shiftKey' | 'ctrl
  */
 export class EditorController {
 	/** The underlying Editor instance. */
-	constructor(public readonly editor: Editor) {}
+	constructor(public readonly editor: Editor) {
+		this.editor.sideEffects.registerAfterCreateHandler('shape', (record) => {
+			this._lastCreatedShapes.push(record)
+		})
+	}
 
 	/** Local clipboard content. Used by copy, cut, and paste. */
 	clipboard: TLContent | null = null
+
+	private _lastCreatedShapes: TLShape[] = []
+
+	/**
+	 * Get the last created shapes.
+	 * @param count - The number of shapes to get.
+	 */
+	getLastCreatedShapes(count = 1) {
+		return this._lastCreatedShapes.slice(-count).map((s) => this.editor.getShape(s)!)
+	}
+
+	/**
+	 * Get the last created shape.
+	 */
+	getLastCreatedShape<T extends TLShape>() {
+		const lastShape = this._lastCreatedShapes[this._lastCreatedShapes.length - 1] as T
+		return this.editor.getShape<T>(lastShape)!
+	}
 
 	/* ---------------------- IDs ---------------------- */
 

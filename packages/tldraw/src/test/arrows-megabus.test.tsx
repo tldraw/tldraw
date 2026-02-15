@@ -2,7 +2,6 @@ import { TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
-import { TL } from './test-jsx'
 
 let editor: TestEditor
 
@@ -693,9 +692,9 @@ describe('When binding an arrow to an ancestor', () => {
 
 describe('Moving a bound arrow', () => {
 	function setup() {
-		editor.createShapesFromJsx([
-			<TL.geo id={ids.box1} x={0} y={0} w={200} h={200} />,
-			<TL.geo id={ids.box2} x={300} y={0} w={200} h={200} />,
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box2, type: 'geo', x: 300, y: 0, props: { w: 200, h: 200 } },
 		])
 	}
 

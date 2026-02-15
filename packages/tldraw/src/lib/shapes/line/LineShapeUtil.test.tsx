@@ -9,7 +9,6 @@ import {
 } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
-import { TL } from '../../../test/test-jsx'
 
 let nextId = 0
 mockUniqueId(() => 'id' + nextId++)
@@ -97,7 +96,9 @@ describe('Mid-point handles', () => {
 	})
 
 	it('allows snapping with mid-point handles', () => {
-		editor.createShapesFromJsx([<TL.geo x={200} y={200} w={100} h={100} />])
+		editor.createShapes([
+			{ id: createShapeId(), type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+		])
 
 		editor.select(id)
 
@@ -120,7 +121,9 @@ describe('Mid-point handles', () => {
 	})
 
 	it('allows snapping with created mid-point handles', () => {
-		editor.createShapesFromJsx([<TL.geo x={200} y={200} w={100} h={100} />])
+		editor.createShapes([
+			{ id: createShapeId(), type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+		])
 
 		// 2 actual points, plus 1 mid-points:
 		expect(getHandles()).toHaveLength(3)
@@ -241,15 +244,19 @@ describe('Snapping', () => {
 	})
 
 	it('snaps to vertices on other line shapes', () => {
-		editor.createShapesFromJsx([
-			<TL.line
-				x={150}
-				y={150}
-				points={{
-					a1: { id: 'a1', index: 'a1' as IndexKey, x: 200, y: 0 },
-					a2: { id: 'a2', index: 'a2' as IndexKey, x: 300, y: 0 },
-				}}
-			/>,
+		editor.createShapes([
+			{
+				id: createShapeId(),
+				type: 'line',
+				x: 150,
+				y: 150,
+				props: {
+					points: {
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: 200, y: 0 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 300, y: 0 },
+					},
+				},
+			},
 		])
 
 		editor.select(id)

@@ -1,6 +1,5 @@
-import { TLShapeId, assert, assertExists } from '@tldraw/editor'
+import { assert, assertExists, createShapeId, TLShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
-import { TL } from './test-jsx'
 
 let editor: TestEditor
 
@@ -37,14 +36,19 @@ beforeEach(() => {
 })
 
 function createShapes() {
-	return editor.createShapesFromJsx([
-		<TL.geo ref="A" x={100} y={100} w={100} h={100} />,
-		<TL.frame ref="B" x={200} y={200} w={300} h={300}>
-			<TL.geo ref="C" x={200} y={200} w={50} h={50} />
-			{/* this is outside of the frames clipping bounds, so it should never be rendered */}
-			<TL.geo ref="D" x={1000} y={1000} w={50} h={50} />
-		</TL.frame>,
+	const ids = {
+		A: createShapeId('A'),
+		B: createShapeId('B'),
+		C: createShapeId('C'),
+		D: createShapeId('D'),
+	}
+	editor.createShapes([
+		{ id: ids.A, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+		{ id: ids.B, type: 'frame', x: 200, y: 200, props: { w: 300, h: 300 } },
+		{ id: ids.C, type: 'geo', x: 200, y: 200, parentId: ids.B, props: { w: 50, h: 50 } },
+		{ id: ids.D, type: 'geo', x: 1000, y: 1000, parentId: ids.B, props: { w: 50, h: 50 } },
 	])
+	return ids
 }
 
 it('lists shapes in viewport sorted by id with correct indexes & background indexes', () => {
@@ -72,16 +76,23 @@ it('lists shapes in viewport sorted by id with correct indexes & background inde
 })
 
 it('handles frames in frames', () => {
-	const ids = editor.createShapesFromJsx([
-		<TL.geo ref="A" x={0} y={0} w={10} h={10} />,
-		<TL.frame ref="B" x={100} y={0} w={100} h={100}>
-			<TL.geo ref="C" x={100} y={0} w={10} h={10} />
-			<TL.frame ref="D" x={150} y={0} w={100} h={100}>
-				<TL.geo ref="E" x={150} y={0} w={10} h={10} />
-			</TL.frame>
-			<TL.geo ref="F" x={100} y={0} w={10} h={10} />
-		</TL.frame>,
-		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
+	const ids = {
+		A: createShapeId('A'),
+		B: createShapeId('B'),
+		C: createShapeId('C'),
+		D: createShapeId('D'),
+		E: createShapeId('E'),
+		F: createShapeId('F'),
+		G: createShapeId('G'),
+	}
+	editor.createShapes([
+		{ id: ids.A, type: 'geo', x: 0, y: 0, props: { w: 10, h: 10 } },
+		{ id: ids.B, type: 'frame', x: 100, y: 0, props: { w: 100, h: 100 } },
+		{ id: ids.C, type: 'geo', x: 100, y: 0, parentId: ids.B, props: { w: 10, h: 10 } },
+		{ id: ids.D, type: 'frame', x: 150, y: 0, parentId: ids.B, props: { w: 100, h: 100 } },
+		{ id: ids.E, type: 'geo', x: 150, y: 0, parentId: ids.D, props: { w: 10, h: 10 } },
+		{ id: ids.F, type: 'geo', x: 100, y: 0, parentId: ids.B, props: { w: 10, h: 10 } },
+		{ id: ids.G, type: 'geo', x: 100, y: 0, props: { w: 10, h: 10 } },
 	])
 
 	expect(normalizeIndexes(editor.getRenderingShapes())).toStrictEqual([
@@ -96,16 +107,23 @@ it('handles frames in frames', () => {
 })
 
 it('handles groups in frames', () => {
-	const ids = editor.createShapesFromJsx([
-		<TL.geo ref="A" x={0} y={0} w={10} h={10} />,
-		<TL.frame ref="B" x={100} y={0} w={100} h={100}>
-			<TL.geo ref="C" x={100} y={0} w={10} h={10} />
-			<TL.group ref="D" x={150} y={0}>
-				<TL.geo ref="E" x={150} y={0} w={10} h={10} />
-			</TL.group>
-			<TL.geo ref="F" x={100} y={0} w={10} h={10} />
-		</TL.frame>,
-		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
+	const ids = {
+		A: createShapeId('A'),
+		B: createShapeId('B'),
+		C: createShapeId('C'),
+		D: createShapeId('D'),
+		E: createShapeId('E'),
+		F: createShapeId('F'),
+		G: createShapeId('G'),
+	}
+	editor.createShapes([
+		{ id: ids.A, type: 'geo', x: 0, y: 0, props: { w: 10, h: 10 } },
+		{ id: ids.B, type: 'frame', x: 100, y: 0, props: { w: 100, h: 100 } },
+		{ id: ids.C, type: 'geo', x: 100, y: 0, parentId: ids.B, props: { w: 10, h: 10 } },
+		{ id: ids.D, type: 'group', x: 150, y: 0, parentId: ids.B, props: {} },
+		{ id: ids.E, type: 'geo', x: 150, y: 0, parentId: ids.D, props: { w: 10, h: 10 } },
+		{ id: ids.F, type: 'geo', x: 100, y: 0, parentId: ids.B, props: { w: 10, h: 10 } },
+		{ id: ids.G, type: 'geo', x: 100, y: 0, props: { w: 10, h: 10 } },
 	])
 
 	expect(normalizeIndexes(editor.getRenderingShapes())).toStrictEqual([
@@ -120,16 +138,23 @@ it('handles groups in frames', () => {
 })
 
 it('handles frames in groups', () => {
-	const ids = editor.createShapesFromJsx([
-		<TL.geo ref="A" x={0} y={0} w={10} h={10} />,
-		<TL.group ref="B" x={100} y={0}>
-			<TL.geo ref="C" x={100} y={0} w={10} h={10} />
-			<TL.frame ref="D" x={150} y={0} w={100} h={100}>
-				<TL.geo ref="E" x={150} y={0} w={10} h={10} />
-			</TL.frame>
-			<TL.geo ref="F" x={100} y={0} w={10} h={10} />
-		</TL.group>,
-		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
+	const ids = {
+		A: createShapeId('A'),
+		B: createShapeId('B'),
+		C: createShapeId('C'),
+		D: createShapeId('D'),
+		E: createShapeId('E'),
+		F: createShapeId('F'),
+		G: createShapeId('G'),
+	}
+	editor.createShapes([
+		{ id: ids.A, type: 'geo', x: 0, y: 0, props: { w: 10, h: 10 } },
+		{ id: ids.B, type: 'group', x: 100, y: 0, props: {} },
+		{ id: ids.C, type: 'geo', x: 100, y: 0, parentId: ids.B, props: { w: 10, h: 10 } },
+		{ id: ids.D, type: 'frame', x: 150, y: 0, parentId: ids.B, props: { w: 100, h: 100 } },
+		{ id: ids.E, type: 'geo', x: 150, y: 0, parentId: ids.D, props: { w: 10, h: 10 } },
+		{ id: ids.F, type: 'geo', x: 100, y: 0, parentId: ids.B, props: { w: 10, h: 10 } },
+		{ id: ids.G, type: 'geo', x: 100, y: 0, props: { w: 10, h: 10 } },
 	])
 
 	expect(normalizeIndexes(editor.getRenderingShapes())).toStrictEqual([
@@ -144,16 +169,23 @@ it('handles frames in groups', () => {
 })
 
 it('handles groups in groups', () => {
-	const ids = editor.createShapesFromJsx([
-		<TL.geo ref="A" x={0} y={0} w={10} h={10} />,
-		<TL.group ref="B" x={100} y={0}>
-			<TL.geo ref="C" x={100} y={0} w={10} h={10} />
-			<TL.group ref="D" x={150} y={0}>
-				<TL.geo ref="E" x={150} y={0} w={10} h={10} />
-			</TL.group>
-			<TL.geo ref="F" x={100} y={0} w={10} h={10} />
-		</TL.group>,
-		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
+	const ids = {
+		A: createShapeId('A'),
+		B: createShapeId('B'),
+		C: createShapeId('C'),
+		D: createShapeId('D'),
+		E: createShapeId('E'),
+		F: createShapeId('F'),
+		G: createShapeId('G'),
+	}
+	editor.createShapes([
+		{ id: ids.A, type: 'geo', x: 0, y: 0, props: { w: 10, h: 10 } },
+		{ id: ids.B, type: 'group', x: 100, y: 0, props: {} },
+		{ id: ids.C, type: 'geo', x: 100, y: 0, parentId: ids.B, props: { w: 10, h: 10 } },
+		{ id: ids.D, type: 'group', x: 150, y: 0, parentId: ids.B, props: {} },
+		{ id: ids.E, type: 'geo', x: 150, y: 0, parentId: ids.D, props: { w: 10, h: 10 } },
+		{ id: ids.F, type: 'geo', x: 100, y: 0, parentId: ids.B, props: { w: 10, h: 10 } },
+		{ id: ids.G, type: 'geo', x: 100, y: 0, props: { w: 10, h: 10 } },
 	])
 
 	expect(normalizeIndexes(editor.getRenderingShapes())).toStrictEqual([

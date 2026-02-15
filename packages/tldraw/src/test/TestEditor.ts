@@ -5,24 +5,15 @@ import {
 	HALF_PI,
 	IdOf,
 	RequiredKeys,
-	RotateCorner,
-	SelectionHandle,
 	TLContent,
 	TLEditorOptions,
-	TLKeyboardEventInfo,
 	TLMeasureTextOpts,
-	TLPinchEventInfo,
-	TLPointerEventInfo,
 	TLShape,
-	TLShapeId,
 	TLShapePartial,
 	TLStoreOptions,
-	TLWheelEventInfo,
-	VecLike,
 	createShapeId,
 	createTLStore,
 } from '@tldraw/editor'
-import type { EventModifiers, PointerEventInit } from '@tldraw/editor-controller'
 import { EditorController } from '@tldraw/editor-controller'
 import { vi } from 'vitest'
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
@@ -31,7 +22,6 @@ import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { registerDefaultSideEffects } from '../lib/defaultSideEffects'
 import { defaultTools } from '../lib/defaultTools'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
-import { shapesFromJsx } from './test-jsx'
 
 declare module 'vitest' {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -53,6 +43,12 @@ Object.assign(navigator, {
 // @ts-expect-error
 window.ClipboardItem = class {}
 
+/** @
+ * TestEditor is a subclass of Editor that is used to test the editor.
+ * @param options - The options for the editor.
+ * @param storeOptions - The options for the store.
+ * @returns A new TestEditor instance.
+ * internal */
 export class TestEditor extends Editor {
 	controller: EditorController
 
@@ -166,35 +162,12 @@ export class TestEditor extends Editor {
 		// Turn off edge scrolling for tests. Tests that require this can turn it back on.
 		this.user.updateUserPreferences({ edgeScrollSpeed: 0 })
 
-		this.sideEffects.registerAfterCreateHandler('shape', (record) => {
-			this._lastCreatedShapes.push(record)
-		})
-
 		// Wow! we'd forgotten these for a long time
 		registerDefaultSideEffects(this)
 	}
 
 	getHistory() {
 		return this.history
-	}
-
-	private _lastCreatedShapes: TLShape[] = []
-
-	/**
-	 * Get the last created shapes.
-	 *
-	 * @param count - The number of shapes to get.
-	 */
-	getLastCreatedShapes(count = 1) {
-		return this._lastCreatedShapes.slice(-count).map((s) => this.getShape(s)!)
-	}
-
-	/**
-	 * Get the last created shape.
-	 */
-	getLastCreatedShape<T extends TLShape>() {
-		const lastShape = this._lastCreatedShapes[this._lastCreatedShapes.length - 1] as T
-		return this.getShape<T>(lastShape)!
 	}
 
 	elm: HTMLElement
@@ -223,28 +196,6 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	/* ---- Delegated to EditorController: clipboard ---- */
-
-	clipboard = null as TLContent | null
-
-	copy(ids = this.getSelectedShapeIds()) {
-		this.controller.copy(ids)
-		this.clipboard = this.controller.clipboard
-		return this
-	}
-
-	cut(ids = this.getSelectedShapeIds()) {
-		this.controller.cut(ids)
-		this.clipboard = this.controller.clipboard
-		return this
-	}
-
-	paste(point?: VecLike) {
-		this.controller.clipboard = this.clipboard
-		this.controller.paste(point)
-		return this
-	}
-
 	/**
 	 * If you need to trigger a double click, you can either mock the implementation of one of these
 	 * methods, or call mockRestore() to restore the actual implementation (e.g.
@@ -261,13 +212,131 @@ export class TestEditor extends Editor {
 			return info
 		})
 
-	/* ---- Delegated to EditorController: IDs ---- */
+	/* ---- Delegated to EditorController ---- */
 
-	testShapeID(id: string) {
-		return this.controller.testShapeID(id)
+	getClipboard() {
+		return this.controller.clipboard
 	}
-	testPageID(id: string) {
-		return this.controller.testPageID(id)
+	setClipboard(value: TLContent | null) {
+		this.controller.clipboard = value
+	}
+	getLastCreatedShapes(...args: Parameters<EditorController['getLastCreatedShapes']>) {
+		return this.controller.getLastCreatedShapes(...args)
+	}
+	getLastCreatedShape<T extends TLShape>() {
+		return this.controller.getLastCreatedShape<T>()
+	}
+	testShapeID(...args: Parameters<EditorController['testShapeID']>) {
+		return this.controller.testShapeID(...args)
+	}
+	testPageID(...args: Parameters<EditorController['testPageID']>) {
+		return this.controller.testPageID(...args)
+	}
+	copy(...args: Parameters<EditorController['copy']>) {
+		this.controller.copy(...args)
+		return this
+	}
+	cut(...args: Parameters<EditorController['cut']>) {
+		this.controller.cut(...args)
+		return this
+	}
+	paste(...args: Parameters<EditorController['paste']>) {
+		this.controller.paste(...args)
+		return this
+	}
+	getViewportPageCenter() {
+		return this.controller.getViewportPageCenter()
+	}
+	getSelectionPageCenter() {
+		return this.controller.getSelectionPageCenter()
+	}
+	getPageCenter(...args: Parameters<EditorController['getPageCenter']>) {
+		return this.controller.getPageCenter(...args)
+	}
+	getPageRotationById(...args: Parameters<EditorController['getPageRotationById']>) {
+		return this.controller.getPageRotationById(...args)
+	}
+	getPageRotation(...args: Parameters<EditorController['getPageRotation']>) {
+		return this.controller.getPageRotation(...args)
+	}
+	getArrowsBoundTo(...args: Parameters<EditorController['getArrowsBoundTo']>) {
+		return this.controller.getArrowsBoundTo(...args)
+	}
+	forceTick(...args: Parameters<EditorController['forceTick']>) {
+		this.controller.forceTick(...args)
+		return this
+	}
+	pointerMove(...args: Parameters<EditorController['pointerMove']>) {
+		this.controller.pointerMove(...args)
+		return this
+	}
+	pointerDown(...args: Parameters<EditorController['pointerDown']>) {
+		this.controller.pointerDown(...args)
+		return this
+	}
+	pointerUp(...args: Parameters<EditorController['pointerUp']>) {
+		this.controller.pointerUp(...args)
+		return this
+	}
+	click(...args: Parameters<EditorController['click']>) {
+		this.controller.click(...args)
+		return this
+	}
+	rightClick(...args: Parameters<EditorController['rightClick']>) {
+		this.controller.rightClick(...args)
+		return this
+	}
+	doubleClick(...args: Parameters<EditorController['doubleClick']>) {
+		this.controller.doubleClick(...args)
+		return this
+	}
+	keyPress(...args: Parameters<EditorController['keyPress']>) {
+		this.controller.keyPress(...args)
+		return this
+	}
+	keyDown(...args: Parameters<EditorController['keyDown']>) {
+		this.controller.keyDown(...args)
+		return this
+	}
+	keyRepeat(...args: Parameters<EditorController['keyRepeat']>) {
+		this.controller.keyRepeat(...args)
+		return this
+	}
+	keyUp(...args: Parameters<EditorController['keyUp']>) {
+		this.controller.keyUp(...args)
+		return this
+	}
+	wheel(...args: Parameters<EditorController['wheel']>) {
+		this.controller.wheel(...args)
+		return this
+	}
+	pan(...args: Parameters<EditorController['pan']>) {
+		this.controller.pan(...args)
+		return this
+	}
+	pinchStart(...args: Parameters<EditorController['pinchStart']>) {
+		this.controller.pinchStart(...args)
+		return this
+	}
+	pinchTo(...args: Parameters<EditorController['pinchTo']>) {
+		this.controller.pinchTo(...args)
+		return this
+	}
+	pinchEnd(...args: Parameters<EditorController['pinchEnd']>) {
+		this.controller.pinchEnd(...args)
+		return this
+	}
+	rotateSelection(...args: Parameters<EditorController['rotateSelection']>) {
+		this.controller.rotateSelection(...args)
+		return this
+	}
+	translateSelection(...args: Parameters<EditorController['translateSelection']>) {
+		this.controller.translateSelection(...args)
+		return this
+	}
+	resizeSelection(...args: Parameters<EditorController['resizeSelection']>) {
+		this.controller.resizeSelection(...args)
+		return this
 	}
 
 	/* ---- Test assertions ---- */
@@ -314,205 +383,6 @@ export class TestEditor extends Editor {
 		observedBounds.y = screenPoint.y
 		expect(observedBounds).toCloselyMatchObject(bounds)
 		return this
-	}
-
-	/* ---- Delegated to EditorController: queries ---- */
-
-	getViewportPageCenter() {
-		return this.controller.getViewportPageCenter()
-	}
-
-	getSelectionPageCenter() {
-		return this.controller.getSelectionPageCenter()
-	}
-
-	getPageCenter(shape: TLShape) {
-		return this.controller.getPageCenter(shape)
-	}
-
-	getPageRotationById(id: TLShapeId): number {
-		return this.controller.getPageRotationById(id)
-	}
-
-	getPageRotation(shape: TLShape) {
-		return this.controller.getPageRotation(shape)
-	}
-
-	getArrowsBoundTo(shapeId: TLShapeId) {
-		return this.controller.getArrowsBoundTo(shapeId)
-	}
-
-	/* ---- Delegated to EditorController: input events ---- */
-
-	forceTick(count = 1) {
-		this.controller.forceTick(count)
-		return this
-	}
-
-	pointerMove(
-		x = this.inputs.getCurrentScreenPoint().x,
-		y = this.inputs.getCurrentScreenPoint().y,
-		options?: PointerEventInit,
-		modifiers?: EventModifiers
-	) {
-		this.controller.pointerMove(x, y, options, modifiers)
-		return this
-	}
-
-	pointerDown(
-		x = this.inputs.getCurrentScreenPoint().x,
-		y = this.inputs.getCurrentScreenPoint().y,
-		options?: PointerEventInit,
-		modifiers?: EventModifiers
-	) {
-		this.controller.pointerDown(x, y, options, modifiers)
-		return this
-	}
-
-	pointerUp(
-		x = this.inputs.getCurrentScreenPoint().x,
-		y = this.inputs.getCurrentScreenPoint().y,
-		options?: PointerEventInit,
-		modifiers?: EventModifiers
-	) {
-		this.controller.pointerUp(x, y, options, modifiers)
-		return this
-	}
-
-	click(
-		x = this.inputs.getCurrentScreenPoint().x,
-		y = this.inputs.getCurrentScreenPoint().y,
-		options?: PointerEventInit,
-		modifiers?: EventModifiers
-	) {
-		this.controller.click(x, y, options, modifiers)
-		return this
-	}
-
-	rightClick(
-		x = this.inputs.getCurrentScreenPoint().x,
-		y = this.inputs.getCurrentScreenPoint().y,
-		options?: PointerEventInit,
-		modifiers?: EventModifiers
-	) {
-		this.controller.rightClick(x, y, options, modifiers)
-		return this
-	}
-
-	doubleClick(
-		x = this.inputs.getCurrentScreenPoint().x,
-		y = this.inputs.getCurrentScreenPoint().y,
-		options?: PointerEventInit,
-		modifiers?: EventModifiers
-	) {
-		this.controller.doubleClick(x, y, options, modifiers)
-		return this
-	}
-
-	keyPress(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
-		this.controller.keyPress(key, options)
-		return this
-	}
-
-	keyDown(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
-		this.controller.keyDown(key, options)
-		return this
-	}
-
-	keyRepeat(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
-		this.controller.keyRepeat(key, options)
-		return this
-	}
-
-	keyUp(key: string, options = {} as Partial<Omit<TLKeyboardEventInfo, 'key'>>) {
-		this.controller.keyUp(key, options)
-		return this
-	}
-
-	wheel(dx: number, dy: number, options = {} as Partial<Omit<TLWheelEventInfo, 'delta'>>) {
-		this.controller.wheel(dx, dy, options)
-		return this
-	}
-
-	pan(offset: VecLike): this {
-		this.controller.pan(offset)
-		return this
-	}
-
-	pinchStart(
-		x = this.inputs.getCurrentScreenPoint().x,
-		y = this.inputs.getCurrentScreenPoint().y,
-		z: number,
-		dx: number,
-		dy: number,
-		dz: number,
-		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
-	) {
-		this.controller.pinchStart(x, y, z, dx, dy, dz, options)
-		return this
-	}
-
-	pinchTo(
-		x = this.inputs.getCurrentScreenPoint().x,
-		y = this.inputs.getCurrentScreenPoint().y,
-		z: number,
-		dx: number,
-		dy: number,
-		dz: number,
-		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
-	) {
-		this.controller.pinchTo(x, y, z, dx, dy, dz, options)
-		return this
-	}
-
-	pinchEnd(
-		x = this.inputs.getCurrentScreenPoint().x,
-		y = this.inputs.getCurrentScreenPoint().y,
-		z: number,
-		dx: number,
-		dy: number,
-		dz: number,
-		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
-	) {
-		this.controller.pinchEnd(x, y, z, dx, dy, dz, options)
-		return this
-	}
-
-	/* ---- Delegated to EditorController: interaction helpers ---- */
-
-	rotateSelection(
-		angleRadians: number,
-		{
-			handle = 'top_left_rotate',
-			shiftKey = false,
-		}: { handle?: RotateCorner; shiftKey?: boolean } = {}
-	) {
-		this.controller.rotateSelection(angleRadians, { handle, shiftKey })
-		return this
-	}
-
-	translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>) {
-		this.controller.translateSelection(dx, dy, options)
-		return this
-	}
-
-	resizeSelection(
-		{ scaleX = 1, scaleY = 1 },
-		handle: SelectionHandle,
-		options?: Partial<TLPointerEventInfo>
-	) {
-		this.controller.resizeSelection({ scaleX, scaleY }, handle, options)
-		return this
-	}
-
-	/* ---- Test-specific (not delegated) ---- */
-
-	createShapesFromJsx(shapesJsx: React.JSX.Element | React.JSX.Element[]) {
-		const { shapes, assets, ids, bindings } = shapesFromJsx(shapesJsx)
-		this.createAssets(assets)
-		this.createShapes(shapes)
-		this.createBindings(bindings)
-		return ids
 	}
 }
 

@@ -1,7 +1,7 @@
 import { TLDrawShape, TLHighlightShape, last } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { base64ToPoints } from '../lib/utils/test-helpers'
 import { TEST_DRAW_SHAPE_SCREEN_POINTS } from './drawing.data'
-import { base64ToPoints } from './test-jsx'
 import { TestEditor } from './TestEditor'
 
 vi.useFakeTimers()

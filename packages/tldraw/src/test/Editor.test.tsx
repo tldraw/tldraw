@@ -16,7 +16,6 @@ import {
 } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
-import { TL } from './test-jsx'
 
 let editor: TestEditor
 
@@ -172,34 +171,42 @@ describe('Editor.sharedOpacity', () => {
 	})
 
 	it('should return opacity for a single selected shape', () => {
-		const { A } = editor.createShapesFromJsx(<TL.geo ref="A" opacity={0.3} x={0} y={0} />)
+		const A = createShapeId('A')
+		editor.createShapes([{ id: A, type: 'geo', x: 0, y: 0, opacity: 0.3, props: {} }])
 		editor.setSelectedShapes([A])
 		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
 	it('should return opacity for multiple selected shapes', () => {
-		const { A, B } = editor.createShapesFromJsx([
-			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
-			<TL.geo ref="B" opacity={0.3} x={0} y={0} />,
+		const A = createShapeId('A')
+		const B = createShapeId('B')
+		editor.createShapes([
+			{ id: A, type: 'geo', x: 0, y: 0, opacity: 0.3, props: {} },
+			{ id: B, type: 'geo', x: 0, y: 0, opacity: 0.3, props: {} },
 		])
 		editor.setSelectedShapes([A, B])
 		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
 	it('should return mixed when multiple selected shapes have different opacity', () => {
-		const { A, B } = editor.createShapesFromJsx([
-			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
-			<TL.geo ref="B" opacity={0.5} x={0} y={0} />,
+		const A = createShapeId('A')
+		const B = createShapeId('B')
+		editor.createShapes([
+			{ id: A, type: 'geo', x: 0, y: 0, opacity: 0.3, props: {} },
+			{ id: B, type: 'geo', x: 0, y: 0, opacity: 0.5, props: {} },
 		])
 		editor.setSelectedShapes([A, B])
 		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'mixed' })
 	})
 
 	it('ignores the opacity of groups and returns the opacity of their children', () => {
-		const ids = editor.createShapesFromJsx([
-			<TL.group ref="group" x={0} y={0}>
-				<TL.geo ref="A" opacity={0.3} x={0} y={0} />
-			</TL.group>,
+		const ids = {
+			group: createShapeId('group'),
+			A: createShapeId('A'),
+		}
+		editor.createShapes([
+			{ id: ids.group, type: 'group', x: 0, y: 0, props: {} },
+			{ id: ids.A, type: 'geo', x: 0, y: 0, opacity: 0.3, parentId: ids.group, props: {} },
 		])
 		editor.setSelectedShapes([ids.group])
 		expect(editor.getSharedOpacity()).toStrictEqual({ type: 'shared', value: 0.3 })
@@ -208,9 +215,13 @@ describe('Editor.sharedOpacity', () => {
 
 describe('Editor.setOpacity', () => {
 	it('should set opacity for selected shapes', () => {
-		const ids = editor.createShapesFromJsx([
-			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
-			<TL.geo ref="B" opacity={0.4} x={0} y={0} />,
+		const ids = {
+			A: createShapeId('A'),
+			B: createShapeId('B'),
+		}
+		editor.createShapes([
+			{ id: ids.A, type: 'geo', x: 0, y: 0, opacity: 0.3, props: {} },
+			{ id: ids.B, type: 'geo', x: 0, y: 0, opacity: 0.4, props: {} },
 		])
 
 		editor.setSelectedShapes([ids.A, ids.B])
@@ -222,15 +233,21 @@ describe('Editor.setOpacity', () => {
 	})
 
 	it('should traverse into groups and set opacity in their children', () => {
-		const ids = editor.createShapesFromJsx([
-			<TL.geo ref="boxA" x={0} y={0} />,
-			<TL.group ref="groupA" x={0} y={0}>
-				<TL.geo ref="boxB" x={0} y={0} />
-				<TL.group ref="groupB" x={0} y={0}>
-					<TL.geo ref="boxC" x={0} y={0} />
-					<TL.geo ref="boxD" x={0} y={0} />
-				</TL.group>
-			</TL.group>,
+		const ids = {
+			boxA: createShapeId('boxA'),
+			groupA: createShapeId('groupA'),
+			boxB: createShapeId('boxB'),
+			groupB: createShapeId('groupB'),
+			boxC: createShapeId('boxC'),
+			boxD: createShapeId('boxD'),
+		}
+		editor.createShapes([
+			{ id: ids.boxA, type: 'geo', x: 0, y: 0, props: {} },
+			{ id: ids.groupA, type: 'group', x: 0, y: 0, props: {} },
+			{ id: ids.boxB, type: 'geo', x: 0, y: 0, parentId: ids.groupA, props: {} },
+			{ id: ids.groupB, type: 'group', x: 0, y: 0, parentId: ids.groupA, props: {} },
+			{ id: ids.boxC, type: 'geo', x: 0, y: 0, parentId: ids.groupB, props: {} },
+			{ id: ids.boxD, type: 'geo', x: 0, y: 0, parentId: ids.groupB, props: {} },
 		])
 
 		editor.setSelectedShapes([ids.groupA])
@@ -929,9 +946,8 @@ describe('the geometry cache', () => {
 		editor = new TestEditor({
 			shapeUtils: [CustomShapeUtil],
 		})
-		const { A } = editor.createShapesFromJsx([
-			<TL.myCustomShape ref="A" x={0} y={0} w={100} h={100} />,
-		])
+		const A = createShapeId('A')
+		editor.createShapes([{ id: A, type: 'myCustomShape', x: 0, y: 0, props: { w: 100, h: 100 } }])
 		expect(editor.getShapePageBounds(A)!.width).toBe(100)
 		editor.updateShape({ id: A, type: 'myCustomShape', meta: { double: true } })
 		expect(editor.getShapePageBounds(A)!.width).toBe(200)

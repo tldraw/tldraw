@@ -18,8 +18,8 @@ import { StrictMode } from 'react'
 import { vi } from 'vitest'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
+import { createDrawSegments } from '../lib/utils/test-helpers'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
-import { createDrawSegments } from './test-jsx'
 import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,

@@ -1,7 +1,7 @@
+import { createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { SelectTool } from '../lib/tools/SelectTool/SelectTool'
 import { TestEditor } from './TestEditor'
-import { TL } from './test-jsx'
 
 let editor: TestEditor
 
@@ -67,10 +67,15 @@ describe(SelectTool, () => {
 describe('When pointing a shape behind the current selection', () => {
 	it('Does not select on pointer down, but does select on pointer up', () => {
 		editor.selectNone()
-		const ids = editor.createShapesFromJsx([
-			<TL.geo ref="A" x={0} y={0} w={100} h={100} />,
-			<TL.geo ref="B" x={50} y={50} w={100} h={100} />,
-			<TL.geo ref="C" x={100} y={100} w={100} h={100} />,
+		const ids = {
+			A: createShapeId('A'),
+			B: createShapeId('B'),
+			C: createShapeId('C'),
+		}
+		editor.createShapes([
+			{ id: ids.A, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: ids.B, type: 'geo', x: 50, y: 50, props: { w: 100, h: 100 } },
+			{ id: ids.C, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 		])
 		editor.select(ids.A, ids.C)
 		// don't select it yet! It's behind the current selection
@@ -82,10 +87,15 @@ describe('When pointing a shape behind the current selection', () => {
 
 	it('Selects on shift+pointer up', () => {
 		editor.selectNone()
-		const ids = editor.createShapesFromJsx([
-			<TL.geo ref="A" x={0} y={0} w={50} h={50} />,
-			<TL.geo ref="B" x={50} y={50} w={50} h={50} />,
-			<TL.geo ref="C" x={100} y={100} w={50} h={50} />,
+		const ids = {
+			A: createShapeId('A'),
+			B: createShapeId('B'),
+			C: createShapeId('C'),
+		}
+		editor.createShapes([
+			{ id: ids.A, type: 'geo', x: 0, y: 0, props: { w: 50, h: 50 } },
+			{ id: ids.B, type: 'geo', x: 50, y: 50, props: { w: 50, h: 50 } },
+			{ id: ids.C, type: 'geo', x: 100, y: 100, props: { w: 50, h: 50 } },
 		])
 		editor.select(ids.A, ids.C)
 
@@ -110,10 +120,15 @@ describe('When pointing a shape behind the current selection', () => {
 
 	it('Moves on pointer move, does not select on pointer up', () => {
 		editor.selectNone()
-		const ids = editor.createShapesFromJsx([
-			<TL.geo ref="A" x={0} y={0} w={100} h={100} />,
-			<TL.geo ref="B" x={50} y={50} w={100} h={100} />,
-			<TL.geo ref="C" x={100} y={100} w={100} h={100} />,
+		const ids = {
+			A: createShapeId('A'),
+			B: createShapeId('B'),
+			C: createShapeId('C'),
+		}
+		editor.createShapes([
+			{ id: ids.A, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: ids.B, type: 'geo', x: 50, y: 50, props: { w: 100, h: 100 } },
+			{ id: ids.C, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 		])
 		editor.select(ids.A, ids.C) // don't select it yet! It's behind the current selection
 		editor.pointerDown(100, 100, ids.B)
@@ -128,19 +143,21 @@ describe('When pointing a shape behind the current selection', () => {
 
 describe('When brushing arrows', () => {
 	it('Brushes a straight arrow', () => {
-		const ids = editor
+		const ids = {
+			arrow1: createShapeId('arrow1'),
+		}
+		editor
 			.selectAll()
 			.deleteShapes(editor.getSelectedShapeIds())
 			.setCamera({ x: 0, y: 0, z: 1 })
-			.createShapesFromJsx([
-				<TL.arrow
-					ref="arrow1"
-					x={0}
-					y={0}
-					start={{ x: 0, y: 0 }}
-					end={{ x: 100, y: 100 }}
-					bend={0}
-				/>,
+			.createShapes([
+				{
+					id: ids.arrow1,
+					type: 'arrow',
+					x: 0,
+					y: 0,
+					props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 }, bend: 0 },
+				},
 			])
 		editor.setCurrentTool('select')
 		editor.pointerDown(0, 45)
@@ -154,15 +171,14 @@ describe('When brushing arrows', () => {
 			.selectAll()
 			.deleteShapes(editor.getSelectedShapeIds())
 			.setCamera({ x: 0, y: 0, z: 1 })
-			.createShapesFromJsx([
-				<TL.arrow
-					ref="arrow1"
-					x={0}
-					y={0}
-					start={{ x: 0, y: 0 }}
-					end={{ x: 100, y: 100 }}
-					bend={40}
-				/>,
+			.createShapes([
+				{
+					id: createShapeId('arrow1'),
+					type: 'arrow',
+					x: 0,
+					y: 0,
+					props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 }, bend: 40 },
+				},
 			])
 		editor.setCurrentTool('select')
 		editor.pointerDown(55, 45)
