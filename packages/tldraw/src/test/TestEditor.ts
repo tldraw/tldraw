@@ -22,8 +22,8 @@ import {
 	createShapeId,
 	createTLStore,
 } from '@tldraw/editor'
-import type { EventModifiers, PointerEventInit } from '@tldraw/macropad'
-import { Macropad } from '@tldraw/macropad'
+import type { EventModifiers, PointerEventInit } from '@tldraw/editor-controller'
+import { EditorController } from '@tldraw/editor-controller'
 import { vi } from 'vitest'
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
@@ -54,7 +54,7 @@ Object.assign(navigator, {
 window.ClipboardItem = class {}
 
 export class TestEditor extends Editor {
-	controller: Macropad
+	controller: EditorController
 
 	constructor(
 		options: Partial<Omit<TLEditorOptions, 'store'>> = {},
@@ -112,7 +112,7 @@ export class TestEditor extends Editor {
 		})
 		this.elm = elm
 		this.bounds = bounds
-		this.controller = new Macropad(this)
+		this.controller = new EditorController(this)
 
 		// Pretty hacky way to mock the screen bounds
 		document.body.appendChild(this.elm)
@@ -223,7 +223,7 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	/* ---- Delegated to Macropad: clipboard ---- */
+	/* ---- Delegated to EditorController: clipboard ---- */
 
 	clipboard = null as TLContent | null
 
@@ -261,7 +261,7 @@ export class TestEditor extends Editor {
 			return info
 		})
 
-	/* ---- Delegated to Macropad: IDs ---- */
+	/* ---- Delegated to EditorController: IDs ---- */
 
 	testShapeID(id: string) {
 		return this.controller.testShapeID(id)
@@ -316,7 +316,7 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	/* ---- Delegated to Macropad: queries ---- */
+	/* ---- Delegated to EditorController: queries ---- */
 
 	getViewportPageCenter() {
 		return this.controller.getViewportPageCenter()
@@ -342,7 +342,7 @@ export class TestEditor extends Editor {
 		return this.controller.getArrowsBoundTo(shapeId)
 	}
 
-	/* ---- Delegated to Macropad: input events ---- */
+	/* ---- Delegated to EditorController: input events ---- */
 
 	forceTick(count = 1) {
 		this.controller.forceTick(count)
@@ -478,7 +478,7 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	/* ---- Delegated to Macropad: interaction helpers ---- */
+	/* ---- Delegated to EditorController: interaction helpers ---- */
 
 	rotateSelection(
 		angleRadians: number,

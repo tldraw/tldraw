@@ -7,5 +7,9 @@
 		"noImplicitReturns": false,
 		"rootDir": "src"
 	},
-	"references": [{ "path": "../editor" }, { "path": "../macropad" }, { "path": "../store" }]
+	"references": [
+		{ "path": "../editor" },
+		{ "path": "../editor-controller" },
+		{ "path": "../store" }
+	]
 }

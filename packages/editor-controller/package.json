@@ -1,5 +1,5 @@
 {
-	"name": "@tldraw/macropad",
+	"name": "@tldraw/editor-controller",
 	"description": "Imperative API for driving the tldraw editor programmatically.",
 	"version": "4.3.0",
 	"author": {
@@ -18,7 +18,7 @@
 	"keywords": [
 		"tldraw",
 		"sdk",
-		"macropad",
+		"editor-controller",
 		"automation",
 		"scripting"
 	],

@@ -60,7 +60,7 @@
 		"@tiptap/react": "^3.12.1",
 		"@tiptap/starter-kit": "^3.12.1",
 		"@tldraw/editor": "workspace:*",
-		"@tldraw/macropad": "workspace:*",
+		"@tldraw/editor-controller": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"classnames": "^2.5.1",
 		"hotkeys-js": "^3.13.9",
