@@ -1,0 +1,23 @@
+.cursor-shadow-controls {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
+	margin: 8px;
+}
+
+.cursor-shadow-buttons {
+	display: flex;
+	gap: 4px;
+}
+
+.cursor-shadow-active {
+	background: var(--color-selected);
+	color: var(--color-selected-contrast);
+}
+
+.cursor-shadow-hint {
+	font-size: 12px;
+	color: var(--color-text-1);
+	opacity: 0.7;
+}
