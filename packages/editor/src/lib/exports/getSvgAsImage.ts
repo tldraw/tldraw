@@ -86,7 +86,7 @@ export async function getSvgAsImageWithOptions(
 	// If we rendered with extra padding to capture visual overflow, trim it now
 	const outputCanvas =
 		trimPadding > 0
-			? trimExtraPadding(canvas, trimPadding * scale * pixelRatio)
+			? trimExtraPadding(canvas, trimPadding * scale * effectiveScale)
 			: { canvas, width: clampedWidth, height: clampedHeight }
 
 	const blob = await new Promise<Blob | null>((resolve) =>
