@@ -12,6 +12,7 @@ import {
 	ERROR_CLEAR_DELAY_MS,
 	MAX_AGENT_ITERATIONS,
 	NEARBY_MARGIN,
+	USE_BROWSER_TTS,
 } from '../lib/constants'
 import { callGemini, type GeminiContent, type GeminiPart } from './api'
 import { buildSystemPrompt } from './systemPrompt'
@@ -48,6 +49,7 @@ export class IntelligentCanvasAgent {
 	}
 
 	start() {
+		if (this.disposeHandler) return
 		this.disposeHandler = this.editor.sideEffects.registerAfterChangeHandler(
 			'instance_page_state',
 			(prev, next) => {
@@ -275,53 +277,63 @@ export class IntelligentCanvasAgent {
 			await new Promise((r) => setTimeout(r, 50))
 		}
 
-		// 3. Fetch audio and play, with camera tour in parallel
-		const fillers = ['Preparing...', 'Processing...', 'Composing...', 'Generating...']
-		// Shuffle fillers and cycle through them while TTS loads
-		const shuffled = fillers.sort(() => Math.random() - 0.5)
-		let fillerIndex = 0
-		this.callbacks.onStatusChange('thinking', shuffled[fillerIndex])
-		const fillerInterval = setInterval(() => {
-			fillerIndex = (fillerIndex + 1) % shuffled.length
-			this.callbacks.onStatusChange('thinking', shuffled[fillerIndex])
-		}, 1500)
-
-		try {
-			const audioBlob = await this.fetchTTSAudio(response.speech)
-			clearInterval(fillerInterval)
-			const audioUrl = URL.createObjectURL(audioBlob)
-			const audio = new Audio(audioUrl)
-
-			const audioPromise = new Promise<void>((resolve) => {
-				audio.onended = () => {
-					URL.revokeObjectURL(audioUrl)
-					resolve()
+		// 3. Speech + camera tour (only if speech was provided)
+		if (response.speech) {
+			if (USE_BROWSER_TTS) {
+				// Use the browser's built-in speechSynthesis API
+				this.callbacks.onStatusChange('thinking', 'Speaking...')
+				if (this.placedShapeIds.length > 0) {
+					this.scheduleFallbackCameraTour(response.speech, canvasItems)
 				}
-				audio.onerror = () => {
-					URL.revokeObjectURL(audioUrl)
-					resolve()
+				await this.browserSpeak(response.speech)
+			} else {
+				const fillers = ['Preparing...', 'Processing...', 'Composing...', 'Generating...']
+				const shuffled = fillers.sort(() => Math.random() - 0.5)
+				let fillerIndex = 0
+				this.callbacks.onStatusChange('thinking', shuffled[fillerIndex])
+				const fillerInterval = setInterval(() => {
+					fillerIndex = (fillerIndex + 1) % shuffled.length
+					this.callbacks.onStatusChange('thinking', shuffled[fillerIndex])
+				}, 1500)
+
+				try {
+					const audioBlob = await this.fetchTTSAudio(response.speech)
+					clearInterval(fillerInterval)
+					const audioUrl = URL.createObjectURL(audioBlob)
+					const audio = new Audio(audioUrl)
+
+					const audioPromise = new Promise<void>((resolve) => {
+						audio.onended = () => {
+							URL.revokeObjectURL(audioUrl)
+							resolve()
+						}
+						audio.onerror = () => {
+							URL.revokeObjectURL(audioUrl)
+							resolve()
+						}
+					})
+
+					this.callbacks.onStatusChange('thinking', 'Speaking...')
+					audio.play()
+
+					// Run camera tour alongside playback
+					if (this.placedShapeIds.length > 0) {
+						this.scheduleCameraTour(response.speech, canvasItems, audio)
+					}
+
+					await audioPromise
+				} catch {
+					clearInterval(fillerInterval)
+					// ElevenLabs unavailable — fall back to browser TTS with camera tour
+					if (this.placedShapeIds.length > 0) {
+						this.scheduleFallbackCameraTour(response.speech, canvasItems)
+					}
+					this.fallbackSpeak(response.speech)
 				}
-			})
-
-			this.callbacks.onStatusChange('thinking', 'Speaking...')
-			audio.play()
-
-			// Run camera tour alongside playback
-			if (this.placedShapeIds.length > 0) {
-				this.scheduleCameraTour(response.speech, canvasItems, audio)
 			}
-
-			await audioPromise
-		} catch {
-			clearInterval(fillerInterval)
-			// ElevenLabs unavailable — fall back to browser TTS with camera tour
-			if (this.placedShapeIds.length > 0) {
-				this.scheduleFallbackCameraTour(response.speech, canvasItems)
-			}
-			this.fallbackSpeak(response.speech)
 		}
 
-		// Zoom out to show everything once narration ends
+		// Zoom out to show everything
 		if (this.placedShapeIds.length > 0) {
 			this.editor.zoomToFit({ animation: { duration: 400 } })
 		}
@@ -491,13 +503,24 @@ export class IntelligentCanvasAgent {
 		}
 	}
 
-	/** Fall back to browser speech synthesis when ElevenLabs is unavailable. */
-	private fallbackSpeak(text: string) {
-		if (typeof window !== 'undefined' && window.speechSynthesis) {
+	/** Use browser speech synthesis and return a promise that resolves when done. */
+	private browserSpeak(text: string): Promise<void> {
+		return new Promise<void>((resolve) => {
+			if (typeof window === 'undefined' || !window.speechSynthesis) {
+				resolve()
+				return
+			}
 			const utterance = new SpeechSynthesisUtterance(text)
 			utterance.rate = 1.0
 			utterance.pitch = 1.0
+			utterance.onend = () => resolve()
+			utterance.onerror = () => resolve()
 			window.speechSynthesis.speak(utterance)
-		}
+		})
+	}
+
+	/** Fall back to browser speech synthesis when ElevenLabs is unavailable (fire-and-forget). */
+	private fallbackSpeak(text: string) {
+		this.browserSpeak(text)
 	}
 }

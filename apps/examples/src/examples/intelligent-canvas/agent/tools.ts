@@ -1,8 +1,14 @@
 import {
 	AssetRecordType,
 	Editor,
+	TLDefaultColorStyle,
+	TLDefaultFillStyle,
+	TLDrawShapeSegment,
 	TLShapeId,
 	TLShapePartial,
+	Vec,
+	VecModel,
+	b64Vecs,
 	createShapeId,
 	getHashForString,
 	toRichText,
@@ -90,16 +96,72 @@ export const AGENT_TOOLS: FunctionDeclaration[] = [
 		},
 	},
 	{
+		name: 'draw_freehand',
+		description:
+			'Draw a freehand path on the canvas. Use this to sketch diagrams, underlines, circles, arrows, annotations, or any freehand illustration. Provide an array of {x, y} points in page coordinates. Use "smooth" style for curves and organic shapes, "straight" for angular/geometric shapes. Set closed=true and fill for filled shapes. Call multiple times for separate strokes.',
+		parameters: {
+			type: 'object',
+			properties: {
+				points: {
+					type: 'array',
+					description: 'Array of {x, y} coordinates defining the path. At least 2 points required.',
+					items: {
+						type: 'object',
+						properties: {
+							x: { type: 'number', description: 'X coordinate in page space.' },
+							y: { type: 'number', description: 'Y coordinate in page space.' },
+						},
+						required: ['x', 'y'],
+					},
+				},
+				color: {
+					type: 'string',
+					description: 'Stroke color. Default "black".',
+					enum: [
+						'black',
+						'blue',
+						'green',
+						'grey',
+						'light-blue',
+						'light-green',
+						'light-red',
+						'light-violet',
+						'orange',
+						'red',
+						'violet',
+						'yellow',
+					],
+				},
+				fill: {
+					type: 'string',
+					description: 'Fill style for closed shapes. Default "none".',
+					enum: ['none', 'solid', 'semi', 'pattern'],
+				},
+				closed: {
+					type: 'boolean',
+					description: 'Whether to close the path back to the starting point. Default false.',
+				},
+				style: {
+					type: 'string',
+					description:
+						'Drawing style. "smooth" interpolates curves between points, "straight" draws straight lines. Default "smooth".',
+					enum: ['smooth', 'straight'],
+				},
+			},
+			required: ['points'],
+		},
+	},
+	{
 		name: 'respond',
 		description:
-			'Respond to the user with spoken narration and optional canvas visuals. This is your primary way to communicate — always use this tool to deliver your final response. The speech will be read aloud and canvas items will appear progressively, synced to the narration.',
+			'Respond to the user and finish your turn. Always call this as your final action. Include speech only for voice input — omit it for text-based requests like drawing or canvas organization.',
 		parameters: {
 			type: 'object',
 			properties: {
 				speech: {
 					type: 'string',
 					description:
-						'The full text to speak aloud. Use a natural, conversational tone. This is the primary response the user will hear.',
+						'Optional spoken narration. Include this when the user spoke via microphone (voice input). Omit for text-based requests where speech is unnecessary.',
 				},
 				canvas: {
 					type: 'array',
@@ -129,7 +191,7 @@ export const AGENT_TOOLS: FunctionDeclaration[] = [
 					},
 				},
 			},
-			required: ['speech'],
+			required: [],
 		},
 	},
 ]
@@ -162,6 +224,8 @@ export async function executeToolCall(
 			return executeMoveShape(editor, toolInput)
 		case 'remove_shape':
 			return executeRemoveShape(editor, toolInput)
+		case 'draw_freehand':
+			return executeDrawFreehand(editor, toolInput)
 		case 'respond':
 			return executeRespond(toolInput)
 		default:
@@ -170,7 +234,7 @@ export async function executeToolCall(
 }
 
 function executeRespond(input: Record<string, unknown>): ToolResult {
-	const speech = input.speech as string
+	const speech = (input.speech as string) ?? ''
 	const canvas = input.canvas as CanvasItem[] | undefined
 
 	const orchestratorResponse: OrchestratorResponse = { speech, canvas }
@@ -381,4 +445,87 @@ function executeRemoveShape(editor: Editor, input: Record<string, unknown>): Too
 
 	editor.deleteShapes([shapeId])
 	return { success: true, message: `Removed shape ${shapeId}` }
+}
+
+function executeDrawFreehand(editor: Editor, input: Record<string, unknown>): ToolResult {
+	const rawPoints = input.points as { x: number; y: number }[]
+	if (!rawPoints || rawPoints.length < 2) {
+		return { success: false, message: 'At least 2 points are required to draw a path.' }
+	}
+
+	const closed = (input.closed as boolean) ?? false
+	const color = ((input.color as string) ?? 'black') as TLDefaultColorStyle
+	const fill = ((input.fill as string) ?? 'none') as TLDefaultFillStyle
+	const style = (input.style as string) ?? 'smooth'
+
+	// Copy points and close path if needed
+	const inputPoints = [...rawPoints]
+	if (closed) {
+		inputPoints.push(inputPoints[0])
+	}
+
+	// Calculate bounding box origin
+	const minX = Math.min(...inputPoints.map((p) => p.x))
+	const minY = Math.min(...inputPoints.map((p) => p.y))
+
+	// Interpolate between sparse points for smooth rendering
+	const maxGap = style === 'smooth' ? 10 : 2
+	const interpolated: VecModel[] = []
+
+	for (let i = 0; i < inputPoints.length - 1; i++) {
+		const point = inputPoints[i]
+		interpolated.push(point)
+
+		const nextPoint = inputPoints[i + 1]
+		if (!nextPoint) continue
+
+		const distance = Vec.Dist(point, nextPoint)
+		const numPointsToAdd = Math.floor(distance / maxGap)
+		for (let j = 0; j < numPointsToAdd; j++) {
+			const t = (j + 1) / (numPointsToAdd + 1)
+			interpolated.push(Vec.Lrp(point, nextPoint, t))
+		}
+	}
+
+	// Add the final point
+	const lastInput = inputPoints[inputPoints.length - 1]
+	interpolated.push(lastInput)
+
+	if (interpolated.length < 2) {
+		return { success: false, message: 'Not enough valid points after interpolation.' }
+	}
+
+	// Normalize to shape-local coordinates and add pressure
+	const segmentPoints = interpolated.map((point) => ({
+		x: point.x - minX,
+		y: point.y - minY,
+		z: 0.75,
+	}))
+
+	const segments: TLDrawShapeSegment[] = [
+		{
+			type: 'free',
+			path: b64Vecs.encodePoints(segmentPoints),
+		},
+	]
+
+	const id = createShapeId()
+	editor.createShape({
+		id,
+		type: 'draw',
+		x: minX,
+		y: minY,
+		props: {
+			color,
+			fill,
+			dash: 'draw',
+			size: 's',
+			segments,
+			isComplete: true,
+			isClosed: closed,
+			isPen: true,
+		},
+	})
+
+	return { success: true, message: `Drew freehand path ${id} with ${interpolated.length} points.` }
 }

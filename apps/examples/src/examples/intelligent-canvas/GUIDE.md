@@ -1,6 +1,9 @@
 # Intelligent canvas
 
-A voice-first AI assistant built on tldraw. Users speak or type; Gemini reasons and calls tools; the canvas populates with text and images synchronized to spoken narration.
+A dual-mode AI canvas built on tldraw:
+
+- Assistant mode: users speak or type; Gemini reasons and calls tools.
+- Composition mode: users type idea primitives, rank candidate pairs, and generate composed nodes.
 
 ## Architecture at a glance
 
@@ -34,6 +37,12 @@ TTS audio    synced to word timings
 intelligent-canvas/
   IntelligentCanvasExample.tsx     Entry point, React component, context provider
   intelligent-canvas.css           Pulse animation for recording indicator
+  composition/
+    CompositionPanel.tsx           Text-first composition UI and workflow
+    graph.ts                       Idea node metadata helpers and canvas CRUD
+    scoring.ts                     Pair ranking (compatibility x diversity x depth penalty)
+    llm.ts                         LLM-powered composition generation
+    types.ts                       Composition domain types
   agent/
     IntelligentCanvasAgent.ts      Core orchestrator loop + TTS playback
     systemPrompt.ts                System prompt builder (static rules + canvas snapshot)
@@ -87,15 +96,15 @@ This lets Gemini chain actions: search Wikipedia, analyze canvas shapes, reorgan
 
 ### 4. Tools
 
-| Tool | What it does |
-|------|-------------|
-| `web_search` | Delegates to `wikipedia_search` |
-| `wikipedia_search` | Fetches Wikipedia REST summary + thumbnail URL |
-| `analyze_canvas_area` | Returns JSON of all shapes in a bounding box |
-| `create_frame` | Creates a frame shape for grouping |
-| `move_shape` | Repositions a shape by ID |
-| `remove_shape` | Deletes a shape by ID |
-| `respond` | **Terminal tool.** Returns speech text + optional canvas items. Signals the loop to end. |
+| Tool                  | What it does                                                                             |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| `web_search`          | Delegates to `wikipedia_search`                                                          |
+| `wikipedia_search`    | Fetches Wikipedia REST summary + thumbnail URL                                           |
+| `analyze_canvas_area` | Returns JSON of all shapes in a bounding box                                             |
+| `create_frame`        | Creates a frame shape for grouping                                                       |
+| `move_shape`          | Repositions a shape by ID                                                                |
+| `remove_shape`        | Deletes a shape by ID                                                                    |
+| `respond`             | **Terminal tool.** Returns speech text + optional canvas items. Signals the loop to end. |
 
 The `respond` tool's payload:
 
@@ -143,15 +152,16 @@ This lets the agent reason about what's already on the canvas ("what is this ima
 
 A Vite plugin adds middleware endpoints so API keys stay server-side:
 
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /api/gemini/status` | Returns `{ available: true/false }` |
-| `POST /api/gemini` | Proxies to Gemini `generateContent`, appends API key |
-| `GET /api/elevenlabs/status` | Returns availability |
-| `POST /api/elevenlabs/tts` | Proxies streaming TTS |
-| `POST /api/elevenlabs/tts-with-timestamps` | Proxies TTS with alignment data |
+| Endpoint                                   | Purpose                                              |
+| ------------------------------------------ | ---------------------------------------------------- |
+| `GET /api/gemini/status`                   | Returns `{ available: true/false }`                  |
+| `POST /api/gemini`                         | Proxies to Gemini `generateContent`, appends API key |
+| `GET /api/elevenlabs/status`               | Returns availability                                 |
+| `POST /api/elevenlabs/tts`                 | Proxies streaming TTS                                |
+| `POST /api/elevenlabs/tts-with-timestamps` | Proxies TTS with alignment data                      |
 
 Keys are loaded from `apps/examples/.env.local`:
+
 ```
 GEMINI_API_KEY=...
 ELEVENLABS_API_KEY=...

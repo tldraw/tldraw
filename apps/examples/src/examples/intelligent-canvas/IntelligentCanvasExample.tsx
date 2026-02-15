@@ -1,12 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { TLComponents, Tldraw, useEditor } from 'tldraw'
+import { Editor, TLComponents, Tldraw, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { AgentStatus, IntelligentCanvasAgent } from './agent/IntelligentCanvasAgent'
+import { CompositionPanel } from './composition/CompositionPanel'
 import './intelligent-canvas.css'
 import { AgentStatusIndicator } from './ui/AgentStatusIndicator'
 import { MicrophoneButton } from './ui/MicrophoneButton'
 
+type CanvasMode = 'assistant' | 'composition'
+
 interface AgentState {
+	mode: CanvasMode
+	setMode: (mode: CanvasMode) => void
 	agentStatus: AgentStatus
 	agentMessage?: string
 	agentRef: React.MutableRefObject<IntelligentCanvasAgent | null>
@@ -14,6 +19,8 @@ interface AgentState {
 }
 
 const AgentContext = createContext<AgentState>({
+	mode: 'assistant',
+	setMode: () => {},
 	agentStatus: 'idle',
 	agentMessage: undefined,
 	agentRef: { current: null },
@@ -21,7 +28,8 @@ const AgentContext = createContext<AgentState>({
 })
 
 function InFrontOfTheCanvasContent() {
-	const { agentStatus, agentMessage, agentRef, agentAvailable } = useContext(AgentContext)
+	const { mode, setMode, agentStatus, agentMessage, agentRef, agentAvailable } =
+		useContext(AgentContext)
 	const [recording, setRecording] = useState(false)
 
 	const handleTranscript = useCallback(
@@ -33,13 +41,34 @@ function InFrontOfTheCanvasContent() {
 
 	return (
 		<>
-			<KeyboardHandler />
-			<MicrophoneButton
-				onTranscript={handleTranscript}
-				disabled={agentStatus === 'thinking' || !agentAvailable}
-				onRecordingChange={setRecording}
-			/>
-			<AgentStatusIndicator status={agentStatus} message={agentMessage} recording={recording} />
+			<div className="ic-mode-toggle">
+				<button
+					className={`ic-mode-button ${mode === 'assistant' ? 'active' : ''}`}
+					onClick={() => setMode('assistant')}
+				>
+					Assistant mode
+				</button>
+				<button
+					className={`ic-mode-button ${mode === 'composition' ? 'active' : ''}`}
+					onClick={() => setMode('composition')}
+				>
+					Composition mode
+				</button>
+			</div>
+
+			{mode === 'assistant' ? (
+				<>
+					<KeyboardHandler />
+					<MicrophoneButton
+						onTranscript={handleTranscript}
+						disabled={agentStatus === 'thinking' || !agentAvailable}
+						onRecordingChange={setRecording}
+					/>
+					<AgentStatusIndicator status={agentStatus} message={agentMessage} recording={recording} />
+				</>
+			) : (
+				<CompositionPanel agentAvailable={agentAvailable} />
+			)}
 		</>
 	)
 }
@@ -72,6 +101,7 @@ function KeyboardHandler() {
 }
 
 export default function IntelligentCanvasExample() {
+	const [mode, setMode] = useState<CanvasMode>('assistant')
 	const [agentStatus, setAgentStatus] = useState<AgentStatus>('idle')
 	const [agentMessage, setAgentMessage] = useState<string | undefined>()
 	const [agentAvailable, setAgentAvailable] = useState(false)
@@ -85,8 +115,7 @@ export default function IntelligentCanvasExample() {
 	}, [])
 
 	const handleMount = useCallback(
-		(editor: import('tldraw').Editor) => {
-			// Start the agent
+		(editor: Editor) => {
 			const agent = new IntelligentCanvasAgent(editor, {
 				onStatusChange: (status, message) => {
 					setAgentStatus(status)
@@ -105,8 +134,22 @@ export default function IntelligentCanvasExample() {
 		[]
 	)
 
+	useEffect(() => {
+		const agent = agentRef.current
+		if (!agent) return
+		if (mode === 'assistant') {
+			agent.start()
+		} else {
+			agent.stop()
+			setAgentStatus('idle')
+			setAgentMessage(undefined)
+		}
+	}, [mode])
+
 	return (
-		<AgentContext.Provider value={{ agentStatus, agentMessage, agentRef, agentAvailable }}>
+		<AgentContext.Provider
+			value={{ mode, setMode, agentStatus, agentMessage, agentRef, agentAvailable }}
+		>
 			<div className="tldraw__editor intelligent-canvas">
 				<Tldraw components={components} onMount={handleMount} />
 			</div>

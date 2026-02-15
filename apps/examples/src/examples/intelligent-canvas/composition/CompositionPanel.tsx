@@ -1,0 +1,374 @@
+import { useMemo, useState } from 'react'
+import { Editor, TLShapeId, createShapeId, toRichText, track, useEditor, useValue } from 'tldraw'
+import {
+	createIdeaNode,
+	createPairKey,
+	getIdeaNodeById,
+	getIdeaNodes,
+	getNextIdeaPosition,
+	isIdeaShape,
+	updateIdeaStatus,
+} from './graph'
+import { composeCodePair, composeIdeaPair, parseCodeBlockFromText, parseIdeaFromText } from './llm'
+import { rankPairSuggestions } from './scoring'
+import { CompositionDomain, PairDecision } from './types'
+
+const MAX_SUGGESTIONS = 8
+
+interface CompositionPanelProps {
+	agentAvailable: boolean
+}
+
+export const CompositionPanel = track(function CompositionPanel({
+	agentAvailable,
+}: CompositionPanelProps) {
+	const editor = useEditor()
+	const [domain, setDomain] = useState<CompositionDomain>('idea')
+	const allIdeaNodes = useValue('ideaNodes', () => getIdeaNodes(editor), [editor])
+	const ideaNodes = useMemo(
+		() => allIdeaNodes.filter((n) => n.domain === domain),
+		[allIdeaNodes, domain]
+	)
+	const selectedShape = useValue('selectedShape', () => editor.getOnlySelectedShape(), [editor])
+	const selectedIdea = useMemo(() => {
+		if (!selectedShape || !isIdeaShape(selectedShape)) return null
+		const node = getIdeaNodeById(editor, selectedShape.id)
+		if (!node || node.domain !== domain) return null
+		return node
+	}, [domain, editor, selectedShape])
+
+	const selectedPair = useValue(
+		'selectedPair',
+		() => {
+			const shapes = editor.getSelectedShapes()
+			if (shapes.length !== 2) return null
+			const a = isIdeaShape(shapes[0]) ? getIdeaNodeById(editor, shapes[0].id) : null
+			const b = isIdeaShape(shapes[1]) ? getIdeaNodeById(editor, shapes[1].id) : null
+			if (!a || !b) return null
+			if (a.domain !== domain || b.domain !== domain) return null
+			return { a, b, pairKey: createPairKey(a.id, b.id) }
+		},
+		[domain, editor]
+	)
+
+	const [decisions, setDecisions] = useState<PairDecision[]>([])
+	const [ideaText, setIdeaText] = useState('')
+	const [parsing, setParsing] = useState<number>(0)
+	const [busyPair, setBusyPair] = useState<string | null>(null)
+	const [error, setError] = useState<string | null>(null)
+
+	const suggestions = useMemo(
+		() => rankPairSuggestions(ideaNodes, decisions, MAX_SUGGESTIONS),
+		[ideaNodes, decisions]
+	)
+	const selectedCodePreviewShapeId = useValue(
+		'selectedCodePreviewShapeId',
+		() => {
+			if (!selectedIdea?.code) return null
+			return findCodePreviewShapeId(editor, selectedIdea.id)
+		},
+		[editor, selectedIdea?.code, selectedIdea?.id]
+	)
+
+	async function handleAddPrimitives() {
+		const lines = ideaText
+			.split('\n')
+			.map((l) => l.trim())
+			.filter(Boolean)
+		if (lines.length === 0) {
+			setError(
+				domain === 'idea'
+					? 'Enter one or more ideas, one per line.'
+					: 'Enter one or more logic blocks, one per line.'
+			)
+			return
+		}
+		if (!agentAvailable) {
+			setError('Gemini API is not configured. Add GEMINI_API_KEY to .env.local.')
+			return
+		}
+		setParsing(lines.length)
+		setError(null)
+		const errors: string[] = []
+
+		await Promise.all(
+			lines.map(async (line) => {
+				try {
+					const parsed =
+						domain === 'code' ? await parseCodeBlockFromText(line) : await parseIdeaFromText(line)
+					const pos = getNextIdeaPosition(editor)
+					createIdeaNode(
+						editor,
+						{
+							domain,
+							title: parsed.title,
+							description: parsed.description,
+							inputs: parsed.inputs,
+							outputs: parsed.outputs,
+							language: parsed.language,
+							code: parsed.code,
+							depth: 0,
+							parents: [],
+							status: 'seed',
+						},
+						pos
+					)
+				} catch (err) {
+					errors.push(`"${line.slice(0, 30)}…": ${err instanceof Error ? err.message : 'failed'}`)
+				} finally {
+					setParsing((prev) => prev - 1)
+				}
+			})
+		)
+
+		if (errors.length > 0) {
+			setError(errors.join('\n'))
+		} else {
+			setIdeaText('')
+		}
+	}
+
+	async function handleCompose(pairKey: string, aId: TLShapeId, bId: TLShapeId) {
+		if (!agentAvailable) {
+			setError('Gemini API is not configured. Add GEMINI_API_KEY to .env.local.')
+			return
+		}
+		const a = getIdeaNodeById(editor, aId)
+		const b = getIdeaNodeById(editor, bId)
+		if (!a || !b) return
+
+		setBusyPair(pairKey)
+		setError(null)
+		try {
+			const draft = domain === 'code' ? await composeCodePair(a, b) : await composeIdeaPair(a, b)
+			const pos = getNextIdeaPosition(editor)
+			const id = createIdeaNode(
+				editor,
+				{
+					domain,
+					title: draft.title,
+					description: `${draft.description}\n\nWhy: ${draft.whyThisCombination}`,
+					inputs: draft.inputs,
+					outputs: draft.outputs,
+					language: draft.language,
+					code: draft.code,
+					depth: Math.max(a.depth, b.depth) + 1,
+					parents: [a.id, b.id],
+					status: 'proposed',
+				},
+				pos
+			)
+			editor.select(id)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Composition failed.')
+		} finally {
+			setBusyPair(null)
+		}
+	}
+
+	function recordDecision(pairKey: string, decision: PairDecision['decision']) {
+		setDecisions((prev) => [...prev, { pairKey, decision }])
+	}
+
+	function handleAcceptSelected() {
+		if (!selectedIdea || selectedIdea.parents.length < 2) return
+		updateIdeaStatus(editor, selectedIdea.id, 'accepted')
+		recordDecision(createPairKey(selectedIdea.parents[0], selectedIdea.parents[1]), 'accepted')
+	}
+
+	function handleRejectSelected() {
+		if (!selectedIdea || selectedIdea.parents.length < 2) return
+		updateIdeaStatus(editor, selectedIdea.id, 'rejected')
+		recordDecision(createPairKey(selectedIdea.parents[0], selectedIdea.parents[1]), 'rejected')
+	}
+
+	function handleToggleCodePreview() {
+		if (!selectedIdea?.code) return
+		const existing = findCodePreviewShapeId(editor, selectedIdea.id)
+		if (existing) {
+			editor.deleteShapes([existing])
+			return
+		}
+
+		editor.createShape({
+			id: createShapeId(),
+			type: 'text',
+			x: selectedIdea.x + 520,
+			y: selectedIdea.y,
+			props: {
+				richText: toRichText(`// ${selectedIdea.title}\n${selectedIdea.code}`),
+				autoSize: false,
+				w: 560,
+				font: 'mono',
+			},
+			meta: {
+				kind: 'idea-code-preview',
+				previewFor: selectedIdea.id,
+				domain: selectedIdea.domain,
+			},
+		})
+	}
+
+	return (
+		<div className="ic-composition-panel">
+			<div className="ic-composition-card">
+				<div className="ic-composition-title">Composition mode</div>
+				<div className="ic-composition-subtitle">
+					{domain === 'idea'
+						? 'Text-first idea lattice explorer'
+						: 'Description-first program logic composer'}
+				</div>
+				<div className="ic-row">
+					<button
+						className={`ic-button ic-button-small ${domain === 'idea' ? 'ic-button-active' : ''}`}
+						onClick={() => setDomain('idea')}
+					>
+						Idea domain
+					</button>
+					<button
+						className={`ic-button ic-button-small ${domain === 'code' ? 'ic-button-active' : ''}`}
+						onClick={() => setDomain('code')}
+					>
+						Code domain
+					</button>
+				</div>
+			</div>
+
+			<div className="ic-composition-card">
+				<div className="ic-composition-section-title">
+					{domain === 'idea' ? 'Add ideas' : 'Add logic blocks'}
+				</div>
+				<textarea
+					className="ic-textarea"
+					placeholder={
+						domain === 'idea'
+							? 'One idea per line, e.g.\na chat built on a canvas\na tool for laying out trees of connected data'
+							: 'One logic block per line, e.g.\nparse CLI args into config\nvalidate user input payload\nrender report rows as CSV'
+					}
+					value={ideaText}
+					onChange={(e) => setIdeaText(e.target.value)}
+				/>
+				<button
+					className="ic-button"
+					disabled={parsing > 0 || !agentAvailable}
+					onClick={handleAddPrimitives}
+				>
+					{parsing > 0
+						? `Parsing ${parsing} ${domain === 'idea' ? 'idea' : 'block'}${parsing === 1 ? '' : 's'}...`
+						: domain === 'idea'
+							? 'Add ideas'
+							: 'Add logic blocks'}
+				</button>
+			</div>
+
+			{selectedPair ? (
+				<div className="ic-composition-card">
+					<div className="ic-composition-section-title">Compose selection</div>
+					<div className="ic-suggestion-title">
+						{selectedPair.a.title} x {selectedPair.b.title}
+					</div>
+					<button
+						className="ic-button"
+						disabled={busyPair === selectedPair.pairKey || !agentAvailable}
+						onClick={() =>
+							handleCompose(selectedPair.pairKey, selectedPair.a.id, selectedPair.b.id)
+						}
+					>
+						{busyPair === selectedPair.pairKey
+							? 'Composing...'
+							: domain === 'idea'
+								? 'Compose these two'
+								: 'Compose logic blocks'}
+					</button>
+				</div>
+			) : null}
+
+			<div className="ic-composition-card">
+				<div className="ic-composition-section-title">
+					Frontier suggestions ({suggestions.length})
+				</div>
+				{suggestions.length === 0 ? (
+					<div className="ic-muted">Add at least two primitives to see ranked pairs.</div>
+				) : (
+					suggestions.map((s) => (
+						<div key={s.pairKey} className="ic-suggestion">
+							<div className="ic-suggestion-title">
+								{s.a.title} x {s.b.title}
+							</div>
+							<div className="ic-suggestion-meta">
+								C: {s.interfaceScore.toFixed(2)} D: {s.diversityScore.toFixed(2)} P:{' '}
+								{s.depthPenalty.toFixed(2)} Score: {s.finalScore.toFixed(3)}
+							</div>
+							<button
+								className="ic-button ic-button-small"
+								disabled={busyPair === s.pairKey || !agentAvailable}
+								onClick={() => handleCompose(s.pairKey, s.a.id, s.b.id)}
+							>
+								{busyPair === s.pairKey ? 'Composing...' : 'Compose'}
+							</button>
+						</div>
+					))
+				)}
+			</div>
+
+			<div className="ic-composition-card">
+				<div className="ic-composition-section-title">
+					{domain === 'idea' ? 'Selected idea' : 'Selected logic block'}
+				</div>
+				{selectedIdea ? (
+					<>
+						<div className="ic-suggestion-title">{selectedIdea.title}</div>
+						<div className="ic-suggestion-meta">
+							Status: {selectedIdea.status} Depth: {selectedIdea.depth}
+							{selectedIdea.language ? ` Language: ${selectedIdea.language}` : ''}
+						</div>
+						{selectedIdea.domain === 'code' && selectedIdea.code ? (
+							<>
+								<button className="ic-button ic-button-small" onClick={handleToggleCodePreview}>
+									{selectedCodePreviewShapeId ? 'Hide code' : 'View code'}
+								</button>
+								<div className="ic-muted">
+									{selectedCodePreviewShapeId
+										? 'Code block is open on the canvas next to this node.'
+										: 'Code stays hidden until requested.'}
+								</div>
+							</>
+						) : null}
+						{selectedIdea.status === 'proposed' && selectedIdea.parents.length >= 2 ? (
+							<div className="ic-row">
+								<button className="ic-button ic-button-small" onClick={handleAcceptSelected}>
+									Accept
+								</button>
+								<button className="ic-button ic-button-small" onClick={handleRejectSelected}>
+									Reject
+								</button>
+							</div>
+						) : (
+							<div className="ic-muted">Select a proposed idea to accept or reject it.</div>
+						)}
+					</>
+				) : (
+					<div className="ic-muted">
+						{domain === 'idea'
+							? 'Select an idea node on the canvas.'
+							: 'Select a logic block node on the canvas.'}
+					</div>
+				)}
+			</div>
+
+			{error ? <div className="ic-error">{error}</div> : null}
+		</div>
+	)
+})
+
+function findCodePreviewShapeId(editor: Editor, ideaId: TLShapeId): TLShapeId | null {
+	const shapes = editor.getCurrentPageShapes()
+	for (const shape of shapes) {
+		const meta = shape.meta as Record<string, unknown> | undefined
+		if (!meta) continue
+		if (meta.kind !== 'idea-code-preview') continue
+		if (meta.previewFor !== ideaId) continue
+		return shape.id
+	}
+	return null
+}
