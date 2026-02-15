@@ -1,6 +1,27 @@
-import { R2Bucket } from '@cloudflare/workers-types'
+/** R2-like bucket interface - avoids type conflicts between @cloudflare/workers-types and cloudflare:workers runtime */
+export type R2BucketLike = {
+	head(key: string): Promise<{ httpEtag: string } | null>
+	put(
+		key: string,
+		value: unknown,
+		options?: { httpMetadata?: unknown }
+	): Promise<{ httpEtag: string }>
+	get(
+		key: string,
+		options?: { range?: unknown; onlyIf?: unknown }
+	): Promise<{
+		writeHttpMetadata(headers: unknown): void
+		httpEtag: string
+		size: number
+		range?: { offset?: number; length?: number; suffix?: number }
+		body?: unknown
+	} | null>
+}
 import { IRequest } from 'itty-router'
 import { notFound } from './errors'
+
+// Cloudflare Workers cache - caches.default exists at runtime but isn't in standard CacheStorage types
+const cache = (caches as unknown as { default: Cache }).default
 
 /**
  * Handles asset upload requests to Cloudflare R2 storage with conflict detection.
@@ -37,7 +58,7 @@ export async function handleUserAssetUpload({
 	objectName,
 }: {
 	objectName: string
-	bucket: R2Bucket
+	bucket: R2BucketLike
 	body: ReadableStream | null
 	headers: Headers
 }): Promise<Response> {
@@ -45,8 +66,9 @@ export async function handleUserAssetUpload({
 		return Response.json({ error: 'Asset already exists' }, { status: 409 })
 	}
 
-	const object = await bucket.put(objectName, body, {
-		httpMetadata: headers,
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- R2Bucket expects Workers ReadableStream, Request provides DOM ReadableStream
+	const object = await bucket.put(objectName, body as any, {
+		httpMetadata: headers as any,
 	})
 
 	return Response.json({ object: objectName }, { headers: { etag: object.httpEtag } })
@@ -88,20 +110,21 @@ export async function handleUserAssetGet({
 	context,
 }: {
 	request: IRequest
-	bucket: R2Bucket
+	bucket: R2BucketLike
 	objectName: string
 	context: ExecutionContext
 }): Promise<Response> {
 	// this cache automatically handles range responses etc.
 	const cacheKey = new Request(request.url, { headers: request.headers })
-	const cachedResponse = await caches.default.match(cacheKey)
+	const cachedResponse = await cache.match(cacheKey)
 	if (cachedResponse) {
 		return cachedResponse
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Headers type varies between Workers and DOM
 	const object = await bucket.get(objectName, {
-		range: request.headers,
-		onlyIf: request.headers,
+		range: request.headers as any,
+		onlyIf: request.headers as any,
 	})
 
 	if (!object) {
@@ -109,7 +132,7 @@ export async function handleUserAssetGet({
 	}
 
 	const headers = new Headers()
-	object.writeHttpMetadata(headers)
+	object.writeHttpMetadata(headers as any)
 
 	// assets are immutable, so we can cache them basically forever:
 	headers.set('cache-control', 'public, max-age=31536000, immutable')
@@ -129,7 +152,7 @@ export async function handleUserAssetGet({
 	// need to do it ourselves.
 	let contentRange
 	if (object.range) {
-		if ('suffix' in object.range) {
+		if ('suffix' in object.range && object.range.suffix !== undefined) {
 			const start = object.size - object.range.suffix
 			const end = object.size - 1
 			contentRange = `bytes ${start}-${end}/${object.size}`
@@ -150,11 +173,11 @@ export async function handleUserAssetGet({
 	const status = body ? (contentRange ? 206 : 200) : 304
 
 	if (status === 200) {
-		const [cacheBody, responseBody] = body!.tee()
+		const [cacheBody, responseBody] = (body as ReadableStream).tee()
 		// cache the response
-		context.waitUntil(caches.default.put(cacheKey, new Response(cacheBody, { headers, status })))
-		return new Response(responseBody, { headers, status })
+		context.waitUntil(cache.put(cacheKey, new Response(cacheBody as BodyInit, { headers, status })))
+		return new Response(responseBody as BodyInit, { headers, status })
 	}
 
-	return new Response(body, { headers, status })
+	return new Response(body as BodyInit | null, { headers, status })
 }

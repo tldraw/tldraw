@@ -2,6 +2,11 @@
 	"extends": "../../internal/config/tsconfig.base.json",
 	"include": ["src"],
 	"exclude": ["node_modules", ".tsbuild*"],
-	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
+	"compilerOptions": {
+		"outDir": "./.tsbuild",
+		"rootDir": "src",
+		"lib": ["ESNext"],
+		"types": ["@cloudflare/workers-types", "vitest/globals"]
+	},
 	"references": [{ "path": "../utils" }, { "path": "../validate" }]
 }

@@ -1,0 +1,21 @@
+{
+	"extends": "../../internal/config/tsconfig.base.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./*"]
+		},
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"plugins": [{ "name": "next" }],
+		"allowJs": true,
+		"emitDeclarationOnly": false,
+		"noEmit": true,
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"isolatedModules": true,
+		"jsx": "preserve",
+		"strictNullChecks": true
+	},
+	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+	"exclude": ["node_modules", ".next", "postcss.config.js", "tailwind.config.js", "scripts"]
+}

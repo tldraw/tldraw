@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 
 // Configurable domain for rewrites
+// To switch from Framer to the new website app, change this to the website app's Vercel URL:
+// const REWRITE_DOMAIN = 'tldraw-website.vercel.app'
 const REWRITE_DOMAIN = 'tldrawdotdev.framer.website'
 
 const nextConfig = {

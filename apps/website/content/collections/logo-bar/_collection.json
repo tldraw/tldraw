@@ -1,0 +1,14 @@
+{
+	"name": "logo-bar",
+	"inline": true,
+	"items": [
+		{ "id": "clickup", "name": "ClickUp" },
+		{ "id": "padlet", "name": "Padlet" },
+		{ "id": "mobbin", "name": "Mobbin" },
+		{ "id": "jam", "name": "Jam" },
+		{ "id": "cursor", "name": "Cursor" },
+		{ "id": "replit", "name": "Replit" },
+		{ "id": "vercel", "name": "Vercel" },
+		{ "id": "stripe", "name": "Stripe" }
+	]
+}

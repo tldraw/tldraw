@@ -198,7 +198,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			env: this.env,
 			ctx: this.ctx,
 			after: (response, request) => {
-				const setCookies = response.headers.getAll('set-cookie')
+				const setCookies = response.headers.getSetCookie()
 				// Create a new Response with mutable headers before passing to corsify
 				// to avoid "Can't modify immutable headers" error
 				const mutableResponse = new Response(response.body, response)

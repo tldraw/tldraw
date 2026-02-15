@@ -2,6 +2,11 @@
 	"extends": "../../../internal/config/tsconfig.base.json",
 	"include": ["src"],
 	"exclude": ["node_modules", "dist", ".tsbuild*"],
-	"compilerOptions": { "noEmit": true, "emitDeclarationOnly": false },
+	"compilerOptions": {
+		"noEmit": true,
+		"emitDeclarationOnly": false,
+		"lib": ["ESNext"],
+		"types": ["@cloudflare/workers-types", "node"]
+	},
 	"references": [{ "path": "../../../packages/worker-shared" }]
 }

@@ -116,7 +116,12 @@ async function trySaveImage<const K extends string>(
 		if (!contentType.startsWith('image/')) throw new Error('Not an image')
 
 		const objectName = `bookmark-${key}-${id}`
-		metadata[key] = await uploadImage(imageResponse.headers, imageResponse.body, objectName)
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Headers/ReadableStream types vary between Workers fetch and uploadImage callback
+		metadata[key] = await uploadImage(
+			imageResponse.headers as any,
+			imageResponse.body as any,
+			objectName
+		)
 	} catch (error) {
 		console.error(`Error saving ${key}:`, error)
 	}

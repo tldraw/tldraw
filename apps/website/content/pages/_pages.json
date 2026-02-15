@@ -1,0 +1,18 @@
+{
+	"sections": [
+		{ "id": "homepage", "path": "/" },
+		{ "id": "features", "path": "/features" },
+		{ "id": "blog", "path": "/blog" },
+		{ "id": "pricing", "path": "/pricing" },
+		{ "id": "showcase", "path": "/showcase" },
+		{ "id": "company", "path": "/company" },
+		{ "id": "careers", "path": "/careers" },
+		{ "id": "faq", "path": "/faq" },
+		{ "id": "events", "path": "/events" },
+		{ "id": "legal", "path": "/legal" },
+		{ "id": "accessibility", "path": "/accessibility" },
+		{ "id": "partner", "path": "/partner" },
+		{ "id": "get-a-license", "path": "/get-a-license" },
+		{ "id": "thanks", "path": "/thanks" }
+	]
+}

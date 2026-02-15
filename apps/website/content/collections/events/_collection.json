@@ -1,0 +1,5 @@
+{
+	"name": "events",
+	"itemTitleField": "title",
+	"requiredFields": ["title", "date", "location"]
+}

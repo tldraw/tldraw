@@ -1,0 +1,24 @@
+{
+	"name": "starter-kits",
+	"inline": true,
+	"items": [
+		{
+			"id": "multiplayer",
+			"title": "Multiplayer starter kit",
+			"description": "Self-hosted tldraw with real-time multiplayer collaboration built with Cloudflare Durable Objects. Production-ready backend that handles WebSocket connections, automatic persistence, and asset management.",
+			"url": "/starter-kits/multiplayer"
+		},
+		{
+			"id": "workflow",
+			"title": "Workflow starter kit",
+			"description": "A drag-and-drop workflow builder with custom shape tools, connectors, and a properties panel. Build visual programming interfaces, flowcharts, and node-based editors.",
+			"url": "/starter-kits/workflow"
+		},
+		{
+			"id": "chat",
+			"title": "Chat starter kit",
+			"description": "A collaborative chat interface built on the tldraw canvas. Spatial conversations with threads, reactions, and real-time updates.",
+			"url": "/starter-kits/chat"
+		}
+	]
+}

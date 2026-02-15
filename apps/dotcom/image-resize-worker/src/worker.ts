@@ -11,6 +11,9 @@ import { WorkerEntrypoint } from 'cloudflare:workers'
 
 declare const fetch: typeof import('@cloudflare/workers-types').fetch
 
+// Cloudflare Workers cache - caches.default exists at runtime but isn't in standard CacheStorage types
+const cache = (caches as unknown as { default: Cache }).default
+
 interface Environment {
 	IS_LOCAL?: string
 	SENTRY_DSN?: undefined
@@ -54,7 +57,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				cacheKey.searchParams.set(key, value)
 			}
 
-			const cachedResponse = await caches.default.match(cacheKey)
+			const cachedResponse = await cache.match(cacheKey)
 			if (cachedResponse) {
 				// for some reason, cloudflare's cache doesn't seem to handle the etag properly:
 				if (cachedResponse.status === 200) {
@@ -93,7 +96,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			}
 			if (!actualResponse.headers.get('content-type')?.startsWith('image/')) return notFound()
 			if (actualResponse.status === 200) {
-				this.ctx.waitUntil(caches.default.put(cacheKey, actualResponse.clone()))
+				this.ctx.waitUntil(cache.put(cacheKey, actualResponse.clone()))
 			}
 
 			return actualResponse

@@ -1,0 +1,5 @@
+{
+	"name": "testimonials",
+	"itemTitleField": "author",
+	"requiredFields": ["quote", "author", "role", "company"]
+}
