@@ -7,10 +7,16 @@ export function useHighlight(code: string, language: string): HighlightedLine[] 
 	const [handle] = useState(() => delayRender('Highlighting code'))
 
 	useEffect(() => {
-		highlightCode(code, language).then((result) => {
-			setLines(result)
-			continueRender(handle)
-		})
+		highlightCode(code, language)
+			.then((result) => {
+				setLines(result)
+			})
+			.catch(() => {
+				// Fall back to unhighlighted rendering
+			})
+			.finally(() => {
+				continueRender(handle)
+			})
 	}, [code, language, handle])
 
 	return lines

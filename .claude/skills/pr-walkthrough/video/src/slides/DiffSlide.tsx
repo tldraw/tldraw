@@ -62,6 +62,21 @@ export const DiffSlide: React.FC<{ slide: DiffSlideType }> = ({ slide }) => {
 					fontFamily: FONT_FAMILY,
 				}}
 			>
+				{/* Segment title */}
+				{slide.title && (
+					<div
+						style={{
+							fontSize: 16,
+							fontWeight: 600,
+							color: COLORS.text,
+							marginBottom: 8,
+							opacity: 0.7,
+						}}
+					>
+						{slide.title}
+					</div>
+				)}
+
 				{/* File header */}
 				<div
 					style={{

@@ -15,6 +15,8 @@ export interface FocusPoint {
 
 export interface DiffSlide {
 	type: 'diff'
+	/** Optional segment label displayed above the filename */
+	title?: string
 	filename: string
 	language: string
 	diff: string
@@ -26,6 +28,8 @@ export interface DiffSlide {
 
 export interface CodeSlide {
 	type: 'code'
+	/** Optional segment label displayed above the filename */
+	title?: string
 	filename: string
 	language: string
 	code: string
