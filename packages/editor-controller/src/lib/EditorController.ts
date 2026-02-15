@@ -38,10 +38,18 @@ export type EventModifiers = Partial<Pick<TLPointerEventInfo, 'shiftKey' | 'ctrl
  */
 export class EditorController {
 	/** The underlying Editor instance. */
+	private _cleanup: (() => void) | null = null
+
 	constructor(public readonly editor: Editor) {
-		this.editor.sideEffects.registerAfterCreateHandler('shape', (record) => {
+		this._cleanup = this.editor.sideEffects.registerAfterCreateHandler('shape', (record) => {
 			this._lastCreatedShapes.push(record)
 		})
+	}
+
+	/** Remove all registered side-effect handlers. Call when this controller is no longer needed. */
+	dispose() {
+		this._cleanup?.()
+		this._cleanup = null
 	}
 
 	/** Local clipboard content. Used by copy, cut, and paste. */
@@ -565,7 +573,7 @@ export class EditorController {
 	) {
 		this.editor.dispatch({
 			type: 'pinch',
-			name: 'pinch_start',
+			name: 'pinch',
 			shiftKey: this.editor.inputs.getShiftKey(),
 			ctrlKey: this.editor.inputs.getCtrlKey(),
 			altKey: this.editor.inputs.getAltKey(),

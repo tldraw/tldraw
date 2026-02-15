@@ -26,6 +26,7 @@ export class EditorController {
     clipboard: null | TLContent;
     copy(ids?: TLShapeId[]): this;
     cut(ids?: TLShapeId[]): this;
+    dispose(): void;
     doubleClick(x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers): this;
     // (undocumented)
     readonly editor: Editor;

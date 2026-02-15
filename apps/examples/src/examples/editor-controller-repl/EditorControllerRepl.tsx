@@ -209,9 +209,10 @@ function ScriptPanel() {
 	const controllerRef = useRef<EditorController | null>(null)
 	const [scripts, setScripts] = useState<ScriptFile[]>(loadScripts)
 	const [selectedIndex, setSelectedIndex] = useState<number>(() => {
+		const loaded = loadScripts()
 		try {
 			const idx = parseInt(localStorage.getItem(SELECTED_SCRIPT_KEY) || '0')
-			return isNaN(idx) ? 0 : idx
+			return isNaN(idx) ? 0 : Math.max(0, Math.min(idx, loaded.length - 1))
 		} catch {
 			return 0
 		}
