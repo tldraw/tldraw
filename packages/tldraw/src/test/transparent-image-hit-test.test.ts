@@ -1,5 +1,6 @@
 import { AssetRecordType, createShapeId } from '@tldraw/editor'
 import { isPointTransparent } from '../lib/shapes/image/ImageAlphaCache'
+import { ImageEllipse2d } from '../lib/shapes/image/ImageEllipse2d'
 import { ImageRectangle2d } from '../lib/shapes/image/ImageRectangle2d'
 import { TestEditor } from './TestEditor'
 
@@ -199,6 +200,94 @@ describe('ImageRectangle2d.rejectHit with edge-margin clamping', () => {
 		expect(rect.rejectHit({ x: -2, y: 50 })).toBe(true)
 		// Point slightly outside right edge — clamps to right (opaque) pixel
 		expect(rect.rejectHit({ x: 102, y: 50 })).toBe(false)
+	})
+})
+
+describe('ImageEllipse2d.hitTestPoint', () => {
+	it('returns false for transparent pixel', () => {
+		const data = { width: 2, height: 2, alphas: new Uint8Array([0, 255, 255, 255]) }
+		const ellipse = new ImageEllipse2d({
+			width: 100,
+			height: 100,
+			isFilled: true,
+			alphaDataGetter: () => data,
+			crop: null,
+			flipX: false,
+			flipY: false,
+		})
+		// Point near center-ish but in top-left quadrant (transparent)
+		expect(ellipse.hitTestPoint({ x: 25, y: 25 }, 0, true)).toBe(false)
+	})
+
+	it('returns true for opaque pixel', () => {
+		const data = { width: 2, height: 2, alphas: new Uint8Array([0, 255, 255, 255]) }
+		const ellipse = new ImageEllipse2d({
+			width: 100,
+			height: 100,
+			isFilled: true,
+			alphaDataGetter: () => data,
+			crop: null,
+			flipX: false,
+			flipY: false,
+		})
+		// Point in bottom-right quadrant (opaque)
+		expect(ellipse.hitTestPoint({ x: 75, y: 75 }, 0, true)).toBe(true)
+	})
+
+	it('returns true when alpha data is not loaded', () => {
+		const ellipse = new ImageEllipse2d({
+			width: 100,
+			height: 100,
+			isFilled: true,
+			alphaDataGetter: () => null,
+			crop: null,
+			flipX: false,
+			flipY: false,
+		})
+		expect(ellipse.hitTestPoint({ x: 50, y: 50 }, 0, true)).toBe(true)
+	})
+})
+
+describe('ImageEllipse2d.rejectHit', () => {
+	it('returns true for transparent pixel', () => {
+		const data = { width: 2, height: 2, alphas: new Uint8Array([0, 255, 255, 255]) }
+		const ellipse = new ImageEllipse2d({
+			width: 100,
+			height: 100,
+			isFilled: true,
+			alphaDataGetter: () => data,
+			crop: null,
+			flipX: false,
+			flipY: false,
+		})
+		expect(ellipse.rejectHit({ x: 25, y: 25 })).toBe(true)
+	})
+
+	it('returns false for opaque pixel', () => {
+		const data = { width: 2, height: 2, alphas: new Uint8Array([0, 255, 255, 255]) }
+		const ellipse = new ImageEllipse2d({
+			width: 100,
+			height: 100,
+			isFilled: true,
+			alphaDataGetter: () => data,
+			crop: null,
+			flipX: false,
+			flipY: false,
+		})
+		expect(ellipse.rejectHit({ x: 75, y: 75 })).toBe(false)
+	})
+
+	it('returns false when alpha data is not loaded', () => {
+		const ellipse = new ImageEllipse2d({
+			width: 100,
+			height: 100,
+			isFilled: true,
+			alphaDataGetter: () => null,
+			crop: null,
+			flipX: false,
+			flipY: false,
+		})
+		expect(ellipse.rejectHit({ x: 50, y: 50 })).toBe(false)
 	})
 })
 
