@@ -1778,6 +1778,19 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     };
     // (undocumented)
+    onResizeCancel(initial: TLGeoShape, current: TLGeoShape): void;
+    // (undocumented)
+    onResizeEnd(initial: TLGeoShape, current: TLGeoShape): {
+        id: TLShapeId;
+        props: {
+            h: number;
+            w: number;
+        };
+        type: "geo";
+    } | undefined;
+    // (undocumented)
+    onResizeStart(shape: TLGeoShape): undefined;
+    // (undocumented)
     options: {
         showTextOutline: boolean;
     };

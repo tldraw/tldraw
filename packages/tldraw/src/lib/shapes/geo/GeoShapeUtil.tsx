@@ -13,6 +13,7 @@ import {
 	TLGeoShape,
 	TLGeoShapeProps,
 	TLResizeInfo,
+	TLShapeId,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
 	WeakCache,
@@ -49,6 +50,11 @@ import { GeoShapeBody } from './components/GeoShapeBody'
 import { getGeoShapePath } from './getGeoShapePath'
 
 const MIN_SIZE_WITH_LABEL = 17 * 3
+
+// Cache of label sizes captured at resize start. During a drag, we skip expensive
+// DOM measurement and use these cached sizes instead. A single accurate measurement
+// happens on resize end to snap shapes to correct constrained dimensions.
+let _resizeLabelSizeCache: Map<TLShapeId, { w: number; h: number }> | null = null
 
 /** @public */
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
@@ -315,6 +321,26 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return [getFillDefForCanvas()]
 	}
 
+	override onResizeStart(shape: TLGeoShape) {
+		if (!isEmptyRichText(shape.props.richText)) {
+			if (!_resizeLabelSizeCache) _resizeLabelSizeCache = new Map()
+			// Measure the label at minimum container width to get a container-independent
+			// minimum size. This avoids expensive per-frame DOM measurement during drag.
+			// The label size at MIN_SIZE_WITH_LABEL width represents the tightest the text
+			// can wrap without word-breaking — a stable lower bound regardless of how wide
+			// the shape currently is.
+			const minW = MIN_SIZE_WITH_LABEL * shape.props.scale
+			_resizeLabelSizeCache.set(
+				shape.id,
+				measureUnscaledLabelSize(this.editor, {
+					...shape,
+					props: { ...shape.props, w: minW, h: minW },
+				} as TLGeoShape)
+			)
+		}
+		return undefined
+	}
+
 	override onResize(
 		shape: TLGeoShape,
 		{ handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>
@@ -331,20 +357,21 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			const absUnscaledW = Math.abs(unscaledW)
 			const absUnscaledH = Math.abs(unscaledH)
 
-			// Measure the label at the constrained target dimensions so text wrapping is
-			// accounted for. We call measureUnscaledLabelSize directly (bypassing WeakCache)
-			// since temp shapes with resize dimensions change every frame. The WeakCache
-			// still helps getGeometry, onBeforeCreate, and onBeforeUpdate.
-			const measureW = Math.max(absUnscaledW, MIN_SIZE_WITH_LABEL)
-			const measureH = Math.max(absUnscaledH, MIN_SIZE_WITH_LABEL)
-			const unscaledLabelSize = measureUnscaledLabelSize(this.editor, {
-				...shape,
-				props: {
-					...shape.props,
-					w: measureW * shape.props.scale,
-					h: measureH * shape.props.scale,
-				},
-			} as TLGeoShape)
+			// Use the cached label size from resize start if available (interactive resize).
+			// Fall through to real measurement for programmatic callers that don't go
+			// through onResizeStart — measure at the target dimensions so text wrapping
+			// is accounted for.
+			const cached = _resizeLabelSizeCache?.get(shape.id)
+			const unscaledLabelSize = cached
+				? cached
+				: measureUnscaledLabelSize(this.editor, {
+						...shape,
+						props: {
+							...shape.props,
+							w: Math.max(absUnscaledW, MIN_SIZE_WITH_LABEL) * shape.props.scale,
+							h: Math.max(absUnscaledH, MIN_SIZE_WITH_LABEL) * shape.props.scale,
+						},
+					} as TLGeoShape)
 
 			const constrainedW = Math.max(absUnscaledW, unscaledLabelSize.w)
 			const constrainedH = Math.max(absUnscaledH, unscaledLabelSize.h)
@@ -392,6 +419,39 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				growY: 0,
 			},
 		}
+	}
+
+	override onResizeEnd(initial: TLGeoShape, current: TLGeoShape) {
+		_resizeLabelSizeCache?.delete(current.id)
+		if (_resizeLabelSizeCache?.size === 0) _resizeLabelSizeCache = null
+
+		if (isEmptyRichText(current.props.richText)) return
+
+		// Re-measure at final dimensions and return a correction if the shape
+		// ended up smaller than its label (possible because onResize used the
+		// cached start-of-resize label size while text wrapping may have changed).
+		const unscaledLabelSize = measureUnscaledLabelSize(this.editor, current)
+		const scale = current.props.scale
+		const unscaledW = current.props.w / scale
+		const unscaledH = current.props.h / scale
+		const correctedW = Math.max(unscaledW, unscaledLabelSize.w)
+		const correctedH = Math.max(unscaledH, unscaledLabelSize.h)
+
+		if (correctedW !== unscaledW || correctedH !== unscaledH) {
+			return {
+				id: current.id,
+				type: 'geo' as const,
+				props: {
+					w: correctedW * scale,
+					h: correctedH * scale,
+				},
+			}
+		}
+	}
+
+	override onResizeCancel(initial: TLGeoShape, current: TLGeoShape) {
+		_resizeLabelSizeCache?.delete(current.id)
+		if (_resizeLabelSizeCache?.size === 0) _resizeLabelSizeCache = null
 	}
 
 	override onBeforeCreate(shape: TLGeoShape) {
