@@ -55,7 +55,7 @@ REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
 
 if [ -z "${GEMINI_API_KEY:-}" ]; then
   if [ -f "${REPO_ROOT}/.env" ]; then
-    export $(grep '^GEMINI_API_KEY=' "${REPO_ROOT}/.env" | xargs)
+    export $(grep '^GEMINI_API_KEY=' "${REPO_ROOT}/.env" | xargs) 2>/dev/null || true
   fi
 fi
 GEMINI_API_KEY="${GEMINI_API_KEY:?Set GEMINI_API_KEY environment variable or add it to .env}"
@@ -330,7 +330,20 @@ except urllib.error.HTTPError as e:
 align_text = align_response["candidates"][0]["content"]["parts"][0]["text"]
 print(f"  [align] Raw response: {align_text.strip()}")
 
-timestamps = json.loads(align_text)
+parsed = json.loads(align_text)
+
+# Accept a bare list or an object with a list value (e.g. {"timestamps": [...]})
+if isinstance(parsed, list):
+    timestamps = parsed
+elif isinstance(parsed, dict):
+    # Use the first list-valued field
+    timestamps = next((v for v in parsed.values() if isinstance(v, list)), None)
+    if timestamps is None:
+        print(f"  [error] Alignment returned object with no list field: {align_text[:200]}")
+        sys.exit(1)
+else:
+    print(f"  [error] Unexpected alignment response type: {type(parsed).__name__}")
+    sys.exit(1)
 
 # We expect N+1 entries (N start times + 1 end time for the last segment).
 # If we got exactly N, the model omitted the end time — use total_dur.
