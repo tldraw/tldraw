@@ -27,15 +27,13 @@ export class ImageRectangle2d extends Rectangle2d {
 		this.flipY = config.flipY
 	}
 
-	override rejectHit(point: VecLike): boolean {
-		const data = this.alphaDataGetter()
-		if (!data) return false
-
+	/** Map a point in shape space to normalized [0,1] image coordinates, accounting for crop and flip. */
+	private mapToImageCoords(point: VecLike): { nx: number; ny: number } {
 		const { bounds } = this
 
-		// Normalize point to [0,1] within the shape bounds
-		let nx = (point.x - bounds.minX) / bounds.w
-		let ny = (point.y - bounds.minY) / bounds.h
+		// Normalize point to [0,1] within the shape bounds, clamped for edge-margin hits
+		let nx = Math.max(0, Math.min(1, (point.x - bounds.minX) / bounds.w))
+		let ny = Math.max(0, Math.min(1, (point.y - bounds.minY) / bounds.h))
 
 		// Map from cropped shape space to full image space
 		if (this.crop) {
@@ -48,6 +46,24 @@ export class ImageRectangle2d extends Rectangle2d {
 		if (this.flipX) nx = 1 - nx
 		if (this.flipY) ny = 1 - ny
 
+		return { nx, ny }
+	}
+
+	override hitTestPoint(point: VecLike, margin = 0, hitInside = false): boolean {
+		if (!super.hitTestPoint(point, margin, hitInside)) return false
+
+		const data = this.alphaDataGetter()
+		if (!data) return true
+
+		const { nx, ny } = this.mapToImageCoords(point)
+		return !isPointTransparent(data, nx, ny)
+	}
+
+	override rejectHit(point: VecLike): boolean {
+		const data = this.alphaDataGetter()
+		if (!data) return false
+
+		const { nx, ny } = this.mapToImageCoords(point)
 		return isPointTransparent(data, nx, ny)
 	}
 }

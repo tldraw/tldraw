@@ -118,6 +118,90 @@ describe('ImageRectangle2d.rejectHit', () => {
 	})
 })
 
+describe('ImageRectangle2d.hitTestPoint', () => {
+	it('returns false for transparent pixel', () => {
+		// 2x2 alpha map: top-left transparent, rest opaque
+		const data = { width: 2, height: 2, alphas: new Uint8Array([0, 255, 255, 255]) }
+		const rect = new ImageRectangle2d({
+			width: 100,
+			height: 100,
+			isFilled: true,
+			alphaDataGetter: () => data,
+			crop: null,
+			flipX: false,
+			flipY: false,
+		})
+		// Point in top-left quadrant (transparent)
+		expect(rect.hitTestPoint({ x: 10, y: 10 }, 0, true)).toBe(false)
+	})
+
+	it('returns true for opaque pixel', () => {
+		// 2x2 alpha map: top-left transparent, rest opaque
+		const data = { width: 2, height: 2, alphas: new Uint8Array([0, 255, 255, 255]) }
+		const rect = new ImageRectangle2d({
+			width: 100,
+			height: 100,
+			isFilled: true,
+			alphaDataGetter: () => data,
+			crop: null,
+			flipX: false,
+			flipY: false,
+		})
+		// Point in top-right quadrant (opaque)
+		expect(rect.hitTestPoint({ x: 75, y: 10 }, 0, true)).toBe(true)
+	})
+
+	it('returns false with margin > 0 near transparent edge', () => {
+		// 2x1 alpha: [transparent, opaque]
+		const data = { width: 2, height: 1, alphas: new Uint8Array([0, 255]) }
+		const rect = new ImageRectangle2d({
+			width: 100,
+			height: 100,
+			isFilled: true,
+			alphaDataGetter: () => data,
+			crop: null,
+			flipX: false,
+			flipY: false,
+		})
+		// Point near the top edge with margin, but in transparent left half
+		expect(rect.hitTestPoint({ x: 10, y: -2 }, 5, true)).toBe(false)
+	})
+
+	it('returns true when alpha data is not loaded', () => {
+		const rect = new ImageRectangle2d({
+			width: 100,
+			height: 100,
+			isFilled: true,
+			alphaDataGetter: () => null,
+			crop: null,
+			flipX: false,
+			flipY: false,
+		})
+		// Should treat as opaque when data isn't loaded
+		expect(rect.hitTestPoint({ x: 50, y: 50 }, 0, true)).toBe(true)
+	})
+})
+
+describe('ImageRectangle2d.rejectHit with edge-margin clamping', () => {
+	it('clamps point slightly outside bounds to nearest edge pixel', () => {
+		// 2x1 alpha: [transparent, opaque]
+		const data = { width: 2, height: 1, alphas: new Uint8Array([0, 255]) }
+		const rect = new ImageRectangle2d({
+			width: 100,
+			height: 100,
+			isFilled: true,
+			alphaDataGetter: () => data,
+			crop: null,
+			flipX: false,
+			flipY: false,
+		})
+		// Point slightly outside left edge — clamps to left (transparent) pixel
+		expect(rect.rejectHit({ x: -2, y: 50 })).toBe(true)
+		// Point slightly outside right edge — clamps to right (opaque) pixel
+		expect(rect.rejectHit({ x: 102, y: 50 })).toBe(false)
+	})
+})
+
 describe('getShapeAtPoint with transparent images', () => {
 	const ids = {
 		image: createShapeId('image'),
