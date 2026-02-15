@@ -96,7 +96,7 @@ export class FontManager {
 			},
 			{
 				areResultsEqual: areArraysShallowEqual,
-				areRecordsEqual: (a, b) => a.props === b.props && a.meta === b.meta,
+				areRecordsEqual: areFontPropsEqual,
 			}
 		)
 
@@ -239,6 +239,26 @@ export class FontManager {
 			`}`,
 		]).join('\n')
 	}
+}
+
+// Props that never affect which fonts a shape needs. During resize/drag these
+// change every frame, but fonts only depend on text content and styling.
+// Skipping these avoids expensive getFontFaces → getFontsFromRichText
+// recomputation (tiptap JSON parsing, node walking) on every frame.
+const FONT_IRRELEVANT_PROPS = new Set(['w', 'h', 'growY'])
+
+function areFontPropsEqual(a: TLShape, b: TLShape): boolean {
+	if (a.props === b.props && a.meta === b.meta) return true
+	if (a.meta !== b.meta) return false
+	const ap = a.props as Record<string, unknown>
+	const bp = b.props as Record<string, unknown>
+	const aKeys = Object.keys(ap)
+	if (aKeys.length !== Object.keys(bp).length) return false
+	for (const key of aKeys) {
+		if (FONT_IRRELEVANT_PROPS.has(key)) continue
+		if (ap[key] !== bp[key]) return false
+	}
+	return true
 }
 
 // From https://drafts.csswg.org/css-font-loading/#fontface-interface
