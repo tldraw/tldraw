@@ -16518,6 +16518,7 @@ __metadata:
     "@tiptap/starter-kit": "npm:^3.12.1"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/editor-controller": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.17.14"

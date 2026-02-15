@@ -46,6 +46,7 @@
 		"@tiptap/starter-kit": "^3.12.1",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
+		"@tldraw/editor-controller": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/sync": "workspace:*",
 		"ag-grid-community": "^32.3.3",
