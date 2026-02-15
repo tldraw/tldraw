@@ -104,9 +104,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const unscaledH = scaledH / scale
 
 		const isEmptyLabel = isEmptyRichText(props.richText)
+		// During interactive resize, use the cached label size to avoid expensive
+		// HTML parsing and DOM measurement every frame. The cache is populated at
+		// resize start and cleared at resize end/cancel.
 		const unscaledLabelSize = isEmptyLabel
 			? EMPTY_LABEL_SIZE
-			: getUnscaledLabelSize(this.editor, shape)
+			: (_resizeLabelSizeCache?.get(shape.id) ?? getUnscaledLabelSize(this.editor, shape))
 
 		const labelBounds = getLabelBounds(
 			unscaledW,
