@@ -169,6 +169,8 @@ function computeScrollY(
 
 	for (let i = 0; i < points.length - 1; i++) {
 		if (progress >= points[i].at && progress <= points[i + 1].at) {
+			// If two focus points share the same timestamp, snap to the later one
+			if (points[i].at === points[i + 1].at) return points[i + 1].scrollY
 			return interpolate(
 				progress,
 				[points[i].at, points[i + 1].at],

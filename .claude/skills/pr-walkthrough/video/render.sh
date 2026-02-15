@@ -26,9 +26,22 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PUBLIC_DIR="$SCRIPT_DIR/public"
 MANIFEST_DIR="$(dirname "$MANIFEST")"
 
-# Clean public/ to avoid stale assets from previous renders
+# Clean public/ to avoid stale assets from previous renders, but preserve
+# committed assets like tldraw.svg that are needed for intro/outro slides.
+PRESERVED_FILES=()
+for f in "$PUBLIC_DIR"/tldraw.svg; do
+  if [ -f "$f" ]; then
+    PRESERVED_FILES+=("$f")
+    cp "$f" "/tmp/.render-preserve-$$-$(basename "$f")"
+  fi
+done
 rm -rf "$PUBLIC_DIR"
 mkdir -p "$PUBLIC_DIR"
+for f in "${PRESERVED_FILES[@]}"; do
+  base="$(basename "$f")"
+  cp "/tmp/.render-preserve-$$-$base" "$PUBLIC_DIR/$base"
+  rm -f "/tmp/.render-preserve-$$-$base"
+done
 mkdir -p "$(dirname "$OUTPUT")"
 
 echo "=== Rendering walkthrough video ==="
