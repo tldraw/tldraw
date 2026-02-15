@@ -9642,6 +9642,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/macropad@workspace:*, @tldraw/macropad@workspace:packages/macropad":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/macropad@workspace:packages/macropad"
+  dependencies:
+    "@tldraw/editor": "workspace:*"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    vitest: "npm:^3.2.4"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/monorepo@workspace:.":
   version: 0.0.0-use.local
   resolution: "@tldraw/monorepo@workspace:."
@@ -28188,6 +28198,7 @@ __metadata:
     "@tiptap/react": "npm:^3.12.1"
     "@tiptap/starter-kit": "npm:^3.12.1"
     "@tldraw/editor": "workspace:*"
+    "@tldraw/macropad": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@types/classnames": "npm:^2.3.4"
     "@types/lz-string": "npm:^1.5.0"

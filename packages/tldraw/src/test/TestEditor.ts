@@ -4,16 +4,11 @@ import {
 	Editor,
 	HALF_PI,
 	IdOf,
-	Mat,
-	PageRecordType,
-	ROTATE_CORNER_TO_SELECTION_CORNER,
 	RequiredKeys,
 	RotateCorner,
 	SelectionHandle,
-	TLArrowShape,
 	TLContent,
 	TLEditorOptions,
-	TLEventInfo,
 	TLKeyboardEventInfo,
 	TLMeasureTextOpts,
 	TLPinchEventInfo,
@@ -23,16 +18,12 @@ import {
 	TLShapePartial,
 	TLStoreOptions,
 	TLWheelEventInfo,
-	Vec,
 	VecLike,
-	compact,
-	computed,
 	createShapeId,
 	createTLStore,
-	isAccelKey,
-	rotateSelectionHandle,
-	tlenv,
 } from '@tldraw/editor'
+import type { EventModifiers, PointerEventInit } from '@tldraw/macropad'
+import { Macropad } from '@tldraw/macropad'
 import { vi } from 'vitest'
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
@@ -63,6 +54,8 @@ Object.assign(navigator, {
 window.ClipboardItem = class {}
 
 export class TestEditor extends Editor {
+	controller: Macropad
+
 	constructor(
 		options: Partial<Omit<TLEditorOptions, 'store'>> = {},
 		storeOptions: Partial<TLStoreOptions> = {}
@@ -119,6 +112,7 @@ export class TestEditor extends Editor {
 		})
 		this.elm = elm
 		this.bounds = bounds
+		this.controller = new Macropad(this)
 
 		// Pretty hacky way to mock the screen bounds
 		document.body.appendChild(this.elm)
@@ -215,15 +209,6 @@ export class TestEditor extends Editor {
 		right: number
 	}
 
-	/**
-	 * The center of the viewport in the current page space.
-	 *
-	 * @public
-	 */
-	@computed getViewportPageCenter() {
-		return this.getViewportPageBounds().center
-	}
-
 	setScreenBounds(bounds: BoxModel, center = false) {
 		this.bounds.x = bounds.x
 		this.bounds.y = bounds.y
@@ -238,39 +223,25 @@ export class TestEditor extends Editor {
 		return this
 	}
 
+	/* ---- Delegated to Macropad: clipboard ---- */
+
 	clipboard = null as TLContent | null
 
 	copy(ids = this.getSelectedShapeIds()) {
-		if (ids.length > 0) {
-			const content = this.getContentFromCurrentPage(ids)
-			if (content) {
-				this.clipboard = content
-			}
-		}
+		this.controller.copy(ids)
+		this.clipboard = this.controller.clipboard
 		return this
 	}
 
 	cut(ids = this.getSelectedShapeIds()) {
-		if (ids.length > 0) {
-			const content = this.getContentFromCurrentPage(ids)
-			if (content) {
-				this.clipboard = content
-			}
-			this.deleteShapes(ids)
-		}
+		this.controller.cut(ids)
+		this.clipboard = this.controller.clipboard
 		return this
 	}
 
 	paste(point?: VecLike) {
-		if (this.clipboard !== null) {
-			const p = this.inputs.getShiftKey() ? this.inputs.getCurrentPagePoint() : point
-
-			this.markHistoryStoppingPoint('pasting')
-			this.putContentOntoCurrentPage(this.clipboard, {
-				point: p,
-				select: true,
-			})
-		}
+		this.controller.clipboard = this.clipboard
+		this.controller.paste(point)
 		return this
 	}
 
@@ -290,12 +261,16 @@ export class TestEditor extends Editor {
 			return info
 		})
 
+	/* ---- Delegated to Macropad: IDs ---- */
+
 	testShapeID(id: string) {
-		return createShapeId(id)
+		return this.controller.testShapeID(id)
 	}
 	testPageID(id: string) {
-		return PageRecordType.createId(id)
+		return this.controller.testPageID(id)
 	}
+
+	/* ---- Test assertions ---- */
 
 	expectToBeIn(path: string) {
 		expect(this.getPath()).toBe(path)
@@ -341,91 +316,36 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	/* --------------------- Inputs --------------------- */
+	/* ---- Delegated to Macropad: queries ---- */
 
-	protected getInfo<T extends TLEventInfo>(info: string | T): T {
-		return typeof info === 'string'
-			? ({
-					target: 'shape',
-					shape: this.getShape(info as any),
-				} as T)
-			: info
+	getViewportPageCenter() {
+		return this.controller.getViewportPageCenter()
 	}
 
-	protected getPointerEventInfo(
-		x = this.inputs.getCurrentScreenPoint().x,
-		y = this.inputs.getCurrentScreenPoint().y,
-		options?: Partial<TLPointerEventInfo> | TLShapeId,
-		modifiers?: EventModifiers
-	) {
-		if (typeof options === 'string') {
-			options = { target: 'shape', shape: this.getShape(options) }
-		} else if (options === undefined) {
-			options = { target: 'canvas' }
-		}
-		return {
-			name: 'pointer_down',
-			type: 'pointer',
-			pointerId: 1,
-			shiftKey: this.inputs.getShiftKey(),
-			ctrlKey: this.inputs.getCtrlKey(),
-			altKey: this.inputs.getAltKey(),
-			metaKey: this.inputs.getMetaKey(),
-			accelKey: isAccelKey({ ...this.inputs.toJson(), ...modifiers }),
-			point: { x, y, z: null },
-			button: 0,
-			isPen: false,
-			...options,
-			...modifiers,
-		} as TLPointerEventInfo
+	getSelectionPageCenter() {
+		return this.controller.getSelectionPageCenter()
 	}
 
-	protected getKeyboardEventInfo(
-		key: string,
-		name: TLKeyboardEventInfo['name'],
-		options = {} as Partial<Exclude<TLKeyboardEventInfo, 'point'>>
-	): TLKeyboardEventInfo {
-		return {
-			shiftKey: key === 'Shift',
-			ctrlKey: key === 'Control' || key === 'Meta',
-			altKey: key === 'Alt',
-			metaKey: key === 'Meta',
-			accelKey: tlenv.isDarwin ? key === 'Meta' : key === 'Control' || key === 'Meta',
-			...options,
-			name,
-			code:
-				key === 'Shift'
-					? 'ShiftLeft'
-					: key === 'Alt'
-						? 'AltLeft'
-						: key === 'Control'
-							? 'CtrlLeft'
-							: key === 'Meta'
-								? 'MetaLeft'
-								: key === ' '
-									? 'Space'
-									: key === 'Enter' ||
-										  key === 'ArrowRight' ||
-										  key === 'ArrowLeft' ||
-										  key === 'ArrowUp' ||
-										  key === 'ArrowDown'
-										? key
-										: 'Key' + key[0].toUpperCase() + key.slice(1),
-			type: 'keyboard',
-			key,
-		}
+	getPageCenter(shape: TLShape) {
+		return this.controller.getPageCenter(shape)
 	}
 
-	/* ------------------ Input Events ------------------ */
+	getPageRotationById(id: TLShapeId): number {
+		return this.controller.getPageRotationById(id)
+	}
 
-	/**
-	Some of our updates are not synchronous any longer. For example, drawing happens on tick instead of on pointer move.
-	You can use this helper to force the tick, which will then process all the updates.
-	*/
+	getPageRotation(shape: TLShape) {
+		return this.controller.getPageRotation(shape)
+	}
+
+	getArrowsBoundTo(shapeId: TLShapeId) {
+		return this.controller.getArrowsBoundTo(shapeId)
+	}
+
+	/* ---- Delegated to Macropad: input events ---- */
+
 	forceTick(count = 1) {
-		for (let i = 0; i < count; i++) {
-			this.emit('tick', 16)
-		}
+		this.controller.forceTick(count)
 		return this
 	}
 
@@ -435,10 +355,7 @@ export class TestEditor extends Editor {
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
-		this.dispatch({
-			...this.getPointerEventInfo(x, y, options, modifiers),
-			name: 'pointer_move',
-		}).forceTick()
+		this.controller.pointerMove(x, y, options, modifiers)
 		return this
 	}
 
@@ -448,10 +365,7 @@ export class TestEditor extends Editor {
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
-		this.dispatch({
-			...this.getPointerEventInfo(x, y, options, modifiers),
-			name: 'pointer_down',
-		}).forceTick()
+		this.controller.pointerDown(x, y, options, modifiers)
 		return this
 	}
 
@@ -461,10 +375,7 @@ export class TestEditor extends Editor {
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
-		this.dispatch({
-			...this.getPointerEventInfo(x, y, options, modifiers),
-			name: 'pointer_up',
-		}).forceTick()
+		this.controller.pointerUp(x, y, options, modifiers)
 		return this
 	}
 
@@ -474,8 +385,7 @@ export class TestEditor extends Editor {
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
-		this.pointerDown(x, y, options, modifiers)
-		this.pointerUp(x, y, options, modifiers)
+		this.controller.click(x, y, options, modifiers)
 		return this
 	}
 
@@ -485,16 +395,7 @@ export class TestEditor extends Editor {
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
-		this.dispatch({
-			...this.getPointerEventInfo(x, y, options, modifiers),
-			name: 'pointer_down',
-			button: 2,
-		}).forceTick()
-		this.dispatch({
-			...this.getPointerEventInfo(x, y, options, modifiers),
-			name: 'pointer_up',
-			button: 2,
-		}).forceTick()
+		this.controller.rightClick(x, y, options, modifiers)
 		return this
 	}
 
@@ -504,76 +405,37 @@ export class TestEditor extends Editor {
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) {
-		this.pointerDown(x, y, options, modifiers)
-		this.pointerUp(x, y, options, modifiers)
-		this.dispatch({
-			...this.getPointerEventInfo(x, y, options, modifiers),
-			type: 'click',
-			name: 'double_click',
-			phase: 'down',
-		})
-		this.dispatch({
-			...this.getPointerEventInfo(x, y, options, modifiers),
-			type: 'click',
-			name: 'double_click',
-			phase: 'up',
-		}).forceTick()
+		this.controller.doubleClick(x, y, options, modifiers)
 		return this
 	}
 
 	keyPress(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
-		this.keyDown(key, options)
-		this.keyUp(key, options)
+		this.controller.keyPress(key, options)
 		return this
 	}
 
 	keyDown(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
-		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) }).forceTick()
+		this.controller.keyDown(key, options)
 		return this
 	}
 
 	keyRepeat(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
-		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) }).forceTick()
+		this.controller.keyRepeat(key, options)
 		return this
 	}
 
 	keyUp(key: string, options = {} as Partial<Omit<TLKeyboardEventInfo, 'key'>>) {
-		this.dispatch({
-			...this.getKeyboardEventInfo(key, 'key_up', {
-				shiftKey: this.inputs.getShiftKey() && key !== 'Shift',
-				ctrlKey: this.inputs.getCtrlKey() && !(key === 'Control' || key === 'Meta'),
-				altKey: this.inputs.getAltKey() && key !== 'Alt',
-				metaKey: this.inputs.getMetaKey() && key !== 'Meta',
-				...options,
-			}),
-		}).forceTick()
+		this.controller.keyUp(key, options)
 		return this
 	}
 
 	wheel(dx: number, dy: number, options = {} as Partial<Omit<TLWheelEventInfo, 'delta'>>) {
-		const currentScreenPoint = this.inputs.getCurrentScreenPoint()
-		this.dispatch({
-			type: 'wheel',
-			name: 'wheel',
-			point: new Vec(currentScreenPoint.x, currentScreenPoint.y),
-			shiftKey: this.inputs.getShiftKey(),
-			ctrlKey: this.inputs.getCtrlKey(),
-			altKey: this.inputs.getAltKey(),
-			metaKey: this.inputs.getMetaKey(),
-			accelKey: isAccelKey(this.inputs),
-			...options,
-			delta: { x: dx, y: dy },
-		}).forceTick(2)
+		this.controller.wheel(dx, dy, options)
 		return this
 	}
 
 	pan(offset: VecLike): this {
-		const { isLocked, panSpeed } = this.getCameraOptions()
-		if (isLocked) return this
-		const { x: cx, y: cy, z: cz } = this.getCamera()
-		this.setCamera(new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz), {
-			immediate: true,
-		})
+		this.controller.pan(offset)
 		return this
 	}
 
@@ -586,18 +448,7 @@ export class TestEditor extends Editor {
 		dz: number,
 		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
 	) {
-		this.dispatch({
-			type: 'pinch',
-			name: 'pinch_start',
-			shiftKey: this.inputs.getShiftKey(),
-			ctrlKey: this.inputs.getCtrlKey(),
-			altKey: this.inputs.getAltKey(),
-			metaKey: this.inputs.getMetaKey(),
-			accelKey: isAccelKey(this.inputs),
-			...options,
-			point: { x, y, z },
-			delta: { x: dx, y: dy, z: dz },
-		}).forceTick()
+		this.controller.pinchStart(x, y, z, dx, dy, dz, options)
 		return this
 	}
 
@@ -610,18 +461,7 @@ export class TestEditor extends Editor {
 		dz: number,
 		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
 	) {
-		this.dispatch({
-			type: 'pinch',
-			name: 'pinch_start',
-			shiftKey: this.inputs.getShiftKey(),
-			ctrlKey: this.inputs.getCtrlKey(),
-			altKey: this.inputs.getAltKey(),
-			metaKey: this.inputs.getMetaKey(),
-			accelKey: isAccelKey(this.inputs),
-			...options,
-			point: { x, y, z },
-			delta: { x: dx, y: dy, z: dz },
-		})
+		this.controller.pinchTo(x, y, z, dx, dy, dz, options)
 		return this
 	}
 
@@ -634,21 +474,11 @@ export class TestEditor extends Editor {
 		dz: number,
 		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
 	) {
-		this.dispatch({
-			type: 'pinch',
-			name: 'pinch_end',
-			shiftKey: this.inputs.getShiftKey(),
-			ctrlKey: this.inputs.getCtrlKey(),
-			altKey: this.inputs.getAltKey(),
-			metaKey: this.inputs.getMetaKey(),
-			accelKey: isAccelKey(this.inputs),
-			...options,
-			point: { x, y, z },
-			delta: { x: dx, y: dy, z: dz },
-		}).forceTick()
+		this.controller.pinchEnd(x, y, z, dx, dy, dz, options)
 		return this
 	}
-	/* ------ Interaction Helpers ------ */
+
+	/* ---- Delegated to Macropad: interaction helpers ---- */
 
 	rotateSelection(
 		angleRadians: number,
@@ -657,52 +487,12 @@ export class TestEditor extends Editor {
 			shiftKey = false,
 		}: { handle?: RotateCorner; shiftKey?: boolean } = {}
 	) {
-		if (this.getSelectedShapeIds().length === 0) {
-			throw new Error('No selection')
-		}
-
-		this.setCurrentTool('select')
-
-		const handlePoint = this.getSelectionRotatedPageBounds()!
-			.getHandlePoint(ROTATE_CORNER_TO_SELECTION_CORNER[handle])
-			.clone()
-			.rotWith(this.getSelectionRotatedPageBounds()!.point, this.getSelectionRotation())
-
-		const targetHandlePoint = Vec.RotWith(handlePoint, this.getSelectionPageCenter()!, angleRadians)
-
-		this.pointerDown(handlePoint.x, handlePoint.y, { target: 'selection', handle })
-		this.pointerMove(targetHandlePoint.x, targetHandlePoint.y, { shiftKey })
-		this.pointerUp()
+		this.controller.rotateSelection(angleRadians, { handle, shiftKey })
 		return this
 	}
 
-	/**
-	 * The center of the selection bounding box.
-	 *
-	 * @readonly
-	 * @public
-	 */
-	getSelectionPageCenter() {
-		const selectionRotation = this.getSelectionRotation()
-		const selectionBounds = this.getSelectionRotatedPageBounds()
-		if (!selectionBounds) return null
-		return Vec.RotWith(selectionBounds.center, selectionBounds.point, selectionRotation)
-	}
-
 	translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>) {
-		if (this.getSelectedShapeIds().length === 0) {
-			throw new Error('No selection')
-		}
-		this.setCurrentTool('select')
-
-		const center = this.getSelectionPageCenter()!
-
-		this.pointerDown(center.x, center.y, this.getSelectedShapeIds()[0])
-		const numSteps = 10
-		for (let i = 1; i < numSteps; i++) {
-			this.pointerMove(center.x + (i * dx) / numSteps, center.y + (i * dy) / numSteps, options)
-		}
-		this.pointerUp(center.x + dx, center.y + dy, options)
+		this.controller.translateSelection(dx, dy, options)
 		return this
 	}
 
@@ -711,38 +501,11 @@ export class TestEditor extends Editor {
 		handle: SelectionHandle,
 		options?: Partial<TLPointerEventInfo>
 	) {
-		if (this.getSelectedShapeIds().length === 0) {
-			throw new Error('No selection')
-		}
-		this.setCurrentTool('select')
-		const bounds = this.getSelectionRotatedPageBounds()!
-		const preRotationHandlePoint = bounds.getHandlePoint(handle)
-
-		const preRotationScaleOriginPoint = options?.altKey
-			? bounds.center
-			: bounds.getHandlePoint(rotateSelectionHandle(handle, Math.PI))
-
-		const preRotationTargetHandlePoint = Vec.Add(
-			Vec.Sub(preRotationHandlePoint, preRotationScaleOriginPoint).mulV({ x: scaleX, y: scaleY }),
-			preRotationScaleOriginPoint
-		)
-
-		const handlePoint = Vec.RotWith(
-			preRotationHandlePoint,
-			bounds.point,
-			this.getSelectionRotation()
-		)
-		const targetHandlePoint = Vec.RotWith(
-			preRotationTargetHandlePoint,
-			bounds.point,
-			this.getSelectionRotation()
-		)
-
-		this.pointerDown(handlePoint.x, handlePoint.y, { target: 'selection', handle }, options)
-		this.pointerMove(targetHandlePoint.x, targetHandlePoint.y, options)
-		this.pointerUp(targetHandlePoint.x, targetHandlePoint.y, options)
+		this.controller.resizeSelection({ scaleX, scaleY }, handle, options)
 		return this
 	}
+
+	/* ---- Test-specific (not delegated) ---- */
 
 	createShapesFromJsx(shapesJsx: React.JSX.Element | React.JSX.Element[]) {
 		const { shapes, assets, ids, bindings } = shapesFromJsx(shapesJsx)
@@ -750,52 +513,6 @@ export class TestEditor extends Editor {
 		this.createShapes(shapes)
 		this.createBindings(bindings)
 		return ids
-	}
-
-	/**
-	 * Get the page point (or absolute point) of a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getPagePoint(myShape)
-	 * ```
-	 *
-	 * @param shape - The shape to get the page point for.
-	 *
-	 * @public
-	 */
-	getPageCenter(shape: TLShape) {
-		const pageTransform = this.getShapePageTransform(shape.id)
-		if (!pageTransform) return null
-		const center = this.getShapeGeometry(shape).bounds.center
-		return Mat.applyToPoint(pageTransform, center)
-	}
-
-	/**
-	 * Get the page rotation (or absolute rotation) of a shape by its id.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getPageRotationById(myShapeId)
-	 * ```
-	 *
-	 * @param id - The id of the shape to get the page rotation for.
-	 */
-	getPageRotationById(id: TLShapeId): number {
-		const pageTransform = this.getShapePageTransform(id)
-		if (pageTransform) {
-			return Mat.Decompose(pageTransform).rotation
-		}
-		return 0
-	}
-
-	getPageRotation(shape: TLShape) {
-		return this.getPageRotationById(shape.id)
-	}
-
-	getArrowsBoundTo(shapeId: TLShapeId) {
-		const ids = new Set(this.getBindingsToShape(shapeId, 'arrow').map((b) => b.fromId))
-		return compact(Array.from(ids, (id) => this.getShape<TLArrowShape>(id)))
 	}
 }
 
@@ -850,6 +567,3 @@ export const createDefaultShapes = (): TLShapePartial[] => [
 		},
 	},
 ]
-
-type PointerEventInit = Partial<TLPointerEventInfo> | TLShapeId
-type EventModifiers = Partial<Pick<TLPointerEventInfo, 'shiftKey' | 'ctrlKey' | 'altKey'>>
