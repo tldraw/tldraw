@@ -15,7 +15,7 @@ export function normalizeWheel(event: WheelEvent | React.WheelEvent<HTMLElement>
 	if (event.ctrlKey || event.altKey || event.metaKey) {
 		deltaZ = (Math.abs(deltaY) > MAX_ZOOM_STEP ? MAX_ZOOM_STEP * Math.sign(deltaY) : deltaY) / 100
 	} else {
-		if (event.shiftKey && !tlenv.isDarwin) {
+		if (event.shiftKey && !tlenv.isDarwin && !tlenv.isIos) {
 			deltaX = deltaY
 			deltaY = 0
 		}
