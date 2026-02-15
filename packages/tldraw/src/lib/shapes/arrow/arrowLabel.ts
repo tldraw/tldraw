@@ -21,11 +21,8 @@ import {
 } from '@tldraw/editor'
 import { isEmptyRichText, renderHtmlFromRichTextForMeasurement } from '../../utils/text/richText'
 import {
-	ARROW_LABEL_FONT_SIZES,
 	ARROW_LABEL_PADDING,
-	FONT_FAMILIES,
 	LABEL_TO_ARROW_PADDING,
-	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { TLArrowInfo } from './arrow-types'
@@ -71,12 +68,13 @@ const labelSizeCache = createComputedCache(
 
 		const bodyBounds = bodyGeom.bounds
 
-		const fontSize = getArrowLabelFontSize(shape)
+		const styles = editor.getShapeStyles(shape)
+		const fontSize = styles.labelFontSize * shape.props.scale
 
 		// First we measure the text with no constraints
 		const { w, h } = editor.textMeasure.measureHtml(html, {
 			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontFamily: styles.fontFamily,
 			fontSize,
 			maxWidth: null,
 		})
@@ -88,7 +86,7 @@ const labelSizeCache = createComputedCache(
 
 		// If the text is wider than the body, we need to squish it
 		const info = getArrowInfo(editor, shape)!
-		const labelToArrowPadding = getLabelToArrowPadding(shape)
+		const labelToArrowPadding = getLabelToArrowPadding(editor, shape)
 		const margin =
 			info.type === 'elbow'
 				? Math.max(info.elbow.A.arrowheadOffset + labelToArrowPadding, 32) +
@@ -106,7 +104,7 @@ const labelSizeCache = createComputedCache(
 		if (shouldSquish) {
 			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureHtml(html, {
 				...TEXT_PROPS,
-				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontFamily: styles.fontFamily,
 				fontSize,
 				maxWidth: width,
 			})
@@ -132,12 +130,13 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 	return labelSizeCache.get(editor, shape.id) ?? new Vec(0, 0)
 }
 
-function getLabelToArrowPadding(shape: TLArrowShape) {
-	const strokeWidth = STROKE_SIZES[shape.props.size]
+function getLabelToArrowPadding(editor: Editor, shape: TLArrowShape) {
+	const styles = editor.getShapeStyles(shape)
+	const strokeWidth = styles.strokeWidth
+	// The padding formula scales with stroke width: extra padding for wider strokes,
+	// and a big bump for very large strokes (>= 10, the default xl stroke).
 	const labelToArrowPadding =
-		(LABEL_TO_ARROW_PADDING +
-			(strokeWidth - STROKE_SIZES.s) * 2 +
-			(strokeWidth === STROKE_SIZES.xl ? 20 : 0)) *
+		(LABEL_TO_ARROW_PADDING + (strokeWidth - 2) * 2 + (strokeWidth >= 10 ? 20 : 0)) *
 		shape.props.scale
 
 	return labelToArrowPadding
@@ -153,7 +152,7 @@ function getArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLArrowIn
 	const dbg: Geometry2d[] = [new Group2d({ children: [bodyGeom], debugColor: 'lime' })]
 
 	const labelSize = getArrowLabelSize(editor, shape)
-	const labelToArrowPadding = getLabelToArrowPadding(shape)
+	const labelToArrowPadding = getLabelToArrowPadding(editor, shape)
 	const paddingRelative = labelToArrowPadding / bodyGeom.length
 
 	// we can calculate the range by sticking the center of the label at the very start/end of the
@@ -286,8 +285,8 @@ function furthest(from: VecLike, candidates: VecLike[]): VecLike | null {
 	return furthest
 }
 
-export function getArrowLabelFontSize(shape: TLArrowShape) {
-	return ARROW_LABEL_FONT_SIZES[shape.props.size] * shape.props.scale
+export function getArrowLabelFontSize(editor: Editor, shape: TLArrowShape) {
+	return editor.getShapeStyles(shape).labelFontSize * shape.props.scale
 }
 
 export function getArrowLabelDefaultPosition(editor: Editor, shape: TLArrowShape) {

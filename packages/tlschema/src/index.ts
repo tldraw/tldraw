@@ -272,6 +272,7 @@ export {
 	DefaultLabelColorStyle,
 	getColorValue,
 	getDefaultColorTheme,
+	type TLColorStyleExtensions,
 	type TLDefaultColorStyle,
 	type TLDefaultColorTheme,
 	type TLDefaultColorThemeColor,
@@ -280,14 +281,23 @@ export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
 export { DefaultFillStyle, type TLDefaultFillStyle } from './styles/TLFillStyle'
 export {
 	DefaultFontFamilies,
+	defaultFontNames,
 	DefaultFontStyle,
 	type TLDefaultFontStyle,
+	type TLFontStyleExtensions,
 } from './styles/TLFontStyle'
 export {
 	DefaultHorizontalAlignStyle,
 	type TLDefaultHorizontalAlignStyle,
 } from './styles/TLHorizontalAlignStyle'
-export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
+export {
+	defaultSizeNames,
+	DefaultSizeStyle,
+	defaultSizeTokens,
+	type TLDefaultSizeStyle,
+	type TLSizeStyleExtensions,
+	type TLSizeTokenDefinition,
+} from './styles/TLSizeStyle'
 export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TLTextAlignStyle'
 export {
 	DefaultVerticalAlignStyle,

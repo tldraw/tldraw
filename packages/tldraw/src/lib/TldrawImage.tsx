@@ -6,6 +6,7 @@ import {
 	TLImageExportOptions,
 	TLPageId,
 	TLStoreSnapshot,
+	TLStylesConfig,
 	TLTextOptions,
 	TldrawOptions,
 	mergeArraysAndReplaceDefaults,
@@ -62,6 +63,10 @@ export interface TldrawImageProps extends TLImageExportOptions {
 	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
 	 */
 	textOptions?: TLTextOptions
+	/**
+	 * Customize the style system by overriding, adding, or removing color and size tokens.
+	 */
+	styles?: TLStylesConfig
 }
 
 const defaultOptions: Partial<TldrawOptions> = {
@@ -122,6 +127,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		options: _options,
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
+		styles,
 	} = props
 
 	const options = useMemo(
@@ -156,6 +162,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 			licenseKey,
 			fontAssetUrls: assetUrlsWithOverrides.fonts,
 			options,
+			stylesConfig: styles,
 		})
 
 		if (pageId) editor.setCurrentPage(pageId)
@@ -204,6 +211,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		pixelRatio,
 		assetUrlsWithOverrides,
 		options,
+		styles,
 	])
 
 	useEffect(() => {

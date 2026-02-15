@@ -1,6 +1,4 @@
 import {
-	getColorValue,
-	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
 	useEditor,
@@ -10,10 +8,18 @@ import {
 import React from 'react'
 import { useGetHashPatternZoomName } from './defaultStyleDefs'
 
+/** @public */
+export interface ShapeFillColors {
+	fillSolidColor: string
+	fillColor: string
+	fillPatternColor: string
+	fillLinedFillColor: string
+}
+
 interface ShapeFillProps {
 	d: string
 	fill: TLDefaultFillStyle
-	color: TLDefaultColorStyle
+	fillColors: ShapeFillColors
 	theme: TLDefaultColorTheme
 	scale: number
 }
@@ -21,7 +27,7 @@ interface ShapeFillProps {
 export const ShapeFill = React.memo(function ShapeFill({
 	theme,
 	d,
-	color,
+	fillColors,
 	fill,
 	scale,
 }: ShapeFillProps) {
@@ -30,24 +36,24 @@ export const ShapeFill = React.memo(function ShapeFill({
 			return null
 		}
 		case 'solid': {
-			return <path fill={getColorValue(theme, color, 'semi')} d={d} />
+			return <path fill={fillColors.fillSolidColor} d={d} />
 		}
 		case 'semi': {
 			return <path fill={theme.solid} d={d} />
 		}
 		case 'fill': {
-			return <path fill={getColorValue(theme, color, 'fill')} d={d} />
+			return <path fill={fillColors.fillColor} d={d} />
 		}
 		case 'pattern': {
-			return <PatternFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
+			return <PatternFill theme={theme} fillColors={fillColors} fill={fill} d={d} scale={scale} />
 		}
 		case 'lined-fill': {
-			return <path fill={getColorValue(theme, color, 'linedFill')} d={d} />
+			return <path fill={fillColors.fillLinedFillColor} d={d} />
 		}
 	}
 })
 
-export function PatternFill({ d, color, theme }: ShapeFillProps) {
+export function PatternFill({ d, fillColors, theme }: ShapeFillProps) {
 	const editor = useEditor()
 	const svgExport = useSvgExportContext()
 	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
@@ -57,13 +63,13 @@ export function PatternFill({ d, color, theme }: ShapeFillProps) {
 
 	return (
 		<>
-			<path fill={getColorValue(theme, color, 'pattern')} d={d} />
+			<path fill={fillColors.fillPatternColor} d={d} />
 			<path
 				fill={
 					svgExport
 						? `url(#${getHashPatternZoomName(1, theme.id)})`
 						: teenyTiny
-							? getColorValue(theme, color, 'semi')
+							? fillColors.fillSolidColor
 							: `url(#${getHashPatternZoomName(zoomLevel, theme.id)})`
 				}
 				d={d}

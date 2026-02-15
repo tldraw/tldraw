@@ -194,6 +194,17 @@ export {
 } from './lib/editor/shapes/shared/getPerfectDashProps'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
+export {
+	mergeStylesIntoContext,
+	type AsStyleOverrides,
+	type Themeable,
+	type TLGetShapeStyleOverrides,
+	type TLResolvedStyles,
+	type TLShapeStylesMap,
+	type TLStyleContext,
+	type TLStylesColorDefinition,
+	type TLStylesConfig,
+} from './lib/editor/TLShapeStyles'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { maybeSnapToGrid } from './lib/editor/tools/BaseBoxShapeTool/children/Pointing'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
@@ -322,6 +333,7 @@ export {
 	type SafeId,
 } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
+export { useShapeStyles } from './lib/hooks/useShapeStyles'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'

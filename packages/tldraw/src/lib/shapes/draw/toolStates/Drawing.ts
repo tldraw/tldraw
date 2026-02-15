@@ -1,7 +1,6 @@
 import {
 	Mat,
 	StateNode,
-	TLDefaultSizeStyle,
 	TLDrawShape,
 	TLDrawShapeSegment,
 	TLHighlightShape,
@@ -19,7 +18,7 @@ import {
 	uniqueId,
 } from '@tldraw/editor'
 import { HighlightShapeUtil } from '../../highlight/HighlightShapeUtil'
-import { STROKE_SIZES } from '../../shared/default-shape-constants'
+
 import { DrawShapeUtil } from '../DrawShapeUtil'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
@@ -141,10 +140,9 @@ export class Drawing extends StateNode {
 		return this.shapeType !== 'highlight'
 	}
 
-	getIsClosed(segments: TLDrawShapeSegment[], size: TLDefaultSizeStyle, scale: number) {
+	getIsClosed(segments: TLDrawShapeSegment[], strokeWidth: number, scale: number) {
 		if (!this.canClose()) return false
 
-		const strokeWidth = STROKE_SIZES[size]
 		const firstPoint = b64Vecs.decodeFirstPoint(segments[0].path)
 		const lastSegment = segments[segments.length - 1]
 		const lastPoint = b64Vecs.decodeLastPoint(lastSegment.path)
@@ -217,7 +215,8 @@ export class Drawing extends StateNode {
 				this.pagePointWhereNextSegmentChanged = null
 				const segments = [...shape.props.segments, newSegment]
 
-				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+				const sw = this.editor.getShapeStyles(shape).strokeWidth
+				if (this.currentLineLength < sw * 4) {
 					this.currentLineLength = this.getLineLength(segments)
 				}
 
@@ -232,7 +231,7 @@ export class Drawing extends StateNode {
 				if (this.canClose()) {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						segments,
-						shape.props.size,
+						sw,
 						shape.props.scale
 					)
 				}
@@ -286,8 +285,9 @@ export class Drawing extends StateNode {
 
 		const {
 			id,
-			props: { size, scale },
+			props: { scale },
 		} = initialShape
+		const strokeWidth = this.editor.getShapeStyles(initialShape).strokeWidth
 
 		const shape = this.editor.getShape<DrawableShape>(id)!
 
@@ -365,7 +365,7 @@ export class Drawing extends StateNode {
 					if (this.canClose()) {
 						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 							segments,
-							size,
+							strokeWidth,
 							scale
 						)
 					}
@@ -419,7 +419,7 @@ export class Drawing extends StateNode {
 
 					const finalSegments = [...newSegments, newFreeSegment]
 
-					if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+					if (this.currentLineLength < strokeWidth * 4) {
 						this.currentLineLength = this.getLineLength(finalSegments)
 					}
 
@@ -434,7 +434,7 @@ export class Drawing extends StateNode {
 					if (this.canClose()) {
 						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 							finalSegments,
-							size,
+							strokeWidth,
 							scale
 						)
 					}
@@ -584,7 +584,7 @@ export class Drawing extends StateNode {
 				if (this.canClose()) {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						segments,
-						size,
+						strokeWidth,
 						scale
 					)
 				}
@@ -618,7 +618,7 @@ export class Drawing extends StateNode {
 					path: b64Vecs.encodePoints(cachedPoints),
 				}
 
-				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+				if (this.currentLineLength < strokeWidth * 4) {
 					this.currentLineLength = this.getLineLength(newSegments)
 				}
 
@@ -633,7 +633,7 @@ export class Drawing extends StateNode {
 				if (this.canClose()) {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						newSegments,
-						size,
+						strokeWidth,
 						scale
 					)
 				}

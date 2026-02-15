@@ -14,16 +14,18 @@ import {
 	TLGeoShapeProps,
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
+	TLStyleContext,
+	TLStylesConfig,
 	Vec,
 	WeakCache,
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
 	getColorValue,
-	getDefaultColorTheme,
 	getFontsFromRichText,
 	isEqual,
 	lerp,
+	mergeStylesIntoContext,
 	toRichText,
 	useValue,
 } from '@tldraw/editor'
@@ -34,15 +36,8 @@ import {
 } from '../../utils/text/richText'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
-import {
-	FONT_FAMILIES,
-	LABEL_FONT_SIZES,
-	LABEL_PADDING,
-	STROKE_SIZES,
-	TEXT_PROPS,
-} from '../shared/default-shape-constants'
+import { LABEL_PADDING, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { GeoShapeBody } from './components/GeoShapeBody'
@@ -51,12 +46,20 @@ import { getGeoShapePath } from './getGeoShapePath'
 const MIN_SIZE_WITH_LABEL = 17 * 3
 
 /** @public */
+export interface GeoShapeOptions {
+	/** Whether to show the outline of the text label (using the same color as the canvas). */
+	showTextOutline: boolean
+	/** Per-shape style overrides. Same format as the global `styles` prop on `<Tldraw>`. */
+	styles?: TLStylesConfig
+}
+
+/** @public */
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override type = 'geo' as const
 	static override props = geoShapeProps
 	static override migrations = geoShapeMigrations
 
-	override options = {
+	override options: GeoShapeOptions = {
 		showTextOutline: true,
 	}
 
@@ -86,6 +89,21 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
+	override getDefaultStyles(shape: TLGeoShape, ctx: TLStyleContext): TLGeoShapeResolvedStyles {
+		if (this.options.styles) ctx = mergeStylesIntoContext(ctx, this.options.styles)
+		return {
+			strokeWidth: ctx.sizes[shape.props.size].stroke,
+			strokeColor: getColorValue(ctx.theme, shape.props.color, 'solid'),
+			labelColor: getColorValue(ctx.theme, shape.props.labelColor, 'solid'),
+			labelFontSize: ctx.sizes[shape.props.size].labelFont,
+			fontFamily: ctx.fonts[shape.props.font],
+			fillSolidColor: getColorValue(ctx.theme, shape.props.color, 'semi'),
+			fillColor: getColorValue(ctx.theme, shape.props.color, 'fill'),
+			fillPatternColor: getColorValue(ctx.theme, shape.props.color, 'pattern'),
+			fillLinedFillColor: getColorValue(ctx.theme, shape.props.color, 'linedFill'),
+		}
+	}
+
 	override getGeometry(shape: TLGeoShape) {
 		const { props } = shape
 		const { scale } = props
@@ -102,11 +120,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			? EMPTY_LABEL_SIZE
 			: getUnscaledLabelSize(this.editor, shape)
 
+		const styles = this.editor.getShapeStyles(shape)
 		const labelBounds = getLabelBounds(
 			unscaledW,
 			unscaledH,
 			unscaledLabelSize,
-			props.size,
+			styles.labelFontSize,
 			props.align,
 			props.verticalAlign,
 			scale
@@ -177,9 +196,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
-		const { fill, font, align, verticalAlign, size, richText } = props
-		const theme = useDefaultColorTheme()
+		const { fill, font, align, verticalAlign, richText } = props
 		const { editor } = this
+		const styles = editor.getShapeStyles(shape)
 		const isOnlySelected = useValue(
 			'isGeoOnlySelected',
 			() => shape.id === editor.getOnlySelectedShapeId(),
@@ -207,7 +226,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							shapeId={id}
 							type={type}
 							font={font}
-							fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
+							fontSize={styles.labelFontSize * shape.props.scale}
 							lineHeight={TEXT_PROPS.lineHeight}
 							padding={LABEL_PADDING * shape.props.scale}
 							fill={fill}
@@ -215,7 +234,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							verticalAlign={verticalAlign}
 							richText={richText}
 							isSelected={isOnlySelected}
-							labelColor={getColorValue(theme, props.labelColor, 'solid')}
+							labelColor={styles.labelColor}
 							wrap
 							showTextOutline={this.options.showTextOutline}
 						/>
@@ -229,8 +248,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	indicator(shape: TLGeoShape) {
 		const isZoomedOut = useEfficientZoomThreshold(shape.props.scale * 0.25)
 
-		const { size, dash, scale } = shape.props
-		const strokeWidth = STROKE_SIZES[size]
+		const styles = this.editor.getShapeStyles(shape)
+		const { dash, scale } = shape.props
+		const strokeWidth = styles.strokeWidth
 
 		const path = getGeoShapePath(shape)
 
@@ -253,8 +273,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {
 		const isForceSolid = this.editor.getEfficientZoomLevel() < shape.props.scale * 0.25
 
-		const { size, dash, scale } = shape.props
-		const strokeWidth = STROKE_SIZES[size]
+		const styles = this.editor.getShapeStyles(shape)
+		const { dash, scale } = shape.props
+		const strokeWidth = styles.strokeWidth
 
 		const path = getGeoShapePath(shape)
 
@@ -286,16 +307,16 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		let textEl
 		if (!isEmptyRichText(props.richText)) {
-			const theme = getDefaultColorTheme(ctx)
+			const styles = this.editor.getShapeStyles(shape)
 			const bounds = new Box(0, 0, props.w, (shape.props.h + shape.props.growY) / scale)
 			textEl = (
 				<RichTextSVG
-					fontSize={LABEL_FONT_SIZES[props.size]}
+					fontSize={styles.labelFontSize}
 					font={props.font}
 					align={props.align}
 					verticalAlign={props.verticalAlign}
 					richText={props.richText}
-					labelColor={getColorValue(theme, props.labelColor, 'solid')}
+					labelColor={styles.labelColor}
 					bounds={bounds}
 					padding={LABEL_PADDING}
 					showTextOutline={this.options.showTextOutline}
@@ -543,7 +564,7 @@ function getLabelBounds(
 	unscaledShapeW: number,
 	unscaledShapeH: number,
 	unscaledLabelSize: { w: number; h: number },
-	size: TLGeoShapeProps['size'],
+	labelFontSize: number,
 	align: TLGeoShapeProps['align'],
 	verticalAlign: TLGeoShapeProps['verticalAlign'],
 	scale: number
@@ -551,7 +572,7 @@ function getLabelBounds(
 	// Calculate minimum label dimensions based on font size and shape size
 	const unscaledMinWidth = Math.min(100, unscaledShapeW / 2)
 	const unscaledMinHeight = Math.min(
-		LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2,
+		labelFontSize * TEXT_PROPS.lineHeight + LABEL_PADDING * 2,
 		unscaledShapeH / 2
 	)
 
@@ -591,6 +612,25 @@ function getLabelBounds(
 		y: unscaledY * scale,
 		width: unscaledLabelW * scale,
 		height: unscaledLabelH * scale,
+	}
+}
+
+/** @public */
+export interface TLGeoShapeResolvedStyles {
+	strokeWidth: number
+	strokeColor: string
+	labelColor: string
+	labelFontSize: number
+	fontFamily: string
+	fillSolidColor: string
+	fillColor: string
+	fillPatternColor: string
+	fillLinedFillColor: string
+}
+
+declare module '@tldraw/editor' {
+	interface TLShapeStylesMap {
+		geo: TLGeoShapeResolvedStyles
 	}
 }
 
@@ -661,15 +701,16 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 
 // This is the expensive part of the code so we want to avoid calling it if we can
 function measureUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
-	const { richText, font, size, w } = shape.props
+	const { richText, size, w } = shape.props
+	const styles = editor.getShapeStyles(shape)
 
 	const minWidth = MIN_WIDTHS[size]
 
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 	const textSize = editor.textMeasure.measureHtml(html, {
 		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[font],
-		fontSize: LABEL_FONT_SIZES[size],
+		fontFamily: styles.fontFamily,
+		fontSize: styles.labelFontSize,
 		minWidth: minWidth,
 		maxWidth: Math.max(
 			// Guard because a DOM nodes can't be less 0

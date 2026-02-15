@@ -221,6 +221,16 @@ export interface TldrawEditorBaseProps {
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
+
+	/**
+	 * Runtime override callback for shape styles.
+	 */
+	getShapeStyleOverrides?: import('./editor/TLShapeStyles').TLGetShapeStyleOverrides
+
+	/**
+	 * Style configuration for customizing color and size tokens.
+	 */
+	stylesConfig?: import('./editor/TLShapeStyles').TLStylesConfig
 }
 
 /**
@@ -347,6 +357,7 @@ function TldrawEditorWithOwnStore(
 		user,
 		assets,
 		migrations,
+		stylesConfig,
 	} = props
 
 	const syncedStore = useLocalStore({
@@ -359,6 +370,7 @@ function TldrawEditorWithOwnStore(
 		snapshot,
 		assets,
 		migrations,
+		stylesConfig,
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />
@@ -426,6 +438,8 @@ function TldrawEditorWithReadyStore({
 	licenseKey,
 	getShapeVisibility,
 	assetUrls,
+	getShapeStyleOverrides,
+	stylesConfig,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -485,6 +499,8 @@ function TldrawEditorWithReadyStore({
 				licenseKey,
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
+				getShapeStyleOverrides,
+				stylesConfig,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -520,6 +536,8 @@ function TldrawEditorWithReadyStore({
 			licenseKey,
 			getShapeVisibility,
 			assetUrls,
+			getShapeStyleOverrides,
+			stylesConfig,
 		]
 	)
 

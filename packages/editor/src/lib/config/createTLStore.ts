@@ -11,6 +11,7 @@ import {
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
+import { extendStyleValidators } from '../editor/TLShapeStyles'
 import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
@@ -31,6 +32,13 @@ export interface TLStoreBaseOptions {
 
 	/** Called when the store is connected to an {@link @tldraw/editor#Editor}. */
 	onMount?(editor: Editor): void | (() => void)
+
+	/**
+	 * Style configuration for extending color, size, and font validators.
+	 * Must be provided here (not just on Editor) so that persisted data
+	 * with custom tokens can be validated when the store loads.
+	 */
+	stylesConfig?: import('../editor/TLShapeStyles').TLStylesConfig
 }
 
 /** @public */
@@ -106,8 +114,13 @@ export function createTLStore({
 	assets = inlineBase64AssetStore,
 	onMount,
 	collaboration,
+	stylesConfig,
 	...rest
 }: TLStoreOptions = {}): TLStore {
+	// Extend runtime validators before creating the store so that
+	// persisted data with custom tokens can be loaded without errors.
+	extendStyleValidators(stylesConfig)
+
 	const schema = createTLSchemaFromUtils(rest)
 
 	const store = new Store({
