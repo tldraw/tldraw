@@ -112,10 +112,12 @@ export class TextManager {
 			el.remove()
 		}
 		this.poolElms.length = 0
+		this.poolElmHtml.length = 0
 	}
 
 	// Pool of temporary measurement elements for batch measurements
 	private poolElms: HTMLDivElement[] = []
+	private poolElmHtml: string[] = []
 
 	private getPoolElm(index: number): HTMLDivElement {
 		if (index < this.poolElms.length) {
@@ -170,7 +172,11 @@ export class TextManager {
 					}
 				}
 			}
-			el.innerHTML = html
+			// Skip innerHTML parsing if the content hasn't changed
+			if (this.poolElmHtml[i] !== html) {
+				el.innerHTML = html
+				this.poolElmHtml[i] = html
+			}
 		}
 
 		// Read phase: measure all elements (browser recalculates layout once)
@@ -186,11 +192,6 @@ export class TextManager {
 				h: rect.height,
 				scrollWidth,
 			})
-		}
-
-		// Clean up innerHTML to avoid holding DOM references
-		for (let i = 0; i < requests.length; i++) {
-			this.getPoolElm(i).innerHTML = ''
 		}
 
 		return results
