@@ -1488,17 +1488,30 @@ describe('Cycle detection in parent-child relationships', () => {
 		expect(shapeBBefore.parentId).toBe(shapeA)
 
 		// Now try to create a cycle: update A to have B as parent (would create A → B → A)
+		const attemptedShapeA = {
+			...createFrameShape(shapeA, shapeB, 'a9' as IndexKey),
+			x: 123,
+			y: 456,
+			rotation: 1.23,
+		}
 		room.handleMessage(sessionId, {
 			type: 'push',
 			clientClock: 3,
 			diff: {
-				[shapeA]: ['put', createFrameShape(shapeA, shapeB, 'a1' as IndexKey)],
+				[shapeA]: ['put', attemptedShapeA],
 			},
 		} as TLPushRequest<TLRecord>)
 
 		// The cycle should be prevented - A should still have pageId as parent
+		// and should keep its original transform and index.
 		const shapeAAfter = storage.documents.get(shapeA)?.state as TLFrameShape
 		expect(shapeAAfter.parentId).toBe(pageId)
+		expect(shapeAAfter.x).toBe(shapeABefore.x)
+		expect(shapeAAfter.y).toBe(shapeABefore.y)
+		expect(shapeAAfter.rotation).toBe(shapeABefore.rotation)
+		expect(shapeAAfter.index).toBe(shapeABefore.index)
+		expect(shapeAAfter.x).not.toBe(attemptedShapeA.x)
+		expect(shapeAAfter.index).not.toBe(attemptedShapeA.index)
 
 		// Warning should have been logged
 		expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Prevented parent cycle'))
@@ -1556,13 +1569,27 @@ describe('Cycle detection in parent-child relationships', () => {
 			type: 'push',
 			clientClock: 3,
 			diff: {
-				[shapeA]: ['patch', { parentId: ['put', shapeB] }],
+				[shapeA]: [
+					'patch',
+					{
+						parentId: ['put', shapeB],
+						x: ['put', 123],
+						y: ['put', 456],
+						rotation: ['put', 1.23],
+						index: ['put', 'a9'],
+					},
+				],
 			},
 		} as TLPushRequest<TLRecord>)
 
 		// The cycle should be prevented - A should still have pageId as parent
+		// and should keep its original transform and index.
 		const shapeAAfter = storage.documents.get(shapeA)?.state as TLFrameShape
 		expect(shapeAAfter.parentId).toBe(pageId)
+		expect(shapeAAfter.x).toBe(0)
+		expect(shapeAAfter.y).toBe(0)
+		expect(shapeAAfter.rotation).toBe(0)
+		expect(shapeAAfter.index).toBe('a1')
 
 		// Warning should have been logged
 		expect(consoleSpy).toHaveBeenCalledWith(

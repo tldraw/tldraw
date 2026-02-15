@@ -40,13 +40,20 @@ describe('Circular parent detection', () => {
 
 			// Verify initial hierarchy
 			expect(editor.getShape(ids.frameB)?.parentId).toBe(ids.frameA)
+			const frameABefore = editor.getShape(ids.frameA)!
 
 			// Try to reparent frameA into frameB (would create cycle: frameA -> frameB -> frameA)
 			// This should be silently rejected
 			editor.reparentShapes([ids.frameA], ids.frameB)
 
 			// frameA should NOT have been reparented to frameB (cycle prevention)
-			expect(editor.getShape(ids.frameA)?.parentId).not.toBe(ids.frameB)
+			// and should keep its original page-space position/rotation/order.
+			const frameAAfter = editor.getShape(ids.frameA)!
+			expect(frameAAfter.parentId).not.toBe(ids.frameB)
+			expect(frameAAfter.x).toBe(frameABefore.x)
+			expect(frameAAfter.y).toBe(frameABefore.y)
+			expect(frameAAfter.rotation).toBe(frameABefore.rotation)
+			expect(frameAAfter.index).toBe(frameABefore.index)
 		})
 
 		it('prevents reparenting a shape to its indirect descendant', () => {
@@ -453,6 +460,36 @@ describe('Circular parent detection', () => {
 			])
 
 			expect(editor.getShape(ids.frameB)?.parentId).toBe(ids.frameA)
+		})
+
+		it('uses deterministic page fallback for remote malformed creates', () => {
+			editor.createPage({ name: 'Page 2' })
+			const pages = editor.getPages()
+			expect(pages.length).toBe(2)
+			const firstPage = pages[0]!
+			const secondPage = pages[1]!
+			expect(firstPage.id).not.toBe(secondPage.id)
+
+			// Ensure the current page differs from the deterministic fallback target.
+			editor.setCurrentPage(secondPage.id)
+			expect(editor.getCurrentPageId()).toBe(secondPage.id)
+
+			editor.store.mergeRemoteChanges(() => {
+				editor.createShapes([
+					{
+						type: 'frame',
+						id: ids.frameA,
+						x: 0,
+						y: 0,
+						parentId: ids.frameA,
+						props: { w: 200, h: 200 },
+					},
+				])
+			})
+
+			// Remote malformed create should be repaired to the deterministic first page,
+			// not the active local page.
+			expect(editor.getShape(ids.frameA)?.parentId).toBe(firstPage.id)
 		})
 	})
 

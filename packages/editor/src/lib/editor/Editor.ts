@@ -513,18 +513,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(
 			this.sideEffects.register({
 				shape: {
-					beforeCreate: (shape) => {
+					beforeCreate: (shape, source) => {
 						// Cycle detection for newly created shapes: prevent self-referential or circular parentIds.
 						// This handles batch creates (e.g., createShapes([{id: 'a', parentId: 'b'}, {id: 'b', parentId: 'a'}]))
 						// and direct store.put calls (e.g., from multiplayer sync).
 						if (isShapeId(shape.parentId)) {
+							const fallbackPageId =
+								source === 'remote'
+									? (this.getPages()[0]?.id ?? this.getCurrentPageId())
+									: this.getCurrentPageId()
+
 							if (shape.parentId === shape.id) {
 								console.warn(
 									`Detected circular parent reference: shape ${shape.id} cannot be a child of itself. Reparenting to page.`
 								)
 								return {
 									...shape,
-									parentId: this.getCurrentPageId(),
+									parentId: fallbackPageId,
 								}
 							}
 							if (this.hasAncestor(shape.parentId, shape.id)) {
@@ -533,7 +538,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								)
 								return {
 									...shape,
-									parentId: this.getCurrentPageId(),
+									parentId: fallbackPageId,
 								}
 							}
 						}
@@ -552,6 +557,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 								return {
 									...shapeAfter,
 									parentId: shapeBefore.parentId,
+									x: shapeBefore.x,
+									y: shapeBefore.y,
+									rotation: shapeBefore.rotation,
+									index: shapeBefore.index,
 								}
 							}
 							// Check if the new parent is a descendant of this shape (which would create a cycle)
@@ -564,6 +573,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 								return {
 									...shapeAfter,
 									parentId: shapeBefore.parentId,
+									x: shapeBefore.x,
+									y: shapeBefore.y,
+									rotation: shapeBefore.rotation,
+									index: shapeBefore.index,
 								}
 							}
 						}

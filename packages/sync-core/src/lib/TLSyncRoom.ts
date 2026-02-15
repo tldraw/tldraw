@@ -970,7 +970,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						console.warn(
 							`[TLSyncRoom] Prevented self-referential parent: shape ${id} cannot be its own parent, keeping original parent ${originalParentId}`
 						)
-						state = { ...state, parentId: originalParentId } as R
+						state = {
+							...state,
+							parentId: originalParentId,
+							x: (doc as any).x,
+							y: (doc as any).y,
+							rotation: (doc as any).rotation,
+							index: (doc as any).index,
+						} as R
 					} else {
 						// New shape trying to be its own parent - skip this malformed record
 						console.warn(
@@ -986,7 +993,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					console.warn(
 						`[TLSyncRoom] Prevented parent cycle: shape ${id} cannot have parent ${newParentId}, keeping original parent ${originalParentId}`
 					)
-					state = { ...state, parentId: originalParentId } as R
+					state = {
+						...state,
+						parentId: originalParentId,
+						x: (doc as any).x,
+						y: (doc as any).y,
+						rotation: (doc as any).rotation,
+						index: (doc as any).index,
+					} as R
 				}
 			}
 
@@ -1034,7 +1048,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						console.warn(
 							`[TLSyncRoom] Prevented parent cycle in patch: shape ${id} cannot have parent ${newParentId}, keeping original parent ${originalParentId}`
 						)
-						repairedPatch = { ...patch, parentId: [ValueOpType.Put, originalParentId] }
+						repairedPatch = {
+							...patch,
+							parentId: [ValueOpType.Put, originalParentId],
+							x: [ValueOpType.Put, (doc as any).x],
+							y: [ValueOpType.Put, (doc as any).y],
+							rotation: [ValueOpType.Put, (doc as any).rotation],
+							index: [ValueOpType.Put, (doc as any).index],
+						}
 					}
 				}
 			}
