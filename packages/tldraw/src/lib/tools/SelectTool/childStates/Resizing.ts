@@ -7,6 +7,7 @@ import {
 	SelectionCorner,
 	SelectionEdge,
 	StateNode,
+	TLGeoShape,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
@@ -14,11 +15,19 @@ import {
 	TLTickEventInfo,
 	Vec,
 	VecLike,
+	approximately,
 	areAnglesCompatible,
 	compact,
 	isAccelKey,
 	kickoutOccludedShapes,
 } from '@tldraw/editor'
+import {
+	getGeoLabelMeasurementRequest,
+	getGeoResizeTargetWidth,
+	setBatchLabelSizeCache,
+} from '../../../shapes/geo/GeoShapeUtil'
+import { LABEL_PADDING } from '../../../shapes/shared/default-shape-constants'
+import { isEmptyRichText } from '../../../utils/text/richText'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -363,6 +372,13 @@ export class Resizing extends StateNode {
 			})
 		}
 
+		// Pass 1: Batch-measure all geo shape labels to avoid layout thrashing.
+		// We collect measurement requests for all geo shapes with text, measure them
+		// in a single batch (one layout reflow), then set the cache so onResize can
+		// use pre-computed sizes instead of measuring individually.
+		this.batchMeasureGeoLabels(shapeSnapshots, scale, selectionRotation, isAspectRatioLocked)
+
+		// Pass 2: Resize all shapes (onResize will use the batch cache for geo shapes)
 		for (const id of shapeSnapshots.keys()) {
 			const snapshot = shapeSnapshots.get(id)!
 
@@ -381,6 +397,9 @@ export class Resizing extends StateNode {
 				skipStartAndEndCallbacks: true,
 			})
 		}
+
+		// Clear the batch cache after resizing
+		setBatchLabelSizeCache(null)
 
 		// If there's only one shape snapshot and it's a frame and the user is holding ctrl,
 		// then we preserve the position of the frame's children, almost like the user is cropping
@@ -426,6 +445,89 @@ export class Resizing extends StateNode {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Batch-measure all geo shape labels before the resize loop to avoid layout thrashing.
+	 * For each geo shape with a non-empty label that has compatible rotation, compute the
+	 * measurement request and batch all measurements in a single DOM pass.
+	 */
+	private batchMeasureGeoLabels(
+		shapeSnapshots: Map<
+			TLShapeId,
+			{
+				shape: TLShape
+				bounds: Box
+				pageTransform: Mat
+				pageRotation: number
+				isAspectRatioLocked: boolean
+			}
+		>,
+		scale: VecLike,
+		selectionRotation: number,
+		isAspectRatioLocked: boolean
+	) {
+		const requests: Array<{ id: TLShapeId; html: string; opts: any }> = []
+
+		for (const [id, snapshot] of shapeSnapshots) {
+			// Only process geo shapes with non-empty text labels
+			if (!this.editor.isShapeOfType<TLGeoShape>(snapshot.shape, 'geo')) continue
+			const geoShape = snapshot.shape as TLGeoShape
+			if (isEmptyRichText(geoShape.props.richText)) continue
+
+			// Skip unaligned shapes — they take a different resize path (_resizeUnalignedShape)
+			// and won't use the standard onResize, so caching wouldn't help.
+			if (!areAnglesCompatible(snapshot.pageRotation, selectionRotation)) continue
+
+			// Compute the effective scaleX for this shape, replicating Editor.resizeShape logic.
+			// Shapes rotated 90° from the selection axis have their x/y scale swapped.
+			const areWidthAndHeightAlignedWithCorrectAxis = approximately(
+				(snapshot.pageRotation - selectionRotation) % Math.PI,
+				0
+			)
+
+			let effectiveScaleX: number
+			if (isAspectRatioLocked || snapshot.isAspectRatioLocked) {
+				// When aspect ratio is locked, both axes get the same absolute scale
+				const uniformScale = Math.max(Math.abs(scale.x), Math.abs(scale.y))
+				effectiveScaleX = uniformScale
+			} else {
+				effectiveScaleX = Math.abs(areWidthAndHeightAlignedWithCorrectAxis ? scale.x : scale.y)
+			}
+
+			// Compute the target width for measurement (same logic as onResize)
+			const targetW = getGeoResizeTargetWidth(geoShape.props, effectiveScaleX)
+
+			// Build a temporary shape with the target width for measurement
+			const tempShape = {
+				...geoShape,
+				props: {
+					...geoShape.props,
+					w: targetW * geoShape.props.scale,
+				},
+			} as TLGeoShape
+
+			const { html, opts } = getGeoLabelMeasurementRequest(this.editor, tempShape)
+			requests.push({ id, html, opts })
+		}
+
+		if (requests.length === 0) return
+
+		// Batch measure all labels in one DOM pass
+		const results = this.editor.textMeasure.measureHtmlBatch(
+			requests.map(({ html, opts }) => ({ html, opts }))
+		)
+
+		// Build the cache map with label sizes (adding padding)
+		const cache = new Map<TLShapeId, { w: number; h: number }>()
+		for (let i = 0; i < requests.length; i++) {
+			cache.set(requests[i].id, {
+				w: results[i].w + LABEL_PADDING * 2,
+				h: results[i].h + LABEL_PADDING * 2,
+			})
+		}
+
+		setBatchLabelSizeCache(cache)
 	}
 
 	// ---
