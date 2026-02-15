@@ -398,9 +398,6 @@ export class Resizing extends StateNode {
 			})
 		}
 
-		// Clear the batch cache after resizing
-		setBatchLabelSizeCache(null)
-
 		// If there's only one shape snapshot and it's a frame and the user is holding ctrl,
 		// then we preserve the position of the frame's children, almost like the user is cropping
 		// the frame rather than resizing it.
@@ -573,6 +570,7 @@ export class Resizing extends StateNode {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.snaps.clearIndicators()
+		setBatchLabelSizeCache(null)
 	}
 
 	private _createSnapshot() {
