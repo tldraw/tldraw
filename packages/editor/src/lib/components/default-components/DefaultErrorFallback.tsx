@@ -5,8 +5,7 @@ import { ComponentType, useEffect, useLayoutEffect, useRef, useState } from 'rea
 import { Editor } from '../../editor/Editor'
 import { EditorProvider } from '../../hooks/useEditor'
 import { useEditorComponents } from '../../hooks/useEditorComponents'
-import { hardResetEditor } from '../../utils/hardResetEditor'
-import { refreshPage } from '../../utils/refreshPage'
+import { hardResetEditor, refreshPage } from '../../utils/runtime'
 import { ErrorBoundary } from '../ErrorBoundary'
 
 const BASE_ERROR_URL = 'https://github.com/tldraw/tldraw/issues/new'

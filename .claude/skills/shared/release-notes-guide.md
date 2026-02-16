@@ -39,11 +39,11 @@ Featured sections should include:
 
 ## PR categorization
 
-| Category     | Labels                       | Indicators                       |
-| ------------ | ---------------------------- | -------------------------------- |
-| API changes  | `api`, `feature`, `major`    | Adds/removes/modifies public API |
-| Improvements | `improvement`, `enhancement` | Enhances existing functionality  |
-| Bug fixes    | `bugfix`, `bug`              | Fixes issues                     |
+| Category     | Labels                        | Indicators                       |
+| ------------ | ----------------------------- | -------------------------------- |
+| API changes  | `api`, `feature`, `major`     | Adds/removes/modifies public API |
+| Improvements | `improvement`, `enhancement`  | Enhances existing functionality  |
+| Bug fixes    | `bugfix`, `bug`,  | Fixes issues                     |
 
 Look for `### Release notes` and `### API changes` sections in PR bodies. Search for "breaking" to identify breaking changes.
 
