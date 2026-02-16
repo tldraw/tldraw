@@ -43,7 +43,10 @@ export class Dragging extends StateNode {
 		const velocityAtPointerUp = Math.min(pointerVelocity.len(), 2)
 
 		if (velocityAtPointerUp > 0.1) {
-			this.editor.slideCamera({ speed: velocityAtPointerUp, direction: pointerVelocity })
+			this.editor.slideCamera({
+				speed: velocityAtPointerUp,
+				direction: { x: pointerVelocity.x, y: pointerVelocity.y, z: 0 },
+			})
 		}
 
 		this.parent.transition('idle')

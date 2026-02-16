@@ -10801,7 +10801,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 
 							if (slideSpeed > 0) {
-								this.slideCamera({ speed: slideSpeed, direction: slideDirection })
+								this.slideCamera({
+									speed: slideSpeed,
+									direction: { x: slideDirection.x, y: slideDirection.y, z: 0 },
+								})
 							}
 						} else {
 							if (info.button === STYLUS_ERASER_BUTTON) {

@@ -1,3 +1,4 @@
+import { Vec } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { HandTool } from '../lib/tools/HandTool/HandTool'
 import { TestEditor, createDefaultShapes } from './TestEditor'
@@ -156,6 +157,16 @@ describe('When in the dragging state', () => {
 		expect(editor.getCamera().x).toBe(50)
 		expect(editor.getCamera().y).toBe(50)
 		editor.pointerUp()
+	})
+
+	it('Does not zoom when momentum panning on release', () => {
+		editor.setCurrentTool('hand')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(50, 50)
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
+		editor.pointerUp().forceTick()
+
+		expect(editor.getCamera().z).toBe(1)
 	})
 
 	// it('Moves the camera with inertia on pointer up', () => {
