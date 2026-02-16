@@ -94,6 +94,7 @@ const env = makeEnv([
 
 const deployZero =
 	env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
+// For multinode: -vs = view syncer, -rm = replication manager (abbreviated for Fly.io's 30-char app name limit)
 const flyioAppName =
 	deployZero === 'flyio'
 		? `${previewId ?? env.TLDRAW_ENV}-zero-cache`
@@ -433,6 +434,7 @@ async function deployZeroViaFlyIo() {
 	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
 }
 
+// See https://zero.rocicorp.dev/docs/deployment for Zero deployment config reference
 function updateFlyioReplicationManagerToml(appName: string, backupPath: string): void {
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio-replication-manager.template.toml')
 	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-replication-manager.toml')

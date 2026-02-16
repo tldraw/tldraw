@@ -259,24 +259,26 @@ describe('evaluateCondition', () => {
 			)
 		})
 
-		it('should throw for IS operator', () => {
+		it('should evaluate IS operator', () => {
 			const condition = {
 				type: 'simple' as const,
 				left: { type: 'column' as const, name: 'name' },
 				op: 'IS' as const,
 				right: { type: 'literal' as const, value: null },
 			}
-			expect(() => evaluateCondition(condition as any, row)).toThrow('Unsupported operator: IS')
+			expect(evaluateCondition(condition as any, row)).toBe(false)
+			expect(evaluateCondition(condition as any, { ...row, name: null })).toBe(true)
 		})
 
-		it('should throw for IS NOT operator', () => {
+		it('should evaluate IS NOT operator', () => {
 			const condition = {
 				type: 'simple' as const,
 				left: { type: 'column' as const, name: 'name' },
 				op: 'IS NOT' as const,
 				right: { type: 'literal' as const, value: null },
 			}
-			expect(() => evaluateCondition(condition as any, row)).toThrow('Unsupported operator: IS NOT')
+			expect(evaluateCondition(condition as any, row)).toBe(true)
+			expect(evaluateCondition(condition as any, { ...row, name: null })).toBe(false)
 		})
 
 		it('should throw for LIKE operator', () => {

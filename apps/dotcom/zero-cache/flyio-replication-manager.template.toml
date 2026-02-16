@@ -31,6 +31,7 @@ destination = "/data"
 
 [[files]]
 guest_path = "/etc/litestream.yml"
+# Litestream backup to Cloudflare R2 (S3-compatible)
 raw_value = """
 dbs:
   - path: /data/sync-replica.db
