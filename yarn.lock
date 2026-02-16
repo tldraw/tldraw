@@ -5599,14 +5599,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:^1.50.0":
-  version: 1.50.0
-  resolution: "@playwright/test@npm:1.50.0"
+"@playwright/test@npm:^1.58.2":
+  version: 1.58.2
+  resolution: "@playwright/test@npm:1.58.2"
   dependencies:
-    playwright: "npm:1.50.0"
+    playwright: "npm:1.58.2"
   bin:
     playwright: cli.js
-  checksum: 10/1fec2ed986205b57b03f24392bb01c6454c1f0a5c14204ce921afd51c3f5d61f20eddb3a18d36a02b19b3e3d731c7ff6bb7ba3c622aabc8fa3802021aef7d21b
+  checksum: 10/58bf90139280a0235eeeb6049e9fb4db6425e98be1bf0cc17913b068eef616cf67be57bfb36dc4cb56bcf116f498ffd0225c4916e85db404b343ea6c5efdae13
   languageName: node
   linkType: hard
 
@@ -15016,7 +15016,7 @@ __metadata:
     "@clerk/elements": "npm:^0.23.74"
     "@clerk/testing": "npm:^1.4.15"
     "@formatjs/cli": "npm:^6.5.1"
-    "@playwright/test": "npm:^1.50.0"
+    "@playwright/test": "npm:^1.58.2"
     "@rocicorp/zero": "npm:0.19.2025050203"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
@@ -16500,7 +16500,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
-    "@playwright/test": "npm:^1.50.0"
+    "@playwright/test": "npm:^1.58.2"
     "@tiptap/core": "npm:^3.12.1"
     "@tiptap/extension-font-family": "npm:^3.12.1"
     "@tiptap/extension-text-style": "npm:^3.12.1"
@@ -23780,27 +23780,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.50.0":
-  version: 1.50.0
-  resolution: "playwright-core@npm:1.50.0"
+"playwright-core@npm:1.58.2":
+  version: 1.58.2
+  resolution: "playwright-core@npm:1.58.2"
   bin:
     playwright-core: cli.js
-  checksum: 10/0d27e52164bcc37ed5aeaa0c7efa6a0b3616cfbb01e206c26572bff8b8e5f0923a993369c826056cd7bee4b975508a1ec257b533098ee9db7bc5b75832110e4d
+  checksum: 10/8a98fcf122167e8703d525db2252de0e3da4ab9110ab6ea9951247e52d846310eb25ea2c805e1b7ccb54b4010c44e5adc3a76aae6da02f34324ccc3e76683bb1
   languageName: node
   linkType: hard
 
-"playwright@npm:1.50.0":
-  version: 1.50.0
-  resolution: "playwright@npm:1.50.0"
+"playwright@npm:1.58.2":
+  version: 1.58.2
+  resolution: "playwright@npm:1.58.2"
   dependencies:
     fsevents: "npm:2.3.2"
-    playwright-core: "npm:1.50.0"
+    playwright-core: "npm:1.58.2"
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     playwright: cli.js
-  checksum: 10/53521f05c48ab51a37d6fa280a7c1e6486e2879f9997e877227517945faf195ce16829cf144709bba292c3023bcd07cf44a4dd965458c9adc30ea6fbe1f0f74a
+  checksum: 10/d89d6c8a32388911b9aff9ee0f1a90076219f15c804f2b287db048b9e9cde182aea3131fac1959051d25189ed4218ec4272b137c83cd7f9cd24781cbc77edd86
   languageName: node
   linkType: hard
 

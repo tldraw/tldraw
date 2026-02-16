@@ -5,7 +5,7 @@ author: tldraw
 date: 01/31/2025
 order: 0
 status: published
-last_version: v4.3.1
+last_version: v4.3.2
 ---
 
 This release adds a consolidated `options` prop, quick zoom navigation, a fill styles dropdown, a new `TldrawUiSelect` component, shape-aware binding checks, and an experimental canvas drop handler. It also includes 2D canvas rendering for shape indicators, R-tree spatial indexing, telestrator-style laser behavior, significant performance improvements for large canvases, and various bug fixes.
@@ -209,4 +209,6 @@ New options in `TldrawOptions`:
 - Fix keyboard shortcut menu item labels to use consistent ellipsis formatting. ([#7757](https://github.com/tldraw/tldraw/pull/7757))
 - Fix spatial index not removing shapes when moved to a different page. ([#7700](https://github.com/tldraw/tldraw/pull/7700))
 - Fix tldraw failing to load in CJS environments (tsx, ts-node, Jest) due to ESM-only rbush dependency. ([#7905](https://github.com/tldraw/tldraw/pull/7905))
+- Fix shapes pasted with Ctrl+V not being parented to a frame when they land inside one. ([#7938](https://github.com/tldraw/tldraw/pull/7938))
+- Fix crash when cropping custom shapes that don't include `isCircle` in their crop schema. ([#7931](https://github.com/tldraw/tldraw/pull/7931))
 - Fix draw shapes not rendering correctly on tablets that report zero pen pressure. ([#5693](https://github.com/tldraw/tldraw/pull/5693))
