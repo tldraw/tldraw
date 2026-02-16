@@ -1,21 +1,37 @@
+<div alt style="text-align: center; transform: scale(.5);">
+	<picture>
+		<source media="(prefers-color-scheme: dark)" srcset="https://github.com/tldraw/tldraw/raw/main/assets/github-hero-dark.png" />
+		<img alt="tldraw" src="https://github.com/tldraw/tldraw/raw/main/assets/github-hero-light.png" />
+	</picture>
+</div>
+
 # tldraw
 
+[![npm](https://img.shields.io/npm/v/tldraw)](https://www.npmjs.com/package/tldraw)
+[![npm downloads](https://img.shields.io/npm/dm/tldraw)](https://www.npmjs.com/package/tldraw)
+[![Discord](https://img.shields.io/discord/1082578835393245284?label=discord)](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tldraw/tldraw)
 
-Welcome to the public monorepo for [tldraw](https://github.com/tldraw/tldraw). tldraw is a library for creating infinite canvas experiences in React. It's the software behind the digital whiteboard [tldraw.com](https://tldraw.com).
+An infinite canvas SDK for React. Build whiteboards, design tools, diagramming apps, collaborative spaces, and more. It's also the engine behind [tldraw.com](https://tldraw.com).
 
-- Read the docs and learn more at [tldraw.dev](https://tldraw.dev).
-- Learn about [our license](https://github.com/tldraw/tldraw#License).
+[Docs](https://tldraw.dev) · [Examples](https://tldraw.dev/examples) · [Discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink) · [Pricing](https://tldraw.dev/pricing)
 
-> [Click here](https://tldraw.dev/pricing) to learn about our license and pricing.
+## Features
 
-## Installation
+- **Infinite canvas** with pan, zoom, and minimap
+- **Rich shape library** — draw, text, geo, arrows, sticky notes, images, video, and more
+- **Real-time multiplayer** via [`@tldraw/sync`](https://tldraw.dev/docs/sync)
+- **Extensible shapes and tools** — create your own with `ShapeUtil` and `StateNode`
+- **Customizable UI** — override any component
+- **Persistence** with built-in IndexedDB support and undo/redo
+- **SVG and image export**
+- **Full TypeScript** support
+
+## Quick start
 
 ```bash
 npm i tldraw
 ```
-
-## Usage
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -30,55 +46,52 @@ export default function App() {
 }
 ```
 
-Learn more at [tldraw.dev](https://tldraw.dev).
+Or scaffold a full project with a starter kit:
+
+```bash
+npx create-tldraw@latest
+```
+
+Available starter kits: **basic**, **multiplayer**, **workflow**, **chat**, **agent**, **branching-chat**, and more. See [tldraw.dev/quick-start](https://tldraw.dev/quick-start) for details.
+
+## Packages
+
+| Package                                                              | Description                                  |
+| -------------------------------------------------------------------- | -------------------------------------------- |
+| [`tldraw`](https://www.npmjs.com/package/tldraw)                     | Complete SDK with shapes, tools, and UI      |
+| [`@tldraw/editor`](https://www.npmjs.com/package/@tldraw/editor)     | Core canvas engine (no UI or default shapes) |
+| [`@tldraw/sync`](https://www.npmjs.com/package/@tldraw/sync)         | Real-time multiplayer collaboration          |
+| [`@tldraw/store`](https://www.npmjs.com/package/@tldraw/store)       | Reactive client-side data store              |
+| [`@tldraw/state`](https://www.npmjs.com/package/@tldraw/state)       | Signals-based reactivity library             |
+| [`@tldraw/tlschema`](https://www.npmjs.com/package/@tldraw/tlschema) | Type definitions and validation              |
 
 ## Local development
 
-The local development server will run our examples app. The basic example will show any changes you've made to the codebase.
-
-To run the local development server, first clone this repo.
-
-Enable [corepack](https://nodejs.org/api/corepack.html) to make sure you have the right version of `yarn`:
+Clone the repo, then:
 
 ```bash
-npm i -g corepack
+npm i -g corepack  # enable corepack for the correct yarn version
+yarn                # install dependencies
+yarn dev            # start dev server at localhost:5420
 ```
 
-Install dependencies:
-
-```bash
-yarn
-```
-
-Start the local development server:
-
-```bash
-yarn dev
-```
-
-Open the example project at `localhost:5420`.
-
-## License
-
-The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
-
-You can use the tldraw SDK in commercial or non-commercial projects so long as you preserve the "Made with tldraw" watermark on the canvas. To remove the watermark, you can purchase a [business license](https://tldraw.dev/pricing). Visit [tldraw.dev](https://tldraw.dev) to learn more.
-
-## Trademarks
-
-Copyright (c) 2024-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
-
-## Distributions
-
-You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions).
-
-## Contribution
-
-Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+See our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md) for more details.
 
 ## Community
 
-Have questions, comments or feedback? [Join our discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+- [Discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink) — questions, feedback, and discussion
+- [Twitter/X](https://twitter.com/tldraw) — news and updates
+- [tldraw.dev](https://tldraw.dev) — docs and release notes
+
+Found a bug? [Submit an issue](https://github.com/tldraw/tldraw/issues/new).
+
+## License
+
+The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md). You can use the SDK freely in development. Production use requires a [license key](https://tldraw.dev/pricing). Visit [tldraw.dev](https://tldraw.dev) to learn more.
+
+## Trademarks
+
+Copyright (c) 2025-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. See our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for details.
 
 ## Contributors
 
@@ -86,7 +99,7 @@ Have questions, comments or feedback? [Join our discord](https://discord.tldraw.
   <img src="https://contrib.rocks/image?repo=tldraw/tldraw&max=400&columns=20" width="100%"/>
 </a>
 
-## Star History
+## Star history
 
 <a href="https://star-history.com/#tldraw/tldraw">
 	<picture>
@@ -101,7 +114,3 @@ Have questions, comments or feedback? [Join our discord](https://discord.tldraw.
 	  <img src="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date" alt="Star History Chart" width="100%" />
 	</picture>
 </a>
-
-## Contact
-
-Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw). You can contact us by email at [hello@tldraw.com](mailto:hello@tldraw.com).
