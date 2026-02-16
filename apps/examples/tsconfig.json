@@ -8,7 +8,6 @@
 		{ "path": "../../packages/sync" },
 		{ "path": "../../packages/state" },
 		{ "path": "../../packages/tldraw" },
-		{ "path": "../../packages/dotcom-shared" },
-		{ "path": "../../packages/editor-controller" }
+		{ "path": "../../packages/dotcom-shared" }
 	]
 }
