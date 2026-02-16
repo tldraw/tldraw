@@ -1,7 +1,6 @@
 ---
 title: Text mass style updates
 component: ./TextMassStyleUpdates.tsx
-category: ui
 priority: 2
 keywords: [text, contextual, mass, style, bold, italic, highlight, styles]
 ---
