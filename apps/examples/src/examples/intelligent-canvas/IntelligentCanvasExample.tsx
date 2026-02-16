@@ -154,7 +154,12 @@ export default function IntelligentCanvasExample() {
 			value={{ mode, setMode, agentStatus, agentMessage, agentRef, agentAvailable }}
 		>
 			<div className="tldraw__editor intelligent-canvas">
-				<Tldraw shapeUtils={shapeUtils} components={components} onMount={handleMount} />
+				<Tldraw
+					persistenceKey="intelligent-canvas"
+					shapeUtils={shapeUtils}
+					components={components}
+					onMount={handleMount}
+				/>
 			</div>
 		</AgentContext.Provider>
 	)

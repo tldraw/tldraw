@@ -1,10 +1,32 @@
 import { generateGeminiText } from '../agent/api'
 import { ComposedIdeaDraft, IdeaNode, ParsedIdea } from './types'
 
-const COMPOSITION_SYSTEM_PROMPT = `You are helping generate composition ideas.
+const PARSING_SYSTEM_PROMPT = `You are helping structure raw ideas into clean primitives.
 
 Output valid JSON only.
 Do not use markdown code fences.
+
+Writing style:
+- Use simple, plain language. No jargon or filler.
+- Be specific about what the thing actually does. Don't lose detail.
+- Be literal and grounded. Describe the idea as-is, don't embellish or reimagine it.
+- Write like you're explaining the idea to a smart friend, not writing a pitch deck.
+- Good: "a canvas that stays in sync between multiple people over the network"
+- Bad: "a collaborative real-time multiplayer synchronization framework leveraging WebSocket infrastructure"
+`
+
+const COMPOSITION_SYSTEM_PROMPT = `You are helping find insights at the intersection of two or more ideas.
+
+Output valid JSON only.
+Do not use markdown code fences.
+
+Your job is NOT to merge ideas into a grand hybrid. Your job is to find the one surprising, specific thing you can only see by looking at both ideas together. The best output is an "oh!" moment - a simple idea that neither input alone would have suggested.
+
+Priorities:
+- Simplicity over impressiveness. The idea should feel elegant, not engineered.
+- A specific interaction or mechanic, not a vague system. "The player types words that become the terrain" is good. "A text-based procedural generation engine" is bad.
+- Wild and fantastical is great, but it must have a core mechanic you could explain in one sentence.
+- Focus on what the person DOES (the verb), not what the system IS (the noun).
 
 Writing style:
 - Use simple, plain language. No jargon or filler.
@@ -44,7 +66,7 @@ Return JSON with this exact shape:
 List 2-4 inputs and outputs. Keep them as short noun phrases.
 `
 
-	const result = await generateGeminiText(COMPOSITION_SYSTEM_PROMPT, prompt)
+	const result = await generateGeminiText(PARSING_SYSTEM_PROMPT, prompt)
 	const json = extractJsonObject(result)
 	const parsed = JSON.parse(json) as Record<string, unknown>
 
@@ -57,27 +79,30 @@ List 2-4 inputs and outputs. Keep them as short noun phrases.
 }
 
 export async function composeIdeaPair(a: IdeaNode, b: IdeaNode): Promise<ComposedIdeaDraft> {
-	const prompt = `Combine these two ideas into one new idea.
+	return composeIdeas([a, b])
+}
 
-Idea A
-Title: ${a.title}
-Description: ${a.description}
-Inputs: ${a.inputs.join(', ') || 'none'}
-Outputs: ${a.outputs.join(', ') || 'none'}
+export async function composeIdeas(nodes: IdeaNode[]): Promise<ComposedIdeaDraft> {
+	const ideaSections = nodes
+		.map(
+			(n, i) =>
+				`Idea ${i + 1}\nTitle: ${n.title}\nDescription: ${n.description}\nInputs: ${n.inputs.join(', ') || 'none'}\nOutputs: ${n.outputs.join(', ') || 'none'}`
+		)
+		.join('\n\n')
 
-Idea B
-Title: ${b.title}
-Description: ${b.description}
-Inputs: ${b.inputs.join(', ') || 'none'}
-Outputs: ${b.outputs.join(', ') || 'none'}
+	const prompt = `Look at these ${nodes.length} ideas together. What's the one surprising, specific thing you can only see at their intersection? Not a merger - an insight.
+
+${ideaSections}
+
+Think about what interaction pattern or mechanic lives in the gap between these. What would make someone say "oh, that's clever"? It can be fantastical, but it needs a core you could explain in one sentence.
 
 Return JSON with this exact shape:
 {
-  "title": "short plain title",
-  "description": "2-4 sentences. Say what the combined thing does, specifically. Simple words, full detail.",
+  "title": "short plain title, max 6 words",
+  "description": "2-4 sentences. Describe the specific thing someone does or experiences - the core mechanic. Not a system description. Simple words, full detail.",
   "inputs": ["what it needs"],
   "outputs": ["what it produces"],
-  "whyThisCombination": "1-2 sentences on why these two ideas work well together"
+  "whyThisCombination": "1 sentence: what's the specific insight that only emerges from this pairing?"
 }
 `
 
@@ -116,7 +141,7 @@ Rules:
 - Keep inputs and outputs as short noun phrases (2-4 each).
 `
 
-	const result = await generateGeminiText(COMPOSITION_SYSTEM_PROMPT, prompt)
+	const result = await generateGeminiText(PARSING_SYSTEM_PROMPT, prompt)
 	const json = extractJsonObject(result)
 	const parsed = JSON.parse(json) as Record<string, unknown>
 
@@ -131,40 +156,37 @@ Rules:
 }
 
 export async function composeCodePair(a: IdeaNode, b: IdeaNode): Promise<ComposedIdeaDraft> {
-	const prompt = `Combine these two code logic blocks into one new block.
+	return composeCodeBlocks([a, b])
+}
 
-Block A
-Title: ${a.title}
-Description: ${a.description}
-Inputs: ${a.inputs.join(', ') || 'none'}
-Outputs: ${a.outputs.join(', ') || 'none'}
-Language: ${a.language ?? 'TypeScript'}
-Code:
-${a.code ?? 'none'}
+export async function composeCodeBlocks(nodes: IdeaNode[]): Promise<ComposedIdeaDraft> {
+	const blockSections = nodes
+		.map(
+			(n, i) =>
+				`Block ${i + 1}\nTitle: ${n.title}\nDescription: ${n.description}\nInputs: ${n.inputs.join(', ') || 'none'}\nOutputs: ${n.outputs.join(', ') || 'none'}\nLanguage: ${n.language ?? 'TypeScript'}\nCode:\n${n.code ?? 'none'}`
+		)
+		.join('\n\n')
 
-Block B
-Title: ${b.title}
-Description: ${b.description}
-Inputs: ${b.inputs.join(', ') || 'none'}
-Outputs: ${b.outputs.join(', ') || 'none'}
-Language: ${b.language ?? 'TypeScript'}
-Code:
-${b.code ?? 'none'}
+	const prompt = `Look at these ${nodes.length} code blocks together. What's the one small, clever program that you can only see at their intersection? Not a merge of all the code - a new thing inspired by both.
+
+${blockSections}
+
+Think about what mechanic or behavior emerges from the combination. It can be playful or weird, but the code should do one clear thing.
 
 Return JSON with this exact shape:
 {
-  "title": "short plain title",
-  "description": "2-4 sentences explaining what the composed logic does and where it fits.",
-  "inputs": ["what this composed block needs"],
-  "outputs": ["what this composed block produces"],
+  "title": "short plain title, max 6 words",
+  "description": "2-4 sentences. What does this code do, specifically? Describe the behavior, not the architecture.",
+  "inputs": ["what this block needs"],
+  "outputs": ["what this block produces"],
   "language": "use one language for the final block",
-  "code": "10-30 lines of runnable composed code",
-  "whyThisCombination": "1-2 sentences on why these blocks compose well"
+  "code": "10-30 lines of runnable code that demonstrates the core idea",
+  "whyThisCombination": "1 sentence: what's the insight that only emerges from this pairing?"
 }
 
 Rules:
-- Keep the code in one cohesive function or module-sized block.
-- Preserve the key behavior of both inputs.
+- The code should do ONE thing well, not try to incorporate everything from both inputs.
+- Keep it in one cohesive function or module-sized block.
 - Do not include markdown fences.
 `
 

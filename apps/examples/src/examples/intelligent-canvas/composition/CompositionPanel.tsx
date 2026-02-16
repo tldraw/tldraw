@@ -1,17 +1,24 @@
 import { useMemo, useState } from 'react'
 import { Editor, TLShapeId, createShapeId, toRichText, track, useEditor, useValue } from 'tldraw'
 import {
+	createGroupKey,
 	createIdeaNode,
-	createPairKey,
 	getIdeaNodeById,
 	getIdeaNodes,
 	getNextIdeaPosition,
 	isIdeaShape,
 	updateIdeaStatus,
 } from './graph'
-import { composeCodePair, composeIdeaPair, parseCodeBlockFromText, parseIdeaFromText } from './llm'
+import {
+	composeCodeBlocks,
+	composeCodePair,
+	composeIdeaPair,
+	composeIdeas,
+	parseCodeBlockFromText,
+	parseIdeaFromText,
+} from './llm'
 import { rankPairSuggestions } from './scoring'
-import { CompositionDomain, PairDecision } from './types'
+import { CompositionDomain, IdeaNode, PairDecision } from './types'
 
 const MAX_SUGGESTIONS = 8
 
@@ -37,16 +44,19 @@ export const CompositionPanel = track(function CompositionPanel({
 		return node
 	}, [domain, editor, selectedShape])
 
-	const selectedPair = useValue(
-		'selectedPair',
+	const selectedGroup = useValue(
+		'selectedGroup',
 		() => {
 			const shapes = editor.getSelectedShapes()
-			if (shapes.length !== 2) return null
-			const a = isIdeaShape(shapes[0]) ? getIdeaNodeById(editor, shapes[0].id) : null
-			const b = isIdeaShape(shapes[1]) ? getIdeaNodeById(editor, shapes[1].id) : null
-			if (!a || !b) return null
-			if (a.domain !== domain || b.domain !== domain) return null
-			return { a, b, pairKey: createPairKey(a.id, b.id) }
+			if (shapes.length < 2) return null
+			const nodes: IdeaNode[] = []
+			for (const shape of shapes) {
+				if (!isIdeaShape(shape)) return null
+				const node = getIdeaNodeById(editor, shape.id)
+				if (!node || node.domain !== domain) return null
+				nodes.push(node)
+			}
+			return { nodes, groupKey: createGroupKey(nodes.map((n) => n.id)) }
 		},
 		[domain, editor]
 	)
@@ -128,19 +138,29 @@ export const CompositionPanel = track(function CompositionPanel({
 		}
 	}
 
-	async function handleCompose(pairKey: string, aId: TLShapeId, bId: TLShapeId) {
+	async function handleCompose(groupKey: string, parentIds: TLShapeId[]) {
 		if (!agentAvailable) {
 			setError('Gemini API is not configured. Add GEMINI_API_KEY to .env.local.')
 			return
 		}
-		const a = getIdeaNodeById(editor, aId)
-		const b = getIdeaNodeById(editor, bId)
-		if (!a || !b) return
+		const parents: IdeaNode[] = []
+		for (const pid of parentIds) {
+			const node = getIdeaNodeById(editor, pid)
+			if (!node) return
+			parents.push(node)
+		}
 
-		setBusyPair(pairKey)
+		setBusyPair(groupKey)
 		setError(null)
 		try {
-			const draft = domain === 'code' ? await composeCodePair(a, b) : await composeIdeaPair(a, b)
+			const draft =
+				parents.length === 2
+					? domain === 'code'
+						? await composeCodePair(parents[0], parents[1])
+						: await composeIdeaPair(parents[0], parents[1])
+					: domain === 'code'
+						? await composeCodeBlocks(parents)
+						: await composeIdeas(parents)
 			const pos = getNextIdeaPosition(editor)
 			const id = createIdeaNode(
 				editor,
@@ -152,8 +172,8 @@ export const CompositionPanel = track(function CompositionPanel({
 					outputs: draft.outputs,
 					language: draft.language,
 					code: draft.code,
-					depth: Math.max(a.depth, b.depth) + 1,
-					parents: [a.id, b.id],
+					depth: Math.max(...parents.map((p) => p.depth)) + 1,
+					parents: parents.map((p) => p.id),
 					status: 'proposed',
 				},
 				pos
@@ -173,13 +193,13 @@ export const CompositionPanel = track(function CompositionPanel({
 	function handleAcceptSelected() {
 		if (!selectedIdea || selectedIdea.parents.length < 2) return
 		updateIdeaStatus(editor, selectedIdea.id, 'accepted')
-		recordDecision(createPairKey(selectedIdea.parents[0], selectedIdea.parents[1]), 'accepted')
+		recordDecision(createGroupKey(selectedIdea.parents), 'accepted')
 	}
 
 	function handleRejectSelected() {
 		if (!selectedIdea || selectedIdea.parents.length < 2) return
 		updateIdeaStatus(editor, selectedIdea.id, 'rejected')
-		recordDecision(createPairKey(selectedIdea.parents[0], selectedIdea.parents[1]), 'rejected')
+		recordDecision(createGroupKey(selectedIdea.parents), 'rejected')
 	}
 
 	function handleToggleCodePreview() {
@@ -261,24 +281,27 @@ export const CompositionPanel = track(function CompositionPanel({
 				</button>
 			</div>
 
-			{selectedPair ? (
+			{selectedGroup ? (
 				<div className="ic-composition-card">
 					<div className="ic-composition-section-title">Compose selection</div>
 					<div className="ic-suggestion-title">
-						{selectedPair.a.title} x {selectedPair.b.title}
+						{selectedGroup.nodes.map((n) => n.title).join(' x ')}
 					</div>
 					<button
 						className="ic-button"
-						disabled={busyPair === selectedPair.pairKey || !agentAvailable}
+						disabled={busyPair === selectedGroup.groupKey || !agentAvailable}
 						onClick={() =>
-							handleCompose(selectedPair.pairKey, selectedPair.a.id, selectedPair.b.id)
+							handleCompose(
+								selectedGroup.groupKey,
+								selectedGroup.nodes.map((n) => n.id)
+							)
 						}
 					>
-						{busyPair === selectedPair.pairKey
+						{busyPair === selectedGroup.groupKey
 							? 'Composing...'
 							: domain === 'idea'
-								? 'Compose these two'
-								: 'Compose logic blocks'}
+								? `Compose ${selectedGroup.nodes.length} ideas`
+								: `Compose ${selectedGroup.nodes.length} logic blocks`}
 					</button>
 				</div>
 			) : null}
@@ -302,7 +325,7 @@ export const CompositionPanel = track(function CompositionPanel({
 							<button
 								className="ic-button ic-button-small"
 								disabled={busyPair === s.pairKey || !agentAvailable}
-								onClick={() => handleCompose(s.pairKey, s.a.id, s.b.id)}
+								onClick={() => handleCompose(s.pairKey, [s.a.id, s.b.id])}
 							>
 								{busyPair === s.pairKey ? 'Composing...' : 'Compose'}
 							</button>

@@ -167,3 +167,7 @@ export function parseCsvTags(raw: string): string[] {
 export function createPairKey(aId: TLShapeId, bId: TLShapeId): string {
 	return [aId, bId].sort().join('::')
 }
+
+export function createGroupKey(ids: TLShapeId[]): string {
+	return [...ids].sort().join('::')
+}
