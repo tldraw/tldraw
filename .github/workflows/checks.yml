@@ -101,6 +101,16 @@ jobs:
 
       - uses: ./.github/actions/restore-build-caches
 
+      - name: Restore lazyrepo cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .lazy
+            **/.lazy
+          key: lazyrepo-${{ runner.os }}-${{ hashFiles('yarn.lock', 'lazy.config.ts') }}-${{ github.sha }}
+          restore-keys: |
+            lazyrepo-${{ runner.os }}-${{ hashFiles('yarn.lock', 'lazy.config.ts') }}-
+
       - name: Build packages
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
