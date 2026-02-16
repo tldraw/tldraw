@@ -27,7 +27,7 @@ const categories = [
 
 type Category = (typeof categories)[number][0]
 
-type ExampleMetaModule = {
+interface ExampleMetaModule {
 	meta: Omit<Example, 'loadComponent' | 'loadContent'>
 	loadComponent(): Promise<ComponentType<{ roomId?: string }>>
 	loadContent(): Promise<{ description: string; details: string }>
