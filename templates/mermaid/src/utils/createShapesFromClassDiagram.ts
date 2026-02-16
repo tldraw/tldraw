@@ -3,9 +3,9 @@
  */
 
 import {
-	TLArrowShapeArrowheadStyle,
 	Editor,
 	TLArrowShape,
+	TLArrowShapeArrowheadStyle,
 	TLGeoShape,
 	TLShapeId,
 	Vec,
@@ -13,10 +13,10 @@ import {
 	createShapeId,
 	toRichText,
 } from 'tldraw'
-import { ClassDiagramClass, ParsedClassDiagram } from './parseClassDiagram'
+import type { ClassDefinition, ParsedClassDiagram } from './parseClassDiagramAdvanced'
 
 interface ClassLayout {
-	name: string
+	classDef: ClassDefinition
 	x: number
 	y: number
 	width: number
@@ -36,11 +36,10 @@ export function createShapesFromClassDiagram(
 
 	// Create class shapes
 	const classShapeIds = new Map<string, TLShapeId>()
+	const noteShapes: { text: string; attachedTo?: string; x: number; y: number }[] = []
 
-	for (const cls of diagram.classes) {
-		const layout = layouts.find((l) => l.name === cls.name)
-		if (!layout) continue
-
+	for (const layout of layouts) {
+		const cls = layout.classDef
 		const shapeId = createShapeId()
 		classShapeIds.set(cls.name, shapeId)
 
@@ -56,29 +55,30 @@ export function createShapesFromClassDiagram(
 		labelParts.push(cls.name)
 		labelParts.push('---')
 
-		// Add attributes (non-methods)
-		const attributes = cls.members.filter((m) => !m.isMethod)
-		for (const attr of attributes) {
-			const visibility = attr.visibility || ''
-			const type = attr.type ? `: ${attr.type}` : ''
-			labelParts.push(`${visibility}${attr.name}${type}`)
+		// Add properties
+		for (const prop of cls.properties) {
+			const visibility = prop.visibility || ''
+			const modifiers = (prop.isStatic ? 'static ' : '') + (prop.isAbstract ? 'abstract ' : '')
+			const type = prop.type ? `${prop.type} ` : ''
+			labelParts.push(`${visibility}${modifiers}${type}${prop.name}`)
 		}
 
-		if (attributes.length > 0) {
+		if (cls.properties.length > 0) {
 			labelParts.push('---')
 		}
 
 		// Add methods
-		const methods = cls.members.filter((m) => m.isMethod)
-		for (const method of methods) {
+		for (const method of cls.methods) {
 			const visibility = method.visibility || ''
-			const type = method.type ? `: ${method.type}` : ''
-			labelParts.push(`${visibility}${method.name}()${type}`)
+			const modifiers = (method.isStatic ? 'static ' : '') + (method.isAbstract ? 'abstract ' : '')
+			const type = method.type ? `${method.type} ` : ''
+			labelParts.push(`${visibility}${modifiers}${type}${method.name}`)
 		}
 
 		const label = labelParts.join('\n')
 
-		// Use rectangles for classes
+		// Use rectangles for classes and store full class metadata
+		// Ensure metadata is JSON-serializable by creating a plain object
 		editor.createShape<TLGeoShape>({
 			id: shapeId,
 			type: 'geo',
@@ -92,6 +92,9 @@ export function createShapesFromClassDiagram(
 				align: 'start',
 				verticalAlign: 'start',
 				color: 'violet',
+			},
+			meta: {
+				classData: JSON.parse(JSON.stringify(cls)), // Ensure JSON-serializable
 			},
 		})
 	}
@@ -110,7 +113,7 @@ export function createShapesFromClassDiagram(
 		let toArrowhead: TLArrowShapeArrowheadStyle = 'arrow'
 		let dash: 'draw' | 'dashed' | 'dotted' | 'solid' = 'draw'
 
-		switch (relationship.relType) {
+		switch (relationship.type) {
 			case 'inheritance':
 				toArrowhead = 'triangle'
 				dash = 'solid'
@@ -137,7 +140,8 @@ export function createShapesFromClassDiagram(
 				break
 		}
 
-		// Create arrow shape
+		// Create arrow shape and store relationship metadata
+		// Ensure metadata is JSON-serializable
 		editor.createShape<TLArrowShape>({
 			id: arrowId,
 			type: 'arrow',
@@ -148,6 +152,9 @@ export function createShapesFromClassDiagram(
 				arrowheadEnd: toArrowhead,
 				dash,
 				richText: toRichText(relationship.label || ''),
+			},
+			meta: {
+				relationshipData: JSON.parse(JSON.stringify(relationship)), // Ensure JSON-serializable
 			},
 		})
 
@@ -178,6 +185,37 @@ export function createShapesFromClassDiagram(
 			},
 		})
 	}
+
+	// Create note shapes
+	for (const note of diagram.notes) {
+		const noteId = createShapeId()
+		let noteX = position.x
+		let noteY = position.y - 100 // Default: above the diagram
+
+		// If attached to a class, position it near that class
+		if (note.attachedTo) {
+			const classShapeId = classShapeIds.get(note.attachedTo)
+			if (classShapeId) {
+				const classShape = editor.getShape(classShapeId)
+				if (classShape) {
+					noteX = classShape.x + 250 // To the right of the class
+					noteY = classShape.y
+				}
+			}
+		}
+
+		editor.createShape({
+			type: 'text',
+			x: noteX,
+			y: noteY,
+			props: {
+				richText: toRichText(note.text),
+				w: 200,
+				color: 'grey',
+				size: 's',
+			},
+		})
+	}
 }
 
 /**
@@ -199,15 +237,14 @@ function calculateLayout(diagram: ParsedClassDiagram, startPosition: Vec): Class
 	let maxHeightInRow = 0
 	let rowIndex = 0
 
-	for (let i = 0; i < diagram.classes.length; i++) {
-		const cls = diagram.classes[i]
-
+	for (const cls of diagram.classes) {
 		// Calculate height based on members (+1 for name, +1 for stereotype if present, +2 for dividers)
 		const extraLines = (cls.stereotype ? 1 : 0) + 1 + 2
-		const height = baseHeight + (cls.members.length + extraLines) * memberHeight
+		const totalMembers = cls.properties.length + cls.methods.length
+		const height = baseHeight + (totalMembers + extraLines) * memberHeight
 
 		layouts.push({
-			name: cls.name,
+			classDef: cls,
 			x: currentX,
 			y: currentY,
 			width: baseWidth,

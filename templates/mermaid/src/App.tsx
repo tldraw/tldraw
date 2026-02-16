@@ -2,12 +2,12 @@
  * Mermaid starter kit - Two-way converter between Mermaid code and tldraw shapes
  */
 
-import { Tldraw, TLUiOverrides, useEditor, createShapeId, Vec } from 'tldraw'
+import { createShapeId, Tldraw, TLUiOverrides, Vec } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { CODE_BLOCK_SHAPE_TYPE } from './shapes/CodeBlockShape'
 import { CodeBlockShapeUtil } from './shapes/CodeBlockShapeUtil'
 import { CodeBlockTool } from './tools/CodeBlockTool'
 import { convertShapesToCode } from './utils/convertShapesToCode'
-import { CODE_BLOCK_SHAPE_TYPE } from './shapes/CodeBlockShape'
 import { createOrUpdateLinkFrame } from './utils/createLinkFrame'
 
 // Custom UI overrides to add code block tool and convert actions
@@ -168,6 +168,7 @@ export default function App() {
 				shapeUtils={customShapeUtils}
 				tools={customTools}
 				overrides={uiOverrides}
+				persistenceKey={null}
 			/>
 		</div>
 	)

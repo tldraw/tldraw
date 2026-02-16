@@ -3,9 +3,9 @@
  */
 
 import {
-	TLArrowShapeArrowheadStyle,
 	Editor,
 	TLArrowShape,
+	TLArrowShapeArrowheadStyle,
 	TLGeoShape,
 	TLShapeId,
 	Vec,
@@ -13,7 +13,7 @@ import {
 	createShapeId,
 	toRichText,
 } from 'tldraw'
-import { MermaidEdge, MermaidNode, ParsedFlowchart } from './parseMermaidFlowchart'
+import { MermaidNode, ParsedFlowchart } from './parseMermaidFlowchart'
 
 interface NodeLayout {
 	id: string
@@ -57,13 +57,30 @@ export function createShapesFromFlowchart(
 				geo = 'ellipse'
 				break
 			case 'oval':
+			case 'rounded':
 				geo = 'oval'
 				break
 			case 'hexagon':
 				geo = 'hexagon'
 				break
 			case 'stadium':
-				geo = 'oval' // Use oval for stadium shapes
+			case 'cylinder':
+				geo = 'oval' // Use oval for stadium and cylinder shapes
+				break
+			case 'trapezoid':
+				geo = 'trapezoid'
+				break
+			case 'parallelogram':
+				geo = 'rhombus' // Use rhombus for parallelogram (closest match)
+				break
+			case 'subroutine':
+				geo = 'rectangle' // Use rectangle with note that it should have double border
+				break
+			case 'double-circle':
+				geo = 'ellipse' // Use ellipse with note that it should have double border
+				break
+			case 'flag':
+				geo = 'arrow-right' // Use arrow for flag/asymmetric shape
 				break
 		}
 
@@ -99,6 +116,14 @@ export function createShapesFromFlowchart(
 
 		if (!fromShape || !toShape) continue
 
+		// Map line style to dash style
+		let dashStyle: TLArrowShape['props']['dash'] = 'draw'
+		if (edge.lineStyle === 'dotted') {
+			dashStyle = 'dotted'
+		} else if (edge.lineStyle === 'dashed') {
+			dashStyle = 'dashed'
+		}
+
 		// Create arrow shape
 		editor.createShape<TLArrowShape>({
 			id: arrowId,
@@ -106,9 +131,9 @@ export function createShapesFromFlowchart(
 			props: {
 				start: { x: 0, y: 0 },
 				end: { x: 100, y: 100 },
-				arrowheadStart: 'none' as TLArrowShapeArrowheadStyle,
-				arrowheadEnd: edge.arrowType === 'arrow' ? 'arrow' : ('none' as TLArrowShapeArrowheadStyle),
-				dash: edge.lineStyle === 'dotted' ? 'dotted' : 'draw',
+				arrowheadStart: edge.arrowStart as TLArrowShapeArrowheadStyle,
+				arrowheadEnd: edge.arrowEnd as TLArrowShapeArrowheadStyle,
+				dash: dashStyle,
 				richText: toRichText(edge.label || ''),
 			},
 		})

@@ -1,31 +1,20 @@
 /**
- * Convert tldraw shapes to Mermaid code using Gemini vision API
+ * Convert tldraw shapes to Mermaid code deterministically
  */
 
-import { Editor, Vec } from 'tldraw'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { Editor, TLArrowShape, TLGeoShape, TLShape } from 'tldraw'
+import { generateClassDiagramCode } from './generateClassDiagramCode'
 import { logger } from './logger'
-import exampleFlowchartUrl from '../assets/example-flowchart.png'
-import exampleSequenceUrl from '../assets/example-sequence.png'
-
-// Initialize Gemini API
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY
-const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null
+import type { ClassDefinition, ClassRelationship } from './parseClassDiagramAdvanced'
 
 /**
- * Convert selected shapes to Mermaid code using Gemini vision
+ * Convert selected shapes to Mermaid code deterministically
  * @returns The code block ID (either updated or newly created)
  */
 export async function convertShapesToCode(
 	editor: Editor,
 	shapeIds: string[]
 ): Promise<{ code: string; codeBlockId: string }> {
-	if (!genAI) {
-		throw new Error(
-			'Gemini API key not configured. Please set VITE_GEMINI_API_KEY in your .env file'
-		)
-	}
-
 	// If a link frame is selected, get its children shapes instead
 	let shapesToConvert: string[] = []
 	for (const id of shapeIds) {
@@ -52,143 +41,213 @@ export async function convertShapesToCode(
 
 	logger.shapesToCode(filteredShapeIds.length)
 
-	// Load example images if not already loaded
-	await loadExampleImages()
-
 	try {
-		// Export only geo shapes (nodes) to avoid arrow label SVG export errors
-		// TODO: Fix arrow label bounds issue in tldraw, then export all shapes
-		const geoShapeIds = filteredShapeIds.filter((id) => {
-			const shape = editor.getShape(id)
-			return shape?.type === 'geo'
-		})
+		// Separate geo shapes (nodes) and arrow shapes (edges)
+		const geoShapes: TLGeoShape[] = []
+		const arrowShapes: TLArrowShape[] = []
 
-		if (geoShapeIds.length === 0) {
-			throw new Error('No geo shapes (nodes) found to export')
-		}
-
-		console.log(
-			'Exporting',
-			geoShapeIds.length,
-			'geo shapes (arrows excluded due to label rendering issues)'
-		)
-
-		const result = await editor.toImage(geoShapeIds, {
-			background: true,
-			padding: 16,
-			darkMode: false,
-			format: 'png',
-		})
-
-		if (!result || !result.blob) {
-			throw new Error('Could not export shapes as image')
-		}
-
-		// Convert blob to base64
-		const base64 = await blobToBase64(result.blob)
-		const base64Data = base64.split(',')[1] // Remove data:image/png;base64, prefix
-
-		logger.geminiRequest(
-			'Generate Mermaid diagram code from this image',
-			{
-				width: result.width,
-				height: result.height,
+		for (const id of filteredShapeIds) {
+			const shape = editor.getShape(id) as TLShape
+			if (shape?.type === 'geo') {
+				geoShapes.push(shape as TLGeoShape)
+			} else if (shape?.type === 'arrow') {
+				arrowShapes.push(shape as TLArrowShape)
 			}
-		)
-
-		// Call Gemini vision API
-		const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
-
-		const contentParts = [
-			{
-				text: `You are an expert at analyzing diagrams and generating Mermaid.js code.
-
-Here are examples showing how diagrams map to Mermaid code:
-
-Example 1 - Flowchart:
-This diagram shows a flowchart flowing left-to-right with different node shapes:`,
-			},
-		]
-
-		// Add example flowchart image if loaded
-		if (exampleFlowchartBase64) {
-			contentParts.push({
-				inlineData: {
-					mimeType: 'image/png',
-					data: exampleFlowchartBase64,
-				},
-			})
 		}
 
-		contentParts.push({
-			text: `The correct Mermaid code for this flowchart is:
-
-flowchart LR
-A[Hard] -->|Text| B(Round)
-B --> C{Decision}
-C -->|One| D[Result 1]
-C -->|Two| E[Result 2]
-
-Example 2 - Sequence Diagram:
-This diagram shows a sequence diagram with participants, messages, loops, and notes:`,
-		})
-
-		// Add example sequence image if loaded
-		if (exampleSequenceBase64) {
-			contentParts.push({
-				inlineData: {
-					mimeType: 'image/png',
-					data: exampleSequenceBase64,
-				},
-			})
+		if (geoShapes.length === 0) {
+			throw new Error('No nodes found to convert')
 		}
 
-		contentParts.push({
-			text: `The correct Mermaid code for this sequence diagram is:
+		console.log('Converting', geoShapes.length, 'nodes and', arrowShapes.length, 'arrows')
 
-sequenceDiagram
-Alice->>John: Hello John, how are you?
-loop HealthCheck
-    John->>John: Fight against hypochondria
-end
-Note right of John: Rational thoughts!
-John-->>Alice: Great!
-John->>Bob: How about you?
-Bob-->>John: Jolly good!
+		// Detect diagram type from shape metadata (preserves original diagram type)
+		let diagramType = 'flowchart'
+		for (const shape of geoShapes) {
+			if (shape.meta?.diagramType) {
+				diagramType = shape.meta.diagramType as string
+				console.log('Detected stored diagram type:', diagramType)
+				break
+			}
+		}
 
-Key points for generating Mermaid code:
-- Identify the diagram type (flowchart, sequenceDiagram, classDiagram, stateDiagram, erDiagram)
-- For flowcharts: detect direction (LR, RL, TB, BT) from the layout
-- Use correct node syntax: [square], (rounded), {diamond}, ((circle)), {{hexagon}}
-- Use SIMPLE node IDs: prefer A, B, C over A_node, B_node, C_node
-- INLINE node definitions in edges when possible: A[Label] --> B[Label]
-- Avoid standalone node definitions - define nodes directly in edges
-- If the same node appears multiple times, omit the label after first use: A[Label] --> B[Label], A --> C[Label]
-- Pay attention to arrow types and directions carefully
-- Include labels where present
-- Only include connections that actually exist in the diagram
+		// Handle class diagrams specially - reconstruct from metadata
+		if (diagramType === 'classDiagram') {
+			const classes: ClassDefinition[] = []
+			const relationships: ClassRelationship[] = []
+			const classMap = new Map<string, ClassDefinition>()
 
-Now analyze THIS diagram and generate the Mermaid code:`,
+			// Reconstruct classes from shape metadata
+			for (const shape of geoShapes) {
+				if (shape.meta?.classData) {
+					const classData = shape.meta.classData as ClassDefinition
+					classes.push(classData)
+					classMap.set(classData.name, classData)
+				}
+			}
+
+			// Reconstruct relationships from arrow metadata
+			for (const arrow of arrowShapes) {
+				if (arrow.meta?.relationshipData) {
+					const relData = arrow.meta.relationshipData as ClassRelationship
+					relationships.push(relData)
+				}
+			}
+
+			// If we have class metadata, generate proper class diagram code
+			if (classes.length > 0) {
+				const code = generateClassDiagramCode(classes, relationships)
+				console.log('Generated class diagram code:', code)
+
+				// Find linked code block and return
+				let linkedCodeBlockId: string | null = null
+				for (const shapeId of filteredShapeIds) {
+					const shape = editor.getShape(shapeId)
+					if (shape?.type === 'frame' && shape.meta?.isLinkFrame && shape.meta?.linkedCodeBlockId) {
+						linkedCodeBlockId = shape.meta.linkedCodeBlockId as string
+						break
+					}
+					if (shape?.meta?.codeBlockId) {
+						linkedCodeBlockId = shape.meta.codeBlockId as string
+						break
+					}
+				}
+
+				if (linkedCodeBlockId && editor.getShape(linkedCodeBlockId)) {
+					const codeBlock = editor.getShape(linkedCodeBlockId)
+					editor.updateShape({
+						id: linkedCodeBlockId,
+						type: codeBlock!.type,
+						props: {
+							code,
+						},
+					})
+					logger.success(`Updated linked code block ${linkedCodeBlockId}`)
+					return { code, codeBlockId: linkedCodeBlockId }
+				}
+
+				return { code, codeBlockId: '' }
+			}
+
+			// No metadata available - fall through to flowchart-style generation
+			console.warn('Class diagram shapes missing metadata, generating flowchart-style code')
+		}
+
+		// Create node ID map (assign simple IDs like A, B, C)
+		const nodeIdMap = new Map<string, string>()
+		const nodeLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+		geoShapes.forEach((shape, index) => {
+			const nodeId = index < 26 ? nodeLetters[index] : `Node${index + 1}`
+			nodeIdMap.set(shape.id, nodeId)
 		})
 
-		// Add the user's diagram
-		contentParts.push({
-			inlineData: {
-				mimeType: 'image/png',
-				data: base64Data,
-			},
-		})
+		// Infer diagram direction from node positions
+		const direction = inferDirection(geoShapes)
 
-		contentParts.push({
-			text: 'Return ONLY the Mermaid code, without markdown code fences or explanations.',
-		})
+		// Generate Mermaid code based on diagram type
+		const lines: string[] = [diagramType === 'flowchart' ? `flowchart ${direction}` : diagramType]
 
-		const geminiResult = await model.generateContent(contentParts)
+		// Generate edges from arrow bindings
+		const edgeLines = new Set<string>()
+		const nodesUsedInEdges = new Set<string>()
 
-		const response = geminiResult.response
-		const code = response.text().trim()
+		for (const arrow of arrowShapes) {
+			const bindings = editor.getBindingsFromShape(arrow, 'arrow')
+			if (bindings.length >= 2) {
+				const startBinding = bindings.find((b) => b.props.terminal === 'start')
+				const endBinding = bindings.find((b) => b.props.terminal === 'end')
 
-		logger.geminiResponse(code)
+				if (startBinding && endBinding) {
+					const fromShapeId = startBinding.toId
+					const toShapeId = endBinding.toId
+
+					const fromNodeId = nodeIdMap.get(fromShapeId)
+					const toNodeId = nodeIdMap.get(toShapeId)
+
+					if (!fromNodeId) {
+						console.warn('Arrow missing fromNodeId:', arrow.id, 'fromShape:', fromShapeId)
+					}
+					if (!toNodeId) {
+						console.warn('Arrow missing toNodeId:', arrow.id, 'toShape:', toShapeId)
+					}
+
+					if (fromNodeId && toNodeId) {
+						const fromShape = editor.getShape(fromShapeId) as TLGeoShape
+						const toShape = editor.getShape(toShapeId) as TLGeoShape
+
+						// Get node definitions
+						const fromDef = getNodeDefinition(
+							fromNodeId,
+							fromShape,
+							!nodesUsedInEdges.has(fromShapeId)
+						)
+						const toDef = getNodeDefinition(toNodeId, toShape, !nodesUsedInEdges.has(toShapeId))
+
+						nodesUsedInEdges.add(fromShapeId)
+						nodesUsedInEdges.add(toShapeId)
+
+						// Build arrow syntax from arrowhead styles and dash style
+						let arrowSyntax = ''
+
+						// Start arrowhead
+						if (arrow.props.arrowheadStart === 'arrow') {
+							arrowSyntax = '<'
+						} else if (arrow.props.arrowheadStart === 'dot') {
+							arrowSyntax = 'o'
+						} else if (
+							arrow.props.arrowheadStart === 'bar' ||
+							arrow.props.arrowheadStart === 'diamond'
+						) {
+							arrowSyntax = 'x'
+						}
+
+						// Line style
+						if (arrow.props.dash === 'dotted') {
+							arrowSyntax += '-.-'
+						} else if (arrow.props.dash === 'dashed') {
+							arrowSyntax += '=='
+						} else {
+							arrowSyntax += '--'
+						}
+
+						// End arrowhead
+						if (arrow.props.arrowheadEnd === 'arrow') {
+							arrowSyntax += '>'
+						} else if (arrow.props.arrowheadEnd === 'dot') {
+							arrowSyntax += 'o'
+						} else if (
+							arrow.props.arrowheadEnd === 'bar' ||
+							arrow.props.arrowheadEnd === 'diamond'
+						) {
+							arrowSyntax += 'x'
+						} else {
+							arrowSyntax += '-'
+						}
+
+						// Extract label from arrow richText
+						let arrowLabelText = ''
+						if (arrow.props.richText && arrow.props.richText.length > 0) {
+							arrowLabelText = arrow.props.richText.map((segment) => segment.text).join('')
+						}
+						const arrowLabel = arrowLabelText ? `|${arrowLabelText}|` : ''
+						edgeLines.add(`${fromDef} ${arrowSyntax}${arrowLabel} ${toDef}`)
+					}
+				}
+			}
+		}
+
+		lines.push(...Array.from(edgeLines))
+
+		// Add standalone nodes (not connected by any arrows)
+		for (const shape of geoShapes) {
+			if (!nodesUsedInEdges.has(shape.id)) {
+				const nodeId = nodeIdMap.get(shape.id)!
+				lines.push(getNodeDefinition(nodeId, shape, true))
+			}
+		}
+
+		const code = lines.join('\n')
+		console.log('Generated Mermaid code:', code)
 
 		// Check if any of the shapes are linked to a code block
 		let linkedCodeBlockId: string | null = null
@@ -235,39 +294,83 @@ Now analyze THIS diagram and generate the Mermaid code:`,
 }
 
 /**
- * Convert blob to base64 data URL
+ * Infer diagram direction from node positions
  */
-function blobToBase64(blob: Blob): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onloadend = () => resolve(reader.result as string)
-		reader.onerror = reject
-		reader.readAsDataURL(blob)
-	})
+function inferDirection(shapes: TLGeoShape[]): 'LR' | 'RL' | 'TB' | 'BT' {
+	if (shapes.length < 2) return 'LR'
+
+	// Calculate average horizontal and vertical spacing
+	let totalDx = 0
+	let totalDy = 0
+	let count = 0
+
+	for (let i = 0; i < shapes.length; i++) {
+		for (let j = i + 1; j < shapes.length; j++) {
+			const dx = shapes[j].x - shapes[i].x
+			const dy = shapes[j].y - shapes[i].y
+			totalDx += Math.abs(dx)
+			totalDy += Math.abs(dy)
+			count++
+		}
+	}
+
+	const avgDx = totalDx / count
+	const avgDy = totalDy / count
+
+	// If more horizontal than vertical, use LR/RL, otherwise use TB/BT
+	if (avgDx > avgDy) {
+		return 'LR' // Default to left-to-right for horizontal layouts
+	} else {
+		return 'TB' // Default to top-to-bottom for vertical layouts
+	}
 }
 
 /**
- * Convert image URL to base64
+ * Get Mermaid node definition from tldraw geo shape
  */
-async function imageUrlToBase64(url: string): Promise<string> {
-	const response = await fetch(url)
-	const blob = await response.blob()
-	const base64 = await blobToBase64(blob)
-	return base64.split(',')[1] // Remove data:image/png;base64, prefix
-}
+function getNodeDefinition(nodeId: string, shape: TLGeoShape, includeLabel: boolean): string {
+	// Extract plain text from richText
+	let label = nodeId
+	if (shape.props.richText && shape.props.richText.length > 0) {
+		label = shape.props.richText.map((segment) => segment.text).join('')
+	}
+	if (!label) label = nodeId
 
-// Load example images once at module level
-let exampleImagesLoaded = false
-let exampleFlowchartBase64 = ''
-let exampleSequenceBase64 = ''
+	if (!includeLabel) {
+		return nodeId
+	}
 
-async function loadExampleImages() {
-	if (exampleImagesLoaded) return
-	try {
-		exampleFlowchartBase64 = await imageUrlToBase64(exampleFlowchartUrl)
-		exampleSequenceBase64 = await imageUrlToBase64(exampleSequenceUrl)
-		exampleImagesLoaded = true
-	} catch (error) {
-		console.error('Failed to load example images:', error)
+	// Map geo types to Mermaid syntax
+	switch (shape.props.geo) {
+		case 'rectangle':
+			return `${nodeId}[${label}]`
+		case 'diamond':
+			return `${nodeId}{${label}}`
+		case 'ellipse':
+			return `${nodeId}((${label}))`
+		case 'oval':
+			return `${nodeId}(${label})`
+		case 'hexagon':
+			return `${nodeId}{{${label}}}`
+		case 'trapezoid':
+			return `${nodeId}[/${label}\\]`
+		case 'rhombus':
+		case 'rhombus-2':
+			return `${nodeId}[/${label}/]` // Parallelogram syntax
+		case 'arrow-right':
+		case 'arrow-left':
+		case 'arrow-up':
+		case 'arrow-down':
+			return `${nodeId}>${label}]` // Flag syntax
+		case 'pentagon':
+		case 'octagon':
+		case 'star':
+		case 'cloud':
+		case 'x-box':
+		case 'triangle':
+			// These don't have direct Mermaid equivalents, use rectangle
+			return `${nodeId}[${label}]`
+		default:
+			return `${nodeId}[${label}]`
 	}
 }

@@ -6,15 +6,29 @@
 export interface MermaidNode {
 	id: string
 	label: string
-	shape: 'rectangle' | 'diamond' | 'oval' | 'ellipse' | 'rounded' | 'stadium' | 'hexagon'
+	shape:
+		| 'rectangle'
+		| 'diamond'
+		| 'oval'
+		| 'ellipse'
+		| 'rounded'
+		| 'stadium'
+		| 'hexagon'
+		| 'trapezoid'
+		| 'parallelogram'
+		| 'flag'
+		| 'subroutine'
+		| 'cylinder'
+		| 'double-circle'
 }
 
 export interface MermaidEdge {
 	from: string
 	to: string
 	label?: string
-	arrowType: 'arrow' | 'none'
-	lineStyle: 'solid' | 'dotted'
+	arrowStart: 'none' | 'arrow' | 'dot' | 'bar' | 'diamond'
+	arrowEnd: 'none' | 'arrow' | 'dot' | 'bar' | 'diamond'
+	lineStyle: 'solid' | 'dotted' | 'dashed'
 }
 
 export interface ParsedFlowchart {
@@ -28,13 +42,17 @@ export interface ParsedFlowchart {
  */
 export function parseMermaidFlowchart(code: string): ParsedFlowchart | null {
 	try {
-		const lines = code.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('%%'))
+		const lines = code
+			.split('\n')
+			.map((l) => l.trim())
+			.filter((l) => l && !l.startsWith('%%'))
 
 		if (lines.length === 0) return null
 
 		// Parse direction from first line
 		const firstLine = lines[0]
-		const directionMatch = firstLine.match(/^flowchart\s+(LR|RL|TB|BT|TD)/)
+		// Support both 'flowchart' and legacy 'graph' syntax
+		const directionMatch = firstLine.match(/^(?:flowchart|graph)\s+(LR|RL|TB|BT|TD)/)
 		if (!directionMatch) return null
 
 		const direction = directionMatch[1] as ParsedFlowchart['direction']
@@ -47,22 +65,49 @@ export function parseMermaidFlowchart(code: string): ParsedFlowchart | null {
 		for (let i = 1; i < lines.length; i++) {
 			const line = lines[i]
 
-			// Parse edges: A --> B, A[Label] -->|label| B(Label), etc.
-			// Pattern handles inline node definitions: A[...], B{...}, C(...)
-			const edgePattern = /(\w+)(?:[\[\{\(][^\]\}\)]+[\]\}\)])?\s*(-->|->|---|-\.->|==>)\s*(?:\|([^|]+)\|)?\s*(\w+)(?:[\[\{\(][^\]\}\)]+[\]\}\)])?/
+			// Parse edges with various arrow types
+			// Handles: -->, <-->, --o, o--o, --x, x--x, ==>, ---,  -.->
+			const edgePattern =
+				/(o|x)?(\w+)(?:[\[\{\(][^\]\}\)]*[\]\}\)])?\s*(---|--|==>|-->|->|-\.->|<-->|o--|--o|x--|--x|o--o|x--x)\s*(?:\|([^|]+)\|)?\s*(\w+)(?:[\[\{\(][^\]\}\)]*[\]\}\)])?(o|x)?/
 			const edgeMatch = line.match(edgePattern)
 
 			if (edgeMatch) {
-				const [, from, arrow, label, to] = edgeMatch
+				const [, startMarker, from, arrow, label, to, endMarker] = edgeMatch
 
+				// Determine arrow start based on arrow type
+				let arrowStart: MermaidEdge['arrowStart'] = 'none'
+				if (arrow.startsWith('<') || arrow.startsWith('o') || startMarker === 'o') {
+					arrowStart = arrow.startsWith('o') || startMarker === 'o' ? 'dot' : 'arrow'
+				} else if (arrow.startsWith('x') || startMarker === 'x') {
+					arrowStart = 'bar'
+				}
+
+				// Determine arrow end based on arrow type
+				let arrowEnd: MermaidEdge['arrowEnd'] = 'none'
+				if (arrow.endsWith('>')) {
+					arrowEnd = 'arrow'
+				} else if (arrow.endsWith('o') || endMarker === 'o') {
+					arrowEnd = 'dot'
+				} else if (arrow.endsWith('x') || endMarker === 'x') {
+					arrowEnd = 'bar'
+				}
+
+				// Determine line style
+				let lineStyle: MermaidEdge['lineStyle'] = 'solid'
+				if (arrow.includes('.')) {
+					lineStyle = 'dotted'
+				} else if (arrow.startsWith('===') || arrow.startsWith('==')) {
+					lineStyle = 'dashed' // Use dashed for thick arrows
+				}
 
 				// Create edge
 				edges.push({
 					from,
 					to,
 					label: label?.trim(),
-					arrowType: arrow.includes('>') ? 'arrow' : 'none',
-					lineStyle: arrow.includes('.') ? 'dotted' : 'solid',
+					arrowStart,
+					arrowEnd,
+					lineStyle,
 				})
 
 				// Extract node definitions from edge if present
@@ -151,29 +196,34 @@ function cleanLabel(label: string): string {
  * Parse a node definition like [Label], {Label}, (Label), etc.
  */
 function parseNodeDefinition(id: string, definition: string): MermaidNode | null {
-	// [Label] - rectangle
-	if (definition.startsWith('[') && definition.endsWith(']')) {
-		return { id, label: cleanLabel(definition.slice(1, -1)), shape: 'rectangle' }
+	// (((Label))) - double circle
+	if (definition.startsWith('(((') && definition.endsWith(')))')) {
+		return { id, label: cleanLabel(definition.slice(3, -3)), shape: 'double-circle' }
 	}
 
-	// {Label} - diamond
-	if (definition.startsWith('{') && definition.endsWith('}')) {
-		return { id, label: cleanLabel(definition.slice(1, -1)), shape: 'diamond' }
-	}
-
-	// ((Label)) - ellipse/circle
+	// ((Label)) - circle
 	if (definition.startsWith('((') && definition.endsWith('))')) {
 		return { id, label: cleanLabel(definition.slice(2, -2)), shape: 'ellipse' }
 	}
 
-	// (Label) - rounded rectangle / stadium
+	// ([Label]) - stadium (pill shape)
+	if (definition.startsWith('([') && definition.endsWith('])')) {
+		return { id, label: cleanLabel(definition.slice(2, -2)), shape: 'stadium' }
+	}
+
+	// [(Label)] - cylinder
+	if (definition.startsWith('[(') && definition.endsWith(')]')) {
+		return { id, label: cleanLabel(definition.slice(2, -2)), shape: 'cylinder' }
+	}
+
+	// (Label) - rounded rectangle
 	if (definition.startsWith('(') && definition.endsWith(')')) {
 		return { id, label: cleanLabel(definition.slice(1, -1)), shape: 'oval' }
 	}
 
-	// ([Label]) - stadium (very rounded)
-	if (definition.startsWith('([') && definition.endsWith('])')) {
-		return { id, label: cleanLabel(definition.slice(2, -2)), shape: 'stadium' }
+	// [[Label]] - subroutine (rectangle with double borders)
+	if (definition.startsWith('[[') && definition.endsWith(']]')) {
+		return { id, label: cleanLabel(definition.slice(2, -2)), shape: 'subroutine' }
 	}
 
 	// {{Label}} - hexagon
@@ -181,14 +231,39 @@ function parseNodeDefinition(id: string, definition: string): MermaidNode | null
 		return { id, label: cleanLabel(definition.slice(2, -2)), shape: 'hexagon' }
 	}
 
-	// [[Label]] - subroutine (rectangle with double borders - treat as rectangle)
-	if (definition.startsWith('[[') && definition.endsWith(']]')) {
-		return { id, label: cleanLabel(definition.slice(2, -2)), shape: 'rectangle' }
+	// [/Label/] - parallelogram (alt 1)
+	if (definition.startsWith('[/') && definition.endsWith('/]')) {
+		return { id, label: cleanLabel(definition.slice(2, -2)), shape: 'parallelogram' }
 	}
 
-	// [(Label)] - cylinder (treat as oval)
-	if (definition.startsWith('[(') && definition.endsWith(')]')) {
-		return { id, label: cleanLabel(definition.slice(2, -2)), shape: 'oval' }
+	// [\Label\] - parallelogram (alt 2)
+	if (definition.startsWith('[\\') && definition.endsWith('\\]')) {
+		return { id, label: cleanLabel(definition.slice(2, -2)), shape: 'parallelogram' }
+	}
+
+	// [/Label\] - trapezoid (alt 1)
+	if (definition.startsWith('[/') && definition.endsWith('\\]')) {
+		return { id, label: cleanLabel(definition.slice(2, -2)), shape: 'trapezoid' }
+	}
+
+	// [\Label/] - trapezoid (alt 2)
+	if (definition.startsWith('[\\') && definition.endsWith('/]')) {
+		return { id, label: cleanLabel(definition.slice(2, -2)), shape: 'trapezoid' }
+	}
+
+	// [Label] - rectangle
+	if (definition.startsWith('[') && definition.endsWith(']')) {
+		return { id, label: cleanLabel(definition.slice(1, -1)), shape: 'rectangle' }
+	}
+
+	// {Label} - diamond/rhombus
+	if (definition.startsWith('{') && definition.endsWith('}')) {
+		return { id, label: cleanLabel(definition.slice(1, -1)), shape: 'diamond' }
+	}
+
+	// >Label] - flag/asymmetric shape
+	if (definition.startsWith('>') && definition.endsWith(']')) {
+		return { id, label: cleanLabel(definition.slice(1, -1)), shape: 'flag' }
 	}
 
 	return null

@@ -9,6 +9,7 @@ export function isMermaidCode(text: string): boolean {
 	if (/^```(?:mermaid|mmd)\s*\n[\s\S]*\n```\s*$/.test(trimmed)) return true
 	const diagramTypes = [
 		'flowchart',
+		'graph', // Legacy syntax for flowchart
 		'sequenceDiagram',
 		'classDiagram',
 		'stateDiagram',
@@ -22,6 +23,16 @@ export function isMermaidCode(text: string): boolean {
 		'quadrantChart',
 		'requirementDiagram',
 		'C4Context',
+		'C4Container',
+		'C4Component',
+		'C4Dynamic',
+		'C4Deployment',
+		'sankey-beta',
+		'xyChart',
+		'block-beta',
+		'packet-beta',
+		'architecture-beta',
+		'kanban',
 	]
 	const firstLine = trimmed.split('\n')[0].trim()
 	return diagramTypes.some((type) => firstLine.startsWith(type))
@@ -55,14 +66,14 @@ function fixMermaidNewlines(text: string): string {
 
 	// Add newline after diagram declaration
 	fixed = fixed.replace(
-		/^(flowchart\s+(?:LR|RL|TB|BT|TD)|sequenceDiagram|classDiagram|stateDiagram(?:-v2)?|erDiagram)\s*/,
+		/^((?:flowchart|graph)\s+(?:LR|RL|TB|BT|TD)|sequenceDiagram|classDiagram|stateDiagram(?:-v2)?|erDiagram)\s*/,
 		'$1\n'
 	)
 
 	// Get diagram type
 	const firstLine = fixed.split('\n')[0].trim()
 	let diagramType: string | null = null
-	if (firstLine.startsWith('flowchart')) diagramType = 'flowchart'
+	if (firstLine.startsWith('flowchart') || firstLine.startsWith('graph')) diagramType = 'flowchart'
 	else if (firstLine.startsWith('sequenceDiagram')) diagramType = 'sequenceDiagram'
 	else if (firstLine.startsWith('classDiagram')) diagramType = 'classDiagram'
 	else if (firstLine.startsWith('stateDiagram')) diagramType = 'stateDiagram'
@@ -107,6 +118,7 @@ export function getDiagramType(code: string): string | null {
 
 	// Native shape support
 	if (firstLine.startsWith('flowchart')) return 'flowchart'
+	if (firstLine.startsWith('graph')) return 'flowchart' // Legacy syntax maps to flowchart
 	if (firstLine.startsWith('sequenceDiagram')) return 'sequenceDiagram'
 	if (firstLine.startsWith('classDiagram')) return 'classDiagram'
 	if (firstLine.startsWith('stateDiagram')) return 'stateDiagram'
@@ -122,6 +134,16 @@ export function getDiagramType(code: string): string | null {
 	if (firstLine.startsWith('quadrantChart')) return 'quadrantChart'
 	if (firstLine.startsWith('requirementDiagram')) return 'requirementDiagram'
 	if (firstLine.startsWith('C4Context')) return 'C4Context'
+	if (firstLine.startsWith('C4Container')) return 'C4Container'
+	if (firstLine.startsWith('C4Component')) return 'C4Component'
+	if (firstLine.startsWith('C4Dynamic')) return 'C4Dynamic'
+	if (firstLine.startsWith('C4Deployment')) return 'C4Deployment'
+	if (firstLine.startsWith('sankey-beta')) return 'sankey-beta'
+	if (firstLine.startsWith('xyChart')) return 'xyChart'
+	if (firstLine.startsWith('block-beta')) return 'block-beta'
+	if (firstLine.startsWith('packet-beta')) return 'packet-beta'
+	if (firstLine.startsWith('architecture-beta')) return 'architecture-beta'
+	if (firstLine.startsWith('kanban')) return 'kanban'
 
 	return null
 }

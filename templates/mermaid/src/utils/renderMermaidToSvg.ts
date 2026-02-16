@@ -12,7 +12,7 @@ function initializeMermaid() {
 
 	mermaid.initialize({
 		startOnLoad: false,
-		theme: 'neutral',
+		theme: 'dark', // Match tldraw's dark mode
 		securityLevel: 'loose', // Needed for rendering
 		fontFamily: 'system-ui, -apple-system, sans-serif',
 	})
@@ -64,7 +64,6 @@ export async function renderMermaidToSvg(
 				height = parseFloat(heightAttr.replace('px', '')) || height
 			}
 		}
-
 
 		return { svg, width, height }
 	} catch (error) {

@@ -3,20 +3,20 @@
  */
 
 import { Editor, Vec } from 'tldraw'
-import { getDiagramType, extractMermaidCode } from './mermaidDetection'
-import { parseMermaidFlowchart } from './parseMermaidFlowchart'
-import { parseSequenceDiagram } from './parseSequenceDiagram'
-import { parseClassDiagram } from './parseClassDiagram'
-import { parseStateDiagram } from './parseStateDiagram'
-import { parseErDiagram } from './parseErDiagram'
+import { createOrUpdateLinkFrame } from './createLinkFrame'
+import { createShapesFromClassDiagram } from './createShapesFromClassDiagram'
+import { createShapesFromErDiagram } from './createShapesFromErDiagram'
 import { createShapesFromFlowchart } from './createShapesFromFlowchart'
 import { createShapesFromSequenceDiagram } from './createShapesFromSequenceDiagram'
-import { createShapesFromClassDiagram } from './createShapesFromClassDiagram'
 import { createShapesFromStateDiagram } from './createShapesFromStateDiagram'
-import { createShapesFromErDiagram } from './createShapesFromErDiagram'
-import { renderMermaidToSvg } from './renderMermaidToSvg'
 import { logger } from './logger'
-import { createOrUpdateLinkFrame } from './createLinkFrame'
+import { extractMermaidCode, getDiagramType } from './mermaidDetection'
+import { parseClassDiagramAdvanced } from './parseClassDiagramAdvanced'
+import { parseErDiagram } from './parseErDiagram'
+import { parseMermaidFlowchart } from './parseMermaidFlowchart'
+import { parseSequenceDiagram } from './parseSequenceDiagram'
+import { parseStateDiagram } from './parseStateDiagram'
+import { renderMermaidToSvg } from './renderMermaidToSvg'
 
 /**
  * Convert Mermaid code to tldraw shapes
@@ -71,11 +71,20 @@ export async function convertCodeToShapes(
 			console.log('Found existing frame:', existingFrame.id)
 			existingFrameId = existingFrame.id
 
-			// Delete old shapes NOW before creating new ones
+			// Delete all children of the frame (more robust than relying on linkedShapeIds)
+			const childrenIds = editor.getSortedChildIdsForParent(existingFrame.id)
+			if (childrenIds.length > 0) {
+				console.log('Deleting', childrenIds.length, 'shapes from existing frame')
+				editor.deleteShapes(childrenIds)
+			}
+
+			// Also try deleting from linkedShapeIds if available (backup)
 			if (oldShapeIds.length > 0) {
-				console.log('Deleting old shapes:', oldShapeIds)
-				editor.deleteShapes(oldShapeIds)
-				oldShapeIds = [] // Clear so we don't delete again later
+				const remainingIds = oldShapeIds.filter((id) => editor.getShape(id))
+				if (remainingIds.length > 0) {
+					console.log('Deleting remaining old shapes:', remainingIds)
+					editor.deleteShapes(remainingIds)
+				}
 			}
 		} else {
 			console.log('No existing frame found')
@@ -108,7 +117,10 @@ export async function convertCodeToShapes(
 
 			case 'classDiagram': {
 				logger.parsing('class diagram', extractedCode)
-				const classDiagram = parseClassDiagram(extractedCode)
+				const classDiagram = parseClassDiagramAdvanced(extractedCode)
+				if (!classDiagram) {
+					throw new Error('Failed to parse class diagram')
+				}
 				logger.parsed(classDiagram)
 				createShapesFromClassDiagram(editor, classDiagram, position)
 				logger.success('Class diagram shapes created')
@@ -136,7 +148,14 @@ export async function convertCodeToShapes(
 			default: {
 				// Fall back to SVG rendering for unsupported diagram types
 				logger.parsing('SVG fallback', extractedCode)
-				const svgDataUrl = await renderMermaidToSvg(extractedCode)
+				const result = await renderMermaidToSvg(extractedCode)
+
+				if (!result) {
+					throw new Error('Could not render diagram to SVG')
+				}
+
+				// Convert SVG string to data URL
+				const svgDataUrl = `data:image/svg+xml;base64,${btoa(result.svg)}`
 
 				// Create an image shape with the SVG
 				const asset = await editor.getAssetForExternalContent({
@@ -155,8 +174,8 @@ export async function convertCodeToShapes(
 					y: position.y,
 					props: {
 						assetId: asset.id,
-						w: 400,
-						h: 300,
+						w: result.width,
+						h: result.height,
 					},
 				})
 				logger.success(`${diagramType} rendered as SVG image`)
@@ -200,6 +219,7 @@ export async function convertCodeToShapes(
 						meta: {
 							...shape.meta,
 							codeBlockId,
+							diagramType, // Store diagram type on each shape for round-trip conversion
 						},
 					}
 
@@ -223,7 +243,7 @@ export async function convertCodeToShapes(
 				}
 			}
 
-			// Update code block to store linked shape IDs
+			// Update code block to store linked shape IDs and diagram type
 			const codeBlock = editor.getShape(codeBlockId)
 			if (codeBlock) {
 				editor.updateShape({
@@ -232,6 +252,7 @@ export async function convertCodeToShapes(
 					meta: {
 						...codeBlock.meta,
 						linkedShapeIds: createdShapeIds,
+						diagramType: diagramType, // Store the diagram type for round-trip conversion
 					},
 				})
 			}
