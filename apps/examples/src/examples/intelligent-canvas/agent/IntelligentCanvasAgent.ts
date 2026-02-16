@@ -448,30 +448,10 @@ export class IntelligentCanvasAgent {
 	}
 
 	/** Relayout placed shapes so they stack vertically with a small gap, no overlap. */
-	private relayoutPlacedShapes(startX: number) {
-		const GAP = 30
-		let currentY: number | null = null
-
-		for (const id of this.placedShapeIds) {
-			const shape = this.editor.getShape(id)
-			if (!shape) continue
-			const bounds = this.editor.getShapePageBounds(id)
-			if (!bounds) continue
-
-			if (currentY === null) {
-				// First shape — use its current Y as the starting point
-				currentY = shape.y
-			}
-
-			// Move shape to the correct stacked position
-			if (shape.x !== startX || shape.y !== currentY) {
-				this.editor.updateShape({ id, type: shape.type, x: startX, y: currentY } as any)
-			}
-
-			// Advance past this shape's actual height
-			const updatedBounds = this.editor.getShapePageBounds(id)
-			currentY += (updatedBounds?.h ?? bounds.h) + GAP
-		}
+	private relayoutPlacedShapes(_startX: number) {
+		if (this.placedShapeIds.length < 2) return
+		this.editor.alignShapes(this.placedShapeIds, 'left')
+		this.editor.stackShapes(this.placedShapeIds, 'vertical', 30)
 	}
 
 	/** Get the next available position on the canvas for placing items. */

@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	Editor,
+	TLAssetId,
 	TLDefaultColorStyle,
 	TLDefaultFillStyle,
 	TLDrawShapeSegment,
@@ -13,7 +14,10 @@ import {
 	getHashForString,
 	toRichText,
 } from 'tldraw'
+import { getImageBase64 } from '../lib/canvas-helpers'
 import type { FunctionDeclaration } from './api'
+import type { CodeTarget } from './image-to-code'
+import { generateCodeFromImage } from './image-to-code'
 
 /** Canvas item in an orchestrator response — a visual aid for the narration. */
 export interface CanvasItem {
@@ -73,13 +77,29 @@ export const AGENT_TOOLS: FunctionDeclaration[] = [
 	},
 	{
 		name: 'move_shape',
-		description: 'Move an existing shape to a new position on the canvas.',
+		description:
+			'Move an existing shape to a new position on the canvas. The anchor parameter controls which point of the shape is placed at (x, y).',
 		parameters: {
 			type: 'object',
 			properties: {
 				shapeId: { type: 'string', description: 'The shape ID to move (e.g. "shape:abc123").' },
-				x: { type: 'number', description: 'New X position.' },
-				y: { type: 'number', description: 'New Y position.' },
+				x: { type: 'number', description: 'Target X position.' },
+				y: { type: 'number', description: 'Target Y position.' },
+				anchor: {
+					type: 'string',
+					enum: [
+						'top-left',
+						'top-center',
+						'top-right',
+						'center-left',
+						'center',
+						'center-right',
+						'bottom-left',
+						'bottom-center',
+						'bottom-right',
+					],
+					description: 'Which point of the shape to place at (x, y). Default "top-left".',
+				},
 			},
 			required: ['shapeId', 'x', 'y'],
 		},
@@ -149,6 +169,132 @@ export const AGENT_TOOLS: FunctionDeclaration[] = [
 				},
 			},
 			required: ['points'],
+		},
+	},
+	{
+		name: 'generate_code_from_image',
+		description:
+			'Generate procedural code from an image shape on the canvas. Analyzes the image and produces code that approximates it in the chosen target language. The generated code is placed as a text shape next to the source image.',
+		parameters: {
+			type: 'object',
+			properties: {
+				shapeId: {
+					type: 'string',
+					description: 'The ID of an image shape on the canvas (e.g. "shape:abc123").',
+				},
+				target: {
+					type: 'string',
+					description: 'Code generation target. Default "glsl".',
+					enum: ['glsl', 'svg', 'p5js', 'canvas2d'],
+				},
+			},
+			required: ['shapeId'],
+		},
+	},
+	{
+		name: 'place_shape',
+		description:
+			'Position a shape relative to another shape. Use this instead of move_shape when you want to place a shape next to, above, or below a reference shape.',
+		parameters: {
+			type: 'object',
+			properties: {
+				shapeId: {
+					type: 'string',
+					description: 'The shape ID to position (e.g. "shape:abc123").',
+				},
+				referenceShapeId: {
+					type: 'string',
+					description: 'The shape ID to position relative to.',
+				},
+				side: {
+					type: 'string',
+					enum: ['top', 'bottom', 'left', 'right'],
+					description: 'Which side of the reference shape to place on.',
+				},
+				align: {
+					type: 'string',
+					enum: ['start', 'center', 'end'],
+					description:
+						'How to align along the perpendicular axis. "start" = left/top edge, "center" = centered, "end" = right/bottom edge. Default "center".',
+				},
+				sideOffset: {
+					type: 'number',
+					description: 'Gap in pixels between the shapes along the side axis. Default 20.',
+				},
+				alignOffset: {
+					type: 'number',
+					description: 'Additional offset in pixels along the alignment axis. Default 0.',
+				},
+			},
+			required: ['shapeId', 'referenceShapeId', 'side'],
+		},
+	},
+	{
+		name: 'stack_shapes',
+		description:
+			'Stack multiple shapes horizontally or vertically with even spacing. Arranges shapes in a line.',
+		parameters: {
+			type: 'object',
+			properties: {
+				shapeIds: {
+					type: 'array',
+					items: { type: 'string' },
+					description: 'Array of shape IDs to stack.',
+				},
+				direction: {
+					type: 'string',
+					enum: ['horizontal', 'vertical'],
+					description:
+						'Direction to stack: "horizontal" (left to right) or "vertical" (top to bottom).',
+				},
+				gap: {
+					type: 'number',
+					description: 'Gap in pixels between shapes. Default 20.',
+				},
+			},
+			required: ['shapeIds', 'direction'],
+		},
+	},
+	{
+		name: 'align_shapes',
+		description:
+			'Align multiple shapes along an axis. For example, align left edges, center horizontally, or align tops.',
+		parameters: {
+			type: 'object',
+			properties: {
+				shapeIds: {
+					type: 'array',
+					items: { type: 'string' },
+					description: 'Array of shape IDs to align.',
+				},
+				alignment: {
+					type: 'string',
+					enum: ['left', 'center-horizontal', 'right', 'top', 'center-vertical', 'bottom'],
+					description: 'The alignment operation to apply.',
+				},
+			},
+			required: ['shapeIds', 'alignment'],
+		},
+	},
+	{
+		name: 'distribute_shapes',
+		description:
+			'Distribute multiple shapes evenly along an axis so the gaps between them are equal. Requires at least 3 shapes.',
+		parameters: {
+			type: 'object',
+			properties: {
+				shapeIds: {
+					type: 'array',
+					items: { type: 'string' },
+					description: 'Array of shape IDs to distribute (at least 3).',
+				},
+				direction: {
+					type: 'string',
+					enum: ['horizontal', 'vertical'],
+					description: 'Direction to distribute: "horizontal" or "vertical".',
+				},
+			},
+			required: ['shapeIds', 'direction'],
 		},
 	},
 	{
@@ -226,6 +372,16 @@ export async function executeToolCall(
 			return executeRemoveShape(editor, toolInput)
 		case 'draw_freehand':
 			return executeDrawFreehand(editor, toolInput)
+		case 'generate_code_from_image':
+			return executeGenerateCodeFromImage(editor, toolInput)
+		case 'place_shape':
+			return executePlaceShape(editor, toolInput)
+		case 'stack_shapes':
+			return executeStackShapes(editor, toolInput)
+		case 'align_shapes':
+			return executeAlignShapes(editor, toolInput)
+		case 'distribute_shapes':
+			return executeDistributeShapes(editor, toolInput)
 		case 'respond':
 			return executeRespond(toolInput)
 		default:
@@ -425,14 +581,43 @@ function executeMoveShape(editor: Editor, input: Record<string, unknown>): ToolR
 	const shapeId = input.shapeId as TLShapeId
 	const x = input.x as number
 	const y = input.y as number
+	const anchor = (input.anchor as string) ?? 'top-left'
 
 	const shape = editor.getShape(shapeId)
 	if (!shape) {
 		return { success: false, message: `Shape ${shapeId} not found` }
 	}
 
-	editor.updateShape({ id: shapeId, type: shape.type, x, y } as TLShapePartial)
-	return { success: true, message: `Moved shape ${shapeId} to (${x}, ${y})` }
+	const bounds = editor.getShapePageBounds(shapeId)
+	if (!bounds) {
+		return { success: false, message: `Could not get bounds for ${shapeId}` }
+	}
+
+	// Calculate the anchor point offset from bounds origin
+	let anchorOffsetX = 0
+	let anchorOffsetY = 0
+
+	if (anchor.includes('center') && !anchor.includes('left') && !anchor.includes('right')) {
+		anchorOffsetX = bounds.w / 2
+	} else if (anchor.includes('right')) {
+		anchorOffsetX = bounds.w
+	}
+
+	if (anchor.includes('center') && !anchor.includes('top') && !anchor.includes('bottom')) {
+		anchorOffsetY = bounds.h / 2
+	} else if (anchor.includes('bottom')) {
+		anchorOffsetY = bounds.h
+	}
+
+	// Difference between shape origin and bounds origin (matters for rotated shapes)
+	const shapeOriginDeltaX = shape.x - bounds.x
+	const shapeOriginDeltaY = shape.y - bounds.y
+
+	const newX = x - anchorOffsetX + shapeOriginDeltaX
+	const newY = y - anchorOffsetY + shapeOriginDeltaY
+
+	editor.updateShape({ id: shapeId, type: shape.type, x: newX, y: newY } as TLShapePartial)
+	return { success: true, message: `Moved shape ${shapeId} (anchor: ${anchor}) to (${x}, ${y})` }
 }
 
 function executeRemoveShape(editor: Editor, input: Record<string, unknown>): ToolResult {
@@ -447,7 +632,13 @@ function executeRemoveShape(editor: Editor, input: Record<string, unknown>): Too
 	return { success: true, message: `Removed shape ${shapeId}` }
 }
 
-function executeDrawFreehand(editor: Editor, input: Record<string, unknown>): ToolResult {
+/** Duration of the progressive draw animation in milliseconds. */
+const DRAW_ANIMATION_MS = 800
+
+async function executeDrawFreehand(
+	editor: Editor,
+	input: Record<string, unknown>
+): Promise<ToolResult> {
 	const rawPoints = input.points as { x: number; y: number }[]
 	if (!rawPoints || rawPoints.length < 2) {
 		return { success: false, message: 'At least 2 points are required to draw a path.' }
@@ -502,14 +693,10 @@ function executeDrawFreehand(editor: Editor, input: Record<string, unknown>): To
 		z: 0.75,
 	}))
 
-	const segments: TLDrawShapeSegment[] = [
-		{
-			type: 'free',
-			path: b64Vecs.encodePoints(segmentPoints),
-		},
-	]
-
 	const id = createShapeId()
+
+	// Create shape with just the first 2 points (incomplete — will be animated)
+	const initialPoints = segmentPoints.slice(0, 2)
 	editor.createShape({
 		id,
 		type: 'draw',
@@ -520,12 +707,208 @@ function executeDrawFreehand(editor: Editor, input: Record<string, unknown>): To
 			fill,
 			dash: 'draw',
 			size: 's',
-			segments,
-			isComplete: true,
-			isClosed: closed,
+			segments: [{ type: 'free', path: b64Vecs.encodePoints(initialPoints) }],
+			isComplete: false,
+			isClosed: false,
 			isPen: true,
 		},
 	})
 
+	// Animate: progressively reveal points over DRAW_ANIMATION_MS
+	const FRAME_DELAY = 16
+	const totalFrames = Math.ceil(DRAW_ANIMATION_MS / FRAME_DELAY)
+	const pointsPerFrame = Math.max(1, Math.ceil(segmentPoints.length / totalFrames))
+
+	for (let i = 2; i < segmentPoints.length; i += pointsPerFrame) {
+		const end = Math.min(i + pointsPerFrame, segmentPoints.length)
+		const currentPoints = segmentPoints.slice(0, end)
+		editor.updateShape({
+			id,
+			type: 'draw',
+			props: {
+				segments: [
+					{ type: 'free', path: b64Vecs.encodePoints(currentPoints) } as TLDrawShapeSegment,
+				],
+			},
+		})
+		await new Promise((r) => setTimeout(r, FRAME_DELAY))
+	}
+
+	// Final update: mark complete with all points and correct closed state
+	editor.updateShape({
+		id,
+		type: 'draw',
+		props: {
+			segments: [{ type: 'free', path: b64Vecs.encodePoints(segmentPoints) } as TLDrawShapeSegment],
+			isComplete: true,
+			isClosed: closed,
+		},
+	})
+
 	return { success: true, message: `Drew freehand path ${id} with ${interpolated.length} points.` }
+}
+
+async function executeGenerateCodeFromImage(
+	editor: Editor,
+	input: Record<string, unknown>
+): Promise<ToolResult> {
+	const shapeId = input.shapeId as TLShapeId
+	const target = ((input.target as string) ?? 'glsl') as CodeTarget
+
+	const shape = editor.getShape(shapeId)
+	if (!shape) {
+		return { success: false, message: `Shape ${shapeId} not found.` }
+	}
+	if (shape.type !== 'image') {
+		return { success: false, message: `Shape ${shapeId} is not an image (type: ${shape.type}).` }
+	}
+
+	const assetId = (shape.props as unknown as { assetId?: TLAssetId }).assetId
+	if (!assetId) {
+		return { success: false, message: `Image shape ${shapeId} has no asset.` }
+	}
+
+	const imageData = await getImageBase64(editor, assetId)
+	if (!imageData) {
+		return { success: false, message: `Could not extract image data from shape ${shapeId}.` }
+	}
+
+	const code = await generateCodeFromImage(imageData.data, imageData.mimeType, target)
+
+	// Place the code as a visual code shape to the right of the source image
+	const bounds = editor.getShapePageBounds(shapeId)
+	const sourceW = bounds ? bounds.w : 400
+	const sourceH = bounds ? bounds.h : 400
+	const codeX = bounds ? Math.round(bounds.x + bounds.w + 40) : Math.round(shape.x + 440)
+	const codeY = bounds ? Math.round(bounds.y) : Math.round(shape.y)
+
+	const codeShapeId = createShapeId()
+	editor.createShape({
+		id: codeShapeId,
+		type: 'code',
+		x: codeX,
+		y: codeY,
+		props: {
+			w: Math.round(sourceW),
+			h: Math.round(sourceH),
+			code,
+			target,
+		},
+	})
+
+	return {
+		success: true,
+		message: `Generated ${target} code from image and placed as ${codeShapeId}.`,
+	}
+}
+
+function executePlaceShape(editor: Editor, input: Record<string, unknown>): ToolResult {
+	const shapeId = input.shapeId as TLShapeId
+	const referenceShapeId = input.referenceShapeId as TLShapeId
+	const side = input.side as 'top' | 'bottom' | 'left' | 'right'
+	const align = (input.align as 'start' | 'center' | 'end') ?? 'center'
+	const sideOffset = (input.sideOffset as number) ?? 20
+	const alignOffset = (input.alignOffset as number) ?? 0
+
+	const shape = editor.getShape(shapeId)
+	const referenceShape = editor.getShape(referenceShapeId)
+	if (!shape) return { success: false, message: `Shape ${shapeId} not found` }
+	if (!referenceShape)
+		return { success: false, message: `Reference shape ${referenceShapeId} not found` }
+
+	const bbA = editor.getShapePageBounds(shapeId)
+	const bbR = editor.getShapePageBounds(referenceShapeId)
+	if (!bbA || !bbR) return { success: false, message: 'Could not get shape bounds' }
+
+	let x: number
+	let y: number
+
+	if (side === 'top') {
+		y = bbR.minY - bbA.h - sideOffset
+		if (align === 'start') x = bbR.minX + alignOffset
+		else if (align === 'center') x = bbR.midX - bbA.w / 2 + alignOffset
+		else x = bbR.maxX - bbA.w - alignOffset
+	} else if (side === 'bottom') {
+		y = bbR.maxY + sideOffset
+		if (align === 'start') x = bbR.minX + alignOffset
+		else if (align === 'center') x = bbR.midX - bbA.w / 2 + alignOffset
+		else x = bbR.maxX - bbA.w - alignOffset
+	} else if (side === 'left') {
+		x = bbR.minX - bbA.w - sideOffset
+		if (align === 'start') y = bbR.minY + alignOffset
+		else if (align === 'center') y = bbR.midY - bbA.h / 2 + alignOffset
+		else y = bbR.maxY - bbA.h - alignOffset
+	} else {
+		x = bbR.maxX + sideOffset
+		if (align === 'start') y = bbR.minY + alignOffset
+		else if (align === 'center') y = bbR.midY - bbA.h / 2 + alignOffset
+		else y = bbR.maxY - bbA.h - alignOffset
+	}
+
+	editor.updateShape({ id: shapeId, type: shape.type, x, y } as TLShapePartial)
+	return {
+		success: true,
+		message: `Placed ${shapeId} on the ${side} of ${referenceShapeId} (align: ${align}, gap: ${sideOffset}px)`,
+	}
+}
+
+function executeStackShapes(editor: Editor, input: Record<string, unknown>): ToolResult {
+	const shapeIds = input.shapeIds as TLShapeId[]
+	const direction = input.direction as 'horizontal' | 'vertical'
+	const gap = (input.gap as number) ?? 20
+
+	if (!shapeIds || shapeIds.length < 2) {
+		return { success: false, message: 'At least 2 shape IDs are required to stack.' }
+	}
+
+	const missing = shapeIds.filter((id) => !editor.getShape(id))
+	if (missing.length > 0) {
+		return { success: false, message: `Shapes not found: ${missing.join(', ')}` }
+	}
+
+	editor.stackShapes(shapeIds, direction, Math.max(gap, 0))
+	return {
+		success: true,
+		message: `Stacked ${shapeIds.length} shapes ${direction}ly with ${gap}px gap.`,
+	}
+}
+
+function executeAlignShapes(editor: Editor, input: Record<string, unknown>): ToolResult {
+	const shapeIds = input.shapeIds as TLShapeId[]
+	const alignment = input.alignment as
+		| 'left'
+		| 'center-horizontal'
+		| 'right'
+		| 'top'
+		| 'center-vertical'
+		| 'bottom'
+
+	if (!shapeIds || shapeIds.length < 2) {
+		return { success: false, message: 'At least 2 shape IDs are required to align.' }
+	}
+
+	const missing = shapeIds.filter((id) => !editor.getShape(id))
+	if (missing.length > 0) {
+		return { success: false, message: `Shapes not found: ${missing.join(', ')}` }
+	}
+
+	editor.alignShapes(shapeIds, alignment)
+	return { success: true, message: `Aligned ${shapeIds.length} shapes: ${alignment}.` }
+}
+
+function executeDistributeShapes(editor: Editor, input: Record<string, unknown>): ToolResult {
+	const shapeIds = input.shapeIds as TLShapeId[]
+	const direction = input.direction as 'horizontal' | 'vertical'
+
+	if (!shapeIds || shapeIds.length < 3) {
+		return { success: false, message: 'At least 3 shape IDs are required to distribute.' }
+	}
+
+	const missing = shapeIds.filter((id) => !editor.getShape(id))
+	if (missing.length > 0) {
+		return { success: false, message: `Shapes not found: ${missing.join(', ')}` }
+	}
+
+	editor.distributeShapes(shapeIds, direction)
+	return { success: true, message: `Distributed ${shapeIds.length} shapes ${direction}ly.` }
 }

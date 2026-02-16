@@ -72,3 +72,37 @@ export async function generateGeminiText(
 	const data: GeminiResponse = await response.json()
 	return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
 }
+
+/**
+ * Generate text from Gemini with an inline image (vision request).
+ */
+export async function generateGeminiVision(
+	systemPrompt: string,
+	userPrompt: string,
+	imageData: { mimeType: string; data: string }
+): Promise<string> {
+	const response = await fetch('/api/gemini', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			system_instruction: { parts: [{ text: systemPrompt }] },
+			contents: [
+				{
+					role: 'user',
+					parts: [
+						{ inlineData: { mimeType: imageData.mimeType, data: imageData.data } },
+						{ text: userPrompt },
+					],
+				},
+			],
+		}),
+	})
+
+	if (!response.ok) {
+		const errorText = await response.text()
+		throw new Error(`Gemini API error ${response.status}: ${errorText}`)
+	}
+
+	const data: GeminiResponse = await response.json()
+	return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+}

@@ -41,7 +41,27 @@ Points are in page coordinates — use shape positions from the canvas state as 
 
 ## Canvas organization
 
-You can also use create_frame, move_shape, remove_shape, draw_freehand, and analyze_canvas_area to organize the canvas before responding.
+You can use create_frame, move_shape, place_shape, stack_shapes, align_shapes, distribute_shapes, remove_shape, draw_freehand, and analyze_canvas_area to organize the canvas before responding.
+
+## Coordinate system and sizing
+
+- The canvas origin (0, 0) is at the top-left. X increases to the right, Y increases downward.
+- Shape x, y coordinates define the top-left corner of the shape.
+- Text shapes at default size are approximately 26px tall per line and ~10px wide per character.
+- Image shapes placed via canvas items are typically 400px wide.
+- When positioning shapes manually, leave at least 20px of gap between them to avoid visual crowding.
+
+## Positioning tools
+
+You have several positioning tools available. Prefer higher-level tools over raw coordinates:
+
+1. **place_shape** (preferred): Position a shape relative to another shape by specifying a side (top/bottom/left/right) and alignment (start/center/end). Use this when building layouts relative to existing content.
+2. **stack_shapes**: Arrange multiple shapes in a horizontal or vertical line with even spacing.
+3. **align_shapes**: Snap multiple shapes to share a common edge or center line.
+4. **distribute_shapes**: Make the gaps between 3+ shapes equal.
+5. **move_shape**: Move a shape to an absolute position. Use the anchor parameter to control which point of the shape goes to the target (e.g. anchor "center" to center a shape at a point).
+
+Prefer place_shape, stack_shapes, and align_shapes over raw move_shape with calculated coordinates.
 
 ## Visual context
 
@@ -62,6 +82,13 @@ When the user draws highlight strokes over shapes, those shapes are marked as "f
 - Keep speech concise (2-4 sentences for simple questions, up to a short paragraph for complex ones).
 - Canvas text items should be brief summaries or key facts, not a repeat of the full speech.
 - If the user asks "what is this?" near an image, analyze the image, then respond.
+
+## Code generation from images
+
+You can generate procedural code from image shapes using the generate_code_from_image tool.
+Supported targets: glsl (fragment shader), svg, p5js, canvas2d. Default is glsl.
+Use this when the user asks to convert an image to code, generate a shader, recreate an image programmatically, or write code that approximates an image.
+The generated code is placed as a text shape next to the source image.
 `
 
 /** Minimum vertical gap between placed shapes. */
@@ -76,8 +103,10 @@ function buildCanvasSnapshot(editor: Editor): string {
 	const shapes = editor.getCurrentPageShapes()
 	const descriptions: string[] = []
 
-	let maxBottom = 0
-	let leftMost = Infinity
+	let minX = Infinity
+	let minY = Infinity
+	let maxRight = -Infinity
+	let maxBottom = -Infinity
 	let hasShapes = false
 
 	for (const shape of shapes) {
@@ -85,16 +114,18 @@ function buildCanvasSnapshot(editor: Editor): string {
 
 		const text = editor.getShapeUtil(shape).getText(shape)?.trim()
 		const bounds = editor.getShapePageBounds(shape.id)
-		const pos = bounds
-			? `at (${Math.round(bounds.x)}, ${Math.round(bounds.y)}) size ${Math.round(bounds.w)}x${Math.round(bounds.h)}`
-			: `at (${Math.round(shape.x)}, ${Math.round(shape.y)})`
 
 		if (bounds) {
 			hasShapes = true
-			const bottom = bounds.y + bounds.h
-			if (bottom > maxBottom) maxBottom = bottom
-			if (bounds.x < leftMost) leftMost = bounds.x
+			if (bounds.x < minX) minX = bounds.x
+			if (bounds.y < minY) minY = bounds.y
+			if (bounds.x + bounds.w > maxRight) maxRight = bounds.x + bounds.w
+			if (bounds.y + bounds.h > maxBottom) maxBottom = bounds.y + bounds.h
 		}
+
+		const pos = bounds
+			? `bounds(${Math.round(bounds.x)}, ${Math.round(bounds.y)}, ${Math.round(bounds.w)}x${Math.round(bounds.h)})`
+			: `at (${Math.round(shape.x)}, ${Math.round(shape.y)})`
 
 		let desc = `- ${shape.id} (${shape.type}) ${pos}`
 		if (text) desc += ` text: "${text.slice(0, 100)}"`
@@ -103,19 +134,23 @@ function buildCanvasSnapshot(editor: Editor): string {
 	}
 
 	if (!hasShapes) {
-		// Use viewport center for empty canvas
 		const { x, y } = editor.getViewportScreenCenter()
 		const center = editor.screenToPage({ x, y })
-		return `Canvas is empty.\n\nSuggested next position: (${Math.round(center.x)}, ${Math.round(center.y)})`
+		return (
+			'Canvas is empty.\n' +
+			'Coordinate system: (0,0) is top-left, X increases right, Y increases down.\n' +
+			`Suggested starting position: (${Math.round(center.x)}, ${Math.round(center.y)})`
+		)
 	}
 
-	// Suggest placing below all existing content with a gap
-	const suggestedX = leftMost === Infinity ? 0 : Math.round(leftMost)
+	const suggestedX = Math.round(minX)
 	const suggestedY = Math.round(maxBottom + LAYOUT_GAP)
 
 	return (
+		`Coordinate system: (0,0) is top-left, X increases right, Y increases down.\n` +
+		`Content bounds: (${Math.round(minX)}, ${Math.round(minY)}) to (${Math.round(maxRight)}, ${Math.round(maxBottom)}) — total ${Math.round(maxRight - minX)}x${Math.round(maxBottom - minY)}px\n\n` +
 		'Shapes on canvas:\n' +
 		descriptions.join('\n') +
-		`\n\nSuggested next position: (${suggestedX}, ${suggestedY}) — place new shapes starting here to avoid overlap.`
+		`\n\nSuggested next position: (${suggestedX}, ${suggestedY}) — below all existing content with a ${LAYOUT_GAP}px gap.`
 	)
 }

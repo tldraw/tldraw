@@ -4,6 +4,7 @@ import 'tldraw/tldraw.css'
 import { AgentStatus, IntelligentCanvasAgent } from './agent/IntelligentCanvasAgent'
 import { CompositionPanel } from './composition/CompositionPanel'
 import './intelligent-canvas.css'
+import { CodeShapeUtil } from './shapes/CodeShapeUtil'
 import { AgentStatusIndicator } from './ui/AgentStatusIndicator'
 import { MicrophoneButton } from './ui/MicrophoneButton'
 
@@ -72,6 +73,8 @@ function InFrontOfTheCanvasContent() {
 		</>
 	)
 }
+
+const shapeUtils = [CodeShapeUtil]
 
 const components: TLComponents = {
 	InFrontOfTheCanvas: InFrontOfTheCanvasContent,
@@ -151,7 +154,7 @@ export default function IntelligentCanvasExample() {
 			value={{ mode, setMode, agentStatus, agentMessage, agentRef, agentAvailable }}
 		>
 			<div className="tldraw__editor intelligent-canvas">
-				<Tldraw components={components} onMount={handleMount} />
+				<Tldraw shapeUtils={shapeUtils} components={components} onMount={handleMount} />
 			</div>
 		</AgentContext.Provider>
 	)
