@@ -122,9 +122,32 @@ export function getStrokePoints(
 		pts.push(pts[pts.length - 1].clone())
 	}
 
+	// Pre-scan to detect sharp corners: if the dot product of adjacent
+	// direction vectors is below 0.5, mark the point as a corner so we
+	// can skip streamline interpolation there.
+	const isCorner = new Set<number>()
+	if (pts.length >= 3) {
+		for (let i = 1; i < pts.length - 1; i++) {
+			const dx1 = pts[i].x - pts[i - 1].x
+			const dy1 = pts[i].y - pts[i - 1].y
+			const dx2 = pts[i + 1].x - pts[i].x
+			const dy2 = pts[i + 1].y - pts[i].y
+			const len1 = Math.hypot(dx1, dy1)
+			const len2 = Math.hypot(dx2, dy2)
+			if (len1 > 0 && len2 > 0) {
+				const dot = (dx1 * dx2 + dy1 * dy2) / (len1 * len2)
+				if (dot < 0.5) {
+					isCorner.add(i)
+				}
+			}
+		}
+	}
+
 	for (let i = 1, n = pts.length; i < n; i++) {
 		point =
-			!t || (options.last && i === n - 1) ? pts[i].clone() : pts[i].clone().lrp(prev.point, 1 - t)
+			!t || (options.last && i === n - 1) || isCorner.has(i)
+				? pts[i].clone()
+				: pts[i].clone().lrp(prev.point, 1 - t)
 
 		// If the new point is the same as the previous point, skip ahead.
 		if (prev.point.equals(point)) continue

@@ -122,8 +122,13 @@ export function getPointsFromDrawSegment(
 	if (segment.type === 'free' || _points.length < 2) {
 		points.push(..._points.map(Vec.From))
 	} else {
-		const pointsToInterpolate = Math.max(4, Math.floor(Vec.Dist(_points[0], _points[1]) / 16))
-		points.push(...Vec.PointsBetween(_points[0], _points[1], pointsToInterpolate))
+		const a = Vec.From(_points[0])
+		const b = Vec.From(_points[1])
+		const numPoints = Math.max(4, Math.floor(Vec.Dist(a, b) / 16))
+		for (let i = 0; i <= numPoints; i++) {
+			const t = i / numPoints
+			points.push(new Vec(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, 0.5))
+		}
 	}
 
 	return points
