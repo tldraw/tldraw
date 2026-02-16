@@ -5,38 +5,44 @@
 	</picture>
 </div>
 
-# tldraw
-
-<h3 align="center">
-  An infinite canvas SDK for React. The engine behind <a href="https://tldraw.com">tldraw.com</a>.
-</h3>
-
 <p align="center">
   <a href="https://www.npmjs.com/package/tldraw"><img src="https://img.shields.io/npm/v/tldraw" alt="npm" /></a>
   <a href="https://www.npmjs.com/package/tldraw"><img src="https://img.shields.io/npm/dm/tldraw" alt="npm downloads" /></a>
-  <a href="https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink"><img src="https://img.shields.io/discord/1082578835393245284?label=discord" alt="Discord" /></a>
+  <a href="https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink"><img src="https://img.shields.io/badge/discord-join-5865F2?logo=discord&logoColor=white" alt="Discord" /></a>
   <a href="https://deepwiki.com/tldraw/tldraw"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
 </p>
 
+<h3 align="center">
+  Welcome to the public monorepo for tldraw.
+</h3>
+
+<h4 align="center"> 
+	tldraw is a library for creating infinite canvas experiences in React. It's the engine powering the whiteboard at <a href="https://tldraw.com">tldraw.com</a>.
+</h4>
+
 <p align="center">
-  <a href="https://tldraw.dev">Docs</a> · <a href="https://tldraw.dev/examples">Examples</a> · <a href="https://tldraw.dev/pricing">Pricing</a>
+  <a href="https://tldraw.dev">Docs</a> · <a href="https://tldraw.dev/examples">Examples</a> · <a href="https://tldraw.dev/blog">Blog</a> · <a href="https://tldraw.dev/pricing">Pricing</a>
 </p>
 
-## Features
+## Feature highlights
 
-- **Markup tools** — perfect freehand drawing and arrows, snapping, edge scrolling, SVG export, image and video support
 - **Multiplayer** — real-time sync via [`@tldraw/sync`](https://tldraw.dev/docs/sync) and Cloudflare Durable Objects
+- **Markup tools** — perfect [freehand drawing](https://tldraw.dev/sdk-features/draw-shape) and arrows, [snapping](https://tldraw.dev/sdk-features/snapping), edge scrolling, [SVG export](https://tldraw.dev/sdk-features/image-export), image and video support
 - **Data store** — signals-based reactive store with persistence, undo/redo, and change tracking ([`@tldraw/store`](https://www.npmjs.com/package/@tldraw/store))
-- **Rich text** — text editing with formatting, lists, and links inside shapes
-- **Embeds** — YouTube, Figma, Google Maps, CodeSandbox, Spotify, GitHub Gist, and more
-- **Extensible** — custom shapes, tools, bindings, UI components, side effects, and event hooks are editable
-- **AI** — starter kits and canvas primitives for building with LLMs
+- **[Rich text](https://tldraw.dev/sdk-features/rich-text)** — text editing with formatting, lists, and links inside shapes
+- **[Embeds](https://tldraw.dev/sdk-features/embed-shape)** — YouTube, Figma, Google Maps, CodeSandbox, Spotify, GitHub Gist, and more
+- **Extensible** — custom [shapes](https://tldraw.dev/docs/shapes), [tools](https://tldraw.dev/docs/tools), [bindings](https://tldraw.dev/sdk-features/bindings), [UI components](https://tldraw.dev/sdk-features/ui-components), side effects, and event hooks are editable
+- **[AI](https://tldraw.dev/docs/ai)** — [starter kits](https://tldraw.dev/starter-kits/agent) and canvas primitives for building with LLMs
 
 ## Quick start
+
+Install the tldraw package:
 
 ```bash
 npm i tldraw
 ```
+
+Then, use the `<Tldraw />` component in your React app:
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -53,7 +59,9 @@ export default function App() {
 
 ## Starter kits
 
-Scaffold a full project with a starter kit:
+Get up and running quickly with one of our starter kits.
+
+Starter kits give you a tested foundation for complex canvas interactions. Each kit is production-ready, built for customization, and MIT licensed - you can add your own shapes, tools, and behaviors on top. See [tldraw.dev/quick-start](https://tldraw.dev/quick-start) for details.
 
 ```bash
 npx create-tldraw@latest
@@ -71,8 +79,6 @@ npx create-tldraw@latest
 
 **Shader** — WebGL shaders that respond to canvas interactions.
 
-Starter kits give you a tested foundation for complex canvas interactions. Each kit is production-ready, built for customization, and MIT licensed - you can add your own shapes, tools, and behaviors on top. See [tldraw.dev/quick-start](https://tldraw.dev/quick-start) for details.
-
 ## Packages
 
 | Package                                                              | Description                                  |
@@ -86,12 +92,17 @@ Starter kits give you a tested foundation for complex canvas interactions. Each 
 
 ## Local development
 
-Clone the repo, then:
+The development server runs the examples app at `localhost:5420`. Clone the repo, then enable [corepack](https://nodejs.org/api/corepack.html) for the correct yarn version:
 
 ```bash
-npm i -g corepack  # enable corepack for the correct yarn version
-yarn                # install dependencies
-yarn dev            # start dev server at localhost:5420
+npm i -g corepack
+```
+
+Install dependencies and start the dev server:
+
+```bash
+yarn
+yarn dev
 ```
 
 ## Contributing
@@ -112,7 +123,7 @@ The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/
 
 ## Trademarks
 
-Copyright (c) 2025-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. See our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for details.
+Copyright (c) 2024-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
 
 ## Contributors
 
