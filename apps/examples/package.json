@@ -28,6 +28,7 @@
 	],
 	"scripts": {
 		"dev": "vite --host",
+		"preview": "vite preview --host",
 		"build": "vite build",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"e2e": "NODE_OPTIONS='--no-experimental-strip-types' playwright test -c ./e2e/playwright.config.ts ./e2e/tests/",

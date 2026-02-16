@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "此文件已达到大小限制，更改可能无法保存。请删除部分内容或新建一个文件。"
   },
-  "0ab1ef22a3": {
-    "translation": "向大家讲话……"
-  },
   "0b27918290": {
     "translation": "文件"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "发布"
-  },
-  "11a755d598": {
-    "translation": "停止"
   },
   "129b9e34ea": {
     "translation": "离开群组"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "关于tldraw"
   },
-  "284d5cd0dd": {
-    "translation": "模型："
-  },
   "299cb00a7a": {
     "translation": "上传失败"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "编辑器"
-  },
-  "34e34c43ec": {
-    "translation": "管理"
-  },
-  "3596c1b1f7": {
-    "translation": "取消关注"
-  },
-  "3903aab323": {
-    "translation": "跟随"
-  },
-  "3b6c2b4caa": {
-    "translation": "服务条款"
   },
   "3bc7d6ea2f": {
     "translation": "继续通过电子邮件"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "姓名"
   },
-  "4c41e0bd95": {
-    "translation": "全选"
-  },
   "4d0d3ddec9": {
     "translation": "本网站使用 cookies 来使应用程序运行并收集分析数据。"
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "删除群组…"
-  },
-  "4dab36ac83": {
-    "translation": "更多选项"
   },
   "4e6fbf032b": {
     "translation": "您确定要删除此群组吗？此操作无法撤销。"
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "隐私政策"
   },
-  "5a2ccdc00a": {
-    "translation": "邀请码兑换失败"
-  },
   "5a86b22fa0": {
     "translation": "将文件拖到这里，<create>创建文件</create>，或<invite>复制邀请链接</invite>即可开始。"
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "稍后"
   },
-  "61daf2e53d": {
-    "translation": "与 {name} 交谈…"
-  },
   "625fd29749": {
     "translation": "较旧"
   },
   "639bae9ac6": {
     "translation": "你"
-  },
-  "6602bbeb29": {
-    "translation": "指导"
   },
   "6609dd239e": {
     "translation": "出了问题"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "请输入您的电子邮件地址"
-  },
-  "68d390535e": {
-    "translation": "请输入您的留言"
   },
   "6a26f54883": {
     "translation": "帮助"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "tldraw 有 bug、问题或想法吗？请告诉我们！填写此表单，如有需要，我们会通过电子邮件与您联系。您也可以<discord>在 Discord 上与我们聊天</discord>，或<github>在 GitHub 上提交问题</github>。"
   },
-  "81aa2078d1": {
-    "translation": "全部清除"
-  },
-  "83218ac34c": {
-    "translation": "欢迎"
-  },
   "85a082de1b": {
     "translation": "请刷新页面，获取最新版tldraw。"
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "重命名文件"
   },
-  "8726ef8909": {
-    "translation": "硬重置"
-  },
   "8ad4303b83": {
     "translation": "不，谢谢"
   },
   "8c2d3d730c": {
     "translation": "请查看您的电子邮件，您会收到验证码。"
   },
-  "8cf04a9734": {
-    "translation": "家"
-  },
   "8eb2c00e96": {
     "translation": "与您分享"
-  },
-  "8f7f4c1ce7": {
-    "translation": "关于"
   },
   "8ff3d0a705": {
     "translation": "请求达到上限"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "复制的邀请链接"
   },
-  "94186070ef": {
-    "translation": "取消选择"
-  },
   "9489b2f82a": {
     "translation": "您已经是该群组的成员了。"
-  },
-  "94966d9074": {
-    "translation": "发送"
   },
   "95aacd4d4a": {
     "translation": "使用 Google 登录"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "浅色"
-  },
-  "9953e9946b": {
-    "translation": "调试视图"
   },
   "9b33f5c63c": {
     "translation": "没有收到验证码？<resend>重新发送</resend>。"
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "导出图片"
   },
-  "a286d9991c": {
-    "translation": "加入"
-  },
   "a3debabee7": {
     "translation": "Cookie 政策"
   },
   "a4d3b161ce": {
     "translation": "提交"
-  },
-  "a603905470": {
-    "translation": "调试"
   },
   "a6cc403d56": {
     "translation": "任何拥有链接的人"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "文件越来越大"
-  },
-  "a917baaf14": {
-    "translation": "新聊天"
   },
   "a9ded1e5ce": {
     "translation": "背景"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "文件已满"
-  },
-  "b34a671e2c": {
-    "translation": "日志响应时间"
   },
   "b357b524e7": {
     "translation": "电子邮件"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "无法发布文件。"
   },
-  "c3bf447eab": {
-    "translation": "打开"
-  },
-  "c3eb5c3b90": {
-    "translation": "我明白"
-  },
   "c4b39a1cc3": {
     "translation": "必需 Cookie"
   },
-  "c54a624f46": {
-    "translation": "接受邀请"
-  },
   "c6155aaecc": {
     "translation": "组名"
-  },
-  "c64518704c": {
-    "translation": "用法"
   },
   "c655b27b1e": {
     "translation": "i18n：长字符串"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "仅邀请"
   },
-  "dc30bc0c79": {
-    "translation": "清除"
-  },
   "dcdaa754fe": {
     "translation": "无效的tldraw文件URL"
   },
   "dfdb78a4e4": {
     "translation": "App调试标记"
-  },
-  "e062622261": {
-    "translation": "选择"
   },
   "e0c88179b3": {
     "translation": "邀请成员"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "服务条款"
-  },
-  "e43ec38a93": {
-    "translation": "前往"
   },
   "e81c4e4f2b": {
     "translation": "或者"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "请阅读我们的<a>cookie 政策</a>以了解更多信息。"
   },
-  "eee6f05922": {
-    "translation": "解散"
-  },
   "ef53538ae4": {
     "translation": "成员"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "用户设置"
-  },
-  "f1206f9fad": {
-    "translation": "配置"
   },
   "f2569594b2": {
     "translation": "我们使用这些 cookie 来保存您的文件和设置。"

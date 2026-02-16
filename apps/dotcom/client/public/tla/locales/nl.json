@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "Dit bestand heeft de maximale bestandsgrootte bereikt en wijzigingen worden mogelijk niet meer opgeslagen. Verwijder wat inhoud of begin een nieuw bestand."
   },
-  "0ab1ef22a3": {
-    "translation": "Spreek tot de groep…"
-  },
   "0b27918290": {
     "translation": "Bestand"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "Publiceren"
-  },
-  "11a755d598": {
-    "translation": "Stop"
   },
   "129b9e34ea": {
     "translation": "Groep verlaten"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "Over tldraw"
   },
-  "284d5cd0dd": {
-    "translation": "Model:"
-  },
   "299cb00a7a": {
     "translation": "Uploaden mislukt"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34e34c43ec": {
-    "translation": "Beheren"
-  },
-  "3596c1b1f7": {
-    "translation": "Ontvolgen"
-  },
-  "3903aab323": {
-    "translation": "Volgen"
-  },
-  "3b6c2b4caa": {
-    "translation": "Servicevoorwaarden"
   },
   "3bc7d6ea2f": {
     "translation": "Doorgaan met e-mail"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "Naam"
   },
-  "4c41e0bd95": {
-    "translation": "Selecteer alles"
-  },
   "4d0d3ddec9": {
     "translation": "Deze site maakt gebruik van cookies om de app te laten werken en om analyses te verzamelen."
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "Groep verwijderen…"
-  },
-  "4dab36ac83": {
-    "translation": "Meer opties"
   },
   "4e6fbf032b": {
     "translation": "Weet u zeker dat u deze groep wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "Privacybeleid"
   },
-  "5a2ccdc00a": {
-    "translation": "Het is niet gelukt om de uitnodigingscode in te wisselen"
-  },
   "5a86b22fa0": {
     "translation": "Sleep bestanden hierheen, <create>maak een bestand</create> of <invite>kopieer de uitnodigingslink</invite> om te beginnen."
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "Later"
   },
-  "61daf2e53d": {
-    "translation": "Praat met {name}…"
-  },
   "625fd29749": {
     "translation": "Ouder"
   },
   "639bae9ac6": {
     "translation": "Jij"
-  },
-  "6602bbeb29": {
-    "translation": "Gids"
   },
   "6609dd239e": {
     "translation": "Er is iets fout gegaan"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "Voer uw e-mailadres in"
-  },
-  "68d390535e": {
-    "translation": "Voer uw bericht in"
   },
   "6a26f54883": {
     "translation": "Hulp"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "Heb je een bug, probleem of idee voor tldraw? Laat het ons weten! Vul dit formulier in en we nemen indien nodig per e-mail contact met je op. Je kunt ook <discord>met ons chatten op Discord</discord> of <github>een probleem melden op GitHub</github>."
   },
-  "81aa2078d1": {
-    "translation": "Alles wissen"
-  },
-  "83218ac34c": {
-    "translation": "Welkom"
-  },
   "85a082de1b": {
     "translation": "Vernieuw de pagina om de nieuwste versie van tldraw te verkrijgen."
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "Bestand hernoemen"
   },
-  "8726ef8909": {
-    "translation": "Harde reset"
-  },
   "8ad4303b83": {
     "translation": "Nee bedankt"
   },
   "8c2d3d730c": {
     "translation": "Controleer uw e-mail voor een verificatiecode."
   },
-  "8cf04a9734": {
-    "translation": "Thuis"
-  },
   "8eb2c00e96": {
     "translation": "Gedeeld met jou"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Over"
   },
   "8ff3d0a705": {
     "translation": "Beperkt door limiet"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "Gekopieerde uitnodigingslink"
   },
-  "94186070ef": {
-    "translation": "Deselect"
-  },
   "9489b2f82a": {
     "translation": "Je bent al lid van deze groep"
-  },
-  "94966d9074": {
-    "translation": "Versturen"
   },
   "95aacd4d4a": {
     "translation": "Aanmelden met Google"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "Licht"
-  },
-  "9953e9946b": {
-    "translation": "Debugweergave"
   },
   "9b33f5c63c": {
     "translation": "Geen code ontvangen? <resend>Opnieuw verzenden</resend>."
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "Afbeelding exporteren"
   },
-  "a286d9991c": {
-    "translation": "Meedoen"
-  },
   "a3debabee7": {
     "translation": "Cookiebeleid"
   },
   "a4d3b161ce": {
     "translation": "Verzenden"
-  },
-  "a603905470": {
-    "translation": "Foutopsporing"
   },
   "a6cc403d56": {
     "translation": "Iedereen met de link"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "Het bestand wordt groot"
-  },
-  "a917baaf14": {
-    "translation": "Nieuwe chat"
   },
   "a9ded1e5ce": {
     "translation": "Achtergrond"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "Bestand is vol"
-  },
-  "b34a671e2c": {
-    "translation": "Logreactietijd"
   },
   "b357b524e7": {
     "translation": "E-mailadres"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "Het bestand kan niet worden gepubliceerd."
   },
-  "c3bf447eab": {
-    "translation": "Open"
-  },
-  "c3eb5c3b90": {
-    "translation": "Ik begrijp"
-  },
   "c4b39a1cc3": {
     "translation": "Essentiële cookies"
   },
-  "c54a624f46": {
-    "translation": "Uitnodiging accepteren"
-  },
   "c6155aaecc": {
     "translation": "Groepsnaam"
-  },
-  "c64518704c": {
-    "translation": "Gebruik"
   },
   "c655b27b1e": {
     "translation": "i18n: Lange reeks"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "Alleen op uitnodiging"
   },
-  "dc30bc0c79": {
-    "translation": "Duidelijk"
-  },
   "dcdaa754fe": {
     "translation": "Ongeldige tldraw-bestands-URL"
   },
   "dfdb78a4e4": {
     "translation": "App-debug vlaggen"
-  },
-  "e062622261": {
-    "translation": "Selecteer"
   },
   "e0c88179b3": {
     "translation": "Nodig leden uit"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "Servicevoorwaarden"
-  },
-  "e43ec38a93": {
-    "translation": "Ga naar"
   },
   "e81c4e4f2b": {
     "translation": "of"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "Lees ons <a>cookiebeleid</a> voor meer informatie."
   },
-  "eee6f05922": {
-    "translation": "Ontbinden"
-  },
   "ef53538ae4": {
     "translation": "Leden"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "Gebruikersinstellingen"
-  },
-  "f1206f9fad": {
-    "translation": "Configure"
   },
   "f2569594b2": {
     "translation": "Wij gebruiken deze cookies om uw bestanden en instellingen op te slaan."

@@ -114,6 +114,30 @@ const KITS = {
 			},
 		],
 	},
+	'image-pipeline': {
+		items: [
+			{
+				title: 'AI image generation tools',
+				desc: 'Build visual pipeline builders where users chain prompts, models, and processing steps to create and iterate on AI-generated images.',
+			},
+			{
+				title: 'Image processing workflows',
+				desc: 'Create node-based editors for multi-step image manipulation combining upscaling, style transfer, blending, and adjustments.',
+			},
+			{
+				title: 'Creative asset pipelines',
+				desc: 'Design visual tools for generating and refining creative assets through connected processing nodes with real-time preview.',
+			},
+			{
+				title: 'Batch image generation',
+				desc: 'Build interfaces that iterate over prompt variations, generating multiple images from parameterized pipelines.',
+			},
+			{
+				title: 'Visual prompt engineering',
+				desc: 'Create interactive environments for exploring how different models, parameters, and prompt combinations affect image outputs.',
+			},
+		],
+	},
 	shader: {
 		items: [
 			{

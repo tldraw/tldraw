@@ -34,6 +34,9 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.google-analytics.com',
 		'https://api.reo.dev',
 		'https://fonts.googleapis.com',
+		// asset uploads/serving
+		'https://tldrawusercontent.com',
+		'https://*.tldrawusercontent.com',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
 	'frame-src': [`'self'`, `https:`],

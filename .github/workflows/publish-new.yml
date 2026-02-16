@@ -49,7 +49,7 @@ jobs:
           private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           token: ${{ steps.generate_token.outputs.token }}
 

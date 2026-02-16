@@ -1,5 +1,44 @@
 @import url('tldraw/tldraw.css');
 
+/* Dark mode early initialization styles
+ * These work with theme-init.js to prevent flash of white background
+ * The data-theme attribute is set by theme-init.js before CSS loads
+ */
+html[data-theme='dark'],
+html[data-theme='dark'] body,
+html[data-theme='dark'] #root {
+	/* this is the same as --tl-color-background, if you ever update that, update this too */
+	background-color: hsl(240, 5%, 6.5%);
+	color-scheme: dark;
+}
+html[data-theme='light'],
+html[data-theme='light'] body,
+html[data-theme='light'] #root {
+	/* this is the same as --tl-color-background, if you ever update that, update this too */
+	background-color: hsl(210, 20%, 98%);
+	color-scheme: light;
+}
+
+/* Fallback for users whose OS preference matches their tldraw preference
+ * This provides instant dark background before JavaScript runs
+ */
+@media (prefers-color-scheme: dark) {
+	html:not([data-theme='light']),
+	html:not([data-theme='light']) body,
+	html:not([data-theme='light']) #root {
+		background-color: hsl(240, 5%, 6.5%);
+		color-scheme: dark;
+	}
+}
+@media (prefers-color-scheme: light) {
+	html:not([data-theme='dark']),
+	html:not([data-theme='dark']) body,
+	html:not([data-theme='dark']) #root {
+		background-color: hsl(210, 20%, 98%);
+		color-scheme: light;
+	}
+}
+
 .tldraw__editor {
 	height: 100%;
 	position: relative;

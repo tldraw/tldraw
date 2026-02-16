@@ -334,8 +334,3 @@
 	.tla-primary-button:not(.tlui-button):focus-visible {
 	outline-offset: 0;
 }
-
-/* Crazy sneaky */
-.tla .tl-container {
-	--tl-layer-canvas-in-front: 399;
-}

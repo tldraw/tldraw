@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -39,7 +39,7 @@ jobs:
       - name: Generate a token
         if: github.ref == 'refs/heads/production'
         id: generate_token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ vars.HUPPY_APP_ID }}
           private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}

@@ -11,11 +11,27 @@ runs:
       shell: bash
 
     - name: Setup Node.js Environment
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v6
       with:
         node-version: 22.16.0
-        cache: 'yarn'
+
+    - name: Restore node_modules cache
+      uses: actions/cache@v4
+      id: node-modules-cache
+      with:
+        path: |
+          node_modules
+          **/node_modules
+          .yarn/cache
+          .yarn/unplugged
+        key: ${{ runner.os }}-node-22.16.0-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.yarn/patches/*') }}
+        restore-keys: |
+          ${{ runner.os }}-node-22.16.0-yarn-
 
     - name: Install dependencies
       run: yarn install --immutable
       shell: bash
+      env:
+        # Hardened mode enables --check-resolutions on public PRs, adding ~15s.
+        # See https://yarnpkg.com/features/security - Yarn recommends disabling in most jobs.
+        YARN_ENABLE_HARDENED_MODE: 0

@@ -23,9 +23,6 @@
   "0a91f7fa87": {
     "translation": "קובץ זה הגיע למגבלת הגודל שלו וייתכן שלא יישמרו עוד שינויים. הסר חלק מהתוכן או התחל קובץ חדש."
   },
-  "0ab1ef22a3": {
-    "translation": "דברו עם הקבוצה…"
-  },
   "0b27918290": {
     "translation": "קובץ"
   },
@@ -37,9 +34,6 @@
   },
   "110a4b01be": {
     "translation": "פרסום"
-  },
-  "11a755d598": {
-    "translation": "לְהַפְסִיק"
   },
   "129b9e34ea": {
     "translation": "עזוב את הקבוצה"
@@ -74,9 +68,6 @@
   "250ddea65c": {
     "translation": "אודות tldraw"
   },
-  "284d5cd0dd": {
-    "translation": "דֶגֶם:"
-  },
   "299cb00a7a": {
     "translation": "ההעלאה נכשלה"
   },
@@ -100,18 +91,6 @@
   },
   "344a7f427f": {
     "translation": "עוֹרֵך"
-  },
-  "34e34c43ec": {
-    "translation": "לְנַהֵל"
-  },
-  "3596c1b1f7": {
-    "translation": "בטל מעקב"
-  },
-  "3903aab323": {
-    "translation": "לַעֲקוֹב"
-  },
-  "3b6c2b4caa": {
-    "translation": "תנאי השירות"
   },
   "3bc7d6ea2f": {
     "translation": "המשך עם הדוא\"ל"
@@ -152,9 +131,6 @@
   "49ee308734": {
     "translation": "שֵׁם"
   },
-  "4c41e0bd95": {
-    "translation": "בחר הכל"
-  },
   "4d0d3ddec9": {
     "translation": "אתר זה משתמש בקובצי Cookie כדי שהאפליקציה תפעל ולאסוף נתונים אנליטיים."
   },
@@ -163,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "מחיקת קבוצה…"
-  },
-  "4dab36ac83": {
-    "translation": "אפשרויות נוספות"
   },
   "4e6fbf032b": {
     "translation": "האם אתה בטוח שברצונך למחוק קבוצה זו? פעולה זו אינה ניתנת לביטול."
@@ -194,9 +167,6 @@
   "56c34c6410": {
     "translation": "מדיניות הפרטיות"
   },
-  "5a2ccdc00a": {
-    "translation": "נכשל מימוש קוד ההזמנה"
-  },
   "5a86b22fa0": {
     "translation": "גררו קבצים לכאן, <create>צרו קובץ</create>, או <invite>העתיקו את קישור ההזמנה</invite> כדי להתחיל."
   },
@@ -224,17 +194,11 @@
   "61057a0c84": {
     "translation": "מאוחר יותר"
   },
-  "61daf2e53d": {
-    "translation": "דבר אל {name}…"
-  },
   "625fd29749": {
     "translation": "ישן יותר"
   },
   "639bae9ac6": {
     "translation": "אַתָה"
-  },
-  "6602bbeb29": {
-    "translation": "מַדְרִיך"
   },
   "6609dd239e": {
     "translation": "משהו השתבש"
@@ -244,9 +208,6 @@
   },
   "6832ac5936": {
     "translation": "הזן את כתובת הדוא\"ל שלך"
-  },
-  "68d390535e": {
-    "translation": "הזן את ההודעה שלך"
   },
   "6a26f54883": {
     "translation": "עזרה"
@@ -329,12 +290,6 @@
   "815e116a2e": {
     "translation": "יש לכם באג, בעיה או רעיון לגבי tldraw? ספרו לנו! מלאו את הטופס הזה ונחזור אליכם בדוא\"ל במידת הצורך. אתם יכולים גם <discord>לשוחח איתנו בצ'אט בדיסקורד</discord> או <github>לשלוח בעיה ב-GitHub</github>."
   },
-  "81aa2078d1": {
-    "translation": "נקה הכל"
-  },
-  "83218ac34c": {
-    "translation": "קַבָּלַת פָּנִים"
-  },
   "85a082de1b": {
     "translation": "אנא רעננו את הדף כדי לקבל את הגרסה העדכנית ביותר של tldraw."
   },
@@ -344,23 +299,14 @@
   "86c66437fd": {
     "translation": "שנה את שם הקובץ"
   },
-  "8726ef8909": {
-    "translation": "איפוס קשיח"
-  },
   "8ad4303b83": {
     "translation": "לא תודה"
   },
   "8c2d3d730c": {
     "translation": "בדוק את האימייל שלך עבור קוד אימות."
   },
-  "8cf04a9734": {
-    "translation": "בַּיִת"
-  },
   "8eb2c00e96": {
     "translation": "משותף איתך"
-  },
-  "8f7f4c1ce7": {
-    "translation": "אוֹדוֹת"
   },
   "8ff3d0a705": {
     "translation": "שיעור מוגבל"
@@ -377,14 +323,8 @@
   "930390d222": {
     "translation": "קישור ההזמנה הועתק"
   },
-  "94186070ef": {
-    "translation": "ביטול בחירה"
-  },
   "9489b2f82a": {
     "translation": "אתה כבר חבר בקבוצה הזו"
-  },
-  "94966d9074": {
-    "translation": "לִשְׁלוֹחַ"
   },
   "95aacd4d4a": {
     "translation": "התחברות עם גוגל"
@@ -403,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "תאורה"
-  },
-  "9953e9946b": {
-    "translation": "תצוגת ניפוי באגים"
   },
   "9b33f5c63c": {
     "translation": "לא קיבלת קוד? <resend>שלח שוב</resend>."
@@ -437,17 +374,11 @@
   "a239905023": {
     "translation": "ייצוא תמונה"
   },
-  "a286d9991c": {
-    "translation": "לְהִצְטַרֵף"
-  },
   "a3debabee7": {
     "translation": "מדיניות קובצי Cookie"
   },
   "a4d3b161ce": {
     "translation": "לְהַגִישׁ"
-  },
-  "a603905470": {
-    "translation": "לְנַפּוֹת"
   },
   "a6cc403d56": {
     "translation": "כל מי שיש לו את הקישור"
@@ -457,9 +388,6 @@
   },
   "a8873770ab": {
     "translation": "הקובץ נהיה גדול"
-  },
-  "a917baaf14": {
-    "translation": "צ'אט חדש"
   },
   "a9ded1e5ce": {
     "translation": "רקע"
@@ -476,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "הקובץ מלא"
-  },
-  "b34a671e2c": {
-    "translation": "זמן תגובת יומן"
   },
   "b357b524e7": {
     "translation": "כתובת דוא\"ל"
@@ -516,23 +441,11 @@
   "c303bd1095": {
     "translation": "לא ניתן לפרסם את הקובץ."
   },
-  "c3bf447eab": {
-    "translation": "לִפְתוֹחַ"
-  },
-  "c3eb5c3b90": {
-    "translation": "אני מבין"
-  },
   "c4b39a1cc3": {
     "translation": "עוגיות חיוניות"
   },
-  "c54a624f46": {
-    "translation": "קבל את ההזמנה"
-  },
   "c6155aaecc": {
     "translation": "שם הקבוצה"
-  },
-  "c64518704c": {
-    "translation": "נוֹהָג"
   },
   "c655b27b1e": {
     "translation": "i18n: מחרוזת ארוכה"
@@ -591,17 +504,11 @@
   "dbbebf3c03": {
     "translation": "הזמנה בלבד"
   },
-  "dc30bc0c79": {
-    "translation": "בָּרוּר"
-  },
   "dcdaa754fe": {
     "translation": "כתובת URL לא חוקית של קובץ tldraw"
   },
   "dfdb78a4e4": {
     "translation": "דגלי ניפוי באגים באפליקציה"
-  },
-  "e062622261": {
-    "translation": "לִבחוֹר"
   },
   "e0c88179b3": {
     "translation": "הזמנת חברים"
@@ -617,9 +524,6 @@
   },
   "e404559826": {
     "translation": "תנאי שירות"
-  },
-  "e43ec38a93": {
-    "translation": "עבור אל"
   },
   "e81c4e4f2b": {
     "translation": "אוֹ"
@@ -648,9 +552,6 @@
   "ede55d955f": {
     "translation": "קרא את <a>מדיניות העוגיות</a> שלנו למידע נוסף."
   },
-  "eee6f05922": {
-    "translation": "לְפַרֵק"
-  },
   "ef53538ae4": {
     "translation": "חברים"
   },
@@ -662,9 +563,6 @@
   },
   "f0e8bff6f9": {
     "translation": "הגדרות משתמש"
-  },
-  "f1206f9fad": {
-    "translation": "הגדרות"
   },
   "f2569594b2": {
     "translation": "אנו משתמשים בקובצי Cookie אלה כדי לשמור את הקבצים וההגדרות שלך."

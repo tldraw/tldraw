@@ -60,8 +60,10 @@ For each PR not already in `next.mdx`:
 
 1. Check PR labels and body against the style guide's categorization rules
 2. Skip PRs that should be omitted (see style guide)
-3. Add entries to the appropriate section
-4. Promote significant changes to featured sections when warranted
+3. Skip PRs that fix bugs introduced in the same release cycle (i.e., bugs caused by other PRs already in `next.mdx` that were not in the previous release)
+4. If a PR is a revert, also remove the original reverted PR's entry from `next.mdx` if present
+5. Add entries to the appropriate section
+6. Promote significant changes to featured sections when warranted
 
 ### 6. Verify
 
