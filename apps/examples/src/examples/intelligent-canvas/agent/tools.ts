@@ -633,7 +633,7 @@ function executeRemoveShape(editor: Editor, input: Record<string, unknown>): Too
 }
 
 /** Duration of the progressive draw animation in milliseconds. */
-const DRAW_ANIMATION_MS = 800
+const DRAW_ANIMATION_MS = 400
 
 async function executeDrawFreehand(
 	editor: Editor,

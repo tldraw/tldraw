@@ -111,8 +111,8 @@ export function createIdeaNode(
 			description: idea.description,
 			inputs: idea.inputs,
 			outputs: idea.outputs,
-			language: idea.language,
-			code: idea.code,
+			...(idea.language !== undefined && { language: idea.language }),
+			...(idea.code !== undefined && { code: idea.code }),
 			depth: idea.depth,
 			parents: idea.parents,
 			status: idea.status,
@@ -134,6 +134,10 @@ export function updateIdeaStatus(editor: Editor, shapeId: TLShapeId, status: Ide
 	} as TLShapePartial)
 }
 
+const GRID_COLUMNS = 5
+const GRID_GAP_X = IDEA_NOTE_WIDTH + 40
+const GRID_GAP_Y = 280
+
 export function getNextIdeaPosition(editor: Editor): { x: number; y: number } {
 	const nodes = getIdeaNodes(editor)
 	if (nodes.length === 0) {
@@ -142,9 +146,15 @@ export function getNextIdeaPosition(editor: Editor): { x: number; y: number } {
 		return { x: Math.round(page.x), y: Math.round(page.y) }
 	}
 
-	const leftMost = Math.min(...nodes.map((n) => n.x))
-	const maxY = Math.max(...nodes.map((n) => n.y))
-	return { x: Math.round(leftMost), y: Math.round(maxY + 240) }
+	const originX = Math.min(...nodes.map((n) => n.x))
+	const originY = Math.min(...nodes.map((n) => n.y))
+	const count = nodes.length
+	const col = count % GRID_COLUMNS
+	const row = Math.floor(count / GRID_COLUMNS)
+	return {
+		x: Math.round(originX + col * GRID_GAP_X),
+		y: Math.round(originY + row * GRID_GAP_Y),
+	}
 }
 
 export function parseCsvTags(raw: string): string[] {

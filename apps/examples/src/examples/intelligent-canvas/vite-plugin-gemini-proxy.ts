@@ -3,7 +3,7 @@ import { Readable } from 'stream'
 import { loadEnv, type Plugin } from 'vite'
 
 const GEMINI_URL =
-	'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent'
+	'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent'
 
 export function geminiProxy(): Plugin {
 	let apiKey = ''
