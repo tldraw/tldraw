@@ -17,7 +17,7 @@ export default function SyncCustomPeopleMenuExample({ roomId }: { roomId: string
 	const store = useSyncDemo({ roomId })
 	return (
 		<div className="tldraw__editor">
-			<Tldraw store={store} deepLinks components={components} />
+			<Tldraw store={store} options={{ deepLinks: true }} components={components} />
 		</div>
 	)
 }

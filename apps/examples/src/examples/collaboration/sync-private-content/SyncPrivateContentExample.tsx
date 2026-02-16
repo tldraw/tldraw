@@ -84,7 +84,7 @@ function App({ roomId }: { roomId: string }) {
 		<div className="tldraw__editor">
 			<Tldraw
 				store={store}
-				deepLinks
+				options={{ deepLinks: true }}
 				// [4]
 				getShapeVisibility={(shape, editor) => {
 					const userId = editor.user.getId()

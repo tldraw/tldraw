@@ -90,8 +90,10 @@ const TEST_SIZES = {
 /**
  * Tests ability to read pixel data from canvas elements of various dimensions
  * by decreasing canvas height and/or width until a test succeeds.
+ * @param dimension - The dimension to test.
+ * @returns The maximum size of the canvas for the given dimension.
  */
-export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
+function getCanvasSize(dimension: 'width' | 'height' | 'area'): number {
 	const cropCvs = document.createElement('canvas')
 	cropCvs.width = 1
 	cropCvs.height = 1
@@ -135,7 +137,7 @@ export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
 }
 
 /** @internal */
-export function clampToBrowserMaxCanvasSize(width: number, height: number) {
+export function clampToBrowserMaxCanvasSize(width: number, height: number): [number, number] {
 	if (
 		width <= MAX_SAFE_CANVAS_DIMENSION &&
 		height <= MAX_SAFE_CANVAS_DIMENSION &&

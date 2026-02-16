@@ -26,13 +26,13 @@ jobs:
     steps:
       - name: Generate GH token
         id: generate_token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ secrets.HUPPY_APP_ID }}
           private-key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           submodules: true
           token: ${{ steps.generate_token.outputs.token }}

@@ -63,7 +63,7 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '4g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://images.tldraw.xyz/assets.tldraw.dev/image.jpg')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/format=auto/image.jpg')
 	})
 
 	it('should return the original src for if original is asked for', async () => {
@@ -113,7 +113,7 @@ describe('multiplayerAssetStore.resolve', () => {
 		).toBe('http://assets.tldraw.dev/animated.gif')
 	})
 
-	it('should return the original src if it is a vector image', async () => {
+	it('should sanitize vector images via cdn-cgi without resizing', async () => {
 		const asset = {
 			type: 'image',
 			props: {
@@ -131,7 +131,7 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '4g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('http://assets.tldraw.dev/vector.svg')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/format=auto/vector.svg')
 	})
 
 	it("should return null if the asset type is not 'image'", async () => {
@@ -163,7 +163,7 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: null,
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://images.tldraw.xyz/assets.tldraw.dev/image.jpg?w=100')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=100,format=auto/image.jpg')
 	})
 
 	it('should handle network compensation and zoom correctly', async () => {
@@ -179,7 +179,7 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '3g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://images.tldraw.xyz/assets.tldraw.dev/image.jpg?w=50')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=50,format=auto/image.jpg')
 	})
 
 	it('should not scale image above natural size', async () => {
@@ -195,6 +195,6 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '4g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://images.tldraw.xyz/assets.tldraw.dev/image.jpg?w=100')
+		).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=100,format=auto/image.jpg')
 	})
 })
