@@ -71,7 +71,7 @@ describe('Post-positioning reparent into frame', () => {
 		editor.selectNone()
 
 		// Paste without a point — shapes should land at viewport center, inside the frame
-		editor.putContentOntoCurrentPage(editor.clipboard!, { select: true })
+		editor.putContentOntoCurrentPage(editor.getClipboard()!, { select: true })
 
 		const [pastedId] = editor.getSelectedShapeIds()
 		expect(editor.getShape(pastedId)?.parentId).toBe(frameId)
