@@ -332,6 +332,18 @@ describe('CameraOptions.panSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 
+	it('Does not zoom when spacebar panning momentum is applied on release', () => {
+		editor
+			.dispatch({ ...keyBoardEvent, key: ' ', code: 'Space' })
+			.pointerDown(0, 0)
+			.pointerMove(50, 50)
+
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
+		editor.pointerUp().forceTick()
+
+		expect(editor.getCamera().z).toBe(1)
+	})
+
 	it('Does not affect edge scroll panning', () => {
 		const shapeId = createShapeId()
 		const viewportScreenBounds = editor.getViewportScreenBounds()
