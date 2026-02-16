@@ -243,6 +243,13 @@ function ScriptPanel() {
 	const scriptListRef = useRef<HTMLDivElement>(null)
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const isDraggingRef = useRef(false)
+	const dragCleanupRef = useRef<(() => void) | null>(null)
+
+	useEffect(() => {
+		return () => {
+			dragCleanupRef.current?.()
+		}
+	}, [])
 
 	if (!controllerRef.current) {
 		controllerRef.current = new EditorController(editor)
@@ -368,10 +375,11 @@ function ScriptPanel() {
 				setPanelWidth(newWidth)
 			}
 
-			const handlePointerUp = () => {
+			const cleanup = () => {
 				isDraggingRef.current = false
 				document.removeEventListener('pointermove', handlePointerMove)
 				document.removeEventListener('pointerup', handlePointerUp)
+				dragCleanupRef.current = null
 				setPanelWidth((w) => {
 					try {
 						localStorage.setItem(PANEL_WIDTH_KEY, String(w))
@@ -382,8 +390,11 @@ function ScriptPanel() {
 				})
 			}
 
+			const handlePointerUp = () => cleanup()
+
 			document.addEventListener('pointermove', handlePointerMove)
 			document.addEventListener('pointerup', handlePointerUp)
+			dragCleanupRef.current = cleanup
 		},
 		[panelWidth]
 	)
@@ -403,9 +414,10 @@ function ScriptPanel() {
 				setScriptListHeight(newHeight)
 			}
 
-			const handlePointerUp = () => {
+			const cleanup = () => {
 				document.removeEventListener('pointermove', handlePointerMove)
 				document.removeEventListener('pointerup', handlePointerUp)
+				dragCleanupRef.current = null
 				setScriptListHeight((h) => {
 					try {
 						localStorage.setItem(SCRIPT_LIST_HEIGHT_KEY, String(h))
@@ -416,8 +428,11 @@ function ScriptPanel() {
 				})
 			}
 
+			const handlePointerUp = () => cleanup()
+
 			document.addEventListener('pointermove', handlePointerMove)
 			document.addEventListener('pointerup', handlePointerUp)
+			dragCleanupRef.current = cleanup
 		},
 		[scriptListHeight]
 	)

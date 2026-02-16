@@ -624,6 +624,15 @@ export class EditorController {
 	/* --------------- Interaction helpers --------------- */
 
 	/**
+	 * Converts a point from page coordinates to screen coordinates.
+	 * Pointer events operate in screen space, so page-space points must be
+	 * converted before being passed to pointerDown/Move/Up.
+	 */
+	private pageToScreen(point: VecLike) {
+		return this.editor.pageToScreen(point)
+	}
+
+	/**
 	 * Simulates rotating the current selection by the given angle in radians via the rotation handle.
 	 * @param angleRadians - Rotation angle in radians.
 	 * @param options - Optional handle and shiftKey. handle defaults to 'top_left_rotate'.
@@ -650,8 +659,11 @@ export class EditorController {
 
 		const targetHandlePoint = Vec.RotWith(handlePoint, this.getSelectionPageCenter()!, angleRadians)
 
-		this.pointerDown(handlePoint.x, handlePoint.y, { target: 'selection', handle })
-		this.pointerMove(targetHandlePoint.x, targetHandlePoint.y, { shiftKey })
+		const screenHandle = this.pageToScreen(handlePoint)
+		const screenTarget = this.pageToScreen(targetHandlePoint)
+
+		this.pointerDown(screenHandle.x, screenHandle.y, { target: 'selection', handle })
+		this.pointerMove(screenTarget.x, screenTarget.y, { shiftKey })
 		this.pointerUp()
 		return this
 	}
@@ -669,13 +681,19 @@ export class EditorController {
 		this.editor.setCurrentTool('select')
 
 		const center = this.getSelectionPageCenter()!
+		const screenCenter = this.pageToScreen(center)
 
-		this.pointerDown(center.x, center.y, this.editor.getSelectedShapeIds()[0])
+		this.pointerDown(screenCenter.x, screenCenter.y, this.editor.getSelectedShapeIds()[0])
 		const numSteps = 10
 		for (let i = 1; i < numSteps; i++) {
-			this.pointerMove(center.x + (i * dx) / numSteps, center.y + (i * dy) / numSteps, options)
+			const p = this.pageToScreen({
+				x: center.x + (i * dx) / numSteps,
+				y: center.y + (i * dy) / numSteps,
+			})
+			this.pointerMove(p.x, p.y, options)
 		}
-		this.pointerUp(center.x + dx, center.y + dy, options)
+		const endScreen = this.pageToScreen({ x: center.x + dx, y: center.y + dy })
+		this.pointerUp(endScreen.x, endScreen.y, options)
 		return this
 	}
 
@@ -721,9 +739,12 @@ export class EditorController {
 			this.editor.getSelectionRotation()
 		)
 
-		this.pointerDown(handlePoint.x, handlePoint.y, { target: 'selection', handle }, options)
-		this.pointerMove(targetHandlePoint.x, targetHandlePoint.y, options)
-		this.pointerUp(targetHandlePoint.x, targetHandlePoint.y, options)
+		const screenHandle = this.pageToScreen(handlePoint)
+		const screenTarget = this.pageToScreen(targetHandlePoint)
+
+		this.pointerDown(screenHandle.x, screenHandle.y, { target: 'selection', handle }, options)
+		this.pointerMove(screenTarget.x, screenTarget.y, options)
+		this.pointerUp(screenTarget.x, screenTarget.y, options)
 		return this
 	}
 }
