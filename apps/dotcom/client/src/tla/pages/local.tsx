@@ -6,6 +6,7 @@ import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
 import { components } from '../components/TlaEditor/TlaEditor'
+import { TlaAnonDotDevLink } from '../components/TlaSidebar/components/TlaAnonDotDevLink'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { clearRedirectOnSignIn } from '../utils/redirect'
@@ -97,6 +98,7 @@ function LocalTldraw() {
 				options={{ actionShortcutsLocation: 'toolbar' }}
 			>
 				<SneakyDarkModeSync />
+				<TlaAnonDotDevLink />
 			</LocalEditor>
 		</TlaAnonLayout>
 	)
