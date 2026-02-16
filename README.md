@@ -7,25 +7,30 @@
 
 # tldraw
 
-[![npm](https://img.shields.io/npm/v/tldraw)](https://www.npmjs.com/package/tldraw)
-[![npm downloads](https://img.shields.io/npm/dm/tldraw)](https://www.npmjs.com/package/tldraw)
-[![Discord](https://img.shields.io/discord/1082578835393245284?label=discord)](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tldraw/tldraw)
+<h3 align="center">
+  An infinite canvas SDK for React. The engine behind <a href="https://tldraw.com">tldraw.com</a>.
+</h3>
 
-An infinite canvas SDK for React. Build whiteboards, design tools, diagramming apps, collaborative spaces, and more. It's also the engine behind [tldraw.com](https://tldraw.com).
+<p align="center">
+  <a href="https://www.npmjs.com/package/tldraw"><img src="https://img.shields.io/npm/v/tldraw" alt="npm" /></a>
+  <a href="https://www.npmjs.com/package/tldraw"><img src="https://img.shields.io/npm/dm/tldraw" alt="npm downloads" /></a>
+  <a href="https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink"><img src="https://img.shields.io/discord/1082578835393245284?label=discord" alt="Discord" /></a>
+  <a href="https://deepwiki.com/tldraw/tldraw"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
+</p>
 
-[Docs](https://tldraw.dev) · [Examples](https://tldraw.dev/examples) · [Discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink) · [Pricing](https://tldraw.dev/pricing)
+<p align="center">
+  <a href="https://tldraw.dev">Docs</a> · <a href="https://tldraw.dev/examples">Examples</a> · <a href="https://tldraw.dev/pricing">Pricing</a>
+</p>
 
 ## Features
 
-- **Infinite canvas** with pan, zoom, and minimap
-- **Rich shape library** — draw, text, geo, arrows, sticky notes, images, video, and more
-- **Real-time multiplayer** via [`@tldraw/sync`](https://tldraw.dev/docs/sync)
-- **Extensible shapes and tools** — create your own with `ShapeUtil` and `StateNode`
-- **Customizable UI** — override any component
-- **Persistence** with built-in IndexedDB support and undo/redo
-- **SVG and image export**
-- **Full TypeScript** support
+- **Markup tools** — perfect freehand drawing and arrows, snapping, edge scrolling, SVG export, image and video support
+- **Multiplayer** — real-time sync via [`@tldraw/sync`](https://tldraw.dev/docs/sync) and Cloudflare Durable Objects
+- **Data store** — signals-based reactive store with persistence, undo/redo, and change tracking ([`@tldraw/store`](https://www.npmjs.com/package/@tldraw/store))
+- **Rich text** — text editing with formatting, lists, and links inside shapes
+- **Embeds** — YouTube, Figma, Google Maps, CodeSandbox, Spotify, GitHub Gist, and more
+- **Extensible** — custom shapes, tools, bindings, UI components, side effects, and event hooks are editable
+- **AI** — starter kits and canvas primitives for building with LLMs
 
 ## Quick start
 
@@ -54,7 +59,19 @@ Scaffold a full project with a starter kit:
 npx create-tldraw@latest
 ```
 
-Available kits: **basic**, **multiplayer**, **workflow**, **chat**, **agent**, **branching-chat**, and more. See [tldraw.dev/quick-start](https://tldraw.dev/quick-start) for details.
+**Workflow** — Drag-and-drop node builder for automation pipelines, visual programming, and no-code platforms.
+
+**Chat** — Canvas-powered AI chat where users sketch, annotate, and mark up images alongside conversations.
+
+**Agent** — AI agents that read, interpret, and modify canvas content.
+
+**Branching chat** — AI chat with visual branching, letting users explore and compare different conversation paths.
+
+**Multiplayer** — Self-hosted real-time collaboration powered by `@tldraw/sync` and Cloudflare Durable Objects, the same stack behind [tldraw.com](https://tldraw.com).
+
+**Shader** — WebGL shaders that respond to canvas interactions.
+
+Starter kits give you a tested foundation for complex canvas interactions. Each kit is production-ready, built for customization, and MIT licensed - you can add your own shapes, tools, and behaviors on top. See [tldraw.dev/quick-start](https://tldraw.dev/quick-start) for details.
 
 ## Packages
 
@@ -77,7 +94,9 @@ yarn                # install dependencies
 yarn dev            # start dev server at localhost:5420
 ```
 
-See our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md) for more details.
+## Contributing
+
+We're not currently accepting external pull requests — [here's why](https://tldraw.dev/blog/stay-away-from-my-trash). Bug reports, feature requests, and discussion are always welcome. See our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md) for more.
 
 ## Community
 
@@ -85,6 +104,7 @@ See our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBU
 - 🐦 [Twitter/X](https://twitter.com/tldraw) — news and updates
 - 📚 [tldraw.dev](https://tldraw.dev) — docs and release notes
 - 🐛 [Submit an issue](https://github.com/tldraw/tldraw/issues/new) — bug reports and feature requests
+- [Submit an issue](https://github.com/tldraw/tldraw/issues/new) — bug reports and feature requests
 
 ## License
 
