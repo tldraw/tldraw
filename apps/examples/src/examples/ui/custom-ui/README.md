@@ -1,0 +1,15 @@
+---
+title: Replace the entire UI
+component: ./CustomUiExample.tsx
+priority: 1.5
+keywords:
+  [hideui, custom ui, keyboard shortcuts, setcurrenttool, track, useeditor, toolbar, buttons]
+---
+
+Replace tldraw's UI with your own.
+
+---
+
+If you want, you can replace tldraw's entire UI and start your own from scratch.
+
+This example shows how you might begin doing that, with keyboard shortcuts and buttons for selecting tools.
