@@ -1,4 +1,4 @@
-<div alt style="text-align: center; transform: scale(.5);">
+<div alt style="text-align: center; transform: scale(.25);">
 	<picture>
 		<source media="(prefers-color-scheme: dark)" srcset="https://github.com/tldraw/tldraw/raw/main/assets/github-hero-dark.png" />
 		<img alt="tldraw" src="https://github.com/tldraw/tldraw/raw/main/assets/github-hero-light.png" />
@@ -46,13 +46,15 @@ export default function App() {
 }
 ```
 
-Or scaffold a full project with a starter kit:
+## Starter kits
+
+Scaffold a full project with a starter kit:
 
 ```bash
 npx create-tldraw@latest
 ```
 
-Available starter kits: **basic**, **multiplayer**, **workflow**, **chat**, **agent**, **branching-chat**, and more. See [tldraw.dev/quick-start](https://tldraw.dev/quick-start) for details.
+Available kits: **basic**, **multiplayer**, **workflow**, **chat**, **agent**, **branching-chat**, and more. See [tldraw.dev/quick-start](https://tldraw.dev/quick-start) for details.
 
 ## Packages
 
@@ -79,11 +81,10 @@ See our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBU
 
 ## Community
 
-- [Discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink) — questions, feedback, and discussion
-- [Twitter/X](https://twitter.com/tldraw) — news and updates
-- [tldraw.dev](https://tldraw.dev) — docs and release notes
-
-Found a bug? [Submit an issue](https://github.com/tldraw/tldraw/issues/new).
+- 💬 [Discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink) — questions, feedback, and discussion
+- 🐦 [Twitter/X](https://twitter.com/tldraw) — news and updates
+- 📚 [tldraw.dev](https://tldraw.dev) — docs and release notes
+- 🐛 [Submit an issue](https://github.com/tldraw/tldraw/issues/new) — bug reports and feature requests
 
 ## License
 
