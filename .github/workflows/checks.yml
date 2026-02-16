@@ -52,7 +52,7 @@ jobs:
       - name: Check circular dependencies
         run: yarn check-circular-deps
 
-      - name: Restore build tool caches
+      - name: Restore test caches
         uses: actions/cache@v5
         with:
           path: |
@@ -102,7 +102,7 @@ jobs:
       - uses: ./.github/actions/restore-build-caches
 
       - name: Restore lazyrepo cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             .lazy
