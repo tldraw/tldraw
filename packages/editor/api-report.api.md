@@ -92,7 +92,7 @@ import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
 
 // @internal (undocumented)
-export function activeElementShouldCaptureKeys(allowButtons?: boolean): boolean;
+export function activeElementShouldCaptureKeys(ignoreButtons?: boolean): boolean;
 
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
@@ -454,7 +454,7 @@ export function clamp(n: number, min: number, max: number): number;
 export function clampRadians(r: number): number;
 
 // @internal (undocumented)
-export function clampToBrowserMaxCanvasSize(width: number, height: number): number[];
+export function clampToBrowserMaxCanvasSize(width: number, height: number): [number, number];
 
 // @public (undocumented)
 export class ClickManager {
@@ -556,7 +556,7 @@ export class CubicSpline2d extends Geometry2d {
     get segments(): CubicBezier2d[];
 }
 
-// @public (undocumented)
+// @public
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
 // @public (undocumented)
@@ -1798,7 +1798,7 @@ export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcF
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
 
-// @public (undocumented)
+// @public
 export function getDefaultCdnBaseUrl(): string;
 
 // @public
@@ -1831,7 +1831,7 @@ export function getPerfectDashProps(totalLength: number, strokeWidth: number, op
 };
 
 // @public (undocumented)
-export function getPointerInfo(editor: Editor, e: PointerEvent | React.PointerEvent): {
+export function getPointerInfo(editor: Editor, e: PointerEvent | React_3.PointerEvent): {
     accelKey: boolean;
     altKey: boolean;
     button: number;
@@ -2215,11 +2215,11 @@ export interface InvalidLicenseKeyResult {
 // @internal (undocumented)
 export type InvalidLicenseReason = 'has-key-development-mode' | 'invalid-license-key' | 'no-key-provided';
 
-// @internal (undocumented)
-export const isAccelKey: <InputType extends {
+// @internal
+export function isAccelKey(e: {
     ctrlKey: boolean;
     metaKey: boolean;
-}>(e: InputType) => boolean;
+}): boolean;
 
 // @public
 export const isSafeFloat: (n: number) => boolean;
@@ -2462,7 +2462,7 @@ export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;
 // @public
 export function MenuClickCapture(): false | JSX.Element;
 
-// @internal (undocumented)
+// @internal
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
     x: number;
     y: number;
@@ -2560,7 +2560,7 @@ export class Polyline2d extends Geometry2d {
 export function precise(A: VecLike): string;
 
 // @public
-export function preventDefault(event: Event | React_3.BaseSyntheticEvent): void;
+export function preventDefault(event: Event | React.BaseSyntheticEvent): void;
 
 // @public
 export function radiansToDegrees(r: number): number;
@@ -2609,7 +2609,7 @@ export class Rectangle2d extends Polygon2d {
 export function refreshPage(): void;
 
 // @public (undocumented)
-export function releasePointerCapture(element: Element, event: PointerEvent | React_3.PointerEvent<Element>): void;
+export function releasePointerCapture(element: Element, event: PointerEvent | React.PointerEvent<Element>): void;
 
 // @public (undocumented)
 export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>;
@@ -2678,7 +2678,7 @@ export function rotateSelectionHandle(handle: SelectionHandle, rotation: number)
 
 // @public (undocumented)
 export const runtime: {
-    hardReset(): void;
+    hardReset(): Promise<void>;
     openWindow(url: string, target: string, allowReferrer?: boolean): void;
     refreshPage(): void;
 };
@@ -2745,7 +2745,7 @@ export type SelectionEdge = 'bottom' | 'left' | 'right' | 'top';
 export type SelectionHandle = SelectionCorner | SelectionEdge;
 
 // @public (undocumented)
-export function setPointerCapture(element: Element, event: PointerEvent | React_3.PointerEvent<Element>): void;
+export function setPointerCapture(element: Element, event: PointerEvent | React.PointerEvent<Element>): void;
 
 // @public (undocumented)
 export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
