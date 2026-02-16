@@ -17,7 +17,7 @@
 </h3>
 
 <h4 align="center"> 
-  tldraw is a library for creating infinite canvas experiences in React. It powers the whiteboard at <a href="https://tldraw.com">tldraw.com</a>.
+  tldraw is a library for creating infinite canvas applications in React. It powers the whiteboard at <a href="https://tldraw.com">tldraw.com</a>.
 </h4>
 
 <p align="center">
