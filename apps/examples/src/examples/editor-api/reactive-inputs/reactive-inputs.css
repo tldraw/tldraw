@@ -59,3 +59,30 @@
 	color: #999;
 	font-style: italic;
 }
+
+.modifier-keys {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.modifier-key {
+	display: inline-block;
+	padding: 3px 8px;
+	font-family:
+		'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+	font-size: 12px;
+	border-radius: 4px;
+	background: #e8e8e8;
+	color: #999;
+	border: 1px solid #ddd;
+	transition:
+		background 0.1s,
+		color 0.1s;
+}
+
+.modifier-key[data-active='true'] {
+	background: #1a1a1a;
+	color: white;
+	border-color: #1a1a1a;
+}

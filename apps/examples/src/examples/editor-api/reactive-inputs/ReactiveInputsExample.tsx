@@ -51,6 +51,13 @@ function ReactiveInputsPanel({ editor }: { editor: Editor }) {
 		editor,
 	])
 
+	// [5]
+	const shiftKey = useValue('shift key', () => editor?.inputs.getShiftKey(), [editor])
+	const ctrlKey = useValue('ctrl key', () => editor?.inputs.getCtrlKey(), [editor])
+	const altKey = useValue('alt key', () => editor?.inputs.getAltKey(), [editor])
+	const metaKey = useValue('meta key', () => editor?.inputs.getMetaKey(), [editor])
+	const accelKey = useValue('accel key', () => editor?.inputs.getAccelKey(), [editor])
+
 	return (
 		<div className="reactive-inputs-panel">
 			<h3>Reactive inputs</h3>
@@ -121,6 +128,28 @@ function ReactiveInputsPanel({ editor }: { editor: Editor }) {
 						<span className="input-hint">px/ms</span>
 					</div>
 				</div>
+
+				{/* [6] */}
+				<div className="input-group">
+					<div className="input-label">Modifier keys</div>
+					<div className="modifier-keys">
+						<span className="modifier-key" data-active={shiftKey}>
+							Shift
+						</span>
+						<span className="modifier-key" data-active={ctrlKey}>
+							Ctrl
+						</span>
+						<span className="modifier-key" data-active={altKey}>
+							Alt
+						</span>
+						<span className="modifier-key" data-active={metaKey}>
+							Meta
+						</span>
+						<span className="modifier-key" data-active={accelKey}>
+							Accel
+						</span>
+					</div>
+				</div>
 			</div>
 		</div>
 	)
@@ -153,4 +182,13 @@ pointer down event occurred.
 Pointer velocity is calculated and updated by the tick manager. It represents the speed and
 direction of pointer movement in pixels per millisecond, useful for detecting quick gestures
 or implementing physics-based interactions.
+
+[5]
+Modifier keys (shift, ctrl, alt, meta) are also backed by reactive atoms. The `getAccelKey()`
+method returns the platform-appropriate accelerator key (cmd on Mac, ctrl elsewhere), which is
+useful for implementing keyboard shortcuts that work across platforms.
+
+[6]
+The modifier keys are displayed as badge-style indicators that highlight when active. Press any
+modifier key to see it light up in real time.
 */
