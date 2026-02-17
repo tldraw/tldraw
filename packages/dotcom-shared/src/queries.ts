@@ -23,27 +23,9 @@ export const queries = defineQueries({
 	/** Current user's own record (single) */
 	user: defineQuery(({ ctx }) => zql.user.where('id', '=', ctx.userId).one()),
 
-	/** Files the user can access: owned, shared via file_state, or via group membership */
-	files: defineQuery(({ ctx }) =>
-		zql.file.where(({ or, cmp, exists }) =>
-			or(
-				cmp('ownerId', '=', ctx.userId),
-				exists('states', (q) => q.where('userId', '=', ctx.userId)),
-				exists('groupFiles', (q) =>
-					q.whereExists('groupMembers', (q) => q.where('userId', '=', ctx.userId))
-				)
-			)
-		)
-	),
-
 	/** User's file states with related file data */
 	fileStates: defineQuery(({ ctx }) =>
 		zql.file_state.where('userId', '=', ctx.userId).related('file', (file) => file.one())
-	),
-
-	/** Groups the user is a member of */
-	groups: defineQuery(({ ctx }) =>
-		zql.group.whereExists('groupMembers', (q) => q.where('userId', '=', ctx.userId))
 	),
 
 	/** User's group memberships with related group, files, and members */
@@ -53,11 +35,6 @@ export const queries = defineQueries({
 			.related('group', (group) => group.one())
 			.related('groupFiles', (gf) => gf.related('file', (file) => file.one()))
 			.related('groupMembers')
-	),
-
-	/** Group files for groups the user is a member of */
-	groupFiles: defineQuery(({ ctx }) =>
-		zql.group_file.whereExists('groupMembers', (q) => q.where('userId', '=', ctx.userId))
 	),
 })
 
