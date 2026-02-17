@@ -1,137 +1,124 @@
-import { useState } from 'react'
-import { Editor, Tldraw, useValue } from 'tldraw'
+import { TLComponents, Tldraw, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './reactive-inputs.css'
 
 // There's a guide at the bottom of this file!
 
+// [1]
+const components: TLComponents = {
+	TopPanel: ReactiveInputsPanel,
+}
+
 export default function ReactiveInputsExample() {
-	const [editor, setEditor] = useState<Editor | null>(null)
 	return (
-		<div style={{ display: 'flex', height: '100vh' }}>
-			<div style={{ flex: 1, minWidth: 0 }}>
-				<Tldraw onMount={setEditor} />
-				{editor && <ReactiveInputsPanel editor={editor} />}
-			</div>
+		<div className="tldraw__editor">
+			<Tldraw components={components} />
 		</div>
 	)
 }
 
-function ReactiveInputsPanel({ editor }: { editor: Editor }) {
-	// [2]
+// [2]
+function ReactiveInputsPanel() {
+	const editor = useEditor()
+
+	// [3]
 	const currentScreenPoint = useValue(
 		'current screen point',
-		() => editor?.inputs.getCurrentScreenPoint(),
+		() => editor.inputs.getCurrentScreenPoint(),
 		[editor]
 	)
 	const currentPagePoint = useValue(
 		'current page point',
-		() => editor?.inputs.getCurrentPagePoint(),
+		() => editor.inputs.getCurrentPagePoint(),
 		[editor]
 	)
 	const previousScreenPoint = useValue(
 		'previous screen point',
-		() => editor?.inputs.getPreviousScreenPoint(),
+		() => editor.inputs.getPreviousScreenPoint(),
 		[editor]
 	)
 	const previousPagePoint = useValue(
 		'previous page point',
-		() => editor?.inputs.getPreviousPagePoint(),
+		() => editor.inputs.getPreviousPagePoint(),
 		[editor]
 	)
 	const originScreenPoint = useValue(
 		'origin screen point',
-		() => editor?.inputs.getOriginScreenPoint(),
+		() => editor.inputs.getOriginScreenPoint(),
 		[editor]
 	)
-	const originPagePoint = useValue('origin page point', () => editor?.inputs.getOriginPagePoint(), [
+	const originPagePoint = useValue('origin page point', () => editor.inputs.getOriginPagePoint(), [
 		editor,
 	])
-	const pointerVelocity = useValue('pointer velocity', () => editor?.inputs.getPointerVelocity(), [
+	const pointerVelocity = useValue('pointer velocity', () => editor.inputs.getPointerVelocity(), [
 		editor,
 	])
 
 	// [5]
-	const shiftKey = useValue('shift key', () => editor?.inputs.getShiftKey(), [editor])
-	const ctrlKey = useValue('ctrl key', () => editor?.inputs.getCtrlKey(), [editor])
-	const altKey = useValue('alt key', () => editor?.inputs.getAltKey(), [editor])
-	const metaKey = useValue('meta key', () => editor?.inputs.getMetaKey(), [editor])
-	const accelKey = useValue('accel key', () => editor?.inputs.getAccelKey(), [editor])
+	const shiftKey = useValue('shift key', () => editor.inputs.getShiftKey(), [editor])
+	const ctrlKey = useValue('ctrl key', () => editor.inputs.getCtrlKey(), [editor])
+	const altKey = useValue('alt key', () => editor.inputs.getAltKey(), [editor])
+	const metaKey = useValue('meta key', () => editor.inputs.getMetaKey(), [editor])
+	const accelKey = useValue('accel key', () => editor.inputs.getAccelKey(), [editor])
 
 	return (
 		<div className="reactive-inputs-panel">
-			<h3>Reactive inputs</h3>
 			<div className="reactive-inputs-content">
-				{/* [3] */}
-				<div className="input-group">
-					<div className="input-label">Current screen point</div>
-					<div className="input-value">
-						x: {currentScreenPoint?.x.toFixed(2) ?? '0.00'}
-						<br />
-						y: {currentScreenPoint?.y.toFixed(2) ?? '0.00'}
-					</div>
-				</div>
-
-				<div className="input-group">
-					<div className="input-label">Current page point</div>
-					<div className="input-value">
-						x: {currentPagePoint?.x.toFixed(2) ?? '0.00'}
-						<br />
-						y: {currentPagePoint?.y.toFixed(2) ?? '0.00'}
-					</div>
-				</div>
-
-				<div className="input-group">
-					<div className="input-label">Previous screen point</div>
-					<div className="input-value">
-						x: {previousScreenPoint?.x.toFixed(2) ?? '0.00'}
-						<br />
-						y: {previousScreenPoint?.y.toFixed(2) ?? '0.00'}
-					</div>
-				</div>
-
-				<div className="input-group">
-					<div className="input-label">Previous page point</div>
-					<div className="input-value">
-						x: {previousPagePoint?.x.toFixed(2) ?? '0.00'}
-						<br />
-						y: {previousPagePoint?.y.toFixed(2) ?? '0.00'}
-					</div>
-				</div>
-
-				<div className="input-group">
-					<div className="input-label">Origin screen point</div>
-					<div className="input-value">
-						x: {originScreenPoint?.x.toFixed(2) ?? '0.00'}
-						<br />
-						y: {originScreenPoint?.y.toFixed(2) ?? '0.00'}
-					</div>
-				</div>
-
-				<div className="input-group">
-					<div className="input-label">Origin page point</div>
-					<div className="input-value">
-						x: {originPagePoint?.x.toFixed(2) ?? '0.00'}
-						<br />
-						y: {originPagePoint?.y.toFixed(2) ?? '0.00'}
-					</div>
-				</div>
-
 				{/* [4] */}
 				<div className="input-group">
-					<div className="input-label">Pointer velocity</div>
+					<div className="input-label">Screen point</div>
 					<div className="input-value">
-						x: {pointerVelocity?.x.toFixed(4) ?? '0.0000'}
-						<br />
-						y: {pointerVelocity?.y.toFixed(4) ?? '0.0000'}
-						<br />
-						<span className="input-hint">px/ms</span>
+						{currentScreenPoint.x.toFixed(0)}, {currentScreenPoint.y.toFixed(0)}
+					</div>
+				</div>
+
+				<div className="input-group">
+					<div className="input-label">Page point</div>
+					<div className="input-value">
+						{currentPagePoint.x.toFixed(0)}, {currentPagePoint.y.toFixed(0)}
+					</div>
+				</div>
+
+				<div className="input-group">
+					<div className="input-label">Prev screen</div>
+					<div className="input-value">
+						{previousScreenPoint.x.toFixed(0)}, {previousScreenPoint.y.toFixed(0)}
+					</div>
+				</div>
+
+				<div className="input-group">
+					<div className="input-label">Prev page</div>
+					<div className="input-value">
+						{previousPagePoint.x.toFixed(0)}, {previousPagePoint.y.toFixed(0)}
+					</div>
+				</div>
+
+				<div className="input-group">
+					<div className="input-label">Origin screen</div>
+					<div className="input-value">
+						{originScreenPoint.x.toFixed(0)}, {originScreenPoint.y.toFixed(0)}
+					</div>
+				</div>
+
+				<div className="input-group">
+					<div className="input-label">Origin page</div>
+					<div className="input-value">
+						{originPagePoint.x.toFixed(0)}, {originPagePoint.y.toFixed(0)}
 					</div>
 				</div>
 
 				{/* [6] */}
 				<div className="input-group">
-					<div className="input-label">Modifier keys</div>
+					<div className="input-label">Velocity</div>
+					<div className="input-value">
+						{pointerVelocity.x.toFixed(4)}, {pointerVelocity.y.toFixed(4)}
+						<span className="input-hint"> px/ms</span>
+					</div>
+				</div>
+
+				{/* [7] */}
+				<div className="input-group">
+					<div className="input-label">Modifiers</div>
 					<div className="modifier-keys">
 						<span className="modifier-key" data-active={shiftKey}>
 							Shift
@@ -156,9 +143,14 @@ function ReactiveInputsPanel({ editor }: { editor: Editor }) {
 }
 /*
 [1]
-Store the editor instance in React state so we can access it from the component.
+Pass the ReactiveInputsPanel as a TopPanel component so it renders inside the
+canvas UI. This keeps it visible without requiring a separate side panel layout.
 
 [2]
+The TopPanel component has access to the editor via the `useEditor` hook since
+it renders inside the Tldraw component tree.
+
+[3]
 Use the `useValue` hook to subscribe to reactive input state. The hook takes three arguments:
 - A name for debugging
 - A function that returns the value to track
@@ -173,15 +165,10 @@ The editor's inputs manager exposes several reactive properties:
 All of these are backed by reactive atoms, so calling them inside a `useValue` callback will
 automatically trigger updates when they change.
 
-[3]
+[4]
 Screen points are relative to the editor's container, while page points are in the canvas's
 coordinate space (accounting for zoom and pan). The origin points track where the most recent
 pointer down event occurred.
-
-[4]
-Pointer velocity is calculated and updated by the tick manager. It represents the speed and
-direction of pointer movement in pixels per millisecond, useful for detecting quick gestures
-or implementing physics-based interactions.
 
 [5]
 Modifier keys (shift, ctrl, alt, meta) are also backed by reactive atoms. The `getAccelKey()`
@@ -189,6 +176,11 @@ method returns the platform-appropriate accelerator key (cmd on Mac, ctrl elsewh
 useful for implementing keyboard shortcuts that work across platforms.
 
 [6]
+Pointer velocity is calculated and updated by the tick manager. It represents the speed and
+direction of pointer movement in pixels per millisecond, useful for detecting quick gestures
+or implementing physics-based interactions.
+
+[7]
 The modifier keys are displayed as badge-style indicators that highlight when active. Press any
 modifier key to see it light up in real time.
 */
