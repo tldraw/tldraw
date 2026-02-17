@@ -56,7 +56,6 @@ function ReactiveInputsPanel() {
 
 	// [5]
 	const shiftKey = useValue('shift key', () => editor.inputs.getShiftKey(), [editor])
-	const ctrlKey = useValue('ctrl key', () => editor.inputs.getCtrlKey(), [editor])
 	const altKey = useValue('alt key', () => editor.inputs.getAltKey(), [editor])
 	const metaKey = useValue('meta key', () => editor.inputs.getMetaKey(), [editor])
 	const accelKey = useValue('accel key', () => editor.inputs.getAccelKey(), [editor])
@@ -123,9 +122,6 @@ function ReactiveInputsPanel() {
 						<span className="modifier-key" data-active={shiftKey}>
 							Shift
 						</span>
-						<span className="modifier-key" data-active={ctrlKey}>
-							Ctrl
-						</span>
 						<span className="modifier-key" data-active={altKey}>
 							Alt
 						</span>
@@ -171,7 +167,7 @@ coordinate space (accounting for zoom and pan). The origin points track where th
 pointer down event occurred.
 
 [5]
-Modifier keys (shift, ctrl, alt, meta) are also backed by reactive atoms. The `getAccelKey()`
+Modifier keys (shift, alt, meta) are also backed by reactive atoms. The `getAccelKey()`
 method returns the platform-appropriate accelerator key (cmd on Mac, ctrl elsewhere), which is
 useful for implementing keyboard shortcuts that work across platforms.
 
