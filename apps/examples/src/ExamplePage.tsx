@@ -49,6 +49,9 @@ export function ExamplePage({
 
 	useArrowKeyNavigation(filterValue, example.path)
 
+	const hasFilterResults =
+		!filterValue || examples.some((cat) => cat.value.some((ex) => matchesFilter(ex, filterValue)))
+
 	return (
 		<DialogContextProvider>
 			<div className="example">
@@ -98,25 +101,38 @@ export function ExamplePage({
 						value={filterValue}
 						onChange={handleFilterChange}
 					/>
-					<ul className="example__sidebar__categories scroll-light">
-						{categories.map((currentCategory) => (
-							<li key={currentCategory} className="example__sidebar__category">
-								<h3 className="example__sidebar__category__header">{currentCategory}</h3>
-								<ul className="example__sidebar__category__items">
-									{examples
-										.find((category) => category.id === currentCategory)
-										?.value.filter((ex) => matchesFilter(ex, filterValue))
-										.map((sidebarExample) => (
-											<ExampleSidebarListItem
-												key={sidebarExample.path}
-												example={sidebarExample}
-												isActive={sidebarExample.path === example.path}
-											/>
-										))}
-								</ul>
-							</li>
-						))}
-					</ul>
+					{hasFilterResults ? (
+						<ul className="example__sidebar__categories scroll-light">
+							{categories.map((currentCategory) => (
+								<li key={currentCategory} className="example__sidebar__category">
+									<h3 className="example__sidebar__category__header">{currentCategory}</h3>
+									<ul className="example__sidebar__category__items">
+										{examples
+											.find((category) => category.id === currentCategory)
+											?.value.filter((ex) => matchesFilter(ex, filterValue))
+											.map((sidebarExample) => (
+												<ExampleSidebarListItem
+													key={sidebarExample.path}
+													example={sidebarExample}
+													isActive={sidebarExample.path === example.path}
+												/>
+											))}
+									</ul>
+								</li>
+							))}
+						</ul>
+					) : (
+						<p className="example__sidebar__no-results">
+							No examples match your filter —{' '}
+							<a
+								target="_blank"
+								rel="noopener noreferrer"
+								href="https://github.com/tldraw/tldraw/issues/new?assignees=&labels=Example%20Request&projects=&template=example_request.yml&title=%5BExample Request%5D%3A+"
+							>
+								request an example
+							</a>
+						</p>
+					)}
 					<div className="example__sidebar__footer-links">
 						<a
 							className="example__sidebar__footer-link example__sidebar__footer-link--grey"
