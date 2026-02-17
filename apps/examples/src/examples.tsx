@@ -13,16 +13,28 @@ export interface Example {
 }
 
 const categories = [
-	['getting-started', 'Getting started'],
-	['configuration', 'Configuration'],
-	['editor-api', 'Editor API'],
-	['ui', 'UI & theming'],
-	['layout', 'Page layout'],
-	['events', 'Events & effects'],
-	['shapes/tools', 'Shapes & tools'],
-	['collaboration', 'Collaboration'],
-	['data/assets', 'Data & assets'],
-	['use-cases', 'Use cases'],
+	['getting-started', 'Getting started', 'Initial set up'],
+	[
+		'configuration',
+		'Configuration',
+		'Change tools, defaults, and behaviors to fit your application',
+	],
+	['editor-api', 'Editor API', 'Control the canvas engine programmatically'],
+	['ui', 'UI & theming', 'Replace interface components, add custom toolbars, and style the canvas'],
+	['layout', 'Page layout', 'Change the size and position of the canvas on the page'],
+	['events', 'Events & effects', 'React to changes on the canvas and add constraints'],
+	[
+		'shapes/tools',
+		'Shapes & tools',
+		'Create custom shapes and tools with their own behaviors and interactions',
+	],
+	[
+		'collaboration',
+		'Collaboration',
+		'Add multiplayer features, sync documents, and control content visibility per user',
+	],
+	['data/assets', 'Data & assets', 'Import, export, and manage document data'],
+	['use-cases', 'Use cases', 'Examples of custom canvas tools and experiences'],
 ] as const
 
 type Category = (typeof categories)[number][0]
@@ -60,7 +72,8 @@ const getExamplesForCategory = (category: Category) =>
 			return a.priority - b.priority
 		})
 
-export const examples = categories.map(([category, title]) => ({
+export const examples = categories.map(([category, title, description]) => ({
 	id: title,
+	description,
 	value: getExamplesForCategory(category as Category),
 }))

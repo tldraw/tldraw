@@ -144,6 +144,37 @@ ul.example__sidebar__categories {
 	padding: 8px 12px;
 	margin: 0px;
 	font-size: 14px;
+	position: relative;
+}
+
+.example__sidebar__category__info {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	cursor: default;
+	color: var(--black-transparent-light);
+}
+
+.example__sidebar__category__tooltip {
+	display: none;
+	position: absolute;
+	left: 12px;
+	right: 12px;
+	top: calc(100% - 4px);
+	padding: 4px 8px;
+	border-radius: 4px;
+	background-color: var(--text);
+	color: var(--background);
+	font-size: 12px;
+	font-weight: 500;
+	z-index: 100;
+	pointer-events: none;
+}
+
+.example__sidebar__category__info:hover .example__sidebar__category__tooltip {
+	display: block;
 }
 
 /* Category */

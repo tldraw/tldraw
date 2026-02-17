@@ -27,7 +27,7 @@ export function ExamplePage({
 	example: Example
 	children: React.ReactNode
 }) {
-	const categories = examples.map((e) => e.id)
+	const categories = examples
 	const [filterValue, setFilterValue] = useState('')
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
@@ -96,13 +96,20 @@ export function ExamplePage({
 						onChange={handleFilterChange}
 					/>
 					<ul className="example__sidebar__categories scroll-light">
-						{categories.map((currentCategory) => (
-							<li key={currentCategory} className="example__sidebar__category">
-								<h3 className="example__sidebar__category__header">{currentCategory}</h3>
+						{categories.map((category) => (
+							<li key={category.id} className="example__sidebar__category">
+								<h3 className="example__sidebar__category__header">
+									{category.id}
+									<span className="example__sidebar__category__info hoverable">
+										<InfoIcon />
+										<span className="example__sidebar__category__tooltip">
+											{category.description}
+										</span>
+									</span>
+								</h3>
 								<ul className="example__sidebar__category__items">
-									{examples
-										.find((category) => category.id === currentCategory)
-										?.value.filter((example) => {
+									{category.value
+										.filter((example) => {
 											const excludedWords = ['a', 'the', '', ' ']
 											const terms = filterValue
 												.toLowerCase()
