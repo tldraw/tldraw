@@ -17,7 +17,7 @@ defaults:
 jobs:
   build:
     name: 'End to end tests (examples)'
-    timeout-minutes: 60
+    timeout-minutes: 20
     runs-on: ubuntu-latest-16-cores-open
 
     steps:
@@ -34,7 +34,7 @@ jobs:
           yarn info @playwright/test --json > playwright.json
           echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./playwright.json').children.Version)")" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v5
         name: Check for Playwright browsers cache
         id: playwright-cache
         with:

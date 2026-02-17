@@ -96,8 +96,8 @@ export class HomePage {
 		await this.handleTermsIfNeeded()
 
 		await expect(async () => {
-			await expect(this.tldrawEditor).toBeVisible({ timeout: 10000 })
-			await expect(this.tldrawCanvas).toBeVisible({ timeout: 10000 })
+			await expect(this.tldrawEditor).toBeVisible({ timeout: 2000 })
+			await expect(this.tldrawCanvas).toBeVisible({ timeout: 2000 })
 		}).toPass()
 	}
 }

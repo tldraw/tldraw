@@ -221,6 +221,28 @@ function Markdown({
 
 function Dialogs() {
 	const { example, setExampleDialog } = useContext(dialogContext)
+	const [content, setContent] = useState<{ description: string; details: string } | null>(null)
+
+	useEffect(() => {
+		if (!example) {
+			setContent(null)
+			return
+		}
+		let active = true
+		setContent(null)
+		example
+			.loadContent()
+			.then((nextContent) => {
+				if (active) setContent(nextContent)
+			})
+			.catch((error) => {
+				console.error(error)
+			})
+		return () => {
+			active = false
+		}
+	}, [example])
+
 	if (!example) return null
 
 	const handleOpenChange = (open: boolean) => {
@@ -237,8 +259,11 @@ function Dialogs() {
 			/>
 			<_AlertDialog.Content className="example__dialog__content">
 				<h1>{example.title}</h1>
-				<Markdown sanitizedHtml={example.description} className="example__dialog__markdown" />
-				<Markdown sanitizedHtml={example.details} className="example__dialog__markdown" />
+				<Markdown
+					sanitizedHtml={content?.description ?? ''}
+					className="example__dialog__markdown"
+				/>
+				<Markdown sanitizedHtml={content?.details ?? ''} className="example__dialog__markdown" />
 				<div className="example__dialog__actions">
 					<a href={example.codeUrl}>
 						View Source <ExternalLinkIcon />

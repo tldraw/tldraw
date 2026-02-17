@@ -81,14 +81,14 @@ jobs:
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          username: 'dotcom_owner'
+          role: 'dotcom_owner'
           database: 'dotcom'
           branch_name: pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }} # Generate an API key in your Neon account settings
 
       - run: |
           echo "NEON_PREVIEW_DB_CONNECTION_STRING=${{ steps.create-branch.outputs.db_url }}" >> "$GITHUB_ENV"
-          echo "NEON_PREVIEW_DB_POOLED_CONNECTION_STRING=${{ steps.create-branch.outputs.db_url_with_pooler }}" >> "$GITHUB_ENV"
+          echo "NEON_PREVIEW_DB_POOLED_CONNECTION_STRING=${{ steps.create-branch.outputs.db_url_pooled }}" >> "$GITHUB_ENV"
         if: github.event_name == 'pull_request'
 
       - name: Build types
