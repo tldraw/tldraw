@@ -46,6 +46,9 @@ jobs:
         run: npx playwright install --with-deps chromium chrome
         if: steps.playwright-cache.outputs.cache-hit != 'true'
 
+      - name: Build examples
+        run: yarn build --filter='apps/examples'
+
       - name: Run Playwright tests
         run: 'yarn e2e'
         working-directory: apps/examples
