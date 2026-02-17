@@ -61,7 +61,7 @@
 	"devDependencies": {
 		"@clerk/testing": "^1.4.15",
 		"@formatjs/cli": "^6.5.1",
-		"@playwright/test": "^1.50.0",
+		"@playwright/test": "^1.58.2",
 		"@sentry/cli": "^2.41.1",
 		"@swc/plugin-formatjs": "^5.1.1",
 		"@tldraw/validate": "workspace:*",
