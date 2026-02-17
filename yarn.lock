@@ -16531,6 +16531,7 @@ __metadata:
     remark: "npm:^15.0.1"
     remark-frontmatter: "npm:^5.0.0"
     remark-html: "npm:^16.0.1"
+    shiki: "npm:^1.29.1"
     tldraw: "workspace:*"
     vfile-matter: "npm:^5.0.0"
     vite: "npm:^7.0.1"

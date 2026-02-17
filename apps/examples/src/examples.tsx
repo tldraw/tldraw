@@ -10,6 +10,7 @@ export interface Example {
 	multiplayer: boolean
 	loadComponent(): Promise<ComponentType<{ roomId?: string }>>
 	loadContent(): Promise<{ description: string; details: string }>
+	loadSource(): Promise<{ filename: string; content: string }[]>
 }
 
 const categories = [
@@ -28,9 +29,10 @@ const categories = [
 type Category = (typeof categories)[number][0]
 
 interface ExampleMetaModule {
-	meta: Omit<Example, 'loadComponent' | 'loadContent'>
+	meta: Omit<Example, 'loadComponent' | 'loadContent' | 'loadSource'>
 	loadComponent(): Promise<ComponentType<{ roomId?: string }>>
 	loadContent(): Promise<{ description: string; details: string }>
+	loadSource(): Promise<{ filename: string; content: string }[]>
 }
 
 const allExamples = Object.values(
@@ -44,6 +46,7 @@ const sortedExamples = allExamples
 		...module.meta,
 		loadComponent: module.loadComponent,
 		loadContent: module.loadContent,
+		loadSource: module.loadSource,
 	}))
 	.map((example) => {
 		if (!categorySet.has(example.category)) {

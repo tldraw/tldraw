@@ -61,6 +61,7 @@
 		"react-dom": "^19.2.1",
 		"react-helmet-async": "^1.3.0",
 		"react-router-dom": "^6.28.2",
+		"shiki": "^1.29.1",
 		"tldraw": "workspace:*",
 		"vite": "^7.0.1"
 	},

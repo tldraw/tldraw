@@ -1,6 +1,7 @@
 import { AlertDialog as _AlertDialog } from 'radix-ui'
 import { Dispatch, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { CodePanel } from './CodePanel'
 import { Example, examples } from './examples'
 
 const dialogContext = createContext<{
@@ -29,6 +30,38 @@ export function ExamplePage({
 }) {
 	const categories = examples.map((e) => e.id)
 	const [filterValue, setFilterValue] = useState('')
+	const [showCode, setShowCode] = useState(() => {
+		try {
+			return localStorage.getItem('examples:showCode') === 'true'
+		} catch {
+			return false
+		}
+	})
+	const [sourceFiles, setSourceFiles] = useState<{ filename: string; content: string }[]>([])
+
+	useEffect(() => {
+		try {
+			localStorage.setItem('examples:showCode', String(showCode))
+		} catch {
+			// ignore
+		}
+	}, [showCode])
+
+	useEffect(() => {
+		if (!showCode) return
+		let cancelled = false
+		setSourceFiles([])
+		example
+			.loadSource()
+			.then((files) => {
+				if (!cancelled) setSourceFiles(files)
+			})
+			.catch(console.error)
+		return () => {
+			cancelled = true
+		}
+	}, [example, showCode])
+
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
 		history.replaceState(
@@ -48,7 +81,7 @@ export function ExamplePage({
 
 	return (
 		<DialogContextProvider>
-			<div className="example">
+			<div className={showCode ? 'example example--with-code' : 'example'}>
 				<nav className="example__sidebar scroll-light">
 					<div className="example__sidebar__header">
 						<Link className="example__sidebar__header__logo" to="/">
@@ -121,6 +154,8 @@ export function ExamplePage({
 												key={sidebarExample.path}
 												example={sidebarExample}
 												isActive={sidebarExample.path === example.path}
+												showCode={showCode}
+												onToggleCode={() => setShowCode((v) => !v)}
 											/>
 										))}
 								</ul>
@@ -146,6 +181,9 @@ export function ExamplePage({
 						</a>
 					</div>
 				</nav>
+				{showCode && sourceFiles.length > 0 && (
+					<CodePanel files={sourceFiles} onClose={() => setShowCode(false)} />
+				)}
 				<div className="example__content" role="main">
 					{children}
 					<Dialogs />
@@ -158,10 +196,13 @@ export function ExamplePage({
 function ExampleSidebarListItem({
 	example,
 	isActive,
+	showCode,
+	onToggleCode,
 }: {
 	example: Example
 	isActive?: boolean
-	showDescriptionWhenInactive?: boolean
+	showCode?: boolean
+	onToggleCode?: () => void
 }) {
 	const ref = useRef<HTMLLIElement>(null)
 	const { setExampleDialog } = useContext(dialogContext)
@@ -182,6 +223,19 @@ function ExampleSidebarListItem({
 				<span className="examples__sidebar__item__title">{example.title}</span>
 				{isActive && (
 					<div className="example__sidebar__item__buttons">
+						<button
+							className="example__sidebar__item__button hoverable"
+							onClick={(e) => {
+								e.preventDefault()
+								e.stopPropagation()
+								onToggleCode?.()
+							}}
+							aria-label="View source code"
+							title="View source code"
+							data-active={showCode}
+						>
+							<CodeIcon />
+						</button>
 						<button
 							className="example__sidebar__item__button hoverable"
 							onClick={() => setExampleDialog(example)}
@@ -286,6 +340,19 @@ function SocialIcon({ icon }: { icon: string }) {
 				height: 16,
 			}}
 		/>
+	)
+}
+
+function CodeIcon() {
+	return (
+		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path
+				d="M9.96424 2.68571C10.0668 2.42931 9.94209 2.13833 9.6857 2.03577C9.4293 1.93322 9.13832 2.05792 9.03576 2.31432L5.03576 12.3143C4.9332 12.5707 5.05791 12.8617 5.3143 12.9642C5.5707 13.0668 5.86168 12.9421 5.96424 12.6857L9.96424 2.68571ZM3.85355 5.14646C4.04882 5.34172 4.04882 5.65831 3.85355 5.85357L1.70711 8.00001L3.85355 10.1464C4.04882 10.3417 4.04882 10.6583 3.85355 10.8536C3.65829 11.0488 3.34171 11.0488 3.14645 10.8536L0.646447 8.35357C0.451184 8.15831 0.451184 7.84172 0.646447 7.64646L3.14645 5.14646C3.34171 4.9512 3.65829 4.9512 3.85355 5.14646ZM11.1464 5.14646C11.3417 4.9512 11.6583 4.9512 11.8536 5.14646L14.3536 7.64646C14.5488 7.84172 14.5488 8.15831 14.3536 8.35357L11.8536 10.8536C11.6583 11.0488 11.3417 11.0488 11.1464 10.8536C10.9512 10.6583 10.9512 10.3417 11.1464 10.1464L13.2929 8.00001L11.1464 5.85357C10.9512 5.65831 10.9512 5.34172 11.1464 5.14646Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				clipRule="evenodd"
+			/>
+		</svg>
 	)
 }
 

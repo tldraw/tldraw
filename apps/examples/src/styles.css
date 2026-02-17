@@ -56,15 +56,21 @@ html,
 	grid-auto-flow: column;
 }
 
+.example--with-code {
+	grid-template-columns: auto auto 1fr;
+}
+
 .example__content {
 	position: relative;
 	height: 100%;
 	width: 100%;
 	overflow: auto;
+	min-width: 0;
 }
 
 @media screen and (max-width: 500px) {
-	.example {
+	.example,
+	.example--with-code {
 		display: grid;
 		grid-template-columns: 1fr;
 		grid-auto-flow: column;
@@ -250,6 +256,10 @@ li.examples__sidebar__item {
 }
 .example__sidebar__item__button:nth-of-type(n + 1) {
 	margin-left: -4px;
+}
+.example__sidebar__item__button[data-active='true'] {
+	opacity: 1;
+	color: hsl(214, 84%, 56%);
 }
 
 .example {

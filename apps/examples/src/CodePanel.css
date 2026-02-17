@@ -1,0 +1,121 @@
+.code-panel {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	background: var(--gray-light);
+	color: var(--text);
+	border-right: 1px solid var(--gray-dark);
+	overflow: hidden;
+}
+
+.code-panel__resize-handle {
+	position: absolute;
+	top: 0;
+	right: -3px;
+	width: 6px;
+	height: 100%;
+	cursor: col-resize;
+	z-index: 10;
+}
+
+.code-panel__resize-handle:hover,
+.code-panel__resize-handle:active {
+	background: var(--focus);
+	opacity: 0.5;
+}
+
+.code-panel__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 8px;
+	height: 40px;
+	min-height: 40px;
+	background: var(--background);
+	border-bottom: 1px solid var(--gray-dark);
+	gap: 4px;
+}
+
+.code-panel__tabs {
+	display: flex;
+	gap: 2px;
+	overflow-x: auto;
+	flex: 1;
+	min-width: 0;
+}
+
+.code-panel__tab {
+	padding: 4px 10px;
+	font-size: 12px;
+	font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+	background: transparent;
+	color: var(--black-transparent-dark);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.code-panel__tab:hover {
+	color: var(--text);
+	background: var(--gray-dark);
+}
+
+.code-panel__tab[data-active='true'] {
+	color: var(--text);
+	background: var(--gray-light);
+	font-weight: 600;
+}
+
+.code-panel__actions {
+	display: flex;
+	gap: 4px;
+	flex-shrink: 0;
+}
+
+.code-panel__action {
+	padding: 4px 8px;
+	font-size: 12px;
+	background: transparent;
+	color: var(--black-transparent-dark);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.code-panel__action:hover {
+	color: var(--text);
+	background: var(--gray-dark);
+}
+
+.code-panel__content {
+	flex: 1;
+	overflow: auto;
+	padding: 16px;
+}
+
+.code-panel__content pre {
+	margin: 0;
+	padding: 0;
+	background: transparent !important;
+	font-size: 13px;
+	line-height: 1.5;
+	font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+}
+
+.code-panel__content code {
+	font-family: inherit;
+}
+
+.code-panel__loading {
+	padding: 16px;
+	color: var(--black-transparent-dark);
+	font-size: 13px;
+}
+
+@media screen and (max-width: 500px) {
+	.code-panel {
+		display: none;
+	}
+}

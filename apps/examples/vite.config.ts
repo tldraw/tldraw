@@ -178,6 +178,8 @@ function exampleReadmePlugin(): PluginOption {
 				path,
 			}
 
+			const sourceGlob = `./*.{ts,tsx,css}`
+
 			const result = [
 				`export const meta = ${JSON.stringify(meta)};`,
 				`export const loadComponent = async () => {`,
@@ -185,6 +187,16 @@ function exampleReadmePlugin(): PluginOption {
 				`};`,
 				`export const loadContent = async () => {`,
 				`    return await import(${JSON.stringify(filePath + '?content')});`,
+				`};`,
+				`export const loadSource = async () => {`,
+				`    const modules = import.meta.glob(${JSON.stringify(sourceGlob)}, { query: '?raw', import: 'default' });`,
+				`    const files = await Promise.all(`,
+				`        Object.entries(modules).map(async ([p, load]) => ({`,
+				`            filename: p.split('/').pop(),`,
+				`            content: await load(),`,
+				`        }))`,
+				`    );`,
+				`    return files;`,
 				`};`,
 			]
 
