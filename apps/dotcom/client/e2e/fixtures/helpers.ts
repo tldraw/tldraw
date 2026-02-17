@@ -83,19 +83,30 @@ type IncognitoReadyState = 'editor' | 'sign-in' | 'error'
 
 async function waitForIncognitoReadyState(page: Page): Promise<IncognitoReadyState> {
 	const editor = page.getByTestId('tla-editor')
-	const signIn = page.getByTestId('tla-sign-in-button')
+	const signInButton = page.getByTestId('tla-sign-in-button')
+	const googleSignInButton = page.getByTestId('tla-google-sign-in-button')
+	const continueWithEmailButton = page.getByTestId('tla-continue-with-email-button')
+	const verificationCodeInput = page.getByTestId('tla-verification-code-input')
 	const errorIcon = page.getByTestId('tla-error-icon')
 	const termsButton = page.getByTestId('tla-accept-and-continue-button')
 	const canvas = page.getByTestId('canvas')
+	const maxAttempts = 60
 
-	for (let attempt = 0; attempt < 20; attempt++) {
+	for (let attempt = 0; attempt < maxAttempts; attempt++) {
 		if (await termsButton.isVisible().catch(() => false)) {
 			await termsButton.click().catch(() => {})
 		}
 		if (await editor.isVisible().catch(() => false)) {
 			if (await canvas.isVisible().catch(() => false)) return 'editor'
 		}
-		if (await signIn.isVisible().catch(() => false)) return 'sign-in'
+		if (
+			(await signInButton.isVisible().catch(() => false)) ||
+			(await googleSignInButton.isVisible().catch(() => false)) ||
+			(await continueWithEmailButton.isVisible().catch(() => false)) ||
+			(await verificationCodeInput.isVisible().catch(() => false))
+		) {
+			return 'sign-in'
+		}
 		if (await errorIcon.isVisible().catch(() => false)) return 'error'
 		await page.waitForTimeout(500)
 	}
