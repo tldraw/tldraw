@@ -17,10 +17,15 @@ export function sleep(ms: number): Promise<void> {
 
 export async function openNewTab(
 	browser: Browser,
-	opts: { url?: string; userProps: UserProps; allowClipboard?: boolean }
+	opts: {
+		url?: string
+		userProps: UserProps
+		allowClipboard?: boolean
+		expectedReadyState?: IncognitoReadyState
+	}
 ) {
 	return await test.step('open new incognito page', async () => {
-		const { url, userProps, allowClipboard } = opts
+		const { url, userProps, allowClipboard, expectedReadyState = 'editor' } = opts
 		let newContext: BrowserContext
 		if (userProps === undefined) {
 			newContext = await browser.newContext({ storageState: undefined })
@@ -44,7 +49,13 @@ export async function openNewTab(
 
 		try {
 			const readyState = await waitForIncognitoReadyState(newPage)
-			if (readyState === 'editor') {
+			if (readyState !== expectedReadyState) {
+				const diagnostics = await getIncognitoDiagnostics(newPage)
+				throw new Error(
+					`expected ready state "${expectedReadyState}" but got "${readyState}" (url=${diagnostics.url}, editor=${diagnostics.editorVisible}, canvas=${diagnostics.canvasVisible}, signIn=${diagnostics.signInVisible}, error=${diagnostics.errorVisible}, terms=${diagnostics.termsVisible})`
+				)
+			}
+			if (expectedReadyState === 'editor') {
 				await newHomePage.isLoaded()
 			}
 		} catch (error) {
