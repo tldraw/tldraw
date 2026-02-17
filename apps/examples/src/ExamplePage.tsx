@@ -1,6 +1,6 @@
 import { AlertDialog as _AlertDialog } from 'radix-ui'
-import { Dispatch, createContext, useContext, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Dispatch, createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { Example, examples } from './examples'
 
 const dialogContext = createContext<{
@@ -46,6 +46,8 @@ export function ExamplePage({
 			setFilterValue(decodeURIComponent(filter))
 		}
 	}, [])
+
+	useArrowKeyNavigation(filterValue, example.path)
 
 	return (
 		<DialogContextProvider>
@@ -103,20 +105,7 @@ export function ExamplePage({
 								<ul className="example__sidebar__category__items">
 									{examples
 										.find((category) => category.id === currentCategory)
-										?.value.filter((example) => {
-											const excludedWords = ['a', 'the', '', ' ']
-											const terms = filterValue
-												.toLowerCase()
-												.split(' ')
-												.filter((term) => !excludedWords.includes(term))
-											if (!terms.length) return true
-											return (
-												terms.some((term) => example.title.toLowerCase().includes(term)) ||
-												example.keywords.some((keyword) =>
-													terms.some((term) => keyword.toLowerCase().includes(term))
-												)
-											)
-										})
+										?.value.filter((ex) => matchesFilter(ex, filterValue))
 										.map((sidebarExample) => (
 											<ExampleSidebarListItem
 												key={sidebarExample.path}
@@ -154,6 +143,55 @@ export function ExamplePage({
 			</div>
 		</DialogContextProvider>
 	)
+}
+
+function matchesFilter(ex: Example, filterValue: string): boolean {
+	const excludedWords = ['a', 'the', '', ' ']
+	const terms = filterValue
+		.toLowerCase()
+		.split(' ')
+		.filter((term) => !excludedWords.includes(term))
+	if (!terms.length) return true
+	return (
+		terms.some((term) => ex.title.toLowerCase().includes(term)) ||
+		ex.keywords.some((keyword) => terms.some((term) => keyword.toLowerCase().includes(term)))
+	)
+}
+
+function useArrowKeyNavigation(filterValue: string, currentPath: string) {
+	const navigate = useNavigate()
+
+	const filteredExamples = useMemo(
+		() =>
+			examples.flatMap((category) => category.value.filter((ex) => matchesFilter(ex, filterValue))),
+		[filterValue]
+	)
+
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+
+			const activeTag = document.activeElement?.tagName
+			if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return
+
+			e.preventDefault()
+
+			if (filteredExamples.length === 0) return
+			const activeIndex = filteredExamples.findIndex((ex) => ex.path === currentPath)
+
+			let nextIndex: number
+			if (e.key === 'ArrowDown') {
+				nextIndex = activeIndex < filteredExamples.length - 1 ? activeIndex + 1 : 0
+			} else {
+				nextIndex = activeIndex > 0 ? activeIndex - 1 : filteredExamples.length - 1
+			}
+
+			navigate(filteredExamples[nextIndex].path)
+		}
+
+		document.addEventListener('keydown', handleKeyDown)
+		return () => document.removeEventListener('keydown', handleKeyDown)
+	}, [navigate, filteredExamples, currentPath])
 }
 
 function ExampleSidebarListItem({
