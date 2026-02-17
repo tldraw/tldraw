@@ -117,6 +117,7 @@ const router = createRouter<Environment>()
 	.post('/app/:userId/init', async (req, env) => {
 		// Ensure user exists in DB before Zero can query
 		const auth = await requireAuth(req, env)
+		if (req.params.userId !== auth.userId) return notFound()
 		const stub = getUserDurableObject(env, auth.userId)
 		return stub.fetch(req)
 	})
