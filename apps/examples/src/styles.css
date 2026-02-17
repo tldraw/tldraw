@@ -375,6 +375,69 @@ a.example__sidebar__header-link {
 	opacity: 1;
 }
 
+/* --------------- Description Bar --------------- */
+
+.example__description-bar {
+	position: absolute;
+	bottom: 52px;
+	left: 8px;
+	z-index: 99999;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px 14px;
+	background-color: white;
+	border-radius: 8px;
+	box-shadow:
+		0px 2px 4px rgba(0, 0, 0, 0.12),
+		0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+	font-size: 13px;
+	width: 316px;
+	pointer-events: all;
+}
+
+.example__content:has(.tlui-debug-panel) .example__description-bar {
+	bottom: 92px;
+}
+
+.example__description-bar__title {
+	font-weight: 700;
+}
+
+.example__description-bar__text {
+	color: rgba(0, 0, 0, 0.6);
+	line-height: 1.5;
+	max-width: 300px;
+}
+
+.example__description-bar__actions {
+	display: flex;
+	gap: 6px;
+}
+
+.example__description-bar__button {
+	all: unset;
+	cursor: pointer;
+	font-size: 12px;
+	padding: 4px 8px;
+	border-radius: 4px;
+	background-color: var(--gray-light);
+	color: var(--text);
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	white-space: nowrap;
+}
+
+.example__description-bar__button:hover {
+	background-color: var(--gray-dark);
+}
+
+.example__description-bar__button svg {
+	width: 12px;
+	height: 12px;
+}
+
 /* --------------------- Dialog --------------------- */
 
 .example__dialog__overlay {
