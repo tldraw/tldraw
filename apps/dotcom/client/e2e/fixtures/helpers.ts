@@ -42,7 +42,19 @@ export async function openNewTab(
 			await newHomePage.goto()
 		}
 
-		await newHomePage.isLoaded()
+		try {
+			const readyState = await waitForIncognitoReadyState(newPage)
+			if (readyState === 'editor') {
+				await newHomePage.isLoaded()
+			}
+		} catch (error) {
+			const diagnostics = await getIncognitoDiagnostics(newPage)
+			throw new Error(
+				`Incognito page failed to reach a known ready state (url=${diagnostics.url}, editor=${diagnostics.editorVisible}, canvas=${diagnostics.canvasVisible}, signIn=${diagnostics.signInVisible}, error=${diagnostics.errorVisible}, terms=${diagnostics.termsVisible}): ${
+					error instanceof Error ? error.message : String(error)
+				}`
+			)
+		}
 		return {
 			newPage,
 			newContext,
@@ -54,6 +66,44 @@ export async function openNewTab(
 			errorPage,
 		}
 	})
+}
+
+type IncognitoReadyState = 'editor' | 'sign-in' | 'error'
+
+async function waitForIncognitoReadyState(page: Page): Promise<IncognitoReadyState> {
+	const editor = page.getByTestId('tla-editor')
+	const signIn = page.getByTestId('tla-sign-in-button')
+	const errorIcon = page.getByTestId('tla-error-icon')
+	const termsButton = page.getByTestId('tla-accept-and-continue-button')
+	const canvas = page.getByTestId('canvas')
+
+	for (let attempt = 0; attempt < 20; attempt++) {
+		if (await termsButton.isVisible().catch(() => false)) {
+			await termsButton.click().catch(() => {})
+		}
+		if (await editor.isVisible().catch(() => false)) {
+			if (await canvas.isVisible().catch(() => false)) return 'editor'
+		}
+		if (await signIn.isVisible().catch(() => false)) return 'sign-in'
+		if (await errorIcon.isVisible().catch(() => false)) return 'error'
+		await page.waitForTimeout(500)
+	}
+
+	throw new Error('timed out waiting for editor/sign-in/error state')
+}
+
+async function getIncognitoDiagnostics(page: Page) {
+	return {
+		url: page.url(),
+		editorVisible: await page.getByTestId('tla-editor').isVisible().catch(() => false),
+		canvasVisible: await page.getByTestId('canvas').isVisible().catch(() => false),
+		signInVisible: await page.getByTestId('tla-sign-in-button').isVisible().catch(() => false),
+		errorVisible: await page.getByTestId('tla-error-icon').isVisible().catch(() => false),
+		termsVisible: await page
+			.getByTestId('tla-accept-and-continue-button')
+			.isVisible()
+			.catch(() => false),
+	}
 }
 
 export function getStorageStateFileName(index: number, user: UserName) {
