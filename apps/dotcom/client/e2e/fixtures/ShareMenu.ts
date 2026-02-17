@@ -1,5 +1,5 @@
 import type { Locator, Page } from '@playwright/test'
-import { step } from './tla-test'
+import { expect, step } from './tla-test'
 
 type ShareMenuTab = 'invite' | 'export' | 'publish'
 
@@ -102,8 +102,12 @@ export class ShareMenu {
 	async copyLink() {
 		await this.copyLinkButton.click()
 
-		const handle = await this.page.evaluateHandle(async () => await navigator.clipboard.readText())
-		return await handle.jsonValue()
+		let url = ''
+		await expect(async () => {
+			url = await this.page.evaluate(async () => await navigator.clipboard.readText())
+			expect(url).toBeTruthy()
+		}).toPass({ timeout: 5000 })
+		return url
 	}
 
 	@step

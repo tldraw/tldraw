@@ -13,10 +13,10 @@ runs:
     - name: Setup Node.js Environment
       uses: actions/setup-node@v6
       with:
-        node-version: 22.16.0
+        node-version: 24.13.1
 
     - name: Restore node_modules cache
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       id: node-modules-cache
       with:
         path: |
@@ -24,9 +24,9 @@ runs:
           **/node_modules
           .yarn/cache
           .yarn/unplugged
-        key: ${{ runner.os }}-node-22.16.0-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.yarn/patches/*') }}
+        key: ${{ runner.os }}-node-24.13.1-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.yarn/patches/*') }}
         restore-keys: |
-          ${{ runner.os }}-node-22.16.0-yarn-
+          ${{ runner.os }}-node-24.13.1-yarn-
 
     - name: Install dependencies
       run: yarn install --immutable

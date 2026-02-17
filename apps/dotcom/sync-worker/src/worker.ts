@@ -110,6 +110,7 @@ const router = createRouter<Environment>()
 			return notFound()
 		}
 
+		if (req.params.userId !== auth.userId) return notFound()
 		const stub = getUserDurableObject(env, auth.userId)
 		return stub.fetch(req)
 	})

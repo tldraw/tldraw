@@ -18,7 +18,7 @@ defaults:
 jobs:
   build:
     name: 'End to end tests (dotcom)'
-    timeout-minutes: 40
+    timeout-minutes: 20
     runs-on: ubuntu-latest-8-cores-open
     environment: 'e2e-dotcom'
     if: ${{ github.event.pull_request.head.repo.fork == false }}
@@ -37,7 +37,7 @@ jobs:
           echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./playwright.json').children.Version)")" >> $GITHUB_ENV
         working-directory: 'apps/dotcom/client'
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v5
         name: Check for Playwright browsers cache
         id: playwright-cache
         with:
