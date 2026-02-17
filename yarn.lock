@@ -5599,7 +5599,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:^1.58.2":
+"@playwright/test@npm:^1.50.0":
   version: 1.58.2
   resolution: "@playwright/test@npm:1.58.2"
   dependencies:
@@ -15016,7 +15016,7 @@ __metadata:
     "@clerk/elements": "npm:^0.23.74"
     "@clerk/testing": "npm:^1.4.15"
     "@formatjs/cli": "npm:^6.5.1"
-    "@playwright/test": "npm:^1.58.2"
+    "@playwright/test": "npm:^1.50.0"
     "@rocicorp/zero": "npm:0.19.2025050203"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
@@ -16500,7 +16500,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
-    "@playwright/test": "npm:^1.58.2"
+    "@playwright/test": "npm:^1.50.0"
     "@tiptap/core": "npm:^3.12.1"
     "@tiptap/extension-font-family": "npm:^3.12.1"
     "@tiptap/extension-text-style": "npm:^3.12.1"
