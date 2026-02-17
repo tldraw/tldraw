@@ -31,10 +31,11 @@ export function ExamplePage({
 	const [filterValue, setFilterValue] = useState('')
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
+		const path = window.location.pathname
 		history.replaceState(
 			{},
 			'',
-			e.target.value ? `/?filter=${encodeURIComponent(e.target.value)}` : '/'
+			e.target.value ? `${path}?filter=${encodeURIComponent(e.target.value)}` : path
 		)
 	}
 
