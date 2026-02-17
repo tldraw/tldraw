@@ -6,12 +6,7 @@
 			"zooming",
 			"scrolling",
 			"drawing",
-			"erasing",
-			"creating",
-			"typing",
 			"selecting",
-			"deselecting",
-			"duplicating",
 			"nudging",
 			"resizing",
 			"rotating",
@@ -22,11 +17,13 @@
 			"stacking",
 			"packing",
 			"grouping",
-			"ungrouping",
-			"editing",
 			"cropping",
 			"styling",
-			"embedding"
+			"embedding",
+			"scribbling",
+			"brushing",
+			"pointing",
+			"snapping to grid"
 		]
 	},
 	"permissions": {
