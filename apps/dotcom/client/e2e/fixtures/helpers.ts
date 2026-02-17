@@ -17,15 +17,10 @@ export function sleep(ms: number): Promise<void> {
 
 export async function openNewTab(
 	browser: Browser,
-	opts: {
-		url?: string
-		userProps: UserProps
-		allowClipboard?: boolean
-		expectedReadyState?: IncognitoReadyState
-	}
+	opts: { url?: string; userProps: UserProps; allowClipboard?: boolean }
 ) {
 	return await test.step('open new incognito page', async () => {
-		const { url, userProps, allowClipboard, expectedReadyState = 'editor' } = opts
+		const { url, userProps, allowClipboard } = opts
 		let newContext: BrowserContext
 		if (userProps === undefined) {
 			newContext = await browser.newContext({ storageState: undefined })
@@ -46,26 +41,7 @@ export async function openNewTab(
 		} else {
 			await newHomePage.goto()
 		}
-
-		try {
-			const readyState = await waitForIncognitoReadyState(newPage)
-			if (readyState !== expectedReadyState) {
-				const diagnostics = await getIncognitoDiagnostics(newPage)
-				throw new Error(
-					`expected ready state "${expectedReadyState}" but got "${readyState}" (url=${diagnostics.url}, editor=${diagnostics.editorVisible}, canvas=${diagnostics.canvasVisible}, signIn=${diagnostics.signInVisible}, error=${diagnostics.errorVisible}, terms=${diagnostics.termsVisible})`
-				)
-			}
-			if (expectedReadyState === 'editor') {
-				await newHomePage.isLoaded()
-			}
-		} catch (error) {
-			const diagnostics = await getIncognitoDiagnostics(newPage)
-			throw new Error(
-				`Incognito page failed to reach a known ready state (url=${diagnostics.url}, editor=${diagnostics.editorVisible}, canvas=${diagnostics.canvasVisible}, signIn=${diagnostics.signInVisible}, error=${diagnostics.errorVisible}, terms=${diagnostics.termsVisible}): ${
-					error instanceof Error ? error.message : String(error)
-				}`
-			)
-		}
+		await newHomePage.isLoaded()
 		return {
 			newPage,
 			newContext,
@@ -77,55 +53,6 @@ export async function openNewTab(
 			errorPage,
 		}
 	})
-}
-
-type IncognitoReadyState = 'editor' | 'sign-in' | 'error'
-
-async function waitForIncognitoReadyState(page: Page): Promise<IncognitoReadyState> {
-	const editor = page.getByTestId('tla-editor')
-	const signInButton = page.getByTestId('tla-sign-in-button')
-	const googleSignInButton = page.getByTestId('tla-google-sign-in-button')
-	const continueWithEmailButton = page.getByTestId('tla-continue-with-email-button')
-	const verificationCodeInput = page.getByTestId('tla-verification-code-input')
-	const errorIcon = page.getByTestId('tla-error-icon')
-	const termsButton = page.getByTestId('tla-accept-and-continue-button')
-	const canvas = page.getByTestId('canvas')
-	const maxAttempts = 60
-
-	for (let attempt = 0; attempt < maxAttempts; attempt++) {
-		if (await termsButton.isVisible().catch(() => false)) {
-			await termsButton.click().catch(() => {})
-		}
-		if (await editor.isVisible().catch(() => false)) {
-			if (await canvas.isVisible().catch(() => false)) return 'editor'
-		}
-		if (
-			(await signInButton.isVisible().catch(() => false)) ||
-			(await googleSignInButton.isVisible().catch(() => false)) ||
-			(await continueWithEmailButton.isVisible().catch(() => false)) ||
-			(await verificationCodeInput.isVisible().catch(() => false))
-		) {
-			return 'sign-in'
-		}
-		if (await errorIcon.isVisible().catch(() => false)) return 'error'
-		await page.waitForTimeout(500)
-	}
-
-	throw new Error('timed out waiting for editor/sign-in/error state')
-}
-
-async function getIncognitoDiagnostics(page: Page) {
-	return {
-		url: page.url(),
-		editorVisible: await page.getByTestId('tla-editor').isVisible().catch(() => false),
-		canvasVisible: await page.getByTestId('canvas').isVisible().catch(() => false),
-		signInVisible: await page.getByTestId('tla-sign-in-button').isVisible().catch(() => false),
-		errorVisible: await page.getByTestId('tla-error-icon').isVisible().catch(() => false),
-		termsVisible: await page
-			.getByTestId('tla-accept-and-continue-button')
-			.isVisible()
-			.catch(() => false),
-	}
 }
 
 export function getStorageStateFileName(index: number, user: UserName) {
