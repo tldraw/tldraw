@@ -123,12 +123,17 @@ export function getPointsFromDrawSegment(
 		points.push(..._points.map(Vec.From))
 	} else {
 		const dist = Vec.Dist(_points[0], _points[1])
-		const firstPoint = Vec.Nudge(_points[0], _points[1], Math.min(1, dist / 4))
-		const lastPoint = Vec.Nudge(_points[1], _points[1], Math.min(1, dist / 4))
+		const firstPoint = Vec.Nudge(_points[0], _points[1], Math.min(1, Math.floor(dist / 4)))
+		const lastPoint = Vec.Nudge(_points[1], _points[1], Math.min(1, Math.floor(dist / 4)))
 		points.push(
 			Vec.From(_points[0]),
 			firstPoint,
-			...Vec.PointsBetween(firstPoint, lastPoint, Math.max(4, dist / 16), EASINGS.easeInOutCubic),
+			...Vec.PointsBetween(
+				firstPoint,
+				lastPoint,
+				Math.max(4, Math.floor(dist / 16)),
+				EASINGS.easeInOutCubic
+			),
 			Vec.From(_points[1])
 		)
 	}
