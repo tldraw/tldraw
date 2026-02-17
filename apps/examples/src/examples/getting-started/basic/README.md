@@ -14,6 +14,7 @@ keywords:
     first app,
     tldraw component,
   ]
+related: [api, persistence-key, custom-ui, only-editor, inline]
 ---
 
 The simplest way to use the `Tldraw` component.

@@ -12,6 +12,7 @@ keywords:
     frames,
     parent shapes,
   ]
+related: []
 ---
 
 Register a handler to run after shapes are deleted.

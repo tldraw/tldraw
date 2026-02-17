@@ -1,7 +1,7 @@
 import { AlertDialog as _AlertDialog } from 'radix-ui'
 import { Dispatch, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Example, examples } from './examples'
+import { Example, examples, examplesByPath } from './examples'
 
 const dialogContext = createContext<{
 	example: Example | null
@@ -258,6 +258,10 @@ function Dialogs() {
 		}
 	}
 
+	const relatedExamples = example.related
+		.map((slug) => examplesByPath.get(`/${slug}`))
+		.filter((e): e is Example => !!e)
+
 	return (
 		<_AlertDialog.Root defaultOpen onOpenChange={handleOpenChange} open={!!example}>
 			<_AlertDialog.Overlay
@@ -271,6 +275,20 @@ function Dialogs() {
 					className="example__dialog__markdown"
 				/>
 				<Markdown sanitizedHtml={content?.details ?? ''} className="example__dialog__markdown" />
+				{relatedExamples.length > 0 && (
+					<div className="example__dialog__related">
+						<h3>See also</h3>
+						<ul>
+							{relatedExamples.map((related) => (
+								<li key={related.path}>
+									<Link to={related.path} onClick={() => setExampleDialog(null)}>
+										{related.title}
+									</Link>
+								</li>
+							))}
+						</ul>
+					</div>
+				)}
 				<div className="example__dialog__actions">
 					<a href={example.codeUrl}>
 						View Source <ExternalLinkIcon />

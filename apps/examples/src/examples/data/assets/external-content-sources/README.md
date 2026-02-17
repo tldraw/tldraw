@@ -15,6 +15,7 @@ keywords:
     htmlcontainer,
     dangerouslysetinnerhtml,
   ]
+related: [custom-paste, hosted-images, static-assets, custom-embed, asset-props]
 ---
 
 Handle different types of content when pasting into tldraw.

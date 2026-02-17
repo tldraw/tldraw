@@ -4,6 +4,7 @@ component: ./EasterEggStylesExample.tsx
 priority: 5
 keywords:
   [easter egg, white color, fill, lined-fill, labelcolor, scale, hidden styles, keyboard shortcuts]
+related: []
 ---
 
 Use tldraw's collection of easter egg styles programmatically.

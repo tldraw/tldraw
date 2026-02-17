@@ -16,6 +16,7 @@ keywords:
     zoomsteps,
     image editor,
   ]
+related: [camera-options, export-canvas-as-image, local-images, pdf-editor, inset-canvas]
 ---
 
 An image annotator built with tldraw.

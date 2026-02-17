@@ -13,6 +13,7 @@ keywords:
     note scaling,
   ]
 priority: 5
+related: []
 ---
 
 Make the note shape resizable.

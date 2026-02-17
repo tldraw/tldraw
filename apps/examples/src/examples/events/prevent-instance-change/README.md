@@ -13,6 +13,7 @@ keywords:
     validation,
     state protection,
   ]
+related: []
 ---
 
 Prevent a change to the "instance" record that would turn off grid mode.

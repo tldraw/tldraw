@@ -15,6 +15,7 @@ keywords:
     tleventmaphandler,
     subscribe,
   ]
+related: [signals, canvas-events, ui-events, unsaved-changes, derived-view]
 ---
 
 Listen to changes from tldraw's store.

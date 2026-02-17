@@ -12,6 +12,7 @@ keywords:
     presentation mode,
     locked editor,
   ]
+related: [permissions, locked-shapes, prevent-shape-change, focus-mode, hide-ui]
 ---
 
 Use the editor in read-only mode.

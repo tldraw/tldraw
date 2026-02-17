@@ -14,6 +14,7 @@ keywords:
     disable rotate,
     shape protection,
   ]
+related: []
 ---
 
 Prevent changes to a shape's properties.

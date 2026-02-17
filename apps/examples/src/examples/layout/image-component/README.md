@@ -15,6 +15,7 @@ keywords:
     svg,
     png,
   ]
+related: [snapshots, export-canvas-as-image, export-canvas-settings, local-storage, readonly]
 ---
 
 Display a tldraw snapshot as an image by using the `TldrawImage` component.

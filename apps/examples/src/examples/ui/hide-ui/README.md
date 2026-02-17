@@ -3,6 +3,7 @@ title: Hide the entire UI
 component: ./HideUiExample.tsx
 priority: 1.5
 keywords: [hideui, bare editor, minimal, custom ui, headless]
+related: [custom-ui, ui-components-hidden, focus-mode, external-ui, only-editor]
 ---
 
 Hide tldraw's UI with the `hideUi` prop.

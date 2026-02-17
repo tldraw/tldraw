@@ -2,6 +2,7 @@
 title: Vertical toolbar
 component: ./VerticalToolbarExample.tsx
 keywords: [vertical toolbar, toolbar orientation, DefaultToolbar, components override, layout]
+related: [toolbar-groups, add-tool-to-toolbar, remove-tool, custom-components, force-mobile]
 ---
 
 Switch from a horizontal toolbar at the bottom of the screen to a vertical one on the left.

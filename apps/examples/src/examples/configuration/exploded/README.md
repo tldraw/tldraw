@@ -13,6 +13,7 @@ keywords:
     defaulttools,
     components,
   ]
+related: [only-editor, custom-ui, custom-config, custom-renderer, basic]
 ---
 
 Tldraw is built from several sublibraries - like the editor, default shapes & tools, and UI.

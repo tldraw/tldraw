@@ -13,6 +13,7 @@ keywords:
     arrow connections,
     technical diagrams,
   ]
+related: [arrows-precise-exact, create-arrow, sticker-bindings, layout-bindings, pin-bindings]
 ---
 
 Demonstrate arrow binding options for precise positioning.

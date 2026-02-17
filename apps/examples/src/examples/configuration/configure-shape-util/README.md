@@ -12,6 +12,7 @@ keywords:
     builtin shapes,
     customization,
   ]
+related: [custom-config, resize-note, custom-options, frame-colors, custom-shape]
 ---
 
 Change the behavior of built-in shapes by setting their options.

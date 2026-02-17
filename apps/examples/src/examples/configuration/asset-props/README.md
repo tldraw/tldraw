@@ -14,6 +14,7 @@ keywords:
     maximagesize,
     maximagedimension,
   ]
+related: [hosted-images, local-images, local-videos, static-assets, external-content-sources]
 ---
 
 Control the assets (images, videos, etc.) that can be added to the canvas.

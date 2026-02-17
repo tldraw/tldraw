@@ -3,6 +3,7 @@ title: Shape animation
 component: ./ShapeAnimationExample.tsx
 priority: 2
 keywords: [animate, animation, shape, easing, transition, movement, rotation, opacity]
+related: [api, zoom-to-bounds, snowstorm, align-and-distribute-shapes, locked-shapes]
 ---
 
 Animate shapes using `animateShape()` and `animateShapes()`.

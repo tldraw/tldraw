@@ -13,6 +13,7 @@ keywords:
     isshapeoftype,
     css class,
   ]
+related: [selection-ui, indicators-logic, changing-default-colors, signals, custom-components]
 ---
 
 Change the selection color based on the types of shapes selected.

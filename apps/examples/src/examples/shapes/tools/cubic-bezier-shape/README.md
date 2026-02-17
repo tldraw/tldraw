@@ -16,6 +16,7 @@ keywords:
     getHandles,
     onHandleDrag,
   ]
+related: [speech-bubble, custom-shape, tool-with-child-states, custom-config, shape-with-geometry]
 ---
 
 A custom shape with interactive bezier curve editing.

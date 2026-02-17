@@ -8,6 +8,7 @@ export interface Example {
 	priority: number
 	keywords: string[]
 	multiplayer: boolean
+	related: string[]
 	loadComponent(): Promise<ComponentType<{ roomId?: string }>>
 	loadContent(): Promise<{ description: string; details: string }>
 }
@@ -71,6 +72,9 @@ const getExamplesForCategory = (category: Category) =>
 			if (a.priority === b.priority) return a.title.localeCompare(b.title)
 			return a.priority - b.priority
 		})
+
+/** Flat lookup of all examples by path (e.g. "/basic") */
+export const examplesByPath = new Map(sortedExamples.map((e) => [e.path, e]))
 
 export const examples = categories.map(([category, title, description]) => ({
 	id: title,

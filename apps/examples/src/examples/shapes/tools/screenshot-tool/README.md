@@ -16,6 +16,7 @@ keywords:
     toolbar,
     asset urls,
   ]
+related: []
 ---
 
 A custom tool that takes a screenshot of the canvas.

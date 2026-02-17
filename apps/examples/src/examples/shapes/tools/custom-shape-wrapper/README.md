@@ -15,6 +15,7 @@ keywords:
     forwardRef,
     components,
   ]
+related: [custom-shape, custom-components, indicators-logic, selection-ui, custom-renderer]
 ---
 
 Customize the wrapper used for each shape in the DOM.

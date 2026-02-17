@@ -15,6 +15,7 @@ keywords:
     visual effects,
   ]
 priority: 100
+related: [interactive-shape, custom-shape, editable-shape, shape-animation, custom-components]
 ---
 
 Create a 3D illusion of depth with dynamic shadows and CSS transforms.

@@ -4,6 +4,7 @@ component: ./SyncDemoExample.tsx
 priority: 1
 keywords: [multiplayer, sync, useSyncDemo, collaboration, real-time, websocket, co-editing]
 multiplayer: true
+related: []
 ---
 
 Use tldraw sync for multiplayer collaboration.

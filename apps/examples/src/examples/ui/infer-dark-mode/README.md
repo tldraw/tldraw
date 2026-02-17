@@ -3,6 +3,7 @@ title: Infer dark mode
 component: ./InferDarkModeExample.tsx
 priority: 4
 keywords: [dark mode, theme, inferdarkmode, system preferences, color scheme]
+related: []
 ---
 
 Infer dark mode based on system preferences.

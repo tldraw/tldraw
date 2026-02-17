@@ -16,6 +16,7 @@ keywords:
     slides,
     presentation,
   ]
+related: [slideshow, camera-options, zoom-to-bounds, education-canvas, focus-mode]
 ---
 
 A simple slideshow app with a moving camera.

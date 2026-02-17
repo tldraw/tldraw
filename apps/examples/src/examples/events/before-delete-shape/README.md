@@ -12,6 +12,7 @@ keywords:
     hooks,
     validation,
   ]
+related: []
 ---
 
 Register a handler to run before shapes are deleted.

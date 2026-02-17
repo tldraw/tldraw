@@ -15,6 +15,7 @@ keywords:
     text effects,
     defaultrichtexttoolbar,
   ]
+related: []
 ---
 
 Extend the TipTap text editor by adding a custom extension and toolbar.

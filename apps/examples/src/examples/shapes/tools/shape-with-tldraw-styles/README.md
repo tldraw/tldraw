@@ -12,6 +12,7 @@ keywords:
     getcolorvalue,
     shapeutil,
   ]
+related: []
 ---
 
 Use the tldraw style panel with your custom shapes.

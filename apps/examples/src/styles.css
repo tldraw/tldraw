@@ -177,6 +177,40 @@ ul.example__sidebar__categories {
 	display: block;
 }
 
+.example__sidebar__category__header {
+	position: relative;
+}
+
+.example__sidebar__category__info {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	cursor: default;
+	color: var(--black-transparent-light);
+}
+
+.example__sidebar__category__tooltip {
+	display: none;
+	position: absolute;
+	left: 12px;
+	right: 12px;
+	top: calc(100% - 4px);
+	padding: 4px 8px;
+	border-radius: 4px;
+	background-color: var(--text);
+	color: var(--background);
+	font-size: 12px;
+	font-weight: 500;
+	z-index: 100;
+	pointer-events: none;
+}
+
+.example__sidebar__category__info:hover .example__sidebar__category__tooltip {
+	display: block;
+}
+
 /* Category */
 
 li.example__sidebar__category {
@@ -485,6 +519,39 @@ a.example__sidebar__header-link {
 	margin: 0px -2px;
 	background-color: var(--black-transparent-lighter);
 	border-radius: 4px;
+}
+
+.example__dialog__related {
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid var(--gray-dark);
+}
+
+.example__dialog__related h3 {
+	font-size: 14px;
+	font-weight: 700;
+	margin: 0 0 8px 0;
+	color: var(--black-transparent-darker);
+}
+
+.example__dialog__related ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.example__dialog__related li a {
+	display: inline-block;
+	padding: 4px 10px;
+	border-radius: 4px;
+	background-color: var(--gray-light);
+	border: 1px solid var(--gray-dark);
+	color: inherit;
+	text-decoration: none;
+	font-size: 13px;
 }
 
 .example__dialog__close {

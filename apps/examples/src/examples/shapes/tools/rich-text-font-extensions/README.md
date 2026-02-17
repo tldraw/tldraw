@@ -16,6 +16,7 @@ keywords:
     addfontsfromnode,
     typography,
   ]
+related: []
 ---
 
 Extend the TipTap text editor by adding font-family and font-size options.

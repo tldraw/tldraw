@@ -17,6 +17,7 @@ keywords:
     formatting,
     createShape,
   ]
+related: []
 ---
 
 Create and configure text shapes programmatically.

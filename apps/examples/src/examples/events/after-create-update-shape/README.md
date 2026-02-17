@@ -12,6 +12,7 @@ keywords:
     shape creation,
     shape update,
   ]
+related: []
 ---
 
 Register a handler to run after shapes are created or updated.

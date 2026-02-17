@@ -12,6 +12,7 @@ keywords:
     disable tool,
     tool visibility,
   ]
+related: [add-tool-to-toolbar, toolbar-groups, custom-menus, keyboard-shortcuts, dynamic-tools]
 ---
 
 You can remove a tool from the user interface.

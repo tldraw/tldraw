@@ -15,6 +15,7 @@ keywords:
     vec,
     usecontainer,
   ]
+related: [camera-options, things-on-the-canvas, custom-components, lock-camera-zoom, inset]
 ---
 
 Create an illusion of a floating window.

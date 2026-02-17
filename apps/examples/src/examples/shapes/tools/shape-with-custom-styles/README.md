@@ -13,6 +13,7 @@ keywords:
     setstyleforselectedshapes,
     shapeutil,
   ]
+related: []
 ---
 
 Use the custom styles API with your custom shapes.

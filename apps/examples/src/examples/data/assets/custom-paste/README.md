@@ -3,6 +3,7 @@ title: Custom paste behavior
 component: ./CustomPasteExample.tsx
 priority: 3
 keywords: [paste, clipboard, external content, handler]
+related: [external-content-sources, hosted-images, local-images, snapshots, drag-and-drop-tray]
 ---
 
 Change how pasting works by registering an external content handler.

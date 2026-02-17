@@ -16,6 +16,7 @@ keywords:
     getsupathfromstrokepoints,
     usevalue,
   ]
+related: [custom-tool, tool-with-child-states, screenshot-tool, dynamic-tools, signals]
 ---
 
 Add a lasso select tool to tldraw.

@@ -16,6 +16,7 @@ keywords:
     session,
     localstorage,
   ]
+related: [local-storage, store-events, unsaved-changes, persistence-key, meta-migrations]
 ---
 
 Sand and load a snapshot of the editor's contents.

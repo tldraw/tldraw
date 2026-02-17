@@ -174,6 +174,7 @@ function exampleReadmePlugin(): PluginOption {
 				category,
 				multiplayer: frontmatter.multiplayer,
 				keywords: frontmatter.keywords,
+				related: frontmatter.related,
 				codeUrl,
 				path,
 			}
@@ -221,11 +222,17 @@ function parseFrontMatter(data: unknown, fileName: string) {
 		throw new Error(`Frontmatter key 'multiplayer' must be boolean in ${fileName}`)
 	}
 
+	const related = 'related' in data ? data.related : []
+	if (!Array.isArray(related)) {
+		throw new Error(`Frontmatter key 'related' must be array in ${fileName}`)
+	}
+
 	return {
 		title: data.title,
 		component: data.component,
 		priority,
 		keywords,
 		multiplayer,
+		related,
 	}
 }

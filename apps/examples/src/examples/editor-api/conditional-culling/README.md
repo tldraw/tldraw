@@ -3,6 +3,7 @@ title: Conditional culling
 component: ./ConditionalCullingExample.tsx
 priority: 3
 keywords: [culling, canCull, viewport, performance, glow, shadow, overflow, custom shape]
+related: [many-shapes, custom-shape, configure-shape-util, custom-renderer, coordinate-system]
 ---
 
 Prevent shapes with overflow effects from being culled when off-screen.

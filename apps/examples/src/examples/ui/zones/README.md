@@ -4,6 +4,7 @@ component: ./ZonesExample.tsx
 priority: 1
 keywords:
   [zones, TopPanel, SharePanel, ui zones, custom panels, components override, top zone, share zone]
+related: [custom-components, things-on-the-canvas, ui-components-hidden, custom-ui, inspector-panel]
 ---
 
 Inject custom components into tldraw's empty areas.

@@ -4,6 +4,7 @@ component: ./OnlyEditorExample.tsx
 priority: 100
 keywords:
   [tldraweditor, minimal, bare bones, custom ui, no ui, headless, shapeutils, tools, statenodeonly]
+related: [basic, exploded, custom-ui, hide-ui, custom-config]
 ---
 
 Use the `<TldrawEditor/>` component to render a bare-bones editor with minimal built-in shapes and tools.

@@ -3,6 +3,7 @@ title: Create a video shape
 component: ./LocalVideosExample.tsx
 priority: 2
 keywords: [video, asset, assetrecordtype, createassets, local, static, mp4, videoshape]
+related: [local-images, hosted-images, static-assets, asset-props, api]
 ---
 
 Create a video shape using a local asset.

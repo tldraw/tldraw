@@ -13,6 +13,7 @@ keywords:
     css styling,
     text effects,
   ]
+related: []
 ---
 
 Add outlined text styling to the TipTap text editor with a custom extension.

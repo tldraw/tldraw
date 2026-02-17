@@ -4,6 +4,7 @@ component: ./CustomStrokeAndFontSizes.tsx
 priority: 2
 keywords:
   [stroke, font, size, STROKE_SIZES, FONT_SIZES, style, configuration, constants, global settings]
+related: []
 ---
 
 Customize the available stroke and font sizes in tldraw.

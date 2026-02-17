@@ -3,6 +3,7 @@ title: Inset editor
 component: ./InsetExample.tsx
 priority: 0
 keywords: [inline, embedded, non-fullscreen, layout, container, positioning, inset, wrapper]
+related: [inline, inline-behavior, inset-canvas, scroll, multiple]
 ---
 
 Using the tldraw component in a non-fullscreen layout.

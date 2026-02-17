@@ -3,6 +3,7 @@ title: Static assets
 component: ./StaticAssetsExample.tsx
 keywords: [assets, asseturls, custom fonts, custom icons, cdn, static files, preload, configuration]
 priority: 0
+related: [hosted-images, asset-props, local-images, custom-language-translations, exploded]
 ---
 
 Use custom fonts, icons, and preload them using the `Tldraw` component.

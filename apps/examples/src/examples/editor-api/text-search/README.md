@@ -14,6 +14,7 @@ keywords:
     overrides,
     actions,
   ]
+related: [api, keyboard-shortcuts, text-shape-configuration, custom-menus, action-overrides]
 ---
 
 Search through all the text on the canvas.

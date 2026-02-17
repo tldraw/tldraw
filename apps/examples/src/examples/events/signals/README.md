@@ -4,6 +4,7 @@ component: ./StateStoreExample.tsx
 priority: 0
 keywords:
   [signals, reactive, track, usevalue, usereactor, state management, side effects, computed, atom]
+related: [store-events, derived-view, reactive-inputs, canvas-events, ui-events]
 ---
 
 React to changes by using signals.

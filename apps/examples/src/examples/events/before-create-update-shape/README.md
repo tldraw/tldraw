@@ -13,6 +13,7 @@ keywords:
     hooks,
     shape creation,
   ]
+related: []
 ---
 
 Register a handler to run before shapes are created or updated.

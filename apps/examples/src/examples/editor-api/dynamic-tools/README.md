@@ -4,6 +4,7 @@ component: ./DynamicToolsExample.tsx
 priority: 2
 keywords:
   [settool, removetool, dynamic tools, runtime, conditional, permissions, feature flags, toolbar]
+related: [custom-tool, add-tool-to-toolbar, remove-tool, permissions, tool-with-child-states]
 ---
 
 Dynamically add and remove tools from the editor and toolbar after initialization.

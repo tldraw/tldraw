@@ -12,6 +12,7 @@ keywords:
     toolbar layout,
     orientation,
   ]
+related: [add-tool-to-toolbar, remove-tool, vertical-toolbar, custom-menus, contextual-toolbar]
 ---
 
 Create groups within the toolbar to separate related concepts.

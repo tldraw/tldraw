@@ -3,6 +3,7 @@ title: Mark exams
 component: ./ExamMarkingExample.tsx
 priority: 4
 keywords: [education, pdf, annotation, marking, scoring, grading, toolbar, ui overrides, widget]
+related: [pdf-editor, education-canvas, image-annotator, custom-tool, custom-menus]
 ---
 
 A tool for marking exams. It includes common pdf annotation tools, as well as a built in tool for marking individual questions and tallying the total score of the exam.

@@ -14,6 +14,7 @@ keywords:
     viewport,
   ]
 priority: 2
+related: [custom-components, things-on-the-canvas, selection-ui, fog-of-war, inset-canvas]
 ---
 
 This example shows how you can mask the canvas.

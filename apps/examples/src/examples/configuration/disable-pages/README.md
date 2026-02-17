@@ -3,6 +3,7 @@ title: Disable pages
 component: ./DisablePagesExample.tsx
 priority: 10
 keywords: [maxpages, single page, options, page selector, configuration]
+related: [custom-options, ui-components-hidden, hide-ui, camera-options, custom-menus]
 ---
 
 Disabling page-related UI for single-page use cases.

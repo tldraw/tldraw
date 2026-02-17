@@ -12,6 +12,7 @@ keywords:
     alternative rendering,
   ]
 priority: 100
+related: [custom-components, custom-grid, custom-ui, exploded, only-editor]
 ---
 
 You can _sort of_ use a custom renderer with tldraw.

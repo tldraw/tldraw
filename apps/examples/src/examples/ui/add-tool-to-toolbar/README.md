@@ -15,6 +15,7 @@ keywords:
     usetools,
     components,
   ]
+related: [custom-config, custom-tool, remove-tool, toolbar-groups, keyboard-shortcuts]
 ---
 
 Add your custom tool to the toolbar.

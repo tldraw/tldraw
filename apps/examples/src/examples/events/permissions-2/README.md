@@ -15,6 +15,7 @@ keywords:
     shape geometry,
     resize constraint,
   ]
+related: []
 ---
 
 A second example of how to use side effect APIs to constrain shape movement within a bounding box.

@@ -15,6 +15,7 @@ keywords:
     tlrichtext,
     document traversal,
   ]
+related: []
 ---
 
 Add a toggle button to the style panel that allows you to make all text bold (or remove bold) from multiple selected shapes at once.

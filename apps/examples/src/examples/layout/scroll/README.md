@@ -3,6 +3,7 @@ title: Scrollable container
 component: ./ScrollExample.tsx
 priority: 1
 keywords: [scrollable, container, layout, autofocus, focus, mousewheel, viewport, nested]
+related: [inline, inset, inline-behavior, editor-focus, multiple]
 ---
 
 Use the editor inside a scrollable container.

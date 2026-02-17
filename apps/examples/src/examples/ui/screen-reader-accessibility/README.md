@@ -17,6 +17,7 @@ keywords:
     assertive,
     wcag,
   ]
+related: [custom-components, indicators-logic, custom-shape, keyboard-shortcuts, selection-ui]
 ---
 
 Implement accessible custom shapes and custom screen reader announcements.

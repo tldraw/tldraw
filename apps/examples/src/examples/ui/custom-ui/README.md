@@ -4,6 +4,7 @@ component: ./CustomUiExample.tsx
 priority: 1.5
 keywords:
   [hideui, custom ui, keyboard shortcuts, setcurrenttool, track, useeditor, toolbar, buttons]
+related: [hide-ui, custom-menus, custom-components, external-ui, keyboard-shortcuts]
 ---
 
 Replace tldraw's UI with your own.

@@ -16,6 +16,7 @@ keywords:
     maxpages,
     context,
   ]
+related: [inline, inset, multiple, editor-focus, scroll]
 ---
 
 Common practices for using the `Tldraw` component as a block within a larger page.

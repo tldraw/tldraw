@@ -13,6 +13,7 @@ keywords:
     backwards compatibility,
     data migration,
   ]
+related: [custom-shape, meta-migrations, snapshots, custom-validators, shape-with-custom-styles]
 ---
 
 Migrate your shapes and their data between versions

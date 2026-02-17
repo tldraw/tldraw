@@ -14,6 +14,7 @@ keywords:
     dirty state,
     getSnapshot,
   ]
+related: [store-events, snapshots, local-storage, signals, persistence-key]
 ---
 
 Track unsaved changes and enable save functionality.

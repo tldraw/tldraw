@@ -14,6 +14,7 @@ keywords:
     modals,
     TldrawUiDialog,
   ]
+related: [custom-components, custom-ui, ui-primitives, error-boundary, external-dialog]
 ---
 
 Add, remove and clear toasts and dialogs in your app using the `useToasts` and `useDialogs` hooks.

@@ -15,6 +15,7 @@ keywords:
     keyboard shortcut,
   ]
 priority: 1
+related: [custom-shape, custom-tool, add-tool-to-toolbar, configure-shape-util, shape-with-geometry]
 ---
 
 A custom shape and tool.

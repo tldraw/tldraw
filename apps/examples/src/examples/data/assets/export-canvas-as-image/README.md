@@ -3,6 +3,7 @@ title: Export canvas as image
 component: ./ExportCanvasImageExample.tsx
 priority: 2
 keywords: [export, toimage, download, png, svg, blob, screenshot, canvas export, sharepanel]
+related: [export-canvas-settings, toSvg-method-example, snapshots, screenshot-tool, local-images]
 ---
 
 Export the entire canvas as an image file.
