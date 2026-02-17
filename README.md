@@ -13,28 +13,24 @@
 </p>
 
 <h3 align="center">
-  Welcome to the public monorepo for tldraw.
+  Build infinite canvas apps in React with the tldraw SDK.
 </h3>
 
-<h4 align="center"> 
-  tldraw is a library for creating infinite canvas applications in React. It powers the whiteboard at <a href="https://tldraw.com">tldraw.com</a>.
-</h4>
-
 <p align="center">
-  <a href="https://tldraw.dev/quick-start">Docs</a> · <a href="https://tldraw.dev/examples">Examples</a> · <a href="https://tldraw.dev/blog">Blog</a>
+  <a href="https://tldraw.dev/quick-start">Docs</a> · <a href="https://tldraw.dev/examples">Examples</a> · <a href="https://tldraw.dev/starter-kits/overview">Starter kits</a>
 </p>
 
 ## Feature highlights
 
-tldraw's runtime APIs allow for extensive customization. Create custom shapes, tools, bindings and UI components for a custom whiteboard, or use the editor's primitives to build entirely new canvas experiences.
+tldraw provides a feature-complete infinite canvas engine designed to be the foundation for any canvas app. Create custom shapes, tools, bindings and UI components for a custom experience. Use the default whiteboarding tool set or use the library's primitives to build entirely new shapes and interactions.
 
-- **Multiplayer** — real-time collaboration powered by Cloudflare Durable Objects via [`@tldraw/sync`](https://tldraw.dev/docs/sync)
-- **Markup tools** — [perfect freehand](https://tldraw.dev/sdk-features/draw-shape) and perfect arrows, [snapping](https://tldraw.dev/sdk-features/snapping), edge scrolling, [SVG export](https://tldraw.dev/sdk-features/image-export), image and video support
-- **Data store** — signals-based reactive store with persistence, undo/redo, and change tracking via [`@tldraw/store`](https://www.npmjs.com/package/@tldraw/store)
-- **Rich text** — [text editing](https://tldraw.dev/sdk-features/rich-text) with formatting, lists, and links inside shapes
-- **Embeds** — YouTube, Figma, Google Maps, CodeSandbox, Spotify, GitHub Gist, [and more](https://tldraw.dev/sdk-features/embed-shape)
-- **Extensible** — custom [shapes](https://tldraw.dev/docs/shapes), [tools](https://tldraw.dev/docs/tools), [bindings](https://tldraw.dev/sdk-features/bindings), [UI components](https://tldraw.dev/sdk-features/ui-components), side effects, and event hooks
+- **Multiplayer** — self-hostable real-time collaboration with [`@tldraw/sync`](https://tldraw.dev/docs/sync)
+- **Drawing and diagramming** — pressure-sensitive drawing, geometric shapes, rich text, arrows, snapping to shapes, edge scrolling, image and video support, image export
+- **Runtime API** - drive the canvas at runtime with the Editor API
+- **Fully extensible** — custom [shapes](https://tldraw.dev/docs/shapes), [tools](https://tldraw.dev/docs/tools), [bindings](https://tldraw.dev/sdk-features/bindings), [UI components](https://tldraw.dev/sdk-features/ui-components), side effects, and event hooks
 - **AI integrations** — canvas primitives for [building with LLMs](https://tldraw.dev/docs/ai)
+- **DOM canvas** — web rendering supports anything the browser supports, including embedded websites from YouTube, Figma, GitHub, [and more](https://tldraw.dev/sdk-features/embed-shape)
+- **Broad support** — works in any browser across desktop, touch screens, tablets, and mobile devices
 
 ## Quick start
 
@@ -61,14 +57,7 @@ export default function App() {
 
 ## Starter kits
 
-Get up and running quickly with tldraw's starter kits. Starter kits give you a tested foundation for complex canvas interactions. Each kit is MIT-licensed and built for customization.
-
-- **Workflow** — drag-and-drop node builder for automation pipelines, visual programming, and no-code platforms
-- **Agent** — AI agents that read, interpret, and modify canvas content
-- **Chat** — canvas-powered AI chat where users sketch, annotate, and mark up images alongside conversations
-- **Branching chat** — AI chat with visual branching, letting users explore and compare different conversation paths
-- **Multiplayer** — self-hosted real-time collaboration powered by `@tldraw/sync` and Cloudflare Durable Objects, the same stack behind [tldraw.com](https://tldraw.com)
-- **Shader** — WebGL shaders that respond to canvas interactions
+Starter kits provide the custom shapes, tools, and user interface needed for common applications. Each kit is MIT-licensed. Hack together a prototype, build out an app on top, or reference the code in a larger project.
 
 Start building with:
 
@@ -76,16 +65,12 @@ Start building with:
 npx create-tldraw@latest
 ```
 
-## Packages
-
-| Package                                                              | Description                                  |
-| -------------------------------------------------------------------- | -------------------------------------------- |
-| [`tldraw`](https://www.npmjs.com/package/tldraw)                     | Complete SDK with shapes, tools, and UI      |
-| [`@tldraw/editor`](https://www.npmjs.com/package/@tldraw/editor)     | Core canvas engine (no UI or default shapes) |
-| [`@tldraw/sync`](https://www.npmjs.com/package/@tldraw/sync)         | Real-time multiplayer collaboration          |
-| [`@tldraw/store`](https://www.npmjs.com/package/@tldraw/store)       | Reactive client-side data store              |
-| [`@tldraw/state`](https://www.npmjs.com/package/@tldraw/state)       | Signals-based reactivity library             |
-| [`@tldraw/tlschema`](https://www.npmjs.com/package/@tldraw/tlschema) | Type definitions and validation              |
+- **Multiplayer** — self-hosted real-time collaboration powered by `@tldraw/sync` and Cloudflare Durable Objects, the same stack behind [tldraw.com](https://tldraw.com)
+- **Agent** — AI agents that read, interpret, and modify canvas content
+- **Workflow** — drag-and-drop node builder for automation pipelines, visual programming, and no-code platforms
+- **Chat** — canvas-powered AI chat where users sketch, annotate, and mark up images alongside conversations
+- **Branching chat** — AI chat with visual branching, letting users explore and compare different conversation paths
+- **Shader** — WebGL shaders that respond to canvas interactions
 
 ## Local development
 
@@ -102,24 +87,19 @@ yarn
 yarn dev
 ```
 
-## Contributing
-
-We're not currently accepting external pull requests; [here's why](https://tldraw.dev/blog/stay-away-from-my-trash). Bug reports, feature requests, and discussion are always welcome. See our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md) for more.
-
 ## Community
 
 - [Discord](https://discord.tldraw.com/?utm_source=github&utm_medium=readme&utm_campaign=sociallink) — questions, feedback, and discussion
 - [Twitter/X](https://twitter.com/tldraw) — news and updates
-- [tldraw.dev](https://tldraw.dev) — docs and release notes
 - [Submit an issue](https://github.com/tldraw/tldraw/issues/new) — bug reports and feature requests
+
+## Contributing
+
+See our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md) to learn about contributing to tldraw.
 
 ## License
 
-The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
-
-You can use the SDK freely in development. Production use requires a [license key](https://tldraw.dev/pricing).
-
-Visit [tldraw.dev](https://tldraw.dev) to learn more.
+The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md). You can use the SDK freely in development. Production use requires a [license key](https://tldraw.dev/pricing). Visit [tldraw.dev](https://tldraw.dev) to learn more.
 
 ## Trademarks
 
