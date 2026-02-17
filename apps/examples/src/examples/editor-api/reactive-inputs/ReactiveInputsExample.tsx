@@ -54,7 +54,7 @@ function ReactiveInputsPanel() {
 		editor,
 	])
 
-	// [5]
+	// [4]
 	const shiftKey = useValue('shift key', () => editor.inputs.getShiftKey(), [editor])
 	const ctrlKey = useValue('ctrl key', () => editor.inputs.getCtrlKey(), [editor])
 	const altKey = useValue('alt key', () => editor.inputs.getAltKey(), [editor])
@@ -64,7 +64,7 @@ function ReactiveInputsPanel() {
 	return (
 		<div className="reactive-inputs-panel">
 			<div className="reactive-inputs-content">
-				{/* [4] */}
+				{/* [5] */}
 				<div className="input-group">
 					<div className="input-label">Screen point</div>
 					<div className="input-value">
@@ -116,7 +116,6 @@ function ReactiveInputsPanel() {
 					</div>
 				</div>
 
-				{/* [7] */}
 				<div className="input-group">
 					<div className="input-label">Modifiers</div>
 					<div className="modifier-keys">
@@ -166,21 +165,18 @@ All of these are backed by reactive atoms, so calling them inside a `useValue` c
 automatically trigger updates when they change.
 
 [4]
-Screen points are relative to the editor's container, while page points are in the canvas's
-coordinate space (accounting for zoom and pan). The origin points track where the most recent
-pointer down event occurred.
-
-[5]
 Modifier keys (shift, ctrl, alt, meta) are also backed by reactive atoms. The `getAccelKey()`
 method returns the platform-appropriate accelerator key (cmd on Mac, ctrl elsewhere), which is
 useful for implementing keyboard shortcuts that work across platforms.
+
+[5]
+Screen points are relative to the editor's container, while page points are in the canvas's
+coordinate space (accounting for zoom and pan). The origin points track where the most recent
+pointer down event occurred.
 
 [6]
 Pointer velocity is calculated and updated by the tick manager. It represents the speed and
 direction of pointer movement in pixels per millisecond, useful for detecting quick gestures
 or implementing physics-based interactions.
 
-[7]
-The modifier keys are displayed as badge-style indicators that highlight when active. Press any
-modifier key to see it light up in real time.
 */
