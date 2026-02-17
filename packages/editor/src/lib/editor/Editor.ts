@@ -10459,29 +10459,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._metaKeyTimeout = this.timers.setTimeout(this._setMetaKeyTimeout, 150)
 		}
 
-		// When a modifier key is explicitly released via keyup, immediately clear its
-		// state. This handles browser inconsistencies on macOS where e.g. e.metaKey may
-		// still be true during the Meta key's own keyup event.
-		if (type === 'keyboard' && info.name === 'key_up') {
-			switch (info.key) {
-				case 'Shift':
-					clearTimeout(this._shiftKeyTimeout)
-					this._shiftKeyTimeout = -1
-					inputs.setShiftKey(false)
-					break
-				case 'Alt':
-					clearTimeout(this._altKeyTimeout)
-					this._altKeyTimeout = -1
-					inputs.setAltKey(false)
-					break
-				case 'Meta':
-					clearTimeout(this._metaKeyTimeout)
-					this._metaKeyTimeout = -1
-					inputs.setMetaKey(false)
-					break
-			}
-		}
-
 		if (!inputs.getIsPointing()) {
 			inputs.setIsDragging(false)
 		}
