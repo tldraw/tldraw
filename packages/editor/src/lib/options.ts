@@ -160,11 +160,10 @@ export interface TldrawOptions {
 	 * Called when content is dropped on the canvas. Provides the page position
 	 * where the drop occurred and the underlying drag event object.
 	 * Return true to prevent default drop handling (files, URLs, etc.)
+	 *
+	 * @beta
 	 */
-	experimental__onDropOnCanvas?(options: {
-		point: VecLike
-		event: React.DragEvent<Element>
-	}): boolean
+	onDropOnCanvas?(options: { point: VecLike; event: React.DragEvent<Element> }): boolean
 }
 
 /** @public */
@@ -227,5 +226,5 @@ export const defaultTldrawOptions = {
 	text: {},
 	deepLinks: undefined,
 	quickZoomPreservesScreenBounds: true,
-	experimental__onDropOnCanvas: undefined,
+	onDropOnCanvas: undefined,
 } as const satisfies TldrawOptions

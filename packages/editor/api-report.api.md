@@ -695,7 +695,6 @@ export const defaultTldrawOptions: {
     readonly edgeScrollEaseDuration: 200;
     readonly edgeScrollSpeed: 25;
     readonly enableToolbarKeyboardShortcuts: true;
-    readonly experimental__onDropOnCanvas: undefined;
     readonly exportProvider: ExoticComponent<FragmentProps>;
     readonly flattenImageBoundsExpand: 64;
     readonly flattenImageBoundsPadding: 16;
@@ -729,6 +728,7 @@ export const defaultTldrawOptions: {
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
     readonly nonce: undefined;
+    readonly onDropOnCanvas: undefined;
     readonly quickZoomPreservesScreenBounds: true;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
@@ -3506,10 +3506,6 @@ export interface TldrawOptions {
     // (undocumented)
     readonly edgeScrollSpeed: number;
     readonly enableToolbarKeyboardShortcuts: boolean;
-    experimental__onDropOnCanvas?(options: {
-        event: React.DragEvent<Element>;
-        point: VecLike;
-    }): boolean;
     readonly exportProvider: ComponentType<{
         children: React.ReactNode;
     }>;
@@ -3546,6 +3542,11 @@ export interface TldrawOptions {
     // (undocumented)
     readonly multiClickDurationMs: number;
     readonly nonce: string | undefined;
+    // @beta
+    onDropOnCanvas?(options: {
+        event: React.DragEvent<Element>;
+        point: VecLike;
+    }): boolean;
     readonly quickZoomPreservesScreenBounds: boolean;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
