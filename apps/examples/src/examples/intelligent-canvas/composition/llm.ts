@@ -23,9 +23,9 @@ Do not use markdown code fences.
 Your job is NOT to merge ideas into a grand hybrid. Your job is to find the one surprising, specific thing you can only see by looking at both ideas together. The best output is an "oh!" moment - a simple idea that neither input alone would have suggested.
 
 Priorities:
-- Simplicity over impressiveness. The idea should feel elegant, not engineered.
-- A specific interaction or mechanic, not a vague system. "The player types words that become the terrain" is good. "A text-based procedural generation engine" is bad.
-- Wild and fantastical is great, but it must have a core mechanic you could explain in one sentence.
+- Simplicity over impressiveness. The idea should feel elegant, not overengineered.
+- A specific interaction or mechanic, not a vague system.
+- Find the adjacent possible: the idea that was latent in both inputs, waiting to be noticed. Not the cleverest combination, but the most inevitable one.s
 - Focus on what the person DOES (the verb), not what the system IS (the noun).
 
 Writing style:
