@@ -26,6 +26,7 @@ import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
 import { PerformanceTracker } from '@tldraw/utils';
+import { PointerEvent as PointerEvent_2 } from 'react';
 import { PointerEventHandler } from 'react';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
@@ -69,7 +70,6 @@ import { TLImageAsset } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
 import { TLInstancePresence } from '@tldraw/tlschema';
-import { TLOpacityType } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
@@ -98,7 +98,7 @@ export function activeElementShouldCaptureKeys(ignoreButtons?: boolean): boolean
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
 // @internal (undocumented)
-export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, centerOverride, }: {
+export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, centerOverride }: {
     centerOverride?: VecLike;
     delta: number;
     editor: Editor;
@@ -251,7 +251,7 @@ export class BoundsSnaps {
     // (undocumented)
     readonly manager: SnapManager;
     // (undocumented)
-    snapResizeShapes({ initialSelectionPageBounds, dragDelta, handle: originalHandle, isAspectRatioLocked, isResizingFromCenter, }: {
+    snapResizeShapes({ initialSelectionPageBounds, dragDelta, handle: originalHandle, isAspectRatioLocked, isResizingFromCenter }: {
         dragDelta: Vec;
         handle: SelectionCorner | SelectionEdge;
         initialSelectionPageBounds: Box;
@@ -259,7 +259,7 @@ export class BoundsSnaps {
         isResizingFromCenter: boolean;
     }): SnapData;
     // (undocumented)
-    snapTranslateShapes({ lockedAxis, initialSelectionPageBounds, initialSelectionSnapPoints, dragDelta, }: {
+    snapTranslateShapes({ lockedAxis, initialSelectionPageBounds, initialSelectionSnapPoints, dragDelta }: {
         dragDelta: Vec;
         initialSelectionPageBounds: Box;
         initialSelectionSnapPoints: BoundsSnapPoint[];
@@ -493,7 +493,7 @@ export const coreShapes: readonly [typeof GroupShapeUtil];
 export function counterClockwiseAngleDist(a0: number, a1: number): number;
 
 // @public (undocumented)
-export function createDebugValue<T>(name: string, { defaults, shouldStoreForSession, }: {
+export function createDebugValue<T>(name: string, { defaults, shouldStoreForSession }: {
     defaults: DebugFlagDefaults<T>;
     shouldStoreForSession?: boolean;
 }): DebugFlag<T>;
@@ -512,8 +512,8 @@ export function createTLStore({ initialData, defaultName, id, assets, onMount, c
 
 // @public (undocumented)
 export function createTLUser(opts?: {
-    setUserPreferences?: (userPreferences: TLUserPreferences) => void;
-    userPreferences?: Signal<TLUserPreferences>;
+    setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
+    userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
 }): TLUser;
 
 // @public (undocumented)
@@ -625,7 +625,7 @@ export const DefaultBrush: ({ brush, color, opacity, className }: TLBrushProps) 
 export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX.Element;
 
 // @public (undocumented)
-export function DefaultCollaboratorHint({ className, zoom, point, color, viewport, opacity, }: TLCollaboratorHintProps): JSX.Element;
+export function DefaultCollaboratorHint({ className, zoom, point, color, viewport, opacity }: TLCollaboratorHintProps): JSX.Element;
 
 // @public (undocumented)
 export const DefaultCursor: NamedExoticComponent<TLCursorProps>;
@@ -813,12 +813,12 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
     // @internal (undocumented)
-    annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
+    annotateError(error: unknown, { origin, willCrashApp, tags, extras }: {
         extras?: Record<string, unknown>;
         origin: string;
         tags?: Record<string, boolean | number | string>;
@@ -837,7 +837,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
     // (undocumented)
-    canBindShapes({ fromShape, toShape, binding, }: {
+    canBindShapes({ fromShape, toShape, binding }: {
         binding: {
             type: TLBinding['type'];
         } | TLBinding | TLBinding['type'];
@@ -911,7 +911,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -924,7 +924,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -937,7 +937,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -950,7 +950,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -963,7 +963,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -976,7 +976,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -989,7 +989,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1002,7 +1002,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1015,7 +1015,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1028,7 +1028,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1041,7 +1041,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1054,7 +1054,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1067,7 +1067,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1080,7 +1080,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1093,7 +1093,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 index: IndexKey;
                 isLocked: boolean;
                 meta: JsonObject;
-                opacity: TLOpacityType;
+                opacity: number;
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
@@ -1295,8 +1295,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
     getShapeParentTransform(shape: TLShape | TLShapeId): Mat;
     getShapesAtPoint(point: VecLike, opts?: {
-        hitInside?: boolean;
-        margin?: number;
+        hitInside?: boolean | undefined;
+        margin?: number | undefined;
     }): TLShape[];
     getShapesPageBounds(shapeIds: TLShapeId[]): Box | null;
     // @internal (undocumented)
@@ -1364,8 +1364,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
-        hitInside?: boolean;
-        margin?: number;
+        hitInside?: boolean | undefined;
+        margin?: number | undefined;
     }): boolean;
     // (undocumented)
     isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
@@ -1414,7 +1414,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         select?: boolean;
     }): this;
     putExternalContent<E>(info: TLExternalContent<E>, opts?: {
-        force?: boolean;
+        force?: boolean | undefined;
     }): Promise<void>;
     redo(): this;
     registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void;
@@ -1428,7 +1428,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     replaceExternalContent<E>(info: TLExternalContent<E>, opts?: {
-        force?: boolean;
+        force?: boolean | undefined;
     }): Promise<void>;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): this;
@@ -1491,10 +1491,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly sideEffects: StoreSideEffects<TLRecord>;
     slideCamera(opts?: {
         direction: VecLike;
-        force?: boolean;
-        friction?: number;
+        force?: boolean | undefined;
+        friction?: number | undefined;
         speed: number;
-        speedThreshold?: number;
+        speedThreshold?: number | undefined;
     }): this;
     readonly snaps: SnapManager;
     squashToMark(markId: string): this;
@@ -1512,8 +1512,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly timers: {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
-        setInterval: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
-        setTimeout: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
+        setInterval: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
+        setTimeout: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
     };
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
     toImage(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
@@ -1860,7 +1860,7 @@ export function getPointsOnArc(startPoint: VecLike, endPoint: VecLike, center: n
 export function getPolygonVertices(width: number, height: number, sides: number): Vec[];
 
 // @internal (undocumented)
-export function getRotationSnapshot({ editor, ids, }: {
+export function getRotationSnapshot({ editor, ids }: {
     editor: Editor;
     ids: TLShapeId[];
 }): null | TLRotationSnapshot;
@@ -1980,7 +1980,7 @@ export class HandleSnaps {
     // (undocumented)
     readonly manager: SnapManager;
     // (undocumented)
-    snapHandle({ currentShapeId, handle, }: {
+    snapHandle({ currentShapeId, handle }: {
         currentShapeId: TLShapeId;
         handle: TLHandle;
     }): null | SnapData;
@@ -2312,14 +2312,14 @@ export class LocalIndexedDb {
     // (undocumented)
     storeAsset(assetId: string, blob: File): Promise<void>;
     // (undocumented)
-    storeChanges({ schema, changes, sessionId, sessionStateSnapshot, }: {
+    storeChanges({ schema, changes, sessionId, sessionStateSnapshot }: {
         changes: RecordsDiff<any>;
         schema: TLStoreSchema;
         sessionId?: null | string;
         sessionStateSnapshot?: null | TLSessionStateSnapshot;
     }): Promise<void>;
     // (undocumented)
-    storeSnapshot({ schema, snapshot, sessionId, sessionStateSnapshot, }: {
+    storeSnapshot({ schema, snapshot, sessionId, sessionStateSnapshot }: {
         schema: TLStoreSchema;
         sessionId?: null | string;
         sessionStateSnapshot?: null | TLSessionStateSnapshot;
@@ -4114,14 +4114,14 @@ export const tlmenus: {
     _hiddenMenus: string[];
     menus: Atom<string[], unknown>;
     addOpenMenu(id: string, contextId?: string): void;
-    clearOpenMenus(contextId?: string): void;
+    clearOpenMenus(contextId?: string | undefined): void;
     deleteOpenMenu(id: string, contextId?: string): void;
-    getOpenMenus(contextId?: string): string[];
-    isMenuOpen(id: string, contextId?: string): boolean;
+    getOpenMenus(contextId?: string | undefined): string[];
+    isMenuOpen(id: string, contextId?: string | undefined): boolean;
     hasOpenMenus(contextId: string): boolean;
     hasAnyOpenMenus(): boolean;
-    hideOpenMenus(contextId?: string): void;
-    showOpenMenus(contextId?: string): void;
+    hideOpenMenus(contextId?: string | undefined): void;
+    showOpenMenus(contextId?: string | undefined): void;
     forContext(contextId: string): {
         addOpenMenu: (id: string) => void;
         clearOpenMenus: () => void;
@@ -4842,7 +4842,7 @@ export const userTypeValidator: T.Validator<TLUserPreferences>;
 // @public (undocumented)
 export function useSelectionEvents(handle: TLSelectionHandle): {
     onPointerDown: PointerEventHandler<Element>;
-    onPointerMove: (e: React.PointerEvent) => void;
+    onPointerMove: (e: PointerEvent_2<Element>) => void;
     onPointerUp: PointerEventHandler<Element>;
 };
 

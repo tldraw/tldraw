@@ -43,7 +43,7 @@ export function compact<T>(arr: T[]): NonNullable<T>[];
 // @public
 export function debounce<T extends unknown[], U>(callback: (...args: T) => PromiseLike<U> | U, wait: number): {
     (...args: T): Promise<U>;
-    cancel(): void;
+    cancel: () => void;
 };
 
 // @public
@@ -207,7 +207,7 @@ export function groupBy<K extends string, V>(array: ReadonlyArray<V>, keySelecto
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @internal
-const Image_2: (width?: number, height?: number) => HTMLImageElement;
+const Image_2: (width?: number | undefined, height?: number | undefined) => HTMLImageElement;
 export { Image_2 as Image }
 
 // @public
@@ -441,7 +441,7 @@ export function retry<T>(fn: (args: {
     attempt: number;
     remaining: number;
     total: number;
-}) => Promise<T>, { attempts, waitDuration, abortSignal, matchError, }?: {
+}) => Promise<T>, { attempts, waitDuration, abortSignal, matchError }?: {
     abortSignal?: AbortSignal;
     attempts?: number;
     matchError?(error: unknown): boolean;
@@ -455,7 +455,7 @@ export function rng(seed?: string): () => number;
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
 // @public
-export const safeParseUrl: (url: string, baseUrl?: string | URL) => undefined | URL;
+export const safeParseUrl: (url: string, baseUrl?: string | undefined | URL) => undefined | URL;
 
 // @internal
 export function setInLocalStorage(key: string, value: string): void;
@@ -506,8 +506,8 @@ export class Timers {
     forContext(contextId: string): {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
-        setInterval: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
-        setTimeout: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
+        setInterval: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
+        setTimeout: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
     };
     requestAnimationFrame(contextId: string, callback: FrameRequestCallback): number;
     setInterval(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number;
