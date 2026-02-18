@@ -49,6 +49,11 @@ jobs:
         run: npx playwright install --with-deps chromium chrome
         if: steps.playwright-cache.outputs.cache-hit != 'true'
 
+      - name: Build dotcom client
+        run: lazy refresh-assets && lazy run prebuild && lazy run build-i18n && cd apps/dotcom/client && yarn build
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+
       - name: Run Playwright tests
         run: |
           echo "CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}" > apps/dotcom/sync-worker/.dev.vars
