@@ -156,9 +156,18 @@ const zeroConnectionLimits = {
 		single: { upstream: 3, cvr: 5, change: 3 },
 	},
 } as const
-type ConnLimits = { upstream: number; cvr: number; change: number }
-type SingleNodeConnLimits = { single: ConnLimits }
-type MultiNodeConnLimits = { rm: ConnLimits; vs: ConnLimits }
+interface ConnLimits {
+	upstream: number
+	cvr: number
+	change: number
+}
+interface SingleNodeConnLimits {
+	single: ConnLimits
+}
+interface MultiNodeConnLimits {
+	rm: ConnLimits
+	vs: ConnLimits
+}
 const zeroConns = zeroConnectionLimits[env.TLDRAW_ENV as keyof typeof zeroConnectionLimits] as
 	| SingleNodeConnLimits
 	| MultiNodeConnLimits
