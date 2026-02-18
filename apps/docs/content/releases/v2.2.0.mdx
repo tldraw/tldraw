@@ -1,0 +1,127 @@
+---
+title: 'v2.2.0'
+created_at: 6/11/2024
+updated_at: 6/11/2024
+keywords:
+  - changelog
+  - release
+  - v2.2
+  - v2.2.0
+  - v2.2.1
+  - v2.2.2
+  - v2.2.3
+  - v2.2.4
+  - bindings
+  - camera-constraints
+  - configurable-options
+  - history
+status: published
+---
+
+This release introduces the bindings system, camera constraints, and configurable options—major features that unlock new types of applications you can build with tldraw.
+
+## What's new
+
+### Bindings ([#3326](https://github.com/tldraw/tldraw/pull/3326))
+
+Bindings allow you to create relationships between shapes. Our default arrow shapes are a great example: each end of the arrow can bind to another shape. When that shape moves, so does the arrow.
+
+Before this change, arrows were hard-coded into the library. Now, with the bindings system, you can create arrows, constraint systems, visual programming environments, and much more.
+
+Check out the [bindings guide](https://tldraw.dev/docs/editor#Bindings) for more information. ([#3780](https://github.com/tldraw/tldraw/pull/3780)) ([#3797](https://github.com/tldraw/tldraw/pull/3797)) ([#3800](https://github.com/tldraw/tldraw/pull/3800)) ([#3871](https://github.com/tldraw/tldraw/pull/3871))
+
+### Camera constraints ([#3282](https://github.com/tldraw/tldraw/pull/3282))
+
+You can now limit the camera to a fixed area of the canvas. This is useful for creating experiences that don't quite fit the "infinite canvas" paradigm: document annotators, image editors, slideshow creators, and more.
+
+See the [camera constraints guide](https://tldraw.dev/docs/editor#Camera-options) for more information. ([#3747](https://github.com/tldraw/tldraw/pull/3747)) ([#3814](https://github.com/tldraw/tldraw/pull/3814))
+
+### Configurable options ([#3799](https://github.com/tldraw/tldraw/pull/3799))
+
+You can now override many options which were previously hard-coded constants. Pass an `options` prop into the tldraw component to change the maximum number of pages, grid steps, or other previously hard-coded values.
+
+See [`TldrawOptions`](https://tldraw.dev/reference/editor/TldrawOptions) for details. ([#3900](https://github.com/tldraw/tldraw/pull/3900))
+
+### 💥 Undo/redo changes
+
+The history system has been significantly reworked:
+
+1. **History options simplified**: `squashing`, `ephemeral`, and `preserveRedoStack` flags have been consolidated. Use `editor.history.ignore(fn)` or `editor.history.batch(fn, {history: 'record-preserveRedoStack'})` instead.
+
+2. **Automatic recording**: Everything that touches the store is now recorded in undo/redo (unless part of `mergeRemoteChanges`). Use `editor.history.ignore(fn)` for changes you don't want recorded.
+
+3. **Side effects captured**: Changes in side-effects are now captured by undo/redo. Wrap in `editor.history.ignore` for the old behavior.
+
+## API changes
+
+- 💥 **`canBind`** now accepts an options object instead of just the shape. See [`TLShapeUtilCanBindOpts`](https://tldraw.dev/reference/editor/TLShapeUtilCanBindOpts).
+- 💥 **`editor.sideEffects.registerBatchCompleteHandler`** replaced with `editor.sideEffects.registerOperationCompleteHandler`. ([#3748](https://github.com/tldraw/tldraw/pull/3748))
+- 💥 **`editor.getArrowInfo(shape)`** replaced with `getArrowInfo(editor, shape)`.
+- 💥 **`editor.getArrowsBoundTo(shape)`** removed—use `editor.getBindingsToShape(shape, 'arrow')` instead.
+- 💥 **Arrow shape `start` and `end` properties** are now always points. Use `getArrowBindings(editor, shape)` to check for bindings.
+- 💥 **Types renamed**: `ShapeProps` → `RecordProps`, `ShapePropsType` → `RecordPropsType`, `TLShapePropsMigrations` → `TLPropsMigrations`, `SchemaShapeInfo` → `SchemaPropsInfo`.
+- Add `editor.blur` method. ([#3875](https://github.com/tldraw/tldraw/pull/3875))
+- Add better defaults for `createTLStore`. ([#3886](https://github.com/tldraw/tldraw/pull/3886))
+- Add `getSnapshot` and `loadSnapshot` for easier document persistence. See [State Snapshots](https://tldraw.dev/docs/persistence#State-Snapshots). ([#3811](https://github.com/tldraw/tldraw/pull/3811))
+- Add `select` option to `Editor.groupShapes` and `Editor.ungroupShapes`. ([#3690](https://github.com/tldraw/tldraw/pull/3690))
+- `InFrontOfTheCanvas` now has access to the editor's UI context. ([#3782](https://github.com/tldraw/tldraw/pull/3782))
+- `useEditor` and other context-based hooks now throw an error when used out-of-context. ([#3750](https://github.com/tldraw/tldraw/pull/3750))
+- Add `defaultShapeSchemas` for custom multiplayer implementations. ([#3613](https://github.com/tldraw/tldraw/pull/3613))
+
+## Improvements
+
+- Add a heart shape to the geo shape set. ([#3787](https://github.com/tldraw/tldraw/pull/3787))
+- Improve rendering for bookmarks without preview images. ([#3856](https://github.com/tldraw/tldraw/pull/3856))
+- Improve undo/redo UX around image cropping. ([#3891](https://github.com/tldraw/tldraw/pull/3891))
+- Increase default limit of shapes per page from 2000 to 4000. ([#3716](https://github.com/tldraw/tldraw/pull/3716))
+- Expand accepted image types to include webp, webm, apng, and avif. ([#3730](https://github.com/tldraw/tldraw/pull/3730))
+- Prune unused assets when loading `.tldr` files. ([#3689](https://github.com/tldraw/tldraw/pull/3689))
+- Improve handling of mouse-type devices that support pressure (e.g., Wacom tablets). ([#3639](https://github.com/tldraw/tldraw/pull/3639))
+- Change text shapes to be left-aligned by default. ([#3627](https://github.com/tldraw/tldraw/pull/3627))
+- Add Desmos graph embed type. ([#3608](https://github.com/tldraw/tldraw/pull/3608))
+
+## Bug fixes
+
+- Fix 'insert media' undo removing other changes. ([#3910](https://github.com/tldraw/tldraw/pull/3910))
+- Fix referrer being sent for bookmarks and images. ([#3881](https://github.com/tldraw/tldraw/pull/3881))
+- Fix minimum drag distance being wrong when zoomed. ([#3873](https://github.com/tldraw/tldraw/pull/3873))
+- Fix cropped images not exporting properly. ([#3837](https://github.com/tldraw/tldraw/pull/3837))
+- Fix spacebar and middle mouse button panning. ([#3791](https://github.com/tldraw/tldraw/pull/3791)) ([#3792](https://github.com/tldraw/tldraw/pull/3792))
+- Fix cursor and shapes wiggling when following someone's viewport. ([#3695](https://github.com/tldraw/tldraw/pull/3695))
+- Fix cross-browser focus management issues. ([#3718](https://github.com/tldraw/tldraw/pull/3718))
+- Fix imports in Astro. ([#3742](https://github.com/tldraw/tldraw/pull/3742))
+- Fix copy/paste for patterned shapes as SVG/PNG. ([#3708](https://github.com/tldraw/tldraw/pull/3708))
+- Fix RTL text layout for SVG exports. ([#3680](https://github.com/tldraw/tldraw/pull/3680))
+- Fix clicking on minimap sometimes not changing viewport. ([#3617](https://github.com/tldraw/tldraw/pull/3617))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.2.0)
+
+---
+
+## Patch releases
+
+### v2.2.1
+
+- Improve documentation and make `ArrowBindingUtil` public. ([#3958](https://github.com/tldraw/tldraw/pull/3958))
+- Add `editor.getSnapshot()` and `editor.loadSnapshot()` methods. ([#3958](https://github.com/tldraw/tldraw/pull/3958))
+- Fix CSS styling for bookmark elements. ([#3958](https://github.com/tldraw/tldraw/pull/3958))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.2.1)
+
+### v2.2.2
+
+- Fix text measurement breaking when `Tldraw` was used with React strict mode. ([#4004](https://github.com/tldraw/tldraw/pull/4004))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.2.2)
+
+### v2.2.3
+
+- Fix copy/paste functionality in Firefox 127+. ([#4006](https://github.com/tldraw/tldraw/pull/4006))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.2.3)
+
+### v2.2.4
+
+- Fix copy/paste functionality for older versions of Firefox. ([#4011](https://github.com/tldraw/tldraw/pull/4011))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.2.4)

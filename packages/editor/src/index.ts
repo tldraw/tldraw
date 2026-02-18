@@ -1,9 +1,4 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
-import 'core-js/stable/array/at.js'
-import 'core-js/stable/array/flat-map.js'
-import 'core-js/stable/array/flat.js'
-import 'core-js/stable/string/at.js'
-import 'core-js/stable/string/replace-all.js'
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/state'
@@ -462,10 +457,8 @@ export { EditorAtom } from './lib/utils/EditorAtom'
 export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
-export { hardResetEditor } from './lib/utils/hardResetEditor'
 export { isAccelKey } from './lib/utils/keyboard'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
-export { refreshPage } from './lib/utils/refreshPage'
 export { getDroppedShapesToNewParents, kickoutOccludedShapes } from './lib/utils/reparenting'
 export {
 	getFontsFromRichText,
@@ -480,7 +473,13 @@ export {
 	getRotationSnapshot,
 	type TLRotationSnapshot,
 } from './lib/utils/rotation'
-export { runtime, setRuntimeOverrides } from './lib/utils/runtime'
+export {
+	hardResetEditor,
+	openWindow,
+	refreshPage,
+	runtime,
+	setRuntimeOverrides,
+} from './lib/utils/runtime'
 export {
 	ReadonlySharedStyleMap,
 	SharedStyleMap,
@@ -490,7 +489,6 @@ export { hardReset } from './lib/utils/sync/hardReset'
 export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { uniq } from './lib/utils/uniq'
-export { openWindow } from './lib/utils/window-open'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

@@ -105,3 +105,5 @@ Search for and link relevant issues that this PR addresses.
 
 - Never include "Generated with Claude Code" unless the PR directly relates to Claude Code
 - Never use title case for descriptions - use sentence case
+- Never put yourself as co-author of any commits
+- Always include an API changes section if the PR has changes to any api-report.md

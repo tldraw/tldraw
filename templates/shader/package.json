@@ -15,7 +15,7 @@
 			"name": "Shader",
 			"description": "Create WebGL shaders that respond to shapes on the canvas.",
 			"shortDescription": "Shaders on the canvas.",
-			"order": 7
+			"order": 8
 		},
 		"scripts": {
 			"lint": null

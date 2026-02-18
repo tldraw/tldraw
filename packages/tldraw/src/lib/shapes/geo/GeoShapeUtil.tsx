@@ -328,17 +328,26 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		let overShrinkY = 0
 
 		if (!isEmptyRichText(shape.props.richText)) {
-			// Use initialShape for label measurement to hit the cache.
-			// Creating a temp shape with new dimensions would break WeakCache and cause
-			// expensive measurements on every resize frame.
-			const unscaledLabelSize = getUnscaledLabelSize(this.editor, initialShape)
-
 			const absUnscaledW = Math.abs(unscaledW)
 			const absUnscaledH = Math.abs(unscaledH)
 
-			// Constrain to label size (primary constraint) and min size with label (secondary)
-			const constrainedW = Math.max(absUnscaledW, unscaledLabelSize.w, MIN_SIZE_WITH_LABEL)
-			const constrainedH = Math.max(absUnscaledH, unscaledLabelSize.h, MIN_SIZE_WITH_LABEL)
+			// Measure the label at the constrained target dimensions so text wrapping is
+			// accounted for. We call measureUnscaledLabelSize directly (bypassing WeakCache)
+			// since temp shapes with resize dimensions change every frame. The WeakCache
+			// still helps getGeometry, onBeforeCreate, and onBeforeUpdate.
+			const measureW = Math.max(absUnscaledW, MIN_SIZE_WITH_LABEL)
+			const measureH = Math.max(absUnscaledH, MIN_SIZE_WITH_LABEL)
+			const unscaledLabelSize = measureUnscaledLabelSize(this.editor, {
+				...shape,
+				props: {
+					...shape.props,
+					w: measureW * shape.props.scale,
+					h: measureH * shape.props.scale,
+				},
+			} as TLGeoShape)
+
+			const constrainedW = Math.max(absUnscaledW, unscaledLabelSize.w)
+			const constrainedH = Math.max(absUnscaledH, unscaledLabelSize.h)
 
 			overShrinkX = constrainedW - absUnscaledW
 			overShrinkY = constrainedH - absUnscaledH

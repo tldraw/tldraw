@@ -24,14 +24,14 @@ jobs:
     name: '(Re)Publish public packages manually'
     environment: npm deploy
     timeout-minutes: 60
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest-16-cores-arm-open
 
     outputs:
       is_latest_version: ${{ steps.publish_step.outputs.is_latest_version }}
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Run our setup
         uses: ./.github/actions/setup

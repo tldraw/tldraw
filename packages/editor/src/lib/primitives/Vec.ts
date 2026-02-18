@@ -1,6 +1,12 @@
 import { VecModel } from '@tldraw/tlschema'
 import { EASINGS } from './easings'
-import { clamp, toFixed } from './utils'
+function clamp(n: number, min: number, max?: number): number {
+	return Math.max(min, typeof max !== 'undefined' ? Math.min(n, max) : n)
+}
+
+function toFixed(v: number) {
+	return Math.round(v * 1e2) / 1e2
+}
 
 /** @public */
 export type VecLike = Vec | VecModel

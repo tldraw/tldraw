@@ -41,7 +41,6 @@ export async function openNewTab(
 		} else {
 			await newHomePage.goto()
 		}
-
 		await newHomePage.isLoaded()
 		return {
 			newPage,

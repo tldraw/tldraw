@@ -1,8 +1,8 @@
 import { useValue } from '@tldraw/state-react'
 import { TLShapeId } from '@tldraw/tlschema'
 import { memo, useRef } from 'react'
+import { useEditorComponents } from '../../hooks/EditorComponentsContext'
 import { useEditor } from '../../hooks/useEditor'
-import { useEditorComponents } from '../../hooks/useEditorComponents'
 
 /** @public */
 export interface TLShapeIndicatorsProps {

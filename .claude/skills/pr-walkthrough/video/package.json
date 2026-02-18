@@ -1,0 +1,20 @@
+{
+	"name": "pr-walkthrough-video",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"studio": "remotion studio",
+		"render": "remotion render Walkthrough"
+	},
+	"dependencies": {
+		"@remotion/cli": "4.0.301",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"remotion": "4.0.301",
+		"shiki": "^3.2.1"
+	},
+	"devDependencies": {
+		"@types/react": "^18.3.1",
+		"typescript": "^5.5.0"
+	}
+}

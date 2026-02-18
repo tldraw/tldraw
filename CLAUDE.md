@@ -6,11 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the tldraw monorepo - an infinite canvas SDK for React applications. It's organized using yarn workspaces with packages for the core editor, UI components, shapes, tools, and supporting infrastructure.
 
-**Important**: There are CONTEXT.md files throughout this repository designed specifically for AI agents. Always read the relevant CONTEXT.md files to understand packages and their architecture.
-
 ## Setup
 
-Enable corepack to ensure correct yarn version:
+Requires Node ^20.0.0. Enable corepack to ensure correct yarn version:
 
 ```bash
 npm i -g corepack && yarn
@@ -25,8 +23,6 @@ npm i -g corepack && yarn
 - `yarn dev-docs` - Start documentation site development
 - `yarn dev-vscode` - Start VSCode extension development
 - `yarn dev-template <template name>` - Runs a template
-- `yarn context` - Find and display nearest CONTEXT.md file (supports -v, -r, -u flags)
-- `yarn refresh-context` - Update CONTEXT.md files using Claude Code CLI
 
 ### Building
 
@@ -37,16 +33,20 @@ npm i -g corepack && yarn
 
 ### Testing
 
-- `yarn test run` in a workspace - Run tests in specific workspace (cd to workspace first)
-- `yarn vitest` - Run all tests (slow, avoid unless necessary)
+- `yarn test` in a workspace - Run tests in watch mode (cd to workspace first)
+- `yarn test run` in a workspace - Run tests once without watch mode
+- `yarn test run --grep "pattern"` - Run matching tests in a workspace
+- `yarn vitest` - Run all tests across repo (slow, avoid unless necessary)
 - `yarn e2e` - Run end-to-end tests for examples
 - `yarn e2e-dotcom` - Run end-to-end tests for tldraw.com
 
 ### Code quality
 
 - `yarn lint` - Lint package
-- `yarn typecheck` - Type check all packages (run from repo root)
+- `yarn lint-current` - Lint only changed files (faster)
+- `yarn typecheck` - Type check all packages (run from repo root; also runs `refresh-assets`)
 - `yarn format` - Format code with Prettier
+- `yarn format-current` - Format only changed files (faster)
 - `yarn api-check` - Validate public API consistency
 
 IMPORTANT: NEVER run bare `tsc` - always use `yarn typecheck`.
@@ -180,46 +180,6 @@ Uses `lazyrepo` for incremental builds with caching:
 - Examples showcase SDK capabilities
 - See `apps/examples/writing-examples.md` for guidelines
 
-## Creating new components
-
-**Custom shapes**
-
-1. Create ShapeUtil class extending base ShapeUtil
-2. Implement required methods (getGeometry, component, indicator)
-3. Register in editor via shapeUtils prop
-
-**Custom tools**
-
-1. Create StateNode class with tool logic
-2. Define state machine with onEnter/onExit/event handlers
-3. Register in editor via tools prop
-
-**UI customization**
-
-- Every tldraw UI component can be overridden
-- Pass custom components via `components` prop
-- See existing components for patterns
-
-## Integration notes
-
-**With external apps**
-
-- Import CSS: `import 'tldraw/tldraw.css'` (full) or `import '@tldraw/editor/editor.css'` (editor only)
-- Requires React 18+ and modern bundler
-- Support for Vite, Next.js, and other React frameworks
-
-**Collaboration**
-
-- Use @tldraw/sync for multiplayer
-- WebSocket-based real-time synchronization
-- See templates/sync-cloudflare for implementation example
-
-**Licensing**
-
-- SDK has "Made with tldraw" watermark by default
-- Business license removes watermark
-- See tldraw.dev for licensing details
-
 ## Writing style guidelines
 
 **Sentence case for titles and headings**
@@ -241,7 +201,6 @@ Uses `lazyrepo` for incremental builds with caching:
   - Bold labels in lists (**Label**:)
   - Documentation titles
   - Code comments describing features
-  - CONTEXT.md files
 
 ## Important instruction reminders
 

@@ -51,7 +51,7 @@ if (typeof HTMLImageElement !== 'undefined') {
 }
 
 // Path2D polyfills
-if (typeof Path2D !== 'undefined' && !Path2D.prototype.roundRect) {
+if (typeof Path2D !== 'undefined' && typeof Path2D.prototype.roundRect !== 'function') {
 	Path2D.prototype.roundRect = function (x, y, w, h, _) {
 		this.rect(x, y, w, h)
 	}

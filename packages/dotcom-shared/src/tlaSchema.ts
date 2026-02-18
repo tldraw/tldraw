@@ -1,11 +1,8 @@
 import {
 	boolean,
 	createSchema,
-	definePermissions,
 	enumeration,
-	ExpressionBuilder,
 	number,
-	PermissionsConfig,
 	relationships,
 	Row,
 	string,
@@ -15,7 +12,7 @@ import { IndexKey, stringEnum } from '@tldraw/utils'
 
 export interface ZColumn {
 	optional?: boolean
-	type: 'string' | 'number' | 'boolean'
+	type: 'string' | 'number' | 'boolean' | 'json'
 }
 
 export const user = table('user')
@@ -116,25 +113,6 @@ export const group_file = table('group_file')
 		index: string<IndexKey>().optional(),
 	})
 	.primaryKey('fileId', 'groupId')
-
-export const user_fairies = table('user_fairies')
-	.columns({
-		userId: string(),
-		fairies: string(),
-		fairyLimit: number().optional(),
-		fairyAccessExpiresAt: number().optional(),
-		weeklyUsage: string(),
-		weeklyLimit: number().optional(),
-	})
-	.primaryKey('userId')
-
-export const file_fairies = table('file_fairies')
-	.columns({
-		fileId: string(),
-		userId: string(),
-		fairyState: string(),
-	})
-	.primaryKey('fileId', 'userId')
 
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
@@ -247,24 +225,7 @@ export type TlaGroupFilePartial = Partial<TlaGroupFile> & {
 	groupId: TlaGroupFile['groupId']
 }
 
-export type TlaUserFairyPartial = Partial<TlaUserFairy> & {
-	userId: TlaUserFairy['userId']
-}
-
-export type TlaFileFairyPartial = Partial<TlaFileFairy> & {
-	fileId: TlaFileFairy['fileId']
-	userId: TlaFileFairy['userId']
-}
-
-export type TlaRow =
-	| TlaFile
-	| TlaFileState
-	| TlaUser
-	| TlaGroup
-	| TlaGroupUser
-	| TlaGroupFile
-	| TlaUserFairy
-	| TlaFileFairy
+export type TlaRow = TlaFile | TlaFileState | TlaUser | TlaGroup | TlaGroupUser | TlaGroupFile
 export type TlaRowPartial =
 	| TlaFilePartial
 	| TlaFileStatePartial
@@ -272,8 +233,6 @@ export type TlaRowPartial =
 	| TlaGroupPartial
 	| TlaGroupUserPartial
 	| TlaGroupFilePartial
-	| TlaUserFairyPartial
-	| TlaFileFairyPartial
 export interface TlaUserMutationNumber {
 	userId: string
 	mutationNumber: number
@@ -306,32 +265,6 @@ export interface TlaAsset {
 	userId: string | null
 }
 
-// Override for user_fairies with proper JSONB types for Kysely
-export interface TlaUserFairyDB extends Omit<TlaUserFairy, 'weeklyUsage'> {
-	weeklyUsage: Record<string, number> // JSONB: { "2025-W48": 12.34 }
-}
-
-// Override for fairy_invite with proper JSONB types for Kysely
-export interface TlaFairyInviteDB extends Omit<TlaFairyInvite, 'redeemedBy'> {
-	redeemedBy: string[] // JSONB: ["email1@example.com", "email2@example.com"]
-}
-
-// paddle_transactions is backend-only, not part of Zero schema
-export interface TlaPaddleTransaction {
-	eventId: string
-	transactionId: string
-	eventType: string
-	status: string
-	userId: string | null
-	processed: boolean
-	processedAt: number | null
-	processingError: string | null
-	eventData: Record<string, unknown>
-	occurredAt: number
-	receivedAt: number
-	updatedAt: number
-}
-
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
@@ -339,17 +272,12 @@ export interface DB {
 	group: TlaGroup
 	group_user: TlaGroupUser
 	group_file: TlaGroupFile
-	user_fairies: TlaUserFairyDB
-	file_fairies: TlaFileFairy
-	fairy_invite: TlaFairyInviteDB
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
-	file_fairy_messages: TlaFileFairyMessage
-	paddle_transactions: TlaPaddleTransaction
 }
 
 export const schema = createSchema({
-	tables: [user, file, file_state, group, group_user, group_file, user_fairies, file_fairies],
+	tables: [user, file, file_state, group, group_user, group_file],
 	relationships: [
 		fileRelationships,
 		fileStateRelationships,
@@ -366,118 +294,8 @@ export type TlaFileState = Row<typeof schema.tables.file_state>
 export type TlaGroup = Row<typeof schema.tables.group>
 export type TlaGroupUser = Row<typeof schema.tables.group_user>
 export type TlaGroupFile = Row<typeof schema.tables.group_file>
-export type TlaUserFairy = Row<typeof schema.tables.user_fairies>
-export type TlaFileFairy = Row<typeof schema.tables.file_fairies>
 
-// file_fairy_messages is backend-only, not part of Zero schema
-export interface TlaFileFairyMessage {
-	id: string
-	fileId: string
-	userId: string
-	message: string
-	createdAt: number
-	updatedAt: number
-}
-
-// fairy_invite is backend-only, not part of Zero schema
-export interface TlaFairyInvite {
-	id: string
-	fairyLimit: number
-	maxUses: number
-	currentUses: number
-	createdAt: number
-	description: string | null
-	redeemedBy: string[] // Array of emails
-}
-
-interface AuthData {
-	sub: string | null
-}
-
-export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => {
-	const allowIfIsUser = (authData: AuthData, { cmp }: ExpressionBuilder<TlaSchema, 'user'>) =>
-		cmp('id', '=', authData.sub!)
-
-	const allowIfIsUserIdMatches = (
-		authData: AuthData,
-		{ cmp }: ExpressionBuilder<TlaSchema, 'file_state'>
-	) => cmp('userId', '=', authData.sub!)
-
-	const userCanAccessGroupMembershipListing = (
-		authData: AuthData,
-		{ or, cmp, exists }: ExpressionBuilder<TlaSchema, 'group_user'>
-	) =>
-		or(
-			// User can see their own group memberships
-			cmp('userId', '=', authData.sub!),
-			// User can see memberships of groups they belong to
-			exists('group', (q) =>
-				q.whereExists('groupMembers', (q) => q.where('userId', '=', authData.sub!))
-			)
-		)
-
-	const userCanAccessFile = (
-		authData: AuthData,
-		{ exists, cmp, or }: ExpressionBuilder<TlaSchema, 'file'>
-	) =>
-		or(
-			// User owns the file directly (redundant given that every owned file will have a file_state now, but should be faster to check)
-			cmp('ownerId', '=', authData.sub!),
-			// User has a file_state (file is shared)
-			exists('states', (q) => q.where('userId', '=', authData.sub!)),
-			// User is a member of a group that has access to the file
-			exists('groupFiles', (q) =>
-				q.whereExists('groupMembers', (q) => q.where('userId', '=', authData.sub!))
-			)
-		)
-
-	const userCanAccessGroup = (
-		authData: AuthData,
-		{ exists }: ExpressionBuilder<TlaSchema, 'group'>
-	) =>
-		// User can access groups they are members of
-		exists('groupMembers', (q) => q.where('userId', '=', authData.sub!))
-
-	const userCanAccessGroupFile = (
-		authData: AuthData,
-		{ exists }: ExpressionBuilder<TlaSchema, 'group_file'>
-	) =>
-		// User can access group_file records for groups they are members of
-		exists('groupMembers', (q) => q.where('userId', '=', authData.sub!))
-
-	return {
-		user: {
-			row: {
-				select: [allowIfIsUser],
-			},
-		},
-		file: {
-			row: {
-				select: [userCanAccessFile],
-			},
-		},
-		file_state: {
-			row: {
-				select: [allowIfIsUserIdMatches],
-			},
-		},
-		group: {
-			row: {
-				select: [userCanAccessGroup],
-			},
-		},
-		group_user: {
-			row: {
-				select: [userCanAccessGroupMembershipListing],
-			},
-		},
-		group_file: {
-			row: {
-				select: [userCanAccessGroupFile],
-			},
-		},
-	} satisfies PermissionsConfig<AuthData, TlaSchema>
-})
+// Permissions are now handled via Synced Queries in queries.ts
 
 export const TlaFlags = stringEnum('groups_backend', 'groups_frontend')
 export type TlaFlags = keyof typeof TlaFlags

@@ -90,6 +90,7 @@
 	"action.save-copy": "Tallenna kopio",
 	"action.select-all": "Valitse kaikki",
 	"action.select-none": "Poista valinta",
+	"action.select-zoom-tool": "Zoomaa",
 	"action.send-backward": "Eteenpäin",
 	"action.send-to-back": "Taaksepäin",
 	"action.share-project": "Jaa tämä projekti",

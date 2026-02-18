@@ -1,5 +1,8 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
+import { mustGetQuery } from '@rocicorp/zero'
+import { PushProcessor, handleQueryRequest } from '@rocicorp/zero/server'
+import { zeroPostgresJS } from '@rocicorp/zero/server/adapters/postgresjs'
 import {
 	FILE_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
@@ -7,6 +10,7 @@ import {
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
 	createMutators,
+	queries,
 	schema,
 } from '@tldraw/dotcom-shared'
 import {
@@ -19,17 +23,11 @@ import {
 	notFound,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { cors, json } from 'itty-router'
-import {
-	PostgresJSConnection,
-	PushProcessor,
-	ZQLDatabase,
-} from '../../../../node_modules/@rocicorp/zero/out/zero/src/pg'
+import { IRequest, cors, json } from 'itty-router'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
-import { paddleWebhooks } from './paddleWebhooks'
-import { createPostgresConnectionPool, makePostgresConnector } from './postgres'
+import { createPostgresConnectionPool } from './postgres'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getPierreHistory } from './routes/getPierreHistory'
@@ -45,7 +43,6 @@ import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
-import { redeemFairyInvite } from './routes/tla/redeemFairyInvite'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, QueueMessage, isDebugLogging } from './types'
@@ -113,6 +110,14 @@ const router = createRouter<Environment>()
 			return notFound()
 		}
 
+		if (req.params.userId !== auth.userId) return notFound()
+		const stub = getUserDurableObject(env, auth.userId)
+		return stub.fetch(req)
+	})
+	.post('/app/:userId/init', async (req, env) => {
+		// Ensure user exists in DB before Zero can query
+		const auth = await requireAuth(req, env)
+		if (req.params.userId !== auth.userId) return notFound()
 		const stub = getUserDurableObject(env, auth.userId)
 		return stub.fetch(req)
 	})
@@ -139,7 +144,6 @@ const router = createRouter<Environment>()
 	.post('/app/uploads/:objectName', upload)
 	.get('/app/invite/:token', getInviteInfo)
 	.post('/app/invite/:token/accept', acceptInvite)
-	.post('/app/fairy-invite/redeem', redeemFairyInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
 		if (isDebugLogging(env)) {
@@ -174,14 +178,31 @@ const router = createRouter<Environment>()
 	})
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
-	.all('/app/paddle/*', paddleWebhooks.fetch)
-	.post('/app/zero/push', async (req, env) => {
-		const auth = await requireAuth(req, env)
+	.post('/app/zero/mutate', async (req, env) => {
+		const auth = await getAuth(req, env)
+		if (!auth) {
+			return Response.json({ error: 'Unauthorized' }, { status: 401 })
+		}
 		const processor = new PushProcessor(
-			new ZQLDatabase(new PostgresJSConnection(makePostgresConnector(env)), schema),
+			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),
 			'debug'
 		)
 		const result = await processor.process(createMutators(auth.userId), req)
+		return json(result)
+	})
+	.post('/app/zero/query', async (req, env) => {
+		const auth = await getAuth(req, env)
+		if (!auth) {
+			return Response.json({ error: 'Unauthorized' }, { status: 401 })
+		}
+		const result = await handleQueryRequest(
+			(name, args) => {
+				const query = mustGetQuery(queries, name)
+				return query.fn({ args, ctx: { userId: auth.userId } })
+			},
+			schema,
+			req
+		)
 		return json(result)
 	})
 	.all('*', notFound)
@@ -233,6 +254,59 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			}
 			throw err
 		})
+	}
+
+	// RPC methods — only callable by workers with a service binding, not from the public internet.
+
+	// Validates auth + file write access before the upload is written to R2.
+	async validateUpload(
+		fileId: string,
+		authorizationHeader: string | null
+	): Promise<{ ok: true; userId: string | null } | { ok: false; error: string }> {
+		const db = createPostgresConnectionPool(this.env, 'sync-worker')
+		try {
+			const file = await db
+				.selectFrom('file')
+				.where('id', '=', fileId)
+				.select(['ownerId', 'owningGroupId', 'shared', 'sharedLinkType'])
+				.executeTakeFirst()
+			if (!file) return { ok: false, error: 'File not found' }
+
+			let userId: string | null = null
+			if (authorizationHeader) {
+				const fakeReq = new Request('https://internal', {
+					headers: { Authorization: authorizationHeader },
+				}) as unknown as IRequest
+				const auth = await getAuth(fakeReq, this.env)
+				userId = auth?.userId ?? null
+			}
+
+			const isSharedEdit = file.shared && file.sharedLinkType === 'edit'
+			if (userId && file.ownerId === userId) {
+				// owner
+			} else if (isSharedEdit) {
+				// shared for editing
+			} else if (userId && file.owningGroupId) {
+				const member = await db
+					.selectFrom('group_user')
+					.select('role')
+					.where('groupId', '=', file.owningGroupId)
+					.where('userId', '=', userId)
+					.executeTakeFirst()
+				if (!member) return { ok: false, error: 'Forbidden' }
+			} else {
+				return { ok: false, error: 'Forbidden' }
+			}
+
+			return { ok: true, userId }
+		} finally {
+			await db.destroy()
+		}
+	}
+
+	// Queues the DB association after a successful R2 upload.
+	async confirmUpload(objectName: string, fileId: string, userId: string | null): Promise<void> {
+		await this.env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId })
 	}
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {

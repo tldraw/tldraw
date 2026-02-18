@@ -58,6 +58,7 @@ export default [
 			'apps/docs/postcss.config.js',
 			'apps/docs/tailwind.config.js',
 			'apps/dotcom/client/public/sw.js',
+			'apps/dotcom/client/public/theme-init.js',
 			'apps/analytics/public/*',
 			'**/.clasp.json',
 			'**/*.mjs',
@@ -95,7 +96,7 @@ export default [
 			sourceType: 'script',
 
 			parserOptions: {
-				project: true,
+				projectService: true,
 			},
 		},
 
@@ -298,7 +299,6 @@ export default [
 		files: ['apps/dotcom/client/**/*'],
 
 		rules: {
-			'local/no-fairy-imports': 'error',
 			'no-restricted-globals': [
 				'error',
 				{

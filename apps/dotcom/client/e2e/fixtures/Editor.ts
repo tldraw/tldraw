@@ -65,6 +65,7 @@ export class Editor {
 		await this.fileName.click()
 		await this.page.getByRole('textbox').fill(newName)
 		await this.page.keyboard.press('Enter')
+		await this.sidebar.mutationResolution()
 	}
 
 	@step

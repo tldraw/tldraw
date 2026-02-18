@@ -90,6 +90,7 @@
 	"action.save-copy": "Desar una còpia",
 	"action.select-all": "Seleccionar tot",
 	"action.select-none": "Desseleccionar tot",
+	"action.select-zoom-tool": "Zoom",
 	"action.send-backward": "Enviar cap enrere",
 	"action.send-to-back": "Enviar al fons",
 	"action.share-project": "Compartir aquest projecte",

@@ -208,3 +208,23 @@ export function useCanUndo() {
 	const editor = useEditor()
 	return useValue('useCanUndo', () => editor.getCanUndo(), [editor])
 }
+
+/** Returns true if the current page has at least one shape. */
+export function useHasShapesOnPage() {
+	const editor = useEditor()
+	return useValue('hasShapesOnPage', () => editor.getCurrentPageShapeIds().size > 0, [editor])
+}
+
+/**
+ * Returns true if the user is in the select tool and has at least one shape selected.
+ * This corresponds to the `canApplySelectionAction()` check in actions.tsx.
+ * @public
+ */
+export function useCanApplySelectionAction() {
+	const editor = useEditor()
+	return useValue(
+		'canApplySelectionAction',
+		() => editor.isIn('select') && editor.getSelectedShapeIds().length > 0,
+		[editor]
+	)
+}

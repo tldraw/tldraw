@@ -1760,6 +1760,18 @@ describe('removes can move camera', () => {
 	})
 })
 
+describe('Add camera state to instance', () => {
+	const { up, down } = getTestMigration(instanceVersions.AddCameraState)
+
+	test('up works as expected', () => {
+		expect(up({})).toStrictEqual({ cameraState: 'idle' })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ cameraState: 'idle' })).toStrictEqual({})
+	})
+})
+
 describe('Add text align to text shapes', () => {
 	const { up, down } = getTestMigration(textShapeVersions.AddTextAlign)
 

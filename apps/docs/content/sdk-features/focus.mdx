@@ -1,0 +1,120 @@
+---
+title: Focus
+created_at: 12/20/2025
+updated_at: 12/29/2025
+keywords:
+  - focus
+  - blur
+  - keyboard
+  - FocusManager
+  - container
+  - input
+status: published
+date: 12/20/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+Focus determines whether the editor receives keyboard shortcuts, scroll wheel gestures, and pointer move events. When focused, these inputs go to the editor. When unfocused, they pass through to the rest of your page.
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw autoFocus={true} />
+		</div>
+	)
+}
+```
+
+## Controlling focus
+
+Use [Editor#focus](?) and [Editor#blur](?) to programmatically control focus:
+
+```typescript
+editor.focus()
+editor.blur()
+editor.getIsFocused() // true or false
+```
+
+Both methods accept options to control whether the container element should also receive or lose DOM focus:
+
+```typescript
+editor.focus({ focusContainer: false })
+editor.blur({ blurContainer: false })
+```
+
+### Focus/blur options
+
+| Method  | Option           | Default | Description                                             |
+| ------- | ---------------- | ------- | ------------------------------------------------------- |
+| `focus` | `focusContainer` | `true`  | Whether to also dispatch a DOM focus event to container |
+| `blur`  | `blurContainer`  | `true`  | Whether to also dispatch a DOM blur event to container  |
+
+## Why focus is separate from DOM focus
+
+The editor tracks focus separately from the browser's DOM focus. The browser's focus model isn't reliable enough for an editor like tldraw. Iframes aren't considered descendants of their parent elements, many menus are portalled into different parts of the document tree, and the document's active element can be unpredictable.
+
+The editor maintains its own `isFocused` state in the instance record. This lets you distinguish between "editor focus" (whether the editor responds to keyboard shortcuts) and "element focus" (which HTML element is active in the DOM).
+
+When `isFocused` changes, the editor adds or removes the `tl-container__focused` CSS class on the container. Use this class for styling instead of `:focus` or `:focus-within` pseudo-selectors, which can't reliably detect editor focus.
+
+## Auto-focus
+
+The `autoFocus` prop controls whether the editor focuses when it mounts. It defaults to `true`. Set it to `false` when embedding the editor in a page where you don't want it to capture keyboard input immediately.
+
+```tsx
+<Tldraw autoFocus={false} />
+```
+
+## Focus ring visibility
+
+The editor manages focus ring visibility for accessibility. Focus rings appear around focused elements during keyboard navigation but are hidden during mouse interactions.
+
+When you press Tab, ArrowUp, or ArrowDown, the editor removes the `tl-container__no-focus-ring` class to show focus rings. Mouse clicks add the class back to hide them. Focus rings also stay hidden during shape editing.
+
+## Completing interactions on blur
+
+When you call `editor.blur()`, it calls `editor.complete()` to finish any ongoing interaction like a drag or draw operation. This prevents the editor from being left in an incomplete state when focus is lost.
+
+## Multiple editors
+
+When you have multiple editors on the same page, you'll need to manage focus yourself. The browser's DOM focus alone isn't enough to reliably switch which editor receives keyboard input.
+
+```tsx
+function MultipleEditors() {
+	const [editors, setEditors] = useState<Editor[]>([])
+
+	function handleEditorFocus(focusedEditor: Editor) {
+		for (const editor of editors) {
+			if (editor === focusedEditor) {
+				editor.focus()
+			} else {
+				editor.blur()
+			}
+		}
+	}
+
+	return (
+		<>
+			<div onFocus={() => editors[0] && handleEditorFocus(editors[0])}>
+				<Tldraw autoFocus={false} onMount={(e) => setEditors((prev) => [...prev, e])} />
+			</div>
+			<div onFocus={() => editors[1] && handleEditorFocus(editors[1])}>
+				<Tldraw autoFocus={false} onMount={(e) => setEditors((prev) => [...prev, e])} />
+			</div>
+		</>
+	)
+}
+```
+
+## Related examples
+
+- [Editor focus](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-focus) - Control editor focus with focus and blur methods.
+- [Multiple editors](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/multiple) - Manage focus between multiple tldraw instances.

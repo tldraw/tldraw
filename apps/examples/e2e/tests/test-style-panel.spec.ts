@@ -9,7 +9,7 @@ test.describe('Style selection behaviour', () => {
 	test.beforeEach(setupOrReset)
 	test('selecting a style hints the button', async ({ isMobile, stylePanel, toolbar }) => {
 		const { blue, black } = stylePanel.colors
-		const { pattern, none } = stylePanel.fill
+		const { solid, none } = stylePanel.fill
 		if (isMobile) {
 			await toolbar.mobileStylesButton.click()
 		}
@@ -17,15 +17,15 @@ test.describe('Style selection behaviour', () => {
 		await stylePanel.isActive(black)
 		await stylePanel.isActive(none)
 		// these are not hinted by default
-		await stylePanel.isInactive(pattern)
+		await stylePanel.isInactive(solid)
 		await stylePanel.isInactive(blue)
 
 		await blue.click()
 		await stylePanel.isActive(blue)
 		await stylePanel.isInactive(black)
 
-		await pattern.click()
-		await stylePanel.isActive(pattern)
+		await solid.click()
+		await stylePanel.isActive(solid)
 		await stylePanel.isInactive(none)
 		// this should not change the hint state of color buttons
 		await stylePanel.isActive(blue)
@@ -40,7 +40,7 @@ test.describe('Style selection behaviour', () => {
 		const { blue } = stylePanel.colors
 		const { rectangle } = toolbar.tools
 		const { popoverRectangle } = toolbar.popOverTools
-		const { pattern } = stylePanel.fill
+		const { solid } = stylePanel.fill
 		if (isMobile) {
 			await toolbar.mobileStylesButton.click()
 		}
@@ -59,7 +59,7 @@ test.describe('Style selection behaviour', () => {
 		if (isMobile) {
 			await toolbar.mobileStylesButton.click()
 		}
-		await pattern.click()
+		await solid.click()
 		await rectangle.click()
 		await page.mouse.click(250, 150)
 		await page.mouse.move(100, 100)
@@ -67,7 +67,7 @@ test.describe('Style selection behaviour', () => {
 		await page.mouse.move(400, 400)
 		await page.mouse.up()
 		const shapes2 = await page.evaluate(() => editor.getSelectedShapes())
-		expect(shapes2.every((s: any) => s.props.color === 'blue' && s.props.fill === 'pattern')).toBe(
+		expect(shapes2.every((s: any) => s.props.color === 'blue' && s.props.fill === 'solid')).toBe(
 			true
 		)
 	})

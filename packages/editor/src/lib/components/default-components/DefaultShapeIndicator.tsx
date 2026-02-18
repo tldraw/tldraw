@@ -4,8 +4,8 @@ import classNames from 'classnames'
 import { memo, useLayoutEffect, useRef } from 'react'
 import type { Editor } from '../../editor/Editor'
 import { ShapeUtil } from '../../editor/shapes/ShapeUtil'
+import { useEditorComponents } from '../../hooks/EditorComponentsContext'
 import { useEditor } from '../../hooks/useEditor'
-import { useEditorComponents } from '../../hooks/useEditorComponents'
 import { OptionalErrorBoundary } from '../ErrorBoundary'
 
 // need an extra layer of indirection here to allow hooks to be used inside the indicator render

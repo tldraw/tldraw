@@ -1,0 +1,75 @@
+---
+title: 'v3.14.0'
+created_at: 3/7/2025
+updated_at: 3/7/2025
+keywords:
+  - changelog
+  - release
+  - v3.14
+  - v3.14.0
+  - v3.14.1
+  - v3.14.2
+  - contextual-toolbar
+  - image-editing
+  - video-editing
+  - pathbuilder
+  - cropping
+status: published
+---
+
+This release introduces contextual toolbars for image and video shapes, enhanced cropping options, and a new PathBuilder API.
+
+## API changes
+
+- 💥 **`Editor#getShapePageGeometry`** removed.
+- 💥 **`Editor#getShapesAtPoint`** now returns shapes in descending index order.
+- 💥 **Locked shapes** cannot be duplicated; pasting locked shapes unlocks them.
+- 💥 **`ShapeUtil.canDropShapes`** removed—drag-and-drop participation now requires implementing handlers.
+- Add `TldrawUiContextualToolbar` component enabling developers to create floating toolbars.
+- Add `PathBuilder` API for constructing tldraw-style inky and dashed SVGs.
+- Add arrow binding configuration for controlling when arrows should be exact and/or bind.
+- Add `measureScrollWidth` option for text measurement.
+- Add `defaultAutoplay` boolean property for `VideoShapeUtil`.
+
+## Improvements
+
+- Add image and video contextual toolbar with floating controls for enhanced interaction.
+- Add download functionality for image and video shapes to download original files.
+- Add advanced image cropping options.
+- Improve context menu keyboard support.
+- Improve style panel keyboard navigation.
+- Improve focus management.
+- Optimize copy operations.
+- Optimize arrow rendering with labels.
+- Optimize shape resizing.
+- Optimize keyboard interactions.
+- Optimize arrow dragging.
+- Improve text measurement caching.
+
+## Bug fixes
+
+- Fix page menu scrolling behavior.
+- Fix undo functionality for sticky creation.
+- Fix bookmark hyperlink handling.
+- Fix SVG output and vector calculations.
+- Fix frame resizing with multiple selections.
+- Fix HTML copy-paste positioning.
+- Fix keyboard shortcuts and text overflow issues.
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.14.0)
+
+---
+
+## Patch releases
+
+### v3.14.1
+
+- Fix text measurement bug where styles could leak from one measurement to the next. ([#6388](https://github.com/tldraw/tldraw/pull/6388))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.14.1)
+
+### v3.14.2
+
+- Fix HTML entities being escaped in clipboard operations. ([#6396](https://github.com/tldraw/tldraw/pull/6396))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.14.2)

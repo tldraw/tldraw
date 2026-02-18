@@ -82,6 +82,11 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 			y: number
 		}
 	} | null
+	/**
+	 * Whether the camera is currently moving or idle. Used to optimize rendering
+	 * and hit-testing during panning/zooming.
+	 */
+	cameraState: 'idle' | 'moving'
 }
 
 /**
@@ -129,6 +134,7 @@ export const shouldKeyBePreservedBetweenSessions = {
 	isReadonly: true, // preserves because it's a config option
 	meta: false, // does not preserve because who knows what's in there, leave it up to sdk users to save and reinstate
 	duplicateProps: false, //
+	cameraState: false, // does not preserve because it's a temporary state
 } as const satisfies { [K in keyof TLInstance]: boolean }
 
 /**
@@ -238,6 +244,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 					y: T.number,
 				}),
 			}).nullable(),
+			cameraState: T.literalEnum('idle', 'moving'),
 		})
 	)
 
@@ -274,6 +281,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isChangingStyle: true,
 			isReadonly: true,
 			duplicateProps: true,
+			cameraState: true,
 		},
 	}).withDefaultProperties(
 		(): Omit<TLInstance, 'typeName' | 'id' | 'currentPageId'> => ({
@@ -307,6 +315,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isReadonly: false,
 			meta: {},
 			duplicateProps: null,
+			cameraState: 'idle',
 		})
 	)
 }
@@ -346,6 +355,7 @@ export const instanceVersions = createMigrationIds('com.tldraw.instance', {
 	AddInset: 23,
 	AddDuplicateProps: 24,
 	RemoveCanMoveCamera: 25,
+	AddCameraState: 26,
 } as const)
 
 // TODO: rewrite these to use mutation
@@ -612,6 +622,15 @@ export const instanceMigrations = createRecordMigrationSequence({
 			},
 			down: (instance) => {
 				return { ...instance, canMoveCamera: true }
+			},
+		},
+		{
+			id: instanceVersions.AddCameraState,
+			up: (record) => {
+				return { ...record, cameraState: 'idle' }
+			},
+			down: ({ cameraState: _, ...record }: any) => {
+				return record
 			},
 		},
 	],

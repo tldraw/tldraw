@@ -90,6 +90,7 @@
 	"action.save-copy": "사본 저장",
 	"action.select-all": "전체 선택",
 	"action.select-none": "선택 안함",
+	"action.select-zoom-tool": "확대/축소",
 	"action.send-backward": "뒤로 보내기",
 	"action.send-to-back": "맨 뒤로 보내기",
 	"action.share-project": "이 프로젝트 공유",

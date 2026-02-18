@@ -71,10 +71,12 @@ async function listPreviewWorkerDeployments() {
 		data.result
 			.map((r) => r.id)
 			.filter((id) => id.match(CLOUDFLARE_WORKER_REGEX))
-			// We want to delete the image optimizers first since they have a service binding to the main workers
+			// Delete workers with service bindings to other workers first (image-optimizer and tldrawusercontent both bind to the sync worker)
 			.sort((a, b) => {
-				if (a.includes('image-optimizer')) return -1
-				if (b.includes('image-optimizer')) return 1
+				const aHasBinding = a.includes('image-optimizer') || a.includes('tldrawusercontent')
+				const bHasBinding = b.includes('image-optimizer') || b.includes('tldrawusercontent')
+				if (aHasBinding && !bHasBinding) return -1
+				if (!aHasBinding && bHasBinding) return 1
 				return 0
 			})
 	)

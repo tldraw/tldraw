@@ -1,0 +1,149 @@
+---
+title: 'v2.4.0'
+created_at: 7/22/2024
+updated_at: 7/22/2024
+keywords:
+  - changelog
+  - release
+  - v2.4
+  - v2.4.0
+  - v2.4.1
+  - v2.4.2
+  - v2.4.3
+  - v2.4.4
+  - v2.4.5
+  - v2.4.6
+  - sync
+  - interpolation
+  - animation
+  - assets
+  - editor-run
+status: published
+---
+
+This release introduces our sync engine as a general-use library, new animation options for shapes, support for image flipping, and many bug fixes and developer experience enhancements.
+
+## What's new
+
+### Sync ([#4031](https://github.com/tldraw/tldraw/pull/4031))
+
+For the first time, we're releasing our real-time collaboration engine—the one we developed for tldraw.com—as a general library. The SDK still supports any backend for collaboration, but we hope this will be the easiest option for developers. See the new `sync` package in the repository and the multiplayer-demo example.
+
+### Interpolation ([#4162](https://github.com/tldraw/tldraw/pull/4162))
+
+You can use `Editor.animateShapes` to animate shapes on the canvas. Previously only position and rotation would animate. Now you can implement `ShapeUtil.getInterpolatedProps` to describe how your custom shape's other properties should animate.
+
+```ts
+override getInterpolatedProps(
+  startShape: Shape,
+  endShape: Shape,
+  t: number
+): Shape['props'] {
+  return {
+    ...endShape.props,
+    w: lerp(startShape.props.w, endShape.props.w, t),
+    h: lerp(startShape.props.h, endShape.props.h, t),
+  }
+}
+```
+
+### Editor.run ([#4042](https://github.com/tldraw/tldraw/pull/4042))
+
+The new `Editor.run` method runs a function within additional context. By default, the function runs inside a transaction, meaning all changes settle at once—improving performance and avoiding unnecessary renders. You can also use options to ignore history or ignore locked shapes.
+
+```ts
+editor.run(
+	() => {
+		editor.createShapes(myShapes)
+		editor.sendToBack(myShapes)
+		editor.selectNone()
+	},
+	{ history: 'ignore' }
+)
+```
+
+### Assets
+
+As part of our work on sync, we have a new system for handling large assets like images and videos. Provide a [`TLAssetStore`](https://tldraw.dev/reference/tlschema/TLAssetStore) to control how assets are uploaded and retrieved. Use [`Editor.uploadAsset`](https://tldraw.dev/reference/editor/Editor#uploadAsset) and [`Editor.resolveAssetURL`](https://tldraw.dev/reference/editor/Editor#resolveAssetUrl) in your shapes and tools.
+
+## API changes
+
+- 💥 **`editor.history.ignore(cb)`** replaced with `editor.run(cb, {history: 'ignore'})`.
+- 💥 **`editor.batch`** deprecated, replaced with `editor.run`.
+- 💥 **`@tldraw/state` imports**: If you're importing from `@tldraw/state` directly, the `track` function and all hooks (e.g. `useValue`) have moved to `@tldraw/state-react`. ([#4170](https://github.com/tldraw/tldraw/pull/4170))
+- Add `DefaultMenuPanel` export. ([#4193](https://github.com/tldraw/tldraw/pull/4193))
+- Make `fileSize` property of `TLImageAsset` and `TLVideoAsset` optional. ([#4206](https://github.com/tldraw/tldraw/pull/4206))
+- Allow passing partial `TLEditorSnapshot` to `TldrawImage` and `useTLStore`. ([#4190](https://github.com/tldraw/tldraw/pull/4190))
+- Make `EffectScheduler` and `useStateTracking` public. ([#4155](https://github.com/tldraw/tldraw/pull/4155))
+- Add `setDefaultValue` to `StyleProp`. ([#4044](https://github.com/tldraw/tldraw/pull/4044))
+- Add `ShapeUtil.getInterpolatedProps`. ([#4162](https://github.com/tldraw/tldraw/pull/4162))
+- Add `Editor.run`, replacing `Editor.batch`. ([#4042](https://github.com/tldraw/tldraw/pull/4042))
+
+## Improvements
+
+- Add horizontal and vertical flipping for images. ([#4113](https://github.com/tldraw/tldraw/pull/4113))
+- Allow custom tools to decide whether they are affected by shape lock. ([#4208](https://github.com/tldraw/tldraw/pull/4208))
+- Serve icons as a single SVG instead of many individual requests. ([#4150](https://github.com/tldraw/tldraw/pull/4150))
+- Make paste-at-point behavior based on a user preference. ([#4104](https://github.com/tldraw/tldraw/pull/4104))
+- Show toast when uploading an unsupported file type or file that's too large. ([#4114](https://github.com/tldraw/tldraw/pull/4114))
+- Show toast when pasting fails due to missing clipboard permissions. ([#4117](https://github.com/tldraw/tldraw/pull/4117))
+- Add `ShapeIndicators` component for custom logic about when to display indicators. ([#4083](https://github.com/tldraw/tldraw/pull/4083))
+- Animate shape opacity changes. ([#4242](https://github.com/tldraw/tldraw/pull/4242))
+
+## Bug fixes
+
+- Fix font style export to SVG. ([#4195](https://github.com/tldraw/tldraw/pull/4195))
+- Fix `force` flag for camera methods. ([#4214](https://github.com/tldraw/tldraw/pull/4214))
+- Show user's color scheme in menu by default. ([#4184](https://github.com/tldraw/tldraw/pull/4184))
+- Fix padding for dynamically scaled text shapes. ([#4140](https://github.com/tldraw/tldraw/pull/4140))
+- Fix `cameraOptions` via React causing editor to re-mount. ([#4089](https://github.com/tldraw/tldraw/pull/4089))
+- Allow high-res images to be uploaded. ([#4198](https://github.com/tldraw/tldraw/pull/4198))
+- Prevent locked shapes from being updated, grouped, or ungrouped programmatically. ([#4042](https://github.com/tldraw/tldraw/pull/4042))
+- Fix `snapshots` prop in `createTLStore`. ([#4233](https://github.com/tldraw/tldraw/pull/4233))
+- Fix grid backgrounds with multiple tldraw instances. ([#4132](https://github.com/tldraw/tldraw/pull/4132))
+- Fix inputs staying in place while viewport-following. ([#4108](https://github.com/tldraw/tldraw/pull/4108))
+- Fix bookmarks rendering across devices. ([#4118](https://github.com/tldraw/tldraw/pull/4118))
+- Fix `InFrontOfTheCanvas` component stack order. ([#4024](https://github.com/tldraw/tldraw/pull/4024))
+- Fix frame headers not stopping edit on focus loss. ([#4092](https://github.com/tldraw/tldraw/pull/4092))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.4.0)
+
+---
+
+## Patch releases
+
+### v2.4.1
+
+- Fix `assets` prop on `<Tldraw />` and `<TldrawEditor />` components not being respected. ([#4285](https://github.com/tldraw/tldraw/pull/4285))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.4.1)
+
+### v2.4.2
+
+- Fix bugs and improve the sync engine and related packages. ([#4309](https://github.com/tldraw/tldraw/pull/4309))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.4.2)
+
+### v2.4.3
+
+- Fix bugs in the tldraw package. ([#4328](https://github.com/tldraw/tldraw/pull/4328))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.4.3)
+
+### v2.4.4
+
+- Fix bugs in the editor, sync, tldraw, and tlschema packages. ([#4352](https://github.com/tldraw/tldraw/pull/4352))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.4.4)
+
+### v2.4.5
+
+- Fix unhandled promise rejection during strict mode in the editor. ([#4407](https://github.com/tldraw/tldraw/pull/4407))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.4.5)
+
+### v2.4.6
+
+- Improve rendering performance in the store and tldraw packages. ([#4434](https://github.com/tldraw/tldraw/pull/4434))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v2.4.6)
