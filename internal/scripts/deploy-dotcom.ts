@@ -5,6 +5,7 @@ import { execSync } from 'child_process'
 import * as fs from 'fs'
 import { existsSync, readdirSync, writeFileSync } from 'fs'
 import path from 'path'
+import { performance } from 'perf_hooks'
 import { PassThrough } from 'stream'
 import * as tar from 'tar'
 import {
@@ -126,6 +127,45 @@ const discord = new Discord({
 
 const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}-${sha}`
 
+interface TimingEntry {
+	label: string
+	durationMs: number
+}
+
+const timings: TimingEntry[] = []
+
+function formatDurationMs(durationMs: number) {
+	if (durationMs >= 60_000) return `${(durationMs / 60_000).toFixed(2)}m`
+	if (durationMs >= 1_000) return `${(durationMs / 1_000).toFixed(2)}s`
+	return `${durationMs.toFixed(0)}ms`
+}
+
+async function withTiming<T>(label: string, fn: () => Promise<T> | T): Promise<T> {
+	const startedAt = performance.now()
+	try {
+		return await fn()
+	} finally {
+		const durationMs = performance.now() - startedAt
+		timings.push({ label, durationMs })
+		nicelog(`[timing] ${label}: ${formatDurationMs(durationMs)}`)
+	}
+}
+
+function logTimingSummary() {
+	if (!timings.length) return
+	nicelog('[timing] deploy breakdown (longest first):')
+	for (const [index, entry] of timings
+		.slice()
+		.sort((a, b) => b.durationMs - a.durationMs)
+		.entries()) {
+		nicelog(
+			`[timing] ${String(index + 1).padStart(2, '0')}. ${entry.label}: ${formatDurationMs(
+				entry.durationMs
+			)}`
+		)
+	}
+}
+
 if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
@@ -137,8 +177,9 @@ const zeroMutateUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero
 const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/query`
 
 // Zero connection limits per environment.
-// UPSTREAM_DB requires direct connections (logical replication), CVR_DB and CHANGE_DB use pooled.
-// Staging: Supabase Micro (15 direct pool size, 200 pooled clients)
+// All DBs use direct connections. Pooled connections (PgBouncer/Supavisor transaction mode) break
+// prepared statements which Zero's postgres.js driver uses internally.
+// Staging: Supabase Micro (60 max_connections, 200 pooled clients)
 // Preview: Neon 0.25 CU (104 max_connections shared across all preview branches)
 // Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
 // TODO(production): tune these once we know prod Postgres limits
@@ -173,6 +214,7 @@ const zeroConns = zeroConnectionLimits[env.TLDRAW_ENV as keyof typeof zeroConnec
 	| MultiNodeConnLimits
 
 async function main() {
+	const deployStart = performance.now()
 	assert(
 		env.TLDRAW_ENV === 'staging' || env.TLDRAW_ENV === 'production' || env.TLDRAW_ENV === 'preview',
 		'TLDRAW_ENV must be staging or production or preview'
@@ -182,77 +224,115 @@ async function main() {
 
 	await discord.step('setting up deploy', async () => {
 		// make sure the tldraw .css files are built:
-		await exec('yarn', ['lazy', 'prebuild'])
+		await withTiming('prebuild assets', () => exec('yarn', ['lazy', 'prebuild']))
 
 		// link to vercel and supabase projects:
-		await vercelCli('link', ['--project', env.VERCEL_PROJECT_ID])
+		await withTiming('vercel link', () => vercelCli('link', ['--project', env.VERCEL_PROJECT_ID]))
 	})
 
 	// deploy pre-flight steps:
 	// 1. get the dotcom app ready to go (env vars and pre-build)
-	await discord.step('building dotcom app', async () => {
-		await createSentryRelease()
-		await prepareDotcomApp()
-		await uploadSourceMaps()
-		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
-	})
+	await withTiming('step: building dotcom app', () =>
+		discord.step('building dotcom app', async () => {
+			await withTiming('dotcom sentry release', () => createSentryRelease())
+			await withTiming('dotcom build', () => prepareDotcomApp())
+			await withTiming('dotcom sourcemap upload', () => uploadSourceMaps())
+			await withTiming('dotcom asset coalescing', () =>
+				coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
+			)
+		})
+	)
 
-	await discord.step('cloudflare deploy dry run', async () => {
-		await deployAssetUploadWorker({ dryRun: true })
-		await deployHealthWorker({ dryRun: true })
-		await deployTlsyncWorker({ dryRun: true })
-		await deployTldrawUserContentWorker({ dryRun: true })
-		await deployImageResizeWorker({ dryRun: true })
-	})
+	await withTiming('step: cloudflare deploy dry run', () =>
+		discord.step('cloudflare deploy dry run', async () => {
+			await withTiming('worker dry run: asset-upload', () =>
+				deployAssetUploadWorker({ dryRun: true })
+			)
+			await withTiming('worker dry run: health', () => deployHealthWorker({ dryRun: true }))
+			await withTiming('worker dry run: multiplayer', () => deployTlsyncWorker({ dryRun: true }))
+			await withTiming('worker dry run: tldrawusercontent', () =>
+				deployTldrawUserContentWorker({ dryRun: true })
+			)
+			await withTiming('worker dry run: image-resize', () =>
+				deployImageResizeWorker({ dryRun: true })
+			)
+		})
+	)
 
 	// --- point of no return! do the deploy for real --- //
 
 	await discord.message(`--- **pre-flight complete, starting real dotcom deploy** ---`)
 
 	// 2. deploy the cloudflare workers:
-	await discord.step('deploying asset uploader to cloudflare', async () => {
-		await deployAssetUploadWorker({ dryRun: false })
-	})
-	await discord.step('deploying multiplayer worker to cloudflare', async () => {
-		await deployTlsyncWorker({ dryRun: false })
-	})
-	await discord.step('deploying tldrawusercontent worker to cloudflare', async () => {
-		await deployTldrawUserContentWorker({ dryRun: false })
-	})
-	await discord.step('deploying image resizer to cloudflare', async () => {
-		await deployImageResizeWorker({ dryRun: false })
-	})
-	await discord.step('deploying health worker to cloudflare', async () => {
-		await deployHealthWorker({ dryRun: false })
-	})
+	await withTiming('step: deploy asset uploader worker', () =>
+		discord.step('deploying asset uploader to cloudflare', async () => {
+			await withTiming('worker deploy: asset-upload', () =>
+				deployAssetUploadWorker({ dryRun: false })
+			)
+		})
+	)
+	await withTiming('step: deploy multiplayer worker', () =>
+		discord.step('deploying multiplayer worker to cloudflare', async () => {
+			await withTiming('worker deploy: multiplayer', () => deployTlsyncWorker({ dryRun: false }))
+		})
+	)
+	await withTiming('step: deploy tldrawusercontent worker', () =>
+		discord.step('deploying tldrawusercontent worker to cloudflare', async () => {
+			await withTiming('worker deploy: tldrawusercontent', () =>
+				deployTldrawUserContentWorker({ dryRun: false })
+			)
+		})
+	)
+	await withTiming('step: deploy image resizer worker', () =>
+		discord.step('deploying image resizer to cloudflare', async () => {
+			await withTiming('worker deploy: image-resize', () =>
+				deployImageResizeWorker({ dryRun: false })
+			)
+		})
+	)
+	await withTiming('step: deploy health worker', () =>
+		discord.step('deploying health worker to cloudflare', async () => {
+			await withTiming('worker deploy: health', () => deployHealthWorker({ dryRun: false }))
+		})
+	)
 
 	// 3. deploy the pre-build dotcom app:
-	const { deploymentUrl, inspectUrl } = await discord.step(
-		'deploying dotcom app to vercel',
-		async () => {
-			return await deploySpa()
-		}
+	const { deploymentUrl, inspectUrl } = await withTiming(
+		'step: deploy dotcom app to vercel',
+		async () =>
+			await discord.step('deploying dotcom app to vercel', async () => {
+				return await withTiming('vercel deploy --prebuilt', () => deploySpa())
+			})
 	)
 
 	let deploymentAlias = null as null | string
 
 	if (previewId) {
 		const aliasDomain = `${previewId}-preview-deploy.tldraw.com`
-		await discord.step('aliasing preview deployment', async () => {
-			await vercelCli('alias', ['set', deploymentUrl, aliasDomain])
-		})
+		await withTiming('step: alias preview deployment', () =>
+			discord.step('aliasing preview deployment', async () => {
+				await withTiming('vercel alias set', () =>
+					vercelCli('alias', ['set', deploymentUrl, aliasDomain])
+				)
+			})
+		)
 
 		deploymentAlias = `https://${aliasDomain}`
 	}
 
 	nicelog('Creating deployment for', deploymentUrl)
-	await createGithubDeployment(env, {
-		app: 'dotcom',
-		deploymentUrl: deploymentAlias ?? deploymentUrl,
-		inspectUrl,
-		sha,
-	})
+	await withTiming('github deployment status update', () =>
+		createGithubDeployment(env, {
+			app: 'dotcom',
+			deploymentUrl: deploymentAlias ?? deploymentUrl,
+			inspectUrl,
+			sha,
+		})
+	)
 
+	const totalDurationMs = performance.now() - deployStart
+	nicelog(`[timing] total deploy script runtime: ${formatDurationMs(totalDurationMs)}`)
+	logTimingSummary()
 	await discord.message(`**Deploy complete!**`)
 }
 
@@ -482,6 +562,11 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	)
 }
 
+function withStatementTimeout(connString: string): string {
+	const separator = connString.includes('?') ? '&' : '?'
+	return `${connString}${separator}statement_timeout=0`
+}
+
 function updateFlyioToml(appName: string): void {
 	assert('single' in zeroConns, 'single-node connection limits required')
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio.template.toml')
@@ -494,10 +579,9 @@ function updateFlyioToml(appName: string): void {
 	const updatedContent = fileContent
 		.replace('__APP_NAME', appName)
 		.replace('__ZERO_VERSION', zeroVersion)
-		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
 		.replaceAll(
-			'__BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
-			env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING
+			'__BOTCOM_POSTGRES_CONNECTION_STRING',
+			withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)
 		)
 		.replaceAll('__ZERO_MUTATE_URL', zeroMutateUrl)
 		.replaceAll('__ZERO_QUERY_URL', zeroQueryUrl)
@@ -608,9 +692,9 @@ async function deployZeroViaFlyIoMultiNode() {
 		[
 			'secrets',
 			'set',
-			`ZERO_UPSTREAM_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
-			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING}`,
-			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING}`,
+			`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
 			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
 			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
@@ -637,9 +721,9 @@ async function deployZeroViaFlyIoMultiNode() {
 		[
 			'secrets',
 			'set',
-			`ZERO_UPSTREAM_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
-			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING}`,
-			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING}`,
+			`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
 			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
 			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
