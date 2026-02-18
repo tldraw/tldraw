@@ -134,6 +134,7 @@ import {
 } from '../utils/deepLinks'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
+import { getDroppedShapesToNewParents } from '../utils/reparenting'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
@@ -9632,6 +9633,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return { id: s.id, type: s.type, x: s.x + localDelta.x, y: s.y + localDelta.y }
 				})
 			)
+
+			// If shapes were pasted onto the page (not into a specific parent),
+			// check whether they landed inside a frame and reparent if so.
+			if (isPageId(pasteParentId)) {
+				const currentRootShapes = compact(rootShapes.map((s) => this.getShape(s.id)))
+				const { reparenting } = getDroppedShapesToNewParents(this, currentRootShapes)
+				reparenting.forEach((childrenToReparent, newParentId) => {
+					if (childrenToReparent.length === 0) return
+					this.reparentShapes(
+						childrenToReparent.map((s) => s.id),
+						newParentId
+					)
+				})
+			}
 		})
 
 		return this

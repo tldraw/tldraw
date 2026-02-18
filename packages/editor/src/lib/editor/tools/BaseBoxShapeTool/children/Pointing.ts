@@ -1,11 +1,11 @@
 import { TLShape, createShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { Vec } from '../../../../primitives/Vec'
-import { Editor } from '../../../Editor'
+import type { Editor } from '../../../Editor'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
 import { TLPointerEventInfo } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
-import { BaseBoxShapeTool } from '../BaseBoxShapeTool'
+import type { BaseBoxShapeTool } from '../BaseBoxShapeTool'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

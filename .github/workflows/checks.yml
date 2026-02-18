@@ -15,10 +15,24 @@ defaults:
     shell: bash
 
 jobs:
+  lint:
+    name: 'Lint'
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores-arm-open
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - uses: ./.github/actions/setup
+
+      - name: Lint
+        run: yarn lint
+
   test:
     name: 'Tests & checks'
     timeout-minutes: 15
-    runs-on: ubuntu-latest-16-cores-open # TODO: this should probably run on multiple OSes
+    runs-on: ubuntu-latest-16-cores-arm-open # TODO: this should probably run on multiple OSes
 
     steps:
       - name: Check out code
@@ -36,7 +50,7 @@ jobs:
         run: yarn check-packages
 
       - name: Restore build tool caches
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: |
             .lazy
@@ -60,9 +74,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      - name: Lint
-        run: yarn lint
-
       - name: Check API declarations and docs work as intended
         run: yarn api-check
 
@@ -77,7 +88,7 @@ jobs:
   build:
     name: 'Build all projects'
     timeout-minutes: 15
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest-16-cores-arm-open
 
     steps:
       - name: Check out code
@@ -86,7 +97,7 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Restore build tool caches
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: |
             .lazy

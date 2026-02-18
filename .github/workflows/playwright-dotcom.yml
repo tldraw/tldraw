@@ -44,7 +44,7 @@ jobs:
     name: 'End to end tests (dotcom)'
     needs: check
     if: needs.check.outputs.relevant == 'true'
-    timeout-minutes: 40
+    timeout-minutes: 20
     runs-on: ubuntu-latest-8-cores-open
     environment: 'e2e-dotcom'
 
@@ -62,17 +62,22 @@ jobs:
           echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./playwright.json').children.Version)")" >> $GITHUB_ENV
         working-directory: 'apps/dotcom/client'
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v5
         name: Check for Playwright browsers cache
         id: playwright-cache
         with:
           path: |
             ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+          key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium chrome
         if: steps.playwright-cache.outputs.cache-hit != 'true'
+
+      - name: Build dotcom client
+        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && yarn run -T lazy run build-i18n && cd apps/dotcom/client && yarn build
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
 
       - name: Run Playwright tests
         run: |

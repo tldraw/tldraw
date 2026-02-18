@@ -80,10 +80,12 @@ const { version } = require('./package.json')
 // Window fetch mock for network requests - handles translation loading
 window.fetch = async (input, init) => {
 	if (input === `https://cdn.tldraw.com/${version}/translations/en.json`) {
-		const json = await import('@tldraw/assets/translations/main.json')
+		const { DEFAULT_TRANSLATION } = await import(
+			'./src/lib/ui/hooks/useTranslation/defaultTranslation.ts'
+		)
 		return {
 			ok: true,
-			json: async () => json.default,
+			json: async () => DEFAULT_TRANSLATION,
 		}
 	}
 

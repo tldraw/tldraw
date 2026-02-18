@@ -1,5 +1,8 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
+import { mustGetQuery } from '@rocicorp/zero'
+import { PushProcessor, handleQueryRequest } from '@rocicorp/zero/server'
+import { zeroPostgresJS } from '@rocicorp/zero/server/adapters/postgresjs'
 import {
 	FILE_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
@@ -7,6 +10,7 @@ import {
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
 	createMutators,
+	queries,
 	schema,
 } from '@tldraw/dotcom-shared'
 import {
@@ -20,15 +24,10 @@ import {
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { IRequest, cors, json } from 'itty-router'
-import {
-	PostgresJSConnection,
-	PushProcessor,
-	ZQLDatabase,
-} from '../../../../node_modules/@rocicorp/zero/out/zero/src/pg'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
-import { createPostgresConnectionPool, makePostgresConnector } from './postgres'
+import { createPostgresConnectionPool } from './postgres'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { getPierreHistory } from './routes/getPierreHistory'
@@ -111,6 +110,14 @@ const router = createRouter<Environment>()
 			return notFound()
 		}
 
+		if (req.params.userId !== auth.userId) return notFound()
+		const stub = getUserDurableObject(env, auth.userId)
+		return stub.fetch(req)
+	})
+	.post('/app/:userId/init', async (req, env) => {
+		// Ensure user exists in DB before Zero can query
+		const auth = await requireAuth(req, env)
+		if (req.params.userId !== auth.userId) return notFound()
 		const stub = getUserDurableObject(env, auth.userId)
 		return stub.fetch(req)
 	})
@@ -171,13 +178,31 @@ const router = createRouter<Environment>()
 	})
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
-	.post('/app/zero/push', async (req, env) => {
-		const auth = await requireAuth(req, env)
+	.post('/app/zero/mutate', async (req, env) => {
+		const auth = await getAuth(req, env)
+		if (!auth) {
+			return Response.json({ error: 'Unauthorized' }, { status: 401 })
+		}
 		const processor = new PushProcessor(
-			new ZQLDatabase(new PostgresJSConnection(makePostgresConnector(env)), schema),
+			zeroPostgresJS(schema, env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING),
 			'debug'
 		)
 		const result = await processor.process(createMutators(auth.userId), req)
+		return json(result)
+	})
+	.post('/app/zero/query', async (req, env) => {
+		const auth = await getAuth(req, env)
+		if (!auth) {
+			return Response.json({ error: 'Unauthorized' }, { status: 401 })
+		}
+		const result = await handleQueryRequest(
+			(name, args) => {
+				const query = mustGetQuery(queries, name)
+				return query.fn({ args, ctx: { userId: auth.userId } })
+			},
+			schema,
+			req
+		)
 		return json(result)
 	})
 	.all('*', notFound)

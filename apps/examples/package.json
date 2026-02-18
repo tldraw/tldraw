@@ -31,14 +31,14 @@
 		"preview": "vite preview --host",
 		"build": "vite build",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"e2e": "NODE_OPTIONS='--no-experimental-strip-types' playwright test -c ./e2e/playwright.config.ts ./e2e/tests/",
-		"e2e-ui": "NODE_OPTIONS='--no-experimental-strip-types' playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/",
+		"e2e": "NODE_OPTIONS='--no-strip-types' playwright test -c ./e2e/playwright.config.ts ./e2e/tests/",
+		"e2e-ui": "NODE_OPTIONS='--no-strip-types' playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
-		"@playwright/test": "^1.50.0",
+		"@playwright/test": "^1.58.2",
 		"@tiptap/core": "^3.12.1",
 		"@tiptap/extension-font-family": "^3.12.1",
 		"@tiptap/extension-text-style": "^3.12.1",

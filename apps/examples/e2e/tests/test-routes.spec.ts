@@ -4,8 +4,22 @@ import path from 'path'
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname)
 
-// get all routes from examples/src/examples folder
-const examplesFolderList = fs.readdirSync(path.join(__dirname, '../../src/examples'))
+// get all example slugs by finding README.md files in the nested category folders
+const examplesRoot = path.join(__dirname, '../../src/examples')
+function getExampleSlugs(dir: string): string[] {
+	const slugs: string[] = []
+	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+		if (!entry.isDirectory()) continue
+		const subdir = path.join(dir, entry.name)
+		if (fs.existsSync(path.join(subdir, 'README.md'))) {
+			slugs.push(entry.name)
+		} else {
+			slugs.push(...getExampleSlugs(subdir))
+		}
+	}
+	return slugs
+}
+const examplesFolderList = getExampleSlugs(examplesRoot)
 const examplesWithoutCanvas = [
 	// only shows an image, not the canvas
 	'image-component',

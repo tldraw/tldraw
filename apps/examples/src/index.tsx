@@ -26,7 +26,7 @@ setDefaultEditorAssetUrls(assetUrls)
 setDefaultUiAssetUrls(assetUrls)
 const gettingStartedExamples = examples.find((e) => e.id === 'Getting started')
 if (!gettingStartedExamples) throw new Error('Could not find getting started examples')
-const basicExample = gettingStartedExamples.value.find((e) => e.title === 'Tldraw component')
+const basicExample = gettingStartedExamples.value[0]
 if (!basicExample) throw new Error('Could not find initial example')
 
 const router = createBrowserRouter([

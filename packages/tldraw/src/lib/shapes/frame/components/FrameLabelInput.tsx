@@ -3,7 +3,7 @@ import { forwardRef, useCallback, useEffect, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../../ui/constants'
 import { useBreakpoint } from '../../../ui/context/breakpoints'
 import { useTranslation } from '../../../ui/hooks/useTranslation/useTranslation'
-import { defaultEmptyAs } from '../FrameShapeUtil'
+import { defaultEmptyAs } from '../frameHelpers'
 
 export const FrameLabelInput = forwardRef<
 	HTMLInputElement,

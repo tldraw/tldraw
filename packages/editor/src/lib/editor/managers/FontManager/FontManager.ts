@@ -8,7 +8,7 @@ import {
 	mapObjectMapValues,
 	objectMapEntries,
 } from '@tldraw/utils'
-import { Editor } from '../../Editor'
+import type { Editor } from '../../Editor'
 
 /**
  * Represents the `src` property of a {@link TLFontFace}.
