@@ -137,7 +137,8 @@ const zeroMutateUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero
 const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/query`
 
 // Zero connection limits per environment.
-// UPSTREAM_DB requires direct connections (logical replication), CVR_DB and CHANGE_DB use pooled.
+// All DBs use direct connections. Pooled connections (PgBouncer/Supavisor transaction mode) break
+// prepared statements which Zero's postgres.js driver uses internally.
 // Staging: Supabase Micro (15 direct pool size, 200 pooled clients)
 // Preview: Neon 0.25 CU (104 max_connections shared across all preview branches)
 // Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
@@ -609,8 +610,8 @@ async function deployZeroViaFlyIoMultiNode() {
 			'secrets',
 			'set',
 			`ZERO_UPSTREAM_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
-			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING}`,
-			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING}`,
+			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
+			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
 			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
 			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
 			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
@@ -638,8 +639,8 @@ async function deployZeroViaFlyIoMultiNode() {
 			'secrets',
 			'set',
 			`ZERO_UPSTREAM_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
-			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING}`,
-			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING}`,
+			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
+			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
 			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
 			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
 			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
