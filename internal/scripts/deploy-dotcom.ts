@@ -236,26 +236,26 @@ async function main() {
 		discord.step('building dotcom app', async () => {
 			await withTiming('dotcom sentry release', () => createSentryRelease())
 			await withTiming('dotcom build', () => prepareDotcomApp())
-			await withTiming('dotcom sourcemap upload', () => uploadSourceMaps())
-			await withTiming('dotcom asset coalescing', () =>
-				coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
-			)
+			await Promise.all([
+				withTiming('dotcom sourcemap upload', () => uploadSourceMaps()),
+				withTiming('dotcom asset coalescing', () =>
+					coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
+				),
+			])
 		})
 	)
 
 	await withTiming('step: cloudflare deploy dry run', () =>
 		discord.step('cloudflare deploy dry run', async () => {
-			await withTiming('worker dry run: asset-upload', () =>
-				deployAssetUploadWorker({ dryRun: true })
-			)
-			await withTiming('worker dry run: health', () => deployHealthWorker({ dryRun: true }))
-			await withTiming('worker dry run: multiplayer', () => deployTlsyncWorker({ dryRun: true }))
-			await withTiming('worker dry run: tldrawusercontent', () =>
-				deployTldrawUserContentWorker({ dryRun: true })
-			)
-			await withTiming('worker dry run: image-resize', () =>
-				deployImageResizeWorker({ dryRun: true })
-			)
+			await Promise.all([
+				withTiming('worker dry run: asset-upload', () => deployAssetUploadWorker({ dryRun: true })),
+				withTiming('worker dry run: health', () => deployHealthWorker({ dryRun: true })),
+				withTiming('worker dry run: multiplayer', () => deployTlsyncWorker({ dryRun: true })),
+				withTiming('worker dry run: tldrawusercontent', () =>
+					deployTldrawUserContentWorker({ dryRun: true })
+				),
+				withTiming('worker dry run: image-resize', () => deployImageResizeWorker({ dryRun: true })),
+			])
 		})
 	)
 
@@ -264,45 +264,59 @@ async function main() {
 	await discord.message(`--- **pre-flight complete, starting real dotcom deploy** ---`)
 
 	// 2. deploy the cloudflare workers:
-	await withTiming('step: deploy asset uploader worker', () =>
-		discord.step('deploying asset uploader to cloudflare', async () => {
-			await withTiming('worker deploy: asset-upload', () =>
-				deployAssetUploadWorker({ dryRun: false })
-			)
-		})
-	)
 	await withTiming('step: deploy multiplayer worker', () =>
 		discord.step('deploying multiplayer worker to cloudflare', async () => {
 			await withTiming('worker deploy: multiplayer', () => deployTlsyncWorker({ dryRun: false }))
 		})
 	)
-	await withTiming('step: deploy tldrawusercontent worker', () =>
-		discord.step('deploying tldrawusercontent worker to cloudflare', async () => {
-			await withTiming('worker deploy: tldrawusercontent', () =>
-				deployTldrawUserContentWorker({ dryRun: false })
-			)
-		})
-	)
-	await withTiming('step: deploy image resizer worker', () =>
-		discord.step('deploying image resizer to cloudflare', async () => {
-			await withTiming('worker deploy: image-resize', () =>
-				deployImageResizeWorker({ dryRun: false })
-			)
-		})
-	)
-	await withTiming('step: deploy health worker', () =>
-		discord.step('deploying health worker to cloudflare', async () => {
-			await withTiming('worker deploy: health', () => deployHealthWorker({ dryRun: false }))
-		})
-	)
 
-	// 3. deploy the pre-build dotcom app:
-	const { deploymentUrl, inspectUrl } = await withTiming(
-		'step: deploy dotcom app to vercel',
+	// 3. deploy everything else in parallel: dotcom app + non-multiplayer workers.
+	const [{ deploymentUrl, inspectUrl }] = await withTiming(
+		'step: post-multiplayer parallel deploys',
 		async () =>
-			await discord.step('deploying dotcom app to vercel', async () => {
-				return await withTiming('vercel deploy --prebuilt', () => deploySpa())
-			})
+			await Promise.all([
+				withTiming(
+					'step: deploy dotcom app to vercel',
+					async () =>
+						await discord.step('deploying dotcom app to vercel', async () => {
+							return await withTiming('vercel deploy --prebuilt', () => deploySpa())
+						})
+				),
+				withTiming(
+					'step: deploy non-multiplayer workers',
+					async () =>
+						await Promise.all([
+							withTiming('step: deploy asset uploader worker', () =>
+								discord.step('deploying asset uploader to cloudflare', async () => {
+									await withTiming('worker deploy: asset-upload', () =>
+										deployAssetUploadWorker({ dryRun: false })
+									)
+								})
+							),
+							withTiming('step: deploy tldrawusercontent worker', () =>
+								discord.step('deploying tldrawusercontent worker to cloudflare', async () => {
+									await withTiming('worker deploy: tldrawusercontent', () =>
+										deployTldrawUserContentWorker({ dryRun: false })
+									)
+								})
+							),
+							withTiming('step: deploy image resizer worker', () =>
+								discord.step('deploying image resizer to cloudflare', async () => {
+									await withTiming('worker deploy: image-resize', () =>
+										deployImageResizeWorker({ dryRun: false })
+									)
+								})
+							),
+							withTiming('step: deploy health worker', () =>
+								discord.step('deploying health worker to cloudflare', async () => {
+									await withTiming('worker deploy: health', () =>
+										deployHealthWorker({ dryRun: false })
+									)
+								})
+							),
+						])
+				),
+			])
 	)
 
 	let deploymentAlias = null as null | string
