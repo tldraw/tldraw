@@ -101,6 +101,16 @@ Include when changes affect `api-report.md`:
 
 Search for and link relevant issues that this PR addresses.
 
+## Editing PRs
+
+`gh pr edit` is broken in this repo (fails with a Projects Classic GraphQL error). Use the API instead:
+
+```bash
+gh api repos/tldraw/tldraw/pulls/{number} -X PATCH -f body="..." -f title="..."
+```
+
+`gh pr create` works fine.
+
 ## Important
 
 - Never include "Generated with Claude Code" unless the PR directly relates to Claude Code
