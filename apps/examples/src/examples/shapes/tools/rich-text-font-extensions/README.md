@@ -16,7 +16,14 @@ keywords:
     addfontsfromnode,
     typography,
   ]
-related: []
+related:
+  [
+    rich-text-custom-extension,
+    rich-text-on-multiple-shapes,
+    outlined-text,
+    text-shape-configuration,
+    custom-stroke-and-font-sizes,
+  ]
 ---
 
 Extend the TipTap text editor by adding font-family and font-size options.

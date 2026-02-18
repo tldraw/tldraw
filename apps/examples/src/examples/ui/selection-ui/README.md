@@ -13,7 +13,14 @@ keywords:
     usevalue,
     getselectionrotatedscreenbounds,
   ]
-related: []
+related:
+  [
+    things-on-the-canvas,
+    contextual-toolbar,
+    custom-components,
+    selection-color-condition,
+    indicators-logic,
+  ]
 ---
 
 Add extra UI elements around the user's selection.

@@ -14,7 +14,14 @@ keywords:
     audit,
     custom data,
   ]
-related: []
+related:
+  [
+    meta-on-create,
+    meta-migrations,
+    after-create-update-shape,
+    before-create-update-shape,
+    derived-view,
+  ]
 ---
 
 Add custom metadata to shapes when they're changed.

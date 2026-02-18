@@ -15,7 +15,8 @@ keywords:
     presence,
   ]
 multiplayer: true
-related: []
+related:
+  [sync-demo, sync-custom-presence, sync-custom-people-menu, user-presence, sync-private-content]
 ---
 
 Integrate your own user data into tldraw sync.

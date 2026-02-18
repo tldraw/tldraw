@@ -12,7 +12,8 @@ keywords:
     getcolorvalue,
     shapeutil,
   ]
-related: []
+related:
+  [shape-with-custom-styles, custom-shape, changing-default-style, easter-egg-styles, custom-config]
 ---
 
 Use the tldraw style panel with your custom shapes.

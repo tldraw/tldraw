@@ -14,7 +14,8 @@ keywords:
     vertex,
     reference point,
   ]
-related: []
+related:
+  [bounds-snapping-shape, speech-bubble, cubic-bezier-shape, custom-shape, shape-with-geometry]
 ---
 
 An example demonstrating `snapReferenceHandleId` for control point angle snapping.

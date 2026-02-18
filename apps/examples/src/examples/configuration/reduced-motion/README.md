@@ -16,7 +16,14 @@ keywords:
     css animation,
     vestibular,
   ]
-related: []
+related:
+  [
+    environment-detection,
+    screen-reader-accessibility,
+    custom-options,
+    custom-shape,
+    dark-mode-toggle,
+  ]
 ---
 
 Respecting user motion preferences in custom shapes.

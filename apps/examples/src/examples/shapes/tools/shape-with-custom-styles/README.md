@@ -13,7 +13,8 @@ keywords:
     setstyleforselectedshapes,
     shapeutil,
   ]
-related: []
+related:
+  [shape-with-tldraw-styles, custom-shape, changing-default-style, easter-egg-styles, custom-config]
 ---
 
 Use the custom styles API with your custom shapes.

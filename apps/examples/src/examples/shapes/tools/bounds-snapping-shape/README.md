@@ -13,7 +13,7 @@ keywords:
     custom shape,
     playing cards,
   ]
-related: []
+related: [custom-relative-snapping, custom-shape, shape-with-geometry, custom-config, drag-and-drop]
 ---
 
 Custom shapes with special bounds snapping behaviour.

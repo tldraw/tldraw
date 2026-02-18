@@ -17,7 +17,14 @@ keywords:
     formatting,
     createShape,
   ]
-related: []
+related:
+  [
+    api,
+    text-mass-style-updates,
+    rich-text-on-multiple-shapes,
+    custom-text-outline,
+    custom-stroke-and-font-sizes,
+  ]
 ---
 
 Create and configure text shapes programmatically.

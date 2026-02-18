@@ -14,7 +14,14 @@ keywords:
     recordprops,
     error handling,
   ]
-related: []
+related:
+  [
+    custom-shape,
+    shape-with-migrations,
+    shape-with-custom-styles,
+    custom-config,
+    before-create-update-shape,
+  ]
 ---
 
 Demonstrates using custom validators with `.check()` and `.refine()` methods to add validation constraints to shape props.

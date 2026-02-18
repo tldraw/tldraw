@@ -3,7 +3,7 @@ title: Editable custom shape
 component: ./EditableShapeExample.tsx
 priority: 2
 keywords: [editing, canedit, double click, interactive, emoji picker, shape state, editing state]
-related: []
+related: [custom-shape, interactive-shape, popup-shape, speech-bubble, text-shape-configuration]
 ---
 
 A custom shape that you can edit by double-clicking it.

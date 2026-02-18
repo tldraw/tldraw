@@ -13,7 +13,8 @@ keywords:
     camera,
     custom rendering,
   ]
-related: []
+related:
+  [custom-renderer, custom-components, things-on-the-canvas, coordinate-system, education-canvas]
 ---
 
 Draw a custom grid on the canvas.

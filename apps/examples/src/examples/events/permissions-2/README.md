@@ -15,7 +15,7 @@ keywords:
     shape geometry,
     resize constraint,
   ]
-related: []
+related: [permissions, prevent-shape-change, before-create-update-shape, locked-shapes, readonly]
 ---
 
 A second example of how to use side effect APIs to constrain shape movement within a bounding box.

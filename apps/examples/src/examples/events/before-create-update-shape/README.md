@@ -13,7 +13,14 @@ keywords:
     hooks,
     shape creation,
   ]
-related: []
+related:
+  [
+    after-create-update-shape,
+    before-delete-shape,
+    prevent-shape-change,
+    permissions,
+    meta-on-create,
+  ]
 ---
 
 Register a handler to run before shapes are created or updated.

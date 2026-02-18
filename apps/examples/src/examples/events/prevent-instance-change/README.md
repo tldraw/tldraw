@@ -13,7 +13,8 @@ keywords:
     validation,
     state protection,
   ]
-related: []
+related:
+  [prevent-shape-change, permissions, before-create-update-shape, custom-options, event-blocker]
 ---
 
 Prevent a change to the "instance" record that would turn off grid mode.

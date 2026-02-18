@@ -12,7 +12,7 @@ keywords:
     shape creation,
     shape update,
   ]
-related: []
+related: [before-create-update-shape, after-delete-shape, meta-on-create, store-events, signals]
 ---
 
 Register a handler to run after shapes are created or updated.

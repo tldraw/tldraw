@@ -14,7 +14,7 @@ keywords:
     foreignObject,
     shapeutil,
   ]
-related: []
+related: [export-canvas-as-image, export-canvas-settings, custom-shape, screenshot-tool, snapshots]
 ---
 
 Determine how your custom shapes look when copied/exported as an image.

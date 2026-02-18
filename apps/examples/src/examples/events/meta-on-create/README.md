@@ -3,7 +3,14 @@ title: Shape meta (on create)
 component: ./OnCreateShapeMetaExample.tsx
 priority: 7
 keywords: [meta, metadata, getinitialmeta, getinitialmeta for shape, oncreate, custom data, track]
-related: []
+related:
+  [
+    meta-on-change,
+    meta-migrations,
+    after-create-update-shape,
+    before-create-update-shape,
+    inspector-panel,
+  ]
 ---
 
 Add custom metadata to shapes when they're created.

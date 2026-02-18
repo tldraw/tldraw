@@ -16,7 +16,14 @@ keywords:
     toolbar,
     asset urls,
   ]
-related: []
+related:
+  [
+    custom-tool,
+    tool-with-child-states,
+    export-canvas-as-image,
+    toSvg-method-example,
+    lasso-select-tool,
+  ]
 ---
 
 A custom tool that takes a screenshot of the canvas.

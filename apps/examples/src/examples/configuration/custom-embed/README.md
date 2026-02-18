@@ -13,7 +13,8 @@ keywords:
     jsfiddle,
     url parsing,
   ]
-related: []
+related:
+  [external-content-sources, custom-config, custom-options, asset-props, configure-shape-util]
 ---
 
 Allow custom embeds.

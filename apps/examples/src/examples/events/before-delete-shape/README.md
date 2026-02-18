@@ -12,7 +12,8 @@ keywords:
     hooks,
     validation,
   ]
-related: []
+related:
+  [after-delete-shape, before-create-update-shape, prevent-shape-change, permissions, event-blocker]
 ---
 
 Register a handler to run before shapes are deleted.

@@ -3,7 +3,14 @@ title: Change default styles
 component: ./ChangingDefaultStyleExample.tsx
 priority: 0.5
 keywords: [styles, default style, style props, size, color, dash, fill, setdefaultvalue]
-related: []
+related:
+  [
+    changing-default-colors,
+    custom-stroke-and-font-sizes,
+    shape-with-tldraw-styles,
+    custom-options,
+    easter-egg-styles,
+  ]
 ---
 
 Change the default value for a style prop.

@@ -4,7 +4,7 @@ component: ./ErrorBoundaryExample.tsx
 priority: 2
 keywords:
   [error handling, shapeerrorfallback, error boundary, components, crash recovery, fallback ui]
-related: []
+related: [custom-error-capture, custom-components, toasts-and-dialogs, custom-ui, basic]
 ---
 
 Customize the error fallback that appears when a shape throws an error.

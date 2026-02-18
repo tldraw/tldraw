@@ -13,7 +13,14 @@ keywords:
     showall,
     hideall,
   ]
-related: []
+related:
+  [
+    custom-components,
+    selection-ui,
+    custom-shape-wrapper,
+    selection-color-condition,
+    custom-renderer,
+  ]
 ---
 
 Change when indicators are shown and how they appear.

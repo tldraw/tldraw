@@ -14,7 +14,14 @@ keywords:
     theming,
     customization,
   ]
-related: []
+related:
+  [
+    changing-default-style,
+    dark-mode-toggle,
+    infer-dark-mode,
+    selection-color-condition,
+    frame-colors,
+  ]
 ---
 
 Change the tldraw theme colors.
