@@ -130,9 +130,9 @@ export {
 	type ElbowArrowSideReason,
 	type ElbowArrowTargetBox,
 } from './lib/shapes/arrow/elbow/definitions'
+export { getArrowInfo } from './lib/shapes/arrow/getArrowInfo'
 export {
 	getArrowBindings,
-	getArrowInfo,
 	getArrowTerminalsInArrowSpace,
 	type TLArrowBindings,
 } from './lib/shapes/arrow/shared'

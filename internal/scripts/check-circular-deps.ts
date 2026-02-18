@@ -35,13 +35,6 @@ function checkPackageForCircularDependencies(packageName: string, packageEntryPa
 		packageName === 'tldraw'
 			? getTldrawIncludePatternSets()
 			: [[`**/packages/${packageName}/**/*.{js,jsx,ts,tsx}`]]
-	const ignoredCycleSignatures =
-		packageName === 'tldraw'
-			? [
-					'packages/tldraw/src/lib/shapes/arrow/curved-arrow.ts -> packages/tldraw/src/lib/shapes/arrow/shared.ts',
-					'packages/tldraw/src/lib/shapes/arrow/elbow/getElbowArrowInfo.tsx -> packages/tldraw/src/lib/shapes/arrow/shared.ts',
-				]
-			: []
 
 	const script = `
 		import { build } from 'vite'
@@ -52,7 +45,6 @@ function checkPackageForCircularDependencies(packageName: string, packageEntryPa
 		const packageName = process.argv[1]
 		const packageEntryPath = process.argv[2]
 		const includePatternSets = JSON.parse(process.argv[3])
-		const ignoredCycleSignatures = new Set(JSON.parse(process.argv[4]))
 
 		for (const includePatterns of includePatternSets) {
 			const outputFilePath = path.join(
@@ -99,7 +91,6 @@ function checkPackageForCircularDependencies(packageName: string, packageEntryPa
 			const cycleSignatures = Object.values(cycleReport)
 				.flat()
 				.map((chain) => chain.join(' -> '))
-				.filter((signature) => !ignoredCycleSignatures.has(signature))
 
 			if (cycleSignatures.length > 0) {
 				console.error(
@@ -121,7 +112,6 @@ function checkPackageForCircularDependencies(packageName: string, packageEntryPa
 				packageName,
 				packageEntryPath,
 				JSON.stringify(includePatternSets),
-				JSON.stringify(ignoredCycleSignatures),
 			],
 			{ cwd: REPO_ROOT },
 			(error) => {
