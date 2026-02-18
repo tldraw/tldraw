@@ -612,7 +612,7 @@ export class Vec {
 		for (let i = 0; i < steps; i++) {
 			const t = ease(i / (steps - 1))
 			const point = Vec.Lrp(A, B, t)
-			point.z = Math.min(1, 0.5 + Math.abs(0.5 - ease(t)) * 0.65)
+			point.z = Math.min(1, 0.5 + Math.abs(0.5 - easeInOutQuad(t)) * 0.65)
 			results.push(point)
 		}
 
@@ -623,3 +623,5 @@ export class Vec {
 		return new Vec(Math.round(A.x / gridSize) * gridSize, Math.round(A.y / gridSize) * gridSize)
 	}
 }
+
+const easeInOutQuad = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t)
