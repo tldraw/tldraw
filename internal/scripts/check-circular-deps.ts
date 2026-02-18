@@ -30,11 +30,46 @@ async function getPackageEntries() {
 	return entries
 }
 
-function checkPackageForCircularDependencies(packageName: string, packageEntryPath: string) {
-	const includePatternSets =
-		packageName === 'tldraw'
-			? getTldrawIncludePatternSets()
-			: [[`**/packages/${packageName}/**/*.{js,jsx,ts,tsx}`]]
+async function getIncludePatternSets(packageName: string) {
+	const fullPackagePatternSet = [[`**/packages/${packageName}/**/*.{js,jsx,ts,tsx}`]]
+	if (packageName !== 'tldraw') return fullPackagePatternSet
+
+	const tldrawLibDir = path.join(REPO_ROOT, 'packages', 'tldraw', 'src', 'lib')
+	const tldrawEntries = (await readdir(tldrawLibDir, { withFileTypes: true })).sort((a, b) =>
+		a.name.localeCompare(b.name)
+	)
+
+	const perScopePatterns: string[] = []
+	for (const entry of tldrawEntries) {
+		if (!entry.isDirectory()) {
+			perScopePatterns.push(`**/packages/tldraw/src/lib/${entry.name}`)
+			continue
+		}
+
+		if (entry.name !== 'ui') {
+			perScopePatterns.push(`**/packages/tldraw/src/lib/${entry.name}/**/*.{js,jsx,ts,tsx}`)
+			continue
+		}
+
+		// Split ui into child scopes to avoid plugin crashes on large combined graphs.
+		const tldrawUiDir = path.join(tldrawLibDir, 'ui')
+		const tldrawUiEntries = (await readdir(tldrawUiDir, { withFileTypes: true })).sort((a, b) =>
+			a.name.localeCompare(b.name)
+		)
+		for (const uiEntry of tldrawUiEntries) {
+			perScopePatterns.push(
+				uiEntry.isDirectory()
+					? `**/packages/tldraw/src/lib/ui/${uiEntry.name}/**/*.{js,jsx,ts,tsx}`
+					: `**/packages/tldraw/src/lib/ui/${uiEntry.name}`
+			)
+		}
+	}
+
+	return perScopePatterns.map((scopePattern) => ['**/packages/tldraw/src/index.ts', scopePattern])
+}
+
+async function checkPackageForCircularDependencies(packageName: string, packageEntryPath: string) {
+	const includePatternSets = await getIncludePatternSets(packageName)
 
 	const script = `
 		import { build } from 'vite'
@@ -123,54 +158,6 @@ function checkPackageForCircularDependencies(packageName: string, packageEntryPa
 		child.stdout?.on('data', (chunk) => process.stdout.write(chunk))
 		child.stderr?.on('data', (chunk) => process.stderr.write(chunk))
 	})
-}
-
-function getTldrawIncludePatternSets() {
-	const indexPattern = '**/packages/tldraw/src/index.ts'
-	const libScopePatterns = [
-		'bindings',
-		'canvas',
-		'defaultBindingUtils.ts',
-		'defaultEmbedDefinitions.ts',
-		'defaultExternalContentHandlers.ts',
-		'defaultShapeTools.ts',
-		'defaultShapeUtils.ts',
-		'defaultSideEffects.ts',
-		'defaultTools.ts',
-		'shapes',
-		'styles.tsx',
-		'tools',
-		'Tldraw.tsx',
-		'TldrawImage.tsx',
-		'utils',
-	].map((scope) =>
-		scope.endsWith('.ts') || scope.endsWith('.tsx')
-			? `**/packages/tldraw/src/lib/${scope}`
-			: `**/packages/tldraw/src/lib/${scope}/**/*.{js,jsx,ts,tsx}`
-	)
-
-	const uiScopePatterns = [
-		'TldrawUi.tsx',
-		'assetUrls.ts',
-		'components',
-		'constants.ts',
-		'context',
-		'getLocalFiles.ts',
-		'hooks',
-		'icon-types.ts',
-		'kbd-utils.ts',
-		'overrides.ts',
-		'version.ts',
-	].map((scope) =>
-		scope.endsWith('.ts') || scope.endsWith('.tsx')
-			? `**/packages/tldraw/src/lib/ui/${scope}`
-			: `**/packages/tldraw/src/lib/ui/${scope}/**/*.{js,jsx,ts,tsx}`
-	)
-
-	return [...libScopePatterns, ...uiScopePatterns].map((scopePattern) => [
-		indexPattern,
-		scopePattern,
-	])
 }
 
 async function main() {
