@@ -148,7 +148,7 @@ export class HeavyBoardGenerator {
 									segments: [
 										{
 											type: 'free',
-											points: b64VecsEncodePoints(points),
+											path: b64VecsEncodePoints(points),
 										},
 									],
 									color: random.choice(['black', 'blue', 'green', 'red']),
