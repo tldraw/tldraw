@@ -10961,7 +10961,7 @@ __metadata:
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     better-sqlite3: "npm:^11.8.1"
     concurrently: "npm:^9.1.2"
-    fastify: "npm:^5.7.3"
+    fastify: "npm:^5.7.4"
     itty-router: "npm:^5.0.18"
     lazyrepo: "npm:0.0.0-alpha.27"
     react: "npm:^19.2.1"
@@ -18261,7 +18261,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fastify@npm:^5.7.3":
+"fastify@npm:^5.7.4":
   version: 5.7.4
   resolution: "fastify@npm:5.7.4"
   dependencies:
