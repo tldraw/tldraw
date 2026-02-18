@@ -137,6 +137,52 @@ export function updateIdeaStatus(editor: Editor, shapeId: TLShapeId, status: Ide
 const GRID_COLUMNS = 5
 const GRID_GAP_X = IDEA_NOTE_WIDTH + 40
 const GRID_GAP_Y = 280
+const ESTIMATED_SHAPE_HEIGHT = 200
+const OVERLAP_PADDING = 20
+
+interface Rect {
+	left: number
+	top: number
+	right: number
+	bottom: number
+}
+
+function rectsOverlap(a: Rect, b: Rect): boolean {
+	return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom)
+}
+
+function getAllShapeBounds(editor: Editor): Rect[] {
+	const shapes = editor.getCurrentPageShapes()
+	const rects: Rect[] = []
+	for (const shape of shapes) {
+		const bounds = editor.getShapePageBounds(shape.id)
+		if (!bounds) continue
+		rects.push({
+			left: bounds.x - OVERLAP_PADDING,
+			top: bounds.y - OVERLAP_PADDING,
+			right: bounds.x + bounds.w + OVERLAP_PADDING,
+			bottom: bounds.y + bounds.h + OVERLAP_PADDING,
+		})
+	}
+	return rects
+}
+
+function candidateRect(x: number, y: number): Rect {
+	return {
+		left: x,
+		top: y,
+		right: x + IDEA_NOTE_WIDTH,
+		bottom: y + ESTIMATED_SHAPE_HEIGHT,
+	}
+}
+
+function hasOverlap(x: number, y: number, existingBounds: Rect[]): boolean {
+	const candidate = candidateRect(x, y)
+	for (const bounds of existingBounds) {
+		if (rectsOverlap(candidate, bounds)) return true
+	}
+	return false
+}
 
 export function getNextIdeaPosition(editor: Editor): { x: number; y: number } {
 	const nodes = getIdeaNodes(editor)
@@ -148,13 +194,91 @@ export function getNextIdeaPosition(editor: Editor): { x: number; y: number } {
 
 	const originX = Math.min(...nodes.map((n) => n.x))
 	const originY = Math.min(...nodes.map((n) => n.y))
-	const count = nodes.length
-	const col = count % GRID_COLUMNS
-	const row = Math.floor(count / GRID_COLUMNS)
-	return {
-		x: Math.round(originX + col * GRID_GAP_X),
-		y: Math.round(originY + row * GRID_GAP_Y),
+	const existingBounds = getAllShapeBounds(editor)
+
+	// Walk grid cells in order until we find one that doesn't overlap
+	const maxCells = GRID_COLUMNS * 50
+	for (let i = 0; i < maxCells; i++) {
+		const col = i % GRID_COLUMNS
+		const row = Math.floor(i / GRID_COLUMNS)
+		const x = Math.round(originX + col * GRID_GAP_X)
+		const y = Math.round(originY + row * GRID_GAP_Y)
+		if (!hasOverlap(x, y, existingBounds)) {
+			return { x, y }
+		}
 	}
+
+	// Fallback: place after all existing content
+	const fallbackRow = Math.floor(maxCells / GRID_COLUMNS)
+	return {
+		x: Math.round(originX),
+		y: Math.round(originY + fallbackRow * GRID_GAP_Y),
+	}
+}
+
+const SPIRAL_STEP_X = IDEA_NOTE_WIDTH / 2
+const SPIRAL_STEP_Y = 150
+const SPIRAL_DIRECTIONS = [
+	{ dx: 0, dy: -1 }, // N
+	{ dx: 1, dy: -1 }, // NE
+	{ dx: 1, dy: 0 }, // E
+	{ dx: 1, dy: 1 }, // SE
+	{ dx: 0, dy: 1 }, // S
+	{ dx: -1, dy: 1 }, // SW
+	{ dx: -1, dy: 0 }, // W
+	{ dx: -1, dy: -1 }, // NW
+]
+const SPIRAL_MAX_LEVELS = 20
+
+export function getComposedIdeaPosition(
+	editor: Editor,
+	parentIds: TLShapeId[]
+): { x: number; y: number } {
+	const existingBounds = getAllShapeBounds(editor)
+
+	// Compute centroid and lowest bottom from parent shapes
+	let sumCx = 0
+	let sumCy = 0
+	let lowestBottom = -Infinity
+	let validParents = 0
+
+	for (const parentId of parentIds) {
+		const bounds = editor.getShapePageBounds(parentId)
+		if (!bounds) continue
+		sumCx += bounds.x + bounds.w / 2
+		sumCy += bounds.y + bounds.h / 2
+		const bottom = bounds.y + bounds.h
+		if (bottom > lowestBottom) lowestBottom = bottom
+		validParents++
+	}
+
+	// Fallback if no valid parents found
+	if (validParents === 0) {
+		return getNextIdeaPosition(editor)
+	}
+
+	const centroidX = sumCx / validParents
+	const targetX = Math.round(centroidX - IDEA_NOTE_WIDTH / 2)
+	const targetY = Math.round(lowestBottom + GRID_GAP_Y / 2)
+
+	// Try target position first
+	if (!hasOverlap(targetX, targetY, existingBounds)) {
+		return { x: targetX, y: targetY }
+	}
+
+	// Spiral outward to find a clear spot
+	for (let level = 1; level <= SPIRAL_MAX_LEVELS; level++) {
+		for (const dir of SPIRAL_DIRECTIONS) {
+			const x = Math.round(targetX + dir.dx * level * SPIRAL_STEP_X)
+			const y = Math.round(targetY + dir.dy * level * SPIRAL_STEP_Y)
+			if (!hasOverlap(x, y, existingBounds)) {
+				return { x, y }
+			}
+		}
+	}
+
+	// Give up and use the target position anyway
+	return { x: targetX, y: targetY }
 }
 
 export function parseCsvTags(raw: string): string[] {

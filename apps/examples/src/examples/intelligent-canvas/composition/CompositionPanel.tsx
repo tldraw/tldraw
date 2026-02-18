@@ -3,6 +3,7 @@ import { Editor, TLShapeId, createShapeId, toRichText, track, useEditor, useValu
 import {
 	createGroupKey,
 	createIdeaNode,
+	getComposedIdeaPosition,
 	getIdeaNodeById,
 	getIdeaNodes,
 	getNextIdeaPosition,
@@ -16,6 +17,7 @@ import {
 	composeIdeas,
 	parseCodeBlockFromText,
 	parseIdeaFromText,
+	reorganizeCanvasLayout,
 } from './llm'
 import { rankPairSuggestions } from './scoring'
 import { CompositionDomain, IdeaNode, PairDecision } from './types'
@@ -64,7 +66,8 @@ export const CompositionPanel = track(function CompositionPanel({
 	const [decisions, setDecisions] = useState<PairDecision[]>([])
 	const [ideaText, setIdeaText] = useState('')
 	const [parsing, setParsing] = useState<number>(0)
-	const [busyPair, setBusyPair] = useState<string | null>(null)
+	const [busyPairs, setBusyPairs] = useState<Set<string>>(new Set())
+	const [reorganizing, setReorganizing] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
 	const suggestions = useMemo(
@@ -150,7 +153,7 @@ export const CompositionPanel = track(function CompositionPanel({
 			parents.push(node)
 		}
 
-		setBusyPair(groupKey)
+		setBusyPairs((prev) => new Set(prev).add(groupKey))
 		setError(null)
 		try {
 			const draft =
@@ -161,7 +164,8 @@ export const CompositionPanel = track(function CompositionPanel({
 					: domain === 'code'
 						? await composeCodeBlocks(parents)
 						: await composeIdeas(parents)
-			const pos = getNextIdeaPosition(editor)
+			const parentIds = parents.map((p) => p.id)
+			const pos = getComposedIdeaPosition(editor, parentIds)
 			const id = createIdeaNode(
 				editor,
 				{
@@ -173,7 +177,7 @@ export const CompositionPanel = track(function CompositionPanel({
 					language: draft.language,
 					code: draft.code,
 					depth: Math.max(...parents.map((p) => p.depth)) + 1,
-					parents: parents.map((p) => p.id),
+					parents: parentIds,
 					status: 'proposed',
 				},
 				pos
@@ -182,7 +186,11 @@ export const CompositionPanel = track(function CompositionPanel({
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Composition failed.')
 		} finally {
-			setBusyPair(null)
+			setBusyPairs((prev) => {
+				const next = new Set(prev)
+				next.delete(groupKey)
+				return next
+			})
 		}
 	}
 
@@ -200,6 +208,22 @@ export const CompositionPanel = track(function CompositionPanel({
 		if (!selectedIdea || selectedIdea.parents.length < 2) return
 		updateIdeaStatus(editor, selectedIdea.id, 'rejected')
 		recordDecision(createGroupKey(selectedIdea.parents), 'rejected')
+	}
+
+	async function handleReorganize() {
+		if (!agentAvailable) {
+			setError('Gemini API is not configured. Add GEMINI_API_KEY to .env.local.')
+			return
+		}
+		setReorganizing(true)
+		setError(null)
+		try {
+			await reorganizeCanvasLayout(editor)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Reorganization failed.')
+		} finally {
+			setReorganizing(false)
+		}
 	}
 
 	function handleToggleCodePreview() {
@@ -252,6 +276,15 @@ export const CompositionPanel = track(function CompositionPanel({
 						Code domain
 					</button>
 				</div>
+				{allIdeaNodes.length >= 2 ? (
+					<button
+						className="ic-button ic-button-small"
+						disabled={reorganizing || !agentAvailable}
+						onClick={handleReorganize}
+					>
+						{reorganizing ? 'Reorganizing...' : 'Reorganize canvas'}
+					</button>
+				) : null}
 			</div>
 
 			<div className="ic-composition-card">
@@ -289,7 +322,7 @@ export const CompositionPanel = track(function CompositionPanel({
 					</div>
 					<button
 						className="ic-button"
-						disabled={busyPair === selectedGroup.groupKey || !agentAvailable}
+						disabled={busyPairs.has(selectedGroup.groupKey) || !agentAvailable}
 						onClick={() =>
 							handleCompose(
 								selectedGroup.groupKey,
@@ -297,7 +330,7 @@ export const CompositionPanel = track(function CompositionPanel({
 							)
 						}
 					>
-						{busyPair === selectedGroup.groupKey
+						{busyPairs.has(selectedGroup.groupKey)
 							? 'Composing...'
 							: domain === 'idea'
 								? `Compose ${selectedGroup.nodes.length} ideas`
@@ -324,10 +357,10 @@ export const CompositionPanel = track(function CompositionPanel({
 							</div>
 							<button
 								className="ic-button ic-button-small"
-								disabled={busyPair === s.pairKey || !agentAvailable}
+								disabled={busyPairs.has(s.pairKey) || !agentAvailable}
 								onClick={() => handleCompose(s.pairKey, [s.a.id, s.b.id])}
 							>
-								{busyPair === s.pairKey ? 'Composing...' : 'Compose'}
+								{busyPairs.has(s.pairKey) ? 'Composing...' : 'Compose'}
 							</button>
 						</div>
 					))

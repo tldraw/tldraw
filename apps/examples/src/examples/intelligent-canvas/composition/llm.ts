@@ -1,4 +1,7 @@
-import { generateGeminiText } from '../agent/api'
+import { Editor, TLShapePartial } from 'tldraw'
+import { generateGeminiText, generateGeminiVision } from '../agent/api'
+import { captureCanvasScreenshot } from '../lib/canvas-helpers'
+import { getIdeaNodes } from './graph'
 import { ComposedIdeaDraft, IdeaNode, ParsedIdea } from './types'
 
 const PARSING_SYSTEM_PROMPT = `You are helping structure raw ideas into clean primitives.
@@ -203,4 +206,107 @@ Rules:
 		code: String(parsed.code ?? '').trim(),
 		whyThisCombination: String(parsed.whyThisCombination ?? '').trim(),
 	}
+}
+
+const LAYOUT_SYSTEM_PROMPT = `You are a canvas layout optimizer. You can see a screenshot of an idea canvas and you have the graph structure of the ideas on it. Your job is to suggest optimal positions for each idea node to create a clear, organized layout.
+
+Rules:
+- Keep parent ideas above their children (parents should have lower y values)
+- Group related ideas (those that share parents or are siblings) near each other
+- Leave enough space between ideas so they don't overlap (each idea is about 480px wide and 200px tall)
+- Maintain a readable flow: seeds at the top, deeper compositions lower
+- Keep the layout centered and balanced
+- Don't move nodes too far from their current positions unless needed for clarity
+
+Output valid JSON only. No markdown fences.
+Return an object with a "positions" array: {"positions": [{"id": "shape:xxx", "x": number, "y": number}, ...]}`
+
+function buildGraphDescription(nodes: IdeaNode[]): string {
+	if (nodes.length === 0) return 'No idea nodes on the canvas.'
+
+	const lines: string[] = ['Idea graph nodes:']
+	for (const node of nodes) {
+		const parentStr = node.parents.length > 0 ? node.parents.join(', ') : 'none (seed)'
+		lines.push(
+			`- ${node.id}: "${node.title}" | depth=${node.depth} | domain=${node.domain} | status=${node.status} | position=(${Math.round(node.x)}, ${Math.round(node.y)}) | parents=[${parentStr}]`
+		)
+	}
+
+	// Add relationship summary
+	const parentChildPairs: string[] = []
+	for (const node of nodes) {
+		for (const parentId of node.parents) {
+			const parent = nodes.find((n) => n.id === parentId)
+			if (parent) {
+				parentChildPairs.push(`  "${parent.title}" -> "${node.title}"`)
+			}
+		}
+	}
+
+	if (parentChildPairs.length > 0) {
+		lines.push('')
+		lines.push('Parent-child relationships:')
+		lines.push(...parentChildPairs)
+	}
+
+	// Add canvas bounds info
+	const minX = Math.min(...nodes.map((n) => n.x))
+	const maxX = Math.max(...nodes.map((n) => n.x))
+	const minY = Math.min(...nodes.map((n) => n.y))
+	const maxY = Math.max(...nodes.map((n) => n.y))
+	lines.push('')
+	lines.push(
+		`Current canvas bounds: x=[${Math.round(minX)}, ${Math.round(maxX)}], y=[${Math.round(minY)}, ${Math.round(maxY)}]`
+	)
+	lines.push(`Total nodes: ${nodes.length}`)
+
+	return lines.join('\n')
+}
+
+export async function reorganizeCanvasLayout(editor: Editor): Promise<void> {
+	const nodes = getIdeaNodes(editor)
+	if (nodes.length === 0) return
+
+	const screenshot = await captureCanvasScreenshot(editor)
+	const graphDescription = buildGraphDescription(nodes)
+
+	const userText = `Here is the graph structure of the ideas on this canvas:\n\n${graphDescription}\n\nPlease return optimal positions for ALL ${nodes.length} nodes to create a clear, organized layout. Return JSON: {"positions": [{"id": "...", "x": number, "y": number}, ...]}`
+
+	let raw: string
+	if (screenshot) {
+		raw = await generateGeminiVision(LAYOUT_SYSTEM_PROMPT, userText, screenshot)
+	} else {
+		raw = await generateGeminiText(LAYOUT_SYSTEM_PROMPT, userText)
+	}
+
+	const json = extractJsonObject(raw)
+	const parsed = JSON.parse(json) as Record<string, unknown>
+	const positions = parsed.positions
+	if (!Array.isArray(positions)) {
+		throw new Error('Model did not return a positions array.')
+	}
+
+	// Build a set of valid node IDs for filtering
+	const validIds = new Set(nodes.map((n) => n.id))
+
+	const partials = positions
+		.filter(
+			(p: unknown): p is { id: string; x: number; y: number } =>
+				typeof p === 'object' &&
+				p !== null &&
+				typeof (p as Record<string, unknown>).id === 'string' &&
+				typeof (p as Record<string, unknown>).x === 'number' &&
+				typeof (p as Record<string, unknown>).y === 'number'
+		)
+		.filter((p) => validIds.has(p.id as any))
+		.map((p) => {
+			const shape = editor.getShape(p.id as any)
+			if (!shape) return null
+			return { id: shape.id, type: shape.type, x: p.x, y: p.y } as TLShapePartial
+		})
+		.filter((p): p is TLShapePartial => p !== null)
+
+	if (partials.length === 0) return
+
+	editor.animateShapes(partials, { animation: { duration: 600 } })
 }
