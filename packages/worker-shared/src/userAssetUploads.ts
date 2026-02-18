@@ -4,7 +4,7 @@ import { notFound } from './errors'
 // Minimal interface for R2Bucket operations used in this file
 // This avoids type conflicts between ambient and imported Cloudflare types
 // Using 'any' for return types to allow compatibility with different R2Bucket type definitions
-interface R2BucketLike {
+export interface R2BucketLike {
 	head(key: string): Promise<any>
 	get(key: string, options?: any): Promise<any>
 	put(key: string, value: any, options?: any): Promise<any>
