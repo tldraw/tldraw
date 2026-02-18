@@ -47,7 +47,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
 
       - name: Build examples
-        run: lazy refresh-assets && lazy run prebuild && cd apps/examples && yarn build
+        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && cd apps/examples && yarn build
 
       - name: Run Playwright tests
         run: 'yarn e2e'
