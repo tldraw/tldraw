@@ -132,12 +132,20 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 			const fileState = app.getFileState(fileId)
 			const deepLink = new URLSearchParams(window.location.search).get('d')
-			if (fileState?.lastSessionState && !deepLink) {
-				editor.loadSnapshot(
-					{ session: JSON.parse(fileState.lastSessionState.trim() || 'null') },
-					{ forceOverwriteSessionState: true }
-				)
-			} else if (deepLink) {
+			if (fileState?.lastSessionState) {
+				const sessionState = JSON.parse(fileState.lastSessionState.trim() || 'null')
+				if (sessionState) {
+					if (deepLink) {
+						// When using a deep link, only load preferences (not camera/page states)
+						// since the deep link will control navigation
+						const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
+						editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
+					} else {
+						editor.loadSnapshot({ session: sessionState }, { forceOverwriteSessionState: true })
+					}
+				}
+			}
+			if (deepLink) {
 				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 			}
 			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)

@@ -11,6 +11,7 @@ const ourTypeToPostgresType: Record<ZColumn['type'], string> = {
 	string: 'text',
 	number: 'bigint',
 	boolean: 'boolean',
+	json: 'jsonb',
 }
 
 interface ColumnStuff {
@@ -28,7 +29,7 @@ function makeColumnStuff(table: (typeof schema.tables)[keyof typeof schema.table
 	return Object.entries(table.columns)
 		.map(([name, { type }]) => ({
 			name,
-			type: assertExists(ourTypeToPostgresType[type], `unknown type ${type}`),
+			type: assertExists(ourTypeToPostgresType[type as ZColumn['type']], `unknown type ${type}`),
 			expression: `"${name}"`,
 		}))
 		.sort((a, b) => a.name.localeCompare(b.name))

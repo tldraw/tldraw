@@ -18,7 +18,7 @@ jobs:
   build:
     name: 'End to end tests (examples)'
     timeout-minutes: 20
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest-32-cores-open
 
     steps:
       - name: Check out code
@@ -40,11 +40,14 @@ jobs:
         with:
           path: |
             ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+          key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium chrome
         if: steps.playwright-cache.outputs.cache-hit != 'true'
+
+      - name: Build examples
+        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && cd apps/examples && yarn build
 
       - name: Run Playwright tests
         run: 'yarn e2e'

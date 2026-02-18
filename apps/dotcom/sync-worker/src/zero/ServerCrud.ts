@@ -1,5 +1,4 @@
-import { SchemaValue } from '@rocicorp/zero'
-import { TableCRUD } from '@rocicorp/zero/out/zql/src/mutate/custom'
+import type { SchemaValue, TableMutator, TableSchema } from '@rocicorp/zero'
 import {
 	DB,
 	TlaFile,
@@ -20,7 +19,7 @@ import {
 } from 'kysely'
 import { PoolClient, QueryResult, QueryResultRow } from 'pg'
 import { ZMutationError } from './ZMutationError'
-const quote = (s: string) => JSON.stringify(s)
+const quote = (s: string) => '"' + s.replace(/"/g, '""') + '"'
 
 export type ChangeAccumulator = {
 	[table in ZTable]?: {
@@ -40,7 +39,9 @@ const db = new Kysely<DB>({
 	},
 })
 
-export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema['tables']]> {
+export class ServerCRUD
+	implements TableMutator<TlaSchema['tables'][keyof TlaSchema['tables']] & TableSchema>
+{
 	constructor(
 		private readonly client: PoolClient,
 		private readonly table: TlaSchema['tables'][keyof TlaSchema['tables']],

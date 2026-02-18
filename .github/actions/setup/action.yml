@@ -24,6 +24,7 @@ runs:
           **/node_modules
           .yarn/cache
           .yarn/unplugged
+          .yarn/install-state.gz
         key: ${{ runner.os }}-node-24.13.1-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.yarn/patches/*') }}
         restore-keys: |
           ${{ runner.os }}-node-24.13.1-yarn-

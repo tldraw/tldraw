@@ -100,12 +100,22 @@ export class ShareMenu {
 
 	@step
 	async copyLink() {
+		const sentinel = `__copy_link_pending_${Date.now()}__`
+		await this.page.evaluate(async (value) => {
+			await navigator.clipboard.writeText(value)
+		}, sentinel)
+
 		await this.copyLinkButton.click()
 
 		let url = ''
 		await expect(async () => {
 			url = await this.page.evaluate(async () => await navigator.clipboard.readText())
+			expect(url).not.toBe(sentinel)
 			expect(url).toBeTruthy()
+			const parsed = new URL(url)
+			expect(parsed.origin).toBe('http://localhost:3000')
+			// Share menu links should point to file/publish routes, not group invite routes.
+			expect(parsed.pathname.startsWith('/f/') || parsed.pathname.startsWith('/p/')).toBe(true)
 		}).toPass({ timeout: 5000 })
 		return url
 	}
