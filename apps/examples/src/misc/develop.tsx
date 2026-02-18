@@ -96,6 +96,29 @@ function afterChangeHandler(prev: any, next: any) {
 	}
 }
 
+// Design sketch for custom $ style props (not yet implemented):
+// const classes: TLPropClasses = {
+// 	$color: (color: string, shape, theme, editor) => ({
+// 		labelColor: theme.colors[color],
+// 		strokeColor: theme.colors[color],
+// 	}),
+// 	$size: (size: string, shape, theme, editor) => ({
+// 		fontSize: theme.fontSizes[size],
+// 		strokeWidth: theme.strokeWidths[size],
+// 	}),
+// 	$warning: {
+// 		labelColor: '--var(--warning-color)',
+// 		strokeColor: '--var(--warning-color)',
+// 	},
+// 	$cheese: {
+// 		priority: 5,
+// 		getStyles: (shape, theme, editor) => ({
+// 			labelColor: '--var(--cheese-color)',
+// 			strokeColor: '--var(--cheese-color)',
+// 		}),
+// 	}
+// }
+
 export default function Develop() {
 	const performanceOverrides = usePerformance()
 	const debuggingOverrides = useDebugging()

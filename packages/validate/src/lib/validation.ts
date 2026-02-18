@@ -759,10 +759,18 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 					}
 				}
 
-				if (!shouldAllowUnknownProperties) {
-					for (const key of Object.keys(newValue)) {
-						if (!hasOwnProperty(config, key)) {
+				for (const key of Object.keys(newValue)) {
+					if (!hasOwnProperty(config, key)) {
+						if (!shouldAllowUnknownProperties) {
 							throw new ValidationError(`Unexpected property`, [key])
+						}
+						// When allowing unknown properties, check if this is a new key
+						// or if its value changed from knownGoodValue
+						if (
+							!hasOwnProperty(knownGoodValue, key) ||
+							!Object.is(getOwnProperty(knownGoodValue, key), getOwnProperty(newValue, key))
+						) {
+							isDifferent = true
 						}
 					}
 				}

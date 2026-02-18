@@ -839,24 +839,63 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Priority order (highest wins):
 		// 1. getShapeStyleOverrides callback
-		// 2. defaultStyles (from ShapeUtil)
+		// 2. StyleProp resolvers ($ props) sorted by priority
+		// 3. defaultStyles (from ShapeUtil)
 
-		const callbackOverrides = this._getShapeStyleOverrides?.(shape, this)
-
-		// Fast path: no overrides
-		if (!callbackOverrides || Object.keys(callbackOverrides).length === 0) {
-			return defaultStyles
-		}
-
-		// Merge overrides, resolving any themeable values
 		const merged = { ...defaultStyles }
 
-		for (const [key, value] of Object.entries(callbackOverrides)) {
-			if (typeof value === 'undefined') continue
-			if (isThemedValue(value)) {
-				;(merged as any)[key] = ctx.isDarkMode ? value.dark : value.light
-			} else {
-				;(merged as any)[key] = value
+		// Apply StyleProp resolvers ($ props) in priority order
+		const stylePropsForShape = this.styleProps[shape.type]
+		if (stylePropsForShape) {
+			// Collect style props with resolvers, sorted by priority
+			const propsWithResolvers: Array<{ styleProp: StyleProp<any>; propKey: string }> = []
+
+			for (const [styleProp, propKey] of stylePropsForShape) {
+				if (styleProp.hasResolver() && styleProp.appliesToShape(shape.type)) {
+					propsWithResolvers.push({ styleProp, propKey })
+				}
+			}
+
+			// Sort by priority (lower first), then by id for stable ordering
+			propsWithResolvers.sort((a, b) => {
+				const priorityDiff = a.styleProp.priority - b.styleProp.priority
+				if (priorityDiff !== 0) return priorityDiff
+				return a.styleProp.id.localeCompare(b.styleProp.id)
+			})
+
+			// Apply each resolver
+			const resolverCtx = { isDarkMode: ctx.isDarkMode }
+			for (const { styleProp, propKey } of propsWithResolvers) {
+				const value = (shape.props as Record<string, unknown>)[propKey]
+				if (value === undefined) continue
+
+				const overrides = styleProp.getStyles!(value, resolverCtx)
+				if (overrides) {
+					for (const [key, val] of Object.entries(overrides)) {
+						if (val !== undefined) {
+							// Resolve themeable values
+							if (isThemedValue(val)) {
+								;(merged as any)[key] = ctx.isDarkMode ? val.dark : val.light
+							} else {
+								;(merged as any)[key] = val
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Apply getShapeStyleOverrides callback (highest priority)
+		const callbackOverrides = this._getShapeStyleOverrides?.(shape, this)
+
+		if (callbackOverrides && Object.keys(callbackOverrides).length > 0) {
+			for (const [key, value] of Object.entries(callbackOverrides)) {
+				if (typeof value === 'undefined') continue
+				if (isThemedValue(value)) {
+					;(merged as any)[key] = ctx.isDarkMode ? value.dark : value.light
+				} else {
+					;(merged as any)[key] = value
+				}
 			}
 		}
 

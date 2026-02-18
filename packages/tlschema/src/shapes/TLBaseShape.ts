@@ -175,7 +175,8 @@ export function createShapeValidator<
 		type: T.literal(type),
 		isLocked: T.boolean,
 		opacity: opacityValidator,
-		props: props ? T.object(props) : (T.jsonValue as any),
+		// Allow unknown properties in props for custom $ style props
+		props: props ? T.object(props).allowUnknownProperties() : (T.jsonValue as any),
 		meta: meta ? T.object(meta) : (T.jsonValue as any),
 	})
 }

@@ -315,11 +315,11 @@ export const embedShapeMigrations: TLPropsMigrations;
 export const embedShapeProps: RecordProps<TLEmbedShape>;
 
 // @public
-export class EnumStyleProp<T> extends StyleProp<T> {
+export class EnumStyleProp<Type> extends StyleProp<Type> {
     // @internal
-    constructor(id: string, defaultValue: T, values: readonly T[]);
+    constructor(id: string, defaultValue: Type, values: readonly Type[], getStyles?: StylePropResolver<Type, any>, priority?: number, shapes?: StylePropShapeFilter);
     // (undocumented)
-    readonly values: readonly T[];
+    readonly values: readonly Type[];
 }
 
 // @public
@@ -665,27 +665,56 @@ export type ShapeWithCrop = ExtractShapeByProps<{
 // @public
 export class StyleProp<Type> implements T.Validatable<Type> {
     // @internal
-    protected constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
+    protected constructor(id: string, defaultValue: Type, type: T.Validatable<Type>,
+    getStyles?: StylePropResolver<Type, any> | undefined,
+    priority?: number,
+    shapes?: StylePropShapeFilter | undefined);
+    appliesToShape(shapeType: string): boolean;
+    static readonly DEFAULT_PRIORITY = 10;
     // (undocumented)
     defaultValue: Type;
-    static define<Type>(uniqueId: string, options: {
-        defaultValue: Type;
-        type?: T.Validatable<Type>;
-    }): StyleProp<Type>;
-    static defineEnum<const Values extends readonly unknown[]>(uniqueId: string, options: {
+    static define<Type, Styles = Record<string, unknown>>(uniqueId: string, options: StylePropOptions<Type, Styles>): StyleProp<Type>;
+    static defineEnum<const Values extends readonly unknown[], Styles = Record<string, unknown>>(uniqueId: string, options: {
         defaultValue: Values[number];
         values: Values;
-    }): EnumStyleProp<Values[number]>;
+    } & Omit<StylePropOptions<Values[number], Styles>, 'defaultValue' | 'type'>): EnumStyleProp<Values[number]>;
+    readonly getStyles?: StylePropResolver<Type, any> | undefined;
+    hasResolver(): boolean;
     // (undocumented)
     readonly id: string;
+    readonly priority: number;
     // (undocumented)
     setDefaultValue(value: Type): void;
+    readonly shapes?: StylePropShapeFilter | undefined;
     // (undocumented)
     readonly type: T.Validatable<Type>;
     // (undocumented)
     validate(value: unknown): Type;
     // (undocumented)
     validateUsingKnownGoodVersion(prevValue: Type, newValue: unknown): Type;
+}
+
+// @public
+export interface StylePropOptions<Type, Styles = Record<string, unknown>> {
+    defaultValue: Type;
+    getStyles?: StylePropResolver<Type, Styles>;
+    priority?: number;
+    shapes?: StylePropShapeFilter;
+    type?: T.Validatable<Type>;
+}
+
+// @public
+export type StylePropResolver<Type, Styles = Record<string, unknown>> = (value: Type, context: StylePropResolverContext) => Styles;
+
+// @public
+export interface StylePropResolverContext {
+    isDarkMode: boolean;
+}
+
+// @public
+export interface StylePropShapeFilter {
+    allow?: readonly string[];
+    deny?: readonly string[];
 }
 
 // @public (undocumented)

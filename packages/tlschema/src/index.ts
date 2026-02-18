@@ -264,7 +264,15 @@ export {
 	type TLVideoShape,
 	type TLVideoShapeProps,
 } from './shapes/TLVideoShape'
-export { EnumStyleProp, StyleProp, type StylePropValue } from './styles/StyleProp'
+export {
+	EnumStyleProp,
+	StyleProp,
+	type StylePropOptions,
+	type StylePropResolver,
+	type StylePropResolverContext,
+	type StylePropShapeFilter,
+	type StylePropValue,
+} from './styles/StyleProp'
 export {
 	defaultColorNames,
 	DefaultColorStyle,
