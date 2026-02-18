@@ -136,6 +136,32 @@ if (previewId) {
 const zeroMutateUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/mutate`
 const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/query`
 
+// Zero connection limits per environment.
+// UPSTREAM_DB requires direct connections (logical replication), CVR_DB and CHANGE_DB use pooled.
+// Staging: Supabase Micro (15 direct pool size, 200 pooled clients)
+// Preview: Neon 0.25 CU (104 max_connections shared across all preview branches)
+// Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
+// TODO(production): tune these once we know prod Postgres limits
+const zeroConnectionLimits = {
+	staging: {
+		rm: { upstream: 1, cvr: 1, change: 3 },
+		vs: { upstream: 2, cvr: 3, change: 1 },
+		single: { upstream: 3, cvr: 5, change: 3 },
+	},
+	production: {
+		rm: { upstream: 1, cvr: 3, change: 5 },
+		vs: { upstream: 5, cvr: 10, change: 3 },
+		single: { upstream: 5, cvr: 10, change: 5 },
+	},
+	// Previews use Neon DB
+	preview: {
+		rm: { upstream: 1, cvr: 1, change: 3 },
+		vs: { upstream: 2, cvr: 3, change: 1 },
+		single: { upstream: 3, cvr: 5, change: 3 },
+	},
+} as const
+const zeroConns = zeroConnectionLimits[env.TLDRAW_ENV as keyof typeof zeroConnectionLimits]
+
 async function main() {
 	assert(
 		env.TLDRAW_ENV === 'staging' || env.TLDRAW_ENV === 'production' || env.TLDRAW_ENV === 'preview',
@@ -458,9 +484,16 @@ function updateFlyioToml(appName: string): void {
 		.replace('__APP_NAME', appName)
 		.replace('__ZERO_VERSION', zeroVersion)
 		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
+		.replaceAll(
+			'__BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
+			env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING
+		)
 		.replaceAll('__ZERO_MUTATE_URL', zeroMutateUrl)
 		.replaceAll('__ZERO_QUERY_URL', zeroQueryUrl)
 		.replaceAll('__ZERO_ADMIN_PASSWORD', zeroAdminPassword)
+		.replaceAll('__SINGLE_UPSTREAM_MAX_CONNS', String(zeroConns.single.upstream))
+		.replaceAll('__SINGLE_CVR_MAX_CONNS', String(zeroConns.single.cvr))
+		.replaceAll('__SINGLE_CHANGE_MAX_CONNS', String(zeroConns.single.change))
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
@@ -497,6 +530,9 @@ function updateFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__ZERO_R2_BUCKET_NAME', env.ZERO_R2_BUCKET_NAME)
 		.replaceAll('__ZERO_R2_ACCESS_KEY_ID', env.ZERO_R2_ACCESS_KEY_ID)
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
+		.replaceAll('__RM_UPSTREAM_MAX_CONNS', String(zeroConns.rm.upstream))
+		.replaceAll('__RM_CVR_MAX_CONNS', String(zeroConns.rm.cvr))
+		.replaceAll('__RM_CHANGE_MAX_CONNS', String(zeroConns.rm.change))
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
@@ -525,6 +561,9 @@ function updateFlyioViewSyncerToml(
 		.replaceAll('__ZERO_R2_BUCKET_NAME', env.ZERO_R2_BUCKET_NAME)
 		.replaceAll('__ZERO_R2_ACCESS_KEY_ID', env.ZERO_R2_ACCESS_KEY_ID)
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
+		.replaceAll('__VS_UPSTREAM_MAX_CONNS', String(zeroConns.vs.upstream))
+		.replaceAll('__VS_CVR_MAX_CONNS', String(zeroConns.vs.cvr))
+		.replaceAll('__VS_CHANGE_MAX_CONNS', String(zeroConns.vs.change))
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 
@@ -557,8 +596,8 @@ async function deployZeroViaFlyIoMultiNode() {
 			'secrets',
 			'set',
 			`ZERO_UPSTREAM_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
-			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
-			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
+			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING}`,
+			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING}`,
 			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
 			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
 			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
@@ -586,8 +625,8 @@ async function deployZeroViaFlyIoMultiNode() {
 			'secrets',
 			'set',
 			`ZERO_UPSTREAM_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
-			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
-			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
+			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING}`,
+			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING}`,
 			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
 			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
 			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
