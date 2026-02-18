@@ -42,6 +42,17 @@ import { ZMutationError } from './zero/ZMutationError'
 
 const ALLOWED_OPS = new Set(['=', '!=', '>', '<', '>=', '<=', 'IS', 'IS NOT'])
 
+function getQueryAstOrThrow(query: unknown): AST {
+	if (!query || typeof query !== 'object') {
+		throw new Error('Invalid query')
+	}
+	const ast = Reflect.get(query, 'ast')
+	if (!ast || typeof ast !== 'object' || !('table' in ast)) {
+		throw new Error('Invalid query')
+	}
+	return ast as AST
+}
+
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
 	private measure: Analytics | undefined
@@ -502,8 +513,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							query: Query<TTable, TlaSchema, TReturn>,
 							_options?: RunOptions
 						): Promise<HumanReadable<TReturn>> => {
-							const ast = (query as unknown as { ast: AST }).ast
-							if (!ast?.table) throw new Error('Invalid query')
+							const ast = getQueryAstOrThrow(query)
 							return this.executeServerQuery(client, ast) as Promise<HumanReadable<TReturn>>
 						},
 					},

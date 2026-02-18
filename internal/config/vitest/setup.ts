@@ -16,7 +16,7 @@ if (typeof window !== 'undefined') {
 // Polyfill for requestAnimationFrame (equivalent to raf/polyfill)
 if (typeof globalThis.requestAnimationFrame === 'undefined') {
 	globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => {
-		return setTimeout(() => cb(Date.now()), 16) as unknown as number
+		return Number(setTimeout(() => cb(Date.now()), 16))
 	}
 }
 

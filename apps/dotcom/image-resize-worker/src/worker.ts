@@ -95,9 +95,9 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				const req = new Request(passthroughUrl.href, { cf: { image: imageOptions } })
 				actualResponse = await this.env.SYNC_WORKER.fetch(req)
 			} else {
-				actualResponse = (await fetch(passthroughUrl, {
+				actualResponse = await fetch(passthroughUrl, {
 					cf: { image: imageOptions },
-				})) as unknown as Response
+				})
 			}
 			if (!actualResponse.headers.get('content-type')?.startsWith('image/')) return notFound()
 			if (actualResponse.status === 200) {

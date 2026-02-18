@@ -109,12 +109,10 @@ export async function handleUserAssetGet({
 	context: ExecutionContext
 }): Promise<Response> {
 	// this cache automatically handles range responses etc.
-	const cacheKey = new Request(request.url, { headers: request.headers }) as unknown as Parameters<
-		typeof caches.default.match
-	>[0]
+	const cacheKey = new Request(request.url, { headers: request.headers })
 	const cachedResponse = await caches.default.match(cacheKey)
 	if (cachedResponse) {
-		return cachedResponse as unknown as Response
+		return cachedResponse
 	}
 
 	const object = await bucket.get(objectName, {

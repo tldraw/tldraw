@@ -482,7 +482,7 @@ export class Idle extends StateNode {
 							...info,
 							target: 'shape',
 							shape: onlySelectedShape,
-						} as unknown as TLClickEventInfo,
+						},
 						true /* select all */
 					)
 					return
@@ -545,7 +545,7 @@ export class Idle extends StateNode {
 							...info,
 							target: 'shape',
 							shape: onlySelectedShape,
-						} as unknown as TLClickEventInfo,
+						},
 						true /* select all */
 					)
 					return
@@ -569,7 +569,7 @@ export class Idle extends StateNode {
 
 	private startEditingShape(
 		shape: TLShape,
-		info: TLClickEventInfo | TLKeyboardEventInfo,
+		info: TLClickEventInfo | (TLKeyboardEventInfo & { target: 'shape'; shape: TLShape }),
 		shouldSelectAll?: boolean
 	) {
 		const { editor } = this
