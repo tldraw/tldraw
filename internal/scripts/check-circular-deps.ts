@@ -34,38 +34,70 @@ async function getIncludePatternSets(packageName: string) {
 	const fullPackagePatternSet = [[`**/packages/${packageName}/**/*.{js,jsx,ts,tsx}`]]
 	if (packageName !== 'tldraw') return fullPackagePatternSet
 
+	// NOTE:
+	// `vite-plugin-circular-dependency` crashes with "Invalid array length" on tldraw when
+	// `ui/components` and `ui/context` are scanned together in a single build graph.
+	// To keep checks reliable and fast, we build tldraw in a few dynamic batches:
+	// - all non-ui scopes together
+	// - ui/components alone
+	// - ui/context alone
+	// - remaining ui scopes together
+	// These batches are discovered from the filesystem to avoid brittle hardcoded scope lists.
 	const tldrawLibDir = path.join(REPO_ROOT, 'packages', 'tldraw', 'src', 'lib')
 	const tldrawEntries = (await readdir(tldrawLibDir, { withFileTypes: true })).sort((a, b) =>
 		a.name.localeCompare(b.name)
 	)
 
-	const perScopePatterns: string[] = []
-	for (const entry of tldrawEntries) {
+	const nonUiPatterns: string[] = []
+	let uiComponentsPattern: string | null = null
+	let uiContextPattern: string | null = null
+	const uiOtherPatterns: string[] = []
+
+	for (const entry of tldrawEntries.filter((entry) => !entry.name.startsWith('.'))) {
 		if (!entry.isDirectory()) {
-			perScopePatterns.push(`**/packages/tldraw/src/lib/${entry.name}`)
+			if (/\.(ts|tsx|js|jsx)$/.test(entry.name)) {
+				nonUiPatterns.push(`**/packages/tldraw/src/lib/${entry.name}`)
+			}
 			continue
 		}
 
 		if (entry.name !== 'ui') {
-			perScopePatterns.push(`**/packages/tldraw/src/lib/${entry.name}/**/*.{js,jsx,ts,tsx}`)
+			nonUiPatterns.push(`**/packages/tldraw/src/lib/${entry.name}/**/*.{js,jsx,ts,tsx}`)
 			continue
 		}
 
-		// Split ui into child scopes to avoid plugin crashes on large combined graphs.
 		const tldrawUiDir = path.join(tldrawLibDir, 'ui')
 		const tldrawUiEntries = (await readdir(tldrawUiDir, { withFileTypes: true })).sort((a, b) =>
 			a.name.localeCompare(b.name)
 		)
-		for (const uiEntry of tldrawUiEntries) {
-			perScopePatterns.push(
-				uiEntry.isDirectory()
-					? `**/packages/tldraw/src/lib/ui/${uiEntry.name}/**/*.{js,jsx,ts,tsx}`
-					: `**/packages/tldraw/src/lib/ui/${uiEntry.name}`
-			)
+		for (const uiEntry of tldrawUiEntries.filter((uiEntry) => !uiEntry.name.startsWith('.'))) {
+			const uiPattern = uiEntry.isDirectory()
+				? `**/packages/tldraw/src/lib/ui/${uiEntry.name}/**/*.{js,jsx,ts,tsx}`
+				: /\.(ts|tsx|js|jsx)$/.test(uiEntry.name)
+					? `**/packages/tldraw/src/lib/ui/${uiEntry.name}`
+					: null
+
+			if (!uiPattern) continue
+			if (uiEntry.name === 'components') {
+				uiComponentsPattern = uiPattern
+			} else if (uiEntry.name === 'context') {
+				uiContextPattern = uiPattern
+			} else {
+				uiOtherPatterns.push(uiPattern)
+			}
 		}
 	}
 
-	return perScopePatterns.map((scopePattern) => ['**/packages/tldraw/src/index.ts', scopePattern])
+	const includePatternSets = [
+		['**/packages/tldraw/src/index.ts', ...nonUiPatterns],
+		...(uiComponentsPattern ? [['**/packages/tldraw/src/index.ts', uiComponentsPattern]] : []),
+		...(uiContextPattern ? [['**/packages/tldraw/src/index.ts', uiContextPattern]] : []),
+		...(uiOtherPatterns.length > 0
+			? [['**/packages/tldraw/src/index.ts', ...uiOtherPatterns]]
+			: []),
+	]
+
+	return includePatternSets
 }
 
 async function checkPackageForCircularDependencies(packageName: string, packageEntryPath: string) {
@@ -80,8 +112,9 @@ async function checkPackageForCircularDependencies(packageName: string, packageE
 		const packageName = process.argv[1]
 		const packageEntryPath = process.argv[2]
 		const includePatternSets = JSON.parse(process.argv[3])
+		const maxConcurrency = packageName === 'tldraw' ? 2 : 1
 
-		for (const includePatterns of includePatternSets) {
+		async function checkIncludeSet(includePatterns) {
 			const outputFilePath = path.join(
 				'.lazy',
 				'circle-deps',
@@ -134,6 +167,17 @@ async function checkPackageForCircularDependencies(packageName: string, packageE
 				process.exit(1)
 			}
 		}
+
+		const queue = [...includePatternSets]
+		const workers = Array.from({ length: Math.min(maxConcurrency, queue.length) }, async () => {
+			while (queue.length > 0) {
+				const includePatterns = queue.shift()
+				if (!includePatterns) return
+				await checkIncludeSet(includePatterns)
+			}
+		})
+
+		await Promise.all(workers)
 	`
 
 	return new Promise<void>((resolve, reject) => {
