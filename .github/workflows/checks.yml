@@ -49,6 +49,9 @@ jobs:
       - name: Check packages
         run: yarn check-packages
 
+      - name: Check circular dependencies
+        run: yarn check-circular-deps
+
       - name: Restore build tool caches
         uses: actions/cache@v5
         with:
