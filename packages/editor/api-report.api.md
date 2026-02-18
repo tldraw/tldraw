@@ -9,6 +9,7 @@ import { AtomSet } from '@tldraw/store';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
+import { CustomRecordInfo } from '@tldraw/tlschema';
 import { Dispatch } from 'react';
 import { Editor as Editor_2 } from '@tiptap/core';
 import { EditorProviderProps as EditorProviderProps_2 } from '@tiptap/react';
@@ -4446,6 +4447,7 @@ export type TLStoreOptions = TLStoreBaseOptions & {
 export type TLStoreSchemaOptions = {
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     migrations?: readonly MigrationSequence[];
+    records?: Record<string, CustomRecordInfo>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
 } | {
     schema?: StoreSchema<TLRecord, TLStoreProps>;
