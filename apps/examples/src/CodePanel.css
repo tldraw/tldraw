@@ -1,38 +1,39 @@
+.code-panel__overlay {
+	position: fixed;
+	z-index: 99999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.25);
+}
+
+.code-panel__modal {
+	width: 80%;
+	height: 80%;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow:
+		0 8px 32px rgba(0, 0, 0, 0.12),
+		0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
 .code-panel {
-	position: relative;
 	display: flex;
 	flex-direction: column;
 	height: 100%;
-	background: var(--gray-light);
+	background: var(--background);
 	color: var(--text);
-	border-right: 1px solid var(--gray-dark);
 	overflow: hidden;
-}
-
-.code-panel__resize-handle {
-	position: absolute;
-	top: 0;
-	right: -3px;
-	width: 6px;
-	height: 100%;
-	cursor: col-resize;
-	z-index: 10;
-}
-
-.code-panel__resize-handle:hover,
-.code-panel__resize-handle:active {
-	background: var(--focus);
-	opacity: 0.5;
 }
 
 .code-panel__header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 0 8px;
+	padding: 0 12px;
 	height: 40px;
 	min-height: 40px;
-	background: var(--background);
+	background: var(--gray-light);
 	border-bottom: 1px solid var(--gray-dark);
 	gap: 4px;
 }
@@ -52,19 +53,18 @@
 	background: transparent;
 	color: var(--black-transparent-dark);
 	border: none;
-	border-radius: 4px;
 	cursor: pointer;
 	white-space: nowrap;
+	text-decoration: none;
 }
 
 .code-panel__tab:hover {
 	color: var(--text);
-	background: var(--gray-dark);
+	text-decoration: underline;
 }
 
 .code-panel__tab[data-active='true'] {
 	color: var(--text);
-	background: var(--gray-light);
 	font-weight: 600;
 }
 
@@ -82,6 +82,9 @@
 	border: none;
 	border-radius: 4px;
 	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 4px;
 }
 
 .code-panel__action:hover {
@@ -91,7 +94,8 @@
 
 .code-panel__content {
 	flex: 1;
-	overflow: auto;
+	overflow-x: hidden;
+	overflow-y: auto;
 	padding: 16px;
 }
 
@@ -102,20 +106,19 @@
 	font-size: 13px;
 	line-height: 1.5;
 	font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+	white-space: pre-wrap !important;
+	word-break: break-all !important;
+	overflow-wrap: break-word !important;
 }
 
 .code-panel__content code {
 	font-family: inherit;
+	white-space: pre-wrap !important;
+	word-break: break-all !important;
 }
 
 .code-panel__loading {
 	padding: 16px;
 	color: var(--black-transparent-dark);
 	font-size: 13px;
-}
-
-@media screen and (max-width: 500px) {
-	.code-panel {
-		display: none;
-	}
 }

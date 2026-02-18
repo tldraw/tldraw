@@ -56,21 +56,15 @@ html,
 	grid-auto-flow: column;
 }
 
-.example--with-code {
-	grid-template-columns: auto auto 1fr;
-}
-
 .example__content {
 	position: relative;
 	height: 100%;
 	width: 100%;
 	overflow: auto;
-	min-width: 0;
 }
 
 @media screen and (max-width: 500px) {
-	.example,
-	.example--with-code {
+	.example {
 		display: grid;
 		grid-template-columns: 1fr;
 		grid-auto-flow: column;

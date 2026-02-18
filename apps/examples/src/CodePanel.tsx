@@ -1,24 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './CodePanel.css'
 
 interface SourceFile {
 	filename: string
 	content: string
-}
-
-const MIN_WIDTH = 280
-const MAX_WIDTH = 900
-const DEFAULT_WIDTH = 480
-const STORAGE_KEY = 'examples:codePanelWidth'
-
-function getStoredWidth() {
-	try {
-		const v = localStorage.getItem(STORAGE_KEY)
-		if (v) return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, Number(v)))
-	} catch {
-		// ignore
-	}
-	return DEFAULT_WIDTH
 }
 
 // Cache the highlighter so it's only created once
@@ -39,52 +24,19 @@ function getHighlighter() {
 	return highlighterPromise
 }
 
-export function CodePanel({ files, onClose }: { files: SourceFile[]; onClose: () => void }) {
+export function CodePanel({
+	files,
+	codeUrl,
+	onClose,
+}: {
+	files: SourceFile[]
+	codeUrl: string
+	onClose: () => void
+}) {
 	const [activeFile, setActiveFile] = useState(0)
 	const [highlightedHtml, setHighlightedHtml] = useState('')
 	const [copied, setCopied] = useState(false)
-	const [width, setWidth] = useState(getStoredWidth)
 	const contentRef = useRef<HTMLDivElement>(null)
-	const isDragging = useRef(false)
-
-	const handleResizeStart = useCallback(
-		(e: React.PointerEvent) => {
-			e.preventDefault()
-			isDragging.current = true
-			const startX = e.clientX
-			const startWidth = width
-
-			const handleMove = (moveEvent: PointerEvent) => {
-				const newWidth = Math.min(
-					MAX_WIDTH,
-					Math.max(MIN_WIDTH, startWidth + (moveEvent.clientX - startX))
-				)
-				setWidth(newWidth)
-			}
-
-			const handleUp = () => {
-				isDragging.current = false
-				document.removeEventListener('pointermove', handleMove)
-				document.removeEventListener('pointerup', handleUp)
-				document.body.style.cursor = ''
-				document.body.style.userSelect = ''
-			}
-
-			document.body.style.cursor = 'col-resize'
-			document.body.style.userSelect = 'none'
-			document.addEventListener('pointermove', handleMove)
-			document.addEventListener('pointerup', handleUp)
-		},
-		[width]
-	)
-
-	useEffect(() => {
-		try {
-			localStorage.setItem(STORAGE_KEY, String(width))
-		} catch {
-			// ignore
-		}
-	}, [width])
 
 	useEffect(() => {
 		setActiveFile(0)
@@ -135,8 +87,7 @@ export function CodePanel({ files, onClose }: { files: SourceFile[]; onClose: ()
 	}
 
 	return (
-		<div className="code-panel" style={{ width }}>
-			<div className="code-panel__resize-handle" onPointerDown={handleResizeStart} />
+		<div className="code-panel">
 			<div className="code-panel__header">
 				<div className="code-panel__tabs">
 					{files.map((f, i) => (
@@ -152,7 +103,15 @@ export function CodePanel({ files, onClose }: { files: SourceFile[]; onClose: ()
 				</div>
 				<div className="code-panel__actions">
 					<button className="code-panel__action" onClick={handleCopy} title="Copy to clipboard">
-						{copied ? 'Copied!' : 'Copy'}
+						{copied ? (
+							<>
+								<CheckIcon /> Copied!
+							</>
+						) : (
+							<>
+								<CopyIcon /> Copy
+							</>
+						)}
 					</button>
 					<button className="code-panel__action" onClick={onClose} title="Close code panel">
 						&#x2715;
@@ -167,5 +126,39 @@ export function CodePanel({ files, onClose }: { files: SourceFile[]; onClose: ()
 				)}
 			</div>
 		</div>
+	)
+}
+
+function CopyIcon() {
+	return (
+		<svg
+			width="16"
+			height="16"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth={1.5}
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		>
+			<path d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
+		</svg>
+	)
+}
+
+function CheckIcon() {
+	return (
+		<svg
+			width="16"
+			height="16"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth={1.5}
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		>
+			<path d="m4.5 12.75 6 6 9-13.5" />
+		</svg>
 	)
 }

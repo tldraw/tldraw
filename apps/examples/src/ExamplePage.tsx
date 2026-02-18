@@ -1,5 +1,6 @@
 import { AlertDialog as _AlertDialog } from 'radix-ui'
 import { Dispatch, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { CodePanel } from './CodePanel'
 import { Example, examples } from './examples'
@@ -29,6 +30,7 @@ export function ExamplePage({
 	children: React.ReactNode
 }) {
 	const categories = examples.map((e) => e.id)
+	const contentRef = useRef<HTMLDivElement>(null)
 	const [filterValue, setFilterValue] = useState('')
 	const [showCode, setShowCode] = useState(() => {
 		try {
@@ -81,7 +83,7 @@ export function ExamplePage({
 
 	return (
 		<DialogContextProvider>
-			<div className={showCode ? 'example example--with-code' : 'example'}>
+			<div className="example">
 				<nav className="example__sidebar scroll-light">
 					<div className="example__sidebar__header">
 						<Link className="example__sidebar__header__logo" to="/">
@@ -181,15 +183,65 @@ export function ExamplePage({
 						</a>
 					</div>
 				</nav>
-				{showCode && sourceFiles.length > 0 && (
-					<CodePanel files={sourceFiles} onClose={() => setShowCode(false)} />
-				)}
-				<div className="example__content" role="main">
+				<div className="example__content" ref={contentRef} role="main">
 					{children}
 					<Dialogs />
+					{showCode &&
+						sourceFiles.length > 0 &&
+						createPortal(
+							<CodePanelOverlay
+								contentRef={contentRef}
+								files={sourceFiles}
+								codeUrl={example.codeUrl}
+								onClose={() => setShowCode(false)}
+							/>,
+							document.body
+						)}
 				</div>
 			</div>
 		</DialogContextProvider>
+	)
+}
+
+function CodePanelOverlay({
+	contentRef,
+	files,
+	codeUrl,
+	onClose,
+}: {
+	contentRef: React.RefObject<HTMLDivElement | null>
+	files: { filename: string; content: string }[]
+	codeUrl: string
+	onClose: () => void
+}) {
+	const [rect, setRect] = useState<DOMRect | null>(null)
+
+	useEffect(() => {
+		const el = contentRef.current
+		if (!el) return
+
+		const update = () => {
+			setRect(el!.getBoundingClientRect())
+		}
+		update()
+
+		const observer = new ResizeObserver(update)
+		observer.observe(el)
+		return () => observer.disconnect()
+	}, [contentRef])
+
+	if (!rect) return null
+
+	return (
+		<div
+			className="code-panel__overlay"
+			style={{ top: rect.top, left: rect.left, width: rect.width, height: rect.height }}
+			onClick={onClose}
+		>
+			<div className="code-panel__modal" onClick={(e) => e.stopPropagation()}>
+				<CodePanel files={files} codeUrl={codeUrl} onClose={onClose} />
+			</div>
+		</div>
 	)
 }
 
