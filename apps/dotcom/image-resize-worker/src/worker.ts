@@ -95,8 +95,14 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				const req = new Request(passthroughUrl.href, { cf: { image: imageOptions } })
 				actualResponse = await this.env.SYNC_WORKER.fetch(req)
 			} else {
-				actualResponse = await fetch(passthroughUrl, {
+				const fetchedResponse = await fetch(passthroughUrl, {
 					cf: { image: imageOptions },
+				})
+				// Normalize Cloudflare's response type to the DOM Response type used in this worker.
+				actualResponse = new Response(fetchedResponse.body as unknown as BodyInit, {
+					status: fetchedResponse.status,
+					statusText: fetchedResponse.statusText,
+					headers: fetchedResponse.headers as unknown as HeadersInit,
 				})
 			}
 			if (!actualResponse.headers.get('content-type')?.startsWith('image/')) return notFound()

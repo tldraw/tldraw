@@ -61,23 +61,24 @@ function _updateHoveredShapeId(editor: Editor) {
 	}
 
 	if (hoverLockedEditors.get(editor)) {
-		return
+		return undefined
 	}
 
 	const currentHoveredId = editor.getHoveredShapeId()
 
 	if (!currentHoveredId) {
 		hoverLockedEditors.set(editor, true)
-		return
+		return undefined
 	}
 
 	const nextHoveredId = getShapeToHover(editor)
 	if (nextHoveredId === currentHoveredId) {
-		return
+		return undefined
 	}
 
 	editor.setHoveredShape(null)
 	hoverLockedEditors.set(editor, true)
+	return undefined
 }
 
 /** @internal */

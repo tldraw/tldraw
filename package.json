@@ -59,7 +59,6 @@
 		"format-current": "prettier --write --cache $(git diff --name-only --diff-filter d | xargs)",
 		"lint-current": "files=$(git diff --name-only --diff-filter d | grep -E '\\.(js|jsx|ts|tsx)$'); if [ -n \"$files\" ]; then echo \"$files\" | xargs eslint --cache; else echo 'No JS/TS files to lint'; fi",
 		"typecheck": "yarn refresh-assets && tsx internal/scripts/typecheck.ts",
-		"typecheck:native": "yarn refresh-assets && tsx internal/scripts/typecheck.ts --native",
 		"profile-typescript": "tsx internal/scripts/profile-typescript.ts",
 		"profile-tsserver": "tsx internal/scripts/profile-tsserver.ts",
 		"check-packages": "tsx internal/scripts/check-packages.ts",
