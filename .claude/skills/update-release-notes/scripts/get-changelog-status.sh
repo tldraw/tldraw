@@ -16,7 +16,7 @@ if [ -f "$NEXT_FILE" ]; then
 fi
 
 # Get the latest published release from GitHub
-latest_release=$(gh release list --limit 1 --json tagName,publishedAt -q '.[0]' 2>/dev/null || echo '{}')
+latest_release=$(gh release list --exclude-drafts --limit 1 --json tagName,publishedAt -q '.[0]' 2>/dev/null || echo '{}')
 latest_tag=$(echo "$latest_release" | jq -r '.tagName // empty')
 latest_date=$(echo "$latest_release" | jq -r '.publishedAt // empty')
 
