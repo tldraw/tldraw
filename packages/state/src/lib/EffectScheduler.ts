@@ -41,6 +41,7 @@ export interface EffectSchedulerOptions {
 }
 
 class __EffectScheduler__<Result> implements EffectScheduler<Result> {
+	readonly __isEffectScheduler = true as const
 	/** @internal */
 	private _isActivelyListening = false
 	/**

@@ -1,6 +1,6 @@
 import { computed, isUninitialized } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import { Editor } from '../Editor'
+import type { Editor } from '../Editor'
 
 /**
  * Non visible shapes are shapes outside of the viewport page bounds.

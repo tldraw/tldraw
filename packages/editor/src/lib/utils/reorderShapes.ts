@@ -1,6 +1,6 @@
 import { TLParentId, TLShape, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { IndexKey, compact, getIndicesBetween, sortByIndex } from '@tldraw/utils'
-import { Editor } from '../editor/Editor'
+import type { Editor } from '../editor/Editor'
 
 /**
  * Gets the changes for reordering shapes.
