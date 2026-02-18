@@ -89,35 +89,34 @@ async function checkPackageForCircularDependencies(packageName: string, packageE
 			)
 			mkdirSync(path.dirname(outputFilePath), { recursive: true })
 
-			await build({
-				root: ${JSON.stringify(REPO_ROOT)},
-				logLevel: 'error',
-				plugins: [
-					circularDependencyChecker({
-						circleImportThrowErr: false,
-						outputFilePath,
-						include: includePatterns,
-					}),
-				],
-				build: {
-					write: false,
-					emptyOutDir: false,
-					minify: false,
-					target: 'es2022',
-					rollupOptions: {
-						input: {
-							[packageName]: packageEntryPath,
-						},
-						onwarn(warning, warn) {
-							if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return
-							warn(warning)
-						},
-					},
-				},
-			})
-
 			let cycleReport = {}
 			try {
+				await build({
+					root: ${JSON.stringify(REPO_ROOT)},
+					logLevel: 'error',
+					plugins: [
+						circularDependencyChecker({
+							circleImportThrowErr: false,
+							outputFilePath,
+							include: includePatterns,
+						}),
+					],
+					build: {
+						write: false,
+						emptyOutDir: false,
+						minify: false,
+						target: 'es2022',
+						rollupOptions: {
+							input: {
+								[packageName]: packageEntryPath,
+							},
+							onwarn(warning, warn) {
+								if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return
+								warn(warning)
+							},
+						},
+					},
+				})
 				cycleReport = JSON.parse(readFileSync(outputFilePath, 'utf8'))
 			} finally {
 				rmSync(outputFilePath, { force: true })
