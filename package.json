@@ -62,6 +62,7 @@
 		"profile-typescript": "tsx internal/scripts/profile-typescript.ts",
 		"profile-tsserver": "tsx internal/scripts/profile-tsserver.ts",
 		"check-packages": "tsx internal/scripts/check-packages.ts",
+		"check-circular-deps": "tsx internal/scripts/check-circular-deps.ts",
 		"update-pr-template": "tsx internal/scripts/update-pr-template.ts",
 		"generate-test-licenses": "tsx internal/scripts/generate-test-licenses.ts",
 		"api-check": "lazy api-check",
@@ -129,6 +130,7 @@
 		"tsx": "^4.19.2",
 		"typescript": "^5.8.3",
 		"vercel": "^34.4.0",
+		"vite-plugin-circular-dependency": "^0.5.0",
 		"vitest": "^3.2.4",
 		"vitest-canvas-mock": "^1.1.3"
 	},
