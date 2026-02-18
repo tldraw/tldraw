@@ -146,21 +146,22 @@ const zeroConnectionLimits = {
 	staging: {
 		rm: { upstream: 1, cvr: 1, change: 3 },
 		vs: { upstream: 2, cvr: 3, change: 1 },
-		single: { upstream: 3, cvr: 5, change: 3 },
 	},
 	production: {
 		rm: { upstream: 1, cvr: 3, change: 5 },
 		vs: { upstream: 5, cvr: 10, change: 3 },
-		single: { upstream: 5, cvr: 10, change: 5 },
 	},
 	// Previews use Neon DB
 	preview: {
-		rm: { upstream: 1, cvr: 1, change: 3 },
-		vs: { upstream: 2, cvr: 3, change: 1 },
 		single: { upstream: 3, cvr: 5, change: 3 },
 	},
 } as const
-const zeroConns = zeroConnectionLimits[env.TLDRAW_ENV as keyof typeof zeroConnectionLimits]
+type ConnLimits = { upstream: number; cvr: number; change: number }
+type SingleNodeConnLimits = { single: ConnLimits }
+type MultiNodeConnLimits = { rm: ConnLimits; vs: ConnLimits }
+const zeroConns = zeroConnectionLimits[env.TLDRAW_ENV as keyof typeof zeroConnectionLimits] as
+	| SingleNodeConnLimits
+	| MultiNodeConnLimits
 
 async function main() {
 	assert(
@@ -473,6 +474,7 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 }
 
 function updateFlyioToml(appName: string): void {
+	assert('single' in zeroConns, 'single-node connection limits required')
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio.template.toml')
 	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio.toml')
 
@@ -514,6 +516,7 @@ async function deployZeroViaFlyIo() {
 
 // See https://zero.rocicorp.dev/docs/deployment for Zero deployment config reference
 function updateFlyioReplicationManagerToml(appName: string, backupPath: string): void {
+	assert('rm' in zeroConns, 'multi-node connection limits required')
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio-replication-manager.template.toml')
 	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-replication-manager.toml')
 
@@ -542,6 +545,7 @@ function updateFlyioViewSyncerToml(
 	replManagerUri: string,
 	backupPath: string
 ): void {
+	assert('vs' in zeroConns, 'multi-node connection limits required')
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio-view-syncer.template.toml')
 	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-view-syncer.toml')
 
