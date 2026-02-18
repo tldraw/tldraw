@@ -9,45 +9,33 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { useComposition } from './CompositionContext'
 import {
 	createGroupKey,
 	createIdeaNode,
 	forceDirectedLayout,
-	getComposedIdeaPosition,
 	getIdeaNodeById,
 	getIdeaNodes,
 	getNextIdeaPosition,
 	isIdeaShape,
 } from './graph'
-import {
-	clusterByTitles,
-	composeCodeBlocks,
-	composeCodePair,
-	composeIdeaPair,
-	composeIdeas,
-	parseCodeBlockFromText,
-	parseIdeaFromText,
-	priorTemperature,
-} from './llm'
-import { rankPairSuggestions } from './scoring'
-import { CompositionDomain, IdeaNode } from './types'
+import { clusterByTitles, parseCodeBlockFromText, parseIdeaFromText } from './llm'
+import { IdeaNode } from './types'
 
-const MAX_SUGGESTIONS = 8
-
-interface CompositionPanelProps {
-	agentAvailable: boolean
-}
-
-export const CompositionPanel = track(function CompositionPanel({
-	agentAvailable,
-}: CompositionPanelProps) {
+export const CompositionPanel = track(function CompositionPanel() {
 	const editor = useEditor()
-	const [domain, setDomain] = useState<CompositionDomain>('idea')
+	const {
+		domain,
+		setDomain,
+		busyPairs,
+		agentAvailable,
+		error,
+		setError,
+		handleCompose,
+		getPriorTemperature,
+	} = useComposition()
+
 	const allIdeaNodes = useValue('ideaNodes', () => getIdeaNodes(editor), [editor])
-	const ideaNodes = useMemo(
-		() => allIdeaNodes.filter((n) => n.domain === domain),
-		[allIdeaNodes, domain]
-	)
 	const selectedShape = useValue('selectedShape', () => editor.getOnlySelectedShape(), [editor])
 	const selectedIdea = useMemo(() => {
 		if (!selectedShape || !isIdeaShape(selectedShape)) return null
@@ -73,14 +61,10 @@ export const CompositionPanel = track(function CompositionPanel({
 		[domain, editor]
 	)
 
-	const [priorCompositions, setPriorCompositions] = useState<Map<string, string[]>>(new Map())
 	const [ideaText, setIdeaText] = useState('')
 	const [parsing, setParsing] = useState<number>(0)
-	const [busyPairs, setBusyPairs] = useState<Set<string>>(new Set())
 	const [reorganizing, setReorganizing] = useState(false)
-	const [error, setError] = useState<string | null>(null)
 
-	const suggestions = useMemo(() => rankPairSuggestions(ideaNodes, MAX_SUGGESTIONS), [ideaNodes])
 	const selectedCodePreviewShapeId = useValue(
 		'selectedCodePreviewShapeId',
 		() => {
@@ -148,83 +132,20 @@ export const CompositionPanel = track(function CompositionPanel({
 		}
 	}
 
-	async function handleCompose(groupKey: string, parentIds: TLShapeId[]) {
-		if (!agentAvailable) {
-			setError('Gemini API is not configured. Add GEMINI_API_KEY to .env.local.')
-			return
-		}
-		const parents: IdeaNode[] = []
-		for (const pid of parentIds) {
-			const node = getIdeaNodeById(editor, pid)
-			if (!node) return
-			parents.push(node)
-		}
-
-		const priorTitles = priorCompositions.get(groupKey) ?? []
-
-		setBusyPairs((prev) => new Set(prev).add(groupKey))
-		setError(null)
-		try {
-			const draft =
-				parents.length === 2
-					? domain === 'code'
-						? await composeCodePair(parents[0], parents[1], priorTitles)
-						: await composeIdeaPair(parents[0], parents[1], priorTitles)
-					: domain === 'code'
-						? await composeCodeBlocks(parents, priorTitles)
-						: await composeIdeas(parents, priorTitles)
-			const parentIds = parents.map((p) => p.id)
-			const pos = getComposedIdeaPosition(editor, parentIds)
-			const id = createIdeaNode(
-				editor,
-				{
-					domain,
-					title: draft.title,
-					description: `${draft.description}\n\nWhy: ${draft.whyThisCombination}`,
-					inputs: draft.inputs,
-					outputs: draft.outputs,
-					language: draft.language,
-					code: draft.code,
-					depth: Math.max(...parents.map((p) => p.depth)) + 1,
-					parents: parentIds,
-					status: 'accepted',
-				},
-				pos
-			)
-			setPriorCompositions((prev) => {
-				const next = new Map(prev)
-				next.set(groupKey, [...(prev.get(groupKey) ?? []), draft.title])
-				return next
-			})
-			editor.select(id)
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Composition failed.')
-		} finally {
-			setBusyPairs((prev) => {
-				const next = new Set(prev)
-				next.delete(groupKey)
-				return next
-			})
-		}
-	}
-
 	async function handleReorganize() {
 		const nodes = getIdeaNodes(editor)
 		if (nodes.length < 2) return
 		setReorganizing(true)
 		setError(null)
 		try {
-			// Pass 1: LLM clusters by titles → rough semantic positions
 			const clustered = await clusterByTitles(nodes)
 			const clusteredById = new Map(clustered.map((c) => [c.id, c]))
 
-			// Seed force sim with LLM positions
 			const seeded = nodes.map((n) => {
 				const c = clusteredById.get(n.id)
 				return { ...n, x: c?.x ?? n.x, y: c?.y ?? n.y }
 			})
 
-			// Pass 2: Force-directed refinement
 			const positions = forceDirectedLayout(seeded)
 			const partials = positions
 				.map((p) => {
@@ -336,12 +257,9 @@ export const CompositionPanel = track(function CompositionPanel({
 						{selectedGroup.nodes.map((n) => n.title).join(' x ')}
 					</div>
 					{(() => {
-						const count = priorCompositions.get(selectedGroup.groupKey)?.length ?? 0
-						const temp = priorTemperature(count)
-						return count > 0 ? (
-							<div className="ic-suggestion-meta">
-								T: {temp?.toFixed(2)} — higher = wilder ideas ({count} prior)
-							</div>
+						const temp = getPriorTemperature(selectedGroup.groupKey)
+						return temp ? (
+							<div className="ic-suggestion-meta">T: {temp.toFixed(2)} — higher = wilder ideas</div>
 						) : null
 					})()}
 					<button
@@ -349,6 +267,7 @@ export const CompositionPanel = track(function CompositionPanel({
 						disabled={busyPairs.has(selectedGroup.groupKey) || !agentAvailable}
 						onClick={() =>
 							handleCompose(
+								editor,
 								selectedGroup.groupKey,
 								selectedGroup.nodes.map((n) => n.id)
 							)
@@ -362,42 +281,6 @@ export const CompositionPanel = track(function CompositionPanel({
 					</button>
 				</div>
 			) : null}
-
-			<div className="ic-composition-card">
-				<div className="ic-composition-section-title">
-					Frontier suggestions ({suggestions.length})
-				</div>
-				{suggestions.length === 0 ? (
-					<div className="ic-muted">Add at least two primitives to see ranked pairs.</div>
-				) : (
-					suggestions.map((s) => {
-						const count = priorCompositions.get(s.pairKey)?.length ?? 0
-						const temp = priorTemperature(count)
-						return (
-							<div key={s.pairKey} className="ic-suggestion">
-								<div className="ic-suggestion-title">
-									{s.a.title} x {s.b.title}
-								</div>
-								<div className="ic-suggestion-meta">
-									C: {s.interfaceScore.toFixed(2)} D: {s.diversityScore.toFixed(2)} P:{' '}
-									{s.depthPenalty.toFixed(2)} Score: {s.finalScore.toFixed(3)}
-									{temp ? ` T: ${temp.toFixed(2)}` : ''}
-								</div>
-								{count > 0 ? (
-									<div className="ic-muted">{count} prior — higher temp = wilder ideas</div>
-								) : null}
-								<button
-									className="ic-button ic-button-small"
-									disabled={busyPairs.has(s.pairKey) || !agentAvailable}
-									onClick={() => handleCompose(s.pairKey, [s.a.id, s.b.id])}
-								>
-									{busyPairs.has(s.pairKey) ? 'Composing...' : 'Compose'}
-								</button>
-							</div>
-						)
-					})
-				)}
-			</div>
 
 			<div className="ic-composition-card">
 				<div className="ic-composition-section-title">

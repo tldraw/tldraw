@@ -162,3 +162,91 @@
 	line-height: 1.35;
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
+
+/* ── Compose dots (canvas overlay) ────────────────────────────── */
+
+.ic-compose-dot {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 3px;
+	pointer-events: all;
+	transition: opacity 0.15s ease-out;
+}
+
+.ic-compose-button {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	border: 1px solid rgba(0, 0, 0, 0.15);
+	background: rgba(255, 255, 255, 0.85);
+	color: #333;
+	font-size: 14px;
+	font-weight: 300;
+	line-height: 1;
+	padding: 0;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.15s, border-color 0.15s;
+}
+
+.ic-compose-button:hover {
+	background: rgba(0, 0, 0, 0.05);
+	border-color: rgba(0, 0, 0, 0.25);
+}
+
+.ic-compose-score {
+	font-size: 10px;
+	color: rgba(0, 0, 0, 0.35);
+	line-height: 1;
+	user-select: none;
+}
+
+@keyframes ic-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.ic-compose-spinner {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	border-top-color: rgba(0, 0, 0, 0.4);
+	animation: ic-spin 0.8s linear infinite;
+}
+
+/* ── Connection lines ─────────────────────────────────────────── */
+
+.ic-compose-lines {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1px;
+	height: 1px;
+	overflow: visible;
+	pointer-events: none;
+}
+
+.ic-compose-line-hover path,
+.ic-compose-line-busy path {
+	fill: none;
+	stroke-linecap: round;
+}
+
+.ic-compose-line-hover path {
+	stroke: rgba(0, 0, 0, 0.12);
+	stroke-width: 1;
+}
+
+.ic-compose-line-busy path {
+	stroke: rgba(0, 0, 0, 0.2);
+	stroke-width: 1;
+	stroke-dasharray: 6 4;
+}

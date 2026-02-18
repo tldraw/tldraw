@@ -2,6 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Editor, TLComponents, Tldraw, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { AgentStatus, IntelligentCanvasAgent } from './agent/IntelligentCanvasAgent'
+import { CompositionProvider } from './composition/CompositionContext'
+import { CompositionOverlay } from './composition/CompositionOverlay'
 import { CompositionPanel } from './composition/CompositionPanel'
 import './intelligent-canvas.css'
 import { CodeShapeUtil } from './shapes/CodeShapeUtil'
@@ -68,16 +70,23 @@ function InFrontOfTheCanvasContent() {
 					<AgentStatusIndicator status={agentStatus} message={agentMessage} recording={recording} />
 				</>
 			) : (
-				<CompositionPanel agentAvailable={agentAvailable} />
+				<CompositionPanel />
 			)}
 		</>
 	)
+}
+
+function OnTheCanvasContent() {
+	const { mode } = useContext(AgentContext)
+	if (mode !== 'composition') return null
+	return <CompositionOverlay />
 }
 
 const shapeUtils = [CodeShapeUtil]
 
 const components: TLComponents = {
 	InFrontOfTheCanvas: InFrontOfTheCanvasContent,
+	OnTheCanvas: OnTheCanvasContent,
 }
 
 function KeyboardHandler() {
@@ -153,14 +162,16 @@ export default function IntelligentCanvasExample() {
 		<AgentContext.Provider
 			value={{ mode, setMode, agentStatus, agentMessage, agentRef, agentAvailable }}
 		>
-			<div className="tldraw__editor intelligent-canvas">
-				<Tldraw
-					persistenceKey="intelligent-canvas"
-					shapeUtils={shapeUtils}
-					components={components}
-					onMount={handleMount}
-				/>
-			</div>
+			<CompositionProvider agentAvailable={agentAvailable}>
+				<div className="tldraw__editor intelligent-canvas">
+					<Tldraw
+						persistenceKey="intelligent-canvas"
+						shapeUtils={shapeUtils}
+						components={components}
+						onMount={handleMount}
+					/>
+				</div>
+			</CompositionProvider>
 		</AgentContext.Provider>
 	)
 }

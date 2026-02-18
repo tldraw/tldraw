@@ -449,6 +449,97 @@ export function forceDirectedLayout(nodes: IdeaNode[]): { id: TLShapeId; x: numb
 	return fn.map((f) => ({ id: f.id, x: Math.round(f.x), y: Math.round(f.y) }))
 }
 
+// ── Lightweight overlap repulsion ─────────────────────────────────
+
+const REPEL_ITERATIONS = 120
+const REPEL_PUSH = 2.5
+const REPEL_DAMPING = 0.65
+
+/**
+ * Runs only the bumper-car overlap resolution from the force sim.
+ * Returns new positions for every node that moved.
+ */
+export function repelOverlaps(
+	nodes: { id: TLShapeId; x: number; y: number }[]
+): { id: TLShapeId; x: number; y: number }[] {
+	if (nodes.length < 2) return nodes.map((n) => ({ id: n.id, x: n.x, y: n.y }))
+
+	const fn = nodes.map((n, idx) => ({
+		idx,
+		id: n.id,
+		x: n.x,
+		y: n.y,
+		vx: 0,
+		vy: 0,
+	}))
+
+	for (let iter = 0; iter < REPEL_ITERATIONS; iter++) {
+		const fx = new Float64Array(fn.length)
+		const fy = new Float64Array(fn.length)
+
+		for (let i = 0; i < fn.length; i++) {
+			for (let j = i + 1; j < fn.length; j++) {
+				const rawDx = fn[i].x - fn[j].x
+				const rawDy = fn[i].y - fn[j].y
+				const absDx = Math.abs(rawDx)
+				const absDy = Math.abs(rawDy)
+				const overlapX = NODE_W - absDx
+				const overlapY = NODE_H - absDy
+				if (overlapX <= 0 || overlapY <= 0) continue
+
+				const signX = rawDx >= 0 ? 1 : -1
+				const signY = rawDy >= 0 ? 1 : -1
+				const jitterX = absDx < 5 ? (Math.random() - 0.5) * 20 : 0
+				const jitterY = absDy < 5 ? (Math.random() - 0.5) * 20 : 0
+
+				const pushX = (overlapX * REPEL_PUSH + jitterX) * signX
+				const pushY = (overlapY * REPEL_PUSH + jitterY) * signY
+				fx[i] += pushX
+				fy[i] += pushY
+				fx[j] -= pushX
+				fy[j] -= pushY
+			}
+		}
+
+		let settled = true
+		for (let i = 0; i < fn.length; i++) {
+			fn[i].vx = (fn[i].vx + fx[i]) * REPEL_DAMPING
+			fn[i].vy = (fn[i].vy + fy[i]) * REPEL_DAMPING
+			fn[i].x += fn[i].vx
+			fn[i].y += fn[i].vy
+			if (Math.abs(fn[i].vx) > 0.5 || Math.abs(fn[i].vy) > 0.5) settled = false
+		}
+		if (settled) break
+	}
+
+	return fn.map((f) => ({ id: f.id, x: Math.round(f.x), y: Math.round(f.y) }))
+}
+
+/**
+ * Returns the midpoint between the centers of the given parent shapes.
+ * Offsets by half the node width so the new node is visually centered.
+ */
+export function getMidpointPosition(
+	editor: Editor,
+	parentIds: TLShapeId[]
+): { x: number; y: number } | null {
+	let sumCx = 0
+	let sumCy = 0
+	let count = 0
+	for (const pid of parentIds) {
+		const bounds = editor.getShapePageBounds(pid)
+		if (!bounds) continue
+		sumCx += bounds.x + bounds.w / 2
+		sumCy += bounds.y + bounds.h / 2
+		count++
+	}
+	if (count === 0) return null
+	return {
+		x: Math.round(sumCx / count - IDEA_NOTE_WIDTH / 2),
+		y: Math.round(sumCy / count),
+	}
+}
+
 export function parseCsvTags(raw: string): string[] {
 	return raw
 		.split(',')
