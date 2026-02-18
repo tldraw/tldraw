@@ -29,6 +29,8 @@ export interface Environment {
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
+	PLAIN_API_KEY?: string
+	PLAIN_LABEL_TYPE_ID?: string
 
 	MEASURE: Analytics | undefined
 
