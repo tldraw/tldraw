@@ -1,0 +1,213 @@
+import type { Graph } from 'dagre-d3-es/src/graphlib/index.js'
+import { createShapeId, Editor, TLArrowShapeProps, TLShapeId, toRichText, Vec } from 'tldraw'
+import { FRAME_PADDING, FRAME_TOP_PADDING } from './constants'
+import { mapEdgeStrokeToDash, mapEdgeTypeToArrowhead } from './mappings'
+
+/**
+ * Convert a dagre node position to frame-local coordinates,
+ * centering the dagre layout within the frame's padded inner area.
+ */
+export function dagreToFrameLocal(
+	dagrePos: { x: number; y: number },
+	nodeSize: { w: number; h: number },
+	graphSize: { width: number; height: number },
+	frameSize: { w: number; h: number }
+): { x: number; y: number } {
+	const innerW = frameSize.w - FRAME_PADDING * 2
+	const innerH = frameSize.h - FRAME_TOP_PADDING - FRAME_PADDING
+	return {
+		x: FRAME_PADDING + (innerW - graphSize.width) / 2 + dagrePos.x - nodeSize.w / 2,
+		y: FRAME_TOP_PADDING + (innerH - graphSize.height) / 2 + dagrePos.y - nodeSize.h / 2,
+	}
+}
+
+const ANTI_PARALLEL_BEND = 40
+
+export interface EdgeInfo {
+	start: string
+	end: string
+	label?: string
+	type?: string
+	stroke?: string
+}
+
+/**
+ * Shared edge creation for flowchart and state diagram.
+ * Extracts dagre bend when a graph is provided, detects
+ * anti-parallel edges, and delegates to createArrowBetweenShapes.
+ */
+export function createEdgesFromLayout(
+	editor: Editor,
+	direction: string,
+	edges: EdgeInfo[],
+	shapeIds: Map<string, TLShapeId>,
+	dagreGraph?: Graph
+) {
+	const isVertical = ['TB', 'BT'].includes(direction)
+	const edgeDataMap = new Map<string, { points: { x: number; y: number }[] }>()
+	if (dagreGraph) {
+		for (const e of dagreGraph.edges()) {
+			edgeDataMap.set(`${e.v}->${e.w}`, dagreGraph.edge(e.v, e.w, e.name))
+		}
+	}
+
+	const edgeKeys = new Set(edges.map((e) => `${e.start}->${e.end}`))
+
+	for (const e of edges) {
+		const startId = shapeIds.get(e.start)
+		const endId = shapeIds.get(e.end)
+		if (!startId || !endId) continue
+
+		const edgeData = edgeDataMap.get(`${e.start}->${e.end}`)
+		let dagreBend = edgeData ? getArrowBend(edgeData) : 0
+
+		dagreBend += isVertical ? (e.label || '').length * 10 : 0
+
+		const hasReverse = edgeKeys.has(`${e.end}->${e.start}`)
+		const bend = hasReverse && Math.abs(dagreBend) < 30 ? ANTI_PARALLEL_BEND : dagreBend
+
+		createArrowBetweenShapes(editor, startId, endId, {
+			label: e.label,
+			type: e.type,
+			stroke: e.stroke,
+			bend,
+		})
+	}
+}
+
+export function createArrowBetweenShapes(
+	editor: Editor,
+	startShapeId: TLShapeId,
+	endShapeId: TLShapeId,
+	options: {
+		label?: string
+		type?: string
+		stroke?: string
+		bend: number
+	}
+) {
+	const { label, type, stroke, bend } = options
+	const isSelfLoop = startShapeId === endShapeId
+
+	const startShapePageBounds = editor.getShapePageBounds(startShapeId)
+	const endShapePageBounds = editor.getShapePageBounds(endShapeId)
+
+	if (!startShapePageBounds || !endShapePageBounds) return
+
+	const arrowId = createShapeId()
+
+	if (isSelfLoop) {
+		const bounds = startShapePageBounds
+
+		const arrowProps: Partial<TLArrowShapeProps> = {
+			dash: mapEdgeStrokeToDash(stroke),
+			start: { x: bounds.w / 2, y: 0 },
+			end: { x: bounds.w, y: bounds.h / 2 },
+			arrowheadEnd: mapEdgeTypeToArrowhead(type),
+			size: stroke && stroke === 'thick' ? 'l' : 'm',
+			bend: -60,
+		}
+
+		if (type && type.includes('double_arrow')) arrowProps.arrowheadStart = arrowProps.arrowheadEnd
+		if (label) arrowProps.richText = toRichText(label)
+
+		editor.createShape({
+			id: arrowId,
+			type: 'arrow',
+			x: bounds.x,
+			y: bounds.y,
+			props: arrowProps,
+		})
+		return
+	}
+
+	const startCenter = startShapePageBounds.center
+	const endCenter = endShapePageBounds.center
+	const arrowPoint = Vec.Min(startCenter, endCenter)
+
+	const arrowProps: Partial<TLArrowShapeProps> = {
+		dash: mapEdgeStrokeToDash(stroke),
+		start: {
+			x: startCenter.x - arrowPoint.x,
+			y: startCenter.y - arrowPoint.y,
+		},
+		end: {
+			x: endCenter.x - arrowPoint.x,
+			y: endCenter.y - arrowPoint.y,
+		},
+		arrowheadEnd: mapEdgeTypeToArrowhead(type),
+		size: stroke && stroke === 'thick' ? 'l' : 'm',
+		bend,
+	}
+
+	if (type && type.includes('double_arrow')) arrowProps.arrowheadStart = arrowProps.arrowheadEnd
+
+	if (label) arrowProps.richText = toRichText(label)
+
+	editor.run(() => {
+		editor.createShape({
+			id: arrowId,
+			type: 'arrow',
+			x: arrowPoint.x,
+			y: arrowPoint.y,
+			props: arrowProps,
+		})
+
+		editor.createBindings([
+			{
+				fromId: arrowId,
+				toId: startShapeId,
+				type: 'arrow',
+				props: {
+					terminal: 'start',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				},
+			},
+			{
+				fromId: arrowId,
+				toId: endShapeId,
+				type: 'arrow',
+				props: {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				},
+			},
+		])
+	})
+}
+
+/*
+ * Takes a list of points generated by dagre
+ * and extrapolates a bend value for tldraw arrows.
+ */
+function getArrowBend(edgeData: { points: any[] }) {
+	const pts = edgeData.points
+
+	if (pts.length < 2) {
+		return 0
+	}
+
+	const start = pts[0]
+	const end = pts[pts.length - 1]
+	const dx = end.x - start.x
+	const dy = end.y - start.y
+	const len = Math.sqrt(dx * dx + dy * dy)
+
+	if (len === 0) return 0
+
+	let maxDist = 0
+	for (let i = 1; i < pts.length - 1; i++) {
+		const dist = ((pts[i].x - start.x) * dy - (pts[i].y - start.y) * dx) / len
+		if (Math.abs(dist) > Math.abs(maxDist)) {
+			maxDist = dist
+		}
+	}
+
+	const bend = -maxDist * 1.8
+	const MAX_BEND = 120
+	return Math.max(-MAX_BEND, Math.min(MAX_BEND, bend))
+}
