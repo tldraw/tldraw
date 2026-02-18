@@ -36,8 +36,6 @@ const config: PlaywrightTestConfig = {
 	forbidOnly: false, // !!process.env.CI,
 	/* Retry on CI only */
 	retries: process.env.CI ? 1 : 0,
-	/* Use all available cores on CI */
-	workers: process.env.CI ? '100%' : undefined,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
 	reporter: process.env.CI ? [['list'], ['github'], ['html', { open: 'never' }]] : 'list',
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
