@@ -483,6 +483,11 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	)
 }
 
+function withStatementTimeout(connString: string): string {
+	const separator = connString.includes('?') ? '&' : '?'
+	return `${connString}${separator}statement_timeout=0`
+}
+
 function updateFlyioToml(appName: string): void {
 	assert('single' in zeroConns, 'single-node connection limits required')
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio.template.toml')
@@ -495,10 +500,9 @@ function updateFlyioToml(appName: string): void {
 	const updatedContent = fileContent
 		.replace('__APP_NAME', appName)
 		.replace('__ZERO_VERSION', zeroVersion)
-		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
 		.replaceAll(
-			'__BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
-			env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING
+			'__BOTCOM_POSTGRES_CONNECTION_STRING',
+			withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)
 		)
 		.replaceAll('__ZERO_MUTATE_URL', zeroMutateUrl)
 		.replaceAll('__ZERO_QUERY_URL', zeroQueryUrl)
@@ -609,9 +613,9 @@ async function deployZeroViaFlyIoMultiNode() {
 		[
 			'secrets',
 			'set',
-			`ZERO_UPSTREAM_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
-			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
-			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
+			`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
 			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
 			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
@@ -638,9 +642,9 @@ async function deployZeroViaFlyIoMultiNode() {
 		[
 			'secrets',
 			'set',
-			`ZERO_UPSTREAM_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
-			`ZERO_CVR_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
-			`ZERO_CHANGE_DB=${env.BOTCOM_POSTGRES_CONNECTION_STRING}`,
+			`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
 			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
 			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
