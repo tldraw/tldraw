@@ -15,11 +15,11 @@ defaults:
     shell: bash
 
 jobs:
-  build:
-    name: 'End to end tests (examples)'
-    timeout-minutes: 60
-    runs-on: ubuntu-latest-16-cores-open
-
+  check:
+    name: 'Check for relevant changes'
+    runs-on: ubuntu-latest
+    outputs:
+      relevant: ${{ steps.filter.outputs.relevant }}
     steps:
       - name: Check out code
         uses: actions/checkout@v6
@@ -38,12 +38,21 @@ jobs:
               - '!**/*.md'
               - '!**/*.mdx'
 
+  build:
+    name: 'End to end tests (examples)'
+    needs: check
+    if: needs.check.outputs.relevant == 'true'
+    timeout-minutes: 60
+    runs-on: ubuntu-latest-16-cores-open
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
       - name: Run our setup
-        if: steps.filter.outputs.relevant == 'true'
         uses: ./.github/actions/setup
 
       - name: Get installed Playwright version
-        if: steps.filter.outputs.relevant == 'true'
         id: playwright-version
         run: |
           cd apps/examples
@@ -51,7 +60,6 @@ jobs:
           echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./playwright.json').children.Version)")" >> $GITHUB_ENV
 
       - uses: actions/cache@v3
-        if: steps.filter.outputs.relevant == 'true'
         name: Check for Playwright browsers cache
         id: playwright-cache
         with:
@@ -61,10 +69,9 @@ jobs:
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium chrome
-        if: steps.filter.outputs.relevant == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
 
       - name: Run Playwright tests
-        if: steps.filter.outputs.relevant == 'true'
         run: 'yarn e2e'
         working-directory: apps/examples
         env:
@@ -72,7 +79,7 @@ jobs:
           GIT_COMMIT: ${{ github.sha }}
 
       - uses: actions/upload-artifact@v6
-        if: always() && steps.filter.outputs.relevant == 'true'
+        if: always()
         with:
           name: playwright-report
           path: apps/examples/playwright-report
@@ -82,7 +89,7 @@ jobs:
         # only upload if we have AWS credentials:
         env:
           HAS_AWS_KEY: ${{ secrets.AWS_S3_SECRET_KEY && '1' || '' }}
-        if: always() && steps.filter.outputs.relevant == 'true' && env.HAS_AWS_KEY == '1'
+        if: always() && env.HAS_AWS_KEY == '1'
         name: Upload S3
         id: s3
         with:
@@ -92,7 +99,7 @@ jobs:
           source_dir: apps/examples/playwright-report
 
       - name: Log report to summary
-        if: always() && steps.filter.outputs.relevant == 'true'
+        if: always()
         run: |
           report_url="https://playwright.tldraw.xyz/${{ steps.s3.outputs.object_key }}/index.html"
           echo "Report: $report_url"
