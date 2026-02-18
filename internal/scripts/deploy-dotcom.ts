@@ -139,7 +139,7 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // Zero connection limits per environment.
 // All DBs use direct connections. Pooled connections (PgBouncer/Supavisor transaction mode) break
 // prepared statements which Zero's postgres.js driver uses internally.
-// Staging: Supabase Micro (15 direct pool size, 200 pooled clients)
+// Staging: Supabase Micro (60 max_connections, 200 pooled clients)
 // Preview: Neon 0.25 CU (104 max_connections shared across all preview branches)
 // Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
 // TODO(production): tune these once we know prod Postgres limits
