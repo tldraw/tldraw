@@ -1,26 +1,36 @@
 import { useMemo, useState } from 'react'
-import { Editor, TLShapeId, createShapeId, toRichText, track, useEditor, useValue } from 'tldraw'
+import {
+	Editor,
+	TLShapeId,
+	TLShapePartial,
+	createShapeId,
+	toRichText,
+	track,
+	useEditor,
+	useValue,
+} from 'tldraw'
 import {
 	createGroupKey,
 	createIdeaNode,
+	forceDirectedLayout,
 	getComposedIdeaPosition,
 	getIdeaNodeById,
 	getIdeaNodes,
 	getNextIdeaPosition,
 	isIdeaShape,
-	updateIdeaStatus,
 } from './graph'
 import {
+	clusterByTitles,
 	composeCodeBlocks,
 	composeCodePair,
 	composeIdeaPair,
 	composeIdeas,
 	parseCodeBlockFromText,
 	parseIdeaFromText,
-	reorganizeCanvasLayout,
+	priorTemperature,
 } from './llm'
 import { rankPairSuggestions } from './scoring'
-import { CompositionDomain, IdeaNode, PairDecision } from './types'
+import { CompositionDomain, IdeaNode } from './types'
 
 const MAX_SUGGESTIONS = 8
 
@@ -63,17 +73,14 @@ export const CompositionPanel = track(function CompositionPanel({
 		[domain, editor]
 	)
 
-	const [decisions, setDecisions] = useState<PairDecision[]>([])
+	const [priorCompositions, setPriorCompositions] = useState<Map<string, string[]>>(new Map())
 	const [ideaText, setIdeaText] = useState('')
 	const [parsing, setParsing] = useState<number>(0)
 	const [busyPairs, setBusyPairs] = useState<Set<string>>(new Set())
 	const [reorganizing, setReorganizing] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
-	const suggestions = useMemo(
-		() => rankPairSuggestions(ideaNodes, decisions, MAX_SUGGESTIONS),
-		[ideaNodes, decisions]
-	)
+	const suggestions = useMemo(() => rankPairSuggestions(ideaNodes, MAX_SUGGESTIONS), [ideaNodes])
 	const selectedCodePreviewShapeId = useValue(
 		'selectedCodePreviewShapeId',
 		() => {
@@ -153,17 +160,19 @@ export const CompositionPanel = track(function CompositionPanel({
 			parents.push(node)
 		}
 
+		const priorTitles = priorCompositions.get(groupKey) ?? []
+
 		setBusyPairs((prev) => new Set(prev).add(groupKey))
 		setError(null)
 		try {
 			const draft =
 				parents.length === 2
 					? domain === 'code'
-						? await composeCodePair(parents[0], parents[1])
-						: await composeIdeaPair(parents[0], parents[1])
+						? await composeCodePair(parents[0], parents[1], priorTitles)
+						: await composeIdeaPair(parents[0], parents[1], priorTitles)
 					: domain === 'code'
-						? await composeCodeBlocks(parents)
-						: await composeIdeas(parents)
+						? await composeCodeBlocks(parents, priorTitles)
+						: await composeIdeas(parents, priorTitles)
 			const parentIds = parents.map((p) => p.id)
 			const pos = getComposedIdeaPosition(editor, parentIds)
 			const id = createIdeaNode(
@@ -178,10 +187,15 @@ export const CompositionPanel = track(function CompositionPanel({
 					code: draft.code,
 					depth: Math.max(...parents.map((p) => p.depth)) + 1,
 					parents: parentIds,
-					status: 'proposed',
+					status: 'accepted',
 				},
 				pos
 			)
+			setPriorCompositions((prev) => {
+				const next = new Map(prev)
+				next.set(groupKey, [...(prev.get(groupKey) ?? []), draft.title])
+				return next
+			})
 			editor.select(id)
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Composition failed.')
@@ -194,31 +208,32 @@ export const CompositionPanel = track(function CompositionPanel({
 		}
 	}
 
-	function recordDecision(pairKey: string, decision: PairDecision['decision']) {
-		setDecisions((prev) => [...prev, { pairKey, decision }])
-	}
-
-	function handleAcceptSelected() {
-		if (!selectedIdea || selectedIdea.parents.length < 2) return
-		updateIdeaStatus(editor, selectedIdea.id, 'accepted')
-		recordDecision(createGroupKey(selectedIdea.parents), 'accepted')
-	}
-
-	function handleRejectSelected() {
-		if (!selectedIdea || selectedIdea.parents.length < 2) return
-		updateIdeaStatus(editor, selectedIdea.id, 'rejected')
-		recordDecision(createGroupKey(selectedIdea.parents), 'rejected')
-	}
-
 	async function handleReorganize() {
-		if (!agentAvailable) {
-			setError('Gemini API is not configured. Add GEMINI_API_KEY to .env.local.')
-			return
-		}
+		const nodes = getIdeaNodes(editor)
+		if (nodes.length < 2) return
 		setReorganizing(true)
 		setError(null)
 		try {
-			await reorganizeCanvasLayout(editor)
+			// Pass 1: LLM clusters by titles → rough semantic positions
+			const clustered = await clusterByTitles(nodes)
+			const clusteredById = new Map(clustered.map((c) => [c.id, c]))
+
+			// Seed force sim with LLM positions
+			const seeded = nodes.map((n) => {
+				const c = clusteredById.get(n.id)
+				return { ...n, x: c?.x ?? n.x, y: c?.y ?? n.y }
+			})
+
+			// Pass 2: Force-directed refinement
+			const positions = forceDirectedLayout(seeded)
+			const partials = positions
+				.map((p) => {
+					const shape = editor.getShape(p.id)
+					if (!shape) return null
+					return { id: shape.id, type: shape.type, x: p.x, y: p.y } as TLShapePartial
+				})
+				.filter((p): p is TLShapePartial => p !== null)
+			editor.animateShapes(partials, { animation: { duration: 800 } })
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Reorganization failed.')
 		} finally {
@@ -320,6 +335,15 @@ export const CompositionPanel = track(function CompositionPanel({
 					<div className="ic-suggestion-title">
 						{selectedGroup.nodes.map((n) => n.title).join(' x ')}
 					</div>
+					{(() => {
+						const count = priorCompositions.get(selectedGroup.groupKey)?.length ?? 0
+						const temp = priorTemperature(count)
+						return count > 0 ? (
+							<div className="ic-suggestion-meta">
+								T: {temp?.toFixed(2)} — higher = wilder ideas ({count} prior)
+							</div>
+						) : null
+					})()}
 					<button
 						className="ic-button"
 						disabled={busyPairs.has(selectedGroup.groupKey) || !agentAvailable}
@@ -346,24 +370,32 @@ export const CompositionPanel = track(function CompositionPanel({
 				{suggestions.length === 0 ? (
 					<div className="ic-muted">Add at least two primitives to see ranked pairs.</div>
 				) : (
-					suggestions.map((s) => (
-						<div key={s.pairKey} className="ic-suggestion">
-							<div className="ic-suggestion-title">
-								{s.a.title} x {s.b.title}
+					suggestions.map((s) => {
+						const count = priorCompositions.get(s.pairKey)?.length ?? 0
+						const temp = priorTemperature(count)
+						return (
+							<div key={s.pairKey} className="ic-suggestion">
+								<div className="ic-suggestion-title">
+									{s.a.title} x {s.b.title}
+								</div>
+								<div className="ic-suggestion-meta">
+									C: {s.interfaceScore.toFixed(2)} D: {s.diversityScore.toFixed(2)} P:{' '}
+									{s.depthPenalty.toFixed(2)} Score: {s.finalScore.toFixed(3)}
+									{temp ? ` T: ${temp.toFixed(2)}` : ''}
+								</div>
+								{count > 0 ? (
+									<div className="ic-muted">{count} prior — higher temp = wilder ideas</div>
+								) : null}
+								<button
+									className="ic-button ic-button-small"
+									disabled={busyPairs.has(s.pairKey) || !agentAvailable}
+									onClick={() => handleCompose(s.pairKey, [s.a.id, s.b.id])}
+								>
+									{busyPairs.has(s.pairKey) ? 'Composing...' : 'Compose'}
+								</button>
 							</div>
-							<div className="ic-suggestion-meta">
-								C: {s.interfaceScore.toFixed(2)} D: {s.diversityScore.toFixed(2)} P:{' '}
-								{s.depthPenalty.toFixed(2)} Score: {s.finalScore.toFixed(3)}
-							</div>
-							<button
-								className="ic-button ic-button-small"
-								disabled={busyPairs.has(s.pairKey) || !agentAvailable}
-								onClick={() => handleCompose(s.pairKey, [s.a.id, s.b.id])}
-							>
-								{busyPairs.has(s.pairKey) ? 'Composing...' : 'Compose'}
-							</button>
-						</div>
-					))
+						)
+					})
 				)}
 			</div>
 
@@ -390,18 +422,10 @@ export const CompositionPanel = track(function CompositionPanel({
 								</div>
 							</>
 						) : null}
-						{selectedIdea.status === 'proposed' && selectedIdea.parents.length >= 2 ? (
-							<div className="ic-row">
-								<button className="ic-button ic-button-small" onClick={handleAcceptSelected}>
-									Accept
-								</button>
-								<button className="ic-button ic-button-small" onClick={handleRejectSelected}>
-									Reject
-								</button>
-							</div>
-						) : (
-							<div className="ic-muted">Select a proposed idea to accept or reject it.</div>
-						)}
+						<div className="ic-suggestion-meta">
+							{selectedIdea.description.slice(0, 120)}
+							{selectedIdea.description.length > 120 ? '...' : ''}
+						</div>
 					</>
 				) : (
 					<div className="ic-muted">

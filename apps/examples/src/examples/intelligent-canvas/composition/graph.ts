@@ -281,6 +281,174 @@ export function getComposedIdeaPosition(
 	return { x: targetX, y: targetY }
 }
 
+// ── Force-directed layout ──────────────────────────────────────────
+
+const NODE_W = IDEA_NOTE_WIDTH + 60
+const NODE_H = ESTIMATED_SHAPE_HEIGHT + 60
+const OVERLAP_PUSH = 2
+const EDGE_PULL = 0.008
+const SEMANTIC_PULL = 0.003
+const EDGE_REST = NODE_W * 1.8
+const SEMANTIC_REST = NODE_W * 2.5
+const CENTER_PULL = 0.001
+const DAMPING = 0.7
+const ITERATIONS = 400
+
+interface ForceNode {
+	idx: number
+	id: TLShapeId
+	x: number
+	y: number
+	vx: number
+	vy: number
+	parents: TLShapeId[]
+}
+
+function tokenize(text: string): Set<string> {
+	return new Set(
+		text
+			.toLowerCase()
+			.split(/[^a-z0-9]+/g)
+			.filter((s) => s.length > 2)
+	)
+}
+
+function jaccardSimilarity(a: Set<string>, b: Set<string>): number {
+	if (a.size === 0 && b.size === 0) return 0
+	const union = new Set([...a, ...b])
+	let intersection = 0
+	for (const t of a) {
+		if (b.has(t)) intersection++
+	}
+	return intersection / Math.max(1, union.size)
+}
+
+function ideaTokens(n: IdeaNode): Set<string> {
+	return tokenize(`${n.title} ${n.description} ${n.inputs.join(' ')} ${n.outputs.join(' ')}`)
+}
+
+export function forceDirectedLayout(nodes: IdeaNode[]): { id: TLShapeId; x: number; y: number }[] {
+	if (nodes.length < 2) return nodes.map((n) => ({ id: n.id, x: n.x, y: n.y }))
+
+	const fn: ForceNode[] = nodes.map((n, idx) => ({
+		idx,
+		id: n.id,
+		x: n.x,
+		y: n.y,
+		vx: 0,
+		vy: 0,
+		parents: n.parents,
+	}))
+
+	const idToIdx = new Map<TLShapeId, number>()
+	for (const f of fn) idToIdx.set(f.id, f.idx)
+
+	// Precompute semantic similarity for all pairs
+	const tokens = nodes.map(ideaTokens)
+	const similarity: number[][] = []
+	for (let i = 0; i < nodes.length; i++) {
+		similarity[i] = []
+		for (let j = 0; j < nodes.length; j++) {
+			similarity[i][j] = i === j ? 0 : jaccardSimilarity(tokens[i], tokens[j])
+		}
+	}
+
+	for (let iter = 0; iter < ITERATIONS; iter++) {
+		const fx = new Float64Array(fn.length)
+		const fy = new Float64Array(fn.length)
+
+		// Bumper-car overlap resolution
+		for (let i = 0; i < fn.length; i++) {
+			for (let j = i + 1; j < fn.length; j++) {
+				const rawDx = fn[i].x - fn[j].x
+				const rawDy = fn[i].y - fn[j].y
+				const absDx = Math.abs(rawDx)
+				const absDy = Math.abs(rawDy)
+				const overlapX = NODE_W - absDx
+				const overlapY = NODE_H - absDy
+				if (overlapX <= 0 || overlapY <= 0) continue
+
+				// Push proportional to how much they overlap, with a strong multiplier
+				const signX = rawDx >= 0 ? 1 : -1
+				const signY = rawDy >= 0 ? 1 : -1
+
+				// If nearly perfectly stacked, add jitter to break symmetry
+				const jitterX = absDx < 5 ? (Math.random() - 0.5) * 20 : 0
+				const jitterY = absDy < 5 ? (Math.random() - 0.5) * 20 : 0
+
+				const pushX = (overlapX * OVERLAP_PUSH + jitterX) * signX
+				const pushY = (overlapY * OVERLAP_PUSH + jitterY) * signY
+				fx[i] += pushX
+				fy[i] += pushY
+				fx[j] -= pushX
+				fy[j] -= pushY
+			}
+		}
+
+		// Parent-child attraction (with rest distance — stop pulling when close enough)
+		for (let i = 0; i < fn.length; i++) {
+			for (const parentId of fn[i].parents) {
+				const j = idToIdx.get(parentId)
+				if (j === undefined) continue
+				const dx = fn[j].x - fn[i].x
+				const dy = fn[j].y - fn[i].y
+				const dist = Math.sqrt(dx * dx + dy * dy)
+				if (dist < EDGE_REST) continue
+				const pull = (dist - EDGE_REST) * EDGE_PULL
+				const nx = dx / dist
+				const ny = dy / dist
+				fx[i] += nx * pull
+				fy[i] += ny * pull
+				fx[j] -= nx * pull
+				fy[j] -= ny * pull
+			}
+		}
+
+		// Semantic similarity attraction (with rest distance)
+		for (let i = 0; i < fn.length; i++) {
+			for (let j = i + 1; j < fn.length; j++) {
+				const sim = similarity[i][j]
+				if (sim < 0.1) continue
+				const dx = fn[j].x - fn[i].x
+				const dy = fn[j].y - fn[i].y
+				const dist = Math.sqrt(dx * dx + dy * dy)
+				if (dist < SEMANTIC_REST) continue
+				const pull = (dist - SEMANTIC_REST) * sim * SEMANTIC_PULL
+				const nx = dx / dist
+				const ny = dy / dist
+				fx[i] += nx * pull
+				fy[i] += ny * pull
+				fx[j] -= nx * pull
+				fy[j] -= ny * pull
+			}
+		}
+
+		// Centering force: gentle pull toward centroid to prevent scatter
+		let cx = 0
+		let cy = 0
+		for (const f of fn) {
+			cx += f.x
+			cy += f.y
+		}
+		cx /= fn.length
+		cy /= fn.length
+		for (let i = 0; i < fn.length; i++) {
+			fx[i] += (cx - fn[i].x) * CENTER_PULL
+			fy[i] += (cy - fn[i].y) * CENTER_PULL
+		}
+
+		// Apply forces
+		for (let i = 0; i < fn.length; i++) {
+			fn[i].vx = (fn[i].vx + fx[i]) * DAMPING
+			fn[i].vy = (fn[i].vy + fy[i]) * DAMPING
+			fn[i].x += fn[i].vx
+			fn[i].y += fn[i].vy
+		}
+	}
+
+	return fn.map((f) => ({ id: f.id, x: Math.round(f.x), y: Math.round(f.y) }))
+}
+
 export function parseCsvTags(raw: string): string[] {
 	return raw
 		.split(',')

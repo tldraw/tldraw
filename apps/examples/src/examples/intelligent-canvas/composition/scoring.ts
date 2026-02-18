@@ -1,5 +1,5 @@
 import { createPairKey } from './graph'
-import { IdeaNode, PairDecision, PairSuggestion } from './types'
+import { IdeaNode, PairSuggestion } from './types'
 
 const DEPTH_DECAY = 0.85
 
@@ -63,15 +63,7 @@ function depthPenalty(a: IdeaNode, b: IdeaNode): number {
 	return Math.pow(DEPTH_DECAY, depth)
 }
 
-function wasRejected(pairKey: string, decisions: PairDecision[]): boolean {
-	return decisions.some((d) => d.pairKey === pairKey && d.decision === 'rejected')
-}
-
-export function rankPairSuggestions(
-	nodes: IdeaNode[],
-	decisions: PairDecision[],
-	limit: number
-): PairSuggestion[] {
+export function rankPairSuggestions(nodes: IdeaNode[], limit: number): PairSuggestion[] {
 	const suggestions: PairSuggestion[] = []
 
 	for (let i = 0; i < nodes.length; i++) {
@@ -79,8 +71,6 @@ export function rankPairSuggestions(
 			const a = nodes[i]
 			const b = nodes[j]
 			const pairKey = createPairKey(a.id, b.id)
-
-			if (wasRejected(pairKey, decisions)) continue
 
 			const interfaceScore = interfaceCompatibility(a, b)
 			const diversityScore = coreDiversity(a, b)

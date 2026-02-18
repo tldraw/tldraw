@@ -1,7 +1,5 @@
-import { Editor, TLShapePartial } from 'tldraw'
-import { generateGeminiText, generateGeminiVision } from '../agent/api'
-import { captureCanvasScreenshot } from '../lib/canvas-helpers'
-import { getIdeaNodes } from './graph'
+import { TLShapeId } from 'tldraw'
+import { generateGeminiText } from '../agent/api'
 import { ComposedIdeaDraft, IdeaNode, ParsedIdea } from './types'
 
 const PARSING_SYSTEM_PROMPT = `You are helping structure raw ideas into clean primitives.
@@ -81,11 +79,31 @@ List 2-4 inputs and outputs. Keep them as short noun phrases.
 	}
 }
 
-export async function composeIdeaPair(a: IdeaNode, b: IdeaNode): Promise<ComposedIdeaDraft> {
-	return composeIdeas([a, b])
+const TEMP_BASE = 1.0
+
+function buildPriorContext(priorTitles: string[]): string {
+	if (priorTitles.length === 0) return ''
+	return `\nAlready generated for this combination: ${priorTitles.map((t) => `"${t}"`).join(', ')}. Find a different angle.`
 }
 
-export async function composeIdeas(nodes: IdeaNode[]): Promise<ComposedIdeaDraft> {
+export function priorTemperature(priorCount: number): number | undefined {
+	if (priorCount === 0) return undefined
+	// Exponential growth: 1.3 → 1.69 → 2.20 → 2.86 → ...
+	return TEMP_BASE * Math.pow(1.3, priorCount)
+}
+
+export async function composeIdeaPair(
+	a: IdeaNode,
+	b: IdeaNode,
+	priorTitles: string[] = []
+): Promise<ComposedIdeaDraft> {
+	return composeIdeas([a, b], priorTitles)
+}
+
+export async function composeIdeas(
+	nodes: IdeaNode[],
+	priorTitles: string[] = []
+): Promise<ComposedIdeaDraft> {
 	const ideaSections = nodes
 		.map(
 			(n, i) =>
@@ -98,7 +116,7 @@ export async function composeIdeas(nodes: IdeaNode[]): Promise<ComposedIdeaDraft
 ${ideaSections}
 
 Think about what interaction pattern or mechanic lives in the gap between these. What would make someone say "oh, that's clever"? It can be fantastical, but it needs a core you could explain in one sentence.
-
+${buildPriorContext(priorTitles)}
 Return JSON with this exact shape:
 {
   "title": "short plain title, max 6 words",
@@ -109,7 +127,11 @@ Return JSON with this exact shape:
 }
 `
 
-	const raw = await generateGeminiText(COMPOSITION_SYSTEM_PROMPT, prompt)
+	const raw = await generateGeminiText(
+		COMPOSITION_SYSTEM_PROMPT,
+		prompt,
+		priorTemperature(priorTitles.length)
+	)
 	const json = extractJsonObject(raw)
 	const parsed = JSON.parse(json) as Record<string, unknown>
 
@@ -158,11 +180,18 @@ Rules:
 	}
 }
 
-export async function composeCodePair(a: IdeaNode, b: IdeaNode): Promise<ComposedIdeaDraft> {
-	return composeCodeBlocks([a, b])
+export async function composeCodePair(
+	a: IdeaNode,
+	b: IdeaNode,
+	priorTitles: string[] = []
+): Promise<ComposedIdeaDraft> {
+	return composeCodeBlocks([a, b], priorTitles)
 }
 
-export async function composeCodeBlocks(nodes: IdeaNode[]): Promise<ComposedIdeaDraft> {
+export async function composeCodeBlocks(
+	nodes: IdeaNode[],
+	priorTitles: string[] = []
+): Promise<ComposedIdeaDraft> {
 	const blockSections = nodes
 		.map(
 			(n, i) =>
@@ -175,7 +204,7 @@ export async function composeCodeBlocks(nodes: IdeaNode[]): Promise<ComposedIdea
 ${blockSections}
 
 Think about what mechanic or behavior emerges from the combination. It can be playful or weird, but the code should do one clear thing.
-
+${buildPriorContext(priorTitles)}
 Return JSON with this exact shape:
 {
   "title": "short plain title, max 6 words",
@@ -193,7 +222,11 @@ Rules:
 - Do not include markdown fences.
 `
 
-	const raw = await generateGeminiText(COMPOSITION_SYSTEM_PROMPT, prompt)
+	const raw = await generateGeminiText(
+		COMPOSITION_SYSTEM_PROMPT,
+		prompt,
+		priorTemperature(priorTitles.length)
+	)
 	const json = extractJsonObject(raw)
 	const parsed = JSON.parse(json) as Record<string, unknown>
 
@@ -208,77 +241,25 @@ Rules:
 	}
 }
 
-const LAYOUT_SYSTEM_PROMPT = `You are a canvas layout optimizer. You can see a screenshot of an idea canvas and you have the graph structure of the ideas on it. Your job is to suggest optimal positions for each idea node to create a clear, organized layout.
+const CLUSTER_SYSTEM_PROMPT = `You are arranging ideas on a 2D canvas based on semantic similarity.
 
-Rules:
-- Keep parent ideas above their children (parents should have lower y values)
-- Group related ideas (those that share parents or are siblings) near each other
-- Leave enough space between ideas so they don't overlap (each idea is about 480px wide and 200px tall)
-- Maintain a readable flow: seeds at the top, deeper compositions lower
-- Keep the layout centered and balanced
-- Don't move nodes too far from their current positions unless needed for clarity
+Given a list of idea titles (each with an ID), place them on a coordinate grid from 0 to 1000 in both axes. Ideas that are semantically related should be near each other. Ideas that are unrelated should be far apart. Think of it like a social graph — clusters of related concepts with space between clusters.
 
 Output valid JSON only. No markdown fences.
-Return an object with a "positions" array: {"positions": [{"id": "shape:xxx", "x": number, "y": number}, ...]}`
+Return: {"positions": [{"id": "...", "x": number, "y": number}, ...]}`
 
-function buildGraphDescription(nodes: IdeaNode[]): string {
-	if (nodes.length === 0) return 'No idea nodes on the canvas.'
+export async function clusterByTitles(
+	nodes: IdeaNode[]
+): Promise<{ id: TLShapeId; x: number; y: number }[]> {
+	const listing = nodes.map((n) => `- ${n.id}: "${n.title}"`).join('\n')
 
-	const lines: string[] = ['Idea graph nodes:']
-	for (const node of nodes) {
-		const parentStr = node.parents.length > 0 ? node.parents.join(', ') : 'none (seed)'
-		lines.push(
-			`- ${node.id}: "${node.title}" | depth=${node.depth} | domain=${node.domain} | status=${node.status} | position=(${Math.round(node.x)}, ${Math.round(node.y)}) | parents=[${parentStr}]`
-		)
-	}
+	const prompt = `Place these ${nodes.length} ideas on a 1000x1000 grid based on semantic similarity. Related ideas should cluster together, unrelated ones should be far apart.
 
-	// Add relationship summary
-	const parentChildPairs: string[] = []
-	for (const node of nodes) {
-		for (const parentId of node.parents) {
-			const parent = nodes.find((n) => n.id === parentId)
-			if (parent) {
-				parentChildPairs.push(`  "${parent.title}" -> "${node.title}"`)
-			}
-		}
-	}
+${listing}
 
-	if (parentChildPairs.length > 0) {
-		lines.push('')
-		lines.push('Parent-child relationships:')
-		lines.push(...parentChildPairs)
-	}
+Return JSON: {"positions": [{"id": "...", "x": number, "y": number}, ...]}`
 
-	// Add canvas bounds info
-	const minX = Math.min(...nodes.map((n) => n.x))
-	const maxX = Math.max(...nodes.map((n) => n.x))
-	const minY = Math.min(...nodes.map((n) => n.y))
-	const maxY = Math.max(...nodes.map((n) => n.y))
-	lines.push('')
-	lines.push(
-		`Current canvas bounds: x=[${Math.round(minX)}, ${Math.round(maxX)}], y=[${Math.round(minY)}, ${Math.round(maxY)}]`
-	)
-	lines.push(`Total nodes: ${nodes.length}`)
-
-	return lines.join('\n')
-}
-
-export async function reorganizeCanvasLayout(editor: Editor): Promise<void> {
-	const nodes = getIdeaNodes(editor)
-	if (nodes.length === 0) return
-
-	const screenshot = await captureCanvasScreenshot(editor)
-	const graphDescription = buildGraphDescription(nodes)
-
-	const userText = `Here is the graph structure of the ideas on this canvas:\n\n${graphDescription}\n\nPlease return optimal positions for ALL ${nodes.length} nodes to create a clear, organized layout. Return JSON: {"positions": [{"id": "...", "x": number, "y": number}, ...]}`
-
-	let raw: string
-	if (screenshot) {
-		raw = await generateGeminiVision(LAYOUT_SYSTEM_PROMPT, userText, screenshot)
-	} else {
-		raw = await generateGeminiText(LAYOUT_SYSTEM_PROMPT, userText)
-	}
-
+	const raw = await generateGeminiText(CLUSTER_SYSTEM_PROMPT, prompt)
 	const json = extractJsonObject(raw)
 	const parsed = JSON.parse(json) as Record<string, unknown>
 	const positions = parsed.positions
@@ -286,10 +267,12 @@ export async function reorganizeCanvasLayout(editor: Editor): Promise<void> {
 		throw new Error('Model did not return a positions array.')
 	}
 
-	// Build a set of valid node IDs for filtering
 	const validIds = new Set(nodes.map((n) => n.id))
 
-	const partials = positions
+	// Scale from 0-1000 grid to canvas coordinates
+	const SCALE = 6 // 1000 units → 6000px canvas space
+
+	return positions
 		.filter(
 			(p: unknown): p is { id: string; x: number; y: number } =>
 				typeof p === 'object' &&
@@ -299,14 +282,9 @@ export async function reorganizeCanvasLayout(editor: Editor): Promise<void> {
 				typeof (p as Record<string, unknown>).y === 'number'
 		)
 		.filter((p) => validIds.has(p.id as any))
-		.map((p) => {
-			const shape = editor.getShape(p.id as any)
-			if (!shape) return null
-			return { id: shape.id, type: shape.type, x: p.x, y: p.y } as TLShapePartial
-		})
-		.filter((p): p is TLShapePartial => p !== null)
-
-	if (partials.length === 0) return
-
-	editor.animateShapes(partials, { animation: { duration: 600 } })
+		.map((p) => ({
+			id: p.id as TLShapeId,
+			x: Math.round(p.x * SCALE),
+			y: Math.round(p.y * SCALE),
+		}))
 }

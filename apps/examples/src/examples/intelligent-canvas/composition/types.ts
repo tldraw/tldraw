@@ -1,6 +1,6 @@
 import { TLShapeId } from 'tldraw'
 
-export type IdeaStatus = 'seed' | 'proposed' | 'accepted' | 'rejected'
+export type IdeaStatus = 'seed' | 'accepted'
 export type CompositionDomain = 'idea' | 'code'
 
 export interface IdeaShapeMeta {
@@ -41,11 +41,6 @@ export interface PairSuggestion {
 	depthPenalty: number
 	finalScore: number
 	pairKey: string
-}
-
-export interface PairDecision {
-	pairKey: string
-	decision: 'accepted' | 'rejected'
 }
 
 export interface ParsedIdea {

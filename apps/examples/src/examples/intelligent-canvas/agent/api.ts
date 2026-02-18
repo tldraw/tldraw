@@ -53,15 +53,20 @@ export async function callGemini(
  */
 export async function generateGeminiText(
 	systemPrompt: string,
-	userPrompt: string
+	userPrompt: string,
+	temperature?: number
 ): Promise<string> {
+	const body: Record<string, unknown> = {
+		system_instruction: { parts: [{ text: systemPrompt }] },
+		contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+	}
+	if (temperature !== undefined) {
+		body.generationConfig = { temperature }
+	}
 	const response = await fetch('/api/gemini', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({
-			system_instruction: { parts: [{ text: systemPrompt }] },
-			contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-		}),
+		body: JSON.stringify(body),
 	})
 
 	if (!response.ok) {
