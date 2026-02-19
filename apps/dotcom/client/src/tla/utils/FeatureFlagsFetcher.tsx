@@ -31,8 +31,6 @@ export function FeatureFlagsFetcher() {
 				if (mounted) {
 					const properZero = data.proper_zero?.enabled ?? false
 					if (prevProperZero !== null && properZero !== prevProperZero) {
-						// eslint-disable-next-line no-console
-						console.log('[Zero] proper_zero flag changed, reloading...')
 						location.reload()
 						return
 					}

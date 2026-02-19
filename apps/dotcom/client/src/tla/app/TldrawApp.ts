@@ -117,13 +117,8 @@ function shouldUseProperZero(email?: string | null): { value: boolean; reason: s
 
 // @ts-expect-error — dev escape hatch, call window.zero() in console to toggle
 window.zero = () => {
-	const { value: current, reason } = shouldUseProperZero()
-	const newValue = !current
-	setInLocalStorage('useProperZero', String(newValue))
-	// eslint-disable-next-line no-console
-	console.log(
-		`[Zero] Was ${current ? 'proper Zero' : 'ZeroPolyfill'} (${reason}), switching to ${newValue ? 'proper Zero' : 'ZeroPolyfill'} (localStorage override)`
-	)
+	const { value: current } = shouldUseProperZero()
+	setInLocalStorage('useProperZero', String(!current))
 	location.reload()
 }
 

@@ -39,7 +39,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			if (featureFlagsLoadedAtom.get()) return Promise.resolve()
 			return new Promise((resolve) => {
 				const timeout = setTimeout(() => {
-					console.warn('[Zero] Feature flags fetch timed out, proceeding with defaults')
 					unsub()
 					resolve()
 				}, 5000)
