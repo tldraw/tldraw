@@ -6,6 +6,9 @@ import { step } from './tla-test'
 const rootUrl = 'http://localhost:3000/'
 
 export class HomePage {
+	private static readonly COOKIE_BANNER_SHORT_TIMEOUT = 1500
+	private static readonly DEFAULT_ACTION_TIMEOUT = 5000
+
 	public readonly signInButton: Locator
 	public readonly tldrawEditor: Locator
 	public readonly tldrawCanvas: Locator
@@ -99,5 +102,18 @@ export class HomePage {
 			await expect(this.tldrawEditor).toBeVisible({ timeout: 10000 })
 			await expect(this.tldrawCanvas).toBeVisible({ timeout: 10000 })
 		}).toPass()
+	}
+
+	async dismissCookieConsentIfVisible() {
+		const banner = this.page.getByTestId('tla-cookie-consent')
+		try {
+			await expect(banner).toBeVisible({ timeout: HomePage.COOKIE_BANNER_SHORT_TIMEOUT })
+			await banner.getByRole('button', { name: 'Accept all' }).click({
+				timeout: HomePage.DEFAULT_ACTION_TIMEOUT,
+			})
+			await expect(banner).not.toBeVisible({ timeout: HomePage.DEFAULT_ACTION_TIMEOUT })
+		} catch {
+			// Consent banner is not shown for most test scenarios.
+		}
 	}
 }

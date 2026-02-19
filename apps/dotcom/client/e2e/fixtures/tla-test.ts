@@ -67,6 +67,9 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 
 			await homePage.goto()
 			await homePage.isLoaded()
+			if (!test.info().file.endsWith('cookie-consent.spec.ts')) {
+				await homePage.dismissCookieConsentIfVisible()
+			}
 
 			await testUse()
 		},
