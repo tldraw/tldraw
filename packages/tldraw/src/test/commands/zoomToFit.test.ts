@@ -28,6 +28,28 @@ it('is ignored by undo/redo', () => {
 	expect(editor.getCamera()).toBe(camera)
 })
 
+it('respects inset option', () => {
+	editor.zoomToFit()
+	const cameraWithoutInset = { ...editor.getCamera() }
+
+	editor.zoomToFit({ inset: 200 })
+	const cameraWithInset = { ...editor.getCamera() }
+
+	// With more inset, the zoom should be smaller (more padding means more zoomed out)
+	expect(cameraWithInset.z).toBeLessThan(cameraWithoutInset.z)
+})
+
+it('respects inset of zero', () => {
+	editor.zoomToFit({ inset: 0 })
+	const cameraNoInset = { ...editor.getCamera() }
+
+	editor.zoomToFit()
+	const cameraDefault = { ...editor.getCamera() }
+
+	// Zero inset should produce a higher zoom than the default padding
+	expect(cameraNoInset.z).toBeGreaterThanOrEqual(cameraDefault.z)
+})
+
 it('ignores hidden shapes', () => {
 	// Create a new editor with getShapeVisibility
 	const editorWithHidden = new TestEditor({
