@@ -35,7 +35,7 @@ const REFETCH_INTERVAL = 60000 // 1 minute
  * React component that polls for feature flag changes after the initial fetch.
  * If proper_zero changes, it reloads the page.
  */
-export function FeatureFlagsFetcher() {
+export function FeatureFlagPoller() {
 	useEffect(() => {
 		let mounted = true
 		let prevProperZero = currentFlags.proper_zero?.enabled ?? false
