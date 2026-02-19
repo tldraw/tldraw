@@ -1730,6 +1730,7 @@ export abstract class Geometry2d {
     hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean, _filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignore?: boolean;
+    ignoreHit(_point: VecLike): boolean;
     interpolateAlongEdge(t: number, _filters?: Geometry2dFilters): Vec;
     // (undocumented)
     intersectCircle(center: VecLike, radius: number, _filters?: Geometry2dFilters): VecLike[];
@@ -1759,7 +1760,6 @@ export abstract class Geometry2d {
     abstract nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec;
     // (undocumented)
     overlapsPolygon(_polygon: VecLike[]): boolean;
-    rejectHit(_point: VecLike): boolean;
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
@@ -4673,6 +4673,8 @@ export class TransformedGeometry2d extends Geometry2d {
     // (undocumented)
     hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
+    ignoreHit(point: VecLike): boolean;
+    // (undocumented)
     intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): Vec[];
     // (undocumented)
     intersectLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters): Vec[];
@@ -4682,8 +4684,6 @@ export class TransformedGeometry2d extends Geometry2d {
     intersectPolyline(polyline: VecLike[], filters?: Geometry2dFilters): VecLike[];
     // (undocumented)
     nearestPoint(point: VecLike, filters?: Geometry2dFilters): Vec;
-    // (undocumented)
-    rejectHit(point: VecLike): boolean;
     // (undocumented)
     transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d;
 }

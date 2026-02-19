@@ -424,7 +424,7 @@ export abstract class Geometry2d {
 	 * Called after a hit test succeeds. Return `true` to reject the hit and allow
 	 * shapes behind this one to be selected instead (e.g. transparent image pixels).
 	 */
-	rejectHit(_point: VecLike): boolean {
+	ignoreHit(_point: VecLike): boolean {
 		return false
 	}
 
@@ -559,8 +559,8 @@ export class TransformedGeometry2d extends Geometry2d {
 		)
 	}
 
-	override rejectHit(point: VecLike): boolean {
-		return this.geometry.rejectHit(Mat.applyToPoint(this.inverse, point))
+	override ignoreHit(point: VecLike): boolean {
+		return this.geometry.ignoreHit(Mat.applyToPoint(this.inverse, point))
 	}
 
 	override transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d {

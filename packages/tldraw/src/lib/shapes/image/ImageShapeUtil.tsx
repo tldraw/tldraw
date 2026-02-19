@@ -36,7 +36,7 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { getUncroppedSize } from '../shared/crop'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
-import { getAlphaData, preloadAlphaData } from './ImageAlphaCache'
+import { TRANSPARENT_IMAGE_MIMETYPES, getAlphaData, preloadAlphaData } from './ImageAlphaCache'
 import { ImageEllipse2d } from './ImageEllipse2d'
 import { ImageRectangle2d } from './ImageRectangle2d'
 
@@ -81,9 +81,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override getGeometry(shape: TLImageShape): Geometry2d {
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
 		const mimeType = asset && 'mimeType' in asset.props ? asset.props.mimeType : null
-		const supportsTransparency =
-			mimeType != null &&
-			(mimeType.includes('png') || mimeType.includes('webp') || mimeType.includes('gif'))
+		const supportsTransparency = mimeType != null && TRANSPARENT_IMAGE_MIMETYPES.includes(mimeType)
 		const assetSrc = asset && 'src' in asset.props ? asset.props.src : null
 
 		if (shape.props.crop?.isCircle) {

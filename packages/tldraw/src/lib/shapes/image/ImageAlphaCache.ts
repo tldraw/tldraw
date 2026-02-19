@@ -1,4 +1,11 @@
-import { Image } from '@tldraw/editor'
+import { Image, VecLike } from '@tldraw/editor'
+
+/** Mime types of image formats that support transparency / alpha channel. */
+export const TRANSPARENT_IMAGE_MIMETYPES: readonly string[] = [
+	'image/png',
+	'image/webp',
+	'image/gif',
+]
 
 /** Alpha channel data for an image, downsampled for efficient hit testing. */
 export interface AlphaData {
@@ -6,6 +13,50 @@ export interface AlphaData {
 	height: number
 	/** Row-major alpha values (0–255) */
 	alphas: Uint8Array
+}
+
+/** Shared config for image geometries that support alpha hit testing. */
+export interface ImageAlphaGeometryConfig {
+	alphaDataGetter(): AlphaData | null
+	crop: { topLeft: { x: number; y: number }; bottomRight: { x: number; y: number } } | null
+	flipX: boolean
+	flipY: boolean
+}
+
+/** Map a point in shape space to normalized [0,1] image coordinates, accounting for crop and flip. */
+export function mapToImageCoords(
+	config: ImageAlphaGeometryConfig,
+	point: VecLike,
+	bounds: { minX: number; minY: number; w: number; h: number }
+): { nx: number; ny: number } {
+	// Normalize point to [0,1] within the shape bounds, clamped for edge-margin hits
+	let nx = Math.max(0, Math.min(1, (point.x - bounds.minX) / bounds.w))
+	let ny = Math.max(0, Math.min(1, (point.y - bounds.minY) / bounds.h))
+
+	// Map from cropped shape space to full image space
+	if (config.crop) {
+		const { topLeft, bottomRight } = config.crop
+		nx = topLeft.x + nx * (bottomRight.x - topLeft.x)
+		ny = topLeft.y + ny * (bottomRight.y - topLeft.y)
+	}
+
+	// Account for flips
+	if (config.flipX) nx = 1 - nx
+	if (config.flipY) ny = 1 - ny
+
+	return { nx, ny }
+}
+
+/** Returns true if the point maps to a transparent pixel. Returns false if alpha data isn't loaded yet. */
+export function isImagePointTransparent(
+	config: ImageAlphaGeometryConfig,
+	point: VecLike,
+	bounds: { minX: number; minY: number; w: number; h: number }
+): boolean {
+	const data = config.alphaDataGetter()
+	if (!data) return false
+	const { nx, ny } = mapToImageCoords(config, point, bounds)
+	return isPointTransparent(data, nx, ny)
 }
 
 const MAX_SIZE = 256

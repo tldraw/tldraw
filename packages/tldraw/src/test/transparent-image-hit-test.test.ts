@@ -32,7 +32,7 @@ describe('isPointTransparent', () => {
 	})
 })
 
-describe('ImageRectangle2d.rejectHit', () => {
+describe('ImageRectangle2d.ignoreHit', () => {
 	it('returns false when alpha data is not loaded', () => {
 		const rect = new ImageRectangle2d({
 			width: 100,
@@ -43,7 +43,7 @@ describe('ImageRectangle2d.rejectHit', () => {
 			flipX: false,
 			flipY: false,
 		})
-		expect(rect.rejectHit({ x: 50, y: 50 })).toBe(false)
+		expect(rect.ignoreHit({ x: 50, y: 50 })).toBe(false)
 	})
 
 	it('returns true for transparent pixel', () => {
@@ -59,9 +59,9 @@ describe('ImageRectangle2d.rejectHit', () => {
 			flipY: false,
 		})
 		// Point in top-left quadrant
-		expect(rect.rejectHit({ x: 10, y: 10 })).toBe(true)
+		expect(rect.ignoreHit({ x: 10, y: 10 })).toBe(true)
 		// Point in top-right quadrant
-		expect(rect.rejectHit({ x: 75, y: 10 })).toBe(false)
+		expect(rect.ignoreHit({ x: 75, y: 10 })).toBe(false)
 	})
 
 	it('maps crop coordinates correctly', () => {
@@ -77,9 +77,9 @@ describe('ImageRectangle2d.rejectHit', () => {
 			flipY: false,
 		})
 		// Crop shows right half of image. Shape x=0 maps to image x=0.5 (pixel 2, alpha=0)
-		expect(rect.rejectHit({ x: 10, y: 50 })).toBe(true)
+		expect(rect.ignoreHit({ x: 10, y: 50 })).toBe(true)
 		// Shape x=75 maps to image x=0.875 (pixel 3, alpha=255)
-		expect(rect.rejectHit({ x: 75, y: 50 })).toBe(false)
+		expect(rect.ignoreHit({ x: 75, y: 50 })).toBe(false)
 	})
 
 	it('handles flipX correctly', () => {
@@ -95,9 +95,9 @@ describe('ImageRectangle2d.rejectHit', () => {
 			flipY: false,
 		})
 		// With flipX, left side of shape maps to right side of image (opaque)
-		expect(rect.rejectHit({ x: 10, y: 50 })).toBe(false)
+		expect(rect.ignoreHit({ x: 10, y: 50 })).toBe(false)
 		// Right side of shape maps to left side of image (transparent)
-		expect(rect.rejectHit({ x: 90, y: 50 })).toBe(true)
+		expect(rect.ignoreHit({ x: 90, y: 50 })).toBe(true)
 	})
 
 	it('handles flipY correctly', () => {
@@ -113,9 +113,9 @@ describe('ImageRectangle2d.rejectHit', () => {
 			flipY: true,
 		})
 		// With flipY, top of shape maps to bottom of image (opaque)
-		expect(rect.rejectHit({ x: 50, y: 10 })).toBe(false)
+		expect(rect.ignoreHit({ x: 50, y: 10 })).toBe(false)
 		// Bottom of shape maps to top of image (transparent)
-		expect(rect.rejectHit({ x: 50, y: 90 })).toBe(true)
+		expect(rect.ignoreHit({ x: 50, y: 90 })).toBe(true)
 	})
 })
 
@@ -183,7 +183,7 @@ describe('ImageRectangle2d.hitTestPoint', () => {
 	})
 })
 
-describe('ImageRectangle2d.rejectHit with edge-margin clamping', () => {
+describe('ImageRectangle2d.ignoreHit with edge-margin clamping', () => {
 	it('clamps point slightly outside bounds to nearest edge pixel', () => {
 		// 2x1 alpha: [transparent, opaque]
 		const data = { width: 2, height: 1, alphas: new Uint8Array([0, 255]) }
@@ -197,9 +197,9 @@ describe('ImageRectangle2d.rejectHit with edge-margin clamping', () => {
 			flipY: false,
 		})
 		// Point slightly outside left edge — clamps to left (transparent) pixel
-		expect(rect.rejectHit({ x: -2, y: 50 })).toBe(true)
+		expect(rect.ignoreHit({ x: -2, y: 50 })).toBe(true)
 		// Point slightly outside right edge — clamps to right (opaque) pixel
-		expect(rect.rejectHit({ x: 102, y: 50 })).toBe(false)
+		expect(rect.ignoreHit({ x: 102, y: 50 })).toBe(false)
 	})
 })
 
@@ -248,7 +248,7 @@ describe('ImageEllipse2d.hitTestPoint', () => {
 	})
 })
 
-describe('ImageEllipse2d.rejectHit', () => {
+describe('ImageEllipse2d.ignoreHit', () => {
 	it('returns true for transparent pixel', () => {
 		const data = { width: 2, height: 2, alphas: new Uint8Array([0, 255, 255, 255]) }
 		const ellipse = new ImageEllipse2d({
@@ -260,7 +260,7 @@ describe('ImageEllipse2d.rejectHit', () => {
 			flipX: false,
 			flipY: false,
 		})
-		expect(ellipse.rejectHit({ x: 25, y: 25 })).toBe(true)
+		expect(ellipse.ignoreHit({ x: 25, y: 25 })).toBe(true)
 	})
 
 	it('returns false for opaque pixel', () => {
@@ -274,7 +274,7 @@ describe('ImageEllipse2d.rejectHit', () => {
 			flipX: false,
 			flipY: false,
 		})
-		expect(ellipse.rejectHit({ x: 75, y: 75 })).toBe(false)
+		expect(ellipse.ignoreHit({ x: 75, y: 75 })).toBe(false)
 	})
 
 	it('returns false when alpha data is not loaded', () => {
@@ -287,7 +287,7 @@ describe('ImageEllipse2d.rejectHit', () => {
 			flipX: false,
 			flipY: false,
 		})
-		expect(ellipse.rejectHit({ x: 50, y: 50 })).toBe(false)
+		expect(ellipse.ignoreHit({ x: 50, y: 50 })).toBe(false)
 	})
 })
 
@@ -349,7 +349,7 @@ describe('getShapeAtPoint with transparent images', () => {
 		// Mock the geometry to reject hits
 		const imageShape = editor.getShape(ids.image)!
 		const geo = editor.getShapeGeometry(imageShape)
-		vi.spyOn(geo, 'rejectHit').mockReturnValue(true)
+		vi.spyOn(geo, 'ignoreHit').mockReturnValue(true)
 
 		const hit = editor.getShapeAtPoint({ x: 50, y: 50 }, { hitInside: true })
 		expect(hit?.id).toBe(ids.box)

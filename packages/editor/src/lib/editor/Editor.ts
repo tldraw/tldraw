@@ -5405,7 +5405,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
 						// If the geometry rejects this hit (e.g. transparent image pixel),
 						// skip this shape and check shapes behind it.
-						if (geometry.rejectHit(pointInShapeSpace)) {
+						if (geometry.ignoreHit(pointInShapeSpace)) {
 							continue
 						}
 						// If the shape is filled, then it's a hit. Remember, we're
