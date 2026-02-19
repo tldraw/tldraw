@@ -33,12 +33,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		// Create the new user
 		let didCancel = false
 
-		// Wait for feature flags to load so shouldUseProperZero() sees the server value
+		// Wait for feature flags to load so shouldUseProperZero() sees the server value.
+		// Times out after 5s to avoid hanging forever if the fetch fails.
 		function waitForFlags(): Promise<void> {
 			if (featureFlagsLoadedAtom.get()) return Promise.resolve()
 			return new Promise((resolve) => {
+				const timeout = setTimeout(() => {
+					console.warn('[Zero] Feature flags fetch timed out, proceeding with defaults')
+					unsub()
+					resolve()
+				}, 5000)
 				const unsub = react('wait for flags', () => {
 					if (featureFlagsLoadedAtom.get()) {
+						clearTimeout(timeout)
 						unsub()
 						resolve()
 					}
