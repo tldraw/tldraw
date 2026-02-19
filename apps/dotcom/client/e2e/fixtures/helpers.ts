@@ -26,6 +26,11 @@ export async function openNewTab(
 			newContext = await browser.newContext({ storageState: undefined })
 		} else {
 			const storageStateFileName = getStorageStateFileName(userProps.index, userProps.user)
+			if (!fs.existsSync(storageStateFileName)) {
+				throw new Error(
+					`Missing storage state file for ${userProps.user} at index ${userProps.index}: ${storageStateFileName}`
+				)
+			}
 			const storageState = JSON.parse(fs.readFileSync(storageStateFileName, 'utf-8'))
 			newContext = await browser.newContext({ storageState })
 		}
@@ -56,6 +61,9 @@ export async function openNewTab(
 }
 
 export function getStorageStateFileName(index: number, user: UserName) {
+	if (!Number.isInteger(index) || index < 0) {
+		throw new Error(`Invalid user index ${index}. Expected a non-negative integer.`)
+	}
 	return path.join(__dirname, `../.auth/${user}${index + 1}.json`)
 }
 

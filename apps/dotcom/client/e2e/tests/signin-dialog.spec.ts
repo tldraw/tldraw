@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { USERS } from '../consts'
+import { getHuppyUserEmail } from '../consts'
 import { expect, test } from '../fixtures/tla-test'
 
 // Don't use stored credentials for these dialog-specific tests
@@ -129,7 +129,7 @@ test.describe('SignInDialog', () => {
 		editor,
 		signInDialog,
 	}) => {
-		const user = USERS[test.info().parallelIndex]
+		const user = getHuppyUserEmail(test.info().parallelIndex)
 
 		await homePage.expectSignInButtonVisible()
 		await homePage.signInButton.click()
@@ -145,7 +145,7 @@ test.describe('SignInDialog', () => {
 	})
 
 	test('resend is available on code stage', async ({ homePage, signInDialog }) => {
-		const user = USERS[test.info().parallelIndex]
+		const user = getHuppyUserEmail(test.info().parallelIndex)
 
 		await homePage.expectSignInButtonVisible()
 		await homePage.signInButton.click()
@@ -172,7 +172,7 @@ test.describe('SignInDialog', () => {
 		// 1. Set up a test user in the Clerk environment who actually needs to accept terms
 		// 2. Improve the API mocking to handle both sign-in and sign-up flows correctly
 		// 3. Mock at a different level (e.g., mock the entire Clerk client)
-		const user = USERS[test.info().parallelIndex]
+		const user = getHuppyUserEmail(test.info().parallelIndex)
 
 		await setupLegalAcceptanceRequired(page, 'session_mock_1')
 
@@ -195,7 +195,7 @@ test.describe('SignInDialog', () => {
 	}) => {
 		// TODO: See comment in 'requires legal acceptance before continuing' test
 		// This test has the same Clerk API mocking issues
-		const user = USERS[test.info().parallelIndex]
+		const user = getHuppyUserEmail(test.info().parallelIndex)
 
 		await setupLegalAcceptanceRequired(page, 'session_mock_analytics_hidden')
 
@@ -226,7 +226,7 @@ test.describe('SignInDialog', () => {
 	}) => {
 		// TODO: See comment in 'requires legal acceptance before continuing' test
 		// This test has the same Clerk API mocking issues
-		const user = USERS[test.info().parallelIndex]
+		const user = getHuppyUserEmail(test.info().parallelIndex)
 
 		await setupLegalAcceptanceRequired(page, 'session_mock_2')
 
@@ -406,7 +406,7 @@ test.describe('SignInDialog', () => {
 	})
 
 	test('can close dialog during code entry stage', async ({ homePage, signInDialog, page }) => {
-		const user = USERS[test.info().parallelIndex]
+		const user = getHuppyUserEmail(test.info().parallelIndex)
 
 		await homePage.expectSignInButtonVisible()
 		await homePage.signInButton.click()
@@ -434,7 +434,7 @@ test.describe('SignInDialog', () => {
 	}) => {
 		// TODO: See comment in 'requires legal acceptance before continuing' test
 		// This test has the same Clerk API mocking issues
-		const user = USERS[test.info().parallelIndex]
+		const user = getHuppyUserEmail(test.info().parallelIndex)
 
 		await setupLegalAcceptanceRequired(page, 'session_mock_close')
 

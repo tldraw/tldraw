@@ -1,7 +1,7 @@
 import { setupClerkTestingToken } from '@clerk/testing/playwright'
 import { test as base, expect } from '@playwright/test'
 import fs from 'fs'
-import { OTHER_USERS, USERS } from '../consts'
+import { getHuppyUserEmail, getSuppyUserEmail } from '../consts'
 import { Database } from './Database'
 import { DeleteFileDialog } from './DeleteFileDialog'
 import { Editor } from './Editor'
@@ -89,9 +89,9 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 				const page = await browser.newPage({ storageState: undefined })
 				let email: string
 				if (user === 'huppy') {
-					email = USERS[id]
+					email = getHuppyUserEmail(id)
 				} else {
-					email = OTHER_USERS[id]
+					email = getSuppyUserEmail(id)
 				}
 				const sidebar = new Sidebar(page)
 				const editor = new Editor(page, sidebar)
