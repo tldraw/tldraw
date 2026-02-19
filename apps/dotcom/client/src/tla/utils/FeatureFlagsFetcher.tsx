@@ -1,54 +1,71 @@
 import { EvaluatedFeatureFlag, FeatureFlagKey } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
-import { Atom, atom, fetch } from 'tldraw'
+import { fetch } from 'tldraw'
 
-type FeatureFlags = Record<FeatureFlagKey, EvaluatedFeatureFlag>
+export type FeatureFlags = Record<FeatureFlagKey, EvaluatedFeatureFlag>
 
-// Global atom for feature flags
-export const featureFlagsAtom: Atom<FeatureFlags> = atom('featureFlags', {
+const DEFAULT_FLAGS: FeatureFlags = {
 	sqlite_file_storage: { enabled: false },
 	proper_zero: { enabled: false },
-})
+}
 
-// Atom to track if flags have been loaded at least once
-export const featureFlagsLoadedAtom: Atom<boolean> = atom('featureFlagsLoaded', false)
+// Module-level promise — starts fetching immediately on import
+let flagsPromise: Promise<FeatureFlags> | null = null
+let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }
+
+export function fetchFeatureFlags(): Promise<FeatureFlags> {
+	if (!flagsPromise) {
+		flagsPromise = fetch('/api/app/feature-flags')
+			.then((r) => (r.ok ? r.json() : DEFAULT_FLAGS))
+			.catch(() => DEFAULT_FLAGS)
+			.then((flags: FeatureFlags) => {
+				currentFlags = flags
+				return flags
+			})
+	}
+	return flagsPromise
+}
+
+// Start immediately
+fetchFeatureFlags()
 
 const REFETCH_INTERVAL = 60000 // 1 minute
 
+/**
+ * React component that polls for feature flag changes after the initial fetch.
+ * If proper_zero changes, it reloads the page.
+ */
 export function FeatureFlagsFetcher() {
 	useEffect(() => {
 		let mounted = true
-		let prevProperZero: boolean | null = null
+		let prevProperZero = currentFlags.proper_zero?.enabled ?? false
 
-		async function fetchFlags() {
+		async function pollFlags() {
 			try {
 				const response = await fetch('/api/app/feature-flags')
-				if (!response.ok) {
-					console.error('Failed to fetch feature flags:', response.statusText)
+				if (!response.ok) return
+				const data = await response.json()
+				if (!mounted) return
+
+				const properZero = data.proper_zero?.enabled ?? false
+				if (properZero !== prevProperZero) {
+					location.reload()
 					return
 				}
-				const data = await response.json()
-				if (mounted) {
-					const properZero = data.proper_zero?.enabled ?? false
-					if (prevProperZero !== null && properZero !== prevProperZero) {
-						location.reload()
-						return
-					}
-					prevProperZero = properZero
-
-					featureFlagsAtom.set(data)
-					featureFlagsLoadedAtom.set(true)
-				}
-			} catch (error) {
-				console.error('Error fetching feature flags:', error)
+				prevProperZero = properZero
+				currentFlags = data
+			} catch {
+				// ignore poll errors
 			}
 		}
 
-		// Initial fetch
-		fetchFlags()
+		// Wait for the initial fetch to complete, then start polling
+		fetchFeatureFlags().then(() => {
+			if (!mounted) return
+			prevProperZero = currentFlags.proper_zero?.enabled ?? false
+		})
 
-		// Poll every minute
-		const interval = setInterval(fetchFlags, REFETCH_INTERVAL)
+		const interval = setInterval(pollFlags, REFETCH_INTERVAL)
 
 		return () => {
 			mounted = false
