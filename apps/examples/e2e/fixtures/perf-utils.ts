@@ -488,6 +488,7 @@ export class PerformanceTestSuite {
 		const interactions = [
 			{ name: 'rotate_shapes', testFn: () => this.testShapeRotation() },
 			{ name: 'drag_shapes', testFn: () => this.testShapeDragging() },
+			{ name: 'resize_shapes', testFn: () => this.testShapeResizing() },
 			{ name: 'canvas_panning', testFn: () => this.testCanvasPanning() },
 			{ name: 'canvas_zooming', testFn: () => this.testCanvasZooming() },
 		]

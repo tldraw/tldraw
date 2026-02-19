@@ -192,7 +192,6 @@ export class BaselineManager {
 
 		const isRegression = avgFpsChange < -this.regressionThreshold
 		const isImprovement = avgFpsChange > this.warningThreshold
-		const isSignificantChange = Math.abs(avgFpsChange) > this.regressionThreshold
 
 		let status: 'pass' | 'warning' | 'fail' = 'pass'
 		let message = `Performance stable. Average FPS: ${metrics.averageFps} (${avgFpsChange.toFixed(1)}% change)`
@@ -203,9 +202,6 @@ export class BaselineManager {
 		} else if (isImprovement) {
 			status = 'warning' // Warning to indicate a significant change that might warrant baseline update
 			message = `Performance improvement detected! Average FPS improved by ${avgFpsChange.toFixed(1)}% (${baseline.avgFps} → ${metrics.averageFps}). Consider updating baseline.`
-		} else if (isSignificantChange) {
-			status = 'warning'
-			message = `Performance change detected. Average FPS: ${metrics.averageFps} (${avgFpsChange > 0 ? '+' : ''}${avgFpsChange.toFixed(1)}%)`
 		}
 
 		return {

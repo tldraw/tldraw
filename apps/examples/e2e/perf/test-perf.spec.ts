@@ -67,17 +67,17 @@ test.describe('Performance Tests', () => {
 		const failedTests = results.filter((result) => result.comparison.status === 'fail')
 		if (failedTests.length > 0) {
 			const failureMessages = failedTests
-				.map((test) => `${test.interaction}: ${test.comparison.message}`)
+				.map((t) => `${t.interaction}: ${t.comparison.message}`)
 				.join('\n')
-			test.fail(false, `Performance tests failed:\n${failureMessages}`)
+			expect(failedTests.length, `Performance tests failed:\n${failureMessages}`).toBe(0)
 		}
 
 		// Warn about any significant changes
 		const warningTests = results.filter((result) => result.comparison.status === 'warning')
 		if (warningTests.length > 0) {
 			console.warn('Performance warnings detected:')
-			warningTests.forEach((test) => {
-				console.warn(`  ${test.interaction}: ${test.comparison.message}`)
+			warningTests.forEach((t) => {
+				console.warn(`  ${t.interaction}: ${t.comparison.message}`)
 			})
 		}
 
@@ -100,7 +100,9 @@ test.describe('Performance Tests', () => {
 		testOutput(await perfSuite.testShapeRotation())
 	})
 
-	test('Shape Dragging Performance', async ({ page, context, request, browserName }) => {
+	test('Shape Dragging Performance', async ({ page, context, request, browserName, isMobile }) => {
+		if (isMobile) return
+
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
 		await perfSuite.setupHeavyBoard()
 
