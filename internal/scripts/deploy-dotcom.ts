@@ -191,6 +191,8 @@ const zeroConnectionLimits = {
 	// Previews use Neon DB
 	preview: {
 		single: { upstream: 3, cvr: 5, change: 3 },
+		rm: { upstream: 1, cvr: 1, change: 3 },
+		vs: { upstream: 2, cvr: 3, change: 1 },
 	},
 } as const
 interface ConnLimits {
@@ -208,6 +210,7 @@ interface MultiNodeConnLimits {
 const zeroConns = zeroConnectionLimits[env.TLDRAW_ENV as keyof typeof zeroConnectionLimits] as
 	| SingleNodeConnLimits
 	| MultiNodeConnLimits
+	| (SingleNodeConnLimits & MultiNodeConnLimits)
 
 async function main() {
 	const deployStart = performance.now()
