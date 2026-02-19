@@ -61,21 +61,6 @@ export const AGENT_TOOLS: FunctionDeclaration[] = [
 		},
 	},
 	{
-		name: 'create_frame',
-		description: 'Create a frame shape to visually group content on the canvas.',
-		parameters: {
-			type: 'object',
-			properties: {
-				x: { type: 'number', description: 'X position of the frame.' },
-				y: { type: 'number', description: 'Y position of the frame.' },
-				w: { type: 'number', description: 'Width of the frame.' },
-				h: { type: 'number', description: 'Height of the frame.' },
-				name: { type: 'string', description: 'Label for the frame.' },
-			},
-			required: ['x', 'y', 'w', 'h'],
-		},
-	},
-	{
 		name: 'move_shape',
 		description:
 			'Move an existing shape to a new position on the canvas. The anchor parameter controls which point of the shape is placed at (x, y).',
@@ -364,8 +349,6 @@ export async function executeToolCall(
 			return executeWikipediaSearch(toolInput)
 		case 'analyze_canvas_area':
 			return executeAnalyzeCanvasArea(editor, toolInput)
-		case 'create_frame':
-			return executeCreateFrame(editor, toolInput)
 		case 'move_shape':
 			return executeMoveShape(editor, toolInput)
 		case 'remove_shape':
@@ -415,6 +398,23 @@ export function placeTextShape(editor: Editor, text: string, x: number, y: numbe
 			autoSize: false,
 			w: 500,
 			font: 'mono',
+		},
+	})
+	return id
+}
+
+/** Place a sticky note shape on the canvas. Used for highlight-mode responses. */
+export function placeNoteShape(editor: Editor, text: string, x: number, y: number): TLShapeId {
+	const id = createShapeId()
+	editor.createShape({
+		id,
+		type: 'note',
+		x,
+		y,
+		props: {
+			richText: toRichText(text),
+			color: 'yellow',
+			size: 'm',
 		},
 	})
 	return id
@@ -556,25 +556,6 @@ function executeAnalyzeCanvasArea(editor: Editor, input: Record<string, unknown>
 				? JSON.stringify(results, null, 2)
 				: 'No shapes found in the specified area.',
 	}
-}
-
-function executeCreateFrame(editor: Editor, input: Record<string, unknown>): ToolResult {
-	const x = input.x as number
-	const y = input.y as number
-	const w = input.w as number
-	const h = input.h as number
-	const name = (input.name as string) || ''
-
-	const id = createShapeId()
-	editor.createShape({
-		id,
-		type: 'frame',
-		x,
-		y,
-		props: { w, h, name },
-	})
-
-	return { success: true, message: `Created frame ${id} at (${x}, ${y}) size ${w}x${h}` }
 }
 
 function executeMoveShape(editor: Editor, input: Record<string, unknown>): ToolResult {

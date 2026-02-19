@@ -20,6 +20,7 @@ import {
 	AGENT_TOOLS,
 	executeToolCall,
 	placeImageFromSearch,
+	placeNoteShape,
 	placeTextShape,
 	type CanvasItem,
 	type OrchestratorResponse,
@@ -238,9 +239,22 @@ export class IntelligentCanvasAgent {
 				})
 			}
 
+			// Compute the combined bounds of highlighted shapes (if any) for nearby placement
+			let highlightBounds: Box | null = null
+			if (focusedShapes.length > 0) {
+				const boxes: Box[] = []
+				for (const s of focusedShapes) {
+					const b = this.editor.getShapePageBounds(s.id)
+					if (b) boxes.push(b)
+				}
+				if (boxes.length > 0) {
+					highlightBounds = Box.Common(boxes)
+				}
+			}
+
 			// Execute the orchestrator response: voice + canvas
 			if (orchestratorResponse) {
-				await this.executeResponse(orchestratorResponse)
+				await this.executeResponse(orchestratorResponse, highlightBounds)
 			}
 
 			this.callbacks.onStatusChange('idle')
@@ -260,21 +274,30 @@ export class IntelligentCanvasAgent {
 	private placedShapeIds: TLShapeId[] = []
 
 	/** Execute the orchestrator response: place canvas items immediately, play audio, animate camera. */
-	private async executeResponse(response: OrchestratorResponse) {
+	private async executeResponse(
+		response: OrchestratorResponse,
+		highlightBounds: Box | null = null
+	) {
 		this.callbacks.onStatusChange('thinking', 'Preparing canvas...')
 
 		const canvasItems = response.canvas ?? []
-		const startPos = this.getNextCanvasPosition()
-		const ITEM_GAP = 350
+		const useNotes = highlightBounds !== null
 		this.placedShapeIds = []
 
-		// 1. Place all canvas items immediately
-		await this.placeAllCanvasItems(canvasItems, startPos, ITEM_GAP)
+		if (useNotes && highlightBounds) {
+			// Place as sticky notes near the highlighted area
+			await this.placeCanvasItemsNearHighlight(canvasItems, highlightBounds)
+		} else {
+			const startPos = this.getNextCanvasPosition()
+			const ITEM_GAP = 350
+			// 1. Place all canvas items immediately
+			await this.placeAllCanvasItems(canvasItems, startPos, ITEM_GAP)
 
-		// 2. Relayout so they stack tightly
-		if (this.placedShapeIds.length > 0) {
-			this.relayoutPlacedShapes(startPos.x)
-			await new Promise((r) => setTimeout(r, 50))
+			// 2. Relayout so they stack tightly
+			if (this.placedShapeIds.length > 0) {
+				this.relayoutPlacedShapes(startPos.x)
+				await new Promise((r) => setTimeout(r, 50))
+			}
 		}
 
 		// 3. Speech + camera tour (only if speech was provided)
@@ -333,9 +356,20 @@ export class IntelligentCanvasAgent {
 			}
 		}
 
-		// Zoom out to show everything
+		// Zoom to show placed items (locally for highlights, full canvas otherwise)
 		if (this.placedShapeIds.length > 0) {
-			this.editor.zoomToFit({ animation: { duration: 400 } })
+			if (useNotes && highlightBounds) {
+				// Zoom to the highlight area + new notes
+				const allBounds: Box[] = [highlightBounds]
+				for (const id of this.placedShapeIds) {
+					const b = this.editor.getShapePageBounds(id)
+					if (b) allBounds.push(b)
+				}
+				const combined = Box.Common(allBounds).expandBy(80)
+				this.editor.zoomToBounds(combined, { animation: { duration: 400 } })
+			} else {
+				this.editor.zoomToFit({ animation: { duration: 400 } })
+			}
 		}
 	}
 
@@ -432,14 +466,39 @@ export class IntelligentCanvasAgent {
 		gap: number
 	) {
 		for (let i = 0; i < items.length; i++) {
-			await this.placeCanvasItem(items[i], startPos.x, startPos.y + i * gap)
+			await this.placeCanvasItem(items[i], startPos.x, startPos.y + i * gap, false)
 		}
 	}
 
-	/** Place a single canvas item (text or image) on the canvas and track its ID. */
-	private async placeCanvasItem(item: CanvasItem, x: number, y: number) {
+	/** Place canvas items as sticky notes arranged near the highlighted shapes. */
+	private async placeCanvasItemsNearHighlight(items: CanvasItem[], highlightBounds: Box) {
+		// Place notes starting just below the highlight area, slightly overlapping
+		const NOTE_SIZE = 200
+		const NOTE_GAP = 16
+		const startX = highlightBounds.x
+		const startY = highlightBounds.maxY - 40 // overlap slightly onto the highlighted content
+
+		// Arrange notes in a row; wrap to next row if they'd exceed the highlight width + margin
+		const maxRowWidth = Math.max(highlightBounds.w + 200, NOTE_SIZE * 3 + NOTE_GAP * 2)
+		let curX = startX
+		let curY = startY
+
+		for (const item of items) {
+			if (curX - startX + NOTE_SIZE > maxRowWidth) {
+				curX = startX
+				curY += NOTE_SIZE + NOTE_GAP
+			}
+			await this.placeCanvasItem(item, curX, curY, true)
+			curX += NOTE_SIZE + NOTE_GAP
+		}
+	}
+
+	/** Place a single canvas item on the canvas and track its ID. */
+	private async placeCanvasItem(item: CanvasItem, x: number, y: number, asNote: boolean) {
 		if (item.type === 'text') {
-			const id = placeTextShape(this.editor, item.content, x, y)
+			const id = asNote
+				? placeNoteShape(this.editor, item.content, x, y)
+				: placeTextShape(this.editor, item.content, x, y)
 			this.placedShapeIds.push(id)
 		} else if (item.type === 'image_search') {
 			const result = await placeImageFromSearch(this.editor, item.content, x, y)
