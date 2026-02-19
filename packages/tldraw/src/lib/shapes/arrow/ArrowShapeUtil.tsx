@@ -953,7 +953,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 
 		// Get arrow body path
-		const isForceSolid = this.editor.getEfficientZoomLevel() < shape.props.scale * 0.25
+		const isForceSolid = this.editor.getEfficientZoomLevel() < 0.25 / shape.props.scale
 		const bodyPathBuilder = getArrowBodyPathBuilder(info)
 		const bodyPath2D = bodyPathBuilder.toPath2D(
 			shape.props.dash === 'draw' && !isForceSolid
@@ -1136,7 +1136,7 @@ const ArrowSvg = track(function ArrowSvg({
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
 	const info = getArrowInfo(editor, shape)
-	const isForceSolid = useEfficientZoomThreshold(shape.props.scale * 0.25)
+	const isForceSolid = useEfficientZoomThreshold(0.25 / shape.props.scale)
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
 	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
