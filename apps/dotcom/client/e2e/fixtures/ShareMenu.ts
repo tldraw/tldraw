@@ -4,6 +4,9 @@ import { expect, step } from './tla-test'
 type ShareMenuTab = 'invite' | 'export' | 'publish'
 
 export class ShareMenu {
+	private static readonly OPEN_TIMEOUT = 5000
+	private static readonly COOKIE_BANNER_TIMEOUT = 1500
+
 	public readonly shareButton: Locator
 
 	public readonly exportTabButton: Locator
@@ -52,8 +55,29 @@ export class ShareMenu {
 		this.unpublishFile = this.unpublishFile.bind(this)
 	}
 
+	@step
 	async open() {
-		await this.shareButton.click()
+		await expect(this.shareButton).toBeVisible({ timeout: ShareMenu.OPEN_TIMEOUT })
+		try {
+			await this.shareButton.click({ timeout: ShareMenu.OPEN_TIMEOUT })
+		} catch {
+			await this.dismissCookieConsentIfVisible()
+			await this.shareButton.click({ timeout: ShareMenu.OPEN_TIMEOUT })
+		}
+		await expect(this.exportTabButton).toBeVisible({ timeout: ShareMenu.OPEN_TIMEOUT })
+	}
+
+	private async dismissCookieConsentIfVisible() {
+		const banner = this.page.getByTestId('tla-cookie-consent')
+		try {
+			await expect(banner).toBeVisible({ timeout: ShareMenu.COOKIE_BANNER_TIMEOUT })
+			await banner.getByRole('button', { name: 'Accept all' }).click({
+				timeout: ShareMenu.OPEN_TIMEOUT,
+			})
+			await expect(banner).not.toBeVisible({ timeout: ShareMenu.OPEN_TIMEOUT })
+		} catch {
+			// Cookie consent is usually absent; only dismiss when it's currently blocking clicks.
+		}
 	}
 
 	async isInviteButtonVisible() {
