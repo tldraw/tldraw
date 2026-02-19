@@ -70,16 +70,17 @@ function InFrontOfTheCanvasContent() {
 					<AgentStatusIndicator status={agentStatus} message={agentMessage} recording={recording} />
 				</>
 			) : (
-				<CompositionPanel />
+				<>
+					<CompositionPanel />
+					<CompositionOverlay />
+				</>
 			)}
 		</>
 	)
 }
 
 function OnTheCanvasContent() {
-	const { mode } = useContext(AgentContext)
-	if (mode !== 'composition') return null
-	return <CompositionOverlay />
+	return null
 }
 
 const shapeUtils = [CodeShapeUtil]

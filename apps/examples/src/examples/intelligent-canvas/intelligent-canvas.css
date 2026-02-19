@@ -163,7 +163,15 @@
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-/* ── Compose dots (canvas overlay) ────────────────────────────── */
+/* ── Compose overlay (in front of canvas) ────────────────────── */
+
+.ic-compose-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 2147483647;
+	pointer-events: none;
+	overflow: hidden;
+}
 
 .ic-compose-dot {
 	position: absolute;
@@ -173,8 +181,12 @@
 	flex-direction: column;
 	align-items: center;
 	gap: 3px;
-	pointer-events: all;
+	pointer-events: none;
 	transition: opacity 0.15s ease-out;
+}
+
+.ic-compose-dot * {
+	pointer-events: none;
 }
 
 .ic-compose-button {
@@ -188,16 +200,9 @@
 	font-weight: 300;
 	line-height: 1;
 	padding: 0;
-	cursor: pointer;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	transition: background 0.15s, border-color 0.15s;
-}
-
-.ic-compose-button:hover {
-	background: rgba(0, 0, 0, 0.05);
-	border-color: rgba(0, 0, 0, 0.25);
 }
 
 .ic-compose-score {
@@ -228,8 +233,8 @@
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 1px;
-	height: 1px;
+	width: 100%;
+	height: 100%;
 	overflow: visible;
 	pointer-events: none;
 }

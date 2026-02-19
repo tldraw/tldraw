@@ -285,7 +285,7 @@ export function getComposedIdeaPosition(
 
 const NODE_W = IDEA_NOTE_WIDTH + 60
 const NODE_H = ESTIMATED_SHAPE_HEIGHT + 60
-const OVERLAP_PUSH = 2
+const OVERLAP_PUSH = 0.6
 const EDGE_PULL = 0.008
 const SEMANTIC_PULL = 0.003
 const EDGE_REST = NODE_W * 1.8
@@ -452,7 +452,7 @@ export function forceDirectedLayout(nodes: IdeaNode[]): { id: TLShapeId; x: numb
 // ── Lightweight overlap repulsion ─────────────────────────────────
 
 const REPEL_ITERATIONS = 120
-const REPEL_PUSH = 2.5
+const REPEL_PUSH = 0.8
 const REPEL_DAMPING = 0.65
 
 /**

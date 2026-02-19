@@ -1,22 +1,26 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { TLShapeId, track, useEditor, useValue } from 'tldraw'
 import { useComposition } from './CompositionContext'
 import { getIdeaNodes } from './graph'
 import { rankPairSuggestions } from './scoring'
 
-const MAX_SUGGESTIONS = 8
+// At zoom >= 1 show all; below 1 only keep the top N (scales with zoom²)
+const LOD_BASE = 20
+const LOD_MIN = 3
 
-// Distance (in page units) at which a button is fully visible
-const FADE_NEAR = 60
+// Distance (in screen pixels) at which a button is fully visible
+const FADE_NEAR = 100
 // Distance at which a button is fully invisible
-const FADE_FAR = 300
-// How far the bezier control point bows outward (page units)
-const CURVE_OFFSET = 60
+const FADE_FAR = 350
+// Max opacity for non-busy buttons
+const MAX_OPACITY = 1.0
+// How far the bezier control point bows outward (screen pixels)
+const CURVE_OFFSET = 40
 
 function opacityForDistance(dist: number): number {
-	if (dist <= FADE_NEAR) return 1
+	if (dist <= FADE_NEAR) return MAX_OPACITY
 	if (dist >= FADE_FAR) return 0
-	return 1 - (dist - FADE_NEAR) / (FADE_FAR - FADE_NEAR)
+	return MAX_OPACITY * (1 - (dist - FADE_NEAR) / (FADE_FAR - FADE_NEAR))
 }
 
 /** Quadratic bezier path from `from` to `to`, bowed perpendicular by `offset`. */
@@ -49,17 +53,41 @@ export const CompositionOverlay = track(function CompositionOverlay() {
 		[allIdeaNodes, domain]
 	)
 
-	const suggestions = useMemo(() => rankPairSuggestions(ideaNodes, MAX_SUGGESTIONS), [ideaNodes])
+	const allSuggestions = useMemo(() => rankPairSuggestions(ideaNodes, Infinity), [ideaNodes])
 
+	const camera = useValue('camera', () => editor.getCamera(), [editor])
 	const zoom = useValue('zoom', () => editor.getZoomLevel(), [editor])
 
-	const cursorPage = useValue(
-		'cursorPage',
+	// LOD: zoom >= 1.5 show all, 0.6–1.5 show most, below 0.6 cull aggressively
+	const suggestions = useMemo(() => {
+		if (zoom >= 1.5) return allSuggestions
+		if (zoom >= 0.6) {
+			// Linear blend: at 0.6 show 40%, at 1.5 show 100%
+			const t = (zoom - 0.6) / (1.5 - 0.6)
+			const fraction = 0.4 + 0.6 * t
+			const limit = Math.max(LOD_MIN, Math.round(allSuggestions.length * fraction))
+			return allSuggestions.slice(0, limit)
+		}
+		const limit = Math.max(LOD_MIN, Math.round(LOD_BASE * zoom * zoom))
+		return allSuggestions.slice(0, limit)
+	}, [allSuggestions, zoom])
+
+	const cursorScreen = useValue(
+		'cursorScreen',
 		() => {
-			const pt = editor.inputs.currentPagePoint
+			const pt = editor.inputs.currentScreenPoint
 			return { x: pt.x, y: pt.y }
 		},
 		[editor]
+	)
+
+	// Convert page coords to container-relative coords using camera directly
+	const pageToContainer = useCallback(
+		(px: number, py: number) => {
+			const { x: cx, y: cy, z: cz = 1 } = camera
+			return { x: (px + cx) * cz, y: (py + cy) * cz }
+		},
+		[camera]
 	)
 
 	const buttons = useMemo(() => {
@@ -69,39 +97,37 @@ export const CompositionOverlay = track(function CompositionOverlay() {
 				const boundsB = editor.getShapePageBounds(s.b.id)
 				if (!boundsA || !boundsB) return null
 
-				const pageX = (boundsA.x + boundsA.w / 2 + boundsB.x + boundsB.w / 2) / 2
-				const pageY = (boundsA.y + boundsA.h / 2 + boundsB.y + boundsB.h / 2) / 2
+				const pageMidX = (boundsA.x + boundsA.w / 2 + boundsB.x + boundsB.w / 2) / 2
+				const pageMidY = (boundsA.y + boundsA.h / 2 + boundsB.y + boundsB.h / 2) / 2
+				const screenMid = pageToContainer(pageMidX, pageMidY)
 
-				const dx = pageX - cursorPage.x
-				const dy = pageY - cursorPage.y
+				const dx = screenMid.x - cursorScreen.x
+				const dy = screenMid.y - cursorScreen.y
 				const dist = Math.sqrt(dx * dx + dy * dy)
 				const opacity = opacityForDistance(dist)
 
-				// Centers of parent shapes (for connection lines)
-				const aCx = boundsA.x + boundsA.w / 2
-				const aCy = boundsA.y + boundsA.h / 2
-				const bCx = boundsB.x + boundsB.w / 2
-				const bCy = boundsB.y + boundsB.h / 2
+				const aScreen = pageToContainer(boundsA.x + boundsA.w / 2, boundsA.y + boundsA.h / 2)
+				const bScreen = pageToContainer(boundsB.x + boundsB.w / 2, boundsB.y + boundsB.h / 2)
 
 				return {
 					key: s.pairKey,
-					pageX,
-					pageY,
+					screenX: screenMid.x,
+					screenY: screenMid.y,
 					score: s.finalScore,
 					aId: s.a.id,
 					bId: s.b.id,
-					aCx,
-					aCy,
-					bCx,
-					bCy,
+					aCx: aScreen.x,
+					aCy: aScreen.y,
+					bCx: bScreen.x,
+					bCy: bScreen.y,
 					busy: busyPairs.has(s.pairKey),
 					opacity,
 				}
 			})
 			.filter(Boolean) as Array<{
 			key: string
-			pageX: number
-			pageY: number
+			screenX: number
+			screenY: number
 			score: number
 			aId: TLShapeId
 			bId: TLShapeId
@@ -112,23 +138,72 @@ export const CompositionOverlay = track(function CompositionOverlay() {
 			busy: boolean
 			opacity: number
 		}>
-	}, [suggestions, editor, busyPairs, cursorPage])
+	}, [suggestions, editor, busyPairs, cursorScreen, pageToContainer])
 
 	const handleHover = useCallback((key: string | null) => setHoveredKey(key), [])
 
+	const overlayRef = useRef<HTMLDivElement>(null)
+	const downRef = useRef<{ x: number; y: number } | null>(null)
+	const CLICK_THRESHOLD = 6
+
+	useEffect(() => {
+		const onDown = (e: PointerEvent) => {
+			downRef.current = { x: e.clientX, y: e.clientY }
+		}
+		window.addEventListener('pointerdown', onDown, true)
+		return () => window.removeEventListener('pointerdown', onDown, true)
+	}, [])
+
+	// Convert clientX/Y to container-relative coords
+	const clientToContainer = useCallback((clientX: number, clientY: number) => {
+		const el = overlayRef.current
+		if (!el) return { x: clientX, y: clientY }
+		const rect = el.getBoundingClientRect()
+		return { x: clientX - rect.left, y: clientY - rect.top }
+	}, [])
+
+	const hitTest = useCallback(
+		(clientX: number, clientY: number) => {
+			const pt = clientToContainer(clientX, clientY)
+			for (const b of buttons) {
+				if (b.opacity <= 0 && !b.busy) continue
+				if (b.busy) continue
+				const dx = pt.x - b.screenX
+				const dy = pt.y - b.screenY
+				if (Math.abs(dx) <= 14 && Math.abs(dy) <= 14) return b
+			}
+			return null
+		},
+		[buttons, clientToContainer]
+	)
+
+	useEffect(() => {
+		const onUp = (e: PointerEvent) => {
+			const down = downRef.current
+			if (!down) return
+			const dist = Math.sqrt((e.clientX - down.x) ** 2 + (e.clientY - down.y) ** 2)
+			if (dist > CLICK_THRESHOLD) return
+
+			const hit = hitTest(e.clientX, e.clientY)
+			if (hit) {
+				handleCompose(editor, hit.key, [hit.aId, hit.bId])
+			}
+		}
+		window.addEventListener('pointerup', onUp, true)
+		return () => window.removeEventListener('pointerup', onUp, true)
+	}, [hitTest, handleCompose, editor])
+
 	if (buttons.length === 0) return null
 
-	const inverseScale = 1 / zoom
-
 	return (
-		<>
-			{/* Connection lines layer — lives in page coords, no inverse scale */}
+		<div ref={overlayRef} className="ic-compose-overlay">
+			{/* Connection lines layer */}
 			<svg className="ic-compose-lines">
 				{buttons.map((b) => {
 					const showLines = b.key === hoveredKey || b.busy
 					if (!showLines) return null
 
-					const mid = { x: b.pageX, y: b.pageY }
+					const mid = { x: b.screenX, y: b.screenY }
 					const pathA = curvedPath({ x: b.aCx, y: b.aCy }, mid, CURVE_OFFSET)
 					const pathB = curvedPath({ x: b.bCx, y: b.bCy }, mid, -CURVE_OFFSET)
 
@@ -141,7 +216,7 @@ export const CompositionOverlay = track(function CompositionOverlay() {
 				})}
 			</svg>
 
-			{/* Buttons layer */}
+			{/* Buttons layer — purely visual, no pointer events */}
 			{buttons.map((b) => {
 				if (b.opacity <= 0 && !b.busy) return null
 				const opacity = b.busy ? 1 : b.opacity
@@ -151,30 +226,21 @@ export const CompositionOverlay = track(function CompositionOverlay() {
 						key={b.key}
 						className="ic-compose-dot"
 						style={{
-							transform: `translate(${b.pageX}px, ${b.pageY}px) scale(${inverseScale}) translate(-50%, -50%)`,
+							transform: `translate(${b.screenX}px, ${b.screenY}px) translate(-50%, -50%)`,
 							opacity,
-							pointerEvents: opacity > 0.1 ? 'all' : 'none',
 						}}
-						onPointerEnter={() => handleHover(b.key)}
-						onPointerLeave={() => handleHover(null)}
+						onMouseEnter={() => handleHover(b.key)}
+						onMouseLeave={() => handleHover(null)}
 					>
 						{b.busy ? (
 							<div className="ic-compose-spinner" />
 						) : (
-							<button
-								className="ic-compose-button"
-								onPointerDown={(e) => {
-									e.stopPropagation()
-									handleCompose(editor, b.key, [b.aId, b.bId])
-								}}
-							>
-								+
-							</button>
+							<div className="ic-compose-button">+</div>
 						)}
 						<div className="ic-compose-score">{b.score.toFixed(2).replace(/^0/, '')}</div>
 					</div>
 				)
 			})}
-		</>
+		</div>
 	)
 })
