@@ -35,7 +35,7 @@ import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { hasNotAcceptedLegal } from '../utils/auth'
-import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
+import { FeatureFlagPoller } from '../utils/FeatureFlagPoller'
 import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
 	getLocalSessionState,
@@ -252,7 +252,7 @@ function SignedInProvider({
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
-				<FeatureFlagsFetcher />
+				<FeatureFlagPoller />
 				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
@@ -261,7 +261,7 @@ function SignedInProvider({
 
 	return (
 		<>
-			<FeatureFlagsFetcher />
+			<FeatureFlagPoller />
 			<AppStateProvider>
 				<UserProvider>
 					<ThemeContainer onThemeChange={onThemeChange}>

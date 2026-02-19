@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { assertExists, atom } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
-import { fetchFeatureFlags } from '../utils/FeatureFlagsFetcher'
+import { fetchFeatureFlags } from '../utils/FeatureFlagPoller'
 
 const appContext = createContext<TldrawApp | null>(null)
 
