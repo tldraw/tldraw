@@ -63,6 +63,26 @@ const MAX_SIZE = 256
 
 const alphaCache = new Map<string, AlphaData>()
 const pending = new Set<string>()
+let offscreenCanvas: OffscreenCanvas | null = null
+
+function getOffscreenCanvas(w: number, h: number): OffscreenCanvas {
+	if (!offscreenCanvas) {
+		offscreenCanvas = new OffscreenCanvas(w, h)
+	} else {
+		offscreenCanvas.width = w
+		offscreenCanvas.height = h
+	}
+	return offscreenCanvas
+}
+
+function extractAlphas(ctx: OffscreenCanvasRenderingContext2D, w: number, h: number): Uint8Array {
+	const imageData = ctx.getImageData(0, 0, w, h)
+	const alphas = new Uint8Array(w * h)
+	for (let i = 0; i < alphas.length; i++) {
+		alphas[i] = imageData.data[i * 4 + 3]
+	}
+	return alphas
+}
 
 /** Start loading alpha data for a given image URL. No-op if already loaded or loading. */
 export function preloadAlphaData(src: string): void {
@@ -71,7 +91,7 @@ export function preloadAlphaData(src: string): void {
 
 	const img = Image()
 	img.crossOrigin = 'anonymous'
-	img.onload = () => {
+	img.onload = async () => {
 		pending.delete(src)
 		const { width: origW, height: origH } = img
 		if (origW === 0 || origH === 0) return
@@ -80,19 +100,25 @@ export function preloadAlphaData(src: string): void {
 		const w = Math.max(1, Math.round(origW * scale))
 		const h = Math.max(1, Math.round(origH * scale))
 
-		const canvas = document.createElement('canvas')
-		canvas.width = w
-		canvas.height = h
+		const canvas = getOffscreenCanvas(w, h)
 		const ctx = canvas.getContext('2d')
 		if (!ctx) return
 
-		ctx.drawImage(img, 0, 0, w, h)
-		const imageData = ctx.getImageData(0, 0, w, h)
-		const alphas = new Uint8Array(w * h)
-		for (let i = 0; i < alphas.length; i++) {
-			alphas[i] = imageData.data[i * 4 + 3]
+		try {
+			// Resize off the main thread via createImageBitmap
+			const bitmap = await createImageBitmap(img, {
+				resizeWidth: w,
+				resizeHeight: h,
+				resizeQuality: 'low',
+			})
+			ctx.drawImage(bitmap, 0, 0)
+			bitmap.close()
+		} catch {
+			// Fallback for browsers without resize options
+			ctx.drawImage(img, 0, 0, w, h)
 		}
-		alphaCache.set(src, { width: w, height: h, alphas })
+
+		alphaCache.set(src, { width: w, height: h, alphas: extractAlphas(ctx, w, h) })
 	}
 	img.onerror = () => {
 		pending.delete(src)
