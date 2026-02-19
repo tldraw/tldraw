@@ -129,7 +129,7 @@ export const TL = new Proxy(
 	}
 ) as { asset: typeof tlAsset; binding: typeof tlBinding } & {
 	[K in TLShape['type']]: (props: PropsForShape<K>) => null
-}
+} & Record<string, (props: CommonShapeProps & Record<string, unknown>) => null>
 
 export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Element>, idPrefix = '') {
 	const ids = { bindings: {} } as Record<string, TLShapeId> & {

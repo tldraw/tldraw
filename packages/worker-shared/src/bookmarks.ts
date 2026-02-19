@@ -13,7 +13,7 @@ const queryValidator = T.object({
 
 type UploadImage = (
 	headers: Headers,
-	body: ReadableStream<any> | null,
+	body: ReadableStream | null,
 	objectName: string
 ) => Promise<string>
 
@@ -116,7 +116,11 @@ async function trySaveImage<const K extends string>(
 		if (!contentType.startsWith('image/')) throw new Error('Not an image')
 
 		const objectName = `bookmark-${key}-${id}`
-		metadata[key] = await uploadImage(imageResponse.headers, imageResponse.body, objectName)
+		metadata[key] = await uploadImage(
+			imageResponse.headers as unknown as Headers,
+			imageResponse.body as unknown as ReadableStream | null,
+			objectName
+		)
 	} catch (error) {
 		console.error(`Error saving ${key}:`, error)
 	}

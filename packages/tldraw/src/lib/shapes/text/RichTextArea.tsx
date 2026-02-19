@@ -175,6 +175,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 				handlePaste: (view: EditorView, event: ClipboardEvent) => {
 					onPaste(event)
 					if (event.defaultPrevented) return true
+					return false
 				},
 				handleDoubleClick: (_view, _pos, event) => onDoubleClick(event),
 				...editorProps,
@@ -291,6 +292,7 @@ function handleTab(editor: Editor, view: EditorView, event: KeyboardEvent) {
 				isInList = true
 				return false // Stop iteration
 			}
+			return true
 		})
 
 		// TODO: for now skip over lists. Later, we might consider handling them using

@@ -149,7 +149,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 		const handleCompositionEnd = React.useCallback(() => (isComposing.current = false), [])
 
 		React.useEffect(() => {
-			if (!tlenv.isIos) return
+			if (!tlenv.isIos) return undefined
 
 			const visualViewport = window.visualViewport
 			if (isFocused && shouldManuallyMaintainScrollPositionWhenFocused && visualViewport) {
@@ -174,6 +174,8 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					visualViewport.removeEventListener('scroll', onViewportChange)
 				}
 			}
+
+			return undefined
 		}, [isFocused, editor, shouldManuallyMaintainScrollPositionWhenFocused])
 
 		return (

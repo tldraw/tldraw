@@ -18,7 +18,7 @@ jobs:
     name: 'Bump package versions to latest tldraw version'
     environment: npm deploy
     timeout-minutes: 30
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest-16-cores-arm-open
 
     steps:
       - name: Generate GH token

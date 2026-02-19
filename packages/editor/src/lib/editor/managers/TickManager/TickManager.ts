@@ -1,5 +1,5 @@
 import { throttleToNextFrame as _throttleToNextFrame, bind } from '@tldraw/utils'
-import { Editor } from '../../Editor'
+import type { Editor } from '../../Editor'
 
 const throttleToNextFrame =
 	typeof process !== 'undefined' && process.env.NODE_ENV === 'test'

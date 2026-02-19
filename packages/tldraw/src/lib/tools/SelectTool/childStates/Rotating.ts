@@ -40,7 +40,10 @@ export class Rotating extends StateNode {
 			editor: this.editor,
 			ids: this.editor.getSelectedShapeIds(),
 		})
-		if (!snapshot) return this.parent.transition('idle', this.info)
+		if (!snapshot) {
+			this.parent.transition('idle', this.info)
+			return
+		}
 		this.snapshot = snapshot
 
 		// Trigger a pointer move

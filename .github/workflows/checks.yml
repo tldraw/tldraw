@@ -18,7 +18,7 @@ jobs:
   lint:
     name: 'Lint'
     timeout-minutes: 15
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest-16-cores-arm-open
 
     steps:
       - name: Check out code
@@ -32,7 +32,7 @@ jobs:
   test:
     name: 'Tests & checks'
     timeout-minutes: 15
-    runs-on: ubuntu-latest-16-cores-open # TODO: this should probably run on multiple OSes
+    runs-on: ubuntu-latest-16-cores-arm-open # TODO: this should probably run on multiple OSes
 
     steps:
       - name: Check out code
@@ -49,8 +49,11 @@ jobs:
       - name: Check packages
         run: yarn check-packages
 
+      - name: Check circular dependencies
+        run: yarn check-circular-deps
+
       - name: Restore build tool caches
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: |
             .lazy
@@ -88,7 +91,7 @@ jobs:
   build:
     name: 'Build all projects'
     timeout-minutes: 15
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest-16-cores-arm-open
 
     steps:
       - name: Check out code
@@ -97,7 +100,7 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Restore build tool caches
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: |
             .lazy

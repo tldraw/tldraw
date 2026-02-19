@@ -6,12 +6,7 @@
 			"zooming",
 			"scrolling",
 			"drawing",
-			"erasing",
-			"creating",
-			"typing",
 			"selecting",
-			"deselecting",
-			"duplicating",
 			"nudging",
 			"resizing",
 			"rotating",
@@ -22,11 +17,13 @@
 			"stacking",
 			"packing",
 			"grouping",
-			"ungrouping",
-			"editing",
 			"cropping",
 			"styling",
-			"embedding"
+			"embedding",
+			"scribbling",
+			"brushing",
+			"pointing",
+			"snapping to grid"
 		]
 	},
 	"permissions": {
@@ -48,7 +45,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "git diff --name-only --diff-filter=ACMR | grep -E '\\.(ts|tsx|js|jsx|json|md)$' | xargs -r yarn run -T prettier --write"
+						"command": "cd \"$(git rev-parse --show-toplevel)\" && git diff --name-only --diff-filter=ACMR | grep -E '\\.(ts|tsx|js|jsx|json|md)$' | xargs -r yarn run -T prettier --write || true"
 					}
 				]
 			}

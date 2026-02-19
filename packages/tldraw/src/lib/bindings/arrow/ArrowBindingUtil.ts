@@ -22,7 +22,8 @@ import {
 	getIndexBetween,
 	intersectLineSegmentCircle,
 } from '@tldraw/editor'
-import { getArrowBindings, getArrowInfo, removeArrowBinding } from '../../shapes/arrow/shared'
+import { getArrowInfo } from '../../shapes/arrow/getArrowInfo'
+import { getArrowBindings, removeArrowBinding } from '../../shapes/arrow/shared'
 
 /**
  * @public

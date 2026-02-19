@@ -85,6 +85,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		if (richText) {
 			return renderHtmlFromRichText(editor, richText)
 		}
+		return undefined
 	}, [editor, richText])
 
 	const selectToolActive = useValue(

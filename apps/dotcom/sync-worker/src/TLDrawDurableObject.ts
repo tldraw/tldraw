@@ -1,6 +1,6 @@
 /// <reference no-default-lib="true"/>
+/// <reference types="@cloudflare/workers-types" />
 
-import { R2Bucket } from '@cloudflare/workers-types'
 import { RefUpdateError } from '@pierre/storage'
 import { SupabaseClient } from '@supabase/supabase-js'
 import {

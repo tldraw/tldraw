@@ -11,14 +11,14 @@ import { Emitter } from 'nanoevents';
 import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedSchema } from '@tldraw/store';
-import { SerializedSchemaV2 } from '@tldraw/store';
+import { SerializedSchemaV2 } from 'tldraw';
 import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { SynchronousStorage } from '@tldraw/store';
-import { TLDocument } from '@tldraw/tlschema';
-import { TLPage } from '@tldraw/tlschema';
+import { TLDocument } from 'tldraw';
+import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLStoreSnapshot as TLStoreSnapshot_2 } from 'tldraw';
@@ -104,7 +104,7 @@ export function getTlsyncProtocolVersion(): number;
 
 // @public
 export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
-    constructor({ snapshot, onChange, }?: {
+    constructor({ snapshot, onChange }?: {
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot;
     });
@@ -302,7 +302,7 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
 
 // @public
 export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
-    constructor({ sql, snapshot, onChange, }: {
+    constructor({ sql, snapshot, onChange }: {
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot | StoreSnapshot<R>;
         sql: TLSyncSqliteWrapper;

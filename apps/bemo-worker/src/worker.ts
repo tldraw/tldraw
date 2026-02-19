@@ -7,6 +7,7 @@ import {
 	handleUserAssetGet,
 	handleUserAssetUpload,
 	notFound,
+	type R2BucketLike,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { Router, cors } from 'itty-router'
@@ -20,18 +21,20 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	private readonly router = Router()
 		.all('*', preflight)
 		.get('/uploads/:objectName', (request) => {
+			const bucket = this.env.BEMO_BUCKET as R2BucketLike
 			return handleUserAssetGet({
 				request,
-				bucket: this.env.BEMO_BUCKET,
+				bucket,
 				objectName: `asset-uploads/${request.params.objectName}`,
 				context: this.ctx,
 			})
 		})
 		.post('/uploads/:objectName', async (request) => {
+			const bucket = this.env.BEMO_BUCKET as R2BucketLike
 			return handleUserAssetUpload({
 				headers: request.headers,
 				body: request.body,
-				bucket: this.env.BEMO_BUCKET,
+				bucket,
 				objectName: `asset-uploads/${request.params.objectName}`,
 			})
 		})
@@ -40,13 +43,14 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			return handleExtractBookmarkMetadataRequest({ request })
 		})
 		.post('/bookmarks/unfurl', (request) => {
+			const bucket = this.env.BEMO_BUCKET as R2BucketLike
 			return handleExtractBookmarkMetadataRequest({
 				request,
 				uploadImage: async (headers, body, objectName) => {
 					const response = await handleUserAssetUpload({
 						body,
 						headers,
-						bucket: this.env.BEMO_BUCKET,
+						bucket,
 						objectName: `bookmark-assets/${objectName}`,
 					})
 					if (!response.ok) throw new Error('Failed to upload image')
@@ -57,9 +61,10 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			})
 		})
 		.get('/bookmarks/assets/:objectName', (request) => {
+			const bucket = this.env.BEMO_BUCKET as R2BucketLike
 			return handleUserAssetGet({
 				request,
-				bucket: this.env.BEMO_BUCKET,
+				bucket,
 				objectName: `bookmark-assets/${request.params.objectName}`,
 				context: this.ctx,
 			})

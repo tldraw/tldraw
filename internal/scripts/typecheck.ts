@@ -20,12 +20,27 @@ async function main() {
 	if (process.argv.includes('--force')) args.push('--force')
 	if (isWatchMode) args.push('--watch')
 	if (process.argv.includes('--preserveWatchOutput')) args.push('--preserveWatchOutput')
+	if (process.argv.includes('--extendedDiagnostics')) args.push('--extendedDiagnostics')
 
-	const tscPath = join(REPO_ROOT, 'node_modules/.bin/tsc')
+	const compilerPath = join(REPO_ROOT, 'node_modules/.bin/tsgo')
+	nicelog(`Using tsgo (TypeScript native compiler) for type checking`)
+
+	// tsgo currently struggles to resolve some workspace package imports on a fresh checkout
+	// when all projects are passed in a single --build invocation. Building package
+	// workspaces first produces the declaration outputs needed for the full graph.
+	const packageTsconfigFiles = tsconfigFiles.filter((file) =>
+		file.includes(`${path.sep}packages${path.sep}`)
+	)
+	if (packageTsconfigFiles.length > 0) {
+		const bootstrapArgs = ['--build']
+		if (process.argv.includes('--force')) bootstrapArgs.push('--force')
+		nicelog('Bootstrapping tsgo package references')
+		execFileSync(compilerPath, [...bootstrapArgs, ...packageTsconfigFiles], { stdio: 'inherit' })
+	}
 
 	// In watch mode, use execFileSync with inherited stdio - it handles everything
 	if (isWatchMode) {
-		execFileSync(tscPath, [...args, ...tsconfigFiles], { stdio: 'inherit' })
+		execFileSync(compilerPath, [...args, ...tsconfigFiles], { stdio: 'inherit' })
 		return
 	}
 
@@ -35,7 +50,7 @@ async function main() {
 
 	return new Promise<void>((resolve) => {
 		const childProcess = execFile(
-			tscPath,
+			compilerPath,
 			[...args, ...tsconfigFiles],
 			{ cwd: REPO_ROOT },
 			(err) => {

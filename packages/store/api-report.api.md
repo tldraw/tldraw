@@ -106,7 +106,7 @@ export function createMigrationIds<const ID extends string, const Versions exten
 };
 
 // @public
-export function createMigrationSequence({ sequence, sequenceId, retroactive, }: {
+export function createMigrationSequence({ sequence, sequenceId, retroactive }: {
     retroactive?: boolean;
     sequence: Array<Migration | StandaloneDependsOn>;
     sequenceId: string;
@@ -380,7 +380,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void): () => void;
     allRecords(): R[];
     // (undocumented)
-    applyDiff(diff: RecordsDiff<R>, { runCallbacks, ignoreEphemeralKeys, }?: {
+    applyDiff(diff: RecordsDiff<R>, { runCallbacks, ignoreEphemeralKeys }?: {
         ignoreEphemeralKeys?: boolean;
         runCallbacks?: boolean;
     }): void;
@@ -399,7 +399,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope): {
         added: { [K in IdOf<R>]: R; };
         removed: { [K in IdOf<R>]: R; };
-        updated: { [K_1 in IdOf<R>]: [from: R, to: R]; };
+        updated: { [K in IdOf<R>]: [from: R, to: R]; };
     } | null;
     // (undocumented)
     _flushHistory(): void;

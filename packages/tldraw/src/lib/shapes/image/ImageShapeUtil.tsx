@@ -306,6 +306,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 				cancel()
 			}
 		}
+		return undefined
 	}, [editor, isAnimated, prefersReducedMotion, url])
 
 	const showCropPreview = useValue(

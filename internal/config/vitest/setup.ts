@@ -16,7 +16,7 @@ if (typeof window !== 'undefined') {
 // Polyfill for requestAnimationFrame (equivalent to raf/polyfill)
 if (typeof globalThis.requestAnimationFrame === 'undefined') {
 	globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => {
-		return setTimeout(() => cb(Date.now()), 16) as unknown as number
+		return Number(setTimeout(() => cb(Date.now()), 16))
 	}
 }
 
@@ -27,8 +27,8 @@ if (typeof globalThis.cancelAnimationFrame === 'undefined') {
 }
 
 // Global polyfills
-global.TextEncoder = TextEncoder
-global.TextDecoder = TextDecoder as any
+global.TextEncoder = TextEncoder as typeof global.TextEncoder
+global.TextDecoder = TextDecoder as typeof global.TextDecoder
 // @ts-expect-error - cannot delete non-optional property
 delete global.crypto
 global.crypto = crypto as any

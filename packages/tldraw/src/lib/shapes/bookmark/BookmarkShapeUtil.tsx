@@ -105,6 +105,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		if (prev.props.assetId !== shape.props.assetId) {
 			return setBookmarkHeight(this.editor, shape)
 		}
+
+		return undefined
 	}
 	override getInterpolatedProps(
 		startShape: TLBookmarkShape,

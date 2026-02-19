@@ -1,4 +1,3 @@
-// import { Query, QueryType, Smash, TableSchema, Zero } from '@rocicorp/zero'
 import { Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
@@ -24,8 +23,10 @@ import {
 	UserPreferencesKeys,
 	ZErrorCode,
 	Z_PROTOCOL_VERSION,
+	ZeroContext,
 	createMutators,
 	parseFlags,
+	queries,
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
 import {
@@ -101,9 +102,14 @@ export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 let appId = 0
 const useProperZero = getFromLocalStorage('useProperZero') === 'true'
+// eslint-disable-next-line no-console
+console.log(`[Zero] Using ${useProperZero ? 'proper Zero' : 'ZeroPolyfill'}`)
 // @ts-expect-error
 window.zero = () => {
-	setInLocalStorage('useProperZero', String(!useProperZero))
+	const newValue = !useProperZero
+	// eslint-disable-next-line no-console
+	console.log(`[Zero] Switching to ${newValue ? 'proper Zero' : 'ZeroPolyfill'}...`)
+	setInLocalStorage('useProperZero', String(newValue))
 	location.reload()
 }
 
@@ -114,7 +120,7 @@ export class TldrawApp {
 
 	readonly id = appId++
 
-	readonly z: ZeroPolyfill | Zero<TlaSchema, TlaMutators>
+	readonly z: Zero<TlaSchema, TlaMutators, ZeroContext>
 
 	private readonly user$: Signal<TlaUser | undefined>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
@@ -128,6 +134,7 @@ export class TldrawApp {
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
+	private getToken: () => Promise<string | undefined>
 
 	changes: Map<Atom<any, unknown>, any> = new Map()
 	changesFlushed = null as null | ReturnType<typeof promiseWithResolve>
@@ -137,9 +144,13 @@ export class TldrawApp {
 
 	private signalizeQuery<TReturn>(name: string, query: any): Signal<TReturn> {
 		// fail if closed?
-		const view = query.materialize()
+		const view = this.z.materialize(query) as unknown as {
+			data: TReturn
+			addListener(cb: (data: TReturn) => void): () => void
+			destroy(): void
+		}
 		const val$ = atom(name, view.data, { isEqual })
-		view.addListener((res: any) => {
+		view.addListener((res) => {
 			this.changes.set(val$, structuredClone(res))
 			if (!this.changesFlushed) {
 				this.changesFlushed = promiseWithResolve()
@@ -167,6 +178,7 @@ export class TldrawApp {
 
 	private constructor(
 		public readonly userId: string,
+		initialToken: string | undefined,
 		getToken: () => Promise<string | undefined>,
 		onClientTooOld: () => void,
 		trackEvent: TLAppUiContextType,
@@ -174,39 +186,68 @@ export class TldrawApp {
 	) {
 		this.navigate = navigate
 		this.trackEvent = trackEvent
+		this.getToken = getToken
 		const sessionId = uniqueId()
-		this.z = useProperZero
-			? new Zero<TlaSchema, TlaMutators>({
-					auth: getToken,
-					userID: userId,
-					schema: zeroSchema,
-					server: ZERO_SERVER,
-					mutators: createMutators(userId),
-					onUpdateNeeded(reason) {
-						console.error('update needed', reason)
-						onClientTooOld()
-					},
-					kvStore: window.navigator.webdriver ? 'mem' : 'idb',
-				})
-			: new ZeroPolyfill({
-					userId,
-					// auth: encodedJWT,
-					getUri: async () => {
-						const params = new URLSearchParams({
-							sessionId,
-							protocolVersion: String(Z_PROTOCOL_VERSION),
-						})
-						const token = await getToken()
-						params.set('accessToken', token || 'no-token-found')
-						return `${MULTIPLAYER_SERVER}/app/${userId}/connect?${params}`
-					},
-					// schema,
-					// This is often easier to develop with if you're frequently changing
-					// the schema. Switch to 'idb' for local-persistence.
-					onMutationRejected: this.showMutationRejectionToast,
-					onClientTooOld: () => onClientTooOld(),
-					trackEvent,
-				})
+		if (useProperZero) {
+			const z = new Zero<TlaSchema, TlaMutators, ZeroContext>({
+				auth: initialToken,
+				userID: userId,
+				schema: zeroSchema,
+				cacheURL: ZERO_SERVER,
+				mutators: createMutators(userId),
+				context: { userId } satisfies ZeroContext,
+				onUpdateNeeded(reason) {
+					console.error('update needed', reason)
+					onClientTooOld()
+				},
+				kvStore: window.navigator.webdriver ? 'mem' : 'idb',
+			})
+			this.z = z
+			// Set up token refresh on auth errors with backoff
+			let authRetryCount = 0
+			const MAX_AUTH_RETRIES = 5
+			const unsubscribe = z.connection.state.subscribe((state) => {
+				if (state.name === 'needs-auth') {
+					if (authRetryCount >= MAX_AUTH_RETRIES) {
+						console.error(`Auth retry limit reached (${MAX_AUTH_RETRIES}), giving up`)
+						captureException(new Error('Auth retry limit reached'))
+						return
+					}
+					const delay = Math.min(1000 * Math.pow(2, authRetryCount), 30_000)
+					authRetryCount++
+					setTimeout(() => {
+						getToken()
+							.then((token) => {
+								if (token) {
+									authRetryCount = 0
+									z.connection.connect({ auth: token })
+								}
+							})
+							.catch((err) => {
+								console.error('Failed to refresh auth token:', err)
+								captureException(err)
+							})
+					}, delay)
+				}
+			})
+			this.disposables.push(unsubscribe)
+		} else {
+			this.z = new ZeroPolyfill({
+				userId,
+				getUri: async () => {
+					const params = new URLSearchParams({
+						sessionId,
+						protocolVersion: String(Z_PROTOCOL_VERSION),
+					})
+					const token = await getToken()
+					params.set('accessToken', token || 'no-token-found')
+					return `${MULTIPLAYER_SERVER}/app/${userId}/connect?${params}`
+				},
+				onMutationRejected: this.showMutationRejectionToast,
+				onClientTooOld: () => onClientTooOld(),
+				trackEvent,
+			}) as unknown as Zero<TlaSchema, TlaMutators, ZeroContext>
+		}
 
 		this.user$ = this.signalizeQuery('user signal', this.userQuery())
 		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
@@ -217,29 +258,41 @@ export class TldrawApp {
 	}
 
 	private userQuery() {
-		return this.z.query.user.where('id', '=', this.userId).one()
+		return queries.user()
 	}
 
 	private fileStateQuery() {
-		return this.z.query.file_state.where('userId', '=', this.userId).related('file', (q) => q.one())
+		return queries.fileStates()
 	}
 
 	private groupMembershipsQuery() {
-		return this.z.query.group_user
-			.where('userId', '=', this.userId)
-			.related('group', (q) => q.one())
-			.related('groupFiles', (q) => q.related('file', (q) => q.one()))
-			.related('groupMembers')
+		return queries.groupUsers()
 	}
 
 	async preload() {
-		await this.userQuery().preload().complete
+		if (useProperZero) {
+			// Ensure user exists in DB before Zero can query
+			const token = await this.getToken()
+			if (!token) {
+				throw new Error('No auth token available for init')
+			} else {
+				const res = await fetch(`/api/app/${this.userId}/init`, {
+					method: 'POST',
+					headers: { Authorization: `Bearer ${token}` },
+				})
+				if (!res.ok) console.error(`Init failed: ${res.status}`)
+			}
+		}
+		await this.z.preload(this.userQuery()).complete
 		await this.changesFlushed
 		await new Promise((resolve) => {
 			let unlisten = () => {}
 			unlisten = react('wait for user', () => this.user$.get() && resolve(unlisten()))
 		})
-		await this.fileStateQuery().preload().complete
+		await Promise.all([
+			this.z.preload(this.fileStateQuery()).complete,
+			this.z.preload(this.groupMembershipsQuery()).complete,
+		])
 	}
 
 	messages = defineMessages({
@@ -830,8 +883,11 @@ export class TldrawApp {
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
+		// Get initial token before creating Zero instance
+		const initialToken = await opts.getToken()
 		const app = new TldrawApp(
 			opts.userId,
+			initialToken,
 			opts.getToken,
 			opts.onClientTooOld,
 			opts.trackEvent,

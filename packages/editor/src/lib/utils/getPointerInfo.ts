@@ -1,3 +1,4 @@
+import type React from 'react'
 import { Editor } from '../editor/Editor'
 import { isAccelKey } from './keyboard'
 

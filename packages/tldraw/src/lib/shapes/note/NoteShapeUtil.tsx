@@ -426,6 +426,8 @@ function getNoteSizeAdjustments(editor: Editor, shape: TLNoteShape) {
 			},
 		}
 	}
+
+	return undefined
 }
 
 /**

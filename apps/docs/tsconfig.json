@@ -1,7 +1,6 @@
 {
 	"extends": "../../internal/config/tsconfig.base.json",
 	"compilerOptions": {
-		"baseUrl": ".",
 		"paths": { "@/*": ["./*"] },
 		"lib": ["dom", "dom.iterable", "esnext"],
 		"plugins": [{ "name": "next" }],

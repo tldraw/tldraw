@@ -68,11 +68,11 @@ import { getArrowheadPathForType } from './arrowheads'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
 import { ElbowArrowAxes } from './elbow/definitions'
 import { getElbowArrowSnapLines, perpDistanceToLineAngle } from './elbow/elbowArrowSnapLines'
+import { getArrowInfo } from './getArrowInfo'
 import {
 	TLArrowBindings,
 	createOrUpdateArrowBinding,
 	getArrowBindings,
-	getArrowInfo,
 	getArrowTerminalsInArrowSpace,
 	removeArrowBinding,
 } from './shared'
