@@ -6,7 +6,8 @@ type FeatureFlags = Record<FeatureFlagKey, FeatureFlagValue>
 
 // Global atom for feature flags
 export const featureFlagsAtom: Atom<FeatureFlags> = atom('featureFlags', {
-	sqlite_file_storage: { enabled: false, description: '' },
+	sqlite_file_storage: { type: 'boolean', enabled: false, description: '' },
+	proper_zero: { type: 'percentage', percentage: 0, enabled: false, description: '' },
 })
 
 // Atom to track if flags have been loaded at least once
@@ -17,6 +18,7 @@ const REFETCH_INTERVAL = 60000 // 1 minute
 export function FeatureFlagsFetcher() {
 	useEffect(() => {
 		let mounted = true
+		let prevProperZero: boolean | null = null
 
 		async function fetchFlags() {
 			try {
@@ -27,6 +29,15 @@ export function FeatureFlagsFetcher() {
 				}
 				const data = await response.json()
 				if (mounted) {
+					const properZero = data.proper_zero?.enabled ?? false
+					if (prevProperZero !== null && properZero !== prevProperZero) {
+						// eslint-disable-next-line no-console
+						console.log('[Zero] proper_zero flag changed, reloading...')
+						location.reload()
+						return
+					}
+					prevProperZero = properZero
+
 					featureFlagsAtom.set(data)
 					featureFlagsLoadedAtom.set(true)
 				}

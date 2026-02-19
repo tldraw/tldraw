@@ -1,9 +1,10 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { assertExists, atom } from 'tldraw'
+import { assertExists, atom, react } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
+import { featureFlagsLoadedAtom } from '../utils/FeatureFlagsFetcher'
 
 const appContext = createContext<TldrawApp | null>(null)
 
@@ -31,26 +32,44 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
 		// Create the new user
 		let didCancel = false
-		auth.getToken().then((token) => {
-			if (!token) throw new Error('no token')
-			TldrawApp.create({
-				userId: auth.userId,
-				getToken: async () => {
-					const token = await auth.getToken()
-					return token || undefined
-				},
-				onClientTooOld: () => {
-					isClientTooOld$.set(true)
-				},
-				trackEvent,
-				navigate,
-			}).then(({ app }) => {
-				if (didCancel) {
-					app.dispose()
-					return
-				}
-				_app = app
-				setApp(app)
+
+		// Wait for feature flags to load so shouldUseProperZero() sees the server value
+		function waitForFlags(): Promise<void> {
+			if (featureFlagsLoadedAtom.get()) return Promise.resolve()
+			return new Promise((resolve) => {
+				const unsub = react('wait for flags', () => {
+					if (featureFlagsLoadedAtom.get()) {
+						unsub()
+						resolve()
+					}
+				})
+			})
+		}
+
+		waitForFlags().then(() => {
+			if (didCancel) return
+			return auth.getToken().then((token) => {
+				if (!token) throw new Error('no token')
+				return TldrawApp.create({
+					userId: auth.userId,
+					email: user.primaryEmailAddress?.emailAddress,
+					getToken: async () => {
+						const token = await auth.getToken()
+						return token || undefined
+					},
+					onClientTooOld: () => {
+						isClientTooOld$.set(true)
+					},
+					trackEvent,
+					navigate,
+				}).then(({ app }) => {
+					if (didCancel) {
+						app.dispose()
+						return
+					}
+					_app = app
+					setApp(app)
+				})
 			})
 		})
 
