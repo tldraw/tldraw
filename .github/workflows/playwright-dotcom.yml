@@ -45,7 +45,7 @@ jobs:
     needs: check
     if: needs.check.outputs.relevant == 'true'
     timeout-minutes: 20
-    runs-on: ubuntu-latest-8-cores-open
+    runs-on: ubuntu-latest-32-cores-open
     environment: 'e2e-dotcom'
 
     steps:
