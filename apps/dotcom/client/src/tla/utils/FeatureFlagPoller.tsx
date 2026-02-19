@@ -15,10 +15,17 @@ let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }
 
 export function fetchFeatureFlags(): Promise<FeatureFlags> {
 	if (!flagsPromise) {
+		let didFetch = false
 		flagsPromise = fetch('/api/app/feature-flags')
-			.then((r) => (r.ok ? r.json() : DEFAULT_FLAGS))
+			.then((r) => {
+				if (!r.ok) return DEFAULT_FLAGS
+				didFetch = true
+				return r.json()
+			})
 			.catch(() => DEFAULT_FLAGS)
 			.then((flags: FeatureFlags) => {
+				// Clear cache on failure so next call retries
+				if (!didFetch) flagsPromise = null
 				currentFlags = flags
 				return flags
 			})
