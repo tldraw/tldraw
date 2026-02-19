@@ -190,6 +190,8 @@ a {
 	align-items: center;
 	justify-content: center;
 	text-align: center;
+	max-width: 500px;
+	text-wrap: balance;
 }
 
 /* text-header mb-sm */

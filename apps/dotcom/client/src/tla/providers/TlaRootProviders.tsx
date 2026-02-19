@@ -2,7 +2,15 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import {
+	Component as ReactComponent,
+	ReactNode,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
@@ -66,6 +74,16 @@ export const appMessages = defineMessages({
 	oldBrowser: {
 		defaultMessage: 'Old browser detected. Please update your browser to use this app.',
 	},
+	clerkUnavailable: {
+		defaultMessage: 'Unable to connect',
+	},
+	clerkUnavailablePara: {
+		defaultMessage:
+			"We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page.",
+	},
+	refresh: {
+		defaultMessage: 'Refresh',
+	},
 })
 
 // @ts-ignore this is fine
@@ -73,6 +91,36 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
 if (!PUBLISHABLE_KEY) {
 	throw new Error('Missing Publishable Key')
+}
+
+const CLERK_LOAD_TIMEOUT_MS = 10_000
+
+class ClerkErrorBoundary extends ReactComponent<{ children: ReactNode }, { hasError: boolean }> {
+	state = { hasError: false }
+
+	static getDerivedStateFromError() {
+		return { hasError: true }
+	}
+
+	render() {
+		if (this.state.hasError) {
+			return (
+				<ErrorPage
+					messages={{
+						header: 'Unable to connect',
+						para1:
+							"We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page.",
+					}}
+					cta={
+						<a href="#" onClick={() => window.location.reload()}>
+							Refresh
+						</a>
+					}
+				/>
+			)
+		}
+		return this.props.children
+	}
 }
 
 export function Component() {
@@ -112,20 +160,22 @@ export function Component() {
 				'tla-focus-mode': isFocusMode,
 			})}
 		>
-			<IntlWrapper locale={locale}>
-				<MaybeForceUserRefresh>
-					<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
-						{container && (
-							<ContainerProvider container={container}>
-								<InsideOfContainerContext>
-									<Outlet />
-									<LegalTermsAcceptance />
-								</InsideOfContainerContext>
-							</ContainerProvider>
-						)}
-					</SignedInProvider>
-				</MaybeForceUserRefresh>
-			</IntlWrapper>
+			<ClerkErrorBoundary>
+				<IntlWrapper locale={locale}>
+					<MaybeForceUserRefresh>
+						<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
+							{container && (
+								<ContainerProvider container={container}>
+									<InsideOfContainerContext>
+										<Outlet />
+										<LegalTermsAcceptance />
+									</InsideOfContainerContext>
+								</ContainerProvider>
+							)}
+						</SignedInProvider>
+					</MaybeForceUserRefresh>
+				</IntlWrapper>
+			</ClerkErrorBoundary>
 			<WatermarkOverride />
 		</div>
 	)
@@ -234,7 +284,32 @@ function SignedInProvider({
 		}
 	}, [auth.userId, auth.isSignedIn, auth.isLoaded])
 
-	if (!auth.isLoaded) return null
+	const [clerkTimedOut, setClerkTimedOut] = useState(false)
+
+	useEffect(() => {
+		if (auth.isLoaded) return
+		const timeout = setTimeout(() => setClerkTimedOut(true), CLERK_LOAD_TIMEOUT_MS)
+		return () => clearTimeout(timeout)
+	}, [auth.isLoaded])
+
+	if (!auth.isLoaded) {
+		if (clerkTimedOut) {
+			return (
+				<ErrorPage
+					messages={{
+						header: intl.formatMessage(appMessages.clerkUnavailable),
+						para1: intl.formatMessage(appMessages.clerkUnavailablePara),
+					}}
+					cta={
+						<a href="#" onClick={() => window.location.reload()}>
+							{intl.formatMessage(appMessages.refresh)}
+						</a>
+					}
+				/>
+			)
+		}
+		return null
+	}
 
 	// Old browsers check.
 	if (!('findLastIndex' in Array.prototype)) {

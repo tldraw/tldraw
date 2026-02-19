@@ -401,6 +401,12 @@
       "value": "Revoke this link and create a new one."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Unable to connect"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +447,12 @@
     {
       "type": 0,
       "value": "you"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Refresh"
     }
   ],
   "6609dd239e": [
@@ -791,6 +803,12 @@
     {
       "type": 0,
       "value": "Delete file"
+    }
+  ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page."
     }
   ],
   "9ceb927baa": [
