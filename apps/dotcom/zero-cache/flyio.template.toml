@@ -1,3 +1,4 @@
+# Single-node zero-cache deployment template for Fly.io
 app = "__APP_NAME"
 primary_region = "fra"
 
