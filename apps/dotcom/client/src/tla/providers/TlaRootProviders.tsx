@@ -260,15 +260,17 @@ function SignedInProvider({
 	}
 
 	return (
-		<AppStateProvider>
-			<UserProvider>
-				<ThemeContainer onThemeChange={onThemeChange}>
-					<FeatureFlagsFetcher />
-					<SignedInAnalytics />
-					{children}
-				</ThemeContainer>
-			</UserProvider>
-		</AppStateProvider>
+		<>
+			<FeatureFlagsFetcher />
+			<AppStateProvider>
+				<UserProvider>
+					<ThemeContainer onThemeChange={onThemeChange}>
+						<SignedInAnalytics />
+						{children}
+					</ThemeContainer>
+				</UserProvider>
+			</AppStateProvider>
+		</>
 	)
 }
 

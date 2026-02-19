@@ -219,9 +219,21 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 
 /* ----------------------- Feature Flags ---------------------- */
 
-export type FeatureFlagKey = 'sqlite_file_storage'
+export type FeatureFlagKey = 'sqlite_file_storage' | 'proper_zero'
 
-export interface FeatureFlagValue {
+export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag
+
+export interface BooleanFeatureFlag {
+	type: 'boolean'
+	enabled: boolean
+	description: string
+}
+
+export interface PercentageFeatureFlag {
+	type: 'percentage'
+	/** 0–100. Server evaluates per-user: enabled when hash(userId+flag) < percentage. */
+	percentage: number
+	/** Set by server after per-user evaluation. */
 	enabled: boolean
 	description: string
 }

@@ -7,7 +7,7 @@ import { createPostgresConnectionPool } from './postgres'
 import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
-import { getFeatureFlags, setFeatureFlag } from './utils/featureFlags'
+import { ALL_FLAGS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 async function requireUser(env: Environment, q: string) {
@@ -139,22 +139,34 @@ export const adminRoutes = createRouter<Environment>()
 			}
 		)
 	})
-	.get('/app/admin/feature-flags', getFeatureFlags)
+	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
 		const body: any = await req.json()
-		const { flag, enabled } = body
+		const { flag, enabled, percentage } = body
 
-		if (typeof flag !== 'string' || typeof enabled !== 'boolean') {
-			throw new StatusError(400, 'flag (string) and enabled (boolean) are required')
+		if (typeof flag !== 'string') {
+			throw new StatusError(400, 'flag (string) is required')
+		}
+		if (enabled !== undefined && typeof enabled !== 'boolean') {
+			throw new StatusError(400, 'enabled must be a boolean')
+		}
+		if (
+			percentage !== undefined &&
+			(typeof percentage !== 'number' || percentage < 0 || percentage > 100)
+		) {
+			throw new StatusError(400, 'percentage must be a number between 0 and 100')
 		}
 
-		const validFlags: FeatureFlagKey[] = ['sqlite_file_storage']
-		if (!validFlags.includes(flag as FeatureFlagKey)) {
-			throw new StatusError(400, `Invalid flag. Must be one of: ${validFlags.join(', ')}`)
+		if (!ALL_FLAGS.includes(flag as FeatureFlagKey)) {
+			throw new StatusError(400, `Invalid flag. Must be one of: ${ALL_FLAGS.join(', ')}`)
 		}
 
-		await setFeatureFlag(env, flag as FeatureFlagKey, enabled)
-		return json({ success: true, flag, enabled })
+		const update: { enabled?: boolean; percentage?: number } = {}
+		if (enabled !== undefined) update.enabled = enabled
+		if (percentage !== undefined) update.percentage = percentage
+
+		await setFeatureFlag(env, flag as FeatureFlagKey, update)
+		return json({ success: true, flag, ...update })
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
