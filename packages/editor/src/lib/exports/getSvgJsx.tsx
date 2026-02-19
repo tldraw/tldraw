@@ -57,7 +57,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 
 	// --- Common bounding box of all shapes
 	const singleFrameShapeId =
-		ids.length === 1 && editor.isShapeOfType(editor.getShape(ids[0])!, 'frame') ? ids[0] : null
+		ids.length === 1 && editor.isShapeFrameLike(editor.getShape(ids[0])!) ? ids[0] : null
 
 	let bbox: null | Box = null
 	if (opts.bounds) {

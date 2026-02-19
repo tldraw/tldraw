@@ -193,8 +193,8 @@ export class Brushing extends StateNode {
 			}
 
 			// If we're in wrap mode and the brush did not fully encloses the shape, it's a miss
-			// We also skip frames unless we've completely selected the frame.
-			if (isWrapping || editor.isShapeOfType(shape, 'frame')) {
+			// We also skip frame-like shapes unless we've completely selected them.
+			if (isWrapping || editor.isShapeFrameLike(shape)) {
 				continue testAllShapes
 			}
 

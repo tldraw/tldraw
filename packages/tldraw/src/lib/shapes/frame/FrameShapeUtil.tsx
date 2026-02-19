@@ -104,6 +104,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return true
 	}
 
+	override isFrameLike(): boolean {
+		return true
+	}
+
 	override getDefaultProps(): TLFrameShape['props'] {
 		return { w: 160 * 2, h: 90 * 2, name: '', color: 'black' }
 	}

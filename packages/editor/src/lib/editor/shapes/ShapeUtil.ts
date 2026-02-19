@@ -468,6 +468,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	}
 
 	/**
+	 * Whether the shape behaves like a frame — a container that clips children,
+	 * requires full-brush selection, blocks erasure from inside, etc.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	isFrameLike(_shape: Shape): boolean {
+		return false
+	}
+
+	/**
 	 * By default, the bounds of an image export are the bounds of all the shapes it contains, plus
 	 * some padding. If an export includes a shape where `isExportBoundsContainer` is true, then the
 	 * padding is skipped _if the bounds of that shape contains all the other shapes_. This is
