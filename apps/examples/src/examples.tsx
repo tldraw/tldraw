@@ -33,9 +33,11 @@ interface ExampleMetaModule {
 	loadContent(): Promise<{ description: string; details: string }>
 }
 
-const allExamples = Object.values(
-	import.meta.glob('./examples/**/README.md', { eager: true })
-) as ExampleMetaModule[]
+const allExamples = (
+	Object.values(
+		import.meta.glob('./examples/**/README.md', { eager: true })
+	) as Partial<ExampleMetaModule>[]
+).filter((m): m is ExampleMetaModule => !!m.meta)
 
 const categorySet = new Set(categories.map(([category]) => category))
 
