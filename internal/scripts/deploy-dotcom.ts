@@ -99,21 +99,17 @@ const env = makeEnv([
 	'ZERO_R2_SECRET_ACCESS_KEY',
 ])
 
-// Multinode (flyio-multinode) is staging-only right now, preview use single not as it is faster / cheaper
 const deployZero =
-	env.DEPLOY_ZERO === 'false'
-		? false
-		: previewId && env.DEPLOY_ZERO === 'flyio-multinode'
-			? ('flyio' as const)
-			: (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
+	env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
 // For multinode: -vs = view syncer, -rm = replication manager (abbreviated for Fly.io's 30-char app name limit)
 const flyioAppName =
 	deployZero === 'flyio'
 		? `${previewId ?? env.TLDRAW_ENV}-zero-cache`
 		: deployZero === 'flyio-multinode'
-			? `${env.TLDRAW_ENV}-zero-vs`
+			? `${previewId ?? env.TLDRAW_ENV}-zero-vs`
 			: undefined
-const flyioReplAppName = deployZero === 'flyio-multinode' ? `${env.TLDRAW_ENV}-zero-rm` : undefined
+const flyioReplAppName =
+	deployZero === 'flyio-multinode' ? `${previewId ?? env.TLDRAW_ENV}-zero-rm` : undefined
 
 // pierre is not in production yet, so get the key directly from process.env
 const pierreKey = process.env.PIERRE_KEY ?? ''
@@ -339,7 +335,7 @@ async function main() {
 function getZeroUrl() {
 	switch (env.TLDRAW_ENV) {
 		case 'preview': {
-			if (deployZero === 'flyio') {
+			if (deployZero === 'flyio' || deployZero === 'flyio-multinode') {
 				return `https://${flyioAppName}.fly.dev/`
 			} else {
 				return 'https://zero-backend-not-deployed.tldraw.com'
