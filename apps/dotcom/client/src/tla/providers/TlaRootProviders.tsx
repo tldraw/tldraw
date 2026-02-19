@@ -2,15 +2,7 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import {
-	Component as ReactComponent,
-	ReactNode,
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from 'react'
+import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
@@ -31,7 +23,7 @@ import {
 	useValue,
 } from 'tldraw'
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
-import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
+import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/ErrorPage'
 import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
@@ -95,32 +87,10 @@ if (!PUBLISHABLE_KEY) {
 
 const CLERK_LOAD_TIMEOUT_MS = 10_000
 
-class ClerkErrorBoundary extends ReactComponent<{ children: ReactNode }, { hasError: boolean }> {
-	state = { hasError: false }
-
-	static getDerivedStateFromError() {
-		return { hasError: true }
-	}
-
-	render() {
-		if (this.state.hasError) {
-			return (
-				<ErrorPage
-					messages={{
-						header: 'Unable to connect',
-						para1:
-							"We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page.",
-					}}
-					cta={
-						<a href="#" onClick={() => window.location.reload()}>
-							Refresh
-						</a>
-					}
-				/>
-			)
-		}
-		return this.props.children
-	}
+const CLERK_ERROR_MESSAGES = {
+	header: 'Unable to connect',
+	para1:
+		"We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page.",
 }
 
 export function Component() {
@@ -160,7 +130,7 @@ export function Component() {
 				'tla-focus-mode': isFocusMode,
 			})}
 		>
-			<ClerkErrorBoundary>
+			<RefreshErrorBoundary messages={CLERK_ERROR_MESSAGES}>
 				<IntlWrapper locale={locale}>
 					<MaybeForceUserRefresh>
 						<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
@@ -175,7 +145,7 @@ export function Component() {
 						</SignedInProvider>
 					</MaybeForceUserRefresh>
 				</IntlWrapper>
-			</ClerkErrorBoundary>
+			</RefreshErrorBoundary>
 			<WatermarkOverride />
 		</div>
 	)
@@ -301,9 +271,9 @@ function SignedInProvider({
 						para1: intl.formatMessage(appMessages.clerkUnavailablePara),
 					}}
 					cta={
-						<a href="#" onClick={() => window.location.reload()}>
+						<button onClick={() => window.location.reload()}>
 							{intl.formatMessage(appMessages.refresh)}
-						</a>
+						</button>
 					}
 				/>
 			)

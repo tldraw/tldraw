@@ -208,12 +208,16 @@ a {
 }
 
 /* text-primary-bold text-grey */
-.error-page__container a {
+.error-page__container a,
+.error-page__container button {
 	font-size: 14px;
 	font-weight: 500;
 	color: var(--text-color-2);
 	padding: 12px 4px;
 	text-decoration: underline;
+	background: none;
+	border: none;
+	cursor: pointer;
 }
 
 /* ------------------ Board history ----------------- */
