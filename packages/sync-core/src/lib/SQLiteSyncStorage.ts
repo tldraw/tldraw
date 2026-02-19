@@ -469,6 +469,12 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 		{ leading: false }
 	)
 
+	get(id: string): R | undefined {
+		const row = this.stmts.getDocument.all(id)[0]
+		if (!row) return undefined
+		return decodeState<R>(row.state)
+	}
+
 	getSnapshot(): RoomSnapshot {
 		return {
 			tombstoneHistoryStartsAtClock: this._getTombstoneHistoryStartsAtClock(),

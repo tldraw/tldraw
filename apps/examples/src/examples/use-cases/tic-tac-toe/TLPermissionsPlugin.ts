@@ -1,3 +1,5 @@
+import { NetworkDiff, RecordOpType, applyObjectDiff } from '@tldraw/sync'
+import type { UnknownRecord } from 'tldraw'
 import { Editor, TLShape, react } from 'tldraw'
 
 /**
@@ -223,5 +225,85 @@ export class TLPermissionsPlugin {
 	cleanup() {
 		this.cleanupFns.forEach((fn) => fn())
 		this.cleanupFns = []
+	}
+}
+
+/**
+ * [PERMISSIONS SPIKE] createServerPermissionsFilter
+ *
+ * Converts a `TLPermissionRules` object into a `filterPush` callback suitable
+ * for passing to `TLSocketRoom`. This bridges the same permission rules used
+ * client-side (in `TLPermissionsPlugin`) to the server-side diff filter.
+ *
+ * How it works:
+ *   • Each incoming push diff is inspected entry by entry.
+ *   • Shape records (id prefix `shape:`) are checked against the rules.
+ *   • Non-shape records (pages, cameras, etc.) pass through unchanged.
+ *   • Entries that fail a rule are dropped from the filtered diff.
+ *   • The room receives the filtered diff; because the original client diff is
+ *     larger, the push_result will be `rebaseWithDiff`, which causes the client
+ *     to revert any changes the server did not accept.
+ *
+ * @example
+ * ```ts
+ * const room = new TLSocketRoom<TLRecord, { userId: string }>({
+ *   filterPush: createServerPermissionsFilter(myRules),
+ * })
+ * ```
+ */
+export function createServerPermissionsFilter<
+	SessionMeta extends { userId: string },
+	R extends UnknownRecord = UnknownRecord,
+>(
+	rules: TLPermissionRules
+): (args: {
+	sessionId: string
+	meta: SessionMeta
+	diff: NetworkDiff<R>
+	getRecord(id: string): R | undefined
+}) => NetworkDiff<R> {
+	return ({ meta, diff, getRecord }) => {
+		const { userId } = meta
+		const filtered: NetworkDiff<R> = {}
+
+		for (const [id, op] of Object.entries(diff) as [string, (typeof diff)[string]][]) {
+			// Non-shape records (pages, cameras, instance_page_state, etc.) always pass through.
+			if (!id.startsWith('shape:')) {
+				filtered[id] = op
+				continue
+			}
+
+			switch (op[0]) {
+				case RecordOpType.Put: {
+					// Create: check canCreateShape against the record's type.
+					const record = op[1] as unknown as TLShape
+					if (rules.canCreateShape(userId, record.type)) {
+						filtered[id] = op
+					}
+					break
+				}
+				case RecordOpType.Patch: {
+					// Update: compute the proposed next state and check canUpdateShape.
+					const prev = getRecord(id) as unknown as TLShape | undefined
+					if (prev) {
+						const next = applyObjectDiff(prev, op[1]) as unknown as TLShape
+						if (rules.canUpdateShape(userId, prev, next)) {
+							filtered[id] = op
+						}
+					}
+					break
+				}
+				case RecordOpType.Remove: {
+					// Delete: check canDeleteShape against the current record.
+					const shape = getRecord(id) as unknown as TLShape | undefined
+					if (shape && rules.canDeleteShape(userId, shape)) {
+						filtered[id] = op
+					}
+					break
+				}
+			}
+		}
+
+		return filtered
 	}
 }

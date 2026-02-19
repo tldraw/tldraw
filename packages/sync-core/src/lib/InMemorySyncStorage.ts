@@ -248,6 +248,10 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 		{ leading: false }
 	)
 
+	get(id: string): R | undefined {
+		return this.documents.get(id)?.state
+	}
+
 	getSnapshot(): RoomSnapshot {
 		return {
 			tombstoneHistoryStartsAtClock: this.tombstoneHistoryStartsAtClock.get(),
