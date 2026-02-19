@@ -344,5 +344,8 @@ export function getAssetUrlsByMetaUrl(opts) {
 			vimeo: formatAssetUrl(new URL('./embed-icons/vimeo.png', import.meta.url).href, opts),
 			youtube: formatAssetUrl(new URL('./embed-icons/youtube.png', import.meta.url).href, opts),
 		},
+		i18n: {
+			en: formatAssetUrl(new URL('./i18n/en.json', import.meta.url).href, opts),
+		},
 	}
 }

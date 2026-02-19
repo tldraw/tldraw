@@ -39,6 +39,7 @@ import fontsShantellSansInformalBoldWoff2 from './fonts/Shantell_Sans-Informal_B
 import fontsShantellSansInformalBoldItalicWoff2 from './fonts/Shantell_Sans-Informal_Bold_Italic.woff2'
 import fontsShantellSansInformalRegularWoff2 from './fonts/Shantell_Sans-Informal_Regular.woff2'
 import fontsShantellSansInformalRegularItalicWoff2 from './fonts/Shantell_Sans-Informal_Regular_Italic.woff2'
+import i18nEnJson from './i18n/en.json'
 import iconsIcon0MergedSvg from './icons/icon/0_merged.svg'
 import translationsArJson from './translations/ar.json'
 import translationsBnJson from './translations/bn.json'
@@ -357,6 +358,9 @@ export function getAssetUrlsByImport(opts) {
 			val_town: formatAssetUrl(embedIconsValTownPng, opts),
 			vimeo: formatAssetUrl(embedIconsVimeoPng, opts),
 			youtube: formatAssetUrl(embedIconsYoutubePng, opts),
+		},
+		i18n: {
+			en: formatAssetUrl(i18nEnJson, opts),
 		},
 	}
 }

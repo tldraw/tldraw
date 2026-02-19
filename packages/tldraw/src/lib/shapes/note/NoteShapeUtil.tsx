@@ -33,6 +33,7 @@ import {
 } from '@tldraw/editor'
 import { useCallback, useContext } from 'react'
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
+import { defineMessages } from '../../ui/context/i18n'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEmptyRichText,
@@ -58,6 +59,10 @@ import {
 	getNoteShapeForAdjacentPosition,
 } from './noteHelpers'
 
+const noteMessages = defineMessages({
+	shapeName: { id: 'note.shapeName', defaultMessage: 'Note' },
+})
+
 /** @public */
 export interface NoteShapeOptions {
 	/**
@@ -75,6 +80,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override options: NoteShapeOptions = {
 		resizeMode: 'none',
+	}
+
+	override getShapeName() {
+		return this.editor.i18n().translate(noteMessages.shapeName as any)
 	}
 
 	override canEdit() {

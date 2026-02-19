@@ -46,12 +46,15 @@
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"i18n:extract": "formatjs extract 'src/**/*.ts*' --out-file ../../assets/i18n/en.json --id-interpolation-pattern '[sha512:contenthash:base64:6]'",
+		"i18n:compile": "formatjs compile ../../assets/i18n/en.json --out-file ../../assets/i18n-compiled/en.json"
 	},
 	"files": [
 		"tldraw.css"
 	],
 	"dependencies": {
+		"@formatjs/intl": "^3.1.3",
 		"@tiptap/core": "^3.12.1",
 		"@tiptap/extension-code": "^3.12.1",
 		"@tiptap/extension-highlight": "^3.12.1",
@@ -72,6 +75,7 @@
 		"react-dom": "^18.2.0 || ^19.2.1"
 	},
 	"devDependencies": {
+		"@formatjs/cli": "^6.6.3",
 		"@peculiar/webcrypto": "^1.5.0",
 		"@testing-library/dom": "^10.0.0",
 		"@testing-library/react": "^16.0.0",

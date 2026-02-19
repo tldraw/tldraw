@@ -21,6 +21,7 @@ import { createTLUser, TLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
+import { TLI18nAdapter } from './config/TLI18n'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
@@ -219,6 +220,11 @@ export interface TldrawEditorBaseProps {
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
+
+	/**
+	 * An i18n adapter for translating strings.
+	 */
+	i18n?: TLI18nAdapter
 }
 
 /**
@@ -424,6 +430,7 @@ function TldrawEditorWithReadyStore({
 	licenseKey,
 	getShapeVisibility,
 	assetUrls,
+	i18n,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -483,6 +490,7 @@ function TldrawEditorWithReadyStore({
 				licenseKey,
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
+				i18n,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -518,6 +526,7 @@ function TldrawEditorWithReadyStore({
 			licenseKey,
 			getShapeVisibility,
 			assetUrls,
+			i18n,
 		]
 	)
 

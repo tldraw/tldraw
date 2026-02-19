@@ -51,6 +51,7 @@ export {
 	type TLUiMenuToolItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
 export { DefaultToasts } from './lib/ui/components/Toasts'
+export { useTldrawI18n } from './lib/ui/context/i18n'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
