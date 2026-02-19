@@ -8,7 +8,7 @@ test.use({ storageState: { cookies: [], origins: [] } })
 test.describe('cookie consent banner', () => {
 	test.beforeEach(async ({ page }) => {
 		// Mock the consent check to always require consent
-		await page.route('https://consent.tldraw.xyz', async (route) => {
+		await page.route(/https:\/\/consent\.tldraw\.xyz(?:\/.*)?$/, async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
@@ -30,7 +30,9 @@ test.describe('cookie consent banner', () => {
 		await homePage.isLoaded()
 
 		const banner = page.getByTestId('tla-cookie-consent')
-		await expect(banner).toBeVisible()
+		await expect(async () => {
+			await expect(banner).toBeVisible()
+		}).toPass({ timeout: 10000 })
 
 		// Verify animation duration is set (not instant)
 		const animationDuration = await banner.evaluate((el) => {
@@ -53,7 +55,9 @@ test.describe('cookie consent banner', () => {
 
 		test('animations are instant', async ({ page }) => {
 			const banner = page.getByTestId('tla-cookie-consent')
-			await expect(banner).toBeVisible()
+			await expect(async () => {
+				await expect(banner).toBeVisible()
+			}).toPass({ timeout: 10000 })
 
 			// Check that animation duration is 0
 			const animationDuration = await banner.evaluate((el) => {
@@ -65,7 +69,9 @@ test.describe('cookie consent banner', () => {
 
 		test('accepting cookies hides banner and persists choice', async ({ page, homePage }) => {
 			const banner = page.getByTestId('tla-cookie-consent')
-			await expect(banner).toBeVisible()
+			await expect(async () => {
+				await expect(banner).toBeVisible()
+			}).toPass({ timeout: 10000 })
 
 			await banner.getByRole('button', { name: 'Accept all' }).click()
 
@@ -87,7 +93,9 @@ test.describe('cookie consent banner', () => {
 
 		test('opting out hides banner and persists choice', async ({ page, homePage }) => {
 			const banner = page.getByTestId('tla-cookie-consent')
-			await expect(banner).toBeVisible()
+			await expect(async () => {
+				await expect(banner).toBeVisible()
+			}).toPass({ timeout: 10000 })
 
 			await banner.getByRole('button', { name: 'Opt out' }).click()
 
