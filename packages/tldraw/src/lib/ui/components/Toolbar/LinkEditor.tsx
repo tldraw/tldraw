@@ -20,12 +20,17 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 	const msg = useTranslation()
 	const ref = useRef<HTMLInputElement>(null)
 	const trackEvent = useUiEvents()
+	// Guard against double-saves: Enter triggers both blur and onComplete,
+	// and Escape should cancel without saving on subsequent blur.
+	const didCompleteRef = useRef(false)
 	const source = 'rich-text-menu'
 	const linkifiedValue = value.startsWith('http') ? value : `https://${value}`
 
 	const handleValueChange = (value: string) => setValue(value)
 
 	const handleLinkComplete = (link: string) => {
+		if (didCompleteRef.current) return
+		didCompleteRef.current = true
 		trackEvent('rich-text', { operation: 'link-edit', source })
 		if (!link.startsWith('http://') && !link.startsWith('https://')) {
 			link = `https://${link}`
@@ -54,7 +59,15 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 		onClose()
 	}
 
-	const handleLinkCancel = () => onClose()
+	const handleLinkCancel = () => {
+		didCompleteRef.current = true
+		onClose()
+	}
+
+	const handleBlur = (blurValue: string) => {
+		if (didCompleteRef.current) return
+		handleLinkComplete(blurValue)
+	}
 
 	useEffect(() => {
 		ref.current?.focus()
@@ -74,6 +87,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 				onValueChange={handleValueChange}
 				onComplete={handleLinkComplete}
 				onCancel={handleLinkCancel}
+				onBlur={handleBlur}
 				placeholder="example.com"
 				aria-label="example.com"
 			/>
