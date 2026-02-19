@@ -24,7 +24,7 @@ timeout = "5s"
 path = "/"
 
 [[vm]]
-memory = "4gb"
+memory = "2gb"
 cpu_kind = "shared"
 cpus = 2
 
