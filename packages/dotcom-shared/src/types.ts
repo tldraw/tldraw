@@ -233,7 +233,7 @@ export interface PercentageFeatureFlag {
 	type: 'percentage'
 	/** 0–100. Server evaluates per-user: enabled when hash(userId+flag) < percentage. */
 	percentage: number
-	/** Set by server after per-user evaluation. */
+	/** Master toggle — when false, disabled for all users regardless of percentage. */
 	enabled: boolean
 	description: string
 }

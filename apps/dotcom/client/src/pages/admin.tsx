@@ -1,4 +1,11 @@
-import { FeatureFlagValue, TlaFile, TlaUser, userHasFlag, ZStoreData } from '@tldraw/dotcom-shared'
+import {
+	FeatureFlagValue,
+	PercentageFeatureFlag,
+	TlaFile,
+	TlaUser,
+	userHasFlag,
+	ZStoreData,
+} from '@tldraw/dotcom-shared'
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
@@ -433,12 +440,12 @@ function PercentageFlag({
 }: {
 	flagName: string
 	label: string
-	flagValue: FeatureFlagValue
+	flagValue: PercentageFeatureFlag
 	isSaving: boolean
 	onToggle(enabled: boolean): void
 	onSavePercentage(percentage: number): void
 }) {
-	const currentPct = 'percentage' in flagValue ? flagValue.percentage : 0
+	const currentPct = flagValue.percentage
 	const [pct, setPct] = useState(currentPct)
 
 	useEffect(() => {
@@ -446,7 +453,7 @@ function PercentageFlag({
 	}, [currentPct])
 
 	return (
-		<div key={flagName} className={styles.featureFlagItem}>
+		<div className={styles.featureFlagItem}>
 			<div className={styles.featureFlagLabel}>
 				<label
 					htmlFor={flagName}

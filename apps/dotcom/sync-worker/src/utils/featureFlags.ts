@@ -76,9 +76,14 @@ function evaluateFlagForUser(
 }
 
 /**
- * Get feature flag enabled status
+ * Get the master enabled switch for a flag. For boolean flags this is the full
+ * evaluation. For percentage flags this ignores the per-user rollout — use
+ * `getFeatureFlags` (the route handler) for per-user evaluation instead.
  */
-export async function getFeatureFlag(env: Environment, flag: FeatureFlagKey): Promise<boolean> {
+export async function getFeatureFlagEnabled(
+	env: Environment,
+	flag: FeatureFlagKey
+): Promise<boolean> {
 	const value = await getFeatureFlagValue(env, flag)
 	return value.enabled
 }
@@ -92,8 +97,13 @@ export async function setFeatureFlag(
 	value: { enabled?: boolean; percentage?: number }
 ): Promise<void> {
 	const current = await getFeatureFlagValue(env, flag)
-	const updated: FeatureFlagValue = { ...current, ...value }
-	await env.FEATURE_FLAGS.put(flag, JSON.stringify(updated))
+	if (value.enabled !== undefined) {
+		current.enabled = value.enabled
+	}
+	if (value.percentage !== undefined && current.type === 'percentage') {
+		current.percentage = value.percentage
+	}
+	await env.FEATURE_FLAGS.put(flag, JSON.stringify(current))
 }
 
 /**
