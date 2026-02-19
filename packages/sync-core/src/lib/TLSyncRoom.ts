@@ -225,17 +225,26 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private log?: TLSyncLog
 	public readonly schema: StoreSchema<R, any>
 	private onPresenceChange?(): void
+	private filterPush?: (
+		session: RoomSession<R, SessionMeta>,
+		diff: NetworkDiff<R>
+	) => NetworkDiff<R> | null | undefined
 
 	constructor(opts: {
 		log?: TLSyncLog
 		schema: StoreSchema<R, any>
 		onPresenceChange?(): void
 		storage: TLSyncStorage<R>
+		filterPush?: (
+			session: RoomSession<R, SessionMeta>,
+			diff: NetworkDiff<R>
+		) => NetworkDiff<R> | null | undefined
 	}) {
 		this.schema = opts.schema
 		this.log = opts.log
 		this.onPresenceChange = opts.onPresenceChange
 		this.storage = opts.storage
+		this.filterPush = opts.filterPush
 
 		assert(
 			isNativeStructuredClone,
@@ -1028,9 +1037,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						}
 					}
 				}
-				if (message.diff && !session?.isReadonly) {
+				const effectiveDiff =
+					message.diff && session && this.filterPush
+						? (this.filterPush(session, message.diff) ?? {})
+						: message.diff
+				if (effectiveDiff && !session?.isReadonly) {
 					// The push request was for the document scope.
-					for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
+					for (const [id, op] of objectMapEntriesIterable(effectiveDiff)) {
 						switch (op[0]) {
 							case RecordOpType.Put: {
 								// Try to add the document.

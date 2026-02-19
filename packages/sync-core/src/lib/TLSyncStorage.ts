@@ -84,6 +84,12 @@ export interface TLSyncStorage<R extends UnknownRecord> {
 	onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void
 
 	getSnapshot?(): RoomSnapshot
+
+	/**
+	 * Retrieve a single record by ID without starting a transaction.
+	 * Returns undefined if the record does not exist (or has been deleted).
+	 */
+	get(id: string): R | undefined
 }
 
 /**

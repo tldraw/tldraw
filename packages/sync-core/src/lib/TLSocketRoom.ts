@@ -6,6 +6,7 @@ import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
 import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
+import { NetworkDiff } from './diff'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -86,6 +87,45 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	}) => void
 	/** @internal */
 	onPresenceChange?(): void
+	/**
+	 * Called before applying a push message from a client.
+	 * Return a filtered diff containing only the changes that should be applied,
+	 * or null/undefined to discard the entire push.
+	 *
+	 * Changes that are filtered out cause the room to send a `rebaseWithDiff`
+	 * push_result back to the client, which reverts the unauthorized changes
+	 * on the client side.
+	 *
+	 * Receives the session's `meta` (set in `handleSocketConnect`) so you can
+	 * identify the user and enforce per-user rules.
+	 *
+	 * @example
+	 * ```ts
+	 * const room = new TLSocketRoom<TLRecord, { userId: string }>({
+	 *   filterPush({ meta, diff, getRecord }) {
+	 *     const filtered: NetworkDiff<TLRecord> = {}
+	 *     for (const [id, op] of Object.entries(diff)) {
+	 *       if (id.startsWith('shape:')) {
+	 *         const current = getRecord(id)
+	 *         if (current && (current as any).meta?.owner === meta.userId) {
+	 *           filtered[id] = op
+	 *         }
+	 *       } else {
+	 *         filtered[id] = op
+	 *       }
+	 *     }
+	 *     return filtered
+	 *   },
+	 * })
+	 * ```
+	 */
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	filterPush?: (args: {
+		sessionId: string
+		meta: SessionMeta
+		diff: NetworkDiff<R>
+		getRecord(id: string): R | undefined
+	}) => NetworkDiff<R> | null | undefined
 }
 
 /**
@@ -203,6 +243,15 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: opts.log,
 			storage,
+			filterPush: opts.filterPush
+				? (session, diff) =>
+						opts.filterPush!({
+							sessionId: session.sessionId,
+							meta: session.meta,
+							diff,
+							getRecord: (id) => storage.get(id) as R | undefined,
+						})
+				: undefined,
 		})
 		this.storage = storage
 		this.room.events.on('session_removed', (args) => {
