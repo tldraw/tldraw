@@ -4,73 +4,41 @@ import {
 	createRecordType,
 	RecordId,
 } from '@tldraw/store'
+import { mapObjectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { TLBaseAsset } from '../assets/TLBaseAsset'
-import { bookmarkAssetValidator, TLBookmarkAsset } from '../assets/TLBookmarkAsset'
-import { imageAssetValidator, TLImageAsset } from '../assets/TLImageAsset'
-import { TLVideoAsset, videoAssetValidator } from '../assets/TLVideoAsset'
+import { createAssetValidator, TLBaseAsset } from '../assets/TLBaseAsset'
+import { TLBookmarkAsset } from '../assets/TLBookmarkAsset'
+import { TLImageAsset } from '../assets/TLImageAsset'
+import { TLVideoAsset } from '../assets/TLVideoAsset'
+import { SchemaPropsInfo } from '../createTLSchema'
+import { TLPropsMigrations } from '../recordsWithProps'
 import { ExtractShapeByProps } from './TLShape'
 
 /**
- * Union type representing all possible asset types in tldraw.
- * Assets represent external resources like images, videos, or bookmarks that can be referenced by shapes.
- *
- * @example
- * ```ts
- * const imageAsset: TLAsset = {
- *   id: 'asset:image123',
- *   typeName: 'asset',
- *   type: 'image',
- *   props: {
- *     src: 'https://example.com/image.jpg',
- *     w: 800,
- *     h: 600,
- *     mimeType: 'image/jpeg',
- *     isAnimated: false
- *   },
- *   meta: {}
- * }
- * ```
+ * The default set of asset types that are available in the editor.
  *
  * @public
  */
-export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
+export type TLDefaultAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
 
 /**
- * Validator for TLAsset records that ensures runtime type safety.
- * Uses a discriminated union based on the 'type' field to validate different asset types.
- *
- * @example
- * ```ts
- * // Validation happens automatically when assets are stored
- * try {
- *   const validatedAsset = assetValidator.validate(assetData)
- *   store.put([validatedAsset])
- * } catch (error) {
- *   console.error('Asset validation failed:', error.message)
- * }
- * ```
+ * A type for an asset that is available in the editor but whose type is
+ * unknown—either one of the editor's default assets or else a custom asset.
  *
  * @public
  */
-export const assetValidator: T.Validator<TLAsset> = T.model(
-	'asset',
-	T.union('type', {
-		image: imageAssetValidator,
-		video: videoAssetValidator,
-		bookmark: bookmarkAssetValidator,
-	})
-)
+export type TLUnknownAsset = TLBaseAsset<string, object>
+
+/**
+ * The set of all assets that are available in the editor.
+ *
+ * @public
+ */
+export type TLAsset = TLDefaultAsset
 
 /**
  * Migration version identifiers for asset record schema evolution.
  * Each version represents a breaking change that requires data migration.
- *
- * @example
- * ```ts
- * // Check if a migration is needed
- * const needsMigration = currentVersion < assetVersions.AddMeta
- * ```
  *
  * @public
  */
@@ -81,15 +49,6 @@ export const assetVersions = createMigrationIds('com.tldraw.asset', {
 /**
  * Migration sequence for evolving asset record structure over time.
  * Handles converting asset records from older schema versions to current format.
- *
- * @example
- * ```ts
- * // Migration is applied automatically when loading old documents
- * const migratedStore = migrator.migrateStoreSnapshot({
- *   schema: oldSchema,
- *   store: oldStoreSnapshot
- * })
- * ```
  *
  * @public
  */
@@ -108,22 +67,6 @@ export const assetMigrations = createRecordMigrationSequence({
 
 /**
  * Partial type for TLAsset allowing optional properties except id and type.
- * Useful for creating or updating assets where not all properties need to be specified.
- *
- * @example
- * ```ts
- * // Create a partial asset for updating
- * const partialAsset: TLAssetPartial<TLImageAsset> = {
- *   id: 'asset:image123',
- *   type: 'image',
- *   props: {
- *     w: 800 // Only updating width
- *   }
- * }
- *
- * // Use in asset updates
- * editor.updateAssets([partialAsset])
- * ```
  *
  * @public
  */
@@ -137,32 +80,33 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
 	: never
 
 /**
- * Record type definition for TLAsset with validation and default properties.
- * Configures assets as document-scoped records that persist across sessions.
+ * Creates the record type definition for assets based on registered asset schemas.
+ * This function follows the same pattern as `createShapeRecordType` and `createBindingRecordType`.
  *
- * @example
- * ```ts
- * // Create a new asset record
- * const assetRecord = AssetRecordType.create({
- *   id: 'asset:image123',
- *   type: 'image',
- *   props: {
- *     src: 'https://example.com/image.jpg',
- *     w: 800,
- *     h: 600,
- *     mimeType: 'image/jpeg',
- *     isAnimated: false
- *   }
- * })
+ * @param assets - Record of asset type names to their schema configuration
+ * @returns A configured record type for assets with validation
  *
- * // Store the asset
- * store.put([assetRecord])
- * ```
- *
- * @public
+ * @internal
  */
+export function createAssetRecordType(assets: Record<string, SchemaPropsInfo>) {
+	return createRecordType('asset', {
+		scope: 'document',
+		validator: T.model(
+			'asset',
+			T.union(
+				'type',
+				mapObjectMapValues(assets, (type, { props, meta }) =>
+					createAssetValidator(type, props, meta)
+				)
+			)
+		),
+	}).withDefaultProperties(() => ({
+		meta: {},
+	}))
+}
+
+/** @public */
 export const AssetRecordType = createRecordType<TLAsset>('asset', {
-	validator: assetValidator,
 	scope: 'document',
 }).withDefaultProperties(() => ({
 	meta: {},
@@ -170,29 +114,6 @@ export const AssetRecordType = createRecordType<TLAsset>('asset', {
 
 /**
  * Branded string type for asset record identifiers.
- * Prevents mixing asset IDs with other types of record IDs at compile time.
- *
- * @example
- * ```ts
- * import { createAssetId } from '@tldraw/tlschema'
- *
- * // Create a new asset ID
- * const assetId: TLAssetId = createAssetId()
- *
- * // Use in asset records
- * const asset: TLAsset = {
- *   id: assetId,
- *   // ... other properties
- * }
- *
- * // Reference in shapes
- * const imageShape: TLImageShape = {
- *   props: {
- *     assetId: assetId,
- *     // ... other properties
- *   }
- * }
- * ```
  *
  * @public
  */
@@ -200,26 +121,30 @@ export type TLAssetId = RecordId<TLBaseAsset<any, any>>
 
 /**
  * Union type of all shapes that reference assets through an assetId property.
- * Includes image shapes, video shapes, and any other shapes that depend on external assets.
- *
- * @example
- * ```ts
- * // Function that works with any asset-based shape
- * function handleAssetShape(shape: TLAssetShape) {
- *   const assetId = shape.props.assetId
- *   if (assetId) {
- *     const asset = editor.getAsset(assetId)
- *     // Handle the asset...
- *   }
- * }
- *
- * // Use with image or video shapes
- * const imageShape: TLImageShape = { props: { assetId: 'asset:img1' } }
- * const videoShape: TLVideoShape = { props: { assetId: 'asset:vid1' } }
- * handleAssetShape(imageShape) // Works
- * handleAssetShape(videoShape) // Works
- * ```
  *
  * @public
  */
 export type TLAssetShape = ExtractShapeByProps<{ assetId: TLAssetId }>
+
+/**
+ * Creates a migration sequence for asset properties.
+ *
+ * @public
+ */
+export function createAssetPropsMigrationSequence(
+	migrations: TLPropsMigrations
+): TLPropsMigrations {
+	return migrations
+}
+
+/**
+ * Creates properly formatted migration IDs for asset properties.
+ *
+ * @public
+ */
+export function createAssetPropsMigrationIds<S extends string, T extends Record<string, number>>(
+	assetType: S,
+	ids: T
+): { [k in keyof T]: `com.tldraw.asset.${S}/${T[k]}` } {
+	return mapObjectMapValues(ids, (_k, v) => `com.tldraw.asset.${assetType}/${v}`) as any
+}

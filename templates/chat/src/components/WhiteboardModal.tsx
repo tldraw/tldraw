@@ -154,7 +154,7 @@ function InsideOfTldrawContext({ uploadedFile }: { uploadedFile?: File }) {
 		;(uploadedFile as any).didUpload = true
 		;(async () => {
 			// we check if the file is allowed to be uploaded:
-			const isOk = notifyIfFileNotAllowed(uploadedFile, {
+			const isOk = notifyIfFileNotAllowed(editor, uploadedFile, {
 				toasts,
 				msg,
 			})

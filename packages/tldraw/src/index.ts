@@ -54,6 +54,9 @@ export { DefaultToasts } from './lib/ui/components/Toasts'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
+export { BookmarkAssetUtil } from './lib/assets/BookmarkAssetUtil'
+export { ImageAssetUtil } from './lib/assets/ImageAssetUtil'
+export { VideoAssetUtil } from './lib/assets/VideoAssetUtil'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
 export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
@@ -61,6 +64,7 @@ export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
 export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
+export { defaultAssetUtils } from './lib/defaultAssetUtils'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export {
 	DEFAULT_EMBED_DEFINITIONS,

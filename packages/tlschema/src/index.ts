@@ -32,9 +32,13 @@
 
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { assetIdValidator, createAssetValidator, type TLBaseAsset } from './assets/TLBaseAsset'
-export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'
-export { type TLImageAsset } from './assets/TLImageAsset'
-export { type TLVideoAsset } from './assets/TLVideoAsset'
+export {
+	bookmarkAssetMigrations,
+	bookmarkAssetProps,
+	type TLBookmarkAsset,
+} from './assets/TLBookmarkAsset'
+export { imageAssetMigrations, imageAssetProps, type TLImageAsset } from './assets/TLImageAsset'
+export { videoAssetMigrations, videoAssetProps, type TLVideoAsset } from './assets/TLVideoAsset'
 export {
 	arrowBindingMigrations,
 	arrowBindingProps,
@@ -56,6 +60,7 @@ export {
 } from './createPresenceStateDerivation'
 export {
 	createTLSchema,
+	defaultAssetSchemas,
 	defaultBindingSchemas,
 	defaultShapeSchemas,
 	type SchemaPropsInfo,
@@ -81,11 +86,15 @@ export { scribbleValidator, TL_SCRIBBLE_STATES, type TLScribble } from './misc/T
 export {
 	assetMigrations,
 	AssetRecordType,
-	assetValidator,
+	createAssetPropsMigrationIds,
+	createAssetPropsMigrationSequence,
+	createAssetRecordType,
 	type TLAsset,
 	type TLAssetId,
 	type TLAssetPartial,
 	type TLAssetShape,
+	type TLDefaultAsset,
+	type TLUnknownAsset,
 } from './records/TLAsset'
 export {
 	createBindingId,

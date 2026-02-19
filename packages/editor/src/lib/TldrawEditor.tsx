@@ -18,6 +18,7 @@ import { DefaultErrorFallback } from './components/default-components/DefaultErr
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { TLStoreBaseOptions } from './config/createTLStore'
 import { createTLUser, TLUser } from './config/createTLUser'
+import { TLAnyAssetUtilConstructor } from './config/defaultAssets'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
@@ -119,6 +120,11 @@ export interface TldrawEditorBaseProps {
 	 * An array of binding utils to use in the editor.
 	 */
 	bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+
+	/**
+	 * An array of asset utils to use in the editor.
+	 */
+	assetUtils?: readonly TLAnyAssetUtilConstructor[]
 
 	/**
 	 * An array of tools to add to the editor's state chart.
@@ -241,6 +247,7 @@ declare global {
 
 const EMPTY_SHAPE_UTILS_ARRAY = [] as const
 const EMPTY_BINDING_UTILS_ARRAY = [] as const
+const EMPTY_ASSET_UTILS_ARRAY = [] as const
 const EMPTY_TOOLS_ARRAY = [] as const
 /** @internal */
 export const TL_CONTAINER_CLASS = 'tl-container'
@@ -284,6 +291,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		...rest,
 		shapeUtils: rest.shapeUtils ?? EMPTY_SHAPE_UTILS_ARRAY,
 		bindingUtils: rest.bindingUtils ?? EMPTY_BINDING_UTILS_ARRAY,
+		assetUtils: rest.assetUtils ?? EMPTY_ASSET_UTILS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
 		components,
 		options: useShallowObjectIdentity(mergedOptions),
@@ -331,7 +339,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 function TldrawEditorWithOwnStore(
 	props: Required<
 		TldrawEditorProps & { store: undefined; user: TLUser },
-		'shapeUtils' | 'bindingUtils' | 'tools'
+		'shapeUtils' | 'bindingUtils' | 'assetUtils' | 'tools'
 	>
 ) {
 	const {
@@ -340,6 +348,7 @@ function TldrawEditorWithOwnStore(
 		initialData,
 		shapeUtils,
 		bindingUtils,
+		assetUtils,
 		persistenceKey,
 		sessionId,
 		user,
@@ -350,6 +359,7 @@ function TldrawEditorWithOwnStore(
 	const syncedStore = useLocalStore({
 		shapeUtils,
 		bindingUtils,
+		assetUtils,
 		initialData,
 		persistenceKey,
 		sessionId,
@@ -368,7 +378,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	...rest
 }: Required<
 	TldrawEditorProps & { store: TLStoreWithStatus; user: TLUser },
-	'shapeUtils' | 'bindingUtils' | 'tools'
+	'shapeUtils' | 'bindingUtils' | 'assetUtils' | 'tools'
 >) {
 	const container = useContainer()
 
@@ -414,6 +424,7 @@ function TldrawEditorWithReadyStore({
 	tools,
 	shapeUtils,
 	bindingUtils,
+	assetUtils,
 	user,
 	initialState,
 	autoFocus = true,
@@ -429,7 +440,7 @@ function TldrawEditorWithReadyStore({
 		store: TLStore
 		user: TLUser
 	},
-	'shapeUtils' | 'bindingUtils' | 'tools'
+	'shapeUtils' | 'bindingUtils' | 'assetUtils' | 'tools'
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
@@ -471,6 +482,7 @@ function TldrawEditorWithReadyStore({
 				store,
 				shapeUtils,
 				bindingUtils,
+				assetUtils,
 				tools,
 				getContainer: () => container,
 				user,
@@ -507,6 +519,7 @@ function TldrawEditorWithReadyStore({
 		},
 		// if any of these change, we need to recreate the editor.
 		[
+			assetUtils,
 			bindingUtils,
 			container,
 			options,

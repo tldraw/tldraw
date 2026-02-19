@@ -90,6 +90,7 @@ export {
 	type TLStoreSchemaOptions,
 } from './lib/config/createTLStore'
 export { createTLUser, useTldrawUser, type TLUser } from './lib/config/createTLUser'
+export { type TLAnyAssetUtilConstructor } from './lib/config/defaultAssets'
 export { type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
 export {
@@ -116,6 +117,7 @@ export {
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
 export { DEFAULT_ANIMATION_OPTIONS, DEFAULT_CAMERA_OPTIONS, SIDES } from './lib/constants'
+export { AssetUtil, type TLAssetUtilConstructor } from './lib/editor/assets/AssetUtil'
 export {
 	BindingUtil,
 	type BindingOnChangeOptions,

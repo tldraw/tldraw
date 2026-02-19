@@ -1,7 +1,5 @@
 import {
 	AssetRecordType,
-	DEFAULT_SUPPORTED_IMAGE_TYPES,
-	DEFAULT_SUPPORT_VIDEO_TYPES,
 	Editor,
 	MediaHelpers,
 	TLAsset,
@@ -144,10 +142,10 @@ export async function defaultHandleExternalFileAsset(
 	{ file, assetId }: TLFileExternalAsset,
 	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const isSuccess = notifyIfFileNotAllowed(file, options)
+	const isSuccess = notifyIfFileNotAllowed(editor, file, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
-	const assetInfo = await getAssetInfo(file, options, assetId)
+	const assetInfo = await getAssetInfo(editor, file, assetId)
 	const result = await editor.uploadAsset(assetInfo, file)
 	assetInfo.props.src = result.src
 	if (result.meta) assetInfo.meta = { ...assetInfo.meta, ...result.meta }
@@ -158,10 +156,10 @@ export async function defaultHandleExternalFileAsset(
 /** @public */
 export async function defaultHandleExternalFileReplaceContent(
 	editor: Editor,
-	{ file, shapeId, isImage }: TLFileReplaceExternalContent,
+	{ file, shapeId }: TLFileReplaceExternalContent,
 	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const isSuccess = notifyIfFileNotAllowed(file, options)
+	const isSuccess = notifyIfFileNotAllowed(editor, file, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
 	const shape = editor.getShape(shapeId)
@@ -170,12 +168,9 @@ export async function defaultHandleExternalFileReplaceContent(
 	const hash = getHashForBuffer(await file.arrayBuffer())
 	const assetId = AssetRecordType.createId(hash)
 	editor.createTemporaryAssetPreview(assetId, file)
-	const assetInfoPartial = await getMediaAssetInfoPartial(
-		file,
-		assetId,
-		isImage /* isImage */,
-		!isImage /* isVideo */
-	)
+	const assetInfoPartial = (await getAssetInfo(editor, file, assetId)) as
+		| TLImageAsset
+		| TLVideoAsset
 	editor.createAssets([assetInfoPartial])
 
 	// And update the shape
@@ -380,7 +375,7 @@ export async function defaultHandleExternalFileContent(
 	{ point, files }: { point?: VecLike; files: File[] },
 	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const { acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES, toasts, msg } = options
+	const { toasts, msg } = options
 	if (files.length > editor.options.maxFilesAtOnce) {
 		toasts.addToast({ title: msg('assets.files.amount-too-many'), severity: 'error' })
 		return
@@ -399,11 +394,11 @@ export async function defaultHandleExternalFileContent(
 		file: File
 	}[] = []
 	for (const file of files) {
-		const isSuccess = notifyIfFileNotAllowed(file, options)
+		const isSuccess = notifyIfFileNotAllowed(editor, file, options)
 		if (!isSuccess) continue
 
-		const assetInfo = await getAssetInfo(file, options)
-		if (acceptedImageMimeTypes.includes(file.type)) {
+		const assetInfo = await getAssetInfo(editor, file)
+		if (assetInfo.type === 'image') {
 			editor.createTemporaryAssetPreview(assetInfo.id, file)
 		}
 		assetPartials.push(assetInfo)
@@ -702,38 +697,13 @@ export async function createShapesForAssets(
 
 	for (let i = 0; i < assets.length; i++) {
 		const asset = assets[i]
-		switch (asset.type) {
-			case 'image': {
-				partials.push({
-					id: createShapeId(),
-					type: 'image',
-					x: currentPoint.x,
-					y: currentPoint.y,
-					opacity: 1,
-					props: {
-						assetId: asset.id,
-						w: asset.props.w,
-						h: asset.props.h,
-					},
-				})
-
-				currentPoint.x += asset.props.w
-				break
-			}
-			case 'video': {
-				partials.push({
-					id: createShapeId(),
-					type: 'video',
-					x: currentPoint.x,
-					y: currentPoint.y,
-					opacity: 1,
-					props: {
-						assetId: asset.id,
-						w: asset.props.w,
-						h: asset.props.h,
-					},
-				})
-
+		if (!editor.hasAssetUtil(asset)) continue
+		const assetUtil = editor.getAssetUtil(asset)
+		const partial = assetUtil.createShape(asset, currentPoint)
+		if (partial) {
+			partials.push(partial)
+			// Advance x position based on asset width if available
+			if ('w' in asset.props && typeof asset.props.w === 'number') {
 				currentPoint.x += asset.props.w
 			}
 		}
@@ -855,18 +825,16 @@ export function createEmptyBookmarkShape(
  * @returns True if the file is allowed, false otherwise
  * @public
  */
-export function notifyIfFileNotAllowed(file: File, options: TLDefaultExternalContentHandlerOpts) {
-	const {
-		acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
-		acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
-		maxAssetSize = DEFAULT_MAX_ASSET_SIZE,
-		toasts,
-		msg,
-	} = options
-	const isImageType = acceptedImageMimeTypes.includes(file.type)
-	const isVideoType = acceptedVideoMimeTypes.includes(file.type)
+export function notifyIfFileNotAllowed(
+	editor: Editor,
+	file: File,
+	options: TLDefaultExternalContentHandlerOpts
+) {
+	const { maxAssetSize = DEFAULT_MAX_ASSET_SIZE, toasts, msg } = options
 
-	if (!isImageType && !isVideoType) {
+	// Check if any registered asset util accepts this file type
+	const assetUtil = editor.getAssetUtilForMimeType(file.type)
+	if (!assetUtil) {
 		toasts.addToast({
 			title: msg('assets.files.type-not-allowed'),
 			severity: 'error',
@@ -912,27 +880,15 @@ export function notifyIfFileNotAllowed(file: File, options: TLDefaultExternalCon
 }
 
 /** @public */
-export async function getAssetInfo(
-	file: File,
-	options: TLDefaultExternalContentHandlerOpts,
-	assetId?: TLAssetId
-) {
-	const {
-		acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
-		acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
-		maxImageDimension = DEFAULT_MAX_IMAGE_DIMENSION,
-	} = options
-
-	const isImageType = acceptedImageMimeTypes.includes(file.type)
-	const isVideoType = acceptedVideoMimeTypes.includes(file.type)
+export async function getAssetInfo(editor: Editor, file: File, assetId?: TLAssetId) {
 	const hash = getHashForBuffer(await file.arrayBuffer())
 	assetId ??= AssetRecordType.createId(hash)
-	const assetInfo = await getMediaAssetInfoPartial(
-		file,
-		assetId,
-		isImageType,
-		isVideoType,
-		maxImageDimension
-	)
+
+	const assetUtil = editor.getAssetUtilForMimeType(file.type)
+	assert(assetUtil, `No asset util found for MIME type "${file.type}"`)
+
+	const assetInfo = await assetUtil.getAssetFromFile(file, assetId)
+	assert(assetInfo, `Asset util returned null for file "${file.name}"`)
+
 	return assetInfo
 }
