@@ -1,4 +1,4 @@
-import { FeatureFlagKey, FeatureFlagValue } from '@tldraw/dotcom-shared'
+import { EvaluatedFeatureFlag, FeatureFlagKey, FeatureFlagValue } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
@@ -98,19 +98,18 @@ export async function setFeatureFlag(
 
 /**
  * Route handler: Get all feature flags evaluated for the requesting user.
- * For percentage-based flags the response contains a per-user `enabled` value.
+ * Returns only `{ enabled }` per flag — no server internals like percentage.
  */
 export async function getFeatureFlags(request: IRequest, env: Environment): Promise<Response> {
 	const auth = await getAuth(request, env)
 	const userId = auth?.userId ?? null
 
-	const flags: Record<string, FeatureFlagValue> = {}
+	const flags: Record<string, EvaluatedFeatureFlag> = {}
 
 	await Promise.all(
 		ALL_FLAGS.map(async (key) => {
 			const raw = await getFeatureFlagValue(env, key)
 			flags[key] = {
-				...raw,
 				enabled: evaluateFlagForUser(raw, key, userId),
 			}
 		})

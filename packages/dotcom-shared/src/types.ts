@@ -237,3 +237,8 @@ export interface PercentageFeatureFlag {
 	enabled: boolean
 	description: string
 }
+
+/** Returned by the user-facing endpoint — just the evaluated result, no server internals. */
+export interface EvaluatedFeatureFlag {
+	enabled: boolean
+}
