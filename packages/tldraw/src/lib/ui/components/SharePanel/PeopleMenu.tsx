@@ -5,7 +5,7 @@ import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useCollaborationStatus } from '../../hooks/useCollaborationStatus'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { OfflineIndicator } from '../OfflineIndicator/OfflineIndicator'
 import { PeopleMenuAvatar } from './PeopleMenuAvatar'
 import { PeopleMenuItem } from './PeopleMenuItem'
@@ -20,6 +20,7 @@ export interface PeopleMenuProps {
 /** @public @react */
 export function PeopleMenu({ children }: PeopleMenuProps) {
 	const msg = useTranslation()
+	const dir = useDirection()
 
 	const container = useContainer()
 	const editor = useEditor()
@@ -42,7 +43,7 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 
 	return (
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
-			<_Popover.Trigger dir="ltr" asChild>
+			<_Popover.Trigger dir={dir} asChild>
 				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
 					<div className="tlui-people-menu__avatars">
 						{userIds.slice(-maxAvatars).map((userId) => (
@@ -64,7 +65,7 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 			</_Popover.Trigger>
 			<_Popover.Portal container={container}>
 				<_Popover.Content
-					dir="ltr"
+					dir={dir}
 					className="tlui-menu"
 					side="bottom"
 					sideOffset={2}

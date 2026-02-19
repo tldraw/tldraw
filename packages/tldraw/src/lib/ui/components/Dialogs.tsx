@@ -2,6 +2,7 @@ import { useContainer, useValue } from '@tldraw/editor'
 import { Dialog as _Dialog } from 'radix-ui'
 import { memo, useCallback, useRef } from 'react'
 import { TLUiDialog, useDialogs } from '../context/dialogs'
+import { useDirection } from '../hooks/useTranslation/useTranslation'
 
 /** @internal */
 const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }: TLUiDialog) => {
@@ -9,6 +10,7 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 	const mouseDownInsideContentRef = useRef(false)
 
 	const container = useContainer()
+	const dir = useDirection()
 
 	const handleOpenChange = useCallback(
 		(isOpen: boolean) => {
@@ -23,7 +25,7 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 		<_Dialog.Root onOpenChange={handleOpenChange} defaultOpen>
 			<_Dialog.Portal container={container}>
 				<_Dialog.Overlay
-					dir="ltr"
+					dir={dir}
 					className="tlui-dialog__overlay"
 					onClick={(e) => {
 						// We pressed mouse down inside the content of the dialog then moved the mouse
@@ -34,7 +36,7 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 					}}
 				>
 					<_Dialog.Content
-						dir="ltr"
+						dir={dir}
 						className="tlui-dialog__content"
 						aria-describedby={undefined}
 						onMouseDown={() => (mouseDownInsideContentRef.current = true)}

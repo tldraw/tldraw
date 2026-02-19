@@ -72,7 +72,7 @@
 .tlui-button__label {
 	font-size: 12px;
 	flex-grow: 2;
-	text-align: left;
+	text-align: start;
 }
 
 /*
@@ -135,7 +135,7 @@
 }
 
 .tlui-button__icon + .tlui-button__label {
-	margin-left: var(--tl-space-2);
+	margin-inline-start: var(--tl-space-2);
 }
 
 /* Low button  */
@@ -194,7 +194,7 @@
 }
 
 .tlui-button__menu > .tlui-icon + .tlui-button__label {
-	margin-left: 0px;
+	margin-inline-start: 0px;
 }
 
 .tlui-button__menu:nth-child(1) {
@@ -597,7 +597,7 @@
 	grid-auto-columns: minmax(1em, auto);
 	align-self: bottom;
 	color: currentColor;
-	margin-left: var(--tl-space-4);
+	margin-inline-start: var(--tl-space-4);
 }
 
 .tlui-kbd > span {
@@ -610,11 +610,11 @@
 }
 
 .tlui-kbd > span:last-child {
-	padding-right: 0;
+	padding-inline-end: 0;
 }
 
 .tlui-kbd:not(:last-child) {
-	margin-right: var(--tl-space-2);
+	margin-inline-end: var(--tl-space-2);
 }
 
 /* Focus Mode Button */
@@ -810,7 +810,7 @@
 
 .tlui-page-menu__name {
 	flex-grow: 2;
-	text-align: left;
+	text-align: start;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -850,41 +850,41 @@
 
 .tlui-page-menu__item__button:not(:only-child) {
 	flex-grow: 2;
-	margin-right: -2px;
+	margin-inline-end: -2px;
 }
 
 .tlui-page-menu__item__button > span {
 	display: block;
 	flex-grow: 2;
-	text-align: left;
+	text-align: start;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
 .tlui-page-menu__item__button > span {
-	padding-right: calc(40px - 12px);
+	padding-inline-end: calc(40px - 12px);
 }
 
 @media (hover: hover) {
 	.tlui-page-menu__item__button > span {
-		padding-right: 0px;
+		padding-inline-end: 0px;
 	}
 
 	.tlui-page-menu__item:hover > .tlui-page-menu__item__button > span {
-		padding-right: calc(40px - 12px);
+		padding-inline-end: calc(40px - 12px);
 	}
 }
 
 .tlui-page-menu__item__button__checkbox {
-	padding-left: 35px;
+	padding-inline-start: 35px;
 }
 
 .tlui-page-menu__item__button__check {
 	position: absolute;
-	left: 0px;
+	inset-inline-start: 0px;
 	width: 24px;
-	padding-left: 10px;
+	padding-inline-start: 10px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -894,7 +894,7 @@
 .tlui-page_menu__item__sortable {
 	position: absolute;
 	top: 0px;
-	left: 0px;
+	inset-inline-start: 0px;
 	width: 100%;
 	height: fit-content;
 	display: flex;
@@ -924,7 +924,7 @@
 	cursor: grab;
 	color: var(--tl-color-text-3);
 	flex-shrink: 0;
-	margin-right: -9px;
+	margin-inline-end: -9px;
 }
 
 .tlui-page_menu__item__sortable__handle:active {
@@ -932,7 +932,7 @@
 }
 
 .tlui-page-menu__item__input {
-	margin-left: 12px;
+	margin-inline-start: 12px;
 	height: 100%;
 }
 
@@ -943,12 +943,12 @@
 .tlui-page_menu__item__submenu {
 	pointer-events: all;
 	position: absolute;
-	right: 0px;
+	inset-inline-end: 0px;
 	top: 0px;
 	height: 100%;
 	cursor: pointer;
 	margin: 0px;
-	margin-left: -2px;
+	margin-inline-start: -2px;
 	z-index: 10;
 }
 
@@ -968,10 +968,18 @@
 	opacity: 1;
 }
 
+.tl-container[dir='rtl'] .tlui-page_menu__item__submenu > .tlui-button[data-state='open']::after {
+	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+}
+
 @media (hover: hover) {
 	.tlui-page_menu__item__submenu > .tlui-button[data-state='open']:not(:hover)::after {
 		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 		opacity: 1;
+	}
+
+	.tl-container[dir='rtl'] .tlui-page_menu__item__submenu > .tlui-button[data-state='open']:not(:hover)::after {
+		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 	}
 }
 
@@ -984,7 +992,7 @@
 }
 
 .tlui-page-menu__item__button .tlui-button__icon {
-	margin-right: 4px;
+	margin-inline-end: 4px;
 }
 
 @media (hover: hover) {
@@ -1998,7 +2006,7 @@ tldraw? probably.
 }
 
 .tlui-people-menu__user__name {
-	text-align: left;
+	text-align: start;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -2010,7 +2018,7 @@ tldraw? probably.
 }
 
 .tlui-people-menu__user__label {
-	text-align: left;
+	text-align: start;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -2018,7 +2026,7 @@ tldraw? probably.
 	color: var(--tl-color-text-3);
 	flex-grow: 100;
 	flex-shrink: 0;
-	margin-left: 4px;
+	margin-inline-start: 4px;
 }
 
 .tlui-people-menu__user__input {
@@ -2061,7 +2069,7 @@ tldraw? probably.
 }
 
 .tlui-people-menu__name {
-	text-align: left;
+	text-align: start;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -2070,14 +2078,14 @@ tldraw? probably.
 .tlui-people-menu__item__follow {
 	position: absolute;
 	top: 0px;
-	right: 0px;
+	inset-inline-end: 0px;
 	max-width: 40px;
 	flex-shrink: 0;
 }
 
 .tlui-people-menu__item[data-follow='true'],
 .tlui-people-menu__item:has(.tlui-button:focus-visible) {
-	padding-right: 36px;
+	padding-inline-end: 36px;
 }
 
 .tlui-people-menu__item[data-follow='true'] .tlui-people-menu__item__follow,

@@ -4,7 +4,7 @@ import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { TldrawUiIcon, TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
@@ -45,6 +45,7 @@ export function TldrawUiMenuCheckboxItem<
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const isReadonlyMode = useReadonly()
 	const msg = useTranslation()
+	const dir = useDirection()
 
 	// If the editor is in readonly mode and the item is not marked as readonlyok, return null
 	if (isReadonlyMode && !readonlyOk) return null
@@ -56,7 +57,7 @@ export function TldrawUiMenuCheckboxItem<
 		case 'menu': {
 			return (
 				<_DropdownMenu.CheckboxItem
-					dir="ltr"
+					dir={dir}
 					lang={lang}
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
 					title={labelStr}
@@ -86,7 +87,7 @@ export function TldrawUiMenuCheckboxItem<
 				<_ContextMenu.CheckboxItem
 					key={id}
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
-					dir="ltr"
+					dir={dir}
 					lang={lang}
 					title={labelStr}
 					onSelect={(e) => {

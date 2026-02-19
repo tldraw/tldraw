@@ -119,6 +119,16 @@ export function useTranslation() {
 	)
 }
 
+/**
+ * Returns the current text direction ('ltr' or 'rtl') based on the current translation.
+ *
+ * @public
+ */
+export function useDirection() {
+	const translation = useCurrentTranslation()
+	return translation.dir
+}
+
 export function untranslated(string: string) {
 	return string as TLUiTranslationKey
 }

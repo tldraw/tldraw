@@ -5554,6 +5554,9 @@ export function useDefaultHelpers(): {
 // @public (undocumented)
 export function useDialogs(): TLUiDialogsContextType;
 
+// @public
+export function useDirection(): "ltr" | "rtl";
+
 // @public (undocumented)
 export function useEditablePlainText(shapeId: TLShapeId, type: ExtractShapeByProps<{
     text: string;
