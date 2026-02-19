@@ -479,6 +479,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	}
 
 	/**
+	 * Whether the shape behaves like a sticker — when translated and dropped on
+	 * another shape, it creates a binding so it follows that shape.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	isStickerLike(_shape: Shape): boolean {
+		return false
+	}
+
+	/**
 	 * By default, the bounds of an image export are the bounds of all the shapes it contains, plus
 	 * some padding. If an export includes a shape where `isExportBoundsContainer` is true, then the
 	 * padding is skipped _if the bounds of that shape contains all the other shapes_. This is

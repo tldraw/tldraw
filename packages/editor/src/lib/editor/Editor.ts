@@ -5679,6 +5679,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Whether the shape is sticker-like.
+	 *
+	 * @param shape - The shape (or shape id) to check.
+	 * @public
+	 */
+	isShapeStickerLike(shape: TLShapeId | TLShape): boolean {
+		const s = typeof shape === 'string' ? this.getShape(shape) : shape
+		if (!s) return false
+		return this.getShapeUtil(s).isStickerLike(s)
+	}
+
+	/**
 	 * Get a shape by its id.
 	 *
 	 * @example
