@@ -1232,11 +1232,20 @@ export class TldrawApp {
 
 		// Clear any existing ordering for this new group to get fresh ordering
 		this.lastGroupFileOrderings.delete(payload.groupId)
-		const files = this.getGroupFilesSorted(payload.groupId)
-		if (!files.length) {
+
+		if (!this.navigateToGroupFiles(payload.groupId)) {
 			this.navigate(routes.tlaRoot())
-			return
 		}
+	}
+
+	navigateToGroupFiles(groupId: string) {
+		const files = this.getGroupFilesSorted(groupId)
+
+		if (!files.length) {
+			return false
+		}
+
 		this.navigate(routes.tlaFile(files[0]!.fileId))
+		return true
 	}
 }
