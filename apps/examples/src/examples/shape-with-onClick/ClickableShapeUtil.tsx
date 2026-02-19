@@ -1,11 +1,9 @@
 import {
-	Geometry2d,
+	BaseBoxShapeUtil,
 	HTMLContainer,
 	RecordProps,
-	Rectangle2d,
-	ShapeUtil,
 	T,
-	TLShape,
+	TLBaseBoxShape,
 	TLShapePartial,
 } from 'tldraw'
 
@@ -20,10 +18,13 @@ declare module 'tldraw' {
 	}
 }
 
-type ClickableShape = TLShape<typeof CLICKABLE_SHAPE_TYPE>
+type ClickableShape = TLBaseBoxShape & {
+	type: typeof CLICKABLE_SHAPE_TYPE
+	props: { count: number }
+}
 
 // [2]
-export class ClickableShapeUtil extends ShapeUtil<ClickableShape> {
+export class ClickableShapeUtil extends BaseBoxShapeUtil<ClickableShape> {
 	static override type = CLICKABLE_SHAPE_TYPE
 	static override props: RecordProps<ClickableShape> = {
 		w: T.number,
@@ -44,15 +45,6 @@ export class ClickableShapeUtil extends ShapeUtil<ClickableShape> {
 	}
 
 	// [3]
-	getGeometry(shape: ClickableShape): Geometry2d {
-		return new Rectangle2d({
-			width: shape.props.w,
-			height: shape.props.h,
-			isFilled: true,
-		})
-	}
-
-	// [4]
 	override onClick(shape: ClickableShape): TLShapePartial<ClickableShape> | void {
 		return {
 			id: shape.id,
@@ -63,7 +55,7 @@ export class ClickableShapeUtil extends ShapeUtil<ClickableShape> {
 		}
 	}
 
-	// [5]
+	// [4]
 	component(shape: ClickableShape) {
 		return (
 			<HTMLContainer
@@ -84,7 +76,7 @@ export class ClickableShapeUtil extends ShapeUtil<ClickableShape> {
 		)
 	}
 
-	// [6]
+	// [5]
 	indicator(shape: ClickableShape) {
 		return <rect width={shape.props.w} height={shape.props.h} />
 	}
@@ -98,13 +90,10 @@ Extend TLGlobalShapePropsMap to register the shape's props. We include a `count`
 that tracks how many times the shape has been clicked.
 
 [2]
-Our shape util class. We extend ShapeUtil and define the shape's type, props, and behavior.
+Our shape util class. We extend BaseBoxShapeUtil which provides getGeometry (a filled
+rectangle from w/h), onResize, and snap geometry for free.
 
 [3]
-getGeometry defines the shape's hit area. We use Rectangle2d with isFilled: true so the
-entire shape body is clickable, not just its outline.
-
-[4]
 This is the key part of the example: the onClick handler. When a user clicks this shape,
 the editor calls onClick. We return a shape partial that increments the count. The editor
 applies this update to the shape automatically.
@@ -113,10 +102,10 @@ Note: this is different from using React's onClick on a DOM element inside the c
 ShapeUtil.onClick integrates with the editor's pointer event system, so it works correctly
 alongside other interactions like dragging.
 
-[5]
+[4]
 The component renders the click count. We don't add any React event handlers here — the
 click handling is done entirely through ShapeUtil.onClick above.
 
-[6]
+[5]
 The indicator is the blue outline shown when the shape is selected.
 */
