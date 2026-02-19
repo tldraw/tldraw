@@ -1,10 +1,10 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { assertExists, atom, react } from 'tldraw'
+import { assertExists, atom } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
-import { featureFlagsLoadedAtom } from '../utils/FeatureFlagsFetcher'
+import { fetchFeatureFlags } from '../utils/FeatureFlagsFetcher'
 
 const appContext = createContext<TldrawApp | null>(null)
 
@@ -29,36 +29,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
 	useEffect(() => {
 		let _app: TldrawApp
-
-		// Create the new user
 		let didCancel = false
 
-		// Wait for feature flags to load so shouldUseProperZero() sees the server value.
-		// Times out after 5s to avoid hanging forever if the fetch fails.
-		function waitForFlags(): Promise<void> {
-			if (featureFlagsLoadedAtom.get()) return Promise.resolve()
-			return new Promise((resolve) => {
-				const timeout = setTimeout(() => {
-					unsub()
-					resolve()
-				}, 5000)
-				const unsub = react('wait for flags', () => {
-					if (featureFlagsLoadedAtom.get()) {
-						clearTimeout(timeout)
-						unsub()
-						resolve()
-					}
-				})
-			})
-		}
-
-		waitForFlags().then(() => {
+		fetchFeatureFlags().then((flags) => {
 			if (didCancel) return
 			return auth.getToken().then((token) => {
 				if (!token) throw new Error('no token')
 				return TldrawApp.create({
 					userId: auth.userId,
 					email: user.primaryEmailAddress?.emailAddress,
+					flags,
 					getToken: async () => {
 						const token = await auth.getToken()
 						return token || undefined
