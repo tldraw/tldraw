@@ -21,7 +21,7 @@ path = "/keepalive"
 policy = "always"
 
 [[vm]]
-memory = "1gb"
+memory = "4gb"
 cpu_kind = "shared"
 cpus = 1
 
