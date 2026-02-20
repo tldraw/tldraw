@@ -132,6 +132,16 @@ interface TimingEntry {
 	durationMs: number
 }
 
+type WorkerId = 'asset-upload' | 'health' | 'multiplayer' | 'tldrawusercontent' | 'image-resize'
+
+interface WorkerDeployment {
+	id: WorkerId
+	stepLabel: string
+	timingLabel: string
+	dependsOn: WorkerId[]
+	run(args: { dryRun: boolean }): Promise<void>
+}
+
 const timings: TimingEntry[] = []
 
 function formatDurationMs(durationMs: number) {
@@ -163,6 +173,81 @@ function logTimingSummary() {
 				entry.durationMs
 			)}`
 		)
+	}
+}
+
+const workerDeployments: WorkerDeployment[] = [
+	{
+		id: 'multiplayer',
+		stepLabel: 'deploying multiplayer worker to cloudflare',
+		timingLabel: 'worker deploy: multiplayer',
+		dependsOn: [],
+		run: deployTlsyncWorker,
+	},
+	{
+		id: 'asset-upload',
+		stepLabel: 'deploying asset uploader to cloudflare',
+		timingLabel: 'worker deploy: asset-upload',
+		dependsOn: [],
+		run: deployAssetUploadWorker,
+	},
+	{
+		id: 'tldrawusercontent',
+		stepLabel: 'deploying tldrawusercontent worker to cloudflare',
+		timingLabel: 'worker deploy: tldrawusercontent',
+		dependsOn: ['multiplayer'],
+		run: deployTldrawUserContentWorker,
+	},
+	{
+		id: 'image-resize',
+		stepLabel: 'deploying image resizer to cloudflare',
+		timingLabel: 'worker deploy: image-resize',
+		dependsOn: ['multiplayer'],
+		run: deployImageResizeWorker,
+	},
+	{
+		id: 'health',
+		stepLabel: 'deploying health worker to cloudflare',
+		timingLabel: 'worker deploy: health',
+		dependsOn: [],
+		run: deployHealthWorker,
+	},
+]
+
+async function deployWorkersInDependencyOrder({
+	dryRun,
+	withDiscordSteps,
+}: {
+	dryRun: boolean
+	withDiscordSteps: boolean
+}) {
+	const pending = new Map(workerDeployments.map((worker) => [worker.id, worker]))
+	const completed = new Set<WorkerId>()
+
+	while (pending.size > 0) {
+		const ready = [...pending.values()].filter((worker) =>
+			worker.dependsOn.every((dependency) => completed.has(dependency))
+		)
+
+		if (ready.length === 0) {
+			throw new Error('Cloudflare worker dependency cycle detected in deploy-dotcom.ts')
+		}
+
+		await Promise.all(
+			ready.map(async (worker) => {
+				const deploy = () => withTiming(worker.timingLabel, () => worker.run({ dryRun }))
+				if (withDiscordSteps) {
+					await discord.step(worker.stepLabel, deploy)
+				} else {
+					await deploy()
+				}
+			})
+		)
+
+		for (const worker of ready) {
+			pending.delete(worker.id)
+			completed.add(worker.id)
+		}
 	}
 }
 
@@ -247,15 +332,10 @@ async function main() {
 
 	await withTiming('step: cloudflare deploy dry run', () =>
 		discord.step('cloudflare deploy dry run', async () => {
-			await Promise.all([
-				withTiming('worker dry run: asset-upload', () => deployAssetUploadWorker({ dryRun: true })),
-				withTiming('worker dry run: health', () => deployHealthWorker({ dryRun: true })),
-				withTiming('worker dry run: multiplayer', () => deployTlsyncWorker({ dryRun: true })),
-				withTiming('worker dry run: tldrawusercontent', () =>
-					deployTldrawUserContentWorker({ dryRun: true })
-				),
-				withTiming('worker dry run: image-resize', () => deployImageResizeWorker({ dryRun: true })),
-			])
+			await deployWorkersInDependencyOrder({
+				dryRun: true,
+				withDiscordSteps: false,
+			})
 		})
 	)
 
@@ -263,16 +343,10 @@ async function main() {
 
 	await discord.message(`--- **pre-flight complete, starting real dotcom deploy** ---`)
 
-	// 2. deploy the cloudflare workers:
-	await withTiming('step: deploy multiplayer worker', () =>
-		discord.step('deploying multiplayer worker to cloudflare', async () => {
-			await withTiming('worker deploy: multiplayer', () => deployTlsyncWorker({ dryRun: false }))
-		})
-	)
-
-	// 3. deploy everything else in parallel: dotcom app + non-multiplayer workers.
+	// 2. deploy dotcom app and workers in parallel.
+	// Worker dependencies are enforced by deployWorkersInDependencyOrder.
 	const [{ deploymentUrl, inspectUrl }] = await withTiming(
-		'step: post-multiplayer parallel deploys',
+		'step: parallel deploys',
 		async () =>
 			await Promise.all([
 				withTiming(
@@ -282,39 +356,11 @@ async function main() {
 							return await withTiming('vercel deploy --prebuilt', () => deploySpa())
 						})
 				),
-				withTiming(
-					'step: deploy non-multiplayer workers',
-					async () =>
-						await Promise.all([
-							withTiming('step: deploy asset uploader worker', () =>
-								discord.step('deploying asset uploader to cloudflare', async () => {
-									await withTiming('worker deploy: asset-upload', () =>
-										deployAssetUploadWorker({ dryRun: false })
-									)
-								})
-							),
-							withTiming('step: deploy tldrawusercontent worker', () =>
-								discord.step('deploying tldrawusercontent worker to cloudflare', async () => {
-									await withTiming('worker deploy: tldrawusercontent', () =>
-										deployTldrawUserContentWorker({ dryRun: false })
-									)
-								})
-							),
-							withTiming('step: deploy image resizer worker', () =>
-								discord.step('deploying image resizer to cloudflare', async () => {
-									await withTiming('worker deploy: image-resize', () =>
-										deployImageResizeWorker({ dryRun: false })
-									)
-								})
-							),
-							withTiming('step: deploy health worker', () =>
-								discord.step('deploying health worker to cloudflare', async () => {
-									await withTiming('worker deploy: health', () =>
-										deployHealthWorker({ dryRun: false })
-									)
-								})
-							),
-						])
+				withTiming('step: deploy cloudflare workers', () =>
+					deployWorkersInDependencyOrder({
+						dryRun: false,
+						withDiscordSteps: true,
+					})
 				),
 			])
 	)
