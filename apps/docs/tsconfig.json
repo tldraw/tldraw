@@ -2,7 +2,7 @@
 	"extends": "../../internal/config/tsconfig.base.json",
 	"compilerOptions": {
 		"paths": { "@/*": ["./*"] },
-		"lib": ["dom", "dom.iterable", "esnext"],
+		"lib": ["DOM", "DOM.Iterable", "ESNext"],
 		"plugins": [{ "name": "next" }],
 		"allowJs": true,
 		"emitDeclarationOnly": false,

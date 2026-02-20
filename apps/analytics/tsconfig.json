@@ -9,7 +9,7 @@
 		"emitDeclarationOnly": false,
 		"incremental": false,
 		"types": ["vite/client", "vitest/globals"],
-		"lib": ["dom", "DOM.Iterable", "esnext"]
+		"lib": ["DOM", "DOM.Iterable", "ESNext"]
 	},
 	"exclude": ["node_modules", "public", ".tsbuild*", "worker"],
 	"include": ["src", "./vite.config.ts", "./vitest.config.ts"],

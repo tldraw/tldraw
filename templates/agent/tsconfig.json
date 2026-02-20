@@ -13,7 +13,7 @@
 		"resolveJsonModule": true,
 		"incremental": true,
 		"jsx": "react-jsx",
-		"lib": ["dom", "DOM.Iterable", "esnext"],
+		"lib": ["DOM", "DOM.Iterable", "ESNext"],
 		"module": "esnext",
 		"target": "esnext",
 		"moduleResolution": "node",
