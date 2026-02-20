@@ -10,6 +10,7 @@ import {
 	preventDefault,
 	uniq,
 	useEditor,
+	activeElementShouldCaptureKeys,
 	useMaybeEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -74,22 +75,13 @@ const isSvgText = (text: string) => {
 	return /^<svg/.test(text)
 }
 
-const INPUTS = ['input', 'select', 'textarea']
-
 /**
  * Get whether to disallow clipboard events.
  *
  * @internal
  */
 function areShortcutsDisabled(editor: Editor) {
-	const { activeElement } = document
-
-	return (
-		editor.menus.hasAnyOpenMenus() ||
-		(activeElement &&
-			((activeElement as HTMLElement).isContentEditable ||
-				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
-	)
+	return editor.menus.hasAnyOpenMenus() || activeElementShouldCaptureKeys(false)
 }
 
 /**
