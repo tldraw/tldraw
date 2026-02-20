@@ -54,6 +54,26 @@ const styles: TLStylesConfig = {
 		sans: "'Inter', sans-serif",
 		mono: "'JetBrains Mono', monospace",
 	},
+	// [9]
+	shapes: {
+		geo: {
+			colors: {
+				coral: {
+					light: {
+						solid: '#9b2c2c',
+						fill: '#9b2c2c',
+					},
+					dark: {
+						solid: '#fca5a5',
+						fill: '#fca5a5',
+					},
+				},
+			},
+			sizes: {
+				m: { stroke: 5, labelFont: 20 },
+			},
+		},
+	},
 }
 
 // [5]
@@ -144,6 +164,18 @@ export default function CustomStylesExample() {
 						},
 					})
 
+					editor.createShape({
+						id: createShapeId(),
+						type: 'text',
+						x: 100,
+						y: 570,
+						props: {
+							richText: toRichText('Global coral text token'),
+							color: 'coral',
+							size: 'm',
+						},
+					})
+
 					editor.zoomToFit({ animation: { duration: 0 } })
 				}}
 			/>
@@ -187,4 +219,9 @@ font sizes produced by our custom size tokens.
 
 [8]
 Create text shapes using the overridden `sans` and `mono` font families.
+
+[9]
+Use `styles.shapes` for shape-specific overrides. Here we override the `coral`
+color and `m` size token only for `geo` shapes. Text shapes still use the
+global token values.
 */

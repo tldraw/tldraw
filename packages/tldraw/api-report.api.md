@@ -243,7 +243,6 @@ export interface ArrowShapeOptions {
     shouldBeExact(editor: Editor, isPrecise: boolean): boolean;
     shouldIgnoreTargets(editor: Editor): boolean;
     readonly showTextOutline: boolean;
-    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -1156,7 +1155,6 @@ export interface DrawPathBuilderOpts extends BasePathBuilderOpts, DrawPathBuilde
 // @public (undocumented)
 export interface DrawShapeOptions {
     readonly maxPointsPerShape: number;
-    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -1556,7 +1554,6 @@ export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 export interface FrameShapeOptions {
     resizeChildren: boolean;
     showColors: boolean;
-    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -1649,7 +1646,6 @@ export function FrameToolbarItem(): JSX.Element;
 // @public (undocumented)
 export interface GeoShapeOptions {
     showTextOutline: boolean;
-    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -1915,7 +1911,6 @@ export interface HighlightShapeOptions {
     readonly maxPointsPerShape: number;
     // (undocumented)
     readonly overlayOpacity: number;
-    styles?: TLStylesConfig;
     // (undocumented)
     readonly underlayOpacity: number;
 }
@@ -2065,7 +2060,6 @@ export function LaserToolbarItem(): JSX.Element;
 
 // @public (undocumented)
 export interface LineShapeOptions {
-    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -2231,7 +2225,6 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
 // @public (undocumented)
 export interface NoteShapeOptions {
     resizeMode: 'none' | 'scale';
-    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -3086,7 +3079,6 @@ export interface TextAreaProps {
 export interface TextShapeOptions {
     extraArrowHorizontalPadding: number;
     showTextOutline: boolean;
-    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)

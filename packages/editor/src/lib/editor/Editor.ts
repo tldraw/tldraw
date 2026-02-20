@@ -145,6 +145,7 @@ import {
 	TLStyleContext,
 	TLStylesConfig,
 	extendStyleValidators,
+	mergeStylesIntoContext,
 } from './TLShapeStyles'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
@@ -921,7 +922,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapeStyles<T extends TLShape>(shape: T): TLResolvedStyles<T> {
 		const util = this.getShapeUtil(shape)
-		const ctx = this.getStyleContext()
+		let ctx = this.getStyleContext()
+		const shapeStylesConfig = this._stylesConfig?.shapes?.[shape.type]
+		if (shapeStylesConfig) {
+			ctx = mergeStylesIntoContext(ctx, shapeStylesConfig)
+		}
 		let styles: object = util.getDefaultStyles(shape, ctx) ?? {}
 
 		if (this._getShapeStyleOverrides) {

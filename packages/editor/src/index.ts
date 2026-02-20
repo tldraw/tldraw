@@ -204,6 +204,7 @@ export {
 	type TLStyleContext,
 	type TLStylesColorDefinition,
 	type TLStylesConfig,
+	type TLStyleTokensConfig,
 } from './lib/editor/TLShapeStyles'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { maybeSnapToGrid } from './lib/editor/tools/BaseBoxShapeTool/children/Pointing'

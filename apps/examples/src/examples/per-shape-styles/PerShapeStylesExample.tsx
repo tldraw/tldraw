@@ -1,12 +1,20 @@
-import { GeoShapeUtil, Tldraw, createShapeId, toRichText } from 'tldraw'
+import { TLStylesConfig, Tldraw, createShapeId, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
 // [1]
-const shapeUtils = [
-	GeoShapeUtil.configure({
-		styles: {
+const styles: TLStylesConfig = {
+	// Global defaults for all shapes.
+	sizes: {
+		s: { stroke: 1, font: 14, labelFont: 14, arrowLabelFont: 14 },
+		m: { stroke: 2, font: 16, labelFont: 16, arrowLabelFont: 16 },
+		l: { stroke: 4, font: 20, labelFont: 20, arrowLabelFont: 20 },
+		xl: { stroke: 8, font: 24, labelFont: 24, arrowLabelFont: 24 },
+	},
+	// Shape-specific overrides now live under `styles.shapes`.
+	shapes: {
+		geo: {
 			sizes: {
 				s: { stroke: 1, labelFont: 14 },
 				m: { stroke: 3, labelFont: 18 },
@@ -14,14 +22,14 @@ const shapeUtils = [
 				xl: { stroke: 12, labelFont: 32 },
 			},
 		},
-	}),
-]
+	},
+}
 
 export default function PerShapeStylesExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				shapeUtils={shapeUtils}
+				styles={styles}
 				onMount={(editor) => {
 					// [2]
 					const sizes = ['s', 'm', 'l', 'xl'] as const
@@ -65,10 +73,9 @@ export default function PerShapeStylesExample() {
 
 /*
 [1]
-Use GeoShapeUtil.configure() to override style tokens just for geo shapes.
-The `styles` property uses the same format as the global `styles` prop on <Tldraw>.
-Here we make geo shapes use different stroke widths and label font sizes than
-the global defaults. Other shape types (draw, arrow, text, etc.) are unaffected.
+Set global token defaults at the top level (`sizes`) and put shape-specific
+overrides under `styles.shapes`. Here, geo shapes override their size tokens,
+while text shapes still use the global values.
 
 [2]
 Create geo shapes and text shapes at each size to compare. The geo shapes

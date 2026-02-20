@@ -2473,7 +2473,7 @@ export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;
 export function MenuClickCapture(): false | JSX.Element;
 
 // @public
-export function mergeStylesIntoContext(ctx: TLStyleContext, config: TLStylesConfig): TLStyleContext;
+export function mergeStylesIntoContext(ctx: TLStyleContext, config: TLStyleTokensConfig): TLStyleContext;
 
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
@@ -4527,7 +4527,12 @@ export interface TLStylesColorDefinition {
 }
 
 // @public
-export interface TLStylesConfig {
+export interface TLStylesConfig extends TLStyleTokensConfig {
+    shapes?: Record<string, TLStyleTokensConfig>;
+}
+
+// @public
+export interface TLStyleTokensConfig {
     colors?: Record<string, null | Partial<TLStylesColorDefinition>>;
     fonts?: Record<string, null | string>;
     sizes?: Record<string, null | Partial<TLSizeTokenDefinition>>;

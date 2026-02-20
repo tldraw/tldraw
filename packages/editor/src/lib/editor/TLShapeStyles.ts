@@ -75,11 +75,11 @@ export interface TLStyleContext {
 }
 
 /**
- * Configuration for customizing the style system. Passed as the `styles` prop on `<Tldraw>`.
+ * Token overrides for color, size, and font style systems.
  *
  * @public
  */
-export interface TLStylesConfig {
+export interface TLStyleTokensConfig {
 	/**
 	 * Override, add, or remove color tokens.
 	 * Set a color to `null` to remove it from the palette.
@@ -96,6 +96,19 @@ export interface TLStylesConfig {
 	 * Set a font to `null` to remove it from the font palette.
 	 */
 	fonts?: Record<string, string | null>
+}
+
+/**
+ * Configuration for customizing the style system. Passed as the `styles` prop on `<Tldraw>`.
+ *
+ * @public
+ */
+export interface TLStylesConfig extends TLStyleTokensConfig {
+	/**
+	 * Per-shape token overrides. These are merged onto the global token config
+	 * when resolving styles for a shape of the matching type.
+	 */
+	shapes?: Record<string, TLStyleTokensConfig>
 }
 
 /**
@@ -133,7 +146,7 @@ const STYLE_CONFIG_PROPS: Record<string, EnumStyleProp<any>[]> = {
  */
 export function mergeStylesIntoContext(
 	ctx: TLStyleContext,
-	config: TLStylesConfig
+	config: TLStyleTokensConfig
 ): TLStyleContext {
 	let { theme, sizes, fonts } = ctx
 
@@ -184,21 +197,39 @@ export function mergeStylesIntoContext(
  */
 export function extendStyleValidators(stylesConfig: TLStylesConfig | undefined) {
 	if (!stylesConfig) return
+	const shapeConfigs = Object.values(stylesConfig.shapes ?? {})
+
 	for (const [configKey, props] of Object.entries(STYLE_CONFIG_PROPS)) {
-		const config = (stylesConfig as any)[configKey] as Record<string, unknown> | undefined
-		if (!config) continue
-		const added: string[] = []
-		const removed: string[] = []
-		for (const [name, def] of Object.entries(config)) {
-			if (def === null) {
-				removed.push(name)
-			} else if (!props[0]._valuesSet.has(name as any)) {
-				added.push(name)
+		const globalConfig = (stylesConfig as any)[configKey] as Record<string, unknown> | undefined
+		const added = new Set<string>()
+		const removed = new Set<string>()
+
+		if (globalConfig) {
+			for (const [name, def] of Object.entries(globalConfig)) {
+				if (def === null) {
+					removed.add(name)
+				} else if (!props[0]._valuesSet.has(name as any)) {
+					added.add(name)
+				}
 			}
 		}
+
+		for (const shapeConfig of shapeConfigs) {
+			const config = (shapeConfig as any)[configKey] as Record<string, unknown> | undefined
+			if (!config) continue
+			for (const [name, def] of Object.entries(config)) {
+				if (def !== null && !props[0]._valuesSet.has(name as any)) {
+					added.add(name)
+				}
+			}
+		}
+
+		const addedValues = [...added]
+		const removedValues = [...removed].filter((name) => !added.has(name))
+
 		for (const prop of props) {
-			if (added.length) prop.addValues(added as any)
-			if (removed.length) prop.removeValues(removed as any)
+			if (addedValues.length) prop.addValues(addedValues as any)
+			if (removedValues.length) prop.removeValues(removedValues as any)
 		}
 	}
 }

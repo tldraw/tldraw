@@ -15,7 +15,6 @@ import {
 	TLShape,
 	TLShapeId,
 	TLStyleContext,
-	TLStylesConfig,
 	Vec,
 	WeakCache,
 	exhaustiveSwitchError,
@@ -23,7 +22,6 @@ import {
 	getFontsFromRichText,
 	isEqual,
 	lerp,
-	mergeStylesIntoContext,
 	noteShapeMigrations,
 	noteShapeProps,
 	resizeScaled,
@@ -61,8 +59,6 @@ export interface NoteShapeOptions {
 	 * but you can set it to be user-resizable using scale.
 	 */
 	resizeMode: 'none' | 'scale'
-	/** Per-shape style overrides. Same format as the global `styles` prop on `<Tldraw>`. */
-	styles?: TLStylesConfig
 }
 
 /** @public */
@@ -118,7 +114,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override getDefaultStyles(shape: TLNoteShape, ctx: TLStyleContext): TLNoteShapeResolvedStyles {
-		if (this.options.styles) ctx = mergeStylesIntoContext(ctx, this.options.styles)
 		const labelColor =
 			shape.props.labelColor === 'black'
 				? getColorValue(ctx.theme, shape.props.color, 'noteText')
