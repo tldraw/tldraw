@@ -104,9 +104,11 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 
 	const container = useContainer()
 	const dir = useDirection()
+	const locale = useValue('locale', () => editor.user.getLocale(), [editor])
 	useEffect(() => {
 		container.dir = dir
-	}, [container, dir])
+		container.lang = locale
+	}, [container, dir, locale])
 
 	const {
 		SharePanel,
