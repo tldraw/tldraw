@@ -140,6 +140,7 @@ import { TLShape } from '@tldraw/editor';
 import { TLShapeCrop } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
 import { TLShapePartial } from '@tldraw/editor';
+import { TLShapeStylesConfig } from '@tldraw/editor';
 import { TLShapeUtilCanBeLaidOutOpts } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
@@ -148,7 +149,6 @@ import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLStyleContext } from '@tldraw/editor';
-import { TLStylesConfig } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
@@ -243,7 +243,6 @@ export interface ArrowShapeOptions {
     shouldBeExact(editor: Editor, isPrecise: boolean): boolean;
     shouldIgnoreTargets(editor: Editor): boolean;
     readonly showTextOutline: boolean;
-    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -1156,7 +1155,6 @@ export interface DrawPathBuilderOpts extends BasePathBuilderOpts, DrawPathBuilde
 // @public (undocumented)
 export interface DrawShapeOptions {
     readonly maxPointsPerShape: number;
-    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -1556,7 +1554,6 @@ export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 export interface FrameShapeOptions {
     resizeChildren: boolean;
     showColors: boolean;
-    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -1649,7 +1646,6 @@ export function FrameToolbarItem(): JSX.Element;
 // @public (undocumented)
 export interface GeoShapeOptions {
     showTextOutline: boolean;
-    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -1915,7 +1911,6 @@ export interface HighlightShapeOptions {
     readonly maxPointsPerShape: number;
     // (undocumented)
     readonly overlayOpacity: number;
-    styles?: TLStylesConfig;
     // (undocumented)
     readonly underlayOpacity: number;
 }
@@ -2064,11 +2059,6 @@ export class LaserTool extends StateNode {
 export function LaserToolbarItem(): JSX.Element;
 
 // @public (undocumented)
-export interface LineShapeOptions {
-    styles?: TLStylesConfig;
-}
-
-// @public (undocumented)
 export class LineShapeTool extends StateNode {
     // (undocumented)
     static children(): TLStateNodeConstructor[];
@@ -2186,7 +2176,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         };
     };
     // (undocumented)
-    options: LineShapeOptions;
+    options: {};
     // (undocumented)
     static props: RecordProps<TLLineShape>;
     // (undocumented)
@@ -2231,7 +2221,6 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
 // @public (undocumented)
 export interface NoteShapeOptions {
     resizeMode: 'none' | 'scale';
-    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -3086,7 +3075,6 @@ export interface TextAreaProps {
 export interface TextShapeOptions {
     extraArrowHorizontalPadding: number;
     showTextOutline: boolean;
-    styles?: TLStylesConfig;
 }
 
 // @public (undocumented)
@@ -3327,7 +3315,7 @@ export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, T
     assetUrls?: TLUiAssetUrlOverrides;
     components?: TLComponents;
     embeds?: TLEmbedDefinition[];
-    styles?: TLStylesConfig;
+    shapeStyles?: TLShapeStylesConfig;
     // @deprecated
     textOptions?: TLTextOptions;
 }
@@ -3389,9 +3377,9 @@ export interface TldrawImageProps extends TLImageExportOptions {
     licenseKey?: string;
     options?: Partial<TldrawOptions>;
     pageId?: TLPageId;
+    shapeStyles?: TLShapeStylesConfig;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot;
-    styles?: TLStylesConfig;
     // @deprecated
     textOptions?: TLTextOptions;
 }

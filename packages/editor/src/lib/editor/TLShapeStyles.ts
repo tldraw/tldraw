@@ -99,6 +99,20 @@ export interface TLStylesConfig {
 }
 
 /**
+ * Extended style configuration that also supports per-shape overrides.
+ * Passed as the `shapeStyles` prop on `<Tldraw>`.
+ *
+ * @public
+ */
+export interface TLShapeStylesConfig extends TLStylesConfig {
+	/**
+	 * Per-shape style overrides, keyed by shape type.
+	 * Each entry uses the same format as the top-level config.
+	 */
+	shapes?: Record<string, TLStylesConfig>
+}
+
+/**
  * Color definition for light and dark mode. Each mode contains the color variants.
  *
  * @public
@@ -182,7 +196,7 @@ export function mergeStylesIntoContext(
  *
  * @internal
  */
-export function extendStyleValidators(stylesConfig: TLStylesConfig | undefined) {
+export function extendStyleValidators(stylesConfig: TLShapeStylesConfig | undefined) {
 	if (!stylesConfig) return
 	for (const [configKey, props] of Object.entries(STYLE_CONFIG_PROPS)) {
 		const config = (stylesConfig as any)[configKey] as Record<string, unknown> | undefined

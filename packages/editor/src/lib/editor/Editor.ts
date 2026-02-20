@@ -142,9 +142,10 @@ import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rot
 import {
 	TLGetShapeStyleOverrides,
 	TLResolvedStyles,
+	TLShapeStylesConfig,
 	TLStyleContext,
-	TLStylesConfig,
 	extendStyleValidators,
+	mergeStylesIntoContext,
 } from './TLShapeStyles'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
@@ -286,7 +287,7 @@ export interface TLEditorOptions {
 	/**
 	 * Style configuration for customizing color and size tokens.
 	 */
-	stylesConfig?: TLStylesConfig
+	shapeStyles?: TLShapeStylesConfig
 }
 
 /**
@@ -337,18 +338,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		getShapeVisibility,
 		fontAssetUrls,
 		getShapeStyleOverrides,
-		stylesConfig,
+		shapeStyles,
 	}: TLEditorOptions) {
 		super()
 
 		this._getShapeVisibility = getShapeVisibility
 		this._getShapeStyleOverrides = getShapeStyleOverrides
-		this._stylesConfig = stylesConfig
+		this._shapeStyles = shapeStyles
 
 		// Extend runtime validators for custom style tokens. This is also
 		// done earlier in TldrawEditor (before the store loads), but we
 		// repeat it here so direct Editor usage without TldrawEditor works.
-		extendStyleValidators(stylesConfig)
+		extendStyleValidators(shapeStyles)
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop
@@ -858,7 +859,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private readonly _getShapeStyleOverrides?: TLGetShapeStyleOverrides
-	private readonly _stylesConfig?: TLStylesConfig
+	private readonly _shapeStyles?: TLShapeStylesConfig
 
 	/**
 	 * Get the style context containing resolved theme and size tokens.
@@ -872,9 +873,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Merge custom color tokens into theme
 		let theme = baseTheme
-		if (this._stylesConfig?.colors) {
+		if (this._shapeStyles?.colors) {
 			const themeColors: Record<string, any> = {}
-			for (const [name, def] of Object.entries(this._stylesConfig.colors)) {
+			for (const [name, def] of Object.entries(this._shapeStyles.colors)) {
 				if (def === null) continue // removed tokens - skip
 				const modeKey = isDarkMode ? 'dark' : 'light'
 				const baseColor = (baseTheme as any)[name]
@@ -885,8 +886,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Merge custom size tokens with defaults
 		const sizes: Record<string, TLSizeTokenDefinition> = { ...defaultSizeTokens }
-		if (this._stylesConfig?.sizes) {
-			for (const [name, def] of Object.entries(this._stylesConfig.sizes)) {
+		if (this._shapeStyles?.sizes) {
+			for (const [name, def] of Object.entries(this._shapeStyles.sizes)) {
 				if (def === null) {
 					delete sizes[name]
 				} else {
@@ -897,8 +898,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Merge custom font tokens with defaults
 		const fonts: Record<string, string> = { ...DEFAULT_FONT_TOKENS }
-		if (this._stylesConfig?.fonts) {
-			for (const [name, def] of Object.entries(this._stylesConfig.fonts)) {
+		if (this._shapeStyles?.fonts) {
+			for (const [name, def] of Object.entries(this._shapeStyles.fonts)) {
 				if (def === null) {
 					delete fonts[name]
 				} else {
@@ -921,7 +922,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapeStyles<T extends TLShape>(shape: T): TLResolvedStyles<T> {
 		const util = this.getShapeUtil(shape)
-		const ctx = this.getStyleContext()
+		let ctx = this.getStyleContext()
+		const perShapeConfig = this._shapeStyles?.shapes?.[shape.type]
+		if (perShapeConfig) ctx = mergeStylesIntoContext(ctx, perShapeConfig)
 		let styles: object = util.getDefaultStyles(shape, ctx) ?? {}
 
 		if (this._getShapeStyleOverrides) {

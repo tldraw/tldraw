@@ -4,9 +4,7 @@ import {
 	DefaultHorizontalAlignStyle,
 	DefaultSizeStyle,
 	DefaultVerticalAlignStyle,
-	FONT_FAMILIES,
 	Geometry2d,
-	LABEL_FONT_SIZES,
 	PlainTextLabel,
 	Polygon2d,
 	RecordPropsType,
@@ -17,6 +15,7 @@ import {
 	TLHandleDragInfo,
 	TLResizeInfo,
 	TLShape,
+	TLStyleContext,
 	Vec,
 	ZERO_INDEX_KEY,
 	getColorValue,
@@ -79,6 +78,16 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 	override canEdit() {
 		return true
+	}
+
+	override getDefaultStyles(
+		shape: SpeechBubbleShape,
+		ctx: TLStyleContext
+	): SpeechBubbleResolvedStyles {
+		return {
+			labelFontSize: ctx.sizes[shape.props.size].labelFont,
+			fontFamily: ctx.fonts[shape.props.font],
+		}
 	}
 
 	// [4]
@@ -189,6 +198,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const vertices = getSpeechBubbleVertices(shape)
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		const styles = this.editor.getShapeStyles(shape)
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 
@@ -207,7 +217,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					type={type}
 					font={font}
 					textWidth={shape.props.w}
-					fontSize={LABEL_FONT_SIZES[size]}
+					fontSize={styles.labelFontSize}
 					lineHeight={TEXT_PROPS.lineHeight}
 					align={align}
 					verticalAlign="start"
@@ -239,10 +249,11 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	getGrowY(shape: SpeechBubbleShape, prevGrowY = 0) {
 		const PADDING = 17
 
+		const styles = this.editor.getShapeStyles(shape)
 		const nextTextSize = this.editor.textMeasure.measureText(shape.props.text, {
 			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontSize: LABEL_FONT_SIZES[shape.props.size],
+			fontFamily: styles.fontFamily,
+			fontSize: styles.labelFontSize,
 			maxWidth: shape.props.w - PADDING * 2,
 		})
 
@@ -265,6 +276,17 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 				growY,
 			},
 		}
+	}
+}
+
+interface SpeechBubbleResolvedStyles {
+	labelFontSize: number
+	fontFamily: string
+}
+
+declare module 'tldraw' {
+	interface TLShapeStylesMap {
+		[SPEECH_BUBBLE_TYPE]: SpeechBubbleResolvedStyles
 	}
 }
 

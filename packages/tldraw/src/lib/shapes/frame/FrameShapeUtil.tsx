@@ -17,14 +17,12 @@ import {
 	TLShapePartial,
 	TLShapeUtilConstructor,
 	TLStyleContext,
-	TLStylesConfig,
 	clamp,
 	compact,
 	frameShapeMigrations,
 	frameShapeProps,
 	getColorValue,
 	lerp,
-	mergeStylesIntoContext,
 	resizeBox,
 	toDomPrecision,
 	useValue,
@@ -59,8 +57,6 @@ export interface FrameShapeOptions {
 	 * When true, the frame will resize its children when the frame itself is resized.
 	 */
 	resizeChildren: boolean
-	/** Per-shape style overrides. Same format as the global `styles` prop on `<Tldraw>`. */
-	styles?: TLStylesConfig
 }
 
 export function defaultEmptyAs(str: string, dflt: string) {
@@ -118,7 +114,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override getDefaultStyles(shape: TLFrameShape, ctx: TLStyleContext): TLFrameShapeResolvedStyles {
-		if (this.options.styles) ctx = mergeStylesIntoContext(ctx, this.options.styles)
 		const showColors = this.options.showColors
 		const colorToUse = showColors ? shape.props.color : 'black'
 		return {

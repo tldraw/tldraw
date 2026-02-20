@@ -200,6 +200,7 @@ export {
 	type Themeable,
 	type TLGetShapeStyleOverrides,
 	type TLResolvedStyles,
+	type TLShapeStylesConfig,
 	type TLShapeStylesMap,
 	type TLStyleContext,
 	type TLStylesColorDefinition,

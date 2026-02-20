@@ -38,7 +38,7 @@ export interface TLStoreBaseOptions {
 	 * Must be provided here (not just on Editor) so that persisted data
 	 * with custom tokens can be validated when the store loads.
 	 */
-	stylesConfig?: import('../editor/TLShapeStyles').TLStylesConfig
+	shapeStyles?: import('../editor/TLShapeStyles').TLShapeStylesConfig
 }
 
 /** @public */
@@ -114,12 +114,12 @@ export function createTLStore({
 	assets = inlineBase64AssetStore,
 	onMount,
 	collaboration,
-	stylesConfig,
+	shapeStyles,
 	...rest
 }: TLStoreOptions = {}): TLStore {
 	// Extend runtime validators before creating the store so that
 	// persisted data with custom tokens can be loaded without errors.
-	extendStyleValidators(stylesConfig)
+	extendStyleValidators(shapeStyles)
 
 	const schema = createTLSchemaFromUtils(rest)
 

@@ -3,7 +3,7 @@ import {
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	TLEditorComponents,
 	TLOnMountHandler,
-	TLStylesConfig,
+	TLShapeStylesConfig,
 	TLTextOptions,
 	TldrawEditor,
 	TldrawEditorBaseProps,
@@ -100,27 +100,28 @@ export interface TldrawBaseProps
 	textOptions?: TLTextOptions
 	/**
 	 * Customize the style system by overriding, adding, or removing color, size, and font tokens.
+	 * Use the `shapes` key for per-shape-type overrides.
 	 *
 	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
 	 *
 	 * @example
 	 * ```tsx
 	 * <Tldraw
-	 *   styles={{
+	 *   shapeStyles={{
 	 *     colors: {
 	 *       'coral': { light: { solid: '#ff6b6b' }, dark: { solid: '#ff8787' } },
 	 *     },
 	 *     sizes: {
 	 *       'm': { stroke: 5, font: 30, labelFont: 28, arrowLabelFont: 24 },
 	 *     },
-	 *     fonts: {
-	 *       'comic': "'Comic Sans MS', cursive",
+	 *     shapes: {
+	 *       geo: { sizes: { s: { stroke: 1 } } },
 	 *     },
 	 *   }}
 	 * />
 	 * ```
 	 */
-	styles?: TLStylesConfig
+	shapeStyles?: TLShapeStylesConfig
 }
 
 /** @public */
@@ -143,7 +144,7 @@ export function Tldraw(props: TldrawProps) {
 		tools = [],
 		embeds,
 		options,
-		styles,
+		shapeStyles,
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
@@ -257,7 +258,7 @@ export function Tldraw(props: TldrawProps) {
 					tools={toolsWithDefaults}
 					options={optionsWithDefaults}
 					assetUrls={assets}
-					stylesConfig={styles}
+					shapeStyles={shapeStyles}
 				>
 					<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
 						<InsideOfEditorAndUiContext
