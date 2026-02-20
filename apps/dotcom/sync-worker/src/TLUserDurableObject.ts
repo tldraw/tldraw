@@ -243,14 +243,21 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	// partially-assembled chunks from before hibernation would be stale anyway)
 	private readonly assemblers = new Map<WebSocket, JsonChunkAssembler>()
 
-	private makeCrud(client: PostgresPoolClient, signal: AbortSignal, changeAccumulator: ChangeAccumulator) {
+	private makeCrud(
+		client: PostgresPoolClient,
+		signal: AbortSignal,
+		changeAccumulator: ChangeAccumulator
+	) {
 		return mapObjectMapValues(
 			schema.tables,
 			(_, table) => new ServerCRUD(client, table, signal, changeAccumulator)
 		) as { [K in keyof TlaSchema['tables']]: TableMutator<TlaSchema['tables'][K] & TableSchema> }
 	}
 
-	private async executeServerQuery(client: PostgresPoolClient, ast: AST): Promise<unknown[] | unknown> {
+	private async executeServerQuery(
+		client: PostgresPoolClient,
+		ast: AST
+	): Promise<unknown[] | unknown> {
 		const table = ast.table
 		if (!(table in schema.tables)) {
 			throw new Error(`Unknown table: ${table}`)
