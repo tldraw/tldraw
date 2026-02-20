@@ -124,17 +124,17 @@ it('Gets pasted shapes correctly', () => {
 
 	shapes = getShapes()
 
-	// The pasted frame (at 0,0) overlaps frame2's edge (at 0,100),
-	// so it gets reparented into frame2 and appears in sorted order after it.
+	// The pasted frame (at 0,0) merely touches frame2's edge (at 0,100),
+	// so it stays at the page level rather than being reparented.
 	expect(editor.getCurrentPageShapesSorted().map((m) => m.id)).toStrictEqual([
 		shapes.old.frame1.id,
 		shapes.old.frame2.id,
-		shapes.new.frame1.id,
 		shapes.old.frame3.id,
 		shapes.old.frame4.id,
 		shapes.old.box1.id,
 		shapes.old.box2.id,
 		shapes.old.box3.id,
+		shapes.new.frame1.id,
 		shapes.new.box1.id,
 		shapes.new.box2.id,
 		shapes.new.box3.id,
