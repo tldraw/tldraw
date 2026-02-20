@@ -36,7 +36,7 @@
 		"@tldraw/sync-core": "workspace:*",
 		"@vitejs/plugin-react-swc": "^3.10.2",
 		"better-sqlite3": "^11.8.1",
-		"fastify": "^4.28.1",
+		"fastify": "^5.7.4",
 		"itty-router": "^5.0.18",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
