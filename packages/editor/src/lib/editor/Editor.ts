@@ -447,6 +447,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (prevPageState.editingShapeId && shapesNoLongerInPage.has(prevPageState.editingShapeId)) {
 				if (!nextPageState) nextPageState = { ...prevPageState }
 				nextPageState.editingShapeId = null
+				this._currentRichTextEditor.set(null)
 			}
 
 			const hintingShapeIds = prevPageState.hintingShapeIds.filter(
