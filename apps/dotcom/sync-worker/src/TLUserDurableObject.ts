@@ -87,7 +87,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
-
 		this.sentry = createSentry(ctx, env)
 
 		this.log = new Logger(env, 'TLUserDurableObject', this.sentry)

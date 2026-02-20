@@ -42,7 +42,7 @@
 		"react-dom": "^19.2.1",
 		"react-markdown": "^10.1.0",
 		"tldraw": "workspace:*",
-		"wrangler": "^4.37.1",
+		"wrangler": "^4.67.0",
 		"zod": "^4.1.8"
 	},
 	"devDependencies": {

@@ -46,6 +46,7 @@ deleted_classes = ["TLAppDurableObject"]
 tag = "v9"
 new_sqlite_classes = ["TLFileDurableObject"]
 
+
 [[analytics_engine_datasets]]
 binding = "MEASURE"
 

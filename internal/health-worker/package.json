@@ -18,6 +18,6 @@
 		"discord-api-types": "^0.37.118",
 		"esbuild": "^0.25.6",
 		"typescript": "^5.8.3",
-		"wrangler": "^4.37.1"
+		"wrangler": "^4.67.0"
 	}
 }

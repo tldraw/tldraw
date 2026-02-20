@@ -48,6 +48,6 @@
 		"concurrently": "^9.1.2",
 		"typescript": "^5.8.3",
 		"vite": "^7.0.1",
-		"wrangler": "^4.37.1"
+		"wrangler": "^4.67.0"
 	}
 }
