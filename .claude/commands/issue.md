@@ -152,7 +152,6 @@ After creating the issue and sharing the link, do a thorough investigation:
 - Look for similar patterns, past fixes, or related issues
 - Understand the architecture and data flow
 - Consider edge cases and potential side effects
-- Brainstorm possible solutions with tradeoffs
 
 ### Step 5: Comment on the issue with findings
 
@@ -167,7 +166,6 @@ The comment should include:
 - **Relevant files**: List specific files and line numbers
 - **Root cause analysis**: What's causing the issue (for bugs)
 - **Architecture context**: How the affected system works
-- **Potential solutions**: 2-3 approaches with tradeoffs
 - **Related code**: Links to relevant functions, types, or patterns
 - **Considerations**: Edge cases, breaking changes, testing needs
 
