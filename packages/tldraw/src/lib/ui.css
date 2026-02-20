@@ -978,7 +978,9 @@
 		opacity: 1;
 	}
 
-	.tl-container[dir='rtl'] .tlui-page_menu__item__submenu > .tlui-button[data-state='open']:not(:hover)::after {
+	.tl-container[dir='rtl']
+		.tlui-page_menu__item__submenu
+		> .tlui-button[data-state='open']:not(:hover)::after {
 		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 	}
 }
