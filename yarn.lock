@@ -7868,9 +7868,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:0.25.12":
-  version: 0.25.12
-  resolution: "@rocicorp/zero@npm:0.25.12"
+"@rocicorp/zero@npm:0.25.13-canary.9":
+  version: 0.25.13-canary.9
+  resolution: "@rocicorp/zero@npm:0.25.13-canary.9"
   dependencies:
     "@badrap/valita": "npm:0.3.11"
     "@databases/escape-identifier": "npm:^1.0.3"
@@ -7938,7 +7938,7 @@ __metadata:
     zero-cache-dev: out/zero/src/zero-cache-dev.js
     zero-deploy-permissions: out/zero/src/deploy-permissions.js
     zero-out: out/zero/src/zero-out.js
-  checksum: 10/817a362bf4eea132c9e3479a136660313342d734f5da7469cc75153cfa628262e447f35b3fad63e118b53421e396f04fea917f29992ac2f363b71aa4525bcbf4
+  checksum: 10/9fbebe49a196ab69df302e3b9299c1e815fdecbb6a4bc1f07f00ce52626ee3628f3b503147f53cc211741cb6802ddab5e95a7f912a404d3a1c489845335119fe
   languageName: node
   linkType: hard
 
@@ -10199,7 +10199,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
-    "@rocicorp/zero": "npm:0.25.12"
+    "@rocicorp/zero": "npm:0.25.13-canary.9"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -10223,7 +10223,7 @@ __metadata:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20250913.0"
     "@pierre/storage": "npm:^0.1.1"
-    "@rocicorp/zero": "npm:0.25.12"
+    "@rocicorp/zero": "npm:0.25.13-canary.9"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
@@ -10657,7 +10657,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:0.25.12"
+    "@rocicorp/zero": "npm:0.25.13-canary.9"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     esbuild: "npm:^0.25.6"
@@ -15785,7 +15785,7 @@ __metadata:
     "@clerk/testing": "npm:^1.4.15"
     "@formatjs/cli": "npm:^6.5.1"
     "@playwright/test": "npm:^1.58.2"
-    "@rocicorp/zero": "npm:0.25.12"
+    "@rocicorp/zero": "npm:0.25.13-canary.9"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
