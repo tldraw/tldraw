@@ -70,6 +70,10 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 			handleComplete()
 		}
 		document.addEventListener('pointerdown', handlePointerDown, { capture: true })
+
+		return () => {
+			document.removeEventListener('pointerdown', handlePointerDown, { capture: true })
+		}
 	}, [handleComplete])
 
 	return (
