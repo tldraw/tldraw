@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { TLStylesConfig, Tldraw, createShapeId, toRichText } from 'tldraw'
+import { TLShapeStylesConfig, Tldraw, createShapeId, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // [1]
@@ -11,7 +11,7 @@ declare module '@tldraw/tlschema' {
 }
 
 // [2]
-const styles: TLStylesConfig = {
+const shapeStyles: TLShapeStylesConfig = {
 	colors: {
 		coral: {
 			light: {
@@ -76,7 +76,7 @@ export default function CustomStylesExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				styles={styles}
+				shapeStyles={shapeStyles}
 				onMount={(editor) => {
 					// [6]
 					const customColors = ['coral', 'forest'] as const

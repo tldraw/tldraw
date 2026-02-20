@@ -516,7 +516,7 @@ export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | 
 export function createTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, assets, onMount, collaboration, stylesConfig, ...rest }?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, assets, onMount, collaboration, shapeStyles, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function createTLUser(opts?: {
@@ -821,7 +821,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls, getShapeStyleOverrides, stylesConfig, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls, getShapeStyleOverrides, shapeStyles, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -3452,8 +3452,8 @@ export interface TldrawEditorBaseProps {
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
+    shapeStyles?: TLShapeStylesConfig;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
-    stylesConfig?: TLStylesConfig;
     // @deprecated
     textOptions?: TLTextOptions;
     tools?: readonly TLStateNodeConstructor[];
@@ -3675,9 +3675,9 @@ export interface TLEditorOptions {
     licenseKey?: string;
     // (undocumented)
     options?: Partial<TldrawOptions>;
+    shapeStyles?: TLShapeStylesConfig;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
-    stylesConfig?: TLStylesConfig;
     // @deprecated
     textOptions?: TLTextOptions;
     tools: readonly TLStateNodeConstructor[];
@@ -4378,6 +4378,11 @@ export interface TLShapeIndicatorsProps {
 }
 
 // @public
+export interface TLShapeStylesConfig extends TLStylesConfig {
+    shapes?: Record<string, TLStylesConfig>;
+}
+
+// @public
 export interface TLShapeStylesMap {
 }
 
@@ -4461,8 +4466,8 @@ export interface TLStoreBaseOptions {
     defaultName?: string;
     initialData?: SerializedStore<TLRecord>;
     onMount?(editor: Editor): (() => void) | void;
+    shapeStyles?: TLShapeStylesConfig;
     snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
-    stylesConfig?: TLStylesConfig;
 }
 
 // @public (undocumented)

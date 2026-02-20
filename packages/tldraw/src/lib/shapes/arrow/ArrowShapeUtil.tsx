@@ -38,7 +38,6 @@ import {
 	lerp,
 	mapObjectMapValues,
 	maybeSnapToGrid,
-	mergeStylesIntoContext,
 	structuredClone,
 	toDomPrecision,
 	toRichText,
@@ -192,7 +191,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override getDefaultStyles(shape: TLArrowShape, ctx: TLStyleContext): TLArrowShapeResolvedStyles {
-		if (this.options.styles) ctx = mergeStylesIntoContext(ctx, this.options.styles)
 		return {
 			strokeWidth: ctx.sizes[shape.props.size].stroke,
 			strokeColor: getColorValue(ctx.theme, shape.props.color, 'solid'),

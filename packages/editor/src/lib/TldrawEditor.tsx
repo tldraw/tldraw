@@ -230,7 +230,7 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * Style configuration for customizing color and size tokens.
 	 */
-	stylesConfig?: import('./editor/TLShapeStyles').TLStylesConfig
+	shapeStyles?: import('./editor/TLShapeStyles').TLShapeStylesConfig
 }
 
 /**
@@ -357,7 +357,7 @@ function TldrawEditorWithOwnStore(
 		user,
 		assets,
 		migrations,
-		stylesConfig,
+		shapeStyles,
 	} = props
 
 	const syncedStore = useLocalStore({
@@ -370,7 +370,7 @@ function TldrawEditorWithOwnStore(
 		snapshot,
 		assets,
 		migrations,
-		stylesConfig,
+		shapeStyles,
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />
@@ -439,7 +439,7 @@ function TldrawEditorWithReadyStore({
 	getShapeVisibility,
 	assetUrls,
 	getShapeStyleOverrides,
-	stylesConfig,
+	shapeStyles,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -500,7 +500,7 @@ function TldrawEditorWithReadyStore({
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
 				getShapeStyleOverrides,
-				stylesConfig,
+				shapeStyles,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -537,7 +537,7 @@ function TldrawEditorWithReadyStore({
 			getShapeVisibility,
 			assetUrls,
 			getShapeStyleOverrides,
-			stylesConfig,
+			shapeStyles,
 		]
 	)
 
