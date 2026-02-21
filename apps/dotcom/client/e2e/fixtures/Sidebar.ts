@@ -225,6 +225,14 @@ export class Sidebar {
 		return await this.page.evaluate(() => navigator.clipboard.readText())
 	}
 
+	@step
+	async copyFileLinkByName(name: string): Promise<string> {
+		const fileLink = this.getFileByName(name)
+		await this.openFileMenu(fileLink)
+		await this.copyFileLinkFromFileMenu()
+		return await this.page.evaluate(() => navigator.clipboard.readText())
+	}
+
 	async getAfterElementStyle(element: Locator, property: string): Promise<string> {
 		return element.evaluate((el, property) => {
 			return window.getComputedStyle(el, '::after').getPropertyValue(property)
