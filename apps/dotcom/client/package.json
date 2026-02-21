@@ -44,7 +44,7 @@
 		"browser-fs-access": "^0.35.0",
 		"classnames": "^2.5.1",
 		"idb": "^7.1.1",
-		"intl-messageformat": "^10.7.14",
+		"intl-messageformat": "^11.1.2",
 		"lodash.pick": "^4.4.0",
 		"posthog-js": "^1.281.0",
 		"qrcode": "^1.5.4",
