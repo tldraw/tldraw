@@ -149,7 +149,16 @@ export class Erasing extends StateNode {
 			}
 
 			if (geometry.hitTestLineSegment(A, B, minDist)) {
-				erasing.add(editor.getOutermostSelectableShape(shape).id)
+				const outermost = editor.getOutermostSelectableShape(shape)
+				if (excludedShapeIds.has(outermost.id)) {
+					// If the outermost shape is excluded (e.g. we started erasing inside a group),
+					// resolve to the deepest non-excluded ancestor so we erase the child shape instead
+					erasing.add(
+						editor.getOutermostSelectableShape(shape, (s) => !excludedShapeIds.has(s.id)).id
+					)
+				} else {
+					erasing.add(outermost.id)
+				}
 			}
 
 			this._erasingShapeIds = [...erasing]
