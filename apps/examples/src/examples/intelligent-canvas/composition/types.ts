@@ -41,6 +41,23 @@ export interface PairSuggestion {
 	depthPenalty: number
 	finalScore: number
 	pairKey: string
+	bridge?: string
+}
+
+export interface GroupSuggestion {
+	members: IdeaNode[]
+	arity: number
+	groupKey: string
+	spreadScore: number
+	meshScore: number
+	depthPenalty: number
+	finalScore: number
+	source: 'beam' | 'random' | 'exhaustive'
+}
+
+export interface RankedSuggestions {
+	pairs: PairSuggestion[]
+	groups: GroupSuggestion[]
 }
 
 export interface ParsedIdea {

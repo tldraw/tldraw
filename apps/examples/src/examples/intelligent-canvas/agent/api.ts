@@ -79,6 +79,61 @@ export async function generateGeminiText(
 }
 
 /**
+ * Generate text from Gemini Pro (3.1 Pro — used for composition).
+ */
+export async function generateGeminiProText(
+	systemPrompt: string,
+	userPrompt: string,
+	temperature?: number
+): Promise<string> {
+	const body: Record<string, unknown> = {
+		system_instruction: { parts: [{ text: systemPrompt }] },
+		contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+	}
+	if (temperature !== undefined) {
+		body.generationConfig = { temperature }
+	}
+	const response = await fetch('/api/gemini/pro', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(body),
+	})
+
+	if (!response.ok) {
+		const errorText = await response.text()
+		throw new Error(`Gemini Pro API error ${response.status}: ${errorText}`)
+	}
+
+	const data: GeminiResponse = await response.json()
+	return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+}
+
+/**
+ * Generate text from Gemini Flash (fast, cheap model for simple tasks).
+ */
+export async function generateGeminiFlashText(
+	systemPrompt: string,
+	userPrompt: string
+): Promise<string> {
+	const response = await fetch('/api/gemini/flash', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			system_instruction: { parts: [{ text: systemPrompt }] },
+			contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+		}),
+	})
+
+	if (!response.ok) {
+		const errorText = await response.text()
+		throw new Error(`Gemini Flash API error ${response.status}: ${errorText}`)
+	}
+
+	const data: GeminiResponse = await response.json()
+	return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+}
+
+/**
  * Generate text from Gemini with an inline image (vision request).
  */
 export async function generateGeminiVision(

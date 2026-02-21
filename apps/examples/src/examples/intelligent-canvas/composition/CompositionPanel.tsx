@@ -10,6 +10,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { useComposition } from './CompositionContext'
+import { embedIdeaNode, embedIdeaNodesBatch, hasCachedEmbeddings } from './embeddings'
 import {
 	createGroupKey,
 	createIdeaNode,
@@ -18,9 +19,13 @@ import {
 	getIdeaNodes,
 	getNextIdeaPosition,
 	isIdeaShape,
+	mdsLayout,
 } from './graph'
-import { clusterByTitles, parseCodeBlockFromText, parseIdeaFromText } from './llm'
+import { parseCodeBlockFromText, parseIdeaFromText } from './llm'
+import { rankAllSuggestions } from './scoring'
 import { IdeaNode } from './types'
+
+const MAX_PANEL_SUGGESTIONS = 12
 
 export const CompositionPanel = track(function CompositionPanel() {
 	const editor = useEditor()
@@ -59,6 +64,21 @@ export const CompositionPanel = track(function CompositionPanel() {
 			return { nodes, groupKey: createGroupKey(nodes.map((n) => n.id)) }
 		},
 		[domain, editor]
+	)
+
+	const ideaNodes = useMemo(
+		() => allIdeaNodes.filter((n) => n.domain === domain),
+		[allIdeaNodes, domain]
+	)
+
+	const { pairs: suggestions, groups } = useMemo(
+		() => rankAllSuggestions(ideaNodes, MAX_PANEL_SUGGESTIONS),
+		[ideaNodes]
+	)
+
+	const embeddedCount = useMemo(
+		() => ideaNodes.filter((n) => hasCachedEmbeddings(n.id)).length,
+		[ideaNodes]
 	)
 
 	const [ideaText, setIdeaText] = useState('')
@@ -101,7 +121,7 @@ export const CompositionPanel = track(function CompositionPanel() {
 					const parsed =
 						domain === 'code' ? await parseCodeBlockFromText(line) : await parseIdeaFromText(line)
 					const pos = getNextIdeaPosition(editor)
-					createIdeaNode(
+					const id = createIdeaNode(
 						editor,
 						{
 							domain,
@@ -117,6 +137,8 @@ export const CompositionPanel = track(function CompositionPanel() {
 						},
 						pos
 					)
+					// Fire-and-forget: embed the new idea node
+					embedIdeaNode(id, parsed).catch(() => {})
 				} catch (err) {
 					errors.push(`"${line.slice(0, 30)}…": ${err instanceof Error ? err.message : 'failed'}`)
 				} finally {
@@ -138,11 +160,14 @@ export const CompositionPanel = track(function CompositionPanel() {
 		setReorganizing(true)
 		setError(null)
 		try {
-			const clustered = await clusterByTitles(nodes)
-			const clusteredById = new Map(clustered.map((c) => [c.id, c]))
+			// Ensure embeddings are cached before layout
+			await embedIdeaNodesBatch(nodes)
+
+			const mds = mdsLayout(nodes)
+			const mdsById = mds ? new Map(mds.map((c) => [c.id, c])) : null
 
 			const seeded = nodes.map((n) => {
-				const c = clusteredById.get(n.id)
+				const c = mdsById?.get(n.id)
 				return { ...n, x: c?.x ?? n.x, y: c?.y ?? n.y }
 			})
 
@@ -279,6 +304,105 @@ export const CompositionPanel = track(function CompositionPanel() {
 								? `Compose ${selectedGroup.nodes.length} ideas`
 								: `Compose ${selectedGroup.nodes.length} logic blocks`}
 					</button>
+				</div>
+			) : null}
+
+			{suggestions.length > 0 ? (
+				<div className="ic-composition-card">
+					<div className="ic-composition-section-title">
+						Top suggestions ({suggestions.length})
+						{embeddedCount < ideaNodes.length ? (
+							<span className="ic-muted" style={{ fontWeight: 400, marginLeft: 6 }}>
+								{embeddedCount}/{ideaNodes.length} embedded
+							</span>
+						) : null}
+					</div>
+					<div className="ic-suggestions-list">
+						{suggestions.map((s) => {
+							const temp = getPriorTemperature(s.pairKey)
+							const isBusy = busyPairs.has(s.pairKey)
+							return (
+								<div key={s.pairKey} className="ic-suggestion">
+									<div className="ic-suggestion-title">
+										{s.a.title} x {s.b.title}
+									</div>
+									<div className="ic-suggestion-scores">
+										<span title="Interface (I/O connectivity)">
+											I: {s.interfaceScore.toFixed(2)}
+										</span>
+										<span title="Diversity (semantic distance)">
+											D: {s.diversityScore.toFixed(2)}
+										</span>
+										<span title="Depth penalty">P: {s.depthPenalty.toFixed(2)}</span>
+										<span className="ic-score-final" title="Weighted final score">
+											{s.finalScore.toFixed(3)}
+										</span>
+									</div>
+									{temp ? (
+										<div className="ic-suggestion-meta">
+											T: {temp.toFixed(2)} —{' '}
+											{(getPriorTemperature(s.pairKey) ?? 0) > 1.5 ? 'wild' : 'warm'}
+										</div>
+									) : null}
+									<button
+										className="ic-button ic-button-small"
+										disabled={isBusy || !agentAvailable}
+										onClick={() => handleCompose(editor, s.pairKey, [s.a.id, s.b.id])}
+									>
+										{isBusy ? 'Composing...' : 'Compose'}
+									</button>
+								</div>
+							)
+						})}
+					</div>
+				</div>
+			) : null}
+
+			{groups.length > 0 ? (
+				<div className="ic-composition-card">
+					<div className="ic-composition-section-title">
+						Multi-node combinations ({groups.length})
+					</div>
+					<div className="ic-suggestions-list">
+						{groups.map((g) => {
+							const isBusy = busyPairs.has(g.groupKey)
+							const arityLabel = g.arity === 3 ? 'Triple' : 'Quad'
+							return (
+								<div key={g.groupKey} className="ic-suggestion">
+									<div className="ic-suggestion-title">
+										{g.members.map((m) => m.title).join(' x ')}
+									</div>
+									<div className="ic-row" style={{ gap: 8 }}>
+										<span className="ic-suggestion-arity">{arityLabel}</span>
+										<span className="ic-suggestion-arity">{g.source}</span>
+									</div>
+									<div className="ic-suggestion-scores">
+										<span title="Spread (avg pairwise diversity)">
+											S: {g.spreadScore.toFixed(2)}
+										</span>
+										<span title="Mesh (avg best I/O per member)">M: {g.meshScore.toFixed(2)}</span>
+										<span title="Depth penalty">P: {g.depthPenalty.toFixed(2)}</span>
+										<span className="ic-score-final" title="Weighted final score">
+											{g.finalScore.toFixed(3)}
+										</span>
+									</div>
+									<button
+										className="ic-button ic-button-small"
+										disabled={isBusy || !agentAvailable}
+										onClick={() =>
+											handleCompose(
+												editor,
+												g.groupKey,
+												g.members.map((m) => m.id)
+											)
+										}
+									>
+										{isBusy ? 'Composing...' : `Compose ${g.arity}`}
+									</button>
+								</div>
+							)
+						})}
+					</div>
 				</div>
 			) : null}
 

@@ -163,6 +163,30 @@
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+/* ── Suggestions list in panel ────────────────────────────────── */
+
+.ic-suggestions-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	max-height: 320px;
+	overflow-y: auto;
+}
+
+.ic-suggestion-scores {
+	display: flex;
+	gap: 8px;
+	font-size: 11px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	color: #888;
+}
+
+.ic-score-final {
+	margin-left: auto;
+	font-weight: 600;
+	color: #333;
+}
+
 /* ── Compose overlay (in front of canvas) ────────────────────── */
 
 .ic-compose-overlay {
@@ -254,4 +278,14 @@
 	stroke: rgba(0, 0, 0, 0.2);
 	stroke-width: 1;
 	stroke-dasharray: 6 4;
+}
+
+/* ── Arity / source badge ────────────────────────────────────── */
+
+.ic-suggestion-arity {
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #777;
 }

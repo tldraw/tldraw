@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { TLShapeId, track, useEditor, useValue } from 'tldraw'
 import { useComposition } from './CompositionContext'
+import { embedIdeaNodesBatch, hasCachedEmbeddings } from './embeddings'
 import { getIdeaNodes } from './graph'
 import { rankPairSuggestions } from './scoring'
 
@@ -52,6 +53,14 @@ export const CompositionOverlay = track(function CompositionOverlay() {
 		() => allIdeaNodes.filter((n) => n.domain === domain),
 		[allIdeaNodes, domain]
 	)
+
+	// Warm embedding cache for any uncached nodes
+	useEffect(() => {
+		const uncached = allIdeaNodes.filter((n) => !hasCachedEmbeddings(n.id))
+		if (uncached.length > 0) {
+			embedIdeaNodesBatch(uncached).catch(() => {})
+		}
+	}, [allIdeaNodes])
 
 	const allSuggestions = useMemo(() => rankPairSuggestions(ideaNodes, Infinity), [ideaNodes])
 

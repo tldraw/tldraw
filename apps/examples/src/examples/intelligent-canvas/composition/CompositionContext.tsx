@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import { Editor, TLShapeId, TLShapePartial } from 'tldraw'
+import { evaluateBridge } from './embeddings'
 import {
 	createIdeaNode,
 	getComposedIdeaPosition,
@@ -66,11 +67,25 @@ export function CompositionProvider({ agentAvailable, children }: CompositionPro
 			setBusyPairs((prev) => new Set(prev).add(groupKey))
 			setError(null)
 			try {
+				// For 2-node pairs, evaluate bridge reasoning (best-effort)
+				let bridge: string | undefined
+				if (parents.length === 2) {
+					try {
+						const bridgeResult = await evaluateBridge(parents[0], parents[1])
+						if (bridgeResult.pass && bridgeResult.bridge) {
+							bridge = bridgeResult.bridge
+							console.log(`[Bridge] "${parents[0].title}" x "${parents[1].title}": ${bridge}`)
+						}
+					} catch {
+						// Bridge evaluation is best-effort — compose without it
+					}
+				}
+
 				const draft =
 					parents.length === 2
 						? domain === 'code'
-							? await composeCodePair(parents[0], parents[1], priorTitles)
-							: await composeIdeaPair(parents[0], parents[1], priorTitles)
+							? await composeCodePair(parents[0], parents[1], priorTitles, bridge)
+							: await composeIdeaPair(parents[0], parents[1], priorTitles, bridge)
 						: domain === 'code'
 							? await composeCodeBlocks(parents, priorTitles)
 							: await composeIdeas(parents, priorTitles)

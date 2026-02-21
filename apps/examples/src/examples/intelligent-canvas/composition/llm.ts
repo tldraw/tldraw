@@ -1,5 +1,5 @@
 import { TLShapeId } from 'tldraw'
-import { generateGeminiText } from '../agent/api'
+import { generateGeminiProText, generateGeminiText } from '../agent/api'
 import { ComposedIdeaDraft, IdeaNode, ParsedIdea } from './types'
 
 const PARSING_SYSTEM_PROMPT = `You are helping structure raw ideas into clean primitives.
@@ -95,14 +95,16 @@ export function priorTemperature(priorCount: number): number | undefined {
 export async function composeIdeaPair(
 	a: IdeaNode,
 	b: IdeaNode,
-	priorTitles: string[] = []
+	priorTitles: string[] = [],
+	bridge?: string
 ): Promise<ComposedIdeaDraft> {
-	return composeIdeas([a, b], priorTitles)
+	return composeIdeas([a, b], priorTitles, bridge)
 }
 
 export async function composeIdeas(
 	nodes: IdeaNode[],
-	priorTitles: string[] = []
+	priorTitles: string[] = [],
+	bridge?: string
 ): Promise<ComposedIdeaDraft> {
 	const ideaSections = nodes
 		.map(
@@ -111,10 +113,14 @@ export async function composeIdeas(
 		)
 		.join('\n\n')
 
+	const bridgeContext = bridge
+		? `\nA prior analysis found this connection between them: "${bridge}". Use this as a starting point, but feel free to go deeper or in a different direction.\n`
+		: ''
+
 	const prompt = `Look at these ${nodes.length} ideas together. What's the one surprising, specific thing you can only see at their intersection? Not a merger - an insight.
 
 ${ideaSections}
-
+${bridgeContext}
 Think about what interaction pattern or mechanic lives in the gap between these. What would make someone say "oh, that's clever"? It can be fantastical, but it needs a core you could explain in one sentence.
 ${buildPriorContext(priorTitles)}
 Return JSON with this exact shape:
@@ -127,7 +133,7 @@ Return JSON with this exact shape:
 }
 `
 
-	const raw = await generateGeminiText(
+	const raw = await generateGeminiProText(
 		COMPOSITION_SYSTEM_PROMPT,
 		prompt,
 		priorTemperature(priorTitles.length)
@@ -183,14 +189,16 @@ Rules:
 export async function composeCodePair(
 	a: IdeaNode,
 	b: IdeaNode,
-	priorTitles: string[] = []
+	priorTitles: string[] = [],
+	bridge?: string
 ): Promise<ComposedIdeaDraft> {
-	return composeCodeBlocks([a, b], priorTitles)
+	return composeCodeBlocks([a, b], priorTitles, bridge)
 }
 
 export async function composeCodeBlocks(
 	nodes: IdeaNode[],
-	priorTitles: string[] = []
+	priorTitles: string[] = [],
+	bridge?: string
 ): Promise<ComposedIdeaDraft> {
 	const blockSections = nodes
 		.map(
@@ -199,10 +207,14 @@ export async function composeCodeBlocks(
 		)
 		.join('\n\n')
 
+	const bridgeContext = bridge
+		? `\nA prior analysis found this connection between them: "${bridge}". Use this as a starting point, but feel free to go deeper or in a different direction.\n`
+		: ''
+
 	const prompt = `Look at these ${nodes.length} code blocks together. What's the one small, clever program that you can only see at their intersection? Not a merge of all the code - a new thing inspired by both.
 
 ${blockSections}
-
+${bridgeContext}
 Think about what mechanic or behavior emerges from the combination. It can be playful or weird, but the code should do one clear thing.
 ${buildPriorContext(priorTitles)}
 Return JSON with this exact shape:
@@ -222,7 +234,7 @@ Rules:
 - Do not include markdown fences.
 `
 
-	const raw = await generateGeminiText(
+	const raw = await generateGeminiProText(
 		COMPOSITION_SYSTEM_PROMPT,
 		prompt,
 		priorTemperature(priorTitles.length)

@@ -1,4 +1,5 @@
 import { Editor, TLShape, TLShapeId, TLShapePartial, createShapeId, toRichText } from 'tldraw'
+import { cosineSimilarity, getCachedEmbeddings } from './embeddings'
 import { IdeaNode, IdeaShapeMeta, IdeaStatus } from './types'
 
 const IDEA_NOTE_WIDTH = 480
@@ -343,13 +344,22 @@ export function forceDirectedLayout(nodes: IdeaNode[]): { id: TLShapeId; x: numb
 	const idToIdx = new Map<TLShapeId, number>()
 	for (const f of fn) idToIdx.set(f.id, f.idx)
 
-	// Precompute semantic similarity for all pairs
-	const tokens = nodes.map(ideaTokens)
+	// Precompute semantic similarity for all pairs (embeddings → Jaccard fallback)
 	const similarity: number[][] = []
 	for (let i = 0; i < nodes.length; i++) {
 		similarity[i] = []
 		for (let j = 0; j < nodes.length; j++) {
-			similarity[i][j] = i === j ? 0 : jaccardSimilarity(tokens[i], tokens[j])
+			if (i === j) {
+				similarity[i][j] = 0
+				continue
+			}
+			const embI = getCachedEmbeddings(nodes[i].id)
+			const embJ = getCachedEmbeddings(nodes[j].id)
+			if (embI && embJ) {
+				similarity[i][j] = cosineSimilarity(embI.full, embJ.full)
+			} else {
+				similarity[i][j] = jaccardSimilarity(ideaTokens(nodes[i]), ideaTokens(nodes[j]))
+			}
 		}
 	}
 
@@ -447,6 +457,134 @@ export function forceDirectedLayout(nodes: IdeaNode[]): { id: TLShapeId; x: numb
 	}
 
 	return fn.map((f) => ({ id: f.id, x: Math.round(f.x), y: Math.round(f.y) }))
+}
+
+// ── MDS layout (embedding → 2D projection) ───────────────────────
+
+const MDS_SCALE = 6000
+
+/**
+ * Classical MDS (Torgerson): projects embedding distances to 2D positions.
+ * Returns null if any node is missing cached embeddings.
+ */
+export function mdsLayout(nodes: IdeaNode[]): { id: TLShapeId; x: number; y: number }[] | null {
+	const n = nodes.length
+	if (n < 2) return null
+
+	// Gather embeddings — bail if any are missing
+	const embeddings = nodes.map((node) => getCachedEmbeddings(node.id))
+	if (embeddings.some((e) => !e)) return null
+
+	// Build squared distance matrix
+	const D2 = new Float64Array(n * n)
+	for (let i = 0; i < n; i++) {
+		for (let j = i + 1; j < n; j++) {
+			const d = 1 - cosineSimilarity(embeddings[i]!.full, embeddings[j]!.full)
+			const d2 = d * d
+			D2[i * n + j] = d2
+			D2[j * n + i] = d2
+		}
+	}
+
+	// Double-centering: B = -0.5 * H * D² * H  where H = I - (1/n)*11'
+	// Since D² is symmetric, row means = col means
+	const rowMeans = new Float64Array(n)
+	let grandMean = 0
+	for (let i = 0; i < n; i++) {
+		let sum = 0
+		for (let j = 0; j < n; j++) sum += D2[i * n + j]
+		rowMeans[i] = sum / n
+		grandMean += sum
+	}
+	grandMean /= n * n
+
+	const B = new Float64Array(n * n)
+	for (let i = 0; i < n; i++) {
+		for (let j = 0; j < n; j++) {
+			B[i * n + j] = -0.5 * (D2[i * n + j] - rowMeans[i] - rowMeans[j] + grandMean)
+		}
+	}
+
+	// Power iteration to extract top eigenvector from a symmetric matrix
+	function topEigenvector(M: Float64Array): { value: number; vector: Float64Array } {
+		const v = new Float64Array(n)
+		for (let i = 0; i < n; i++) v[i] = Math.random() - 0.5
+
+		for (let iter = 0; iter < 200; iter++) {
+			// Multiply M * v
+			const Mv = new Float64Array(n)
+			for (let i = 0; i < n; i++) {
+				let s = 0
+				for (let j = 0; j < n; j++) s += M[i * n + j] * v[j]
+				Mv[i] = s
+			}
+			// Normalize
+			let norm = 0
+			for (let i = 0; i < n; i++) norm += Mv[i] * Mv[i]
+			norm = Math.sqrt(norm)
+			if (norm === 0) break
+			for (let i = 0; i < n; i++) v[i] = Mv[i] / norm
+		}
+
+		// Rayleigh quotient for eigenvalue
+		const Mv = new Float64Array(n)
+		for (let i = 0; i < n; i++) {
+			let s = 0
+			for (let j = 0; j < n; j++) s += M[i * n + j] * v[j]
+			Mv[i] = s
+		}
+		let num = 0
+		let den = 0
+		for (let i = 0; i < n; i++) {
+			num += v[i] * Mv[i]
+			den += v[i] * v[i]
+		}
+		return { value: den > 0 ? num / den : 0, vector: v }
+	}
+
+	// First eigenvector
+	const e1 = topEigenvector(B)
+
+	// Deflate: B' = B - λ₁ * v₁ * v₁ᵀ
+	const B2 = new Float64Array(n * n)
+	for (let i = 0; i < n; i++) {
+		for (let j = 0; j < n; j++) {
+			B2[i * n + j] = B[i * n + j] - e1.value * e1.vector[i] * e1.vector[j]
+		}
+	}
+
+	// Second eigenvector
+	const e2 = topEigenvector(B2)
+
+	// Project: coord = sqrt(λ) * eigenvector component
+	const sx = Math.sqrt(Math.max(0, e1.value))
+	const sy = Math.sqrt(Math.max(0, e2.value))
+
+	const raw = nodes.map((node, i) => ({
+		id: node.id,
+		x: e1.vector[i] * sx,
+		y: e2.vector[i] * sy,
+	}))
+
+	// Scale to canvas coordinates
+	let minX = Infinity
+	let maxX = -Infinity
+	let minY = Infinity
+	let maxY = -Infinity
+	for (const c of raw) {
+		if (c.x < minX) minX = c.x
+		if (c.x > maxX) maxX = c.x
+		if (c.y < minY) minY = c.y
+		if (c.y > maxY) maxY = c.y
+	}
+	const rangeX = maxX - minX || 1
+	const rangeY = maxY - minY || 1
+
+	return raw.map((c) => ({
+		id: c.id,
+		x: Math.round(((c.x - minX) / rangeX) * MDS_SCALE),
+		y: Math.round(((c.y - minY) / rangeY) * MDS_SCALE),
+	}))
 }
 
 // ── Lightweight overlap repulsion ─────────────────────────────────
