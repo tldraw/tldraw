@@ -98,6 +98,7 @@ import {
 	loadSnapshot,
 } from '../config/TLEditorSnapshot'
 import { TLUser, createTLUser } from '../config/createTLUser'
+import { TLAnyAssetUtilConstructor, checkAssets } from '../config/defaultAssets'
 import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
@@ -137,6 +138,7 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { getDroppedShapesToNewParents } from '../utils/reparenting'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
+import { AssetUtil } from './assets/AssetUtil'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
@@ -208,6 +210,10 @@ export interface TLEditorOptions {
 	 * An array of bindings to use in the editor. These will be used to create and manage bindings in the editor.
 	 */
 	bindingUtils: readonly TLAnyBindingUtilConstructor[]
+	/**
+	 * An array of asset utils to use in the editor. These will be used to handle asset-type-specific behavior.
+	 */
+	assetUtils?: readonly TLAnyAssetUtilConstructor[]
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
@@ -295,6 +301,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		user,
 		shapeUtils,
 		bindingUtils,
+		assetUtils: assetUtilConstructors,
 		tools,
 		getContainer,
 		// needs to be here for backwards compatibility with TldrawEditor
@@ -402,6 +409,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 			_bindingUtils[Util.type] = util
 		}
 		this.bindingUtils = _bindingUtils
+
+		// Asset utils
+		if (assetUtilConstructors) {
+			const allAssetUtils = checkAssets(assetUtilConstructors)
+			const _assetUtils = {} as Record<string, AssetUtil<any>>
+			for (const Util of allAssetUtils) {
+				const util = new Util(this)
+				_assetUtils[Util.type] = util
+			}
+			this.assetUtils = _assetUtils
+		}
 
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
@@ -1096,6 +1114,56 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const bindingUtil = getOwnProperty(this.bindingUtils, type)
 		assert(bindingUtil, `No binding util found for type "${type}"`)
 		return bindingUtil
+	}
+
+	/* ------------------- Asset Utils ------------------ */
+
+	/**
+	 * A map of asset utility classes by asset type.
+	 *
+	 * @public
+	 */
+	assetUtils: { readonly [K in string]?: AssetUtil<TLAsset> } = {}
+
+	/**
+	 * Get an asset util from an asset or asset type.
+	 *
+	 * @param arg - An asset, asset type string, or object with type.
+	 *
+	 * @public
+	 */
+	getAssetUtil<S extends TLAsset>(asset: S | { type: S['type'] }): AssetUtil<S>
+	getAssetUtil(type: string): AssetUtil
+	getAssetUtil(arg: string | { type: string }) {
+		const type = typeof arg === 'string' ? arg : arg.type
+		const assetUtil = getOwnProperty(this.assetUtils, type)
+		assert(assetUtil, `No asset util found for type "${type}"`)
+		return assetUtil
+	}
+
+	/**
+	 * Returns true if the editor has an asset util for the given asset type.
+	 *
+	 * @public
+	 */
+	hasAssetUtil(arg: string | { type: string }): boolean {
+		const type = typeof arg === 'string' ? arg : arg.type
+		return hasOwnProperty(this.assetUtils, type)
+	}
+
+	/**
+	 * Get the asset util that accepts the given MIME type.
+	 * Returns null if no registered asset util accepts the MIME type.
+	 *
+	 * @public
+	 */
+	getAssetUtilForMimeType(mimeType: string): AssetUtil | null {
+		for (const util of Object.values(this.assetUtils)) {
+			if (util && util.acceptsMimeType(mimeType)) {
+				return util
+			}
+		}
+		return null
 	}
 
 	/* --------------------- History -------------------- */

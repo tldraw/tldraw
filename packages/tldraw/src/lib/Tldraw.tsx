@@ -21,6 +21,7 @@ import { TldrawOverlays } from './canvas/TldrawOverlays'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { TldrawShapeIndicators } from './canvas/TldrawShapeIndicators'
+import { defaultAssetUtils } from './defaultAssetUtils'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { TLEmbedDefinition } from './defaultEmbedDefinitions'
 import {
@@ -116,6 +117,7 @@ export function Tldraw(props: TldrawProps) {
 		components = {},
 		shapeUtils = [],
 		bindingUtils = [],
+		assetUtils = [],
 		tools = [],
 		embeds,
 		options,
@@ -165,6 +167,12 @@ export function Tldraw(props: TldrawProps) {
 	const bindingUtilsWithDefaults = useMemo(
 		() => mergeArraysAndReplaceDefaults('type', _bindingUtils, defaultBindingUtils),
 		[_bindingUtils]
+	)
+
+	const _assetUtils = useShallowArrayIdentity(assetUtils)
+	const assetUtilsWithDefaults = useMemo(
+		() => mergeArraysAndReplaceDefaults('type', _assetUtils, defaultAssetUtils),
+		[_assetUtils]
 	)
 
 	const _tools = useShallowArrayIdentity(tools)
@@ -229,6 +237,7 @@ export function Tldraw(props: TldrawProps) {
 					components={componentsWithDefault}
 					shapeUtils={shapeUtilsWithDefaults}
 					bindingUtils={bindingUtilsWithDefaults}
+					assetUtils={assetUtilsWithDefaults}
 					tools={toolsWithDefaults}
 					options={optionsWithDefaults}
 					assetUrls={assets}

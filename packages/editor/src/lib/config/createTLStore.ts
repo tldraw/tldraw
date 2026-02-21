@@ -12,6 +12,7 @@ import {
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
+import { TLAnyAssetUtilConstructor, checkAssets } from './defaultAssets'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 
@@ -40,8 +41,9 @@ export type TLStoreSchemaOptions =
 	  }
 	| {
 			shapeUtils?: readonly TLAnyShapeUtilConstructor[]
-			migrations?: readonly MigrationSequence[]
 			bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+			assetUtils?: readonly TLAnyAssetUtilConstructor[]
+			migrations?: readonly MigrationSequence[]
 	  }
 
 /** @public */
@@ -87,6 +89,10 @@ export function createTLSchemaFromUtils(
 		bindings:
 			'bindingUtils' in opts && opts.bindingUtils
 				? utilsToMap(checkBindings(opts.bindingUtils))
+				: undefined,
+		assets:
+			'assetUtils' in opts && opts.assetUtils
+				? utilsToMap(checkAssets(opts.assetUtils))
 				: undefined,
 		migrations: 'migrations' in opts ? opts.migrations : undefined,
 	})
