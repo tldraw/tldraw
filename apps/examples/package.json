@@ -37,6 +37,7 @@
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
+		"@anthropic-ai/sdk": "^0.78.0",
 		"@playwright/test": "^1.50.0",
 		"@tiptap/core": "^3.12.1",
 		"@tiptap/extension-font-family": "^3.12.1",

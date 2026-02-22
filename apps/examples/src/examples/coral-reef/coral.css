@@ -1,0 +1,30 @@
+.coral-reef-panel {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	pointer-events: all;
+}
+
+.coral-reef-panel button {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 14px;
+	border-radius: 6px;
+	border: 1px solid var(--color-muted-2);
+	background: var(--color-panel);
+	color: var(--color-text-0);
+	font-size: 13px;
+	cursor: pointer;
+	transition: background 0.15s;
+}
+
+.coral-reef-panel button:hover {
+	background: var(--color-muted-2);
+}
+
+.coral-reef-panel button[data-active='true'] {
+	background: hsl(180, 70%, 35%);
+	color: white;
+	border-color: hsl(180, 70%, 25%);
+}

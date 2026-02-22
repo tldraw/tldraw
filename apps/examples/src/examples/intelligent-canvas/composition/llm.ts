@@ -26,7 +26,7 @@ Your job is NOT to merge ideas into a grand hybrid. Your job is to find the one 
 Priorities:
 - Simplicity over impressiveness. The idea should feel elegant, not overengineered.
 - A specific interaction or mechanic, not a vague system.
-- Find the adjacent possible: the idea that was latent in both inputs, waiting to be noticed. Not the cleverest combination, but the most inevitable one.s
+- Find the adjacent possible: the idea that was latent in both inputs, waiting to be noticed. Not the cleverest combination, but the most inevitable one.
 - Focus on what the person DOES (the verb), not what the system IS (the noun).
 
 Writing style:
@@ -117,11 +117,16 @@ export async function composeIdeas(
 		? `\nA prior analysis found this connection between them: "${bridge}". Use this as a starting point, but feel free to go deeper or in a different direction.\n`
 		: ''
 
-	const prompt = `Look at these ${nodes.length} ideas together. What's the one surprising, specific thing you can only see at their intersection? Not a merger - an insight.
+	const prompt = `Your job is NOT to merge ideas into a grand hybrid. Your job is to find the one surprising, specific thing you can only see by looking at both ideas together. The best output is an "oh!" moment - a simple idea that neither input alone would have suggested.
+
+Priorities:
+- Simplicity over impressiveness. The idea should feel elegant, not overengineered.
+- A specific interaction or mechanic, not a vague system.
+- Find the adjacent possible: the idea that was latent in both inputs, waiting to be noticed. Not the cleverest combination, but the most inevitable one.
+- Focus on what the person DOES (the verb), not what the system IS (the noun).
 
 ${ideaSections}
 ${bridgeContext}
-Think about what interaction pattern or mechanic lives in the gap between these. What would make someone say "oh, that's clever"? It can be fantastical, but it needs a core you could explain in one sentence.
 ${buildPriorContext(priorTitles)}
 Return JSON with this exact shape:
 {

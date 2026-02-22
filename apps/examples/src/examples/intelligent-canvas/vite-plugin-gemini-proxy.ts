@@ -1,3 +1,5 @@
+import { execFile, spawn } from 'child_process'
+import fs from 'fs'
 import path from 'path'
 import { Readable } from 'stream'
 import { loadEnv, type Plugin } from 'vite'
@@ -5,15 +7,16 @@ import { loadEnv, type Plugin } from 'vite'
 const GEMINI_URL =
 	'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent'
 const GEMINI_FLASH_URL =
-	'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview:generateContent'
+	'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent'
 const GEMINI_PRO_URL =
 	'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent'
 const EMBED_URL =
-	'https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:batchEmbedContents'
+	'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents'
 
 export function geminiProxy(): Plugin {
 	let apiKey = ''
 	let elevenLabsApiKey = ''
+	let repoRoot = ''
 
 	return {
 		name: 'gemini-proxy',
@@ -24,6 +27,8 @@ export function geminiProxy(): Plugin {
 			const env = loadEnv(config.mode, envDir, '')
 			apiKey = env.GEMINI_API_KEY ?? env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY ?? ''
 			elevenLabsApiKey = env.ELEVENLABS_API_KEY ?? process.env.ELEVENLABS_API_KEY ?? ''
+			// repo root is three levels up from apps/examples/src/
+			repoRoot = path.resolve(config.root, '..', '..', '..')
 		},
 		configureServer(server) {
 			server.middlewares.use('/api/gemini/status', (_req, res) => {
@@ -59,7 +64,7 @@ export function geminiProxy(): Plugin {
 
 						const batchBody = {
 							requests: texts.map((text) => ({
-								model: 'models/text-embedding-004',
+								model: 'models/gemini-embedding-001',
 								content: { parts: [{ text }] },
 								taskType,
 							})),
@@ -227,6 +232,132 @@ export function geminiProxy(): Plugin {
 						res.setHeader('Content-Type', 'application/json')
 						res.end(data)
 					} catch (err) {
+						res.statusCode = 502
+						res.setHeader('Content-Type', 'application/json')
+						res.end(JSON.stringify({ error: String(err) }))
+					}
+				})
+			})
+
+			// --- Claude Code build endpoint ---
+
+			server.middlewares.use('/api/claude/status', (_req, res) => {
+				// Check if claude CLI is available
+				execFile('/Users/anikrishnan/.local/bin/claude', ['--version'], (err) => {
+					res.setHeader('Content-Type', 'application/json')
+					res.end(JSON.stringify({ available: !err }))
+				})
+			})
+
+			server.middlewares.use('/api/claude/build', (req, res) => {
+				if (req.method !== 'POST') {
+					res.statusCode = 405
+					res.end('Method not allowed')
+					return
+				}
+
+				const chunks: Buffer[] = []
+				req.on('data', (chunk: Buffer) => chunks.push(chunk))
+				req.on('end', async () => {
+					try {
+						const body = JSON.parse(Buffer.concat(chunks).toString()) as {
+							prompt: string
+							slug: string
+						}
+
+						console.log(`\n[Claude Code] ▶ building example: ${body.slug}`)
+						const startTime = Date.now()
+
+						// Spawn claude CLI with prompt as argument
+						const child = spawn(
+							'/Users/anikrishnan/.local/bin/claude',
+							[
+								'--permission-mode',
+								'acceptEdits',
+								'--allowedTools',
+								'Read,Write,Edit,Glob,Grep',
+								'--output-format',
+								'json',
+								'-p',
+								body.prompt,
+							],
+							{
+								cwd: repoRoot,
+								stdio: ['ignore', 'pipe', 'pipe'],
+								env: { ...process.env },
+							}
+						)
+
+						let stdout = ''
+						let stderr = ''
+						child.stdout.on('data', (data: Buffer) => {
+							stdout += data.toString()
+						})
+						child.stderr.on('data', (data: Buffer) => {
+							stderr += data.toString()
+							// Log stderr in real time to see what's happening
+							const line = data.toString().trim()
+							if (line) console.log(`[Claude Code] stderr: ${line}`)
+						})
+
+						// 10 minute timeout
+						const timeout = setTimeout(
+							() => {
+								console.error(`[Claude Code] ◀ TIMEOUT after 10 minutes`)
+								child.kill('SIGTERM')
+							},
+							10 * 60 * 1000
+						)
+
+						child.on('close', (code) => {
+							clearTimeout(timeout)
+							const elapsed = Date.now() - startTime
+
+							if (code !== 0) {
+								console.error(`[Claude Code] ◀ ${elapsed}ms | exit code ${code}`)
+								if (stderr) console.error(`[Claude Code] stderr:`, stderr.slice(0, 1000))
+								res.statusCode = 502
+								res.setHeader('Content-Type', 'application/json')
+								res.end(
+									JSON.stringify({
+										error: `claude exited with code ${code}`,
+										stderr: stderr.slice(0, 1000),
+									})
+								)
+								return
+							}
+
+							console.log(`[Claude Code] ◀ ${elapsed}ms | done`)
+
+							// List the files that were created
+							const outputDir = path.join(repoRoot, 'apps/examples/src/examples', body.slug)
+							let files: string[] = []
+							try {
+								files = fs.readdirSync(outputDir).filter((f) => !f.startsWith('.'))
+							} catch {
+								// directory might not exist if claude failed
+							}
+
+							res.statusCode = 200
+							res.setHeader('Content-Type', 'application/json')
+							res.end(
+								JSON.stringify({
+									slug: body.slug,
+									files,
+									output: stdout.slice(0, 2000),
+								})
+							)
+						})
+
+						child.on('error', (err) => {
+							clearTimeout(timeout)
+							console.error(`[Claude Code] spawn error:`, err)
+							res.statusCode = 502
+							res.setHeader('Content-Type', 'application/json')
+							res.end(JSON.stringify({ error: `Failed to spawn claude: ${err.message}` }))
+						})
+					} catch (err) {
+						console.error(`[Claude Code] ◀ ERROR:`, err)
 						res.statusCode = 502
 						res.setHeader('Content-Type', 'application/json')
 						res.end(JSON.stringify({ error: String(err) }))

@@ -1,0 +1,291 @@
+.im-modal {
+	position: absolute;
+	inset: 0;
+	z-index: 2147483647;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #fafafa;
+	overflow-y: auto;
+	padding: 32px 16px;
+	pointer-events: all;
+}
+
+.im-content {
+	max-width: 800px;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+.im-title {
+	font-size: 32px;
+	font-weight: 700;
+	margin: 0;
+	color: #1a1a1a;
+}
+
+.im-subtitle {
+	font-size: 16px;
+	color: #666;
+	margin: 0;
+	line-height: 1.5;
+}
+
+.im-textarea {
+	width: 100%;
+	padding: 16px;
+	border: 2px solid #e0e0e0;
+	border-radius: 12px;
+	font-size: 16px;
+	font-family: inherit;
+	resize: vertical;
+	outline: none;
+	transition: border-color 0.15s;
+	box-sizing: border-box;
+}
+
+.im-textarea:focus {
+	border-color: #3b82f6;
+}
+
+.im-button-primary {
+	padding: 12px 24px;
+	background: #3b82f6;
+	color: white;
+	border: none;
+	border-radius: 10px;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.15s;
+	align-self: flex-start;
+}
+
+.im-button-primary:hover:not(:disabled) {
+	background: #2563eb;
+}
+
+.im-button-primary:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.im-button-secondary {
+	padding: 12px 24px;
+	background: transparent;
+	color: #666;
+	border: 2px solid #e0e0e0;
+	border-radius: 10px;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: pointer;
+	transition:
+		border-color 0.15s,
+		color 0.15s;
+	align-self: flex-start;
+}
+
+.im-button-secondary:hover {
+	border-color: #999;
+	color: #333;
+}
+
+/* Processing phase */
+.im-processing {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 16px;
+	padding: 48px 0;
+}
+
+.im-spinner {
+	width: 40px;
+	height: 40px;
+	border: 4px solid #e0e0e0;
+	border-top-color: #3b82f6;
+	border-radius: 50%;
+	animation: im-spin 0.8s linear infinite;
+}
+
+@keyframes im-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.im-progress {
+	font-size: 16px;
+	color: #666;
+	margin: 0;
+}
+
+/* Cards */
+.im-cards {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 16px;
+}
+
+.im-card {
+	background: white;
+	border: 2px solid #e0e0e0;
+	border-radius: 12px;
+	padding: 20px;
+	cursor: pointer;
+	transition:
+		border-color 0.15s,
+		box-shadow 0.15s;
+	text-align: left;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	font-family: inherit;
+}
+
+.im-card:hover {
+	border-color: #3b82f6;
+	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.im-card-title {
+	font-size: 18px;
+	font-weight: 600;
+	margin: 0;
+	color: #1a1a1a;
+}
+
+.im-card-desc {
+	font-size: 14px;
+	color: #444;
+	margin: 0;
+	line-height: 1.4;
+}
+
+.im-card-why {
+	font-size: 13px;
+	color: #888;
+	margin: 0;
+	font-style: italic;
+	line-height: 1.4;
+}
+
+.im-card-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 4px;
+}
+
+.im-tag {
+	padding: 2px 8px;
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.im-tag-input {
+	background: #dbeafe;
+	color: #1e40af;
+}
+
+.im-tag-output {
+	background: #dcfce7;
+	color: #166534;
+}
+
+/* Build result */
+.im-built {
+	background: white;
+	border: 2px solid #e0e0e0;
+	border-radius: 12px;
+	padding: 20px;
+}
+
+.im-built-info {
+	margin: 0 0 12px;
+	font-size: 15px;
+	color: #444;
+}
+
+.im-built-info code {
+	background: #f3f4f6;
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-size: 13px;
+}
+
+.im-file-list {
+	margin: 0;
+	padding: 0 0 0 20px;
+	list-style: none;
+}
+
+.im-file-list li {
+	padding: 4px 0;
+	font-size: 14px;
+	color: #555;
+}
+
+.im-file-list li::before {
+	content: '📄 ';
+}
+
+.im-file-list code {
+	font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, monospace;
+	font-size: 13px;
+}
+
+.im-actions {
+	display: flex;
+	gap: 12px;
+}
+
+/* Minimized pill */
+.im-minimized {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	z-index: 2147483647;
+	pointer-events: all;
+}
+
+.im-pill {
+	padding: 8px 16px;
+	background: #3b82f6;
+	color: white;
+	border: none;
+	border-radius: 20px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	font-family: inherit;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	transition: background 0.15s;
+}
+
+.im-pill:hover {
+	background: #2563eb;
+}
+
+.im-error {
+	background: #fef2f2;
+	color: #dc2626;
+	border: 1px solid #fecaca;
+	border-radius: 10px;
+	padding: 12px 16px;
+	font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+	.im-cards {
+		grid-template-columns: 1fr;
+	}
+
+	.im-title {
+		font-size: 24px;
+	}
+}
