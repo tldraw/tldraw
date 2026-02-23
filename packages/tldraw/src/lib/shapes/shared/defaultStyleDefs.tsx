@@ -180,9 +180,14 @@ function usePattern() {
 	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
 		editor,
 	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
+	const maxZoom = useValue(
+		'maxZoom',
+		() => {
+			const steps = editor.getCameraOptions().zoomSteps
+			return Math.ceil(last(steps)! / steps[0])
+		},
+		[editor]
+	)
 	const [isReady, setIsReady] = useState(false)
 	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
 		getDefaultPatterns(maxZoom)
