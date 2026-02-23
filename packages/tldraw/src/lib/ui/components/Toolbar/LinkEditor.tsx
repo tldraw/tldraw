@@ -25,22 +25,25 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 
 	const handleValueChange = (value: string) => setValue(value)
 
-	const handleLinkComplete = useCallback((link: string) => {
-		trackEvent('rich-text', { operation: 'link-edit', source })
-		if (!link.startsWith('http://') && !link.startsWith('https://')) {
-			link = `https://${link}`
-		}
+	const handleLinkComplete = useCallback(
+		(link: string) => {
+			trackEvent('rich-text', { operation: 'link-edit', source })
+			if (!link.startsWith('http://') && !link.startsWith('https://')) {
+				link = `https://${link}`
+			}
 
-		textEditor.chain().setLink({ href: link }).run()
-		// N.B. We shouldn't focus() on mobile because it causes the
-		// Return key to replace the link with a newline :facepalm:
-		if (editor.getInstanceState().isCoarsePointer) {
-			textEditor.commands.blur()
-		} else {
-			textEditor.commands.focus()
-		}
-		onClose()
-	}, [trackEvent, source, textEditor, editor, onClose])
+			textEditor.chain().setLink({ href: link }).run()
+			// N.B. We shouldn't focus() on mobile because it causes the
+			// Return key to replace the link with a newline :facepalm:
+			if (editor.getInstanceState().isCoarsePointer) {
+				textEditor.commands.blur()
+			} else {
+				textEditor.commands.focus()
+			}
+			onClose()
+		},
+		[trackEvent, source, textEditor, editor, onClose]
+	)
 
 	const handleVisitLink = () => {
 		trackEvent('rich-text', { operation: 'link-visit', source })
