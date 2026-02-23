@@ -119,7 +119,7 @@ describe('DrawShapeUtil dot detection', () => {
 	})
 
 	describe('onResize prevents zero scale', () => {
-		it('does not set scaleX to 0 when resized to zero width', () => {
+		it('is a no-op when resized to zero width', () => {
 			const shape = createDrawShape(
 				createDrawSegments([
 					[
@@ -131,11 +131,11 @@ describe('DrawShapeUtil dot detection', () => {
 
 			editor.resizeShape(shape.id, { x: 0, y: 1 })
 			const resized = editor.getShape<TLDrawShape>(shapeId)!
-			expect(resized.props.scaleX).not.toBe(0)
-			expect(resized.props.scaleY).not.toBe(0)
+			expect(resized.props.scaleX).toBe(1)
+			expect(resized.props.scaleY).toBe(1)
 		})
 
-		it('does not set scaleY to 0 when resized to zero height', () => {
+		it('is a no-op when resized to zero height', () => {
 			const shape = createDrawShape(
 				createDrawSegments([
 					[
@@ -147,8 +147,8 @@ describe('DrawShapeUtil dot detection', () => {
 
 			editor.resizeShape(shape.id, { x: 1, y: 0 })
 			const resized = editor.getShape<TLDrawShape>(shapeId)!
-			expect(resized.props.scaleX).not.toBe(0)
-			expect(resized.props.scaleY).not.toBe(0)
+			expect(resized.props.scaleX).toBe(1)
+			expect(resized.props.scaleY).toBe(1)
 		})
 
 		it('preserves sign when resizing with negative scale (flipping)', () => {

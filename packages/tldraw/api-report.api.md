@@ -1203,7 +1203,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
             scaleX: number;
             scaleY: number;
         };
-    };
+    } | undefined;
     // (undocumented)
     options: DrawShapeOptions;
     // (undocumented)
@@ -1958,7 +1958,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
             scaleX: number;
             scaleY: number;
         };
-    };
+    } | undefined;
     // (undocumented)
     options: HighlightShapeOptions;
     // (undocumented)
