@@ -82,6 +82,7 @@ import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
+import { TLCreateShapePartial } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/tlschema';
 import { TLDefaultFillStyle } from '@tldraw/editor';
@@ -98,6 +99,7 @@ import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeProps } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
+import type { TLEditorPermissionsApi } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEditStartInfo } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
@@ -126,7 +128,12 @@ import { TLLineShapePoint } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
 import { TLNoteShapeProps } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
+import { TLPageId as TLPageId_2 } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
+import { TLPermissionAction } from '@tldraw/tlschema';
+import { TLPermissionOverride } from '@tldraw/tlschema';
+import { TLPermissionOverrideId } from '@tldraw/tlschema';
+import { TLPermissionResource } from '@tldraw/tlschema';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLResizeInfo } from '@tldraw/editor';
@@ -3293,6 +3300,8 @@ export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, T
     assetUrls?: TLUiAssetUrlOverrides;
     components?: TLComponents;
     embeds?: TLEmbedDefinition[];
+    onPermissionDenied?: (event: TLPermissionDeniedEvent) => void;
+    permissionProvider?: TLPermissionProvider;
     // @deprecated
     textOptions?: TLTextOptions;
 }
@@ -3666,6 +3675,60 @@ export interface TLExternalContentProps {
     acceptedVideoMimeTypes?: readonly string[];
     maxAssetSize?: number;
     maxImageDimension?: number;
+}
+
+// @public
+export interface TLPermissionDeniedEvent {
+    action: TLPermissionAction;
+    reason?: string;
+    resource: TLPermissionResource;
+    userId: string;
+}
+
+// @public
+export interface TLPermissionProvider extends TLEditorPermissionsApi {
+    install(editor: Editor): () => void;
+    onPermissionDenied?: (event: TLPermissionDeniedEvent) => void;
+}
+
+// @public
+export interface TLPermissionRules {
+    canActOnDocument?(userId: string, action: TLPermissionAction): boolean;
+    canActOnPage?(userId: string, pageId: TLPageId_2, action: TLPermissionAction): boolean;
+    canCreateShape(userId: string, shapeType: string, shape: TLCreateShapePartial): boolean;
+    canDeleteShape(userId: string, shape: TLShape): boolean;
+    canSelectShape(userId: string, shape: TLShape): boolean;
+    canUpdateShape(userId: string, prev: TLShape, next: TLShape): boolean;
+    canUseTool?(userId: string, toolId: string): boolean;
+    canViewShape?(userId: string, shape: TLShape): boolean;
+}
+
+// @public (undocumented)
+export interface TLPermissionsConfig {
+    // (undocumented)
+    rules: TLPermissionRules;
+    userId: (() => string) | string;
+}
+
+// @public
+export class TLPermissionsPlugin implements TLPermissionProvider {
+    constructor(config: TLPermissionsConfig);
+    can(action: TLPermissionAction, resource: TLPermissionResource): boolean;
+    canCreateShape(shapeType: string): boolean;
+    canCurrentUser(action: TLPermissionAction, resource: TLPermissionResource): boolean;
+    canDeleteShape(shape: TLShape): boolean;
+    canSelectShape(shape: TLShape): boolean;
+    canUseTool(toolId: string): boolean;
+    getHiddenShapeIds(): ReadonlySet<TLShapeId>;
+    getOverridesForShape(shapeId: TLShapeId): TLPermissionOverride[];
+    getReadonlyShapeIds(): ReadonlySet<TLShapeId>;
+    getShapeVisibility: (shape: TLShape, _editor: Editor) => "hidden" | "inherit" | "visible";
+    install(editor: Editor): () => void;
+    onPermissionDenied?: (event: TLPermissionDeniedEvent) => void;
+    removeOverride(overrideId: TLPermissionOverrideId): void;
+    setOverride(override: TLPermissionOverride): void;
+    uninstall(): void;
+    get userId(): string;
 }
 
 // @public (undocumented)

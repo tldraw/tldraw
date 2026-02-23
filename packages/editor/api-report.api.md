@@ -61,6 +61,11 @@ import { TLCamera } from '@tldraw/tlschema';
 import { TLCreateShapePartial } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
+import { TLDataColumn } from '@tldraw/tlschema';
+import { TLDataRow } from '@tldraw/tlschema';
+import { TLDataSource } from '@tldraw/tlschema';
+import { TLDataSourceId } from '@tldraw/tlschema';
+import { TLDataTransform } from '@tldraw/tlschema';
 import { TLDefaultDashStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
@@ -73,6 +78,9 @@ import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
+import type { TLPermissionAction } from '@tldraw/tlschema';
+import type { TLPermissionOverride } from '@tldraw/tlschema';
+import type { TLPermissionResource } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLRichText } from '@tldraw/tlschema';
@@ -824,6 +832,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         tags?: Record<string, boolean | number | string>;
         willCrashApp: boolean;
     }): this;
+    // @internal (undocumented)
+    applyDataTransforms(_data: TLDataRow[], _transforms: TLDataTransform[]): TLDataRow[];
     bail(): this;
     bailToMark(id: string): this;
     bindingUtils: {
@@ -871,6 +881,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     createAssets(assets: TLAsset[]): this;
     createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>): this;
     createBindings<B extends TLBinding = TLBinding>(partials: TLBindingCreate<B>[]): this;
+    // @internal (undocumented)
+    createDataSource(_props: {
+        columns: TLDataColumn[];
+        data: TLDataRow[];
+        name: string;
+        source?: string;
+    }): TLDataSourceId;
     createDeepLink(opts?: {
         param?: string;
         to?: TLDeepLink;
@@ -981,6 +998,19 @@ export class Editor extends EventEmitter<TLEventMap> {
                 props: any;
                 rotation: number;
                 type: "geo";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "graph";
                 typeName: "shape";
                 x: number;
                 y: number;
@@ -1173,6 +1203,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         focusContainer?: boolean | undefined;
     }): this;
     readonly fonts: FontManager;
+    // @internal (undocumented)
+    getAllDataSources(): TLDataSource[];
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
     getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined>;
@@ -1210,6 +1242,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCanRedo(): boolean;
     // (undocumented)
     getCanUndo(): boolean;
+    // @internal (undocumented)
+    getChartData(_shapeId: TLShapeId): TLDataRow[];
     getCollaborators(): TLInstancePresence[];
     getCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getContainer: () => HTMLElement;
@@ -1231,6 +1265,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageState(): TLInstancePageState;
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
+    // @internal (undocumented)
+    getDataSource(_id: TLDataSourceId): TLDataSource | undefined;
     getDebouncedZoomLevel(): number;
     getDocumentSettings(): TLDocument;
     getDraggingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined;
@@ -1463,6 +1499,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     _setAltKeyTimeout(): void;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
     setCameraOptions(opts: Partial<TLCameraOptions>): this;
+    // @internal (undocumented)
+    setCanCreateShapeCheck(_check: ((shape: TLCreateShapePartial) => boolean) | undefined): void;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     // @internal (undocumented)
     _setCtrlKeyTimeout(): void;
@@ -1478,6 +1516,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     _setMetaKeyTimeout(): void;
     setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this;
     setOpacityForSelectedShapes(opacity: number): this;
+    // @internal (undocumented)
+    setPermissionsApi(_api: TLEditorPermissionsApi | null): void;
     setRichTextEditor(textEditor: null | TiptapEditor): this;
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
     // @internal (undocumented)
@@ -3658,6 +3698,14 @@ export interface TLEditorOptions {
     textOptions?: TLTextOptions;
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
+}
+
+// @public
+export interface TLEditorPermissionsApi {
+    can(action: TLPermissionAction, resource: TLPermissionResource): boolean;
+    getHiddenShapeIds(): ReadonlySet<TLShapeId>;
+    getOverridesForShape(shapeId: TLShapeId): TLPermissionOverride[];
+    getReadonlyShapeIds(): ReadonlySet<TLShapeId>;
 }
 
 // @public

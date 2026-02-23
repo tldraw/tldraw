@@ -157,6 +157,9 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
     [K in keyof Meta]: T.Validatable<Meta[K]>;
 }): T.ObjectValidator<Expand<    { [P in "fromId" | "id" | "meta" | "toId" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseBinding<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseBinding<Type, Props>[P] | undefined; }>>;
 
+// @public (undocumented)
+export function createDataSourceId(): TLDataSourceId;
+
 // @public
 export function createPresenceStateDerivation($user: Signal<TLPresenceUserInfo>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence, unknown>;
 
@@ -184,6 +187,21 @@ export function createTLSchema({ shapes, bindings, migrations }?: {
     migrations?: readonly MigrationSequence[];
     shapes?: Record<string, SchemaPropsInfo>;
 }): TLSchema;
+
+// @public (undocumented)
+export const dataSourceIdValidator: T.Validator<TLDataSourceId>;
+
+// @public (undocumented)
+export const dataSourceMigrations: MigrationSequence;
+
+// @public (undocumented)
+export const DataSourceRecordType: RecordType<TLDataSource, never>;
+
+// @public (undocumented)
+export const dataSourceValidator: T.Validator<TLDataSource>;
+
+// @public (undocumented)
+export const dataSourceVersions: {};
 
 // @public
 export const defaultBindingSchemas: {
@@ -253,6 +271,10 @@ export const defaultShapeSchemas: {
     geo: {
         migrations: TLPropsMigrations;
         props: RecordProps<TLGeoShape>;
+    };
+    graph: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLGraphShape>;
     };
     group: {
         migrations: TLPropsMigrations;
@@ -383,6 +405,12 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
 // @internal
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
 
+// @internal (undocumented)
+export const graphShapeMigrations: TLPropsMigrations;
+
+// @internal (undocumented)
+export const graphShapeProps: RecordProps<TLGraphShape>;
+
 // @public
 export const groupShapeMigrations: TLPropsMigrations;
 
@@ -418,6 +446,9 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 
 // @public
 export function isBindingId(id?: string): id is TLBindingId;
+
+// @public (undocumented)
+export function isDataSourceId(id: string): id is TLDataSourceId;
 
 // @public
 export function isDocument(record?: UnknownRecord): record is TLDocument;
@@ -608,6 +639,21 @@ export const PageRecordType: RecordType<TLPage, "index" | "name">;
 // @public
 export const parentIdValidator: T.Validator<TLParentId>;
 
+// @public (undocumented)
+export const permissionOverrideIdValidator: T.Validator<TLPermissionOverrideId>;
+
+// @public (undocumented)
+export const permissionOverrideMigrations: MigrationSequence;
+
+// @public
+export const PermissionOverrideRecordType: RecordType<TLPermissionOverride, never>;
+
+// @public (undocumented)
+export const permissionOverrideValidator: T.Validator<TLPermissionOverride>;
+
+// @public (undocumented)
+export const permissionOverrideVersions: {};
+
 // @internal
 export function pluckPreservingValues(val?: null | TLInstance): null | Partial<TLInstance>;
 
@@ -708,6 +754,20 @@ export const TL_HANDLE_TYPES: Set<"clone" | "create" | "vertex" | "virtual">;
 
 // @public
 export const TL_SCRIBBLE_STATES: Set<"active" | "complete" | "paused" | "starting" | "stopping">;
+
+// @public (undocumented)
+export interface TLAggregateTransform {
+    // (undocumented)
+    aggregations: Array<{
+        as: string;
+        column: string;
+        operation: 'avg' | 'count_distinct' | 'count' | 'first' | 'last' | 'max' | 'min' | 'sum';
+    }>;
+    // (undocumented)
+    groupBy: string[];
+    // (undocumented)
+    type: 'aggregate';
+}
 
 // @public
 export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>;
@@ -930,6 +990,64 @@ export interface TLCursor {
 // @public
 export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 
+// @public (undocumented)
+export interface TLDataColumn {
+    // (undocumented)
+    format?: string;
+    // (undocumented)
+    formula?: string;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    type: 'boolean' | 'category' | 'date' | 'number' | 'string';
+}
+
+// @public (undocumented)
+export interface TLDataRow {
+    // (undocumented)
+    [key: string]: any;
+    // (undocumented)
+    id: string;
+}
+
+// @public (undocumented)
+export interface TLDataSchema {
+    // (undocumented)
+    columns: TLDataColumn[];
+    // (undocumented)
+    primaryKey?: string;
+}
+
+// @public
+export interface TLDataSource extends BaseRecord<'data-source', TLDataSourceId> {
+    // (undocumented)
+    data: TLDataRow[];
+    // (undocumented)
+    metadata: TLDataSourceMetadata;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    schema: TLDataSchema;
+}
+
+// @public (undocumented)
+export type TLDataSourceId = RecordId<TLDataSource>;
+
+// @public (undocumented)
+export interface TLDataSourceMetadata {
+    // (undocumented)
+    lastUpdated: number;
+    // (undocumented)
+    rowCount: number;
+    // (undocumented)
+    source?: string;
+}
+
+// @public
+export type TLDataTransform = TLAggregateTransform | TLFilterTransform | TLGroupTransform | TLSortTransform;
+
 // @public
 export type TLDefaultBinding = TLArrowBinding;
 
@@ -989,7 +1107,7 @@ export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
 export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
 
 // @public
-export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGraphShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public
 export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
@@ -1044,6 +1162,18 @@ export interface TLEmbedShapeProps {
     w: number;
 }
 
+// @public (undocumented)
+export interface TLFilterTransform {
+    // (undocumented)
+    column: string;
+    // (undocumented)
+    operator: 'between' | 'contains' | 'eq' | 'gt' | 'gte' | 'in' | 'lt' | 'lte' | 'neq';
+    // (undocumented)
+    type: 'filter';
+    // (undocumented)
+    value: any | any[];
+}
+
 // @public
 export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>;
 
@@ -1089,10 +1219,74 @@ export interface TLGlobalShapePropsMap {
 }
 
 // @public
+export interface TLGraphDataPoint {
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    value: number;
+}
+
+// @public
+export interface TLGraphEncoding {
+    // (undocumented)
+    colorColumn?: string;
+    // (undocumented)
+    labelColumn?: string;
+    // (undocumented)
+    xColumn?: string;
+    // (undocumented)
+    yColumn?: string;
+}
+
+// @public
+export type TLGraphShape = TLBaseShape<'graph', TLGraphShapeProps>;
+
+// @public
+export interface TLGraphShapeProps {
+    // (undocumented)
+    data?: TLGraphDataPoint[];
+    // (undocumented)
+    dataSourceId?: TLDataSourceId;
+    // (undocumented)
+    encoding?: TLGraphEncoding;
+    // (undocumented)
+    graphType: TLGraphType;
+    // (undocumented)
+    h: number;
+    // (undocumented)
+    styleOverrides?: Record<string, {
+        color?: string;
+    }>;
+    // (undocumented)
+    transforms?: TLDataTransform[];
+    // (undocumented)
+    w: number;
+}
+
+// @public
+export type TLGraphType = 'bar' | 'line' | 'pie';
+
+// @public
 export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>;
 
 // @public
 export interface TLGroupShapeProps {
+}
+
+// @public (undocumented)
+export interface TLGroupTransform {
+    // (undocumented)
+    bins?: number;
+    // (undocumented)
+    column: string;
+    // (undocumented)
+    ranges?: Array<{
+        label: string;
+        max: number;
+        min: number;
+    }>;
+    // (undocumented)
+    type: 'group';
 }
 
 // @public
@@ -1375,6 +1569,47 @@ export type TLPageId = RecordId<TLPage>;
 export type TLParentId = TLPageId | TLShapeId;
 
 // @public
+export type TLPermissionAction = 'comment.create' | 'comment.edit' | 'comment.resolve' | 'comment.view' | 'create' | 'delete' | 'edit' | 'manage' | 'share' | 'view';
+
+// @public
+export interface TLPermissionOverride extends BaseRecord<'permission_override', TLPermissionOverrideId> {
+    meta: JsonObject;
+    resourceId: string;
+    resourceType: 'page' | 'shape';
+    restrictions: TLPermissionRestriction[];
+}
+
+// @public (undocumented)
+export type TLPermissionOverrideId = RecordId<TLPermissionOverride>;
+
+// @public
+export type TLPermissionResource = {
+    pageId: TLPageId;
+    type: 'page';
+} | {
+    prop: string;
+    shapeId: TLShapeId;
+    type: 'shape-prop';
+} | {
+    shapeId: TLShapeId;
+    type: 'shape';
+} | {
+    type: 'document';
+};
+
+// @public
+export type TLPermissionRestriction = {
+    action: TLPermissionAction;
+    allow: string[];
+    deny: string[];
+    mode: 'explicit';
+} | {
+    action: TLPermissionAction;
+    minimumRole: string;
+    mode: 'minimum-role';
+};
+
+// @public
 export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
     // (undocumented)
     lastActivityTimestamp: number;
@@ -1445,6 +1680,15 @@ export interface TLScribble {
 export type TLSerializedStore = SerializedStore<TLRecord>;
 
 // @public
+export interface TLServerPermissionProvider {
+    canPushRecord(userId: string, record: {
+        [key: string]: unknown;
+        id: string;
+        typeName: string;
+    }, operation: 'create' | 'delete' | 'update'): boolean;
+}
+
+// @public
 export type TLShape<K extends keyof TLIndexedShapes = keyof TLIndexedShapes> = TLIndexedShapes[K];
 
 // @public
@@ -1467,6 +1711,16 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     props?: Partial<T['props']>;
     type: T['type'];
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
+
+// @public (undocumented)
+export interface TLSortTransform {
+    // (undocumented)
+    column: string;
+    // (undocumented)
+    direction: 'asc' | 'desc';
+    // (undocumented)
+    type: 'sort';
+}
 
 // @public
 export type TLStore = Store<TLRecord, TLStoreProps>;
