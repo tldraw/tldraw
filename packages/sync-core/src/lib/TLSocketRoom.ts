@@ -1,4 +1,4 @@
-import type { StoreSchema, UnknownRecord } from '@tldraw/store'
+import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
 import { createTLSchema, TLStoreSnapshot } from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
@@ -41,6 +41,24 @@ export interface TLSyncLog {
 	 * @param args - Arguments to log
 	 */
 	error?(...args: any[]): void
+}
+
+/**
+ * A snapshot of per-session state that can be persisted and used to resume a session
+ * after the server restarts (e.g., after Cloudflare Durable Object hibernation).
+ *
+ * Obtain via {@link TLSocketRoom.getSessionSnapshot} and restore via
+ * {@link TLSocketRoom.handleSocketResume}.
+ *
+ * @public
+ */
+export interface SessionStateSnapshot {
+	serializedSchema: SerializedSchema
+	isReadonly: boolean
+	presenceId: string | null
+	presenceRecord: UnknownRecord | null
+	requiresLegacyRejection: boolean
+	supportsStringAppend: boolean
 }
 
 /**
@@ -203,6 +221,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: opts.log,
 			storage,
+			clientTimeout: opts.clientTimeout,
 		})
 		this.storage = storage
 		this.room.events.on('session_removed', (args) => {
@@ -333,6 +352,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * ```
 	 */
 	handleSocketMessage(sessionId: string, message: string | AllowSharedBufferSource) {
+		this.room.pruneSessions()
+
 		const assembler = this.sessions.get(sessionId)?.assembler
 		if (!assembler) {
 			this.log?.warn?.('Received message from unknown session', sessionId)
@@ -411,6 +432,120 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	handleSocketClose(sessionId: string) {
 		this.room.handleClose(sessionId)
+	}
+
+	/**
+	 * Resumes a previously-connected session directly into `Connected` state, bypassing
+	 * the connect handshake. Use this after server hibernation (e.g., Cloudflare Durable
+	 * Object hibernation) when WebSocket connections survived but all in-memory state was lost.
+	 *
+	 * The session is restored using a {@link SessionStateSnapshot} previously obtained
+	 * via {@link TLSocketRoom.getSessionSnapshot}. The client is unaware the server restarted and
+	 * continues sending messages normally.
+	 *
+	 * Unlike {@link TLSocketRoom.handleSocketConnect}, this method does NOT attach WebSocket event
+	 * listeners. In hibernation environments, events are delivered via class methods
+	 * (e.g., `webSocketMessage`) rather than `addEventListener`.
+	 *
+	 * @param opts - Resume options
+	 *   - sessionId - Unique identifier for the client session
+	 *   - socket - WebSocket-like object for client communication
+	 *   - snapshot - Session state snapshot from {@link TLSocketRoom.getSessionSnapshot}
+	 *   - meta - Additional session metadata (required if SessionMeta is not void)
+	 *
+	 * @example
+	 * ```ts
+	 * // After Cloudflare DO hibernation wake
+	 * for (const ws of ctx.getWebSockets()) {
+	 *   const data = ws.deserializeAttachment()
+	 *   room.handleSocketResume({
+	 *     sessionId: data.sessionId,
+	 *     socket: ws,
+	 *     snapshot: data.snapshot,
+	 *   })
+	 * }
+	 * ```
+	 */
+	handleSocketResume(
+		opts: {
+			sessionId: string
+			socket: WebSocketMinimal
+			snapshot: SessionStateSnapshot
+		} & (SessionMeta extends void ? object : { meta: SessionMeta })
+	) {
+		const { sessionId, socket, snapshot } = opts
+
+		this.sessions.set(sessionId, {
+			assembler: new JsonChunkAssembler(),
+			socket,
+			unlisten: () => {
+				// no-op: hibernation environments use class methods, not addEventListener
+			},
+		})
+
+		this.room.handleResumedSession({
+			sessionId,
+			isReadonly: snapshot.isReadonly,
+			serializedSchema: snapshot.serializedSchema,
+			presenceId: snapshot.presenceId,
+			presenceRecord: snapshot.presenceRecord,
+			requiresLegacyRejection: snapshot.requiresLegacyRejection,
+			supportsStringAppend: snapshot.supportsStringAppend,
+			socket: new ServerSocketAdapter({
+				ws: socket,
+				onBeforeSendMessage: this.opts.onBeforeSendMessage
+					? (message, stringified) =>
+							this.opts.onBeforeSendMessage!({
+								sessionId,
+								message,
+								stringified,
+								meta: this.room.sessions.get(sessionId)?.meta as SessionMeta,
+							})
+					: undefined,
+			}),
+			meta: 'meta' in opts ? (opts.meta as any) : undefined,
+		})
+	}
+
+	/**
+	 * Returns a snapshot of a connected session's state that can be persisted and later
+	 * used with {@link TLSocketRoom.handleSocketResume} to restore the session after hibernation.
+	 *
+	 * Returns `null` if the session doesn't exist or isn't in the `Connected` state.
+	 *
+	 * @param sessionId - The session to snapshot
+	 *
+	 * @example
+	 * ```ts
+	 * // Store snapshot in a Cloudflare WebSocket attachment
+	 * const snapshot = room.getSessionSnapshot(sessionId)
+	 * if (snapshot) {
+	 *   ws.serializeAttachment({ sessionId, snapshot })
+	 * }
+	 * ```
+	 */
+	getSessionSnapshot(sessionId: string): SessionStateSnapshot | null {
+		const session = this.room.sessions.get(sessionId)
+		if (!session || session.state !== RoomSessionState.Connected) {
+			return null
+		}
+
+		let presenceRecord: UnknownRecord | null = null
+		if (session.presenceId) {
+			const record = this.room.presenceStore.get(session.presenceId)
+			if (record) {
+				presenceRecord = record as UnknownRecord
+			}
+		}
+
+		return {
+			serializedSchema: session.serializedSchema,
+			isReadonly: session.isReadonly,
+			presenceId: session.presenceId,
+			presenceRecord,
+			requiresLegacyRejection: session.requiresLegacyRejection,
+			supportsStringAppend: session.supportsStringAppend,
+		}
 	}
 
 	/**

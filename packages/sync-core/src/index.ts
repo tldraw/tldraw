@@ -46,6 +46,7 @@ export {
 	TLSocketRoom,
 	type OmitVoid,
 	type RoomStoreMethods,
+	type SessionStateSnapshot,
 	type TLSocketRoomOptions,
 	type TLSyncLog,
 } from './lib/TLSocketRoom'
