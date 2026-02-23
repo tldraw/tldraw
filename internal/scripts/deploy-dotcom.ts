@@ -372,10 +372,12 @@ async function main() {
 	)
 
 	// 3. deploy dotcom app only after workers have successfully deployed.
-	const { deploymentUrl, inspectUrl } = await withTiming('step: deploy dotcom app to vercel', async () =>
-		await discord.step('deploying dotcom app to vercel', async () => {
-			return await withTiming('vercel deploy --prebuilt', () => deploySpa())
-		})
+	const { deploymentUrl, inspectUrl } = await withTiming(
+		'step: deploy dotcom app to vercel',
+		async () =>
+			await discord.step('deploying dotcom app to vercel', async () => {
+				return await withTiming('vercel deploy --prebuilt', () => deploySpa())
+			})
 	)
 
 	let deploymentAlias = null as null | string
