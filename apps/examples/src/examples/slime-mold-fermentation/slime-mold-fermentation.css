@@ -1,0 +1,31 @@
+.sim-controls {
+	display: flex;
+	gap: 6px;
+	padding: 6px;
+	background: var(--color-panel);
+	border-radius: 8px;
+	box-shadow: var(--shadow-2);
+	pointer-events: all;
+}
+
+.sim-controls button {
+	padding: 6px 14px;
+	border: 1px solid var(--color-panel-contrast);
+	border-radius: 6px;
+	background: var(--color-panel);
+	color: var(--color-text-1);
+	cursor: pointer;
+	font-size: 13px;
+	font-family: inherit;
+	transition: all 0.15s;
+}
+
+.sim-controls button:hover {
+	background: var(--color-muted-2);
+}
+
+.sim-controls button.active {
+	background: var(--color-selected);
+	color: var(--color-selected-contrast);
+	border-color: var(--color-selected);
+}
