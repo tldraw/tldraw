@@ -1,8 +1,8 @@
 import {
+	activeElementShouldCaptureKeys,
 	StateNode,
 	TLCancelEventInfo,
 	TLCompleteEventInfo,
-	elementShouldCaptureKeys,
 	tlenv,
 	TLPointerEventInfo,
 	TLShape,
@@ -25,7 +25,7 @@ export class EditingShape extends StateNode {
 
 	private isTextInputFocused(): boolean {
 		const container = this.editor.getContainer()
-		return container.contains(document.activeElement) && elementShouldCaptureKeys(document.activeElement, false)
+		return container.contains(document.activeElement) && activeElementShouldCaptureKeys(false)
 	}
 
 	override onEnter(info: EditingShapeInfo) {
