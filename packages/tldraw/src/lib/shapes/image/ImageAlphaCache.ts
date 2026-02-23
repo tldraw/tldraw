@@ -5,6 +5,7 @@ export const TRANSPARENT_IMAGE_MIMETYPES: readonly string[] = [
 	'image/png',
 	'image/webp',
 	'image/gif',
+	'image/avif',
 ]
 
 /** Alpha channel data for an image, downsampled for efficient hit testing. */
@@ -77,9 +78,10 @@ function getOffscreenCanvas(w: number, h: number): OffscreenCanvas {
 
 function extractAlphas(ctx: OffscreenCanvasRenderingContext2D, w: number, h: number): Uint8Array {
 	const imageData = ctx.getImageData(0, 0, w, h)
+	const pixels = new Uint32Array(imageData.data.buffer)
 	const alphas = new Uint8Array(w * h)
 	for (let i = 0; i < alphas.length; i++) {
-		alphas[i] = imageData.data[i * 4 + 3]
+		alphas[i] = pixels[i] >>> 24
 	}
 	return alphas
 }
@@ -100,21 +102,28 @@ export function preloadAlphaData(src: string): void {
 		const w = Math.max(1, Math.round(origW * scale))
 		const h = Math.max(1, Math.round(origH * scale))
 
-		const canvas = getOffscreenCanvas(w, h)
-		const ctx = canvas.getContext('2d')
-		if (!ctx) return
-
+		let bitmap: ImageBitmap | null = null
 		try {
 			// Resize off the main thread via createImageBitmap
-			const bitmap = await createImageBitmap(img, {
+			bitmap = await createImageBitmap(img, {
 				resizeWidth: w,
 				resizeHeight: h,
 				resizeQuality: 'low',
 			})
+		} catch {
+			// Fallback handled below
+		}
+
+		// Canvas operations are synchronous from here — no interleaving from
+		// concurrent preloads that could resize the shared OffscreenCanvas.
+		const canvas = getOffscreenCanvas(w, h)
+		const ctx = canvas.getContext('2d')
+		if (!ctx) return
+
+		if (bitmap) {
 			ctx.drawImage(bitmap, 0, 0)
 			bitmap.close()
-		} catch {
-			// Fallback for browsers without resize options
+		} else {
 			ctx.drawImage(img, 0, 0, w, h)
 		}
 

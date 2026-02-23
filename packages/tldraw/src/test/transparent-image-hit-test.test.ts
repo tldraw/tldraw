@@ -1,7 +1,6 @@
 import { AssetRecordType, createShapeId } from '@tldraw/editor'
 import { isPointTransparent } from '../lib/shapes/image/ImageAlphaCache'
-import { ImageEllipse2d } from '../lib/shapes/image/ImageEllipse2d'
-import { ImageRectangle2d } from '../lib/shapes/image/ImageRectangle2d'
+import { ImageEllipse2d, ImageRectangle2d } from '../lib/shapes/image/ImageAlphaGeometry'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor

@@ -37,8 +37,7 @@ import { getUncroppedSize } from '../shared/crop'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 import { TRANSPARENT_IMAGE_MIMETYPES, getAlphaData, preloadAlphaData } from './ImageAlphaCache'
-import { ImageEllipse2d } from './ImageEllipse2d'
-import { ImageRectangle2d } from './ImageRectangle2d'
+import { ImageEllipse2d, ImageRectangle2d } from './ImageAlphaGeometry'
 
 async function getDataURIFromURL(url: string): Promise<string> {
 	const response = await fetch(url)
@@ -342,9 +341,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	}, [editor, isAnimated, prefersReducedMotion, url])
 
 	const mimeType = asset && 'mimeType' in asset.props ? asset.props.mimeType : null
-	const supportsTransparency =
-		mimeType != null &&
-		(mimeType.includes('png') || mimeType.includes('webp') || mimeType.includes('gif'))
+	const supportsTransparency = mimeType != null && TRANSPARENT_IMAGE_MIMETYPES.includes(mimeType)
 
 	useEffect(() => {
 		if (url && supportsTransparency) {
