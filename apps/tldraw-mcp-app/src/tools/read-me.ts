@@ -7,8 +7,9 @@ Call this tool first.
 ## Workflow
 
 1. Call \`new_canvas\` once to open a fresh interactive canvas.
-2. Use mutation tools (\`create_shapes\`, \`update_shapes\`, \`delete_shapes\`) to change the diagram.
-3. Use \`get_canvas_state\` to inspect the latest state when needed.
+2. For streamed drawing, call \`stream_shapes\` with \`shapesJson\` (a JSON string of \`FocusedShape[]\`).
+3. Use mutation tools (\`create_shapes\`, \`update_shapes\`, \`delete_shapes\`) for non-streamed edits.
+4. Use \`get_canvas_state\` to inspect the latest state when needed.
 
 **Important**:
 - \`new_canvas\` takes no input.
@@ -153,6 +154,10 @@ Creates and opens a new interactive canvas widget.
 Creates one or more shapes.
 - \`shapes\`: JSON string of FocusedShape[] OR FocusedShape[] directly
 
+### stream_shapes
+Creates shapes from a JSON string, intended for partial-input streaming in MCP apps.
+- \`shapesJson\`: JSON string of FocusedShape[]
+
 ### delete_shapes
 Deletes shapes by ID.
 - \`shapeIds\`: JSON string of string[] OR string[] directly
@@ -178,6 +183,13 @@ Returns the active canvas snapshot (shape records + focusedShapes + metadata).
     { "_type": "arrow", "shapeId": "a1", "x1": 200, "y1": 50, "x2": 320, "y2": 50, "color": "black", "fromId": "start", "toId": "process" },
     { "_type": "rectangle", "shapeId": "process", "x": 320, "y": 0, "w": 220, "h": 100, "color": "green", "fill": "tint", "text": "Process" }
   ]
+}
+\`\`\`
+
+### stream_shapes
+\`\`\`json
+{
+  "shapesJson": "[{\"_type\":\"rectangle\",\"shapeId\":\"start\",\"x\":0,\"y\":0,\"w\":200,\"h\":100,\"color\":\"blue\",\"fill\":\"tint\",\"text\":\"Start\"},{\"_type\":\"arrow\",\"shapeId\":\"a1\",\"x1\":200,\"y1\":50,\"x2\":320,\"y2\":50,\"color\":\"black\",\"fromId\":\"start\",\"toId\":\"process\"},{\"_type\":\"rectangle\",\"shapeId\":\"process\",\"x\":320,\"y\":0,\"w\":220,\"h\":100,\"color\":\"green\",\"fill\":\"tint\",\"text\":\"Process\"}]"
 }
 \`\`\`
 

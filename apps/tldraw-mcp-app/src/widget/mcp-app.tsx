@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
 import { type TLShape, Editor, Tldraw, getIndexAbove, structuredClone } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { FocusedShapeSchema, convertFocusedShapeToTldrawRecord } from '../focused-shape'
 
 const EDITOR_HEIGHT = 600
 const SYNC_DEBOUNCE_MS = 350
@@ -14,7 +15,6 @@ interface CanvasSnapshot {
 	shapes: TLShape[]
 }
 
-// Visible debug log
 const debugLines: string[] = []
 function log(msg: string) {
 	debugLines.push(`${new Date().toISOString().slice(11, 23)} ${msg}`)
@@ -24,8 +24,6 @@ function log(msg: string) {
 
 window.addEventListener('error', (e) => log(`ERROR: ${e.message}`))
 window.addEventListener('unhandledrejection', (e) => log(`REJECTION: ${e.reason}`))
-
-log('Script loaded')
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null
@@ -50,6 +48,76 @@ function parseCanvasSnapshot(value: unknown): CanvasSnapshot | null {
 function extractSnapshotFromToolResult(result: unknown): CanvasSnapshot | null {
 	if (!isRecord(result)) return null
 	return parseCanvasSnapshot(result.structuredContent)
+}
+
+function parsePartialJsonArray(value: string): unknown[] {
+	const trimmed = value.trim()
+	if (!trimmed.startsWith('[')) return []
+
+	try {
+		const parsed = JSON.parse(trimmed)
+		return Array.isArray(parsed) ? parsed : []
+	} catch {
+		// Best effort for a partially-streamed JSON array.
+	}
+
+	const lastObjectEnd = trimmed.lastIndexOf('}')
+	if (lastObjectEnd < 0) return []
+
+	try {
+		const parsed = JSON.parse(`${trimmed.slice(0, lastObjectEnd + 1)}]`)
+		return Array.isArray(parsed) ? parsed : []
+	} catch {
+		return []
+	}
+}
+
+function dropPotentiallyIncompleteTail<T>(items: T[]): T[] {
+	if (items.length <= 1) return []
+	return items.slice(0, -1)
+}
+
+function extractToolArguments(input: unknown): Record<string, unknown> | null {
+	if (!isRecord(input)) return null
+	const args = input.arguments
+	return isRecord(args) ? args : input
+}
+
+function toPreviewShapes(value: unknown, isPartial: boolean): TLShape[] {
+	let parsedItems: unknown[] = []
+	if (Array.isArray(value)) {
+		parsedItems = value
+	} else if (typeof value === 'string') {
+		parsedItems = parsePartialJsonArray(value)
+	} else {
+		return []
+	}
+
+	const candidateItems = isPartial ? dropPotentiallyIncompleteTail(parsedItems) : parsedItems
+	const previewShapes: TLShape[] = []
+	for (const item of candidateItems) {
+		const parsed = FocusedShapeSchema.safeParse(item)
+		if (!parsed.success) continue
+		try {
+			const converted = convertFocusedShapeToTldrawRecord(parsed.data)
+			if (typeof converted.id !== 'string' || typeof converted.type !== 'string') continue
+			previewShapes.push(converted as unknown as TLShape)
+		} catch {
+			// Ignore unsupported preview items.
+		}
+	}
+	return previewShapes
+}
+
+function mergeShapesById(base: TLShape[], additions: TLShape[]): TLShape[] {
+	const merged = new Map<string, TLShape>()
+	for (const shape of base) {
+		merged.set(shape.id, structuredClone(shape))
+	}
+	for (const shape of additions) {
+		merged.set(shape.id, structuredClone(shape))
+	}
+	return [...merged.values()]
 }
 
 function applySnapshot(editor: Editor, snapshot: CanvasSnapshot) {
@@ -94,11 +162,59 @@ function applySnapshot(editor: Editor, snapshot: CanvasSnapshot) {
 function TldrawCanvas({ app }: { app: App }) {
 	const editorRef = useRef<Editor | null>(null)
 	const pendingSnapshotRef = useRef<CanvasSnapshot | null>(null)
+	const pendingPreviewSnapshotRef = useRef<CanvasSnapshot | null>(null)
 	const canvasIdRef = useRef<string | null>(null)
 	const localVersionRef = useRef(0)
 	const pushTimerRef = useRef<number | null>(null)
 	const pushInFlightRef = useRef(false)
+	const previewActiveRef = useRef(false)
+	const committedSnapshotRef = useRef<CanvasSnapshot>({ version: 0, shapes: [] })
 	const removeStoreListenerRef = useRef<(() => void) | null>(null)
+
+	const renderPreviewShapes = useCallback((previewShapes: TLShape[]) => {
+		if (previewShapes.length <= 0) return
+		const committed = committedSnapshotRef.current
+		const previewSnapshot: CanvasSnapshot = {
+			canvasId: committed.canvasId,
+			version: committed.version,
+			shapes: mergeShapesById(committed.shapes, previewShapes),
+		}
+		previewActiveRef.current = true
+
+		const editor = editorRef.current
+		if (!editor) {
+			pendingPreviewSnapshotRef.current = previewSnapshot
+			return
+		}
+
+		applySnapshot(editor, previewSnapshot)
+		log(`Applied stream preview (${previewShapes.length} shape(s))`)
+	}, [])
+
+	const clearPreviewAndRestoreCommitted = useCallback((reason: string) => {
+		if (!previewActiveRef.current) return
+		previewActiveRef.current = false
+		pendingPreviewSnapshotRef.current = null
+		const editor = editorRef.current
+		if (editor) {
+			applySnapshot(editor, committedSnapshotRef.current)
+		}
+		log(`Cleared stream preview (${reason})`)
+	}, [])
+
+	const applyPreviewFromToolInput = useCallback(
+		(input: unknown, isPartial: boolean) => {
+			const args = extractToolArguments(input)
+			if (!args) return
+
+			const rawShapes = args.shapesJson ?? args.shapes
+			const previewShapes = toPreviewShapes(rawShapes, isPartial)
+			if (previewShapes.length <= 0) return
+
+			renderPreviewShapes(previewShapes)
+		},
+		[renderPreviewShapes]
+	)
 
 	const pushLocalSnapshot = useCallback(async () => {
 		const canvasId = canvasIdRef.current
@@ -117,7 +233,9 @@ function TldrawCanvas({ app }: { app: App }) {
 			})
 			const snapshot = extractSnapshotFromToolResult(result)
 			if (snapshot) {
+				previewActiveRef.current = false
 				localVersionRef.current = snapshot.version
+				committedSnapshotRef.current = snapshot
 			}
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err)
@@ -153,6 +271,9 @@ function TldrawCanvas({ app }: { app: App }) {
 
 		if (snapshot.version <= localVersionRef.current) return
 
+		previewActiveRef.current = false
+		committedSnapshotRef.current = snapshot
+
 		const editor = editorRef.current
 		if (!editor) {
 			pendingSnapshotRef.current = snapshot
@@ -165,6 +286,7 @@ function TldrawCanvas({ app }: { app: App }) {
 	}, [])
 
 	const pullRemoteSnapshot = useCallback(async () => {
+		if (previewActiveRef.current || pushInFlightRef.current) return
 		try {
 			const result = await app.callServerTool({
 				name: 'get_canvas_state',
@@ -186,19 +308,34 @@ function TldrawCanvas({ app }: { app: App }) {
 			return {}
 		}
 
+		app.ontoolinputpartial = (input) => {
+			if (pushInFlightRef.current) return
+			applyPreviewFromToolInput(input, true)
+		}
+
+		app.ontoolinput = (input) => {
+			if (pushInFlightRef.current) return
+			applyPreviewFromToolInput(input, false)
+		}
+
 		app.ontoolresult = (result) => {
-			log(`toolresult2: ${JSON.stringify(result)}`)
 			if (pushInFlightRef.current) return
 			const snapshot = extractSnapshotFromToolResult(result)
-			if (!snapshot) return
+			if (!snapshot) {
+				clearPreviewAndRestoreCommitted('non-canvas tool result')
+				return
+			}
 			applyIncomingSnapshot(snapshot)
+		}
+
+		app.ontoolcancelled = (params) => {
+			const reason = params.reason ?? 'tool cancelled'
+			clearPreviewAndRestoreCommitted(reason)
 		}
 
 		void pullRemoteSnapshot()
 		const pollId = window.setInterval(() => {
-			if (!pushInFlightRef.current) {
-				void pullRemoteSnapshot()
-			}
+			void pullRemoteSnapshot()
 		}, POLL_INTERVAL_MS)
 
 		return () => {
@@ -211,12 +348,17 @@ function TldrawCanvas({ app }: { app: App }) {
 			removeStoreListenerRef.current = null
 			log('TldrawCanvas unmounted!')
 		}
-	}, [app, applyIncomingSnapshot, pullRemoteSnapshot])
+	}, [
+		app,
+		applyIncomingSnapshot,
+		applyPreviewFromToolInput,
+		clearPreviewAndRestoreCommitted,
+		pullRemoteSnapshot,
+	])
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			log('Tldraw editor onMount fired')
-			log('window.location.href: ' + window.location.href)
 			editorRef.current = editor
 
 			removeStoreListenerRef.current?.()
@@ -233,6 +375,12 @@ function TldrawCanvas({ app }: { app: App }) {
 				applySnapshot(editor, pendingSnapshot)
 				localVersionRef.current = pendingSnapshot.version
 			}
+
+			const pendingPreviewSnapshot = pendingPreviewSnapshotRef.current
+			if (pendingPreviewSnapshot) {
+				pendingPreviewSnapshotRef.current = null
+				applySnapshot(editor, pendingPreviewSnapshot)
+			}
 		},
 		[schedulePush]
 	)
@@ -242,7 +390,6 @@ function TldrawCanvas({ app }: { app: App }) {
 			<Tldraw
 				licenseKey="tldraw-claude-mcp-content-2027-01-12/WyJ4c0lDTDVaTCIsWyIqLmNsYXVkZW1jcGNvbnRlbnQuY29tIl0sMTYsIjIwMjctMDEtMTIiXQ.RAN4FAIUQ8hjQl6Brwa9CKlZFontsjf/W3xk+gl+PThOE0M4sIT7RzWWykYSj/HjsAwCoPpJ2OsImBZIw71Yag"
 				onMount={handleMount}
-				// cameraOptions={{ isLocked: false }}
 			/>
 		</div>
 	)
@@ -252,36 +399,14 @@ function McpApp() {
 	const handleAppCreated = useCallback((instance: App) => {
 		log('App created via useApp')
 		instance.onerror = (err) => log(`App.onerror: ${err}`)
-		// instance.ontoolinputpartial = (params) => {
-		// 	log(`toolinputpartial: ${params}`)
-		// }
-		// instance.onhostcontextchanged = (ctx) => {
-		// 	log(`hostcontext: ctx=${JSON.stringify(ctx, null, 2)}`)
-		// }
-		// instance.ontoolinput = (params) => {
-		// 	log(`toolinput: ${params}`)
-		// }
-		instance.ontoolresult = (result) => {
-			log(`toolresult: ${JSON.stringify(result)}`)
-		}
-
-		// instance.onerror = (err) => log(`App.onerror: ${err}`)
-		instance.ontoolinputpartial = (params) => {
-			log(`toolinputpartial2: ${JSON.stringify(params, null, 2)}`)
-		}
 		instance.onhostcontextchanged = (ctx) => {
-			log(`hostcontext2: ctx=${JSON.stringify(ctx, null, 2)}`)
-		}
-		instance.ontoolinput = (params) => {
-			log(`toolinput2: ${JSON.stringify(params, null, 2)}`)
+			log(`hostcontext: ${JSON.stringify(ctx)}`)
 		}
 	}, [])
 
 	const { app, isConnected, error } = useApp({
 		appInfo: { name: 'tldraw', version: '1.0.0' },
-		capabilities: {
-			// availableDisplayModes: ["inline"] //pip doesn't seem to work in claude desktop app :(
-		},
+		capabilities: {},
 		onAppCreated: handleAppCreated,
 	})
 
@@ -294,23 +419,20 @@ function McpApp() {
 		async function sendInitialSize() {
 			try {
 				log('Connected!')
-				// log('Sending size...')
-				// await connectedApp.sendSizeChanged({ height: EDITOR_HEIGHT })
 				await connectedApp.requestDisplayMode({ mode: 'inline' })
 				if (!cancelled) {
-					log('Size sent')
 					log('App ready, rendering tldraw')
 				}
 			} catch (err) {
 				const msg = err instanceof Error ? err.message : String(err)
-				if (!cancelled) log(`Error sending size: ${msg}`)
+				if (!cancelled) log(`Error sending initial ui request: ${msg}`)
 			}
 		}
 
-		sendInitialSize()
+		void sendInitialSize()
 		return () => {
 			cancelled = true
-			log('McpApp useEffect cleanup')
+			log('McpApp cleanup')
 		}
 	}, [app, isConnected])
 
