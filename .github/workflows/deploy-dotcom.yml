@@ -117,7 +117,6 @@ jobs:
 
           # Rewrite transaction pooler (port 6543, IPv6-only) to session pooler
           # (port 5432, IPv4-compatible) since GitHub Actions runners are IPv4-only.
-          # Session pooler also supports prepared statements required by Zero.
           POSTGRES_URL="${POSTGRES_URL_TRANSACTION/:6543/:5432}"
 
           echo "::add-mask::$POSTGRES_URL"
