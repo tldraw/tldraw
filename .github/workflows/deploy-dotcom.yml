@@ -98,33 +98,34 @@ jobs:
 
           # Use -o json (not -o env) — the env format has a bug returning the parent
           # project's connection strings instead of the branch's (supabase/supabase#32937).
+          # Write to a temp file to avoid secrets leaking into CI step output.
           BRANCH_JSON=$(mktemp)
           supabase --experimental branches get "$BRANCH_NAME" \
             --project-ref "$PROJECT_REF" \
             -o json > "$BRANCH_JSON" 2>/dev/null
-          PGURL_TRANSACTION=$(jq -r '.POSTGRES_URL' "$BRANCH_JSON")
-          PGURL_DIRECT=$(jq -r '.POSTGRES_URL_NON_POOLING' "$BRANCH_JSON")
+          POSTGRES_URL_TRANSACTION=$(jq -r '.POSTGRES_URL' "$BRANCH_JSON")
+          POSTGRES_URL_NON_POOLING=$(jq -r '.POSTGRES_URL_NON_POOLING' "$BRANCH_JSON")
           rm "$BRANCH_JSON"
 
-          if [ -z "$PGURL_TRANSACTION" ] || [ "$PGURL_TRANSACTION" = "null" ]; then
+          if [ -z "$POSTGRES_URL_TRANSACTION" ] || [ "$POSTGRES_URL_TRANSACTION" = "null" ]; then
             echo "::error::Failed to get POSTGRES_URL from branch"
             exit 1
           fi
 
-          if [ -z "$PGURL_DIRECT" ] || [ "$PGURL_DIRECT" = "null" ]; then
+          if [ -z "$POSTGRES_URL_NON_POOLING" ] || [ "$POSTGRES_URL_NON_POOLING" = "null" ]; then
             echo "::error::Failed to get POSTGRES_URL_NON_POOLING from branch"
             exit 1
           fi
 
           # Rewrite transaction pooler (port 6543, IPv6-only) to session pooler
           # (port 5432, IPv4-compatible) which also supports prepared statements.
-          PGURL="${PGURL_TRANSACTION/:6543/:5432}"
+          POSTGRES_URL="${POSTGRES_URL_TRANSACTION/:6543/:5432}"
 
-          echo "::add-mask::$PGURL"
-          echo "::add-mask::$PGURL_TRANSACTION"
-          echo "::add-mask::$PGURL_DIRECT"
-          echo "POSTGRES_URL=$PGURL" >> "$GITHUB_ENV"
-          echo "POSTGRES_URL_NON_POOLING=$PGURL_DIRECT" >> "$GITHUB_ENV"
+          echo "::add-mask::$POSTGRES_URL"
+          echo "::add-mask::$POSTGRES_URL_TRANSACTION"
+          echo "::add-mask::$POSTGRES_URL_NON_POOLING"
+          echo "POSTGRES_URL=$POSTGRES_URL" >> "$GITHUB_ENV"
+          echo "POSTGRES_URL_NON_POOLING=$POSTGRES_URL_NON_POOLING" >> "$GITHUB_ENV"
 
       - name: Build types
         run: yarn build-types
