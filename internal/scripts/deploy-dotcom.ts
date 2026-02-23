@@ -217,9 +217,11 @@ const workerDeployments: WorkerDeployment[] = [
 async function deployWorkersInDependencyOrder({
 	dryRun,
 	withDiscordSteps,
+	parallelizeReadyWorkers,
 }: {
 	dryRun: boolean
 	withDiscordSteps: boolean
+	parallelizeReadyWorkers: boolean
 }) {
 	const pending = new Map(workerDeployments.map((worker) => [worker.id, worker]))
 	const completed = new Set<WorkerId>()
@@ -233,16 +235,31 @@ async function deployWorkersInDependencyOrder({
 			throw new Error('Cloudflare worker dependency cycle detected in deploy-dotcom.ts')
 		}
 
-		await Promise.all(
-			ready.map(async (worker) => {
+		const deployWorker = async (worker: WorkerDeployment) => {
+			const deploy = () => withTiming(worker.timingLabel, () => worker.run({ dryRun }))
+			if (withDiscordSteps) {
+				await discord.step(worker.stepLabel, deploy)
+			} else {
+				await deploy()
+			}
+		}
+
+		if (parallelizeReadyWorkers) {
+			await Promise.all(
+				ready.map(async (worker) => {
+					await deployWorker(worker)
+				})
+			)
+		} else {
+			for (const worker of ready) {
 				const deploy = () => withTiming(worker.timingLabel, () => worker.run({ dryRun }))
 				if (withDiscordSteps) {
 					await discord.step(worker.stepLabel, deploy)
 				} else {
 					await deploy()
 				}
-			})
-		)
+			}
+		}
 
 		for (const worker of ready) {
 			pending.delete(worker.id)
@@ -335,6 +352,7 @@ async function main() {
 			await deployWorkersInDependencyOrder({
 				dryRun: true,
 				withDiscordSteps: false,
+				parallelizeReadyWorkers: true,
 			})
 		})
 	)
@@ -343,26 +361,21 @@ async function main() {
 
 	await discord.message(`--- **pre-flight complete, starting real dotcom deploy** ---`)
 
-	// 2. deploy dotcom app and workers in parallel.
+	// 2. deploy cloudflare workers first.
 	// Worker dependencies are enforced by deployWorkersInDependencyOrder.
-	const [{ deploymentUrl, inspectUrl }] = await withTiming(
-		'step: parallel deploys',
-		async () =>
-			await Promise.all([
-				withTiming(
-					'step: deploy dotcom app to vercel',
-					async () =>
-						await discord.step('deploying dotcom app to vercel', async () => {
-							return await withTiming('vercel deploy --prebuilt', () => deploySpa())
-						})
-				),
-				withTiming('step: deploy cloudflare workers', () =>
-					deployWorkersInDependencyOrder({
-						dryRun: false,
-						withDiscordSteps: true,
-					})
-				),
-			])
+	await withTiming('step: deploy cloudflare workers', () =>
+		deployWorkersInDependencyOrder({
+			dryRun: false,
+			withDiscordSteps: true,
+			parallelizeReadyWorkers: false,
+		})
+	)
+
+	// 3. deploy dotcom app only after workers have successfully deployed.
+	const { deploymentUrl, inspectUrl } = await withTiming('step: deploy dotcom app to vercel', async () =>
+		await discord.step('deploying dotcom app to vercel', async () => {
+			return await withTiming('vercel deploy --prebuilt', () => deploySpa())
+		})
 	)
 
 	let deploymentAlias = null as null | string
