@@ -5,6 +5,7 @@ import { AgentStatus, IntelligentCanvasAgent } from './agent/IntelligentCanvasAg
 import { CompositionProvider } from './composition/CompositionContext'
 import { CompositionOverlay } from './composition/CompositionOverlay'
 import { CompositionPanel } from './composition/CompositionPanel'
+import { TierBordersOverlay } from './composition/TierBordersOverlay'
 import './intelligent-canvas.css'
 import { CodeShapeUtil } from './shapes/CodeShapeUtil'
 import { AgentStatusIndicator } from './ui/AgentStatusIndicator'
@@ -80,7 +81,9 @@ function InFrontOfTheCanvasContent() {
 }
 
 function OnTheCanvasContent() {
-	return null
+	const { mode } = useContext(AgentContext)
+	if (mode !== 'composition') return null
+	return <TierBordersOverlay />
 }
 
 const shapeUtils = [CodeShapeUtil]
