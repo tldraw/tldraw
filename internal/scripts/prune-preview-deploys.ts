@@ -10,6 +10,9 @@ const env = makeEnv([
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
 	'GH_TOKEN',
+	'SUPABASE_ACCESS_TOKEN',
+	'SUPABASE_PREVIEW_PROJECT_ID',
+	// TODO: remove Neon env vars once all legacy branches are cleaned up
 	'NEON_API_KEY',
 	'NEON_PROJECT_ID',
 ])
@@ -125,11 +128,34 @@ async function deletePreviewWorkerDeployment(id: string) {
 	}
 }
 
+const supabaseHeaders = {
+	Authorization: `Bearer ${env.SUPABASE_ACCESS_TOKEN}`,
+}
+
+async function deletePreviewDatabase(branchName: string) {
+	const listUrl = `https://api.supabase.com/v1/projects/${env.SUPABASE_PREVIEW_PROJECT_ID}/branches`
+	const listRes = await fetch(listUrl, { headers: supabaseHeaders })
+	if (!listRes.ok) {
+		throw new Error(`Failed to list Supabase branches: ${listRes.status} ${listRes.statusText}`)
+	}
+	const branches = (await listRes.json()) as { id: string; name: string }[]
+	const branch = branches.find((b) => b.name === branchName)
+	if (!branch) {
+		nicelog(`Branch ${branchName} not found`)
+		return
+	}
+	const url = `https://api.supabase.com/v1/branches/${branch.id}`
+	nicelog('DELETE', url)
+	const res = await fetch(url, { method: 'DELETE', headers: supabaseHeaders })
+	nicelog('status', res.status)
+}
+
+// TODO: remove Neon pruning once all legacy branches are cleaned up
 const neonHeaders = {
 	Authorization: `Bearer ${env.NEON_API_KEY}`,
 }
 
-async function getBranchId(branchName: string) {
+async function getNeonBranchId(branchName: string) {
 	const url = `https://console.neon.tech/api/v2/projects/${env.NEON_PROJECT_ID}/branches?search=${branchName}`
 	nicelog('GET', url)
 	const res = await fetch(url, {
@@ -145,8 +171,21 @@ async function getBranchId(branchName: string) {
 	return data.branches.find((b) => b.name === branchName)?.id
 }
 
-async function deletePreviewDatabase(branchName: string) {
-	const id = await getBranchId(branchName)
+async function listNeonPreviewDatabases() {
+	const url = `https://console.neon.tech/api/v2/projects/${env.NEON_PROJECT_ID}/branches`
+	const res = await fetch(url, {
+		headers: neonHeaders,
+	})
+	if (!res.ok) {
+		return []
+	}
+	return ((await res.json()) as { branches: { name: string }[] }).branches
+		.filter((b) => PREVIEW_DB_REGEX.test(b.name))
+		.map((b) => b.name)
+}
+
+async function deleteNeonPreviewDatabase(branchName: string) {
+	const id = await getNeonBranchId(branchName)
 	if (!id) {
 		nicelog(`Branch ${branchName} not found`)
 		return
@@ -170,20 +209,15 @@ async function deleteFlyioPreviewApp(appName: string) {
 	}
 }
 
-const NEON_PREVIEW_DB_REGEX = /^pr-\d+$/
+const PREVIEW_DB_REGEX = /^pr-\d+$/
 async function listPreviewDatabases() {
-	const url = `https://console.neon.tech/api/v2/projects/${env.NEON_PROJECT_ID}/branches`
-	const res = await fetch(url, {
-		headers: {
-			method: 'GET',
-			Authorization: `Bearer ${env.NEON_API_KEY}`,
-		},
-	})
+	const url = `https://api.supabase.com/v1/projects/${env.SUPABASE_PREVIEW_PROJECT_ID}/branches`
+	const res = await fetch(url, { headers: supabaseHeaders })
 	if (!res.ok) {
 		return []
 	}
-	return ((await res.json()) as { branches: { name: string }[] }).branches
-		.filter((b) => NEON_PREVIEW_DB_REGEX.test(b.name))
+	return ((await res.json()) as { id: string; name: string }[])
+		.filter((b) => PREVIEW_DB_REGEX.test(b.name))
 		.map((b) => b.name)
 }
 const ZERO_CACHE_APP_REGEX = /^pr-\d+-zero-cache$/
@@ -229,8 +263,11 @@ const deletionErrors: string[] = []
 async function main() {
 	nicelog('Getting queues information')
 	await processItems(listPreviewWorkerDeployments, deletePreviewWorkerDeployment)
-	nicelog('\nPruning preview databases')
+	nicelog('\nPruning Supabase preview databases')
 	await processItems(listPreviewDatabases, deletePreviewDatabase)
+	// TODO: remove once all legacy Neon branches are cleaned up
+	nicelog('\nPruning legacy Neon preview databases')
+	await processItems(listNeonPreviewDatabases, deleteNeonPreviewDatabase)
 	nicelog('\nPruning fly.io preview apps')
 	await processItems(listFlyioPreviewApps, deleteFlyioPreviewApp)
 	nicelog('\nPruning sst preview stages')

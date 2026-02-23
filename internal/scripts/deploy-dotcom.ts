@@ -180,7 +180,7 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // All DBs use direct connections. Pooled connections (PgBouncer/Supavisor transaction mode) break
 // prepared statements which Zero's postgres.js driver uses internally.
 // Staging: Supabase Micro (60 max_connections, 200 pooled clients)
-// Preview: Neon 0.25 CU (104 max_connections shared across all preview branches)
+// Preview: Supabase branch instance (~60 max_connections per branch, isolated)
 // Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
 // TODO(production): tune these once we know prod Postgres limits
 const zeroConnectionLimits = {
@@ -192,7 +192,7 @@ const zeroConnectionLimits = {
 		rm: { upstream: 1, cvr: 3, change: 5 },
 		vs: { upstream: 5, cvr: 10, change: 3 },
 	},
-	// Previews use Neon DB
+	// Previews use Supabase branch DB
 	preview: {
 		single: { upstream: 3, cvr: 5, change: 3 },
 	},
