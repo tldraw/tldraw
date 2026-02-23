@@ -275,9 +275,9 @@ export function geminiProxy(): Plugin {
 								'--permission-mode',
 								'acceptEdits',
 								'--allowedTools',
-								'Read,Write,Edit,Glob,Grep',
+								'Read,Write,Edit,Glob,Grep,Bash',
 								'--max-turns',
-								'3',
+								'8',
 								'--output-format',
 								'json',
 								'-p',
@@ -305,10 +305,10 @@ export function geminiProxy(): Plugin {
 						// 10 minute timeout
 						const timeout = setTimeout(
 							() => {
-								console.error(`[Claude Code] ◀ TIMEOUT after 10 minutes`)
+								console.error(`[Claude Code] ◀ TIMEOUT after 20 minutes`)
 								child.kill('SIGTERM')
 							},
-							10 * 60 * 1000
+							20 * 60 * 1000
 						)
 
 						child.on('close', (code) => {

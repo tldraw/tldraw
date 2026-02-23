@@ -110,7 +110,7 @@ function toSlug(title: string): string {
 export async function buildPrototype(idea: ComposedIdeaDraft): Promise<BuildResult> {
 	const slug = toSlug(idea.title)
 
-	const prompt = `Build a visually impressive tldraw example. This is a proof-of-concept — it should look visually impressive, and have interesting user interactions.
+	const prompt = `Build a tldraw example that brings an idea to life on the canvas. It should be a proof-of-concept — interesting to look at, fun to interact with.
 
 The idea:
 - Title: ${idea.title}
@@ -119,24 +119,24 @@ The idea:
 - Outputs: ${idea.outputs.join(', ')}
 - Why this combination: ${idea.whyThisCombination}
 
-Design indication:
-- Use animation, color, and movement. The canvas should feel alive.
-- If not, it should be an interesting proof of concept for an idea, which is reflective of the composition.
-- Stellar generative art or design engineering. Think: Bees & Bombs loops, Raven Kwok projections, Zach Lieberman's daily sketches, Refik Anadol's data sculptures, Bartosz Ciechanowski's interactive explainers, or Lyle Klyne / Rauno Freiberg / Emil Kowalski-style design engineering.
-- Prefer using tldraw's built-in shapes (geo, arrow, draw, note, etc.) as your visual primitives. Animate by creating, updating, and morphing shape properties — color, size, geo type, opacity, position — rather than rendering to a Canvas2D or SVG overlay.
+IMPORTANT — before writing any code, read the reference example:
+  apps/examples/src/examples/slime-mold-fermentation/simulation.ts
+  apps/examples/src/examples/slime-mold-fermentation/SlimeMoldFermentationExample.tsx
+This shows the pattern: use tldraw's native shapes (geo, arrow, draw, note) as your visual primitives. Animate by creating, updating, and morphing shape properties — color, size, geo type, opacity, position, bend — in an editor.on('tick', ...) loop. Do NOT drop down to Canvas2D or SVG overlays unless the idea truly requires pixel-level rendering.
 
-Key tldraw patterns you can use (pick what fits the idea):
-- editor.on('tick', ...) for animation loops (60fps, use deltaMs for timing)
-- InFrontOfTheCanvas component: HTML/Canvas2D overlay on top of the canvas (good for particle systems, trails)
-- OnTheCanvas component: SVG layer that scales with zoom (good for shape decorations)
-- Custom ShapeUtil: define new shape types with custom rendering, geometry, and handles
-- editor.getViewportScreenBounds() / editor.getCamera() for camera-aware rendering
-- editor.getCurrentPageShapes() to read all shapes on the page
-- editor.createShapes([...]) to programmatically add shapes
-- requestAnimationFrame for canvas-based rendering in overlays
+Key patterns from the reference:
+- editor.createShape / editor.updateShape with native types (geo, arrow, draw, note)
+- Geo shape props: geo ('rectangle','ellipse','star','cloud','triangle',...), w, h, color, fill ('solid','semi','none'), dash ('draw','solid','dashed'), size ('s','m','l','xl')
+- Arrow props: start, end, color, bend, arrowheadStart, arrowheadEnd ('none','arrow','triangle',...)
+- editor.on('tick', fn) for simulation/animation loops
+- editor.run(() => { ... }) to batch multiple updates in one frame
+- Custom StateNode tools for pointer interaction
+- TLComponents to customize UI (TopPanel for controls, hide unused panels)
+- editor.getShapePageBounds(id) for spatial queries
 
 Create exactly 2 files in apps/examples/src/examples/${slug}/.
-IMPORTANT: Write ExampleComponent.tsx FIRST, then README.md (to avoid HMR errors).
+IMPORTANT: Write the main component file FIRST, then README.md (to avoid HMR errors).
+You can split into multiple .ts files if the logic warrants it (like the reference does with simulation.ts).
 
 1. ExampleComponent.tsx (default export):
 - import from 'tldraw' and 'react'
