@@ -24,8 +24,11 @@ export interface ImageAlphaGeometryConfig {
 	flipY: boolean
 }
 
-/** Map a point in shape space to normalized [0,1] image coordinates, accounting for crop and flip. */
-export function mapToImageCoords(
+/**
+ * Map a point in shape space to normalized [0,1] image coordinates, accounting for crop and flip.
+ * @internal
+ */
+function mapToImageCoords(
 	config: ImageAlphaGeometryConfig,
 	point: VecLike,
 	bounds: { minX: number; minY: number; w: number; h: number }
@@ -86,15 +89,23 @@ function extractAlphas(ctx: OffscreenCanvasRenderingContext2D, w: number, h: num
 	return alphas
 }
 
-/** Start loading alpha data for a given image URL. No-op if already loaded or loading. */
-export function preloadAlphaData(src: string): void {
-	if (alphaCache.has(src) || pending.has(src)) return
-	pending.add(src)
+/**
+ * Start loading alpha data for a given image URL. No-op if already loaded or loading.
+ *
+ * @param url - The URL to fetch the image from (may be a resolved/optimized CDN URL).
+ * @param cacheKey - The key to store/lookup the alpha data under. Defaults to `url`.
+ *   Pass `asset.props.src` here so that `getAlphaData(asset.props.src)` in getGeometry
+ *   finds data that was preloaded from a resolved URL.
+ */
+export function preloadAlphaData(url: string, cacheKey?: string): void {
+	const key = cacheKey ?? url
+	if (alphaCache.has(key) || pending.has(key)) return
+	pending.add(key)
 
 	const img = Image()
 	img.crossOrigin = 'anonymous'
 	img.onload = async () => {
-		pending.delete(src)
+		pending.delete(key)
 		const { width: origW, height: origH } = img
 		if (origW === 0 || origH === 0) return
 
@@ -127,12 +138,12 @@ export function preloadAlphaData(src: string): void {
 			ctx.drawImage(img, 0, 0, w, h)
 		}
 
-		alphaCache.set(src, { width: w, height: h, alphas: extractAlphas(ctx, w, h) })
+		alphaCache.set(key, { width: w, height: h, alphas: extractAlphas(ctx, w, h) })
 	}
 	img.onerror = () => {
-		pending.delete(src)
+		pending.delete(key)
 	}
-	img.src = src
+	img.src = url
 }
 
 /** Get cached alpha data for a URL, or null if not yet loaded. */

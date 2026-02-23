@@ -342,12 +342,15 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 
 	const mimeType = asset && 'mimeType' in asset.props ? asset.props.mimeType : null
 	const supportsTransparency = mimeType != null && TRANSPARENT_IMAGE_MIMETYPES.includes(mimeType)
+	const assetSrc = asset && 'src' in asset.props ? asset.props.src : null
 
 	useEffect(() => {
 		if (url && supportsTransparency) {
-			preloadAlphaData(url)
+			// Cache under asset.props.src so getGeometry (which only has the asset
+			// record) can look up the data even when the resolved URL differs.
+			preloadAlphaData(url, assetSrc ?? undefined)
 		}
-	}, [url, supportsTransparency])
+	}, [url, supportsTransparency, assetSrc])
 
 	const showCropPreview = useValue(
 		'show crop preview',
