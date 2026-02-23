@@ -103,22 +103,21 @@ jobs:
             supabase branches get "$BRANCH_NAME" \
               --project-ref "$PROJECT_REF" \
               -o json > "$BRANCH_JSON" 2>/dev/null
-            STATUS=$(jq -r '.status // empty' "$BRANCH_JSON")
-            if [ "$STATUS" = "ACTIVE_HEALTHY" ]; then break; fi
-            echo "Waiting for branch to be ready (status: $STATUS)..."
+            POSTGRES_URL_TRANSACTION=$(jq -r '.POSTGRES_URL // empty' "$BRANCH_JSON")
+            if [ -n "$POSTGRES_URL_TRANSACTION" ]; then break; fi
+            echo "Waiting for branch to be ready ($i/24)..."
             sleep 5
           done
-          POSTGRES_URL_TRANSACTION=$(jq -r '.POSTGRES_URL' "$BRANCH_JSON")
           POSTGRES_URL_NON_POOLING=$(jq -r '.POSTGRES_URL_NON_POOLING' "$BRANCH_JSON")
           rm "$BRANCH_JSON"
 
-          if [ -z "$POSTGRES_URL_TRANSACTION" ] || [ "$POSTGRES_URL_TRANSACTION" = "null" ]; then
-            echo "::error::Failed to get POSTGRES_URL from branch (status: $STATUS)"
+          if [ -z "$POSTGRES_URL_TRANSACTION" ]; then
+            echo "::error::Branch not ready after 2 minutes — POSTGRES_URL still empty"
             exit 1
           fi
 
           if [ -z "$POSTGRES_URL_NON_POOLING" ] || [ "$POSTGRES_URL_NON_POOLING" = "null" ]; then
-            echo "::error::Failed to get POSTGRES_URL_NON_POOLING from branch (status: $STATUS)"
+            echo "::error::Failed to get POSTGRES_URL_NON_POOLING from branch"
             exit 1
           fi
 
