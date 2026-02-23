@@ -96,8 +96,6 @@ jobs:
             echo "Branch $BRANCH_NAME created."
           fi
 
-          # Use -o json (not -o env) — the env format has a bug returning the parent
-          # project's connection strings instead of the branch's (supabase/supabase#32937).
           # Write to a temp file to avoid secrets leaking into CI step output.
           BRANCH_JSON=$(mktemp)
           supabase branches get "$BRANCH_NAME" \
