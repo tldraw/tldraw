@@ -1,0 +1,27 @@
+{
+	"name": "tldraw-mcp-app",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "vite build && mv dist/index.html dist/mcp-app.html"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/ext-apps": "^1.0.0",
+		"@modelcontextprotocol/sdk": "^1.24.0",
+		"zod": "^4.3.6"
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"@types/react": "^18.3.0",
+		"@types/react-dom": "^18.3.0",
+		"@vitejs/plugin-react": "^4.0.0",
+		"react": "^18.3.0",
+		"react-dom": "^18.3.0",
+		"tldraw": "^4.3.1",
+		"tsx": "^4.7.0",
+		"typescript": "^5.5.0",
+		"vite": "^6.0.0",
+		"vite-plugin-singlefile": "^2.0.0"
+	}
+}
