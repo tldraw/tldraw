@@ -10558,6 +10558,31 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/help@workspace:apps/help":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/help@workspace:apps/help"
+  dependencies:
+    "@tailwindcss/typography": "npm:^0.5.16"
+    "@types/node": "npm:^22.15.31"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    autoprefixer: "npm:^10.4.20"
+    geist: "npm:^1.3.1"
+    gray-matter: "npm:^4.0.3"
+    next: "npm:^15.4.10"
+    next-mdx-remote-client: "npm:^1.1.2"
+    next-themes: "npm:^0.3.0"
+    postcss: "npm:^8.5.1"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+    rehype-autolink-headings: "npm:^7.1.0"
+    rehype-slug: "npm:^6.0.0"
+    remark-gfm: "npm:^4.0.0"
+    tailwindcss: "npm:^3.4.17"
+    typescript: "npm:^5.8.3"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/monorepo@workspace:.":
   version: 0.0.0-use.local
   resolution: "@tldraw/monorepo@workspace:."
