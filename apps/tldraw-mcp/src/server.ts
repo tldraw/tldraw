@@ -1,14 +1,21 @@
 /** MCP server factory — registers all action-based tools via MCP Apps extension. */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import {
-	RESOURCE_MIME_TYPE,
 	registerAppResource,
 	registerAppTool,
+	RESOURCE_MIME_TYPE,
 } from '@modelcontextprotocol/ext-apps/server'
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { convertTldrawRecordToFocusedShape, FocusedShapeSchema } from './focused-shape.js'
-import { getAllBindings, getAllShapes, getShapeCount, getTitle, setTitle } from './store.js'
+import {
+	getAllBindings,
+	getAllShapes,
+	getShapeCount,
+	getStateVersion,
+	getTitle,
+	setTitle,
+} from './store.js'
 import {
 	executeAlignShapes,
 	executeClearCanvas,
@@ -68,9 +75,7 @@ function viewResponse(actionSummary: string) {
 	const lints = lintCanvas()
 	let lintText = ''
 	if (lints.length > 0) {
-		lintText =
-			'\n\nLayout issues:\n' +
-			lints.map((l) => `- ${l.severity}: ${l.message}`).join('\n')
+		lintText = '\n\nLayout issues:\n' + lints.map((l) => `- ${l.severity}: ${l.message}`).join('\n')
 	}
 
 	return {
@@ -84,6 +89,7 @@ function viewResponse(actionSummary: string) {
 			shapes,
 			bindings,
 			title,
+			version: getStateVersion(),
 		},
 	}
 }
@@ -122,10 +128,12 @@ export function createServer(): McpServer {
 	)
 
 	// ─── read_me (plain tool, no UI) ──────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'read_me',
-		'Get the tldraw shape format reference. Call this FIRST before creating any diagrams to understand the FocusedShape format and available action tools.',
-		{},
+		{
+			description:
+				'Get the tldraw shape format reference. Call this FIRST before creating any diagrams to understand the FocusedShape format and available action tools.',
+		},
 		async () => ({
 			content: [{ type: 'text', text: READ_ME_CONTENT }],
 		})
@@ -174,7 +182,14 @@ export function createServer(): McpServer {
 				if (shapes) {
 					const parsed = JSON.parse(shapes)
 					if (!Array.isArray(parsed)) throw new Error('shapes must be a JSON array')
-					const validated = parsed.map((s: unknown) => FocusedShapeSchema.parse(s))
+					// Best-effort: try Zod validation, fall back to raw shape on failure
+					const validated = parsed.map((s: unknown) => {
+						try {
+							return FocusedShapeSchema.parse(s)
+						} catch {
+							return s as any
+						}
+					})
 					executeCreateShapes(validated, title)
 				}
 				return viewResponse('Diagram rendered.')
@@ -187,16 +202,19 @@ export function createServer(): McpServer {
 	// ─── All mutation tools below are plain (no widget) ───────────────────
 
 	// ─── create_shapes ────────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'create_shapes',
-		'Create one or more shapes on the canvas using the FocusedShape format. Each shape needs a unique shapeId and _type. Call create_view afterwards to display the result.',
 		{
-			shapes: z
-				.string()
-				.describe(
-					'JSON array of FocusedShape objects. Each has _type, shapeId, position, and type-specific props.'
-				),
-			title: z.string().optional().describe('Optional diagram title'),
+			description:
+				'Create one or more shapes on the canvas using the FocusedShape format. Each shape needs a unique shapeId and _type. Call create_view afterwards to display the result.',
+			inputSchema: {
+				shapes: z
+					.string()
+					.describe(
+						'JSON array of FocusedShape objects. Each has _type, shapeId, position, and type-specific props.'
+					),
+				title: z.string().optional().describe('Optional diagram title'),
+			},
 		},
 		async ({ shapes, title }) => {
 			try {
@@ -212,11 +230,13 @@ export function createServer(): McpServer {
 	)
 
 	// ─── delete_shapes ────────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'delete_shapes',
-		'Delete shapes by their IDs.',
 		{
-			shapeIds: z.string().describe('JSON array of shape ID strings to delete'),
+			description: 'Delete shapes by their IDs.',
+			inputSchema: {
+				shapeIds: z.string().describe('JSON array of shape ID strings to delete'),
+			},
 		},
 		async ({ shapeIds }) => {
 			try {
@@ -231,15 +251,15 @@ export function createServer(): McpServer {
 	)
 
 	// ─── move_shapes ──────────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'move_shapes',
-		'Move shapes to new positions.',
 		{
-			moves: z
-				.string()
-				.describe(
-					'JSON array of move specs: [{ "shapeId": "id", "x": 100, "y": 200 }, ...]'
-				),
+			description: 'Move shapes to new positions.',
+			inputSchema: {
+				moves: z
+					.string()
+					.describe('JSON array of move specs: [{ "shapeId": "id", "x": 100, "y": 200 }, ...]'),
+			},
 		},
 		async ({ moves }) => {
 			try {
@@ -254,15 +274,17 @@ export function createServer(): McpServer {
 	)
 
 	// ─── resize_shapes ────────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'resize_shapes',
-		'Scale shapes relative to an origin point.',
 		{
-			shapeIds: z.string().describe('JSON array of shape ID strings'),
-			scaleX: z.number().describe('Horizontal scale factor (1.0 = no change)'),
-			scaleY: z.number().describe('Vertical scale factor (1.0 = no change)'),
-			originX: z.number().describe('X coordinate of the scaling origin'),
-			originY: z.number().describe('Y coordinate of the scaling origin'),
+			description: 'Scale shapes relative to an origin point.',
+			inputSchema: {
+				shapeIds: z.string().describe('JSON array of shape ID strings'),
+				scaleX: z.number().describe('Horizontal scale factor (1.0 = no change)'),
+				scaleY: z.number().describe('Vertical scale factor (1.0 = no change)'),
+				originX: z.number().describe('X coordinate of the scaling origin'),
+				originY: z.number().describe('Y coordinate of the scaling origin'),
+			},
 		},
 		async ({ shapeIds, scaleX, scaleY, originX, originY }) => {
 			try {
@@ -277,14 +299,16 @@ export function createServer(): McpServer {
 	)
 
 	// ─── rotate_shapes ────────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'rotate_shapes',
-		'Rotate shapes around an origin point.',
 		{
-			shapeIds: z.string().describe('JSON array of shape ID strings'),
-			degrees: z.number().describe('Rotation angle in degrees'),
-			originX: z.number().describe('X coordinate of the rotation center'),
-			originY: z.number().describe('Y coordinate of the rotation center'),
+			description: 'Rotate shapes around an origin point.',
+			inputSchema: {
+				shapeIds: z.string().describe('JSON array of shape ID strings'),
+				degrees: z.number().describe('Rotation angle in degrees'),
+				originX: z.number().describe('X coordinate of the rotation center'),
+				originY: z.number().describe('Y coordinate of the rotation center'),
+			},
 		},
 		async ({ shapeIds, degrees, originX, originY }) => {
 			try {
@@ -299,14 +323,16 @@ export function createServer(): McpServer {
 	)
 
 	// ─── align_shapes ─────────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'align_shapes',
-		'Align shapes along an edge or center axis.',
 		{
-			shapeIds: z.string().describe('JSON array of shape ID strings'),
-			alignment: z
-				.enum(['left', 'center-horizontal', 'right', 'top', 'center-vertical', 'bottom'])
-				.describe('Alignment direction'),
+			description: 'Align shapes along an edge or center axis.',
+			inputSchema: {
+				shapeIds: z.string().describe('JSON array of shape ID strings'),
+				alignment: z
+					.enum(['left', 'center-horizontal', 'right', 'top', 'center-vertical', 'bottom'])
+					.describe('Alignment direction'),
+			},
 		},
 		async ({ shapeIds, alignment }) => {
 			try {
@@ -321,14 +347,14 @@ export function createServer(): McpServer {
 	)
 
 	// ─── distribute_shapes ────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'distribute_shapes',
-		'Distribute shapes evenly along an axis.',
 		{
-			shapeIds: z.string().describe('JSON array of shape ID strings'),
-			direction: z
-				.enum(['horizontal', 'vertical'])
-				.describe('Distribution direction'),
+			description: 'Distribute shapes evenly along an axis.',
+			inputSchema: {
+				shapeIds: z.string().describe('JSON array of shape ID strings'),
+				direction: z.enum(['horizontal', 'vertical']).describe('Distribution direction'),
+			},
 		},
 		async ({ shapeIds, direction }) => {
 			try {
@@ -343,12 +369,14 @@ export function createServer(): McpServer {
 	)
 
 	// ─── label_shape ──────────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'label_shape',
-		'Update the text label on a shape.',
 		{
-			shapeId: z.string().describe('The shape ID to update'),
-			text: z.string().describe('New label text'),
+			description: 'Update the text label on a shape.',
+			inputSchema: {
+				shapeId: z.string().describe('The shape ID to update'),
+				text: z.string().describe('New label text'),
+			},
 		},
 		async ({ shapeId, text }) => {
 			try {
@@ -361,21 +389,21 @@ export function createServer(): McpServer {
 	)
 
 	// ─── draw_pen ─────────────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'draw_pen',
-		'Create a freehand drawing shape from a list of points.',
 		{
-			shapeId: z.string().describe('Unique ID for the new draw shape'),
-			points: z
-				.string()
-				.describe('JSON array of point objects: [{ "x": 0, "y": 0 }, ...]'),
-			color: z.string().optional().describe('Color name (default: black)'),
-			fill: z.string().optional().describe('Fill style (default: none)'),
-			closed: z.boolean().optional().describe('Close the path (default: false)'),
-			style: z
-				.string()
-				.optional()
-				.describe('Dash style: draw, solid, dashed, dotted (default: draw)'),
+			description: 'Create a freehand drawing shape from a list of points.',
+			inputSchema: {
+				shapeId: z.string().describe('Unique ID for the new draw shape'),
+				points: z.string().describe('JSON array of point objects: [{ "x": 0, "y": 0 }, ...]'),
+				color: z.string().optional().describe('Color name (default: black)'),
+				fill: z.string().optional().describe('Fill style (default: none)'),
+				closed: z.boolean().optional().describe('Close the path (default: false)'),
+				style: z
+					.string()
+					.optional()
+					.describe('Dash style: draw, solid, dashed, dotted (default: draw)'),
+			},
 		},
 		async ({ shapeId, points, color, fill, closed, style }) => {
 			try {
@@ -390,15 +418,18 @@ export function createServer(): McpServer {
 	)
 
 	// ─── update_shapes ────────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'update_shapes',
-		'Update properties on existing shapes. Pass an array of partial updates — only specified properties are changed.',
 		{
-			updates: z
-				.string()
-				.describe(
-					'JSON array of update objects: [{ "shapeId": "id", "color": "red", "text": "new label", ... }]. Supported properties: x, y, w, h, color, fill, dash, size, font, text, textAlign, name.'
-				),
+			description:
+				'Update properties on existing shapes. Pass an array of partial updates — only specified properties are changed.',
+			inputSchema: {
+				updates: z
+					.string()
+					.describe(
+						'JSON array of update objects: [{ "shapeId": "id", "color": "red", "text": "new label", ... }]. Supported properties: x, y, w, h, color, fill, dash, size, font, text, textAlign, name.'
+					),
+			},
 		},
 		async ({ updates }) => {
 			try {
@@ -413,12 +444,14 @@ export function createServer(): McpServer {
 	)
 
 	// ─── group_shapes ─────────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'group_shapes',
-		'Group shapes into a single unit.',
 		{
-			shapeIds: z.string().describe('JSON array of shape IDs to group'),
-			groupId: z.string().describe('ID for the new group'),
+			description: 'Group shapes into a single unit.',
+			inputSchema: {
+				shapeIds: z.string().describe('JSON array of shape IDs to group'),
+				groupId: z.string().describe('ID for the new group'),
+			},
 		},
 		async ({ shapeIds, groupId }) => {
 			try {
@@ -433,11 +466,13 @@ export function createServer(): McpServer {
 	)
 
 	// ─── ungroup_shapes ───────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'ungroup_shapes',
-		'Ungroup a group back into individual shapes.',
 		{
-			groupId: z.string().describe('Group shape ID to ungroup'),
+			description: 'Ungroup a group back into individual shapes.',
+			inputSchema: {
+				groupId: z.string().describe('Group shape ID to ungroup'),
+			},
 		},
 		async ({ groupId }) => {
 			try {
@@ -450,10 +485,9 @@ export function createServer(): McpServer {
 	)
 
 	// ─── clear_canvas ─────────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'clear_canvas',
-		'Remove all shapes and reset the canvas.',
-		{},
+		{ description: 'Remove all shapes and reset the canvas.' },
 		async () => {
 			try {
 				const summary = executeClearCanvas()
@@ -467,10 +501,12 @@ export function createServer(): McpServer {
 	)
 
 	// ─── get_canvas_state (read-only introspection) ──────────────────────
-	server.tool(
+	server.registerTool(
 		'get_canvas_state',
-		'Get the current canvas state in FocusedShape format. Returns all shapes using the same vocabulary as create_shapes, enabling reasoning about what to modify.',
-		{},
+		{
+			description:
+				'Get the current canvas state in FocusedShape format. Returns all shapes using the same vocabulary as create_shapes, enabling reasoning about what to modify.',
+		},
 		async () => {
 			try {
 				const shapes = getAllShapes()
@@ -497,11 +533,13 @@ export function createServer(): McpServer {
 	)
 
 	// ─── save_checkpoint ──────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'save_checkpoint',
-		'Save the current diagram state as a named checkpoint for later restoration.',
 		{
-			id: z.string().describe('Unique checkpoint identifier'),
+			description: 'Save the current diagram state as a named checkpoint for later restoration.',
+			inputSchema: {
+				id: z.string().describe('Unique checkpoint identifier'),
+			},
 		},
 		async ({ id }) => {
 			const result = executeSaveCheckpoint(id)
@@ -517,11 +555,13 @@ export function createServer(): McpServer {
 	)
 
 	// ─── load_checkpoint ──────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'load_checkpoint',
-		'Load a previously saved diagram checkpoint.',
 		{
-			id: z.string().describe('Checkpoint identifier to load'),
+			description: 'Load a previously saved diagram checkpoint.',
+			inputSchema: {
+				id: z.string().describe('Checkpoint identifier to load'),
+			},
 		},
 		async ({ id }) => {
 			const result = executeLoadCheckpoint(id)
@@ -538,19 +578,22 @@ export function createServer(): McpServer {
 	)
 
 	// ─── use_template ─────────────────────────────────────────────────────
-	server.tool(
+	server.registerTool(
 		'use_template',
-		'Generate a diagram from a predefined template layout. Creates shapes on the canvas that can be refined with update_shapes, move_shapes, etc. Call create_view afterwards to display the result.',
 		{
-			template: z
-				.enum(TEMPLATE_NAMES)
-				.describe(
-					'Template name: flowchart-lr, flowchart-tb, org-chart, architecture, mind-map, sequence'
-				),
-			labels: z
-				.string()
-				.describe('JSON array of label strings — one per node/actor in the template'),
-			title: z.string().optional().describe('Optional diagram title'),
+			description:
+				'Generate a diagram from a predefined template layout. Creates shapes on the canvas that can be refined with update_shapes, move_shapes, etc. Call create_view afterwards to display the result.',
+			inputSchema: {
+				template: z
+					.enum(TEMPLATE_NAMES)
+					.describe(
+						'Template name: flowchart-lr, flowchart-tb, org-chart, architecture, mind-map, sequence'
+					),
+				labels: z
+					.string()
+					.describe('JSON array of label strings — one per node/actor in the template'),
+				title: z.string().optional().describe('Optional diagram title'),
+			},
 		},
 		async ({ template, labels, title }) => {
 			try {
@@ -560,7 +603,9 @@ export function createServer(): McpServer {
 				if (!Array.isArray(parsedLabels)) throw new Error('labels must be a JSON array')
 				const shapes = generator(parsedLabels)
 				executeCreateShapes(shapes, title)
-				return briefResponse(`Generated "${template}" template with ${parsedLabels.length} label(s).`)
+				return briefResponse(
+					`Generated "${template}" template with ${parsedLabels.length} label(s).`
+				)
 			} catch (err) {
 				return errorResponse(err)
 			}
@@ -568,14 +613,17 @@ export function createServer(): McpServer {
 	)
 
 	// ─── export_diagram (plain tool, no UI) ───────────────────────────────
-	server.tool(
+	server.registerTool(
 		'export_diagram',
-		'Export the current diagram as JSON. Use "tldr" format for importing into tldraw.com.',
 		{
-			format: z
-				.enum(['json', 'tldr'])
-				.optional()
-				.describe('Export format: json (raw shapes) or tldr (tldraw file format). Default: json'),
+			description:
+				'Export the current diagram as JSON. Use "tldr" format for importing into tldraw.com.',
+			inputSchema: {
+				format: z
+					.enum(['json', 'tldr'])
+					.optional()
+					.describe('Export format: json (raw shapes) or tldr (tldraw file format). Default: json'),
+			},
 		},
 		async ({ format }) => {
 			const result = executeExport(format ?? 'json')

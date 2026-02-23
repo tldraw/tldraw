@@ -20,6 +20,7 @@ let shapes = new Map<string, TldrawRecord>()
 let bindings: BindingInfo[] = []
 let title: string | undefined
 let nextIndex = 0
+let stateVersion = 0
 
 // ─── Shape operations ─────────────────────────────────────────────────────────
 
@@ -29,14 +30,14 @@ export function getShapeById(simpleId: string): TldrawRecord | undefined {
 
 export function addShape(simpleId: string, record: TldrawRecord): void {
 	shapes.set(simpleId, record)
+	stateVersion++
 }
 
 export function deleteShape(simpleId: string): void {
 	shapes.delete(simpleId)
 	const fullId = `shape:${simpleId}`
-	bindings = bindings.filter(
-		(b) => b.arrowShapeId !== fullId && b.targetShapeId !== fullId
-	)
+	bindings = bindings.filter((b) => b.arrowShapeId !== fullId && b.targetShapeId !== fullId)
+	stateVersion++
 }
 
 export function updateShape(simpleId: string, partial: Partial<TldrawRecord>): void {
@@ -51,16 +52,19 @@ export function updateShape(simpleId: string, partial: Partial<TldrawRecord>): v
 		}
 	}
 	shapes.set(simpleId, { ...existing, ...partial })
+	stateVersion++
 }
 
 // ─── Binding operations ───────────────────────────────────────────────────────
 
 export function addBinding(binding: BindingInfo): void {
 	bindings.push(binding)
+	stateVersion++
 }
 
 export function addBindings(newBindings: BindingInfo[]): void {
 	bindings.push(...newBindings)
+	stateVersion++
 }
 
 // ─── Index management ─────────────────────────────────────────────────────────
@@ -85,6 +89,7 @@ export function getTitle(): string | undefined {
 
 export function setTitle(newTitle: string | undefined): void {
 	title = newTitle
+	stateVersion++
 }
 
 export function getShapeCount(): number {
@@ -98,6 +103,7 @@ export function clearAll(): void {
 	bindings = []
 	title = undefined
 	nextIndex = 0
+	stateVersion++
 }
 
 // ─── Checkpoints ──────────────────────────────────────────────────────────────
@@ -120,6 +126,13 @@ export function restoreCheckpoint(state: DiagramState): void {
 	bindings = [...state.bindings]
 	title = state.title
 	nextIndex = shapes.size
+	stateVersion++
+}
+
+// ─── Version tracking ────────────────────────────────────────────────────────
+
+export function getStateVersion(): number {
+	return stateVersion
 }
 
 export function listCheckpoints(): string[] {

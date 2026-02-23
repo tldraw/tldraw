@@ -58,6 +58,7 @@ export const FocusedGeoShapeTypeSchema = z.enum([
 	'fat-arrow-left',
 	'fat-arrow-up',
 	'fat-arrow-down',
+	'geo',
 ])
 export type FocusedGeoShapeType = z.infer<typeof FocusedGeoShapeTypeSchema>
 
@@ -203,6 +204,7 @@ const FOCUSED_TO_GEO_TYPES: Record<FocusedGeoShapeType, string> = {
 	'fat-arrow-left': 'arrow-left',
 	'fat-arrow-up': 'arrow-up',
 	'fat-arrow-down': 'arrow-down',
+	geo: 'rectangle',
 }
 
 const FOCUSED_TO_TLDRAW_FILLS: Record<FocusedFill, string> = {
@@ -390,10 +392,7 @@ function convertLine(shape: FocusedLineShape, base: TldrawRecord): TldrawRecord 
 	}
 }
 
-function convertArrow(
-	shape: FocusedArrowShape,
-	base: TldrawRecord
-): ConversionResult {
+function convertArrow(shape: FocusedArrowShape, base: TldrawRecord): ConversionResult {
 	const minX = Math.min(shape.x1, shape.x2)
 	const minY = Math.min(shape.y1, shape.y2)
 	const shapeId = `shape:${shape.shapeId}`
