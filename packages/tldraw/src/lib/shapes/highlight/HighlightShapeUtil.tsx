@@ -206,13 +206,14 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>) {
-		const { scaleX, scaleY } = info
-		if (scaleX === 0 || scaleY === 0) return
+		const newScaleX = info.scaleX * shape.props.scaleX
+		const newScaleY = info.scaleY * shape.props.scaleY
+		if (newScaleX === 0 || newScaleY === 0) return
 
 		return {
 			props: {
-				scaleX: scaleX * shape.props.scaleX,
-				scaleY: scaleY * shape.props.scaleY,
+				scaleX: newScaleX,
+				scaleY: newScaleY,
 			},
 		}
 	}
