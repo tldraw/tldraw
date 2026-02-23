@@ -133,21 +133,19 @@ const supabaseHeaders = {
 }
 
 async function deletePreviewDatabase(branchName: string) {
-	const listUrl = `https://api.supabase.com/v1/projects/${env.SUPABASE_PREVIEW_PROJECT_ID}/branches`
-	const listRes = await fetch(listUrl, { headers: supabaseHeaders })
-	if (!listRes.ok) {
-		throw new Error(`Failed to list Supabase branches: ${listRes.status} ${listRes.statusText}`)
-	}
-	const branches = (await listRes.json()) as { id: string; name: string }[]
-	const branch = branches.find((b) => b.name === branchName)
-	if (!branch) {
-		nicelog(`Branch ${branchName} not found`)
+	const branchId = _supabaseBranchCache.get(branchName)
+	if (!branchId) {
+		nicelog(`Branch ${branchName} not found in cache`)
 		return
 	}
-	const url = `https://api.supabase.com/v1/branches/${branch.id}`
+	const url = `https://api.supabase.com/v1/branches/${branchId}`
 	nicelog('DELETE', url)
 	const res = await fetch(url, { method: 'DELETE', headers: supabaseHeaders })
-	nicelog('status', res.status)
+	if (!res.ok) {
+		throw new Error(
+			`Failed to delete Supabase branch ${branchName}: ${res.status} ${res.statusText}`
+		)
+	}
 }
 
 // TODO: remove Neon pruning once all legacy branches are cleaned up
@@ -210,15 +208,19 @@ async function deleteFlyioPreviewApp(appName: string) {
 }
 
 const PREVIEW_DB_REGEX = /^pr-\d+$/
+const _supabaseBranchCache = new Map<string, string>()
 async function listPreviewDatabases() {
 	const url = `https://api.supabase.com/v1/projects/${env.SUPABASE_PREVIEW_PROJECT_ID}/branches`
 	const res = await fetch(url, { headers: supabaseHeaders })
 	if (!res.ok) {
-		return []
+		throw new Error(`Failed to list Supabase branches: ${res.status} ${res.statusText}`)
 	}
-	return ((await res.json()) as { id: string; name: string }[])
-		.filter((b) => PREVIEW_DB_REGEX.test(b.name))
-		.map((b) => b.name)
+	const branches = (await res.json()) as { id: string; name: string }[]
+	const preview = branches.filter((b) => PREVIEW_DB_REGEX.test(b.name))
+	for (const b of preview) {
+		_supabaseBranchCache.set(b.name, b.id)
+	}
+	return preview.map((b) => b.name)
 }
 const ZERO_CACHE_APP_REGEX = /^pr-\d+-zero-cache$/
 async function listFlyioPreviewApps() {
