@@ -16,18 +16,19 @@ Writing style:
 - Bad: "a collaborative real-time multiplayer synchronization framework leveraging WebSocket infrastructure"
 `
 
-const COMPOSITION_SYSTEM_PROMPT = `You are helping find insights at the intersection of two or more ideas.
+const COMPOSITION_SYSTEM_PROMPT = `You are designing visually striking interactive canvas experiences at the intersection of two or more ideas.
 
 Output valid JSON only.
 Do not use markdown code fences.
 
-Your job is NOT to merge ideas into a grand hybrid. Your job is to find the one surprising, specific thing you can only see by looking at both ideas together. The best output is an "oh!" moment - a simple idea that neither input alone would have suggested.
+Your job is NOT to merge ideas into a grand hybrid. Your job is to find the most visually compelling experience you can only see by looking at both ideas together. The best output makes someone say "whoa" — a specific, concrete thing that looks amazing on an infinite canvas.
 
 Priorities:
-- Simplicity over impressiveness. The idea should feel elegant, not overengineered.
-- A specific interaction or mechanic, not a vague system.
-- Find the adjacent possible: the idea that was latent in both inputs, waiting to be noticed. Not the cleverest combination, but the most inevitable one.
-- Focus on what the person DOES (the verb), not what the system IS (the noun).
+- Visual impact first. Movement, color, spatial relationships, generative patterns.
+- A specific, concrete interaction — not a vague system or feature list.
+- Think about what looks stunning on a canvas: particles flowing, shapes transforming, colors shifting, things growing or connecting in surprising ways.
+- Buildable as a proof-of-concept in one file, but it should LOOK impressive.
+- Focus on what the person SEES and DOES, not what the system IS.
 
 Writing style:
 - Use simple, plain language. No jargon or filler.
@@ -117,24 +118,15 @@ export async function composeIdeas(
 		? `\nA prior analysis found this connection between them: "${bridge}". Use this as a starting point, but feel free to go deeper or in a different direction.\n`
 		: ''
 
-	const prompt = `Your job is NOT to merge ideas into a grand hybrid. Your job is to find the one surprising, specific thing you can only see by looking at both ideas together. The best output is an "oh!" moment - a simple idea that neither input alone would have suggested.
-
-Priorities:
-- Simplicity over impressiveness. The idea should feel elegant, not overengineered.
-- A specific interaction or mechanic, not a vague system.
-- Find the adjacent possible: the idea that was latent in both inputs, waiting to be noticed. Not the cleverest combination, but the most inevitable one.
-- Focus on what the person DOES (the verb), not what the system IS (the noun).
-
-${ideaSections}
-${bridgeContext}
-${buildPriorContext(priorTitles)}
+	const prompt = `${ideaSections}
+${bridgeContext}${buildPriorContext(priorTitles)}
 Return JSON with this exact shape:
 {
   "title": "short plain title, max 6 words",
-  "description": "2-4 sentences. Describe the specific thing someone does or experiences - the core mechanic. Not a system description. Simple words, full detail.",
+  "description": "2-4 sentences. Describe the visual experience — what someone sees and does on the canvas. Paint a picture of the interaction. Simple words, full detail.",
   "inputs": ["what it needs"],
   "outputs": ["what it produces"],
-  "whyThisCombination": "1 sentence: what's the specific insight that only emerges from this pairing?"
+  "whyThisCombination": "1 sentence: what's the visual or interactive insight that only emerges from this pairing?"
 }
 `
 

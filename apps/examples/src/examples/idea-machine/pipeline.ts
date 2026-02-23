@@ -11,9 +11,8 @@ import type {
 
 type ProgressCallback = (message: string) => void
 
-// Light canvas nudge — the composition system prompt already handles simplicity/adjacent-possible.
-// We just need to ground it in "this is a canvas tool someone could build in a day."
-const CANVAS_BRIDGE = `The result should be a simple interactive canvas tool — something one person could build in a day using tldraw. Think: what would someone draw, drag, or click? Keep it grounded.`
+// Canvas nudge for the composition step — aim for visual impact, not minimal viability.
+const CANVAS_BRIDGE = `The result should be a visually striking interactive canvas experience — think generative art meets infinite canvas. It should look impressive the moment it loads, before anyone even interacts.`
 
 // --- Pipeline ---
 
@@ -111,7 +110,7 @@ function toSlug(title: string): string {
 export async function buildPrototype(idea: ComposedIdeaDraft): Promise<BuildResult> {
 	const slug = toSlug(idea.title)
 
-	const prompt = `Create a new tldraw example in apps/examples/src/examples/${slug}/.
+	const prompt = `Build a visually impressive tldraw example. This is a proof-of-concept — it should look visually impressive, and have interesting user interactions.
 
 The idea:
 - Title: ${idea.title}
@@ -120,29 +119,38 @@ The idea:
 - Outputs: ${idea.outputs.join(', ')}
 - Why this combination: ${idea.whyThisCombination}
 
-Example file pattern to follow:
+Design indication:
+- Use animation, color, and movement. The canvas should feel alive.
+- If not, it should be an interesting proof of concept for an idea, which is reflective of the composition.
+- Stellar generative art or design engineering. Think: Bees & Bombs loops, Raven Kwok projections, Zach Lieberman's daily sketches, Refik Anadol's data sculptures, Bartosz Ciechanowski's interactive explainers, or Lyle Klyne / Rauno Freiberg / Emil Kowalski-style design engineering.
+- Prefer using tldraw's built-in shapes (geo, arrow, draw, note, etc.) as your visual primitives. Animate by creating, updating, and morphing shape properties — color, size, geo type, opacity, position — rather than rendering to a Canvas2D or SVG overlay.
 
-README.md:
+Key tldraw patterns you can use (pick what fits the idea):
+- editor.on('tick', ...) for animation loops (60fps, use deltaMs for timing)
+- InFrontOfTheCanvas component: HTML/Canvas2D overlay on top of the canvas (good for particle systems, trails)
+- OnTheCanvas component: SVG layer that scales with zoom (good for shape decorations)
+- Custom ShapeUtil: define new shape types with custom rendering, geometry, and handles
+- editor.getViewportScreenBounds() / editor.getCamera() for camera-aware rendering
+- editor.getCurrentPageShapes() to read all shapes on the page
+- editor.createShapes([...]) to programmatically add shapes
+- requestAnimationFrame for canvas-based rendering in overlays
+
+Create exactly 2 files in apps/examples/src/examples/${slug}/.
+IMPORTANT: Write ExampleComponent.tsx FIRST, then README.md (to avoid HMR errors).
+
+1. ExampleComponent.tsx (default export):
+- import from 'tldraw' and 'react'
+- Wrap <Tldraw /> in <div className="tldraw__editor">
+- import 'tldraw/tldraw.css'
+
+2. README.md (write this LAST):
 ---
 title: ${idea.title}
 component: ./ExampleComponent.tsx
 category: use-cases
 priority: 3
-keywords: [canvas, interactive]
 ---
-${idea.description}
-
-ExampleComponent.tsx (default export):
-- import { Tldraw, TLComponents } from 'tldraw'
-- import 'tldraw/tldraw.css'
-- Render <Tldraw persistenceKey="${slug}" components={components} /> inside <div className="tldraw__editor">
-- Use InFrontOfTheCanvas for any custom overlay (Canvas 2D or SVG)
-
-Rules:
-- Only create files inside apps/examples/src/examples/${slug}/
-- Import from 'tldraw' and 'react'.
-- Keep it simple and self-contained.
-- Make it visually interesting and interactive from the moment it loads.`
+${idea.description}`
 
 	const response = await fetch('/api/claude/build', {
 		method: 'POST',

@@ -276,6 +276,8 @@ export function geminiProxy(): Plugin {
 								'acceptEdits',
 								'--allowedTools',
 								'Read,Write,Edit,Glob,Grep',
+								'--max-turns',
+								'3',
 								'--output-format',
 								'json',
 								'-p',
