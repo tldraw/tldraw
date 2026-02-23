@@ -34,6 +34,11 @@ const CANVAS_RESOURCE_URI = 'ui://show-canvas/mcp-app.html'
 const createShapesInputSchema = z.object({
 	shapes: z.union([z.string(), z.array(z.unknown())]),
 })
+const streamShapesInputSchema = z.object({
+	shapesJson: z
+		.string()
+		.describe('JSON array string of FocusedShape[] for progressive partial-input streaming.'),
+})
 const updateShapesInputSchema = z.object({
 	updates: z.union([z.string(), z.array(z.unknown())]),
 })
@@ -47,6 +52,7 @@ const syncCanvasInputSchema = z.object({
 })
 
 type CreateShapesInput = z.infer<typeof createShapesInputSchema>
+type StreamShapesInput = z.infer<typeof streamShapesInputSchema>
 type UpdateShapesInput = z.infer<typeof updateShapesInputSchema>
 type DeleteShapesInput = z.infer<typeof deleteShapesInputSchema>
 type SyncCanvasInput = z.infer<typeof syncCanvasInputSchema>
@@ -130,6 +136,30 @@ registerAppTool(
 	async (): Promise<CallToolResult> => {
 		const snapshot = prepareCanvasForView()
 		return snapshotResponse('tldraw canvas is ready.', snapshot)
+	}
+)
+
+registerAppTool(
+	server,
+	'stream_shapes',
+	{
+		title: 'Stream Shapes',
+		description:
+			'Creates shapes from a JSON string (FocusedShape[]). Designed for partial-input streaming previews in the canvas app.',
+		inputSchema: streamShapesInputSchema,
+		_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
+	},
+	async ({ shapesJson }: StreamShapesInput): Promise<CallToolResult> => {
+		try {
+			const parsedShapes = parseFocusedShapesInput(shapesJson)
+			const { snapshot, created } = createCanvasShapes(parsedShapes)
+			return snapshotResponse(
+				`Stream-applied ${created.length} shape(s) on the active canvas.`,
+				snapshot
+			)
+		} catch (err) {
+			return errorResponse(err)
+		}
 	}
 )
 
