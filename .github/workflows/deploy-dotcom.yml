@@ -77,7 +77,7 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           supabase branches delete "pr-${{ github.event.number }}" \
-            --project-ref ${{ vars.SUPABASE_PREVIEW_PROJECT_ID }} || true
+            --project-ref "${{ vars.SUPABASE_PREVIEW_PROJECT_ID }}" || echo "::warning::Failed to delete Supabase branch (may not exist yet)"
 
       - name: Create Supabase preview branch
         if: github.event_name == 'pull_request'
@@ -118,7 +118,8 @@ jobs:
           fi
 
           # Rewrite transaction pooler (port 6543, IPv6-only) to session pooler
-          # (port 5432, IPv4-compatible) which also supports prepared statements.
+          # (port 5432, IPv4-compatible) since GitHub Actions runners are IPv4-only.
+          # Session pooler also supports prepared statements required by Zero.
           POSTGRES_URL="${POSTGRES_URL_TRANSACTION/:6543/:5432}"
 
           echo "::add-mask::$POSTGRES_URL"
