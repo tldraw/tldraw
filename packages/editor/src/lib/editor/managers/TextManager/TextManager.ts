@@ -206,6 +206,8 @@ export class TextManager {
 
 		const text = textToMeasure.replace(fixNewLines, '\n')
 
+		const minWidth = opts.minWidth ?? 0
+
 		if (opts.maxWidth !== null) {
 			// Wrapping mode: use uWrap to measure with a max width constraint
 			const wrapper = this.getUWrap(opts)
@@ -227,7 +229,7 @@ export class TextManager {
 
 			if (lineCount === 0) lineCount = 1
 
-			const w = opts.maxWidth
+			const w = Math.max(opts.maxWidth, minWidth)
 			const h = lineCount * lineHeightPx + padding.top + padding.bottom
 
 			return { x: 0, y: 0, w, h, scrollWidth: 0 }
@@ -247,7 +249,7 @@ export class TextManager {
 			}
 
 			const lineCount = Math.max(1, lines.length)
-			const w = maxLineWidth + padding.left + padding.right
+			const w = Math.max(maxLineWidth + padding.left + padding.right, minWidth)
 			const h = lineCount * lineHeightPx + padding.top + padding.bottom
 
 			return { x: 0, y: 0, w, h, scrollWidth: 0 }
@@ -291,12 +293,7 @@ export class TextManager {
 
 	measureHtml(html: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
 		// Try canvas-based measurement for simple HTML (plain text wrapped in tags)
-		if (
-			!opts.disableOverflowWrapBreaking &&
-			!opts.otherStyles &&
-			!opts.measureScrollWidth &&
-			!opts.minWidth
-		) {
+		if (!opts.disableOverflowWrapBreaking && !opts.otherStyles && !opts.measureScrollWidth) {
 			const plainText = this.extractPlainTextFromHtml(html)
 			if (plainText !== null) {
 				return this.measureTextCanvas(plainText, opts)
