@@ -96,22 +96,29 @@ jobs:
             echo "Branch $BRANCH_NAME created."
           fi
 
+          # Wait for branch to be ready, then extract connection strings.
           # Write to a temp file to avoid secrets leaking into CI step output.
           BRANCH_JSON=$(mktemp)
-          supabase branches get "$BRANCH_NAME" \
-            --project-ref "$PROJECT_REF" \
-            -o json > "$BRANCH_JSON" 2>/dev/null
+          for i in $(seq 1 24); do
+            supabase branches get "$BRANCH_NAME" \
+              --project-ref "$PROJECT_REF" \
+              -o json > "$BRANCH_JSON" 2>/dev/null
+            STATUS=$(jq -r '.status // empty' "$BRANCH_JSON")
+            if [ "$STATUS" = "ACTIVE_HEALTHY" ]; then break; fi
+            echo "Waiting for branch to be ready (status: $STATUS)..."
+            sleep 5
+          done
           POSTGRES_URL_TRANSACTION=$(jq -r '.POSTGRES_URL' "$BRANCH_JSON")
           POSTGRES_URL_NON_POOLING=$(jq -r '.POSTGRES_URL_NON_POOLING' "$BRANCH_JSON")
           rm "$BRANCH_JSON"
 
           if [ -z "$POSTGRES_URL_TRANSACTION" ] || [ "$POSTGRES_URL_TRANSACTION" = "null" ]; then
-            echo "::error::Failed to get POSTGRES_URL from branch"
+            echo "::error::Failed to get POSTGRES_URL from branch (status: $STATUS)"
             exit 1
           fi
 
           if [ -z "$POSTGRES_URL_NON_POOLING" ] || [ "$POSTGRES_URL_NON_POOLING" = "null" ]; then
-            echo "::error::Failed to get POSTGRES_URL_NON_POOLING from branch"
+            echo "::error::Failed to get POSTGRES_URL_NON_POOLING from branch (status: $STATUS)"
             exit 1
           fi
 
