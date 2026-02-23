@@ -261,4 +261,7 @@ export type AssetUrls = {
 		vimeo: string
 		youtube: string
 	}
+	i18n: {
+		en: string
+	}
 }
