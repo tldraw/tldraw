@@ -88,7 +88,7 @@ jobs:
           PROJECT_REF="${{ vars.SUPABASE_PREVIEW_PROJECT_ID }}"
 
           # Create branch if it doesn't already exist.
-          if supabase --experimental branches get "$BRANCH_NAME" \
+          if supabase branches get "$BRANCH_NAME" \
             --project-ref "$PROJECT_REF" > /dev/null 2>&1; then
             echo "Branch $BRANCH_NAME already exists."
           else
@@ -100,7 +100,7 @@ jobs:
           # project's connection strings instead of the branch's (supabase/supabase#32937).
           # Write to a temp file to avoid secrets leaking into CI step output.
           BRANCH_JSON=$(mktemp)
-          supabase --experimental branches get "$BRANCH_NAME" \
+          supabase branches get "$BRANCH_NAME" \
             --project-ref "$PROJECT_REF" \
             -o json > "$BRANCH_JSON" 2>/dev/null
           POSTGRES_URL_TRANSACTION=$(jq -r '.POSTGRES_URL' "$BRANCH_JSON")
