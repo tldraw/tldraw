@@ -373,6 +373,13 @@ export default [
 		},
 	},
 	{
+		files: ['apps/tldraw-mcp-app/**/*'],
+
+		rules: {
+			'import/no-extraneous-dependencies': 'off',
+		},
+	},
+	{
 		files: ['apps/examples/**/*'],
 
 		rules: {

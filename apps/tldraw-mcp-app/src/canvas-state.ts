@@ -1,10 +1,9 @@
-import { structuredClone } from 'tldraw'
+import { structuredClone, type TLShape } from 'tldraw'
 import {
 	convertFocusedShapeToTldrawRecord,
 	convertTldrawRecordToFocusedShape,
 	type FocusedShape,
 	type FocusedShapeUpdate,
-	type TldrawRecord,
 } from './focused-shape.js'
 
 export interface CanvasSnapshot {
@@ -15,7 +14,6 @@ export interface CanvasSnapshot {
 	availableCanvasIds: string[]
 	canvases: CanvasInfo[]
 	version: number
-	shapes: TldrawRecord[]
 	focusedShapes: FocusedShape[]
 	[key: string]: unknown
 }
@@ -30,7 +28,7 @@ export interface CanvasInfo {
 
 interface CanvasData {
 	version: number
-	shapesById: Map<string, TldrawRecord>
+	shapesById: Map<string, TLShape>
 }
 
 const canvases = new Map<string, CanvasData>()
@@ -53,7 +51,7 @@ function createEmptyCanvasData(): CanvasData {
 }
 
 function cloneCanvasData(source: CanvasData): CanvasData {
-	const clonedShapes = new Map<string, TldrawRecord>()
+	const clonedShapes = new Map<string, TLShape>()
 	for (const [id, record] of source.shapesById.entries()) {
 		clonedShapes.set(id, cloneRecord(record))
 	}
@@ -101,7 +99,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function cloneRecord(record: TldrawRecord): TldrawRecord {
+function cloneRecord(record: TLShape): TLShape {
 	return structuredClone(record)
 }
 
@@ -113,15 +111,13 @@ function toSimpleShapeId(id: string): string {
 	return id.replace(/^shape:/, '')
 }
 
-function parseTldrawRecord(input: unknown): TldrawRecord | null {
+function parseTldrawRecord(input: unknown): TLShape | null {
 	if (!isPlainObject(input)) return null
 	if (typeof input.id !== 'string') return null
 	if (typeof input.type !== 'string') return null
 
-	return {
-		...(input as TldrawRecord),
-		id: normalizeShapeId(input.id),
-	}
+	const shape = input as unknown as TLShape
+	return { ...shape, id: normalizeShapeId(input.id) } as TLShape
 }
 
 function bumpVersion(canvasId: string): void {
@@ -176,7 +172,6 @@ export function getCanvasSnapshot(canvasId?: string): CanvasSnapshot {
 		availableCanvasIds: canvasesInfo.map((canvas) => canvas.canvasId),
 		canvases: canvasesInfo,
 		version: data.version,
-		shapes: Array.from(data.shapesById.values()).map((record) => cloneRecord(record)),
 		focusedShapes: getFocusedShapes(resolvedCanvasId),
 	}
 }
@@ -189,11 +184,11 @@ export function prepareCanvasForView(): CanvasSnapshot {
 export function replaceCanvasSnapshot(shapes: unknown[], canvasId: string): CanvasSnapshot {
 	const resolvedCanvasId = resolveCanvasId(canvasId)
 	const data = getCanvasDataOrThrow(resolvedCanvasId)
-	const next = new Map<string, TldrawRecord>()
+	const next = new Map<string, TLShape>()
 	for (const input of shapes) {
 		const record = parseTldrawRecord(input)
 		if (!record) continue
-		next.set(record.id as string, cloneRecord(record))
+		next.set(record.id, cloneRecord(record))
 	}
 
 	data.shapesById.clear()
@@ -206,20 +201,33 @@ export function replaceCanvasSnapshot(shapes: unknown[], canvasId: string): Canv
 	return getCanvasSnapshot(resolvedCanvasId)
 }
 
-export function createCanvasShapes(shapes: FocusedShape[]): {
+export function createCanvasShapes(
+	shapes: FocusedShape[],
+	options?: { newBlankCanvas?: boolean }
+): {
 	snapshot: CanvasSnapshot
 	created: string[]
 } {
-	const data = getCanvasDataOrThrow(activeCanvasId)
+	const useBlankCanvas = options?.newBlankCanvas === true
+	const { canvasId, data } = useBlankCanvas
+		? (() => {
+				const nextCanvasId = createCanvas()
+				activeCanvasId = nextCanvasId
+				return {
+					canvasId: nextCanvasId,
+					data: getCanvasDataOrThrow(nextCanvasId),
+				}
+			})()
+		: forkActiveCanvas()
 	const created: string[] = []
 
 	for (const shape of shapes) {
 		try {
 			const converted = convertFocusedShapeToTldrawRecord(shape)
-			const id = normalizeShapeId(String(converted.id))
+			const id = normalizeShapeId(converted.id)
 			const existing = data.shapesById.get(id)
 			const record = cloneRecord(converted)
-			if (existing && typeof existing.index === 'string') {
+			if (existing) {
 				record.index = existing.index
 			}
 			data.shapesById.set(id, record)
@@ -230,17 +238,17 @@ export function createCanvasShapes(shapes: FocusedShape[]): {
 	}
 
 	if (created.length > 0) {
-		bumpVersion(activeCanvasId)
+		bumpVersion(canvasId)
 	}
 
-	return { snapshot: getCanvasSnapshot(activeCanvasId), created }
+	return { snapshot: getCanvasSnapshot(canvasId), created }
 }
 
 export function updateCanvasShapes(updates: FocusedShapeUpdate[]): {
 	snapshot: CanvasSnapshot
 	updated: string[]
 } {
-	const data = getCanvasDataOrThrow(activeCanvasId)
+	const { canvasId, data } = forkActiveCanvas()
 	const updated: string[] = []
 
 	for (const update of updates) {
@@ -260,9 +268,7 @@ export function updateCanvasShapes(updates: FocusedShapeUpdate[]): {
 
 			const converted = convertFocusedShapeToTldrawRecord(merged)
 			const record = cloneRecord(converted)
-			if (typeof existing.index === 'string') {
-				record.index = existing.index
-			}
+			record.index = existing.index
 			data.shapesById.set(id, record)
 			updated.push(toSimpleShapeId(id))
 		} catch {
@@ -271,17 +277,17 @@ export function updateCanvasShapes(updates: FocusedShapeUpdate[]): {
 	}
 
 	if (updated.length > 0) {
-		bumpVersion(activeCanvasId)
+		bumpVersion(canvasId)
 	}
 
-	return { snapshot: getCanvasSnapshot(activeCanvasId), updated }
+	return { snapshot: getCanvasSnapshot(canvasId), updated }
 }
 
 export function deleteCanvasShapes(shapeIds: string[]): {
 	snapshot: CanvasSnapshot
 	deleted: string[]
 } {
-	const data = getCanvasDataOrThrow(activeCanvasId)
+	const { canvasId, data } = forkActiveCanvas()
 	const deleted: string[] = []
 
 	for (const shapeId of shapeIds) {
@@ -292,8 +298,8 @@ export function deleteCanvasShapes(shapeIds: string[]): {
 	}
 
 	if (deleted.length > 0) {
-		bumpVersion(activeCanvasId)
+		bumpVersion(canvasId)
 	}
 
-	return { snapshot: getCanvasSnapshot(activeCanvasId), deleted }
+	return { snapshot: getCanvasSnapshot(canvasId), deleted }
 }

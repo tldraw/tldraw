@@ -3,7 +3,13 @@ import { useCallback, useEffect, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
 import { type TLShape, Editor, Tldraw, getIndexAbove, structuredClone } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { FocusedShapeSchema, convertFocusedShapeToTldrawRecord } from '../focused-shape'
+import {
+	type FocusedShape,
+	FocusedShapeSchema,
+	FocusedShapeUpdateSchema,
+	convertFocusedShapeToTldrawRecord,
+	convertTldrawRecordToFocusedShape,
+} from '../focused-shape'
 
 const EDITOR_HEIGHT = 600
 const SYNC_DEBOUNCE_MS = 350
@@ -29,14 +35,36 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null
 }
 
-function parseCanvasSnapshot(value: unknown): CanvasSnapshot | null {
-	if (!isRecord(value)) return null
-	if (typeof value.version !== 'number' || !Array.isArray(value.shapes)) return null
-	if (value.canvasId !== undefined && typeof value.canvasId !== 'string') return null
-
-	const shapes = value.shapes.filter((shape): shape is TLShape => {
+function toSnapshotShapesFromRecords(value: unknown): TLShape[] | null {
+	if (!Array.isArray(value)) return null
+	return value.filter((shape): shape is TLShape => {
 		return isRecord(shape) && typeof shape.id === 'string' && typeof shape.type === 'string'
 	})
+}
+
+function toSnapshotShapesFromFocused(value: unknown): TLShape[] | null {
+	if (!Array.isArray(value)) return null
+	const shapes: TLShape[] = []
+	for (const item of value) {
+		const parsed = FocusedShapeSchema.safeParse(item)
+		if (!parsed.success) continue
+		try {
+			shapes.push(convertFocusedShapeToTldrawRecord(parsed.data))
+		} catch {
+			// Ignore malformed focused-shape entries in snapshot payloads.
+		}
+	}
+	return shapes
+}
+
+function parseCanvasSnapshot(value: unknown): CanvasSnapshot | null {
+	if (!isRecord(value)) return null
+	if (typeof value.version !== 'number') return null
+	if (value.canvasId !== undefined && typeof value.canvasId !== 'string') return null
+
+	const shapes =
+		toSnapshotShapesFromRecords(value.shapes) ?? toSnapshotShapesFromFocused(value.focusedShapes)
+	if (!shapes) return null
 
 	return {
 		canvasId: typeof value.canvasId === 'string' ? value.canvasId : undefined,
@@ -54,22 +82,32 @@ function parsePartialJsonArray(value: string): unknown[] {
 	const trimmed = value.trim()
 	if (!trimmed.startsWith('[')) return []
 
-	try {
-		const parsed = JSON.parse(trimmed)
-		return Array.isArray(parsed) ? parsed : []
-	} catch {
-		// Best effort for a partially-streamed JSON array.
+	const candidates: string[] = [trimmed]
+	if (!trimmed.endsWith(']')) {
+		candidates.push(`${trimmed}]`)
 	}
 
-	const lastObjectEnd = trimmed.lastIndexOf('}')
-	if (lastObjectEnd < 0) return []
-
-	try {
-		const parsed = JSON.parse(`${trimmed.slice(0, lastObjectEnd + 1)}]`)
-		return Array.isArray(parsed) ? parsed : []
-	} catch {
-		return []
+	const withoutTrailingBracket = trimmed.endsWith(']') ? trimmed.slice(0, -1) : trimmed
+	const lastComma = withoutTrailingBracket.lastIndexOf(',')
+	if (lastComma > 0) {
+		candidates.push(`${withoutTrailingBracket.slice(0, lastComma)}]`)
 	}
+
+	const lastObjectEnd = withoutTrailingBracket.lastIndexOf('}')
+	if (lastObjectEnd >= 0) {
+		candidates.push(`${withoutTrailingBracket.slice(0, lastObjectEnd + 1)}]`)
+	}
+
+	for (const candidate of new Set(candidates)) {
+		try {
+			const parsed = JSON.parse(candidate)
+			if (Array.isArray(parsed)) return parsed
+		} catch {
+			// Keep trying best-effort candidates.
+		}
+	}
+
+	return []
 }
 
 function dropPotentiallyIncompleteTail<T>(items: T[]): T[] {
@@ -83,7 +121,7 @@ function extractToolArguments(input: unknown): Record<string, unknown> | null {
 	return isRecord(args) ? args : input
 }
 
-function toPreviewShapes(value: unknown, isPartial: boolean): TLShape[] {
+function parsePreviewArray(value: unknown, isPartial: boolean): unknown[] {
 	let parsedItems: unknown[] = []
 	if (Array.isArray(value)) {
 		parsedItems = value
@@ -93,20 +131,114 @@ function toPreviewShapes(value: unknown, isPartial: boolean): TLShape[] {
 		return []
 	}
 
-	const candidateItems = isPartial ? dropPotentiallyIncompleteTail(parsedItems) : parsedItems
+	return isPartial ? dropPotentiallyIncompleteTail(parsedItems) : parsedItems
+}
+
+function parseNewBlankCanvasFlag(value: unknown, isPartial: boolean): boolean | null {
+	if (typeof value === 'boolean') return value
+	if (typeof value === 'number') return value !== 0
+	if (typeof value === 'string') {
+		const normalized = value.trim().toLowerCase()
+		if (normalized.length === 0) return null
+		if (['true', '1', 'yes', 'y', 'on'].includes(normalized)) return true
+		if (['false', '0', 'no', 'n', 'off'].includes(normalized)) return false
+		if (isPartial) {
+			if ('true'.startsWith(normalized)) return true
+			if ('false'.startsWith(normalized)) return false
+		}
+	}
+	return null
+}
+
+function normalizeShapeId(shapeId: string): string {
+	return shapeId.startsWith('shape:') ? shapeId : `shape:${shapeId}`
+}
+
+function toSimpleShapeId(shapeId: string): string {
+	return shapeId.replace(/^shape:/, '')
+}
+
+function deepMerge(base: unknown, patch: unknown): unknown {
+	if (!isRecord(base) || !isRecord(patch)) return patch
+
+	const merged: Record<string, unknown> = { ...base }
+	for (const [key, value] of Object.entries(patch)) {
+		merged[key] = deepMerge(merged[key], value)
+	}
+	return merged
+}
+
+function toCreatePreviewShapes(value: unknown, isPartial: boolean): TLShape[] {
+	const candidateItems = parsePreviewArray(value, isPartial)
 	const previewShapes: TLShape[] = []
 	for (const item of candidateItems) {
 		const parsed = FocusedShapeSchema.safeParse(item)
 		if (!parsed.success) continue
 		try {
-			const converted = convertFocusedShapeToTldrawRecord(parsed.data)
-			if (typeof converted.id !== 'string' || typeof converted.type !== 'string') continue
-			previewShapes.push(converted as unknown as TLShape)
+			previewShapes.push(convertFocusedShapeToTldrawRecord(parsed.data))
 		} catch {
 			// Ignore unsupported preview items.
 		}
 	}
 	return previewShapes
+}
+
+function toUpdatePreviewShapes(
+	value: unknown,
+	isPartial: boolean,
+	baseShapes: TLShape[]
+): TLShape[] {
+	const candidateItems = parsePreviewArray(value, isPartial)
+	if (candidateItems.length <= 0) return []
+
+	const baseShapesById = new Map<string, TLShape>()
+	for (const shape of baseShapes) {
+		baseShapesById.set(shape.id, shape)
+	}
+
+	const previewShapes: TLShape[] = []
+	for (const item of candidateItems) {
+		const parsedUpdate = FocusedShapeUpdateSchema.safeParse(item)
+		if (!parsedUpdate.success) continue
+
+		const update = parsedUpdate.data
+		const existingShape = baseShapesById.get(normalizeShapeId(update.shapeId))
+		if (!existingShape) continue
+
+		try {
+			const existingFocused = convertTldrawRecordToFocusedShape(existingShape)
+			const merged = deepMerge(existingFocused, {
+				...update,
+				shapeId: toSimpleShapeId(update.shapeId),
+				_type: update._type ?? existingFocused._type,
+			}) as FocusedShape
+			previewShapes.push(convertFocusedShapeToTldrawRecord(merged))
+		} catch {
+			// Ignore unsupported update previews.
+		}
+	}
+
+	return previewShapes
+}
+
+function toDeletePreviewSnapshot(
+	value: unknown,
+	isPartial: boolean,
+	committed: CanvasSnapshot
+): CanvasSnapshot | null {
+	const candidateItems = parsePreviewArray(value, isPartial)
+	const shapeIds = candidateItems.filter((item): item is string => typeof item === 'string')
+	if (shapeIds.length <= 0) return null
+
+	const idsToDelete = new Set(shapeIds.map((shapeId) => normalizeShapeId(shapeId)))
+	const filteredShapes = committed.shapes.filter((shape) => !idsToDelete.has(shape.id))
+	if (filteredShapes.length === committed.shapes.length) return null
+
+	return {
+		canvasId: committed.canvasId,
+		version: committed.version,
+		shapes: filteredShapes.map((shape) => structuredClone(shape)),
+	}
 }
 
 function mergeShapesById(base: TLShape[], additions: TLShape[]): TLShape[] {
@@ -168,17 +300,11 @@ function TldrawCanvas({ app }: { app: App }) {
 	const pushTimerRef = useRef<number | null>(null)
 	const pushInFlightRef = useRef(false)
 	const previewActiveRef = useRef(false)
+	const createFromBlankPreviewRef = useRef(false)
 	const committedSnapshotRef = useRef<CanvasSnapshot>({ version: 0, shapes: [] })
 	const removeStoreListenerRef = useRef<(() => void) | null>(null)
 
-	const renderPreviewShapes = useCallback((previewShapes: TLShape[]) => {
-		if (previewShapes.length <= 0) return
-		const committed = committedSnapshotRef.current
-		const previewSnapshot: CanvasSnapshot = {
-			canvasId: committed.canvasId,
-			version: committed.version,
-			shapes: mergeShapesById(committed.shapes, previewShapes),
-		}
+	const renderPreviewSnapshot = useCallback((previewSnapshot: CanvasSnapshot, summary: string) => {
 		previewActiveRef.current = true
 
 		const editor = editorRef.current
@@ -188,12 +314,34 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		applySnapshot(editor, previewSnapshot)
-		log(`Applied stream preview (${previewShapes.length} shape(s))`)
+		log(summary)
 	}, [])
+
+	const renderPreviewShapes = useCallback(
+		(previewShapes: TLShape[], mode: 'create' | 'update', createFromBlank = false) => {
+			if (previewShapes.length <= 0) return
+			const committed = committedSnapshotRef.current
+			const previewSnapshot: CanvasSnapshot = {
+				canvasId: committed.canvasId,
+				version: committed.version,
+				shapes: createFromBlank
+					? previewShapes.map((shape) => structuredClone(shape))
+					: mergeShapesById(committed.shapes, previewShapes),
+			}
+			renderPreviewSnapshot(
+				previewSnapshot,
+				mode === 'create' && createFromBlank
+					? `Applied create preview on blank canvas (${previewShapes.length} shape(s))`
+					: `Applied ${mode} preview (${previewShapes.length} shape(s))`
+			)
+		},
+		[renderPreviewSnapshot]
+	)
 
 	const clearPreviewAndRestoreCommitted = useCallback((reason: string) => {
 		if (!previewActiveRef.current) return
 		previewActiveRef.current = false
+		createFromBlankPreviewRef.current = false
 		pendingPreviewSnapshotRef.current = null
 		const editor = editorRef.current
 		if (editor) {
@@ -207,13 +355,61 @@ function TldrawCanvas({ app }: { app: App }) {
 			const args = extractToolArguments(input)
 			if (!args) return
 
-			const rawShapes = args.shapesJson ?? args.shapes
-			const previewShapes = toPreviewShapes(rawShapes, isPartial)
-			if (previewShapes.length <= 0) return
+			const isCreateCall = args.shapesJson !== undefined || args.new_blank_canvas !== undefined
+			const isUpdateCall = args.updatesJson !== undefined
+			const isDeleteCall = args.shapeIdsJson !== undefined
 
-			renderPreviewShapes(previewShapes)
+			if (isUpdateCall || isDeleteCall) {
+				createFromBlankPreviewRef.current = false
+			}
+
+			if (isCreateCall) {
+				if (args.new_blank_canvas === undefined) {
+					createFromBlankPreviewRef.current = false
+				}
+				const blankFlag = parseNewBlankCanvasFlag(args.new_blank_canvas, isPartial)
+				if (blankFlag === true) createFromBlankPreviewRef.current = true
+				if (blankFlag === false && !isPartial) createFromBlankPreviewRef.current = false
+			}
+
+			const createPreviewShapes = toCreatePreviewShapes(args.shapesJson, isPartial)
+			if (createPreviewShapes.length > 0) {
+				renderPreviewShapes(createPreviewShapes, 'create', createFromBlankPreviewRef.current)
+				return
+			}
+
+			if (isCreateCall && createFromBlankPreviewRef.current) {
+				const committed = committedSnapshotRef.current
+				const blankSnapshot: CanvasSnapshot = {
+					canvasId: committed.canvasId,
+					version: committed.version,
+					shapes: [],
+				}
+				renderPreviewSnapshot(blankSnapshot, 'Applied create preview on blank canvas (0 shape(s))')
+				return
+			}
+
+			const committed = committedSnapshotRef.current
+			const updatePreviewShapes = toUpdatePreviewShapes(
+				args.updatesJson,
+				isPartial,
+				committed.shapes
+			)
+			if (updatePreviewShapes.length > 0) {
+				renderPreviewShapes(updatePreviewShapes, 'update')
+				return
+			}
+
+			const deletePreviewSnapshot = toDeletePreviewSnapshot(args.shapeIdsJson, isPartial, committed)
+			if (!deletePreviewSnapshot) return
+
+			const deletedCount = committed.shapes.length - deletePreviewSnapshot.shapes.length
+			renderPreviewSnapshot(
+				deletePreviewSnapshot,
+				`Applied delete preview (${deletedCount} shape(s))`
+			)
 		},
-		[renderPreviewShapes]
+		[renderPreviewShapes, renderPreviewSnapshot]
 	)
 
 	const pushLocalSnapshot = useCallback(async () => {
@@ -272,6 +468,7 @@ function TldrawCanvas({ app }: { app: App }) {
 		if (snapshot.version <= localVersionRef.current) return
 
 		previewActiveRef.current = false
+		createFromBlankPreviewRef.current = false
 		committedSnapshotRef.current = snapshot
 
 		const editor = editorRef.current
@@ -304,7 +501,7 @@ function TldrawCanvas({ app }: { app: App }) {
 	useEffect(() => {
 		log('TldrawCanvas mounted')
 		app.onteardown = async () => {
-			log('onteardown called!')
+			log('onteardown called')
 			return {}
 		}
 
@@ -322,7 +519,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			if (pushInFlightRef.current) return
 			const snapshot = extractSnapshotFromToolResult(result)
 			if (!snapshot) {
-				clearPreviewAndRestoreCommitted('non-canvas tool result')
+				// clearPreviewAndRestoreCommitted('non-canvas tool result')
 				return
 			}
 			applyIncomingSnapshot(snapshot)
@@ -440,7 +637,7 @@ function McpApp() {
 
 	return (
 		<div>
-			<div
+			{/* <div
 				id="debug"
 				style={{
 					position: 'fixed',
@@ -459,7 +656,7 @@ function McpApp() {
 				}}
 			>
 				{debugLines.join('\n')}
-			</div>
+			</div> */}
 			{error ? (
 				<div style={{ padding: 20, color: 'red' }}>Error: {error.message}</div>
 			) : !isConnected || !app ? (
