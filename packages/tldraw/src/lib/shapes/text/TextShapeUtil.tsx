@@ -21,6 +21,8 @@ import {
 	toDomPrecision,
 	toRichText,
 	useEditor,
+	useIsDarkMode,
+	useValue,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import {
@@ -29,8 +31,7 @@ import {
 } from '../../utils/text/richText'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import type { DisplayValuesOptions } from '../shared/getDisplayValues'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { DisplayValuesOptions, getDisplayValues } from '../shared/getDisplayValues'
 
 const sizeCache = createComputedCache(
 	'text size',
@@ -143,12 +144,17 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	component(shape: TLTextShape) {
 		const {
 			id,
-			props: { font, size, richText, color, scale, textAlign },
+			props: { richText, scale, textAlign },
 		} = shape
 
 		const { width, height } = this.getMinDimensions(shape)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const theme = useDefaultColorTheme()
+		const isDarkMode = useIsDarkMode()
+		const dv = useValue(
+			'text shape display values',
+			() => getDisplayValues(this, shape, isDarkMode),
+			[shape, isDarkMode]
+		)
 		const handleKeyDown = useTextShapeKeydownHandler(id)
 
 		return (
@@ -156,13 +162,13 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				shapeId={id}
 				classNamePrefix="tl-text-shape"
 				type="text"
-				fontFamily={FONT_FAMILIES[font]}
-				fontSize={FONT_SIZES[size]}
-				lineHeight={TEXT_PROPS.lineHeight}
+				fontFamily={dv.fontFamily}
+				fontSize={dv.fontSize}
+				lineHeight={dv.lineHeight}
 				textAlign={textAlign === 'middle' ? 'center' : textAlign}
 				verticalAlign="center"
 				richText={richText}
-				labelColor={getColorValue(theme, color, 'solid')}
+				labelColor={dv.color}
 				isSelected={isSelected}
 				textWidth={width}
 				textHeight={height}
@@ -201,18 +207,18 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const width = bounds.width / (shape.props.scale ?? 1)
 		const height = bounds.height / (shape.props.scale ?? 1)
 
-		const theme = getDefaultColorTheme(ctx)
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
 
 		const exportBounds = new Box(0, 0, width, height)
 		return (
 			<RichTextSVG
-				fontSize={FONT_SIZES[shape.props.size]}
-				fontFamily={FONT_FAMILIES[shape.props.font]}
-				lineHeight={TEXT_PROPS.lineHeight}
+				fontSize={dv.fontSize}
+				fontFamily={dv.fontFamily}
+				lineHeight={dv.lineHeight}
 				textAlign={shape.props.textAlign === 'middle' ? 'center' : shape.props.textAlign}
 				verticalAlign="center"
 				richText={shape.props.richText}
-				labelColor={getColorValue(theme, shape.props.color, 'solid')}
+				labelColor={dv.color}
 				bounds={exportBounds}
 				padding={0}
 				showTextOutline={this.options.showTextOutline}

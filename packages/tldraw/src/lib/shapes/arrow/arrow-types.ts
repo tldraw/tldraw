@@ -17,6 +17,9 @@ export interface ArrowShapeUtilDisplayValues {
 	labelColor: string
 	labelFontFamily: string
 	labelFontSize: number
+	labelLineHeight: number
+	labelPadding: number
+	labelBorderRadius: number
 }
 
 /**

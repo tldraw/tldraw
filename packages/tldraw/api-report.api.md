@@ -358,11 +358,17 @@ export interface ArrowShapeUtilDisplayValues {
     // (undocumented)
     fillColor: string;
     // (undocumented)
+    labelBorderRadius: number;
+    // (undocumented)
     labelColor: string;
     // (undocumented)
     labelFontFamily: string;
     // (undocumented)
     labelFontSize: number;
+    // (undocumented)
+    labelLineHeight: number;
+    // (undocumented)
+    labelPadding: number;
     // (undocumented)
     strokeColor: string;
     // (undocumented)
@@ -2020,10 +2026,6 @@ export function hideAllTooltips(): void;
 // @public (undocumented)
 export interface HighlightShapeOptions extends DisplayValuesOptions<TLHighlightShape, HighlightShapeUtilDisplayValues> {
     readonly maxPointsPerShape: number;
-    // (undocumented)
-    readonly overlayOpacity: number;
-    // (undocumented)
-    readonly underlayOpacity: number;
 }
 
 // @public (undocumented)
@@ -2080,9 +2082,9 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     static props: RecordProps<TLHighlightShape>;
     // (undocumented)
-    toBackgroundSvg(shape: TLHighlightShape): JSX.Element;
+    toBackgroundSvg(shape: TLHighlightShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
-    toSvg(shape: TLHighlightShape): JSX.Element;
+    toSvg(shape: TLHighlightShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "highlight";
     // (undocumented)
@@ -2092,9 +2094,15 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 // @public (undocumented)
 export interface HighlightShapeUtilDisplayValues {
     // (undocumented)
+    overlayOpacity: number;
+    // (undocumented)
     strokeColor: string;
     // (undocumented)
+    strokeColorP3: string;
+    // (undocumented)
     strokeWidth: number;
+    // (undocumented)
+    underlayOpacity: number;
 }
 
 // @public (undocumented)
@@ -2305,7 +2313,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     static props: RecordProps<TLLineShape>;
     // (undocumented)
-    toSvg(shape: TLLineShape): JSX.Element;
+    toSvg(shape: TLLineShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "line";
     // (undocumented)

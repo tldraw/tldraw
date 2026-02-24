@@ -5,6 +5,7 @@ import {
 	Polygon2d,
 	SVGContainer,
 	ShapeUtil,
+	SvgExportContext,
 	TLHighlightShape,
 	TLHighlightShapeProps,
 	TLResizeInfo,
@@ -16,6 +17,7 @@ import {
 	last,
 	lerp,
 	rng,
+	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
 
@@ -26,14 +28,17 @@ import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import type { DisplayValuesOptions } from '../shared/getDisplayValues'
+import { getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { useColorSpace } from '../shared/useColorSpace'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
 /** @public */
 export interface HighlightShapeUtilDisplayValues {
 	strokeColor: string
+	strokeColorP3: string
 	strokeWidth: number
+	underlayOpacity: number
+	overlayOpacity: number
 }
 
 /** @public */
@@ -44,8 +49,6 @@ export interface HighlightShapeOptions
 	 * A higher number will lead to poor performance while drawing very long lines.
 	 */
 	readonly maxPointsPerShape: number
-	readonly underlayOpacity: number
-	readonly overlayOpacity: number
 }
 
 /** @public */
@@ -56,14 +59,15 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	override options: HighlightShapeOptions = {
 		maxPointsPerShape: 600,
-		underlayOpacity: 0.82,
-		overlayOpacity: 0.35,
 		getDisplayValues(_editor, shape, isDarkMode): HighlightShapeUtilDisplayValues {
 			const theme = getDefaultColorTheme({ isDarkMode })
 			const { color, size } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'highlightSrgb'),
+				strokeColorP3: getColorValue(theme, color, 'highlightP3'),
 				strokeWidth: FONT_SIZES[size] * 1.12,
+				underlayOpacity: 0.82,
+				overlayOpacity: 0.35,
 			}
 		},
 		getDisplayValueOverrides(): Partial<HighlightShapeUtilDisplayValues> {
@@ -95,7 +99,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	getGeometry(shape: TLHighlightShape) {
-		const strokeWidth = getStrokeWidth(shape)
+		const dv = getDisplayValues(this, shape, false)
+		const strokeWidth = dv.strokeWidth * shape.props.scale
 		if (getIsDot(shape)) {
 			return new Circle2d({
 				x: -strokeWidth / 2,
@@ -116,39 +121,60 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	component(shape: TLHighlightShape) {
-		const forceSolid = useHighlightForceSolid(this.editor, shape)
-		const strokeWidth = getStrokeWidth(shape)
+		const isDarkMode = useIsDarkMode()
+		const dv = useValue(
+			'highlight display values',
+			() => getDisplayValues(this, shape, isDarkMode),
+			[shape]
+		)
+		const sw = dv.strokeWidth * shape.props.scale
+		const forceSolid = useHighlightForceSolid(this.editor, sw)
 
 		return (
 			<SVGContainer>
 				<HighlightRenderer
 					shape={shape}
 					forceSolid={forceSolid}
-					strokeWidth={strokeWidth}
-					opacity={this.options.overlayOpacity}
+					strokeWidth={sw}
+					opacity={dv.overlayOpacity}
+					strokeColor={dv.strokeColor}
+					strokeColorP3={dv.strokeColorP3}
 				/>
 			</SVGContainer>
 		)
 	}
 
 	override backgroundComponent(shape: TLHighlightShape) {
-		const forceSolid = useHighlightForceSolid(this.editor, shape)
-		const strokeWidth = getStrokeWidth(shape)
+		const isDarkMode = useIsDarkMode()
+		const dv = useValue(
+			'highlight background display values',
+			() => getDisplayValues(this, shape, isDarkMode),
+			[shape]
+		)
+		const sw = dv.strokeWidth * shape.props.scale
+		const forceSolid = useHighlightForceSolid(this.editor, sw)
 		return (
 			<SVGContainer>
 				<HighlightRenderer
 					shape={shape}
 					forceSolid={forceSolid}
-					strokeWidth={strokeWidth}
-					opacity={this.options.underlayOpacity}
+					strokeWidth={sw}
+					opacity={dv.underlayOpacity}
+					strokeColor={dv.strokeColor}
+					strokeColorP3={dv.strokeColorP3}
 				/>
 			</SVGContainer>
 		)
 	}
 
 	indicator(shape: TLHighlightShape) {
-		const forceSolid = useHighlightForceSolid(this.editor, shape)
-		const strokeWidth = getStrokeWidth(shape)
+		const dv = useValue(
+			'highlight indicator display values',
+			() => getDisplayValues(this, shape, false),
+			[shape]
+		)
+		const strokeWidth = dv.strokeWidth * shape.props.scale
+		const forceSolid = useHighlightForceSolid(this.editor, strokeWidth)
 
 		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
 		const allPointsFromSegments = getPointsFromDrawSegments(
@@ -172,7 +198,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override getIndicatorPath(shape: TLHighlightShape): Path2D {
-		const strokeWidth = getStrokeWidth(shape)
+		const dv = getDisplayValues(this, shape, false)
+		const strokeWidth = dv.strokeWidth * shape.props.scale
 		const zoomLevel = this.editor.getEfficientZoomLevel()
 		const forceSolid = strokeWidth / zoomLevel < 1.5
 
@@ -193,8 +220,9 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		return new Path2D(strokePath)
 	}
 
-	override toSvg(shape: TLHighlightShape) {
-		const strokeWidth = getStrokeWidth(shape)
+	override toSvg(shape: TLHighlightShape, ctx: SvgExportContext) {
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
+		const strokeWidth = dv.strokeWidth * shape.props.scale
 		const forceSolid = strokeWidth < 1.5
 		const scaleFactor = 1 / shape.props.scale
 		return (
@@ -203,14 +231,16 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 					forceSolid={forceSolid}
 					strokeWidth={strokeWidth}
 					shape={shape}
-					opacity={this.options.overlayOpacity}
+					opacity={dv.overlayOpacity}
+					strokeColor={dv.strokeColor}
 				/>
 			</g>
 		)
 	}
 
-	override toBackgroundSvg(shape: TLHighlightShape) {
-		const strokeWidth = getStrokeWidth(shape)
+	override toBackgroundSvg(shape: TLHighlightShape, ctx: SvgExportContext) {
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
+		const strokeWidth = dv.strokeWidth * shape.props.scale
 		const forceSolid = strokeWidth < 1.5
 		const scaleFactor = 1 / shape.props.scale
 		return (
@@ -219,7 +249,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 					forceSolid={forceSolid}
 					strokeWidth={strokeWidth}
 					shape={shape}
-					opacity={this.options.underlayOpacity}
+					opacity={dv.underlayOpacity}
+					strokeColor={dv.strokeColor}
 				/>
 			</g>
 		)
@@ -292,10 +323,6 @@ function getHighlightStrokePoints(
 	return { strokePoints, sw }
 }
 
-function getStrokeWidth(shape: TLHighlightShape) {
-	return FONT_SIZES[shape.props.size] * 1.12 * shape.props.scale
-}
-
 function getIsDot(shape: TLHighlightShape) {
 	// First point is 16 base64 chars (3 Float32s = 12 bytes)
 	// Each delta point is 8 base64 chars (3 Float16s = 6 bytes)
@@ -309,14 +336,16 @@ function HighlightRenderer({
 	forceSolid,
 	shape,
 	opacity,
+	strokeColor,
+	strokeColorP3,
 }: {
 	strokeWidth: number
 	forceSolid: boolean
 	shape: TLHighlightShape
 	opacity: number
+	strokeColor: string
+	strokeColorP3?: string
 }) {
-	const theme = useDefaultColorTheme()
-
 	const allPointsFromSegments = getPointsFromDrawSegments(
 		shape.props.segments,
 		shape.props.scaleX,
@@ -341,12 +370,7 @@ function HighlightRenderer({
 			: getShapeDot(allPointsFromSegments[0])
 
 	const colorSpace = useColorSpace()
-
-	const color = getColorValue(
-		theme,
-		shape.props.color,
-		colorSpace === 'p3' ? 'highlightP3' : 'highlightSrgb'
-	)
+	const color = colorSpace === 'p3' && strokeColorP3 ? strokeColorP3 : strokeColor
 
 	return (
 		<path
@@ -361,17 +385,13 @@ function HighlightRenderer({
 	)
 }
 
-function useHighlightForceSolid(editor: Editor, shape: TLHighlightShape) {
+function useHighlightForceSolid(editor: Editor, scaledStrokeWidth: number) {
 	return useValue(
 		'forceSolid',
 		() => {
-			const sw = getStrokeWidth(shape)
 			const zoomLevel = editor.getEfficientZoomLevel()
-			if (sw / zoomLevel < 1.5) {
-				return true
-			}
-			return false
+			return scaledStrokeWidth / zoomLevel < 1.5
 		},
-		[editor]
+		[editor, scaledStrokeWidth]
 	)
 }

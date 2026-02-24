@@ -16,6 +16,7 @@ const tlenv = {
 	isWebview: false,
 	isDarwin: false,
 	hasCanvasSupport: false,
+	supportsP3ColorSpace: false,
 }
 
 let isForcedFinePointer = false
@@ -30,6 +31,10 @@ if (typeof window !== 'undefined') {
 		tlenv.isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
 	}
 	tlenv.hasCanvasSupport = 'Promise' in window && 'HTMLCanvasElement' in window
+	tlenv.supportsP3ColorSpace =
+		typeof CSS !== 'undefined' &&
+		CSS.supports('color', 'color(display-p3 1 1 1)') &&
+		matchMedia('(color-gamut: p3)').matches
 	isForcedFinePointer = tlenv.isFirefox && !tlenv.isAndroid && !tlenv.isIos
 }
 

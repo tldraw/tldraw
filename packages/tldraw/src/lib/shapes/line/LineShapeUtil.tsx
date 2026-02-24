@@ -3,6 +3,7 @@ import {
 	HandleSnapGeometry,
 	SVGContainer,
 	ShapeUtil,
+	SvgExportContext,
 	TLHandle,
 	TLHandleDragInfo,
 	TLLineShape,
@@ -23,12 +24,13 @@ import {
 	mapObjectMapValues,
 	maybeSnapToGrid,
 	sortByIndex,
+	useIsDarkMode,
+	useValue,
 } from '@tldraw/editor'
 
 import { STROKE_SIZES } from '../arrow/shared'
 import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
-import type { DisplayValuesOptions } from '../shared/getDisplayValues'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { DisplayValuesOptions, getDisplayValues } from '../shared/getDisplayValues'
 
 const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
 
@@ -208,15 +210,23 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	component(shape: TLLineShape) {
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const isDarkMode = useIsDarkMode()
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const dv = useValue(
+			'line shape display values',
+			() => getDisplayValues(this, shape, isDarkMode),
+			[shape, isDarkMode]
+		)
 		return (
 			<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
-				<LineShapeSvg shape={shape} />
+				<LineShapeSvg shape={shape} strokeColor={dv.strokeColor} strokeWidth={dv.strokeWidth} />
 			</SVGContainer>
 		)
 	}
 
 	indicator(shape: TLLineShape) {
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const strokeWidth = getDisplayValues(this, shape, false).strokeWidth * shape.props.scale
 		const path = getPathForLineShape(shape)
 		const { dash } = shape.props
 
@@ -236,7 +246,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override getIndicatorPath(shape: TLLineShape): Path2D {
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const strokeWidth = getDisplayValues(this, shape, false).strokeWidth * shape.props.scale
 		const path = getPathForLineShape(shape)
 		const { dash } = shape.props
 
@@ -250,8 +260,16 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		})
 	}
 
-	override toSvg(shape: TLLineShape) {
-		return <LineShapeSvg shouldScale shape={shape} />
+	override toSvg(shape: TLLineShape, ctx: SvgExportContext) {
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
+		return (
+			<LineShapeSvg
+				shouldScale
+				shape={shape}
+				strokeColor={dv.strokeColor}
+				strokeWidth={dv.strokeWidth}
+			/>
+		)
 	}
 
 	override getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry {
@@ -374,21 +392,23 @@ function LineShapeSvg({
 	shape,
 	shouldScale = false,
 	forceSolid = false,
+	strokeColor,
+	strokeWidth: baseStrokeWidth,
 }: {
 	shape: TLLineShape
 	shouldScale?: boolean
 	forceSolid?: boolean
+	strokeColor: string
+	strokeWidth: number
 }) {
-	const theme = useDefaultColorTheme()
-
 	const path = getPathForLineShape(shape)
-	const { dash, color, size } = shape.props
+	const { dash } = shape.props
 
 	const scaleFactor = 1 / shape.props.scale
 
 	const scale = shouldScale ? scaleFactor : 1
 
-	const strokeWidth = STROKE_SIZES[size] * shape.props.scale
+	const strokeWidth = baseStrokeWidth * shape.props.scale
 
 	return path.toSvg({
 		style: dash,
@@ -397,7 +417,7 @@ function LineShapeSvg({
 		randomSeed: shape.id,
 		props: {
 			transform: `scale(${scale})`,
-			stroke: getColorValue(theme, color, 'solid'),
+			stroke: strokeColor,
 			fill: 'none',
 		},
 	})

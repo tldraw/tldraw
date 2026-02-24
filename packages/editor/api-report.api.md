@@ -3704,6 +3704,7 @@ export const tlenv: {
     isIos: boolean;
     isSafari: boolean;
     isWebview: boolean;
+    supportsP3ColorSpace: boolean;
 };
 
 // @public
