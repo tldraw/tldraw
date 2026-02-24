@@ -119,20 +119,27 @@ The idea:
 - Outputs: ${idea.outputs.join(', ')}
 - Why this combination: ${idea.whyThisCombination}
 
-IMPORTANT — before writing any code, read the reference example:
-  apps/examples/src/examples/slime-mold-fermentation/simulation.ts
-  apps/examples/src/examples/slime-mold-fermentation/SlimeMoldFermentationExample.tsx
-This shows the pattern: use tldraw's native shapes (geo, arrow, draw, note) as your visual primitives. Animate by creating, updating, and morphing shape properties — color, size, geo type, opacity, position, bend — in an editor.on('tick', ...) loop. Do NOT drop down to Canvas2D or SVG overlays unless the idea truly requires pixel-level rendering.
+IMPORTANT: Use tldraw's native shapes as your visual primitives. Do NOT drop down to Canvas2D or SVG overlays unless the idea truly requires pixel-level rendering.
 
-Key patterns from the reference:
-- editor.createShape / editor.updateShape with native types (geo, arrow, draw, note)
-- Geo shape props: geo ('rectangle','ellipse','star','cloud','triangle',...), w, h, color, fill ('solid','semi','none'), dash ('draw','solid','dashed'), size ('s','m','l','xl')
-- Arrow props: start, end, color, bend, arrowheadStart, arrowheadEnd ('none','arrow','triangle',...)
-- editor.on('tick', fn) for simulation/animation loops
+Skim this reference example for API usage patterns only; but do NOT copy its creative concept, visual style, or mechanics. You're looking to build a unique adjacent-possible POC:
+  apps/examples/src/examples/slime-mold-fermentation/SlimeMoldFermentationExample.tsx
+  apps/examples/src/examples/slime-mold-fermentation/simulation.ts
+
+tldraw API cheatsheet:
+- editor.createShape / editor.updateShape with native types (geo, arrow, draw, note, text)
+- Geo shape props: geo ('rectangle','ellipse','star','cloud','triangle','hexagon','oval','x-box','check-box','diamond','pentagon','octagon','rhombus','heart'), w, h, color, fill ('solid','semi','none'), dash ('draw','solid','dashed','dotted'), size ('s','m','l','xl'), opacity
+- Arrow props: start, end, color, bend, arrowheadStart, arrowheadEnd ('none','arrow','triangle','diamond','square','dot','bar','pipe'), size, dash
+- Draw shape: for freeform paths and organic lines
+- Note shape: for labeled sticky notes with text
+- Text shape: for standalone text labels
+- editor.on('tick', fn) for animation/simulation loops
 - editor.run(() => { ... }) to batch multiple updates in one frame
-- Custom StateNode tools for pointer interaction
+- Custom StateNode tools for pointer/keyboard interaction
 - TLComponents to customize UI (TopPanel for controls, hide unused panels)
 - editor.getShapePageBounds(id) for spatial queries
+- editor.deleteShapes([...ids]) to remove shapes
+
+Design your own mechanic from scratch based on the idea description; stellar examples feel like they were the inevitable end state for a particular idea.
 
 Create exactly 2 files in apps/examples/src/examples/${slug}/.
 IMPORTANT: Write the main component file FIRST, then README.md (to avoid HMR errors).
