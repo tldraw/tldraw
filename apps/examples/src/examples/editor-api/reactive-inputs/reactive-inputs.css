@@ -1,19 +1,14 @@
 .reactive-inputs-panel {
-	padding: 8px 12px;
-	background: rgba(248, 249, 250, 0.95);
-	border-bottom: 1px solid #e0e0e0;
-	border-radius: 6px;
-	font-family:
-		system-ui,
-		-apple-system,
-		sans-serif;
+	padding: 6px;
+	border: 1px solid #ccc;
+	box-shadow: none;
 	pointer-events: all;
 }
 
 .reactive-inputs-content {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 8px;
+	gap: 6px;
 	align-items: center;
 }
 
@@ -22,32 +17,27 @@
 	align-items: baseline;
 	gap: 4px;
 	padding: 2px 8px;
-	background: white;
-	border: 1px solid #e0e0e0;
-	border-radius: 4px;
+	background: #fff;
+	border: 1px solid #ccc;
 }
 
 .input-label {
-	font-size: 10px;
-	font-weight: 600;
-	color: #666;
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
+	font-size: 12px;
+	color: #333;
 	white-space: nowrap;
 }
 
 .input-value {
-	font-family:
-		'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-	font-size: 12px;
-	color: #1a1a1a;
+	font-size: 10px;
+	color: #111;
 	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+	min-width: 80px;
 }
 
 .input-hint {
-	font-size: 10px;
-	color: #999;
-	font-style: italic;
+	font-size: 11px;
+	color: #666;
 }
 
 .modifier-keys {
@@ -59,20 +49,14 @@
 .modifier-key {
 	display: inline-block;
 	padding: 2px 6px;
-	font-family:
-		'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 	font-size: 11px;
-	border-radius: 4px;
-	background: #e8e8e8;
-	color: #999;
-	border: 1px solid #ddd;
-	transition:
-		background 0.1s,
-		color 0.1s;
+	background: #e0e0e0;
+	color: #666;
+	border: 1px solid #ccc;
 }
 
 .modifier-key[data-active='true'] {
-	background: #1a1a1a;
-	color: white;
-	border-color: #1a1a1a;
+	background: #333;
+	color: #fff;
+	border-color: #333;
 }

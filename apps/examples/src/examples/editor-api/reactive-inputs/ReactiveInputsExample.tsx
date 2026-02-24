@@ -17,6 +17,11 @@ export default function ReactiveInputsExample() {
 	)
 }
 
+function formatNum(n: number, decimals: number): string {
+	const s = n.toFixed(decimals)
+	return n >= 0 ? ` ${s}` : s
+}
+
 // [2]
 function ReactiveInputsPanel() {
 	const editor = useEditor()
@@ -68,42 +73,42 @@ function ReactiveInputsPanel() {
 				<div className="input-group">
 					<div className="input-label">Screen point</div>
 					<div className="input-value">
-						{currentScreenPoint.x.toFixed(0)}, {currentScreenPoint.y.toFixed(0)}
+						{formatNum(currentScreenPoint.x, 0)}, {formatNum(currentScreenPoint.y, 0)}
 					</div>
 				</div>
 
 				<div className="input-group">
 					<div className="input-label">Page point</div>
 					<div className="input-value">
-						{currentPagePoint.x.toFixed(0)}, {currentPagePoint.y.toFixed(0)}
+						{formatNum(currentPagePoint.x, 0)}, {formatNum(currentPagePoint.y, 0)}
 					</div>
 				</div>
 
 				<div className="input-group">
 					<div className="input-label">Prev screen</div>
 					<div className="input-value">
-						{previousScreenPoint.x.toFixed(0)}, {previousScreenPoint.y.toFixed(0)}
+						{formatNum(previousScreenPoint.x, 0)}, {formatNum(previousScreenPoint.y, 0)}
 					</div>
 				</div>
 
 				<div className="input-group">
 					<div className="input-label">Prev page</div>
 					<div className="input-value">
-						{previousPagePoint.x.toFixed(0)}, {previousPagePoint.y.toFixed(0)}
+						{formatNum(previousPagePoint.x, 0)}, {formatNum(previousPagePoint.y, 0)}
 					</div>
 				</div>
 
 				<div className="input-group">
 					<div className="input-label">Origin screen</div>
 					<div className="input-value">
-						{originScreenPoint.x.toFixed(0)}, {originScreenPoint.y.toFixed(0)}
+						{formatNum(originScreenPoint.x, 0)}, {formatNum(originScreenPoint.y, 0)}
 					</div>
 				</div>
 
 				<div className="input-group">
 					<div className="input-label">Origin page</div>
 					<div className="input-value">
-						{originPagePoint.x.toFixed(0)}, {originPagePoint.y.toFixed(0)}
+						{formatNum(originPagePoint.x, 0)}, {formatNum(originPagePoint.y, 0)}
 					</div>
 				</div>
 
@@ -111,7 +116,7 @@ function ReactiveInputsPanel() {
 				<div className="input-group">
 					<div className="input-label">Velocity</div>
 					<div className="input-value">
-						{pointerVelocity.x.toFixed(4)}, {pointerVelocity.y.toFixed(4)}
+						{formatNum(pointerVelocity.x, 2)}, {formatNum(pointerVelocity.y, 2)}
 						<span className="input-hint"> px/ms</span>
 					</div>
 				</div>
