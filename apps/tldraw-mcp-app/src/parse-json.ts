@@ -35,7 +35,7 @@ function getPrevNonWhitespace(output: string): string | null {
 	return null
 }
 
-function healJsonArrayString(input: string): string {
+export function healJsonArrayString(input: string): string {
 	// Normalize common typographic quotes first.
 	const normalized = input.replace(/[\u201C\u201D]/g, '"')
 
