@@ -133,7 +133,7 @@ import {
 } from '../utils/deepLinks'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
-import { getDroppedShapesToNewParents } from '../utils/reparenting'
+import { getDroppedShapesToNewParents, kickoutOccludedShapes } from '../utils/reparenting'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
@@ -9621,6 +9621,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 						newParentId
 					)
 				})
+			}
+
+			// Kick out any pasted root shapes that ended up outside their parent container
+			const newShapeIdSet = new Set(newShapes.map((s) => s.id))
+			const shapesToKickout = rootShapes
+				.map((s) => s.id)
+				.filter((id) => {
+					const shape = this.getShape(id)
+					if (!shape) return false
+					// Only check shapes that are children of a shape (not page)
+					if (isPageId(shape.parentId)) return false
+					// Don't check containers with pasted children (preserves intentional
+					// parent-child relationships from the copied content)
+					const children = this.getSortedChildIdsForParent(id)
+					return !children.some((childId) => newShapeIdSet.has(childId))
+				})
+
+			if (shapesToKickout.length > 0) {
+				kickoutOccludedShapes(this, shapesToKickout)
 			}
 		})
 
