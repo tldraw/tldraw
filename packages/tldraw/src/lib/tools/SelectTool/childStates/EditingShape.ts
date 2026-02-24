@@ -165,8 +165,8 @@ export class EditingShape extends StateNode {
 					}
 				} else {
 					if (selectingShape.id === editingShape.id) {
-						// If we clicked on a frame, while editing its heading, cancel editing
-						if (this.editor.isShapeOfType(selectingShape, 'frame')) {
+						// If we clicked on a frame-like shape while editing its heading, cancel editing
+						if (this.editor.isShapeFrameLike(selectingShape)) {
 							this.editor.setEditingShape(null)
 							this.parent.transition('idle', info)
 						}

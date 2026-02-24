@@ -298,6 +298,90 @@ export class Translating extends StateNode {
 		if (changes.length > 0) {
 			this.editor.updateShapes(changes)
 		}
+
+		this.updateStickerBindings(movingShapes)
+	}
+
+	private updateStickerBindings(movingShapes: TLShape[]) {
+		const { editor } = this
+
+		for (const shape of movingShapes) {
+			const current = editor.getShape(shape.id)
+			if (!current) continue
+			if (!editor.isShapeStickerLike(current)) continue
+
+			// Get the center of the sticker in page space
+			const stickerPageBounds = editor.getShapePageBounds(current.id)
+			if (!stickerPageBounds) continue
+			const stickerCenter = stickerPageBounds.center
+
+			// Find existing sticker bindings from this shape
+			const existingBindings = editor
+				.getBindingsFromShape(current.id, 'sticker')
+
+			// Find the topmost shape under the sticker's center (excluding the sticker itself)
+			const shapesAtPoint = editor.getShapesAtPoint(stickerCenter, {
+				hitInside: true,
+			})
+			const target = shapesAtPoint.find(
+				(s) => s.id !== current.id && !editor.isShapeStickerLike(s)
+			)
+
+			if (target) {
+				// Calculate the anchor (normalized 0-1 position on the target)
+				const targetPageBounds = editor.getShapePageBounds(target.id)
+				if (!targetPageBounds) continue
+
+				const anchor = {
+					x: (stickerCenter.x - targetPageBounds.x) / targetPageBounds.w,
+					y: (stickerCenter.y - targetPageBounds.y) / targetPageBounds.h,
+				}
+
+				// Calculate the offset (always 0 when first placed)
+				const offset = { x: 0, y: 0 }
+
+				if (existingBindings.length > 0) {
+					// Update existing binding
+					const existingBinding = existingBindings[0]
+					if (existingBinding.toId === target.id) {
+						// Same target, update anchor
+						editor.updateBindings([
+							{
+								id: existingBinding.id,
+								type: 'sticker',
+								props: { anchor, offset },
+							},
+						])
+					} else {
+						// Different target, delete old and create new
+						editor.deleteBindings(existingBindings.map((b) => b.id))
+						editor.createBindings([
+							{
+								type: 'sticker',
+								fromId: current.id,
+								toId: target.id,
+								props: { anchor, offset },
+							},
+						])
+					}
+				} else {
+					// Create new binding
+					editor.createBindings([
+						{
+							type: 'sticker',
+							fromId: current.id,
+							toId: target.id,
+							props: { anchor, offset },
+						},
+					])
+				}
+			} else {
+				// No target underneath, remove any existing sticker bindings
+				if (existingBindings.length > 0) {
+					editor.deleteBindings(existingBindings.map((b) => b.id))
+				}
+			}
+		}
 	}
 
 	protected updateShapes() {

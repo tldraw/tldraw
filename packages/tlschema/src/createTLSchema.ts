@@ -5,6 +5,7 @@ import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
 import { imageAssetMigrations } from './assets/TLImageAsset'
 import { videoAssetMigrations } from './assets/TLVideoAsset'
 import { arrowBindingMigrations, arrowBindingProps } from './bindings/TLArrowBinding'
+import { stickerBindingMigrations, stickerBindingProps } from './bindings/TLStickerBinding'
 import { AssetRecordType, assetMigrations } from './records/TLAsset'
 import { TLBinding, TLDefaultBinding, createBindingRecordType } from './records/TLBinding'
 import { CameraRecordType, cameraMigrations } from './records/TLCamera'
@@ -35,6 +36,7 @@ import { highlightShapeMigrations, highlightShapeProps } from './shapes/TLHighli
 import { imageShapeMigrations, imageShapeProps } from './shapes/TLImageShape'
 import { lineShapeMigrations, lineShapeProps } from './shapes/TLLineShape'
 import { noteShapeMigrations, noteShapeProps } from './shapes/TLNoteShape'
+import { stickerShapeMigrations, stickerShapeProps } from './shapes/TLStickerShape'
 import { textShapeMigrations, textShapeProps } from './shapes/TLTextShape'
 import { videoShapeMigrations, videoShapeProps } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
@@ -146,6 +148,7 @@ export const defaultShapeSchemas = {
 	image: { migrations: imageShapeMigrations, props: imageShapeProps },
 	line: { migrations: lineShapeMigrations, props: lineShapeProps },
 	note: { migrations: noteShapeMigrations, props: noteShapeProps },
+	sticker: { migrations: stickerShapeMigrations, props: stickerShapeProps },
 	text: { migrations: textShapeMigrations, props: textShapeProps },
 	video: { migrations: videoShapeMigrations, props: videoShapeProps },
 } satisfies {
@@ -186,6 +189,7 @@ export const defaultShapeSchemas = {
  */
 export const defaultBindingSchemas = {
 	arrow: { migrations: arrowBindingMigrations, props: arrowBindingProps },
+	sticker: { migrations: stickerBindingMigrations, props: stickerBindingProps },
 } satisfies { [T in TLDefaultBinding['type']]: SchemaPropsInfo }
 
 /**

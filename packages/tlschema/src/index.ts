@@ -44,6 +44,12 @@ export {
 	type TLArrowBindingProps,
 } from './bindings/TLArrowBinding'
 export {
+	stickerBindingMigrations,
+	stickerBindingProps,
+	type TLStickerBinding,
+	type TLStickerBindingProps,
+} from './bindings/TLStickerBinding'
+export {
 	bindingIdValidator,
 	createBindingValidator,
 	type TLBaseBinding,
@@ -252,6 +258,12 @@ export {
 	type TLNoteShape,
 	type TLNoteShapeProps,
 } from './shapes/TLNoteShape'
+export {
+	stickerShapeMigrations,
+	stickerShapeProps,
+	type TLStickerShape,
+	type TLStickerShapeProps,
+} from './shapes/TLStickerShape'
 export {
 	textShapeMigrations,
 	textShapeProps,

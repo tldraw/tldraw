@@ -28,6 +28,7 @@ export async function exportAs(
 		name = `shapes at ${getTimestamp()}`
 		if (ids.length === 1) {
 			const first = editor.getShape(ids[0])!
+			// Uses isShapeOfType (not isShapeFrameLike) because it accesses frame-specific props (name)
 			if (editor.isShapeOfType(first, 'frame')) {
 				name = first.props.name || 'frame'
 			} else {
