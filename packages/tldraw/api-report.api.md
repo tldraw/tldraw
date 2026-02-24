@@ -224,7 +224,7 @@ export function ArrowLeftToolbarItem(): JSX.Element;
 export function ArrowRightToolbarItem(): JSX.Element;
 
 // @public
-export interface ArrowShapeOptions {
+export interface ArrowShapeOptions extends DisplayValuesOptions<TLArrowShape, ArrowShapeUtilDisplayValues> {
     readonly arcArrowCenterSnapDistance: number;
     readonly elbowArrowAxisSnapDistance: number;
     readonly elbowArrowCenterSnapDistance: number;
@@ -351,6 +351,22 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     static type: "arrow";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface ArrowShapeUtilDisplayValues {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    labelFontFamily: string;
+    // (undocumented)
+    labelFontSize: number;
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeWidth: number;
 }
 
 // @public
@@ -491,11 +507,21 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         y: number;
     } | undefined;
     // (undocumented)
+    options: BookmarkShapeUtilOptions;
+    // (undocumented)
     static props: RecordProps<TLBookmarkShape>;
     // (undocumented)
     static type: "bookmark";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface BookmarkShapeUtilDisplayValues {
+}
+
+// @public (undocumented)
+export interface BookmarkShapeUtilOptions extends DisplayValuesOptions<TLBookmarkShape, BookmarkShapeUtilDisplayValues> {
 }
 
 // @public (undocumented)
@@ -1115,6 +1141,14 @@ export function DeleteMenuItem(): JSX.Element;
 export function DiamondToolbarItem(): JSX.Element;
 
 // @public (undocumented)
+export interface DisplayValuesOptions<Shape extends TLShape, DisplayValues extends object> {
+    // (undocumented)
+    getDisplayValueOverrides(editor: Editor, shape: Shape, isDarkMode: boolean): Partial<DisplayValues>;
+    // (undocumented)
+    getDisplayValues(editor: Editor, shape: Shape, isDarkMode: boolean): DisplayValues;
+}
+
+// @public (undocumented)
 export function DistributeMenuItems(): JSX.Element;
 
 // @internal (undocumented)
@@ -1149,7 +1183,7 @@ export interface DrawPathBuilderOpts extends BasePathBuilderOpts, DrawPathBuilde
 }
 
 // @public (undocumented)
-export interface DrawShapeOptions {
+export interface DrawShapeOptions extends DisplayValuesOptions<TLDrawShape, DrawShapeUtilDisplayValues> {
     readonly maxPointsPerShape: number;
 }
 
@@ -1214,6 +1248,16 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     static type: "draw";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface DrawShapeUtilDisplayValues {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeWidth: number;
 }
 
 // @public (undocumented)
@@ -1449,6 +1493,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>): TLEmbedShape;
     // (undocumented)
+    options: EmbedShapeUtilOptions;
+    // (undocumented)
     static props: RecordProps<TLEmbedShape>;
     // (undocumented)
     static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
@@ -1456,6 +1502,14 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     static type: "embed";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface EmbedShapeUtilDisplayValues {
+}
+
+// @public (undocumented)
+export interface EmbedShapeUtilOptions extends DisplayValuesOptions<TLEmbedShape, EmbedShapeUtilDisplayValues> {
 }
 
 // @public (undocumented)
@@ -1545,7 +1599,7 @@ export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
 export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
-export interface FrameShapeOptions {
+export interface FrameShapeOptions extends DisplayValuesOptions<TLFrameShape, FrameShapeUtilDisplayValues> {
     resizeChildren: boolean;
     showColors: boolean;
 }
@@ -1630,6 +1684,20 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     static type: "frame";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface FrameShapeUtilDisplayValues {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    headingFillColor: string;
+    // (undocumented)
+    headingStrokeColor: string;
+    // (undocumented)
+    headingTextColor: string;
+    // (undocumented)
+    strokeColor: string;
 }
 
 // @public (undocumented)
@@ -1836,10 +1904,7 @@ export interface GeoShapeUtilDisplayValues {
 }
 
 // @public (undocumented)
-export interface GeoShapeUtilOptions {
-    // (undocumented)
-    getDisplayValueOverrides(editor: Editor, shape: TLGeoShape, isDarkMode: boolean): Partial<GeoShapeUtilDisplayValues>;
-    getDisplayValues(editor: Editor, shape: TLGeoShape, isDarkMode: boolean): GeoShapeUtilDisplayValues;
+export interface GeoShapeUtilOptions extends DisplayValuesOptions<TLGeoShape, GeoShapeUtilDisplayValues> {
     // (undocumented)
     showTextOutline: boolean;
 }
@@ -1873,6 +1938,12 @@ export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T
 
 // @public (undocumented)
 export function getDefaultCrop(): TLShapeCrop;
+
+// @public
+export function getDisplayValues<Shape extends TLShape, DisplayValues extends object>(util: {
+    editor: Editor;
+    options: DisplayValuesOptions<Shape, DisplayValues>;
+}, shape: Shape, isDarkMode: boolean): DisplayValues;
 
 // @public
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
@@ -1947,7 +2018,7 @@ export function HexagonToolbarItem(): JSX.Element;
 export function hideAllTooltips(): void;
 
 // @public (undocumented)
-export interface HighlightShapeOptions {
+export interface HighlightShapeOptions extends DisplayValuesOptions<TLHighlightShape, HighlightShapeUtilDisplayValues> {
     readonly maxPointsPerShape: number;
     // (undocumented)
     readonly overlayOpacity: number;
@@ -2019,6 +2090,14 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 }
 
 // @public (undocumented)
+export interface HighlightShapeUtilDisplayValues {
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeWidth: number;
+}
+
+// @public (undocumented)
 export function HighlightToolbarItem(): JSX.Element;
 
 // @public (undocumented)
@@ -2053,6 +2132,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>): TLImageShape;
     // (undocumented)
+    options: ImageShapeUtilOptions;
+    // (undocumented)
     static props: RecordProps<TLImageShape>;
     // (undocumented)
     toSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
@@ -2060,6 +2141,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     static type: "image";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface ImageShapeUtilDisplayValues {
+}
+
+// @public (undocumented)
+export interface ImageShapeUtilOptions extends DisplayValuesOptions<TLImageShape, ImageShapeUtilDisplayValues> {
 }
 
 // @public (undocumented)
@@ -2212,6 +2301,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         };
     };
     // (undocumented)
+    options: LineShapeUtilOptions;
+    // (undocumented)
     static props: RecordProps<TLLineShape>;
     // (undocumented)
     toSvg(shape: TLLineShape): JSX.Element;
@@ -2219,6 +2310,18 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     static type: "line";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface LineShapeUtilDisplayValues {
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeWidth: number;
+}
+
+// @public (undocumented)
+export interface LineShapeUtilOptions extends DisplayValuesOptions<TLLineShape, LineShapeUtilDisplayValues> {
 }
 
 // @public (undocumented)
@@ -2250,11 +2353,6 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
     opts?: PathBuilderLineOpts;
     // (undocumented)
     type: 'move';
-}
-
-// @public (undocumented)
-export interface NoteShapeOptions {
-    resizeMode: 'none' | 'scale';
 }
 
 // @public (undocumented)
@@ -2370,7 +2468,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    options: NoteShapeOptions;
+    options: NoteShapeUtilOptions;
     // (undocumented)
     static props: RecordProps<TLNoteShape>;
     // (undocumented)
@@ -2379,6 +2477,45 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     static type: "note";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface NoteShapeUtilDisplayValues {
+    // (undocumented)
+    borderColor: string;
+    // (undocumented)
+    borderWidth: number;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    labelFontFamily: string;
+    // (undocumented)
+    labelFontSize: number;
+    // (undocumented)
+    labelFontStyle: string;
+    // (undocumented)
+    labelFontVariant: string;
+    // (undocumented)
+    labelFontWeight: string;
+    // (undocumented)
+    labelHorizontalAlign: 'center' | 'end' | 'start';
+    // (undocumented)
+    labelLineHeight: number;
+    // (undocumented)
+    labelPadding: number;
+    // (undocumented)
+    labelVerticalAlign: 'center' | 'end' | 'start';
+    // (undocumented)
+    noteBackgroundColor: string;
+    // (undocumented)
+    noteHeight: number;
+    // (undocumented)
+    noteWidth: number;
+}
+
+// @public (undocumented)
+export interface NoteShapeUtilOptions extends DisplayValuesOptions<TLNoteShape, NoteShapeUtilDisplayValues> {
+    resizeMode: 'none' | 'scale';
 }
 
 // @public (undocumented)
@@ -3115,7 +3252,7 @@ export interface TextAreaProps {
 }
 
 // @public (undocumented)
-export interface TextShapeOptions {
+export interface TextShapeOptions extends DisplayValuesOptions<TLTextShape, TextShapeUtilDisplayValues> {
     extraArrowHorizontalPadding: number;
     showTextOutline: boolean;
 }
@@ -3218,6 +3355,18 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     static type: "text";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface TextShapeUtilDisplayValues {
+    // (undocumented)
+    color: string;
+    // (undocumented)
+    fontFamily: string;
+    // (undocumented)
+    fontSize: number;
+    // (undocumented)
+    lineHeight: number;
 }
 
 // @public (undocumented)
@@ -5730,7 +5879,7 @@ export function useUiEvents(): TLUiEventContextType;
 export function useUnlockedSelectedShapesCount(min?: number, max?: number): boolean | number;
 
 // @public (undocumented)
-export interface VideoShapeOptions {
+export interface VideoShapeOptions extends DisplayValuesOptions<TLVideoShape, VideoShapeUtilDisplayValues> {
     autoplay: boolean;
 }
 
@@ -5762,6 +5911,10 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     static type: "video";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface VideoShapeUtilDisplayValues {
 }
 
 // @public (undocumented)

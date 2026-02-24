@@ -29,6 +29,7 @@ import {
 } from '../../utils/text/richText'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import type { DisplayValuesOptions } from '../shared/getDisplayValues'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
 const sizeCache = createComputedCache(
@@ -40,7 +41,16 @@ const sizeCache = createComputedCache(
 	{ areRecordsEqual: (a, b) => a.props === b.props }
 )
 /** @public */
-export interface TextShapeOptions {
+export interface TextShapeUtilDisplayValues {
+	color: string
+	fontFamily: string
+	fontSize: number
+	lineHeight: number
+}
+
+/** @public */
+export interface TextShapeOptions
+	extends DisplayValuesOptions<TLTextShape, TextShapeUtilDisplayValues> {
 	/** How much addition padding should be added to the horizontal geometry of the shape when binding to an arrow? */
 	extraArrowHorizontalPadding: number
 	/** Whether to show the outline of the text shape (using the same color as the canvas). This helps with overlapping shapes. It does not show up on Safari, where text outline is a performance issues. */
@@ -56,6 +66,19 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	override options: TextShapeOptions = {
 		extraArrowHorizontalPadding: 10,
 		showTextOutline: true,
+		getDisplayValues(_editor, shape, isDarkMode): TextShapeUtilDisplayValues {
+			const theme = getDefaultColorTheme({ isDarkMode })
+			const { color, font, size } = shape.props
+			return {
+				color: getColorValue(theme, color, 'solid'),
+				fontFamily: FONT_FAMILIES[font],
+				fontSize: FONT_SIZES[size],
+				lineHeight: TEXT_PROPS.lineHeight,
+			}
+		},
+		getDisplayValueOverrides(): Partial<TextShapeUtilDisplayValues> {
+			return {}
+		},
 	}
 
 	getDefaultProps(): TLTextShape['props'] {

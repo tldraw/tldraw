@@ -4,7 +4,6 @@ import {
 	Box,
 	DefaultColorThemePalette,
 	EMPTY_ARRAY,
-	Editor,
 	Group2d,
 	HTMLContainer,
 	HandleSnapGeometry,
@@ -44,27 +43,28 @@ import {
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import { DisplayValuesOptions, getDisplayValues } from '../shared/getDisplayValues'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import { getGeoShapePath } from './getGeoShapePath'
 
 // imperfect but good enough, should be the width of the W in the font / size combo
-const MIN_WIDTHS = Object.freeze({
+const GEO_SHAPE_MIN_WIDTHS = Object.freeze({
 	s: 12,
 	m: 14,
 	l: 16,
 	xl: 20,
 })
 
-const EXTRA_PADDINGS = Object.freeze({
+const GEO_SHAPE_EXTRA_PADDINGS = Object.freeze({
 	s: 2,
 	m: 3.5,
 	l: 5,
 	xl: 10,
 })
 
-const HORIZONTAL_ALIGNS = Object.freeze({
+const GEO_SHAPE_HORIZONTAL_ALIGNS = Object.freeze({
 	start: 'start',
 	middle: 'center',
 	end: 'end',
@@ -73,18 +73,20 @@ const HORIZONTAL_ALIGNS = Object.freeze({
 	'middle-legacy': 'center',
 } as const)
 
-const VERTICAL_ALIGNS = Object.freeze({
+const GEO_SHAPE_VERTICAL_ALIGNS = Object.freeze({
 	start: 'start',
 	middle: 'center',
 	end: 'end',
 } as const)
 
-const EMPTY_LABEL_SIZE = Object.freeze({ w: 0, h: 0 })
+const GEO_SHAPE_EMPTY_LABEL_SIZE = Object.freeze({ w: 0, h: 0 })
 
-const FILL_COLOR_NAMES: Record<
-	Exclude<TLDefaultFillStyle, 'none' | 'semi' | 'solid'>,
+const GEO_SHAPE_FILL_COLOR_NAMES: Record<
+	Exclude<TLDefaultFillStyle, 'none'>,
 	keyof TLDefaultColorThemeColor
 > = {
+	semi: 'solid',
+	solid: 'semi',
 	pattern: 'pattern',
 	fill: 'fill',
 	'lined-fill': 'linedFill',
@@ -112,29 +114,9 @@ export interface GeoShapeUtilDisplayValues {
 }
 
 /** @public */
-export interface GeoShapeUtilOptions {
+export interface GeoShapeUtilOptions
+	extends DisplayValuesOptions<TLGeoShape, GeoShapeUtilDisplayValues> {
 	showTextOutline: boolean
-	/**
-	 * Convert between the shape and the values used when rendering the shape.
-	 */
-	getDisplayValues(
-		editor: Editor,
-		shape: TLGeoShape,
-		isDarkMode: boolean
-	): GeoShapeUtilDisplayValues
-
-	getDisplayValueOverrides(
-		editor: Editor,
-		shape: TLGeoShape,
-		isDarkMode: boolean
-	): Partial<GeoShapeUtilDisplayValues>
-}
-
-function getDisplayValuesWithOverrides(util: GeoShapeUtil, shape: TLGeoShape, isDarkMode: boolean) {
-	return {
-		...util.options.getDisplayValues(util.editor, shape, isDarkMode),
-		...util.options.getDisplayValueOverrides(util.editor, shape, isDarkMode),
-	}
 }
 
 /** @public */
@@ -155,23 +137,17 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				strokeRoundness: STROKE_SIZES[size] * 2,
 				strokeWidth: STROKE_SIZES[size],
 				fillColor:
-					fill === 'none'
-						? 'transparent'
-						: fill === 'semi'
-							? colors.solid
-							: fill === 'solid'
-								? colors[color]['semi']
-								: colors[color][FILL_COLOR_NAMES[fill]],
+					fill === 'none' ? 'transparent' : colors[color][GEO_SHAPE_FILL_COLOR_NAMES[fill]],
 				labelColor: colors[labelColor]['solid'], // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: FONT_SIZES[size],
-				labelMinWidth: MIN_WIDTHS[size] + EXTRA_PADDINGS[size],
+				labelMinWidth: GEO_SHAPE_MIN_WIDTHS[size] + GEO_SHAPE_EXTRA_PADDINGS[size],
 				labelLineHeight: 1.35,
 				labelFontWeight: 'normal',
 				labelFontVariant: 'normal',
 				labelFontStyle: 'normal',
-				labelHorizontalAlign: HORIZONTAL_ALIGNS[align],
-				labelVerticalAlign: VERTICAL_ALIGNS[verticalAlign],
+				labelHorizontalAlign: GEO_SHAPE_HORIZONTAL_ALIGNS[align],
+				labelVerticalAlign: GEO_SHAPE_VERTICAL_ALIGNS[verticalAlign],
 				labelPadding: LABEL_PADDING,
 				// Margin between label edge and shape edge (in unscaled units)
 				labelEdgeMargin: 8,
@@ -222,9 +198,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const unscaledShapeH = scaledH / scale
 
 		const isEmptyLabel = isEmptyRichText(props.richText)
-		const unscaledLabelSize = isEmptyLabel ? EMPTY_LABEL_SIZE : this.getUnscaledLabelSize(shape)
+		const unscaledLabelSize = isEmptyLabel
+			? GEO_SHAPE_EMPTY_LABEL_SIZE
+			: this.getUnscaledLabelSize(shape)
 
-		const dv = getDisplayValuesWithOverrides(this, shape, false)
+		const dv = getDisplayValues(this, shape, false)
 
 		// Calculate minimum label dimensions based on font size and shape size
 		const unscaledMinWidth = Math.min(100, unscaledShapeW / 2)
@@ -347,8 +325,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const isDarkMode = useIsDarkMode()
 		const dv = useValue(
 			'geo shape display values',
-			() => getDisplayValuesWithOverrides(this, shape, isDarkMode),
-			[shape]
+			() => getDisplayValues(this, shape, isDarkMode),
+			[shape, isDarkMode]
 		)
 
 		const { w, h, richText, url } = props
@@ -404,7 +382,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { dash, scale } = shape.props
 		const dv = useValue(
 			'geo shape util display properties',
-			() => getDisplayValuesWithOverrides(this, shape, false),
+			() => getDisplayValues(this, shape, false),
 			[this.editor]
 		)
 
@@ -430,7 +408,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const isForceSolid = this.editor.getEfficientZoomLevel() < shape.props.scale * 0.25
 
 		const { dash, scale } = shape.props
-		const dv = getDisplayValuesWithOverrides(this, shape, false)
+		const dv = getDisplayValues(this, shape, false)
 
 		const path = getGeoShapePath(shape)
 
@@ -446,7 +424,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
-		const dv = getDisplayValuesWithOverrides(this, shape, ctx.isDarkMode)
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
 		const { richText, fill, scale, growY, w, h } = shape.props
 		// We need to scale the shape to 1x for export
 		const newShape = {
@@ -510,7 +488,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		let overShrinkX = 0
 		let overShrinkY = 0
 
-		const dv = getDisplayValuesWithOverrides(this, shape, false)
+		const dv = getDisplayValues(this, shape, false)
 
 		if (!isEmptyRichText(shape.props.richText)) {
 			const absUnscaledW = Math.abs(unscaledW)
@@ -766,7 +744,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		let w = Math.max(unscaledW, unscaledLabelSize.w)
 		let h = Math.max(unscaledH, unscaledLabelSize.h)
 
-		const dv = getDisplayValuesWithOverrides(this, shape, false)
+		const dv = getDisplayValues(this, shape, false)
 
 		// If shape was smaller than min size in both dimensions, make it square
 		if (unscaledW < dv.minSizeWithLabel && unscaledH < dv.minSizeWithLabel) {
@@ -796,7 +774,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	 * Expensively measure the unscaled label size for the shape. Avoid using it if we can.
 	 */
 	private measureUnscaledLabelSize(shape: TLGeoShape) {
-		const dv = getDisplayValuesWithOverrides(this, shape, false)
+		const dv = getDisplayValues(this, shape, false)
 
 		const html = renderHtmlFromRichTextForMeasurement(this.editor, shape.props.richText)
 

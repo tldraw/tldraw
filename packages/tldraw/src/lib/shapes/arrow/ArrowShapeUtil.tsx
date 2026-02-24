@@ -53,6 +53,7 @@ import { PathBuilder } from '../shared/PathBuilder'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
 import {
+	ARROW_LABEL_FONT_SIZES,
 	ARROW_LABEL_PADDING,
 	FONT_FAMILIES,
 	STROKE_SIZES,
@@ -62,7 +63,7 @@ import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyle
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { getArrowBodyPath, getArrowBodyPathBuilder, getArrowHandlePath } from './ArrowPath'
-import { ArrowShapeOptions } from './arrow-types'
+import { ArrowShapeOptions, type ArrowShapeUtilDisplayValues } from './arrow-types'
 import {
 	getArrowLabelDefaultPosition,
 	getArrowLabelFontSize,
@@ -129,6 +130,21 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return editor.inputs.getCtrlKey()
 		},
 		showTextOutline: true,
+		getDisplayValues(_editor, shape, isDarkMode): ArrowShapeUtilDisplayValues {
+			const theme = getDefaultColorTheme({ isDarkMode })
+			const { color, labelColor, size, font } = shape.props
+			return {
+				strokeColor: getColorValue(theme, color, 'solid'),
+				strokeWidth: STROKE_SIZES[size],
+				fillColor: getColorValue(theme, color, 'semi'),
+				labelColor: getColorValue(theme, labelColor, 'solid'),
+				labelFontFamily: FONT_FAMILIES[font],
+				labelFontSize: ARROW_LABEL_FONT_SIZES[size],
+			}
+		},
+		getDisplayValueOverrides(): Partial<ArrowShapeUtilDisplayValues> {
+			return {}
+		},
 	}
 
 	override canEdit() {

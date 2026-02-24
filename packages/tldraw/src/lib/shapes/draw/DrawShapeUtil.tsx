@@ -14,6 +14,7 @@ import {
 	drawShapeMigrations,
 	drawShapeProps,
 	getColorValue,
+	getDefaultColorTheme,
 	last,
 	lerp,
 	rng,
@@ -27,6 +28,7 @@ import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyle
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
+import type { DisplayValuesOptions } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import {
@@ -36,7 +38,15 @@ import {
 } from './getPath'
 
 /** @public */
-export interface DrawShapeOptions {
+export interface DrawShapeUtilDisplayValues {
+	strokeColor: string
+	strokeWidth: number
+	fillColor: string
+}
+
+/** @public */
+export interface DrawShapeOptions
+	extends DisplayValuesOptions<TLDrawShape, DrawShapeUtilDisplayValues> {
 	/**
 	 * The maximum number of points in a line before the draw tool will begin a new shape.
 	 * A higher number will lead to poor performance while drawing very long lines.
@@ -52,6 +62,18 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override options: DrawShapeOptions = {
 		maxPointsPerShape: 600,
+		getDisplayValues(_editor, shape, isDarkMode): DrawShapeUtilDisplayValues {
+			const theme = getDefaultColorTheme({ isDarkMode })
+			const { color, fill, size } = shape.props
+			return {
+				strokeColor: getColorValue(theme, color, 'solid'),
+				strokeWidth: STROKE_SIZES[size],
+				fillColor: fill === 'none' ? 'transparent' : getColorValue(theme, color, 'semi'),
+			}
+		},
+		getDisplayValueOverrides(): Partial<DrawShapeUtilDisplayValues> {
+			return {}
+		},
 	}
 
 	override hideResizeHandles(shape: TLDrawShape) {

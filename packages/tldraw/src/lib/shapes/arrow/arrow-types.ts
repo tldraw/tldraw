@@ -1,6 +1,23 @@
-import { Editor, TLArrowShapeArrowheadStyle, TLDefaultSizeStyle, VecLike } from '@tldraw/editor'
+import {
+	Editor,
+	TLArrowShape,
+	TLArrowShapeArrowheadStyle,
+	TLDefaultSizeStyle,
+	VecLike,
+} from '@tldraw/editor'
+import { DisplayValuesOptions } from '../shared/getDisplayValues'
 import { ElbowArrowInfo, ElbowArrowRoute } from './elbow/definitions'
 import { TLArrowBindings } from './shared'
+
+/** @public */
+export interface ArrowShapeUtilDisplayValues {
+	strokeColor: string
+	strokeWidth: number
+	fillColor: string
+	labelColor: string
+	labelFontFamily: string
+	labelFontSize: number
+}
 
 /**
  * Options for the arrow shape.
@@ -18,7 +35,8 @@ import { TLArrowBindings } from './shared'
  *
  * @public
  */
-export interface ArrowShapeOptions {
+export interface ArrowShapeOptions
+	extends DisplayValuesOptions<TLArrowShape, ArrowShapeUtilDisplayValues> {
 	/**
 	 * How far should elbow arrows expand from the shapes they're targeting?
 	 */

@@ -10,6 +10,7 @@ import {
 	TLResizeInfo,
 	VecLike,
 	getColorValue,
+	getDefaultColorTheme,
 	highlightShapeMigrations,
 	highlightShapeProps,
 	last,
@@ -24,12 +25,20 @@ import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoint
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
+import type { DisplayValuesOptions } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
 /** @public */
-export interface HighlightShapeOptions {
+export interface HighlightShapeUtilDisplayValues {
+	strokeColor: string
+	strokeWidth: number
+}
+
+/** @public */
+export interface HighlightShapeOptions
+	extends DisplayValuesOptions<TLHighlightShape, HighlightShapeUtilDisplayValues> {
 	/**
 	 * The maximum number of points in a line before the draw tool will begin a new shape.
 	 * A higher number will lead to poor performance while drawing very long lines.
@@ -49,6 +58,17 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		maxPointsPerShape: 600,
 		underlayOpacity: 0.82,
 		overlayOpacity: 0.35,
+		getDisplayValues(_editor, shape, isDarkMode): HighlightShapeUtilDisplayValues {
+			const theme = getDefaultColorTheme({ isDarkMode })
+			const { color, size } = shape.props
+			return {
+				strokeColor: getColorValue(theme, color, 'highlightSrgb'),
+				strokeWidth: FONT_SIZES[size] * 1.12,
+			}
+		},
+		getDisplayValueOverrides(): Partial<HighlightShapeUtilDisplayValues> {
+			return {}
+		},
 	}
 
 	override hideResizeHandles(shape: TLHighlightShape) {

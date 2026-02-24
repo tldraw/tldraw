@@ -99,6 +99,7 @@ export { registerDefaultSideEffects } from './lib/defaultSideEffects'
 export { defaultTools } from './lib/defaultTools'
 export {
 	type ArrowShapeOptions,
+	type ArrowShapeUtilDisplayValues,
 	type TLArcArrowInfo,
 	type TLArcInfo,
 	type TLArrowInfo,
@@ -137,12 +138,28 @@ export {
 	type TLArrowBindings,
 } from './lib/shapes/arrow/shared'
 export { createBookmarkFromUrl } from './lib/shapes/bookmark/bookmarks'
-export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
+export {
+	BookmarkShapeUtil,
+	type BookmarkShapeUtilDisplayValues,
+	type BookmarkShapeUtilOptions,
+} from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
-export { DrawShapeUtil, type DrawShapeOptions } from './lib/shapes/draw/DrawShapeUtil'
-export { EmbedShapeUtil } from './lib/shapes/embed/EmbedShapeUtil'
+export {
+	DrawShapeUtil,
+	type DrawShapeOptions,
+	type DrawShapeUtilDisplayValues,
+} from './lib/shapes/draw/DrawShapeUtil'
+export {
+	EmbedShapeUtil,
+	type EmbedShapeUtilDisplayValues,
+	type EmbedShapeUtilOptions,
+} from './lib/shapes/embed/EmbedShapeUtil'
 export { FrameShapeTool } from './lib/shapes/frame/FrameShapeTool'
-export { FrameShapeUtil, type FrameShapeOptions } from './lib/shapes/frame/FrameShapeUtil'
+export {
+	FrameShapeUtil,
+	type FrameShapeOptions,
+	type FrameShapeUtilDisplayValues,
+} from './lib/shapes/frame/FrameShapeUtil'
 export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
 export {
 	GeoShapeUtil,
@@ -153,12 +170,25 @@ export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
 export {
 	HighlightShapeUtil,
 	type HighlightShapeOptions,
+	type HighlightShapeUtilDisplayValues,
 } from './lib/shapes/highlight/HighlightShapeUtil'
-export { ImageShapeUtil } from './lib/shapes/image/ImageShapeUtil'
+export {
+	ImageShapeUtil,
+	type ImageShapeUtilDisplayValues,
+	type ImageShapeUtilOptions,
+} from './lib/shapes/image/ImageShapeUtil'
 export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
-export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
+export {
+	LineShapeUtil,
+	type LineShapeUtilDisplayValues,
+	type LineShapeUtilOptions,
+} from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
-export { NoteShapeUtil, type NoteShapeOptions } from './lib/shapes/note/NoteShapeUtil'
+export {
+	NoteShapeUtil,
+	type NoteShapeUtilDisplayValues,
+	type NoteShapeUtilOptions,
+} from './lib/shapes/note/NoteShapeUtil'
 export {
 	ASPECT_RATIO_OPTIONS,
 	ASPECT_RATIO_TO_VALUE,
@@ -188,6 +218,7 @@ export { getStrokePoints } from './lib/shapes/shared/freehand/getStrokePoints'
 export { setStrokePointRadii } from './lib/shapes/shared/freehand/setStrokePointRadii'
 export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
 export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
+export { getDisplayValues, type DisplayValuesOptions } from './lib/shapes/shared/getDisplayValues'
 export { PlainTextLabel, type PlainTextLabelProps } from './lib/shapes/shared/PlainTextLabel'
 export {
 	RichTextLabel,
@@ -205,8 +236,16 @@ export {
 export { PlainTextArea } from './lib/shapes/text/PlainTextArea'
 export { RichTextArea, type TextAreaProps } from './lib/shapes/text/RichTextArea'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
-export { TextShapeUtil, type TextShapeOptions } from './lib/shapes/text/TextShapeUtil'
-export { VideoShapeUtil, type VideoShapeOptions } from './lib/shapes/video/VideoShapeUtil'
+export {
+	TextShapeUtil,
+	type TextShapeOptions,
+	type TextShapeUtilDisplayValues,
+} from './lib/shapes/text/TextShapeUtil'
+export {
+	VideoShapeUtil,
+	type VideoShapeOptions,
+	type VideoShapeUtilDisplayValues,
+} from './lib/shapes/video/VideoShapeUtil'
 export { type StyleValuesForUi } from './lib/styles'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'

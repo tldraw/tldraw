@@ -27,7 +27,15 @@ import {
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { BookmarkIndicatorComponent, BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
 import { BOOKMARK_JUST_URL_HEIGHT, BOOKMARK_WIDTH } from '../bookmark/bookmarks'
+import type { DisplayValuesOptions } from '../shared/getDisplayValues'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
+
+/** @public */
+export interface EmbedShapeUtilDisplayValues {}
+
+/** @public */
+export interface EmbedShapeUtilOptions
+	extends DisplayValuesOptions<TLEmbedShape, EmbedShapeUtilDisplayValues> {}
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 	return Object.entries(permissions)
@@ -42,6 +50,15 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
 	private static embedDefinitions: readonly EmbedDefinition[] = DEFAULT_EMBED_DEFINITIONS
+
+	override options: EmbedShapeUtilOptions = {
+		getDisplayValues(): EmbedShapeUtilDisplayValues {
+			return {}
+		},
+		getDisplayValueOverrides(): Partial<EmbedShapeUtilDisplayValues> {
+			return {}
+		},
+	}
 
 	override canEditWhileLocked(shape: TLEmbedShape) {
 		const result = this.getEmbedDefinition(shape.props.url)

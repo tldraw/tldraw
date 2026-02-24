@@ -33,6 +33,7 @@ import {
 	TLCreateTextJsxFromSpansOpts,
 	createTextJsxFromSpans,
 } from '../shared/createTextJsxFromSpans'
+import type { DisplayValuesOptions } from '../shared/getDisplayValues'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
 import {
@@ -50,7 +51,17 @@ const FRAME_HEADING_NOCOLORS_OFFSET_X = -7
 const FRAME_HEADING_OFFSET_Y = 4
 
 /** @public */
-export interface FrameShapeOptions {
+export interface FrameShapeUtilDisplayValues {
+	fillColor: string
+	strokeColor: string
+	headingFillColor: string
+	headingStrokeColor: string
+	headingTextColor: string
+}
+
+/** @public */
+export interface FrameShapeOptions
+	extends DisplayValuesOptions<TLFrameShape, FrameShapeUtilDisplayValues> {
 	/**
 	 * When true, the frame will display colors for the shape's headings and background.
 	 */
@@ -70,6 +81,20 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override options: FrameShapeOptions = {
 		showColors: false,
 		resizeChildren: false,
+		getDisplayValues(_editor, shape, isDarkMode): FrameShapeUtilDisplayValues {
+			const theme = getDefaultColorTheme({ isDarkMode })
+			const color = shape.props.color ?? 'black'
+			return {
+				fillColor: getColorValue(theme, color, 'frameFill'),
+				strokeColor: getColorValue(theme, color, 'frameStroke'),
+				headingFillColor: getColorValue(theme, color, 'frameHeadingFill'),
+				headingStrokeColor: getColorValue(theme, color, 'frameHeadingStroke'),
+				headingTextColor: getColorValue(theme, color, 'frameText'),
+			}
+		},
+		getDisplayValueOverrides(): Partial<FrameShapeUtilDisplayValues> {
+			return {}
+		},
 	}
 
 	// evil crimes :)

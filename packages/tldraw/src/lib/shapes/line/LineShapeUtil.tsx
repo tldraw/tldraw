@@ -13,6 +13,7 @@ import {
 	ZERO_INDEX_KEY,
 	assert,
 	getColorValue,
+	getDefaultColorTheme,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
@@ -26,15 +27,40 @@ import {
 
 import { STROKE_SIZES } from '../arrow/shared'
 import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
+import type { DisplayValuesOptions } from '../shared/getDisplayValues'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
 const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
+
+/** @public */
+export interface LineShapeUtilDisplayValues {
+	strokeColor: string
+	strokeWidth: number
+}
+
+/** @public */
+export interface LineShapeUtilOptions
+	extends DisplayValuesOptions<TLLineShape, LineShapeUtilDisplayValues> {}
 
 /** @public */
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override type = 'line' as const
 	static override props = lineShapeProps
 	static override migrations = lineShapeMigrations
+
+	override options: LineShapeUtilOptions = {
+		getDisplayValues(_editor, shape, isDarkMode): LineShapeUtilDisplayValues {
+			const theme = getDefaultColorTheme({ isDarkMode })
+			const { color, size } = shape.props
+			return {
+				strokeColor: getColorValue(theme, color, 'solid'),
+				strokeWidth: STROKE_SIZES[size],
+			}
+		},
+		getDisplayValueOverrides(): Partial<LineShapeUtilDisplayValues> {
+			return {}
+		},
+	}
 
 	override hideResizeHandles() {
 		return true
