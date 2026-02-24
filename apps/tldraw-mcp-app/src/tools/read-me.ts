@@ -1,19 +1,25 @@
-/** read_me tool — returns the FocusedShape format reference and action tool documentation. */
+/** read_me tool — returns the FocusedShape format and action tool documentation. */
 
+/* eslint-disable no-useless-escape */
 export const READ_ME_CONTENT = `# tldraw MCP — shape format and action reference
 
 Call this tool first.
 
 ## Workflow
 
-1. Call \`new_canvas\` once to open a fresh interactive canvas.
-2. For streamed drawing, call \`stream_shapes\` with \`shapesJson\` (a JSON string of \`FocusedShape[]\`).
-3. Use mutation tools (\`create_shapes\`, \`update_shapes\`, \`delete_shapes\`) for non-streamed edits.
-4. Use \`get_canvas_state\` to inspect the latest state when needed.
+1. Build normal JSON arrays first (\`FocusedShape[]\`, \`FocusedShapeUpdate[]\`, or \`string[]\`).
+2. Pass tool args as \`JSON.stringify(array)\` outputs.
+3. Use \`create_shapes\` with \`shapesJson\` to add or replace shapes by id.
+4. Optionally set \`new_blank_canvas: true\` on \`create_shapes\` to start from a new blank canvas.
+5. Use \`update_shapes\` with \`updatesJson\` to patch existing shapes.
+6. Use \`delete_shapes\` with \`shapeIdsJson\` to remove shapes.
+7. Optionally call \`get_canvas_state\` to inspect the latest server snapshot.
 
-**Important**:
-- \`new_canvas\` takes no input.
-- When a user asks for anything to be added to an existing canvas, make sure to always call \`new_canvas\` first to copy that canvas.
+**Important**
+- All shape mutation tools use JSON string arguments to support partial-input streaming in app UIs.
+- Each \`update_shapes\` and \`delete_shapes\` call automatically forks the current active canvas before applying changes.
+- \`create_shapes\` also forks by default, unless \`new_blank_canvas: true\` is provided.
+- Keep numeric fields as numbers in the underlying array objects (for example \`x: 100\`, not \`"100"\`) before stringifying.
 
 ## FocusedShape format
 
@@ -146,28 +152,19 @@ Shapes are JSON objects with a \`_type\` discriminator and unique \`shapeId\`.
 
 ## Available action tools
 
-### new_canvas
-Creates and opens a new interactive canvas widget.
-- Input: none
-
 ### create_shapes
-Creates one or more shapes.
-- \`shapes\`: JSON string of FocusedShape[] OR FocusedShape[] directly
-
-### stream_shapes
-Creates shapes from a JSON string, intended for partial-input streaming in MCP apps.
-- \`shapesJson\`: JSON string of FocusedShape[]
-
-### delete_shapes
-Deletes shapes by ID.
-- \`shapeIds\`: JSON string of string[] OR string[] directly
+Creates one or more shapes from a JSON string.
+- \`new_blank_canvas\` (optional boolean, default \`false\`): when \`true\`, create on a new blank canvas instead of a derived canvas
+- \`shapesJson\`: JSON string of \`FocusedShape[]\`
 
 ### update_shapes
-Updates existing shapes using FocusedShapeUpdate[] entries.
-- \`updates\`: JSON string of FocusedShapeUpdate[] OR FocusedShapeUpdate[] directly
-- Each update requires \`shapeId\`
-- Supported update keys:
-\`_type\`, \`anchor\`, \`bend\`, \`children\`, \`color\`, \`dash\`, \`fill\`, \`font\`, \`fontSize\`, \`fromId\`, \`h\`, \`maxWidth\`, \`name\`, \`note\`, \`size\`, \`subType\`, \`text\`, \`textAlign\`, \`toId\`, \`w\`, \`x\`, \`x1\`, \`x2\`, \`y\`, \`y1\`, \`y2\`
+Updates one or more existing shapes from a JSON string.
+- \`updatesJson\`: JSON string of \`FocusedShapeUpdate[]\`
+- Each update entry must include \`shapeId\`
+
+### delete_shapes
+Deletes shapes by id from a JSON string.
+- \`shapeIdsJson\`: JSON string of \`string[]\`
 
 ### get_canvas_state
 Returns the active canvas snapshot (shape records + focusedShapes + metadata).
@@ -178,35 +175,23 @@ Returns the active canvas snapshot (shape records + focusedShapes + metadata).
 ### create_shapes
 \`\`\`json
 {
-  "shapes": [
-    { "_type": "rectangle", "shapeId": "start", "x": 0, "y": 0, "w": 200, "h": 100, "color": "blue", "fill": "tint", "text": "Start" },
-    { "_type": "arrow", "shapeId": "a1", "x1": 200, "y1": 50, "x2": 320, "y2": 50, "color": "black", "fromId": "start", "toId": "process" },
-    { "_type": "rectangle", "shapeId": "process", "x": 320, "y": 0, "w": 220, "h": 100, "color": "green", "fill": "tint", "text": "Process" }
-  ]
-}
-\`\`\`
+  "new_blank_canvas": true
+  "shapesJson": "[{\"_type\":\"rectangle\",\"shapeId\":\"start\",\"x\":0,\"y\":0,\"w\":200,\"h\":100,\"color\":\"blue\",\"fill\":\"tint\",\"text\":\"Start\"},{\"_type\":\"arrow\",\"shapeId\":\"a1\",\"x1\":200,\"y1\":50,\"x2\":320,\"y2\":50,\"color\":\"black\",\"fromId\":\"start\",\"toId\":\"process\"},{\"_type\":\"rectangle\",\"shapeId\":\"process\",\"x\":320,\"y\":0,\"w\":220,\"h\":100,\"color\":\"green\",\"fill\":\"tint\",\"text\":\"Process\"}]",
 
-### stream_shapes
-\`\`\`json
-{
-  "shapesJson": "[{\"_type\":\"rectangle\",\"shapeId\":\"start\",\"x\":0,\"y\":0,\"w\":200,\"h\":100,\"color\":\"blue\",\"fill\":\"tint\",\"text\":\"Start\"},{\"_type\":\"arrow\",\"shapeId\":\"a1\",\"x1\":200,\"y1\":50,\"x2\":320,\"y2\":50,\"color\":\"black\",\"fromId\":\"start\",\"toId\":\"process\"},{\"_type\":\"rectangle\",\"shapeId\":\"process\",\"x\":320,\"y\":0,\"w\":220,\"h\":100,\"color\":\"green\",\"fill\":\"tint\",\"text\":\"Process\"}]"
 }
 \`\`\`
 
 ### update_shapes
 \`\`\`json
 {
-  "updates": [
-    { "shapeId": "process", "text": "Validate Input", "color": "orange" },
-    { "shapeId": "a1", "text": "next", "bend": 12 }
-  ]
+  "updatesJson": "[{\"shapeId\":\"process\",\"text\":\"Validate Input\",\"color\":\"orange\"},{\"shapeId\":\"a1\",\"text\":\"next\",\"bend\":12}]"
 }
 \`\`\`
 
 ### delete_shapes
 \`\`\`json
 {
-  "shapeIds": ["a1", "legacy_box"]
+  "shapeIdsJson": "[\"a1\",\"legacy_box\"]"
 }
 \`\`\`
 `

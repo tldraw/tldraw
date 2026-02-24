@@ -1,4 +1,4 @@
-import { toRichText } from 'tldraw'
+import { type IndexKey, type TLParentId, type TLShape, type TLShapeId, toRichText } from 'tldraw'
 import { z } from 'zod'
 
 export const FocusedColorSchema = z.enum([
@@ -249,8 +249,6 @@ export const FocusedShapeUpdateSchema = z
 
 export type FocusedShapeUpdate = z.infer<typeof FocusedShapeUpdateSchema>
 
-export type TldrawRecord = Record<string, unknown>
-
 const FOCUSED_TO_GEO_TYPES: Record<FocusedGeoShapeType, string> = {
 	rectangle: 'rectangle',
 	ellipse: 'ellipse',
@@ -305,8 +303,8 @@ function asColor(color: string): FocusedColor {
 	return 'black'
 }
 
-function toShapeId(id: string): string {
-	return id.startsWith('shape:') ? id : `shape:${id}`
+function toShapeId(id: string): TLShapeId {
+	return (id.startsWith('shape:') ? id : `shape:${id}`) as TLShapeId
 }
 
 function toSimpleId(id: string): string {
@@ -330,20 +328,9 @@ function fromRichText(richText: unknown): string {
 	return rt.content.map(extractText).join('\n')
 }
 
-function getMetaNote(record: TldrawRecord): string {
-	const meta = record.meta
-	if (
-		meta &&
-		typeof meta === 'object' &&
-		typeof (meta as Record<string, unknown>).note === 'string'
-	) {
-		return (meta as Record<string, unknown>).note as string
-	}
-	return ''
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-	return typeof value === 'number' && Number.isFinite(value) ? value : fallback
+function getMetaNote(record: TLShape): string {
+	const note = record.meta.note
+	return typeof note === 'string' ? note : ''
 }
 
 function normalizeBox(
@@ -375,13 +362,14 @@ function normalizeBox(
 	}
 }
 
-export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): TldrawRecord {
+export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): TLShape {
 	const base = {
-		typeName: 'shape',
-		parentId: 'page:page',
+		typeName: 'shape' as const,
+		parentId: 'page:page' as TLParentId,
 		isLocked: false,
 		opacity: 1,
 		rotation: 0,
+		index: 'a1' as IndexKey,
 		meta: {
 			note: shape.note ?? '',
 		},
@@ -409,7 +397,7 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): TldrawRe
 					w: shape.maxWidth ?? 100,
 					scale: 1,
 				},
-			}
+			} as TLShape
 		}
 		case 'line': {
 			const minX = Math.min(shape.x1, shape.x2)
@@ -427,11 +415,11 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): TldrawRe
 					scale: 1,
 					spline: 'line',
 					points: {
-						a1: { id: 'a1', index: 'a1', x: shape.x1 - minX, y: shape.y1 - minY },
-						a2: { id: 'a2', index: 'a2', x: shape.x2 - minX, y: shape.y2 - minY },
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: shape.x1 - minX, y: shape.y1 - minY },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: shape.x2 - minX, y: shape.y2 - minY },
 					},
 				},
-			}
+			} as TLShape
 		}
 		case 'arrow': {
 			const minX = Math.min(shape.x1, shape.x2)
@@ -465,7 +453,7 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): TldrawRe
 					kind: 'arc',
 					elbowMidPoint: 0.5,
 				},
-			}
+			} as TLShape
 		}
 		case 'note': {
 			return {
@@ -487,7 +475,7 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): TldrawRe
 					scale: 1,
 					url: '',
 				},
-			}
+			} as TLShape
 		}
 		case 'draw': {
 			return {
@@ -506,8 +494,10 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): TldrawRe
 					isComplete: true,
 					isPen: false,
 					scale: 1,
+					scaleX: 1,
+					scaleY: 1,
 				},
-			}
+			} as TLShape
 		}
 		case 'frame': {
 			const box = normalizeBox(shape.x, shape.y, shape.w, shape.h)
@@ -521,8 +511,9 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): TldrawRe
 					w: box.w,
 					h: box.h,
 					name: shape.name ?? '',
+					color: 'black',
 				},
-			}
+			} as TLShape
 		}
 		case 'unknown': {
 			throw new Error(
@@ -555,30 +546,26 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): TldrawRe
 					scale: 1,
 					url: '',
 				},
-			}
+			} as TLShape
 		}
 	}
 }
 
-export function convertTldrawRecordToFocusedShape(record: TldrawRecord): FocusedShape {
-	const id = typeof record.id === 'string' ? record.id : 'shape:unknown'
-	const simpleId = toSimpleId(id)
-	const type = typeof record.type === 'string' ? record.type : 'unknown'
-	const x = toNumber(record.x)
-	const y = toNumber(record.y)
+export function convertTldrawRecordToFocusedShape(record: TLShape): FocusedShape {
+	const simpleId = toSimpleId(record.id)
 
-	switch (type) {
+	switch (record.type) {
 		case 'geo': {
-			const props = (record.props ?? {}) as Record<string, unknown>
+			const { props } = record
 			return {
-				_type: GEO_TO_FOCUSED_TYPES[String(props.geo)] ?? 'rectangle',
+				_type: GEO_TO_FOCUSED_TYPES[props.geo] ?? 'rectangle',
 				shapeId: simpleId,
-				x,
-				y,
-				w: toNumber(props.w, 200),
-				h: toNumber(props.h, 100),
-				color: asColor(String(props.color ?? 'black')),
-				fill: TLDRAW_TO_FOCUSED_FILLS[String(props.fill)] ?? 'none',
+				x: record.x,
+				y: record.y,
+				w: props.w ?? 200,
+				h: props.h ?? 100,
+				color: asColor(props.color ?? 'black'),
+				fill: TLDRAW_TO_FOCUSED_FILLS[props.fill] ?? 'none',
 				dash: FocusedDashSchema.safeParse(props.dash).success
 					? (props.dash as FocusedDash)
 					: 'draw',
@@ -592,63 +579,61 @@ export function convertTldrawRecordToFocusedShape(record: TldrawRecord): Focused
 			}
 		}
 		case 'text': {
-			const props = (record.props ?? {}) as Record<string, unknown>
-			const textAlign = String(props.textAlign ?? 'start')
+			const { props } = record
+			const textAlign = props.textAlign ?? 'start'
 			const anchor: FocusedTextAnchor =
 				textAlign === 'middle' ? 'top-center' : textAlign === 'end' ? 'top-right' : 'top-left'
 			return {
 				_type: 'text',
 				shapeId: simpleId,
-				x,
-				y,
+				x: record.x,
+				y: record.y,
 				text: fromRichText(props.richText),
-				color: asColor(String(props.color ?? 'black')),
+				color: asColor(props.color ?? 'black'),
 				anchor,
 				size: FocusedSizeSchema.safeParse(props.size).success ? (props.size as FocusedSize) : 'm',
 				font: FocusedFontSchema.safeParse(props.font).success
 					? (props.font as FocusedFont)
 					: 'draw',
-				maxWidth: props.autoSize ? null : toNumber(props.w, 100),
+				maxWidth: props.autoSize ? null : (props.w ?? 100),
 				note: getMetaNote(record),
 			}
 		}
 		case 'arrow': {
-			const props = (record.props ?? {}) as Record<string, unknown>
-			const start = (props.start ?? { x: 0, y: 0 }) as Record<string, unknown>
-			const end = (props.end ?? { x: 0, y: 0 }) as Record<string, unknown>
-			const meta = (record.meta ?? {}) as Record<string, unknown>
+			const { props, meta } = record
+			const start = props.start ?? { x: 0, y: 0 }
+			const end = props.end ?? { x: 0, y: 0 }
 			return {
 				_type: 'arrow',
 				shapeId: simpleId,
-				x1: x + toNumber(start.x),
-				y1: y + toNumber(start.y),
-				x2: x + toNumber(end.x),
-				y2: y + toNumber(end.y),
-				color: asColor(String(props.color ?? 'black')),
+				x1: record.x + start.x,
+				y1: record.y + start.y,
+				x2: record.x + end.x,
+				y2: record.y + end.y,
+				color: asColor(props.color ?? 'black'),
 				dash: FocusedDashSchema.safeParse(props.dash).success
 					? (props.dash as FocusedDash)
 					: 'draw',
 				size: FocusedSizeSchema.safeParse(props.size).success ? (props.size as FocusedSize) : 'm',
 				text: fromRichText(props.richText) || undefined,
-				bend: props.bend ? toNumber(props.bend) * -1 : undefined,
+				bend: props.bend ? props.bend * -1 : undefined,
 				fromId: typeof meta.fromId === 'string' ? meta.fromId : null,
 				toId: typeof meta.toId === 'string' ? meta.toId : null,
 				note: getMetaNote(record),
 			}
 		}
 		case 'line': {
-			const props = (record.props ?? {}) as Record<string, unknown>
-			const points = (props.points ?? {}) as Record<string, { x?: number; y?: number }>
-			const a1 = points.a1 ?? { x: 0, y: 0 }
-			const a2 = points.a2 ?? { x: 0, y: 0 }
+			const { props } = record
+			const a1 = props.points.a1 ?? { x: 0, y: 0 }
+			const a2 = props.points.a2 ?? { x: 0, y: 0 }
 			return {
 				_type: 'line',
 				shapeId: simpleId,
-				x1: x + toNumber(a1.x),
-				y1: y + toNumber(a1.y),
-				x2: x + toNumber(a2.x),
-				y2: y + toNumber(a2.y),
-				color: asColor(String(props.color ?? 'black')),
+				x1: record.x + (a1.x ?? 0),
+				y1: record.y + (a1.y ?? 0),
+				x2: record.x + (a2.x ?? 0),
+				y2: record.y + (a2.y ?? 0),
+				color: asColor(props.color ?? 'black'),
 				dash: FocusedDashSchema.safeParse(props.dash).success
 					? (props.dash as FocusedDash)
 					: 'draw',
@@ -657,13 +642,13 @@ export function convertTldrawRecordToFocusedShape(record: TldrawRecord): Focused
 			}
 		}
 		case 'note': {
-			const props = (record.props ?? {}) as Record<string, unknown>
+			const { props } = record
 			return {
 				_type: 'note',
 				shapeId: simpleId,
-				x,
-				y,
-				color: asColor(String(props.color ?? 'yellow')),
+				x: record.x,
+				y: record.y,
+				color: asColor(props.color ?? 'yellow'),
 				size: FocusedSizeSchema.safeParse(props.size).success ? (props.size as FocusedSize) : 'm',
 				font: FocusedFontSchema.safeParse(props.font).success
 					? (props.font as FocusedFont)
@@ -673,24 +658,24 @@ export function convertTldrawRecordToFocusedShape(record: TldrawRecord): Focused
 			}
 		}
 		case 'draw': {
-			const props = (record.props ?? {}) as Record<string, unknown>
+			const { props } = record
 			return {
 				_type: 'draw',
 				shapeId: simpleId,
-				color: asColor(String(props.color ?? 'black')),
-				fill: TLDRAW_TO_FOCUSED_FILLS[String(props.fill)] ?? 'none',
+				color: asColor(props.color ?? 'black'),
+				fill: TLDRAW_TO_FOCUSED_FILLS[props.fill] ?? 'none',
 				note: getMetaNote(record),
 			}
 		}
 		case 'frame': {
-			const props = (record.props ?? {}) as Record<string, unknown>
+			const { props } = record
 			return {
 				_type: 'frame',
 				shapeId: simpleId,
-				x,
-				y,
-				w: toNumber(props.w, 500),
-				h: toNumber(props.h, 300),
+				x: record.x,
+				y: record.y,
+				w: props.w ?? 500,
+				h: props.h ?? 300,
 				name: typeof props.name === 'string' ? props.name : undefined,
 				note: getMetaNote(record),
 			}
@@ -699,9 +684,9 @@ export function convertTldrawRecordToFocusedShape(record: TldrawRecord): Focused
 			return {
 				_type: 'unknown',
 				shapeId: simpleId,
-				subType: type,
-				x,
-				y,
+				subType: record.type,
+				x: record.x,
+				y: record.y,
 				note: getMetaNote(record),
 			}
 	}
