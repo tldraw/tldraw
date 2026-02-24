@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
-import { useEditor, useToasts } from 'tldraw'
+import { defaultHandleExternalTextContent, useEditor, useToasts } from 'tldraw'
 import { defineMessages, useMsg } from '../../tla/utils/i18n'
-import { createMermaidDiagram, UnsupportedMermaidDiagramError } from './utils/createMermaidDiagram'
+import { createMermaidDiagram, MermaidDiagramError } from './utils/createMermaidDiagram'
 
 const messages = defineMessages({
 	unsupportedTitle: { defaultMessage: 'Unsupported Mermaid diagram' },
@@ -16,12 +16,11 @@ export function SneakyMermaidHandler() {
 
 	useEffect(() => {
 		editor.registerExternalContentHandler('text', async (content) => {
-			const mermaid = (await import('mermaid')).default
-
+			let svgResult: string | undefined
 			try {
 				const shapesBefore = new Set(editor.getCurrentPageShapeIds())
 
-				await createMermaidDiagram(editor, content.text)
+				svgResult = await createMermaidDiagram(editor, content.text)
 
 				const newShapeIds = [...editor.getCurrentPageShapeIds()].filter(
 					(id) => !shapesBefore.has(id)
@@ -30,24 +29,30 @@ export function SneakyMermaidHandler() {
 					editor.setSelectedShapes(newShapeIds)
 				}
 			} catch (e) {
-				if (e instanceof UnsupportedMermaidDiagramError) {
+				if (e instanceof MermaidDiagramError && e.type === 'unsupported') {
 					addToast({
 						id: 'unsupported-mermaid-diagram',
 						title: unsupportedTitle,
 						description: unsupportedDescription,
 						severity: 'warning',
 					})
-					const { svg } = await mermaid.render(`mermaid-${Date.now()}`, content.text)
-					editor.putExternalContent({
-						type: 'svg-text',
-						text: svg,
-						point: content.point,
-						sources: content.sources,
-					})
-					return
+
+					if (typeof svgResult === 'string') {
+						editor.putExternalContent({
+							type: 'svg-text',
+							text: svgResult,
+							point: content.point,
+							sources: content.sources,
+						})
+					}
 				}
-				// not parsable, most likely not mermaid
-				console.error(e)
+
+				// Only log unexpected errors; MermaidDiagramError is the normal "not mermaid" path
+				if (!(e instanceof MermaidDiagramError)) {
+					console.error(e)
+				}
+
+				await defaultHandleExternalTextContent(editor, content)
 			}
 		})
 	}, [editor, addToast, unsupportedTitle, unsupportedDescription])

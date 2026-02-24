@@ -36,12 +36,12 @@ exports[`createMermaidDiagram > flowchart > LR flowchart 1`] = `
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": 0,
+        "bend": -0,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
-          "x": 185,
+          "x": 70,
           "y": 0,
         },
         "fill": "none",
@@ -58,15 +58,15 @@ exports[`createMermaidDiagram > flowchart > LR flowchart 1`] = `
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
           "x": 0,
           "y": 0,
         },
       },
       "type": "arrow",
-      "x": 605,
-      "y": 404,
+      "x": 505,
+      "y": 360,
     },
     {
       "isLocked": false,
@@ -78,7 +78,7 @@ exports[`createMermaidDiagram > flowchart > LR flowchart 1`] = `
         "font": "draw",
         "geo": "rectangle",
         "growY": 0,
-        "h": 68,
+        "h": 47,
         "labelColor": "black",
         "richText": {
           "content": [
@@ -98,11 +98,11 @@ exports[`createMermaidDiagram > flowchart > LR flowchart 1`] = `
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 110,
+        "w": 94,
       },
       "type": "geo",
-      "x": 550,
-      "y": 370,
+      "x": 458,
+      "y": 337,
     },
     {
       "isLocked": false,
@@ -114,7 +114,7 @@ exports[`createMermaidDiagram > flowchart > LR flowchart 1`] = `
         "font": "draw",
         "geo": "rectangle",
         "growY": 0,
-        "h": 68,
+        "h": 47,
         "labelColor": "black",
         "richText": {
           "content": [
@@ -134,11 +134,11 @@ exports[`createMermaidDiagram > flowchart > LR flowchart 1`] = `
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 100,
+        "w": 94,
       },
       "type": "geo",
-      "x": 740,
-      "y": 370,
+      "x": 528,
+      "y": 337,
     },
   ],
 }
@@ -230,11 +230,11 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "isExact": false,
         "isPrecise": false,
         "normalizedAnchor": {
-          "x": 0.5,
-          "y": 0.5,
+          "x": 0.8,
+          "y": 0.8,
         },
         "snap": "none",
-        "terminal": "start",
+        "terminal": "end",
       },
       "type": "arrow",
     },
@@ -297,6 +297,32 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "normalizedAnchor": {
           "x": 0.5,
           "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 1,
+          "y": 0.2,
         },
         "snap": "none",
         "terminal": "start",
@@ -310,12 +336,12 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": 40,
+        "bend": -25.2,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
-          "x": 306,
+          "x": 70,
           "y": 0,
         },
         "fill": "none",
@@ -338,22 +364,22 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
           "x": 0,
           "y": 0,
         },
       },
       "type": "arrow",
-      "x": 613,
-      "y": 478,
+      "x": 400,
+      "y": 414,
     },
     {
       "isLocked": false,
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": 40,
+        "bend": -25.2,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
@@ -381,27 +407,27 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
-          "x": 306,
+          "x": 70,
           "y": 0,
         },
       },
       "type": "arrow",
-      "x": 613,
-      "y": 478,
+      "x": 400,
+      "y": 414,
     },
     {
       "isLocked": false,
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": 0,
+        "bend": 0.6363311746279017,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
-          "x": 322,
+          "x": 70,
           "y": 0,
         },
         "fill": "none",
@@ -418,27 +444,27 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
           "x": 0,
           "y": 0,
         },
       },
       "type": "arrow",
-      "x": 919,
-      "y": 478,
+      "x": 470,
+      "y": 414,
     },
     {
       "isLocked": false,
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": -34.64682003189836,
+        "bend": -41.385812922842064,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
-          "x": 330,
+          "x": 70,
           "y": 0,
         },
         "fill": "none",
@@ -461,28 +487,28 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
           "x": 0,
-          "y": 74,
+          "y": 62.30000000000001,
         },
       },
       "type": "arrow",
-      "x": 1241,
-      "y": 404,
+      "x": 540,
+      "y": 352,
     },
     {
       "isLocked": false,
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": 36.19015987054567,
+        "bend": 25.161559211608864,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
-          "x": 330,
-          "y": 74,
+          "x": 70,
+          "y": 30.100000000000023,
         },
         "fill": "none",
         "font": "draw",
@@ -504,28 +530,28 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
           "x": 0,
           "y": 0,
         },
       },
       "type": "arrow",
-      "x": 1241,
-      "y": 478,
+      "x": 540,
+      "y": 414,
     },
     {
       "isLocked": false,
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": -60,
+        "bend": -80,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
-          "x": 142,
-          "y": 34,
+          "x": 94,
+          "y": 23.5,
         },
         "fill": "none",
         "font": "draw",
@@ -541,15 +567,15 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
-          "x": 71,
+          "x": 47,
           "y": 0,
         },
       },
       "type": "arrow",
-      "x": 1500,
-      "y": 370,
+      "x": 563,
+      "y": 328,
     },
     {
       "isLocked": false,
@@ -561,7 +587,7 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
-          "x": 301,
+          "x": 70,
           "y": 0,
         },
         "fill": "none",
@@ -578,15 +604,15 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
           "x": 0,
-          "y": 0,
+          "y": 76.30000000000001,
         },
       },
       "type": "arrow",
-      "x": 1571,
-      "y": 404,
+      "x": 610,
+      "y": 276,
     },
     {
       "isLocked": false,
@@ -598,7 +624,7 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "font": "draw",
         "geo": "rectangle",
         "growY": 0,
-        "h": 68,
+        "h": 47,
         "labelColor": "black",
         "richText": {
           "content": [
@@ -618,11 +644,11 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 126,
+        "w": 94,
       },
       "type": "geo",
-      "x": 550,
-      "y": 444,
+      "x": 353,
+      "y": 391,
     },
     {
       "isLocked": false,
@@ -634,7 +660,7 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "font": "draw",
         "geo": "rectangle",
         "growY": 0,
-        "h": 68,
+        "h": 47,
         "labelColor": "black",
         "richText": {
           "content": [
@@ -654,11 +680,11 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 126,
+        "w": 94,
       },
       "type": "geo",
-      "x": 856,
-      "y": 444,
+      "x": 423,
+      "y": 391,
     },
     {
       "isLocked": false,
@@ -670,7 +696,7 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "font": "draw",
         "geo": "diamond",
         "growY": 0,
-        "h": 105.33333333333333,
+        "h": 42,
         "labelColor": "black",
         "richText": {
           "content": [
@@ -690,11 +716,11 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 158,
+        "w": 42,
       },
       "type": "geo",
-      "x": 1162,
-      "y": 425,
+      "x": 519,
+      "y": 393,
     },
     {
       "isLocked": false,
@@ -706,7 +732,7 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "font": "draw",
         "geo": "rectangle",
         "growY": 0,
-        "h": 68,
+        "h": 47,
         "labelColor": "black",
         "richText": {
           "content": [
@@ -726,11 +752,11 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 142,
+        "w": 94,
       },
       "type": "geo",
-      "x": 1500,
-      "y": 370,
+      "x": 563,
+      "y": 328,
     },
     {
       "isLocked": false,
@@ -742,7 +768,7 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "font": "draw",
         "geo": "rectangle",
         "growY": 0,
-        "h": 68,
+        "h": 47,
         "labelColor": "black",
         "richText": {
           "content": [
@@ -762,11 +788,11 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 126,
+        "w": 94,
       },
       "type": "geo",
-      "x": 1508,
-      "y": 518,
+      "x": 563,
+      "y": 421,
     },
     {
       "isLocked": false,
@@ -778,7 +804,7 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "font": "draw",
         "geo": "rectangle",
         "growY": 0,
-        "h": 68,
+        "h": 47,
         "labelColor": "black",
         "richText": {
           "content": [
@@ -798,17 +824,17 @@ exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 100,
+        "w": 94,
       },
       "type": "geo",
-      "x": 1822,
-      "y": 370,
+      "x": 633,
+      "y": 252,
     },
   ],
 }
 `;
 
-exports[`createMermaidDiagram > flowchart > TB flowchart with parallel edges and self-loop 1`] = `
+exports[`createMermaidDiagram > flowchart > flowchart with linkStyle color and dash 1`] = `
 {
   "bindings": [
     {
@@ -872,58 +898,6 @@ exports[`createMermaidDiagram > flowchart > TB flowchart with parallel edges and
           "y": 0.5,
         },
         "snap": "none",
-        "terminal": "end",
-      },
-      "type": "arrow",
-    },
-    {
-      "props": {
-        "isExact": false,
-        "isPrecise": false,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 0.5,
-        },
-        "snap": "none",
-        "terminal": "end",
-      },
-      "type": "arrow",
-    },
-    {
-      "props": {
-        "isExact": false,
-        "isPrecise": false,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 0.5,
-        },
-        "snap": "none",
-        "terminal": "start",
-      },
-      "type": "arrow",
-    },
-    {
-      "props": {
-        "isExact": false,
-        "isPrecise": false,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 0.5,
-        },
-        "snap": "none",
-        "terminal": "start",
-      },
-      "type": "arrow",
-    },
-    {
-      "props": {
-        "isExact": false,
-        "isPrecise": false,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 0.5,
-        },
-        "snap": "none",
         "terminal": "start",
       },
       "type": "arrow",
@@ -974,50 +948,13 @@ exports[`createMermaidDiagram > flowchart > TB flowchart with parallel edges and
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": -60,
-        "color": "black",
+        "bend": -75.60000000000001,
+        "color": "green",
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
-          "x": 142,
-          "y": 34,
-        },
-        "fill": "none",
-        "font": "draw",
-        "kind": "arc",
-        "labelColor": "black",
-        "labelPosition": 0.5,
-        "richText": {
-          "content": [
-            {
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "start": {
-          "x": 71,
+          "x": 70,
           "y": 0,
-        },
-      },
-      "type": "arrow",
-      "x": 550,
-      "y": 851,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "arrowheadEnd": "arrow",
-        "arrowheadStart": "none",
-        "bend": 65.99943227825638,
-        "color": "black",
-        "dash": "solid",
-        "elbowMidPoint": 0.5,
-        "end": {
-          "x": 0,
-          "y": 166.66666666666652,
         },
         "fill": "none",
         "font": "draw",
@@ -1029,87 +966,7 @@ exports[`createMermaidDiagram > flowchart > TB flowchart with parallel edges and
             {
               "content": [
                 {
-                  "text": "Yes",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "start": {
-          "x": 107,
-          "y": 0,
-        },
-      },
-      "type": "arrow",
-      "x": 621,
-      "y": 719,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "arrowheadEnd": "arrow",
-        "arrowheadStart": "none",
-        "bend": 0,
-        "color": "black",
-        "dash": "solid",
-        "elbowMidPoint": 0.5,
-        "end": {
-          "x": 0,
-          "y": 148,
-        },
-        "fill": "none",
-        "font": "draw",
-        "kind": "arc",
-        "labelColor": "black",
-        "labelPosition": 0.5,
-        "richText": {
-          "content": [
-            {
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "start": {
-          "x": 0,
-          "y": 0,
-        },
-      },
-      "type": "arrow",
-      "x": 621,
-      "y": 885,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "arrowheadEnd": "arrow",
-        "arrowheadStart": "none",
-        "bend": 79.72972972972975,
-        "color": "black",
-        "dash": "solid",
-        "elbowMidPoint": 0.5,
-        "end": {
-          "x": 0,
-          "y": 148,
-        },
-        "fill": "none",
-        "font": "draw",
-        "kind": "arc",
-        "labelColor": "black",
-        "labelPosition": 0.5,
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "Request",
+                  "text": "GET",
                   "type": "text",
                 },
               ],
@@ -1126,15 +983,58 @@ exports[`createMermaidDiagram > flowchart > TB flowchart with parallel edges and
         },
       },
       "type": "arrow",
-      "x": 728,
-      "y": 404,
+      "x": 505,
+      "y": 360,
     },
     {
       "isLocked": false,
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": 89.72972972972975,
+        "bend": -25.2,
+        "color": "blue",
+        "dash": "dashed",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 70,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "POST",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 505,
+      "y": 360,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -25.2,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
@@ -1152,7 +1052,7 @@ exports[`createMermaidDiagram > flowchart > TB flowchart with parallel edges and
             {
               "content": [
                 {
-                  "text": "Response",
+                  "text": "200",
                   "type": "text",
                 },
               ],
@@ -1162,65 +1062,28 @@ exports[`createMermaidDiagram > flowchart > TB flowchart with parallel edges and
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
-          "x": 0,
-          "y": 148,
-        },
-      },
-      "type": "arrow",
-      "x": 728,
-      "y": 404,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "arrowheadEnd": "arrow",
-        "arrowheadStart": "none",
-        "bend": 0,
-        "color": "black",
-        "dash": "solid",
-        "elbowMidPoint": 0.5,
-        "end": {
-          "x": 0,
-          "y": 166.66666666666674,
-        },
-        "fill": "none",
-        "font": "draw",
-        "kind": "arc",
-        "labelColor": "black",
-        "labelPosition": 0.5,
-        "richText": {
-          "content": [
-            {
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "start": {
-          "x": 0,
+          "x": 70,
           "y": 0,
         },
       },
       "type": "arrow",
-      "x": 728,
-      "y": 552,
+      "x": 505,
+      "y": 360,
     },
     {
       "isLocked": false,
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": -15.999432278256378,
+        "bend": -75.6,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
-          "x": 107,
-          "y": 166.66666666666652,
+          "x": 0,
+          "y": 0,
         },
         "fill": "none",
         "font": "draw",
@@ -1232,7 +1095,7 @@ exports[`createMermaidDiagram > flowchart > TB flowchart with parallel edges and
             {
               "content": [
                 {
-                  "text": "No",
+                  "text": "400",
                   "type": "text",
                 },
               ],
@@ -1242,15 +1105,15 @@ exports[`createMermaidDiagram > flowchart > TB flowchart with parallel edges and
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
-          "x": 0,
+          "x": 70,
           "y": 0,
         },
       },
       "type": "arrow",
-      "x": 728,
-      "y": 719,
+      "x": 505,
+      "y": 360,
     },
     {
       "isLocked": false,
@@ -1262,115 +1125,7 @@ exports[`createMermaidDiagram > flowchart > TB flowchart with parallel edges and
         "font": "draw",
         "geo": "rectangle",
         "growY": 0,
-        "h": 68,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "Process",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 142,
-      },
-      "type": "geo",
-      "x": 550,
-      "y": 851,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 68,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "Done",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 100,
-      },
-      "type": "geo",
-      "x": 571,
-      "y": 999,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "diamond",
-        "growY": 0,
-        "h": 105.33333333333333,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "Decision",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 158,
-      },
-      "type": "geo",
-      "x": 649,
-      "y": 666,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 68,
+        "h": 47,
         "labelColor": "black",
         "richText": {
           "content": [
@@ -1390,11 +1145,11 @@ exports[`createMermaidDiagram > flowchart > TB flowchart with parallel edges and
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 126,
+        "w": 94,
       },
       "type": "geo",
-      "x": 665,
-      "y": 370,
+      "x": 458,
+      "y": 337,
     },
     {
       "isLocked": false,
@@ -1406,14 +1161,14 @@ exports[`createMermaidDiagram > flowchart > TB flowchart with parallel edges and
         "font": "draw",
         "geo": "rectangle",
         "growY": 0,
-        "h": 68,
+        "h": 47,
         "labelColor": "black",
         "richText": {
           "content": [
             {
               "content": [
                 {
-                  "text": "Server",
+                  "text": "API",
                   "type": "text",
                 },
               ],
@@ -1426,47 +1181,11 @@ exports[`createMermaidDiagram > flowchart > TB flowchart with parallel edges and
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 126,
+        "w": 94,
       },
       "type": "geo",
-      "x": 665,
-      "y": 518,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 68,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "Reject",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 126,
-      },
-      "type": "geo",
-      "x": 772,
-      "y": 851,
+      "x": 528,
+      "y": 337,
     },
   ],
 }
@@ -1586,828 +1305,13 @@ exports[`createMermaidDiagram > flowchart > flowchart with subgraphs 1`] = `
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": 0,
+        "bend": -0,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
           "x": 0,
-          "y": 148,
-        },
-        "fill": "none",
-        "font": "draw",
-        "kind": "arc",
-        "labelColor": "black",
-        "labelPosition": 0.5,
-        "richText": {
-          "content": [
-            {
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "start": {
-          "x": 0,
-          "y": 0,
-        },
-      },
-      "type": "arrow",
-      "x": 100,
-      "y": 94,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "arrowheadEnd": "arrow",
-        "arrowheadStart": "none",
-        "bend": 0,
-        "color": "black",
-        "dash": "solid",
-        "elbowMidPoint": 0.5,
-        "end": {
-          "x": 0,
-          "y": 148,
-        },
-        "fill": "none",
-        "font": "draw",
-        "kind": "arc",
-        "labelColor": "black",
-        "labelPosition": 0.5,
-        "richText": {
-          "content": [
-            {
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "start": {
-          "x": 0,
-          "y": 0,
-        },
-      },
-      "type": "arrow",
-      "x": 100,
-      "y": 94,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "arrowheadEnd": "arrow",
-        "arrowheadStart": "none",
-        "bend": 0,
-        "color": "black",
-        "dash": "solid",
-        "elbowMidPoint": 0.5,
-        "end": {
-          "x": 0,
-          "y": 148,
-        },
-        "fill": "none",
-        "font": "draw",
-        "kind": "arc",
-        "labelColor": "black",
-        "labelPosition": 0.5,
-        "richText": {
-          "content": [
-            {
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "start": {
-          "x": 0,
-          "y": 0,
-        },
-      },
-      "type": "arrow",
-      "x": 100,
-      "y": 94,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "arrowheadEnd": "arrow",
-        "arrowheadStart": "none",
-        "bend": 0,
-        "color": "black",
-        "dash": "solid",
-        "elbowMidPoint": 0.5,
-        "end": {
-          "x": 0,
-          "y": 554,
-        },
-        "fill": "none",
-        "font": "draw",
-        "kind": "arc",
-        "labelColor": "black",
-        "labelPosition": 0.5,
-        "richText": {
-          "content": [
-            {
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "start": {
-          "x": 0,
-          "y": 0,
-        },
-      },
-      "type": "arrow",
-      "x": 665,
-      "y": 88,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "color": "black",
-        "h": 326,
-        "name": "two",
-        "w": 200,
-      },
-      "type": "frame",
-      "x": 315,
-      "y": -6,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "color": "black",
-        "h": 326,
-        "name": "three",
-        "w": 200,
-      },
-      "type": "frame",
-      "x": 565,
-      "y": -6,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "color": "black",
-        "h": 326,
-        "name": "one",
-        "w": 200,
-      },
-      "type": "frame",
-      "x": 565,
-      "y": 400,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 68,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "c1",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 100,
-      },
-      "type": "geo",
-      "x": 50,
-      "y": 60,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 68,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "b1",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 100,
-      },
-      "type": "geo",
-      "x": 50,
-      "y": 60,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 68,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "a1",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 100,
-      },
-      "type": "geo",
-      "x": 50,
-      "y": 60,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 68,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "c2",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 100,
-      },
-      "type": "geo",
-      "x": 50,
-      "y": 208,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 68,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "b2",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 100,
-      },
-      "type": "geo",
-      "x": 50,
-      "y": 208,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 68,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "a2",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 100,
-      },
-      "type": "geo",
-      "x": 50,
-      "y": 208,
-    },
-  ],
-}
-`;
-
-exports[`createMermaidDiagram > flowchart > simple TD flowchart 1`] = `
-{
-  "bindings": [
-    {
-      "props": {
-        "isExact": false,
-        "isPrecise": false,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 0.5,
-        },
-        "snap": "none",
-        "terminal": "end",
-      },
-      "type": "arrow",
-    },
-    {
-      "props": {
-        "isExact": false,
-        "isPrecise": false,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 0.5,
-        },
-        "snap": "none",
-        "terminal": "end",
-      },
-      "type": "arrow",
-    },
-    {
-      "props": {
-        "isExact": false,
-        "isPrecise": false,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 0.5,
-        },
-        "snap": "none",
-        "terminal": "end",
-      },
-      "type": "arrow",
-    },
-    {
-      "props": {
-        "isExact": false,
-        "isPrecise": false,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 0.5,
-        },
-        "snap": "none",
-        "terminal": "start",
-      },
-      "type": "arrow",
-    },
-    {
-      "props": {
-        "isExact": false,
-        "isPrecise": false,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 0.5,
-        },
-        "snap": "none",
-        "terminal": "start",
-      },
-      "type": "arrow",
-    },
-    {
-      "props": {
-        "isExact": false,
-        "isPrecise": false,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 0.5,
-        },
-        "snap": "none",
-        "terminal": "start",
-      },
-      "type": "arrow",
-    },
-  ],
-  "shapes": [
-    {
-      "isLocked": false,
-      "props": {
-        "arrowheadEnd": "arrow",
-        "arrowheadStart": "none",
-        "bend": 48.06190089722323,
-        "color": "black",
-        "dash": "solid",
-        "elbowMidPoint": 0.5,
-        "end": {
-          "x": 0,
-          "y": 156,
-        },
-        "fill": "none",
-        "font": "draw",
-        "kind": "arc",
-        "labelColor": "black",
-        "labelPosition": 0.5,
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "Yes",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "start": {
-          "x": 42.5,
-          "y": 0,
-        },
-      },
-      "type": "arrow",
-      "x": 600,
-      "y": 560,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "arrowheadEnd": "arrow",
-        "arrowheadStart": "none",
-        "bend": 0,
-        "color": "black",
-        "dash": "solid",
-        "elbowMidPoint": 0.5,
-        "end": {
-          "x": 0,
-          "y": 156,
-        },
-        "fill": "none",
-        "font": "draw",
-        "kind": "arc",
-        "labelColor": "black",
-        "labelPosition": 0.5,
-        "richText": {
-          "content": [
-            {
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "start": {
-          "x": 0,
-          "y": 0,
-        },
-      },
-      "type": "arrow",
-      "x": 643,
-      "y": 404,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "arrowheadEnd": "arrow",
-        "arrowheadStart": "none",
-        "bend": -12.39739096985442,
-        "color": "black",
-        "dash": "solid",
-        "elbowMidPoint": 0.5,
-        "end": {
-          "x": 42.5,
-          "y": 384,
-        },
-        "fill": "none",
-        "font": "draw",
-        "kind": "arc",
-        "labelColor": "black",
-        "labelPosition": 0.5,
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "No",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "start": {
-          "x": 0,
-          "y": 0,
-        },
-      },
-      "type": "arrow",
-      "x": 643,
-      "y": 560,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 68,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "OK",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 100,
-      },
-      "type": "geo",
-      "x": 550,
-      "y": 682,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "diamond",
-        "growY": 0,
-        "h": 84,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "Is it?",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 126,
-      },
-      "type": "geo",
-      "x": 580,
-      "y": 518,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 68,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "Start",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 110,
-      },
-      "type": "geo",
-      "x": 588,
-      "y": 370,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 68,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "End",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 100,
-      },
-      "type": "geo",
-      "x": 635,
-      "y": 910,
-    },
-  ],
-}
-`;
-
-exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] = `
-{
-  "bindings": [
-    {
-      "props": {
-        "isExact": true,
-        "isPrecise": true,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 0,
-        },
-        "snap": "none",
-        "terminal": "end",
-      },
-      "type": "arrow",
-    },
-    {
-      "props": {
-        "isExact": true,
-        "isPrecise": true,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 0,
-        },
-        "snap": "none",
-        "terminal": "end",
-      },
-      "type": "arrow",
-    },
-    {
-      "props": {
-        "isExact": true,
-        "isPrecise": true,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 1,
-        },
-        "snap": "none",
-        "terminal": "start",
-      },
-      "type": "arrow",
-    },
-    {
-      "props": {
-        "isExact": true,
-        "isPrecise": true,
-        "normalizedAnchor": {
-          "x": 0.5,
-          "y": 1,
-        },
-        "snap": "none",
-        "terminal": "start",
-      },
-      "type": "arrow",
-    },
-  ],
-  "shapes": [
-    {
-      "isLocked": false,
-      "props": {
-        "arrowheadEnd": "none",
-        "arrowheadStart": "none",
-        "bend": 0,
-        "color": "black",
-        "dash": "dotted",
-        "elbowMidPoint": 0.5,
-        "end": {
-          "x": 0,
-          "y": 300,
+          "y": 92.40000000000003,
         },
         "fill": "none",
         "font": "draw",
@@ -2430,9 +1334,1638 @@ exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] =
         },
       },
       "type": "arrow",
-      "x": 390,
-      "y": 190,
+      "x": 49,
+      "y": 60,
     },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 12.45781535323205,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 92.40000000000003,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 14,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 49,
+      "y": 60,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -0,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 105,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 52,
+      "y": 74,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 70.96149042328071,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 277.90000000000003,
+          "y": 92.40000000000003,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 408,
+      "y": 314,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 47,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "a1",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 94,
+      },
+      "type": "geo",
+      "x": 2,
+      "y": 37,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 47,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "a2",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 94,
+      },
+      "type": "geo",
+      "x": 2,
+      "y": 129,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 47,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "c2",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 94,
+      },
+      "type": "geo",
+      "x": 2,
+      "y": 129,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 47,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "b1",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 94,
+      },
+      "type": "geo",
+      "x": 5,
+      "y": 51,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 47,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "c1",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 94,
+      },
+      "type": "geo",
+      "x": 16,
+      "y": 37,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 47,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "b2",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 94,
+      },
+      "type": "geo",
+      "x": 110,
+      "y": 51,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "semi",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 198.79999999999998,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "three",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 115.49999999999999,
+      },
+      "type": "geo",
+      "x": 345,
+      "y": 254,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "semi",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 134.39999999999998,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "two",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 210,
+      },
+      "type": "geo",
+      "x": 510,
+      "y": 289,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "semi",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 198.79999999999998,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "one",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 98,
+      },
+      "type": "geo",
+      "x": 637,
+      "y": 254,
+    },
+  ],
+}
+`;
+
+exports[`createMermaidDiagram > sequence diagram > sequence diagram with loop, opt, and self-message 1`] = `
+{
+  "bindings": [
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.2,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.4,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.6,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.8400000000000001,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.2,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.4,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.6,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.76,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+  ],
+  "shapes": [
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 300,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "enqueue(job)",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 165,
+      "y": 273,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "dequeue()",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 300,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 465,
+      "y": 351,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "dotted",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 300,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "job?",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 465,
+      "y": 429,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -80,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 30,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "execute()",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 765,
+      "y": 492,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Producer",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 75,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Producer",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 75,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "start",
+        "color": "light-blue",
+        "dash": "dashed",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 153,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "loop [poll]",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 540,
+      },
+      "type": "geo",
+      "x": 345,
+      "y": 301,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Queue",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 375,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Queue",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 375,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "start",
+        "color": "light-blue",
+        "dash": "dashed",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "opt [job received]",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 240,
+      },
+      "type": "geo",
+      "x": 645,
+      "y": 457,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Worker",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 675,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Worker",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 675,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 165,
+      "y": 195,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 465,
+      "y": 195,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 765,
+      "y": 195,
+    },
+  ],
+}
+`;
+
+exports[`createMermaidDiagram > sequence diagram > sequence diagram with notes 1`] = `
+{
+  "bindings": [
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.16666666666666666,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.8333333333333334,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.16666666666666666,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.8333333333333334,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+  ],
+  "shapes": [
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 300,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Hello",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 315,
+      "y": 260,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "dotted",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Hi!",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 300,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 315,
+      "y": 520,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Alice",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 225,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Alice",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 225,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "yellow",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 50,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Both see this",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 340,
+      },
+      "type": "geo",
+      "x": 295,
+      "y": 430,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "yellow",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 50,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Alice thinks",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 160,
+      },
+      "type": "geo",
+      "x": 335,
+      "y": 300,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "yellow",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 50,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "John ponders",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 160,
+      },
+      "type": "geo",
+      "x": 435,
+      "y": 365,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "John",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 525,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "John",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 525,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 315,
+      "y": 195,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 615,
+      "y": 195,
+    },
+  ],
+}
+`;
+
+exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] = `
+{
+  "bindings": [
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.25,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.75,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.25,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.75,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+  ],
+  "shapes": [
     {
       "isLocked": false,
       "props": {
@@ -2473,8 +3006,8 @@ exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] =
         },
       },
       "type": "arrow",
-      "x": 390,
-      "y": 230,
+      "x": 315,
+      "y": 292,
     },
     {
       "isLocked": false,
@@ -2516,8 +3049,8 @@ exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] =
         },
       },
       "type": "arrow",
-      "x": 390,
-      "y": 310,
+      "x": 315,
+      "y": 390,
     },
     {
       "isLocked": false,
@@ -2559,21 +3092,384 @@ exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] =
         },
       },
       "type": "arrow",
-      "x": 390,
-      "y": 390,
+      "x": 315,
+      "y": 487,
     },
     {
       "isLocked": false,
       "props": {
-        "arrowheadEnd": "none",
-        "arrowheadStart": "none",
-        "bend": 0,
+        "align": "middle",
         "color": "black",
-        "dash": "dotted",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Alice",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 225,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Alice",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 225,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "John",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 525,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "John",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 525,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 315,
+      "y": 195,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 615,
+      "y": 195,
+    },
+  ],
+}
+`;
+
+exports[`createMermaidDiagram > state diagram > compound state diagram 1`] = `
+{
+  "bindings": [
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+  ],
+  "shapes": [
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0.5952035229418643,
+        "color": "black",
+        "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
           "x": 0,
-          "y": 300,
+          "y": 138.39999999999998,
         },
         "fill": "none",
         "font": "draw",
@@ -2596,8 +3492,313 @@ exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] =
         },
       },
       "type": "arrow",
-      "x": 690,
-      "y": 190,
+      "x": 44,
+      "y": 72,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0.5952035229418522,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 138.39999999999998,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 44,
+      "y": 72,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0.6025970720408175,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 116.39999999999998,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 44,
+      "y": 210,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0.6025970720408053,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 116.39999999999998,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 44,
+      "y": 210,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 43.34976972958536,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 258.29999999999995,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 67.19999999999999,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 466,
+      "y": 147,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -43.34976972958537,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 81.20000000000005,
+          "y": 258.29999999999995,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 533,
+      "y": 147,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 40,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 40,
+      },
+      "type": "geo",
+      "x": 24,
+      "y": 307,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 40,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 40,
+      },
+      "type": "geo",
+      "x": 24,
+      "y": 307,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 36,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 36,
+      },
+      "type": "geo",
+      "x": 26,
+      "y": 54,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 36,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 36,
+      },
+      "type": "geo",
+      "x": 26,
+      "y": 54,
     },
     {
       "isLocked": false,
@@ -2608,15 +3809,15 @@ exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] =
         "fill": "none",
         "font": "draw",
         "geo": "rectangle",
-        "growY": 0,
-        "h": 70,
+        "growY": 22,
+        "h": 10,
         "labelColor": "black",
         "richText": {
           "content": [
             {
               "content": [
                 {
-                  "text": "Alice",
+                  "text": "fA",
                   "type": "text",
                 },
               ],
@@ -2629,11 +3830,11 @@ exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] =
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 200,
+        "w": 30,
       },
       "type": "geo",
-      "x": 290,
-      "y": 120,
+      "x": 29,
+      "y": 194,
     },
     {
       "isLocked": false,
@@ -2644,15 +3845,15 @@ exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] =
         "fill": "none",
         "font": "draw",
         "geo": "rectangle",
-        "growY": 0,
-        "h": 70,
+        "growY": 22,
+        "h": 10,
         "labelColor": "black",
         "richText": {
           "content": [
             {
               "content": [
                 {
-                  "text": "Alice",
+                  "text": "sA",
                   "type": "text",
                 },
               ],
@@ -2665,11 +3866,11 @@ exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] =
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 200,
+        "w": 30,
       },
       "type": "geo",
-      "x": 290,
-      "y": 490,
+      "x": 29,
+      "y": 194,
     },
     {
       "isLocked": false,
@@ -2677,21 +3878,15 @@ exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] =
         "align": "middle",
         "color": "black",
         "dash": "draw",
-        "fill": "none",
+        "fill": "solid",
         "font": "draw",
-        "geo": "rectangle",
+        "geo": "ellipse",
         "growY": 0,
-        "h": 70,
+        "h": 24,
         "labelColor": "black",
         "richText": {
           "content": [
             {
-              "content": [
-                {
-                  "text": "John",
-                  "type": "text",
-                },
-              ],
               "type": "paragraph",
             },
           ],
@@ -2701,11 +3896,11 @@ exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] =
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 200,
+        "w": 24,
       },
       "type": "geo",
-      "x": 590,
-      "y": 120,
+      "x": 32,
+      "y": 315,
     },
     {
       "isLocked": false,
@@ -2713,21 +3908,15 @@ exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] =
         "align": "middle",
         "color": "black",
         "dash": "draw",
-        "fill": "none",
+        "fill": "solid",
         "font": "draw",
-        "geo": "rectangle",
+        "geo": "ellipse",
         "growY": 0,
-        "h": 70,
+        "h": 24,
         "labelColor": "black",
         "richText": {
           "content": [
             {
-              "content": [
-                {
-                  "text": "John",
-                  "type": "text",
-                },
-              ],
               "type": "paragraph",
             },
           ],
@@ -2737,11 +3926,113 @@ exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] =
         "size": "m",
         "url": "",
         "verticalAlign": "middle",
-        "w": 200,
+        "w": 24,
       },
       "type": "geo",
-      "x": 590,
-      "y": 490,
+      "x": 32,
+      "y": 315,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "semi",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 370.79999999999995,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "First",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 88,
+      },
+      "type": "geo",
+      "x": 422,
+      "y": 220,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 36,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 36,
+      },
+      "type": "geo",
+      "x": 515,
+      "y": 129,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "semi",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 370.79999999999995,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Second",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 88,
+      },
+      "type": "geo",
+      "x": 570,
+      "y": 220,
     },
   ],
 }
@@ -2887,13 +4178,13 @@ exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": 0,
+        "bend": 0.5798003058597203,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
           "x": 0,
-          "y": 124,
+          "y": 103.4,
         },
         "fill": "none",
         "font": "draw",
@@ -2909,7 +4200,7 @@ exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
           "x": 0,
           "y": 0,
@@ -2917,20 +4208,20 @@ exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
       },
       "type": "arrow",
       "x": 540,
-      "y": 88,
+      "y": 174,
     },
     {
       "isLocked": false,
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": 40,
+        "bend": 26.46,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
           "x": 0,
-          "y": 146,
+          "y": 92.39999999999998,
         },
         "fill": "none",
         "font": "draw",
@@ -2946,7 +4237,7 @@ exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
           "x": 0,
           "y": 0,
@@ -2954,14 +4245,14 @@ exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
       },
       "type": "arrow",
       "x": 540,
-      "y": 212,
+      "y": 278,
     },
     {
       "isLocked": false,
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": 40,
+        "bend": 18.513679076705394,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
@@ -2983,28 +4274,28 @@ exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
           "x": 0,
-          "y": 146,
+          "y": 92.39999999999998,
         },
       },
       "type": "arrow",
       "x": 540,
-      "y": 212,
+      "y": 278,
     },
     {
       "isLocked": false,
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": 0,
+        "bend": 1.2599999999999987,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
           "x": 0,
-          "y": 146,
+          "y": 92.39999999999998,
         },
         "fill": "none",
         "font": "draw",
@@ -3020,7 +4311,7 @@ exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
           "x": 0,
           "y": 0,
@@ -3028,20 +4319,20 @@ exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
       },
       "type": "arrow",
       "x": 540,
-      "y": 358,
+      "y": 370,
     },
     {
       "isLocked": false,
       "props": {
         "arrowheadEnd": "arrow",
         "arrowheadStart": "none",
-        "bend": 0,
+        "bend": 0.5902463178986445,
         "color": "black",
         "dash": "solid",
         "elbowMidPoint": 0.5,
         "end": {
           "x": 0,
-          "y": 126,
+          "y": 81.39999999999998,
         },
         "fill": "none",
         "font": "draw",
@@ -3057,7 +4348,7 @@ exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
           "type": "doc",
         },
         "scale": 1,
-        "size": "m",
+        "size": "s",
         "start": {
           "x": 0,
           "y": 0,
@@ -3065,115 +4356,7 @@ exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
       },
       "type": "arrow",
       "x": 540,
-      "y": 504,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 80,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "Still",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 200,
-      },
-      "type": "geo",
-      "x": 440,
-      "y": 172,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 80,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "Moving",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 200,
-      },
-      "type": "geo",
-      "x": 440,
-      "y": 318,
-    },
-    {
-      "isLocked": false,
-      "props": {
-        "align": "middle",
-        "color": "black",
-        "dash": "draw",
-        "fill": "none",
-        "font": "draw",
-        "geo": "rectangle",
-        "growY": 0,
-        "h": 80,
-        "labelColor": "black",
-        "richText": {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "Crash",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "doc",
-        },
-        "scale": 1,
-        "size": "m",
-        "url": "",
-        "verticalAlign": "middle",
-        "w": 200,
-      },
-      "type": "geo",
-      "x": 440,
-      "y": 464,
+      "y": 462,
     },
     {
       "isLocked": false,
@@ -3203,7 +4386,7 @@ exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
       },
       "type": "geo",
       "x": 520,
-      "y": 610,
+      "y": 524,
     },
     {
       "isLocked": false,
@@ -3233,7 +4416,115 @@ exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
       },
       "type": "geo",
       "x": 522,
-      "y": 70,
+      "y": 156,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 22,
+        "h": 10,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Still",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 30,
+      },
+      "type": "geo",
+      "x": 525,
+      "y": 262,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 22,
+        "h": 10,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Moving",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 30,
+      },
+      "type": "geo",
+      "x": 525,
+      "y": 354,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 22,
+        "h": 10,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Crash",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 30,
+      },
+      "type": "geo",
+      "x": 525,
+      "y": 446,
     },
     {
       "isLocked": false,
@@ -3263,7 +4554,7 @@ exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
       },
       "type": "geo",
       "x": 528,
-      "y": 618,
+      "y": 532,
     },
   ],
 }

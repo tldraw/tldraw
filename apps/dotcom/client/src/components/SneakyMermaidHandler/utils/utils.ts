@@ -1,27 +1,16 @@
-import type { Graph } from 'dagre-d3-es/src/graphlib/index.js'
-import { createShapeId, Editor, TLArrowShapeProps, TLShapeId, toRichText, Vec } from 'tldraw'
-import { FRAME_PADDING, FRAME_TOP_PADDING } from './constants'
-import { mapEdgeStrokeToDash, mapEdgeTypeToArrowhead } from './mappings'
-
-/**
- * Convert a dagre node position to frame-local coordinates,
- * centering the dagre layout within the frame's padded inner area.
- */
-export function dagreToFrameLocal(
-	dagrePos: { x: number; y: number },
-	nodeSize: { w: number; h: number },
-	graphSize: { width: number; height: number },
-	frameSize: { w: number; h: number }
-): { x: number; y: number } {
-	const innerW = frameSize.w - FRAME_PADDING * 2
-	const innerH = frameSize.h - FRAME_TOP_PADDING - FRAME_PADDING
-	return {
-		x: FRAME_PADDING + (innerW - graphSize.width) / 2 + dagrePos.x - nodeSize.w / 2,
-		y: FRAME_TOP_PADDING + (innerH - graphSize.height) / 2 + dagrePos.y - nodeSize.h / 2,
-	}
-}
-
-const ANTI_PARALLEL_BEND = 40
+import {
+	createShapeId,
+	Editor,
+	TLArrowShapeProps,
+	TLDefaultDashStyle,
+	TLDefaultSizeStyle,
+	TLGeoShape,
+	TLShapeId,
+	toRichText,
+	Vec,
+} from 'tldraw'
+import { mapEdgeStrokeToDash, mapEdgeTypeToArrowhead, type ParsedCssOverrides } from './mappings'
+import type { ParsedEdge, Vec2 } from './svgParsing'
 
 export interface EdgeInfo {
 	start: string
@@ -29,50 +18,84 @@ export interface EdgeInfo {
 	label?: string
 	type?: string
 	stroke?: string
+	cssOverrides?: ParsedCssOverrides
 }
 
 /**
  * Shared edge creation for flowchart and state diagram.
- * Extracts dagre bend when a graph is provided, detects
- * anti-parallel edges, and delegates to createArrowBetweenShapes.
+ * Each model edge is matched to the SVG edge whose start/end points are
+ * closest to the corresponding node centers, ensuring bend values come
+ * directly from SVG geometry regardless of ordering differences.
  */
 export function createEdgesFromLayout(
 	editor: Editor,
-	direction: string,
 	edges: EdgeInfo[],
 	shapeIds: Map<string, TLShapeId>,
-	dagreGraph?: Graph
+	svgEdges: ParsedEdge[],
+	nodeCenters: Map<string, Vec2>
 ) {
-	const isVertical = ['TB', 'BT'].includes(direction)
-	const edgeDataMap = new Map<string, { points: { x: number; y: number }[] }>()
-	if (dagreGraph) {
-		for (const e of dagreGraph.edges()) {
-			edgeDataMap.set(`${e.v}->${e.w}`, dagreGraph.edge(e.v, e.w, e.name))
-		}
-	}
+	const claimed = new Set<number>()
 
-	const edgeKeys = new Set(edges.map((e) => `${e.start}->${e.end}`))
-
-	for (const e of edges) {
+	for (let i = 0; i < edges.length; i++) {
+		const e = edges[i]
 		const startId = shapeIds.get(e.start)
 		const endId = shapeIds.get(e.end)
 		if (!startId || !endId) continue
 
-		const edgeData = edgeDataMap.get(`${e.start}->${e.end}`)
-		let dagreBend = edgeData ? getArrowBend(edgeData) : 0
-
-		dagreBend += isVertical ? (e.label || '').length * 10 : 0
-
-		const hasReverse = edgeKeys.has(`${e.end}->${e.start}`)
-		const bend = hasReverse && Math.abs(dagreBend) < 30 ? ANTI_PARALLEL_BEND : dagreBend
+		let svgEdge: ParsedEdge | undefined
+		const sc = nodeCenters.get(e.start)
+		const ec = nodeCenters.get(e.end)
+		if (sc && ec) {
+			let bestIdx = -1
+			let bestDist = Infinity
+			for (let j = 0; j < svgEdges.length; j++) {
+				if (claimed.has(j)) continue
+				const pts = svgEdges[j].points
+				if (pts.length < 2) continue
+				const d =
+					Math.hypot(pts[0].x - sc.x, pts[0].y - sc.y) +
+					Math.hypot(pts[pts.length - 1].x - ec.x, pts[pts.length - 1].y - ec.y)
+				if (d < bestDist) {
+					bestDist = d
+					bestIdx = j
+				}
+			}
+			if (bestIdx >= 0) {
+				claimed.add(bestIdx)
+				svgEdge = svgEdges[bestIdx]
+			}
+		}
+		const bend = svgEdge ? getArrowBend(svgEdge) : 0
 
 		createArrowBetweenShapes(editor, startId, endId, {
 			label: e.label,
 			type: e.type,
 			stroke: e.stroke,
 			bend,
+			cssOverrides: e.cssOverrides,
 		})
 	}
+}
+
+function buildArrowProps(
+	type: string | undefined,
+	dash: TLDefaultDashStyle,
+	size: TLDefaultSizeStyle,
+	cssOverrides: ParsedCssOverrides | undefined,
+	label: string | undefined,
+	overrides: Partial<TLArrowShapeProps>
+): Partial<TLArrowShapeProps> {
+	const arrowheadEnd = mapEdgeTypeToArrowhead(type)
+	const props: Partial<TLArrowShapeProps> = {
+		dash,
+		size,
+		arrowheadEnd,
+		...overrides,
+	}
+	if (cssOverrides?.color) props.color = cssOverrides.color
+	if (type?.includes('double_arrow')) props.arrowheadStart = arrowheadEnd
+	if (label) props.richText = toRichText(sanitizeDiagramText(label))
+	return props
 }
 
 export function createArrowBetweenShapes(
@@ -84,10 +107,14 @@ export function createArrowBetweenShapes(
 		type?: string
 		stroke?: string
 		bend: number
+		cssOverrides?: ParsedCssOverrides
 	}
 ) {
-	const { label, type, stroke, bend } = options
+	const { label, type, stroke, bend, cssOverrides } = options
 	const isSelfLoop = startShapeId === endShapeId
+
+	const dash = cssOverrides?.dashOverride ?? mapEdgeStrokeToDash(stroke)
+	const size = cssOverrides?.sizeOverride ?? (stroke === 'thick' ? 'l' : 's')
 
 	const startShapePageBounds = editor.getShapePageBounds(startShapeId)
 	const endShapePageBounds = editor.getShapePageBounds(endShapeId)
@@ -98,25 +125,45 @@ export function createArrowBetweenShapes(
 
 	if (isSelfLoop) {
 		const bounds = startShapePageBounds
-
-		const arrowProps: Partial<TLArrowShapeProps> = {
-			dash: mapEdgeStrokeToDash(stroke),
+		const arrowProps = buildArrowProps(type, dash, size, cssOverrides, label, {
 			start: { x: bounds.w / 2, y: 0 },
 			end: { x: bounds.w, y: bounds.h / 2 },
-			arrowheadEnd: mapEdgeTypeToArrowhead(type),
-			size: stroke && stroke === 'thick' ? 'l' : 'm',
-			bend: -60,
-		}
+			bend: -80,
+		})
 
-		if (type && type.includes('double_arrow')) arrowProps.arrowheadStart = arrowProps.arrowheadEnd
-		if (label) arrowProps.richText = toRichText(label)
+		editor.run(() => {
+			editor.createShape({
+				id: arrowId,
+				type: 'arrow',
+				x: bounds.x,
+				y: bounds.y,
+				props: arrowProps,
+			})
 
-		editor.createShape({
-			id: arrowId,
-			type: 'arrow',
-			x: bounds.x,
-			y: bounds.y,
-			props: arrowProps,
+			editor.createBindings([
+				{
+					fromId: arrowId,
+					toId: startShapeId,
+					type: 'arrow',
+					props: {
+						terminal: 'start',
+						normalizedAnchor: { x: 0.9, y: 0.5 },
+						isExact: false,
+						isPrecise: false,
+					},
+				},
+				{
+					fromId: arrowId,
+					toId: endShapeId,
+					type: 'arrow',
+					props: {
+						terminal: 'end',
+						normalizedAnchor: { x: 0.85, y: 0.8 },
+						isExact: false,
+						isPrecise: false,
+					},
+				},
+			])
 		})
 		return
 	}
@@ -125,8 +172,7 @@ export function createArrowBetweenShapes(
 	const endCenter = endShapePageBounds.center
 	const arrowPoint = Vec.Min(startCenter, endCenter)
 
-	const arrowProps: Partial<TLArrowShapeProps> = {
-		dash: mapEdgeStrokeToDash(stroke),
+	const arrowProps = buildArrowProps(type, dash, size, cssOverrides, label, {
 		start: {
 			x: startCenter.x - arrowPoint.x,
 			y: startCenter.y - arrowPoint.y,
@@ -135,14 +181,8 @@ export function createArrowBetweenShapes(
 			x: endCenter.x - arrowPoint.x,
 			y: endCenter.y - arrowPoint.y,
 		},
-		arrowheadEnd: mapEdgeTypeToArrowhead(type),
-		size: stroke && stroke === 'thick' ? 'l' : 'm',
 		bend,
-	}
-
-	if (type && type.includes('double_arrow')) arrowProps.arrowheadStart = arrowProps.arrowheadEnd
-
-	if (label) arrowProps.richText = toRichText(label)
+	})
 
 	editor.run(() => {
 		editor.createShape({
@@ -181,10 +221,14 @@ export function createArrowBetweenShapes(
 }
 
 /*
- * Takes a list of points generated by dagre
+ * Takes a list of points from Mermaid's layout (edge path waypoints)
  * and extrapolates a bend value for tldraw arrows.
+ * Uses perpendicular distance from chord to mid-points, scaled and clamped.
  */
-function getArrowBend(edgeData: { points: any[] }) {
+const BEND_SCALE = -1.8
+const MAX_ARROW_BEND = 200
+
+function getArrowBend(edgeData: { points: { x: number; y: number }[] }) {
 	const pts = edgeData.points
 
 	if (pts.length < 2) {
@@ -207,7 +251,143 @@ function getArrowBend(edgeData: { points: any[] }) {
 		}
 	}
 
-	const bend = -maxDist * 1.8
-	const MAX_BEND = 120
-	return Math.max(-MAX_BEND, Math.min(MAX_BEND, bend))
+	const bend = maxDist * BEND_SCALE
+	return Math.max(-MAX_ARROW_BEND, Math.min(MAX_ARROW_BEND, bend))
+}
+
+/** Normalize HTML line breaks to newlines and trim; use for any diagram text (labels, notes, etc.). */
+export function sanitizeDiagramText(text: string): string {
+	if (typeof text !== 'string') return ''
+	return text.replace(/<br\s*\/?>/gi, '\n').trim()
+}
+
+// ---------------------------------------------------------------------------
+// Shared constants for flowchart and state diagram
+// ---------------------------------------------------------------------------
+
+/** Scale factor applied to parsed SVG layout (nodes, clusters, edges). */
+export const LAYOUT_SCALE = 1.4
+
+const NODE_CHAR_W = 16
+const NODE_PAD_X = 50
+const NODE_PAD_Y = 20
+const NODE_MIN_W = 100
+const NODE_MIN_H = 50
+const LINE_HEIGHT = 28
+
+/** Compute rectangle node size from label text and (already-scaled) SVG dimensions. */
+export function computeRectNodeSize(
+	label: string,
+	svgW: number,
+	svgH: number,
+	pad?: { w?: number; h?: number }
+): { w: number; h: number } {
+	const lines = label.split('\n')
+	const maxLen = Math.max(...lines.map((l) => l.length), 0)
+	const textMinW = Math.max(NODE_MIN_W, maxLen * NODE_CHAR_W + NODE_PAD_X)
+	const textMinH = Math.max(NODE_MIN_H, lines.length * LINE_HEIGHT + NODE_PAD_Y)
+	return {
+		w: Math.max(svgW, textMinW) + (pad?.w ?? 0),
+		h: Math.max(svgH, textMinH) + (pad?.h ?? 0),
+	}
+}
+
+/** Create a labelled frame (geo rectangle) used for subgraphs and compound states. */
+export function createFrameShape(
+	editor: Editor,
+	frameId: TLShapeId,
+	absX: number,
+	absY: number,
+	w: number,
+	h: number,
+	label: string,
+	parentFrameId?: TLShapeId,
+	parentPos?: Vec2
+) {
+	editor.createShape<TLGeoShape>({
+		id: frameId,
+		type: 'geo',
+		x: parentPos ? absX - parentPos.x : absX,
+		y: parentPos ? absY - parentPos.y : absY,
+		parentId: parentFrameId,
+		props: {
+			geo: 'rectangle',
+			w,
+			h,
+			fill: 'semi',
+			color: 'black',
+			dash: 'draw',
+			size: 's',
+			richText: toRichText(sanitizeDiagramText(label)),
+			align: 'middle',
+			verticalAlign: 'start',
+		},
+	})
+}
+
+// ---------------------------------------------------------------------------
+// Shared layout helpers
+// ---------------------------------------------------------------------------
+
+/** Compute viewport offset to center a bounding box on screen. */
+export function centerOnViewport(
+	editor: Editor,
+	bounds: { minX: number; minY: number; maxX: number; maxY: number }
+): { ox: number; oy: number } {
+	const vp = editor.getViewportPageBounds().center
+	return {
+		ox: vp.x - (bounds.maxX + bounds.minX) / 2,
+		oy: vp.y - (bounds.maxY + bounds.minY) / 2,
+	}
+}
+
+/**
+ * Order items top-down by parent relationship so parents are visited before children.
+ * Works for subgraphs (FlowSubGraph[]) and compound state IDs (string[]).
+ */
+export function orderTopDown<T>(
+	items: T[],
+	getId: (item: T) => string,
+	getParentId: (item: T) => string | undefined
+): T[] {
+	const byId = new Map(items.map((item) => [getId(item), item]))
+	const visited = new Set<string>()
+	const result: T[] = []
+
+	function visit(id: string) {
+		if (visited.has(id)) return
+		visited.add(id)
+		const item = byId.get(id)
+		if (item) result.push(item)
+		for (const child of items) {
+			if (getParentId(child) === id) visit(getId(child))
+		}
+	}
+
+	for (const item of items) {
+		if (!getParentId(item)) visit(getId(item))
+	}
+	return result
+}
+
+/**
+ * Compute axis-aligned bounding box from a collection of positioned rectangles.
+ * Each rect has an origin (x, y) and size (w, h).
+ */
+export function computeBoundsFromRects(
+	...maps: Map<string, { absX: number; absY: number; w: number; h: number }>[]
+): { minX: number; minY: number; maxX: number; maxY: number } {
+	let minX = Infinity,
+		minY = Infinity,
+		maxX = -Infinity,
+		maxY = -Infinity
+	for (const map of maps) {
+		for (const [, r] of map) {
+			minX = Math.min(minX, r.absX)
+			minY = Math.min(minY, r.absY)
+			maxX = Math.max(maxX, r.absX + r.w)
+			maxY = Math.max(maxY, r.absY + r.h)
+		}
+	}
+	return { minX, minY, maxX, maxY }
 }

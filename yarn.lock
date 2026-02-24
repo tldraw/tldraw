@@ -16522,7 +16522,6 @@ __metadata:
     axe-core: "npm:^4.10.3"
     browser-fs-access: "npm:^0.35.0"
     classnames: "npm:^2.5.1"
-    dagre-d3-es: "npm:7.0.13"
     dotenv: "npm:^16.4.7"
     fast-glob: "npm:^3.3.3"
     idb: "npm:^7.1.1"
