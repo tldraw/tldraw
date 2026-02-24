@@ -37,7 +37,9 @@ const sizeCache = createComputedCache(
 	'text size',
 	(editor: Editor, shape: TLTextShape) => {
 		editor.fonts.trackFontsForShape(shape)
-		return getTextSize(editor, shape.props)
+		const util = editor.getShapeUtil(shape) as TextShapeUtil
+		const dv = getDisplayValues(util, shape, false)
+		return getTextSize(editor, shape.props, dv)
 	},
 	{ areRecordsEqual: (a, b) => a.props === b.props }
 )
@@ -47,6 +49,9 @@ export interface TextShapeUtilDisplayValues {
 	fontFamily: string
 	fontSize: number
 	lineHeight: number
+	fontWeight: string
+	fontStyle: string
+	fontVariant: string
 }
 
 /** @public */
@@ -75,6 +80,9 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				fontFamily: FONT_FAMILIES[font],
 				fontSize: FONT_SIZES[size],
 				lineHeight: TEXT_PROPS.lineHeight,
+				fontWeight: TEXT_PROPS.fontWeight,
+				fontStyle: TEXT_PROPS.fontStyle,
+				fontVariant: TEXT_PROPS.fontVariant,
 			}
 		},
 		getDisplayValueOverrides(): Partial<TextShapeUtilDisplayValues> {
@@ -280,7 +288,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const boundsA = this.getMinDimensions(prev)
 
 		// Will always be a fresh call to getTextSize
-		const boundsB = getTextSize(this.editor, next.props)
+		const dv = getDisplayValues(this, next, false)
+		const boundsB = getTextSize(this.editor, next.props, dv)
 
 		const wA = boundsA.width * prev.props.scale
 		const hA = boundsA.height * prev.props.scale
@@ -350,19 +359,21 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	// }
 }
 
-function getTextSize(editor: Editor, props: TLTextShape['props']) {
-	const { font, richText, size, w } = props
+function getTextSize(editor: Editor, props: TLTextShape['props'], dv: TextShapeUtilDisplayValues) {
+	const { richText, w } = props
 
 	const minWidth = 16
-	const fontSize = FONT_SIZES[size]
 
 	const maybeFixedWidth = props.autoSize ? null : Math.max(minWidth, Math.floor(w))
 
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 	const result = editor.textMeasure.measureHtml(html, {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[font],
-		fontSize: fontSize,
+		lineHeight: dv.lineHeight,
+		fontWeight: dv.fontWeight,
+		fontStyle: dv.fontStyle,
+		padding: '0px',
+		fontFamily: dv.fontFamily,
+		fontSize: dv.fontSize,
 		maxWidth: maybeFixedWidth,
 	})
 
@@ -371,7 +382,7 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 	// whatever we get to avoid wrapping.
 	return {
 		width: maybeFixedWidth ?? Math.max(minWidth, result.w + 1),
-		height: Math.max(fontSize, result.h),
+		height: Math.max(dv.fontSize, result.h),
 	}
 }
 

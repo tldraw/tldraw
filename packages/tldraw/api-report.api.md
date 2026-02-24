@@ -3374,6 +3374,12 @@ export interface TextShapeUtilDisplayValues {
     // (undocumented)
     fontSize: number;
     // (undocumented)
+    fontStyle: string;
+    // (undocumented)
+    fontVariant: string;
+    // (undocumented)
+    fontWeight: string;
+    // (undocumented)
     lineHeight: number;
 }
 
