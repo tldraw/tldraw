@@ -134,11 +134,25 @@ export class TldrawDurableObject extends DurableObject {
 	}
 
 	private handleWebSocketEnd(ws: WebSocket, method: 'handleSocketClose' | 'handleSocketError') {
-		const sessionId = this.getSessionId(ws)
-		if (!sessionId) return
+		const attachment = ws.deserializeAttachment() as SocketAttachment | null
+		if (!attachment?.sessionId) return
 
-		this.snapshotTimers.delete(sessionId)
-		this.getOrCreateRoom()[method](sessionId)
+		this.snapshotTimers.delete(attachment.sessionId)
+
+		const room = this.getOrCreateRoom()
+
+		// If the DO was hibernating, this session was never re-added to the room
+		// (ctx.getWebSockets() doesn't include the disconnecting socket). Resume it
+		// briefly so the room can broadcast presence removal to other clients.
+		if (attachment.snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
+			room.handleSocketResume({
+				sessionId: attachment.sessionId,
+				socket: ws,
+				snapshot: attachment.snapshot,
+			})
+		}
+
+		room[method](attachment.sessionId)
 	}
 
 	// --- Snapshot persistence for hibernation ---
