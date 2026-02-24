@@ -1,11 +1,6 @@
 import {
 	Box,
-	DefaultFontFamilies,
 	ExtractShapeByProps,
-	TLDefaultFillStyle,
-	TLDefaultFontStyle,
-	TLDefaultHorizontalAlignStyle,
-	TLDefaultVerticalAlignStyle,
 	TLEventInfo,
 	TLRichText,
 	TLShapeId,
@@ -19,20 +14,17 @@ import classNames from 'classnames'
 import React, { useMemo } from 'react'
 import { renderHtmlFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
-import { TEXT_PROPS } from './default-shape-constants'
-import { isLegacyAlign } from './legacyProps'
 import { useEditableRichText } from './useEditableRichText'
 
 /** @public */
 export interface RichTextLabelProps {
 	shapeId: TLShapeId
 	type: ExtractShapeByProps<{ richText: TLRichText }>['type']
-	font: TLDefaultFontStyle
+	fontFamily: string
 	fontSize: number
 	lineHeight: number
-	fill?: TLDefaultFillStyle
-	align: TLDefaultHorizontalAlignStyle
-	verticalAlign: TLDefaultVerticalAlignStyle
+	textAlign: 'start' | 'center' | 'end'
+	verticalAlign: 'start' | 'center' | 'end'
 	wrap?: boolean
 	richText?: TLRichText
 	labelColor: string
@@ -60,10 +52,10 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	type,
 	richText,
 	labelColor,
-	font,
+	fontFamily,
 	fontSize,
 	lineHeight,
-	align,
+	textAlign,
 	verticalAlign,
 	wrap,
 	isSelected,
@@ -103,8 +95,6 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		[editor]
 	)
 
-	const legacyAlign = isLegacyAlign(align)
-
 	const handlePointerDown = (e: React.MouseEvent<HTMLDivElement>) => {
 		if (e.target instanceof HTMLElement && (e.target.tagName === 'A' || e.target.closest('a'))) {
 			// This mousedown prevent default is to let dragging when over a link work.
@@ -138,15 +128,21 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				showTextOutline ? 'tl-text__outline' : 'tl-text__no-outline'
 			)}
 			aria-hidden={!isEditing}
-			data-font={font}
-			data-align={align}
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
 			data-textwrap={!!wrap}
 			data-isselected={isSelected}
 			style={{
-				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
-				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+				fontFamily,
+				textAlign,
+				justifyContent:
+					textAlign === 'center' ? 'center' : textAlign === 'end' ? 'flex-end' : 'flex-start',
+				alignItems:
+					verticalAlign === 'center'
+						? 'center'
+						: verticalAlign === 'end'
+							? 'flex-end'
+							: 'flex-start',
 				padding,
 				...style,
 			}}
@@ -197,9 +193,10 @@ export interface RichTextSVGProps {
 	bounds: Box
 	richText: TLRichText
 	fontSize: number
-	font: TLDefaultFontStyle
-	align: TLDefaultHorizontalAlignStyle
-	verticalAlign: TLDefaultVerticalAlignStyle
+	fontFamily: string
+	lineHeight: number
+	textAlign: 'start' | 'center' | 'end'
+	verticalAlign: 'start' | 'center' | 'end'
 	wrap?: boolean
 	labelColor: string
 	padding: number
@@ -215,8 +212,9 @@ export function RichTextSVG({
 	bounds,
 	richText,
 	fontSize,
-	font,
-	align,
+	fontFamily,
+	lineHeight,
+	textAlign,
 	verticalAlign,
 	wrap,
 	labelColor,
@@ -225,23 +223,17 @@ export function RichTextSVG({
 }: RichTextSVGProps) {
 	const editor = useEditor()
 	const html = renderHtmlFromRichText(editor, richText)
-	const textAlign =
-		align === 'middle'
-			? ('center' as const)
-			: align === 'start'
-				? ('start' as const)
-				: ('end' as const)
 	const justifyContent =
-		align === 'middle'
+		textAlign === 'center'
 			? ('center' as const)
-			: align === 'start'
+			: textAlign === 'start'
 				? ('flex-start' as const)
 				: ('flex-end' as const)
 	const alignItems =
-		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
+		verticalAlign === 'center' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
 	const wrapperStyle = {
 		display: 'flex',
-		fontFamily: DefaultFontFamilies[font],
+		fontFamily,
 		height: `100%`,
 		justifyContent,
 		alignItems,
@@ -251,7 +243,7 @@ export function RichTextSVG({
 		fontSize: `${fontSize}px`,
 		wrap: wrap ? 'wrap' : 'nowrap',
 		color: labelColor,
-		lineHeight: TEXT_PROPS.lineHeight,
+		lineHeight,
 		textAlign,
 		width: '100%',
 		wordWrap: 'break-word' as const,

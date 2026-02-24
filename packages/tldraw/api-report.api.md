@@ -1786,9 +1786,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     };
     // (undocumented)
-    options: {
-        showTextOutline: boolean;
-    };
+    options: GeoShapeUtilOptions;
     // (undocumented)
     static props: RecordProps<TLGeoShape>;
     // (undocumented)
@@ -1797,6 +1795,53 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     static type: "geo";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface GeoShapeUtilDisplayValues {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    labelEdgeMargin: number;
+    // (undocumented)
+    labelFontFamily: string;
+    // (undocumented)
+    labelFontSize: number;
+    // (undocumented)
+    labelFontStyle: string;
+    // (undocumented)
+    labelFontVariant: string;
+    // (undocumented)
+    labelFontWeight: string;
+    // (undocumented)
+    labelHorizontalAlign: 'center' | 'end' | 'start';
+    // (undocumented)
+    labelLineHeight: number;
+    // (undocumented)
+    labelMinWidth: number;
+    // (undocumented)
+    labelPadding: number;
+    // (undocumented)
+    labelVerticalAlign: 'center' | 'end' | 'start';
+    // (undocumented)
+    minSizeWithLabel: number;
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeRoundness: number;
+    // (undocumented)
+    strokeWidth: number;
+}
+
+// @public (undocumented)
+export interface GeoShapeUtilOptions {
+    // (undocumented)
+    getDisplayValueOverrides(editor: Editor, shape: TLGeoShape, isDarkMode: boolean): Partial<GeoShapeUtilDisplayValues>;
+    getDisplayValues(editor: Editor, shape: TLGeoShape, isDarkMode: boolean): GeoShapeUtilDisplayValues;
+    // (undocumented)
+    showTextOutline: boolean;
 }
 
 // @public (undocumented)
@@ -2676,15 +2721,11 @@ export const RichTextLabel: React_3.NamedExoticComponent<RichTextLabelProps>;
 // @public (undocumented)
 export interface RichTextLabelProps {
     // (undocumented)
-    align: TLDefaultHorizontalAlignStyle;
-    // (undocumented)
     bounds?: Box;
     // (undocumented)
     classNamePrefix?: string;
     // (undocumented)
-    fill?: TLDefaultFillStyle;
-    // (undocumented)
-    font: TLDefaultFontStyle;
+    fontFamily: string;
     // (undocumented)
     fontSize: number;
     // (undocumented)
@@ -2708,6 +2749,8 @@ export interface RichTextLabelProps {
     // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)
+    textAlign: 'center' | 'end' | 'start';
+    // (undocumented)
     textHeight?: number;
     // (undocumented)
     textWidth?: number;
@@ -2716,26 +2759,26 @@ export interface RichTextLabelProps {
         richText: TLRichText;
     }>['type'];
     // (undocumented)
-    verticalAlign: TLDefaultVerticalAlignStyle;
+    verticalAlign: 'center' | 'end' | 'start';
     // (undocumented)
     wrap?: boolean;
 }
 
 // @public
-export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, showTextOutline }: RichTextSVGProps): JSX.Element;
+export function RichTextSVG({ bounds, richText, fontSize, fontFamily, lineHeight, textAlign, verticalAlign, wrap, labelColor, padding, showTextOutline }: RichTextSVGProps): JSX.Element;
 
 // @public (undocumented)
 export interface RichTextSVGProps {
     // (undocumented)
-    align: TLDefaultHorizontalAlignStyle;
-    // (undocumented)
     bounds: Box;
     // (undocumented)
-    font: TLDefaultFontStyle;
+    fontFamily: string;
     // (undocumented)
     fontSize: number;
     // (undocumented)
     labelColor: string;
+    // (undocumented)
+    lineHeight: number;
     // (undocumented)
     padding: number;
     // (undocumented)
@@ -2743,7 +2786,9 @@ export interface RichTextSVGProps {
     // (undocumented)
     showTextOutline?: boolean;
     // (undocumented)
-    verticalAlign: TLDefaultVerticalAlignStyle;
+    textAlign: 'center' | 'end' | 'start';
+    // (undocumented)
+    verticalAlign: 'center' | 'end' | 'start';
     // (undocumented)
     wrap?: boolean;
 }

@@ -58,6 +58,21 @@ import {
 	getNoteShapeForAdjacentPosition,
 } from './noteHelpers'
 
+const HORIZONTAL_ALIGNS = {
+	start: 'start',
+	middle: 'center',
+	end: 'end',
+	'start-legacy': 'start',
+	'end-legacy': 'end',
+	'middle-legacy': 'center',
+} as const
+
+const VERTICAL_ALIGNS = {
+	start: 'start',
+	middle: 'center',
+	end: 'end',
+} as const
+
 /** @public */
 export interface NoteShapeOptions {
 	/**
@@ -301,11 +316,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						<RichTextLabel
 							shapeId={id}
 							type={type}
-							font={font}
+							fontFamily={FONT_FAMILIES[font]}
 							fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
 							lineHeight={TEXT_PROPS.lineHeight}
-							align={align}
-							verticalAlign={verticalAlign}
+							textAlign={HORIZONTAL_ALIGNS[align]}
+							verticalAlign={VERTICAL_ALIGNS[verticalAlign]}
 							richText={richText}
 							isSelected={isSelected}
 							labelColor={
@@ -355,9 +370,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const textLabel = (
 			<RichTextSVG
 				fontSize={shape.props.fontSizeAdjustment || LABEL_FONT_SIZES[shape.props.size]}
-				font={shape.props.font}
-				align={shape.props.align}
-				verticalAlign={shape.props.verticalAlign}
+				fontFamily={FONT_FAMILIES[shape.props.font]}
+				lineHeight={TEXT_PROPS.lineHeight}
+				textAlign={HORIZONTAL_ALIGNS[shape.props.align]}
+				verticalAlign={VERTICAL_ALIGNS[shape.props.verticalAlign]}
 				richText={shape.props.richText}
 				labelColor={getColorValue(theme, shape.props.color, 'noteText')}
 				bounds={bounds}

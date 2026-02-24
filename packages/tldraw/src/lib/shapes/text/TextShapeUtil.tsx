@@ -133,11 +133,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				shapeId={id}
 				classNamePrefix="tl-text-shape"
 				type="text"
-				font={font}
+				fontFamily={FONT_FAMILIES[font]}
 				fontSize={FONT_SIZES[size]}
 				lineHeight={TEXT_PROPS.lineHeight}
-				align={textAlign}
-				verticalAlign="middle"
+				textAlign={textAlign === 'middle' ? 'center' : textAlign}
+				verticalAlign="center"
 				richText={richText}
 				labelColor={getColorValue(theme, color, 'solid')}
 				isSelected={isSelected}
@@ -184,9 +184,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return (
 			<RichTextSVG
 				fontSize={FONT_SIZES[shape.props.size]}
-				font={shape.props.font}
-				align={shape.props.textAlign}
-				verticalAlign="middle"
+				fontFamily={FONT_FAMILIES[shape.props.font]}
+				lineHeight={TEXT_PROPS.lineHeight}
+				textAlign={shape.props.textAlign === 'middle' ? 'center' : shape.props.textAlign}
+				verticalAlign="center"
 				richText={shape.props.richText}
 				labelColor={getColorValue(theme, shape.props.color, 'solid')}
 				bounds={exportBounds}

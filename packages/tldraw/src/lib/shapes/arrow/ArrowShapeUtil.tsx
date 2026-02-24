@@ -52,7 +52,12 @@ import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/r
 import { PathBuilder } from '../shared/PathBuilder'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { ShapeFill } from '../shared/ShapeFill'
-import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import {
+	ARROW_LABEL_PADDING,
+	FONT_FAMILIES,
+	STROKE_SIZES,
+	TEXT_PROPS,
+} from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
@@ -789,11 +794,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					<RichTextLabel
 						shapeId={shape.id}
 						type="arrow"
-						font={shape.props.font}
+						fontFamily={FONT_FAMILIES[shape.props.font]}
 						fontSize={getArrowLabelFontSize(shape)}
 						lineHeight={TEXT_PROPS.lineHeight}
-						align="middle"
-						verticalAlign="middle"
+						textAlign="center"
+						verticalAlign="center"
 						labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
 						richText={shape.props.richText}
 						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
@@ -1066,9 +1071,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				<ArrowSvg shape={shape} shouldDisplayHandles={false} />
 				<RichTextSVG
 					fontSize={getArrowLabelFontSize(shape)}
-					font={shape.props.font}
-					align="middle"
-					verticalAlign="middle"
+					fontFamily={FONT_FAMILIES[shape.props.font]}
+					lineHeight={TEXT_PROPS.lineHeight}
+					textAlign="center"
+					verticalAlign="center"
 					labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
 					richText={shape.props.richText}
 					bounds={getArrowLabelPosition(this.editor, shape)
