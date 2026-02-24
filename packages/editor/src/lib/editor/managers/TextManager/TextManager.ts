@@ -102,8 +102,7 @@ const initialDefaultStyles = Object.freeze({
 /** @public */
 export class TextManager {
 	private elm: HTMLDivElement
-	private canvas: HTMLCanvasElement
-	private canvasCtx: CanvasRenderingContext2D
+	private canvasCtx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
 	private uwrapCache = new Map<string, UWrapInstance>()
 	private resolvedFontCache = new Map<string, string>()
 
@@ -121,9 +120,13 @@ export class TextManager {
 			elm.style.setProperty(key, initialDefaultStyles[key])
 		}
 
-		// Create an off-screen canvas for uWrap text measurement
-		this.canvas = document.createElement('canvas')
-		this.canvasCtx = this.canvas.getContext('2d')!
+		// Use OffscreenCanvas when available for faster text measurement.
+		const ctx =
+			(typeof OffscreenCanvas !== 'undefined'
+				? new OffscreenCanvas(1, 1).getContext('2d')
+				: null) ?? document.createElement('canvas').getContext('2d')
+		if (!ctx) throw new Error('Could not create canvas 2d context for text measurement')
+		this.canvasCtx = ctx
 	}
 
 	/**
@@ -167,7 +170,7 @@ export class TextManager {
 		// Note: Canvas2D doesn't directly support lineHeight, but uWrap only needs
 		// the font for character width measurement. Line height is handled separately.
 
-		const wrapper = varPreLine(ctx)
+		const wrapper = varPreLine(ctx as CanvasRenderingContext2D)
 		this.uwrapCache.set(key, wrapper)
 		return wrapper
 	}
