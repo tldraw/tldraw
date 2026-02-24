@@ -7,19 +7,17 @@ Call this tool first.
 
 ## Workflow
 
-1. Build normal JSON arrays first (\`FocusedShape[]\`, \`FocusedShapeUpdate[]\`, or \`string[]\`).
-2. Pass tool args as \`JSON.stringify(array)\` outputs.
-3. Use \`create_shapes\` with \`shapesJson\` to add or replace shapes by id.
-4. Optionally set \`new_blank_canvas: true\` on \`create_shapes\` to start from a new blank canvas.
-5. Use \`update_shapes\` with \`updatesJson\` to patch existing shapes.
-6. Use \`delete_shapes\` with \`shapeIdsJson\` to remove shapes.
-7. Optionally call \`get_canvas_state\` to inspect the latest server snapshot.
+1. Use \`create_shapes\` to create shapes on a new fork of the active canvas.
+2. Optionally set \`new_blank_canvas: true\` on \`create_shapes\` to start from a new blank canvas.
+3. Use \`update_shapes\` to patch existing shapes.
+4. Use \`delete_shapes\` to remove shapes.
+5. Optionally call \`get_canvas_state\` to inspect the latest server snapshot.
 
 **Important**
-- All shape mutation tools use JSON string arguments to support partial-input streaming in app UIs.
+- All shape mutation tools use JSON string arguments.
 - Each \`update_shapes\` and \`delete_shapes\` call automatically forks the current active canvas before applying changes.
 - \`create_shapes\` also forks by default, unless \`new_blank_canvas: true\` is provided.
-- Keep numeric fields as numbers in the underlying array objects (for example \`x: 100\`, not \`"100"\`) before stringifying.
+- Keep numeric fields as numbers in the underlying array objects (for example \`x: 100\`, not \`"100"\`) before stringifying. This is required, do not forget it.
 
 ## FocusedShape format
 
@@ -27,117 +25,38 @@ Shapes are JSON objects with a \`_type\` discriminator and unique \`shapeId\`.
 
 ### Geo shape
 \`\`\`json
-{
-  "_type": "rectangle",
-  "shapeId": "box1",
-  "x": 100,
-  "y": 100,
-  "w": 200,
-  "h": 120,
-  "color": "blue",
-  "fill": "tint",
-  "dash": "draw",
-  "size": "m",
-  "font": "draw",
-  "text": "Hello",
-  "textAlign": "middle",
-  "note": "optional note"
-}
+{ "_type": "rectangle", "shapeId": "box1", "x": 100, "y": 100, "w": 200, "h": 120, "color": "blue", "fill": "tint", "dash": "draw", "size": "m", "font": "draw", "text": "Hello", "textAlign": "middle", "note": "optional note"}
 \`\`\`
 
 ### Text shape
 \`\`\`json
-{
-  "_type": "text",
-  "shapeId": "label1",
-  "x": 120,
-  "y": 80,
-  "text": "Hello World",
-  "color": "black",
-  "anchor": "top-left",
-  "size": "m",
-  "font": "draw",
-  "maxWidth": null,
-  "fontSize": 16,
-  "note": "optional note"
+{ "_type": "text", "shapeId": "label1", "x": 120, "y": 80, "text": "Hello World", "color": "black", "anchor": "top-left", "size": "m", "font": "draw", "maxWidth": null, "fontSize": 16, "note": "optional note"
 }
 \`\`\`
 
 ### Arrow shape
 \`\`\`json
-{
-  "_type": "arrow",
-  "shapeId": "arrow1",
-  "x1": 300,
-  "y1": 150,
-  "x2": 500,
-  "y2": 150,
-  "color": "black",
-  "dash": "draw",
-  "size": "m",
-  "text": "connects",
-  "bend": 0,
-  "fromId": "box1",
-  "toId": "box2",
-  "note": "optional note"
-}
+{ "_type": "arrow", "shapeId": "arrow1", "x1": 300, "y1": 150, "x2": 500, "y2": 150, "color": "black", "dash": "draw", "size": "m", "text": "connects", "bend": 0, "fromId": "box1", "toId": "box2", "note": "optional note"}
 \`\`\`
 
 ### Line shape
 \`\`\`json
-{
-  "_type": "line",
-  "shapeId": "line1",
-  "x1": 100,
-  "y1": 100,
-  "x2": 300,
-  "y2": 200,
-  "color": "grey",
-  "dash": "draw",
-  "size": "m",
-  "note": "optional note"
-}
+{ "_type": "line", "shapeId": "line1", "x1": 100, "y1": 100, "x2": 300, "y2": 200, "color": "grey", "dash": "draw", "size": "m", "note": "optional note"}
 \`\`\`
 
 ### Note shape
 \`\`\`json
-{
-  "_type": "note",
-  "shapeId": "note1",
-  "x": 100,
-  "y": 100,
-  "color": "yellow",
-  "text": "Remember this",
-  "size": "m",
-  "font": "draw",
-  "note": "optional note"
-}
+{ "_type": "note", "shapeId": "note1", "x": 100, "y": 100, "color": "yellow", "text": "Remember this", "size": "m", "font": "draw", "note": "optional note"}
 \`\`\`
 
 ### Draw shape
 \`\`\`json
-{
-  "_type": "draw",
-  "shapeId": "scribble1",
-  "color": "blue",
-  "fill": "none",
-  "note": "optional note"
-}
+{ "_type": "draw", "shapeId": "scribble1", "color": "blue", "fill": "none", "note": "optional note"}
 \`\`\`
 
 ### Frame shape
 \`\`\`json
-{
-  "_type": "frame",
-  "shapeId": "backend",
-  "x": 0,
-  "y": 0,
-  "w": 500,
-  "h": 300,
-  "name": "Backend Services",
-  "children": ["api", "db", "cache"],
-  "note": "optional note"
-}
+{ "_type": "frame", "shapeId": "backend", "x": 0, "y": 0, "w": 500, "h": 300, "name": "Backend Services", "children": ["api", "db", "cache"], "note": "optional note"}
 \`\`\`
 
 ### Enums

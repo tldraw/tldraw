@@ -160,6 +160,10 @@ function getCanvasInfos(): CanvasInfo[] {
 		.sort((a, b) => a.canvasNumber - b.canvasNumber)
 }
 
+export function getAllCanvasSnapshots(): CanvasSnapshot[] {
+	return Array.from(canvases.keys()).map((id) => getCanvasSnapshot(id))
+}
+
 export function getCanvasSnapshot(canvasId?: string): CanvasSnapshot {
 	const resolvedCanvasId = resolveCanvasId(canvasId)
 	const data = getCanvasDataOrThrow(resolvedCanvasId)

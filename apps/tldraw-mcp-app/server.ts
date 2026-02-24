@@ -9,6 +9,7 @@ import { z } from 'zod'
 import {
 	createCanvasShapes,
 	deleteCanvasShapes,
+	getAllCanvasSnapshots,
 	getCanvasSnapshot,
 	replaceCanvasSnapshot,
 	updateCanvasShapes,
@@ -20,7 +21,7 @@ import {
 	parseJsonArray,
 	parseShapeIdsInput,
 } from './src/parse-json.js'
-import { loadCachedCanvasWidgetHtml } from './src/tools/create-view'
+import { loadCachedCanvasWidgetHtml } from './src/tools/loadCachedCanvasWidgetHtml.js'
 import { READ_ME_CONTENT } from './src/tools/read-me.js'
 
 export const server = new McpServer({
@@ -187,6 +188,34 @@ server.registerTool(
 	async (): Promise<CallToolResult> => {
 		try {
 			return snapshotResponse('Canvas snapshot retrieved.', getCanvasSnapshot())
+		} catch (err) {
+			return errorResponse(err)
+		}
+	}
+)
+
+// --- get_all_canvas_snapshots ---
+
+server.registerTool(
+	'get_all_canvas_snapshots',
+	{
+		title: 'Get All Canvas Snapshots',
+		description: 'Returns snapshots for every canvas.',
+		inputSchema: z.object({}),
+		_meta: { ui: { visibility: ['app'] } },
+	},
+	async (): Promise<CallToolResult> => {
+		try {
+			const snapshots = getAllCanvasSnapshots()
+			return {
+				content: [
+					{
+						type: 'text',
+						text: `Retrieved ${snapshots.length} canvas snapshot(s).`,
+					},
+				],
+				structuredContent: { snapshots },
+			}
 		} catch (err) {
 			return errorResponse(err)
 		}

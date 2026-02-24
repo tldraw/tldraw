@@ -10,6 +10,7 @@ import {
 	convertFocusedShapeToTldrawRecord,
 	convertTldrawRecordToFocusedShape,
 } from '../focused-shape'
+import { healJsonArrayString } from '../parse-json'
 
 const EDITOR_HEIGHT = 600
 const SYNC_DEBOUNCE_MS = 350
@@ -79,7 +80,7 @@ function extractSnapshotFromToolResult(result: unknown): CanvasSnapshot | null {
 }
 
 function parsePartialJsonArray(value: string): unknown[] {
-	const trimmed = value.trim()
+	const trimmed = healJsonArrayString(value.trim())
 	if (!trimmed.startsWith('[')) return []
 
 	const candidates: string[] = [trimmed]
@@ -291,6 +292,45 @@ function applySnapshot(editor: Editor, snapshot: CanvasSnapshot) {
 	})
 }
 
+function LogAllSnapshotsButton({ app }: { app: App }) {
+	const handleClick = useCallback(async () => {
+		try {
+			const result = await app.callServerTool({
+				name: 'get_all_canvas_snapshots',
+				arguments: {},
+			})
+			const payload = isRecord(result) ? result.structuredContent : result
+			log(JSON.stringify(payload, null, 2))
+			log('Logged all canvas snapshots to console')
+		} catch (err) {
+			const msg = err instanceof Error ? err.message : String(err)
+			log(`Failed to get all snapshots: ${msg}`)
+		}
+	}, [app])
+
+	return (
+		<button
+			onClick={handleClick}
+			style={{
+				position: 'fixed',
+				top: 8,
+				right: 8,
+				zIndex: 999999,
+				padding: '6px 12px',
+				fontSize: 12,
+				fontFamily: 'monospace',
+				background: '#222',
+				color: '#0f0',
+				border: '1px solid #0f0',
+				borderRadius: 4,
+				cursor: 'pointer',
+			}}
+		>
+			Log all snapshots
+		</button>
+	)
+}
+
 function TldrawCanvas({ app }: { app: App }) {
 	const editorRef = useRef<Editor | null>(null)
 	const pendingSnapshotRef = useRef<CanvasSnapshot | null>(null)
@@ -352,6 +392,9 @@ function TldrawCanvas({ app }: { app: App }) {
 
 	const applyPreviewFromToolInput = useCallback(
 		(input: unknown, isPartial: boolean) => {
+			if (!canvasIdRef.current) return
+			const committed = committedSnapshotRef.current
+
 			const args = extractToolArguments(input)
 			if (!args) return
 
@@ -369,7 +412,7 @@ function TldrawCanvas({ app }: { app: App }) {
 				}
 				const blankFlag = parseNewBlankCanvasFlag(args.new_blank_canvas, isPartial)
 				if (blankFlag === true) createFromBlankPreviewRef.current = true
-				if (blankFlag === false && !isPartial) createFromBlankPreviewRef.current = false
+				if (blankFlag === false) createFromBlankPreviewRef.current = false
 			}
 
 			const createPreviewShapes = toCreatePreviewShapes(args.shapesJson, isPartial)
@@ -378,18 +421,6 @@ function TldrawCanvas({ app }: { app: App }) {
 				return
 			}
 
-			if (isCreateCall && createFromBlankPreviewRef.current) {
-				const committed = committedSnapshotRef.current
-				const blankSnapshot: CanvasSnapshot = {
-					canvasId: committed.canvasId,
-					version: committed.version,
-					shapes: [],
-				}
-				renderPreviewSnapshot(blankSnapshot, 'Applied create preview on blank canvas (0 shape(s))')
-				return
-			}
-
-			const committed = committedSnapshotRef.current
 			const updatePreviewShapes = toUpdatePreviewShapes(
 				args.updatesJson,
 				isPartial,
@@ -454,18 +485,28 @@ function TldrawCanvas({ app }: { app: App }) {
 	const applyIncomingSnapshot = useCallback((snapshot: CanvasSnapshot) => {
 		const incomingCanvasId = snapshot.canvasId
 		const currentCanvasId = canvasIdRef.current
+		let canvasChanged = false
 
 		if (incomingCanvasId) {
-			if (currentCanvasId && currentCanvasId !== incomingCanvasId) return
 			if (!currentCanvasId) {
 				canvasIdRef.current = incomingCanvasId
+				canvasChanged = true
 				log(`Bound to canvas ${incomingCanvasId}`)
+			} else if (currentCanvasId !== incomingCanvasId) {
+				canvasIdRef.current = incomingCanvasId
+				canvasChanged = true
+				log(`Rebound to canvas ${incomingCanvasId}`)
 			}
 		} else if (currentCanvasId) {
 			return
 		}
 
-		if (snapshot.version <= localVersionRef.current) return
+		if (!canvasChanged && snapshot.version <= localVersionRef.current) return
+
+		if (canvasChanged && pushTimerRef.current !== null) {
+			window.clearTimeout(pushTimerRef.current)
+			pushTimerRef.current = null
+		}
 
 		previewActiveRef.current = false
 		createFromBlankPreviewRef.current = false
@@ -637,7 +678,7 @@ function McpApp() {
 
 	return (
 		<div>
-			{/* <div
+			<div
 				id="debug"
 				style={{
 					position: 'fixed',
@@ -656,13 +697,16 @@ function McpApp() {
 				}}
 			>
 				{debugLines.join('\n')}
-			</div> */}
+			</div>
 			{error ? (
 				<div style={{ padding: 20, color: 'red' }}>Error: {error.message}</div>
 			) : !isConnected || !app ? (
 				<div style={{ padding: 20, opacity: 0.5 }}>Status: {status}</div>
 			) : (
-				<TldrawCanvas app={app} />
+				<>
+					<LogAllSnapshotsButton app={app} />
+					<TldrawCanvas app={app} />
+				</>
 			)}
 		</div>
 	)
