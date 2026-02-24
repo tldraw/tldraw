@@ -7,16 +7,13 @@ Call this tool first.
 
 ## Workflow
 
-1. Use \`create_shapes\` to create shapes on a new fork of the active canvas.
-2. Optionally set \`new_blank_canvas: true\` on \`create_shapes\` to start from a new blank canvas.
+1. Use \`create_shapes\` to create shapes on the canvas.
+2. Optionally set \`new_blank_canvas: true\` on \`create_shapes\` to start from a blank canvas.
 3. Use \`update_shapes\` to patch existing shapes.
 4. Use \`delete_shapes\` to remove shapes.
-5. Optionally call \`get_canvas_state\` to inspect the latest server snapshot.
 
 **Important**
 - All shape mutation tools use JSON string arguments.
-- Each \`update_shapes\` and \`delete_shapes\` call automatically forks the current active canvas before applying changes.
-- \`create_shapes\` also forks by default, unless \`new_blank_canvas: true\` is provided.
 - Keep numeric fields as numbers in the underlying array objects (for example \`x: 100\`, not \`"100"\`) before stringifying. This is required, do not forget it.
 
 ## FocusedShape format
@@ -60,7 +57,7 @@ Shapes are JSON objects with a \`_type\` discriminator and unique \`shapeId\`.
 \`\`\`
 
 ### Enums
-- Geo \`_type\`: rectangle, ellipse, triangle, diamond, hexagon, pill, cloud, x-box, check-box, heart, pentagon, octagon, star, parallelogram-right, parallelogram-left, trapezoid, fat-arrow-right, fat-arrow-left, fat-arrow-up, fat-arrow-down, geo
+- Geo \`_type\`: rectangle, ellipse, triangle, diamond, hexagon, pill, cloud, x-box, check-box, heart, pentagon, octagon, star, parallelogram-right, parallelogram-left, trapezoid, fat-arrow-right, fat-arrow-left, fat-arrow-up, fat-arrow-down,
 - Colors: red, light-red, green, light-green, blue, light-blue, orange, yellow, black, violet, light-violet, grey, white
 - Fill: none, tint, background, solid, pattern
 - Dash: draw, solid, dashed, dotted
@@ -73,7 +70,7 @@ Shapes are JSON objects with a \`_type\` discriminator and unique \`shapeId\`.
 
 ### create_shapes
 Creates one or more shapes from a JSON string.
-- \`new_blank_canvas\` (optional boolean, default \`false\`): when \`true\`, create on a new blank canvas instead of a derived canvas
+- \`new_blank_canvas\` (optional boolean, default \`false\`): when \`true\`, clears the canvas before creating shapes
 - \`shapesJson\`: JSON string of \`FocusedShape[]\`
 
 ### update_shapes
@@ -84,10 +81,6 @@ Updates one or more existing shapes from a JSON string.
 ### delete_shapes
 Deletes shapes by id from a JSON string.
 - \`shapeIdsJson\`: JSON string of \`string[]\`
-
-### get_canvas_state
-Returns the active canvas snapshot (shape records + focusedShapes + metadata).
-- Input: none
 
 ## Example tool payloads
 
