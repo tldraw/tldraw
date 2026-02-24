@@ -4,7 +4,7 @@ import { trackEvent } from '../../../../utils/analytics'
 
 const SDK_URL = 'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=debug'
 const TOAST_ID = 'debug-sdk-toast'
-const TOAST_DELAY = 30_000
+const TOAST_DELAY = 10_000
 
 export function SneakyDebugModeToast() {
 	const editor = useEditor()
@@ -25,7 +25,7 @@ export function SneakyDebugModeToast() {
 		const timeout = setTimeout(() => {
 			toastsRef.current.addToast({
 				id: TOAST_ID,
-				description: 'Want to build a custom canvas application?',
+				description: 'Want to build with tldraw?',
 				keepOpen: true,
 				actions: [
 					{
