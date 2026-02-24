@@ -5,6 +5,7 @@ import { type TLShape, Editor, Tldraw, getIndexAbove, structuredClone } from 'tl
 import 'tldraw/tldraw.css'
 import {
 	type FocusedShape,
+	type FocusedShapeUpdate,
 	FocusedShapeSchema,
 	FocusedShapeUpdateSchema,
 	convertFocusedShapeToTldrawRecord,
@@ -13,14 +14,30 @@ import {
 import { healJsonArrayString } from '../parse-json'
 
 const EDITOR_HEIGHT = 600
-const SYNC_DEBOUNCE_MS = 350
-const POLL_INTERVAL_MS = 1500
+const CONTEXT_DEBOUNCE_MS = 500
 
 interface CanvasSnapshot {
-	canvasId?: string
-	version: number
 	shapes: TLShape[]
 }
+
+interface CreateMutation {
+	action: 'create'
+	newBlankCanvas: boolean
+	focusedShapes: FocusedShape[]
+	tldrawRecords: TLShape[]
+}
+
+interface UpdateMutation {
+	action: 'update'
+	updates: FocusedShapeUpdate[]
+}
+
+interface DeleteMutation {
+	action: 'delete'
+	shapeIds: string[]
+}
+
+type Mutation = CreateMutation | UpdateMutation | DeleteMutation
 
 const debugLines: string[] = []
 function log(msg: string) {
@@ -36,6 +53,197 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null
 }
 
+function normalizeShapeId(shapeId: string): string {
+	return shapeId.startsWith('shape:') ? shapeId : `shape:${shapeId}`
+}
+
+function toSimpleShapeId(shapeId: string): string {
+	return shapeId.replace(/^shape:/, '')
+}
+
+function deepMerge(base: unknown, patch: unknown): unknown {
+	if (!isRecord(base) || !isRecord(patch)) return patch
+
+	const merged: Record<string, unknown> = { ...base }
+	for (const [key, value] of Object.entries(patch)) {
+		merged[key] = deepMerge(merged[key], value)
+	}
+	return merged
+}
+
+// --- Mutation parsing ---
+
+function parseMutationFromToolResult(result: unknown): Mutation | null {
+	if (!isRecord(result)) return null
+	const sc = result.structuredContent
+	if (!isRecord(sc)) return null
+	if (typeof sc.action !== 'string') return null
+
+	switch (sc.action) {
+		case 'create':
+			return {
+				action: 'create',
+				newBlankCanvas: sc.newBlankCanvas === true,
+				focusedShapes: Array.isArray(sc.focusedShapes) ? sc.focusedShapes : [],
+				tldrawRecords: Array.isArray(sc.tldrawRecords) ? sc.tldrawRecords : [],
+			} as CreateMutation
+		case 'update':
+			return {
+				action: 'update',
+				updates: Array.isArray(sc.updates) ? sc.updates : [],
+			} as UpdateMutation
+		case 'delete':
+			return {
+				action: 'delete',
+				shapeIds: Array.isArray(sc.shapeIds) ? sc.shapeIds : [],
+			} as DeleteMutation
+		default:
+			return null
+	}
+}
+
+// --- Mutation application ---
+
+function applyMutation(editor: Editor, mutation: Mutation) {
+	switch (mutation.action) {
+		case 'create': {
+			const records = mutation.tldrawRecords.map((r) => structuredClone(r))
+			editor.store.mergeRemoteChanges(() => {
+				editor.run(
+					() => {
+						if (mutation.newBlankCanvas) {
+							const existingIds = [...editor.getCurrentPageShapeIds()]
+							if (existingIds.length > 0) {
+								editor.deleteShapes(existingIds)
+							}
+						}
+						if (records.length <= 0) return
+
+						const pageId = editor.getCurrentPageId()
+						const existingIds = new Set([...editor.getCurrentPageShapeIds()])
+						const nextIndexByParent = new Map<
+							string,
+							ReturnType<Editor['getHighestIndexForParent']>
+						>()
+
+						const toCreate: TLShape[] = []
+						const toUpdate: TLShape[] = []
+
+						for (const shape of records) {
+							const parentId =
+								typeof shape.parentId === 'string' && shape.parentId.length > 0
+									? shape.parentId
+									: pageId
+							shape.parentId = parentId
+
+							if (existingIds.has(shape.id)) {
+								toUpdate.push(shape)
+							} else {
+								if (!nextIndexByParent.has(parentId)) {
+									nextIndexByParent.set(parentId, editor.getHighestIndexForParent(parentId))
+								}
+								const nextIndex = nextIndexByParent.get(parentId)!
+								shape.index = nextIndex
+								nextIndexByParent.set(parentId, getIndexAbove(nextIndex))
+								toCreate.push(shape)
+							}
+						}
+
+						if (toUpdate.length > 0) editor.updateShapes(toUpdate)
+						if (toCreate.length > 0) editor.createShapes(toCreate)
+					},
+					{ history: 'ignore' }
+				)
+			})
+			break
+		}
+		case 'update': {
+			editor.store.mergeRemoteChanges(() => {
+				editor.run(
+					() => {
+						const toUpdate: TLShape[] = []
+
+						for (const update of mutation.updates) {
+							const id = normalizeShapeId(update.shapeId)
+							const existing = editor.getShape(id as TLShape['id'])
+							if (!existing) continue
+
+							try {
+								const existingFocused = convertTldrawRecordToFocusedShape(existing)
+								const merged = deepMerge(existingFocused, {
+									...update,
+									shapeId: toSimpleShapeId(id),
+									_type: update._type ?? existingFocused._type,
+								}) as FocusedShape
+								const converted = convertFocusedShapeToTldrawRecord(merged)
+								converted.index = existing.index
+								toUpdate.push(converted)
+							} catch {
+								// Skip invalid update inputs.
+							}
+						}
+
+						if (toUpdate.length > 0) editor.updateShapes(toUpdate)
+					},
+					{ history: 'ignore' }
+				)
+			})
+			break
+		}
+		case 'delete': {
+			const idsToDelete = mutation.shapeIds
+				.map((id) => normalizeShapeId(id) as TLShape['id'])
+				.filter((id) => editor.getShape(id) != null)
+			if (idsToDelete.length > 0) {
+				editor.store.mergeRemoteChanges(() => {
+					editor.run(
+						() => {
+							editor.deleteShapes(idsToDelete)
+						},
+						{ history: 'ignore' }
+					)
+				})
+			}
+			break
+		}
+	}
+}
+
+// --- Canvas context + server cache push ---
+
+function getEditorFocusedShapes(editor: Editor): FocusedShape[] {
+	const shapes: FocusedShape[] = []
+	for (const record of editor.getCurrentPageShapes()) {
+		try {
+			shapes.push(convertTldrawRecordToFocusedShape(record))
+		} catch {
+			// Ignore malformed records.
+		}
+	}
+	return shapes
+}
+
+function pushCanvasContext(app: App, editor: Editor) {
+	const focusedShapes = getEditorFocusedShapes(editor)
+	const text =
+		focusedShapes.length > 0
+			? `Current canvas shapes:\n${JSON.stringify(focusedShapes, null, 2)}`
+			: 'Canvas is empty.'
+	app.updateModelContext({ content: [{ type: 'text', text }] })
+}
+
+function pushCanvasStateToServer(app: App, editor: Editor) {
+	const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
+	app
+		.callServerTool({
+			name: 'push_canvas_state',
+			arguments: { shapesJson: JSON.stringify(shapes) },
+		})
+		.catch(() => {
+			// Best-effort push; failure is non-fatal.
+		})
+}
+
 function toSnapshotShapesFromRecords(value: unknown): TLShape[] | null {
 	if (!Array.isArray(value)) return null
 	return value.filter((shape): shape is TLShape => {
@@ -43,41 +251,22 @@ function toSnapshotShapesFromRecords(value: unknown): TLShape[] | null {
 	})
 }
 
-function toSnapshotShapesFromFocused(value: unknown): TLShape[] | null {
-	if (!Array.isArray(value)) return null
-	const shapes: TLShape[] = []
-	for (const item of value) {
-		const parsed = FocusedShapeSchema.safeParse(item)
-		if (!parsed.success) continue
-		try {
-			shapes.push(convertFocusedShapeToTldrawRecord(parsed.data))
-		} catch {
-			// Ignore malformed focused-shape entries in snapshot payloads.
-		}
-	}
-	return shapes
-}
-
-function parseCanvasSnapshot(value: unknown): CanvasSnapshot | null {
-	if (!isRecord(value)) return null
-	if (typeof value.version !== 'number') return null
-	if (value.canvasId !== undefined && typeof value.canvasId !== 'string') return null
-
-	const shapes =
-		toSnapshotShapesFromRecords(value.shapes) ?? toSnapshotShapesFromFocused(value.focusedShapes)
-	if (!shapes) return null
-
-	return {
-		canvasId: typeof value.canvasId === 'string' ? value.canvasId : undefined,
-		version: value.version,
-		shapes,
+async function fetchInitialShapes(app: App): Promise<TLShape[]> {
+	try {
+		const result = await app.callServerTool({
+			name: 'get_canvas_state',
+			arguments: {},
+		})
+		if (!isRecord(result)) return []
+		const sc = result.structuredContent
+		if (!isRecord(sc)) return []
+		return toSnapshotShapesFromRecords(sc.shapes) ?? []
+	} catch {
+		return []
 	}
 }
 
-function extractSnapshotFromToolResult(result: unknown): CanvasSnapshot | null {
-	if (!isRecord(result)) return null
-	return parseCanvasSnapshot(result.structuredContent)
-}
+// --- Streaming preview helpers ---
 
 function parsePartialJsonArray(value: string): unknown[] {
 	const trimmed = healJsonArrayString(value.trim())
@@ -151,24 +340,6 @@ function parseNewBlankCanvasFlag(value: unknown, isPartial: boolean): boolean | 
 	return null
 }
 
-function normalizeShapeId(shapeId: string): string {
-	return shapeId.startsWith('shape:') ? shapeId : `shape:${shapeId}`
-}
-
-function toSimpleShapeId(shapeId: string): string {
-	return shapeId.replace(/^shape:/, '')
-}
-
-function deepMerge(base: unknown, patch: unknown): unknown {
-	if (!isRecord(base) || !isRecord(patch)) return patch
-
-	const merged: Record<string, unknown> = { ...base }
-	for (const [key, value] of Object.entries(patch)) {
-		merged[key] = deepMerge(merged[key], value)
-	}
-	return merged
-}
-
 function toCreatePreviewShapes(value: unknown, isPartial: boolean): TLShape[] {
 	const candidateItems = parsePreviewArray(value, isPartial)
 	const previewShapes: TLShape[] = []
@@ -236,8 +407,6 @@ function toDeletePreviewSnapshot(
 	if (filteredShapes.length === committed.shapes.length) return null
 
 	return {
-		canvasId: committed.canvasId,
-		version: committed.version,
 		shapes: filteredShapes.map((shape) => structuredClone(shape)),
 	}
 }
@@ -292,57 +461,74 @@ function applySnapshot(editor: Editor, snapshot: CanvasSnapshot) {
 	})
 }
 
-function LogAllSnapshotsButton({ app }: { app: App }) {
-	const handleClick = useCallback(async () => {
-		try {
-			const result = await app.callServerTool({
-				name: 'get_all_canvas_snapshots',
-				arguments: {},
-			})
-			const payload = isRecord(result) ? result.structuredContent : result
-			log(JSON.stringify(payload, null, 2))
-			log('Logged all canvas snapshots to console')
-		} catch (err) {
-			const msg = err instanceof Error ? err.message : String(err)
-			log(`Failed to get all snapshots: ${msg}`)
-		}
-	}, [app])
+/**
+ * Non-destructive preview apply: adds new shapes and updates existing ones
+ * without deleting user-drawn shapes. Only removes committed shapes that
+ * are absent from the preview (e.g. when createFromBlank clears the canvas).
+ */
+function applyPreviewToEditor(
+	editor: Editor,
+	snapshot: CanvasSnapshot,
+	committedSnapshot: CanvasSnapshot
+) {
+	const nextShapes = snapshot.shapes.map((shape) => structuredClone(shape))
+	const nextShapeIds = new Set(nextShapes.map((s) => s.id))
+	const committedIds = new Set(committedSnapshot.shapes.map((s) => s.id))
 
-	return (
-		<button
-			onClick={handleClick}
-			style={{
-				position: 'fixed',
-				top: 8,
-				right: 8,
-				zIndex: 999999,
-				padding: '6px 12px',
-				fontSize: 12,
-				fontFamily: 'monospace',
-				background: '#222',
-				color: '#0f0',
-				border: '1px solid #0f0',
-				borderRadius: 4,
-				cursor: 'pointer',
-			}}
-		>
-			Log all snapshots
-		</button>
-	)
+	editor.store.mergeRemoteChanges(() => {
+		editor.run(
+			() => {
+				const existingIds = [...editor.getCurrentPageShapeIds()]
+				const toDelete = existingIds.filter((id) => committedIds.has(id) && !nextShapeIds.has(id))
+				if (toDelete.length > 0) {
+					editor.deleteShapes(toDelete)
+				}
+
+				if (nextShapes.length <= 0) return
+
+				const remainingIds = new Set([...editor.getCurrentPageShapeIds()])
+				const pageId = editor.getCurrentPageId()
+				const nextIndexByParent = new Map<string, ReturnType<Editor['getHighestIndexForParent']>>()
+
+				const toCreate: TLShape[] = []
+				const toUpdate: TLShape[] = []
+
+				for (const shape of nextShapes) {
+					const parentId =
+						typeof shape.parentId === 'string' && shape.parentId.length > 0
+							? shape.parentId
+							: pageId
+					shape.parentId = parentId
+
+					if (remainingIds.has(shape.id)) {
+						toUpdate.push(shape)
+					} else {
+						if (!nextIndexByParent.has(parentId)) {
+							nextIndexByParent.set(parentId, editor.getHighestIndexForParent(parentId))
+						}
+						const nextIndex = nextIndexByParent.get(parentId)!
+						shape.index = nextIndex
+						nextIndexByParent.set(parentId, getIndexAbove(nextIndex))
+						toCreate.push(shape)
+					}
+				}
+
+				if (toUpdate.length > 0) editor.updateShapes(toUpdate)
+				if (toCreate.length > 0) editor.createShapes(toCreate)
+			},
+			{ history: 'ignore' }
+		)
+	})
 }
 
 function TldrawCanvas({ app }: { app: App }) {
 	const editorRef = useRef<Editor | null>(null)
-	const pendingSnapshotRef = useRef<CanvasSnapshot | null>(null)
 	const pendingPreviewSnapshotRef = useRef<CanvasSnapshot | null>(null)
-	const canvasIdRef = useRef<string | null>(null)
-	const localVersionRef = useRef(0)
-	const pushTimerRef = useRef<number | null>(null)
-	const pushInFlightRef = useRef(false)
 	const previewActiveRef = useRef(false)
 	const createFromBlankPreviewRef = useRef(false)
-	const committedSnapshotRef = useRef<CanvasSnapshot>({ version: 0, shapes: [] })
+	const committedSnapshotRef = useRef<CanvasSnapshot>({ shapes: [] })
 	const removeStoreListenerRef = useRef<(() => void) | null>(null)
+	const contextTimerRef = useRef<number | null>(null)
 
 	const renderPreviewSnapshot = useCallback((previewSnapshot: CanvasSnapshot, summary: string) => {
 		previewActiveRef.current = true
@@ -353,7 +539,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			return
 		}
 
-		applySnapshot(editor, previewSnapshot)
+		applyPreviewToEditor(editor, previewSnapshot, committedSnapshotRef.current)
 		log(summary)
 	}, [])
 
@@ -361,12 +547,16 @@ function TldrawCanvas({ app }: { app: App }) {
 		(previewShapes: TLShape[], mode: 'create' | 'update', createFromBlank = false) => {
 			if (previewShapes.length <= 0) return
 			const committed = committedSnapshotRef.current
+			const editor = editorRef.current
+			const baseShapes = createFromBlank
+				? []
+				: editor
+					? [...editor.getCurrentPageShapes()]
+					: committed.shapes
 			const previewSnapshot: CanvasSnapshot = {
-				canvasId: committed.canvasId,
-				version: committed.version,
 				shapes: createFromBlank
 					? previewShapes.map((shape) => structuredClone(shape))
-					: mergeShapesById(committed.shapes, previewShapes),
+					: mergeShapesById(baseShapes, previewShapes),
 			}
 			renderPreviewSnapshot(
 				previewSnapshot,
@@ -390,9 +580,29 @@ function TldrawCanvas({ app }: { app: App }) {
 		log(`Cleared stream preview (${reason})`)
 	}, [])
 
+	const pushAllState = useCallback(
+		(editor: Editor) => {
+			pushCanvasContext(app, editor)
+			pushCanvasStateToServer(app, editor)
+		},
+		[app]
+	)
+
+	const scheduleContextPush = useCallback(() => {
+		if (contextTimerRef.current !== null) {
+			window.clearTimeout(contextTimerRef.current)
+		}
+		contextTimerRef.current = window.setTimeout(() => {
+			contextTimerRef.current = null
+			const editor = editorRef.current
+			if (editor) {
+				pushAllState(editor)
+			}
+		}, CONTEXT_DEBOUNCE_MS)
+	}, [pushAllState])
+
 	const applyPreviewFromToolInput = useCallback(
 		(input: unknown, isPartial: boolean) => {
-			if (!canvasIdRef.current) return
 			const committed = committedSnapshotRef.current
 
 			const args = extractToolArguments(input)
@@ -421,20 +631,25 @@ function TldrawCanvas({ app }: { app: App }) {
 				return
 			}
 
-			const updatePreviewShapes = toUpdatePreviewShapes(
-				args.updatesJson,
-				isPartial,
-				committed.shapes
-			)
+			const editor = editorRef.current
+			const liveShapes = editor ? [...editor.getCurrentPageShapes()] : committed.shapes
+			const updatePreviewShapes = toUpdatePreviewShapes(args.updatesJson, isPartial, liveShapes)
 			if (updatePreviewShapes.length > 0) {
 				renderPreviewShapes(updatePreviewShapes, 'update')
 				return
 			}
 
-			const deletePreviewSnapshot = toDeletePreviewSnapshot(args.shapeIdsJson, isPartial, committed)
+			const liveForDelete: CanvasSnapshot = {
+				shapes: editor ? [...editor.getCurrentPageShapes()] : committed.shapes,
+			}
+			const deletePreviewSnapshot = toDeletePreviewSnapshot(
+				args.shapeIdsJson,
+				isPartial,
+				liveForDelete
+			)
 			if (!deletePreviewSnapshot) return
 
-			const deletedCount = committed.shapes.length - deletePreviewSnapshot.shapes.length
+			const deletedCount = liveForDelete.shapes.length - deletePreviewSnapshot.shapes.length
 			renderPreviewSnapshot(
 				deletePreviewSnapshot,
 				`Applied delete preview (${deletedCount} shape(s))`
@@ -442,102 +657,6 @@ function TldrawCanvas({ app }: { app: App }) {
 		},
 		[renderPreviewShapes, renderPreviewSnapshot]
 	)
-
-	const pushLocalSnapshot = useCallback(async () => {
-		const canvasId = canvasIdRef.current
-		const editor = editorRef.current
-		if (!editor || !canvasId || pushInFlightRef.current) return
-
-		pushInFlightRef.current = true
-		try {
-			const shapes = editor.getCurrentPageShapes().map((shape) => structuredClone(shape))
-			const result = await app.callServerTool({
-				name: 'sync_canvas_state',
-				arguments: {
-					canvasId,
-					shapesJson: JSON.stringify(shapes),
-				},
-			})
-			const snapshot = extractSnapshotFromToolResult(result)
-			if (snapshot) {
-				previewActiveRef.current = false
-				localVersionRef.current = snapshot.version
-				committedSnapshotRef.current = snapshot
-			}
-		} catch (err) {
-			const msg = err instanceof Error ? err.message : String(err)
-			log(`sync_canvas_state failed: ${msg}`)
-		} finally {
-			pushInFlightRef.current = false
-		}
-	}, [app])
-
-	const schedulePush = useCallback(() => {
-		if (pushTimerRef.current !== null) {
-			window.clearTimeout(pushTimerRef.current)
-		}
-		pushTimerRef.current = window.setTimeout(() => {
-			pushTimerRef.current = null
-			void pushLocalSnapshot()
-		}, SYNC_DEBOUNCE_MS)
-	}, [pushLocalSnapshot])
-
-	const applyIncomingSnapshot = useCallback((snapshot: CanvasSnapshot) => {
-		const incomingCanvasId = snapshot.canvasId
-		const currentCanvasId = canvasIdRef.current
-		let canvasChanged = false
-
-		if (incomingCanvasId) {
-			if (!currentCanvasId) {
-				canvasIdRef.current = incomingCanvasId
-				canvasChanged = true
-				log(`Bound to canvas ${incomingCanvasId}`)
-			} else if (currentCanvasId !== incomingCanvasId) {
-				canvasIdRef.current = incomingCanvasId
-				canvasChanged = true
-				log(`Rebound to canvas ${incomingCanvasId}`)
-			}
-		} else if (currentCanvasId) {
-			return
-		}
-
-		if (!canvasChanged && snapshot.version <= localVersionRef.current) return
-
-		if (canvasChanged && pushTimerRef.current !== null) {
-			window.clearTimeout(pushTimerRef.current)
-			pushTimerRef.current = null
-		}
-
-		previewActiveRef.current = false
-		createFromBlankPreviewRef.current = false
-		committedSnapshotRef.current = snapshot
-
-		const editor = editorRef.current
-		if (!editor) {
-			pendingSnapshotRef.current = snapshot
-			return
-		}
-
-		applySnapshot(editor, snapshot)
-		localVersionRef.current = snapshot.version
-		log(`Applied remote snapshot v${snapshot.version}`)
-	}, [])
-
-	const pullRemoteSnapshot = useCallback(async () => {
-		if (previewActiveRef.current || pushInFlightRef.current) return
-		try {
-			const result = await app.callServerTool({
-				name: 'get_canvas_state',
-				arguments: {},
-			})
-			const snapshot = extractSnapshotFromToolResult(result)
-			if (!snapshot) return
-			applyIncomingSnapshot(snapshot)
-		} catch (err) {
-			const msg = err instanceof Error ? err.message : String(err)
-			log(`get_canvas_state failed: ${msg}`)
-		}
-	}, [app, applyIncomingSnapshot])
 
 	useEffect(() => {
 		log('TldrawCanvas mounted')
@@ -547,23 +666,34 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		app.ontoolinputpartial = (input) => {
-			if (pushInFlightRef.current) return
 			applyPreviewFromToolInput(input, true)
 		}
 
 		app.ontoolinput = (input) => {
-			if (pushInFlightRef.current) return
 			applyPreviewFromToolInput(input, false)
 		}
 
 		app.ontoolresult = (result) => {
-			if (pushInFlightRef.current) return
-			const snapshot = extractSnapshotFromToolResult(result)
-			if (!snapshot) {
-				// clearPreviewAndRestoreCommitted('non-canvas tool result')
-				return
+			const mutation = parseMutationFromToolResult(result)
+			if (!mutation) return
+
+			// Clear preview state
+			previewActiveRef.current = false
+			createFromBlankPreviewRef.current = false
+			pendingPreviewSnapshotRef.current = null
+
+			const editor = editorRef.current
+			if (!editor) return
+
+			applyMutation(editor, mutation)
+
+			// Update committed snapshot from current editor state
+			committedSnapshotRef.current = {
+				shapes: [...editor.getCurrentPageShapes()].map((s) => structuredClone(s)),
 			}
-			applyIncomingSnapshot(snapshot)
+
+			pushAllState(editor)
+			log(`Applied ${mutation.action} mutation`)
 		}
 
 		app.ontoolcancelled = (params) => {
@@ -571,28 +701,16 @@ function TldrawCanvas({ app }: { app: App }) {
 			clearPreviewAndRestoreCommitted(reason)
 		}
 
-		void pullRemoteSnapshot()
-		const pollId = window.setInterval(() => {
-			void pullRemoteSnapshot()
-		}, POLL_INTERVAL_MS)
-
 		return () => {
-			window.clearInterval(pollId)
-			if (pushTimerRef.current !== null) {
-				window.clearTimeout(pushTimerRef.current)
-				pushTimerRef.current = null
+			if (contextTimerRef.current !== null) {
+				window.clearTimeout(contextTimerRef.current)
+				contextTimerRef.current = null
 			}
 			removeStoreListenerRef.current?.()
 			removeStoreListenerRef.current = null
 			log('TldrawCanvas unmounted!')
 		}
-	}, [
-		app,
-		applyIncomingSnapshot,
-		applyPreviewFromToolInput,
-		clearPreviewAndRestoreCommitted,
-		pullRemoteSnapshot,
-	])
+	}, [app, applyPreviewFromToolInput, clearPreviewAndRestoreCommitted, pushAllState])
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
@@ -602,17 +720,23 @@ function TldrawCanvas({ app }: { app: App }) {
 			removeStoreListenerRef.current?.()
 			removeStoreListenerRef.current = editor.store.listen(
 				() => {
-					schedulePush()
+					scheduleContextPush()
 				},
 				{ source: 'user', scope: 'document' }
 			)
 
-			const pendingSnapshot = pendingSnapshotRef.current
-			if (pendingSnapshot) {
-				pendingSnapshotRef.current = null
-				applySnapshot(editor, pendingSnapshot)
-				localVersionRef.current = pendingSnapshot.version
-			}
+			// Hydrate from previous canvas state
+			void fetchInitialShapes(app).then((shapes) => {
+				if (shapes.length > 0) {
+					const snapshot: CanvasSnapshot = { shapes }
+					committedSnapshotRef.current = snapshot
+					// Only apply if no preview is active (streaming may have started)
+					if (!previewActiveRef.current) {
+						applySnapshot(editor, snapshot)
+					}
+					log(`Hydrated ${shapes.length} shape(s) from previous canvas`)
+				}
+			})
 
 			const pendingPreviewSnapshot = pendingPreviewSnapshotRef.current
 			if (pendingPreviewSnapshot) {
@@ -620,7 +744,7 @@ function TldrawCanvas({ app }: { app: App }) {
 				applySnapshot(editor, pendingPreviewSnapshot)
 			}
 		},
-		[schedulePush]
+		[app, scheduleContextPush]
 	)
 
 	return (
@@ -703,10 +827,7 @@ function McpApp() {
 			) : !isConnected || !app ? (
 				<div style={{ padding: 20, opacity: 0.5 }}>Status: {status}</div>
 			) : (
-				<>
-					<LogAllSnapshotsButton app={app} />
-					<TldrawCanvas app={app} />
-				</>
+				<TldrawCanvas app={app} />
 			)}
 		</div>
 	)

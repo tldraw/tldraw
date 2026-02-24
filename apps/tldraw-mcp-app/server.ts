@@ -6,14 +6,7 @@ import {
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
-import {
-	createCanvasShapes,
-	deleteCanvasShapes,
-	getAllCanvasSnapshots,
-	getCanvasSnapshot,
-	replaceCanvasSnapshot,
-	updateCanvasShapes,
-} from './src/canvas-state.js'
+import { convertFocusedShapeToTldrawRecord, type FocusedShape } from './src/focused-shape.js'
 import {
 	parseBooleanFlag,
 	parseFocusedShapesInput,
@@ -31,15 +24,9 @@ export const server = new McpServer({
 
 const CANVAS_RESOURCE_URI = 'ui://show-canvas/mcp-app.html'
 
-function snapshotResponse(summary: string, snapshot = getCanvasSnapshot()): CallToolResult {
-	return {
-		content: [
-			{ type: 'text', text: summary },
-			{ type: 'text', text: JSON.stringify(snapshot.focusedShapes, null, 2) },
-		],
-		structuredContent: snapshot,
-	}
-}
+// Lightweight cache so new widget instances can hydrate from the previous canvas.
+// This is NOT authoritative state — the editor in the widget is the source of truth.
+let cachedShapes: unknown[] = []
 
 function errorResponse(err: unknown, summary?: string): CallToolResult {
 	const message = err instanceof Error ? err.message : String(err)
@@ -81,23 +68,34 @@ registerAppTool(
 	{
 		title: 'Create Shapes',
 		description:
-			'Creates shapes from a JSON string (FocusedShape[]). Optional new_blank_canvas=true starts from a blank canvas instead of a derived canvas.',
+			'Creates shapes from a JSON string (FocusedShape[]). Optional new_blank_canvas=true starts from a blank canvas.',
 		inputSchema: createShapesInputSchema,
 		_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
 	},
 	async ({ shapesJson, new_blank_canvas }: CreateShapesInput): Promise<CallToolResult> => {
 		try {
-			const useNewBlankCanvas = parseBooleanFlag(new_blank_canvas, false)
-			const parsedShapes = parseFocusedShapesInput(shapesJson)
-			const { snapshot, created } = createCanvasShapes(parsedShapes, {
-				newBlankCanvas: useNewBlankCanvas,
-			})
-			return snapshotResponse(
-				useNewBlankCanvas
-					? `Created ${created.length} shape(s) on a new blank canvas.`
-					: `Created ${created.length} shape(s) on a new derived canvas.`,
-				snapshot
+			const newBlankCanvas = parseBooleanFlag(new_blank_canvas, false)
+			const focusedShapes = parseFocusedShapesInput(shapesJson)
+			const tldrawRecords = focusedShapes.map((s: FocusedShape) =>
+				convertFocusedShapeToTldrawRecord(s)
 			)
+			return {
+				content: [
+					{
+						type: 'text',
+						text: newBlankCanvas
+							? `Created ${focusedShapes.length} shape(s) on a new blank canvas.`
+							: `Created ${focusedShapes.length} shape(s).`,
+					},
+					{ type: 'text', text: JSON.stringify(focusedShapes, null, 2) },
+				],
+				structuredContent: {
+					action: 'create' as const,
+					newBlankCanvas,
+					focusedShapes,
+					tldrawRecords,
+				},
+			}
 		} catch (err) {
 			return errorResponse(err, shapesJson)
 		}
@@ -126,12 +124,19 @@ registerAppTool(
 	},
 	async ({ updatesJson }: UpdateShapesInput): Promise<CallToolResult> => {
 		try {
-			const parsedUpdates = parseFocusedShapeUpdatesInput(updatesJson)
-			const { snapshot, updated } = updateCanvasShapes(parsedUpdates)
-			return snapshotResponse(
-				`Updated ${updated.length} shape(s) on a new derived canvas.`,
-				snapshot
-			)
+			const updates = parseFocusedShapeUpdatesInput(updatesJson)
+			return {
+				content: [
+					{
+						type: 'text',
+						text: `Updated ${updates.length} shape(s).`,
+					},
+				],
+				structuredContent: {
+					action: 'update' as const,
+					updates,
+				},
+			}
 		} catch (err) {
 			return errorResponse(err)
 		}
@@ -162,59 +167,18 @@ registerAppTool(
 	},
 	async ({ shapeIdsJson }: DeleteShapesInput): Promise<CallToolResult> => {
 		try {
-			const parsedShapeIds = parseShapeIdsInput(shapeIdsJson)
-			const { snapshot, deleted } = deleteCanvasShapes(parsedShapeIds)
-			return snapshotResponse(
-				`Deleted ${deleted.length} shape(s) on a new derived canvas.`,
-				snapshot
-			)
-		} catch (err) {
-			return errorResponse(err)
-		}
-	}
-)
-
-// --- get_canvas_state ---
-
-const getCanvasStateInputSchema = z.object({})
-
-server.registerTool(
-	'get_canvas_state',
-	{
-		title: 'Get Canvas State',
-		description: 'Returns the latest canvas snapshot and version.',
-		inputSchema: getCanvasStateInputSchema,
-	},
-	async (): Promise<CallToolResult> => {
-		try {
-			return snapshotResponse('Canvas snapshot retrieved.', getCanvasSnapshot())
-		} catch (err) {
-			return errorResponse(err)
-		}
-	}
-)
-
-// --- get_all_canvas_snapshots ---
-
-server.registerTool(
-	'get_all_canvas_snapshots',
-	{
-		title: 'Get All Canvas Snapshots',
-		description: 'Returns snapshots for every canvas.',
-		inputSchema: z.object({}),
-		_meta: { ui: { visibility: ['app'] } },
-	},
-	async (): Promise<CallToolResult> => {
-		try {
-			const snapshots = getAllCanvasSnapshots()
+			const shapeIds = parseShapeIdsInput(shapeIdsJson)
 			return {
 				content: [
 					{
 						type: 'text',
-						text: `Retrieved ${snapshots.length} canvas snapshot(s).`,
+						text: `Deleted ${shapeIds.length} shape(s).`,
 					},
 				],
-				structuredContent: { snapshots },
+				structuredContent: {
+					action: 'delete' as const,
+					shapeIds,
+				},
 			}
 		} catch (err) {
 			return errorResponse(err)
@@ -222,30 +186,44 @@ server.registerTool(
 	}
 )
 
-// --- sync_canvas_state ---
-
-const syncCanvasInputSchema = z.object({
-	shapesJson: z.string().describe('JSON array of full tldraw shape records'),
-	canvasId: z.string().min(1),
-})
-
-type SyncCanvasInput = z.infer<typeof syncCanvasInputSchema>
+// --- push_canvas_state (app-only) ---
 
 server.registerTool(
-	'sync_canvas_state',
+	'push_canvas_state',
 	{
-		title: 'Sync Canvas State',
-		description: 'App-only: replace server canvas with latest editor snapshot.',
-		inputSchema: syncCanvasInputSchema,
+		title: 'Push Canvas State',
+		description: 'App-only: cache the current editor shapes on the server.',
+		inputSchema: z.object({
+			shapesJson: z.string().describe('JSON array of full tldraw shape records'),
+		}),
 		_meta: { ui: { visibility: ['app'] } },
 	},
-	async ({ shapesJson, canvasId }: SyncCanvasInput): Promise<CallToolResult> => {
+	async ({ shapesJson }: { shapesJson: string }): Promise<CallToolResult> => {
 		try {
-			const shapes = parseJsonArray(shapesJson, 'shapesJson')
-			const snapshot = replaceCanvasSnapshot(shapes, canvasId)
-			return snapshotResponse(`Canvas synced from app (${shapes.length} shape(s)).`, snapshot)
+			cachedShapes = parseJsonArray(shapesJson, 'shapesJson')
+			return {
+				content: [{ type: 'text', text: `Cached ${cachedShapes.length} shape(s).` }],
+			}
 		} catch (err) {
 			return errorResponse(err)
+		}
+	}
+)
+
+// --- get_canvas_state (app-only) ---
+
+server.registerTool(
+	'get_canvas_state',
+	{
+		title: 'Get Canvas State',
+		description: 'App-only: return cached shapes so a new widget can hydrate.',
+		inputSchema: z.object({}),
+		_meta: { ui: { visibility: ['app'] } },
+	},
+	async (): Promise<CallToolResult> => {
+		return {
+			content: [{ type: 'text', text: `${cachedShapes.length} cached shape(s).` }],
+			structuredContent: { shapes: cachedShapes },
 		}
 	}
 )
@@ -267,7 +245,6 @@ registerAppResource(
 					text: html,
 					_meta: {
 						ui: {
-							// todo is cdn.tldraw necessary to include here or was it halucinated?
 							csp: {
 								resourceDomains: [
 									'https://cdn.tldraw.com',
