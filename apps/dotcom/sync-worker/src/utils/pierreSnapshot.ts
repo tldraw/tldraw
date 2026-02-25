@@ -1,7 +1,7 @@
 import type { Repo } from '@pierre/storage'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { createTarDecoder } from 'modern-tar'
-import type { PierreMeta, PierreRecordFile } from '../TLDrawDurableObject'
+import type { PierreMeta } from '../TLDrawDurableObject'
 
 function isMetaJson(name: string) {
 	return name === 'meta.json' || name.endsWith('/meta.json')
@@ -28,7 +28,7 @@ export async function reconstructSnapshotFromPierre(
 		.pipeThrough(createTarDecoder())
 
 	let meta: PierreMeta | null = null
-	const documents: PierreRecordFile[] = []
+	const documents: RoomSnapshot['documents'] = []
 
 	const reader = entries.getReader()
 	try {
@@ -39,8 +39,10 @@ export async function reconstructSnapshotFromPierre(
 			if (isMetaJson(name)) {
 				meta = JSON.parse(await new Response(entry.body).text()) as PierreMeta
 			} else if (isRecordFile(name)) {
-				const record = JSON.parse(await new Response(entry.body).text()) as PierreRecordFile
-				documents.push(record)
+				const state = JSON.parse(
+					await new Response(entry.body).text()
+				) as RoomSnapshot['documents'][number]['state']
+				documents.push({ state, lastChangedClock: 0 })
 			} else {
 				await entry.body.cancel()
 			}
@@ -54,7 +56,6 @@ export async function reconstructSnapshotFromPierre(
 	}
 
 	return {
-		clock: meta.clock,
 		documentClock: meta.documentClock,
 		schema: meta.schema,
 		documents,

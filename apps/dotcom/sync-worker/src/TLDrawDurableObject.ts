@@ -1156,8 +1156,6 @@ export class TLDrawDurableObject extends DurableObject {
 			const repo = await this.getPierreRepo()
 			if (!repo) return
 
-			const currentDocClock = storage.getClock()
-
 			const MAX_CAS_RETRIES = 3
 			for (let attempt = 0; attempt < MAX_CAS_RETRIES; attempt++) {
 				if (!this.pierreState) {
@@ -1166,7 +1164,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 				const { headSha, documentClock: pierreDocClock } = this.pierreState!
 
-				const { result: changes } = storage.transaction((txn) =>
+				const { result: changes, documentClock } = storage.transaction((txn) =>
 					txn.getChangesSince(pierreDocClock)
 				)
 
@@ -1176,7 +1174,7 @@ export class TLDrawDurableObject extends DurableObject {
 				const hasPuts = Object.keys(diff.puts).length > 0
 				const hasDeletes = diff.deletes.length > 0
 
-				if (!hasPuts && !hasDeletes && pierreDocClock === currentDocClock) {
+				if (!hasPuts && !hasDeletes && pierreDocClock === documentClock) {
 					return
 				}
 
@@ -1189,16 +1187,14 @@ export class TLDrawDurableObject extends DurableObject {
 				})
 
 				const meta: PierreMeta = {
-					clock: currentDocClock,
-					documentClock: currentDocClock,
+					documentClock,
 					schema: snapshot.schema,
 				}
 				commitBuilder.addFileFromString('meta.json', JSON.stringify(meta))
 
 				for (const [id, put] of Object.entries(diff.puts)) {
 					const state = Array.isArray(put) ? put[1] : put
-					const record: PierreRecordFile = { state, lastChangedClock: currentDocClock }
-					commitBuilder.addFileFromString(`records/${id}.json`, JSON.stringify(record))
+					commitBuilder.addFileFromString(`records/${id}.json`, JSON.stringify(state))
 				}
 
 				for (const id of diff.deletes) {
@@ -1229,7 +1225,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 					this.pierreState = {
 						headSha: result ? result.refUpdate.newSha : headSha,
-						documentClock: currentDocClock,
+						documentClock,
 					}
 					return
 				} catch (error) {
@@ -1462,10 +1458,6 @@ interface PierreState {
 
 /** Shape of meta.json stored in Pierre archives. */
 export interface PierreMeta {
-	clock: number
 	documentClock: number
 	schema: RoomSnapshot['schema']
 }
-
-/** Shape of each records/*.json file stored in Pierre archives. */
-export type PierreRecordFile = RoomSnapshot['documents'][number]
