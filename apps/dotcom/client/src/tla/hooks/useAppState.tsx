@@ -31,32 +31,33 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		let _app: TldrawApp
 		let didCancel = false
 
-		fetchFeatureFlags().then((flags) => {
+		;(async () => {
+			const flags = await fetchFeatureFlags()
 			if (didCancel) return
-			return auth.getToken().then((token) => {
-				if (!token) throw new Error('no token')
-				return TldrawApp.create({
-					userId: auth.userId,
-					email: user.primaryEmailAddress?.emailAddress,
-					flags,
-					getToken: async () => {
-						const token = await auth.getToken()
-						return token || undefined
-					},
-					onClientTooOld: () => {
-						isClientTooOld$.set(true)
-					},
-					trackEvent,
-					navigate,
-				}).then(({ app }) => {
-					if (didCancel) {
-						app.dispose()
-						return
-					}
-					_app = app
-					setApp(app)
-				})
+			const token = await auth.getToken()
+			if (!token) throw new Error('no token')
+			const { app } = await TldrawApp.create({
+				userId: auth.userId,
+				email: user.primaryEmailAddress?.emailAddress,
+				flags,
+				getToken: async () => {
+					const token = await auth.getToken()
+					return token || undefined
+				},
+				onClientTooOld: () => {
+					isClientTooOld$.set(true)
+				},
+				trackEvent,
+				navigate,
 			})
+			if (didCancel) {
+				app.dispose()
+				return
+			}
+			_app = app
+			setApp(app)
+		})().catch((err) => {
+			console.error('[AppState] Failed to initialize:', err)
 		})
 
 		return () => {
