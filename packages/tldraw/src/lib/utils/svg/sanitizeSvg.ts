@@ -372,9 +372,12 @@ const SAFE_LINK_PROTOCOLS = /^(?:https?:|mailto:)/i
 // data: URI (for images, fonts)
 const DATA_URI = /^data:/i
 
-// data: URI restricted to raster image formats (no svg+xml — could embed unsanitized SVG)
+// data: URI for raster image formats (svg+xml handled separately below)
 const RASTER_DATA_URI =
 	/^data:image\/(?:png|jpeg|jpg|gif|webp|avif|bmp|tiff|x-icon|vnd\.microsoft\.icon)[;,]/i
+
+// data: URI for SVG images — allowed on <image>/<feimage> only after recursive sanitization
+const SVG_DATA_URI = /^data:image\/svg\+xml[;,]/i
 
 // Fragment-only ref (#id)
 const FRAGMENT_REF = /^#/
@@ -457,13 +460,54 @@ const URL_BEARING_SVG_ATTRS = new Set([
 
 type SanitizeMode = 'svg' | 'html'
 
-function sanitizeUri(el: Element, attrName: string, value: string): string | null {
+// Guard against deep recursion: sanitizeSvgInner → ... → sanitizeUri → sanitizeEmbeddedSvgDataUri → sanitizeSvgInner
+const MAX_EMBED_DEPTH = 10
+
+function decodeDataUri(value: string): string | null {
+	const base64Idx = value.search(/;base64,/i)
+	if (base64Idx >= 0) {
+		const base64 = value.slice(base64Idx + 8) // 8 = ";base64,".length
+		const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+		return new TextDecoder().decode(bytes)
+	}
+	const commaIdx = value.indexOf(',')
+	if (commaIdx < 0) return null
+	return decodeURIComponent(value.slice(commaIdx + 1))
+}
+
+function encodeAsSvgDataUri(svgText: string): string {
+	const bytes = new TextEncoder().encode(svgText)
+	const binaryStr = Array.from(bytes, (b) => String.fromCharCode(b)).join('')
+	return 'data:image/svg+xml;base64,' + btoa(binaryStr)
+}
+
+function sanitizeEmbeddedSvgDataUri(value: string, depth: number): string | null {
+	if (depth >= MAX_EMBED_DEPTH) {
+		console.warn(`Embedded SVG data URI recursion depth limit (${MAX_EMBED_DEPTH}) reached`)
+		return null
+	}
+	let svgText: string
+	try {
+		const decoded = decodeDataUri(value)
+		if (decoded === null) return null
+		svgText = decoded
+	} catch {
+		// Invalid base64 or malformed percent-encoding — treat as unsafe
+		return null
+	}
+	const sanitized = sanitizeSvgInner(svgText, depth + 1)
+	if (!sanitized) return null
+	return encodeAsSvgDataUri(sanitized)
+}
+
+function sanitizeUri(el: Element, attrName: string, value: string, depth: number): string | null {
 	const stripped = value.replace(INVISIBLE_WHITESPACE, '')
 	const tagName = el.tagName.toLowerCase()
 
-	// <image> and <feImage>: raster data: only (no svg+xml — could embed unsanitized SVG)
+	// <image> and <feImage>: raster data: or recursively-sanitized svg+xml data:
 	if (tagName === 'image' || tagName === 'feimage') {
 		if (RASTER_DATA_URI.test(stripped)) return value
+		if (SVG_DATA_URI.test(stripped)) return sanitizeEmbeddedSvgDataUri(stripped, depth)
 		return null
 	}
 
@@ -484,7 +528,7 @@ function sanitizeUri(el: Element, attrName: string, value: string): string | nul
 	return null
 }
 
-function sanitizeSvgAttributes(el: Element): void {
+function sanitizeSvgAttributes(el: Element, depth: number): void {
 	for (let i = el.attributes.length - 1; i >= 0; i--) {
 		const attr = el.attributes[i]
 		const name = attr.name.toLowerCase()
@@ -508,9 +552,11 @@ function sanitizeSvgAttributes(el: Element): void {
 
 		// URI attributes need context-dependent sanitization
 		if (name === 'href' || name === 'xlink:href') {
-			const sanitized = sanitizeUri(el, name, attr.value)
+			const sanitized = sanitizeUri(el, name, attr.value, depth)
 			if (sanitized === null) {
 				el.removeAttribute(attr.name)
+			} else if (sanitized !== attr.value) {
+				attr.value = sanitized
 			}
 			continue
 		}
@@ -573,7 +619,7 @@ function sanitizeHtmlAttributes(el: Element): void {
 	}
 }
 
-function sanitizeNode(node: Element, mode: SanitizeMode): void {
+function sanitizeNode(node: Element, mode: SanitizeMode, depth: number): void {
 	// Walk children in reverse so removals don't shift indices
 	for (let i = node.children.length - 1; i >= 0; i--) {
 		const child = node.children[i]
@@ -582,11 +628,11 @@ function sanitizeNode(node: Element, mode: SanitizeMode): void {
 		if (mode === 'svg') {
 			if (tag === 'foreignobject') {
 				// foreignObject: sanitize attrs as SVG, recurse children as HTML
-				sanitizeSvgAttributes(child)
-				sanitizeNode(child, 'html')
+				sanitizeSvgAttributes(child, depth)
+				sanitizeNode(child, 'html', depth)
 			} else if (tag === 'style') {
 				// <style>: sanitize attrs, sanitize text content as CSS
-				sanitizeSvgAttributes(child)
+				sanitizeSvgAttributes(child, depth)
 				if (child.textContent) {
 					child.textContent = sanitizeStyleElement(child.textContent)
 				}
@@ -594,8 +640,8 @@ function sanitizeNode(node: Element, mode: SanitizeMode): void {
 				// Animation targeting href/on* can inject javascript: URIs at runtime
 				child.remove()
 			} else if (ALLOWED_SVG_TAGS.has(tag)) {
-				sanitizeSvgAttributes(child)
-				sanitizeNode(child, 'svg')
+				sanitizeSvgAttributes(child, depth)
+				sanitizeNode(child, 'svg', depth)
 			} else {
 				child.remove()
 			}
@@ -605,7 +651,7 @@ function sanitizeNode(node: Element, mode: SanitizeMode): void {
 				child.remove()
 			} else if (ALLOWED_HTML_TAGS.has(tag)) {
 				sanitizeHtmlAttributes(child)
-				sanitizeNode(child, 'html')
+				sanitizeNode(child, 'html', depth)
 			} else {
 				child.remove()
 			}
@@ -613,10 +659,28 @@ function sanitizeNode(node: Element, mode: SanitizeMode): void {
 	}
 }
 
+function sanitizeSvgInner(svgText: string, depth: number): string {
+	const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml')
+
+	const parseError = doc.querySelector('parsererror')
+	if (parseError) return ''
+
+	const svg = doc.documentElement
+	if (svg.tagName.toLowerCase() !== 'svg') return ''
+
+	sanitizeSvgAttributes(svg, depth)
+	sanitizeNode(svg, 'svg', depth)
+
+	if (svg.children.length === 0) return ''
+
+	return new XMLSerializer().serializeToString(svg)
+}
+
 /**
  * Sanitizes an SVG string by removing dangerous elements, attributes, and URIs
  * while preserving safe content including foreignObject (for text rendering),
  * style elements (for fonts with data: URLs), and animation elements.
+ * Embedded SVG data URIs on `<image>`/`<feImage>` are recursively sanitized.
  *
  * Returns the sanitized SVG string, or an empty string if the input was
  * malformed (parse error) or contained no safe content after sanitization.
@@ -624,20 +688,5 @@ function sanitizeNode(node: Element, mode: SanitizeMode): void {
  * @public
  */
 export function sanitizeSvg(svgText: string): string {
-	const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml')
-
-	// Check for parse errors
-	const parseError = doc.querySelector('parsererror')
-	if (parseError) return ''
-
-	const svg = doc.documentElement
-	if (svg.tagName.toLowerCase() !== 'svg') return ''
-
-	sanitizeSvgAttributes(svg)
-	sanitizeNode(svg, 'svg')
-
-	// If sanitization stripped all children, the SVG has no safe content
-	if (svg.children.length === 0) return ''
-
-	return new XMLSerializer().serializeToString(svg)
+	return sanitizeSvgInner(svgText, 0)
 }
