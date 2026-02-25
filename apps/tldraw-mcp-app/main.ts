@@ -1,5 +1,5 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { server } from './server.js'
+import { server } from './server'
 
 async function main() {
 	const transport = new StdioServerTransport()

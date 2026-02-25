@@ -1,11 +1,18 @@
 import { type App, useApp } from '@modelcontextprotocol/ext-apps/react'
 import { useCallback, useEffect, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
-import { type TLShape, Editor, Tldraw, getIndexAbove, structuredClone } from 'tldraw'
+import {
+	type TLComponents,
+	type TLShape,
+	Editor,
+	Tldraw,
+	getIndexAbove,
+	structuredClone,
+	useEditor,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 import {
 	type FocusedShape,
-	type FocusedShapeUpdate,
 	FocusedShapeSchema,
 	FocusedShapeUpdateSchema,
 	convertFocusedShapeToTldrawRecord,
@@ -14,30 +21,11 @@ import {
 import { healJsonArrayString } from '../parse-json'
 
 const EDITOR_HEIGHT = 600
-const CONTEXT_DEBOUNCE_MS = 500
+const SAVE_DEBOUNCE_MS = 500
 
 interface CanvasSnapshot {
 	shapes: TLShape[]
 }
-
-interface CreateMutation {
-	action: 'create'
-	newBlankCanvas: boolean
-	focusedShapes: FocusedShape[]
-	tldrawRecords: TLShape[]
-}
-
-interface UpdateMutation {
-	action: 'update'
-	updates: FocusedShapeUpdate[]
-}
-
-interface DeleteMutation {
-	action: 'delete'
-	shapeIds: string[]
-}
-
-type Mutation = CreateMutation | UpdateMutation | DeleteMutation
 
 const debugLines: string[] = []
 function log(msg: string) {
@@ -71,145 +59,86 @@ function deepMerge(base: unknown, patch: unknown): unknown {
 	return merged
 }
 
-// --- Mutation parsing ---
+// --- localStorage persistence ---
 
-function parseMutationFromToolResult(result: unknown): Mutation | null {
+function localStorageKey(checkpointId: string): string {
+	return `tldraw:${checkpointId}`
+}
+
+function loadLocalShapes(checkpointId: string): TLShape[] | null {
+	try {
+		const raw = localStorage.getItem(localStorageKey(checkpointId))
+		if (!raw) return null
+		const parsed = JSON.parse(raw)
+		if (!Array.isArray(parsed)) return null
+		const shapes = parsed.filter(
+			(s: unknown): s is TLShape =>
+				isRecord(s) && typeof s.id === 'string' && typeof s.type === 'string'
+		)
+		return shapes.length > 0 ? shapes : null
+	} catch {
+		return null
+	}
+}
+
+function saveLocalShapes(checkpointId: string, shapes: TLShape[]): void {
+	try {
+		localStorage.setItem(localStorageKey(checkpointId), JSON.stringify(shapes))
+		// Also track this as the latest checkpoint so future widgets can find it
+		localStorage.setItem('tldraw:latest-checkpoint', checkpointId)
+	} catch {
+		// localStorage may be full or unavailable.
+	}
+}
+
+function getLatestCheckpointShapes(): TLShape[] | null {
+	try {
+		const latestId = localStorage.getItem('tldraw:latest-checkpoint')
+		if (!latestId) return null
+		return loadLocalShapes(latestId)
+	} catch {
+		return null
+	}
+}
+
+// --- Tool result parsing ---
+
+function toSnapshotShapesFromRecords(value: unknown): TLShape[] | null {
+	if (!Array.isArray(value)) return null
+	return value.filter(
+		(shape): shape is TLShape =>
+			isRecord(shape) && typeof shape.id === 'string' && typeof shape.type === 'string'
+	)
+}
+
+interface CheckpointResult {
+	checkpointId: string
+	shapes: TLShape[]
+	action: string | null
+	/** True if the server found base shapes to merge with (for create action). */
+	hadBaseShapes: boolean
+	/** True if the server started from a blank canvas (for create action). */
+	newBlankCanvas: boolean
+}
+
+function parseCheckpointFromToolResult(result: unknown): CheckpointResult | null {
 	if (!isRecord(result)) return null
 	const sc = result.structuredContent
 	if (!isRecord(sc)) return null
-	if (typeof sc.action !== 'string') return null
-
-	switch (sc.action) {
-		case 'create':
-			return {
-				action: 'create',
-				newBlankCanvas: sc.newBlankCanvas === true,
-				focusedShapes: Array.isArray(sc.focusedShapes) ? sc.focusedShapes : [],
-				tldrawRecords: Array.isArray(sc.tldrawRecords) ? sc.tldrawRecords : [],
-			} as CreateMutation
-		case 'update':
-			return {
-				action: 'update',
-				updates: Array.isArray(sc.updates) ? sc.updates : [],
-			} as UpdateMutation
-		case 'delete':
-			return {
-				action: 'delete',
-				shapeIds: Array.isArray(sc.shapeIds) ? sc.shapeIds : [],
-			} as DeleteMutation
-		default:
-			return null
+	const checkpointId = typeof sc.checkpointId === 'string' ? sc.checkpointId : null
+	if (!checkpointId) return null
+	const shapes = toSnapshotShapesFromRecords(sc.tldrawRecords)
+	if (!shapes) return null
+	return {
+		checkpointId,
+		shapes,
+		action: typeof sc.action === 'string' ? sc.action : null,
+		hadBaseShapes: sc.hadBaseShapes === true,
+		newBlankCanvas: sc.newBlankCanvas === true,
 	}
 }
 
-// --- Mutation application ---
-
-function applyMutation(editor: Editor, mutation: Mutation) {
-	switch (mutation.action) {
-		case 'create': {
-			const records = mutation.tldrawRecords.map((r) => structuredClone(r))
-			editor.store.mergeRemoteChanges(() => {
-				editor.run(
-					() => {
-						if (mutation.newBlankCanvas) {
-							const existingIds = [...editor.getCurrentPageShapeIds()]
-							if (existingIds.length > 0) {
-								editor.deleteShapes(existingIds)
-							}
-						}
-						if (records.length <= 0) return
-
-						const pageId = editor.getCurrentPageId()
-						const existingIds = new Set([...editor.getCurrentPageShapeIds()])
-						const nextIndexByParent = new Map<
-							string,
-							ReturnType<Editor['getHighestIndexForParent']>
-						>()
-
-						const toCreate: TLShape[] = []
-						const toUpdate: TLShape[] = []
-
-						for (const shape of records) {
-							const parentId =
-								typeof shape.parentId === 'string' && shape.parentId.length > 0
-									? shape.parentId
-									: pageId
-							shape.parentId = parentId
-
-							if (existingIds.has(shape.id)) {
-								toUpdate.push(shape)
-							} else {
-								if (!nextIndexByParent.has(parentId)) {
-									nextIndexByParent.set(parentId, editor.getHighestIndexForParent(parentId))
-								}
-								const nextIndex = nextIndexByParent.get(parentId)!
-								shape.index = nextIndex
-								nextIndexByParent.set(parentId, getIndexAbove(nextIndex))
-								toCreate.push(shape)
-							}
-						}
-
-						if (toUpdate.length > 0) editor.updateShapes(toUpdate)
-						if (toCreate.length > 0) editor.createShapes(toCreate)
-					},
-					{ history: 'ignore' }
-				)
-			})
-			break
-		}
-		case 'update': {
-			editor.store.mergeRemoteChanges(() => {
-				editor.run(
-					() => {
-						const toUpdate: TLShape[] = []
-
-						for (const update of mutation.updates) {
-							const id = normalizeShapeId(update.shapeId)
-							const existing = editor.getShape(id as TLShape['id'])
-							if (!existing) continue
-
-							try {
-								const existingFocused = convertTldrawRecordToFocusedShape(existing)
-								const merged = deepMerge(existingFocused, {
-									...update,
-									shapeId: toSimpleShapeId(id),
-									_type: update._type ?? existingFocused._type,
-								}) as FocusedShape
-								const converted = convertFocusedShapeToTldrawRecord(merged)
-								converted.index = existing.index
-								toUpdate.push(converted)
-							} catch {
-								// Skip invalid update inputs.
-							}
-						}
-
-						if (toUpdate.length > 0) editor.updateShapes(toUpdate)
-					},
-					{ history: 'ignore' }
-				)
-			})
-			break
-		}
-		case 'delete': {
-			const idsToDelete = mutation.shapeIds
-				.map((id) => normalizeShapeId(id) as TLShape['id'])
-				.filter((id) => editor.getShape(id) != null)
-			if (idsToDelete.length > 0) {
-				editor.store.mergeRemoteChanges(() => {
-					editor.run(
-						() => {
-							editor.deleteShapes(idsToDelete)
-						},
-						{ history: 'ignore' }
-					)
-				})
-			}
-			break
-		}
-	}
-}
-
-// --- Canvas context + server cache push ---
+// --- Canvas context push ---
 
 function getEditorFocusedShapes(editor: Editor): FocusedShape[] {
 	const shapes: FocusedShape[] = []
@@ -232,38 +161,16 @@ function pushCanvasContext(app: App, editor: Editor) {
 	app.updateModelContext({ content: [{ type: 'text', text }] })
 }
 
-function pushCanvasStateToServer(app: App, editor: Editor) {
+function saveCheckpointToServer(app: App, checkpointId: string, editor: Editor) {
 	const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
 	app
 		.callServerTool({
-			name: 'push_canvas_state',
-			arguments: { shapesJson: JSON.stringify(shapes) },
+			name: 'save_checkpoint',
+			arguments: { checkpointId, shapesJson: JSON.stringify(shapes) },
 		})
 		.catch(() => {
-			// Best-effort push; failure is non-fatal.
+			// Best-effort; failure is non-fatal.
 		})
-}
-
-function toSnapshotShapesFromRecords(value: unknown): TLShape[] | null {
-	if (!Array.isArray(value)) return null
-	return value.filter((shape): shape is TLShape => {
-		return isRecord(shape) && typeof shape.id === 'string' && typeof shape.type === 'string'
-	})
-}
-
-async function fetchInitialShapes(app: App): Promise<TLShape[]> {
-	try {
-		const result = await app.callServerTool({
-			name: 'get_canvas_state',
-			arguments: {},
-		})
-		if (!isRecord(result)) return []
-		const sc = result.structuredContent
-		if (!isRecord(sc)) return []
-		return toSnapshotShapesFromRecords(sc.shapes) ?? []
-	} catch {
-		return []
-	}
 }
 
 // --- Streaming preview helpers ---
@@ -521,14 +428,106 @@ function applyPreviewToEditor(
 	})
 }
 
+// --- TLDR export ---
+
+function collectPageBindings(editor: Editor) {
+	const seen = new Set<string>()
+	const bindings: unknown[] = []
+	for (const shape of editor.getCurrentPageShapes()) {
+		for (const binding of editor.getBindingsInvolvingShape(shape)) {
+			if (seen.has(binding.id)) continue
+			seen.add(binding.id)
+			bindings.push(structuredClone(binding))
+		}
+	}
+	return bindings
+}
+
+function buildTldrDocument(editor: Editor) {
+	const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
+	const bindings = collectPageBindings(editor)
+
+	return {
+		tldrawFileFormatVersion: 1,
+		schema: {
+			schemaVersion: 2,
+			sequences: {
+				'com.tldraw.store': 4,
+				'com.tldraw.asset': 1,
+				'com.tldraw.camera': 1,
+				'com.tldraw.document': 2,
+				'com.tldraw.instance': 25,
+				'com.tldraw.instance_page_state': 5,
+				'com.tldraw.page': 1,
+				'com.tldraw.shape': 4,
+				'com.tldraw.instance_presence': 5,
+				'com.tldraw.pointer': 1,
+			},
+		},
+		records: [
+			{
+				typeName: 'page',
+				id: 'page:page',
+				name: 'Page 1',
+				index: 'a1',
+				meta: {},
+			},
+			...shapes,
+			...bindings,
+		],
+	}
+}
+
+function exportTldr(editor: Editor) {
+	const doc = buildTldrDocument(editor)
+	const json = JSON.stringify(doc, null, 2)
+
+	// Copy to clipboard
+	navigator.clipboard.writeText(json).catch(() => {
+		// Clipboard may be unavailable in some contexts.
+	})
+
+	log(json)
+
+	// Download file
+	const blob = new Blob([json], { type: 'application/json' })
+	const url = URL.createObjectURL(blob)
+	const a = document.createElement('a')
+	a.href = url
+	a.download = 'diagram.tldr'
+	a.click()
+	URL.revokeObjectURL(url)
+}
+
+function ExportTldrButton() {
+	const editor = useEditor()
+	return (
+		<div className="tlui-share-zone" draggable={false}>
+			<button
+				className="tlui-button tlui-button__normal"
+				onClick={() => exportTldr(editor)}
+				title="Copy to clipboard and download .tldr file"
+			>
+				Export .tldr
+			</button>
+		</div>
+	)
+}
+
+const tldrawComponents: TLComponents = {
+	SharePanel: ExportTldrButton,
+}
+
 function TldrawCanvas({ app }: { app: App }) {
 	const editorRef = useRef<Editor | null>(null)
+	const pendingSnapshotRef = useRef<CanvasSnapshot | null>(null)
 	const pendingPreviewSnapshotRef = useRef<CanvasSnapshot | null>(null)
 	const previewActiveRef = useRef(false)
 	const createFromBlankPreviewRef = useRef(false)
 	const committedSnapshotRef = useRef<CanvasSnapshot>({ shapes: [] })
+	const checkpointIdRef = useRef<string | null>(null)
 	const removeStoreListenerRef = useRef<(() => void) | null>(null)
-	const contextTimerRef = useRef<number | null>(null)
+	const saveTimerRef = useRef<number | null>(null)
 
 	const renderPreviewSnapshot = useCallback((previewSnapshot: CanvasSnapshot, summary: string) => {
 		previewActiveRef.current = true
@@ -580,26 +579,27 @@ function TldrawCanvas({ app }: { app: App }) {
 		log(`Cleared stream preview (${reason})`)
 	}, [])
 
-	const pushAllState = useCallback(
-		(editor: Editor) => {
-			pushCanvasContext(app, editor)
-			pushCanvasStateToServer(app, editor)
-		},
-		[app]
-	)
-
-	const scheduleContextPush = useCallback(() => {
-		if (contextTimerRef.current !== null) {
-			window.clearTimeout(contextTimerRef.current)
+	const scheduleSave = useCallback(() => {
+		if (saveTimerRef.current !== null) {
+			window.clearTimeout(saveTimerRef.current)
 		}
-		contextTimerRef.current = window.setTimeout(() => {
-			contextTimerRef.current = null
+		saveTimerRef.current = window.setTimeout(() => {
+			saveTimerRef.current = null
 			const editor = editorRef.current
-			if (editor) {
-				pushAllState(editor)
+			const cpId = checkpointIdRef.current
+			if (!editor) return
+
+			// Push model context
+			pushCanvasContext(app, editor)
+
+			// Persist to localStorage + server
+			if (cpId) {
+				const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
+				saveLocalShapes(cpId, shapes)
+				saveCheckpointToServer(app, cpId, editor)
 			}
-		}, CONTEXT_DEBOUNCE_MS)
-	}, [pushAllState])
+		}, SAVE_DEBOUNCE_MS)
+	}, [app])
 
 	const applyPreviewFromToolInput = useCallback(
 		(input: unknown, isPartial: boolean) => {
@@ -660,6 +660,24 @@ function TldrawCanvas({ app }: { app: App }) {
 
 	useEffect(() => {
 		log('TldrawCanvas mounted')
+
+		// Pre-populate with latest checkpoint so streaming preview and update/delete
+		// have the existing canvas shapes as their base. This is the key to "forking":
+		// when a new tool call starts streaming, the widget already shows the previous
+		// canvas, and new shapes stream in on top.
+		const latestShapes = getLatestCheckpointShapes()
+		if (latestShapes && latestShapes.length > 0) {
+			const snapshot: CanvasSnapshot = { shapes: latestShapes }
+			committedSnapshotRef.current = snapshot
+			const editor = editorRef.current
+			if (editor) {
+				applySnapshot(editor, snapshot)
+			} else {
+				pendingSnapshotRef.current = snapshot
+			}
+			log(`Pre-loaded ${latestShapes.length} shape(s) from latest checkpoint`)
+		}
+
 		app.onteardown = async () => {
 			log('onteardown called')
 			return {}
@@ -674,26 +692,60 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		app.ontoolresult = (result) => {
-			const mutation = parseMutationFromToolResult(result)
-			if (!mutation) return
+			const checkpoint = parseCheckpointFromToolResult(result)
+			if (!checkpoint) return
+
+			const {
+				checkpointId,
+				shapes: resultShapes,
+				action,
+				hadBaseShapes,
+				newBlankCanvas,
+			} = checkpoint
+			checkpointIdRef.current = checkpointId
 
 			// Clear preview state
 			previewActiveRef.current = false
 			createFromBlankPreviewRef.current = false
 			pendingPreviewSnapshotRef.current = null
 
-			const editor = editorRef.current
-			if (!editor) return
+			// Check localStorage for user edits (handles remount case)
+			const localShapes = loadLocalShapes(checkpointId)
+			let finalShapes = localShapes ?? resultShapes
 
-			applyMutation(editor, mutation)
-
-			// Update committed snapshot from current editor state
-			committedSnapshotRef.current = {
-				shapes: [...editor.getCurrentPageShapes()].map((s) => structuredClone(s)),
+			// Client-side merge fallback: if the server didn't have base shapes for a create
+			// (e.g. server process restarted between tool calls, losing in-memory state)
+			// and this wasn't a blank canvas request, merge the new shapes with the latest
+			// checkpoint from localStorage.
+			if (!localShapes && action === 'create' && !hadBaseShapes && !newBlankCanvas) {
+				const latestShapes = getLatestCheckpointShapes()
+				if (latestShapes && latestShapes.length > 0) {
+					log(`Server had no base shapes — merging locally from latest checkpoint`)
+					finalShapes = mergeShapesById(latestShapes, resultShapes)
+				}
 			}
 
-			pushAllState(editor)
-			log(`Applied ${mutation.action} mutation`)
+			const snapshot: CanvasSnapshot = { shapes: finalShapes }
+			committedSnapshotRef.current = snapshot
+
+			const editor = editorRef.current
+			if (!editor) {
+				pendingSnapshotRef.current = snapshot
+				log(`Queued checkpoint ${checkpointId} (editor not ready)`)
+				return
+			}
+
+			applySnapshot(editor, snapshot)
+
+			// Persist to localStorage (ensures it's saved even on first render)
+			saveLocalShapes(checkpointId, finalShapes)
+
+			// Immediately push checkpoint to server so the next tool call can fork from it.
+			// This is critical: the server may restart between tool calls, losing in-memory state.
+			saveCheckpointToServer(app, checkpointId, editor)
+
+			pushCanvasContext(app, editor)
+			log(`Applied checkpoint ${checkpointId} (${finalShapes.length} shapes)`)
 		}
 
 		app.ontoolcancelled = (params) => {
@@ -702,15 +754,15 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		return () => {
-			if (contextTimerRef.current !== null) {
-				window.clearTimeout(contextTimerRef.current)
-				contextTimerRef.current = null
+			if (saveTimerRef.current !== null) {
+				window.clearTimeout(saveTimerRef.current)
+				saveTimerRef.current = null
 			}
 			removeStoreListenerRef.current?.()
 			removeStoreListenerRef.current = null
 			log('TldrawCanvas unmounted!')
 		}
-	}, [app, applyPreviewFromToolInput, clearPreviewAndRestoreCommitted, pushAllState])
+	}, [app, applyPreviewFromToolInput, clearPreviewAndRestoreCommitted])
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
@@ -720,23 +772,18 @@ function TldrawCanvas({ app }: { app: App }) {
 			removeStoreListenerRef.current?.()
 			removeStoreListenerRef.current = editor.store.listen(
 				() => {
-					scheduleContextPush()
+					scheduleSave()
 				},
 				{ source: 'user', scope: 'document' }
 			)
 
-			// Hydrate from previous canvas state
-			void fetchInitialShapes(app).then((shapes) => {
-				if (shapes.length > 0) {
-					const snapshot: CanvasSnapshot = { shapes }
-					committedSnapshotRef.current = snapshot
-					// Only apply if no preview is active (streaming may have started)
-					if (!previewActiveRef.current) {
-						applySnapshot(editor, snapshot)
-					}
-					log(`Hydrated ${shapes.length} shape(s) from previous canvas`)
-				}
-			})
+			// Apply any snapshot that arrived before the editor was ready
+			const pendingSnapshot = pendingSnapshotRef.current
+			if (pendingSnapshot) {
+				pendingSnapshotRef.current = null
+				applySnapshot(editor, pendingSnapshot)
+				log(`Applied pending checkpoint snapshot`)
+			}
 
 			const pendingPreviewSnapshot = pendingPreviewSnapshotRef.current
 			if (pendingPreviewSnapshot) {
@@ -744,14 +791,15 @@ function TldrawCanvas({ app }: { app: App }) {
 				applySnapshot(editor, pendingPreviewSnapshot)
 			}
 		},
-		[app, scheduleContextPush]
+		[scheduleSave]
 	)
 
 	return (
 		<div style={{ width: '100%', height: EDITOR_HEIGHT, position: 'relative' }}>
 			<Tldraw
-				licenseKey="tldraw-claude-mcp-content-2027-01-12/WyJ4c0lDTDVaTCIsWyIqLmNsYXVkZW1jcGNvbnRlbnQuY29tIl0sMTYsIjIwMjctMDEtMTIiXQ.RAN4FAIUQ8hjQl6Brwa9CKlZFontsjf/W3xk+gl+PThOE0M4sIT7RzWWykYSj/HjsAwCoPpJ2OsImBZIw71Yag"
+				licenseKey="tldraw-vscode---claude-mcp-2-2027-02-25/WyI5R2UybElHcyIsWyIqLnZzY29kZS1jZG4ubmV0IiwiKi5jbGF1ZGVtY3Bjb250ZW50LmNvbSJdLDE2LCIyMDI3LTAyLTI1Il0.WdqA1PnPIEn7RdIA2jNLS/4DuucL/IWBAVnXBVZyV9Ub9AAgLa3DF8j1RmUKr/Ah2FrI+Dp7OM51B1xrq+KxMQ"
 				onMount={handleMount}
+				components={tldrawComponents}
 			/>
 		</div>
 	)
