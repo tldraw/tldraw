@@ -152,7 +152,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private pruneTimer: ReturnType<typeof setTimeout> | null = null
 
-	// eslint-disable-next-line local/prefer-class-methods
 	pruneSessions = throttle(() => {
 		if (this.pruneTimer) {
 			clearTimeout(this.pruneTimer)
