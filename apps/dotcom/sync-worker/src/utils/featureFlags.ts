@@ -4,10 +4,10 @@ import { Environment } from '../types'
 
 function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
 	// Default to enabled in dev/preview when no KV value exists
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const defaultEnabled = env.TLDRAW_ENV === 'development'
 
-	return {
-	}
+	return {}
 }
 
 const ALL_FLAGS: FeatureFlagKey[] = []
