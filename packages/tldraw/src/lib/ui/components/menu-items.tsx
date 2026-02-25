@@ -9,6 +9,7 @@ import {
 	useAnySelectedShapesCount,
 	useCanApplySelectionAction,
 	useHasLinkShapeSelected,
+	useHasShapesOnPage,
 	useOnlyFlippableShape,
 	useShowAutoSizeToggle,
 	useThreeStackableItems,
@@ -141,10 +142,7 @@ export function FitFrameToContentMenuItem() {
 
 /** @public @react */
 export function ToggleLockMenuItem() {
-	const editor = useEditor()
-	const shouldDisplay = useValue('selected shapes', () => editor.getSelectedShapes().length > 0, [
-		editor,
-	])
+	const shouldDisplay = useAnySelectedShapesCount(1)
 	if (!shouldDisplay) return null
 
 	return <TldrawUiMenuActionItem actionId="toggle-lock" />
@@ -170,12 +168,9 @@ export function ToggleTransparentBgMenuItem() {
 
 /** @public @react */
 export function UnlockAllMenuItem() {
-	const editor = useEditor()
-	const shouldDisplay = useValue('any shapes', () => editor.getCurrentPageShapeIds().size > 0, [
-		editor,
-	])
+	const hasShapes = useHasShapesOnPage()
 
-	return <TldrawUiMenuActionItem actionId="unlock-all" disabled={!shouldDisplay} />
+	return <TldrawUiMenuActionItem actionId="unlock-all" disabled={!hasShapes} />
 }
 
 /* ---------------------- Zoom ---------------------- */
@@ -192,8 +187,7 @@ export function ZoomTo100MenuItem() {
 
 /** @public @react */
 export function ZoomToFitMenuItem() {
-	const editor = useEditor()
-	const hasShapes = useValue('has shapes', () => editor.getCurrentPageShapeIds().size > 0, [editor])
+	const hasShapes = useHasShapesOnPage()
 
 	return (
 		<TldrawUiMenuActionItem
@@ -236,12 +230,7 @@ export function ClipboardMenuGroup() {
 
 /** @public @react */
 export function CopyAsMenuGroup() {
-	const editor = useEditor()
-	const atLeastOneShapeOnPage = useValue(
-		'atLeastOneShapeOnPage',
-		() => editor.getCurrentPageShapeIds().size > 0,
-		[editor]
-	)
+	const atLeastOneShapeOnPage = useHasShapesOnPage()
 
 	return (
 		<TldrawUiMenuSubmenu
@@ -294,12 +283,7 @@ export function PasteMenuItem() {
 
 /** @public @react */
 export function ConversionsMenuGroup() {
-	const editor = useEditor()
-	const atLeastOneShapeOnPage = useValue(
-		'atLeastOneShapeOnPage',
-		() => editor.getCurrentPageShapeIds().size > 0,
-		[editor]
-	)
+	const atLeastOneShapeOnPage = useHasShapesOnPage()
 
 	if (!atLeastOneShapeOnPage) return null
 
@@ -323,12 +307,7 @@ export function ConversionsMenuGroup() {
 /* ------------------ Set Selection ----------------- */
 /** @public @react */
 export function SelectAllMenuItem() {
-	const editor = useEditor()
-	const atLeastOneShapeOnPage = useValue(
-		'atLeastOneShapeOnPage',
-		() => editor.getCurrentPageShapeIds().size > 0,
-		[editor]
-	)
+	const atLeastOneShapeOnPage = useHasShapesOnPage()
 
 	return <TldrawUiMenuActionItem actionId="select-all" disabled={!atLeastOneShapeOnPage} />
 }
@@ -730,12 +709,9 @@ export function TogglePasteAtCursorItem() {
 
 /** @public @react */
 export function PrintItem() {
-	const editor = useEditor()
-	const emptyPage = useValue('emptyPage', () => editor.getCurrentPageShapeIds().size === 0, [
-		editor,
-	])
+	const hasShapes = useHasShapesOnPage()
 
-	return <TldrawUiMenuActionItem actionId="print" disabled={emptyPage} />
+	return <TldrawUiMenuActionItem actionId="print" disabled={!hasShapes} />
 }
 
 /* ---------------------- Multiplayer --------------------- */

@@ -31,12 +31,12 @@ jobs:
     steps:
       - name: Generate a token
         id: generate_token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ secrets.HUPPY_APP_ID }}
           private-key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           token: ${{ steps.generate_token.outputs.token }}
           fetch-depth: 0

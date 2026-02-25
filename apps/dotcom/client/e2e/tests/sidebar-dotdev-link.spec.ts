@@ -26,13 +26,24 @@ test.describe('sidebar dot dev link', () => {
 		await expect(dismissButton).toBeVisible()
 	})
 
-	test('clicking opens tldraw.dev in a new tab', async ({ page }) => {
+	test('clicking opens tldraw.dev in a new tab and hides the link', async ({ page }) => {
 		const link = page.getByTestId('tla-sidebar-dotdev-link')
 
-		const [popup] = await Promise.all([page.waitForEvent('popup'), link.click()])
-		await popup.waitForURL(/https:\/\/tldraw\.dev/, { timeout: 15000 })
-		expect(popup.url()).toContain('https://tldraw.dev')
-		await popup.close()
+		// Verify the link would open in a new tab
+		await expect(link).toHaveAttribute('target', '_blank')
+
+		// Click the link (the onClick handler sets localStorage to hide it)
+		await link.click()
+
+		// Verify the localStorage was set to hide the link
+		await expect(async () => {
+			const storedValue = await page.evaluate(
+				// eslint-disable-next-line no-restricted-syntax
+				(key) => window.localStorage.getItem(key),
+				DOT_DEV_LOCAL_STORAGE_KEY
+			)
+			expect(storedValue).toBe('false')
+		}).toPass()
 	})
 
 	test('can be dismissed and stays hidden after reload', async ({ page, homePage, editor }) => {

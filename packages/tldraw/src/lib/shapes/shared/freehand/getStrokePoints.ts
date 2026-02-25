@@ -1,8 +1,7 @@
 import { Vec, VecLike } from '@tldraw/editor'
 import type { StrokeOptions, StrokePoint } from './types'
 
-const MIN_START_PRESSURE = 0.025
-const MIN_END_PRESSURE = 0.01
+const MIN_PRESSURE = 0.025
 
 /**
  * ## getStrokePoints
@@ -33,22 +32,13 @@ export function getStrokePoints(
 	let pointsRemovedFromNearEnd = 0
 
 	if (!simulatePressure) {
-		// Strip low pressure points from the start of the array.
-		let pt = pts[0]
-		while (pt) {
-			if (pt.z >= MIN_START_PRESSURE) break
-			pts.shift()
-			pt = pts[0]
-		}
-	}
-
-	if (!simulatePressure) {
-		// Strip low pressure points from the end of the array.
-		let pt = pts[pts.length - 1]
-		while (pt) {
-			if (pt.z >= MIN_END_PRESSURE) break
-			pts.pop()
-			pt = pts[pts.length - 1]
+		// Clamp any zero/near-zero pressure points to a minimum value.
+		// Some pens or OSes report z=0 even while the pen is touching,
+		// so we clamp rather than strip to avoid removing real input.
+		for (const pt of pts) {
+			if (pt.z < MIN_PRESSURE) {
+				pt.z = MIN_PRESSURE
+			}
 		}
 	}
 

@@ -29,7 +29,7 @@ import {
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { TLArrowInfo } from './arrow-types'
-import { getArrowInfo } from './shared'
+import { getArrowInfo } from './getArrowInfo'
 
 export function getArrowBodyGeometry(editor: Editor, shape: TLArrowShape) {
 	const info = getArrowInfo(editor, shape)!
