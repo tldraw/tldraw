@@ -460,7 +460,13 @@ const URL_BEARING_SVG_ATTRS = new Set([
 
 type SanitizeMode = 'svg' | 'html'
 
+// Guard against mutual recursion: sanitizeSvg → sanitizeNode → sanitizeEmbeddedSvgDataUri → sanitizeSvg
+const MAX_EMBED_DEPTH = 10
+let currentEmbedDepth = 0
+
 function sanitizeEmbeddedSvgDataUri(value: string): string | null {
+	if (currentEmbedDepth >= MAX_EMBED_DEPTH) return null
+	currentEmbedDepth++
 	try {
 		let svgText: string
 		if (/;base64,/i.test(value)) {
@@ -479,6 +485,8 @@ function sanitizeEmbeddedSvgDataUri(value: string): string | null {
 		return 'data:image/svg+xml;base64,' + btoa(binaryStr)
 	} catch {
 		return null
+	} finally {
+		currentEmbedDepth--
 	}
 }
 
@@ -601,14 +609,7 @@ function sanitizeHtmlAttributes(el: Element): void {
 	}
 }
 
-const MAX_NODE_DEPTH = 100
-
-function sanitizeNode(node: Element, mode: SanitizeMode, depth = 0): void {
-	if (depth >= MAX_NODE_DEPTH) {
-		while (node.firstChild) node.firstChild.remove()
-		return
-	}
-
+function sanitizeNode(node: Element, mode: SanitizeMode): void {
 	// Walk children in reverse so removals don't shift indices
 	for (let i = node.children.length - 1; i >= 0; i--) {
 		const child = node.children[i]
@@ -618,7 +619,7 @@ function sanitizeNode(node: Element, mode: SanitizeMode, depth = 0): void {
 			if (tag === 'foreignobject') {
 				// foreignObject: sanitize attrs as SVG, recurse children as HTML
 				sanitizeSvgAttributes(child)
-				sanitizeNode(child, 'html', depth + 1)
+				sanitizeNode(child, 'html')
 			} else if (tag === 'style') {
 				// <style>: sanitize attrs, sanitize text content as CSS
 				sanitizeSvgAttributes(child)
@@ -630,7 +631,7 @@ function sanitizeNode(node: Element, mode: SanitizeMode, depth = 0): void {
 				child.remove()
 			} else if (ALLOWED_SVG_TAGS.has(tag)) {
 				sanitizeSvgAttributes(child)
-				sanitizeNode(child, 'svg', depth + 1)
+				sanitizeNode(child, 'svg')
 			} else {
 				child.remove()
 			}
@@ -640,7 +641,7 @@ function sanitizeNode(node: Element, mode: SanitizeMode, depth = 0): void {
 				child.remove()
 			} else if (ALLOWED_HTML_TAGS.has(tag)) {
 				sanitizeHtmlAttributes(child)
-				sanitizeNode(child, 'html', depth + 1)
+				sanitizeNode(child, 'html')
 			} else {
 				child.remove()
 			}
