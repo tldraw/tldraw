@@ -2615,6 +2615,26 @@ export const PORTRAIT_BREAKPOINT: {
 export type PORTRAIT_BREAKPOINT = (typeof PORTRAIT_BREAKPOINT)[keyof typeof PORTRAIT_BREAKPOINT];
 
 // @public (undocumented)
+export namespace PORTRAIT_BREAKPOINT {
+    // (undocumented)
+    export type DESKTOP = typeof PORTRAIT_BREAKPOINT.DESKTOP;
+    // (undocumented)
+    export type MOBILE = typeof PORTRAIT_BREAKPOINT.MOBILE;
+    // (undocumented)
+    export type MOBILE_SM = typeof PORTRAIT_BREAKPOINT.MOBILE_SM;
+    // (undocumented)
+    export type MOBILE_XS = typeof PORTRAIT_BREAKPOINT.MOBILE_XS;
+    // (undocumented)
+    export type MOBILE_XXS = typeof PORTRAIT_BREAKPOINT.MOBILE_XXS;
+    // (undocumented)
+    export type TABLET = typeof PORTRAIT_BREAKPOINT.TABLET;
+    // (undocumented)
+    export type TABLET_SM = typeof PORTRAIT_BREAKPOINT.TABLET_SM;
+    // (undocumented)
+    export type ZERO = typeof PORTRAIT_BREAKPOINT.ZERO;
+}
+
+// @public (undocumented)
 export function PreferencesGroup(): JSX.Element;
 
 // @public (undocumented)

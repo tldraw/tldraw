@@ -550,3 +550,13 @@ export const MigrationFailureReason = {
 /** @public */
 export type MigrationFailureReason =
 	(typeof MigrationFailureReason)[keyof typeof MigrationFailureReason]
+
+/** @public */
+export declare namespace MigrationFailureReason {
+	export type IncompatibleSubtype = typeof MigrationFailureReason.IncompatibleSubtype
+	export type UnknownType = typeof MigrationFailureReason.UnknownType
+	export type TargetVersionTooNew = typeof MigrationFailureReason.TargetVersionTooNew
+	export type TargetVersionTooOld = typeof MigrationFailureReason.TargetVersionTooOld
+	export type MigrationError = typeof MigrationFailureReason.MigrationError
+	export type UnrecognizedSubtype = typeof MigrationFailureReason.UnrecognizedSubtype
+}

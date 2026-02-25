@@ -222,6 +222,22 @@ export const MigrationFailureReason: {
 // @public (undocumented)
 export type MigrationFailureReason = (typeof MigrationFailureReason)[keyof typeof MigrationFailureReason];
 
+// @public (undocumented)
+export namespace MigrationFailureReason {
+    // (undocumented)
+    export type IncompatibleSubtype = typeof MigrationFailureReason.IncompatibleSubtype;
+    // (undocumented)
+    export type MigrationError = typeof MigrationFailureReason.MigrationError;
+    // (undocumented)
+    export type TargetVersionTooNew = typeof MigrationFailureReason.TargetVersionTooNew;
+    // (undocumented)
+    export type TargetVersionTooOld = typeof MigrationFailureReason.TargetVersionTooOld;
+    // (undocumented)
+    export type UnknownType = typeof MigrationFailureReason.UnknownType;
+    // (undocumented)
+    export type UnrecognizedSubtype = typeof MigrationFailureReason.UnrecognizedSubtype;
+}
+
 // @public
 export type MigrationId = `${string}/${number}`;
 
