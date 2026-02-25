@@ -51,7 +51,7 @@ export async function getFeatureFlagValue(
 		if (!value) {
 			return getFlagDefaults(env)[flag]
 		}
-		return JSON.parse(value)
+		return { ...getFlagDefaults(env)[flag], ...JSON.parse(value) }
 	} catch (e) {
 		console.error(`Failed to get feature flag ${flag}:`, e)
 		return getFlagDefaults(env)[flag]
