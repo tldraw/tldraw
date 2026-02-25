@@ -4482,7 +4482,7 @@ export interface TLSvgExportOptions {
     background?: boolean;
     bounds?: Box;
     darkMode?: boolean;
-    padding?: number | 'auto';
+    padding?: 'auto' | number;
     pixelRatio?: number;
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     scale?: number;
