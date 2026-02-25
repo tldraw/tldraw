@@ -36,7 +36,7 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import {
 	FONT_FAMILIES,
-	FONT_SIZES,
+	LABEL_FONT_SIZES,
 	LABEL_PADDING,
 	STROKE_SIZES,
 	TEXT_PROPS,
@@ -128,10 +128,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				fillColor:
 					fill === 'none'
 						? 'transparent'
-						: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+						: fill === 'semi'
+							? theme.solid
+							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
 				labelColor: theme[labelColor]['solid'], // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
 				labelFontFamily: FONT_FAMILIES[font],
-				labelFontSize: FONT_SIZES[size],
+				labelFontSize: LABEL_FONT_SIZES[size],
 				labelMinWidth: GEO_SHAPE_MIN_WIDTHS[size] + GEO_SHAPE_EXTRA_PADDINGS[size],
 				labelLineHeight: 1.35,
 				labelFontWeight: 'normal',
@@ -342,7 +344,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						style={{
 							overflow: 'hidden',
 							width: w,
-							height: h,
+							height: h + props.growY,
 						}}
 					>
 						<RichTextLabel
@@ -374,7 +376,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const dv = useValue(
 			'geo shape util display properties',
 			() => getDisplayValues(this, shape, false),
-			[this.editor]
+			[shape]
 		)
 
 		const path = getGeoShapePath(shape)

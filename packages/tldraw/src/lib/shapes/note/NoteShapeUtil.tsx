@@ -317,7 +317,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const dv = useValue(
 			'note shape display values',
 			() => getDisplayValues(this, shape, isDarkMode),
-			[shape]
+			[shape, isDarkMode]
 		)
 
 		const nw = dv.noteWidth * scale

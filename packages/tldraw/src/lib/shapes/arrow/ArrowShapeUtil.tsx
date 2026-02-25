@@ -143,7 +143,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				fillColor:
 					fill === 'none'
 						? 'transparent'
-						: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+						: fill === 'semi'
+							? theme.solid
+							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
 				labelColor: getColorValue(theme, labelColor, 'solid'),
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: ARROW_LABEL_FONT_SIZES[size],

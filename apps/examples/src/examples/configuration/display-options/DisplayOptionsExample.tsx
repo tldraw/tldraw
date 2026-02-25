@@ -30,7 +30,7 @@ const CustomGeoShapeUtil = GeoShapeUtil.configure({
 // [2]
 const shapeUtils = [CustomGeoShapeUtil]
 
-export default function GeoShapeDisplayValuesExample() {
+export default function DisplayOptionsExample() {
 	return (
 		<div className="tldraw__editor">
 			{/* [3] */}

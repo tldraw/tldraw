@@ -77,7 +77,9 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 				fillColor:
 					fill === 'none'
 						? 'transparent'
-						: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+						: fill === 'semi'
+							? theme.solid
+							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
 			}
 		},
 		getDisplayValueOverrides(): Partial<DrawShapeUtilDisplayValues> {

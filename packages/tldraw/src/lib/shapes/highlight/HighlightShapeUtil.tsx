@@ -125,7 +125,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		const dv = useValue(
 			'highlight display values',
 			() => getDisplayValues(this, shape, isDarkMode),
-			[shape]
+			[shape, isDarkMode]
 		)
 		const sw = dv.strokeWidth * shape.props.scale
 		const forceSolid = useHighlightForceSolid(this.editor, sw)
@@ -149,7 +149,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		const dv = useValue(
 			'highlight background display values',
 			() => getDisplayValues(this, shape, isDarkMode),
-			[shape]
+			[shape, isDarkMode]
 		)
 		const sw = dv.strokeWidth * shape.props.scale
 		const forceSolid = useHighlightForceSolid(this.editor, sw)
