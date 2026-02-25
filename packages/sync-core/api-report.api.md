@@ -7,6 +7,7 @@
 import { Atom } from '@tldraw/state';
 import { AtomMap } from '@tldraw/store';
 import { DebouncedFunc } from 'lodash';
+import { DebouncedFuncLeading } from 'lodash';
 import { Emitter } from 'nanoevents';
 import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
@@ -301,6 +302,22 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
 }
 
 // @public
+export interface SessionStateSnapshot {
+    // (undocumented)
+    isReadonly: boolean;
+    // (undocumented)
+    presenceId: null | string;
+    // (undocumented)
+    presenceRecord: null | UnknownRecord;
+    // (undocumented)
+    requiresLegacyRejection: boolean;
+    // (undocumented)
+    serializedSchema: SerializedSchema;
+    // (undocumented)
+    supportsStringAppend: boolean;
+}
+
+// @public
 export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
     constructor({ sql, snapshot, onChange }: {
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
@@ -443,6 +460,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         meta: SessionMeta;
         sessionId: string;
     }>;
+    getSessionSnapshot(sessionId: string): null | SessionStateSnapshot;
     handleSocketClose(sessionId: string): void;
     handleSocketConnect(opts: {
         isReadonly?: boolean;
@@ -453,6 +471,13 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     })): void;
     handleSocketError(sessionId: string): void;
     handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string): void;
+    handleSocketResume(opts: {
+        sessionId: string;
+        snapshot: SessionStateSnapshot;
+        socket: WebSocketMinimal;
+    } & (SessionMeta extends void ? object : {
+        meta: SessionMeta;
+    })): void;
     isClosed(): boolean;
     loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot): void;
     // (undocumented)
@@ -627,6 +652,7 @@ export interface TLSyncLog {
 // @internal
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     constructor(opts: {
+        clientTimeout?: number;
         log?: TLSyncLog;
         onPresenceChange?(): void;
         schema: StoreSchema<R, any>;
@@ -654,6 +680,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         sessionId: string;
         socket: TLRoomSocket<R>;
     }): this;
+    handleResumedSession(opts: {
+        isReadonly: boolean;
+        meta: SessionMeta;
+        presenceId: null | string;
+        presenceRecord: null | UnknownRecord;
+        requiresLegacyRejection: boolean;
+        serializedSchema: SerializedSchema;
+        sessionId: string;
+        socket: TLRoomSocket<R>;
+        supportsStringAppend: boolean;
+    }): void;
     // (undocumented)
     readonly internalTxnId = "TLSyncRoom.txn";
     isClosed(): boolean;
@@ -662,7 +699,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     readonly presenceType: null | RecordType<R, any>;
     // (undocumented)
-    pruneSessions: () => void;
+    pruneSessions: DebouncedFuncLeading<() => void>;
     rejectSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     // (undocumented)
     readonly schema: StoreSchema<R, any>;
