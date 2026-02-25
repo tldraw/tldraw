@@ -1705,6 +1705,12 @@ export interface FrameShapeUtilDisplayValues {
     // (undocumented)
     headingTextColor: string;
     // (undocumented)
+    showColorsHeadingFillColor: string;
+    // (undocumented)
+    showColorsHeadingStrokeColor: string;
+    // (undocumented)
+    showColorsHeadingTextColor: string;
+    // (undocumented)
     strokeColor: string;
 }
 

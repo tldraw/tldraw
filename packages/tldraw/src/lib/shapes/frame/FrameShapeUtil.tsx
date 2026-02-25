@@ -57,6 +57,9 @@ export interface FrameShapeUtilDisplayValues {
 	headingFillColor: string
 	headingStrokeColor: string
 	headingTextColor: string
+	showColorsHeadingFillColor: string
+	showColorsHeadingStrokeColor: string
+	showColorsHeadingTextColor: string
 }
 
 /** @public */
@@ -83,13 +86,16 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		resizeChildren: false,
 		getDisplayValues(_editor, shape, isDarkMode): FrameShapeUtilDisplayValues {
 			const theme = getDefaultColorTheme({ isDarkMode })
-			const color = shape.props.color ?? 'black'
+			const { color } = shape.props
 			return {
 				fillColor: getColorValue(theme, color, 'frameFill'),
 				strokeColor: getColorValue(theme, color, 'frameStroke'),
-				headingFillColor: getColorValue(theme, color, 'frameHeadingFill'),
-				headingStrokeColor: getColorValue(theme, color, 'frameHeadingStroke'),
+				headingFillColor: theme.background,
+				headingStrokeColor: theme.background,
 				headingTextColor: getColorValue(theme, color, 'frameText'),
+				showColorsHeadingFillColor: getColorValue(theme, color, 'frameHeadingFill'),
+				showColorsHeadingStrokeColor: getColorValue(theme, color, 'frameHeadingStroke'),
+				showColorsHeadingTextColor: getColorValue(theme, color, 'frameText'),
 			}
 		},
 		getDisplayValueOverrides(): Partial<FrameShapeUtilDisplayValues> {
@@ -257,9 +263,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 
 		const showFrameColors = this.options.showColors
-		const theme = getDefaultColorTheme({ isDarkMode })
-		const frameHeadingStroke = showFrameColors ? dv.headingStrokeColor : theme.background
-		const frameHeadingFill = showFrameColors ? dv.headingFillColor : theme.background
 
 		return (
 			<>
@@ -279,9 +282,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 					<FrameHeading
 						id={shape.id}
 						name={shape.props.name}
-						fill={frameHeadingFill}
-						stroke={frameHeadingStroke}
-						color={dv.headingTextColor}
+						fill={showFrameColors ? dv.showColorsHeadingFillColor : dv.headingFillColor}
+						stroke={showFrameColors ? dv.showColorsHeadingStrokeColor : dv.headingStrokeColor}
+						color={showFrameColors ? dv.showColorsHeadingTextColor : dv.headingTextColor}
 						width={shape.props.w}
 						height={shape.props.h}
 						offsetX={showFrameColors ? -1 : -7}
@@ -294,7 +297,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
 		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
-		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 
 		// rotate right 45 deg
 		const labelSide = getFrameHeadingSide(this.editor, shape)
@@ -311,8 +313,11 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const text = createTextJsxFromSpans(this.editor, spans, opts)
 
 		const showFrameColors = this.options.showColors
-		const frameHeadingStroke = showFrameColors ? dv.headingStrokeColor : theme.background
-		const frameHeadingFill = showFrameColors ? dv.headingFillColor : theme.background
+		const frameHeadingStroke = showFrameColors
+			? dv.showColorsHeadingStrokeColor
+			: dv.headingStrokeColor
+		const frameHeadingFill = showFrameColors ? dv.showColorsHeadingFillColor : dv.headingFillColor
+		const frameHeadingText = showFrameColors ? dv.showColorsHeadingTextColor : dv.headingTextColor
 
 		return (
 			<>
@@ -326,7 +331,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 					rx={0}
 					ry={0}
 				/>
-				<g fill={dv.headingTextColor} transform={labelTranslate}>
+				<g fill={frameHeadingText} transform={labelTranslate}>
 					<rect
 						x={labelBounds.x - (showFrameColors ? 0 : 6)}
 						y={labelBounds.y - 6}
