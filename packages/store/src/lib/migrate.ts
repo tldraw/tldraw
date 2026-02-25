@@ -540,13 +540,23 @@ export type MigrationResult<T> =
  * @public
  */
 export const MigrationFailureReason = {
-	IncompatibleSubtype: 'incompatible-subtype',
-	UnknownType: 'unknown-type',
-	TargetVersionTooNew: 'target-version-too-new',
-	TargetVersionTooOld: 'target-version-too-old',
-	MigrationError: 'migration-error',
-	UnrecognizedSubtype: 'unrecognized-subtype',
-} as const
-/** @public */
+  IncompatibleSubtype: 'incompatible-subtype',
+  UnknownType: 'unknown-type',
+  TargetVersionTooNew: 'target-version-too-new',
+  TargetVersionTooOld: 'target-version-too-old',
+  MigrationError: 'migration-error',
+  UnrecognizedSubtype: 'unrecognized-subtype',
+} as const;
+
 export type MigrationFailureReason =
-	(typeof MigrationFailureReason)[keyof typeof MigrationFailureReason]
+  (typeof MigrationFailureReason)[keyof typeof MigrationFailureReason];
+
+// This is the magic part for backward compat:
+export declare namespace MigrationFailureReason {
+  export type IncompatibleSubtype = typeof MigrationFailureReason.IncompatibleSubtype;
+  export type UnknownType = typeof MigrationFailureReason.UnknownType;
+  export type TargetVersionTooNew = typeof MigrationFailureReason.TargetVersionTooNew;
+  export type TargetVersionTooOld = typeof MigrationFailureReason.TargetVersionTooOld;
+  export type MigrationError = typeof MigrationFailureReason.MigrationError;
+  export type UnrecognizedSubtype = typeof MigrationFailureReason.UnrecognizedSubtype;
+}
