@@ -767,6 +767,7 @@ function TldrawCanvas({ app }: { app: App }) {
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			log('Tldraw editor onMount fired')
+			log(JSON.stringify(window.location, null, 2))
 			editorRef.current = editor
 
 			removeStoreListenerRef.current?.()
