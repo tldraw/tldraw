@@ -12,6 +12,7 @@ import {
 	lerp,
 	resizeBox,
 	toDomPrecision,
+	useIsDarkMode,
 	useIsEditing,
 	useSvgExportContext,
 	useValue,
@@ -27,13 +28,16 @@ import {
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { BookmarkIndicatorComponent, BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
 import { BOOKMARK_JUST_URL_HEIGHT, BOOKMARK_WIDTH } from '../bookmark/bookmarks'
-import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 /** @public */
-export interface EmbedShapeUtilDisplayValues {}
+export interface EmbedShapeUtilDisplayValues {
+	showShadow: boolean
+}
 
 /** @public */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface EmbedShapeUtilOptions
 	extends ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues> {}
 
@@ -53,7 +57,9 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	override options: EmbedShapeUtilOptions = {
 		getDisplayValues(): EmbedShapeUtilDisplayValues {
-			return {}
+			return {
+				showShadow: true,
+			}
 		},
 		getDisplayValueOverrides(): Partial<EmbedShapeUtilDisplayValues> {
 			return {}
@@ -150,6 +156,12 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		const svgExport = useSvgExportContext()
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
+		const isDarkMode = useIsDarkMode()
+		const dv = useValue(
+			'embed shape display values',
+			() => getDisplayValues(this, shape, isDarkMode),
+			[shape, isDarkMode]
+		)
 
 		const embedInfo = this.getEmbedDefinition(url)
 
@@ -180,7 +192,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						className="tl-embed"
 						style={{
 							border: 0,
-							boxShadow: getRotatedBoxShadow(pageRotation),
+							boxShadow: dv.showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
 							borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
 							background: embedInfo?.definition.backgroundColor ?? 'var(--tl-color-background)',
 							width: w,
@@ -210,6 +222,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						height={toDomPrecision(h)!}
 						isInteractive={isInteractive}
 						pageRotation={pageRotation}
+						showShadow={dv.showShadow}
 					/>
 				</HTMLContainer>
 			)
@@ -240,7 +253,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 							pointerEvents: isInteractive ? 'auto' : 'none',
 							// Fix for safari <https://stackoverflow.com/a/49150908>
 							zIndex: isInteractive ? '' : '-1',
-							boxShadow: getRotatedBoxShadow(pageRotation),
+							boxShadow: dv.showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
 							borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
 							background: embedInfo?.definition.backgroundColor,
 						}}
@@ -311,12 +324,14 @@ function Gist({
 	height,
 	style,
 	pageRotation,
+	showShadow,
 }: {
 	id: string
 	isInteractive: boolean
 	width: number
 	height: number
 	pageRotation: number
+	showShadow: boolean
 	style?: React.CSSProperties
 }) {
 	// Security warning:
@@ -346,7 +361,7 @@ function Gist({
 				pointerEvents: isInteractive ? 'all' : 'none',
 				// Fix for safari <https://stackoverflow.com/a/49150908>
 				zIndex: isInteractive ? '' : '-1',
-				boxShadow: getRotatedBoxShadow(pageRotation),
+				boxShadow: showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
 			}}
 			srcDoc={`
 			<html>
