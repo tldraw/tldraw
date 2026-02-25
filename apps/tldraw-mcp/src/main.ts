@@ -1,5 +1,13 @@
 /** Entry point: parse CLI args and start the MCP server with the selected transport. */
 
+import { webcrypto } from 'node:crypto'
+
+// Polyfill globalThis.crypto for Node environments (e.g. Claude Desktop)
+// where it may not be available. Required by tldraw's nanoid-based ID generation.
+if (!globalThis.crypto) {
+	globalThis.crypto = webcrypto as Crypto
+}
+
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import express from 'express'
@@ -31,7 +39,7 @@ async function startHttp() {
 		}
 
 		const transport = new StreamableHTTPServerTransport({
-			sessionIdGenerator: () => crypto.randomUUID(),
+			sessionIdGenerator: () => globalThis.crypto.randomUUID(),
 			onsessioninitialized: (id) => {
 				transports.set(id, transport)
 			},
