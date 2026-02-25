@@ -81,7 +81,7 @@ export const FocusedGeoShapeSchema = z.object({
 	_type: FocusedGeoShapeTypeSchema,
 	color: FocusedColorSchema,
 	dash: FocusedDashSchema.optional(),
-	fill: FocusedFillSchema,
+	fill: FocusedFillSchema.optional(),
 	font: FocusedFontSchema.optional(),
 	h: z.number(),
 	shapeId: z.string(),
@@ -96,7 +96,7 @@ export type FocusedGeoShape = z.infer<typeof FocusedGeoShapeSchema>
 
 export const FocusedTextShapeSchema = z.object({
 	_type: z.literal('text'),
-	anchor: FocusedTextAnchorSchema,
+	anchor: FocusedTextAnchorSchema.optional(),
 	color: FocusedColorSchema,
 	font: FocusedFontSchema.optional(),
 	maxWidth: z.number().nullable().optional(),
@@ -180,6 +180,180 @@ export const FocusedShapeSchema = z.union([
 	FocusedFrameShapeSchema,
 ])
 export type FocusedShape = z.infer<typeof FocusedShapeSchema>
+
+/**
+ * Permissive input schema for tool parameters. Descriptive enough for the LLM
+ * to understand the expected structure (via JSON Schema), but lenient enough
+ * that the MCP SDK won't reject input before our handler can do best-effort parsing.
+ */
+export const FocusedShapeInputSchema = z
+	.array(
+		z
+			.object({
+				_type: z
+					.string()
+					.describe(
+						'Shape type. Geo: rectangle, ellipse, triangle, diamond, hexagon, pill, cloud, star, heart, pentagon, octagon, x-box, check-box, parallelogram-right, parallelogram-left, trapezoid, fat-arrow-right, fat-arrow-left, fat-arrow-up, fat-arrow-down. Other: text, arrow, line, note, draw, frame.'
+					),
+				shapeId: z.string().describe('Unique identifier for this shape'),
+				x: z.number().optional().describe('X position (geo, text, note, frame)'),
+				y: z.number().optional().describe('Y position (geo, text, note, frame)'),
+				w: z.number().optional().describe('Width (geo, frame)'),
+				h: z.number().optional().describe('Height (geo, frame)'),
+				x1: z.number().optional().describe('Start X (arrow, line)'),
+				y1: z.number().optional().describe('Start Y (arrow, line)'),
+				x2: z.number().optional().describe('End X (arrow, line)'),
+				y2: z.number().optional().describe('End Y (arrow, line)'),
+				color: z
+					.enum([
+						'black',
+						'grey',
+						'white',
+						'red',
+						'light-red',
+						'orange',
+						'yellow',
+						'green',
+						'light-green',
+						'blue',
+						'light-blue',
+						'violet',
+						'light-violet',
+					])
+					.optional()
+					.describe('Shape color (default: black)'),
+				fill: z
+					.enum(['none', 'tint', 'solid', 'background', 'pattern'])
+					.optional()
+					.describe('Fill style (default: solid). "tint" recommended for most shapes.'),
+				dash: z
+					.enum(['draw', 'solid', 'dashed', 'dotted'])
+					.optional()
+					.describe('Stroke style (default: draw)'),
+				size: z.enum(['s', 'm', 'l', 'xl']).optional().describe('Size (default: m)'),
+				font: z.enum(['draw', 'sans', 'serif', 'mono']).optional().describe('Font (default: draw)'),
+				text: z.string().optional().describe('Label text (geo, note) or content (text)'),
+				anchor: z
+					.enum([
+						'top-left',
+						'top-center',
+						'top-right',
+						'center-left',
+						'center',
+						'center-right',
+						'bottom-left',
+						'bottom-center',
+						'bottom-right',
+					])
+					.optional()
+					.describe('Text anchor/alignment (text shapes, default: top-left)'),
+				fromId: z.string().optional().describe('Bind arrow start to shape ID'),
+				toId: z.string().optional().describe('Bind arrow end to shape ID'),
+				bend: z
+					.number()
+					.optional()
+					.describe('Arrow curvature (positive=right, negative=left, 0=straight)'),
+				name: z.string().optional().describe('Frame name'),
+				children: z.array(z.string()).optional().describe('Frame child shape IDs'),
+			})
+			.passthrough()
+	)
+	.describe('Array of FocusedShape objects. Call read_me for the full format reference.')
+
+// ─── Robust shape parsing ─────────────────────────────────────────────────────
+
+/** Map _type values to their specific Zod schema for targeted validation. */
+const GEO_TYPES = new Set(FocusedGeoShapeTypeSchema.options)
+const SCHEMA_BY_TYPE: Record<string, z.ZodType> = {
+	text: FocusedTextShapeSchema,
+	arrow: FocusedArrowShapeSchema,
+	line: FocusedLineShapeSchema,
+	note: FocusedNoteShapeSchema,
+	draw: FocusedDrawShapeSchema,
+	frame: FocusedFrameShapeSchema,
+}
+
+function parseOneShape(s: unknown): { shape: FocusedShape } | { error: string } {
+	if (!s || typeof s !== 'object') {
+		return { error: 'not an object' }
+	}
+	const obj = s as Record<string, unknown>
+	const type = obj._type
+	if (typeof type !== 'string') {
+		return { error: `missing or invalid _type field` }
+	}
+
+	// Pick the right schema based on _type
+	const schema =
+		SCHEMA_BY_TYPE[type] ??
+		(GEO_TYPES.has(type as FocusedGeoShapeType) ? FocusedGeoShapeSchema : null)
+	if (!schema) {
+		return {
+			error: `unknown _type "${type}". Valid types: ${[...GEO_TYPES, ...Object.keys(SCHEMA_BY_TYPE)].join(', ')}`,
+		}
+	}
+
+	const result = schema.safeParse(s)
+	if (result.success) {
+		return { shape: result.data as FocusedShape }
+	}
+
+	const issues = result.error.issues
+		.map((iss) => `${iss.path.length ? iss.path.join('.') + ': ' : ''}${iss.message}`)
+		.join('; ')
+	return { error: issues }
+}
+
+export interface ParsedShapesResult {
+	shapes: FocusedShape[]
+	warnings: string[]
+}
+
+/**
+ * Parse a shapes input (JSON string or raw array) with best-effort per-shape validation.
+ * Valid shapes are returned; invalid shapes produce warnings instead of throwing.
+ */
+export function parseShapesInput(input: unknown): ParsedShapesResult {
+	let arr: unknown[]
+
+	if (typeof input === 'string') {
+		try {
+			const parsed = JSON.parse(input)
+			if (Array.isArray(parsed)) {
+				arr = parsed
+			} else if (typeof parsed === 'object' && parsed !== null) {
+				arr = [parsed]
+			} else {
+				return { shapes: [], warnings: [`Expected a JSON array of shapes, got: ${typeof parsed}`] }
+			}
+		} catch {
+			return { shapes: [], warnings: [`Failed to parse shapes JSON: invalid JSON string`] }
+		}
+	} else if (Array.isArray(input)) {
+		arr = input
+	} else if (typeof input === 'object' && input !== null) {
+		arr = [input]
+	} else {
+		return { shapes: [], warnings: [`Expected shapes array, got: ${typeof input}`] }
+	}
+
+	const shapes: FocusedShape[] = []
+	const warnings: string[] = []
+
+	for (let i = 0; i < arr.length; i++) {
+		const s = arr[i]
+		const result = parseOneShape(s)
+		if ('shape' in result) {
+			shapes.push(result.shape)
+		} else {
+			const obj = s as Record<string, unknown>
+			const id = obj?.shapeId ?? `index ${i}`
+			warnings.push(`Shape "${id}" (_type: "${obj?._type ?? '?'}"): ${result.error}`)
+		}
+	}
+
+	return { shapes, warnings }
+}
 
 // ─── Conversion mappings ──────────────────────────────────────────────────────
 
@@ -298,7 +472,7 @@ export function convertFocusedShapeToTldrawRecord(
 
 function convertGeo(shape: FocusedGeoShape, base: TldrawRecord): TldrawRecord {
 	const geoType = FOCUSED_TO_GEO_TYPES[shape._type] ?? 'rectangle'
-	const fill = FOCUSED_TO_TLDRAW_FILLS[shape.fill] ?? 'none'
+	const fill = FOCUSED_TO_TLDRAW_FILLS[shape.fill ?? 'solid'] ?? 'none'
 
 	return {
 		...base,
@@ -328,7 +502,7 @@ function convertGeo(shape: FocusedGeoShape, base: TldrawRecord): TldrawRecord {
 
 function convertText(shape: FocusedTextShape, base: TldrawRecord): TldrawRecord {
 	let textAlign: string = 'start'
-	switch (shape.anchor) {
+	switch (shape.anchor ?? 'top-left') {
 		case 'top-left':
 		case 'bottom-left':
 		case 'center-left':

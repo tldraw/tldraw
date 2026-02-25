@@ -26,13 +26,11 @@ Shapes use a simplified "FocusedShape" format. Each shape is a JSON object with 
   "w": 200, "h": 100,
   "color": "blue",
   "fill": "tint",
-  "dash": "draw",
-  "size": "m",
-  "font": "draw",
-  "text": "Hello",
-  "textAlign": "middle"
+  "text": "Hello"
 }
 \`\`\`
+
+Required: \`_type\`, \`shapeId\`, \`x\`, \`y\`, \`w\`, \`h\`, \`color\`. Optional: \`fill\` (default "solid"), \`dash\`, \`size\`, \`font\`, \`text\`, \`textAlign\`.
 
 **Geo types**: rectangle, ellipse, triangle, diamond, hexagon, pill, cloud, x-box, check-box, heart, pentagon, octagon, star, parallelogram-right, parallelogram-left, trapezoid, fat-arrow-right, fat-arrow-left, fat-arrow-up, fat-arrow-down
 
@@ -43,13 +41,11 @@ Shapes use a simplified "FocusedShape" format. Each shape is a JSON object with 
   "shapeId": "label1",
   "x": 100, "y": 100,
   "text": "Hello World",
-  "color": "black",
-  "anchor": "top-left",
-  "size": "m",
-  "font": "draw",
-  "maxWidth": null
+  "color": "black"
 }
 \`\`\`
+
+Required: \`_type\`, \`shapeId\`, \`x\`, \`y\`, \`text\`, \`color\`. Optional: \`anchor\` (default "top-left"), \`size\`, \`font\`, \`maxWidth\`.
 
 **Anchors**: top-left, top-center, top-right, center-left, center, center-right, bottom-left, bottom-center, bottom-right
 

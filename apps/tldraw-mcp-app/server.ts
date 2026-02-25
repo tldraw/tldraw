@@ -5,6 +5,7 @@ import {
 } from '@modelcontextprotocol/ext-apps/server'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js'
+import { randomUUID } from 'node:crypto'
 import { structuredClone, type TLShape } from 'tldraw'
 import { z } from 'zod'
 import {
@@ -37,7 +38,7 @@ let activeCheckpointId: string | null = null
 console.error(`[tldraw-mcp] Server module loaded — fresh state, activeCheckpointId=null`)
 
 function generateCheckpointId(): string {
-	return crypto.randomUUID().replace(/-/g, '').slice(0, 18)
+	return randomUUID().replace(/-/g, '').slice(0, 18)
 }
 
 function saveCheckpoint(id: string, shapes: TLShape[]): void {

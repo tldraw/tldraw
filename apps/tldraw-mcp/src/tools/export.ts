@@ -1,7 +1,18 @@
 /** export tool — exports diagram as tldraw-compatible JSON. */
 
-import { randomUUID } from 'node:crypto'
 import { getAllBindings, getAllShapes, getTitle } from '../store.js'
+
+function generateUUID(): string {
+	if (globalThis.crypto?.randomUUID) {
+		return globalThis.crypto.randomUUID()
+	}
+	// Fallback: simple v4-like UUID using Math.random
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+		const r = (Math.random() * 16) | 0
+		const v = c === 'x' ? r : (r & 0x3) | 0x8
+		return v.toString(16)
+	})
+}
 
 interface TldrDocument {
 	tldrawFileFormatVersion: number
@@ -27,7 +38,7 @@ function buildBindingRecords(
 ): unknown[] {
 	return bindings.map((b) => ({
 		typeName: 'binding',
-		id: `binding:${randomUUID().slice(0, 8)}`,
+		id: `binding:${generateUUID().slice(0, 8)}`,
 		type: 'arrow',
 		fromId: b.arrowShapeId,
 		toId: b.targetShapeId,
