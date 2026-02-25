@@ -17,6 +17,7 @@ export const PORTRAIT_BREAKPOINT = {
 export type PORTRAIT_BREAKPOINT = (typeof PORTRAIT_BREAKPOINT)[keyof typeof PORTRAIT_BREAKPOINT]
 
 /** @public */
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export declare namespace PORTRAIT_BREAKPOINT {
 	export type ZERO = typeof PORTRAIT_BREAKPOINT.ZERO
 	export type MOBILE_XXS = typeof PORTRAIT_BREAKPOINT.MOBILE_XXS
