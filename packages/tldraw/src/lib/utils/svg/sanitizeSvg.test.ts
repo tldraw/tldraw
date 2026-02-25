@@ -309,7 +309,8 @@ describe('sanitizeSvg', () => {
 			expect(result).not.toContain('evil.com')
 		})
 
-		it('blocks data:image/svg+xml on <image> (nested unsanitized SVG)', () => {
+		it('blocks fully-malicious data:image/svg+xml on <image>', () => {
+			// inner SVG has no safe content after sanitization, so href is removed
 			const result = sanitizeSvg(
 				wrap(
 					'<image href="data:image/svg+xml;base64,PHN2Zz48c2NyaXB0PmFsZXJ0KDEpPC9zY3JpcHQ+PC9zdmc+" width="10" height="10"/>'
@@ -456,6 +457,34 @@ describe('sanitizeSvg', () => {
 			const svg = wrap('<image href="data:image/png;base64,iVBOR" width="10" height="10"/>')
 			const result = sanitizeSvg(svg)
 			expect(result).toContain('data:image/png;base64,iVBOR')
+		})
+
+		it('preserves safe data:image/svg+xml href on <image>', () => {
+			// base64 of <svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/></svg>
+			const innerSvg =
+				'<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/></svg>'
+			const b64 = btoa(innerSvg)
+			const svg = wrap(`<image href="data:image/svg+xml;base64,${b64}" width="10" height="10"/>`)
+			const result = sanitizeSvg(svg)
+			expect(result).toContain('data:image/svg+xml;base64,')
+			expect(result).toContain('<image')
+		})
+
+		it('preserves safe content and strips script from embedded SVG data URI on <image>', () => {
+			// SVG with both safe content and a script tag
+			const innerSvg =
+				'<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/><script>alert(1)</script></svg>'
+			const b64 = btoa(innerSvg)
+			const svg = wrap(`<image href="data:image/svg+xml;base64,${b64}" width="10" height="10"/>`)
+			const result = sanitizeSvg(svg)
+			// Should keep the image with sanitized SVG data URI
+			expect(result).toContain('data:image/svg+xml;base64,')
+			// Decode the embedded SVG to verify script was stripped
+			const match = result.match(/data:image\/svg\+xml;base64,([A-Za-z0-9+/=]+)/)
+			expect(match).toBeTruthy()
+			const decoded = atob(match![1])
+			expect(decoded).toContain('<rect')
+			expect(decoded).not.toContain('<script')
 		})
 
 		it('preserves fragment ref on <use>', () => {
