@@ -3,7 +3,7 @@ import {
 	FocusedShapeUpdateSchema,
 	type FocusedShape,
 	type FocusedShapeUpdate,
-} from './focused-shape.js'
+} from './focused-shape'
 
 // Temporary debug instrumentation for malformed first-pass JSON strings.
 const ENABLE_JSON_HEALING_DEBUG = process.env.TLDRAW_MCP_JSON_HEALING_DEBUG === '1'

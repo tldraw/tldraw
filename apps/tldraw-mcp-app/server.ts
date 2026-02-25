@@ -5,17 +5,22 @@ import {
 } from '@modelcontextprotocol/ext-apps/server'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js'
+import { structuredClone, type TLShape } from 'tldraw'
 import { z } from 'zod'
-import { convertFocusedShapeToTldrawRecord, type FocusedShape } from './src/focused-shape.js'
+import {
+	convertFocusedShapeToTldrawRecord,
+	convertTldrawRecordToFocusedShape,
+	type FocusedShape,
+} from './src/focused-shape'
 import {
 	parseBooleanFlag,
 	parseFocusedShapesInput,
 	parseFocusedShapeUpdatesInput,
 	parseJsonArray,
 	parseShapeIdsInput,
-} from './src/parse-json.js'
-import { loadCachedCanvasWidgetHtml } from './src/tools/loadCachedCanvasWidgetHtml.js'
-import { READ_ME_CONTENT } from './src/tools/read-me.js'
+} from './src/parse-json'
+import { loadCachedCanvasWidgetHtml } from './src/tools/loadCachedCanvasWidgetHtml'
+import { READ_ME_CONTENT } from './src/tools/read-me'
 
 export const server = new McpServer({
 	name: 'tldraw',
@@ -24,9 +29,81 @@ export const server = new McpServer({
 
 const CANVAS_RESOURCE_URI = 'ui://show-canvas/mcp-app.html'
 
-// Lightweight cache so new widget instances can hydrate from the previous canvas.
-// This is NOT authoritative state — the editor in the widget is the source of truth.
-let cachedShapes: unknown[] = []
+// --- Checkpoint store ---
+
+const MAX_CHECKPOINTS = 200
+const checkpoints = new Map<string, TLShape[]>()
+let activeCheckpointId: string | null = null
+console.error(`[tldraw-mcp] Server module loaded — fresh state, activeCheckpointId=null`)
+
+function generateCheckpointId(): string {
+	return crypto.randomUUID().replace(/-/g, '').slice(0, 18)
+}
+
+function saveCheckpoint(id: string, shapes: TLShape[]): void {
+	console.error(
+		`[tldraw-mcp] saveCheckpoint: id=${id}, shapes=${shapes.length}, existing checkpoints=${checkpoints.size}`
+	)
+	checkpoints.set(id, shapes)
+	if (checkpoints.size > MAX_CHECKPOINTS) {
+		const oldest = checkpoints.keys().next().value
+		if (oldest) checkpoints.delete(oldest)
+	}
+}
+
+function getActiveShapes(): TLShape[] {
+	if (!activeCheckpointId) {
+		// Fallback: if the server restarted and a widget already pushed a checkpoint,
+		// use the most recently saved one.
+		if (checkpoints.size > 0) {
+			const lastKey = [...checkpoints.keys()].at(-1)!
+			const shapes = checkpoints.get(lastKey) ?? []
+			console.error(
+				`[tldraw-mcp] getActiveShapes: activeCheckpointId was NULL, fell back to last checkpoint=${lastKey}, shapes=${shapes.length}`
+			)
+			activeCheckpointId = lastKey
+			return shapes
+		}
+		console.error(
+			`[tldraw-mcp] getActiveShapes: activeCheckpointId is NULL and no checkpoints, returning []`
+		)
+		return []
+	}
+	const shapes = checkpoints.get(activeCheckpointId) ?? []
+	console.error(
+		`[tldraw-mcp] getActiveShapes: activeCheckpointId=${activeCheckpointId}, shapes=${shapes.length}, checkpoints.size=${checkpoints.size}`
+	)
+	return shapes
+}
+
+// --- Helpers ---
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function normalizeShapeId(id: string): string {
+	return id.startsWith('shape:') ? id : `shape:${id}`
+}
+
+function toSimpleShapeId(id: string): string {
+	return id.replace(/^shape:/, '')
+}
+
+function deepMerge(base: unknown, patch: unknown): unknown {
+	if (!isPlainObject(base) || !isPlainObject(patch)) return patch
+	const merged: Record<string, unknown> = { ...base }
+	for (const [key, value] of Object.entries(patch)) {
+		merged[key] = deepMerge(merged[key], value)
+	}
+	return merged
+}
+
+function parseTlShapes(value: unknown[]): TLShape[] {
+	return value.filter(
+		(s): s is TLShape => isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
+	)
+}
 
 function errorResponse(err: unknown, summary?: string): CallToolResult {
 	const message = err instanceof Error ? err.message : String(err)
@@ -74,11 +151,31 @@ registerAppTool(
 	},
 	async ({ shapesJson, new_blank_canvas }: CreateShapesInput): Promise<CallToolResult> => {
 		try {
+			console.error(
+				`[tldraw-mcp] create_shapes called: new_blank_canvas=${new_blank_canvas}, activeCheckpointId=${activeCheckpointId}, checkpoints.size=${checkpoints.size}`
+			)
 			const newBlankCanvas = parseBooleanFlag(new_blank_canvas, false)
 			const focusedShapes = parseFocusedShapesInput(shapesJson)
-			const tldrawRecords = focusedShapes.map((s: FocusedShape) =>
+			const newRecords = focusedShapes.map((s: FocusedShape) =>
 				convertFocusedShapeToTldrawRecord(s)
 			)
+
+			// Merge with active checkpoint (or start fresh)
+			const hadActiveCheckpoint = activeCheckpointId !== null
+			const baseShapes = newBlankCanvas ? [] : getActiveShapes()
+			console.error(
+				`[tldraw-mcp] create_shapes: baseShapes=${baseShapes.length}, newRecords=${newRecords.length}, newBlankCanvas=${newBlankCanvas}, hadActiveCheckpoint=${hadActiveCheckpoint}`
+			)
+			const mergedById = new Map<string, TLShape>()
+			for (const s of baseShapes) mergedById.set(s.id, structuredClone(s))
+			for (const s of newRecords) mergedById.set(s.id, structuredClone(s))
+			const resultShapes = [...mergedById.values()]
+
+			// Persist checkpoint
+			const checkpointId = generateCheckpointId()
+			saveCheckpoint(checkpointId, resultShapes)
+			activeCheckpointId = checkpointId
+
 			return {
 				content: [
 					{
@@ -90,10 +187,12 @@ registerAppTool(
 					{ type: 'text', text: JSON.stringify(focusedShapes, null, 2) },
 				],
 				structuredContent: {
+					checkpointId,
 					action: 'create' as const,
 					newBlankCanvas,
+					hadBaseShapes: baseShapes.length > 0,
 					focusedShapes,
-					tldrawRecords,
+					tldrawRecords: resultShapes,
 				},
 			}
 		} catch (err) {
@@ -125,16 +224,50 @@ registerAppTool(
 	async ({ updatesJson }: UpdateShapesInput): Promise<CallToolResult> => {
 		try {
 			const updates = parseFocusedShapeUpdatesInput(updatesJson)
+			const baseShapes = getActiveShapes()
+			const shapesById = new Map(baseShapes.map((s) => [s.id, structuredClone(s)]))
+			const updated: string[] = []
+
+			for (const update of updates) {
+				const id = normalizeShapeId(update.shapeId) as TLShape['id']
+				const existing = shapesById.get(id)
+				if (!existing) continue
+
+				try {
+					const existingFocused = convertTldrawRecordToFocusedShape(existing)
+					const merged = deepMerge(existingFocused, {
+						...update,
+						shapeId: toSimpleShapeId(id),
+						_type: update._type ?? existingFocused._type,
+					}) as FocusedShape
+					const converted = convertFocusedShapeToTldrawRecord(merged)
+					converted.index = existing.index
+					shapesById.set(id, converted)
+					updated.push(toSimpleShapeId(id))
+				} catch {
+					// Skip invalid update inputs.
+				}
+			}
+
+			const resultShapes = [...shapesById.values()]
+
+			// Persist checkpoint
+			const checkpointId = generateCheckpointId()
+			saveCheckpoint(checkpointId, resultShapes)
+			activeCheckpointId = checkpointId
+
 			return {
 				content: [
 					{
 						type: 'text',
-						text: `Updated ${updates.length} shape(s).`,
+						text: `Updated ${updated.length} shape(s).`,
 					},
 				],
 				structuredContent: {
+					checkpointId,
 					action: 'update' as const,
 					updates,
+					tldrawRecords: resultShapes,
 				},
 			}
 		} catch (err) {
@@ -168,16 +301,28 @@ registerAppTool(
 	async ({ shapeIdsJson }: DeleteShapesInput): Promise<CallToolResult> => {
 		try {
 			const shapeIds = parseShapeIdsInput(shapeIdsJson)
+			const baseShapes = getActiveShapes()
+			const idsToDelete = new Set(shapeIds.map((id) => normalizeShapeId(id)))
+			const resultShapes = baseShapes.filter((s) => !idsToDelete.has(s.id))
+			const deletedCount = baseShapes.length - resultShapes.length
+
+			// Persist checkpoint
+			const checkpointId = generateCheckpointId()
+			saveCheckpoint(checkpointId, resultShapes)
+			activeCheckpointId = checkpointId
+
 			return {
 				content: [
 					{
 						type: 'text',
-						text: `Deleted ${shapeIds.length} shape(s).`,
+						text: `Deleted ${deletedCount} shape(s).`,
 					},
 				],
 				structuredContent: {
+					checkpointId,
 					action: 'delete' as const,
 					shapeIds,
+					tldrawRecords: resultShapes,
 				},
 			}
 		} catch (err) {
@@ -186,44 +331,62 @@ registerAppTool(
 	}
 )
 
-// --- push_canvas_state (app-only) ---
+// --- read_checkpoint (app-only) ---
 
 server.registerTool(
-	'push_canvas_state',
+	'read_checkpoint',
 	{
-		title: 'Push Canvas State',
-		description: 'App-only: cache the current editor shapes on the server.',
-		inputSchema: z.object({
-			shapesJson: z.string().describe('JSON array of full tldraw shape records'),
-		}),
+		title: 'Read Checkpoint',
+		description: 'App-only: read shapes from a checkpoint by ID.',
+		inputSchema: z.object({ checkpointId: z.string().min(1) }),
 		_meta: { ui: { visibility: ['app'] } },
 	},
-	async ({ shapesJson }: { shapesJson: string }): Promise<CallToolResult> => {
-		try {
-			cachedShapes = parseJsonArray(shapesJson, 'shapesJson')
-			return {
-				content: [{ type: 'text', text: `Cached ${cachedShapes.length} shape(s).` }],
-			}
-		} catch (err) {
-			return errorResponse(err)
+	async ({ checkpointId }: { checkpointId: string }): Promise<CallToolResult> => {
+		const shapes = checkpoints.get(checkpointId)
+		return {
+			content: [{ type: 'text', text: shapes ? `${shapes.length} shape(s).` : 'Not found.' }],
+			structuredContent: { shapes: shapes ?? [] },
 		}
 	}
 )
 
-// --- get_canvas_state (app-only) ---
+// --- save_checkpoint (app-only) ---
 
 server.registerTool(
-	'get_canvas_state',
+	'save_checkpoint',
 	{
-		title: 'Get Canvas State',
-		description: 'App-only: return cached shapes so a new widget can hydrate.',
-		inputSchema: z.object({}),
+		title: 'Save Checkpoint',
+		description: 'App-only: save shapes to a checkpoint (from user edits).',
+		inputSchema: z.object({
+			checkpointId: z.string().min(1),
+			shapesJson: z.string(),
+		}),
 		_meta: { ui: { visibility: ['app'] } },
 	},
-	async (): Promise<CallToolResult> => {
-		return {
-			content: [{ type: 'text', text: `${cachedShapes.length} cached shape(s).` }],
-			structuredContent: { shapes: cachedShapes },
+	async ({
+		checkpointId,
+		shapesJson,
+	}: {
+		checkpointId: string
+		shapesJson: string
+	}): Promise<CallToolResult> => {
+		try {
+			console.error(
+				`[tldraw-mcp] save_checkpoint called: checkpointId=${checkpointId}, prev activeCheckpointId=${activeCheckpointId}`
+			)
+			const raw = parseJsonArray(shapesJson, 'shapesJson')
+			const shapes = parseTlShapes(raw)
+			saveCheckpoint(checkpointId, shapes)
+			// Also update activeCheckpointId so the next tool call reads the latest user-edited state
+			activeCheckpointId = checkpointId
+			console.error(
+				`[tldraw-mcp] save_checkpoint done: activeCheckpointId=${activeCheckpointId}, shapes=${shapes.length}`
+			)
+			return {
+				content: [{ type: 'text', text: `Saved ${shapes.length} shape(s).` }],
+			}
+		} catch (err) {
+			return errorResponse(err)
 		}
 	}
 )
