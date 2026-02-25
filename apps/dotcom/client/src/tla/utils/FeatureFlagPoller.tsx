@@ -15,20 +15,20 @@ let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }
 
 export function fetchFeatureFlags(): Promise<FeatureFlags> {
 	if (!flagsPromise) {
-		let didFetch = false
-		flagsPromise = fetch('/api/app/feature-flags')
-			.then((r) => {
-				if (!r.ok) return DEFAULT_FLAGS
-				didFetch = true
-				return r.json()
-			})
-			.catch(() => DEFAULT_FLAGS)
-			.then((flags: FeatureFlags) => {
-				// Clear cache on failure so next call retries
-				if (!didFetch) flagsPromise = null
+		flagsPromise = (async () => {
+			try {
+				const r = await fetch('/api/app/feature-flags')
+				if (!r.ok) throw new Error(`HTTP ${r.status}`)
+				const flags = await r.json()
 				currentFlags = flags
-				return flags
-			})
+				return flags as FeatureFlags
+			} catch (err) {
+				console.error('[FeatureFlags] fetch failed:', err)
+				flagsPromise = null
+				currentFlags = { ...DEFAULT_FLAGS }
+				return { ...DEFAULT_FLAGS }
+			}
+		})()
 	}
 	return flagsPromise
 }
@@ -61,18 +61,19 @@ export function FeatureFlagPoller() {
 				}
 				prevProperZero = properZero
 				currentFlags = data
-			} catch {
-				// ignore poll errors
+			} catch (err) {
+				console.warn('[FeatureFlags] poll error:', err)
 			}
 		}
+
+		let interval: ReturnType<typeof setInterval>
 
 		// Wait for the initial fetch to complete, then start polling
 		fetchFeatureFlags().then(() => {
 			if (!mounted) return
 			prevProperZero = currentFlags.proper_zero?.enabled ?? false
+			interval = setInterval(pollFlags, REFETCH_INTERVAL)
 		})
-
-		const interval = setInterval(pollFlags, REFETCH_INTERVAL)
 
 		return () => {
 			mounted = false
