@@ -376,6 +376,9 @@ const DATA_URI = /^data:/i
 const RASTER_DATA_URI =
 	/^data:image\/(?:png|jpeg|jpg|gif|webp|avif|bmp|tiff|x-icon|vnd\.microsoft\.icon)[;,]/i
 
+// data: URI for SVG images — allowed on <image>/<feimage> only after recursive sanitization
+const SVG_DATA_URI = /^data:image\/svg\+xml[;,]/i
+
 // Fragment-only ref (#id)
 const FRAGMENT_REF = /^#/
 
@@ -457,13 +460,36 @@ const URL_BEARING_SVG_ATTRS = new Set([
 
 type SanitizeMode = 'svg' | 'html'
 
+function sanitizeEmbeddedSvgDataUri(value: string): string | null {
+	try {
+		let svgText: string
+		if (/;base64,/i.test(value)) {
+			const base64 = value.split(/;base64,/i)[1]
+			const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+			svgText = new TextDecoder().decode(bytes)
+		} else {
+			const idx = value.indexOf(',')
+			if (idx < 0) return null
+			svgText = decodeURIComponent(value.slice(idx + 1))
+		}
+		const sanitized = sanitizeSvg(svgText)
+		if (!sanitized) return null
+		const encoded = new TextEncoder().encode(sanitized)
+		const binaryStr = Array.from(encoded, (b) => String.fromCharCode(b)).join('')
+		return 'data:image/svg+xml;base64,' + btoa(binaryStr)
+	} catch {
+		return null
+	}
+}
+
 function sanitizeUri(el: Element, attrName: string, value: string): string | null {
 	const stripped = value.replace(INVISIBLE_WHITESPACE, '')
 	const tagName = el.tagName.toLowerCase()
 
-	// <image> and <feImage>: raster data: only (no svg+xml — could embed unsanitized SVG)
+	// <image> and <feImage>: raster data: or recursively-sanitized svg+xml data:
 	if (tagName === 'image' || tagName === 'feimage') {
 		if (RASTER_DATA_URI.test(stripped)) return value
+		if (SVG_DATA_URI.test(stripped)) return sanitizeEmbeddedSvgDataUri(value)
 		return null
 	}
 
@@ -511,6 +537,8 @@ function sanitizeSvgAttributes(el: Element): void {
 			const sanitized = sanitizeUri(el, name, attr.value)
 			if (sanitized === null) {
 				el.removeAttribute(attr.name)
+			} else if (sanitized !== attr.value) {
+				attr.value = sanitized
 			}
 			continue
 		}
@@ -573,7 +601,14 @@ function sanitizeHtmlAttributes(el: Element): void {
 	}
 }
 
-function sanitizeNode(node: Element, mode: SanitizeMode): void {
+const MAX_NODE_DEPTH = 100
+
+function sanitizeNode(node: Element, mode: SanitizeMode, depth = 0): void {
+	if (depth >= MAX_NODE_DEPTH) {
+		while (node.firstChild) node.firstChild.remove()
+		return
+	}
+
 	// Walk children in reverse so removals don't shift indices
 	for (let i = node.children.length - 1; i >= 0; i--) {
 		const child = node.children[i]
@@ -583,7 +618,7 @@ function sanitizeNode(node: Element, mode: SanitizeMode): void {
 			if (tag === 'foreignobject') {
 				// foreignObject: sanitize attrs as SVG, recurse children as HTML
 				sanitizeSvgAttributes(child)
-				sanitizeNode(child, 'html')
+				sanitizeNode(child, 'html', depth + 1)
 			} else if (tag === 'style') {
 				// <style>: sanitize attrs, sanitize text content as CSS
 				sanitizeSvgAttributes(child)
@@ -595,7 +630,7 @@ function sanitizeNode(node: Element, mode: SanitizeMode): void {
 				child.remove()
 			} else if (ALLOWED_SVG_TAGS.has(tag)) {
 				sanitizeSvgAttributes(child)
-				sanitizeNode(child, 'svg')
+				sanitizeNode(child, 'svg', depth + 1)
 			} else {
 				child.remove()
 			}
@@ -605,7 +640,7 @@ function sanitizeNode(node: Element, mode: SanitizeMode): void {
 				child.remove()
 			} else if (ALLOWED_HTML_TAGS.has(tag)) {
 				sanitizeHtmlAttributes(child)
-				sanitizeNode(child, 'html')
+				sanitizeNode(child, 'html', depth + 1)
 			} else {
 				child.remove()
 			}
