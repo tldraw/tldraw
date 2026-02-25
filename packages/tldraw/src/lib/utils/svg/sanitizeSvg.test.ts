@@ -310,7 +310,7 @@ describe('sanitizeSvg', () => {
 		})
 
 		it('blocks fully-malicious data:image/svg+xml on <image>', () => {
-			// base64 of <svg><script>alert(1)</script></svg> — sanitizeSvg strips all children → returns null
+			// inner SVG has no safe content after sanitization, so href is removed
 			const result = sanitizeSvg(
 				wrap(
 					'<image href="data:image/svg+xml;base64,PHN2Zz48c2NyaXB0PmFsZXJ0KDEpPC9zY3JpcHQ+PC9zdmc+" width="10" height="10"/>'
