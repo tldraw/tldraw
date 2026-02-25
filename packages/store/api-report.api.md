@@ -209,7 +209,7 @@ export type Migration = {
     readonly up: (storage: SynchronousRecordStorage<UnknownRecord>) => void;
 });
 
-// @public
+// @public (undocumented)
 export const MigrationFailureReason: {
     readonly IncompatibleSubtype: "incompatible-subtype";
     readonly MigrationError: "migration-error";
