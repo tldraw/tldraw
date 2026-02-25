@@ -547,11 +547,12 @@ export const MigrationFailureReason = {
 	MigrationError: 'migration-error',
 	UnrecognizedSubtype: 'unrecognized-subtype',
 } as const
-/** @public */
+
 export type MigrationFailureReason =
 	(typeof MigrationFailureReason)[keyof typeof MigrationFailureReason]
 
-/** @public */
+// This is the magic part for backward compat:
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export declare namespace MigrationFailureReason {
 	export type IncompatibleSubtype = typeof MigrationFailureReason.IncompatibleSubtype
 	export type UnknownType = typeof MigrationFailureReason.UnknownType
