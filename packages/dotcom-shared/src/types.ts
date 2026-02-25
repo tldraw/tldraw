@@ -219,7 +219,7 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 
 /* ----------------------- Feature Flags ---------------------- */
 
-export type FeatureFlagKey = 'sqlite_file_storage'
+export type FeatureFlagKey = never
 
 export interface FeatureFlagValue {
 	enabled: boolean

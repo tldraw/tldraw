@@ -20,7 +20,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
-	InMemorySyncStorage,
+	DurableObjectSqliteSyncWrapper,
 	RoomSnapshot,
 	SQLiteSyncStorage,
 	TLSocketRoom,
@@ -92,15 +92,23 @@ async function canAccessTestProductionFile(
 
 const MB = 1024 * 1024
 
-export class TLDrawDurableObject extends DurableObject {
+export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
 
 	private _storage: Promise<TLSyncStorage<TLRecord>> | null = null
 
-	protected async loadStorage(slug: string): Promise<TLSyncStorage<TLRecord>> {
+	private async loadStorage(slug: string): Promise<TLSyncStorage<TLRecord>> {
+		const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
+
+		// If SQLite has been initialized, use it directly
+		if (SQLiteSyncStorage.hasBeenInitialized(sql)) {
+			return new SQLiteSyncStorage<TLRecord>({ sql })
+		}
+
+		// SQLite not initialized yet, load from R2 and initialize
 		const result = await this.loadFromDatabase(slug)
-		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: result.snapshot })
+		const storage = new SQLiteSyncStorage<TLRecord>({ sql, snapshot: result.snapshot })
 		// We should not await on setRoomStorageUsedPercentage because it calls
 		// getStorage under the hood which will only resolve once this function has returned.
 		this.setRoomStorageUsedPercentage(result.roomSizeMB)
@@ -223,12 +231,12 @@ export class TLDrawDurableObject extends DurableObject {
 	// eslint-disable-next-line no-restricted-syntax
 	get db() {
 		if (!this._db) {
-			this._db = createPostgresConnectionPool(this.env, 'TLDrawDurableObject')
+			this._db = createPostgresConnectionPool(this.env, 'TLFileDurableObject')
 		}
 		return this._db
 	}
 
-	private readonly changeSource = 'TLDrawDurableObject'
+	private readonly changeSource = 'TLFileDurableObject'
 
 	constructor(
 		private state: DurableObjectState,
@@ -955,10 +963,7 @@ export class TLDrawDurableObject extends DurableObject {
 						if (!this._room) return
 						const slug = this.documentInfo.slug
 						const storage = await this.getStorage()
-						assert(
-							storage instanceof InMemorySyncStorage || storage instanceof SQLiteSyncStorage,
-							'storage must be an InMemorySyncStorage or SQLiteSyncStorage'
-						)
+						assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
 						if (this._lastPersistedClock === storage.getClock()) return
 						if (this._isRestoring) return
 
@@ -972,8 +977,6 @@ export class TLDrawDurableObject extends DurableObject {
 						this.logEvent({ type: 'persist_success', attempts: attempt })
 						this._lastPersistedClock = snapshot.documentClock
 						// Store the clock in DO storage so we can compare against SQLite on next load.
-						// This enables safe flag toggling for sqlite_file_storage.
-						this.ctx.storage.put('lastPersistedR2Clock', snapshot.documentClock)
 						if (this.persistenceBad) {
 							this.broadcastPersistenceEvent({ type: 'persistence_good' })
 							this.persistenceBad = false
