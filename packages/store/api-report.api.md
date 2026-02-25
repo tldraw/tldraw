@@ -210,20 +210,17 @@ export type Migration = {
 });
 
 // @public
-export enum MigrationFailureReason {
-    // (undocumented)
-    IncompatibleSubtype = "incompatible-subtype",
-    // (undocumented)
-    MigrationError = "migration-error",
-    // (undocumented)
-    TargetVersionTooNew = "target-version-too-new",
-    // (undocumented)
-    TargetVersionTooOld = "target-version-too-old",
-    // (undocumented)
-    UnknownType = "unknown-type",
-    // (undocumented)
-    UnrecognizedSubtype = "unrecognized-subtype"
-}
+export const MigrationFailureReason: {
+    readonly IncompatibleSubtype: "incompatible-subtype";
+    readonly MigrationError: "migration-error";
+    readonly TargetVersionTooNew: "target-version-too-new";
+    readonly TargetVersionTooOld: "target-version-too-old";
+    readonly UnknownType: "unknown-type";
+    readonly UnrecognizedSubtype: "unrecognized-subtype";
+};
+
+// @public (undocumented)
+export type MigrationFailureReason = (typeof MigrationFailureReason)[keyof typeof MigrationFailureReason];
 
 // @public
 export type MigrationId = `${string}/${number}`;

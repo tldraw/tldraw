@@ -539,11 +539,14 @@ export type MigrationResult<T> =
  * and version mismatches between the data and available migrations.
  * @public
  */
-export enum MigrationFailureReason {
-	IncompatibleSubtype = 'incompatible-subtype',
-	UnknownType = 'unknown-type',
-	TargetVersionTooNew = 'target-version-too-new',
-	TargetVersionTooOld = 'target-version-too-old',
-	MigrationError = 'migration-error',
-	UnrecognizedSubtype = 'unrecognized-subtype',
-}
+export const MigrationFailureReason = {
+	IncompatibleSubtype: 'incompatible-subtype',
+	UnknownType: 'unknown-type',
+	TargetVersionTooNew: 'target-version-too-new',
+	TargetVersionTooOld: 'target-version-too-old',
+	MigrationError: 'migration-error',
+	UnrecognizedSubtype: 'unrecognized-subtype',
+} as const
+/** @public */
+export type MigrationFailureReason =
+	(typeof MigrationFailureReason)[keyof typeof MigrationFailureReason]

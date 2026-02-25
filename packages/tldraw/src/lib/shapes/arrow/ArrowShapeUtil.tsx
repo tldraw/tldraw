@@ -77,11 +77,12 @@ import {
 	removeArrowBinding,
 } from './shared'
 
-enum ArrowHandles {
-	Start = 'start',
-	Middle = 'middle',
-	End = 'end',
-}
+const ArrowHandles = {
+	Start: 'start',
+	Middle: 'middle',
+	End: 'end',
+} as const
+type ArrowHandles = (typeof ArrowHandles)[keyof typeof ArrowHandles]
 
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
@@ -430,7 +431,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	private onTerminalHandleDrag(
 		shape: TLArrowShape,
 		{ handle, isPrecise }: TLHandleDragInfo<TLArrowShape>,
-		handleId: ArrowHandles.Start | ArrowHandles.End
+		handleId: typeof ArrowHandles.Start | typeof ArrowHandles.End
 	) {
 		const bindings = getArrowBindings(this.editor, shape)
 
