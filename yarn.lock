@@ -6518,14 +6518,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pierre/storage@npm:^0.1.1":
-  version: 0.1.2
-  resolution: "@pierre/storage@npm:0.1.2"
+"@pierre/storage@npm:^1.1.0":
+  version: 1.2.0
+  resolution: "@pierre/storage@npm:1.2.0"
   dependencies:
     jose: "npm:^5.10.0"
     snakecase-keys: "npm:^9.0.2"
     zod: "npm:^3.23.8"
-  checksum: 10/0d433b05e2d8c7490c9bbb5d3f8945b11e4cdc9c6086c78881fc603eb18e4c24a083216b1c62039144b23811a1d5d5706e18427f54753304d45135fda3febbab
+  checksum: 10/60b3221095aa7309c0be1f3f27af3a670d2613e0a990d333d0e4d8e2ef07258d44e1e35275242ef444fbc026df19d4f719ddfed83a1acd901d40cee41e503343
   languageName: node
   linkType: hard
 
@@ -10488,7 +10488,7 @@ __metadata:
   dependencies:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20250913.0"
-    "@pierre/storage": "npm:^0.1.1"
+    "@pierre/storage": "npm:^1.1.0"
     "@rocicorp/zero": "npm:0.25.9"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
@@ -10508,6 +10508,7 @@ __metadata:
     kysely: "npm:^0.27.5"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.throttle: "npm:^4.1.1"
+    modern-tar: "npm:^0.7.5"
     pg: "npm:^8.13.1"
     pg-logical-replication: "npm:^2.0.7"
     react: "npm:^19.2.1"
@@ -23059,6 +23060,13 @@ __metadata:
     _mocha: bin/_mocha
     mocha: bin/mocha
   checksum: 10/8ee58bff8694ad4013fc0fbb5670c5ec6d8404c601df2d4ae798fad01dd03b5f9395347cf59167006b315a14813a6f839290d60dcbdee8ef4246afe43609d2dc
+  languageName: node
+  linkType: hard
+
+"modern-tar@npm:^0.7.5":
+  version: 0.7.5
+  resolution: "modern-tar@npm:0.7.5"
+  checksum: 10/6991fe9b14c1c64fdb613003ef29c5a16f3dd40c60d0e04181503be21ebe8c155e49fe097e107b7970238d76ff5e2f15e2250f6edcb1ff95ec2b33cfa8bec23a
   languageName: node
   linkType: hard
 

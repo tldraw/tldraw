@@ -2,6 +2,7 @@ import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { createPierreClient } from '../utils/createPierreClient'
+import { reconstructSnapshotFromPierre } from '../utils/pierreSnapshot'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireWriteAccessToFile } from '../utils/tla/getAuth'
 import { isTestFile } from '../utils/tla/isTestFile'
@@ -24,7 +25,7 @@ export async function getPierreHistorySnapshot(
 		return new Response('Not found', { status: 404 })
 	}
 
-	const commitHash = request.params.timestamp // This is actually the commit hash now
+	const commitHash = request.params.timestamp
 	if (!commitHash) {
 		return new Response('Missing commit hash', { status: 400 })
 	}
@@ -36,21 +37,18 @@ export async function getPierreHistorySnapshot(
 
 	try {
 		const envName = env.TLDRAW_ENV || 'development'
-		const repoId = `${envName}/snapshots/${roomId}`
+		const repoId = `${envName}/files/${roomId}`
 
 		const repo = await pierreClient.findOne({ id: repoId })
 		if (!repo) {
 			return new Response('Not found', { status: 404 })
 		}
 
-		// Get the file stream and return it
-		const fileStream = await repo.getFileStream({ path: 'snapshot.json', ref: commitHash })
+		const snapshot = await reconstructSnapshotFromPierre(repo, commitHash)
 
-		// The content should be the snapshot JSON
-		return new Response(fileStream.body, {
+		return new Response(JSON.stringify(snapshot), {
 			headers: {
 				'content-type': 'application/json',
-				// cache forever
 				'Cache-Control': 'public, max-age=31536000, immutable',
 			},
 		})

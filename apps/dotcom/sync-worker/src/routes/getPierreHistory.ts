@@ -32,7 +32,7 @@ export async function getPierreHistory(
 
 	try {
 		const envName = env.TLDRAW_ENV || 'development'
-		const repoId = `${envName}/snapshots/${roomId}`
+		const repoId = `${envName}/files/${roomId}`
 
 		const repo = await pierreClient.findOne({ id: repoId })
 		if (!repo) {
