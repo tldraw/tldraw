@@ -1,11 +1,14 @@
 /** Entry point: parse CLI args and start the MCP server with the selected transport. */
 
-import { webcrypto } from 'node:crypto'
-
 // Polyfill globalThis.crypto for Node environments (e.g. Claude Desktop)
 // where it may not be available. Required by tldraw's nanoid-based ID generation.
 if (!globalThis.crypto) {
-	globalThis.crypto = webcrypto as Crypto
+	try {
+		const { webcrypto } = await import('node:crypto')
+		globalThis.crypto = webcrypto as Crypto
+	} catch {
+		// node:crypto unavailable — globalThis.crypto must be provided by the host
+	}
 }
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'

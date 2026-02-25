@@ -7,7 +7,11 @@ import {
 } from '@modelcontextprotocol/ext-apps/server'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import { convertTldrawRecordToFocusedShape, FocusedShapeSchema } from './focused-shape.js'
+import {
+	convertTldrawRecordToFocusedShape,
+	FocusedShapeInputSchema,
+	parseShapesInput,
+} from './focused-shape.js'
 import {
 	getAllBindings,
 	getAllShapes,
@@ -147,12 +151,9 @@ export function createServer(): McpServer {
 			description:
 				'Render the current canvas as an inline diagram. Pass shapes to create/add, or omit to render existing state. Use action to control behavior: "create" (default) clears canvas first, "add" appends to existing, "clear" clears and renders empty.',
 			inputSchema: {
-				shapes: z
-					.string()
-					.optional()
-					.describe(
-						'Optional JSON array of FocusedShape objects. If omitted, renders the current canvas state.'
-					),
+				shapes: FocusedShapeInputSchema.optional().describe(
+					'Optional array of FocusedShape objects. If omitted, renders the current canvas state.'
+				),
 				title: z.string().optional().describe('Optional diagram title'),
 				action: z
 					.enum(['create', 'add', 'clear'])
@@ -180,17 +181,15 @@ export function createServer(): McpServer {
 				}
 
 				if (shapes) {
-					const parsed = JSON.parse(shapes)
-					if (!Array.isArray(parsed)) throw new Error('shapes must be a JSON array')
-					// Best-effort: try Zod validation, fall back to raw shape on failure
-					const validated = parsed.map((s: unknown) => {
-						try {
-							return FocusedShapeSchema.parse(s)
-						} catch {
-							return s as any
-						}
-					})
-					executeCreateShapes(validated, title)
+					const { shapes: validated, warnings } = parseShapesInput(shapes)
+					if (validated.length > 0) {
+						executeCreateShapes(validated, title)
+					}
+					const warnText =
+						warnings.length > 0
+							? `\n\nWarnings (${warnings.length} shape(s) skipped):\n${warnings.map((w) => `- ${w}`).join('\n')}`
+							: ''
+					return viewResponse(`Diagram rendered with ${validated.length} shape(s).${warnText}`)
 				}
 				return viewResponse('Diagram rendered.')
 			} catch (err) {
@@ -208,21 +207,24 @@ export function createServer(): McpServer {
 			description:
 				'Create one or more shapes on the canvas using the FocusedShape format. Each shape needs a unique shapeId and _type. Call create_view afterwards to display the result.',
 			inputSchema: {
-				shapes: z
-					.string()
-					.describe(
-						'JSON array of FocusedShape objects. Each has _type, shapeId, position, and type-specific props.'
-					),
+				shapes: FocusedShapeInputSchema.describe(
+					'Array of FocusedShape objects. Each needs _type, shapeId, and type-specific props.'
+				),
 				title: z.string().optional().describe('Optional diagram title'),
 			},
 		},
 		async ({ shapes, title }) => {
 			try {
-				const parsed = JSON.parse(shapes)
-				if (!Array.isArray(parsed)) throw new Error('shapes must be a JSON array')
-				const validated = parsed.map((s: unknown) => FocusedShapeSchema.parse(s))
+				const { shapes: validated, warnings } = parseShapesInput(shapes)
+				if (validated.length === 0 && warnings.length > 0) {
+					return errorResponse(
+						new Error(`No valid shapes found.\n${warnings.map((w) => `- ${w}`).join('\n')}`)
+					)
+				}
 				const summary = executeCreateShapes(validated, title)
-				return briefResponse(summary)
+				const warnText =
+					warnings.length > 0 ? ` (${warnings.length} skipped: ${warnings.join('; ')})` : ''
+				return briefResponse(`${summary}${warnText}`)
 			} catch (err) {
 				return errorResponse(err)
 			}
