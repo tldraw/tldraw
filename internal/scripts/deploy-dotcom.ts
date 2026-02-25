@@ -5,6 +5,7 @@ import { execSync } from 'child_process'
 import * as fs from 'fs'
 import { existsSync, readdirSync, writeFileSync } from 'fs'
 import path from 'path'
+import { performance } from 'perf_hooks'
 import { PassThrough } from 'stream'
 import * as tar from 'tar'
 import {
@@ -45,7 +46,7 @@ const zeroCacheFolder = path.relative(
 const zeroCachePackageJsonPath = path.join(zeroCacheFolder, 'package.json')
 const zeroVersion = JSON.parse(fs.readFileSync(zeroCachePackageJsonPath).toString()).dependencies[
 	'@rocicorp/zero'
-]
+] as string
 
 const { previewId, sha } = getDeployInfo()
 
@@ -91,18 +92,31 @@ const env = makeEnv([
 	'USER_CONTENT_SENTRY_DSN',
 	'USER_CONTENT_URL',
 	'DEPLOY_ZERO',
+	'ZERO_ADMIN_PASSWORD',
+	'ZERO_R2_ENDPOINT',
+	'ZERO_R2_BUCKET_NAME',
+	'ZERO_R2_ACCESS_KEY_ID',
+	'ZERO_R2_SECRET_ACCESS_KEY',
 ])
 
-const deployZero = env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'sst')
-const flyioAppName = deployZero === 'flyio' ? `${previewId}-zero-cache` : undefined
+// Multinode (flyio-multinode) is staging-only right now, preview use single not as it is faster / cheaper
+const deployZero =
+	env.DEPLOY_ZERO === 'false'
+		? false
+		: previewId && env.DEPLOY_ZERO === 'flyio-multinode'
+			? ('flyio' as const)
+			: (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
+// For multinode: -vs = view syncer, -rm = replication manager (abbreviated for Fly.io's 30-char app name limit)
+const flyioAppName =
+	deployZero === 'flyio'
+		? `${previewId ?? env.TLDRAW_ENV}-zero-cache`
+		: deployZero === 'flyio-multinode'
+			? `${env.TLDRAW_ENV}-zero-vs`
+			: undefined
+const flyioReplAppName = deployZero === 'flyio-multinode' ? `${env.TLDRAW_ENV}-zero-rm` : undefined
 
 // pierre is not in production yet, so get the key directly from process.env
 const pierreKey = process.env.PIERRE_KEY ?? ''
-
-const clerkJWKSUrl =
-	env.TLDRAW_ENV === 'production'
-		? 'https://clerk.tldraw.com/.well-known/jwks.json'
-		: 'https://clerk.staging.tldraw.com/.well-known/jwks.json'
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
@@ -113,6 +127,45 @@ const discord = new Discord({
 
 const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}-${sha}`
 
+interface TimingEntry {
+	label: string
+	durationMs: number
+}
+
+const timings: TimingEntry[] = []
+
+function formatDurationMs(durationMs: number) {
+	if (durationMs >= 60_000) return `${(durationMs / 60_000).toFixed(2)}m`
+	if (durationMs >= 1_000) return `${(durationMs / 1_000).toFixed(2)}s`
+	return `${durationMs.toFixed(0)}ms`
+}
+
+async function withTiming<T>(label: string, fn: () => Promise<T> | T): Promise<T> {
+	const startedAt = performance.now()
+	try {
+		return await fn()
+	} finally {
+		const durationMs = performance.now() - startedAt
+		timings.push({ label, durationMs })
+		nicelog(`[timing] ${label}: ${formatDurationMs(durationMs)}`)
+	}
+}
+
+function logTimingSummary() {
+	if (!timings.length) return
+	nicelog('[timing] deploy breakdown (longest first):')
+	for (const [index, entry] of timings
+		.slice()
+		.sort((a, b) => b.durationMs - a.durationMs)
+		.entries()) {
+		nicelog(
+			`[timing] ${String(index + 1).padStart(2, '0')}. ${entry.label}: ${formatDurationMs(
+				entry.durationMs
+			)}`
+		)
+	}
+}
+
 if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
@@ -120,9 +173,48 @@ if (previewId) {
 	env.USER_CONTENT_URL = `https://${previewId}-tldrawusercontent.tldraw.workers.dev`
 }
 
-const zeroPushUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/push`
+const zeroMutateUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/mutate`
+const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/query`
+
+// Zero connection limits per environment.
+// All DBs use direct connections. Pooled connections (PgBouncer/Supavisor transaction mode) break
+// prepared statements which Zero's postgres.js driver uses internally.
+// Staging: Supabase Micro (60 max_connections, 200 pooled clients)
+// Preview: Neon 0.25 CU (104 max_connections shared across all preview branches)
+// Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
+// TODO(production): tune these once we know prod Postgres limits
+const zeroConnectionLimits = {
+	staging: {
+		rm: { upstream: 1, cvr: 1, change: 3 },
+		vs: { upstream: 2, cvr: 3, change: 1 },
+	},
+	production: {
+		rm: { upstream: 1, cvr: 3, change: 5 },
+		vs: { upstream: 5, cvr: 10, change: 3 },
+	},
+	// Previews use Neon DB
+	preview: {
+		single: { upstream: 3, cvr: 5, change: 3 },
+	},
+} as const
+interface ConnLimits {
+	upstream: number
+	cvr: number
+	change: number
+}
+interface SingleNodeConnLimits {
+	single: ConnLimits
+}
+interface MultiNodeConnLimits {
+	rm: ConnLimits
+	vs: ConnLimits
+}
+const zeroConns = zeroConnectionLimits[env.TLDRAW_ENV as keyof typeof zeroConnectionLimits] as
+	| SingleNodeConnLimits
+	| MultiNodeConnLimits
 
 async function main() {
+	const deployStart = performance.now()
 	assert(
 		env.TLDRAW_ENV === 'staging' || env.TLDRAW_ENV === 'production' || env.TLDRAW_ENV === 'preview',
 		'TLDRAW_ENV must be staging or production or preview'
@@ -132,77 +224,115 @@ async function main() {
 
 	await discord.step('setting up deploy', async () => {
 		// make sure the tldraw .css files are built:
-		await exec('yarn', ['lazy', 'prebuild'])
+		await withTiming('prebuild assets', () => exec('yarn', ['lazy', 'prebuild']))
 
 		// link to vercel and supabase projects:
-		await vercelCli('link', ['--project', env.VERCEL_PROJECT_ID])
+		await withTiming('vercel link', () => vercelCli('link', ['--project', env.VERCEL_PROJECT_ID]))
 	})
 
 	// deploy pre-flight steps:
 	// 1. get the dotcom app ready to go (env vars and pre-build)
-	await discord.step('building dotcom app', async () => {
-		await createSentryRelease()
-		await prepareDotcomApp()
-		await uploadSourceMaps()
-		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
-	})
+	await withTiming('step: building dotcom app', () =>
+		discord.step('building dotcom app', async () => {
+			await withTiming('dotcom sentry release', () => createSentryRelease())
+			await withTiming('dotcom build', () => prepareDotcomApp())
+			await withTiming('dotcom sourcemap upload', () => uploadSourceMaps())
+			await withTiming('dotcom asset coalescing', () =>
+				coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
+			)
+		})
+	)
 
-	await discord.step('cloudflare deploy dry run', async () => {
-		await deployAssetUploadWorker({ dryRun: true })
-		await deployHealthWorker({ dryRun: true })
-		await deployTlsyncWorker({ dryRun: true })
-		await deployTldrawUserContentWorker({ dryRun: true })
-		await deployImageResizeWorker({ dryRun: true })
-	})
+	await withTiming('step: cloudflare deploy dry run', () =>
+		discord.step('cloudflare deploy dry run', async () => {
+			await withTiming('worker dry run: asset-upload', () =>
+				deployAssetUploadWorker({ dryRun: true })
+			)
+			await withTiming('worker dry run: health', () => deployHealthWorker({ dryRun: true }))
+			await withTiming('worker dry run: multiplayer', () => deployTlsyncWorker({ dryRun: true }))
+			await withTiming('worker dry run: tldrawusercontent', () =>
+				deployTldrawUserContentWorker({ dryRun: true })
+			)
+			await withTiming('worker dry run: image-resize', () =>
+				deployImageResizeWorker({ dryRun: true })
+			)
+		})
+	)
 
 	// --- point of no return! do the deploy for real --- //
 
 	await discord.message(`--- **pre-flight complete, starting real dotcom deploy** ---`)
 
 	// 2. deploy the cloudflare workers:
-	await discord.step('deploying asset uploader to cloudflare', async () => {
-		await deployAssetUploadWorker({ dryRun: false })
-	})
-	await discord.step('deploying multiplayer worker to cloudflare', async () => {
-		await deployTlsyncWorker({ dryRun: false })
-	})
-	await discord.step('deploying tldrawusercontent worker to cloudflare', async () => {
-		await deployTldrawUserContentWorker({ dryRun: false })
-	})
-	await discord.step('deploying image resizer to cloudflare', async () => {
-		await deployImageResizeWorker({ dryRun: false })
-	})
-	await discord.step('deploying health worker to cloudflare', async () => {
-		await deployHealthWorker({ dryRun: false })
-	})
+	await withTiming('step: deploy asset uploader worker', () =>
+		discord.step('deploying asset uploader to cloudflare', async () => {
+			await withTiming('worker deploy: asset-upload', () =>
+				deployAssetUploadWorker({ dryRun: false })
+			)
+		})
+	)
+	await withTiming('step: deploy multiplayer worker', () =>
+		discord.step('deploying multiplayer worker to cloudflare', async () => {
+			await withTiming('worker deploy: multiplayer', () => deployTlsyncWorker({ dryRun: false }))
+		})
+	)
+	await withTiming('step: deploy tldrawusercontent worker', () =>
+		discord.step('deploying tldrawusercontent worker to cloudflare', async () => {
+			await withTiming('worker deploy: tldrawusercontent', () =>
+				deployTldrawUserContentWorker({ dryRun: false })
+			)
+		})
+	)
+	await withTiming('step: deploy image resizer worker', () =>
+		discord.step('deploying image resizer to cloudflare', async () => {
+			await withTiming('worker deploy: image-resize', () =>
+				deployImageResizeWorker({ dryRun: false })
+			)
+		})
+	)
+	await withTiming('step: deploy health worker', () =>
+		discord.step('deploying health worker to cloudflare', async () => {
+			await withTiming('worker deploy: health', () => deployHealthWorker({ dryRun: false }))
+		})
+	)
 
 	// 3. deploy the pre-build dotcom app:
-	const { deploymentUrl, inspectUrl } = await discord.step(
-		'deploying dotcom app to vercel',
-		async () => {
-			return await deploySpa()
-		}
+	const { deploymentUrl, inspectUrl } = await withTiming(
+		'step: deploy dotcom app to vercel',
+		async () =>
+			await discord.step('deploying dotcom app to vercel', async () => {
+				return await withTiming('vercel deploy --prebuilt', () => deploySpa())
+			})
 	)
 
 	let deploymentAlias = null as null | string
 
 	if (previewId) {
 		const aliasDomain = `${previewId}-preview-deploy.tldraw.com`
-		await discord.step('aliasing preview deployment', async () => {
-			await vercelCli('alias', ['set', deploymentUrl, aliasDomain])
-		})
+		await withTiming('step: alias preview deployment', () =>
+			discord.step('aliasing preview deployment', async () => {
+				await withTiming('vercel alias set', () =>
+					vercelCli('alias', ['set', deploymentUrl, aliasDomain])
+				)
+			})
+		)
 
 		deploymentAlias = `https://${aliasDomain}`
 	}
 
 	nicelog('Creating deployment for', deploymentUrl)
-	await createGithubDeployment(env, {
-		app: 'dotcom',
-		deploymentUrl: deploymentAlias ?? deploymentUrl,
-		inspectUrl,
-		sha,
-	})
+	await withTiming('github deployment status update', () =>
+		createGithubDeployment(env, {
+			app: 'dotcom',
+			deploymentUrl: deploymentAlias ?? deploymentUrl,
+			inspectUrl,
+			sha,
+		})
+	)
 
+	const totalDurationMs = performance.now() - deployStart
+	nicelog(`[timing] total deploy script runtime: ${formatDurationMs(totalDurationMs)}`)
+	logTimingSummary()
 	await discord.message(`**Deploy complete!**`)
 }
 
@@ -211,13 +341,14 @@ function getZeroUrl() {
 		case 'preview': {
 			if (deployZero === 'flyio') {
 				return `https://${flyioAppName}.fly.dev/`
-			} else if (deployZero === 'sst') {
-				return `https://${previewId}.zero.tldraw.com/`
 			} else {
 				return 'https://zero-backend-not-deployed.tldraw.com'
 			}
 		}
 		case 'staging':
+			if (deployZero === 'flyio-multinode') {
+				return `https://${flyioAppName}.fly.dev/`
+			}
 			return 'https://staging.zero.tldraw.com/'
 		case 'production':
 			return 'https://production.zero.tldraw.com/'
@@ -431,53 +562,35 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	)
 }
 
-async function deployZeroViaSst() {
-	const stage = previewId ? previewId : env.TLDRAW_ENV
-	await exec('yarn', [
-		'sst',
-		'secret',
-		'set',
-		'PostgresConnectionString',
-		env.BOTCOM_POSTGRES_CONNECTION_STRING,
-		'--stage',
-		stage,
-	])
-	await exec('yarn', ['sst', 'secret', 'set', 'ZeroAuthSecret', clerkJWKSUrl, '--stage', stage])
-	await exec('yarn', ['sst', 'secret', 'set', 'ZeroPushUrl', zeroPushUrl, '--stage', stage])
-	await exec('yarn', ['sst', 'unlock', '--stage', stage])
-	await exec('yarn', ['bundle-schema'], { pwd: zeroCacheFolder })
-	await exec('yarn', ['sst', 'deploy', '--stage', stage, '--verbose'])
+function withStatementTimeout(connString: string): string {
+	const separator = connString.includes('?') ? '&' : '?'
+	return `${connString}${separator}statement_timeout=0`
 }
 
 function updateFlyioToml(appName: string): void {
+	assert('single' in zeroConns, 'single-node connection limits required')
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio.template.toml')
 	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio.toml')
 
 	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
 
+	const zeroAdminPassword = env.ZERO_ADMIN_PASSWORD
+
 	const updatedContent = fileContent
 		.replace('__APP_NAME', appName)
 		.replace('__ZERO_VERSION', zeroVersion)
-		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
-		.replaceAll('__ZERO_PUSH_URL', zeroPushUrl)
+		.replaceAll(
+			'__BOTCOM_POSTGRES_CONNECTION_STRING',
+			withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)
+		)
+		.replaceAll('__ZERO_MUTATE_URL', zeroMutateUrl)
+		.replaceAll('__ZERO_QUERY_URL', zeroQueryUrl)
+		.replaceAll('__ZERO_ADMIN_PASSWORD', zeroAdminPassword)
+		.replaceAll('__SINGLE_UPSTREAM_MAX_CONNS', String(zeroConns.single.upstream))
+		.replaceAll('__SINGLE_CVR_MAX_CONNS', String(zeroConns.single.cvr))
+		.replaceAll('__SINGLE_CHANGE_MAX_CONNS', String(zeroConns.single.change))
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
-}
-
-async function deployPermissionsToFlyIo() {
-	const schemaPath = path.join(REPO_ROOT, 'packages', 'dotcom-shared', 'src', 'tlaSchema.ts')
-	const permissionsFile = 'permissions.sql'
-	await exec('npx', [
-		'zero-deploy-permissions',
-		'--schema-path',
-		schemaPath,
-		'--output-file',
-		permissionsFile,
-	])
-	const result = await exec('psql', [env.BOTCOM_POSTGRES_CONNECTION_STRING, '-f', permissionsFile])
-	if (result.toLowerCase().includes('error')) {
-		throw new Error('Error deploying permissions to fly.io')
-	}
 }
 
 async function deployZeroViaFlyIo() {
@@ -492,14 +605,147 @@ async function deployZeroViaFlyIo() {
 		})
 	}
 	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio.toml'], { pwd: zeroCacheFolder })
-	await deployPermissionsToFlyIo()
+}
+
+// See https://zero.rocicorp.dev/docs/deployment for Zero deployment config reference
+function updateFlyioReplicationManagerToml(appName: string, backupPath: string): void {
+	assert('rm' in zeroConns, 'multi-node connection limits required')
+	const tomlTemplate = path.join(zeroCacheFolder, 'flyio-replication-manager.template.toml')
+	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-replication-manager.toml')
+
+	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
+	const zeroAdminPassword = env.ZERO_ADMIN_PASSWORD
+
+	const updatedContent = fileContent
+		.replaceAll('__APP_NAME', appName)
+		.replaceAll('__BACKUP_PATH', backupPath)
+		.replace('__ZERO_VERSION', zeroVersion)
+		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
+		.replaceAll('__ZERO_ADMIN_PASSWORD', zeroAdminPassword)
+		.replaceAll('__ZERO_R2_ENDPOINT', env.ZERO_R2_ENDPOINT)
+		.replaceAll('__ZERO_R2_BUCKET_NAME', env.ZERO_R2_BUCKET_NAME)
+		.replaceAll('__ZERO_R2_ACCESS_KEY_ID', env.ZERO_R2_ACCESS_KEY_ID)
+		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
+		.replaceAll('__RM_UPSTREAM_MAX_CONNS', String(zeroConns.rm.upstream))
+		.replaceAll('__RM_CVR_MAX_CONNS', String(zeroConns.rm.cvr))
+		.replaceAll('__RM_CHANGE_MAX_CONNS', String(zeroConns.rm.change))
+
+	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
+}
+
+function updateFlyioViewSyncerToml(
+	appName: string,
+	replManagerUri: string,
+	backupPath: string
+): void {
+	assert('vs' in zeroConns, 'multi-node connection limits required')
+	const tomlTemplate = path.join(zeroCacheFolder, 'flyio-view-syncer.template.toml')
+	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-view-syncer.toml')
+
+	const fileContent = fs.readFileSync(tomlTemplate, 'utf-8')
+	const zeroAdminPassword = env.ZERO_ADMIN_PASSWORD
+
+	const updatedContent = fileContent
+		.replaceAll('__APP_NAME', appName)
+		.replaceAll('__BACKUP_PATH', backupPath)
+		.replace('__ZERO_VERSION', zeroVersion)
+		.replaceAll('__BOTCOM_POSTGRES_CONNECTION_STRING', env.BOTCOM_POSTGRES_CONNECTION_STRING)
+		.replaceAll('__ZERO_MUTATE_URL', zeroMutateUrl)
+		.replaceAll('__ZERO_QUERY_URL', zeroQueryUrl)
+		.replaceAll('__ZERO_ADMIN_PASSWORD', zeroAdminPassword)
+		.replaceAll('__REPLICATION_MANAGER_URI', replManagerUri)
+		.replaceAll('__ZERO_R2_ENDPOINT', env.ZERO_R2_ENDPOINT)
+		.replaceAll('__ZERO_R2_BUCKET_NAME', env.ZERO_R2_BUCKET_NAME)
+		.replaceAll('__ZERO_R2_ACCESS_KEY_ID', env.ZERO_R2_ACCESS_KEY_ID)
+		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
+		.replaceAll('__VS_UPSTREAM_MAX_CONNS', String(zeroConns.vs.upstream))
+		.replaceAll('__VS_CVR_MAX_CONNS', String(zeroConns.vs.cvr))
+		.replaceAll('__VS_CHANGE_MAX_CONNS', String(zeroConns.vs.change))
+
+	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
+
+	// Also process the Dockerfile template to inject the Zero version
+	const dockerfileTemplate = path.join(zeroCacheFolder, 'Dockerfile.template')
+	const dockerfilePath = path.join(zeroCacheFolder, 'Dockerfile')
+	const dockerfileContent = fs.readFileSync(dockerfileTemplate, 'utf-8')
+	const updatedDockerfile = dockerfileContent.replace('__ZERO_VERSION', zeroVersion)
+	fs.writeFileSync(dockerfilePath, updatedDockerfile, 'utf-8')
+}
+
+async function deployZeroViaFlyIoMultiNode() {
+	if (!flyioAppName || !flyioReplAppName) {
+		throw new Error('Fly.io app names are not defined for multi-node deployment')
+	}
+
+	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
+
+	// Deploy replication manager first
+	const backupPath = previewId ?? env.TLDRAW_ENV
+	updateFlyioReplicationManagerToml(flyioReplAppName, backupPath)
+	if (apps.indexOf(flyioReplAppName) === -1) {
+		await exec('flyctl', ['app', 'create', flyioReplAppName, '-o', 'tldraw-gb-ltd'], {
+			pwd: zeroCacheFolder,
+		})
+	}
+	await exec(
+		'flyctl',
+		[
+			'secrets',
+			'set',
+			`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
+			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
+			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
+			`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,
+			'-a',
+			flyioReplAppName,
+		],
+		{ pwd: zeroCacheFolder }
+	)
+	await exec('flyctl', ['deploy', '-a', flyioReplAppName, '-c', 'flyio-replication-manager.toml'], {
+		pwd: zeroCacheFolder,
+	})
+
+	// Deploy view syncer with reference to replication manager
+	const replManagerUri = `http://${flyioReplAppName}.internal:4849`
+	updateFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath)
+	if (apps.indexOf(flyioAppName) === -1) {
+		await exec('flyctl', ['app', 'create', flyioAppName, '-o', 'tldraw-gb-ltd'], {
+			pwd: zeroCacheFolder,
+		})
+	}
+	await exec(
+		'flyctl',
+		[
+			'secrets',
+			'set',
+			`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
+			`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
+			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
+			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
+			`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,
+			'-a',
+			flyioAppName,
+		],
+		{ pwd: zeroCacheFolder }
+	)
+	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio-view-syncer.toml'], {
+		pwd: zeroCacheFolder,
+	})
+	await exec('flyctl', ['scale', 'count', '2', '-a', flyioAppName, '--yes'], {
+		pwd: zeroCacheFolder,
+	})
 }
 
 async function deployZeroBackend() {
 	if (deployZero === 'flyio') {
 		await deployZeroViaFlyIo()
-	} else if (deployZero === 'sst') {
-		await deployZeroViaSst()
+	} else if (deployZero === 'flyio-multinode') {
+		await deployZeroViaFlyIoMultiNode()
 	}
 }
 

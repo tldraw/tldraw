@@ -1,0 +1,18 @@
+---
+title: Custom keyboard shortcuts
+component: ./KeyboardShortcutsExample.tsx
+priority: 3
+keywords: [shortcuts, hotkeys, keybindings, kbd, overrides, actions, tools, customize]
+---
+
+Replace tldraw's default keyboard shortcuts with your own.
+
+---
+
+This example shows how you can replace tldraw's default keyboard shortcuts with your own,
+or add a shortcut for an action that doesn't have one. An example of how to add shortcuts
+for custom tools can be found in the custom-config example.
+
+- Toggle show grid by pressing 'x'
+- Select the Draw tool by pressing 'p'
+- Copy as png by pressing 'ctrl/cmd + 1'

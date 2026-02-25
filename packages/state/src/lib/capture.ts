@@ -1,5 +1,5 @@
-import { isComputed } from './Computed'
 import { attach, detach, singleton } from './helpers'
+import { isComputed } from './isComputed'
 import type { Child, Signal } from './types'
 
 class CaptureStackFrame {

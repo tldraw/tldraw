@@ -1,6 +1,6 @@
 import { BoxModel, PageRecordType, TLPageId, TLShapeId, createShapeId } from '@tldraw/tlschema'
 import { exhaustiveSwitchError } from '@tldraw/utils'
-import { Editor } from '../editor/Editor'
+import type { Editor } from '../editor/Editor'
 import { Box } from '../primitives/Box'
 
 /** @public */

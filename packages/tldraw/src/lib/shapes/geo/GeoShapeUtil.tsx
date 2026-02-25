@@ -188,7 +188,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const isReadyForEditing = useIsReadyForEditing(editor, shape.id)
 		const isEmpty = isEmptyRichText(shape.props.richText)
 		const showHtmlContainer = isReadyForEditing || !isEmpty
-		const isForceSolid = useEfficientZoomThreshold(shape.props.scale * 0.25)
+		const isForceSolid = useEfficientZoomThreshold(0.25 / shape.props.scale)
 
 		return (
 			<>
@@ -227,7 +227,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	indicator(shape: TLGeoShape) {
-		const isZoomedOut = useEfficientZoomThreshold(shape.props.scale * 0.25)
+		const isZoomedOut = useEfficientZoomThreshold(0.25 / shape.props.scale)
 
 		const { size, dash, scale } = shape.props
 		const strokeWidth = STROKE_SIZES[size]
@@ -251,7 +251,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {
-		const isForceSolid = this.editor.getEfficientZoomLevel() < shape.props.scale * 0.25
+		const isForceSolid = this.editor.getEfficientZoomLevel() < 0.25 / shape.props.scale
 
 		const { size, dash, scale } = shape.props
 		const strokeWidth = STROKE_SIZES[size]
@@ -413,6 +413,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				props: { ...props, growY: unscaledGrowY * props.scale },
 			}
 		}
+
+		return undefined
 	}
 
 	override onBeforeUpdate(prev: TLGeoShape, next: TLGeoShape) {
@@ -425,7 +427,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			prevProps.font === nextProps.font &&
 			prevProps.size === nextProps.size
 		) {
-			return
+			return undefined
 		}
 
 		const wasEmpty = isEmptyRichText(prevProps.richText)
@@ -433,7 +435,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		// If label is empty and used to be empty, skip label measurement and dimension adjustment
 		if (wasEmpty && isEmpty) {
-			return
+			return undefined
 		}
 
 		// Text was removed - reset growY
@@ -476,6 +478,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				},
 			}
 		}
+
+		return undefined
 	}
 
 	override onDoubleClick(shape: TLGeoShape) {

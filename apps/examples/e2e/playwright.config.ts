@@ -103,11 +103,11 @@ const config: PlaywrightTestConfig = {
 	/* Run your local dev server before starting the tests */
 	webServer: [
 		{
-			command: 'yarn preview-examples',
+			command: process.env.CI ? 'yarn preview' : 'yarn preview-examples',
 			port: 5420,
 			reuseExistingServer: !process.env.CI,
-			cwd: path.join(__dirname, '../../..'),
-			timeout: 300_000, // 5 minutes: preview-examples builds the app before starting the server
+			cwd: process.env.CI ? path.join(__dirname, '..') : path.join(__dirname, '../../..'),
+			timeout: process.env.CI ? 30_000 : 300_000,
 		},
 		{
 			command: 'yarn dev',

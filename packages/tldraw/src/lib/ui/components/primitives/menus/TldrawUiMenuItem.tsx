@@ -381,6 +381,7 @@ function useDraggableEvents(
 
 			state = { name: 'idle' }
 			onSelect?.('toolbar')
+			return false
 		}
 
 		return {

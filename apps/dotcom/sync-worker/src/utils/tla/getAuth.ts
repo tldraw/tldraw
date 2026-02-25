@@ -19,10 +19,26 @@ export function getClerkClient(env: Environment) {
 	})
 }
 
+function getAuthorizedParties(env: Environment): string[] {
+	const parties = ['https://tldraw.com', 'https://www.tldraw.com', 'https://staging.tldraw.com']
+	// Only include localhost in non-production environments
+	if (env.TLDRAW_ENV !== 'production') {
+		parties.push('http://localhost:3000')
+	}
+	// For preview envs, add the preview domain
+	// WORKER_NAME is like "pr-7731-tldraw-multiplayer"
+	if (env.TLDRAW_ENV === 'preview' && env.WORKER_NAME) {
+		const previewId = env.WORKER_NAME.replace(/-tldraw-multiplayer$/, '')
+		parties.push(`https://${previewId}-preview-deploy.tldraw.com`)
+	}
+	return parties
+}
+
 export async function getAuth(request: IRequest, env: Environment): Promise<SignedInAuth | null> {
 	const clerk = getClerkClient(env)
+	const authorizedParties = getAuthorizedParties(env)
 
-	const state = await clerk.authenticateRequest(request)
+	const state = await clerk.authenticateRequest(request, { authorizedParties })
 	if (state.isSignedIn) return state.toAuth() as SignedInAuth
 
 	// we can't send headers with websockets, so for those connections we need to pass the token in
@@ -38,7 +54,7 @@ export async function getAuth(request: IRequest, env: Environment): Promise<Sign
 		}
 	}
 
-	const res = await clerk.authenticateRequest(cloned)
+	const res = await clerk.authenticateRequest(cloned, { authorizedParties })
 	if (!res.isSignedIn) {
 		return null
 	}

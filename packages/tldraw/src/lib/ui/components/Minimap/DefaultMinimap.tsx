@@ -39,6 +39,7 @@ export function DefaultMinimap() {
 			editor.timers.setTimeout(() => {
 				throw e
 			})
+			return undefined
 		}
 	}, [editor, container])
 

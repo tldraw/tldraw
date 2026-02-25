@@ -1,7 +1,8 @@
 import { HALF_PI, TLArrowShape, TLShapeId, createShapeId, toRichText } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
-import { createOrUpdateArrowBinding, getArrowBindings, getArrowInfo } from './shared'
+import { getArrowInfo } from './getArrowInfo'
+import { createOrUpdateArrowBinding, getArrowBindings } from './shared'
 
 let editor: TestEditor
 
