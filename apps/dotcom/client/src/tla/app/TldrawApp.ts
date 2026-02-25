@@ -74,6 +74,7 @@ import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
+import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero as ZeroPolyfill } from './zero-polyfill'
@@ -101,15 +102,26 @@ export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 let appId = 0
-const useProperZero = getFromLocalStorage('useProperZero') === 'true'
-// eslint-disable-next-line no-console
-console.log(`[Zero] Using ${useProperZero ? 'proper Zero' : 'ZeroPolyfill'}`)
-// @ts-expect-error
+
+function shouldUseProperZero(
+	flags: FeatureFlags,
+	email?: string | null
+): { value: boolean; reason: string } {
+	const localOverride = getFromLocalStorage('useProperZero')
+	if (localOverride !== null) {
+		return { value: localOverride === 'true', reason: 'localStorage override' }
+	}
+	if (email?.endsWith('@tldraw.com')) {
+		return { value: true, reason: '@tldraw.com email' }
+	}
+	const flagEnabled = flags.proper_zero?.enabled ?? false
+	return { value: flagEnabled, reason: 'server feature flag' }
+}
+
+// @ts-expect-error — dev escape hatch, call window.zero() in console to toggle
 window.zero = () => {
-	const newValue = !useProperZero
-	// eslint-disable-next-line no-console
-	console.log(`[Zero] Switching to ${newValue ? 'proper Zero' : 'ZeroPolyfill'}...`)
-	setInLocalStorage('useProperZero', String(newValue))
+	const current = getFromLocalStorage('useProperZero') === 'true'
+	setInLocalStorage('useProperZero', String(!current))
 	location.reload()
 }
 
@@ -132,6 +144,7 @@ export class TldrawApp {
 		})[]
 	>
 
+	private readonly useProperZero: boolean
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
 	private getToken: () => Promise<string | undefined>
@@ -182,13 +195,19 @@ export class TldrawApp {
 		getToken: () => Promise<string | undefined>,
 		onClientTooOld: () => void,
 		trackEvent: TLAppUiContextType,
-		navigate: ReturnType<typeof useNavigate>
+		navigate: ReturnType<typeof useNavigate>,
+		flags: FeatureFlags,
+		email?: string | null
 	) {
 		this.navigate = navigate
 		this.trackEvent = trackEvent
 		this.getToken = getToken
 		const sessionId = uniqueId()
-		if (useProperZero) {
+		const { value: properZero, reason } = shouldUseProperZero(flags, email)
+		this.useProperZero = properZero
+		// eslint-disable-next-line no-console
+		console.log(`[Zero] Using ${properZero ? 'proper Zero' : 'ZeroPolyfill'} (${reason})`)
+		if (properZero) {
 			const z = new Zero<TlaSchema, TlaMutators, ZeroContext>({
 				auth: initialToken,
 				userID: userId,
@@ -270,7 +289,7 @@ export class TldrawApp {
 	}
 
 	async preload() {
-		if (useProperZero) {
+		if (this.useProperZero) {
 			// Ensure user exists in DB before Zero can query
 			const token = await this.getToken()
 			if (!token) {
@@ -873,6 +892,8 @@ export class TldrawApp {
 
 	static async create(opts: {
 		userId: string
+		email?: string | null
+		flags: FeatureFlags
 		getToken(): Promise<string | undefined>
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
@@ -891,7 +912,9 @@ export class TldrawApp {
 			opts.getToken,
 			opts.onClientTooOld,
 			opts.trackEvent,
-			opts.navigate
+			opts.navigate,
+			opts.flags,
+			opts.email
 		)
 		// @ts-expect-error
 		window.app = app

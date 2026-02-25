@@ -1,7 +1,7 @@
 import { DurableObjectSqliteSyncWrapper, SQLiteSyncStorage, TLSyncStorage } from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
 import { ROOM_NOT_FOUND, TLDrawDurableObject } from './TLDrawDurableObject'
-import { getFeatureFlag } from './utils/featureFlags'
+import { getFeatureFlagEnabled } from './utils/featureFlags'
 
 /**
  * Durable Object for tldraw files that uses SQLite for persistence when enabled.
@@ -9,7 +9,7 @@ import { getFeatureFlag } from './utils/featureFlags'
  */
 export class TLFileDurableObject extends TLDrawDurableObject {
 	override async loadStorage(slug: string): Promise<TLSyncStorage<TLRecord>> {
-		const useSqlite = await getFeatureFlag(this.env, 'sqlite_file_storage')
+		const useSqlite = await getFeatureFlagEnabled(this.env, 'sqlite_file_storage')
 
 		if (!useSqlite) {
 			return super.loadStorage(slug)
