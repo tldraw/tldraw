@@ -27,7 +27,7 @@ import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoint
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
-import type { DisplayValuesOptions } from '../shared/getDisplayValues'
+import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { useColorSpace } from '../shared/useColorSpace'
@@ -43,7 +43,7 @@ export interface HighlightShapeUtilDisplayValues {
 
 /** @public */
 export interface HighlightShapeOptions
-	extends DisplayValuesOptions<TLHighlightShape, HighlightShapeUtilDisplayValues> {
+	extends ShapeOptionsWithDisplayValues<TLHighlightShape, HighlightShapeUtilDisplayValues> {
 	/**
 	 * The maximum number of points in a line before the draw tool will begin a new shape.
 	 * A higher number will lead to poor performance while drawing very long lines.

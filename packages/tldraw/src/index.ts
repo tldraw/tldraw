@@ -218,7 +218,10 @@ export { getStrokePoints } from './lib/shapes/shared/freehand/getStrokePoints'
 export { setStrokePointRadii } from './lib/shapes/shared/freehand/setStrokePointRadii'
 export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
 export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
-export { getDisplayValues, type DisplayValuesOptions } from './lib/shapes/shared/getDisplayValues'
+export {
+	getDisplayValues,
+	type ShapeOptionsWithDisplayValues as DisplayValuesOptions,
+} from './lib/shapes/shared/getDisplayValues'
 export { PlainTextLabel, type PlainTextLabelProps } from './lib/shapes/shared/PlainTextLabel'
 export {
 	RichTextLabel,

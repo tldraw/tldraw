@@ -31,7 +31,7 @@ import {
 } from '../../utils/text/richText'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import { DisplayValuesOptions, getDisplayValues } from '../shared/getDisplayValues'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 
 const sizeCache = createComputedCache(
 	'text size',
@@ -56,7 +56,7 @@ export interface TextShapeUtilDisplayValues {
 
 /** @public */
 export interface TextShapeOptions
-	extends DisplayValuesOptions<TLTextShape, TextShapeUtilDisplayValues> {
+	extends ShapeOptionsWithDisplayValues<TLTextShape, TextShapeUtilDisplayValues> {
 	/** How much addition padding should be added to the horizontal geometry of the shape when binding to an arrow? */
 	extraArrowHorizontalPadding: number
 	/** Whether to show the outline of the text shape (using the same color as the canvas). This helps with overlapping shapes. It does not show up on Safari, where text outline is a performance issues. */

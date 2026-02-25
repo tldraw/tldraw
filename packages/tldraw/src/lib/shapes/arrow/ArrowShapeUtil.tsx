@@ -17,6 +17,7 @@ import {
 	TLArrowBindingProps,
 	TLArrowShape,
 	TLArrowShapeProps,
+	TLDefaultFillStyle,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
@@ -46,6 +47,7 @@ import {
 	useIsDarkMode,
 	useIsEditing,
 	useSharedSafeId,
+	useSvgExportContext,
 	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
@@ -53,7 +55,6 @@ import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
 import { PathBuilder } from '../shared/PathBuilder'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
-import { ShapeFill } from '../shared/ShapeFill'
 import {
 	ARROW_LABEL_FONT_SIZES,
 	ARROW_LABEL_PADDING,
@@ -61,9 +62,13 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
+import {
+	getFillDefForCanvas,
+	getFillDefForExport,
+	useGetHashPatternZoomName,
+} from '../shared/defaultStyleDefs'
 import { getDisplayValues } from '../shared/getDisplayValues'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { getArrowBodyPath, getArrowBodyPathBuilder, getArrowHandlePath } from './ArrowPath'
 import { ArrowShapeOptions, type ArrowShapeUtilDisplayValues } from './arrow-types'
@@ -131,11 +136,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		showTextOutline: true,
 		getDisplayValues(_editor, shape, isDarkMode): ArrowShapeUtilDisplayValues {
 			const theme = getDefaultColorTheme({ isDarkMode })
-			const { color, labelColor, size, font } = shape.props
+			const { color, fill, labelColor, size, font } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),
 				strokeWidth: STROKE_SIZES[size],
-				fillColor: getColorValue(theme, color, 'semi'),
+				fillColor:
+					fill === 'none'
+						? 'transparent'
+						: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
 				labelColor: getColorValue(theme, labelColor, 'solid'),
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: ARROW_LABEL_FONT_SIZES[size],
@@ -811,6 +819,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
 						strokeColor={dv.strokeColor}
 						strokeWidth={dv.strokeWidth}
+						fillColor={dv.fillColor}
 						labelBorderRadius={dv.labelBorderRadius}
 					/>
 					{shape.props.kind === 'elbow' && debugFlags.debugElbowArrows.get() && (
@@ -1110,6 +1119,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					shouldDisplayHandles={false}
 					strokeColor={dv.strokeColor}
 					strokeWidth={dv.strokeWidth}
+					fillColor={dv.fillColor}
 					labelBorderRadius={dv.labelBorderRadius}
 				/>
 				<RichTextSVG
@@ -1180,16 +1190,17 @@ const ArrowSvg = track(function ArrowSvg({
 	shouldDisplayHandles,
 	strokeColor,
 	strokeWidth: baseStrokeWidth,
+	fillColor,
 	labelBorderRadius = 3.5,
 }: {
 	shape: TLArrowShape
 	shouldDisplayHandles: boolean
 	strokeColor: string
 	strokeWidth: number
+	fillColor: string
 	labelBorderRadius?: number
 }) {
 	const editor = useEditor()
-	const theme = useDefaultColorTheme()
 	const info = getArrowInfo(editor, shape)
 	const isForceSolid = useEfficientZoomThreshold(shape.props.scale * 0.25)
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
@@ -1289,22 +1300,10 @@ const ArrowSvg = track(function ArrowSvg({
 					})}
 				</g>
 				{as && clipStartArrowhead && shape.props.fill !== 'none' && (
-					<ShapeFill
-						theme={theme}
-						d={as}
-						color={shape.props.color}
-						fill={shape.props.fill}
-						scale={shape.props.scale}
-					/>
+					<ArrowFill d={as} fill={shape.props.fill} fillColor={fillColor} />
 				)}
 				{ae && clipEndArrowhead && shape.props.fill !== 'none' && (
-					<ShapeFill
-						theme={theme}
-						d={ae}
-						color={shape.props.color}
-						fill={shape.props.fill}
-						scale={shape.props.scale}
-					/>
+					<ArrowFill d={ae} fill={shape.props.fill} fillColor={fillColor} />
 				)}
 				{as && <path d={as} />}
 				{ae && <path d={ae} />}
@@ -1406,6 +1405,47 @@ function ArrowheadCrossDef() {
 			<line x1="1.5" y1="1.5" x2="4.5" y2="4.5" strokeDasharray="100%" />
 			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
 		</marker>
+	)
+}
+
+function ArrowFill({
+	d,
+	fill,
+	fillColor,
+}: {
+	d: string
+	fill: TLDefaultFillStyle
+	fillColor: string
+}) {
+	if (fill === 'none') return null
+	if (fill === 'pattern') return <ArrowPatternFill d={d} fillColor={fillColor} />
+	return <path fill={fillColor} d={d} />
+}
+
+function ArrowPatternFill({ d, fillColor }: { d: string; fillColor: string }) {
+	const editor = useEditor()
+	const svgExport = useSvgExportContext()
+	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
+	const isDarkMode = useIsDarkMode()
+	const getHashPatternZoomName = useGetHashPatternZoomName()
+
+	const themeId = isDarkMode ? 'dark' : 'light'
+	const teenyTiny = zoomLevel <= 0.18
+
+	return (
+		<>
+			<path fill={fillColor} d={d} />
+			<path
+				fill={
+					svgExport
+						? `url(#${getHashPatternZoomName(1, themeId)})`
+						: teenyTiny
+							? fillColor
+							: `url(#${getHashPatternZoomName(zoomLevel, themeId)})`
+				}
+				d={d}
+			/>
+		</>
 	)
 }
 

@@ -1,7 +1,10 @@
 import { Editor, TLShape } from '@tldraw/editor'
 
 /** @public */
-export interface DisplayValuesOptions<Shape extends TLShape, DisplayValues extends object> {
+export interface ShapeOptionsWithDisplayValues<
+	Shape extends TLShape,
+	DisplayValues extends object,
+> {
 	getDisplayValues(editor: Editor, shape: Shape, isDarkMode: boolean): DisplayValues
 	getDisplayValueOverrides(
 		editor: Editor,
@@ -16,7 +19,7 @@ export interface DisplayValuesOptions<Shape extends TLShape, DisplayValues exten
  * @public
  */
 export function getDisplayValues<Shape extends TLShape, DisplayValues extends object>(
-	util: { editor: Editor; options: DisplayValuesOptions<Shape, DisplayValues> },
+	util: { editor: Editor; options: ShapeOptionsWithDisplayValues<Shape, DisplayValues> },
 	shape: Shape,
 	isDarkMode: boolean
 ): DisplayValues {

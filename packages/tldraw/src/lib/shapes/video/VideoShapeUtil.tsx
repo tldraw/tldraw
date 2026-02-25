@@ -16,7 +16,7 @@ import {
 import classNames from 'classnames'
 import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
-import type { DisplayValuesOptions } from '../shared/getDisplayValues'
+import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
@@ -28,7 +28,7 @@ export interface VideoShapeUtilDisplayValues {}
 
 /** @public */
 export interface VideoShapeOptions
-	extends DisplayValuesOptions<TLVideoShape, VideoShapeUtilDisplayValues> {
+	extends ShapeOptionsWithDisplayValues<TLVideoShape, VideoShapeUtilDisplayValues> {
 	/**
 	 * Should videos play automatically?
 	 */

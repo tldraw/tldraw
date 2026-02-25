@@ -48,7 +48,7 @@ import {
 	LABEL_PADDING,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import { DisplayValuesOptions, getDisplayValues } from '../shared/getDisplayValues'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { CLONE_HANDLE_MARGIN, NOTE_SIZE, getNoteShapeForAdjacentPosition } from './noteHelpers'
@@ -89,7 +89,7 @@ export interface NoteShapeUtilDisplayValues {
 
 /** @public */
 export interface NoteShapeUtilOptions
-	extends DisplayValuesOptions<TLNoteShape, NoteShapeUtilDisplayValues> {
+	extends ShapeOptionsWithDisplayValues<TLNoteShape, NoteShapeUtilDisplayValues> {
 	/**
 	 * How should the note shape resize? By default it does not resize (except automatically based on its text content),
 	 * but you can set it to be user-resizable using scale.

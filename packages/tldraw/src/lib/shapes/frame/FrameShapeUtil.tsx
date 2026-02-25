@@ -34,7 +34,7 @@ import {
 	TLCreateTextJsxFromSpansOpts,
 	createTextJsxFromSpans,
 } from '../shared/createTextJsxFromSpans'
-import { DisplayValuesOptions, getDisplayValues } from '../shared/getDisplayValues'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { FrameHeading } from './components/FrameHeading'
 import {
 	defaultEmptyAs,
@@ -61,7 +61,7 @@ export interface FrameShapeUtilDisplayValues {
 
 /** @public */
 export interface FrameShapeOptions
-	extends DisplayValuesOptions<TLFrameShape, FrameShapeUtilDisplayValues> {
+	extends ShapeOptionsWithDisplayValues<TLFrameShape, FrameShapeUtilDisplayValues> {
 	/**
 	 * When true, the frame will display colors for the shape's headings and background.
 	 */

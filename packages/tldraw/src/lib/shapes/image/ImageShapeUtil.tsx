@@ -33,7 +33,7 @@ import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { getUncroppedSize } from '../shared/crop'
-import type { DisplayValuesOptions } from '../shared/getDisplayValues'
+import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
@@ -53,7 +53,7 @@ export interface ImageShapeUtilDisplayValues {}
 
 /** @public */
 export interface ImageShapeUtilOptions
-	extends DisplayValuesOptions<TLImageShape, ImageShapeUtilDisplayValues> {}
+	extends ShapeOptionsWithDisplayValues<TLImageShape, ImageShapeUtilDisplayValues> {}
 
 /** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {

@@ -10,8 +10,6 @@ import {
 	Rectangle2d,
 	SVGContainer,
 	SvgExportContext,
-	TLDefaultColorThemeColor,
-	TLDefaultFillStyle,
 	TLGeoShape,
 	TLGeoShapeProps,
 	TLResizeInfo,
@@ -21,6 +19,7 @@ import {
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
+	getColorValue,
 	getFontsFromRichText,
 	isEqual,
 	lerp,
@@ -42,8 +41,9 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
+import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
-import { DisplayValuesOptions, getDisplayValues } from '../shared/getDisplayValues'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { GeoShapeBody } from './components/GeoShapeBody'
@@ -81,17 +81,6 @@ const GEO_SHAPE_VERTICAL_ALIGNS = Object.freeze({
 
 const GEO_SHAPE_EMPTY_LABEL_SIZE = Object.freeze({ w: 0, h: 0 })
 
-const GEO_SHAPE_FILL_COLOR_NAMES: Record<
-	Exclude<TLDefaultFillStyle, 'none'>,
-	keyof TLDefaultColorThemeColor
-> = {
-	semi: 'solid',
-	solid: 'semi',
-	pattern: 'pattern',
-	fill: 'fill',
-	'lined-fill': 'linedFill',
-}
-
 /** @public */
 export interface GeoShapeUtilDisplayValues {
 	strokeColor: string
@@ -115,7 +104,7 @@ export interface GeoShapeUtilDisplayValues {
 
 /** @public */
 export interface GeoShapeUtilOptions
-	extends DisplayValuesOptions<TLGeoShape, GeoShapeUtilDisplayValues> {
+	extends ShapeOptionsWithDisplayValues<TLGeoShape, GeoShapeUtilDisplayValues> {
 	showTextOutline: boolean
 }
 
@@ -130,15 +119,17 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		getDisplayValues(_editor, shape, isDarkMode): GeoShapeUtilDisplayValues {
 			const { color, size, labelColor, fill, align, verticalAlign, font } = shape.props
 
-			const colors = DefaultColorThemePalette[isDarkMode ? 'darkMode' : 'lightMode']
+			const theme = DefaultColorThemePalette[isDarkMode ? 'darkMode' : 'lightMode']
 
 			return {
-				strokeColor: colors[color]['solid'],
+				strokeColor: theme[color]['solid'],
 				strokeRoundness: STROKE_SIZES[size] * 2,
 				strokeWidth: STROKE_SIZES[size],
 				fillColor:
-					fill === 'none' ? 'transparent' : colors[color][GEO_SHAPE_FILL_COLOR_NAMES[fill]],
-				labelColor: colors[labelColor]['solid'], // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
+					fill === 'none'
+						? 'transparent'
+						: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+				labelColor: theme[labelColor]['solid'], // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: FONT_SIZES[size],
 				labelMinWidth: GEO_SHAPE_MIN_WIDTHS[size] + GEO_SHAPE_EXTRA_PADDINGS[size],

@@ -27,7 +27,7 @@ import {
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { BookmarkIndicatorComponent, BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
 import { BOOKMARK_JUST_URL_HEIGHT, BOOKMARK_WIDTH } from '../bookmark/bookmarks'
-import type { DisplayValuesOptions } from '../shared/getDisplayValues'
+import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 /** @public */
@@ -35,7 +35,7 @@ export interface EmbedShapeUtilDisplayValues {}
 
 /** @public */
 export interface EmbedShapeUtilOptions
-	extends DisplayValuesOptions<TLEmbedShape, EmbedShapeUtilDisplayValues> {}
+	extends ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues> {}
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 	return Object.entries(permissions)

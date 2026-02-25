@@ -17,7 +17,7 @@ import {
 import classNames from 'classnames'
 import { PointerEventHandler, useCallback, useState } from 'react'
 import { convertCommonTitleHTMLEntities } from '../../utils/text/text'
-import type { DisplayValuesOptions } from '../shared/getDisplayValues'
+import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
@@ -34,7 +34,7 @@ export interface BookmarkShapeUtilDisplayValues {}
 
 /** @public */
 export interface BookmarkShapeUtilOptions
-	extends DisplayValuesOptions<TLBookmarkShape, BookmarkShapeUtilDisplayValues> {}
+	extends ShapeOptionsWithDisplayValues<TLBookmarkShape, BookmarkShapeUtilDisplayValues> {}
 
 /** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {

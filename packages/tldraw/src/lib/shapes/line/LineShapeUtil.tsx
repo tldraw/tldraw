@@ -30,7 +30,7 @@ import {
 
 import { STROKE_SIZES } from '../arrow/shared'
 import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
-import { DisplayValuesOptions, getDisplayValues } from '../shared/getDisplayValues'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 
 const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
 
@@ -42,7 +42,7 @@ export interface LineShapeUtilDisplayValues {
 
 /** @public */
 export interface LineShapeUtilOptions
-	extends DisplayValuesOptions<TLLineShape, LineShapeUtilDisplayValues> {}
+	extends ShapeOptionsWithDisplayValues<TLLineShape, LineShapeUtilDisplayValues> {}
 
 /** @public */
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
