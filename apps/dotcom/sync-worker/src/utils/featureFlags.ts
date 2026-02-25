@@ -1,4 +1,9 @@
-import { EvaluatedFeatureFlag, FeatureFlagKey, FeatureFlagValue } from '@tldraw/dotcom-shared'
+import {
+	EvaluatedFeatureFlag,
+	FEATURE_FLAG_KEYS,
+	FeatureFlagKey,
+	FeatureFlagValue,
+} from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
@@ -22,7 +27,7 @@ function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagVa
 	}
 }
 
-export const ALL_FLAGS: FeatureFlagKey[] = ['sqlite_file_storage', 'proper_zero']
+export { FEATURE_FLAG_KEYS } from '@tldraw/dotcom-shared'
 
 /**
  * FNV-1a hash producing a deterministic bucket 0–99.
@@ -117,7 +122,7 @@ export async function getFeatureFlags(request: IRequest, env: Environment): Prom
 	const flags: Record<string, EvaluatedFeatureFlag> = {}
 
 	await Promise.all(
-		ALL_FLAGS.map(async (key) => {
+		FEATURE_FLAG_KEYS.map(async (key) => {
 			const raw = await getFeatureFlagValue(env, key)
 			flags[key] = {
 				enabled: evaluateFlagForUser(raw, key, userId),
@@ -139,7 +144,7 @@ export async function getFeatureFlagsAdmin(
 	const flags: Record<string, FeatureFlagValue> = {}
 
 	await Promise.all(
-		ALL_FLAGS.map(async (key) => {
+		FEATURE_FLAG_KEYS.map(async (key) => {
 			flags[key] = await getFeatureFlagValue(env, key)
 		})
 	)

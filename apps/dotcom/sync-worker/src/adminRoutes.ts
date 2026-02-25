@@ -7,7 +7,7 @@ import { createPostgresConnectionPool } from './postgres'
 import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
-import { ALL_FLAGS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
+import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 async function requireUser(env: Environment, q: string) {
@@ -157,8 +157,8 @@ export const adminRoutes = createRouter<Environment>()
 			throw new StatusError(400, 'percentage must be a number between 0 and 100')
 		}
 
-		if (!ALL_FLAGS.includes(flag as FeatureFlagKey)) {
-			throw new StatusError(400, `Invalid flag. Must be one of: ${ALL_FLAGS.join(', ')}`)
+		if (!FEATURE_FLAG_KEYS.includes(flag as FeatureFlagKey)) {
+			throw new StatusError(400, `Invalid flag. Must be one of: ${FEATURE_FLAG_KEYS.join(', ')}`)
 		}
 
 		const update: { enabled?: boolean; percentage?: number } = {}
