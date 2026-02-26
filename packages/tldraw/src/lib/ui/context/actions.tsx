@@ -1757,7 +1757,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						if (!url) continue
 
 						const name =
-							asset.type === 'video' || asset.type === 'image' ? asset.props.name : 'download'
+							(asset.type === 'video' || asset.type === 'image') &&
+							!asset.props.src.startsWith('asset:')
+								? asset.props.name
+								: 'download'
 
 						try {
 							const resp = await fetch(url)
