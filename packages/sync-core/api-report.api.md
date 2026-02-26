@@ -523,6 +523,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
         numSessionsRemaining: number;
         sessionId: string;
     }) => void;
+    onSessionSnapshot?: (sessionId: string, snapshot: SessionStateSnapshot) => void;
     // (undocumented)
     schema?: StoreSchema<R, any>;
     // (undocumented)

@@ -120,6 +120,14 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	}) => void
 	/** @internal */
 	onPresenceChange?(): void
+	/**
+	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
+	 * no message activity for a session for 5s and pass the result to this callback.
+	 * Use for persisting snapshots to WebSocket attachments (e.g. Cloudflare hibernation).
+	 * The room clears any pending snapshot when the session closes.
+	 */
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	onSessionSnapshot?: (sessionId: string, snapshot: SessionStateSnapshot) => void
 }
 
 /**
@@ -194,6 +202,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	public storage: TLSyncStorage<R>
 
 	private disposables = new Set<() => void>()
+	private readonly snapshotTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
 	/**
 	 * Creates a new TLSocketRoom instance for managing collaborative document synchronization.
@@ -241,6 +250,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		})
 		this.storage = storage
 		this.room.events.on('session_removed', (args) => {
+			this.clearSnapshotTimer(args.sessionId)
 			this.sessions.delete(args.sessionId)
 			if (this.opts.onSessionRemoved) {
 				this.opts.onSessionRemoved(this, {
@@ -341,6 +351,27 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		socket.addEventListener?.('error', handleSocketError)
 	}
 
+	private clearSnapshotTimer(sessionId: string) {
+		const t = this.snapshotTimers.get(sessionId)
+		if (t) {
+			clearTimeout(t)
+			this.snapshotTimers.delete(sessionId)
+		}
+	}
+
+	private scheduleDebouncedSnapshot(sessionId: string) {
+		if (!this.opts.onSessionSnapshot) return
+		this.clearSnapshotTimer(sessionId)
+		this.snapshotTimers.set(
+			sessionId,
+			setTimeout(() => {
+				this.snapshotTimers.delete(sessionId)
+				const snapshot = this.getSessionSnapshot(sessionId)
+				if (snapshot) this.opts.onSessionSnapshot!(sessionId, snapshot)
+			}, 5000)
+		)
+	}
+
 	/**
 	 * Processes a message received from a client WebSocket. Use this method in server
 	 * environments where WebSocket event listeners cannot be attached directly to socket
@@ -399,6 +430,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				}
 
 				this.room.handleMessage(sessionId, res.data as any)
+				this.scheduleDebouncedSnapshot(sessionId)
 			} else {
 				this.log?.error?.('Error assembling message', res.error)
 				// close the socket to reset the connection
@@ -428,6 +460,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * ```
 	 */
 	handleSocketError(sessionId: string) {
+		this.clearSnapshotTimer(sessionId)
 		this.room.handleClose(sessionId)
 	}
 
@@ -447,6 +480,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * ```
 	 */
 	handleSocketClose(sessionId: string) {
+		this.clearSnapshotTimer(sessionId)
 		this.room.handleClose(sessionId)
 	}
 
@@ -853,6 +887,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	close() {
 		this.room.close()
+		for (const sessionId of this.snapshotTimers.keys()) {
+			this.clearSnapshotTimer(sessionId)
+		}
 		this.disposables.forEach((d) => d())
 		this.disposables.clear()
 	}

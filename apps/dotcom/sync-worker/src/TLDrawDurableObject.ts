@@ -87,8 +87,6 @@ interface SocketAttachment {
 	snapshot: SessionStateSnapshot | null
 }
 
-const SNAPSHOT_DEBOUNCE_MS = 5000
-
 async function canAccessTestProductionFile(
 	env: Environment,
 	auth: { userId: string } | null
@@ -159,6 +157,13 @@ export class TLDrawDurableObject extends DurableObject {
 				const room = new TLSocketRoom<TLRecord, SessionMeta>({
 					storage,
 					clientTimeout: Infinity,
+					onSessionSnapshot: (sessionId, snapshot) => {
+						const ws = this.sessionIdToWs.get(sessionId)
+						if (!ws) return
+						const attachment = this.getSocketAttachment(ws)
+						if (!attachment) return
+						ws.serializeAttachment({ ...attachment, snapshot })
+					},
 					onSessionRemoved: async (room, args) => {
 						this.logEvent({
 							type: 'client',
@@ -247,7 +252,8 @@ export class TLDrawDurableObject extends DurableObject {
 	_db: Kysely<DB> | null = null
 	_pool: TLPostgresPool | null = null
 	private readonly log: Logger
-	private readonly snapshotTimers = new Map<string, ReturnType<typeof setTimeout>>()
+	/** Map sessionId → ws so onSessionSnapshot can serialize to the right socket. */
+	private readonly sessionIdToWs = new Map<string, WebSocket>()
 
 	// eslint-disable-next-line no-restricted-syntax
 	get db() {
@@ -391,9 +397,9 @@ export class TLDrawDurableObject extends DurableObject {
 		if (!attachment?.sessionId) return
 		if (!this._documentInfo) return
 
+		this.sessionIdToWs.set(attachment.sessionId, ws)
 		const room = await this.getRoom()
 		room.handleSocketMessage(attachment.sessionId, message)
-		this.debouncedStoreSessionSnapshot(attachment.sessionId, ws)
 	}
 
 	override async webSocketClose(ws: WebSocket) {
@@ -411,7 +417,7 @@ export class TLDrawDurableObject extends DurableObject {
 		const attachment = this.getSocketAttachment(ws)
 		if (!attachment?.sessionId) return
 
-		this.snapshotTimers.delete(attachment.sessionId)
+		this.sessionIdToWs.delete(attachment.sessionId)
 		if (!this._documentInfo) return
 
 		const room = await this.getRoom()
@@ -428,35 +434,6 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 
 		room[method](attachment.sessionId)
-	}
-
-	// --- Snapshot persistence for hibernation ---
-
-	private storeSessionSnapshot(sessionId: string, ws: WebSocket) {
-		if (!this._documentInfo) return
-		void (async () => {
-			const room = await this.getRoom()
-			const snapshot = room.getSessionSnapshot(sessionId)
-			if (!snapshot) return
-			const attachment = this.getSocketAttachment(ws)
-			if (!attachment) return
-			ws.serializeAttachment({
-				...attachment,
-				snapshot,
-			})
-		})()
-	}
-
-	private debouncedStoreSessionSnapshot(sessionId: string, ws: WebSocket) {
-		const existing = this.snapshotTimers.get(sessionId)
-		if (existing) clearTimeout(existing)
-		this.snapshotTimers.set(
-			sessionId,
-			setTimeout(() => {
-				this.snapshotTimers.delete(sessionId)
-				this.storeSessionSnapshot(sessionId, ws)
-			}, SNAPSHOT_DEBOUNCE_MS)
-		)
 	}
 
 	_isRestoring = false

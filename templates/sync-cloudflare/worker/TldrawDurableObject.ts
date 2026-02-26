@@ -24,8 +24,6 @@ interface SocketAttachment {
 	snapshot: SessionStateSnapshot | null
 }
 
-const SNAPSHOT_DEBOUNCE_MS = 5000
-
 // Each whiteboard room is hosted in a Durable Object with WebSocket Hibernation.
 // https://developers.cloudflare.com/durable-objects/
 //
@@ -35,7 +33,8 @@ const SNAPSHOT_DEBOUNCE_MS = 5000
 // stay alive at the Cloudflare layer.
 export class TldrawDurableObject extends DurableObject {
 	private room: TLSocketRoom<TLRecord, void> | null = null
-	private readonly snapshotTimers = new Map<string, ReturnType<typeof setTimeout>>()
+	/** Map sessionId → ws so onSessionSnapshot can serialize to the right socket. */
+	private readonly sessionIdToWs = new Map<string, WebSocket>()
 
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env)
@@ -59,6 +58,10 @@ export class TldrawDurableObject extends DurableObject {
 				// Without this, sessions would be pruned after 20s of no "real" messages
 				// even though the client is still connected and being auto-ponged.
 				clientTimeout: Infinity,
+				onSessionSnapshot: (sessionId, snapshot) => {
+					const ws = this.sessionIdToWs.get(sessionId)
+					if (ws) ws.serializeAttachment({ sessionId, snapshot })
+				},
 			})
 
 			// Resume any sessions that survived hibernation
@@ -121,8 +124,8 @@ export class TldrawDurableObject extends DurableObject {
 		const sessionId = this.getSessionId(ws)
 		if (!sessionId) return
 
+		this.sessionIdToWs.set(sessionId, ws)
 		this.getOrCreateRoom().handleSocketMessage(sessionId, message)
-		this.debouncedStoreSessionSnapshot(sessionId, ws)
 	}
 
 	async webSocketClose(ws: WebSocket) {
@@ -137,7 +140,7 @@ export class TldrawDurableObject extends DurableObject {
 		const attachment = ws.deserializeAttachment() as SocketAttachment | null
 		if (!attachment?.sessionId) return
 
-		this.snapshotTimers.delete(attachment.sessionId)
+		this.sessionIdToWs.delete(attachment.sessionId)
 
 		const room = this.getOrCreateRoom()
 
@@ -153,28 +156,5 @@ export class TldrawDurableObject extends DurableObject {
 		}
 
 		room[method](attachment.sessionId)
-	}
-
-	// --- Snapshot persistence for hibernation ---
-
-	private storeSessionSnapshot(sessionId: string, ws: WebSocket) {
-		const snapshot = this.room?.getSessionSnapshot(sessionId)
-		if (!snapshot) return
-
-		const attachment: SocketAttachment = { sessionId, snapshot }
-		ws.serializeAttachment(attachment)
-	}
-
-	private debouncedStoreSessionSnapshot(sessionId: string, ws: WebSocket) {
-		const existing = this.snapshotTimers.get(sessionId)
-		if (existing) clearTimeout(existing)
-
-		this.snapshotTimers.set(
-			sessionId,
-			setTimeout(() => {
-				this.snapshotTimers.delete(sessionId)
-				this.storeSessionSnapshot(sessionId, ws)
-			}, SNAPSHOT_DEBOUNCE_MS)
-		)
 	}
 }
