@@ -39,6 +39,12 @@ export async function getSvgAsImageWithOptions(
 	)
 	clampedWidth = Math.floor(clampedWidth)
 	clampedHeight = Math.floor(clampedHeight)
+	
+	// Guard against zero dimensions to prevent division by zero
+	if (width <= 0 || height <= 0 || clampedWidth <= 0 || clampedHeight <= 0) {
+		return null
+	}
+	
 	const effectiveScale = clampedWidth / width
 
 	// usually we would use `URL.createObjectURL` here, but chrome has a bug where `blob:` URLs of
@@ -68,8 +74,6 @@ export async function getSvgAsImageWithOptions(
 			ctx.imageSmoothingEnabled = true
 			ctx.imageSmoothingQuality = 'high'
 			ctx.drawImage(image, 0, 0, clampedWidth, clampedHeight)
-
-			URL.revokeObjectURL(svgUrl)
 
 			resolve(canvas)
 		}
@@ -319,7 +323,6 @@ export async function trimSvgToContent(
 			ctx.imageSmoothingEnabled = true
 			ctx.imageSmoothingQuality = 'high'
 			ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight)
-			URL.revokeObjectURL(svgUrl)
 			resolve(canvas)
 		}
 
