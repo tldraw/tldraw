@@ -27,6 +27,7 @@ import {
 	RecordOpType,
 	ValueOpType,
 } from './diff'
+import { interval } from './interval'
 import {
 	getTlsyncProtocolVersion,
 	TLIncompatibilityReason,
@@ -199,15 +200,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	readonly presenceStore = new PresenceStore<R>()
 
-	private disposables: Array<() => void> = [
-		() => {
-			this.pruneSessions.cancel()
-			if (this.pruneTimer) {
-				clearTimeout(this.pruneTimer)
-				this.pruneTimer = null
-			}
-		},
-	]
+	private disposables: Array<() => void> = []
 
 	private _isClosed = false
 
@@ -302,6 +295,24 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 			})
 		)
+
+		this.disposables.push(() => {
+			this.pruneSessions.cancel()
+			if (this.pruneTimer) {
+				clearTimeout(this.pruneTimer)
+				this.pruneTimer = null
+			}
+		})
+
+		// When clientTimeout is finite, run periodic pruning so idle sessions are
+		// cleaned up even with no traffic. When Infinity or 0 we skip the interval
+		// (e.g. for hibernation); without it, pruning only runs on message or when
+		// socket close/error triggers cancelSession, so pruning idle sessions
+		// reliably depends on the runtime delivering those events.
+		if (Number.isFinite(this.sessionIdleTimeout) && this.sessionIdleTimeout > 0) {
+			const pruneIntervalMs = Math.min(2000, Math.floor(this.sessionIdleTimeout / 4))
+			this.disposables.push(interval(() => this.pruneSessions(), pruneIntervalMs))
+		}
 	}
 	private broadcastExternalStorageChanges() {
 		this.storage.transaction((txn) => {

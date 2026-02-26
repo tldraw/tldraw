@@ -1,5 +1,5 @@
 import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
-import { createTLSchema, TLStoreSnapshot } from '@tldraw/tlschema'
+import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
 import { RoomSessionState } from './RoomSession'
@@ -13,6 +13,22 @@ import {
 } from './TLSyncStorage'
 import { JsonChunkAssembler } from './chunk'
 import { TLSocketServerSentEvent } from './protocol'
+
+/**
+ * Strip potentially large fields from a tldraw instance_presence record so the
+ * snapshot stays small when stored in WebSocket attachments (e.g. for hibernation).
+ * Keeps cursor, selection, page, and user identity; clears scribbles, chatMessage, meta.
+ */
+function stripPresenceForSnapshot(record: UnknownRecord): UnknownRecord {
+	if (record.typeName !== 'instance_presence') return record
+	const stripped = { ...record } as TLInstancePresence
+	stripped.scribbles = []
+	stripped.chatMessage = ''
+	stripped.selectedShapeIds = []
+	stripped.brush = null
+
+	return stripped as unknown as UnknownRecord
+}
 
 /**
  * Logging interface for TLSocketRoom operations. Provides optional methods
@@ -534,7 +550,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		if (session.presenceId) {
 			const record = this.room.presenceStore.get(session.presenceId)
 			if (record) {
-				presenceRecord = record as UnknownRecord
+				presenceRecord = stripPresenceForSnapshot(record as UnknownRecord)
 			}
 		}
 
