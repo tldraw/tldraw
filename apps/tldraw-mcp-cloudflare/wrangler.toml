@@ -1,0 +1,30 @@
+name = "tldraw-mcp-cloudflare"
+main = "src/index.ts"
+compatibility_date = "2025-03-10"
+compatibility_flags = ["nodejs_compat"]
+
+[alias]
+# Force single copies to avoid "Mixed Zod versions" errors.
+# The agents package bundles MCP SDK 1.26.0 in agents/node_modules/; our direct dep is 1.27.0.
+# Each SDK resolves zod independently, producing two Zod instances. Aliasing both to one location fixes this.
+"zod" = "./node_modules/zod"
+"@modelcontextprotocol/sdk/server/mcp.js" = "./node_modules/agents/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js"
+"@modelcontextprotocol/sdk/types.js" = "./node_modules/agents/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js"
+
+[define]
+"process.env.TLDRAW_MCP_JSON_HEALING_DEBUG" = "undefined"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+[durable_objects]
+bindings = [{ class_name = "TldrawMCP", name = "MCP_OBJECT" }]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TldrawMCP"]
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "tldraw-mcp-images"
