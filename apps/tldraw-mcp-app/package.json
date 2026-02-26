@@ -4,7 +4,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "vite build && mv dist/index.html dist/mcp-app.html"
+		"build": "vite build && mv dist/index.html dist/mcp-app.html",
+		"dev": "tsx main.ts"
 	},
 	"dependencies": {
 		"@modelcontextprotocol/ext-apps": "^1.0.0",
