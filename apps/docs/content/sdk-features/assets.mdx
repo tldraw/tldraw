@@ -300,6 +300,54 @@ Validators ensure asset data matches the expected structure at runtime. The [ass
 
 ## Security
 
+### SVG sanitization
+
+SVG files can contain scripts, event handlers, and external resource references that execute during rendering. tldraw automatically sanitizes all SVGs on paste and file drop using an allowlist-based sanitizer that:
+
+- Strips `<script>`, `<iframe>`, `<object>`, `<embed>`, and other dangerous elements
+- Removes all `on*` event handler attributes (`onerror`, `onload`, etc.)
+- Blocks `javascript:` and `data:` URIs in links
+- Restricts `<image>` and `<feImage>` hrefs to `data:` URIs only
+- Restricts `<use>` hrefs to fragment references (`#id`) only
+- Sanitizes CSS to remove `@import`, `expression()`, and external `url()` references
+- Preserves `<foreignObject>` content (needed for text rendering) with a separate HTML allowlist
+- Preserves `<style>` elements with `data:` font URLs (needed for embedded fonts)
+
+For stronger guarantees, we recommend using [DOMPurify](https://github.com/cure53/DOMPurify) — a battle-tested, widely-audited sanitizer. We don't bundle it to avoid imposing a ~17KB dependency, but if your app already uses it or you want the extra assurance, you can wire it into your external content handlers. Note that DOMPurify's default SVG profile strips `<foreignObject>` and `<style>` elements, which tldraw uses for text rendering and embedded fonts — you'll need to configure it to preserve those for tldraw's SVG output to round-trip correctly.
+
+If you're implementing custom external content handlers, you can also import our built-in sanitizer directly:
+
+```typescript
+import { sanitizeSvg } from 'tldraw'
+
+const sanitized = sanitizeSvg(svgText)
+if (!sanitized) {
+	// SVG contained no safe content
+}
+```
+
+### Recommended CSP policy
+
+For defense in depth, we recommend deploying a Content Security Policy. This protects against attack vectors that sanitization alone cannot cover:
+
+```
+Content-Security-Policy:
+  default-src 'self';
+  script-src 'self';
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data: blob: https://your-asset-domain.com;
+  font-src 'self' data:;
+  connect-src 'self' https://your-api.com;
+  object-src 'none';
+  base-uri 'self';
+```
+
+- **`script-src 'self'`** prevents inline scripts in SVGs from executing
+- **`style-src 'self' 'unsafe-inline'`** allows tldraw's inline styles while blocking external stylesheet loading (`'unsafe-inline'` is needed for tldraw's runtime styles)
+- **`img-src 'self' data: blob:`** allows data URLs for embedded images and blob URLs for asset previews, while blocking loads to arbitrary external origins
+- **`object-src 'none'`** blocks `<object>` and `<embed>` elements entirely
+- **`base-uri 'self'`** prevents `<base>` tag injection that could redirect relative URLs
+
 ### Hosting assets on a separate domain
 
 We recommend serving user-uploaded assets from a completely separate domain (e.g. `example-assets.com` rather than a subdomain like `assets.example.com`). This provides an extra layer of protection: if a malicious file somehow bypasses sanitization, browser same-origin policies prevent it from accessing cookies, storage, or APIs on your main domain.

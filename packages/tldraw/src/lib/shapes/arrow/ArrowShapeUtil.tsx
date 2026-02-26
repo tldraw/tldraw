@@ -68,20 +68,21 @@ import { getArrowheadPathForType } from './arrowheads'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
 import { ElbowArrowAxes } from './elbow/definitions'
 import { getElbowArrowSnapLines, perpDistanceToLineAngle } from './elbow/elbowArrowSnapLines'
+import { getArrowInfo } from './getArrowInfo'
 import {
 	TLArrowBindings,
 	createOrUpdateArrowBinding,
 	getArrowBindings,
-	getArrowInfo,
 	getArrowTerminalsInArrowSpace,
 	removeArrowBinding,
 } from './shared'
 
-enum ArrowHandles {
-	Start = 'start',
-	Middle = 'middle',
-	End = 'end',
-}
+const ArrowHandles = {
+	Start: 'start',
+	Middle: 'middle',
+	End: 'end',
+} as const
+type ArrowHandles = (typeof ArrowHandles)[keyof typeof ArrowHandles]
 
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
@@ -430,7 +431,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	private onTerminalHandleDrag(
 		shape: TLArrowShape,
 		{ handle, isPrecise }: TLHandleDragInfo<TLArrowShape>,
-		handleId: ArrowHandles.Start | ArrowHandles.End
+		handleId: typeof ArrowHandles.Start | typeof ArrowHandles.End
 	) {
 		const bindings = getArrowBindings(this.editor, shape)
 
@@ -953,7 +954,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 
 		// Get arrow body path
-		const isForceSolid = this.editor.getEfficientZoomLevel() < shape.props.scale * 0.25
+		const isForceSolid = this.editor.getEfficientZoomLevel() < 0.25 / shape.props.scale
 		const bodyPathBuilder = getArrowBodyPathBuilder(info)
 		const bodyPath2D = bodyPathBuilder.toPath2D(
 			shape.props.dash === 'draw' && !isForceSolid
@@ -1136,7 +1137,7 @@ const ArrowSvg = track(function ArrowSvg({
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
 	const info = getArrowInfo(editor, shape)
-	const isForceSolid = useEfficientZoomThreshold(shape.props.scale * 0.25)
+	const isForceSolid = useEfficientZoomThreshold(0.25 / shape.props.scale)
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
 	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')

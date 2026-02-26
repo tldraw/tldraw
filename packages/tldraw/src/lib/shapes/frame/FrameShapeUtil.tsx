@@ -36,6 +36,7 @@ import {
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
 import {
+	defaultEmptyAs,
 	getFrameHeadingOpts,
 	getFrameHeadingSide,
 	getFrameHeadingSize,
@@ -58,13 +59,6 @@ export interface FrameShapeOptions {
 	 * When true, the frame will resize its children when the frame itself is resized.
 	 */
 	resizeChildren: boolean
-}
-
-export function defaultEmptyAs(str: string, dflt: string) {
-	if (str.match(/^\s*$/)) {
-		return dflt
-	}
-	return str
 }
 
 /** @public */

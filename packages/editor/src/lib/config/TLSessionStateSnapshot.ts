@@ -230,7 +230,8 @@ export function loadSessionStateSnapshotIntoStore(
 	const res = migrateAndValidateSessionStateSnapshot(snapshot)
 	if (!res) return
 
-	const preserved = pluckPreservingValues(store.get(TLINSTANCE_ID))
+	const existingInstance = store.get(TLINSTANCE_ID)
+	const preserved = pluckPreservingValues(existingInstance)
 	const primary = opts?.forceOverwrite ? res : preserved
 	const secondary = opts?.forceOverwrite ? preserved : res
 
@@ -238,7 +239,7 @@ export function loadSessionStateSnapshotIntoStore(
 		id: TLINSTANCE_ID,
 		...preserved,
 		// the integrity checker will ensure that the currentPageId is valid
-		currentPageId: res.currentPageId,
+		currentPageId: res.currentPageId ?? existingInstance?.currentPageId,
 		isDebugMode: primary?.isDebugMode ?? secondary?.isDebugMode,
 		isFocusMode: primary?.isFocusMode ?? secondary?.isFocusMode,
 		isToolLocked: primary?.isToolLocked ?? secondary?.isToolLocked,

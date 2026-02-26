@@ -37,29 +37,21 @@ export function generateSection(section: InputSection, articles: Articles, index
 	const dir = isExamplesSection
 		? path.join(process.cwd(), '..', 'examples', 'src', 'examples')
 		: path.join(CONTENT_DIR, sectionId)
-	const files = fs.readdirSync(dir, { withFileTypes: false })
+	const articleSources = isExamplesSection
+		? getExampleArticleSources(dir)
+		: getRegularArticleSources(dir)
 
-	for (const file of files) {
-		const filename = file.toString()
-		if (filename.startsWith('.')) continue
-		if (!isExamplesSection && !filename.endsWith('.mdx') && !filename.endsWith('.md')) {
-			throw new Error(`no non .md / mdx files pls: ${filename}`)
-		}
-
-		// Get the parsed file content using matter
-		const pathname = isExamplesSection
-			? path.join(dir, filename, 'README.md')
-			: path.join(dir, filename)
+	for (const { filename, pathname, articleId, categoryId } of articleSources) {
 		const fileContent = fs.readFileSync(pathname).toString()
 		const parsed = matter({ content: fileContent }, {})
 
 		if (skipUnpublishedArticles && parsed.data.status !== 'published') continue
 
-		const extension = path.extname(filename)
-		const articleId = filename.replace(extension, '')
+		const extension = isExamplesSection ? '.md' : path.extname(filename)
 
 		const article = getArticleData({
 			articleId,
+			categoryId,
 			sectionId,
 			parsed,
 			isGenerated: isReferenceSection,
@@ -160,6 +152,7 @@ const sortArticles = (articleA: Article, articleB: Article) => {
 
 function getArticleData({
 	articleId,
+	categoryId: categoryIdOverride,
 	sectionId,
 	parsed,
 	isGenerated,
@@ -169,6 +162,7 @@ function getArticleData({
 	componentCodeFiles,
 }: {
 	articleId: Article['id']
+	categoryId?: Category['id']
 	sectionId: Section['id']
 	parsed: matter.GrayMatterFile<string>
 	isGenerated: boolean
@@ -193,8 +187,9 @@ function getArticleData({
 		sourceUrl = null,
 		order,
 		apiTags = null,
-		category: categoryId = sectionId + '_ucg',
+		category: categoryIdFromFrontmatter = sectionId + '_ucg',
 	} = parsed.data
+	const categoryId = categoryIdOverride ?? categoryIdFromFrontmatter
 
 	const githubLink = sectionId === 'starter-kits' ? (parsed.data.githubLink ?? null) : null
 	const embed = sectionId === 'starter-kits' ? (parsed.data.embed ?? null) : null
@@ -241,6 +236,62 @@ function getArticleData({
 		article.content = splitUp.slice(1).join('---\n')
 	}
 	return article
+}
+
+function getRegularArticleSources(dir: string) {
+	const sources: Array<{
+		filename: string
+		pathname: string
+		articleId: string
+		categoryId?: string
+	}> = []
+
+	for (const file of fs.readdirSync(dir, { withFileTypes: false })) {
+		const filename = file.toString()
+		if (filename.startsWith('.')) continue
+		if (!filename.endsWith('.mdx') && !filename.endsWith('.md')) {
+			throw new Error(`no non .md / mdx files pls: ${filename}`)
+		}
+		sources.push({
+			filename,
+			pathname: path.join(dir, filename),
+			articleId: filename.replace(path.extname(filename), ''),
+		})
+	}
+
+	return sources
+}
+
+function getExampleArticleSources(dir: string) {
+	return getReadmePaths(dir).map((pathname) => {
+		const relativeDir = path.relative(dir, path.dirname(pathname)).replaceAll(path.sep, '/')
+		const segments = relativeDir.split('/')
+		if (segments.length < 2) {
+			throw new Error(`Example category folder missing for ${pathname}`)
+		}
+
+		return {
+			filename: relativeDir,
+			pathname,
+			articleId: segments[segments.length - 1],
+			categoryId: segments.slice(0, -1).join('/'),
+		}
+	})
+}
+
+function getReadmePaths(dir: string) {
+	const readmes: string[] = []
+	const entries = fs.readdirSync(dir, { withFileTypes: true })
+	for (const entry of entries) {
+		if (entry.name.startsWith('.')) continue
+		const pathname = path.join(dir, entry.name)
+		if (entry.isDirectory()) {
+			readmes.push(...getReadmePaths(pathname))
+		} else if (entry.isFile() && entry.name === 'README.md') {
+			readmes.push(pathname)
+		}
+	}
+	return readmes
 }
 
 function getArticlePath({
