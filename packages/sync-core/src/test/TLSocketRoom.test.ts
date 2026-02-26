@@ -1062,6 +1062,181 @@ describe('Hibernation support', () => {
 		})
 	})
 
+	describe('onSessionSnapshot', () => {
+		it('calls onSessionSnapshot after debounce on message receipt', () => {
+			vi.useFakeTimers()
+			try {
+				const onSessionSnapshot = vi.fn()
+				const room = new TLSocketRoom({ onSessionSnapshot })
+				const socket = createMockSocket()
+				connectSession(room, 'test', socket)
+
+				// Send a ping to trigger the debounce
+				room.handleSocketMessage('test', JSON.stringify({ type: 'ping' }))
+
+				// Not called immediately
+				expect(onSessionSnapshot).not.toHaveBeenCalled()
+
+				// Advance past the 5s debounce
+				vi.advanceTimersByTime(5100)
+
+				expect(onSessionSnapshot).toHaveBeenCalledTimes(1)
+				expect(onSessionSnapshot).toHaveBeenCalledWith(
+					'test',
+					expect.objectContaining({
+						serializedSchema: expect.anything(),
+						isReadonly: false,
+					})
+				)
+
+				room.close()
+			} finally {
+				vi.useRealTimers()
+			}
+		})
+
+		it('does not call onSessionSnapshot after socket close (timer cleared)', () => {
+			vi.useFakeTimers()
+			try {
+				const onSessionSnapshot = vi.fn()
+				const room = new TLSocketRoom({ onSessionSnapshot })
+				const socket = createMockSocket()
+				connectSession(room, 'test', socket)
+
+				// Send a message to start the debounce
+				room.handleSocketMessage('test', JSON.stringify({ type: 'ping' }))
+
+				// Close the socket before the debounce fires
+				room.handleSocketClose('test')
+
+				// Advance past the 5s debounce
+				vi.advanceTimersByTime(5100)
+
+				// Should never have been called - timer was cleared on close
+				expect(onSessionSnapshot).not.toHaveBeenCalled()
+
+				room.close()
+			} finally {
+				vi.useRealTimers()
+			}
+		})
+
+		it('resets the debounce on subsequent messages', () => {
+			vi.useFakeTimers()
+			try {
+				const onSessionSnapshot = vi.fn()
+				const room = new TLSocketRoom({ onSessionSnapshot })
+				const socket = createMockSocket()
+				connectSession(room, 'test', socket)
+
+				// Send first message
+				room.handleSocketMessage('test', JSON.stringify({ type: 'ping' }))
+
+				// Advance 3s (within the 5s window)
+				vi.advanceTimersByTime(3000)
+				expect(onSessionSnapshot).not.toHaveBeenCalled()
+
+				// Send another message, resetting the debounce
+				room.handleSocketMessage('test', JSON.stringify({ type: 'ping' }))
+
+				// Advance another 3s (6s total, but only 3s since last message)
+				vi.advanceTimersByTime(3000)
+				expect(onSessionSnapshot).not.toHaveBeenCalled()
+
+				// Advance past the new debounce window
+				vi.advanceTimersByTime(2100)
+				expect(onSessionSnapshot).toHaveBeenCalledTimes(1)
+
+				room.close()
+			} finally {
+				vi.useRealTimers()
+			}
+		})
+	})
+
+	describe('resume-then-close (presence cleanup)', () => {
+		it('removes presence when a resumed session is immediately closed', () => {
+			vi.useFakeTimers()
+			try {
+				const store = getStore()
+				store.ensureStoreIsUsable()
+				const room = new TLSocketRoom({ initialSnapshot: store.getStoreSnapshot() })
+				const socket = createMockSocket()
+				connectSession(room, 'test', socket)
+
+				// Push presence
+				const presence = InstancePresenceRecordType.create({
+					id: InstancePresenceRecordType.createId('p1'),
+					userId: 'user1',
+					userName: 'User 1',
+					currentPageId: PageRecordType.createId('page'),
+				})
+				room.handleSocketMessage(
+					'test',
+					JSON.stringify({
+						type: 'push',
+						clientClock: 1,
+						presence: [RecordOpType.Put, presence],
+					})
+				)
+
+				const snapshot = room.getSessionSnapshot('test')!
+				expect(snapshot.presenceRecord).not.toBeNull()
+
+				// Simulate hibernation: new room with a second connected client
+				const room2 = new TLSocketRoom({ initialSnapshot: store.getStoreSnapshot() })
+				const observerSocket = createMockSocket()
+				connectSession(room2, 'observer', observerSocket)
+				vi.mocked(observerSocket.send).mockClear()
+
+				// Resume the session that's about to disconnect
+				const closingSocket = createMockSocket()
+				room2.handleSocketResume({
+					sessionId: 'test',
+					socket: closingSocket,
+					snapshot,
+				})
+
+				// Presence should be restored (only the resumed session has presence)
+				expect(Object.keys(room2.getPresenceRecords())).toHaveLength(1)
+
+				// Clear any messages from resume so we only see what happens after close
+				vi.mocked(observerSocket.send).mockClear()
+
+				// Now immediately close it (simulating webSocketClose after hibernation)
+				room2.handleSocketClose('test')
+
+				// Advance past SESSION_REMOVAL_WAIT_TIME (5s) + buffer (100ms) + throttle (1s)
+				vi.advanceTimersByTime(6200)
+
+				// Presence should be gone
+				expect(Object.keys(room2.getPresenceRecords())).toHaveLength(0)
+
+				// The observer should have received a presence removal broadcast.
+				// Messages are wrapped in a { type: 'data', data: [...] } envelope.
+				const sentMessages = vi.mocked(observerSocket.send).mock.calls.map((c) => JSON.parse(c[0]))
+				const hasPresenceRemoval = sentMessages.some(
+					(msg: {
+						type: string
+						data?: Array<{ type: string; diff?: Record<string, [string]> }>
+					}) =>
+						msg.type === 'data' &&
+						msg.data?.some(
+							(inner) =>
+								inner.type === 'patch' &&
+								inner.diff &&
+								Object.values(inner.diff).some((op) => op[0] === 'remove')
+						)
+				)
+				expect(hasPresenceRemoval).toBe(true)
+
+				room2.close()
+			} finally {
+				vi.useRealTimers()
+			}
+		})
+	})
+
 	describe('on-demand session pruning', () => {
 		it('prunes timed-out sessions during handleSocketMessage', async () => {
 			const room = new TLSocketRoom({

@@ -17,7 +17,7 @@ import { TLSocketServerSentEvent } from './protocol'
 /**
  * Strip potentially large fields from a tldraw instance_presence record so the
  * snapshot stays small when stored in WebSocket attachments (e.g. for hibernation).
- * Keeps cursor, selection, page, and user identity; clears scribbles, chatMessage, meta.
+ * Keeps cursor, selection, page, and user identity; clears scribbles, chatMessage, brush.
  */
 function stripPresenceForSnapshot(record: UnknownRecord): UnknownRecord {
 	if (record.typeName !== 'instance_presence') return record

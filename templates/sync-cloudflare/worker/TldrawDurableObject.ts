@@ -120,7 +120,7 @@ export class TldrawDurableObject extends DurableObject {
 		return attachment?.sessionId ?? null
 	}
 
-	async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
 		const sessionId = this.getSessionId(ws)
 		if (!sessionId) return
 
@@ -128,11 +128,11 @@ export class TldrawDurableObject extends DurableObject {
 		this.getOrCreateRoom().handleSocketMessage(sessionId, message)
 	}
 
-	async webSocketClose(ws: WebSocket) {
+	override async webSocketClose(ws: WebSocket) {
 		this.handleWebSocketEnd(ws, 'handleSocketClose')
 	}
 
-	async webSocketError(ws: WebSocket) {
+	override async webSocketError(ws: WebSocket) {
 		this.handleWebSocketEnd(ws, 'handleSocketError')
 	}
 
