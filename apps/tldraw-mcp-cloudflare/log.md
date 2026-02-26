@@ -6,7 +6,7 @@ Step 1 spike from `mcp-deployed-server-plan.md` — prove McpAgent + ext-apps + 
 
 ## Status
 
-**Step 1 PASSED.** All spike goals verified. Ready for Step 2 (port shape tools).
+**Steps 1-3 PASSED.** All tools ported, images working, auth in place. Ready for deployment testing.
 
 ## Spike results
 
@@ -17,7 +17,7 @@ Step 1 spike from `mcp-deployed-server-plan.md` — prove McpAgent + ext-apps + 
 | Widget HTML loads via Assets binding | PASS | `this.env.ASSETS.fetch()` serves 3.4MB single-file HTML |
 | DO SQLite checkpoint round-trip | PASS | `this.sql` template tag, save + read verified via Inspector |
 | Cross-directory imports from `../../tldraw-mcp-app/src/` | PASS | wrangler esbuild resolves them fine |
-| `tldraw` runtime imports bundle correctly | UNTESTED | Needs Step 2 (`create_shapes` uses `convertFocusedShapeToTldrawRecord`) |
+| `tldraw` runtime imports bundle correctly | PASS | `create_shapes` calls `convertFocusedShapeToTldrawRecord` → `toRichText` successfully |
 
 ## Issues found and resolved
 
@@ -187,13 +187,44 @@ The `server.ts` tool definitions (schemas, handlers, converters) are shared via 
 
 The `mcp-app.tsx` widget gained zoom-to-fit functionality (`zoomToFitRequestShapes`, `Box`, `TLShapeId` imports, `requestShapeIdsRef`). The copied widget in `tldraw-mcp-cloudflare/src/widget/` has been updated to match.
 
-## Next steps (Step 2)
+## DO SQLite row size analysis
 
-Port all shape tools from `server.ts` to `init()`:
-1. Register `create_shapes`, `update_shapes`, `delete_shapes` using `registerAppTool(this.server, ...)`
-2. Copy Zod schema definitions from `server.ts` (they're not exported)
-3. Import shared converters from `../../tldraw-mcp-app/src/focused-shape`
-4. This will also test `tldraw` runtime imports bundling (the last untested spike goal)
+Concern: DO SQLite has a 2MB max row size. Checkpoint data is stored as a single JSON blob in the `data` column.
+
+| Shapes | Checkpoint size | % of 2MB limit |
+|--------|----------------|----------------|
+| 50     | ~24 KB         | 1.2%           |
+| 200    | ~96 KB         | 4.7%           |
+| 500    | ~240 KB        | 11.7%          |
+| 1000   | ~480 KB        | 23.4%          |
+| 2000   | ~961 KB        | 46.9%          |
+
+Single TLShape record: ~492 bytes. Max shapes in 2MB: ~4,262.
+Typical diagrams are <100 shapes. No risk for realistic use cases.
+
+## Step 2+3 results (shape tools + images + auth)
+
+All 8 tools registered and verified via curl:
+
+| Tool | Type | Status |
+|------|------|--------|
+| `read_me` | LLM-facing | PASS |
+| `create_shapes` | LLM-facing (app tool) | PASS — tldraw runtime imports work |
+| `update_shapes` | LLM-facing (app tool) | PASS |
+| `delete_shapes` | LLM-facing (app tool) | PASS |
+| `read_checkpoint` | App-only | PASS |
+| `save_checkpoint` | App-only | PASS |
+| `upload_image` | App-only | PASS — base64 → R2, serves at /images/ |
+| `create_image` | LLM-facing (app tool) | PASS — creates image shape with url prop |
+
+Auth: Bearer token checked when `MCP_AUTH_TOKEN` env var is set. Skipped in local dev.
+CORS: Preflight handler + headers on all responses.
+
+### Image notes
+
+- `create_image` sets `url` directly on the image shape with `assetId` pointing to a server-side asset record
+- `assetRecords` returned in `structuredContent` — widget would need to handle these for full image rendering
+- R2 serves images at `/images/uuid.ext` with immutable caching and CORS
 
 ## Testing commands
 
