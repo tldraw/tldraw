@@ -1761,12 +1761,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 						try {
 							const resp = await fetch(url)
-							if (!resp.ok) throw new Error()
+							if (!resp.ok) throw new Error(`Failed to fetch asset: ${resp.status}`)
 							const blob = await resp.blob()
 							downloadFile(new File([blob], name, { type: blob.type }))
 						} catch {
 							// Fallback: open in new tab (e.g. if CORS blocked)
-							window.open(url, '_blank')
+							openWindow(url, '_blank')
 						}
 					}
 
