@@ -18,7 +18,7 @@ async function startStdio() {
 
 async function startHttp() {
 	const app = createMcpExpressApp()
-	// const app = createMcpExpressApp({ host: '0.0.0.0' }) use host: '0.0.0.0' to allow external access if you're using cloudflare tunnels
+	//const app = createMcpExpressApp({ host: '0.0.0.0' }) //use host: '0.0.0.0' to allow external access if you're using cloudflare tunnels
 
 	// Store transports by session ID for session reuse
 	const transports = new Map<string, StreamableHTTPServerTransport>()

@@ -889,7 +889,7 @@ function TldrawCanvas({ app }: { app: App }) {
 	return (
 		<div style={{ width: '100%', height: EDITOR_HEIGHT, position: 'relative' }}>
 			<Tldraw
-				licenseKey="tldraw-vscode---claude-mcp-2-2027-02-25/WyI5R2UybElHcyIsWyIqLnZzY29kZS1jZG4ubmV0IiwiKi5jbGF1ZGVtY3Bjb250ZW50LmNvbSJdLDE2LCIyMDI3LTAyLTI1Il0.WdqA1PnPIEn7RdIA2jNLS/4DuucL/IWBAVnXBVZyV9Ub9AAgLa3DF8j1RmUKr/Ah2FrI+Dp7OM51B1xrq+KxMQ"
+				licenseKey="tldraw-claude---chatgpt-mcp-app-2027-02-26/WyI5NFRNbWVmbiIsWyIqLmNsYXVkZW1jcGNvbnRlbnQuY29tIiwiKi53ZWItc2FuZGJveC5vYWl1c2VyY29udGVudC5jb20iXSwxNiwiMjAyNy0wMi0yNiJd.5dV7DhEo4Ms3gr9PJ8qCFrmRrgh0XNYaBMJe299DvEDiNAf8imZeCSAkpmFD2Vcuw6H2uXJfBQkda6zKdnnEdA"
 				onMount={handleMount}
 				components={tldrawComponents}
 			/>
