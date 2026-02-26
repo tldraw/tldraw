@@ -207,7 +207,9 @@ export class TldrawApp {
 				getToken().then((token) => {
 					if (token) {
 						z.connection.connect({ auth: token })
+						return true
 					}
+					return false
 				})
 			// Proactively refresh auth token before Clerk's 60s expiry.
 			// TODO: Rocicorp is working on improvements for token refresh. We can also
@@ -233,8 +235,8 @@ export class TldrawApp {
 					authRetryCount++
 					setTimeout(() => {
 						refreshToken()
-							.then(() => {
-								authRetryCount = 0
+							.then((didRefresh) => {
+								if (didRefresh) authRetryCount = 0
 							})
 							.catch((err) => {
 								console.error('Failed to refresh auth token:', err)
