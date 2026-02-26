@@ -401,12 +401,18 @@ function ShapesWithSVGs() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
-	return renderingShapes.map((result) => (
-		<Fragment key={result.id + '_fragment'}>
-			<Shape {...result} />
-			<DebugSvgCopy id={result.id} mode="iframe" />
-		</Fragment>
-	))
+	return (
+		<ShapeCullingProvider>
+			{renderingShapes.map((result) => (
+				<Fragment key={result.id + '_fragment'}>
+					<Shape {...result} />
+					<DebugSvgCopy id={result.id} mode="iframe" />
+				</Fragment>
+			))}
+			<CullingController />
+			{tlenv.isSafari && <ReflowIfNeeded />}
+		</ShapeCullingProvider>
+	)
 }
 function ReflowIfNeeded() {
 	const editor = useEditor()
