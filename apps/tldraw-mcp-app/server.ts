@@ -120,6 +120,9 @@ server.registerTool(
 	'read_me',
 	{
 		description: 'Get the tldraw shape format reference. Call this FIRST before creating diagrams.',
+		annotations: {
+			readOnlyHint: true,
+		},
 	},
 	async (): Promise<CallToolResult> => ({
 		content: [{ type: 'text', text: READ_ME_CONTENT }],

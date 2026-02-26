@@ -4,6 +4,8 @@ import { createRoot } from 'react-dom/client'
 import {
 	type TLComponents,
 	type TLShape,
+	type TLShapeId,
+	Box,
 	Editor,
 	Tldraw,
 	getIndexAbove,
@@ -329,6 +331,68 @@ function mergeShapesById(base: TLShape[], additions: TLShape[]): TLShape[] {
 	return [...merged.values()]
 }
 
+const CAMERA_ANIM_MS = 300
+let cameraAnimEndTime = 0
+
+/**
+ * If any of the given shape IDs extend outside the current viewport,
+ * pan (and only zoom out if necessary) to keep them visible.
+ * Never zooms in beyond the current zoom level.
+ * Skips the call if a previous animation is still playing.
+ */
+function zoomToFitRequestShapes(editor: Editor, shapeIds: Set<TLShapeId>) {
+	if (shapeIds.size === 0) return
+
+	// Don't interrupt an in-progress animation — wait for it to finish
+	if (Date.now() < cameraAnimEndTime) return
+
+	const shapeBounds: Box[] = []
+	for (const id of shapeIds) {
+		const bounds = editor.getShapePageBounds(id)
+		if (bounds) shapeBounds.push(bounds)
+	}
+	if (shapeBounds.length === 0) return
+
+	const commonBounds = Box.Common(shapeBounds)
+	const viewportBounds = editor.getViewportPageBounds()
+
+	// All request shapes already visible — nothing to do
+	const contained =
+		commonBounds.x >= viewportBounds.x &&
+		commonBounds.y >= viewportBounds.y &&
+		commonBounds.x + commonBounds.w <= viewportBounds.x + viewportBounds.w &&
+		commonBounds.y + commonBounds.h <= viewportBounds.y + viewportBounds.h
+	if (contained) return
+
+	const currentZoom = editor.getZoomLevel()
+	const screenBounds = editor.getViewportScreenBounds()
+	const inset = 100
+
+	// The zoom level needed to fit the shapes with padding
+	const fitZoom = Math.min(
+		(screenBounds.w - inset) / commonBounds.w,
+		(screenBounds.h - inset) / commonBounds.h
+	)
+
+	// Never zoom in past the current level — only zoom out if shapes don't fit
+	const zoom = Math.min(currentZoom, fitZoom)
+
+	// Center the shapes in the viewport at the chosen zoom
+	const cx = commonBounds.x + commonBounds.w / 2
+	const cy = commonBounds.y + commonBounds.h / 2
+
+	cameraAnimEndTime = Date.now() + CAMERA_ANIM_MS
+
+	editor.setCamera(
+		{
+			x: -cx + screenBounds.w / zoom / 2,
+			y: -cy + screenBounds.h / zoom / 2,
+			z: zoom,
+		},
+		{ animation: { duration: CAMERA_ANIM_MS } }
+	)
+}
+
 function applySnapshot(editor: Editor, snapshot: CanvasSnapshot) {
 	const nextShapes = snapshot.shapes.map((shape) => structuredClone(shape))
 
@@ -528,6 +592,7 @@ function TldrawCanvas({ app }: { app: App }) {
 	const checkpointIdRef = useRef<string | null>(null)
 	const removeStoreListenerRef = useRef<(() => void) | null>(null)
 	const saveTimerRef = useRef<number | null>(null)
+	const requestShapeIdsRef = useRef<Set<TLShapeId>>(new Set())
 
 	const renderPreviewSnapshot = useCallback((previewSnapshot: CanvasSnapshot, summary: string) => {
 		previewActiveRef.current = true
@@ -539,12 +604,16 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		applyPreviewToEditor(editor, previewSnapshot, committedSnapshotRef.current)
+		zoomToFitRequestShapes(editor, requestShapeIdsRef.current)
 		log(summary)
 	}, [])
 
 	const renderPreviewShapes = useCallback(
 		(previewShapes: TLShape[], mode: 'create' | 'update', createFromBlank = false) => {
 			if (previewShapes.length <= 0) return
+			for (const shape of previewShapes) {
+				requestShapeIdsRef.current.add(shape.id)
+			}
 			const committed = committedSnapshotRef.current
 			const editor = editorRef.current
 			const baseShapes = createFromBlank
@@ -725,17 +794,37 @@ function TldrawCanvas({ app }: { app: App }) {
 				}
 			}
 
+			// Capture previous committed IDs for zoom diff fallback
+			const previousCommittedIds = new Set(committedSnapshotRef.current.shapes.map((s) => s.id))
+
 			const snapshot: CanvasSnapshot = { shapes: finalShapes }
 			committedSnapshotRef.current = snapshot
 
 			const editor = editorRef.current
 			if (!editor) {
 				pendingSnapshotRef.current = snapshot
+				requestShapeIdsRef.current = new Set<TLShapeId>()
 				log(`Queued checkpoint ${checkpointId} (editor not ready)`)
 				return
 			}
 
 			applySnapshot(editor, snapshot)
+
+			// Zoom to fit shapes from this request — but skip if restoring
+			// from localStorage (reload/remount case where user may have panned)
+			if (!localShapes) {
+				let zoomShapeIds: Set<TLShapeId> = requestShapeIdsRef.current
+				if (zoomShapeIds.size === 0) {
+					// No streaming preview happened — compute new shapes from diff
+					const newIds = new Set<TLShapeId>()
+					for (const shape of finalShapes) {
+						if (!previousCommittedIds.has(shape.id)) newIds.add(shape.id)
+					}
+					zoomShapeIds = newIds
+				}
+				zoomToFitRequestShapes(editor, zoomShapeIds)
+			}
+			requestShapeIdsRef.current = new Set<TLShapeId>()
 
 			// Persist to localStorage (ensures it's saved even on first render)
 			saveLocalShapes(checkpointId, finalShapes)
@@ -751,6 +840,7 @@ function TldrawCanvas({ app }: { app: App }) {
 		app.ontoolcancelled = (params) => {
 			const reason = params.reason ?? 'tool cancelled'
 			clearPreviewAndRestoreCommitted(reason)
+			requestShapeIdsRef.current = new Set<TLShapeId>()
 		}
 
 		return () => {
@@ -790,6 +880,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			if (pendingPreviewSnapshot) {
 				pendingPreviewSnapshotRef.current = null
 				applySnapshot(editor, pendingPreviewSnapshot)
+				zoomToFitRequestShapes(editor, requestShapeIdsRef.current)
 			}
 		},
 		[scheduleSave]
