@@ -9,6 +9,12 @@ import { createServer } from './server'
 const useStdio = process.argv.includes('--stdio')
 const port = parseInt(process.env['PORT'] ?? '3001', 10)
 
+// TODO DO NOT HARDCODE THESE DOMAINS, COPY AND PASTE LOCALLY. MAKE YOUR OWN TUNNEL AND HASH FOR CLAUDE
+const HTTP_DOMAINS = {
+	openai: '',
+	claude: '',
+}
+
 async function startStdio() {
 	const server = createServer()
 	const transport = new StdioServerTransport()
@@ -18,7 +24,7 @@ async function startStdio() {
 
 async function startHttp() {
 	const app = createMcpExpressApp()
-	//const app = createMcpExpressApp({ host: '0.0.0.0' }) //use host: '0.0.0.0' to allow external access if you're using cloudflare tunnels
+	// const app = createMcpExpressApp({ host: '0.0.0.0' }) //use host: '0.0.0.0' to allow external access if you're using cloudflare tunnels to test remote mcp servers
 
 	// Store transports by session ID for session reuse
 	const transports = new Map<string, StreamableHTTPServerTransport>()
@@ -44,7 +50,7 @@ async function startHttp() {
 			if (id) transports.delete(id)
 		}
 
-		const server = createServer()
+		const server = createServer({ httpDomain: HTTP_DOMAINS })
 		await server.connect(transport)
 		await transport.handleRequest(req, res, req.body)
 	})

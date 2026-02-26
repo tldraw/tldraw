@@ -143,11 +143,26 @@ type DeleteShapesInput = z.infer<typeof deleteShapesInputSchema>
 
 // --- Server factory ---
 
-export function createServer() {
+export interface CreateServerOptions {
+	/** When set, the canvas resource will include a domain in _meta.ui based on the connecting client. */
+	httpDomain?: {
+		openai: string
+		claude: string
+	}
+}
+
+export function createServer(opts?: CreateServerOptions) {
 	const server = new McpServer({
 		name: 'tldraw',
 		version: '1.0.0',
 	})
+
+	server.server.oninitialized = () => {
+		const clientInfo = server.server.getClientVersion()
+		console.error(
+			`[tldraw-mcp] Client connected: ${clientInfo?.name ?? 'unknown'} v${clientInfo?.version ?? '?'}`
+		)
+	}
 
 	// --- read_me ---
 
@@ -410,6 +425,23 @@ export function createServer() {
 		{ mimeType: RESOURCE_MIME_TYPE },
 		async (): Promise<ReadResourceResult> => {
 			const html = await loadCachedCanvasWidgetHtml()
+
+			// Resolve domain from client identity (only when serving over HTTP with configured domains)
+			let domain: string | undefined
+			if (opts?.httpDomain?.openai || opts?.httpDomain?.claude) {
+				const clientName = server.server.getClientVersion()?.name ?? ''
+				if (clientName === 'openai-mcp') {
+					domain = opts.httpDomain.openai
+				} else if (
+					clientName === 'claude-ai' ||
+					clientName === 'Anthropic' ||
+					clientName === 'Anthropic/ClaudeAI'
+				) {
+					domain = opts.httpDomain.claude
+				}
+				console.error(`[tldraw-mcp] Serving resource to "${clientName}" with domain: ${domain}`)
+			}
+
 			return {
 				contents: [
 					{
@@ -426,6 +458,7 @@ export function createServer() {
 									],
 									connectDomains: ['https://cdn.tldraw.com'],
 								},
+								...(domain ? { domain } : {}),
 							},
 						},
 					},
