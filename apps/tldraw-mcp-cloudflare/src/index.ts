@@ -1,4 +1,8 @@
-import { registerAppResource, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server'
+import {
+	registerAppResource,
+	registerAppTool,
+	RESOURCE_MIME_TYPE,
+} from '@modelcontextprotocol/ext-apps/server'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js'
 import { McpAgent } from 'agents/mcp'
@@ -6,8 +10,18 @@ import type { TLShape } from 'tldraw'
 import { z } from 'zod'
 
 // Shared imports — no duplication
-import { convertTldrawRecordToFocusedShape } from '../../tldraw-mcp-app/src/focused-shape'
-import { parseJsonArray } from '../../tldraw-mcp-app/src/parse-json'
+import {
+	convertFocusedShapeToTldrawRecord,
+	convertTldrawRecordToFocusedShape,
+	type FocusedShape,
+} from '../../tldraw-mcp-app/src/focused-shape'
+import {
+	parseBooleanFlag,
+	parseFocusedShapesInput,
+	parseFocusedShapeUpdatesInput,
+	parseJsonArray,
+	parseShapeIdsInput,
+} from '../../tldraw-mcp-app/src/parse-json'
 import { READ_ME_CONTENT } from '../../tldraw-mcp-app/src/tools/read-me'
 
 // --- Types ---
@@ -40,12 +54,79 @@ function generateCheckpointId(): string {
 	return crypto.randomUUID().replace(/-/g, '').slice(0, 18)
 }
 
+function normalizeShapeId(id: string): string {
+	return id.startsWith('shape:') ? id : `shape:${id}`
+}
+
+function toSimpleShapeId(id: string): string {
+	return id.replace(/^shape:/, '')
+}
+
+function deepMerge(base: unknown, patch: unknown): unknown {
+	if (!isPlainObject(base) || !isPlainObject(patch)) return patch
+	const merged: Record<string, unknown> = { ...base }
+	for (const [key, value] of Object.entries(patch)) {
+		merged[key] = deepMerge(merged[key], value)
+	}
+	return merged
+}
+
 function errorResponse(err: unknown, summary?: string): CallToolResult {
 	const message = err instanceof Error ? err.message : String(err)
 	return {
 		content: [{ type: 'text', text: `Error: ${message}\n${summary ?? ''}` }],
 		isError: true,
 	}
+}
+
+// --- Schemas ---
+
+const createShapesInputSchema = z.object({
+	new_blank_canvas: z
+		.boolean()
+		.optional()
+		.describe('If true, create_shapes starts from a new blank canvas. Defaults to false.'),
+	shapesJson: z
+		.string()
+		.describe('JSON array string of shapes. Must be a valid JSON array string.'),
+})
+
+type CreateShapesInput = z.infer<typeof createShapesInputSchema>
+
+const updateShapesInputSchema = z.object({
+	updatesJson: z
+		.string()
+		.describe('JSON array string of shape updates. Must be a valid JSON array string.'),
+})
+
+type UpdateShapesInput = z.infer<typeof updateShapesInputSchema>
+
+const deleteShapesInputSchema = z.object({
+	shapeIdsJson: z
+		.string()
+		.describe(
+			'JSON array string of shape ids to delete. Must be a valid JSON array string of shape ids.'
+		),
+})
+
+type DeleteShapesInput = z.infer<typeof deleteShapesInputSchema>
+
+const createImageInputSchema = z.object({
+	url: z.string().describe('Public URL of the image to place on the canvas.'),
+	x: z.number().describe('X position of the image on the canvas.'),
+	y: z.number().describe('Y position of the image on the canvas.'),
+	w: z.number().describe('Width of the image on the canvas.'),
+	h: z.number().describe('Height of the image on the canvas.'),
+})
+
+type CreateImageInput = z.infer<typeof createImageInputSchema>
+
+const ALLOWED_IMAGE_TYPES: Record<string, string> = {
+	'image/png': 'png',
+	'image/jpeg': 'jpg',
+	'image/gif': 'gif',
+	'image/webp': 'webp',
+	'image/svg+xml': 'svg',
 }
 
 // --- Widget HTML loader ---
@@ -132,6 +213,168 @@ export class TldrawMCP extends McpAgent<Env> {
 			})
 		)
 
+		// --- create_shapes ---
+
+		registerAppTool(
+			this.server,
+			'create_shapes',
+			{
+				title: 'Create Shapes',
+				description:
+					'Creates shapes from a JSON string (FocusedShape[]). Optional new_blank_canvas=true starts from a blank canvas.',
+				inputSchema: createShapesInputSchema,
+				_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
+			},
+			async ({ shapesJson, new_blank_canvas }: CreateShapesInput): Promise<CallToolResult> => {
+				try {
+					const newBlankCanvas = parseBooleanFlag(new_blank_canvas, false)
+					const focusedShapes = parseFocusedShapesInput(shapesJson)
+					const newRecords = focusedShapes.map((s: FocusedShape) =>
+						convertFocusedShapeToTldrawRecord(s)
+					)
+
+					const baseShapes = newBlankCanvas ? [] : this.getActiveShapes()
+					const mergedById = new Map<string, TLShape>()
+					for (const s of baseShapes) mergedById.set(s.id, structuredClone(s))
+					for (const s of newRecords) mergedById.set(s.id, structuredClone(s))
+					const resultShapes = [...mergedById.values()]
+
+					const checkpointId = generateCheckpointId()
+					this.saveCheckpoint(checkpointId, resultShapes)
+
+					return {
+						content: [
+							{
+								type: 'text',
+								text: newBlankCanvas
+									? `Created ${focusedShapes.length} shape(s) on a new blank canvas.`
+									: `Created ${focusedShapes.length} shape(s).`,
+							},
+							{ type: 'text', text: JSON.stringify(focusedShapes, null, 2) },
+						],
+						structuredContent: {
+							checkpointId,
+							action: 'create' as const,
+							newBlankCanvas,
+							hadBaseShapes: baseShapes.length > 0,
+							focusedShapes,
+							tldrawRecords: resultShapes,
+						},
+					}
+				} catch (err) {
+					return errorResponse(err, shapesJson)
+				}
+			}
+		)
+
+		// --- update_shapes ---
+
+		registerAppTool(
+			this.server,
+			'update_shapes',
+			{
+				title: 'Update Shapes',
+				description:
+					'Updates existing shapes from a JSON string (FocusedShapeUpdate[]). Designed for partial-input streaming previews in the canvas app.',
+				inputSchema: updateShapesInputSchema,
+				_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
+			},
+			async ({ updatesJson }: UpdateShapesInput): Promise<CallToolResult> => {
+				try {
+					const updates = parseFocusedShapeUpdatesInput(updatesJson)
+					const baseShapes = this.getActiveShapes()
+					const shapesById = new Map(baseShapes.map((s) => [s.id, structuredClone(s)]))
+					const updated: string[] = []
+
+					for (const update of updates) {
+						const id = normalizeShapeId(update.shapeId) as TLShape['id']
+						const existing = shapesById.get(id)
+						if (!existing) continue
+
+						try {
+							const existingFocused = convertTldrawRecordToFocusedShape(existing)
+							const merged = deepMerge(existingFocused, {
+								...update,
+								shapeId: toSimpleShapeId(id),
+								_type: update._type ?? existingFocused._type,
+							}) as FocusedShape
+							const converted = convertFocusedShapeToTldrawRecord(merged)
+							converted.index = existing.index
+							shapesById.set(id, converted)
+							updated.push(toSimpleShapeId(id))
+						} catch {
+							// Skip invalid update inputs.
+						}
+					}
+
+					const resultShapes = [...shapesById.values()]
+
+					const checkpointId = generateCheckpointId()
+					this.saveCheckpoint(checkpointId, resultShapes)
+
+					return {
+						content: [
+							{
+								type: 'text',
+								text: `Updated ${updated.length} shape(s).`,
+							},
+						],
+						structuredContent: {
+							checkpointId,
+							action: 'update' as const,
+							updates,
+							tldrawRecords: resultShapes,
+						},
+					}
+				} catch (err) {
+					return errorResponse(err)
+				}
+			}
+		)
+
+		// --- delete_shapes ---
+
+		registerAppTool(
+			this.server,
+			'delete_shapes',
+			{
+				title: 'Delete Shapes',
+				description:
+					'Deletes shapes by id from a JSON string (string[]). Designed for partial-input streaming previews in the canvas app.',
+				inputSchema: deleteShapesInputSchema,
+				_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
+			},
+			async ({ shapeIdsJson }: DeleteShapesInput): Promise<CallToolResult> => {
+				try {
+					const shapeIds = parseShapeIdsInput(shapeIdsJson)
+					const baseShapes = this.getActiveShapes()
+					const idsToDelete = new Set(shapeIds.map((id) => normalizeShapeId(id)))
+					const resultShapes = baseShapes.filter((s) => !idsToDelete.has(s.id))
+					const deletedCount = baseShapes.length - resultShapes.length
+
+					const checkpointId = generateCheckpointId()
+					this.saveCheckpoint(checkpointId, resultShapes)
+
+					return {
+						content: [
+							{
+								type: 'text',
+								text: `Deleted ${deletedCount} shape(s).`,
+							},
+						],
+						structuredContent: {
+							checkpointId,
+							action: 'delete' as const,
+							shapeIds,
+							tldrawRecords: resultShapes,
+						},
+					}
+				} catch (err) {
+					return errorResponse(err)
+				}
+			}
+		)
+
 		// --- read_checkpoint (app-only) ---
 		this.server.registerTool(
 			'read_checkpoint',
@@ -203,6 +446,143 @@ export class TldrawMCP extends McpAgent<Env> {
 				}
 			}
 		)
+
+		// --- upload_image (app-only) ---
+		this.server.registerTool(
+			'upload_image',
+			{
+				title: 'Upload Image',
+				description: 'App-only: upload a base64-encoded image to R2 storage.',
+				inputSchema: z.object({
+					filename: z.string(),
+					base64: z.string(),
+					contentType: z.string(),
+				}),
+				_meta: { ui: { visibility: ['app'] } },
+			},
+			async ({
+				filename,
+				base64,
+				contentType,
+			}: {
+				filename: string
+				base64: string
+				contentType: string
+			}): Promise<CallToolResult> => {
+				try {
+					const ext = ALLOWED_IMAGE_TYPES[contentType]
+					if (!ext) {
+						return errorResponse(
+							new Error(
+								`Unsupported content type: ${contentType}. Allowed: ${Object.keys(ALLOWED_IMAGE_TYPES).join(', ')}`
+							)
+						)
+					}
+
+					const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+					const key = `images/${crypto.randomUUID()}.${ext}`
+
+					await ((this as any).env as Env).IMAGES.put(key, bytes, {
+						httpMetadata: { contentType },
+						customMetadata: { originalFilename: filename },
+					})
+
+					// Build the public URL relative to the worker origin
+					// In production this would be the deployed domain
+					const imageUrl = `/${key}`
+
+					return {
+						content: [{ type: 'text', text: `Uploaded image: ${imageUrl}` }],
+						structuredContent: { imageUrl, key, contentType },
+					}
+				} catch (err) {
+					return errorResponse(err)
+				}
+			}
+		)
+
+		// --- create_image ---
+		registerAppTool(
+			this.server,
+			'create_image',
+			{
+				title: 'Create Image',
+				description:
+					'Places an image on the canvas at a specified position and size. Provide a public image URL.',
+				inputSchema: createImageInputSchema,
+				_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
+			},
+			async ({ url, x, y, w, h }: CreateImageInput): Promise<CallToolResult> => {
+				try {
+					const shapeId = `shape:${crypto.randomUUID().replace(/-/g, '').slice(0, 18)}`
+					const assetId = `asset:${crypto.randomUUID().replace(/-/g, '').slice(0, 18)}`
+
+					// Create the asset record (needed for tldraw to render the image)
+					const assetRecord = {
+						id: assetId,
+						typeName: 'asset',
+						type: 'image',
+						props: {
+							w,
+							h,
+							name: url.split('/').pop() ?? 'image',
+							isAnimated: false,
+							mimeType: null,
+							src: url,
+						},
+						meta: {},
+					}
+
+					// Create the image shape
+					const imageShape: TLShape = {
+						id: shapeId,
+						type: 'image',
+						x,
+						y,
+						rotation: 0,
+						index: 'a1' as any,
+						parentId: 'page:page' as any,
+						isLocked: false,
+						opacity: 1,
+						props: {
+							w,
+							h,
+							playing: true,
+							url,
+							assetId,
+							crop: null,
+							flipX: false,
+							flipY: false,
+							altText: '',
+						},
+						meta: {},
+						typeName: 'shape',
+					} as TLShape
+
+					const baseShapes = this.getActiveShapes()
+					const resultShapes = [...baseShapes, imageShape]
+
+					const checkpointId = generateCheckpointId()
+					this.saveCheckpoint(checkpointId, resultShapes)
+
+					return {
+						content: [
+							{ type: 'text', text: `Created image shape at (${x}, ${y}) with size ${w}x${h}.` },
+						],
+						structuredContent: {
+							checkpointId,
+							action: 'create' as const,
+							newBlankCanvas: false,
+							hadBaseShapes: baseShapes.length > 0,
+							tldrawRecords: resultShapes,
+							assetRecords: [assetRecord],
+						},
+					}
+				} catch (err) {
+					return errorResponse(err)
+				}
+			}
+		)
 	}
 
 	// --- Checkpoint helpers ---
@@ -233,7 +613,7 @@ export class TldrawMCP extends McpAgent<Env> {
 // --- Fetch handler ---
 // McpAgent.serve() handles CORS, session management, and transport internally.
 // Expose both transports: Streamable HTTP at /mcp, SSE at /sse.
-// MCP Inspector works with SSE; Claude web uses Streamable HTTP.
+// MCP Inspector works with SSE; Claude web and ChatGPT use Streamable HTTP.
 
 const mcpHandler = (TldrawMCP as any).serve('/mcp')
 const sseHandler = (TldrawMCP as any).serveSSE('/sse')
@@ -242,21 +622,25 @@ export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
 		const url = new URL(request.url)
 
-		// Health check
+		// CORS preflight (needed for Claude web / ChatGPT Custom Connector)
+		if (request.method === 'OPTIONS') {
+			return new Response(null, { status: 204, headers: CORS_HEADERS })
+		}
+
+		// Health check (no auth)
 		if (url.pathname === '/health') return new Response('OK')
 
-		// R2 image serving (placeholder for step 3)
+		// R2 image serving (no auth — public, immutable assets)
 		if (url.pathname.startsWith('/images/')) {
-			const key = url.pathname.slice(1)
-			const object = await env.IMAGES.get(key)
-			if (!object) return new Response('Not found', { status: 404 })
-			return new Response(object.body, {
-				headers: {
-					'Content-Type': object.httpMetadata?.contentType ?? 'image/png',
-					'Cache-Control': 'public, max-age=31536000, immutable',
-					'Access-Control-Allow-Origin': '*',
-				},
-			})
+			return handleImageRequest(url, env)
+		}
+
+		// Auth check for MCP endpoints: skip if MCP_AUTH_TOKEN not set (local dev)
+		if (env.MCP_AUTH_TOKEN) {
+			const auth = request.headers.get('Authorization')
+			if (auth !== `Bearer ${env.MCP_AUTH_TOKEN}`) {
+				return corsResponse(new Response('Unauthorized', { status: 401 }))
+			}
 		}
 
 		// SSE transport (for MCP Inspector and legacy clients)
@@ -264,7 +648,21 @@ export default {
 			return sseHandler.fetch(request, env, ctx)
 		}
 
-		// Streamable HTTP transport (for Claude web and modern clients)
+		// Streamable HTTP transport (for Claude web, ChatGPT, and modern clients)
 		return mcpHandler.fetch(request, env, ctx)
 	},
+}
+
+async function handleImageRequest(url: URL, env: Env): Promise<Response> {
+	const key = url.pathname.slice(1) // "images/uuid.png"
+	const object = await env.IMAGES.get(key)
+	if (!object) return new Response('Not found', { status: 404 })
+
+	return new Response(object.body, {
+		headers: {
+			'Content-Type': object.httpMetadata?.contentType ?? 'image/png',
+			'Cache-Control': 'public, max-age=31536000, immutable',
+			'Access-Control-Allow-Origin': '*',
+		},
+	})
 }
