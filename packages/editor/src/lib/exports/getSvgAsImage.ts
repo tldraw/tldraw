@@ -135,8 +135,8 @@ function measureContentBounds(
 
 	const extraPx = Math.ceil(trimPaddingPx)
 
-	// Nothing to trim if the extra padding is negligible
-	if (extraPx <= 0) return null
+	// Nothing to trim if the extra padding is negligible or larger than the canvas
+	if (extraPx <= 0 || extraPx >= w || extraPx >= h) return null
 
 	const imageData = ctx.getImageData(0, 0, w, h)
 	const data = imageData.data
