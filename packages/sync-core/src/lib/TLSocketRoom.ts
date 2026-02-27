@@ -399,8 +399,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * ```
 	 */
 	handleSocketMessage(sessionId: string, message: string | AllowSharedBufferSource) {
-		this.room.pruneSessions()
-
 		const assembler = this.sessions.get(sessionId)?.assembler
 		if (!assembler) {
 			this.log?.warn?.('Received message from unknown session', sessionId)
@@ -430,6 +428,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				}
 
 				this.room.handleMessage(sessionId, res.data as any)
+				this.room.pruneSessions()
 				this.scheduleDebouncedSnapshot(sessionId)
 			} else {
 				this.log?.error?.('Error assembling message', res.error)

@@ -21,7 +21,7 @@ import { getTlsyncProtocolVersion } from '../lib/protocol'
 import { WebSocketMinimal } from '../lib/ServerSocketAdapter'
 import { TLSocketRoom, TLSyncLog } from '../lib/TLSocketRoom'
 import { TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
-import { RoomSnapshot } from '../lib/TLSyncRoom'
+import { TLSyncRoom, type RoomSnapshot } from '../lib/TLSyncRoom'
 
 function getStore() {
 	const schema = createTLSchema()
@@ -1256,6 +1256,36 @@ describe('Hibernation support', () => {
 			// The timed-out socket should have been closed
 			expect(socket.close).toHaveBeenCalled()
 
+			room.close()
+		})
+
+		it('runs prune after handleMessage so the sender is not evicted by their own message', () => {
+			// If prune ran before handleMessage, an idle client's message would trigger
+			// prune first and cancel them before lastInteractionTime is updated. Verify
+			// order: handleMessage must run before pruneSessions.
+			const room = new TLSocketRoom({})
+			const syncRoom = (room as unknown as { room: TLSyncRoom<TLRecord, void> }).room
+			const socket = createMockSocket()
+			connectSession(room, 'test', socket)
+
+			const callOrder: string[] = []
+			const realHandleMessage = syncRoom.handleMessage.bind(syncRoom)
+			vi.spyOn(syncRoom, 'handleMessage').mockImplementation((sessionId, message) => {
+				callOrder.push('handleMessage')
+				return realHandleMessage(sessionId, message)
+			})
+			const originalPrune = syncRoom.pruneSessions
+			const wrappedPrune = function (this: typeof syncRoom) {
+				callOrder.push('prune')
+				return originalPrune.call(this)
+			}
+			wrappedPrune.cancel = originalPrune.cancel?.bind(originalPrune)
+			syncRoom.pruneSessions = wrappedPrune as typeof originalPrune
+
+			room.handleSocketMessage('test', JSON.stringify({ type: 'ping' }))
+
+			expect(callOrder).toEqual(['handleMessage', 'prune'])
+			vi.restoreAllMocks()
 			room.close()
 		})
 
