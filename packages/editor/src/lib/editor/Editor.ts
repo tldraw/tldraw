@@ -5321,7 +5321,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const pointInShapeSpace = this.getPointInShapeSpace(shape, point)
 
 			// Check labels first
-			if (geometry instanceof Group2d) {
+			if (
+				this.isShapeOfType(shape, 'frame') ||
+				(shape as any).type === 'grid' ||
+				((this.isShapeOfType(shape, 'note') ||
+					this.isShapeOfType(shape, 'arrow') ||
+					(this.isShapeOfType(shape, 'geo') && shape.props.fill === 'none')) &&
+					this.getShapeUtil(shape).getText(shape)?.trim())
+			) {
 				for (const childGeometry of (geometry as Group2d).children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
 						return shape
