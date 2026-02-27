@@ -17,11 +17,11 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuSubmenu,
-	ViewSubmenu,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
 	useValue,
+	ViewSubmenu,
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
@@ -29,6 +29,7 @@ import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
+import { isCodeEditorOpenAtom } from '../TlaCodeEditorDialog/code-editor-state'
 import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
@@ -151,6 +152,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 					</TldrawUiDropdownMenuContent>
 				</TldrawUiMenuContextProvider>
 			</TldrawUiDropdownMenuRoot>
+			<CodeEditorButton />
 		</>
 	)
 }
@@ -261,6 +263,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 					<PreferencesGroup />
 				</TldrawUiMenuGroup>
 			</TlaFileMenu>
+			<CodeEditorButton />
 		</>
 	)
 }
@@ -410,5 +413,36 @@ function SignInMenuItem() {
 			<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
 			<TlaIcon icon="sign-in" />
 		</TldrawUiButton>
+	)
+}
+
+function CodeEditorButton() {
+	const isOpen = useValue('code-editor-open', () => isCodeEditorOpenAtom.get(), [])
+
+	const handleClick = useCallback(() => {
+		isCodeEditorOpenAtom.set(!isCodeEditorOpenAtom.get())
+	}, [])
+
+	return (
+		<button
+			className={styles.topLeftMainMenuTrigger}
+			onClick={handleClick}
+			title="Code editor"
+			data-testid="tla-code-editor-button"
+			style={{ opacity: isOpen ? 1 : 0.62 }}
+		>
+			<span
+				style={{
+					position: 'relative',
+					zIndex: 1,
+					fontSize: 11,
+					fontWeight: 700,
+					fontFamily: 'monospace',
+					letterSpacing: '-0.5px',
+				}}
+			>
+				{'</>'}
+			</span>
+		</button>
 	)
 }

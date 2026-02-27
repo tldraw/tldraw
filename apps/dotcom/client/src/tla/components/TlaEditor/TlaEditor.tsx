@@ -1,6 +1,6 @@
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -38,6 +38,7 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
+import { isCodeEditorOpenAtom } from '../TlaCodeEditorDialog/code-editor-state'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
@@ -262,8 +263,32 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
+				<CodeEditorPanelHost />
 			</Tldraw>
 		</TlaEditorWrapper>
+	)
+}
+
+const LazyCodeEditorPanel = lazy(() =>
+	import('../TlaCodeEditorDialog/TlaCodeEditorDialog').then((m) => ({
+		default: m.TlaCodeEditorPanel,
+	}))
+)
+
+function CodeEditorPanelHost() {
+	const isOpen = useValue('code-editor-open', () => isCodeEditorOpenAtom.get(), [])
+	const [mounted, setMounted] = useState(false)
+
+	useEffect(() => {
+		if (isOpen) setMounted(true)
+	}, [isOpen])
+
+	if (!mounted) return null
+
+	return (
+		<Suspense fallback={null}>
+			<LazyCodeEditorPanel />
+		</Suspense>
 	)
 }
 
