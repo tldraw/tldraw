@@ -8,10 +8,19 @@ status: published
 last_version: v4.4.0
 ---
 
-This release adds an experimental `onDropOnCanvas` option and includes several bug fixes for cropping, pasting, and sync message handling.
+This release adds click-through on transparent image pixels, replaces TypeScript enums with const objects for strip-types compatibility, adds SVG sanitization for pasted content, and includes several bug fixes.
+
+## What's new
+
+### Click through transparent image pixels
+
+Clicking on transparent parts of PNG, WebP, GIF, and AVIF images now passes through to shapes behind the image instead of selecting the image itself. This works with cropped, flipped, and circle-cropped images.
+
+Under the hood, this adds a new `Geometry2d.ignoreHit(point)` method that allows geometries to reject successful hit tests. Image shapes use this to check the alpha channel at the click point, skipping transparent pixels. ([#7942](https://github.com/tldraw/tldraw/pull/7942))
 
 ## API changes
 
+- Replace all TypeScript enums with `const` object + type alias pattern for compatibility with Node's built-in TypeScript support (strip-types). Public enums affected: `MigrationFailureReason` and `PORTRAIT_BREAKPOINT`. Runtime values are identical — property access like `MigrationFailureReason.MigrationError` works unchanged — but TypeScript types change from enum members to string unions. ([#8084](https://github.com/tldraw/tldraw/pull/8084))
 - Add experimental `experimental__onDropOnCanvas` option to intercept canvas drop events. Return `true` from the callback to prevent the editor's default drop behavior. ([#7911](https://github.com/tldraw/tldraw/pull/7911))
 
   ```tsx
@@ -25,10 +34,23 @@ This release adds an experimental `onDropOnCanvas` option and includes several b
   />
   ```
 
+## Improvements
+
+- Add SVG sanitization on paste and file drop to prevent XSS and data exfiltration. Uses an allowlist-based sanitizer that blocks attack vectors while preserving tldraw's own SVG output (text, fonts, foreignObject). Also exports `sanitizeSvg(svgText: string)` for SDK users building custom paste handlers. ([#7896](https://github.com/tldraw/tldraw/pull/7896))
+- Fix rich text link editor and alt text editor to save the current value when clicking outside instead of discarding changes. ([#8037](https://github.com/tldraw/tldraw/pull/8037))
+
 ## Bug fixes
 
+- Fix "Download original" not triggering a download for cross-origin assets. ([#8090](https://github.com/tldraw/tldraw/pull/8090))
+- Fix a crash when resizing draw or highlight shapes to zero width or height. ([#8067](https://github.com/tldraw/tldraw/pull/8067))
+- Fix rich text toolbar staying open when the editing shape is deleted by another user. ([#8050](https://github.com/tldraw/tldraw/pull/8050))
+- Fix dynamic-size shapes losing shadows and dashes too early when zoomed out. ([#8040](https://github.com/tldraw/tldraw/pull/8040))
+- Fix `TldrawSelectionForeground` crashing when used without `TldrawUiContextProvider`. ([#8011](https://github.com/tldraw/tldraw/pull/8011))
 - Fix shapes pasted with Ctrl+V not being parented to a frame when they land inside one. ([#7938](https://github.com/tldraw/tldraw/pull/7938))
+- Fix circular dependencies across `@tldraw/state`, `@tldraw/editor`, and `@tldraw/tldraw` packages to improve compatibility with Jest mocking and tree-shaking. ([#7935](https://github.com/tldraw/tldraw/pull/7935))
+- Fix sticky notes having a hard shadow instead of a soft drop shadow when exported as SVG. ([#7934](https://github.com/tldraw/tldraw/pull/7934))
+- Fix arrow endpoints terminating at invisible clipped shape boundaries instead of at the frame edge. ([#7932](https://github.com/tldraw/tldraw/pull/7932))
 - Fix a crash when cropping custom shapes that don't include `isCircle` in their crop schema. ([#7931](https://github.com/tldraw/tldraw/pull/7931))
 - Fix a crash when loading session state without a `currentPageId` (e.g. when using deep links). ([#7994](https://github.com/tldraw/tldraw/pull/7994))
 - Fix U+2028/U+2029 line separators breaking chunked sync messages. ([#7918](https://github.com/tldraw/tldraw/pull/7918))
-- Fix circular dependencies across `@tldraw/state`, `@tldraw/editor`, and `@tldraw/tldraw` packages to improve compatibility with Jest mocking and tree-shaking. ([#7935](https://github.com/tldraw/tldraw/pull/7935))
+- Fix draw shapes rendering incorrectly on tablets that report zero pen pressure. ([#5693](https://github.com/tldraw/tldraw/pull/5693))
