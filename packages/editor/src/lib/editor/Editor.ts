@@ -5409,10 +5409,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Are we close to the shape's edge?
 				if (distance <= outerMargin || (hitInside && distance <= 0 && distance > -innerMargin)) {
 					if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
-						// If the shape is filled, then it's a hit. Remember, we're
-						// starting from the TOP-MOST shape in z-index order, so any
-						// other hits would be occluded by the shape.
-						return inMarginClosestToEdgeHit || shape
+						if (distance <= 0) {
+							return inMarginClosestToEdgeHit || shape
+						}
+						// Point is outside the filled shape but within margin — skip (no margin bleed)
 					} else {
 						// If the shape is bigger than the viewport, then skip it.
 						if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) continue
