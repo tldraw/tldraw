@@ -3,12 +3,14 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { createTarDecoder } from 'modern-tar'
 import type { PierreMeta } from '../TLDrawDurableObject'
 
+/** Actual format from Pierre: listFiles and getArchiveStream use repo-root paths with no prefix. */
 function isMetaJson(name: string) {
-	return name === 'meta.json' || name.endsWith('/meta.json')
+	return name === 'meta.json'
 }
 
+/** Record files are exactly records/<id>.json; tar also includes a "records/" directory entry (excluded here). */
 function isRecordFile(name: string) {
-	return (name.includes('/records/') || name.startsWith('records/')) && name.endsWith('.json')
+	return /^records\/[^/]+\.json$/.test(name)
 }
 
 /**
