@@ -16,6 +16,8 @@ interface CollaboratorIndicatorData {
 
 interface RenderData {
 	idsToDisplay: Set<TLShapeId>
+	hoveredOnlyId: TLShapeId | null
+	isBrushing: boolean
 	renderingShapeIds: Set<TLShapeId>
 	hintingShapeIds: TLShapeId[]
 	collaboratorIndicators: CollaboratorIndicatorData[]
@@ -51,6 +53,8 @@ function collaboratorIndicatorsEqual(
 
 function renderDataEqual(a: RenderData, b: RenderData): boolean {
 	return (
+		a.hoveredOnlyId === b.hoveredOnlyId &&
+		a.isBrushing === b.isBrushing &&
 		setsEqual(a.idsToDisplay, b.idsToDisplay) &&
 		setsEqual(a.renderingShapeIds, b.renderingShapeIds) &&
 		arraysEqual(a.hintingShapeIds, b.hintingShapeIds) &&
@@ -154,21 +158,26 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 			const instanceState = editor.getInstanceState()
 			const isChangingStyle = instanceState.isChangingStyle
 			const isIdleOrEditing = editor.isInAny('select.idle', 'select.editing_shape')
-			const isInSelectState = editor.isInAny(
-				'select.brushing',
-				'select.scribble_brushing',
-				'select.pointing_shape',
-				'select.pointing_selection',
-				'select.pointing_handle'
-			)
+			const isBrushing = editor.isInAny('select.brushing', 'select.scribble_brushing')
+			const isInSelectState =
+				isBrushing ||
+				editor.isInAny(
+					'select.pointing_shape',
+					'select.pointing_selection',
+					'select.pointing_handle'
+				)
 
+			let hoveredOnlyId: TLShapeId | null = null
 			if (!isChangingStyle && (isIdleOrEditing || isInSelectState)) {
 				for (const id of editor.getSelectedShapeIds()) {
 					idsToDisplay.add(id)
 				}
 				if (isIdleOrEditing && instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
 					const hovered = editor.getHoveredShapeId()
-					if (hovered) idsToDisplay.add(hovered)
+					if (hovered) {
+						if (!idsToDisplay.has(hovered)) hoveredOnlyId = hovered
+						idsToDisplay.add(hovered)
+					}
 				}
 			}
 
@@ -201,6 +210,8 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 
 			return {
 				idsToDisplay,
+				hoveredOnlyId,
+				isBrushing,
 				renderingShapeIds,
 				hintingShapeIds,
 				collaboratorIndicators,
@@ -219,7 +230,7 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 			const ctx = canvas.getContext('2d')
 			if (!ctx) return
 
-			const { idsToDisplay, renderingShapeIds, hintingShapeIds, collaboratorIndicators } =
+			const { idsToDisplay, hoveredOnlyId, isBrushing, renderingShapeIds, hintingShapeIds, collaboratorIndicators } =
 				$renderData.get()
 
 			const { w, h } = editor.getViewportScreenBounds()
@@ -269,9 +280,16 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 
 			// Draw selected/hovered indicators (1.5px stroke)
 			ctx.lineWidth = 1.5 / zoom
+			ctx.globalAlpha = isBrushing ? 0.6 : 1.0
 			for (const shapeId of idsToDisplay) {
+				if (shapeId === hoveredOnlyId) continue
 				renderShapeIndicator(ctx, editor, shapeId, renderingShapeIds)
 			}
+			if (hoveredOnlyId) {
+				ctx.globalAlpha = 0.6
+				renderShapeIndicator(ctx, editor, hoveredOnlyId, renderingShapeIds)
+			}
+			ctx.globalAlpha = 1.0
 
 			// Draw hinted indicators with a thicker stroke (2.5px)
 			if (hintingShapeIds.length > 0) {

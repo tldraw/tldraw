@@ -1,4 +1,4 @@
-import { StateNode, TLPointerEventInfo, TLShape } from '@tldraw/editor'
+import { Group2d, StateNode, TLPointerEventInfo, TLShape } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getTextLabels } from '../../../utils/shapes/shapes'
 
@@ -11,6 +11,7 @@ export class PointingShape extends StateNode {
 
 	didCtrlOnEnter = false
 	didSelectOnEnter = false
+	didHitGridLabel = false
 
 	override onEnter(info: TLPointerEventInfo & { target: 'shape' }) {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
@@ -22,6 +23,19 @@ export class PointingShape extends StateNode {
 		this.hitShape = info.shape
 		this.isDoubleClick = false
 		this.didCtrlOnEnter = accelKey
+		this.didHitGridLabel = false
+		if ((info.shape as any).type === 'grid') {
+			const geometry = this.editor.getShapeGeometry(info.shape)
+			if (geometry instanceof Group2d) {
+				const pointInShapeSpace = this.editor.getPointInShapeSpace(info.shape, currentPagePoint)
+				for (const child of geometry.children) {
+					if (child.isLabel && child.isPointInBounds(pointInShapeSpace)) {
+						this.didHitGridLabel = true
+						break
+					}
+				}
+			}
+		}
 		const outermostSelectingShape = this.editor.getOutermostSelectableShape(info.shape)
 		const selectedAncestor = this.editor.findShapeAncestor(outermostSelectingShape, (parent) =>
 			selectedShapeIds.includes(parent.id)
@@ -217,6 +231,9 @@ export class PointingShape extends StateNode {
 
 			if (this.didCtrlOnEnter) {
 				this.parent.transition('brushing', info)
+			} else if (this.didSelectOnEnter && (this.hitShape as any).type === 'grid' && !this.didHitGridLabel) {
+				this.editor.setSelectedShapes([])
+				this.parent.transition('brushing', { ...info, target: 'canvas' as const })
 			} else {
 				this.startTranslating(info)
 			}

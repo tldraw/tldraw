@@ -194,7 +194,7 @@ export class Brushing extends StateNode {
 
 			// If we're in wrap mode and the brush did not fully encloses the shape, it's a miss
 			// We also skip frames unless we've completely selected the frame.
-			if (isWrapping || editor.isShapeOfType(shape, 'frame')) {
+			if (isWrapping || editor.isShapeOfType(shape, 'frame') || (shape as any).type === 'grid') {
 				continue testAllShapes
 			}
 
@@ -215,6 +215,25 @@ export class Brushing extends StateNode {
 						this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
 						break hitTestBrushEdges
 					}
+				}
+			}
+		}
+
+		// When a grid frame is fully enclosed by the brush, remove all its descendants
+		// from the selection. Process deepest-nested frames first.
+		const enclosedGrids: TLShape[] = []
+		for (const id of results) {
+			const s = editor.getShape(id)
+			if (s && (s as any).type === 'grid') enclosedGrids.push(s)
+		}
+		if (enclosedGrids.length > 0) {
+			enclosedGrids.sort(
+				(a, b) => editor.getShapeAncestors(b).length - editor.getShapeAncestors(a).length
+			)
+			for (const grid of enclosedGrids) {
+				const descendantIds = editor.getShapeAndDescendantIds([grid.id])
+				for (const descId of descendantIds) {
+					if (descId !== grid.id) results.delete(descId)
 				}
 			}
 		}

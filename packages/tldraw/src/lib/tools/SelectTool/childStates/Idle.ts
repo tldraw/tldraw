@@ -6,6 +6,7 @@ import {
 	TLKeyboardEventInfo,
 	TLPointerEventInfo,
 	TLShape,
+	TLShapeId,
 	Vec,
 	VecLike,
 	createShapeId,
@@ -519,21 +520,45 @@ export class Idle extends StateNode {
 	override onKeyUp(info: TLKeyboardEventInfo) {
 		switch (info.key) {
 			case 'Enter': {
-				// Because Enter onKeyDown can happen outside the canvas (but then focus the canvas potentially),
-				// we need to check if the canvas was initially selecting something before continuing.
 				if (!this.selectedShapesOnKeyDown.length) return
 
 				const selectedShapes = this.editor.getSelectedShapes()
 
-				// On enter, if every selected shape is a group, then select all of the children of the groups
-				if (selectedShapes.every((shape) => this.editor.isShapeOfType(shape, 'group'))) {
+				if (info.shiftKey) {
+					// Shift+Enter: scope out — select the parent grid/group of the current selection
+					const parentIds = new Set<TLShapeId>()
+					for (const shape of selectedShapes) {
+						const parent = this.editor.getShape(shape.parentId)
+						if (
+							parent &&
+							((parent as any).type === 'grid' || (parent as any).type === 'group')
+						)
+							parentIds.add(parent.id)
+					}
+					if (parentIds.size > 0) {
+						this.editor.setSelectedShapes(Array.from(parentIds))
+					}
+					return
+				}
+
+				// Enter: scope in — expand any grid/group shapes to their children, keep leaf shapes
+				if (
+					selectedShapes.some(
+						(shape) =>
+							this.editor.isShapeOfType(shape, 'group') || (shape as any).type === 'grid'
+					)
+				) {
 					this.editor.setSelectedShapes(
-						selectedShapes.flatMap((shape) => this.editor.getSortedChildIdsForParent(shape.id))
+						selectedShapes.flatMap((shape) =>
+							this.editor.isShapeOfType(shape, 'group') ||
+							(shape as any).type === 'grid'
+								? this.editor.getSortedChildIdsForParent(shape.id)
+								: [shape.id]
+						)
 					)
 					return
 				}
 
-				// If the only selected shape is editable, then begin editing it
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				if (
 					onlySelectedShape &&
@@ -551,7 +576,6 @@ export class Idle extends StateNode {
 					return
 				}
 
-				// If the only selected shape is croppable, then begin cropping it
 				if (this.editor.canCropShape(onlySelectedShape)) {
 					this.parent.transition('crop', info)
 				}

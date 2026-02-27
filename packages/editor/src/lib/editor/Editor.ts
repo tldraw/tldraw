@@ -5343,10 +5343,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the hit is within the frame's outer margin, then select the frame
 				const distance = geometry.distanceToPoint(pointInShapeSpace, hitFrameInside)
 				if (
-					hitFrameInside
+					(shape as any).type !== 'grid' &&
+					(hitFrameInside
 						? (distance > 0 && distance <= outerMargin) ||
 							(distance <= 0 && distance > -innerMargin)
-						: distance > 0 && distance <= outerMargin
+						: distance > 0 && distance <= outerMargin)
 				) {
 					return inMarginClosestToEdgeHit || shape
 				}
@@ -5361,7 +5362,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return (
 						inMarginClosestToEdgeHit ||
 						inHollowSmallestAreaHit ||
-						(hitFrameInside ? shape : undefined)
+						(hitFrameInside || (shape as any).type === 'grid' ? shape : undefined)
 					)
 				}
 				continue
