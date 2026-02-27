@@ -370,6 +370,8 @@ export interface ArrowShapeUtilDisplayValues {
     // (undocumented)
     labelPadding: number;
     // (undocumented)
+    patternFillFallbackColor: string;
+    // (undocumented)
     strokeColor: string;
     // (undocumented)
     strokeWidth: number;
@@ -523,8 +525,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 }
 
 // @public (undocumented)
-export interface BookmarkShapeUtilDisplayValues {
-}
+export type BookmarkShapeUtilDisplayValues = object;
 
 // @public (undocumented)
 export interface BookmarkShapeUtilOptions extends DisplayValuesOptions<TLBookmarkShape, BookmarkShapeUtilDisplayValues> {
@@ -1261,6 +1262,8 @@ export interface DrawShapeUtilDisplayValues {
     // (undocumented)
     fillColor: string;
     // (undocumented)
+    patternFillFallbackColor: string;
+    // (undocumented)
     strokeColor: string;
     // (undocumented)
     strokeWidth: number;
@@ -1909,6 +1912,8 @@ export interface GeoShapeUtilDisplayValues {
     labelVerticalAlign: 'center' | 'end' | 'start';
     // (undocumented)
     minSizeWithLabel: number;
+    // (undocumented)
+    patternFillFallbackColor: string;
     // (undocumented)
     strokeColor: string;
     // (undocumented)

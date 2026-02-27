@@ -14,6 +14,7 @@ export interface ArrowShapeUtilDisplayValues {
 	strokeColor: string
 	strokeWidth: number
 	fillColor: string
+	patternFillFallbackColor: string
 	labelColor: string
 	labelFontFamily: string
 	labelFontSize: number

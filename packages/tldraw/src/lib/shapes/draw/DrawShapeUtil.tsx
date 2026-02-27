@@ -6,7 +6,6 @@ import {
 	SVGContainer,
 	ShapeUtil,
 	SvgExportContext,
-	TLDefaultFillStyle,
 	TLDrawShape,
 	TLDrawShapeProps,
 	TLResizeInfo,
@@ -21,17 +20,13 @@ import {
 	rng,
 	useEditor,
 	useIsDarkMode,
-	useSvgExportContext,
 	useValue,
 } from '@tldraw/editor'
 
+import { PatternFill } from '../shared/PatternFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
-import {
-	getFillDefForCanvas,
-	getFillDefForExport,
-	useGetHashPatternZoomName,
-} from '../shared/defaultStyleDefs'
+import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
@@ -48,6 +43,7 @@ export interface DrawShapeUtilDisplayValues {
 	strokeColor: string
 	strokeWidth: number
 	fillColor: string
+	patternFillFallbackColor: string
 }
 
 /** @public */
@@ -80,6 +76,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 						: fill === 'semi'
 							? theme.solid
 							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
 			}
 		},
 		getDisplayValueOverrides(): Partial<DrawShapeUtilDisplayValues> {
@@ -179,6 +176,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 					strokeColor={dv.strokeColor}
 					strokeWidth={dv.strokeWidth}
 					fillColor={dv.fillColor}
+					patternFillFallbackColor={dv.patternFillFallbackColor}
 				/>
 			</SVGContainer>
 		)
@@ -271,6 +269,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 					strokeColor={dv.strokeColor}
 					strokeWidth={dv.strokeWidth}
 					fillColor={dv.fillColor}
+					patternFillFallbackColor={dv.patternFillFallbackColor}
 				/>
 			</g>
 		)
@@ -331,12 +330,14 @@ function DrawShapeSvg({
 	strokeColor,
 	strokeWidth: baseStrokeWidth,
 	fillColor,
+	patternFillFallbackColor,
 }: {
 	shape: TLDrawShape
 	zoomOverride?: number
 	strokeColor: string
 	strokeWidth: number
 	fillColor: string
+	patternFillFallbackColor: string
 }) {
 	const editor = useEditor()
 
@@ -383,16 +384,27 @@ function DrawShapeSvg({
 	if (!forceSolid && shape.props.dash === 'draw') {
 		return (
 			<>
-				{shape.props.isClosed && shape.props.fill && allPointsFromSegments.length > 1 ? (
-					<DrawFill
-						d={getSvgPathFromStrokePoints(
-							getStrokePoints(allPointsFromSegments, options),
-							shape.props.isClosed
-						)}
-						fill={shape.props.isClosed ? shape.props.fill : 'none'}
-						fillColor={fillColor}
-					/>
-				) : null}
+				{shape.props.isClosed &&
+					shape.props.fill !== 'none' &&
+					allPointsFromSegments.length > 1 &&
+					(shape.props.fill === 'pattern' ? (
+						<PatternFill
+							d={getSvgPathFromStrokePoints(
+								getStrokePoints(allPointsFromSegments, options),
+								shape.props.isClosed
+							)}
+							fillColor={fillColor}
+							patternFillFallbackColor={patternFillFallbackColor}
+						/>
+					) : (
+						<path
+							fill={fillColor}
+							d={getSvgPathFromStrokePoints(
+								getStrokePoints(allPointsFromSegments, options),
+								shape.props.isClosed
+							)}
+						/>
+					))}
 				<path d={svgInk(allPointsFromSegments, options)} strokeLinecap="round" fill={strokeColor} />
 			</>
 		)
@@ -404,13 +416,19 @@ function DrawShapeSvg({
 		? getDot(allPointsFromSegments[0], 0)
 		: getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
 
+	const fill = isDot || shape.props.isClosed ? shape.props.fill : 'none'
+
 	return (
 		<>
-			<DrawFill
-				d={solidStrokePath}
-				fill={isDot || shape.props.isClosed ? shape.props.fill : 'none'}
-				fillColor={fillColor}
-			/>
+			{isDot || !shape.props.isClosed || fill === 'none' ? null : fill === 'pattern' ? (
+				<PatternFill
+					d={solidStrokePath}
+					fillColor={fillColor}
+					patternFillFallbackColor={patternFillFallbackColor}
+				/>
+			) : (
+				<path fill={shape.props.fill} d={solidStrokePath} />
+			)}
 			<path
 				d={solidStrokePath}
 				strokeLinecap="round"
@@ -419,47 +437,6 @@ function DrawShapeSvg({
 				strokeWidth={sw}
 				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, dotAdjustment)}
 				strokeDashoffset="0"
-			/>
-		</>
-	)
-}
-
-function DrawFill({
-	d,
-	fill,
-	fillColor,
-}: {
-	d: string
-	fill: TLDefaultFillStyle
-	fillColor: string
-}) {
-	if (fill === 'none') return null
-	if (fill === 'pattern') return <DrawPatternFill d={d} fillColor={fillColor} />
-	return <path fill={fillColor} d={d} />
-}
-
-function DrawPatternFill({ d, fillColor }: { d: string; fillColor: string }) {
-	const editor = useEditor()
-	const svgExport = useSvgExportContext()
-	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
-	const isDarkMode = useIsDarkMode()
-	const getHashPatternZoomName = useGetHashPatternZoomName()
-
-	const themeId = isDarkMode ? 'dark' : 'light'
-	const teenyTiny = zoomLevel <= 0.18
-
-	return (
-		<>
-			<path fill={fillColor} d={d} />
-			<path
-				fill={
-					svgExport
-						? `url(#${getHashPatternZoomName(1, themeId)})`
-						: teenyTiny
-							? fillColor
-							: `url(#${getHashPatternZoomName(zoomLevel, themeId)})`
-				}
-				d={d}
 			/>
 		</>
 	)

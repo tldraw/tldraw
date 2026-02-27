@@ -46,7 +46,7 @@ import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyle
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
-import { GeoShapeBody } from './components/GeoShapeBody'
+import { GeoShapeBody } from './GeoShapeBody'
 import { getGeoShapePath } from './getGeoShapePath'
 
 // imperfect but good enough, should be the width of the W in the font / size combo
@@ -87,6 +87,7 @@ export interface GeoShapeUtilDisplayValues {
 	strokeRoundness: number
 	strokeWidth: number
 	fillColor: string
+	patternFillFallbackColor: string
 	labelColor: string
 	labelFontFamily: string
 	labelFontSize: number
@@ -131,6 +132,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						: fill === 'semi'
 							? theme.solid
 							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
 				labelColor: theme[labelColor]['solid'], // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: LABEL_FONT_SIZES[size],
@@ -337,6 +339,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						strokeColor={dv.strokeColor}
 						strokeWidth={dv.strokeWidth}
 						fillColor={dv.fillColor}
+						patternFillFallbackColor={dv.patternFillFallbackColor}
 					/>
 				</SVGContainer>
 				{showHtmlContainer && (
@@ -459,6 +462,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					strokeColor={dv.strokeColor}
 					strokeWidth={dv.strokeWidth}
 					fillColor={dv.fillColor}
+					patternFillFallbackColor={dv.patternFillFallbackColor}
 				/>
 				{textEl}
 			</>

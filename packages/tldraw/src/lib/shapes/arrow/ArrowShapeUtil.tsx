@@ -17,7 +17,6 @@ import {
 	TLArrowBindingProps,
 	TLArrowShape,
 	TLArrowShapeProps,
-	TLDefaultFillStyle,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
@@ -47,13 +46,13 @@ import {
 	useIsDarkMode,
 	useIsEditing,
 	useSharedSafeId,
-	useSvgExportContext,
 	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
 import { PathBuilder } from '../shared/PathBuilder'
+import { PatternFill } from '../shared/PatternFill'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import {
 	ARROW_LABEL_FONT_SIZES,
@@ -63,11 +62,7 @@ import {
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
-import {
-	getFillDefForCanvas,
-	getFillDefForExport,
-	useGetHashPatternZoomName,
-} from '../shared/defaultStyleDefs'
+import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getDisplayValues } from '../shared/getDisplayValues'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { getArrowBodyPath, getArrowBodyPathBuilder, getArrowHandlePath } from './ArrowPath'
@@ -146,6 +141,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						: fill === 'semi'
 							? theme.solid
 							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
 				labelColor: getColorValue(theme, labelColor, 'solid'),
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: ARROW_LABEL_FONT_SIZES[size],
@@ -822,6 +818,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						strokeColor={dv.strokeColor}
 						strokeWidth={dv.strokeWidth}
 						fillColor={dv.fillColor}
+						patternFillFallbackColor={dv.patternFillFallbackColor}
 						labelBorderRadius={dv.labelBorderRadius}
 					/>
 					{shape.props.kind === 'elbow' && debugFlags.debugElbowArrows.get() && (
@@ -1122,6 +1119,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					strokeColor={dv.strokeColor}
 					strokeWidth={dv.strokeWidth}
 					fillColor={dv.fillColor}
+					patternFillFallbackColor={dv.patternFillFallbackColor}
 					labelBorderRadius={dv.labelBorderRadius}
 				/>
 				<RichTextSVG
@@ -1193,6 +1191,7 @@ const ArrowSvg = track(function ArrowSvg({
 	strokeColor,
 	strokeWidth: baseStrokeWidth,
 	fillColor,
+	patternFillFallbackColor,
 	labelBorderRadius = 3.5,
 }: {
 	shape: TLArrowShape
@@ -1200,6 +1199,7 @@ const ArrowSvg = track(function ArrowSvg({
 	strokeColor: string
 	strokeWidth: number
 	fillColor: string
+	patternFillFallbackColor: string
 	labelBorderRadius?: number
 }) {
 	const editor = useEditor()
@@ -1301,12 +1301,30 @@ const ArrowSvg = track(function ArrowSvg({
 						randomSeed: shape.id,
 					})}
 				</g>
-				{as && clipStartArrowhead && shape.props.fill !== 'none' && (
-					<ArrowFill d={as} fill={shape.props.fill} fillColor={fillColor} />
-				)}
-				{ae && clipEndArrowhead && shape.props.fill !== 'none' && (
-					<ArrowFill d={ae} fill={shape.props.fill} fillColor={fillColor} />
-				)}
+				{as &&
+					clipStartArrowhead &&
+					shape.props.fill !== 'none' &&
+					(shape.props.fill === 'pattern' ? (
+						<PatternFill
+							d={as}
+							fillColor={fillColor}
+							patternFillFallbackColor={patternFillFallbackColor}
+						/>
+					) : (
+						<path fill={fillColor} d={as} />
+					))}
+				{ae &&
+					clipEndArrowhead &&
+					shape.props.fill !== 'none' &&
+					(shape.props.fill === 'pattern' ? (
+						<PatternFill
+							d={ae}
+							fillColor={fillColor}
+							patternFillFallbackColor={patternFillFallbackColor}
+						/>
+					) : (
+						<path fill={fillColor} d={ae} />
+					))}
 				{as && <path d={as} />}
 				{ae && <path d={ae} />}
 			</g>
@@ -1407,47 +1425,6 @@ function ArrowheadCrossDef() {
 			<line x1="1.5" y1="1.5" x2="4.5" y2="4.5" strokeDasharray="100%" />
 			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
 		</marker>
-	)
-}
-
-function ArrowFill({
-	d,
-	fill,
-	fillColor,
-}: {
-	d: string
-	fill: TLDefaultFillStyle
-	fillColor: string
-}) {
-	if (fill === 'none') return null
-	if (fill === 'pattern') return <ArrowPatternFill d={d} fillColor={fillColor} />
-	return <path fill={fillColor} d={d} />
-}
-
-function ArrowPatternFill({ d, fillColor }: { d: string; fillColor: string }) {
-	const editor = useEditor()
-	const svgExport = useSvgExportContext()
-	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
-	const isDarkMode = useIsDarkMode()
-	const getHashPatternZoomName = useGetHashPatternZoomName()
-
-	const themeId = isDarkMode ? 'dark' : 'light'
-	const teenyTiny = zoomLevel <= 0.18
-
-	return (
-		<>
-			<path fill={fillColor} d={d} />
-			<path
-				fill={
-					svgExport
-						? `url(#${getHashPatternZoomName(1, themeId)})`
-						: teenyTiny
-							? fillColor
-							: `url(#${getHashPatternZoomName(zoomLevel, themeId)})`
-				}
-				d={d}
-			/>
-		</>
 	)
 }
 
