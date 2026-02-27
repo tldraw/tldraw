@@ -1,7 +1,7 @@
 import { nicelog } from '@/utils/nicelog'
 import { connect } from './connect'
 
-interface BrokenLink {
+export interface BrokenLink {
 	articlePath: string
 	line: number
 	url: string
@@ -38,7 +38,7 @@ const INTERNAL_REWRITES: Record<string, string> = {
  * Strip fenced code blocks from markdown, replacing them with blank lines
  * to preserve line numbering for error reporting.
  */
-function stripCodeBlocks(content: string): string {
+export function stripCodeBlocks(content: string): string {
 	return content.replace(/^(`{3,})[^\n]*\n[\s\S]*?^\1\s*$/gm, (match) => {
 		// Replace with same number of newlines to preserve line count
 		return '\n'.repeat((match.match(/\n/g) || []).length)
@@ -50,10 +50,10 @@ const STATIC_ASSET_EXTENSIONS =
 	/\.(png|jpe?g|gif|svg|webp|ico|pdf|mp4|webm|mp3|woff2?|ttf|eot|css|js|json|xml|txt|zip|tar|gz)$/i
 
 /**
- * Extract internal links from markdown/MDX content.
- * Returns array of { url, line } for each internal link found.
+ * Extract all links from markdown/MDX content.
+ * Returns array of { url, line } for every link found (internal and external).
  */
-function extractInternalLinks(content: string): Array<{ url: string; line: number }> {
+export function extractLinks(content: string): Array<{ url: string; line: number }> {
 	const stripped = stripCodeBlocks(content)
 	const lines = stripped.split('\n')
 	const links: Array<{ url: string; line: number }> = []
@@ -62,20 +62,19 @@ function extractInternalLinks(content: string): Array<{ url: string; line: numbe
 		const line = lines[i]
 		const lineNum = i + 1
 
-		// Standard markdown links: [text](/path) or [text](/path#anchor)
-		const mdLinkRegex = /\[[^\]]*\]\((\/?[^)]*)\)/g
+		// Standard markdown links: [text](url)
+		const mdLinkRegex = /\[[^\]]*\]\(([^)]*)\)/g
 		let match
 		while ((match = mdLinkRegex.exec(line)) !== null) {
-			const url = match[1]
-			if (url.startsWith('/')) {
-				links.push({ url, line: lineNum })
-			}
+			const url = match[1].trim()
+			if (url) links.push({ url, line: lineNum })
 		}
 
-		// JSX href attributes: href="/path"
-		const hrefRegex = /href="(\/[^"]*)"/g
+		// JSX href attributes: href="url"
+		const hrefRegex = /href="([^"]*)"/g
 		while ((match = hrefRegex.exec(line)) !== null) {
-			links.push({ url: match[1], line: lineNum })
+			const url = match[1].trim()
+			if (url) links.push({ url, line: lineNum })
 		}
 
 		// CodeLinks JSON values: <CodeLinks links={{"Name":"/path"}}>
@@ -84,7 +83,7 @@ function extractInternalLinks(content: string): Array<{ url: string; line: numbe
 			try {
 				const json = JSON.parse(`{${match[1]}}`)
 				for (const value of Object.values(json)) {
-					if (typeof value === 'string' && value.startsWith('/')) {
+					if (typeof value === 'string' && value) {
 						links.push({ url: value, line: lineNum })
 					}
 				}
@@ -95,6 +94,14 @@ function extractInternalLinks(content: string): Array<{ url: string; line: numbe
 	}
 
 	return links
+}
+
+/**
+ * Extract internal links from markdown/MDX content.
+ * Returns array of { url, line } for each internal link found.
+ */
+function extractInternalLinks(content: string): Array<{ url: string; line: number }> {
+	return extractLinks(content).filter(({ url }) => url.startsWith('/'))
 }
 
 /**
