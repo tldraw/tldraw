@@ -1197,11 +1197,17 @@ export class TLDrawDurableObject extends DurableObject {
 					commitBuilder.addFileFromString(`records/${id}.json`, JSON.stringify(state))
 				}
 
-				for (const id of diff.deletes) {
-					commitBuilder.deletePath(`records/${id}.json`)
+				// Only apply diff.deletes when we have a parent commit and we're not in wipeAll.
+				// - Empty repo (no headSha): those paths don't exist in Pierre; deletePath would fail.
+				// - wipeAll with existing repo: the cleanup loop below already deletes any file not in
+				//   putIds, so applying diff.deletes here would duplicate deletePath for the same file.
+				if (headSha && !changes.wipeAll) {
+					for (const id of diff.deletes) {
+						commitBuilder.deletePath(`records/${id}.json`)
+					}
 				}
 
-				// On wipeAll, pruned tombstones won't appear in diff.deletes,
+				// On wipeAll with an existing repo, pruned tombstones may not appear in diff.deletes,
 				// so scan Pierre for stale record files and remove them.
 				if (changes.wipeAll && headSha) {
 					const putIds = new Set(Object.keys(diff.puts))
