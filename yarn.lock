@@ -4659,7 +4659,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@modelcontextprotocol/sdk@npm:^1.12.0, @modelcontextprotocol/sdk@npm:^1.24.0":
+"@modelcontextprotocol/sdk@npm:^1.24.0":
   version: 1.27.0
   resolution: "@modelcontextprotocol/sdk@npm:1.27.0"
   dependencies:
@@ -11692,18 +11692,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/express-serve-static-core@npm:^5.0.0":
-  version: 5.1.1
-  resolution: "@types/express-serve-static-core@npm:5.1.1"
-  dependencies:
-    "@types/node": "npm:*"
-    "@types/qs": "npm:*"
-    "@types/range-parser": "npm:*"
-    "@types/send": "npm:*"
-  checksum: 10/7f3d8cf7e68764c9f3e8f6a12825b69ccf5287347fc1c20b29803d4f08a4abc1153ae11d7258852c61aad50f62ef72d4c1b9c97092b0a90462c3dddec2f6026c
-  languageName: node
-  linkType: hard
-
 "@types/express@npm:^4.17.21":
   version: 4.17.23
   resolution: "@types/express@npm:4.17.23"
@@ -11713,17 +11701,6 @@ __metadata:
     "@types/qs": "npm:*"
     "@types/serve-static": "npm:*"
   checksum: 10/cf4d540bbd90801cdc79a46107b8873404698a7fd0c3e8dd42989d52d3bd7f5b8768672e54c20835e41e27349c319bb47a404ad14c0f8db0e9d055ba1cb8a05b
-  languageName: node
-  linkType: hard
-
-"@types/express@npm:^5.0.0":
-  version: 5.0.6
-  resolution: "@types/express@npm:5.0.6"
-  dependencies:
-    "@types/body-parser": "npm:*"
-    "@types/express-serve-static-core": "npm:^5.0.0"
-    "@types/serve-static": "npm:^2"
-  checksum: 10/da2cc3de1b1a4d7f20ed3fb6f0a8ee08e99feb3c2eb5a8d643db77017d8d0e70fee9e95da38a73f51bcdf5eda3bb6435073c0271dc04fb16fda92e55daf911fa
   languageName: node
   linkType: hard
 
@@ -12273,16 +12250,6 @@ __metadata:
     "@types/node": "npm:*"
     "@types/send": "npm:*"
   checksum: 10/c031f870df6056a4c0a5a0ae94c5584006ab55400c74ae44de4d68d89338fbe982422861bad478b89a073f671efca454689fd28b6147358d6adc8edbc599caea
-  languageName: node
-  linkType: hard
-
-"@types/serve-static@npm:^2":
-  version: 2.2.0
-  resolution: "@types/serve-static@npm:2.2.0"
-  dependencies:
-    "@types/http-errors": "npm:*"
-    "@types/node": "npm:*"
-  checksum: 10/f2bad1304c7d0d3b7221faff3e490c40129d3803f4fb1b2fb84f31f561071c5e6a4b876c41bbbe82d5645034eea936e946bcaaf993dac1093ce68b56effad6e0
   languageName: node
   linkType: hard
 
@@ -29721,29 +29688,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"tldraw-mcp@workspace:apps/tldraw-mcp":
-  version: 0.0.0-use.local
-  resolution: "tldraw-mcp@workspace:apps/tldraw-mcp"
-  dependencies:
-    "@modelcontextprotocol/ext-apps": "npm:^1.0.0"
-    "@modelcontextprotocol/sdk": "npm:^1.12.0"
-    "@types/express": "npm:^5.0.0"
-    "@types/node": "npm:^20.0.0"
-    "@types/react": "npm:^18.3.0"
-    "@types/react-dom": "npm:^18.3.0"
-    "@vitejs/plugin-react": "npm:^4.0.0"
-    express: "npm:^5.1.0"
-    react: "npm:^18.3.0"
-    react-dom: "npm:^18.3.0"
-    tldraw: "npm:^4.3.1"
-    tsx: "npm:^4.7.0"
-    typescript: "npm:^5.5.0"
-    vite: "npm:^6.0.0"
-    vite-plugin-singlefile: "npm:^2.0.0"
-    zod: "npm:^3.23.0"
-  languageName: unknown
-  linkType: soft
-
 "tldraw-nextjs-app-example@workspace:templates/nextjs":
   version: 0.0.0-use.local
   resolution: "tldraw-nextjs-app-example@workspace:templates/nextjs"
@@ -32584,13 +32528,6 @@ __metadata:
   version: 3.25.67
   resolution: "zod@npm:3.25.67"
   checksum: 10/0e35432dcca7f053e63f5dd491a87c78abe0d981817547252c3b6d05f0f58788695d1a69724759c6501dff3fd62929be24c9f314a3625179bee889150f7a61fa
-  languageName: node
-  linkType: hard
-
-"zod@npm:^3.23.0":
-  version: 3.25.76
-  resolution: "zod@npm:3.25.76"
-  checksum: 10/f0c963ec40cd96858451d1690404d603d36507c1fc9682f2dae59ab38b578687d542708a7fdbf645f77926f78c9ed558f57c3d3aa226c285f798df0c4da16995
   languageName: node
   linkType: hard
 
