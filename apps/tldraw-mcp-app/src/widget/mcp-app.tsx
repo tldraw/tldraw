@@ -1,5 +1,5 @@
 import { type App, useApp } from '@modelcontextprotocol/ext-apps/react'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
 	type TLAsset,
@@ -26,6 +26,11 @@ import { healJsonArrayString } from '../parse-json'
 
 const EDITOR_HEIGHT = 600
 const SAVE_DEBOUNCE_MS = 500
+
+const DisplayModeContext = createContext<{
+	displayMode: 'inline' | 'fullscreen'
+	toggleFullscreen: (() => void) | null
+}>({ displayMode: 'inline', toggleFullscreen: null })
 
 interface CanvasSnapshot {
 	shapes: TLShape[]
@@ -606,10 +611,20 @@ function exportTldr(editor: Editor) {
 	URL.revokeObjectURL(url)
 }
 
-function ExportTldrButton() {
+function SharePanelContent() {
 	const editor = useEditor()
+	const { displayMode, toggleFullscreen } = useContext(DisplayModeContext)
 	return (
-		<div className="tlui-share-zone" draggable={false}>
+		<div className="tlui-share-zone" draggable={false} style={{ display: 'flex', gap: 4 }}>
+			{toggleFullscreen && (
+				<button
+					className="tlui-button tlui-button__normal"
+					onClick={toggleFullscreen}
+					title={displayMode === 'fullscreen' ? 'Exit fullscreen' : 'Enter fullscreen'}
+				>
+					{displayMode === 'fullscreen' ? 'Exit fullscreen' : 'Fullscreen'}
+				</button>
+			)}
 			<button
 				className="tlui-button tlui-button__normal"
 				onClick={() => exportTldr(editor)}
@@ -622,7 +637,7 @@ function ExportTldrButton() {
 }
 
 const tldrawComponents: TLComponents = {
-	SharePanel: ExportTldrButton,
+	SharePanel: SharePanelContent,
 }
 
 function createR2AssetStore(app: App): TLAssetStore {
@@ -673,6 +688,7 @@ function createR2AssetStore(app: App): TLAssetStore {
 }
 
 function TldrawCanvas({ app }: { app: App }) {
+	const [displayMode, setDisplayMode] = useState<'inline' | 'fullscreen'>('inline')
 	const assetStore = useMemo(() => createR2AssetStore(app), [app])
 	const editorRef = useRef<Editor | null>(null)
 	const pendingSnapshotRef = useRef<CanvasSnapshot | null>(null)
@@ -684,6 +700,23 @@ function TldrawCanvas({ app }: { app: App }) {
 	const removeStoreListenerRef = useRef<(() => void) | null>(null)
 	const saveTimerRef = useRef<number | null>(null)
 	const requestShapeIdsRef = useRef<Set<TLShapeId>>(new Set())
+
+	const toggleFullscreen = useCallback(async () => {
+		const newMode = displayMode === 'fullscreen' ? 'inline' : 'fullscreen'
+		try {
+			const result = await app.requestDisplayMode({ mode: newMode })
+			const actualMode = result.mode === 'fullscreen' ? 'fullscreen' : 'inline'
+			setDisplayMode(actualMode)
+			log(`Display mode: ${actualMode}`)
+		} catch (err) {
+			log(`Display mode change failed: ${err instanceof Error ? err.message : err}`)
+		}
+	}, [app, displayMode])
+
+	const displayModeCtx = useMemo(
+		() => ({ displayMode, toggleFullscreen }),
+		[displayMode, toggleFullscreen]
+	)
 
 	const renderPreviewSnapshot = useCallback((previewSnapshot: CanvasSnapshot, summary: string) => {
 		previewActiveRef.current = true
@@ -844,6 +877,13 @@ function TldrawCanvas({ app }: { app: App }) {
 			log(`Pre-loaded ${latestSnapshot.shapes.length} shape(s) from latest checkpoint`)
 		}
 
+		app.onhostcontextchanged = (ctx) => {
+			log(`hostcontext: ${JSON.stringify(ctx)}`)
+			if (isRecord(ctx) && typeof ctx.displayMode === 'string') {
+				setDisplayMode(ctx.displayMode === 'fullscreen' ? 'fullscreen' : 'inline')
+			}
+		}
+
 		app.onteardown = async () => {
 			log('onteardown called')
 			return {}
@@ -991,14 +1031,22 @@ function TldrawCanvas({ app }: { app: App }) {
 	)
 
 	return (
-		<div style={{ width: '100%', height: EDITOR_HEIGHT, position: 'relative' }}>
-			<Tldraw
-				assets={assetStore}
-				licenseKey="tldraw-claude---chatgpt-mcp-app-2027-02-26/WyI5NFRNbWVmbiIsWyIqLmNsYXVkZW1jcGNvbnRlbnQuY29tIiwiKi53ZWItc2FuZGJveC5vYWl1c2VyY29udGVudC5jb20iXSwxNiwiMjAyNy0wMi0yNiJd.5dV7DhEo4Ms3gr9PJ8qCFrmRrgh0XNYaBMJe299DvEDiNAf8imZeCSAkpmFD2Vcuw6H2uXJfBQkda6zKdnnEdA"
-				onMount={handleMount}
-				components={tldrawComponents}
-			/>
-		</div>
+		<DisplayModeContext.Provider value={displayModeCtx}>
+			<div
+				style={{
+					width: '100%',
+					height: displayMode === 'fullscreen' ? '100vh' : EDITOR_HEIGHT,
+					position: 'relative',
+				}}
+			>
+				<Tldraw
+					assets={assetStore}
+					licenseKey="tldraw-claude---chatgpt-mcp-app-2027-02-26/WyI5NFRNbWVmbiIsWyIqLmNsYXVkZW1jcGNvbnRlbnQuY29tIiwiKi53ZWItc2FuZGJveC5vYWl1c2VyY29udGVudC5jb20iXSwxNiwiMjAyNy0wMi0yNiJd.5dV7DhEo4Ms3gr9PJ8qCFrmRrgh0XNYaBMJe299DvEDiNAf8imZeCSAkpmFD2Vcuw6H2uXJfBQkda6zKdnnEdA"
+					onMount={handleMount}
+					components={tldrawComponents}
+				/>
+			</div>
+		</DisplayModeContext.Provider>
 	)
 }
 
@@ -1006,9 +1054,6 @@ function McpApp() {
 	const handleAppCreated = useCallback((instance: App) => {
 		log('App created via useApp')
 		instance.onerror = (err) => log(`App.onerror: ${err}`)
-		instance.onhostcontextchanged = (ctx) => {
-			log(`hostcontext: ${JSON.stringify(ctx)}`)
-		}
 	}, [])
 
 	const { app, isConnected, error } = useApp({
