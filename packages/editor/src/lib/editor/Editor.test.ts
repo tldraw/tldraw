@@ -106,6 +106,14 @@ describe('zoomToFit', () => {
 		editor.zoomToFit({ force: true })
 		expect(editor.setCamera).toHaveBeenCalled()
 	})
+
+	it('passes padding as inset to zoomToBounds', () => {
+		editor.getCurrentPageShapeIds = vi.fn(() => new Set([createShapeId('box1')]))
+		editor.getShapePageBounds = vi.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
+		const spy = vi.spyOn(editor, 'zoomToBounds')
+		editor.zoomToFit({ padding: 40 })
+		expect(spy).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ inset: 40 }))
+	})
 })
 
 describe('resetZoom', () => {
@@ -155,6 +163,13 @@ describe('zoomToSelection', () => {
 		editor.getSelectionPageBounds = vi.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
 		editor.zoomToSelection({ force: true })
 		expect(editor.setCamera).toHaveBeenCalled()
+	})
+
+	it('passes padding as inset to zoomToBounds', () => {
+		editor.getSelectionPageBounds = vi.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
+		const spy = vi.spyOn(editor, 'zoomToBounds')
+		editor.zoomToSelection({ padding: 40 })
+		expect(spy).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ inset: 40 }))
 	})
 })
 

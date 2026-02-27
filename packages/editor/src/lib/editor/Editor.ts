@@ -3246,17 +3246,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```ts
 	 * editor.zoomToFit()
 	 * editor.zoomToFit({ animation: { duration: 200 } })
+	 * editor.zoomToFit({ padding: 40 })
 	 * ```
 	 *
 	 * @param opts - The camera move options.
 	 *
 	 * @public
 	 */
-	zoomToFit(opts?: TLCameraMoveOptions): this {
+	zoomToFit(
+		opts?: TLCameraMoveOptions & {
+			padding?: number
+			inset?: number
+			targetZoom?: number
+		}
+	): this {
 		const ids = [...this.getCurrentPageShapeIds()].filter((id) => !this.isShapeHidden(id))
 		if (ids.length <= 0) return this
 		const pageBounds = Box.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
-		this.zoomToBounds(pageBounds, opts)
+		this.zoomToBounds(pageBounds, { inset: opts?.padding ?? opts?.inset, ...opts })
 		return this
 	}
 
@@ -3398,13 +3405,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```ts
 	 * editor.zoomToSelection()
 	 * editor.zoomToSelection({ animation: { duration: 200 } })
+	 * editor.zoomToSelection({ padding: 40 })
 	 * ```
 	 *
 	 * @param opts - The camera move options.
 	 *
 	 * @public
 	 */
-	zoomToSelection(opts?: TLCameraMoveOptions): this {
+	zoomToSelection(
+		opts?: TLCameraMoveOptions & {
+			padding?: number
+			inset?: number
+			targetZoom?: number
+		}
+	): this {
 		const { isLocked } = this.getCameraOptions()
 		if (isLocked && !opts?.force) return this
 
@@ -3414,10 +3428,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// If already at 100%, zoom to fit the selection in the viewport
 			// Otherwise, zoom to 100% centered on the selection
 			if (Math.abs(currentZoom - 1) < 0.01) {
-				this.zoomToBounds(selectionPageBounds, opts)
+				this.zoomToBounds(selectionPageBounds, { inset: opts?.padding ?? opts?.inset, ...opts })
 			} else {
 				this.zoomToBounds(selectionPageBounds, {
 					targetZoom: 1,
+					inset: opts?.padding ?? opts?.inset,
 					...opts,
 				})
 			}
