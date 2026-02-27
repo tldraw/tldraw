@@ -30,7 +30,7 @@
 		"dev": "concurrently \"NODE_ENV=development next dev --port=3001\" \"tsx ./watcher.ts\" --kill-others",
 		"next-dev": "next dev",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
-		"build": "yarn refresh-everything && yarn check-links && next build",
+		"build": "yarn refresh-everything && yarn check-links --fail && next build",
 		"start": "yarn refresh-everything && next start",
 		"fetch-api-source": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/fetch-api-source.ts",
 		"fetch-releases": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/fetch-releases.ts",
