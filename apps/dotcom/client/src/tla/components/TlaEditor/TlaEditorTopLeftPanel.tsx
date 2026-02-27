@@ -429,7 +429,7 @@ function CodeEditorButton() {
 			onClick={handleClick}
 			title="Code editor"
 			data-testid="tla-code-editor-button"
-			style={{ opacity: isOpen ? 1 : 0.62 }}
+			data-state={isOpen ? 'open' : undefined}
 		>
 			<span
 				style={{

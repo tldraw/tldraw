@@ -1,7 +1,16 @@
 import Editor, { loader, type OnMount } from '@monaco-editor/react'
 import { b64Vecs } from '@tldraw/tlschema'
 import * as monaco from 'monaco-editor'
-import { type KeyboardEvent, memo, useCallback, useEffect, useRef, useState } from 'react'
+import {
+	type KeyboardEvent,
+	memo,
+	type PointerEvent as ReactPointerEvent,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { createShapeId, useEditor, useValue } from 'tldraw'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { isCodeEditorOpenAtom } from './code-editor-state'
@@ -28,6 +37,32 @@ self.MonacoEnvironment = {
 // Module-level timer tracking so animations persist after panel closes.
 // Timers are only cleared when running new code.
 const activeTimers = new Set<number>()
+const FALLBACK_INSPECTOR_WIDTH = 300
+const FALLBACK_INSPECTOR_HEIGHT = 300
+const INSPECTOR_MARGIN = 8
+const INSPECTOR_BOTTOM_GAP = 56
+
+function clampPanelPosition(
+	position: { x: number; y: number },
+	width: number,
+	height: number,
+	containerWidth: number,
+	containerHeight: number
+) {
+	const maxX = Math.max(INSPECTOR_MARGIN, containerWidth - width - INSPECTOR_MARGIN)
+	const maxY = Math.max(INSPECTOR_MARGIN, containerHeight - height - INSPECTOR_MARGIN)
+	return {
+		x: Math.min(Math.max(position.x, INSPECTOR_MARGIN), maxX),
+		y: Math.min(Math.max(position.y, INSPECTOR_MARGIN), maxY),
+	}
+}
+
+function getInspectorSize(panel: HTMLElement | null) {
+	return {
+		width: panel?.offsetWidth ?? FALLBACK_INSPECTOR_WIDTH,
+		height: panel?.offsetHeight ?? FALLBACK_INSPECTOR_HEIGHT,
+	}
+}
 
 function clearActiveTimers() {
 	for (const id of activeTimers) {
@@ -162,16 +197,137 @@ export const TlaCodeEditorPanel = memo(function TlaCodeEditorPanel() {
 	const tldrawEditor = useEditor()
 	const isDark = useValue('dark', () => tldrawEditor.user.getIsDarkMode(), [tldrawEditor])
 	const panelRef = useRef<HTMLDivElement | null>(null)
+	const inspectorPanelRef = useRef<HTMLDivElement | null>(null)
+	const inspectorDragStateRef = useRef<{
+		pointerId: number
+		offsetX: number
+		offsetY: number
+	} | null>(null)
 	const [code, setCode] = useState(DEFAULT_CODE)
 	const [output, setOutput] = useState<string[]>([])
 	const [error, setError] = useState<string | null>(null)
 	const [isRunning, setIsRunning] = useState(false)
 	const [showHelp, setShowHelp] = useState(false)
+	const [isInspectorDragging, setIsInspectorDragging] = useState(false)
+	const [isInspectorMinimized, setIsInspectorMinimized] = useState(false)
+	const [inspectorPosition, setInspectorPosition] = useState<{ x: number; y: number } | null>(null)
 	const codeRef = useRef(code)
 	codeRef.current = code
+	const selectedShapes = useValue('dev-selected-shapes', () => tldrawEditor.getSelectedShapes(), [
+		tldrawEditor,
+	])
+	const camera = useValue('dev-camera', () => tldrawEditor.getCamera(), [tldrawEditor])
+	const allRecords = useValue('dev-all-records', () => tldrawEditor.store.allRecords(), [
+		tldrawEditor,
+	])
+	const selectedShapeIds = selectedShapes.map((shape) => shape.id)
+	const selectedShapeIdSet = useMemo(
+		() => new Set(selectedShapeIds.map((id) => String(id))),
+		[selectedShapeIds]
+	)
+	const primarySelectedShape = selectedShapes[0] ?? null
+	const selectedBindings = useMemo(() => {
+		if (!selectedShapeIdSet.size) return []
+		return allRecords.filter((record) => {
+			if (record.typeName !== 'binding') return false
+			const binding = record as {
+				fromId?: string
+				toId?: string
+			}
+			return (
+				(binding.fromId && selectedShapeIdSet.has(String(binding.fromId))) ||
+				(binding.toId && selectedShapeIdSet.has(String(binding.toId)))
+			)
+		}) as Array<{
+			id: string
+			typeName: string
+			type?: string
+			fromId?: string
+			toId?: string
+			props?: Record<string, unknown>
+		}>
+	}, [allRecords, selectedShapeIdSet])
+	const storeSummary = useMemo(() => {
+		const counts = new Map<string, number>()
+		for (const record of allRecords) {
+			counts.set(record.typeName, (counts.get(record.typeName) ?? 0) + 1)
+		}
+		return [...counts.entries()].sort(([a], [b]) => a.localeCompare(b))
+	}, [allRecords])
+	const primaryShapePropsJson = useMemo(() => {
+		if (!primarySelectedShape) return ''
+		return JSON.stringify(primarySelectedShape.props, null, 2)
+	}, [primarySelectedShape])
 
 	const handleClose = useCallback(() => {
 		isCodeEditorOpenAtom.set(false)
+	}, [])
+
+	useEffect(() => {
+		if (!isOpen || inspectorPosition) return
+		const panel = panelRef.current
+		const inspectorPanel = inspectorPanelRef.current
+		const { width: inspectorWidth, height: inspectorHeight } = getInspectorSize(inspectorPanel)
+		const offsetParent = panel?.offsetParent as HTMLElement | null
+		const containerWidth = offsetParent?.clientWidth ?? window.innerWidth
+		const containerHeight = offsetParent?.clientHeight ?? window.innerHeight
+		const defaultPosition = clampPanelPosition(
+			{
+				x: containerWidth - inspectorWidth - INSPECTOR_MARGIN,
+				y: containerHeight - inspectorHeight - INSPECTOR_BOTTOM_GAP,
+			},
+			inspectorWidth,
+			inspectorHeight,
+			containerWidth,
+			containerHeight
+		)
+		setInspectorPosition(defaultPosition)
+	}, [inspectorPosition, isOpen])
+
+	const handleInspectorPointerDown = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+		if (e.button !== 0) return
+		const panel = e.currentTarget.parentElement
+		if (!panel) return
+		const rect = panel.getBoundingClientRect()
+		inspectorDragStateRef.current = {
+			pointerId: e.pointerId,
+			offsetX: e.clientX - rect.left,
+			offsetY: e.clientY - rect.top,
+		}
+		e.currentTarget.setPointerCapture(e.pointerId)
+		setIsInspectorDragging(true)
+		e.preventDefault()
+	}, [])
+
+	const handleInspectorPointerMove = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+		const dragState = inspectorDragStateRef.current
+		if (!dragState || dragState.pointerId !== e.pointerId) return
+		const panel = e.currentTarget.parentElement
+		if (!panel) return
+		const { width: inspectorWidth, height: inspectorHeight } = getInspectorSize(panel)
+		const offsetParent = panel.offsetParent as HTMLElement | null
+		const containerRect = offsetParent?.getBoundingClientRect()
+		const containerWidth = offsetParent?.clientWidth ?? window.innerWidth
+		const containerHeight = offsetParent?.clientHeight ?? window.innerHeight
+		const nextPosition = clampPanelPosition(
+			{
+				x: e.clientX - dragState.offsetX - (containerRect?.left ?? 0),
+				y: e.clientY - dragState.offsetY - (containerRect?.top ?? 0),
+			},
+			inspectorWidth,
+			inspectorHeight,
+			containerWidth,
+			containerHeight
+		)
+		setInspectorPosition(nextPosition)
+	}, [])
+
+	const handleInspectorPointerUp = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+		const dragState = inspectorDragStateRef.current
+		if (!dragState || dragState.pointerId !== e.pointerId) return
+		inspectorDragStateRef.current = null
+		e.currentTarget.releasePointerCapture(e.pointerId)
+		setIsInspectorDragging(false)
 	}, [])
 
 	const runCode = useCallback(() => {
@@ -342,90 +498,189 @@ export const TlaCodeEditorPanel = memo(function TlaCodeEditorPanel() {
 	}, [isOpen, runCode])
 
 	return (
-		<div
-			ref={panelRef}
-			className={styles.panel}
-			style={{ display: isOpen ? undefined : 'none' }}
-			onKeyDown={handleKeyDown}
-			onKeyUp={handleKeyUp}
-		>
-			<div className={styles.header}>
-				<span className={styles.title}>Developer mode</span>
-				<button
-					className={styles.helpButton}
-					aria-label="Help"
-					onClick={() => setShowHelp(!showHelp)}
-				>
-					<TlaIcon icon="question" />
-				</button>
-				<div className={styles.headerActions}>
+		<>
+			<div
+				ref={panelRef}
+				className={styles.panel}
+				style={{ display: isOpen ? undefined : 'none' }}
+				onKeyDown={handleKeyDown}
+				onKeyUp={handleKeyUp}
+			>
+				<div className={styles.header}>
+					<span className={styles.title}>Developer mode</span>
 					<button
-						id="tla-code-editor-run-btn"
-						className={styles.runButton}
-						onClick={runCode}
-						disabled={isRunning}
+						className={styles.helpButton}
+						aria-label="Help"
+						onClick={() => setShowHelp(!showHelp)}
 					>
-						Run ⌘⏎
+						<TlaIcon icon="question" />
+					</button>
+					<div className={styles.headerActions}>
+						<button
+							id="tla-code-editor-run-btn"
+							className={styles.runButton}
+							onClick={runCode}
+							disabled={isRunning}
+						>
+							Run ⌘⏎
+						</button>
+					</div>
+					<button className={styles.closeButton} onClick={handleClose} aria-label="Close">
+						✕
 					</button>
 				</div>
-				<button className={styles.closeButton} onClick={handleClose} aria-label="Close">
-					✕
-				</button>
-			</div>
-			{showHelp && (
-				<div className={styles.helpPanel}>
-					<p>
-						Write JavaScript that controls the tldraw canvas. Your code has access to the{' '}
-						<code>editor</code> object plus helpers like <code>createDot</code> and{' '}
-						<code>clearCanvas()</code>.
-					</p>
-					<p>
-						Use <code>setInterval</code> and <code>setTimeout</code> for animations. Timers persist
-						after closing the panel and are cleared when you run new code.
-					</p>
-				</div>
-			)}
-			<div className={styles.editorContainer}>
-				<Editor
-					defaultValue={DEFAULT_CODE}
-					language="javascript"
-					theme={isDark ? 'vs-dark' : 'light'}
-					onChange={(value) => setCode(value ?? '')}
-					onMount={handleEditorMount}
-					options={{
-						minimap: { enabled: false },
-						fontSize: 13,
-						fontFamily:
-							"'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace",
-						lineNumbers: 'on',
-						scrollBeyondLastLine: false,
-						automaticLayout: true,
-						tabSize: 2,
-						wordWrap: 'on',
-						padding: { top: 12 },
-						overviewRulerLanes: 0,
-						hideCursorInOverviewRuler: true,
-						overviewRulerBorder: false,
-						scrollbar: {
-							vertical: 'hidden',
-							horizontal: 'hidden',
-						},
-					}}
-				/>
-			</div>
-			{(output.length > 0 || error) && (
-				<div className={styles.outputPanel}>
-					<div className={styles.outputHeader}>Output</div>
-					<div className={styles.outputContent}>
-						{output.map((line, i) => (
-							<div key={i} className={styles.outputLine}>
-								{line}
-							</div>
-						))}
-						{error && <div className={styles.errorLine}>{error}</div>}
+				{showHelp && (
+					<div className={styles.helpPanel}>
+						<p>
+							Write JavaScript that controls the tldraw canvas. Your code has access to the{' '}
+							<code>editor</code> object plus helpers like <code>createDot</code> and{' '}
+							<code>clearCanvas()</code>.
+						</p>
+						<p>
+							Use <code>setInterval</code> and <code>setTimeout</code> for animations. Timers
+							persist after closing the panel and are cleared when you run new code.
+						</p>
 					</div>
+				)}
+				<div className={styles.editorContainer}>
+					<Editor
+						defaultValue={DEFAULT_CODE}
+						language="javascript"
+						theme={isDark ? 'vs-dark' : 'light'}
+						onChange={(value) => setCode(value ?? '')}
+						onMount={handleEditorMount}
+						options={{
+							minimap: { enabled: false },
+							fontSize: 13,
+							fontFamily:
+								"'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace",
+							lineNumbers: 'on',
+							scrollBeyondLastLine: false,
+							automaticLayout: true,
+							tabSize: 2,
+							wordWrap: 'on',
+							padding: { top: 12 },
+							overviewRulerLanes: 0,
+							hideCursorInOverviewRuler: true,
+							overviewRulerBorder: false,
+							scrollbar: {
+								vertical: 'hidden',
+								horizontal: 'hidden',
+							},
+						}}
+					/>
 				</div>
-			)}
-		</div>
+				{(output.length > 0 || error) && (
+					<div className={styles.outputPanel}>
+						<div className={styles.outputHeader}>Output</div>
+						<div className={styles.outputContent}>
+							{output.map((line, i) => (
+								<div key={i} className={styles.outputLine}>
+									{line}
+								</div>
+							))}
+							{error && <div className={styles.errorLine}>{error}</div>}
+						</div>
+					</div>
+				)}
+			</div>
+
+			<div
+				ref={inspectorPanelRef}
+				className={styles.inspectorPanel}
+				data-minimized={isInspectorMinimized}
+				style={{
+					display: isOpen ? undefined : 'none',
+					left: inspectorPosition?.x ?? -10000,
+					top: inspectorPosition?.y ?? -10000,
+				}}
+			>
+				<div
+					className={styles.inspectorHeader}
+					data-dragging={isInspectorDragging}
+					onPointerDown={handleInspectorPointerDown}
+					onPointerMove={handleInspectorPointerMove}
+					onPointerUp={handleInspectorPointerUp}
+					onPointerCancel={handleInspectorPointerUp}
+				>
+					<span className={styles.title}>Debug inspector</span>
+					<button
+						className={styles.minimizeDot}
+						data-minimized={isInspectorMinimized}
+						onPointerDown={(e) => e.stopPropagation()}
+						onClick={() => setIsInspectorMinimized(!isInspectorMinimized)}
+						aria-label={isInspectorMinimized ? 'Expand inspector' : 'Minimize inspector'}
+					/>
+				</div>
+				{!isInspectorMinimized && (
+					<div className={styles.inspectorContent}>
+						<div className={styles.inspectorSection}>
+							<div className={styles.inspectorSectionTitle}>Selection</div>
+							<div className={styles.inspectorBody}>
+								<div className={styles.inspectorMeta}>Count: {selectedShapes.length}</div>
+								{primarySelectedShape ? (
+									<div className={styles.inspectorMeta}>
+										Primary: {primarySelectedShape.type} ({primarySelectedShape.id})
+									</div>
+								) : (
+									<div className={styles.inspectorMeta}>No selected shape</div>
+								)}
+								{selectedShapeIds.length > 0 && (
+									<div className={styles.inspectorList}>
+										{selectedShapeIds.map((id) => (
+											<div key={id} className={styles.inspectorListItem}>
+												{id}
+											</div>
+										))}
+									</div>
+								)}
+							</div>
+						</div>
+						<div className={styles.inspectorSection}>
+							<div className={styles.inspectorSectionTitle}>Shape props</div>
+							<div className={styles.inspectorBody}>
+								{primaryShapePropsJson ? (
+									<pre className={styles.inspectorCode}>{primaryShapePropsJson}</pre>
+								) : (
+									<div className={styles.inspectorMeta}>Select a shape to inspect props</div>
+								)}
+							</div>
+						</div>
+						<div className={styles.inspectorSection}>
+							<div className={styles.inspectorSectionTitle}>Bindings</div>
+							<div className={styles.inspectorBody}>
+								<div className={styles.inspectorMeta}>Connected: {selectedBindings.length}</div>
+								{selectedBindings.length > 0 && (
+									<div className={styles.inspectorList}>
+										{selectedBindings.map((binding) => (
+											<div key={binding.id} className={styles.inspectorListItem}>
+												{binding.type ?? binding.typeName}: {binding.fromId} → {binding.toId}
+											</div>
+										))}
+									</div>
+								)}
+							</div>
+						</div>
+						<div className={styles.inspectorSection}>
+							<div className={styles.inspectorSectionTitle}>Store</div>
+							<div className={styles.inspectorBody}>
+								<div className={styles.inspectorMeta}>Page: {tldrawEditor.getCurrentPageId()}</div>
+								<div className={styles.inspectorMeta}>
+									Camera: x {camera.x.toFixed(1)}, y {camera.y.toFixed(1)}, z {camera.z.toFixed(2)}
+								</div>
+								<div className={styles.inspectorMeta}>Records: {allRecords.length}</div>
+								<div className={styles.inspectorList}>
+									{storeSummary.map(([typeName, count]) => (
+										<div key={typeName} className={styles.inspectorListItem}>
+											{typeName}: {count}
+										</div>
+									))}
+								</div>
+							</div>
+						</div>
+					</div>
+				)}
+			</div>
+		</>
 	)
 })
