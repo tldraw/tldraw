@@ -884,3 +884,380 @@ npx @mcpjam/inspector@latest
 - FocusedShape types and conversions — pure TypeScript, imported from tldraw-mcp-app
 - JSON healing — pure TypeScript, imported from tldraw-mcp-app
 - Tool schemas and logic — same Zod schemas, same shape manipulation
+
+---
+
+## Step 5: Security hardening for public deployment
+
+### Context
+
+The server audience is **public/open** — anyone can connect. The MCP spec [recommends OAuth 2.1](https://modelcontextprotocol.io/docs/tutorials/security/authorization) for remote servers, but that's infrastructure-level. This step takes a **layered approach**: implement what we can in code now (timing-safe auth, rate limiting, input validation, image security), and document the OAuth 2.1 path as a follow-up.
+
+**Key findings from research:**
+
+- The MCP spec says auth is **optional** but **strongly recommended** for servers handling user data
+- For remote HTTP servers, the spec prescribes OAuth 2.1 with Protected Resource Metadata (RFC 9728), Dynamic Client Registration (RFC 7591), and PKCE
+- tldraw.com uses 10MB upload limit, `Access-Control-Allow-Origin: *` for assets, and Cloudflare Cache API
+- Cloudflare Workers has a native [Rate Limiting binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/) (GA since Sept 2025) — no Durable Objects needed
+- CF Workers request body limit is 100MB (free/pro), so we need application-level limits
+
+### Comparison with Excalidraw MCP server
+
+[excalidraw-mcp](https://github.com/excalidraw/excalidraw-mcp/) is deployed publicly at `mcp.excalidraw.com` with **zero authentication, zero rate limiting, and full open CORS**. They can afford this because:
+
+1. **Stateless rendering service** — takes Excalidraw JSON elements and renders SVGs. No persistent user data, no accounts, no secrets.
+2. **No image/asset uploads** — elements are JSON only, no file storage. Input capped at 5MB.
+3. **No destructive capabilities** — two tools (`read_me`, `create_view`) are purely generative.
+4. **Ephemeral state** — checkpoints are temporary (30-day TTL in Redis, or in-memory). Nothing survives long-term.
+5. **Platform-level protection** — deployed on Vercel, which provides built-in DDoS mitigation.
+
+**Our server is fundamentally different:**
+
+| Aspect        | Excalidraw MCP    | tldraw MCP (ours)                          |
+| ------------- | ----------------- | ------------------------------------------ |
+| State         | Ephemeral renders | Persistent DO SQLite checkpoints           |
+| Assets        | None              | R2 image uploads (up to 10MB each)         |
+| Write ops     | None              | create/update/delete shapes, upload images |
+| Storage cost  | ~$0 (stateless)   | R2 + DO = real $ at scale                  |
+| Abuse surface | CPU time only     | Storage exhaustion, image hosting abuse    |
+| Auth model    | None needed       | Bearer tokens required                     |
+
+**Conclusion:** Excalidraw's "no auth" model is closer to ours than initially thought — we also have no per-user data. But our writable storage (R2, DO SQLite) creates abuse vectors that Excalidraw doesn't have. Rate limiting and input validation are the real mitigations, not auth.
+
+### Auth strategy: fully open (like Excalidraw), hardened with rate limiting
+
+**Decision: no authentication for initial launch.** The server is fully open — anyone can connect without tokens, signup, or registration.
+
+**Why this is OK:**
+
+- Every MCP session is an independent, ephemeral canvas — no user data to protect
+- No user accounts or identity system
+- Bearer tokens for a public server with no signup are security theater — the token would leak immediately and become equivalent to no token
+- This is exactly the Excalidraw model, and they've been running `mcp.excalidraw.com` publicly
+- The MCP spec says auth is **optional** for servers that don't act on behalf of users
+
+**Where we differ from Excalidraw (and why we need extra hardening):**
+
+| Abuse vector                       | Mitigation                                                   | Auth would help?                   |
+| ---------------------------------- | ------------------------------------------------------------ | ---------------------------------- |
+| R2 storage exhaustion (image spam) | Rate limit uploads per IP, cap image size (10MB)             | No — authed users could still spam |
+| DO proliferation (session spam)    | DOs are cheap (~$0.15/M requests), monitor via CF dashboard  | No                                 |
+| Image hosting abuse (free CDN)     | UUIDs are unguessable, no directory listing, immutable cache | No                                 |
+| CPU abuse (complex shape ops)      | Rate limit per IP (100 req/60s)                              | No — same quota either way         |
+
+**The protection stack — how all layers work together:**
+
+| Layer                | Without OAuth (launch)                           | With OAuth (future)                    |
+| -------------------- | ------------------------------------------------ | -------------------------------------- |
+| **Rate limiting**    | Per IP (100 req/60s)                             | Per user identity — own quota per user |
+| **R2 bucket**        | Size cap (10MB), rate limit prevents bulk upload | Per-user storage quota, revoke abusers |
+| **Input validation** | Shape count (500), checkpoint size (5MB)         | Same, but attributable to users        |
+| **Abuse response**   | Ban IP (blunt)                                   | Ban specific user (surgical)           |
+
+**Keep `MCP_AUTH_TOKEN` env var** as optional kill-switch. OFF by default for public launch.
+
+**OAuth provider options** (doesn't have to be GitHub):
+
+- **GitHub** — low effort (~100 lines), most devs have accounts
+- **Google** — low effort, everyone has an account
+- **Cloudflare Access** — zero code, SSO with any IdP
+- **Auth0** — enterprise, managed
+
+Provider is a single handler file (~100 lines). Swapping later = change 1 file + 3 env vars. See full details, user journey, reference implementations, and local testing guide in `log.md` Step 5.
+
+**How Claude and ChatGPT handle MCP auth:**
+
+Both support [authless AND OAuth](https://support.claude.com/en/articles/11503834-building-custom-connectors-via-remote-mcp-servers). Neither passes its own user identity — if you want to know who's connecting, you run OAuth yourself via [`workers-oauth-provider`](https://github.com/cloudflare/workers-oauth-provider).
+
+---
+
+### 5.1 Auth: optional kill-switch + timing-safe comparison
+
+**Decision:** No auth required by default (fully open). The existing `MCP_AUTH_TOKEN` env var becomes an optional kill-switch — if set, enforce it; if not set, allow all requests.
+
+**File:** `src/index.ts` (fetch handler)
+
+**Changes:**
+
+- Keep existing auth check but make it clearly optional (already works this way — `if (env.MCP_AUTH_TOKEN)` guard)
+- Upgrade `===` to timing-safe comparison (`crypto.subtle.timingSafeEqual`) for when the kill-switch IS enabled
+- Add `WWW-Authenticate: Bearer realm="tldraw-mcp"` header on 401
+- Add `// TODO: OAuth 2.1` comment documenting upgrade path
+- Add `// TODO: Cloudflare Access` comment — can be enabled at infrastructure level without code changes
+
+```ts
+// Optional auth kill-switch: if MCP_AUTH_TOKEN is set, require it.
+// OFF by default for public launch. Set it to lock down the server if abuse occurs.
+// TODO: OAuth 2.1 — when adding per-user canvases, upgrade to RFC 9728 + external auth server
+// TODO: Cloudflare Access — can gate /mcp with GitHub/Google login, zero code changes
+if (env.MCP_AUTH_TOKEN) {
+	const header = request.headers.get('Authorization')
+	const token = header?.startsWith('Bearer ') ? header.slice(7) : ''
+	const expected = env.MCP_AUTH_TOKEN
+	const encoder = new TextEncoder()
+	const a = encoder.encode(token)
+	const b = encoder.encode(expected)
+	const authorized = a.byteLength === b.byteLength && (await crypto.subtle.timingSafeEqual(a, b))
+	if (!authorized) {
+		return corsResponse(
+			new Response('Unauthorized', {
+				status: 401,
+				headers: { 'WWW-Authenticate': 'Bearer realm="tldraw-mcp"' },
+			})
+		)
+	}
+}
+```
+
+**Primary protection is rate limiting (5.3) and input validation (5.2), not auth.**
+
+---
+
+### 5.2 Upload size limits + input validation
+
+**Problem:** No limits on upload size, shape count, or checkpoint data size.
+
+**Reference:** tldraw.com uses `DEFAULT_MAX_ASSET_SIZE = 10 * 1024 * 1024` (10 MB) at `packages/tldraw/src/lib/defaultExternalContentHandlers.ts:53` and `DEFAULT_MAX_IMAGE_DIMENSION = 5000`.
+
+**Constants to add:**
+
+```ts
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024 // 10 MB — matches tldraw.com
+const MAX_SHAPES_PER_CALL = 500
+const MAX_CHECKPOINT_DATA_BYTES = 5 * 1024 * 1024 // 5 MB
+```
+
+**Changes:**
+
+a) `upload_image` handler — validate after base64 decode:
+
+```ts
+const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+if (bytes.byteLength > MAX_IMAGE_BYTES) {
+	return errorResponse(
+		new Error(`Image too large: ${(bytes.byteLength / 1024 / 1024).toFixed(1)} MB (max 10 MB)`)
+	)
+}
+```
+
+b) `create_shapes` handler — validate shape count:
+
+```ts
+const focusedShapes = parseFocusedShapesInput(shapesJson)
+if (focusedShapes.length > MAX_SHAPES_PER_CALL) {
+	return errorResponse(
+		new Error(`Too many shapes: ${focusedShapes.length} (max ${MAX_SHAPES_PER_CALL})`)
+	)
+}
+```
+
+c) `saveCheckpoint` method — validate data size before SQLite write:
+
+```ts
+const data = JSON.stringify({ shapes, assets })
+if (data.length > MAX_CHECKPOINT_DATA_BYTES) {
+	throw new Error(`Checkpoint too large: ${(data.length / 1024 / 1024).toFixed(1)} MB (max 5 MB)`)
+}
+```
+
+---
+
+### 5.3 Rate limiting with CF Workers Rate Limiting binding
+
+**Problem:** No rate limiting. Runaway LLM loops or brute-force attacks are unthrottled.
+
+**wrangler.toml addition:**
+
+```toml
+[[ratelimits]]
+name = "MCP_RATE_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 100
+  period = 60
+```
+
+100 requests per 60 seconds per key. Period can only be 10 or 60 seconds (CF constraint).
+
+**Env type:** Add `MCP_RATE_LIMITER: RateLimit`
+
+**Fetch handler** — add after auth check, before routing:
+
+```ts
+const rateLimitKey =
+	request.headers.get('Authorization') ?? request.headers.get('CF-Connecting-IP') ?? 'anonymous'
+const { success } = await env.MCP_RATE_LIMITER.limit({ key: rateLimitKey })
+if (!success) {
+	return corsResponse(
+		new Response('Rate limit exceeded', {
+			status: 429,
+			headers: { 'Retry-After': '60' },
+		})
+	)
+}
+```
+
+Keyed by IP since the server is fully open (no per-user tokens). Each unique IP gets its own 100 req/60s quota.
+
+---
+
+### 5.4 R2 image security hardening
+
+**Problem:** Images at `/images/*` are public. Need security headers and caching.
+
+**Analysis:** tldraw.com also serves assets publicly with `Access-Control-Allow-Origin: *` and `Cache-Control: public, max-age=31536000, immutable`. UUIDs are unguessable. Keeping images public is correct.
+
+**Changes:**
+
+a) Add `X-Content-Type-Options: nosniff` (prevents MIME-type sniffing attacks)
+
+b) Add Cloudflare Cache API (matching tldraw.com's pattern):
+
+```ts
+async function handleImageRequest(url: URL, env: Env, ctx: ExecutionContext): Promise<Response> {
+	const cacheKey = new Request(url.toString())
+	const cached = await caches.default.match(cacheKey)
+	if (cached) return cached
+
+	const key = url.pathname.slice(1)
+	const object = await env.IMAGES.get(key)
+	if (!object) return new Response('Not found', { status: 404 })
+
+	const response = new Response(object.body, {
+		headers: {
+			'Content-Type': object.httpMetadata?.contentType ?? 'image/png',
+			'X-Content-Type-Options': 'nosniff',
+			'Cache-Control': 'public, max-age=31536000, immutable',
+			'Access-Control-Allow-Origin': '*',
+		},
+	})
+
+	ctx.waitUntil(caches.default.put(cacheKey, response.clone()))
+	return response
+}
+```
+
+---
+
+### 5.5 CORS — keep as-is with documentation
+
+**Decision:** Keep `Access-Control-Allow-Origin: *`. MCP clients connect from unpredictable origins (Claude web, ChatGPT, VS Code, MCP Inspector). Bearer tokens provide access control. This matches tldraw.com's asset serving pattern and MCP spec example implementations.
+
+---
+
+### 5.6 Fix `as any` casts on `this.env`
+
+Add a typed accessor to avoid scattered `as any` casts:
+
+```ts
+export class TldrawMCP extends McpAgent<Env> {
+	private get typedEnv(): Env {
+		return (this as any).env as Env
+	}
+}
+```
+
+Replace all `(this as any).env` occurrences with `this.typedEnv`.
+
+---
+
+### Verification checklist
+
+1. **No auth (default):** `curl -X POST <url>/mcp` (no token) → request proceeds (no 401)
+2. **Kill-switch ON:** Set `MCP_AUTH_TOKEN`, curl without it → 401 with `WWW-Authenticate` header
+3. **Rate limiting:** 101 requests in 60s → 429 with `Retry-After: 60` on 101st
+4. **Upload size:** >10MB image via `upload_image` → error
+5. **Shape count:** `create_shapes` with 501 shapes → error
+6. **Checkpoint size:** >5MB checkpoint → error
+7. **Image caching:** Same image requested twice → second served from CF cache
+8. **Image headers:** `curl -I <url>/images/<id>` → includes `X-Content-Type-Options: nosniff`
+9. **Smoke test:** Full flow via Claude Desktop — read_me, create_shapes, update_shapes, delete_shapes, create_image, drag-drop upload
+
+### Sources
+
+- [MCP Authorization spec](https://modelcontextprotocol.io/docs/tutorials/security/authorization)
+- [MCP Bearer token best practices discussion](https://github.com/modelcontextprotocol/modelcontextprotocol/discussions/1247)
+- [Cloudflare Workers Rate Limiting GA](https://developers.cloudflare.com/changelog/2025-09-19-ratelimit-workers-ga/)
+- [tldraw.com asset handling](https://github.com/tldraw/tldraw/blob/main/packages/worker-shared/src/userAssetUploads.ts)
+
+---
+
+## Step 6: Publish npm package
+
+The npm package lets users run `npx @tldraw/mcp-server --stdio` for local MCP hosts (Claude Desktop, VSCode Copilot, Cursor, etc.). This package is published independently from the monorepo's lerna-managed packages (which only cover `packages/*`). Version is managed manually.
+
+### 6a. Add shebang to entry point
+
+**File:** `apps/tldraw-mcp/src/main.ts`
+
+Add `#!/usr/bin/env node` as the very first line (before the crypto polyfill). This tells the OS to run the file with Node when invoked as a CLI binary.
+
+### 6b. Update package.json for publishing
+
+**File:** `apps/tldraw-mcp/package.json`
+
+| Field                  | Value                                       | Why                                      |
+| ---------------------- | ------------------------------------------- | ---------------------------------------- |
+| `name`                 | `@tldraw/mcp-server`                        | Scoped package name                      |
+| `version`              | `0.1.0`                                     | Initial publish                          |
+| Remove `private: true` | —                                           | Allows npm publish                       |
+| `bin`                  | `{ "tldraw-mcp-server": "./dist/main.js" }` | CLI entry point                          |
+| `main`                 | `./dist/main.js`                            | Module entry point                       |
+| `files`                | `["dist"]`                                  | Only ship compiled JS + widget HTML      |
+| `prepublishOnly`       | `npm run build`                             | Safety net — always build before publish |
+| `description`          | (short description)                         | npm metadata                             |
+| `license`              | (appropriate license)                       | npm metadata                             |
+| `repository`           | (tldraw monorepo)                           | npm metadata                             |
+
+**Test checkpoint 6b:**
+
+```bash
+cd apps/tldraw-mcp && npm run build
+ls dist/mcp-app.html                    # widget HTML exists
+head -1 dist/main.js                    # starts with #!/usr/bin/env node
+npm pack --dry-run                      # only dist/ files, reasonable size
+```
+
+### 6c. Test locally with npm pack
+
+```bash
+cd apps/tldraw-mcp
+npm pack
+npm install -g ./tldraw-mcp-server-0.1.0.tgz
+tldraw-mcp-server --stdio              # starts stdio server
+tldraw-mcp-server                      # starts HTTP server on :3001
+```
+
+**Test checkpoint 6c:**
+
+- [ ] `tldraw-mcp-server --stdio` — responds to initialize JSON-RPC
+- [ ] `tldraw-mcp-server` — HTTP server starts, `curl localhost:3001/mcp` returns response
+- [ ] Claude Desktop config with `"command": "tldraw-mcp-server", "args": ["--stdio"]` — widget renders
+
+Clean up:
+
+```bash
+npm uninstall -g @tldraw/mcp-server && rm *.tgz
+```
+
+### 6d. Publish
+
+```bash
+npm login   # ensure @tldraw org access
+cd apps/tldraw-mcp
+npm publish --access public
+```
+
+**Test checkpoint 6d:**
+
+```bash
+npx @tldraw/mcp-server@latest --stdio  # works from clean environment
+```
+
+### What this step does NOT include (follow-ups)
+
+- README / docs (can add later, not needed for initial publish)
+- GitHub Actions automated publish workflow
+- MCP Registry registration
+- Publish script (just run `npm publish --access public` directly)
