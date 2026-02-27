@@ -107,11 +107,11 @@ export function multiplayerAssetStore(opts?: {
 
 			const isVector = MediaHelpers.isVectorImageType(asset?.props.mimeType)
 
-			// SVGs are routed through cdn-cgi/image for sanitization (strips scripts,
-			// hyperlinks, cross-origin refs) but not resized.
-			// https://developers.cloudflare.com/images/transform-images/
+			// SVGs are sanitized at upload time by sanitizeSvg(), so we serve them
+			// directly without Cloudflare Image Transformations. format=auto would
+			// rasterize the SVG, destroying foreignObject/HTML content (e.g. text).
 			if (isVector) {
-				return `${USER_CONTENT_URL}/cdn-cgi/image/format=auto/${objectName}`
+				return `${USER_CONTENT_URL}/${objectName}`
 			}
 
 			// Assets that are under a certain file size aren't worth resizing.

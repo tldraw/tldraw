@@ -316,7 +316,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			[editor]
 		)
 		const isReadyForEditing = useIsReadyForEditing(editor, shape.id)
-		const isForceSolid = useEfficientZoomThreshold(props.scale * 0.25)
+		const isForceSolid = useEfficientZoomThreshold(0.25 / shape.props.scale)
 		const isDarkMode = useIsDarkMode()
 		const dv = useValue(
 			'geo shape display values',
@@ -373,7 +373,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	indicator(shape: TLGeoShape) {
-		const isZoomedOut = useEfficientZoomThreshold(shape.props.scale * 0.25)
+		const isZoomedOut = useEfficientZoomThreshold(0.25 / shape.props.scale)
 
 		const { dash, scale } = shape.props
 		const dv = useValue(
@@ -401,7 +401,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {
-		const isForceSolid = this.editor.getEfficientZoomLevel() < shape.props.scale * 0.25
+		const isForceSolid = this.editor.getEfficientZoomLevel() < 0.25 / shape.props.scale
 
 		const { dash, scale } = shape.props
 		const dv = getDisplayValues(this, shape, false)

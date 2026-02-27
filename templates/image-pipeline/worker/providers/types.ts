@@ -53,7 +53,7 @@ export async function resolveImage(
 		}
 		const decoded = decodeURIComponent(data)
 		const bytes = new TextEncoder().encode(decoded)
-		const b64 = arrayBufferToBase64(bytes.buffer)
+		const b64 = arrayBufferToBase64(bytes.buffer as ArrayBuffer)
 		return {
 			blob: new Blob([bytes], { type: mime }),
 			dataUrl: `data:${mime};base64,${b64}`,

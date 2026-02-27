@@ -34,7 +34,6 @@ import {
 	TLCursorType,
 	TLDOCUMENT_ID,
 	TLDocument,
-	TLFrameShape,
 	TLGroupShape,
 	TLHandle,
 	TLINSTANCE_ID,
@@ -134,7 +133,7 @@ import {
 } from '../utils/deepLinks'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
-import { getDroppedShapesToNewParents } from '../utils/reparenting'
+import { getDroppedShapesToNewParents, kickoutOccludedShapes } from '../utils/reparenting'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
@@ -9361,46 +9360,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: bindings.map((binding) => [binding.id, createBindingId()])
 		)
 
-		// By default, the paste parent will be the current page.
-		let pasteParentId = this.getCurrentPageId() as TLPageId | TLShapeId
-		let lowestDepth = Infinity
-		let lowestAncestors: TLShape[] = []
+		let pasteParentId: TLPageId | TLShapeId = currentPageId
 
-		// Among the selected shapes, find the shape with the fewest ancestors and use its first ancestor.
-		for (const shape of this.getSelectedShapes()) {
-			if (lowestDepth === 0) break
-
-			const isFrame = this.isShapeOfType(shape, 'frame')
-			const ancestors = this.getShapeAncestors(shape)
-			if (isFrame) ancestors.push(shape)
-
-			const depth = isFrame ? ancestors.length + 1 : ancestors.length
-
-			if (depth < lowestDepth) {
-				lowestDepth = depth
-				lowestAncestors = ancestors
-				pasteParentId = isFrame ? shape.id : shape.parentId
-			} else if (depth === lowestDepth) {
-				if (lowestAncestors.length !== ancestors.length) {
-					throw Error(`Ancestors: ${lowestAncestors.length} !== ${ancestors.length}`)
-				}
-
-				if (lowestAncestors.length === 0) {
-					pasteParentId = currentPageId
-					break
-				} else {
-					pasteParentId = currentPageId
-					for (let i = 0; i < lowestAncestors.length; i++) {
-						if (ancestors[i] !== lowestAncestors[i]) break
-						pasteParentId = ancestors[i].id
-					}
-				}
-			}
-		}
+		const shapesById = new Map(shapes.map((s) => [s.id, s]))
+		const rootShapesFromContent = compact(rootShapeIds.map((id) => shapesById.get(id)))
 
 		if (point) {
-			const shapesById = new Map<TLShapeId, TLShape>(shapes.map((shape) => [shape.id, shape]))
-			const rootShapesFromContent = compact(rootShapeIds.map((id) => shapesById.get(id)))
+			// PASTE AT CURSOR: find the deepest accepts-children shape under the cursor
 			if (rootShapesFromContent.length > 0) {
 				const targetParent = this.getShapeAtPoint(point, {
 					hitInside: true,
@@ -9408,51 +9374,72 @@ export class Editor extends EventEmitter<TLEventMap> {
 					hitLocked: true,
 					filter: (shape) => {
 						const util = this.getShapeUtil(shape)
-						if (!util.canReceiveNewChildrenOfType) return false
 						return rootShapesFromContent.every((rootShape) =>
-							util.canReceiveNewChildrenOfType!(shape, rootShape.type)
+							util.canReceiveNewChildrenOfType?.(shape, rootShape.type)
 						)
 					},
 				})
-
-				// When pasting at a specific point (e.g. paste-at-cursor) prefer the
-				// parent under the pointer so that we don't keep using the original
-				// selection's parent (which can keep shapes clipped inside frames).
-				pasteParentId = targetParent ? targetParent.id : currentPageId
+				pasteParentId = targetParent?.id ?? currentPageId
 			}
-		}
+		} else if (!preservePosition) {
+			// STANDARD PASTE: check if a selected shape (or its ancestor) accepts children
+			const selectedShapes = this.getSelectedShapes()
+			let selectedParent: TLShape | null = null
 
-		let isDuplicating = false
+			const canAcceptAll = (candidate: TLShape) => {
+				const util = this.getShapeUtil(candidate)
+				return rootShapesFromContent.every((rs) =>
+					util.canReceiveNewChildrenOfType?.(candidate, rs.type)
+				)
+			}
 
-		if (!isPageId(pasteParentId)) {
-			const parent = this.getShape(pasteParentId)
-			if (parent) {
-				if (!this.getViewportPageBounds().includes(this.getShapePageBounds(parent)!)) {
-					pasteParentId = currentPageId
-				} else {
-					if (rootShapeIds.length === 1) {
-						const rootShape = shapes.find((s) => s.id === rootShapeIds[0])!
-						if (
-							this.isShapeOfType(parent, 'frame') &&
-							this.isShapeOfType(rootShape, 'frame') &&
-							rootShape.props.w === parent?.props.w &&
-							rootShape.props.h === parent?.props.h
-						) {
-							isDuplicating = true
+			for (const shape of selectedShapes) {
+				// Find the nearest container: the shape itself if it can accept,
+				// an accepting ancestor, or fall back to the shape's parent
+				// (handles groups and other non-frame containers)
+				const candidate = canAcceptAll(shape)
+					? shape
+					: (this.findShapeAncestor(shape, canAcceptAll) ??
+						(isShapeId(shape.parentId) ? this.getShape(shape.parentId)! : null))
+
+				if (!candidate) {
+					selectedParent = null
+					break
+				}
+				if (!selectedParent) {
+					selectedParent = candidate
+				} else if (selectedParent.id !== candidate.id) {
+					// Different candidates — find the deepest common accepting ancestor
+					const spAncestors = this.getShapeAncestors(selectedParent)
+					if (canAcceptAll(selectedParent)) spAncestors.push(selectedParent)
+					const acceptingAncestors = spAncestors.filter(canAcceptAll)
+
+					const candidateAncestorIds = new Set([
+						candidate.id,
+						...this.getShapeAncestors(candidate).map((a) => a.id),
+					])
+
+					let common: TLShape | null = null
+					for (let i = acceptingAncestors.length - 1; i >= 0; i--) {
+						if (candidateAncestorIds.has(acceptingAncestors[i].id)) {
+							common = acceptingAncestors[i]
+							break
 						}
 					}
+
+					selectedParent = common
+					if (!selectedParent) break
 				}
-			} else {
-				pasteParentId = currentPageId
 			}
-		}
 
-		if (!isDuplicating) {
-			isDuplicating = shapeIdMap.has(pasteParentId)
-		}
+			// Don't paste a shape into itself (the duplicating-a-frame case)
+			if (selectedParent && shapeIdMap.has(selectedParent.id)) {
+				selectedParent = null
+			}
 
-		if (isDuplicating) {
-			pasteParentId = this.getShape(pasteParentId)!.parentId
+			if (selectedParent) {
+				pasteParentId = selectedParent.id
+			}
 		}
 
 		let index = this.getHighestIndexForParent(pasteParentId) // todo: requires that the putting page is the current page
@@ -9560,20 +9547,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 
 		this.run(() => {
-			// Create any assets that need to be created
-			if (assetsToCreate.length > 0) {
-				this.createAssets(assetsToCreate)
-			}
-
-			// Create the shapes with root shapes as children of the page
+			if (assetsToCreate.length > 0) this.createAssets(assetsToCreate)
 			this.createShapes(newShapes)
 			this.createBindings(newBindings)
+			if (select) this.select(...rootShapes.map((s) => s.id))
 
-			if (select) {
-				this.select(...rootShapes.map((s) => s.id))
-			}
-
-			// And then, if needed, reparent the root shapes to the paste parent
+			// Reparent root shapes to paste parent if not page
 			if (pasteParentId !== currentPageId) {
 				this.reparentShapes(
 					rootShapes.map((s) => s.id),
@@ -9581,69 +9560,65 @@ export class Editor extends EventEmitter<TLEventMap> {
 				)
 			}
 
-			const newCreatedShapes = newShapes.map((s) => this.getShape(s.id)!)
-			const bounds = Box.Common(newCreatedShapes.map((s) => this.getShapePageBounds(s)!))
+			// --- POSITIONING ---
+			const rootBounds = Box.Common(compact(rootShapes.map((s) => this.getShapePageBounds(s.id))))
 
 			if (point === undefined) {
 				if (!isPageId(pasteParentId)) {
-					// Put the shapes in the middle of the (on screen) parent
+					// Paste into selected parent → center in that shape
 					const shape = this.getShape(pasteParentId)!
 					point = Mat.applyToPoint(
 						this.getShapePageTransform(shape),
 						this.getShapeGeometry(shape).bounds.center
 					)
+				} else if (preservePosition) {
+					// preservePosition (page duplication) → keep original coords
+					point = rootBounds.center
 				} else {
+					// Standard paste to page: check viewport overlap
 					const viewportPageBounds = this.getViewportPageBounds()
-					if (preservePosition || viewportPageBounds.includes(Box.From(bounds))) {
-						// Otherwise, put shapes where they used to be
-						point = bounds.center
-					} else {
-						// If the old bounds are outside of the viewport...
-						// put the shapes in the middle of the viewport
-						point = viewportPageBounds.center
-					}
+					const anyOverlap = rootShapes.some((s) => {
+						const b = this.getShapePageBounds(s.id)
+						return b && viewportPageBounds.collides(b)
+					})
+					point = anyOverlap ? rootBounds.center : viewportPageBounds.center
 				}
 			}
 
-			if (rootShapes.length === 1) {
-				const onlyRoot = rootShapes[0] as TLFrameShape
-				// If the old bounds are in the viewport...
-				// todo: replace frame references with shapes that can accept children
-				if (this.isShapeOfType(onlyRoot, 'frame')) {
-					while (
-						this.getShapesAtPoint(point).some(
-							(shape) =>
-								this.isShapeOfType(shape, 'frame') &&
-								shape.props.w === onlyRoot.props.w &&
-								shape.props.h === onlyRoot.props.h
-						)
-					) {
-						point.x += bounds.w + 16
-					}
-				}
-			}
-
+			// Apply offset to move shapes to target point
 			const pageCenter = Box.Common(
 				compact(rootShapes.map(({ id }) => this.getShapePageBounds(id)))
 			).center
-
 			const offset = Vec.Sub(point, pageCenter)
 
-			this.updateShapes(
-				rootShapes.map(({ id }) => {
-					const s = this.getShape(id)!
-					const localRotation = this.getShapeParentTransform(id).decompose().rotation
-					const localDelta = Vec.Rot(offset, -localRotation)
+			if (offset.x !== 0 || offset.y !== 0) {
+				this.updateShapes(
+					rootShapes.map(({ id }) => {
+						const s = this.getShape(id)!
+						const localRotation = this.getShapeParentTransform(id).decompose().rotation
+						const localDelta = Vec.Rot(offset, -localRotation)
+						return { id: s.id, type: s.type, x: s.x + localDelta.x, y: s.y + localDelta.y }
+					})
+				)
+			}
 
-					return { id: s.id, type: s.type, x: s.x + localDelta.x, y: s.y + localDelta.y }
-				})
-			)
-
-			// If shapes were pasted onto the page (not into a specific parent),
-			// check whether they landed inside a frame and reparent if so.
+			// Auto-reparent into frames when pasted to page level
 			if (isPageId(pasteParentId)) {
 				const currentRootShapes = compact(rootShapes.map((s) => this.getShape(s.id)))
-				const { reparenting } = getDroppedShapesToNewParents(this, currentRootShapes)
+				// Don't reparent into source shapes (prevents a duplicate frame
+				// from being swallowed by its original), and require the shape's
+				// center to be inside the parent (filters out edge-only overlaps)
+				const { reparenting } = getDroppedShapesToNewParents(
+					this,
+					currentRootShapes,
+					(shape, parent) => {
+						if (shapeIdMap.has(parent.id)) return false
+						const shapeBounds = this.getShapePageBounds(shape)
+						const parentBounds = this.getShapePageBounds(parent)
+						if (!shapeBounds || !parentBounds) return false
+						return parentBounds.containsPoint(shapeBounds.center)
+					}
+				)
 				reparenting.forEach((childrenToReparent, newParentId) => {
 					if (childrenToReparent.length === 0) return
 					this.reparentShapes(
@@ -9651,6 +9626,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 						newParentId
 					)
 				})
+			}
+
+			// Kick out any pasted root shapes that ended up outside their parent container
+			const newShapeIdSet = new Set(newShapes.map((s) => s.id))
+			const shapesToKickout = rootShapes
+				.map((s) => s.id)
+				.filter((id) => {
+					const shape = this.getShape(id)
+					if (!shape) return false
+					// Only check shapes that are children of a shape (not page)
+					if (isPageId(shape.parentId)) return false
+					// Don't check containers with pasted children (preserves intentional
+					// parent-child relationships from the copied content)
+					const children = this.getSortedChildIdsForParent(id)
+					return !children.some((childId) => newShapeIdSet.has(childId))
+				})
+
+			if (shapesToKickout.length > 0) {
+				kickoutOccludedShapes(this, shapesToKickout)
 			}
 		})
 

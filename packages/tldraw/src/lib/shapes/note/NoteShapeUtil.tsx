@@ -5,6 +5,7 @@ import {
 	Group2d,
 	IndexKey,
 	Rectangle2d,
+	SafeId,
 	ShapeUtil,
 	SvgExportContext,
 	TLHandle,
@@ -324,7 +325,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const nh = getNoteHeight(shape, dv.noteHeight)
 
 		// Shadows are hidden when zoomed out far enough or in dark mode
-		let hideShadows = useEfficientZoomThreshold(scale * 0.25)
+		let hideShadows = useEfficientZoomThreshold(0.25 / scale)
 		if (isDarkMode) hideShadows = true
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
@@ -404,6 +405,33 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
 		const bounds = new Box(0, 0, dv.noteWidth, dv.noteHeight + shape.props.growY)
 
+		const filterId = `note-shadow-${shape.id.replace(/:/g, '_')}` as SafeId
+
+		ctx.addExportDef({
+			key: filterId,
+			getElement: () => (
+				<filter id={filterId} x="-10%" y="-10%" width="130%" height="150%">
+					<feMorphology in="SourceAlpha" operator="erode" radius="3" result="erode1" />
+					<feGaussianBlur in="erode1" stdDeviation="3" result="blur1" />
+					<feOffset in="blur1" dy="3" result="offsetBlur1" />
+					<feComponentTransfer in="offsetBlur1" result="shadow1">
+						<feFuncA type="linear" slope="0.5" />
+					</feComponentTransfer>
+					<feMorphology in="SourceAlpha" operator="erode" radius="10" result="erode2" />
+					<feGaussianBlur in="erode2" stdDeviation="6" result="blur2" />
+					<feOffset in="blur2" dy="6" result="offsetBlur2" />
+					<feComponentTransfer in="offsetBlur2" result="shadow2">
+						<feFuncA type="linear" slope="0.5" />
+					</feComponentTransfer>
+					<feMerge>
+						<feMergeNode in="shadow1" />
+						<feMergeNode in="shadow2" />
+						<feMergeNode in="SourceGraphic" />
+					</feMerge>
+				</filter>
+			),
+		})
+
 		const textLabel = (
 			<RichTextSVG
 				fontSize={shape.props.fontSizeAdjustment || dv.labelFontSize}
@@ -421,14 +449,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		return (
 			<>
-				<rect
-					x={5}
-					y={5}
-					rx={1}
-					width={dv.noteWidth - 10}
-					height={bounds.h}
-					fill="rgba(0,0,0,.1)"
-				/>
+				{ctx.isDarkMode ? null : (
+					<rect
+						x={5}
+						y={5}
+						rx={1}
+						width={dv.noteWidth - 10}
+						height={bounds.h}
+						fill="rgba(0,0,0,.1)"
+					/>
+				)}
 				<rect rx={1} width={dv.noteWidth} height={bounds.h} fill={dv.noteBackgroundColor} />
 				{textLabel}
 			</>
