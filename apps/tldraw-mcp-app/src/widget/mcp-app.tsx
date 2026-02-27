@@ -1,5 +1,14 @@
+import { ClerkProvider, SignInButton, useAuth } from '@clerk/clerk-react'
 import { type App, useApp } from '@modelcontextprotocol/ext-apps/react'
-import { useCallback, useEffect, useRef } from 'react'
+import React, {
+	Component,
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { createRoot } from 'react-dom/client'
 import {
 	type TLComponents,
@@ -22,6 +31,53 @@ import {
 } from '../focused-shape'
 import { healJsonArrayString } from '../parse-json'
 
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string
+
+// --- Clerk auth context ---
+// Decouples Clerk from TldrawCanvas so a Clerk init failure doesn't kill the canvas.
+
+interface AuthState {
+	isSignedIn: boolean
+	clerkReady: boolean
+}
+
+const AuthContext = createContext<AuthState>({ isSignedIn: false, clerkReady: false })
+
+function ClerkAuthSync({ children }: { children: React.ReactNode }) {
+	const { isSignedIn } = useAuth()
+	useEffect(() => {
+		log(`Clerk ready, isSignedIn=${isSignedIn ?? false}`)
+	}, [isSignedIn])
+	return (
+		<AuthContext.Provider value={{ isSignedIn: isSignedIn ?? false, clerkReady: true }}>
+			{children}
+		</AuthContext.Provider>
+	)
+}
+
+class ClerkBoundary extends Component<{ children: React.ReactNode }, { failed: boolean }> {
+	state = { failed: false }
+	static getDerivedStateFromError(error: Error) {
+		log(`Clerk init failed: ${error.message}`)
+		return { failed: true }
+	}
+	render() {
+		if (this.state.failed) {
+			// Clerk failed to init — render children without auth (canvas still shows)
+			return <>{this.props.children}</>
+		}
+		return (
+			<ClerkProvider
+				publishableKey={PUBLISHABLE_KEY}
+				routerPush={(to) => log(`Clerk navigate: ${to}`)}
+				routerReplace={(to) => log(`Clerk navigate: ${to}`)}
+			>
+				<ClerkAuthSync>{this.props.children}</ClerkAuthSync>
+			</ClerkProvider>
+		)
+	}
+}
+
 const EDITOR_HEIGHT = 600
 const SAVE_DEBOUNCE_MS = 500
 
@@ -29,15 +85,31 @@ interface CanvasSnapshot {
 	shapes: TLShape[]
 }
 
-const debugLines: string[] = []
+const DEBUG_KEY = 'tldraw-mcp-debug'
+const debugLines: string[] = (() => {
+	try {
+		const prev = sessionStorage.getItem(DEBUG_KEY)
+		return prev ? [...prev.split('\n'), '--- reload ---'] : []
+	} catch {
+		return []
+	}
+})()
+
 function log(msg: string) {
 	debugLines.push(`${new Date().toISOString().slice(11, 23)} ${msg}`)
 	const el = document.getElementById('debug')
 	if (el) el.textContent = debugLines.join('\n')
+	try {
+		sessionStorage.setItem(DEBUG_KEY, debugLines.slice(-200).join('\n'))
+	} catch {}
 }
 
 window.addEventListener('error', (e) => log(`ERROR: ${e.message}`))
 window.addEventListener('unhandledrejection', (e) => log(`REJECTION: ${e.reason}`))
+document.addEventListener('securitypolicyviolation', (e) =>
+	log(`CSP blocked: ${e.blockedURI} (${e.violatedDirective})`)
+)
+log(`origin: ${window.location.origin} href: ${window.location.href}`)
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null
@@ -594,6 +666,15 @@ function TldrawCanvas({ app }: { app: App }) {
 	const saveTimerRef = useRef<number | null>(null)
 	const requestShapeIdsRef = useRef<Set<TLShapeId>>(new Set())
 
+	const { isSignedIn, clerkReady } = useContext(AuthContext)
+	const isSignedInRef = useRef(isSignedIn)
+	const [showAuthPrompt, setShowAuthPrompt] = useState(false)
+
+	useEffect(() => {
+		isSignedInRef.current = isSignedIn
+		if (isSignedIn) setShowAuthPrompt(false)
+	}, [isSignedIn])
+
 	const renderPreviewSnapshot = useCallback((previewSnapshot: CanvasSnapshot, summary: string) => {
 		previewActiveRef.current = true
 
@@ -868,6 +949,80 @@ function TldrawCanvas({ app }: { app: App }) {
 				{ source: 'user', scope: 'document' }
 			)
 
+			// Require auth for image uploads and pastes by intercepting DOM events
+			// before tldraw handles them (capture phase runs first).
+			const container = editor.getContainer()
+
+			const onDrop = (e: DragEvent) => {
+				const hasImages = [...(e.dataTransfer?.files ?? [])].some((f) =>
+					f.type.startsWith('image/')
+				)
+				if (hasImages && !isSignedInRef.current) {
+					e.preventDefault()
+					e.stopPropagation()
+					setShowAuthPrompt(true)
+				}
+			}
+
+			const onPaste = (e: ClipboardEvent) => {
+				const files = [...(e.clipboardData?.files ?? [])]
+				const items = [...(e.clipboardData?.items ?? [])]
+				const hasImageFiles = files.some((f) => f.type.startsWith('image/'))
+				const hasImageItems = items.some((i) => i.kind === 'file' && i.type.startsWith('image/'))
+				const hasImages = hasImageFiles || hasImageItems
+				log(
+					`paste: files=[${files.map((f) => f.type).join(',') || 'none'}] items=[${items.map((i) => `${i.kind}:${i.type}`).join(',') || 'none'}] hasImages=${hasImages} signedIn=${isSignedInRef.current}`
+				)
+				if (!hasImages) return
+
+				if (!isSignedInRef.current) {
+					e.preventDefault()
+					e.stopPropagation()
+					setShowAuthPrompt(true)
+					log('paste: blocked (not signed in)')
+					return
+				}
+
+				// Signed in: tldraw calls navigator.clipboard.read() (async) which is blocked
+				// in the MCP iframe. By the time its rejection handler fires, e.clipboardData
+				// is already cleared by the browser. Extract files synchronously here instead
+				// and pass them directly to tldraw's putExternalContent.
+				const imageFiles: File[] = []
+				for (const item of items) {
+					if (item.kind === 'file' && item.type.startsWith('image/')) {
+						const file = item.getAsFile()
+						if (file) imageFiles.push(file)
+					}
+				}
+				for (const file of files) {
+					if (file.type.startsWith('image/')) imageFiles.push(file)
+				}
+
+				if (imageFiles.length > 0) {
+					e.preventDefault()
+					e.stopPropagation()
+					const editor = editorRef.current
+					if (editor) {
+						editor
+							.putExternalContent({ type: 'files', files: imageFiles })
+							.catch((err: unknown) => {
+								log(`paste: putExternalContent failed: ${err}`)
+							})
+						log(`paste: handling ${imageFiles.length} image(s) via putExternalContent`)
+					}
+				}
+			}
+
+			container.addEventListener('drop', onDrop, { capture: true })
+			document.addEventListener('paste', onPaste, { capture: true })
+
+			const prevRemoveListener = removeStoreListenerRef.current
+			removeStoreListenerRef.current = () => {
+				prevRemoveListener?.()
+				container.removeEventListener('drop', onDrop, { capture: true })
+				document.removeEventListener('paste', onPaste, { capture: true })
+			}
+
 			// Apply any snapshot that arrived before the editor was ready
 			const pendingSnapshot = pendingSnapshotRef.current
 			if (pendingSnapshot) {
@@ -893,6 +1048,86 @@ function TldrawCanvas({ app }: { app: App }) {
 				onMount={handleMount}
 				components={tldrawComponents}
 			/>
+			{showAuthPrompt && (
+				<div
+					style={{
+						position: 'absolute',
+						inset: 0,
+						background: 'rgba(0,0,0,0.45)',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						zIndex: 1000,
+					}}
+				>
+					<div
+						style={{
+							background: 'white',
+							borderRadius: 8,
+							padding: '24px 28px',
+							textAlign: 'center',
+							maxWidth: 300,
+							boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+						}}
+					>
+						<p style={{ margin: '0 0 16px', fontSize: 14, lineHeight: 1.5, color: '#111' }}>
+							Sign in to your tldraw account to upload images.
+						</p>
+						<div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+							{clerkReady ? (
+								<SignInButton mode="modal">
+									<button
+										onClick={() => log('Sign in button clicked')}
+										style={{
+											padding: '8px 16px',
+											background: '#2563eb',
+											color: 'white',
+											border: 'none',
+											borderRadius: 6,
+											cursor: 'pointer',
+											fontSize: 14,
+											fontWeight: 500,
+										}}
+									>
+										Sign in
+									</button>
+								</SignInButton>
+							) : (
+								<a
+									href="https://tldraw.com"
+									target="_blank"
+									rel="noreferrer"
+									style={{
+										padding: '8px 16px',
+										background: '#2563eb',
+										color: 'white',
+										borderRadius: 6,
+										textDecoration: 'none',
+										fontSize: 14,
+										fontWeight: 500,
+									}}
+								>
+									Sign in at tldraw.com
+								</a>
+							)}
+							<button
+								onClick={() => setShowAuthPrompt(false)}
+								style={{
+									padding: '8px 16px',
+									background: 'transparent',
+									color: '#555',
+									border: '1px solid #ddd',
+									borderRadius: 6,
+									cursor: 'pointer',
+									fontSize: 14,
+								}}
+							>
+								Cancel
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }
@@ -941,35 +1176,37 @@ function McpApp() {
 	const status = isConnected ? 'ready' : 'connecting'
 
 	return (
-		<div>
-			<div
-				id="debug"
-				style={{
-					position: 'fixed',
-					bottom: 0,
-					left: 0,
-					right: 0,
-					background: 'rgba(0,0,0,0.85)',
-					color: '#0f0',
-					fontFamily: 'monospace',
-					fontSize: 11,
-					padding: 8,
-					zIndex: 999999,
-					maxHeight: 150,
-					overflow: 'auto',
-					whiteSpace: 'pre',
-				}}
-			>
-				{debugLines.join('\n')}
+		<ClerkBoundary>
+			<div>
+				<div
+					id="debug"
+					style={{
+						position: 'fixed',
+						bottom: 0,
+						left: 0,
+						right: 0,
+						background: 'rgba(0,0,0,0.85)',
+						color: '#0f0',
+						fontFamily: 'monospace',
+						fontSize: 11,
+						padding: 8,
+						zIndex: 999999,
+						maxHeight: 150,
+						overflow: 'auto',
+						whiteSpace: 'pre',
+					}}
+				>
+					{debugLines.join('\n')}
+				</div>
+				{error ? (
+					<div style={{ padding: 20, color: 'red' }}>Error: {error.message}</div>
+				) : !isConnected || !app ? (
+					<div style={{ padding: 20, opacity: 0.5 }}>Status: {status}</div>
+				) : (
+					<TldrawCanvas app={app} />
+				)}
 			</div>
-			{error ? (
-				<div style={{ padding: 20, color: 'red' }}>Error: {error.message}</div>
-			) : !isConnected || !app ? (
-				<div style={{ padding: 20, opacity: 0.5 }}>Status: {status}</div>
-			) : (
-				<TldrawCanvas app={app} />
-			)}
-		</div>
+		</ClerkBoundary>
 	)
 }
 
