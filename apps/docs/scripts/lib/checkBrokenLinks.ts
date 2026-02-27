@@ -1,3 +1,4 @@
+import { fetchFramerPaths } from '@/utils/framer-sitemap'
 import { nicelog } from '@/utils/nicelog'
 import { connect } from './connect'
 
@@ -7,25 +8,6 @@ export interface BrokenLink {
 	url: string
 	reason: string
 }
-
-// Framer rewrite prefixes — any path starting with these is served externally
-const FRAMER_PREFIXES = [
-	'/',
-	'/404',
-	'/accessibility',
-	'/blog',
-	'/careers',
-	'/company',
-	'/events',
-	'/faq',
-	'/features',
-	'/get-a-license',
-	'/legal',
-	'/partner',
-	'/pricing',
-	'/showcase',
-	'/thanks',
-]
 
 // Internal rewrites: source → destination (both are valid paths)
 const INTERNAL_REWRITES: Record<string, string> = {
@@ -124,23 +106,11 @@ function tryRedirect(urlPath: string): string | null {
 	return null
 }
 
-/**
- * Check if a path is covered by a Framer rewrite prefix.
- * The exact prefix '/' only matches exactly '/'.
- */
-function isFramerPath(urlPath: string): boolean {
-	for (const prefix of FRAMER_PREFIXES) {
-		if (prefix === '/') {
-			if (urlPath === '/') return true
-		} else {
-			if (urlPath === prefix || urlPath.startsWith(prefix + '/')) return true
-		}
-	}
-	return false
-}
-
 export async function checkBrokenLinks(): Promise<number> {
 	const db = await connect({ mode: 'readonly' })
+
+	// Fetch framer paths from the live sitemap so we don't maintain a stale list
+	const framerPaths = await fetchFramerPaths()
 
 	// Build set of all valid paths
 	const validPaths = new Set<string>()
@@ -252,7 +222,7 @@ export async function checkBrokenLinks(): Promise<number> {
 				// Case-insensitive fallback (handles macOS FS collisions
 				// where e.g. Atom.mdx and atom.mdx map to the same file)
 				pathValid = true
-			} else if (isFramerPath(urlPath)) {
+			} else if (framerPaths.has(urlPath)) {
 				pathValid = true
 			} else {
 				// Try redirect resolution
