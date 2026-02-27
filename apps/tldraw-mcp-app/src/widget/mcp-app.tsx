@@ -8,6 +8,7 @@ import {
 	type TLShape,
 	type TLShapeId,
 	Box,
+	DefaultToolbar,
 	Editor,
 	Tldraw,
 	getIndexAbove,
@@ -636,8 +637,14 @@ function SharePanelContent() {
 	)
 }
 
+function DynamicToolbar() {
+	const { displayMode } = useContext(DisplayModeContext)
+	return <DefaultToolbar orientation={displayMode === 'fullscreen' ? 'vertical' : 'horizontal'} />
+}
+
 const tldrawComponents: TLComponents = {
 	SharePanel: SharePanelContent,
+	Toolbar: DynamicToolbar,
 }
 
 function createR2AssetStore(app: App): TLAssetStore {
@@ -689,6 +696,7 @@ function createR2AssetStore(app: App): TLAssetStore {
 
 function TldrawCanvas({ app }: { app: App }) {
 	const [displayMode, setDisplayMode] = useState<'inline' | 'fullscreen'>('inline')
+	const [containerHeight, setContainerHeight] = useState<number | null>(null)
 	const assetStore = useMemo(() => createR2AssetStore(app), [app])
 	const editorRef = useRef<Editor | null>(null)
 	const pendingSnapshotRef = useRef<CanvasSnapshot | null>(null)
@@ -703,6 +711,23 @@ function TldrawCanvas({ app }: { app: App }) {
 
 	const toggleFullscreen = useCallback(async () => {
 		const newMode = displayMode === 'fullscreen' ? 'inline' : 'fullscreen'
+
+		// Sync current editor state before leaving fullscreen
+		if (newMode === 'inline') {
+			const editor = editorRef.current
+			if (editor) {
+				const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
+				const assets = [...editor.getAssets()].map((a) => structuredClone(a))
+				committedSnapshotRef.current = { shapes, assets }
+				pushCanvasContext(app, editor)
+				const cpId = checkpointIdRef.current
+				if (cpId) {
+					saveLocalSnapshot(cpId, shapes, assets)
+					saveCheckpointToServer(app, cpId, editor)
+				}
+			}
+		}
+
 		try {
 			const result = await app.requestDisplayMode({ mode: newMode })
 			const actualMode = result.mode === 'fullscreen' ? 'fullscreen' : 'inline'
@@ -879,8 +904,31 @@ function TldrawCanvas({ app }: { app: App }) {
 
 		app.onhostcontextchanged = (ctx) => {
 			log(`hostcontext: ${JSON.stringify(ctx)}`)
-			if (isRecord(ctx) && typeof ctx.displayMode === 'string') {
-				setDisplayMode(ctx.displayMode === 'fullscreen' ? 'fullscreen' : 'inline')
+			const record = ctx as Record<string, unknown>
+
+			const dims = record.containerDimensions
+			if (isRecord(dims) && typeof dims.height === 'number') {
+				setContainerHeight(dims.height)
+			}
+
+			if (typeof record.displayMode === 'string') {
+				// Sync editor state before host exits fullscreen
+				if (record.displayMode !== 'fullscreen') {
+					const editor = editorRef.current
+					if (editor) {
+						const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
+						const assets = [...editor.getAssets()].map((a) => structuredClone(a))
+						committedSnapshotRef.current = { shapes, assets }
+						pushCanvasContext(app, editor)
+						const cpId = checkpointIdRef.current
+						if (cpId) {
+							saveLocalSnapshot(cpId, shapes, assets)
+							saveCheckpointToServer(app, cpId, editor)
+						}
+					}
+				}
+				const newMode = record.displayMode === 'fullscreen' ? 'fullscreen' : 'inline'
+				setDisplayMode(newMode)
 			}
 		}
 
@@ -999,6 +1047,18 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 	}, [app, applyPreviewFromToolInput, clearPreviewAndRestoreCommitted])
 
+	// Set explicit height on html/body in fullscreen (position:fixed doesn't give body height in iframes)
+	useEffect(() => {
+		if (displayMode === 'fullscreen' && containerHeight) {
+			const h = `${containerHeight}px`
+			document.documentElement.style.height = h
+			document.body.style.height = h
+		} else {
+			document.documentElement.style.height = ''
+			document.body.style.height = ''
+		}
+	}, [displayMode, containerHeight])
+
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			log('Tldraw editor onMount fired')
@@ -1011,6 +1071,26 @@ function TldrawCanvas({ app }: { app: App }) {
 				},
 				{ source: 'user', scope: 'document' }
 			)
+
+			// Keep viewport center stable when the container resizes (fullscreen toggle).
+			// This fires synchronously when tldraw processes the resize, so there's no
+			// visible delay. The camera {x,y,z} doesn't change on resize by default —
+			// content just shifts because the screen bounds changed. We compensate by
+			// nudging the camera by half the bounds delta.
+			editor.sideEffects.registerAfterChangeHandler('instance', (prev, next) => {
+				const pb = prev.screenBounds
+				const nb = next.screenBounds
+				const dw = nb.w - pb.w
+				const dh = nb.h - pb.h
+				if (dw === 0 && dh === 0) return
+
+				const cam = editor.getCamera()
+				editor.setCamera({
+					x: cam.x + dw / cam.z / 2,
+					y: cam.y + dh / cam.z / 2,
+					z: cam.z,
+				})
+			})
 
 			// Apply any snapshot that arrived before the editor was ready
 			const pendingSnapshot = pendingSnapshotRef.current
@@ -1030,14 +1110,29 @@ function TldrawCanvas({ app }: { app: App }) {
 		[scheduleSave]
 	)
 
+	const isFullscreen = displayMode === 'fullscreen'
+
 	return (
 		<DisplayModeContext.Provider value={displayModeCtx}>
 			<div
-				style={{
-					width: '100%',
-					height: displayMode === 'fullscreen' ? '100vh' : EDITOR_HEIGHT,
-					position: 'relative',
-				}}
+				style={
+					isFullscreen
+						? {
+								position: 'fixed',
+								top: 0,
+								left: 0,
+								right: 0,
+								bottom: 0,
+								zIndex: 9999,
+								background: '#fff',
+								...(containerHeight ? { height: containerHeight } : {}),
+							}
+						: {
+								width: '100%',
+								height: EDITOR_HEIGHT,
+								position: 'relative',
+							}
+				}
 			>
 				<Tldraw
 					assets={assetStore}
@@ -1064,26 +1159,18 @@ function McpApp() {
 
 	useEffect(() => {
 		if (!app || !isConnected) return
-		const connectedApp = app
 
-		let cancelled = false
+		log('Connected!')
 
-		async function sendInitialSize() {
-			try {
-				log('Connected!')
-				await connectedApp.requestDisplayMode({ mode: 'inline' })
-				if (!cancelled) {
-					log('App ready, rendering tldraw')
-				}
-			} catch (err) {
-				const msg = err instanceof Error ? err.message : String(err)
-				if (!cancelled) log(`Error sending initial ui request: ${msg}`)
-			}
+		// Read initial host context without forcing a display mode change.
+		// Calling requestDisplayMode({ mode: 'inline' }) here would force the
+		// host to exit fullscreen if another widget is already fullscreen.
+		const initCtx = app.getHostContext() as Record<string, unknown> | undefined
+		if (initCtx) {
+			log(`Initial host context: ${JSON.stringify(initCtx)}`)
 		}
 
-		void sendInitialSize()
 		return () => {
-			cancelled = true
 			log('McpApp cleanup')
 		}
 	}, [app, isConnected])
@@ -1092,7 +1179,7 @@ function McpApp() {
 
 	return (
 		<div>
-			<div
+			{/* <div
 				id="debug"
 				style={{
 					position: 'fixed',
@@ -1111,7 +1198,7 @@ function McpApp() {
 				}}
 			>
 				{debugLines.join('\n')}
-			</div>
+			</div> */}
 			{error ? (
 				<div style={{ padding: 20, color: 'red' }}>Error: {error.message}</div>
 			) : !isConnected || !app ? (

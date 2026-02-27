@@ -99,10 +99,12 @@ export function parseTlShapes(value: unknown[]): TLShape[] {
 	)
 }
 
-export function errorResponse(err: unknown, summary?: string): CallToolResult {
+export function errorResponse(toolName: string, err: unknown, hint?: string): CallToolResult {
 	const message = err instanceof Error ? err.message : String(err)
+	const parts = [`[${toolName}] Error: ${message}`]
+	if (hint) parts.push(hint)
 	return {
-		content: [{ type: 'text', text: `Error: ${message}\n${summary ?? ''}` }],
+		content: [{ type: 'text', text: parts.join('\n\n') }],
 		isError: true,
 	}
 }
@@ -235,7 +237,11 @@ export function registerTools(
 					},
 				}
 			} catch (err) {
-				return errorResponse(err, shapesJson)
+				return errorResponse(
+					'create_shapes',
+					err,
+					'Ensure shapesJson is a valid JSON array string of shapes objects (call read_me first for the format reference). '
+				)
 			}
 		}
 	)
@@ -256,13 +262,27 @@ export function registerTools(
 			try {
 				const updates = parseFocusedShapeUpdatesInput(updatesJson)
 				const baseShapes = deps.getActiveShapes()
+
+				if (baseShapes.length === 0) {
+					return errorResponse(
+						'update_shapes',
+						new Error('No shapes on the canvas to update.'),
+						'The canvas is empty. Use create_shapes first to add shapes, then update them.'
+					)
+				}
+
 				const shapesById = new Map(baseShapes.map((s) => [s.id, structuredClone(s)]))
 				const updated: string[] = []
+				const notFound: string[] = []
+				const failed: string[] = []
 
 				for (const update of updates) {
 					const id = normalizeShapeId(update.shapeId) as TLShape['id']
 					const existing = shapesById.get(id)
-					if (!existing) continue
+					if (!existing) {
+						notFound.push(toSimpleShapeId(id))
+						continue
+					}
 
 					try {
 						const existingFocused = convertTldrawRecordToFocusedShape(existing)
@@ -276,7 +296,7 @@ export function registerTools(
 						shapesById.set(id, converted)
 						updated.push(toSimpleShapeId(id))
 					} catch {
-						// Skip invalid update inputs.
+						failed.push(toSimpleShapeId(id))
 					}
 				}
 
@@ -286,11 +306,23 @@ export function registerTools(
 				deps.saveCheckpoint(checkpointId, resultShapes)
 				deps.setActiveCheckpointId(checkpointId)
 
+				const lines = [`Updated ${updated.length} of ${updates.length} shape(s).`]
+				if (notFound.length > 0) {
+					const available = baseShapes.map((s) => toSimpleShapeId(s.id))
+					lines.push(
+						`Skipped ${notFound.length} not found: ${notFound.join(', ')}. ` +
+							`Available shape IDs: ${available.join(', ')}`
+					)
+				}
+				if (failed.length > 0) {
+					lines.push(`Skipped ${failed.length} due to invalid update data: ${failed.join(', ')}`)
+				}
+
 				return {
 					content: [
 						{
 							type: 'text',
-							text: `Updated ${updated.length} shape(s).`,
+							text: lines.join('\n'),
 						},
 					],
 					structuredContent: {
@@ -301,7 +333,11 @@ export function registerTools(
 					},
 				}
 			} catch (err) {
-				return errorResponse(err)
+				return errorResponse(
+					'update_shapes',
+					err,
+					'Ensure updatesJson is a valid JSON array of update objects, each with a shapeId field matching an existing shape on the canvas.'
+				)
 			}
 		}
 	)
@@ -330,11 +366,24 @@ export function registerTools(
 				deps.saveCheckpoint(checkpointId, resultShapes)
 				deps.setActiveCheckpointId(checkpointId)
 
+				const lines = [`Deleted ${deletedCount} of ${shapeIds.length} shape(s).`]
+				const notFoundCount = shapeIds.length - deletedCount
+				if (notFoundCount > 0) {
+					const notFoundIds = shapeIds.filter(
+						(id) => !baseShapes.some((s) => s.id === normalizeShapeId(id))
+					)
+					const available = baseShapes.map((s) => toSimpleShapeId(s.id))
+					lines.push(
+						`${notFoundCount} ID(s) not found on canvas: ${notFoundIds.join(', ')}. ` +
+							`Available shape IDs: ${available.join(', ')}`
+					)
+				}
+
 				return {
 					content: [
 						{
 							type: 'text',
-							text: `Deleted ${deletedCount} shape(s).`,
+							text: lines.join('\n'),
 						},
 					],
 					structuredContent: {
@@ -345,7 +394,11 @@ export function registerTools(
 					},
 				}
 			} catch (err) {
-				return errorResponse(err)
+				return errorResponse(
+					'delete_shapes',
+					err,
+					'Ensure shapeIdsJson is a valid JSON array of shape ID strings, e.g. \'["box1", "arrow1"]\'.'
+				)
 			}
 		}
 	)
@@ -429,7 +482,11 @@ export function registerTools(
 					},
 				}
 			} catch (err) {
-				return errorResponse(err)
+				return errorResponse(
+					'create_image',
+					err,
+					'Provide a publicly accessible image URL and numeric x, y, w, h values for position and size.'
+				)
 			}
 		}
 	)
@@ -511,7 +568,7 @@ export function registerTools(
 					],
 				}
 			} catch (err) {
-				return errorResponse(err)
+				return errorResponse('save_checkpoint', err)
 			}
 		}
 	)
@@ -545,9 +602,9 @@ export function registerTools(
 					const ext = ALLOWED_IMAGE_TYPES[contentType]
 					if (!ext) {
 						return errorResponse(
-							new Error(
-								`Unsupported content type: ${contentType}. Allowed: ${Object.keys(ALLOWED_IMAGE_TYPES).join(', ')}`
-							)
+							'upload_image',
+							new Error(`Unsupported content type: ${contentType}.`),
+							`Allowed types: ${Object.keys(ALLOWED_IMAGE_TYPES).join(', ')}`
 						)
 					}
 
@@ -562,7 +619,11 @@ export function registerTools(
 						},
 					}
 				} catch (err) {
-					return errorResponse(err)
+					return errorResponse(
+						'upload_image',
+						err,
+						'Ensure base64 is a valid base64-encoded image string and contentType is a supported MIME type.'
+					)
 				}
 			}
 		)
