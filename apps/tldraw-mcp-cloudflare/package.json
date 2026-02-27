@@ -7,6 +7,7 @@
 		"build:widget": "vite build && mv dist/index.html dist/mcp-app.html",
 		"build": "yarn build:widget",
 		"dev": "yarn build:widget && wrangler dev",
+		"dev:tunnel": "bash dev-tunnel.sh",
 		"deploy": "yarn build:widget && wrangler deploy"
 	},
 	"dependencies": {

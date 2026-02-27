@@ -31,6 +31,7 @@ interface Env {
 	ASSETS: Fetcher
 	IMAGES: R2Bucket
 	MCP_AUTH_TOKEN: string
+	WORKER_ORIGIN: string
 }
 
 // --- Constants ---
@@ -193,8 +194,12 @@ export class TldrawMCP extends McpAgent<Env> {
 										'https://cdn.tldraw.com',
 										'https://fonts.googleapis.com',
 										'https://fonts.gstatic.com',
+										...((this as any).env.WORKER_ORIGIN ? [(this as any).env.WORKER_ORIGIN] : []),
 									],
-									connectDomains: ['https://cdn.tldraw.com'],
+									connectDomains: [
+										'https://cdn.tldraw.com',
+										...((this as any).env.WORKER_ORIGIN ? [(this as any).env.WORKER_ORIGIN] : []),
+									],
 								},
 							},
 						},
@@ -385,14 +390,15 @@ export class TldrawMCP extends McpAgent<Env> {
 				_meta: { ui: { visibility: ['app'] } },
 			},
 			async ({ checkpointId }: { checkpointId: string }): Promise<CallToolResult> => {
-				const raw = this.loadCheckpoint(checkpointId)
-				const shapes = raw ? parseTlShapes(raw) : null
-				if (!shapes) {
+				const checkpoint = this.loadCheckpoint(checkpointId)
+				if (!checkpoint) {
 					return {
 						content: [{ type: 'text', text: 'Not found.' }],
-						structuredContent: { shapes: [] },
+						structuredContent: { shapes: [], assets: [] },
 					}
 				}
+				const shapes = parseTlShapes(checkpoint.shapes)
+				const assets = checkpoint.assets
 				const focusedShapes = shapes
 					.map((s) => {
 						try {
@@ -403,8 +409,10 @@ export class TldrawMCP extends McpAgent<Env> {
 					})
 					.filter(Boolean)
 				return {
-					content: [{ type: 'text', text: `${shapes.length} shape(s).` }],
-					structuredContent: { shapes, focusedShapes },
+					content: [
+						{ type: 'text', text: `${shapes.length} shape(s), ${assets.length} asset(s).` },
+					],
+					structuredContent: { shapes, assets, focusedShapes },
 				}
 			}
 		)
@@ -418,28 +426,28 @@ export class TldrawMCP extends McpAgent<Env> {
 				inputSchema: z.object({
 					checkpointId: z.string().min(1),
 					shapesJson: z.string(),
+					assetsJson: z.string().optional(),
 				}),
 				_meta: { ui: { visibility: ['app'] } },
 			},
 			async ({
 				checkpointId,
 				shapesJson,
+				assetsJson,
 			}: {
 				checkpointId: string
 				shapesJson: string
+				assetsJson?: string
 			}): Promise<CallToolResult> => {
 				try {
-					console.error(
-						`[tldraw-mcp] save_checkpoint called: checkpointId=${checkpointId}, prev activeCheckpointId=${this.activeCheckpointId}`
-					)
 					const raw = parseJsonArray(shapesJson, 'shapesJson')
 					const shapes = parseTlShapes(raw)
-					this.saveCheckpoint(checkpointId, shapes)
-					console.error(
-						`[tldraw-mcp] save_checkpoint done: activeCheckpointId=${this.activeCheckpointId}, shapes=${shapes.length}`
-					)
+					const assets = assetsJson ? parseJsonArray(assetsJson, 'assetsJson') : []
+					this.saveCheckpoint(checkpointId, shapes, assets)
 					return {
-						content: [{ type: 'text', text: `Saved ${shapes.length} shape(s).` }],
+						content: [
+							{ type: 'text', text: `Saved ${shapes.length} shape(s), ${assets.length} asset(s).` },
+						],
 					}
 				} catch (err) {
 					return errorResponse(err)
@@ -487,9 +495,9 @@ export class TldrawMCP extends McpAgent<Env> {
 						customMetadata: { originalFilename: filename },
 					})
 
-					// Build the public URL relative to the worker origin
-					// In production this would be the deployed domain
-					const imageUrl = `/${key}`
+					// Build the absolute public URL so the widget iframe can fetch it
+					const origin = ((this as any).env as Env).WORKER_ORIGIN || ''
+					const imageUrl = `${origin}/${key}`
 
 					return {
 						content: [{ type: 'text', text: `Uploaded image: ${imageUrl}` }],
@@ -560,10 +568,11 @@ export class TldrawMCP extends McpAgent<Env> {
 					} as TLShape
 
 					const baseShapes = this.getActiveShapes()
+					const existingAssets = this.getActiveAssets()
 					const resultShapes = [...baseShapes, imageShape]
 
 					const checkpointId = generateCheckpointId()
-					this.saveCheckpoint(checkpointId, resultShapes)
+					this.saveCheckpoint(checkpointId, resultShapes, [...existingAssets, assetRecord])
 
 					return {
 						content: [
@@ -587,9 +596,10 @@ export class TldrawMCP extends McpAgent<Env> {
 
 	// --- Checkpoint helpers ---
 
-	saveCheckpoint(id: string, shapes: unknown[]) {
+	saveCheckpoint(id: string, shapes: unknown[], assets: unknown[] = []) {
+		const data = JSON.stringify({ shapes, assets })
 		this
-			.sql`INSERT OR REPLACE INTO checkpoints (id, data, created_at) VALUES (${id}, ${JSON.stringify(shapes)}, ${Date.now()})`
+			.sql`INSERT OR REPLACE INTO checkpoints (id, data, created_at) VALUES (${id}, ${data}, ${Date.now()})`
 		this.activeCheckpointId = id
 		this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
 
@@ -598,15 +608,25 @@ export class TldrawMCP extends McpAgent<Env> {
 			.sql`DELETE FROM checkpoints WHERE id NOT IN (SELECT id FROM checkpoints ORDER BY created_at DESC LIMIT ${MAX_CHECKPOINTS})`
 	}
 
-	loadCheckpoint(id: string): unknown[] | null {
+	loadCheckpoint(id: string): { shapes: unknown[]; assets: unknown[] } | null {
 		const rows = [...this.sql`SELECT data FROM checkpoints WHERE id = ${id}`]
-		return rows.length > 0 ? JSON.parse(rows[0].data as string) : null
+		if (rows.length === 0) return null
+		const parsed = JSON.parse(rows[0].data as string)
+		// Backwards compat: old checkpoints stored a plain array of shapes
+		if (Array.isArray(parsed)) return { shapes: parsed, assets: [] }
+		return { shapes: parsed.shapes ?? [], assets: parsed.assets ?? [] }
 	}
 
 	getActiveShapes(): TLShape[] {
 		if (!this.activeCheckpointId) return []
-		const raw = this.loadCheckpoint(this.activeCheckpointId)
-		return raw ? parseTlShapes(raw) : []
+		const checkpoint = this.loadCheckpoint(this.activeCheckpointId)
+		return checkpoint ? parseTlShapes(checkpoint.shapes) : []
+	}
+
+	getActiveAssets(): unknown[] {
+		if (!this.activeCheckpointId) return []
+		const checkpoint = this.loadCheckpoint(this.activeCheckpointId)
+		return checkpoint ? checkpoint.assets : []
 	}
 }
 
@@ -649,7 +669,11 @@ export default {
 		}
 
 		// Streamable HTTP transport (for Claude web, ChatGPT, and modern clients)
-		return mcpHandler.fetch(request, env, ctx)
+		if (url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) {
+			return mcpHandler.fetch(request, env, ctx)
+		}
+
+		return new Response('Not found', { status: 404 })
 	},
 }
 
