@@ -1,7 +1,8 @@
 import Editor, { loader, type OnMount } from '@monaco-editor/react'
+import { b64Vecs } from '@tldraw/tlschema'
 import * as monaco from 'monaco-editor'
 import { type KeyboardEvent, memo, useCallback, useEffect, useRef, useState } from 'react'
-import { useEditor, useValue } from 'tldraw'
+import { createShapeId, useEditor, useValue } from 'tldraw'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { isCodeEditorOpenAtom } from './code-editor-state'
 import styles from './code-editor.module.css'
@@ -36,13 +37,12 @@ function clearActiveTimers() {
 	activeTimers.clear()
 }
 
-const DEFAULT_CODE = `const cx = 400, cy = 300
+const DEFAULT_CODE = `clearCanvas()
+
+const cx = 400, cy = 300
 const scale3d = 200
 const cameraZ = 2
 const padding = 150
-
-// Single-point draw path (renders as a dot)
-const dotPath = 'AAAAAAAAAAAAAAA/'
 
 function project({ x, y, z }) {
   return { x: x / z, y: y / z }
@@ -65,21 +65,16 @@ const goldenRatio = (1 + Math.sqrt(5)) / 2
 
 const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'violet']
 const sizes = ['s', 'm', 'l', 'xl']
+
 const shapeIds = []
 for (let i = 0; i < numPoints; i++) {
   const id = 'shape:sphere-' + i
-  editor.createShape({
-    id,
-    type: 'draw',
-    x: cx,
-    y: cy,
-    props: {
-      segments: [{ type: 'free', path: dotPath }],
+  if (!editor.getShape(id)) {
+    createDot(cx, cy, {
       color: colors[i % 6],
       size: sizes[i % 4],
-      isComplete: true,
-    }
-  })
+    }, id)
+  }
   shapeIds.push(id)
 }
 
@@ -144,17 +139,20 @@ const interval = setInterval(() => {
 }, 50)
 
 // Invisible bounding box to control zoom level
-editor.createShape({
-  type: 'geo',
-  x: cx - scale3d - padding,
-  y: cy - scale3d - padding,
-  props: {
-    geo: 'rectangle',
-    w: (scale3d + padding) * 2,
-    h: (scale3d + padding) * 2,
-  },
-  opacity: 0
-})
+if (!editor.getShape('shape:sphere-bounds')) {
+  editor.createShape({
+    id: 'shape:sphere-bounds',
+    type: 'geo',
+    x: cx - scale3d - padding,
+    y: cy - scale3d - padding,
+    props: {
+      geo: 'rectangle',
+      w: (scale3d + padding) * 2,
+      h: (scale3d + padding) * 2,
+    },
+    opacity: 0
+  })
+}
 
 editor.zoomToFit({ animation: { duration: 400 } })
 `
@@ -216,6 +214,35 @@ export const TlaCodeEditorPanel = memo(function TlaCodeEditorPanel() {
 			window.clearTimeout(id)
 			activeTimers.delete(id)
 		}
+		const clearCanvas = () => {
+			const ids = [...tldrawEditor.getCurrentPageShapeIds()]
+			if (ids.length) {
+				tldrawEditor.deleteShapes(ids)
+			}
+		}
+
+		const dotPath = b64Vecs.encodePoints([{ x: 0, y: 0, z: 0.5 }])
+		const createDot = (
+			x: number,
+			y: number,
+			options: Record<string, unknown> = {},
+			id = createShapeId()
+		) => {
+			tldrawEditor.createShapes([
+				{
+					id,
+					type: 'draw',
+					x,
+					y,
+					props: {
+						segments: [{ type: 'free', path: dotPath }],
+						isComplete: true,
+						...options,
+					},
+				},
+			])
+			return id
+		}
 
 		const currentCode = codeRef.current
 		const markId = tldrawEditor.markHistoryStoppingPoint('code-editor-run')
@@ -228,6 +255,8 @@ export const TlaCodeEditorPanel = memo(function TlaCodeEditorPanel() {
 				'setTimeout',
 				'clearInterval',
 				'clearTimeout',
+				'createDot',
+				'clearCanvas',
 				currentCode
 			)
 			let userError: unknown = null
@@ -239,7 +268,9 @@ export const TlaCodeEditorPanel = memo(function TlaCodeEditorPanel() {
 						trackedSetInterval,
 						trackedSetTimeout,
 						trackedClearInterval,
-						trackedClearTimeout
+						trackedClearTimeout,
+						createDot,
+						clearCanvas
 					)
 				} catch (e) {
 					userError = e
@@ -345,7 +376,8 @@ export const TlaCodeEditorPanel = memo(function TlaCodeEditorPanel() {
 				<div className={styles.helpPanel}>
 					<p>
 						Write JavaScript that controls the tldraw canvas. Your code has access to the{' '}
-						<code>editor</code> object — use it to create, update, and delete shapes.
+						<code>editor</code> object plus helpers like <code>createDot</code> and{' '}
+						<code>clearCanvas()</code>.
 					</p>
 					<p>
 						Use <code>setInterval</code> and <code>setTimeout</code> for animations. Timers persist
