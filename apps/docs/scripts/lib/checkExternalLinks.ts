@@ -3,19 +3,36 @@ import { BrokenLink, extractLinks } from './checkBrokenLinks'
 import { connect } from './connect'
 
 const CONCURRENCY = 10
-const TIMEOUT_MS = 10_000
+const TIMEOUT_MS = 30_000
+const MAX_RETRIES = 2
 
-function isPlaceholderUrl(url: string): boolean {
+// Domains that block automated requests (403/captcha regardless of method)
+const SKIP_DOMAINS = ['www.npmjs.com', 'npmjs.com', 'www.shadertoy.com', 'shadertoy.com']
+
+function shouldSkipUrl(url: string): boolean {
 	if (url.includes('{')) return true
 	try {
 		const host = new URL(url).hostname
-		return host === 'example.com' || host.endsWith('.example.com')
+		if (host === 'example.com' || host.endsWith('.example.com')) return true
+		if (SKIP_DOMAINS.includes(host)) return true
 	} catch {
-		return false
+		// skip malformed URLs
 	}
+	return false
 }
 
-async function checkUrl(url: string): Promise<{ ok: boolean; status?: number; error?: string }> {
+function isTransientError(result: { ok: boolean; status?: number; error?: string }): boolean {
+	if (result.ok) return false
+	// Retry on network errors (timeout, connection reset, etc.)
+	if (result.error) return true
+	// Retry on server errors and rate limits
+	if (result.status && (result.status >= 500 || result.status === 429)) return true
+	return false
+}
+
+async function checkUrlOnce(
+	url: string
+): Promise<{ ok: boolean; status?: number; error?: string }> {
 	const controller = new AbortController()
 	const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
 
@@ -48,6 +65,16 @@ async function checkUrl(url: string): Promise<{ ok: boolean; status?: number; er
 	}
 }
 
+async function checkUrl(url: string): Promise<{ ok: boolean; status?: number; error?: string }> {
+	let result = await checkUrlOnce(url)
+	for (let attempt = 0; attempt < MAX_RETRIES && isTransientError(result); attempt++) {
+		// Back off briefly before retrying
+		await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)))
+		result = await checkUrlOnce(url)
+	}
+	return result
+}
+
 export async function checkExternalLinks(): Promise<number> {
 	const db = await connect({ mode: 'readonly' })
 
@@ -64,7 +91,7 @@ export async function checkExternalLinks(): Promise<number> {
 
 		for (const { url, line } of links) {
 			if (!url.startsWith('http://') && !url.startsWith('https://')) continue
-			if (isPlaceholderUrl(url)) continue
+			if (shouldSkipUrl(url)) continue
 
 			// Strip fragment for checking (servers don't validate fragments)
 			const hashIdx = url.indexOf('#')
