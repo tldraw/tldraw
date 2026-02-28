@@ -23,7 +23,7 @@
 	},
 	"dependencies": {
 		"@clerk/backend": "^1.23.7",
-		"@pierre/storage": "^0.1.1",
+		"@pierre/storage": "^1.1.0",
 		"@rocicorp/zero": "0.25.9",
 		"@supabase/auth-helpers-remix": "^0.2.6",
 		"@supabase/supabase-js": "^2.48.1",
@@ -39,6 +39,7 @@
 		"jose": "^5.9.6",
 		"kysely": "^0.27.5",
 		"lodash.throttle": "^4.1.1",
+		"modern-tar": "^0.7.5",
 		"pg": "^8.13.1",
 		"pg-logical-replication": "^2.0.7",
 		"react": "^19.2.1",

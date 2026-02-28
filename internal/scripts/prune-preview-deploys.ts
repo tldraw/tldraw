@@ -1,5 +1,5 @@
 import * as github from '@actions/github'
-import { ECSClient, ListClustersCommand } from '@aws-sdk/client-ecs'
+
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
@@ -240,26 +240,6 @@ async function listFlyioPreviewApps() {
 	return appNames.filter((name) => ZERO_CACHE_APP_REGEX.test(name))
 }
 
-async function listAmazonClusters() {
-	const client = new ECSClient({ region: 'eu-north-1' })
-	const data = await client.send(new ListClustersCommand({}))
-	if (!data.clusterArns) {
-		return []
-	}
-	const names = []
-	for (const arn of data.clusterArns) {
-		const match = arn.match(/tldraw-(pr-\d+)-/)
-		if (match) {
-			names.push(match[1])
-		}
-	}
-	return names
-}
-
-async function deleteSstPreviewApp(stage: string) {
-	await exec('yarn', ['sst', 'remove', '--stage', stage])
-}
-
 const deletionErrors: string[] = []
 
 async function main() {
@@ -272,8 +252,6 @@ async function main() {
 	await processItems(listNeonPreviewDatabases, deleteNeonPreviewDatabase)
 	nicelog('\nPruning fly.io preview apps')
 	await processItems(listFlyioPreviewApps, deleteFlyioPreviewApp)
-	nicelog('\nPruning sst preview stages')
-	await processItems(listAmazonClusters, deleteSstPreviewApp)
 	nicelog('\nDone')
 	if (deletionErrors.length > 0) {
 		nicelog('\nDeletion errors:')
