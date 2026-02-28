@@ -96,7 +96,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				showColorsStrokeColor: getColorValue(theme, color, 'frameStroke'),
 				headingFillColor: theme.background,
 				headingStrokeColor: theme.background,
-				headingTextColor: getColorValue(theme, color, 'frameText'),
+				headingTextColor: getColorValue(theme, 'black', 'frameText'),
 				showColorsHeadingFillColor: getColorValue(theme, color, 'frameHeadingFill'),
 				showColorsHeadingStrokeColor: getColorValue(theme, color, 'frameHeadingStroke'),
 				showColorsHeadingTextColor: getColorValue(theme, color, 'frameText'),
