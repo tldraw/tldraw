@@ -39,7 +39,7 @@ const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 /** @public */
 export interface EmbedShapeOptions {
 	/** The embed definitions to use for this shape util. */
-	readonly embedDefinitions: readonly TLEmbedDefinition[]
+	readonly embedDefinitions?: readonly TLEmbedDefinition[]
 }
 
 /** @public */
@@ -48,9 +48,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
 
-	override options: EmbedShapeOptions = {
-		embedDefinitions: DEFAULT_EMBED_DEFINITIONS,
-	}
+	override options: EmbedShapeOptions = {}
 
 	override canEditWhileLocked(shape: TLEmbedShape) {
 		const result = this.getEmbedDefinition(shape.props.url)
@@ -66,7 +64,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	private getEmbedDefs(): readonly TLEmbedDefinition[] {
-		return EmbedShapeUtil.legacyEmbedDefinitions ?? this.options.embedDefinitions
+		return (
+			this.options.embedDefinitions ??
+			EmbedShapeUtil.legacyEmbedDefinitions ??
+			DEFAULT_EMBED_DEFINITIONS
+		)
 	}
 
 	getEmbedDefinitions(): readonly TLEmbedDefinition[] {

@@ -1394,7 +1394,7 @@ export interface EmbedDefinition {
 
 // @public (undocumented)
 export interface EmbedShapeOptions {
-    readonly embedDefinitions: readonly TLEmbedDefinition[];
+    readonly embedDefinitions?: readonly TLEmbedDefinition[];
 }
 
 // @public
