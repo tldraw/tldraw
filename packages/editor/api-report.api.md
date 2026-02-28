@@ -3704,12 +3704,12 @@ export const tlenv: {
     isIos: boolean;
     isSafari: boolean;
     isWebview: boolean;
-    supportsP3ColorSpace: boolean;
 };
 
 // @public
 export const tlenvReactive: Atom<    {
 isCoarsePointer: boolean;
+supportsP3ColorSpace: boolean;
 }, unknown>;
 
 // @public (undocumented)
