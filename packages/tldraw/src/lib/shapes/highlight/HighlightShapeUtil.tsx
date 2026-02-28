@@ -10,6 +10,7 @@ import {
 	TLHighlightShapeProps,
 	TLResizeInfo,
 	VecLike,
+	debugFlags,
 	getColorValue,
 	getDefaultColorTheme,
 	highlightShapeMigrations,
@@ -17,6 +18,7 @@ import {
 	last,
 	lerp,
 	rng,
+	tlenvReactive,
 	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
@@ -30,12 +32,10 @@ import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
-import { useColorSpace } from '../shared/useColorSpace'
 
 /** @public */
 export interface HighlightShapeUtilDisplayValues {
 	strokeColor: string
-	strokeColorP3: string
 	strokeWidth: number
 	underlayOpacity: number
 	overlayOpacity: number
@@ -62,9 +62,12 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		getDisplayValues(_editor, shape, isDarkMode): HighlightShapeUtilDisplayValues {
 			const theme = getDefaultColorTheme({ isDarkMode })
 			const { color, size } = shape.props
+			const useP3 = !debugFlags.forceSrgb.get() && tlenvReactive.get().supportsP3ColorSpace
+			const strokeColor = useP3
+				? getColorValue(theme, color, 'highlightP3')
+				: getColorValue(theme, color, 'highlightSrgb')
 			return {
-				strokeColor: getColorValue(theme, color, 'highlightSrgb'),
-				strokeColorP3: getColorValue(theme, color, 'highlightP3'),
+				strokeColor,
 				strokeWidth: FONT_SIZES[size] * 1.12,
 				underlayOpacity: 0.82,
 				overlayOpacity: 0.35,
@@ -138,7 +141,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 					strokeWidth={sw}
 					opacity={dv.overlayOpacity}
 					strokeColor={dv.strokeColor}
-					strokeColorP3={dv.strokeColorP3}
 				/>
 			</SVGContainer>
 		)
@@ -161,7 +163,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 					strokeWidth={sw}
 					opacity={dv.underlayOpacity}
 					strokeColor={dv.strokeColor}
-					strokeColorP3={dv.strokeColorP3}
 				/>
 			</SVGContainer>
 		)
@@ -337,14 +338,12 @@ function HighlightRenderer({
 	shape,
 	opacity,
 	strokeColor,
-	strokeColorP3,
 }: {
 	strokeWidth: number
 	forceSolid: boolean
 	shape: TLHighlightShape
 	opacity: number
 	strokeColor: string
-	strokeColorP3?: string
 }) {
 	const allPointsFromSegments = getPointsFromDrawSegments(
 		shape.props.segments,
@@ -369,16 +368,13 @@ function HighlightRenderer({
 			? getSvgPathFromStrokePoints(strokePoints, false)
 			: getShapeDot(allPointsFromSegments[0])
 
-	const colorSpace = useColorSpace()
-	const color = colorSpace === 'p3' && strokeColorP3 ? strokeColorP3 : strokeColor
-
 	return (
 		<path
 			d={solidStrokePath}
 			strokeLinecap="round"
 			fill="none"
 			pointerEvents="all"
-			stroke={color}
+			stroke={strokeColor}
 			strokeWidth={sw}
 			opacity={opacity}
 		/>

@@ -2111,8 +2111,6 @@ export interface HighlightShapeUtilDisplayValues {
     // (undocumented)
     strokeColor: string;
     // (undocumented)
-    strokeColorP3: string;
-    // (undocumented)
     strokeWidth: number;
     // (undocumented)
     underlayOpacity: number;
