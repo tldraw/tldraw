@@ -54,6 +54,8 @@ const FRAME_HEADING_OFFSET_Y = 4
 export interface FrameShapeUtilDisplayValues {
 	fillColor: string
 	strokeColor: string
+	showColorsFillColor: string
+	showColorsStrokeColor: string
 	headingFillColor: string
 	headingStrokeColor: string
 	headingTextColor: string
@@ -88,8 +90,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			const theme = getDefaultColorTheme({ isDarkMode })
 			const { color } = shape.props
 			return {
-				fillColor: getColorValue(theme, color, 'frameFill'),
-				strokeColor: getColorValue(theme, color, 'frameStroke'),
+				fillColor: getColorValue(theme, 'black', 'frameFill'),
+				strokeColor: getColorValue(theme, 'black', 'frameStroke'),
+				showColorsFillColor: getColorValue(theme, color, 'frameFill'),
+				showColorsStrokeColor: getColorValue(theme, color, 'frameStroke'),
 				headingFillColor: theme.background,
 				headingStrokeColor: theme.background,
 				headingTextColor: getColorValue(theme, color, 'frameText'),
@@ -269,8 +273,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				<SVGContainer>
 					<rect
 						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
-						fill={dv.fillColor}
-						stroke={dv.strokeColor}
+						fill={showFrameColors ? dv.showColorsFillColor : dv.fillColor}
+						stroke={showFrameColors ? dv.showColorsStrokeColor : dv.strokeColor}
 						style={{
 							width: `calc(${shape.props.w}px + 1px / var(--tl-zoom))`,
 							height: `calc(${shape.props.h}px + 1px / var(--tl-zoom))`,
@@ -324,8 +328,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				<rect
 					width={shape.props.w}
 					height={shape.props.h}
-					fill={dv.fillColor}
-					stroke={dv.strokeColor}
+					fill={showFrameColors ? dv.showColorsFillColor : dv.fillColor}
+					stroke={showFrameColors ? dv.showColorsStrokeColor : dv.strokeColor}
 					strokeWidth={1}
 					x={0}
 					rx={0}
