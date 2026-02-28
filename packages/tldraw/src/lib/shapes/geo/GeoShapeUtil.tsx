@@ -123,7 +123,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			const theme = DefaultColorThemePalette[isDarkMode ? 'darkMode' : 'lightMode']
 
 			return {
-				strokeColor: theme[color]['solid'],
+				strokeColor: getColorValue(theme, color, 'solid'),
 				strokeRoundness: STROKE_SIZES[size] * 2,
 				strokeWidth: STROKE_SIZES[size],
 				fillColor:
@@ -133,7 +133,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							? theme.solid
 							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
 				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
-				labelColor: theme[labelColor]['solid'], // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
+				labelColor: getColorValue(theme, labelColor, 'solid'), // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: LABEL_FONT_SIZES[size],
 				labelMinWidth: GEO_SHAPE_MIN_WIDTHS[size] + GEO_SHAPE_EXTRA_PADDINGS[size],

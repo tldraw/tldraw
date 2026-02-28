@@ -20,16 +20,17 @@ import {
 	toRichText,
 } from '@tldraw/editor'
 import { isEmptyRichText, renderHtmlFromRichTextForMeasurement } from '../../utils/text/richText'
-import {
-	ARROW_LABEL_FONT_SIZES,
-	ARROW_LABEL_PADDING,
-	FONT_FAMILIES,
-	LABEL_TO_ARROW_PADDING,
-	STROKE_SIZES,
-	TEXT_PROPS,
-} from '../shared/default-shape-constants'
+import { LABEL_TO_ARROW_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { getDisplayValues } from '../shared/getDisplayValues'
+import type { ArrowShapeUtilDisplayValues } from './arrow-types'
 import { TLArrowInfo } from './arrow-types'
 import { getArrowInfo } from './getArrowInfo'
+
+function getArrowDisplayValues(editor: Editor, shape: TLArrowShape): ArrowShapeUtilDisplayValues {
+	// We cast here because editor.getShapeUtil('arrow') returns ShapeUtil<TLArrowShape>
+	// with generic options, but the actual instance has ArrowShapeOptions with display values.
+	return getDisplayValues(editor.getShapeUtil('arrow') as any, shape, false)
+}
 
 export function getArrowBodyGeometry(editor: Editor, shape: TLArrowShape) {
 	const info = getArrowInfo(editor, shape)!
@@ -71,12 +72,13 @@ const labelSizeCache = createComputedCache(
 
 		const bodyBounds = bodyGeom.bounds
 
-		const fontSize = getArrowLabelFontSize(shape)
+		const dv = getArrowDisplayValues(editor, shape)
+		const fontSize = dv.labelFontSize * shape.props.scale
 
 		// First we measure the text with no constraints
 		const { w, h } = editor.textMeasure.measureHtml(html, {
 			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontFamily: dv.labelFontFamily,
 			fontSize,
 			maxWidth: null,
 		})
@@ -106,7 +108,7 @@ const labelSizeCache = createComputedCache(
 		if (shouldSquish) {
 			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureHtml(html, {
 				...TEXT_PROPS,
-				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontFamily: dv.labelFontFamily,
 				fontSize,
 				maxWidth: width,
 			})
@@ -115,7 +117,7 @@ const labelSizeCache = createComputedCache(
 			height = squishedHeight
 		}
 
-		return new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
+		return new Vec(width, height).addScalar(dv.labelPadding * 2 * shape.props.scale)
 	},
 	{
 		areRecordsEqual: (a, b) => {
@@ -286,8 +288,9 @@ function furthest(from: VecLike, candidates: VecLike[]): VecLike | null {
 	return furthest
 }
 
-export function getArrowLabelFontSize(shape: TLArrowShape) {
-	return ARROW_LABEL_FONT_SIZES[shape.props.size] * shape.props.scale
+export function getArrowLabelFontSize(editor: Editor, shape: TLArrowShape) {
+	const dv = getArrowDisplayValues(editor, shape)
+	return dv.labelFontSize * shape.props.scale
 }
 
 export function getArrowLabelDefaultPosition(editor: Editor, shape: TLArrowShape) {
