@@ -115,7 +115,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	)
 
 	const hideShapes = useValue('debug_shapes', () => debugFlags.hideShapes.get(), [debugFlags])
-	const debugSvg = useValue('debug_svg', () => debugFlags.debugSvg.get(), [debugFlags])
 	const debugGeometry = useValue('debug_geometry', () => debugFlags.debugGeometry.get(), [
 		debugFlags,
 	])
@@ -158,7 +157,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 					<OnTheCanvasWrapper />
 					{SelectionBackground && <SelectionBackgroundWrapper />}
-					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
+					{hideShapes ? null : <ShapesLayer />}
 				</div>
 				<div className="tl-overlays">
 					<CanvasShapeIndicators />
@@ -396,17 +395,27 @@ function OverlaysWrapper() {
 	)
 }
 
-function ShapesWithSVGs() {
+function ShapesLayer() {
 	const editor = useEditor()
-
+	const debugSvg = useValue('debug svg', () => debugFlags.debugSvg.get(), [debugFlags])
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
-	return renderingShapes.map((result) => (
-		<Fragment key={result.id + '_fragment'}>
-			<Shape {...result} />
-			<DebugSvgCopy id={result.id} mode="iframe" />
-		</Fragment>
-	))
+	return (
+		<ShapeCullingProvider>
+			{renderingShapes.map((result) =>
+				debugSvg ? (
+					<Fragment key={result.id + '_fragment'}>
+						<Shape {...result} />
+						<DebugSvgCopy id={result.id} mode="iframe" />
+					</Fragment>
+				) : (
+					<Shape key={result.id + '_shape'} {...result} />
+				)
+			)}
+			<CullingController />
+			{tlenv.isSafari && <ReflowIfNeeded />}
+		</ShapeCullingProvider>
+	)
 }
 function ReflowIfNeeded() {
 	const editor = useEditor()
@@ -447,22 +456,6 @@ function CullingController() {
 	)
 
 	return null
-}
-
-function ShapesToDisplay() {
-	const editor = useEditor()
-
-	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
-
-	return (
-		<ShapeCullingProvider>
-			{renderingShapes.map((result) => (
-				<Shape key={result.id + '_shape'} {...result} />
-			))}
-			<CullingController />
-			{tlenv.isSafari && <ReflowIfNeeded />}
-		</ShapeCullingProvider>
-	)
 }
 
 function HintedShapeIndicator() {
