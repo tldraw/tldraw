@@ -203,6 +203,24 @@ export class TldrawApp {
 				kvStore: window.navigator.webdriver ? 'mem' : 'idb',
 			})
 			this.z = z
+			const refreshToken = () =>
+				getToken().then((token) => {
+					if (token) {
+						z.connection.connect({ auth: token })
+						return true
+					}
+					return false
+				})
+			// Proactively refresh auth token before Clerk's 60s expiry.
+			// TODO: Rocicorp is working on improvements for token refresh. We can also
+			// configure longer-lived tokens in Clerk to reduce refresh frequency.
+			const TOKEN_REFRESH_INTERVAL = 50_000
+			const refreshInterval = setInterval(() => {
+				refreshToken().catch((err) => {
+					console.error('Failed to proactively refresh auth token:', err)
+				})
+			}, TOKEN_REFRESH_INTERVAL)
+			this.disposables.push(() => clearInterval(refreshInterval))
 			// Set up token refresh on auth errors with backoff
 			let authRetryCount = 0
 			const MAX_AUTH_RETRIES = 5
@@ -216,12 +234,9 @@ export class TldrawApp {
 					const delay = Math.min(1000 * Math.pow(2, authRetryCount), 30_000)
 					authRetryCount++
 					setTimeout(() => {
-						getToken()
-							.then((token) => {
-								if (token) {
-									authRetryCount = 0
-									z.connection.connect({ auth: token })
-								}
+						refreshToken()
+							.then((didRefresh) => {
+								if (didRefresh) authRetryCount = 0
 							})
 							.catch((err) => {
 								console.error('Failed to refresh auth token:', err)
@@ -1232,11 +1247,20 @@ export class TldrawApp {
 
 		// Clear any existing ordering for this new group to get fresh ordering
 		this.lastGroupFileOrderings.delete(payload.groupId)
-		const files = this.getGroupFilesSorted(payload.groupId)
-		if (!files.length) {
+
+		if (!this.navigateToGroupFiles(payload.groupId)) {
 			this.navigate(routes.tlaRoot())
-			return
 		}
+	}
+
+	navigateToGroupFiles(groupId: string) {
+		const files = this.getGroupFilesSorted(groupId)
+
+		if (!files.length) {
+			return false
+		}
+
 		this.navigate(routes.tlaFile(files[0]!.fileId))
+		return true
 	}
 }

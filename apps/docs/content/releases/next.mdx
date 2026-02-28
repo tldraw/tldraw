@@ -7,3 +7,28 @@ order: 0
 status: published
 last_version: v4.4.0
 ---
+
+This release adds an experimental `onDropOnCanvas` option and includes several bug fixes for cropping, pasting, and sync message handling.
+
+## API changes
+
+- Add experimental `experimental__onDropOnCanvas` option to intercept canvas drop events. Return `true` from the callback to prevent the editor's default drop behavior. ([#7911](https://github.com/tldraw/tldraw/pull/7911))
+
+  ```tsx
+  <Tldraw
+  	options={{
+  		experimental__onDropOnCanvas: (point, event) => {
+  			// Handle drop at page-space point
+  			return true // prevent default
+  		},
+  	}}
+  />
+  ```
+
+## Bug fixes
+
+- Fix shapes pasted with Ctrl+V not being parented to a frame when they land inside one. ([#7938](https://github.com/tldraw/tldraw/pull/7938))
+- Fix a crash when cropping custom shapes that don't include `isCircle` in their crop schema. ([#7931](https://github.com/tldraw/tldraw/pull/7931))
+- Fix a crash when loading session state without a `currentPageId` (e.g. when using deep links). ([#7994](https://github.com/tldraw/tldraw/pull/7994))
+- Fix U+2028/U+2029 line separators breaking chunked sync messages. ([#7918](https://github.com/tldraw/tldraw/pull/7918))
+- Fix circular dependencies across `@tldraw/state`, `@tldraw/editor`, and `@tldraw/tldraw` packages to improve compatibility with Jest mocking and tree-shaking. ([#7935](https://github.com/tldraw/tldraw/pull/7935))

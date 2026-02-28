@@ -420,6 +420,14 @@ export abstract class Geometry2d {
 		return length
 	}
 
+	/**
+	 * Called after a hit test succeeds. Return `true` to reject the hit and allow
+	 * shapes behind this one to be selected instead (e.g. transparent image pixels).
+	 */
+	ignoreHit(_point: VecLike): boolean {
+		return false
+	}
+
 	abstract getSvgPathData(first: boolean): string
 }
 
@@ -549,6 +557,10 @@ export class TransformedGeometry2d extends Geometry2d {
 			this.matrix,
 			this.geometry.intersectPolyline(Mat.applyToPoints(this.inverse, polyline), filters)
 		)
+	}
+
+	override ignoreHit(point: VecLike): boolean {
+		return this.geometry.ignoreHit(Mat.applyToPoint(this.inverse, point))
 	}
 
 	override transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d {

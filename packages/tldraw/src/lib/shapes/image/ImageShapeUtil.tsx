@@ -36,6 +36,8 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { getUncroppedSize } from '../shared/crop'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
+import { TRANSPARENT_IMAGE_MIMETYPES, getAlphaData, preloadAlphaData } from './ImageAlphaCache'
+import { ImageEllipse2d, ImageRectangle2d } from './ImageAlphaGeometry'
 
 async function getDataURIFromURL(url: string): Promise<string> {
 	const response = await fetch(url)
@@ -76,11 +78,41 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	override getGeometry(shape: TLImageShape): Geometry2d {
+		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
+		const mimeType = asset && 'mimeType' in asset.props ? asset.props.mimeType : null
+		const supportsTransparency = mimeType != null && TRANSPARENT_IMAGE_MIMETYPES.includes(mimeType)
+		const assetSrc = asset && 'src' in asset.props ? asset.props.src : null
+
 		if (shape.props.crop?.isCircle) {
+			if (supportsTransparency && assetSrc) {
+				const src = assetSrc
+				return new ImageEllipse2d({
+					width: shape.props.w,
+					height: shape.props.h,
+					isFilled: true,
+					alphaDataGetter: () => getAlphaData(src),
+					crop: shape.props.crop,
+					flipX: shape.props.flipX,
+					flipY: shape.props.flipY,
+				})
+			}
 			return new Ellipse2d({
 				width: shape.props.w,
 				height: shape.props.h,
 				isFilled: true,
+			})
+		}
+
+		if (supportsTransparency && assetSrc) {
+			const src = assetSrc
+			return new ImageRectangle2d({
+				width: shape.props.w,
+				height: shape.props.h,
+				isFilled: true,
+				alphaDataGetter: () => getAlphaData(src),
+				crop: shape.props.crop,
+				flipX: shape.props.flipX,
+				flipY: shape.props.flipY,
 			})
 		}
 
@@ -308,6 +340,18 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 		}
 		return undefined
 	}, [editor, isAnimated, prefersReducedMotion, url])
+
+	const mimeType = asset && 'mimeType' in asset.props ? asset.props.mimeType : null
+	const supportsTransparency = mimeType != null && TRANSPARENT_IMAGE_MIMETYPES.includes(mimeType)
+	const assetSrc = asset && 'src' in asset.props ? asset.props.src : null
+
+	useEffect(() => {
+		if (url && supportsTransparency) {
+			// Cache under asset.props.src so getGeometry (which only has the asset
+			// record) can look up the data even when the resolved URL differs.
+			preloadAlphaData(url, assetSrc ?? undefined)
+		}
+	}, [url, supportsTransparency, assetSrc])
 
 	const showCropPreview = useValue(
 		'show crop preview',
