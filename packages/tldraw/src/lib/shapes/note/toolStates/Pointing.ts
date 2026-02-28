@@ -119,7 +119,13 @@ export function getNoteShapeAdjacentPositionOffset(
 ) {
 	let min = NOTE_ADJACENT_POSITION_SNAP_RADIUS / editor.getZoomLevel() // in screen space
 	let offset: Vec | undefined
-	for (const pit of getAvailableNoteAdjacentPositions(editor, 0, scale, 0, noteWidth, noteHeight)) {
+	for (const pit of getAvailableNoteAdjacentPositions(editor, {
+		rotation: 0,
+		scale,
+		extraHeight: 0,
+		noteWidth,
+		noteHeight,
+	})) {
 		// only check page rotations of zero
 		const deltaToPit = Vec.Sub(center, pit)
 		const dist = deltaToPit.len()

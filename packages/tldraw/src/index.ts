@@ -220,7 +220,7 @@ export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
 export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
 export {
 	getDisplayValues,
-	type ShapeOptionsWithDisplayValues as DisplayValuesOptions,
+	type ShapeOptionsWithDisplayValues,
 } from './lib/shapes/shared/getDisplayValues'
 export { PlainTextLabel, type PlainTextLabelProps } from './lib/shapes/shared/PlainTextLabel'
 export {

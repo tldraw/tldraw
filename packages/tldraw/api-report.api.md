@@ -224,7 +224,7 @@ export function ArrowLeftToolbarItem(): JSX.Element;
 export function ArrowRightToolbarItem(): JSX.Element;
 
 // @public
-export interface ArrowShapeOptions extends DisplayValuesOptions<TLArrowShape, ArrowShapeUtilDisplayValues> {
+export interface ArrowShapeOptions extends ShapeOptionsWithDisplayValues<TLArrowShape, ArrowShapeUtilDisplayValues> {
     readonly arcArrowCenterSnapDistance: number;
     readonly elbowArrowAxisSnapDistance: number;
     readonly elbowArrowCenterSnapDistance: number;
@@ -528,7 +528,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 export type BookmarkShapeUtilDisplayValues = object;
 
 // @public (undocumented)
-export interface BookmarkShapeUtilOptions extends DisplayValuesOptions<TLBookmarkShape, BookmarkShapeUtilDisplayValues> {
+export interface BookmarkShapeUtilOptions extends ShapeOptionsWithDisplayValues<TLBookmarkShape, BookmarkShapeUtilDisplayValues> {
 }
 
 // @public (undocumented)
@@ -1148,14 +1148,6 @@ export function DeleteMenuItem(): JSX.Element;
 export function DiamondToolbarItem(): JSX.Element;
 
 // @public (undocumented)
-export interface DisplayValuesOptions<Shape extends TLShape, DisplayValues extends object> {
-    // (undocumented)
-    getDisplayValueOverrides(editor: Editor, shape: Shape, isDarkMode: boolean): Partial<DisplayValues>;
-    // (undocumented)
-    getDisplayValues(editor: Editor, shape: Shape, isDarkMode: boolean): DisplayValues;
-}
-
-// @public (undocumented)
 export function DistributeMenuItems(): JSX.Element;
 
 // @internal (undocumented)
@@ -1190,7 +1182,7 @@ export interface DrawPathBuilderOpts extends BasePathBuilderOpts, DrawPathBuilde
 }
 
 // @public (undocumented)
-export interface DrawShapeOptions extends DisplayValuesOptions<TLDrawShape, DrawShapeUtilDisplayValues> {
+export interface DrawShapeOptions extends ShapeOptionsWithDisplayValues<TLDrawShape, DrawShapeUtilDisplayValues> {
     readonly maxPointsPerShape: number;
 }
 
@@ -1520,7 +1512,7 @@ export interface EmbedShapeUtilDisplayValues {
 }
 
 // @public (undocumented)
-export interface EmbedShapeUtilOptions extends DisplayValuesOptions<TLEmbedShape, EmbedShapeUtilDisplayValues> {
+export interface EmbedShapeUtilOptions extends ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues> {
 }
 
 // @public (undocumented)
@@ -1610,7 +1602,7 @@ export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
 export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
-export interface FrameShapeOptions extends DisplayValuesOptions<TLFrameShape, FrameShapeUtilDisplayValues> {
+export interface FrameShapeOptions extends ShapeOptionsWithDisplayValues<TLFrameShape, FrameShapeUtilDisplayValues> {
     resizeChildren: boolean;
     showColors: boolean;
 }
@@ -1927,7 +1919,7 @@ export interface GeoShapeUtilDisplayValues {
 }
 
 // @public (undocumented)
-export interface GeoShapeUtilOptions extends DisplayValuesOptions<TLGeoShape, GeoShapeUtilDisplayValues> {
+export interface GeoShapeUtilOptions extends ShapeOptionsWithDisplayValues<TLGeoShape, GeoShapeUtilDisplayValues> {
     // (undocumented)
     showTextOutline: boolean;
 }
@@ -1965,7 +1957,7 @@ export function getDefaultCrop(): TLShapeCrop;
 // @public
 export function getDisplayValues<Shape extends TLShape, DisplayValues extends object>(util: {
     editor: Editor;
-    options: DisplayValuesOptions<Shape, DisplayValues>;
+    options: ShapeOptionsWithDisplayValues<Shape, DisplayValues>;
 }, shape: Shape, isDarkMode: boolean): DisplayValues;
 
 // @public
@@ -2041,7 +2033,7 @@ export function HexagonToolbarItem(): JSX.Element;
 export function hideAllTooltips(): void;
 
 // @public (undocumented)
-export interface HighlightShapeOptions extends DisplayValuesOptions<TLHighlightShape, HighlightShapeUtilDisplayValues> {
+export interface HighlightShapeOptions extends ShapeOptionsWithDisplayValues<TLHighlightShape, HighlightShapeUtilDisplayValues> {
     readonly maxPointsPerShape: number;
 }
 
@@ -2171,7 +2163,7 @@ export interface ImageShapeUtilDisplayValues {
 }
 
 // @public (undocumented)
-export interface ImageShapeUtilOptions extends DisplayValuesOptions<TLImageShape, ImageShapeUtilDisplayValues> {
+export interface ImageShapeUtilOptions extends ShapeOptionsWithDisplayValues<TLImageShape, ImageShapeUtilDisplayValues> {
 }
 
 // @public (undocumented)
@@ -2344,7 +2336,7 @@ export interface LineShapeUtilDisplayValues {
 }
 
 // @public (undocumented)
-export interface LineShapeUtilOptions extends DisplayValuesOptions<TLLineShape, LineShapeUtilDisplayValues> {
+export interface LineShapeUtilOptions extends ShapeOptionsWithDisplayValues<TLLineShape, LineShapeUtilDisplayValues> {
 }
 
 // @public (undocumented)
@@ -2537,7 +2529,7 @@ export interface NoteShapeUtilDisplayValues {
 }
 
 // @public (undocumented)
-export interface NoteShapeUtilOptions extends DisplayValuesOptions<TLNoteShape, NoteShapeUtilDisplayValues> {
+export interface NoteShapeUtilOptions extends ShapeOptionsWithDisplayValues<TLNoteShape, NoteShapeUtilDisplayValues> {
     resizeMode: 'none' | 'scale';
 }
 
@@ -3016,6 +3008,14 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
 
 // @public (undocumented)
+export interface ShapeOptionsWithDisplayValues<Shape extends TLShape, DisplayValues extends object> {
+    // (undocumented)
+    getDisplayValueOverrides(editor: Editor, shape: Shape, isDarkMode: boolean): Partial<DisplayValues>;
+    // (undocumented)
+    getDisplayValues(editor: Editor, shape: Shape, isDarkMode: boolean): DisplayValues;
+}
+
+// @public (undocumented)
 export interface SolidPathBuilderOpts extends BasePathBuilderOpts {
     // (undocumented)
     style: 'solid';
@@ -3290,7 +3290,7 @@ export interface TextAreaProps {
 }
 
 // @public (undocumented)
-export interface TextShapeOptions extends DisplayValuesOptions<TLTextShape, TextShapeUtilDisplayValues> {
+export interface TextShapeOptions extends ShapeOptionsWithDisplayValues<TLTextShape, TextShapeUtilDisplayValues> {
     extraArrowHorizontalPadding: number;
     showTextOutline: boolean;
 }
@@ -5907,7 +5907,7 @@ export function useUiEvents(): TLUiEventContextType;
 export function useUnlockedSelectedShapesCount(min?: number, max?: number): boolean | number;
 
 // @public (undocumented)
-export interface VideoShapeOptions extends DisplayValuesOptions<TLVideoShape, VideoShapeUtilDisplayValues> {
+export interface VideoShapeOptions extends ShapeOptionsWithDisplayValues<TLVideoShape, VideoShapeUtilDisplayValues> {
     autoplay: boolean;
 }
 

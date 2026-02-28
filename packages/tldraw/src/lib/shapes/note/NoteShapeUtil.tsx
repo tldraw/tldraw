@@ -52,7 +52,7 @@ import {
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
-import { CLONE_HANDLE_MARGIN, NOTE_SIZE, getNoteShapeForAdjacentPosition } from './noteHelpers'
+import { CLONE_HANDLE_MARGIN, getNoteShapeForAdjacentPosition } from './noteHelpers'
 
 const NOTE_SHAPE_HORIZONTAL_ALIGNS = Object.freeze({
 	start: 'start',
@@ -111,8 +111,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			const theme = getDefaultColorTheme({ isDarkMode })
 
 			return {
-				noteWidth: NOTE_SIZE,
-				noteHeight: NOTE_SIZE,
+				noteWidth: 200,
+				noteHeight: 200,
 				noteBackgroundColor: getColorValue(theme, color, 'noteFill'),
 				borderColor: isDarkMode ? 'rgb(20, 20, 20)' : 'rgb(144, 144, 144)',
 				borderWidth: 2,
@@ -642,14 +642,13 @@ function useNoteKeydownHandler(id: TLShapeId) {
 					.rot(pageRotation)
 					.add(pageTransform.point())
 
-				const newNote = getNoteShapeForAdjacentPosition(
-					editor,
+				const newNote = getNoteShapeForAdjacentPosition(editor, {
 					shape,
-					adjacentCenter,
+					center: adjacentCenter,
 					pageRotation,
-					dv.noteWidth,
-					dv.noteHeight
-				)
+					noteWidth: dv.noteWidth,
+					noteHeight: dv.noteHeight,
+				})
 
 				if (newNote) {
 					startEditingShapeWithRichText(editor, newNote, { selectAll: true })

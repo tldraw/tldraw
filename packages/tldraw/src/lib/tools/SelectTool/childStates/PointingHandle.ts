@@ -151,27 +151,25 @@ function getNoteForAdjacentPosition(
 	const pageTransform = editor.getShapePageTransform(shape.id)!
 	const pagePoint = pageTransform.point()
 	const pageRotation = pageTransform.rotation()
-	const positions = getNoteAdjacentPositions(
-		editor,
+	const positions = getNoteAdjacentPositions(editor, {
 		pagePoint,
 		pageRotation,
-		shape.props.growY * shape.props.scale,
-		0,
-		shape.props.scale,
-		dv.noteWidth,
-		dv.noteHeight
-	)
+		growY: shape.props.growY * shape.props.scale,
+		extraHeight: 0,
+		scale: shape.props.scale,
+		noteWidth: dv.noteWidth,
+		noteHeight: dv.noteHeight,
+	})
 	const position = positions[handle.index]
 	if (position) {
-		return getNoteShapeForAdjacentPosition(
-			editor,
+		return getNoteShapeForAdjacentPosition(editor, {
 			shape,
-			position,
+			center: position,
 			pageRotation,
-			dv.noteWidth,
-			dv.noteHeight,
-			forceNew
-		)
+			noteWidth: dv.noteWidth,
+			noteHeight: dv.noteHeight,
+			forceNew,
+		})
 	}
 	return undefined
 }

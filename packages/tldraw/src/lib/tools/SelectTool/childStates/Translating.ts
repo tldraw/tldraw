@@ -432,14 +432,13 @@ function getTranslatingSnapshot(editor: Editor) {
 	if (noteSnapshot) {
 		const noteUtil = editor.getShapeUtil(noteSnapshot.shape) as NoteShapeUtil
 		const dv = getDisplayValues(noteUtil, noteSnapshot.shape, false)
-		noteAdjacentPositions = getAvailableNoteAdjacentPositions(
-			editor,
-			noteSnapshot.pageRotation,
-			noteSnapshot.shape.props.scale,
-			noteSnapshot.shape.props.growY ?? 0,
-			dv.noteWidth,
-			dv.noteHeight
-		)
+		noteAdjacentPositions = getAvailableNoteAdjacentPositions(editor, {
+			rotation: noteSnapshot.pageRotation,
+			scale: noteSnapshot.shape.props.scale,
+			extraHeight: noteSnapshot.shape.props.growY ?? 0,
+			noteWidth: dv.noteWidth,
+			noteHeight: dv.noteHeight,
+		})
 		noteCenterOffset = new Vec(dv.noteWidth / 2, dv.noteHeight / 2)
 	}
 
