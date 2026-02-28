@@ -451,12 +451,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			<>
 				{ctx.isDarkMode ? null : (
 					<rect
-						x={5}
-						y={5}
 						rx={1}
-						width={dv.noteWidth - 10}
+						width={dv.noteWidth}
 						height={bounds.h}
-						fill="rgba(0,0,0,.1)"
+						fill={dv.noteBackgroundColor}
+						filter={`url(#${filterId})`}
 					/>
 				)}
 				<rect rx={1} width={dv.noteWidth} height={bounds.h} fill={dv.noteBackgroundColor} />
