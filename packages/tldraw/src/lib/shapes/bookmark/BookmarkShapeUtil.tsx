@@ -17,6 +17,7 @@ import {
 import classNames from 'classnames'
 import { PointerEventHandler, useCallback, useState } from 'react'
 import { convertCommonTitleHTMLEntities } from '../../utils/text/text'
+import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
@@ -29,10 +30,27 @@ import {
 } from './bookmarks'
 
 /** @public */
+export type BookmarkShapeUtilDisplayValues = object
+
+/** @public */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface BookmarkShapeUtilOptions
+	extends ShapeOptionsWithDisplayValues<TLBookmarkShape, BookmarkShapeUtilDisplayValues> {}
+
+/** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	static override type = 'bookmark' as const
 	static override props = bookmarkShapeProps
 	static override migrations = bookmarkShapeMigrations
+
+	override options: BookmarkShapeUtilOptions = {
+		getDisplayValues(): BookmarkShapeUtilDisplayValues {
+			return {}
+		},
+		getDisplayValueOverrides(): Partial<BookmarkShapeUtilDisplayValues> {
+			return {}
+		},
+	}
 
 	override canResize() {
 		return false

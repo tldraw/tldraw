@@ -32,8 +32,9 @@ import {
 import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
-import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { getUncroppedSize } from '../shared/crop'
+import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
+import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 import { TRANSPARENT_IMAGE_MIMETYPES, getAlphaData, preloadAlphaData } from './ImageAlphaCache'
@@ -48,10 +49,26 @@ async function getDataURIFromURL(url: string): Promise<string> {
 const imageSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
+export interface ImageShapeUtilDisplayValues {}
+
+/** @public */
+export interface ImageShapeUtilOptions
+	extends ShapeOptionsWithDisplayValues<TLImageShape, ImageShapeUtilDisplayValues> {}
+
+/** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override type = 'image' as const
 	static override props = imageShapeProps
 	static override migrations = imageShapeMigrations
+
+	override options: ImageShapeUtilOptions = {
+		getDisplayValues(): ImageShapeUtilDisplayValues {
+			return {}
+		},
+		getDisplayValueOverrides(): Partial<ImageShapeUtilDisplayValues> {
+			return {}
+		},
+	}
 
 	override isAspectRatioLocked() {
 		return true

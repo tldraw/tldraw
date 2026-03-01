@@ -16,11 +16,12 @@ import {
 	isPageId,
 	kickoutOccludedShapes,
 } from '@tldraw/editor'
+import type { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
-	NOTE_CENTER_OFFSET,
 	getAvailableNoteAdjacentPositions,
 } from '../../../shapes/note/noteHelpers'
+import { getDisplayValues } from '../../../shapes/shared/getDisplayValues'
 import { DragAndDropManager } from '../DragAndDropManager'
 
 export type TranslatingInfo = TLPointerEventInfo & {
@@ -404,6 +405,7 @@ function getTranslatingSnapshot(editor: Editor) {
 
 	let noteAdjacentPositions: Vec[] | undefined
 	let noteSnapshot: (MovingShapeSnapshot & { shape: TLNoteShape }) | undefined
+	let noteCenterOffset: Vec | undefined
 
 	const originPagePoint = editor.inputs.getOriginPagePoint()
 
@@ -428,12 +430,16 @@ function getTranslatingSnapshot(editor: Editor) {
 	}
 
 	if (noteSnapshot) {
-		noteAdjacentPositions = getAvailableNoteAdjacentPositions(
-			editor,
-			noteSnapshot.pageRotation,
-			noteSnapshot.shape.props.scale,
-			noteSnapshot.shape.props.growY ?? 0
-		)
+		const noteUtil = editor.getShapeUtil(noteSnapshot.shape) as NoteShapeUtil
+		const dv = getDisplayValues(noteUtil, noteSnapshot.shape, false)
+		noteAdjacentPositions = getAvailableNoteAdjacentPositions(editor, {
+			rotation: noteSnapshot.pageRotation,
+			scale: noteSnapshot.shape.props.scale,
+			extraHeight: noteSnapshot.shape.props.growY ?? 0,
+			noteWidth: dv.noteWidth,
+			noteHeight: dv.noteHeight,
+		})
+		noteCenterOffset = new Vec(dv.noteWidth / 2, dv.noteHeight / 2)
 	}
 
 	return {
@@ -444,6 +450,7 @@ function getTranslatingSnapshot(editor: Editor) {
 		initialSnapPoints,
 		noteAdjacentPositions,
 		noteSnapshot,
+		noteCenterOffset,
 	}
 }
 
@@ -468,6 +475,7 @@ export function moveShapesToPoint({
 	const {
 		noteSnapshot,
 		noteAdjacentPositions,
+		noteCenterOffset,
 		initialPageBounds,
 		initialSnapPoints,
 		shapeSnapshots,
@@ -513,13 +521,13 @@ export function moveShapesToPoint({
 		delta.add(nudge)
 	} else {
 		// for sticky notes, snap to grid position next to other notes
-		if (noteSnapshot && noteAdjacentPositions) {
+		if (noteSnapshot && noteAdjacentPositions && noteCenterOffset) {
 			const { scale } = noteSnapshot.shape.props
 			const pageCenter = noteSnapshot.pagePoint
 				.clone()
 				.add(delta)
 				// use the middle of the note, disregarding extra height
-				.add(NOTE_CENTER_OFFSET.clone().mul(scale).rot(noteSnapshot.pageRotation))
+				.add(noteCenterOffset.clone().mul(scale).rot(noteSnapshot.pageRotation))
 
 			// Find the pit with the center closest to the put center
 			let min = NOTE_ADJACENT_POSITION_SNAP_RADIUS / editor.getZoomLevel() // in screen space
