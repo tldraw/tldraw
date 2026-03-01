@@ -6,7 +6,6 @@ import {
 	TLNoteShape,
 	TLTextShape,
 } from '@tldraw/editor'
-import { NOTE_SIZE } from '../lib/shapes/note/noteHelpers'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -96,7 +95,7 @@ describe('when creating a shape...', () => {
 			.pointerDown(0 + gridNudge, 0 + gridNudge)
 			.pointerUp()
 		const shape = editor.getLastCreatedShape() as TLNoteShape
-		expect({ x: shape.x, y: shape.y }).toMatchObject({ x: -NOTE_SIZE / 2, y: -NOTE_SIZE / 2 })
+		expect({ x: shape.x, y: shape.y }).toMatchObject({ x: -200 / 2, y: -200 / 2 })
 	})
 	it('aligns text shapes with the grid', () => {
 		editor.setCurrentTool('text').pointerDown(gridNudge, gridNudge).pointerUp()
