@@ -288,11 +288,6 @@ function furthest(from: VecLike, candidates: VecLike[]): VecLike | null {
 	return furthest
 }
 
-export function getArrowLabelFontSize(editor: Editor, shape: TLArrowShape) {
-	const dv = getArrowDisplayValues(editor, shape)
-	return dv.labelFontSize * shape.props.scale
-}
-
 export function getArrowLabelDefaultPosition(editor: Editor, shape: TLArrowShape) {
 	const info = getArrowInfo(editor, shape)!
 	switch (info.type) {

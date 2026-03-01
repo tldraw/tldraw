@@ -92,6 +92,7 @@ export interface GeoShapeUtilDisplayValues {
 	labelFontFamily: string
 	labelFontSize: number
 	labelMinWidth: number
+	labelExtraPadding: number
 	labelLineHeight: number
 	labelFontWeight: string
 	labelFontVariant: string
@@ -136,7 +137,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				labelColor: getColorValue(theme, labelColor, 'solid'), // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: LABEL_FONT_SIZES[size],
-				labelMinWidth: GEO_SHAPE_MIN_WIDTHS[size] + GEO_SHAPE_EXTRA_PADDINGS[size],
+				labelMinWidth: GEO_SHAPE_MIN_WIDTHS[size],
+				labelExtraPadding: GEO_SHAPE_EXTRA_PADDINGS[size],
 				labelLineHeight: 1.35,
 				labelFontWeight: 'normal',
 				labelFontVariant: 'normal',
@@ -785,7 +787,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				// Guard because a DOM nodes can't be less 0
 				0,
 				// A 'w' width that we're setting as the min-width
-				Math.ceil(dv.labelMinWidth),
+				Math.ceil(dv.labelMinWidth + dv.labelExtraPadding),
 				// The actual text size
 				Math.ceil(shape.props.w / shape.props.scale - dv.labelPadding * 2)
 			),
