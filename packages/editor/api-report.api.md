@@ -1432,6 +1432,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): Promise<void>;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): this;
+    resizeToBounds(shapes: TLShape[] | TLShapeId[], bounds: BoxLike): this;
     // (undocumented)
     resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
     // (undocumented)
@@ -4352,7 +4353,7 @@ export interface TLShapeIndicatorsProps {
 // @public
 export interface TLShapeUtilCanBeLaidOutOpts {
     shapes?: TLShape[];
-    type?: 'align' | 'distribute' | 'flip' | 'pack' | 'stack' | 'stretch';
+    type?: 'align' | 'distribute' | 'flip' | 'pack' | 'resize_to_bounds' | 'stack' | 'stretch';
 }
 
 // @public
