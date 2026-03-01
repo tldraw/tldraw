@@ -10008,7 +10008,6 @@ __metadata:
     "@tailwindcss/typography": "npm:^0.5.16"
     "@tldraw/assets": "workspace:*"
     "@tldraw/utils": "workspace:*"
-    "@types/broken-link-checker": "npm:^0.7.3"
     "@types/js-cookie": "npm:^3.0.6"
     "@types/mdast": "npm:^4.0.4"
     "@types/node": "npm:^22.15.31"
@@ -10029,7 +10028,6 @@ __metadata:
     gray-matter: "npm:^4.0.3"
     instantsearch.js: "npm:^4.77.1"
     js-cookie: "npm:^3.0.5"
-    linkinator: "npm:^6.1.2"
     mdast-util-mdx: "npm:^3.0.0"
     next: "npm:^15.4.10"
     next-mdx-remote-client: "npm:^1.1.2"
@@ -10686,13 +10684,6 @@ __metadata:
     "@types/connect": "npm:*"
     "@types/node": "npm:*"
   checksum: 10/33041e88eae00af2cfa0827e951e5f1751eafab2a8b6fce06cd89ef368a988907996436b1325180edaeddd1c0c7d0d0d4c20a6c9ff294a91e0039a9db9e9b658
-  languageName: node
-  linkType: hard
-
-"@types/broken-link-checker@npm:^0.7.3":
-  version: 0.7.3
-  resolution: "@types/broken-link-checker@npm:0.7.3"
-  checksum: 10/fe239fb7af8abba637e893a2b3d139a8f10e8e9031613b576dd0df40c30400ccc6d76bd3b8f2c62f68661f128339ecc569b918fc4c7711aec02ec5f96142e94f
   languageName: node
   linkType: hard
 
@@ -19052,7 +19043,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"htmlparser2@npm:^9.0.0, htmlparser2@npm:^9.1.0":
+"htmlparser2@npm:^9.1.0":
   version: 9.1.0
   resolution: "htmlparser2@npm:9.1.0"
   dependencies:
@@ -20889,26 +20880,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"linkinator@npm:^6.1.2":
-  version: 6.1.2
-  resolution: "linkinator@npm:6.1.2"
-  dependencies:
-    chalk: "npm:^5.0.0"
-    escape-html: "npm:^1.0.3"
-    gaxios: "npm:^6.0.0"
-    glob: "npm:^10.3.10"
-    htmlparser2: "npm:^9.0.0"
-    marked: "npm:^13.0.0"
-    meow: "npm:^13.0.0"
-    mime: "npm:^4.0.0"
-    server-destroy: "npm:^1.0.1"
-    srcset: "npm:^5.0.0"
-  bin:
-    linkinator: build/src/cli.js
-  checksum: 10/20449725aeccfc04c05cdf42e81474d3031a26b7f7f195bfacc6ec2220d8a4373455248d4a6040aa3904fcee4ee4149f5558b112f635348f1f5405c9545127ff
-  languageName: node
-  linkType: hard
-
 "lint-staged@npm:^15.4.3":
   version: 15.4.3
   resolution: "lint-staged@npm:15.4.3"
@@ -21408,15 +21379,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:^13.0.0":
-  version: 13.0.3
-  resolution: "marked@npm:13.0.3"
-  bin:
-    marked: bin/marked.js
-  checksum: 10/95daf69e316879a3be112793f203093b2646aeeaa1b7eedc6ea7902bff6af44da045cd35c723711645bc7d92dbe872101e5a36976b48164e1efc1356b12a4a57
-  languageName: node
-  linkType: hard
-
 "matcher-collection@npm:^2.0.0":
   version: 2.0.1
   resolution: "matcher-collection@npm:2.0.1"
@@ -21702,13 +21664,6 @@ __metadata:
   version: 1.1.0
   resolution: "media-typer@npm:1.1.0"
   checksum: 10/a58dd60804df73c672942a7253ccc06815612326dc1c0827984b1a21704466d7cde351394f47649e56cf7415e6ee2e26e000e81b51b3eebb5a93540e8bf93cbd
-  languageName: node
-  linkType: hard
-
-"meow@npm:^13.0.0":
-  version: 13.2.0
-  resolution: "meow@npm:13.2.0"
-  checksum: 10/4eff5bc921fed0b8a471ad79069d741a0210036d717547d0c7f36fdaf84ef7a3036225f38b6a53830d84dc9cbf8b944b097fde62381b8b5b215119e735ce1063
   languageName: node
   linkType: hard
 
@@ -22257,7 +22212,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mime@npm:^4.0.0, mime@npm:^4.0.6":
+"mime@npm:^4.0.6":
   version: 4.0.6
   resolution: "mime@npm:4.0.6"
   bin:
@@ -27391,13 +27346,6 @@ __metadata:
   version: 5.1.1
   resolution: "sqlite@npm:5.1.1"
   checksum: 10/0b61164e73507672703dde83c70fd99627bf75b11bd2a70cf1573c2ea9c52d229365991412ada18daf470dc329694a4f831788a776f9374539a38892c3e6a23f
-  languageName: node
-  linkType: hard
-
-"srcset@npm:^5.0.0":
-  version: 5.0.1
-  resolution: "srcset@npm:5.0.1"
-  checksum: 10/858bd5b042106999cca9b70fa2ee5255113ec47b8e77f54d9d11128eafc88f3b8452543962d4d4a474d3a75477ccf80ce29feed81411b83198730bdba556174d
   languageName: node
   linkType: hard
 

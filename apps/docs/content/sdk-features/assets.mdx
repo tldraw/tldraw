@@ -103,7 +103,7 @@ const bookmarkAsset: TLBookmarkAsset = {
 The default behavior depends on your store setup:
 
 - **In-memory only** (default): [`inlineBase64AssetStore`](?) converts images to data URLs—quick for prototyping but doesn't persist across sessions
-- **With [`persistenceKey`](/docs/persistence#The-persistenceKey-prop)**: Assets are stored in the browser's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) alongside other document data
+- **With [`persistenceKey`](/sdk-features/persistence#The-persistenceKey-prop)**: Assets are stored in the browser's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) alongside other document data
 - **With a [sync server](/docs/sync)**: Implement `TLAssetStore` to upload files to a storage service like S3, Google Cloud Storage, or your own API
 
 The interface has three methods:
