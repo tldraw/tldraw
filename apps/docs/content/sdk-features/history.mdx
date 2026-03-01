@@ -19,7 +19,7 @@ accuracy: 10
 notes: ''
 ---
 
-The editor's history system tracks changes to the [store](/docs/store) and provides undo/redo functionality. Changes are organized into batches separated by marks, which act as stopping points. This lets complex interactions be undone as single atomic operations rather than individual edits.
+The editor's history system tracks changes to the [store](/sdk-features/store) and provides undo/redo functionality. Changes are organized into batches separated by marks, which act as stopping points. This lets complex interactions be undone as single atomic operations rather than individual edits.
 
 The history manager captures all user-initiated changes automatically. Multiple rapid changes are compressed into cohesive undo steps, and you can control which changes are recorded using history options.
 
@@ -155,7 +155,7 @@ editor.clearHistory() // Start with clean history
 
 ## Integration with the store
 
-The history manager listens to [store](/docs/store) changes through a history interceptor. It only captures changes marked with source `'user'`, ignoring internal updates and external synchronization.
+The history manager listens to [store](/sdk-features/store) changes through a history interceptor. It only captures changes marked with source `'user'`, ignoring internal updates and external synchronization.
 
 Internally, the manager has three states:
 
