@@ -94,8 +94,18 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 			data-textwrap={!!wrap}
 			data-isselected={isSelected}
 			style={{
-				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
-				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+				justifyContent:
+					align === 'middle' || legacyAlign
+						? 'center'
+						: align === 'end'
+							? 'flex-end'
+							: 'flex-start',
+				alignItems:
+					verticalAlign === 'middle'
+						? 'center'
+						: verticalAlign === 'end'
+							? 'flex-end'
+							: 'flex-start',
 				padding,
 				...style,
 			}}
