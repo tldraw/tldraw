@@ -7631,7 +7631,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// First translate
 					const shapeLocalOffset = localOffset.clone()
 					const parentTransform = this.getShapeParentTransform(shape)
-					if (parentTransform) localOffset.rot(-parentTransform.rotation())
+					if (parentTransform) shapeLocalOffset.rot(-parentTransform.rotation())
 					shapeLocalOffset.add(shape)
 					const changes = this.getChangesToTranslateShape(shape, shapeLocalOffset)
 					this.updateShape(changes)
@@ -7729,45 +7729,42 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const commonBounds = Box.Common(allBounds)
 		if (!commonBounds) return this
+		if (commonBounds.width === 0 || commonBounds.height === 0) return this
 
 		const scaleX = targetBounds.width / commonBounds.width
 		const scaleY = targetBounds.height / commonBounds.height
 		const scale = new Vec(scaleX, scaleY)
 
-		this.run(() => {
-			shapeClusters.forEach(({ shapes, pageBounds }) => {
-				const localOffset = new Vec(
-					targetBounds.minX -
-						commonBounds.minX +
-						(pageBounds.minX - commonBounds.minX) * (scaleX - 1),
-					targetBounds.minY -
-						commonBounds.minY +
-						(pageBounds.minY - commonBounds.minY) * (scaleY - 1)
-				)
+		shapeClusters.forEach(({ shapes, pageBounds }) => {
+			const localOffset = new Vec(
+				targetBounds.minX -
+					commonBounds.minX +
+					(pageBounds.minX - commonBounds.minX) * (scaleX - 1),
+				targetBounds.minY - commonBounds.minY + (pageBounds.minY - commonBounds.minY) * (scaleY - 1)
+			)
 
-				const scaleOrigin = new Vec(
-					targetBounds.minX + (pageBounds.minX - commonBounds.minX) * scaleX,
-					targetBounds.minY + (pageBounds.minY - commonBounds.minY) * scaleY
-				)
+			const scaleOrigin = new Vec(
+				targetBounds.minX + (pageBounds.minX - commonBounds.minX) * scaleX,
+				targetBounds.minY + (pageBounds.minY - commonBounds.minY) * scaleY
+			)
 
-				for (const shape of shapes) {
-					// First translate
-					const shapeLocalOffset = localOffset.clone()
-					const parentTransform = this.getShapeParentTransform(shape)
-					if (parentTransform) shapeLocalOffset.rot(-parentTransform.rotation())
-					shapeLocalOffset.add(shape)
-					const changes = this.getChangesToTranslateShape(shape, shapeLocalOffset)
-					this.updateShape(changes)
+			for (const shape of shapes) {
+				// First translate
+				const shapeLocalOffset = localOffset.clone()
+				const parentTransform = this.getShapeParentTransform(shape)
+				if (parentTransform) shapeLocalOffset.rot(-parentTransform.rotation())
+				shapeLocalOffset.add(shape)
+				const changes = this.getChangesToTranslateShape(shape, shapeLocalOffset)
+				this.updateShape(changes)
 
-					// Then resize
-					this.resizeShape(shape.id, scale, {
-						initialBounds: this.getShapeGeometry(shape).bounds,
-						scaleOrigin,
-						isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
-						scaleAxisRotation: 0,
-					})
-				}
-			})
+				// Then resize
+				this.resizeShape(shape.id, scale, {
+					initialBounds: this.getShapeGeometry(shape).bounds,
+					scaleOrigin,
+					isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
+					scaleAxisRotation: 0,
+				})
+			}
 		})
 
 		return this
