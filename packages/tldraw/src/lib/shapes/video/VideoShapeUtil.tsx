@@ -24,6 +24,7 @@ import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 const videoSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface VideoShapeUtilDisplayValues {}
 
 /** @public */
