@@ -1887,6 +1887,8 @@ export interface GeoShapeUtilDisplayValues {
     // (undocumented)
     labelEdgeMargin: number;
     // (undocumented)
+    labelExtraPadding: number;
+    // (undocumented)
     labelFontFamily: string;
     // (undocumented)
     labelFontSize: number;
