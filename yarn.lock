@@ -11170,32 +11170,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/editor@npm:4.4.0":
-  version: 4.4.0
-  resolution: "@tldraw/editor@npm:4.4.0"
-  dependencies:
-    "@tiptap/core": "npm:^3.12.1"
-    "@tiptap/pm": "npm:^3.12.1"
-    "@tiptap/react": "npm:^3.12.1"
-    "@tldraw/state": "npm:4.4.0"
-    "@tldraw/state-react": "npm:4.4.0"
-    "@tldraw/store": "npm:4.4.0"
-    "@tldraw/tlschema": "npm:4.4.0"
-    "@tldraw/utils": "npm:4.4.0"
-    "@tldraw/validate": "npm:4.4.0"
-    "@use-gesture/react": "npm:^10.3.1"
-    classnames: "npm:^2.5.1"
-    eventemitter3: "npm:^4.0.7"
-    idb: "npm:^7.1.1"
-    is-plain-object: "npm:^5.0.0"
-    rbush: "npm:^3.0.1"
-  peerDependencies:
-    react: ^18.2.0 || ^19.2.1
-    react-dom: ^18.2.0 || ^19.2.1
-  checksum: 10/cedf3887ab02544b0d6c4b273ee822c358dab02d78f0227b4b116a7c1f799397f03e43e0f7f3530cd7bdd62ade7e3daa3786df0805625e23cc22054f6e4be664
-  languageName: node
-  linkType: hard
-
 "@tldraw/editor@workspace:*, @tldraw/editor@workspace:packages/editor":
   version: 0.0.0-use.local
   resolution: "@tldraw/editor@workspace:packages/editor"
@@ -11397,19 +11371,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/state-react@npm:4.4.0":
-  version: 4.4.0
-  resolution: "@tldraw/state-react@npm:4.4.0"
-  dependencies:
-    "@tldraw/state": "npm:4.4.0"
-    "@tldraw/utils": "npm:4.4.0"
-  peerDependencies:
-    react: ^18.2.0 || ^19.2.1
-    react-dom: ^18.2.0 || ^19.2.1
-  checksum: 10/674bb4dededfe144afa3396246917e1aabdec5e4e6e1701c10a2d3bbc2f204635dee42aa842738f0eed4ff8687cf5ac2923a345c8be48e587cdcccb9c9e83f13
-  languageName: node
-  linkType: hard
-
 "@tldraw/state-react@workspace:*, @tldraw/state-react@workspace:packages/state-react":
   version: 0.0.0-use.local
   resolution: "@tldraw/state-react@workspace:packages/state-react"
@@ -11431,15 +11392,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/state@npm:4.4.0":
-  version: 4.4.0
-  resolution: "@tldraw/state@npm:4.4.0"
-  dependencies:
-    "@tldraw/utils": "npm:4.4.0"
-  checksum: 10/c4b7fef94b87ee7e120411041dfdaa370413380f752ec4752171579e1d71464ae4af4e84431dc3eeef1d4ed833e009757d35716dbddd2490b2c8123ebe78f981
-  languageName: node
-  linkType: hard
-
 "@tldraw/state@workspace:*, @tldraw/state@workspace:packages/state":
   version: 0.0.0-use.local
   resolution: "@tldraw/state@workspace:packages/state"
@@ -11450,18 +11402,6 @@ __metadata:
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
-
-"@tldraw/store@npm:4.4.0":
-  version: 4.4.0
-  resolution: "@tldraw/store@npm:4.4.0"
-  dependencies:
-    "@tldraw/state": "npm:4.4.0"
-    "@tldraw/utils": "npm:4.4.0"
-  peerDependencies:
-    react: ^18.2.0 || ^19.2.1
-  checksum: 10/22b7bd40183216dc66f6ab47ccb8661ff73fd41fad059d434f7f5914bdb0021d55df5077c4bd399723fc90e46fd384227be6be4a82822ca5a9a714f40caec61a
-  languageName: node
-  linkType: hard
 
 "@tldraw/store@workspace:*, @tldraw/store@workspace:packages/store":
   version: 0.0.0-use.local
@@ -11546,21 +11486,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/tlschema@npm:4.4.0":
-  version: 4.4.0
-  resolution: "@tldraw/tlschema@npm:4.4.0"
-  dependencies:
-    "@tldraw/state": "npm:4.4.0"
-    "@tldraw/store": "npm:4.4.0"
-    "@tldraw/utils": "npm:4.4.0"
-    "@tldraw/validate": "npm:4.4.0"
-  peerDependencies:
-    react: ^18.2.0 || ^19.2.1
-    react-dom: ^18.2.0 || ^19.2.1
-  checksum: 10/a7a2f7b870eefb3f69a85644370567d5fe2907a099b8f092527d63006a88c0f6d4a245bcce85972d6e5779496bbb47d9acb34550a9e7df8176f359d9ad898a73
-  languageName: node
-  linkType: hard
-
 "@tldraw/tlschema@workspace:*, @tldraw/tlschema@workspace:packages/tlschema":
   version: 0.0.0-use.local
   resolution: "@tldraw/tlschema@workspace:packages/tlschema"
@@ -11579,19 +11504,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/utils@npm:4.4.0":
-  version: 4.4.0
-  resolution: "@tldraw/utils@npm:4.4.0"
-  dependencies:
-    jittered-fractional-indexing: "npm:^1.0.0"
-    lodash.isequal: "npm:^4.5.0"
-    lodash.isequalwith: "npm:^4.4.0"
-    lodash.throttle: "npm:^4.1.1"
-    lodash.uniq: "npm:^4.5.0"
-  checksum: 10/6296cf26bf8638e03dfbd60327bbc1788e08e0ce2d913d0d46cb1aefe346d64a2718685f89af758b65c32055c48cd04abcae8640675740ef1779e0d1d1881c44
-  languageName: node
-  linkType: hard
-
 "@tldraw/utils@workspace:*, @tldraw/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@tldraw/utils@workspace:packages/utils"
@@ -11609,15 +11521,6 @@ __metadata:
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
-
-"@tldraw/validate@npm:4.4.0":
-  version: 4.4.0
-  resolution: "@tldraw/validate@npm:4.4.0"
-  dependencies:
-    "@tldraw/utils": "npm:4.4.0"
-  checksum: 10/4684523c8399effc9f7efdf69b0b874802f1fd3165b5c55035199e7f335bc5d17f811fb7a8931116e805e941722988ba2d2a98a47cc5c8a59d9cc3b7f46a50c0
-  languageName: node
-  linkType: hard
 
 "@tldraw/validate@workspace:*, @tldraw/validate@workspace:packages/validate":
   version: 0.0.0-use.local
@@ -22900,7 +22803,7 @@ __metadata:
     agents: "npm:^0.5.0"
     react: "npm:^18.3.0"
     react-dom: "npm:^18.3.0"
-    tldraw: "npm:^4.3.1"
+    tldraw: "workspace:*"
     tsx: "npm:^4.7.0"
     typescript: "npm:^5.5.0"
     vite: "npm:^6.0.0"
@@ -26635,13 +26538,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"quickselect@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "quickselect@npm:2.0.0"
-  checksum: 10/ed2e78431050d223fb75da20ee98011aef1a03f7cb04e1a32ee893402e640be3cfb76d72e9dbe01edf3bb457ff6a62e5c2d85748424d1aa531f6ba50daef098c
-  languageName: node
-  linkType: hard
-
 "quickselect@npm:^3.0.0":
   version: 3.0.0
   resolution: "quickselect@npm:3.0.0"
@@ -26780,15 +26676,6 @@ __metadata:
     iconv-lite: "npm:~0.7.0"
     unpipe: "npm:~1.0.0"
   checksum: 10/4168c82157bd69175d5bd960e59b74e253e237b358213694946a427a6f750a18b8e150f036fed3421b3e83294b071a4e2bb01037a79ccacdac05360c63d3ebba
-  languageName: node
-  linkType: hard
-
-"rbush@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "rbush@npm:3.0.1"
-  dependencies:
-    quickselect: "npm:^2.0.0"
-  checksum: 10/489e2e7d9889888ad533518f194e3ab7cc19b1f1365a38ee99fbdda542a47f41cda7dc89870180050f4d04ea402e9ff294e1d767d03c0f1694e0028b7609eec9
   languageName: node
   linkType: hard
 
@@ -30313,31 +30200,6 @@ __metadata:
     vite: "npm:^7.0.1"
   languageName: unknown
   linkType: soft
-
-"tldraw@npm:^4.3.1":
-  version: 4.4.0
-  resolution: "tldraw@npm:4.4.0"
-  dependencies:
-    "@tiptap/core": "npm:^3.12.1"
-    "@tiptap/extension-code": "npm:^3.12.1"
-    "@tiptap/extension-highlight": "npm:^3.12.1"
-    "@tiptap/extension-list": "npm:^3.12.1"
-    "@tiptap/pm": "npm:^3.12.1"
-    "@tiptap/react": "npm:^3.12.1"
-    "@tiptap/starter-kit": "npm:^3.12.1"
-    "@tldraw/editor": "npm:4.4.0"
-    "@tldraw/store": "npm:4.4.0"
-    classnames: "npm:^2.5.1"
-    hotkeys-js: "npm:^3.13.9"
-    idb: "npm:^7.1.1"
-    lz-string: "npm:^1.5.0"
-    radix-ui: "npm:^1.4.2"
-  peerDependencies:
-    react: ^18.2.0 || ^19.2.1
-    react-dom: ^18.2.0 || ^19.2.1
-  checksum: 10/8c3c4e157e1aa232297fea22af5caf116c059bdc1757ff97f3eaf62048f40339df325d5d5665e5261979a8f7736e66c8af7952d3d235fc209e2edeb8327b2868
-  languageName: node
-  linkType: hard
 
 "tldraw@workspace:*, tldraw@workspace:packages/tldraw":
   version: 0.0.0-use.local
