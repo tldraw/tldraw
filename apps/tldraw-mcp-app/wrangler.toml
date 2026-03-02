@@ -7,7 +7,6 @@ compatibility_flags = ["nodejs_compat"]
 # Force single copies to avoid "Mixed Zod versions" errors.
 # The agents package bundles MCP SDK 1.26.0 in agents/node_modules/; our direct dep is 1.27.0.
 # Each SDK resolves zod independently, producing two Zod instances. Aliasing both to one location fixes this.
-"zod" = "./node_modules/zod"
 "@modelcontextprotocol/sdk/server/mcp.js" = "./node_modules/agents/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js"
 "@modelcontextprotocol/sdk/types.js" = "./node_modules/agents/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js"
 
@@ -31,3 +30,12 @@ WORKER_ORIGIN = "https://tldraw-mcp-app.tldraw.workers.dev"
 [[r2_buckets]]
 binding = "IMAGES"
 bucket_name = "tldraw-mcp-images"
+
+#################### Rate limiting ####################
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "2001"
+
+  [ratelimits.simple]
+  limit = 100
+  period = 60

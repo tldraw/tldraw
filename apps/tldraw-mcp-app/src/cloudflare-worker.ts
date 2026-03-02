@@ -21,6 +21,7 @@ interface Env {
 	MCP_OBJECT: DurableObjectNamespace
 	ASSETS: Fetcher
 	IMAGES: R2Bucket
+	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
 	WORKER_ORIGIN: string
 	MCP_DOMAIN_OPENAI: string
@@ -187,6 +188,16 @@ export default {
 			if (auth !== `Bearer ${env.MCP_AUTH_TOKEN}`) {
 				return corsResponse(new Response('Unauthorized', { status: 401 }))
 			}
+		}
+
+		// Rate limit by MCP session
+		const sessionId = request.headers.get('mcp-session-id')
+		if (!sessionId) {
+			return corsResponse(new Response('Missing session', { status: 400 }))
+		}
+		const { success } = await env.RATE_LIMITER.limit({ key: sessionId })
+		if (!success) {
+			return corsResponse(new Response('Rate limited', { status: 429 }))
 		}
 
 		// SSE transport (for MCP Inspector and legacy clients)
