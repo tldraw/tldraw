@@ -46,7 +46,6 @@ import {
 	useIsDarkMode,
 	useIsEditing,
 	useSharedSafeId,
-	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
@@ -786,12 +785,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	component(shape: TLArrowShape) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isDarkMode = useIsDarkMode()
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const dv = useValue(
-			'arrow shape display values',
-			() => getDisplayValues(this, shape, isDarkMode),
-			[shape, isDarkMode]
-		)
+		const dv = getDisplayValues(this, shape, isDarkMode)
 		const onlySelectedShape = this.editor.getOnlySelectedShape()
 		const shouldDisplayHandles =
 			this.editor.isInAny(

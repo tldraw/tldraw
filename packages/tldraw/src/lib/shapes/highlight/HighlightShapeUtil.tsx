@@ -125,11 +125,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	component(shape: TLHighlightShape) {
 		const isDarkMode = useIsDarkMode()
-		const dv = useValue(
-			'highlight display values',
-			() => getDisplayValues(this, shape, isDarkMode),
-			[shape, isDarkMode]
-		)
+		const dv = getDisplayValues(this, shape, isDarkMode)
 		const sw = dv.strokeWidth * shape.props.scale
 		const forceSolid = useHighlightForceSolid(this.editor, sw)
 
@@ -148,11 +144,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	override backgroundComponent(shape: TLHighlightShape) {
 		const isDarkMode = useIsDarkMode()
-		const dv = useValue(
-			'highlight background display values',
-			() => getDisplayValues(this, shape, isDarkMode),
-			[shape, isDarkMode]
-		)
+		const dv = getDisplayValues(this, shape, isDarkMode)
 		const sw = dv.strokeWidth * shape.props.scale
 		const forceSolid = useHighlightForceSolid(this.editor, sw)
 		return (
@@ -169,11 +161,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	indicator(shape: TLHighlightShape) {
-		const dv = useValue(
-			'highlight indicator display values',
-			() => getDisplayValues(this, shape, false),
-			[shape]
-		)
+		const dv = getDisplayValues(this, shape, false)
 		const strokeWidth = dv.strokeWidth * shape.props.scale
 		const forceSolid = useHighlightForceSolid(this.editor, strokeWidth)
 

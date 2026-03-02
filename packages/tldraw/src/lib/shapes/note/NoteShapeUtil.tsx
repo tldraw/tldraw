@@ -315,11 +315,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 
 		const isDarkMode = useIsDarkMode()
-		const dv = useValue(
-			'note shape display values',
-			() => getDisplayValues(this, shape, isDarkMode),
-			[shape, isDarkMode]
-		)
+		const dv = getDisplayValues(this, shape, isDarkMode)
 
 		const nw = dv.noteWidth * scale
 		const nh = getNoteHeight(shape, dv.noteHeight)
@@ -375,11 +371,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	indicator(shape: TLNoteShape) {
 		const { scale } = shape.props
-		const dv = useValue(
-			'note shape indicator display values',
-			() => getDisplayValues(this, shape, false),
-			[shape]
-		)
+		const dv = getDisplayValues(this, shape, false)
 		return (
 			<rect
 				rx={scale}

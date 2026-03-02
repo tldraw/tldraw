@@ -163,12 +163,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	component(shape: TLDrawShape) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isDarkMode = useIsDarkMode()
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const dv = useValue(
-			'draw shape display values',
-			() => getDisplayValues(this, shape, isDarkMode),
-			[shape, isDarkMode]
-		)
+		const dv = getDisplayValues(this, shape, isDarkMode)
 		return (
 			<SVGContainer>
 				<DrawShapeSvg

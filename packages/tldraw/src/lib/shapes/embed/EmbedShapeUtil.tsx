@@ -157,11 +157,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const isDarkMode = useIsDarkMode()
-		const dv = useValue(
-			'embed shape display values',
-			() => getDisplayValues(this, shape, isDarkMode),
-			[shape, isDarkMode]
-		)
+		const dv = getDisplayValues(this, shape, isDarkMode)
 
 		const embedInfo = this.getEmbedDefinition(url)
 

@@ -25,7 +25,6 @@ import {
 	maybeSnapToGrid,
 	sortByIndex,
 	useIsDarkMode,
-	useValue,
 } from '@tldraw/editor'
 
 import { STROKE_SIZES } from '../arrow/shared'
@@ -213,12 +212,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	component(shape: TLLineShape) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isDarkMode = useIsDarkMode()
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const dv = useValue(
-			'line shape display values',
-			() => getDisplayValues(this, shape, isDarkMode),
-			[shape, isDarkMode]
-		)
+		const dv = getDisplayValues(this, shape, isDarkMode)
 		return (
 			<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
 				<LineShapeSvg shape={shape} strokeColor={dv.strokeColor} strokeWidth={dv.strokeWidth} />

@@ -22,7 +22,6 @@ import {
 	toRichText,
 	useEditor,
 	useIsDarkMode,
-	useValue,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import {
@@ -158,11 +157,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const { width, height } = this.getMinDimensions(shape)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const isDarkMode = useIsDarkMode()
-		const dv = useValue(
-			'text shape display values',
-			() => getDisplayValues(this, shape, isDarkMode),
-			[shape, isDarkMode]
-		)
+		const dv = getDisplayValues(this, shape, isDarkMode)
 		const handleKeyDown = useTextShapeKeydownHandler(id)
 
 		return (
