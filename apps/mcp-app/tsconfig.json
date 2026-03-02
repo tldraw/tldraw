@@ -13,5 +13,10 @@
 		"lib": ["ES2022", "DOM", "DOM.Iterable"]
 	},
 	"include": ["src/**/*.ts", "src/**/*.tsx", "server.ts", "main.ts", "vite.config.ts"],
-	"exclude": ["node_modules", "dist"]
+	"exclude": ["node_modules", "dist"],
+	"references": [
+		{
+			"path": "../../packages/tldraw"
+		}
+	]
 }
