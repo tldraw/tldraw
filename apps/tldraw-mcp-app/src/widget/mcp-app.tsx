@@ -13,7 +13,7 @@ import {
 	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { isPlainObject } from '../shared/utils'
+import { isDev, isPlainObject } from '../shared/utils'
 import { createR2AssetStore } from './asset-store'
 import { debugLines, log } from './debug'
 import { exportTldr } from './export-tldr'
@@ -519,12 +519,7 @@ function TldrawCanvas({ app }: { app: App }) {
 							}
 				}
 			>
-				<Tldraw
-					assets={assetStore}
-					licenseKey="tldraw-claude---chatgpt-mcp-app-2027-02-26/WyI5NFRNbWVmbiIsWyIqLmNsYXVkZW1jcGNvbnRlbnQuY29tIiwiKi53ZWItc2FuZGJveC5vYWl1c2VyY29udGVudC5jb20iXSwxNiwiMjAyNy0wMi0yNiJd.5dV7DhEo4Ms3gr9PJ8qCFrmRrgh0XNYaBMJe299DvEDiNAf8imZeCSAkpmFD2Vcuw6H2uXJfBQkda6zKdnnEdA"
-					onMount={handleMount}
-					components={tldrawComponents}
-				/>
+				<Tldraw assets={assetStore} onMount={handleMount} components={tldrawComponents} />
 			</div>
 		</DisplayModeContext.Provider>
 	)
@@ -564,26 +559,28 @@ function McpApp() {
 
 	return (
 		<div>
-			<div
-				id="debug"
-				style={{
-					position: 'fixed',
-					bottom: 0,
-					left: 0,
-					right: 0,
-					background: 'rgba(0,0,0,0.85)',
-					color: '#0f0',
-					fontFamily: 'monospace',
-					fontSize: 11,
-					padding: 8,
-					zIndex: 999999,
-					maxHeight: 150,
-					overflow: 'auto',
-					whiteSpace: 'pre',
-				}}
-			>
-				{debugLines.join('\n')}
-			</div>
+			{isDev() && (
+				<div
+					id="debug"
+					style={{
+						position: 'fixed',
+						bottom: 0,
+						left: 0,
+						right: 0,
+						background: 'rgba(0,0,0,0.85)',
+						color: '#0f0',
+						fontFamily: 'monospace',
+						fontSize: 11,
+						padding: 8,
+						zIndex: 999999,
+						maxHeight: 150,
+						overflow: 'auto',
+						whiteSpace: 'pre',
+					}}
+				>
+					{debugLines.join('\n')}
+				</div>
+			)}
 			{error ? (
 				<div style={{ padding: 20, color: 'red' }}>Error: {error.message}</div>
 			) : !isConnected || !app ? (

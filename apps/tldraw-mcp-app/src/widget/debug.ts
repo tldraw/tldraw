@@ -5,6 +5,3 @@ export function log(msg: string) {
 	const el = document.getElementById('debug')
 	if (el) el.textContent = debugLines.join('\n')
 }
-
-window.addEventListener('error', (e) => log(`ERROR: ${e.message}`))
-window.addEventListener('unhandledrejection', (e) => log(`REJECTION: ${e.reason}`))
