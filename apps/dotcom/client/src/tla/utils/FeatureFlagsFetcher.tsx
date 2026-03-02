@@ -6,8 +6,6 @@ type FeatureFlags = Record<FeatureFlagKey, FeatureFlagValue>
 
 // Global atom for feature flags
 export const featureFlagsAtom: Atom<FeatureFlags> = atom('featureFlags', {
-	fairies: { enabled: false, description: '' },
-	fairies_purchase: { enabled: false, description: '' },
 	sqlite_file_storage: { enabled: false, description: '' },
 })
 

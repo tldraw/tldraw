@@ -3,8 +3,8 @@ import { TLHandle, TLShape, TLShapeId, VecModel } from '@tldraw/tlschema'
 import { assertExists, uniqueId } from '@tldraw/utils'
 import { Vec } from '../../../primitives/Vec'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
-import { Editor } from '../../Editor'
-import { PointsSnapIndicator, SnapData, SnapManager } from './SnapManager'
+import type { Editor } from '../../Editor'
+import type { PointsSnapIndicator, SnapData, SnapManager } from './SnapManager'
 
 /**
  * When dragging a handle, users can snap the handle to key geometry on other nearby shapes.

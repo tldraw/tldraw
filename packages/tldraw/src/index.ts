@@ -130,9 +130,9 @@ export {
 	type ElbowArrowSideReason,
 	type ElbowArrowTargetBox,
 } from './lib/shapes/arrow/elbow/definitions'
+export { getArrowInfo } from './lib/shapes/arrow/getArrowInfo'
 export {
 	getArrowBindings,
-	getArrowInfo,
 	getArrowTerminalsInArrowSpace,
 	type TLArrowBindings,
 } from './lib/shapes/arrow/shared'
@@ -700,6 +700,7 @@ export {
 	setDefaultEditorAssetUrls,
 	type TLEditorAssetUrls,
 } from './lib/utils/static-assets/assetUrls'
+export { sanitizeSvg } from './lib/utils/svg/sanitizeSvg'
 export {
 	defaultAddFontsFromNode,
 	KeyboardShiftEnterTweakExtension,

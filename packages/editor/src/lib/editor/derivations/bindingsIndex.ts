@@ -1,7 +1,7 @@
 import { Computed, RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
 import { TLBinding, TLShapeId } from '@tldraw/tlschema'
 import { objectMapValues } from '@tldraw/utils'
-import { Editor } from '../Editor'
+import type { Editor } from '../Editor'
 
 type TLBindingsIndex = Map<TLShapeId, TLBinding[]>
 
