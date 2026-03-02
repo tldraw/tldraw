@@ -1666,6 +1666,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@clerk/backend@npm:^2.0.0":
+  version: 2.33.0
+  resolution: "@clerk/backend@npm:2.33.0"
+  dependencies:
+    "@clerk/shared": "npm:^3.47.2"
+    "@clerk/types": "npm:^4.101.20"
+    standardwebhooks: "npm:^1.0.0"
+    tslib: "npm:2.8.1"
+  checksum: 10/96544ce90f644ed5ee0194b92f24c2d3ef9f8f4cd64869d1f875024c324256be0524e9d02e646ea56af7e29804c799227e4978418234332d3088c1089b00d332
+  languageName: node
+  linkType: hard
+
+"@clerk/clerk-react@npm:^5.0.0":
+  version: 5.61.3
+  resolution: "@clerk/clerk-react@npm:5.61.3"
+  dependencies:
+    "@clerk/shared": "npm:^3.47.2"
+    tslib: "npm:2.8.1"
+  peerDependencies:
+    react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
+    react-dom: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
+  checksum: 10/712d061f425f7c8aee3be595c8bb6145d0831f130deeba7fc53ea6e006a89dd81b6c3c5ae8b8eba4453e324bb6568cdecd15b2b97e849e6dca1c1c70804dcbb1
+  languageName: node
+  linkType: hard
+
 "@clerk/clerk-react@npm:^5.53.3":
   version: 5.53.3
   resolution: "@clerk/clerk-react@npm:5.53.3"
@@ -1750,6 +1775,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@clerk/shared@npm:^3.47.2":
+  version: 3.47.2
+  resolution: "@clerk/shared@npm:3.47.2"
+  dependencies:
+    csstype: "npm:3.1.3"
+    dequal: "npm:2.0.3"
+    glob-to-regexp: "npm:0.4.1"
+    js-cookie: "npm:3.0.5"
+    std-env: "npm:^3.9.0"
+    swr: "npm:2.3.4"
+  peerDependencies:
+    react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
+    react-dom: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 10/22f6aee8f61d012211e0fb3593b29b1285f50bdf7136a258ddfbaec64810ae819bca8e2437c46316dfe7791bf13354d49fcc8224e3abd86a59f86faa0c9ac77f
+  languageName: node
+  linkType: hard
+
 "@clerk/testing@npm:^1.4.15":
   version: 1.4.15
   resolution: "@clerk/testing@npm:1.4.15"
@@ -1767,6 +1814,15 @@ __metadata:
     cypress:
       optional: true
   checksum: 10/27047705f4c49cb94b5957a78299cc4dfaff9e085f1be723636e54ea1b8125a26bb48af46cb72c210f5337fe7ab27e99d233c40acbd08ac26930633bb138ede2
+  languageName: node
+  linkType: hard
+
+"@clerk/types@npm:^4.101.20":
+  version: 4.101.20
+  resolution: "@clerk/types@npm:4.101.20"
+  dependencies:
+    "@clerk/shared": "npm:^3.47.2"
+  checksum: 10/8f1464b766e8f50346861cd2fc089cf4905bb946606eb7dff8f0f6e2f3684fc66924f8926679a8585c85ab1343c228d7192e052ec46900e1f4e22adeb335ef00
   languageName: node
   linkType: hard
 
@@ -4268,7 +4324,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@modelcontextprotocol/ext-apps@npm:^1.1.2":
+"@modelcontextprotocol/ext-apps@npm:^1.0.0":
   version: 1.1.2
   resolution: "@modelcontextprotocol/ext-apps@npm:1.1.2"
   dependencies:
@@ -9528,6 +9584,13 @@ __metadata:
   version: 1.2.7
   resolution: "@speed-highlight/core@npm:1.2.7"
   checksum: 10/45269bd3533d0c89d6888accebd725cb7389b13925c0c575d5595f546cdafebd0618d398c7790a908f1231067732007f15213addbf81f5557efe21faeef46c02
+  languageName: node
+  linkType: hard
+
+"@stablelib/base64@npm:^1.0.0":
+  version: 1.0.1
+  resolution: "@stablelib/base64@npm:1.0.1"
+  checksum: 10/93f3edb05d5a828a775d23ebde49884abeb456b8946942acbe6a0815630e769c59c06c7275983031c8707bdcefc1c62917aaa99522ff1ec5f457704c83b686da
   languageName: node
   linkType: hard
 
@@ -18009,6 +18072,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-sha256@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "fast-sha256@npm:1.3.0"
+  checksum: 10/3bef0491f10a254348ec11dcddb26e4d951cfd3b4c0662ea5843ad1be3fe184ed74d640df68565fcc60f6437548cddf49e3ac886f88a69e05b5142e862840bf9
+  languageName: node
+  linkType: hard
+
 "fast-text-encoding@npm:^1.0.0":
   version: 1.0.6
   resolution: "fast-text-encoding@npm:1.0.6"
@@ -21952,8 +22022,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "mcp-app@workspace:apps/mcp-app"
   dependencies:
+    "@clerk/backend": "npm:^2.0.0"
+    "@clerk/clerk-react": "npm:^5.0.0"
     "@cloudflare/workers-types": "npm:^4.20250913.0"
-    "@modelcontextprotocol/ext-apps": "npm:^1.1.2"
+    "@modelcontextprotocol/ext-apps": "npm:^1.0.0"
     "@modelcontextprotocol/sdk": "npm:^1.24.0"
     "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^19.2.7"
@@ -27986,6 +28058,16 @@ __metadata:
   version: 0.0.2
   resolution: "stackback@npm:0.0.2"
   checksum: 10/2d4dc4e64e2db796de4a3c856d5943daccdfa3dd092e452a1ce059c81e9a9c29e0b9badba91b43ef0d5ff5c04ee62feb3bcc559a804e16faf447bac2d883aa99
+  languageName: node
+  linkType: hard
+
+"standardwebhooks@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "standardwebhooks@npm:1.0.0"
+  dependencies:
+    "@stablelib/base64": "npm:^1.0.0"
+    fast-sha256: "npm:^1.3.0"
+  checksum: 10/02b74a3e4cd131affe8bf18945360747a5a0bf81c1d62a7bbbea3d40976b4fef4bb37de71a35cdc0fdc4d6f0d951a3b6031052e78bd086dc9b09b629b82d3919
   languageName: node
   linkType: hard
 

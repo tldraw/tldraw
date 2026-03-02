@@ -2,7 +2,7 @@ import type { App } from '@modelcontextprotocol/ext-apps/react'
 import type { TLAssetStore } from 'tldraw'
 import { log } from './debug'
 
-export function createR2AssetStore(app: App): TLAssetStore {
+export function createR2AssetStore(app: App, getToken: () => Promise<string | null>): TLAssetStore {
 	return {
 		async upload(asset, file) {
 			const arrayBuffer = await file.arrayBuffer()
@@ -14,13 +14,17 @@ export function createR2AssetStore(app: App): TLAssetStore {
 			const base64 = btoa(binary)
 
 			try {
+				const token = await getToken()
+				const args: Record<string, string> = {
+					filename: file.name || 'image',
+					base64,
+					contentType: file.type || 'image/png',
+				}
+				if (token) args.clerkToken = token
+
 				const result = await app.callServerTool({
 					name: 'upload_image',
-					arguments: {
-						filename: file.name || 'image',
-						base64,
-						contentType: file.type || 'image/png',
-					},
+					arguments: args,
 				})
 
 				const sc = result?.structuredContent as Record<string, unknown> | undefined

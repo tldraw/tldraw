@@ -7,6 +7,7 @@
  * R2 for image uploads, and the shared registerTools() for tool registration.
  */
 
+import { verifyToken } from '@clerk/backend'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
 import type { TLShape } from 'tldraw'
@@ -26,6 +27,7 @@ interface Env {
 	WORKER_ORIGIN: string
 	MCP_DOMAIN_OPENAI: string
 	MCP_DOMAIN_CLAUDE: string
+	CLERK_SECRET_KEY?: string
 }
 
 // --- Widget HTML loader ---
@@ -97,7 +99,33 @@ export class TldrawMCP extends McpAgent<Env> {
 			extraConnectDomains: workerOrigin ? [workerOrigin] : [],
 			httpDomain:
 				domainOpenai || domainClaude ? { openai: domainOpenai, claude: domainClaude } : undefined,
-			uploadImageHandler: async ({ filename, base64, contentType }) => {
+			uploadImageHandler: async ({ filename, base64, contentType, clerkToken }) => {
+				const env = (this as any).env as Env
+
+				// Clerk JWT verification
+				if (!clerkToken) {
+					throw new Error('Authentication required to upload images. Please sign in.')
+				}
+				if (!env.CLERK_SECRET_KEY) {
+					throw new Error('Server authentication not configured.')
+				}
+
+				let userId: string
+				try {
+					const payload = await verifyToken(clerkToken, {
+						secretKey: env.CLERK_SECRET_KEY,
+						clockSkewInMs: 10_000,
+					})
+					userId = payload.sub
+				} catch {
+					throw new Error('Invalid or expired authentication token. Please sign in again.')
+				}
+
+				if (!/^user_[a-zA-Z0-9]+$/.test(userId)) {
+					throw new Error('Invalid user ID format.')
+				}
+
+				// Upload to R2 with userId-prefixed key
 				const ext = ALLOWED_IMAGE_TYPES[contentType]
 				if (!ext) {
 					throw new Error(
@@ -106,14 +134,18 @@ export class TldrawMCP extends McpAgent<Env> {
 				}
 
 				const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
-				const key = `images/${crypto.randomUUID()}.${ext}`
+				const key = `images/${userId}/${crypto.randomUUID()}.${ext}`
 
-				await ((this as any).env as Env).IMAGES.put(key, bytes, {
+				await env.IMAGES.put(key, bytes, {
 					httpMetadata: { contentType },
-					customMetadata: { originalFilename: filename },
+					customMetadata: {
+						originalFilename: filename,
+						uploadedBy: userId,
+						uploadedAt: new Date().toISOString(),
+					},
 				})
 
-				const origin = ((this as any).env as Env).WORKER_ORIGIN || ''
+				const origin = env.WORKER_ORIGIN || ''
 				const imageUrl = `${origin}/${key}`
 
 				return { imageUrl, key, contentType }
@@ -216,7 +248,7 @@ export default {
 }
 
 async function handleImageRequest(url: URL, env: Env): Promise<Response> {
-	const key = url.pathname.slice(1) // "images/uuid.png"
+	const key = url.pathname.slice(1) // "images/{userId}/uuid.png"
 	const object = await env.IMAGES.get(key)
 	if (!object) return new Response('Not found', { status: 404 })
 

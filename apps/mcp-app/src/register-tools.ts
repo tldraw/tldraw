@@ -480,6 +480,7 @@ export function registerTools(
 					filename: z.string(),
 					base64: z.string(),
 					contentType: z.string(),
+					clerkToken: z.string().optional(),
 				}),
 				_meta: { ui: { visibility: ['app'] } },
 			},
@@ -487,10 +488,12 @@ export function registerTools(
 				filename,
 				base64,
 				contentType,
+				clerkToken,
 			}: {
 				filename: string
 				base64: string
 				contentType: string
+				clerkToken?: string
 			}): Promise<CallToolResult> => {
 				try {
 					const ext = ALLOWED_IMAGE_TYPES[contentType]
@@ -502,7 +505,7 @@ export function registerTools(
 						)
 					}
 
-					const result = await handler({ filename, base64, contentType })
+					const result = await handler({ filename, base64, contentType, clerkToken })
 
 					return {
 						content: [{ type: 'text', text: `Uploaded image: ${result.imageUrl}` }],
@@ -562,9 +565,15 @@ export function registerTools(
 										'https://cdn.tldraw.com',
 										'https://fonts.googleapis.com',
 										'https://fonts.gstatic.com',
+										'https://equipped-amoeba-75.clerk.accounts.dev',
+										'https://img.clerk.com',
 										...(opts?.extraResourceDomains ?? []),
 									],
-									connectDomains: ['https://cdn.tldraw.com', ...(opts?.extraConnectDomains ?? [])],
+									connectDomains: [
+										'https://cdn.tldraw.com',
+										'https://equipped-amoeba-75.clerk.accounts.dev',
+										...(opts?.extraConnectDomains ?? []),
+									],
 								},
 								permissions: { clipboardWrite: {} },
 								...(domain ? { domain } : {}),

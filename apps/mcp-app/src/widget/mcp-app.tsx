@@ -1,5 +1,15 @@
+import { ClerkProvider, SignIn, useAuth } from '@clerk/clerk-react'
 import { type App, useApp } from '@modelcontextprotocol/ext-apps/react'
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+	Component,
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { createRoot } from 'react-dom/client'
 import {
 	type TLAsset,
@@ -13,7 +23,7 @@ import {
 	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { isDev, isPlainObject } from '../shared/utils'
+import { isPlainObject } from '../shared/utils'
 import { createR2AssetStore } from './asset-store'
 import { debugLines, log } from './debug'
 import { exportTldr } from './export-tldr'
@@ -35,6 +45,54 @@ import {
 	toDeletePreviewSnapshot,
 	toUpdatePreviewShapes,
 } from './streaming'
+
+const PUBLISHABLE_KEY = import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY as string
+const LICENSE_KEY = import.meta.env.VITE_TLDRAW_LICENSE_KEY as string
+
+// --- Clerk auth context ---
+
+interface AuthState {
+	isSignedIn: boolean
+	clerkReady: boolean
+	getToken: () => Promise<string | null>
+}
+
+const AuthContext = createContext<AuthState>({
+	isSignedIn: false,
+	clerkReady: false,
+	getToken: async () => null,
+})
+
+function ClerkAuthSync({ children }: { children: React.ReactNode }) {
+	const { isSignedIn, getToken: clerkGetToken } = useAuth()
+	const getToken = useCallback(() => clerkGetToken(), [clerkGetToken])
+	return (
+		<AuthContext.Provider value={{ isSignedIn: isSignedIn ?? false, clerkReady: true, getToken }}>
+			{children}
+		</AuthContext.Provider>
+	)
+}
+
+class ClerkBoundary extends Component<{ children: React.ReactNode }, { failed: boolean }> {
+	state = { failed: false }
+	static getDerivedStateFromError() {
+		return { failed: true }
+	}
+	render() {
+		if (this.state.failed) {
+			return <>{this.props.children}</>
+		}
+		return (
+			<ClerkProvider
+				publishableKey={PUBLISHABLE_KEY}
+				routerPush={() => {}}
+				routerReplace={() => {}}
+			>
+				<ClerkAuthSync>{this.props.children}</ClerkAuthSync>
+			</ClerkProvider>
+		)
+	}
+}
 
 const EDITOR_HEIGHT = 600
 const SAVE_DEBOUNCE_MS = 500
@@ -91,11 +149,46 @@ const tldrawComponents: TLComponents = {
 	Toolbar: DynamicToolbar,
 }
 
+function extractImageFiles(data: DataTransfer | null): File[] {
+	if (!data) return []
+	const result: File[] = []
+	for (const item of data.items) {
+		if (item.kind === 'file' && item.type.startsWith('image/')) {
+			const file = item.getAsFile()
+			if (file) result.push(file)
+		}
+	}
+	if (result.length > 0) return result
+	return [...data.files].filter((f) => f.type.startsWith('image/'))
+}
+
 function TldrawCanvas({ app }: { app: App }) {
 	const [displayMode, setDisplayMode] = useState<'inline' | 'fullscreen'>('inline')
 	const [containerHeight, setContainerHeight] = useState<number | null>(null)
-	const assetStore = useMemo(() => createR2AssetStore(app), [app])
 	const editorRef = useRef<Editor | null>(null)
+
+	const { isSignedIn, clerkReady, getToken } = useContext(AuthContext)
+	const isSignedInRef = useRef(isSignedIn)
+	const getTokenRef = useRef(getToken)
+	getTokenRef.current = getToken
+	const assetStore = useMemo(() => createR2AssetStore(app, () => getTokenRef.current()), [app])
+	const [showAuthPrompt, setShowAuthPrompt] = useState(false)
+	const pendingImageFilesRef = useRef<File[]>([])
+
+	useEffect(() => {
+		isSignedInRef.current = isSignedIn
+		if (isSignedIn) {
+			setShowAuthPrompt(false)
+			const pendingFiles = pendingImageFilesRef.current
+			if (pendingFiles.length > 0) {
+				pendingImageFilesRef.current = []
+				const editor = editorRef.current
+				if (editor) {
+					editor.putExternalContent({ type: 'files', files: pendingFiles }).catch(() => {})
+				}
+			}
+		}
+	}, [isSignedIn])
 	const pendingSnapshotRef = useRef<CanvasSnapshot | null>(null)
 	const pendingPreviewSnapshotRef = useRef<CanvasSnapshot | null>(null)
 	const previewActiveRef = useRef(false)
@@ -498,6 +591,47 @@ function TldrawCanvas({ app }: { app: App }) {
 				})
 			})
 
+			// Auth-gated image drop/paste handlers
+			const container = editor.getContainer()
+
+			const onDrop = (e: DragEvent) => {
+				const imageFiles = extractImageFiles(e.dataTransfer)
+				if (imageFiles.length > 0 && !isSignedInRef.current) {
+					e.preventDefault()
+					e.stopPropagation()
+					pendingImageFilesRef.current = imageFiles
+					setShowAuthPrompt(true)
+				}
+			}
+
+			const onPaste = (e: ClipboardEvent) => {
+				const imageFiles = extractImageFiles(e.clipboardData)
+				if (imageFiles.length === 0) return
+				if (!isSignedInRef.current) {
+					e.preventDefault()
+					e.stopPropagation()
+					pendingImageFilesRef.current = imageFiles
+					setShowAuthPrompt(true)
+					return
+				}
+				e.preventDefault()
+				e.stopPropagation()
+				const ed = editorRef.current
+				if (ed) {
+					ed.putExternalContent({ type: 'files', files: imageFiles }).catch(() => {})
+				}
+			}
+
+			container.addEventListener('drop', onDrop, { capture: true })
+			document.addEventListener('paste', onPaste, { capture: true })
+
+			const prevRemoveListener = removeStoreListenerRef.current
+			removeStoreListenerRef.current = () => {
+				prevRemoveListener?.()
+				container.removeEventListener('drop', onDrop, { capture: true })
+				document.removeEventListener('paste', onPaste, { capture: true })
+			}
+
 			// Apply any snapshot that arrived before the editor was ready
 			const pendingSnapshot = pendingSnapshotRef.current
 			if (pendingSnapshot) {
@@ -540,7 +674,61 @@ function TldrawCanvas({ app }: { app: App }) {
 							}
 				}
 			>
-				<Tldraw assets={assetStore} onMount={handleMount} components={tldrawComponents} />
+				<Tldraw
+					licenseKey={LICENSE_KEY}
+					assets={assetStore}
+					onMount={handleMount}
+					components={tldrawComponents}
+				/>
+				{showAuthPrompt && (
+					<div
+						style={{
+							position: 'absolute',
+							inset: 0,
+							background: 'rgba(0,0,0,0.45)',
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							zIndex: 1000,
+						}}
+						onClick={() => setShowAuthPrompt(false)}
+					>
+						<div onClick={(e) => e.stopPropagation()}>
+							{clerkReady ? (
+								<SignIn withSignUp />
+							) : (
+								<div
+									style={{
+										background: 'white',
+										borderRadius: 8,
+										padding: '24px 28px',
+										textAlign: 'center',
+										maxWidth: 300,
+										boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+									}}
+								>
+									<p style={{ margin: '0 0 16px', fontSize: 14, color: '#111' }}>
+										Sign in is currently unavailable.
+									</p>
+									<button
+										onClick={() => setShowAuthPrompt(false)}
+										style={{
+											padding: '8px 16px',
+											background: 'transparent',
+											color: '#555',
+											border: '1px solid #ddd',
+											borderRadius: 6,
+											cursor: 'pointer',
+											fontSize: 14,
+										}}
+									>
+										Dismiss
+									</button>
+								</div>
+							)}
+						</div>
+					</div>
+				)}
 			</div>
 		</DisplayModeContext.Provider>
 	)
@@ -579,8 +767,8 @@ function McpApp() {
 	const status = isConnected ? 'ready' : 'connecting'
 
 	return (
-		<div>
-			{isDev() && (
+		<ClerkBoundary>
+			<div>
 				<div
 					id="debug"
 					style={{
@@ -601,15 +789,15 @@ function McpApp() {
 				>
 					{debugLines.join('\n')}
 				</div>
-			)}
-			{error ? (
-				<div style={{ padding: 20, color: 'red' }}>Error: {error.message}</div>
-			) : !isConnected || !app ? (
-				<div style={{ padding: 20, opacity: 0.5 }}>Status: {status}</div>
-			) : (
-				<TldrawCanvas app={app} />
-			)}
-		</div>
+				{error ? (
+					<div style={{ padding: 20, color: 'red' }}>Error: {error.message}</div>
+				) : !isConnected || !app ? (
+					<div style={{ padding: 20, opacity: 0.5 }}>Status: {status}</div>
+				) : (
+					<TldrawCanvas app={app} />
+				)}
+			</div>
+		</ClerkBoundary>
 	)
 }
 

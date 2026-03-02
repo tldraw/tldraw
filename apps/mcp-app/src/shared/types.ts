@@ -22,6 +22,7 @@ export interface RegisterToolsOptions {
 		filename: string
 		base64: string
 		contentType: string
+		clerkToken?: string
 	}): Promise<{ imageUrl: string; key: string; contentType: string }>
 	/** Logging function (defaults to console.error). */
 	log?(...args: unknown[]): void
