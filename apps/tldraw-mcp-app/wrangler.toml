@@ -11,12 +11,10 @@ compatibility_flags = ["nodejs_compat"]
 "@modelcontextprotocol/sdk/server/mcp.js" = "./node_modules/agents/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js"
 "@modelcontextprotocol/sdk/types.js" = "./node_modules/agents/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js"
 
-[define]
-"process.env.TLDRAW_MCP_JSON_HEALING_DEBUG" = "undefined"
-
 [assets]
 directory = "./dist"
 binding = "ASSETS"
+run_worker_first = true
 
 [durable_objects]
 bindings = [{ class_name = "TldrawMCP", name = "MCP_OBJECT" }]
