@@ -15,20 +15,20 @@
 		"@modelcontextprotocol/ext-apps": "^1.0.0",
 		"@modelcontextprotocol/sdk": "^1.24.0",
 		"agents": "^0.5.0",
-		"zod": "^4.3.6"
+		"zod": "^4.1.8"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20260305.0",
-		"@types/node": "^20.0.0",
+		"@cloudflare/workers-types": "^4.20250913.0",
+		"@types/node": "^22.15.31",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^4.0.0",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",
-		"tsx": "^4.7.0",
-		"typescript": "^5.5.0",
-		"vite": "^6.0.0",
+		"tsx": "^4.19.2",
+		"typescript": "^5.8.3",
+		"vite": "^7.0.1",
 		"vite-plugin-singlefile": "^2.0.0",
 		"wrangler": "^4.67.0"
 	}
