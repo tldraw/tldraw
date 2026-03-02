@@ -1,10 +1,3 @@
-/**
- * Shared tool/resource registration logic for both Node.js and Cloudflare Workers entry points.
- *
- * Both `server.ts` (Node) and `src/cloudflare-worker.ts` (Workers) call `registerTools()`
- * with platform-specific storage backends.
- */
-
 import {
 	registerAppResource,
 	registerAppTool,
@@ -18,8 +11,8 @@ import { z } from 'zod'
 import {
 	convertFocusedShapeToTldrawRecord,
 	convertTldrawRecordToFocusedShape,
-	type FocusedShape,
-} from './focused-shape'
+} from './focused-shape-converters'
+import type { FocusedShape } from './focused-shape-schema'
 import {
 	parseBooleanFlag,
 	parseFocusedShapesInput,
@@ -27,133 +20,34 @@ import {
 	parseJsonArray,
 	parseShapeIdsInput,
 } from './parse-json'
+import {
+	type CreateImageInput,
+	type CreateShapesInput,
+	type DeleteShapesInput,
+	type UpdateShapesInput,
+	createImageInputSchema,
+	createShapesInputSchema,
+	deleteShapesInputSchema,
+	updateShapesInputSchema,
+} from './shared/tool-schemas'
+import type { RegisterToolsOptions, ServerDeps } from './shared/types'
+import { ALLOWED_IMAGE_TYPES, CANVAS_RESOURCE_URI } from './shared/types'
+import {
+	deepMerge,
+	errorResponse,
+	generateCheckpointId,
+	normalizeShapeId,
+	parseTlShapes,
+	toSimpleShapeId,
+} from './shared/utils'
 import { READ_ME_CONTENT } from './tools/read-me'
 
-// --- Public types ---
-
-export interface ServerDeps {
-	saveCheckpoint(id: string, shapes: TLShape[], assets?: unknown[]): void
-	loadCheckpoint(id: string): { shapes: unknown[]; assets: unknown[] } | null
-	getActiveShapes(): TLShape[]
-	getActiveAssets(): unknown[]
-	getActiveCheckpointId(): string | null
-	setActiveCheckpointId(id: string): void
-	loadWidgetHtml(): Promise<string>
-}
-
-export interface RegisterToolsOptions {
-	/** Extra CSP resource domains (e.g. R2 image URLs). */
-	extraResourceDomains?: string[]
-	/** Extra CSP connect domains. */
-	extraConnectDomains?: string[]
-	/** When set, the canvas resource domain is resolved from the connecting client. */
-	httpDomain?: { openai: string; claude: string }
-	/** Optional handler for uploading images (Workers-only, R2). */
-	uploadImageHandler?: (args: {
-		filename: string
-		base64: string
-		contentType: string
-	}) => Promise<{ imageUrl: string; key: string; contentType: string }>
-	/** Logging function (defaults to console.error). */
-	log?: (...args: unknown[]) => void
-}
-
-// --- Constants ---
-
-export const CANVAS_RESOURCE_URI = 'ui://show-canvas/mcp-app.html'
-
-export const ALLOWED_IMAGE_TYPES: Record<string, string> = {
-	'image/png': 'png',
-	'image/jpeg': 'jpg',
-	'image/gif': 'gif',
-	'image/webp': 'webp',
-	'image/svg+xml': 'svg',
-}
-
-// --- Helpers ---
-
-export function isPlainObject(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-export function normalizeShapeId(id: string): string {
-	return id.startsWith('shape:') ? id : `shape:${id}`
-}
-
-export function toSimpleShapeId(id: string): string {
-	return id.replace(/^shape:/, '')
-}
-
-export function deepMerge(base: unknown, patch: unknown): unknown {
-	if (!isPlainObject(base) || !isPlainObject(patch)) return patch
-	const merged: Record<string, unknown> = { ...base }
-	for (const [key, value] of Object.entries(patch)) {
-		merged[key] = deepMerge(merged[key], value)
-	}
-	return merged
-}
-
-export function parseTlShapes(value: unknown[]): TLShape[] {
-	return value.filter(
-		(s): s is TLShape => isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
-	)
-}
-
-export function errorResponse(toolName: string, err: unknown, hint?: string): CallToolResult {
-	const message = err instanceof Error ? err.message : String(err)
-	const parts = [`[${toolName}] Error: ${message}`]
-	if (hint) parts.push(hint)
-	return {
-		content: [{ type: 'text', text: parts.join('\n\n') }],
-		isError: true,
-	}
-}
-
-export function generateCheckpointId(): string {
-	return crypto.randomUUID().replace(/-/g, '').slice(0, 18)
-}
-
-// --- Schemas ---
-
-const createShapesInputSchema = z.object({
-	new_blank_canvas: z
-		.boolean()
-		.optional()
-		.describe('If true, create_shapes starts from a new blank canvas. Defaults to false.'),
-	shapesJson: z
-		.string()
-		.describe('JSON array string of shapes. Must be a valid JSON array string.'),
-})
-
-type CreateShapesInput = z.infer<typeof createShapesInputSchema>
-
-const updateShapesInputSchema = z.object({
-	updatesJson: z
-		.string()
-		.describe('JSON array string of shape updates. Must be a valid JSON array string.'),
-})
-
-type UpdateShapesInput = z.infer<typeof updateShapesInputSchema>
-
-const deleteShapesInputSchema = z.object({
-	shapeIdsJson: z
-		.string()
-		.describe(
-			'JSON array string of shape ids to delete. Must be a valid JSON array string of shape ids.'
-		),
-})
-
-type DeleteShapesInput = z.infer<typeof deleteShapesInputSchema>
-
-const createImageInputSchema = z.object({
-	url: z.string().describe('Public URL of the image to place on the canvas.'),
-	x: z.number().describe('X position of the image on the canvas.'),
-	y: z.number().describe('Y position of the image on the canvas.'),
-	w: z.number().describe('Width of the image on the canvas.'),
-	h: z.number().describe('Height of the image on the canvas.'),
-})
-
-type CreateImageInput = z.infer<typeof createImageInputSchema>
+/**
+ * Shared tool/resource registration logic for both Node.js and Cloudflare Workers entry points.
+ *
+ * Both `server.ts` (Node) and `src/cloudflare-worker.ts` (Workers) call `registerTools()`
+ * with platform-specific storage backends.
+ */
 
 // --- Registration ---
 
