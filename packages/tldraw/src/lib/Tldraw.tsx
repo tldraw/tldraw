@@ -211,7 +211,7 @@ export function Tldraw(props: TldrawProps) {
 
 	const embedShapeUtil = shapeUtilsWithDefaults.find((util) => util.type === 'embed')
 	if (embedShapeUtil && embeds) {
-		EmbedShapeUtil.setEmbedDefinitions(embeds)
+		EmbedShapeUtil.configure({ embedDefinitions: embeds })
 	}
 
 	return (
