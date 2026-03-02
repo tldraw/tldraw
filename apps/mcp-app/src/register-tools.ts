@@ -566,6 +566,7 @@ export function registerTools(
 									],
 									connectDomains: ['https://cdn.tldraw.com', ...(opts?.extraConnectDomains ?? [])],
 								},
+								permissions: { clipboardWrite: {} },
 								...(domain ? { domain } : {}),
 							},
 						},

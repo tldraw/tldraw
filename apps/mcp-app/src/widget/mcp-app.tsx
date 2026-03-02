@@ -42,14 +42,24 @@ const SAVE_DEBOUNCE_MS = 500
 const DisplayModeContext = createContext<{
 	displayMode: 'inline' | 'fullscreen'
 	toggleFullscreen: (() => void) | null
-}>({ displayMode: 'inline', toggleFullscreen: null })
+	canFullscreen: boolean
+	canDownload: boolean
+	app: App | null
+}>({
+	displayMode: 'inline',
+	toggleFullscreen: null,
+	canFullscreen: true,
+	canDownload: true,
+	app: null,
+})
 
 function SharePanelContent() {
 	const editor = useEditor()
-	const { displayMode, toggleFullscreen } = useContext(DisplayModeContext)
+	const { displayMode, toggleFullscreen, canFullscreen, canDownload, app } =
+		useContext(DisplayModeContext)
 	return (
 		<div className="tlui-share-zone" draggable={false} style={{ display: 'flex', gap: 4 }}>
-			{toggleFullscreen && (
+			{toggleFullscreen && canFullscreen && (
 				<button
 					className="tlui-button tlui-button__normal"
 					onClick={toggleFullscreen}
@@ -58,13 +68,15 @@ function SharePanelContent() {
 					{displayMode === 'fullscreen' ? 'Exit fullscreen' : 'Fullscreen'}
 				</button>
 			)}
-			<button
-				className="tlui-button tlui-button__normal"
-				onClick={() => exportTldr(editor)}
-				title="Copy to clipboard and download .tldr file"
-			>
-				Export .tldr
-			</button>
+			{canDownload && (
+				<button
+					className="tlui-button tlui-button__normal"
+					onClick={() => exportTldr(editor, app ?? undefined)}
+					title="Copy to clipboard and download .tldr file"
+				>
+					Export .tldr
+				</button>
+			)}
 		</div>
 	)
 }
@@ -123,9 +135,18 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 	}, [app, displayMode])
 
+	const canFullscreen = useMemo(() => {
+		const modes = app.getHostContext()?.availableDisplayModes
+		return !modes || modes.includes('fullscreen')
+	}, [app])
+
+	const canDownload = useMemo(() => {
+		return !!app.getHostCapabilities()?.downloadFile
+	}, [app])
+
 	const displayModeCtx = useMemo(
-		() => ({ displayMode, toggleFullscreen }),
-		[displayMode, toggleFullscreen]
+		() => ({ displayMode, toggleFullscreen, canFullscreen, canDownload, app }),
+		[displayMode, toggleFullscreen, canFullscreen, canDownload, app]
 	)
 
 	const renderPreviewSnapshot = useCallback((previewSnapshot: CanvasSnapshot, summary: string) => {

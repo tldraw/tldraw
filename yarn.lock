@@ -4268,9 +4268,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@modelcontextprotocol/ext-apps@npm:^1.0.0":
-  version: 1.0.1
-  resolution: "@modelcontextprotocol/ext-apps@npm:1.0.1"
+"@modelcontextprotocol/ext-apps@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@modelcontextprotocol/ext-apps@npm:1.1.2"
   dependencies:
     "@oven/bun-darwin-aarch64": "npm:^1.2.21"
     "@oven/bun-darwin-x64": "npm:^1.2.21"
@@ -4334,7 +4334,7 @@ __metadata:
       optional: true
     react-dom:
       optional: true
-  checksum: 10/267e2596f0dc3c08b773cf1c6019e89451aa45ebf977964928a9a52a991b0fdbae6230736387ed43c1dfff58a68b344ad111434a2812cf80897a8cb543e57d81
+  checksum: 10/b58d509c1607d4292aadb6a448d28118363d586c321a945c671c6b0e4a4116d6682506b8e0bbe3411043c1b8ac661687e0f12977d7d308385c87ea28cb78f74f
   languageName: node
   linkType: hard
 
@@ -21953,7 +21953,7 @@ __metadata:
   resolution: "mcp-app@workspace:apps/mcp-app"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20250913.0"
-    "@modelcontextprotocol/ext-apps": "npm:^1.0.0"
+    "@modelcontextprotocol/ext-apps": "npm:^1.1.2"
     "@modelcontextprotocol/sdk": "npm:^1.24.0"
     "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^19.2.7"
