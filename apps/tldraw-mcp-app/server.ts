@@ -1,11 +1,11 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { TLShape } from 'tldraw'
-import { registerTools, type ServerDeps } from './src/register-tools'
+import { registerTools } from './src/register-tools'
+import type { ServerDeps } from './src/shared/types'
+import { MAX_CHECKPOINTS } from './src/shared/types'
 import { loadCachedCanvasWidgetHtml } from './src/tools/loadCachedCanvasWidgetHtml'
 
 // --- Checkpoint store ---
-
-const MAX_CHECKPOINTS = 200
 const checkpoints = new Map<string, { shapes: TLShape[]; assets: unknown[] }>()
 let activeCheckpointId: string | null = null
 console.error(`[tldraw-mcp] Server module loaded — fresh state, activeCheckpointId=null`)
@@ -53,15 +53,7 @@ function getActiveAssets(): unknown[] {
 
 // --- Server factory ---
 
-export interface CreateServerOptions {
-	/** When set, the canvas resource will include a domain in _meta.ui based on the connecting client. */
-	httpDomain?: {
-		openai: string
-		claude: string
-	}
-}
-
-export function createServer(opts?: CreateServerOptions) {
+export function createServer() {
 	const server = new McpServer({
 		name: 'tldraw',
 		version: '1.0.0',
@@ -90,8 +82,13 @@ export function createServer(opts?: CreateServerOptions) {
 		loadWidgetHtml: loadCachedCanvasWidgetHtml,
 	}
 
+	const httpDomain = {
+		openai: process.env.MCP_DOMAIN_OPENAI ?? '',
+		claude: process.env.MCP_DOMAIN_CLAUDE ?? '',
+	}
+
 	registerTools(server, deps, {
-		httpDomain: opts?.httpDomain,
+		httpDomain: httpDomain.openai || httpDomain.claude ? httpDomain : undefined,
 		log: console.error,
 	})
 

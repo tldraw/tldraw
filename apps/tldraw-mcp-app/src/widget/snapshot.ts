@@ -1,0 +1,175 @@
+import type { TLShape, TLShapeId } from 'tldraw'
+import { Box, Editor, getIndexAbove, structuredClone } from 'tldraw'
+import type { CanvasSnapshot } from './persistence'
+
+export const CAMERA_ANIM_MS = 300
+let cameraAnimEndTime = 0
+
+/**
+ * If any of the given shape IDs extend outside the current viewport,
+ * pan (and only zoom out if necessary) to keep them visible.
+ * Never zooms in beyond the current zoom level.
+ * Skips the call if a previous animation is still playing.
+ */
+export function zoomToFitRequestShapes(editor: Editor, shapeIds: Set<TLShapeId>) {
+	if (shapeIds.size === 0) return
+
+	// Don't interrupt an in-progress animation — wait for it to finish
+	if (Date.now() < cameraAnimEndTime) return
+
+	const shapeBounds: Box[] = []
+	for (const id of shapeIds) {
+		const bounds = editor.getShapePageBounds(id)
+		if (bounds) shapeBounds.push(bounds)
+	}
+	if (shapeBounds.length === 0) return
+
+	const commonBounds = Box.Common(shapeBounds)
+	const viewportBounds = editor.getViewportPageBounds()
+
+	// All request shapes already visible — nothing to do
+	const contained =
+		commonBounds.x >= viewportBounds.x &&
+		commonBounds.y >= viewportBounds.y &&
+		commonBounds.x + commonBounds.w <= viewportBounds.x + viewportBounds.w &&
+		commonBounds.y + commonBounds.h <= viewportBounds.y + viewportBounds.h
+	if (contained) return
+
+	const currentZoom = editor.getZoomLevel()
+	const screenBounds = editor.getViewportScreenBounds()
+	const inset = 100
+
+	// The zoom level needed to fit the shapes with padding
+	const fitZoom = Math.min(
+		(screenBounds.w - inset) / commonBounds.w,
+		(screenBounds.h - inset) / commonBounds.h
+	)
+
+	// Never zoom in past the current level — only zoom out if shapes don't fit
+	const zoom = Math.min(currentZoom, fitZoom)
+
+	// Center the shapes in the viewport at the chosen zoom
+	const cx = commonBounds.x + commonBounds.w / 2
+	const cy = commonBounds.y + commonBounds.h / 2
+
+	cameraAnimEndTime = Date.now() + CAMERA_ANIM_MS
+
+	editor.setCamera(
+		{
+			x: -cx + screenBounds.w / zoom / 2,
+			y: -cy + screenBounds.h / zoom / 2,
+			z: zoom,
+		},
+		{ animation: { duration: CAMERA_ANIM_MS } }
+	)
+}
+
+export function applySnapshot(editor: Editor, snapshot: CanvasSnapshot) {
+	const nextShapes = snapshot.shapes.map((shape) => structuredClone(shape))
+	const nextAssets = (snapshot.assets ?? []).map((asset) => structuredClone(asset))
+
+	editor.store.mergeRemoteChanges(() => {
+		editor.run(
+			() => {
+				// Restore asset records first so image shapes can resolve them
+				if (nextAssets.length > 0) {
+					const existingAssetIds = new Set(editor.getAssets().map((a) => a.id))
+					for (const asset of nextAssets) {
+						if (!existingAssetIds.has(asset.id)) {
+							editor.createAssets([asset])
+						}
+					}
+				}
+
+				const existingIds = [...editor.getCurrentPageShapeIds()]
+				if (existingIds.length > 0) {
+					editor.deleteShapes(existingIds)
+				}
+				if (nextShapes.length <= 0) return
+
+				const pageId = editor.getCurrentPageId()
+				const nextIndexByParent = new Map<string, ReturnType<Editor['getHighestIndexForParent']>>()
+
+				for (const shape of nextShapes) {
+					const parentId =
+						typeof shape.parentId === 'string' && shape.parentId.length > 0
+							? shape.parentId
+							: pageId
+
+					shape.parentId = parentId
+
+					if (!nextIndexByParent.has(parentId)) {
+						nextIndexByParent.set(parentId, editor.getHighestIndexForParent(parentId))
+					}
+
+					const nextIndex = nextIndexByParent.get(parentId)!
+					shape.index = nextIndex
+					nextIndexByParent.set(parentId, getIndexAbove(nextIndex))
+				}
+
+				editor.createShapes(nextShapes)
+			},
+			{ history: 'ignore' }
+		)
+	})
+}
+
+/**
+ * Non-destructive preview apply: adds new shapes and updates existing ones
+ * without deleting user-drawn shapes. Only removes committed shapes that
+ * are absent from the preview (e.g. when createFromBlank clears the canvas).
+ */
+export function applyPreviewToEditor(
+	editor: Editor,
+	snapshot: CanvasSnapshot,
+	committedSnapshot: CanvasSnapshot
+) {
+	const nextShapes = snapshot.shapes.map((shape) => structuredClone(shape))
+	const nextShapeIds = new Set(nextShapes.map((s) => s.id))
+	const committedIds = new Set(committedSnapshot.shapes.map((s) => s.id))
+
+	editor.store.mergeRemoteChanges(() => {
+		editor.run(
+			() => {
+				const existingIds = [...editor.getCurrentPageShapeIds()]
+				const toDelete = existingIds.filter((id) => committedIds.has(id) && !nextShapeIds.has(id))
+				if (toDelete.length > 0) {
+					editor.deleteShapes(toDelete)
+				}
+
+				if (nextShapes.length <= 0) return
+
+				const remainingIds = new Set([...editor.getCurrentPageShapeIds()])
+				const pageId = editor.getCurrentPageId()
+				const nextIndexByParent = new Map<string, ReturnType<Editor['getHighestIndexForParent']>>()
+
+				const toCreate: TLShape[] = []
+				const toUpdate: TLShape[] = []
+
+				for (const shape of nextShapes) {
+					const parentId =
+						typeof shape.parentId === 'string' && shape.parentId.length > 0
+							? shape.parentId
+							: pageId
+					shape.parentId = parentId
+
+					if (remainingIds.has(shape.id)) {
+						toUpdate.push(shape)
+					} else {
+						if (!nextIndexByParent.has(parentId)) {
+							nextIndexByParent.set(parentId, editor.getHighestIndexForParent(parentId))
+						}
+						const nextIndex = nextIndexByParent.get(parentId)!
+						shape.index = nextIndex
+						nextIndexByParent.set(parentId, getIndexAbove(nextIndex))
+						toCreate.push(shape)
+					}
+				}
+
+				if (toUpdate.length > 0) editor.updateShapes(toUpdate)
+				if (toCreate.length > 0) editor.createShapes(toCreate)
+			},
+			{ history: 'ignore' }
+		)
+	})
+}

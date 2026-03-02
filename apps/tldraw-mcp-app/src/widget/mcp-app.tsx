@@ -3,27 +3,38 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { createRoot } from 'react-dom/client'
 import {
 	type TLAsset,
-	type TLAssetStore,
 	type TLComponents,
 	type TLShape,
 	type TLShapeId,
-	Box,
 	DefaultToolbar,
 	Editor,
 	Tldraw,
-	getIndexAbove,
 	structuredClone,
 	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { isPlainObject } from '../shared/utils'
+import { createR2AssetStore } from './asset-store'
+import { debugLines, log } from './debug'
+import { exportTldr } from './export-tldr'
 import {
-	type FocusedShape,
-	FocusedShapeSchema,
-	FocusedShapeUpdateSchema,
-	convertFocusedShapeToTldrawRecord,
-	convertTldrawRecordToFocusedShape,
-} from '../focused-shape'
-import { healJsonArrayString } from '../parse-json'
+	type CanvasSnapshot,
+	getLatestCheckpointSnapshot,
+	loadLocalSnapshot,
+	parseCheckpointFromToolResult,
+	pushCanvasContext,
+	saveCheckpointToServer,
+	saveLocalSnapshot,
+} from './persistence'
+import { applyPreviewToEditor, applySnapshot, zoomToFitRequestShapes } from './snapshot'
+import {
+	extractToolArguments,
+	mergeShapesById,
+	parseNewBlankCanvasFlag,
+	toCreatePreviewShapes,
+	toDeletePreviewSnapshot,
+	toUpdatePreviewShapes,
+} from './streaming'
 
 const EDITOR_HEIGHT = 600
 const SAVE_DEBOUNCE_MS = 500
@@ -32,585 +43,6 @@ const DisplayModeContext = createContext<{
 	displayMode: 'inline' | 'fullscreen'
 	toggleFullscreen: (() => void) | null
 }>({ displayMode: 'inline', toggleFullscreen: null })
-
-interface CanvasSnapshot {
-	shapes: TLShape[]
-	assets: TLAsset[]
-}
-
-const debugLines: string[] = []
-function log(msg: string) {
-	debugLines.push(`${new Date().toISOString().slice(11, 23)} ${msg}`)
-	const el = document.getElementById('debug')
-	if (el) el.textContent = debugLines.join('\n')
-}
-
-window.addEventListener('error', (e) => log(`ERROR: ${e.message}`))
-window.addEventListener('unhandledrejection', (e) => log(`REJECTION: ${e.reason}`))
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null
-}
-
-function normalizeShapeId(shapeId: string): string {
-	return shapeId.startsWith('shape:') ? shapeId : `shape:${shapeId}`
-}
-
-function toSimpleShapeId(shapeId: string): string {
-	return shapeId.replace(/^shape:/, '')
-}
-
-function deepMerge(base: unknown, patch: unknown): unknown {
-	if (!isRecord(base) || !isRecord(patch)) return patch
-
-	const merged: Record<string, unknown> = { ...base }
-	for (const [key, value] of Object.entries(patch)) {
-		merged[key] = deepMerge(merged[key], value)
-	}
-	return merged
-}
-
-// --- localStorage persistence ---
-
-function localStorageKey(checkpointId: string): string {
-	return `tldraw:${checkpointId}`
-}
-
-function loadLocalSnapshot(checkpointId: string): { shapes: TLShape[]; assets: TLAsset[] } | null {
-	try {
-		const raw = localStorage.getItem(localStorageKey(checkpointId))
-		if (!raw) return null
-		const parsed = JSON.parse(raw)
-		// Backwards compat: old format was a plain array of shapes
-		if (Array.isArray(parsed)) {
-			const shapes = parsed.filter(
-				(s: unknown): s is TLShape =>
-					isRecord(s) && typeof s.id === 'string' && typeof s.type === 'string'
-			)
-			return shapes.length > 0 ? { shapes, assets: [] } : null
-		}
-		if (!isRecord(parsed)) return null
-		const shapes = (Array.isArray(parsed.shapes) ? parsed.shapes : []).filter(
-			(s: unknown): s is TLShape =>
-				isRecord(s) && typeof s.id === 'string' && typeof s.type === 'string'
-		)
-		const assets = (Array.isArray(parsed.assets) ? parsed.assets : []).filter(
-			(a: unknown): a is TLAsset => isRecord(a) && typeof a.id === 'string'
-		)
-		return shapes.length > 0 ? { shapes, assets } : null
-	} catch {
-		return null
-	}
-}
-
-function saveLocalSnapshot(checkpointId: string, shapes: TLShape[], assets: TLAsset[] = []): void {
-	try {
-		localStorage.setItem(localStorageKey(checkpointId), JSON.stringify({ shapes, assets }))
-		// Also track this as the latest checkpoint so future widgets can find it
-		localStorage.setItem('tldraw:latest-checkpoint', checkpointId)
-	} catch {
-		// localStorage may be full or unavailable.
-	}
-}
-
-function getLatestCheckpointSnapshot(): { shapes: TLShape[]; assets: TLAsset[] } | null {
-	try {
-		const latestId = localStorage.getItem('tldraw:latest-checkpoint')
-		if (!latestId) return null
-		return loadLocalSnapshot(latestId)
-	} catch {
-		return null
-	}
-}
-
-// --- Tool result parsing ---
-
-function toSnapshotShapesFromRecords(value: unknown): TLShape[] | null {
-	if (!Array.isArray(value)) return null
-	return value.filter(
-		(shape): shape is TLShape =>
-			isRecord(shape) && typeof shape.id === 'string' && typeof shape.type === 'string'
-	)
-}
-
-function toAssetRecords(value: unknown): TLAsset[] {
-	if (!Array.isArray(value)) return []
-	return value.filter((a): a is TLAsset => isRecord(a) && typeof a.id === 'string')
-}
-
-interface CheckpointResult {
-	checkpointId: string
-	shapes: TLShape[]
-	assets: TLAsset[]
-	action: string | null
-	/** True if the server found base shapes to merge with (for create action). */
-	hadBaseShapes: boolean
-	/** True if the server started from a blank canvas (for create action). */
-	newBlankCanvas: boolean
-}
-
-function parseCheckpointFromToolResult(result: unknown): CheckpointResult | null {
-	if (!isRecord(result)) return null
-	const sc = result.structuredContent
-	if (!isRecord(sc)) return null
-	const checkpointId = typeof sc.checkpointId === 'string' ? sc.checkpointId : null
-	if (!checkpointId) return null
-	const shapes = toSnapshotShapesFromRecords(sc.tldrawRecords)
-	if (!shapes) return null
-	// Assets come from sc.assets (read_checkpoint) or sc.assetRecords (create_image)
-	const assets = toAssetRecords(sc.assets ?? sc.assetRecords)
-	return {
-		checkpointId,
-		shapes,
-		assets,
-		action: typeof sc.action === 'string' ? sc.action : null,
-		hadBaseShapes: sc.hadBaseShapes === true,
-		newBlankCanvas: sc.newBlankCanvas === true,
-	}
-}
-
-// --- Canvas context push ---
-
-function getEditorFocusedShapes(editor: Editor): FocusedShape[] {
-	const shapes: FocusedShape[] = []
-	for (const record of editor.getCurrentPageShapes()) {
-		try {
-			shapes.push(convertTldrawRecordToFocusedShape(record))
-		} catch {
-			// Ignore malformed records.
-		}
-	}
-	return shapes
-}
-
-function pushCanvasContext(app: App, editor: Editor) {
-	const focusedShapes = getEditorFocusedShapes(editor)
-	const text =
-		focusedShapes.length > 0
-			? `Current canvas shapes:\n${JSON.stringify(focusedShapes, null, 2)}`
-			: 'Canvas is empty.'
-	app.updateModelContext({ content: [{ type: 'text', text }] })
-}
-
-function saveCheckpointToServer(app: App, checkpointId: string, editor: Editor) {
-	const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
-	const assets = [...editor.getAssets()].map((a) => structuredClone(a))
-	const args: Record<string, string> = {
-		checkpointId,
-		shapesJson: JSON.stringify(shapes),
-	}
-	if (assets.length > 0) {
-		args.assetsJson = JSON.stringify(assets)
-	}
-	app
-		.callServerTool({
-			name: 'save_checkpoint',
-			arguments: args,
-		})
-		.catch(() => {
-			// Best-effort; failure is non-fatal.
-		})
-}
-
-// --- Streaming preview helpers ---
-
-function parsePartialJsonArray(value: string): unknown[] {
-	const trimmed = healJsonArrayString(value.trim())
-	if (!trimmed.startsWith('[')) return []
-
-	const candidates: string[] = [trimmed]
-	if (!trimmed.endsWith(']')) {
-		candidates.push(`${trimmed}]`)
-	}
-
-	const withoutTrailingBracket = trimmed.endsWith(']') ? trimmed.slice(0, -1) : trimmed
-	const lastComma = withoutTrailingBracket.lastIndexOf(',')
-	if (lastComma > 0) {
-		candidates.push(`${withoutTrailingBracket.slice(0, lastComma)}]`)
-	}
-
-	const lastObjectEnd = withoutTrailingBracket.lastIndexOf('}')
-	if (lastObjectEnd >= 0) {
-		candidates.push(`${withoutTrailingBracket.slice(0, lastObjectEnd + 1)}]`)
-	}
-
-	for (const candidate of new Set(candidates)) {
-		try {
-			const parsed = JSON.parse(candidate)
-			if (Array.isArray(parsed)) return parsed
-		} catch {
-			// Keep trying best-effort candidates.
-		}
-	}
-
-	return []
-}
-
-function dropPotentiallyIncompleteTail<T>(items: T[]): T[] {
-	if (items.length <= 1) return []
-	return items.slice(0, -1)
-}
-
-function extractToolArguments(input: unknown): Record<string, unknown> | null {
-	if (!isRecord(input)) return null
-	const args = input.arguments
-	return isRecord(args) ? args : input
-}
-
-function parsePreviewArray(value: unknown, isPartial: boolean): unknown[] {
-	let parsedItems: unknown[] = []
-	if (Array.isArray(value)) {
-		parsedItems = value
-	} else if (typeof value === 'string') {
-		parsedItems = parsePartialJsonArray(value)
-	} else {
-		return []
-	}
-
-	return isPartial ? dropPotentiallyIncompleteTail(parsedItems) : parsedItems
-}
-
-function parseNewBlankCanvasFlag(value: unknown, isPartial: boolean): boolean | null {
-	if (typeof value === 'boolean') return value
-	if (typeof value === 'number') return value !== 0
-	if (typeof value === 'string') {
-		const normalized = value.trim().toLowerCase()
-		if (normalized.length === 0) return null
-		if (['true', '1', 'yes', 'y', 'on'].includes(normalized)) return true
-		if (['false', '0', 'no', 'n', 'off'].includes(normalized)) return false
-		if (isPartial) {
-			if ('true'.startsWith(normalized)) return true
-			if ('false'.startsWith(normalized)) return false
-		}
-	}
-	return null
-}
-
-function toCreatePreviewShapes(value: unknown, isPartial: boolean): TLShape[] {
-	const candidateItems = parsePreviewArray(value, isPartial)
-	const previewShapes: TLShape[] = []
-	for (const item of candidateItems) {
-		const parsed = FocusedShapeSchema.safeParse(item)
-		if (!parsed.success) continue
-		try {
-			previewShapes.push(convertFocusedShapeToTldrawRecord(parsed.data))
-		} catch {
-			// Ignore unsupported preview items.
-		}
-	}
-	return previewShapes
-}
-
-function toUpdatePreviewShapes(
-	value: unknown,
-	isPartial: boolean,
-	baseShapes: TLShape[]
-): TLShape[] {
-	const candidateItems = parsePreviewArray(value, isPartial)
-	if (candidateItems.length <= 0) return []
-
-	const baseShapesById = new Map<string, TLShape>()
-	for (const shape of baseShapes) {
-		baseShapesById.set(shape.id, shape)
-	}
-
-	const previewShapes: TLShape[] = []
-	for (const item of candidateItems) {
-		const parsedUpdate = FocusedShapeUpdateSchema.safeParse(item)
-		if (!parsedUpdate.success) continue
-
-		const update = parsedUpdate.data
-		const existingShape = baseShapesById.get(normalizeShapeId(update.shapeId))
-		if (!existingShape) continue
-
-		try {
-			const existingFocused = convertTldrawRecordToFocusedShape(existingShape)
-			const merged = deepMerge(existingFocused, {
-				...update,
-				shapeId: toSimpleShapeId(update.shapeId),
-				_type: update._type ?? existingFocused._type,
-			}) as FocusedShape
-			previewShapes.push(convertFocusedShapeToTldrawRecord(merged))
-		} catch {
-			// Ignore unsupported update previews.
-		}
-	}
-
-	return previewShapes
-}
-
-function toDeletePreviewSnapshot(
-	value: unknown,
-	isPartial: boolean,
-	committed: CanvasSnapshot
-): CanvasSnapshot | null {
-	const candidateItems = parsePreviewArray(value, isPartial)
-	const shapeIds = candidateItems.filter((item): item is string => typeof item === 'string')
-	if (shapeIds.length <= 0) return null
-
-	const idsToDelete = new Set(shapeIds.map((shapeId) => normalizeShapeId(shapeId)))
-	const filteredShapes = committed.shapes.filter((shape) => !idsToDelete.has(shape.id))
-	if (filteredShapes.length === committed.shapes.length) return null
-
-	return {
-		shapes: filteredShapes.map((shape) => structuredClone(shape)),
-		assets: [],
-	}
-}
-
-function mergeShapesById(base: TLShape[], additions: TLShape[]): TLShape[] {
-	const merged = new Map<string, TLShape>()
-	for (const shape of base) {
-		merged.set(shape.id, structuredClone(shape))
-	}
-	for (const shape of additions) {
-		merged.set(shape.id, structuredClone(shape))
-	}
-	return [...merged.values()]
-}
-
-const CAMERA_ANIM_MS = 300
-let cameraAnimEndTime = 0
-
-/**
- * If any of the given shape IDs extend outside the current viewport,
- * pan (and only zoom out if necessary) to keep them visible.
- * Never zooms in beyond the current zoom level.
- * Skips the call if a previous animation is still playing.
- */
-function zoomToFitRequestShapes(editor: Editor, shapeIds: Set<TLShapeId>) {
-	if (shapeIds.size === 0) return
-
-	// Don't interrupt an in-progress animation — wait for it to finish
-	if (Date.now() < cameraAnimEndTime) return
-
-	const shapeBounds: Box[] = []
-	for (const id of shapeIds) {
-		const bounds = editor.getShapePageBounds(id)
-		if (bounds) shapeBounds.push(bounds)
-	}
-	if (shapeBounds.length === 0) return
-
-	const commonBounds = Box.Common(shapeBounds)
-	const viewportBounds = editor.getViewportPageBounds()
-
-	// All request shapes already visible — nothing to do
-	const contained =
-		commonBounds.x >= viewportBounds.x &&
-		commonBounds.y >= viewportBounds.y &&
-		commonBounds.x + commonBounds.w <= viewportBounds.x + viewportBounds.w &&
-		commonBounds.y + commonBounds.h <= viewportBounds.y + viewportBounds.h
-	if (contained) return
-
-	const currentZoom = editor.getZoomLevel()
-	const screenBounds = editor.getViewportScreenBounds()
-	const inset = 100
-
-	// The zoom level needed to fit the shapes with padding
-	const fitZoom = Math.min(
-		(screenBounds.w - inset) / commonBounds.w,
-		(screenBounds.h - inset) / commonBounds.h
-	)
-
-	// Never zoom in past the current level — only zoom out if shapes don't fit
-	const zoom = Math.min(currentZoom, fitZoom)
-
-	// Center the shapes in the viewport at the chosen zoom
-	const cx = commonBounds.x + commonBounds.w / 2
-	const cy = commonBounds.y + commonBounds.h / 2
-
-	cameraAnimEndTime = Date.now() + CAMERA_ANIM_MS
-
-	editor.setCamera(
-		{
-			x: -cx + screenBounds.w / zoom / 2,
-			y: -cy + screenBounds.h / zoom / 2,
-			z: zoom,
-		},
-		{ animation: { duration: CAMERA_ANIM_MS } }
-	)
-}
-
-function applySnapshot(editor: Editor, snapshot: CanvasSnapshot) {
-	const nextShapes = snapshot.shapes.map((shape) => structuredClone(shape))
-	const nextAssets = (snapshot.assets ?? []).map((asset) => structuredClone(asset))
-
-	editor.store.mergeRemoteChanges(() => {
-		editor.run(
-			() => {
-				// Restore asset records first so image shapes can resolve them
-				if (nextAssets.length > 0) {
-					const existingAssetIds = new Set(editor.getAssets().map((a) => a.id))
-					for (const asset of nextAssets) {
-						if (!existingAssetIds.has(asset.id)) {
-							editor.createAssets([asset])
-						}
-					}
-				}
-
-				const existingIds = [...editor.getCurrentPageShapeIds()]
-				if (existingIds.length > 0) {
-					editor.deleteShapes(existingIds)
-				}
-				if (nextShapes.length <= 0) return
-
-				const pageId = editor.getCurrentPageId()
-				const nextIndexByParent = new Map<string, ReturnType<Editor['getHighestIndexForParent']>>()
-
-				for (const shape of nextShapes) {
-					const parentId =
-						typeof shape.parentId === 'string' && shape.parentId.length > 0
-							? shape.parentId
-							: pageId
-
-					shape.parentId = parentId
-
-					if (!nextIndexByParent.has(parentId)) {
-						nextIndexByParent.set(parentId, editor.getHighestIndexForParent(parentId))
-					}
-
-					const nextIndex = nextIndexByParent.get(parentId)!
-					shape.index = nextIndex
-					nextIndexByParent.set(parentId, getIndexAbove(nextIndex))
-				}
-
-				editor.createShapes(nextShapes)
-			},
-			{ history: 'ignore' }
-		)
-	})
-}
-
-/**
- * Non-destructive preview apply: adds new shapes and updates existing ones
- * without deleting user-drawn shapes. Only removes committed shapes that
- * are absent from the preview (e.g. when createFromBlank clears the canvas).
- */
-function applyPreviewToEditor(
-	editor: Editor,
-	snapshot: CanvasSnapshot,
-	committedSnapshot: CanvasSnapshot
-) {
-	const nextShapes = snapshot.shapes.map((shape) => structuredClone(shape))
-	const nextShapeIds = new Set(nextShapes.map((s) => s.id))
-	const committedIds = new Set(committedSnapshot.shapes.map((s) => s.id))
-
-	editor.store.mergeRemoteChanges(() => {
-		editor.run(
-			() => {
-				const existingIds = [...editor.getCurrentPageShapeIds()]
-				const toDelete = existingIds.filter((id) => committedIds.has(id) && !nextShapeIds.has(id))
-				if (toDelete.length > 0) {
-					editor.deleteShapes(toDelete)
-				}
-
-				if (nextShapes.length <= 0) return
-
-				const remainingIds = new Set([...editor.getCurrentPageShapeIds()])
-				const pageId = editor.getCurrentPageId()
-				const nextIndexByParent = new Map<string, ReturnType<Editor['getHighestIndexForParent']>>()
-
-				const toCreate: TLShape[] = []
-				const toUpdate: TLShape[] = []
-
-				for (const shape of nextShapes) {
-					const parentId =
-						typeof shape.parentId === 'string' && shape.parentId.length > 0
-							? shape.parentId
-							: pageId
-					shape.parentId = parentId
-
-					if (remainingIds.has(shape.id)) {
-						toUpdate.push(shape)
-					} else {
-						if (!nextIndexByParent.has(parentId)) {
-							nextIndexByParent.set(parentId, editor.getHighestIndexForParent(parentId))
-						}
-						const nextIndex = nextIndexByParent.get(parentId)!
-						shape.index = nextIndex
-						nextIndexByParent.set(parentId, getIndexAbove(nextIndex))
-						toCreate.push(shape)
-					}
-				}
-
-				if (toUpdate.length > 0) editor.updateShapes(toUpdate)
-				if (toCreate.length > 0) editor.createShapes(toCreate)
-			},
-			{ history: 'ignore' }
-		)
-	})
-}
-
-// --- TLDR export ---
-
-function collectPageBindings(editor: Editor) {
-	const seen = new Set<string>()
-	const bindings: unknown[] = []
-	for (const shape of editor.getCurrentPageShapes()) {
-		for (const binding of editor.getBindingsInvolvingShape(shape)) {
-			if (seen.has(binding.id)) continue
-			seen.add(binding.id)
-			bindings.push(structuredClone(binding))
-		}
-	}
-	return bindings
-}
-
-function buildTldrDocument(editor: Editor) {
-	const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
-	const bindings = collectPageBindings(editor)
-
-	return {
-		tldrawFileFormatVersion: 1,
-		schema: {
-			schemaVersion: 2,
-			sequences: {
-				'com.tldraw.store': 4,
-				'com.tldraw.asset': 1,
-				'com.tldraw.camera': 1,
-				'com.tldraw.document': 2,
-				'com.tldraw.instance': 25,
-				'com.tldraw.instance_page_state': 5,
-				'com.tldraw.page': 1,
-				'com.tldraw.shape': 4,
-				'com.tldraw.instance_presence': 5,
-				'com.tldraw.pointer': 1,
-			},
-		},
-		records: [
-			{
-				typeName: 'page',
-				id: 'page:page',
-				name: 'Page 1',
-				index: 'a1',
-				meta: {},
-			},
-			...shapes,
-			...bindings,
-		],
-	}
-}
-
-function exportTldr(editor: Editor) {
-	const doc = buildTldrDocument(editor)
-	const json = JSON.stringify(doc, null, 2)
-
-	// Copy to clipboard
-	navigator.clipboard.writeText(json).catch(() => {
-		// Clipboard may be unavailable in some contexts.
-	})
-
-	log(json)
-
-	// Download file
-	const blob = new Blob([json], { type: 'application/json' })
-	const url = URL.createObjectURL(blob)
-	const a = document.createElement('a')
-	a.href = url
-	a.download = 'diagram.tldr'
-	a.click()
-	URL.revokeObjectURL(url)
-}
 
 function SharePanelContent() {
 	const editor = useEditor()
@@ -645,53 +77,6 @@ function DynamicToolbar() {
 const tldrawComponents: TLComponents = {
 	SharePanel: SharePanelContent,
 	Toolbar: DynamicToolbar,
-}
-
-function createR2AssetStore(app: App): TLAssetStore {
-	return {
-		async upload(asset, file) {
-			const arrayBuffer = await file.arrayBuffer()
-			const bytes = new Uint8Array(arrayBuffer)
-			let binary = ''
-			for (let i = 0; i < bytes.length; i++) {
-				binary += String.fromCharCode(bytes[i])
-			}
-			const base64 = btoa(binary)
-
-			try {
-				const result = await app.callServerTool({
-					name: 'upload_image',
-					arguments: {
-						filename: file.name || 'image',
-						base64,
-						contentType: file.type || 'image/png',
-					},
-				})
-
-				const sc = result?.structuredContent as Record<string, unknown> | undefined
-				if (sc?.imageUrl && typeof sc.imageUrl === 'string') {
-					log(`Uploaded image to storage: ${sc.imageUrl}`)
-					return { src: sc.imageUrl }
-				}
-			} catch (err) {
-				log(`upload_image failed: ${err instanceof Error ? err.message : err}`)
-			}
-
-			// Fallback: store as data URL if upload fails or upload_image tool is unavailable
-			log('Falling back to data URL for image')
-			return {
-				src: await new Promise<string>((resolve) => {
-					const reader = new FileReader()
-					reader.onload = () => resolve(reader.result as string)
-					reader.readAsDataURL(file)
-				}),
-			}
-		},
-
-		resolve(asset) {
-			return asset.props.src
-		},
-	}
 }
 
 function TldrawCanvas({ app }: { app: App }) {
@@ -907,7 +292,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			const record = ctx as Record<string, unknown>
 
 			const dims = record.containerDimensions
-			if (isRecord(dims) && typeof dims.height === 'number') {
+			if (isPlainObject(dims) && typeof dims.height === 'number') {
 				setContainerHeight(dims.height)
 			}
 
@@ -1179,7 +564,7 @@ function McpApp() {
 
 	return (
 		<div>
-			{/* <div
+			<div
 				id="debug"
 				style={{
 					position: 'fixed',
@@ -1198,7 +583,7 @@ function McpApp() {
 				}}
 			>
 				{debugLines.join('\n')}
-			</div> */}
+			</div>
 			{error ? (
 				<div style={{ padding: 20, color: 'red' }}>Error: {error.message}</div>
 			) : !isConnected || !app ? (

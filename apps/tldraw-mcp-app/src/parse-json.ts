@@ -3,12 +3,7 @@ import {
 	FocusedShapeUpdateSchema,
 	type FocusedShape,
 	type FocusedShapeUpdate,
-} from './focused-shape'
-
-// Temporary debug instrumentation for malformed first-pass JSON strings.
-const ENABLE_JSON_HEALING_DEBUG = process.env.TLDRAW_MCP_JSON_HEALING_DEBUG === '1'
-const jsonHealingSuccessCounts = new Map<string, number>()
-const jsonHealingFailureCounts = new Map<string, number>()
+} from './focused-shape-schema'
 
 function tryParseArray(json: string): unknown[] | null {
 	try {
@@ -84,49 +79,13 @@ export function healJsonArrayString(input: string): string {
 	return output
 }
 
-function incCounter(map: Map<string, number>, fieldName: string): number {
-	const next = (map.get(fieldName) ?? 0) + 1
-	map.set(fieldName, next)
-	return next
-}
-
-function debugJsonHealingSuccess(fieldName: string, original: string, healed: string): void {
-	if (!ENABLE_JSON_HEALING_DEBUG) return
-	const count = incCounter(jsonHealingSuccessCounts, fieldName)
-	if (count <= 3 || count % 10 === 0) {
-		const originalPreview = original.slice(0, 220).replace(/\s+/g, ' ')
-		const healedPreview = healed.slice(0, 220).replace(/\s+/g, ' ')
-		console.error(
-			`[tldraw-mcp] json-healed field=${fieldName} count=${count}\n` +
-				`  original=${originalPreview}\n` +
-				`  healed=${healedPreview}`
-		)
-	}
-}
-
-function debugJsonHealingFailure(fieldName: string, original: string): void {
-	if (!ENABLE_JSON_HEALING_DEBUG) return
-	const count = incCounter(jsonHealingFailureCounts, fieldName)
-	if (count <= 3 || count % 10 === 0) {
-		const preview = original.slice(0, 220).replace(/\s+/g, ' ')
-		console.error(
-			`[tldraw-mcp] json-heal-failed field=${fieldName} count=${count} input=${preview}`
-		)
-	}
-}
-
 export function parseJsonArray(json: string, fieldName: string): unknown[] {
 	const parsed = tryParseArray(json)
 	if (parsed) return parsed
 
 	const healed = healJsonArrayString(json)
 	const repaired = tryParseArray(healed)
-	if (repaired) {
-		debugJsonHealingSuccess(fieldName, json, healed)
-		return repaired
-	}
-
-	debugJsonHealingFailure(fieldName, json)
+	if (repaired) return repaired
 
 	throw new Error(
 		`${fieldName} must be a JSON array string. Build an array first, then pass JSON.stringify(array).`

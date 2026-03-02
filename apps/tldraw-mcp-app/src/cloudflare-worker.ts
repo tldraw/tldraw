@@ -10,12 +10,10 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
 import type { TLShape } from 'tldraw'
-import {
-	ALLOWED_IMAGE_TYPES,
-	parseTlShapes,
-	registerTools,
-	type ServerDeps,
-} from './register-tools'
+import { registerTools } from './register-tools'
+import type { ServerDeps } from './shared/types'
+import { ALLOWED_IMAGE_TYPES, MAX_CHECKPOINTS } from './shared/types'
+import { parseTlShapes } from './shared/utils'
 
 // --- Types ---
 
@@ -25,11 +23,9 @@ interface Env {
 	IMAGES: R2Bucket
 	MCP_AUTH_TOKEN: string
 	WORKER_ORIGIN: string
+	MCP_DOMAIN_OPENAI: string
+	MCP_DOMAIN_CLAUDE: string
 }
-
-// --- Constants ---
-
-const MAX_CHECKPOINTS = 200
 
 // --- Widget HTML loader ---
 
@@ -93,10 +89,14 @@ export class TldrawMCP extends McpAgent<Env> {
 		}
 
 		const workerOrigin = (this as any).env.WORKER_ORIGIN || ''
+		const domainOpenai = ((this as any).env as Env).MCP_DOMAIN_OPENAI || ''
+		const domainClaude = ((this as any).env as Env).MCP_DOMAIN_CLAUDE || ''
 
 		registerTools(this.server, deps, {
 			extraResourceDomains: workerOrigin ? [workerOrigin] : [],
 			extraConnectDomains: workerOrigin ? [workerOrigin] : [],
+			httpDomain:
+				domainOpenai || domainClaude ? { openai: domainOpenai, claude: domainClaude } : undefined,
 			uploadImageHandler: async ({ filename, base64, contentType }) => {
 				const ext = ALLOWED_IMAGE_TYPES[contentType]
 				if (!ext) {
