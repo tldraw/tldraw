@@ -1,4 +1,4 @@
-name = "tldraw-mcp-app"
+name = "mcp-app"
 main = "src/cloudflare-worker.ts"
 compatibility_date = "2025-03-10"
 compatibility_flags = ["nodejs_compat"]
@@ -23,7 +23,7 @@ new_sqlite_classes = ["TldrawMCP"]
 [vars]
 # Set this to the public URL of the worker. Used for constructing absolute image URLs.
 # Override with `--var WORKER_ORIGIN:https://your-tunnel.trycloudflare.com` for cloudflared tunnels.
-WORKER_ORIGIN = "https://tldraw-mcp-app.tldraw.workers.dev"
+WORKER_ORIGIN = "https://mcp-app.tldraw.workers.dev"
 
 [[r2_buckets]]
 binding = "IMAGES"
