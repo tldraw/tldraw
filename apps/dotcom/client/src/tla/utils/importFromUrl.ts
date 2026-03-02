@@ -4,7 +4,9 @@ import type { TldrawApp } from '../app/TldrawApp'
 export async function importFromUrl(
 	app: TldrawApp,
 	url: string
-): Promise<{ ok: true; fileId: string } | { ok: false; error: string }> {
+): Promise<
+	{ ok: true; fileId: string } | { ok: false; error: string; toastAlreadyShown?: boolean }
+> {
 	try {
 		const res = await fetch(url, { mode: 'cors' })
 		if (!res.ok) {
@@ -26,14 +28,15 @@ export async function importFromUrl(
 		const sanitized = rawName?.replace(/[/\\:*?"<>|]/g, '_').slice(0, 200) || 'import'
 		const fileName = sanitized.endsWith('.tldr') ? sanitized : `${sanitized}.tldr`
 		const file = new File([json], fileName, { type: 'application/json' })
-		return new Promise<{ ok: true; fileId: string } | { ok: false; error: string }>((resolve) => {
-			const timeout = setTimeout(() => {
-				resolve({ ok: false, error: 'Upload timed out' })
-			}, 90_000)
-			app.uploadTldrFiles([file], (fileId) => {
-				clearTimeout(timeout)
-				resolve({ ok: true, fileId })
-			})
+		return new Promise<
+			{ ok: true; fileId: string } | { ok: false; error: string; toastAlreadyShown?: boolean }
+		>((resolve) => {
+			app.uploadTldrFiles(
+				[file],
+				(fileId) => resolve({ ok: true, fileId }),
+				undefined,
+				() => resolve({ ok: false, error: 'Upload failed', toastAlreadyShown: true })
+			)
 		})
 	} catch (e) {
 		return {

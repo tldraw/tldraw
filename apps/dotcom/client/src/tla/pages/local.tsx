@@ -43,12 +43,14 @@ export function Component() {
 					})
 					return
 				}
-				app.toasts?.addToast({
-					severity: 'error',
-					title: 'Import failed',
-					description: result.error,
-					keepOpen: true,
-				})
+				if (!result.toastAlreadyShown) {
+					app.toasts?.addToast({
+						severity: 'error',
+						title: 'Import failed',
+						description: result.error,
+						keepOpen: true,
+					})
+				}
 				// Fall through to normal file operations (show recent file or create)
 			}
 
