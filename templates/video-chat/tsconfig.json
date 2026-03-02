@@ -1,0 +1,27 @@
+{
+	"compilerOptions": {
+		"target": "ES2020",
+		"useDefineForClassFields": true,
+		"lib": ["DOM", "DOM.Iterable", "ES2022"],
+		"module": "ESNext",
+		"skipLibCheck": true,
+		"moduleResolution": "bundler",
+		"allowImportingTsExtensions": true,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"noEmit": true,
+		"jsx": "react-jsx",
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true,
+		"types": ["vite/client", "./worker-configuration.d.ts"]
+	},
+	"include": ["client", "worker", "vite.config.ts"],
+	"references": [
+		{ "path": "../../packages/sync" },
+		{ "path": "../../packages/sync-core" },
+		{ "path": "../../packages/tldraw" },
+		{ "path": "../../packages/tlschema" }
+	]
+}

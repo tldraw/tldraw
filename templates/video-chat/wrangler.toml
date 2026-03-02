@@ -1,0 +1,42 @@
+
+name = "video-chat-template"
+main = "worker/worker.ts"
+compatibility_date = "2025-05-08"
+compatibility_flags = ["nodejs_compat"]
+upload_source_maps = true
+preview_urls = true
+
+[[routes]]
+pattern = "video-chat.templates.tldraw.dev"
+custom_domain = true
+
+[observability]
+enabled = true
+
+[assets]
+not_found_handling = "single-page-application"
+directory = "./dist/client"
+
+# Set up the durable object used for each tldraw room
+[durable_objects]
+bindings = [
+    { name = "TLDRAW_DURABLE_OBJECT", class_name = "TldrawDurableObject" },
+]
+
+# Durable objects require migrations to create/modify/delete them
+# Using new_sqlite_classes for SQLite-backed storage
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TldrawDurableObject"]
+
+# We store asset uploads (images, videos) in an R2 bucket.
+# Room data is stored in Durable Object SQLite storage.
+[[r2_buckets]]
+binding = 'TLDRAW_BUCKET'
+bucket_name = 'video-chat-template'
+preview_bucket_name = 'video-chat-template-preview'
+
+# Cloudflare Calls configuration.
+# Set the app secret via: wrangler secret put CALLS_APP_SECRET
+[vars]
+CALLS_APP_ID = "24d4383c-57fc-4878-8fb6-48ffb508918f"

@@ -65,4 +65,11 @@ export const TEMPLATES: Template[] = [
 		order: 8,
 		repo: 'tldraw/shader-starter-kit',
 	},
+	{
+		name: 'Video chat',
+		description: 'Multiplayer whiteboard with video chat powered by Cloudflare Calls.',
+		shortDescription: 'Video chat + whiteboard.',
+		order: 9,
+		repo: 'tldraw/video-chat-template',
+	},
 ]
