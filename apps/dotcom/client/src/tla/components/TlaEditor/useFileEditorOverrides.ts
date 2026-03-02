@@ -14,7 +14,18 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { useIntl, useMsg } from '../../utils/i18n'
 import { editorMessages as messages } from './editor-messages'
 
-export async function download(editor: Editor, name: string) {
+/** Triggers a GET to the app file download endpoint; browser downloads via Content-Disposition. */
+export function downloadAppFile(fileId: string) {
+	const url = `/api/app/file/${fileId}/download`
+	const a = document.createElement('a')
+	a.href = url
+	a.download = ''
+	document.body.appendChild(a)
+	a.click()
+	document.body.removeChild(a)
+}
+
+export async function downloadFileFromEditor(editor: Editor, name: string) {
 	const blobToSave = await serializeTldrawJsonBlob(editor)
 	const file = new File([blobToSave], name, { type: 'application/json' })
 	downloadFile(file)
@@ -63,10 +74,14 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					id: 'save-file-copy',
 					label: intl.formatMessage(messages.downloadFile),
 					readonlyOk: true,
-					async onSelect() {
+					onSelect() {
 						trackEvent('download-file', { source: '' })
-						const defaultName = getFileName(editor) + TLDRAW_FILE_EXTENSION
-						await download(editor, defaultName)
+						if (app && fileSlug) {
+							downloadAppFile(fileSlug)
+						} else {
+							const defaultName = getFileName(editor) + TLDRAW_FILE_EXTENSION
+							downloadFileFromEditor(editor, defaultName)
+						}
 					},
 				}
 
@@ -91,7 +106,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 				return actions
 			},
 		}
-	}, [app, getFileName, intl, navigate, trackEvent])
+	}, [app, fileSlug, getFileName, intl, navigate, trackEvent])
 
 	return overrides
 }

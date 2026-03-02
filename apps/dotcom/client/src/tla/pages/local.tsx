@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { assert, getFromSessionStorage, react } from 'tldraw'
+import { assert, deleteFromSessionStorage, getFromSessionStorage, react } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
@@ -8,6 +8,7 @@ import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkMod
 import { components } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
+import { importFromUrl } from '../utils/importFromUrl'
 import { clearRedirectOnSignIn } from '../utils/redirect'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
@@ -27,6 +28,28 @@ export function Component() {
 				clearRedirectOnSignIn()
 				navigate(redirectTo, { replace: true })
 				return
+			}
+
+			// Run pending import from URL (set by /import?url=... redirect)
+			const pendingImportUrl = getFromSessionStorage(SESSION_STORAGE_KEYS.PENDING_IMPORT_URL)
+			if (pendingImportUrl) {
+				deleteFromSessionStorage(SESSION_STORAGE_KEYS.PENDING_IMPORT_URL)
+				const result = await importFromUrl(app, pendingImportUrl)
+				if (result.ok) {
+					app.ensureFileVisibleInSidebar(result.fileId)
+					navigate(routes.tlaFile(result.fileId), {
+						replace: true,
+						state: location.state,
+					})
+					return
+				}
+				app.toasts?.addToast({
+					severity: 'error',
+					title: 'Import failed',
+					description: result.error,
+					keepOpen: true,
+				})
+				// Fall through to normal file operations (show recent file or create)
 			}
 
 			if (getShouldSlurpFile()) {

@@ -4,7 +4,6 @@ import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-	TLDRAW_FILE_EXTENSION,
 	TldrawUiButtonCheck,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -23,7 +22,6 @@ import {
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
-import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useHasFlag } from '../../hooks/useHasFlag'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
@@ -33,7 +31,7 @@ import { defineMessages, useMsg } from '../../utils/i18n'
 import { CreateGroupDialog } from '../dialogs/CreateGroupDialog'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 import { editorMessages } from '../TlaEditor/editor-messages'
-import { download } from '../TlaEditor/useFileEditorOverrides'
+import { downloadAppFile } from '../TlaEditor/useFileEditorOverrides'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 
 const messages = defineMessages({
@@ -109,7 +107,6 @@ export function FileItems({
 	const copiedMsg = useMsg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, groupId ?? '')
-	const isActive = useCurrentFileId() === fileId
 	const hasGroups = useHasFlag('groups_frontend')
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
@@ -175,14 +172,10 @@ export function FileItems({
 		})
 	}, [fileId, addDialog, groupId])
 
-	const untitledProject = useMsg(editorMessages.untitledProject)
-	const handleDownloadClick = useCallback(async () => {
-		if (!editor) return
-		const defaultName =
-			app.getFileName(fileId, false) ?? editor.getDocumentSettings().name ?? untitledProject
+	const handleDownloadClick = useCallback(() => {
 		trackEvent('download-file', { source })
-		await download(editor, defaultName + TLDRAW_FILE_EXTENSION)
-	}, [app, editor, fileId, source, trackEvent, untitledProject])
+		downloadAppFile(fileId)
+	}, [fileId, source, trackEvent])
 
 	const copyLinkMsg = useMsg(messages.copyLink)
 	const renameMsg = useMsg(messages.rename)
@@ -216,17 +209,12 @@ export function FileItems({
 						onSelect={handleDuplicateClick}
 					/>
 				)}
-				{!source.startsWith('sidebar') ||
-					(isActive && (
-						// TODO: make a /download/:fileId endpoint so we can download any file
-						// from the sidebar, not just the active one
-						<TldrawUiMenuItem
-							label={downloadFile}
-							id="download-file"
-							readonlyOk
-							onSelect={handleDownloadClick}
-						/>
-					))}
+				<TldrawUiMenuItem
+					label={downloadFile}
+					id="download-file"
+					readonlyOk
+					onSelect={handleDownloadClick}
+				/>
 				{groupId && (
 					<TldrawUiMenuItem
 						label={isPinned ? unpinMsg : pinMsg}
