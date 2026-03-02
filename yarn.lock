@@ -17258,7 +17258,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:0.27.3, esbuild@npm:~0.27.0":
+"esbuild@npm:0.27.3":
   version: 0.27.3
   resolution: "esbuild@npm:0.27.3"
   dependencies:
@@ -29974,27 +29974,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-mcp-app@workspace:apps/tldraw-mcp-app"
   dependencies:
-    "@modelcontextprotocol/ext-apps": "npm:^1.0.0"
-    "@modelcontextprotocol/sdk": "npm:^1.24.0"
-    "@types/node": "npm:^20.0.0"
-    "@types/react": "npm:^18.3.0"
-    "@types/react-dom": "npm:^18.3.0"
-    "@vitejs/plugin-react": "npm:^4.0.0"
-    react: "npm:^18.3.0"
-    react-dom: "npm:^18.3.0"
-    tldraw: "npm:^4.3.1"
-    tsx: "npm:^4.7.0"
-    typescript: "npm:^5.5.0"
-    vite: "npm:^6.0.0"
-    vite-plugin-singlefile: "npm:^2.0.0"
-    zod: "npm:^4.3.6"
-  languageName: unknown
-  linkType: soft
-
-"tldraw-mcp-cloudflare@workspace:apps/tldraw-mcp-cloudflare":
-  version: 0.0.0-use.local
-  resolution: "tldraw-mcp-cloudflare@workspace:apps/tldraw-mcp-cloudflare"
-  dependencies:
+    "@clerk/backend": "npm:^1.23.7"
+    "@clerk/clerk-react": "npm:^5.53.3"
     "@cloudflare/workers-types": "npm:^4.20260305.0"
     "@modelcontextprotocol/ext-apps": "npm:^1.0.0"
     "@modelcontextprotocol/sdk": "npm:^1.24.0"
@@ -30013,29 +29994,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"tldraw-mcp@workspace:apps/tldraw-mcp":
-  version: 0.0.0-use.local
-  resolution: "tldraw-mcp@workspace:apps/tldraw-mcp"
-  dependencies:
-    "@modelcontextprotocol/ext-apps": "npm:^1.0.0"
-    "@modelcontextprotocol/sdk": "npm:^1.12.0"
-    "@types/express": "npm:^5.0.0"
-    "@types/node": "npm:^20.0.0"
-    "@types/react": "npm:^18.3.0"
-    "@types/react-dom": "npm:^18.3.0"
-    "@vitejs/plugin-react": "npm:^4.0.0"
-    express: "npm:^5.1.0"
-    react: "npm:^18.3.0"
-    react-dom: "npm:^18.3.0"
-    tldraw: "npm:^4.3.1"
-    tsx: "npm:^4.7.0"
-    typescript: "npm:^5.5.0"
-    vite: "npm:^6.0.0"
-    vite-plugin-singlefile: "npm:^2.0.0"
-    zod: "npm:^3.23.0"
-  languageName: unknown
-  linkType: soft
-  
 "tldraw-nextjs-app-example@workspace:templates/nextjs":
   version: 0.0.0-use.local
   resolution: "tldraw-nextjs-app-example@workspace:templates/nextjs"
@@ -30635,22 +30593,6 @@ __metadata:
   bin:
     tsx: dist/cli.mjs
   checksum: 10/a7e7f41e5593b242772050abacf51908aa8a6d4d9ea6c29e80161eb557d664a0f4cc8d38d0c8c151fddb6c2e9e337af27ba0e269c9707ccd7eeff0e0ea7fcf98
-  languageName: node
-  linkType: hard
-
-"tsx@npm:^4.7.0":
-  version: 4.21.0
-  resolution: "tsx@npm:4.21.0"
-  dependencies:
-    esbuild: "npm:~0.27.0"
-    fsevents: "npm:~2.3.3"
-    get-tsconfig: "npm:^4.7.5"
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    tsx: dist/cli.mjs
-  checksum: 10/7afedeff855ba98c47dc28b33d7e8e253c4dc1f791938db402d79c174bdf806b897c1a5f91e5b1259c112520c816f826b4c5d98f0bad7e95b02dec66fedb64d2
   languageName: node
   linkType: hard
 
