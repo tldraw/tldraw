@@ -28,26 +28,26 @@ Read the migration reference guide with "before/after" mapping tables: `/tmp/mcp
 
 Read JSDoc documentation directly from `/tmp/mcp-ext-apps/src/*`:
 
-| File | Contents |
-|------|----------|
-| `src/app.ts` | `App` class, handlers, lifecycle |
-| `src/server/index.ts` | `registerAppTool`, `registerAppResource` |
-| `src/spec.types.ts` | Type definitions |
-| `src/react/useApp.tsx` | `useApp` hook for React apps |
-| `src/react/use*.ts*` | Other `use*` hooks for React apps |
+| File                   | Contents                                 |
+| ---------------------- | ---------------------------------------- |
+| `src/app.ts`           | `App` class, handlers, lifecycle         |
+| `src/server/index.ts`  | `registerAppTool`, `registerAppResource` |
+| `src/spec.types.ts`    | Type definitions                         |
+| `src/react/useApp.tsx` | `useApp` hook for React apps             |
+| `src/react/use*.ts*`   | Other `use*` hooks for React apps        |
 
 ### Front-End Framework Examples
 
 See `/tmp/mcp-ext-apps/examples/basic-server-{framework}/` for basic SDK usage examples organized by front-end framework:
 
-| Template | Key Files |
-|----------|-----------|
-| `basic-server-vanillajs/` | `server.ts`, `src/mcp-app.ts`, `mcp-app.html` |
-| `basic-server-react/` | `server.ts`, `src/mcp-app.tsx` (uses `useApp` hook) |
-| `basic-server-vue/` | `server.ts`, `src/App.vue` |
-| `basic-server-svelte/` | `server.ts`, `src/App.svelte` |
-| `basic-server-preact/` | `server.ts`, `src/mcp-app.tsx` |
-| `basic-server-solid/` | `server.ts`, `src/mcp-app.tsx` |
+| Template                  | Key Files                                           |
+| ------------------------- | --------------------------------------------------- |
+| `basic-server-vanillajs/` | `server.ts`, `src/mcp-app.ts`, `mcp-app.html`       |
+| `basic-server-react/`     | `server.ts`, `src/mcp-app.tsx` (uses `useApp` hook) |
+| `basic-server-vue/`       | `server.ts`, `src/App.vue`                          |
+| `basic-server-svelte/`    | `server.ts`, `src/App.svelte`                       |
+| `basic-server-preact/`    | `server.ts`, `src/mcp-app.tsx`                      |
+| `basic-server-solid/`     | `server.ts`, `src/mcp-app.tsx`                      |
 
 ## CSP Investigation
 
@@ -75,6 +75,7 @@ If no origins are found, the app may not need custom CSP domains.
 MCP clients make cross-origin requests. If using Express, `app.use(cors())` handles this.
 
 For raw HTTP servers, configure standard CORS and additionally:
+
 - Allow headers: `mcp-session-id`, `mcp-protocol-version`, `last-event-id`
 - Expose headers: `mcp-session-id`
 
@@ -91,6 +92,7 @@ See `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` for server-side mapping
 The fundamental paradigm shift: OpenAI uses a synchronous global object (`window.openai.toolInput`, `window.openai.theme`) that's pre-populated before your code runs. MCP Apps uses an `App` instance with async event handlers.
 
 Key differences:
+
 - Create an `App` instance and register handlers (`ontoolinput`, `ontoolresult`, `onhostcontextchanged`) **before** calling `connect()`. (Events may fire immediately after connection, so handlers must be registered first.)
 - Access tool data via handlers: `app.ontoolinput` for `window.openai.toolInput`, `app.ontoolresult` for `window.openai.toolOutput`.
 - Access host environment (theme, locale, etc.) via `app.getHostContext()`.
@@ -123,20 +125,20 @@ Slow down and carefully follow each item in this checklist:
 
 - [ ] Search for and migrate any remaining server-side OpenAI patterns:
 
-    | Pattern | Indicates |
-    |---------|-----------|
-    | `"openai/` | Old metadata keys → `_meta.ui.*` |
-    | `text/html+skybridge` | Old MIME type → `RESOURCE_MIME_TYPE` constant |
-    | `text/html;profile=mcp-app` | New MIME type, but prefer `RESOURCE_MIME_TYPE` constant |
-    | `_domains"` or `_domains:` | snake_case CSP → camelCase (`connect_domains` → `connectDomains`) |
+  | Pattern                     | Indicates                                                         |
+  | --------------------------- | ----------------------------------------------------------------- |
+  | `"openai/`                  | Old metadata keys → `_meta.ui.*`                                  |
+  | `text/html+skybridge`       | Old MIME type → `RESOURCE_MIME_TYPE` constant                     |
+  | `text/html;profile=mcp-app` | New MIME type, but prefer `RESOURCE_MIME_TYPE` constant           |
+  | `_domains"` or `_domains:`  | snake_case CSP → camelCase (`connect_domains` → `connectDomains`) |
 
 - [ ] Search for and migrate any remaining client-side OpenAI patterns:
 
-    | Pattern | Indicates |
-    |---------|-----------|
-    | `window.openai.toolInput` | Old global → `params.arguments` in `ontoolinput` handler |
-    | `window.openai.toolOutput` | Old global → `params.structuredContent` in `ontoolresult` |
-    | `window.openai` | Old global API → `App` instance methods |
+  | Pattern                    | Indicates                                                 |
+  | -------------------------- | --------------------------------------------------------- |
+  | `window.openai.toolInput`  | Old global → `params.arguments` in `ontoolinput` handler  |
+  | `window.openai.toolOutput` | Old global → `params.structuredContent` in `ontoolresult` |
+  | `window.openai`            | Old global API → `App` instance methods                   |
 
 - [ ] For each origin from your CSP investigation, show where it appears in the `registerAppResource()` CSP config. **Every** origin from the CSP investigation (universal, dev-only, prod-only) must be included in the CSP config—MCP Apps HTML runs in a sandboxed iframe **with no same-origin server**. If an origin was not included in the CSP config, add it now.
 
@@ -162,6 +164,7 @@ SERVERS='["http://localhost:3001/mcp"]' npm run start
 ### Verify Runtime Behavior
 
 Once the app loads in basic-host, confirm:
+
 1. App loads without console errors
 2. `ontoolinput` handler fires with tool arguments
 3. `ontoolresult` handler fires with tool result
