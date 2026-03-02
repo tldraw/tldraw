@@ -63,9 +63,9 @@ export class TldrawMCP extends McpAgent<Env> {
 
 	async init() {
 		// --- DO SQLite setup ---
-		this
+		void this
 			.sql`CREATE TABLE IF NOT EXISTS checkpoints (id TEXT PRIMARY KEY, data TEXT, created_at INTEGER)`
-		this.sql`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)`
+		void this.sql`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)`
 
 		// Restore active checkpoint on reconnect
 		const rows = [...this.sql`SELECT value FROM meta WHERE key = 'activeCheckpointId'`]
@@ -75,16 +75,15 @@ export class TldrawMCP extends McpAgent<Env> {
 		const widgetHtml = await loadWidgetHtml((this as any).env.ASSETS)
 
 		// --- Build ServerDeps from SQLite ---
-		const self = this
 		const deps: ServerDeps = {
-			saveCheckpoint: (id, shapes, assets = []) => self.saveCheckpoint(id, shapes, assets),
-			loadCheckpoint: (id) => self.loadCheckpoint(id),
-			getActiveShapes: () => self.getActiveShapes(),
-			getActiveAssets: () => self.getActiveAssets(),
-			getActiveCheckpointId: () => self.activeCheckpointId,
+			saveCheckpoint: (id, shapes, assets = []) => this.saveCheckpoint(id, shapes, assets),
+			loadCheckpoint: (id) => this.loadCheckpoint(id),
+			getActiveShapes: () => this.getActiveShapes(),
+			getActiveAssets: () => this.getActiveAssets(),
+			getActiveCheckpointId: () => this.activeCheckpointId,
 			setActiveCheckpointId: (id) => {
-				self.activeCheckpointId = id
-				self.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
+				this.activeCheckpointId = id
+				void this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
 			},
 			loadWidgetHtml: async () => widgetHtml,
 		}
@@ -109,12 +108,12 @@ export class TldrawMCP extends McpAgent<Env> {
 				const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
 				const key = `images/${crypto.randomUUID()}.${ext}`
 
-				await ((self as any).env as Env).IMAGES.put(key, bytes, {
+				await ((this as any).env as Env).IMAGES.put(key, bytes, {
 					httpMetadata: { contentType },
 					customMetadata: { originalFilename: filename },
 				})
 
-				const origin = ((self as any).env as Env).WORKER_ORIGIN || ''
+				const origin = ((this as any).env as Env).WORKER_ORIGIN || ''
 				const imageUrl = `${origin}/${key}`
 
 				return { imageUrl, key, contentType }
@@ -126,13 +125,13 @@ export class TldrawMCP extends McpAgent<Env> {
 
 	saveCheckpoint(id: string, shapes: unknown[], assets: unknown[] = []) {
 		const data = JSON.stringify({ shapes, assets })
-		this
+		void this
 			.sql`INSERT OR REPLACE INTO checkpoints (id, data, created_at) VALUES (${id}, ${data}, ${Date.now()})`
 		this.activeCheckpointId = id
-		this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
+		void this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
 
 		// Evict old checkpoints beyond MAX_CHECKPOINTS (LRU)
-		this
+		void this
 			.sql`DELETE FROM checkpoints WHERE id NOT IN (SELECT id FROM checkpoints ORDER BY created_at DESC LIMIT ${MAX_CHECKPOINTS})`
 	}
 
