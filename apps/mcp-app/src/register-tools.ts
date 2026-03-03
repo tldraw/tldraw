@@ -65,10 +65,10 @@ export function registerTools(
 	// --- read_me ---
 
 	server.registerTool(
-		'read_me',
+		'diagram_drawing_read_me',
 		{
 			description:
-				'Get the tldraw shape format reference. Call this FIRST before creating diagrams or drawing.',
+				'Use whenever you want to create a diagram or drawing. Gets the tldraw shape format reference. Call this FIRST before creating diagrams or drawing.',
 			annotations: {
 				readOnlyHint: true,
 				idempotentHint: true,
