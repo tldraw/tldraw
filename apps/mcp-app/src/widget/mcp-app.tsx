@@ -356,6 +356,15 @@ function TldrawCanvas({ app }: { app: App }) {
 		(input: unknown, isPartial: boolean) => {
 			const committed = committedSnapshotRef.current
 
+			app.updateModelContext({
+				content: [
+					{
+						type: 'text',
+						text: `Applying preview from tool input ${JSON.stringify(input, null, 2)}`,
+					},
+				],
+			})
+
 			const args = extractToolArguments(input)
 			if (!args) return
 
@@ -412,7 +421,7 @@ function TldrawCanvas({ app }: { app: App }) {
 				`Applied delete preview (${deletedCount} shape(s))`
 			)
 		},
-		[renderPreviewShapes, renderPreviewSnapshot]
+		[app, renderPreviewShapes, renderPreviewSnapshot]
 	)
 
 	useEffect(() => {

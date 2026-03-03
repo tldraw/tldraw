@@ -13,6 +13,7 @@ export const READ_ME_CONTENT = `# tldraw MCP — shape format and action referen
 **Important**
 - All shape mutation tools use JSON string arguments.
 - Keep numeric fields as numbers in the underlying array objects (for example \`x: 100\`, not \`"100"\`) before stringifying. This is required, do not forget it.
+- You will always be given the current state of the canvas in an attachment to a user's most recent message. Always refer to this when the user asks anything about the current canvas, when you want to edit the canvas, or when you need any information about it. 
 
 ## FocusedShape format
 
@@ -86,7 +87,7 @@ Deletes shapes by id from a JSON string.
 \`\`\`json
 {
   "new_blank_canvas": true,
-  "shapesJson": "[{\"_type\":\"rectangle\",\"shapeId\":\"start\",\"x\":0,\"y\":0,\"w\":200,\"h\":100,\"color\":\"blue\",\"fill\":\"tint\",\"text\":\"Start\"},{\"_type\":\"arrow\",\"shapeId\":\"a1\",\"x1\":200,\"y1\":50,\"x2\":320,\"y2\":50,\"color\":\"black\",\"fromId\":\"start\",\"toId\":\"process\"},{\"_type\":\"rectangle\",\"shapeId\":\"process\",\"x\":320,\"y\":0,\"w\":220,\"h\":100,\"color\":\"green\",\"fill\":\"tint\",\"text\":\"Process\"}]"
+  "shapesJson": "[{\"_type\":\"rectangle\",\"shapeId\":\"start\",\"x\":0,\"y\":0,\"w\":240,\"h\":120,\"color\":\"blue\",\"fill\":\"tint\",\"text\":\"Start\"},{\"_type\":\"arrow\",\"shapeId\":\"a1\",\"x1\":240,\"y1\":60,\"x2\":400,\"y2\":60,\"color\":\"black\",\"fromId\":\"start\",\"toId\":\"process\"},{\"_type\":\"rectangle\",\"shapeId\":\"process\",\"x\":400,\"y\":0,\"w\":260,\"h\":120,\"color\":\"green\",\"fill\":\"tint\",\"text\":\"Process\"}]"
 }
 \`\`\`
 
@@ -115,6 +116,7 @@ Deletes shapes by id from a JSON string.
 - Use the \`note\` field to provide context for each shape. This will help you understand the purpose of each shape later.
 - Never create "unknown" type shapes.
 - When creating shapes that are meant to be contained within other shapes, always ensure the inner shapes properly fit inside the containing shape. If there are overlaps, either make the inside shapes smaller or the outside shape bigger.
+- Leave breathing room between neighboring shapes. As a default, target around 60-120px horizontal gaps and 80-140px vertical gaps unless the user asks for a dense layout.
 
 ## Arrows
 
@@ -148,6 +150,8 @@ Deletes shapes by id from a JSON string.
 - If geo shapes or note shapes have text, the shapes will become taller to accommodate the text. If adding lots of text, make sure the shape is wide enough.
 - Note shapes are 200x200. They're sticky notes suitable only for tiny sentences. Use a geo shape or text shape for longer text.
 - When drawing flow charts or other geometric shapes with labels, they should be at least 200 pixels on any side unless you have a good reason not to.
+- Prefer slightly larger defaults for readable diagrams: many labeled geo shapes should start around 220-280px wide and 120-160px tall, then scale up for longer labels.
+- Compensate for different label lengths: short labels can use the lower end of the size range, while longer text should increase width (and sometimes height) to avoid cramped layouts.
 
 ## Colors
 
@@ -164,9 +168,9 @@ Deletes shapes by id from a JSON string.
 
 \`\`\`json
 [
-  {"_type":"rectangle","shapeId":"start","x":0,"y":0,"w":200,"h":100,"color":"blue","fill":"tint","text":"Start"},
-  {"_type":"rectangle","shapeId":"end","x":320,"y":0,"w":200,"h":100,"color":"green","fill":"tint","text":"End"},
-  {"_type":"arrow","shapeId":"a1","x1":200,"y1":50,"x2":320,"y2":50,"color":"black","fromId":"start","toId":"end","text":"next"}
+  {"_type":"rectangle","shapeId":"start","x":0,"y":0,"w":240,"h":120,"color":"blue","fill":"tint","text":"Start"},
+  {"_type":"rectangle","shapeId":"end","x":420,"y":0,"w":240,"h":120,"color":"green","fill":"tint","text":"End"},
+  {"_type":"arrow","shapeId":"a1","x1":240,"y1":60,"x2":420,"y2":60,"color":"black","fromId":"start","toId":"end","text":"next"}
 ]
 \`\`\`
 
@@ -174,17 +178,17 @@ Deletes shapes by id from a JSON string.
 
 \`\`\`json
 [
-  {"_type":"text","shapeId":"title","x":250,"y":0,"text":"Login Flow","color":"black","anchor":"top-center","size":"xl","font":"sans"},
-  {"_type":"pill","shapeId":"enter","x":150,"y":80,"w":200,"h":80,"color":"blue","fill":"tint","text":"User visits /login"},
-  {"_type":"rectangle","shapeId":"form","x":150,"y":220,"w":200,"h":100,"color":"light-blue","fill":"tint","text":"Show login form"},
-  {"_type":"arrow","shapeId":"a1","x1":250,"y1":160,"x2":250,"y2":220,"color":"black","fromId":"enter","toId":"form"},
-  {"_type":"diamond","shapeId":"valid","x":125,"y":390,"w":250,"h":160,"color":"orange","fill":"tint","text":"Credentials\\nvalid?"},
-  {"_type":"arrow","shapeId":"a2","x1":250,"y1":320,"x2":250,"y2":390,"color":"black","fromId":"form","toId":"valid","text":"submit"},
-  {"_type":"rectangle","shapeId":"dashboard","x":420,"y":410,"w":220,"h":100,"color":"green","fill":"tint","text":"Redirect to\\ndashboard"},
-  {"_type":"arrow","shapeId":"a3","x1":375,"y1":470,"x2":420,"y2":460,"color":"green","fromId":"valid","toId":"dashboard","text":"yes"},
-  {"_type":"rectangle","shapeId":"error","x":-160,"y":410,"w":220,"h":100,"color":"red","fill":"tint","text":"Show error\\nmessage"},
-  {"_type":"arrow","shapeId":"a4","x1":125,"y1":470,"x2":60,"y2":460,"color":"red","fromId":"valid","toId":"error","text":"no"},
-  {"_type":"arrow","shapeId":"a5","x1":-50,"y1":410,"x2":150,"y2":270,"color":"grey","dash":"dashed","fromId":"error","toId":"form","text":"retry","bend":70}
+  {"_type":"text","shapeId":"title","x":300,"y":0,"text":"Login Flow","color":"black","anchor":"top-center","size":"xl","font":"sans"},
+  {"_type":"pill","shapeId":"enter","x":180,"y":100,"w":240,"h":100,"color":"blue","fill":"tint","text":"User visits /login"},
+  {"_type":"rectangle","shapeId":"form","x":180,"y":280,"w":240,"h":120,"color":"light-blue","fill":"tint","text":"Show login form"},
+  {"_type":"arrow","shapeId":"a1","x1":300,"y1":200,"x2":300,"y2":280,"color":"black","fromId":"enter","toId":"form"},
+  {"_type":"diamond","shapeId":"valid","x":150,"y":500,"w":300,"h":200,"color":"orange","fill":"tint","text":"Credentials\\nvalid?"},
+  {"_type":"arrow","shapeId":"a2","x1":300,"y1":400,"x2":300,"y2":500,"color":"black","fromId":"form","toId":"valid","text":"submit"},
+  {"_type":"rectangle","shapeId":"dashboard","x":560,"y":530,"w":260,"h":120,"color":"green","fill":"tint","text":"Redirect to\\ndashboard"},
+  {"_type":"arrow","shapeId":"a3","x1":450,"y1":600,"x2":560,"y2":590,"color":"green","fromId":"valid","toId":"dashboard","text":"yes"},
+  {"_type":"rectangle","shapeId":"error","x":-240,"y":530,"w":260,"h":120,"color":"red","fill":"tint","text":"Show error\\nmessage"},
+  {"_type":"arrow","shapeId":"a4","x1":150,"y1":600,"x2":20,"y2":590,"color":"red","fromId":"valid","toId":"error","text":"no"},
+  {"_type":"arrow","shapeId":"a5","x1":-110,"y1":530,"x2":180,"y2":340,"color":"grey","dash":"dashed","fromId":"error","toId":"form","text":"retry","bend":100}
 ]
 \`\`\`
 
@@ -199,27 +203,27 @@ Key techniques:
 
 \`\`\`json
 [
-  {"_type":"text","shapeId":"title","x":350,"y":0,"text":"Web App Architecture","color":"black","anchor":"top-center","size":"xl","font":"sans"},
-  {"_type":"rectangle","shapeId":"fe-frame","x":0,"y":60,"w":700,"h":180,"color":"blue","fill":"tint","text":"Frontend"},
-  {"_type":"rectangle","shapeId":"browser","x":30,"y":100,"w":200,"h":100,"color":"blue","fill":"tint","text":"React SPA"},
-  {"_type":"rectangle","shapeId":"cdn","x":270,"y":100,"w":160,"h":100,"color":"light-blue","fill":"tint","text":"CDN"},
-  {"_type":"rectangle","shapeId":"lb","x":470,"y":100,"w":200,"h":100,"color":"violet","fill":"tint","text":"Load Balancer"},
-  {"_type":"arrow","shapeId":"a1","x1":230,"y1":150,"x2":270,"y2":150,"color":"grey","fromId":"browser","toId":"cdn"},
-  {"_type":"arrow","shapeId":"a2","x1":430,"y1":150,"x2":470,"y2":150,"color":"grey","fromId":"cdn","toId":"lb"},
-  {"_type":"rectangle","shapeId":"be-frame","x":0,"y":280,"w":700,"h":180,"color":"green","fill":"tint","text":"Backend"},
-  {"_type":"rectangle","shapeId":"api","x":30,"y":320,"w":200,"h":100,"color":"green","fill":"tint","text":"API Server\\n(Node.js)"},
-  {"_type":"rectangle","shapeId":"auth","x":270,"y":320,"w":160,"h":100,"color":"orange","fill":"tint","text":"Auth Service"},
-  {"_type":"cloud","shapeId":"queue","x":470,"y":310,"w":200,"h":120,"color":"yellow","fill":"tint","text":"Message\\nQueue"},
-  {"_type":"arrow","shapeId":"a3","x1":570,"y1":240,"x2":130,"y2":320,"color":"black","fromId":"lb","toId":"api","text":"routes"},
-  {"_type":"arrow","shapeId":"a4","x1":230,"y1":370,"x2":270,"y2":370,"color":"grey","fromId":"api","toId":"auth"},
-  {"_type":"arrow","shapeId":"a5","x1":430,"y1":370,"x2":470,"y2":370,"color":"grey","fromId":"auth","toId":"queue"},
-  {"_type":"rectangle","shapeId":"db-frame","x":0,"y":500,"w":700,"h":180,"color":"red","fill":"tint","text":"Data layer"},
-  {"_type":"ellipse","shapeId":"db","x":30,"y":540,"w":200,"h":100,"color":"red","fill":"tint","text":"PostgreSQL"},
-  {"_type":"ellipse","shapeId":"cache","x":270,"y":540,"w":160,"h":100,"color":"light-red","fill":"tint","text":"Redis"},
-  {"_type":"rectangle","shapeId":"s3","x":470,"y":540,"w":200,"h":100,"color":"light-green","fill":"tint","text":"S3 Storage"},
-  {"_type":"arrow","shapeId":"a6","x1":130,"y1":420,"x2":130,"y2":540,"color":"black","fromId":"api","toId":"db"},
-  {"_type":"arrow","shapeId":"a7","x1":350,"y1":420,"x2":350,"y2":540,"color":"black","fromId":"auth","toId":"cache"},
-  {"_type":"arrow","shapeId":"a8","x1":570,"y1":430,"x2":570,"y2":540,"color":"black","fromId":"queue","toId":"s3"}
+  {"_type":"text","shapeId":"title","x":420,"y":0,"text":"Web App Architecture","color":"black","anchor":"top-center","size":"xl","font":"sans"},
+  {"_type":"rectangle","shapeId":"fe-frame","x":0,"y":80,"w":840,"h":220,"color":"blue","fill":"tint","text":"Frontend"},
+  {"_type":"rectangle","shapeId":"browser","x":40,"y":130,"w":240,"h":120,"color":"blue","fill":"tint","text":"React SPA"},
+  {"_type":"rectangle","shapeId":"cdn","x":340,"y":130,"w":180,"h":120,"color":"light-blue","fill":"tint","text":"CDN"},
+  {"_type":"rectangle","shapeId":"lb","x":580,"y":130,"w":220,"h":120,"color":"violet","fill":"tint","text":"Load Balancer"},
+  {"_type":"arrow","shapeId":"a1","x1":280,"y1":190,"x2":340,"y2":190,"color":"grey","fromId":"browser","toId":"cdn"},
+  {"_type":"arrow","shapeId":"a2","x1":520,"y1":190,"x2":580,"y2":190,"color":"grey","fromId":"cdn","toId":"lb"},
+  {"_type":"rectangle","shapeId":"be-frame","x":0,"y":380,"w":840,"h":220,"color":"green","fill":"tint","text":"Backend"},
+  {"_type":"rectangle","shapeId":"api","x":40,"y":430,"w":240,"h":120,"color":"green","fill":"tint","text":"API Server\\n(Node.js)"},
+  {"_type":"rectangle","shapeId":"auth","x":340,"y":430,"w":180,"h":120,"color":"orange","fill":"tint","text":"Auth Service"},
+  {"_type":"cloud","shapeId":"queue","x":580,"y":420,"w":220,"h":140,"color":"yellow","fill":"tint","text":"Message\\nQueue"},
+  {"_type":"arrow","shapeId":"a3","x1":690,"y1":300,"x2":160,"y2":430,"color":"black","fromId":"lb","toId":"api","text":"routes"},
+  {"_type":"arrow","shapeId":"a4","x1":280,"y1":490,"x2":340,"y2":490,"color":"grey","fromId":"api","toId":"auth"},
+  {"_type":"arrow","shapeId":"a5","x1":520,"y1":490,"x2":580,"y2":490,"color":"grey","fromId":"auth","toId":"queue"},
+  {"_type":"rectangle","shapeId":"db-frame","x":0,"y":680,"w":840,"h":220,"color":"red","fill":"tint","text":"Data layer"},
+  {"_type":"ellipse","shapeId":"db","x":40,"y":730,"w":240,"h":120,"color":"red","fill":"tint","text":"PostgreSQL"},
+  {"_type":"ellipse","shapeId":"cache","x":340,"y":730,"w":180,"h":120,"color":"light-red","fill":"tint","text":"Redis"},
+  {"_type":"rectangle","shapeId":"s3","x":580,"y":730,"w":220,"h":120,"color":"light-green","fill":"tint","text":"S3 Storage"},
+  {"_type":"arrow","shapeId":"a6","x1":160,"y1":550,"x2":160,"y2":730,"color":"black","fromId":"api","toId":"db"},
+  {"_type":"arrow","shapeId":"a7","x1":430,"y1":550,"x2":430,"y2":730,"color":"black","fromId":"auth","toId":"cache"},
+  {"_type":"arrow","shapeId":"a8","x1":690,"y1":560,"x2":690,"y2":730,"color":"black","fromId":"queue","toId":"s3"}
 ]
 \`\`\`
 
