@@ -1,5 +1,5 @@
 import { MigrationSequence, Store } from '@tldraw/store'
-import { TLShape, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
+import { TLShape, TLStore, TLStoreSnapshot, TLThemes } from '@tldraw/tlschema'
 import { annotateError, Required } from '@tldraw/utils'
 import classNames from 'classnames'
 import React, {
@@ -219,6 +219,11 @@ export interface TldrawEditorBaseProps {
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
+
+	/**
+	 * Named color themes for the editor.
+	 */
+	themes?: TLThemes
 }
 
 /**
@@ -424,6 +429,7 @@ function TldrawEditorWithReadyStore({
 	licenseKey,
 	getShapeVisibility,
 	assetUrls,
+	themes,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -451,6 +457,7 @@ function TldrawEditorWithReadyStore({
 		// for these, it's because we keep them up to date in a separate effect:
 		cameraOptions,
 		deepLinks,
+		themes,
 	})
 
 	useLayoutEffect(() => {
@@ -460,12 +467,13 @@ function TldrawEditorWithReadyStore({
 			initialState,
 			cameraOptions,
 			deepLinks,
+			themes,
 		}
-	}, [autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks])
+	}, [autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks, themes])
 
 	useLayoutEffect(
 		() => {
-			const { autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks } =
+			const { autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks, themes } =
 				editorOptionsRef.current
 			const editor = new Editor({
 				store,
@@ -483,6 +491,7 @@ function TldrawEditorWithReadyStore({
 				licenseKey,
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
+				themes,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -535,6 +544,13 @@ function TldrawEditorWithReadyStore({
 			editor.setCameraOptions({ ...cameraOptions, ...options?.camera })
 		}
 	}, [editor, cameraOptions, options?.camera])
+
+	// keep the editor up to date with the latest themes
+	useLayoutEffect(() => {
+		if (editor && themes) {
+			editor.updateThemes(themes)
+		}
+	}, [editor, themes])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(

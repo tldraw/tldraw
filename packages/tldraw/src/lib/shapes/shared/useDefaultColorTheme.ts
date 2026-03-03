@@ -1,6 +1,10 @@
-import { getDefaultColorTheme, useIsDarkMode } from '@tldraw/editor'
+import type { TLThemeColorPalette } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 
-/** @public */
-export function useDefaultColorTheme() {
-	return getDefaultColorTheme({ isDarkMode: useIsDarkMode() })
+/**
+ * @deprecated Use `useEditor().getCurrentTheme()` instead.
+ * @public
+ */
+export function useDefaultColorTheme(): TLThemeColorPalette {
+	return useEditor().getCurrentTheme()
 }

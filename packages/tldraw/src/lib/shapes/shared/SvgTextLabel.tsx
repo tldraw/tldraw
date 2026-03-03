@@ -9,7 +9,6 @@ import {
 import { createTextJsxFromSpans } from './createTextJsxFromSpans'
 import { TEXT_PROPS } from './default-shape-constants'
 import { getLegacyOffsetX } from './legacyProps'
-import { useDefaultColorTheme } from './useDefaultColorTheme'
 
 export function SvgTextLabel({
 	fontSize,
@@ -37,7 +36,7 @@ export function SvgTextLabel({
 	showTextOutline?: boolean
 }) {
 	const editor = useEditor()
-	const theme = useDefaultColorTheme()
+	const theme = editor.getCurrentTheme()
 
 	const opts = {
 		fontSize,

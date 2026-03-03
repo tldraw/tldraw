@@ -1,6 +1,7 @@
 import { Expand } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { StyleProp } from './StyleProp'
+import { TLThemeColorPalette } from './TLTheme'
 
 /**
  * Array of default color names available in tldraw's color palette.
@@ -78,6 +79,8 @@ export interface TLDefaultColorThemeColor {
  * for either light or dark mode. Includes base theme properties and all
  * default colors with their respective color variants.
  *
+ * @deprecated Use {@link @tldraw/tlschema#TLThemeColorPalette} instead.
+ *
  * @example
  * ```ts
  * import { TLDefaultColorTheme } from '@tldraw/tlschema'
@@ -107,6 +110,8 @@ export type TLDefaultColorTheme = Expand<
  * Complete color palette containing both light and dark theme definitions.
  * This object provides the full color system used by tldraw's default themes,
  * including all color variants and theme-specific adjustments.
+ *
+ * @deprecated Use {@link @tldraw/editor#Editor.updateThemes | editor.updateThemes()} instead.
  *
  * @example
  * ```ts
@@ -561,6 +566,8 @@ export const DefaultColorThemePalette: {
 /**
  * Returns the appropriate default color theme based on the dark mode preference.
  *
+ * @deprecated Use {@link @tldraw/editor#Editor.getCurrentTheme | editor.getCurrentTheme()} instead.
+ *
  * @param opts - Configuration options
  *   - isDarkMode - Whether to return the dark theme (true) or light theme (false)
  * @returns The corresponding TLDefaultColorTheme (light or dark)
@@ -732,7 +739,7 @@ export function isDefaultThemeColor(
  * @public
  */
 export function getColorValue(
-	theme: TLDefaultColorTheme,
+	theme: TLThemeColorPalette,
 	color: TLDefaultColorStyle,
 	variant: keyof TLDefaultColorThemeColor
 ): string {

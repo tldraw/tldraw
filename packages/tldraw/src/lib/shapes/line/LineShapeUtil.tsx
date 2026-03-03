@@ -14,7 +14,6 @@ import {
 	ZERO_INDEX_KEY,
 	assert,
 	getColorValue,
-	getDefaultColorTheme,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
@@ -51,8 +50,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override migrations = lineShapeMigrations
 
 	override options: LineShapeUtilOptions = {
-		getDisplayValues(_editor, shape, isDarkMode): LineShapeUtilDisplayValues {
-			const theme = getDefaultColorTheme({ isDarkMode })
+		getDisplayValues(editor, shape): LineShapeUtilDisplayValues {
+			const theme = editor.getCurrentTheme()
 			const { color, size } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),

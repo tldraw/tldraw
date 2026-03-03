@@ -12,7 +12,6 @@ import {
 	Vec,
 	createComputedCache,
 	getColorValue,
-	getDefaultColorTheme,
 	getFontsFromRichText,
 	isEqual,
 	resizeScaled,
@@ -71,8 +70,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	override options: TextShapeOptions = {
 		extraArrowHorizontalPadding: 10,
 		showTextOutline: true,
-		getDisplayValues(_editor, shape, isDarkMode): TextShapeUtilDisplayValues {
-			const theme = getDefaultColorTheme({ isDarkMode })
+		getDisplayValues(editor, shape): TextShapeUtilDisplayValues {
+			const theme = editor.getCurrentTheme()
 			const { color, font, size } = shape.props
 			return {
 				color: getColorValue(theme, color, 'solid'),

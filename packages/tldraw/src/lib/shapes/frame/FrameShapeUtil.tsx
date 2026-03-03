@@ -21,7 +21,6 @@ import {
 	frameShapeMigrations,
 	frameShapeProps,
 	getColorValue,
-	getDefaultColorTheme,
 	lerp,
 	resizeBox,
 	toDomPrecision,
@@ -86,8 +85,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override options: FrameShapeOptions = {
 		showColors: false,
 		resizeChildren: false,
-		getDisplayValues(_editor, shape, isDarkMode): FrameShapeUtilDisplayValues {
-			const theme = getDefaultColorTheme({ isDarkMode })
+		getDisplayValues(editor, shape): FrameShapeUtilDisplayValues {
+			const theme = editor.getCurrentTheme()
 			const { color } = shape.props
 			return {
 				fillColor: getColorValue(theme, 'black', 'frameFill'),

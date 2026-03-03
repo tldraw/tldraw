@@ -12,7 +12,6 @@ import {
 	VecLike,
 	debugFlags,
 	getColorValue,
-	getDefaultColorTheme,
 	highlightShapeMigrations,
 	highlightShapeProps,
 	last,
@@ -59,8 +58,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	override options: HighlightShapeOptions = {
 		maxPointsPerShape: 600,
-		getDisplayValues(_editor, shape, isDarkMode): HighlightShapeUtilDisplayValues {
-			const theme = getDefaultColorTheme({ isDarkMode })
+		getDisplayValues(editor, shape): HighlightShapeUtilDisplayValues {
+			const theme = editor.getCurrentTheme()
 			const { color, size } = shape.props
 			const useP3 = !debugFlags.forceSrgb.get() && tlenvReactive.get().supportsP3ColorSpace
 			const strokeColor = useP3

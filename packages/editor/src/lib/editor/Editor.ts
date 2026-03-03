@@ -50,6 +50,8 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
+	TLThemeColorPalette,
+	TLThemes,
 	TLVideoAsset,
 	createBindingId,
 	createShapeId,
@@ -151,6 +153,7 @@ import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
+import { ThemeManager } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import {
@@ -266,6 +269,10 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+	/**
+	 * Named color themes for the editor.
+	 */
+	themes?: TLThemes
 }
 
 /**
@@ -308,6 +315,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		textOptions: _textOptions,
 		getShapeVisibility,
 		fontAssetUrls,
+		themes,
 	}: TLEditorOptions) {
 		super()
 
@@ -346,6 +354,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())
+
+		this.theme = new ThemeManager(this, themes)
+		this.disposables.add(() => this.theme.dispose())
 
 		this.getContainer = getContainer
 
@@ -943,6 +954,62 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly user: UserPreferencesManager
+
+	/**
+	 * A manager for the editor's color themes.
+	 *
+	 * @public
+	 */
+	readonly theme: ThemeManager
+
+	/**
+	 * Get the map of all registered themes.
+	 *
+	 * @public
+	 */
+	getThemes(): TLThemes {
+		return this.theme.getThemes()
+	}
+
+	/**
+	 * Merge additional themes into the editor's theme map.
+	 *
+	 * @param themes - Partial map of themes to merge.
+	 *
+	 * @public
+	 */
+	updateThemes(themes: Partial<TLThemes>): void {
+		this.theme.updateThemes(themes)
+	}
+
+	/**
+	 * Get the resolved color theme for the current mode (light/dark).
+	 *
+	 * @public
+	 */
+	getCurrentTheme(): TLThemeColorPalette {
+		return this.theme.getCurrentTheme()
+	}
+
+	/**
+	 * Get the active color mode based on the user's dark mode preference.
+	 *
+	 * @public
+	 */
+	getActiveColorMode(): 'light' | 'dark' {
+		return this.theme.getActiveColorMode()
+	}
+
+	/**
+	 * Set the active theme by id.
+	 *
+	 * @param id - The id of the theme to activate.
+	 *
+	 * @public
+	 */
+	setCurrentTheme(id: string): void {
+		this.theme.setCurrentTheme(id)
+	}
 
 	/**
 	 * A helper for measuring text.

@@ -1,8 +1,6 @@
 import {
-	DefaultColorThemePalette,
 	DefaultFontStyle,
 	SvgExportDef,
-	TLDefaultColorTheme,
 	TLDefaultFillStyle,
 	TLShapeUtilCanvasSvgDef,
 	debugFlags,
@@ -15,7 +13,6 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useDefaultColorTheme } from './useDefaultColorTheme'
 
 /** @public */
 export function getFillDefForExport(fill: TLDefaultFillStyle): SvgExportDef {
@@ -32,7 +29,9 @@ export function getFillDefForExport(fill: TLDefaultFillStyle): SvgExportDef {
 function HashPatternForExport() {
 	const getHashPatternZoomName = useGetHashPatternZoomName()
 	const maskId = useUniqueSafeId()
-	const theme = useDefaultColorTheme()
+	const editor = useEditor()
+	const theme = editor.getCurrentTheme()
+	const colorMode = editor.getActiveColorMode()
 	const t = 8 / 12
 	return (
 		<>
@@ -45,7 +44,7 @@ function HashPatternForExport() {
 				</g>
 			</mask>
 			<pattern
-				id={getHashPatternZoomName(1, theme.id)}
+				id={getHashPatternZoomName(1, colorMode)}
 				width="8"
 				height="8"
 				patternUnits="userSpaceOnUse"
@@ -64,7 +63,7 @@ export function getFillDefForCanvas(): TLShapeUtilCanvasSvgDef {
 }
 const TILE_PATTERN_SIZE = 8
 
-const generateImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
+const generateImage = (dpr: number, currentZoom: number, solid: string) => {
 	return new Promise<Blob>((resolve, reject) => {
 		const size = TILE_PATTERN_SIZE * currentZoom * dpr
 
@@ -75,9 +74,7 @@ const generateImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
 		const ctx = canvasEl.getContext('2d')
 		if (!ctx) return
 
-		ctx.fillStyle = darkMode
-			? DefaultColorThemePalette.darkMode.solid
-			: DefaultColorThemePalette.lightMode.solid
+		ctx.fillStyle = solid
 		ctx.fillRect(0, 0, size, size)
 
 		// This essentially generates an inverse of the pattern we're drawing.
@@ -149,7 +146,7 @@ function getPatternLodForZoomLevel(zoom: number) {
 export function useGetHashPatternZoomName() {
 	const id = useSharedSafeId('hash_pattern')
 	return useCallback(
-		(zoom: number, theme: TLDefaultColorTheme['id']) => {
+		(zoom: number, theme: 'light' | 'dark') => {
 			const lod = getPatternLodForZoomLevel(zoom)
 			return suffixSafeId(id, `${theme}_${lod}`)
 		},
@@ -195,14 +192,20 @@ function usePattern() {
 			return
 		}
 
+		const themes = editor.getThemes()
+		const themeId = editor.theme.getCurrentThemeId()
+		const themeObj = themes[themeId] ?? themes['default']
+		const lightSolid = themeObj.color.light.solid
+		const darkSolid = themeObj.color.dark.solid
+
 		const promise = Promise.all(
 			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateImage(dpr, zoom, false).then((blob) => ({
+				generateImage(dpr, zoom, lightSolid).then((blob) => ({
 					zoom,
 					theme: 'light',
 					url: URL.createObjectURL(blob),
 				})),
-				generateImage(dpr, zoom, true).then((blob) => ({
+				generateImage(dpr, zoom, darkSolid).then((blob) => ({
 					zoom,
 					theme: 'dark',
 					url: URL.createObjectURL(blob),
@@ -225,7 +228,7 @@ function usePattern() {
 				}
 			})
 		}
-	}, [dpr, maxZoom])
+	}, [dpr, maxZoom, editor])
 
 	const defs = (
 		<>

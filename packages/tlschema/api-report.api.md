@@ -199,7 +199,7 @@ export const defaultColorNames: readonly ["black", "grey", "light-violet", "viol
 // @public
 export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
 
-// @public
+// @public @deprecated
 export const DefaultColorThemePalette: {
     darkMode: TLDefaultColorTheme;
     lightMode: TLDefaultColorTheme;
@@ -343,9 +343,9 @@ export const geoShapeMigrations: TLPropsMigrations;
 export const geoShapeProps: RecordProps<TLGeoShape>;
 
 // @public
-export function getColorValue(theme: TLDefaultColorTheme, color: TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
+export function getColorValue(theme: TLThemeColorPalette, color: TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
 
-// @public
+// @public @deprecated
 export function getDefaultColorTheme(opts: {
     isDarkMode: boolean;
 }): TLDefaultColorTheme;
@@ -936,7 +936,7 @@ export type TLDefaultBinding = TLArrowBinding;
 // @public
 export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
 
-// @public
+// @public @deprecated
 export type TLDefaultColorTheme = Expand<{
     background: string;
     id: 'dark' | 'light';
@@ -1510,6 +1510,25 @@ export interface TLTextShapeProps {
     // (undocumented)
     w: number;
 }
+
+// @public
+export interface TLTheme {
+    // (undocumented)
+    color: {
+        dark: TLThemeColorPalette;
+        light: TLThemeColorPalette;
+    };
+}
+
+// @public
+export type TLThemeColorPalette = Expand<{
+    background: string;
+    solid: string;
+    text: string;
+} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>>;
+
+// @public
+export type TLThemes = Record<string, TLTheme>;
 
 // @public
 export type TLUnknownBinding = TLBaseBinding<string, object>;

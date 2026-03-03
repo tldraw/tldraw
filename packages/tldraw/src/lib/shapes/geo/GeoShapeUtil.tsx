@@ -2,7 +2,6 @@
 import {
 	BaseBoxShapeUtil,
 	Box,
-	DefaultColorThemePalette,
 	EMPTY_ARRAY,
 	Group2d,
 	HTMLContainer,
@@ -118,10 +117,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	override options: GeoShapeUtilOptions = {
 		showTextOutline: true,
-		getDisplayValues(_editor, shape, isDarkMode): GeoShapeUtilDisplayValues {
+		getDisplayValues(editor, shape): GeoShapeUtilDisplayValues {
 			const { color, size, labelColor, fill, align, verticalAlign, font } = shape.props
 
-			const theme = DefaultColorThemePalette[isDarkMode ? 'darkMode' : 'lightMode']
+			const theme = editor.getCurrentTheme()
 
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),

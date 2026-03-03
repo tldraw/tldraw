@@ -14,7 +14,6 @@ import {
 	drawShapeMigrations,
 	drawShapeProps,
 	getColorValue,
-	getDefaultColorTheme,
 	last,
 	lerp,
 	rng,
@@ -64,8 +63,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override options: DrawShapeOptions = {
 		maxPointsPerShape: 600,
-		getDisplayValues(_editor, shape, isDarkMode): DrawShapeUtilDisplayValues {
-			const theme = getDefaultColorTheme({ isDarkMode })
+		getDisplayValues(editor, shape): DrawShapeUtilDisplayValues {
+			const theme = editor.getCurrentTheme()
 			const { color, fill, size } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),

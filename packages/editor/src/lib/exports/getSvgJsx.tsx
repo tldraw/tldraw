@@ -1,11 +1,5 @@
 import { useAtom, useValue } from '@tldraw/state-react'
-import {
-	TLFrameShape,
-	TLShape,
-	TLShapeId,
-	getColorValue,
-	getDefaultColorTheme,
-} from '@tldraw/tlschema'
+import { TLFrameShape, TLShape, TLShapeId, getColorValue } from '@tldraw/tlschema'
 import { hasOwnProperty, promiseWithResolve, uniqueId } from '@tldraw/utils'
 import {
 	ComponentType,
@@ -200,7 +194,9 @@ function SvgExport({
 	waitUntil(promise: Promise<void>): void
 }) {
 	const masksId = useUniqueSafeId()
-	const theme = getDefaultColorTheme({ isDarkMode })
+	const themeObj =
+		editor.getThemes()[editor.theme.getCurrentThemeId()] ?? editor.getThemes()['default']
+	const theme = isDarkMode ? themeObj.color.dark : themeObj.color.light
 
 	const stateAtom = useAtom<{
 		defsById: Record<

@@ -18,7 +18,6 @@ import {
 	WeakCache,
 	exhaustiveSwitchError,
 	getColorValue,
-	getDefaultColorTheme,
 	getFontsFromRichText,
 	isEqual,
 	lerp,
@@ -106,15 +105,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override options: NoteShapeUtilOptions = {
 		resizeMode: 'none',
-		getDisplayValues(_editor, shape, isDarkMode): NoteShapeUtilDisplayValues {
+		getDisplayValues(editor, shape): NoteShapeUtilDisplayValues {
 			const { color, labelColor, font, size, align, verticalAlign } = shape.props
-			const theme = getDefaultColorTheme({ isDarkMode })
+			const theme = editor.getCurrentTheme()
 
 			return {
 				noteWidth: 200,
 				noteHeight: 200,
 				noteBackgroundColor: getColorValue(theme, color, 'noteFill'),
-				borderColor: isDarkMode ? 'rgb(20, 20, 20)' : 'rgb(144, 144, 144)',
+				borderColor:
+					editor.getActiveColorMode() === 'dark' ? 'rgb(20, 20, 20)' : 'rgb(144, 144, 144)',
 				borderWidth: 2,
 				labelColor:
 					labelColor === 'black'
