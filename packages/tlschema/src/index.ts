@@ -185,7 +185,7 @@ export {
 	shapeIdValidator,
 	tlmetaValidator,
 	type TLBaseShape,
-	type TLShapeTlmeta,
+	type TLShapeTLmeta,
 } from './shapes/TLBaseShape'
 export {
 	bookmarkShapeMigrations,

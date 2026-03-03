@@ -12,7 +12,7 @@ import { TLParentId, TLShapeId } from '../records/TLShape'
  *
  * @public
  */
-export interface TLShapeTlmeta {
+export interface TLShapeTLmeta {
 	createdBy: string | null
 	updatedBy: string | null
 	createdAt: number | null
@@ -20,7 +20,7 @@ export interface TLShapeTlmeta {
 }
 
 /** @public */
-export const defaultTlmeta: TLShapeTlmeta = {
+export const defaultTlmeta: TLShapeTLmeta = {
 	createdBy: null,
 	updatedBy: null,
 	createdAt: null,
@@ -28,7 +28,7 @@ export const defaultTlmeta: TLShapeTlmeta = {
 }
 
 /** @public */
-export const tlmetaValidator: T.ObjectValidator<TLShapeTlmeta> = T.object<TLShapeTlmeta>({
+export const tlmetaValidator: T.ObjectValidator<TLShapeTLmeta> = T.object<TLShapeTLmeta>({
 	createdBy: T.string.nullable(),
 	updatedBy: T.string.nullable(),
 	createdAt: T.number.nullable(),
@@ -105,7 +105,7 @@ export interface TLBaseShape<Type extends string, Props extends object> {
 	opacity: TLOpacityType
 	props: Props
 	meta: JsonObject
-	tlmeta: TLShapeTlmeta
+	tlmeta: TLShapeTLmeta
 }
 
 /**

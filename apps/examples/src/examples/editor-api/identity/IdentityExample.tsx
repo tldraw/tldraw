@@ -4,7 +4,7 @@ import {
 	Tldraw,
 	TldrawUiButton,
 	TLShape,
-	TLShapeTlmeta,
+	TLShapeTLmeta,
 	useEditor,
 	useValue,
 	type TLIdentityProvider,
@@ -131,7 +131,7 @@ function formatTime(ts: number | null) {
 }
 
 function attributionSummary(editor: Editor, shape: TLShape) {
-	const { createdBy, updatedBy, createdAt, updatedAt }: TLShapeTlmeta = shape.tlmeta
+	const { createdBy, updatedBy, createdAt, updatedAt }: TLShapeTLmeta = shape.tlmeta
 
 	const createdByUser = createdBy ? editor.getIdentity().resolveUser(createdBy) : null
 	const updatedByUser = updatedBy ? editor.getIdentity().resolveUser(updatedBy) : null
