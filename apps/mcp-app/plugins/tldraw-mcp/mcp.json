@@ -1,0 +1,8 @@
+{
+	"mcpServers": {
+		"tldraw": {
+			"transport": "http",
+			"url": "https://tldraw-mcp-app.tldraw.workers.dev/mcp"
+		}
+	}
+}

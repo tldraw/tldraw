@@ -9,6 +9,7 @@ export interface ServerDeps {
 	getActiveBindings(): unknown[]
 	getActiveCheckpointId(): string | null
 	setActiveCheckpointId(id: string): void
+	getSessionId(): string
 	loadWidgetHtml(): Promise<string>
 }
 
@@ -19,13 +20,6 @@ export interface RegisterToolsOptions {
 	extraConnectDomains?: string[]
 	/** When set, the canvas resource domain is resolved from the connecting client. */
 	httpDomain?: { openai: string; claude: string }
-	/** Optional handler for uploading images (Workers-only, R2). */
-	uploadImageHandler?(args: {
-		filename: string
-		base64: string
-		contentType: string
-		clerkToken?: string
-	}): Promise<{ imageUrl: string; key: string; contentType: string }>
 	/** Logging function (defaults to console.error). */
 	log?(...args: unknown[]): void
 }

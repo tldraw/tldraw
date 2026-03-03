@@ -7,14 +7,13 @@
  * R2 for image uploads, and the shared registerTools() for tool registration.
  */
 
-import { verifyToken } from '@clerk/backend'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
 import type { TLShape } from 'tldraw'
+import { Logger } from './logger'
 import { registerTools } from './register-tools'
 import type { ServerDeps } from './shared/types'
 import {
-	ALLOWED_IMAGE_TYPES,
 	MAX_CHECKPOINTS,
 	MCP_SERVER_DESCRIPTION,
 	MCP_SERVER_INSTRUCTIONS,
@@ -30,13 +29,12 @@ import { parseTlShapes } from './shared/utils'
 interface Env {
 	MCP_OBJECT: DurableObjectNamespace
 	ASSETS: Fetcher
-	IMAGES: R2Bucket
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
 	WORKER_ORIGIN: string
 	MCP_DOMAIN_OPENAI: string
 	MCP_DOMAIN_CLAUDE: string
-	CLERK_SECRET_KEY?: string
+	MCP_ANALYTICS?: AnalyticsEngineDataset
 }
 
 // --- Widget HTML loader ---
@@ -82,8 +80,12 @@ export class TldrawMCP extends McpAgent<Env> {
 		}
 	) as any
 	activeCheckpointId: string | null = null
+	sessionId: string = ''
+	logger = new Logger('TldrawMCP')
 
 	async init() {
+		this.logger.info('Initializing Durable Object')
+
 		// --- DO SQLite setup ---
 		void this
 			.sql`CREATE TABLE IF NOT EXISTS checkpoints (id TEXT PRIMARY KEY, data TEXT, created_at INTEGER)`
@@ -91,7 +93,27 @@ export class TldrawMCP extends McpAgent<Env> {
 
 		// Restore active checkpoint on reconnect
 		const rows = [...this.sql`SELECT value FROM meta WHERE key = 'activeCheckpointId'`]
-		if (rows.length > 0) this.activeCheckpointId = rows[0].value as string
+		if (rows.length > 0) {
+			this.activeCheckpointId = rows[0].value as string
+			this.logger.info('Restored active checkpoint', { checkpointId: this.activeCheckpointId })
+		}
+
+		// Restore or generate session ID
+		const sessionRows = [...this.sql`SELECT value FROM meta WHERE key = 'sessionId'`]
+		if (sessionRows.length > 0) {
+			this.sessionId = sessionRows[0].value as string
+		} else {
+			this.sessionId = crypto.randomUUID()
+			void this
+				.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('sessionId', ${this.sessionId})`
+
+			// Track new session
+			const env = (this as any).env as Env
+			env.MCP_ANALYTICS?.writeDataPoint({
+				blobs: ['session_start', this.sessionId],
+				doubles: [Date.now()],
+			})
+		}
 
 		// --- Widget HTML (loaded once from Assets binding) ---
 		const widgetHtml = await loadWidgetHtml((this as any).env.ASSETS)
@@ -109,6 +131,7 @@ export class TldrawMCP extends McpAgent<Env> {
 				this.activeCheckpointId = id
 				void this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
 			},
+			getSessionId: () => this.sessionId,
 			loadWidgetHtml: async () => widgetHtml,
 		}
 
@@ -117,62 +140,14 @@ export class TldrawMCP extends McpAgent<Env> {
 		const domainClaude = ((this as any).env as Env).MCP_DOMAIN_CLAUDE || ''
 
 		registerTools(this.server, deps, {
+			log: this.logger.toLogFn(),
 			extraResourceDomains: workerOrigin ? [workerOrigin] : [],
 			extraConnectDomains: workerOrigin ? [workerOrigin] : [],
 			httpDomain:
 				domainOpenai || domainClaude ? { openai: domainOpenai, claude: domainClaude } : undefined,
-			uploadImageHandler: async ({ filename, base64, contentType, clerkToken }) => {
-				const env = (this as any).env as Env
-
-				// Clerk JWT verification
-				if (!clerkToken) {
-					throw new Error('Authentication required to upload images. Please sign in.')
-				}
-				if (!env.CLERK_SECRET_KEY) {
-					throw new Error('Server authentication not configured.')
-				}
-
-				let userId: string
-				try {
-					const payload = await verifyToken(clerkToken, {
-						secretKey: env.CLERK_SECRET_KEY,
-						clockSkewInMs: 10_000,
-					})
-					userId = payload.sub
-				} catch {
-					throw new Error('Invalid or expired authentication token. Please sign in again.')
-				}
-
-				if (!/^user_[a-zA-Z0-9]+$/.test(userId)) {
-					throw new Error('Invalid user ID format.')
-				}
-
-				// Upload to R2 with userId-prefixed key
-				const ext = ALLOWED_IMAGE_TYPES[contentType]
-				if (!ext) {
-					throw new Error(
-						`Unsupported content type: ${contentType}. Allowed: ${Object.keys(ALLOWED_IMAGE_TYPES).join(', ')}`
-					)
-				}
-
-				const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
-				const key = `images/${userId}/${crypto.randomUUID()}.${ext}`
-
-				await env.IMAGES.put(key, bytes, {
-					httpMetadata: { contentType },
-					customMetadata: {
-						originalFilename: filename,
-						uploadedBy: userId,
-						uploadedAt: new Date().toISOString(),
-					},
-				})
-
-				const origin = env.WORKER_ORIGIN || ''
-				const imageUrl = `${origin}/${key}`
-
-				return { imageUrl, key, contentType }
-			},
 		})
+
+		this.logger.info('Initialization complete')
 	}
 
 	// --- Checkpoint helpers ---
@@ -187,6 +162,8 @@ export class TldrawMCP extends McpAgent<Env> {
 		// Evict old checkpoints beyond MAX_CHECKPOINTS (LRU)
 		void this
 			.sql`DELETE FROM checkpoints WHERE id NOT IN (SELECT id FROM checkpoints ORDER BY created_at DESC LIMIT ${MAX_CHECKPOINTS})`
+
+		this.logger.debug('Checkpoint saved', { checkpointId: id, shapes: shapes.length })
 	}
 
 	loadCheckpoint(id: string): { shapes: unknown[]; assets: unknown[]; bindings: unknown[] } | null {
@@ -230,64 +207,52 @@ const sseHandler = (TldrawMCP as any).serveSSE('/sse')
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-		const url = new URL(request.url)
+		try {
+			const url = new URL(request.url)
 
-		// CORS preflight
-		if (request.method === 'OPTIONS') {
-			return new Response(null, { status: 204, headers: CORS_HEADERS })
-		}
-
-		// Health check (no auth)
-		if (url.pathname === '/health') return new Response('OK')
-
-		// R2 image serving (no auth — public, immutable assets)
-		if (url.pathname.startsWith('/images/')) {
-			return handleImageRequest(url, env)
-		}
-
-		// Auth check for MCP endpoints: skip if MCP_AUTH_TOKEN not set (local dev)
-		if (env.MCP_AUTH_TOKEN) {
-			const auth = request.headers.get('Authorization')
-			if (auth !== `Bearer ${env.MCP_AUTH_TOKEN}`) {
-				return corsResponse(new Response('Unauthorized', { status: 401 }))
+			// CORS preflight
+			if (request.method === 'OPTIONS') {
+				return new Response(null, { status: 204, headers: CORS_HEADERS })
 			}
-		}
 
-		// SSE transport (for MCP Inspector and legacy clients)
-		if (url.pathname === '/sse' || url.pathname.startsWith('/sse/')) {
-			return sseHandler.fetch(request, env, ctx)
-		}
-
-		// Streamable HTTP transport (for Claude web, ChatGPT, and modern clients)
-		if (url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) {
-			// Rate limit by MCP session (POST without session ID is the initial handshake)
-			const sessionId = request.headers.get('mcp-session-id')
-			if (!sessionId && request.method !== 'POST') {
-				return corsResponse(new Response('Missing session', { status: 400 }))
+			// Health check (no auth)
+			if (url.pathname === '/health') {
+				return Response.json({ status: 'ok', timestamp: Date.now() })
 			}
-			if (sessionId) {
-				const { success } = await env.RATE_LIMITER.limit({ key: sessionId })
-				if (!success) {
-					return corsResponse(new Response('Rate limited', { status: 429 }))
+
+			// Auth check for MCP endpoints: skip if MCP_AUTH_TOKEN not set (local dev)
+			if (env.MCP_AUTH_TOKEN) {
+				const auth = request.headers.get('Authorization')
+				if (auth !== `Bearer ${env.MCP_AUTH_TOKEN}`) {
+					return corsResponse(new Response('Unauthorized', { status: 401 }))
 				}
 			}
-			return mcpHandler.fetch(request, env, ctx)
+
+			// SSE transport (for MCP Inspector and legacy clients)
+			if (url.pathname === '/sse' || url.pathname.startsWith('/sse/')) {
+				return sseHandler.fetch(request, env, ctx)
+			}
+
+			// Streamable HTTP transport (for Claude web, ChatGPT, and modern clients)
+			if (url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) {
+				// Rate limit by MCP session (POST without session ID is the initial handshake)
+				const sessionId = request.headers.get('mcp-session-id')
+				if (!sessionId && request.method !== 'POST') {
+					return corsResponse(new Response('Missing session', { status: 400 }))
+				}
+				if (sessionId) {
+					const { success } = await env.RATE_LIMITER.limit({ key: sessionId })
+					if (!success) {
+						return corsResponse(new Response('Rate limited', { status: 429 }))
+					}
+				}
+				return mcpHandler.fetch(request, env, ctx)
+			}
+
+			return new Response('Not found', { status: 404 })
+		} catch (err) {
+			console.error(err)
+			return new Response('Internal Server Error', { status: 500 })
 		}
-
-		return new Response('Not found', { status: 404 })
 	},
-}
-
-async function handleImageRequest(url: URL, env: Env): Promise<Response> {
-	const key = url.pathname.slice(1) // "images/{userId}/uuid.png"
-	const object = await env.IMAGES.get(key)
-	if (!object) return new Response('Not found', { status: 404 })
-
-	return new Response(object.body, {
-		headers: {
-			'Content-Type': object.httpMetadata?.contentType ?? 'image/png',
-			'Cache-Control': 'public, max-age=31536000, immutable',
-			'Access-Control-Allow-Origin': '*',
-		},
-	})
 }

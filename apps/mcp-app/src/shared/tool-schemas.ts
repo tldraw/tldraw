@@ -29,13 +29,3 @@ export const deleteShapesInputSchema = z.object({
 })
 
 export type DeleteShapesInput = z.infer<typeof deleteShapesInputSchema>
-
-export const createImageInputSchema = z.object({
-	url: z.string().describe('Public URL of the image to place on the canvas.'),
-	x: z.number().describe('X position of the image on the canvas.'),
-	y: z.number().describe('Y position of the image on the canvas.'),
-	w: z.number().describe('Width of the image on the canvas.'),
-	h: z.number().describe('Height of the image on the canvas.'),
-})
-
-export type CreateImageInput = z.infer<typeof createImageInputSchema>

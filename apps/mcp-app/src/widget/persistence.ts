@@ -11,10 +11,45 @@ export interface CanvasSnapshot {
 	bindings?: TLBindingCreate[]
 }
 
-// --- localStorage persistence ---
+// --- Session-scoped localStorage persistence ---
+
+let currentSessionId: string | null = null
+
+export function setCurrentSessionId(id: string): void {
+	currentSessionId = id
+}
+
+export function getCurrentSessionId(): string | null {
+	return currentSessionId
+}
 
 function localStorageKey(checkpointId: string): string {
-	return `tldraw:${checkpointId}`
+	if (!currentSessionId) return `tldraw:${checkpointId}`
+	return `tldraw:${currentSessionId}:${checkpointId}`
+}
+
+function parseSnapshotData(
+	raw: string
+): { shapes: TLShape[]; assets: TLAsset[]; bindings: TLBindingCreate[] } | null {
+	const parsed = JSON.parse(raw)
+	// Backwards compat: old format was a plain array of shapes
+	if (Array.isArray(parsed)) {
+		const shapes = parsed.filter(
+			(s: unknown): s is TLShape =>
+				isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
+		)
+		return shapes.length > 0 ? { shapes, assets: [], bindings: [] } : null
+	}
+	if (!isPlainObject(parsed)) return null
+	const shapes = (Array.isArray(parsed.shapes) ? parsed.shapes : []).filter(
+		(s: unknown): s is TLShape =>
+			isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
+	)
+	const assets = (Array.isArray(parsed.assets) ? parsed.assets : []).filter(
+		(a: unknown): a is TLAsset => isPlainObject(a) && typeof a.id === 'string'
+	)
+	const bindings = (Array.isArray(parsed.bindings) ? parsed.bindings : []) as TLBindingCreate[]
+	return shapes.length > 0 ? { shapes, assets, bindings } : null
 }
 
 export function loadLocalSnapshot(
@@ -24,25 +59,7 @@ export function loadLocalSnapshot(
 		// eslint-disable-next-line no-restricted-syntax
 		const raw = localStorage.getItem(localStorageKey(checkpointId))
 		if (!raw) return null
-		const parsed = JSON.parse(raw)
-		// Backwards compat: old format was a plain array of shapes
-		if (Array.isArray(parsed)) {
-			const shapes = parsed.filter(
-				(s: unknown): s is TLShape =>
-					isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
-			)
-			return shapes.length > 0 ? { shapes, assets: [], bindings: [] } : null
-		}
-		if (!isPlainObject(parsed)) return null
-		const shapes = (Array.isArray(parsed.shapes) ? parsed.shapes : []).filter(
-			(s: unknown): s is TLShape =>
-				isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
-		)
-		const assets = (Array.isArray(parsed.assets) ? parsed.assets : []).filter(
-			(a: unknown): a is TLAsset => isPlainObject(a) && typeof a.id === 'string'
-		)
-		const bindings = (Array.isArray(parsed.bindings) ? parsed.bindings : []) as TLBindingCreate[]
-		return shapes.length > 0 ? { shapes, assets, bindings } : null
+		return parseSnapshotData(raw)
 	} catch {
 		return null
 	}
@@ -54,15 +71,16 @@ export function saveLocalSnapshot(
 	assets: TLAsset[] = [],
 	bindings: TLBindingCreate[] = []
 ): void {
+	if (!currentSessionId) return
 	try {
 		// eslint-disable-next-line no-restricted-syntax
 		localStorage.setItem(
 			localStorageKey(checkpointId),
 			JSON.stringify({ shapes, assets, bindings })
 		)
-		// Also track this as the latest checkpoint so future widgets can find it
+		// Track this as the latest checkpoint for this session
 		// eslint-disable-next-line no-restricted-syntax
-		localStorage.setItem('tldraw:latest-checkpoint', checkpointId)
+		localStorage.setItem(`tldraw:${currentSessionId}:latest`, checkpointId)
 	} catch {
 		// localStorage may be full or unavailable.
 	}
@@ -73,14 +91,53 @@ export function getLatestCheckpointSnapshot(): {
 	assets: TLAsset[]
 	bindings: TLBindingCreate[]
 } | null {
+	if (!currentSessionId) return null
 	try {
 		// eslint-disable-next-line no-restricted-syntax
-		const latestId = localStorage.getItem('tldraw:latest-checkpoint')
+		const latestId = localStorage.getItem(`tldraw:${currentSessionId}:latest`)
 		if (!latestId) return null
 		return loadLocalSnapshot(latestId)
 	} catch {
 		return null
 	}
+}
+
+// --- Embedded bootstrap ---
+
+declare global {
+	interface Window {
+		__TLDRAW_BOOTSTRAP__?: unknown
+	}
+}
+
+export function getEmbeddedBootstrap(): {
+	sessionId: string
+	checkpointId?: string
+	snapshot?: CanvasSnapshot
+} | null {
+	const data = window.__TLDRAW_BOOTSTRAP__
+	if (!isPlainObject(data)) return null
+	const sessionId = typeof data.sessionId === 'string' ? data.sessionId : null
+	if (!sessionId) return null
+
+	const checkpointId = typeof data.checkpointId === 'string' ? data.checkpointId : undefined
+
+	let snapshot: CanvasSnapshot | undefined
+	if (Array.isArray(data.shapes) && data.shapes.length > 0) {
+		const shapes = data.shapes.filter(
+			(s: unknown): s is TLShape =>
+				isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
+		)
+		const assets = (Array.isArray(data.assets) ? data.assets : []).filter(
+			(a: unknown): a is TLAsset => isPlainObject(a) && typeof a.id === 'string'
+		)
+		const bindings = (Array.isArray(data.bindings) ? data.bindings : []) as TLBindingCreate[]
+		if (shapes.length > 0) {
+			snapshot = { shapes, assets, bindings }
+		}
+	}
+
+	return { sessionId, checkpointId, snapshot }
 }
 
 // --- Tool result parsing ---
@@ -100,6 +157,7 @@ function toAssetRecords(value: unknown): TLAsset[] {
 
 export interface CheckpointResult {
 	checkpointId: string
+	sessionId: string | null
 	shapes: TLShape[]
 	assets: TLAsset[]
 	bindings: TLBindingCreate[]
@@ -126,11 +184,12 @@ export function parseCheckpointFromToolResult(result: unknown): CheckpointResult
 	if (!checkpointId) return null
 	const shapes = toSnapshotShapesFromRecords(sc.tldrawRecords)
 	if (!shapes) return null
-	// Assets come from sc.assets (read_checkpoint) or sc.assetRecords (create_image)
+
 	const assets = toAssetRecords(sc.assets ?? sc.assetRecords)
 	const bindings = toBindingRecords(sc.bindings)
 	return {
 		checkpointId,
+		sessionId: typeof sc.sessionId === 'string' ? sc.sessionId : null,
 		shapes,
 		assets,
 		bindings,

@@ -14,6 +14,7 @@ export function createServer() {
 		{ shapes: TLShape[]; assets: unknown[]; bindings: unknown[] }
 	>()
 	let activeCheckpointId: string | null = null
+	const sessionId = crypto.randomUUID()
 
 	function saveCheckpoint(
 		id: string,
@@ -93,6 +94,7 @@ export function createServer() {
 		setActiveCheckpointId: (id: string) => {
 			activeCheckpointId = id
 		},
+		getSessionId: () => sessionId,
 		loadWidgetHtml: loadCachedCanvasWidgetHtml,
 	}
 

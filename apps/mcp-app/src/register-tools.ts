@@ -6,9 +6,10 @@ import {
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js'
 import type { TLShape } from 'tldraw'
-import { structuredClone, uniqueId } from 'tldraw'
+import { structuredClone } from 'tldraw'
 import { z } from 'zod'
 import {
+	convertFocusedShapesToTldrawRecords,
 	convertFocusedShapeToTldrawRecord,
 	convertTldrawRecordToFocusedShape,
 } from './focused-shape-converters'
@@ -21,17 +22,15 @@ import {
 	parseShapeIdsInput,
 } from './parse-json'
 import {
-	type CreateImageInput,
 	type CreateShapesInput,
 	type DeleteShapesInput,
 	type UpdateShapesInput,
-	createImageInputSchema,
 	createShapesInputSchema,
 	deleteShapesInputSchema,
 	updateShapesInputSchema,
 } from './shared/tool-schemas'
 import type { RegisterToolsOptions, ServerDeps } from './shared/types'
-import { ALLOWED_IMAGE_TYPES, CANVAS_RESOURCE_URI } from './shared/types'
+import { CANVAS_RESOURCE_URI } from './shared/types'
 import {
 	deepMerge,
 	errorResponse,
@@ -104,9 +103,8 @@ export function registerTools(
 				)
 				const newBlankCanvas = parseBooleanFlag(new_blank_canvas, false)
 				const focusedShapes = parseFocusedShapesInput(shapesJson)
-				const results = focusedShapes.map((s: FocusedShape) => convertFocusedShapeToTldrawRecord(s))
-				const newRecords = results.map((r) => r.shape)
-				const newBindings = results.flatMap((r) => r.bindings)
+				const { shapes: newRecords, bindings: newBindings } =
+					convertFocusedShapesToTldrawRecords(focusedShapes)
 
 				const hadActiveCheckpoint = deps.getActiveCheckpointId() !== null
 				const baseShapes = newBlankCanvas ? [] : deps.getActiveShapes()
@@ -142,6 +140,7 @@ export function registerTools(
 					],
 					structuredContent: {
 						checkpointId,
+						sessionId: deps.getSessionId(),
 						action: 'create' as const,
 						newBlankCanvas,
 						hadBaseShapes: baseShapes.length > 0,
@@ -216,6 +215,7 @@ export function registerTools(
 						}) as FocusedShape
 						const result = convertFocusedShapeToTldrawRecord(merged)
 						result.shape.index = existing.index
+						result.shape.parentId = existing.parentId
 						shapesById.set(id, result.shape)
 						newBindings.push(...result.bindings)
 						updated.push(toSimpleShapeId(id))
@@ -261,6 +261,7 @@ export function registerTools(
 					],
 					structuredContent: {
 						checkpointId,
+						sessionId: deps.getSessionId(),
 						action: 'update' as const,
 						updates,
 						tldrawRecords: resultShapes,
@@ -337,6 +338,7 @@ export function registerTools(
 					],
 					structuredContent: {
 						checkpointId,
+						sessionId: deps.getSessionId(),
 						action: 'delete' as const,
 						shapeIds,
 						tldrawRecords: resultShapes,
@@ -348,99 +350,6 @@ export function registerTools(
 					'delete_shapes',
 					err,
 					'Ensure shapeIdsJson is a valid JSON array of shape ID strings, e.g. \'["box1", "arrow1"]\'.'
-				)
-			}
-		}
-	)
-
-	// --- create_image ---
-
-	registerAppTool(
-		server,
-		'create_image',
-		{
-			title: 'Create Image',
-			description:
-				'Places an image on the canvas at a specified position and size. Provide a public image URL.',
-			inputSchema: createImageInputSchema,
-			annotations: {
-				destructiveHint: false,
-				idempotentHint: false,
-				openWorldHint: false,
-			},
-			_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
-		},
-		async ({ url, x, y, w, h }: CreateImageInput): Promise<CallToolResult> => {
-			try {
-				const shapeId = `shape:${uniqueId()}`
-				const assetId = `asset:${uniqueId()}`
-
-				const assetRecord = {
-					id: assetId,
-					typeName: 'asset',
-					type: 'image',
-					props: {
-						w,
-						h,
-						name: url.split('/').pop() ?? 'image',
-						isAnimated: false,
-						mimeType: null,
-						src: url,
-					},
-					meta: {},
-				}
-
-				const imageShape: TLShape = {
-					id: shapeId,
-					type: 'image',
-					x,
-					y,
-					rotation: 0,
-					index: 'a1' as any,
-					parentId: 'page:page' as any,
-					isLocked: false,
-					opacity: 1,
-					props: {
-						w,
-						h,
-						playing: true,
-						url,
-						assetId,
-						crop: null,
-						flipX: false,
-						flipY: false,
-						altText: '',
-					},
-					meta: {},
-					typeName: 'shape',
-				} as TLShape
-
-				const baseShapes = deps.getActiveShapes()
-				const existingAssets = deps.getActiveAssets()
-				const resultShapes = [...baseShapes, imageShape]
-
-				const checkpointId = generateCheckpointId()
-				deps.saveCheckpoint(checkpointId, resultShapes, [...existingAssets, assetRecord])
-				deps.setActiveCheckpointId(checkpointId)
-
-				return {
-					content: [
-						{ type: 'text', text: `Created image shape at (${x}, ${y}) with size ${w}x${h}.` },
-					],
-					structuredContent: {
-						checkpointId,
-						action: 'create' as const,
-						newBlankCanvas: false,
-						hadBaseShapes: baseShapes.length > 0,
-						tldrawRecords: resultShapes,
-						assetRecords: [assetRecord],
-					},
-				}
-			} catch (err) {
-				return errorResponse(
-					'create_image',
-					err,
-					'Provide a publicly accessible image URL and numeric x, y, w, h values for position and size.'
 				)
 			}
 		}
@@ -466,7 +375,13 @@ export function registerTools(
 			if (!checkpoint) {
 				return {
 					content: [{ type: 'text', text: 'Not found.' }],
-					structuredContent: { shapes: [], assets: [], bindings: [], focusedShapes: [] },
+					structuredContent: {
+						sessionId: deps.getSessionId(),
+						shapes: [],
+						assets: [],
+						bindings: [],
+						focusedShapes: [],
+					},
 				}
 			}
 
@@ -514,7 +429,13 @@ export function registerTools(
 
 			return {
 				content: [{ type: 'text', text: `${shapes.length} shape(s), ${assets.length} asset(s).` }],
-				structuredContent: { shapes, assets, bindings, focusedShapes },
+				structuredContent: {
+					sessionId: deps.getSessionId(),
+					shapes,
+					assets,
+					bindings,
+					focusedShapes,
+				},
 			}
 		}
 	)
@@ -570,121 +491,13 @@ export function registerTools(
 					],
 					structuredContent: {
 						checkpointId,
+						sessionId: deps.getSessionId(),
 						shapesCount: shapes.length,
 						assetsCount: assets.length,
 					},
 				}
 			} catch (err) {
 				return errorResponse('save_checkpoint', err)
-			}
-		}
-	)
-
-	// --- upload_image (app-only, conditional) ---
-
-	if (opts?.uploadImageHandler) {
-		const handler = opts.uploadImageHandler
-		server.registerTool(
-			'upload_image',
-			{
-				title: 'Upload Image',
-				description: 'App-only: upload a base64-encoded image to storage.',
-				inputSchema: z.object({
-					filename: z.string(),
-					base64: z.string(),
-					contentType: z.string(),
-					clerkToken: z.string().optional(),
-				}),
-				annotations: {
-					destructiveHint: false,
-					idempotentHint: false,
-					openWorldHint: false,
-				},
-				_meta: { ui: { visibility: ['app'] } },
-			},
-			async ({
-				filename,
-				base64,
-				contentType,
-				clerkToken,
-			}: {
-				filename: string
-				base64: string
-				contentType: string
-				clerkToken?: string
-			}): Promise<CallToolResult> => {
-				try {
-					const ext = ALLOWED_IMAGE_TYPES[contentType]
-					if (!ext) {
-						return errorResponse(
-							'upload_image',
-							new Error(`Unsupported content type: ${contentType}.`),
-							`Allowed types: ${Object.keys(ALLOWED_IMAGE_TYPES).join(', ')}`
-						)
-					}
-
-					const result = await handler({ filename, base64, contentType, clerkToken })
-
-					return {
-						content: [{ type: 'text', text: `Uploaded image: ${result.imageUrl}` }],
-						structuredContent: {
-							imageUrl: result.imageUrl,
-							key: result.key,
-							contentType: result.contentType,
-						},
-					}
-				} catch (err) {
-					return errorResponse(
-						'upload_image',
-						err,
-						'Ensure base64 is a valid base64-encoded image string and contentType is a supported MIME type.'
-					)
-				}
-			}
-		)
-	}
-
-	// --- get_active_checkpoint (app-only) ---
-	// Used by the widget to bootstrap when localStorage is unavailable (e.g. Cursor,
-	// which isolates iframe origins between tool calls).
-
-	server.registerTool(
-		'get_active_checkpoint',
-		{
-			title: 'Get Active Checkpoint',
-			description: 'App-only: returns the current active checkpoint with all shapes.',
-			inputSchema: z.object({}),
-			annotations: {
-				readOnlyHint: true,
-				idempotentHint: true,
-				openWorldHint: false,
-			},
-			_meta: { ui: { visibility: ['app'] } },
-		},
-		async (): Promise<CallToolResult> => {
-			const id = deps.getActiveCheckpointId()
-			if (!id) {
-				return {
-					content: [{ type: 'text', text: 'No active checkpoint.' }],
-					structuredContent: { checkpointId: null, tldrawRecords: [], assets: [], bindings: [] },
-				}
-			}
-			const checkpoint = deps.loadCheckpoint(id)
-			if (!checkpoint) {
-				return {
-					content: [{ type: 'text', text: 'Checkpoint not found.' }],
-					structuredContent: { checkpointId: id, tldrawRecords: [], assets: [], bindings: [] },
-				}
-			}
-			const shapes = parseTlShapes(checkpoint.shapes)
-			return {
-				content: [{ type: 'text', text: `${shapes.length} shape(s).` }],
-				structuredContent: {
-					checkpointId: id,
-					tldrawRecords: shapes,
-					assets: checkpoint.assets,
-					bindings: checkpoint.bindings,
-				},
 			}
 		}
 	)
@@ -701,7 +514,31 @@ export function registerTools(
 			mimeType: RESOURCE_MIME_TYPE,
 		},
 		async (): Promise<ReadResourceResult> => {
-			const html = await deps.loadWidgetHtml()
+			let html = await deps.loadWidgetHtml()
+
+			// Embed bootstrap data (session ID + active checkpoint) so the widget
+			// has shapes synchronously on mount — before any streaming begins.
+			const activeId = deps.getActiveCheckpointId()
+			const sid = deps.getSessionId()
+			const bootstrap: Record<string, unknown> = { sessionId: sid }
+			if (activeId) {
+				const checkpoint = deps.loadCheckpoint(activeId)
+				if (checkpoint) {
+					bootstrap.checkpointId = activeId
+					bootstrap.shapes = parseTlShapes(checkpoint.shapes)
+					bootstrap.assets = checkpoint.assets
+					bootstrap.bindings = checkpoint.bindings
+				}
+			}
+			const toBase64 =
+				typeof Buffer !== 'undefined' ? (s: string) => Buffer.from(s).toString('base64') : btoa
+			const encoded = toBase64(JSON.stringify(bootstrap))
+			const bootstrapScript = `<script>window.__TLDRAW_BOOTSTRAP__=JSON.parse(atob("${encoded}"))</script>`
+			// Replace the LAST </head> — the inlined JS bundle may contain </head> as a string literal
+			const lastIdx = html.lastIndexOf('</head>')
+			if (lastIdx !== -1) {
+				html = html.slice(0, lastIdx) + bootstrapScript + html.slice(lastIdx)
+			}
 
 			// Resolve domain from client identity (only when serving over HTTP with configured domains)
 			let domain: string | undefined
@@ -732,16 +569,10 @@ export function registerTools(
 										'https://cdn.tldraw.com',
 										'https://fonts.googleapis.com',
 										'https://fonts.gstatic.com',
-										'https://equipped-amoeba-75.clerk.accounts.dev',
-										'https://img.clerk.com',
 										...(opts?.extraResourceDomains ?? []),
 										'blob:',
 									],
-									connectDomains: [
-										'https://cdn.tldraw.com',
-										'https://equipped-amoeba-75.clerk.accounts.dev',
-										...(opts?.extraConnectDomains ?? []),
-									],
+									connectDomains: ['https://cdn.tldraw.com', ...(opts?.extraConnectDomains ?? [])],
 								},
 								permissions: { clipboardWrite: {} },
 								...(domain ? { domain } : {}),

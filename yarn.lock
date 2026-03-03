@@ -21952,8 +21952,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "mcp-app@workspace:apps/mcp-app"
   dependencies:
-    "@clerk/backend": "npm:^1.23.7"
-    "@clerk/clerk-react": "npm:^5.53.3"
     "@cloudflare/workers-types": "npm:^4.20250913.0"
     "@modelcontextprotocol/ext-apps": "npm:^1.0.0"
     "@modelcontextprotocol/sdk": "npm:^1.24.0"

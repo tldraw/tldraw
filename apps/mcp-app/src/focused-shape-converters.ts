@@ -394,6 +394,56 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): {
 	}
 }
 
+/**
+ * Batch-convert focused shapes to tldraw records, resolving frame parent–child
+ * relationships so callers don't have to.
+ */
+export function convertFocusedShapesToTldrawRecords(shapes: FocusedShape[]): {
+	shapes: TLShape[]
+	bindings: TLBindingCreate[]
+} {
+	const results = shapes.map((s) => convertFocusedShapeToTldrawRecord(s))
+	const tldrawShapes = results.map((r) => r.shape)
+	const bindings = results.flatMap((r) => r.bindings)
+
+	// Parent children of frames to their frame
+	const frames = shapes.filter((s) => s._type === 'frame')
+	for (const frame of frames) {
+		const frameId = toShapeId(frame.shapeId)
+
+		if (frame.children?.length) {
+			// Explicit children list
+			for (const childId of frame.children) {
+				const child = tldrawShapes.find((r) => r.id === toShapeId(childId))
+				if (child) {
+					;(child as any).parentId = frameId
+				}
+			}
+		} else {
+			// Fallback: parent shapes whose center falls within the frame bounds
+			const frameRecord = tldrawShapes.find((r) => r.id === frameId)
+			if (frameRecord) {
+				const fw = (frameRecord.props as any).w ?? 0
+				const fh = (frameRecord.props as any).h ?? 0
+				for (const record of tldrawShapes) {
+					if (record.id === frameId) continue
+					if ((record as any).parentId !== 'page:page') continue
+					const props = record.props as any
+					const sw = props.w ?? 0
+					const sh = props.h ?? 0
+					const cx = record.x + sw / 2
+					const cy = record.y + sh / 2
+					if (cx >= 0 && cy >= 0 && cx <= fw && cy <= fh) {
+						;(record as any).parentId = frameId
+					}
+				}
+			}
+		}
+	}
+
+	return { shapes: tldrawShapes, bindings }
+}
+
 export function convertTldrawRecordToFocusedShape(record: TLShape): FocusedShape {
 	const simpleId = toSimpleId(record.id)
 
