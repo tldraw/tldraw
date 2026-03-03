@@ -1,0 +1,39 @@
+name = "tldraw-mcp-app"
+main = "src/cloudflare-worker.ts"
+compatibility_date = "2025-03-10"
+compatibility_flags = ["nodejs_compat"]
+
+[alias]
+# The agents package bundles MCP SDK 1.26.0 in agents/node_modules/; our direct dep is 1.27.0.
+"@modelcontextprotocol/sdk/server/mcp.js" = "../../node_modules/agents/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js"
+"@modelcontextprotocol/sdk/types.js" = "../../node_modules/agents/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+run_worker_first = true
+
+[durable_objects]
+bindings = [{ class_name = "TldrawMCP", name = "MCP_OBJECT" }]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TldrawMCP"]
+
+[vars]
+# Set this to the public URL of the worker. Used for constructing absolute image URLs.
+# Override with `--var WORKER_ORIGIN:https://your-tunnel.trycloudflare.com` for cloudflared tunnels.
+WORKER_ORIGIN = "https://tldraw-mcp-app.tldraw.workers.dev"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "tldraw-mcp-images"
+
+#################### Rate limiting ####################
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "2001"
+
+  [ratelimits.simple]
+  limit = 30
+  period = 60
