@@ -7,12 +7,12 @@
 	"metadata": {
 		"description": "Draw and visually collaborate with your agents inside Cursor",
 		"version": "0.1.0",
-		"pluginRoot": "plugins"
+		"pluginRoot": "apps/mcp-app/plugins"
 	},
 	"plugins": [
 		{
 			"name": "tldraw-mcp",
-			"source": "plugins/tldraw-mcp",
+			"source": "tldraw-mcp",
 			"description": "Draw and visually collaborate with your agents inside Cursor"
 		}
 	]

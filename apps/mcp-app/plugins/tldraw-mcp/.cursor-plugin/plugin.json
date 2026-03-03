@@ -1,6 +1,6 @@
 {
 	"name": "tldraw-mcp",
-	"displayName": "tldraw MCP",
+	"displayName": "tldraw",
 	"version": "0.1.0",
 	"description": "Draw and visually collaborate with your agents inside Cursor",
 	"author": {
