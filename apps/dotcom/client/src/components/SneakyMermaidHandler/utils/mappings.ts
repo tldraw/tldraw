@@ -108,16 +108,20 @@ export function parseClassDefFills(
 ): Map<string, TLDefaultColorStyle> {
 	const result = new Map<string, TLDefaultColorStyle>()
 
+	// Mermaid embeds a <style>...</style> block inside the SVG with CSS rules for each shape.
 	const styleMatch = svgString.match(/<style[^>]*>([\s\S]*?)<\/style>/i)
 	if (!styleMatch?.[1]) return result
 	const css = styleMatch[1]
 
+	// classDef rules look like: .myClass > * { fill:#f00 !important }
+	// We capture the class name and the rule body to extract fill colors.
 	const classFills = new Map<string, string>()
 	const ruleRe = /\.([\w-]+)\s*(?:>|[\s])\s*(?:\*|\w+)\s*\{([^}]*)\}/g
 	let rm: RegExpExecArray | null
 	while ((rm = ruleRe.exec(css)) !== null) {
 		const cls = rm[1]!
 		const body = rm[2]!
+		// Only classDef rules use !important for fill, e.g. "fill: #f00 !important"
 		const fillMatch = body.match(/fill:\s*#([0-9a-fA-F]{3,6})\s*!important/)
 		if (fillMatch && !classFills.has(cls)) {
 			classFills.set(cls, fillMatch[1]!)
@@ -126,8 +130,11 @@ export function parseClassDefFills(
 
 	if (classFills.size === 0) return result
 
+	// Escape the prefix for safe use in a regex (e.g. "flowchart-" has a literal hyphen)
 	const escapedPrefix = idPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+	// Match node <g> IDs like id="flowchart-myNode-42" or id="state-MyState-7"
 	const idRe = new RegExp(`\\bid="${escapedPrefix}(.+)-\\d+"`)
+	// Walk every <g ...> opening tag to find nodes with both an id and a class attribute
 	const gTagRe = /<g\b([^>]*)>/g
 	let gm: RegExpExecArray | null
 	while ((gm = gTagRe.exec(svgString)) !== null) {
@@ -135,6 +142,7 @@ export function parseClassDefFills(
 		const idMatch = attrs.match(idRe)
 		if (!idMatch) continue
 		const nodeId = idMatch[1]!
+		// Extract the class attribute value, e.g. class="node default myCustomClass"
 		const classMatch = attrs.match(/\bclass="([^"]*)"/)
 		if (!classMatch) continue
 		for (const cls of classMatch[1]!.split(/\s+/)) {

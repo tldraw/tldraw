@@ -46,6 +46,7 @@ export interface FlatState {
 
 function getEffectiveType(state: StateStmt): string {
 	if (state.type && state.type !== 'default') return state.type
+	// Mermaid names implicit start/end pseudo-states with suffixed IDs like "Session_start0", "root_end1"
 	if (/_start\d*$/.test(state.id)) return 'start'
 	if (/_end\d*$/.test(state.id)) return 'end'
 	return state.type || 'default'
@@ -168,12 +169,15 @@ function createStateShapeAt(
 // ---------------------------------------------------------------------------
 
 function stateNodeIdParser(domId: string): string {
+	// Mermaid gives state node <g> elements IDs like "state-MyState-42"
+	// where "MyState" is the user-defined ID and the trailing number is internal.
 	const m = domId.match(/^state-(.+)-\d+$/)
 	return m ? m[1] : domId
 }
 
-/** State diagram edges use generic ids (edge0, edge1, …). Matching to model edges is by geometry only in createEdgesFromLayout; start/end here are unused. */
 function stateEdgeIdParser(dataId: string): { start: string; end: string } | null {
+	// State diagram edge paths have opaque IDs like "edge0", "edge1" (no start/end info).
+	// We return empty strings; actual start/end matching happens by geometry in createEdgesFromLayout.
 	const m = dataId.match(/^edge(\d+)$/)
 	return m ? { start: '', end: '' } : null
 }

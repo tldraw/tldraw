@@ -22,6 +22,7 @@ export type EdgeIdParser = (dataId: string) => { start: string; end: string } | 
 
 function parseTranslate(attr: string | null): Vec2 {
 	if (!attr) return { x: 0, y: 0 }
+	// SVG transform attributes look like: transform="translate(123.45, 67.8)"
 	const m = attr.match(/translate\(\s*([\d.e+-]+)[,\s]+([\d.e+-]+)\s*\)/)
 	if (!m) return { x: 0, y: 0 }
 	return { x: parseFloat(m[1]), y: parseFloat(m[2]) }

@@ -258,6 +258,7 @@ function getArrowBend(edgeData: { points: { x: number; y: number }[] }) {
 /** Normalize HTML line breaks to newlines and trim; use for any diagram text (labels, notes, etc.). */
 export function sanitizeDiagramText(text: string): string {
 	if (typeof text !== 'string') return ''
+	// Mermaid labels can contain HTML <br> or <br/> tags for line breaks
 	return text.replace(/<br\s*\/?>/gi, '\n').trim()
 }
 

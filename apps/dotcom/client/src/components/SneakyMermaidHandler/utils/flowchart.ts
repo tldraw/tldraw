@@ -25,11 +25,15 @@ import {
 // ---------------------------------------------------------------------------
 
 function flowchartNodeIdParser(domId: string): string {
+	// Mermaid gives flowchart node <g> elements IDs like "flowchart-myNode-42"
+	// where "myNode" is the user-defined ID and the trailing number is internal.
 	const m = domId.match(/^flowchart-(.+)-\d+$/)
 	return m ? m[1] : domId
 }
 
 function flowchartEdgeIdParser(dataId: string): { start: string; end: string } | null {
+	// Mermaid gives flowchart edge paths a data-id like "L_nodeA_nodeB_0"
+	// where nodeA/nodeB are user-defined IDs and the trailing number is the edge index.
 	const m = dataId.match(/^L_(.+)_([^_]+)_\d+$/)
 	return m ? { start: m[1], end: m[2] } : null
 }
