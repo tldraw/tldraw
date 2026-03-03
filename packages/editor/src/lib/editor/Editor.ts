@@ -96,6 +96,7 @@ import {
 	getSnapshot,
 	loadSnapshot,
 } from '../config/TLEditorSnapshot'
+import { TLIdentityProvider } from '../config/TLIdentity'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
@@ -266,6 +267,12 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+	/**
+	 * An identity provider for attribution and user resolution.
+	 * If not provided, falls back to localStorage user preferences
+	 * and the collaborator presence list.
+	 */
+	identity?: TLIdentityProvider
 }
 
 /**
@@ -308,10 +315,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		textOptions: _textOptions,
 		getShapeVisibility,
 		fontAssetUrls,
+		identity,
 	}: TLEditorOptions) {
 		super()
 
 		this._getShapeVisibility = getShapeVisibility
+		this._identity = identity ?? null
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop
@@ -821,6 +830,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
+	private readonly _identity: TLIdentityProvider | null
 
 	@computed
 	private getIsShapeHiddenCache() {
@@ -3940,29 +3950,61 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
 	}
 
-	// Attribution
+	// Identity & Attribution
 
 	/**
-	 * Get the user ID to use for shape attribution. Override this method to
-	 * provide a custom user ID (e.g. from your own auth system).
+	 * The identity provider used for shape attribution and user-name resolution.
+	 *
+	 * If an `identity` option was passed to the editor constructor it is used
+	 * directly. Otherwise a default provider is built from the local
+	 * {@link UserPreferencesManager} and the collaborator presence list.
+	 *
+	 * @public
+	 */
+	get identity(): TLIdentityProvider {
+		if (this._identity) return this._identity
+		return this._defaultIdentity
+	}
+
+	private get _defaultIdentity(): TLIdentityProvider {
+		return {
+			getCurrentUser: () => {
+				const id = this.user.getId()
+				if (!id) return null
+				return { id, name: this.user.getName(), color: this.user.getColor() }
+			},
+			resolveUser: (userId: string) => {
+				const currentId = this.user.getId()
+				if (userId === currentId) {
+					return { id: userId, name: this.user.getName(), color: this.user.getColor() }
+				}
+				const collaborator = this.getCollaborators().find((c) => c.userId === userId)
+				if (collaborator) {
+					return { id: userId, name: collaborator.userName, color: collaborator.color }
+				}
+				return null
+			},
+		}
+	}
+
+	/**
+	 * Get the user ID to use for shape attribution. Delegates to
+	 * {@link Editor.identity}.
 	 *
 	 * @public
 	 */
 	getAttributionUserId(): string | null {
-		return this.user.getId()
+		return this.identity.getCurrentUser()?.id ?? null
 	}
 
 	/**
-	 * Resolve a display name for an attribution user ID. Returns the current
-	 * user's name if it matches, otherwise looks up collaborators. Override
-	 * this method to provide custom user name resolution.
+	 * Resolve a display name for an attribution user ID. Delegates to
+	 * {@link Editor.identity}.
 	 *
 	 * @public
 	 */
 	getAttributionDisplayName(userId: string): string | null {
-		if (userId === this.user.getId()) return this.user.getName()
-		const collaborator = this.getCollaborators().find((c) => c.userId === userId)
-		return collaborator?.userName ?? null
+		return this.identity.resolveUser(userId)?.name ?? null
 	}
 
 	// Following

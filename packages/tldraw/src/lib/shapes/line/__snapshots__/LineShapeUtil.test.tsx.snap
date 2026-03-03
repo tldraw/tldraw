@@ -31,9 +31,9 @@ exports[`Misc > resizes > line shape after resize 1`] = `
   },
   "rotation": 0,
   "tlmeta": {
-    "createdAt": 1772541433679,
+    "createdAt": 1772549840928,
     "createdBy": "id3",
-    "updatedAt": 1772541433679,
+    "updatedAt": 1772549840928,
     "updatedBy": "id3",
   },
   "type": "line",

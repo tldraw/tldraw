@@ -814,7 +814,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls, identity }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1375,6 +1375,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     protected readonly history: HistoryManager<TLRecord>;
     // (undocumented)
     readonly id: string;
+    get identity(): TLIdentityProvider;
     readonly inputs: InputsManager;
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
@@ -3665,6 +3666,7 @@ export interface TLEditorOptions {
     };
     getContainer(): HTMLElement;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
+    identity?: TLIdentityProvider;
     inferDarkMode?: boolean;
     initialState?: string;
     // (undocumented)
@@ -4026,6 +4028,19 @@ export interface TLHistoryMark {
     id: string;
     // (undocumented)
     type: 'stop';
+}
+
+// @public
+export interface TLIdentityProvider {
+    getCurrentUser(): null | TLIdentityUser;
+    resolveUser(userId: string): null | TLIdentityUser;
+}
+
+// @public
+export interface TLIdentityUser {
+    readonly color?: string;
+    readonly id: string;
+    readonly name: string;
 }
 
 // @public (undocumented)

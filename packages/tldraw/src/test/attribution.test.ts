@@ -1,4 +1,10 @@
-import { TLGeoShape, TLNoteShape, createShapeId, toRichText } from '@tldraw/editor'
+import {
+	TLGeoShape,
+	TLIdentityProvider,
+	TLNoteShape,
+	createShapeId,
+	toRichText,
+} from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -136,5 +142,65 @@ describe('note shape textLastEditedBy', () => {
 
 		const note = editor.getShape<TLNoteShape>(ids.note1)!
 		expect(note.props.textLastEditedBy).toBeNull()
+	})
+})
+
+describe('TLIdentityProvider', () => {
+	it('uses custom identity provider for attribution userId', () => {
+		const customIdentity: TLIdentityProvider = {
+			getCurrentUser: () => ({ id: 'auth-user-42', name: 'Alice' }),
+			resolveUser: (userId) => (userId === 'auth-user-42' ? { id: userId, name: 'Alice' } : null),
+		}
+		const customEditor = new TestEditor({ identity: customIdentity })
+
+		customEditor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0 }])
+		const shape = customEditor.getShape<TLGeoShape>(ids.box1)!
+
+		expect(shape.tlmeta.createdBy).toBe('auth-user-42')
+		expect(shape.tlmeta.updatedBy).toBe('auth-user-42')
+		customEditor.dispose()
+	})
+
+	it('uses custom identity provider for display name resolution', () => {
+		const customIdentity: TLIdentityProvider = {
+			getCurrentUser: () => ({ id: 'user-1', name: 'Alice' }),
+			resolveUser: (userId) => {
+				if (userId === 'user-1') return { id: userId, name: 'Alice' }
+				if (userId === 'user-2') return { id: userId, name: 'Bob' }
+				return null
+			},
+		}
+		const customEditor = new TestEditor({ identity: customIdentity })
+
+		expect(customEditor.getAttributionDisplayName('user-1')).toBe('Alice')
+		expect(customEditor.getAttributionDisplayName('user-2')).toBe('Bob')
+		expect(customEditor.getAttributionDisplayName('user-unknown')).toBeNull()
+		customEditor.dispose()
+	})
+
+	it('falls back to default identity when none provided', () => {
+		// Default editor — no custom identity
+		const userId = editor.user.getId()
+		expect(editor.getAttributionUserId()).toBe(userId)
+		expect(editor.getAttributionDisplayName(userId)).toBe(editor.user.getName())
+	})
+
+	it('exposes identity provider on editor', () => {
+		const customIdentity: TLIdentityProvider = {
+			getCurrentUser: () => ({ id: 'test', name: 'Test' }),
+			resolveUser: () => null,
+		}
+		const customEditor = new TestEditor({ identity: customIdentity })
+
+		expect(customEditor.identity).toBe(customIdentity)
+		expect(customEditor.identity.getCurrentUser()).toEqual({ id: 'test', name: 'Test' })
+		customEditor.dispose()
+	})
+
+	it('default identity resolves current user via preferences', () => {
+		const user = editor.identity.getCurrentUser()
+		expect(user).not.toBeNull()
+		expect(user!.id).toBe(editor.user.getId())
+		expect(user!.name).toBe(editor.user.getName())
 	})
 })
