@@ -89,11 +89,7 @@ export function getArrowTerminalInArrowSpace(
 		// If the parent is the bound shape, then it's always treated as precise.
 		const shouldUsePreciseAnchor = binding.props.isPrecise || forceImprecise
 		const normalizedAnchor = shouldUsePreciseAnchor
-			? // Keep exact bindings untouched; only sanitize imprecise/precise anchors to avoid
-				// edge/corner degeneracies when anchors are exactly 0 or 1.
-				binding.props.isExact
-				? binding.props.normalizedAnchor
-				: clampNormalizedAnchor(binding.props.normalizedAnchor)
+			? clampNormalizedAnchor(binding.props.normalizedAnchor)
 			: { x: 0.5, y: 0.5 }
 
 		const shapePoint = Vec.Add(point, Vec.MulV(normalizedAnchor, size))
