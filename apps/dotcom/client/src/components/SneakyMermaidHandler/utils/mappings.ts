@@ -1,3 +1,4 @@
+import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
 import {
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorStyle,
@@ -161,44 +162,63 @@ export function parseClassDefFills(
 	return result
 }
 
-// Sequence diagram line types (from SequenceDB.LINETYPE)
-const SIGNAL_TYPES = new Set([0, 1, 3, 4, 5, 6, 24, 25, 33, 34])
-const LINETYPE_NOTE = 2
+// ---------------------------------------------------------------------------
+// Sequence diagram helpers using Mermaid's SequenceDB.LINETYPE / PLACEMENT.
+// These are runtime values from the db instance, not hardcoded magic numbers.
+// Source type: mermaid/dist/diagrams/sequence/sequenceDb.d.ts
+// ---------------------------------------------------------------------------
 
-// Combined fragment start types → keyword label
-const FRAGMENT_START_TYPES: Record<number, string> = {
-	10: 'loop',
-	12: 'alt',
-	15: 'opt',
-	19: 'par',
-	22: 'rect',
-	27: 'critical',
-	30: 'break',
-	32: 'par',
+export type MermaidLinetype = SequenceDB['LINETYPE']
+export type MermaidPlacement = SequenceDB['PLACEMENT']
+
+export function isSignalMessage(type: number | undefined, LT: MermaidLinetype): boolean {
+	if (type === undefined) return false
+	return (
+		type === LT.SOLID ||
+		type === LT.DOTTED ||
+		type === LT.SOLID_CROSS ||
+		type === LT.DOTTED_CROSS ||
+		type === LT.SOLID_OPEN ||
+		type === LT.DOTTED_OPEN ||
+		type === LT.SOLID_POINT ||
+		type === LT.DOTTED_POINT ||
+		type === LT.BIDIRECTIONAL_SOLID ||
+		type === LT.BIDIRECTIONAL_DOTTED
+	)
 }
-const FRAGMENT_END_TYPES = new Set([11, 14, 16, 21, 23, 29, 31])
 
-// Sequence diagram note placement (from SequenceDB.PLACEMENT)
-export const PLACEMENT_LEFT = 0
-export const PLACEMENT_RIGHT = 1
-export const PLACEMENT_OVER = 2
-
-export function isSignalMessage(type: number | undefined): boolean {
-	return type !== undefined && SIGNAL_TYPES.has(type)
-}
-
-export function isNoteMessage(type: number | undefined): boolean {
-	return type === LINETYPE_NOTE
+export function isNoteMessage(type: number | undefined, LT: MermaidLinetype): boolean {
+	return type === LT.NOTE
 }
 
 /** Returns the fragment keyword (e.g. "loop", "opt") if this message starts a combined fragment, or null. */
-export function getFragmentStartKeyword(type: number | undefined): string | null {
+export function getFragmentStartKeyword(
+	type: number | undefined,
+	LT: MermaidLinetype
+): string | null {
 	if (type === undefined) return null
-	return FRAGMENT_START_TYPES[type] ?? null
+	if (type === LT.LOOP_START) return 'loop'
+	if (type === LT.ALT_START) return 'alt'
+	if (type === LT.OPT_START) return 'opt'
+	if (type === LT.PAR_START) return 'par'
+	if (type === LT.RECT_START) return 'rect'
+	if (type === LT.CRITICAL_START) return 'critical'
+	if (type === LT.BREAK_START) return 'break'
+	if (type === LT.PAR_OVER_START) return 'par'
+	return null
 }
 
-export function isFragmentEnd(type: number | undefined): boolean {
-	return type !== undefined && FRAGMENT_END_TYPES.has(type)
+export function isFragmentEnd(type: number | undefined, LT: MermaidLinetype): boolean {
+	if (type === undefined) return false
+	return (
+		type === LT.LOOP_END ||
+		type === LT.ALT_END ||
+		type === LT.OPT_END ||
+		type === LT.PAR_END ||
+		type === LT.RECT_END ||
+		type === LT.CRITICAL_END ||
+		type === LT.BREAK_END
+	)
 }
 
 export function mapParticipantTypeToGeo(type: string): TLGeoShape['props']['geo'] {
@@ -212,38 +232,42 @@ export function mapParticipantTypeToGeo(type: string): TLGeoShape['props']['geo'
 	}
 }
 
-export function mapLineTypeToArrowProps(type: number): {
+/** Map a Mermaid LINETYPE value to tldraw arrow props. */
+export function mapLineTypeToArrowProps(
+	type: number,
+	LT: MermaidLinetype
+): {
 	dash: TLDefaultDashStyle
 	arrowheadEnd: TLArrowShapeArrowheadStyle
 } {
 	switch (type) {
-		case 0: // SOLID
+		case LT.SOLID:
 			return { dash: 'solid', arrowheadEnd: 'arrow' }
-		case 1: // DOTTED
+		case LT.DOTTED:
 			return { dash: 'dotted', arrowheadEnd: 'arrow' }
-		case 3: // SOLID_CROSS
+		case LT.SOLID_CROSS:
 			return { dash: 'solid', arrowheadEnd: 'bar' }
-		case 4: // DOTTED_CROSS
+		case LT.DOTTED_CROSS:
 			return { dash: 'dotted', arrowheadEnd: 'bar' }
-		case 5: // SOLID_OPEN
+		case LT.SOLID_OPEN:
 			return { dash: 'solid', arrowheadEnd: 'none' }
-		case 6: // DOTTED_OPEN
+		case LT.DOTTED_OPEN:
 			return { dash: 'dotted', arrowheadEnd: 'none' }
-		case 24: // SOLID_POINT
+		case LT.SOLID_POINT:
 			return { dash: 'solid', arrowheadEnd: 'arrow' }
-		case 25: // DOTTED_POINT
+		case LT.DOTTED_POINT:
 			return { dash: 'dotted', arrowheadEnd: 'arrow' }
-		case 33: // BIDIRECTIONAL_SOLID
+		case LT.BIDIRECTIONAL_SOLID:
 			return { dash: 'solid', arrowheadEnd: 'arrow' }
-		case 34: // BIDIRECTIONAL_DOTTED
+		case LT.BIDIRECTIONAL_DOTTED:
 			return { dash: 'dotted', arrowheadEnd: 'arrow' }
 		default:
 			return { dash: 'solid', arrowheadEnd: 'arrow' }
 	}
 }
 
-export function isBidirectional(type: number): boolean {
-	return type === 33 || type === 34
+export function isBidirectional(type: number, LT: MermaidLinetype): boolean {
+	return type === LT.BIDIRECTIONAL_SOLID || type === LT.BIDIRECTIONAL_DOTTED
 }
 
 // ---------------------------------------------------------------------------

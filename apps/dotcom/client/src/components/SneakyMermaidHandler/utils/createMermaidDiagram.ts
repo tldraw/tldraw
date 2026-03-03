@@ -59,7 +59,15 @@ export async function createMermaidDiagram(
 				const actors = db.getActors()
 				const actorKeys = db.getActorKeys()
 				const msgs = db.getMessages()
-				createMermaidSequenceDiagram(editor, parsedSvg, actors, actorKeys, msgs)
+				createMermaidSequenceDiagram(
+					editor,
+					parsedSvg,
+					actors,
+					actorKeys,
+					msgs,
+					db.LINETYPE,
+					db.PLACEMENT
+				)
 				break
 			}
 			case 'state':

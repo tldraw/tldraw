@@ -16,9 +16,8 @@ import {
 	isSignalMessage,
 	mapLineTypeToArrowProps,
 	mapParticipantTypeToGeo,
-	PLACEMENT_LEFT,
-	PLACEMENT_OVER,
-	PLACEMENT_RIGHT,
+	type MermaidLinetype,
+	type MermaidPlacement,
 } from './mappings'
 import { getAccumulatedTranslate, mountSvg } from './svgParsing'
 import { sanitizeDiagramText } from './utils'
@@ -110,7 +109,9 @@ export function createMermaidSequenceDiagram(
 	svgString: string,
 	actors: Map<string, Actor>,
 	actorKeys: string[],
-	messages: Message[]
+	messages: Message[],
+	LT: MermaidLinetype,
+	PL: MermaidPlacement
 ) {
 	const vp = editor.getViewportPageBounds().center
 	const n = actorKeys.length
@@ -288,7 +289,7 @@ export function createMermaidSequenceDiagram(
 	const events: Message[] = []
 
 	for (const msg of messages) {
-		const keyword = getFragmentStartKeyword(msg.type)
+		const keyword = getFragmentStartKeyword(msg.type, LT)
 		if (keyword) {
 			fragmentStack.push({
 				keyword,
@@ -298,7 +299,7 @@ export function createMermaidSequenceDiagram(
 			})
 			continue
 		}
-		if (isFragmentEnd(msg.type)) {
+		if (isFragmentEnd(msg.type, LT)) {
 			const frag = fragmentStack.pop()
 			if (frag) {
 				fragments.push({ ...frag, lastEventIdx: events.length - 1 })
@@ -306,7 +307,8 @@ export function createMermaidSequenceDiagram(
 			continue
 		}
 		const isEvent =
-			(isSignalMessage(msg.type) && msg.from && msg.to) || (isNoteMessage(msg.type) && msg.from)
+			(isSignalMessage(msg.type, LT) && msg.from && msg.to) ||
+			(isNoteMessage(msg.type, LT) && msg.from)
 		if (isEvent) {
 			for (const frag of fragmentStack) {
 				if (msg.from) frag.actorKeys.add(msg.from)
@@ -369,7 +371,7 @@ export function createMermaidSequenceDiagram(
 		const anchorY = (evIdx + 1) / (totalEvents + 1)
 		const eventY = eventYAt(evIdx)
 
-		if (isSignalMessage(msg.type)) {
+		if (isSignalMessage(msg.type, LT)) {
 			const fromKey = msg.from!
 			const toKey = msg.to!
 			const fromLifeline = lifelineShapeIds.get(fromKey)
@@ -380,7 +382,7 @@ export function createMermaidSequenceDiagram(
 			const toIdx = actorKeys.indexOf(toKey)
 			if (fromIdx < 0 || toIdx < 0) continue
 
-			const { dash, arrowheadEnd } = mapLineTypeToArrowProps(msg.type ?? 0)
+			const { dash, arrowheadEnd } = mapLineTypeToArrowProps(msg.type ?? LT.SOLID, LT)
 			const label = typeof msg.message === 'string' ? sanitizeDiagramText(msg.message) : undefined
 			const arrowId = createShapeId()
 			const fromCx = topX[fromIdx] + topW[fromIdx] / 2
@@ -440,7 +442,7 @@ export function createMermaidSequenceDiagram(
 					props: {
 						dash,
 						arrowheadEnd,
-						arrowheadStart: isBidirectional(msg.type ?? 0) ? 'arrow' : 'none',
+						arrowheadStart: isBidirectional(msg.type ?? LT.SOLID, LT) ? 'arrow' : 'none',
 						start: { x: fromCx - Math.min(fromCx, toCx), y: 0 },
 						end: { x: toCx - Math.min(fromCx, toCx), y: 0 },
 						...(label ? { richText: toRichText(label) } : {}),
@@ -471,7 +473,7 @@ export function createMermaidSequenceDiagram(
 					},
 				])
 			}
-		} else if (isNoteMessage(msg.type)) {
+		} else if (isNoteMessage(msg.type, LT)) {
 			const fromKey = msg.from!
 			const toKey = msg.to ?? fromKey
 			const fromIdx = actorKeys.indexOf(fromKey)
@@ -483,13 +485,13 @@ export function createMermaidSequenceDiagram(
 
 			const fromCx = topX[fromIdx] + topW[fromIdx] / 2
 			const toCx = toIdx >= 0 ? topX[toIdx] + topW[toIdx] / 2 : fromCx
-			const isSpanning = placement === PLACEMENT_OVER && fromKey !== toKey && toIdx >= 0
+			const isSpanning = placement === PL.OVER && fromKey !== toKey && toIdx >= 0
 			const noteW = isSpanning ? Math.max(NOTE_W, Math.abs(toCx - fromCx) + NOTE_PAD * 2) : NOTE_W
 
 			let noteX: number
-			if (placement === PLACEMENT_LEFT) {
+			if (placement === PL.LEFTOF) {
 				noteX = fromCx - noteW - NOTE_PAD
-			} else if (placement === PLACEMENT_RIGHT) {
+			} else if (placement === PL.RIGHTOF) {
 				noteX = fromCx + NOTE_PAD
 			} else if (isSpanning) {
 				noteX = (fromCx + toCx) / 2 - noteW / 2
