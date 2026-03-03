@@ -1,0 +1,41 @@
+.attributed-card {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	padding: 12px;
+	background: #fefce8;
+	border: 1px solid #eab30840;
+	border-radius: 8px;
+	font-family: var(--tl-font-sans);
+	pointer-events: all;
+	box-sizing: border-box;
+}
+
+.attributed-card-label {
+	font-size: 15px;
+	font-weight: 600;
+	color: #1c1917;
+	margin-bottom: 8px;
+	flex: 0 0 auto;
+}
+
+.attributed-card-meta {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	font-size: 11px;
+	color: #78716c;
+	margin-top: auto;
+}
+
+.attributed-card-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.attributed-card-user {
+	font-weight: 600;
+	color: #a16207;
+}

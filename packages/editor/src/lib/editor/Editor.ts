@@ -8672,14 +8672,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				updated = applyPartialToRecordWithProps(shape, partial)
 				if (updated === shape) continue
 
-				// Update attribution metadata if not explicitly provided
-				if (!('tlmeta' in (partial as any))) {
-					const now = Date.now()
-					const userId = this.getAttributionUserId()
-					updated = {
-						...updated,
-						tlmeta: { ...updated.tlmeta, updatedBy: userId, updatedAt: now },
-					}
+				// Update attribution metadata
+				const now = Date.now()
+				const userId = this.getAttributionUserId()
+				updated = {
+					...updated,
+					tlmeta: { ...updated.tlmeta, updatedBy: userId, updatedAt: now },
 				}
 
 				//if any shape has an onBeforeUpdate handler, call it and, if the handler returns a
