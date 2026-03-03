@@ -1,6 +1,12 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { assert, deleteFromSessionStorage, getFromSessionStorage, react } from 'tldraw'
+import {
+	assert,
+	deleteFromSessionStorage,
+	getFromSessionStorage,
+	react,
+	setInSessionStorage,
+} from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
@@ -26,8 +32,22 @@ export function Component() {
 			const redirectTo = getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 			if (redirectTo) {
 				clearRedirectOnSignIn()
-				navigate(redirectTo, { replace: true })
-				return
+				// If redirect is /import?url=..., run import here to avoid extra redirect cycle
+				const redirectUrl = redirectTo.startsWith('/')
+					? new URL(redirectTo, window.location.origin)
+					: null
+				const isImportRedirect =
+					redirectUrl?.pathname === '/import' && redirectUrl.searchParams.get('url')
+				if (isImportRedirect) {
+					setInSessionStorage(
+						SESSION_STORAGE_KEYS.PENDING_IMPORT_URL,
+						redirectUrl.searchParams.get('url')!
+					)
+					// Fall through to pending import handling below
+				} else {
+					navigate(redirectTo, { replace: true })
+					return
+				}
 			}
 
 			// Run pending import from URL (set by /import?url=... redirect)
