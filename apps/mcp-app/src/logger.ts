@@ -1,7 +1,7 @@
 /**
  * Structured logger for the tldraw MCP Durable Object.
  *
- * Outputs JSON lines to console.log / console.error so that
+ * Outputs JSON lines to console.warn / console.error so that
  * Cloudflare Workers Observability can capture and query them.
  */
 
@@ -9,7 +9,7 @@ export class Logger {
 	constructor(private prefix: string) {}
 
 	info(message: string, data?: Record<string, unknown>) {
-		console.log(
+		console.warn(
 			JSON.stringify({ level: 'info', prefix: this.prefix, message, ...data, ts: Date.now() })
 		)
 	}
@@ -21,7 +21,7 @@ export class Logger {
 	}
 
 	debug(message: string, data?: Record<string, unknown>) {
-		console.log(
+		console.warn(
 			JSON.stringify({ level: 'debug', prefix: this.prefix, message, ...data, ts: Date.now() })
 		)
 	}
