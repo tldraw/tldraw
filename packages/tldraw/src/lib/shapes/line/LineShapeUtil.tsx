@@ -25,6 +25,7 @@ import {
 	sortByIndex,
 	useIsDarkMode,
 } from '@tldraw/editor'
+import { getDefaultColorTheme } from '@tldraw/tlschema'
 
 import { STROKE_SIZES } from '../arrow/shared'
 import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
@@ -50,8 +51,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override migrations = lineShapeMigrations
 
 	override options: LineShapeUtilOptions = {
-		getDisplayValues(editor, shape): LineShapeUtilDisplayValues {
-			const theme = editor.getCurrentTheme()
+		getDisplayValues(editor, shape, isDarkMode): LineShapeUtilDisplayValues {
+			const theme = getDefaultColorTheme({ isDarkMode })
 			const { color, size } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),

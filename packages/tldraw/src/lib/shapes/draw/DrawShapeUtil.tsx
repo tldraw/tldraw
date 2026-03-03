@@ -21,6 +21,7 @@ import {
 	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
+import { getDefaultColorTheme } from '@tldraw/tlschema'
 
 import { PatternFill } from '../shared/PatternFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
@@ -63,8 +64,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override options: DrawShapeOptions = {
 		maxPointsPerShape: 600,
-		getDisplayValues(editor, shape): DrawShapeUtilDisplayValues {
-			const theme = editor.getCurrentTheme()
+		getDisplayValues(editor, shape, isDarkMode): DrawShapeUtilDisplayValues {
+			const theme = getDefaultColorTheme({ isDarkMode })
 			const { color, fill, size } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),

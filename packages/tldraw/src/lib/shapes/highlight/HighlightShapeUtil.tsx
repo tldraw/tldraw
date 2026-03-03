@@ -21,6 +21,7 @@ import {
 	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
+import { getDefaultColorTheme } from '@tldraw/tlschema'
 
 import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
@@ -58,8 +59,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	override options: HighlightShapeOptions = {
 		maxPointsPerShape: 600,
-		getDisplayValues(editor, shape): HighlightShapeUtilDisplayValues {
-			const theme = editor.getCurrentTheme()
+		getDisplayValues(editor, shape, isDarkMode): HighlightShapeUtilDisplayValues {
+			const theme = getDefaultColorTheme({ isDarkMode })
 			const { color, size } = shape.props
 			const useP3 = !debugFlags.forceSrgb.get() && tlenvReactive.get().supportsP3ColorSpace
 			const strokeColor = useP3

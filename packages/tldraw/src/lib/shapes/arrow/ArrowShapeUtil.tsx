@@ -46,6 +46,7 @@ import {
 	useIsEditing,
 	useSharedSafeId,
 } from '@tldraw/editor'
+import { getDefaultColorTheme } from '@tldraw/tlschema'
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
@@ -128,8 +129,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return editor.inputs.getCtrlKey()
 		},
 		showTextOutline: true,
-		getDisplayValues(editor, shape): ArrowShapeUtilDisplayValues {
-			const theme = editor.getCurrentTheme()
+		getDisplayValues(editor, shape, isDarkMode): ArrowShapeUtilDisplayValues {
+			const theme = getDefaultColorTheme({ isDarkMode })
 			const { color, fill, labelColor, size, font } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),

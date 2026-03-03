@@ -26,6 +26,7 @@ import {
 	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
+import { getDefaultColorTheme } from '@tldraw/tlschema'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
@@ -117,10 +118,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	override options: GeoShapeUtilOptions = {
 		showTextOutline: true,
-		getDisplayValues(editor, shape): GeoShapeUtilDisplayValues {
+		getDisplayValues(editor, shape, isDarkMode): GeoShapeUtilDisplayValues {
 			const { color, size, labelColor, fill, align, verticalAlign, font } = shape.props
 
-			const theme = editor.getCurrentTheme()
+			const theme = getDefaultColorTheme({ isDarkMode })
 
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),

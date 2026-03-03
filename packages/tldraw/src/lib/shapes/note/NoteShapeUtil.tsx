@@ -31,6 +31,7 @@ import {
 	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
+import { getDefaultColorTheme } from '@tldraw/tlschema'
 import { useCallback, useContext } from 'react'
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
@@ -105,16 +106,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override options: NoteShapeUtilOptions = {
 		resizeMode: 'none',
-		getDisplayValues(editor, shape): NoteShapeUtilDisplayValues {
+		getDisplayValues(editor, shape, isDarkMode): NoteShapeUtilDisplayValues {
 			const { color, labelColor, font, size, align, verticalAlign } = shape.props
-			const theme = editor.getCurrentTheme()
+			const theme = getDefaultColorTheme({ isDarkMode })
 
 			return {
 				noteWidth: 200,
 				noteHeight: 200,
 				noteBackgroundColor: getColorValue(theme, color, 'noteFill'),
-				borderColor:
-					editor.getActiveColorMode() === 'dark' ? 'rgb(20, 20, 20)' : 'rgb(144, 144, 144)',
+				borderColor: isDarkMode ? 'rgb(20, 20, 20)' : 'rgb(144, 144, 144)',
 				borderWidth: 2,
 				labelColor:
 					labelColor === 'black'

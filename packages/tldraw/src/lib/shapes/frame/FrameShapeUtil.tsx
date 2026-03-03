@@ -27,6 +27,7 @@ import {
 	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
+import { getDefaultColorTheme } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { fitFrameToContent, getFrameChildrenBounds } from '../../utils/frames/frames'
 import {
@@ -85,8 +86,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override options: FrameShapeOptions = {
 		showColors: false,
 		resizeChildren: false,
-		getDisplayValues(editor, shape): FrameShapeUtilDisplayValues {
-			const theme = editor.getCurrentTheme()
+		getDisplayValues(editor, shape, isDarkMode): FrameShapeUtilDisplayValues {
+			const theme = getDefaultColorTheme({ isDarkMode })
 			const { color } = shape.props
 			return {
 				fillColor: getColorValue(theme, 'black', 'frameFill'),

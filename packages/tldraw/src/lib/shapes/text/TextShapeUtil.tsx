@@ -22,6 +22,7 @@ import {
 	useEditor,
 	useIsDarkMode,
 } from '@tldraw/editor'
+import { getDefaultColorTheme } from '@tldraw/tlschema'
 import { useCallback } from 'react'
 import {
 	renderHtmlFromRichTextForMeasurement,
@@ -70,8 +71,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	override options: TextShapeOptions = {
 		extraArrowHorizontalPadding: 10,
 		showTextOutline: true,
-		getDisplayValues(editor, shape): TextShapeUtilDisplayValues {
-			const theme = editor.getCurrentTheme()
+		getDisplayValues(editor, shape, isDarkMode): TextShapeUtilDisplayValues {
+			const theme = getDefaultColorTheme({ isDarkMode })
 			const { color, font, size } = shape.props
 			return {
 				color: getColorValue(theme, color, 'solid'),
