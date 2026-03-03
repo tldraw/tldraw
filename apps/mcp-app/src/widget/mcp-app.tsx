@@ -1,15 +1,5 @@
-import { ClerkProvider, SignIn, useAuth } from '@clerk/clerk-react'
 import { type App, useApp } from '@modelcontextprotocol/ext-apps/react'
-import React, {
-	Component,
-	createContext,
-	useCallback,
-	useContext,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
 	type TLAsset,
@@ -17,16 +7,18 @@ import {
 	type TLComponents,
 	type TLShape,
 	type TLShapeId,
+	type TLUiOverrides,
 	DefaultToolbar,
+	DefaultToolbarContent,
 	Editor,
 	Tldraw,
 	structuredClone,
 	useEditor,
+	useToasts,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { MCP_SERVER_NAME, MCP_SERVER_VERSION } from '../shared/types'
 import { isPlainObject } from '../shared/utils'
-import { createR2AssetStore } from './asset-store'
 import { log } from './debug'
 import { exportTldr } from './export-tldr'
 import {
@@ -51,58 +43,12 @@ import {
 	toUpdatePreviewShapes,
 } from './streaming'
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY as string
 const LICENSE_KEY = import.meta.env.VITE_TLDRAW_LICENSE_KEY as string
-
-// --- Clerk auth context ---
-
-interface AuthState {
-	isSignedIn: boolean
-	clerkReady: boolean
-	getToken(): Promise<string | null>
-}
-
-const AuthContext = createContext<AuthState>({
-	isSignedIn: false,
-	clerkReady: false,
-	getToken: async () => null,
-})
-
-function ClerkAuthSync({ children }: { children: React.ReactNode }) {
-	const { isSignedIn, getToken: clerkGetToken } = useAuth()
-	const getToken = useCallback(() => clerkGetToken(), [clerkGetToken])
-	return (
-		<AuthContext.Provider value={{ isSignedIn: isSignedIn ?? false, clerkReady: true, getToken }}>
-			{children}
-		</AuthContext.Provider>
-	)
-}
-
-class ClerkBoundary extends Component<{ children: React.ReactNode }, { failed: boolean }> {
-	state = { failed: false }
-	static getDerivedStateFromError() {
-		return { failed: true }
-	}
-	render() {
-		if (this.state.failed) {
-			return <>{this.props.children}</>
-		}
-		return (
-			<ClerkProvider
-				publishableKey={PUBLISHABLE_KEY}
-				routerPush={() => {}}
-				routerReplace={() => {}}
-			>
-				<ClerkAuthSync>{this.props.children}</ClerkAuthSync>
-			</ClerkProvider>
-		)
-	}
-}
 
 const EDITOR_HEIGHT = 600
 const SAVE_DEBOUNCE_MS = 500
 
-const DisplayModeContext = createContext<{
+const DisplayModeContext = React.createContext<{
 	displayMode: 'inline' | 'fullscreen'
 	toggleFullscreen: (() => void) | null
 	canFullscreen: boolean
@@ -146,12 +92,11 @@ function SharePanelContent() {
 
 function DynamicToolbar() {
 	const { displayMode } = useContext(DisplayModeContext)
-	return <DefaultToolbar orientation={displayMode === 'fullscreen' ? 'vertical' : 'horizontal'} />
-}
-
-const tldrawComponents: TLComponents = {
-	SharePanel: SharePanelContent,
-	Toolbar: DynamicToolbar,
+	return (
+		<DefaultToolbar orientation={displayMode === 'fullscreen' ? 'vertical' : 'horizontal'}>
+			<DefaultToolbarContent />
+		</DefaultToolbar>
+	)
 }
 
 function extractImageFiles(data: DataTransfer | null): File[] {
@@ -167,33 +112,107 @@ function extractImageFiles(data: DataTransfer | null): File[] {
 	return [...data.files].filter((f) => f.type.startsWith('image/'))
 }
 
+/** Intercepts image drop/paste and shows a "coming soon" toast. */
+function ImageDropGuard() {
+	const editor = useEditor()
+	const { addToast } = useToasts()
+
+	useEffect(() => {
+		const container = editor.getContainer()
+
+		const showBlockedToast = (type: string) => {
+			addToast({
+				id: `blocked-${type}`,
+				title: 'Coming soon!',
+				description: `${type} are not yet supported in the tldraw MCP app.`,
+				severity: 'info',
+			})
+		}
+
+		const onDrop = (e: DragEvent) => {
+			const imageFiles = extractImageFiles(e.dataTransfer)
+			if (imageFiles.length > 0) {
+				e.preventDefault()
+				e.stopPropagation()
+				showBlockedToast('Images')
+			}
+		}
+
+		const onPaste = (e: ClipboardEvent) => {
+			const imageFiles = extractImageFiles(e.clipboardData)
+			if (imageFiles.length > 0) {
+				e.preventDefault()
+				e.stopPropagation()
+				showBlockedToast('Images')
+			}
+		}
+
+		container.addEventListener('drop', onDrop, { capture: true })
+		document.addEventListener('paste', onPaste, { capture: true })
+
+		// Override external content handlers to block images, embeds, and URLs.
+		// The context menu paste uses navigator.clipboard.read() directly,
+		// bypassing DOM paste events, so we need to intercept at this level too.
+		editor.registerExternalContentHandler('files', async ({ files }) => {
+			const hasImages = files.some((f) => f.type.startsWith('image/'))
+			if (hasImages) {
+				showBlockedToast('Images')
+			}
+		})
+		editor.registerExternalContentHandler('embed', async () => {
+			showBlockedToast('Embeds')
+		})
+		editor.registerExternalContentHandler('url', async () => {
+			showBlockedToast('Links')
+		})
+
+		return () => {
+			container.removeEventListener('drop', onDrop, { capture: true })
+			document.removeEventListener('paste', onPaste, { capture: true })
+		}
+	}, [editor, addToast])
+
+	return null
+}
+
+const COMING_SOON_TOAST = {
+	id: 'feature-coming-soon',
+	title: 'Coming soon',
+	description: 'This feature is coming soon!',
+	severity: 'info' as const,
+}
+
+/** Override actions/tools to block media, embeds, and flatten. */
+const uiOverrides: TLUiOverrides = {
+	actions(_editor, actions, helpers) {
+		const { 'insert-media': _media, 'insert-embed': _embed, ...rest } = actions
+		return {
+			...rest,
+			'flatten-to-image': {
+				...actions['flatten-to-image'],
+				onSelect() {
+					helpers.addToast(COMING_SOON_TOAST)
+				},
+			},
+		}
+	},
+	tools(_editor, tools) {
+		// Remove the asset tool (image/media picker from toolbar)
+		const { asset: _asset, ...rest } = tools
+		return rest
+	},
+}
+
+const tldrawComponents: TLComponents = {
+	SharePanel: SharePanelContent,
+	Toolbar: DynamicToolbar,
+}
+
 function TldrawCanvas({ app }: { app: App }) {
 	const [displayMode, setDisplayMode] = useState<'inline' | 'fullscreen'>('inline')
 	const [containerHeight, setContainerHeight] = useState<number | null>(null)
 	const editorRef = useRef<Editor | null>(null)
 
-	const { isSignedIn, clerkReady, getToken } = useContext(AuthContext)
-	const isSignedInRef = useRef(isSignedIn)
-	const getTokenRef = useRef(getToken)
-	getTokenRef.current = getToken
-	const assetStore = useMemo(() => createR2AssetStore(app, () => getTokenRef.current()), [app])
-	const [showAuthPrompt, setShowAuthPrompt] = useState(false)
-	const pendingImageFilesRef = useRef<File[]>([])
-
-	useEffect(() => {
-		isSignedInRef.current = isSignedIn
-		if (isSignedIn) {
-			setShowAuthPrompt(false)
-			const pendingFiles = pendingImageFilesRef.current
-			if (pendingFiles.length > 0) {
-				pendingImageFilesRef.current = []
-				const editor = editorRef.current
-				if (editor) {
-					editor.putExternalContent({ type: 'files', files: pendingFiles }).catch(() => {})
-				}
-			}
-		}
-	}, [isSignedIn])
 	const pendingSnapshotRef = useRef<CanvasSnapshot | null>(null)
 	const pendingPreviewSnapshotRef = useRef<CanvasSnapshot | null>(null)
 	const previewActiveRef = useRef(false)
@@ -633,10 +652,6 @@ function TldrawCanvas({ app }: { app: App }) {
 			)
 
 			// Keep viewport center stable when the container resizes (fullscreen toggle).
-			// This fires synchronously when tldraw processes the resize, so there's no
-			// visible delay. The camera {x,y,z} doesn't change on resize by default —
-			// content just shifts because the screen bounds changed. We compensate by
-			// nudging the camera by half the bounds delta.
 			editor.sideEffects.registerAfterChangeHandler('instance', (prev, next) => {
 				const pb = prev.screenBounds
 				const nb = next.screenBounds
@@ -651,47 +666,6 @@ function TldrawCanvas({ app }: { app: App }) {
 					z: cam.z,
 				})
 			})
-
-			// Auth-gated image drop/paste handlers
-			const container = editor.getContainer()
-
-			const onDrop = (e: DragEvent) => {
-				const imageFiles = extractImageFiles(e.dataTransfer)
-				if (imageFiles.length > 0 && !isSignedInRef.current) {
-					e.preventDefault()
-					e.stopPropagation()
-					pendingImageFilesRef.current = imageFiles
-					setShowAuthPrompt(true)
-				}
-			}
-
-			const onPaste = (e: ClipboardEvent) => {
-				const imageFiles = extractImageFiles(e.clipboardData)
-				if (imageFiles.length === 0) return
-				if (!isSignedInRef.current) {
-					e.preventDefault()
-					e.stopPropagation()
-					pendingImageFilesRef.current = imageFiles
-					setShowAuthPrompt(true)
-					return
-				}
-				e.preventDefault()
-				e.stopPropagation()
-				const ed = editorRef.current
-				if (ed) {
-					ed.putExternalContent({ type: 'files', files: imageFiles }).catch(() => {})
-				}
-			}
-
-			container.addEventListener('drop', onDrop, { capture: true })
-			document.addEventListener('paste', onPaste, { capture: true })
-
-			const prevRemoveListener = removeStoreListenerRef.current
-			removeStoreListenerRef.current = () => {
-				prevRemoveListener?.()
-				container.removeEventListener('drop', onDrop, { capture: true })
-				document.removeEventListener('paste', onPaste, { capture: true })
-			}
 
 			// Apply any snapshot that arrived before the editor was ready
 			const pendingSnapshot = pendingSnapshotRef.current
@@ -737,59 +711,12 @@ function TldrawCanvas({ app }: { app: App }) {
 			>
 				<Tldraw
 					licenseKey={LICENSE_KEY}
-					assets={assetStore}
 					onMount={handleMount}
 					components={tldrawComponents}
-				/>
-				{showAuthPrompt && (
-					<div
-						style={{
-							position: 'absolute',
-							inset: 0,
-							background: 'rgba(0,0,0,0.45)',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							zIndex: 1000,
-						}}
-						onClick={() => setShowAuthPrompt(false)}
-					>
-						<div onClick={(e) => e.stopPropagation()}>
-							{clerkReady ? (
-								<SignIn withSignUp />
-							) : (
-								<div
-									style={{
-										background: 'white',
-										borderRadius: 8,
-										padding: '24px 28px',
-										textAlign: 'center',
-										maxWidth: 300,
-										boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-									}}
-								>
-									<p style={{ margin: '0 0 16px', fontSize: 14, color: '#111' }}>
-										Sign in is currently unavailable.
-									</p>
-									<button
-										onClick={() => setShowAuthPrompt(false)}
-										style={{
-											padding: '8px 16px',
-											background: 'transparent',
-											color: '#555',
-											border: '1px solid #ddd',
-											borderRadius: 6,
-											cursor: 'pointer',
-											fontSize: 14,
-										}}
-									>
-										Dismiss
-									</button>
-								</div>
-							)}
-						</div>
-					</div>
-				)}
+					overrides={uiOverrides}
+				>
+					<ImageDropGuard />
+				</Tldraw>
 			</div>
 		</DisplayModeContext.Provider>
 	)
@@ -813,8 +740,6 @@ function McpApp() {
 		log('Connected!')
 
 		// Read initial host context without forcing a display mode change.
-		// Calling requestDisplayMode({ mode: 'inline' }) here would force the
-		// host to exit fullscreen if another widget is already fullscreen.
 		const initCtx = app.getHostContext() as Record<string, unknown> | undefined
 		if (initCtx) {
 			log(`Initial host context: ${JSON.stringify(initCtx)}`)
@@ -828,17 +753,15 @@ function McpApp() {
 	const status = isConnected ? 'ready' : 'connecting'
 
 	return (
-		<ClerkBoundary>
-			<div>
-				{error ? (
-					<div style={{ padding: 20, color: 'red' }}>Error: {error.message}</div>
-				) : !isConnected || !app ? (
-					<div style={{ padding: 20, opacity: 0.5 }}>Status: {status}</div>
-				) : (
-					<TldrawCanvas app={app} />
-				)}
-			</div>
-		</ClerkBoundary>
+		<div>
+			{error ? (
+				<div style={{ padding: 20, color: 'red' }}>Error: {error.message}</div>
+			) : !isConnected || !app ? (
+				<div style={{ padding: 20, opacity: 0.5 }}>Status: {status}</div>
+			) : (
+				<TldrawCanvas app={app} />
+			)}
+		</div>
 	)
 }
 

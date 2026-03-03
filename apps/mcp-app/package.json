@@ -16,8 +16,6 @@
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
-		"@clerk/backend": "^1.23.7",
-		"@clerk/clerk-react": "^5.53.3",
 		"@modelcontextprotocol/ext-apps": "^1.0.0",
 		"@modelcontextprotocol/sdk": "^1.24.0",
 		"agents": "^0.5.0",

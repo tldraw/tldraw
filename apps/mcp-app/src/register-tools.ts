@@ -31,7 +31,7 @@ import {
 	updateShapesInputSchema,
 } from './shared/tool-schemas'
 import type { RegisterToolsOptions, ServerDeps } from './shared/types'
-import { ALLOWED_IMAGE_TYPES, CANVAS_RESOURCE_URI } from './shared/types'
+import { CANVAS_RESOURCE_URI } from './shared/types'
 import {
 	deepMerge,
 	errorResponse,
@@ -597,69 +597,50 @@ export function registerTools(
 		}
 	)
 
-	// --- upload_image (app-only, conditional) ---
+	// --- get_active_checkpoint (app-only) ---
+	// Used by the widget to bootstrap when localStorage is unavailable (e.g. Cursor,
+	// which isolates iframe origins between tool calls).
 
-	if (opts?.uploadImageHandler) {
-		const handler = opts.uploadImageHandler
-		server.registerTool(
-			'upload_image',
-			{
-				title: 'Upload Image',
-				description: 'App-only: upload a base64-encoded image to storage.',
-				inputSchema: z.object({
-					filename: z.string(),
-					base64: z.string(),
-					contentType: z.string(),
-					clerkToken: z.string().optional(),
-				}),
-				annotations: {
-					destructiveHint: false,
-					idempotentHint: false,
-					openWorldHint: false,
-				},
-				_meta: { ui: { visibility: ['app'] } },
+	server.registerTool(
+		'get_active_checkpoint',
+		{
+			title: 'Get Active Checkpoint',
+			description: 'App-only: returns the current active checkpoint with all shapes.',
+			inputSchema: z.object({}),
+			annotations: {
+				readOnlyHint: true,
+				idempotentHint: true,
+				openWorldHint: false,
 			},
-			async ({
-				filename,
-				base64,
-				contentType,
-				clerkToken,
-			}: {
-				filename: string
-				base64: string
-				contentType: string
-				clerkToken?: string
-			}): Promise<CallToolResult> => {
-				try {
-					const ext = ALLOWED_IMAGE_TYPES[contentType]
-					if (!ext) {
-						return errorResponse(
-							'upload_image',
-							new Error(`Unsupported content type: ${contentType}.`),
-							`Allowed types: ${Object.keys(ALLOWED_IMAGE_TYPES).join(', ')}`
-						)
-					}
-
-					const result = await handler({ filename, base64, contentType, clerkToken })
-
-					return {
-						content: [{ type: 'text', text: `Uploaded image: ${result.imageUrl}` }],
-						structuredContent: {
-							imageUrl: result.imageUrl,
-							key: result.key,
-							contentType: result.contentType,
-						},
-					}
-				} catch (err) {
-					return errorResponse(
-						'upload_image',
-						err,
-						'Ensure base64 is a valid base64-encoded image string and contentType is a supported MIME type.'
-					)
+			_meta: { ui: { visibility: ['app'] } },
+		},
+		async (): Promise<CallToolResult> => {
+			const id = deps.getActiveCheckpointId()
+			if (!id) {
+				return {
+					content: [{ type: 'text', text: 'No active checkpoint.' }],
+					structuredContent: { checkpointId: null, tldrawRecords: [], assets: [], bindings: [] },
 				}
 			}
-		)
-	}
+			const checkpoint = deps.loadCheckpoint(id)
+			if (!checkpoint) {
+				return {
+					content: [{ type: 'text', text: 'Checkpoint not found.' }],
+					structuredContent: { checkpointId: id, tldrawRecords: [], assets: [], bindings: [] },
+				}
+			}
+			const shapes = parseTlShapes(checkpoint.shapes)
+			return {
+				content: [{ type: 'text', text: `${shapes.length} shape(s).` }],
+				structuredContent: {
+					checkpointId: id,
+					tldrawRecords: shapes,
+					assets: checkpoint.assets,
+					bindings: checkpoint.bindings,
+				},
+			}
+		}
+	)
 
 	// --- canvas resource ---
 
@@ -728,16 +709,10 @@ export function registerTools(
 										'https://cdn.tldraw.com',
 										'https://fonts.googleapis.com',
 										'https://fonts.gstatic.com',
-										'https://equipped-amoeba-75.clerk.accounts.dev',
-										'https://img.clerk.com',
 										...(opts?.extraResourceDomains ?? []),
 										'blob:',
 									],
-									connectDomains: [
-										'https://cdn.tldraw.com',
-										'https://equipped-amoeba-75.clerk.accounts.dev',
-										...(opts?.extraConnectDomains ?? []),
-									],
+									connectDomains: ['https://cdn.tldraw.com', ...(opts?.extraConnectDomains ?? [])],
 								},
 								permissions: { clipboardWrite: {} },
 								...(domain ? { domain } : {}),
