@@ -34,6 +34,7 @@ interface Env {
 	WORKER_ORIGIN: string
 	MCP_DOMAIN_OPENAI: string
 	MCP_DOMAIN_CLAUDE: string
+	MCP_ANALYTICS?: AnalyticsEngineDataset
 }
 
 // --- Widget HTML loader ---
@@ -105,6 +106,13 @@ export class TldrawMCP extends McpAgent<Env> {
 			this.sessionId = crypto.randomUUID()
 			void this
 				.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('sessionId', ${this.sessionId})`
+
+			// Track new session
+			const env = (this as any).env as Env
+			env.MCP_ANALYTICS?.writeDataPoint({
+				blobs: ['session_start', this.sessionId],
+				doubles: [Date.now()],
+			})
 		}
 
 		// --- Widget HTML (loaded once from Assets binding) ---
@@ -199,45 +207,52 @@ const sseHandler = (TldrawMCP as any).serveSSE('/sse')
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-		const url = new URL(request.url)
+		try {
+			const url = new URL(request.url)
 
-		// CORS preflight
-		if (request.method === 'OPTIONS') {
-			return new Response(null, { status: 204, headers: CORS_HEADERS })
-		}
-
-		// Health check (no auth)
-		if (url.pathname === '/health') return new Response('OK')
-
-		// Auth check for MCP endpoints: skip if MCP_AUTH_TOKEN not set (local dev)
-		if (env.MCP_AUTH_TOKEN) {
-			const auth = request.headers.get('Authorization')
-			if (auth !== `Bearer ${env.MCP_AUTH_TOKEN}`) {
-				return corsResponse(new Response('Unauthorized', { status: 401 }))
+			// CORS preflight
+			if (request.method === 'OPTIONS') {
+				return new Response(null, { status: 204, headers: CORS_HEADERS })
 			}
-		}
 
-		// SSE transport (for MCP Inspector and legacy clients)
-		if (url.pathname === '/sse' || url.pathname.startsWith('/sse/')) {
-			return sseHandler.fetch(request, env, ctx)
-		}
-
-		// Streamable HTTP transport (for Claude web, ChatGPT, and modern clients)
-		if (url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) {
-			// Rate limit by MCP session (POST without session ID is the initial handshake)
-			const sessionId = request.headers.get('mcp-session-id')
-			if (!sessionId && request.method !== 'POST') {
-				return corsResponse(new Response('Missing session', { status: 400 }))
+			// Health check (no auth)
+			if (url.pathname === '/health') {
+				return Response.json({ status: 'ok', timestamp: Date.now() })
 			}
-			if (sessionId) {
-				const { success } = await env.RATE_LIMITER.limit({ key: sessionId })
-				if (!success) {
-					return corsResponse(new Response('Rate limited', { status: 429 }))
+
+			// Auth check for MCP endpoints: skip if MCP_AUTH_TOKEN not set (local dev)
+			if (env.MCP_AUTH_TOKEN) {
+				const auth = request.headers.get('Authorization')
+				if (auth !== `Bearer ${env.MCP_AUTH_TOKEN}`) {
+					return corsResponse(new Response('Unauthorized', { status: 401 }))
 				}
 			}
-			return mcpHandler.fetch(request, env, ctx)
-		}
 
-		return new Response('Not found', { status: 404 })
+			// SSE transport (for MCP Inspector and legacy clients)
+			if (url.pathname === '/sse' || url.pathname.startsWith('/sse/')) {
+				return sseHandler.fetch(request, env, ctx)
+			}
+
+			// Streamable HTTP transport (for Claude web, ChatGPT, and modern clients)
+			if (url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) {
+				// Rate limit by MCP session (POST without session ID is the initial handshake)
+				const sessionId = request.headers.get('mcp-session-id')
+				if (!sessionId && request.method !== 'POST') {
+					return corsResponse(new Response('Missing session', { status: 400 }))
+				}
+				if (sessionId) {
+					const { success } = await env.RATE_LIMITER.limit({ key: sessionId })
+					if (!success) {
+						return corsResponse(new Response('Rate limited', { status: 429 }))
+					}
+				}
+				return mcpHandler.fetch(request, env, ctx)
+			}
+
+			return new Response('Not found', { status: 404 })
+		} catch (err) {
+			console.error(err)
+			return new Response('Internal Server Error', { status: 500 })
+		}
 	},
 }
