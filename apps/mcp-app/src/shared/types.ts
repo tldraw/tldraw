@@ -9,6 +9,7 @@ export interface ServerDeps {
 	getActiveBindings(): unknown[]
 	getActiveCheckpointId(): string | null
 	setActiveCheckpointId(id: string): void
+	getSessionId(): string
 	loadWidgetHtml(): Promise<string>
 }
 

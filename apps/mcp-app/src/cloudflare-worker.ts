@@ -82,6 +82,7 @@ export class TldrawMCP extends McpAgent<Env> {
 		}
 	) as any
 	activeCheckpointId: string | null = null
+	sessionId: string = ''
 
 	async init() {
 		// --- DO SQLite setup ---
@@ -92,6 +93,16 @@ export class TldrawMCP extends McpAgent<Env> {
 		// Restore active checkpoint on reconnect
 		const rows = [...this.sql`SELECT value FROM meta WHERE key = 'activeCheckpointId'`]
 		if (rows.length > 0) this.activeCheckpointId = rows[0].value as string
+
+		// Restore or generate session ID
+		const sessionRows = [...this.sql`SELECT value FROM meta WHERE key = 'sessionId'`]
+		if (sessionRows.length > 0) {
+			this.sessionId = sessionRows[0].value as string
+		} else {
+			this.sessionId = crypto.randomUUID()
+			void this
+				.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('sessionId', ${this.sessionId})`
+		}
 
 		// --- Widget HTML (loaded once from Assets binding) ---
 		const widgetHtml = await loadWidgetHtml((this as any).env.ASSETS)
@@ -109,6 +120,7 @@ export class TldrawMCP extends McpAgent<Env> {
 				this.activeCheckpointId = id
 				void this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
 			},
+			getSessionId: () => this.sessionId,
 			loadWidgetHtml: async () => widgetHtml,
 		}
 

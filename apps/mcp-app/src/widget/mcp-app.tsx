@@ -32,12 +32,14 @@ import { exportTldr } from './export-tldr'
 import {
 	type CanvasSnapshot,
 	getEditorBindings,
+	getEmbeddedBootstrap,
 	getLatestCheckpointSnapshot,
 	loadLocalSnapshot,
 	parseCheckpointFromToolResult,
 	pushCanvasContext,
 	saveCheckpointToServer,
 	saveLocalSnapshot,
+	setCurrentSessionId,
 } from './persistence'
 import { applyPreviewToEditor, applySnapshot, zoomToFitRequestShapes } from './snapshot'
 import {
@@ -397,38 +399,53 @@ function TldrawCanvas({ app }: { app: App }) {
 	useEffect(() => {
 		log('TldrawCanvas mounted')
 
-		// Bootstrap from server checkpoint so streaming previews for update/delete
-		// have the existing canvas as their base. This is needed for MCP hosts (e.g.
-		// Cursor) that isolate iframe origins between tool calls.
-		// NOTE: We intentionally do NOT bootstrap from localStorage here — localStorage
-		// is shared across all conversations from the same origin, which causes
-		// cross-chat canvas bleeding.
-		app
-			.callServerTool({ name: 'get_active_checkpoint', arguments: {} })
-			.then((result: unknown) => {
-				const checkpoint = parseCheckpointFromToolResult(result)
-				if (!checkpoint || checkpoint.shapes.length === 0) return
-				// Don't overwrite if a tool result already committed shapes
-				if (committedSnapshotRef.current.shapes.length > 0) return
+		// Sync bootstrap: read session ID + checkpoint data embedded in the HTML
+		// by the resource handler. This avoids async callServerTool on mount which
+		// caused issues on ChatGPT and was too slow for streaming preview.
+		const bootstrap = getEmbeddedBootstrap()
+		if (bootstrap) {
+			setCurrentSessionId(bootstrap.sessionId)
+			log(`Session ID set: ${bootstrap.sessionId}`)
 
-				const snapshot: CanvasSnapshot = {
-					shapes: checkpoint.shapes,
-					assets: checkpoint.assets,
-					bindings: checkpoint.bindings,
+			if (bootstrap.snapshot && bootstrap.snapshot.shapes.length > 0) {
+				// Don't overwrite if a tool result already committed shapes
+				if (committedSnapshotRef.current.shapes.length === 0) {
+					const snapshot: CanvasSnapshot = {
+						shapes: bootstrap.snapshot.shapes,
+						assets: bootstrap.snapshot.assets,
+						bindings: bootstrap.snapshot.bindings,
+					}
+					committedSnapshotRef.current = snapshot
+					if (bootstrap.checkpointId) {
+						checkpointIdRef.current = bootstrap.checkpointId
+					}
+					const editor = editorRef.current
+					if (editor) {
+						applySnapshot(editor, snapshot)
+					} else {
+						pendingSnapshotRef.current = snapshot
+					}
+					log(`Bootstrapped ${snapshot.shapes.length} shape(s) from embedded data`)
 				}
-				committedSnapshotRef.current = snapshot
-				checkpointIdRef.current = checkpoint.checkpointId
-				const editor = editorRef.current
-				if (editor) {
-					applySnapshot(editor, snapshot)
-				} else {
-					pendingSnapshotRef.current = snapshot
+			} else {
+				// No embedded snapshot — try session-scoped localStorage
+				const latestSnapshot = getLatestCheckpointSnapshot()
+				if (
+					latestSnapshot &&
+					latestSnapshot.shapes.length > 0 &&
+					committedSnapshotRef.current.shapes.length === 0
+				) {
+					committedSnapshotRef.current = latestSnapshot
+					const editor = editorRef.current
+					if (editor) {
+						applySnapshot(editor, latestSnapshot)
+					} else {
+						pendingSnapshotRef.current = latestSnapshot
+					}
+					log(`Bootstrapped ${latestSnapshot.shapes.length} shape(s) from session localStorage`)
 				}
-				log(`Bootstrapped ${checkpoint.shapes.length} shape(s) from server`)
-			})
-			.catch(() => {
-				// Server bootstrap failed — widget starts empty.
-			})
+			}
+		}
 
 		app.onhostcontextchanged = (ctx) => {
 			log(`hostcontext: ${JSON.stringify(ctx)}`)
@@ -480,6 +497,7 @@ function TldrawCanvas({ app }: { app: App }) {
 
 			const {
 				checkpointId,
+				sessionId,
 				shapes: resultShapes,
 				assets: resultAssets,
 				bindings: resultBindings,
@@ -488,6 +506,11 @@ function TldrawCanvas({ app }: { app: App }) {
 				newBlankCanvas,
 			} = checkpoint
 			checkpointIdRef.current = checkpointId
+
+			// Keep session ID in sync (e.g. if it wasn't available from bootstrap)
+			if (sessionId) {
+				setCurrentSessionId(sessionId)
+			}
 
 			// Clear preview state
 			previewActiveRef.current = false

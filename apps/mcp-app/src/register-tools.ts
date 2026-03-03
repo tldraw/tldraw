@@ -142,6 +142,7 @@ export function registerTools(
 					],
 					structuredContent: {
 						checkpointId,
+						sessionId: deps.getSessionId(),
 						action: 'create' as const,
 						newBlankCanvas,
 						hadBaseShapes: baseShapes.length > 0,
@@ -261,6 +262,7 @@ export function registerTools(
 					],
 					structuredContent: {
 						checkpointId,
+						sessionId: deps.getSessionId(),
 						action: 'update' as const,
 						updates,
 						tldrawRecords: resultShapes,
@@ -337,6 +339,7 @@ export function registerTools(
 					],
 					structuredContent: {
 						checkpointId,
+						sessionId: deps.getSessionId(),
 						action: 'delete' as const,
 						shapeIds,
 						tldrawRecords: resultShapes,
@@ -429,6 +432,7 @@ export function registerTools(
 					],
 					structuredContent: {
 						checkpointId,
+						sessionId: deps.getSessionId(),
 						action: 'create' as const,
 						newBlankCanvas: false,
 						hadBaseShapes: baseShapes.length > 0,
@@ -466,7 +470,13 @@ export function registerTools(
 			if (!checkpoint) {
 				return {
 					content: [{ type: 'text', text: 'Not found.' }],
-					structuredContent: { shapes: [], assets: [], bindings: [], focusedShapes: [] },
+					structuredContent: {
+						sessionId: deps.getSessionId(),
+						shapes: [],
+						assets: [],
+						bindings: [],
+						focusedShapes: [],
+					},
 				}
 			}
 
@@ -514,7 +524,13 @@ export function registerTools(
 
 			return {
 				content: [{ type: 'text', text: `${shapes.length} shape(s), ${assets.length} asset(s).` }],
-				structuredContent: { shapes, assets, bindings, focusedShapes },
+				structuredContent: {
+					sessionId: deps.getSessionId(),
+					shapes,
+					assets,
+					bindings,
+					focusedShapes,
+				},
 			}
 		}
 	)
@@ -570,6 +586,7 @@ export function registerTools(
 					],
 					structuredContent: {
 						checkpointId,
+						sessionId: deps.getSessionId(),
 						shapesCount: shapes.length,
 						assetsCount: assets.length,
 					},
@@ -644,51 +661,6 @@ export function registerTools(
 		)
 	}
 
-	// --- get_active_checkpoint (app-only) ---
-	// Used by the widget to bootstrap when localStorage is unavailable (e.g. Cursor,
-	// which isolates iframe origins between tool calls).
-
-	server.registerTool(
-		'get_active_checkpoint',
-		{
-			title: 'Get Active Checkpoint',
-			description: 'App-only: returns the current active checkpoint with all shapes.',
-			inputSchema: z.object({}),
-			annotations: {
-				readOnlyHint: true,
-				idempotentHint: true,
-				openWorldHint: false,
-			},
-			_meta: { ui: { visibility: ['app'] } },
-		},
-		async (): Promise<CallToolResult> => {
-			const id = deps.getActiveCheckpointId()
-			if (!id) {
-				return {
-					content: [{ type: 'text', text: 'No active checkpoint.' }],
-					structuredContent: { checkpointId: null, tldrawRecords: [], assets: [], bindings: [] },
-				}
-			}
-			const checkpoint = deps.loadCheckpoint(id)
-			if (!checkpoint) {
-				return {
-					content: [{ type: 'text', text: 'Checkpoint not found.' }],
-					structuredContent: { checkpointId: id, tldrawRecords: [], assets: [], bindings: [] },
-				}
-			}
-			const shapes = parseTlShapes(checkpoint.shapes)
-			return {
-				content: [{ type: 'text', text: `${shapes.length} shape(s).` }],
-				structuredContent: {
-					checkpointId: id,
-					tldrawRecords: shapes,
-					assets: checkpoint.assets,
-					bindings: checkpoint.bindings,
-				},
-			}
-		}
-	)
-
 	// --- canvas resource ---
 
 	registerAppResource(
@@ -701,7 +673,31 @@ export function registerTools(
 			mimeType: RESOURCE_MIME_TYPE,
 		},
 		async (): Promise<ReadResourceResult> => {
-			const html = await deps.loadWidgetHtml()
+			let html = await deps.loadWidgetHtml()
+
+			// Embed bootstrap data (session ID + active checkpoint) so the widget
+			// has shapes synchronously on mount — before any streaming begins.
+			const activeId = deps.getActiveCheckpointId()
+			const sid = deps.getSessionId()
+			const bootstrap: Record<string, unknown> = { sessionId: sid }
+			if (activeId) {
+				const checkpoint = deps.loadCheckpoint(activeId)
+				if (checkpoint) {
+					bootstrap.checkpointId = activeId
+					bootstrap.shapes = parseTlShapes(checkpoint.shapes)
+					bootstrap.assets = checkpoint.assets
+					bootstrap.bindings = checkpoint.bindings
+				}
+			}
+			const toBase64 =
+				typeof Buffer !== 'undefined' ? (s: string) => Buffer.from(s).toString('base64') : btoa
+			const encoded = toBase64(JSON.stringify(bootstrap))
+			const bootstrapScript = `<script>window.__TLDRAW_BOOTSTRAP__=JSON.parse(atob("${encoded}"))</script>`
+			// Replace the LAST </head> — the inlined JS bundle may contain </head> as a string literal
+			const lastIdx = html.lastIndexOf('</head>')
+			if (lastIdx !== -1) {
+				html = html.slice(0, lastIdx) + bootstrapScript + html.slice(lastIdx)
+			}
 
 			// Resolve domain from client identity (only when serving over HTTP with configured domains)
 			let domain: string | undefined
