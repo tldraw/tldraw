@@ -1,4 +1,4 @@
-name = "mcp-app"
+name = "tldraw-mcp-app"
 main = "src/cloudflare-worker.ts"
 compatibility_date = "2025-03-10"
 compatibility_flags = ["nodejs_compat"]
