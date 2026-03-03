@@ -167,14 +167,10 @@ export function createFlowchart(
 
 		let width = w
 		let height = h
-		/*
-		 * Ellipse can come from various shape that we resolve as circle but can be "pill shaped"
-		 * so the idea if to make sure they end up being represented as circle by
-		 * taking the max value between w and h
-		 */
-		if (geo === 'ellipse') {
-			width = Math.max(w, h)
-			height = Math.max(w, h)
+		if (v.type === 'circle' || v.type === 'doublecircle') {
+			const side = Math.max(w, h)
+			width = side
+			height = side
 		}
 
 		editor.createShape<TLGeoShape>({
