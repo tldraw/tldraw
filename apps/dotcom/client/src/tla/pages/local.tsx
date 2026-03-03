@@ -32,22 +32,16 @@ export function Component() {
 			const redirectTo = getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 			if (redirectTo) {
 				clearRedirectOnSignIn()
-				// If redirect is /import?url=..., run import here to avoid extra redirect cycle
 				const redirectUrl = redirectTo.startsWith('/')
 					? new URL(redirectTo, window.location.origin)
 					: null
-				const isImportRedirect =
-					redirectUrl?.pathname === '/import' && redirectUrl.searchParams.get('url')
-				if (isImportRedirect) {
-					setInSessionStorage(
-						SESSION_STORAGE_KEYS.PENDING_IMPORT_URL,
-						redirectUrl.searchParams.get('url')!
-					)
-					// Fall through to pending import handling below
-				} else {
+				const pendingImportUrl =
+					redirectUrl?.pathname === '/import' ? redirectUrl.searchParams.get('url') : null
+				if (!pendingImportUrl) {
 					navigate(redirectTo, { replace: true })
 					return
 				}
+				setInSessionStorage(SESSION_STORAGE_KEYS.PENDING_IMPORT_URL, pendingImportUrl)
 			}
 
 			// Run pending import from URL (set by /import?url=... redirect)

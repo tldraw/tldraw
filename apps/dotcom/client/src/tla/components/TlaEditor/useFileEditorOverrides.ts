@@ -14,15 +14,14 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { useIntl, useMsg } from '../../utils/i18n'
 import { editorMessages as messages } from './editor-messages'
 
-/** Triggers a GET to the app file download endpoint; browser downloads via Content-Disposition. */
+/** Triggers a GET to the app file download endpoint; browser shows download immediately with progress. */
 export function downloadAppFile(fileId: string) {
 	const url = `/api/app/file/${fileId}/download`
 	const a = document.createElement('a')
 	a.href = url
+	// meaningful file name is set by Content-Disposition header
 	a.download = ''
-	document.body.appendChild(a)
 	a.click()
-	document.body.removeChild(a)
 }
 
 export async function downloadFileFromEditor(editor: Editor, name: string) {
@@ -74,13 +73,13 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					id: 'save-file-copy',
 					label: intl.formatMessage(messages.downloadFile),
 					readonlyOk: true,
-					onSelect() {
+					async onSelect() {
 						trackEvent('download-file', { source: '' })
 						if (app && fileSlug) {
 							downloadAppFile(fileSlug)
 						} else {
 							const defaultName = getFileName(editor) + TLDRAW_FILE_EXTENSION
-							downloadFileFromEditor(editor, defaultName)
+							await downloadFileFromEditor(editor, defaultName)
 						}
 					},
 				}
