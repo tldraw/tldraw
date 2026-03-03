@@ -73,7 +73,7 @@ function AttributionPanel() {
 
 	const currentUser = useValue(
 		'current-user',
-		() => editor.identity.getCurrentUser(),
+		() => editor.getIdentity().getCurrentUser(),
 		[editor]
 	)
 
@@ -133,8 +133,8 @@ function formatTime(ts: number | null) {
 function attributionSummary(editor: Editor, shape: TLShape) {
 	const { createdBy, updatedBy, createdAt, updatedAt }: TLShapeTlmeta = shape.tlmeta
 
-	const createdByUser = createdBy ? editor.identity.resolveUser(createdBy) : null
-	const updatedByUser = updatedBy ? editor.identity.resolveUser(updatedBy) : null
+	const createdByUser = createdBy ? editor.getIdentity().resolveUser(createdBy) : null
+	const updatedByUser = updatedBy ? editor.getIdentity().resolveUser(updatedBy) : null
 
 	return {
 		type: shape.type,
@@ -184,9 +184,9 @@ Alice, switching to Bob, then moving the shape — the "Updated by" field will
 change.
 
 [4]
-The panel reads `editor.identity.getCurrentUser()` to show who is active, and
+The panel reads `editor.getIdentity().getCurrentUser()` to show who is active, and
 reads `shape.tlmeta` for the selected shape to display attribution info. We use
-`editor.identity.resolveUser(userId)` to turn the stored user IDs into display
+`editor.getIdentity().resolveUser(userId)` to turn the stored user IDs into display
 names and colors.
 
 [5]

@@ -3961,12 +3961,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get identity(): TLIdentityProvider {
+	getIdentity(): TLIdentityProvider {
 		if (this._identity) return this._identity
-		return this._defaultIdentity
+		return this._getDefaultIdentity()
 	}
 
-	private get _defaultIdentity(): TLIdentityProvider {
+	private _getDefaultIdentity(): TLIdentityProvider {
 		return {
 			getCurrentUser: () => {
 				const id = this.user.getId()
@@ -3989,22 +3989,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Get the user ID to use for shape attribution. Delegates to
-	 * {@link Editor.identity}.
+	 * {@link Editor.getIdentity}.
 	 *
 	 * @public
 	 */
 	getAttributionUserId(): string | null {
-		return this.identity.getCurrentUser()?.id ?? null
+		return this.getIdentity().getCurrentUser()?.id ?? null
 	}
 
 	/**
 	 * Resolve a display name for an attribution user ID. Delegates to
-	 * {@link Editor.identity}.
+	 * {@link Editor.getIdentity}.
 	 *
 	 * @public
 	 */
 	getAttributionDisplayName(userId: string): string | null {
-		return this.identity.resolveUser(userId)?.name ?? null
+		return this.getIdentity().resolveUser(userId)?.name ?? null
 	}
 
 	// Following

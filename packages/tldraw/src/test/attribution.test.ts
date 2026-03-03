@@ -192,13 +192,13 @@ describe('TLIdentityProvider', () => {
 		}
 		const customEditor = new TestEditor({ identity: customIdentity })
 
-		expect(customEditor.identity).toBe(customIdentity)
-		expect(customEditor.identity.getCurrentUser()).toEqual({ id: 'test', name: 'Test' })
+		expect(customEditor.getIdentity()).toBe(customIdentity)
+		expect(customEditor.getIdentity().getCurrentUser()).toEqual({ id: 'test', name: 'Test' })
 		customEditor.dispose()
 	})
 
 	it('default identity resolves current user via preferences', () => {
-		const user = editor.identity.getCurrentUser()
+		const user = editor.getIdentity().getCurrentUser()
 		expect(user).not.toBeNull()
 		expect(user!.id).toBe(editor.user.getId())
 		expect(user!.name).toBe(editor.user.getName())
