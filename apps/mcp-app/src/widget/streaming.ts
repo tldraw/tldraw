@@ -1,4 +1,4 @@
-import type { TLShape } from 'tldraw'
+import type { TLBindingCreate, TLShape } from 'tldraw'
 import { structuredClone } from 'tldraw'
 import {
 	convertFocusedShapeToTldrawRecord,
@@ -85,28 +85,34 @@ export function parseNewBlankCanvasFlag(value: unknown, isPartial: boolean): boo
 	return null
 }
 
-export function toCreatePreviewShapes(value: unknown, isPartial: boolean): TLShape[] {
+export function toCreatePreviewShapes(
+	value: unknown,
+	isPartial: boolean
+): { shapes: TLShape[]; bindings: TLBindingCreate[] } {
 	const candidateItems = parsePreviewArray(value, isPartial)
 	const previewShapes: TLShape[] = []
+	const previewBindings: TLBindingCreate[] = []
 	for (const item of candidateItems) {
 		const parsed = FocusedShapeSchema.safeParse(item)
 		if (!parsed.success) continue
 		try {
-			previewShapes.push(convertFocusedShapeToTldrawRecord(parsed.data))
+			const result = convertFocusedShapeToTldrawRecord(parsed.data)
+			previewShapes.push(result.shape)
+			previewBindings.push(...result.bindings)
 		} catch {
 			// Ignore unsupported preview items.
 		}
 	}
-	return previewShapes
+	return { shapes: previewShapes, bindings: previewBindings }
 }
 
 export function toUpdatePreviewShapes(
 	value: unknown,
 	isPartial: boolean,
 	baseShapes: TLShape[]
-): TLShape[] {
+): { shapes: TLShape[]; bindings: TLBindingCreate[] } {
 	const candidateItems = parsePreviewArray(value, isPartial)
-	if (candidateItems.length <= 0) return []
+	if (candidateItems.length <= 0) return { shapes: [], bindings: [] }
 
 	const baseShapesById = new Map<string, TLShape>()
 	for (const shape of baseShapes) {
@@ -114,6 +120,7 @@ export function toUpdatePreviewShapes(
 	}
 
 	const previewShapes: TLShape[] = []
+	const previewBindings: TLBindingCreate[] = []
 	for (const item of candidateItems) {
 		const parsedUpdate = FocusedShapeUpdateSchema.safeParse(item)
 		if (!parsedUpdate.success) continue
@@ -129,13 +136,15 @@ export function toUpdatePreviewShapes(
 				shapeId: toSimpleShapeId(update.shapeId),
 				_type: update._type ?? existingFocused._type,
 			}) as FocusedShape
-			previewShapes.push(convertFocusedShapeToTldrawRecord(merged))
+			const result = convertFocusedShapeToTldrawRecord(merged)
+			previewShapes.push(result.shape)
+			previewBindings.push(...result.bindings)
 		} catch {
 			// Ignore unsupported update previews.
 		}
 	}
 
-	return previewShapes
+	return { shapes: previewShapes, bindings: previewBindings }
 }
 
 export function toDeletePreviewSnapshot(

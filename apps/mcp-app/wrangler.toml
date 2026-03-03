@@ -35,5 +35,5 @@ name = "RATE_LIMITER"
 namespace_id = "2001"
 
   [ratelimits.simple]
-  limit = 100
+  limit = 30
   period = 60

@@ -6,7 +6,7 @@ import {
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js'
 import type { TLShape } from 'tldraw'
-import { structuredClone } from 'tldraw'
+import { structuredClone, uniqueId } from 'tldraw'
 import { z } from 'zod'
 import {
 	convertFocusedShapeToTldrawRecord,
@@ -57,6 +57,11 @@ export function registerTools(
 	opts?: RegisterToolsOptions
 ): void {
 	const log = opts?.log ?? ((...args: unknown[]) => console.error(...args))
+	const getBindingFromId = (binding: unknown): TLShape['id'] | null => {
+		if (!binding || typeof binding !== 'object') return null
+		const maybeFromId = (binding as { fromId?: unknown }).fromId
+		return typeof maybeFromId === 'string' ? (maybeFromId as TLShape['id']) : null
+	}
 
 	// --- read_me ---
 
@@ -64,9 +69,11 @@ export function registerTools(
 		'read_me',
 		{
 			description:
-				'Get the tldraw shape format reference. Call this FIRST before creating diagrams.',
+				'Get the tldraw shape format reference. Call this FIRST before creating diagrams or drawing.',
 			annotations: {
 				readOnlyHint: true,
+				idempotentHint: true,
+				openWorldHint: false,
 			},
 		},
 		async (): Promise<CallToolResult> => ({
@@ -81,9 +88,13 @@ export function registerTools(
 		'create_shapes',
 		{
 			title: 'Create Shapes',
-			description:
-				'Creates shapes from a JSON string (FocusedShape[]). Optional new_blank_canvas=true starts from a blank canvas.',
+			description: 'Creates shapes, drawings, and diagrams on the tldraw canvas.',
 			inputSchema: createShapesInputSchema,
+			annotations: {
+				destructiveHint: true,
+				idempotentHint: false,
+				openWorldHint: false,
+			},
 			_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
 		},
 		async ({ shapesJson, new_blank_canvas }: CreateShapesInput): Promise<CallToolResult> => {
@@ -93,9 +104,9 @@ export function registerTools(
 				)
 				const newBlankCanvas = parseBooleanFlag(new_blank_canvas, false)
 				const focusedShapes = parseFocusedShapesInput(shapesJson)
-				const newRecords = focusedShapes.map((s: FocusedShape) =>
-					convertFocusedShapeToTldrawRecord(s)
-				)
+				const results = focusedShapes.map((s: FocusedShape) => convertFocusedShapeToTldrawRecord(s))
+				const newRecords = results.map((r) => r.shape)
+				const newBindings = results.flatMap((r) => r.bindings)
 
 				const hadActiveCheckpoint = deps.getActiveCheckpointId() !== null
 				const baseShapes = newBlankCanvas ? [] : deps.getActiveShapes()
@@ -106,9 +117,17 @@ export function registerTools(
 				for (const s of baseShapes) mergedById.set(s.id, structuredClone(s))
 				for (const s of newRecords) mergedById.set(s.id, structuredClone(s))
 				const resultShapes = [...mergedById.values()]
+				const existingAssets = newBlankCanvas ? [] : deps.getActiveAssets()
+				const existingBindings = newBlankCanvas ? [] : deps.getActiveBindings()
+				const replacedShapeIds = new Set(newRecords.map((shape) => shape.id))
+				const preservedBindings = existingBindings.filter((binding) => {
+					const fromId = getBindingFromId(binding)
+					return fromId === null || !replacedShapeIds.has(fromId)
+				})
+				const resultBindings = [...preservedBindings, ...newBindings]
 
 				const checkpointId = generateCheckpointId()
-				deps.saveCheckpoint(checkpointId, resultShapes)
+				deps.saveCheckpoint(checkpointId, resultShapes, existingAssets, resultBindings)
 				deps.setActiveCheckpointId(checkpointId)
 
 				return {
@@ -128,6 +147,7 @@ export function registerTools(
 						hadBaseShapes: baseShapes.length > 0,
 						focusedShapes,
 						tldrawRecords: resultShapes,
+						bindings: resultBindings,
 					},
 				}
 			} catch (err) {
@@ -147,15 +167,23 @@ export function registerTools(
 		'update_shapes',
 		{
 			title: 'Update Shapes',
-			description:
-				'Updates existing shapes from a JSON string (FocusedShapeUpdate[]). Designed for partial-input streaming previews in the canvas app.',
+			description: 'Updates existing shapes, diagrams, and drawings on the tldraw canvas.',
 			inputSchema: updateShapesInputSchema,
+			annotations: {
+				destructiveHint: true,
+				idempotentHint: false,
+				openWorldHint: false,
+			},
 			_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
 		},
 		async ({ updatesJson }: UpdateShapesInput): Promise<CallToolResult> => {
 			try {
+				log(`[tldraw-mcp] update_shapes called: activeCheckpointId=${deps.getActiveCheckpointId()}`)
 				const updates = parseFocusedShapeUpdatesInput(updatesJson)
 				const baseShapes = deps.getActiveShapes()
+				log(
+					`[tldraw-mcp] update_shapes: baseShapes=${baseShapes.length}, updates=${updates.length}`
+				)
 
 				if (baseShapes.length === 0) {
 					return errorResponse(
@@ -169,6 +197,7 @@ export function registerTools(
 				const updated: string[] = []
 				const notFound: string[] = []
 				const failed: string[] = []
+				const newBindings: unknown[] = []
 
 				for (const update of updates) {
 					const id = normalizeShapeId(update.shapeId) as TLShape['id']
@@ -185,9 +214,10 @@ export function registerTools(
 							shapeId: toSimpleShapeId(id),
 							_type: update._type ?? existingFocused._type,
 						}) as FocusedShape
-						const converted = convertFocusedShapeToTldrawRecord(merged)
-						converted.index = existing.index
-						shapesById.set(id, converted)
+						const result = convertFocusedShapeToTldrawRecord(merged)
+						result.shape.index = existing.index
+						shapesById.set(id, result.shape)
+						newBindings.push(...result.bindings)
 						updated.push(toSimpleShapeId(id))
 					} catch {
 						failed.push(toSimpleShapeId(id))
@@ -195,9 +225,19 @@ export function registerTools(
 				}
 
 				const resultShapes = [...shapesById.values()]
+				const existingAssets = deps.getActiveAssets()
+				const existingBindings = deps.getActiveBindings()
+				const replacedShapeIds = new Set(
+					updated.map((shapeId) => normalizeShapeId(shapeId) as TLShape['id'])
+				)
+				const preservedBindings = existingBindings.filter((binding) => {
+					const fromId = getBindingFromId(binding)
+					return fromId === null || !replacedShapeIds.has(fromId)
+				})
+				const resultBindings = [...preservedBindings, ...newBindings]
 
 				const checkpointId = generateCheckpointId()
-				deps.saveCheckpoint(checkpointId, resultShapes)
+				deps.saveCheckpoint(checkpointId, resultShapes, existingAssets, resultBindings)
 				deps.setActiveCheckpointId(checkpointId)
 
 				const lines = [`Updated ${updated.length} of ${updates.length} shape(s).`]
@@ -224,6 +264,7 @@ export function registerTools(
 						action: 'update' as const,
 						updates,
 						tldrawRecords: resultShapes,
+						bindings: resultBindings,
 					},
 				}
 			} catch (err) {
@@ -243,21 +284,35 @@ export function registerTools(
 		'delete_shapes',
 		{
 			title: 'Delete Shapes',
-			description:
-				'Deletes shapes by id from a JSON string (string[]). Designed for partial-input streaming previews in the canvas app.',
+			description: 'Deletes shapes by id from a JSON string (string[]).',
 			inputSchema: deleteShapesInputSchema,
+			annotations: {
+				destructiveHint: true,
+				idempotentHint: false,
+				openWorldHint: false,
+			},
 			_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
 		},
 		async ({ shapeIdsJson }: DeleteShapesInput): Promise<CallToolResult> => {
 			try {
+				log(`[tldraw-mcp] delete_shapes called: activeCheckpointId=${deps.getActiveCheckpointId()}`)
 				const shapeIds = parseShapeIdsInput(shapeIdsJson)
 				const baseShapes = deps.getActiveShapes()
+				log(
+					`[tldraw-mcp] delete_shapes: baseShapes=${baseShapes.length}, shapeIds=${shapeIds.length}`
+				)
 				const idsToDelete = new Set(shapeIds.map((id) => normalizeShapeId(id)))
 				const resultShapes = baseShapes.filter((s) => !idsToDelete.has(s.id))
 				const deletedCount = baseShapes.length - resultShapes.length
+				const existingAssets = deps.getActiveAssets()
+				// Filter out bindings that reference deleted shapes
+				const existingBindings = deps.getActiveBindings()
+				const resultBindings = existingBindings.filter((b: any) => {
+					return !idsToDelete.has(b.fromId) && !idsToDelete.has(b.toId)
+				})
 
 				const checkpointId = generateCheckpointId()
-				deps.saveCheckpoint(checkpointId, resultShapes)
+				deps.saveCheckpoint(checkpointId, resultShapes, existingAssets, resultBindings)
 				deps.setActiveCheckpointId(checkpointId)
 
 				const lines = [`Deleted ${deletedCount} of ${shapeIds.length} shape(s).`]
@@ -285,6 +340,7 @@ export function registerTools(
 						action: 'delete' as const,
 						shapeIds,
 						tldrawRecords: resultShapes,
+						bindings: resultBindings,
 					},
 				}
 			} catch (err) {
@@ -307,12 +363,17 @@ export function registerTools(
 			description:
 				'Places an image on the canvas at a specified position and size. Provide a public image URL.',
 			inputSchema: createImageInputSchema,
+			annotations: {
+				destructiveHint: false,
+				idempotentHint: false,
+				openWorldHint: false,
+			},
 			_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
 		},
 		async ({ url, x, y, w, h }: CreateImageInput): Promise<CallToolResult> => {
 			try {
-				const shapeId = `shape:${crypto.randomUUID().replace(/-/g, '').slice(0, 18)}`
-				const assetId = `asset:${crypto.randomUUID().replace(/-/g, '').slice(0, 18)}`
+				const shapeId = `shape:${uniqueId()}`
+				const assetId = `asset:${uniqueId()}`
 
 				const assetRecord = {
 					id: assetId,
@@ -393,6 +454,11 @@ export function registerTools(
 			title: 'Read Checkpoint',
 			description: 'App-only: read shapes from a checkpoint by ID.',
 			inputSchema: z.object({ checkpointId: z.string().min(1) }),
+			annotations: {
+				readOnlyHint: true,
+				idempotentHint: true,
+				openWorldHint: false,
+			},
 			_meta: { ui: { visibility: ['app'] } },
 		},
 		async ({ checkpointId }: { checkpointId: string }): Promise<CallToolResult> => {
@@ -400,23 +466,55 @@ export function registerTools(
 			if (!checkpoint) {
 				return {
 					content: [{ type: 'text', text: 'Not found.' }],
-					structuredContent: { shapes: [], assets: [] },
+					structuredContent: { shapes: [], assets: [], bindings: [], focusedShapes: [] },
 				}
 			}
+
 			const shapes = parseTlShapes(checkpoint.shapes)
 			const assets = checkpoint.assets
+			const bindings = checkpoint.bindings
+			const arrowConnections = new Map<string, { fromId: string | null; toId: string | null }>()
+			for (const binding of bindings) {
+				if (!binding || typeof binding !== 'object') continue
+				const maybeFromId = (binding as { fromId?: unknown }).fromId
+				const maybeToId = (binding as { toId?: unknown }).toId
+				const terminal = (binding as { props?: { terminal?: unknown } }).props?.terminal
+				if (
+					typeof maybeFromId !== 'string' ||
+					typeof maybeToId !== 'string' ||
+					(terminal !== 'start' && terminal !== 'end')
+				) {
+					continue
+				}
+
+				const simpleArrowId = toSimpleShapeId(maybeFromId as TLShape['id'])
+				const simpleTargetId = toSimpleShapeId(maybeToId as TLShape['id'])
+				const existing = arrowConnections.get(simpleArrowId) ?? { fromId: null, toId: null }
+				if (terminal === 'start') existing.fromId = simpleTargetId
+				if (terminal === 'end') existing.toId = simpleTargetId
+				arrowConnections.set(simpleArrowId, existing)
+			}
 			const focusedShapes = shapes
 				.map((s) => {
 					try {
-						return convertTldrawRecordToFocusedShape(s)
+						const focused = convertTldrawRecordToFocusedShape(s)
+						if (focused._type === 'arrow') {
+							const connected = arrowConnections.get(focused.shapeId)
+							if (connected) {
+								focused.fromId = connected.fromId
+								focused.toId = connected.toId
+							}
+						}
+						return focused
 					} catch {
 						return null
 					}
 				})
 				.filter(Boolean)
+
 			return {
 				content: [{ type: 'text', text: `${shapes.length} shape(s), ${assets.length} asset(s).` }],
-				structuredContent: { shapes, assets, focusedShapes },
+				structuredContent: { shapes, assets, bindings, focusedShapes },
 			}
 		}
 	)
@@ -427,22 +525,31 @@ export function registerTools(
 		'save_checkpoint',
 		{
 			title: 'Save Checkpoint',
-			description: 'App-only: save shapes to a checkpoint (from user edits).',
+			description:
+				'App-only: save shapes to a checkpoint (from user edits). shapesJson and assetsJson must be JSON array strings.',
 			inputSchema: z.object({
 				checkpointId: z.string().min(1),
 				shapesJson: z.string(),
 				assetsJson: z.string().optional(),
+				bindingsJson: z.string().optional(),
 			}),
+			annotations: {
+				destructiveHint: true,
+				idempotentHint: false,
+				openWorldHint: false,
+			},
 			_meta: { ui: { visibility: ['app'] } },
 		},
 		async ({
 			checkpointId,
 			shapesJson,
 			assetsJson,
+			bindingsJson,
 		}: {
 			checkpointId: string
 			shapesJson: string
 			assetsJson?: string
+			bindingsJson?: string
 		}): Promise<CallToolResult> => {
 			try {
 				log(
@@ -451,7 +558,8 @@ export function registerTools(
 				const raw = parseJsonArray(shapesJson, 'shapesJson')
 				const shapes = parseTlShapes(raw)
 				const assets = assetsJson ? parseJsonArray(assetsJson, 'assetsJson') : []
-				deps.saveCheckpoint(checkpointId, shapes, assets)
+				const bindings = bindingsJson ? parseJsonArray(bindingsJson, 'bindingsJson') : []
+				deps.saveCheckpoint(checkpointId, shapes, assets, bindings)
 				deps.setActiveCheckpointId(checkpointId)
 				log(
 					`[tldraw-mcp] save_checkpoint done: activeCheckpointId=${deps.getActiveCheckpointId()}, shapes=${shapes.length}, assets=${assets.length}`
@@ -460,6 +568,11 @@ export function registerTools(
 					content: [
 						{ type: 'text', text: `Saved ${shapes.length} shape(s), ${assets.length} asset(s).` },
 					],
+					structuredContent: {
+						checkpointId,
+						shapesCount: shapes.length,
+						assetsCount: assets.length,
+					},
 				}
 			} catch (err) {
 				return errorResponse('save_checkpoint', err)
@@ -482,6 +595,11 @@ export function registerTools(
 					contentType: z.string(),
 					clerkToken: z.string().optional(),
 				}),
+				annotations: {
+					destructiveHint: false,
+					idempotentHint: false,
+					openWorldHint: false,
+				},
 				_meta: { ui: { visibility: ['app'] } },
 			},
 			async ({
@@ -530,11 +648,35 @@ export function registerTools(
 
 	registerAppResource(
 		server,
+		'tldraw-canvas',
 		CANVAS_RESOURCE_URI,
-		CANVAS_RESOURCE_URI,
-		{ mimeType: RESOURCE_MIME_TYPE },
+		{
+			title: 'tldraw Canvas',
+			description: 'Interactive tldraw canvas UI used by create, update, and delete shape tools.',
+			mimeType: RESOURCE_MIME_TYPE,
+		},
 		async (): Promise<ReadResourceResult> => {
-			const html = await deps.loadWidgetHtml()
+			let html = await deps.loadWidgetHtml()
+
+			// Embed the active checkpoint in the HTML so the widget can bootstrap
+			// without localStorage. This handles hosts that isolate iframe origins
+			// between tool calls (e.g. Cursor).
+			const activeId = deps.getActiveCheckpointId()
+			if (activeId) {
+				const checkpoint = deps.loadCheckpoint(activeId)
+				if (checkpoint) {
+					const bootstrap = JSON.stringify({
+						checkpointId: activeId,
+						shapes: parseTlShapes(checkpoint.shapes),
+						assets: checkpoint.assets,
+						bindings: checkpoint.bindings,
+					}).replace(/</g, '\\u003c')
+					html = html.replace(
+						'</head>',
+						`<script>window.__TLDRAW_BOOTSTRAP__=${bootstrap}</script></head>`
+					)
+				}
+			}
 
 			// Resolve domain from client identity (only when serving over HTTP with configured domains)
 			let domain: string | undefined
@@ -568,6 +710,7 @@ export function registerTools(
 										'https://equipped-amoeba-75.clerk.accounts.dev',
 										'https://img.clerk.com',
 										...(opts?.extraResourceDomains ?? []),
+										'blob:',
 									],
 									connectDomains: [
 										'https://cdn.tldraw.com',

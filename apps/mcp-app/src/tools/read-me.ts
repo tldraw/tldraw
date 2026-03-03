@@ -87,9 +87,8 @@ Deletes shapes by id from a JSON string.
 ### create_shapes
 \`\`\`json
 {
-  "new_blank_canvas": true
-  "shapesJson": "[{\"_type\":\"rectangle\",\"shapeId\":\"start\",\"x\":0,\"y\":0,\"w\":200,\"h\":100,\"color\":\"blue\",\"fill\":\"tint\",\"text\":\"Start\"},{\"_type\":\"arrow\",\"shapeId\":\"a1\",\"x1\":200,\"y1\":50,\"x2\":320,\"y2\":50,\"color\":\"black\",\"fromId\":\"start\",\"toId\":\"process\"},{\"_type\":\"rectangle\",\"shapeId\":\"process\",\"x\":320,\"y\":0,\"w\":220,\"h\":100,\"color\":\"green\",\"fill\":\"tint\",\"text\":\"Process\"}]",
-
+  "new_blank_canvas": true,
+  "shapesJson": "[{\"_type\":\"rectangle\",\"shapeId\":\"start\",\"x\":0,\"y\":0,\"w\":200,\"h\":100,\"color\":\"blue\",\"fill\":\"tint\",\"text\":\"Start\"},{\"_type\":\"arrow\",\"shapeId\":\"a1\",\"x1\":200,\"y1\":50,\"x2\":320,\"y2\":50,\"color\":\"black\",\"fromId\":\"start\",\"toId\":\"process\"},{\"_type\":\"rectangle\",\"shapeId\":\"process\",\"x\":320,\"y\":0,\"w\":220,\"h\":100,\"color\":\"green\",\"fill\":\"tint\",\"text\":\"Process\"}]"
 }
 \`\`\`
 
@@ -156,4 +155,76 @@ Deletes shapes by id from a JSON string.
 
 - When specifying a fill, you can use \`background\` to make the shape the same color as the canvas background (white in light mode, black in dark mode).
 - When making shapes that should appear white (or black in dark mode), use \`background\` as the fill and \`grey\` as the color instead of \`white\`. This ensures there is a visible border around the shape.
+
+## Diagram examples
+
+### Simple flowchart — two connected boxes
+
+\`\`\`json
+[
+  {"_type":"rectangle","shapeId":"start","x":0,"y":0,"w":200,"h":100,"color":"blue","fill":"tint","text":"Start"},
+  {"_type":"rectangle","shapeId":"end","x":320,"y":0,"w":200,"h":100,"color":"green","fill":"tint","text":"End"},
+  {"_type":"arrow","shapeId":"a1","x1":200,"y1":50,"x2":320,"y2":50,"color":"black","fromId":"start","toId":"end","text":"next"}
+]
+\`\`\`
+
+### Decision flowchart — login flow with branching and retry loop
+
+\`\`\`json
+[
+  {"_type":"text","shapeId":"title","x":250,"y":0,"text":"Login Flow","color":"black","anchor":"top-center","size":"xl","font":"sans"},
+  {"_type":"pill","shapeId":"enter","x":150,"y":80,"w":200,"h":80,"color":"blue","fill":"tint","text":"User visits /login"},
+  {"_type":"rectangle","shapeId":"form","x":150,"y":220,"w":200,"h":100,"color":"light-blue","fill":"tint","text":"Show login form"},
+  {"_type":"arrow","shapeId":"a1","x1":250,"y1":160,"x2":250,"y2":220,"color":"black","fromId":"enter","toId":"form"},
+  {"_type":"diamond","shapeId":"valid","x":125,"y":390,"w":250,"h":160,"color":"orange","fill":"tint","text":"Credentials\\nvalid?"},
+  {"_type":"arrow","shapeId":"a2","x1":250,"y1":320,"x2":250,"y2":390,"color":"black","fromId":"form","toId":"valid","text":"submit"},
+  {"_type":"rectangle","shapeId":"dashboard","x":420,"y":410,"w":220,"h":100,"color":"green","fill":"tint","text":"Redirect to\\ndashboard"},
+  {"_type":"arrow","shapeId":"a3","x1":375,"y1":470,"x2":420,"y2":460,"color":"green","fromId":"valid","toId":"dashboard","text":"yes"},
+  {"_type":"rectangle","shapeId":"error","x":-160,"y":410,"w":220,"h":100,"color":"red","fill":"tint","text":"Show error\\nmessage"},
+  {"_type":"arrow","shapeId":"a4","x1":125,"y1":470,"x2":60,"y2":460,"color":"red","fromId":"valid","toId":"error","text":"no"},
+  {"_type":"arrow","shapeId":"a5","x1":-50,"y1":410,"x2":150,"y2":270,"color":"grey","dash":"dashed","fromId":"error","toId":"form","text":"retry","bend":70}
+]
+\`\`\`
+
+Key techniques:
+- Use \`pill\` for start/end nodes and \`diamond\` for decision points
+- Bind arrows with \`fromId\`/\`toId\` so they stay connected when shapes move
+- Use \`bend\` on the retry arrow to curve it around the other shapes
+- Use \`dash: "dashed"\` for secondary/optional flows
+- Center the title text using \`anchor: "top-center"\`
+
+### Architecture diagram — layered system with rectangles
+
+\`\`\`json
+[
+  {"_type":"text","shapeId":"title","x":350,"y":0,"text":"Web App Architecture","color":"black","anchor":"top-center","size":"xl","font":"sans"},
+  {"_type":"rectangle","shapeId":"fe-frame","x":0,"y":60,"w":700,"h":180,"color":"blue","fill":"tint","text":"Frontend"},
+  {"_type":"rectangle","shapeId":"browser","x":30,"y":100,"w":200,"h":100,"color":"blue","fill":"tint","text":"React SPA"},
+  {"_type":"rectangle","shapeId":"cdn","x":270,"y":100,"w":160,"h":100,"color":"light-blue","fill":"tint","text":"CDN"},
+  {"_type":"rectangle","shapeId":"lb","x":470,"y":100,"w":200,"h":100,"color":"violet","fill":"tint","text":"Load Balancer"},
+  {"_type":"arrow","shapeId":"a1","x1":230,"y1":150,"x2":270,"y2":150,"color":"grey","fromId":"browser","toId":"cdn"},
+  {"_type":"arrow","shapeId":"a2","x1":430,"y1":150,"x2":470,"y2":150,"color":"grey","fromId":"cdn","toId":"lb"},
+  {"_type":"rectangle","shapeId":"be-frame","x":0,"y":280,"w":700,"h":180,"color":"green","fill":"tint","text":"Backend"},
+  {"_type":"rectangle","shapeId":"api","x":30,"y":320,"w":200,"h":100,"color":"green","fill":"tint","text":"API Server\\n(Node.js)"},
+  {"_type":"rectangle","shapeId":"auth","x":270,"y":320,"w":160,"h":100,"color":"orange","fill":"tint","text":"Auth Service"},
+  {"_type":"cloud","shapeId":"queue","x":470,"y":310,"w":200,"h":120,"color":"yellow","fill":"tint","text":"Message\\nQueue"},
+  {"_type":"arrow","shapeId":"a3","x1":570,"y1":240,"x2":130,"y2":320,"color":"black","fromId":"lb","toId":"api","text":"routes"},
+  {"_type":"arrow","shapeId":"a4","x1":230,"y1":370,"x2":270,"y2":370,"color":"grey","fromId":"api","toId":"auth"},
+  {"_type":"arrow","shapeId":"a5","x1":430,"y1":370,"x2":470,"y2":370,"color":"grey","fromId":"auth","toId":"queue"},
+  {"_type":"rectangle","shapeId":"db-frame","x":0,"y":500,"w":700,"h":180,"color":"red","fill":"tint","text":"Data layer"},
+  {"_type":"ellipse","shapeId":"db","x":30,"y":540,"w":200,"h":100,"color":"red","fill":"tint","text":"PostgreSQL"},
+  {"_type":"ellipse","shapeId":"cache","x":270,"y":540,"w":160,"h":100,"color":"light-red","fill":"tint","text":"Redis"},
+  {"_type":"rectangle","shapeId":"s3","x":470,"y":540,"w":200,"h":100,"color":"light-green","fill":"tint","text":"S3 Storage"},
+  {"_type":"arrow","shapeId":"a6","x1":130,"y1":420,"x2":130,"y2":540,"color":"black","fromId":"api","toId":"db"},
+  {"_type":"arrow","shapeId":"a7","x1":350,"y1":420,"x2":350,"y2":540,"color":"black","fromId":"auth","toId":"cache"},
+  {"_type":"arrow","shapeId":"a8","x1":570,"y1":430,"x2":570,"y2":540,"color":"black","fromId":"queue","toId":"s3"}
+]
+\`\`\`
+
+Key techniques:
+- Use \`rectangle\` shapes to visually group related components into layers
+- Use different \`_type\` values to convey meaning: \`ellipse\` for databases, \`cloud\` for queues/services
+- Assign a distinct color per layer (blue=frontend, green=backend, red=data) for quick visual parsing
+- Cross-layer arrows use \`"color":"black"\` to stand out; within-layer arrows use \`"color":"grey"\`
+- Center the title over the diagram using \`anchor: "top-center"\` with an x value at the midpoint
 `

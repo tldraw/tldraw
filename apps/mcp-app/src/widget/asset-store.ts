@@ -2,9 +2,18 @@ import type { App } from '@modelcontextprotocol/ext-apps/react'
 import type { TLAssetStore } from 'tldraw'
 import { log } from './debug'
 
+const MAX_UPLOAD_SIZE = 10 * 1024 * 1024 // 10 MB
+
 export function createR2AssetStore(app: App, getToken: () => Promise<string | null>): TLAssetStore {
 	return {
 		async upload(asset, file) {
+			if (file.size > MAX_UPLOAD_SIZE) {
+				log(
+					`Image too large (${(file.size / 1024 / 1024).toFixed(1)} MB), max ${MAX_UPLOAD_SIZE / 1024 / 1024} MB`
+				)
+				throw new Error(`Image exceeds ${MAX_UPLOAD_SIZE / 1024 / 1024} MB upload limit.`)
+			}
+
 			const arrayBuffer = await file.arrayBuffer()
 			const bytes = new Uint8Array(arrayBuffer)
 			let binary = ''

@@ -13,6 +13,7 @@ import React, {
 import { createRoot } from 'react-dom/client'
 import {
 	type TLAsset,
+	type TLBindingCreate,
 	type TLComponents,
 	type TLShape,
 	type TLShapeId,
@@ -23,12 +24,15 @@ import {
 	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { MCP_SERVER_NAME, MCP_SERVER_VERSION } from '../shared/types'
 import { isPlainObject } from '../shared/utils'
 import { createR2AssetStore } from './asset-store'
-import { debugLines, log } from './debug'
+import { log } from './debug'
 import { exportTldr } from './export-tldr'
 import {
 	type CanvasSnapshot,
+	getEditorBindings,
+	getEmbeddedBootstrapSnapshot,
 	getLatestCheckpointSnapshot,
 	loadLocalSnapshot,
 	parseCheckpointFromToolResult,
@@ -54,7 +58,7 @@ const LICENSE_KEY = import.meta.env.VITE_TLDRAW_LICENSE_KEY as string
 interface AuthState {
 	isSignedIn: boolean
 	clerkReady: boolean
-	getToken: () => Promise<string | null>
+	getToken(): Promise<string | null>
 }
 
 const AuthContext = createContext<AuthState>({
@@ -208,11 +212,12 @@ function TldrawCanvas({ app }: { app: App }) {
 			if (editor) {
 				const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
 				const assets = [...editor.getAssets()].map((a) => structuredClone(a))
-				committedSnapshotRef.current = { shapes, assets }
+				const bindings = getEditorBindings(editor)
+				committedSnapshotRef.current = { shapes, assets, bindings }
 				pushCanvasContext(app, editor)
 				const cpId = checkpointIdRef.current
 				if (cpId) {
-					saveLocalSnapshot(cpId, shapes, assets)
+					saveLocalSnapshot(cpId, shapes, assets, bindings)
 					saveCheckpointToServer(app, cpId, editor)
 				}
 			}
@@ -257,7 +262,12 @@ function TldrawCanvas({ app }: { app: App }) {
 	}, [])
 
 	const renderPreviewShapes = useCallback(
-		(previewShapes: TLShape[], mode: 'create' | 'update', createFromBlank = false) => {
+		(
+			previewShapes: TLShape[],
+			mode: 'create' | 'update',
+			createFromBlank = false,
+			previewBindings: TLBindingCreate[] = []
+		) => {
 			if (previewShapes.length <= 0) return
 			for (const shape of previewShapes) {
 				requestShapeIdsRef.current.add(shape.id)
@@ -274,6 +284,7 @@ function TldrawCanvas({ app }: { app: App }) {
 					? previewShapes.map((shape) => structuredClone(shape))
 					: mergeShapesById(baseShapes, previewShapes),
 				assets: [],
+				bindings: previewBindings,
 			}
 			renderPreviewSnapshot(
 				previewSnapshot,
@@ -314,7 +325,8 @@ function TldrawCanvas({ app }: { app: App }) {
 			if (cpId) {
 				const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
 				const assets = [...editor.getAssets()].map((a) => structuredClone(a))
-				saveLocalSnapshot(cpId, shapes, assets)
+				const bindings = getEditorBindings(editor)
+				saveLocalSnapshot(cpId, shapes, assets, bindings)
 				saveCheckpointToServer(app, cpId, editor)
 			}
 		}, SAVE_DEBOUNCE_MS)
@@ -344,17 +356,22 @@ function TldrawCanvas({ app }: { app: App }) {
 				if (blankFlag === false) createFromBlankPreviewRef.current = false
 			}
 
-			const createPreviewShapes = toCreatePreviewShapes(args.shapesJson, isPartial)
-			if (createPreviewShapes.length > 0) {
-				renderPreviewShapes(createPreviewShapes, 'create', createFromBlankPreviewRef.current)
+			const createPreview = toCreatePreviewShapes(args.shapesJson, isPartial)
+			if (createPreview.shapes.length > 0) {
+				renderPreviewShapes(
+					createPreview.shapes,
+					'create',
+					createFromBlankPreviewRef.current,
+					createPreview.bindings
+				)
 				return
 			}
 
 			const editor = editorRef.current
 			const liveShapes = editor ? [...editor.getCurrentPageShapes()] : committed.shapes
-			const updatePreviewShapes = toUpdatePreviewShapes(args.updatesJson, isPartial, liveShapes)
-			if (updatePreviewShapes.length > 0) {
-				renderPreviewShapes(updatePreviewShapes, 'update')
+			const updatePreview = toUpdatePreviewShapes(args.updatesJson, isPartial, liveShapes)
+			if (updatePreview.shapes.length > 0) {
+				renderPreviewShapes(updatePreview.shapes, 'update', false, updatePreview.bindings)
 				return
 			}
 
@@ -390,6 +407,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			const snapshot: CanvasSnapshot = {
 				shapes: latestSnapshot.shapes,
 				assets: latestSnapshot.assets,
+				bindings: latestSnapshot.bindings,
 			}
 			committedSnapshotRef.current = snapshot
 			const editor = editorRef.current
@@ -399,6 +417,24 @@ function TldrawCanvas({ app }: { app: App }) {
 				pendingSnapshotRef.current = snapshot
 			}
 			log(`Pre-loaded ${latestSnapshot.shapes.length} shape(s) from latest checkpoint`)
+		} else {
+			// localStorage is empty — this happens in MCP hosts (e.g. Cursor) that
+			// isolate iframe origins between tool calls. Fall back to checkpoint
+			// data embedded in the HTML by the server when serving the resource.
+			const bootstrap = getEmbeddedBootstrapSnapshot()
+			if (bootstrap) {
+				committedSnapshotRef.current = bootstrap.snapshot
+				checkpointIdRef.current = bootstrap.checkpointId
+				const editor = editorRef.current
+				if (editor) {
+					applySnapshot(editor, bootstrap.snapshot)
+				} else {
+					pendingSnapshotRef.current = bootstrap.snapshot
+				}
+				log(
+					`Bootstrapped ${bootstrap.snapshot.shapes.length} shape(s) from embedded data (localStorage was empty)`
+				)
+			}
 		}
 
 		app.onhostcontextchanged = (ctx) => {
@@ -417,11 +453,12 @@ function TldrawCanvas({ app }: { app: App }) {
 					if (editor) {
 						const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
 						const assets = [...editor.getAssets()].map((a) => structuredClone(a))
-						committedSnapshotRef.current = { shapes, assets }
+						const bindings = getEditorBindings(editor)
+						committedSnapshotRef.current = { shapes, assets, bindings }
 						pushCanvasContext(app, editor)
 						const cpId = checkpointIdRef.current
 						if (cpId) {
-							saveLocalSnapshot(cpId, shapes, assets)
+							saveLocalSnapshot(cpId, shapes, assets, bindings)
 							saveCheckpointToServer(app, cpId, editor)
 						}
 					}
@@ -452,6 +489,7 @@ function TldrawCanvas({ app }: { app: App }) {
 				checkpointId,
 				shapes: resultShapes,
 				assets: resultAssets,
+				bindings: resultBindings,
 				action,
 				hadBaseShapes,
 				newBlankCanvas,
@@ -467,6 +505,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			const localSnapshot = loadLocalSnapshot(checkpointId)
 			let finalShapes = localSnapshot ? localSnapshot.shapes : resultShapes
 			let finalAssets: TLAsset[] = localSnapshot ? localSnapshot.assets : resultAssets
+			let finalBindings: TLBindingCreate[] = localSnapshot ? localSnapshot.bindings : resultBindings
 
 			// Client-side merge fallback: if the server didn't have base shapes for a create
 			// (e.g. server process restarted between tool calls, losing in-memory state)
@@ -481,13 +520,19 @@ function TldrawCanvas({ app }: { app: App }) {
 					const assetMap = new Map(latestSnapshot.assets.map((a) => [a.id, a]))
 					for (const a of resultAssets) assetMap.set(a.id, a)
 					finalAssets = [...assetMap.values()]
+					// Merge bindings
+					finalBindings = [...latestSnapshot.bindings, ...resultBindings]
 				}
 			}
 
 			// Capture previous committed IDs for zoom diff fallback
 			const previousCommittedIds = new Set(committedSnapshotRef.current.shapes.map((s) => s.id))
 
-			const snapshot: CanvasSnapshot = { shapes: finalShapes, assets: finalAssets }
+			const snapshot: CanvasSnapshot = {
+				shapes: finalShapes,
+				assets: finalAssets,
+				bindings: finalBindings,
+			}
 			committedSnapshotRef.current = snapshot
 
 			const editor = editorRef.current
@@ -517,7 +562,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			requestShapeIdsRef.current = new Set<TLShapeId>()
 
 			// Persist to localStorage (ensures it's saved even on first render)
-			saveLocalSnapshot(checkpointId, finalShapes, finalAssets)
+			saveLocalSnapshot(checkpointId, finalShapes, finalAssets, finalBindings)
 
 			// Immediately push checkpoint to server so the next tool call can fork from it.
 			// This is critical: the server may restart between tool calls, losing in-memory state.
@@ -741,7 +786,7 @@ function McpApp() {
 	}, [])
 
 	const { app, isConnected, error } = useApp({
-		appInfo: { name: 'tldraw', version: '1.0.0' },
+		appInfo: { name: MCP_SERVER_NAME, version: MCP_SERVER_VERSION },
 		capabilities: {},
 		onAppCreated: handleAppCreated,
 	})
@@ -769,26 +814,6 @@ function McpApp() {
 	return (
 		<ClerkBoundary>
 			<div>
-				<div
-					id="debug"
-					style={{
-						position: 'fixed',
-						bottom: 0,
-						left: 0,
-						right: 0,
-						background: 'rgba(0,0,0,0.85)',
-						color: '#0f0',
-						fontFamily: 'monospace',
-						fontSize: 11,
-						padding: 8,
-						zIndex: 999999,
-						maxHeight: 150,
-						overflow: 'auto',
-						whiteSpace: 'pre',
-					}}
-				>
-					{debugLines.join('\n')}
-				</div>
 				{error ? (
 					<div style={{ padding: 20, color: 'red' }}>Error: {error.message}</div>
 				) : !isConnected || !app ? (

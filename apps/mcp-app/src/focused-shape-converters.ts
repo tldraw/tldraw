@@ -1,4 +1,11 @@
-import { toRichText, type IndexKey, type TLParentId, type TLShape, type TLShapeId } from 'tldraw'
+import {
+	toRichText,
+	type IndexKey,
+	type TLBindingCreate,
+	type TLParentId,
+	type TLShape,
+	type TLShapeId,
+} from 'tldraw'
 import {
 	FocusedColorSchema,
 	FocusedDashSchema,
@@ -57,12 +64,15 @@ const TLDRAW_TO_FOCUSED_FILLS: Record<string, FocusedFill> = {
 	pattern: 'pattern',
 }
 
-const GEO_TO_FOCUSED_TYPES: Record<string, FocusedGeoShapeType> = Object.fromEntries(
-	Object.entries(FOCUSED_TO_GEO_TYPES).map(([focused, tldraw]) => [
-		tldraw,
-		focused as FocusedGeoShapeType,
-	])
-)
+// Build the reverse mapping manually to avoid collisions.
+// Multiple focused types map to the same tldraw geo (e.g. both 'rectangle' and 'geo' map to 'rectangle').
+// We want the reverse to prefer the specific name (e.g. 'rectangle' -> 'rectangle', not 'geo').
+const GEO_TO_FOCUSED_TYPES: Record<string, FocusedGeoShapeType> = {}
+for (const [focused, tldraw] of Object.entries(FOCUSED_TO_GEO_TYPES)) {
+	// Skip the generic 'geo' alias so specific names win
+	if (focused === 'geo') continue
+	GEO_TO_FOCUSED_TYPES[tldraw] = focused as FocusedGeoShapeType
+}
 
 // --- Helpers ---
 
@@ -133,7 +143,10 @@ function normalizeBox(
 
 // --- Converters ---
 
-export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): TLShape {
+export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): {
+	shape: TLShape
+	bindings: TLBindingCreate[]
+} {
 	const base = {
 		typeName: 'shape' as const,
 		parentId: 'page:page' as TLParentId,
@@ -153,138 +166,194 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): TLShape 
 			if (shape.anchor.includes('right')) textAlign = 'end'
 
 			return {
-				...base,
-				id: toShapeId(shape.shapeId),
-				type: 'text',
-				x: shape.x,
-				y: shape.y,
-				props: {
-					richText: toRichText(shape.text),
-					color: asColor(shape.color),
-					size: shape.size ?? 'm',
-					font: shape.font ?? 'draw',
-					textAlign,
-					autoSize: shape.maxWidth == null,
-					w: shape.maxWidth ?? 100,
-					scale: 1,
-				},
-			} as TLShape
+				shape: {
+					...base,
+					id: toShapeId(shape.shapeId),
+					type: 'text',
+					x: shape.x,
+					y: shape.y,
+					props: {
+						richText: toRichText(shape.text),
+						color: asColor(shape.color),
+						size: shape.size ?? 'm',
+						font: shape.font ?? 'draw',
+						textAlign,
+						autoSize: shape.maxWidth == null,
+						w: shape.maxWidth ?? 100,
+						scale: 1,
+					},
+				} as TLShape,
+				bindings: [],
+			}
 		}
 		case 'line': {
 			const minX = Math.min(shape.x1, shape.x2)
 			const minY = Math.min(shape.y1, shape.y2)
 			return {
-				...base,
-				id: toShapeId(shape.shapeId),
-				type: 'line',
-				x: minX,
-				y: minY,
-				props: {
-					color: asColor(shape.color),
-					dash: shape.dash ?? 'draw',
-					size: shape.size ?? 'm',
-					scale: 1,
-					spline: 'line',
-					points: {
-						a1: { id: 'a1', index: 'a1' as IndexKey, x: shape.x1 - minX, y: shape.y1 - minY },
-						a2: { id: 'a2', index: 'a2' as IndexKey, x: shape.x2 - minX, y: shape.y2 - minY },
+				shape: {
+					...base,
+					id: toShapeId(shape.shapeId),
+					type: 'line',
+					x: minX,
+					y: minY,
+					props: {
+						color: asColor(shape.color),
+						dash: shape.dash ?? 'draw',
+						size: shape.size ?? 'm',
+						scale: 1,
+						spline: 'line',
+						points: {
+							a1: {
+								id: 'a1',
+								index: 'a1' as IndexKey,
+								x: shape.x1 - minX,
+								y: shape.y1 - minY,
+							},
+							a2: {
+								id: 'a2',
+								index: 'a2' as IndexKey,
+								x: shape.x2 - minX,
+								y: shape.y2 - minY,
+							},
+						},
 					},
-				},
-			} as TLShape
+				} as TLShape,
+				bindings: [],
+			}
 		}
 		case 'arrow': {
 			const minX = Math.min(shape.x1, shape.x2)
 			const minY = Math.min(shape.y1, shape.y2)
+			const arrowShapeId = toShapeId(shape.shapeId)
+			const bindings: TLBindingCreate[] = []
+
+			if (shape.fromId) {
+				bindings.push({
+					type: 'arrow',
+					fromId: arrowShapeId,
+					toId: toShapeId(shape.fromId),
+					props: {
+						terminal: 'start',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: false,
+					},
+					meta: {},
+				})
+			}
+
+			if (shape.toId) {
+				bindings.push({
+					type: 'arrow',
+					fromId: arrowShapeId,
+					toId: toShapeId(shape.toId),
+					props: {
+						terminal: 'end',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: false,
+					},
+					meta: {},
+				})
+			}
+
 			return {
-				...base,
-				id: toShapeId(shape.shapeId),
-				type: 'arrow',
-				x: minX,
-				y: minY,
-				meta: {
-					note: shape.note ?? '',
-					fromId: shape.fromId ?? null,
-					toId: shape.toId ?? null,
-				},
-				props: {
-					color: asColor(shape.color),
-					dash: shape.dash ?? 'draw',
-					size: shape.size ?? 'm',
-					fill: 'none',
-					font: 'draw',
-					arrowheadStart: 'none',
-					arrowheadEnd: 'arrow',
-					start: { x: shape.x1 - minX, y: shape.y1 - minY },
-					end: { x: shape.x2 - minX, y: shape.y2 - minY },
-					bend: (shape.bend ?? 0) * -1,
-					richText: toRichText(shape.text ?? ''),
-					labelColor: 'black',
-					labelPosition: 0.5,
-					scale: 1,
-					kind: 'arc',
-					elbowMidPoint: 0.5,
-				},
-			} as TLShape
+				shape: {
+					...base,
+					id: arrowShapeId,
+					type: 'arrow',
+					x: minX,
+					y: minY,
+					props: {
+						color: asColor(shape.color),
+						dash: shape.dash ?? 'draw',
+						size: shape.size ?? 'm',
+						fill: 'none',
+						font: 'draw',
+						arrowheadStart: 'none',
+						arrowheadEnd: 'arrow',
+						start: { x: shape.x1 - minX, y: shape.y1 - minY },
+						end: { x: shape.x2 - minX, y: shape.y2 - minY },
+						bend: (shape.bend ?? 0) * -1,
+						richText: toRichText(shape.text ?? ''),
+						labelColor: 'black',
+						labelPosition: 0.5,
+						scale: 1,
+						kind: 'arc',
+						elbowMidPoint: 0.5,
+					},
+				} as TLShape,
+				bindings,
+			}
 		}
 		case 'note': {
 			return {
-				...base,
-				id: toShapeId(shape.shapeId),
-				type: 'note',
-				x: shape.x,
-				y: shape.y,
-				props: {
-					color: asColor(shape.color),
-					richText: toRichText(shape.text ?? ''),
-					size: shape.size ?? 'm',
-					font: shape.font ?? 'draw',
-					align: 'middle',
-					verticalAlign: 'middle',
-					fontSizeAdjustment: 0,
-					growY: 0,
-					labelColor: 'black',
-					scale: 1,
-					url: '',
-				},
-			} as TLShape
+				shape: {
+					...base,
+					id: toShapeId(shape.shapeId),
+					type: 'note',
+					x: shape.x,
+					y: shape.y,
+					props: {
+						color: asColor(shape.color),
+						richText: toRichText(shape.text ?? ''),
+						size: shape.size ?? 'm',
+						font: shape.font ?? 'draw',
+						align: 'middle',
+						verticalAlign: 'middle',
+						fontSizeAdjustment: 0,
+						growY: 0,
+						labelColor: 'black',
+						scale: 1,
+						url: '',
+					},
+				} as TLShape,
+				bindings: [],
+			}
 		}
 		case 'draw': {
 			return {
-				...base,
-				id: toShapeId(shape.shapeId),
-				type: 'draw',
-				x: 0,
-				y: 0,
-				props: {
-					color: asColor(shape.color),
-					dash: 'draw',
-					size: 's',
-					fill: shape.fill ? (FOCUSED_TO_TLDRAW_FILLS[shape.fill] ?? 'none') : 'none',
-					segments: [],
-					isClosed: false,
-					isComplete: true,
-					isPen: false,
-					scale: 1,
-					scaleX: 1,
-					scaleY: 1,
-				},
-			} as TLShape
+				shape: {
+					...base,
+					id: toShapeId(shape.shapeId),
+					type: 'draw',
+					x: 0,
+					y: 0,
+					props: {
+						color: asColor(shape.color),
+						dash: 'draw',
+						size: 's',
+						fill: shape.fill ? (FOCUSED_TO_TLDRAW_FILLS[shape.fill] ?? 'none') : 'none',
+						segments: [],
+						isClosed: false,
+						isComplete: true,
+						isPen: false,
+						scale: 1,
+						scaleX: 1,
+						scaleY: 1,
+					},
+				} as TLShape,
+				bindings: [],
+			}
 		}
 		case 'frame': {
 			const box = normalizeBox(shape.x, shape.y, shape.w, shape.h)
 			return {
-				...base,
-				id: toShapeId(shape.shapeId),
-				type: 'frame',
-				x: box.x,
-				y: box.y,
-				props: {
-					w: box.w,
-					h: box.h,
-					name: shape.name ?? '',
-					color: 'black',
-				},
-			} as TLShape
+				shape: {
+					...base,
+					id: toShapeId(shape.shapeId),
+					type: 'frame',
+					x: box.x,
+					y: box.y,
+					props: {
+						w: box.w,
+						h: box.h,
+						name: shape.name ?? '',
+						color: 'black',
+					},
+				} as TLShape,
+				bindings: [],
+			}
 		}
 		case 'unknown': {
 			throw new Error(
@@ -295,29 +364,32 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): TLShape 
 			const geoType = FOCUSED_TO_GEO_TYPES[shape._type] ?? 'rectangle'
 			const box = normalizeBox(shape.x, shape.y, shape.w, shape.h)
 			return {
-				...base,
-				id: toShapeId(shape.shapeId),
-				type: 'geo',
-				x: box.x,
-				y: box.y,
-				props: {
-					geo: geoType,
-					w: box.w,
-					h: box.h,
-					color: asColor(shape.color),
-					fill: FOCUSED_TO_TLDRAW_FILLS[shape.fill] ?? 'none',
-					dash: shape.dash ?? 'draw',
-					size: shape.size ?? 'm',
-					font: shape.font ?? 'draw',
-					align: shape.textAlign ?? 'middle',
-					verticalAlign: 'middle',
-					growY: 0,
-					richText: toRichText(shape.text ?? ''),
-					labelColor: 'black',
-					scale: 1,
-					url: '',
-				},
-			} as TLShape
+				shape: {
+					...base,
+					id: toShapeId(shape.shapeId),
+					type: 'geo',
+					x: box.x,
+					y: box.y,
+					props: {
+						geo: geoType,
+						w: box.w,
+						h: box.h,
+						color: asColor(shape.color),
+						fill: FOCUSED_TO_TLDRAW_FILLS[shape.fill] ?? 'none',
+						dash: shape.dash ?? 'draw',
+						size: shape.size ?? 'm',
+						font: shape.font ?? 'draw',
+						align: shape.textAlign ?? 'middle',
+						verticalAlign: 'middle',
+						growY: 0,
+						richText: toRichText(shape.text ?? ''),
+						labelColor: 'black',
+						scale: 1,
+						url: '',
+					},
+				} as TLShape,
+				bindings: [],
+			}
 		}
 	}
 }
@@ -371,7 +443,7 @@ export function convertTldrawRecordToFocusedShape(record: TLShape): FocusedShape
 			}
 		}
 		case 'arrow': {
-			const { props, meta } = record
+			const { props } = record
 			const start = props.start ?? { x: 0, y: 0 }
 			const end = props.end ?? { x: 0, y: 0 }
 			return {
@@ -388,8 +460,8 @@ export function convertTldrawRecordToFocusedShape(record: TLShape): FocusedShape
 				size: FocusedSizeSchema.safeParse(props.size).success ? (props.size as FocusedSize) : 'm',
 				text: fromRichText(props.richText) || undefined,
 				bend: props.bend ? props.bend * -1 : undefined,
-				fromId: typeof meta.fromId === 'string' ? meta.fromId : null,
-				toId: typeof meta.toId === 'string' ? meta.toId : null,
+				fromId: null,
+				toId: null,
 				note: getMetaNote(record),
 			}
 		}

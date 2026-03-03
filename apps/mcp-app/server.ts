@@ -6,15 +6,20 @@ import { MAX_CHECKPOINTS } from './src/shared/types'
 import { loadCachedCanvasWidgetHtml } from './src/tools/loadCachedCanvasWidgetHtml'
 
 // --- Checkpoint store ---
-const checkpoints = new Map<string, { shapes: TLShape[]; assets: unknown[] }>()
+const checkpoints = new Map<string, { shapes: TLShape[]; assets: unknown[]; bindings: unknown[] }>()
 let activeCheckpointId: string | null = null
 console.error(`[tldraw-mcp] Server module loaded — fresh state, activeCheckpointId=null`)
 
-function saveCheckpoint(id: string, shapes: TLShape[], assets: unknown[] = []): void {
+function saveCheckpoint(
+	id: string,
+	shapes: TLShape[],
+	assets: unknown[] = [],
+	bindings: unknown[] = []
+): void {
 	console.error(
-		`[tldraw-mcp] saveCheckpoint: id=${id}, shapes=${shapes.length}, assets=${assets.length}, existing checkpoints=${checkpoints.size}`
+		`[tldraw-mcp] saveCheckpoint: id=${id}, shapes=${shapes.length}, assets=${assets.length}, bindings=${bindings.length}, existing checkpoints=${checkpoints.size}`
 	)
-	checkpoints.set(id, { shapes, assets })
+	checkpoints.set(id, { shapes, assets, bindings })
 	if (checkpoints.size > MAX_CHECKPOINTS) {
 		const oldest = checkpoints.keys().next().value
 		if (oldest) checkpoints.delete(oldest)
@@ -51,6 +56,12 @@ function getActiveAssets(): unknown[] {
 	return entry?.assets ?? []
 }
 
+function getActiveBindings(): unknown[] {
+	if (!activeCheckpointId) return []
+	const entry = checkpoints.get(activeCheckpointId)
+	return entry?.bindings ?? []
+}
+
 // --- Server factory ---
 
 export function createServer() {
@@ -71,10 +82,11 @@ export function createServer() {
 		loadCheckpoint(id: string) {
 			const entry = checkpoints.get(id)
 			if (!entry) return null
-			return { shapes: entry.shapes, assets: entry.assets }
+			return { shapes: entry.shapes, assets: entry.assets, bindings: entry.bindings }
 		},
 		getActiveShapes,
 		getActiveAssets,
+		getActiveBindings,
 		getActiveCheckpointId: () => activeCheckpointId,
 		setActiveCheckpointId: (id: string) => {
 			activeCheckpointId = id

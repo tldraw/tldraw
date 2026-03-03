@@ -13,7 +13,16 @@ import { McpAgent } from 'agents/mcp'
 import type { TLShape } from 'tldraw'
 import { registerTools } from './register-tools'
 import type { ServerDeps } from './shared/types'
-import { ALLOWED_IMAGE_TYPES, MAX_CHECKPOINTS } from './shared/types'
+import {
+	ALLOWED_IMAGE_TYPES,
+	MAX_CHECKPOINTS,
+	MCP_SERVER_DESCRIPTION,
+	MCP_SERVER_INSTRUCTIONS,
+	MCP_SERVER_NAME,
+	MCP_SERVER_TITLE,
+	MCP_SERVER_VERSION,
+	MCP_SERVER_WEBSITE_URL,
+} from './shared/types'
 import { parseTlShapes } from './shared/utils'
 
 // --- Types ---
@@ -42,7 +51,7 @@ async function loadWidgetHtml(assets: Fetcher): Promise<string> {
 
 const CORS_HEADERS: Record<string, string> = {
 	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+	'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 	'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization, Mcp-Session-Id',
 }
 
@@ -60,7 +69,18 @@ function corsResponse(response: Response): Response {
 // sees our direct dependency's types which are a different declaration.
 
 export class TldrawMCP extends McpAgent<Env> {
-	server = new McpServer({ name: 'tldraw', version: '1.0.0' }) as any
+	server = new McpServer(
+		{
+			name: MCP_SERVER_NAME,
+			title: MCP_SERVER_TITLE,
+			version: MCP_SERVER_VERSION,
+			description: MCP_SERVER_DESCRIPTION,
+			websiteUrl: MCP_SERVER_WEBSITE_URL,
+		},
+		{
+			instructions: MCP_SERVER_INSTRUCTIONS,
+		}
+	) as any
 	activeCheckpointId: string | null = null
 
 	async init() {
@@ -78,10 +98,12 @@ export class TldrawMCP extends McpAgent<Env> {
 
 		// --- Build ServerDeps from SQLite ---
 		const deps: ServerDeps = {
-			saveCheckpoint: (id, shapes, assets = []) => this.saveCheckpoint(id, shapes, assets),
+			saveCheckpoint: (id, shapes, assets = [], bindings = []) =>
+				this.saveCheckpoint(id, shapes, assets, bindings),
 			loadCheckpoint: (id) => this.loadCheckpoint(id),
 			getActiveShapes: () => this.getActiveShapes(),
 			getActiveAssets: () => this.getActiveAssets(),
+			getActiveBindings: () => this.getActiveBindings(),
 			getActiveCheckpointId: () => this.activeCheckpointId,
 			setActiveCheckpointId: (id) => {
 				this.activeCheckpointId = id
@@ -155,8 +177,8 @@ export class TldrawMCP extends McpAgent<Env> {
 
 	// --- Checkpoint helpers ---
 
-	saveCheckpoint(id: string, shapes: unknown[], assets: unknown[] = []) {
-		const data = JSON.stringify({ shapes, assets })
+	saveCheckpoint(id: string, shapes: unknown[], assets: unknown[] = [], bindings: unknown[] = []) {
+		const data = JSON.stringify({ shapes, assets, bindings })
 		void this
 			.sql`INSERT OR REPLACE INTO checkpoints (id, data, created_at) VALUES (${id}, ${data}, ${Date.now()})`
 		this.activeCheckpointId = id
@@ -167,13 +189,17 @@ export class TldrawMCP extends McpAgent<Env> {
 			.sql`DELETE FROM checkpoints WHERE id NOT IN (SELECT id FROM checkpoints ORDER BY created_at DESC LIMIT ${MAX_CHECKPOINTS})`
 	}
 
-	loadCheckpoint(id: string): { shapes: unknown[]; assets: unknown[] } | null {
+	loadCheckpoint(id: string): { shapes: unknown[]; assets: unknown[]; bindings: unknown[] } | null {
 		const rows = [...this.sql`SELECT data FROM checkpoints WHERE id = ${id}`]
 		if (rows.length === 0) return null
 		const parsed = JSON.parse(rows[0].data as string)
 		// Backwards compat: old checkpoints stored a plain array of shapes
-		if (Array.isArray(parsed)) return { shapes: parsed, assets: [] }
-		return { shapes: parsed.shapes ?? [], assets: parsed.assets ?? [] }
+		if (Array.isArray(parsed)) return { shapes: parsed, assets: [], bindings: [] }
+		return {
+			shapes: parsed.shapes ?? [],
+			assets: parsed.assets ?? [],
+			bindings: parsed.bindings ?? [],
+		}
 	}
 
 	getActiveShapes(): TLShape[] {
@@ -186,6 +212,12 @@ export class TldrawMCP extends McpAgent<Env> {
 		if (!this.activeCheckpointId) return []
 		const checkpoint = this.loadCheckpoint(this.activeCheckpointId)
 		return checkpoint ? checkpoint.assets : []
+	}
+
+	getActiveBindings(): unknown[] {
+		if (!this.activeCheckpointId) return []
+		const checkpoint = this.loadCheckpoint(this.activeCheckpointId)
+		return checkpoint ? checkpoint.bindings : []
 	}
 }
 
@@ -221,18 +253,6 @@ export default {
 			}
 		}
 
-		// Rate limit by MCP session (POST without session ID is the initial handshake)
-		const sessionId = request.headers.get('mcp-session-id')
-		if (!sessionId && request.method !== 'POST') {
-			return corsResponse(new Response('Missing session', { status: 400 }))
-		}
-		if (sessionId) {
-			const { success } = await env.RATE_LIMITER.limit({ key: sessionId })
-			if (!success) {
-				return corsResponse(new Response('Rate limited', { status: 429 }))
-			}
-		}
-
 		// SSE transport (for MCP Inspector and legacy clients)
 		if (url.pathname === '/sse' || url.pathname.startsWith('/sse/')) {
 			return sseHandler.fetch(request, env, ctx)
@@ -240,6 +260,17 @@ export default {
 
 		// Streamable HTTP transport (for Claude web, ChatGPT, and modern clients)
 		if (url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) {
+			// Rate limit by MCP session (POST without session ID is the initial handshake)
+			const sessionId = request.headers.get('mcp-session-id')
+			if (!sessionId && request.method !== 'POST') {
+				return corsResponse(new Response('Missing session', { status: 400 }))
+			}
+			if (sessionId) {
+				const { success } = await env.RATE_LIMITER.limit({ key: sessionId })
+				if (!success) {
+					return corsResponse(new Response('Rate limited', { status: 429 }))
+				}
+			}
 			return mcpHandler.fetch(request, env, ctx)
 		}
 

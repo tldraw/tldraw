@@ -1,5 +1,5 @@
 import type { App } from '@modelcontextprotocol/ext-apps/react'
-import type { TLAsset, TLShape } from 'tldraw'
+import type { TLAsset, TLBindingCreate, TLShape } from 'tldraw'
 import { Editor, structuredClone } from 'tldraw'
 import { convertTldrawRecordToFocusedShape } from '../focused-shape-converters'
 import type { FocusedShape } from '../focused-shape-schema'
@@ -8,6 +8,7 @@ import { isPlainObject } from '../shared/utils'
 export interface CanvasSnapshot {
 	shapes: TLShape[]
 	assets: TLAsset[]
+	bindings?: TLBindingCreate[]
 }
 
 // --- localStorage persistence ---
@@ -18,7 +19,7 @@ function localStorageKey(checkpointId: string): string {
 
 export function loadLocalSnapshot(
 	checkpointId: string
-): { shapes: TLShape[]; assets: TLAsset[] } | null {
+): { shapes: TLShape[]; assets: TLAsset[]; bindings: TLBindingCreate[] } | null {
 	try {
 		// eslint-disable-next-line no-restricted-syntax
 		const raw = localStorage.getItem(localStorageKey(checkpointId))
@@ -30,7 +31,7 @@ export function loadLocalSnapshot(
 				(s: unknown): s is TLShape =>
 					isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
 			)
-			return shapes.length > 0 ? { shapes, assets: [] } : null
+			return shapes.length > 0 ? { shapes, assets: [], bindings: [] } : null
 		}
 		if (!isPlainObject(parsed)) return null
 		const shapes = (Array.isArray(parsed.shapes) ? parsed.shapes : []).filter(
@@ -40,7 +41,8 @@ export function loadLocalSnapshot(
 		const assets = (Array.isArray(parsed.assets) ? parsed.assets : []).filter(
 			(a: unknown): a is TLAsset => isPlainObject(a) && typeof a.id === 'string'
 		)
-		return shapes.length > 0 ? { shapes, assets } : null
+		const bindings = (Array.isArray(parsed.bindings) ? parsed.bindings : []) as TLBindingCreate[]
+		return shapes.length > 0 ? { shapes, assets, bindings } : null
 	} catch {
 		return null
 	}
@@ -49,11 +51,15 @@ export function loadLocalSnapshot(
 export function saveLocalSnapshot(
 	checkpointId: string,
 	shapes: TLShape[],
-	assets: TLAsset[] = []
+	assets: TLAsset[] = [],
+	bindings: TLBindingCreate[] = []
 ): void {
 	try {
 		// eslint-disable-next-line no-restricted-syntax
-		localStorage.setItem(localStorageKey(checkpointId), JSON.stringify({ shapes, assets }))
+		localStorage.setItem(
+			localStorageKey(checkpointId),
+			JSON.stringify({ shapes, assets, bindings })
+		)
 		// Also track this as the latest checkpoint so future widgets can find it
 		// eslint-disable-next-line no-restricted-syntax
 		localStorage.setItem('tldraw:latest-checkpoint', checkpointId)
@@ -62,12 +68,45 @@ export function saveLocalSnapshot(
 	}
 }
 
-export function getLatestCheckpointSnapshot(): { shapes: TLShape[]; assets: TLAsset[] } | null {
+export function getLatestCheckpointSnapshot(): {
+	shapes: TLShape[]
+	assets: TLAsset[]
+	bindings: TLBindingCreate[]
+} | null {
 	try {
 		// eslint-disable-next-line no-restricted-syntax
 		const latestId = localStorage.getItem('tldraw:latest-checkpoint')
 		if (!latestId) return null
 		return loadLocalSnapshot(latestId)
+	} catch {
+		return null
+	}
+}
+
+// --- Server-embedded bootstrap ---
+// The server injects the active checkpoint into the widget HTML as
+// window.__TLDRAW_BOOTSTRAP__ so the widget can bootstrap without localStorage.
+// This handles MCP hosts that isolate iframe origins between tool calls.
+
+export function getEmbeddedBootstrapSnapshot(): {
+	checkpointId: string
+	snapshot: CanvasSnapshot
+} | null {
+	try {
+		const data = (window as any).__TLDRAW_BOOTSTRAP__
+		if (!data || typeof data !== 'object') return null
+		const checkpointId = typeof data.checkpointId === 'string' ? data.checkpointId : null
+		if (!checkpointId) return null
+		const shapes = (Array.isArray(data.shapes) ? data.shapes : []).filter(
+			(s: unknown): s is TLShape =>
+				isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
+		)
+		if (shapes.length === 0) return null
+		const assets = (Array.isArray(data.assets) ? data.assets : []).filter(
+			(a: unknown): a is TLAsset => isPlainObject(a) && typeof a.id === 'string'
+		)
+		const bindings = (Array.isArray(data.bindings) ? data.bindings : []) as TLBindingCreate[]
+		return { checkpointId, snapshot: { shapes, assets, bindings } }
 	} catch {
 		return null
 	}
@@ -92,11 +131,20 @@ export interface CheckpointResult {
 	checkpointId: string
 	shapes: TLShape[]
 	assets: TLAsset[]
+	bindings: TLBindingCreate[]
 	action: string | null
 	/** True if the server found base shapes to merge with (for create action). */
 	hadBaseShapes: boolean
 	/** True if the server started from a blank canvas (for create action). */
 	newBlankCanvas: boolean
+}
+
+function toBindingRecords(value: unknown): TLBindingCreate[] {
+	if (!Array.isArray(value)) return []
+	return value.filter(
+		(b): b is TLBindingCreate =>
+			isPlainObject(b) && typeof b.type === 'string' && typeof b.fromId === 'string'
+	)
 }
 
 export function parseCheckpointFromToolResult(result: unknown): CheckpointResult | null {
@@ -109,10 +157,12 @@ export function parseCheckpointFromToolResult(result: unknown): CheckpointResult
 	if (!shapes) return null
 	// Assets come from sc.assets (read_checkpoint) or sc.assetRecords (create_image)
 	const assets = toAssetRecords(sc.assets ?? sc.assetRecords)
+	const bindings = toBindingRecords(sc.bindings)
 	return {
 		checkpointId,
 		shapes,
 		assets,
+		bindings,
 		action: typeof sc.action === 'string' ? sc.action : null,
 		hadBaseShapes: sc.hadBaseShapes === true,
 		newBlankCanvas: sc.newBlankCanvas === true,
@@ -125,7 +175,21 @@ export function getEditorFocusedShapes(editor: Editor): FocusedShape[] {
 	const shapes: FocusedShape[] = []
 	for (const record of editor.getCurrentPageShapes()) {
 		try {
-			shapes.push(convertTldrawRecordToFocusedShape(record))
+			const focused = convertTldrawRecordToFocusedShape(record)
+			// Enrich arrow shapes with binding info from the editor
+			if (focused._type === 'arrow') {
+				const arrowBindings = editor.getBindingsFromShape(record.id, 'arrow')
+				for (const binding of arrowBindings) {
+					const terminal = (binding.props as { terminal?: string }).terminal
+					const targetId = binding.toId.replace(/^shape:/, '')
+					if (terminal === 'start') {
+						focused.fromId = targetId
+					} else if (terminal === 'end') {
+						focused.toId = targetId
+					}
+				}
+			}
+			shapes.push(focused)
 		} catch {
 			// Ignore malformed records.
 		}
@@ -142,15 +206,37 @@ export function pushCanvasContext(app: App, editor: Editor) {
 	app.updateModelContext({ content: [{ type: 'text', text }] })
 }
 
+export function getEditorBindings(editor: Editor): TLBindingCreate[] {
+	const bindings: TLBindingCreate[] = []
+	for (const record of editor.getCurrentPageShapes()) {
+		if (record.type !== 'arrow') continue
+		const arrowBindings = editor.getBindingsFromShape(record.id, 'arrow')
+		for (const binding of arrowBindings) {
+			bindings.push({
+				type: binding.type,
+				fromId: binding.fromId,
+				toId: binding.toId,
+				props: structuredClone(binding.props),
+				meta: structuredClone(binding.meta),
+			} as TLBindingCreate)
+		}
+	}
+	return bindings
+}
+
 export function saveCheckpointToServer(app: App, checkpointId: string, editor: Editor) {
 	const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
 	const assets = [...editor.getAssets()].map((a) => structuredClone(a))
+	const bindings = getEditorBindings(editor)
 	const args: Record<string, string> = {
 		checkpointId,
 		shapesJson: JSON.stringify(shapes),
 	}
 	if (assets.length > 0) {
 		args.assetsJson = JSON.stringify(assets)
+	}
+	if (bindings.length > 0) {
+		args.bindingsJson = JSON.stringify(bindings)
 	}
 	app
 		.callServerTool({

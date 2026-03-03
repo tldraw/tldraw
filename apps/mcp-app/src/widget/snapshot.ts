@@ -1,6 +1,30 @@
-import type { TLShape, TLShapeId } from 'tldraw'
-import { Box, Editor, getIndexAbove, structuredClone } from 'tldraw'
+import type { TLBindingCreate, TLShape, TLShapeId } from 'tldraw'
+import { Box, Editor, structuredClone } from 'tldraw'
 import type { CanvasSnapshot } from './persistence'
+
+/**
+ * Create bindings on the editor from a list of TLBindingCreate objects.
+ * Only creates bindings where the target shape exists on the page.
+ * Removes existing arrow bindings for affected arrows to prevent duplicates.
+ */
+function applyBindings(editor: Editor, bindings: TLBindingCreate[]) {
+	if (bindings.length === 0) return
+
+	// Collect arrow shape IDs that have bindings to dedup
+	const arrowIds = new Set(bindings.map((b) => b.fromId))
+	for (const arrowId of arrowIds) {
+		const existing = editor.getBindingsFromShape(arrowId, 'arrow')
+		if (existing.length > 0) {
+			editor.deleteBindings(existing)
+		}
+	}
+
+	for (const binding of bindings) {
+		if (editor.getShape(binding.toId)) {
+			editor.createBinding(binding)
+		}
+	}
+}
 
 export const CAMERA_ANIM_MS = 300
 let cameraAnimEndTime = 0
@@ -67,6 +91,7 @@ export function zoomToFitRequestShapes(editor: Editor, shapeIds: Set<TLShapeId>)
 export function applySnapshot(editor: Editor, snapshot: CanvasSnapshot) {
 	const nextShapes = snapshot.shapes.map((shape) => structuredClone(shape))
 	const nextAssets = (snapshot.assets ?? []).map((asset) => structuredClone(asset))
+	const nextBindings = (snapshot.bindings ?? []) as TLBindingCreate[]
 
 	editor.store.mergeRemoteChanges(() => {
 		editor.run(
@@ -87,27 +112,15 @@ export function applySnapshot(editor: Editor, snapshot: CanvasSnapshot) {
 				}
 				if (nextShapes.length <= 0) return
 
-				const pageId = editor.getCurrentPageId()
-				const nextIndexByParent = new Map<string, ReturnType<Editor['getHighestIndexForParent']>>()
+				// Preserve parent relationships while allowing the editor to assign fresh indices.
+				const createInputs = nextShapes.map((shape) => {
+					const { index: _index, ...partial } = shape
+					return partial
+				})
+				editor.createShapes(createInputs)
 
-				for (const shape of nextShapes) {
-					const parentId =
-						typeof shape.parentId === 'string' && shape.parentId.length > 0
-							? shape.parentId
-							: pageId
-
-					shape.parentId = parentId
-
-					if (!nextIndexByParent.has(parentId)) {
-						nextIndexByParent.set(parentId, editor.getHighestIndexForParent(parentId))
-					}
-
-					const nextIndex = nextIndexByParent.get(parentId)!
-					shape.index = nextIndex
-					nextIndexByParent.set(parentId, getIndexAbove(nextIndex))
-				}
-
-				editor.createShapes(nextShapes)
+				// Create bindings after all shapes are on the page
+				applyBindings(editor, nextBindings)
 			},
 			{ history: 'ignore' }
 		)
@@ -127,6 +140,7 @@ export function applyPreviewToEditor(
 	const nextShapes = snapshot.shapes.map((shape) => structuredClone(shape))
 	const nextShapeIds = new Set(nextShapes.map((s) => s.id))
 	const committedIds = new Set(committedSnapshot.shapes.map((s) => s.id))
+	const nextBindings = (snapshot.bindings ?? []) as TLBindingCreate[]
 
 	editor.store.mergeRemoteChanges(() => {
 		editor.run(
@@ -140,34 +154,24 @@ export function applyPreviewToEditor(
 				if (nextShapes.length <= 0) return
 
 				const remainingIds = new Set([...editor.getCurrentPageShapeIds()])
-				const pageId = editor.getCurrentPageId()
-				const nextIndexByParent = new Map<string, ReturnType<Editor['getHighestIndexForParent']>>()
 
 				const toCreate: TLShape[] = []
 				const toUpdate: TLShape[] = []
 
 				for (const shape of nextShapes) {
-					const parentId =
-						typeof shape.parentId === 'string' && shape.parentId.length > 0
-							? shape.parentId
-							: pageId
-					shape.parentId = parentId
-
 					if (remainingIds.has(shape.id)) {
 						toUpdate.push(shape)
 					} else {
-						if (!nextIndexByParent.has(parentId)) {
-							nextIndexByParent.set(parentId, editor.getHighestIndexForParent(parentId))
-						}
-						const nextIndex = nextIndexByParent.get(parentId)!
-						shape.index = nextIndex
-						nextIndexByParent.set(parentId, getIndexAbove(nextIndex))
-						toCreate.push(shape)
+						const { index: _index, ...partial } = shape
+						toCreate.push(partial as TLShape)
 					}
 				}
 
 				if (toUpdate.length > 0) editor.updateShapes(toUpdate)
 				if (toCreate.length > 0) editor.createShapes(toCreate)
+
+				// Create bindings after all shapes are on the page
+				applyBindings(editor, nextBindings)
 			},
 			{ history: 'ignore' }
 		)
