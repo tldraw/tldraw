@@ -2,6 +2,7 @@ import type { TLBindingCreate, TLShape } from 'tldraw'
 import { structuredClone } from 'tldraw'
 import {
 	convertFocusedShapeToTldrawRecord,
+	convertFocusedShapesToTldrawRecords,
 	convertTldrawRecordToFocusedShape,
 } from '../focused-shape-converters'
 import {
@@ -90,20 +91,12 @@ export function toCreatePreviewShapes(
 	isPartial: boolean
 ): { shapes: TLShape[]; bindings: TLBindingCreate[] } {
 	const candidateItems = parsePreviewArray(value, isPartial)
-	const previewShapes: TLShape[] = []
-	const previewBindings: TLBindingCreate[] = []
+	const validShapes: FocusedShape[] = []
 	for (const item of candidateItems) {
 		const parsed = FocusedShapeSchema.safeParse(item)
-		if (!parsed.success) continue
-		try {
-			const result = convertFocusedShapeToTldrawRecord(parsed.data)
-			previewShapes.push(result.shape)
-			previewBindings.push(...result.bindings)
-		} catch {
-			// Ignore unsupported preview items.
-		}
+		if (parsed.success) validShapes.push(parsed.data)
 	}
-	return { shapes: previewShapes, bindings: previewBindings }
+	return convertFocusedShapesToTldrawRecords(validShapes)
 }
 
 export function toUpdatePreviewShapes(

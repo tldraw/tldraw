@@ -9,6 +9,7 @@ import type { TLShape } from 'tldraw'
 import { structuredClone, uniqueId } from 'tldraw'
 import { z } from 'zod'
 import {
+	convertFocusedShapesToTldrawRecords,
 	convertFocusedShapeToTldrawRecord,
 	convertTldrawRecordToFocusedShape,
 } from './focused-shape-converters'
@@ -104,9 +105,8 @@ export function registerTools(
 				)
 				const newBlankCanvas = parseBooleanFlag(new_blank_canvas, false)
 				const focusedShapes = parseFocusedShapesInput(shapesJson)
-				const results = focusedShapes.map((s: FocusedShape) => convertFocusedShapeToTldrawRecord(s))
-				const newRecords = results.map((r) => r.shape)
-				const newBindings = results.flatMap((r) => r.bindings)
+				const { shapes: newRecords, bindings: newBindings } =
+					convertFocusedShapesToTldrawRecords(focusedShapes)
 
 				const hadActiveCheckpoint = deps.getActiveCheckpointId() !== null
 				const baseShapes = newBlankCanvas ? [] : deps.getActiveShapes()
@@ -217,6 +217,7 @@ export function registerTools(
 						}) as FocusedShape
 						const result = convertFocusedShapeToTldrawRecord(merged)
 						result.shape.index = existing.index
+						result.shape.parentId = existing.parentId
 						shapesById.set(id, result.shape)
 						newBindings.push(...result.bindings)
 						updated.push(toSimpleShapeId(id))
