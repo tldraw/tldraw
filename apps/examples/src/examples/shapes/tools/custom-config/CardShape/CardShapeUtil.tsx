@@ -7,7 +7,6 @@ import {
 	TLResizeInfo,
 	TLShape,
 	getColorValue,
-	getDefaultColorTheme,
 	resizeBox,
 } from 'tldraw'
 import { cardShapeMigrations } from './card-shape-migrations'
@@ -62,7 +61,7 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	// [6]
 	component(shape: ICardShape) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
+		const theme = this.editor.getCurrentTheme()
 
 		//[a]
 		// eslint-disable-next-line react-hooks/rules-of-hooks

@@ -22,7 +22,7 @@ import {
 	getColorValue,
 	resizeBox,
 	structuredClone,
-	useDefaultColorTheme,
+	useEditor,
 	vecModelValidator,
 } from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
@@ -190,7 +190,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
+		const theme = useEditor().getCurrentTheme()
 
 		return (
 			<>
