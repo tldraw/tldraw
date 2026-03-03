@@ -40,8 +40,15 @@ export async function createMermaidDiagram(
 		themeVariables: { fontSize: `${16 * FONT_INFLATE}px` },
 	})
 
+	const offscreen = document.createElement('div')
+	offscreen.style.position = 'absolute'
+	offscreen.style.left = '-9999px'
+	offscreen.style.top = '-9999px'
+	offscreen.style.overflow = 'hidden'
+	document.body.appendChild(offscreen)
+
 	try {
-		const parsedSvg = (await mermaid.render(`mermaid-${Date.now()}`, text)).svg
+		const parsedSvg = (await mermaid.render(`mermaid-${Date.now()}`, text, offscreen)).svg
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		const diagramResult = await mermaid.mermaidAPI.getDiagramFromText(text)
 
@@ -87,5 +94,7 @@ export async function createMermaidDiagram(
 		if (e instanceof MermaidDiagramError) throw e
 		console.error(e)
 		throw new MermaidDiagramError(parsedResult.diagramType, 'parse')
+	} finally {
+		offscreen.remove()
 	}
 }
