@@ -397,58 +397,38 @@ function TldrawCanvas({ app }: { app: App }) {
 	useEffect(() => {
 		log('TldrawCanvas mounted')
 
-		// Pre-populate with latest checkpoint so streaming preview and update/delete
-		// have the existing canvas shapes as their base. This is the key to "forking":
-		// when a new tool call starts streaming, the widget already shows the previous
-		// canvas, and new shapes stream in on top.
-		const latestSnapshot = getLatestCheckpointSnapshot()
-		if (latestSnapshot && latestSnapshot.shapes.length > 0) {
-			const snapshot: CanvasSnapshot = {
-				shapes: latestSnapshot.shapes,
-				assets: latestSnapshot.assets,
-				bindings: latestSnapshot.bindings,
-			}
-			committedSnapshotRef.current = snapshot
-			const editor = editorRef.current
-			if (editor) {
-				applySnapshot(editor, snapshot)
-			} else {
-				pendingSnapshotRef.current = snapshot
-			}
-			log(`Pre-loaded ${latestSnapshot.shapes.length} shape(s) from latest checkpoint`)
-		} else {
-			// localStorage is empty — this happens in MCP hosts (e.g. Cursor) that
-			// isolate iframe origins between tool calls. Fall back to asking the
-			// server for the active checkpoint so streaming previews have a base.
-			app
-				.callServerTool({ name: 'get_active_checkpoint', arguments: {} })
-				.then((result: unknown) => {
-					const checkpoint = parseCheckpointFromToolResult(result)
-					if (!checkpoint || checkpoint.shapes.length === 0) return
-					// Don't overwrite if a tool result already committed shapes
-					if (committedSnapshotRef.current.shapes.length > 0) return
+		// Bootstrap from server checkpoint so streaming previews for update/delete
+		// have the existing canvas as their base. This is needed for MCP hosts (e.g.
+		// Cursor) that isolate iframe origins between tool calls.
+		// NOTE: We intentionally do NOT bootstrap from localStorage here — localStorage
+		// is shared across all conversations from the same origin, which causes
+		// cross-chat canvas bleeding.
+		app
+			.callServerTool({ name: 'get_active_checkpoint', arguments: {} })
+			.then((result: unknown) => {
+				const checkpoint = parseCheckpointFromToolResult(result)
+				if (!checkpoint || checkpoint.shapes.length === 0) return
+				// Don't overwrite if a tool result already committed shapes
+				if (committedSnapshotRef.current.shapes.length > 0) return
 
-					const snapshot: CanvasSnapshot = {
-						shapes: checkpoint.shapes,
-						assets: checkpoint.assets,
-						bindings: checkpoint.bindings,
-					}
-					committedSnapshotRef.current = snapshot
-					checkpointIdRef.current = checkpoint.checkpointId
-					const editor = editorRef.current
-					if (editor) {
-						applySnapshot(editor, snapshot)
-					} else {
-						pendingSnapshotRef.current = snapshot
-					}
-					log(
-						`Bootstrapped ${checkpoint.shapes.length} shape(s) from server (localStorage was empty)`
-					)
-				})
-				.catch(() => {
-					// Server bootstrap failed — widget starts empty.
-				})
-		}
+				const snapshot: CanvasSnapshot = {
+					shapes: checkpoint.shapes,
+					assets: checkpoint.assets,
+					bindings: checkpoint.bindings,
+				}
+				committedSnapshotRef.current = snapshot
+				checkpointIdRef.current = checkpoint.checkpointId
+				const editor = editorRef.current
+				if (editor) {
+					applySnapshot(editor, snapshot)
+				} else {
+					pendingSnapshotRef.current = snapshot
+				}
+				log(`Bootstrapped ${checkpoint.shapes.length} shape(s) from server`)
+			})
+			.catch(() => {
+				// Server bootstrap failed — widget starts empty.
+			})
 
 		app.onhostcontextchanged = (ctx) => {
 			log(`hostcontext: ${JSON.stringify(ctx)}`)
