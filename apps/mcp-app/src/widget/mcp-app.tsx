@@ -111,6 +111,7 @@ function SharePanelContent() {
 						borderRadius: 'var(--tl-radius-2)',
 						margin: 'var(--tl-space-2)',
 						cursor: hasShapes ? 'pointer' : 'not-allowed',
+						pointerEvents: 'all',
 					}}
 				>
 					Build it
