@@ -14,6 +14,7 @@ export const READ_ME_CONTENT = `# tldraw MCP — shape format and action referen
 - All shape mutation tools use JSON string arguments.
 - Keep numeric fields as numbers in the underlying array objects (for example \`x: 100\`, not \`"100"\`) before stringifying. This is required, do not forget it.
 - You will always be given the current state of the canvas in an attachment to a user's most recent message. Always refer to this when the user asks anything about the current canvas, when you want to edit the canvas, or when you need any information about it. 
+- Always output all of your changes of each type in just a single tool call.
 
 ## FocusedShape format
 
