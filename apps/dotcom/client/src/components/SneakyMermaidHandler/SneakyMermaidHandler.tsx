@@ -44,6 +44,7 @@ export function SneakyMermaidHandler() {
 							point: content.point,
 							sources: content.sources,
 						})
+						return
 					}
 				}
 
