@@ -3,8 +3,6 @@
 /* eslint-disable no-useless-escape */
 export const READ_ME_CONTENT = `# tldraw MCP — shape format and action reference
 
-Call this tool first.
-
 ## Workflow
 
 1. Use \`create_shapes\` to create shapes on the canvas.
@@ -155,6 +153,10 @@ Deletes shapes by id from a JSON string.
 
 - When specifying a fill, you can use \`background\` to make the shape the same color as the canvas background (white in light mode, black in dark mode).
 - When making shapes that should appear white (or black in dark mode), use \`background\` as the fill and \`grey\` as the color instead of \`white\`. This ensures there is a visible border around the shape.
+
+## Empty canvases
+
+- If a user asks for a new blank canvas, or asks you to pull up a canvas or board for them with no other context, call create_shapes with new_blank_canvas: true and an empty \`shapesJson\` array.
 
 ## Diagram examples
 
