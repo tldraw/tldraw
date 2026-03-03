@@ -3940,6 +3940,31 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
 	}
 
+	// Attribution
+
+	/**
+	 * Get the user ID to use for shape attribution. Override this method to
+	 * provide a custom user ID (e.g. from your own auth system).
+	 *
+	 * @public
+	 */
+	getAttributionUserId(): string | null {
+		return this.user.getId()
+	}
+
+	/**
+	 * Resolve a display name for an attribution user ID. Returns the current
+	 * user's name if it matches, otherwise looks up collaborators. Override
+	 * this method to provide custom user name resolution.
+	 *
+	 * @public
+	 */
+	getAttributionDisplayName(userId: string): string | null {
+		if (userId === this.user.getId()) return this.user.getName()
+		const collaborator = this.getCollaborators().find((c) => c.userId === userId)
+		return collaborator?.userName ?? null
+	}
+
 	// Following
 
 	// When we are 'locked on' to a user, our camera is derived from their camera.
@@ -8161,13 +8186,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// When we create the shape, take in the partial (the props coming into the
 				// function) and merge it with the default props.
+				const { tlmeta: partialTlmeta, ...partialWithoutTlmeta } = partial as any
 				let shapeRecordToCreate = (
 					this.store.schema.types.shape as RecordType<
 						TLShape,
 						'type' | 'props' | 'index' | 'parentId'
 					>
 				).create({
-					...partial,
+					...partialWithoutTlmeta,
 					index,
 					opacity: partial.opacity ?? opacityForNextShape,
 					parentId: partial.parentId ?? focusedGroupId,
@@ -8176,6 +8202,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				if (shapeRecordToCreate.index === undefined) {
 					throw Error('no index!')
+				}
+
+				// Set attribution metadata, merging any explicitly provided fields
+				{
+					const now = Date.now()
+					const userId = this.getAttributionUserId()
+					shapeRecordToCreate = {
+						...shapeRecordToCreate,
+						tlmeta: {
+							createdBy: userId,
+							updatedBy: userId,
+							createdAt: now,
+							updatedAt: now,
+							...partialTlmeta,
+						},
+					}
 				}
 
 				const next = this.getShapeUtil(shapeRecordToCreate).onBeforeCreate?.(shapeRecordToCreate)
@@ -8587,6 +8629,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the update had no effect, we'll skip this update
 				updated = applyPartialToRecordWithProps(shape, partial)
 				if (updated === shape) continue
+
+				// Update attribution metadata if not explicitly provided
+				if (!('tlmeta' in (partial as any))) {
+					const now = Date.now()
+					const userId = this.getAttributionUserId()
+					updated = {
+						...updated,
+						tlmeta: { ...updated.tlmeta, updatedBy: userId, updatedAt: now },
+					}
+				}
 
 				//if any shape has an onBeforeUpdate handler, call it and, if the handler returns a
 				// new shape, replace the old shape with the new one. This is used for example when
@@ -10945,7 +10997,11 @@ function applyPartialToRecordWithProps<
 	T extends UnknownRecord & { type: string; props: object; meta: object },
 >(
 	prev: T,
-	partial?: T extends T ? Omit<Partial<T>, 'props'> & { props?: Partial<T['props']> } : never
+	partial?: T extends T
+		? Omit<Partial<T>, 'props' | 'tlmeta'> & {
+				props?: Partial<T['props']>
+			} & ('tlmeta' extends keyof T ? { tlmeta?: Partial<T['tlmeta']> } : unknown)
+		: never
 ): T {
 	if (!partial) return prev
 	let next = null as null | T
@@ -10963,11 +11019,11 @@ function applyPartialToRecordWithProps<
 		// There's a new value, so create the new shape if we haven't already (should we be cloning this?)
 		if (!next) next = { ...prev }
 
-		// for props / meta properties, we support updates with partials of this object
-		if (k === 'props' || k === 'meta') {
-			next[k] = { ...prev[k] } as JsonObject
+		// for props / meta / tlmeta properties, we support updates with partials of this object
+		if (k === 'props' || k === 'meta' || k === 'tlmeta') {
+			;(next as any)[k] = { ...(prev as any)[k] }
 			for (const [nextKey, nextValue] of Object.entries(v as object)) {
-				;(next[k] as JsonObject)[nextKey] = nextValue
+				;(next as any)[k][nextKey] = nextValue
 			}
 			continue
 		}

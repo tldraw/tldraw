@@ -5,6 +5,37 @@ import { idValidator } from '../misc/id-validator'
 import { TLParentId, TLShapeId } from '../records/TLShape'
 
 /**
+ * Attribution metadata tracked internally by tldraw.
+ *
+ * This metadata is separate from the developer-facing `meta` field and is
+ * automatically managed by the editor to track who created and last updated a shape.
+ *
+ * @public
+ */
+export interface TLShapeTlmeta {
+	createdBy: string | null
+	updatedBy: string | null
+	createdAt: number | null
+	updatedAt: number | null
+}
+
+/** @public */
+export const defaultTlmeta: TLShapeTlmeta = {
+	createdBy: null,
+	updatedBy: null,
+	createdAt: null,
+	updatedAt: null,
+}
+
+/** @public */
+export const tlmetaValidator: T.ObjectValidator<TLShapeTlmeta> = T.object<TLShapeTlmeta>({
+	createdBy: T.string.nullable(),
+	updatedBy: T.string.nullable(),
+	createdAt: T.number.nullable(),
+	updatedAt: T.number.nullable(),
+})
+
+/**
  * Base interface for all shapes in tldraw.
  *
  * This interface defines the common properties that all shapes share, regardless of their
@@ -74,6 +105,7 @@ export interface TLBaseShape<Type extends string, Props extends object> {
 	opacity: TLOpacityType
 	props: Props
 	meta: JsonObject
+	tlmeta: TLShapeTlmeta
 }
 
 /**
@@ -177,5 +209,6 @@ export function createShapeValidator<
 		opacity: opacityValidator,
 		props: props ? T.object(props) : (T.jsonValue as any),
 		meta: meta ? T.object(meta) : (T.jsonValue as any),
+		tlmeta: tlmetaValidator,
 	})
 }

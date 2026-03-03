@@ -12,6 +12,7 @@ import {
 	TLRecord,
 	TLShapeId,
 	createTLSchema,
+	defaultTlmeta,
 } from '@tldraw/tlschema'
 import { IndexKey, ZERO_INDEX_KEY, mockUniqueId, sortById } from '@tldraw/utils'
 import { vi } from 'vitest'
@@ -1293,6 +1294,7 @@ describe('Migration and patch handling', () => {
 				scale: 1,
 			},
 			meta: {},
+			tlmeta: { ...defaultTlmeta },
 		}
 
 		const storage = new InMemorySyncStorage<TLRecord>({

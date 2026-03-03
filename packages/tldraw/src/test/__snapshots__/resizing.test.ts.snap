@@ -27,6 +27,12 @@ exports[`When resizing a shape with children > Resizes a rotated draw shape > dr
     "size": "m",
   },
   "rotation": 3.141592653589793,
+  "tlmeta": {
+    "createdAt": 1772541434280,
+    "createdBy": "Zl8Hv6HytL9B-1Iyq-m9v",
+    "updatedAt": 1772541434280,
+    "updatedBy": "Zl8Hv6HytL9B-1Iyq-m9v",
+  },
   "type": "draw",
   "typeName": "shape",
   "x": 100,

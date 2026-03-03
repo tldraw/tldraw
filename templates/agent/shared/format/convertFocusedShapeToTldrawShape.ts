@@ -1,6 +1,7 @@
 import {
 	Box,
 	createShapeId,
+	defaultTlmeta,
 	Editor,
 	FONT_SIZES,
 	IndexKey,
@@ -37,6 +38,8 @@ import {
 	FocusedTextShapePartial,
 	FocusedUnknownShape,
 } from './FocusedShape'
+
+const DEFAULT_TLMETA = { ...defaultTlmeta }
 
 /**
  * Convert a FocusedShape to a shape object to a tldraw shape using defaultShape for fallback values
@@ -224,6 +227,7 @@ function convertTextShapeToTldrawShape(
 		meta: {
 			note: focusedShape.note ?? defaultTextShape.meta?.note ?? '',
 		},
+		tlmeta: DEFAULT_TLMETA,
 	}
 
 	const unpositionedBounds = getDummyBounds(editor, unpositionedShape)
@@ -340,6 +344,7 @@ function convertLineShapeToTldrawShape(
 			meta: {
 				note: focusedShape.note ?? defaultLineShape.meta?.note ?? '',
 			},
+			tlmeta: DEFAULT_TLMETA,
 		},
 	}
 }
@@ -401,6 +406,7 @@ function convertArrowShapeToTldrawShape(
 		meta: {
 			note: focusedShape.note ?? defaultArrowShape.meta?.note ?? '',
 		},
+		tlmeta: DEFAULT_TLMETA,
 	}
 
 	// Handle arrow bindings if fromId or toId are provided
@@ -517,6 +523,7 @@ function convertGeoShapeToTldrawShape(
 			meta: {
 				note: focusedShape.note ?? defaultGeoShape.meta?.note ?? '',
 			},
+			tlmeta: DEFAULT_TLMETA,
 		},
 	}
 }
@@ -564,10 +571,12 @@ function convertNoteShapeToTldrawShape(
 				scale: defaultNoteShape.props?.scale ?? 1,
 				url: defaultNoteShape.props?.url ?? '',
 				verticalAlign: defaultNoteShape.props?.verticalAlign ?? 'middle',
+				textLastEditedBy: defaultNoteShape.props?.textLastEditedBy ?? null,
 			},
 			meta: {
 				note: focusedShape.note ?? defaultNoteShape.meta?.note ?? '',
 			},
+			tlmeta: DEFAULT_TLMETA,
 		},
 	}
 }
@@ -610,6 +619,7 @@ function convertDrawShapeToTldrawShape(
 			meta: {
 				note: focusedShape.note ?? defaultDrawShape.meta?.note ?? '',
 			},
+			tlmeta: DEFAULT_TLMETA,
 		},
 	}
 }
@@ -637,6 +647,7 @@ function convertUnknownShapeToTldrawShape(
 			meta: {
 				note: focusedShape.note ?? defaultShape.meta?.note ?? '',
 			},
+			tlmeta: DEFAULT_TLMETA,
 		},
 	}
 }

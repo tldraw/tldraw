@@ -24,6 +24,7 @@ import {
 	createShapeId,
 	getIndexAbove,
 	getIndices,
+	defaultTlmeta,
 	isShapeId,
 	toRichText,
 } from '@tldraw/editor'
@@ -93,6 +94,7 @@ export async function putExcalidrawContent(
 			isLocked: element.locked,
 			opacity: getOpacity(element.opacity),
 			meta: {},
+			tlmeta: { ...defaultTlmeta },
 		} as const
 
 		if (element.angle !== 0) {

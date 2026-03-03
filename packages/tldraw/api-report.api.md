@@ -139,6 +139,7 @@ import { TLShapeCrop } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
 import { TLShapeId as TLShapeId_2 } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/editor';
+import { TLShapeTlmeta } from '@tldraw/tlschema';
 import { TLShapeUtilCanBeLaidOutOpts } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
@@ -465,6 +466,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
             w: number;
         };
         rotation: number;
+        tlmeta: TLShapeTlmeta;
         type: "bookmark";
         typeName: "shape";
         x: number;
@@ -485,6 +487,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
             w: number;
         };
         rotation: number;
+        tlmeta: TLShapeTlmeta;
         type: "bookmark";
         typeName: "shape";
         x: number;
@@ -1703,6 +1706,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             w: number;
         };
         rotation: number;
+        tlmeta: TLShapeTlmeta;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -1738,6 +1742,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             w: number;
         };
         rotation: number;
+        tlmeta: TLShapeTlmeta;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -1755,6 +1760,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             geo: "check-box";
         };
         rotation: number;
+        tlmeta: TLShapeTlmeta;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -1770,6 +1776,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             geo: "rectangle";
         };
         rotation: number;
+        tlmeta: TLShapeTlmeta;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -2119,6 +2126,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
             spline: "cubic" | "line";
         };
         rotation: number;
+        tlmeta: TLShapeTlmeta;
         type: "line";
         typeName: "shape";
         x: number;
@@ -2148,6 +2156,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
             spline: "cubic" | "line";
         };
         rotation: number;
+        tlmeta: TLShapeTlmeta;
         type: "line";
         typeName: "shape";
         x: number;
@@ -2269,6 +2278,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             fontSizeAdjustment: number;
             growY: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            lastEditedBy: null | string;
             richText: {
                 attrs?: any;
                 content: unknown[];
@@ -2280,42 +2290,14 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             verticalAlign: "end" | "middle" | "start";
         };
         rotation: number;
+        tlmeta: TLShapeTlmeta;
         type: "note";
         typeName: "shape";
         x: number;
         y: number;
     } | undefined;
     // (undocumented)
-    onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape): {
-        id: TLShapeId;
-        index: IndexKey_2;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: number;
-        parentId: TLParentId;
-        props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            font: "draw" | "mono" | "sans" | "serif";
-            fontSizeAdjustment: number;
-            growY: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
-            scale: number;
-            size: "l" | "m" | "s" | "xl";
-            url: string;
-            verticalAlign: "end" | "middle" | "start";
-        };
-        rotation: number;
-        type: "note";
-        typeName: "shape";
-        x: number;
-        y: number;
-    } | undefined;
+    onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape): TLNoteShape | undefined;
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): {
         props: {
@@ -3152,6 +3134,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             w: number;
         };
         rotation: number;
+        tlmeta: TLShapeTlmeta;
         type: "text";
         typeName: "shape";
         x: number;

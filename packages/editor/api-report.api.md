@@ -81,6 +81,7 @@ import { TLShape } from '@tldraw/tlschema';
 import { TLShapeCrop } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
+import { TLShapeTlmeta } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStoreSchema } from '@tldraw/tlschema';
@@ -915,6 +916,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "arrow";
                 typeName: "shape";
                 x: number;
@@ -928,6 +930,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "bookmark";
                 typeName: "shape";
                 x: number;
@@ -941,6 +944,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "draw";
                 typeName: "shape";
                 x: number;
@@ -954,6 +958,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "embed";
                 typeName: "shape";
                 x: number;
@@ -967,6 +972,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "frame";
                 typeName: "shape";
                 x: number;
@@ -980,6 +986,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "geo";
                 typeName: "shape";
                 x: number;
@@ -993,6 +1000,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "group";
                 typeName: "shape";
                 x: number;
@@ -1006,6 +1014,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "highlight";
                 typeName: "shape";
                 x: number;
@@ -1019,6 +1028,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "image";
                 typeName: "shape";
                 x: number;
@@ -1032,6 +1042,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "line";
                 typeName: "shape";
                 x: number;
@@ -1045,6 +1056,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "my-custom-shape";
                 typeName: "shape";
                 x: number;
@@ -1058,6 +1070,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "note";
                 typeName: "shape";
                 x: number;
@@ -1071,6 +1084,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "test-shape";
                 typeName: "shape";
                 x: number;
@@ -1084,6 +1098,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "text";
                 typeName: "shape";
                 x: number;
@@ -1097,6 +1112,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTlmeta;
                 type: "video";
                 typeName: "shape";
                 x: number;
@@ -1177,6 +1193,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
     getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
+    getAttributionDisplayName(userId: string): null | string;
+    getAttributionUserId(): null | string;
     getBaseZoom(): number;
     getBinding(id: TLBindingId): TLBinding | undefined;
     getBindingsFromShape<K extends TLBinding['type']>(shape: TLShape | TLShapeId, type: K): Extract<TLBinding, {

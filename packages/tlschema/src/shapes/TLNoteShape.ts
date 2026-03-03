@@ -64,6 +64,8 @@ export interface TLNoteShapeProps {
 	richText: TLRichText
 	/** Scale factor applied to the note shape for display */
 	scale: number
+	/** User ID of the person who last edited the note text */
+	textLastEditedBy: string | null
 }
 
 /**
@@ -130,6 +132,7 @@ export const noteShapeProps: RecordProps<TLNoteShape> = {
 	url: T.linkUrl,
 	richText: richTextValidator,
 	scale: T.nonZeroNumber,
+	textLastEditedBy: T.string.nullable(),
 }
 
 const Versions = createShapePropsMigrationIds('note', {
@@ -143,6 +146,7 @@ const Versions = createShapePropsMigrationIds('note', {
 	AddLabelColor: 8,
 	AddRichText: 9,
 	AddRichTextAttrs: 10,
+	AddLastEditedBy: 11,
 })
 
 /**
@@ -263,6 +267,15 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 				if (props.richText && 'attrs' in props.richText) {
 					delete props.richText.attrs
 				}
+			},
+		},
+		{
+			id: Versions.AddLastEditedBy,
+			up: (props) => {
+				props.textLastEditedBy = null
+			},
+			down: (props) => {
+				delete props.textLastEditedBy
 			},
 		},
 	],

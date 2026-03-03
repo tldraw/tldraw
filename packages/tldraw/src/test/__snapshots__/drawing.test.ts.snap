@@ -26,6 +26,12 @@ exports[`Draws a bunch > draw shape 1`] = `
     "size": "m",
   },
   "rotation": 0,
+  "tlmeta": {
+    "createdAt": 1772541433678,
+    "createdBy": "FbP3p0iDkYHOgkbtcSCAT",
+    "updatedAt": 1772541433678,
+    "updatedBy": "FbP3p0iDkYHOgkbtcSCAT",
+  },
   "type": "draw",
   "typeName": "shape",
   "x": 511,

@@ -39,7 +39,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.tldrawusercontent.com',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
-	'frame-src': [`'self'`, `https:`],
+	'frame-src': [`'self'`, `https:`, '*'],
 	'img-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'script-src': [
@@ -75,5 +75,10 @@ export const csp = Object.keys(cspDirectives)
 
 export const cspDev = Object.keys(cspDirectives)
 	.filter((key) => key !== 'report-uri')
-	.map((directive) => `${directive} ${cspDirectives[directive].join(' ')}`)
+	.map((directive) => {
+		const values = cspDirectives[directive]
+		// We allow data: urls for frame-src to allow debugging SVG embeds in dev.
+		if (directive === 'frame-src') return `${directive} ${[...values, 'data:'].join(' ')}`
+		return `${directive} ${values.join(' ')}`
+	})
 	.join('; ')

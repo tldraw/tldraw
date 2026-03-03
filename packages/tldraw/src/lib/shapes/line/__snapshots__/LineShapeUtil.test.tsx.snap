@@ -30,6 +30,12 @@ exports[`Misc > resizes > line shape after resize 1`] = `
     "spline": "line",
   },
   "rotation": 0,
+  "tlmeta": {
+    "createdAt": 1772541433679,
+    "createdBy": "id3",
+    "updatedAt": 1772541433679,
+    "updatedBy": "id3",
+  },
   "type": "line",
   "typeName": "shape",
   "x": 150,

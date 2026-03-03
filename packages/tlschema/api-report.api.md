@@ -176,7 +176,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
+}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "tlmeta" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
 
 // @public
 export function createTLSchema({ shapes, bindings, migrations }?: {
@@ -843,6 +843,8 @@ export interface TLBaseShape<Type extends string, Props extends object> {
     // (undocumented)
     rotation: number;
     // (undocumented)
+    tlmeta: TLShapeTlmeta;
+    // (undocumented)
     type: Type;
     // (undocumented)
     readonly typeName: 'shape';
@@ -1337,6 +1339,9 @@ export interface TLLineShapeProps {
 // @public
 export type TLLineShapeSplineStyle = T.TypeOf<typeof LineShapeSplineStyle>;
 
+// @public (undocumented)
+export const tlmetaValidator: T.ObjectValidator<TLShapeTlmeta>;
+
 // @public
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>;
 
@@ -1348,6 +1353,7 @@ export interface TLNoteShapeProps {
     fontSizeAdjustment: number;
     growY: number;
     labelColor: TLDefaultColorStyle;
+    lastEditedBy: null | string;
     richText: TLRichText;
     scale: number;
     size: TLDefaultSizeStyle;
@@ -1467,6 +1473,18 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     props?: Partial<T['props']>;
     type: T['type'];
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
+
+// @public
+export interface TLShapeTlmeta {
+    // (undocumented)
+    createdAt: null | number;
+    // (undocumented)
+    createdBy: null | string;
+    // (undocumented)
+    updatedAt: null | number;
+    // (undocumented)
+    updatedBy: null | string;
+}
 
 // @public
 export type TLStore = Store<TLRecord, TLStoreProps>;

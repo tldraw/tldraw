@@ -180,9 +180,12 @@ export {
 } from './shapes/TLArrowShape'
 export {
 	createShapeValidator,
+	defaultTlmeta,
 	parentIdValidator,
 	shapeIdValidator,
+	tlmetaValidator,
 	type TLBaseShape,
+	type TLShapeTlmeta,
 } from './shapes/TLBaseShape'
 export {
 	bookmarkShapeMigrations,
