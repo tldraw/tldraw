@@ -342,7 +342,8 @@ export function orderTopDown<T>(
 	}
 
 	for (const item of items) {
-		if (!getParentId(item)) visit(getId(item))
+		const pid = getParentId(item)
+		if (!pid || !byId.has(pid)) visit(getId(item))
 	}
 	return result
 }
