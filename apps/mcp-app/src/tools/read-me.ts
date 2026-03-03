@@ -56,7 +56,7 @@ Shapes are JSON objects with a \`_type\` discriminator and unique \`shapeId\`.
 \`\`\`
 
 ### Enums
-- Geo \`_type\`: rectangle, ellipse, triangle, diamond, hexagon, pill, cloud, x-box, check-box, heart, pentagon, octagon, star, parallelogram-right, parallelogram-left, trapezoid, fat-arrow-right, fat-arrow-left, fat-arrow-up, fat-arrow-down,
+- \`_type\`: rectangle, ellipse, triangle, diamond, hexagon, pill, cloud, x-box, check-box, heart, pentagon, octagon, star, parallelogram-right, parallelogram-left, trapezoid, fat-arrow-right, fat-arrow-left, fat-arrow-up, fat-arrow-down,
 - Colors: red, light-red, green, light-green, blue, light-blue, orange, yellow, black, violet, light-violet, grey, white
 - Fill: none, tint, background, solid, pattern
 - Dash: draw, solid, dashed, dotted
@@ -87,14 +87,14 @@ Deletes shapes by id from a JSON string.
 \`\`\`json
 {
   "new_blank_canvas": true,
-  "shapesJson": "[{\"_type\":\"rectangle\",\"shapeId\":\"start\",\"x\":0,\"y\":0,\"w\":240,\"h\":120,\"color\":\"blue\",\"fill\":\"tint\",\"text\":\"Start\"},{\"_type\":\"arrow\",\"shapeId\":\"a1\",\"x1\":240,\"y1\":60,\"x2\":400,\"y2\":60,\"color\":\"black\",\"fromId\":\"start\",\"toId\":\"process\"},{\"_type\":\"rectangle\",\"shapeId\":\"process\",\"x\":400,\"y\":0,\"w\":260,\"h\":120,\"color\":\"green\",\"fill\":\"tint\",\"text\":\"Process\"}]"
+  "shapesJson": "[{\"_type\":\"rectangle\",\"shapeId\":\"start\",\"x\":0,\"y\":0,\"w\":240,\"h\":120,\"color\":\"blue\",\"fill\":\"tint\",\"text\":\"Start\"},{\"_type\":\"rectangle\",\"shapeId\":\"process\",\"x\":520,\"y\":0,\"w\":280,\"h\":120,\"color\":\"green\",\"fill\":\"tint\",\"text\":\"Process\"},{\"_type\":\"arrow\",\"shapeId\":\"a1\",\"x1\":240,\"y1\":50,\"x2\":520,\"y2\":50,\"color\":\"black\",\"fromId\":\"start\",\"toId\":\"process\",\"text\":\"request\",\"bend\":-24},{\"_type\":\"arrow\",\"shapeId\":\"a2\",\"x1\":520,\"y1\":80,\"x2\":240,\"y2\":80,\"color\":\"grey\",\"fromId\":\"process\",\"toId\":\"start\",\"text\":\"result\",\"bend\":24}]"
 }
 \`\`\`
 
 ### update_shapes
 \`\`\`json
 {
-  "updatesJson": "[{\"shapeId\":\"process\",\"text\":\"Validate Input\",\"color\":\"orange\"},{\"shapeId\":\"a1\",\"text\":\"next\",\"bend\":12}]"
+  "updatesJson": "[{\"shapeId\":\"process\",\"text\":\"Validate input\",\"color\":\"orange\"},{\"shapeId\":\"a1\",\"text\":\"next step\",\"bend\":-36},{\"shapeId\":\"a2\",\"text\":\"ack\",\"bend\":36}]"
 }
 \`\`\`
 
@@ -112,11 +112,12 @@ Deletes shapes by id from a JSON string.
 
 ## Tips for creating shapes
 
-- If the shape you need is not available as a geo type, use the \`draw\` type to create a custom shape with the pen.
+- The main thing you must watch out for when creating diagrams is the overlap of shapes and text shapes and labels and arrow labels. 
 - Use the \`note\` field to provide context for each shape. This will help you understand the purpose of each shape later.
 - Never create "unknown" type shapes.
 - When creating shapes that are meant to be contained within other shapes, always ensure the inner shapes properly fit inside the containing shape. If there are overlaps, either make the inside shapes smaller or the outside shape bigger.
-- Leave breathing room between neighboring shapes. As a default, target around 60-120px horizontal gaps and 80-140px vertical gaps unless the user asks for a dense layout.
+- Leave breathing room between neighboring shapes. As a default, target at least 140px horizontal gaps and at least 140px vertical gaps unless the user asks for a dense layout.
+  - If 2 shapes are connected via labeled arrows, give more space, especially horizontal space, and especially if the labels are long.
 
 ## Arrows
 
@@ -130,6 +131,7 @@ Deletes shapes by id from a JSON string.
   - Arrow going LEFT: positive bend curves DOWN, negative curves UP
   - Arrow going DOWN: positive bend curves RIGHT, negative curves LEFT
   - Arrow going UP: positive bend curves LEFT, negative curves RIGHT
+- If 2 shapes are connected via 2 arrows, you must give the arrows bends of opposite signs so the labels do not overlap. 
 
 ## Text shapes
 
@@ -168,9 +170,10 @@ Deletes shapes by id from a JSON string.
 
 \`\`\`json
 [
-  {"_type":"rectangle","shapeId":"start","x":0,"y":0,"w":240,"h":120,"color":"blue","fill":"tint","text":"Start"},
-  {"_type":"rectangle","shapeId":"end","x":420,"y":0,"w":240,"h":120,"color":"green","fill":"tint","text":"End"},
-  {"_type":"arrow","shapeId":"a1","x1":240,"y1":60,"x2":420,"y2":60,"color":"black","fromId":"start","toId":"end","text":"next"}
+  {"_type":"rectangle","shapeId":"start","x":0,"y":0,"w":260,"h":120,"color":"blue","fill":"tint","text":"Start"},
+  {"_type":"rectangle","shapeId":"end","x":560,"y":0,"w":260,"h":120,"color":"green","fill":"tint","text":"End"},
+  {"_type":"arrow","shapeId":"a1","x1":260,"y1":50,"x2":560,"y2":50,"color":"black","fromId":"start","toId":"end","text":"request","bend":-26},
+  {"_type":"arrow","shapeId":"a2","x1":560,"y1":80,"x2":260,"y2":80,"color":"grey","fromId":"end","toId":"start","text":"response","bend":26}
 ]
 \`\`\`
 
@@ -178,24 +181,25 @@ Deletes shapes by id from a JSON string.
 
 \`\`\`json
 [
-  {"_type":"text","shapeId":"title","x":300,"y":0,"text":"Login Flow","color":"black","anchor":"top-center","size":"xl","font":"sans"},
-  {"_type":"pill","shapeId":"enter","x":180,"y":100,"w":240,"h":100,"color":"blue","fill":"tint","text":"User visits /login"},
-  {"_type":"rectangle","shapeId":"form","x":180,"y":280,"w":240,"h":120,"color":"light-blue","fill":"tint","text":"Show login form"},
-  {"_type":"arrow","shapeId":"a1","x1":300,"y1":200,"x2":300,"y2":280,"color":"black","fromId":"enter","toId":"form"},
-  {"_type":"diamond","shapeId":"valid","x":150,"y":500,"w":300,"h":200,"color":"orange","fill":"tint","text":"Credentials\\nvalid?"},
-  {"_type":"arrow","shapeId":"a2","x1":300,"y1":400,"x2":300,"y2":500,"color":"black","fromId":"form","toId":"valid","text":"submit"},
-  {"_type":"rectangle","shapeId":"dashboard","x":560,"y":530,"w":260,"h":120,"color":"green","fill":"tint","text":"Redirect to\\ndashboard"},
-  {"_type":"arrow","shapeId":"a3","x1":450,"y1":600,"x2":560,"y2":590,"color":"green","fromId":"valid","toId":"dashboard","text":"yes"},
-  {"_type":"rectangle","shapeId":"error","x":-240,"y":530,"w":260,"h":120,"color":"red","fill":"tint","text":"Show error\\nmessage"},
-  {"_type":"arrow","shapeId":"a4","x1":150,"y1":600,"x2":20,"y2":590,"color":"red","fromId":"valid","toId":"error","text":"no"},
-  {"_type":"arrow","shapeId":"a5","x1":-110,"y1":530,"x2":180,"y2":340,"color":"grey","dash":"dashed","fromId":"error","toId":"form","text":"retry","bend":100}
+  {"_type":"text","shapeId":"title","x":560,"y":0,"text":"Login flow","color":"black","anchor":"top-center","size":"xl","font":"sans"},
+  {"_type":"pill","shapeId":"enter","x":420,"y":140,"w":280,"h":120,"color":"blue","fill":"tint","text":"User visits /login"},
+  {"_type":"rectangle","shapeId":"form","x":420,"y":400,"w":280,"h":140,"color":"light-blue","fill":"tint","text":"Show login form"},
+  {"_type":"arrow","shapeId":"a1","x1":560,"y1":260,"x2":560,"y2":400,"color":"black","fromId":"enter","toId":"form"},
+  {"_type":"diamond","shapeId":"valid","x":380,"y":700,"w":360,"h":220,"color":"orange","fill":"tint","text":"Credentials\\nvalid?"},
+  {"_type":"arrow","shapeId":"a2","x1":560,"y1":540,"x2":560,"y2":700,"color":"black","fromId":"form","toId":"valid","text":"submit","bend":52},
+  {"_type":"arrow","shapeId":"a2b","x1":560,"y1":700,"x2":560,"y2":540,"color":"grey","dash":"dashed","fromId":"valid","toId":"form","text":"needs fix","bend":-52},
+  {"_type":"rectangle","shapeId":"dashboard","x":980,"y":760,"w":300,"h":140,"color":"green","fill":"tint","text":"Redirect to\\ndashboard"},
+  {"_type":"arrow","shapeId":"a3","x1":740,"y1":810,"x2":980,"y2":830,"color":"green","fromId":"valid","toId":"dashboard","text":"yes"},
+  {"_type":"rectangle","shapeId":"error","x":-160,"y":760,"w":300,"h":140,"color":"red","fill":"tint","text":"Show error\\nmessage"},
+  {"_type":"arrow","shapeId":"a4","x1":380,"y1":830,"x2":140,"y2":810,"color":"red","fromId":"valid","toId":"error","text":"no"}
 ]
 \`\`\`
 
 Key techniques:
 - Use \`pill\` for start/end nodes and \`diamond\` for decision points
 - Bind arrows with \`fromId\`/\`toId\` so they stay connected when shapes move
-- Use \`bend\` on the retry arrow to curve it around the other shapes
+- Leave at least ~140px between rows and columns to protect shape labels and arrow labels
+- When two arrows connect the same two shapes, use opposite-sign \`bend\` values so labels do not collide
 - Use \`dash: "dashed"\` for secondary/optional flows
 - Center the title text using \`anchor: "top-center"\`
 
@@ -203,27 +207,28 @@ Key techniques:
 
 \`\`\`json
 [
-  {"_type":"text","shapeId":"title","x":420,"y":0,"text":"Web App Architecture","color":"black","anchor":"top-center","size":"xl","font":"sans"},
-  {"_type":"rectangle","shapeId":"fe-frame","x":0,"y":80,"w":840,"h":220,"color":"blue","fill":"tint","text":"Frontend"},
-  {"_type":"rectangle","shapeId":"browser","x":40,"y":130,"w":240,"h":120,"color":"blue","fill":"tint","text":"React SPA"},
-  {"_type":"rectangle","shapeId":"cdn","x":340,"y":130,"w":180,"h":120,"color":"light-blue","fill":"tint","text":"CDN"},
-  {"_type":"rectangle","shapeId":"lb","x":580,"y":130,"w":220,"h":120,"color":"violet","fill":"tint","text":"Load Balancer"},
-  {"_type":"arrow","shapeId":"a1","x1":280,"y1":190,"x2":340,"y2":190,"color":"grey","fromId":"browser","toId":"cdn"},
-  {"_type":"arrow","shapeId":"a2","x1":520,"y1":190,"x2":580,"y2":190,"color":"grey","fromId":"cdn","toId":"lb"},
-  {"_type":"rectangle","shapeId":"be-frame","x":0,"y":380,"w":840,"h":220,"color":"green","fill":"tint","text":"Backend"},
-  {"_type":"rectangle","shapeId":"api","x":40,"y":430,"w":240,"h":120,"color":"green","fill":"tint","text":"API Server\\n(Node.js)"},
-  {"_type":"rectangle","shapeId":"auth","x":340,"y":430,"w":180,"h":120,"color":"orange","fill":"tint","text":"Auth Service"},
-  {"_type":"cloud","shapeId":"queue","x":580,"y":420,"w":220,"h":140,"color":"yellow","fill":"tint","text":"Message\\nQueue"},
-  {"_type":"arrow","shapeId":"a3","x1":690,"y1":300,"x2":160,"y2":430,"color":"black","fromId":"lb","toId":"api","text":"routes"},
-  {"_type":"arrow","shapeId":"a4","x1":280,"y1":490,"x2":340,"y2":490,"color":"grey","fromId":"api","toId":"auth"},
-  {"_type":"arrow","shapeId":"a5","x1":520,"y1":490,"x2":580,"y2":490,"color":"grey","fromId":"auth","toId":"queue"},
-  {"_type":"rectangle","shapeId":"db-frame","x":0,"y":680,"w":840,"h":220,"color":"red","fill":"tint","text":"Data layer"},
-  {"_type":"ellipse","shapeId":"db","x":40,"y":730,"w":240,"h":120,"color":"red","fill":"tint","text":"PostgreSQL"},
-  {"_type":"ellipse","shapeId":"cache","x":340,"y":730,"w":180,"h":120,"color":"light-red","fill":"tint","text":"Redis"},
-  {"_type":"rectangle","shapeId":"s3","x":580,"y":730,"w":220,"h":120,"color":"light-green","fill":"tint","text":"S3 Storage"},
-  {"_type":"arrow","shapeId":"a6","x1":160,"y1":550,"x2":160,"y2":730,"color":"black","fromId":"api","toId":"db"},
-  {"_type":"arrow","shapeId":"a7","x1":430,"y1":550,"x2":430,"y2":730,"color":"black","fromId":"auth","toId":"cache"},
-  {"_type":"arrow","shapeId":"a8","x1":690,"y1":560,"x2":690,"y2":730,"color":"black","fromId":"queue","toId":"s3"}
+  {"_type":"text","shapeId":"title","x":820,"y":0,"text":"Web app architecture","color":"black","anchor":"top-center","size":"xl","font":"sans"},
+  {"_type":"rectangle","shapeId":"fe-frame","x":0,"y":80,"w":1640,"h":260,"color":"blue","fill":"tint","text":"Frontend"},
+  {"_type":"rectangle","shapeId":"browser","x":120,"y":150,"w":300,"h":140,"color":"blue","fill":"tint","text":"React SPA"},
+  {"_type":"rectangle","shapeId":"cdn","x":640,"y":150,"w":260,"h":140,"color":"light-blue","fill":"tint","text":"CDN"},
+  {"_type":"rectangle","shapeId":"lb","x":1120,"y":150,"w":320,"h":140,"color":"violet","fill":"tint","text":"Load balancer"},
+  {"_type":"arrow","shapeId":"a1","x1":420,"y1":220,"x2":640,"y2":220,"color":"grey","fromId":"browser","toId":"cdn"},
+  {"_type":"arrow","shapeId":"a2","x1":900,"y1":220,"x2":1120,"y2":220,"color":"grey","fromId":"cdn","toId":"lb"},
+  {"_type":"rectangle","shapeId":"be-frame","x":0,"y":520,"w":1640,"h":260,"color":"green","fill":"tint","text":"Backend"},
+  {"_type":"rectangle","shapeId":"api","x":120,"y":600,"w":300,"h":140,"color":"green","fill":"tint","text":"API server\\n(Node.js)"},
+  {"_type":"rectangle","shapeId":"auth","x":640,"y":600,"w":260,"h":140,"color":"orange","fill":"tint","text":"Auth service"},
+  {"_type":"cloud","shapeId":"queue","x":1120,"y":580,"w":320,"h":180,"color":"yellow","fill":"tint","text":"Message\\nqueue"},
+  {"_type":"arrow","shapeId":"a3","x1":1280,"y1":340,"x2":270,"y2":600,"color":"black","fromId":"lb","toId":"api","text":"routes"},
+  {"_type":"arrow","shapeId":"a4","x1":420,"y1":650,"x2":640,"y2":650,"color":"grey","fromId":"api","toId":"auth","text":"request","bend":-42},
+  {"_type":"arrow","shapeId":"a4b","x1":640,"y1":700,"x2":420,"y2":700,"color":"grey","dash":"dashed","fromId":"auth","toId":"api","text":"response","bend":42},
+  {"_type":"arrow","shapeId":"a5","x1":900,"y1":670,"x2":1120,"y2":670,"color":"grey","fromId":"auth","toId":"queue"},
+  {"_type":"rectangle","shapeId":"db-frame","x":0,"y":960,"w":1640,"h":260,"color":"red","fill":"tint","text":"Data layer"},
+  {"_type":"ellipse","shapeId":"db","x":120,"y":1040,"w":300,"h":140,"color":"red","fill":"tint","text":"PostgreSQL"},
+  {"_type":"ellipse","shapeId":"cache","x":640,"y":1040,"w":260,"h":140,"color":"light-red","fill":"tint","text":"Redis"},
+  {"_type":"rectangle","shapeId":"s3","x":1120,"y":1040,"w":320,"h":140,"color":"light-green","fill":"tint","text":"S3 storage"},
+  {"_type":"arrow","shapeId":"a6","x1":270,"y1":740,"x2":270,"y2":1040,"color":"black","fromId":"api","toId":"db"},
+  {"_type":"arrow","shapeId":"a7","x1":770,"y1":740,"x2":770,"y2":1040,"color":"black","fromId":"auth","toId":"cache"},
+  {"_type":"arrow","shapeId":"a8","x1":1280,"y1":760,"x2":1280,"y2":1040,"color":"black","fromId":"queue","toId":"s3"}
 ]
 \`\`\`
 
@@ -231,6 +236,8 @@ Key techniques:
 - Use \`rectangle\` shapes to visually group related components into layers
 - Use different \`_type\` values to convey meaning: \`ellipse\` for databases, \`cloud\` for queues/services
 - Assign a distinct color per layer (blue=frontend, green=backend, red=data) for quick visual parsing
+- Keep generous spacing between neighboring columns and rows so labels and arrow text stay readable
+- Use opposite-sign \`bend\` values on paired arrows (\`a4\` / \`a4b\`) to avoid overlapping labels
 - Cross-layer arrows use \`"color":"black"\` to stand out; within-layer arrows use \`"color":"grey"\`
 - Center the title over the diagram using \`anchor: "top-center"\` with an x value at the midpoint
 `

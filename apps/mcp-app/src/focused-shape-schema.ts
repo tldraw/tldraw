@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const FocusedColorSchema = z.enum([
+const FocusedColorValueSchema = z.enum([
 	'red',
 	'light-red',
 	'green',
@@ -16,7 +16,21 @@ export const FocusedColorSchema = z.enum([
 	'white',
 ])
 
-export type FocusedColor = z.infer<typeof FocusedColorSchema>
+const FOCUSED_COLOR_ALIASES: Record<string, z.infer<typeof FocusedColorValueSchema>> = {
+	'light-orange': 'yellow',
+	brown: 'orange',
+	pink: 'light-violet',
+	purple: 'violet',
+	'light-pink': 'light-violet',
+}
+
+export const FocusedColorSchema = z.preprocess((value) => {
+	if (typeof value !== 'string') return value
+	const normalized = value.trim().toLowerCase()
+	return FOCUSED_COLOR_ALIASES[normalized] ?? normalized
+}, FocusedColorValueSchema)
+
+export type FocusedColor = z.infer<typeof FocusedColorValueSchema>
 
 export const FocusedFillSchema = z.enum(['none', 'tint', 'background', 'solid', 'pattern'])
 export type FocusedFill = z.infer<typeof FocusedFillSchema>
