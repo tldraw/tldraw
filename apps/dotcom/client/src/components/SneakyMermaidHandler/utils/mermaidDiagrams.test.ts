@@ -230,7 +230,7 @@ describe('createMermaidDiagram', () => {
 				}
 				const startProps = geoByLabel.get('Start') as any
 				expect(startProps?.fill).toBe('solid')
-				expect(startProps?.color).toBe('green')
+				expect(startProps?.color).toBe('light-green')
 				const endProps = geoByLabel.get('End') as any
 				expect(endProps?.fill).toBe('solid')
 				expect(endProps?.color).toBe('blue')

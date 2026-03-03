@@ -69,29 +69,6 @@ export function mapStateTypeToGeo(type: string): TLGeoShape['props']['geo'] {
 // classDef: shared helper to extract fill colors from Mermaid SVG strings
 // ---------------------------------------------------------------------------
 
-const HEX_TO_TLDRAW_COLOR: Record<string, TLDefaultColorStyle> = {
-	'000000': 'black',
-	'333333': 'black',
-	ffffff: 'white',
-	ececff: 'light-violet',
-	'0000ff': 'blue',
-	'00ff00': 'green',
-	ff0000: 'red',
-	ffff00: 'yellow',
-	ffa500: 'orange',
-	e8f4f8: 'light-blue',
-	d4edda: 'light-green',
-	f8d7da: 'light-red',
-	e2d5f1: 'light-violet',
-	'9370db': 'violet',
-}
-
-function hexToTldrawColor(hex: string): TLDefaultColorStyle | undefined {
-	const h = hex.replace(/^#/, '').toLowerCase()
-	const normalized = h.length === 3 ? h[0]! + h[0] + h[1]! + h[1] + h[2]! + h[2] : h.slice(0, 6)
-	return HEX_TO_TLDRAW_COLOR[normalized]
-}
-
 /**
  * Parse classDef fill colors from a Mermaid SVG string.
  *
@@ -150,11 +127,8 @@ export function parseClassDefFills(
 			if (knownClasses.has(cls)) continue
 			const hex = classFills.get(cls)
 			if (hex) {
-				const color = hexToTldrawColor(hex)
-				if (color) {
-					result.set(nodeId, color)
-					break
-				}
+				result.set(nodeId, nearestTldrawColor(hex))
+				break
 			}
 		}
 	}
