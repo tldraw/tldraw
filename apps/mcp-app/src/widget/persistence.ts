@@ -184,7 +184,7 @@ export function parseCheckpointFromToolResult(result: unknown): CheckpointResult
 	if (!checkpointId) return null
 	const shapes = toSnapshotShapesFromRecords(sc.tldrawRecords)
 	if (!shapes) return null
-	// Assets come from sc.assets (read_checkpoint) or sc.assetRecords (create_image)
+
 	const assets = toAssetRecords(sc.assets ?? sc.assetRecords)
 	const bindings = toBindingRecords(sc.bindings)
 	return {

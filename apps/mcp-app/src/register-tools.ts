@@ -6,7 +6,7 @@ import {
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js'
 import type { TLShape } from 'tldraw'
-import { structuredClone, uniqueId } from 'tldraw'
+import { structuredClone } from 'tldraw'
 import { z } from 'zod'
 import {
 	convertFocusedShapesToTldrawRecords,
@@ -22,11 +22,9 @@ import {
 	parseShapeIdsInput,
 } from './parse-json'
 import {
-	type CreateImageInput,
 	type CreateShapesInput,
 	type DeleteShapesInput,
 	type UpdateShapesInput,
-	createImageInputSchema,
 	createShapesInputSchema,
 	deleteShapesInputSchema,
 	updateShapesInputSchema,
@@ -357,100 +355,6 @@ export function registerTools(
 		}
 	)
 
-	// --- create_image ---
-
-	registerAppTool(
-		server,
-		'create_image',
-		{
-			title: 'Create Image',
-			description:
-				'Places an image on the canvas at a specified position and size. Provide a public image URL.',
-			inputSchema: createImageInputSchema,
-			annotations: {
-				destructiveHint: false,
-				idempotentHint: false,
-				openWorldHint: false,
-			},
-			_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
-		},
-		async ({ url, x, y, w, h }: CreateImageInput): Promise<CallToolResult> => {
-			try {
-				const shapeId = `shape:${uniqueId()}`
-				const assetId = `asset:${uniqueId()}`
-
-				const assetRecord = {
-					id: assetId,
-					typeName: 'asset',
-					type: 'image',
-					props: {
-						w,
-						h,
-						name: url.split('/').pop() ?? 'image',
-						isAnimated: false,
-						mimeType: null,
-						src: url,
-					},
-					meta: {},
-				}
-
-				const imageShape: TLShape = {
-					id: shapeId,
-					type: 'image',
-					x,
-					y,
-					rotation: 0,
-					index: 'a1' as any,
-					parentId: 'page:page' as any,
-					isLocked: false,
-					opacity: 1,
-					props: {
-						w,
-						h,
-						playing: true,
-						url,
-						assetId,
-						crop: null,
-						flipX: false,
-						flipY: false,
-						altText: '',
-					},
-					meta: {},
-					typeName: 'shape',
-				} as TLShape
-
-				const baseShapes = deps.getActiveShapes()
-				const existingAssets = deps.getActiveAssets()
-				const resultShapes = [...baseShapes, imageShape]
-
-				const checkpointId = generateCheckpointId()
-				deps.saveCheckpoint(checkpointId, resultShapes, [...existingAssets, assetRecord])
-				deps.setActiveCheckpointId(checkpointId)
-
-				return {
-					content: [
-						{ type: 'text', text: `Created image shape at (${x}, ${y}) with size ${w}x${h}.` },
-					],
-					structuredContent: {
-						checkpointId,
-						sessionId: deps.getSessionId(),
-						action: 'create' as const,
-						newBlankCanvas: false,
-						hadBaseShapes: baseShapes.length > 0,
-						tldrawRecords: resultShapes,
-						assetRecords: [assetRecord],
-					},
-				}
-			} catch (err) {
-				return errorResponse(
-					'create_image',
-					err,
-					'Provide a publicly accessible image URL and numeric x, y, w, h values for position and size.'
-				)
-			}
-		}
-	)
-
 	// --- read_checkpoint (app-only) ---
 
 	server.registerTool(
@@ -594,51 +498,6 @@ export function registerTools(
 				}
 			} catch (err) {
 				return errorResponse('save_checkpoint', err)
-			}
-		}
-	)
-
-	// --- get_active_checkpoint (app-only) ---
-	// Used by the widget to bootstrap when localStorage is unavailable (e.g. Cursor,
-	// which isolates iframe origins between tool calls).
-
-	server.registerTool(
-		'get_active_checkpoint',
-		{
-			title: 'Get Active Checkpoint',
-			description: 'App-only: returns the current active checkpoint with all shapes.',
-			inputSchema: z.object({}),
-			annotations: {
-				readOnlyHint: true,
-				idempotentHint: true,
-				openWorldHint: false,
-			},
-			_meta: { ui: { visibility: ['app'] } },
-		},
-		async (): Promise<CallToolResult> => {
-			const id = deps.getActiveCheckpointId()
-			if (!id) {
-				return {
-					content: [{ type: 'text', text: 'No active checkpoint.' }],
-					structuredContent: { checkpointId: null, tldrawRecords: [], assets: [], bindings: [] },
-				}
-			}
-			const checkpoint = deps.loadCheckpoint(id)
-			if (!checkpoint) {
-				return {
-					content: [{ type: 'text', text: 'Checkpoint not found.' }],
-					structuredContent: { checkpointId: id, tldrawRecords: [], assets: [], bindings: [] },
-				}
-			}
-			const shapes = parseTlShapes(checkpoint.shapes)
-			return {
-				content: [{ type: 'text', text: `${shapes.length} shape(s).` }],
-				structuredContent: {
-					checkpointId: id,
-					tldrawRecords: shapes,
-					assets: checkpoint.assets,
-					bindings: checkpoint.bindings,
-				},
 			}
 		}
 	)
