@@ -17,7 +17,7 @@ import {
 	DefaultVerticalAlignStyle,
 	TLDefaultVerticalAlignStyle,
 } from '../styles/TLVerticalAlignStyle'
-import { TLBaseShape } from './TLBaseShape'
+import { TLAttributionUser, TLBaseShape, attributionUserValidator } from './TLBaseShape'
 
 /**
  * Properties for a note shape. Note shapes represent sticky notes or text annotations
@@ -64,8 +64,8 @@ export interface TLNoteShapeProps {
 	richText: TLRichText
 	/** Scale factor applied to the note shape for display */
 	scale: number
-	/** User ID of the person who last edited the note text */
-	textLastEditedBy: string | null
+	/** Identity snapshot of the person who last edited the note text */
+	textLastEditedBy: TLAttributionUser | null
 }
 
 /**
@@ -132,7 +132,7 @@ export const noteShapeProps: RecordProps<TLNoteShape> = {
 	url: T.linkUrl,
 	richText: richTextValidator,
 	scale: T.nonZeroNumber,
-	textLastEditedBy: T.string.nullable(),
+	textLastEditedBy: attributionUserValidator,
 }
 
 const Versions = createShapePropsMigrationIds('note', {

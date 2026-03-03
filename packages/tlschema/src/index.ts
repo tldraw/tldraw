@@ -179,11 +179,13 @@ export {
 	type TLArrowShapeProps,
 } from './shapes/TLArrowShape'
 export {
+	attributionUserValidator,
 	createShapeValidator,
 	defaultTlmeta,
 	parentIdValidator,
 	shapeIdValidator,
 	tlmetaValidator,
+	type TLAttributionUser,
 	type TLBaseShape,
 	type TLShapeTLmeta,
 } from './shapes/TLBaseShape'

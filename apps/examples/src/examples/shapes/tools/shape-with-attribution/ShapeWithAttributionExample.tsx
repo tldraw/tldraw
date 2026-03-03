@@ -33,12 +33,8 @@ function AttributedCardComponent({ shape }: { shape: AttributedCardShape }) {
 		() => {
 			const { createdBy, updatedBy, createdAt, updatedAt } = shape.tlmeta
 
-			const createdByName = createdBy
-				? (editor.getAttributionDisplayName(createdBy) ?? createdBy)
-				: null
-			const updatedByName = updatedBy
-				? (editor.getAttributionDisplayName(updatedBy) ?? updatedBy)
-				: null
+			const createdByName = editor.getAttributionDisplayName(createdBy)
+			const updatedByName = editor.getAttributionDisplayName(updatedBy)
 
 			return { createdByName, updatedByName, createdAt, updatedAt }
 		},
@@ -126,8 +122,9 @@ Every shape automatically gets a `tlmeta` field (with `createdBy`, `updatedBy`,
 [2]
 A React component that renders the shape body. We use `useEditor()` to access
 the identity provider and `useValue()` to reactively read `shape.tlmeta`. The
-`editor.getAttributionDisplayName(userId)` call resolves the stored user ID
-into a human-readable display name.
+`editor.getAttributionDisplayName(user)` call resolves the stored attribution
+user into a human-readable display name, falling back to the stored name when
+the live identity provider can't resolve the user.
 
 [3]
 We extend BaseBoxShapeUtil so we get resize handling for free. The `component`

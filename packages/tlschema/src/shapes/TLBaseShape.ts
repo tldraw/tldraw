@@ -5,6 +5,25 @@ import { idValidator } from '../misc/id-validator'
 import { TLParentId, TLShapeId } from '../records/TLShape'
 
 /**
+ * A snapshot of a user's identity at the time a shape was created or updated.
+ * Stored directly in shape data so attribution survives cross-board clipboard paste
+ * even when the original collaborator isn't present on the target board.
+ *
+ * @public
+ */
+export interface TLAttributionUser {
+	readonly id: string
+	readonly name: string
+}
+
+/** @public */
+export const attributionUserValidator: T.Validator<TLAttributionUser | null> =
+	T.object<TLAttributionUser>({
+		id: T.string,
+		name: T.string,
+	}).nullable()
+
+/**
  * Attribution metadata tracked internally by tldraw.
  *
  * This metadata is separate from the developer-facing `meta` field and is
@@ -13,8 +32,8 @@ import { TLParentId, TLShapeId } from '../records/TLShape'
  * @public
  */
 export interface TLShapeTLmeta {
-	createdBy: string | null
-	updatedBy: string | null
+	createdBy: TLAttributionUser | null
+	updatedBy: TLAttributionUser | null
 	createdAt: number | null
 	updatedAt: number | null
 }
@@ -29,8 +48,8 @@ export const defaultTlmeta: TLShapeTLmeta = {
 
 /** @public */
 export const tlmetaValidator: T.ObjectValidator<TLShapeTLmeta> = T.object<TLShapeTLmeta>({
-	createdBy: T.string.nullable(),
-	updatedBy: T.string.nullable(),
+	createdBy: attributionUserValidator,
+	updatedBy: attributionUserValidator,
 	createdAt: T.number.nullable(),
 	updatedAt: T.number.nullable(),
 })

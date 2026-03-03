@@ -24,6 +24,7 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLAssetPartial,
+	TLAttributionUser,
 	TLBinding,
 	TLBindingCreate,
 	TLBindingId,
@@ -3988,23 +3989,40 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get the current user as a `TLAttributionUser` for stamping into shape
+	 * `tlmeta`. Returns `null` when no identity is configured or the user is anonymous.
+	 *
+	 * @public
+	 */
+	getAttributionUser(): TLAttributionUser | null {
+		const user = this.getIdentity().getCurrentUser()
+		if (!user) return null
+		return { id: user.id, name: user.name }
+	}
+
+	/**
 	 * Get the user ID to use for shape attribution. Delegates to
 	 * {@link Editor.getIdentity}.
 	 *
 	 * @public
 	 */
 	getAttributionUserId(): string | null {
-		return this.getIdentity().getCurrentUser()?.id ?? null
+		return this.getAttributionUser()?.id ?? null
 	}
 
 	/**
-	 * Resolve a display name for an attribution user ID. Delegates to
-	 * {@link Editor.getIdentity}.
+	 * Resolve a display name for an attribution user. When given a
+	 * `TLAttributionUser` object (as stored in `tlmeta`), the live
+	 * identity provider is tried first and the stored name is used as fallback.
+	 * A plain string user ID is also accepted for backward compatibility.
 	 *
 	 * @public
 	 */
-	getAttributionDisplayName(userId: string): string | null {
-		return this.getIdentity().resolveUser(userId)?.name ?? null
+	getAttributionDisplayName(user: TLAttributionUser | string | null): string | null {
+		if (!user) return null
+		const id = typeof user === 'string' ? user : user.id
+		const fallback = typeof user === 'string' ? null : user.name
+		return this.getIdentity().resolveUser(id)?.name ?? fallback
 	}
 
 	// Following
@@ -8249,12 +8267,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Set attribution metadata, merging any explicitly provided fields
 				{
 					const now = Date.now()
-					const userId = this.getAttributionUserId()
+					const user = this.getAttributionUser()
 					shapeRecordToCreate = {
 						...shapeRecordToCreate,
 						tlmeta: {
-							createdBy: userId,
-							updatedBy: userId,
+							createdBy: user,
+							updatedBy: user,
 							createdAt: now,
 							updatedAt: now,
 							...partialTlmeta,
@@ -8672,12 +8690,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 				updated = applyPartialToRecordWithProps(shape, partial)
 				if (updated === shape) continue
 
-				// Update attribution metadata
+				// Update attribution metadata, letting explicit partial.tlmeta win
 				const now = Date.now()
-				const userId = this.getAttributionUserId()
+				const user = this.getAttributionUser()
+				const partialTlmeta = partial.tlmeta
 				updated = {
 					...updated,
-					tlmeta: { ...updated.tlmeta, updatedBy: userId, updatedAt: now },
+					tlmeta: {
+						...updated.tlmeta,
+						updatedBy: user,
+						updatedAt: now,
+						...partialTlmeta,
+					},
 				}
 
 				//if any shape has an onBeforeUpdate handler, call it and, if the handler returns a

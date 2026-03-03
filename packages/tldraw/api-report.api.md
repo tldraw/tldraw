@@ -77,6 +77,7 @@ import { TLArrowShapeKind } from '@tldraw/editor';
 import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
+import { TLAttributionUser } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
@@ -139,7 +140,7 @@ import { TLShapeCrop } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
 import { TLShapeId as TLShapeId_2 } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/editor';
-import { TLShapeTlmeta } from '@tldraw/tlschema';
+import { TLShapeTLmeta } from '@tldraw/tlschema';
 import { TLShapeUtilCanBeLaidOutOpts } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
@@ -311,8 +312,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         id: TLShapeId_2;
         meta?: Partial<JsonObject> | undefined;
         props?: Partial<TLArrowShapeProps> | undefined;
+        tlmeta?: Partial<TLShapeTLmeta> | undefined;
         type: "arrow";
-    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>) | {
+    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "tlmeta" | "type">>) | {
         id: TLShapeId_2;
         props: {
             bend: number;
@@ -340,8 +342,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         id: TLShapeId_2;
         meta?: Partial<JsonObject> | undefined;
         props?: Partial<TLArrowShapeProps> | undefined;
+        tlmeta?: Partial<TLShapeTLmeta> | undefined;
         type: "arrow";
-    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>) | undefined;
+    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "tlmeta" | "type">>) | undefined;
     // (undocumented)
     options: ArrowShapeOptions;
     // (undocumented)
@@ -466,7 +469,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
             w: number;
         };
         rotation: number;
-        tlmeta: TLShapeTlmeta;
+        tlmeta: TLShapeTLmeta;
         type: "bookmark";
         typeName: "shape";
         x: number;
@@ -487,7 +490,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
             w: number;
         };
         rotation: number;
-        tlmeta: TLShapeTlmeta;
+        tlmeta: TLShapeTLmeta;
         type: "bookmark";
         typeName: "shape";
         x: number;
@@ -1706,7 +1709,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             w: number;
         };
         rotation: number;
-        tlmeta: TLShapeTlmeta;
+        tlmeta: TLShapeTLmeta;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -1742,7 +1745,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             w: number;
         };
         rotation: number;
-        tlmeta: TLShapeTlmeta;
+        tlmeta: TLShapeTLmeta;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -1760,7 +1763,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             geo: "check-box";
         };
         rotation: number;
-        tlmeta: TLShapeTlmeta;
+        tlmeta: TLShapeTLmeta;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -1776,7 +1779,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             geo: "rectangle";
         };
         rotation: number;
-        tlmeta: TLShapeTlmeta;
+        tlmeta: TLShapeTLmeta;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -2126,7 +2129,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
             spline: "cubic" | "line";
         };
         rotation: number;
-        tlmeta: TLShapeTlmeta;
+        tlmeta: TLShapeTLmeta;
         type: "line";
         typeName: "shape";
         x: number;
@@ -2156,7 +2159,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
             spline: "cubic" | "line";
         };
         rotation: number;
-        tlmeta: TLShapeTlmeta;
+        tlmeta: TLShapeTLmeta;
         type: "line";
         typeName: "shape";
         x: number;
@@ -2278,7 +2281,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             fontSizeAdjustment: number;
             growY: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            lastEditedBy: null | string;
             richText: {
                 attrs?: any;
                 content: unknown[];
@@ -2286,11 +2288,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             };
             scale: number;
             size: "l" | "m" | "s" | "xl";
+            textLastEditedBy: TLAttributionUser | null;
             url: string;
             verticalAlign: "end" | "middle" | "start";
         };
         rotation: number;
-        tlmeta: TLShapeTlmeta;
+        tlmeta: TLShapeTLmeta;
         type: "note";
         typeName: "shape";
         x: number;
@@ -3134,7 +3137,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             w: number;
         };
         rotation: number;
-        tlmeta: TLShapeTlmeta;
+        tlmeta: TLShapeTLmeta;
         type: "text";
         typeName: "shape";
         x: number;

@@ -23,12 +23,13 @@ const ids = {
 }
 
 describe('shape attribution (tlmeta)', () => {
-	it('sets createdBy and updatedBy on createShapes', () => {
+	it('sets createdBy and updatedBy as { id, name } on createShapes', () => {
 		const userId = editor.user.getId()
+		const userName = editor.user.getName()
 		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0 }])
 		const shape = editor.getShape<TLGeoShape>(ids.box1)!
-		expect(shape.tlmeta.createdBy).toBe(userId)
-		expect(shape.tlmeta.updatedBy).toBe(userId)
+		expect(shape.tlmeta.createdBy).toEqual({ id: userId, name: userName })
+		expect(shape.tlmeta.updatedBy).toEqual({ id: userId, name: userName })
 		expect(shape.tlmeta.createdAt).toBeGreaterThan(0)
 		expect(shape.tlmeta.updatedAt).toBeGreaterThan(0)
 	})
@@ -40,16 +41,19 @@ describe('shape attribution (tlmeta)', () => {
 		editor.updateShape({ id: ids.box1, type: 'geo', x: 50 })
 		const updated = editor.getShape<TLGeoShape>(ids.box1)!
 
-		expect(updated.tlmeta.createdBy).toBe(created.tlmeta.createdBy)
+		expect(updated.tlmeta.createdBy).toEqual(created.tlmeta.createdBy)
 		expect(updated.tlmeta.createdAt).toBe(created.tlmeta.createdAt)
-		expect(updated.tlmeta.updatedBy).toBe(editor.user.getId())
+		expect(updated.tlmeta.updatedBy).toEqual({
+			id: editor.user.getId(),
+			name: editor.user.getName(),
+		})
 		expect(updated.tlmeta.updatedAt).toBeGreaterThanOrEqual(created.tlmeta.updatedAt!)
 	})
 
 	it('preserves explicit tlmeta in partial on create', () => {
 		const customTlmeta = {
-			createdBy: 'custom-user',
-			updatedBy: 'custom-user',
+			createdBy: { id: 'custom-user', name: 'Custom' },
+			updatedBy: { id: 'custom-user', name: 'Custom' },
 			createdAt: 1000,
 			updatedAt: 1000,
 		}
@@ -61,8 +65,8 @@ describe('shape attribution (tlmeta)', () => {
 	it('preserves explicit tlmeta in partial on update', () => {
 		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0 }])
 		const customTlmeta = {
-			createdBy: 'someone-else',
-			updatedBy: 'someone-else',
+			createdBy: { id: 'someone-else', name: 'Someone' },
+			updatedBy: { id: 'someone-else', name: 'Someone' },
 			createdAt: 2000,
 			updatedAt: 2000,
 		}
@@ -73,20 +77,35 @@ describe('shape attribution (tlmeta)', () => {
 })
 
 describe('getAttributionDisplayName', () => {
-	it('returns current user name for own userId', () => {
+	it('returns current user name for own userId (string)', () => {
 		const userId = editor.user.getId()
 		const name = editor.getAttributionDisplayName(userId)
 		expect(name).toBe(editor.user.getName())
 	})
 
-	it('returns null for unknown userId', () => {
+	it('returns null for unknown userId (string)', () => {
 		const name = editor.getAttributionDisplayName('unknown-user-123')
 		expect(name).toBeNull()
+	})
+
+	it('resolves live name from TLAttributionUser object', () => {
+		const userId = editor.user.getId()
+		const name = editor.getAttributionDisplayName({ id: userId, name: 'stale-name' })
+		expect(name).toBe(editor.user.getName())
+	})
+
+	it('falls back to stored name when resolveUser returns null', () => {
+		const name = editor.getAttributionDisplayName({ id: 'unknown-user', name: 'Stored Name' })
+		expect(name).toBe('Stored Name')
+	})
+
+	it('returns null for null input', () => {
+		expect(editor.getAttributionDisplayName(null)).toBeNull()
 	})
 })
 
 describe('note shape textLastEditedBy', () => {
-	it('sets textLastEditedBy when richText changes', () => {
+	it('sets textLastEditedBy as { id, name } when richText changes', () => {
 		editor.createShapes([
 			{
 				id: ids.note1,
@@ -97,6 +116,7 @@ describe('note shape textLastEditedBy', () => {
 		])
 
 		const userId = editor.user.getId()
+		const userName = editor.user.getName()
 
 		editor.updateShape<TLNoteShape>({
 			id: ids.note1,
@@ -105,7 +125,7 @@ describe('note shape textLastEditedBy', () => {
 		})
 
 		const note = editor.getShape<TLNoteShape>(ids.note1)!
-		expect(note.props.textLastEditedBy).toBe(userId)
+		expect(note.props.textLastEditedBy).toEqual({ id: userId, name: userName })
 	})
 
 	it('does not set textLastEditedBy when only position changes', () => {
@@ -146,7 +166,7 @@ describe('note shape textLastEditedBy', () => {
 })
 
 describe('TLIdentityProvider', () => {
-	it('uses custom identity provider for attribution userId', () => {
+	it('uses custom identity provider for attribution', () => {
 		const customIdentity: TLIdentityProvider = {
 			getCurrentUser: () => ({ id: 'auth-user-42', name: 'Alice' }),
 			resolveUser: (userId) => (userId === 'auth-user-42' ? { id: userId, name: 'Alice' } : null),
@@ -156,8 +176,8 @@ describe('TLIdentityProvider', () => {
 		customEditor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0 }])
 		const shape = customEditor.getShape<TLGeoShape>(ids.box1)!
 
-		expect(shape.tlmeta.createdBy).toBe('auth-user-42')
-		expect(shape.tlmeta.updatedBy).toBe('auth-user-42')
+		expect(shape.tlmeta.createdBy).toEqual({ id: 'auth-user-42', name: 'Alice' })
+		expect(shape.tlmeta.updatedBy).toEqual({ id: 'auth-user-42', name: 'Alice' })
 		customEditor.dispose()
 	})
 
@@ -179,10 +199,11 @@ describe('TLIdentityProvider', () => {
 	})
 
 	it('falls back to default identity when none provided', () => {
-		// Default editor — no custom identity
 		const userId = editor.user.getId()
+		const userName = editor.user.getName()
 		expect(editor.getAttributionUserId()).toBe(userId)
-		expect(editor.getAttributionDisplayName(userId)).toBe(editor.user.getName())
+		expect(editor.getAttributionUser()).toEqual({ id: userId, name: userName })
+		expect(editor.getAttributionDisplayName(userId)).toBe(userName)
 	})
 
 	it('exposes identity provider on editor', () => {

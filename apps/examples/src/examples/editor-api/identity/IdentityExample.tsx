@@ -71,11 +71,9 @@ function AttributionPanel() {
 		[editor]
 	)
 
-	const currentUser = useValue(
-		'current-user',
-		() => editor.getIdentity().getCurrentUser(),
-		[editor]
-	)
+	const currentUser = useValue('current-user', () => editor.getIdentity().getCurrentUser(), [
+		editor,
+	])
 
 	return (
 		<div className="identity-panel">
@@ -99,15 +97,11 @@ function AttributionPanel() {
 					</div>
 					<div className="identity-row">
 						<span className="identity-label">Created by</span>
-						<span style={{ color: info.createdByColor }}>
-							{info.createdByName}
-						</span>
+						<span style={{ color: info.createdByColor }}>{info.createdByName}</span>
 					</div>
 					<div className="identity-row">
 						<span className="identity-label">Updated by</span>
-						<span style={{ color: info.updatedByColor }}>
-							{info.updatedByName}
-						</span>
+						<span style={{ color: info.updatedByColor }}>{info.updatedByName}</span>
 					</div>
 					<div className="identity-row">
 						<span className="identity-label">Created at</span>
@@ -133,14 +127,14 @@ function formatTime(ts: number | null) {
 function attributionSummary(editor: Editor, shape: TLShape) {
 	const { createdBy, updatedBy, createdAt, updatedAt }: TLShapeTLmeta = shape.tlmeta
 
-	const createdByUser = createdBy ? editor.getIdentity().resolveUser(createdBy) : null
-	const updatedByUser = updatedBy ? editor.getIdentity().resolveUser(updatedBy) : null
+	const createdByUser = createdBy ? editor.getIdentity().resolveUser(createdBy.id) : null
+	const updatedByUser = updatedBy ? editor.getIdentity().resolveUser(updatedBy.id) : null
 
 	return {
 		type: shape.type,
-		createdByName: createdByUser?.name ?? createdBy ?? '(unknown)',
+		createdByName: createdByUser?.name ?? createdBy?.name ?? '(unknown)',
 		createdByColor: createdByUser?.color,
-		updatedByName: updatedByUser?.name ?? updatedBy ?? '(unknown)',
+		updatedByName: updatedByUser?.name ?? updatedBy?.name ?? '(unknown)',
 		updatedByColor: updatedByUser?.color,
 		createdAt: formatTime(createdAt),
 		updatedAt: formatTime(updatedAt),
@@ -185,9 +179,9 @@ change.
 
 [4]
 The panel reads `editor.getIdentity().getCurrentUser()` to show who is active, and
-reads `shape.tlmeta` for the selected shape to display attribution info. We use
-`editor.getIdentity().resolveUser(userId)` to turn the stored user IDs into display
-names and colors.
+reads `shape.tlmeta` for the selected shape to display attribution info. Each
+attribution field (`createdBy`, `updatedBy`) is a `{ id, name }` object — we try
+`resolveUser(id)` for live data and fall back to the stored name.
 
 [5]
 We inject the custom identity provider in `onMount`. The TopPanel shows the

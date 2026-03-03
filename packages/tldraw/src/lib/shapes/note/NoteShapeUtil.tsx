@@ -35,6 +35,7 @@ import {
 } from '@tldraw/editor'
 import { useCallback, useContext } from 'react'
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
+import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEmptyRichText,
@@ -42,7 +43,6 @@ import {
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
 import { isRightToLeftLanguage } from '../../utils/text/text'
-import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import {
@@ -458,7 +458,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						x={NOTE_SIZE - 8}
 						y={bounds.h - 6}
 						textAnchor="end"
-						fontFamily={DefaultFontFamilies["sans"]}
+						fontFamily={DefaultFontFamilies['sans']}
 						fontSize={11}
 						fill={getColorValue(theme, shape.props.color, 'noteText')}
 						opacity={0.6}
@@ -491,7 +491,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				...shape,
 				props: {
 					...shape.props,
-					textLastEditedBy: this.editor.getAttributionUserId(),
+					textLastEditedBy: this.editor.getAttributionUser(),
 				},
 			}
 		}
