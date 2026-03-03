@@ -48,39 +48,52 @@ const LICENSE_KEY = import.meta.env.VITE_TLDRAW_LICENSE_KEY as string
 const EDITOR_HEIGHT = 600
 const SAVE_DEBOUNCE_MS = 500
 
-const DisplayModeContext = React.createContext<{
+const CanvasUiContext = React.createContext<{
 	displayMode: 'inline' | 'fullscreen'
 	toggleFullscreen: (() => void) | null
 	canFullscreen: boolean
 	canDownload: boolean
 	app: App | null
+	hasUserEditedSinceAi: boolean
+	lastEditor: 'user' | 'ai'
 }>({
 	displayMode: 'inline',
 	toggleFullscreen: null,
 	canFullscreen: true,
 	canDownload: true,
 	app: null,
+	hasUserEditedSinceAi: false,
+	lastEditor: 'ai',
 })
 
 function SharePanelContent() {
 	const editor = useEditor()
-	const { displayMode, toggleFullscreen, canFullscreen, canDownload, app } =
-		useContext(DisplayModeContext)
+
+	const { displayMode, toggleFullscreen, canFullscreen, canDownload, app, lastEditor } =
+		useContext(CanvasUiContext)
+
+	const handleBuildItClick = useCallback(() => {
+		if (!app) return
+		const messageText =
+			lastEditor === 'user'
+				? "Hey I've made some edits to the canvas. The new canvas state is attached. Take the changes and implement them in the codebase."
+				: 'Use the attached canvas state to implement this in the codebase.'
+		app.sendMessage({
+			role: 'user',
+			content: [
+				{
+					type: 'text',
+					text: messageText,
+				},
+			],
+		})
+	}, [app, lastEditor])
+
 	return (
 		<div className="tlui-share-zone" draggable={false} style={{ display: 'flex', gap: 4 }}>
 			{app && (
 				<button
-					onClick={() =>
-						app.sendMessage({
-							role: 'user',
-							content: [
-								{
-									type: 'text',
-									text: 'Hey I made some changes to the canvas. The new state is attached. Take changes and implement it in the codebase.',
-								},
-							],
-						})
-					}
+					onClick={handleBuildItClick}
 					title="Build it"
 					style={{
 						flex: '0 0 auto',
@@ -88,7 +101,7 @@ function SharePanelContent() {
 						boxSizing: 'border-box',
 						background: 'var(--tl-color-primary)',
 						color: 'white',
-						border: 'var(-tl-color-background',
+						border: 'var(--tl-color-background)',
 						font: 'inherit',
 						fontWeight: 600,
 						padding: 'var(--tl-space-3) var(--tl-space-4)',
@@ -124,7 +137,7 @@ function SharePanelContent() {
 }
 
 function DynamicToolbar() {
-	const { displayMode } = useContext(DisplayModeContext)
+	const { displayMode } = useContext(CanvasUiContext)
 	return (
 		<DefaultToolbar orientation={displayMode === 'fullscreen' ? 'vertical' : 'horizontal'}>
 			<DefaultToolbarContent />
@@ -244,6 +257,8 @@ const tldrawComponents: TLComponents = {
 function TldrawCanvas({ app }: { app: App }) {
 	const [displayMode, setDisplayMode] = useState<'inline' | 'fullscreen'>('inline')
 	const [containerHeight, setContainerHeight] = useState<number | null>(null)
+	const [hasUserEditedSinceAi, setHasUserEditedSinceAi] = useState(false)
+	const [lastEditor, setLastEditor] = useState<'user' | 'ai'>('ai')
 	const editorRef = useRef<Editor | null>(null)
 
 	const pendingSnapshotRef = useRef<CanvasSnapshot | null>(null)
@@ -255,6 +270,30 @@ function TldrawCanvas({ app }: { app: App }) {
 	const removeStoreListenerRef = useRef<(() => void) | null>(null)
 	const saveTimerRef = useRef<number | null>(null)
 	const requestShapeIdsRef = useRef<Set<TLShapeId>>(new Set())
+	const hasUserEditedSinceAiRef = useRef(false)
+	const lastEditorRef = useRef<'user' | 'ai'>('ai')
+
+	const markAiActivity = useCallback(() => {
+		if (hasUserEditedSinceAiRef.current) {
+			hasUserEditedSinceAiRef.current = false
+			setHasUserEditedSinceAi(false)
+		}
+		if (lastEditorRef.current !== 'ai') {
+			lastEditorRef.current = 'ai'
+			setLastEditor('ai')
+		}
+	}, [])
+
+	const markUserEdit = useCallback(() => {
+		if (!hasUserEditedSinceAiRef.current) {
+			hasUserEditedSinceAiRef.current = true
+			setHasUserEditedSinceAi(true)
+		}
+		if (lastEditorRef.current !== 'user') {
+			lastEditorRef.current = 'user'
+			setLastEditor('user')
+		}
+	}, [])
 
 	const toggleFullscreen = useCallback(async () => {
 		const newMode = displayMode === 'fullscreen' ? 'inline' : 'fullscreen'
@@ -295,9 +334,25 @@ function TldrawCanvas({ app }: { app: App }) {
 		return !!app.getHostCapabilities()?.downloadFile
 	}, [app])
 
-	const displayModeCtx = useMemo(
-		() => ({ displayMode, toggleFullscreen, canFullscreen, canDownload, app }),
-		[displayMode, toggleFullscreen, canFullscreen, canDownload, app]
+	const canvasUiCtx = useMemo(
+		() => ({
+			displayMode,
+			toggleFullscreen,
+			canFullscreen,
+			canDownload,
+			app,
+			hasUserEditedSinceAi,
+			lastEditor,
+		}),
+		[
+			displayMode,
+			toggleFullscreen,
+			canFullscreen,
+			canDownload,
+			app,
+			hasUserEditedSinceAi,
+			lastEditor,
+		]
 	)
 
 	const renderPreviewSnapshot = useCallback((previewSnapshot: CanvasSnapshot, summary: string) => {
@@ -400,6 +455,7 @@ function TldrawCanvas({ app }: { app: App }) {
 
 			const args = extractToolArguments(input)
 			if (!args) return
+			markAiActivity()
 
 			const isCreateCall = args.shapesJson !== undefined || args.new_blank_canvas !== undefined
 			const isUpdateCall = args.updatesJson !== undefined
@@ -454,7 +510,7 @@ function TldrawCanvas({ app }: { app: App }) {
 				`Applied delete preview (${deletedCount} shape(s))`
 			)
 		},
-		[app, renderPreviewShapes, renderPreviewSnapshot]
+		[app, markAiActivity, renderPreviewShapes, renderPreviewSnapshot]
 	)
 
 	useEffect(() => {
@@ -555,6 +611,7 @@ function TldrawCanvas({ app }: { app: App }) {
 		app.ontoolresult = (result) => {
 			const checkpoint = parseCheckpointFromToolResult(result)
 			if (!checkpoint) return
+			markAiActivity()
 
 			const {
 				checkpointId,
@@ -655,6 +712,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			const reason = params.reason ?? 'tool cancelled'
 			clearPreviewAndRestoreCommitted(reason)
 			requestShapeIdsRef.current = new Set<TLShapeId>()
+			markAiActivity()
 		}
 
 		return () => {
@@ -666,7 +724,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			removeStoreListenerRef.current = null
 			log('TldrawCanvas unmounted!')
 		}
-	}, [app, applyPreviewFromToolInput, clearPreviewAndRestoreCommitted])
+	}, [app, applyPreviewFromToolInput, clearPreviewAndRestoreCommitted, markAiActivity])
 
 	// Set explicit height on html/body in fullscreen (position:fixed doesn't give body height in iframes)
 	useEffect(() => {
@@ -688,6 +746,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			removeStoreListenerRef.current?.()
 			removeStoreListenerRef.current = editor.store.listen(
 				() => {
+					markUserEdit()
 					scheduleSave()
 				},
 				{ source: 'user', scope: 'document' }
@@ -729,13 +788,13 @@ function TldrawCanvas({ app }: { app: App }) {
 				zoomToFitRequestShapes(editor, requestShapeIdsRef.current)
 			}
 		},
-		[scheduleSave]
+		[markUserEdit, scheduleSave]
 	)
 
 	const isFullscreen = displayMode === 'fullscreen'
 
 	return (
-		<DisplayModeContext.Provider value={displayModeCtx}>
+		<CanvasUiContext.Provider value={canvasUiCtx}>
 			<div
 				style={
 					isFullscreen
@@ -765,7 +824,7 @@ function TldrawCanvas({ app }: { app: App }) {
 					<ImageDropGuard />
 				</Tldraw>
 			</div>
-		</DisplayModeContext.Provider>
+		</CanvasUiContext.Provider>
 	)
 }
 

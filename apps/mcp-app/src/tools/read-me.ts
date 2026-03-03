@@ -131,7 +131,7 @@ Deletes shapes by id from a JSON string.
   - Arrow going LEFT: positive bend curves DOWN, negative curves UP
   - Arrow going DOWN: positive bend curves RIGHT, negative curves LEFT
   - Arrow going UP: positive bend curves LEFT, negative curves RIGHT
-- If 2 shapes are connected via 2 arrows, you must give the arrows bends of opposite signs so the labels do not overlap. 
+- If 2 shapes are connected bidirectionally via arrows, you must give the arrows bends of at least 15 pixels of opposite signs so the labels do not overlap. 
 
 ## Text shapes
 
