@@ -15,6 +15,7 @@ import {
 	structuredClone,
 	useEditor,
 	useToasts,
+	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { MCP_SERVER_NAME, MCP_SERVER_VERSION } from '../shared/types'
@@ -68,6 +69,7 @@ const CanvasUiContext = React.createContext<{
 
 function SharePanelContent() {
 	const editor = useEditor()
+	const hasShapes = useValue('hasShapes', () => editor.getCurrentPageShapeIds().size > 0, [editor])
 
 	const { displayMode, toggleFullscreen, canFullscreen, canDownload, app, lastEditor } =
 		useContext(CanvasUiContext)
@@ -94,21 +96,21 @@ function SharePanelContent() {
 			{app && (
 				<button
 					onClick={handleBuildItClick}
+					disabled={!hasShapes}
 					title="Build it"
 					style={{
 						flex: '0 0 auto',
 						position: 'relative',
 						boxSizing: 'border-box',
-						background: 'var(--tl-color-primary)',
-						color: 'white',
+						background: hasShapes ? 'var(--tl-color-primary)' : 'var(--tl-color-muted-2)',
+						color: hasShapes ? 'white' : 'var(--tl-color-muted-1)',
 						border: 'var(--tl-color-background)',
 						font: 'inherit',
 						fontWeight: 600,
 						padding: 'var(--tl-space-3) var(--tl-space-4)',
 						borderRadius: 'var(--tl-radius-2)',
 						margin: 'var(--tl-space-2)',
-						cursor: 'pointer',
-						pointerEvents: 'all',
+						cursor: hasShapes ? 'pointer' : 'not-allowed',
 					}}
 				>
 					Build it
