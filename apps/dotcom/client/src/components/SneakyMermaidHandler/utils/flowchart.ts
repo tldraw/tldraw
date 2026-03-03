@@ -70,9 +70,9 @@ function computeFlowNodeSize(
 		return { w: svgNode.width, h: svgNode.height }
 	}
 	if (geo === 'ellipse') {
-		return { w: svgNode.width + 20, h: svgNode.height + 10 }
+		return { w: svgNode.width + 15, h: svgNode.height + 8 }
 	}
-	return { w: svgNode.width + 10, h: svgNode.height + 5 }
+	return { w: svgNode.width + 8, h: svgNode.height + 4 }
 }
 
 // ---------------------------------------------------------------------------

@@ -32,6 +32,14 @@ export async function createMermaidDiagram(
 		throw new MermaidDiagramError('not a mermaid diagram', 'parse')
 	}
 
+	// Inflate the font size so Mermaid's layout engine allocates larger nodes,
+	// compensating for tldraw's hand-drawn font being wider than Mermaid's default.
+	const FONT_INFLATE = 1.25
+	mermaid.initialize({
+		startOnLoad: false,
+		themeVariables: { fontSize: `${16 * FONT_INFLATE}px` },
+	})
+
 	try {
 		const parsedSvg = (await mermaid.render(`mermaid-${Date.now()}`, text)).svg
 		// eslint-disable-next-line @typescript-eslint/no-deprecated

@@ -266,31 +266,7 @@ export function sanitizeDiagramText(text: string): string {
 // ---------------------------------------------------------------------------
 
 /** Scale factor applied to parsed SVG layout (nodes, clusters, edges). */
-export const LAYOUT_SCALE = 1.4
-
-const NODE_CHAR_W = 16
-const NODE_PAD_X = 50
-const NODE_PAD_Y = 20
-const NODE_MIN_W = 100
-const NODE_MIN_H = 50
-const LINE_HEIGHT = 28
-
-/** Compute rectangle node size from label text and (already-scaled) SVG dimensions. */
-export function computeRectNodeSize(
-	label: string,
-	svgW: number,
-	svgH: number,
-	pad?: { w?: number; h?: number }
-): { w: number; h: number } {
-	const lines = label.split('\n')
-	const maxLen = Math.max(...lines.map((l) => l.length), 0)
-	const textMinW = Math.max(NODE_MIN_W, maxLen * NODE_CHAR_W + NODE_PAD_X)
-	const textMinH = Math.max(NODE_MIN_H, lines.length * LINE_HEIGHT + NODE_PAD_Y)
-	return {
-		w: Math.max(svgW, textMinW) + (pad?.w ?? 0),
-		h: Math.max(svgH, textMinH) + (pad?.h ?? 0),
-	}
-}
+export const LAYOUT_SCALE = 1.25
 
 /** Create a labelled frame (geo rectangle) used for subgraphs and compound states. */
 export function createFrameShape(

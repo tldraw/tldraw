@@ -429,6 +429,6 @@ function computeStateSize(
 		case 'join':
 			return { w: 200, h: 8 }
 		default:
-			return { w: node.width + 30, h: node.height + 10 }
+			return { w: node.width + 20, h: node.height + 8 }
 	}
 }
