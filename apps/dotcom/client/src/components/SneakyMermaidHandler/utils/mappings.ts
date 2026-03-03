@@ -1,3 +1,4 @@
+import { defaultColorNames, DefaultColorThemePalette } from '@tldraw/tlschema'
 import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
 import {
 	TLArrowShapeArrowheadStyle,
@@ -248,23 +249,6 @@ export function isBidirectional(type: number, LT: MermaidLinetype): boolean {
 // CSS style parsing (for linkStyle, classDef, style directives)
 // ---------------------------------------------------------------------------
 
-// tldraw light-mode solid hex values (hard-coded to avoid importing the full palette)
-const TLDRAW_PALETTE: [TLDefaultColorStyle, number, number, number][] = [
-	['black', 0x1d, 0x1d, 0x1d],
-	['grey', 0x9f, 0xa8, 0xb2],
-	['blue', 0x44, 0x65, 0xe9],
-	['light-blue', 0x4b, 0xa1, 0xf1],
-	['green', 0x09, 0x92, 0x68],
-	['light-green', 0x4c, 0xb0, 0x5e],
-	['red', 0xe0, 0x31, 0x31],
-	['light-red', 0xf8, 0x77, 0x77],
-	['orange', 0xe1, 0x69, 0x19],
-	['yellow', 0xf1, 0xac, 0x4b],
-	['violet', 0xae, 0x3e, 0xc9],
-	['light-violet', 0xe0, 0x85, 0xf4],
-	['white', 0xff, 0xff, 0xff],
-]
-
 function parseHexToRgb(hex: string): [number, number, number] | null {
 	const h = hex.replace(/^#/, '')
 	if (h.length === 3 || h.length === 4) {
@@ -275,6 +259,14 @@ function parseHexToRgb(hex: string): [number, number, number] | null {
 	}
 	return null
 }
+
+const TLDRAW_PALETTE: [TLDefaultColorStyle, number, number, number][] = defaultColorNames.map(
+	(name) => {
+		const { solid } = DefaultColorThemePalette.lightMode[name]
+		const rgb = parseHexToRgb(solid)!
+		return [name, rgb[0], rgb[1], rgb[2]]
+	}
+)
 
 /** Map an arbitrary hex color to the nearest tldraw named color (best-effort). */
 function nearestTldrawColor(hex: string): TLDefaultColorStyle {
