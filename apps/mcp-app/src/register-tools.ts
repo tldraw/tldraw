@@ -644,6 +644,51 @@ export function registerTools(
 		)
 	}
 
+	// --- get_active_checkpoint (app-only) ---
+	// Used by the widget to bootstrap when localStorage is unavailable (e.g. Cursor,
+	// which isolates iframe origins between tool calls).
+
+	server.registerTool(
+		'get_active_checkpoint',
+		{
+			title: 'Get Active Checkpoint',
+			description: 'App-only: returns the current active checkpoint with all shapes.',
+			inputSchema: z.object({}),
+			annotations: {
+				readOnlyHint: true,
+				idempotentHint: true,
+				openWorldHint: false,
+			},
+			_meta: { ui: { visibility: ['app'] } },
+		},
+		async (): Promise<CallToolResult> => {
+			const id = deps.getActiveCheckpointId()
+			if (!id) {
+				return {
+					content: [{ type: 'text', text: 'No active checkpoint.' }],
+					structuredContent: { checkpointId: null, tldrawRecords: [], assets: [], bindings: [] },
+				}
+			}
+			const checkpoint = deps.loadCheckpoint(id)
+			if (!checkpoint) {
+				return {
+					content: [{ type: 'text', text: 'Checkpoint not found.' }],
+					structuredContent: { checkpointId: id, tldrawRecords: [], assets: [], bindings: [] },
+				}
+			}
+			const shapes = parseTlShapes(checkpoint.shapes)
+			return {
+				content: [{ type: 'text', text: `${shapes.length} shape(s).` }],
+				structuredContent: {
+					checkpointId: id,
+					tldrawRecords: shapes,
+					assets: checkpoint.assets,
+					bindings: checkpoint.bindings,
+				},
+			}
+		}
+	)
+
 	// --- canvas resource ---
 
 	registerAppResource(
@@ -656,27 +701,7 @@ export function registerTools(
 			mimeType: RESOURCE_MIME_TYPE,
 		},
 		async (): Promise<ReadResourceResult> => {
-			let html = await deps.loadWidgetHtml()
-
-			// Embed the active checkpoint in the HTML so the widget can bootstrap
-			// without localStorage. This handles hosts that isolate iframe origins
-			// between tool calls (e.g. Cursor).
-			const activeId = deps.getActiveCheckpointId()
-			if (activeId) {
-				const checkpoint = deps.loadCheckpoint(activeId)
-				if (checkpoint) {
-					const bootstrap = JSON.stringify({
-						checkpointId: activeId,
-						shapes: parseTlShapes(checkpoint.shapes),
-						assets: checkpoint.assets,
-						bindings: checkpoint.bindings,
-					}).replace(/</g, '\\u003c')
-					html = html.replace(
-						'</head>',
-						`<script>window.__TLDRAW_BOOTSTRAP__=${bootstrap}</script></head>`
-					)
-				}
-			}
+			const html = await deps.loadWidgetHtml()
 
 			// Resolve domain from client identity (only when serving over HTTP with configured domains)
 			let domain: string | undefined

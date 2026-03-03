@@ -32,7 +32,6 @@ import { exportTldr } from './export-tldr'
 import {
 	type CanvasSnapshot,
 	getEditorBindings,
-	getEmbeddedBootstrapSnapshot,
 	getLatestCheckpointSnapshot,
 	loadLocalSnapshot,
 	parseCheckpointFromToolResult,
@@ -419,22 +418,36 @@ function TldrawCanvas({ app }: { app: App }) {
 			log(`Pre-loaded ${latestSnapshot.shapes.length} shape(s) from latest checkpoint`)
 		} else {
 			// localStorage is empty — this happens in MCP hosts (e.g. Cursor) that
-			// isolate iframe origins between tool calls. Fall back to checkpoint
-			// data embedded in the HTML by the server when serving the resource.
-			const bootstrap = getEmbeddedBootstrapSnapshot()
-			if (bootstrap) {
-				committedSnapshotRef.current = bootstrap.snapshot
-				checkpointIdRef.current = bootstrap.checkpointId
-				const editor = editorRef.current
-				if (editor) {
-					applySnapshot(editor, bootstrap.snapshot)
-				} else {
-					pendingSnapshotRef.current = bootstrap.snapshot
-				}
-				log(
-					`Bootstrapped ${bootstrap.snapshot.shapes.length} shape(s) from embedded data (localStorage was empty)`
-				)
-			}
+			// isolate iframe origins between tool calls. Fall back to asking the
+			// server for the active checkpoint so streaming previews have a base.
+			app
+				.callServerTool({ name: 'get_active_checkpoint', arguments: {} })
+				.then((result: unknown) => {
+					const checkpoint = parseCheckpointFromToolResult(result)
+					if (!checkpoint || checkpoint.shapes.length === 0) return
+					// Don't overwrite if a tool result already committed shapes
+					if (committedSnapshotRef.current.shapes.length > 0) return
+
+					const snapshot: CanvasSnapshot = {
+						shapes: checkpoint.shapes,
+						assets: checkpoint.assets,
+						bindings: checkpoint.bindings,
+					}
+					committedSnapshotRef.current = snapshot
+					checkpointIdRef.current = checkpoint.checkpointId
+					const editor = editorRef.current
+					if (editor) {
+						applySnapshot(editor, snapshot)
+					} else {
+						pendingSnapshotRef.current = snapshot
+					}
+					log(
+						`Bootstrapped ${checkpoint.shapes.length} shape(s) from server (localStorage was empty)`
+					)
+				})
+				.catch(() => {
+					// Server bootstrap failed — widget starts empty.
+				})
 		}
 
 		app.onhostcontextchanged = (ctx) => {

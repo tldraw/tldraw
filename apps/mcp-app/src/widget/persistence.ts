@@ -83,35 +83,6 @@ export function getLatestCheckpointSnapshot(): {
 	}
 }
 
-// --- Server-embedded bootstrap ---
-// The server injects the active checkpoint into the widget HTML as
-// window.__TLDRAW_BOOTSTRAP__ so the widget can bootstrap without localStorage.
-// This handles MCP hosts that isolate iframe origins between tool calls.
-
-export function getEmbeddedBootstrapSnapshot(): {
-	checkpointId: string
-	snapshot: CanvasSnapshot
-} | null {
-	try {
-		const data = (window as any).__TLDRAW_BOOTSTRAP__
-		if (!data || typeof data !== 'object') return null
-		const checkpointId = typeof data.checkpointId === 'string' ? data.checkpointId : null
-		if (!checkpointId) return null
-		const shapes = (Array.isArray(data.shapes) ? data.shapes : []).filter(
-			(s: unknown): s is TLShape =>
-				isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
-		)
-		if (shapes.length === 0) return null
-		const assets = (Array.isArray(data.assets) ? data.assets : []).filter(
-			(a: unknown): a is TLAsset => isPlainObject(a) && typeof a.id === 'string'
-		)
-		const bindings = (Array.isArray(data.bindings) ? data.bindings : []) as TLBindingCreate[]
-		return { checkpointId, snapshot: { shapes, assets, bindings } }
-	} catch {
-		return null
-	}
-}
-
 // --- Tool result parsing ---
 
 function toSnapshotShapesFromRecords(value: unknown): TLShape[] | null {
