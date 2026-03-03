@@ -3,6 +3,27 @@ import { Box, Editor, structuredClone } from 'tldraw'
 import type { CanvasSnapshot } from './persistence'
 
 /**
+ * Re-run each ShapeUtil's onBeforeCreate to recalculate auto-sizing dimensions
+ * (e.g. growY for geo/note shapes). This compensates for shapes arriving from
+ * the server with static dimensions (growY: 0) that get applied via updateShapes,
+ * which doesn't trigger the sizing recalculation in onBeforeUpdate unless
+ * text/font/size actually changed.
+ */
+function forceAutoSize(editor: Editor) {
+	const updates: TLShape[] = []
+	for (const shape of editor.getCurrentPageShapes()) {
+		const util = editor.getShapeUtil(shape)
+		const adjusted = util.onBeforeCreate?.(shape as any)
+		if (adjusted) {
+			updates.push(adjusted as TLShape)
+		}
+	}
+	if (updates.length > 0) {
+		editor.updateShapes(updates)
+	}
+}
+
+/**
  * Create bindings on the editor from a list of TLBindingCreate objects.
  * Only creates bindings where the target shape exists on the page.
  * Removes existing arrow bindings for affected arrows to prevent duplicates.
@@ -64,24 +85,29 @@ export function zoomToFitRequestShapes(editor: Editor, shapeIds: Set<TLShapeId>)
 	const inset = 100
 
 	// The zoom level needed to fit the shapes with padding
-	const fitZoom = Math.min(
-		(screenBounds.w - inset) / commonBounds.w,
-		(screenBounds.h - inset) / commonBounds.h
-	)
+	const fitZoomX =
+		commonBounds.w > 0 ? (screenBounds.w - inset) / commonBounds.w : Number.POSITIVE_INFINITY
+	const fitZoomY =
+		commonBounds.h > 0 ? (screenBounds.h - inset) / commonBounds.h : Number.POSITIVE_INFINITY
+	const fitZoom = Math.min(fitZoomX, fitZoomY)
 
 	// Never zoom in past the current level — only zoom out if shapes don't fit
 	const zoom = Math.min(currentZoom, fitZoom)
+	if (!Number.isFinite(zoom) || zoom <= 0) return
 
 	// Center the shapes in the viewport at the chosen zoom
 	const cx = commonBounds.x + commonBounds.w / 2
 	const cy = commonBounds.y + commonBounds.h / 2
+	const cameraX = -cx + screenBounds.w / zoom / 2
+	const cameraY = -cy + screenBounds.h / zoom / 2
+	if (!Number.isFinite(cameraX) || !Number.isFinite(cameraY)) return
 
 	cameraAnimEndTime = Date.now() + CAMERA_ANIM_MS
 
 	editor.setCamera(
 		{
-			x: -cx + screenBounds.w / zoom / 2,
-			y: -cy + screenBounds.h / zoom / 2,
+			x: cameraX,
+			y: cameraY,
 			z: zoom,
 		},
 		{ animation: { duration: CAMERA_ANIM_MS } }
@@ -118,6 +144,9 @@ export function applySnapshot(editor: Editor, snapshot: CanvasSnapshot) {
 					return partial
 				})
 				editor.createShapes(createInputs)
+
+				// Re-run auto-sizing so growY / fontSizeAdjustment are correct
+				forceAutoSize(editor)
 
 				// Create bindings after all shapes are on the page
 				applyBindings(editor, nextBindings)
@@ -169,6 +198,9 @@ export function applyPreviewToEditor(
 
 				if (toUpdate.length > 0) editor.updateShapes(toUpdate)
 				if (toCreate.length > 0) editor.createShapes(toCreate)
+
+				// Re-run auto-sizing so growY / fontSizeAdjustment are correct
+				forceAutoSize(editor)
 
 				// Create bindings after all shapes are on the page
 				applyBindings(editor, nextBindings)

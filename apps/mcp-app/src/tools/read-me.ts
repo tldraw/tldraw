@@ -143,6 +143,7 @@ Deletes shapes by id from a JSON string.
   - For example, \`top-left\` means \`x\`,\`y\` is the top-left corner (left-aligned text). \`top-center\` means \`x\`,\`y\` is the top-center (center-aligned text). \`bottom-right\` means \`x\`,\`y\` is the bottom-right corner (right-aligned text).
   - This makes it easy to position text relative to other shapes. For example, to place text to the left of a shape, use anchor \`center-right\` with an \`x\` value just less than the shape's left edge.
   - This behavior is unique to text shapes. No other shape uses anchor-based positioning.
+- Only ever use plain text, no special bullet points or anything like that.
 
 ## Labels on shapes
 

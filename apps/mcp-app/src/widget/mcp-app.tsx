@@ -68,6 +68,39 @@ function SharePanelContent() {
 		useContext(DisplayModeContext)
 	return (
 		<div className="tlui-share-zone" draggable={false} style={{ display: 'flex', gap: 4 }}>
+			{app && (
+				<button
+					onClick={() =>
+						app.sendMessage({
+							role: 'user',
+							content: [
+								{
+									type: 'text',
+									text: 'Hey I made some changes to the canvas. The new state is attached. Take changes and implement it in the codebase.',
+								},
+							],
+						})
+					}
+					title="Build it"
+					style={{
+						flex: '0 0 auto',
+						position: 'relative',
+						boxSizing: 'border-box',
+						background: 'var(--tl-color-primary)',
+						color: 'white',
+						border: 'var(-tl-color-background',
+						font: 'inherit',
+						fontWeight: 600,
+						padding: 'var(--tl-space-3) var(--tl-space-4)',
+						borderRadius: 'var(--tl-radius-2)',
+						margin: 'var(--tl-space-2)',
+						cursor: 'pointer',
+						pointerEvents: 'all',
+					}}
+				>
+					Build it
+				</button>
+			)}
 			{toggleFullscreen && canFullscreen && (
 				<button
 					className="tlui-button tlui-button__normal"
@@ -669,9 +702,14 @@ function TldrawCanvas({ app }: { app: App }) {
 				if (dw === 0 && dh === 0) return
 
 				const cam = editor.getCamera()
+				if (!Number.isFinite(cam.z) || cam.z <= 0) return
+				const nextX = cam.x + dw / cam.z / 2
+				const nextY = cam.y + dh / cam.z / 2
+				if (!Number.isFinite(nextX) || !Number.isFinite(nextY)) return
+
 				editor.setCamera({
-					x: cam.x + dw / cam.z / 2,
-					y: cam.y + dh / cam.z / 2,
+					x: nextX,
+					y: nextY,
 					z: cam.z,
 				})
 			})
