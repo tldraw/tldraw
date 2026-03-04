@@ -34,10 +34,12 @@ export async function createMermaidDiagram(
 
 	// Inflate the font size so Mermaid's layout engine allocates larger nodes,
 	// compensating for tldraw's hand-drawn font being wider than Mermaid's default.
-	const FONT_INFLATE = 1.25
+	const FONT_INFLATE = 1.4
 	mermaid.initialize({
 		startOnLoad: false,
-		themeVariables: { fontSize: `${16 * FONT_INFLATE}px` },
+		themeVariables: {
+			fontSize: `${18 * FONT_INFLATE}px`,
+		},
 	})
 
 	const offscreen = document.createElement('div')

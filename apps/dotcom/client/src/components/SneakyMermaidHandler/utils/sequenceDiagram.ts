@@ -218,7 +218,7 @@ export function createMermaidSequenceDiagram(
 				richText: toRichText(sanitizeDiagramText(actor.description || actor.name || key)),
 				align: 'middle',
 				verticalAlign: 'middle',
-				size: 'm',
+				size: 's',
 			},
 		})
 
@@ -262,7 +262,7 @@ export function createMermaidSequenceDiagram(
 				richText: toRichText(sanitizeDiagramText(actor.description || actor.name || key)),
 				align: 'middle',
 				verticalAlign: 'middle',
-				size: 'm',
+				size: 's',
 			},
 		})
 
