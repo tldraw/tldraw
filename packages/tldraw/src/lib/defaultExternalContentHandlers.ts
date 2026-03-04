@@ -38,7 +38,6 @@ import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
-import { tryPutMermaidContent } from './utils/mermaid/putMermaidContent'
 import { renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
@@ -52,6 +51,8 @@ export const DEFAULT_MAX_IMAGE_DIMENSION = 5000
  * @public
  */
 export const DEFAULT_MAX_ASSET_SIZE = 10 * 1024 * 1024
+const MERMAID_TEXT_HINT_REGEX =
+	/(^|\n)\s*(?:```(?:mermaid|mmd)\b|(?:graph|flowchart|stateDiagram(?:-v2)?|sequenceDiagram|classDiagram|erDiagram|mindmap|block-beta)\b)/i
 
 /** @public */
 export interface TLExternalContentProps {
@@ -471,7 +472,11 @@ export async function defaultHandleExternalTextContent(
 
 	const cleanedUpPlaintext = cleanupText(text)
 
-	if (!html && (await tryPutMermaidContent(editor, { point: p, text: cleanedUpPlaintext }))) {
+	if (
+		!html &&
+		looksLikeMermaidText(cleanedUpPlaintext) &&
+		(await tryPutMermaidContentDynamically(editor, p, cleanedUpPlaintext))
+	) {
 		return
 	}
 
@@ -567,6 +572,15 @@ export async function defaultHandleExternalTextContent(
 			},
 		},
 	])
+}
+
+async function tryPutMermaidContentDynamically(editor: Editor, point: VecLike, text: string) {
+	const { tryPutMermaidContent } = await import('./utils/mermaid/putMermaidContent')
+	return tryPutMermaidContent(editor, { point, text })
+}
+
+function looksLikeMermaidText(text: string) {
+	return MERMAID_TEXT_HINT_REGEX.test(text)
 }
 
 /** @public */
