@@ -62,6 +62,8 @@ export function registerTools(
 		return typeof maybeFromId === 'string' ? (maybeFromId as TLShape['id']) : null
 	}
 
+	const analytics = opts?.analytics
+
 	// --- read_me ---
 
 	server.registerTool(
@@ -75,9 +77,14 @@ export function registerTools(
 				openWorldHint: false,
 			},
 		},
-		async (): Promise<CallToolResult> => ({
-			content: [{ type: 'text', text: READ_ME_CONTENT }],
-		})
+		async (): Promise<CallToolResult> => {
+			analytics?.writeDataPoint({
+				blobs: ['tool_called', 'read_me'],
+			})
+			return {
+				content: [{ type: 'text', text: READ_ME_CONTENT }],
+			}
+		}
 	)
 
 	// --- create_shapes ---
@@ -101,6 +108,9 @@ export function registerTools(
 				log(
 					`[tldraw-mcp] create_shapes called: new_blank_canvas=${new_blank_canvas}, activeCheckpointId=${deps.getActiveCheckpointId()}`
 				)
+				analytics?.writeDataPoint({
+					blobs: ['tool_called', 'create_shapes'],
+				})
 				const newBlankCanvas = parseBooleanFlag(new_blank_canvas, false)
 				const focusedShapes = parseFocusedShapesInput(shapesJson)
 				const { shapes: newRecords, bindings: newBindings } =
@@ -178,6 +188,9 @@ export function registerTools(
 		async ({ updatesJson }: UpdateShapesInput): Promise<CallToolResult> => {
 			try {
 				log(`[tldraw-mcp] update_shapes called: activeCheckpointId=${deps.getActiveCheckpointId()}`)
+				analytics?.writeDataPoint({
+					blobs: ['tool_called', 'update_shapes'],
+				})
 				const updates = parseFocusedShapeUpdatesInput(updatesJson)
 				const baseShapes = deps.getActiveShapes()
 				log(
@@ -297,6 +310,9 @@ export function registerTools(
 		async ({ shapeIdsJson }: DeleteShapesInput): Promise<CallToolResult> => {
 			try {
 				log(`[tldraw-mcp] delete_shapes called: activeCheckpointId=${deps.getActiveCheckpointId()}`)
+				analytics?.writeDataPoint({
+					blobs: ['tool_called', 'delete_shapes'],
+				})
 				const shapeIds = parseShapeIdsInput(shapeIdsJson)
 				const baseShapes = deps.getActiveShapes()
 				log(
@@ -502,6 +518,34 @@ export function registerTools(
 		}
 	)
 
+	// --- event (app-only) ---
+
+	server.registerTool(
+		'event',
+		{
+			inputSchema: z.object({
+				event: z.string().min(1),
+				value: z.number().optional(),
+			}),
+			_meta: { ui: { visibility: ['app'] } },
+		},
+		async ({ event, value }: { event: string; value?: number }): Promise<CallToolResult> => {
+			analytics?.writeDataPoint(
+				typeof value === 'number'
+					? {
+							blobs: [event],
+							doubles: [value],
+						}
+					: {
+							blobs: [event],
+						}
+			)
+			return {
+				content: [{ type: 'text', text: 'Tracked widget event.' }],
+			}
+		}
+	)
+
 	// --- canvas resource ---
 
 	registerAppResource(
@@ -514,6 +558,9 @@ export function registerTools(
 			mimeType: RESOURCE_MIME_TYPE,
 		},
 		async (): Promise<ReadResourceResult> => {
+			analytics?.writeDataPoint({
+				blobs: ['resource_called', 'tldraw-canvas'],
+			})
 			let html = await deps.loadWidgetHtml()
 
 			// Embed bootstrap data (session ID + active checkpoint) so the widget
