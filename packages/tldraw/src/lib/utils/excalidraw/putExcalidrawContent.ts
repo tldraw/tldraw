@@ -22,9 +22,9 @@ import {
 	compact,
 	createBindingId,
 	createShapeId,
+	defaultTlmeta,
 	getIndexAbove,
 	getIndices,
-	defaultTlmeta,
 	isShapeId,
 	toRichText,
 } from '@tldraw/editor'

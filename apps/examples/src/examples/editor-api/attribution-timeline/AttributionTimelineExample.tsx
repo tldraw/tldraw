@@ -82,10 +82,7 @@ function UserSwitcher() {
 						setActiveUserId(user.id)
 					}}
 				>
-					<span
-						className="attribution-timeline-dot"
-						style={{ backgroundColor: user.color }}
-					/>
+					<span className="attribution-timeline-dot" style={{ backgroundColor: user.color }} />
 					{user.name}
 				</TldrawUiButton>
 			))}
@@ -200,8 +197,7 @@ const AttributionTimeline = track(() => {
 	const handleSliderChange = useCallback(
 		(sliderValue: number) => {
 			if (filteredGlobalIndices) {
-				const globalIndex =
-					sliderValue === 0 ? 0 : filteredGlobalIndices[sliderValue - 1]
+				const globalIndex = sliderValue === 0 ? 0 : filteredGlobalIndices[sliderValue - 1]
 				navigateToIndex(globalIndex)
 			} else {
 				navigateToIndex(sliderValue)
@@ -249,10 +245,7 @@ const AttributionTimeline = track(() => {
 						type={timeline.filterUserId === user.id ? 'primary' : 'normal'}
 						onClick={() => setFilter(user.id)}
 					>
-						<span
-							className="attribution-timeline-dot"
-							style={{ backgroundColor: user.color }}
-						/>
+						<span className="attribution-timeline-dot" style={{ backgroundColor: user.color }} />
 						{user.name}
 					</TldrawUiButton>
 				))}

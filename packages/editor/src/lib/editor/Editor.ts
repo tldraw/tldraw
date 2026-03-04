@@ -8265,19 +8265,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 
 				// Set attribution metadata, merging any explicitly provided fields
-				{
-					const now = Date.now()
-					const user = this.getAttributionUser()
-					shapeRecordToCreate = {
-						...shapeRecordToCreate,
-						tlmeta: {
-							createdBy: user,
-							updatedBy: user,
-							createdAt: now,
-							updatedAt: now,
-							...partialTlmeta,
-						},
-					}
+				const now = Date.now()
+				const user = this.getAttributionUser()
+				shapeRecordToCreate = {
+					...shapeRecordToCreate,
+					tlmeta: {
+						createdBy: user,
+						updatedBy: user,
+						createdAt: now,
+						updatedAt: now,
+						...partialTlmeta,
+					},
 				}
 
 				const next = this.getShapeUtil(shapeRecordToCreate).onBeforeCreate?.(shapeRecordToCreate)
@@ -8698,9 +8696,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					...updated,
 					tlmeta: {
 						...updated.tlmeta,
+						...partialTlmeta,
 						updatedBy: user,
 						updatedAt: now,
-						...partialTlmeta,
 					},
 				}
 

@@ -1,10 +1,4 @@
-import {
-	createShapeId,
-	defaultTlmeta,
-	TLFrameShape,
-	TLGeoShape,
-	TLLineShape,
-} from '@tldraw/editor'
+import { createShapeId, defaultTlmeta, TLFrameShape, TLGeoShape, TLLineShape } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 

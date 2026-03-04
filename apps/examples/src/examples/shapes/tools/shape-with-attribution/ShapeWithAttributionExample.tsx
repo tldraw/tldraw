@@ -7,6 +7,7 @@ import {
 	Tldraw,
 	useEditor,
 	useValue,
+	type TLIdentityProvider,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './shape-with-attribution.css'
@@ -25,6 +26,12 @@ declare module 'tldraw' {
 type AttributedCardShape = TLShape<typeof ATTRIBUTED_CARD>
 
 // [2]
+const identity: TLIdentityProvider = {
+	getCurrentUser: () => ({ id: 'user-alice', name: 'Alice' }),
+	resolveUser: (id) => (id === 'user-alice' ? { id, name: 'Alice' } : null),
+}
+
+// [3]
 function AttributedCardComponent({ shape }: { shape: AttributedCardShape }) {
 	const editor = useEditor()
 
@@ -46,19 +53,19 @@ function AttributedCardComponent({ shape }: { shape: AttributedCardShape }) {
 			<div className="attributed-card">
 				<div className="attributed-card-label">{shape.props.label}</div>
 				<div className="attributed-card-meta">
-					{attribution.createdByName && (
+					{attribution?.createdByName && (
 						<div className="attributed-card-row">
 							<span>Created by</span>
 							<span className="attributed-card-user">{attribution.createdByName}</span>
 						</div>
 					)}
-					{attribution.updatedByName && (
+					{attribution?.updatedByName && (
 						<div className="attributed-card-row">
 							<span>Edited by</span>
 							<span className="attributed-card-user">{attribution.updatedByName}</span>
 						</div>
 					)}
-					{attribution.updatedAt && (
+					{attribution?.updatedAt && (
 						<div className="attributed-card-row">
 							<span>Last edit</span>
 							<span>{new Date(attribution.updatedAt).toLocaleTimeString()}</span>
@@ -70,7 +77,7 @@ function AttributedCardComponent({ shape }: { shape: AttributedCardShape }) {
 	)
 }
 
-// [3]
+// [4]
 class AttributedCardUtil extends BaseBoxShapeUtil<AttributedCardShape> {
 	static override type = ATTRIBUTED_CARD
 	static override props: RecordProps<AttributedCardShape> = {
@@ -94,18 +101,19 @@ class AttributedCardUtil extends BaseBoxShapeUtil<AttributedCardShape> {
 
 const shapeUtils = [AttributedCardUtil]
 
-// [4]
+// [5]
 export default function ShapeWithAttributionExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				shapeUtils={shapeUtils}
 				onMount={(editor) => {
+					;(editor as any)._identity = identity
 					editor.createShape({
 						type: ATTRIBUTED_CARD,
 						x: 380,
 						y: 100,
-						props: { label: 'Resize me!' },
+						props: { label: 'Try moving or resizing me!' },
 					})
 				}}
 			/>
@@ -120,18 +128,22 @@ Every shape automatically gets a `tlmeta` field (with `createdBy`, `updatedBy`,
 `createdAt`, `updatedAt`) — no extra props needed for attribution.
 
 [2]
-A React component that renders the shape body. We use `useEditor()` to access
-the identity provider and `useValue()` to reactively read `shape.tlmeta`. The
-`editor.getAttributionDisplayName(user)` call resolves the stored attribution
-user into a human-readable display name, falling back to the stored name when
-the live identity provider can't resolve the user.
+A simple identity provider so shapes are attributed to "Alice". In a real app
+this would be backed by your auth system. `getCurrentUser` returns who is
+logged in; `resolveUser` looks up any user ID for display-name resolution.
 
 [3]
+A React component that renders the shape body. We read the live shape from the
+store via `editor.getShape(shape.id)` inside `useValue()` so that attribution
+updates (e.g. after a resize) trigger a re-render. The `shape` prop is a
+frozen snapshot — reading `shape.tlmeta` directly would not be reactive.
+
+[4]
 We extend BaseBoxShapeUtil so we get resize handling for free. The `component`
 method delegates to our React component that reads attribution data.
 
-[4]
-Mount the editor with our custom shape util and create two cards on the canvas.
-Try moving, resizing, or editing the cards — the "Edited by" and "Last edit"
-fields update automatically.
+[5]
+Mount the editor with our custom shape util, inject the identity provider, and
+create a card on the canvas. Try moving, resizing, or editing the card — the
+"Edited by" and "Last edit" fields update automatically.
 */
