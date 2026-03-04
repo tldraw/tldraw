@@ -3449,6 +3449,7 @@ export interface TldrawEditorBaseProps {
     // @deprecated
     deepLinks?: TLDeepLinkOptions | true;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
+    identity?: TLIdentityProvider;
     inferDarkMode?: boolean;
     initialState?: string;
     licenseKey?: string;

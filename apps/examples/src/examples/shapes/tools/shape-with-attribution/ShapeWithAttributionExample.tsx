@@ -107,8 +107,8 @@ export default function ShapeWithAttributionExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				shapeUtils={shapeUtils}
+				identity={identity}
 				onMount={(editor) => {
-					;(editor as any)._identity = identity
 					editor.createShape({
 						type: ATTRIBUTED_CARD,
 						x: 380,
@@ -143,7 +143,8 @@ We extend BaseBoxShapeUtil so we get resize handling for free. The `component`
 method delegates to our React component that reads attribution data.
 
 [5]
-Mount the editor with our custom shape util, inject the identity provider, and
-create a card on the canvas. Try moving, resizing, or editing the card — the
-"Edited by" and "Last edit" fields update automatically.
+Mount the editor with our custom shape util and pass the identity provider via
+the `identity` prop. We create a card on the canvas in `onMount`. Try moving,
+resizing, or editing the card — the "Edited by" and "Last edit" fields update
+automatically.
 */

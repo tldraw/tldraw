@@ -147,13 +147,10 @@ export default function IdentityExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="identity-example"
+				identity={identity}
 				components={{
 					TopPanel: UserSwitcher,
 					SharePanel: AttributionPanel,
-				}}
-				onMount={(editor) => {
-					// Inject the custom identity provider into the editor.
-					;(editor as any)._identity = identity
 				}}
 			/>
 		</div>
@@ -184,6 +181,6 @@ attribution field (`createdBy`, `updatedBy`) is a `{ id, name }` object — we t
 `resolveUser(id)` for live data and fall back to the stored name.
 
 [5]
-We inject the custom identity provider in `onMount`. The TopPanel shows the
-user-switcher and the SharePanel shows the attribution inspector.
+We pass the custom identity provider via the `identity` prop. The TopPanel shows
+the user-switcher and the SharePanel shows the attribution inspector.
 */

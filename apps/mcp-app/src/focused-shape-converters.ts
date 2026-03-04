@@ -158,7 +158,7 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): {
 		meta: {
 			note: shape.note ?? '',
 		},
-		tlmeta: defaultTlmeta,
+		tlmeta: { ...defaultTlmeta },
 	}
 
 	switch (shape._type) {

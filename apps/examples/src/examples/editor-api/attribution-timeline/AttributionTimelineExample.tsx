@@ -56,11 +56,9 @@ export default function AttributionTimelineExample() {
 		<div className="attribution-timeline-example">
 			<Tldraw
 				persistenceKey="attribution-timeline-example"
+				identity={identity}
 				components={{
 					TopPanel: UserSwitcher,
-				}}
-				onMount={(editor) => {
-					;(editor as any)._identity = identity
 				}}
 			>
 				<AttributionTimeline />
@@ -375,7 +373,7 @@ of whoever was active when the change was recorded.
 
 [3]
 The main component wires everything together: the TopPanel shows the user
-switcher, the identity provider is injected in onMount, and the
+switcher, the identity provider is passed via the `identity` prop, and the
 AttributionTimeline child renders the bottom controls bar.
 
 [4]
