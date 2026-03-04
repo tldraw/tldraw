@@ -39,7 +39,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.tldrawusercontent.com',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
-	'frame-src': [`'self'`, `https:`, '*'],
+	'frame-src': [`'self'`, `https:`],
 	'img-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'script-src': [
