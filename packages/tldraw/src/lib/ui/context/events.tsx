@@ -44,6 +44,7 @@ export interface TLUiEventMap {
 	'rename-document': null
 	'group-shapes': null
 	'ungroup-shapes': null
+	'frame-selection': null
 	'remove-frame': null
 	'fit-frame-to-content': null
 	'convert-to-embed': null
