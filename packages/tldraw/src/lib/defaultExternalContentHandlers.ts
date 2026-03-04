@@ -38,6 +38,7 @@ import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
+import { tryPutMermaidContent } from './utils/mermaid/putMermaidContent'
 import { renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
@@ -469,6 +470,11 @@ export async function defaultHandleExternalTextContent(
 	const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
 
 	const cleanedUpPlaintext = cleanupText(text)
+
+	if (!html && (await tryPutMermaidContent(editor, { point: p, text: cleanedUpPlaintext }))) {
+		return
+	}
+
 	const richTextToPaste = html
 		? renderRichTextFromHTML(editor, html)
 		: toRichText(cleanedUpPlaintext)
