@@ -30,7 +30,7 @@ function HashPatternForExport() {
 	const getHashPatternZoomName = useGetHashPatternZoomName()
 	const maskId = useUniqueSafeId()
 	const editor = useEditor()
-	const theme = editor.getCurrentTheme()
+	const { colors } = editor.getCurrentTheme()
 	const colorMode = editor.getActiveColorMode()
 	const t = 8 / 12
 	return (
@@ -49,7 +49,7 @@ function HashPatternForExport() {
 				height="8"
 				patternUnits="userSpaceOnUse"
 			>
-				<rect x="0" y="0" width="8" height="8" fill={theme.solid} mask={`url(#${maskId})`} />
+				<rect x="0" y="0" width="8" height="8" fill={colors.solid} mask={`url(#${maskId})`} />
 			</pattern>
 		</>
 	)
@@ -193,10 +193,8 @@ function usePattern() {
 		}
 
 		const themes = editor.getThemes()
-		const themeId = editor.theme.getCurrentThemeId()
-		const themeObj = themes[themeId] ?? themes['default']
-		const lightSolid = themeObj.color.light.solid
-		const darkSolid = themeObj.color.dark.solid
+		const lightSolid = (themes['light'] ?? themes[Object.keys(themes)[0]]).colors.solid
+		const darkSolid = (themes['dark'] ?? themes[Object.keys(themes)[0]]).colors.solid
 
 		const promise = Promise.all(
 			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [

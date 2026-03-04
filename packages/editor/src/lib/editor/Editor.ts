@@ -50,7 +50,7 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
-	TLThemeColorPalette,
+	TLTheme,
 	TLThemes,
 	TLVideoAsset,
 	createBindingId,
@@ -983,11 +983,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the resolved color theme for the current mode (light/dark).
+	 * Get the current theme for the active color mode (light/dark).
 	 *
 	 * @public
 	 */
-	getCurrentTheme(): TLThemeColorPalette {
+	getCurrentTheme(): TLTheme {
 		return this.theme.getCurrentTheme()
 	}
 
@@ -998,17 +998,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getActiveColorMode(): 'light' | 'dark' {
 		return this.theme.getActiveColorMode()
-	}
-
-	/**
-	 * Set the active theme by id.
-	 *
-	 * @param id - The id of the theme to activate.
-	 *
-	 * @public
-	 */
-	setCurrentTheme(id: string): void {
-		this.theme.setCurrentTheme(id)
 	}
 
 	/**

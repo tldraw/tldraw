@@ -36,7 +36,7 @@ export function SvgTextLabel({
 	showTextOutline?: boolean
 }) {
 	const editor = useEditor()
-	const theme = editor.getCurrentTheme()
+	const { colors } = editor.getCurrentTheme()
 
 	const opts = {
 		fontSize,
@@ -70,8 +70,8 @@ export function SvgTextLabel({
 
 	let outlineSpans = null
 	if (showTextOutline && stroke) {
-		opts.fill = theme.background
-		opts.stroke = theme.background
+		opts.fill = colors.background
+		opts.stroke = colors.background
 		opts.strokeWidth = 3
 		outlineSpans = createTextJsxFromSpans(editor, spans, opts)
 	}

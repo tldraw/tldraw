@@ -147,7 +147,7 @@ import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
-import type { TLThemeColorPalette } from '@tldraw/editor';
+import type { TLTheme } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
@@ -5728,7 +5728,7 @@ export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 export function useCurrentTranslation(): TLUiTranslation;
 
 // @public @deprecated (undocumented)
-export function useDefaultColorTheme(): TLThemeColorPalette;
+export function useDefaultColorTheme(): TLTheme;
 
 // @public (undocumented)
 export function useDefaultHelpers(): {

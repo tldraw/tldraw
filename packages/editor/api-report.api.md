@@ -85,7 +85,7 @@ import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStoreSchema } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
-import { TLThemeColorPalette } from '@tldraw/tlschema';
+import { TLTheme } from '@tldraw/tlschema';
 import { TLThemes } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
@@ -1232,7 +1232,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageShapesInReadingOrder(): TLShape[];
     getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
-    getCurrentTheme(): TLThemeColorPalette;
+    getCurrentTheme(): TLTheme;
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
     getDebouncedZoomLevel(): number;
@@ -1472,7 +1472,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     _setCtrlKeyTimeout(): void;
     setCurrentPage(page: TLPage | TLPageId): this;
-    setCurrentTheme(id: string): void;
     setCurrentTool(id: string, info?: {}): this;
     setCursor(cursor: Partial<TLCursor>): this;
     setEditingShape(shape: null | TLShape | TLShapeId): this;
@@ -3128,13 +3127,10 @@ export class ThemeManager {
     dispose(): void;
     getActiveColorMode(): 'dark' | 'light';
     // (undocumented)
-    getCurrentTheme(): TLThemeColorPalette;
-    // (undocumented)
+    getCurrentTheme(): TLTheme;
     getCurrentThemeId(): string;
     // (undocumented)
     getThemes(): TLThemes;
-    // (undocumented)
-    setCurrentTheme(id: string): void;
     // (undocumented)
     updateThemes(themes: Partial<TLThemes>): void;
 }

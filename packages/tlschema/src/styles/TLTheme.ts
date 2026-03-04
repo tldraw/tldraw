@@ -16,15 +16,13 @@ export type TLThemeColorPalette = Expand<
 >
 
 /**
- * A theme definition containing color palettes for both light and dark modes.
+ * A theme definition containing a single color palette.
+ * Light and dark modes are separate top-level themes rather than nested within one theme.
  *
  * @public
  */
 export interface TLTheme {
-	color: {
-		light: TLThemeColorPalette
-		dark: TLThemeColorPalette
-	}
+	colors: TLThemeColorPalette
 }
 
 /**

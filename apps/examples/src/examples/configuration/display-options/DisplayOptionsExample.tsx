@@ -7,8 +7,8 @@ const CustomGeoShapeUtil = GeoShapeUtil.configure({
 		const values: Partial<GeoShapeUtilDisplayValues> = {}
 
 		if (shape.isLocked) {
-			const theme = editor.getCurrentTheme()
-			values.fillColor = theme.red.solid
+			const { colors } = editor.getCurrentTheme()
+			values.fillColor = colors.red.solid
 		}
 
 		if (shape.props.geo === 'ellipse') {

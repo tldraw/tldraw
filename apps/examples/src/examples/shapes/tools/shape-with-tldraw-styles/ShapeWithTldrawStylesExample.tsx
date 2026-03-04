@@ -59,7 +59,7 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 
 	component(shape: IMyShape) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useEditor().getCurrentTheme()
+		const { colors } = useEditor().getCurrentTheme()
 
 		return (
 			<HTMLContainer
@@ -70,7 +70,7 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 					style={{
 						// [3]
 						fontSize: FONT_SIZES[shape.props.size],
-						color: getColorValue(theme, shape.props.color, 'solid'),
+						color: getColorValue(colors, shape.props.color, 'solid'),
 					}}
 				>
 					Select the shape and use the style panel to change the font size and color

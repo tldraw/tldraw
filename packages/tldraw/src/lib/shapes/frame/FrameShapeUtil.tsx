@@ -86,19 +86,19 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		showColors: false,
 		resizeChildren: false,
 		getDisplayValues(editor, shape): FrameShapeUtilDisplayValues {
-			const theme = editor.getCurrentTheme()
+			const { colors } = editor.getCurrentTheme()
 			const { color } = shape.props
 			return {
-				fillColor: getColorValue(theme, 'black', 'frameFill'),
-				strokeColor: getColorValue(theme, 'black', 'frameStroke'),
-				showColorsFillColor: getColorValue(theme, color, 'frameFill'),
-				showColorsStrokeColor: getColorValue(theme, color, 'frameStroke'),
-				headingFillColor: theme.background,
-				headingStrokeColor: theme.background,
-				headingTextColor: getColorValue(theme, 'black', 'frameText'),
-				showColorsHeadingFillColor: getColorValue(theme, color, 'frameHeadingFill'),
-				showColorsHeadingStrokeColor: getColorValue(theme, color, 'frameHeadingStroke'),
-				showColorsHeadingTextColor: getColorValue(theme, color, 'frameText'),
+				fillColor: getColorValue(colors, 'black', 'frameFill'),
+				strokeColor: getColorValue(colors, 'black', 'frameStroke'),
+				showColorsFillColor: getColorValue(colors, color, 'frameFill'),
+				showColorsStrokeColor: getColorValue(colors, color, 'frameStroke'),
+				headingFillColor: colors.background,
+				headingStrokeColor: colors.background,
+				headingTextColor: getColorValue(colors, 'black', 'frameText'),
+				showColorsHeadingFillColor: getColorValue(colors, color, 'frameHeadingFill'),
+				showColorsHeadingStrokeColor: getColorValue(colors, color, 'frameHeadingStroke'),
+				showColorsHeadingTextColor: getColorValue(colors, color, 'frameText'),
 			}
 		},
 		getDisplayValueOverrides(): Partial<FrameShapeUtilDisplayValues> {

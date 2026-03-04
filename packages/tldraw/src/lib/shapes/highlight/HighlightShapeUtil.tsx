@@ -59,12 +59,12 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	override options: HighlightShapeOptions = {
 		maxPointsPerShape: 600,
 		getDisplayValues(editor, shape): HighlightShapeUtilDisplayValues {
-			const theme = editor.getCurrentTheme()
+			const { colors } = editor.getCurrentTheme()
 			const { color, size } = shape.props
 			const useP3 = !debugFlags.forceSrgb.get() && tlenvReactive.get().supportsP3ColorSpace
 			const strokeColor = useP3
-				? getColorValue(theme, color, 'highlightP3')
-				: getColorValue(theme, color, 'highlightSrgb')
+				? getColorValue(colors, color, 'highlightP3')
+				: getColorValue(colors, color, 'highlightSrgb')
 			return {
 				strokeColor,
 				strokeWidth: FONT_SIZES[size] * 1.12,

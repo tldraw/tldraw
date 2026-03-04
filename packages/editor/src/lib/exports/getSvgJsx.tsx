@@ -194,9 +194,9 @@ function SvgExport({
 	waitUntil(promise: Promise<void>): void
 }) {
 	const masksId = useUniqueSafeId()
-	const themeObj =
-		editor.getThemes()[editor.theme.getCurrentThemeId()] ?? editor.getThemes()['default']
-	const theme = isDarkMode ? themeObj.color.dark : themeObj.color.light
+	const themes = editor.getThemes()
+	const themeId = isDarkMode ? 'dark' : 'light'
+	const theme = (themes[themeId] ?? themes[Object.keys(themes)[0]]).colors
 
 	const stateAtom = useAtom<{
 		defsById: Record<

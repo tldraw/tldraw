@@ -11,16 +11,13 @@ export default function ChangingDefaultColorsExample() {
 				persistenceKey="example"
 				onMount={(editor) => {
 					editor.updateThemes({
-						default: {
-							color: {
-								light: {
-									...editor.getThemes()['default'].color.light,
-									black: {
-										...editor.getThemes()['default'].color.light.black,
-										solid: 'aqua',
-									},
+						light: {
+							colors: {
+								...editor.getThemes()['light'].colors,
+								black: {
+									...editor.getThemes()['light'].colors.black,
+									solid: 'aqua',
 								},
-								dark: editor.getThemes()['default'].color.dark,
 							},
 						},
 					})
@@ -33,7 +30,7 @@ export default function ChangingDefaultColorsExample() {
 /*
 
 [1]
-Use editor.updateThemes() to customize the default theme's color palette.
+Use editor.updateThemes() to customize the theme's color palette.
 This merges your overrides into the existing theme, so you only need to
 specify the colors you want to change.
 

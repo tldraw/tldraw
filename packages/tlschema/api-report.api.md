@@ -1514,10 +1514,7 @@ export interface TLTextShapeProps {
 // @public
 export interface TLTheme {
     // (undocumented)
-    color: {
-        dark: TLThemeColorPalette;
-        light: TLThemeColorPalette;
-    };
+    colors: TLThemeColorPalette;
 }
 
 // @public

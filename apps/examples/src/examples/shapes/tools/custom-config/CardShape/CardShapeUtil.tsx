@@ -61,7 +61,7 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	// [6]
 	component(shape: ICardShape) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const theme = this.editor.getCurrentTheme()
+		const { colors } = this.editor.getCurrentTheme()
 
 		//[a]
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -77,8 +77,8 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 					alignItems: 'center',
 					justifyContent: 'center',
 					pointerEvents: 'all',
-					backgroundColor: getColorValue(theme, shape.props.color, 'semi'),
-					color: getColorValue(theme, shape.props.color, 'solid'),
+					backgroundColor: getColorValue(colors, shape.props.color, 'semi'),
+					color: getColorValue(colors, shape.props.color, 'solid'),
 				}}
 			>
 				<h2>Clicks: {count}</h2>

@@ -25,11 +25,11 @@ export function MobileStylePanel() {
 	const { orientation } = useTldrawUiOrientation()
 	const relevantStyles = useRelevantStyles()
 	const color = relevantStyles?.get(DefaultColorStyle)
-	const theme = editor.getCurrentTheme()
+	const { colors } = editor.getCurrentTheme()
 	const currentColor =
 		color?.type === 'shared'
-			? getColorValue(theme, color.value as TLDefaultColorStyle, 'solid')
-			: getColorValue(theme, 'black', 'solid')
+			? getColorValue(colors, color.value as TLDefaultColorStyle, 'solid')
+			: getColorValue(colors, 'black', 'solid')
 
 	const disableStylePanel = useValue(
 		'disable style panel',

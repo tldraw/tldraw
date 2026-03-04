@@ -13,11 +13,13 @@ function paletteFromColorTheme(theme: TLDefaultColorTheme): TLThemeColorPalette 
 	return palette as TLThemeColorPalette
 }
 
-function buildDefaultTheme(): TLTheme {
+function buildDefaultThemes(): TLThemes {
 	return {
-		color: {
-			light: paletteFromColorTheme(DefaultColorThemePalette.lightMode),
-			dark: paletteFromColorTheme(DefaultColorThemePalette.darkMode),
+		light: {
+			colors: paletteFromColorTheme(DefaultColorThemePalette.lightMode),
+		},
+		dark: {
+			colors: paletteFromColorTheme(DefaultColorThemePalette.darkMode),
 		},
 	}
 }
@@ -25,17 +27,15 @@ function buildDefaultTheme(): TLTheme {
 /** @public */
 export class ThemeManager {
 	private readonly _themes: ReturnType<typeof atom<TLThemes>>
-	private readonly _currentThemeId: ReturnType<typeof atom<string>>
 
 	constructor(
 		private readonly editor: Editor,
 		themes?: TLThemes
 	) {
 		this._themes = atom('ThemeManager._themes', {
-			default: buildDefaultTheme(),
+			...buildDefaultThemes(),
 			...themes,
 		})
-		this._currentThemeId = atom('ThemeManager._currentThemeId', 'default')
 	}
 
 	getThemes(): TLThemes {
@@ -54,14 +54,6 @@ export class ThemeManager {
 		})
 	}
 
-	getCurrentThemeId(): string {
-		return this._currentThemeId.get()
-	}
-
-	setCurrentTheme(id: string): void {
-		this._currentThemeId.set(id)
-	}
-
 	/**
 	 * Get the active color mode based on the user's dark mode preference.
 	 */
@@ -69,12 +61,17 @@ export class ThemeManager {
 		return this.editor.user.getIsDarkMode() ? 'dark' : 'light'
 	}
 
-	@computed getCurrentTheme(): TLThemeColorPalette {
+	/**
+	 * Get the current theme ID, derived from the active color mode.
+	 */
+	@computed getCurrentThemeId(): string {
+		return this.getActiveColorMode()
+	}
+
+	@computed getCurrentTheme(): TLTheme {
 		const themes = this._themes.get()
-		const themeId = this._currentThemeId.get()
-		const theme = themes[themeId] ?? themes['default']
-		const isDarkMode = this.editor.user.getIsDarkMode()
-		return isDarkMode ? theme.color.dark : theme.color.light
+		const themeId = this.getCurrentThemeId()
+		return themes[themeId] ?? themes['light']
 	}
 
 	dispose() {
