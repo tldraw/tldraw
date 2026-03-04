@@ -1480,8 +1480,8 @@ input,
 
 .tl-note__attribution {
 	position: absolute;
-	bottom: 4px;
-	right: 8px;
+	bottom: calc(4px * var(--note-attribution-scale, 1));
+	right: calc(8px * var(--note-attribution-scale, 1));
 	font-family: var(--tl-font-sans);
 	pointer-events: auto;
 	white-space: nowrap;
