@@ -1,7 +1,7 @@
 import type { Repo } from '@pierre/storage'
 import type { RoomSnapshot } from '@tldraw/sync-core'
-import { createTarDecoder } from 'modern-tar'
 import type { PierreMeta } from '../TLDrawDurableObject'
+import { readTarStream } from './tarStreamReader'
 
 /** Actual format from Pierre: listFiles and getArchiveStream use repo-root paths with no prefix. */
 function isMetaJson(name: string) {
@@ -23,6 +23,7 @@ export interface PierreArchiveHandlers {
 /**
  * Iterate over a Pierre repo archive at a given ref. Calls onMeta when meta.json is read,
  * onDocument for each record file, in tar order. Throws if the archive is empty or has no meta.json.
+ * Uses a custom tar stream reader (no modern-tar) to avoid sub-stream backpressure deadlocks in Workers.
  */
 export async function iteratePierreArchive(
 	repo: Repo,
@@ -33,30 +34,22 @@ export async function iteratePierreArchive(
 	if (!resp.body) {
 		throw new Error(`Empty archive body from Pierre at ref ${ref}`)
 	}
-	const entries = resp.body
-		.pipeThrough(new DecompressionStream('gzip'))
-		.pipeThrough(createTarDecoder())
+	const decompressed = resp.body.pipeThrough(new DecompressionStream('gzip'))
 
 	let metaSeen = false
-	const reader = entries.getReader()
-	try {
-		while (true) {
-			const { done, value: entry } = await reader.read()
-			if (done) break
-			const name = entry.header.name
-			if (isMetaJson(name)) {
-				const meta = JSON.parse(await new Response(entry.body).text()) as PierreMeta
-				metaSeen = true
-				await handlers.onMeta(meta)
-			} else if (isRecordFile(name)) {
-				const state = JSON.parse(await new Response(entry.body).text()) as DocEntry['state']
-				await handlers.onDocument({ state, lastChangedClock: 0 })
-			} else {
-				await entry.body.cancel()
-			}
+	for await (const entry of readTarStream(decompressed)) {
+		const name = entry.name
+		if (isMetaJson(name)) {
+			const text = new TextDecoder().decode(entry.body)
+			const meta = JSON.parse(text) as PierreMeta
+			metaSeen = true
+			await handlers.onMeta(meta)
+		} else if (isRecordFile(name)) {
+			const text = new TextDecoder().decode(entry.body)
+			const state = JSON.parse(text) as DocEntry['state']
+			await handlers.onDocument({ state, lastChangedClock: 0 })
 		}
-	} finally {
-		reader.releaseLock()
+		// Directory and other entries: body is already empty, nothing to skip
 	}
 
 	if (!metaSeen) {
@@ -111,16 +104,14 @@ export function streamPierreSnapshotAsJson(repo: Repo, ref: string): ReadableStr
 						}
 					},
 				})
-				// Meta might have appeared after some or all records
 				if (meta) {
 					sendHeader(meta)
 					for (const doc of documentBuffer) flushDoc(doc)
 				}
 				controller.enqueue(encoder.encode(']}'))
+				controller.close()
 			} catch (err) {
 				controller.error(err)
-			} finally {
-				controller.close()
 			}
 		},
 	})
