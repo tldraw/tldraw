@@ -683,7 +683,7 @@ export class TLFileDurableObject extends DurableObject {
 		const documentRecord = records.find((r) => r.typeName === 'document') as TLDocument | undefined
 		const rawName = documentRecord?.name?.trim()
 		const sanitized =
-			rawName?.replace(/[/\\:*?"<>|]/g, '_').slice(0, 200) || `${this.documentInfo.slug}.tldr`
+			rawName?.replace(/[^ \w-]/g, '_').slice(0, 200) || `${this.documentInfo.slug}.tldr`
 		const filename = sanitized.endsWith('.tldr') ? sanitized : `${sanitized}.tldr`
 
 		const env = this.env

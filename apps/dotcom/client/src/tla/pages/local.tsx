@@ -26,10 +26,7 @@ export function Component() {
 			const redirectTo = getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 			if (redirectTo) {
 				clearRedirectOnSignIn()
-				const redirectUrl = redirectTo.startsWith('/')
-					? new URL(redirectTo, window.location.origin)
-					: null
-				if (redirectUrl) {
+				if (redirectTo.startsWith('/')) {
 					navigate(redirectTo, { replace: true })
 					return
 				}
