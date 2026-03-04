@@ -1,12 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import {
-	assert,
-	deleteFromSessionStorage,
-	getFromSessionStorage,
-	react,
-	setInSessionStorage,
-} from 'tldraw'
+import { assert, getFromSessionStorage, omit, react } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
@@ -35,27 +29,28 @@ export function Component() {
 				const redirectUrl = redirectTo.startsWith('/')
 					? new URL(redirectTo, window.location.origin)
 					: null
-				const pendingImportUrl =
-					redirectUrl?.pathname === '/import' ? redirectUrl.searchParams.get('url') : null
-				if (!pendingImportUrl) {
+				if (redirectUrl) {
 					navigate(redirectTo, { replace: true })
 					return
 				}
-				setInSessionStorage(SESSION_STORAGE_KEYS.PENDING_IMPORT_URL, pendingImportUrl)
 			}
 
 			// Run pending import from URL (set by /import?url=... redirect)
-			const pendingImportUrl = getFromSessionStorage(SESSION_STORAGE_KEYS.PENDING_IMPORT_URL)
+			const pendingImportUrl = location.state?.importUrl
 			if (pendingImportUrl) {
-				deleteFromSessionStorage(SESSION_STORAGE_KEYS.PENDING_IMPORT_URL)
+				// need to remove importUrl from location state so it doesn't persist after the import
+				const state = omit(location.state, ['importUrl'])
 				const result = await importFromUrl(app, pendingImportUrl)
 				if (result.ok) {
 					app.ensureFileVisibleInSidebar(result.fileId)
 					navigate(routes.tlaFile(result.fileId), {
 						replace: true,
-						state: location.state,
+						state,
 					})
 					return
+				} else {
+					// just update the state without navigating anywhere
+					navigate('.', { replace: true, state })
 				}
 				if (!result.toastAlreadyShown) {
 					app.toasts?.addToast({
