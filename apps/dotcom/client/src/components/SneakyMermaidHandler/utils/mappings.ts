@@ -71,11 +71,14 @@ export function mapStateTypeToGeo(type: string): TLGeoShape['props']['geo'] {
 // ---------------------------------------------------------------------------
 
 /**
- * Parse classDef fill colors from a Mermaid SVG string.
+ * Parse classDef colors from a Mermaid SVG string.
  *
- * Reads the <style> block for rules with `fill:#HEX!important` (only classDef
- * rules use !important), then matches node <g> elements whose DOM id starts
- * with the given prefix (e.g. "state-" or "flowchart-") to extract nodeId→class.
+ * Reads the `<style>` block for CSS rules containing `fill` and/or `stroke`
+ * hex colors, then matches node `<g>` elements whose DOM id starts with the
+ * given prefix (e.g. "state-" or "flowchart-") to extract nodeId → tldraw color.
+ *
+ * Prefers stroke over fill when the fill is a near-neutral color (white/black),
+ * since stroke is typically the more intentional color in a classDef.
  *
  * @param idPrefix - The prefix Mermaid uses for node DOM ids (e.g. "state-", "flowchart-")
  * @param knownClasses - Built-in CSS classes to skip (e.g. "node", "statediagram-state")
@@ -92,22 +95,28 @@ export function parseClassDefFills(
 	if (!styleMatch?.[1]) return result
 	const css = styleMatch[1]
 
-	// classDef rules look like: .myClass > * { fill:#f00 !important }
-	// We capture the class name and the rule body to extract fill colors.
-	const classFills = new Map<string, string>()
+	// classDef rules look like: .hot > * { fill:#ffdddd !important; stroke:#cc0000 !important }
+	// We capture fill and stroke hex values (with or without !important).
+	const classColors = new Map<string, { fill?: string; stroke?: string }>()
 	const ruleRe = /\.([\w-]+)\s*(?:>|[\s])\s*(?:\*|\w+)\s*\{([^}]*)\}/g
 	let rm: RegExpExecArray | null
 	while ((rm = ruleRe.exec(css)) !== null) {
 		const cls = rm[1]!
 		const body = rm[2]!
-		// Only classDef rules use !important for fill, e.g. "fill: #f00 !important"
-		const fillMatch = body.match(/fill:\s*#([0-9a-fA-F]{3,6})\s*!important/)
-		if (fillMatch && !classFills.has(cls)) {
-			classFills.set(cls, fillMatch[1]!)
+		if (classColors.has(cls)) continue
+		const fillMatch = body.match(/fill:\s*#([0-9a-fA-F]{3,8})/)
+		const strokeMatch = body.match(/(?:^|;|\s)stroke:\s*#([0-9a-fA-F]{3,8})/)
+		if (fillMatch || strokeMatch) {
+			classColors.set(cls, {
+				fill: fillMatch?.[1],
+				stroke: strokeMatch?.[1],
+			})
 		}
 	}
 
-	if (classFills.size === 0) return result
+	if (classColors.size === 0) return result
+
+	const NEUTRAL_COLORS = new Set<TLDefaultColorStyle>(['white', 'black'])
 
 	// Escape the prefix for safe use in a regex (e.g. "flowchart-" has a literal hyphen)
 	const escapedPrefix = idPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -121,15 +130,21 @@ export function parseClassDefFills(
 		const idMatch = attrs.match(idRe)
 		if (!idMatch) continue
 		const nodeId = idMatch[1]!
-		// Extract the class attribute value, e.g. class="node default myCustomClass"
+		// Extract the class attribute value, e.g. class="node default hot"
 		const classMatch = attrs.match(/\bclass="([^"]*)"/)
 		if (!classMatch) continue
 		for (const cls of classMatch[1]!.split(/\s+/)) {
 			if (knownClasses.has(cls)) continue
-			const hex = classFills.get(cls)
-			if (hex) {
-				result.set(nodeId, nearestTldrawColor(hex))
-				break
+			const colors = classColors.get(cls)
+			if (colors) {
+				const fillColor = colors.fill ? nearestTldrawColor(colors.fill) : undefined
+				const strokeColor = colors.stroke ? nearestTldrawColor(colors.stroke) : undefined
+				const color =
+					fillColor && !NEUTRAL_COLORS.has(fillColor) ? fillColor : (strokeColor ?? fillColor)
+				if (color) {
+					result.set(nodeId, color)
+					break
+				}
 			}
 		}
 	}
