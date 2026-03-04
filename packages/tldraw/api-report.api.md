@@ -2600,23 +2600,38 @@ export interface PlainTextLabelProps {
 }
 
 // @public (undocumented)
-export enum PORTRAIT_BREAKPOINT {
+export const PORTRAIT_BREAKPOINT: {
+    readonly DESKTOP: 7;
+    readonly MOBILE_SM: 3;
+    readonly MOBILE_XS: 2;
+    readonly MOBILE_XXS: 1;
+    readonly MOBILE: 4;
+    readonly TABLET_SM: 5;
+    readonly TABLET: 6;
+    readonly ZERO: 0;
+};
+
+// @public (undocumented)
+export type PORTRAIT_BREAKPOINT = (typeof PORTRAIT_BREAKPOINT)[keyof typeof PORTRAIT_BREAKPOINT];
+
+// @public (undocumented)
+export namespace PORTRAIT_BREAKPOINT {
     // (undocumented)
-    DESKTOP = 7,
+    export type DESKTOP = typeof PORTRAIT_BREAKPOINT.DESKTOP;
     // (undocumented)
-    MOBILE = 4,
+    export type MOBILE = typeof PORTRAIT_BREAKPOINT.MOBILE;
     // (undocumented)
-    MOBILE_SM = 3,
+    export type MOBILE_SM = typeof PORTRAIT_BREAKPOINT.MOBILE_SM;
     // (undocumented)
-    MOBILE_XS = 2,
+    export type MOBILE_XS = typeof PORTRAIT_BREAKPOINT.MOBILE_XS;
     // (undocumented)
-    MOBILE_XXS = 1,
+    export type MOBILE_XXS = typeof PORTRAIT_BREAKPOINT.MOBILE_XXS;
     // (undocumented)
-    TABLET = 6,
+    export type TABLET = typeof PORTRAIT_BREAKPOINT.TABLET;
     // (undocumented)
-    TABLET_SM = 5,
+    export type TABLET_SM = typeof PORTRAIT_BREAKPOINT.TABLET_SM;
     // (undocumented)
-    ZERO = 0
+    export type ZERO = typeof PORTRAIT_BREAKPOINT.ZERO;
 }
 
 // @public (undocumented)
@@ -4933,16 +4948,15 @@ export interface TLUiZoomMenuProps {
 }
 
 // @internal (undocumented)
-export enum TLV1AlignStyle {
-    // (undocumented)
-    End = "end",
-    // (undocumented)
-    Justify = "justify",
-    // (undocumented)
-    Middle = "middle",
-    // (undocumented)
-    Start = "start"
-}
+export const TLV1AlignStyle: {
+    readonly End: "end";
+    readonly Justify: "justify";
+    readonly Middle: "middle";
+    readonly Start: "start";
+};
+
+// @internal (undocumented)
+export type TLV1AlignStyle = (typeof TLV1AlignStyle)[keyof typeof TLV1AlignStyle];
 
 // @internal (undocumented)
 export interface TLV1ArrowBinding extends TLV1BaseBinding {
@@ -4975,19 +4989,20 @@ export interface TLV1ArrowShape extends TLV1BaseShape {
     // (undocumented)
     labelPoint?: number[];
     // (undocumented)
-    type: TLV1ShapeType.Arrow;
+    type: typeof TLV1ShapeType.Arrow;
 }
 
 // @internal (undocumented)
 export type TLV1Asset = TLV1ImageAsset | TLV1VideoAsset;
 
 // @internal (undocumented)
-export enum TLV1AssetType {
-    // (undocumented)
-    Image = "image",
-    // (undocumented)
-    Video = "video"
-}
+export const TLV1AssetType: {
+    readonly Image: "image";
+    readonly Video: "video";
+};
+
+// @internal (undocumented)
+export type TLV1AssetType = (typeof TLV1AssetType)[keyof typeof TLV1AssetType];
 
 // @internal (undocumented)
 export interface TLV1BaseAsset {
@@ -5067,50 +5082,42 @@ export interface TLV1Bounds {
 }
 
 // @internal (undocumented)
-export enum TLV1ColorStyle {
-    // (undocumented)
-    Black = "black",
-    // (undocumented)
-    Blue = "blue",
-    // (undocumented)
-    Cyan = "cyan",
-    // (undocumented)
-    Gray = "gray",
-    // (undocumented)
-    Green = "green",
-    // (undocumented)
-    Indigo = "indigo",
-    // (undocumented)
-    LightGray = "lightGray",
-    // (undocumented)
-    Orange = "orange",
-    // (undocumented)
-    Red = "red",
-    // (undocumented)
-    Violet = "violet",
-    // (undocumented)
-    White = "white",
-    // (undocumented)
-    Yellow = "yellow"
-}
+export const TLV1ColorStyle: {
+    readonly Black: "black";
+    readonly Blue: "blue";
+    readonly Cyan: "cyan";
+    readonly Gray: "gray";
+    readonly Green: "green";
+    readonly Indigo: "indigo";
+    readonly LightGray: "lightGray";
+    readonly Orange: "orange";
+    readonly Red: "red";
+    readonly Violet: "violet";
+    readonly White: "white";
+    readonly Yellow: "yellow";
+};
 
 // @internal (undocumented)
-export enum TLV1DashStyle {
-    // (undocumented)
-    Dashed = "dashed",
-    // (undocumented)
-    Dotted = "dotted",
-    // (undocumented)
-    Draw = "draw",
-    // (undocumented)
-    Solid = "solid"
-}
+export type TLV1ColorStyle = (typeof TLV1ColorStyle)[keyof typeof TLV1ColorStyle];
 
 // @internal (undocumented)
-export enum TLV1Decoration {
-    // (undocumented)
-    Arrow = "arrow"
-}
+export const TLV1DashStyle: {
+    readonly Dashed: "dashed";
+    readonly Dotted: "dotted";
+    readonly Draw: "draw";
+    readonly Solid: "solid";
+};
+
+// @internal (undocumented)
+export type TLV1DashStyle = (typeof TLV1DashStyle)[keyof typeof TLV1DashStyle];
+
+// @internal (undocumented)
+export const TLV1Decoration: {
+    readonly Arrow: "arrow";
+};
+
+// @internal (undocumented)
+export type TLV1Decoration = (typeof TLV1Decoration)[keyof typeof TLV1Decoration];
 
 // @internal (undocumented)
 export interface TLV1Document {
@@ -5135,7 +5142,7 @@ export interface TLV1DrawShape extends TLV1BaseShape {
     // (undocumented)
     points: number[][];
     // (undocumented)
-    type: TLV1ShapeType.Draw;
+    type: typeof TLV1ShapeType.Draw;
 }
 
 // @internal (undocumented)
@@ -5147,20 +5154,19 @@ export interface TLV1EllipseShape extends TLV1BaseShape {
     // (undocumented)
     radius: number[];
     // (undocumented)
-    type: TLV1ShapeType.Ellipse;
+    type: typeof TLV1ShapeType.Ellipse;
 }
 
 // @internal (undocumented)
-export enum TLV1FontStyle {
-    // (undocumented)
-    Mono = "mono",
-    // (undocumented)
-    Sans = "sans",
-    // (undocumented)
-    Script = "script",
-    // (undocumented)
-    Serif = "serif"
-}
+export const TLV1FontStyle: {
+    readonly Mono: "mono";
+    readonly Sans: "sans";
+    readonly Script: "script";
+    readonly Serif: "serif";
+};
+
+// @internal (undocumented)
+export type TLV1FontStyle = (typeof TLV1FontStyle)[keyof typeof TLV1FontStyle];
 
 // @internal (undocumented)
 export interface TLV1GroupShape extends TLV1BaseShape {
@@ -5169,7 +5175,7 @@ export interface TLV1GroupShape extends TLV1BaseShape {
     // (undocumented)
     size: number[];
     // (undocumented)
-    type: TLV1ShapeType.Group;
+    type: typeof TLV1ShapeType.Group;
 }
 
 // @internal (undocumented)
@@ -5195,7 +5201,7 @@ export interface TLV1ImageAsset extends TLV1BaseAsset {
     // (undocumented)
     src: string;
     // (undocumented)
-    type: TLV1AssetType.Image;
+    type: typeof TLV1AssetType.Image;
 }
 
 // @internal (undocumented)
@@ -5205,7 +5211,7 @@ export interface TLV1ImageShape extends TLV1BaseShape {
     // (undocumented)
     size: number[];
     // (undocumented)
-    type: TLV1ShapeType.Image;
+    type: typeof TLV1ShapeType.Image;
 }
 
 // @internal (undocumented)
@@ -5254,7 +5260,7 @@ export interface TLV1RectangleShape extends TLV1BaseShape {
     // (undocumented)
     size: number[];
     // (undocumented)
-    type: TLV1ShapeType.Rectangle;
+    type: typeof TLV1ShapeType.Rectangle;
 }
 
 // @internal (undocumented)
@@ -5279,38 +5285,31 @@ export interface TLV1ShapeStyles {
 }
 
 // @internal (undocumented)
-export enum TLV1ShapeType {
-    // (undocumented)
-    Arrow = "arrow",
-    // (undocumented)
-    Draw = "draw",
-    // (undocumented)
-    Ellipse = "ellipse",
-    // (undocumented)
-    Group = "group",
-    // (undocumented)
-    Image = "image",
-    // (undocumented)
-    Rectangle = "rectangle",
-    // (undocumented)
-    Sticky = "sticky",
-    // (undocumented)
-    Text = "text",
-    // (undocumented)
-    Triangle = "triangle",
-    // (undocumented)
-    Video = "video"
-}
+export const TLV1ShapeType: {
+    readonly Arrow: "arrow";
+    readonly Draw: "draw";
+    readonly Ellipse: "ellipse";
+    readonly Group: "group";
+    readonly Image: "image";
+    readonly Rectangle: "rectangle";
+    readonly Sticky: "sticky";
+    readonly Text: "text";
+    readonly Triangle: "triangle";
+    readonly Video: "video";
+};
 
 // @internal (undocumented)
-export enum TLV1SizeStyle {
-    // (undocumented)
-    Large = "large",
-    // (undocumented)
-    Medium = "medium",
-    // (undocumented)
-    Small = "small"
-}
+export type TLV1ShapeType = (typeof TLV1ShapeType)[keyof typeof TLV1ShapeType];
+
+// @internal (undocumented)
+export const TLV1SizeStyle: {
+    readonly Large: "large";
+    readonly Medium: "medium";
+    readonly Small: "small";
+};
+
+// @internal (undocumented)
+export type TLV1SizeStyle = (typeof TLV1SizeStyle)[keyof typeof TLV1SizeStyle];
 
 // @internal (undocumented)
 export interface TLV1StickyShape extends TLV1BaseShape {
@@ -5319,7 +5318,7 @@ export interface TLV1StickyShape extends TLV1BaseShape {
     // (undocumented)
     text: string;
     // (undocumented)
-    type: TLV1ShapeType.Sticky;
+    type: typeof TLV1ShapeType.Sticky;
 }
 
 // @internal (undocumented)
@@ -5327,7 +5326,7 @@ export interface TLV1TextShape extends TLV1BaseShape {
     // (undocumented)
     text: string;
     // (undocumented)
-    type: TLV1ShapeType.Text;
+    type: typeof TLV1ShapeType.Text;
 }
 
 // @internal (undocumented)
@@ -5339,7 +5338,7 @@ export interface TLV1TriangleShape extends TLV1BaseShape {
     // (undocumented)
     size: number[];
     // (undocumented)
-    type: TLV1ShapeType.Triangle;
+    type: typeof TLV1ShapeType.Triangle;
 }
 
 // @internal (undocumented)
@@ -5351,7 +5350,7 @@ export interface TLV1VideoAsset extends TLV1BaseAsset {
     // (undocumented)
     src: string;
     // (undocumented)
-    type: TLV1AssetType.Video;
+    type: typeof TLV1AssetType.Video;
 }
 
 // @internal (undocumented)
@@ -5365,7 +5364,7 @@ export interface TLV1VideoShape extends TLV1BaseShape {
     // (undocumented)
     size: number[];
     // (undocumented)
-    type: TLV1ShapeType.Video;
+    type: typeof TLV1ShapeType.Video;
 }
 
 // @public (undocumented)
