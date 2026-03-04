@@ -8,54 +8,9 @@ status: published
 last_version: v4.4.0
 ---
 
-This release introduces the display values system for customizing shape visual properties, click-through on transparent image pixels, a new `Editor.resizeToBounds()` method, SVG sanitization for external content, and TypeScript enum-to-const refactoring for Node strip-types compatibility. It also includes various improvements and bug fixes.
+This release adds click-through on transparent image pixels, a new `Editor.resizeToBounds()` method, SVG sanitization for external content, and TypeScript enum-to-const refactoring for Node strip-types compatibility. It also includes various improvements and bug fixes.
 
 ## What's new
-
-### 💥 Display values system ([#8121](https://github.com/tldraw/tldraw/pull/8121))
-
-A new display values system lets you customize the visual properties of built-in shapes — colors, fonts, sizing, and more — via `ShapeUtil.configure()`. Each built-in shape now defines a display values interface that controls how it renders.
-
-```tsx
-import { GeoShapeUtil, GeoShapeUtilDisplayValues } from 'tldraw'
-
-GeoShapeUtil.configure({
-	getDisplayValueOverrides: (editor, shape, defaults) => ({
-		...defaults,
-		fill: 'red',
-	}),
-})
-```
-
-New API additions:
-
-- `ShapeOptionsWithDisplayValues<Shape, DisplayValues>` interface
-- `getDisplayValues()` helper function
-- Display value interfaces for all built-in shapes (e.g. `GeoShapeUtilDisplayValues`, `ArrowShapeUtilDisplayValues`, etc.)
-- `tlenvReactive.supportsP3ColorSpace` for P3 color space detection
-
-<details>
-<summary>Migration guide</summary>
-
-**`RichTextLabelProps` and `RichTextSVGProps`** now use resolved string values (`fontFamily`, `textAlign`, `verticalAlign`) instead of style tokens (`font`, `align`).
-
-Before:
-```ts
-<RichTextLabel font="sans" align="start" verticalAlign="middle" />
-```
-
-After:
-```ts
-<RichTextLabel fontFamily="sans-serif" textAlign="left" verticalAlign="middle" />
-```
-
-**`NoteShapeOptions`** renamed to **`NoteShapeUtilOptions`**.
-
-**`HighlightShapeOptions.underlayOpacity`** and **`overlayOpacity`** moved to `HighlightShapeUtilDisplayValues`.
-
-**Removed:** `ShapeFill`, `PatternFill`, `useColorSpace`, `NOTE_SIZE`, `NOTE_CENTER_OFFSET`, `getArrowLabelFontSize`. Use the display values system instead.
-
-</details>
 
 ### Click-through on transparent image pixels ([#7942](https://github.com/tldraw/tldraw/pull/7942))
 
@@ -65,11 +20,6 @@ This is powered by a new `Geometry2d.ignoreHit(point)` method that allows geomet
 
 ## API changes
 
-- 💥 **`RichTextLabelProps`** and **`RichTextSVGProps`** changed from style tokens to resolved values. ([#8121](https://github.com/tldraw/tldraw/pull/8121))
-- 💥 **`NoteShapeOptions`** renamed to `NoteShapeUtilOptions`. ([#8121](https://github.com/tldraw/tldraw/pull/8121))
-- 💥 **`HighlightShapeOptions.underlayOpacity`** and **`overlayOpacity`** moved to `HighlightShapeUtilDisplayValues`. ([#8121](https://github.com/tldraw/tldraw/pull/8121))
-- 💥 Remove `ShapeFill`, `useColorSpace`, `NOTE_SIZE`, `NOTE_CENTER_OFFSET`, `getArrowLabelFontSize`. ([#8121](https://github.com/tldraw/tldraw/pull/8121))
-- Add `ShapeOptionsWithDisplayValues`, `getDisplayValues()`, and display value interfaces for all built-in shapes. ([#8121](https://github.com/tldraw/tldraw/pull/8121))
 - Add `Geometry2d.ignoreHit(point)` for rejecting hit tests on transparent pixels. ([#7942](https://github.com/tldraw/tldraw/pull/7942))
 - Add `Editor.resizeToBounds(shapes, bounds)` for resizing shapes to fit target bounds. ([#8120](https://github.com/tldraw/tldraw/pull/8120))
 - Add `sanitizeSvg(svgText: string)` export for sanitizing SVG content against XSS and data exfiltration. ([#7896](https://github.com/tldraw/tldraw/pull/7896))
