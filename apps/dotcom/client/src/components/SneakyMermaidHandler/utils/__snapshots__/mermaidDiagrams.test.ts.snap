@@ -1,0 +1,4561 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`createMermaidDiagram > flowchart > LR flowchart 1`] = `
+{
+  "bindings": [
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+  ],
+  "shapes": [
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -0,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 62.5,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 509,
+      "y": 360,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Start",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 467,
+      "y": 339,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Stop",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 530,
+      "y": 339,
+    },
+  ],
+}
+`;
+
+exports[`createMermaidDiagram > flowchart > LR flowchart with parallel edges and self-loop 1`] = `
+{
+  "bindings": [
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.85,
+          "y": 0.8,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.9,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+  ],
+  "shapes": [
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -22.5,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 62.5,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Request",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 415,
+      "y": 408,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -22.5,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Response",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 62.5,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 415,
+      "y": 408,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0.5681528344891841,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 62.5,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 478,
+      "y": 408,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -36.951618681108975,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 62.5,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Yes",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 55.625,
+        },
+      },
+      "type": "arrow",
+      "x": 540,
+      "y": 353,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 22.4656778675079,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 62.5,
+          "y": 26.875,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "No",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 540,
+      "y": 408,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -80,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 83,
+          "y": 20.75,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 41.5,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 561,
+      "y": 332,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 62.5,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 68.125,
+        },
+      },
+      "type": "arrow",
+      "x": 603,
+      "y": 285,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Client",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 374,
+      "y": 388,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Server",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 436,
+      "y": 388,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "diamond",
+        "growY": 0,
+        "h": 37.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Decision",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 37.5,
+      },
+      "type": "geo",
+      "x": 521,
+      "y": 390,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Process",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 561,
+      "y": 332,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Reject",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 561,
+      "y": 415,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Done",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 624,
+      "y": 264,
+    },
+  ],
+}
+`;
+
+exports[`createMermaidDiagram > flowchart > flowchart with linkStyle color and dash 1`] = `
+{
+  "bindings": [
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+  ],
+  "shapes": [
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -67.5,
+        "color": "green",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 62.5,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "GET",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 509,
+      "y": 360,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -22.5,
+        "color": "blue",
+        "dash": "dashed",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 62.5,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "POST",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 509,
+      "y": 360,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -22.5,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "200",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 62.5,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 509,
+      "y": 360,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -67.5,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "400",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 62.5,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 509,
+      "y": 360,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Client",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 467,
+      "y": 339,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "API",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 530,
+      "y": 339,
+    },
+  ],
+}
+`;
+
+exports[`createMermaidDiagram > flowchart > flowchart with subgraphs 1`] = `
+{
+  "bindings": [
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+  ],
+  "shapes": [
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -0,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 82.5,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 44,
+      "y": 55,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 11.123049422528624,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 82.5,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 12.5,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 44,
+      "y": 55,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -0,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 93.75,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 47,
+      "y": 68,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 63.358473592214914,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 248.125,
+          "y": 82.5,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 422,
+      "y": 319,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "a1",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 2,
+      "y": 35,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "a2",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 2,
+      "y": 117,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "c2",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 2,
+      "y": 117,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "b1",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 5,
+      "y": 47,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "c1",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 15,
+      "y": 35,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 41.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "b2",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 83,
+      },
+      "type": "geo",
+      "x": 99,
+      "y": 47,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "semi",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 179,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "three",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 103.125,
+      },
+      "type": "geo",
+      "x": 366,
+      "y": 264,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "semi",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 121.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "two",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 187.5,
+      },
+      "type": "geo",
+      "x": 513,
+      "y": 295,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "semi",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 179,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "one",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 87.5,
+      },
+      "type": "geo",
+      "x": 627,
+      "y": 264,
+    },
+  ],
+}
+`;
+
+exports[`createMermaidDiagram > sequence diagram > sequence diagram with loop, opt, and self-message 1`] = `
+{
+  "bindings": [
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.2,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.4,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.6,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.8400000000000001,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.2,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.4,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.6,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.76,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+  ],
+  "shapes": [
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 300,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "enqueue(job)",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 165,
+      "y": 273,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "dequeue()",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 300,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 465,
+      "y": 351,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "dotted",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 300,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "job?",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 465,
+      "y": 429,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -80,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 30,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "execute()",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 765,
+      "y": 492,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Producer",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 75,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Producer",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 75,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "start",
+        "color": "light-blue",
+        "dash": "dashed",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 153,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "loop [poll]",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 540,
+      },
+      "type": "geo",
+      "x": 345,
+      "y": 301,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Queue",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 375,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Queue",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 375,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "start",
+        "color": "light-blue",
+        "dash": "dashed",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "opt [job received]",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 240,
+      },
+      "type": "geo",
+      "x": 645,
+      "y": 457,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Worker",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 675,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Worker",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 675,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 165,
+      "y": 195,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 465,
+      "y": 195,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 765,
+      "y": 195,
+    },
+  ],
+}
+`;
+
+exports[`createMermaidDiagram > sequence diagram > sequence diagram with notes 1`] = `
+{
+  "bindings": [
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.16666666666666666,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.8333333333333334,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.16666666666666666,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.8333333333333334,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+  ],
+  "shapes": [
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 300,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Hello",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 315,
+      "y": 260,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "dotted",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Hi!",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 300,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 315,
+      "y": 520,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Alice",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 225,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Alice",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 225,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "yellow",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 50,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Both see this",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 340,
+      },
+      "type": "geo",
+      "x": 295,
+      "y": 430,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "yellow",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 50,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Alice thinks",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 160,
+      },
+      "type": "geo",
+      "x": 335,
+      "y": 300,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "yellow",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 50,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "John ponders",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 160,
+      },
+      "type": "geo",
+      "x": 435,
+      "y": 365,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "John",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 525,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "John",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 525,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 315,
+      "y": 195,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 615,
+      "y": 195,
+    },
+  ],
+}
+`;
+
+exports[`createMermaidDiagram > sequence diagram > simple sequence diagram 1`] = `
+{
+  "bindings": [
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.25,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.75,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.25,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": true,
+        "isPrecise": true,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.75,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+  ],
+  "shapes": [
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 300,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Hello John, how are you?",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 315,
+      "y": 292,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "dotted",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Great!",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 300,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 315,
+      "y": 390,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 300,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "See you later!",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 315,
+      "y": 487,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Alice",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 225,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Alice",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 225,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 75,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "John",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 525,
+      "y": 120,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 6,
+        "h": 26,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "John",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 180,
+      },
+      "type": "geo",
+      "x": 525,
+      "y": 585,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 315,
+      "y": 195,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "color": "black",
+        "dash": "solid",
+        "points": {
+          "a1": {
+            "id": "a1",
+            "index": "a1",
+            "x": 0,
+            "y": 0,
+          },
+          "a2": {
+            "id": "a2",
+            "index": "a2",
+            "x": 0,
+            "y": 390,
+          },
+        },
+        "scale": 1,
+        "size": "s",
+        "spline": "line",
+      },
+      "type": "line",
+      "x": 615,
+      "y": 195,
+    },
+  ],
+}
+`;
+
+exports[`createMermaidDiagram > state diagram > compound state diagram 1`] = `
+{
+  "bindings": [
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+  ],
+  "shapes": [
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0.5314317169123768,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 125.75,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 44,
+      "y": 72,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0.5314317169123768,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 125.75,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 44,
+      "y": 72,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0.5380331000364421,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 101.75,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 44,
+      "y": 198,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0.5380331000364421,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 101.75,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 44,
+      "y": 198,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 38.70515154427265,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 229.125,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 60,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 474,
+      "y": 169,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": -38.70515154427265,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 72.5,
+          "y": 229.125,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 534,
+      "y": 169,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 40,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 40,
+      },
+      "type": "geo",
+      "x": 24,
+      "y": 280,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 40,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 40,
+      },
+      "type": "geo",
+      "x": 24,
+      "y": 280,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 36,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 36,
+      },
+      "type": "geo",
+      "x": 26,
+      "y": 54,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 36,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 36,
+      },
+      "type": "geo",
+      "x": 26,
+      "y": 54,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 24,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 24,
+      },
+      "type": "geo",
+      "x": 32,
+      "y": 288,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 24,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 24,
+      },
+      "type": "geo",
+      "x": 32,
+      "y": 288,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 24,
+        "h": 8,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "fA",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 20,
+      },
+      "type": "geo",
+      "x": 34,
+      "y": 182,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 24,
+        "h": 8,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "sA",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 20,
+      },
+      "type": "geo",
+      "x": 34,
+      "y": 182,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "semi",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 343.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "First",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 88,
+      },
+      "type": "geo",
+      "x": 430,
+      "y": 226,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 36,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 36,
+      },
+      "type": "geo",
+      "x": 516,
+      "y": 151,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "semi",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 0,
+        "h": 343.5,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Second",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "url": "",
+        "verticalAlign": "start",
+        "w": 88,
+      },
+      "type": "geo",
+      "x": 562,
+      "y": 226,
+    },
+  ],
+}
+`;
+
+exports[`createMermaidDiagram > state diagram > simple state diagram 1`] = `
+{
+  "bindings": [
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "end",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+    {
+      "props": {
+        "isExact": false,
+        "isPrecise": false,
+        "normalizedAnchor": {
+          "x": 0.5,
+          "y": 0.5,
+        },
+        "snap": "none",
+        "terminal": "start",
+      },
+      "type": "arrow",
+    },
+  ],
+  "shapes": [
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0.517678844517608,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 94.5,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 540,
+      "y": 194,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 23.625,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 82.5,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 540,
+      "y": 289,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 16.530070604201242,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 0,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 82.5,
+        },
+      },
+      "type": "arrow",
+      "x": 540,
+      "y": 289,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 1.125,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 82.5,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 540,
+      "y": 371,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "arrowheadEnd": "arrow",
+        "arrowheadStart": "none",
+        "bend": 0.5270056409809327,
+        "color": "black",
+        "dash": "solid",
+        "elbowMidPoint": 0.5,
+        "end": {
+          "x": 0,
+          "y": 70.5,
+        },
+        "fill": "none",
+        "font": "draw",
+        "kind": "arc",
+        "labelColor": "black",
+        "labelPosition": 0.5,
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "s",
+        "start": {
+          "x": 0,
+          "y": 0,
+        },
+      },
+      "type": "arrow",
+      "x": 540,
+      "y": 454,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 40,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 40,
+      },
+      "type": "geo",
+      "x": 520,
+      "y": 504,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 36,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 36,
+      },
+      "type": "geo",
+      "x": 522,
+      "y": 176,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "solid",
+        "font": "draw",
+        "geo": "ellipse",
+        "growY": 0,
+        "h": 24,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 24,
+      },
+      "type": "geo",
+      "x": 528,
+      "y": 512,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 24,
+        "h": 8,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Still",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 20,
+      },
+      "type": "geo",
+      "x": 530,
+      "y": 273,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 24,
+        "h": 8,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Moving",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 20,
+      },
+      "type": "geo",
+      "x": 530,
+      "y": 355,
+    },
+    {
+      "isLocked": false,
+      "props": {
+        "align": "middle",
+        "color": "black",
+        "dash": "draw",
+        "fill": "none",
+        "font": "draw",
+        "geo": "rectangle",
+        "growY": 24,
+        "h": 8,
+        "labelColor": "black",
+        "richText": {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Crash",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "doc",
+        },
+        "scale": 1,
+        "size": "m",
+        "url": "",
+        "verticalAlign": "middle",
+        "w": 20,
+      },
+      "type": "geo",
+      "x": 530,
+      "y": 438,
+    },
+  ],
+}
+`;
