@@ -689,48 +689,52 @@ export class TLFileDurableObject extends DurableObject {
 		const env = this.env
 		const stream = new ReadableStream({
 			async start(controller) {
-				const encoder = new TextEncoder()
-				controller.enqueue(
-					encoder.encode(
-						`{"tldrawFileFormatVersion":${TLDRAW_FILE_FORMAT_VERSION},"schema":${JSON.stringify(snapshot.schema)},"records":[`
+				try {
+					const encoder = new TextEncoder()
+					controller.enqueue(
+						encoder.encode(
+							`{"tldrawFileFormatVersion":${TLDRAW_FILE_FORMAT_VERSION},"schema":${JSON.stringify(snapshot.schema)},"records":[`
+						)
 					)
-				)
-				for (let i = 0; i < records.length; i++) {
-					let record = records[i] as TLRecord
-					const assetSrc = record.typeName === 'asset' ? (record as TLAsset).props.src : null
-					if (
-						record.typeName === 'asset' &&
-						(record as TLAsset).type !== 'bookmark' &&
-						assetSrc &&
-						!assetSrc.startsWith('data:')
-					) {
-						const objectName = assetSrc.split('/').pop()
-						if (objectName && assetObjectNames.has(objectName)) {
-							const blob = await env.UPLOADS.get(objectName)
-							if (blob) {
-								const ab = await blob.arrayBuffer()
-								const base64 = arrayBufferToBase64(ab)
-								const assetRecord = record as TLAsset
-								const mimeType =
-									assetRecord.type !== 'bookmark' &&
-									'mimeType' in assetRecord.props &&
-									assetRecord.props.mimeType
-										? assetRecord.props.mimeType
-										: 'application/octet-stream'
-								record = {
-									...record,
-									props: {
-										...(record as TLAsset).props,
-										src: `data:${mimeType};base64,${base64}`,
-									},
-								} as TLRecord
+					for (let i = 0; i < records.length; i++) {
+						let record = records[i] as TLRecord
+						const assetSrc = record.typeName === 'asset' ? (record as TLAsset).props.src : null
+						if (
+							record.typeName === 'asset' &&
+							(record as TLAsset).type !== 'bookmark' &&
+							assetSrc &&
+							!assetSrc.startsWith('data:')
+						) {
+							const objectName = assetSrc.split('/').pop()
+							if (objectName && assetObjectNames.has(objectName)) {
+								const blob = await env.UPLOADS.get(objectName)
+								if (blob) {
+									const ab = await blob.arrayBuffer()
+									const base64 = arrayBufferToBase64(ab)
+									const assetRecord = record as TLAsset
+									const mimeType =
+										assetRecord.type !== 'bookmark' &&
+										'mimeType' in assetRecord.props &&
+										assetRecord.props.mimeType
+											? assetRecord.props.mimeType
+											: 'application/octet-stream'
+									record = {
+										...record,
+										props: {
+											...(record as TLAsset).props,
+											src: `data:${mimeType};base64,${base64}`,
+										},
+									} as TLRecord
+								}
 							}
 						}
+						controller.enqueue(encoder.encode((i > 0 ? ',' : '') + JSON.stringify(record)))
 					}
-					controller.enqueue(encoder.encode((i > 0 ? ',' : '') + JSON.stringify(record)))
+					controller.enqueue(encoder.encode(']}'))
+					controller.close()
+				} catch (e) {
+					controller.error(e)
 				}
-				controller.enqueue(encoder.encode(']}'))
-				controller.close()
 			},
 		})
 
