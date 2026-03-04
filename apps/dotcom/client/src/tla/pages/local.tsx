@@ -57,7 +57,7 @@ export function Component() {
 						keepOpen: true,
 					})
 				}
-				// Fall through to normal file operations (show recent file or create)
+				return
 			}
 
 			if (getShouldSlurpFile()) {
