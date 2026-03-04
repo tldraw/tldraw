@@ -2,7 +2,7 @@ import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { createPierreClient } from '../utils/createPierreClient'
-import { streamPierreSnapshotAsJson } from '../utils/pierreSnapshot'
+import { reconstructSnapshotFromPierre } from '../utils/pierreSnapshot'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireWriteAccessToFile } from '../utils/tla/getAuth'
 import { isTestFile } from '../utils/tla/isTestFile'
@@ -44,9 +44,11 @@ export async function getPierreHistorySnapshot(
 			return new Response('Not found', { status: 404 })
 		}
 
-		const stream = streamPierreSnapshotAsJson(repo, commitHash)
+		// Non-streaming response so the response works through the Vite dev proxy
+		// (which buffers the body and does not forward streaming responses).
+		const snapshot = await reconstructSnapshotFromPierre(repo, commitHash)
 
-		return new Response(stream, {
+		return new Response(JSON.stringify(snapshot), {
 			headers: {
 				'content-type': 'application/json',
 				'Cache-Control': 'public, max-age=31536000, immutable',

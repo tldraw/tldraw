@@ -10444,7 +10444,6 @@ __metadata:
     kysely: "npm:^0.27.5"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.throttle: "npm:^4.1.1"
-    modern-tar: "npm:^0.7.5"
     pg: "npm:^8.13.1"
     pg-logical-replication: "npm:^2.0.7"
     react: "npm:^19.2.1"
@@ -23198,13 +23197,6 @@ __metadata:
     _mocha: bin/_mocha
     mocha: bin/mocha
   checksum: 10/8ee58bff8694ad4013fc0fbb5670c5ec6d8404c601df2d4ae798fad01dd03b5f9395347cf59167006b315a14813a6f839290d60dcbdee8ef4246afe43609d2dc
-  languageName: node
-  linkType: hard
-
-"modern-tar@npm:^0.7.5":
-  version: 0.7.5
-  resolution: "modern-tar@npm:0.7.5"
-  checksum: 10/6991fe9b14c1c64fdb613003ef29c5a16f3dd40c60d0e04181503be21ebe8c155e49fe097e107b7970238d76ff5e2f15e2250f6edcb1ff95ec2b33cfa8bec23a
   languageName: node
   linkType: hard
 
