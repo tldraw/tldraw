@@ -77,7 +77,7 @@ export default defineConfig((env) => ({
 	publicDir: './public',
 	resolve: {
 		alias: {
-			'@formatjs/icu-messageformat-parser': '@formatjs/icu-messageformat-parser/no-parser',
+			'@formatjs/icu-messageformat-parser': '@formatjs/icu-messageformat-parser/no-parser.js',
 		},
 	},
 	build: {

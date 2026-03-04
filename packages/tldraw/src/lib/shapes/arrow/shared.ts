@@ -1,8 +1,10 @@
 import {
 	Editor,
 	Geometry2d,
-	isEqualAllowingForFloatingPointErrors,
+	intersectLineSegmentPolygon,
 	Mat,
+	MatModel,
+	pointInPolygon,
 	TLArrowBinding,
 	TLArrowBindingProps,
 	TLArrowShape,
@@ -11,10 +13,6 @@ import {
 	Vec,
 } from '@tldraw/editor'
 import { createComputedCache } from '@tldraw/store'
-import { TLArrowInfo } from './arrow-types'
-import { getCurvedArrowInfo } from './curved-arrow'
-import { getElbowArrowInfo } from './elbow/getElbowArrowInfo'
-import { getStraightArrowInfo } from './straight-arrow'
 
 const MIN_ARROW_BEND = 8
 
@@ -122,54 +120,6 @@ const arrowBindingsCache = createComputedCache(
 /** @public */
 export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings {
 	return arrowBindingsCache.get(editor, shape.id)!
-}
-
-const arrowInfoCache = createComputedCache<Editor, TLArrowInfo, TLArrowShape>(
-	'arrow info',
-	(editor: Editor, shape: TLArrowShape): TLArrowInfo => {
-		const bindings = getArrowBindings(editor, shape)
-		if (shape.props.kind === 'elbow') {
-			const elbowInfo = getElbowArrowInfo(editor, shape, bindings)
-			if (!elbowInfo?.route) return getStraightArrowInfo(editor, shape, bindings)
-
-			const start = elbowInfo.swapOrder ? elbowInfo.B : elbowInfo.A
-			const end = elbowInfo.swapOrder ? elbowInfo.A : elbowInfo.B
-
-			return {
-				type: 'elbow',
-				bindings,
-				start: {
-					handle: start.target,
-					point: elbowInfo.route.points[0],
-					arrowhead: shape.props.arrowheadStart,
-				},
-				end: {
-					handle: end.target,
-					point: elbowInfo.route.points[elbowInfo.route.points.length - 1],
-					arrowhead: shape.props.arrowheadEnd,
-				},
-				elbow: elbowInfo,
-				route: elbowInfo.route,
-				isValid: true,
-			}
-		}
-
-		if (getIsArrowStraight(shape)) {
-			return getStraightArrowInfo(editor, shape, bindings)
-		} else {
-			return getCurvedArrowInfo(editor, shape, bindings)
-		}
-	},
-	{
-		areRecordsEqual: (a, b) => a.props === b.props,
-		areResultsEqual: isEqualAllowingForFloatingPointErrors,
-	}
-)
-
-/** @public */
-export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId) {
-	const id = typeof shape === 'string' ? shape : shape.id
-	return arrowInfoCache.get(editor, id)
 }
 
 /** @public */
@@ -302,4 +252,54 @@ export function getBoundShapeRelationships(
 		if (endBounds.contains(startBounds)) return 'end-contains-start'
 	}
 	return 'safe'
+}
+
+/**
+ * If the arrow terminal point falls outside the bound shape's mask (e.g. when a shape
+ * extends beyond a frame boundary and is clipped), clamp the terminal to the mask boundary.
+ * Uses the binding anchor point (inside the shape/frame) as the ray origin, since the
+ * arrow endpoint may be entirely outside the mask.
+ *
+ * @internal
+ */
+export function clampArrowTerminalToMask(
+	editor: Editor,
+	point: Vec,
+	terminalHandle: Vec,
+	arrowPageTransform: MatModel,
+	targetShapeInfo?: BoundShapeInfo
+) {
+	if (!targetShapeInfo) return
+
+	const mask = editor.getShapeMask(targetShapeInfo.shape.id)
+	if (!mask) return
+
+	const pagePoint = Mat.applyToPoint(arrowPageTransform, point)
+
+	if (pointInPolygon(pagePoint, mask)) return
+
+	// The point is outside the mask (clipped). Cast a ray from the binding
+	// anchor (which is inside the shape, and typically inside the frame) through
+	// the intersection point on the shape boundary to find where it crosses the mask.
+	// We extend the line slightly past the anchor in case the anchor sits exactly
+	// on the mask boundary.
+	const pageAnchor = Mat.applyToPoint(arrowPageTransform, terminalHandle)
+	const direction = Vec.Sub(pageAnchor, pagePoint).uni()
+	const extendedAnchor = Vec.Add(pageAnchor, Vec.Mul(direction, 1))
+	const intersections = intersectLineSegmentPolygon(extendedAnchor, pagePoint, mask)
+	if (!intersections || intersections.length === 0) return
+
+	// Pick the intersection closest to the original point (nearest frame edge to the shape)
+	let closest = intersections[0]
+	let closestDist = Vec.Dist2(closest, pagePoint)
+	for (let i = 1; i < intersections.length; i++) {
+		const dist = Vec.Dist2(intersections[i], pagePoint)
+		if (dist < closestDist) {
+			closest = intersections[i]
+			closestDist = dist
+		}
+	}
+
+	const arrowPoint = Mat.applyToPoint(Mat.Inverse(arrowPageTransform), closest)
+	point.setTo(arrowPoint)
 }

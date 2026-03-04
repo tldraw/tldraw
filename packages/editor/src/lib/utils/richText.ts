@@ -3,7 +3,7 @@ import { Node, Schema } from '@tiptap/pm/model'
 import { EditorProviderProps } from '@tiptap/react'
 import { TLRichText } from '@tldraw/tlschema'
 import { assert, WeakCache } from '@tldraw/utils'
-import { Editor } from '../editor/Editor'
+import type { Editor } from '../editor/Editor'
 import { TLFontFace } from '../editor/managers/FontManager/FontManager'
 
 /**

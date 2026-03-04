@@ -8,7 +8,7 @@ This is the tldraw monorepo - an infinite canvas SDK for React applications. It'
 
 ## Setup
 
-Enable corepack to ensure correct yarn version:
+Requires Node ^20.0.0. Enable corepack to ensure correct yarn version:
 
 ```bash
 npm i -g corepack && yarn
@@ -33,16 +33,20 @@ npm i -g corepack && yarn
 
 ### Testing
 
-- `yarn test run` in a workspace - Run tests in specific workspace (cd to workspace first)
-- `yarn vitest` - Run all tests (slow, avoid unless necessary)
+- `yarn test` in a workspace - Run tests in watch mode (cd to workspace first)
+- `yarn test run` in a workspace - Run tests once without watch mode
+- `yarn test run --grep "pattern"` - Run matching tests in a workspace
+- `yarn vitest` - Run all tests across repo (slow, avoid unless necessary)
 - `yarn e2e` - Run end-to-end tests for examples
 - `yarn e2e-dotcom` - Run end-to-end tests for tldraw.com
 
 ### Code quality
 
 - `yarn lint` - Lint package
-- `yarn typecheck` - Type check all packages (run from repo root)
+- `yarn lint-current` - Lint only changed files (faster)
+- `yarn typecheck` - Type check all packages (run from repo root; also runs `refresh-assets`)
 - `yarn format` - Format code with Prettier
+- `yarn format-current` - Format only changed files (faster)
 - `yarn api-check` - Validate public API consistency
 
 IMPORTANT: NEVER run bare `tsc` - always use `yarn typecheck`.
@@ -175,46 +179,6 @@ Uses `lazyrepo` for incremental builds with caching:
 - Main development happens in `apps/examples`
 - Examples showcase SDK capabilities
 - See `apps/examples/writing-examples.md` for guidelines
-
-## Creating new components
-
-**Custom shapes**
-
-1. Create ShapeUtil class extending base ShapeUtil
-2. Implement required methods (getGeometry, component, indicator)
-3. Register in editor via shapeUtils prop
-
-**Custom tools**
-
-1. Create StateNode class with tool logic
-2. Define state machine with onEnter/onExit/event handlers
-3. Register in editor via tools prop
-
-**UI customization**
-
-- Every tldraw UI component can be overridden
-- Pass custom components via `components` prop
-- See existing components for patterns
-
-## Integration notes
-
-**With external apps**
-
-- Import CSS: `import 'tldraw/tldraw.css'` (full) or `import '@tldraw/editor/editor.css'` (editor only)
-- Requires React 18+ and modern bundler
-- Support for Vite, Next.js, and other React frameworks
-
-**Collaboration**
-
-- Use @tldraw/sync for multiplayer
-- WebSocket-based real-time synchronization
-- See templates/sync-cloudflare for implementation example
-
-**Licensing**
-
-- SDK has "Made with tldraw" watermark by default
-- Business license removes watermark
-- See tldraw.dev for licensing details
 
 ## Writing style guidelines
 

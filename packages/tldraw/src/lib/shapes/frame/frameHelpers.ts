@@ -7,7 +7,13 @@ import {
 	toDomPrecision,
 } from '@tldraw/editor'
 import { TLCreateTextJsxFromSpansOpts } from '../shared/createTextJsxFromSpans'
-import { defaultEmptyAs } from './FrameShapeUtil'
+
+export function defaultEmptyAs(str: string, dflt: string) {
+	if (str.match(/^\s*$/)) {
+		return dflt
+	}
+	return str
+}
 
 export function getFrameHeadingSide(editor: Editor, shape: TLFrameShape): 0 | 1 | 2 | 3 {
 	const pageRotation = canonicalizeRotation(editor.getShapePageTransform(shape.id)!.rotation())

@@ -1,10 +1,8 @@
-import {
-	PostgresJSClient,
-	PostgresJSTransaction,
-} from '@rocicorp/zero/out/zero-pg/src/postgresjs-connection'
 import { DB } from '@tldraw/dotcom-shared'
-import { Kysely, PostgresDialect } from 'kysely'
+import { promiseWithResolve } from '@tldraw/utils'
+import { Kysely, PostgresDialect, PostgresPool, PostgresPoolClient } from 'kysely'
 import * as pg from 'pg'
+import { Logger } from './Logger'
 import { Environment } from './types'
 import { writeDataPoint } from './utils/analytics'
 
@@ -55,37 +53,57 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 	return db
 }
 
-export function makePostgresConnector(env: Environment): PostgresJSClient<any> {
-	const pool = new pg.Pool({
-		connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
-		application_name: 'zero-pg',
-		idleTimeoutMillis: 3_000,
-		max: 1,
-	})
+/**
+ * A pool that creates a fresh pg.Client per connect() call and tears it down
+ * on release, so no idle connections or background timers linger between
+ * requests. This lets the Durable Object hibernate properly.
+ */
+export class TLPostgresPool implements PostgresPool {
+	private _lock: Promise<void> = Promise.resolve()
 
-	return {
-		async unsafe(sqlString: string, params: unknown[]): Promise<any[]> {
-			const res = await pool.query(sqlString, params)
-			return res.rows
-		},
-		async begin(fn: (tx: PostgresJSTransaction) => Promise<any>): Promise<any> {
-			const client = await pool.connect()
-			try {
-				await client.query('BEGIN')
-				const res = await fn({
-					async unsafe(sqlString: string, params: unknown[]): Promise<any[]> {
-						const res = await client.query(sqlString, params)
-						return res.rows
-					},
-				})
-				await client.query('COMMIT')
-				return res
-			} catch (e) {
-				await client.query('ROLLBACK')
-				throw e
-			} finally {
-				client.release()
-			}
-		},
+	constructor(
+		private env: Environment,
+		private log: Logger
+	) {}
+
+	async connect(): Promise<PostgresPoolClient> {
+		const prevLock = this._lock
+		const released = promiseWithResolve<void>()
+		this._lock = released
+
+		await prevLock
+
+		const client = new pg.Client({
+			connectionString: this.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+			application_name: 'user-do',
+			keepAlive: false,
+		})
+
+		try {
+			await client.connect()
+		} catch (e) {
+			released.resolve(undefined)
+			throw e
+		}
+
+		return {
+			query: (...args: any[]) => (client.query as any)(...args),
+			release() {
+				client.end().catch(() => {})
+				// Forcefully destroy the TCP socket so it doesn't linger
+				// and block Durable Object hibernation. The graceful end()
+				// above sends the PG Terminate message; destroy() ensures
+				// the socket handle is removed from the event loop immediately.
+				const stream = (client as any).connection?.stream
+				if (stream && typeof stream.destroy === 'function') {
+					stream.destroy()
+				}
+				released.resolve(undefined)
+			},
+		} as PostgresPoolClient
+	}
+
+	async end() {
+		await this._lock
 	}
 }

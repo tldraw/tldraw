@@ -24,15 +24,13 @@ import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
+import type { TLEditorComponents } from './hooks/EditorComponentsContext'
+import { useEditorComponents } from './hooks/EditorComponentsContext'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
 import { EditorProvider, useEditor } from './hooks/useEditor'
-import {
-	EditorComponentsProvider,
-	TLEditorComponents,
-	useEditorComponents,
-} from './hooks/useEditorComponents'
+import { EditorComponentsProvider } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useShallowObjectIdentity } from './hooks/useIdentity'

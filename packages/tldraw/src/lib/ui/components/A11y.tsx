@@ -204,5 +204,6 @@ const useA11yDebug = (msg: string | undefined) => {
 			document.addEventListener('keyup', handleKeyUp)
 			return () => document.removeEventListener('keyup', handleKeyUp)
 		}
+		return undefined
 	}, [container, msg])
 }
