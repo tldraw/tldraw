@@ -174,8 +174,6 @@ const AttributionTimeline = track(() => {
 				.map((entry) => entry.diff)
 
 			if (diffsToApply.length > 0) {
-				if (!isForward) diffsToApply.reverse()
-
 				let diffToApply =
 					diffsToApply.length === 1 ? diffsToApply[0] : squashRecordDiffs(diffsToApply)
 
