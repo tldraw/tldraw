@@ -298,6 +298,22 @@ export const mermaidFlowchartLoopFixtures: MermaidFlowchartLoopFixture[] = [
 		expected: { geo: 2, arrow: 1, text: 0, requiredGeoLabels: ['Start', 'Stop'] },
 	},
 	{
+		id: 'direction-td',
+		title: 'Top-to-bottom direction',
+		status: 'supported',
+		source: `flowchart TD
+			Start --> Stop`,
+		expected: { geo: 2, arrow: 1, text: 0, requiredGeoLabels: ['Start', 'Stop'] },
+	},
+	{
+		id: 'direction-lr',
+		title: 'Left-to-right direction',
+		status: 'supported',
+		source: `flowchart LR
+			Start --> Stop`,
+		expected: { geo: 2, arrow: 1, text: 0, requiredGeoLabels: ['Start', 'Stop'] },
+	},
+	{
 		id: 'direction-rl',
 		title: 'Right-to-left direction',
 		status: 'supported',
@@ -390,6 +406,40 @@ flowchart LR
 		expected: { geo: 4, arrow: 4, text: 0 },
 	},
 	{
+		id: 'chain-links-inline',
+		title: 'Chained links with inline labels',
+		status: 'supported',
+		source: `flowchart LR
+			A -- text --> B -- text2 --> C`,
+		expected: { geo: 3, arrow: 2, text: 0, requiredGeoLabels: ['A', 'B', 'C'] },
+	},
+	{
+		id: 'graph-declaration-spaces',
+		title: 'Graph declarations with spaces and no semicolons',
+		status: 'supported',
+		source: `flowchart LR
+			A[Hard edge] -->|Link text| B(Round edge)
+			B --> C{Decision}
+			C -->|One| D[Result one]
+			C -->|Two| E[Result two]`,
+		expected: {
+			geo: 5,
+			arrow: 4,
+			text: 0,
+			requiredGeoLabels: ['Hard edge', 'Round edge', 'Decision', 'Result one', 'Result two'],
+		},
+	},
+	{
+		id: 'class-statement-multi',
+		title: 'Class statement with multiple nodes',
+		status: 'supported',
+		source: `flowchart LR
+			A --> B --> C
+			classDef emphasis stroke:#f00
+			class A,C emphasis`,
+		expected: { geo: 3, arrow: 2, text: 0, requiredGeoLabels: ['A', 'B', 'C'] },
+	},
+	{
 		id: 'edge-animation-block',
 		title: 'Edge id + metadata block should not create extra nodes',
 		status: 'supported',
@@ -424,5 +474,80 @@ flowchart LR
 			B <--> C
 			C x--x D`,
 		expected: { geo: 4, arrow: 3, text: 0, forbiddenGeoLabels: ['A o', 'C x'] },
+	},
+	{
+		id: 'dotted-link-text',
+		title: 'Dotted link with text',
+		status: 'todo',
+		source: `flowchart LR
+			A-. text .-> B`,
+		expected: { geo: 2, arrow: 1, text: 0, requiredGeoLabels: ['A', 'B'] },
+	},
+	{
+		id: 'thick-link-text',
+		title: 'Thick link with text',
+		status: 'todo',
+		source: `flowchart LR
+			A == text ==> B`,
+		expected: {
+			geo: 2,
+			arrow: 1,
+			text: 0,
+			requiredGeoLabels: ['A', 'B'],
+			forbiddenGeoLabels: ['A == text'],
+		},
+	},
+	{
+		id: 'link-length-extra',
+		title: 'Extended link length syntax',
+		status: 'todo',
+		source: `flowchart TD
+			A[Start] --> B{Is it?}
+			B -->|Yes| C[OK]
+			C --> D[Rethink]
+			D --> B
+			B ---->|No| E[End]`,
+		expected: {
+			geo: 5,
+			arrow: 5,
+			text: 0,
+			requiredGeoLabels: ['Start', 'Is it?', 'OK', 'Rethink', 'End'],
+			forbiddenGeoLabels: ['B -'],
+		},
+	},
+	{
+		id: 'class-shorthand-multi-node',
+		title: 'Class shorthand on multiple source nodes',
+		status: 'todo',
+		source: `flowchart LR
+			A:::foo & B:::bar --> C:::foobar
+			classDef foo stroke:#f00
+			classDef bar stroke:#0f0
+			classDef foobar stroke:#00f`,
+		expected: { geo: 3, arrow: 2, text: 0, requiredGeoLabels: ['A', 'B', 'C'] },
+	},
+	{
+		id: 'shape-at-hex',
+		title: 'Expanded shape syntax (hex)',
+		status: 'todo',
+		source: `flowchart TD
+			A@{ shape: hex, label: "Prepare conditional" }`,
+		expected: { geo: 1, arrow: 0, text: 0, requiredGeoLabels: ['Prepare conditional'] },
+	},
+	{
+		id: 'shape-at-docs',
+		title: 'Expanded shape syntax (docs)',
+		status: 'todo',
+		source: `flowchart TD
+			A@{ shape: docs, label: "Multiple documents" }`,
+		expected: { geo: 1, arrow: 0, text: 0, requiredGeoLabels: ['Multiple documents'] },
+	},
+	{
+		id: 'shape-icon',
+		title: 'Special icon shape syntax',
+		status: 'todo',
+		source: `flowchart TD
+			A@{ icon: "fa:user", form: "square", label: "User Icon", pos: "t", h: 60 }`,
+		expected: { geo: 1, arrow: 0, text: 0, requiredGeoLabels: ['User Icon'] },
 	},
 ]

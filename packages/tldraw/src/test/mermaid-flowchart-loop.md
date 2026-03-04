@@ -18,8 +18,6 @@ Run full strict loop (includes TODO fixtures when present):
 yarn workspace tldraw mermaid:loop
 ```
 
-At the moment, all fixtures are marked `supported`, so baseline and strict should both pass.
-
 Run strict loop in watch mode while iterating:
 
 ```bash
@@ -37,8 +35,6 @@ Run visual monitor in strict mode (includes TODO fixtures when present):
 ```bash
 yarn workspace tldraw mermaid:loop:visual:strict
 ```
-
-At the moment, strict visual mode should also pass.
 
 Visual report output:
 

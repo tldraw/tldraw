@@ -242,6 +242,71 @@ export const mermaidStateLoopFixtures: MermaidStateLoopFixture[] = [
 		},
 	},
 	{
+		id: 'concurrency-three-regions',
+		title: 'Concurrency blocks with three regions',
+		status: 'supported',
+		source: `stateDiagram-v2
+			[*] --> Active
+			state Active {
+				[*] --> NumLockOff
+				NumLockOff --> NumLockOn : EvNumLockPressed
+				NumLockOn --> NumLockOff : EvNumLockPressed
+				--
+				[*] --> CapsLockOff
+				CapsLockOff --> CapsLockOn : EvCapsLockPressed
+				CapsLockOn --> CapsLockOff : EvCapsLockPressed
+				--
+				[*] --> ScrollLockOff
+				ScrollLockOff --> ScrollLockOn : EvScrollLockPressed
+				ScrollLockOn --> ScrollLockOff : EvScrollLockPressed
+			}`,
+		expected: {
+			geo: 11,
+			arrow: 10,
+			text: 0,
+			requiredGeoLabels: [
+				'Active',
+				'NumLockOff',
+				'NumLockOn',
+				'CapsLockOff',
+				'CapsLockOn',
+				'ScrollLockOff',
+				'ScrollLockOn',
+			],
+		},
+	},
+	{
+		id: 'class-statement-styles',
+		title: 'Class statement style application',
+		status: 'supported',
+		source: `stateDiagram
+			direction TB
+			classDef notMoving fill:white
+			classDef movement font-style:italic
+			classDef badBadEvent fill:#f00,color:white,font-weight:bold,stroke-width:2px,stroke:yellow
+			[*]--> Still
+			Still --> [*]
+			Still --> Moving
+			Moving --> Still
+			Moving --> Crash
+			Crash --> [*]
+			class Still notMoving
+			class Moving, Crash movement
+			class Crash badBadEvent
+			class end badBadEvent`,
+		expected: { geo: 5, arrow: 6, text: 0, requiredGeoLabels: ['Still', 'Moving', 'Crash'] },
+	},
+	{
+		id: 'self-transition',
+		title: 'Self transition with start/end',
+		status: 'supported',
+		source: `stateDiagram-v2
+			A --> A: loop
+			[*] --> A
+			A --> [*]`,
+		expected: { geo: 3, arrow: 3, text: 0, requiredGeoLabels: ['A'] },
+	},
+	{
 		id: 'direction-blocks',
 		title: 'Direction statements',
 		status: 'supported',
@@ -285,6 +350,48 @@ export const mermaidStateLoopFixtures: MermaidStateLoopFixture[] = [
 			text: 0,
 			requiredGeoLabels: ['Accumulate', 'the future state'],
 			forbiddenGeoLabels: ['Terminal:::future'],
+		},
+	},
+	{
+		id: 'class-colon-operator-styles',
+		title: 'Class style operator syntax without duplicate states',
+		status: 'todo',
+		source: `stateDiagram
+			direction TB
+			classDef notMoving fill:white
+			classDef movement font-style:italic;
+			classDef badBadEvent fill:#f00,color:white,font-weight:bold,stroke-width:2px,stroke:yellow
+			[*] --> Still:::notMoving
+			Still --> [*]
+			Still --> Moving:::movement
+			Moving --> Still
+			Moving --> Crash:::movement
+			Crash:::badBadEvent --> [*]`,
+		expected: {
+			geo: 5,
+			arrow: 6,
+			text: 0,
+			requiredGeoLabels: ['Still', 'Moving', 'Crash'],
+		},
+	},
+	{
+		id: 'spaces-in-state-names',
+		title: 'State names with spaces via aliasing',
+		status: 'todo',
+		source: `stateDiagram
+			classDef yourState font-style:italic,font-weight:bold,fill:white
+			yswsii: Your state with spaces in it
+			[*] --> yswsii:::yourState
+			[*] --> SomeOtherState
+			SomeOtherState --> YetAnotherState
+			yswsii --> YetAnotherState
+			YetAnotherState --> [*]`,
+		expected: {
+			geo: 5,
+			arrow: 5,
+			text: 0,
+			requiredGeoLabels: ['Your state with spaces in it', 'SomeOtherState', 'YetAnotherState'],
+			forbiddenGeoLabels: ['yswsii'],
 		},
 	},
 ]
