@@ -325,7 +325,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 								className="tl-note__attribution"
 								style={{
 									['--note-attribution-scale' as string]: scale,
-									fontSize: Math.max(8 * scale, 11 * scale),
+									fontSize: 11 * scale,
 									color: getColorValue(theme, color, 'noteText'),
 									opacity: 0.6,
 								}}

@@ -8579,15 +8579,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 				updated = applyPartialToRecordWithProps(shape, partial)
 				if (updated === shape) continue
 
-				// Update attribution metadata, letting explicit partial.tlmeta win
+				// Update attribution metadata (always system-set, ignoring any partial.tlmeta)
+				// The reason is because things like, say, resizing, send the whole tlmeta into
+				// the updateShape call and then `updatedAt` never gets the correct date.
 				const now = Date.now()
 				const user = this.getAttributionUser()
-				const partialTlmeta = partial.tlmeta
 				updated = {
 					...updated,
 					tlmeta: {
-						...updated.tlmeta,
-						...partialTlmeta,
+						...shape.tlmeta,
 						updatedBy: user,
 						updatedAt: now,
 					},

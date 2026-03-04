@@ -47,6 +47,7 @@ interface AttributionTimelineState {
 	entries: AttributionTimelineEntry[]
 	currentIndex: number
 	filterUserId: string | null
+	filteredAppliedCount: number | null
 }
 
 // [3]
@@ -98,6 +99,7 @@ const AttributionTimeline = track(() => {
 		entries: [],
 		currentIndex: 0,
 		filterUserId: null,
+		filteredAppliedCount: null,
 	})
 
 	// [5]
@@ -113,6 +115,11 @@ const AttributionTimeline = track(() => {
 			}
 
 			setTimeline((prev) => {
+				const bumpFiltered =
+					prev.filterUserId &&
+					prev.filteredAppliedCount !== null &&
+					newEntry.userId === prev.filterUserId
+
 				if (prev.currentIndex < prev.entries.length) {
 					const newEntries = prev.entries.slice(0, prev.currentIndex)
 					newEntries.push(newEntry)
@@ -120,12 +127,18 @@ const AttributionTimeline = track(() => {
 						...prev,
 						entries: newEntries,
 						currentIndex: newEntries.length,
+						filteredAppliedCount: bumpFiltered
+							? prev.filteredAppliedCount! + 1
+							: prev.filteredAppliedCount,
 					}
 				} else {
 					return {
 						...prev,
 						entries: [...prev.entries, newEntry],
 						currentIndex: prev.entries.length + 1,
+						filteredAppliedCount: bumpFiltered
+							? prev.filteredAppliedCount! + 1
+							: prev.filteredAppliedCount,
 					}
 				}
 			})
@@ -158,7 +171,7 @@ const AttributionTimeline = track(() => {
 
 	const filteredSteps = filteredGlobalIndices?.length ?? timeline.entries.length
 	const filteredValue = filteredGlobalIndices
-		? filteredGlobalIndices.filter((gi) => gi <= timeline.currentIndex).length
+		? (timeline.filteredAppliedCount ?? filteredGlobalIndices.length)
 		: timeline.currentIndex
 
 	// [7]
@@ -194,19 +207,96 @@ const AttributionTimeline = track(() => {
 	// [8]
 	const handleSliderChange = useCallback(
 		(sliderValue: number) => {
-			if (filteredGlobalIndices) {
-				const globalIndex = sliderValue === 0 ? 0 : filteredGlobalIndices[sliderValue - 1]
-				navigateToIndex(globalIndex)
+			if (filteredGlobalIndices && timeline.filteredAppliedCount !== null) {
+				const prevApplied = timeline.filteredAppliedCount
+				const nextApplied = sliderValue
+				if (nextApplied === prevApplied) return
+
+				const isForward = nextApplied > prevApplied
+				const lo = Math.min(prevApplied, nextApplied)
+				const hi = Math.max(prevApplied, nextApplied)
+
+				const userDiffs: RecordsDiff<any>[] = []
+				for (let i = lo; i < hi; i++) {
+					userDiffs.push(timeline.entries[filteredGlobalIndices[i] - 1].diff)
+				}
+
+				if (userDiffs.length > 0) {
+					let diff = userDiffs.length === 1 ? userDiffs[0] : squashRecordDiffs(userDiffs)
+					if (!isForward) {
+						diff = reverseRecordsDiff(diff)
+					}
+					editor.store.mergeRemoteChanges(() => {
+						editor.store.applyDiff(diff)
+					})
+				}
+
+				setTimeline((prev) => ({ ...prev, filteredAppliedCount: nextApplied }))
 			} else {
 				navigateToIndex(sliderValue)
 			}
 		},
-		[navigateToIndex, filteredGlobalIndices]
+		[navigateToIndex, filteredGlobalIndices, timeline, editor]
 	)
 
-	const setFilter = useCallback((userId: string | null) => {
-		setTimeline((prev) => ({ ...prev, filterUserId: userId }))
-	}, [])
+	// [9]
+	const setFilter = useCallback(
+		(userId: string | null) => {
+			const { entries, filterUserId, filteredAppliedCount, currentIndex } = timeline
+
+			// Restore any reverted diffs from the previous filter
+			if (filterUserId && filteredAppliedCount !== null) {
+				const oldIndices: number[] = []
+				for (let i = 0; i < entries.length; i++) {
+					if (entries[i].userId === filterUserId) oldIndices.push(i)
+				}
+				if (filteredAppliedCount < oldIndices.length) {
+					const diffs: RecordsDiff<any>[] = []
+					for (let i = filteredAppliedCount; i < oldIndices.length; i++) {
+						diffs.push(entries[oldIndices[i]].diff)
+					}
+					if (diffs.length > 0) {
+						const diff = diffs.length === 1 ? diffs[0] : squashRecordDiffs(diffs)
+						editor.store.mergeRemoteChanges(() => {
+							editor.store.applyDiff(diff)
+						})
+					}
+				}
+			}
+
+			// If switching from unfiltered (scrubbed back) into a filter, restore to end first
+			if (!filterUserId && currentIndex < entries.length && userId) {
+				const diffs = entries.slice(currentIndex).map((e) => e.diff)
+				if (diffs.length > 0) {
+					const diff = diffs.length === 1 ? diffs[0] : squashRecordDiffs(diffs)
+					editor.store.mergeRemoteChanges(() => {
+						editor.store.applyDiff(diff)
+					})
+				}
+			}
+
+			if (userId) {
+				let count = 0
+				for (const entry of entries) {
+					if (entry.userId === userId) count++
+				}
+				setTimeline((prev) => ({
+					...prev,
+					filterUserId: userId,
+					currentIndex: prev.entries.length,
+					filteredAppliedCount: count,
+				}))
+			} else {
+				setTimeline((prev) => ({
+					...prev,
+					filterUserId: null,
+					currentIndex: prev.entries.length,
+					filteredAppliedCount: null,
+				}))
+			}
+		},
+		[timeline, editor]
+	)
 
 	const activeUsers = useMemo(() => {
 		const seen = new Set<string>()
@@ -220,6 +310,14 @@ const AttributionTimeline = track(() => {
 	const length = Math.max(3, String(filteredSteps).length)
 
 	const sliderTitle = (() => {
+		if (filteredGlobalIndices && timeline.filteredAppliedCount !== null) {
+			if (timeline.filteredAppliedCount === 0) return 'No changes from this user'
+			const gi = filteredGlobalIndices[timeline.filteredAppliedCount - 1]
+			const entry = timeline.entries[gi - 1]
+			if (!entry) return ''
+			const time = new Date(entry.timestamp).toLocaleTimeString()
+			return `${entry.userName ?? 'Unknown'} — ${time}`
+		}
 		if (timeline.currentIndex === 0) return 'Empty canvas'
 		const entry = timeline.entries[timeline.currentIndex - 1]
 		if (!entry) return ''
@@ -292,9 +390,7 @@ scrubbed back in time, future entries are truncated to create a new branch.
 [6]
 When a user filter is active, we build an array of 1-based global indices
 where that user made changes. The slider steps and value are derived from
-this filtered view. Scrubbing to "Alice's change #2" means navigating to the
-global index of her second entry — all intervening changes by other users
-are included, so the canvas always shows a consistent state.
+this filtered view.
 
 [7]
 Navigation collects the diffs between the current position and target,
@@ -302,6 +398,12 @@ squashes them, and applies (reversing if going backward). Uses
 mergeRemoteChanges so the scrub doesn't trigger our own listener.
 
 [8]
-When a filter is active, slider positions map through filteredGlobalIndices
-to reach the correct global index. Position 0 always means empty canvas.
+When a filter is active, the slider only applies/reverses the filtered
+user's diffs — other users' shapes stay on canvas. `filteredAppliedCount`
+tracks how many of the filtered user's diffs are currently applied.
+
+[9]
+Switching filters first restores any reverted diffs from the previous filter,
+then sets up the new filter with all its entries applied. Switching from an
+unfiltered scrubbed-back position into a filter navigates to the end first.
 */

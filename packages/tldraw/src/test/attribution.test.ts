@@ -62,8 +62,9 @@ describe('shape attribution (tlmeta)', () => {
 		expect(shape.tlmeta).toEqual(customTlmeta)
 	})
 
-	it('preserves explicit tlmeta in partial on update', () => {
+	it('ignores explicit tlmeta in partial on update', () => {
 		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0 }])
+		const created = editor.getShape<TLGeoShape>(ids.box1)!
 		const customTlmeta = {
 			createdBy: { id: 'someone-else', name: 'Someone' },
 			updatedBy: { id: 'someone-else', name: 'Someone' },
@@ -72,7 +73,13 @@ describe('shape attribution (tlmeta)', () => {
 		}
 		editor.updateShape({ id: ids.box1, type: 'geo', x: 50, tlmeta: customTlmeta })
 		const shape = editor.getShape<TLGeoShape>(ids.box1)!
-		expect(shape.tlmeta).toEqual(customTlmeta)
+		expect(shape.tlmeta.createdBy).toEqual(created.tlmeta.createdBy)
+		expect(shape.tlmeta.createdAt).toBe(created.tlmeta.createdAt)
+		expect(shape.tlmeta.updatedBy).toEqual({
+			id: editor.user.getId(),
+			name: editor.user.getName(),
+		})
+		expect(shape.tlmeta.updatedAt).toBeGreaterThanOrEqual(created.tlmeta.updatedAt!)
 	})
 })
 
