@@ -1,13 +1,18 @@
 import { useCallback } from 'react'
 import { Editor, Tldraw, toRichText } from 'tldraw'
+import { mermaidBlockLoopFixtures } from '../../../../../../packages/tldraw/src/test/fixtures/mermaidBlockLoopFixtures'
+import { mermaidClassLoopFixtures } from '../../../../../../packages/tldraw/src/test/fixtures/mermaidClassLoopFixtures'
+import { mermaidERLoopFixtures } from '../../../../../../packages/tldraw/src/test/fixtures/mermaidERLoopFixtures'
 import { mermaidFlowchartLoopFixtures } from '../../../../../../packages/tldraw/src/test/fixtures/mermaidFlowchartLoopFixtures'
+import { mermaidMindmapLoopFixtures } from '../../../../../../packages/tldraw/src/test/fixtures/mermaidMindmapLoopFixtures'
+import { mermaidSequenceLoopFixtures } from '../../../../../../packages/tldraw/src/test/fixtures/mermaidSequenceLoopFixtures'
 import { mermaidStateLoopFixtures } from '../../../../../../packages/tldraw/src/test/fixtures/mermaidStateLoopFixtures'
 
 interface MermaidFixture {
 	id: string
 	title: string
 	source: string
-	kind: 'flowchart' | 'state'
+	kind: 'flowchart' | 'state' | 'sequence' | 'class' | 'er' | 'mindmap' | 'block'
 }
 
 const GRID_COLUMNS = 6
@@ -19,11 +24,17 @@ const GRID_ORIGIN_Y = 500
 const allFixtures: MermaidFixture[] = [
 	...mermaidFlowchartLoopFixtures.map((fixture) => ({ ...fixture, kind: 'flowchart' as const })),
 	...mermaidStateLoopFixtures.map((fixture) => ({ ...fixture, kind: 'state' as const })),
+	...mermaidSequenceLoopFixtures.map((fixture) => ({ ...fixture, kind: 'sequence' as const })),
+	...mermaidClassLoopFixtures.map((fixture) => ({ ...fixture, kind: 'class' as const })),
+	...mermaidERLoopFixtures.map((fixture) => ({ ...fixture, kind: 'er' as const })),
+	...mermaidMindmapLoopFixtures.map((fixture) => ({ ...fixture, kind: 'mindmap' as const })),
+	...mermaidBlockLoopFixtures.map((fixture) => ({ ...fixture, kind: 'block' as const })),
 ]
 
 export default function MermaidGalleryExample() {
 	const handleMount = useCallback((editor: Editor) => {
 		void (async () => {
+			window.editor = editor
 			const existingShapeIds = Array.from(editor.getCurrentPageShapeIds())
 			if (existingShapeIds.length) {
 				editor.deleteShapes(existingShapeIds)
@@ -31,7 +42,6 @@ export default function MermaidGalleryExample() {
 
 			editor.selectNone()
 			editor.setCurrentTool('select')
-			editor.user.updateUserPreferences({ colorScheme: 'light', animationSpeed: 0 })
 
 			for (const [index, fixture] of allFixtures.entries()) {
 				const col = index % GRID_COLUMNS
@@ -58,19 +68,12 @@ export default function MermaidGalleryExample() {
 
 				await waitForAnimationFrames(2)
 			}
-
-			const shapes = editor.getCurrentPageShapes()
-			if (shapes.length) {
-				editor.select(...shapes.map((shape) => shape.id))
-				editor.zoomToSelection()
-				editor.selectNone()
-			}
 		})()
 	}, [])
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw onMount={handleMount} />
+			<Tldraw onMount={handleMount} persistenceKey="mermaid" />
 		</div>
 	)
 }

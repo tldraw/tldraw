@@ -71,14 +71,23 @@ const NODE_VERTICAL_PADDING = 24
 const TERMINAL_NODE_SIZE = 40
 const LAYER_GAP = 180
 const NODE_GAP = 100
-const SUBGRAPH_HORIZONTAL_PADDING = 24
-const SUBGRAPH_VERTICAL_PADDING = 20
+const SUBGRAPH_HORIZONTAL_PADDING = 48
+const SUBGRAPH_VERTICAL_PADDING = 40
 const SUBGRAPH_HEADER_HEIGHT = 44
 const SUBGRAPH_GAP = 48
 const OPPOSING_EDGE_BEND = 40
 const STATE_BENT_ARROW_LABEL_POSITION = 0.3
 const OBSTACLE_AVOIDANCE_BEND = 40
 const OBSTACLE_AVOIDANCE_RECT_PADDING = 12
+const OBSTACLE_AVOIDANCE_MAX_BEND = 480
+const OBSTACLE_AVOIDANCE_MIN_SEGMENTS = 16
+const OBSTACLE_AVOIDANCE_MAX_SEGMENTS = 56
+const MERMAID_ANCHOR_MIN = 0.1
+const MERMAID_ANCHOR_MAX = 0.9
+const SELF_EDGE_START_ANCHOR_Y = 0.22
+const SELF_EDGE_END_ANCHOR_Y = 0.78
+const SELF_EDGE_BASE_BEND = 64
+const SELF_EDGE_LABEL_PADDING = 18
 const STATE_TERMINAL_SCOPE_GAP = 40
 const STATE_TERMINAL_SIBLING_GAP = 24
 
@@ -230,12 +239,8 @@ export async function tryPutMermaidContent(
 		if (edgeData?.stroke === 'invisible') continue
 
 		const isSelfEdge = edge.sourceId === edge.targetId
-		const sourceAnchor = isSelfEdge
-			? { x: 1, y: 0.5 }
-			: getDirectionalAnchor(getNodeCenter(sourceLayout), getNodeCenter(targetLayout))
-		const targetAnchor = isSelfEdge
-			? { x: 0.5, y: 1 }
-			: getDirectionalAnchor(getNodeCenter(targetLayout), getNodeCenter(sourceLayout))
+		const edgeLabel = normalizeMermaidLabel(edge.label || '')
+		const { sourceAnchor, targetAnchor } = getEdgeAnchors(sourceLayout, targetLayout, isSelfEdge)
 		const sourcePoint = getAnchorPoint(sourceLayout, sourceAnchor)
 		const targetPoint = getAnchorPoint(targetLayout, targetAnchor)
 
@@ -243,16 +248,18 @@ export async function tryPutMermaidContent(
 		const x = Math.min(sourcePoint.x, targetPoint.x)
 		const y = Math.min(sourcePoint.y, targetPoint.y)
 
-		const edgeLabel = normalizeMermaidLabel(edge.label || '')
 		const { arrowheadStart, arrowheadEnd } = getArrowheadsForEdge(edgeData)
-		let bend = isSelfEdge ? 40 : getOpposingEdgeBend(edge, directedEdgeCountByPair)
-		if (!isSelfEdge && bend === 0) {
+		let bend = isSelfEdge
+			? getSelfEdgeBend(editor, sourceLayout, edgeLabel, arrowDefaultProps)
+			: getOpposingEdgeBend(edge, directedEdgeCountByPair)
+		if (!isSelfEdge) {
 			bend = getObstacleAvoidanceBend(
 				sourcePoint,
 				targetPoint,
 				edge.sourceId,
 				edge.targetId,
-				edgeObstacleLayouts
+				edgeObstacleLayouts,
+				bend
 			)
 		}
 		const labelPosition =
@@ -286,6 +293,7 @@ export async function tryPutMermaidContent(
 			props: {
 				terminal: 'start',
 				normalizedAnchor: sourceAnchor,
+				isPrecise: true,
 			},
 		})
 
@@ -296,6 +304,7 @@ export async function tryPutMermaidContent(
 			props: {
 				terminal: 'end',
 				normalizedAnchor: targetAnchor,
+				isPrecise: true,
 			},
 		})
 	}
@@ -1178,46 +1187,116 @@ function getOpposingEdgeBend(edge: MermaidEdge, directedEdgeCountByPair: Map<str
 	return OPPOSING_EDGE_BEND
 }
 
+function getSelfEdgeBend(
+	editor: Editor,
+	layout: MermaidNodeLayout,
+	edgeLabel: string,
+	arrowDefaultProps: ReturnType<Editor['getShapeUtil']>['getDefaultProps']
+) {
+	const sizeDrivenBend = Math.max(SELF_EDGE_BASE_BEND, layout.w * 0.24, layout.h * 0.9)
+	if (!edgeLabel.trim()) return -sizeDrivenBend
+
+	const fontFamily = FONT_FAMILIES[arrowDefaultProps.font]
+	const fontSize = FONT_SIZES[arrowDefaultProps.size]
+	const measured = editor.textMeasure.measureText(edgeLabel, {
+		...TEXT_PROPS,
+		fontFamily,
+		fontSize,
+		maxWidth: MAX_TEXT_WIDTH,
+	})
+
+	return -Math.max(sizeDrivenBend, measured.w / 2 + SELF_EDGE_LABEL_PADDING)
+}
+
 function getObstacleAvoidanceBend(
 	sourcePoint: VecLike,
 	targetPoint: VecLike,
 	sourceId: string,
 	targetId: string,
-	obstacles: { id: string; layout: MermaidNodeLayout }[]
+	obstacles: { id: string; layout: MermaidNodeLayout }[],
+	preferredBend = 0
 ) {
 	const relevantRects = obstacles
 		.filter((entry) => entry.id !== sourceId && entry.id !== targetId)
 		.map((entry) => inflateRect(entry.layout, OBSTACLE_AVOIDANCE_RECT_PADDING))
 
-	if (!relevantRects.length) return 0
+	if (!relevantRects.length) return preferredBend
 
 	const straightHitCount = countPolylineRectIntersections([sourcePoint, targetPoint], relevantRects)
-	if (!straightHitCount) return 0
+	const preferredHitCount =
+		preferredBend === 0
+			? 0
+			: countPolylineRectIntersections(
+					getBentCurveSamplePoints(
+						sourcePoint,
+						targetPoint,
+						preferredBend,
+						getObstacleAvoidanceSampleSegments(sourcePoint, targetPoint)
+					),
+					relevantRects
+				)
+	if (!straightHitCount && (!preferredBend || preferredHitCount === 0)) return preferredBend
 
-	const candidates = [
-		OBSTACLE_AVOIDANCE_BEND,
-		-OBSTACLE_AVOIDANCE_BEND,
-		OBSTACLE_AVOIDANCE_BEND * 2,
-		-OBSTACLE_AVOIDANCE_BEND * 2,
-	]
-
-	let bestBend = candidates[0]
+	const candidates = getObstacleAvoidanceCandidates(sourcePoint, targetPoint, preferredBend)
+	let bestBend = candidates[0] ?? preferredBend
 	let bestHitCount = Number.POSITIVE_INFINITY
+	const sampleSegments = getObstacleAvoidanceSampleSegments(sourcePoint, targetPoint)
 
 	for (const bend of candidates) {
 		const hitCount = countPolylineRectIntersections(
-			getBentCurveSamplePoints(sourcePoint, targetPoint, bend, 16),
+			getBentCurveSamplePoints(sourcePoint, targetPoint, bend, sampleSegments),
 			relevantRects
 		)
 		if (hitCount === 0) return bend
 
-		if (hitCount < bestHitCount) {
+		if (
+			hitCount < bestHitCount ||
+			(hitCount === bestHitCount && Math.abs(bend) < Math.abs(bestBend))
+		) {
 			bestHitCount = hitCount
 			bestBend = bend
 		}
 	}
 
 	return bestBend
+}
+
+function getObstacleAvoidanceCandidates(
+	sourcePoint: VecLike,
+	targetPoint: VecLike,
+	preferredBend: number
+) {
+	const distance = Math.hypot(targetPoint.x - sourcePoint.x, targetPoint.y - sourcePoint.y)
+	const maxBend = Math.min(
+		OBSTACLE_AVOIDANCE_MAX_BEND,
+		Math.max(OBSTACLE_AVOIDANCE_BEND * 2, distance * 2)
+	)
+	const step = Math.max(8, Math.round(OBSTACLE_AVOIDANCE_BEND / 2))
+
+	const signs =
+		preferredBend === 0
+			? [1, -1]
+			: [Math.sign(preferredBend) || 1, -(Math.sign(preferredBend) || 1)]
+	const candidates = new Set<number>()
+	if (preferredBend !== 0) candidates.add(preferredBend)
+
+	for (let magnitude = OBSTACLE_AVOIDANCE_BEND; magnitude <= maxBend; magnitude += step) {
+		const rounded = Math.round(magnitude)
+		for (const sign of signs) {
+			candidates.add(sign * rounded)
+		}
+	}
+
+	return Array.from(candidates)
+}
+
+function getObstacleAvoidanceSampleSegments(sourcePoint: VecLike, targetPoint: VecLike) {
+	const distance = Math.hypot(targetPoint.x - sourcePoint.x, targetPoint.y - sourcePoint.y)
+	return clamp(
+		Math.ceil(distance / 24),
+		OBSTACLE_AVOIDANCE_MIN_SEGMENTS,
+		OBSTACLE_AVOIDANCE_MAX_SEGMENTS
+	)
 }
 
 function inflateRect(rect: { x: number; y: number; w: number; h: number }, padding: number) {
@@ -1342,15 +1421,63 @@ function getNodeCenter(layout: MermaidNodeLayout) {
 	}
 }
 
+function getEdgeAnchors(
+	sourceLayout: MermaidNodeLayout,
+	targetLayout: MermaidNodeLayout,
+	isSelfEdge: boolean
+) {
+	if (isSelfEdge) {
+		return {
+			sourceAnchor: { x: MERMAID_ANCHOR_MAX, y: SELF_EDGE_START_ANCHOR_Y },
+			targetAnchor: { x: MERMAID_ANCHOR_MAX, y: SELF_EDGE_END_ANCHOR_Y },
+		}
+	}
+
+	const containmentAnchor = getContainmentAnchor(sourceLayout, targetLayout)
+	if (containmentAnchor) {
+		return { sourceAnchor: containmentAnchor, targetAnchor: containmentAnchor }
+	}
+
+	return {
+		sourceAnchor: getDirectionalAnchor(getNodeCenter(sourceLayout), getNodeCenter(targetLayout)),
+		targetAnchor: getDirectionalAnchor(getNodeCenter(targetLayout), getNodeCenter(sourceLayout)),
+	}
+}
+
+function getContainmentAnchor(
+	sourceLayout: MermaidNodeLayout,
+	targetLayout: MermaidNodeLayout
+): { x: number; y: number } | null {
+	if (containsLayout(sourceLayout, targetLayout)) {
+		return getDirectionalAnchor(getNodeCenter(sourceLayout), getNodeCenter(targetLayout))
+	}
+
+	if (containsLayout(targetLayout, sourceLayout)) {
+		return getDirectionalAnchor(getNodeCenter(targetLayout), getNodeCenter(sourceLayout))
+	}
+
+	return null
+}
+
+function containsLayout(container: MermaidNodeLayout, child: MermaidNodeLayout) {
+	const epsilon = 0.00001
+	return (
+		container.x <= child.x + epsilon &&
+		container.y <= child.y + epsilon &&
+		container.x + container.w >= child.x + child.w - epsilon &&
+		container.y + container.h >= child.y + child.h - epsilon
+	)
+}
+
 function getDirectionalAnchor(sourceCenter: VecLike, targetCenter: VecLike) {
 	const dx = targetCenter.x - sourceCenter.x
 	const dy = targetCenter.y - sourceCenter.y
 
 	if (Math.abs(dx) >= Math.abs(dy)) {
-		return { x: dx >= 0 ? 1 : 0, y: 0.5 }
+		return { x: dx >= 0 ? MERMAID_ANCHOR_MAX : MERMAID_ANCHOR_MIN, y: 0.5 }
 	}
 
-	return { x: 0.5, y: dy >= 0 ? 1 : 0 }
+	return { x: 0.5, y: dy >= 0 ? MERMAID_ANCHOR_MAX : MERMAID_ANCHOR_MIN }
 }
 
 function getAnchorPoint(layout: MermaidNodeLayout, anchor: { x: number; y: number }) {
