@@ -8,13 +8,14 @@
 		"subfolder": "apps/mcp-app"
 	},
 	"version": "0.1.0",
-	"packages": [
+	"remotes": [
 		{
-			"registryType": "remote",
-			"url": "https://tldraw-mcp-app.tldraw.workers.dev/mcp",
-			"transport": {
-				"type": "http"
-			}
+			"type": "streamable-http",
+			"url": "https://tldraw-mcp-app.tldraw.workers.dev/mcp"
+		},
+		{
+			"type": "sse",
+			"url": "https://tldraw-mcp-app.tldraw.workers.dev/sse"
 		}
 	]
 }
