@@ -8,27 +8,23 @@
 import { useSyncDemo } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+	CORE_ACTIVITIES,
 	DefaultToolbar,
 	Editor,
 	TLComponents,
+	TLIdentityProvider,
+	TLIdentityUser,
+	TLPermissionRule,
+	TLPermissionsManagerConfig,
 	TLShape,
 	Tldraw,
 	TldrawUiMenuItem,
 	atom,
+	getShapeCreatorId,
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-
-import {
-	CORE_ACTIVITIES,
-	TLIdentityProvider,
-	TLIdentityUser,
-	TLPermissionRule,
-	TLPermissionsManager,
-	getPermissionsManager,
-	getShapeCreatorId,
-} from '../permissions'
 import { PictWordCardShapeUtil } from './shapes'
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
@@ -113,7 +109,7 @@ function initWordCard(editor: Editor, userId: string, word: string) {
 
 /**
  * Integrates the view.shape permission rule with the editor's rendering pipeline.
- * Uses getPermissionsManager() so the same rule definition controls both
+ * Uses editor.permissions so the same rule definition controls both
  * visibility and server-side filtering via createServerPermissionsFilter.
  *
  * Reading the manager's rule (which reads drawerIdAtom) inside this callback
@@ -121,7 +117,7 @@ function initWordCard(editor: Editor, userId: string, word: string) {
  * when the atom changes.
  */
 function getShapeVisibility(shape: TLShape, editor: Editor) {
-	const mgr = getPermissionsManager(editor)
+	const mgr = editor.permissions
 	if (!mgr) return 'inherit' as const
 	return mgr.canViewShape(shape) ? ('inherit' as const) : ('hidden' as const)
 }
@@ -161,7 +157,6 @@ function PlayerPanel({
 	word,
 	onEditorMount,
 }: PlayerPanelProps) {
-	const managerRef = useRef<TLPermissionsManager | null>(null)
 	const editorRef = useRef<Editor | null>(null)
 
 	const identity = useMemo(() => createPlayerIdentity(userId), [userId])
@@ -219,6 +214,12 @@ function PlayerPanel({
 		[drawerIdAtom]
 	)
 
+	// Stable permissions config — passed as a prop to <Tldraw>.
+	const permissionsConfig = useMemo(
+		(): TLPermissionsManagerConfig => ({ identity, rules }),
+		[identity, rules]
+	)
+
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			editorRef.current = editor
@@ -240,18 +241,16 @@ function PlayerPanel({
 				}
 			)
 
-			managerRef.current = new TLPermissionsManager(editor, { identity, rules })
 			onEditorMount(userId, editor)
 			editor.setCurrentTool(userId === drawerIdAtom.get() ? 'draw' : 'hand')
 
 			return () => {
-				managerRef.current?.cleanup()
 				cleanupAttribution()
 			}
 		},
 		// word intentionally excluded — initWordCard is one-time setup
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[userId, rules, onEditorMount, identity, drawerIdAtom]
+		[userId, onEditorMount, identity, drawerIdAtom]
 	)
 
 	const isDrawer = userId === drawerId
@@ -287,6 +286,7 @@ function PlayerPanel({
 					shapeUtils={CUSTOM_SHAPE_UTILS}
 					components={isDrawer ? undefined : GUESSER_COMPONENTS}
 					onMount={handleMount}
+					permissions={permissionsConfig}
 					getShapeVisibility={getShapeVisibility}
 					options={{ maxPages: 1 }}
 				/>

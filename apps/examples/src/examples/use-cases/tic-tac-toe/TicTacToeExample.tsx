@@ -6,28 +6,25 @@
  */
 
 import { useSyncDemo } from '@tldraw/sync'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
+	CORE_ACTIVITIES,
 	DefaultToolbar,
 	Editor,
 	TLComponents,
+	TLIdentityProvider,
+	TLIdentityUser,
+	TLPermissionRule,
+	TLPermissionsManagerConfig,
 	TLShape,
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuItem,
+	getShapeCreatorId,
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-
-import {
-	CORE_ACTIVITIES,
-	TLIdentityProvider,
-	TLIdentityUser,
-	TLPermissionRule,
-	TLPermissionsManager,
-	getShapeCreatorId,
-} from '../permissions'
 import {
 	BoardLineShapeUtil,
 	CELL_SIZE,
@@ -76,7 +73,7 @@ const ticTacToeRules: Record<string, TLPermissionRule> = {
 	// Granular update rules — these are checked AFTER update.shape passes,
 	// and only revert the specific change type that was denied.
 	[CORE_ACTIVITIES.ROTATE_SHAPE]: false,
-	[CORE_ACTIVITIES.RESIZE_SHAPE]: false,
+	[CORE_ACTIVITIES.EDIT_SHAPE_PROPS]: false,
 
 	[CORE_ACTIVITIES.DELETE_SHAPE]: ({ user, targetShape }) => {
 		if (!targetShape) return false
@@ -271,10 +268,14 @@ function PlayerPanel({
 	components,
 	onShapesChange,
 }: PlayerPanelProps) {
-	const managerRef = useRef<TLPermissionsManager | null>(null)
-
 	// Create a stable identity provider for this player.
 	const identity = useMemo(() => createPlayerIdentity(userId), [userId])
+
+	// Stable permissions config — passed as a prop to <Tldraw>.
+	const permissionsConfig = useMemo(
+		(): TLPermissionsManagerConfig => ({ identity, rules: ticTacToeRules }),
+		[identity]
+	)
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
@@ -290,7 +291,6 @@ function PlayerPanel({
 				}
 			)
 
-			managerRef.current = new TLPermissionsManager(editor, { identity, rules: ticTacToeRules })
 			editor.setCurrentTool(toolId)
 
 			const cleanupListener = editor.store.listen(
@@ -299,7 +299,6 @@ function PlayerPanel({
 			)
 
 			return () => {
-				managerRef.current?.cleanup()
 				cleanupAttribution()
 				cleanupListener()
 			}
@@ -336,6 +335,7 @@ function PlayerPanel({
 					overrides={uiOverrides}
 					components={components}
 					onMount={handleMount}
+					permissions={permissionsConfig}
 					// Restrict to a single page (tic-tac-toe doesn't need multiple pages)
 					options={{ maxPages: 1 }}
 				/>

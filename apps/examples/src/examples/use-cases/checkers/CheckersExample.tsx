@@ -8,25 +8,22 @@
 import { useSyncDemo } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+	CORE_ACTIVITIES,
 	DefaultToolbar,
 	Editor,
 	TLComponents,
+	TLIdentityProvider,
+	TLIdentityUser,
+	TLPermissionRule,
+	TLPermissionsManagerConfig,
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuItem,
+	getShapeCreatorId,
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-
-import {
-	CORE_ACTIVITIES,
-	TLIdentityProvider,
-	TLIdentityUser,
-	TLPermissionRule,
-	TLPermissionsManager,
-	getShapeCreatorId,
-} from '../permissions'
 import { BOARD_SIZE, ChkBoardShapeUtil, ChkPieceShapeUtil, pieceCorner } from './shapes'
 
 // ─── PLAYER CONSTANTS ─────────────────────────────────────────────────────────
@@ -153,7 +150,6 @@ interface PlayerPanelProps {
 }
 
 function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
-	const managerRef = useRef<TLPermissionsManager | null>(null)
 	const [toast, setToast] = useState<string | null>(null)
 
 	// Auto-dismiss toast after 1.5s
@@ -203,17 +199,21 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 		[]
 	)
 
+	// Stable permissions config — passed as a prop to <Tldraw>.
+	const permissionsConfig = useMemo(
+		(): TLPermissionsManagerConfig => ({ identity, rules: checkersRules }),
+		[identity, checkersRules]
+	)
+
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			initBoard(editor, userId)
 
-			managerRef.current = new TLPermissionsManager(editor, {
-				identity,
-				rules: checkersRules,
-			})
+			// Register lifecycle hooks on the editor-owned permissions manager.
+			const mgr = editor.permissions!
 
 			// Turn enforcement via onBeforeAction — reads turnRef.current at call time.
-			managerRef.current.onBeforeAction(({ user, activityId }) => {
+			const cleanupBefore = mgr.onBeforeAction(({ user, activityId }) => {
 				if (
 					activityId === CORE_ACTIVITIES.UPDATE_SHAPE ||
 					activityId === CORE_ACTIVITIES.DELETE_SHAPE ||
@@ -227,7 +227,7 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 			// Toast on denied actions (debounced — onAfterAction fires per shape in selection).
 			let pendingToast: string | null = null
 			let toastRafId: number | null = null
-			managerRef.current.onAfterAction(({ user, activityId }, allowed) => {
+			const cleanupAfter = mgr.onAfterAction(({ user, activityId }, allowed) => {
 				if (allowed) return
 				if (activityId === CORE_ACTIVITIES.SELECT_SHAPE) {
 					const playerColor = user.id.replace('player-', '')
@@ -247,10 +247,11 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 			editor.setCurrentTool('select')
 
 			return () => {
-				managerRef.current?.cleanup()
+				cleanupBefore()
+				cleanupAfter()
 			}
 		},
-		[userId, checkersRules, identity, turnRef]
+		[userId, turnRef]
 	)
 
 	const isRed = userId === PLAYER_RED_ID
@@ -281,6 +282,7 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 					overrides={CHECKERS_OVERRIDES}
 					components={CHECKERS_COMPONENTS}
 					onMount={handleMount}
+					permissions={permissionsConfig}
 					options={{ maxPages: 1 }}
 				/>
 				{toast && (

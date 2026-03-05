@@ -10350,6 +10350,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/permissions@workspace:*, @tldraw/permissions@workspace:packages/permissions":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/permissions@workspace:packages/permissions"
+  dependencies:
+    "@tldraw/editor": "workspace:*"
+    "@tldraw/state": "workspace:*"
+    "@tldraw/store": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    lazyrepo: "npm:0.0.0-alpha.27"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/scripts@workspace:internal/scripts":
   version: 0.0.0-use.local
   resolution: "@tldraw/scripts@workspace:internal/scripts"
@@ -17177,6 +17190,7 @@ __metadata:
     "@tiptap/starter-kit": "npm:^3.12.1"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/permissions": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.17.14"

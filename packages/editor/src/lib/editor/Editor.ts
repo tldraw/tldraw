@@ -148,6 +148,8 @@ import { FocusManager } from './managers/FocusManager/FocusManager'
 import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
+import { TLPermissionsManager } from './managers/PermissionsManager/TLPermissionsManager'
+import { TLPermissionsManagerConfig } from './managers/PermissionsManager/permissions-types'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
@@ -249,6 +251,11 @@ export interface TLEditorOptions {
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
+	 * Configuration for the permissions manager. When provided, the editor will create
+	 * a {@link TLPermissionsManager} that enforces declarative permission rules.
+	 */
+	permissions?: TLPermissionsManagerConfig
+	/**
 	 * Provides a way to hide shapes.
 	 *
 	 * @example
@@ -309,6 +316,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		textOptions: _textOptions,
 		getShapeVisibility,
 		fontAssetUrls,
+		permissions: permissionsConfig,
 	}: TLEditorOptions) {
 		super()
 
@@ -795,6 +803,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.root.enter(undefined, 'initial')
 
+		// Permissions must be created after getContainer, root, and sideEffects
+		// are all initialized, since installEnforcement() depends on all three.
+		this.permissions = permissionsConfig ? new TLPermissionsManager(this, permissionsConfig) : null
+		if (this.permissions) {
+			this.permissions.installEnforcement()
+			this.disposables.add(() => this.permissions?.cleanup())
+		}
+
 		this.edgeScrollManager = new EdgeScrollManager(this)
 		this.focusManager = new FocusManager(this, autoFocus)
 		this.disposables.add(this.focusManager.dispose.bind(this.focusManager))
@@ -944,6 +960,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly user: UserPreferencesManager
+
+	/**
+	 * A manager for declarative permission rules. `null` if no permissions config was provided.
+	 *
+	 * @public
+	 */
+	readonly permissions: TLPermissionsManager | null
 
 	/**
 	 * A helper for measuring text.

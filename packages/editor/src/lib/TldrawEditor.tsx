@@ -22,6 +22,7 @@ import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { Editor } from './editor/Editor'
+import { TLPermissionsManagerConfig } from './editor/managers/PermissionsManager/permissions-types'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
@@ -221,6 +222,12 @@ export interface TldrawEditorBaseProps {
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
+
+	/**
+	 * Configuration for the permissions manager. When provided, the editor will create
+	 * a {@link @tldraw/editor#TLPermissionsManager} that enforces declarative permission rules.
+	 */
+	permissions?: TLPermissionsManagerConfig
 }
 
 /**
@@ -426,6 +433,7 @@ function TldrawEditorWithReadyStore({
 	licenseKey,
 	getShapeVisibility,
 	assetUrls,
+	permissions,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -485,6 +493,7 @@ function TldrawEditorWithReadyStore({
 				licenseKey,
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
+				permissions,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -520,6 +529,7 @@ function TldrawEditorWithReadyStore({
 			licenseKey,
 			getShapeVisibility,
 			assetUrls,
+			permissions,
 		]
 	)
 
