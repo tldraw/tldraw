@@ -320,16 +320,23 @@ export class MediaHelpers {
 					if (physChunk) {
 						const physData = PngHelpers.parsePhys(view, physChunk.dataOffset)
 						if (physData.unit === 1 && physData.ppux === physData.ppuy) {
-							// Calculate pixels per meter:
-							// - 1 inch = 0.0254 meters
-							// - 72 DPI is 72 dots per inch
-							// - pixels per meter = 72 / 0.0254
-							const pixelsPerMeter = 72 / 0.0254
-							const pixelRatio = Math.max(physData.ppux / pixelsPerMeter, 1)
-							return {
-								w: Math.round(w / pixelRatio),
-								h: Math.round(h / pixelRatio),
-								pixelRatio,
+							const dpi = Math.round(physData.ppux * 0.0254)
+							// Try both standard baselines: Windows/web = 96, macOS = 72.
+							// Pick whichever yields a clean integer ratio > 1.
+							const r96 = dpi / 96
+							const r72 = dpi / 72
+							let pixelRatio = 1
+							if (Number.isInteger(r96) && r96 > 1) {
+								pixelRatio = r96
+							} else if (Number.isInteger(r72) && r72 > 1) {
+								pixelRatio = r72
+							}
+							if (pixelRatio > 1) {
+								return {
+									w: Math.round(w / pixelRatio),
+									h: Math.round(h / pixelRatio),
+									pixelRatio,
+								}
 							}
 						}
 					}
