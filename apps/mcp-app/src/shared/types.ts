@@ -22,6 +22,8 @@ export interface RegisterToolsOptions {
 	httpDomain?: { openai: string; claude: string }
 	/** Logging function (defaults to console.error). */
 	log?(...args: unknown[]): void
+	/** Analytics engine dataset. */
+	analytics?: AnalyticsEngineDataset
 }
 
 export const MCP_SERVER_NAME = 'tldraw'
