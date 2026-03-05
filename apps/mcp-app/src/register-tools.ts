@@ -88,6 +88,7 @@ export function registerTools(
 				readOnlyHint: true,
 				idempotentHint: true,
 				openWorldHint: false,
+				destructiveHint: false,
 			},
 		},
 		async (): Promise<CallToolResult> => {
@@ -110,7 +111,8 @@ export function registerTools(
 			description: 'Creates shapes, drawings, and diagrams on the tldraw canvas.',
 			inputSchema: createShapesInputSchema,
 			annotations: {
-				destructiveHint: true,
+				readOnlyHint: false,
+				destructiveHint: false,
 				idempotentHint: false,
 				openWorldHint: false,
 			},
@@ -192,6 +194,7 @@ export function registerTools(
 			description: 'Updates existing shapes, diagrams, and drawings on the tldraw canvas.',
 			inputSchema: updateShapesInputSchema,
 			annotations: {
+				readOnlyHint: false,
 				destructiveHint: true,
 				idempotentHint: false,
 				openWorldHint: false,
@@ -314,6 +317,7 @@ export function registerTools(
 			description: 'Deletes shapes by id from a JSON string (string[]).',
 			inputSchema: deleteShapesInputSchema,
 			annotations: {
+				readOnlyHint: false,
 				destructiveHint: true,
 				idempotentHint: false,
 				openWorldHint: false,
@@ -394,6 +398,7 @@ export function registerTools(
 			inputSchema: z.object({ checkpointId: z.string().min(1) }),
 			annotations: {
 				readOnlyHint: true,
+				destructiveHint: false,
 				idempotentHint: true,
 				openWorldHint: false,
 			},
@@ -484,7 +489,8 @@ export function registerTools(
 				bindingsJson: z.string().optional(),
 			}),
 			annotations: {
-				destructiveHint: true,
+				readOnlyHint: false,
+				destructiveHint: false,
 				idempotentHint: false,
 				openWorldHint: false,
 			},
@@ -540,6 +546,12 @@ export function registerTools(
 				event: z.string().min(1),
 				value: z.number().optional(),
 			}),
+			annotations: {
+				readOnlyHint: false,
+				destructiveHint: false,
+				idempotentHint: false,
+				openWorldHint: true,
+			},
 			_meta: { ui: { visibility: ['app'] } },
 		},
 		async ({ event, value }: { event: string; value?: number }): Promise<CallToolResult> => {
