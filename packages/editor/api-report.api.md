@@ -3710,6 +3710,7 @@ export const tlenv: {
 // @public
 export const tlenvReactive: Atom<    {
 isCoarsePointer: boolean;
+supportsP3ColorSpace: boolean;
 }, unknown>;
 
 // @public (undocumented)
