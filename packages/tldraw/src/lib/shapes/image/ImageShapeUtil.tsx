@@ -411,7 +411,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 						src={loadedSrc}
 						referrerPolicy="strict-origin-when-cross-origin"
 						draggable={false}
-						alt={shape.props.altText}
+						alt=""
 					/>
 				</div>
 			)}
