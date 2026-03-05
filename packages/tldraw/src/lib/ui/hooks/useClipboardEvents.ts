@@ -131,6 +131,15 @@ const handleText = (
 	}
 }
 
+function getFirstPlainTextResult(results: TLExternalContentSource[]) {
+	for (const result of results) {
+		if (result.type === 'text' && result.subtype === 'text' && result.data.trim()) {
+			return result.data
+		}
+	}
+	return null
+}
+
 /**
  * Something found on the clipboard, either through the event's clipboard data or the browser's clipboard API.
  * @internal
@@ -524,12 +533,12 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 			// If the html is NOT a link, and we have other texty content, then paste the html as a text shape
 			if (results.some((r) => r.type === 'text' && r.subtype !== 'html')) {
-				const html = stripHtml(result.data) ?? ''
-				if (html) {
+				const plainText = getFirstPlainTextResult(results) ?? stripHtml(result.data) ?? ''
+				if (plainText) {
 					editor.markHistoryStoppingPoint('paste')
 					editor.putExternalContent({
 						type: 'text',
-						text: html,
+						text: plainText,
 						html: result.data,
 						point,
 						sources: results,

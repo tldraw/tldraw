@@ -36,6 +36,25 @@ describe('mermaid external text import', () => {
 		}
 	})
 
+	it('selects imported mermaid shapes after paste', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `sequenceDiagram
+A->>B: Init
+loop Retry until success
+	A->>B: Retry
+end
+B-->>A: Ack`,
+			html: `<pre><code>sequenceDiagram
+A-&gt;&gt;B: Init
+loop Retry until success
+	A-&gt;&gt;B: Retry
+end
+B--&gt;&gt;A: Ack</code></pre>`,
+		})
+
+		expect(editor.getSelectedShapeIds().length).toBeGreaterThan(0)
+	})
+
 	it('imports fenced mermaid code blocks', async () => {
 		await defaultHandleExternalTextContent(editor, {
 			text: `\`\`\`mermaid
@@ -410,6 +429,46 @@ if_state --> True : if n >= 0`,
 		expect(Math.abs(getCenterX(isPositive!) - columnCenterX)).toBeLessThan(1)
 		expect(Math.abs(getCenterX(falseState!) - columnCenterX)).toBeLessThan(1)
 		expect(Math.abs(getCenterY(falseState!) - getCenterY(trueState!))).toBeLessThan(1)
+	})
+
+	it('keeps a horizontal gap between sibling composite state containers', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `stateDiagram-v2
+[*] --> First
+First --> Second
+First --> Third
+state First {
+	[*] --> fir
+	fir --> [*]
+}
+state Second {
+	[*] --> sec
+	sec --> [*]
+}
+state Third {
+	[*] --> thi
+	thi --> [*]
+}`,
+		})
+
+		const geoByLabel = new Map(
+			editor
+				.getCurrentPageShapes()
+				.filter((shape): shape is TLGeoShape => shape.type === 'geo')
+				.map((shape) => [renderPlaintextFromRichText(editor, shape.props.richText).trim(), shape])
+		)
+
+		const first = geoByLabel.get('First')
+		const second = geoByLabel.get('Second')
+		const third = geoByLabel.get('Third')
+		expect(first).toBeDefined()
+		expect(second).toBeDefined()
+		expect(third).toBeDefined()
+
+		const firstToSecondGap = second!.x - (first!.x + first!.props.w)
+		const secondToThirdGap = third!.x - (second!.x + second!.props.w)
+		expect(firstToSecondGap).toBeGreaterThan(0)
+		expect(secondToThirdGap).toBeGreaterThan(0)
 	})
 
 	it('bends long state arrows that would cross through another node', async () => {

@@ -355,6 +355,7 @@ export async function tryPutMermaidContent(
 		if (bindingPartials.length) {
 			editor.createBindings(bindingPartials)
 		}
+		editor.select(...shapePartials.map((shape) => shape.id))
 	})
 
 	return true
@@ -943,9 +944,13 @@ function resolveSubgraphOverlaps(
 				continue
 			}
 
-			if (!rectsOverlap(currentLayout, otherLayout)) continue
+			if (currentLayout.x < otherLayout.x) continue
+			if (!rangesOverlap(currentLayout.y, currentLayout.y + currentLayout.h, otherLayout.y, otherLayout.y + otherLayout.h)) {
+				continue
+			}
 
 			const targetX = otherLayout.x + otherLayout.w + SUBGRAPH_GAP
+			if (currentLayout.x >= targetX) continue
 			const dx = targetX - currentLayout.x
 			translateSubgraphSubtree(currentSubgraph.id, dx, 0, nodes, nodeById, allNodeLayouts)
 			currentLayout = allNodeLayouts.get(currentSubgraph.id)
@@ -989,8 +994,8 @@ function isNodeDescendantOf(
 	return false
 }
 
-function rectsOverlap(a: MermaidNodeLayout, b: MermaidNodeLayout) {
-	return !(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y)
+function rangesOverlap(aMin: number, aMax: number, bMin: number, bMax: number) {
+	return !(aMax <= bMin || bMax <= aMin)
 }
 
 function positionNodes(
