@@ -244,9 +244,18 @@ li.examples__sidebar__item {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	font-family: inherit;
+	font-size: inherit;
+	line-height: 1.2;
+	appearance: none;
+	-webkit-appearance: none;
 }
 .example__sidebar__item__button:hover {
 	z-index: 20;
+}
+.example__sidebar__item__button:focus-visible {
+	outline: 2px solid var(--focus);
+	outline-offset: -1px;
 }
 .example__sidebar__item__button:nth-of-type(n + 1) {
 	margin-left: -4px;
@@ -284,9 +293,22 @@ li.examples__sidebar__item {
 	justify-content: center;
 	color: #fff;
 	text-decoration: none;
+	border: 1px solid transparent;
 	box-shadow:
 		0px 1px 2px rgba(0, 0, 0, 0.12),
 		0px 1px 3px rgba(0, 0, 0, 0.04);
+	transition:
+		background-color 120ms ease,
+		border-color 120ms ease,
+		box-shadow 120ms ease;
+}
+
+.example__sidebar__header-link:hover {
+	background-color: hsl(214, 92%, 46%);
+}
+
+.example__sidebar__header-link:active {
+	background-color: hsl(214, 92%, 42%);
 }
 
 a.example__sidebar__header-link {
@@ -298,6 +320,14 @@ a.example__sidebar__header-link {
 	color: black;
 	border: 1px solid var(--gray-dark);
 	font-size: 14px;
+}
+
+.example__sidebar__footer-link--grey:hover {
+	background-color: #efefef;
+}
+
+.example__sidebar__footer-link--grey:active {
+	background-color: #e4e4e4;
 }
 
 /* ------------------ Social Links ------------------ */
@@ -445,6 +475,24 @@ a.example__sidebar__header-link {
 	color: black;
 	border: 1px solid var(--gray-dark);
 	font-size: 14px;
+	font-family: inherit;
+	line-height: 1.2;
+	appearance: none;
+	-webkit-appearance: none;
+	transition:
+		background-color 120ms ease,
+		border-color 120ms ease;
+}
+
+.example__dialog__actions a:hover,
+.example__dialog__actions button:hover {
+	background-color: #efefef;
+	border-color: #dcdcdc;
+}
+
+.example__dialog__actions a:active,
+.example__dialog__actions button:active {
+	background-color: #e4e4e4;
 }
 
 .example__dialog__content p > code {
@@ -501,6 +549,14 @@ a.example__sidebar__header-link {
 	cursor: pointer;
 	position: relative;
 	text-align: center;
+	font-family: inherit;
+	font-size: inherit;
+	line-height: 1.2;
+	appearance: none;
+	-webkit-appearance: none;
+	transition:
+		background-color 120ms ease,
+		border-color 120ms ease;
 }
 .MultiplayerExampleWrapper-copy:has(.MultiplayerExampleWrapper-copied) {
 	color: transparent;
@@ -515,9 +571,23 @@ a.example__sidebar__header-link {
 }
 
 .MultiplayerExampleWrapper-copy:hover {
-	border: 1px solid var(--black-transparent-lighter);
+	background: var(--gray-light);
+	border-color: var(--black-transparent-light);
+}
+
+.MultiplayerExampleWrapper-copy:active {
+	background: var(--gray-dark);
 }
 .MultiplayerExampleWrapper-example {
 	position: relative;
 	flex: 1;
+}
+
+.example__sidebar__header-link:focus-visible,
+.example__sidebar__footer-link:focus-visible,
+.example__dialog__actions a:focus-visible,
+.example__dialog__actions button:focus-visible,
+.MultiplayerExampleWrapper-copy:focus-visible {
+	outline: 2px solid var(--focus);
+	outline-offset: 1px;
 }
