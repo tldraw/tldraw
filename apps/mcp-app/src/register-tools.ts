@@ -44,7 +44,7 @@ import { READ_ME_CONTENT } from './tools/read-me'
 /**
  * Shared tool/resource registration logic for both Node.js and Cloudflare Workers entry points.
  *
- * Both `server.ts` (Node) and `src/cloudflare-worker.ts` (Workers) call `registerTools()`
+ * Both `server.ts` (Node) and `src/worker.ts` (Workers) call `registerTools()`
  * with platform-specific storage backends.
  */
 

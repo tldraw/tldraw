@@ -225,12 +225,12 @@ export default {
 				}
 			}
 
-			// SSE transport (for MCP Inspector and legacy clients)
+			// SSE transport (legacy)
 			if (url.pathname === '/sse' || url.pathname.startsWith('/sse/')) {
 				return sseHandler.fetch(request, env, ctx)
 			}
 
-			// Streamable HTTP transport (for Claude web, ChatGPT, and modern clients)
+			// Streamable HTTP transport
 			if (url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) {
 				// Rate limit by MCP session (POST without session ID is the initial handshake)
 				const sessionId = request.headers.get('mcp-session-id')
@@ -239,6 +239,7 @@ export default {
 				}
 				if (sessionId) {
 					const { success } = await env.RATE_LIMITER.limit({ key: sessionId })
+
 					if (!success) {
 						return corsResponse(new Response('Rate limited', { status: 429 }))
 					}
