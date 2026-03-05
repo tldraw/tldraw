@@ -767,7 +767,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				const { editor } = this
 				return (
 					!editor.getIsReadonly() &&
-					editor.getOnlySelectedShape()?.id === shape.id &&
+					editor.getOnlySelectedShapeId() === shape.id &&
 					editor.isInAny(
 						'select.idle',
 						'select.pointing_handle',
