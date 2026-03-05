@@ -1,6 +1,7 @@
 import { AlertDialog as _AlertDialog } from 'radix-ui'
 import { Dispatch, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { CommandBar } from './CommandBar'
 import { Example, examples } from './examples'
 
 const dialogContext = createContext<{
@@ -150,6 +151,7 @@ export function ExamplePage({
 					{children}
 					<Dialogs />
 				</div>
+				<CommandBar />
 			</div>
 		</DialogContextProvider>
 	)
