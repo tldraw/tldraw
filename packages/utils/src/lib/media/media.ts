@@ -309,7 +309,7 @@ export class MediaHelpers {
 	 * ```
 	 * @public
 	 */
-	static async getImageSize(blob: Blob): Promise<{ w: number; h: number }> {
+	static async getImageSize(blob: Blob): Promise<{ w: number; h: number; pixelRatio: number }> {
 		const { w, h } = await MediaHelpers.usingObjectURL(blob, MediaHelpers.getImageAndDimensions)
 
 		try {
@@ -329,6 +329,7 @@ export class MediaHelpers {
 							return {
 								w: Math.round(w / pixelRatio),
 								h: Math.round(h / pixelRatio),
+								pixelRatio,
 							}
 						}
 					}
@@ -336,9 +337,9 @@ export class MediaHelpers {
 			}
 		} catch (err) {
 			console.error(err)
-			return { w, h }
+			return { w, h, pixelRatio: 1 }
 		}
-		return { w, h }
+		return { w, h, pixelRatio: 1 }
 	}
 
 	/**
