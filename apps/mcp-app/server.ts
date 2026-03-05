@@ -77,6 +77,8 @@ export function createServer() {
 		return entry?.bindings ?? []
 	}
 
+	let clientHostName: MCP_APP_HOST_NAMES | undefined
+
 	const server = new McpServer(
 		{
 			name: MCP_SERVER_NAME,
@@ -89,8 +91,6 @@ export function createServer() {
 			instructions: MCP_SERVER_INSTRUCTIONS,
 		}
 	)
-
-	let clientHostName: MCP_APP_HOST_NAMES | undefined
 
 	server.server.oninitialized = () => {
 		const clientInfo = server.server.getClientVersion()
