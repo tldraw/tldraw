@@ -1062,22 +1062,26 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const theme = getDefaultColorTheme(ctx)
 		const scaleFactor = 1 / shape.props.scale
 
+		const showArrowLabel = !isEmptyRichText(shape.props.richText)
+
 		return (
 			<g transform={`scale(${scaleFactor})`}>
 				<ArrowSvg shape={shape} shouldDisplayHandles={false} />
-				<RichTextSVG
-					fontSize={getArrowLabelFontSize(shape)}
-					font={shape.props.font}
-					align="middle"
-					verticalAlign="middle"
-					labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
-					richText={shape.props.richText}
-					bounds={getArrowLabelPosition(this.editor, shape)
-						.box.clone()
-						.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
-					padding={0}
-					showTextOutline={this.options.showTextOutline}
-				/>
+				{showArrowLabel && (
+					<RichTextSVG
+						fontSize={getArrowLabelFontSize(shape)}
+						font={shape.props.font}
+						align="middle"
+						verticalAlign="middle"
+						labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
+						richText={shape.props.richText}
+						bounds={getArrowLabelPosition(this.editor, shape)
+							.box.clone()
+							.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
+						padding={0}
+						showTextOutline={this.options.showTextOutline}
+					/>
+				)}
 			</g>
 		)
 	}
