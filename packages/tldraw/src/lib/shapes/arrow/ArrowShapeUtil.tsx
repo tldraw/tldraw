@@ -759,6 +759,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	component(shape: TLArrowShape) {
 		const { editor } = this
 
+		const info = getArrowInfo(editor, shape)
+
 		const theme = useDefaultColorTheme()
 
 		const shouldDisplayHandles = useValue(
@@ -780,13 +782,19 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			[editor, shape.id]
 		)
 
-		const info = getArrowInfo(editor, shape)
-		if (!info?.isValid) return null
+		const isSelected = useValue(
+			'is selected',
+			() => editor.getOnlySelectedShape()?.id === shape.id,
+			[editor, shape.id]
+		)
 
 		const isEditing = useValue('is editing', () => editor.getEditingShapeId() === shape.id, [
 			editor,
 			shape.id,
 		])
+
+		if (!info?.isValid) return null
+
 		const labelPosition = getArrowLabelPosition(editor, shape, isEditing)
 		const showArrowLabel = isEditing || !isEmptyRichText(shape.props.richText)
 
@@ -810,7 +818,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
 						richText={shape.props.richText}
 						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
-						isSelected={shouldDisplayHandles} // does this HAVE to be isSelected? or isOnlySelected?
+						isSelected={isSelected} // does this HAVE to be isSelected? or isOnlySelected?
 						padding={0}
 						showTextOutline={this.options.showTextOutline}
 						style={{
