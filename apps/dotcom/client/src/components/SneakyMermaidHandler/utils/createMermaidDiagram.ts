@@ -21,26 +21,19 @@ export class MermaidDiagramError extends Error {
  * Parse mermaid text and create tldraw shapes for supported diagram types.
  * Throws {@link MermaidDiagramError} if the diagram type is not supported or rendering fails.
  */
+
+let mermaidPromise: Promise<typeof import('mermaid').default> | null = null
+
 export async function createMermaidDiagram(
 	editor: Editor,
 	text: string
 ): Promise<string | undefined> {
-	const mermaid = (await import('mermaid')).default
+	const mermaid = await getMermaid()
 
 	const parsedResult = await mermaid.parse(text, { suppressErrors: true })
 	if (!parsedResult) {
 		throw new MermaidDiagramError('not a mermaid diagram', 'parse')
 	}
-
-	// Inflate the font size so Mermaid's layout engine allocates larger nodes,
-	// compensating for tldraw's hand-drawn font being wider than Mermaid's default.
-	const FONT_INFLATE = 1.4
-	mermaid.initialize({
-		startOnLoad: false,
-		themeVariables: {
-			fontSize: `${18 * FONT_INFLATE}px`,
-		},
-	})
 
 	const offscreen = document.createElement('div')
 	offscreen.style.position = 'absolute'
@@ -99,4 +92,24 @@ export async function createMermaidDiagram(
 	} finally {
 		offscreen.remove()
 	}
+}
+
+async function getMermaid() {
+	if (!mermaidPromise) {
+		mermaidPromise = import('mermaid').then((m) => {
+			// Inflate the font size so Mermaid's layout engine allocates larger nodes,
+			// compensating for tldraw's hand-drawn font being wider than Mermaid's default.
+			const FONT_INFLATE = 1.4
+
+			m.default.initialize({
+				startOnLoad: false,
+				themeVariables: {
+					fontSize: `${18 * FONT_INFLATE}px`,
+				},
+			})
+
+			return m.default
+		})
+	}
+	return mermaidPromise
 }
