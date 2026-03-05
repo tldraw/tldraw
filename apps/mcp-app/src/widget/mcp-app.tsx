@@ -1,5 +1,5 @@
 import { type App, useApp } from '@modelcontextprotocol/ext-apps/react'
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
 	type TLAsset,
@@ -7,17 +7,17 @@ import {
 	type TLComponents,
 	type TLShape,
 	type TLShapeId,
-	type TLUiOverrides,
 	DefaultToolbar,
 	DefaultToolbarContent,
 	Editor,
 	Tldraw,
+	TldrawUiIcon,
 	structuredClone,
 	useEditor,
-	useToasts,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import type { MCP_APP_HOST_NAMES } from '../shared/types'
 import {
 	MCP_SERVER_DESCRIPTION,
 	MCP_SERVER_NAME,
@@ -25,9 +25,11 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from '../shared/types'
-import { isPlainObject } from '../shared/utils'
+import { isHostCodeEditor } from '../shared/utils'
+import { McpAppContext } from './app-context'
 import { log } from './debug'
 import { exportTldr } from './export-tldr'
+import { ImageDropGuard, uiOverrides } from './image-guard'
 import {
 	type CanvasSnapshot,
 	getEditorBindings,
@@ -55,30 +57,17 @@ const LICENSE_KEY = import.meta.env.VITE_TLDRAW_LICENSE_KEY as string
 const EDITOR_HEIGHT = 600
 const SAVE_DEBOUNCE_MS = 500
 
-const CanvasUiContext = React.createContext<{
-	displayMode: 'inline' | 'fullscreen'
-	toggleFullscreen: (() => void) | null
-	canFullscreen: boolean
-	canDownload: boolean
-	app: App | null
-	hasUserEditedSinceAi: boolean
-	lastEditor: 'user' | 'ai'
-}>({
-	displayMode: 'inline',
-	toggleFullscreen: null,
-	canFullscreen: true,
-	canDownload: true,
-	app: null,
-	hasUserEditedSinceAi: false,
-	lastEditor: 'ai',
-})
-
 function SharePanelContent() {
 	const editor = useEditor()
 	const hasShapes = useValue('hasShapes', () => editor.getCurrentPageShapeIds().size > 0, [editor])
 
-	const { displayMode, toggleFullscreen, canFullscreen, canDownload, app, lastEditor } =
-		useContext(CanvasUiContext)
+	const { displayMode, toggleFullscreen, canFullscreen, canDownload, app, lastEditor, hostName } =
+		useContext(McpAppContext)
+
+	const isCodeEditor = useMemo(() => {
+		if (!hostName) return false
+		return isHostCodeEditor(hostName)
+	}, [hostName])
 
 	const trackWidgetEvent = useCallback(
 		(event: string) => {
@@ -115,7 +104,25 @@ function SharePanelContent() {
 
 	return (
 		<div className="tlui-share-zone" draggable={false} style={{ display: 'flex', gap: 4 }}>
-			{app && (
+			{canDownload && (
+				<button
+					className="tlui-button tlui-button__low"
+					onClick={() => exportTldr(editor, app ?? undefined)}
+					title="Copy to clipboard and download .tldr file"
+				>
+					<TldrawUiIcon label="Download .tldr file" icon="download" />
+				</button>
+			)}
+			{toggleFullscreen && canFullscreen && (
+				<button
+					className="tlui-button tlui-button__low"
+					onClick={toggleFullscreen}
+					title={displayMode === 'fullscreen' ? 'Exit fullscreen' : 'Enter fullscreen'}
+				>
+					{displayMode === 'fullscreen' ? 'Exit fullscreen' : 'Fullscreen'}
+				</button>
+			)}
+			{isCodeEditor && app && (
 				<button
 					onClick={handleBuildItClick}
 					disabled={!hasShapes}
@@ -139,139 +146,17 @@ function SharePanelContent() {
 					Build it
 				</button>
 			)}
-			{toggleFullscreen && canFullscreen && (
-				<button
-					className="tlui-button tlui-button__normal"
-					onClick={toggleFullscreen}
-					title={displayMode === 'fullscreen' ? 'Exit fullscreen' : 'Enter fullscreen'}
-				>
-					{displayMode === 'fullscreen' ? 'Exit fullscreen' : 'Fullscreen'}
-				</button>
-			)}
-			{canDownload && (
-				<button
-					className="tlui-button tlui-button__normal"
-					onClick={() => exportTldr(editor, app ?? undefined)}
-					title="Copy to clipboard and download .tldr file"
-				>
-					Export .tldr
-				</button>
-			)}
 		</div>
 	)
 }
 
 function DynamicToolbar() {
-	const { displayMode } = useContext(CanvasUiContext)
+	const { displayMode } = useContext(McpAppContext)
 	return (
 		<DefaultToolbar orientation={displayMode === 'fullscreen' ? 'vertical' : 'horizontal'}>
 			<DefaultToolbarContent />
 		</DefaultToolbar>
 	)
-}
-
-function extractImageFiles(data: DataTransfer | null): File[] {
-	if (!data) return []
-	const result: File[] = []
-	for (const item of data.items) {
-		if (item.kind === 'file' && item.type.startsWith('image/')) {
-			const file = item.getAsFile()
-			if (file) result.push(file)
-		}
-	}
-	if (result.length > 0) return result
-	return [...data.files].filter((f) => f.type.startsWith('image/'))
-}
-
-/** Intercepts image drop/paste and shows a "coming soon" toast. */
-function ImageDropGuard() {
-	const editor = useEditor()
-	const { addToast } = useToasts()
-
-	useEffect(() => {
-		const container = editor.getContainer()
-
-		const showBlockedToast = (type: string) => {
-			addToast({
-				id: `blocked-${type}`,
-				title: 'Coming soon!',
-				description: `${type} are not yet supported in the tldraw MCP app.`,
-				severity: 'info',
-			})
-		}
-
-		const onDrop = (e: DragEvent) => {
-			const imageFiles = extractImageFiles(e.dataTransfer)
-			if (imageFiles.length > 0) {
-				e.preventDefault()
-				e.stopPropagation()
-				showBlockedToast('Images')
-			}
-		}
-
-		const onPaste = (e: ClipboardEvent) => {
-			const imageFiles = extractImageFiles(e.clipboardData)
-			if (imageFiles.length > 0) {
-				e.preventDefault()
-				e.stopPropagation()
-				showBlockedToast('Images')
-			}
-		}
-
-		container.addEventListener('drop', onDrop, { capture: true })
-		document.addEventListener('paste', onPaste, { capture: true })
-
-		// Override external content handlers to block images, embeds, and URLs.
-		// The context menu paste uses navigator.clipboard.read() directly,
-		// bypassing DOM paste events, so we need to intercept at this level too.
-		editor.registerExternalContentHandler('files', async ({ files }) => {
-			const hasImages = files.some((f) => f.type.startsWith('image/'))
-			if (hasImages) {
-				showBlockedToast('Images')
-			}
-		})
-		editor.registerExternalContentHandler('embed', async () => {
-			showBlockedToast('Embeds')
-		})
-		editor.registerExternalContentHandler('url', async () => {
-			showBlockedToast('Links')
-		})
-
-		return () => {
-			container.removeEventListener('drop', onDrop, { capture: true })
-			document.removeEventListener('paste', onPaste, { capture: true })
-		}
-	}, [editor, addToast])
-
-	return null
-}
-
-const COMING_SOON_TOAST = {
-	id: 'feature-coming-soon',
-	title: 'Coming soon',
-	description: 'This feature is coming soon!',
-	severity: 'info' as const,
-}
-
-/** Override actions/tools to block media, embeds, and flatten. */
-const uiOverrides: TLUiOverrides = {
-	actions(_editor, actions, helpers) {
-		const { 'insert-media': _media, 'insert-embed': _embed, ...rest } = actions
-		return {
-			...rest,
-			'flatten-to-image': {
-				...actions['flatten-to-image'],
-				onSelect() {
-					helpers.addToast(COMING_SOON_TOAST)
-				},
-			},
-		}
-	},
-	tools(_editor, tools) {
-		// Remove the asset tool (image/media picker from toolbar)
-		const { asset: _asset, ...rest } = tools
-		return rest
-	},
 }
 
 const tldrawComponents: TLComponents = {
@@ -282,7 +167,6 @@ const tldrawComponents: TLComponents = {
 function TldrawCanvas({ app }: { app: App }) {
 	const [displayMode, setDisplayMode] = useState<'inline' | 'fullscreen'>('inline')
 	const [containerHeight, setContainerHeight] = useState<number | null>(null)
-	const [hasUserEditedSinceAi, setHasUserEditedSinceAi] = useState(false)
 	const [lastEditor, setLastEditor] = useState<'user' | 'ai'>('ai')
 	const editorRef = useRef<Editor | null>(null)
 
@@ -298,11 +182,28 @@ function TldrawCanvas({ app }: { app: App }) {
 	const hasUserEditedSinceAiRef = useRef(false)
 	const lastEditorRef = useRef<'user' | 'ai'>('ai')
 
+	const mcpAppHostContext = useMemo(() => {
+		return app.getHostContext()
+	}, [app])
+
+	const hostCapabilities = useMemo(() => {
+		return app.getHostCapabilities()
+	}, [app])
+
+	const canFullscreen = useMemo(() => {
+		const modes = mcpAppHostContext?.availableDisplayModes
+		if (!modes) return false
+		return modes.includes('fullscreen')
+	}, [mcpAppHostContext])
+
+	const canDownload = useMemo(() => {
+		return !!hostCapabilities?.downloadFile
+	}, [hostCapabilities])
+
+	const [hostName, setHostName] = useState<MCP_APP_HOST_NAMES | null>(null)
+
 	const markAiActivity = useCallback(() => {
-		if (hasUserEditedSinceAiRef.current) {
-			hasUserEditedSinceAiRef.current = false
-			setHasUserEditedSinceAi(false)
-		}
+		hasUserEditedSinceAiRef.current = false
 		if (lastEditorRef.current !== 'ai') {
 			lastEditorRef.current = 'ai'
 			setLastEditor('ai')
@@ -310,10 +211,7 @@ function TldrawCanvas({ app }: { app: App }) {
 	}, [])
 
 	const markUserEdit = useCallback(() => {
-		if (!hasUserEditedSinceAiRef.current) {
-			hasUserEditedSinceAiRef.current = true
-			setHasUserEditedSinceAi(true)
-		}
+		hasUserEditedSinceAiRef.current = true
 		if (lastEditorRef.current !== 'user') {
 			lastEditorRef.current = 'user'
 			setLastEditor('user')
@@ -350,34 +248,17 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 	}, [app, displayMode])
 
-	const canFullscreen = useMemo(() => {
-		const modes = app.getHostContext()?.availableDisplayModes
-		return !modes || modes.includes('fullscreen')
-	}, [app])
-
-	const canDownload = useMemo(() => {
-		return !!app.getHostCapabilities()?.downloadFile
-	}, [app])
-
-	const canvasUiCtx = useMemo(
+	const mcpAppCtx = useMemo(
 		() => ({
 			displayMode,
 			toggleFullscreen,
 			canFullscreen,
 			canDownload,
 			app,
-			hasUserEditedSinceAi,
 			lastEditor,
+			hostName,
 		}),
-		[
-			displayMode,
-			toggleFullscreen,
-			canFullscreen,
-			canDownload,
-			app,
-			hasUserEditedSinceAi,
-			lastEditor,
-		]
+		[displayMode, toggleFullscreen, canFullscreen, canDownload, app, lastEditor, hostName]
 	)
 
 	const renderPreviewSnapshot = useCallback((previewSnapshot: CanvasSnapshot, summary: string) => {
@@ -548,6 +429,10 @@ function TldrawCanvas({ app }: { app: App }) {
 		if (bootstrap) {
 			setCurrentSessionId(bootstrap.sessionId)
 			log(`Session ID set: ${bootstrap.sessionId}`)
+			if (bootstrap.hostName) {
+				setHostName(bootstrap.hostName)
+				log(`hostName (from bootstrap): ${bootstrap.hostName}`)
+			}
 
 			if (bootstrap.snapshot && bootstrap.snapshot.shapes.length > 0) {
 				// Don't overwrite if a tool result already committed shapes
@@ -590,17 +475,19 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		app.onhostcontextchanged = (ctx) => {
-			log(`hostcontext: ${JSON.stringify(ctx)}`)
-			const record = ctx as Record<string, unknown>
+			log(`updated hostcontext: ${JSON.stringify(ctx)}`)
 
-			const dims = record.containerDimensions
-			if (isPlainObject(dims) && typeof dims.height === 'number') {
+			const dims = ctx.containerDimensions
+			if (dims && 'height' in dims) {
 				setContainerHeight(dims.height)
 			}
 
-			if (typeof record.displayMode === 'string') {
+			// Only update display mode if the host explicitly provides it
+			if (ctx.displayMode !== undefined) {
+				const newMode = ctx.displayMode === 'fullscreen' ? 'fullscreen' : 'inline'
+
 				// Sync editor state before host exits fullscreen
-				if (record.displayMode !== 'fullscreen') {
+				if (newMode !== 'fullscreen') {
 					const editor = editorRef.current
 					if (editor) {
 						const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
@@ -615,8 +502,9 @@ function TldrawCanvas({ app }: { app: App }) {
 						}
 					}
 				}
-				const newMode = record.displayMode === 'fullscreen' ? 'fullscreen' : 'inline'
+
 				setDisplayMode(newMode)
+				log(`Display mode from host context: ${newMode}`)
 			}
 		}
 
@@ -751,7 +639,7 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 	}, [app, applyPreviewFromToolInput, clearPreviewAndRestoreCommitted, markAiActivity])
 
-	// Set explicit height on html/body in fullscreen (position:fixed doesn't give body height in iframes)
+	// Set explicit height on html/body in fullscreen
 	useEffect(() => {
 		if (displayMode === 'fullscreen' && containerHeight) {
 			const h = `${containerHeight}px`
@@ -819,7 +707,7 @@ function TldrawCanvas({ app }: { app: App }) {
 	const isFullscreen = displayMode === 'fullscreen'
 
 	return (
-		<CanvasUiContext.Provider value={canvasUiCtx}>
+		<McpAppContext.Provider value={mcpAppCtx}>
 			<div
 				style={
 					isFullscreen
@@ -831,7 +719,6 @@ function TldrawCanvas({ app }: { app: App }) {
 								bottom: 0,
 								zIndex: 9999,
 								background: '#fff',
-								...(containerHeight ? { height: containerHeight } : {}),
 							}
 						: {
 								width: '100%',
@@ -849,7 +736,7 @@ function TldrawCanvas({ app }: { app: App }) {
 					<ImageDropGuard />
 				</Tldraw>
 			</div>
-		</CanvasUiContext.Provider>
+		</McpAppContext.Provider>
 	)
 }
 
