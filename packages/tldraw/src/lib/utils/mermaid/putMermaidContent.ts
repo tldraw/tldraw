@@ -82,8 +82,10 @@ const OBSTACLE_AVOIDANCE_RECT_PADDING = 12
 const OBSTACLE_AVOIDANCE_MAX_BEND = 480
 const OBSTACLE_AVOIDANCE_MIN_SEGMENTS = 16
 const OBSTACLE_AVOIDANCE_MAX_SEGMENTS = 56
-const MERMAID_ANCHOR_MIN = 0.1
-const MERMAID_ANCHOR_MAX = 0.9
+const MERMAID_START_ANCHOR_MIN = 0
+const MERMAID_START_ANCHOR_MAX = 1
+const MERMAID_END_ANCHOR_MIN = 0.1
+const MERMAID_END_ANCHOR_MAX = 0.9
 const SELF_EDGE_START_ANCHOR_Y = 0.22
 const SELF_EDGE_END_ANCHOR_Y = 0.78
 const SELF_EDGE_BASE_BEND = 64
@@ -311,20 +313,10 @@ export async function tryPutMermaidContent(
 
 	if (!shapePartials.length) return false
 
-	const subgraphGroupPartials = getSubgraphGroupPartials(
-		graph.nodes,
-		subgraphNodeIds,
-		nodeIdToShapeId,
-		childrenByParent
-	)
-
 	editor.run(() => {
 		editor.createShapes(shapePartials)
 		if (bindingPartials.length) {
 			editor.createBindings(bindingPartials)
-		}
-		for (const groupPartial of subgraphGroupPartials) {
-			editor.groupShapes(groupPartial.memberIds, { groupId: groupPartial.groupId })
 		}
 	})
 
@@ -817,43 +809,6 @@ function getSubgraphLayouts(
 	}
 
 	return subgraphLayouts
-}
-
-function getSubgraphGroupPartials(
-	nodes: MermaidNode[],
-	subgraphNodeIds: Set<string>,
-	nodeIdToShapeId: Map<string, TLShapeId>,
-	childrenByParent: Map<string, string[]>
-) {
-	const groupPartials: { groupId: TLShapeId; memberIds: TLShapeId[] }[] = []
-	const groupShapeIdBySubgraphNodeId = new Map<string, TLShapeId>()
-
-	for (const subgraphNode of sortSubgraphNodesForLayout(nodes, subgraphNodeIds)) {
-		const containerShapeId = nodeIdToShapeId.get(subgraphNode.id)
-		if (!containerShapeId) continue
-
-		const memberIds = [containerShapeId]
-		for (const childId of childrenByParent.get(subgraphNode.id) ?? []) {
-			if (subgraphNodeIds.has(childId)) {
-				const childGroupShapeId = groupShapeIdBySubgraphNodeId.get(childId)
-				const childContainerShapeId = nodeIdToShapeId.get(childId)
-				if (childGroupShapeId) memberIds.push(childGroupShapeId)
-				else if (childContainerShapeId) memberIds.push(childContainerShapeId)
-			} else {
-				const childShapeId = nodeIdToShapeId.get(childId)
-				if (childShapeId) memberIds.push(childShapeId)
-			}
-		}
-
-		const dedupedMemberIds = Array.from(new Set(memberIds))
-		if (dedupedMemberIds.length < 2) continue
-
-		const groupId = createShapeId()
-		groupPartials.push({ groupId, memberIds: dedupedMemberIds })
-		groupShapeIdBySubgraphNodeId.set(subgraphNode.id, groupId)
-	}
-
-	return groupPartials
 }
 
 function getChildrenByParent(nodes: MermaidNode[]) {
@@ -1428,32 +1383,46 @@ function getEdgeAnchors(
 ) {
 	if (isSelfEdge) {
 		return {
-			sourceAnchor: { x: MERMAID_ANCHOR_MAX, y: SELF_EDGE_START_ANCHOR_Y },
-			targetAnchor: { x: MERMAID_ANCHOR_MAX, y: SELF_EDGE_END_ANCHOR_Y },
+			sourceAnchor: { x: MERMAID_START_ANCHOR_MAX, y: SELF_EDGE_START_ANCHOR_Y },
+			targetAnchor: { x: MERMAID_END_ANCHOR_MAX, y: SELF_EDGE_END_ANCHOR_Y },
 		}
 	}
 
-	const containmentAnchor = getContainmentAnchor(sourceLayout, targetLayout)
-	if (containmentAnchor) {
-		return { sourceAnchor: containmentAnchor, targetAnchor: containmentAnchor }
+	const containmentAnchors = getContainmentAnchors(sourceLayout, targetLayout)
+	if (containmentAnchors) {
+		return containmentAnchors
 	}
 
 	return {
-		sourceAnchor: getDirectionalAnchor(getNodeCenter(sourceLayout), getNodeCenter(targetLayout)),
-		targetAnchor: getDirectionalAnchor(getNodeCenter(targetLayout), getNodeCenter(sourceLayout)),
+		sourceAnchor: getDirectionalAnchor(
+			getNodeCenter(sourceLayout),
+			getNodeCenter(targetLayout),
+			'start'
+		),
+		targetAnchor: getDirectionalAnchor(getNodeCenter(targetLayout), getNodeCenter(sourceLayout), 'end'),
 	}
 }
 
-function getContainmentAnchor(
+function getContainmentAnchors(
 	sourceLayout: MermaidNodeLayout,
 	targetLayout: MermaidNodeLayout
-): { x: number; y: number } | null {
+): { sourceAnchor: { x: number; y: number }; targetAnchor: { x: number; y: number } } | null {
 	if (containsLayout(sourceLayout, targetLayout)) {
-		return getDirectionalAnchor(getNodeCenter(sourceLayout), getNodeCenter(targetLayout))
+		const sourceCenter = getNodeCenter(sourceLayout)
+		const targetCenter = getNodeCenter(targetLayout)
+		return {
+			sourceAnchor: getDirectionalAnchor(sourceCenter, targetCenter, 'start'),
+			targetAnchor: getDirectionalAnchor(sourceCenter, targetCenter, 'end'),
+		}
 	}
 
 	if (containsLayout(targetLayout, sourceLayout)) {
-		return getDirectionalAnchor(getNodeCenter(targetLayout), getNodeCenter(sourceLayout))
+		const sourceCenter = getNodeCenter(targetLayout)
+		const targetCenter = getNodeCenter(sourceLayout)
+		return {
+			sourceAnchor: getDirectionalAnchor(sourceCenter, targetCenter, 'start'),
+			targetAnchor: getDirectionalAnchor(sourceCenter, targetCenter, 'end'),
+		}
 	}
 
 	return null
@@ -1469,15 +1438,17 @@ function containsLayout(container: MermaidNodeLayout, child: MermaidNodeLayout) 
 	)
 }
 
-function getDirectionalAnchor(sourceCenter: VecLike, targetCenter: VecLike) {
+function getDirectionalAnchor(sourceCenter: VecLike, targetCenter: VecLike, terminal: 'start' | 'end') {
 	const dx = targetCenter.x - sourceCenter.x
 	const dy = targetCenter.y - sourceCenter.y
+	const min = terminal === 'start' ? MERMAID_START_ANCHOR_MIN : MERMAID_END_ANCHOR_MIN
+	const max = terminal === 'start' ? MERMAID_START_ANCHOR_MAX : MERMAID_END_ANCHOR_MAX
 
 	if (Math.abs(dx) >= Math.abs(dy)) {
-		return { x: dx >= 0 ? MERMAID_ANCHOR_MAX : MERMAID_ANCHOR_MIN, y: 0.5 }
+		return { x: dx >= 0 ? max : min, y: 0.5 }
 	}
 
-	return { x: 0.5, y: dy >= 0 ? MERMAID_ANCHOR_MAX : MERMAID_ANCHOR_MIN }
+	return { x: 0.5, y: dy >= 0 ? max : min }
 }
 
 function getAnchorPoint(layout: MermaidNodeLayout, anchor: { x: number; y: number }) {
