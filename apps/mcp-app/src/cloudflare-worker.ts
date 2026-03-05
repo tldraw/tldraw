@@ -141,6 +141,7 @@ export class TldrawMCP extends McpAgent<Env> {
 			extraConnectDomains: workerOrigin ? [workerOrigin] : [],
 			httpDomain:
 				domainOpenai || domainClaude ? { openai: domainOpenai, claude: domainClaude } : undefined,
+			analytics: this.env.MCP_ANALYTICS,
 		})
 
 		this.logger.info('Initialization complete')
