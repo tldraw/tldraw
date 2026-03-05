@@ -236,7 +236,10 @@ async function deployWorkersInDependencyOrder({
 		}
 
 		const deployWorker = async (worker: WorkerDeployment) => {
-			const deploy = () => withTiming(worker.timingLabel, () => worker.run({ dryRun }))
+			const timingLabel = dryRun
+				? worker.timingLabel.replace('worker deploy:', 'worker dry run:')
+				: worker.timingLabel
+			const deploy = () => withTiming(timingLabel, () => worker.run({ dryRun }))
 			if (withDiscordSteps) {
 				await discord.step(worker.stepLabel, deploy)
 			} else {
@@ -245,19 +248,10 @@ async function deployWorkersInDependencyOrder({
 		}
 
 		if (parallelizeReadyWorkers) {
-			await Promise.all(
-				ready.map(async (worker) => {
-					await deployWorker(worker)
-				})
-			)
+			await Promise.all(ready.map((worker) => deployWorker(worker)))
 		} else {
 			for (const worker of ready) {
-				const deploy = () => withTiming(worker.timingLabel, () => worker.run({ dryRun }))
-				if (withDiscordSteps) {
-					await discord.step(worker.stepLabel, deploy)
-				} else {
-					await deploy()
-				}
+				await deployWorker(worker)
 			}
 		}
 
