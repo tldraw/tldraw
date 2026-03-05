@@ -63,12 +63,13 @@ const MERMAID_CODE_BLOCK_REGEX = /```(?:mermaid|mmd)\s*([\s\S]*?)```/im
 const MERMAID_FLOWCHART_REGEX = /^(graph|flowchart)\s+/i
 const MERMAID_STATE_REGEX = /^stateDiagram(?:-v2)?\b/i
 
-const MIN_NODE_WIDTH = 140
+const MIN_NODE_WIDTH = 200
 const MAX_NODE_WIDTH = 320
-const MIN_NODE_HEIGHT = 72
+const MIN_NODE_HEIGHT = 100
 const MAX_TEXT_WIDTH = 260
 const NODE_HORIZONTAL_PADDING = 32
 const NODE_VERTICAL_PADDING = 24
+const LABELED_NODE_SIZE_INCREASE = 0
 const TERMINAL_NODE_SIZE = 12
 const LAYER_GAP = 180
 const NODE_GAP = 100
@@ -92,6 +93,7 @@ const SELF_EDGE_END_ANCHOR_Y = 0.78
 const SELF_EDGE_BASE_BEND = 64
 const SELF_EDGE_LABEL_PADDING = 18
 const STATE_TERMINAL_SCOPE_GAP = 40
+const STATE_TERMINAL_SCOPE_LABEL_GAP = 64
 const STATE_TERMINAL_SIBLING_GAP = 24
 
 export async function tryPutMermaidContent(
@@ -139,7 +141,8 @@ export async function tryPutMermaidContent(
 
 	if (!graph.nodes.length) return false
 
-	const subgraphNodeIds = getSubgraphNodeIds(graph.nodes)
+	const isMindmapDiagram = isMindmapGraph(graph)
+	const subgraphNodeIds = isMindmapDiagram ? new Set<string>() : getSubgraphNodeIds(graph.nodes)
 	const renderedNodes = graph.nodes.filter((node) => !subgraphNodeIds.has(node.id))
 	const nodeLayouts = getNodeLayouts(editor, renderedNodes)
 	if (!nodeLayouts.size) return false
@@ -164,6 +167,7 @@ export async function tryPutMermaidContent(
 		positionStateRootTerminals(allNodeLayouts, graph.nodes, graph.edges)
 	}
 	centerNodeLayoutsOnPoint(allNodeLayouts, point)
+	inflateLabeledNodeLayouts(allNodeLayouts, LABELED_NODE_SIZE_INCREASE)
 
 	const geoDefaultProps = editor.getShapeUtil('geo').getDefaultProps()
 	const arrowDefaultProps = editor.getShapeUtil('arrow').getDefaultProps()
@@ -225,6 +229,7 @@ export async function tryPutMermaidContent(
 	const bindingPartials: TLBindingCreate[] = []
 	const arrowPartials: TLShapePartial<TLArrowShape>[] = []
 	const arrowPartialsByPair = new Map<string, TLShapePartial<TLArrowShape>[]>()
+	const straightArrowPartials = new Set<TLShapePartial<TLArrowShape>>()
 	const directedEdgeCountByPair = new Map<string, number>()
 	for (const edge of graph.edges) {
 		const key = `${edge.sourceId}__${edge.targetId}`
@@ -262,21 +267,25 @@ export async function tryPutMermaidContent(
 		const y = Math.min(sourcePoint.y, targetPoint.y)
 
 		const { arrowheadStart, arrowheadEnd } = getArrowheadsForEdge(edgeData)
-		let bend = isSelfEdge
-			? getSelfEdgeBend(editor, sourceLayout, edgeLabel, arrowDefaultProps)
-			: getOpposingEdgeBend(edge, directedEdgeCountByPair)
-		if (!isSelfEdge && bend === 0) {
-			bend = getDiagonalEdgeBend(sourcePoint, targetPoint)
-		}
-		if (!isSelfEdge) {
-			bend = getObstacleAvoidanceBend(
-				sourcePoint,
-				targetPoint,
-				edge.sourceId,
-				edge.targetId,
-				edgeObstacleLayouts,
-				bend
-			)
+		const isStateEntryEdge = isStateDiagram && sourceLayout.isStart
+		let bend = 0
+		if (!isStateEntryEdge) {
+			bend = isSelfEdge
+				? getSelfEdgeBend(editor, sourceLayout, edgeLabel, arrowDefaultProps)
+				: getOpposingEdgeBend(edge, directedEdgeCountByPair)
+			if (!isSelfEdge && bend === 0) {
+				bend = getDiagonalEdgeBend(sourcePoint, targetPoint)
+			}
+			if (!isSelfEdge) {
+				bend = getObstacleAvoidanceBend(
+					sourcePoint,
+					targetPoint,
+					edge.sourceId,
+					edge.targetId,
+					edgeObstacleLayouts,
+					bend
+				)
+			}
 		}
 		const labelPosition =
 			isStateDiagram && bend !== 0
@@ -302,6 +311,9 @@ export async function tryPutMermaidContent(
 			},
 		} satisfies TLShapePartial<TLArrowShape>
 		arrowPartials.push(arrowPartial)
+		if (isStateEntryEdge) {
+			straightArrowPartials.add(arrowPartial)
+		}
 
 		const pairKey = `${edge.sourceId}__${edge.targetId}`
 		const pairPartials = arrowPartialsByPair.get(pairKey)
@@ -333,7 +345,7 @@ export async function tryPutMermaidContent(
 			},
 		})
 	}
-	distributeParallelEdgeBends(arrowPartialsByPair, isStateDiagram)
+	distributeParallelEdgeBends(arrowPartialsByPair, isStateDiagram, straightArrowPartials)
 	shapePartials.push(...arrowPartials)
 
 	if (!shapePartials.length) return false
@@ -350,13 +362,18 @@ export async function tryPutMermaidContent(
 
 function distributeParallelEdgeBends(
 	arrowPartialsByPair: Map<string, TLShapePartial<TLArrowShape>[]>,
-	isStateDiagram: boolean
+	isStateDiagram: boolean,
+	straightArrowPartials: Set<TLShapePartial<TLArrowShape>>
 ) {
 	for (const pairPartials of arrowPartialsByPair.values()) {
 		if (pairPartials.length < 2) continue
 
 		for (let i = 0; i < pairPartials.length; i++) {
 			const arrowPartial = pairPartials[i]
+			if (straightArrowPartials.has(arrowPartial)) {
+				arrowPartial.props.bend = 0
+				continue
+			}
 			const offset = getParallelEdgeBendOffset(i)
 			arrowPartial.props.bend += offset
 			if (isStateDiagram && arrowPartial.props.bend !== 0) {
@@ -633,10 +650,14 @@ function isStateDiagramGraph(graph: MermaidGraph) {
 	return isRecord(graph.data) && graph.data.diagramType === 'stateDiagram'
 }
 
+function isMindmapGraph(graph: MermaidGraph) {
+	return isRecord(graph.data) && graph.data.diagramType === 'mindmap'
+}
+
 function mergeStateTerminalNodes(
 	graph: MermaidGraph,
 	options: {
-		filter: (node: MermaidNode) => boolean
+		filter(node: MermaidNode): boolean
 		groupByParent: boolean
 	}
 ): MermaidGraph {
@@ -773,18 +794,25 @@ function positionStateTerminalRow(
 	if (!terminals.length) return
 
 	const candidates = terminals.map((terminal) => {
+		const connectedEdges =
+			direction < 0
+				? edges.filter((edge) => edge.sourceId === terminal.nodeId)
+				: edges.filter((edge) => edge.targetId === terminal.nodeId)
 		const connectedNodeIds = Array.from(
 			new Set(
-				(direction < 0
-					? edges.filter((edge) => edge.sourceId === terminal.nodeId).map((edge) => edge.targetId)
-					: edges.filter((edge) => edge.targetId === terminal.nodeId).map((edge) => edge.sourceId)
-				).filter((id) => id !== terminal.nodeId)
+				connectedEdges
+					.map((edge) => (direction < 0 ? edge.targetId : edge.sourceId))
+					.filter((id) => id !== terminal.nodeId)
 			)
 		)
 
 		const connectedLayouts = connectedNodeIds
 			.map((nodeId) => nodeLayouts.get(nodeId))
 			.filter((layout): layout is MermaidNodeLayout => Boolean(layout))
+		const hasLabeledEdge = connectedEdges.some(
+			(edge) => normalizeMermaidLabel(edge.label || '').length > 0
+		)
+		const terminalGap = hasLabeledEdge ? STATE_TERMINAL_SCOPE_LABEL_GAP : STATE_TERMINAL_SCOPE_GAP
 
 		let preferredX = terminal.layout.x
 		if (connectedLayouts.length > 0) {
@@ -797,19 +825,18 @@ function positionStateTerminalRow(
 		return {
 			...terminal,
 			preferredX,
+			terminalGap,
 		}
 	})
 
 	candidates.sort((a, b) => a.preferredX - b.preferredX)
+	const rowGap = Math.max(...candidates.map((candidate) => candidate.terminalGap))
 
 	let cursorX = -Infinity
 	for (const candidate of candidates) {
 		const nextX = Math.max(candidate.preferredX, cursorX)
 		cursorX = nextX + candidate.layout.w + STATE_TERMINAL_SIBLING_GAP
-		const nextY =
-			direction < 0
-				? referenceY - STATE_TERMINAL_SCOPE_GAP - candidate.layout.h
-				: referenceY + STATE_TERMINAL_SCOPE_GAP
+		const nextY = direction < 0 ? referenceY - rowGap - candidate.layout.h : referenceY + rowGap
 
 		nodeLayouts.set(candidate.nodeId, {
 			...candidate.layout,
@@ -1109,6 +1136,23 @@ function centerNodeLayoutsOnPoint(nodeLayouts: Map<string, MermaidNodeLayout>, p
 			...layout,
 			x: layout.x + offsetX,
 			y: layout.y + offsetY,
+		})
+	}
+}
+
+function inflateLabeledNodeLayouts(nodeLayouts: Map<string, MermaidNodeLayout>, increase: number) {
+	if (increase <= 0) return
+
+	const offset = increase / 2
+	for (const [nodeId, layout] of nodeLayouts) {
+		if (!layout.label.trim()) continue
+
+		nodeLayouts.set(nodeId, {
+			...layout,
+			x: layout.x - offset,
+			y: layout.y - offset,
+			w: layout.w + increase,
+			h: layout.h + increase,
 		})
 	}
 }
@@ -1475,11 +1519,7 @@ function getDirectionalAnchor(sourceCenter: VecLike, targetCenter: VecLike) {
 	return { x: 0.5, y: dy >= 0 ? MERMAID_START_ANCHOR_MAX : MERMAID_START_ANCHOR_MIN }
 }
 
-function isNodeAncestorOf(
-	ancestorId: string,
-	nodeId: string,
-	nodeById: Map<string, MermaidNode>
-) {
+function isNodeAncestorOf(ancestorId: string, nodeId: string, nodeById: Map<string, MermaidNode>) {
 	let parentId = nodeById.get(nodeId)?.parentId ?? null
 	while (parentId) {
 		if (parentId === ancestorId) return true

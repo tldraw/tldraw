@@ -473,7 +473,6 @@ export async function defaultHandleExternalTextContent(
 	const cleanedUpPlaintext = cleanupText(text)
 
 	if (
-		!html &&
 		looksLikeMermaidText(cleanedUpPlaintext) &&
 		(await tryPutMermaidContentDynamically(editor, p, cleanedUpPlaintext))
 	) {

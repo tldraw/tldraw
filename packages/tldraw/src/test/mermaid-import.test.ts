@@ -50,6 +50,22 @@ A --> B
 		expect(shapes.filter((shape) => shape.type === 'text')).toHaveLength(0)
 	})
 
+	it('imports mermaid when rich text html is present', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `stateDiagram-v2
+[*] --> A
+A --> [*]`,
+			html: `<pre><code>stateDiagram-v2
+[*] --&gt; A
+A --&gt; [*]</code></pre>`,
+		})
+
+		const shapes = editor.getCurrentPageShapes()
+		expect(shapes.filter((shape) => shape.type === 'geo')).toHaveLength(3)
+		expect(shapes.filter((shape) => shape.type === 'arrow')).toHaveLength(2)
+		expect(shapes.filter((shape) => shape.type === 'text')).toHaveLength(0)
+	})
+
 	it('falls back to plain text when parsing fails', async () => {
 		await defaultHandleExternalTextContent(editor, {
 			text: `flowchart TDX
@@ -200,6 +216,30 @@ A --> [*]`,
 		expect(terminalNodes.every((shape) => shape.props.fill === 'fill')).toBe(true)
 	})
 
+	it('increases state terminal spacing when terminal edges are labeled', async () => {
+		const unlabeledEditor = new TestEditor()
+		await defaultHandleExternalTextContent(unlabeledEditor, {
+			text: `stateDiagram-v2
+[*]-->Accumulate
+Accumulate--> [*]`,
+		})
+
+		const labeledEditor = new TestEditor()
+		await defaultHandleExternalTextContent(labeledEditor, {
+			text: `stateDiagram-v2
+[*]-->Accumulate: start
+Accumulate--> [*]: end`,
+		})
+
+		const unlabeled = getTerminalVerticalGaps(unlabeledEditor, 'Accumulate')
+		const labeled = getTerminalVerticalGaps(labeledEditor, 'Accumulate')
+
+		expect(unlabeled).toBeDefined()
+		expect(labeled).toBeDefined()
+		expect(labeled!.startGap).toBeGreaterThan(unlabeled!.startGap)
+		expect(labeled!.endGap).toBeGreaterThan(unlabeled!.endGap)
+	})
+
 	it('distributes bends across multiple same-direction edges between the same nodes', async () => {
 		await defaultHandleExternalTextContent(editor, {
 			text: `flowchart LR
@@ -289,6 +329,52 @@ state Active {
 
 		expect(labeledBentArrows).toHaveLength(2)
 		expect(labeledBentArrows.every((arrow) => arrow.props.labelPosition === 0.3)).toBe(true)
+	})
+
+	it('keeps entry transitions straight in state concurrency regions', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `stateDiagram-v2
+[*] --> Active
+state Active {
+  [*] --> NumLockOff
+  NumLockOff --> NumLockOn : EvNumLockPressed
+  NumLockOn --> NumLockOff : EvNumLockPressed
+  --
+  [*] --> CapsLockOff
+  CapsLockOff --> CapsLockOn : EvCapsLockPressed
+  CapsLockOn --> CapsLockOff : EvCapsLockPressed
+  --
+  [*] --> ScrollLockOff
+  ScrollLockOff --> ScrollLockOn : EvScrollLockPressed
+  ScrollLockOn --> ScrollLockOff : EvScrollLockPressed
+}`,
+		})
+
+		const geoById = new Map(
+			editor
+				.getCurrentPageShapes()
+				.filter((shape): shape is TLGeoShape => shape.type === 'geo')
+				.map((shape) => [shape.id, shape])
+		)
+
+		const entryArrows = editor
+			.getCurrentPageShapes()
+			.filter((shape): shape is TLArrowShape => shape.type === 'arrow')
+			.filter((arrow) => {
+				const startBinding = editor
+					.getBindingsFromShape(arrow, 'arrow')
+					.find((binding) => binding.props.terminal === 'start')
+				if (!startBinding) return false
+
+				const startShape = geoById.get(startBinding.toId)
+				if (!startShape) return false
+
+				const startLabel = renderPlaintextFromRichText(editor, startShape.props.richText).trim()
+				return startLabel === ''
+			})
+
+		expect(entryArrows.length).toBeGreaterThan(0)
+		expect(entryArrows.every((arrow) => arrow.props.bend === 0)).toBe(true)
 	})
 
 	it('aligns state nodes in the same column and row by center', async () => {
@@ -449,6 +535,26 @@ B ---->|No| E[End]`,
 		expect(projectToDesign!.end).toEqual({ x: 0.5, y: 0.5 })
 		expect(isOnOuterEdge(projectToBuild!.start)).toBe(true)
 		expect(projectToBuild!.end).toEqual({ x: 0.5, y: 0.5 })
+	})
+
+	it('renders deeper mindmap hierarchies as normal nodes instead of subgraph containers', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `mindmap
+Project
+	Design
+		UI
+		UX
+	Build
+		Frontend
+		Backend`,
+		})
+
+		const geoShapes = editor
+			.getCurrentPageShapes()
+			.filter((shape): shape is TLGeoShape => shape.type === 'geo')
+
+		expect(geoShapes).toHaveLength(7)
+		expect(geoShapes.every((shape) => shape.props.dash !== 'dashed')).toBe(true)
 	})
 
 	it('routes self-edges on the right side and increases bend for labels', async () => {
@@ -669,4 +775,26 @@ function onSegment(a: VecLike, b: VecLike, c: VecLike) {
 		b.y <= Math.max(a.y, c.y) &&
 		b.y >= Math.min(a.y, c.y)
 	)
+}
+
+function getTerminalVerticalGaps(editor: TestEditor, stateLabel: string) {
+	const geoShapes = editor
+		.getCurrentPageShapes()
+		.filter((shape): shape is TLGeoShape => shape.type === 'geo')
+	const stateShape = geoShapes.find(
+		(shape) => renderPlaintextFromRichText(editor, shape.props.richText).trim() === stateLabel
+	)
+	if (!stateShape) return null
+
+	const terminalShapes = geoShapes
+		.filter((shape) => renderPlaintextFromRichText(editor, shape.props.richText).trim() === '')
+		.sort((a, b) => a.y - b.y)
+	const topTerminal = terminalShapes[0]
+	const bottomTerminal = terminalShapes[terminalShapes.length - 1]
+	if (!topTerminal || !bottomTerminal) return null
+
+	return {
+		startGap: stateShape.y - (topTerminal.y + topTerminal.props.h),
+		endGap: bottomTerminal.y - (stateShape.y + stateShape.props.h),
+	}
 }
