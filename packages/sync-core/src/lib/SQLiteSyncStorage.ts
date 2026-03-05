@@ -615,11 +615,10 @@ class SQLiteSyncStorageTransaction<R extends UnknownRecord> implements TLSyncSto
 				const state = decodeState<R>(row.state)
 				diff.puts[state.id] = state
 			}
-		}
-
-		// Get tombstones changed since clock
-		for (const row of this.stmts.getTombstonesChangedSince.iterate(sinceClock)) {
-			diff.deletes.push(row.id)
+			// When wipeAll, deletes are redundant (full state is in puts). Only include tombstones otherwise.
+			for (const row of this.stmts.getTombstonesChangedSince.iterate(sinceClock)) {
+				diff.deletes.push(row.id)
+			}
 		}
 
 		return { diff, wipeAll }

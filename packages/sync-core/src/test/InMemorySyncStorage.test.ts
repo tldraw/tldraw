@@ -617,9 +617,10 @@ describe('InMemorySyncStorage', () => {
 				const changes = txn.getChangesSince(5)! // 5 < 10
 
 				expect(changes.wipeAll).toBe(true)
-				// When wipeAll is true, all documents are returned
+				// When wipeAll is true, all documents are returned and deletes are omitted (redundant)
 				const puts = Object.values(changes.diff.puts)
 				expect(puts.length).toBe(2)
+				expect(changes.diff.deletes).toEqual([])
 			})
 		})
 

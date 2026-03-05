@@ -255,7 +255,6 @@ export function TlaEditorTopLeftPanelSignedIn() {
 					<ViewSubmenu />
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
-					<TldrawUiMenuActionItem actionId={'save-file-copy'} />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="preferences">
 					<PreferencesGroup />

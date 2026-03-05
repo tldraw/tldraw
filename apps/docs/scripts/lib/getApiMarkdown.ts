@@ -181,7 +181,7 @@ function collectMembersAndExtends(model: TldrawApiModel, item: ApiItem) {
 					case ApiItemKind.Class:
 					case ApiItemKind.TypeAlias:
 					case ApiItemKind.Interface:
-						// TODO: document these
+						addMember(properties, member, inheritedFrom)
 						break
 					default:
 						model.nonBlockingError(

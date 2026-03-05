@@ -57,7 +57,9 @@ export class Editor {
 	}
 
 	async getCurrentFileName() {
-		return await this.fileName.innerText()
+		const text = await this.fileName.innerText()
+		// The UI replaces spaces with \u00a0 to prevent line-breaking; normalise back.
+		return text.replace(/\u00a0/g, ' ')
 	}
 
 	@step
