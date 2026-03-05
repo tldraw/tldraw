@@ -1,47 +1,6 @@
-import type { Page } from '@playwright/test'
 import fs from 'fs'
 import { USERS } from '../consts'
 import { expect, test } from '../fixtures/tla-test'
-
-// A minimal valid .tldr file for import tests.
-// Sequences are set to the current record versions so no migrations run on import,
-// which would otherwise overwrite fields (e.g. AddName sets name='').
-const MINIMAL_TLDR_FILE = {
-	tldrawFileFormatVersion: 1,
-	schema: {
-		schemaVersion: 2,
-		sequences: { 'com.tldraw.document': 2, 'com.tldraw.page': 1 } as Record<string, number>,
-	},
-	records: [
-		{
-			typeName: 'document',
-			id: 'document:document',
-			name: 'e2e import test',
-			gridSize: 10,
-			meta: {},
-		},
-		{
-			typeName: 'page',
-			id: 'page:page',
-			index: 'a1',
-			meta: {},
-			name: 'Page 1',
-		},
-	],
-}
-
-const IMPORT_URL = 'https://example.com/test-tldr.tldr'
-
-async function mockImportUrl(page: Page, url = IMPORT_URL) {
-	await page.route(url, (route) =>
-		route.fulfill({
-			status: 200,
-			contentType: 'application/json',
-			headers: { 'Access-Control-Allow-Origin': '*' },
-			body: JSON.stringify(MINIMAL_TLDR_FILE),
-		})
-	)
-}
 
 function validateTldrJson(json: unknown) {
 	expect(json).toMatchObject({
@@ -58,12 +17,12 @@ test.describe('import from URL (signed in)', () => {
 		await editor.isLoaded()
 	})
 
-	test('imports file and navigates to it', async ({ page, editor, sidebar }) => {
-		await mockImportUrl(page)
+	test('imports file and navigates to it', async ({ page, editor, sidebar, importHelper }) => {
+		await importHelper.mockUrl()
 		await editor.ensureSidebarOpen()
 		const fileCountBefore = await sidebar.getNumberOfFiles()
 
-		await page.goto(`http://localhost:3000/import?url=${encodeURIComponent(IMPORT_URL)}`)
+		await importHelper.navigate()
 		await page.waitForURL(/\/f\//)
 		await editor.isLoaded()
 
@@ -77,23 +36,22 @@ test.describe('import from URL (signed in)', () => {
 
 	test('redirects to root when no url param is provided', async ({ page }) => {
 		await page.goto('http://localhost:3000/import')
-		// Should immediately redirect to root; the editor might not be on a file page yet
-		// but the URL should be the root
-		await expect(page).toHaveURL('http://localhost:3000/')
+		// Should redirect away from /import immediately (signed-in users then get
+		// forwarded on to their most-recent file, so we can't assert a specific URL).
+		await expect(page).not.toHaveURL(/\/import/)
 	})
 
 	test('shows import-failed toast when the url returns a non-200 response', async ({ page }) => {
-		const badUrl = 'https://example.com/not-found.tldr'
+		const badUrl = 'https://e2e-mock.tldraw.xyz/not-found.tldr'
 		await page.route(badUrl, (route) => route.fulfill({ status: 404 }))
 
 		await page.goto(`http://localhost:3000/import?url=${encodeURIComponent(badUrl)}`)
-		// Stays at root after the failed import
-		await expect(page).toHaveURL('http://localhost:3000/')
-		await expect(page.getByText('Import failed')).toBeVisible()
+		await expect(page).not.toHaveURL(/\/import/)
+		await expect(page.getByText('Import failed', { exact: true })).toBeVisible()
 	})
 
 	test('shows import-failed toast when the url returns invalid json', async ({ page }) => {
-		const badUrl = 'https://example.com/not-a-tldr-file.txt'
+		const badUrl = 'https://e2e-mock.tldraw.xyz/not-a-tldr-file.txt'
 		await page.route(badUrl, (route) =>
 			route.fulfill({
 				status: 200,
@@ -104,8 +62,8 @@ test.describe('import from URL (signed in)', () => {
 		)
 
 		await page.goto(`http://localhost:3000/import?url=${encodeURIComponent(badUrl)}`)
-		await expect(page).toHaveURL('http://localhost:3000/')
-		await expect(page.getByText('Import failed')).toBeVisible()
+		await expect(page).not.toHaveURL(/\/import/)
+		await expect(page.getByText('Import failed', { exact: true })).toBeVisible()
 	})
 })
 
@@ -116,13 +74,14 @@ test.describe('import from URL (signed out)', () => {
 		page,
 		signInDialog,
 		editor,
+		importHelper,
 	}) => {
 		const user = USERS[test.info().parallelIndex]
-		await mockImportUrl(page)
+		await importHelper.mockUrl()
 
 		// Navigate to the import URL while signed out.
 		// import.tsx will store the redirect and show the sign-in dialog.
-		await page.goto(`http://localhost:3000/import?url=${encodeURIComponent(IMPORT_URL)}`)
+		await importHelper.navigate()
 
 		await signInDialog.expectInitialElements()
 		await signInDialog.continueWithEmail(user)

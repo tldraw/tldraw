@@ -681,7 +681,9 @@ export class TLFileDurableObject extends DurableObject {
 		const assetObjectNames = new Set(assetRows.map((r) => r.objectName))
 
 		const documentRecord = records.find((r) => r.typeName === 'document') as TLDocument | undefined
-		const rawName = documentRecord?.name?.trim()
+		// Prefer the TlaFile.name (kept in sync by the app layer) over the TLDocument.name
+		// (which is only updated when the document is open in an editor).
+		const rawName = file.name?.trim() || documentRecord?.name?.trim()
 		const sanitized =
 			rawName?.replace(/[^ \w-]/g, '_').slice(0, 200) || `${this.documentInfo.slug}.tldr`
 		const filename = sanitized.endsWith('.tldr') ? sanitized : `${sanitized}.tldr`
@@ -705,7 +707,7 @@ export class TLFileDurableObject extends DurableObject {
 							assetSrc &&
 							!assetSrc.startsWith('data:')
 						) {
-							const objectName = assetSrc.split('/').pop()
+							const objectName = new URL(assetSrc).pathname.split('/').pop()
 							if (objectName && assetObjectNames.has(objectName)) {
 								const blob = await env.UPLOADS.get(objectName)
 								if (blob) {
