@@ -759,8 +759,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	component(shape: TLArrowShape) {
 		const { editor } = this
 
-		const info = getArrowInfo(editor, shape)
-
 		const theme = useDefaultColorTheme()
 
 		const shouldDisplayHandles = useValue(
@@ -793,6 +791,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			shape.id,
 		])
 
+		const info = getArrowInfo(editor, shape)
 		if (!info?.isValid) return null
 
 		const labelPosition = getArrowLabelPosition(editor, shape, isEditing)
