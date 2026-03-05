@@ -580,7 +580,10 @@ export function registerTools(
 			// has shapes synchronously on mount — before any streaming begins.
 			const activeId = deps.getActiveCheckpointId()
 			const sid = deps.getSessionId()
-			const bootstrap: Record<string, unknown> = { sessionId: sid }
+			const hostName = opts?.getClientHostName()
+			log(`opts: ${JSON.stringify(opts)}`)
+			log(`[tldraw-mcp] Serving resource to "${hostName}"`)
+			const bootstrap: Record<string, unknown> = { sessionId: sid, hostName }
 			if (activeId) {
 				const checkpoint = deps.loadCheckpoint(activeId)
 				if (checkpoint) {
@@ -595,17 +598,12 @@ export function registerTools(
 			// Resolve domain from client identity (only when serving over HTTP with configured domains)
 			let domain: string | undefined
 			if (opts?.httpDomain?.openai || opts?.httpDomain?.claude) {
-				const clientName = server.server.getClientVersion()?.name ?? ''
-				if (clientName === 'openai-mcp') {
+				if (hostName === 'chatgpt') {
 					domain = opts.httpDomain.openai
-				} else if (
-					clientName === 'claude-ai' ||
-					clientName === 'Anthropic' ||
-					clientName === 'Anthropic/ClaudeAI'
-				) {
+				} else if (hostName === 'claude') {
 					domain = opts.httpDomain.claude
 				}
-				log(`[tldraw-mcp] Serving resource to "${clientName}" with domain: ${domain}`)
+				log(`[tldraw-mcp] Serving resource to "${hostName}" with domain: ${domain}`)
 			}
 
 			return {

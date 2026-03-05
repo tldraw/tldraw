@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { TLShape } from 'tldraw'
 import { registerTools } from './src/register-tools'
-import type { ServerDeps } from './src/shared/types'
+import type { MCP_APP_HOST_NAMES, ServerDeps } from './src/shared/types'
 import {
 	MAX_CHECKPOINTS,
 	MCP_SERVER_DESCRIPTION,
@@ -11,6 +11,7 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from './src/shared/types'
+import { resolveMcpAppHostName } from './src/shared/utils'
 import { loadCachedCanvasWidgetHtml } from './src/tools/loadCachedCanvasWidgetHtml'
 
 // --- Server factory ---
@@ -89,10 +90,14 @@ export function createServer() {
 		}
 	)
 
+	let clientHostName: MCP_APP_HOST_NAMES | undefined
+
 	server.server.oninitialized = () => {
 		const clientInfo = server.server.getClientVersion()
+		const resolved = resolveMcpAppHostName(clientInfo?.name ?? '')
+		if (resolved) clientHostName = resolved
 		console.error(
-			`[tldraw-mcp] Client connected: ${clientInfo?.name ?? 'unknown'} v${clientInfo?.version ?? '?'}`
+			`[tldraw-mcp] Client connected: ${clientHostName ?? 'unknown'} v${clientInfo?.version ?? '?'}`
 		)
 	}
 
@@ -122,6 +127,7 @@ export function createServer() {
 	registerTools(server, deps, {
 		httpDomain: httpDomain.openai || httpDomain.claude ? httpDomain : undefined,
 		log: console.error,
+		getClientHostName: () => clientHostName,
 	})
 
 	return server

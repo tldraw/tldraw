@@ -24,6 +24,8 @@ export interface RegisterToolsOptions {
 	log?(...args: unknown[]): void
 	/** Analytics engine dataset. */
 	analytics?: AnalyticsEngineDataset
+	/** Returns the resolved host name of the connected client. */
+	getClientHostName(): MCP_APP_HOST_NAMES | undefined
 }
 
 export const MCP_SERVER_NAME = 'tldraw'
@@ -55,3 +57,5 @@ export const ALLOWED_IMAGE_TYPES: Record<string, string> = Object.fromEntries(
 )
 
 export const MAX_CHECKPOINTS = 200
+
+export type MCP_APP_HOST_NAMES = 'cursor' | 'vscode' | 'claude' | 'chatgpt'
