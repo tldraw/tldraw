@@ -77,10 +77,14 @@ function SharePanelContent() {
 	const trackWidgetEvent = useCallback(
 		(event: string) => {
 			if (!app) return
-			app.callServerTool({
-				name: 'event',
-				arguments: { event },
-			})
+			app
+				.callServerTool({
+					name: 'event',
+					arguments: { event },
+				})
+				.catch(() => {
+					// no-op best effort
+				})
 		},
 		[app]
 	)
