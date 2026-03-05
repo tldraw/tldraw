@@ -48,6 +48,19 @@ import { READ_ME_CONTENT } from './tools/read-me'
  * with platform-specific storage backends.
  */
 
+// --- Helpers ---
+
+function injectBootstrapData(html: string, bootstrap: Record<string, unknown>): string {
+	const toBase64 =
+		typeof Buffer !== 'undefined' ? (s: string) => Buffer.from(s).toString('base64') : btoa
+	const encoded = toBase64(JSON.stringify(bootstrap))
+	const bootstrapScript = `<script>window.__TLDRAW_BOOTSTRAP__=JSON.parse(atob("${encoded}"))</script>`
+	// Replace the LAST </head> — the inlined JS bundle may contain </head> as a string literal
+	const lastIdx = html.lastIndexOf('</head>')
+	if (lastIdx === -1) return html
+	return html.slice(0, lastIdx) + bootstrapScript + html.slice(lastIdx)
+}
+
 // --- Registration ---
 
 export function registerTools(
@@ -577,15 +590,7 @@ export function registerTools(
 					bootstrap.bindings = checkpoint.bindings
 				}
 			}
-			const toBase64 =
-				typeof Buffer !== 'undefined' ? (s: string) => Buffer.from(s).toString('base64') : btoa
-			const encoded = toBase64(JSON.stringify(bootstrap))
-			const bootstrapScript = `<script>window.__TLDRAW_BOOTSTRAP__=JSON.parse(atob("${encoded}"))</script>`
-			// Replace the LAST </head> — the inlined JS bundle may contain </head> as a string literal
-			const lastIdx = html.lastIndexOf('</head>')
-			if (lastIdx !== -1) {
-				html = html.slice(0, lastIdx) + bootstrapScript + html.slice(lastIdx)
-			}
+			html = injectBootstrapData(html, bootstrap)
 
 			// Resolve domain from client identity (only when serving over HTTP with configured domains)
 			let domain: string | undefined

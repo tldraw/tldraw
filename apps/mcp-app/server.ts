@@ -2,7 +2,15 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { TLShape } from 'tldraw'
 import { registerTools } from './src/register-tools'
 import type { ServerDeps } from './src/shared/types'
-import { MAX_CHECKPOINTS } from './src/shared/types'
+import {
+	MAX_CHECKPOINTS,
+	MCP_SERVER_DESCRIPTION,
+	MCP_SERVER_INSTRUCTIONS,
+	MCP_SERVER_NAME,
+	MCP_SERVER_TITLE,
+	MCP_SERVER_VERSION,
+	MCP_SERVER_WEBSITE_URL,
+} from './src/shared/types'
 import { loadCachedCanvasWidgetHtml } from './src/tools/loadCachedCanvasWidgetHtml'
 
 // --- Server factory ---
@@ -68,10 +76,18 @@ export function createServer() {
 		return entry?.bindings ?? []
 	}
 
-	const server = new McpServer({
-		name: 'tldraw',
-		version: '1.0.0',
-	})
+	const server = new McpServer(
+		{
+			name: MCP_SERVER_NAME,
+			version: MCP_SERVER_VERSION,
+			title: MCP_SERVER_TITLE,
+			description: MCP_SERVER_DESCRIPTION,
+			websiteUrl: MCP_SERVER_WEBSITE_URL,
+		},
+		{
+			instructions: MCP_SERVER_INSTRUCTIONS,
+		}
+	)
 
 	server.server.oninitialized = () => {
 		const clientInfo = server.server.getClientVersion()

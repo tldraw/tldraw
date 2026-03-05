@@ -27,7 +27,7 @@ export interface RegisterToolsOptions {
 }
 
 export const MCP_SERVER_NAME = 'tldraw'
-export const MCP_SERVER_VERSION = '1.0.0'
+export const MCP_SERVER_VERSION = '0.1.0'
 export const MCP_SERVER_TITLE = 'tldraw Canvas'
 export const MCP_SERVER_DESCRIPTION =
 	'An interactive tldraw canvas with tools for diagramming, drawing, and more.'

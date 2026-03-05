@@ -18,7 +18,13 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { MCP_SERVER_NAME, MCP_SERVER_VERSION } from '../shared/types'
+import {
+	MCP_SERVER_DESCRIPTION,
+	MCP_SERVER_NAME,
+	MCP_SERVER_TITLE,
+	MCP_SERVER_VERSION,
+	MCP_SERVER_WEBSITE_URL,
+} from '../shared/types'
 import { isPlainObject } from '../shared/utils'
 import { log } from './debug'
 import { exportTldr } from './export-tldr'
@@ -854,21 +860,22 @@ function McpApp() {
 	}, [])
 
 	const { app, isConnected, error } = useApp({
-		appInfo: { name: MCP_SERVER_NAME, version: MCP_SERVER_VERSION },
-		capabilities: {},
+		appInfo: {
+			name: MCP_SERVER_NAME,
+			version: MCP_SERVER_VERSION,
+			title: MCP_SERVER_TITLE,
+			description: MCP_SERVER_DESCRIPTION,
+			websiteUrl: MCP_SERVER_WEBSITE_URL,
+		},
+		capabilities: {
+			availableDisplayModes: ['fullscreen', 'inline'],
+		},
 		onAppCreated: handleAppCreated,
 	})
 
 	useEffect(() => {
 		if (!app || !isConnected) return
-
 		log('Connected!')
-
-		// Read initial host context without forcing a display mode change.
-		const initCtx = app.getHostContext() as Record<string, unknown> | undefined
-		if (initCtx) {
-			log(`Initial host context: ${JSON.stringify(initCtx)}`)
-		}
 
 		return () => {
 			log('McpApp cleanup')
