@@ -9538,30 +9538,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@statelyai/graph@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "@statelyai/graph@npm:0.4.0"
-  peerDependencies:
-    cytoscape: ^3.0.0
-    d3-force: ^3.0.0
-    dotparser: ^1.0.0
-    fast-xml-parser: ^5.0.0
-    zod: ^4.0.0
-  peerDependenciesMeta:
-    cytoscape:
-      optional: true
-    d3-force:
-      optional: true
-    dotparser:
-      optional: true
-    fast-xml-parser:
-      optional: true
-    zod:
-      optional: true
-  checksum: 10/8b5c0dd2d5fc756668333df2fdba4ae5f515327e9d08328edda8ec1914c1581b18e7b780e823aaf5ef123881b8c17d7c305ef9d6a1014866f507cac8cc437518
-  languageName: node
-  linkType: hard
-
 "@supabase/auth-helpers-remix@npm:^0.2.6":
   version: 0.2.6
   resolution: "@supabase/auth-helpers-remix@npm:0.2.6"
@@ -29131,7 +29107,6 @@ __metadata:
   resolution: "tldraw@workspace:packages/tldraw"
   dependencies:
     "@peculiar/webcrypto": "npm:^1.5.0"
-    "@statelyai/graph": "npm:^0.4.0"
     "@testing-library/dom": "npm:^10.0.0"
     "@testing-library/react": "npm:^16.0.0"
     "@tiptap/core": "npm:^3.12.1"

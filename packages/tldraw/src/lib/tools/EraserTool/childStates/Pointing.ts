@@ -54,10 +54,6 @@ export class Pointing extends StateNode {
 		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
 	}
 
-	override onLongPress(info: TLPointerEventInfo) {
-		this.startErasing(info)
-	}
-
 	override onExit(_info: any, to: string) {
 		if (to !== 'erasing') {
 			this.editor.setErasingShapes([])

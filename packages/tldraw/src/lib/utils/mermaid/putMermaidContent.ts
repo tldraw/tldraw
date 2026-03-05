@@ -5,11 +5,21 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	VecLike,
+	clamp,
 	createShapeId,
 	toRichText,
 } from '@tldraw/editor'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../shapes/shared/default-shape-constants'
 import { cleanupText } from '../text/text'
+import {
+	fromMermaidBlock,
+	fromMermaidClass,
+	fromMermaidER,
+	fromMermaidFlowchart,
+	fromMermaidMindmap,
+	fromMermaidSequence,
+	fromMermaidState,
+} from './parseMermaid'
 
 type MermaidDirection = 'up' | 'down' | 'left' | 'right'
 
@@ -93,7 +103,7 @@ export async function tryPutMermaidContent(
 
 	let graph: MermaidGraph
 	try {
-		graph = await parseMermaidGraphFromHeader(header, normalizedMermaidText)
+		graph = parseMermaidGraphFromHeader(header, normalizedMermaidText)
 	} catch {
 		return false
 	}
@@ -102,8 +112,17 @@ export async function tryPutMermaidContent(
 	}
 	const isStateDiagram = isStateDiagramGraph(graph)
 	if (isStateDiagram) {
-		graph = mergeStateStartNodes(graph)
-		graph = mergeStateEndNodes(graph)
+		graph = mergeStateTerminalNodes(graph, {
+			filter: (node) =>
+				(node.parentId ?? null) === null &&
+				isRecord(node.data) &&
+				(node.data.isStart === true || node.shape === 'start'),
+			groupByParent: false,
+		})
+		graph = mergeStateTerminalNodes(graph, {
+			filter: (node) => isRecord(node.data) && (node.data.isEnd === true || node.shape === 'end'),
+			groupByParent: true,
+		})
 	}
 
 	if (!graph.nodes.length) return false
@@ -117,7 +136,13 @@ export async function tryPutMermaidContent(
 	if (isStateDiagram) {
 		positionStateTerminals(positionedNodeLayouts, renderedNodes, graph.edges)
 	}
-	const subgraphLayouts = getSubgraphLayouts(graph.nodes, subgraphNodeIds, positionedNodeLayouts)
+	const childrenByParent = getChildrenByParent(graph.nodes)
+	const subgraphLayouts = getSubgraphLayouts(
+		graph.nodes,
+		subgraphNodeIds,
+		positionedNodeLayouts,
+		childrenByParent
+	)
 	const allNodeLayouts = new Map<string, MermaidNodeLayout>([
 		...positionedNodeLayouts,
 		...subgraphLayouts,
@@ -134,7 +159,7 @@ export async function tryPutMermaidContent(
 	const shapePartials: TLShapePartial[] = []
 	const nodeIdToShapeId = new Map<string, TLShapeId>()
 
-	for (const node of sortSubgraphNodesForRendering(graph.nodes, subgraphNodeIds)) {
+	for (const node of sortSubgraphNodesForLayout(graph.nodes, subgraphNodeIds).reverse()) {
 		const layout = allNodeLayouts.get(node.id)
 		if (!layout) continue
 
@@ -280,7 +305,8 @@ export async function tryPutMermaidContent(
 	const subgraphGroupPartials = getSubgraphGroupPartials(
 		graph.nodes,
 		subgraphNodeIds,
-		nodeIdToShapeId
+		nodeIdToShapeId,
+		childrenByParent
 	)
 
 	editor.run(() => {
@@ -430,31 +456,27 @@ function getFirstMermaidHeaderLine(text: string) {
 	return null
 }
 
-async function parseMermaidGraphFromHeader(
-	headerLine: string,
-	source: string
-): Promise<MermaidGraph> {
-	const mermaid = await import('@statelyai/graph/mermaid')
+function parseMermaidGraphFromHeader(headerLine: string, source: string): MermaidGraph {
 	if (MERMAID_FLOWCHART_REGEX.test(headerLine)) {
-		return mermaid.fromMermaidFlowchart(source)
+		return fromMermaidFlowchart(source)
 	}
 	if (headerLine.startsWith('sequenceDiagram')) {
-		return mermaid.fromMermaidSequence(source)
+		return fromMermaidSequence(source)
 	}
 	if (MERMAID_STATE_REGEX.test(headerLine)) {
-		return mermaid.fromMermaidState(source)
+		return fromMermaidState(source)
 	}
 	if (headerLine.startsWith('classDiagram')) {
-		return mermaid.fromMermaidClass(source)
+		return fromMermaidClass(source)
 	}
 	if (headerLine.startsWith('erDiagram')) {
-		return mermaid.fromMermaidER(source)
+		return fromMermaidER(source)
 	}
 	if (headerLine.startsWith('mindmap')) {
-		return mermaid.fromMermaidMindmap(source)
+		return fromMermaidMindmap(source)
 	}
 	if (headerLine.startsWith('block-beta')) {
-		return mermaid.fromMermaidBlock(source)
+		return fromMermaidBlock(source)
 	}
 	throw new Error('Not a Mermaid diagram type supported by the parser')
 }
@@ -562,74 +584,50 @@ function isStateDiagramGraph(graph: MermaidGraph) {
 	return isRecord(graph.data) && graph.data.diagramType === 'stateDiagram'
 }
 
-function mergeStateEndNodes(graph: MermaidGraph): MermaidGraph {
-	const endNodes = graph.nodes.filter(
-		(node) => isRecord(node.data) && (node.data.isEnd === true || node.shape === 'end')
-	)
-	if (endNodes.length < 2) return graph
+function mergeStateTerminalNodes(
+	graph: MermaidGraph,
+	options: {
+		filter: (node: MermaidNode) => boolean
+		groupByParent: boolean
+	}
+): MermaidGraph {
+	const terminalNodes = graph.nodes.filter(options.filter)
+	if (terminalNodes.length < 2) return graph
 
-	const canonicalEndNodeByParent = new Map<string, MermaidNode>()
-	const duplicateEndNodeIdToCanonicalId = new Map<string, string>()
+	const duplicateIdToCanonicalId = new Map<string, string>()
 
-	for (const endNode of endNodes) {
-		const parentKey = endNode.parentId ?? '__root__'
-		const canonical = canonicalEndNodeByParent.get(parentKey)
-		if (!canonical) {
-			canonicalEndNodeByParent.set(parentKey, endNode)
-		} else {
-			duplicateEndNodeIdToCanonicalId.set(endNode.id, canonical.id)
+	if (options.groupByParent) {
+		const canonicalByParent = new Map<string, MermaidNode>()
+		for (const node of terminalNodes) {
+			const parentKey = node.parentId ?? '__root__'
+			const canonical = canonicalByParent.get(parentKey)
+			if (!canonical) {
+				canonicalByParent.set(parentKey, node)
+			} else {
+				duplicateIdToCanonicalId.set(node.id, canonical.id)
+			}
+		}
+	} else {
+		const canonical = terminalNodes[0]
+		for (const node of terminalNodes.slice(1)) {
+			duplicateIdToCanonicalId.set(node.id, canonical.id)
 		}
 	}
 
-	if (!duplicateEndNodeIdToCanonicalId.size) return graph
+	if (!duplicateIdToCanonicalId.size) return graph
 
 	const nextEdges: MermaidEdge[] = []
 	const seenEdgeKeys = new Set<string>()
 	for (const edge of graph.edges) {
-		const sourceId = duplicateEndNodeIdToCanonicalId.get(edge.sourceId) ?? edge.sourceId
-		const targetId = duplicateEndNodeIdToCanonicalId.get(edge.targetId) ?? edge.targetId
+		const sourceId = duplicateIdToCanonicalId.get(edge.sourceId) ?? edge.sourceId
+		const targetId = duplicateIdToCanonicalId.get(edge.targetId) ?? edge.targetId
 		const edgeKey = `${sourceId}::${targetId}::${edge.label}`
 		if (seenEdgeKeys.has(edgeKey)) continue
 		seenEdgeKeys.add(edgeKey)
 		nextEdges.push({ ...edge, sourceId, targetId })
 	}
 
-	const nextNodes = graph.nodes.filter((node) => !duplicateEndNodeIdToCanonicalId.has(node.id))
-
-	return {
-		...graph,
-		nodes: nextNodes,
-		edges: nextEdges,
-	}
-}
-
-function mergeStateStartNodes(graph: MermaidGraph): MermaidGraph {
-	const startNodes = graph.nodes.filter(
-		(node) =>
-			(node.parentId ?? null) === null &&
-			isRecord(node.data) &&
-			(node.data.isStart === true || node.shape === 'start')
-	)
-	if (startNodes.length < 2) return graph
-
-	const duplicateStartNodeIdToCanonicalId = new Map<string, string>()
-	const canonicalStartNode = startNodes[0]
-	for (const startNode of startNodes.slice(1)) {
-		duplicateStartNodeIdToCanonicalId.set(startNode.id, canonicalStartNode.id)
-	}
-
-	const nextEdges: MermaidEdge[] = []
-	const seenEdgeKeys = new Set<string>()
-	for (const edge of graph.edges) {
-		const sourceId = duplicateStartNodeIdToCanonicalId.get(edge.sourceId) ?? edge.sourceId
-		const targetId = duplicateStartNodeIdToCanonicalId.get(edge.targetId) ?? edge.targetId
-		const edgeKey = `${sourceId}::${targetId}::${edge.label}`
-		if (seenEdgeKeys.has(edgeKey)) continue
-		seenEdgeKeys.add(edgeKey)
-		nextEdges.push({ ...edge, sourceId, targetId })
-	}
-
-	const nextNodes = graph.nodes.filter((node) => !duplicateStartNodeIdToCanonicalId.has(node.id))
+	const nextNodes = graph.nodes.filter((node) => !duplicateIdToCanonicalId.has(node.id))
 
 	return {
 		...graph,
@@ -675,26 +673,34 @@ function positionStateTerminals(
 	}
 
 	for (const scopeNodeIds of nodeIdsByParent.values()) {
-		const scopeLayouts = scopeNodeIds
-			.map((nodeId) => ({ nodeId, layout: nodeLayouts.get(nodeId) }))
-			.filter((entry): entry is { nodeId: string; layout: MermaidNodeLayout } =>
-				Boolean(entry.layout)
-			)
-
-		const nonTerminalLayouts = scopeLayouts
-			.map((entry) => entry.layout)
-			.filter((layout) => !layout.isStart && !layout.isEnd)
-		if (!nonTerminalLayouts.length) continue
-
-		const minY = Math.min(...nonTerminalLayouts.map((layout) => layout.y))
-		const maxY = Math.max(...nonTerminalLayouts.map((layout) => layout.y + layout.h))
-
-		const starts = scopeLayouts.filter((entry) => entry.layout.isStart)
-		const ends = scopeLayouts.filter((entry) => entry.layout.isEnd)
-
-		positionStateTerminalRow(starts, minY, -1, nodeLayouts, edges)
-		positionStateTerminalRow(ends, maxY, 1, nodeLayouts, edges)
+		positionStateTerminalScope(scopeNodeIds, nodeLayouts, edges)
 	}
+}
+
+function positionStateTerminalScope(
+	scopeNodeIds: string[],
+	nodeLayouts: Map<string, MermaidNodeLayout>,
+	edges: MermaidEdge[]
+) {
+	const scopeLayouts = scopeNodeIds
+		.map((nodeId) => ({ nodeId, layout: nodeLayouts.get(nodeId) }))
+		.filter((entry): entry is { nodeId: string; layout: MermaidNodeLayout } =>
+			Boolean(entry.layout)
+		)
+
+	const nonTerminalLayouts = scopeLayouts
+		.map((entry) => entry.layout)
+		.filter((layout) => !layout.isStart && !layout.isEnd)
+	if (!nonTerminalLayouts.length) return
+
+	const minY = Math.min(...nonTerminalLayouts.map((layout) => layout.y))
+	const maxY = Math.max(...nonTerminalLayouts.map((layout) => layout.y + layout.h))
+
+	const starts = scopeLayouts.filter((entry) => entry.layout.isStart)
+	const ends = scopeLayouts.filter((entry) => entry.layout.isEnd)
+
+	positionStateTerminalRow(starts, minY, -1, nodeLayouts, edges)
+	positionStateTerminalRow(ends, maxY, 1, nodeLayouts, edges)
 }
 
 function positionStateRootTerminals(
@@ -702,27 +708,10 @@ function positionStateRootTerminals(
 	nodes: MermaidNode[],
 	edges: MermaidEdge[]
 ) {
-	const rootScopeLayouts = nodes
+	const rootNodeIds = nodes
 		.filter((node) => (node.parentId ?? null) === null)
-		.map((node) => ({ nodeId: node.id, layout: nodeLayouts.get(node.id) }))
-		.filter((entry): entry is { nodeId: string; layout: MermaidNodeLayout } =>
-			Boolean(entry.layout)
-		)
-
-	if (!rootScopeLayouts.length) return
-
-	const nonTerminalLayouts = rootScopeLayouts
-		.map((entry) => entry.layout)
-		.filter((layout) => !layout.isStart && !layout.isEnd)
-	if (!nonTerminalLayouts.length) return
-
-	const minY = Math.min(...nonTerminalLayouts.map((layout) => layout.y))
-	const maxY = Math.max(...nonTerminalLayouts.map((layout) => layout.y + layout.h))
-	const starts = rootScopeLayouts.filter((entry) => entry.layout.isStart)
-	const ends = rootScopeLayouts.filter((entry) => entry.layout.isEnd)
-
-	positionStateTerminalRow(starts, minY, -1, nodeLayouts, edges)
-	positionStateTerminalRow(ends, maxY, 1, nodeLayouts, edges)
+		.map((node) => node.id)
+	positionStateTerminalScope(rootNodeIds, nodeLayouts, edges)
 }
 
 function positionStateTerminalRow(
@@ -784,12 +773,11 @@ function positionStateTerminalRow(
 function getSubgraphLayouts(
 	nodes: MermaidNode[],
 	subgraphNodeIds: Set<string>,
-	nodeLayouts: Map<string, MermaidNodeLayout>
+	nodeLayouts: Map<string, MermaidNodeLayout>,
+	childrenByParent: Map<string, string[]>
 ) {
 	const subgraphLayouts = new Map<string, MermaidNodeLayout>()
 	if (!subgraphNodeIds.size) return subgraphLayouts
-
-	const childrenByParent = getChildrenByParent(nodes)
 
 	const subgraphNodes = sortSubgraphNodesForLayout(nodes, subgraphNodeIds)
 	for (const subgraphNode of subgraphNodes) {
@@ -825,9 +813,9 @@ function getSubgraphLayouts(
 function getSubgraphGroupPartials(
 	nodes: MermaidNode[],
 	subgraphNodeIds: Set<string>,
-	nodeIdToShapeId: Map<string, TLShapeId>
+	nodeIdToShapeId: Map<string, TLShapeId>,
+	childrenByParent: Map<string, string[]>
 ) {
-	const childrenByParent = getChildrenByParent(nodes)
 	const groupPartials: { groupId: TLShapeId; memberIds: TLShapeId[] }[] = []
 	const groupShapeIdBySubgraphNodeId = new Map<string, TLShapeId>()
 
@@ -889,10 +877,6 @@ function sortSubgraphNodesForLayout(nodes: MermaidNode[], subgraphNodeIds: Set<s
 		.sort((a, b) => getDepth(b) - getDepth(a))
 }
 
-function sortSubgraphNodesForRendering(nodes: MermaidNode[], subgraphNodeIds: Set<string>) {
-	return sortSubgraphNodesForLayout(nodes, subgraphNodeIds).reverse()
-}
-
 function resolveSubgraphOverlaps(
 	nodes: MermaidNode[],
 	subgraphNodeIds: Set<string>,
@@ -901,7 +885,7 @@ function resolveSubgraphOverlaps(
 	if (subgraphNodeIds.size < 2) return
 
 	const nodeById = new Map(nodes.map((node) => [node.id, node]))
-	const subgraphNodes = sortSubgraphNodesForRendering(nodes, subgraphNodeIds)
+	const subgraphNodes = sortSubgraphNodesForLayout(nodes, subgraphNodeIds).reverse()
 
 	for (let i = 0; i < subgraphNodes.length; i++) {
 		const currentSubgraph = subgraphNodes[i]
@@ -1390,8 +1374,4 @@ function normalizeMermaidLabel(label: string) {
 	cleanedLabel = cleanedLabel.replace(/:::[A-Za-z_][\w-]*/g, '').trim()
 
 	return cleanedLabel
-}
-
-function clamp(value: number, min: number, max: number) {
-	return Math.max(min, Math.min(max, value))
 }
