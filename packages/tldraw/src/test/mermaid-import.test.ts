@@ -11,7 +11,7 @@ beforeEach(() => {
 })
 
 describe('mermaid external text import', () => {
-	it('imports mermaid flowcharts as connected diagram shapes', async () => {
+	it('imports mermaid flowcharts as center-connected diagram shapes', async () => {
 		await defaultHandleExternalTextContent(editor, {
 			text: `flowchart LR
 				A[Start] --> B{Decision}
@@ -21,7 +21,6 @@ describe('mermaid external text import', () => {
 
 		const shapes = editor.getCurrentPageShapes()
 		const arrows = shapes.filter((shape): shape is TLArrowShape => shape.type === 'arrow')
-		let sawStartBindingOnOuterEdge = false
 
 		expect(shapes.filter((shape) => shape.type === 'geo')).toHaveLength(3)
 		expect(arrows).toHaveLength(2)
@@ -31,21 +30,10 @@ describe('mermaid external text import', () => {
 			const bindings = editor.getBindingsFromShape(arrow, 'arrow')
 			expect(bindings.map((binding) => binding.props.terminal).sort()).toEqual(['end', 'start'])
 			for (const binding of bindings) {
-				if (binding.props.terminal === 'end') {
-					expect(binding.props.normalizedAnchor.x).toBeGreaterThanOrEqual(0.1)
-					expect(binding.props.normalizedAnchor.x).toBeLessThanOrEqual(0.9)
-					expect(binding.props.normalizedAnchor.y).toBeGreaterThanOrEqual(0.1)
-					expect(binding.props.normalizedAnchor.y).toBeLessThanOrEqual(0.9)
-				} else {
-					const { x, y } = binding.props.normalizedAnchor
-					if (x === 0 || x === 1 || y === 0 || y === 1) {
-						sawStartBindingOnOuterEdge = true
-					}
-				}
+				expect(binding.props.normalizedAnchor.x).toBe(0.5)
+				expect(binding.props.normalizedAnchor.y).toBe(0.5)
 			}
 		}
-
-		expect(sawStartBindingOnOuterEdge).toBe(true)
 	})
 
 	it('imports fenced mermaid code blocks', async () => {
@@ -194,6 +182,91 @@ B --> A`,
 		expect(arrows.every((arrow) => arrow.props.bend === 40)).toBe(true)
 	})
 
+	it('renders state start/end terminals as filled 12x12 ellipses', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `stateDiagram-v2
+[*] --> A
+A --> [*]`,
+		})
+
+		const terminalNodes = editor
+			.getCurrentPageShapes()
+			.filter((shape): shape is TLGeoShape => shape.type === 'geo')
+			.filter((shape) => renderPlaintextFromRichText(editor, shape.props.richText).trim() === '')
+
+		expect(terminalNodes).toHaveLength(2)
+		expect(terminalNodes.every((shape) => shape.props.geo === 'ellipse')).toBe(true)
+		expect(terminalNodes.every((shape) => shape.props.w === 12 && shape.props.h === 12)).toBe(true)
+		expect(terminalNodes.every((shape) => shape.props.fill === 'fill')).toBe(true)
+	})
+
+	it('distributes bends across multiple same-direction edges between the same nodes', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `flowchart LR
+A --> B
+A --> B
+A --> B`,
+		})
+
+		const bends = editor
+			.getCurrentPageShapes()
+			.filter((shape): shape is TLArrowShape => shape.type === 'arrow')
+			.map((arrow) => arrow.props.bend)
+			.sort((a, b) => a - b)
+
+		expect(bends).toEqual([-40, 40, 80])
+	})
+
+	it('adds default bends to diagonal flowchart edges', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `flowchart TD
+A
+B
+Y --> B
+X --> A`,
+		})
+
+		const geoByLabel = new Map(
+			editor
+				.getCurrentPageShapes()
+				.filter((shape): shape is TLGeoShape => shape.type === 'geo')
+				.map((shape) => [renderPlaintextFromRichText(editor, shape.props.richText).trim(), shape])
+		)
+
+		const yToB = getArrowBetween(editor, geoByLabel.get('Y')!.id, geoByLabel.get('B')!.id)
+		const xToA = getArrowBetween(editor, geoByLabel.get('X')!.id, geoByLabel.get('A')!.id)
+
+		expect(yToB).toBeDefined()
+		expect(xToA).toBeDefined()
+		expect(yToB!.props.bend).toBe(40)
+		expect(xToA!.props.bend).toBe(-40)
+	})
+
+	it('flips default diagonal bend sign when direction is up', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `flowchart BT
+A
+B
+Y --> B
+X --> A`,
+		})
+
+		const geoByLabel = new Map(
+			editor
+				.getCurrentPageShapes()
+				.filter((shape): shape is TLGeoShape => shape.type === 'geo')
+				.map((shape) => [renderPlaintextFromRichText(editor, shape.props.richText).trim(), shape])
+		)
+
+		const yToB = getArrowBetween(editor, geoByLabel.get('Y')!.id, geoByLabel.get('B')!.id)
+		const xToA = getArrowBetween(editor, geoByLabel.get('X')!.id, geoByLabel.get('A')!.id)
+
+		expect(yToB).toBeDefined()
+		expect(xToA).toBeDefined()
+		expect(yToB!.props.bend).toBe(-40)
+		expect(xToA!.props.bend).toBe(40)
+	})
+
 	it('positions state bent arrow labels closer to the start of the arrow', async () => {
 		await defaultHandleExternalTextContent(editor, {
 			text: `stateDiagram-v2
@@ -338,7 +411,7 @@ B ---->|No| E[End]`,
 		expect(polylineIntersectsRect(loopPoints, okInteriorRect)).toBe(false)
 	})
 
-	it('uses nearest-side anchors for mindmap edges between containing nodes', async () => {
+	it('uses edge-to-center anchors for parent-to-child mindmap edges', async () => {
 		await defaultHandleExternalTextContent(editor, {
 			text: `mindmap
 	Project
@@ -372,8 +445,10 @@ B ---->|No| E[End]`,
 		expect(projectToDesign).toBeDefined()
 		expect(projectToBuild).toBeDefined()
 
-		expect(Math.abs(projectToDesign!.start.x - projectToDesign!.end.x)).toBeLessThanOrEqual(0.1)
-		expect(Math.abs(projectToBuild!.start.x - projectToBuild!.end.x)).toBeLessThanOrEqual(0.1)
+		expect(isOnOuterEdge(projectToDesign!.start)).toBe(true)
+		expect(projectToDesign!.end).toEqual({ x: 0.5, y: 0.5 })
+		expect(isOnOuterEdge(projectToBuild!.start)).toBe(true)
+		expect(projectToBuild!.end).toEqual({ x: 0.5, y: 0.5 })
 	})
 
 	it('routes self-edges on the right side and increases bend for labels', async () => {
@@ -462,6 +537,23 @@ function getArrowTerminalAnchors(editor: TestEditor, sourceId: string, targetId:
 	return null
 }
 
+function getArrowBetween(editor: TestEditor, sourceId: string, targetId: string) {
+	const arrows = editor
+		.getCurrentPageShapes()
+		.filter((shape): shape is TLArrowShape => shape.type === 'arrow')
+
+	for (const arrow of arrows) {
+		const bindings = editor.getBindingsFromShape(arrow, 'arrow')
+		const start = bindings.find((binding) => binding.props.terminal === 'start')
+		const end = bindings.find((binding) => binding.props.terminal === 'end')
+		if (start?.toId === sourceId && end?.toId === targetId) {
+			return arrow
+		}
+	}
+
+	return null
+}
+
 function getArrowPagePolyline(editor: TestEditor, arrow: TLArrowShape, segments: number) {
 	const info = getArrowInfo(editor, arrow)
 	if (!info) return []
@@ -504,6 +596,10 @@ function normalizeAngle(angle: number) {
 	while (next <= -Math.PI) next += PI2
 	while (next > Math.PI) next -= PI2
 	return next
+}
+
+function isOnOuterEdge(anchor: { x: number; y: number }) {
+	return anchor.x === 0 || anchor.x === 1 || anchor.y === 0 || anchor.y === 1
 }
 
 function polylineIntersectsRect(

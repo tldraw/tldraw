@@ -34,7 +34,7 @@ const allFixtures: MermaidFixture[] = [
 export default function MermaidGalleryExample() {
 	const handleMount = useCallback((editor: Editor) => {
 		void (async () => {
-			window.editor = editor
+			;(window as typeof window & { editor?: Editor }).editor = editor
 			const existingShapeIds = Array.from(editor.getCurrentPageShapeIds())
 			if (existingShapeIds.length) {
 				editor.deleteShapes(existingShapeIds)

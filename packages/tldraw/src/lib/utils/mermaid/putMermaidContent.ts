@@ -1,5 +1,6 @@
 import {
 	Editor,
+	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
 	TLBindingCreate,
 	TLShapeId,
@@ -68,7 +69,7 @@ const MIN_NODE_HEIGHT = 72
 const MAX_TEXT_WIDTH = 260
 const NODE_HORIZONTAL_PADDING = 32
 const NODE_VERTICAL_PADDING = 24
-const TERMINAL_NODE_SIZE = 40
+const TERMINAL_NODE_SIZE = 12
 const LAYER_GAP = 180
 const NODE_GAP = 100
 const SUBGRAPH_HORIZONTAL_PADDING = 48
@@ -76,6 +77,7 @@ const SUBGRAPH_VERTICAL_PADDING = 40
 const SUBGRAPH_HEADER_HEIGHT = 44
 const SUBGRAPH_GAP = 48
 const OPPOSING_EDGE_BEND = 40
+const DIAGONAL_EDGE_BEND = 40
 const STATE_BENT_ARROW_LABEL_POSITION = 0.3
 const OBSTACLE_AVOIDANCE_BEND = 40
 const OBSTACLE_AVOIDANCE_RECT_PADDING = 12
@@ -84,7 +86,6 @@ const OBSTACLE_AVOIDANCE_MIN_SEGMENTS = 16
 const OBSTACLE_AVOIDANCE_MAX_SEGMENTS = 56
 const MERMAID_START_ANCHOR_MIN = 0
 const MERMAID_START_ANCHOR_MAX = 1
-const MERMAID_END_ANCHOR_MIN = 0.1
 const MERMAID_END_ANCHOR_MAX = 0.9
 const SELF_EDGE_START_ANCHOR_Y = 0.22
 const SELF_EDGE_END_ANCHOR_Y = 0.78
@@ -216,11 +217,14 @@ export async function tryPutMermaidContent(
 				richText: toRichText(layout.label),
 				align: 'middle',
 				verticalAlign: 'middle',
+				...(layout.isStartOrEnd ? { fill: 'fill' as const } : null),
 			},
 		})
 	}
 
 	const bindingPartials: TLBindingCreate[] = []
+	const arrowPartials: TLShapePartial<TLArrowShape>[] = []
+	const arrowPartialsByPair = new Map<string, TLShapePartial<TLArrowShape>[]>()
 	const directedEdgeCountByPair = new Map<string, number>()
 	for (const edge of graph.edges) {
 		const key = `${edge.sourceId}__${edge.targetId}`
@@ -229,6 +233,7 @@ export async function tryPutMermaidContent(
 	const edgeObstacleLayouts = Array.from(allNodeLayouts.entries())
 		.filter(([, layout]) => !layout.isSubgraph && !layout.isStartOrEnd)
 		.map(([id, layout]) => ({ id, layout }))
+	const nodeById = new Map(graph.nodes.map((node) => [node.id, node]))
 
 	for (const edge of graph.edges) {
 		const sourceLayout = allNodeLayouts.get(edge.sourceId)
@@ -241,8 +246,14 @@ export async function tryPutMermaidContent(
 		if (edgeData?.stroke === 'invisible') continue
 
 		const isSelfEdge = edge.sourceId === edge.targetId
+		const isParentToChildEdge = isNodeAncestorOf(edge.sourceId, edge.targetId, nodeById)
 		const edgeLabel = normalizeMermaidLabel(edge.label || '')
-		const { sourceAnchor, targetAnchor } = getEdgeAnchors(sourceLayout, targetLayout, isSelfEdge)
+		const { sourceAnchor, targetAnchor } = getEdgeAnchors(
+			sourceLayout,
+			targetLayout,
+			isSelfEdge,
+			isParentToChildEdge
+		)
 		const sourcePoint = getAnchorPoint(sourceLayout, sourceAnchor)
 		const targetPoint = getAnchorPoint(targetLayout, targetAnchor)
 
@@ -254,6 +265,9 @@ export async function tryPutMermaidContent(
 		let bend = isSelfEdge
 			? getSelfEdgeBend(editor, sourceLayout, edgeLabel, arrowDefaultProps)
 			: getOpposingEdgeBend(edge, directedEdgeCountByPair)
+		if (!isSelfEdge && bend === 0) {
+			bend = getDiagonalEdgeBend(sourcePoint, targetPoint)
+		}
 		if (!isSelfEdge) {
 			bend = getObstacleAvoidanceBend(
 				sourcePoint,
@@ -269,7 +283,7 @@ export async function tryPutMermaidContent(
 				? STATE_BENT_ARROW_LABEL_POSITION
 				: arrowDefaultProps.labelPosition
 
-		shapePartials.push({
+		const arrowPartial = {
 			id: arrowId,
 			type: 'arrow',
 			x,
@@ -286,7 +300,16 @@ export async function tryPutMermaidContent(
 				bend,
 				labelPosition,
 			},
-		})
+		} satisfies TLShapePartial<TLArrowShape>
+		arrowPartials.push(arrowPartial)
+
+		const pairKey = `${edge.sourceId}__${edge.targetId}`
+		const pairPartials = arrowPartialsByPair.get(pairKey)
+		if (pairPartials) {
+			pairPartials.push(arrowPartial)
+		} else {
+			arrowPartialsByPair.set(pairKey, [arrowPartial])
+		}
 
 		bindingPartials.push({
 			type: 'arrow',
@@ -310,6 +333,8 @@ export async function tryPutMermaidContent(
 			},
 		})
 	}
+	distributeParallelEdgeBends(arrowPartialsByPair, isStateDiagram)
+	shapePartials.push(...arrowPartials)
 
 	if (!shapePartials.length) return false
 
@@ -321,6 +346,29 @@ export async function tryPutMermaidContent(
 	})
 
 	return true
+}
+
+function distributeParallelEdgeBends(
+	arrowPartialsByPair: Map<string, TLShapePartial<TLArrowShape>[]>,
+	isStateDiagram: boolean
+) {
+	for (const pairPartials of arrowPartialsByPair.values()) {
+		if (pairPartials.length < 2) continue
+
+		for (let i = 0; i < pairPartials.length; i++) {
+			const arrowPartial = pairPartials[i]
+			const offset = getParallelEdgeBendOffset(i)
+			arrowPartial.props.bend += offset
+			if (isStateDiagram && arrowPartial.props.bend !== 0) {
+				arrowPartial.props.labelPosition = STATE_BENT_ARROW_LABEL_POSITION
+			}
+		}
+	}
+}
+
+function getParallelEdgeBendOffset(edgeIndex: number) {
+	const magnitude = (Math.floor(edgeIndex / 2) + 1) * OPPOSING_EDGE_BEND
+	return (edgeIndex % 2 === 0 ? 1 : -1) * magnitude
 }
 
 function extractMermaidText(text: string) {
@@ -1163,6 +1211,20 @@ function getSelfEdgeBend(
 	return -Math.max(sizeDrivenBend, measured.w / 2 + SELF_EDGE_LABEL_PADDING)
 }
 
+function getDiagonalEdgeBend(sourcePoint: VecLike, targetPoint: VecLike) {
+	const dx = targetPoint.x - sourcePoint.x
+	const dy = targetPoint.y - sourcePoint.y
+	const epsilon = 0.0001
+
+	if (Math.abs(dx) <= epsilon || Math.abs(dy) <= epsilon) return 0
+
+	if (dy > 0) {
+		return dx > 0 ? DIAGONAL_EDGE_BEND : -DIAGONAL_EDGE_BEND
+	}
+
+	return dx > 0 ? -DIAGONAL_EDGE_BEND : DIAGONAL_EDGE_BEND
+}
+
 function getObstacleAvoidanceBend(
 	sourcePoint: VecLike,
 	targetPoint: VecLike,
@@ -1379,7 +1441,8 @@ function getNodeCenter(layout: MermaidNodeLayout) {
 function getEdgeAnchors(
 	sourceLayout: MermaidNodeLayout,
 	targetLayout: MermaidNodeLayout,
-	isSelfEdge: boolean
+	isSelfEdge: boolean,
+	isParentToChildEdge: boolean
 ) {
 	if (isSelfEdge) {
 		return {
@@ -1388,67 +1451,41 @@ function getEdgeAnchors(
 		}
 	}
 
-	const containmentAnchors = getContainmentAnchors(sourceLayout, targetLayout)
-	if (containmentAnchors) {
-		return containmentAnchors
+	if (isParentToChildEdge) {
+		return {
+			sourceAnchor: getDirectionalAnchor(getNodeCenter(sourceLayout), getNodeCenter(targetLayout)),
+			targetAnchor: { x: 0.5, y: 0.5 },
+		}
 	}
 
 	return {
-		sourceAnchor: getDirectionalAnchor(
-			getNodeCenter(sourceLayout),
-			getNodeCenter(targetLayout),
-			'start'
-		),
-		targetAnchor: getDirectionalAnchor(getNodeCenter(targetLayout), getNodeCenter(sourceLayout), 'end'),
+		sourceAnchor: { x: 0.5, y: 0.5 },
+		targetAnchor: { x: 0.5, y: 0.5 },
 	}
 }
 
-function getContainmentAnchors(
-	sourceLayout: MermaidNodeLayout,
-	targetLayout: MermaidNodeLayout
-): { sourceAnchor: { x: number; y: number }; targetAnchor: { x: number; y: number } } | null {
-	if (containsLayout(sourceLayout, targetLayout)) {
-		const sourceCenter = getNodeCenter(sourceLayout)
-		const targetCenter = getNodeCenter(targetLayout)
-		return {
-			sourceAnchor: getDirectionalAnchor(sourceCenter, targetCenter, 'start'),
-			targetAnchor: getDirectionalAnchor(sourceCenter, targetCenter, 'end'),
-		}
-	}
-
-	if (containsLayout(targetLayout, sourceLayout)) {
-		const sourceCenter = getNodeCenter(targetLayout)
-		const targetCenter = getNodeCenter(sourceLayout)
-		return {
-			sourceAnchor: getDirectionalAnchor(sourceCenter, targetCenter, 'start'),
-			targetAnchor: getDirectionalAnchor(sourceCenter, targetCenter, 'end'),
-		}
-	}
-
-	return null
-}
-
-function containsLayout(container: MermaidNodeLayout, child: MermaidNodeLayout) {
-	const epsilon = 0.00001
-	return (
-		container.x <= child.x + epsilon &&
-		container.y <= child.y + epsilon &&
-		container.x + container.w >= child.x + child.w - epsilon &&
-		container.y + container.h >= child.y + child.h - epsilon
-	)
-}
-
-function getDirectionalAnchor(sourceCenter: VecLike, targetCenter: VecLike, terminal: 'start' | 'end') {
+function getDirectionalAnchor(sourceCenter: VecLike, targetCenter: VecLike) {
 	const dx = targetCenter.x - sourceCenter.x
 	const dy = targetCenter.y - sourceCenter.y
-	const min = terminal === 'start' ? MERMAID_START_ANCHOR_MIN : MERMAID_END_ANCHOR_MIN
-	const max = terminal === 'start' ? MERMAID_START_ANCHOR_MAX : MERMAID_END_ANCHOR_MAX
 
 	if (Math.abs(dx) >= Math.abs(dy)) {
-		return { x: dx >= 0 ? max : min, y: 0.5 }
+		return { x: dx >= 0 ? MERMAID_START_ANCHOR_MAX : MERMAID_START_ANCHOR_MIN, y: 0.5 }
 	}
 
-	return { x: 0.5, y: dy >= 0 ? max : min }
+	return { x: 0.5, y: dy >= 0 ? MERMAID_START_ANCHOR_MAX : MERMAID_START_ANCHOR_MIN }
+}
+
+function isNodeAncestorOf(
+	ancestorId: string,
+	nodeId: string,
+	nodeById: Map<string, MermaidNode>
+) {
+	let parentId = nodeById.get(nodeId)?.parentId ?? null
+	while (parentId) {
+		if (parentId === ancestorId) return true
+		parentId = nodeById.get(parentId)?.parentId ?? null
+	}
+	return false
 }
 
 function getAnchorPoint(layout: MermaidNodeLayout, anchor: { x: number; y: number }) {
