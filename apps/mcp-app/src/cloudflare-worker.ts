@@ -62,12 +62,9 @@ function corsResponse(response: Response): Response {
 }
 
 // --- McpAgent Durable Object ---
-// Use `as any` for the server property because we alias @modelcontextprotocol/sdk
-// to the agents' bundled copy at runtime (via wrangler.toml [alias]), but TypeScript
-// sees our direct dependency's types which are a different declaration.
 
 export class TldrawMCP extends McpAgent<Env> {
-	server = new McpServer(
+	override server = new McpServer(
 		{
 			name: MCP_SERVER_NAME,
 			title: MCP_SERVER_TITLE,
@@ -78,7 +75,7 @@ export class TldrawMCP extends McpAgent<Env> {
 		{
 			instructions: MCP_SERVER_INSTRUCTIONS,
 		}
-	) as any
+	)
 	activeCheckpointId: string | null = null
 	sessionId: string = ''
 	logger = new Logger('TldrawMCP')
@@ -108,15 +105,14 @@ export class TldrawMCP extends McpAgent<Env> {
 				.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('sessionId', ${this.sessionId})`
 
 			// Track new session
-			const env = (this as any).env as Env
-			env.MCP_ANALYTICS?.writeDataPoint({
+			this.env.MCP_ANALYTICS?.writeDataPoint({
 				blobs: ['session_start', this.sessionId],
 				doubles: [Date.now()],
 			})
 		}
 
 		// --- Widget HTML (loaded once from Assets binding) ---
-		const widgetHtml = await loadWidgetHtml((this as any).env.ASSETS)
+		const widgetHtml = await loadWidgetHtml(this.env.ASSETS)
 
 		// --- Build ServerDeps from SQLite ---
 		const deps: ServerDeps = {
@@ -135,9 +131,9 @@ export class TldrawMCP extends McpAgent<Env> {
 			loadWidgetHtml: async () => widgetHtml,
 		}
 
-		const workerOrigin = (this as any).env.WORKER_ORIGIN || ''
-		const domainOpenai = ((this as any).env as Env).MCP_DOMAIN_OPENAI || ''
-		const domainClaude = ((this as any).env as Env).MCP_DOMAIN_CLAUDE || ''
+		const workerOrigin = this.env.WORKER_ORIGIN || ''
+		const domainOpenai = this.env.MCP_DOMAIN_OPENAI || ''
+		const domainClaude = this.env.MCP_DOMAIN_CLAUDE || ''
 
 		registerTools(this.server, deps, {
 			log: this.logger.toLogFn(),
@@ -202,8 +198,8 @@ export class TldrawMCP extends McpAgent<Env> {
 // McpAgent.serve() handles CORS, session management, and transport internally.
 // Expose both transports: Streamable HTTP at /mcp, SSE at /sse.
 
-const mcpHandler = (TldrawMCP as any).serve('/mcp')
-const sseHandler = (TldrawMCP as any).serveSSE('/sse')
+const mcpHandler = TldrawMCP.serve('/mcp')
+const sseHandler = TldrawMCP.serveSSE('/sse')
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
