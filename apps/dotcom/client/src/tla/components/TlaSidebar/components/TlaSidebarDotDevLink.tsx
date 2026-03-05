@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { TldrawUiIcon, useLocalStorageState } from 'tldraw'
+import { TldrawUiButton, TldrawUiIcon, useLocalStorageState } from 'tldraw'
 import { trackEvent } from '../../../../utils/analytics'
 import { F } from '../../../utils/i18n'
 import { ExternalLink } from '../../ExternalLink/ExternalLink'
@@ -22,10 +22,10 @@ export function TlaSidebarDotDevLink() {
 				<F defaultMessage="Build with the tldraw SDK" />
 				<TldrawUiIcon icon="arrow-left" label="Build with the tldraw SDK" small />
 			</ExternalLink>
-			<button
-				title="Dismiss"
+			<TldrawUiButton
+				type="icon"
+				tooltip="Dismiss"
 				data-testid="tla-sidebar-dotdev-dismiss-button"
-				aria-label="Dismiss"
 				className={classNames(styles.sidebarDotDevDismissButton, styles.hoverable)}
 				onClick={() => {
 					trackEvent('sidebar-dotdev-link-dismissed')
@@ -33,7 +33,7 @@ export function TlaSidebarDotDevLink() {
 				}}
 			>
 				<TldrawUiIcon icon="cross-2" label="Hide" small />
-			</button>
+			</TldrawUiButton>
 		</div>
 	)
 }

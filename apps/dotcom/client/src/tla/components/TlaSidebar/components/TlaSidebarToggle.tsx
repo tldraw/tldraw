@@ -1,4 +1,4 @@
-import { useValue } from 'tldraw'
+import { TldrawUiButton, useValue } from 'tldraw'
 import { useGlobalEditor } from '../../../../utils/globalEditor'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { useMsg } from '../../../utils/i18n'
@@ -20,11 +20,12 @@ export function TlaSidebarToggle() {
 	if (hideSidebarToggle) return null
 
 	return (
-		<button
+		<TldrawUiButton
+			type="icon"
 			className={styles.sidebarToggle}
 			data-mobile={false}
 			data-testid="tla-sidebar-toggle"
-			title={toggleLbl}
+			tooltip={toggleLbl}
 			onClick={() => {
 				toggleSidebar()
 				trackEvent('sidebar-toggle', {
@@ -34,6 +35,6 @@ export function TlaSidebarToggle() {
 			}}
 		>
 			<TlaIcon icon="sidebar-strong" />
-		</button>
+		</TldrawUiButton>
 	)
 }

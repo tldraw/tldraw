@@ -1,4 +1,4 @@
-import { useValue } from 'tldraw'
+import { TldrawUiButton, useValue } from 'tldraw'
 import { useGlobalEditor } from '../../../../utils/globalEditor'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { useMsg } from '../../../utils/i18n'
@@ -20,11 +20,12 @@ export function TlaSidebarToggleMobile() {
 	if (hideSidebarToggle) return null
 
 	return (
-		<button
+		<TldrawUiButton
+			type="icon"
 			className={styles.sidebarToggle}
 			data-mobile={true}
 			data-testid="tla-sidebar-toggle-mobile"
-			title={toggleSidebarLbl}
+			tooltip={toggleSidebarLbl}
 			onClick={() => {
 				updateLocalSessionState((s) => ({ isSidebarOpenMobile: !s.isSidebarOpenMobile }))
 				trackEvent('sidebar-toggle', {
@@ -34,6 +35,6 @@ export function TlaSidebarToggleMobile() {
 			}}
 		>
 			<TlaIcon icon="sidebar-strong" />
-		</button>
+		</TldrawUiButton>
 	)
 }

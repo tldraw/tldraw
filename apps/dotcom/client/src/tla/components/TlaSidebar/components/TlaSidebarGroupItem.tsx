@@ -5,6 +5,7 @@ import { memo, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TLDRAW_FILE_EXTENSION,
+	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -166,9 +167,13 @@ function TlaSidebarGroupMenu({ groupId }: { groupId: string }) {
 		<TldrawUiDropdownMenuRoot id={`group-menu-${groupId}-sidebar`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
-					<button className={styles.sidebarGroupItemButton} title="More options" type="button">
+					<TldrawUiButton
+						className={styles.sidebarGroupItemButton}
+						tooltip="More options"
+						type="icon"
+					>
 						<TlaIcon icon="dots-vertical-strong" />
-					</button>
+					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 					<GroupMenuContent groupId={groupId} />
@@ -431,14 +436,14 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 								onClick={(e) => e.stopPropagation()}
 								style={{ cursor: 'default' }}
 							>
-								<button
+								<TldrawUiButton
+									type="icon"
 									className={styles.sidebarGroupItemButton}
 									onClick={handleCreateFile}
-									title="New file"
-									type="button"
+									tooltip="New file"
 								>
 									<TlaIcon icon="edit" />
-								</button>
+								</TldrawUiButton>
 								<TlaSidebarGroupMenu groupId={groupId} />
 							</div>
 						</div>

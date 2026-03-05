@@ -1,6 +1,7 @@
 import classNames from 'classnames'
 import {
 	LanguageMenu,
+	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -34,9 +35,10 @@ export function TlaUserSettingsMenu() {
 		<TldrawUiDropdownMenuRoot id={`user-settings-sidebar`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
-					<button
+					<TldrawUiButton
+						type="menu"
+						tooltip={userMenuLbl}
 						className={classNames(styles.sidebarUserSettingsTrigger, styles.hoverable)}
-						title={userMenuLbl}
 						data-testid="tla-sidebar-user-settings-trigger"
 					>
 						<div
@@ -51,7 +53,7 @@ export function TlaUserSettingsMenu() {
 						<div className={styles.sidebarUserSettingsIcon}>
 							<TlaIcon icon="dots-vertical-strong" />
 						</div>
-					</button>
+					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={4} sideOffset={4}>
 					<TldrawUiMenuGroup id="files">
