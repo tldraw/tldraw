@@ -83,7 +83,7 @@ export interface ComputedOptions<Value, Diff> {
 export function deferAsyncEffects<T>(fn: () => Promise<T>): Promise<T | undefined>;
 
 // @public
-export const EffectScheduler: new <Result>(name: string, runEffect: (lastReactedEpoch: number) => Result, options?: EffectSchedulerOptions) => EffectScheduler<Result>;
+export const EffectScheduler: new <Result>(name: string, runEffect: (lastReactedEpoch: number) => Result, options?: EffectSchedulerOptions | undefined) => EffectScheduler<Result>;
 
 // @public (undocumented)
 export interface EffectScheduler<Result> {

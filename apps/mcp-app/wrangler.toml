@@ -1,0 +1,37 @@
+name = "tldraw-mcp-app"
+main = "src/cloudflare-worker.ts"
+compatibility_date = "2025-03-10"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+run_worker_first = true
+
+[durable_objects]
+bindings = [{ class_name = "TldrawMCP", name = "MCP_OBJECT" }]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TldrawMCP"]
+
+[vars]
+# Set this to the public URL of the worker. Used for constructing absolute image URLs.
+# Override with `--var WORKER_ORIGIN:https://your-tunnel.trycloudflare.com` for cloudflared tunnels.
+WORKER_ORIGIN = "https://tldraw-mcp-app.tldraw.workers.dev"
+
+[[analytics_engine_datasets]]
+binding = "MCP_ANALYTICS"
+dataset = "MCP_ANALYTICS"
+
+#################### Rate limiting ####################
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "2001"
+
+  [ratelimits.simple]
+  limit = 30
+  period = 60
+
+[observability]
+enabled = true

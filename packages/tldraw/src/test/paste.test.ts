@@ -124,17 +124,17 @@ it('Gets pasted shapes correctly', () => {
 
 	shapes = getShapes()
 
-	// The pasted frame (at 0,0) overlaps frame2's edge (at 0,100),
-	// so it gets reparented into frame2 and appears in sorted order after it.
+	// The pasted frame (at 0,0) merely touches frame2's edge (at 0,100),
+	// so it stays at the page level rather than being reparented.
 	expect(editor.getCurrentPageShapesSorted().map((m) => m.id)).toStrictEqual([
 		shapes.old.frame1.id,
 		shapes.old.frame2.id,
-		shapes.new.frame1.id,
 		shapes.old.frame3.id,
 		shapes.old.frame4.id,
 		shapes.old.box1.id,
 		shapes.old.box2.id,
 		shapes.old.box3.id,
+		shapes.new.frame1.id,
 		shapes.new.box1.id,
 		shapes.new.box2.id,
 		shapes.new.box3.id,
@@ -609,5 +609,59 @@ describe('When pasting into frames...', () => {
 
 		const [pastedId] = editor.getSelectedShapeIds()
 		expect(editor.getShape(pastedId)?.parentId).toBe(ids.frame1)
+	})
+
+	it('Kicks out pasted shapes that do not overlap with the paste-parent frame', () => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+
+		// Create three 100x100 rectangles spaced 200px apart (200px gap between edges)
+		// rect1: x=0..100, rect2: x=300..400, rect3: x=600..700
+		// All at y=0, so selection bounds = 700x100, center = (350, 50)
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: ids.box2, type: 'geo', x: 300, y: 0, props: { w: 100, h: 100 } },
+			{ id: ids.box3, type: 'geo', x: 600, y: 0, props: { w: 100, h: 100 } },
+		])
+
+		editor.select(ids.box1, ids.box2, ids.box3)
+		editor.copy()
+
+		// Delete the originals and create a 150x150 frame centered in the viewport
+		editor.deleteShapes([ids.box1, ids.box2, ids.box3])
+		const viewportCenter = editor.getViewportPageBounds().center
+		editor.createShapes([
+			{
+				id: ids.frame1,
+				type: 'frame',
+				x: viewportCenter.x - 75,
+				y: viewportCenter.y - 75,
+				props: { w: 150, h: 150 },
+			},
+		])
+
+		// Select the frame and paste
+		editor.select(ids.frame1)
+		editor.paste()
+
+		// Find the three pasted geo shapes (the new ones, not the originals which were deleted)
+		const pastedGeos = editor
+			.getCurrentPageShapes()
+			.filter((s) => s.type === 'geo')
+			.sort((a, b) => {
+				const aBounds = editor.getShapePageBounds(a)!
+				const bBounds = editor.getShapePageBounds(b)!
+				return aBounds.x - bBounds.x
+			})
+
+		expect(pastedGeos).toHaveLength(3)
+
+		const [left, middle, right] = pastedGeos
+
+		// The middle shape's center lands at the frame center → stays as child of the frame
+		expect(middle.parentId).toBe(ids.frame1)
+
+		// The left and right shapes are far outside the frame → kicked out to page
+		expect(left.parentId).toBe(editor.getCurrentPageId())
+		expect(right.parentId).toBe(editor.getCurrentPageId())
 	})
 })

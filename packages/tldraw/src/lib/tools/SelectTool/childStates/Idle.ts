@@ -569,7 +569,7 @@ export class Idle extends StateNode {
 
 	private startEditingShape(
 		shape: TLShape,
-		info: TLClickEventInfo | TLKeyboardEventInfo,
+		info: TLClickEventInfo | (TLKeyboardEventInfo & { target: 'shape'; shape: TLShape }),
 		shouldSelectAll?: boolean
 	) {
 		const { editor } = this
