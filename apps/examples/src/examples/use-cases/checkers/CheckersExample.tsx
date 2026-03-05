@@ -1,26 +1,12 @@
 /**
- * Checkers: Permissions Spike
+ * Checkers: demonstrates ownership + turn-based permissions.
  *
- * Demonstrates ownership + turn-based permissions using TLPermissionsPlugin.
- *
- * Permission rules enforced:
- *   • Players can only move or delete their own pieces.
- *   • Players can only act on their turn.
- *   • The board is completely immutable — no player can select, move, or delete it.
- *   • Double-clicking your own piece (on your turn) opens an inline label editor
- *     for king promotion.
- *
- * Architecture:
- *   • `checkersRules` is stable across renders (created once with useMemo).
- *     It reads `turnRef.current` at call time, so it always sees the latest turn
- *     without needing to be recreated when the turn changes.
- *   • Board + pieces are created BEFORE the plugin is installed, so initialization
- *     bypasses permission checks.
- *   • Both panels share a multiplayer room via useSyncDemo.
+ * Uses onBeforeAction for turn enforcement and onAfterAction for user feedback
+ * (toast on denied actions). Board is immutable; players can only move own pieces.
  */
 
 import { useSyncDemo } from '@tldraw/sync'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	DefaultToolbar,
 	Editor,
@@ -33,7 +19,14 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-import { TLPermissionRules, TLPermissionsPlugin } from '../tic-tac-toe/TLPermissionsPlugin'
+import {
+	CORE_ACTIVITIES,
+	TLIdentityProvider,
+	TLIdentityUser,
+	TLPermissionRule,
+	TLPermissionsManager,
+	getShapeCreatorId,
+} from '../permissions'
 import { BOARD_SIZE, ChkBoardShapeUtil, ChkPieceShapeUtil, pieceCorner } from './shapes'
 
 // ─── PLAYER CONSTANTS ─────────────────────────────────────────────────────────
@@ -41,22 +34,27 @@ import { BOARD_SIZE, ChkBoardShapeUtil, ChkPieceShapeUtil, pieceCorner } from '.
 export const PLAYER_RED_ID = 'player-red'
 export const PLAYER_BLUE_ID = 'player-blue'
 
+/** Player identity directory. */
+const PLAYER_USERS: Record<string, TLIdentityUser> = {
+	[PLAYER_RED_ID]: { id: PLAYER_RED_ID, name: 'Player Red', color: '#cc2200' },
+	[PLAYER_BLUE_ID]: { id: PLAYER_BLUE_ID, name: 'Player Blue', color: '#0055cc' },
+}
+
+/** Create an identity provider for a specific player. */
+function createPlayerIdentity(userId: string): TLIdentityProvider {
+	return {
+		getCurrentUser: () => PLAYER_USERS[userId] ?? null,
+		resolveUser: (id) => PLAYER_USERS[id] ?? null,
+	}
+}
+
 // ─── CUSTOM SHAPES ────────────────────────────────────────────────────────────
 
 const CUSTOM_SHAPE_UTILS = [ChkBoardShapeUtil, ChkPieceShapeUtil]
 
 // ─── BOARD INITIALIZATION ─────────────────────────────────────────────────────
 
-/**
- * Creates the board and all 24 pieces.
- * Called BEFORE the permissions plugin is set up so the shapes bypass
- * permission checks. Only PLAYER_RED creates the board (as "host");
- * PLAYER_BLUE receives the shapes via sync (source='remote').
- *
- * Pieces occupy dark squares: cells where (col + row) is odd.
- *   Red:  rows 0–2 (top of board)
- *   Blue: rows 5–7 (bottom of board)
- */
+/** Creates the board and all 24 pieces. Called before the manager is set up so they bypass checks. */
 function initBoard(editor: Editor, userId: string) {
 	if (userId !== PLAYER_RED_ID) return
 
@@ -72,11 +70,12 @@ function initBoard(editor: Editor, userId: string) {
 			type: 'chk-board',
 			x: 0,
 			y: 0,
-			meta: { isBoard: true, owner: 'none' },
+			meta: { isBoard: true },
 		},
 	])
 
-	// Create red pieces (rows 0–2, dark squares)
+	// Create red pieces (rows 0-2, dark squares)
+	const redUser = PLAYER_USERS[PLAYER_RED_ID]
 	const redPieces = []
 	for (let row = 0; row < 3; row++) {
 		for (let col = 0; col < 8; col++) {
@@ -87,12 +86,13 @@ function initBoard(editor: Editor, userId: string) {
 				x: pos.x,
 				y: pos.y,
 				props: { fill: 'red' as const, label: '' },
-				meta: { owner: PLAYER_RED_ID },
+				meta: { createdBy: { id: redUser.id, name: redUser.name } },
 			})
 		}
 	}
 
-	// Create blue pieces (rows 5–7, dark squares)
+	// Create blue pieces (rows 5-7, dark squares)
+	const blueUser = PLAYER_USERS[PLAYER_BLUE_ID]
 	const bluePieces = []
 	for (let row = 5; row < 8; row++) {
 		for (let col = 0; col < 8; col++) {
@@ -103,7 +103,7 @@ function initBoard(editor: Editor, userId: string) {
 				x: pos.x,
 				y: pos.y,
 				props: { fill: 'blue' as const, label: '' },
-				meta: { owner: PLAYER_BLUE_ID },
+				meta: { createdBy: { id: blueUser.id, name: blueUser.name } },
 			})
 		}
 	}
@@ -153,66 +153,104 @@ interface PlayerPanelProps {
 }
 
 function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
-	const pluginRef = useRef<TLPermissionsPlugin | null>(null)
+	const managerRef = useRef<TLPermissionsManager | null>(null)
+	const [toast, setToast] = useState<string | null>(null)
 
-	// Permission rules are stable across renders. They read `turnRef.current`
-	// at call time, so they always see the latest turn value.
+	// Auto-dismiss toast after 1.5s
+	useEffect(() => {
+		if (!toast) return
+		const timer = setTimeout(() => setToast(null), 1500)
+		return () => clearTimeout(timer)
+	}, [toast])
+
+	// Create a stable identity provider for this player.
+	const identity = useMemo(() => createPlayerIdentity(userId), [userId])
+
+	// Declarative rules for ownership and board immutability.
+	// Turn enforcement is handled separately via onBeforeAction.
 	const checkersRules = useMemo(
-		(): TLPermissionRules => ({
-			canCreateShape: () => false,
+		(): Record<string, TLPermissionRule> => ({
+			[CORE_ACTIVITIES.CREATE_SHAPE]: false,
 
-			canUpdateShape(ruleUserId, prev, next) {
-				const meta = prev.meta as Record<string, unknown>
+			[CORE_ACTIVITIES.UPDATE_SHAPE]: ({ user, prevShape }) => {
+				if (!prevShape) return false
+				const meta = prevShape.meta as Record<string, unknown>
 				if (meta?.isBoard) return false
-				if ((meta?.owner as string) !== ruleUserId) return false
-				if (turnRef.current !== ruleUserId.replace('player-', '')) return false
-				// Block rotation changes; allow position + label changes
-				if (next.rotation !== prev.rotation) return false
-				return true
+				return getShapeCreatorId(prevShape) === user.id
 			},
 
-			canDeleteShape(ruleUserId, shape) {
-				const meta = shape.meta as Record<string, unknown>
+			// Block rotation; allow position + label changes
+			[CORE_ACTIVITIES.ROTATE_SHAPE]: false,
+
+			[CORE_ACTIVITIES.DELETE_SHAPE]: ({ user, targetShape }) => {
+				if (!targetShape) return false
+				const meta = targetShape.meta as Record<string, unknown>
 				if (meta?.isBoard) return false
-				if ((meta?.owner as string) !== ruleUserId) return false
-				return turnRef.current === ruleUserId.replace('player-', '')
+				return getShapeCreatorId(targetShape) === user.id
 			},
 
-			canSelectShape(ruleUserId, shape) {
-				const meta = shape.meta as Record<string, unknown>
+			[CORE_ACTIVITIES.SELECT_SHAPE]: ({ user, targetShape }) => {
+				if (!targetShape) return false
+				const meta = targetShape.meta as Record<string, unknown>
 				if (meta?.isBoard) return false
-				if ((meta?.owner as string) !== ruleUserId) return false
-				return turnRef.current === ruleUserId.replace('player-', '')
+				return getShapeCreatorId(targetShape) === user.id
 			},
 
-			canUseTool(_ruleUserId, toolId) {
-				// Only select and hand are needed — block draw, eraser, laser, etc.
+			[CORE_ACTIVITIES.USE_TOOL]: ({ toolId }) => {
 				return toolId === 'select' || toolId === 'hand'
 			},
 		}),
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[] // stable — reads turnRef.current at call time
+		[]
 	)
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
-			// ① Create board + pieces BEFORE installing the permissions plugin.
 			initBoard(editor, userId)
 
-			// ② Install the permissions plugin.
-			pluginRef.current = new TLPermissionsPlugin(editor, {
-				userId,
+			managerRef.current = new TLPermissionsManager(editor, {
+				identity,
 				rules: checkersRules,
 			})
 
-			// ③ Activate the select tool (pieces are moved by dragging).
+			// Turn enforcement via onBeforeAction — reads turnRef.current at call time.
+			managerRef.current.onBeforeAction(({ user, activityId }) => {
+				if (
+					activityId === CORE_ACTIVITIES.UPDATE_SHAPE ||
+					activityId === CORE_ACTIVITIES.DELETE_SHAPE ||
+					activityId === CORE_ACTIVITIES.SELECT_SHAPE
+				) {
+					return turnRef.current === user.id.replace('player-', '')
+				}
+				return true
+			})
+
+			// Toast on denied actions (debounced — onAfterAction fires per shape in selection).
+			let pendingToast: string | null = null
+			let toastRafId: number | null = null
+			managerRef.current.onAfterAction(({ user, activityId }, allowed) => {
+				if (allowed) return
+				if (activityId === CORE_ACTIVITIES.SELECT_SHAPE) {
+					const playerColor = user.id.replace('player-', '')
+					pendingToast = turnRef.current !== playerColor ? 'Not your turn!' : 'Not your piece!'
+					if (toastRafId === null) {
+						toastRafId = requestAnimationFrame(() => {
+							toastRafId = null
+							if (pendingToast) {
+								setToast(pendingToast)
+								pendingToast = null
+							}
+						})
+					}
+				}
+			})
+
 			editor.setCurrentTool('select')
 
 			return () => {
-				pluginRef.current?.cleanup()
+				managerRef.current?.cleanup()
 			}
 		},
-		[userId, checkersRules]
+		[userId, checkersRules, identity, turnRef]
 	)
 
 	const isRed = userId === PLAYER_RED_ID
@@ -220,7 +258,9 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 	const headerColor = isRed ? '#cc2200' : '#0055cc'
 
 	return (
-		<div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderRight: '1px solid #ddd' }}>
+		<div
+			style={{ flex: 1, display: 'flex', flexDirection: 'column', borderRight: '1px solid #ddd' }}
+		>
 			<div
 				style={{
 					padding: '8px 12px',
@@ -243,6 +283,28 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 					onMount={handleMount}
 					options={{ maxPages: 1 }}
 				/>
+				{toast && (
+					<div
+						style={{
+							position: 'absolute',
+							bottom: 64,
+							left: '50%',
+							transform: 'translateX(-50%)',
+							background: '#333',
+							color: 'white',
+							padding: '6px 16px',
+							borderRadius: 6,
+							fontSize: 13,
+							fontWeight: 600,
+							pointerEvents: 'none',
+							zIndex: 1000,
+							whiteSpace: 'nowrap',
+							boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+						}}
+					>
+						{toast}
+					</div>
+				)}
 			</div>
 		</div>
 	)
@@ -251,10 +313,7 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 // ─── MAIN EXAMPLE ─────────────────────────────────────────────────────────────
 
 export default function CheckersExample() {
-	const roomId = useMemo(
-		() => `chk-perms-spike-${Math.random().toString(36).slice(2, 8)}`,
-		[]
-	)
+	const roomId = useMemo(() => `chk-perms-${Math.random().toString(36).slice(2, 8)}`, [])
 
 	const playerRedInfo = useMemo(
 		() => ({ id: PLAYER_RED_ID, name: 'Player Red', color: '#cc2200' }),
@@ -314,7 +373,7 @@ export default function CheckersExample() {
 					End turn
 				</button>
 				<span style={{ marginLeft: 'auto', color: '#999', fontSize: 11 }}>
-					Room: {roomId} &mdash; permissions spike demo
+					Room: {roomId} &mdash; permissions demo
 				</span>
 			</div>
 
@@ -336,28 +395,3 @@ export default function CheckersExample() {
 		</div>
 	)
 }
-
-/*
- * ─── HOW TURN-BASED PERMISSIONS WORK ─────────────────────────────────────────
- *
- * The `checkersRules` object is created once with `useMemo(()=>..., [])`. It
- * captures `turnRef` (not `turn`) so it is stable across renders but always
- * reads the latest turn via `turnRef.current`.
- *
- * This pattern avoids the need to recreate and reinstall the permissions plugin
- * every time the turn changes, while still correctly enforcing turn-based rules.
- *
- * King promotion (label editing):
- *   • `canEdit() = true` on ChkPieceShapeUtil enables tldraw's built-in
- *     double-click → editing state flow.
- *   • The component renders an <input autoFocus> overlay when
- *     `editor.getEditingShapeId() === shape.id`.
- *   • On blur or Enter, the label prop is updated via `editor.updateShape`.
- *   • `canUpdateShape` allows prop changes (only rotation is blocked), so
- *     label updates on your own pieces on your turn are permitted.
- *
- * ─── KNOWN LIMITATION: startup sync errors ────────────────────────────────────
- *
- * See TicTacToeExample.tsx for the explanation of the "push_result" console
- * errors that appear on initial load with two sync clients in the same tab.
- */

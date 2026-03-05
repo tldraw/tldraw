@@ -116,6 +116,8 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
         state: R;
     }>;
     // (undocumented)
+    get(id: string): R | undefined;
+    // (undocumented)
     getClock(): number;
     // (undocumented)
     getSnapshot(): RoomSnapshot;
@@ -308,6 +310,8 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
         sql: TLSyncSqliteWrapper;
     });
     // (undocumented)
+    get(id: string): R | undefined;
+    // (undocumented)
     getClock(): number;
     static getDocumentClock(storage: TLSyncSqliteWrapper): null | number;
     // @internal (undocumented)
@@ -470,6 +474,13 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     clientTimeout?: number;
+    // Warning: (ae-incompatible-release-tags) The symbol "filterPush" is marked as @public, but its signature references "NetworkDiff" which is marked as @internal
+    filterPush?: (args: {
+        diff: NetworkDiff<R>;
+        getRecord(id: string): R | undefined;
+        meta: SessionMeta;
+        sessionId: string;
+    }) => NetworkDiff<R> | null | undefined;
     // @deprecated (undocumented)
     initialSnapshot?: RoomSnapshot | TLStoreSnapshot;
     // (undocumented)
@@ -627,6 +638,7 @@ export interface TLSyncLog {
 // @internal
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     constructor(opts: {
+        filterPush?: (session: RoomSession<R, SessionMeta>, diff: NetworkDiff<R>) => NetworkDiff<R> | null | undefined;
         log?: TLSyncLog;
         onPresenceChange?(): void;
         schema: StoreSchema<R, any>;
@@ -695,6 +707,7 @@ export interface TLSyncSqliteWrapperConfig {
 
 // @public
 export interface TLSyncStorage<R extends UnknownRecord> {
+    get(id: string): R | undefined;
     // (undocumented)
     getClock(): number;
     // (undocumented)
@@ -768,6 +781,10 @@ export interface WebSocketMinimal {
     removeEventListener?: (type: 'close' | 'error' | 'message', listener: (event: any) => void) => void;
     send: (data: string) => void;
 }
+
+// Warnings were encountered during analysis:
+//
+// src/lib/TLSocketRoom.ts:124:3 - (ae-incompatible-release-tags) The symbol "diff" is marked as @public, but its signature references "NetworkDiff" which is marked as @internal
 
 // (No @packageDocumentation comment for this package)
 

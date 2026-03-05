@@ -1,22 +1,8 @@
 /**
- * Tic-Tac-Toe: Permissions Spike
+ * Tic-tac-toe: demonstrates TLPermissionsManager with declarative rules.
  *
- * This example demonstrates a proposal for per-user, per-shape permissions in
- * the tldraw SDK, using a two-player tic-tac-toe game as a concrete test case.
- *
- * Permission rules enforced:
- *   • X can only create `ttt-xbox` shapes; O can only create `ttt-ocircle` shapes.
- *   • Players can move or delete their own pieces, but cannot edit them otherwise.
- *   • Players cannot select, move, or delete the board (4 `ttt-board-line` shapes).
- *   • Players cannot interact with the opponent's pieces at all.
- *
- * Architecture:
- *   • TLPermissionsPlugin installs store side-effects that act as an enforcement
- *     layer (analogous to server-side validation in a sync architecture).
- *   • The plugin is set up AFTER board initialization so the board lines are
- *     created before any permission rules are active.
- *   • Both panels share a multiplayer room via useSyncDemo so changes made by one
- *     player are immediately visible to the other.
+ * X can only create xbox shapes, O only ocircle. Players can move/delete own
+ * pieces but not resize or rotate them. Board lines are immutable.
  */
 
 import { useSyncDemo } from '@tldraw/sync'
@@ -34,7 +20,14 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-import { TLPermissionRules, TLPermissionsPlugin } from './TLPermissionsPlugin'
+import {
+	CORE_ACTIVITIES,
+	TLIdentityProvider,
+	TLIdentityUser,
+	TLPermissionRule,
+	TLPermissionsManager,
+	getShapeCreatorId,
+} from '../permissions'
 import {
 	BoardLineShapeUtil,
 	CELL_SIZE,
@@ -50,46 +43,53 @@ import {
 export const PLAYER_X_ID = 'player-x'
 export const PLAYER_O_ID = 'player-o'
 
+/** Player identity directory. */
+const PLAYER_USERS: Record<string, TLIdentityUser> = {
+	[PLAYER_X_ID]: { id: PLAYER_X_ID, name: 'Player X', color: '#cc2200' },
+	[PLAYER_O_ID]: { id: PLAYER_O_ID, name: 'Player O', color: '#0055cc' },
+}
+
+/** Create an identity provider for a specific player. */
+function createPlayerIdentity(userId: string): TLIdentityProvider {
+	return {
+		getCurrentUser: () => PLAYER_USERS[userId] ?? null,
+		resolveUser: (id) => PLAYER_USERS[id] ?? null,
+	}
+}
+
 // ─── PERMISSION RULES ─────────────────────────────────────────────────────────
 
-/**
- * The full set of permission rules for the tic-tac-toe game.
- * This object is passed to TLPermissionsPlugin for each player's editor.
- *
- * Note: rules are evaluated per-user, per-action, per-shape, making it easy
- * to encode arbitrary business logic (e.g. "players can move but not resize").
- */
-const ticTacToeRules: TLPermissionRules = {
-	canCreateShape(userId, shapeType) {
-		if (userId === PLAYER_X_ID) return shapeType === 'ttt-xbox'
-		if (userId === PLAYER_O_ID) return shapeType === 'ttt-ocircle'
+const ticTacToeRules: Record<string, TLPermissionRule> = {
+	[CORE_ACTIVITIES.CREATE_SHAPE]: ({ user, shapeType }) => {
+		if (user.id === PLAYER_X_ID) return shapeType === 'ttt-xbox'
+		if (user.id === PLAYER_O_ID) return shapeType === 'ttt-ocircle'
 		return false
 	},
 
-	canUpdateShape(userId, prev, next) {
-		const meta = prev.meta as Record<string, unknown>
-		// Board lines are immutable
+	[CORE_ACTIVITIES.UPDATE_SHAPE]: ({ user, prevShape }) => {
+		if (!prevShape) return false
+		const meta = prevShape.meta as Record<string, unknown>
 		if (meta?.isBoard) return false
-		// Can only update own pieces
-		if (meta?.owner !== userId) return false
-		// Only position changes (move) are allowed — not resize, rotate, or prop edits
-		const rotationChanged = next.rotation !== prev.rotation
-		const propsChanged = JSON.stringify(next.props) !== JSON.stringify(prev.props)
-		const lockedChanged = next.isLocked !== prev.isLocked
-		if (rotationChanged || propsChanged || lockedChanged) return false
-		return true
+		return getShapeCreatorId(prevShape) === user.id
 	},
 
-	canDeleteShape(userId, shape) {
-		const meta = shape.meta as Record<string, unknown>
+	// Granular update rules — these are checked AFTER update.shape passes,
+	// and only revert the specific change type that was denied.
+	[CORE_ACTIVITIES.ROTATE_SHAPE]: false,
+	[CORE_ACTIVITIES.RESIZE_SHAPE]: false,
+
+	[CORE_ACTIVITIES.DELETE_SHAPE]: ({ user, targetShape }) => {
+		if (!targetShape) return false
+		const meta = targetShape.meta as Record<string, unknown>
 		if (meta?.isBoard) return false
-		return meta?.owner === userId
+		return getShapeCreatorId(targetShape) === user.id
 	},
 
-	canSelectShape(userId, shape) {
-		const meta = shape.meta as Record<string, unknown>
+	[CORE_ACTIVITIES.SELECT_SHAPE]: ({ user, targetShape }) => {
+		if (!targetShape) return false
+		const meta = targetShape.meta as Record<string, unknown>
 		if (meta?.isBoard) return false
-		return meta?.owner === userId
+		return getShapeCreatorId(targetShape) === user.id
 	},
 }
 
@@ -107,7 +107,7 @@ const WIN_LINES = [
 ]
 
 function checkWinner(shapes: TLShape[]): 'X' | 'O' | 'draw' | null {
-	// Build a 3×3 grid indexed as [row * 3 + col]
+	// Build a 3x3 grid indexed as [row * 3 + col]
 	const grid: (string | null)[] = Array(9).fill(null)
 
 	for (const shape of shapes) {
@@ -134,16 +134,7 @@ function checkWinner(shapes: TLShape[]): 'X' | 'O' | 'draw' | null {
 const BOARD_SIZE = CELL_SIZE * 3 // 360
 const LINE_THICKNESS = 6
 
-/**
- * Creates the four board lines in the editor.
- *
- * This is called BEFORE TLPermissionsPlugin is set up, so no permission rules
- * are active yet and the board shapes are created freely. Once the plugin is
- * installed, subsequent user actions are permission-checked.
- *
- * Only Player X creates the board (as the "host"). Player O receives the board
- * shapes via sync (source='remote'), which bypasses permission enforcement.
- */
+/** Creates the board lines. Called before the manager is set up so they bypass checks. */
 function initBoard(editor: Editor, userId: string) {
 	if (userId !== PLAYER_X_ID) return
 
@@ -280,37 +271,40 @@ function PlayerPanel({
 	components,
 	onShapesChange,
 }: PlayerPanelProps) {
-	const pluginRef = useRef<TLPermissionsPlugin | null>(null)
+	const managerRef = useRef<TLPermissionsManager | null>(null)
+
+	// Create a stable identity provider for this player.
+	const identity = useMemo(() => createPlayerIdentity(userId), [userId])
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
-			// ① Create board shapes BEFORE installing the permissions plugin.
-			//    This ensures board creation is not subject to permission checks.
 			initBoard(editor, userId)
 
-			// ② Install the permissions plugin.
-			pluginRef.current = new TLPermissionsPlugin(editor, {
-				userId,
-				rules: ticTacToeRules,
-			})
+			// Stamp ownership (simulates PR #8147's tlmeta auto-stamping)
+			const user = identity.getCurrentUser()!
+			const cleanupAttribution = editor.sideEffects.registerBeforeCreateHandler(
+				'shape',
+				(shape, source) => {
+					if (source !== 'user') return shape
+					return { ...shape, meta: { ...shape.meta, createdBy: { id: user.id, name: user.name } } }
+				}
+			)
 
-			// ③ Activate the player's placement tool.
+			managerRef.current = new TLPermissionsManager(editor, { identity, rules: ticTacToeRules })
 			editor.setCurrentTool(toolId)
 
-			// ④ Keep game state updated whenever shapes change.
-			const cleanup = editor.store.listen(
-				() => {
-					onShapesChange(editor.getCurrentPageShapes())
-				},
+			const cleanupListener = editor.store.listen(
+				() => onShapesChange(editor.getCurrentPageShapes()),
 				{ scope: 'document' }
 			)
 
 			return () => {
-				pluginRef.current?.cleanup()
-				cleanup()
+				managerRef.current?.cleanup()
+				cleanupAttribution()
+				cleanupListener()
 			}
 		},
-		[userId, toolId, onShapesChange]
+		[userId, toolId, onShapesChange, identity]
 	)
 
 	const isX = userId === PLAYER_X_ID
@@ -318,7 +312,9 @@ function PlayerPanel({
 	const headerColor = isX ? '#cc2200' : '#0055cc'
 
 	return (
-		<div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderRight: '1px solid #ddd' }}>
+		<div
+			style={{ flex: 1, display: 'flex', flexDirection: 'column', borderRight: '1px solid #ddd' }}
+		>
 			<div
 				style={{
 					padding: '8px 12px',
@@ -352,7 +348,7 @@ function PlayerPanel({
 
 export default function TicTacToeExample() {
 	// A unique room per page load ensures a fresh game each time.
-	const roomId = useMemo(() => `ttt-perms-spike-${Math.random().toString(36).slice(2, 8)}`, [])
+	const roomId = useMemo(() => `ttt-perms-${Math.random().toString(36).slice(2, 8)}`, [])
 
 	const playerXInfo = useMemo(() => ({ id: PLAYER_X_ID, name: 'Player X', color: '#cc2200' }), [])
 	const playerOInfo = useMemo(() => ({ id: PLAYER_O_ID, name: 'Player O', color: '#0055cc' }), [])
@@ -383,7 +379,9 @@ export default function TicTacToeExample() {
 				}}
 			>
 				{winner ? (
-					<strong style={{ color: winner === 'draw' ? '#666' : winner === 'X' ? '#cc2200' : '#0055cc' }}>
+					<strong
+						style={{ color: winner === 'draw' ? '#666' : winner === 'X' ? '#cc2200' : '#0055cc' }}
+					>
 						{winner === 'draw' ? "It's a draw!" : `Player ${winner} wins! 🎉`}
 					</strong>
 				) : (
@@ -393,7 +391,7 @@ export default function TicTacToeExample() {
 					</>
 				)}
 				<span style={{ marginLeft: 'auto', color: '#999', fontSize: 11 }}>
-					Room: {roomId} &mdash; permissions spike demo
+					Room: {roomId} &mdash; permissions demo
 				</span>
 			</div>
 
@@ -423,54 +421,3 @@ export default function TicTacToeExample() {
 		</div>
 	)
 }
-
-/*
- * ─── HOW THE PERMISSIONS SPIKE WORKS ─────────────────────────────────────────
- *
- * TLPermissionsPlugin installs four store side-effect handlers:
- *
- *  1. beforeCreate  → tags every new shape with `meta.owner = userId`
- *  2. afterCreate   → deletes shapes the user was not allowed to create
- *                     (spike workaround; production would reject in beforeCreate)
- *  3. beforeChange  → reverts shape updates that violate the rules
- *  4. beforeDelete  → blocks deletions of forbidden shapes (returns `false`)
- *  5. beforeChange  → filters `instance.selectedShapeIds` to remove unselectable
- *                     shapes before the selection is committed to the store
- *
- * Server-side enforcement:
- *   In production the same TLPermissionRules object would be evaluated inside
- *   the sync worker's record-change handler. Because the sync server is the
- *   authoritative source of truth, any client that bypasses the client-side
- *   checks (e.g. via the browser console) would still have its changes rejected.
- *
- * UI enforcement:
- *   The plugin exposes `canCreateShape`, `canDeleteShape`, and `canSelectShape`
- *   helper methods so React components can conditionally render or disable UI
- *   elements (tool buttons, context menu items, etc.) for the current user.
- *
- * Try these interactions to test the rules:
- *   • Player X's toolbar only shows the X placement tool.  Try switching to a
- *     geo or draw tool — any shapes you create will be immediately deleted.
- *   • Click another player's piece with the Select tool — it will not select.
- *   • Try to delete a board line — it will not delete.
- *   • Move one of your own pieces with the Select tool — allowed.
- *   • Try to resize a piece — resize handles will snap back (prop change blocked).
- *
- * ─── KNOWN LIMITATION: startup sync errors ────────────────────────────────────
- *
- * On initial load you may see a handful of console errors from TLSyncClient:
- *   "Received push_result but there are no pending push requests"
- *   "Received push_result for a push request that is not at the front of the queue"
- *
- * These are a known side-effect of running two sync clients in the same tab
- * (storeX and storeO) sharing the same room simultaneously. The errors are
- * caught inside TLSyncClient.rebase() and handled via resetConnection(), so
- * the connection recovers automatically within a second or two. Gameplay is
- * unaffected. This is not a bug in the permissions plugin.
- *
- * The root cause is a timing race between the initial presence push (sent by
- * TLSyncClient right after connect) and the board-shapes push (triggered by
- * initBoard in onMount), combined with the 1-FPS throttle that applies when
- * no other users are detected yet. Production implementations would use a
- * single sync client per session and would not exhibit this behavior.
- */

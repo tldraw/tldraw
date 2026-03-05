@@ -1,34 +1,31 @@
 ---
-title: Permissions spike — Pictionary
+title: Permissions — Pictionary
 component: ./PictionaryExample.tsx
 priority: 2
 keywords:
   [
     permissions,
-    spike,
     multiplayer,
     collaboration,
     custom shape,
     side effects,
     role-based,
-    viewer,
-    secret,
-    TLPermissionsPlugin,
+    visibility,
+    getShapeVisibility,
+    TLPermissionsManager,
   ]
 multiplayer: true
 ---
 
-A three-player Pictionary game that spikes role-based and viewer-dependent permissions.
+A two-player Pictionary game demonstrating role-based and viewer-dependent permissions.
 
 ---
 
-This example is a **permissions spike** — a proof-of-concept for how granular, per-user shape permissions could be integrated into the tldraw SDK.
-
-Three players share the same canvas in real time. One player is the **drawer**; the others are **guessers**. The SDK enforces:
+Two players share the same canvas in real time. One player is the **drawer**; the other is the **guesser**. `TLPermissionsManager` enforces:
 
 - The **drawer** has full drawing permissions — they can create, move, and delete their own shapes.
 - **Guessers** have zero permissions — they can only pan the canvas (hand tool); any shapes they attempt to create are immediately removed.
-- The **word card** is visible only to the drawer — it renders `null` for guessers, making it completely invisible to them.
-- The word card is **immutable** during a round — even the drawer cannot edit it through normal user actions. The host updates it via `mergeRemoteChanges` between rounds.
+- The **word card** is visible only to the drawer — guessers cannot see it at all.
+- The word card is **immutable** during a round — even the drawer cannot edit it through normal user actions. The host updates it between rounds via the host editor (PLAYERS[0] owns the card via `meta.createdBy`).
 
-The word card's per-viewer rendering demonstrates how a single shape can present different content to different users based on their role, using a React context (`PictionaryCtx`) that is updated per panel.
+The word card's per-viewer visibility uses the `view.shape` permission rule wired through `getShapeVisibility`. The permission rule reads a reactive `atom` for the current drawer ID, so the editor's computed visibility cache invalidates automatically when the drawer changes between rounds.

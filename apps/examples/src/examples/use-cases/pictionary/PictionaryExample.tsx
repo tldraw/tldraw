@@ -1,26 +1,8 @@
 /**
- * Pictionary: Permissions Spike
+ * Pictionary: demonstrates role-based permissions and per-viewer shape visibility.
  *
- * Demonstrates role-based permissions and per-viewer shape rendering.
- *
- * Permission rules enforced:
- *   • Only the drawer may create, update, or delete shapes.
- *   • The guesser has zero permissions — any edits are immediately reverted.
- *   • The word card is immutable during a round (even the drawer cannot edit it
- *     through normal user actions); the host updates it via mergeRemoteChanges.
- *
- * Per-viewer rendering:
- *   • The word card returns `null` for the guesser, making it fully invisible.
- *     This is achieved by reading PictionaryCtx inside PictWordCardShapeUtil.component.
- *
- * Architecture:
- *   • Two panels / two sync stores — same pattern as tic-tac-toe.
- *     Three stores in the same browser tab can cause one client to get stuck
- *     in a sync reset loop and never reach status='synced' (see bottom comment).
- *   • `rules` in each PlayerPanel reads `drawerIdRef.current` at call time,
- *     so it always enforces the current drawer's role without plugin reinstall.
- *   • Word card updates between rounds use `mergeRemoteChanges` to bypass
- *     the user-facing permission checks (the source is set to 'remote').
+ * Only the drawer may create/update/delete shapes. The word card is invisible
+ * to guessers via the view.shape rule wired through getShapeVisibility.
  */
 
 import { useSyncDemo } from '@tldraw/sync'
@@ -29,52 +11,68 @@ import {
 	DefaultToolbar,
 	Editor,
 	TLComponents,
+	TLShape,
 	Tldraw,
 	TldrawUiMenuItem,
+	atom,
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-import { TLPermissionRules, TLPermissionsPlugin } from '../tic-tac-toe/TLPermissionsPlugin'
-import { PictWordCardShapeUtil, PictionaryCtx } from './shapes'
+import {
+	CORE_ACTIVITIES,
+	TLIdentityProvider,
+	TLIdentityUser,
+	TLPermissionRule,
+	TLPermissionsManager,
+	getPermissionsManager,
+	getShapeCreatorId,
+} from '../permissions'
+import { PictWordCardShapeUtil } from './shapes'
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
 export const PLAYERS = ['player-1', 'player-2'] as const
 export type PlayerId = (typeof PLAYERS)[number]
 
+const PLAYER_USERS: Record<string, TLIdentityUser> = {
+	'player-1': { id: 'player-1', name: 'Player 1', color: '#d04000' },
+	'player-2': { id: 'player-2', name: 'Player 2', color: '#0055cc' },
+}
+
+function createPlayerIdentity(userId: string): TLIdentityProvider {
+	return {
+		getCurrentUser: () => PLAYER_USERS[userId] ?? null,
+		resolveUser: (id) => PLAYER_USERS[id] ?? null,
+	}
+}
+
 const WORDS = [
-	// Animals
 	'elephant',
 	'penguin',
 	'giraffe',
 	'octopus',
 	'flamingo',
-	// Objects
 	'lighthouse',
 	'submarine',
 	'telescope',
 	'umbrella',
 	'rocket',
-	// Food
 	'pizza',
 	'sushi',
 	'watermelon',
 	'broccoli',
 	'popcorn',
-	// Places / structures
 	'volcano',
 	'castle',
 	'windmill',
 	'igloo',
 	'bridge',
-	// Instruments
 	'piano',
 	'violin',
 	'trumpet',
 	'guitar',
-	// Misc
 	'anchor',
 	'cactus',
 	'compass',
@@ -86,11 +84,7 @@ const CUSTOM_SHAPE_UTILS = [PictWordCardShapeUtil]
 
 // ─── WORD CARD INITIALIZATION ─────────────────────────────────────────────────
 
-/**
- * Creates the word card for the current round.
- * Only PLAYERS[0] creates it (as the "host"). The other player receives it via sync.
- * Called BEFORE the plugin is installed so it bypasses permission checks.
- */
+/** Creates the word card. Called before the manager is set up so it bypasses checks. */
 function initWordCard(editor: Editor, userId: string, word: string) {
 	if (userId !== PLAYERS[0]) return
 
@@ -100,20 +94,40 @@ function initWordCard(editor: Editor, userId: string, word: string) {
 	})
 	if (hasCard) return
 
+	const hostUser = PLAYER_USERS[PLAYERS[0]]
 	editor.createShapes([
 		{
 			type: 'pict-word-card',
 			x: 20,
 			y: 20,
 			props: { word },
-			meta: { isWordCard: true, owner: PLAYERS[0] },
+			meta: {
+				isWordCard: true,
+				createdBy: { id: hostUser.id, name: hostUser.name },
+			},
 		},
 	])
 }
 
+// ─── SHAPE VISIBILITY ─────────────────────────────────────────────────────────
+
+/**
+ * Integrates the view.shape permission rule with the editor's rendering pipeline.
+ * Uses getPermissionsManager() so the same rule definition controls both
+ * visibility and server-side filtering via createServerPermissionsFilter.
+ *
+ * Reading the manager's rule (which reads drawerIdAtom) inside this callback
+ * creates a reactive dependency — the computed cache invalidates automatically
+ * when the atom changes.
+ */
+function getShapeVisibility(shape: TLShape, editor: Editor) {
+	const mgr = getPermissionsManager(editor)
+	if (!mgr) return 'inherit' as const
+	return mgr.canViewShape(shape) ? ('inherit' as const) : ('hidden' as const)
+}
+
 // ─── TOOLBARS ─────────────────────────────────────────────────────────────────
 
-/** The guesser only sees the hand tool — they can pan but not interact with shapes. */
 const GUESSER_COMPONENTS: TLComponents = {
 	Toolbar: (props) => {
 		const tools = useTools()
@@ -131,92 +145,113 @@ const GUESSER_COMPONENTS: TLComponents = {
 interface PlayerPanelProps {
 	userId: PlayerId
 	drawerId: string
+	/** Reactive atom — rules read this to get the current drawer, which makes
+	 *  getShapeVisibility's computed cache invalidate when the drawer changes. */
+	drawerIdAtom: ReturnType<typeof atom<string>>
 	store: ReturnType<typeof useSyncDemo>
 	word: string
 	onEditorMount(userId: string, editor: Editor): void
 }
 
-function PlayerPanel({ userId, drawerId, store, word, onEditorMount }: PlayerPanelProps) {
-	const pluginRef = useRef<TLPermissionsPlugin | null>(null)
+function PlayerPanel({
+	userId,
+	drawerId,
+	drawerIdAtom,
+	store,
+	word,
+	onEditorMount,
+}: PlayerPanelProps) {
+	const managerRef = useRef<TLPermissionsManager | null>(null)
 	const editorRef = useRef<Editor | null>(null)
 
-	// Keep a ref in sync with the current drawerId so the stable `rules` object
-	// always reads the latest value.
-	const drawerIdRef = useRef(drawerId)
-	drawerIdRef.current = drawerId
+	const identity = useMemo(() => createPlayerIdentity(userId), [userId])
 
 	// Switch tools whenever this player's role changes between rounds.
-	// On initial mount the tool is set inside handleMount; this effect handles
-	// all subsequent role changes so the new guesser can't draw with a stale tool.
 	useEffect(() => {
 		if (!editorRef.current) return
 		editorRef.current.setCurrentTool(userId === drawerId ? 'draw' : 'hand')
 	}, [drawerId, userId])
 
-	// Rules are stable across renders; they read `drawerIdRef.current` at call time.
+	// Rules read drawerIdAtom.get() — a reactive read that creates dependencies
+	// in computed contexts (like getShapeVisibility's cache).
 	const rules = useMemo(
-		(): TLPermissionRules => ({
-			canCreateShape(ruleUserId) {
-				return ruleUserId === drawerIdRef.current
+		(): Record<string, TLPermissionRule> => ({
+			[CORE_ACTIVITIES.CREATE_SHAPE]: ({ user }) => {
+				return user.id === drawerIdAtom.get()
 			},
 
-			canUpdateShape(ruleUserId, prev) {
-				const meta = prev.meta as Record<string, unknown>
+			[CORE_ACTIVITIES.UPDATE_SHAPE]: ({ user, prevShape }) => {
+				if (!prevShape) return false
+				const meta = prevShape.meta as Record<string, unknown>
 				if (meta?.isWordCard) {
-					// Word card is owned by PLAYERS[0] (the host) and only they may update
-					// it. Ownership-based rather than drawer-based so nextRound can update
-					// the word via a normal user action that syncs to the server — unlike
-					// mergeRemoteChanges which is local-only and gets reverted on the next
-					// sync tick.
-					return (meta?.owner as string) === ruleUserId
+					return getShapeCreatorId(prevShape) === user.id
 				}
-				if (ruleUserId !== drawerIdRef.current) return false
-				return (meta?.owner as string) === ruleUserId
+				if (user.id !== drawerIdAtom.get()) return false
+				return getShapeCreatorId(prevShape) === user.id
 			},
 
-			canDeleteShape(ruleUserId, shape) {
-				if (ruleUserId !== drawerIdRef.current) return false
-				const meta = shape.meta as Record<string, unknown>
+			[CORE_ACTIVITIES.DELETE_SHAPE]: ({ user, targetShape }) => {
+				if (!targetShape) return false
+				if (user.id !== drawerIdAtom.get()) return false
+				const meta = targetShape.meta as Record<string, unknown>
 				if (meta?.isWordCard) return false
-				return (meta?.owner as string) === ruleUserId
+				return getShapeCreatorId(targetShape) === user.id
 			},
 
-			canSelectShape(ruleUserId) {
-				return ruleUserId === drawerIdRef.current
+			[CORE_ACTIVITIES.SELECT_SHAPE]: ({ user }) => {
+				return user.id === drawerIdAtom.get()
 			},
 
-			canUseTool(ruleUserId, toolId) {
-				// Drawer can use any tool; guesser is limited to hand only.
-				if (ruleUserId === drawerIdRef.current) return true
+			[CORE_ACTIVITIES.VIEW_SHAPE]: ({ user, targetShape }) => {
+				if (!targetShape) return true
+				const meta = targetShape.meta as Record<string, unknown>
+				if (meta?.isWordCard) {
+					return user.id === drawerIdAtom.get()
+				}
+				return true
+			},
+
+			[CORE_ACTIVITIES.USE_TOOL]: ({ user, toolId }) => {
+				if (user.id === drawerIdAtom.get()) return true
 				return toolId === 'hand'
 			},
 		}),
-		[] // stable — reads drawerIdRef.current at call time
+		[drawerIdAtom]
 	)
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			editorRef.current = editor
-
-			// ① Create the word card BEFORE installing the plugin.
 			initWordCard(editor, userId, word)
 
-			// ② Install the permissions plugin.
-			pluginRef.current = new TLPermissionsPlugin(editor, { userId, rules })
+			// Stamp ownership on new shapes (simulates PR #8147's tlmeta).
+			const user = identity.getCurrentUser()!
+			const cleanupAttribution = editor.sideEffects.registerBeforeCreateHandler(
+				'shape',
+				(shape, source) => {
+					if (source !== 'user') return shape
+					return {
+						...shape,
+						meta: {
+							...shape.meta,
+							createdBy: { id: user.id, name: user.name },
+						},
+					}
+				}
+			)
 
-			// ③ Report this editor to the parent (used for word card updates).
+			managerRef.current = new TLPermissionsManager(editor, { identity, rules })
 			onEditorMount(userId, editor)
-
-			// ④ Set the initial tool: drawer gets draw, guesser gets hand.
-			editor.setCurrentTool(userId === drawerIdRef.current ? 'draw' : 'hand')
+			editor.setCurrentTool(userId === drawerIdAtom.get() ? 'draw' : 'hand')
 
 			return () => {
-				pluginRef.current?.cleanup()
+				managerRef.current?.cleanup()
+				cleanupAttribution()
 			}
 		},
-		// word and drawerId intentionally excluded — initWordCard and tool are one-time setup
+		// word intentionally excluded — initWordCard is one-time setup
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[userId, rules, onEditorMount]
+		[userId, rules, onEditorMount, identity, drawerIdAtom]
 	)
 
 	const isDrawer = userId === drawerId
@@ -247,15 +282,14 @@ function PlayerPanel({ userId, drawerId, store, word, onEditorMount }: PlayerPan
 				Player {playerIndex} {isDrawer ? '✏️ (drawer)' : '👀 (guesser)'}
 			</div>
 			<div style={{ flex: 1, position: 'relative' }}>
-				<PictionaryCtx.Provider value={{ userId, drawerId }}>
-					<Tldraw
-						store={store}
-						shapeUtils={CUSTOM_SHAPE_UTILS}
-						components={isDrawer ? undefined : GUESSER_COMPONENTS}
-						onMount={handleMount}
-						options={{ maxPages: 1 }}
-					/>
-				</PictionaryCtx.Provider>
+				<Tldraw
+					store={store}
+					shapeUtils={CUSTOM_SHAPE_UTILS}
+					components={isDrawer ? undefined : GUESSER_COMPONENTS}
+					onMount={handleMount}
+					getShapeVisibility={getShapeVisibility}
+					options={{ maxPages: 1 }}
+				/>
 			</div>
 		</div>
 	)
@@ -264,33 +298,30 @@ function PlayerPanel({ userId, drawerId, store, word, onEditorMount }: PlayerPan
 // ─── MAIN EXAMPLE ─────────────────────────────────────────────────────────────
 
 export default function PictionaryExample() {
-	const roomId = useMemo(
-		() => `pict-perms-spike-${Math.random().toString(36).slice(2, 8)}`,
-		[]
-	)
+	const roomId = useMemo(() => `pict-perms-${Math.random().toString(36).slice(2, 8)}`, [])
 
 	const [drawerIndex, setDrawerIndex] = useState(0)
 	const drawerId = PLAYERS[drawerIndex % PLAYERS.length]
 	const currentWord = WORDS[drawerIndex % WORDS.length]
 
-	// Collect both editors so we can update the word card between rounds.
+	// Reactive atom — shared with PlayerPanel so permission rules create
+	// reactive dependencies that invalidate getShapeVisibility's cache.
+	const drawerIdAtom = useMemo(() => atom('drawerId', PLAYERS[0] as string), [])
+	useEffect(() => {
+		drawerIdAtom.set(drawerId)
+	}, [drawerId, drawerIdAtom])
+
 	const editorsRef = useRef<Partial<Record<string, Editor>>>({})
 
 	const handleEditorMount = useCallback((uid: string, editor: Editor) => {
 		editorsRef.current[uid] = editor
 	}, [])
 
-	// Rotate the drawer, clear the board, and update the word card.
 	const nextRound = useCallback(() => {
 		const newIndex = drawerIndex + 1
 		const newWord = WORDS[newIndex % WORDS.length]
 
-		// ① Clear the board: delete all shapes except the word card.
-		//    The current drawer owns every non-card shape on the canvas (the
-		//    guesser has zero create permissions), so deleting through their own
-		//    editor satisfies `canDeleteShape` without needing mergeRemoteChanges.
-		//    Being a normal user action, the deletions are pushed to the sync
-		//    server and reach the other panel's store reliably.
+		// Clear the board: delete all shapes except the word card.
 		const drawerEditor = editorsRef.current[drawerId]
 		if (drawerEditor) {
 			const idsToDelete = drawerEditor
@@ -302,12 +333,7 @@ export default function PictionaryExample() {
 			}
 		}
 
-		// ② Update the word card via a normal user action on the host's editor.
-		//    PLAYERS[0] always owns the word card, so the revised `canUpdateShape`
-		//    rule allows this regardless of who is currently the drawer.  As a
-		//    user action the change is pushed to the server and syncs to the
-		//    other panel — mergeRemoteChanges would only update locally and be
-		//    reverted on the next server tick.
+		// Update the word card (PLAYERS[0] owns it via meta.createdBy).
 		const hostEditor = editorsRef.current[PLAYERS[0]]
 		if (hostEditor) {
 			const card = hostEditor
@@ -364,7 +390,7 @@ export default function PictionaryExample() {
 					Next round
 				</button>
 				<span style={{ marginLeft: 'auto', color: '#999', fontSize: 11 }}>
-					Room: {roomId} &mdash; permissions spike demo
+					Room: {roomId} &mdash; permissions demo
 				</span>
 			</div>
 
@@ -375,6 +401,7 @@ export default function PictionaryExample() {
 						key={playerId}
 						userId={playerId}
 						drawerId={drawerId}
+						drawerIdAtom={drawerIdAtom}
 						store={i === 0 ? store1 : store2}
 						word={currentWord}
 						onEditorMount={handleEditorMount}
@@ -384,50 +411,3 @@ export default function PictionaryExample() {
 		</div>
 	)
 }
-
-/*
- * ─── HOW PER-VIEWER RENDERING WORKS ──────────────────────────────────────────
- *
- * Each <Tldraw> instance is wrapped in a <PictionaryCtx.Provider> that provides
- * the `userId` for that specific panel. PictWordCardShapeUtil.component() reads
- * this context: if `userId !== drawerId`, it returns null, making the shape
- * invisible to the guesser without any special tldraw API — it's just React.
- *
- * When `drawerId` changes (next round), both providers re-render with the new
- * value, so the word card immediately appears/disappears in the correct panel.
- *
- * ─── HOW WORD CARD UPDATES WORK ───────────────────────────────────────────────
- *
- * The word card is owned by PLAYERS[0] (the host). The `canUpdateShape` rule
- * checks ownership rather than drawer status for word-card shapes, so the host
- * can always update the word regardless of whose turn it is.
- *
- * `nextRound` calls `hostEditor.updateShape(...)` as a normal user action.
- * That change is pushed to the sync server and propagates to the other panel's
- * store. An earlier design used `mergeRemoteChanges` instead, but that marks
- * the mutation as 'remote' so the sync client never pushes it — the server
- * retains the old word and reverts both clients on the next sync tick.
- *
- * Board clearing works the same way: the current drawer's editor calls
- * `deleteShapes` as a user action. Since the drawer owns every non-card shape
- * (the guesser has zero create permissions), `canDeleteShape` allows it and the
- * deletions are synced to the server and the other panel reliably.
- *
- * ─── WHY TWO PANELS, NOT THREE ────────────────────────────────────────────────
- *
- * Running three useSyncDemo WebSocket connections to the same room from the
- * same browser tab causes one client to enter a sync reset loop that never
- * completes: TLSyncClient.rebase() receives unexpected push_result messages,
- * calls resetConnection(), clears the store, and tries to reconnect — but the
- * interplay of the three simultaneous clients prevents one from finishing its
- * handshake. That panel's store stays at status='loading' indefinitely.
- *
- * Two connections (the same count as tic-tac-toe) reliably stabilise within
- * ~1 s. The demo still shows all the key Pictionary concepts: role-based
- * permissions, per-viewer word card visibility, and drawer rotation.
- *
- * ─── KNOWN LIMITATION: startup sync errors ────────────────────────────────────
- *
- * See TicTacToeExample.tsx for the explanation of the "push_result" console
- * errors that appear on initial load with two sync clients in the same tab.
- */
