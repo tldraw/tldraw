@@ -1,0 +1,20 @@
+{
+	"$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+	"name": "io.github.tldraw/tldraw",
+	"description": "Draw and visually collaborate with your agents on tldraw's canvas.",
+	"repository": {
+		"url": "https://github.com/tldraw/tldraw",
+		"source": "github",
+		"subfolder": "apps/mcp-app"
+	},
+	"version": "0.1.0",
+	"packages": [
+		{
+			"registryType": "remote",
+			"url": "https://tldraw-mcp-app.tldraw.workers.dev/mcp",
+			"transport": {
+				"type": "http"
+			}
+		}
+	]
+}
