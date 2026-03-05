@@ -376,10 +376,12 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
 				diff.puts[doc.state.id] = doc.state as R
 			}
 		}
-		for (const [id, clock] of this.storage.tombstones.entries()) {
-			if (clock > sinceClock) {
-				// For tombstones, we don't have the removed record, use placeholder
-				diff.deletes.push(id)
+		if (!wipeAll) {
+			for (const [id, clock] of this.storage.tombstones.entries()) {
+				if (clock > sinceClock) {
+					// For tombstones, we don't have the removed record, use placeholder
+					diff.deletes.push(id)
+				}
 			}
 		}
 		return { diff, wipeAll }

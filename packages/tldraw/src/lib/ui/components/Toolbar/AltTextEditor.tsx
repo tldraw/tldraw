@@ -29,7 +29,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 
 	const handleValueChange = (value: string) => setAltText(value)
 
-	const handleComplete = () => {
+	const handleComplete = useCallback(() => {
 		trackEvent('set-alt-text', { source })
 		const shape = editor.getShape<ExtractShapeByProps<{ altText: string }>>(shapeId)
 		if (!shape) return
@@ -41,7 +41,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 			},
 		])
 		onClose()
-	}
+	}, [trackEvent, source, editor, shapeId, altText, onClose])
 
 	const handleConfirm = () => handleComplete()
 	const handleAltTextCancel = useCallback(() => onClose(), [onClose])
@@ -61,6 +61,20 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 			document.removeEventListener('keydown', handleKeyDown, { capture: true })
 		}
 	}, [handleAltTextCancel])
+
+	useEffect(() => {
+		const handlePointerDown = (e: PointerEvent) => {
+			const toolbar = document.querySelector('.tlui-media__toolbar')
+			if (toolbar?.contains(e.target as Node)) return
+			// If the pointer down is not in the toolbar, complete the alt text
+			handleComplete()
+		}
+		document.addEventListener('pointerdown', handlePointerDown, { capture: true })
+
+		return () => {
+			document.removeEventListener('pointerdown', handlePointerDown, { capture: true })
+		}
+	}, [handleComplete])
 
 	return (
 		<>

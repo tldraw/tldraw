@@ -399,7 +399,6 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 									setIsExpanded(!isExpanded)
 								}
 							}}
-							style={{ cursor: 'default' }}
 							draggable={!isCoarsePointer}
 							onClick={() => setIsExpanded(!isExpanded)}
 							onDragStart={
@@ -432,7 +431,6 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 								onClick={(e) => e.stopPropagation()}
 								style={{ cursor: 'default' }}
 							>
-								<TlaSidebarGroupMenu groupId={groupId} />
 								<button
 									className={styles.sidebarGroupItemButton}
 									onClick={handleCreateFile}
@@ -441,6 +439,7 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 								>
 									<TlaIcon icon="edit" />
 								</button>
+								<TlaSidebarGroupMenu groupId={groupId} />
 							</div>
 						</div>
 					</Collapsible.Trigger>

@@ -1,7 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
-import { RefUpdateError } from '@pierre/storage'
+import { ApiError, RefUpdateError, type Repo } from '@pierre/storage'
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
 	DB,
@@ -20,7 +20,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
-	InMemorySyncStorage,
+	DurableObjectSqliteSyncWrapper,
 	RoomSnapshot,
 	SQLiteSyncStorage,
 	TLSocketRoom,
@@ -30,7 +30,14 @@ import {
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
-import { TLAsset, TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
+import {
+	TLAsset,
+	TLAssetId,
+	TLDOCUMENT_ID,
+	TLDocument,
+	TLRecord,
+	createTLSchema,
+} from '@tldraw/tlschema'
 import {
 	ExecutionQueue,
 	assert,
@@ -53,6 +60,7 @@ import { EventData, writeDataPoint } from './utils/analytics'
 import { createPierreClient } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
+import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
@@ -90,17 +98,40 @@ async function canAccessTestProductionFile(
 	}
 }
 
+function pruneUnusedAssetsForTldr(records: TLRecord[]): TLRecord[] {
+	const usedAssets = new Set<TLAssetId>()
+	for (const record of records) {
+		if (record.typeName === 'shape' && 'assetId' in record.props && record.props.assetId) {
+			usedAssets.add(record.props.assetId as TLAssetId)
+		}
+	}
+	return records.filter((r) => r.typeName !== 'asset' || usedAssets.has(r.id as TLAssetId))
+}
+
+function arrayBufferToBase64(ab: ArrayBuffer): string {
+	const bytes = new Uint8Array(ab)
+	return bytes.toBase64!()
+}
+
 const MB = 1024 * 1024
 
-export class TLDrawDurableObject extends DurableObject {
+export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
 
 	private _storage: Promise<TLSyncStorage<TLRecord>> | null = null
 
-	protected async loadStorage(slug: string): Promise<TLSyncStorage<TLRecord>> {
+	private async loadStorage(slug: string): Promise<TLSyncStorage<TLRecord>> {
+		const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
+
+		// If SQLite has been initialized, use it directly
+		if (SQLiteSyncStorage.hasBeenInitialized(sql)) {
+			return new SQLiteSyncStorage<TLRecord>({ sql })
+		}
+
+		// SQLite not initialized yet, load from R2 and initialize
 		const result = await this.loadFromDatabase(slug)
-		const storage = new InMemorySyncStorage<TLRecord>({ snapshot: result.snapshot })
+		const storage = new SQLiteSyncStorage<TLRecord>({ sql, snapshot: result.snapshot })
 		// We should not await on setRoomStorageUsedPercentage because it calls
 		// getStorage under the hood which will only resolve once this function has returned.
 		this.setRoomStorageUsedPercentage(result.roomSizeMB)
@@ -203,6 +234,7 @@ export class TLDrawDurableObject extends DurableObject {
 	// For persistence
 	supabaseClient: SupabaseClient | void
 	pierreClient: ReturnType<typeof createPierreClient>
+	pierreState: PierreState | null = null
 
 	// For analytics
 	measure: Analytics | undefined
@@ -223,12 +255,12 @@ export class TLDrawDurableObject extends DurableObject {
 	// eslint-disable-next-line no-restricted-syntax
 	get db() {
 		if (!this._db) {
-			this._db = createPostgresConnectionPool(this.env, 'TLDrawDurableObject')
+			this._db = createPostgresConnectionPool(this.env, 'TLFileDurableObject')
 		}
 		return this._db
 	}
 
-	private readonly changeSource = 'TLDrawDurableObject'
+	private readonly changeSource = 'TLFileDurableObject'
 
 	constructor(
 		private state: DurableObjectState,
@@ -279,6 +311,11 @@ export class TLDrawDurableObject extends DurableObject {
 			`/app/file/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_WRITE)
+		)
+		.get(
+			`/app/file/:roomId/download`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onDownloadTldr(req)
 		)
 		.post(
 			`/${ROOM_PREFIX}/:roomId/restore`,
@@ -363,16 +400,9 @@ export class TLDrawDurableObject extends DurableObject {
 				if (!repo) {
 					return new Response('Pierre not available', { status: 503 })
 				}
-				const fileStream = await repo.getFileStream({
-					path: SNAPSHOT_FILE_NAME,
-					ref: commitHash,
-				})
-				dataText = await fileStream.text()
-				await repo.restoreCommit({
-					targetCommitSha: commitHash,
-					targetBranch: 'main',
-					author: PIERRE_AUTHOR,
-				})
+				const snapshot = await reconstructSnapshotFromPierre(repo, commitHash)
+				dataText = JSON.stringify(snapshot)
+				this.pierreState = null
 			} else {
 				const timestamp = ((await req.json()) as any).timestamp
 				if (!timestamp) {
@@ -588,6 +618,134 @@ export class TLDrawDurableObject extends DurableObject {
 			}
 			throw e
 		}
+	}
+
+	/** Stream .tldr download (schema + records, R2 assets inlined as base64). Same access as joining the file. */
+	async onDownloadTldr(req: IRequest): Promise<Response> {
+		const TLDRAW_FILE_MIMETYPE = 'application/vnd.tldraw+json'
+		const TLDRAW_FILE_FORMAT_VERSION = 1
+
+		if (!this.documentInfo.isApp) {
+			return new Response('Not found', { status: 404 })
+		}
+
+		const auth = await getAuth(req, this.env)
+		const file = await this.getAppFileRecord()
+		if (!file || file.isDeleted) {
+			return new Response('Not found', { status: 404 })
+		}
+
+		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
+			return new Response('Not found', { status: 404 })
+		}
+		if (!auth && !file.shared) {
+			return new Response('Unauthorized', { status: 401 })
+		}
+
+		const url = new URL(req.url)
+		const sessionId =
+			url.searchParams.get('instanceId') ?? url.searchParams.get('sessionId') ?? 'anon-download'
+		const rateLimitKey = auth?.userId ?? sessionId
+		if (await isRateLimited(this.env, rateLimitKey)) {
+			return new Response('Rate limited', { status: 429 })
+		}
+
+		let hasOwnerAccess = false
+		if (file.ownerId && file.ownerId === auth?.userId) {
+			hasOwnerAccess = true
+		} else if (file.owningGroupId && auth?.userId) {
+			const groupMember = await this.db
+				.selectFrom('group_user')
+				.where('groupId', '=', file.owningGroupId)
+				.where('userId', '=', auth.userId)
+				.executeTakeFirst()
+			if (groupMember) hasOwnerAccess = true
+		}
+		if (!hasOwnerAccess && !file.shared) {
+			return new Response('Forbidden', { status: 403 })
+		}
+
+		const key = getR2KeyForRoom({ slug: this.documentInfo.slug, isApp: true })
+		const roomR2 = await this.r2.rooms.get(key)
+		if (!roomR2) {
+			return new Response('Not found', { status: 404 })
+		}
+		const snapshot = (await roomR2.json()) as RoomSnapshot
+		const records = pruneUnusedAssetsForTldr(snapshot.documents.map((d) => d.state) as TLRecord[])
+
+		const assetRows = await this.db
+			.selectFrom('asset')
+			.where('fileId', '=', this.documentInfo.slug)
+			.select('objectName')
+			.execute()
+		const assetObjectNames = new Set(assetRows.map((r) => r.objectName))
+
+		const documentRecord = records.find((r) => r.typeName === 'document') as TLDocument | undefined
+		// Prefer the TlaFile.name (kept in sync by the app layer) over the TLDocument.name
+		// (which is only updated when the document is open in an editor).
+		const rawName = file.name?.trim() || documentRecord?.name?.trim()
+		const sanitized =
+			rawName?.replace(/[^ \w-]/g, '_').slice(0, 200) || `${this.documentInfo.slug}.tldr`
+		const filename = sanitized.endsWith('.tldr') ? sanitized : `${sanitized}.tldr`
+
+		const env = this.env
+		const stream = new ReadableStream({
+			async start(controller) {
+				try {
+					const encoder = new TextEncoder()
+					controller.enqueue(
+						encoder.encode(
+							`{"tldrawFileFormatVersion":${TLDRAW_FILE_FORMAT_VERSION},"schema":${JSON.stringify(snapshot.schema)},"records":[`
+						)
+					)
+					for (let i = 0; i < records.length; i++) {
+						let record = records[i] as TLRecord
+						const assetSrc = record.typeName === 'asset' ? (record as TLAsset).props.src : null
+						if (
+							record.typeName === 'asset' &&
+							(record as TLAsset).type !== 'bookmark' &&
+							assetSrc &&
+							!assetSrc.startsWith('data:')
+						) {
+							const objectName = new URL(assetSrc).pathname.split('/').pop()
+							if (objectName && assetObjectNames.has(objectName)) {
+								const blob = await env.UPLOADS.get(objectName)
+								if (blob) {
+									const ab = await blob.arrayBuffer()
+									const base64 = arrayBufferToBase64(ab)
+									const assetRecord = record as TLAsset
+									const mimeType =
+										assetRecord.type !== 'bookmark' &&
+										'mimeType' in assetRecord.props &&
+										assetRecord.props.mimeType
+											? assetRecord.props.mimeType
+											: 'application/octet-stream'
+									record = {
+										...record,
+										props: {
+											...(record as TLAsset).props,
+											src: `data:${mimeType};base64,${base64}`,
+										},
+									} as TLRecord
+								}
+							}
+						}
+						controller.enqueue(encoder.encode((i > 0 ? ',' : '') + JSON.stringify(record)))
+					}
+					controller.enqueue(encoder.encode(']}'))
+					controller.close()
+				} catch (e) {
+					controller.error(e)
+				}
+			},
+		})
+
+		return new Response(stream, {
+			headers: {
+				'Content-Type': TLDRAW_FILE_MIMETYPE,
+				'Content-Disposition': `attachment; filename="${filename}"`,
+			},
+		})
 	}
 
 	triggerPersist = throttle(() => {
@@ -955,10 +1113,7 @@ export class TLDrawDurableObject extends DurableObject {
 						if (!this._room) return
 						const slug = this.documentInfo.slug
 						const storage = await this.getStorage()
-						assert(
-							storage instanceof InMemorySyncStorage || storage instanceof SQLiteSyncStorage,
-							'storage must be an InMemorySyncStorage or SQLiteSyncStorage'
-						)
+						assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
 						if (this._lastPersistedClock === storage.getClock()) return
 						if (this._isRestoring) return
 
@@ -968,12 +1123,11 @@ export class TLDrawDurableObject extends DurableObject {
 
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 						await this._uploadSnapshotToR2(snapshot, key)
+						await this.persistToPierre(storage, snapshot)
 
 						this.logEvent({ type: 'persist_success', attempts: attempt })
 						this._lastPersistedClock = snapshot.documentClock
 						// Store the clock in DO storage so we can compare against SQLite on next load.
-						// This enables safe flag toggling for sqlite_file_storage.
-						this.ctx.storage.put('lastPersistedR2Clock', snapshot.documentClock)
 						if (this.persistenceBad) {
 							this.broadcastPersistenceEvent({ type: 'persistence_good' })
 							this.persistenceBad = false
@@ -1020,7 +1174,6 @@ export class TLDrawDurableObject extends DurableObject {
 		// Then upload to version cache
 		const versionKey = `${key}/${new Date().toISOString()}`
 		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey)
-		await this.persistToPierre(versionKey)
 	}
 
 	private async _uploadSnapshotToBucket(bucket: R2Bucket, snapshot: RoomSnapshot, key: string) {
@@ -1117,44 +1270,139 @@ export class TLDrawDurableObject extends DurableObject {
 		) {
 			return null
 		}
-		const repoId = `${this.env.TLDRAW_ENV}/snapshots/${this.documentInfo.slug}`
+		const repoId = `${this.env.TLDRAW_ENV}/files/${this.documentInfo.slug}`
 		return (
 			(await this.pierreClient.findOne({ id: repoId })) ??
 			(await this.pierreClient.createRepo({ id: repoId }))
 		)
 	}
 
-	private async persistToPierre(key: string) {
+	/**
+	 * Sync local Pierre tracking state from the remote repo. Fetches HEAD sha
+	 * and meta.json (for documentClock). For empty repos, sets documentClock
+	 * to -1 so getChangesSince returns all records.
+	 */
+	private async syncPierreState(repo: Repo) {
+		let headCommit: { sha: string } | undefined
+		try {
+			const { commits } = await repo.listCommits({ limit: 1 })
+			headCommit = commits[0]
+		} catch (error) {
+			if (error instanceof ApiError && error.status === 404) {
+				this.pierreState = { headSha: undefined, documentClock: -1 }
+				return
+			}
+			throw error
+		}
+
+		if (!headCommit) {
+			this.pierreState = { headSha: undefined, documentClock: -1 }
+			return
+		}
+
+		const metaResp = await repo.getFileStream({ path: 'meta.json', ref: headCommit.sha })
+		const meta = (await metaResp.json()) as PierreMeta
+
+		this.pierreState = {
+			headSha: headCommit.sha,
+			documentClock: meta.documentClock ?? 0,
+		}
+	}
+
+	private async persistToPierre(storage: TLSyncStorage<TLRecord>, snapshot: RoomSnapshot) {
 		try {
 			const repo = await this.getPierreRepo()
 			if (!repo) return
 
-			// Get the snapshot from R2 to create a readable stream
-			const r2Object = await this.r2.versionCache.get(key)
-			if (!r2Object) {
-				console.warn('Failed to get R2 object for Pierre upload:', key)
-				return
-			}
+			const MAX_CAS_RETRIES = 3
+			for (let attempt = 0; attempt < MAX_CAS_RETRIES; attempt++) {
+				if (!this.pierreState) {
+					await this.syncPierreState(repo)
+				}
 
-			// Create commit with the snapshot
-			const timestamp = new Date().toISOString()
-			await repo
-				.createCommit({
+				const { headSha, documentClock: pierreDocClock } = this.pierreState!
+
+				const { result: changes, documentClock } = storage.transaction((txn) =>
+					txn.getChangesSince(pierreDocClock)
+				)
+
+				if (!changes) return
+
+				const { diff } = changes
+				const hasPuts = Object.keys(diff.puts).length > 0
+				const hasDeletes = diff.deletes.length > 0
+
+				if (!hasPuts && !hasDeletes && pierreDocClock === documentClock) {
+					return
+				}
+
+				const timestamp = new Date().toISOString()
+				const commitBuilder = repo.createCommit({
 					targetBranch: 'main',
 					commitMessage: `Snapshot at ${timestamp}`,
 					author: PIERRE_AUTHOR,
+					expectedHeadSha: headSha,
 				})
-				.addFile(SNAPSHOT_FILE_NAME, r2Object.body)
-				.send()
-				.catch((e) => {
-					// ignore no changes to commit errors
-					if (e instanceof RefUpdateError && e.message.match('no changes to commit')) {
-						return
+
+				const meta: PierreMeta = {
+					documentClock,
+					schema: snapshot.schema,
+				}
+				commitBuilder.addFileFromString('meta.json', JSON.stringify(meta))
+
+				for (const [id, put] of Object.entries(diff.puts)) {
+					const state = Array.isArray(put) ? put[1] : put
+					commitBuilder.addFileFromString(`records/${id}.json`, JSON.stringify(state))
+				}
+
+				// Only apply diff.deletes when we have a parent commit and we're not in wipeAll.
+				// - Empty repo (no headSha): those paths don't exist in Pierre; deletePath would fail.
+				// - wipeAll with existing repo: the cleanup loop below already deletes any file not in
+				//   putIds, so applying diff.deletes here would duplicate deletePath for the same file.
+				if (headSha && !changes.wipeAll) {
+					for (const id of diff.deletes) {
+						commitBuilder.deletePath(`records/${id}.json`)
 					}
-					throw e
-				})
+				}
+
+				// On wipeAll with an existing repo, pruned tombstones may not appear in diff.deletes,
+				// so scan Pierre for stale record files and remove them.
+				if (changes.wipeAll && headSha) {
+					const putIds = new Set(Object.keys(diff.puts))
+					const { paths } = await repo.listFiles({ ref: headSha })
+					for (const path of paths) {
+						if (!path.startsWith('records/')) continue
+						const id = path.slice('records/'.length, -'.json'.length)
+						if (!putIds.has(id)) {
+							commitBuilder.deletePath(path)
+						}
+					}
+				}
+
+				try {
+					const result = await commitBuilder.send().catch((e) => {
+						if (e instanceof RefUpdateError && e.message.match('no changes to commit')) {
+							return null
+						}
+						throw e
+					})
+
+					this.pierreState = {
+						headSha: result ? result.refUpdate.newSha : headSha,
+						documentClock,
+					}
+					return
+				} catch (error) {
+					if (error instanceof RefUpdateError) {
+						console.warn('Pierre CAS conflict, retrying:', error.message)
+						this.pierreState = null
+						continue
+					}
+					throw error
+				}
+			}
+			console.error('Pierre: exhausted CAS retries')
 		} catch (error) {
-			// Log but don't fail the main persist operation
 			console.error('Failed to persist to Pierre:', error)
 			this.reportError(error)
 		}
@@ -1365,5 +1613,15 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 const PERSIST_RETRIES_NOTIFY_THRESHOLD = 10
 const PERSIST_RETRIES_MAX = 100
 
-const SNAPSHOT_FILE_NAME = 'snapshot.json'
 const PIERRE_AUTHOR = { email: 'huppy@tldraw.com', name: 'huppy [bot]' }
+
+interface PierreState {
+	headSha: string | undefined
+	documentClock: number
+}
+
+/** Shape of meta.json stored in Pierre archives. */
+export interface PierreMeta {
+	documentClock: number
+	schema: RoomSnapshot['schema']
+}
