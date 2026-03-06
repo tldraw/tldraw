@@ -690,6 +690,16 @@ export { useDefaultHelpers, type TLUiOverrideHelpers, type TLUiOverrides } from 
 export { TldrawUi, TldrawUiInFrontOfTheCanvas, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { containBoxSize, downsizeImage, type BoxWidthHeight } from './lib/utils/assets/assets'
 export { preloadFont, type TLTypeFace } from './lib/utils/assets/preload-font'
+export {
+	cleanupCanvas,
+	rerouteArrows,
+	resolveShapeOverlaps,
+	resolveTextWordWrap,
+	type CleanupCanvasOptions,
+	type RerouteArrowsOptions,
+	type ResolveShapeOverlapsOptions,
+	type ResolveTextWordWrapOptions,
+} from './lib/utils/cleanup/cleanup'
 export { getEmbedInfo, type TLEmbedResult } from './lib/utils/embeds/embeds'
 export { putExcalidrawContent } from './lib/utils/excalidraw/putExcalidrawContent'
 export { copyAs, type CopyAsOptions, type TLCopyType } from './lib/utils/export/copyAs'
