@@ -75,6 +75,7 @@ const LABELED_NODE_SIZE_INCREASE = 0
 const TERMINAL_NODE_SIZE = 12
 const LAYER_GAP = 180
 const NODE_GAP = 100
+const LAYER_ORDERING_SWEEPS = 4
 const SUBGRAPH_HORIZONTAL_PADDING = 48
 const SUBGRAPH_VERTICAL_PADDING = 40
 const SUBGRAPH_HEADER_HEIGHT = 44
@@ -221,8 +222,11 @@ export async function tryPutMermaidContent(
 			groupByParent: false,
 		})
 		graph = mergeStateTerminalNodes(graph, {
-			filter: (node) => isRecord(node.data) && (node.data.isEnd === true || node.shape === 'end'),
-			groupByParent: true,
+			filter: (node) =>
+				(node.parentId ?? null) === null &&
+				isRecord(node.data) &&
+				(node.data.isEnd === true || node.shape === 'end'),
+			groupByParent: false,
 		})
 	}
 
@@ -727,7 +731,7 @@ function inferFlowchartSubgraphParents(source: string, graph: MermaidGraph): Mer
 		if (!subgraphStack.length) continue
 		const currentSubgraphId = subgraphStack[subgraphStack.length - 1]
 
-		const tokens = extractFlowchartIdentifierTokens(trimmed)
+		const tokens = extractFlowchartReferencedNodeIds(trimmed)
 		for (const token of tokens) {
 			if (!nodeIds.has(token)) continue
 			declaredParentsByNodeId.set(token, currentSubgraphId)
@@ -821,8 +825,116 @@ function extractFlowchartSubgraphId(rawSubgraphValue: string, nodeIds: Set<strin
 	return null
 }
 
-function extractFlowchartIdentifierTokens(line: string) {
-	return line.match(/[A-Za-z_][A-Za-z0-9_]*(?:-[A-Za-z0-9_]+)*/g) ?? []
+function extractFlowchartReferencedNodeIds(line: string) {
+	if (/^(classDef|class|style|linkStyle|click|direction)\b/i.test(line)) return []
+
+	const sanitized = sanitizeFlowchartParentInferenceLine(line)
+	const tokens: string[] = []
+
+	for (const match of sanitized.matchAll(/[A-Za-z_][A-Za-z0-9_]*(?:-[A-Za-z0-9_]+)*/g)) {
+		const token = match[0]
+		const start = match.index ?? 0
+		const end = start + token.length
+		if (!isFlowchartIdentifierBoundaryBefore(sanitized[start - 1])) continue
+		if (!isFlowchartIdentifierBoundaryAfter(sanitized[end])) continue
+		tokens.push(token)
+	}
+
+	return tokens
+}
+
+function sanitizeFlowchartParentInferenceLine(line: string) {
+	let result = ''
+	let quote: '"' | "'" | '`' | null = null
+	let escaped = false
+	let edgeLabelDepth = 0
+	const brackets: string[] = []
+
+	for (const char of line) {
+		if (quote) {
+			result += ' '
+			if (escaped) {
+				escaped = false
+				continue
+			}
+			if (char === '\\') {
+				escaped = true
+				continue
+			}
+			if (char === quote) quote = null
+			continue
+		}
+
+		if (edgeLabelDepth > 0) {
+			result += ' '
+			if (char === '|') edgeLabelDepth--
+			continue
+		}
+
+		if (brackets.length > 0) {
+			result += ' '
+			if (char === '"' || char === "'" || char === '`') {
+				quote = char
+				continue
+			}
+			if (char === '[') {
+				brackets.push(']')
+				continue
+			}
+			if (char === '(') {
+				brackets.push(')')
+				continue
+			}
+			if (char === '{') {
+				brackets.push('}')
+				continue
+			}
+			if (char === brackets[brackets.length - 1]) brackets.pop()
+			continue
+		}
+
+		if (char === '"' || char === "'" || char === '`') {
+			result += ' '
+			quote = char
+			continue
+		}
+
+		if (char === '[') {
+			result += ' '
+			brackets.push(']')
+			continue
+		}
+
+		if (char === '(') {
+			result += ' '
+			brackets.push(')')
+			continue
+		}
+
+		if (char === '{') {
+			result += ' '
+			brackets.push('}')
+			continue
+		}
+
+		if (char === '|') {
+			result += ' '
+			edgeLabelDepth++
+			continue
+		}
+
+		result += char
+	}
+
+	return result.replace(/:::[A-Za-z_][\w-]*/g, '')
+}
+
+function isFlowchartIdentifierBoundaryBefore(char: string | undefined) {
+	return char === undefined || /\s/.test(char) || ';,&>|'.includes(char)
+}
+
+function isFlowchartIdentifierBoundaryAfter(char: string | undefined) {
+	return char === undefined || /\s/.test(char) || ';,&[({@<-=.ox|'.includes(char)
 }
 
 function positionStateTerminals(
@@ -1209,17 +1321,18 @@ function positionNodes(
 	const positionedLayouts = new Map<string, MermaidNodeLayout>()
 	const sortedLayers = Array.from(layers.keys()).sort((a, b) => a - b)
 	const isHorizontal = direction === 'left' || direction === 'right'
-	const maxBreadthNodeSize = Math.max(
-		...orderedNodeIds.map((nodeId) => {
-			const layout = nodeLayouts.get(nodeId)!
-			return isHorizontal ? layout.h : layout.w
-		})
-	)
+	minimizeLayerCrossings(layers, sortedLayers, depthByNode, incomingEdges, outgoingEdges)
 
 	let depthCursor = 0
 
 	for (const layer of sortedLayers) {
 		const layerNodeIds = layers.get(layer)!
+		const maxBreadthNodeSize = Math.max(
+			...layerNodeIds.map((nodeId) => {
+				const layout = nodeLayouts.get(nodeId)!
+				return isHorizontal ? layout.h : layout.w
+			})
+		)
 
 		const maxDepthSize = Math.max(
 			...layerNodeIds.map((nodeId) => {
@@ -1261,6 +1374,65 @@ function positionNodes(
 	}
 
 	return positionedLayouts
+}
+
+function minimizeLayerCrossings(
+	layers: Map<number, string[]>,
+	sortedLayers: number[],
+	depthByNode: Map<string, number>,
+	incomingEdges: Map<string, MermaidEdge[]>,
+	outgoingEdges: Map<string, MermaidEdge[]>
+) {
+	if (sortedLayers.length < 2) return
+
+	for (let sweep = 0; sweep < LAYER_ORDERING_SWEEPS; sweep++) {
+		for (let i = 1; i < sortedLayers.length; i++) {
+			const layer = sortedLayers[i]
+			const previousLayer = sortedLayers[i - 1]
+			sortLayerByBarycenter(layers.get(layer)!, layers.get(previousLayer)!, (nodeId) =>
+				incomingEdges
+					.get(nodeId)!
+					.filter((edge) => (depthByNode.get(edge.sourceId) ?? 0) === previousLayer)
+					.map((edge) => edge.sourceId)
+			)
+		}
+
+		for (let i = sortedLayers.length - 2; i >= 0; i--) {
+			const layer = sortedLayers[i]
+			const nextLayer = sortedLayers[i + 1]
+			sortLayerByBarycenter(layers.get(layer)!, layers.get(nextLayer)!, (nodeId) =>
+				outgoingEdges
+					.get(nodeId)!
+					.filter((edge) => (depthByNode.get(edge.targetId) ?? 0) === nextLayer)
+					.map((edge) => edge.targetId)
+			)
+		}
+	}
+}
+
+function sortLayerByBarycenter(
+	layerNodeIds: string[],
+	adjacentLayerNodeIds: string[],
+	getAdjacentNodeIds: (nodeId: string) => string[]
+) {
+	const adjacentOrder = new Map(adjacentLayerNodeIds.map((nodeId, index) => [nodeId, index]))
+	const orderedNodes = layerNodeIds
+		.map((nodeId, index) => {
+			const adjacentPositions = getAdjacentNodeIds(nodeId)
+				.map((adjacentNodeId) => adjacentOrder.get(adjacentNodeId))
+				.filter((position): position is number => position !== undefined)
+
+			const barycenter = adjacentPositions.length
+				? adjacentPositions.reduce((sum, position) => sum + position, 0) / adjacentPositions.length
+				: index
+
+			return { nodeId, barycenter, index }
+		})
+		.sort((a, b) => a.barycenter - b.barycenter || a.index - b.index)
+
+	for (let index = 0; index < orderedNodes.length; index++) {
+		layerNodeIds[index] = orderedNodes[index].nodeId
+	}
 }
 
 function centerNodeLayoutsOnPoint(nodeLayouts: Map<string, MermaidNodeLayout>, point: VecLike) {

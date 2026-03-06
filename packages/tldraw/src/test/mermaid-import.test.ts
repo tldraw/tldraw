@@ -246,6 +246,38 @@ one --> two`,
 		expect(shapes.filter((shape) => shape.type === 'group')).toHaveLength(0)
 	})
 
+	it('does not infer subgraph parents from label text', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `flowchart TB
+A["Alpha"]
+subgraph one
+  X["A"]
+end`,
+		})
+
+		const geoShapes = editor
+			.getCurrentPageShapes()
+			.filter((shape): shape is TLGeoShape => shape.type === 'geo')
+		const alpha = geoShapes.find(
+			(shape) => renderPlaintextFromRichText(editor, shape.props.richText).trim() === 'Alpha'
+		)
+		const labeledA = geoShapes.find(
+			(shape) =>
+				renderPlaintextFromRichText(editor, shape.props.richText).trim() === 'A' &&
+				shape.props.dash !== 'dashed'
+		)
+		const one = geoShapes.find(
+			(shape) => renderPlaintextFromRichText(editor, shape.props.richText).trim() === 'one'
+		)
+
+		expect(alpha).toBeDefined()
+		expect(labeledA).toBeDefined()
+		expect(one).toBeDefined()
+
+		expect(containsGeo(one!, labeledA!)).toBe(true)
+		expect(containsGeo(one!, alpha!)).toBe(false)
+	})
+
 	it('keeps markdown flowchart subgraph containers from overlapping', async () => {
 		await defaultHandleExternalTextContent(editor, {
 			text: `flowchart LR
@@ -346,7 +378,7 @@ A --> B`,
 		expect(bends).toEqual([-40, 40, 80])
 	})
 
-	it('adds default bends to diagonal flowchart edges', async () => {
+	it('keeps flowchart edges straight when layer ordering can align them', async () => {
 		await defaultHandleExternalTextContent(editor, {
 			text: `flowchart TD
 A
@@ -367,11 +399,60 @@ X --> A`,
 
 		expect(yToB).toBeDefined()
 		expect(xToA).toBeDefined()
-		expect(yToB!.props.bend).toBe(40)
-		expect(xToA!.props.bend).toBe(-40)
+		expect(yToB!.props.bend).toBe(0)
+		expect(xToA!.props.bend).toBe(0)
 	})
 
-	it('flips default diagonal bend sign when direction is up', async () => {
+	it('reorders nodes within a layer to reduce edge crossings', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `flowchart TD
+A
+B
+D
+C
+A --> C
+B --> D`,
+		})
+
+		const geoByLabel = getGeoByLabel(editor)
+		const a = geoByLabel.get('A')
+		const b = geoByLabel.get('B')
+		const c = geoByLabel.get('C')
+		const d = geoByLabel.get('D')
+
+		expect(a).toBeDefined()
+		expect(b).toBeDefined()
+		expect(c).toBeDefined()
+		expect(d).toBeDefined()
+
+		expect(getCenterX(a!)).toBeLessThan(getCenterX(b!))
+		expect(getCenterX(c!)).toBeLessThan(getCenterX(d!))
+	})
+
+	it('uses per-layer breadth sizing for sibling spacing', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `flowchart TD
+A["This is a very wide node label that should not inflate the spacing between small siblings"]
+A --> B
+A --> C`,
+		})
+
+		const geoByLabel = getGeoByLabel(editor)
+		const a = geoByLabel.get(
+			'This is a very wide node label that should not inflate the spacing between small siblings'
+		)
+		const b = geoByLabel.get('B')
+		const c = geoByLabel.get('C')
+
+		expect(a).toBeDefined()
+		expect(b).toBeDefined()
+		expect(c).toBeDefined()
+
+		const siblingGap = c!.x - (b!.x + b!.props.w)
+		expect(siblingGap).toBeLessThanOrEqual(120)
+	})
+
+	it('keeps upward flowchart edges straight when layer ordering can align them', async () => {
 		await defaultHandleExternalTextContent(editor, {
 			text: `flowchart BT
 A
@@ -392,8 +473,8 @@ X --> A`,
 
 		expect(yToB).toBeDefined()
 		expect(xToA).toBeDefined()
-		expect(yToB!.props.bend).toBe(-40)
-		expect(xToA!.props.bend).toBe(40)
+		expect(yToB!.props.bend).toBe(0)
+		expect(xToA!.props.bend).toBe(0)
 	})
 
 	it('positions state bent arrow labels closer to the start of the arrow', async () => {
@@ -464,6 +545,78 @@ state Active {
 
 		expect(entryArrows.length).toBeGreaterThan(0)
 		expect(entryArrows.every((arrow) => arrow.props.bend === 0)).toBe(true)
+	})
+
+	it('preserves distinct end terminals in state concurrency regions', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `stateDiagram-v2
+[*] --> Active
+state Active {
+  [*] --> NumLockOff
+  NumLockOff --> [*]
+  --
+  [*] --> CapsLockOff
+  CapsLockOff --> [*]
+  --
+  [*] --> ScrollLockOff
+  ScrollLockOff --> [*]
+}`,
+		})
+
+		const geoShapes = editor
+			.getCurrentPageShapes()
+			.filter((shape): shape is TLGeoShape => shape.type === 'geo')
+		const arrows = editor
+			.getCurrentPageShapes()
+			.filter((shape): shape is TLArrowShape => shape.type === 'arrow')
+		const blankGeos = geoShapes.filter(
+			(shape) => renderPlaintextFromRichText(editor, shape.props.richText).trim() === ''
+		)
+
+		const outgoingCounts = new Map<string, number>()
+		const incomingCounts = new Map<string, number>()
+		for (const arrow of arrows) {
+			const bindings = editor.getBindingsFromShape(arrow, 'arrow')
+			const start = bindings.find((binding) => binding.props.terminal === 'start')
+			const end = bindings.find((binding) => binding.props.terminal === 'end')
+			if (start) outgoingCounts.set(start.toId, (outgoingCounts.get(start.toId) ?? 0) + 1)
+			if (end) incomingCounts.set(end.toId, (incomingCounts.get(end.toId) ?? 0) + 1)
+		}
+
+		const endTerminals = blankGeos.filter(
+			(shape) => (outgoingCounts.get(shape.id) ?? 0) === 0 && (incomingCounts.get(shape.id) ?? 0) > 0
+		)
+		expect(endTerminals).toHaveLength(3)
+
+		const geoByLabel = new Map(
+			geoShapes.map((shape) => [
+				renderPlaintextFromRichText(editor, shape.props.richText).trim(),
+				shape,
+			])
+		)
+
+		const distinctRegionEnds = new Set(
+			['NumLockOff', 'CapsLockOff', 'ScrollLockOff'].map((label) => {
+				const state = geoByLabel.get(label)
+				expect(state).toBeDefined()
+
+				const arrow = arrows.find((candidate) => {
+					const bindings = editor.getBindingsFromShape(candidate, 'arrow')
+					const start = bindings.find((binding) => binding.props.terminal === 'start')
+					const end = bindings.find((binding) => binding.props.terminal === 'end')
+					return start?.toId === state!.id && endTerminals.some((terminal) => terminal.id === end?.toId)
+				})
+
+				expect(arrow).toBeDefined()
+
+				const endBinding = editor
+					.getBindingsFromShape(arrow!, 'arrow')
+					.find((binding) => binding.props.terminal === 'end')
+				return endBinding!.toId
+			})
+		)
+
+		expect(distinctRegionEnds.size).toBe(3)
 	})
 
 	it('aligns state nodes in the same column and row by center', async () => {
@@ -695,6 +848,15 @@ function getCenterX(shape: TLGeoShape) {
 
 function getCenterY(shape: TLGeoShape) {
 	return shape.y + shape.props.h / 2
+}
+
+function getGeoByLabel(editor: TestEditor) {
+	return new Map(
+		editor
+			.getCurrentPageShapes()
+			.filter((shape): shape is TLGeoShape => shape.type === 'geo')
+			.map((shape) => [renderPlaintextFromRichText(editor, shape.props.richText).trim(), shape])
+	)
 }
 
 function getArrowLength(shape: TLArrowShape) {
