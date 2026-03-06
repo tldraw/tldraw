@@ -1,4 +1,11 @@
-import { TLParentId, TLShape, TLShapeId, createShapeId, toRichText } from '@tldraw/tlschema'
+import {
+	TLParentId,
+	TLShape,
+	TLShapeId,
+	createShapeId,
+	defaultTlmeta,
+	toRichText,
+} from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { Mock, Mocked, vi } from 'vitest'
 import { Editor } from '../../Editor'
@@ -47,6 +54,7 @@ describe('FontManager', () => {
 		opacity: 1,
 		isLocked: false,
 		meta: {},
+		tlmeta: { ...defaultTlmeta },
 		props: {
 			color: 'black',
 			size: 'xl',

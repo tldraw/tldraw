@@ -98,6 +98,7 @@ export {
 	type TLEditorSnapshot,
 	type TLLoadSnapshotOptions,
 } from './lib/config/TLEditorSnapshot'
+export { type TLIdentityProvider, type TLIdentityUser } from './lib/config/TLIdentity'
 export {
 	createSessionStateSnapshotSignal,
 	extractSessionStateFromLegacySnapshot,

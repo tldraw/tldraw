@@ -22,6 +22,7 @@ import {
 	compact,
 	createBindingId,
 	createShapeId,
+	defaultTlmeta,
 	getIndexAbove,
 	getIndices,
 	isShapeId,
@@ -93,6 +94,7 @@ export async function putExcalidrawContent(
 			isLocked: element.locked,
 			opacity: getOpacity(element.opacity),
 			meta: {},
+			tlmeta: { ...defaultTlmeta },
 		} as const
 
 		if (element.angle !== 0) {

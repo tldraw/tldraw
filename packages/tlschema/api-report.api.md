@@ -74,6 +74,9 @@ export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 // @public
 export const assetValidator: T.Validator<TLAsset>;
 
+// @public (undocumented)
+export const attributionUserValidator: T.Validator<null | TLAttributionUser>;
+
 // @public
 export class b64Vecs {
     static decodeFirstPoint(b64Points: string): null | VecModel;
@@ -176,7 +179,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
+}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "tlmeta" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
 
 // @public
 export function createTLSchema({ shapes, bindings, migrations }?: {
@@ -289,6 +292,9 @@ export const DefaultSizeStyle: EnumStyleProp<"l" | "m" | "s" | "xl">;
 
 // @public
 export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
+
+// @public (undocumented)
+export const defaultTlmeta: TLShapeTLmeta;
 
 // @public
 export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
@@ -805,6 +811,14 @@ export interface TLAssetStore {
 }
 
 // @public
+export interface TLAttributionUser {
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly name: string;
+}
+
+// @public
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
     meta: JsonObject;
     props: Props;
@@ -842,6 +856,8 @@ export interface TLBaseShape<Type extends string, Props extends object> {
     props: Props;
     // (undocumented)
     rotation: number;
+    // (undocumented)
+    tlmeta: TLShapeTLmeta;
     // (undocumented)
     type: Type;
     // (undocumented)
@@ -918,8 +934,9 @@ export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
 export type TLCreateShapePartial<T extends TLShape = TLShape> = T extends T ? {
     meta?: Partial<T['meta']>;
     props?: Partial<T['props']>;
+    tlmeta?: Partial<T['tlmeta']>;
     type: T['type'];
-} & Partial<Omit<T, 'meta' | 'props' | 'type'>> : never;
+} & Partial<Omit<T, 'meta' | 'props' | 'tlmeta' | 'type'>> : never;
 
 // @public
 export interface TLCursor {
@@ -1338,6 +1355,9 @@ export interface TLLineShapeProps {
 // @public
 export type TLLineShapeSplineStyle = T.TypeOf<typeof LineShapeSplineStyle>;
 
+// @public (undocumented)
+export const tlmetaValidator: T.ObjectValidator<TLShapeTLmeta>;
+
 // @public
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>;
 
@@ -1352,6 +1372,7 @@ export interface TLNoteShapeProps {
     richText: TLRichText;
     scale: number;
     size: TLDefaultSizeStyle;
+    textLastEditedBy: null | TLAttributionUser;
     url: string;
     verticalAlign: TLDefaultVerticalAlignStyle;
 }
@@ -1466,8 +1487,21 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     id: TLShapeId;
     meta?: Partial<T['meta']>;
     props?: Partial<T['props']>;
+    tlmeta?: Partial<T['tlmeta']>;
     type: T['type'];
-} & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
+} & Partial<Omit<T, 'id' | 'meta' | 'props' | 'tlmeta' | 'type'>> : never;
+
+// @public
+export interface TLShapeTLmeta {
+    // (undocumented)
+    createdAt: null | number;
+    // (undocumented)
+    createdBy: null | TLAttributionUser;
+    // (undocumented)
+    updatedAt: null | number;
+    // (undocumented)
+    updatedBy: null | TLAttributionUser;
+}
 
 // @public
 export type TLStore = Store<TLRecord, TLStoreProps>;

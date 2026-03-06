@@ -16,6 +16,7 @@ import { pointerVersions } from './records/TLPointer'
 import { instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeVersions } from './records/TLShape'
 import { arrowShapeVersions } from './shapes/TLArrowShape'
+import { defaultTlmeta } from './shapes/TLBaseShape'
 import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
 import { drawShapeVersions } from './shapes/TLDrawShape'
 import { embedShapeVersions } from './shapes/TLEmbedShape'
@@ -2600,6 +2601,32 @@ describe('LegacyPointsConversion migration for highlight shape', () => {
 
 		// LegacyPointsConversion.down is a no-op; Base64.down handles the conversion
 		expect(result.props.segments[0].path).toBe(deltaPath)
+	})
+})
+
+describe('Adding tlmeta to root shape', () => {
+	const { up, down } = getTestMigration(rootShapeVersions.AddTlmeta)
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({
+			tlmeta: defaultTlmeta,
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(down({ tlmeta: { ...defaultTlmeta } })).toEqual({})
+	})
+})
+
+describe('Adding textLastEditedBy to note shape', () => {
+	const { up, down } = getTestMigration(noteShapeVersions.AddLastEditedBy)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { textLastEditedBy: null } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { textLastEditedBy: null } })).toEqual({ props: {} })
 	})
 })
 

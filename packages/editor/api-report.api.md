@@ -51,6 +51,7 @@ import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
 import { TLAssetStore } from '@tldraw/tlschema';
+import { TLAttributionUser } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
 import { TLBinding } from '@tldraw/tlschema';
 import { TLBindingCreate } from '@tldraw/tlschema';
@@ -81,6 +82,7 @@ import { TLShape } from '@tldraw/tlschema';
 import { TLShapeCrop } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
+import { TLShapeTLmeta } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStoreSchema } from '@tldraw/tlschema';
@@ -813,7 +815,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls, identity }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -915,6 +917,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "arrow";
                 typeName: "shape";
                 x: number;
@@ -928,6 +931,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "bookmark";
                 typeName: "shape";
                 x: number;
@@ -941,6 +945,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "draw";
                 typeName: "shape";
                 x: number;
@@ -954,6 +959,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "embed";
                 typeName: "shape";
                 x: number;
@@ -967,6 +973,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "frame";
                 typeName: "shape";
                 x: number;
@@ -980,6 +987,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "geo";
                 typeName: "shape";
                 x: number;
@@ -993,6 +1001,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "group";
                 typeName: "shape";
                 x: number;
@@ -1006,6 +1015,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "highlight";
                 typeName: "shape";
                 x: number;
@@ -1019,6 +1029,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "image";
                 typeName: "shape";
                 x: number;
@@ -1032,6 +1043,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "line";
                 typeName: "shape";
                 x: number;
@@ -1045,6 +1057,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "my-custom-shape";
                 typeName: "shape";
                 x: number;
@@ -1058,6 +1071,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "note";
                 typeName: "shape";
                 x: number;
@@ -1071,6 +1085,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "test-shape";
                 typeName: "shape";
                 x: number;
@@ -1084,6 +1099,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "text";
                 typeName: "shape";
                 x: number;
@@ -1097,6 +1113,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                tlmeta: TLShapeTLmeta;
                 type: "video";
                 typeName: "shape";
                 x: number;
@@ -1177,6 +1194,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
     getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
+    getAttributionDisplayName(user: null | string | TLAttributionUser): null | string;
+    getAttributionUser(): null | TLAttributionUser;
+    getAttributionUserId(): null | string;
     getBaseZoom(): number;
     getBinding(id: TLBindingId): TLBinding | undefined;
     getBindingsFromShape<K extends TLBinding['type']>(shape: TLShape | TLShapeId, type: K): Extract<TLBinding, {
@@ -1246,6 +1266,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getHintingShapeIds(): TLShapeId[];
     getHoveredShape(): TLShape | undefined;
     getHoveredShapeId(): null | TLShapeId;
+    getIdentity(): TLIdentityProvider;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getInitialZoom(): number;
     getInstanceState(): TLInstance;
@@ -3648,6 +3669,7 @@ export interface TLEditorOptions {
     };
     getContainer(): HTMLElement;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
+    identity?: TLIdentityProvider;
     inferDarkMode?: boolean;
     initialState?: string;
     // (undocumented)
@@ -4009,6 +4031,19 @@ export interface TLHistoryMark {
     id: string;
     // (undocumented)
     type: 'stop';
+}
+
+// @public
+export interface TLIdentityProvider {
+    getCurrentUser(): null | TLIdentityUser;
+    resolveUser(userId: string): null | TLIdentityUser;
+}
+
+// @public
+export interface TLIdentityUser {
+    readonly color?: string;
+    readonly id: string;
+    readonly name: string;
 }
 
 // @public (undocumented)

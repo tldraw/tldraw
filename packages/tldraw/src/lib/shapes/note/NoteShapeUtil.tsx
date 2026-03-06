@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Box,
+	DefaultFontFamilies,
 	EMPTY_ARRAY,
 	Editor,
 	Group2d,
@@ -34,6 +35,7 @@ import {
 } from '@tldraw/editor'
 import { useCallback, useContext } from 'react'
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
+import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEmptyRichText,
@@ -49,6 +51,7 @@ import {
 	LABEL_PADDING,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
+import { DefaultFontFaces } from '../shared/defaultFonts'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
@@ -117,6 +120,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			fontSizeAdjustment: 0,
 			url: '',
 			scale: 1,
+			textLastEditedBy: null,
 		}
 	}
 
@@ -231,14 +235,19 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override getFontFaces(shape: TLNoteShape) {
-		if (isEmptyRichText(shape.props.richText)) {
-			return EMPTY_ARRAY
+		const fonts = isEmptyRichText(shape.props.richText)
+			? []
+			: getFontsFromRichText(this.editor, shape.props.richText, {
+					family: `tldraw_${shape.props.font}`,
+					weight: 'normal',
+					style: 'normal',
+				})
+
+		if (shape.props.textLastEditedBy && !isEmptyRichText(shape.props.richText)) {
+			return [...fonts, DefaultFontFaces.tldraw_sans.normal.normal]
 		}
-		return getFontsFromRichText(this.editor, shape.props.richText, {
-			family: `tldraw_${shape.props.font}`,
-			weight: 'normal',
-			style: 'normal',
-		})
+
+		return fonts.length ? fonts : EMPTY_ARRAY
 	}
 
 	component(shape: TLNoteShape) {
@@ -255,6 +264,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				richText,
 				verticalAlign,
 				fontSizeAdjustment,
+				textLastEditedBy,
 			},
 		} = shape
 
@@ -281,6 +291,17 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const isReadyForEditing = useIsReadyForEditing(this.editor, shape.id)
 		const isEmpty = isEmptyRichText(richText)
 
+		const attribution = useValue(
+			'attribution',
+			() => {
+				if (!textLastEditedBy || isEmpty) return null
+				const name = this.editor.getAttributionDisplayName(textLastEditedBy)
+				if (!name) return null
+				return { short: name.split(' ')[0], full: name }
+			},
+			[textLastEditedBy, isEmpty, this.editor]
+		)
+
 		return (
 			<>
 				<div
@@ -298,6 +319,21 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						boxShadow: hideShadows ? 'none' : getNoteShadow(shape.id, rotation, scale),
 					}}
 				>
+					{attribution && (
+						<TldrawUiTooltip content={attribution.full} side="bottom">
+							<div
+								className="tl-note__attribution"
+								style={{
+									['--note-attribution-scale' as string]: scale,
+									fontSize: 11 * scale,
+									color: getColorValue(theme, color, 'noteText'),
+									opacity: 0.6,
+								}}
+							>
+								{attribution.short}
+							</div>
+						</TldrawUiTooltip>
+					)}
 					{(isSelected || isReadyForEditing || !isEmpty) && (
 						<RichTextLabel
 							shapeId={id}
@@ -394,6 +430,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			/>
 		)
 
+		const { textLastEditedBy } = shape.props
+		const attributionName =
+			textLastEditedBy && !isEmptyRichText(shape.props.richText)
+				? this.editor.getAttributionDisplayName(textLastEditedBy)?.split(' ')[0]
+				: null
+
 		return (
 			<>
 				{ctx.isDarkMode ? null : (
@@ -412,6 +454,19 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					fill={getColorValue(theme, shape.props.color, 'noteFill')}
 				/>
 				{textLabel}
+				{attributionName && (
+					<text
+						x={NOTE_SIZE - 8}
+						y={bounds.h - 6}
+						textAnchor="end"
+						fontFamily={DefaultFontFamilies['sans']}
+						fontSize={11}
+						fill={getColorValue(theme, shape.props.color, 'noteText')}
+						opacity={0.6}
+					>
+						{attributionName}
+					</text>
+				)}
 			</>
 		)
 	}
@@ -421,15 +476,28 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape) {
+		const richTextChanged = !isEqual(prev.props.richText, next.props.richText)
+
 		if (
-			isEqual(prev.props.richText, next.props.richText) &&
+			!richTextChanged &&
 			prev.props.font === next.props.font &&
 			prev.props.size === next.props.size
 		) {
 			return
 		}
 
-		return getNoteSizeAdjustments(this.editor, next)
+		let shape = next
+		if (richTextChanged) {
+			shape = {
+				...shape,
+				props: {
+					...shape.props,
+					textLastEditedBy: this.editor.getAttributionUser(),
+				},
+			}
+		}
+
+		return getNoteSizeAdjustments(this.editor, shape) ?? (richTextChanged ? shape : undefined)
 	}
 
 	override getInterpolatedProps(

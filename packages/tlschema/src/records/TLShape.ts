@@ -10,7 +10,7 @@ import { T } from '@tldraw/validate'
 import { SchemaPropsInfo } from '../createTLSchema'
 import { TLPropsMigrations } from '../recordsWithProps'
 import { TLArrowShape } from '../shapes/TLArrowShape'
-import { TLBaseShape, createShapeValidator } from '../shapes/TLBaseShape'
+import { TLBaseShape, createShapeValidator, defaultTlmeta } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLDrawShape } from '../shapes/TLDrawShape'
 import { TLEmbedShape } from '../shapes/TLEmbedShape'
@@ -180,7 +180,8 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 			type: T['type']
 			props?: Partial<T['props']>
 			meta?: Partial<T['meta']>
-		} & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
+			tlmeta?: Partial<T['tlmeta']>
+		} & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta' | 'tlmeta'>>
 	: never
 
 /**
@@ -215,7 +216,8 @@ export type TLCreateShapePartial<T extends TLShape = TLShape> = T extends T
 			type: T['type']
 			props?: Partial<T['props']>
 			meta?: Partial<T['meta']>
-		} & Partial<Omit<T, 'type' | 'props' | 'meta'>>
+			tlmeta?: Partial<T['tlmeta']>
+		} & Partial<Omit<T, 'type' | 'props' | 'meta' | 'tlmeta'>>
 	: never
 
 /**
@@ -290,6 +292,7 @@ export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	HoistOpacity: 2,
 	AddMeta: 3,
 	AddWhite: 4,
+	AddTlmeta: 5,
 })
 
 /**
@@ -350,6 +353,15 @@ export const rootShapeMigrations = createRecordMigrationSequence({
 				if (record.props.color === 'white') {
 					record.props.color = 'black'
 				}
+			},
+		},
+		{
+			id: rootShapeVersions.AddTlmeta,
+			up: (record: any) => {
+				record.tlmeta = { ...defaultTlmeta }
+			},
+			down: (record: any) => {
+				delete record.tlmeta
 			},
 		},
 	],
@@ -582,5 +594,6 @@ export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
 		isLocked: false,
 		opacity: 1,
 		meta: {},
+		tlmeta: { ...defaultTlmeta },
 	}))
 }

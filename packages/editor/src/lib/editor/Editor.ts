@@ -24,6 +24,7 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLAssetPartial,
+	TLAttributionUser,
 	TLBinding,
 	TLBindingCreate,
 	TLBindingId,
@@ -96,6 +97,7 @@ import {
 	getSnapshot,
 	loadSnapshot,
 } from '../config/TLEditorSnapshot'
+import { TLIdentityProvider } from '../config/TLIdentity'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
@@ -267,6 +269,12 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+	/**
+	 * An identity provider for attribution and user resolution.
+	 * If not provided, falls back to localStorage user preferences
+	 * and the collaborator presence list.
+	 */
+	identity?: TLIdentityProvider
 }
 
 /**
@@ -309,10 +317,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		textOptions: _textOptions,
 		getShapeVisibility,
 		fontAssetUrls,
+		identity,
 	}: TLEditorOptions) {
 		super()
 
 		this._getShapeVisibility = getShapeVisibility
+		this._identity = identity ?? null
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop
@@ -822,6 +832,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
+	private readonly _identity: TLIdentityProvider | null
 
 	@computed
 	private getIsShapeHiddenCache() {
@@ -3939,6 +3950,80 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getCollaboratorsOnCurrentPage() {
 		const currentPageId = this.getCurrentPageId()
 		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
+	}
+
+	// Identity & Attribution
+
+	/**
+	 * The identity provider used for shape attribution and user-name resolution.
+	 *
+	 * If an `identity` option was passed to the editor constructor it is used
+	 * directly. Otherwise a default provider is built from the local
+	 * {@link UserPreferencesManager} and the collaborator presence list.
+	 *
+	 * @public
+	 */
+	getIdentity(): TLIdentityProvider {
+		if (this._identity) return this._identity
+		return this._getDefaultIdentity()
+	}
+
+	private _getDefaultIdentity(): TLIdentityProvider {
+		return {
+			getCurrentUser: () => {
+				const id = this.user.getId()
+				if (!id) return null
+				return { id, name: this.user.getName(), color: this.user.getColor() }
+			},
+			resolveUser: (userId: string) => {
+				const currentId = this.user.getId()
+				if (userId === currentId) {
+					return { id: userId, name: this.user.getName(), color: this.user.getColor() }
+				}
+				const collaborator = this.getCollaborators().find((c) => c.userId === userId)
+				if (collaborator) {
+					return { id: userId, name: collaborator.userName, color: collaborator.color }
+				}
+				return null
+			},
+		}
+	}
+
+	/**
+	 * Get the current user as a `TLAttributionUser` for stamping into shape
+	 * `tlmeta`. Returns `null` when no identity is configured or the user is anonymous.
+	 *
+	 * @public
+	 */
+	getAttributionUser(): TLAttributionUser | null {
+		const user = this.getIdentity().getCurrentUser()
+		if (!user) return null
+		return { id: user.id, name: user.name }
+	}
+
+	/**
+	 * Get the user ID to use for shape attribution. Delegates to
+	 * {@link Editor.getIdentity}.
+	 *
+	 * @public
+	 */
+	getAttributionUserId(): string | null {
+		return this.getAttributionUser()?.id ?? null
+	}
+
+	/**
+	 * Resolve a display name for an attribution user. When given a
+	 * `TLAttributionUser` object (as stored in `tlmeta`), the live
+	 * identity provider is tried first and the stored name is used as fallback.
+	 * A plain string user ID is also accepted for backward compatibility.
+	 *
+	 * @public
+	 */
+	getAttributionDisplayName(user: TLAttributionUser | string | null): string | null {
+		if (!user) return null
+		const id = typeof user === 'string' ? user : user.id
+		const fallback = typeof user === 'string' ? null : user.name
+		return this.getIdentity().resolveUser(id)?.name ?? fallback
 	}
 
 	// Following
@@ -8052,13 +8137,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// When we create the shape, take in the partial (the props coming into the
 				// function) and merge it with the default props.
+				const { tlmeta: partialTlmeta, ...partialWithoutTlmeta } = partial as any
 				let shapeRecordToCreate = (
 					this.store.schema.types.shape as RecordType<
 						TLShape,
 						'type' | 'props' | 'index' | 'parentId'
 					>
 				).create({
-					...partial,
+					...partialWithoutTlmeta,
 					index,
 					opacity: partial.opacity ?? opacityForNextShape,
 					parentId: partial.parentId ?? focusedGroupId,
@@ -8067,6 +8153,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				if (shapeRecordToCreate.index === undefined) {
 					throw Error('no index!')
+				}
+
+				// Set attribution metadata, merging any explicitly provided fields
+				const now = Date.now()
+				const user = this.getAttributionUser()
+				shapeRecordToCreate = {
+					...shapeRecordToCreate,
+					tlmeta: {
+						createdBy: user,
+						updatedBy: user,
+						createdAt: now,
+						updatedAt: now,
+						...partialTlmeta,
+					},
 				}
 
 				const next = this.getShapeUtil(shapeRecordToCreate).onBeforeCreate?.(shapeRecordToCreate)
@@ -8478,6 +8578,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the update had no effect, we'll skip this update
 				updated = applyPartialToRecordWithProps(shape, partial)
 				if (updated === shape) continue
+
+				// Update attribution metadata (always system-set, ignoring any partial.tlmeta)
+				// The reason is because things like, say, resizing, send the whole tlmeta into
+				// the updateShape call and then `updatedAt` never gets the correct date.
+				const now = Date.now()
+				const user = this.getAttributionUser()
+				updated = {
+					...updated,
+					tlmeta: {
+						...shape.tlmeta,
+						updatedBy: user,
+						updatedAt: now,
+					},
+				}
 
 				//if any shape has an onBeforeUpdate handler, call it and, if the handler returns a
 				// new shape, replace the old shape with the new one. This is used for example when
@@ -10836,7 +10950,11 @@ function applyPartialToRecordWithProps<
 	T extends UnknownRecord & { type: string; props: object; meta: object },
 >(
 	prev: T,
-	partial?: T extends T ? Omit<Partial<T>, 'props'> & { props?: Partial<T['props']> } : never
+	partial?: T extends T
+		? Omit<Partial<T>, 'props' | 'tlmeta'> & {
+				props?: Partial<T['props']>
+			} & ('tlmeta' extends keyof T ? { tlmeta?: Partial<T['tlmeta']> } : unknown)
+		: never
 ): T {
 	if (!partial) return prev
 	let next = null as null | T
@@ -10854,11 +10972,11 @@ function applyPartialToRecordWithProps<
 		// There's a new value, so create the new shape if we haven't already (should we be cloning this?)
 		if (!next) next = { ...prev }
 
-		// for props / meta properties, we support updates with partials of this object
-		if (k === 'props' || k === 'meta') {
-			next[k] = { ...prev[k] } as JsonObject
+		// for props / meta / tlmeta properties, we support updates with partials of this object
+		if (k === 'props' || k === 'meta' || k === 'tlmeta') {
+			;(next as any)[k] = { ...(prev as any)[k] }
 			for (const [nextKey, nextValue] of Object.entries(v as object)) {
-				;(next[k] as JsonObject)[nextKey] = nextValue
+				;(next as any)[k][nextKey] = nextValue
 			}
 			continue
 		}
