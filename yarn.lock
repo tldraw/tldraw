@@ -10421,6 +10421,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/editor-controller@workspace:*, @tldraw/editor-controller@workspace:packages/editor-controller":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/editor-controller@workspace:packages/editor-controller"
+  dependencies:
+    "@tldraw/editor": "workspace:*"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    vitest: "npm:^3.2.4"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/editor@workspace:*, @tldraw/editor@workspace:packages/editor":
   version: 0.0.0-use.local
   resolution: "@tldraw/editor@workspace:packages/editor"
@@ -29076,6 +29086,7 @@ __metadata:
     "@tiptap/react": "npm:^3.12.1"
     "@tiptap/starter-kit": "npm:^3.12.1"
     "@tldraw/editor": "workspace:*"
+    "@tldraw/editor-controller": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@types/classnames": "npm:^2.3.4"
     "@types/lz-string": "npm:^1.5.0"
