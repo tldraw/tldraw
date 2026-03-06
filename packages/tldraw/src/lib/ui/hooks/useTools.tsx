@@ -154,9 +154,14 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					})
 				},
 				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
+					const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) =>
-							editor.createShape({ id, type: 'geo', props: { w: 200, h: 200, geo } }),
+							editor.createShape({
+								id,
+								type: 'geo',
+								props: { w: 200 * scale, h: 200 * scale, geo, scale },
+							}),
 					})
 					trackEvent('drag-tool', { source, id: 'geo' })
 				},
@@ -171,12 +176,13 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onToolSelect(source, this)
 				},
 				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
+					const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) =>
 							editor.createShape({
 								id,
 								type: 'arrow',
-								props: { start: { x: 0, y: 200 }, end: { x: 200, y: 0 } },
+								props: { start: { x: 0, y: 200 * scale }, end: { x: 200 * scale, y: 0 }, scale },
 							}),
 					})
 					trackEvent('drag-tool', { source, id: 'arrow' })
@@ -192,6 +198,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onToolSelect(source, this)
 				},
 				onDragStart(source, info) {
+					const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const [start, end] = getIndicesBetween(null, null, 2)
@@ -200,9 +207,10 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 								type: 'line',
 								props: {
 									points: {
-										[start]: { id: start, index: start, x: 0, y: 200 },
-										[end]: { id: end, index: end, x: 200, y: 0 },
+										[start]: { id: start, index: start, x: 0, y: 200 * scale },
+										[end]: { id: end, index: end, x: 200 * scale, y: 0 },
 									},
+									scale,
 								},
 							})
 						},
@@ -220,8 +228,14 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onToolSelect(source, this)
 				},
 				onDragStart(source, info) {
+					const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
 					onDragFromToolbarToCreateShape(editor, info, {
-						createShape: (id) => editor.createShape({ id, type: 'frame' }),
+						createShape: (id) =>
+							editor.createShape({
+								id,
+								type: 'frame',
+								props: { w: 160 * 2 * scale, h: 90 * 2 * scale },
+							}),
 					})
 					trackEvent('drag-tool', { source, id: 'frame' })
 				},
@@ -236,9 +250,14 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onToolSelect(source, this)
 				},
 				onDragStart(source, info) {
+					const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) =>
-							editor.createShape({ id, type: 'text', props: { richText: toRichText('Text') } }),
+							editor.createShape({
+								id,
+								type: 'text',
+								props: { richText: toRichText('Text'), scale },
+							}),
 						onDragEnd: (id) => {
 							startEditingShapeWithRichText(editor, id, { selectAll: true })
 						},
@@ -266,8 +285,9 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onToolSelect(source, this)
 				},
 				onDragStart(source, info) {
+					const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
 					onDragFromToolbarToCreateShape(editor, info, {
-						createShape: (id) => editor.createShape({ id, type: 'note' }),
+						createShape: (id) => editor.createShape({ id, type: 'note', props: { scale } }),
 						onDragEnd: (id) => {
 							startEditingShapeWithRichText(editor, id, { selectAll: true })
 						},
