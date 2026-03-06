@@ -93,6 +93,10 @@ export function registerTldrawLibraryVersion(name?: string, version?: string, mo
 	}
 
 	const info = getLibraryVersions()
+	const isDuplicate = info.versions.some(
+		(v) => v.name === name && v.version === version && v.modules === modules
+	)
+	if (isDuplicate) return
 	info.versions.push({ name, version, modules })
 
 	if (!info.scheduledNotice) {
