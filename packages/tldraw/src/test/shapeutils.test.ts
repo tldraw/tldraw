@@ -551,4 +551,51 @@ describe('When interacting with a shape...', () => {
 		// Should have called cancel instead of end
 		expect(calls).toEqual(['start', 'change', 'change', 'cancel'])
 	})
+
+	it('fires onChildrenChange when a shape is created with a parentId', () => {
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
+		const fn = vi.fn()
+		util.onChildrenChange = fn
+
+		editor.createShape({
+			id: createShapeId('newchild'),
+			type: 'geo',
+			parentId: ids.frame1,
+			x: 0,
+			y: 0,
+		})
+
+		expect(fn).toHaveBeenCalledTimes(1)
+		expect(fn).toHaveBeenCalledWith(editor.getShape(ids.frame1))
+	})
+
+	it('fires onChildrenChange when a shape is reparented', () => {
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
+		const fn = vi.fn()
+		util.onChildrenChange = fn
+
+		editor.reparentShapes([ids.box1], ids.frame1)
+
+		expect(fn).toHaveBeenCalled()
+	})
+
+	it('fires onChildrenChange when a child shape is deleted', () => {
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
+		const fn = vi.fn()
+		util.onChildrenChange = fn
+
+		editor.deleteShape(ids.box2)
+
+		expect(fn).toHaveBeenCalledTimes(1)
+	})
+
+	it('fires onChildrenChange when a child shape is duplicated', () => {
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
+		const fn = vi.fn()
+		util.onChildrenChange = fn
+
+		editor.duplicateShapes([ids.box2])
+
+		expect(fn).toHaveBeenCalled()
+	})
 })
