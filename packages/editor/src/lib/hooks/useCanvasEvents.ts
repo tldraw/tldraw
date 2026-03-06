@@ -2,7 +2,12 @@ import { useValue } from '@tldraw/state-react'
 import React, { useEffect, useMemo } from 'react'
 import { RIGHT_MOUSE_BUTTON } from '../constants'
 import { tlenv } from '../globals/environment'
-import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
+import {
+	elementShouldCaptureKeys,
+	preventDefault,
+	releasePointerCapture,
+	setPointerCapture,
+} from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
@@ -84,9 +89,8 @@ export function useCanvasEvents() {
 					!(editingShapeId && e.target.closest(`[data-shape-id="${editingShapeId}"]`)) &&
 					// and the target is not an clickable element
 					e.target.tagName !== 'A' &&
-					// or a TextArea.tsx ?
-					e.target.tagName !== 'TEXTAREA' &&
-					!e.target.isContentEditable
+					// and the target is not an editable element
+					!elementShouldCaptureKeys(e.target, false)
 				) {
 					preventDefault(e)
 				}

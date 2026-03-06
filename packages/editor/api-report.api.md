@@ -92,7 +92,10 @@ import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
 
 // @internal (undocumented)
-export function activeElementShouldCaptureKeys(ignoreButtons?: boolean): boolean;
+export function activeElementShouldCaptureKeys(includeButton?: boolean): boolean;
+
+// @internal (undocumented)
+export function elementShouldCaptureKeys(el: Element | null, includeButton?: boolean): boolean;
 
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
