@@ -251,6 +251,10 @@ li.examples__sidebar__item {
 .example__sidebar__item__button:nth-of-type(n + 1) {
 	margin-left: -4px;
 }
+.example__sidebar__item__button[data-active='true'] {
+	opacity: 1;
+	color: hsl(214, 84%, 56%);
+}
 
 .example {
 	position: absolute;
