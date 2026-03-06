@@ -1,6 +1,7 @@
 {
 	"name": "mcp-app",
 	"version": "1.0.0",
+	"mcpName": "io.github.tldraw/tldraw",
 	"private": true,
 	"type": "module",
 	"scripts": {
