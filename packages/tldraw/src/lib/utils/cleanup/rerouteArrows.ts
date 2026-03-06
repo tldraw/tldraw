@@ -45,7 +45,13 @@ const ARC_SAMPLE_COUNT = 30
 // matches MIN_ARROW_BEND in shapes/arrow/shared.ts
 const MIN_ARROW_BEND = 8
 
-type ObstacleBox = { id: TLShapeId; minX: number; maxX: number; minY: number; maxY: number }
+interface ObstacleBox {
+	id: TLShapeId
+	minX: number
+	maxX: number
+	minY: number
+	maxY: number
+}
 
 /**
  * Adjusts the curvature (`bend`) of straight and arc arrows so their paths avoid non-endpoint
