@@ -681,6 +681,7 @@ export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTrans
 export { type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
 export {
 	useCurrentTranslation,
+	useDirection,
 	useTranslation,
 	type TLUiTranslationContextType,
 	type TLUiTranslationProviderProps,

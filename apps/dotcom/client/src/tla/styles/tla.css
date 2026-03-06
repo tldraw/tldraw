@@ -243,6 +243,10 @@
 	overflow: hidden;
 }
 
+.tl-container[dir='rtl'] .tlui-layout__top__right > div:first-child {
+	margin-left: 44px;
+}
+
 .tlui-page-menu__trigger {
 	width: fit-content;
 	max-width: 128px;
