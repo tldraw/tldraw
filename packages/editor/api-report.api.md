@@ -3104,8 +3104,14 @@ export class TextManager {
     measureHtml(html: string, opts: TLMeasureTextOpts): BoxModel & {
         scrollWidth: number;
     };
+    measureHtmlDom(html: string, opts: TLMeasureTextOpts): BoxModel & {
+        scrollWidth: number;
+    };
     // (undocumented)
     measureText(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & {
+        scrollWidth: number;
+    };
+    measureTextCanvas(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & {
         scrollWidth: number;
     };
     measureTextSpans(textToMeasure: string, opts: TLMeasureTextSpanOpts): {

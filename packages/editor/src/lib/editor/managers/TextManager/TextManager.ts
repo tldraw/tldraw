@@ -1,5 +1,6 @@
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
 import { objectMapKeys } from '@tldraw/utils'
+import { varPreLine } from 'uwrap'
 import type { Editor } from '../../Editor'
 
 const fixNewLines = /\r?\n|\r/g
@@ -11,6 +12,34 @@ function normalizeTextForDom(text: string) {
 		.map((x) => x || ' ')
 		.join('\n')
 }
+
+/**
+ * Parse a CSS padding string into top/right/bottom/left pixel values.
+ * Handles 1-4 value padding shorthand (assumes px units).
+ */
+function parsePadding(padding: string): {
+	top: number
+	right: number
+	bottom: number
+	left: number
+} {
+	const parts = padding
+		.trim()
+		.split(/\s+/)
+		.map((p) => parseFloat(p) || 0)
+	switch (parts.length) {
+		case 1:
+			return { top: parts[0], right: parts[0], bottom: parts[0], left: parts[0] }
+		case 2:
+			return { top: parts[0], right: parts[1], bottom: parts[0], left: parts[1] }
+		case 3:
+			return { top: parts[0], right: parts[1], bottom: parts[2], left: parts[1] }
+		default:
+			return { top: parts[0], right: parts[1], bottom: parts[2], left: parts[3] }
+	}
+}
+
+type UWrapInstance = ReturnType<typeof varPreLine>
 
 const textAlignmentsForLtr = {
 	start: 'left',
@@ -73,6 +102,9 @@ const initialDefaultStyles = Object.freeze({
 /** @public */
 export class TextManager {
 	private elm: HTMLDivElement
+	private canvasCtx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
+	private uwrapCache = new Map<string, UWrapInstance>()
+	private resolvedFontCache = new Map<string, string>()
 
 	constructor(public editor: Editor) {
 		const elm = document.createElement('div')
@@ -87,6 +119,60 @@ export class TextManager {
 		for (const key of objectMapKeys(initialDefaultStyles)) {
 			elm.style.setProperty(key, initialDefaultStyles[key])
 		}
+
+		// Use OffscreenCanvas when available for faster text measurement.
+		const ctx =
+			(typeof OffscreenCanvas !== 'undefined'
+				? new OffscreenCanvas(1, 1).getContext('2d')
+				: null) ?? document.createElement('canvas').getContext('2d')
+		if (!ctx) throw new Error('Could not create canvas 2d context for text measurement')
+		this.canvasCtx = ctx
+	}
+
+	/**
+	 * Resolve a CSS font-family value (which may contain CSS variables like
+	 * `var(--tl-font-draw)`) to the actual computed font-family string.
+	 */
+	private resolveFontFamily(fontFamily: string): string {
+		const cached = this.resolvedFontCache.get(fontFamily)
+		if (cached) return cached
+
+		// Use the measurement element to resolve CSS variables
+		const prev = this.elm.style.fontFamily
+		this.elm.style.fontFamily = fontFamily
+		const resolved = getComputedStyle(this.elm).fontFamily
+		this.elm.style.fontFamily = prev
+
+		this.resolvedFontCache.set(fontFamily, resolved)
+		return resolved
+	}
+
+	/**
+	 * Get or create a uWrap instance for the given font configuration.
+	 * uWrap instances are cached by a key derived from the font properties.
+	 */
+	private getUWrap(opts: {
+		fontFamily: string
+		fontSize: number
+		fontWeight: string
+		fontStyle: string
+		lineHeight: number
+	}): UWrapInstance {
+		const resolvedFamily = this.resolveFontFamily(opts.fontFamily)
+		const key = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px/${opts.lineHeight} ${resolvedFamily}`
+
+		const cached = this.uwrapCache.get(key)
+		if (cached) return cached
+
+		// Configure the canvas context with the font
+		const ctx = this.canvasCtx
+		ctx.font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${resolvedFamily}`
+		// Note: Canvas2D doesn't directly support lineHeight, but uWrap only needs
+		// the font for character width measurement. Line height is handled separately.
+
+		const wrapper = varPreLine(ctx as CanvasRenderingContext2D)
+		this.uwrapCache.set(key, wrapper)
+		return wrapper
 	}
 
 	private setElementStyles(styles: Record<string, string | undefined>) {
@@ -110,13 +196,122 @@ export class TextManager {
 		return this.elm.remove()
 	}
 
+	/**
+	 * Measure plain text dimensions using uWrap (canvas-based, no DOM layout).
+	 * Falls back to DOM measurement if uWrap can't handle the case.
+	 */
+	measureTextCanvas(
+		textToMeasure: string,
+		opts: TLMeasureTextOpts
+	): BoxModel & { scrollWidth: number } {
+		const padding = parsePadding(opts.padding)
+		const lineHeightPx = opts.fontSize * opts.lineHeight
+
+		const text = textToMeasure.replace(fixNewLines, '\n')
+
+		const minWidth = opts.minWidth ?? 0
+
+		if (opts.maxWidth !== null) {
+			// Wrapping mode: use uWrap to measure with a max width constraint
+			const wrapper = this.getUWrap(opts)
+			const availableWidth = opts.maxWidth - padding.left - padding.right
+			let lineCount = 0
+			let maxLineWidth = 0
+
+			// uWrap's types only declare (idx0, idx1) but the runtime also passes lineWidth as a 3rd arg
+			;(
+				wrapper.each as (
+					text: string,
+					width: number,
+					cb: (idx0: number, idx1: number, width: number) => void
+				) => void
+			)(text, availableWidth, (_idx0, _idx1, lineWidth) => {
+				lineCount++
+				if (lineWidth > maxLineWidth) maxLineWidth = lineWidth
+			})
+
+			if (lineCount === 0) lineCount = 1
+
+			const w = Math.max(opts.maxWidth, minWidth)
+			const h = lineCount * lineHeightPx + padding.top + padding.bottom
+
+			return { x: 0, y: 0, w, h, scrollWidth: 0 }
+		} else {
+			// No-wrap mode: measure each explicit line's width using canvas
+			// Set the font on the canvas context to match the requested font
+			const resolvedFamily = this.resolveFontFamily(opts.fontFamily)
+			this.canvasCtx.font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${resolvedFamily}`
+
+			const lines = text.split('\n')
+			let maxLineWidth = 0
+
+			for (const line of lines) {
+				if (line.length === 0) continue
+				const lineWidth = this.canvasCtx.measureText(line).width
+				if (lineWidth > maxLineWidth) maxLineWidth = lineWidth
+			}
+
+			const lineCount = Math.max(1, lines.length)
+			const w = Math.max(maxLineWidth + padding.left + padding.right, minWidth)
+			const h = lineCount * lineHeightPx + padding.top + padding.bottom
+
+			return { x: 0, y: 0, w, h, scrollWidth: 0 }
+		}
+	}
+
 	measureText(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
+		// Use uWrap canvas measurement if there are no special options that need DOM
+		if (!opts.disableOverflowWrapBreaking && !opts.otherStyles && !opts.measureScrollWidth) {
+			return this.measureTextCanvas(textToMeasure, opts)
+		}
+
+		// Fall back to DOM measurement for complex cases
 		const div = document.createElement('div')
 		div.textContent = normalizeTextForDom(textToMeasure)
 		return this.measureHtml(div.innerHTML, opts)
 	}
 
+	/**
+	 * Extract plain text from HTML by parsing it in a temporary element.
+	 * Returns null if the HTML contains elements that would affect text layout
+	 * (e.g. mixed font styles) and can't be accurately measured with a single font.
+	 */
+	private extractPlainTextFromHtml(html: string): string | null {
+		// Quick check: if there are no tags at all, it's plain text
+		if (!html.includes('<')) return html
+
+		// Parse the HTML and extract text content
+		const temp = document.createElement('div')
+		temp.innerHTML = html
+
+		// Check if the HTML has any elements that would change font metrics
+		// (bold, italic, different font sizes, etc.)
+		const formattingTags = temp.querySelectorAll(
+			'b, strong, i, em, u, s, sub, sup, code, span[style]'
+		)
+		if (formattingTags.length > 0) return null
+
+		return temp.textContent ?? ''
+	}
+
 	measureHtml(html: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
+		// Try canvas-based measurement for simple HTML (plain text wrapped in tags)
+		if (!opts.disableOverflowWrapBreaking && !opts.otherStyles && !opts.measureScrollWidth) {
+			const plainText = this.extractPlainTextFromHtml(html)
+			if (plainText !== null) {
+				return this.measureTextCanvas(plainText, opts)
+			}
+		}
+
+		// Fall back to DOM measurement
+		return this.measureHtmlDom(html, opts)
+	}
+
+	/**
+	 * Original DOM-based HTML measurement. Used as fallback when canvas
+	 * measurement isn't possible (rich text, special styles, etc.)
+	 */
+	measureHtmlDom(html: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
 		const { elm } = this
 
 		const newStyles = {
