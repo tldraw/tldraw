@@ -1,6 +1,7 @@
 import { Mat, PI2, TLArrowShape, TLGeoShape, VecLike } from '@tldraw/editor'
 import { defaultHandleExternalTextContent } from '../lib/defaultExternalContentHandlers'
 import { getArrowInfo } from '../lib/shapes/arrow/getArrowInfo'
+import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { renderPlaintextFromRichText } from '../lib/utils/text/richText'
 import { TestEditor } from './TestEditor'
 
@@ -304,6 +305,54 @@ end`,
 		expect(second.x).toBeGreaterThanOrEqual(first.x + first.props.w)
 	})
 
+	it('imports object-style flowchart node declarations with labels and shapes', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `flowchart TD
+A@{ shape: hex, label: "Prepare conditional" }`,
+		})
+
+		const geoByLabel = getGeoByLabel(editor)
+		const conditional = geoByLabel.get('Prepare conditional')
+
+		expect(conditional).toBeDefined()
+		expect(conditional!.props.geo).toBe('hexagon')
+	})
+
+	it('keeps circle and cross markers on both ends of flowchart edges', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `flowchart LR
+A o--o B
+C x--x D`,
+		})
+
+		const geoByLabel = getGeoByLabel(editor)
+		const circleArrow = getArrowBetween(editor, geoByLabel.get('A')!.id, geoByLabel.get('B')!.id)
+		const crossArrow = getArrowBetween(editor, geoByLabel.get('C')!.id, geoByLabel.get('D')!.id)
+
+		expect(circleArrow).toBeDefined()
+		expect(circleArrow!.props.arrowheadStart).toBe('dot')
+		expect(circleArrow!.props.arrowheadEnd).toBe('dot')
+
+		expect(crossArrow).toBeDefined()
+		expect(crossArrow!.props.arrowheadStart).toBe('bar')
+		expect(crossArrow!.props.arrowheadEnd).toBe('bar')
+	})
+
+	it('renders composite state containers with solid borders', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `stateDiagram-v2
+state Active {
+  [*] --> Running
+  Running --> [*]
+}`,
+		})
+
+		const active = getGeoByLabel(editor).get('Active')
+
+		expect(active).toBeDefined()
+		expect(active!.props.dash).not.toBe('dashed')
+	})
+
 	it('adds opposite bends for reverse-direction edges between the same nodes', async () => {
 		await defaultHandleExternalTextContent(editor, {
 			text: `stateDiagram-v2
@@ -584,7 +633,8 @@ state Active {
 		}
 
 		const endTerminals = blankGeos.filter(
-			(shape) => (outgoingCounts.get(shape.id) ?? 0) === 0 && (incomingCounts.get(shape.id) ?? 0) > 0
+			(shape) =>
+				(outgoingCounts.get(shape.id) ?? 0) === 0 && (incomingCounts.get(shape.id) ?? 0) > 0
 		)
 		expect(endTerminals).toHaveLength(3)
 
@@ -604,7 +654,9 @@ state Active {
 					const bindings = editor.getBindingsFromShape(candidate, 'arrow')
 					const start = bindings.find((binding) => binding.props.terminal === 'start')
 					const end = bindings.find((binding) => binding.props.terminal === 'end')
-					return start?.toId === state!.id && endTerminals.some((terminal) => terminal.id === end?.toId)
+					return (
+						start?.toId === state!.id && endTerminals.some((terminal) => terminal.id === end?.toId)
+					)
 				})
 
 				expect(arrow).toBeDefined()
@@ -692,6 +744,37 @@ state Third {
 		const secondToThirdGap = third!.x - (second!.x + second!.props.w)
 		expect(firstToSecondGap).toBeGreaterThan(0)
 		expect(secondToThirdGap).toBeGreaterThan(0)
+	})
+
+	it('keeps nested composite state containers inside their parents', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `stateDiagram-v2
+[*] --> First
+state First {
+  [*] --> Second
+  state Second {
+    [*] --> second
+    second --> Third
+    state Third {
+      [*] --> third
+      third --> [*]
+    }
+  }
+}`,
+		})
+
+		const geoByLabel = getGeoByLabel(editor)
+		const first = geoByLabel.get('First')
+		const second = geoByLabel.get('Second')
+		const third = geoByLabel.get('Third')
+
+		expect(first).toBeDefined()
+		expect(second).toBeDefined()
+		expect(third).toBeDefined()
+
+		expect(containsGeo(first!, second!)).toBe(true)
+		expect(containsGeo(first!, third!)).toBe(true)
+		expect(containsGeo(second!, third!)).toBe(true)
 	})
 
 	it('bends long state arrows that would cross through another node', async () => {
@@ -830,6 +913,40 @@ A --> A: second`,
 
 		expect(arrows).toHaveLength(2)
 		expect(arrows.every((arrow) => arrow.props.labelPosition === 0.5)).toBe(true)
+	})
+
+	it('does not crash when deleting nested subgraph containers with bound arrows', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `flowchart LR
+	subgraph TOP
+		direction TB
+		subgraph B1
+			direction RL
+			i1 -->f1
+		end
+		subgraph B2
+			direction BT
+			i2 -->f2
+		end
+	end
+	A --> TOP --> B
+	B1 --> B2`,
+		})
+
+		const geoByLabel = getGeoByLabel(editor)
+		const top = geoByLabel.get('TOP')
+		expect(top).toBeDefined()
+
+		const arrows = editor
+			.getCurrentPageShapes()
+			.filter((shape): shape is TLArrowShape => shape.type === 'arrow')
+		const topBoundArrows = arrows.filter((arrow) => {
+			const bindings = getArrowBindings(editor, arrow)
+			return bindings.start?.toId === top!.id || bindings.end?.toId === top!.id
+		})
+
+		expect(topBoundArrows.length).toBeGreaterThan(0)
+		expect(() => editor.deleteShapes([top!.id])).not.toThrow()
 	})
 })
 

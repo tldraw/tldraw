@@ -609,6 +609,10 @@ const SHAPE_OPENERS: Array<[string, string, string]> = [
 ]
 
 function parseNodeDecl(text: string): { id: string; label: string; shape: string } | null {
+	const objectDecl = parseObjectNodeDecl(text)
+	if (objectDecl) return objectDecl
+	if (text.includes('@{')) return null
+
 	for (const [opener, closer, shapeName] of SHAPE_OPENERS) {
 		const opIdx = text.indexOf(opener)
 		if (opIdx < 0) continue
@@ -621,8 +625,73 @@ function parseNodeDecl(text: string): { id: string; label: string; shape: string
 			shape: shapeName,
 		}
 	}
-	if (/^[a-zA-Z_][\w]*$/.test(text)) return { id: text, label: '', shape: 'rectangle' }
+	if (/^[a-zA-Z_][\w-]*$/.test(text)) return { id: text, label: '', shape: 'rectangle' }
 	return null
+}
+
+function parseObjectNodeDecl(text: string): { id: string; label: string; shape: string } | null {
+	const match = text.match(/^([a-zA-Z_][\w-]*)@\{\s*([\s\S]*?)\s*\}$/)
+	if (!match) return null
+
+	const [, id, body] = match
+	const label = parseObjectNodeDeclProp(body, 'label')
+	const shapeValue = parseObjectNodeDeclProp(body, 'shape')
+	const form = parseObjectNodeDeclProp(body, 'form')
+	const icon = parseObjectNodeDeclProp(body, 'icon')
+	if (label === null && shapeValue === null && form === null && icon === null) return null
+
+	const shape =
+		normalizeObjectNodeDeclShape(shapeValue) ?? normalizeObjectNodeDeclShape(form) ?? 'rectangle'
+
+	return { id, label: label ?? '', shape }
+}
+
+function parseObjectNodeDeclProp(body: string, key: string) {
+	const match = body.match(
+		new RegExp(String.raw`(?:^|,)\s*${key}\s*:\s*("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|[^,}]+)`, 'i')
+	)
+	if (!match) return null
+
+	return unquoteObjectNodeDeclValue(match[1].trim())
+}
+
+function unquoteObjectNodeDeclValue(value: string) {
+	if (
+		(value.startsWith('"') && value.endsWith('"')) ||
+		(value.startsWith("'") && value.endsWith("'"))
+	) {
+		return value.slice(1, -1).replace(/\\(["'\\])/g, '$1')
+	}
+	return value
+}
+
+function normalizeObjectNodeDeclShape(shape: string | null) {
+	if (!shape) return null
+
+	switch (shape.trim().toLowerCase()) {
+		case 'rect':
+		case 'rectangle':
+		case 'square':
+			return 'rectangle'
+		case 'hex':
+		case 'hexagon':
+			return 'hexagon'
+		case 'round':
+		case 'rounded':
+		case 'round-rect':
+		case 'rounded-rectangle':
+			return 'rounded'
+		case 'stadium':
+			return 'stadium'
+		case 'circle':
+			return 'circle'
+		case 'double-circle':
+			return 'double-circle'
+		case 'diamond':
+			return 'diamond'
+		default:
+			return shape.trim().toLowerCase()
+	}
 }
 
 interface EdgeArrowInfo {
@@ -672,6 +741,46 @@ const EDGE_ARROWS: Array<[RegExp, EdgeArrowInfo]> = [
 			arrowType: 'arrow',
 			endMarker: 'arrow',
 			startMarker: 'arrow',
+			bidirectional: true,
+		},
+	],
+	[
+		/^o---o$/,
+		{
+			stroke: 'normal',
+			arrowType: 'arrow',
+			endMarker: 'circle',
+			startMarker: 'circle',
+			bidirectional: true,
+		},
+	],
+	[
+		/^o--o$/,
+		{
+			stroke: 'normal',
+			arrowType: 'arrow',
+			endMarker: 'circle',
+			startMarker: 'circle',
+			bidirectional: true,
+		},
+	],
+	[
+		/^x---x$/,
+		{
+			stroke: 'normal',
+			arrowType: 'arrow',
+			endMarker: 'cross',
+			startMarker: 'cross',
+			bidirectional: true,
+		},
+	],
+	[
+		/^x--x$/,
+		{
+			stroke: 'normal',
+			arrowType: 'arrow',
+			endMarker: 'cross',
+			startMarker: 'cross',
 			bidirectional: true,
 		},
 	],

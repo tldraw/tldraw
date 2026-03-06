@@ -65,16 +65,16 @@ const MERMAID_CODE_BLOCK_REGEX = /```(?:mermaid|mmd)\s*([\s\S]*?)```/im
 const MERMAID_FLOWCHART_REGEX = /^(graph|flowchart)\s+/i
 const MERMAID_STATE_REGEX = /^stateDiagram(?:-v2)?\b/i
 
-const MIN_NODE_WIDTH = 200
-const MAX_NODE_WIDTH = 320
-const MIN_NODE_HEIGHT = 100
-const MAX_TEXT_WIDTH = 260
-const NODE_HORIZONTAL_PADDING = 32
-const NODE_VERTICAL_PADDING = 24
+const MIN_NODE_WIDTH = 240
+const MAX_NODE_WIDTH = 500
+const MIN_NODE_HEIGHT = 120
+const MAX_TEXT_WIDTH = 300
+const NODE_HORIZONTAL_PADDING = 40
+const NODE_VERTICAL_PADDING = 32
 const LABELED_NODE_SIZE_INCREASE = 0
 const TERMINAL_NODE_SIZE = 12
 const LAYER_GAP = 180
-const NODE_GAP = 100
+const NODE_GAP = 80
 const LAYER_ORDERING_SWEEPS = 4
 const SUBGRAPH_HORIZONTAL_PADDING = 48
 const SUBGRAPH_VERTICAL_PADDING = 40
@@ -253,6 +253,7 @@ export async function tryPutMermaidContent(
 		...subgraphLayouts,
 	])
 	resolveSubgraphOverlaps(graph.nodes, subgraphNodeIds, allNodeLayouts)
+	refreshSubgraphLayouts(graph.nodes, subgraphNodeIds, allNodeLayouts, childrenByParent)
 	if (isStateDiagram) {
 		positionStateRootTerminals(allNodeLayouts, graph.nodes, graph.edges)
 	}
@@ -285,7 +286,7 @@ export async function tryPutMermaidContent(
 				richText: toRichText(layout.label),
 				align: 'start',
 				verticalAlign: 'start',
-				dash: 'dashed',
+				dash: isStateDiagram ? geoDefaultProps.dash : 'dashed',
 				fill: 'none',
 			},
 		})
@@ -537,18 +538,10 @@ function normalizeFlowchartSource(source: string) {
 			continue
 		}
 
-		if (/^[A-Za-z_][\w-]*@\s*\{.*\}\s*;?$/.test(trimmed)) {
-			continue
-		}
-
 		let nextLine = line
 
 		// Remove edge ID prefixes in forms like: A e1@--> B
 		nextLine = nextLine.replace(/\s+[A-Za-z_][\w-]*@(?=(?:-+|=+|<|o--|x--|--o|--x))/g, ' ')
-
-		// Normalize bidirectional marker forms that stately's parser currently tokenizes into node IDs.
-		nextLine = nextLine.replace(/\bo--o\b/g, '--o')
-		nextLine = nextLine.replace(/\bx--x\b/g, '--x')
 
 		const expandedInvisible = expandInvisibleLinkFlowchartLine(nextLine)
 		if (expandedInvisible) {
@@ -1068,7 +1061,7 @@ function getSubgraphLayouts(
 	for (const subgraphNode of subgraphNodes) {
 		const childLayouts: MermaidNodeLayout[] = []
 		for (const childId of childrenByParent.get(subgraphNode.id) ?? []) {
-			const layout = nodeLayouts.get(childId) ?? subgraphLayouts.get(childId)
+			const layout = subgraphLayouts.get(childId) ?? nodeLayouts.get(childId)
 			if (layout) childLayouts.push(layout)
 		}
 		if (!childLayouts.length) continue
@@ -1093,6 +1086,25 @@ function getSubgraphLayouts(
 	}
 
 	return subgraphLayouts
+}
+
+function refreshSubgraphLayouts(
+	nodes: MermaidNode[],
+	subgraphNodeIds: Set<string>,
+	allNodeLayouts: Map<string, MermaidNodeLayout>,
+	childrenByParent: Map<string, string[]>
+) {
+	if (!subgraphNodeIds.size) return
+
+	const refreshedLayouts = getSubgraphLayouts(
+		nodes,
+		subgraphNodeIds,
+		allNodeLayouts,
+		childrenByParent
+	)
+	for (const [nodeId, layout] of refreshedLayouts) {
+		allNodeLayouts.set(nodeId, layout)
+	}
 }
 
 function getChildrenByParent(nodes: MermaidNode[]) {
@@ -1489,6 +1501,7 @@ function getGeoForMermaidNode(shape: string | undefined, isStartOrEnd: boolean) 
 			return 'ellipse' as const
 		case 'diamond':
 			return 'diamond' as const
+		case 'hex':
 		case 'hexagon':
 			return 'hexagon' as const
 		case 'triangle':
@@ -1521,7 +1534,7 @@ function getArrowheadsForEdge(edgeData: Record<string, unknown> | null): {
 } {
 	const arrowheadStart = getArrowheadForMarker(
 		edgeData?.startMarker,
-		Boolean(edgeData?.bidirectional)
+		edgeData?.startMarker !== undefined || Boolean(edgeData?.bidirectional)
 	)
 	const arrowheadEnd = getArrowheadForMarker(edgeData?.endMarker, edgeData?.arrowType !== 'none')
 

@@ -28,4 +28,42 @@ end`)
 		expect(nodesById.get('c1')?.parentId).toBe('three')
 		expect(nodesById.get('c2')?.parentId).toBe('three')
 	})
+
+	it('parses object-style flowchart node declarations', () => {
+		const graph = fromMermaidFlowchart(`flowchart TD
+A@{ shape: hex, label: "Prepare conditional" }`)
+
+		expect(graph.nodes).toEqual([
+			expect.objectContaining({
+				id: 'A',
+				label: 'Prepare conditional',
+				shape: 'hexagon',
+			}),
+		])
+	})
+
+	it('preserves symmetric circle and cross edge markers', () => {
+		const graph = fromMermaidFlowchart(`flowchart LR
+A o--o B
+C x--x D`)
+
+		expect(graph.edges).toEqual([
+			expect.objectContaining({
+				sourceId: 'A',
+				targetId: 'B',
+				data: expect.objectContaining({
+					startMarker: 'circle',
+					endMarker: 'circle',
+				}),
+			}),
+			expect.objectContaining({
+				sourceId: 'C',
+				targetId: 'D',
+				data: expect.objectContaining({
+					startMarker: 'cross',
+					endMarker: 'cross',
+				}),
+			}),
+		])
+	})
 })

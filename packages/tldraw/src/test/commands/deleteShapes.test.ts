@@ -103,6 +103,7 @@ describe('Editor.deleteShapes', () => {
 		expect(editor.getShape(ids.box3)).toBeUndefined()
 		expect(editor.getShape(ids.box4)).toBeUndefined()
 	})
+
 })
 
 describe('When deleting arrows', () => {
