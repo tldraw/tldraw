@@ -1,7 +1,10 @@
 import {
 	Editor,
 	Geometry2d,
+	intersectLineSegmentPolygon,
 	Mat,
+	MatModel,
+	pointInPolygon,
 	TLArrowBinding,
 	TLArrowBindingProps,
 	TLArrowShape,
@@ -249,4 +252,54 @@ export function getBoundShapeRelationships(
 		if (endBounds.contains(startBounds)) return 'end-contains-start'
 	}
 	return 'safe'
+}
+
+/**
+ * If the arrow terminal point falls outside the bound shape's mask (e.g. when a shape
+ * extends beyond a frame boundary and is clipped), clamp the terminal to the mask boundary.
+ * Uses the binding anchor point (inside the shape/frame) as the ray origin, since the
+ * arrow endpoint may be entirely outside the mask.
+ *
+ * @internal
+ */
+export function clampArrowTerminalToMask(
+	editor: Editor,
+	point: Vec,
+	terminalHandle: Vec,
+	arrowPageTransform: MatModel,
+	targetShapeInfo?: BoundShapeInfo
+) {
+	if (!targetShapeInfo) return
+
+	const mask = editor.getShapeMask(targetShapeInfo.shape.id)
+	if (!mask) return
+
+	const pagePoint = Mat.applyToPoint(arrowPageTransform, point)
+
+	if (pointInPolygon(pagePoint, mask)) return
+
+	// The point is outside the mask (clipped). Cast a ray from the binding
+	// anchor (which is inside the shape, and typically inside the frame) through
+	// the intersection point on the shape boundary to find where it crosses the mask.
+	// We extend the line slightly past the anchor in case the anchor sits exactly
+	// on the mask boundary.
+	const pageAnchor = Mat.applyToPoint(arrowPageTransform, terminalHandle)
+	const direction = Vec.Sub(pageAnchor, pagePoint).uni()
+	const extendedAnchor = Vec.Add(pageAnchor, Vec.Mul(direction, 1))
+	const intersections = intersectLineSegmentPolygon(extendedAnchor, pagePoint, mask)
+	if (!intersections || intersections.length === 0) return
+
+	// Pick the intersection closest to the original point (nearest frame edge to the shape)
+	let closest = intersections[0]
+	let closestDist = Vec.Dist2(closest, pagePoint)
+	for (let i = 1; i < intersections.length; i++) {
+		const dist = Vec.Dist2(intersections[i], pagePoint)
+		if (dist < closestDist) {
+			closest = intersections[i]
+			closestDist = dist
+		}
+	}
+
+	const arrowPoint = Mat.applyToPoint(Mat.Inverse(arrowPageTransform), closest)
+	point.setTo(arrowPoint)
 }

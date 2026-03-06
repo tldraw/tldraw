@@ -1,0 +1,41 @@
+{
+	"name": "mcp-app",
+	"version": "1.0.0",
+	"mcpName": "io.github.tldraw/tldraw",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build:widget": "node ../../packages/tldraw/scripts/copy-css-files.mjs && vite build && mv dist/index.html dist/mcp-app.html",
+		"build": "yarn build:widget",
+		"dev": "yarn dev:http",
+		"dev:stdio": "tsx main.ts --stdio",
+		"dev:http": "yarn build:widget && wrangler dev",
+		"dev:tunnel": "bash dev-tunnel.sh",
+		"deploy": "yarn build:widget && wrangler deploy",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/ext-apps": "^1.0.0",
+		"@modelcontextprotocol/sdk": "1.26.0",
+		"agents": "^0.5.0",
+		"zod": "^4.1.8"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250913.0",
+		"@types/node": "^22.15.31",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react": "^4.0.0",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
+		"tldraw": "workspace:*",
+		"tsx": "^4.19.2",
+		"typescript": "^5.8.3",
+		"vite": "^7.0.1",
+		"vite-plugin-singlefile": "^2.0.0",
+		"wrangler": "^4.67.0"
+	}
+}
