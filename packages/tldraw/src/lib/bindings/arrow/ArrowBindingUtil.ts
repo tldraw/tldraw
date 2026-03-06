@@ -280,9 +280,9 @@ export function updateArrowTerminal({
 			.mul(info.handleArc.radius * 2 * Math.sign(arrow.props.bend))
 		const targetPoint = Vec.Add(newMidPoint, lineSegment)
 		if (
-			!isFiniteVec(info.handleArc.center) ||
+			!Vec.IsFinite(info.handleArc.center) ||
 			!Number.isFinite(info.handleArc.radius) ||
-			!isFiniteVec(targetPoint)
+			!Vec.IsFinite(targetPoint)
 		) {
 			editor.updateShape(update)
 			if (unbind) {
@@ -317,10 +317,9 @@ export function updateArrowTerminal({
 	}
 }
 
-function getValidTerminalPoint(point: { x: number; y: number }, fallback: { x: number; y: number }) {
-	return isFiniteVec(point) ? Vec.From(point) : Vec.From(fallback)
-}
-
-function isFiniteVec(point: { x: number; y: number }) {
-	return Number.isFinite(point.x) && Number.isFinite(point.y)
+function getValidTerminalPoint(
+	point: { x: number; y: number },
+	fallback: { x: number; y: number }
+) {
+	return Vec.From(Vec.IsFinite(point) ? point : fallback)
 }
