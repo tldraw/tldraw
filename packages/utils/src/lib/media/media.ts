@@ -333,8 +333,8 @@ export class MediaHelpers {
 							}
 							if (pixelRatio > 1) {
 								return {
-									w: Math.round(w / pixelRatio),
-									h: Math.round(h / pixelRatio),
+									w: Math.ceil(w / pixelRatio),
+									h: Math.ceil(h / pixelRatio),
 									pixelRatio,
 								}
 							}
