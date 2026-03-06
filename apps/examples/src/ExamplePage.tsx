@@ -148,6 +148,7 @@ export function ExamplePage({
 				</nav>
 				<div className="example__content" role="main">
 					{children}
+					<ExampleDescriptionBar example={example} />
 					<Dialogs />
 				</div>
 			</div>
@@ -155,16 +156,59 @@ export function ExamplePage({
 	)
 }
 
-function ExampleSidebarListItem({
-	example,
-	isActive,
-}: {
-	example: Example
-	isActive?: boolean
-	showDescriptionWhenInactive?: boolean
-}) {
-	const ref = useRef<HTMLLIElement>(null)
+function stripHtml(html: string): string {
+	const doc = new DOMParser().parseFromString(html, 'text/html')
+	return doc.body.textContent?.trim() ?? ''
+}
+
+function getFirstParagraph(html: string): string {
+	const doc = new DOMParser().parseFromString(html, 'text/html')
+	const firstP = doc.querySelector('p')
+	return firstP?.textContent?.trim() ?? stripHtml(html)
+}
+
+function ExampleDescriptionBar({ example }: { example: Example }) {
 	const { setExampleDialog } = useContext(dialogContext)
+	const summaryText = getFirstParagraph(example.description)
+	if (!summaryText) return null
+
+	const hasDetails = !!stripHtml(example.details) || example.description.includes('</p>\n<')
+
+	return (
+		<div className="example__description-bar">
+			<span className="example__description-bar__title">{example.title}</span>
+			<span className="example__description-bar__text">{summaryText}</span>
+			<div className="example__description-bar__actions">
+				{hasDetails && (
+					<button
+						className="example__description-bar__button"
+						onClick={() => setExampleDialog(example)}
+					>
+						Learn more
+					</button>
+				)}
+				<a
+					className="example__description-bar__button"
+					href={example.codeUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					View source <ExternalLinkIcon />
+				</a>
+				<Link
+					className="example__description-bar__button"
+					to={`${example.path}/full`}
+					title="View standalone example"
+				>
+					Fullscreen <StandaloneIcon />
+				</Link>
+			</div>
+		</div>
+	)
+}
+
+function ExampleSidebarListItem({ example, isActive }: { example: Example; isActive?: boolean }) {
+	const ref = useRef<HTMLLIElement>(null)
 
 	useEffect(() => {
 		if (isActive) {
@@ -180,25 +224,6 @@ function ExampleSidebarListItem({
 		<li ref={ref} className="examples__sidebar__item" data-active={isActive}>
 			<Link to={example.path} className="examples__sidebar__item__link">
 				<span className="examples__sidebar__item__title">{example.title}</span>
-				{isActive && (
-					<div className="example__sidebar__item__buttons">
-						<button
-							className="example__sidebar__item__button hoverable"
-							onClick={() => setExampleDialog(example)}
-							aria-label="Info"
-						>
-							<InfoIcon />
-						</button>
-						<Link
-							to={`${example.path}/full`}
-							className="example__sidebar__item__button hoverable"
-							aria-label="Standalone"
-							title="View standalone example"
-						>
-							<StandaloneIcon />
-						</Link>
-					</div>
-				)}
 			</Link>
 		</li>
 	)
