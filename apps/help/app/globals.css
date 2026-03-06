@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	.prose h2,
+	.prose h3,
+	.prose h4,
+	.prose h5,
+	.prose h6 {
+		scroll-margin-top: 90px;
+	}
+
+	@media (max-width: 768px) {
+		.prose h2,
+		.prose h3,
+		.prose h4,
+		.prose h5,
+		.prose h6 {
+			scroll-margin-top: 130px;
+		}
+	}
+
+	.prose h2 a,
+	.prose h3 a,
+	.prose h4 a {
+		@apply font-bold;
+	}
+
+	.prose blockquote p {
+		margin: 0;
+	}
+
+	.prose blockquote p:before,
+	.prose blockquote p:after {
+		content: none;
+	}
+
+	.prose table {
+		background: none;
+		border-radius: 0;
+	}
+
+	.prose thead th {
+		background: none;
+		border: none;
+		border-bottom: none;
+		padding-left: 0;
+	}
+
+	.prose tbody td {
+		background: none;
+		border: none;
+		padding-left: 0;
+	}
+
+	.prose tbody tr {
+		background: none;
+	}
+}

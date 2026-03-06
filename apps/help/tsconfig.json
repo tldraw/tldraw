@@ -1,0 +1,16 @@
+{
+	"extends": "../../internal/config/tsconfig.base.json",
+	"compilerOptions": {
+		"paths": { "@/*": ["./*"] },
+		"lib": ["DOM", "DOM.Iterable", "ESNext"],
+		"plugins": [{ "name": "next" }],
+		"allowJs": true,
+		"emitDeclarationOnly": false,
+		"noEmit": true,
+		"isolatedModules": true,
+		"jsx": "preserve",
+		"strictNullChecks": true
+	},
+	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+	"exclude": ["node_modules", ".next", "postcss.config.js", "tailwind.config.js"]
+}

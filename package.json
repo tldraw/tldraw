@@ -43,6 +43,7 @@
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
 		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/dotcom/*' --filter='packages/tldraw'",
 		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
+		"dev-help": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/help'",
 		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'internal/huppy'",
 		"dev-template": "./internal/scripts/dev-template.sh",
 		"build": "lazy build",
