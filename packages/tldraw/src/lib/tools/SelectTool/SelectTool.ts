@@ -6,6 +6,7 @@ import { PointingCropHandle } from './childStates/Crop/children/PointingCropHand
 import { DraggingHandle } from './childStates/DraggingHandle'
 import { EditingShape } from './childStates/EditingShape'
 import { Idle } from './childStates/Idle'
+import { OneFingerZooming } from './childStates/OneFingerZooming'
 import { PointingArrowLabel } from './childStates/PointingArrowLabel'
 import { PointingCanvas } from './childStates/PointingCanvas'
 import { PointingHandle } from './childStates/PointingHandle'
@@ -45,6 +46,7 @@ export class SelectTool extends StateNode {
 			PointingArrowLabel,
 			PointingHandle,
 			DraggingHandle,
+			OneFingerZooming,
 		]
 	}
 
