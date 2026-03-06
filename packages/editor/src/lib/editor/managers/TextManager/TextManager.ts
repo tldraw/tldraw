@@ -107,7 +107,94 @@ export class TextManager {
 	}
 
 	dispose() {
-		return this.elm.remove()
+		this.elm.remove()
+		for (const el of this.poolElms) {
+			el.remove()
+		}
+		this.poolElms.length = 0
+		this.poolElmHtml.length = 0
+	}
+
+	// Pool of temporary measurement elements for batch measurements
+	private poolElms: HTMLDivElement[] = []
+	private poolElmHtml: string[] = []
+
+	private getPoolElm(index: number): HTMLDivElement {
+		if (index < this.poolElms.length) {
+			return this.poolElms[index]
+		}
+		// Create new pool elements on demand
+		while (this.poolElms.length <= index) {
+			const el = document.createElement('div')
+			el.classList.add('tl-text')
+			el.classList.add('tl-text-measure')
+			el.setAttribute('dir', 'auto')
+			el.tabIndex = -1
+			for (const key of objectMapKeys(initialDefaultStyles)) {
+				el.style.setProperty(key, initialDefaultStyles[key])
+			}
+			this.editor.getContainer().appendChild(el)
+			this.poolElms.push(el)
+		}
+		return this.poolElms[index]
+	}
+
+	/**
+	 * Measure multiple HTML strings in a single batch to avoid layout thrashing.
+	 * Uses a pool of temporary measurement elements so all writes happen before all reads.
+	 */
+	measureHtmlBatch(
+		requests: Array<{ html: string; opts: TLMeasureTextOpts }>
+	): Array<BoxModel & { scrollWidth: number }> {
+		if (requests.length === 0) return []
+
+		// Write phase: apply styles and innerHTML to each pooled element
+		for (let i = 0; i < requests.length; i++) {
+			const { html, opts } = requests[i]
+			const el = this.getPoolElm(i)
+
+			el.style.setProperty('font-family', opts.fontFamily)
+			el.style.setProperty('font-style', opts.fontStyle)
+			el.style.setProperty('font-weight', opts.fontWeight)
+			el.style.setProperty('font-size', opts.fontSize + 'px')
+			el.style.setProperty('line-height', opts.lineHeight.toString())
+			el.style.setProperty('padding', opts.padding)
+			el.style.setProperty('max-width', opts.maxWidth ? opts.maxWidth + 'px' : null)
+			el.style.setProperty('min-width', opts.minWidth ? opts.minWidth + 'px' : null)
+			el.style.setProperty(
+				'overflow-wrap',
+				opts.disableOverflowWrapBreaking ? 'normal' : 'break-word'
+			)
+			if (opts.otherStyles) {
+				for (const key of objectMapKeys(opts.otherStyles)) {
+					if (typeof opts.otherStyles[key] === 'string') {
+						el.style.setProperty(key, opts.otherStyles[key])
+					}
+				}
+			}
+			// Skip innerHTML parsing if the content hasn't changed
+			if (this.poolElmHtml[i] !== html) {
+				el.innerHTML = html
+				this.poolElmHtml[i] = html
+			}
+		}
+
+		// Read phase: measure all elements (browser recalculates layout once)
+		const results: Array<BoxModel & { scrollWidth: number }> = []
+		for (let i = 0; i < requests.length; i++) {
+			const el = this.getPoolElm(i)
+			const scrollWidth = requests[i].opts.measureScrollWidth ? el.scrollWidth : 0
+			const rect = el.getBoundingClientRect()
+			results.push({
+				x: 0,
+				y: 0,
+				w: rect.width,
+				h: rect.height,
+				scrollWidth,
+			})
+		}
+
+		return results
 	}
 
 	measureText(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
