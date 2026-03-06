@@ -4,7 +4,6 @@ import { mermaidBlockLoopFixtures } from '../../../../../../packages/tldraw/src/
 import { mermaidClassLoopFixtures } from '../../../../../../packages/tldraw/src/test/fixtures/mermaidClassLoopFixtures'
 import { mermaidERLoopFixtures } from '../../../../../../packages/tldraw/src/test/fixtures/mermaidERLoopFixtures'
 import { mermaidFlowchartLoopFixtures } from '../../../../../../packages/tldraw/src/test/fixtures/mermaidFlowchartLoopFixtures'
-import { mermaidMindmapLoopFixtures } from '../../../../../../packages/tldraw/src/test/fixtures/mermaidMindmapLoopFixtures'
 import { mermaidSequenceLoopFixtures } from '../../../../../../packages/tldraw/src/test/fixtures/mermaidSequenceLoopFixtures'
 import { mermaidStateLoopFixtures } from '../../../../../../packages/tldraw/src/test/fixtures/mermaidStateLoopFixtures'
 
@@ -12,7 +11,7 @@ interface MermaidFixture {
 	id: string
 	title: string
 	source: string
-	kind: 'flowchart' | 'state' | 'sequence' | 'class' | 'er' | 'mindmap' | 'block'
+	kind: 'flowchart' | 'state' | 'sequence' | 'class' | 'er' | 'block'
 }
 
 const GRID_COLUMNS = 6
@@ -27,7 +26,6 @@ const allFixtures: MermaidFixture[] = [
 	...mermaidSequenceLoopFixtures.map((fixture) => ({ ...fixture, kind: 'sequence' as const })),
 	...mermaidClassLoopFixtures.map((fixture) => ({ ...fixture, kind: 'class' as const })),
 	...mermaidERLoopFixtures.map((fixture) => ({ ...fixture, kind: 'er' as const })),
-	...mermaidMindmapLoopFixtures.map((fixture) => ({ ...fixture, kind: 'mindmap' as const })),
 	...mermaidBlockLoopFixtures.map((fixture) => ({ ...fixture, kind: 'block' as const })),
 ]
 

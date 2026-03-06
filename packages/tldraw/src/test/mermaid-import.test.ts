@@ -97,6 +97,19 @@ A --> B`,
 		expect(shapes.filter((shape) => shape.type === 'arrow')).toHaveLength(0)
 	})
 
+	it('falls back to plain text for unsupported mermaid mindmap diagrams', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `mindmap
+Root
+	Child`,
+		})
+
+		const shapes = editor.getCurrentPageShapes()
+		expect(shapes.filter((shape) => shape.type === 'text')).toHaveLength(1)
+		expect(shapes.filter((shape) => shape.type === 'geo')).toHaveLength(0)
+		expect(shapes.filter((shape) => shape.type === 'arrow')).toHaveLength(0)
+	})
+
 	it('renders subgraphs as containing geo shapes', async () => {
 		await defaultHandleExternalTextContent(editor, {
 			text: `flowchart TB
@@ -200,6 +213,32 @@ one --> two`,
 		expect(one!.parentId).toBe(pageId)
 		expect(three!.parentId).toBe(pageId)
 		expect(shapes.filter((shape) => shape.type === 'group')).toHaveLength(0)
+	})
+
+	it('keeps markdown flowchart subgraph containers from overlapping', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `flowchart LR
+	subgraph "One"
+	  a("\`The **cat**
+	  in the hat\`") -- "edge label" --> b{{"\`The **dog** in the hog\`"}}
+	end
+	subgraph "Two"
+	  c("\`The **cat**
+	  in the hat\`") -- "edge label" --> d{"The **dog** in the hog"}
+	end`,
+		})
+
+		const subgraphContainers = editor
+			.getCurrentPageShapes()
+			.filter((shape): shape is TLGeoShape => shape.type === 'geo')
+			.filter((shape) => shape.props.dash === 'dashed' && shape.props.fill === 'none')
+			.sort((a, b) => a.x - b.x)
+
+		expect(subgraphContainers).toHaveLength(2)
+
+		const first = subgraphContainers[0]
+		const second = subgraphContainers[1]
+		expect(second.x).toBeGreaterThanOrEqual(first.x + first.props.w)
 	})
 
 	it('adds opposite bends for reverse-direction edges between the same nodes', async () => {
@@ -556,66 +595,6 @@ B ---->|No| E[End]`,
 		expect(polylineIntersectsRect(loopPoints, okInteriorRect)).toBe(false)
 	})
 
-	it('uses edge-to-center anchors for parent-to-child mindmap edges', async () => {
-		await defaultHandleExternalTextContent(editor, {
-			text: `mindmap
-	Project
-		Design
-			UI
-			UX
-		Build
-			Frontend
-			Backend`,
-		})
-
-		const geoShapes = editor
-			.getCurrentPageShapes()
-			.filter((shape): shape is TLGeoShape => shape.type === 'geo')
-		const geoByLabel = new Map(
-			geoShapes.map((shape) => [
-				renderPlaintextFromRichText(editor, shape.props.richText).trim(),
-				shape,
-			])
-		)
-
-		const project = geoByLabel.get('Project')
-		const design = geoByLabel.get('Design')
-		const build = geoByLabel.get('Build')
-		expect(project).toBeDefined()
-		expect(design).toBeDefined()
-		expect(build).toBeDefined()
-
-		const projectToDesign = getArrowTerminalAnchors(editor, project!.id, design!.id)
-		const projectToBuild = getArrowTerminalAnchors(editor, project!.id, build!.id)
-		expect(projectToDesign).toBeDefined()
-		expect(projectToBuild).toBeDefined()
-
-		expect(isOnOuterEdge(projectToDesign!.start)).toBe(true)
-		expect(projectToDesign!.end).toEqual({ x: 0.5, y: 0.5 })
-		expect(isOnOuterEdge(projectToBuild!.start)).toBe(true)
-		expect(projectToBuild!.end).toEqual({ x: 0.5, y: 0.5 })
-	})
-
-	it('renders deeper mindmap hierarchies as normal nodes instead of subgraph containers', async () => {
-		await defaultHandleExternalTextContent(editor, {
-			text: `mindmap
-Project
-	Design
-		UI
-		UX
-	Build
-		Frontend
-		Backend`,
-		})
-
-		const geoShapes = editor
-			.getCurrentPageShapes()
-			.filter((shape): shape is TLGeoShape => shape.type === 'geo')
-
-		expect(geoShapes).toHaveLength(7)
-		expect(geoShapes.every((shape) => shape.props.dash !== 'dashed')).toBe(true)
-	})
-
 	it('routes self-edges on the right side and increases bend for labels', async () => {
 		const plainEditor = new TestEditor()
 		await defaultHandleExternalTextContent(plainEditor, {
@@ -761,10 +740,6 @@ function normalizeAngle(angle: number) {
 	while (next <= -Math.PI) next += PI2
 	while (next > Math.PI) next -= PI2
 	return next
-}
-
-function isOnOuterEdge(anchor: { x: number; y: number }) {
-	return anchor.x === 0 || anchor.x === 1 || anchor.y === 0 || anchor.y === 1
 }
 
 function polylineIntersectsRect(

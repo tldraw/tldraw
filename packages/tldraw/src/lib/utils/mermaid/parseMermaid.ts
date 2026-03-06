@@ -175,19 +175,6 @@ export interface ERGraphData {
 
 export type ERGraph = Graph<ERNodeData, EREdgeData, ERGraphData>
 
-export interface MindmapNodeData {
-	icon?: string
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface MindmapEdgeData {}
-
-export interface MindmapGraphData {
-	diagramType: 'mindmap'
-}
-
-export type MindmapGraph = Graph<MindmapNodeData, MindmapEdgeData, MindmapGraphData>
-
 export interface BlockNodeData {
 	span?: number
 }
@@ -1511,96 +1498,6 @@ export function fromMermaidER(input: string): ERGraph {
 		nodes: Array.from(nodeMap.values()),
 		edges,
 		data: { diagramType: 'erDiagram' },
-	}
-}
-
-// ─── Mindmap parser ──────────────────────────────────────────────────────────
-
-const MINDMAP_SHAPE_PATTERNS: Array<[string, string, string]> = [
-	['(((', ')))', 'double-circle'],
-	['((', '))', 'circle'],
-	['([', '])', 'stadium'],
-	['{{', '}}', 'hexagon'],
-	['(', ')', 'rounded'],
-	['[', ']', 'rectangle'],
-]
-
-function parseNodeText(text: string): { label: string; shape?: string } {
-	for (const [opener, closer, shapeName] of MINDMAP_SHAPE_PATTERNS)
-		if (text.startsWith(opener) && text.endsWith(closer))
-			return {
-				label: text.slice(opener.length, text.length - closer.length).trim(),
-				shape: shapeName,
-			}
-	return { label: text.trim() }
-}
-
-export function fromMermaidMindmap(input: string): MindmapGraph {
-	validateInput(input, 'Mermaid mindmap')
-	const { lines } = prepareLines(input)
-	const header = lines[0]?.trim()
-	if (!header || !header.startsWith('mindmap'))
-		throw new Error('Mermaid mindmap: expected "mindmap" header')
-
-	const nodeMap = new Map<string, GraphNode<MindmapNodeData>>()
-	const edges: GraphEdge<MindmapEdgeData>[] = []
-	let nodeCounter = 0
-	let edgeCounter = 0
-	const stack: { id: string; indent: number }[] = []
-
-	for (let i = 1; i < lines.length; i++) {
-		const rawLine = lines[i]
-		if (!rawLine.trim()) continue
-		const indent = rawLine.length - rawLine.trimStart().length
-		const content = rawLine.trim()
-
-		let icon: string | undefined
-		let cleanContent = content
-		const iconMatch = content.match(/::icon\(([^)]+)\)/)
-		if (iconMatch) {
-			icon = iconMatch[1]
-			cleanContent = content.replace(/::icon\([^)]+\)/, '').trim()
-		}
-
-		const { label, shape } = parseNodeText(cleanContent)
-		const id = `mm_${nodeCounter++}`
-		const node: GraphNode<MindmapNodeData> = {
-			type: 'node',
-			id,
-			parentId: null,
-			initialNodeId: null,
-			label,
-			data: { ...(icon && { icon }) },
-			...(shape && { shape }),
-		}
-
-		while (stack.length > 0 && stack[stack.length - 1].indent >= indent) stack.pop()
-
-		if (stack.length > 0) {
-			const parent = stack[stack.length - 1]
-			node.parentId = parent.id
-			const edgeId = generateEdgeId(parent.id, id, edgeCounter++)
-			edges.push({
-				type: 'edge',
-				id: edgeId,
-				sourceId: parent.id,
-				targetId: id,
-				label: '',
-				data: {},
-			})
-		}
-
-		nodeMap.set(id, node)
-		stack.push({ id, indent })
-	}
-
-	return {
-		id: '',
-		type: 'directed',
-		initialNodeId: null,
-		nodes: Array.from(nodeMap.values()),
-		edges,
-		data: { diagramType: 'mindmap' },
 	}
 }
 

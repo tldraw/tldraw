@@ -17,7 +17,6 @@ import {
 	fromMermaidClass,
 	fromMermaidER,
 	fromMermaidFlowchart,
-	fromMermaidMindmap,
 	fromMermaidSequence,
 	fromMermaidState,
 } from './parseMermaid'
@@ -141,8 +140,7 @@ export async function tryPutMermaidContent(
 
 	if (!graph.nodes.length) return false
 
-	const isMindmapDiagram = isMindmapGraph(graph)
-	const subgraphNodeIds = isMindmapDiagram ? new Set<string>() : getSubgraphNodeIds(graph.nodes)
+	const subgraphNodeIds = getSubgraphNodeIds(graph.nodes)
 	const renderedNodes = graph.nodes.filter((node) => !subgraphNodeIds.has(node.id))
 	const nodeLayouts = getNodeLayouts(editor, renderedNodes)
 	if (!nodeLayouts.size) return false
@@ -539,9 +537,6 @@ function parseMermaidGraphFromHeader(headerLine: string, source: string): Mermai
 	if (headerLine.startsWith('erDiagram')) {
 		return fromMermaidER(source)
 	}
-	if (headerLine.startsWith('mindmap')) {
-		return fromMermaidMindmap(source)
-	}
 	if (headerLine.startsWith('block-beta')) {
 		return fromMermaidBlock(source)
 	}
@@ -649,10 +644,6 @@ function inferFlowchartSubgraphParents(source: string, graph: MermaidGraph): Mer
 
 function isStateDiagramGraph(graph: MermaidGraph) {
 	return isRecord(graph.data) && graph.data.diagramType === 'stateDiagram'
-}
-
-function isMindmapGraph(graph: MermaidGraph) {
-	return isRecord(graph.data) && graph.data.diagramType === 'mindmap'
 }
 
 function mergeStateTerminalNodes(
@@ -925,13 +916,22 @@ function resolveSubgraphOverlaps(
 	if (subgraphNodeIds.size < 2) return
 
 	const nodeById = new Map(nodes.map((node) => [node.id, node]))
-	const subgraphNodes = sortSubgraphNodesForLayout(nodes, subgraphNodeIds).reverse()
+	const subgraphNodes = sortSubgraphNodesForLayout(nodes, subgraphNodeIds)
+		.reverse()
+		.filter((node) => allNodeLayouts.has(node.id))
+		.sort((a, b) => {
+			const aLayout = allNodeLayouts.get(a.id)!
+			const bLayout = allNodeLayouts.get(b.id)!
+			if (aLayout.x !== bLayout.x) return aLayout.x - bLayout.x
+			return aLayout.y - bLayout.y
+		})
 
 	for (let i = 0; i < subgraphNodes.length; i++) {
 		const currentSubgraph = subgraphNodes[i]
 		let currentLayout = allNodeLayouts.get(currentSubgraph.id)
 		if (!currentLayout) continue
 
+		let minAllowedX = currentLayout.x
 		for (let j = 0; j < i; j++) {
 			const otherSubgraph = subgraphNodes[j]
 			const otherLayout = allNodeLayouts.get(otherSubgraph.id)
@@ -944,18 +944,25 @@ function resolveSubgraphOverlaps(
 				continue
 			}
 
-			if (currentLayout.x < otherLayout.x) continue
-			if (!rangesOverlap(currentLayout.y, currentLayout.y + currentLayout.h, otherLayout.y, otherLayout.y + otherLayout.h)) {
+			if (
+				!rangesOverlap(
+					currentLayout.y,
+					currentLayout.y + currentLayout.h,
+					otherLayout.y,
+					otherLayout.y + otherLayout.h
+				)
+			) {
 				continue
 			}
 
-			const targetX = otherLayout.x + otherLayout.w + SUBGRAPH_GAP
-			if (currentLayout.x >= targetX) continue
-			const dx = targetX - currentLayout.x
-			translateSubgraphSubtree(currentSubgraph.id, dx, 0, nodes, nodeById, allNodeLayouts)
-			currentLayout = allNodeLayouts.get(currentSubgraph.id)
-			if (!currentLayout) break
+			minAllowedX = Math.max(minAllowedX, otherLayout.x + otherLayout.w + SUBGRAPH_GAP)
 		}
+
+		if (minAllowedX <= currentLayout.x) continue
+		const dx = minAllowedX - currentLayout.x
+		translateSubgraphSubtree(currentSubgraph.id, dx, 0, nodes, nodeById, allNodeLayouts)
+		currentLayout = allNodeLayouts.get(currentSubgraph.id)
+		if (!currentLayout) continue
 	}
 }
 

@@ -52,7 +52,7 @@ export const DEFAULT_MAX_IMAGE_DIMENSION = 5000
  */
 export const DEFAULT_MAX_ASSET_SIZE = 10 * 1024 * 1024
 const MERMAID_TEXT_HINT_REGEX =
-	/(^|\n)\s*(?:```(?:mermaid|mmd)\b|(?:graph|flowchart|stateDiagram(?:-v2)?|sequenceDiagram|classDiagram|erDiagram|mindmap|block-beta)\b)/i
+	/(^|\n)\s*(?:```(?:mermaid|mmd)\b|(?:graph|flowchart|stateDiagram(?:-v2)?|sequenceDiagram|classDiagram|erDiagram|block-beta)\b)/i
 
 /** @public */
 export interface TLExternalContentProps {
