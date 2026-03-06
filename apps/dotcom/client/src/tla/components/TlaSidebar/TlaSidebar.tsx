@@ -88,6 +88,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 						<TldrawUiButton
 							type="icon"
 							tooltip={createGroupMsg}
+							title={createGroupMsg}
 							className={styles.sidebarCreateFileButton}
 							onClick={handleCreateGroup}
 							data-testid="tla-create-group"

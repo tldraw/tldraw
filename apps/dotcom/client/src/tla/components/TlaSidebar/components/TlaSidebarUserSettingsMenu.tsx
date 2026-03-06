@@ -38,6 +38,7 @@ export function TlaUserSettingsMenu() {
 					<TldrawUiButton
 						type="menu"
 						tooltip={userMenuLbl}
+						title={userMenuLbl}
 						className={classNames(styles.sidebarUserSettingsTrigger, styles.hoverable)}
 						data-testid="tla-sidebar-user-settings-trigger"
 					>

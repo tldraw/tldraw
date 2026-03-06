@@ -45,6 +45,7 @@ export function TlaSidebarFileSection({
 						className={styles.sidebarCreateFileButton}
 						onClick={iconButton.onClick}
 						tooltip={iconButton.title}
+						title={iconButton.title}
 					>
 						<TlaIcon icon={iconButton.icon} />
 					</TldrawUiButton>

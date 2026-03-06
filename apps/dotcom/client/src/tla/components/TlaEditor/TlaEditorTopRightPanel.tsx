@@ -172,6 +172,7 @@ export function SignedOutShareButton({
 				type="icon"
 				data-testid="tla-share-button"
 				tooltip={shareLbl}
+				title={shareLbl}
 				className={classNames(styles.topRightAnonShareButton)}
 				onClick={() => trackEvent('open-share-menu', { source: 'anon-top-bar' })}
 			>

@@ -123,6 +123,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 							type="icon"
 							className={styles.topLeftMainMenuTrigger}
 							tooltip={pageMenuLbl}
+							title={pageMenuLbl}
 							data-testid="tla-main-menu"
 						>
 							<TlaIcon icon="dots-vertical-strong" />
@@ -238,6 +239,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 						type="icon"
 						className={styles.topLeftMainMenuTrigger}
 						tooltip={pageMenuLbl}
+						title={pageMenuLbl}
 						data-testid="tla-main-menu"
 					>
 						<TlaIcon icon="dots-vertical-strong" />

@@ -27,6 +27,7 @@ export function TlaSidebarFileLinkMenu({
 					type="icon"
 					className={styles.sidebarFileListItemMenuTrigger}
 					tooltip={fileMenuLbl}
+					title={fileMenuLbl}
 				>
 					<TlaIcon icon="dots-vertical-strong" />
 				</TldrawUiButton>

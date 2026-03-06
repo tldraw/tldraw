@@ -1,12 +1,17 @@
 import classNames from 'classnames'
 import { TldrawUiButton, TldrawUiIcon, useLocalStorageState } from 'tldraw'
 import { trackEvent } from '../../../../utils/analytics'
-import { F } from '../../../utils/i18n'
+import { defineMessages, F, useMsg } from '../../../utils/i18n'
 import { ExternalLink } from '../../ExternalLink/ExternalLink'
 import styles from '../sidebar.module.css'
 
+const messages = defineMessages({
+	dismiss: { defaultMessage: 'Dismiss' },
+})
+
 export function TlaSidebarDotDevLink() {
 	const [showDotDevLink, setShowDotDevLink] = useLocalStorageState('showDotDevLink', true)
+	const dismissLbl = useMsg(messages.dismiss)
 	if (!showDotDevLink) return null
 
 	return (
@@ -24,7 +29,7 @@ export function TlaSidebarDotDevLink() {
 			</ExternalLink>
 			<TldrawUiButton
 				type="icon"
-				tooltip="Dismiss"
+				tooltip={dismissLbl}
 				data-testid="tla-sidebar-dotdev-dismiss-button"
 				className={classNames(styles.sidebarDotDevDismissButton, styles.hoverable)}
 				onClick={() => {
@@ -32,7 +37,7 @@ export function TlaSidebarDotDevLink() {
 					setShowDotDevLink(false)
 				}}
 			>
-				<TldrawUiIcon icon="cross-2" label="Hide" small />
+				<TldrawUiIcon icon="cross-2" label={dismissLbl} small />
 			</TldrawUiButton>
 		</div>
 	)

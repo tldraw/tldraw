@@ -26,6 +26,7 @@ export function TlaSidebarToggle() {
 			data-mobile={false}
 			data-testid="tla-sidebar-toggle"
 			tooltip={toggleLbl}
+			title={toggleLbl}
 			onClick={() => {
 				toggleSidebar()
 				trackEvent('sidebar-toggle', {

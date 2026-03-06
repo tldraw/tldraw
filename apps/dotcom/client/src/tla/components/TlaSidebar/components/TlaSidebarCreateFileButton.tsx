@@ -49,6 +49,7 @@ export function TlaSidebarCreateFileButton() {
 			onClick={handleSidebarCreate}
 			data-testid="tla-create-file"
 			tooltip={createTitle}
+			title={createTitle}
 		>
 			<TlaIcon icon="edit-strong" style={{ left: 1 }} />
 		</TldrawUiButton>

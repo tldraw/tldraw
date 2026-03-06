@@ -32,6 +32,8 @@ import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { messages } from './sidebar-shared'
 
 const groupMessages = defineMessages({
+	newFile: { defaultMessage: 'New file' },
+	moreOptions: { defaultMessage: 'More options' },
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	settings: { defaultMessage: 'Settings' },
 	importFiles: { defaultMessage: 'Import file…' },
@@ -163,13 +165,16 @@ const GroupFileList = memo(function GroupFileList({
 })
 
 function TlaSidebarGroupMenu({ groupId }: { groupId: string }) {
+	const moreOptionsLbl = useMsg(groupMessages.moreOptions)
+
 	return (
 		<TldrawUiDropdownMenuRoot id={`group-menu-${groupId}-sidebar`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
 					<TldrawUiButton
 						className={styles.sidebarGroupItemButton}
-						tooltip="More options"
+						tooltip={moreOptionsLbl}
+						title={moreOptionsLbl}
 						type="icon"
 					>
 						<TlaIcon icon="dots-vertical-strong" />
@@ -280,7 +285,7 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
 	const rCanCreate = useRef(true)
-
+	const newFileLbl = useMsg(groupMessages.newFile)
 	const { startDragTracking } = useDragTracking()
 
 	const isDragging = useIsDragging(groupId)
@@ -440,7 +445,8 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 									type="icon"
 									className={styles.sidebarGroupItemButton}
 									onClick={handleCreateFile}
-									tooltip="New file"
+									tooltip={newFileLbl}
+									title={newFileLbl}
 								>
 									<TlaIcon icon="edit" />
 								</TldrawUiButton>

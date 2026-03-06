@@ -31,6 +31,7 @@ export function TlaSidebarHelpMenu() {
 					<TldrawUiButton
 						type="icon"
 						tooltip={msg}
+						title={msg}
 						data-testid="tla-sidebar-help-menu-trigger"
 						className={classNames(styles.sidebarHelpMenuTrigger, styles.hoverable)}
 					>

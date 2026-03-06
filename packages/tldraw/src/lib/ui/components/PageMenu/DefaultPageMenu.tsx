@@ -313,6 +313,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				<TldrawUiButton
 					type="menu"
 					tooltip={currentPage.name}
+					title={currentPage.name}
 					data-testid="page-menu.button"
 					className="tlui-page-menu__trigger"
 				>
@@ -335,6 +336,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 									type="icon"
 									data-testid="page-menu.edit"
 									tooltip={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
+									title={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
 									onClick={toggleEditing}
 								>
 									<TldrawUiButtonIcon icon={isEditing ? 'check' : 'edit'} />
@@ -343,6 +345,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 									type="icon"
 									data-testid="page-menu.create"
 									tooltip={msg(
+										maxPageCountReached
+											? 'page-menu.max-page-count-reached'
+											: 'page-menu.create-new-page'
+									)}
+									title={msg(
 										maxPageCountReached
 											? 'page-menu.max-page-count-reached'
 											: 'page-menu.create-new-page'
@@ -447,6 +454,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 										onClick={() => changePage(page.id)}
 										onDoubleClick={toggleEditing}
 										tooltip={msg('page-menu.go-to-page')}
+										title={msg('page-menu.go-to-page')}
 										onKeyDown={(e) => {
 											if (e.key === 'Enter') {
 												if (page.id === currentPage.id) {

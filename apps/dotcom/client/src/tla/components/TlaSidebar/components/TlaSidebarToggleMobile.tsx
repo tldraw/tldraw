@@ -26,6 +26,7 @@ export function TlaSidebarToggleMobile() {
 			data-mobile={true}
 			data-testid="tla-sidebar-toggle-mobile"
 			tooltip={toggleSidebarLbl}
+			title={toggleSidebarLbl}
 			onClick={() => {
 				updateLocalSessionState((s) => ({ isSidebarOpenMobile: !s.isSidebarOpenMobile }))
 				trackEvent('sidebar-toggle', {
