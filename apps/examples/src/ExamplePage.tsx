@@ -1,6 +1,6 @@
 import { AlertDialog as _AlertDialog } from 'radix-ui'
-import { Dispatch, createContext, useContext, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Dispatch, createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { Example, examples } from './examples'
 
 const dialogContext = createContext<{
@@ -31,10 +31,11 @@ export function ExamplePage({
 	const [filterValue, setFilterValue] = useState('')
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
+		const path = window.location.pathname
 		history.replaceState(
 			{},
 			'',
-			e.target.value ? `/?filter=${encodeURIComponent(e.target.value)}` : '/'
+			e.target.value ? `${path}?filter=${encodeURIComponent(e.target.value)}` : path
 		)
 	}
 
@@ -45,6 +46,11 @@ export function ExamplePage({
 			setFilterValue(decodeURIComponent(filter))
 		}
 	}, [])
+
+	useArrowKeyNavigation(filterValue, example.path)
+
+	const hasFilterResults =
+		!filterValue || examples.some((cat) => cat.value.some((ex) => matchesFilter(ex, filterValue)))
 
 	return (
 		<DialogContextProvider>
@@ -95,38 +101,38 @@ export function ExamplePage({
 						value={filterValue}
 						onChange={handleFilterChange}
 					/>
-					<ul className="example__sidebar__categories scroll-light">
-						{categories.map((currentCategory) => (
-							<li key={currentCategory} className="example__sidebar__category">
-								<h3 className="example__sidebar__category__header">{currentCategory}</h3>
-								<ul className="example__sidebar__category__items">
-									{examples
-										.find((category) => category.id === currentCategory)
-										?.value.filter((example) => {
-											const excludedWords = ['a', 'the', '', ' ']
-											const terms = filterValue
-												.toLowerCase()
-												.split(' ')
-												.filter((term) => !excludedWords.includes(term))
-											if (!terms.length) return true
-											return (
-												terms.some((term) => example.title.toLowerCase().includes(term)) ||
-												example.keywords.some((keyword) =>
-													terms.some((term) => keyword.toLowerCase().includes(term))
-												)
-											)
-										})
-										.map((sidebarExample) => (
-											<ExampleSidebarListItem
-												key={sidebarExample.path}
-												example={sidebarExample}
-												isActive={sidebarExample.path === example.path}
-											/>
-										))}
-								</ul>
-							</li>
-						))}
-					</ul>
+					{hasFilterResults ? (
+						<ul className="example__sidebar__categories scroll-light">
+							{categories.map((currentCategory) => (
+								<li key={currentCategory} className="example__sidebar__category">
+									<h3 className="example__sidebar__category__header">{currentCategory}</h3>
+									<ul className="example__sidebar__category__items">
+										{examples
+											.find((category) => category.id === currentCategory)
+											?.value.filter((ex) => matchesFilter(ex, filterValue))
+											.map((sidebarExample) => (
+												<ExampleSidebarListItem
+													key={sidebarExample.path}
+													example={sidebarExample}
+													isActive={sidebarExample.path === example.path}
+												/>
+											))}
+									</ul>
+								</li>
+							))}
+						</ul>
+					) : (
+						<p className="example__sidebar__no-results">
+							No examples match your filter —{' '}
+							<a
+								target="_blank"
+								rel="noopener noreferrer"
+								href="https://github.com/tldraw/tldraw/issues/new?assignees=&labels=Example%20Request&projects=&template=example_request.yml&title=%5BExample Request%5D%3A+"
+							>
+								request an example
+							</a>
+						</p>
+					)}
 					<div className="example__sidebar__footer-links">
 						<a
 							className="example__sidebar__footer-link example__sidebar__footer-link--grey"
@@ -153,6 +159,55 @@ export function ExamplePage({
 			</div>
 		</DialogContextProvider>
 	)
+}
+
+function matchesFilter(ex: Example, filterValue: string): boolean {
+	const excludedWords = ['a', 'the', '', ' ']
+	const terms = filterValue
+		.toLowerCase()
+		.split(' ')
+		.filter((term) => !excludedWords.includes(term))
+	if (!terms.length) return true
+	return (
+		terms.some((term) => ex.title.toLowerCase().includes(term)) ||
+		ex.keywords.some((keyword) => terms.some((term) => keyword.toLowerCase().includes(term)))
+	)
+}
+
+function useArrowKeyNavigation(filterValue: string, currentPath: string) {
+	const navigate = useNavigate()
+
+	const filteredExamples = useMemo(
+		() =>
+			examples.flatMap((category) => category.value.filter((ex) => matchesFilter(ex, filterValue))),
+		[filterValue]
+	)
+
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+
+			const activeTag = document.activeElement?.tagName
+			if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return
+
+			e.preventDefault()
+
+			if (filteredExamples.length === 0) return
+			const activeIndex = filteredExamples.findIndex((ex) => ex.path === currentPath)
+
+			let nextIndex: number
+			if (e.key === 'ArrowDown') {
+				nextIndex = activeIndex < filteredExamples.length - 1 ? activeIndex + 1 : 0
+			} else {
+				nextIndex = activeIndex > 0 ? activeIndex - 1 : filteredExamples.length - 1
+			}
+
+			navigate(filteredExamples[nextIndex].path)
+		}
+
+		document.addEventListener('keydown', handleKeyDown)
+		return () => document.removeEventListener('keydown', handleKeyDown)
+	}, [navigate, filteredExamples, currentPath])
 }
 
 function ExampleSidebarListItem({
