@@ -3814,6 +3814,8 @@ export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElemen
     // (undocumented)
     isActive?: boolean;
     // (undocumented)
+    tooltip?: string;
+    // (undocumented)
     type: 'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool';
 }
 

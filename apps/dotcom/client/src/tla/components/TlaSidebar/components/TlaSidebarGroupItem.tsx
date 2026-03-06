@@ -5,6 +5,7 @@ import { memo, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TLDRAW_FILE_EXTENSION,
+	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -31,6 +32,8 @@ import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { messages } from './sidebar-shared'
 
 const groupMessages = defineMessages({
+	newFile: { defaultMessage: 'New file' },
+	moreOptions: { defaultMessage: 'More options' },
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	settings: { defaultMessage: 'Settings' },
 	importFiles: { defaultMessage: 'Import file…' },
@@ -162,13 +165,20 @@ const GroupFileList = memo(function GroupFileList({
 })
 
 function TlaSidebarGroupMenu({ groupId }: { groupId: string }) {
+	const moreOptionsLbl = useMsg(groupMessages.moreOptions)
+
 	return (
 		<TldrawUiDropdownMenuRoot id={`group-menu-${groupId}-sidebar`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
-					<button className={styles.sidebarGroupItemButton} title="More options" type="button">
+					<TldrawUiButton
+						className={styles.sidebarGroupItemButton}
+						tooltip={moreOptionsLbl}
+						title={moreOptionsLbl}
+						type="icon"
+					>
 						<TlaIcon icon="dots-vertical-strong" />
-					</button>
+					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 					<GroupMenuContent groupId={groupId} />
@@ -275,7 +285,7 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
 	const rCanCreate = useRef(true)
-
+	const newFileLbl = useMsg(groupMessages.newFile)
 	const { startDragTracking } = useDragTracking()
 
 	const isDragging = useIsDragging(groupId)
@@ -431,14 +441,15 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 								onClick={(e) => e.stopPropagation()}
 								style={{ cursor: 'default' }}
 							>
-								<button
+								<TldrawUiButton
+									type="icon"
 									className={styles.sidebarGroupItemButton}
 									onClick={handleCreateFile}
-									title="New file"
-									type="button"
+									tooltip={newFileLbl}
+									title={newFileLbl}
 								>
 									<TlaIcon icon="edit" />
-								</button>
+								</TldrawUiButton>
 								<TlaSidebarGroupMenu groupId={groupId} />
 							</div>
 						</div>

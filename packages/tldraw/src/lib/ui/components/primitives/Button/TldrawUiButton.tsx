@@ -1,5 +1,6 @@
 import classnames from 'classnames'
 import * as React from 'react'
+import { TldrawUiTooltip } from '../TldrawUiTooltip'
 
 /** @public */
 export interface TLUiButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
@@ -7,6 +8,7 @@ export interface TLUiButtonProps extends React.HTMLAttributes<HTMLButtonElement>
 	isActive?: boolean
 	type: 'normal' | 'primary' | 'danger' | 'low' | 'icon' | 'tool' | 'menu' | 'help'
 	htmlButtonType?: 'button' | 'submit' | 'reset'
+	tooltip?: string
 }
 
 const namedClassNamesSoThatICanGrepForThis = {
@@ -22,8 +24,8 @@ const namedClassNamesSoThatICanGrepForThis = {
 
 /** @public @react */
 export const TldrawUiButton = React.forwardRef<HTMLButtonElement, TLUiButtonProps>(
-	function TldrawUiButton({ children, type, htmlButtonType, isActive, ...props }, ref) {
-		return (
+	function TldrawUiButton({ children, type, htmlButtonType, isActive, tooltip, ...props }, ref) {
+		const button = (
 			<button
 				ref={ref}
 				type={htmlButtonType || 'button'}
@@ -35,9 +37,18 @@ export const TldrawUiButton = React.forwardRef<HTMLButtonElement, TLUiButtonProp
 					namedClassNamesSoThatICanGrepForThis[type],
 					props.className
 				)}
+				aria-label={props.title}
+				// The tooltip takes care of this.
+				title={undefined}
 			>
 				{children}
 			</button>
 		)
+
+		if (tooltip) {
+			return <TldrawUiTooltip content={tooltip}>{button}</TldrawUiTooltip>
+		}
+
+		return button
 	}
 )

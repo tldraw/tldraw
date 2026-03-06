@@ -285,6 +285,12 @@
       "value": "Delete group…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "More options"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
@@ -453,6 +459,12 @@
     {
       "type": 0,
       "value": "A new version of tldraw is available. Please reload the page to continue."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "New file"
     }
   ],
   "6832ac5936": [
@@ -1067,6 +1079,12 @@
     {
       "type": 0,
       "value": "Sign out"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Dismiss"
     }
   ],
   "c9cc8cce24": [

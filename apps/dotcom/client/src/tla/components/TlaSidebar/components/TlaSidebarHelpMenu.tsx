@@ -1,5 +1,6 @@
 import classNames from 'classnames'
 import {
+	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -27,13 +28,15 @@ export function TlaSidebarHelpMenu() {
 		<TldrawUiDropdownMenuRoot id={`help-menu-sidebar`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
-					<button
+					<TldrawUiButton
+						type="icon"
+						tooltip={msg}
 						title={msg}
 						data-testid="tla-sidebar-help-menu-trigger"
 						className={classNames(styles.sidebarHelpMenuTrigger, styles.hoverable)}
 					>
 						<TlaIcon icon="question" />
-					</button>
+					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={10}>
 					<TldrawUiMenuGroup id="support">
