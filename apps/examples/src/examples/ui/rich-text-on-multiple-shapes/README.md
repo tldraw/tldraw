@@ -15,6 +15,14 @@ keywords:
     tlrichtext,
     document traversal,
   ]
+related:
+  [
+    text-mass-style-updates,
+    rich-text-custom-extension,
+    rich-text-font-extensions,
+    text-shape-configuration,
+    changing-default-style,
+  ]
 ---
 
 Add a toggle button to the style panel that allows you to make all text bold (or remove bold) from multiple selected shapes at once.

@@ -16,6 +16,7 @@ keywords:
     programmatic,
     read-only,
   ]
+related: [readonly, permissions, permissions-2, prevent-shape-change, api]
 ---
 
 Lock shapes to prevent user editing, and use `ignoreShapeLock` to modify them programmatically.

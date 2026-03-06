@@ -14,6 +14,7 @@ keywords:
     viewport,
     fixed zoom,
   ]
+related: [camera-options, zoom-to-bounds, image-annotator, keyboard-shortcuts, api]
 ---
 
 Lock the camera at a specific zoom level.

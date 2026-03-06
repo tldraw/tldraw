@@ -14,6 +14,7 @@ keywords:
     oncanvasmove,
     oncanvasclick,
   ]
+related: [ui-events, store-events, event-blocker, custom-double-click-behavior, signals]
 ---
 
 Listen to events from tldraw's canvas.

@@ -13,6 +13,7 @@ keywords:
     tools,
     debugging,
   ]
+related: [canvas-events, store-events, signals, keyboard-shortcuts, action-overrides]
 ---
 
 Listen to UI events.

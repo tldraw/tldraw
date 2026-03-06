@@ -4,6 +4,7 @@ component: ./CustomShapeWithHandles.tsx
 priority: 2
 keywords:
   [handles, custom handles, gethandles, onhandledrag, interaction, geometry, tail, shapeutil, tool]
+related: [custom-shape, shape-with-geometry, custom-config, editable-shape, cubic-bezier-shape]
 ---
 
 A speech bubble shape with custom handles.

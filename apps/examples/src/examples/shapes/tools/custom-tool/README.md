@@ -4,6 +4,7 @@ component: ./CustomToolExample.tsx
 priority: 0
 keywords:
   [statenode, tool, pointer events, onpointerdown, onenter, cursor, createshape, state machine]
+related: [tool-with-child-states, screenshot-tool, custom-shape, add-tool-to-toolbar, dynamic-tools]
 ---
 
 A simple custom tool.

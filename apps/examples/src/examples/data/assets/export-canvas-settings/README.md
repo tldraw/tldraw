@@ -18,6 +18,7 @@ keywords:
     box,
     tlimageexportoptions,
   ]
+related: [export-canvas-as-image, toSvg-method-example, snapshots, screenshot-tool, image-component]
 ---
 
 Export the entire canvas as an image file, with configurable settings.

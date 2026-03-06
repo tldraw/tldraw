@@ -14,6 +14,7 @@ keywords:
     collision detection,
   ]
 priority: 3
+related: [custom-components, things-on-the-canvas, mask-window, snowstorm, custom-renderer]
 ---
 
 Create a fog of war effect by keeping an HTML canvas in sync with canvas content.

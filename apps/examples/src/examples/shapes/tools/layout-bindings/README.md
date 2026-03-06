@@ -18,6 +18,7 @@ keywords:
     custom binding,
   ]
 priority: 10
+related: [sticker-bindings, pin-bindings, drag-and-drop, custom-config, arrow-binding-options]
 ---
 
 How to constrain shapes to a layout using bindings.

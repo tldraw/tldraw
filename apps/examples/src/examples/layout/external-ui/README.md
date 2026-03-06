@@ -16,6 +16,7 @@ keywords:
     setstylefornextshapes,
     usevalue,
   ]
+related: [external-ui-context, custom-ui, hide-ui, external-dialog, custom-components]
 ---
 
 This example shows how to control the tldraw editor from an external UI, using state.

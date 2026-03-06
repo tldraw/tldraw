@@ -13,6 +13,7 @@ keywords:
     debugging,
     error tracking,
   ]
+related: [error-boundary, custom-components, custom-ui, toasts-and-dialogs, basic]
 ---
 
 Customize the error screen that appears when the editor crashes.

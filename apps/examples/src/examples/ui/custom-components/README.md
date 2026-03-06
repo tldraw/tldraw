@@ -21,6 +21,7 @@ keywords:
     custom ui,
     override,
   ]
+related: [custom-ui, custom-grid, custom-renderer, indicators-logic, selection-ui]
 ---
 
 Replace tldraw's on-canvas UI with your own.

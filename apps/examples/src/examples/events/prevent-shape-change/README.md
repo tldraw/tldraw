@@ -14,6 +14,7 @@ keywords:
     disable rotate,
     shape protection,
   ]
+related: [permissions, prevent-instance-change, before-create-update-shape, readonly, locked-shapes]
 ---
 
 Prevent changes to a shape's properties.

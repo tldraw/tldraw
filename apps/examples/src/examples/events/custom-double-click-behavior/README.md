@@ -14,6 +14,7 @@ keywords:
     runtime,
     idle state,
   ]
+related: [canvas-events, action-overrides, tool-with-child-states, event-blocker, custom-tool]
 ---
 
 Override the default double-click behavior by replacing the SelectTool's Idle state method at runtime.

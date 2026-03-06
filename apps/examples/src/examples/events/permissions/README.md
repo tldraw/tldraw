@@ -15,6 +15,7 @@ keywords:
     shape geometry,
     svgcontainer,
   ]
+related: [permissions-2, prevent-shape-change, before-create-update-shape, locked-shapes, readonly]
 ---
 
 Use side effect APIs to constrain shape movement within a bounding box.

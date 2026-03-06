@@ -12,6 +12,7 @@ keywords:
     toolbar,
     selected shapes,
   ]
+related: [selection-ui, things-on-the-canvas, custom-components, toolbar-groups, inspector-panel]
 ---
 
 Show a contextual toolbar above shapes when they are selected.

@@ -18,6 +18,7 @@ keywords:
     components,
     TldrawUiMenuItem,
   ]
+related: [custom-ui, toolbar-groups, add-tool-to-toolbar, custom-components, keyboard-shortcuts]
 ---
 
 Customize tldraw's menus, including the toolbar, main menu, context menu, page menu, and more.

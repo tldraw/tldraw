@@ -15,6 +15,7 @@ keywords:
     split layout,
     worksheet,
   ]
+related: [exam-marking, camera-options, custom-grid, inset-canvas, image-annotator]
 ---
 
 An educational application template with a math question on the left and a drawing canvas on the right.

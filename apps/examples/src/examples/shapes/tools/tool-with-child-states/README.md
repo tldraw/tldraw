@@ -17,6 +17,7 @@ keywords:
     dragging,
     idle,
   ]
+related: [custom-tool, screenshot-tool, custom-config, add-tool-to-toolbar, lasso-select-tool]
 ---
 
 You can implement more complex behaviour in a custom tool by using child states

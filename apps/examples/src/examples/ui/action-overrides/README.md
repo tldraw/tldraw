@@ -14,6 +14,7 @@ keywords:
     addtoast,
     tluiactionitem,
   ]
+related: [keyboard-shortcuts, custom-double-click-behavior, custom-menus, ui-events, event-blocker]
 ---
 
 Customize and override tldraw's actions.

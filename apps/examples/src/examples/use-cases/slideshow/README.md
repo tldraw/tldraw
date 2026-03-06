@@ -16,6 +16,7 @@ keywords:
     presentation,
   ]
 priority: 0
+related: [slides, camera-options, zoom-to-bounds, education-canvas, focus-mode]
 ---
 
 A simple slideshow app with a fixed camera.

@@ -15,6 +15,7 @@ keywords:
     relative position,
   ]
 priority: 10
+related: [layout-bindings, pin-bindings, arrow-binding-options, custom-shape, custom-tool]
 ---
 
 A sticker shape, using bindings to attach shapes to one and other

@@ -14,6 +14,7 @@ keywords:
     adaptive ui,
     usevalue,
   ]
+related: [force-mobile, reduced-motion, dark-mode-toggle, custom-options, inline-behavior]
 ---
 
 Detect platform, browser, and input device type.

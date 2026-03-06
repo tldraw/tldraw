@@ -3,6 +3,7 @@ title: Many shapes
 component: ./ManyShapesExample.tsx
 priority: 5
 keywords: [performance, stress test, many shapes, LOD, level of detail, culling]
+related: [conditional-culling, camera-options, zoom-to-bounds, shape-animation]
 ---
 
 Populate the canvas with hundreds of shapes to see tldraw's performance optimizations in action.

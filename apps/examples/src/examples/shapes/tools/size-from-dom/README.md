@@ -14,6 +14,7 @@ keywords:
     htmlcontainer,
     responsive,
   ]
+related: [custom-shape, interactive-shape, ag-grid-shape, editable-shape, popup-shape]
 ---
 
 A custom shape who's size is derived from it's rendered DOM.

@@ -14,6 +14,7 @@ keywords:
     horizontal,
     vertical,
   ]
+related: [api, zoom-to-bounds, shape-animation, locked-shapes, coordinate-system]
 ---
 
 Align and distribute shapes using the editor's built-in methods.

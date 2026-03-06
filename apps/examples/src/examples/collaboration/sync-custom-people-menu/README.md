@@ -15,6 +15,7 @@ keywords:
     custom ui,
   ]
 multiplayer: true
+related: [sync-demo, sync-custom-presence, sync-custom-user, user-presence, custom-components]
 ---
 
 A custom multiplayer people menu / facepile that displays connected collaborators.

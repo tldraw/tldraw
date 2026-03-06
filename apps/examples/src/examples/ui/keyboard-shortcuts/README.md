@@ -3,6 +3,7 @@ title: Custom keyboard shortcuts
 component: ./KeyboardShortcutsExample.tsx
 priority: 3
 keywords: [shortcuts, hotkeys, keybindings, kbd, overrides, actions, tools, customize]
+related: [action-overrides, custom-config, custom-menus, add-tool-to-toolbar, toolbar-groups]
 ---
 
 Replace tldraw's default keyboard shortcuts with your own.

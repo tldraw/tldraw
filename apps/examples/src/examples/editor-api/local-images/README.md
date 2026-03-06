@@ -3,6 +3,7 @@ title: Create an image shape
 component: ./LocalImagesExample.tsx
 priority: 2
 keywords: [image, asset, assetrecordtype, createassets, local, static, png, jpg, imageshape]
+related: [local-videos, hosted-images, static-assets, asset-props, image-annotator]
 ---
 
 Create an image shape using a local asset.

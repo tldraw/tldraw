@@ -14,6 +14,7 @@ keywords:
     pageToViewport,
     track,
   ]
+related: [selection-ui, snowstorm, custom-components, custom-grid, coordinate-system]
 ---
 
 Add custom components to the canvas.

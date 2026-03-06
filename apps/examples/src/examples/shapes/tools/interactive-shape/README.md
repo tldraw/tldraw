@@ -16,6 +16,7 @@ keywords:
     custom shape,
     onclick,
   ]
+related: [editable-shape, custom-shape, ag-grid-shape, popup-shape, event-blocker]
 ---
 
 A custom shape that has its own onClick interactions.

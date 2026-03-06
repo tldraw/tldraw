@@ -15,6 +15,7 @@ keywords:
     props,
     validator,
   ]
+related: [editable-shape, shape-with-geometry, interactive-shape, custom-tool, speech-bubble]
 ---
 
 A simple custom shape.

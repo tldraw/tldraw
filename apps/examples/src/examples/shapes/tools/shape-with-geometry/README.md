@@ -14,6 +14,8 @@ keywords:
     hit testing,
     shapeutil,
   ]
+related:
+  [custom-shape, speech-bubble, cubic-bezier-shape, custom-clipping-shape, bounds-snapping-shape]
 ---
 
 A shape with custom geometry.

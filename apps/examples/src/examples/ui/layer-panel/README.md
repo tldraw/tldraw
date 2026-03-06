@@ -16,6 +16,7 @@ keywords:
     meta,
     infrontofthecanvas,
   ]
+related: [inspector-panel, things-on-the-canvas, custom-components, locked-shapes, zones]
 ---
 
 Implementing a minimal layers panel for tldraw.

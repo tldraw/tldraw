@@ -13,6 +13,7 @@ keywords:
     navigatetodeeplink,
     routing,
   ]
+related: [camera-options, zoom-to-bounds, persistence-key, local-storage, slides]
 ---
 
 Allow linking to specific parts of a tldraw canvas.

@@ -15,6 +15,7 @@ keywords:
     storage,
     hosting,
   ]
+related: [static-assets, local-images, asset-props, local-videos, external-content-sources]
 ---
 
 How to handle images uploaded by the user.

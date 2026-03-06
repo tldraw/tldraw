@@ -3,6 +3,7 @@ title: UI primitives
 component: ./UiPrimitivesExample.tsx
 priority: 1
 keywords: [button, dropdown, select, input, slider, popover, icon, tooltip, menu, ui]
+related: [toasts-and-dialogs, custom-menus, custom-components, custom-ui, inspector-panel]
 ---
 
 Showcase of tldraw's UI primitive components.

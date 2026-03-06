@@ -16,6 +16,7 @@ keywords:
     pointer events,
     atom,
   ]
+related: [signals, canvas-events, coordinate-system, derived-view, store-events]
 ---
 
 Reactively track mouse positions and velocities using the editor's inputs manager.

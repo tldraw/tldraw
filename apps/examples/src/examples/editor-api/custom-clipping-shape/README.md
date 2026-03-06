@@ -14,6 +14,7 @@ keywords:
     parent-child,
     circular,
   ]
+related: [custom-shape, shape-with-geometry, custom-config, mask-window, custom-components]
 ---
 
 # Custom clipping shape example

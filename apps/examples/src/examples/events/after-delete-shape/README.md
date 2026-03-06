@@ -12,6 +12,8 @@ keywords:
     frames,
     parent shapes,
   ]
+related:
+  [before-delete-shape, after-create-update-shape, store-events, signals, prevent-shape-change]
 ---
 
 Register a handler to run after shapes are deleted.

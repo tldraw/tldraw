@@ -15,6 +15,14 @@ keywords:
     text effects,
     defaultrichtexttoolbar,
   ]
+related:
+  [
+    rich-text-font-extensions,
+    rich-text-on-multiple-shapes,
+    outlined-text,
+    text-shape-configuration,
+    editable-shape,
+  ]
 ---
 
 Extend the TipTap text editor by adding a custom extension and toolbar.

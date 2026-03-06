@@ -15,6 +15,7 @@ keywords:
     usedelaysvgexport,
   ]
 priority: 5
+related: [interactive-shape, editable-shape, custom-shape, custom-config, size-from-dom]
 ---
 
 A custom shape that renders AG Grid.

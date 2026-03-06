@@ -13,6 +13,7 @@ keywords:
     upgrade,
     snapshot,
   ]
+related: [meta-on-create, meta-on-change, shape-with-migrations, snapshots, local-storage]
 ---
 
 Create custom migrations for `meta` properties.

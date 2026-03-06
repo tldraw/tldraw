@@ -13,6 +13,8 @@ keywords:
     note scaling,
   ]
 priority: 5
+related:
+  [configure-shape-util, custom-options, custom-config, custom-shape, custom-stroke-and-font-sizes]
 ---
 
 Make the note shape resizable.

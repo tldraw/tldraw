@@ -15,6 +15,7 @@ keywords:
     usemenuisopen,
     ui,
   ]
+related: [custom-menus, toolbar-groups, contextual-toolbar, keyboard-shortcuts, custom-ui]
 ---
 
 Programmatically control dropdown menus via hover interactions using the editor's menu tracking API.

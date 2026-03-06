@@ -16,6 +16,7 @@ keywords:
     pin together,
   ]
 priority: 10
+related: [sticker-bindings, layout-bindings, custom-tool, arrow-binding-options, custom-config]
 ---
 
 A pin, using bindings to pin together networks of shapes.

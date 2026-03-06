@@ -14,6 +14,7 @@ keywords:
     real-time,
   ]
 multiplayer: true
+related: [sync-demo, sync-custom-people-menu, sync-custom-user, user-presence, sync-private-content]
 ---
 
 Customize the presence data synced between different tldraw instances.

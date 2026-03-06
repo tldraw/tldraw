@@ -16,6 +16,7 @@ keywords:
     registerBeforeCreateHandler,
   ]
 multiplayer: true
+related: [sync-demo, permissions, permissions-2, sync-custom-user, fog-of-war]
 ---
 
 Show and hide private content in a multiplayer session.

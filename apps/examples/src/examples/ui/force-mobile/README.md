@@ -3,6 +3,7 @@ title: Force mobile layout
 component: ./ForceBreakpointExample
 priority: 4
 keywords: [mobile, responsive, breakpoint, forcemobile, layout, ui layout]
+related: [hide-ui, ui-components-hidden, inline, inline-behavior, custom-components]
 ---
 
 Force the editor UI to render as if it were on a mobile device.

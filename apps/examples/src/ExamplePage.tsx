@@ -1,7 +1,7 @@
 import { AlertDialog as _AlertDialog } from 'radix-ui'
 import { Dispatch, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Example, examples } from './examples'
+import { Example, examples, examplesByPath } from './examples'
 
 const dialogContext = createContext<{
 	example: Example | null
@@ -27,7 +27,7 @@ export function ExamplePage({
 	example: Example
 	children: React.ReactNode
 }) {
-	const categories = examples.map((e) => e.id)
+	const categories = examples
 	const [filterValue, setFilterValue] = useState('')
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
@@ -96,13 +96,20 @@ export function ExamplePage({
 						onChange={handleFilterChange}
 					/>
 					<ul className="example__sidebar__categories scroll-light">
-						{categories.map((currentCategory) => (
-							<li key={currentCategory} className="example__sidebar__category">
-								<h3 className="example__sidebar__category__header">{currentCategory}</h3>
+						{categories.map((category) => (
+							<li key={category.id} className="example__sidebar__category">
+								<h3 className="example__sidebar__category__header">
+									{category.id}
+									<span className="example__sidebar__category__info hoverable">
+										<InfoIcon />
+										<span className="example__sidebar__category__tooltip">
+											{category.description}
+										</span>
+									</span>
+								</h3>
 								<ul className="example__sidebar__category__items">
-									{examples
-										.find((category) => category.id === currentCategory)
-										?.value.filter((example) => {
+									{category.value
+										.filter((example) => {
 											const excludedWords = ['a', 'the', '', ' ']
 											const terms = filterValue
 												.toLowerCase()
@@ -251,6 +258,10 @@ function Dialogs() {
 		}
 	}
 
+	const relatedExamples = example.related
+		.map((slug) => examplesByPath.get(`/${slug}`))
+		.filter((e): e is Example => !!e)
+
 	return (
 		<_AlertDialog.Root defaultOpen onOpenChange={handleOpenChange} open={!!example}>
 			<_AlertDialog.Overlay
@@ -264,6 +275,20 @@ function Dialogs() {
 					className="example__dialog__markdown"
 				/>
 				<Markdown sanitizedHtml={content?.details ?? ''} className="example__dialog__markdown" />
+				{relatedExamples.length > 0 && (
+					<div className="example__dialog__related">
+						<h3>See also</h3>
+						<ul>
+							{relatedExamples.map((related) => (
+								<li key={related.path}>
+									<Link to={related.path} onClick={() => setExampleDialog(null)}>
+										{related.title}
+									</Link>
+								</li>
+							))}
+						</ul>
+					</div>
+				)}
 				<div className="example__dialog__actions">
 					<a href={example.codeUrl}>
 						View Source <ExternalLinkIcon />

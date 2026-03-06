@@ -14,6 +14,7 @@ keywords:
     custom text,
     brand voice,
   ]
+related: [custom-menus, custom-ui, custom-components, keyboard-shortcuts, changing-default-colors]
 ---
 
 Customize tldraw's translation strings and use them in custom components.

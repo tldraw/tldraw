@@ -12,6 +12,7 @@ keywords:
     selectedshapeids,
     selection control,
   ]
+related: [prevent-shape-change, prevent-instance-change, permissions, locked-shapes, event-blocker]
 ---
 
 This example demonstrates how to prevent users from selecting multiple shapes at once in tldraw.

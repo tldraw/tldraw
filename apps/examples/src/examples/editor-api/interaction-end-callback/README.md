@@ -15,6 +15,7 @@ keywords:
     setcurrenttool,
     programmatic,
   ]
+related: [after-create-update-shape, api, shape-animation, custom-tool, tool-with-child-states]
 ---
 
 Control behavior after dragging, resizing, or rotating shapes.

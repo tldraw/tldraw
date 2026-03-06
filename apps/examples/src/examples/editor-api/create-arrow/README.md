@@ -15,6 +15,7 @@ keywords:
     terminal,
     programmatic creation,
   ]
+related: [arrow-binding-options, arrows-precise-exact, api, sticker-bindings, layout-bindings]
 ---
 
 Create an arrow between two shapes.

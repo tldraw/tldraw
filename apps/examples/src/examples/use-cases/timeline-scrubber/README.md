@@ -17,6 +17,7 @@ keywords:
     applyDiff,
     document changes,
   ]
+related: [store-events, snapshots, unsaved-changes, signals, zones]
 ---
 
 A timeline scrubber that records document changes and allows time travel through editor history.

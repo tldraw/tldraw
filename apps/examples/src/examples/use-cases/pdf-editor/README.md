@@ -16,6 +16,7 @@ keywords:
     scroll,
     document viewer,
   ]
+related: [camera-options, image-annotator, scroll, slides, lock-camera-zoom]
 ---
 
 A very basic PDF editor built with tldraw.

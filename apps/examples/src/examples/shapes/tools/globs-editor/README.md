@@ -14,6 +14,7 @@ keywords:
     bezier,
     tension handles,
   ]
+related: [cubic-bezier-shape, speech-bubble, custom-config, pin-bindings, sticker-bindings]
 ---
 
 A globs based vector editor, based on the https://jcgt.org/published/0004/03/01/paper-lowres.pdf paper.

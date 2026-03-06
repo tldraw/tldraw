@@ -15,6 +15,7 @@ keywords:
     store.listen,
     throttle,
   ]
+related: [snapshots, persistence-key, store-events, meta-migrations, image-component]
 ---
 
 Manually persist the contents of the editor to storage.

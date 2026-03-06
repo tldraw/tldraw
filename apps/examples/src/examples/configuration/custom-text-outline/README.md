@@ -15,6 +15,14 @@ keywords:
     performance,
     styling,
   ]
+related:
+  [
+    configure-shape-util,
+    outlined-text,
+    custom-stroke-and-font-sizes,
+    text-shape-configuration,
+    custom-options,
+  ]
 ---
 
 Disable text outlines on text and arrow labels.

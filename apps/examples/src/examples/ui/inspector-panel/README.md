@@ -15,6 +15,7 @@ keywords:
     getselectedshapes,
     getbindingsinvolvingshape,
   ]
+related: [layer-panel, things-on-the-canvas, meta-on-create, selection-ui, custom-components]
 ---
 
 Display an inspector panel that shows the properties of the currently selected shape.

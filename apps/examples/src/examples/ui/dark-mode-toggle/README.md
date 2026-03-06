@@ -12,6 +12,7 @@ keywords:
     updateuserpreferences,
     getisdarkmode,
   ]
+related: [infer-dark-mode, changing-default-colors, custom-components, force-mobile, custom-ui]
 ---
 
 Toggle dark mode.

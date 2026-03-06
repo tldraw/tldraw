@@ -14,6 +14,7 @@ keywords:
     mergeRemoteChanges,
   ]
 priority: 5
+related: [sync-demo, sync-custom-presence, sync-custom-people-menu, sync-custom-user, multiple]
 ---
 
 Manually show other users editing the same document.
