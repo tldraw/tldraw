@@ -1,5 +1,5 @@
 import { isCancel, outro } from '@clack/prompts'
-import { existsSync, readdirSync, rmSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import { basename, resolve } from 'node:path'
 
 export function nicelog(...args: unknown[]) {
@@ -14,18 +14,6 @@ export function isDirEmpty(path: string) {
 
 	const files = readdirSync(path)
 	return files.length === 0 || (files.length === 1 && files[0] === '.git')
-}
-
-export function emptyDir(dir: string) {
-	if (!existsSync(dir)) {
-		return
-	}
-	for (const file of readdirSync(dir)) {
-		if (file === '.git') {
-			continue
-		}
-		rmSync(resolve(dir, file), { recursive: true, force: true })
-	}
 }
 
 export function pathToName(path: string) {
