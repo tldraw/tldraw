@@ -12,7 +12,7 @@ import { McpAgent } from 'agents/mcp'
 import type { TLShape } from 'tldraw'
 import { Logger } from './logger'
 import { registerTools } from './register-tools'
-import type { ServerDeps } from './shared/types'
+import type { MCP_APP_HOST_NAMES, ServerDeps } from './shared/types'
 import {
 	MAX_CHECKPOINTS,
 	MCP_SERVER_DESCRIPTION,
@@ -22,7 +22,7 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from './shared/types'
-import { parseTlShapes } from './shared/utils'
+import { parseTlShapes, resolveMcpAppHostName } from './shared/utils'
 
 // --- Types ---
 
@@ -79,9 +79,21 @@ export class TldrawMCP extends McpAgent<Env> {
 	activeCheckpointId: string | null = null
 	sessionId: string = ''
 	logger = new Logger('TldrawMCP')
+	clientHostName: MCP_APP_HOST_NAMES | undefined = undefined
 
 	async init() {
 		this.logger.info('Initializing Durable Object')
+
+		this.server.server.oninitialized = () => {
+			const clientInfo = this.server.server.getClientVersion()
+			const resolved = resolveMcpAppHostName(clientInfo?.name ?? '')
+			if (resolved) {
+				this.clientHostName = resolved
+				void this
+					.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('clientHostName', ${resolved})`
+			}
+			this.logger.info(`Client connected: ${this.clientHostName ?? 'unknown'}`)
+		}
 
 		// --- DO SQLite setup ---
 		void this
@@ -93,6 +105,13 @@ export class TldrawMCP extends McpAgent<Env> {
 		if (rows.length > 0) {
 			this.activeCheckpointId = rows[0].value as string
 			this.logger.info('Restored active checkpoint', { checkpointId: this.activeCheckpointId })
+		}
+
+		// Restore client host name on reconnect
+		const hostNameRows = [...this.sql`SELECT value FROM meta WHERE key = 'clientHostName'`]
+		if (hostNameRows.length > 0) {
+			this.clientHostName = hostNameRows[0].value as MCP_APP_HOST_NAMES
+			this.logger.info(`Restored client host name: ${this.clientHostName}`)
 		}
 
 		// Restore or generate session ID
@@ -142,6 +161,7 @@ export class TldrawMCP extends McpAgent<Env> {
 			httpDomain:
 				domainOpenai || domainClaude ? { openai: domainOpenai, claude: domainClaude } : undefined,
 			analytics: this.env.MCP_ANALYTICS,
+			getClientHostName: () => this.clientHostName,
 		})
 
 		this.logger.info('Initialization complete')
@@ -225,12 +245,12 @@ export default {
 				}
 			}
 
-			// SSE transport (for MCP Inspector and legacy clients)
+			// SSE transport (legacy)
 			if (url.pathname === '/sse' || url.pathname.startsWith('/sse/')) {
 				return sseHandler.fetch(request, env, ctx)
 			}
 
-			// Streamable HTTP transport (for Claude web, ChatGPT, and modern clients)
+			// Streamable HTTP transport
 			if (url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) {
 				// Rate limit by MCP session (POST without session ID is the initial handshake)
 				const sessionId = request.headers.get('mcp-session-id')
@@ -239,6 +259,7 @@ export default {
 				}
 				if (sessionId) {
 					const { success } = await env.RATE_LIMITER.limit({ key: sessionId })
+
 					if (!success) {
 						return corsResponse(new Response('Rate limited', { status: 429 }))
 					}

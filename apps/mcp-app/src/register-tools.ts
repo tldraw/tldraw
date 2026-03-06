@@ -44,9 +44,22 @@ import { READ_ME_CONTENT } from './tools/read-me'
 /**
  * Shared tool/resource registration logic for both Node.js and Cloudflare Workers entry points.
  *
- * Both `server.ts` (Node) and `src/cloudflare-worker.ts` (Workers) call `registerTools()`
+ * Both `server.ts` (Node) and `src/worker.ts` (Workers) call `registerTools()`
  * with platform-specific storage backends.
  */
+
+// --- Helpers ---
+
+function injectBootstrapData(html: string, bootstrap: Record<string, unknown>): string {
+	const toBase64 =
+		typeof Buffer !== 'undefined' ? (s: string) => Buffer.from(s).toString('base64') : btoa
+	const encoded = toBase64(JSON.stringify(bootstrap))
+	const bootstrapScript = `<script>window.__TLDRAW_BOOTSTRAP__=JSON.parse(atob("${encoded}"))</script>`
+	// Replace the LAST </head> — the inlined JS bundle may contain </head> as a string literal
+	const lastIdx = html.lastIndexOf('</head>')
+	if (lastIdx === -1) return html
+	return html.slice(0, lastIdx) + bootstrapScript + html.slice(lastIdx)
+}
 
 // --- Registration ---
 
@@ -75,6 +88,7 @@ export function registerTools(
 				readOnlyHint: true,
 				idempotentHint: true,
 				openWorldHint: false,
+				destructiveHint: false,
 			},
 		},
 		async (): Promise<CallToolResult> => {
@@ -97,7 +111,8 @@ export function registerTools(
 			description: 'Creates shapes, drawings, and diagrams on the tldraw canvas.',
 			inputSchema: createShapesInputSchema,
 			annotations: {
-				destructiveHint: true,
+				readOnlyHint: false,
+				destructiveHint: false,
 				idempotentHint: false,
 				openWorldHint: false,
 			},
@@ -179,6 +194,7 @@ export function registerTools(
 			description: 'Updates existing shapes, diagrams, and drawings on the tldraw canvas.',
 			inputSchema: updateShapesInputSchema,
 			annotations: {
+				readOnlyHint: false,
 				destructiveHint: true,
 				idempotentHint: false,
 				openWorldHint: false,
@@ -301,6 +317,7 @@ export function registerTools(
 			description: 'Deletes shapes by id from a JSON string (string[]).',
 			inputSchema: deleteShapesInputSchema,
 			annotations: {
+				readOnlyHint: false,
 				destructiveHint: true,
 				idempotentHint: false,
 				openWorldHint: false,
@@ -381,6 +398,7 @@ export function registerTools(
 			inputSchema: z.object({ checkpointId: z.string().min(1) }),
 			annotations: {
 				readOnlyHint: true,
+				destructiveHint: false,
 				idempotentHint: true,
 				openWorldHint: false,
 			},
@@ -471,7 +489,8 @@ export function registerTools(
 				bindingsJson: z.string().optional(),
 			}),
 			annotations: {
-				destructiveHint: true,
+				readOnlyHint: false,
+				destructiveHint: false,
 				idempotentHint: false,
 				openWorldHint: false,
 			},
@@ -527,6 +546,12 @@ export function registerTools(
 				event: z.string().min(1),
 				value: z.number().optional(),
 			}),
+			annotations: {
+				readOnlyHint: false,
+				destructiveHint: false,
+				idempotentHint: false,
+				openWorldHint: true,
+			},
 			_meta: { ui: { visibility: ['app'] } },
 		},
 		async ({ event, value }: { event: string; value?: number }): Promise<CallToolResult> => {
@@ -567,7 +592,10 @@ export function registerTools(
 			// has shapes synchronously on mount — before any streaming begins.
 			const activeId = deps.getActiveCheckpointId()
 			const sid = deps.getSessionId()
-			const bootstrap: Record<string, unknown> = { sessionId: sid }
+			const hostName = opts?.getClientHostName()
+			log(`opts: ${JSON.stringify(opts)}`)
+			log(`[tldraw-mcp] Serving resource to "${hostName}"`)
+			const bootstrap: Record<string, unknown> = { sessionId: sid, hostName }
 			if (activeId) {
 				const checkpoint = deps.loadCheckpoint(activeId)
 				if (checkpoint) {
@@ -577,30 +605,17 @@ export function registerTools(
 					bootstrap.bindings = checkpoint.bindings
 				}
 			}
-			const toBase64 =
-				typeof Buffer !== 'undefined' ? (s: string) => Buffer.from(s).toString('base64') : btoa
-			const encoded = toBase64(JSON.stringify(bootstrap))
-			const bootstrapScript = `<script>window.__TLDRAW_BOOTSTRAP__=JSON.parse(atob("${encoded}"))</script>`
-			// Replace the LAST </head> — the inlined JS bundle may contain </head> as a string literal
-			const lastIdx = html.lastIndexOf('</head>')
-			if (lastIdx !== -1) {
-				html = html.slice(0, lastIdx) + bootstrapScript + html.slice(lastIdx)
-			}
+			html = injectBootstrapData(html, bootstrap)
 
 			// Resolve domain from client identity (only when serving over HTTP with configured domains)
 			let domain: string | undefined
 			if (opts?.httpDomain?.openai || opts?.httpDomain?.claude) {
-				const clientName = server.server.getClientVersion()?.name ?? ''
-				if (clientName === 'openai-mcp') {
+				if (hostName === 'chatgpt') {
 					domain = opts.httpDomain.openai
-				} else if (
-					clientName === 'claude-ai' ||
-					clientName === 'Anthropic' ||
-					clientName === 'Anthropic/ClaudeAI'
-				) {
+				} else if (hostName === 'claude') {
 					domain = opts.httpDomain.claude
 				}
-				log(`[tldraw-mcp] Serving resource to "${clientName}" with domain: ${domain}`)
+				log(`[tldraw-mcp] Serving resource to "${hostName}" with domain: ${domain}`)
 			}
 
 			return {
