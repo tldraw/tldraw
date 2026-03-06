@@ -36,6 +36,34 @@ describe('mermaid external text import', () => {
 		}
 	})
 
+	it('applies classDef fill colors as solid node fills', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `flowchart TD
+  A[Start] --> B[End]
+  classDef green fill:#00ff00
+  classDef blue fill:#0000ff
+  class A green
+  class B blue`,
+		})
+
+		const geoByLabel = new Map(
+			editor
+				.getCurrentPageShapes()
+				.filter((shape): shape is TLGeoShape => shape.type === 'geo')
+				.map((shape) => [renderPlaintextFromRichText(editor, shape.props.richText).trim(), shape])
+		)
+
+		const start = geoByLabel.get('Start')
+		const end = geoByLabel.get('End')
+		expect(start).toBeDefined()
+		expect(end).toBeDefined()
+
+		expect(start!.props.fill).toBe('solid')
+		expect(start!.props.color).toBe('light-green')
+		expect(end!.props.fill).toBe('solid')
+		expect(end!.props.color).toBe('blue')
+	})
+
 	it('selects imported mermaid shapes after paste', async () => {
 		await defaultHandleExternalTextContent(editor, {
 			text: `sequenceDiagram
@@ -620,6 +648,7 @@ A --> A`,
 		expect(plainEnd!.props.normalizedAnchor.x).toBe(0.9)
 		expect(plainStart!.props.normalizedAnchor.y).toBeLessThan(plainEnd!.props.normalizedAnchor.y)
 		expect(plainArrow!.props.bend).toBeLessThan(-40)
+		expect(plainArrow!.props.labelPosition).toBe(0.5)
 
 		const labeledEditor = new TestEditor()
 		await defaultHandleExternalTextContent(labeledEditor, {
@@ -632,6 +661,22 @@ A -->|A very long self-edge label for spacing| A`,
 			.find((shape): shape is TLArrowShape => shape.type === 'arrow')
 		expect(labeledArrow).toBeDefined()
 		expect(Math.abs(labeledArrow!.props.bend)).toBeGreaterThan(Math.abs(plainArrow!.props.bend))
+		expect(labeledArrow!.props.labelPosition).toBe(0.5)
+	})
+
+	it('keeps self-transition labels centered in state diagrams', async () => {
+		await defaultHandleExternalTextContent(editor, {
+			text: `stateDiagram-v2
+A --> A: first
+A --> A: second`,
+		})
+
+		const arrows = editor
+			.getCurrentPageShapes()
+			.filter((shape): shape is TLArrowShape => shape.type === 'arrow')
+
+		expect(arrows).toHaveLength(2)
+		expect(arrows.every((arrow) => arrow.props.labelPosition === 0.5)).toBe(true)
 	})
 })
 

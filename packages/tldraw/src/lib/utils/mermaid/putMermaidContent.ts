@@ -1,8 +1,10 @@
 import {
+	DefaultColorThemePalette,
 	Editor,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
 	TLBindingCreate,
+	TLDefaultColorStyle,
 	TLShapeId,
 	TLShapePartial,
 	VecLike,
@@ -27,6 +29,7 @@ interface MermaidNode {
 	id: string
 	label: string
 	shape?: string
+	color?: string
 	parentId?: string | null
 	data?: unknown
 }
@@ -79,6 +82,7 @@ const SUBGRAPH_GAP = 48
 const OPPOSING_EDGE_BEND = 40
 const DIAGONAL_EDGE_BEND = 40
 const STATE_BENT_ARROW_LABEL_POSITION = 0.3
+const SELF_EDGE_LABEL_POSITION = 0.5
 const OBSTACLE_AVOIDANCE_BEND = 40
 const OBSTACLE_AVOIDANCE_RECT_PADDING = 12
 const OBSTACLE_AVOIDANCE_MAX_BEND = 480
@@ -94,6 +98,90 @@ const SELF_EDGE_LABEL_PADDING = 18
 const STATE_TERMINAL_SCOPE_GAP = 40
 const STATE_TERMINAL_SCOPE_LABEL_GAP = 64
 const STATE_TERMINAL_SIBLING_GAP = 24
+const MERMAID_COLOR_MAPPINGS: Record<string, TLDefaultColorStyle> = {
+	black: 'black',
+	white: 'white',
+	gray: 'grey',
+	grey: 'grey',
+	lightgray: 'grey',
+	lightgrey: 'grey',
+	darkgray: 'grey',
+	darkgrey: 'grey',
+	silver: 'grey',
+	slategrey: 'grey',
+	slategray: 'grey',
+	red: 'red',
+	darkred: 'red',
+	crimson: 'red',
+	maroon: 'red',
+	firebrick: 'red',
+	pink: 'light-red',
+	hotpink: 'light-red',
+	lightpink: 'light-red',
+	salmon: 'light-red',
+	coral: 'orange',
+	orangered: 'orange',
+	orange: 'orange',
+	darkorange: 'orange',
+	amber: 'yellow',
+	gold: 'yellow',
+	yellow: 'yellow',
+	khaki: 'yellow',
+	olive: 'yellow',
+	green: 'green',
+	darkgreen: 'green',
+	forestgreen: 'green',
+	seagreen: 'green',
+	teal: 'green',
+	lime: 'light-green',
+	limegreen: 'light-green',
+	chartreuse: 'light-green',
+	springgreen: 'light-green',
+	cyan: 'light-blue',
+	aqua: 'light-blue',
+	skyblue: 'light-blue',
+	lightblue: 'light-blue',
+	deepskyblue: 'light-blue',
+	dodgerblue: 'light-blue',
+	blue: 'blue',
+	royalblue: 'blue',
+	navy: 'blue',
+	darkblue: 'blue',
+	purple: 'violet',
+	violet: 'violet',
+	indigo: 'violet',
+	magenta: 'light-violet',
+	fuchsia: 'light-violet',
+	orchid: 'light-violet',
+	plum: 'light-violet',
+	brown: 'orange',
+	tan: 'yellow',
+}
+
+const MERMAID_COLOR_TARGETS: Array<{ color: TLDefaultColorStyle; rgb: RGB }> = [
+	'black',
+	'grey',
+	'light-violet',
+	'violet',
+	'blue',
+	'light-blue',
+	'yellow',
+	'orange',
+	'green',
+	'light-green',
+	'light-red',
+	'red',
+	'white',
+].map((color) => ({
+	color,
+	rgb: hexToRgb(DefaultColorThemePalette.lightMode[color].solid) ?? { r: 0, g: 0, b: 0 },
+}))
+
+interface RGB {
+	r: number
+	g: number
+	b: number
+}
 
 export async function tryPutMermaidContent(
 	editor: Editor,
@@ -205,6 +293,7 @@ export async function tryPutMermaidContent(
 
 		const shapeId = createShapeId()
 		nodeIdToShapeId.set(node.id, shapeId)
+		const mappedColor = getMermaidNodeColor(node.color)
 
 		shapePartials.push({
 			id: shapeId,
@@ -219,7 +308,8 @@ export async function tryPutMermaidContent(
 				richText: toRichText(layout.label),
 				align: 'middle',
 				verticalAlign: 'middle',
-				...(layout.isStartOrEnd ? { fill: 'fill' as const } : null),
+				...(mappedColor ? { color: mappedColor, fill: 'solid' as const } : null),
+				...(layout.isStartOrEnd && !mappedColor ? { fill: 'fill' as const } : null),
 			},
 		})
 	}
@@ -228,6 +318,7 @@ export async function tryPutMermaidContent(
 	const arrowPartials: TLShapePartial<TLArrowShape>[] = []
 	const arrowPartialsByPair = new Map<string, TLShapePartial<TLArrowShape>[]>()
 	const straightArrowPartials = new Set<TLShapePartial<TLArrowShape>>()
+	const selfEdgeArrowPartials = new Set<TLShapePartial<TLArrowShape>>()
 	const directedEdgeCountByPair = new Map<string, number>()
 	for (const edge of graph.edges) {
 		const key = `${edge.sourceId}__${edge.targetId}`
@@ -285,8 +376,9 @@ export async function tryPutMermaidContent(
 				)
 			}
 		}
-		const labelPosition =
-			isStateDiagram && bend !== 0
+		const labelPosition = isSelfEdge
+			? SELF_EDGE_LABEL_POSITION
+			: isStateDiagram && bend !== 0
 				? STATE_BENT_ARROW_LABEL_POSITION
 				: arrowDefaultProps.labelPosition
 
@@ -311,6 +403,9 @@ export async function tryPutMermaidContent(
 		arrowPartials.push(arrowPartial)
 		if (isStateEntryEdge) {
 			straightArrowPartials.add(arrowPartial)
+		}
+		if (isSelfEdge) {
+			selfEdgeArrowPartials.add(arrowPartial)
 		}
 
 		const pairKey = `${edge.sourceId}__${edge.targetId}`
@@ -343,7 +438,12 @@ export async function tryPutMermaidContent(
 			},
 		})
 	}
-	distributeParallelEdgeBends(arrowPartialsByPair, isStateDiagram, straightArrowPartials)
+	distributeParallelEdgeBends(
+		arrowPartialsByPair,
+		isStateDiagram,
+		straightArrowPartials,
+		selfEdgeArrowPartials
+	)
 	shapePartials.push(...arrowPartials)
 
 	if (!shapePartials.length) return false
@@ -362,7 +462,8 @@ export async function tryPutMermaidContent(
 function distributeParallelEdgeBends(
 	arrowPartialsByPair: Map<string, TLShapePartial<TLArrowShape>[]>,
 	isStateDiagram: boolean,
-	straightArrowPartials: Set<TLShapePartial<TLArrowShape>>
+	straightArrowPartials: Set<TLShapePartial<TLArrowShape>>,
+	selfEdgeArrowPartials: Set<TLShapePartial<TLArrowShape>>
 ) {
 	for (const pairPartials of arrowPartialsByPair.values()) {
 		if (pairPartials.length < 2) continue
@@ -375,7 +476,11 @@ function distributeParallelEdgeBends(
 			}
 			const offset = getParallelEdgeBendOffset(i)
 			arrowPartial.props.bend += offset
-			if (isStateDiagram && arrowPartial.props.bend !== 0) {
+			if (
+				isStateDiagram &&
+				arrowPartial.props.bend !== 0 &&
+				!selfEdgeArrowPartials.has(arrowPartial)
+			) {
 				arrowPartial.props.labelPosition = STATE_BENT_ARROW_LABEL_POSITION
 			}
 		}
@@ -1592,4 +1697,101 @@ function normalizeMermaidLabel(label: string) {
 	cleanedLabel = cleanedLabel.replace(/:::[A-Za-z_][\w-]*/g, '').trim()
 
 	return cleanedLabel
+}
+
+function getMermaidNodeColor(colorValue: string | undefined): TLDefaultColorStyle | null {
+	if (!colorValue) return null
+
+	const raw = colorValue.trim().toLowerCase()
+	if (!raw || raw === 'none' || raw === 'transparent') return null
+
+	const stripped = raw.replace(/['"]/g, '')
+	const normalizedName = stripped.replace(/[\s_-]+/g, '')
+	const mappedNameColor = MERMAID_COLOR_MAPPINGS[normalizedName]
+	if (mappedNameColor) return mappedNameColor
+
+	const parsedRgb = parseMermaidColorToRgb(stripped)
+	if (!parsedRgb) return null
+
+	return getNearestTldrawColor(parsedRgb)
+}
+
+function parseMermaidColorToRgb(colorValue: string): RGB | null {
+	const hex = hexToRgb(colorValue)
+	if (hex) return hex
+	return rgbStringToRgb(colorValue)
+}
+
+function hexToRgb(value: string): RGB | null {
+	const input = value.trim()
+	if (!input.startsWith('#')) return null
+
+	const hex = input.slice(1)
+	if (hex.length === 3 || hex.length === 4) {
+		const [r, g, b] = hex
+		if (!r || !g || !b) return null
+		const rgb = {
+			r: parseInt(`${r}${r}`, 16),
+			g: parseInt(`${g}${g}`, 16),
+			b: parseInt(`${b}${b}`, 16),
+		}
+		if ([rgb.r, rgb.g, rgb.b].some(Number.isNaN)) return null
+		return rgb
+	}
+
+	if (hex.length === 6 || hex.length === 8) {
+		const r = Number.parseInt(hex.slice(0, 2), 16)
+		const g = Number.parseInt(hex.slice(2, 4), 16)
+		const b = Number.parseInt(hex.slice(4, 6), 16)
+		if ([r, g, b].some(Number.isNaN)) return null
+		return { r, g, b }
+	}
+
+	return null
+}
+
+function rgbStringToRgb(value: string): RGB | null {
+	const match = value.match(/^rgba?\((.+)\)$/)
+	if (!match) return null
+
+	const inner = match[1].replace(/\//g, ' ').replace(/,/g, ' ')
+	const parts = inner.split(/\s+/).filter(Boolean)
+	if (parts.length < 3) return null
+
+	const r = parseRgbChannel(parts[0])
+	const g = parseRgbChannel(parts[1])
+	const b = parseRgbChannel(parts[2])
+	if (r == null || g == null || b == null) return null
+
+	return { r, g, b }
+}
+
+function parseRgbChannel(value: string): number | null {
+	if (value.endsWith('%')) {
+		const percent = Number.parseFloat(value.slice(0, -1))
+		if (!Number.isFinite(percent)) return null
+		return clamp(Math.round((percent / 100) * 255), 0, 255)
+	}
+
+	const num = Number.parseFloat(value)
+	if (!Number.isFinite(num)) return null
+	return clamp(Math.round(num), 0, 255)
+}
+
+function getNearestTldrawColor(rgb: RGB): TLDefaultColorStyle {
+	let nearestColor: TLDefaultColorStyle = 'black'
+	let nearestDistance = Number.POSITIVE_INFINITY
+
+	for (const candidate of MERMAID_COLOR_TARGETS) {
+		const distance =
+			(candidate.rgb.r - rgb.r) ** 2 +
+			(candidate.rgb.g - rgb.g) ** 2 +
+			(candidate.rgb.b - rgb.b) ** 2
+		if (distance < nearestDistance) {
+			nearestDistance = distance
+			nearestColor = candidate.color
+		}
+	}
+
+	return nearestColor
 }
