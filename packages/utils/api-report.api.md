@@ -300,6 +300,7 @@ export class MediaHelpers {
     }>;
     static getImageSize(blob: Blob): Promise<{
         h: number;
+        pixelRatio: number;
         w: number;
     }>;
     static getVideoFrameAsDataUrl(video: HTMLVideoElement, time?: number): Promise<string>;
