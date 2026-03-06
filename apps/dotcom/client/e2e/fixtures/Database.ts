@@ -3,7 +3,7 @@ import { DB, userHasFlag } from '@tldraw/dotcom-shared'
 import fs from 'fs'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
-import { OTHER_USERS, USERS } from '../consts'
+import { getHuppyUserEmail, getSuppyUserEmail } from '../consts'
 import { getStorageStateFileName } from './helpers'
 
 const db = new Kysely<DB>({
@@ -30,7 +30,9 @@ export class Database {
 	}
 
 	async getUserId(isOther: boolean = false) {
-		const email = isOther ? OTHER_USERS[this.parallelIndex] : USERS[this.parallelIndex]
+		const email = isOther
+			? getSuppyUserEmail(this.parallelIndex)
+			: getHuppyUserEmail(this.parallelIndex)
 		const dbUser = await sql<{
 			id: string
 		}>`SELECT id FROM public.user WHERE email = ${email ?? ''}`.execute(db)
