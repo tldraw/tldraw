@@ -588,4 +588,14 @@ describe('When interacting with a shape...', () => {
 
 		expect(fn).toHaveBeenCalledTimes(1)
 	})
+
+	it('fires onChildrenChange when a child shape is duplicated', () => {
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
+		const fn = vi.fn()
+		util.onChildrenChange = fn
+
+		editor.duplicateShapes([ids.box2])
+
+		expect(fn).toHaveBeenCalled()
+	})
 })
