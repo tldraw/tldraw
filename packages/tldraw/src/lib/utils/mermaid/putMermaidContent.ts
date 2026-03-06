@@ -958,6 +958,37 @@ function resolveSubgraphOverlaps(
 			minAllowedX = Math.max(minAllowedX, otherLayout.x + otherLayout.w + SUBGRAPH_GAP)
 		}
 
+		// Keep non-member nodes from being swallowed by a subgraph container.
+		// This helps cases like `c1 --> a2` where `c1` should stay outside `subgraph one`.
+		for (const node of nodes) {
+			if (node.id === currentSubgraph.id) continue
+			if (subgraphNodeIds.has(node.id)) continue
+			if (isNodeDescendantOf(node.id, currentSubgraph.id, nodeById)) continue
+
+			const otherLayout = allNodeLayouts.get(node.id)
+			if (!otherLayout) continue
+
+			if (
+				!rangesOverlap(
+					currentLayout.y,
+					currentLayout.y + currentLayout.h,
+					otherLayout.y,
+					otherLayout.y + otherLayout.h
+				)
+			) {
+				continue
+			}
+
+			if (
+				otherLayout.x + otherLayout.w <= currentLayout.x ||
+				otherLayout.x >= currentLayout.x + currentLayout.w
+			) {
+				continue
+			}
+
+			minAllowedX = Math.max(minAllowedX, otherLayout.x + otherLayout.w + SUBGRAPH_GAP)
+		}
+
 		if (minAllowedX <= currentLayout.x) continue
 		const dx = minAllowedX - currentLayout.x
 		translateSubgraphSubtree(currentSubgraph.id, dx, 0, nodes, nodeById, allNodeLayouts)

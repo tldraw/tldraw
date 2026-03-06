@@ -134,12 +134,14 @@ one --> two`,
 
 		const one = geoByLabel.get('one')
 		const two = geoByLabel.get('two')
+		const c1 = geoByLabel.get('c1')
 		const a1 = geoByLabel.get('a1')
 		const b1 = geoByLabel.get('b1')
 		const b2 = geoByLabel.get('b2')
 
 		expect(one).toBeDefined()
 		expect(two).toBeDefined()
+		expect(c1).toBeDefined()
 		expect(a1).toBeDefined()
 		expect(b1).toBeDefined()
 		expect(b2).toBeDefined()
@@ -155,6 +157,7 @@ one --> two`,
 		expect(one!.y + one!.props.h - (a1!.y + a1!.props.h)).toBeGreaterThanOrEqual(40)
 
 		expect(containsGeo(one!, a1!)).toBe(true)
+		expect(containsGeo(one!, c1!)).toBe(false)
 		expect(containsGeo(two!, b1!)).toBe(true)
 		expect(containsGeo(two!, b2!)).toBe(true)
 
