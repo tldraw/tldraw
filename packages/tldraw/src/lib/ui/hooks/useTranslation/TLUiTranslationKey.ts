@@ -53,6 +53,7 @@ export type TLUiTranslationKey =
 	| 'action.flip-vertical.short'
 	| 'action.fork-project'
 	| 'action.fork-project-on-tldraw'
+	| 'action.frame-selection'
 	| 'action.group'
 	| 'action.insert-embed'
 	| 'action.insert-media'
