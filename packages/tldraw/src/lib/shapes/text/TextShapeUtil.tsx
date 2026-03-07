@@ -12,7 +12,6 @@ import {
 	Vec,
 	createComputedCache,
 	getColorValue,
-	getDefaultColorTheme,
 	getFontsFromRichText,
 	isEqual,
 	resizeScaled,
@@ -20,8 +19,8 @@ import {
 	textShapeProps,
 	toDomPrecision,
 	toRichText,
+	useCurrentThemeId,
 	useEditor,
-	useIsDarkMode,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import {
@@ -37,7 +36,7 @@ const sizeCache = createComputedCache(
 	(editor: Editor, shape: TLTextShape) => {
 		editor.fonts.trackFontsForShape(shape)
 		const util = editor.getShapeUtil(shape) as TextShapeUtil
-		const dv = getDisplayValues(util, shape, false)
+		const dv = getDisplayValues(util, shape)
 		return getTextSize(editor, shape.props, dv)
 	},
 	{ areRecordsEqual: (a, b) => a.props === b.props }
@@ -71,8 +70,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	override options: TextShapeOptions = {
 		extraArrowHorizontalPadding: 10,
 		showTextOutline: true,
-		getDisplayValues(_editor, shape, isDarkMode): TextShapeUtilDisplayValues {
-			const theme = getDefaultColorTheme({ isDarkMode })
+		getDisplayValues(editor, shape): TextShapeUtilDisplayValues {
+			const theme = editor.getCurrentTheme()
 			const { color, font, size } = shape.props
 			return {
 				color: getColorValue(theme, color, 'solid'),
@@ -156,8 +155,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		const { width, height } = this.getMinDimensions(shape)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const isDarkMode = useIsDarkMode()
-		const dv = getDisplayValues(this, shape, isDarkMode)
+		const themeId = useCurrentThemeId()
+		const dv = getDisplayValues(this, shape, themeId)
 		const handleKeyDown = useTextShapeKeydownHandler(id)
 
 		return (
@@ -210,7 +209,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const width = bounds.width / (shape.props.scale ?? 1)
 		const height = bounds.height / (shape.props.scale ?? 1)
 
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
 
 		const exportBounds = new Box(0, 0, width, height)
 		return (
@@ -283,7 +282,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const boundsA = this.getMinDimensions(prev)
 
 		// Will always be a fresh call to getTextSize
-		const dv = getDisplayValues(this, next, false)
+		const dv = getDisplayValues(this, next)
 		const boundsB = getTextSize(this.editor, next.props, dv)
 
 		const wA = boundsA.width * prev.props.scale

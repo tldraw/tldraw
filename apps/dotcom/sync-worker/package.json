@@ -39,7 +39,6 @@
 		"jose": "^5.9.6",
 		"kysely": "^0.27.5",
 		"lodash.throttle": "^4.1.1",
-		"modern-tar": "^0.7.5",
 		"pg": "^8.13.1",
 		"pg-logical-replication": "^2.0.7",
 		"react": "^19.2.1",

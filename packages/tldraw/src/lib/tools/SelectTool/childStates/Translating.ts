@@ -431,7 +431,7 @@ function getTranslatingSnapshot(editor: Editor) {
 
 	if (noteSnapshot) {
 		const noteUtil = editor.getShapeUtil(noteSnapshot.shape) as NoteShapeUtil
-		const dv = getDisplayValues(noteUtil, noteSnapshot.shape, false)
+		const dv = getDisplayValues(noteUtil, noteSnapshot.shape)
 		noteAdjacentPositions = getAvailableNoteAdjacentPositions(editor, {
 			rotation: noteSnapshot.pageRotation,
 			scale: noteSnapshot.shape.props.scale,

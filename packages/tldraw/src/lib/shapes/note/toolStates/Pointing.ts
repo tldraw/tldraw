@@ -36,11 +36,7 @@ export class Pointing extends StateNode {
 
 		// Resolve note dimensions from the util's defaults
 		const noteUtil = editor.getShapeUtil('note') as NoteShapeUtil
-		const dv = getDisplayValues(
-			noteUtil,
-			{ props: noteUtil.getDefaultProps() } as TLNoteShape,
-			false
-		)
+		const dv = getDisplayValues(noteUtil, { props: noteUtil.getDefaultProps() } as TLNoteShape)
 
 		// Check for note pits; if the pointer is close to one, place the note centered on the pit
 		const center = this.editor.inputs.getOriginPagePoint().clone()

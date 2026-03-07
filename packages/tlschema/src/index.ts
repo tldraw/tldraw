@@ -268,12 +268,8 @@ export { EnumStyleProp, StyleProp, type StylePropValue } from './styles/StylePro
 export {
 	defaultColorNames,
 	DefaultColorStyle,
-	DefaultColorThemePalette,
-	DefaultLabelColorStyle,
-	getColorValue,
-	getDefaultColorTheme,
+	type TLDefaultColor,
 	type TLDefaultColorStyle,
-	type TLDefaultColorTheme,
 	type TLDefaultColorThemeColor,
 } from './styles/TLColorStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
@@ -289,6 +285,7 @@ export {
 } from './styles/TLHorizontalAlignStyle'
 export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
 export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TLTextAlignStyle'
+export { type TLTheme, type TLThemeColorPalette, type TLThemes } from './styles/TLTheme'
 export {
 	DefaultVerticalAlignStyle,
 	type TLDefaultVerticalAlignStyle,

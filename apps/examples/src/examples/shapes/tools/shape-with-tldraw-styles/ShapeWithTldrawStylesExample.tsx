@@ -9,7 +9,6 @@ import {
 	TLDefaultSizeStyle,
 	Tldraw,
 	TLShape,
-	useDefaultColorTheme,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
@@ -58,8 +57,7 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 	}
 
 	component(shape: IMyShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
+		const theme = this.editor.getCurrentTheme()
 
 		return (
 			<HTMLContainer

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Arc2d,
 	Box,
@@ -32,7 +33,6 @@ import {
 	debugFlags,
 	exhaustiveSwitchError,
 	getColorValue,
-	getDefaultColorTheme,
 	getFontsFromRichText,
 	invLerp,
 	lerp,
@@ -43,9 +43,9 @@ import {
 	toRichText,
 	track,
 	useEditor,
-	useIsDarkMode,
 	useIsEditing,
 	useSharedSafeId,
+	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
@@ -129,8 +129,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return editor.inputs.getCtrlKey()
 		},
 		showTextOutline: true,
-		getDisplayValues(_editor, shape, isDarkMode): ArrowShapeUtilDisplayValues {
-			const theme = getDefaultColorTheme({ isDarkMode })
+		getDisplayValues(editor, shape): ArrowShapeUtilDisplayValues {
+			const theme = editor.getCurrentTheme()
 			const { color, fill, labelColor, size, font } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),
@@ -139,7 +139,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					fill === 'none'
 						? 'transparent'
 						: fill === 'semi'
-							? theme.solid
+							? theme.colors.solid
 							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
 				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
 				labelColor: getColorValue(theme, labelColor, 'solid'),
@@ -248,7 +248,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		let labelGeom
 		if (isEditing || !isEmptyRichText(shape.props.richText)) {
-			const labelPosition = getArrowLabelPosition(this.editor, shape)
+			const labelPosition = getArrowLabelPosition(this.editor, shape, isEditing)
 			if (debugFlags.debugGeometry.get()) {
 				debugGeom.push(...labelPosition.debugGeom)
 			}
@@ -783,25 +783,43 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	component(shape: TLArrowShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const isDarkMode = useIsDarkMode()
-		const dv = getDisplayValues(this, shape, isDarkMode)
-		const onlySelectedShape = this.editor.getOnlySelectedShape()
-		const shouldDisplayHandles =
-			this.editor.isInAny(
-				'select.idle',
-				'select.pointing_handle',
-				'select.dragging_handle',
-				'select.translating',
-				'arrow.dragging'
-			) && !this.editor.getIsReadonly()
+		const { editor } = this
+		const dv = getDisplayValues(this, shape)
 
-		const info = getArrowInfo(this.editor, shape)
+		const shouldDisplayHandles = useValue(
+			'should display handles',
+			() => {
+				const { editor } = this
+				return (
+					!editor.getIsReadonly() &&
+					editor.getOnlySelectedShapeId() === shape.id &&
+					editor.isInAny(
+						'select.idle',
+						'select.pointing_handle',
+						'select.dragging_handle',
+						'select.translating',
+						'arrow.dragging'
+					)
+				)
+			},
+			[editor, shape.id]
+		)
+
+		const isSelected = useValue(
+			'is selected',
+			() => editor.getOnlySelectedShape()?.id === shape.id,
+			[editor, shape.id]
+		)
+
+		const isEditing = useValue('is editing', () => editor.getEditingShapeId() === shape.id, [
+			editor,
+			shape.id,
+		])
+
+		const info = getArrowInfo(editor, shape)
 		if (!info?.isValid) return null
 
-		const labelPosition = getArrowLabelPosition(this.editor, shape)
-		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const isEditing = this.editor.getEditingShapeId() === shape.id
+		const labelPosition = getArrowLabelPosition(editor, shape, isEditing)
 		const showArrowLabel = isEditing || !isEmptyRichText(shape.props.richText)
 
 		return (
@@ -809,7 +827,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
 					<ArrowSvg
 						shape={shape}
-						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
+						shouldDisplayHandles={shouldDisplayHandles}
 						strokeColor={dv.strokeColor}
 						strokeWidth={dv.strokeWidth}
 						fillColor={dv.fillColor}
@@ -845,12 +863,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	indicator(shape: TLArrowShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isEditing = useIsEditing(shape.id)
-		// eslint-disable-next-line react-hooks/rules-of-hooks
+
 		const clipPathId = useSharedSafeId(shape.id + '_clip')
 
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 
 		const info = getArrowInfo(this.editor, shape)
 		if (!info) return null
@@ -964,7 +981,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const info = getArrowInfo(this.editor, shape)
 		if (!info) return undefined
 
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 
 		const isEditing = this.editor.getEditingShapeId() === shape.id
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, info?.bindings)
@@ -1103,7 +1120,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
 		const scaleFactor = 1 / shape.props.scale
 
 		return (
@@ -1125,7 +1142,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					verticalAlign="center"
 					labelColor={dv.labelColor}
 					richText={shape.props.richText}
-					bounds={getArrowLabelPosition(this.editor, shape)
+					bounds={getArrowLabelPosition(this.editor, shape, false)
 						.box.clone()
 						.expandBy(-dv.labelPadding * shape.props.scale)}
 					padding={0}
@@ -1247,7 +1264,7 @@ const ArrowSvg = track(function ArrowSvg({
 		})
 	}
 
-	const labelPosition = getArrowLabelPosition(editor, shape)
+	const labelPosition = getArrowLabelPosition(editor, shape, isEditing)
 
 	const clipStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
 	const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')

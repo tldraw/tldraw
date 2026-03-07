@@ -1,20 +1,14 @@
-import {
-	DefaultColorThemePalette,
-	GeoShapeUtil,
-	Tldraw,
-	toRichText,
-	type GeoShapeUtilDisplayValues,
-} from 'tldraw'
+import { GeoShapeUtil, Tldraw, toRichText, type GeoShapeUtilDisplayValues } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // [1]
 const CustomGeoShapeUtil = GeoShapeUtil.configure({
-	getDisplayValueOverrides(_editor, shape, isDarkMode): Partial<GeoShapeUtilDisplayValues> {
+	getDisplayValueOverrides(editor, shape): Partial<GeoShapeUtilDisplayValues> {
 		const values: Partial<GeoShapeUtilDisplayValues> = {}
 
 		if (shape.isLocked) {
-			const colors = DefaultColorThemePalette[isDarkMode ? 'darkMode' : 'lightMode']
-			values.fillColor = colors.red.solid
+			const theme = editor.getCurrentTheme()
+			values.fillColor = theme.colors.red.solid
 		}
 
 		if (shape.props.geo === 'ellipse') {

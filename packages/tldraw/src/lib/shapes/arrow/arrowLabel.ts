@@ -29,7 +29,7 @@ import { getArrowInfo } from './getArrowInfo'
 function getArrowDisplayValues(editor: Editor, shape: TLArrowShape): ArrowShapeUtilDisplayValues {
 	// We cast here because editor.getShapeUtil('arrow') returns ShapeUtil<TLArrowShape>
 	// with generic options, but the actual instance has ArrowShapeOptions with display values.
-	return getDisplayValues(editor.getShapeUtil('arrow') as any, shape, false)
+	return getDisplayValues(editor.getShapeUtil('arrow') as any, shape)
 }
 
 export function getArrowBodyGeometry(editor: Editor, shape: TLArrowShape) {
@@ -228,8 +228,7 @@ interface ArrowheadInfo {
 	hasStartArrowhead: boolean
 	hasEndArrowhead: boolean
 }
-export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
-	const isEditing = editor.getEditingShapeId() === shape.id
+export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape, isEditing: boolean) {
 	if (!isEditing && isEmptyRichText(shape.props.richText)) {
 		// Short-circuit for empty labels.
 		const bodyGeom = getArrowBodyGeometry(editor, shape)

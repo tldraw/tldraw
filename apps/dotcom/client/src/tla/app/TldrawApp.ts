@@ -951,7 +951,8 @@ export class TldrawApp {
 	async uploadTldrFiles(
 		files: File[],
 		onFirstFileUploaded?: (fileId: string) => void,
-		groupId?: string
+		groupId?: string,
+		onUploadError?: () => void
 	) {
 		const totalFiles = files.length
 		let uploadedFiles = 0
@@ -1020,6 +1021,7 @@ export class TldrawApp {
 					keepOpen: true,
 				})
 				console.error(res.error)
+				onUploadError?.()
 				return
 			}
 

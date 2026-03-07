@@ -54,6 +54,7 @@ export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLStatsDurableObject } from './TLStatsDurableObject'
 export { TLUserDurableObject } from './TLUserDurableObject'
+export class TLDrawDurableObject {}
 
 const { preflight, corsify } = cors({
 	origin: isAllowedOrigin,
@@ -131,6 +132,7 @@ const router = createRouter<Environment>()
 		}
 		return notFound()
 	})
+	.get('/app/file/:roomId/download', forwardRoomRequest)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({

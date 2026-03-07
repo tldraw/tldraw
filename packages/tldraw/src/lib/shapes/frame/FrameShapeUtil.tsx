@@ -21,11 +21,10 @@ import {
 	frameShapeMigrations,
 	frameShapeProps,
 	getColorValue,
-	getDefaultColorTheme,
 	lerp,
 	resizeBox,
 	toDomPrecision,
-	useIsDarkMode,
+	useCurrentThemeId,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
@@ -86,16 +85,16 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override options: FrameShapeOptions = {
 		showColors: false,
 		resizeChildren: false,
-		getDisplayValues(_editor, shape, isDarkMode): FrameShapeUtilDisplayValues {
-			const theme = getDefaultColorTheme({ isDarkMode })
+		getDisplayValues(editor, shape): FrameShapeUtilDisplayValues {
+			const theme = editor.getCurrentTheme()
 			const { color } = shape.props
 			return {
 				fillColor: getColorValue(theme, 'black', 'frameFill'),
 				strokeColor: getColorValue(theme, 'black', 'frameStroke'),
 				showColorsFillColor: getColorValue(theme, color, 'frameFill'),
 				showColorsStrokeColor: getColorValue(theme, color, 'frameStroke'),
-				headingFillColor: theme.background,
-				headingStrokeColor: theme.background,
+				headingFillColor: theme.colors.background,
+				headingStrokeColor: theme.colors.background,
 				headingTextColor: getColorValue(theme, 'black', 'frameText'),
 				showColorsHeadingFillColor: getColorValue(theme, color, 'frameHeadingFill'),
 				showColorsHeadingStrokeColor: getColorValue(theme, color, 'frameHeadingStroke'),
@@ -243,8 +242,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override component(shape: TLFrameShape) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const isDarkMode = useIsDarkMode()
-		const dv = getDisplayValues(this, shape, isDarkMode)
+		const themeId = useCurrentThemeId()
+		const dv = getDisplayValues(this, shape, themeId)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isCreating = useValue(
@@ -295,7 +294,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
 
 		// rotate right 45 deg
 		const labelSide = getFrameHeadingSide(this.editor, shape)

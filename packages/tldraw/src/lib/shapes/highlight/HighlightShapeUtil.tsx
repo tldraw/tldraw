@@ -12,14 +12,13 @@ import {
 	VecLike,
 	debugFlags,
 	getColorValue,
-	getDefaultColorTheme,
 	highlightShapeMigrations,
 	highlightShapeProps,
 	last,
 	lerp,
 	rng,
 	tlenvReactive,
-	useIsDarkMode,
+	useCurrentThemeId,
 	useValue,
 } from '@tldraw/editor'
 
@@ -59,8 +58,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	override options: HighlightShapeOptions = {
 		maxPointsPerShape: 600,
-		getDisplayValues(_editor, shape, isDarkMode): HighlightShapeUtilDisplayValues {
-			const theme = getDefaultColorTheme({ isDarkMode })
+		getDisplayValues(editor, shape): HighlightShapeUtilDisplayValues {
+			const theme = editor.getCurrentTheme()
 			const { color, size } = shape.props
 			const useP3 = !debugFlags.forceSrgb.get() && tlenvReactive.get().supportsP3ColorSpace
 			const strokeColor = useP3
@@ -102,7 +101,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	getGeometry(shape: TLHighlightShape) {
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 		const strokeWidth = dv.strokeWidth * shape.props.scale
 		if (getIsDot(shape)) {
 			return new Circle2d({
@@ -124,8 +123,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	component(shape: TLHighlightShape) {
-		const isDarkMode = useIsDarkMode()
-		const dv = getDisplayValues(this, shape, isDarkMode)
+		const dv = getDisplayValues(this, shape)
 		const sw = dv.strokeWidth * shape.props.scale
 		const forceSolid = useHighlightForceSolid(this.editor, sw)
 
@@ -143,8 +141,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override backgroundComponent(shape: TLHighlightShape) {
-		const isDarkMode = useIsDarkMode()
-		const dv = getDisplayValues(this, shape, isDarkMode)
+		const themeId = useCurrentThemeId()
+		const dv = getDisplayValues(this, shape, themeId)
 		const sw = dv.strokeWidth * shape.props.scale
 		const forceSolid = useHighlightForceSolid(this.editor, sw)
 		return (
@@ -161,7 +159,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	indicator(shape: TLHighlightShape) {
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 		const strokeWidth = dv.strokeWidth * shape.props.scale
 		const forceSolid = useHighlightForceSolid(this.editor, strokeWidth)
 
@@ -187,7 +185,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override getIndicatorPath(shape: TLHighlightShape): Path2D {
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 		const strokeWidth = dv.strokeWidth * shape.props.scale
 		const zoomLevel = this.editor.getEfficientZoomLevel()
 		const forceSolid = strokeWidth / zoomLevel < 1.5
@@ -210,7 +208,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override toSvg(shape: TLHighlightShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
 		const strokeWidth = dv.strokeWidth * shape.props.scale
 		const forceSolid = strokeWidth < 1.5
 		const scaleFactor = 1 / shape.props.scale
@@ -228,7 +226,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override toBackgroundSvg(shape: TLHighlightShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
 		const strokeWidth = dv.strokeWidth * shape.props.scale
 		const forceSolid = strokeWidth < 1.5
 		const scaleFactor = 1 / shape.props.scale

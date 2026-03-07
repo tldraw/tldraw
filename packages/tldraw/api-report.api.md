@@ -83,7 +83,6 @@ import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
-import { TLDefaultColorThemeColor } from '@tldraw/tlschema';
 import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
@@ -148,6 +147,7 @@ import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
+import { TLTheme } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
@@ -1960,7 +1960,7 @@ export function getDefaultCrop(): TLShapeCrop;
 export function getDisplayValues<Shape extends TLShape, DisplayValues extends object>(util: {
     editor: Editor;
     options: ShapeOptionsWithDisplayValues<Shape, DisplayValues>;
-}, shape: Shape, isDarkMode: boolean): DisplayValues;
+}, shape: Shape, themeId?: string): DisplayValues;
 
 // @public
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
@@ -3012,9 +3012,9 @@ export function setStrokePointRadii(strokePoints: StrokePoint[], options: Stroke
 // @public (undocumented)
 export interface ShapeOptionsWithDisplayValues<Shape extends TLShape, DisplayValues extends object> {
     // (undocumented)
-    getDisplayValueOverrides(editor: Editor, shape: Shape, isDarkMode: boolean): Partial<DisplayValues>;
+    getDisplayValueOverrides(editor: Editor, shape: Shape, theme: TLTheme): Partial<DisplayValues>;
     // (undocumented)
-    getDisplayValues(editor: Editor, shape: Shape, isDarkMode: boolean): DisplayValues;
+    getDisplayValues(editor: Editor, shape: Shape, theme: TLTheme): DisplayValues;
 }
 
 // @public (undocumented)
@@ -5727,26 +5727,8 @@ export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 // @public (undocumented)
 export function useCurrentTranslation(): TLUiTranslation;
 
-// @public (undocumented)
-export function useDefaultColorTheme(): {
-    "light-blue": TLDefaultColorThemeColor;
-    "light-green": TLDefaultColorThemeColor;
-    "light-red": TLDefaultColorThemeColor;
-    "light-violet": TLDefaultColorThemeColor;
-    background: string;
-    black: TLDefaultColorThemeColor;
-    blue: TLDefaultColorThemeColor;
-    green: TLDefaultColorThemeColor;
-    grey: TLDefaultColorThemeColor;
-    id: "dark" | "light";
-    orange: TLDefaultColorThemeColor;
-    red: TLDefaultColorThemeColor;
-    solid: string;
-    text: string;
-    violet: TLDefaultColorThemeColor;
-    white: TLDefaultColorThemeColor;
-    yellow: TLDefaultColorThemeColor;
-};
+// @public @deprecated (undocumented)
+export function useDefaultColorTheme(): TLTheme;
 
 // @public (undocumented)
 export function useDefaultHelpers(): {

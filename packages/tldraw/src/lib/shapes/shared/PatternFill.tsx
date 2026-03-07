@@ -1,4 +1,4 @@
-import { useEditor, useIsDarkMode, useSvgExportContext, useValue } from '@tldraw/editor'
+import { useCurrentThemeId, useEditor, useSvgExportContext, useValue } from '@tldraw/editor'
 import { useGetHashPatternZoomName } from './defaultStyleDefs'
 
 export function PatternFill({
@@ -13,10 +13,8 @@ export function PatternFill({
 	const editor = useEditor()
 	const svgExport = useSvgExportContext()
 	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
-	const isDarkMode = useIsDarkMode()
+	const themeId = useCurrentThemeId()
 	const getHashPatternZoomName = useGetHashPatternZoomName()
-
-	const themeId = isDarkMode ? 'dark' : 'light'
 	const teenyTiny = zoomLevel <= 0.18
 
 	return (

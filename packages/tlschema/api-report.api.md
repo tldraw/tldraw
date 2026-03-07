@@ -196,14 +196,8 @@ export const defaultBindingSchemas: {
 // @public
 export const defaultColorNames: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red", "white"];
 
-// @public
+// @public (undocumented)
 export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-
-// @public
-export const DefaultColorThemePalette: {
-    darkMode: TLDefaultColorTheme;
-    lightMode: TLDefaultColorTheme;
-};
 
 // @public
 export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
@@ -224,9 +218,6 @@ export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">
 
 // @public
 export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-
-// @public
-export const DefaultLabelColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
 
 // @public
 export const defaultShapeSchemas: {
@@ -341,14 +332,6 @@ export const geoShapeMigrations: TLPropsMigrations;
 
 // @public
 export const geoShapeProps: RecordProps<TLGeoShape>;
-
-// @public
-export function getColorValue(theme: TLDefaultColorTheme, color: TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
-
-// @public
-export function getDefaultColorTheme(opts: {
-    isDarkMode: boolean;
-}): TLDefaultColorTheme;
 
 // @public
 export function getDefaultTranslationLocale(): TLLanguage['locale'];
@@ -934,18 +917,7 @@ export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
-
-// @public
-export type TLDefaultColorTheme = Expand<{
-    background: string;
-    id: 'dark' | 'light';
-    solid: string;
-    text: string;
-} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>>;
-
-// @public
-export interface TLDefaultColorThemeColor {
+export interface TLDefaultColor {
     // (undocumented)
     fill: string;
     // (undocumented)
@@ -975,6 +947,12 @@ export interface TLDefaultColorThemeColor {
     // (undocumented)
     solid: string;
 }
+
+// @public (undocumented)
+export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
+
+// @public @deprecated (undocumented)
+export type TLDefaultColorThemeColor = TLDefaultColor;
 
 // @public
 export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
@@ -1134,6 +1112,7 @@ export type TLImageAsset = TLBaseAsset<'image', {
     isAnimated: boolean;
     mimeType: null | string;
     name: string;
+    pixelRatio?: number;
     src: null | string;
     w: number;
 }>;
@@ -1510,6 +1489,26 @@ export interface TLTextShapeProps {
     // (undocumented)
     w: number;
 }
+
+// @public
+export interface TLTheme {
+    // (undocumented)
+    colors: TLThemeColorPalette;
+    // (undocumented)
+    id: string;
+}
+
+// @public
+export type TLThemeColorPalette = Expand<{
+    background: string;
+    cursor: string;
+    noteBorder: string;
+    solid: string;
+    text: string;
+} & Record<(typeof defaultColorNames)[number], TLDefaultColor>>;
+
+// @public
+export type TLThemes = Record<string, TLTheme>;
 
 // @public
 export type TLUnknownBinding = TLBaseBinding<string, object>;

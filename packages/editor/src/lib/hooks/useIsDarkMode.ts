@@ -1,13 +1,9 @@
-import { useValue } from '@tldraw/state-react'
-import { useSvgExportContext } from '../editor/types/SvgExportContext'
-import { useEditor } from './useEditor'
+import { useCurrentThemeId } from './useCurrentThemeId'
 
-/** @public */
+/**
+ * @deprecated Use `useCurrentThemeId()` instead and compare against the theme ID.
+ * @public
+ */
 export function useIsDarkMode() {
-	const editor = useEditor()
-	const exportContext = useSvgExportContext()
-	return useValue('isDarkMode', () => exportContext?.isDarkMode ?? editor.user.getIsDarkMode(), [
-		exportContext,
-		editor,
-	])
+	return useCurrentThemeId() === 'dark'
 }

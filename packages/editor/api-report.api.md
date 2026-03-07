@@ -61,6 +61,8 @@ import { TLCamera } from '@tldraw/tlschema';
 import { TLCreateShapePartial } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
+import { TLDefaultColorStyle } from '@tldraw/tlschema';
+import { TLDefaultColorThemeColor } from '@tldraw/tlschema';
 import { TLDefaultDashStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
@@ -85,6 +87,8 @@ import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStoreSchema } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
+import { TLTheme } from '@tldraw/tlschema';
+import { TLThemes } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
@@ -616,6 +620,12 @@ export const DEFAULT_ANIMATION_OPTIONS: {
 export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions;
 
 // @public (undocumented)
+export const DEFAULT_DARK_THEME: TLTheme;
+
+// @public (undocumented)
+export const DEFAULT_LIGHT_THEME: TLTheme;
+
+// @public (undocumented)
 export function DefaultBackground(): JSX.Element;
 
 // @public (undocumented)
@@ -813,7 +823,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls, themes, theme }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1229,6 +1239,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageShapesInReadingOrder(): TLShape[];
     getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
+    getCurrentTheme(): TLTheme;
+    getCurrentThemeId(): keyof TLThemes;
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
     getDebouncedZoomLevel(): number;
@@ -1331,6 +1343,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     } | undefined>;
     getTemporaryAssetPreview(assetId: TLAssetId): string | undefined;
     getTextOptions(): TLTextOptions;
+    getThemes(): TLThemes;
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): TLRenderingShape[];
     getViewportPageBounds(): Box;
@@ -1432,6 +1445,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): Promise<void>;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): this;
+    resizeToBounds(shapes: TLShape[] | TLShapeId[], bounds: BoxLike): this;
     // (undocumented)
     resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
     // (undocumented)
@@ -1484,6 +1498,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     _setShiftKeyTimeout(): void;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
+    setTheme(themeId: null | string): this;
     setTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLShape>;
@@ -1509,6 +1524,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         [key: string]: Map<StyleProp<any>, string>;
     };
     readonly textMeasure: TextManager;
+    readonly _themeManager: ThemeManager;
     readonly timers: {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
@@ -1550,6 +1566,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     // @internal (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
+    updateThemes(themes: Partial<TLThemes>): void;
     updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): this;
     uploadAsset(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<{
         meta?: JsonObject;
@@ -1795,6 +1812,9 @@ export interface Geometry2dOptions extends TransformedGeometry2dOptions {
 
 // @public
 export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number): number;
+
+// @public
+export function getColorValue(theme: TLTheme, color: string | TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
 
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
@@ -3113,6 +3133,21 @@ export class TextManager {
     }[];
 }
 
+// @public (undocumented)
+export class ThemeManager {
+    constructor(editor: Editor, themes?: TLThemes, initialTheme?: string);
+    // (undocumented)
+    dispose(): void;
+    // (undocumented)
+    getCurrentTheme(): TLTheme;
+    getCurrentThemeId(): string;
+    // (undocumented)
+    getThemes(): TLThemes;
+    setCurrentTheme(themeId: null | string): void;
+    // (undocumented)
+    updateThemes(themes: Partial<TLThemes>): void;
+}
+
 // @internal (undocumented)
 export class TickManager {
     constructor(editor: Editor);
@@ -3427,6 +3462,7 @@ export interface TldrawEditorBaseProps {
     // @deprecated
     deepLinks?: TLDeepLinkOptions | true;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
+    // @deprecated
     inferDarkMode?: boolean;
     initialState?: string;
     licenseKey?: string;
@@ -3435,6 +3471,8 @@ export interface TldrawEditorBaseProps {
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     // @deprecated
     textOptions?: TLTextOptions;
+    theme?: string;
+    themes?: TLThemes;
     tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
@@ -3647,6 +3685,7 @@ export interface TLEditorOptions {
     };
     getContainer(): HTMLElement;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
+    // @deprecated
     inferDarkMode?: boolean;
     initialState?: string;
     // (undocumented)
@@ -3657,6 +3696,8 @@ export interface TLEditorOptions {
     store: TLStore;
     // @deprecated
     textOptions?: TLTextOptions;
+    theme?: string;
+    themes?: TLThemes;
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
@@ -4352,7 +4393,7 @@ export interface TLShapeIndicatorsProps {
 // @public
 export interface TLShapeUtilCanBeLaidOutOpts {
     shapes?: TLShape[];
-    type?: 'align' | 'distribute' | 'flip' | 'pack' | 'stack' | 'stretch';
+    type?: 'align' | 'distribute' | 'flip' | 'pack' | 'resize_to_bounds' | 'stack' | 'stretch';
 }
 
 // @public
@@ -4723,6 +4764,9 @@ export function useContainer(): HTMLElement;
 // @public (undocumented)
 export function useContainerIfExists(): HTMLElement | null;
 
+// @public (undocumented)
+export function useCurrentThemeId(): string;
+
 // @public
 export function useDelaySvgExport(): () => void;
 
@@ -4741,7 +4785,7 @@ export function useGlobalMenuIsOpen(id: string, onChange?: (isOpen: boolean) => 
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function useIsDarkMode(): boolean;
 
 // @public (undocumented)
