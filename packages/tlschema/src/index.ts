@@ -269,7 +269,7 @@ export {
 	defaultColorNames,
 	DefaultColorStyle,
 	type TLDefaultColorStyle,
-	type TLDefaultColorThemeColor,
+	type TLDefaultColor as TLDefaultColorThemeColor,
 } from './styles/TLColorStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
 export { DefaultFillStyle, type TLDefaultFillStyle } from './styles/TLFillStyle'

@@ -42,9 +42,9 @@ export const defaultColorNames = [
  *
  * @example
  * ```ts
- * import { TLDefaultColorThemeColor } from '@tldraw/tlschema'
+ * import { TLDefaultColor } from '@tldraw/tlschema'
  *
- * const blueColor: TLDefaultColorThemeColor = {
+ * const blueColor: TLDefaultColor = {
  *   solid: '#4465e9',
  *   semi: '#dce1f8',
  *   pattern: '#6681ee',
@@ -55,7 +55,7 @@ export const defaultColorNames = [
  *
  * @public
  */
-export interface TLDefaultColorThemeColor {
+export interface TLDefaultColor {
 	solid: string
 	semi: string
 	pattern: string
@@ -71,6 +71,9 @@ export interface TLDefaultColorThemeColor {
 	highlightSrgb: string
 	highlightP3: string
 }
+
+/** @deprecated - use TLDefaultColor instead */
+export type TLDefaultColorThemeColor = TLDefaultColor
 
 /**
  * @public
