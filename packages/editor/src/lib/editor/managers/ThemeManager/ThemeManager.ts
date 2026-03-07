@@ -31,16 +31,11 @@ export class ThemeManager {
 		return this._themes.get()
 	}
 
-	updateThemes(themes: Partial<TLThemes>): void {
-		this._themes.update((prev) => {
-			const next = { ...prev }
-			for (const [key, value] of Object.entries(themes)) {
-				if (value !== undefined) {
-					next[key] = value
-				}
-			}
-			return next
-		})
+	updateTheme(theme: TLTheme): void {
+		this._themes.update((prev) => ({
+			...prev,
+			[theme.id]: theme,
+		}))
 	}
 
 	/**
