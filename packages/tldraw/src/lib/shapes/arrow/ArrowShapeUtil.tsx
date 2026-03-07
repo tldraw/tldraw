@@ -785,11 +785,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	component(shape: TLArrowShape) {
 		const { editor } = this
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isDarkMode = useIsDarkMode()
 		const dv = getDisplayValues(this, shape, isDarkMode)
-
-		const theme = useDefaultColorTheme()
 
 		const shouldDisplayHandles = useValue(
 			'should display handles',
