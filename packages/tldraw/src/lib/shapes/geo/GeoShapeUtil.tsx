@@ -151,7 +151,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				minSizeWithLabel: (LABEL_PADDING + 1) * 3,
 			}
 		},
-		getDisplayValueOverrides(_editor, _shape, _isDarkMode): Partial<GeoShapeUtilDisplayValues> {
+		getDisplayValueOverrides(_editor, _shape): Partial<GeoShapeUtilDisplayValues> {
 			return {}
 		},
 	}

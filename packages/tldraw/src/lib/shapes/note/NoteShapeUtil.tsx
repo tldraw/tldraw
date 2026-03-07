@@ -131,7 +131,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				labelVerticalAlign: NOTE_SHAPE_VERTICAL_ALIGNS[verticalAlign],
 			}
 		},
-		getDisplayValueOverrides(_editor, _shape, _isDarkMode): Partial<NoteShapeUtilDisplayValues> {
+		getDisplayValueOverrides(_editor, _shape): Partial<NoteShapeUtilDisplayValues> {
 			return {}
 		},
 	}

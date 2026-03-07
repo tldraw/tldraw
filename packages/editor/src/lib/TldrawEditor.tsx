@@ -157,8 +157,19 @@ export interface TldrawEditorBaseProps {
 
 	/**
 	 * Whether to infer dark mode from the user's OS. Defaults to false.
+	 *
+	 * @deprecated Use `theme` instead. Set `theme="dark"` or `theme="light"` to control the
+	 * theme directly, or use the user's `colorScheme` preference for system-based selection.
 	 */
 	inferDarkMode?: boolean
+
+	/**
+	 * The active theme ID. When set, overrides the automatic light/dark
+	 * selection based on the user's dark mode preference.
+	 *
+	 * Must correspond to a key in the `themes` map (defaults are `'light'` and `'dark'`).
+	 */
+	theme?: string
 
 	/**
 	 * Camera options for the editor.
@@ -430,6 +441,7 @@ function TldrawEditorWithReadyStore({
 	getShapeVisibility,
 	assetUrls,
 	themes,
+	theme,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -458,6 +470,7 @@ function TldrawEditorWithReadyStore({
 		cameraOptions,
 		deepLinks,
 		themes,
+		theme,
 	})
 
 	useLayoutEffect(() => {
@@ -468,12 +481,13 @@ function TldrawEditorWithReadyStore({
 			cameraOptions,
 			deepLinks,
 			themes,
+			theme,
 		}
-	}, [autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks, themes])
+	}, [autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks, themes, theme])
 
 	useLayoutEffect(
 		() => {
-			const { autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks, themes } =
+			const { autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks, themes, theme } =
 				editorOptionsRef.current
 			const editor = new Editor({
 				store,
@@ -492,6 +506,7 @@ function TldrawEditorWithReadyStore({
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
 				themes,
+				theme,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -551,6 +566,13 @@ function TldrawEditorWithReadyStore({
 			editor.updateThemes(themes)
 		}
 	}, [editor, themes])
+
+	// keep the editor up to date with the active theme
+	useLayoutEffect(() => {
+		if (editor) {
+			editor.setTheme(theme ?? null)
+		}
+	}, [editor, theme])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(

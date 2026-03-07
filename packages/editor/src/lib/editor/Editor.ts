@@ -234,8 +234,18 @@ export interface TLEditorOptions {
 	autoFocus?: boolean
 	/**
 	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
+	 *
+	 * @deprecated Use `theme` instead. Set `theme: 'dark'` or `theme: 'light'` to control the
+	 * theme directly, or use the user's `colorScheme` preference for system-based selection.
 	 */
 	inferDarkMode?: boolean
+	/**
+	 * The initial active theme ID. When set, overrides the automatic light/dark
+	 * selection based on the user's dark mode preference.
+	 *
+	 * Must correspond to a key in the `themes` map (defaults are `'light'` and `'dark'`).
+	 */
+	theme?: string
 	/**
 	 * Options for the editor's camera.
 	 *
@@ -317,6 +327,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		getShapeVisibility,
 		fontAssetUrls,
 		themes,
+		theme,
 	}: TLEditorOptions) {
 		super()
 
@@ -356,7 +367,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())
 
-		this.theme = new ThemeManager(this, themes)
+		this.theme = new ThemeManager(this, themes, theme)
 		this.disposables.add(() => this.theme.dispose())
 
 		this.getContainer = getContainer
@@ -993,7 +1004,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the active color mode based on the user's dark mode preference.
+	 * Set the active theme by ID.
+	 *
+	 * @param themeId - The theme ID to activate, or `null` to revert to automatic
+	 *   selection based on the user's dark mode preference.
+	 *
+	 * @public
+	 */
+	setTheme(themeId: string | null): this {
+		this.theme.setCurrentTheme(themeId)
+		return this
+	}
+
+	/**
+	 * Get the active color mode based on the current theme.
 	 *
 	 * @public
 	 */

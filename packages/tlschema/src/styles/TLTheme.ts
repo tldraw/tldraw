@@ -23,6 +23,14 @@ export type TLThemeColorPalette = Expand<
  */
 export interface TLTheme {
 	colors: TLThemeColorPalette
+	/**
+	 * The visual appearance mode for this theme. Determines which CSS color mode
+	 * is applied (e.g. cursor colors, selection colors, and other UI chrome).
+	 *
+	 * If not specified, the appearance is inferred from the theme key:
+	 * `'dark'` maps to dark appearance, everything else maps to light.
+	 */
+	appearance?: 'light' | 'dark'
 }
 
 /**

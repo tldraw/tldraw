@@ -6,11 +6,7 @@ export interface ShapeOptionsWithDisplayValues<
 	DisplayValues extends object,
 > {
 	getDisplayValues(editor: Editor, shape: Shape, isDarkMode: boolean): DisplayValues
-	getDisplayValueOverrides(
-		editor: Editor,
-		shape: Shape,
-		isDarkMode: boolean
-	): Partial<DisplayValues>
+	getDisplayValueOverrides(editor: Editor, shape: Shape): Partial<DisplayValues>
 }
 
 /**
@@ -25,6 +21,6 @@ export function getDisplayValues<Shape extends TLShape, DisplayValues extends ob
 ): DisplayValues {
 	return {
 		...util.options.getDisplayValues(util.editor, shape, isDarkMode),
-		...util.options.getDisplayValueOverrides(util.editor, shape, isDarkMode),
+		...util.options.getDisplayValueOverrides(util.editor, shape),
 	}
 }

@@ -3012,7 +3012,7 @@ export function setStrokePointRadii(strokePoints: StrokePoint[], options: Stroke
 // @public (undocumented)
 export interface ShapeOptionsWithDisplayValues<Shape extends TLShape, DisplayValues extends object> {
     // (undocumented)
-    getDisplayValueOverrides(editor: Editor, shape: Shape, isDarkMode: boolean): Partial<DisplayValues>;
+    getDisplayValueOverrides(editor: Editor, shape: Shape): Partial<DisplayValues>;
     // (undocumented)
     getDisplayValues(editor: Editor, shape: Shape, isDarkMode: boolean): DisplayValues;
 }
