@@ -916,11 +916,8 @@ export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 // @public
 export type TLDefaultBinding = TLArrowBinding;
 
-// @public (undocumented)
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
-
 // @public
-export interface TLDefaultColorThemeColor {
+export interface TLDefaultColor {
     // (undocumented)
     fill: string;
     // (undocumented)
@@ -950,6 +947,12 @@ export interface TLDefaultColorThemeColor {
     // (undocumented)
     solid: string;
 }
+
+// @public (undocumented)
+export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
+
+// @public @deprecated (undocumented)
+export type TLDefaultColorThemeColor = TLDefaultColor;
 
 // @public
 export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
@@ -1502,7 +1505,7 @@ export type TLThemeColorPalette = Expand<{
     noteBorder: string;
     solid: string;
     text: string;
-} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>>;
+} & Record<(typeof defaultColorNames)[number], TLDefaultColor>>;
 
 // @public
 export type TLThemes = Record<string, TLTheme>;

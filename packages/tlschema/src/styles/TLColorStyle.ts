@@ -72,7 +72,10 @@ export interface TLDefaultColor {
 	highlightP3: string
 }
 
-/** @deprecated - use TLDefaultColor instead */
+/**
+ * @public
+ * @deprecated - use TLDefaultColor instead
+ */
 export type TLDefaultColorThemeColor = TLDefaultColor
 
 /**
