@@ -939,7 +939,9 @@ export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
 // @public @deprecated
 export type TLDefaultColorTheme = Expand<{
     background: string;
+    cursor: string;
     id: 'dark' | 'light';
+    noteBorder: string;
     solid: string;
     text: string;
 } & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>>;
@@ -1514,14 +1516,17 @@ export interface TLTextShapeProps {
 
 // @public
 export interface TLTheme {
-    appearance?: 'dark' | 'light';
     // (undocumented)
     colors: TLThemeColorPalette;
+    // (undocumented)
+    id: string;
 }
 
 // @public
 export type TLThemeColorPalette = Expand<{
     background: string;
+    cursor: string;
+    noteBorder: string;
     solid: string;
     text: string;
 } & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>>;

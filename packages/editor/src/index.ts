@@ -293,6 +293,7 @@ export {
 	useContainerIfExists,
 	type ContainerProviderProps,
 } from './lib/hooks/useContainer'
+export { useCurrentThemeId } from './lib/hooks/useCurrentThemeId'
 export { getCursor } from './lib/hooks/useCursor'
 export {
 	EditorContext,

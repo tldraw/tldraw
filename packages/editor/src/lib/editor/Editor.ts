@@ -319,6 +319,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		cameraOptions,
 		initialState,
 		autoFocus,
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		inferDarkMode,
 		options: _options,
 		// needs to be here for backwards compatibility with TldrawEditor
@@ -362,22 +363,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 			...options?.camera,
 		})
 
+		this.getContainer = getContainer
+
 		this._textOptions = atom('text options', options?.text ?? null)
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
-		this.disposables.add(() => this.user.dispose())
-
-		this.theme = new ThemeManager(this, themes, theme)
-		this.disposables.add(() => this.theme.dispose())
-
-		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
 		this.disposables.add(() => this.textMeasure.dispose())
 
-		this.fonts = new FontManager(this, fontAssetUrls)
+		this._themeManager = new ThemeManager(this, themes, theme)
+		this.disposables.add(() => this._themeManager.dispose())
 
 		this._tickManager = new TickManager(this)
+		this.disposables.add(() => this._tickManager.dispose())
+
+		this.fonts = new FontManager(this, fontAssetUrls)
 
 		this.inputs = new InputsManager(this)
 
@@ -972,7 +973,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	readonly theme: ThemeManager
+	readonly _themeManager: ThemeManager
 
 	/**
 	 * Get the map of all registered themes.
@@ -980,7 +981,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getThemes(): TLThemes {
-		return this.theme.getThemes()
+		return this._themeManager.getThemes()
 	}
 
 	/**
@@ -991,16 +992,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateThemes(themes: Partial<TLThemes>): void {
-		this.theme.updateThemes(themes)
+		this._themeManager.updateThemes(themes)
 	}
 
 	/**
-	 * Get the current theme for the active color mode (light/dark).
+	 * Get the current theme.
 	 *
 	 * @public
 	 */
 	getCurrentTheme(): TLTheme {
-		return this.theme.getCurrentTheme()
+		// internally a computed
+		return this._themeManager.getCurrentTheme()
+	}
+	/**
+	 * Get the id of the active theme.
+	 *
+	 * @public
+	 */
+	getCurrentThemeId(): keyof TLThemes {
+		// internally a computed
+		return this._themeManager.getCurrentThemeId()
 	}
 
 	/**
@@ -1012,17 +1023,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setTheme(themeId: string | null): this {
-		this.theme.setCurrentTheme(themeId)
+		this._themeManager.setCurrentTheme(themeId)
 		return this
-	}
-
-	/**
-	 * Get the active color mode based on the current theme.
-	 *
-	 * @public
-	 */
-	getActiveColorMode(): 'light' | 'dark' {
-		return this.theme.getActiveColorMode()
 	}
 
 	/**

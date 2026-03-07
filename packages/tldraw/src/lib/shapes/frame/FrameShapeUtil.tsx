@@ -24,7 +24,7 @@ import {
 	lerp,
 	resizeBox,
 	toDomPrecision,
-	useIsDarkMode,
+	useCurrentThemeId,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
@@ -242,8 +242,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override component(shape: TLFrameShape) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const isDarkMode = useIsDarkMode()
-		const dv = getDisplayValues(this, shape, isDarkMode)
+		const themeId = useCurrentThemeId()
+		const dv = getDisplayValues(this, shape, themeId)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isCreating = useValue(
@@ -294,7 +294,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
 
 		// rotate right 45 deg
 		const labelSide = getFrameHeadingSide(this.editor, shape)

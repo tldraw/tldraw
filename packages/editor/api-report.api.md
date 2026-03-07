@@ -1175,7 +1175,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         focusContainer?: boolean | undefined;
     }): this;
     readonly fonts: FontManager;
-    getActiveColorMode(): 'dark' | 'light';
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
     getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined>;
@@ -1233,6 +1232,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
     getCurrentTheme(): TLTheme;
+    getCurrentThemeId(): keyof TLThemes;
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
     getDebouncedZoomLevel(): number;
@@ -1516,7 +1516,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         [key: string]: Map<StyleProp<any>, string>;
     };
     readonly textMeasure: TextManager;
-    readonly theme: ThemeManager;
+    readonly _themeManager: ThemeManager;
     readonly timers: {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
@@ -3127,7 +3127,6 @@ export class ThemeManager {
     constructor(editor: Editor, themes?: TLThemes, initialTheme?: string);
     // (undocumented)
     dispose(): void;
-    getActiveColorMode(): 'dark' | 'light';
     // (undocumented)
     getCurrentTheme(): TLTheme;
     getCurrentThemeId(): string;
@@ -4754,6 +4753,9 @@ export function useContainer(): HTMLElement;
 // @public (undocumented)
 export function useContainerIfExists(): HTMLElement | null;
 
+// @public (undocumented)
+export function useCurrentThemeId(): string;
+
 // @public
 export function useDelaySvgExport(): () => void;
 
@@ -4772,7 +4774,7 @@ export function useGlobalMenuIsOpen(id: string, onChange?: (isOpen: boolean) => 
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function useIsDarkMode(): boolean;
 
 // @public (undocumented)

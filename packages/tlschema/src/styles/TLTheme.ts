@@ -12,6 +12,8 @@ export type TLThemeColorPalette = Expand<
 		text: string
 		background: string
 		solid: string
+		cursor: string
+		noteBorder: string
 	} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>
 >
 
@@ -22,15 +24,8 @@ export type TLThemeColorPalette = Expand<
  * @public
  */
 export interface TLTheme {
+	id: string
 	colors: TLThemeColorPalette
-	/**
-	 * The visual appearance mode for this theme. Determines which CSS color mode
-	 * is applied (e.g. cursor colors, selection colors, and other UI chrome).
-	 *
-	 * If not specified, the appearance is inferred from the theme key:
-	 * `'dark'` maps to dark appearance, everything else maps to light.
-	 */
-	appearance?: 'light' | 'dark'
 }
 
 /**

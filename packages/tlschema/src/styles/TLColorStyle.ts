@@ -103,6 +103,8 @@ export type TLDefaultColorTheme = Expand<
 		text: string
 		background: string
 		solid: string
+		cursor: string
+		noteBorder: string
 	} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>
 >
 
@@ -137,6 +139,8 @@ export const DefaultColorThemePalette: {
 		text: '#000000',
 		background: '#f9fafb',
 		solid: '#fcfffe',
+		cursor: 'black',
+		noteBorder: 'rgb(144, 144, 144)',
 		black: {
 			solid: '#1d1d1d',
 			fill: '#1d1d1d',
@@ -351,6 +355,8 @@ export const DefaultColorThemePalette: {
 		text: 'hsl(210, 17%, 98%)',
 		background: 'hsl(240, 5%, 6.5%)',
 		solid: '#010403',
+		cursor: 'white',
+		noteBorder: 'rgb(20, 20, 20)',
 
 		black: {
 			solid: '#f2f2f2',

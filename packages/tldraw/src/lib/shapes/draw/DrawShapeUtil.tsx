@@ -18,7 +18,6 @@ import {
 	lerp,
 	rng,
 	useEditor,
-	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
 
@@ -116,7 +115,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			shape.props.scaleY
 		)
 
-		const sw = (getDisplayValues(this, shape, false).strokeWidth + 1) * shape.props.scale
+		const sw = (getDisplayValues(this, shape).strokeWidth + 1) * shape.props.scale
 
 		// A dot
 		if (shape.props.segments.length === 1) {
@@ -160,9 +159,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	component(shape: TLDrawShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const isDarkMode = useIsDarkMode()
-		const dv = getDisplayValues(this, shape, isDarkMode)
+		const dv = getDisplayValues(this, shape)
 		return (
 			<SVGContainer>
 				<DrawShapeSvg
@@ -183,7 +180,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			shape.props.scaleY
 		)
 
-		let sw = (getDisplayValues(this, shape, false).strokeWidth + 1) * shape.props.scale
+		let sw = (getDisplayValues(this, shape).strokeWidth + 1) * shape.props.scale
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const forceSolid = useValue(
@@ -226,7 +223,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			shape.props.scaleY
 		)
 
-		let sw = (getDisplayValues(this, shape, false).strokeWidth + 1) * shape.props.scale
+		let sw = (getDisplayValues(this, shape).strokeWidth + 1) * shape.props.scale
 
 		const zoomLevel = this.editor.getEfficientZoomLevel()
 		const forceSolid = zoomLevel < 0.5 && zoomLevel < 1.5 / sw
@@ -253,7 +250,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
 		const scaleFactor = 1 / shape.props.scale
 		return (
 			<g transform={`scale(${scaleFactor})`}>
@@ -288,7 +285,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
-		return ((getDisplayValues(this, shape, false).strokeWidth * multiplier) / 2) * shape.props.scale
+		return ((getDisplayValues(this, shape).strokeWidth * multiplier) / 2) * shape.props.scale
 	}
 	override getInterpolatedProps(
 		startShape: TLDrawShape,

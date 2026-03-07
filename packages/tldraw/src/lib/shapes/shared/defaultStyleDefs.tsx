@@ -31,7 +31,7 @@ function HashPatternForExport() {
 	const maskId = useUniqueSafeId()
 	const editor = useEditor()
 	const { colors } = editor.getCurrentTheme()
-	const colorMode = editor.getActiveColorMode()
+	const colorMode = editor._themeManager.getCurrentThemeId()
 	const t = 8 / 12
 	return (
 		<>
@@ -119,7 +119,7 @@ const canvasBlob = (size: [number, number], fn: (ctx: CanvasRenderingContext2D) 
 interface PatternDef {
 	zoom: number
 	url: string
-	theme: 'light' | 'dark'
+	theme: string
 }
 
 let defaultPixels: { white: string; black: string } | null = null
@@ -146,7 +146,7 @@ function getPatternLodForZoomLevel(zoom: number) {
 export function useGetHashPatternZoomName() {
 	const id = useSharedSafeId('hash_pattern')
 	return useCallback(
-		(zoom: number, theme: 'light' | 'dark') => {
+		(zoom: number, theme: string) => {
 			const lod = getPatternLodForZoomLevel(zoom)
 			return suffixSafeId(id, `${theme}_${lod}`)
 		},

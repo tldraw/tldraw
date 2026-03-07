@@ -10,12 +10,14 @@ export default function ChangingDefaultColorsExample() {
 			<Tldraw
 				persistenceKey="example"
 				onMount={(editor) => {
+					const lightTheme = editor.getThemes()['light']
 					editor.updateThemes({
 						light: {
+							...lightTheme,
 							colors: {
-								...editor.getThemes()['light'].colors,
+								...lightTheme.colors,
 								black: {
-									...editor.getThemes()['light'].colors.black,
+									...lightTheme.colors.black,
 									solid: 'aqua',
 								},
 							},

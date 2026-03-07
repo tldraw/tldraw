@@ -85,7 +85,7 @@ export class PointingHandle extends StateNode {
 
 		if (editor.isShapeOfType(shape, 'note')) {
 			const noteUtil = editor.getShapeUtil(shape) as NoteShapeUtil
-			const dv = getDisplayValues(noteUtil, shape, false)
+			const dv = getDisplayValues(noteUtil, shape)
 
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, true)
 			if (nextNote) {
@@ -146,7 +146,7 @@ function getNoteForAdjacentPosition(
 	forceNew: boolean
 ) {
 	const noteUtil = editor.getShapeUtil(shape) as NoteShapeUtil
-	const dv = getDisplayValues(noteUtil, shape, false)
+	const dv = getDisplayValues(noteUtil, shape)
 
 	const pageTransform = editor.getShapePageTransform(shape.id)!
 	const pagePoint = pageTransform.point()

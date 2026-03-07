@@ -27,8 +27,8 @@ import {
 	rng,
 	toDomPrecision,
 	toRichText,
+	useCurrentThemeId,
 	useEditor,
-	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
 import { useCallback, useContext } from 'react'
@@ -113,8 +113,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				noteWidth: 200,
 				noteHeight: 200,
 				noteBackgroundColor: getColorValue(colors, color, 'noteFill'),
-				borderColor:
-					editor.getActiveColorMode() === 'dark' ? 'rgb(20, 20, 20)' : 'rgb(144, 144, 144)',
+				borderColor: colors.noteBorder,
 				borderWidth: 2,
 				labelColor:
 					labelColor === 'black'
@@ -182,7 +181,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const { labelHeight, labelWidth } = this.getLabelSize(shape)
 		const { scale } = shape.props
 
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 
 		const lh = labelHeight * scale
 		const lw = labelWidth * scale
@@ -223,7 +222,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const zoom = this.editor.getEfficientZoomLevel()
 		if (zoom * scale < 0.25) return []
 
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 		const nh = getNoteHeight(shape, dv.noteHeight)
 		const nw = dv.noteWidth * scale
 		const offset = (CLONE_HANDLE_MARGIN / zoom) * scale
@@ -314,15 +313,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			[this.editor]
 		)
 
-		const isDarkMode = useIsDarkMode()
-		const dv = getDisplayValues(this, shape, isDarkMode)
+		const themeId = useCurrentThemeId()
+		const dv = getDisplayValues(this, shape, themeId)
 
 		const nw = dv.noteWidth * scale
 		const nh = getNoteHeight(shape, dv.noteHeight)
 
 		// Shadows are hidden when zoomed out far enough or in dark mode
 		let hideShadows = useEfficientZoomThreshold(0.25 / scale)
-		if (isDarkMode) hideShadows = true
+		if (themeId === 'dark') hideShadows = true
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
@@ -371,7 +370,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	indicator(shape: TLNoteShape) {
 		const { scale } = shape.props
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 		return (
 			<rect
 				rx={scale}
@@ -387,14 +386,14 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override getIndicatorPath(shape: TLNoteShape): Path2D {
 		const { scale } = shape.props
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 		const path = new Path2D()
 		path.roundRect(0, 0, dv.noteWidth * scale, getNoteHeight(shape, dv.noteHeight), scale)
 		return path
 	}
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
 		const bounds = new Box(0, 0, dv.noteWidth, dv.noteHeight + shape.props.growY)
 
 		const filterId = `note-shadow-${shape.id.replace(/:/g, '_')}` as SafeId
@@ -487,7 +486,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	 * Get the growY and fontSizeAdjustment for a shape.
 	 */
 	private getNoteSizeAdjustments(shape: TLNoteShape) {
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 		const { labelHeight, fontSizeAdjustment } = this.getLabelSize(shape)
 		// When the label height is more than the height of the shape, we add extra height to it
 		const growY = Math.max(0, labelHeight - dv.noteHeight)
@@ -522,7 +521,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	 * Expensively measure the label size for a note shape.
 	 */
 	private measureNoteLabelSize(shape: TLNoteShape) {
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 		const { richText } = shape.props
 
 		if (isEmptyRichText(richText)) {
@@ -615,7 +614,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				)
 
 				const noteUtil = editor.getShapeUtil(shape) as NoteShapeUtil
-				const dv = getDisplayValues(noteUtil, shape, false)
+				const dv = getDisplayValues(noteUtil, shape)
 
 				const noteOffset = isTab
 					? dv.noteWidth + editor.options.adjacentShapeMargin

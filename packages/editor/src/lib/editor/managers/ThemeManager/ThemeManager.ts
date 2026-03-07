@@ -1,28 +1,13 @@
 import { atom, computed } from '@tldraw/state'
-import {
-	DefaultColorThemePalette,
-	TLDefaultColorTheme,
-	TLTheme,
-	TLThemeColorPalette,
-	TLThemes,
-} from '@tldraw/tlschema'
+import { DefaultColorThemePalette, TLTheme, TLThemes } from '@tldraw/tlschema'
 import type { Editor } from '../../Editor'
 
-function paletteFromColorTheme(theme: TLDefaultColorTheme): TLThemeColorPalette {
-	const { id: _, ...palette } = theme
-	return palette as TLThemeColorPalette
-}
-
 function buildDefaultThemes(): TLThemes {
+	const { id: _lightId, ...lightColors } = DefaultColorThemePalette.lightMode
+	const { id: _darkId, ...darkColors } = DefaultColorThemePalette.darkMode
 	return {
-		light: {
-			colors: paletteFromColorTheme(DefaultColorThemePalette.lightMode),
-			appearance: 'light',
-		},
-		dark: {
-			colors: paletteFromColorTheme(DefaultColorThemePalette.darkMode),
-			appearance: 'dark',
-		},
+		light: { id: 'light', colors: lightColors },
+		dark: { id: 'dark', colors: darkColors },
 	}
 }
 
@@ -68,28 +53,7 @@ export class ThemeManager {
 	}
 
 	/**
-	 * Get the active color mode (light or dark) for the current theme.
-	 *
-	 * If a theme override is set, the color mode is derived from the theme's
-	 * `appearance` property, falling back to inferring from the theme ID.
-	 * Otherwise, it falls back to the user's dark mode preference.
-	 */
-	@computed getActiveColorMode(): 'light' | 'dark' {
-		const override = this._themeOverride.get()
-		if (override !== null) {
-			const themes = this._themes.get()
-			const theme = themes[override]
-			if (theme?.appearance) return theme.appearance
-			return override === 'dark' ? 'dark' : 'light'
-		}
-		return this.editor.user.getIsDarkMode() ? 'dark' : 'light'
-	}
-
-	/**
 	 * Get the current theme ID.
-	 *
-	 * If a theme override is set, returns that. Otherwise derives from
-	 * the user's dark mode preference ('light' or 'dark').
 	 */
 	@computed getCurrentThemeId(): string {
 		const override = this._themeOverride.get()

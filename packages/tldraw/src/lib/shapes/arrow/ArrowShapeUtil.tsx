@@ -43,7 +43,6 @@ import {
 	toRichText,
 	track,
 	useEditor,
-	useIsDarkMode,
 	useIsEditing,
 	useSharedSafeId,
 	useValue,
@@ -785,8 +784,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	component(shape: TLArrowShape) {
 		const { editor } = this
-		const isDarkMode = useIsDarkMode()
-		const dv = getDisplayValues(this, shape, isDarkMode)
+		const dv = getDisplayValues(this, shape)
 
 		const shouldDisplayHandles = useValue(
 			'should display handles',
@@ -869,7 +867,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const clipPathId = useSharedSafeId(shape.id + '_clip')
 
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 
 		const info = getArrowInfo(this.editor, shape)
 		if (!info) return null
@@ -983,7 +981,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const info = getArrowInfo(this.editor, shape)
 		if (!info) return undefined
 
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 
 		const isEditing = this.editor.getEditingShapeId() === shape.id
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, info?.bindings)
@@ -1122,7 +1120,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
 		const scaleFactor = 1 / shape.props.scale
 
 		return (

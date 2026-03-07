@@ -147,7 +147,7 @@ import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
-import type { TLTheme } from '@tldraw/editor';
+import { TLTheme } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
@@ -1960,7 +1960,7 @@ export function getDefaultCrop(): TLShapeCrop;
 export function getDisplayValues<Shape extends TLShape, DisplayValues extends object>(util: {
     editor: Editor;
     options: ShapeOptionsWithDisplayValues<Shape, DisplayValues>;
-}, shape: Shape, isDarkMode: boolean): DisplayValues;
+}, shape: Shape, themeId?: string): DisplayValues;
 
 // @public
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
@@ -3012,9 +3012,9 @@ export function setStrokePointRadii(strokePoints: StrokePoint[], options: Stroke
 // @public (undocumented)
 export interface ShapeOptionsWithDisplayValues<Shape extends TLShape, DisplayValues extends object> {
     // (undocumented)
-    getDisplayValueOverrides(editor: Editor, shape: Shape): Partial<DisplayValues>;
+    getDisplayValueOverrides(editor: Editor, shape: Shape, theme: TLTheme): Partial<DisplayValues>;
     // (undocumented)
-    getDisplayValues(editor: Editor, shape: Shape, isDarkMode: boolean): DisplayValues;
+    getDisplayValues(editor: Editor, shape: Shape, theme: TLTheme): DisplayValues;
 }
 
 // @public (undocumented)

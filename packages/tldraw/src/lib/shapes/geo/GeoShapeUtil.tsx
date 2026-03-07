@@ -23,7 +23,7 @@ import {
 	isEqual,
 	lerp,
 	toRichText,
-	useIsDarkMode,
+	useCurrentThemeId,
 	useValue,
 } from '@tldraw/editor'
 import {
@@ -198,7 +198,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			? GEO_SHAPE_EMPTY_LABEL_SIZE
 			: this.getUnscaledLabelSize(shape)
 
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 
 		// Calculate minimum label dimensions based on font size and shape size
 		const unscaledMinWidth = Math.min(100, unscaledShapeW / 2)
@@ -318,8 +318,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		)
 		const isReadyForEditing = useIsReadyForEditing(editor, shape.id)
 		const isForceSolid = useEfficientZoomThreshold(0.25 / shape.props.scale)
-		const isDarkMode = useIsDarkMode()
-		const dv = getDisplayValues(this, shape, isDarkMode)
+		const themeId = useCurrentThemeId()
+		const dv = getDisplayValues(this, shape, themeId)
 
 		const { w, h, richText, url } = props
 
@@ -373,7 +373,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const isZoomedOut = useEfficientZoomThreshold(0.25 / shape.props.scale)
 
 		const { dash, scale } = shape.props
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 
 		const path = getGeoShapePath(shape)
 
@@ -397,7 +397,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const isForceSolid = this.editor.getEfficientZoomLevel() < 0.25 / shape.props.scale
 
 		const { dash, scale } = shape.props
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 
 		const path = getGeoShapePath(shape)
 
@@ -413,7 +413,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode)
+		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
 		const { richText, fill, scale, growY, w, h } = shape.props
 		// We need to scale the shape to 1x for export
 		const newShape = {
@@ -478,7 +478,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		let overShrinkX = 0
 		let overShrinkY = 0
 
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 
 		if (!isEmptyRichText(shape.props.richText)) {
 			const absUnscaledW = Math.abs(unscaledW)
@@ -734,7 +734,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		let w = Math.max(unscaledW, unscaledLabelSize.w)
 		let h = Math.max(unscaledH, unscaledLabelSize.h)
 
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 
 		// If shape was smaller than min size in both dimensions, make it square
 		if (unscaledW < dv.minSizeWithLabel && unscaledH < dv.minSizeWithLabel) {
@@ -764,7 +764,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	 * Expensively measure the unscaled label size for the shape. Avoid using it if we can.
 	 */
 	private measureUnscaledLabelSize(shape: TLGeoShape) {
-		const dv = getDisplayValues(this, shape, false)
+		const dv = getDisplayValues(this, shape)
 
 		const html = renderHtmlFromRichTextForMeasurement(this.editor, shape.props.richText)
 
