@@ -18,8 +18,15 @@ import {
  * @param shape - The the shape to check.
  */
 const isShapeInPage = (store: TLStore, pageId: TLPageId, shape: TLShape): boolean => {
+	// Track visited parent IDs to prevent infinite loops from circular parent references
+	const visited = new Set<TLShapeId>()
 	while (!isPageId(shape.parentId)) {
-		const parent = store.get(shape.parentId)
+		const parentId = shape.parentId
+		// Cycle detection: if we've already visited this parent, stop to prevent infinite recursion
+		if (visited.has(parentId)) return false
+		visited.add(parentId)
+
+		const parent = store.get(parentId)
 		if (!parent) return false
 		shape = parent
 	}

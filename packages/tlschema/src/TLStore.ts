@@ -15,6 +15,7 @@ import { PageRecordType, TLPageId } from './records/TLPage'
 import { InstancePageStateRecordType, TLInstancePageStateId } from './records/TLPageState'
 import { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
 import { TLRecord } from './records/TLRecord'
+import { TLShape, TLShapeId, isShape, isShapeId } from './records/TLShape'
 
 /**
  * Redacts the source of an asset record for error reporting.
@@ -468,6 +469,99 @@ export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): ()
 			const filteredErasingIds = pageState.erasingShapeIds.filter((id) => store.has(id))
 			if (filteredErasingIds.length !== pageState.erasingShapeIds.length) {
 				store.put([{ ...pageState, erasingShapeIds: filteredErasingIds }])
+				return ensureStoreIsUsable()
+			}
+		}
+
+		// Detect and repair parent-child cycles in shapes.
+		// This can happen if corrupted data is loaded from persistence or imported from external sources.
+		// Cycles cause stack overflow when traversing parent chains, so we must repair them.
+		const shapes = store.allRecords().filter((r): r is TLShape => isShape(r))
+		const parentMap = new Map<TLShapeId, TLShapeId | TLPageId>()
+		for (const shape of shapes) {
+			parentMap.set(shape.id, shape.parentId)
+		}
+
+		// Find all shapes involved in cycles by walking up parent chains.
+		// We use an array to track the path so we can identify exactly which shapes
+		// are part of the cycle (not just ancestors that lead to a cycle).
+		//
+		// Optimization: We also track shapes we've verified are NOT in cycles.
+		// When we walk up from a shape and hit a verified-safe ancestor, we can
+		// stop early and mark the entire path as safe. This reduces the algorithm
+		// from O(n * d) to O(n) where d is average hierarchy depth.
+		const shapesInCycles = new Set<TLShapeId>()
+		const verifiedSafe = new Set<TLShapeId>()
+
+		for (const shape of shapes) {
+			// Skip if we already know this shape's status
+			if (shapesInCycles.has(shape.id) || verifiedSafe.has(shape.id)) continue
+
+			const path: TLShapeId[] = []
+			const pathSet = new Set<TLShapeId>()
+			let currentId: TLShapeId | TLPageId = shape.id
+			let foundCycle = false
+
+			while (currentId && isShapeId(currentId)) {
+				// If we reach a shape we've already verified as safe,
+				// the entire path so far is also safe - stop early
+				if (verifiedSafe.has(currentId)) {
+					break
+				}
+
+				// If we reach a shape already known to be in a cycle,
+				// stop early - after repair it will point to a page
+				if (shapesInCycles.has(currentId)) {
+					break
+				}
+
+				if (pathSet.has(currentId)) {
+					// Found a cycle - only mark shapes from the cycle start point onwards
+					const cycleStartIndex = path.indexOf(currentId)
+					for (let i = cycleStartIndex; i < path.length; i++) {
+						shapesInCycles.add(path[i])
+					}
+					// Shapes before the cycle start are not in the cycle but lead to it.
+					// After we repair the cycle, they'll point to valid parents,
+					// so mark them as safe now.
+					for (let i = 0; i < cycleStartIndex; i++) {
+						verifiedSafe.add(path[i])
+					}
+					foundCycle = true
+					break
+				}
+
+				path.push(currentId)
+				pathSet.add(currentId)
+				const parentId = parentMap.get(currentId)
+				if (!parentId) break
+				currentId = parentId
+			}
+
+			// If we didn't find a cycle (hit a page, missing parent, or verified-safe ancestor),
+			// all shapes in this path are verified safe
+			if (!foundCycle) {
+				for (const id of path) {
+					verifiedSafe.add(id)
+				}
+			}
+		}
+
+		if (shapesInCycles.size > 0) {
+			console.warn(`Repairing ${shapesInCycles.size} shapes in parent-child cycles`)
+
+			// Reset all cycled shapes to the first page
+			const firstPageId = getFirstPageId()
+			const fixes: TLShape[] = []
+			for (const shapeId of shapesInCycles) {
+				const shape = store.get(shapeId)
+				if (shape && isShape(shape)) {
+					fixes.push({ ...shape, parentId: firstPageId })
+				}
+			}
+
+			if (fixes.length > 0) {
+				store.put(fixes)
 				return ensureStoreIsUsable()
 			}
 		}
