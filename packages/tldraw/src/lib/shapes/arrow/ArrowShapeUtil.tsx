@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Arc2d,
 	Box,
@@ -45,6 +46,7 @@ import {
 	useIsDarkMode,
 	useIsEditing,
 	useSharedSafeId,
+	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
@@ -247,7 +249,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		let labelGeom
 		if (isEditing || !isEmptyRichText(shape.props.richText)) {
-			const labelPosition = getArrowLabelPosition(this.editor, shape)
+			const labelPosition = getArrowLabelPosition(this.editor, shape, isEditing)
 			if (debugFlags.debugGeometry.get()) {
 				debugGeom.push(...labelPosition.debugGeom)
 			}
@@ -782,25 +784,47 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	component(shape: TLArrowShape) {
+		const { editor } = this
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isDarkMode = useIsDarkMode()
 		const dv = getDisplayValues(this, shape, isDarkMode)
-		const onlySelectedShape = this.editor.getOnlySelectedShape()
-		const shouldDisplayHandles =
-			this.editor.isInAny(
-				'select.idle',
-				'select.pointing_handle',
-				'select.dragging_handle',
-				'select.translating',
-				'arrow.dragging'
-			) && !this.editor.getIsReadonly()
 
-		const info = getArrowInfo(this.editor, shape)
+		const theme = useDefaultColorTheme()
+
+		const shouldDisplayHandles = useValue(
+			'should display handles',
+			() => {
+				const { editor } = this
+				return (
+					!editor.getIsReadonly() &&
+					editor.getOnlySelectedShapeId() === shape.id &&
+					editor.isInAny(
+						'select.idle',
+						'select.pointing_handle',
+						'select.dragging_handle',
+						'select.translating',
+						'arrow.dragging'
+					)
+				)
+			},
+			[editor, shape.id]
+		)
+
+		const isSelected = useValue(
+			'is selected',
+			() => editor.getOnlySelectedShape()?.id === shape.id,
+			[editor, shape.id]
+		)
+
+		const isEditing = useValue('is editing', () => editor.getEditingShapeId() === shape.id, [
+			editor,
+			shape.id,
+		])
+
+		const info = getArrowInfo(editor, shape)
 		if (!info?.isValid) return null
 
-		const labelPosition = getArrowLabelPosition(this.editor, shape)
-		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const isEditing = this.editor.getEditingShapeId() === shape.id
+		const labelPosition = getArrowLabelPosition(editor, shape, isEditing)
 		const showArrowLabel = isEditing || !isEmptyRichText(shape.props.richText)
 
 		return (
@@ -808,7 +832,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
 					<ArrowSvg
 						shape={shape}
-						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
+						shouldDisplayHandles={shouldDisplayHandles}
 						strokeColor={dv.strokeColor}
 						strokeWidth={dv.strokeWidth}
 						fillColor={dv.fillColor}
@@ -844,9 +868,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	indicator(shape: TLArrowShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isEditing = useIsEditing(shape.id)
-		// eslint-disable-next-line react-hooks/rules-of-hooks
+
 		const clipPathId = useSharedSafeId(shape.id + '_clip')
 
 		const dv = getDisplayValues(this, shape, false)
@@ -1124,7 +1147,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					verticalAlign="center"
 					labelColor={dv.labelColor}
 					richText={shape.props.richText}
-					bounds={getArrowLabelPosition(this.editor, shape)
+					bounds={getArrowLabelPosition(this.editor, shape, false)
 						.box.clone()
 						.expandBy(-dv.labelPadding * shape.props.scale)}
 					padding={0}
@@ -1246,7 +1269,7 @@ const ArrowSvg = track(function ArrowSvg({
 		})
 	}
 
-	const labelPosition = getArrowLabelPosition(editor, shape)
+	const labelPosition = getArrowLabelPosition(editor, shape, isEditing)
 
 	const clipStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
 	const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')

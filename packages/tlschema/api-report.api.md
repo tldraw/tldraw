@@ -1134,6 +1134,7 @@ export type TLImageAsset = TLBaseAsset<'image', {
     isAnimated: boolean;
     mimeType: null | string;
     name: string;
+    pixelRatio?: number;
     src: null | string;
     w: number;
 }>;
