@@ -74,8 +74,24 @@ function SharePanelContent() {
 	const { displayMode, toggleFullscreen, canFullscreen, canDownload, app, lastEditor } =
 		useContext(CanvasUiContext)
 
+	const trackWidgetEvent = useCallback(
+		(event: string) => {
+			if (!app) return
+			app
+				.callServerTool({
+					name: 'event',
+					arguments: { event },
+				})
+				.catch(() => {
+					// no-op best effort
+				})
+		},
+		[app]
+	)
+
 	const handleBuildItClick = useCallback(() => {
 		if (!app) return
+		trackWidgetEvent('build_it_clicked')
 		const messageText =
 			lastEditor === 'user'
 				? "Hey I've made some edits to the canvas. The new canvas state is attached. Take the changes and implement them in the codebase."
@@ -89,7 +105,7 @@ function SharePanelContent() {
 				},
 			],
 		})
-	}, [app, lastEditor])
+	}, [app, lastEditor, trackWidgetEvent])
 
 	return (
 		<div className="tlui-share-zone" draggable={false} style={{ display: 'flex', gap: 4 }}>
