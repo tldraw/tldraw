@@ -1,7 +1,7 @@
 ---
 title: Themes
 created_at: 3/3/2026
-updated_at: 3/3/2026
+updated_at: 3/7/2026
 keywords:
   - theme
   - themes
@@ -13,9 +13,12 @@ keywords:
   - TLThemeColorPalette
   - ThemeManager
   - getCurrentTheme
+  - getCurrentThemeId
+  - setTheme
   - updateThemes
+  - useCurrentThemeId
 status: published
-date: 3/3/2026
+date: 3/7/2026
 ---
 
 Themes control the color palette used to render shapes in tldraw. Light and dark modes are separate top-level themes, and the editor automatically selects the right one based on the user's color scheme preference.
@@ -33,12 +36,14 @@ export default function App() {
 				console.log(theme.colors.red.solid) // e.g. '#e03131'
 
 				// Customize the light theme
+				const lightTheme = editor.getThemes()['light']
 				editor.updateThemes({
 					light: {
+						...lightTheme,
 						colors: {
-							...editor.getThemes()['light'].colors,
+							...lightTheme.colors,
 							black: {
-								...editor.getThemes()['light'].colors.black,
+								...lightTheme.colors.black,
 								solid: 'navy',
 							},
 						},
@@ -52,21 +57,25 @@ export default function App() {
 
 ## Theme structure
 
-A theme is a [TLTheme](?) object with a single color palette. Light and dark modes are separate themes:
+A theme is a [TLTheme](?) object with an `id` and a `colors` palette. Light and dark modes are separate themes:
 
 ```typescript
 const myThemes: TLThemes = {
 	light: {
+		id: 'light',
 		colors: {
 			text: '#000000',
 			background: '#f8f8f8',
 			solid: '#fcfcfc',
+			cursor: '#000000',
+			noteBorder: '#e8e8e8',
 			black: { solid: '#1d1d1d', semi: '#e8e8e8', pattern: '#494949', highlight: { srgb: '#fddd00', p3: 'color(display-p3 0.972 0.8705 0.05)' } },
 			blue: { solid: '#4263eb', semi: '#dce1f8', pattern: '#6681ee', highlight: { srgb: '#10acff', p3: 'color(display-p3 0.308 0.6632 0.9996)' } },
 			// ... other colors
 		},
 	},
 	dark: {
+		id: 'dark',
 		colors: {
 			// ... dark mode equivalents
 		},
@@ -83,11 +92,11 @@ Each color in the palette is a [TLDefaultColorThemeColor](?) with four variants:
 | `pattern`   | Color used in pattern/hatch fills                   |
 | `highlight` | High-gamut color for highlighter, in sRGB and P3    |
 
-The palette also includes three base properties: `text` for default text color, `background` for the canvas background, and `solid` for the default solid surface color.
+The palette also includes five base properties: `text` for default text color, `background` for the canvas background, `solid` for the default solid surface color, `cursor` for the cursor color, and `noteBorder` for note shape borders.
 
 ## Reading the current theme
 
-Use [Editor#getCurrentTheme](?) to get the active theme. This is reactive: components that read it will re-render when the theme or color mode changes.
+Use [Editor#getCurrentTheme](?) to get the active theme. This is reactive: components that read it will re-render when the theme changes.
 
 ```tsx
 function MyComponent() {
@@ -118,15 +127,28 @@ const theme = editor.getCurrentTheme()
 const color = getColorValue(theme, 'red', 'solid') // '#e03131'
 ```
 
-## Color mode
+## Switching themes
 
-The editor selects the `'light'` or `'dark'` theme based on the user's color scheme preference. Use [Editor#getActiveColorMode](?) when you need the mode as a string:
+The editor selects the `'light'` or `'dark'` theme based on the user's color scheme preference. Use [Editor#getCurrentThemeId](?) to get the active theme ID:
 
 ```typescript
-const mode = editor.getActiveColorMode() // 'light' or 'dark'
+const themeId = editor.getCurrentThemeId() // 'light' or 'dark'
 ```
 
-To change the color scheme, update user preferences:
+To explicitly set a theme, use [Editor#setTheme](?):
+
+```typescript
+editor.setTheme('dark') // switch to dark theme
+editor.setTheme(null) // revert to automatic selection
+```
+
+You can also set the theme via the `theme` prop on [Tldraw](?) or [TldrawEditor](?):
+
+```tsx
+<Tldraw theme="dark" />
+```
+
+To change the automatic color scheme preference, update user preferences:
 
 ```typescript
 editor.user.updateUserPreferences({ colorScheme: 'dark' })
@@ -134,17 +156,28 @@ editor.user.updateUserPreferences({ colorScheme: 'dark' })
 
 See [User preferences](/docs/user-preferences#dark-mode) for more on color scheme settings.
 
+The [useCurrentThemeId](?) hook provides a reactive theme ID for use in React components:
+
+```tsx
+function MyComponent() {
+	const themeId = useCurrentThemeId() // reactive, re-renders on change
+	return <div>Current theme: {themeId}</div>
+}
+```
+
 ## Customizing colors
 
 Use [Editor#updateThemes](?) to override specific colors in a theme:
 
 ```typescript
+const lightTheme = editor.getThemes()['light']
 editor.updateThemes({
 	light: {
+		...lightTheme,
 		colors: {
-			...editor.getThemes()['light'].colors,
+			...lightTheme.colors,
 			black: {
-				...editor.getThemes()['light'].colors.black,
+				...lightTheme.colors.black,
 				solid: 'navy',
 			},
 		},
@@ -157,9 +190,11 @@ You can also pass themes as a prop on the [Tldraw](?) or [TldrawEditor](?) compo
 ```tsx
 const myThemes: TLThemes = {
 	light: {
+		id: 'light',
 		colors: { /* ... */ },
 	},
 	dark: {
+		id: 'dark',
 		colors: { /* ... */ },
 	},
 }
@@ -176,10 +211,10 @@ import { GeoShapeUtil, type GeoShapeUtilDisplayValues } from 'tldraw'
 
 const CustomGeoShapeUtil = GeoShapeUtil.configure({
 	getDisplayValueOverrides(editor, shape): Partial<GeoShapeUtilDisplayValues> {
-		const { colors } = editor.getCurrentTheme()
+		const theme = editor.getCurrentTheme()
 
 		if (shape.isLocked) {
-			return { fillColor: colors.red.solid }
+			return { fillColor: theme.colors.red.solid }
 		}
 
 		return {}
@@ -206,12 +241,13 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 
 ## Editor API reference
 
-| Method                          | Description                                                  |
-| ------------------------------- | ------------------------------------------------------------ |
-| [Editor#getCurrentTheme](?)     | Get the current theme for the active color mode              |
-| [Editor#getActiveColorMode](?)  | Get `'light'` or `'dark'` based on user preference           |
-| [Editor#getThemes](?)           | Get all registered themes                                    |
-| [Editor#updateThemes](?)        | Merge overrides into registered themes                       |
+| Method                           | Description                                                  |
+| -------------------------------- | ------------------------------------------------------------ |
+| [Editor#getCurrentTheme](?)      | Get the current theme object (with `id` and `colors`)        |
+| [Editor#getCurrentThemeId](?)    | Get the ID of the active theme (e.g. `'light'` or `'dark'`)  |
+| [Editor#getThemes](?)            | Get all registered themes                                    |
+| [Editor#updateThemes](?)         | Merge overrides into registered themes                       |
+| [Editor#setTheme](?)             | Set the active theme by ID, or `null` for automatic          |
 
 ## Migrating from deprecated APIs
 
@@ -222,7 +258,7 @@ The following APIs are deprecated and will be removed in a future release:
 | `DefaultColorThemePalette`   | `editor.getThemes()`              |
 | `getDefaultColorTheme()`     | `editor.getCurrentTheme()`        |
 | `useDefaultColorTheme()`     | `useEditor().getCurrentTheme()`   |
-| `TLDefaultColorTheme`        | [TLThemeColorPalette](?)          |
+| `TLDefaultColorTheme`        | [TLTheme](?)                      |
 
 If you were mutating `DefaultColorThemePalette` directly to change colors, switch to `editor.updateThemes()`:
 
@@ -231,12 +267,14 @@ If you were mutating `DefaultColorThemePalette` directly to change colors, switc
 DefaultColorThemePalette.lightMode.black.solid = 'navy'
 
 // After
+const lightTheme = editor.getThemes()['light']
 editor.updateThemes({
 	light: {
+		...lightTheme,
 		colors: {
-			...editor.getThemes()['light'].colors,
+			...lightTheme.colors,
 			black: {
-				...editor.getThemes()['light'].colors.black,
+				...lightTheme.colors.black,
 				solid: 'navy',
 			},
 		},
