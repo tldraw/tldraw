@@ -166,6 +166,10 @@ export {
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
+export {
+	DEFAULT_DARK_THEME,
+	DEFAULT_LIGHT_THEME,
+} from './lib/editor/managers/ThemeManager/defaultThemes'
 export { ThemeManager } from './lib/editor/managers/ThemeManager/ThemeManager'
 export { TickManager } from './lib/editor/managers/TickManager/TickManager'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'
@@ -497,3 +501,5 @@ registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_VERSION,
 	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )
+
+export { getColorValue } from './lib/editor/managers/ThemeManager/defaultThemes'

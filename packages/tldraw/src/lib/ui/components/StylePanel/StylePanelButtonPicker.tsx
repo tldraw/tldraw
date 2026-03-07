@@ -60,7 +60,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 		onHistoryMark = ctx.onHistoryMark,
 	} = props
 	const editor = useEditor()
-	const { colors } = editor.getCurrentTheme()
+	const theme = editor.getCurrentTheme()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
@@ -165,7 +165,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 							title={label}
 							style={
 								style === (DefaultColorStyle as StyleProp<unknown>)
-									? { color: getColorValue(colors, item.value as TLDefaultColorStyle, 'solid') }
+									? { color: getColorValue(theme, item.value as TLDefaultColorStyle, 'solid') }
 									: undefined
 							}
 							onPointerEnter={handleButtonPointerEnter}

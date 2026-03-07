@@ -63,18 +63,18 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	override options: DrawShapeOptions = {
 		maxPointsPerShape: 600,
 		getDisplayValues(editor, shape): DrawShapeUtilDisplayValues {
-			const { colors } = editor.getCurrentTheme()
+			const theme = editor.getCurrentTheme()
 			const { color, fill, size } = shape.props
 			return {
-				strokeColor: getColorValue(colors, color, 'solid'),
+				strokeColor: getColorValue(theme, color, 'solid'),
 				strokeWidth: STROKE_SIZES[size],
 				fillColor:
 					fill === 'none'
 						? 'transparent'
 						: fill === 'semi'
-							? colors.solid
-							: getColorValue(colors, color, DEFAULT_FILL_COLOR_NAMES[fill]),
-				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
+							? theme.colors.solid
+							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
 			}
 		},
 		getDisplayValueOverrides(): Partial<DrawShapeUtilDisplayValues> {

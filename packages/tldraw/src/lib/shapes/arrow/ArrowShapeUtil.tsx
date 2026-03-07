@@ -130,19 +130,19 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		},
 		showTextOutline: true,
 		getDisplayValues(editor, shape): ArrowShapeUtilDisplayValues {
-			const { colors } = editor.getCurrentTheme()
+			const theme = editor.getCurrentTheme()
 			const { color, fill, labelColor, size, font } = shape.props
 			return {
-				strokeColor: getColorValue(colors, color, 'solid'),
+				strokeColor: getColorValue(theme, color, 'solid'),
 				strokeWidth: STROKE_SIZES[size],
 				fillColor:
 					fill === 'none'
 						? 'transparent'
 						: fill === 'semi'
-							? colors.solid
-							: getColorValue(colors, color, DEFAULT_FILL_COLOR_NAMES[fill]),
-				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
-				labelColor: getColorValue(colors, labelColor, 'solid'),
+							? theme.colors.solid
+							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
+				labelColor: getColorValue(theme, labelColor, 'solid'),
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: ARROW_LABEL_FONT_SIZES[size],
 				labelLineHeight: TEXT_PROPS.lineHeight,

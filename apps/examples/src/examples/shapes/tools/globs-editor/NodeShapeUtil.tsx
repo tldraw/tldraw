@@ -123,8 +123,8 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	override indicator(shape: NodeShape) {
 		const zoom = this.editor.getZoomLevel()
 
-		const { colors } = this.editor.getCurrentTheme()
-		const blue = getColorValue(colors, 'blue', 'solid')
+		const theme = this.editor.getCurrentTheme()
+		const blue = getColorValue(theme, 'blue', 'solid')
 
 		return <circle r={shape.props.radius} strokeWidth={1 / zoom} stroke={blue} fill="none" />
 	}

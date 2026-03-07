@@ -120,20 +120,20 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		getDisplayValues(editor, shape): GeoShapeUtilDisplayValues {
 			const { color, size, labelColor, fill, align, verticalAlign, font } = shape.props
 
-			const { colors } = editor.getCurrentTheme()
+			const theme = editor.getCurrentTheme()
 
 			return {
-				strokeColor: getColorValue(colors, color, 'solid'),
+				strokeColor: getColorValue(theme, color, 'solid'),
 				strokeRoundness: STROKE_SIZES[size] * 2,
 				strokeWidth: STROKE_SIZES[size],
 				fillColor:
 					fill === 'none'
 						? 'transparent'
 						: fill === 'semi'
-							? colors.solid
-							: getColorValue(colors, color, DEFAULT_FILL_COLOR_NAMES[fill]),
-				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
-				labelColor: getColorValue(colors, labelColor, 'solid'), // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
+							? theme.colors.solid
+							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
+				labelColor: getColorValue(theme, labelColor, 'solid'), // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: LABEL_FONT_SIZES[size],
 				labelMinWidth: GEO_SHAPE_MIN_WIDTHS[size],

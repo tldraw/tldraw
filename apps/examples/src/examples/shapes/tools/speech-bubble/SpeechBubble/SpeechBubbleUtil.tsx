@@ -190,7 +190,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const { colors } = useEditor().getCurrentTheme()
+		const theme = useEditor().getCurrentTheme()
 
 		return (
 			<>
@@ -198,7 +198,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					<path
 						d={pathData}
 						strokeWidth={STROKE_SIZES[size]}
-						stroke={getColorValue(colors, color, 'solid')}
+						stroke={getColorValue(theme, color, 'solid')}
 						fill={'none'}
 					/>
 				</svg>
@@ -212,7 +212,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					align={align}
 					verticalAlign="start"
 					text={text}
-					labelColor={getColorValue(colors, color, 'solid')}
+					labelColor={getColorValue(theme, color, 'solid')}
 					isSelected={isSelected}
 					wrap
 				/>

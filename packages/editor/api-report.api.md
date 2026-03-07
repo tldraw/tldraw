@@ -61,6 +61,8 @@ import { TLCamera } from '@tldraw/tlschema';
 import { TLCreateShapePartial } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
+import { TLDefaultColorStyle } from '@tldraw/tlschema';
+import { TLDefaultColorThemeColor } from '@tldraw/tlschema';
 import { TLDefaultDashStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
@@ -616,6 +618,12 @@ export const DEFAULT_ANIMATION_OPTIONS: {
 
 // @internal (undocumented)
 export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions;
+
+// @public (undocumented)
+export const DEFAULT_DARK_THEME: TLTheme;
+
+// @public (undocumented)
+export const DEFAULT_LIGHT_THEME: TLTheme;
 
 // @public (undocumented)
 export function DefaultBackground(): JSX.Element;
@@ -1804,6 +1812,9 @@ export interface Geometry2dOptions extends TransformedGeometry2dOptions {
 
 // @public
 export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number): number;
+
+// @public
+export function getColorValue(theme: TLTheme, color: string | TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
 
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;

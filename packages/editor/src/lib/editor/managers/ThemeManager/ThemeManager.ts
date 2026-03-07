@@ -1,13 +1,12 @@
 import { atom, computed } from '@tldraw/state'
-import { DefaultColorThemePalette, TLTheme, TLThemes } from '@tldraw/tlschema'
+import { TLTheme, TLThemes } from '@tldraw/tlschema'
 import type { Editor } from '../../Editor'
+import { DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME } from './defaultThemes'
 
 function buildDefaultThemes(): TLThemes {
-	const { id: _lightId, ...lightColors } = DefaultColorThemePalette.lightMode
-	const { id: _darkId, ...darkColors } = DefaultColorThemePalette.darkMode
 	return {
-		light: { id: 'light', colors: lightColors },
-		dark: { id: 'dark', colors: darkColors },
+		light: DEFAULT_LIGHT_THEME,
+		dark: DEFAULT_DARK_THEME,
 	}
 }
 

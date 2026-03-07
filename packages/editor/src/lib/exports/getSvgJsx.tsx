@@ -1,5 +1,5 @@
 import { useAtom, useValue } from '@tldraw/state-react'
-import { TLFrameShape, TLShape, TLShapeId, getColorValue } from '@tldraw/tlschema'
+import { TLFrameShape, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { hasOwnProperty, promiseWithResolve, uniqueId } from '@tldraw/utils'
 import {
 	ComponentType,
@@ -16,6 +16,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
 import type { Editor, TLRenderingShape } from '../editor/Editor'
 import { TLFontFace } from '../editor/managers/FontManager/FontManager'
+import { getColorValue } from '../editor/managers/ThemeManager/defaultThemes'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import {
 	SvgExportContext,
@@ -196,7 +197,7 @@ function SvgExport({
 	const masksId = useUniqueSafeId()
 	const themes = editor.getThemes()
 	const themeId = isDarkMode ? 'dark' : 'light'
-	const theme = (themes[themeId] ?? themes[Object.keys(themes)[0]]).colors
+	const theme = themes[themeId] ?? themes[Object.keys(themes)[0]]
 
 	const stateAtom = useAtom<{
 		defsById: Record<
@@ -416,7 +417,7 @@ function SvgExport({
 		onMount()
 	}, [onMount, shapeElements])
 
-	let backgroundColor = background ? theme.background : 'transparent'
+	let backgroundColor = background ? theme.colors.background : 'transparent'
 
 	if (singleFrameShapeId && background) {
 		const frameShapeUtil = editor.getShapeUtil('frame') as any as
@@ -426,7 +427,7 @@ function SvgExport({
 			const shape = editor.getShape(singleFrameShapeId)! as TLFrameShape
 			backgroundColor = getColorValue(theme, shape.props.color, 'frameFill')
 		} else {
-			backgroundColor = theme.solid
+			backgroundColor = theme.colors.solid
 		}
 	}
 

@@ -114,8 +114,8 @@ Use [getColorValue](?) to resolve a color style name to its actual color value:
 ```typescript
 import { getColorValue } from 'tldraw'
 
-const { colors } = editor.getCurrentTheme()
-const color = getColorValue(colors, 'red', 'solid') // '#e03131'
+const theme = editor.getCurrentTheme()
+const color = getColorValue(theme, 'red', 'solid') // '#e03131'
 ```
 
 ## Color mode
@@ -192,8 +192,8 @@ For custom shapes, call `this.editor.getCurrentTheme()` or `useEditor().getCurre
 ```tsx
 class MyShapeUtil extends ShapeUtil<MyShape> {
 	component(shape: MyShape) {
-		const { colors } = this.editor.getCurrentTheme()
-		const color = getColorValue(colors, shape.props.color, 'solid')
+		const theme = this.editor.getCurrentTheme()
+		const color = getColorValue(theme, shape.props.color, 'solid')
 
 		return (
 			<HTMLContainer>

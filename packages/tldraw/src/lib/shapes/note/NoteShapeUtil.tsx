@@ -107,18 +107,18 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		resizeMode: 'none',
 		getDisplayValues(editor, shape): NoteShapeUtilDisplayValues {
 			const { color, labelColor, font, size, align, verticalAlign } = shape.props
-			const { colors } = editor.getCurrentTheme()
+			const theme = editor.getCurrentTheme()
 
 			return {
 				noteWidth: 200,
 				noteHeight: 200,
-				noteBackgroundColor: getColorValue(colors, color, 'noteFill'),
-				borderColor: colors.noteBorder,
+				noteBackgroundColor: getColorValue(theme, color, 'noteFill'),
+				borderColor: theme.colors.noteBorder,
 				borderWidth: 2,
 				labelColor:
 					labelColor === 'black'
-						? getColorValue(colors, color, 'noteText')
-						: getColorValue(colors, labelColor, 'fill'),
+						? getColorValue(theme, color, 'noteText')
+						: getColorValue(theme, labelColor, 'fill'),
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: LABEL_FONT_SIZES[size],
 				labelLineHeight: TEXT_PROPS.lineHeight,

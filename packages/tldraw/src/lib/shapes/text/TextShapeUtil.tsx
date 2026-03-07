@@ -71,10 +71,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		extraArrowHorizontalPadding: 10,
 		showTextOutline: true,
 		getDisplayValues(editor, shape): TextShapeUtilDisplayValues {
-			const { colors } = editor.getCurrentTheme()
+			const theme = editor.getCurrentTheme()
 			const { color, font, size } = shape.props
 			return {
-				color: getColorValue(colors, color, 'solid'),
+				color: getColorValue(theme, color, 'solid'),
 				fontFamily: FONT_FAMILIES[font],
 				fontSize: FONT_SIZES[size],
 				lineHeight: TEXT_PROPS.lineHeight,

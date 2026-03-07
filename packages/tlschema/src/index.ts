@@ -268,12 +268,7 @@ export { EnumStyleProp, StyleProp, type StylePropValue } from './styles/StylePro
 export {
 	defaultColorNames,
 	DefaultColorStyle,
-	DefaultColorThemePalette,
-	DefaultLabelColorStyle,
-	getColorValue,
-	getDefaultColorTheme,
 	type TLDefaultColorStyle,
-	type TLDefaultColorTheme,
 	type TLDefaultColorThemeColor,
 } from './styles/TLColorStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
