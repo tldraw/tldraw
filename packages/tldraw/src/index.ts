@@ -229,7 +229,6 @@ export {
 	type RichTextLabelProps,
 	type RichTextSVGProps,
 } from './lib/shapes/shared/RichTextLabel'
-export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditablePlainText } from './lib/shapes/shared/useEditablePlainText'
 export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
 export {

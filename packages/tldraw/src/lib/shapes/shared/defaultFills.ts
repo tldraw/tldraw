@@ -1,8 +1,8 @@
-import { type TLDefaultColorThemeColor, type TLDefaultFillStyle } from '@tldraw/tlschema'
+import { type TLDefaultColor, type TLDefaultFillStyle } from '@tldraw/tlschema'
 
 export const DEFAULT_FILL_COLOR_NAMES: Record<
 	Exclude<TLDefaultFillStyle, 'none' | 'semi'>,
-	keyof TLDefaultColorThemeColor
+	keyof TLDefaultColor
 > = {
 	solid: 'semi',
 	pattern: 'pattern',

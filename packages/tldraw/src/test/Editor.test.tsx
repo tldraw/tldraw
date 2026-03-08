@@ -644,14 +644,6 @@ describe('when the user prefers dark UI', () => {
 		editor = new TestEditor({})
 		expect(editor.user.getIsDarkMode()).toBe(false)
 	})
-	it('isDarkMode should be false when inferDarkMode is false', () => {
-		editor = new TestEditor({ inferDarkMode: false })
-		expect(editor.user.getIsDarkMode()).toBe(false)
-	})
-	it('should be true if the editor was instantiated with inferDarkMode', () => {
-		editor = new TestEditor({ inferDarkMode: true })
-		expect(editor.user.getIsDarkMode()).toBe(true)
-	})
 })
 
 describe('when the user prefers light UI', () => {
@@ -669,14 +661,6 @@ describe('when the user prefers light UI', () => {
 	})
 	it('isDarkMode should be false by default', () => {
 		editor = new TestEditor({})
-		expect(editor.user.getIsDarkMode()).toBe(false)
-	})
-	it('isDarkMode should be false when inferDarkMode is false', () => {
-		editor = new TestEditor({ inferDarkMode: false })
-		expect(editor.user.getIsDarkMode()).toBe(false)
-	})
-	it('should be false if the editor was instantiated with inferDarkMode', () => {
-		editor = new TestEditor({ inferDarkMode: true })
 		expect(editor.user.getIsDarkMode()).toBe(false)
 	})
 })

@@ -118,6 +118,6 @@ styles of the user's selected shapes.)
 Here in the component, we'll use the styles to change the way that our shape
 appears. The style values themselves are just strings, like 'xl' or 'black',
 so it's up to you to decide how to use them. In this example, we're using the
-size to set the text's font-size property, and also using the default theme
-(via the useDefaultColorTheme hook) to get the color for the text.
+size to set the text's font-size property, and also using the editor's current
+theme (via editor.getCurrentTheme()) to get the color for the text.
 */

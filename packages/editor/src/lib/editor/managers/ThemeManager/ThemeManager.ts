@@ -38,6 +38,13 @@ export class ThemeManager {
 		}))
 	}
 
+	updateThemes(themes: Partial<TLThemes>): void {
+		this._themes.update((prev) => ({
+			...prev,
+			...(themes as TLThemes),
+		}))
+	}
+
 	/**
 	 * Set the active theme by ID, overriding the automatic dark-mode-based selection.
 	 * Pass `null` to clear the override and revert to automatic selection.

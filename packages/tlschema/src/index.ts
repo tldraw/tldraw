@@ -270,7 +270,6 @@ export {
 	DefaultColorStyle,
 	type TLDefaultColor,
 	type TLDefaultColorStyle,
-	type TLDefaultColorThemeColor,
 } from './styles/TLColorStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
 export { DefaultFillStyle, type TLDefaultFillStyle } from './styles/TLFillStyle'

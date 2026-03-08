@@ -83,7 +83,7 @@ const myThemes: TLThemes = {
 }
 ```
 
-Each color in the palette is a [TLDefaultColorThemeColor](?) with four variants:
+Each color in the palette is a [TLDefaultColor](?) with four variants:
 
 | Variant     | Purpose                                            |
 | ----------- | -------------------------------------------------- |
@@ -249,48 +249,6 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 | [Editor#updateThemes](?)         | Merge overrides into registered themes                       |
 | [Editor#setTheme](?)             | Set the active theme by ID, or `null` for automatic          |
 
-## Migrating from deprecated APIs
-
-The following APIs are deprecated and will be removed in a future release:
-
-| Deprecated API               | Replacement                       |
-| ---------------------------- | --------------------------------- |
-| `DefaultColorThemePalette`   | `editor.getThemes()`              |
-| `getDefaultColorTheme()`     | `editor.getCurrentTheme()`        |
-| `useDefaultColorTheme()`     | `useEditor().getCurrentTheme()`   |
-| `TLDefaultColorTheme`        | [TLTheme](?)                      |
-
-If you were mutating `DefaultColorThemePalette` directly to change colors, switch to `editor.updateThemes()`:
-
-```typescript
-// Before (deprecated)
-DefaultColorThemePalette.lightMode.black.solid = 'navy'
-
-// After
-const lightTheme = editor.getThemes()['light']
-editor.updateThemes({
-	light: {
-		...lightTheme,
-		colors: {
-			...lightTheme.colors,
-			black: {
-				...lightTheme.colors.black,
-				solid: 'navy',
-			},
-		},
-	},
-})
-```
-
-If you were calling `getDefaultColorTheme()` in a component or shape util:
-
-```typescript
-// Before (deprecated)
-const theme = getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() })
-
-// After
-const theme = editor.getCurrentTheme()
-```
 
 ## Related examples
 

@@ -156,14 +156,6 @@ export interface TldrawEditorBaseProps {
 	user?: TLUser
 
 	/**
-	 * Whether to infer dark mode from the user's OS. Defaults to false.
-	 *
-	 * @deprecated Use `theme` instead. Set `theme="dark"` or `theme="light"` to control the
-	 * theme directly, or use the user's `colorScheme` preference for system-based selection.
-	 */
-	inferDarkMode?: boolean
-
-	/**
 	 * The active theme ID. When set, overrides the automatic light/dark
 	 * selection based on the user's dark mode preference.
 	 *
@@ -433,7 +425,6 @@ function TldrawEditorWithReadyStore({
 	user,
 	initialState,
 	autoFocus = true,
-	inferDarkMode,
 	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	cameraOptions,
 	options,
@@ -463,7 +454,6 @@ function TldrawEditorWithReadyStore({
 	const editorOptionsRef = useRef({
 		// for these, it's because they're only used when the editor first mounts:
 		autoFocus: autoFocus && !noAutoFocus(),
-		inferDarkMode,
 		initialState,
 
 		// for these, it's because we keep them up to date in a separate effect:
@@ -476,18 +466,17 @@ function TldrawEditorWithReadyStore({
 	useLayoutEffect(() => {
 		editorOptionsRef.current = {
 			autoFocus: autoFocus && !noAutoFocus(),
-			inferDarkMode,
 			initialState,
 			cameraOptions,
 			deepLinks,
 			themes,
 			theme,
 		}
-	}, [autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks, themes, theme])
+	}, [autoFocus, initialState, cameraOptions, deepLinks, themes, theme])
 
 	useLayoutEffect(
 		() => {
-			const { autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks, themes, theme } =
+			const { autoFocus, initialState, cameraOptions, deepLinks, themes, theme } =
 				editorOptionsRef.current
 			const editor = new Editor({
 				store,
@@ -499,7 +488,6 @@ function TldrawEditorWithReadyStore({
 				initialState,
 				// we should check for some kind of query parameter that turns off autofocus
 				autoFocus,
-				inferDarkMode,
 				cameraOptions,
 				options,
 				licenseKey,

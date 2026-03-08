@@ -1,4 +1,4 @@
-import { TLDefaultColorStyle, TLDefaultColorThemeColor, TLTheme } from '@tldraw/tlschema'
+import { TLDefaultColor, TLDefaultColorStyle, TLTheme } from '@tldraw/tlschema'
 
 /**
  * @public
@@ -475,7 +475,7 @@ export const DEFAULT_DARK_THEME: TLTheme = {
 export function getColorValue(
 	theme: TLTheme,
 	color: TLDefaultColorStyle | string,
-	variant: keyof TLDefaultColorThemeColor
+	variant: keyof TLDefaultColor
 ): string {
 	if (!(color in theme.colors)) {
 		// If the color is not a key in the theme's colors, assume it's a custom color value and return it directly

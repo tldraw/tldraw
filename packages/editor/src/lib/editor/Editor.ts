@@ -233,13 +233,6 @@ export interface TLEditorOptions {
 	 */
 	autoFocus?: boolean
 	/**
-	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
-	 *
-	 * @deprecated Use `theme` instead. Set `theme: 'dark'` or `theme: 'light'` to control the
-	 * theme directly, or use the user's `colorScheme` preference for system-based selection.
-	 */
-	inferDarkMode?: boolean
-	/**
 	 * The initial active theme ID. When set, overrides the automatic light/dark
 	 * selection based on the user's dark mode preference.
 	 *
@@ -319,8 +312,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		cameraOptions,
 		initialState,
 		autoFocus,
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		inferDarkMode,
 		options: _options,
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -367,7 +358,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._textOptions = atom('text options', options?.text ?? null)
 
-		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
+		this.user = new UserPreferencesManager(user ?? createTLUser())
 
 		this.textMeasure = new TextManager(this)
 		this.disposables.add(() => this.textMeasure.dispose())

@@ -951,9 +951,6 @@ export interface TLDefaultColor {
 // @public (undocumented)
 export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
 
-// @public @deprecated (undocumented)
-export type TLDefaultColorThemeColor = TLDefaultColor;
-
 // @public
 export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
 

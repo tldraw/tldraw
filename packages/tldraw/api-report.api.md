@@ -5727,9 +5727,6 @@ export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 // @public (undocumented)
 export function useCurrentTranslation(): TLUiTranslation;
 
-// @public @deprecated (undocumented)
-export function useDefaultColorTheme(): TLTheme;
-
 // @public (undocumented)
 export function useDefaultHelpers(): {
     addDialog: (dialog: Omit<TLUiDialog, "id"> & {

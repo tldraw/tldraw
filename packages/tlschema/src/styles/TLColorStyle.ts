@@ -74,12 +74,6 @@ export interface TLDefaultColor {
 
 /**
  * @public
- * @deprecated - use TLDefaultColor instead
- */
-export type TLDefaultColorThemeColor = TLDefaultColor
-
-/**
- * @public
  */
 export const DefaultColorStyle = StyleProp.defineEnum('tldraw:color', {
 	defaultValue: 'black',
