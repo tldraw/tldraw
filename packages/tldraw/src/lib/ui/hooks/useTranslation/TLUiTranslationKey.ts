@@ -74,6 +74,7 @@ export type TLUiTranslationKey =
 	| 'action.rotate-cw'
 	| 'action.save-copy'
 	| 'action.select-all'
+	| 'action.select-all-in-viewport'
 	| 'action.select-none'
 	| 'action.send-backward'
 	| 'action.send-to-back'
