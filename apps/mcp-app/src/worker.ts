@@ -31,9 +31,8 @@ interface Env {
 	ASSETS: Fetcher
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
+	MCP_IS_DEV: string
 	WORKER_ORIGIN: string
-	MCP_DOMAIN_OPENAI: string
-	MCP_DOMAIN_CLAUDE: string
 	MCP_ANALYTICS?: AnalyticsEngineDataset
 }
 
@@ -151,15 +150,12 @@ export class TldrawMCP extends McpAgent<Env> {
 		}
 
 		const workerOrigin = this.env.WORKER_ORIGIN || ''
-		const domainOpenai = this.env.MCP_DOMAIN_OPENAI || ''
-		const domainClaude = this.env.MCP_DOMAIN_CLAUDE || ''
 
 		registerTools(this.server, deps, {
 			log: this.logger.toLogFn(),
 			extraResourceDomains: workerOrigin ? [workerOrigin] : [],
 			extraConnectDomains: workerOrigin ? [workerOrigin] : [],
-			httpDomain:
-				domainOpenai || domainClaude ? { openai: domainOpenai, claude: domainClaude } : undefined,
+			isDev: this.env.MCP_IS_DEV === 'true',
 			analytics: this.env.MCP_ANALYTICS,
 			getClientHostName: () => this.clientHostName,
 		})
