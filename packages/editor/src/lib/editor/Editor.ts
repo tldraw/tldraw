@@ -1828,9 +1828,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	selectAllInViewport(): this {
-		const notVisible = this.getNotVisibleShapes()
-		const ids = this.getSortedChildIdsForParent(this.getCurrentPageId()).filter(
-			(id) => !notVisible.has(id)
+		const visible = this.getShapeIdsInsideBounds(this.getViewportPageBounds())
+		const ids = this.getSortedChildIdsForParent(this.getCurrentPageId()).filter((id) =>
+			visible.has(id)
 		)
 		this.setSelectedShapes(this._getUnlockedShapeIds(ids))
 		return this
