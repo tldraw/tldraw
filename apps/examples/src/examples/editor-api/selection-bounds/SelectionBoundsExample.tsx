@@ -1,10 +1,18 @@
-import { Box, Editor, TLComponents, Tldraw, createShapeId, track, useEditor } from 'tldraw'
+import {
+	Box,
+	Editor,
+	TLComponents,
+	Tldraw,
+	createShapeId,
+	toRichText,
+	track,
+	useEditor,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 import './selection-bounds.css'
 
 // There's a guide at the bottom of this file!
 
-// [1]
 const DEMO_IDS = {
 	blue: createShapeId('selection-bounds-blue'),
 	greenA: createShapeId('selection-bounds-green-a'),
@@ -12,6 +20,7 @@ const DEMO_IDS = {
 	greenGroup: createShapeId('selection-bounds-green-group'),
 	purple: createShapeId('selection-bounds-purple'),
 	red: createShapeId('selection-bounds-red'),
+	hint: createShapeId('selection-bounds-hint'),
 } as const
 
 const ALL_DEMO_IDS = Object.values(DEMO_IDS)
@@ -100,7 +109,21 @@ function seedDemoContent(editor: Editor) {
 		editor.deleteShapes(existingDemoShapeIds)
 	}
 
-	editor.createShapes(DEMO_SHAPES)
+	editor.createShapes([
+		...DEMO_SHAPES,
+		{
+			id: DEMO_IDS.hint,
+			type: 'text' as const,
+			x: 880,
+			y: 340,
+			props: {
+				richText: toRichText('⬆ Select both boxes,\nthen rotate them!'),
+				color: 'grey' as const,
+				size: 's' as const,
+				autoSize: true,
+			},
+		},
+	])
 	editor.groupShapes([DEMO_IDS.greenA, DEMO_IDS.greenB], {
 		groupId: DEMO_IDS.greenGroup,
 		select: false,
@@ -136,11 +159,10 @@ function hasMixedSelectionRotations(editor: Editor) {
 	)
 }
 
-// [2]
 const SelectionBoundsOverlay = track(() => {
 	const editor = useEditor()
-	const axisAlignedBounds = editor.getSelectionPageBounds()
-	const rotatedBounds = editor.getSelectionRotatedPageBounds()
+	const axisAlignedBounds = editor.getSelectionPageBounds() // [1]
+	const rotatedBounds = editor.getSelectionRotatedPageBounds() // [2]
 
 	if (!axisAlignedBounds || !rotatedBounds) return null
 
@@ -249,34 +271,28 @@ export default function SelectionBoundsExample() {
 }
 
 /*
-This example demonstrates the difference between `getSelectionPageBounds()` and
-`getSelectionRotatedPageBounds()` for the current selection.
+This example shows how to read and visualize selection bounds.
 
-[1]
-The example keeps stable ids for the demo shapes and groups so it can rebuild the same seeded
-cases even when the example uses local persistence. The seed includes a single blue rectangle,
-a green group whose rectangles share a rotation, and a purple/red pair left ungrouped so you can
-select both shapes together.
+[1] `getSelectionPageBounds()` returns the axis-aligned bounding box of the
+current selection (shown as the blue dashed box). It always has zero rotation —
+it's the smallest upright rectangle that contains every selected shape. This is
+useful when you need stable, orientation-independent bounds, e.g. for hit testing
+or positioning UI that shouldn't rotate.
 
-These three cases expose the main bounds behaviors this example is trying to teach:
-- The blue rectangle is the simplest case. Its axis-aligned bounds and rotated bounds diverge as
-  soon as the single shape is rotated.
-- The green group shows that multiple shapes can still have a meaningful shared rotation. Because
-  both child rectangles rotate together, `getSelectionRotatedPageBounds()` still reports a rotated
-  box aligned to that common angle.
-- The purple/red pair shows the mixed-rotation case. Select both shapes and rotate them so they no
-  longer share one local axis. At that point `getSelectionRotation()` falls back to zero and the
-  rotated bounds collapse to the same result as the axis-aligned bounds.
+[2] `getSelectionRotatedPageBounds()` returns the rotation-aware bounding box
+(shown as the amber dashed box). When the selected shapes share a common
+rotation, this box is aligned to that angle and is usually tighter than the
+axis-aligned one. It uses `getSelectionRotation()` to determine the shared angle.
+This is useful when you need bounds that respect the selection's orientation,
+e.g. for snapping or showing dimensions along the shapes' own axes.
 
-[2]
-The overlay uses `track` so it reacts to editor state directly. It reads the selection's
-axis-aligned bounds, rotated bounds, shared rotation, and viewport positions on each render.
-When both bounds resolve to the same box because the selection contains mixed rotations, the
-overlay collapses the two labels into one combined label.
+When the selection contains mixed rotations there is no single shared angle, so
+`getSelectionRotation()` returns zero and the two bounds are identical.
 
-[3]
-The overlay converts both page-space boxes into viewport coordinates with `pageToViewport()`.
-The blue rectangle is drawn directly from `getSelectionPageBounds()`. The amber rectangle uses
-`getSelectionRotatedPageBounds()` plus `getSelectionRotation()` so it stays aligned with the
-selection's own axes.
+Try selecting the three groups of shapes on the canvas:
+1. A single rotated shape: the AABB is different to the rotated.
+2. Multiple shapes with a shared rotation, so the rotated bounds still aligns
+to their common angle.
+3. The purple and red pair: two ungrouped shapes with different rotations.
+Select both and rotate them to see the bounds collapse into one.
 */
