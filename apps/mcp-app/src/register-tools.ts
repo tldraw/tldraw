@@ -73,10 +73,21 @@ function injectBootstrapData(html: string, bootstrap: Record<string, unknown>): 
  *   "Compute the value by running:
  *   `node -e 'const u = "https://example.com/mcp"; console.log(require("crypto").createHash("sha256").update(u).digest("hex"))'`"
  */
-function getWidgetDomain(hostName: string | undefined, isDev: boolean): string | undefined {
+async function getWidgetDomain(
+	hostName: string | undefined,
+	isDev: boolean,
+	workerOrigin?: string
+): Promise<string | undefined> {
 	if (isDev) return undefined
 	if (hostName === 'chatgpt') return 'https://tldraw.com'
-	if (hostName === 'claude') return 'fef96fbdfefca0b5f5ede7521201f887.claudemcpcontent.com'
+	if (hostName === 'claude' && workerOrigin) {
+		const mcpUrl = new URL('/mcp', workerOrigin).toString()
+		const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(mcpUrl))
+		const hash = Array.from(new Uint8Array(digest), (byte) =>
+			byte.toString(16).padStart(2, '0')
+		).join('')
+		return `${hash}.claudemcpcontent.com`
+	}
 	return undefined
 }
 
@@ -625,7 +636,7 @@ export function registerTools(
 			}
 			html = injectBootstrapData(html, bootstrap)
 
-			const domain = getWidgetDomain(hostName, opts.isDev)
+			const domain = await getWidgetDomain(hostName, opts.isDev, opts.workerOrigin)
 
 			log(`[tldraw-mcp] Serving resource to "${hostName}" with domain: ${domain}`)
 

@@ -149,12 +149,13 @@ export class TldrawMCP extends McpAgent<Env> {
 			loadWidgetHtml: async () => widgetHtml,
 		}
 
-		const workerOrigin = this.env.WORKER_ORIGIN || ''
+		const workerOrigin = this.env.WORKER_ORIGIN
 
 		registerTools(this.server, deps, {
 			log: this.logger.toLogFn(),
 			extraResourceDomains: workerOrigin ? [workerOrigin] : [],
 			extraConnectDomains: workerOrigin ? [workerOrigin] : [],
+			workerOrigin,
 			isDev: this.isDev,
 			analytics: this.env.MCP_ANALYTICS,
 			getClientHostName: () => this.clientHostName,

@@ -18,6 +18,8 @@ export interface RegisterToolsOptions {
 	extraResourceDomains?: string[]
 	/** Extra CSP connect domains. */
 	extraConnectDomains?: string[]
+	/** Public origin of the deployed MCP worker, used for host-specific widget domains. */
+	workerOrigin?: string
 	/** When true, suppresses `ui.domain` on the canvas resource (required for local connectors). */
 	isDev: boolean
 	/** Logging function (defaults to console.error). */
