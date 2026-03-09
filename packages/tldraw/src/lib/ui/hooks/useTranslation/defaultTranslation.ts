@@ -75,7 +75,6 @@ export const DEFAULT_TRANSLATION = {
 	'action.rotate-cw': 'Rotate clockwise',
 	'action.save-copy': 'Save a copy',
 	'action.select-all': 'Select all',
-	'action.select-all-in-viewport': 'Select all in viewport',
 	'action.select-none': 'Select none',
 	'action.send-backward': 'Send backward',
 	'action.send-to-back': 'Send to back',
