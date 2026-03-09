@@ -31,7 +31,7 @@ interface Env {
 	ASSETS: Fetcher
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
-	MCP_IS_DEV?: string
+	MCP_IS_DEV: string
 	WORKER_ORIGIN: string
 	MCP_ANALYTICS?: AnalyticsEngineDataset
 }

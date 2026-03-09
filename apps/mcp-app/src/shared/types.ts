@@ -19,7 +19,7 @@ export interface RegisterToolsOptions {
 	/** Extra CSP connect domains. */
 	extraConnectDomains?: string[]
 	/** When true, suppresses `ui.domain` on the canvas resource (required for local connectors). */
-	isDev?: boolean
+	isDev: boolean
 	/** Logging function (defaults to console.error). */
 	log?(...args: unknown[]): void
 	/** Analytics engine dataset. */

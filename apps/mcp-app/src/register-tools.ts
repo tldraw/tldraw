@@ -85,16 +85,16 @@ function getWidgetDomain(hostName: string | undefined, isDev: boolean): string |
 export function registerTools(
 	server: McpServer,
 	deps: ServerDeps,
-	opts?: RegisterToolsOptions
+	opts: RegisterToolsOptions
 ): void {
-	const log = opts?.log ?? ((...args: unknown[]) => console.error(...args))
+	const log = opts.log ?? ((...args: unknown[]) => console.error(...args))
 	const getBindingFromId = (binding: unknown): TLShape['id'] | null => {
 		if (!binding || typeof binding !== 'object') return null
 		const maybeFromId = (binding as { fromId?: unknown }).fromId
 		return typeof maybeFromId === 'string' ? (maybeFromId as TLShape['id']) : null
 	}
 
-	const analytics = opts?.analytics
+	const analytics = opts.analytics
 
 	// --- read_me ---
 
@@ -611,7 +611,7 @@ export function registerTools(
 			// has shapes synchronously on mount — before any streaming begins.
 			const activeId = deps.getActiveCheckpointId()
 			const sid = deps.getSessionId()
-			const hostName = opts?.getClientHostName()
+			const hostName = opts.getClientHostName()
 			const bootstrap: Record<string, unknown> = { sessionId: sid, hostName }
 			if (activeId) {
 				const checkpoint = deps.loadCheckpoint(activeId)
@@ -624,7 +624,7 @@ export function registerTools(
 			}
 			html = injectBootstrapData(html, bootstrap)
 
-			const domain = getWidgetDomain(hostName, opts?.isDev ?? false)
+			const domain = getWidgetDomain(hostName, opts.isDev)
 
 			log(`[tldraw-mcp] Serving resource to "${hostName}" with domain: ${domain}`)
 
@@ -641,10 +641,10 @@ export function registerTools(
 										'https://cdn.tldraw.com',
 										'https://fonts.googleapis.com',
 										'https://fonts.gstatic.com',
-										...(opts?.extraResourceDomains ?? []),
+										...(opts.extraResourceDomains ?? []),
 										'blob:',
 									],
-									connectDomains: ['https://cdn.tldraw.com', ...(opts?.extraConnectDomains ?? [])],
+									connectDomains: ['https://cdn.tldraw.com', ...(opts.extraConnectDomains ?? [])],
 								},
 								permissions: { clipboardWrite: {} },
 								...(domain ? { domain } : {}),
