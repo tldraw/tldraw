@@ -29,13 +29,13 @@ Run all commands from `apps/mcp-app`.
 
 ### Package scripts
 
-| Command | What it does |
-| --- | --- |
-| `yarn build` | Build the widget HTML |
-| `yarn dev` | Build widget + start local Cloudflare worker (HTTP MCP on `localhost:8787`) |
-| `yarn dev:stdio` | Start a local stdio MCP server |
+| Command           | What it does                                                                        |
+| ----------------- | ----------------------------------------------------------------------------------- |
+| `yarn build`      | Build the widget HTML                                                               |
+| `yarn dev`        | Build widget + start local Cloudflare worker (HTTP MCP on `localhost:8787`)         |
+| `yarn dev:stdio`  | Start a local stdio MCP server                                                      |
 | `yarn dev:tunnel` | Start a Cloudflare tunnel + local worker with `WORKER_ORIGIN` set to the tunnel URL |
-| `yarn deploy` | Build widget + deploy the Cloudflare worker to production |
+| `yarn deploy`     | Build widget + deploy the Cloudflare worker to production                           |
 
 `yarn dev:tunnel` requires the `cloudflared` CLI to be installed on your machine.
 
@@ -45,28 +45,28 @@ Add up to three servers in `~/.cursor/mcp.json`:
 
 ```json
 {
-  "mcpServers": {
-    "tldraw": {
-      "transport": "http",
-      "url": "https://tldraw-mcp-app.tldraw.workers.dev/mcp"
-    },
-    "tldraw-local": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "http://127.0.0.1:8787/mcp"]
-    },
-    "tldraw-local-stdio": {
-      "command": "yarn",
-      "args": [
-        "--cwd",
-        "<path-to-tldraw-repo>/tldraw/apps/mcp-app",
-        "run",
-        "-s",
-        "tsx",
-        "main.ts",
-        "--stdio"
-      ]
-    }
-  }
+	"mcpServers": {
+		"tldraw": {
+			"transport": "http",
+			"url": "https://tldraw-mcp-app.tldraw.workers.dev/mcp"
+		},
+		"tldraw-local": {
+			"command": "npx",
+			"args": ["-y", "mcp-remote", "http://127.0.0.1:8787/mcp"]
+		},
+		"tldraw-local-stdio": {
+			"command": "yarn",
+			"args": [
+				"--cwd",
+				"<path-to-tldraw-repo>/tldraw/apps/mcp-app",
+				"run",
+				"-s",
+				"tsx",
+				"main.ts",
+				"--stdio"
+			]
+		}
+	}
 }
 ```
 
@@ -78,32 +78,28 @@ Update `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
-  "mcpServers": {
-    "tldraw": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://tldraw-mcp-app.tldraw.workers.dev/mcp"
-      ]
-    },
-    "tldraw-local": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "http://127.0.0.1:8787/mcp"]
-    },
-    "tldraw-local-stdio": {
-      "command": "yarn",
-      "args": [
-        "--cwd",
-        "<path-to-tldraw-repo>/tldraw/apps/mcp-app",
-        "run",
-        "-s",
-        "tsx",
-        "main.ts",
-        "--stdio"
-      ]
-    }
-  }
+	"mcpServers": {
+		"tldraw": {
+			"command": "npx",
+			"args": ["-y", "mcp-remote", "https://tldraw-mcp-app.tldraw.workers.dev/mcp"]
+		},
+		"tldraw-local": {
+			"command": "npx",
+			"args": ["-y", "mcp-remote", "http://127.0.0.1:8787/mcp"]
+		},
+		"tldraw-local-stdio": {
+			"command": "yarn",
+			"args": [
+				"--cwd",
+				"<path-to-tldraw-repo>/tldraw/apps/mcp-app",
+				"run",
+				"-s",
+				"tsx",
+				"main.ts",
+				"--stdio"
+			]
+		}
+	}
 }
 ```
 

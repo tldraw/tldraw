@@ -1,8 +1,8 @@
 import { type App } from '@modelcontextprotocol/ext-apps/react'
-import React from 'react'
+import { createContext } from 'react'
 import type { MCP_APP_HOST_NAMES } from '../shared/types'
 
-export const McpAppContext = React.createContext<{
+export const McpAppContext = createContext<{
 	displayMode: 'inline' | 'fullscreen'
 	toggleFullscreen: (() => void) | null
 	canFullscreen: boolean

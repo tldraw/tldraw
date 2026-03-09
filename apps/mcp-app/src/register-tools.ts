@@ -593,8 +593,6 @@ export function registerTools(
 			const activeId = deps.getActiveCheckpointId()
 			const sid = deps.getSessionId()
 			const hostName = opts?.getClientHostName()
-			log(`opts: ${JSON.stringify(opts)}`)
-			log(`[tldraw-mcp] Serving resource to "${hostName}"`)
 			const bootstrap: Record<string, unknown> = { sessionId: sid, hostName }
 			if (activeId) {
 				const checkpoint = deps.loadCheckpoint(activeId)
