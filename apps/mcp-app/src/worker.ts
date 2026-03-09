@@ -76,9 +76,10 @@ export class TldrawMCP extends McpAgent<Env> {
 		}
 	)
 	isDev = this.env.MCP_IS_DEV === 'true'
+	logsEnabled = !this.isDev
 	activeCheckpointId: string | null = null
 	sessionId: string = ''
-	logger = new Logger('TldrawMCP', this.isDev)
+	logger = new Logger('TldrawMCP', this.logsEnabled)
 	clientHostName: MCP_APP_HOST_NAMES | undefined = undefined
 
 	async init() {
@@ -222,6 +223,7 @@ const sseHandler = TldrawMCP.serveSSE('/sse')
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
 		try {
+			const requireAuth = Boolean(env.MCP_AUTH_TOKEN)
 			const url = new URL(request.url)
 
 			// CORS preflight
@@ -241,8 +243,8 @@ export default {
 				})
 			}
 
-			// Auth check for MCP endpoints: only enforce when MCP_AUTH_TOKEN is set.
-			if (env.MCP_AUTH_TOKEN) {
+			// Require bearer auth only when an auth token is configured.
+			if (requireAuth) {
 				const auth = request.headers.get('Authorization')
 				if (auth !== `Bearer ${env.MCP_AUTH_TOKEN}`) {
 					return corsResponse(new Response('Unauthorized', { status: 401 }))
