@@ -398,7 +398,7 @@ export class Sidebar {
 		const groupHeader = group.locator('[role="button"]').first()
 		await groupHeader.hover()
 
-		const createButton = group.locator('button[title="New file"]')
+		const createButton = group.locator('button[aria-label="Create file"]')
 		await expect(createButton).toBeVisible()
 		await createButton.click()
 

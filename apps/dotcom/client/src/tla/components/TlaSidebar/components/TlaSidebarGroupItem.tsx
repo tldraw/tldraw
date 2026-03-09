@@ -32,7 +32,7 @@ import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { messages } from './sidebar-shared'
 
 const groupMessages = defineMessages({
-	newFile: { defaultMessage: 'New file' },
+	newFile: { defaultMessage: 'Create file' },
 	moreOptions: { defaultMessage: 'More options' },
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	settings: { defaultMessage: 'Settings' },
