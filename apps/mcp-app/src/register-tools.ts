@@ -612,6 +612,7 @@ export function registerTools(
 			const activeId = deps.getActiveCheckpointId()
 			const sid = deps.getSessionId()
 			const hostName = opts.getClientHostName()
+
 			const bootstrap: Record<string, unknown> = { sessionId: sid, hostName }
 			if (activeId) {
 				const checkpoint = deps.loadCheckpoint(activeId)

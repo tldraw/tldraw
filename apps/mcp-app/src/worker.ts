@@ -76,15 +76,13 @@ export class TldrawMCP extends McpAgent<Env> {
 		}
 	)
 	isDev = this.env.MCP_IS_DEV === 'true'
-	logsEnabled = !this.isDev
+	logsEnabled = this.isDev
 	activeCheckpointId: string | null = null
 	sessionId: string = ''
 	logger = new Logger('TldrawMCP', this.logsEnabled)
 	clientHostName: MCP_APP_HOST_NAMES | undefined = undefined
 
 	async init() {
-		this.logger.info('Initializing Durable Object')
-
 		this.server.server.oninitialized = () => {
 			const clientInfo = this.server.server.getClientVersion()
 			const resolved = resolveMcpAppHostName(clientInfo?.name ?? '')
@@ -161,8 +159,6 @@ export class TldrawMCP extends McpAgent<Env> {
 			analytics: this.env.MCP_ANALYTICS,
 			getClientHostName: () => this.clientHostName,
 		})
-
-		this.logger.info('Initialization complete')
 	}
 
 	// --- Checkpoint helpers ---
