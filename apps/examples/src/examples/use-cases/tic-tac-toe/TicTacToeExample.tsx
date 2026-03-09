@@ -52,6 +52,7 @@ function createPlayerIdentity(userId: string): TLIdentityProvider {
 
 const ticTacToeRules: Record<string, TLPermissionRule> = {
 	[CORE_ACTIVITIES.CREATE_SHAPE]: ({ user, shapeType }) => {
+		if (shapeType === 'ttt-board-line') return true
 		if (user.id === PLAYER_X_ID) return shapeType === 'ttt-xbox'
 		if (user.id === PLAYER_O_ID) return shapeType === 'ttt-ocircle'
 		return false

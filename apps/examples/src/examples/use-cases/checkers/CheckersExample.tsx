@@ -19,7 +19,6 @@ import {
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuItem,
-	getShapeCreatorId,
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
@@ -52,18 +51,6 @@ function initBoard(editor: Editor, userId: string) {
 	})
 	if (hasBoard) return
 
-	// Create the board background
-	editor.createShapes([
-		{
-			type: 'chk-board',
-			x: 0,
-			y: 0,
-			meta: { isBoard: true },
-		},
-	])
-
-	// Create red pieces (rows 0-2, dark squares)
-	const redUser = PLAYER_USERS[PLAYER_RED_ID]
 	const redPieces = []
 	for (let row = 0; row < 3; row++) {
 		for (let col = 0; col < 8; col++) {
@@ -74,13 +61,10 @@ function initBoard(editor: Editor, userId: string) {
 				x: pos.x,
 				y: pos.y,
 				props: { fill: 'red' as const, label: '' },
-				meta: { createdBy: { id: redUser.id, name: redUser.name } },
 			})
 		}
 	}
 
-	// Create blue pieces (rows 5-7, dark squares)
-	const blueUser = PLAYER_USERS[PLAYER_BLUE_ID]
 	const bluePieces = []
 	for (let row = 5; row < 8; row++) {
 		for (let col = 0; col < 8; col++) {
@@ -91,14 +75,16 @@ function initBoard(editor: Editor, userId: string) {
 				x: pos.x,
 				y: pos.y,
 				props: { fill: 'blue' as const, label: '' },
-				meta: { createdBy: { id: blueUser.id, name: blueUser.name } },
 			})
 		}
 	}
 
-	editor.createShapes([...redPieces, ...bluePieces])
+	editor.createShapes([
+		{ type: 'chk-board', x: 0, y: 0, meta: { isBoard: true } },
+		...redPieces,
+		...bluePieces,
+	])
 
-	// Frame the camera on the board
 	editor.zoomToBounds(
 		{ x: -40, y: -40, w: BOARD_SIZE + 80, h: BOARD_SIZE + 80 },
 		{ animation: { duration: 0 } }
@@ -146,13 +132,12 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 
 	const checkersRules = useMemo(
 		(): Record<string, TLPermissionRule> => ({
-			[CORE_ACTIVITIES.CREATE_SHAPE]: false,
-
 			[CORE_ACTIVITIES.UPDATE_SHAPE]: ({ user, prevShape }) => {
 				if (!prevShape) return false
 				const meta = prevShape.meta as Record<string, unknown>
 				if (meta?.isBoard) return false
-				return getShapeCreatorId(prevShape) === user.id
+				const props = prevShape.props as Record<string, unknown>
+				return props?.fill === user.id.replace('player-', '')
 			},
 
 			// Block rotation; allow position + label changes
@@ -162,14 +147,16 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 				if (!targetShape) return false
 				const meta = targetShape.meta as Record<string, unknown>
 				if (meta?.isBoard) return false
-				return getShapeCreatorId(targetShape) === user.id
+				const props = targetShape.props as Record<string, unknown>
+				return props?.fill === user.id.replace('player-', '')
 			},
 
 			[CORE_ACTIVITIES.SELECT_SHAPE]: ({ user, targetShape }) => {
 				if (!targetShape) return false
 				const meta = targetShape.meta as Record<string, unknown>
 				if (meta?.isBoard) return false
-				return getShapeCreatorId(targetShape) === user.id
+				const props = targetShape.props as Record<string, unknown>
+				return props?.fill === user.id.replace('player-', '')
 			},
 
 			[CORE_ACTIVITIES.USE_TOOL]: ({ toolId }) => {
