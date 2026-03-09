@@ -3,7 +3,6 @@ import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
 
 export function useHasFlag(...flags: TlaFlags[]) {
-	return true
 	const app = useApp()
 	return useValue('hasFlag:' + flags.join(','), () => flags.every((flag) => app.hasFlag(flag)), [
 		app,

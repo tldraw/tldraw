@@ -30,6 +30,7 @@ export function TlaSidebarDotDevLink() {
 			<TldrawUiButton
 				type="icon"
 				tooltip={dismissLbl}
+				aria-label={dismissLbl}
 				data-testid="tla-sidebar-dotdev-dismiss-button"
 				className={classNames(styles.sidebarDotDevDismissButton, styles.hoverable)}
 				onClick={() => {
