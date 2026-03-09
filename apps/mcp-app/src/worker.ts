@@ -31,6 +31,7 @@ interface Env {
 	ASSETS: Fetcher
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
+	MCP_IS_DEV?: string
 	WORKER_ORIGIN: string
 	MCP_ANALYTICS?: AnalyticsEngineDataset
 }
@@ -74,7 +75,7 @@ export class TldrawMCP extends McpAgent<Env> {
 			instructions: MCP_SERVER_INSTRUCTIONS,
 		}
 	)
-	isDev = !this.env.MCP_AUTH_TOKEN
+	isDev = this.env.MCP_IS_DEV === 'true'
 	activeCheckpointId: string | null = null
 	sessionId: string = ''
 	logger = new Logger('TldrawMCP', this.isDev)
@@ -240,7 +241,7 @@ export default {
 				})
 			}
 
-			// Auth check for MCP endpoints: skip if MCP_AUTH_TOKEN not set (local dev)
+			// Auth check for MCP endpoints: only enforce when MCP_AUTH_TOKEN is set.
 			if (env.MCP_AUTH_TOKEN) {
 				const auth = request.headers.get('Authorization')
 				if (auth !== `Bearer ${env.MCP_AUTH_TOKEN}`) {

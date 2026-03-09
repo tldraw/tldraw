@@ -19,6 +19,8 @@ new_sqlite_classes = ["TldrawMCP"]
 # Set this to the public URL of the worker. Used for constructing absolute image URLs.
 # Override with `--var WORKER_ORIGIN:https://your-tunnel.trycloudflare.com` for cloudflared tunnels.
 WORKER_ORIGIN = "https://tldraw-mcp-app.tldraw.workers.dev"
+# Set to "true" only for local worker development.
+MCP_IS_DEV = "false"
 
 [[analytics_engine_datasets]]
 binding = "MCP_ANALYTICS"

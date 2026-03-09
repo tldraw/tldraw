@@ -47,5 +47,5 @@ echo "Update claude_desktop_config.json to use:"
 echo "  \"args\": [\"-y\", \"mcp-remote\", \"$TUNNEL_URL/mcp\"]"
 echo ""
 
-# Start wrangler with the tunnel URL as WORKER_ORIGIN
-exec wrangler dev --port "$PORT" --var "WORKER_ORIGIN:$TUNNEL_URL"
+# Start wrangler in dev mode with the tunnel URL as WORKER_ORIGIN
+exec wrangler dev --port "$PORT" --var "WORKER_ORIGIN:$TUNNEL_URL" --var "MCP_IS_DEV:true"
