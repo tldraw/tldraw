@@ -568,40 +568,6 @@ export function registerTools(
 		}
 	)
 
-	// --- event (app-only) ---
-
-	server.registerTool(
-		'event',
-		{
-			inputSchema: z.object({
-				event: z.string().min(1),
-				value: z.number().optional(),
-			}),
-			annotations: {
-				readOnlyHint: false,
-				destructiveHint: false,
-				idempotentHint: false,
-				openWorldHint: true,
-			},
-			_meta: { ui: { visibility: ['app'] } },
-		},
-		async ({ event, value }: { event: string; value?: number }): Promise<CallToolResult> => {
-			analytics?.writeDataPoint(
-				typeof value === 'number'
-					? {
-							blobs: [event],
-							doubles: [value],
-						}
-					: {
-							blobs: [event],
-						}
-			)
-			return {
-				content: [{ type: 'text', text: 'Tracked widget event.' }],
-			}
-		}
-	)
-
 	// --- canvas resource ---
 
 	registerAppResource(
