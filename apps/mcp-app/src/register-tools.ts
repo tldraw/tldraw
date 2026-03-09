@@ -65,13 +65,13 @@ function injectBootstrapData(html: string, bootstrap: Record<string, unknown>): 
  * Returns the widget domain for the given host, or `undefined` in dev mode.
  *
  * - ChatGPT: https://developers.openai.com/apps-sdk/build/mcp-server#widget-domains
- *   "Set `_meta.ui.domain` on the widget resource template. This is required for app
+ *   Set `_meta.ui.domain` on the widget resource template. This is required for app
  *   submission and must be unique per app. ChatGPT renders the widget under
- *   `<domain>.web-sandbox.oaiusercontent.com`"
+ *   `<domain>.web-sandbox.oaiusercontent.com`
  *
  * - Claude: https://claude.com/docs/connectors/building/mcp-apps/cross-compatibility#domain-handling
- *   "Compute the value by running:
- *   `node -e 'const yourServerUrl = "https://example.com/mcp"; console.log(require("crypto").createHash("sha256").update(yourServerUrl).digest("hex").slice(0,32) + ".claudemcpcontent.com")'`"
+ *   Compute the value by running:
+ *   `node -e 'const yourServerUrl = "https://example.com/mcp"; console.log(require("crypto").createHash("sha256").update(yourServerUrl).digest("hex").slice(0,32) + ".claudemcpcontent.com")'`
 "
  */
 async function getWidgetDomain(
