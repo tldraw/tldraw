@@ -1,4 +1,13 @@
-import { createShapeId } from '@tldraw/editor'
+import {
+	Box,
+	Geometry2d,
+	RecordProps,
+	Rectangle2d,
+	ShapeUtil,
+	T,
+	TLShape,
+	createShapeId,
+} from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -8,6 +17,38 @@ const ids = {
 	alsoInViewport: createShapeId('alsoInViewport'),
 	offscreen: createShapeId('offscreen'),
 	locked: createShapeId('locked'),
+}
+
+// Custom shape that cannot be culled (canCull returns false)
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		'select-all-test-shape': { w: number; h: number }
+	}
+}
+
+type ITestShape = TLShape<'select-all-test-shape'>
+
+class NoCullShapeUtil extends ShapeUtil<ITestShape> {
+	static override type = 'select-all-test-shape' as const
+	static override props: RecordProps<ITestShape> = {
+		w: T.number,
+		h: T.number,
+	}
+	getDefaultProps(): ITestShape['props'] {
+		return { w: 100, h: 100 }
+	}
+	getGeometry(shape: ITestShape): Geometry2d {
+		return new Rectangle2d({
+			width: shape.props.w,
+			height: shape.props.h,
+			isFilled: false,
+		})
+	}
+	override canCull() {
+		return false
+	}
+	indicator() {}
+	component() {}
 }
 
 beforeEach(() => {
@@ -59,5 +100,26 @@ describe('selectAllInViewport', () => {
 		expect(selected).toContain(ids.offscreen)
 		expect(selected).not.toContain(ids.inViewport)
 		expect(selected).not.toContain(ids.alsoInViewport)
+	})
+
+	it('does not select off-screen shapes with canCull returning false', () => {
+		const testEditor = new TestEditor({ shapeUtils: [NoCullShapeUtil] })
+		testEditor.updateViewportScreenBounds(new Box(0, 0, 1000, 1000))
+		testEditor.setCamera({ x: 0, y: 0, z: 1 })
+
+		const inViewportId = createShapeId('visible')
+		const offscreenNoCullId = createShapeId('offscreen-no-cull')
+
+		testEditor.createShapes([
+			{ id: inViewportId, type: 'geo', x: 100, y: 100, props: { w: 50, h: 50 } },
+			{ id: offscreenNoCullId, type: 'select-all-test-shape', x: 5000, y: 5000 },
+		])
+
+		testEditor.selectAllInViewport()
+		const selected = testEditor.getSelectedShapeIds()
+		expect(selected).toContain(inViewportId)
+		expect(selected).not.toContain(offscreenNoCullId)
+
+		testEditor.dispose()
 	})
 })
