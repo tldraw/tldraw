@@ -119,13 +119,8 @@ export function createServer() {
 		loadWidgetHtml: loadCachedCanvasWidgetHtml,
 	}
 
-	const httpDomain = {
-		openai: process.env.MCP_DOMAIN_OPENAI ?? '',
-		claude: process.env.MCP_DOMAIN_CLAUDE ?? '',
-	}
-
 	registerTools(server, deps, {
-		httpDomain: httpDomain.openai || httpDomain.claude ? httpDomain : undefined,
+		isDev: true,
 		log: console.error,
 		getClientHostName: () => clientHostName,
 	})

@@ -32,8 +32,6 @@ interface Env {
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
 	WORKER_ORIGIN: string
-	MCP_DOMAIN_OPENAI: string
-	MCP_DOMAIN_CLAUDE: string
 	MCP_ANALYTICS?: AnalyticsEngineDataset
 }
 
@@ -76,9 +74,10 @@ export class TldrawMCP extends McpAgent<Env> {
 			instructions: MCP_SERVER_INSTRUCTIONS,
 		}
 	)
+	isDev = !this.env.MCP_AUTH_TOKEN
 	activeCheckpointId: string | null = null
 	sessionId: string = ''
-	logger = new Logger('TldrawMCP')
+	logger = new Logger('TldrawMCP', this.isDev)
 	clientHostName: MCP_APP_HOST_NAMES | undefined = undefined
 
 	async init() {
@@ -151,15 +150,12 @@ export class TldrawMCP extends McpAgent<Env> {
 		}
 
 		const workerOrigin = this.env.WORKER_ORIGIN || ''
-		const domainOpenai = this.env.MCP_DOMAIN_OPENAI || ''
-		const domainClaude = this.env.MCP_DOMAIN_CLAUDE || ''
 
 		registerTools(this.server, deps, {
 			log: this.logger.toLogFn(),
 			extraResourceDomains: workerOrigin ? [workerOrigin] : [],
 			extraConnectDomains: workerOrigin ? [workerOrigin] : [],
-			httpDomain:
-				domainOpenai || domainClaude ? { openai: domainOpenai, claude: domainClaude } : undefined,
+			isDev: this.isDev,
 			analytics: this.env.MCP_ANALYTICS,
 			getClientHostName: () => this.clientHostName,
 		})
@@ -235,6 +231,13 @@ export default {
 			// Health check (no auth)
 			if (url.pathname === '/health') {
 				return Response.json({ status: 'ok', timestamp: Date.now() })
+			}
+
+			// Domain verification (no auth)
+			if (url.pathname === '/.well-known/openai-apps-challenge') {
+				return new Response('kd9yRY8fxUTGRLJ6d22gpfATKZhXhHAu5Vdn6HWJsIQ', {
+					headers: { 'Content-Type': 'text/plain' },
+				})
 			}
 
 			// Auth check for MCP endpoints: skip if MCP_AUTH_TOKEN not set (local dev)
