@@ -1,13 +1,4 @@
-import {
-	Box,
-	Editor,
-	TLComponents,
-	Tldraw,
-	createShapeId,
-	toRichText,
-	track,
-	useEditor,
-} from 'tldraw'
+import { Editor, TLComponents, Tldraw, createShapeId, toRichText, track, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './selection-bounds.css'
 
@@ -133,32 +124,7 @@ function seedDemoContent(editor: Editor) {
 	editor.zoomToFit({ animation: { duration: 0 } })
 }
 
-const BOUNDS_EQUALITY_EPSILON = 0.1
-const ROTATION_EQUALITY_EPSILON = 0.0001
-
-function areBoundsEqual(a: Box, b: Box) {
-	return (
-		Math.abs(a.x - b.x) < BOUNDS_EQUALITY_EPSILON &&
-		Math.abs(a.y - b.y) < BOUNDS_EQUALITY_EPSILON &&
-		Math.abs(a.width - b.width) < BOUNDS_EQUALITY_EPSILON &&
-		Math.abs(a.height - b.height) < BOUNDS_EQUALITY_EPSILON
-	)
-}
-
-function hasMixedSelectionRotations(editor: Editor) {
-	const rotations = editor
-		.getSelectedShapeIds()
-		.map((id) => editor.getShapePageTransform(id)?.rotation())
-		.filter((rotation): rotation is number => rotation !== undefined)
-
-	if (rotations.length < 2) return false
-
-	const firstRotation = rotations[0]
-	return rotations.some(
-		(rotation) => Math.abs(rotation - firstRotation) > ROTATION_EQUALITY_EPSILON
-	)
-}
-
+// [3]
 const SelectionBoundsOverlay = track(() => {
 	const editor = useEditor()
 	const axisAlignedBounds = editor.getSelectionPageBounds() // [1]
@@ -170,64 +136,9 @@ const SelectionBoundsOverlay = track(() => {
 	const rotation = editor.getSelectionRotation()
 	const axisAlignedViewportPoint = editor.pageToViewport(axisAlignedBounds.point)
 	const rotatedViewportPoint = editor.pageToViewport(rotatedBounds.point)
-	const boundsMatch = areBoundsEqual(axisAlignedBounds, rotatedBounds)
-	const mixedRotations = hasMixedSelectionRotations(editor)
-
-	const showCombinedLabel = boundsMatch && mixedRotations
-	const showSingleAxisLabel = boundsMatch && !mixedRotations
 
 	return (
 		<>
-			{showCombinedLabel ? (
-				<div
-					className="selection-bounds-label selection-bounds-label--combined"
-					style={{
-						transform: `translate(${axisAlignedViewportPoint.x}px, ${Math.max(
-							24,
-							axisAlignedViewportPoint.y - 24
-						)}px)`,
-					}}
-				>
-					Axis-aligned + rotated
-				</div>
-			) : showSingleAxisLabel ? (
-				<div
-					className="selection-bounds-label selection-bounds-label--axis"
-					style={{
-						transform: `translate(${axisAlignedViewportPoint.x}px, ${Math.max(
-							24,
-							axisAlignedViewportPoint.y - 24
-						)}px)`,
-					}}
-				>
-					Axis-aligned
-				</div>
-			) : (
-				<>
-					<div
-						className="selection-bounds-label selection-bounds-label--axis"
-						style={{
-							transform: `translate(${axisAlignedViewportPoint.x}px, ${Math.max(
-								24,
-								axisAlignedViewportPoint.y - 24
-							)}px)`,
-						}}
-					>
-						Axis-aligned
-					</div>
-					<div
-						className="selection-bounds-label selection-bounds-label--rotated"
-						style={{
-							transform: `translate(${rotatedViewportPoint.x}px, ${Math.max(
-								48,
-								rotatedViewportPoint.y - 24
-							)}px)`,
-						}}
-					>
-						Rotated
-					</div>
-				</>
-			)}
 			<div
 				className="selection-bounds-box selection-bounds-box--axis"
 				style={{
@@ -248,8 +159,24 @@ const SelectionBoundsOverlay = track(() => {
 	)
 })
 
+function BoundsKey() {
+	return (
+		<div className="selection-bounds-key">
+			<div className="selection-bounds-key-item">
+				<div className="selection-bounds-key-swatch selection-bounds-key-swatch--axis" />
+				<span>getSelectionPageBounds — smallest upright rectangle</span>
+			</div>
+			<div className="selection-bounds-key-item">
+				<div className="selection-bounds-key-swatch selection-bounds-key-swatch--rotated" />
+				<span>getSelectionRotatedPageBounds — aligned to selection rotation</span>
+			</div>
+		</div>
+	)
+}
+
 const components: TLComponents = {
 	InFrontOfTheCanvas: SelectionBoundsOverlay,
+	TopPanel: BoundsKey,
 }
 
 export default function SelectionBoundsExample() {
@@ -275,23 +202,26 @@ This example shows how to read and visualize selection bounds. tldraw uses two
 different kinds of bounds:
 
 [1] `getSelectionPageBounds()` returns the axis-aligned bounding box of the
-current selection (shown as the blue dashed box). It always has zero rotation —
+current selection (shown as the blue dashed box). It always has zero rotation -
 it's the smallest upright rectangle that contains every selected shape. It isn't
-visible; we use it for hit testing and viewport culling. 
+visible; we use it for hit testing and viewport culling.
 
 [2] `getSelectionRotatedPageBounds()` returns the rotated selection box (shown
-as the amber dashed box). When the selected shapes share a common rotation, this
+as the amber solid box). When the selected shapes share a common rotation, this
 box matches their orientation. We use this for the selection UI — if you
 select two shapes rotated by the same angle, the resize handles align with the
 shapes' axes so you can scale them without distortion. An axis-aligned box would
 only let you resize horizontally and vertically relative to the page.
 
+[3] The overlay converts both page-space boxes into viewport coordinates with
+`pageToViewport()` so we can position HTML elements on top of the canvas.
+
 Try selecting the three groups of shapes on the canvas:
-1. A single rotated shape: the AABB is different to the rotated.
-2. Multiple shapes with a shared rotation, so the rotated bounds still aligns
+1. A single rotated shape has two bounding boxes: axis-aligned and rotated, for selection.
+2. Multiple shapes with a shared rotation, so the rotated bounds still align
 to their common angle.
 3. The purple and red pair: two ungrouped shapes with different rotations. If the
 selected shapes are rotated by different amounts, there's no single angle that
-makes sense for the selection box, so we fall back to an axis-aligned box and the
-two bounds are identical. Select both and rotate them to see them collapse.
+makes sense for the selection box, so we fall back to an axis-aligned box.
+Select both and rotate to see this in action.
 */
