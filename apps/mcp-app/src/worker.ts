@@ -219,6 +219,7 @@ const sseHandler = TldrawMCP.serveSSE('/sse')
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
 		try {
+			const requireAuth = Boolean(env.MCP_AUTH_TOKEN)
 			const url = new URL(request.url)
 
 			// CORS preflight
@@ -231,8 +232,15 @@ export default {
 				return Response.json({ status: 'ok', timestamp: Date.now() })
 			}
 
-			// Auth check for MCP endpoints: skip if MCP_AUTH_TOKEN not set (local dev)
-			if (env.MCP_AUTH_TOKEN) {
+			// Domain verification (no auth)
+			if (url.pathname === '/.well-known/openai-apps-challenge') {
+				return new Response('kd9yRY8fxUTGRLJ6d22gpfATKZhXhHAu5Vdn6HWJsIQ', {
+					headers: { 'Content-Type': 'text/plain' },
+				})
+			}
+
+			// Require bearer auth only when an auth token is configured.
+			if (requireAuth) {
 				const auth = request.headers.get('Authorization')
 				if (auth !== `Bearer ${env.MCP_AUTH_TOKEN}`) {
 					return corsResponse(new Response('Unauthorized', { status: 401 }))
