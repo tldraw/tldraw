@@ -16,7 +16,6 @@ import {
 	TLIdentityUser,
 	TLPermissionRule,
 	TLPermissionsManagerConfig,
-	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuItem,
 	useIsToolSelected,
@@ -102,12 +101,6 @@ const CHECKERS_COMPONENTS: TLComponents = {
 				<TldrawUiMenuItem {...tools['hand']} isSelected={isHandSelected} />
 			</DefaultToolbar>
 		)
-	},
-}
-
-const CHECKERS_OVERRIDES: TLUiOverrides = {
-	tools(_editor, tools) {
-		return tools
 	},
 }
 
@@ -245,7 +238,6 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 				<Tldraw
 					store={store}
 					shapeUtils={CUSTOM_SHAPE_UTILS}
-					overrides={CHECKERS_OVERRIDES}
 					components={CHECKERS_COMPONENTS}
 					onMount={handleMount}
 					permissions={permissionsConfig}

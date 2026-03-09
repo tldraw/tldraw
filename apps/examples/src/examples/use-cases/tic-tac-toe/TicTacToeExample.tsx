@@ -83,6 +83,11 @@ const ticTacToeRules: Record<string, TLPermissionRule> = {
 		if (meta?.isBoard) return false
 		return getShapeCreatorId(targetShape) === user.id
 	},
+
+	[CORE_ACTIVITIES.USE_TOOL]: ({ user, toolId }) => {
+		const isX = user.id === PLAYER_X_ID
+		return toolId === 'select' || toolId === 'hand' || toolId === (isX ? 'x-place' : 'o-place')
+	},
 }
 
 const WIN_LINES = [
@@ -188,8 +193,6 @@ function makeToolbarComponents(playerToolId: string): TLComponents {
 			const isHandSelected = useIsToolSelected(tools['hand'])
 			const isSelectSelected = useIsToolSelected(tools['select'])
 			return (
-				// Only show the three tools this player is allowed to use.
-				// All other shape/draw tools are intentionally hidden.
 				<DefaultToolbar {...props}>
 					{/* Select tool: needed to move/delete own pieces */}
 					<TldrawUiMenuItem {...tools['select']} isSelected={isSelectSelected} />
