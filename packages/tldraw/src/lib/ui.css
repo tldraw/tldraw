@@ -1213,6 +1213,11 @@ tldraw? probably.
 	left: 0px;
 }
 
+.tl-container[dir='rtl'] .tlui-navigation-panel {
+	left: auto;
+	right: 0px;
+}
+
 .tlui-navigation-panel::before {
 	content: '';
 	display: block;
@@ -1224,6 +1229,14 @@ tldraw? probably.
 	border-right: 2px solid var(--tl-color-background);
 	border-top-right-radius: var(--tl-radius-4);
 	background-color: var(--tl-color-low);
+}
+
+.tl-container[dir='rtl'] .tlui-navigation-panel::before {
+	inset: -2px 0px 0px -2px;
+	border-right: 0;
+	border-left: 2px solid var(--tl-color-background);
+	border-top-right-radius: 0;
+	border-top-left-radius: var(--tl-radius-4);
 }
 
 .tlui-navigation-panel[data-a11y='true']::before {

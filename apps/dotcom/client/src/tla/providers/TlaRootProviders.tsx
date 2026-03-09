@@ -10,6 +10,7 @@ import {
 	DefaultDialogs,
 	DefaultToasts,
 	EditorContext,
+	RTL_LANGUAGES,
 	TLUiEventHandler,
 	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
@@ -44,6 +45,11 @@ import {
 } from '../utils/local-session-state'
 
 const assetUrls = getAssetUrlsByImport()
+
+function getTextDirection(locale: string): 'ltr' | 'rtl' {
+	const [language] = locale.toLowerCase().split('-')
+	return RTL_LANGUAGES.has(language) ? 'rtl' : 'ltr'
+}
 
 // Override watermark URLs globally for all dotcom editors
 function WatermarkOverride() {
@@ -82,10 +88,12 @@ export function Component() {
 	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(
 		() => getLocalSessionState().theme
 	)
+	const dir = getTextDirection(locale)
 	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
 	const handleLocaleChange = (locale: string) => {
 		setLocale(locale)
 		document.documentElement.lang = locale
+		document.documentElement.dir = getTextDirection(locale)
 	}
 	const isFocusMode = useValue(
 		'isFocusMode',
@@ -106,6 +114,7 @@ export function Component() {
 	return (
 		<div
 			ref={setContainer}
+			dir={dir}
 			className={classNames(`tla tl-container tla-theme-container`, {
 				'tla-theme__light tl-theme__light': theme === 'light',
 				'tla-theme__dark tl-theme__dark': theme !== 'light',

@@ -2766,6 +2766,9 @@ export interface RichTextSVGProps {
 // @public (undocumented)
 export function RotateCWMenuItem(): JSX.Element;
 
+// @public (undocumented)
+export const RTL_LANGUAGES: Set<string>;
+
 // @public
 export function sanitizeSvg(svgText: string): string;
 

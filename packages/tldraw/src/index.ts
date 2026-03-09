@@ -678,7 +678,7 @@ export {
 	type TLUiToolsProviderProps,
 } from './lib/ui/hooks/useTools'
 export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTranslationKey'
-export { type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
+export { RTL_LANGUAGES, type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
 export {
 	useCurrentTranslation,
 	useDirection,

@@ -244,7 +244,7 @@
 }
 
 .tl-container[dir='rtl'] .tlui-layout__top__right > div:first-child {
-	margin-left: 44px;
+	margin-left: 4px;
 }
 
 .tlui-page-menu__trigger {
