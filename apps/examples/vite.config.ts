@@ -128,8 +128,7 @@ function exampleReadmePlugin(): PluginOption {
 			const slug = segments[segments.length - 1]
 			const category = segments.slice(0, -1).join('/')
 			if (!category) {
-				console.warn(`[example-readme] Skipping example with missing category folder: ${filePath}`)
-				return 'export {};'
+				throw new Error(`Example category folder missing for ${filePath}`)
 			}
 			const path = `/${slug}`
 			const codeUrl = `https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/${relativePath}`

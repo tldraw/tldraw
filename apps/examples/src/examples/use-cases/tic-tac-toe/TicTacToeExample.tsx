@@ -35,26 +35,20 @@ import {
 	getShapeCell,
 } from './shapes'
 
-// ─── PLAYER CONSTANTS ─────────────────────────────────────────────────────────
-
 export const PLAYER_X_ID = 'player-x'
 export const PLAYER_O_ID = 'player-o'
 
-/** Player identity directory. */
 const PLAYER_USERS: Record<string, TLIdentityUser> = {
 	[PLAYER_X_ID]: { id: PLAYER_X_ID, name: 'Player X', color: '#cc2200' },
 	[PLAYER_O_ID]: { id: PLAYER_O_ID, name: 'Player O', color: '#0055cc' },
 }
 
-/** Create an identity provider for a specific player. */
 function createPlayerIdentity(userId: string): TLIdentityProvider {
 	return {
 		getCurrentUser: () => PLAYER_USERS[userId] ?? null,
 		resolveUser: (id) => PLAYER_USERS[id] ?? null,
 	}
 }
-
-// ─── PERMISSION RULES ─────────────────────────────────────────────────────────
 
 const ticTacToeRules: Record<string, TLPermissionRule> = {
 	[CORE_ACTIVITIES.CREATE_SHAPE]: ({ user, shapeType }) => {
@@ -90,8 +84,6 @@ const ticTacToeRules: Record<string, TLPermissionRule> = {
 	},
 }
 
-// ─── WIN DETECTION ────────────────────────────────────────────────────────────
-
 const WIN_LINES = [
 	[0, 1, 2],
 	[3, 4, 5],
@@ -126,12 +118,9 @@ function checkWinner(shapes: TLShape[]): 'X' | 'O' | 'draw' | null {
 	return null
 }
 
-// ─── BOARD INITIALIZATION ─────────────────────────────────────────────────────
-
 const BOARD_SIZE = CELL_SIZE * 3 // 360
 const LINE_THICKNESS = 6
 
-/** Creates the board lines. Called before the manager is set up so they bypass checks. */
 function initBoard(editor: Editor, userId: string) {
 	if (userId !== PLAYER_X_ID) return
 
@@ -185,14 +174,10 @@ function initBoard(editor: Editor, userId: string) {
 	)
 }
 
-// ─── CUSTOM SHAPE UTILS & TOOLS ───────────────────────────────────────────────
-
 const CUSTOM_SHAPE_UTILS = [XBoxShapeUtil, OCircleShapeUtil, BoardLineShapeUtil]
 
 const X_TOOLS = [XPlaceTool]
 const O_TOOLS = [OPlaceTool]
-
-// ─── PER-PLAYER UI ────────────────────────────────────────────────────────────
 
 function makeToolbarComponents(playerToolId: string): TLComponents {
 	return {
@@ -245,8 +230,6 @@ const O_COMPONENTS = makeToolbarComponents('o-place')
 const X_OVERRIDES = makeUiOverrides(PLAYER_X_ID, 'x-place')
 const O_OVERRIDES = makeUiOverrides(PLAYER_O_ID, 'o-place')
 
-// ─── PLAYER PANEL ─────────────────────────────────────────────────────────────
-
 interface PlayerPanelProps {
 	label: string
 	userId: typeof PLAYER_X_ID | typeof PLAYER_O_ID
@@ -268,10 +251,8 @@ function PlayerPanel({
 	components,
 	onShapesChange,
 }: PlayerPanelProps) {
-	// Create a stable identity provider for this player.
 	const identity = useMemo(() => createPlayerIdentity(userId), [userId])
 
-	// Stable permissions config — passed as a prop to <Tldraw>.
 	const permissionsConfig = useMemo(
 		(): TLPermissionsManagerConfig => ({ identity, rules: ticTacToeRules }),
 		[identity]
@@ -343,8 +324,6 @@ function PlayerPanel({
 		</div>
 	)
 }
-
-// ─── MAIN EXAMPLE ─────────────────────────────────────────────────────────────
 
 export default function TicTacToeExample() {
 	// A unique room per page load ensures a fresh game each time.

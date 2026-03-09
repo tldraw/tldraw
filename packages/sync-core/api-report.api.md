@@ -707,7 +707,7 @@ export interface TLSyncSqliteWrapperConfig {
 
 // @public
 export interface TLSyncStorage<R extends UnknownRecord> {
-    get(id: string): R | undefined;
+    get?(id: string): R | undefined;
     // (undocumented)
     getClock(): number;
     // (undocumented)

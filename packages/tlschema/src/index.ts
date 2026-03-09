@@ -62,6 +62,21 @@ export {
 	type TLSchema,
 } from './createTLSchema'
 export {
+	CORE_ACTIVITIES,
+	evaluateRule,
+	getShapeCreator,
+	getShapeCreatorId,
+	type CoreActivityId,
+	type TLAfterActionCallback,
+	type TLAttributionUser,
+	type TLBeforeActionCallback,
+	type TLIdentityProvider,
+	type TLIdentityUser,
+	type TLPermissionContext,
+	type TLPermissionRule,
+	type TLPermissionsManagerConfig,
+} from './lib/permissions'
+export {
 	boxModelValidator,
 	vecModelValidator,
 	type BoxModel,

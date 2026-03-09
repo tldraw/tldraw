@@ -41,10 +41,10 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"@tldraw/editor": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
+		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {

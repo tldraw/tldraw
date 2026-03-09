@@ -4,21 +4,20 @@
 
 ```ts
 
-import { CORE_ACTIVITIES } from '@tldraw/editor';
-import { CoreActivityId } from '@tldraw/editor';
-import { evaluateRule } from '@tldraw/editor';
-import { getShapeCreator } from '@tldraw/editor';
-import { getShapeCreatorId } from '@tldraw/editor';
+import { CORE_ACTIVITIES } from '@tldraw/tlschema';
+import { CoreActivityId } from '@tldraw/tlschema';
+import { evaluateRule } from '@tldraw/tlschema';
+import { getShapeCreator } from '@tldraw/tlschema';
+import { getShapeCreatorId } from '@tldraw/tlschema';
 import { NetworkDiff } from '@tldraw/sync-core';
-import { TLAfterActionCallback } from '@tldraw/editor';
-import { TLAttributionUser } from '@tldraw/editor';
-import { TLBeforeActionCallback } from '@tldraw/editor';
-import { TLIdentityProvider } from '@tldraw/editor';
-import { TLIdentityUser } from '@tldraw/editor';
-import { TLPermissionContext } from '@tldraw/editor';
-import { TLPermissionRule } from '@tldraw/editor';
-import { TLPermissionsManager } from '@tldraw/editor';
-import { TLPermissionsManagerConfig } from '@tldraw/editor';
+import { TLAfterActionCallback } from '@tldraw/tlschema';
+import { TLAttributionUser } from '@tldraw/tlschema';
+import { TLBeforeActionCallback } from '@tldraw/tlschema';
+import { TLIdentityProvider } from '@tldraw/tlschema';
+import { TLIdentityUser } from '@tldraw/tlschema';
+import { TLPermissionContext } from '@tldraw/tlschema';
+import { TLPermissionRule } from '@tldraw/tlschema';
+import { TLPermissionsManagerConfig } from '@tldraw/tlschema';
 import type { UnknownRecord } from '@tldraw/store';
 
 export { CORE_ACTIVITIES }
@@ -55,8 +54,6 @@ export { TLIdentityUser }
 export { TLPermissionContext }
 
 export { TLPermissionRule }
-
-export { TLPermissionsManager }
 
 export { TLPermissionsManagerConfig }
 

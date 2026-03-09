@@ -26,18 +26,14 @@ import {
 import 'tldraw/tldraw.css'
 import { BOARD_SIZE, ChkBoardShapeUtil, ChkPieceShapeUtil, pieceCorner } from './shapes'
 
-// ─── PLAYER CONSTANTS ─────────────────────────────────────────────────────────
-
 export const PLAYER_RED_ID = 'player-red'
 export const PLAYER_BLUE_ID = 'player-blue'
 
-/** Player identity directory. */
 const PLAYER_USERS: Record<string, TLIdentityUser> = {
 	[PLAYER_RED_ID]: { id: PLAYER_RED_ID, name: 'Player Red', color: '#cc2200' },
 	[PLAYER_BLUE_ID]: { id: PLAYER_BLUE_ID, name: 'Player Blue', color: '#0055cc' },
 }
 
-/** Create an identity provider for a specific player. */
 function createPlayerIdentity(userId: string): TLIdentityProvider {
 	return {
 		getCurrentUser: () => PLAYER_USERS[userId] ?? null,
@@ -45,13 +41,8 @@ function createPlayerIdentity(userId: string): TLIdentityProvider {
 	}
 }
 
-// ─── CUSTOM SHAPES ────────────────────────────────────────────────────────────
-
 const CUSTOM_SHAPE_UTILS = [ChkBoardShapeUtil, ChkPieceShapeUtil]
 
-// ─── BOARD INITIALIZATION ─────────────────────────────────────────────────────
-
-/** Creates the board and all 24 pieces. Called before the manager is set up so they bypass checks. */
 function initBoard(editor: Editor, userId: string) {
 	if (userId !== PLAYER_RED_ID) return
 
@@ -114,12 +105,6 @@ function initBoard(editor: Editor, userId: string) {
 	)
 }
 
-// ─── TOOLBAR ──────────────────────────────────────────────────────────────────
-
-/**
- * Restrict the toolbar to select + hand only.
- * Players move pieces with the select tool; no creation tools are needed.
- */
 const CHECKERS_COMPONENTS: TLComponents = {
 	Toolbar: (props) => {
 		const tools = useTools()
@@ -140,8 +125,6 @@ const CHECKERS_OVERRIDES: TLUiOverrides = {
 	},
 }
 
-// ─── PLAYER PANEL ─────────────────────────────────────────────────────────────
-
 interface PlayerPanelProps {
 	label: string
 	userId: typeof PLAYER_RED_ID | typeof PLAYER_BLUE_ID
@@ -159,11 +142,8 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 		return () => clearTimeout(timer)
 	}, [toast])
 
-	// Create a stable identity provider for this player.
 	const identity = useMemo(() => createPlayerIdentity(userId), [userId])
 
-	// Declarative rules for ownership and board immutability.
-	// Turn enforcement is handled separately via onBeforeAction.
 	const checkersRules = useMemo(
 		(): Record<string, TLPermissionRule> => ({
 			[CORE_ACTIVITIES.CREATE_SHAPE]: false,
@@ -199,7 +179,6 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 		[]
 	)
 
-	// Stable permissions config — passed as a prop to <Tldraw>.
 	const permissionsConfig = useMemo(
 		(): TLPermissionsManagerConfig => ({ identity, rules: checkersRules }),
 		[identity, checkersRules]
@@ -209,8 +188,8 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 		(editor: Editor) => {
 			initBoard(editor, userId)
 
-			// Register lifecycle hooks on the editor-owned permissions manager.
-			const mgr = editor.permissions!
+			const mgr = editor.permissions
+			if (!mgr) return
 
 			// Turn enforcement via onBeforeAction — reads turnRef.current at call time.
 			const cleanupBefore = mgr.onBeforeAction(({ user, activityId }) => {
@@ -311,8 +290,6 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 		</div>
 	)
 }
-
-// ─── MAIN EXAMPLE ─────────────────────────────────────────────────────────────
 
 export default function CheckersExample() {
 	const roomId = useMemo(() => `chk-perms-${Math.random().toString(36).slice(2, 8)}`, [])

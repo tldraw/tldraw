@@ -6,7 +6,6 @@ export {
 	evaluateRule,
 	getShapeCreator,
 	getShapeCreatorId,
-	TLPermissionsManager,
 	type CoreActivityId,
 	type TLAfterActionCallback,
 	type TLAttributionUser,

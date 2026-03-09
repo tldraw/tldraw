@@ -149,7 +149,10 @@ import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
 import { TLPermissionsManager } from './managers/PermissionsManager/TLPermissionsManager'
-import { TLPermissionsManagerConfig } from './managers/PermissionsManager/permissions-types'
+import {
+	CORE_ACTIVITIES,
+	TLPermissionsManagerConfig,
+} from './managers/PermissionsManager/permissions-types'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
@@ -320,7 +323,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}: TLEditorOptions) {
 		super()
 
-		this._getShapeVisibility = getShapeVisibility
+		// If a VIEW_SHAPE rule is registered, automatically compose it into getShapeVisibility
+		// so visibility is enforced without requiring manual wiring. The user's own
+		// getShapeVisibility (if any) is still respected and runs after the permission check.
+		if (permissionsConfig?.rules && CORE_ACTIVITIES.VIEW_SHAPE in permissionsConfig.rules) {
+			const userVisibility = getShapeVisibility
+			this._getShapeVisibility = (shape, editor) => {
+				if (!editor.permissions?.canViewShape(shape)) return 'hidden'
+				return userVisibility?.(shape, editor)
+			}
+		} else {
+			this._getShapeVisibility = getShapeVisibility
+		}
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop

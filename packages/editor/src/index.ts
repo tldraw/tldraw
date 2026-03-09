@@ -306,6 +306,7 @@ export { getSvgAsImage } from './lib/exports/getSvgAsImage'
 export { tlenv, tlenvReactive } from './lib/globals/environment'
 export { tlmenus } from './lib/globals/menus'
 export { tltime } from './lib/globals/time'
+export { useCanPerform } from './lib/hooks/useCanPerform'
 export {
 	ContainerProvider,
 	useContainer,

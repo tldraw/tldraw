@@ -88,8 +88,13 @@ export interface TLSyncStorage<R extends UnknownRecord> {
 	/**
 	 * Retrieve a single record by ID without starting a transaction.
 	 * Returns undefined if the record does not exist (or has been deleted).
+	 *
+	 * Optional: `TLSocketRoom` will pass `getRecord` to `filterPush` callbacks only when this
+	 * is implemented. The built-in `InMemorySyncStorage` and `SQLiteSyncStorage` both implement
+	 * it. Custom implementations that omit it will receive a `getRecord` that always returns
+	 * `undefined` for Patch/Remove lookups.
 	 */
-	get(id: string): R | undefined
+	get?(id: string): R | undefined
 }
 
 /**

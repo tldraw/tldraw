@@ -10354,10 +10354,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/permissions@workspace:packages/permissions"
   dependencies:
-    "@tldraw/editor": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     lazyrepo: "npm:0.0.0-alpha.27"
   languageName: unknown

@@ -1,8 +1,7 @@
 import { react } from '@tldraw/state'
-import type { TLShape } from '@tldraw/tlschema'
-import type { Editor } from '../../Editor'
 import {
 	CORE_ACTIVITIES,
+	evaluateRule,
 	type TLAfterActionCallback,
 	type TLBeforeActionCallback,
 	type TLIdentityProvider,
@@ -10,18 +9,14 @@ import {
 	type TLPermissionContext,
 	type TLPermissionRule,
 	type TLPermissionsManagerConfig,
-} from './permissions-types'
+	type TLShape,
+} from '@tldraw/tlschema'
+import type { Editor } from '../../Editor'
 
 /**
- * Centralized permissions manager for tldraw.
- *
- * Evaluates declarative rules and lifecycle hooks to determine whether a user
- * can perform a given activity. Installs store side-effects to enforce rules
- * at the data layer, and exposes convenience methods for UI integration.
- *
- * Rules are set once at construction and are immutable. Dynamic behavior
- * (e.g. turn-based gating) should be handled via `onBeforeAction` hooks or
- * by reading reactive atoms / mutable refs inside rule callbacks.
+ * Evaluates declarative permission rules and lifecycle hooks to gate user activity.
+ * Rules are set at construction and are immutable; dynamic logic belongs in rule
+ * callbacks or `onBeforeAction` hooks.
  *
  * @public
  */
@@ -40,12 +35,7 @@ export class TLPermissionsManager {
 		this.rules = new Map(Object.entries(config.rules ?? {}))
 	}
 
-	/**
-	 * Install enforcement side-effects. Called by the Editor after the
-	 * constructor has finished initializing all managers.
-	 *
-	 * @internal
-	 */
+	/** @internal */
 	installEnforcement() {
 		const { editor } = this
 
@@ -77,7 +67,9 @@ export class TLPermissionsManager {
 				if (!user) return next
 
 				const ctx = { user, targetShape: prev, prevShape: prev, nextShape: next }
-				if (!this.tryPerform(CORE_ACTIVITIES.UPDATE_SHAPE, ctx)) return prev
+				// Use canPerform for the coarse gate — it's an internal implementation check,
+				// not a meaningful event to report via onAfterAction.
+				if (!this.canPerform(CORE_ACTIVITIES.UPDATE_SHAPE, ctx)) return prev
 
 				// Granular checks — only run if a rule is registered
 				let result = next
@@ -195,8 +187,15 @@ export class TLPermissionsManager {
 		}
 	}
 
-	// ─── Lifecycle hooks ──────────────────────────────────────────────
-
+	/**
+	 * Registers a callback that runs only when an action is actually attempted (via
+	 * `tryPerform`) and can veto it. Returns a cleanup function.
+	 *
+	 * For permission state that should also affect `canPerform` (UI queries), encode
+	 * the logic in a rule callback instead — rules run in both methods.
+	 *
+	 * @public
+	 */
 	onBeforeAction(callback: TLBeforeActionCallback): () => void {
 		this.beforeActionCallbacks.push(callback)
 		return () => {
@@ -205,6 +204,16 @@ export class TLPermissionsManager {
 		}
 	}
 
+	/**
+	 * Registers a callback that fires after every action attempt (via `tryPerform`).
+	 * Use this for notification side-effects such as showing a toast on denial.
+	 * Fires once per shape, not once per gesture — if a user moves five shapes at once,
+	 * this fires five times. Debounce with `requestAnimationFrame` if you need
+	 * gesture-level notifications.
+	 * Returns a cleanup function.
+	 *
+	 * @public
+	 */
 	onAfterAction(callback: TLAfterActionCallback): () => void {
 		this.afterActionCallbacks.push(callback)
 		return () => {
@@ -213,29 +222,38 @@ export class TLPermissionsManager {
 		}
 	}
 
-	// ─── Permission evaluation ────────────────────────────────────────
-
 	/**
-	 * Pure query — evaluates whether the action is allowed without firing
-	 * `onAfterAction` callbacks.
+	 * Returns whether the current user can perform the given activity.
+	 * No callbacks fire — safe for use in render paths and UI gating.
+	 *
+	 * @public
 	 */
 	canPerform(activityId: string, context?: Partial<TLPermissionContext>): boolean {
 		const user = context?.user ?? this.getCurrentUser()
-		if (!user) return false
+		if (!user) {
+			console.warn('tldraw: identity.getCurrentUser() returned null — all permissions denied.')
+			return false
+		}
 
-		const fullContext: TLPermissionContext = { user, activityId, ...context }
-		return evaluateRule(this.rules, activityId, fullContext, this.beforeActionCallbacks)
+		const fullContext: TLPermissionContext = { user, ...context, activityId }
+		return evaluateRule(this.rules, activityId, fullContext)
 	}
 
 	/**
-	 * Evaluates + fires `onAfterAction` callbacks. Use this when user code
-	 * wants notifications (e.g. toast on denied action).
+	 * Returns whether the current user can perform the given activity, firing
+	 * `onBeforeAction` and `onAfterAction` callbacks. Use this when an action
+	 * is actually being attempted.
+	 *
+	 * @public
 	 */
 	tryPerform(activityId: string, context?: Partial<TLPermissionContext>): boolean {
 		const user = context?.user ?? this.getCurrentUser()
-		if (!user) return false
+		if (!user) {
+			console.warn('tldraw: identity.getCurrentUser() returned null — all permissions denied.')
+			return false
+		}
 
-		const fullContext: TLPermissionContext = { user, activityId, ...context }
+		const fullContext: TLPermissionContext = { user, ...context, activityId }
 		const allowed = evaluateRule(this.rules, activityId, fullContext, this.beforeActionCallbacks)
 
 		this.notifyAfterAction(fullContext, allowed)
@@ -248,11 +266,11 @@ export class TLPermissionsManager {
 		}
 	}
 
-	// ─── Convenience methods ──────────────────────────────────────────
-
+	/** @public */
 	canCreateShape(shapeType: string): boolean {
 		return this.canPerform(CORE_ACTIVITIES.CREATE_SHAPE, { shapeType })
 	}
+	/** @public */
 	canUpdateShape(prev: TLShape, next: TLShape): boolean {
 		return this.canPerform(CORE_ACTIVITIES.UPDATE_SHAPE, {
 			targetShape: prev,
@@ -260,38 +278,49 @@ export class TLPermissionsManager {
 			nextShape: next,
 		})
 	}
+	/** @public */
 	canDeleteShape(shape: TLShape): boolean {
 		return this.canPerform(CORE_ACTIVITIES.DELETE_SHAPE, { targetShape: shape })
 	}
+	/** @public */
 	canSelectShape(shape: TLShape): boolean {
 		return this.canPerform(CORE_ACTIVITIES.SELECT_SHAPE, { targetShape: shape })
 	}
+	/** @public */
 	canViewShape(shape: TLShape): boolean {
 		return this.canPerform(CORE_ACTIVITIES.VIEW_SHAPE, { targetShape: shape })
 	}
+	/** @public */
 	canMoveShape(shape: TLShape): boolean {
 		return this.canPerform(CORE_ACTIVITIES.MOVE_SHAPE, { targetShape: shape })
 	}
+	/** @public */
 	canEditShapeProps(shape: TLShape): boolean {
 		return this.canPerform(CORE_ACTIVITIES.EDIT_SHAPE_PROPS, { targetShape: shape })
 	}
+	/** @public */
 	canRotateShape(shape: TLShape): boolean {
 		return this.canPerform(CORE_ACTIVITIES.ROTATE_SHAPE, { targetShape: shape })
 	}
+	/** @public */
 	canUseTool(toolId: string): boolean {
 		return this.canPerform(CORE_ACTIVITIES.USE_TOOL, { toolId })
 	}
+	/** @public */
 	canCopyPaste(): boolean {
 		return this.canPerform(CORE_ACTIVITIES.COPY_PASTE)
 	}
+	/** @public */
 	canUndoRedo(): boolean {
 		return this.canPerform(CORE_ACTIVITIES.UNDO_REDO)
 	}
 
+	/** @public */
 	getCurrentUser(): TLIdentityUser | null {
 		return this.identity.getCurrentUser()
 	}
 
+	/** @public */
 	cleanup() {
 		this.cleanupFns.forEach((fn) => fn())
 		this.cleanupFns = []
@@ -300,26 +329,4 @@ export class TLPermissionsManager {
 	}
 }
 
-// ─── Shared evaluation ──────────────────────────────────────────────────────
-
-/** @internal */
-export function evaluateRule(
-	rules: Record<string, TLPermissionRule> | ReadonlyMap<string, TLPermissionRule>,
-	activityId: string,
-	context: TLPermissionContext,
-	beforeActionCallbacks?: readonly TLBeforeActionCallback[]
-): boolean {
-	const rule =
-		rules instanceof Map
-			? rules.get(activityId)
-			: (rules as Record<string, TLPermissionRule>)[activityId]
-	const allowed = rule !== undefined ? (typeof rule === 'function' ? rule(context) : rule) : true
-	if (!allowed) return false
-
-	if (beforeActionCallbacks) {
-		for (const cb of beforeActionCallbacks) {
-			if (!cb(context)) return false
-		}
-	}
-	return true
-}
+export { evaluateRule } from '@tldraw/tlschema'

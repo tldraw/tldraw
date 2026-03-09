@@ -6,13 +6,13 @@ import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
 import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
-import { NetworkDiff } from './diff'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
 	TLSyncStorage,
 } from './TLSyncStorage'
 import { JsonChunkAssembler } from './chunk'
+import { NetworkDiff } from './diff'
 import { TLSocketServerSentEvent } from './protocol'
 
 /**
@@ -249,7 +249,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 							sessionId: session.sessionId,
 							meta: session.meta,
 							diff,
-							getRecord: (id) => storage.get(id) as R | undefined,
+							getRecord: (id) => storage.get?.(id) as R | undefined,
 						})
 				: undefined,
 		})

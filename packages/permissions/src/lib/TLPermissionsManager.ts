@@ -1,18 +1,19 @@
-import type { TLShape } from '@tldraw/editor'
+import type { UnknownRecord } from '@tldraw/store'
+import { NetworkDiff, RecordOpType, applyObjectDiff, diffRecord } from '@tldraw/sync-core'
 import {
 	CORE_ACTIVITIES,
 	evaluateRule,
 	type TLBeforeActionCallback,
 	type TLIdentityUser,
 	type TLPermissionRule,
-} from '@tldraw/editor'
-import type { UnknownRecord } from '@tldraw/store'
-import { NetworkDiff, RecordOpType, applyObjectDiff } from '@tldraw/sync-core'
+	type TLShape,
+} from '@tldraw/tlschema'
 
-// Re-export client-side types and classes from @tldraw/editor
+// Re-export shared types from @tldraw/tlschema for consumers of this package.
+// Note: TLPermissionsManager (the client-side class) lives in @tldraw/editor and is
+// intentionally not re-exported here — it depends on browser APIs and React.
 export {
 	CORE_ACTIVITIES,
-	TLPermissionsManager,
 	evaluateRule,
 	getShapeCreator,
 	getShapeCreatorId,
@@ -25,9 +26,7 @@ export {
 	type TLPermissionContext,
 	type TLPermissionRule,
 	type TLPermissionsManagerConfig,
-} from '@tldraw/editor'
-
-// ─── Server-side permissions filter ─────────────────────────────────────────
+} from '@tldraw/tlschema'
 
 /**
  * Creates a `filterPush` callback for `TLSocketRoom` from the same declarative
@@ -79,23 +78,71 @@ export function createServerPermissionsFilter<
 				}
 				case RecordOpType.Patch: {
 					const prev = getRecord(id) as unknown as TLShape | undefined
-					if (prev) {
-						const next = applyObjectDiff(prev, op[1]) as unknown as TLShape
+					if (!prev) break
+
+					const next = applyObjectDiff(prev, op[1]) as unknown as TLShape
+					const ctx = {
+						user,
+						activityId: CORE_ACTIVITIES.UPDATE_SHAPE,
+						targetShape: prev,
+						prevShape: prev,
+						nextShape: next,
+					}
+
+					// Coarse check — drop the entire patch if UPDATE_SHAPE is denied
+					if (!evaluateRule(rules, CORE_ACTIVITIES.UPDATE_SHAPE, ctx, beforeActionCallbacks)) break
+
+					// Granular checks — mirror client-side installEnforcement logic.
+					// Only run a check when that rule is actually registered; revert only the
+					// denied fields so partial updates (e.g. editing props while move is blocked)
+					// still go through.
+					let allowedNext = next
+					if ((next.x !== prev.x || next.y !== prev.y) && CORE_ACTIVITIES.MOVE_SHAPE in rules) {
 						if (
-							evaluateRule(
+							!evaluateRule(
 								rules,
-								CORE_ACTIVITIES.UPDATE_SHAPE,
-								{
-									user,
-									activityId: CORE_ACTIVITIES.UPDATE_SHAPE,
-									targetShape: prev,
-									prevShape: prev,
-									nextShape: next,
-								},
+								CORE_ACTIVITIES.MOVE_SHAPE,
+								{ ...ctx, activityId: CORE_ACTIVITIES.MOVE_SHAPE },
 								beforeActionCallbacks
 							)
 						) {
-							filtered[id] = op
+							allowedNext = { ...allowedNext, x: prev.x, y: prev.y }
+						}
+					}
+					if (next.rotation !== prev.rotation && CORE_ACTIVITIES.ROTATE_SHAPE in rules) {
+						if (
+							!evaluateRule(
+								rules,
+								CORE_ACTIVITIES.ROTATE_SHAPE,
+								{ ...ctx, activityId: CORE_ACTIVITIES.ROTATE_SHAPE },
+								beforeActionCallbacks
+							)
+						) {
+							allowedNext = { ...allowedNext, rotation: prev.rotation }
+						}
+					}
+					if (next.props !== prev.props && CORE_ACTIVITIES.EDIT_SHAPE_PROPS in rules) {
+						if (
+							!evaluateRule(
+								rules,
+								CORE_ACTIVITIES.EDIT_SHAPE_PROPS,
+								{ ...ctx, activityId: CORE_ACTIVITIES.EDIT_SHAPE_PROPS },
+								beforeActionCallbacks
+							)
+						) {
+							allowedNext = { ...allowedNext, props: prev.props } as typeof next
+						}
+					}
+
+					if (allowedNext === next) {
+						// Nothing was filtered — pass through the original patch unchanged
+						filtered[id] = op
+					} else {
+						// Some fields were reverted — recompute the patch from prev → allowedNext.
+						// diffRecord returns null when there is no net change (everything reverted).
+						const filteredPatch = diffRecord(prev, allowedNext)
+						if (filteredPatch) {
+							filtered[id] = [RecordOpType.Patch, filteredPatch]
 						}
 					}
 					break

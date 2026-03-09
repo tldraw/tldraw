@@ -9,14 +9,19 @@ import { AtomSet } from '@tldraw/store';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
+import { CORE_ACTIVITIES } from '@tldraw/tlschema';
+import { CoreActivityId } from '@tldraw/tlschema';
 import { Dispatch } from 'react';
 import { Editor as Editor_2 } from '@tiptap/core';
 import { EditorProviderProps as EditorProviderProps_2 } from '@tiptap/react';
+import { evaluateRule } from '@tldraw/tlschema';
 import EventEmitter from 'eventemitter3';
 import { ExoticComponent } from 'react';
 import { ExtractShapeByProps } from '@tldraw/tlschema';
 import { ForwardRefExoticComponent } from 'react';
 import { FragmentProps } from 'react';
+import { getShapeCreator } from '@tldraw/tlschema';
+import { getShapeCreatorId } from '@tldraw/tlschema';
 import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
@@ -46,11 +51,14 @@ import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
 import { T } from '@tldraw/validate';
 import { Timers } from '@tldraw/utils';
+import { TLAfterActionCallback } from '@tldraw/tlschema';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
 import { TLAssetStore } from '@tldraw/tlschema';
+import { TLAttributionUser } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
+import { TLBeforeActionCallback } from '@tldraw/tlschema';
 import { TLBinding } from '@tldraw/tlschema';
 import { TLBindingCreate } from '@tldraw/tlschema';
 import { TLBindingId } from '@tldraw/tlschema';
@@ -65,6 +73,8 @@ import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
+import { TLIdentityProvider } from '@tldraw/tlschema';
+import { TLIdentityUser } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
@@ -73,6 +83,9 @@ import { TLOpacityType } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
+import { TLPermissionContext } from '@tldraw/tlschema';
+import { TLPermissionRule } from '@tldraw/tlschema';
+import { TLPermissionsManagerConfig } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLRichText } from '@tldraw/tlschema';
@@ -486,23 +499,9 @@ export interface ContainerProviderProps {
     container: HTMLElement;
 }
 
-// @public
-export const CORE_ACTIVITIES: {
-    readonly COPY_PASTE: "edit.copy_paste";
-    readonly CREATE_SHAPE: "create.shape";
-    readonly DELETE_SHAPE: "delete.shape";
-    readonly EDIT_SHAPE_PROPS: "edit.shape_props";
-    readonly MOVE_SHAPE: "move.shape";
-    readonly ROTATE_SHAPE: "rotate.shape";
-    readonly SELECT_SHAPE: "select.shape";
-    readonly UNDO_REDO: "edit.undo_redo";
-    readonly UPDATE_SHAPE: "update.shape";
-    readonly USE_TOOL: "tool.use";
-    readonly VIEW_SHAPE: "view.shape";
-};
+export { CORE_ACTIVITIES }
 
-// @public (undocumented)
-export type CoreActivityId = (typeof CORE_ACTIVITIES)[keyof typeof CORE_ACTIVITIES];
+export { CoreActivityId }
 
 // @public (undocumented)
 export const coreShapes: readonly [typeof GroupShapeUtil];
@@ -1669,8 +1668,7 @@ export class ErrorBoundary extends React_2.Component<React_2.PropsWithChildren<T
 // @public (undocumented)
 export function ErrorScreen({ children }: LoadingScreenProps): JSX.Element;
 
-// @internal (undocumented)
-export function evaluateRule(rules: ReadonlyMap<string, TLPermissionRule> | Record<string, TLPermissionRule>, activityId: string, context: TLPermissionContext, beforeActionCallbacks?: readonly TLBeforeActionCallback[]): boolean;
+export { evaluateRule }
 
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
@@ -1887,11 +1885,9 @@ export function getRotationSnapshot({ editor, ids, }: {
     ids: TLShapeId[];
 }): null | TLRotationSnapshot;
 
-// @public
-export function getShapeCreator(shape: TLShape): null | TLAttributionUser;
+export { getShapeCreator }
 
-// @public
-export function getShapeCreatorId(shape: TLShape): null | string;
+export { getShapeCreatorId }
 
 // @public (undocumented)
 export function getSnapshot(store: TLStore): TLEditorSnapshot;
@@ -3168,8 +3164,7 @@ export type TiptapNode = Node_2;
 // @public (undocumented)
 export type TLAdjacentDirection = 'down' | 'left' | 'next' | 'prev' | 'right' | 'up';
 
-// @public (undocumented)
-export type TLAfterActionCallback = (context: TLPermissionContext, allowed: boolean) => void;
+export { TLAfterActionCallback }
 
 // @public (undocumented)
 export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
@@ -3177,13 +3172,7 @@ export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
 // @public (undocumented)
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
 
-// @public (undocumented)
-export interface TLAttributionUser {
-    // (undocumented)
-    readonly id: string;
-    // (undocumented)
-    readonly name: string;
-}
+export { TLAttributionUser }
 
 // @public (undocumented)
 export type TLBaseBoxShape = ExtractShapeByProps<{
@@ -3215,8 +3204,7 @@ export interface TLBaseExternalContent {
     sources?: TLExternalContentSource[];
 }
 
-// @public (undocumented)
-export type TLBeforeActionCallback = (context: TLPermissionContext) => boolean;
+export { TLBeforeActionCallback }
 
 // @public (undocumented)
 export interface TLBindingUtilConstructor<T extends TLBinding, U extends BindingUtil<T> = BindingUtil<T>> {
@@ -4053,23 +4041,9 @@ export interface TLHistoryMark {
     type: 'stop';
 }
 
-// @public (undocumented)
-export interface TLIdentityProvider {
-    // (undocumented)
-    getCurrentUser(): null | TLIdentityUser;
-    // (undocumented)
-    resolveUser(userId: string): null | TLIdentityUser;
-}
+export { TLIdentityProvider }
 
-// @public (undocumented)
-export interface TLIdentityUser {
-    // (undocumented)
-    readonly color?: string;
-    // (undocumented)
-    readonly id: string;
-    // (undocumented)
-    readonly name: string;
-}
+export { TLIdentityUser }
 
 // @public (undocumented)
 export interface TLImageExportOptions extends TLSvgExportOptions {
@@ -4198,26 +4172,9 @@ export const tlmenus: {
 // @public
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;
 
-// @public (undocumented)
-export interface TLPermissionContext {
-    // (undocumented)
-    activityId: string;
-    // (undocumented)
-    nextShape?: TLShape;
-    // (undocumented)
-    prevShape?: TLShape;
-    // (undocumented)
-    shapeType?: string;
-    // (undocumented)
-    targetShape?: TLShape;
-    // (undocumented)
-    toolId?: string;
-    // (undocumented)
-    user: TLIdentityUser;
-}
+export { TLPermissionContext }
 
-// @public (undocumented)
-export type TLPermissionRule = ((context: TLPermissionContext) => boolean) | boolean;
+export { TLPermissionRule }
 
 // @public
 export class TLPermissionsManager {
@@ -4250,22 +4207,14 @@ export class TLPermissionsManager {
     cleanup(): void;
     // (undocumented)
     getCurrentUser(): null | TLIdentityUser;
-    // @internal
+    // @internal (undocumented)
     installEnforcement(): void;
-    // (undocumented)
     onAfterAction(callback: TLAfterActionCallback): () => void;
-    // (undocumented)
     onBeforeAction(callback: TLBeforeActionCallback): () => void;
     tryPerform(activityId: string, context?: Partial<TLPermissionContext>): boolean;
 }
 
-// @public (undocumented)
-export interface TLPermissionsManagerConfig {
-    // (undocumented)
-    identity: TLIdentityProvider;
-    // (undocumented)
-    rules?: Record<string, TLPermissionRule>;
-}
+export { TLPermissionsManagerConfig }
 
 // @public (undocumented)
 export type TLPinchEvent = (info: TLPinchEventInfo) => void;
@@ -4843,6 +4792,9 @@ export function uniq<T>(array: {
     readonly [n: number]: T;
     readonly length: number;
 } | null | undefined): T[];
+
+// @public
+export function useCanPerform(activityId: string, context?: Partial<TLPermissionContext>): boolean;
 
 // @public (undocumented)
 export function useContainer(): HTMLElement;

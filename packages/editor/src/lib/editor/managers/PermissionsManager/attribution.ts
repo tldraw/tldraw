@@ -1,19 +1,4 @@
-import type { TLShape } from '@tldraw/tlschema'
-import type { TLAttributionUser } from './permissions-types'
-
-/**
- * Extract the creator identity from a shape's meta.
- * @public
- */
-export function getShapeCreator(shape: TLShape): TLAttributionUser | null {
-	const meta = shape.meta as Record<string, unknown>
-	return (meta?.createdBy as TLAttributionUser | undefined) ?? null
-}
-
-/**
- * Extract the creator's user ID from a shape's meta.
- * @public
- */
-export function getShapeCreatorId(shape: TLShape): string | null {
-	return getShapeCreator(shape)?.id ?? null
-}
+// Canonical definitions live in @tldraw/tlschema so they can be imported by
+// server-side code without pulling in the browser-only @tldraw/editor package.
+// This file re-exports them to preserve internal editor import paths.
+export { getShapeCreator, getShapeCreatorId } from '@tldraw/tlschema'

@@ -224,8 +224,8 @@ export interface TldrawEditorBaseProps {
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
 
 	/**
-	 * Configuration for the permissions manager. When provided, the editor will create
-	 * a {@link @tldraw/editor#TLPermissionsManager} that enforces declarative permission rules.
+	 * Configuration for the permissions manager. Define this outside your component or wrap it in
+	 * `useMemo` — a new object on every render will recreate the manager and re-install all hooks.
 	 */
 	permissions?: TLPermissionsManagerConfig
 }
@@ -447,6 +447,20 @@ function TldrawEditorWithReadyStore({
 	const [editor, setEditor] = useRefState<Editor | null>(null)
 
 	const canvasRef = useRef<HTMLDivElement | null>(null)
+
+	const prevPermissionsRef = useRef(permissions)
+	useEffect(() => {
+		if (
+			prevPermissionsRef.current !== undefined &&
+			permissions !== undefined &&
+			prevPermissionsRef.current !== permissions
+		) {
+			console.warn(
+				'tldraw: `permissions` prop changed between renders — editor recreated and registered callbacks lost. Wrap in useMemo.'
+			)
+		}
+		prevPermissionsRef.current = permissions
+	}, [permissions])
 
 	const _deepLinks = options?.deepLinks
 	const deepLinks = useShallowObjectIdentity(_deepLinks === true ? {} : _deepLinks)

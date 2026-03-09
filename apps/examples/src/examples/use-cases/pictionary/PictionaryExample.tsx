@@ -2,7 +2,7 @@
  * Pictionary: demonstrates role-based permissions and per-viewer shape visibility.
  *
  * Only the drawer may create/update/delete shapes. The word card is invisible
- * to guessers via the view.shape rule wired through getShapeVisibility.
+ * to guessers via the view.shape permission rule, which is auto-enforced.
  */
 
 import { useSyncDemo } from '@tldraw/sync'
@@ -16,7 +16,6 @@ import {
 	TLIdentityUser,
 	TLPermissionRule,
 	TLPermissionsManagerConfig,
-	TLShape,
 	Tldraw,
 	TldrawUiMenuItem,
 	atom,
@@ -26,8 +25,6 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { PictWordCardShapeUtil } from './shapes'
-
-// ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
 export const PLAYERS = ['player-1', 'player-2'] as const
 export type PlayerId = (typeof PLAYERS)[number]
@@ -78,9 +75,6 @@ const WORDS = [
 
 const CUSTOM_SHAPE_UTILS = [PictWordCardShapeUtil]
 
-// ─── WORD CARD INITIALIZATION ─────────────────────────────────────────────────
-
-/** Creates the word card. Called before the manager is set up so it bypasses checks. */
 function initWordCard(editor: Editor, userId: string, word: string) {
 	if (userId !== PLAYERS[0]) return
 
@@ -105,25 +99,6 @@ function initWordCard(editor: Editor, userId: string, word: string) {
 	])
 }
 
-// ─── SHAPE VISIBILITY ─────────────────────────────────────────────────────────
-
-/**
- * Integrates the view.shape permission rule with the editor's rendering pipeline.
- * Uses editor.permissions so the same rule definition controls both
- * visibility and server-side filtering via createServerPermissionsFilter.
- *
- * Reading the manager's rule (which reads drawerIdAtom) inside this callback
- * creates a reactive dependency — the computed cache invalidates automatically
- * when the atom changes.
- */
-function getShapeVisibility(shape: TLShape, editor: Editor) {
-	const mgr = editor.permissions
-	if (!mgr) return 'inherit' as const
-	return mgr.canViewShape(shape) ? ('inherit' as const) : ('hidden' as const)
-}
-
-// ─── TOOLBARS ─────────────────────────────────────────────────────────────────
-
 const GUESSER_COMPONENTS: TLComponents = {
 	Toolbar: (props) => {
 		const tools = useTools()
@@ -136,13 +111,9 @@ const GUESSER_COMPONENTS: TLComponents = {
 	},
 }
 
-// ─── PLAYER PANEL ─────────────────────────────────────────────────────────────
-
 interface PlayerPanelProps {
 	userId: PlayerId
 	drawerId: string
-	/** Reactive atom — rules read this to get the current drawer, which makes
-	 *  getShapeVisibility's computed cache invalidate when the drawer changes. */
 	drawerIdAtom: ReturnType<typeof atom<string>>
 	store: ReturnType<typeof useSyncDemo>
 	word: string
@@ -168,7 +139,7 @@ function PlayerPanel({
 	}, [drawerId, userId])
 
 	// Rules read drawerIdAtom.get() — a reactive read that creates dependencies
-	// in computed contexts (like getShapeVisibility's cache).
+	// in computed contexts (like the isShapeHidden computed cache).
 	const rules = useMemo(
 		(): Record<string, TLPermissionRule> => ({
 			[CORE_ACTIVITIES.CREATE_SHAPE]: ({ user }) => {
@@ -214,7 +185,6 @@ function PlayerPanel({
 		[drawerIdAtom]
 	)
 
-	// Stable permissions config — passed as a prop to <Tldraw>.
 	const permissionsConfig = useMemo(
 		(): TLPermissionsManagerConfig => ({ identity, rules }),
 		[identity, rules]
@@ -287,15 +257,12 @@ function PlayerPanel({
 					components={isDrawer ? undefined : GUESSER_COMPONENTS}
 					onMount={handleMount}
 					permissions={permissionsConfig}
-					getShapeVisibility={getShapeVisibility}
 					options={{ maxPages: 1 }}
 				/>
 			</div>
 		</div>
 	)
 }
-
-// ─── MAIN EXAMPLE ─────────────────────────────────────────────────────────────
 
 export default function PictionaryExample() {
 	const roomId = useMemo(() => `pict-perms-${Math.random().toString(36).slice(2, 8)}`, [])
@@ -305,7 +272,7 @@ export default function PictionaryExample() {
 	const currentWord = WORDS[drawerIndex % WORDS.length]
 
 	// Reactive atom — shared with PlayerPanel so permission rules create
-	// reactive dependencies that invalidate getShapeVisibility's cache.
+	// reactive dependencies that invalidate the isShapeHidden computed cache.
 	const drawerIdAtom = useMemo(() => atom('drawerId', PLAYERS[0] as string), [])
 	useEffect(() => {
 		drawerIdAtom.set(drawerId)
