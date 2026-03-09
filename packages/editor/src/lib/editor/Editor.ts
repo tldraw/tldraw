@@ -1818,6 +1818,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Select all unlocked shapes that are visible in the current viewport.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.selectAllInViewport()
+	 * ```
+	 *
+	 * @public
+	 */
+	selectAllInViewport(): this {
+		const notVisible = this.getNotVisibleShapes()
+		const ids = this.getSortedChildIdsForParent(this.getCurrentPageId()).filter(
+			(id) => !notVisible.has(id)
+		)
+		this.setSelectedShapes(this._getUnlockedShapeIds(ids))
+		return this
+	}
+
+	/**
 	 * Select the next shape in the reading order or in cardinal order.
 	 *
 	 * @example

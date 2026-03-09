@@ -1451,6 +1451,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     select(...shapes: TLShape[] | TLShapeId[]): this;
     selectAdjacentShape(direction: TLAdjacentDirection): void;
     selectAll(): this;
+    selectAllInViewport(): this;
     // (undocumented)
     selectFirstChildShape(): void;
     selectNone(): this;

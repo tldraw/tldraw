@@ -14,6 +14,7 @@ import {
 	FlattenMenuItem,
 	GroupMenuItem,
 	RemoveFrameMenuItem,
+	SelectAllInViewportMenuItem,
 	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
 	ToggleDebugModeItem,
@@ -78,6 +79,7 @@ export function EditSubmenu() {
 			<LockGroup />
 			<TldrawUiMenuGroup id="select-all">
 				<SelectAllMenuItem />
+				<SelectAllInViewportMenuItem />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
