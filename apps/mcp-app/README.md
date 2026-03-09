@@ -39,6 +39,8 @@ Run all commands from `apps/mcp-app`.
 
 `yarn dev:tunnel` requires the `cloudflared` CLI to be installed on your machine.
 
+The worker defaults to production-safe behavior in `wrangler.toml`, including setting `MCP_IS_DEV="false"`. Local HTTP dev scripts override that with `MCP_IS_DEV=true` so local Claude/ChatGPT connectors suppress `ui.domain` while production deployments keep it enabled.
+
 ### Cursor setup
 
 Add up to three servers in `~/.cursor/mcp.json`:
@@ -112,7 +114,14 @@ ChatGPT requires an HTTPS origin, so you need a Cloudflare tunnel. You must be a
 3. In ChatGPT web (not the desktop app), go to **Apps** and add your app using that tunnel URL
 4. You can then test in both ChatGPT web and the desktop app
 
-`dev:tunnel` automatically wires `WORKER_ORIGIN` to the tunnel URL.
+`dev:tunnel` automatically wires `WORKER_ORIGIN` to the tunnel URL and sets `MCP_IS_DEV=true` for the local worker.
+
+### Auth and environment flags
+
+- `MCP_AUTH_TOKEN` controls bearer auth for the HTTP worker. If it is unset, the worker accepts unauthenticated local requests.
+- `MCP_IS_DEV` controls local-only widget behavior, such as suppressing `ui.domain` for local HTTP/tunnel connectors.
+
+These flags are intentionally separate so auth configuration does not change widget-domain behavior.
 
 ### Iteration loop
 

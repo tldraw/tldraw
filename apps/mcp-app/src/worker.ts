@@ -31,9 +31,8 @@ interface Env {
 	ASSETS: Fetcher
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
+	MCP_IS_DEV: string
 	WORKER_ORIGIN: string
-	MCP_DOMAIN_OPENAI: string
-	MCP_DOMAIN_CLAUDE: string
 	MCP_ANALYTICS?: AnalyticsEngineDataset
 }
 
@@ -76,14 +75,14 @@ export class TldrawMCP extends McpAgent<Env> {
 			instructions: MCP_SERVER_INSTRUCTIONS,
 		}
 	)
+	isDev = this.env.MCP_IS_DEV === 'true'
+	logsEnabled = this.isDev
 	activeCheckpointId: string | null = null
 	sessionId: string = ''
-	logger = new Logger('TldrawMCP')
+	logger = new Logger('TldrawMCP', this.logsEnabled)
 	clientHostName: MCP_APP_HOST_NAMES | undefined = undefined
 
 	async init() {
-		this.logger.info('Initializing Durable Object')
-
 		this.server.server.oninitialized = () => {
 			const clientInfo = this.server.server.getClientVersion()
 			const resolved = resolveMcpAppHostName(clientInfo?.name ?? '')
@@ -150,21 +149,17 @@ export class TldrawMCP extends McpAgent<Env> {
 			loadWidgetHtml: async () => widgetHtml,
 		}
 
-		const workerOrigin = this.env.WORKER_ORIGIN || ''
-		const domainOpenai = this.env.MCP_DOMAIN_OPENAI || ''
-		const domainClaude = this.env.MCP_DOMAIN_CLAUDE || ''
+		const workerOrigin = this.env.WORKER_ORIGIN
 
 		registerTools(this.server, deps, {
 			log: this.logger.toLogFn(),
 			extraResourceDomains: workerOrigin ? [workerOrigin] : [],
 			extraConnectDomains: workerOrigin ? [workerOrigin] : [],
-			httpDomain:
-				domainOpenai || domainClaude ? { openai: domainOpenai, claude: domainClaude } : undefined,
+			workerOrigin,
+			isDev: this.isDev,
 			analytics: this.env.MCP_ANALYTICS,
 			getClientHostName: () => this.clientHostName,
 		})
-
-		this.logger.info('Initialization complete')
 	}
 
 	// --- Checkpoint helpers ---
@@ -225,6 +220,7 @@ const sseHandler = TldrawMCP.serveSSE('/sse')
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
 		try {
+			const requireAuth = Boolean(env.MCP_AUTH_TOKEN)
 			const url = new URL(request.url)
 
 			// CORS preflight
@@ -237,8 +233,15 @@ export default {
 				return Response.json({ status: 'ok', timestamp: Date.now() })
 			}
 
-			// Auth check for MCP endpoints: skip if MCP_AUTH_TOKEN not set (local dev)
-			if (env.MCP_AUTH_TOKEN) {
+			// Domain verification (no auth)
+			if (url.pathname === '/.well-known/openai-apps-challenge') {
+				return new Response('kd9yRY8fxUTGRLJ6d22gpfATKZhXhHAu5Vdn6HWJsIQ', {
+					headers: { 'Content-Type': 'text/plain' },
+				})
+			}
+
+			// Require bearer auth only when an auth token is configured.
+			if (requireAuth) {
 				const auth = request.headers.get('Authorization')
 				if (auth !== `Bearer ${env.MCP_AUTH_TOKEN}`) {
 					return corsResponse(new Response('Unauthorized', { status: 401 }))
