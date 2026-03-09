@@ -1,0 +1,45 @@
+.selection-bounds-box,
+.selection-bounds-label {
+	position: absolute;
+	top: 0;
+	left: 0;
+	pointer-events: none;
+	transform-origin: top left;
+}
+
+.selection-bounds-box--axis {
+	border: 2px dashed rgba(45, 116, 255, 0.95);
+	background: rgba(45, 116, 255, 0.08);
+	z-index: 9998;
+}
+
+.selection-bounds-box--rotated {
+	border: 2px solid rgba(237, 137, 54, 0.95);
+	background: rgba(237, 137, 54, 0.12);
+	z-index: 9999;
+}
+
+.selection-bounds-label {
+	padding: 4px 8px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	font-family: system-ui, sans-serif;
+	white-space: nowrap;
+	z-index: 10000;
+}
+
+.selection-bounds-label--axis {
+	background: rgba(45, 116, 255, 0.95);
+	color: #fff;
+}
+
+.selection-bounds-label--rotated {
+	background: rgba(237, 137, 54, 0.95);
+	color: #fff;
+}
+
+.selection-bounds-label--combined {
+	background: rgba(141, 127, 155, 0.96);
+	color: #fff;
+}
