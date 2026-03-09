@@ -271,28 +271,27 @@ export default function SelectionBoundsExample() {
 }
 
 /*
-This example shows how to read and visualize selection bounds.
+This example shows how to read and visualize selection bounds. tldraw uses two
+different kinds of bounds:
 
 [1] `getSelectionPageBounds()` returns the axis-aligned bounding box of the
 current selection (shown as the blue dashed box). It always has zero rotation —
-it's the smallest upright rectangle that contains every selected shape. This is
-useful when you need stable, orientation-independent bounds, e.g. for hit testing
-or positioning UI that shouldn't rotate.
+it's the smallest upright rectangle that contains every selected shape. It isn't
+visible; we use it for hit testing and viewport culling. 
 
-[2] `getSelectionRotatedPageBounds()` returns the rotation-aware bounding box
-(shown as the amber dashed box). When the selected shapes share a common
-rotation, this box is aligned to that angle and is usually tighter than the
-axis-aligned one. It uses `getSelectionRotation()` to determine the shared angle.
-This is useful when you need bounds that respect the selection's orientation,
-e.g. for snapping or showing dimensions along the shapes' own axes.
-
-When the selection contains mixed rotations there is no single shared angle, so
-`getSelectionRotation()` returns zero and the two bounds are identical.
+[2] `getSelectionRotatedPageBounds()` returns the rotated selection box (shown
+as the amber dashed box). When the selected shapes share a common rotation, this
+box matches their orientation. We use this for the selection UI — if you
+select two shapes rotated by the same angle, the resize handles align with the
+shapes' axes so you can scale them without distortion. An axis-aligned box would
+only let you resize horizontally and vertically relative to the page.
 
 Try selecting the three groups of shapes on the canvas:
 1. A single rotated shape: the AABB is different to the rotated.
 2. Multiple shapes with a shared rotation, so the rotated bounds still aligns
 to their common angle.
-3. The purple and red pair: two ungrouped shapes with different rotations.
-Select both and rotate them to see the bounds collapse into one.
+3. The purple and red pair: two ungrouped shapes with different rotations. If the
+selected shapes are rotated by different amounts, there's no single angle that
+makes sense for the selection box, so we fall back to an axis-aligned box and the
+two bounds are identical. Select both and rotate them to see them collapse.
 */
