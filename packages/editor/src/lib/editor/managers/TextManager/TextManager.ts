@@ -106,6 +106,43 @@ export class TextManager {
 		}
 	}
 
+	/** Apply measurement styles to any element (shared by measureHtml and measureHtmlBatch). */
+	private applyMeasureStyles(el: HTMLElement, opts: TLMeasureTextOpts) {
+		el.style.setProperty('font-family', opts.fontFamily)
+		el.style.setProperty('font-style', opts.fontStyle)
+		el.style.setProperty('font-weight', opts.fontWeight)
+		el.style.setProperty('font-size', opts.fontSize + 'px')
+		el.style.setProperty('line-height', opts.lineHeight.toString())
+		el.style.setProperty('padding', opts.padding)
+		el.style.setProperty('max-width', opts.maxWidth ? opts.maxWidth + 'px' : null)
+		el.style.setProperty('min-width', opts.minWidth ? opts.minWidth + 'px' : null)
+		el.style.setProperty(
+			'overflow-wrap',
+			opts.disableOverflowWrapBreaking ? 'normal' : 'break-word'
+		)
+		if (opts.otherStyles) {
+			for (const key of objectMapKeys(opts.otherStyles)) {
+				if (typeof opts.otherStyles[key] === 'string') {
+					el.style.setProperty(key, opts.otherStyles[key])
+				}
+			}
+		}
+	}
+
+	/** Reset an element's styles back to the initial defaults. */
+	private resetMeasureStyles(el: HTMLElement) {
+		for (const key of objectMapKeys(initialDefaultStyles)) {
+			el.style.setProperty(key, initialDefaultStyles[key])
+		}
+		// Reset measurement styles to defaults
+		el.style.removeProperty('font-family')
+		el.style.removeProperty('font-style')
+		el.style.removeProperty('font-weight')
+		el.style.removeProperty('font-size')
+		el.style.removeProperty('line-height')
+		el.style.removeProperty('padding')
+	}
+
 	dispose() {
 		this.elm.remove()
 		for (const el of this.poolElms) {
@@ -152,26 +189,7 @@ export class TextManager {
 		for (let i = 0; i < requests.length; i++) {
 			const { html, opts } = requests[i]
 			const el = this.getPoolElm(i)
-
-			el.style.setProperty('font-family', opts.fontFamily)
-			el.style.setProperty('font-style', opts.fontStyle)
-			el.style.setProperty('font-weight', opts.fontWeight)
-			el.style.setProperty('font-size', opts.fontSize + 'px')
-			el.style.setProperty('line-height', opts.lineHeight.toString())
-			el.style.setProperty('padding', opts.padding)
-			el.style.setProperty('max-width', opts.maxWidth ? opts.maxWidth + 'px' : null)
-			el.style.setProperty('min-width', opts.minWidth ? opts.minWidth + 'px' : null)
-			el.style.setProperty(
-				'overflow-wrap',
-				opts.disableOverflowWrapBreaking ? 'normal' : 'break-word'
-			)
-			if (opts.otherStyles) {
-				for (const key of objectMapKeys(opts.otherStyles)) {
-					if (typeof opts.otherStyles[key] === 'string') {
-						el.style.setProperty(key, opts.otherStyles[key])
-					}
-				}
-			}
+			this.applyMeasureStyles(el, opts)
 			// Skip innerHTML parsing if the content hasn't changed
 			if (this.poolElmHtml[i] !== html) {
 				el.innerHTML = html
@@ -192,6 +210,18 @@ export class TextManager {
 				h: rect.height,
 				scrollWidth,
 			})
+		}
+
+		// Reset phase: clean up styles on used elements to avoid leaking
+		for (let i = 0; i < requests.length; i++) {
+			this.resetMeasureStyles(this.getPoolElm(i))
+		}
+
+		// Trim the pool: remove excess elements beyond what was needed
+		while (this.poolElms.length > requests.length) {
+			const el = this.poolElms.pop()!
+			el.remove()
+			this.poolElmHtml.pop()
 		}
 
 		return results
