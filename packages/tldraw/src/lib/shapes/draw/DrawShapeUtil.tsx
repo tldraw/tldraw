@@ -250,7 +250,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
+		const dv = getDisplayValues(this, shape, ctx.themeId)
 		const scaleFactor = 1 / shape.props.scale
 		return (
 			<g transform={`scale(${scaleFactor})`}>

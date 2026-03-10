@@ -9,7 +9,7 @@ export function useCurrentThemeId(): string {
 	return useValue(
 		'currentThemeId',
 		() => {
-			if (exportContext) return exportContext.isDarkMode ? 'dark' : 'light'
+			if (exportContext) return exportContext.themeId
 			return editor._themeManager.getCurrentThemeId()
 		},
 		[exportContext, editor]

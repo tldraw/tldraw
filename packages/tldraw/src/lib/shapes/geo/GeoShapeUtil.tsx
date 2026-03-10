@@ -413,7 +413,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
+		const dv = getDisplayValues(this, shape, ctx.themeId)
 		const { richText, fill, scale, growY, w, h } = shape.props
 		// We need to scale the shape to 1x for export
 		const newShape = {

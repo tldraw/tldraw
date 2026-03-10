@@ -3081,6 +3081,7 @@ export interface SvgExportContext {
     readonly pixelRatio: null | number;
     resolveAssetUrl(assetId: TLAssetId, width: number): Promise<null | string>;
     readonly scale: number;
+    readonly themeId: string;
     waitUntil(promise: Promise<void>): void;
 }
 

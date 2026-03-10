@@ -209,7 +209,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const width = bounds.width / (shape.props.scale ?? 1)
 		const height = bounds.height / (shape.props.scale ?? 1)
 
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
+		const dv = getDisplayValues(this, shape, ctx.themeId)
 
 		const exportBounds = new Box(0, 0, width, height)
 		return (

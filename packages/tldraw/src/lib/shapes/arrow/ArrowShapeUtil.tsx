@@ -1120,7 +1120,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		const dv = getDisplayValues(this, shape, ctx.isDarkMode ? 'dark' : 'light')
+		const dv = getDisplayValues(this, shape, ctx.themeId)
 		const scaleFactor = 1 / shape.props.scale
 
 		return (

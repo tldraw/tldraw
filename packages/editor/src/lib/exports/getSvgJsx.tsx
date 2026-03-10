@@ -42,7 +42,13 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		preserveAspectRatio,
 	} = opts
 
-	const isDarkMode = opts.darkMode ?? editor.user.getIsDarkMode()
+	const themeId =
+		opts.darkMode !== undefined
+			? opts.darkMode
+				? 'dark'
+				: 'light'
+			: String(editor.getCurrentThemeId())
+	const isDarkMode = themeId === 'dark'
 
 	// ---Figure out which shapes we need to include
 	const shapeIdsToInclude = editor.getShapeAndDescendantIds(ids)
@@ -89,6 +95,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 			background={background}
 			singleFrameShapeId={singleFrameShapeId}
 			isDarkMode={isDarkMode}
+			themeId={themeId}
 			renderingShapes={renderingShapes}
 			onMount={initialEffectPromise.resolve}
 			waitUntil={exportDelay.waitUntil}
@@ -178,6 +185,7 @@ function SvgExport({
 	background,
 	singleFrameShapeId,
 	isDarkMode,
+	themeId,
 	renderingShapes,
 	onMount,
 	waitUntil,
@@ -190,13 +198,13 @@ function SvgExport({
 	background: boolean
 	singleFrameShapeId: TLShapeId | null
 	isDarkMode: boolean
+	themeId: string
 	renderingShapes: TLRenderingShape[]
 	onMount(): void
 	waitUntil(promise: Promise<void>): void
 }) {
 	const masksId = useUniqueSafeId()
 	const themes = editor.getThemes()
-	const themeId = isDarkMode ? 'dark' : 'light'
 	const theme = themes[themeId] ?? themes[Object.keys(themes)[0]]
 
 	const stateAtom = useAtom<{
@@ -231,6 +239,7 @@ function SvgExport({
 	const exportContext = useMemo(
 		(): SvgExportContext => ({
 			isDarkMode,
+			themeId,
 			waitUntil,
 			addExportDef,
 			scale,
@@ -246,7 +255,7 @@ function SvgExport({
 				})
 			},
 		}),
-		[isDarkMode, waitUntil, addExportDef, scale, pixelRatio, editor]
+		[isDarkMode, themeId, waitUntil, addExportDef, scale, pixelRatio, editor]
 	)
 
 	const didRenderRef = useRef(false)
