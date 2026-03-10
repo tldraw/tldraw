@@ -69,8 +69,38 @@ const myThemes: TLThemes = {
 			solid: '#fcfcfc',
 			cursor: '#000000',
 			noteBorder: '#e8e8e8',
-			black: { solid: '#1d1d1d', semi: '#e8e8e8', pattern: '#494949', fill: '#1d1d1d', linedFill: '#e8e8e8', frameHeadingStroke: '#1d1d1d', frameHeadingFill: '#f5f5f5', frameStroke: '#e2e2e2', frameFill: '#fcfcfc', frameText: '#1d1d1d', noteFill: '#fddd00', noteText: '#000000', highlightSrgb: '#fddd00', highlightP3: 'color(display-p3 0.972 0.8705 0.05)' },
-			blue: { solid: '#4263eb', semi: '#dce1f8', pattern: '#6681ee', fill: '#4263eb', linedFill: '#dce1f8', frameHeadingStroke: '#4263eb', frameHeadingFill: '#f0f2fd', frameStroke: '#c5cdf3', frameFill: '#f5f7fe', frameText: '#4263eb', noteFill: '#4263eb', noteText: '#ffffff', highlightSrgb: '#10acff', highlightP3: 'color(display-p3 0.308 0.6632 0.9996)' },
+			black: {
+				solid: '#1d1d1d',
+				semi: '#e8e8e8',
+				pattern: '#494949',
+				fill: '#1d1d1d',
+				linedFill: '#e8e8e8',
+				frameHeadingStroke: '#1d1d1d',
+				frameHeadingFill: '#f5f5f5',
+				frameStroke: '#e2e2e2',
+				frameFill: '#fcfcfc',
+				frameText: '#1d1d1d',
+				noteFill: '#fddd00',
+				noteText: '#000000',
+				highlightSrgb: '#fddd00',
+				highlightP3: 'color(display-p3 0.972 0.8705 0.05)',
+			},
+			blue: {
+				solid: '#4263eb',
+				semi: '#dce1f8',
+				pattern: '#6681ee',
+				fill: '#4263eb',
+				linedFill: '#dce1f8',
+				frameHeadingStroke: '#4263eb',
+				frameHeadingFill: '#f0f2fd',
+				frameStroke: '#c5cdf3',
+				frameFill: '#f5f7fe',
+				frameText: '#4263eb',
+				noteFill: '#4263eb',
+				noteText: '#ffffff',
+				highlightSrgb: '#10acff',
+				highlightP3: 'color(display-p3 0.308 0.6632 0.9996)',
+			},
 			// ... other colors
 		},
 	},
@@ -85,22 +115,22 @@ const myThemes: TLThemes = {
 
 Each color in the palette is a [TLDefaultColor](?) with variants for different contexts:
 
-| Variant              | Purpose                                              |
-| -------------------- | ---------------------------------------------------- |
-| `solid`              | Full-opacity color for strokes and solid fills        |
-| `semi`               | Semi-transparent color for background fills           |
-| `pattern`            | Color used in pattern/hatch fills                     |
-| `fill`               | Explicit fill color (usually same as solid)           |
-| `linedFill`          | Slightly lighter fill for lined patterns              |
-| `frameHeadingStroke` | Stroke color for frame headings                       |
-| `frameHeadingFill`   | Fill color for frame headings                         |
-| `frameStroke`        | Stroke color for frame borders                        |
-| `frameFill`          | Fill color for frame backgrounds                      |
-| `frameText`          | Text color inside frames                              |
-| `noteFill`           | Fill color for note shapes                            |
-| `noteText`           | Text color inside note shapes                         |
-| `highlightSrgb`      | Highlighter color in sRGB color space                 |
-| `highlightP3`        | Highlighter color in Display P3 color space           |
+| Variant              | Purpose                                        |
+| -------------------- | ---------------------------------------------- |
+| `solid`              | Full-opacity color for strokes and solid fills |
+| `semi`               | Semi-transparent color for background fills    |
+| `pattern`            | Color used in pattern/hatch fills              |
+| `fill`               | Explicit fill color (usually same as solid)    |
+| `linedFill`          | Slightly lighter fill for lined patterns       |
+| `frameHeadingStroke` | Stroke color for frame headings                |
+| `frameHeadingFill`   | Fill color for frame headings                  |
+| `frameStroke`        | Stroke color for frame borders                 |
+| `frameFill`          | Fill color for frame backgrounds               |
+| `frameText`          | Text color inside frames                       |
+| `noteFill`           | Fill color for note shapes                     |
+| `noteText`           | Text color inside note shapes                  |
+| `highlightSrgb`      | Highlighter color in sRGB color space          |
+| `highlightP3`        | Highlighter color in Display P3 color space    |
 
 The palette also includes five base properties: `text` for default text color, `background` for the canvas background, `solid` for the default solid surface color, `cursor` for the cursor color, and `noteBorder` for note shape borders.
 
@@ -251,14 +281,13 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 
 ## Editor API reference
 
-| Method                           | Description                                                  |
-| -------------------------------- | ------------------------------------------------------------ |
-| [Editor#getCurrentTheme](?)      | Get the current theme object (with `id` and `colors`)        |
-| [Editor#getCurrentThemeId](?)    | Get the ID of the active theme (e.g. `'light'` or `'dark'`)  |
-| [Editor#getThemes](?)            | Get all registered themes                                    |
-| [Editor#updateThemes](?)         | Merge overrides into registered themes                       |
-| [Editor#setTheme](?)             | Set the active theme by ID, or `null` for automatic          |
-
+| Method                        | Description                                                 |
+| ----------------------------- | ----------------------------------------------------------- |
+| [Editor#getCurrentTheme](?)   | Get the current theme object (with `id` and `colors`)       |
+| [Editor#getCurrentThemeId](?) | Get the ID of the active theme (e.g. `'light'` or `'dark'`) |
+| [Editor#getThemes](?)         | Get all registered themes                                   |
+| [Editor#updateThemes](?)      | Merge overrides into registered themes                      |
+| [Editor#setTheme](?)          | Set the active theme by ID, or `null` for automatic         |
 
 ## Related examples
 
