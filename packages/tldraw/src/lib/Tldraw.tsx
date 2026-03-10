@@ -215,6 +215,7 @@ export function Tldraw(props: TldrawProps) {
 
 	const embedShapeUtil = shapeUtilsWithDefaults.find((util) => util.type === 'embed')
 	if (embedShapeUtil && embeds) {
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		EmbedShapeUtil.setEmbedDefinitions(embeds)
 	}
 
