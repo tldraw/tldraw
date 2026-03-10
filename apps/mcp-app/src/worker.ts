@@ -12,7 +12,7 @@ import { McpAgent } from 'agents/mcp'
 import type { TLShape } from 'tldraw'
 import { Logger } from './logger'
 import { registerTools } from './register-tools'
-import type { ServerDeps } from './shared/types'
+import type { MCP_APP_HOST_NAMES, ServerDeps } from './shared/types'
 import {
 	MAX_CHECKPOINTS,
 	MCP_SERVER_DESCRIPTION,
@@ -22,7 +22,7 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from './shared/types'
-import { parseTlShapes } from './shared/utils'
+import { parseTlShapes, resolveMcpAppHostName } from './shared/utils'
 
 // --- Types ---
 
@@ -31,9 +31,8 @@ interface Env {
 	ASSETS: Fetcher
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
+	MCP_IS_DEV: string
 	WORKER_ORIGIN: string
-	MCP_DOMAIN_OPENAI: string
-	MCP_DOMAIN_CLAUDE: string
 	MCP_ANALYTICS?: AnalyticsEngineDataset
 }
 
@@ -76,12 +75,24 @@ export class TldrawMCP extends McpAgent<Env> {
 			instructions: MCP_SERVER_INSTRUCTIONS,
 		}
 	)
+	isDev = this.env.MCP_IS_DEV === 'true'
+	logsEnabled = this.isDev
 	activeCheckpointId: string | null = null
 	sessionId: string = ''
-	logger = new Logger('TldrawMCP')
+	logger = new Logger('TldrawMCP', this.logsEnabled)
+	clientHostName: MCP_APP_HOST_NAMES | undefined = undefined
 
 	async init() {
-		this.logger.info('Initializing Durable Object')
+		this.server.server.oninitialized = () => {
+			const clientInfo = this.server.server.getClientVersion()
+			const resolved = resolveMcpAppHostName(clientInfo?.name ?? '')
+			if (resolved) {
+				this.clientHostName = resolved
+				void this
+					.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('clientHostName', ${resolved})`
+			}
+			this.logger.info(`Client connected: ${this.clientHostName ?? 'unknown'}`)
+		}
 
 		// --- DO SQLite setup ---
 		void this
@@ -93,6 +104,13 @@ export class TldrawMCP extends McpAgent<Env> {
 		if (rows.length > 0) {
 			this.activeCheckpointId = rows[0].value as string
 			this.logger.info('Restored active checkpoint', { checkpointId: this.activeCheckpointId })
+		}
+
+		// Restore client host name on reconnect
+		const hostNameRows = [...this.sql`SELECT value FROM meta WHERE key = 'clientHostName'`]
+		if (hostNameRows.length > 0) {
+			this.clientHostName = hostNameRows[0].value as MCP_APP_HOST_NAMES
+			this.logger.info(`Restored client host name: ${this.clientHostName}`)
 		}
 
 		// Restore or generate session ID
@@ -131,20 +149,17 @@ export class TldrawMCP extends McpAgent<Env> {
 			loadWidgetHtml: async () => widgetHtml,
 		}
 
-		const workerOrigin = this.env.WORKER_ORIGIN || ''
-		const domainOpenai = this.env.MCP_DOMAIN_OPENAI || ''
-		const domainClaude = this.env.MCP_DOMAIN_CLAUDE || ''
+		const workerOrigin = this.env.WORKER_ORIGIN
 
 		registerTools(this.server, deps, {
 			log: this.logger.toLogFn(),
 			extraResourceDomains: workerOrigin ? [workerOrigin] : [],
 			extraConnectDomains: workerOrigin ? [workerOrigin] : [],
-			httpDomain:
-				domainOpenai || domainClaude ? { openai: domainOpenai, claude: domainClaude } : undefined,
+			workerOrigin,
+			isDev: this.isDev,
 			analytics: this.env.MCP_ANALYTICS,
+			getClientHostName: () => this.clientHostName,
 		})
-
-		this.logger.info('Initialization complete')
 	}
 
 	// --- Checkpoint helpers ---
@@ -205,6 +220,7 @@ const sseHandler = TldrawMCP.serveSSE('/sse')
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
 		try {
+			const requireAuth = Boolean(env.MCP_AUTH_TOKEN)
 			const url = new URL(request.url)
 
 			// CORS preflight
@@ -217,20 +233,27 @@ export default {
 				return Response.json({ status: 'ok', timestamp: Date.now() })
 			}
 
-			// Auth check for MCP endpoints: skip if MCP_AUTH_TOKEN not set (local dev)
-			if (env.MCP_AUTH_TOKEN) {
+			// Domain verification (no auth)
+			if (url.pathname === '/.well-known/openai-apps-challenge') {
+				return new Response('kd9yRY8fxUTGRLJ6d22gpfATKZhXhHAu5Vdn6HWJsIQ', {
+					headers: { 'Content-Type': 'text/plain' },
+				})
+			}
+
+			// Require bearer auth only when an auth token is configured.
+			if (requireAuth) {
 				const auth = request.headers.get('Authorization')
 				if (auth !== `Bearer ${env.MCP_AUTH_TOKEN}`) {
 					return corsResponse(new Response('Unauthorized', { status: 401 }))
 				}
 			}
 
-			// SSE transport (for MCP Inspector and legacy clients)
+			// SSE transport (legacy)
 			if (url.pathname === '/sse' || url.pathname.startsWith('/sse/')) {
 				return sseHandler.fetch(request, env, ctx)
 			}
 
-			// Streamable HTTP transport (for Claude web, ChatGPT, and modern clients)
+			// Streamable HTTP transport
 			if (url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) {
 				// Rate limit by MCP session (POST without session ID is the initial handshake)
 				const sessionId = request.headers.get('mcp-session-id')
@@ -239,6 +262,7 @@ export default {
 				}
 				if (sessionId) {
 					const { success } = await env.RATE_LIMITER.limit({ key: sessionId })
+
 					if (!success) {
 						return corsResponse(new Response('Rate limited', { status: 429 }))
 					}
