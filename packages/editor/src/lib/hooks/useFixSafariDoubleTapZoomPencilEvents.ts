@@ -1,8 +1,6 @@
 import { useEffect } from 'react'
-import { preventDefault } from '../utils/dom'
+import { elementShouldCaptureKeys, preventDefault } from '../utils/dom'
 import { useEditor } from './useEditor'
-
-const IGNORED_TAGS = ['textarea', 'input']
 
 /**
  * When double tapping with the pencil in iOS, it enables a little zoom window in the UI. We don't
@@ -24,8 +22,7 @@ export function useFixSafariDoubleTapZoomPencilEvents(ref: React.RefObject<HTMLE
 
 				// Allow events to propagate if the app is editing a shape, or if the event is occurring in a text area or input
 				if (
-					IGNORED_TAGS.includes((target as Element).tagName?.toLocaleLowerCase()) ||
-					(target as HTMLElement).isContentEditable ||
+					elementShouldCaptureKeys(target instanceof Element ? target : null, false) ||
 					editor.isIn('select.editing_shape')
 				) {
 					return
