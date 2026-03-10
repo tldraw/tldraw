@@ -15,6 +15,14 @@ import {
 import { createComputedCache } from '@tldraw/store'
 
 const MIN_ARROW_BEND = 8
+// Keep anchors off exact edges/corners to avoid degenerate arrow intersections.
+const NORMALIZED_ANCHOR_EPSILON = 1e-3
+
+function clampNormalizedAnchor(anchor: { x: number; y: number }) {
+	const clamp = (v: number) =>
+		Math.max(NORMALIZED_ANCHOR_EPSILON, Math.min(1 - NORMALIZED_ANCHOR_EPSILON, v))
+	return { x: clamp(anchor.x), y: clamp(anchor.y) }
+}
 
 export function getIsArrowStraight(shape: TLArrowShape) {
 	if (shape.props.kind !== 'arc') return false
@@ -78,16 +86,13 @@ export function getArrowTerminalInArrowSpace(
 		// the bound shape and transform it to page space, then transform
 		// it to arrow space
 		const { point, size } = editor.getShapeGeometry(boundShape).bounds
-		const shapePoint = Vec.Add(
-			point,
-			Vec.MulV(
-				// if the parent is the bound shape, then it's ALWAYS precise
-				binding.props.isPrecise || forceImprecise
-					? binding.props.normalizedAnchor
-					: { x: 0.5, y: 0.5 },
-				size
-			)
-		)
+		// If the parent is the bound shape, then it's always treated as precise.
+		const shouldUsePreciseAnchor = binding.props.isPrecise || forceImprecise
+		const normalizedAnchor = shouldUsePreciseAnchor
+			? clampNormalizedAnchor(binding.props.normalizedAnchor)
+			: { x: 0.5, y: 0.5 }
+
+		const shapePoint = Vec.Add(point, Vec.MulV(normalizedAnchor, size))
 		const pagePoint = Mat.applyToPoint(editor.getShapePageTransform(boundShape)!, shapePoint)
 		const arrowPoint = Mat.applyToPoint(Mat.Inverse(arrowPageTransform), pagePoint)
 		return arrowPoint

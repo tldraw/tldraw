@@ -260,7 +260,7 @@ export function OverflowingToolbar({
 		function handleKeyDown(event: KeyboardEvent) {
 			if (
 				areShortcutsDisabled(editor) ||
-				activeElementShouldCaptureKeys(true /* ignore buttons */)
+				activeElementShouldCaptureKeys(false /* includeButton */)
 			) {
 				return
 			}
