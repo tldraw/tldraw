@@ -12,6 +12,7 @@ export function isDirEmpty(path: string) {
 		return true
 	}
 
+	// Existing files block the target path, so only directories should be inspected with readdirSync.
 	if (!lstatSync(path).isDirectory()) {
 		return false
 	}

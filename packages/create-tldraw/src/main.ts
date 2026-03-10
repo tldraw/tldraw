@@ -43,11 +43,12 @@ async function main() {
 	const template = await templatePicker(args.template, args['no-telemetry'])
 	const name = await namePicker(maybeTargetDir)
 
-	const targetDir = findAvailableDir(maybeTargetDir ?? resolve(process.cwd(), name))
+	const requestedDir = maybeTargetDir ?? resolve(process.cwd(), name)
+	const targetDir = findAvailableDir(requestedDir)
 	mkdirSync(targetDir, { recursive: true })
 
 	await downloadTemplate(template, targetDir)
-	await renameTemplate(pathToName(targetDir), targetDir)
+	await renameTemplate(name, targetDir)
 
 	const manager = getPackageManager()
 	const doneMessage = ['Done! Now run:', '']
@@ -140,11 +141,16 @@ async function namePicker(argOption?: string) {
 }
 
 function findAvailableDir(targetDir: string): string {
-	if (isDirEmpty(targetDir)) return targetDir
+	if (isDirEmpty(targetDir)) {
+		return targetDir
+	}
 
+	// Keep the user's chosen package name, but pick a suffixed directory if the target is unavailable.
 	for (let i = 1; ; i++) {
 		const candidate = `${targetDir}-${i}`
-		if (isDirEmpty(candidate)) return candidate
+		if (isDirEmpty(candidate)) {
+			return candidate
+		}
 	}
 }
 
