@@ -68,6 +68,7 @@ export async function downsizeImage(
 		Math.min(height * 2, h)
 	)
 
+	// eslint-disable-next-line no-restricted-globals
 	const canvas = document.createElement('canvas')
 	canvas.width = desiredWidth
 	canvas.height = desiredHeight

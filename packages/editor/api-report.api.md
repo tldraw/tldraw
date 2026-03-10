@@ -93,7 +93,7 @@ import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
 
 // @internal (undocumented)
-export function activeElementShouldCaptureKeys(includeButtonsAndMenus?: boolean): boolean;
+export function activeElementShouldCaptureKeys(ignoreButtons?: boolean, doc?: Document): boolean;
 
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
@@ -1224,6 +1224,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCollaborators(): TLInstancePresence[];
     getCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getContainer: () => HTMLElement;
+    // @internal
+    getContainerDocument(): Document;
+    // @internal
+    getContainerWindow(): Window & typeof globalThis;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     // @internal
     getCrashingError(): unknown;
@@ -1617,9 +1621,6 @@ export interface EditorProviderProps {
     editor: Editor;
 }
 
-// @internal (undocumented)
-export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMenus?: boolean): boolean;
-
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
@@ -1836,6 +1837,12 @@ export function getFreshUserPreferences(): TLUserPreferences;
 
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
+
+// @internal (undocumented)
+export function getOwnerDocument(nodeOrDocument: Document | Node | null | undefined): Document;
+
+// @internal (undocumented)
+export function getOwnerWindow(nodeOrDocument: Document | Node | null | undefined): Window & typeof globalThis;
 
 // @public (undocumented)
 export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: {

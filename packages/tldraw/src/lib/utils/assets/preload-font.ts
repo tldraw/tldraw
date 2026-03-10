@@ -12,7 +12,7 @@ export interface TLTypeFace {
 }
 
 /** @public */
-export async function preloadFont(id: string, font: TLTypeFace) {
+export async function preloadFont(id: string, font: TLTypeFace, targetDocument?: Document) {
 	const {
 		url,
 		style = 'normal',
@@ -38,7 +38,8 @@ export async function preloadFont(id: string, font: TLTypeFace) {
 
 	const fontInstance = new FontFace(id, `url(${url})`, descriptors)
 	await fontInstance.load()
-	document.fonts.add(fontInstance)
+	// eslint-disable-next-line no-restricted-globals
+	;(targetDocument ?? document).fonts.add(fontInstance)
 
 	// @ts-expect-error
 	fontInstance.$$_url = url

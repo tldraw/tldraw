@@ -40,7 +40,7 @@ export function useEditablePlainText(
 	useEffect(() => {
 		if (!isEditing) return
 
-		if (document.activeElement !== rInput.current) {
+		if (editor.getContainerDocument().activeElement !== rInput.current) {
 			rInput.current?.focus()
 		}
 
