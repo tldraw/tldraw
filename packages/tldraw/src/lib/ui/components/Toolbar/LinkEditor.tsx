@@ -1,5 +1,5 @@
 import { openWindow, preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -25,22 +25,25 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 
 	const handleValueChange = (value: string) => setValue(value)
 
-	const handleLinkComplete = (link: string) => {
-		trackEvent('rich-text', { operation: 'link-edit', source })
-		if (!link.startsWith('http://') && !link.startsWith('https://')) {
-			link = `https://${link}`
-		}
+	const handleLinkComplete = useCallback(
+		(link: string) => {
+			trackEvent('rich-text', { operation: 'link-edit', source })
+			if (!link.startsWith('http://') && !link.startsWith('https://')) {
+				link = `https://${link}`
+			}
 
-		textEditor.chain().setLink({ href: link }).run()
-		// N.B. We shouldn't focus() on mobile because it causes the
-		// Return key to replace the link with a newline :facepalm:
-		if (editor.getInstanceState().isCoarsePointer) {
-			textEditor.commands.blur()
-		} else {
-			textEditor.commands.focus()
-		}
-		onClose()
-	}
+			textEditor.chain().setLink({ href: link }).run()
+			// N.B. We shouldn't focus() on mobile because it causes the
+			// Return key to replace the link with a newline :facepalm:
+			if (editor.getInstanceState().isCoarsePointer) {
+				textEditor.commands.blur()
+			} else {
+				textEditor.commands.focus()
+			}
+			onClose()
+		},
+		[trackEvent, source, textEditor, editor, onClose]
+	)
 
 	const handleVisitLink = () => {
 		trackEvent('rich-text', { operation: 'link-visit', source })
@@ -48,13 +51,30 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 		onClose()
 	}
 
-	const handleRemoveLink = () => {
+	const handleRemoveLink = useCallback(() => {
 		trackEvent('rich-text', { operation: 'link-remove', source })
 		textEditor.chain().unsetLink().focus().run()
 		onClose()
-	}
+	}, [trackEvent, source, textEditor, onClose])
 
 	const handleLinkCancel = () => onClose()
+
+	useEffect(() => {
+		const handlePointerDown = (e: PointerEvent) => {
+			const toolbar = document.querySelector('.tlui-rich-text__toolbar')
+			if (toolbar?.contains(e.target as Node)) return
+			// If the pointer down is not in the toolbar, complete the link
+			if (value) {
+				handleLinkComplete(value)
+			} else {
+				handleRemoveLink()
+			}
+		}
+		document.addEventListener('pointerdown', handlePointerDown, { capture: true })
+		return () => {
+			document.removeEventListener('pointerdown', handlePointerDown, { capture: true })
+		}
+	}, [handleLinkComplete, handleRemoveLink, value])
 
 	useEffect(() => {
 		ref.current?.focus()

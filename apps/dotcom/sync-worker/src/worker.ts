@@ -49,12 +49,12 @@ import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
-export { TLDrawDurableObject } from './TLDrawDurableObject'
-export { TLFileDurableObject } from './TLFileDurableObject'
+export { TLFileDurableObject } from './TLDrawDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLStatsDurableObject } from './TLStatsDurableObject'
 export { TLUserDurableObject } from './TLUserDurableObject'
+export class TLDrawDurableObject {}
 
 const { preflight, corsify } = cors({
 	origin: isAllowedOrigin,
@@ -132,6 +132,7 @@ const router = createRouter<Environment>()
 		}
 		return notFound()
 	})
+	.get('/app/file/:roomId/download', forwardRoomRequest)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({

@@ -209,20 +209,33 @@ export type Migration = {
     readonly up: (storage: SynchronousRecordStorage<UnknownRecord>) => void;
 });
 
-// @public
-export enum MigrationFailureReason {
+// @public (undocumented)
+export const MigrationFailureReason: {
+    readonly IncompatibleSubtype: "incompatible-subtype";
+    readonly MigrationError: "migration-error";
+    readonly TargetVersionTooNew: "target-version-too-new";
+    readonly TargetVersionTooOld: "target-version-too-old";
+    readonly UnknownType: "unknown-type";
+    readonly UnrecognizedSubtype: "unrecognized-subtype";
+};
+
+// @public (undocumented)
+export type MigrationFailureReason = (typeof MigrationFailureReason)[keyof typeof MigrationFailureReason];
+
+// @public (undocumented)
+export namespace MigrationFailureReason {
     // (undocumented)
-    IncompatibleSubtype = "incompatible-subtype",
+    export type IncompatibleSubtype = typeof MigrationFailureReason.IncompatibleSubtype;
     // (undocumented)
-    MigrationError = "migration-error",
+    export type MigrationError = typeof MigrationFailureReason.MigrationError;
     // (undocumented)
-    TargetVersionTooNew = "target-version-too-new",
+    export type TargetVersionTooNew = typeof MigrationFailureReason.TargetVersionTooNew;
     // (undocumented)
-    TargetVersionTooOld = "target-version-too-old",
+    export type TargetVersionTooOld = typeof MigrationFailureReason.TargetVersionTooOld;
     // (undocumented)
-    UnknownType = "unknown-type",
+    export type UnknownType = typeof MigrationFailureReason.UnknownType;
     // (undocumented)
-    UnrecognizedSubtype = "unrecognized-subtype"
+    export type UnrecognizedSubtype = typeof MigrationFailureReason.UnrecognizedSubtype;
 }
 
 // @public

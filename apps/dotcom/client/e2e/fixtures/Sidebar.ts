@@ -340,7 +340,7 @@ export class Sidebar {
 		await groupHeader.hover()
 
 		// Click the more options button
-		const moreOptionsButton = group.locator('button[title="More options"]')
+		const moreOptionsButton = group.locator('button[aria-label="More options"]')
 		await moreOptionsButton.click()
 
 		// Click Settings menu item
@@ -398,7 +398,7 @@ export class Sidebar {
 		const groupHeader = group.locator('[role="button"]').first()
 		await groupHeader.hover()
 
-		const createButton = group.locator('button[title="New file"]')
+		const createButton = group.locator('button[aria-label="Create file"]')
 		await expect(createButton).toBeVisible()
 		await createButton.click()
 
@@ -503,7 +503,7 @@ export class Sidebar {
 		const groupHeader = group.locator('[role="button"]').first()
 		await groupHeader.hover()
 
-		const moreOptionsButton = group.locator('button[title="More options"]')
+		const moreOptionsButton = group.locator('button[aria-label="More options"]')
 		await moreOptionsButton.click()
 
 		await this.page.getByRole('menuitem', { name: 'Copy invite link' }).click()

@@ -92,7 +92,7 @@ import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
 
 // @internal (undocumented)
-export function activeElementShouldCaptureKeys(ignoreButtons?: boolean): boolean;
+export function activeElementShouldCaptureKeys(includeButtonsAndMenus?: boolean): boolean;
 
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
@@ -1432,6 +1432,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): Promise<void>;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): this;
+    resizeToBounds(shapes: TLShape[] | TLShapeId[], bounds: BoxLike): this;
     // (undocumented)
     resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
     // (undocumented)
@@ -1602,6 +1603,9 @@ export interface EditorProviderProps {
     editor: Editor;
 }
 
+// @internal (undocumented)
+export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMenus?: boolean): boolean;
+
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
@@ -1730,6 +1734,7 @@ export abstract class Geometry2d {
     hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean, _filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignore?: boolean;
+    ignoreHit(_point: VecLike): boolean;
     interpolateAlongEdge(t: number, _filters?: Geometry2dFilters): Vec;
     // (undocumented)
     intersectCircle(center: VecLike, radius: number, _filters?: Geometry2dFilters): VecLike[];
@@ -4356,7 +4361,7 @@ export interface TLShapeIndicatorsProps {
 // @public
 export interface TLShapeUtilCanBeLaidOutOpts {
     shapes?: TLShape[];
-    type?: 'align' | 'distribute' | 'flip' | 'pack' | 'stack' | 'stretch';
+    type?: 'align' | 'distribute' | 'flip' | 'pack' | 'resize_to_bounds' | 'stack' | 'stretch';
 }
 
 // @public
@@ -4677,6 +4682,8 @@ export class TransformedGeometry2d extends Geometry2d {
     hitTestLineSegment(A: VecLike, B: VecLike, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
+    // (undocumented)
+    ignoreHit(point: VecLike): boolean;
     // (undocumented)
     intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): Vec[];
     // (undocumented)
