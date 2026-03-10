@@ -209,7 +209,7 @@ export function registerTools(
 				return errorResponse(
 					'create_shapes',
 					err,
-					'Ensure shapesJson is a valid JSON array string of shapes objects (call read_me first for the format reference). '
+					'Ensure shapesJson is a valid JSON array string of shapes objects (call diagram_drawing_read_me first for the format reference). '
 				)
 			}
 		}
