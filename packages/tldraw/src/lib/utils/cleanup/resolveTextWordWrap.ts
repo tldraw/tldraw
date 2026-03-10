@@ -19,37 +19,17 @@ import {
 } from '../../shapes/shared/default-shape-constants'
 import { isEmptyRichText, renderHtmlFromRichTextForMeasurement } from '../text/richText'
 
-// matches arrowLabel.ts non-elbow branch
 const ARROW_LABEL_BODY_MARGIN = 64
 
 /** @public */
 export interface ResolveTextWordWrapOptions {
-	/**
-	 * The shape IDs to process. Defaults to all direct children of the current page (not inside
-	 * frames or groups), matching the default behaviour of {@link resolveShapeOverlaps}.
-	 *
-	 * When provided, arrow label fixes will only move endpoint shapes that are also in this list —
-	 * arrows whose endpoints are outside the list are skipped entirely.
-	 */
+	/** The shape IDs to process. Defaults to direct children of the current page. */
 	shapeIds?: TLShapeId[]
 }
 
 /**
- * Resizes or repositions shapes so that no single word is split across multiple lines by the
- * browser's overflow-wrap algorithm. Useful for programmatically generated canvases (e.g. mermaid
- * diagrams) where shapes may have been created with insufficient width.
- *
- * Handles three cases:
- * - **Geo shapes**: expands `w` until all words fit on their own line.
- * - **Fixed-width text shapes** (`autoSize: false`): expands `w` similarly.
- * - **Bound arrow labels**: moves the two connected shapes apart until the arrow body is long
- *   enough to display the label without mid-word breaks. Arrows with only one bound terminal
- *   are skipped.
- *
- * Auto-sizing text shapes and note shapes are skipped.
- *
- * Should be called before {@link resolveShapeOverlaps}. Use {@link cleanupCanvas} to run all
- * three cleanup passes in order as a single undo step.
+ * Expands shapes so that no single word is split across lines by overflow-wrap. Handles geo
+ * shapes, fixed-width text shapes, and bound arrow labels.
  *
  * @public
  */

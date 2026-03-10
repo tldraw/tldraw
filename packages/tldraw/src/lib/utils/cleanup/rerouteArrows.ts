@@ -15,34 +15,16 @@ import { getArrowBindings } from '../../shapes/arrow/shared'
 
 /** @public */
 export interface RerouteArrowsOptions {
-	/**
-	 * The shape IDs to process. Defaults to all direct children of the current page (not inside
-	 * frames or groups). Only straight and arc arrows (`kind !== 'elbow'`) are rerouted — elbow
-	 * arrows have their own automatic routing and are always skipped.
-	 *
-	 * Non-arrow shapes in the set are used as obstacles. The two endpoint shapes of each arrow
-	 * are always excluded from that arrow's obstacle list.
-	 */
+	/** The shape IDs to process. Defaults to direct children of the current page. Elbow arrows are always skipped. */
 	shapeIds?: TLShapeId[]
-	/**
-	 * Minimum clearance (in page units) to maintain between an arrow path and obstacle shapes.
-	 * The obstacle AABB is expanded by this amount on all sides before checking for intersections.
-	 * Default is 4.
-	 */
+	/** Minimum clearance (in page units) between arrow paths and obstacles. Default is 4. */
 	clearance?: number
-	/**
-	 * Bend values (in page units) to evaluate when searching for a collision-free route.
-	 * The candidate with the lowest total penetration score is selected. Ties are broken by
-	 * preferring the smallest absolute bend value (least visual distortion).
-	 *
-	 * Default tries straight (0) and symmetric positive/negative curves up to ±200.
-	 */
+	/** Bend values (in page units) to evaluate when searching for a collision-free route. */
 	bendCandidates?: number[]
 }
 
 const DEFAULT_BEND_CANDIDATES = [0, 25, -25, 50, -50, 75, -75, 100, -100, 150, -150, 200, -200]
 const ARC_SAMPLE_COUNT = 30
-// matches MIN_ARROW_BEND in shapes/arrow/shared.ts
 const MIN_ARROW_BEND = 8
 
 interface ObstacleBox {
@@ -54,14 +36,7 @@ interface ObstacleBox {
 }
 
 /**
- * Adjusts the curvature (`bend`) of straight and arc arrows so their paths avoid non-endpoint
- * shapes. For each arrow that passes through a bystander shape, a set of candidate bend values is
- * evaluated and the one with the lowest total penetration into obstacles is applied.
- *
- * Deeper penetration scores worse than a shallow corner clip. Elbow arrows are always skipped.
- *
- * Should be called after {@link resolveShapeOverlaps}. Use {@link cleanupCanvas} to run all three
- * passes in order as a single undo step.
+ * Adjusts arrow curvature (`bend`) so paths avoid non-endpoint shapes. Elbow arrows are skipped.
  *
  * @public
  */
@@ -174,7 +149,6 @@ function sampleArcInArrowSpace(startLocal: Vec, endLocal: Vec, bend: number): Ve
 		return points
 	}
 
-	// matches curved-arrow.ts middle-point formula
 	const med = Vec.Med(startLocal, endLocal)
 	const dist = Vec.Sub(endLocal, startLocal)
 	const u = Vec.Len(dist) ? dist.uni() : new Vec(1, 0)

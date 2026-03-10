@@ -2,33 +2,17 @@ import { Editor, Mat, TLShape, TLShapeId, isPageId } from '@tldraw/editor'
 
 /** @public */
 export interface ResolveShapeOverlapsOptions {
-	/**
-	 * The shape IDs to process. Arrow shapes are always excluded regardless of this option.
-	 * Defaults to all direct children of the current page (not inside frames or groups), so that
-	 * containers move as a unit carrying their contents with them.
-	 */
+	/** The shape IDs to process. Arrows are always excluded. Defaults to direct children of the current page. */
 	shapeIds?: TLShapeId[]
-	/**
-	 * Minimum gap (in page units) to maintain between every pair of shapes. Default is 20.
-	 */
+	/** Minimum gap (in page units) between shapes. Default is 20. */
 	padding?: number
-	/**
-	 * Maximum number of separation iterations to run. Default is 50.
-	 */
+	/** Maximum number of separation iterations. Default is 50. */
 	maxIterations?: number
 }
 
 /**
  * Separates overlapping shapes by translating them apart, maintaining at least `padding` units of
- * space between each pair. Useful for cleaning up programmatically generated canvases.
- *
- * Arrow shapes are always excluded — they reroute automatically as their bound shapes move.
- *
- * **Default behaviour (no `shapeIds`):** only direct children of the current page are processed,
- * so frames and groups move as a unit and carry their contents with them.
- *
- * **Rotation caveat:** overlap detection uses axis-aligned bounding boxes (AABBs). For rotated
- * shapes the AABB is larger than the actual shape, which can cause unnecessary separation.
+ * space between each pair.
  *
  * @public
  */
