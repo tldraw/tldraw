@@ -119,13 +119,15 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 					<TldrawUiDropdownMenuTrigger>
-						<button
+						<TldrawUiButton
+							type="icon"
 							className={styles.topLeftMainMenuTrigger}
+							tooltip={pageMenuLbl}
 							title={pageMenuLbl}
 							data-testid="tla-main-menu"
 						>
 							<TlaIcon icon="dots-vertical-strong" />
-						</button>
+						</TldrawUiButton>
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 						<TldrawUiMenuGroup id="basic">
@@ -233,13 +235,15 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={
-					<button
+					<TldrawUiButton
+						type="icon"
 						className={styles.topLeftMainMenuTrigger}
+						tooltip={pageMenuLbl}
 						title={pageMenuLbl}
 						data-testid="tla-main-menu"
 					>
 						<TlaIcon icon="dots-vertical-strong" />
-					</button>
+					</TldrawUiButton>
 				}
 			>
 				<TldrawUiMenuGroup id="regular-stuff">
