@@ -311,8 +311,11 @@ function getDefaultStyleFrame(ownerDoc: Document) {
 		frame.style.display = 'none'
 		ownerDoc.body.appendChild(frame)
 		const frameDocument = assertExists(frame.contentDocument, 'frame must have a document')
-		const svg = ownerDoc.createElementNS('http://www.w3.org/2000/svg', 'svg')
-		const foreignObject = ownerDoc.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')
+		const svg = frameDocument.createElementNS('http://www.w3.org/2000/svg', 'svg')
+		const foreignObject = frameDocument.createElementNS(
+			'http://www.w3.org/2000/svg',
+			'foreignObject'
+		)
 		svg.appendChild(foreignObject)
 		frameDocument.body.appendChild(svg)
 		defaultStyleFrame = {
@@ -329,6 +332,9 @@ function destroyDefaultStyleFrame() {
 	if (defaultStyleFrame) {
 		defaultStyleFrame.iframe.remove()
 		defaultStyleFrame = undefined
+	}
+	for (const tagName in defaultStylesByTagName) {
+		delete defaultStylesByTagName[tagName]
 	}
 }
 
