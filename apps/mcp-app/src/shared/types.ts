@@ -18,16 +18,20 @@ export interface RegisterToolsOptions {
 	extraResourceDomains?: string[]
 	/** Extra CSP connect domains. */
 	extraConnectDomains?: string[]
-	/** When set, the canvas resource domain is resolved from the connecting client. */
-	httpDomain?: { openai: string; claude: string }
+	/** Public origin of the deployed MCP worker, used for host-specific widget domains. */
+	workerOrigin?: string
+	/** When true, suppresses `ui.domain` on the canvas resource (required for local connectors). */
+	isDev: boolean
 	/** Logging function (defaults to console.error). */
 	log?(...args: unknown[]): void
 	/** Analytics engine dataset. */
 	analytics?: AnalyticsEngineDataset
+	/** Returns the resolved host name of the connected client. */
+	getClientHostName(): MCP_APP_HOST_NAMES | undefined
 }
 
 export const MCP_SERVER_NAME = 'tldraw'
-export const MCP_SERVER_VERSION = '1.0.0'
+export const MCP_SERVER_VERSION = '0.1.0'
 export const MCP_SERVER_TITLE = 'tldraw Canvas'
 export const MCP_SERVER_DESCRIPTION =
 	'An interactive tldraw canvas with tools for diagramming, drawing, and more.'
@@ -55,3 +59,5 @@ export const ALLOWED_IMAGE_TYPES: Record<string, string> = Object.fromEntries(
 )
 
 export const MAX_CHECKPOINTS = 200
+
+export type MCP_APP_HOST_NAMES = 'cursor' | 'vscode' | 'claude' | 'chatgpt'
