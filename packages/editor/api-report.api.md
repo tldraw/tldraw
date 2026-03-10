@@ -93,7 +93,7 @@ import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
 
 // @internal (undocumented)
-export function activeElementShouldCaptureKeys(ignoreButtons?: boolean, doc?: Document): boolean;
+export function activeElementShouldCaptureKeys(includeButtonsAndMenus?: boolean, doc?: Document): boolean;
 
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
@@ -1620,6 +1620,9 @@ export interface EditorProviderProps {
     // (undocumented)
     editor: Editor;
 }
+
+// @internal (undocumented)
+export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMenus?: boolean): boolean;
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {

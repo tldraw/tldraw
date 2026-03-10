@@ -302,6 +302,6 @@ export function useDocumentEvents() {
 function areShortcutsDisabled(editor: Editor) {
 	return (
 		editor.menus.hasOpenMenus() ||
-		activeElementShouldCaptureKeys(false, editor.getContainerDocument())
+		activeElementShouldCaptureKeys(true, editor.getContainerDocument())
 	)
 }
