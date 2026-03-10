@@ -83,7 +83,7 @@ export function useCanvasEvents() {
 				// check that e.target is an HTMLElement
 				if (!(e.target instanceof HTMLElement)) return
 
-				const editingShapeId = editor.getEditingShape()?.id
+				const editingShapeId = editor.getEditingShapeId()
 				if (
 					// if the target is not inside the editing shape
 					!(editingShapeId && e.target.closest(`[data-shape-id="${editingShapeId}"]`)) &&

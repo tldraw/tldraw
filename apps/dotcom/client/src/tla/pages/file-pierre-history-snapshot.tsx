@@ -16,7 +16,7 @@ export function ErrorBoundary() {
 	useEffect(() => {
 		captureException(error)
 	}, [error])
-	return <Component error={error} />
+	return <TlaFileError error={error} />
 }
 
 const { loader, useData } = defineLoader(async (args) => {
@@ -36,7 +36,7 @@ const { loader, useData } = defineLoader(async (args) => {
 
 export { loader }
 
-export function Component({ error: _error }: { error?: unknown }) {
+export function Component() {
 	const userId = useMaybeApp()?.userId
 
 	const result = useData()
@@ -54,7 +54,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 		} as TLStoreSnapshot
 	}, [result])
 
-	const error = _error || !result || !snapshot
+	const error = !result || !snapshot
 
 	useEffect(() => {
 		if (error && userId) {

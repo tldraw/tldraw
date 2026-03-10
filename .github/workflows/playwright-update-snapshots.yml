@@ -57,6 +57,9 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium chrome
 
+      - name: Build examples
+        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && cd apps/examples && yarn build
+
       - name: Run Playwright tests & update snapshots
         run: 'yarn e2e --update-snapshots'
         working-directory: 'apps/examples'

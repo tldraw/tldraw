@@ -36,7 +36,7 @@ export function TlaManageCookiesDialog() {
 							defaultMessage="We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."
 							values={{
 								a: (chunks) => (
-									<a key="a" href={COOKIE_POLICY_URL} target="_blank" rel="noreferrer">
+									<a href={COOKIE_POLICY_URL} target="_blank" rel="noreferrer">
 										{chunks}
 									</a>
 								),
@@ -72,7 +72,7 @@ export function TlaManageCookiesDialog() {
 							defaultMessage="Read our <a>cookie policy</a> to learn more."
 							values={{
 								a: (chunks) => (
-									<a key="a" href={COOKIE_POLICY_URL} target="_blank" rel="noreferrer">
+									<a href={COOKIE_POLICY_URL} target="_blank" rel="noreferrer">
 										{chunks}
 									</a>
 								),
