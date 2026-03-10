@@ -152,7 +152,12 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 				const html = e.clipboardData.getData('text/html')
 				if (html) {
 					if (html.includes('<div data-tldraw')) {
+						// Paste the plain text data instead of the tldraw data
+						const plainText = e.clipboardData.getData('text/plain')
 						preventDefault(e)
+						if (plainText) {
+							document.execCommand('insertText', false, plainText)
+						}
 					}
 				}
 			}
