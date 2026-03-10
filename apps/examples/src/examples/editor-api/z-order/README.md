@@ -2,7 +2,8 @@
 title: Z-order
 component: ./ZOrderExample.tsx
 priority: 2
-keywords: [z-order, index, stacking, layers, reorder, sendToBack, bringToFront, sendBackward, bringForward]
+keywords:
+  [z-order, index, stacking, layers, reorder, sendToBack, bringToFront, sendBackward, bringForward]
 ---
 
 Reorder shapes programmatically using the editor's z-order methods.
