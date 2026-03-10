@@ -100,7 +100,7 @@ function ContextualToolbarInner({
 
 	return (
 		<TldrawUiContextualToolbar
-			className="tlui-image__toolbar"
+			className="tlui-media__toolbar tlui-image__toolbar"
 			getSelectionBounds={getSelectionBounds}
 			label={msg('tool.image-toolbar-title')}
 		>

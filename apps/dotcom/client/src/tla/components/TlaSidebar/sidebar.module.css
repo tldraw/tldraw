@@ -387,6 +387,7 @@
 	color: var(--tla-color-text-3);
 	background: none;
 	margin-right: -2px;
+	min-width: 0;
 }
 
 .sidebarHelpMenuTrigger::after {
@@ -530,7 +531,8 @@
 	position: absolute;
 	top: 0px;
 	left: 3px;
-	width: calc(100% - 6px);
+	/* 36px + 6px	 is the menu button width + padding */
+	width: calc(100% - 42px);
 	height: 100%;
 	cursor: pointer;
 	z-index: 2;
@@ -551,6 +553,7 @@
 	margin-right: -10px;
 	width: 36px;
 	height: 36px;
+	min-width: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -558,6 +561,10 @@
 	flex: 0 0 auto;
 	z-index: 3;
 	cursor: pointer;
+}
+
+.sidebarFileListItemMenuTrigger:after {
+	content: none;
 }
 
 .sidebarFileListItemMenuTrigger:focus-visible {
@@ -709,6 +716,7 @@
 	justify-content: center;
 	color: var(--tla-color-inactive);
 	transition: opacity 0.2s ease-in-out;
+	min-width: 0;
 }
 
 .sidebarDotDevDismissButton div {
@@ -918,6 +926,7 @@
 	justify-content: center;
 	width: 20px;
 	height: 20px;
+	min-width: 0;
 	border-radius: 4px;
 	color: var(--tla-color-text-3);
 	cursor: pointer;
@@ -930,6 +939,10 @@
 	inset: -8px -8px -8px -2px;
 	content: '';
 	pointer-events: auto;
+}
+
+.sidebarGroupItemButton:after {
+	content: none;
 }
 
 .sidebarGroupItemButton:hover {

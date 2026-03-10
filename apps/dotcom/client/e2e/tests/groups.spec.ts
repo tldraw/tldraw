@@ -444,6 +444,44 @@ test.describe('groups', () => {
 			await database.migrateUser(true)
 
 			const parallelIndex = test.info().parallelIndex
+			const { newSidebar, newEditor, newGroupInviteDialog, newContext, newPage } = await openNewTab(
+				browser,
+				{
+					url: inviteUrl,
+					allowClipboard: true,
+					userProps: { user: 'suppy', index: parallelIndex },
+				}
+			)
+
+			await newEditor.isLoaded()
+			await newEditor.ensureSidebarOpen()
+			await newGroupInviteDialog.acceptInvitation()
+
+			// Verify group visible (proves frontend flag was auto-enabled)
+			await newSidebar.expectGroupVisible(groupName)
+			await newSidebar.expandGroup(groupName)
+			await newSidebar.expectFileVisible(fileName)
+
+			const fileLink = await newSidebar.copyFileLinkByName(fileName)
+			expect(fileLink).toContain(newPage.url())
+
+			await newContext.close()
+		})
+
+		test('invite already member user to group', async ({ sidebar, browser, database }) => {
+			const groupName = getRandomName()
+			const fileName = getRandomName()
+
+			await sidebar.createGroup(groupName)
+			await sidebar.expectGroupExpanded(groupName)
+			await sidebar.createFileInGroup(groupName, fileName)
+
+			const inviteUrl = await sidebar.copyGroupInviteLinkFromMenu(groupName)
+
+			// Migrate invitee to groups backend but not frontend (tests auto-enable)
+			await database.migrateUser(true)
+
+			const parallelIndex = test.info().parallelIndex
 			const { newSidebar, newEditor, newGroupInviteDialog, newContext } = await openNewTab(
 				browser,
 				{
@@ -461,6 +499,39 @@ test.describe('groups', () => {
 			await newSidebar.expectGroupVisible(groupName)
 			await newSidebar.expandGroup(groupName)
 			await newSidebar.expectFileVisible(fileName)
+
+			let newTab = await openNewTab(browser, {
+				url: inviteUrl,
+				allowClipboard: true,
+				userProps: { user: 'suppy', index: parallelIndex },
+			})
+
+			await newTab.newEditor.isLoaded()
+
+			// this test that if a user visit the same invite link
+			// he'll be redirected to the first group page (last created)
+			let fileLink = await newSidebar.copyFileLinkByName(fileName)
+			expect(fileLink).toContain(newTab.newPage.url())
+
+			// create a new file in group
+			const newFileName = getRandomName()
+			await sidebar.createFileInGroup(groupName, newFileName)
+			await sidebar.pinFileInGroup(fileName)
+
+			newTab = await openNewTab(browser, {
+				url: inviteUrl,
+				allowClipboard: true,
+				userProps: { user: 'suppy', index: parallelIndex },
+			})
+
+			await newTab.newEditor.isLoaded()
+			await newTab.newEditor.ensureSidebarOpen()
+
+			// we should see the previously created file but because the
+			// group owner pinned the previous file, we're still
+			// seeing it
+			fileLink = await newSidebar.copyFileLinkByName(fileName)
+			expect(fileLink).toContain(newTab.newPage.url())
 
 			await newContext.close()
 		})
