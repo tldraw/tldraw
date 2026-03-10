@@ -44,25 +44,69 @@ import { READ_ME_CONTENT } from './tools/read-me'
 /**
  * Shared tool/resource registration logic for both Node.js and Cloudflare Workers entry points.
  *
- * Both `server.ts` (Node) and `src/cloudflare-worker.ts` (Workers) call `registerTools()`
+ * Both `server.ts` (Node) and `src/worker.ts` (Workers) call `registerTools()`
  * with platform-specific storage backends.
  */
+
+// --- Helpers ---
+
+function injectBootstrapData(html: string, bootstrap: Record<string, unknown>): string {
+	const toBase64 =
+		typeof Buffer !== 'undefined' ? (s: string) => Buffer.from(s).toString('base64') : btoa
+	const encoded = toBase64(JSON.stringify(bootstrap))
+	const bootstrapScript = `<script>window.__TLDRAW_BOOTSTRAP__=JSON.parse(atob("${encoded}"))</script>`
+	// Replace the LAST </head> — the inlined JS bundle may contain </head> as a string literal
+	const lastIdx = html.lastIndexOf('</head>')
+	if (lastIdx === -1) return html
+	return html.slice(0, lastIdx) + bootstrapScript + html.slice(lastIdx)
+}
+
+/**
+ * Returns the widget domain for the given host, or `undefined` in dev mode.
+ *
+ * - ChatGPT: https://developers.openai.com/apps-sdk/build/mcp-server#widget-domains
+ *   Set `_meta.ui.domain` on the widget resource template. This is required for app
+ *   submission and must be unique per app. ChatGPT renders the widget under
+ *   `<domain>.web-sandbox.oaiusercontent.com`
+ *
+ * - Claude: https://claude.com/docs/connectors/building/mcp-apps/cross-compatibility#domain-handling
+ *   Compute the value by running:
+ *   `node -e 'const yourServerUrl = "https://example.com/mcp"; console.log(require("crypto").createHash("sha256").update(yourServerUrl).digest("hex").slice(0,32) + ".claudemcpcontent.com")'`
+"
+ */
+async function getWidgetDomain(
+	hostName: string | undefined,
+	isDev: boolean,
+	workerOrigin?: string
+): Promise<string | undefined> {
+	if (isDev) return undefined
+	if (hostName === 'chatgpt') return 'https://tldraw.com'
+	if (hostName === 'claude' && workerOrigin) {
+		const mcpUrl = new URL('/mcp', workerOrigin).toString()
+		const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(mcpUrl))
+		const hash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0'))
+			.join('')
+			.slice(0, 32)
+		return `${hash}.claudemcpcontent.com`
+	}
+	return undefined
+}
 
 // --- Registration ---
 
 export function registerTools(
 	server: McpServer,
 	deps: ServerDeps,
-	opts?: RegisterToolsOptions
+	opts: RegisterToolsOptions
 ): void {
-	const log = opts?.log ?? ((...args: unknown[]) => console.error(...args))
+	const log = opts.log ?? ((...args: unknown[]) => console.error(...args))
 	const getBindingFromId = (binding: unknown): TLShape['id'] | null => {
 		if (!binding || typeof binding !== 'object') return null
 		const maybeFromId = (binding as { fromId?: unknown }).fromId
 		return typeof maybeFromId === 'string' ? (maybeFromId as TLShape['id']) : null
 	}
 
-	const analytics = opts?.analytics
+	const analytics = opts.analytics
 
 	// --- read_me ---
 
@@ -75,6 +119,7 @@ export function registerTools(
 				readOnlyHint: true,
 				idempotentHint: true,
 				openWorldHint: false,
+				destructiveHint: false,
 			},
 		},
 		async (): Promise<CallToolResult> => {
@@ -97,7 +142,8 @@ export function registerTools(
 			description: 'Creates shapes, drawings, and diagrams on the tldraw canvas.',
 			inputSchema: createShapesInputSchema,
 			annotations: {
-				destructiveHint: true,
+				readOnlyHint: false,
+				destructiveHint: false,
 				idempotentHint: false,
 				openWorldHint: false,
 			},
@@ -179,6 +225,7 @@ export function registerTools(
 			description: 'Updates existing shapes, diagrams, and drawings on the tldraw canvas.',
 			inputSchema: updateShapesInputSchema,
 			annotations: {
+				readOnlyHint: false,
 				destructiveHint: true,
 				idempotentHint: false,
 				openWorldHint: false,
@@ -301,6 +348,7 @@ export function registerTools(
 			description: 'Deletes shapes by id from a JSON string (string[]).',
 			inputSchema: deleteShapesInputSchema,
 			annotations: {
+				readOnlyHint: false,
 				destructiveHint: true,
 				idempotentHint: false,
 				openWorldHint: false,
@@ -381,6 +429,7 @@ export function registerTools(
 			inputSchema: z.object({ checkpointId: z.string().min(1) }),
 			annotations: {
 				readOnlyHint: true,
+				destructiveHint: false,
 				idempotentHint: true,
 				openWorldHint: false,
 			},
@@ -471,7 +520,8 @@ export function registerTools(
 				bindingsJson: z.string().optional(),
 			}),
 			annotations: {
-				destructiveHint: true,
+				readOnlyHint: false,
+				destructiveHint: false,
 				idempotentHint: false,
 				openWorldHint: false,
 			},
@@ -518,34 +568,6 @@ export function registerTools(
 		}
 	)
 
-	// --- event (app-only) ---
-
-	server.registerTool(
-		'event',
-		{
-			inputSchema: z.object({
-				event: z.string().min(1),
-				value: z.number().optional(),
-			}),
-			_meta: { ui: { visibility: ['app'] } },
-		},
-		async ({ event, value }: { event: string; value?: number }): Promise<CallToolResult> => {
-			analytics?.writeDataPoint(
-				typeof value === 'number'
-					? {
-							blobs: [event],
-							doubles: [value],
-						}
-					: {
-							blobs: [event],
-						}
-			)
-			return {
-				content: [{ type: 'text', text: 'Tracked widget event.' }],
-			}
-		}
-	)
-
 	// --- canvas resource ---
 
 	registerAppResource(
@@ -567,7 +589,9 @@ export function registerTools(
 			// has shapes synchronously on mount — before any streaming begins.
 			const activeId = deps.getActiveCheckpointId()
 			const sid = deps.getSessionId()
-			const bootstrap: Record<string, unknown> = { sessionId: sid }
+			const hostName = opts.getClientHostName()
+
+			const bootstrap: Record<string, unknown> = { sessionId: sid, hostName }
 			if (activeId) {
 				const checkpoint = deps.loadCheckpoint(activeId)
 				if (checkpoint) {
@@ -577,31 +601,11 @@ export function registerTools(
 					bootstrap.bindings = checkpoint.bindings
 				}
 			}
-			const toBase64 =
-				typeof Buffer !== 'undefined' ? (s: string) => Buffer.from(s).toString('base64') : btoa
-			const encoded = toBase64(JSON.stringify(bootstrap))
-			const bootstrapScript = `<script>window.__TLDRAW_BOOTSTRAP__=JSON.parse(atob("${encoded}"))</script>`
-			// Replace the LAST </head> — the inlined JS bundle may contain </head> as a string literal
-			const lastIdx = html.lastIndexOf('</head>')
-			if (lastIdx !== -1) {
-				html = html.slice(0, lastIdx) + bootstrapScript + html.slice(lastIdx)
-			}
+			html = injectBootstrapData(html, bootstrap)
 
-			// Resolve domain from client identity (only when serving over HTTP with configured domains)
-			let domain: string | undefined
-			if (opts?.httpDomain?.openai || opts?.httpDomain?.claude) {
-				const clientName = server.server.getClientVersion()?.name ?? ''
-				if (clientName === 'openai-mcp') {
-					domain = opts.httpDomain.openai
-				} else if (
-					clientName === 'claude-ai' ||
-					clientName === 'Anthropic' ||
-					clientName === 'Anthropic/ClaudeAI'
-				) {
-					domain = opts.httpDomain.claude
-				}
-				log(`[tldraw-mcp] Serving resource to "${clientName}" with domain: ${domain}`)
-			}
+			const domain = await getWidgetDomain(hostName, opts.isDev, opts.workerOrigin)
+
+			log(`[tldraw-mcp] Serving resource to "${hostName}" with domain: ${domain}`)
 
 			return {
 				contents: [
@@ -616,10 +620,10 @@ export function registerTools(
 										'https://cdn.tldraw.com',
 										'https://fonts.googleapis.com',
 										'https://fonts.gstatic.com',
-										...(opts?.extraResourceDomains ?? []),
+										...(opts.extraResourceDomains ?? []),
 										'blob:',
 									],
-									connectDomains: ['https://cdn.tldraw.com', ...(opts?.extraConnectDomains ?? [])],
+									connectDomains: ['https://cdn.tldraw.com', ...(opts.extraConnectDomains ?? [])],
 								},
 								permissions: { clipboardWrite: {} },
 								...(domain ? { domain } : {}),
