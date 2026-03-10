@@ -36,7 +36,6 @@ export function createShapesFromClassDiagram(
 
 	// Create class shapes
 	const classShapeIds = new Map<string, TLShapeId>()
-	const noteShapes: { text: string; attachedTo?: string; x: number; y: number }[] = []
 
 	for (const layout of layouts) {
 		const cls = layout.classDef
@@ -91,6 +90,7 @@ export function createShapesFromClassDiagram(
 				richText: toRichText(label),
 				align: 'start',
 				verticalAlign: 'start',
+				dash: 'solid',
 				color: 'violet',
 			},
 			meta: {
@@ -188,7 +188,6 @@ export function createShapesFromClassDiagram(
 
 	// Create note shapes
 	for (const note of diagram.notes) {
-		const noteId = createShapeId()
 		let noteX = position.x
 		let noteY = position.y - 100 // Default: above the diagram
 

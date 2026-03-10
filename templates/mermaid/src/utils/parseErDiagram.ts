@@ -5,7 +5,7 @@
 
 export interface ErEntity {
 	name: string
-	attributes: string[]
+	attributes: string[] // raw mermaid attribute strings, e.g. "string email PK"
 }
 
 export interface ErRelationship {
@@ -103,18 +103,10 @@ export function parseErDiagram(code: string): ParsedErDiagram | null {
 				continue
 			}
 
-			// Parse attribute: string name
+			// Parse attribute: string name or string name PK
 			if (currentEntity && line) {
-				// Format: type name or type name PK/FK
-				const attrMatch = line.match(/^(\w+)\s+(\w+)(?:\s+(PK|FK|PK,FK))?$/)
-				if (attrMatch) {
-					const [, type, name, key] = attrMatch
-					const attrLabel = key ? `${name} (${key})` : name
-					currentEntity.attributes.push(attrLabel)
-				} else {
-					// Fallback: just use the whole line
-					currentEntity.attributes.push(line)
-				}
+				// Store raw attribute line to preserve mermaid syntax for round-trip
+				currentEntity.attributes.push(line)
 			}
 		}
 

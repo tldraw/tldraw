@@ -94,7 +94,7 @@ function fixMermaidNewlines(text: string): string {
 	} else if (diagramType === 'sequenceDiagram') {
 		fixed = fixed.replace(
 			/(.)(\s*)(participant|actor|loop|end|opt|alt|par|Note)(\s+)/gi,
-			(match, before, space, keyword, after) => {
+			(match, before, _space, keyword, after) => {
 				if (before === '\n') return match
 				return before + '\n' + keyword + after
 			}

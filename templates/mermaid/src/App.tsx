@@ -1,175 +1,194 @@
-/**
- * Mermaid starter kit - Two-way converter between Mermaid code and tldraw shapes
- */
-
-import { createShapeId, Tldraw, TLUiOverrides, Vec } from 'tldraw'
+import { useCallback, useRef, useState } from 'react'
+import { Editor, Tldraw, Vec } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { CODE_BLOCK_SHAPE_TYPE } from './shapes/CodeBlockShape'
-import { CodeBlockShapeUtil } from './shapes/CodeBlockShapeUtil'
-import { CodeBlockTool } from './tools/CodeBlockTool'
+import { convertCodeToShapes } from './utils/convertCodeToShapes'
 import { convertShapesToCode } from './utils/convertShapesToCode'
-import { createOrUpdateLinkFrame } from './utils/createLinkFrame'
 
-// Custom UI overrides to add code block tool and convert actions
-const uiOverrides: TLUiOverrides = {
-	tools(editor, tools) {
-		tools['code-block'] = {
-			id: 'code-block',
-			icon: 'code',
-			label: 'Code Block',
-			kbd: 'c',
-			onSelect: () => {
-				editor.setCurrentTool('code-block')
-			},
-		}
-		return tools
-	},
-	actions(editor, actions) {
-		actions['convert-to-code'] = {
-			id: 'convert-to-code',
-			label: () => {
-				const selectedShapeIds = editor.getSelectedShapeIds()
-				// Check if any selected shape is linked to a code block
-				const hasLinkedCodeBlock = selectedShapeIds.some((id) => {
-					const shape = editor.getShape(id)
-					return shape?.meta.codeBlockId && editor.getShape(shape.meta.codeBlockId as string)
-				})
-				return hasLinkedCodeBlock ? '↻ Update Code Block' : '◀ Convert to Mermaid Code'
-			},
-			icon: 'code',
-			kbd: 'shift+m',
-			readonlyOk: true,
-			onSelect: async () => {
-				const selectedShapeIds = editor.getSelectedShapeIds()
-				if (selectedShapeIds.length === 0) {
-					window.alert('Please select shapes to convert to code')
-					return
-				}
-
-				try {
-					console.log('Convert to code action - selected shapes:', selectedShapeIds)
-
-					// Convert shapes to code
-					const result = await convertShapesToCode(editor, selectedShapeIds)
-
-					console.log('Convert result:', result)
-
-					// If a code block was updated, select it
-					if (result.codeBlockId) {
-						console.log('Updated existing code block:', result.codeBlockId)
-						editor.select(result.codeBlockId)
-					} else {
-						console.log('Creating new code block')
-
-						// Create a new code block with the generated code
-						const bounds = editor.getSelectionPageBounds()
-						const position = bounds ? new Vec(bounds.maxX + 100, bounds.minY) : new Vec(0, 0)
-
-						const shapeId = createShapeId()
-						editor.createShape({
-							id: shapeId,
-							type: CODE_BLOCK_SHAPE_TYPE,
-							x: position.x,
-							y: position.y,
-							props: {
-								code: result.code,
-								language: 'mermaid',
-								w: 400,
-								h: 300,
-							},
-							meta: {
-								linkedShapeIds: selectedShapeIds,
-							},
-						})
-
-						// Filter out code block shapes from linking
-						const diagramShapeIds = selectedShapeIds.filter((id) => {
-							const shape = editor.getShape(id)
-							return shape && shape.type !== CODE_BLOCK_SHAPE_TYPE
-						})
-
-						// Update the shapes to link back to the code block
-						for (const selectedId of diagramShapeIds) {
-							const shape = editor.getShape(selectedId)
-							if (shape) {
-								editor.updateShape({
-									id: selectedId,
-									type: shape.type,
-									meta: {
-										...shape.meta,
-										codeBlockId: shapeId,
-									},
-								})
-							}
-						}
-
-						// Create a frame around the linked diagram shapes
-						if (diagramShapeIds.length > 0) {
-							createOrUpdateLinkFrame(editor, diagramShapeIds, shapeId)
-						}
-
-						// Select the new code block
-						editor.select(shapeId)
-					}
-				} catch (error) {
-					console.error('Failed to convert shapes to code:', error)
-					window.alert(`Failed to convert: ${error.message}`)
-				}
-			},
-		}
-		return actions
-	},
-	contextMenu(editor, contextMenu, { actions }) {
-		// Add convert to code to context menu when shapes are selected
-		const selectedShapeIds = editor.getSelectedShapeIds()
-		if (selectedShapeIds.length > 0) {
-			// Add at the beginning of the context menu
-			contextMenu.unshift({
-				id: 'mermaid-convert',
-				type: 'group',
-				children: [
-					{
-						id: 'convert-to-code',
-						type: 'item',
-						actionItem: actions['convert-to-code'],
-					},
-				],
-			})
-		}
-		return contextMenu
-	},
-	menu(editor, menu, { actions }) {
-		// Add to the main menu
-		menu.unshift({
-			id: 'mermaid',
-			type: 'group',
-			children: [
-				{
-					id: 'convert-to-code',
-					type: 'item',
-					actionItem: actions['convert-to-code'],
-				},
-			],
-		})
-		return menu
-	},
-}
-
-// Custom shape utilities
-const customShapeUtils = [CodeBlockShapeUtil]
-
-// Custom tools
-const customTools = [CodeBlockTool]
+const DEFAULT_CODE = `flowchart TD
+    A[Christmas] -->|Get money| B(Go shopping)
+    B --> C{Let me think}
+    C -->|One| D[Laptop]
+    C -->|Two| E[iPhone]
+    C -->|Three| F[Car]`
 
 export default function App() {
+	const [code, setCode] = useState(DEFAULT_CODE)
+	const [loading, setLoading] = useState<'to-diagram' | 'to-code' | null>(null)
+	const [error, setError] = useState<string | null>(null)
+	const editorRef = useRef<Editor | null>(null)
+
+	const handleCodeToDiagram = useCallback(async () => {
+		const editor = editorRef.current
+		if (!editor || loading) return
+		setLoading('to-diagram')
+		setError(null)
+		try {
+			const allShapeIds = Array.from(editor.getCurrentPageShapeIds())
+			if (allShapeIds.length > 0) editor.deleteShapes(allShapeIds)
+			await convertCodeToShapes(editor, code, new Vec(0, 0))
+			editor.zoomToFit({ animation: { duration: 300 } })
+		} catch (err: any) {
+			setError(err?.message ?? 'Failed to convert code to diagram')
+		} finally {
+			setLoading(null)
+		}
+	}, [code, loading])
+
+	const handleDiagramToCode = useCallback(async () => {
+		const editor = editorRef.current
+		if (!editor || loading) return
+		const allShapeIds = Array.from(editor.getCurrentPageShapeIds())
+		if (allShapeIds.length === 0) {
+			setError('No shapes on the canvas to convert')
+			return
+		}
+		setLoading('to-code')
+		setError(null)
+		try {
+			const result = await convertShapesToCode(editor, allShapeIds)
+			setCode(result.code)
+		} catch (err: any) {
+			setError(err?.message ?? 'Failed to convert diagram to code')
+		} finally {
+			setLoading(null)
+		}
+	}, [loading])
+
 	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw
-				shapeUtils={customShapeUtils}
-				tools={customTools}
-				overrides={uiOverrides}
-				persistenceKey={null}
-			/>
+		<div style={{ display: 'flex', height: '100vh', width: '100vw', fontFamily: 'sans-serif' }}>
+			{/* Left panel — code editor */}
+			<div
+				style={{
+					width: '50%',
+					display: 'flex',
+					flexDirection: 'column',
+					background: '#1e1e2e',
+					color: '#cdd6f4',
+				}}
+			>
+				<div
+					style={{
+						padding: '12px 16px',
+						borderBottom: '1px solid #313244',
+						fontSize: 13,
+						fontWeight: 600,
+						color: '#89b4fa',
+						letterSpacing: '0.02em',
+					}}
+				>
+					Mermaid
+				</div>
+
+				<textarea
+					value={code}
+					onChange={(e) => setCode(e.target.value)}
+					spellCheck={false}
+					style={{
+						flex: 1,
+						padding: '16px',
+						fontFamily: '"Fira Code", "Cascadia Code", monospace',
+						fontSize: 13,
+						lineHeight: 1.6,
+						background: 'transparent',
+						color: '#cdd6f4',
+						border: 'none',
+						outline: 'none',
+						resize: 'none',
+						tabSize: 4,
+					}}
+				/>
+
+				{error && (
+					<div
+						style={{
+							padding: '8px 16px',
+							background: '#45293b',
+							color: '#f38ba8',
+							fontSize: 12,
+							borderTop: '1px solid #313244',
+						}}
+					>
+						{error}
+					</div>
+				)}
+
+				<div
+					style={{
+						padding: '12px 16px',
+						borderTop: '1px solid #313244',
+						display: 'flex',
+						justifyContent: 'flex-end',
+					}}
+				>
+					<button
+						onClick={handleCodeToDiagram}
+						disabled={loading !== null}
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 6,
+							padding: '8px 16px',
+							background: loading === 'to-diagram' ? '#313244' : '#89b4fa',
+							color: loading === 'to-diagram' ? '#6c7086' : '#1e1e2e',
+							border: 'none',
+							borderRadius: 6,
+							fontSize: 13,
+							fontWeight: 600,
+							cursor: loading !== null ? 'not-allowed' : 'pointer',
+							transition: 'background 0.15s',
+						}}
+					>
+						{loading === 'to-diagram' ? '...' : '▶'}
+						{loading === 'to-diagram' ? 'Converting' : 'To diagram'}
+					</button>
+				</div>
+			</div>
+
+			{/* Divider */}
+			<div style={{ width: 1, background: '#313244', flexShrink: 0 }} />
+
+			{/* Right panel — tldraw canvas */}
+			<div style={{ flex: 1, position: 'relative' }}>
+				<Tldraw
+					onMount={(editor) => {
+						editorRef.current = editor
+						editor.updateInstanceState({ isDebugMode: false })
+					}}
+					persistenceKey={undefined}
+				/>
+
+				{/* "To code" button overlaid on canvas */}
+				<div
+					style={{
+						position: 'absolute',
+						bottom: 16,
+						right: 16,
+						zIndex: 500,
+					}}
+				>
+					<button
+						onClick={handleDiagramToCode}
+						disabled={loading !== null}
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 6,
+							padding: '8px 16px',
+							background: loading === 'to-code' ? '#e5e5e5' : '#1e1e2e',
+							color: loading === 'to-code' ? '#999' : '#cdd6f4',
+							border: '1px solid #313244',
+							borderRadius: 6,
+							fontSize: 13,
+							fontWeight: 600,
+							cursor: loading !== null ? 'not-allowed' : 'pointer',
+							boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+							transition: 'background 0.15s',
+						}}
+					>
+						{loading === 'to-code' ? 'Converting...' : '◀ To code'}
+					</button>
+				</div>
+			</div>
 		</div>
 	)
 }

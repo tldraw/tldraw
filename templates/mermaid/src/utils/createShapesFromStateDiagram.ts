@@ -3,9 +3,9 @@
  */
 
 import {
-	TLArrowShapeArrowheadStyle,
 	Editor,
 	TLArrowShape,
+	TLArrowShapeArrowheadStyle,
 	TLGeoShape,
 	TLShapeId,
 	Vec,
@@ -13,7 +13,7 @@ import {
 	createShapeId,
 	toRichText,
 } from 'tldraw'
-import { ParsedStateDiagram, StateDiagramState } from './parseStateDiagram'
+import { ParsedStateDiagram } from './parseStateDiagram'
 
 interface StateLayout {
 	id: string
@@ -31,7 +31,6 @@ export function createShapesFromStateDiagram(
 	diagram: ParsedStateDiagram,
 	position: Vec
 ): void {
-
 	// Calculate layout for states (includes start/end markers)
 	const layouts = calculateLayout(diagram, position)
 
@@ -60,8 +59,13 @@ export function createShapesFromStateDiagram(
 					w: layout.width,
 					h: layout.height,
 					richText: toRichText(''),
+					dash: 'solid',
 					fill: 'solid',
 					color: 'black',
+				},
+				meta: {
+					diagramType: 'stateDiagram',
+					stateData: { id: 'start', label: '', isStart: true, isEnd: false },
 				},
 			})
 		}
@@ -87,8 +91,13 @@ export function createShapesFromStateDiagram(
 					richText: toRichText('⊙'),
 					align: 'middle',
 					verticalAlign: 'middle',
+					dash: 'solid',
 					fill: 'none',
 					color: 'black',
+				},
+				meta: {
+					diagramType: 'stateDiagram',
+					stateData: { id: 'end', label: '', isStart: false, isEnd: true },
 				},
 			})
 		}
@@ -115,7 +124,12 @@ export function createShapesFromStateDiagram(
 				richText: toRichText(state.label),
 				align: 'middle',
 				verticalAlign: 'middle',
+				dash: 'solid',
 				color: 'violet',
+			},
+			meta: {
+				diagramType: 'stateDiagram',
+				stateData: { id: state.id, label: state.label, isStart: state.isStart, isEnd: state.isEnd },
 			},
 		})
 	}
@@ -139,6 +153,10 @@ export function createShapesFromStateDiagram(
 				arrowheadStart: 'none' as TLArrowShapeArrowheadStyle,
 				arrowheadEnd: 'arrow' as TLArrowShapeArrowheadStyle,
 				richText: toRichText(transition.label || ''),
+			},
+			meta: {
+				diagramType: 'stateDiagram',
+				transitionData: { from: transition.from, to: transition.to, label: transition.label || '' },
 			},
 		})
 
@@ -197,13 +215,12 @@ function calculateLayout(diagram: ParsedStateDiagram, startPosition: Vec): State
 	}
 
 	// Get states that connect from start
-	const startConnections = diagram.transitions
-		.filter((t) => t.from === 'start')
-		.map((t) => t.to)
+	const startConnections = diagram.transitions.filter((t) => t.from === 'start').map((t) => t.to)
 
-	const roots = startConnections.length > 0
-		? diagram.states.filter((s) => startConnections.includes(s.id))
-		: diagram.states.filter((s) => !hasIncoming.has(s.id))
+	const roots =
+		startConnections.length > 0
+			? diagram.states.filter((s) => startConnections.includes(s.id))
+			: diagram.states.filter((s) => !hasIncoming.has(s.id))
 	const startStates = roots.length > 0 ? roots : diagram.states
 
 	// Simple level-based layout starting with 'start' at level -1

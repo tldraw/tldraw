@@ -31,16 +31,34 @@ export function generateClassDiagramCode(
 
 	// Generate relationships
 	for (const rel of relationships) {
+		const label = rel.label ? ` : ${rel.label}` : ''
+
+		// Inheritance: Mermaid syntax is  Parent <|-- Child
+		// Our data stores { from: Child, to: Parent }, so we swap for output
+		if (rel.type === 'inheritance') {
+			const card = rel.cardinality
+				? ` "${rel.cardinality.to || ''}" <|-- "${rel.cardinality.from || ''}"`
+				: ' <|--'
+			lines.push(`    ${rel.to}${card} ${rel.from}${label}`)
+			continue
+		}
+
 		const arrow = getRelationshipArrow(rel.type)
 		const card = rel.cardinality
 			? ` "${rel.cardinality.from || ''}" ${arrow} "${rel.cardinality.to || ''}"`
 			: ` ${arrow}`
-		const label = rel.label ? ` : ${rel.label}` : ''
 
 		lines.push(`    ${rel.from}${card} ${rel.to}${label}`)
 	}
 
 	return lines.join('\n')
+}
+
+/**
+ * Convert a display type (using <T>) back to Mermaid's ~T~ generic syntax
+ */
+function toMermaidType(type: string): string {
+	return type.replace(/<([^>]+)>/g, '~$1~')
 }
 
 /**
@@ -52,7 +70,7 @@ function formatClassMember(member: ClassMember): string {
 	if (member.isStatic) result += 'static '
 	if (member.isAbstract) result += 'abstract '
 
-	if (member.type) result += `${member.type} `
+	if (member.type) result += `${toMermaidType(member.type)} `
 
 	result += member.name
 

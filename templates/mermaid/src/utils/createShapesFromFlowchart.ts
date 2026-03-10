@@ -97,6 +97,7 @@ export function createShapesFromFlowchart(
 				richText: toRichText(node.label),
 				align: 'middle',
 				verticalAlign: 'middle',
+				dash: 'solid',
 			},
 		})
 	}
@@ -116,12 +117,12 @@ export function createShapesFromFlowchart(
 
 		if (!fromShape || !toShape) continue
 
-		// Map line style to dash style
-		let dashStyle: TLArrowShape['props']['dash'] = 'draw'
+		// Map Mermaid line style to tldraw dash style
+		let dashStyle: TLArrowShape['props']['dash'] = 'solid'
 		if (edge.lineStyle === 'dotted') {
-			dashStyle = 'dotted'
-		} else if (edge.lineStyle === 'dashed') {
-			dashStyle = 'dashed'
+			dashStyle = 'dashed' // Mermaid dotted (-.-) looks like tldraw dashed
+		} else if (edge.lineStyle === 'thick') {
+			dashStyle = 'solid' // No thick equivalent in tldraw
 		}
 
 		// Create arrow shape

@@ -2,7 +2,7 @@
  * Create or update a frame around linked diagram shapes
  */
 
-import { Editor, TLShapeId, createShapeId } from 'tldraw'
+import { Box, Editor, TLShape, TLShapeId, createShapeId } from 'tldraw'
 
 export function createOrUpdateLinkFrame(
 	editor: Editor,
@@ -33,11 +33,11 @@ export function createOrUpdateLinkFrame(
 	console.log('Existing frame check:', existingFrame ? existingFrame.id : 'none')
 
 	// Get bounds of all shapes
-	const shapes = shapeIds.map((id) => editor.getShape(id)).filter(Boolean)
+	const shapes = shapeIds.map((id) => editor.getShape(id as TLShapeId)).filter((s): s is TLShape => s != null)
 	if (shapes.length === 0) return null
 
 	// Calculate bounding box
-	const shapeBounds = shapes.map((s) => editor.getShapePageBounds(s)).filter(Boolean)
+	const shapeBounds = shapes.map((s) => editor.getShapePageBounds(s)).filter((b): b is Box => b != null)
 	if (shapeBounds.length === 0) return null
 
 	let minX = Infinity,
@@ -70,10 +70,10 @@ export function createOrUpdateLinkFrame(
 	if (existingFrame) {
 		// Ensure all shapes are in the frame
 		for (const shapeId of shapeIds) {
-			const shape = editor.getShape(shapeId)
+			const shape = editor.getShape(shapeId as TLShapeId)
 			if (shape && shape.parentId !== existingFrame.id) {
 				editor.updateShape({
-					id: shapeId,
+					id: shapeId as TLShapeId,
 					type: shape.type,
 					parentId: existingFrame.id,
 				})
@@ -104,7 +104,7 @@ export function createOrUpdateLinkFrame(
 		// Frame is at (minX - 20, minY - 20), we want shapes starting at (10, 10) inside frame
 		const targetPadding = 10
 		for (const shapeId of shapeIds) {
-			const shape = editor.getShape(shapeId)
+			const shape = editor.getShape(shapeId as TLShapeId)
 			if (shape) {
 				const bounds = editor.getShapePageBounds(shape)
 				if (bounds) {
@@ -113,7 +113,7 @@ export function createOrUpdateLinkFrame(
 					const newX = bounds.x - minX + targetPadding
 					const newY = bounds.y - minY + targetPadding
 					editor.updateShape({
-						id: shapeId,
+						id: shapeId as TLShapeId,
 						type: shape.type,
 						parentId: frameId,
 						x: newX,

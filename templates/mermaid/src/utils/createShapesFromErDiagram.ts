@@ -3,9 +3,9 @@
  */
 
 import {
-	TLArrowShapeArrowheadStyle,
 	Editor,
 	TLArrowShape,
+	TLArrowShapeArrowheadStyle,
 	TLGeoShape,
 	TLShapeId,
 	Vec,
@@ -13,7 +13,7 @@ import {
 	createShapeId,
 	toRichText,
 } from 'tldraw'
-import { ErEntity, ParsedErDiagram } from './parseErDiagram'
+import { ParsedErDiagram } from './parseErDiagram'
 
 interface EntityLayout {
 	name: string
@@ -65,7 +65,12 @@ export function createShapesFromErDiagram(
 				richText: toRichText(label),
 				align: 'start',
 				verticalAlign: 'start',
+				dash: 'solid',
 				color: 'blue',
+			},
+			meta: {
+				diagramType: 'erDiagram',
+				entityData: { name: entity.name, attributes: entity.attributes },
 			},
 		})
 	}
@@ -97,6 +102,17 @@ export function createShapesFromErDiagram(
 				arrowheadEnd: toArrowhead,
 				dash: relationship.relType === 'identifying' ? 'solid' : 'dashed',
 				richText: toRichText(relationship.label || ''),
+			},
+			meta: {
+				diagramType: 'erDiagram',
+				relationshipData: {
+					from: relationship.from,
+					to: relationship.to,
+					fromCardinality: relationship.fromCardinality,
+					toCardinality: relationship.toCardinality,
+					label: relationship.label || '',
+					relType: relationship.relType,
+				},
 			},
 		})
 

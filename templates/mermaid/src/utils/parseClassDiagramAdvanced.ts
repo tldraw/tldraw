@@ -38,7 +38,9 @@ export interface ParsedClassDiagram {
 }
 
 /**
- * Parse a Mermaid class diagram into structured data
+ * Parse a Mermaid class diagram into structured data.
+ * Supports: class blocks, inline members, relationships, notes, namespace blocks,
+ * generic types written with ~ (e.g. List~Animal~), and <<stereotype>> annotations.
  */
 export function parseClassDiagramAdvanced(code: string): ParsedClassDiagram | null {
 	try {
@@ -47,21 +49,36 @@ export function parseClassDiagramAdvanced(code: string): ParsedClassDiagram | nu
 			.map((l) => l.trim())
 			.filter((l) => l && !l.startsWith('%%'))
 
-		if (lines.length === 0 || !lines[0].startsWith('classDiagram')) {
-			return null
-		}
+		if (lines.length === 0 || !lines[0].startsWith('classDiagram')) return null
 
 		const classes: ClassDefinition[] = []
 		const relationships: ClassRelationship[] = []
 		const notes: Note[] = []
 		const classMap = new Map<string, ClassDefinition>()
 
-		// Process lines
 		let i = 1 // Skip first line (classDiagram)
+
 		while (i < lines.length) {
 			const line = lines[i]
 
-			// Parse class definition block: class ClassName { ... }
+			// Namespace block: namespace Name { ... }
+			// Flatten — parse the inner content as top-level
+			if (/^namespace\s+\w+\s*\{/.test(line) || line === 'namespace {') {
+				i++
+				// Skip lines until closing } at the namespace level
+				// But we still want to parse them, so just continue normally —
+				// the closing `}` at namespace level is handled below
+				continue
+			}
+
+			// Standalone `}` that isn't a class closing brace — namespace end, skip
+			if (line === '}' && i > 0) {
+				i++
+				continue
+			}
+
+			// Class definition block: class ClassName { ... }
+			// Also handles: class ClassName <<stereotype>> {
 			const classBlockMatch = line.match(/^class\s+(\w+)(?:\s*<<(.+?)>>)?\s*\{/)
 			if (classBlockMatch) {
 				const [, className, stereotype] = classBlockMatch
@@ -72,30 +89,29 @@ export function parseClassDiagramAdvanced(code: string): ParsedClassDiagram | nu
 					methods: [],
 				}
 
-				// Parse class body
 				i++
 				while (i < lines.length && !lines[i].startsWith('}')) {
 					const memberLine = lines[i].trim()
 					if (memberLine) {
-						const member = parseClassMember(memberLine)
-						if (member) {
-							// Distinguish between property and method
-							if (memberLine.includes('(')) {
-								classDef.methods.push(member)
-							} else {
-								classDef.properties.push(member)
+						// <<annotation>> inside class body sets stereotype
+						const annotationMatch = memberLine.match(/^<<(.+?)>>$/)
+						if (annotationMatch) {
+							classDef.stereotype = annotationMatch[1].trim()
+						} else {
+							const member = parseClassMember(memberLine)
+							if (member) {
+								if (memberLine.includes('(')) classDef.methods.push(member)
+								else classDef.properties.push(member)
 							}
 						}
 					}
 					i++
 				}
 
-				// Only add if class doesn't already exist (avoid duplicates from relationships)
 				if (!classMap.has(className)) {
 					classes.push(classDef)
 					classMap.set(className, classDef)
 				} else {
-					// Update existing class with new properties/methods
 					const existing = classMap.get(className)!
 					existing.properties.push(...classDef.properties)
 					existing.methods.push(...classDef.methods)
@@ -105,7 +121,7 @@ export function parseClassDiagramAdvanced(code: string): ParsedClassDiagram | nu
 				continue
 			}
 
-			// Parse inline class definition: class ClassName
+			// Inline class: class ClassName  or  class ClassName <<stereotype>>
 			const classInlineMatch = line.match(/^class\s+(\w+)(?:\s*<<(.+?)>>)?$/)
 			if (classInlineMatch) {
 				const [, className, stereotype] = classInlineMatch
@@ -118,63 +134,50 @@ export function parseClassDiagramAdvanced(code: string): ParsedClassDiagram | nu
 					}
 					classes.push(classDef)
 					classMap.set(className, classDef)
+				} else if (stereotype) {
+					classMap.get(className)!.stereotype = stereotype.trim()
 				}
 				i++
 				continue
 			}
 
-			// Parse member addition: ClassName : +type attribute
+			// Inline member addition: ClassName : +type attribute
+			// But don't confuse with relationship lines that have : labels
 			const memberAddMatch = line.match(/^(\w+)\s*:\s*(.+)$/)
 			if (memberAddMatch) {
 				const [, className, memberDef] = memberAddMatch
-				const member = parseClassMember(memberDef)
-				if (member && classMap.has(className)) {
-					const classDef = classMap.get(className)!
-					if (memberDef.includes('(')) {
-						classDef.methods.push(member)
-					} else {
-						classDef.properties.push(member)
+				// Only treat as member addition if class is already known
+				if (classMap.has(className)) {
+					const member = parseClassMember(memberDef)
+					if (member) {
+						const classDef = classMap.get(className)!
+						if (memberDef.includes('(')) classDef.methods.push(member)
+						else classDef.properties.push(member)
 					}
+					i++
+					continue
 				}
-				i++
-				continue
 			}
 
-			// Parse notes: note "text" or note for ClassName "text"
+			// Notes
 			const noteMatch = line.match(/^note\s+(?:for\s+(\w+)\s+)?"([^"]+)"/)
 			if (noteMatch) {
 				const [, className, text] = noteMatch
-				notes.push({
-					text: text.trim(),
-					attachedTo: className,
-				})
+				notes.push({ text: text.trim(), attachedTo: className })
 				i++
 				continue
 			}
 
-			// Parse relationships
+			// Relationships
 			const relationship = parseRelationship(line)
 			if (relationship) {
 				relationships.push(relationship)
-
-				// Ensure both classes exist
-				if (!classMap.has(relationship.from)) {
-					const classDef: ClassDefinition = {
-						name: relationship.from,
-						properties: [],
-						methods: [],
+				for (const name of [relationship.from, relationship.to]) {
+					if (!classMap.has(name)) {
+						const classDef: ClassDefinition = { name, properties: [], methods: [] }
+						classes.push(classDef)
+						classMap.set(name, classDef)
 					}
-					classes.push(classDef)
-					classMap.set(relationship.from, classDef)
-				}
-				if (!classMap.has(relationship.to)) {
-					const classDef: ClassDefinition = {
-						name: relationship.to,
-						properties: [],
-						methods: [],
-					}
-					classes.push(classDef)
-					classMap.set(relationship.to, classDef)
 				}
 			}
 
@@ -189,17 +192,17 @@ export function parseClassDiagramAdvanced(code: string): ParsedClassDiagram | nu
 }
 
 /**
- * Parse a class member (property or method)
+ * Normalise Mermaid's ~T~ generic syntax to <T> for display, and strip backticks/quotes.
+ */
+function normaliseType(raw: string): string {
+	return raw.trim().replace(/~([^~]+)~/g, '<$1>')
+}
+
+/**
+ * Parse a class member (property or method).
+ * Handles visibility (+/-/#/~), static, abstract, generic types (~T~), and return types.
  */
 function parseClassMember(line: string): ClassMember | null {
-	// Format: [visibility][static/abstract]type name[(params)]
-	// Examples:
-	//   +String name
-	//   -int age
-	//   +getName()
-	//   +static void main(String[] args)
-	//   #abstract void doSomething()
-
 	const trimmed = line.trim()
 	if (!trimmed) return null
 
@@ -211,123 +214,103 @@ function parseClassMember(line: string): ClassMember | null {
 	// Extract modifiers
 	const isStatic = rest.startsWith('static ')
 	if (isStatic) rest = rest.slice(7).trim()
-
 	const isAbstract = rest.startsWith('abstract ')
 	if (isAbstract) rest = rest.slice(9).trim()
 
-	// Check if it's a method (has parentheses)
-	const methodMatch = rest.match(/^(\w+(?:\[\])?\s+)?(\w+)\s*\(([^)]*)\)/)
+	// Normalise ~T~ generics
+	rest = rest.replace(/~([^~]+)~/g, '<$1>')
+
+	// Method: has parentheses
+	const methodMatch = rest.match(
+		/^([\w<>\[\],\s]+?\s+)?(\w+)\s*\(([^)]*)\)(?:\s*(?::\s*([\w<>\[\],\s]+))?)?/
+	)
 	if (methodMatch) {
-		const [, returnType, name] = methodMatch
-		return {
-			visibility,
-			type: returnType?.trim(),
-			name: name + '()',
-			isStatic,
-			isAbstract,
-		}
+		const [, returnType, name, , retType2] = methodMatch
+		const type = normaliseType((retType2 || returnType || '').trim()) || undefined
+		return { visibility, type, name: name + '()', isStatic, isAbstract }
 	}
 
-	// It's a property
-	const propertyMatch = rest.match(/^(\w+(?:\[\])?\s+)?(\w+)/)
+	// Property
+	const propertyMatch = rest.match(/^([\w<>\[\],\s]+?\s+)?(\w+)$/)
 	if (propertyMatch) {
 		const [, type, name] = propertyMatch
-		return {
-			visibility,
-			type: type?.trim(),
-			name,
-			isStatic,
-			isAbstract,
-		}
+		return { visibility, type: type ? normaliseType(type) : undefined, name, isStatic, isAbstract }
 	}
 
 	return null
 }
 
 /**
- * Parse a relationship between classes
+ * Parse a relationship between classes.
+ * Supports all Mermaid class diagram arrow types and cardinality labels.
  */
 function parseRelationship(line: string): ClassRelationship | null {
-	// Relationship patterns:
-	// ClassA <|-- ClassB (inheritance)
-	// ClassA *-- ClassB (composition)
-	// ClassA o-- ClassB (aggregation)
-	// ClassA --> ClassB (association)
-	// ClassA ..> ClassB (dependency)
-	// ClassA ..|> ClassB (realization)
-	// ClassA "1" --> "many" ClassB (with cardinality)
-	// ClassA --> ClassB : label
-
 	// Extract label if present
 	let label: string | undefined
-	const labelMatch = line.match(/\s*:\s*(.+)$/)
+	let workLine = line
+	const labelMatch = workLine.match(/\s*:\s*(.+)$/)
 	if (labelMatch) {
 		label = labelMatch[1].trim()
-		line = line.slice(0, labelMatch.index)
+		workLine = workLine.slice(0, labelMatch.index)
 	}
 
-	// Extract cardinality
+	// Normalise ~T~ generics in class names (rare but possible)
+	workLine = workLine.replace(/~[^~]+~/g, '')
+
+	// Extract cardinality: ClassName "card" --> "card" ClassName
 	let cardinalityFrom: string | undefined
 	let cardinalityTo: string | undefined
-	const cardMatch = line.match(/(\w+)\s+"([^"]+)"\s+(.*?)\s+"([^"]+)"\s+(\w+)/)
+	const cardMatch = workLine.match(/(\w+)\s+"([^"]+)"\s+(.*?)\s+"([^"]+)"\s+(\w+)/)
 	if (cardMatch) {
 		const [, from, fromCard, arrow, toCard, to] = cardMatch
 		cardinalityFrom = fromCard
 		cardinalityTo = toCard
-		line = `${from} ${arrow} ${to}`
+		workLine = `${from} ${arrow} ${to}`
 	}
 
-	// Parse relationship type
-	let type: ClassRelationship['type'] = 'association'
-	let from = ''
-	let to = ''
+	const cardinality =
+		cardinalityFrom || cardinalityTo ? { from: cardinalityFrom, to: cardinalityTo } : undefined
 
-	// Inheritance: <|--
-	const inheritMatch = line.match(/(\w+)\s*<\|--\s*(\w+)/)
+	// Inheritance: ClassA <|-- ClassB  (B extends A)
+	const inheritMatch = workLine.match(/(\w+)\s*<\|--\s*(\w+)/)
 	if (inheritMatch) {
-		;[, from, to] = inheritMatch
-		type = 'inheritance'
-		return { from: to, to: from, type, label, cardinality: { from: cardinalityFrom, to: cardinalityTo } }
+		const [, parent, child] = inheritMatch
+		return { from: child, to: parent, type: 'inheritance', label, cardinality }
 	}
 
-	// Realization: ..|>
-	const realizeMatch = line.match(/(\w+)\s*\.\.\|>\s*(\w+)/)
+	// Realization: ClassA ..|> ClassB  (A realizes/implements B)
+	const realizeMatch = workLine.match(/(\w+)\s*\.\.\|>\s*(\w+)/)
 	if (realizeMatch) {
-		;[, from, to] = realizeMatch
-		type = 'realization'
-		return { from, to, type, label, cardinality: { from: cardinalityFrom, to: cardinalityTo } }
+		const [, from, to] = realizeMatch
+		return { from, to, type: 'realization', label, cardinality }
 	}
 
-	// Composition: *--
-	const compMatch = line.match(/(\w+)\s*\*--\s*(\w+)/)
+	// Composition: ClassA *-- ClassB
+	const compMatch = workLine.match(/(\w+)\s*\*--\s*(\w+)/)
 	if (compMatch) {
-		;[, from, to] = compMatch
-		type = 'composition'
-		return { from, to, type, label, cardinality: { from: cardinalityFrom, to: cardinalityTo } }
+		const [, from, to] = compMatch
+		return { from, to, type: 'composition', label, cardinality }
 	}
 
-	// Aggregation: o--
-	const aggMatch = line.match(/(\w+)\s*o--\s*(\w+)/)
+	// Aggregation: ClassA o-- ClassB
+	const aggMatch = workLine.match(/(\w+)\s*o--\s*(\w+)/)
 	if (aggMatch) {
-		;[, from, to] = aggMatch
-		type = 'aggregation'
-		return { from, to, type, label, cardinality: { from: cardinalityFrom, to: cardinalityTo } }
+		const [, from, to] = aggMatch
+		return { from, to, type: 'aggregation', label, cardinality }
 	}
 
-	// Dependency: ..>
-	const depMatch = line.match(/(\w+)\s*\.\.>\s*(\w+)/)
+	// Dependency: ClassA ..> ClassB
+	const depMatch = workLine.match(/(\w+)\s*\.\.>\s*(\w+)/)
 	if (depMatch) {
-		;[, from, to] = depMatch
-		type = 'dependency'
-		return { from, to, type, label, cardinality: { from: cardinalityFrom, to: cardinalityTo } }
+		const [, from, to] = depMatch
+		return { from, to, type: 'dependency', label, cardinality }
 	}
 
-	// Association: -->
-	const assocMatch = line.match(/(\w+)\s*-->\s*(\w+)/)
+	// Association: ClassA --> ClassB
+	const assocMatch = workLine.match(/(\w+)\s*-->\s*(\w+)/)
 	if (assocMatch) {
-		;[, from, to] = assocMatch
-		type = 'association'
-		return { from, to, type, label, cardinality: { from: cardinalityFrom, to: cardinalityTo } }
+		const [, from, to] = assocMatch
+		return { from, to, type: 'association', label, cardinality }
 	}
 
 	return null

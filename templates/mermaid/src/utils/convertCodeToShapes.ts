@@ -2,21 +2,26 @@
  * Convert Mermaid code to tldraw shapes
  */
 
-import { Editor, Vec } from 'tldraw'
+import {
+	Box,
+	createBindingId,
+	createShapeId,
+	Editor,
+	TLArrowShape,
+	TLGeoShape,
+	TLShape,
+	TLShapeId,
+	toRichText,
+	Vec,
+} from 'tldraw'
+import { hasOverlaps, resolveShapeOverlaps } from './cleanupDiagram'
 import { createOrUpdateLinkFrame } from './createLinkFrame'
-import { createShapesFromClassDiagram } from './createShapesFromClassDiagram'
-import { createShapesFromErDiagram } from './createShapesFromErDiagram'
-import { createShapesFromFlowchart } from './createShapesFromFlowchart'
-import { createShapesFromSequenceDiagram } from './createShapesFromSequenceDiagram'
-import { createShapesFromStateDiagram } from './createShapesFromStateDiagram'
 import { logger } from './logger'
+import { getMermaidLayout } from './mermaid/index'
+import { DiagramLayout } from './mermaid/types'
 import { extractMermaidCode, getDiagramType } from './mermaidDetection'
-import { parseClassDiagramAdvanced } from './parseClassDiagramAdvanced'
-import { parseErDiagram } from './parseErDiagram'
-import { parseMermaidFlowchart } from './parseMermaidFlowchart'
-import { parseSequenceDiagram } from './parseSequenceDiagram'
-import { parseStateDiagram } from './parseStateDiagram'
 import { renderMermaidToSvg } from './renderMermaidToSvg'
+import { lineStyleToDash } from './shapeReaders/propertyMappings'
 
 /**
  * Convert Mermaid code to tldraw shapes
@@ -50,9 +55,9 @@ export async function convertCodeToShapes(
 
 	if (codeBlockId) {
 		console.log('Looking for existing frame for code block:', codeBlockId)
-		const codeBlock = editor.getShape(codeBlockId)
+		const codeBlock = editor.getShape(codeBlockId as TLShapeId)
 		if (codeBlock && codeBlock.meta.linkedShapeIds) {
-			oldShapeIds = (codeBlock.meta.linkedShapeIds as string[]).filter((id) => editor.getShape(id))
+			oldShapeIds = (codeBlock.meta.linkedShapeIds as string[]).filter((id) => editor.getShape(id as TLShapeId))
 			console.log('Found old shape IDs:', oldShapeIds)
 		}
 
@@ -80,10 +85,10 @@ export async function convertCodeToShapes(
 
 			// Also try deleting from linkedShapeIds if available (backup)
 			if (oldShapeIds.length > 0) {
-				const remainingIds = oldShapeIds.filter((id) => editor.getShape(id))
+				const remainingIds = oldShapeIds.filter((id) => editor.getShape(id as TLShapeId))
 				if (remainingIds.length > 0) {
 					console.log('Deleting remaining old shapes:', remainingIds)
-					editor.deleteShapes(remainingIds)
+					editor.deleteShapes(remainingIds as TLShapeId[])
 				}
 			}
 		} else {
@@ -95,91 +100,58 @@ export async function convertCodeToShapes(
 	const shapeIdsBefore = new Set(editor.getCurrentPageShapeIds())
 
 	try {
-		// Try native shape conversion first
-		switch (diagramType) {
-			case 'flowchart': {
-				logger.parsing('flowchart', extractedCode)
-				const flowchart = parseMermaidFlowchart(extractedCode)
-				logger.parsed(flowchart)
-				createShapesFromFlowchart(editor, flowchart, position)
-				logger.success('Flowchart shapes created')
-				break
+		const nativeTypes = [
+			'flowchart',
+			'sequenceDiagram',
+			'classDiagram',
+			'stateDiagram',
+			'erDiagram',
+		]
+
+		if (nativeTypes.includes(diagramType)) {
+			// Use Mermaid SVG layout for native types
+			logger.parsing(diagramType, extractedCode)
+			const layout = await getMermaidLayout(extractedCode)
+			if (layout) {
+				createShapesFromLayout(editor, layout, position)
+				logger.success(`${diagramType} shapes created from SVG layout`)
+			} else {
+				throw new Error(`Could not extract layout for diagram type: ${diagramType}`)
+			}
+		} else {
+			// Fall back to SVG rendering for unsupported diagram types
+			logger.parsing('SVG fallback', extractedCode)
+			const result = await renderMermaidToSvg(extractedCode)
+
+			if (!result) {
+				throw new Error('Could not render diagram to SVG')
 			}
 
-			case 'sequenceDiagram': {
-				logger.parsing('sequence diagram', extractedCode)
-				const sequence = parseSequenceDiagram(extractedCode)
-				logger.parsed(sequence)
-				createShapesFromSequenceDiagram(editor, sequence, position)
-				logger.success('Sequence diagram shapes created')
-				break
+			// Convert SVG string to data URL
+			const svgDataUrl = `data:image/svg+xml;base64,${btoa(result.svg)}`
+
+			// Create an image shape with the SVG
+			const asset = await editor.getAssetForExternalContent({
+				type: 'url',
+				url: svgDataUrl,
+			})
+
+			if (!asset) {
+				throw new Error('Could not create asset from SVG')
 			}
 
-			case 'classDiagram': {
-				logger.parsing('class diagram', extractedCode)
-				const classDiagram = parseClassDiagramAdvanced(extractedCode)
-				if (!classDiagram) {
-					throw new Error('Failed to parse class diagram')
-				}
-				logger.parsed(classDiagram)
-				createShapesFromClassDiagram(editor, classDiagram, position)
-				logger.success('Class diagram shapes created')
-				break
-			}
-
-			case 'stateDiagram': {
-				logger.parsing('state diagram', extractedCode)
-				const stateDiagram = parseStateDiagram(extractedCode)
-				logger.parsed(stateDiagram)
-				createShapesFromStateDiagram(editor, stateDiagram, position)
-				logger.success('State diagram shapes created')
-				break
-			}
-
-			case 'erDiagram': {
-				logger.parsing('ER diagram', extractedCode)
-				const erDiagram = parseErDiagram(extractedCode)
-				logger.parsed(erDiagram)
-				createShapesFromErDiagram(editor, erDiagram, position)
-				logger.success('ER diagram shapes created')
-				break
-			}
-
-			default: {
-				// Fall back to SVG rendering for unsupported diagram types
-				logger.parsing('SVG fallback', extractedCode)
-				const result = await renderMermaidToSvg(extractedCode)
-
-				if (!result) {
-					throw new Error('Could not render diagram to SVG')
-				}
-
-				// Convert SVG string to data URL
-				const svgDataUrl = `data:image/svg+xml;base64,${btoa(result.svg)}`
-
-				// Create an image shape with the SVG
-				const asset = await editor.getAssetForExternalContent({
-					type: 'url',
-					url: svgDataUrl,
-				})
-
-				if (!asset) {
-					throw new Error('Could not create asset from SVG')
-				}
-
-				editor.createAssets([asset])
-				editor.createShape({
-					type: 'image',
-					x: position.x,
-					y: position.y,
-					props: {
-						assetId: asset.id,
-						w: result.width,
-						h: result.height,
-					},
-				})
-				logger.success(`${diagramType} rendered as SVG image`)
-			}
+			editor.createAssets([asset])
+			editor.createShape({
+				type: 'image',
+				x: position.x,
+				y: position.y,
+				props: {
+					assetId: asset.id,
+					w: result.width,
+					h: result.height,
+				},
+			})
+			logger.success(`${diagramType} rendered as SVG image`)
 		}
 
 		// Get shapes that were created
@@ -187,6 +159,12 @@ export async function convertCodeToShapes(
 		const createdShapeIds = shapeIdsAfter.filter((id) => !shapeIdsBefore.has(id))
 
 		console.log('Created shape IDs:', createdShapeIds)
+
+		// Resolve overlapping shapes if any exist
+		if (createdShapeIds.length >= 2 && hasOverlaps(editor, createdShapeIds)) {
+			console.log('Resolving shape overlaps...')
+			resolveShapeOverlaps(editor, createdShapeIds)
+		}
 
 		// Link shapes to code block if provided
 		if (codeBlockId && createdShapeIds.length > 0) {
@@ -244,10 +222,10 @@ export async function convertCodeToShapes(
 			}
 
 			// Update code block to store linked shape IDs and diagram type
-			const codeBlock = editor.getShape(codeBlockId)
+			const codeBlock = editor.getShape(codeBlockId as TLShapeId)
 			if (codeBlock) {
 				editor.updateShape({
-					id: codeBlockId,
+					id: codeBlockId as TLShapeId,
 					type: codeBlock.type,
 					meta: {
 						...codeBlock.meta,
@@ -265,13 +243,13 @@ export async function convertCodeToShapes(
 				console.log('Created frame:', frameId)
 			} else {
 				// Update the existing frame's size to fit new shapes
-				const frame = editor.getShape(existingFrameId)
+				const frame = editor.getShape(existingFrameId as TLShapeId)
 				if (frame && frame.type === 'frame') {
 					// Get bounds of shapes inside the frame (they have page coordinates still)
-					const childShapes = createdShapeIds.map((id) => editor.getShape(id)).filter(Boolean)
+					const childShapes = createdShapeIds.map((id) => editor.getShape(id)).filter((s): s is TLShape => s != null)
 					if (childShapes.length > 0) {
 						// Calculate page bounds
-						const pageBounds = childShapes.map((s) => editor.getShapePageBounds(s)).filter(Boolean)
+						const pageBounds = childShapes.map((s) => editor.getShapePageBounds(s)).filter((b): b is Box => b != null)
 						let minX = Infinity,
 							minY = Infinity,
 							maxX = -Infinity,
@@ -286,7 +264,7 @@ export async function convertCodeToShapes(
 						const padding = 20
 						// Update frame position and size to encompass all shapes
 						editor.updateShape({
-							id: existingFrameId,
+							id: existingFrameId as TLShapeId,
 							type: 'frame',
 							x: minX - padding,
 							y: minY - padding,
@@ -311,5 +289,204 @@ export async function convertCodeToShapes(
 	} catch (error) {
 		logger.error('convertCodeToShapes', error)
 		throw error
+	}
+}
+
+/** Strip undefined/non-serializable values so tldraw's store validation passes */
+function sanitizeMeta(meta: Record<string, unknown>): any {
+	return JSON.parse(JSON.stringify(meta))
+}
+
+function createShapesFromLayout(editor: Editor, layout: DiagramLayout, position: Vec): void {
+	const shapeIdMap = new Map<string, string>() // nodeId -> tldraw shapeId
+
+	// Choose default color based on diagram type
+	// Flowcharts use black so per-edge styling stands out
+	const colorMap: Record<string, string> = {
+		flowchart: 'black',
+		sequenceDiagram: 'light-blue',
+		classDiagram: 'violet',
+		stateDiagram: 'light-green',
+		erDiagram: 'blue',
+	}
+	const color = colorMap[layout.type] ?? 'black'
+
+	// Create all node shapes first
+	for (const node of layout.nodes) {
+		const shapeId = createShapeId()
+		shapeIdMap.set(node.id, shapeId as string)
+
+		// Build the richText label
+		const richText = toRichText(node.label)
+
+		// Special handling for start/end state markers
+		const stateData = node.meta.stateData as any
+		const isStartMarker = stateData?.isStart === true
+		const isEndMarker = stateData?.isEnd === true
+
+		// Add padding so tldraw's font rendering doesn't overflow Mermaid's layout dimensions
+		const PAD_W = isStartMarker || isEndMarker ? 0 : 24
+		const PAD_H = isStartMarker || isEndMarker ? 0 : 16
+
+		editor.createShape<TLGeoShape>({
+			id: shapeId,
+			type: 'geo',
+			x: position.x + node.x - PAD_W / 2,
+			y: position.y + node.y - PAD_H / 2,
+			props: {
+				geo: node.geoShape as any,
+				w: Math.max(node.width + PAD_W, 60),
+				h: Math.max(node.height + PAD_H, 40),
+				richText,
+				align: 'middle',
+				verticalAlign: 'middle',
+				dash: 'solid',
+				color: isStartMarker ? 'black' : isEndMarker ? 'black' : (color as any),
+				fill: isStartMarker ? 'solid' : 'none',
+			},
+			meta: sanitizeMeta({
+				...node.meta,
+				diagramType: layout.type,
+			}),
+		})
+	}
+
+	// Create arrow shapes with proper bindings second
+	for (const edge of layout.edges) {
+		const meta = edge.meta as any
+
+		// Skip lifelines — they are rendered as decorative arrow shapes without bindings
+		if (meta.isLifeline === true) {
+			const lifelineId = createShapeId()
+			editor.createShape<TLArrowShape>({
+				id: lifelineId,
+				type: 'arrow',
+				x: position.x + (meta.lifelineX ?? 0),
+				y: position.y + (meta.lifelineStartY ?? 0),
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 0, y: (meta.lifelineEndY ?? 0) - (meta.lifelineStartY ?? 0) || 100 },
+					arrowheadStart: 'none',
+					arrowheadEnd: 'none',
+					dash: 'dashed',
+					richText: toRichText(''),
+				},
+				meta: sanitizeMeta({
+					...edge.meta,
+					diagramType: layout.type,
+					isLifeline: true,
+				}),
+			})
+			continue
+		}
+
+		const fromShapeId = shapeIdMap.get(edge.from)
+		const toShapeId = shapeIdMap.get(edge.to)
+		if (!fromShapeId || !toShapeId) continue
+
+		const arrowId = createShapeId()
+
+		// Determine arrow style from per-edge metadata
+		let dash: 'draw' | 'solid' | 'dashed' | 'dotted' = 'solid'
+		let arrowheadEnd: string = 'arrow'
+		let arrowheadStart: string = 'none'
+		let arrowColor: string | undefined
+
+		if (layout.type === 'flowchart') {
+			// Per-edge styles from parsed flowchart AST
+			// lineStyle is Mermaid's: 'solid' | 'dotted' | 'thick'
+			const lineStyle = meta.lineStyle as string | undefined
+			dash = lineStyleToDash(lineStyle ?? 'solid')
+
+			const arrowType = meta.arrowType as string | undefined
+			if (arrowType === 'none') arrowheadEnd = 'none'
+			else if (arrowType === 'dot') arrowheadEnd = 'dot'
+			else if (arrowType === 'bar' || arrowType === 'diamond') arrowheadEnd = arrowType
+			else arrowheadEnd = 'arrow'
+
+			const startArrowType = meta.arrowStartType as string | undefined
+			if (startArrowType === 'arrow') arrowheadStart = 'arrow'
+			else if (startArrowType === 'dot') arrowheadStart = 'dot'
+			else if (startArrowType === 'bar') arrowheadStart = 'bar'
+
+			if (meta.edgeColor) arrowColor = meta.edgeColor as string
+		} else if (layout.type === 'sequenceDiagram') {
+			const msgData = meta.messageData
+			if (msgData?.messageType === 'dotted') dash = 'dashed'
+			if (msgData?.arrowType === 'cross') {
+				arrowheadEnd = 'none'
+				dash = 'solid'
+			} else if (msgData?.arrowType === 'open') {
+				arrowheadEnd = 'arrow'
+			} else {
+				arrowheadEnd = 'arrow'
+			}
+		} else if (layout.type === 'erDiagram') {
+			const relData = meta.relationshipData
+			dash = relData?.relType === 'identifying' ? 'solid' : 'dashed'
+		} else if (layout.type === 'classDiagram') {
+			const relData = meta.relationshipData
+			if (relData) {
+				if (relData.type === 'inheritance') {
+					arrowheadEnd = 'arrow'
+					dash = 'solid'
+				} else if (relData.type === 'implementation') {
+					arrowheadEnd = 'arrow'
+					dash = 'dashed'
+				} else if (relData.type === 'composition') {
+					arrowheadEnd = 'diamond'
+					dash = 'solid'
+				} else if (relData.type === 'aggregation') {
+					arrowheadEnd = 'diamond'
+					dash = 'dashed'
+				} else {
+					arrowheadEnd = 'arrow'
+				}
+			}
+		}
+
+		editor.createShape<TLArrowShape>({
+			id: arrowId,
+			type: 'arrow',
+			props: {
+				start: { x: 0, y: 0 },
+				end: { x: 100, y: 0 },
+				arrowheadStart: arrowheadStart as any,
+				arrowheadEnd: arrowheadEnd as any,
+				dash,
+				...(arrowColor ? { color: arrowColor as any } : {}),
+				richText: toRichText(edge.label),
+			},
+			meta: sanitizeMeta({
+				...edge.meta,
+				diagramType: layout.type,
+			}),
+		})
+
+		editor.createBinding({
+			id: createBindingId(),
+			type: 'arrow',
+			fromId: arrowId,
+			toId: fromShapeId as any,
+			props: {
+				terminal: 'start',
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isPrecise: false,
+				isExact: false,
+			},
+		})
+
+		editor.createBinding({
+			id: createBindingId(),
+			type: 'arrow',
+			fromId: arrowId,
+			toId: toShapeId as any,
+			props: {
+				terminal: 'end',
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isPrecise: false,
+				isExact: false,
+			},
+		})
 	}
 }

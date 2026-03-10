@@ -2,7 +2,7 @@
  * ShapeUtil for the code block shape with syntax highlighting
  */
 
-import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, Vec } from 'tldraw'
+import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLShapeId, Vec } from 'tldraw'
 import { codeToHtml } from 'shiki'
 import { useEffect, useState } from 'react'
 import { CodeBlockShape, CODE_BLOCK_SHAPE_TYPE } from './CodeBlockShape'
@@ -38,7 +38,7 @@ export class CodeBlockShapeUtil extends BaseBoxShapeUtil<CodeBlockShape> {
 		const isLinked = shape.meta.linkedShapeIds && (shape.meta.linkedShapeIds as string[]).length > 0
 		const linkedShapesExist =
 			isLinked &&
-			(shape.meta.linkedShapeIds as string[]).some((id) => this.editor.getShape(id) !== undefined)
+			(shape.meta.linkedShapeIds as string[]).some((id) => this.editor.getShape(id as TLShapeId) !== undefined)
 
 		useEffect(() => {
 			// Syntax highlight the code using Shiki
