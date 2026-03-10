@@ -731,6 +731,65 @@
 	}
 }
 
+/* Anon dot dev link */
+
+.anonDotDevLink {
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	z-index: 201;
+	pointer-events: all;
+	font-size: 12px;
+	border: none;
+	border-radius: 0;
+	border-top-left-radius: var(--tl-radius-4);
+	padding: 2px;
+	display: flex;
+	align-items: center;
+	height: 40px;
+	background-color: var(--tl-color-low);
+	box-sizing: content-box;
+}
+
+.anonDotDevLink a {
+	position: relative;
+	height: 100%;
+	padding: 0px 8px;
+	display: flex;
+	align-items: center;
+	flex: 1;
+	gap: 4px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.anonDotDevLink a div {
+	position: relative;
+	transform: rotate(180deg);
+	flex-shrink: 0;
+	transition: transform 3s ease-in-out 0s;
+}
+
+.anonDotDevDismissButton {
+	background: none;
+	border: none;
+	cursor: pointer;
+	position: relative;
+	height: 28px;
+	width: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--tla-color-inactive);
+	transition: opacity 0.2s ease-in-out;
+}
+
+.anonDotDevDismissButton div {
+	width: 12px;
+	height: 12px;
+}
+
 /* ------------------- Show all button ------------------- */
 
 .showAllButton {
