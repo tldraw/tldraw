@@ -24,6 +24,7 @@
 	"references": [
 		{ "path": "../../../packages/assets" },
 		{ "path": "../../../packages/dotcom-shared" },
+		{ "path": "../../../packages/mermaid" },
 		{ "path": "../../../packages/sync" },
 		{ "path": "../../../packages/sync-core" },
 		{ "path": "../../../packages/tldraw" },

@@ -213,6 +213,12 @@
       "value": "Accept all"
     }
   ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Unsupported Mermaid diagram"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -289,6 +295,12 @@
     {
       "type": 0,
       "value": "Are you sure you want to delete this group? This action cannot be undone."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Unsupported diagram, will generate SVG instead"
     }
   ],
   "50db1b7e1e": [

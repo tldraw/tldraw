@@ -23,6 +23,7 @@ import {
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 
+import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
@@ -260,6 +261,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
 				<SneakyToolSwitcher />
+				<SneakyMermaidHandler />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
 			</Tldraw>

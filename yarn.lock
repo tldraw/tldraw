@@ -10547,7 +10547,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/mermaid@workspace:packages/mermaid":
+"@tldraw/mermaid@workspace:*, @tldraw/mermaid@workspace:packages/mermaid":
   version: 0.0.0-use.local
   resolution: "@tldraw/mermaid@workspace:packages/mermaid"
   dependencies:
@@ -16949,8 +16949,10 @@ __metadata:
     "@swc/plugin-formatjs": "npm:^5.1.1"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/mermaid": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/lodash.pick": "npm:^4.4.9"
