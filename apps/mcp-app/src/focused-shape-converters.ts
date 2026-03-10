@@ -419,7 +419,7 @@ export function convertFocusedShapesToTldrawRecords(shapes: FocusedShape[]): {
 			for (const childId of frame.children) {
 				const child = tldrawShapes.find((r) => r.id === toShapeId(childId))
 				if (child) {
-					;(child as any).parentId = frameId
+					child.parentId = frameId
 				}
 			}
 		} else {

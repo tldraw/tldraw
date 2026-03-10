@@ -12,7 +12,7 @@ import { McpAgent } from 'agents/mcp'
 import type { TLShape } from 'tldraw'
 import { Logger } from './logger'
 import { registerTools } from './register-tools'
-import type { ServerDeps } from './shared/types'
+import type { MCP_APP_HOST_NAMES, ServerDeps } from './shared/types'
 import {
 	MAX_CHECKPOINTS,
 	MCP_SERVER_DESCRIPTION,
@@ -22,7 +22,7 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from './shared/types'
-import { parseTlShapes } from './shared/utils'
+import { parseTlShapes, resolveMcpAppHostName } from './shared/utils'
 
 // --- Types ---
 
@@ -31,9 +31,8 @@ interface Env {
 	ASSETS: Fetcher
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
+	MCP_IS_DEV: string
 	WORKER_ORIGIN: string
-	MCP_DOMAIN_OPENAI: string
-	MCP_DOMAIN_CLAUDE: string
 	MCP_ANALYTICS?: AnalyticsEngineDataset
 }
 
@@ -62,12 +61,9 @@ function corsResponse(response: Response): Response {
 }
 
 // --- McpAgent Durable Object ---
-// Use `as any` for the server property because we alias @modelcontextprotocol/sdk
-// to the agents' bundled copy at runtime (via wrangler.toml [alias]), but TypeScript
-// sees our direct dependency's types which are a different declaration.
 
 export class TldrawMCP extends McpAgent<Env> {
-	server = new McpServer(
+	override server = new McpServer(
 		{
 			name: MCP_SERVER_NAME,
 			title: MCP_SERVER_TITLE,
@@ -78,13 +74,25 @@ export class TldrawMCP extends McpAgent<Env> {
 		{
 			instructions: MCP_SERVER_INSTRUCTIONS,
 		}
-	) as any
+	)
+	isDev = this.env.MCP_IS_DEV === 'true'
+	logsEnabled = this.isDev
 	activeCheckpointId: string | null = null
 	sessionId: string = ''
-	logger = new Logger('TldrawMCP')
+	logger = new Logger('TldrawMCP', this.logsEnabled)
+	clientHostName: MCP_APP_HOST_NAMES | undefined = undefined
 
 	async init() {
-		this.logger.info('Initializing Durable Object')
+		this.server.server.oninitialized = () => {
+			const clientInfo = this.server.server.getClientVersion()
+			const resolved = resolveMcpAppHostName(clientInfo?.name ?? '')
+			if (resolved) {
+				this.clientHostName = resolved
+				void this
+					.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('clientHostName', ${resolved})`
+			}
+			this.logger.info(`Client connected: ${this.clientHostName ?? 'unknown'}`)
+		}
 
 		// --- DO SQLite setup ---
 		void this
@@ -98,6 +106,13 @@ export class TldrawMCP extends McpAgent<Env> {
 			this.logger.info('Restored active checkpoint', { checkpointId: this.activeCheckpointId })
 		}
 
+		// Restore client host name on reconnect
+		const hostNameRows = [...this.sql`SELECT value FROM meta WHERE key = 'clientHostName'`]
+		if (hostNameRows.length > 0) {
+			this.clientHostName = hostNameRows[0].value as MCP_APP_HOST_NAMES
+			this.logger.info(`Restored client host name: ${this.clientHostName}`)
+		}
+
 		// Restore or generate session ID
 		const sessionRows = [...this.sql`SELECT value FROM meta WHERE key = 'sessionId'`]
 		if (sessionRows.length > 0) {
@@ -108,15 +123,14 @@ export class TldrawMCP extends McpAgent<Env> {
 				.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('sessionId', ${this.sessionId})`
 
 			// Track new session
-			const env = (this as any).env as Env
-			env.MCP_ANALYTICS?.writeDataPoint({
+			this.env.MCP_ANALYTICS?.writeDataPoint({
 				blobs: ['session_start', this.sessionId],
 				doubles: [Date.now()],
 			})
 		}
 
 		// --- Widget HTML (loaded once from Assets binding) ---
-		const widgetHtml = await loadWidgetHtml((this as any).env.ASSETS)
+		const widgetHtml = await loadWidgetHtml(this.env.ASSETS)
 
 		// --- Build ServerDeps from SQLite ---
 		const deps: ServerDeps = {
@@ -135,19 +149,17 @@ export class TldrawMCP extends McpAgent<Env> {
 			loadWidgetHtml: async () => widgetHtml,
 		}
 
-		const workerOrigin = (this as any).env.WORKER_ORIGIN || ''
-		const domainOpenai = ((this as any).env as Env).MCP_DOMAIN_OPENAI || ''
-		const domainClaude = ((this as any).env as Env).MCP_DOMAIN_CLAUDE || ''
+		const workerOrigin = this.env.WORKER_ORIGIN
 
 		registerTools(this.server, deps, {
 			log: this.logger.toLogFn(),
 			extraResourceDomains: workerOrigin ? [workerOrigin] : [],
 			extraConnectDomains: workerOrigin ? [workerOrigin] : [],
-			httpDomain:
-				domainOpenai || domainClaude ? { openai: domainOpenai, claude: domainClaude } : undefined,
+			workerOrigin,
+			isDev: this.isDev,
+			analytics: this.env.MCP_ANALYTICS,
+			getClientHostName: () => this.clientHostName,
 		})
-
-		this.logger.info('Initialization complete')
 	}
 
 	// --- Checkpoint helpers ---
@@ -202,12 +214,13 @@ export class TldrawMCP extends McpAgent<Env> {
 // McpAgent.serve() handles CORS, session management, and transport internally.
 // Expose both transports: Streamable HTTP at /mcp, SSE at /sse.
 
-const mcpHandler = (TldrawMCP as any).serve('/mcp')
-const sseHandler = (TldrawMCP as any).serveSSE('/sse')
+const mcpHandler = TldrawMCP.serve('/mcp')
+const sseHandler = TldrawMCP.serveSSE('/sse')
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
 		try {
+			const requireAuth = Boolean(env.MCP_AUTH_TOKEN)
 			const url = new URL(request.url)
 
 			// CORS preflight
@@ -220,20 +233,27 @@ export default {
 				return Response.json({ status: 'ok', timestamp: Date.now() })
 			}
 
-			// Auth check for MCP endpoints: skip if MCP_AUTH_TOKEN not set (local dev)
-			if (env.MCP_AUTH_TOKEN) {
+			// Domain verification (no auth)
+			if (url.pathname === '/.well-known/openai-apps-challenge') {
+				return new Response('SG4iyi_lKvsvOJA-QN3UOJZeISqeAf4tnnxqgRMTU0k', {
+					headers: { 'Content-Type': 'text/plain' },
+				})
+			}
+
+			// Require bearer auth only when an auth token is configured.
+			if (requireAuth) {
 				const auth = request.headers.get('Authorization')
 				if (auth !== `Bearer ${env.MCP_AUTH_TOKEN}`) {
 					return corsResponse(new Response('Unauthorized', { status: 401 }))
 				}
 			}
 
-			// SSE transport (for MCP Inspector and legacy clients)
+			// SSE transport (legacy)
 			if (url.pathname === '/sse' || url.pathname.startsWith('/sse/')) {
 				return sseHandler.fetch(request, env, ctx)
 			}
 
-			// Streamable HTTP transport (for Claude web, ChatGPT, and modern clients)
+			// Streamable HTTP transport
 			if (url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) {
 				// Rate limit by MCP session (POST without session ID is the initial handshake)
 				const sessionId = request.headers.get('mcp-session-id')
@@ -242,6 +262,7 @@ export default {
 				}
 				if (sessionId) {
 					const { success } = await env.RATE_LIMITER.limit({ key: sessionId })
+
 					if (!success) {
 						return corsResponse(new Response('Rate limited', { status: 429 }))
 					}
