@@ -78,6 +78,7 @@ const labelSizeCache = createComputedCache(
 		// First we measure the text with no constraints
 		const { w, h } = editor.textMeasure.measureHtml(html, {
 			...TEXT_PROPS,
+			lineHeight: dv.labelLineHeight,
 			fontFamily: dv.labelFontFamily,
 			fontSize,
 			maxWidth: null,
@@ -108,6 +109,7 @@ const labelSizeCache = createComputedCache(
 		if (shouldSquish) {
 			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureHtml(html, {
 				...TEXT_PROPS,
+				lineHeight: dv.labelLineHeight,
 				fontFamily: dv.labelFontFamily,
 				fontSize,
 				maxWidth: width,

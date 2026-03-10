@@ -29,6 +29,7 @@ import {
 } from '../../utils/text/richText'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 
 const sizeCache = createComputedCache(
@@ -76,8 +77,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			return {
 				color: getColorValue(theme, color, 'solid'),
 				fontFamily: FONT_FAMILIES[font],
-				fontSize: FONT_SIZES[size],
-				lineHeight: TEXT_PROPS.lineHeight,
+				fontSize: theme.fontSize * FONT_SIZES[size],
+				lineHeight: theme.lineHeight,
 				fontWeight: TEXT_PROPS.fontWeight,
 				fontStyle: TEXT_PROPS.fontStyle,
 				fontVariant: TEXT_PROPS.fontVariant,

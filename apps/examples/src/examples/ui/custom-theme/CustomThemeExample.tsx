@@ -11,6 +11,8 @@ const myThemes: TLThemes = {
 	dark: DEFAULT_DARK_THEME,
 	'my-brand': {
 		id: 'my-brand',
+		fontSize: DEFAULT_DARK_THEME.fontSize,
+		lineHeight: DEFAULT_DARK_THEME.lineHeight,
 		colors: {
 			...DEFAULT_DARK_THEME.colors,
 			background: '#1a1a2e',

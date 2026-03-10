@@ -7,7 +7,6 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import { createTextJsxFromSpans } from './createTextJsxFromSpans'
-import { TEXT_PROPS } from './default-shape-constants'
 import { getLegacyOffsetX } from './legacyProps'
 
 export function SvgTextLabel({
@@ -46,7 +45,7 @@ export function SvgTextLabel({
 		width: Math.ceil(bounds.width),
 		height: Math.ceil(bounds.height),
 		padding,
-		lineHeight: TEXT_PROPS.lineHeight,
+		lineHeight: editor.getCurrentTheme().lineHeight,
 		fontStyle: 'normal',
 		fontWeight: 'normal',
 		overflow: 'wrap' as const,

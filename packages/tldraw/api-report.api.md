@@ -3256,7 +3256,6 @@ export const TEXT_PROPS: {
     fontStyle: string;
     fontVariant: string;
     fontWeight: string;
-    lineHeight: number;
     padding: string;
 };
 

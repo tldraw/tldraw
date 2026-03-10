@@ -26,6 +26,10 @@ export type TLThemeColorPalette = Expand<
 export interface TLTheme {
 	id: string
 	colors: TLThemeColorPalette
+	/** Base font size in pixels. Shape font sizes are derived by multiplying this value. @defaultValue 16 */
+	fontSize: number
+	/** Base line height multiplier. @defaultValue 1.35 */
+	lineHeight: number
 }
 
 /**

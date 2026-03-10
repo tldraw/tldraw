@@ -2,7 +2,6 @@ import { TLDefaultFontStyle, TLDefaultSizeStyle } from '@tldraw/editor'
 
 /** @public */
 export const TEXT_PROPS = {
-	lineHeight: 1.35,
 	fontWeight: 'normal',
 	fontVariant: 'normal',
 	fontStyle: 'normal',
@@ -19,26 +18,26 @@ export const STROKE_SIZES: Record<TLDefaultSizeStyle, number> = {
 
 /** @public */
 export const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
-	s: 18,
-	m: 24,
-	l: 36,
-	xl: 44,
+	s: 1.125,
+	m: 1.5,
+	l: 2.25,
+	xl: 2.75,
 }
 
 /** @public */
 export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
-	s: 18,
-	m: 22,
-	l: 26,
-	xl: 32,
+	s: 1.125,
+	m: 1.375,
+	l: 1.625,
+	xl: 2,
 }
 
 /** @public */
 export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
-	s: 18,
-	m: 20,
-	l: 24,
-	xl: 28,
+	s: 1.125,
+	m: 1.25,
+	l: 1.5,
+	xl: 1.75,
 }
 
 /** @public */

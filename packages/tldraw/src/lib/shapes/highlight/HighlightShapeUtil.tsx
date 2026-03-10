@@ -67,7 +67,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 				: getColorValue(theme, color, 'highlightSrgb')
 			return {
 				strokeColor,
-				strokeWidth: FONT_SIZES[size] * 1.12,
+				strokeWidth: theme.fontSize * FONT_SIZES[size] * 1.12,
 				underlayOpacity: 0.82,
 				overlayOpacity: 0.35,
 			}

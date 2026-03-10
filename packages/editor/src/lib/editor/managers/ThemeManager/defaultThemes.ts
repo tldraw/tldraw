@@ -5,6 +5,8 @@ import { TLDefaultColor, TLDefaultColorStyle, TLTheme } from '@tldraw/tlschema'
  */
 export const DEFAULT_LIGHT_THEME: TLTheme = {
 	id: 'light',
+	fontSize: 16,
+	lineHeight: 1.35,
 	colors: {
 		text: '#000000',
 		background: '#f9fafb',
@@ -227,6 +229,8 @@ export const DEFAULT_LIGHT_THEME: TLTheme = {
  */
 export const DEFAULT_DARK_THEME: TLTheme = {
 	id: 'dark',
+	fontSize: 16,
+	lineHeight: 1.35,
 	colors: {
 		text: 'hsl(210, 17%, 98%)',
 		background: 'hsl(240, 5%, 6.5%)',

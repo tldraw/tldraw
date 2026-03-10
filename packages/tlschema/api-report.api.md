@@ -1491,8 +1491,10 @@ export interface TLTextShapeProps {
 export interface TLTheme {
     // (undocumented)
     colors: TLThemeColorPalette;
+    fontSize: number;
     // (undocumented)
     id: string;
+    lineHeight: number;
 }
 
 // @public

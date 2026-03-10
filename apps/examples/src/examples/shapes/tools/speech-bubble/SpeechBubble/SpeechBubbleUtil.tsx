@@ -207,8 +207,8 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					type={type}
 					font={font}
 					textWidth={shape.props.w}
-					fontSize={LABEL_FONT_SIZES[size]}
-					lineHeight={TEXT_PROPS.lineHeight}
+					fontSize={theme.fontSize * LABEL_FONT_SIZES[size]}
+					lineHeight={theme.lineHeight}
 					align={align}
 					verticalAlign="start"
 					text={text}
@@ -239,10 +239,12 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	getGrowY(shape: SpeechBubbleShape, prevGrowY = 0) {
 		const PADDING = 17
 
+		const theme = this.editor.getCurrentTheme()
 		const nextTextSize = this.editor.textMeasure.measureText(shape.props.text, {
 			...TEXT_PROPS,
+			lineHeight: theme.lineHeight,
 			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontSize: LABEL_FONT_SIZES[shape.props.size],
+			fontSize: theme.fontSize * LABEL_FONT_SIZES[shape.props.size],
 			maxWidth: shape.props.w - PADDING * 2,
 		})
 

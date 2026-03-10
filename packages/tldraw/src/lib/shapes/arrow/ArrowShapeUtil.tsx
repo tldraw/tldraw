@@ -58,7 +58,6 @@ import {
 	ARROW_LABEL_PADDING,
 	FONT_FAMILIES,
 	STROKE_SIZES,
-	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
@@ -144,8 +143,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
 				labelColor: getColorValue(theme, labelColor, 'solid'),
 				labelFontFamily: FONT_FAMILIES[font],
-				labelFontSize: ARROW_LABEL_FONT_SIZES[size],
-				labelLineHeight: TEXT_PROPS.lineHeight,
+				labelFontSize: theme.fontSize * ARROW_LABEL_FONT_SIZES[size],
+				labelLineHeight: theme.lineHeight,
 				labelPadding: ARROW_LABEL_PADDING,
 				labelBorderRadius: 3.5,
 			}

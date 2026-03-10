@@ -135,10 +135,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
 				labelColor: getColorValue(theme, labelColor, 'solid'), // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
 				labelFontFamily: FONT_FAMILIES[font],
-				labelFontSize: LABEL_FONT_SIZES[size],
+				labelFontSize: theme.fontSize * LABEL_FONT_SIZES[size],
 				labelMinWidth: GEO_SHAPE_MIN_WIDTHS[size],
 				labelExtraPadding: GEO_SHAPE_EXTRA_PADDINGS[size],
-				labelLineHeight: 1.35,
+				labelLineHeight: theme.lineHeight,
 				labelFontWeight: 'normal',
 				labelFontVariant: 'normal',
 				labelFontStyle: 'normal',

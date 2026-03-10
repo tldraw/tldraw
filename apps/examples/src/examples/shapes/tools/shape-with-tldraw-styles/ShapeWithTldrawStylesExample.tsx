@@ -67,7 +67,7 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 				<div
 					style={{
 						// [3]
-						fontSize: FONT_SIZES[shape.props.size],
+						fontSize: theme.fontSize * FONT_SIZES[shape.props.size],
 						color: getColorValue(theme, shape.props.color, 'solid'),
 					}}
 				>

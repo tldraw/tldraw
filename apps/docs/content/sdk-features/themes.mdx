@@ -57,12 +57,14 @@ export default function App() {
 
 ## Theme structure
 
-A theme is a [TLTheme](?) object with an `id` and a `colors` palette. Light and dark modes are separate themes:
+A theme is a [TLTheme](?) object with an `id`, a `colors` palette, and base `fontSize` and `lineHeight` values. Light and dark modes are separate themes:
 
 ```typescript
 const myThemes: TLThemes = {
 	light: {
 		id: 'light',
+		fontSize: 16,
+		lineHeight: 1.35,
 		colors: {
 			text: '#000000',
 			background: '#f8f8f8',
@@ -106,6 +108,8 @@ const myThemes: TLThemes = {
 	},
 	dark: {
 		id: 'dark',
+		fontSize: 16,
+		lineHeight: 1.35,
 		colors: {
 			// ... dark mode equivalents
 		},
@@ -133,6 +137,8 @@ Each color in the palette is a [TLDefaultColor](?) with variants for different c
 | `highlightP3`        | Highlighter color in Display P3 color space    |
 
 The palette also includes five base properties: `text` for default text color, `background` for the canvas background, `solid` for the default solid surface color, `cursor` for the cursor color, and `noteBorder` for note shape borders.
+
+In addition to colors, each theme has a `fontSize` (default `16`) and `lineHeight` (default `1.35`). All default shape font sizes are derived by multiplying the base `fontSize` by a per-shape-type multiplier, so changing the base value scales all text proportionally.
 
 ## Reading the current theme
 
@@ -231,10 +237,14 @@ You can also pass themes as a prop on the [Tldraw](?) or [TldrawEditor](?) compo
 const myThemes: TLThemes = {
 	light: {
 		id: 'light',
+		fontSize: 16,
+		lineHeight: 1.35,
 		colors: { /* ... */ },
 	},
 	dark: {
 		id: 'dark',
+		fontSize: 16,
+		lineHeight: 1.35,
 		colors: { /* ... */ },
 	},
 }

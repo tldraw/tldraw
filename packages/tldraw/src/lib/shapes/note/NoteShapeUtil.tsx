@@ -120,8 +120,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						? getColorValue(theme, color, 'noteText')
 						: getColorValue(theme, labelColor, 'fill'),
 				labelFontFamily: FONT_FAMILIES[font],
-				labelFontSize: LABEL_FONT_SIZES[size],
-				labelLineHeight: TEXT_PROPS.lineHeight,
+				labelFontSize: theme.fontSize * LABEL_FONT_SIZES[size],
+				labelLineHeight: theme.lineHeight,
 				labelFontWeight: TEXT_PROPS.fontWeight,
 				labelFontVariant: TEXT_PROPS.fontVariant,
 				labelFontStyle: TEXT_PROPS.fontStyle,
@@ -548,6 +548,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			const html = renderHtmlFromRichTextForMeasurement(this.editor, richText)
 			const nextTextSize = this.editor.textMeasure.measureHtml(html, {
 				...TEXT_PROPS,
+				lineHeight: dv.labelLineHeight,
 				fontFamily: dv.labelFontFamily,
 				fontSize: fontSizeAdjustment,
 				maxWidth: dv.noteWidth - dv.labelPadding * 2 - FUZZ,
@@ -564,6 +565,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				const html = renderHtmlFromRichTextForMeasurement(this.editor, richText)
 				const nextTextSizeWithOverflowBreak = this.editor.textMeasure.measureHtml(html, {
 					...TEXT_PROPS,
+					lineHeight: dv.labelLineHeight,
 					fontFamily: dv.labelFontFamily,
 					fontSize: fontSizeAdjustment,
 					maxWidth: dv.noteWidth - dv.labelPadding * 2 - FUZZ,
