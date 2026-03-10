@@ -98,21 +98,21 @@ export const setStyleProperty = (
 }
 
 /** @internal */
-export function elementShouldCaptureKeys(el: Element | null, includeButton = true) {
+export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMenus = true) {
 	if (!el) return false
 
 	const tagName = el.tagName.toLowerCase()
 	return (
 		(el as HTMLElement).isContentEditable ||
 		tagName === 'input' ||
-		tagName === 'select' ||
 		tagName === 'textarea' ||
-		(includeButton && tagName === 'button') ||
+		(includeButtonsAndMenus && tagName === 'select') ||
+		(includeButtonsAndMenus && tagName === 'button') ||
 		el.classList.contains('tlui-slider__thumb')
 	)
 }
 
 /** @internal */
-export function activeElementShouldCaptureKeys(includeButton = true) {
-	return elementShouldCaptureKeys(document.activeElement, includeButton)
+export function activeElementShouldCaptureKeys(includeButtonsAndMenus = true) {
+	return elementShouldCaptureKeys(document.activeElement, includeButtonsAndMenus)
 }
