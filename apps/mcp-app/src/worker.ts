@@ -22,7 +22,7 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from './shared/types'
-import { parseTlShapes, resolveMcpAppHostName } from './shared/utils'
+import { parseTlShapes, resolveMcpAppHostNameFromServerInfo } from './shared/utils'
 
 // --- Types ---
 
@@ -85,7 +85,7 @@ export class TldrawMCP extends McpAgent<Env> {
 	async init() {
 		this.server.server.oninitialized = () => {
 			const clientInfo = this.server.server.getClientVersion()
-			const resolved = resolveMcpAppHostName(clientInfo?.name ?? '')
+			const resolved = resolveMcpAppHostNameFromServerInfo(clientInfo?.name ?? '')
 			if (resolved) {
 				this.clientHostName = resolved
 				void this

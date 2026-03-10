@@ -591,7 +591,7 @@ export function registerTools(
 			const sid = deps.getSessionId()
 			const hostName = opts.getClientHostName()
 
-			const bootstrap: Record<string, unknown> = { sessionId: sid, hostName }
+			const bootstrap: Record<string, unknown> = { sessionId: sid }
 			if (activeId) {
 				const checkpoint = deps.loadCheckpoint(activeId)
 				if (checkpoint) {

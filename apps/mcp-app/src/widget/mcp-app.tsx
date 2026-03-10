@@ -1,4 +1,4 @@
-import { type App, useApp } from '@modelcontextprotocol/ext-apps/react'
+import { type App, McpUiDisplayMode, useApp } from '@modelcontextprotocol/ext-apps/react'
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
@@ -25,9 +25,8 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from '../shared/types'
-import { isHostCodeEditor } from '../shared/utils'
+import { isHostCodeEditor, resolveMcpAppHostNameFromClientInfo } from '../shared/utils'
 import { McpAppContext } from './app-context'
-import { log } from './debug'
 import { exportTldr } from './export-tldr'
 import { ImageDropGuard, uiOverrides } from './image-guard'
 import {
@@ -149,9 +148,11 @@ const tldrawComponents: TLComponents = {
 }
 
 function TldrawCanvas({ app }: { app: App }) {
-	const [displayMode, setDisplayMode] = useState<'inline' | 'fullscreen'>('inline')
+	const [displayMode, setDisplayMode] =
+		useState<Extract<McpUiDisplayMode, 'inline' | 'fullscreen'>>('inline')
 	const [containerHeight, setContainerHeight] = useState<number | null>(null)
 	const [lastEditor, setLastEditor] = useState<'user' | 'ai'>('ai')
+	const [hostContext, setHostContext] = useState(() => app.getHostContext())
 	const editorRef = useRef<Editor | null>(null)
 
 	const pendingSnapshotRef = useRef<CanvasSnapshot | null>(null)
@@ -166,25 +167,35 @@ function TldrawCanvas({ app }: { app: App }) {
 	const hasUserEditedSinceAiRef = useRef(false)
 	const lastEditorRef = useRef<'user' | 'ai'>('ai')
 
-	const mcpAppHostContext = useMemo(() => {
-		return app.getHostContext()
-	}, [app])
-
 	const hostCapabilities = useMemo(() => {
 		return app.getHostCapabilities()
 	}, [app])
 
+	const hostInfo = useMemo(() => {
+		return app.getHostVersion()
+	}, [app])
+
+	const isMobilePlatform = hostContext?.platform === 'mobile'
+
 	const canFullscreen = useMemo(() => {
-		const modes = mcpAppHostContext?.availableDisplayModes
+		if (isMobilePlatform) return false
+		const modes = hostContext?.availableDisplayModes
 		if (!modes) return false
 		return modes.includes('fullscreen')
-	}, [mcpAppHostContext])
+	}, [hostContext, isMobilePlatform])
 
 	const canDownload = useMemo(() => {
 		return !!hostCapabilities?.downloadFile
 	}, [hostCapabilities])
 
 	const [hostName, setHostName] = useState<MCP_APP_HOST_NAMES | null>(null)
+
+	useEffect(() => {
+		const resolved = resolveMcpAppHostNameFromClientInfo(hostInfo?.name ?? '')
+		if (resolved) {
+			setHostName(resolved)
+		}
+	}, [hostInfo])
 
 	const markAiActivity = useCallback(() => {
 		hasUserEditedSinceAiRef.current = false
@@ -204,6 +215,9 @@ function TldrawCanvas({ app }: { app: App }) {
 
 	const toggleFullscreen = useCallback(async () => {
 		const newMode = displayMode === 'fullscreen' ? 'inline' : 'fullscreen'
+		if (newMode === 'fullscreen' && (isMobilePlatform || !canFullscreen)) {
+			return
+		}
 
 		// Sync current editor state before leaving fullscreen
 		if (newMode === 'inline') {
@@ -226,11 +240,10 @@ function TldrawCanvas({ app }: { app: App }) {
 			const result = await app.requestDisplayMode({ mode: newMode })
 			const actualMode = result.mode === 'fullscreen' ? 'fullscreen' : 'inline'
 			setDisplayMode(actualMode)
-			log(`Display mode: ${actualMode}`)
-		} catch (err) {
-			log(`Display mode change failed: ${err instanceof Error ? err.message : err}`)
+		} catch {
+			return
 		}
-	}, [app, displayMode])
+	}, [app, canFullscreen, displayMode, isMobilePlatform])
 
 	const mcpAppCtx = useMemo(
 		() => ({
@@ -245,7 +258,7 @@ function TldrawCanvas({ app }: { app: App }) {
 		[displayMode, toggleFullscreen, canFullscreen, canDownload, app, lastEditor, hostName]
 	)
 
-	const renderPreviewSnapshot = useCallback((previewSnapshot: CanvasSnapshot, summary: string) => {
+	const renderPreviewSnapshot = useCallback((previewSnapshot: CanvasSnapshot) => {
 		previewActiveRef.current = true
 
 		const editor = editorRef.current
@@ -256,7 +269,6 @@ function TldrawCanvas({ app }: { app: App }) {
 
 		applyPreviewToEditor(editor, previewSnapshot, committedSnapshotRef.current)
 		zoomToFitRequestShapes(editor, requestShapeIdsRef.current)
-		log(summary)
 	}, [])
 
 	const renderPreviewShapes = useCallback(
@@ -284,17 +296,12 @@ function TldrawCanvas({ app }: { app: App }) {
 				assets: [],
 				bindings: previewBindings,
 			}
-			renderPreviewSnapshot(
-				previewSnapshot,
-				mode === 'create' && createFromBlank
-					? `Applied create preview on blank canvas (${previewShapes.length} shape(s))`
-					: `Applied ${mode} preview (${previewShapes.length} shape(s))`
-			)
+			renderPreviewSnapshot(previewSnapshot)
 		},
 		[renderPreviewSnapshot]
 	)
 
-	const clearPreviewAndRestoreCommitted = useCallback((reason: string) => {
+	const clearPreviewAndRestoreCommitted = useCallback(() => {
 		if (!previewActiveRef.current) return
 		previewActiveRef.current = false
 		createFromBlankPreviewRef.current = false
@@ -303,7 +310,6 @@ function TldrawCanvas({ app }: { app: App }) {
 		if (editor) {
 			applySnapshot(editor, committedSnapshotRef.current)
 		}
-		log(`Cleared stream preview (${reason})`)
 	}, [])
 
 	const scheduleSave = useCallback(() => {
@@ -394,17 +400,13 @@ function TldrawCanvas({ app }: { app: App }) {
 			)
 			if (!deletePreviewSnapshot) return
 
-			const deletedCount = liveForDelete.shapes.length - deletePreviewSnapshot.shapes.length
-			renderPreviewSnapshot(
-				deletePreviewSnapshot,
-				`Applied delete preview (${deletedCount} shape(s))`
-			)
+			renderPreviewSnapshot(deletePreviewSnapshot)
 		},
 		[app, markAiActivity, renderPreviewShapes, renderPreviewSnapshot]
 	)
 
 	useEffect(() => {
-		log('TldrawCanvas mounted')
+		setHostContext(app.getHostContext())
 
 		// Sync bootstrap: read session ID + checkpoint data embedded in the HTML
 		// by the resource handler. This avoids async callServerTool on mount which
@@ -412,11 +414,6 @@ function TldrawCanvas({ app }: { app: App }) {
 		const bootstrap = getEmbeddedBootstrap()
 		if (bootstrap) {
 			setCurrentSessionId(bootstrap.sessionId)
-			log(`Session ID set: ${bootstrap.sessionId}`)
-			if (bootstrap.hostName) {
-				setHostName(bootstrap.hostName)
-				log(`hostName (from bootstrap): ${bootstrap.hostName}`)
-			}
 
 			if (bootstrap.snapshot && bootstrap.snapshot.shapes.length > 0) {
 				// Don't overwrite if a tool result already committed shapes
@@ -436,7 +433,6 @@ function TldrawCanvas({ app }: { app: App }) {
 					} else {
 						pendingSnapshotRef.current = snapshot
 					}
-					log(`Bootstrapped ${snapshot.shapes.length} shape(s) from embedded data`)
 				}
 			} else {
 				// No embedded snapshot — try session-scoped localStorage
@@ -453,13 +449,12 @@ function TldrawCanvas({ app }: { app: App }) {
 					} else {
 						pendingSnapshotRef.current = latestSnapshot
 					}
-					log(`Bootstrapped ${latestSnapshot.shapes.length} shape(s) from session localStorage`)
 				}
 			}
 		}
 
 		app.onhostcontextchanged = (ctx) => {
-			log(`updated hostcontext: ${JSON.stringify(ctx)}`)
+			setHostContext(app.getHostContext() ?? ctx)
 
 			const dims = ctx.containerDimensions
 			if (dims && 'height' in dims) {
@@ -488,12 +483,10 @@ function TldrawCanvas({ app }: { app: App }) {
 				}
 
 				setDisplayMode(newMode)
-				log(`Display mode from host context: ${newMode}`)
 			}
 		}
 
 		app.onteardown = async () => {
-			log('onteardown called')
 			return {}
 		}
 
@@ -545,7 +538,6 @@ function TldrawCanvas({ app }: { app: App }) {
 			if (!localSnapshot && action === 'create' && !hadBaseShapes && !newBlankCanvas) {
 				const latestSnapshot = getLatestCheckpointSnapshot()
 				if (latestSnapshot && latestSnapshot.shapes.length > 0) {
-					log(`Server had no base shapes — merging locally from latest checkpoint`)
 					finalShapes = mergeShapesById(latestSnapshot.shapes, resultShapes)
 					// Merge assets too
 					const assetMap = new Map(latestSnapshot.assets.map((a) => [a.id, a]))
@@ -570,7 +562,6 @@ function TldrawCanvas({ app }: { app: App }) {
 			if (!editor) {
 				pendingSnapshotRef.current = snapshot
 				requestShapeIdsRef.current = new Set<TLShapeId>()
-				log(`Queued checkpoint ${checkpointId} (editor not ready)`)
 				return
 			}
 
@@ -600,14 +591,10 @@ function TldrawCanvas({ app }: { app: App }) {
 			saveCheckpointToServer(app, checkpointId, editor)
 
 			pushCanvasContext(app, editor)
-			log(
-				`Applied checkpoint ${checkpointId} (${finalShapes.length} shapes, ${finalAssets.length} assets)`
-			)
 		}
 
-		app.ontoolcancelled = (params) => {
-			const reason = params.reason ?? 'tool cancelled'
-			clearPreviewAndRestoreCommitted(reason)
+		app.ontoolcancelled = (_params) => {
+			clearPreviewAndRestoreCommitted()
 			requestShapeIdsRef.current = new Set<TLShapeId>()
 			markAiActivity()
 		}
@@ -619,9 +606,20 @@ function TldrawCanvas({ app }: { app: App }) {
 			}
 			removeStoreListenerRef.current?.()
 			removeStoreListenerRef.current = null
-			log('TldrawCanvas unmounted!')
 		}
 	}, [app, applyPreviewFromToolInput, clearPreviewAndRestoreCommitted, markAiActivity])
+
+	useEffect(() => {
+		if (!isMobilePlatform || displayMode !== 'fullscreen') return
+
+		void app
+			.requestDisplayMode({ mode: 'inline' })
+			.then((result) => {
+				const actualMode = result.mode === 'fullscreen' ? 'fullscreen' : 'inline'
+				setDisplayMode(actualMode)
+			})
+			.catch(() => {})
+	}, [app, displayMode, isMobilePlatform])
 
 	// Set explicit height on html/body in fullscreen
 	useEffect(() => {
@@ -637,7 +635,6 @@ function TldrawCanvas({ app }: { app: App }) {
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
-			log('Tldraw editor onMount fired')
 			editorRef.current = editor
 
 			removeStoreListenerRef.current?.()
@@ -675,7 +672,6 @@ function TldrawCanvas({ app }: { app: App }) {
 			if (pendingSnapshot) {
 				pendingSnapshotRef.current = null
 				applySnapshot(editor, pendingSnapshot)
-				log(`Applied pending checkpoint snapshot`)
 			}
 
 			const pendingPreviewSnapshot = pendingPreviewSnapshotRef.current
@@ -725,11 +721,6 @@ function TldrawCanvas({ app }: { app: App }) {
 }
 
 function McpApp() {
-	const handleAppCreated = useCallback((instance: App) => {
-		log('App created via useApp')
-		instance.onerror = (err) => log(`App.onerror: ${err}`)
-	}, [])
-
 	const { app, isConnected, error } = useApp({
 		appInfo: {
 			name: MCP_SERVER_NAME,
@@ -741,17 +732,7 @@ function McpApp() {
 		capabilities: {
 			availableDisplayModes: ['fullscreen', 'inline'],
 		},
-		onAppCreated: handleAppCreated,
 	})
-
-	useEffect(() => {
-		if (!app || !isConnected) return
-		log('Connected!')
-
-		return () => {
-			log('McpApp cleanup')
-		}
-	}, [app, isConnected])
 
 	const status = isConnected ? 'ready' : 'connecting'
 
