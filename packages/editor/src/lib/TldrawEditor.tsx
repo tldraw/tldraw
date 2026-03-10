@@ -405,6 +405,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	return <TldrawEditorWithReadyStore {...rest} store={store.store} user={user} />
 })
 
+// eslint-disable-next-line no-restricted-globals
 const noAutoFocus = () => document.location.search.includes('tldraw_preserve_focus') // || !document.hasFocus() // breaks in nextjs
 
 function TldrawEditorWithReadyStore({
@@ -572,12 +573,13 @@ function TldrawEditorWithReadyStore({
 			}
 
 			if (autoFocus && noAutoFocus()) {
-				editor.getContainer().addEventListener('pointerdown', handleFocusOnPointerDown)
-				document.body.addEventListener('pointerdown', handleBlurOnPointerDown)
+				const container = editor.getContainer()
+				container.addEventListener('pointerdown', handleFocusOnPointerDown)
+				container.ownerDocument.body.addEventListener('pointerdown', handleBlurOnPointerDown)
 
 				return () => {
-					editor.getContainer()?.removeEventListener('pointerdown', handleFocusOnPointerDown)
-					document.body.removeEventListener('pointerdown', handleBlurOnPointerDown)
+					container.removeEventListener('pointerdown', handleFocusOnPointerDown)
+					container.ownerDocument.body.removeEventListener('pointerdown', handleBlurOnPointerDown)
 				}
 			}
 		},

@@ -154,7 +154,9 @@ function getRandomColor() {
 
 /** @internal */
 export function userPrefersReducedMotion() {
+	// eslint-disable-next-line no-restricted-syntax
 	if (typeof window !== 'undefined' && window.matchMedia) {
+		// eslint-disable-next-line no-restricted-syntax
 		return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
 	}
 

@@ -230,6 +230,7 @@ export function ClipboardMenuGroup() {
 
 /** @public @react */
 export function CopyAsMenuGroup() {
+	const editor = useEditor()
 	const atLeastOneShapeOnPage = useHasShapesOnPage()
 
 	return (
@@ -241,7 +242,7 @@ export function CopyAsMenuGroup() {
 		>
 			<TldrawUiMenuGroup id="copy-as-group">
 				<TldrawUiMenuActionItem actionId="copy-as-svg" />
-				{Boolean(window.navigator.clipboard?.write) && (
+				{Boolean(editor.getContainerWindow().navigator.clipboard?.write) && (
 					<TldrawUiMenuActionItem actionId="copy-as-png" />
 				)}
 			</TldrawUiMenuGroup>

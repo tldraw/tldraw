@@ -37,10 +37,11 @@ function iOS() {
 	if (!window) return false
 	return (
 		['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			// eslint-disable-next-line @typescript-eslint/no-deprecated, no-restricted-syntax
 			window.navigator.platform
 		) ||
 		// iPad on iOS 13 detection
+		// eslint-disable-next-line no-restricted-globals
 		(tlenv.isDarwin && 'ontouchend' in document)
 	)
 }
@@ -69,6 +70,7 @@ if (window) {
 	}
 }
 
+// eslint-disable-next-line no-restricted-syntax
 window?.addEventListener('beforeunload', () => {
 	setInSessionStorage(tabIdKey, TAB_ID)
 })

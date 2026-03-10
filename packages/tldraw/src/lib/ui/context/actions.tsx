@@ -1766,7 +1766,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							const resp = await fetch(url)
 							if (!resp.ok) throw new Error(`Failed to fetch asset: ${resp.status}`)
 							const blob = await resp.blob()
-							downloadFile(new File([blob], name, { type: blob.type }))
+							downloadFile(
+								new File([blob], name, { type: blob.type }),
+								editor.getContainerDocument()
+							)
 						} catch {
 							// Fallback: open in new tab (e.g. if CORS blocked)
 							openWindow(url, '_blank')

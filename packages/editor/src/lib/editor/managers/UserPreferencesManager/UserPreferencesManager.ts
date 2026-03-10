@@ -13,8 +13,10 @@ export class UserPreferencesManager {
 		private readonly user: TLUser,
 		private readonly inferDarkMode: boolean
 	) {
+		// eslint-disable-next-line no-restricted-syntax
 		if (typeof window === 'undefined' || !window.matchMedia) return
 
+		// eslint-disable-next-line no-restricted-syntax
 		const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 		if (darkModeMediaQuery?.matches) {
 			this.systemColorScheme.set('dark')

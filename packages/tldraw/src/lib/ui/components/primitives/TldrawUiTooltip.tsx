@@ -229,6 +229,8 @@ function TooltipSingleton() {
 	}, [cameraState, isOpen, currentTooltip, editor])
 
 	useEffect(() => {
+		// eslint-disable-next-line no-restricted-globals
+		const doc = editor?.getContainerDocument() ?? document
 		function handleKeyDown(event: KeyboardEvent) {
 			if (event.key === 'Escape' && currentTooltip && isOpen) {
 				hideAllTooltips()
@@ -236,14 +238,16 @@ function TooltipSingleton() {
 			}
 		}
 
-		document.addEventListener('keydown', handleKeyDown, { capture: true })
+		doc.addEventListener('keydown', handleKeyDown, { capture: true })
 		return () => {
-			document.removeEventListener('keydown', handleKeyDown, { capture: true })
+			doc.removeEventListener('keydown', handleKeyDown, { capture: true })
 		}
-	}, [currentTooltip, isOpen])
+	}, [editor, currentTooltip, isOpen])
 
 	// Hide tooltip and prevent new ones from opening while pointer is down
 	useEffect(() => {
+		// eslint-disable-next-line no-restricted-globals
+		const doc = editor?.getContainerDocument() ?? document
 		function handlePointerDown() {
 			tooltipManager.handleEvent({ type: 'pointer_down' })
 		}
@@ -252,17 +256,17 @@ function TooltipSingleton() {
 			tooltipManager.handleEvent({ type: 'pointer_up' })
 		}
 
-		document.addEventListener('pointerdown', handlePointerDown, { capture: true })
-		document.addEventListener('pointerup', handlePointerUp, { capture: true })
-		document.addEventListener('pointercancel', handlePointerUp, { capture: true })
+		doc.addEventListener('pointerdown', handlePointerDown, { capture: true })
+		doc.addEventListener('pointerup', handlePointerUp, { capture: true })
+		doc.addEventListener('pointercancel', handlePointerUp, { capture: true })
 		return () => {
-			document.removeEventListener('pointerdown', handlePointerDown, { capture: true })
-			document.removeEventListener('pointerup', handlePointerUp, { capture: true })
-			document.removeEventListener('pointercancel', handlePointerUp, { capture: true })
+			doc.removeEventListener('pointerdown', handlePointerDown, { capture: true })
+			doc.removeEventListener('pointerup', handlePointerUp, { capture: true })
+			doc.removeEventListener('pointercancel', handlePointerUp, { capture: true })
 			// Reset pointer state on unmount to prevent stuck state
 			tooltipManager.handleEvent({ type: 'pointer_up' })
 		}
-	}, [])
+	}, [editor])
 
 	// Update open state and trigger position
 	useEffect(() => {
