@@ -2772,6 +2772,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getCamera().z
 	}
 
+	/**
+	 * Get the scale factor used when creating or resizing shapes in dynamic size mode.
+	 *
+	 * @public
+	 */
+	@computed getResizeScaleFactor() {
+		return this.user.getIsDynamicResizeMode() ? 1 / this.getZoomLevel() : 1
+	}
+
 	private _debouncedZoomLevel = atom('debounced zoom level', 1)
 
 	/**
