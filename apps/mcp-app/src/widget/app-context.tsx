@@ -10,6 +10,10 @@ export const McpAppContext = createContext<{
 	app: App | null
 	lastEditor: 'user' | 'ai'
 	hostName: MCP_APP_HOST_NAMES | null
+	isDev: boolean
+	isDevLogVisible: boolean
+	toggleDevLog: (() => void) | null
+	appendDevLog: ((message: string) => void) | null
 }>({
 	displayMode: 'inline',
 	toggleFullscreen: null,
@@ -18,4 +22,8 @@ export const McpAppContext = createContext<{
 	app: null,
 	lastEditor: 'ai',
 	hostName: null,
+	isDev: false,
+	isDevLogVisible: false,
+	toggleDevLog: null,
+	appendDevLog: null,
 })

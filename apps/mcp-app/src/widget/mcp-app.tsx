@@ -55,6 +55,9 @@ const LICENSE_KEY = import.meta.env.VITE_TLDRAW_LICENSE_KEY as string
 
 const EDITOR_HEIGHT = 600
 const SAVE_DEBOUNCE_MS = 500
+const MAX_DEV_LOG_ENTRIES = 200
+const DEV_LOG_PANEL_HEIGHT = 140
+const DEV_LOG_PANEL_GAP = 8
 
 function SharePanelContent() {
 	const editor = useEditor()
@@ -62,6 +65,7 @@ function SharePanelContent() {
 
 	const { displayMode, toggleFullscreen, canFullscreen, canDownload, app, lastEditor, hostName } =
 		useContext(McpAppContext)
+	const { isDev, isDevLogVisible, toggleDevLog } = useContext(McpAppContext)
 
 	const isCodeEditor = useMemo(() => {
 		if (!hostName) return false
@@ -103,6 +107,15 @@ function SharePanelContent() {
 					title={displayMode === 'fullscreen' ? 'Exit fullscreen' : 'Enter fullscreen'}
 				>
 					{displayMode === 'fullscreen' ? 'Exit fullscreen' : 'Fullscreen'}
+				</button>
+			)}
+			{isDev && toggleDevLog && (
+				<button
+					className="tlui-button tlui-button__low"
+					onClick={toggleDevLog}
+					title={isDevLogVisible ? 'Hide dev log' : 'Show dev log'}
+				>
+					{isDevLogVisible ? 'Hide dev log' : 'Show dev log'}
 				</button>
 			)}
 			{isCodeEditor && app && (
@@ -152,6 +165,9 @@ function TldrawCanvas({ app }: { app: App }) {
 		useState<Extract<McpUiDisplayMode, 'inline' | 'fullscreen'>>('inline')
 	const [containerHeight, setContainerHeight] = useState<number | null>(null)
 	const [lastEditor, setLastEditor] = useState<'user' | 'ai'>('ai')
+	const [isDev, setIsDev] = useState(false)
+	const [isDevLogVisible, setIsDevLogVisible] = useState(false)
+	const [devLogEntries, setDevLogEntries] = useState<string[]>([])
 	const [hostContext, setHostContext] = useState(() => app.getHostContext())
 	const editorRef = useRef<Editor | null>(null)
 
@@ -189,6 +205,11 @@ function TldrawCanvas({ app }: { app: App }) {
 	}, [hostCapabilities])
 
 	const [hostName, setHostName] = useState<MCP_APP_HOST_NAMES | null>(null)
+	const devLogPanelHeight = isDev && isDevLogVisible ? DEV_LOG_PANEL_HEIGHT : 0
+	const inlineCanvasHeight =
+		devLogPanelHeight > 0
+			? Math.max(EDITOR_HEIGHT - devLogPanelHeight - DEV_LOG_PANEL_GAP, 240)
+			: EDITOR_HEIGHT
 
 	useEffect(() => {
 		const resolved = resolveMcpAppHostNameFromClientInfo(hostInfo?.name ?? '')
@@ -211,6 +232,19 @@ function TldrawCanvas({ app }: { app: App }) {
 			lastEditorRef.current = 'user'
 			setLastEditor('user')
 		}
+	}, [])
+
+	const appendDevLog = useCallback((message: string) => {
+		if (!message) return
+		setDevLogEntries((entries) => {
+			const timestamp = new Date().toLocaleTimeString()
+			const nextEntries = [...entries, `[${timestamp}] ${message}`]
+			return nextEntries.slice(-MAX_DEV_LOG_ENTRIES)
+		})
+	}, [])
+
+	const toggleDevLog = useCallback(() => {
+		setIsDevLogVisible((visible) => !visible)
 	}, [])
 
 	const toggleFullscreen = useCallback(async () => {
@@ -254,8 +288,24 @@ function TldrawCanvas({ app }: { app: App }) {
 			app,
 			lastEditor,
 			hostName,
+			isDev,
+			isDevLogVisible,
+			toggleDevLog,
+			appendDevLog,
 		}),
-		[displayMode, toggleFullscreen, canFullscreen, canDownload, app, lastEditor, hostName]
+		[
+			displayMode,
+			toggleFullscreen,
+			canFullscreen,
+			canDownload,
+			app,
+			lastEditor,
+			hostName,
+			isDev,
+			isDevLogVisible,
+			toggleDevLog,
+			appendDevLog,
+		]
 	)
 
 	const renderPreviewSnapshot = useCallback((previewSnapshot: CanvasSnapshot) => {
@@ -414,6 +464,13 @@ function TldrawCanvas({ app }: { app: App }) {
 		const bootstrap = getEmbeddedBootstrap()
 		if (bootstrap) {
 			setCurrentSessionId(bootstrap.sessionId)
+			setIsDev(bootstrap.isDev)
+			if (bootstrap.isDev) {
+				setIsDevLogVisible(true)
+			}
+			appendDevLog(
+				`Bootstrap loaded for session ${bootstrap.sessionId}${bootstrap.isDev ? ' (dev mode)' : ''}`
+			)
 
 			if (bootstrap.snapshot && bootstrap.snapshot.shapes.length > 0) {
 				// Don't overwrite if a tool result already committed shapes
@@ -426,6 +483,9 @@ function TldrawCanvas({ app }: { app: App }) {
 					committedSnapshotRef.current = snapshot
 					if (bootstrap.checkpointId) {
 						checkpointIdRef.current = bootstrap.checkpointId
+						appendDevLog(
+							`Restored embedded checkpoint ${bootstrap.checkpointId} with ${bootstrap.snapshot.shapes.length} shape(s)`
+						)
 					}
 					const editor = editorRef.current
 					if (editor) {
@@ -442,6 +502,9 @@ function TldrawCanvas({ app }: { app: App }) {
 					latestSnapshot.shapes.length > 0 &&
 					committedSnapshotRef.current.shapes.length === 0
 				) {
+					appendDevLog(
+						`Restored latest local snapshot with ${latestSnapshot.shapes.length} shape(s)`
+					)
 					committedSnapshotRef.current = latestSnapshot
 					const editor = editorRef.current
 					if (editor) {
@@ -491,16 +554,19 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		app.ontoolinputpartial = (input) => {
+			appendDevLog(`Received partial tool input: ${JSON.stringify(input)}`)
 			applyPreviewFromToolInput(input, true)
 		}
 
 		app.ontoolinput = (input) => {
+			appendDevLog(`Received tool input: ${JSON.stringify(input)}`)
 			applyPreviewFromToolInput(input, false)
 		}
 
 		app.ontoolresult = (result) => {
 			const checkpoint = parseCheckpointFromToolResult(result)
 			if (!checkpoint) return
+			appendDevLog(`Received tool result for checkpoint ${checkpoint.checkpointId}`)
 			markAiActivity()
 
 			const {
@@ -597,6 +663,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			clearPreviewAndRestoreCommitted()
 			requestShapeIdsRef.current = new Set<TLShapeId>()
 			markAiActivity()
+			appendDevLog('Tool invocation cancelled')
 		}
 
 		return () => {
@@ -607,7 +674,13 @@ function TldrawCanvas({ app }: { app: App }) {
 			removeStoreListenerRef.current?.()
 			removeStoreListenerRef.current = null
 		}
-	}, [app, applyPreviewFromToolInput, clearPreviewAndRestoreCommitted, markAiActivity])
+	}, [
+		app,
+		appendDevLog,
+		applyPreviewFromToolInput,
+		clearPreviewAndRestoreCommitted,
+		markAiActivity,
+	])
 
 	useEffect(() => {
 		if (!isMobilePlatform || displayMode !== 'fullscreen') return
@@ -699,22 +772,62 @@ function TldrawCanvas({ app }: { app: App }) {
 								bottom: 0,
 								zIndex: 9999,
 								background: '#fff',
+								display: 'flex',
+								flexDirection: 'column',
 							}
 						: {
 								width: '100%',
+								display: 'flex',
+								flexDirection: 'column',
 								height: EDITOR_HEIGHT,
-								position: 'relative',
+								gap: DEV_LOG_PANEL_GAP,
 							}
 				}
 			>
-				<Tldraw
-					licenseKey={LICENSE_KEY}
-					onMount={handleMount}
-					components={tldrawComponents}
-					overrides={uiOverrides}
+				<div
+					style={
+						isFullscreen
+							? {
+									position: 'relative',
+									flex: 1,
+									minHeight: 0,
+								}
+							: {
+									width: '100%',
+									height: inlineCanvasHeight,
+									position: 'relative',
+								}
+					}
 				>
-					<ImageDropGuard />
-				</Tldraw>
+					<Tldraw
+						licenseKey={LICENSE_KEY}
+						onMount={handleMount}
+						components={tldrawComponents}
+						overrides={uiOverrides}
+					>
+						<ImageDropGuard />
+					</Tldraw>
+				</div>
+				{isDev && isDevLogVisible && (
+					<div
+						style={{
+							flex: isFullscreen ? '0 0 160px' : undefined,
+							minHeight: 80,
+							maxHeight: isFullscreen ? 200 : DEV_LOG_PANEL_HEIGHT,
+							overflow: 'auto',
+							padding: 12,
+							border: '1px solid var(--tl-color-muted-2)',
+							borderRadius: 8,
+							background: 'var(--tl-color-panel)',
+							fontFamily: 'monospace',
+							fontSize: 12,
+							lineHeight: 1.5,
+							whiteSpace: 'pre-wrap',
+						}}
+					>
+						{devLogEntries.length > 0 ? devLogEntries.join('\n') : 'Dev log ready.'}
+					</div>
+				)}
 			</div>
 		</McpAppContext.Provider>
 	)

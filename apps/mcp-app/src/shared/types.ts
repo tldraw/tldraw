@@ -20,7 +20,7 @@ export interface RegisterToolsOptions {
 	extraConnectDomains?: string[]
 	/** Public origin of the deployed MCP worker, used for host-specific widget domains. */
 	workerOrigin?: string
-	/** When true, suppresses `ui.domain` on the canvas resource (required for local connectors). */
+	/** Flag so the tools, and thus the widget, know if they are running in dev mode. */
 	isDev: boolean
 	/** Logging function (defaults to console.error). */
 	log?(...args: unknown[]): void
