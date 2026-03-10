@@ -130,7 +130,7 @@ export class TextManager {
 	}
 
 	/** Reset an element's styles back to the initial defaults. */
-	private resetMeasureStyles(el: HTMLElement) {
+	private resetMeasureStyles(el: HTMLElement, opts?: TLMeasureTextOpts) {
 		for (const key of objectMapKeys(initialDefaultStyles)) {
 			el.style.setProperty(key, initialDefaultStyles[key])
 		}
@@ -141,6 +141,12 @@ export class TextManager {
 		el.style.removeProperty('font-size')
 		el.style.removeProperty('line-height')
 		el.style.removeProperty('padding')
+		// Reset any otherStyles that were applied
+		if (opts?.otherStyles) {
+			for (const key of objectMapKeys(opts.otherStyles)) {
+				el.style.removeProperty(key)
+			}
+		}
 	}
 
 	dispose() {
@@ -214,7 +220,7 @@ export class TextManager {
 
 		// Reset phase: clean up styles on used elements to avoid leaking
 		for (let i = 0; i < requests.length; i++) {
-			this.resetMeasureStyles(this.getPoolElm(i))
+			this.resetMeasureStyles(this.getPoolElm(i), requests[i].opts)
 		}
 
 		// Trim the pool: remove excess elements beyond what was needed
