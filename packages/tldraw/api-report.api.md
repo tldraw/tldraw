@@ -3314,6 +3314,7 @@ export function TldrawArrowHints(): JSX.Element | null;
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
     assetUrls?: TLUiAssetUrlOverrides;
     components?: TLComponents;
+    // @deprecated
     embeds?: TLEmbedDefinition[];
     // @deprecated
     textOptions?: TLTextOptions;
