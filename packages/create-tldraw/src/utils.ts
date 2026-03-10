@@ -1,5 +1,5 @@
 import { isCancel, outro } from '@clack/prompts'
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync, lstatSync, readdirSync } from 'node:fs'
 import { basename, resolve } from 'node:path'
 
 export function nicelog(...args: unknown[]) {
@@ -10,6 +10,10 @@ export function nicelog(...args: unknown[]) {
 export function isDirEmpty(path: string) {
 	if (!existsSync(path)) {
 		return true
+	}
+
+	if (!lstatSync(path).isDirectory()) {
+		return false
 	}
 
 	const files = readdirSync(path)
