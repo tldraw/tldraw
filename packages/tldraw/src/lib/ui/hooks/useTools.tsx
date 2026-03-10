@@ -154,7 +154,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					})
 				},
 				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
-					const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
+					const scale = editor.getResizeScaleFactor()
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) =>
 							editor.createShape({
@@ -176,7 +176,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onToolSelect(source, this)
 				},
 				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
-					const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
+					const scale = editor.getResizeScaleFactor()
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) =>
 							editor.createShape({
@@ -198,7 +198,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onToolSelect(source, this)
 				},
 				onDragStart(source, info) {
-					const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
+					const scale = editor.getResizeScaleFactor()
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const [start, end] = getIndicesBetween(null, null, 2)
@@ -228,7 +228,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onToolSelect(source, this)
 				},
 				onDragStart(source, info) {
-					const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
+					const scale = editor.getResizeScaleFactor()
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) =>
 							editor.createShape({
@@ -250,7 +250,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onToolSelect(source, this)
 				},
 				onDragStart(source, info) {
-					const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
+					const scale = editor.getResizeScaleFactor()
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) =>
 							editor.createShape({
@@ -285,7 +285,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onToolSelect(source, this)
 				},
 				onDragStart(source, info) {
-					const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
+					const scale = editor.getResizeScaleFactor()
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => editor.createShape({ id, type: 'note', props: { scale } }),
 						onDragEnd: (id) => {
