@@ -37,7 +37,7 @@ export const TldrawUiButton = React.forwardRef<HTMLButtonElement, TLUiButtonProp
 					namedClassNamesSoThatICanGrepForThis[type],
 					props.className
 				)}
-				aria-label={props.title}
+				aria-label={props['aria-label'] ?? props.title}
 				// The tooltip takes care of this.
 				title={tooltip ? undefined : props.title}
 			>
