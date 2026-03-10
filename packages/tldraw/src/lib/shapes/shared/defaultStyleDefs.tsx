@@ -68,6 +68,7 @@ const generateImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
 	return new Promise<Blob>((resolve, reject) => {
 		const size = TILE_PATTERN_SIZE * currentZoom * dpr
 
+		// eslint-disable-next-line no-restricted-globals
 		const canvasEl = document.createElement('canvas')
 		canvasEl.width = size
 		canvasEl.height = size
@@ -111,6 +112,7 @@ const generateImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
 }
 
 const canvasBlob = (size: [number, number], fn: (ctx: CanvasRenderingContext2D) => void) => {
+	// eslint-disable-next-line no-restricted-globals
 	const canvas = document.createElement('canvas')
 	canvas.width = size[0]
 	canvas.height = size[1]

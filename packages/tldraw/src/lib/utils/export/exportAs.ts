@@ -39,7 +39,7 @@ export async function exportAs(
 
 	const { blob } = await editor.toImage(ids, opts)
 	const file = new File([blob], name, { type: blob.type })
-	downloadFile(file)
+	downloadFile(file, editor.getContainerDocument())
 }
 
 function getTimestamp() {
@@ -56,8 +56,9 @@ function getTimestamp() {
 }
 
 /** @internal */
-export function downloadFile(file: File) {
-	const link = document.createElement('a')
+// eslint-disable-next-line no-restricted-globals
+export function downloadFile(file: File, doc: Document = document) {
+	const link = doc.createElement('a')
 	const url = URL.createObjectURL(file)
 	link.href = url
 	link.download = file.name

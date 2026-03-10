@@ -274,9 +274,10 @@ export function OverflowingToolbar({
 			}
 		}
 
-		document.addEventListener('keydown', handleKeyDown)
+		const doc = editor.getContainerDocument()
+		doc.addEventListener('keydown', handleKeyDown)
 		return () => {
-			document.removeEventListener('keydown', handleKeyDown)
+			doc.removeEventListener('keydown', handleKeyDown)
 		}
 	}, [editor])
 

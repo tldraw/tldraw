@@ -3,6 +3,7 @@ import { noop } from '@tldraw/utils'
 import classNames from 'classnames'
 import { ComponentType, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Editor } from '../../editor/Editor'
+import { getOwnerDocument } from '../../exports/domUtils'
 import { useEditorComponents } from '../../hooks/EditorComponentsContext'
 import { EditorProvider } from '../../hooks/useEditor'
 import { hardResetEditor, refreshPage } from '../../utils/runtime'
@@ -74,7 +75,9 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 
 		// if we can't find a theme class from the app or from a parent, we have
 		// to fall back on using a media query:
+		// eslint-disable-next-line no-restricted-syntax
 		if (typeof window !== 'undefined' && window.matchMedia) {
+			// eslint-disable-next-line no-restricted-syntax
 			setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches)
 		}
 	}, [isDarkModeFromApp])
@@ -89,12 +92,13 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 	}, [didCopy, editor])
 
 	const copyError = () => {
-		const textarea = document.createElement('textarea')
+		const doc = getOwnerDocument(containerRef.current)
+		const textarea = doc.createElement('textarea')
 		textarea.value = errorStack ?? errorMessage
-		document.body.appendChild(textarea)
+		doc.body.appendChild(textarea)
 		textarea.select()
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		document.execCommand('copy')
+		doc.execCommand('copy')
 		textarea.remove()
 		setDidCopy(true)
 	}

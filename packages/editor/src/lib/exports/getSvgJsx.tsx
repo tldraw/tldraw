@@ -37,7 +37,8 @@ import { Mat } from '../primitives/Mat'
 import { ExportDelay } from './ExportDelay'
 
 export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions = {}) {
-	if (!window.document) throw Error('No document')
+	const editorDocument = editor.getContainerDocument()
+	if (!editorDocument) throw Error('No document')
 
 	const {
 		scale = 1,
@@ -74,7 +75,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	const h = bbox.height * scale
 
 	try {
-		document.body.focus?.() // weird but necessary
+		editorDocument.body.focus?.() // weird but necessary
 	} catch {
 		// not implemented
 	}

@@ -8,7 +8,7 @@ import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
 	const editor = useEditor()
-	const ownerDocument = editor.getContainer().ownerDocument
+	const ownerDocument = editor.getContainerDocument()
 	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
 	const events = useMemo(
@@ -75,8 +75,7 @@ export function useCanvasEvents() {
 			function onTouchEnd(e: React.TouchEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
 				editor.markEventAsHandled(e)
-				// check that e.target is an HTMLElement
-				if (!(e.target instanceof HTMLElement)) return
+				if (!(e.target instanceof editor.getContainerWindow().HTMLElement)) return
 
 				const editingShapeId = editor.getEditingShapeId()
 				if (

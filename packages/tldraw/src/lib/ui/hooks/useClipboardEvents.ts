@@ -38,6 +38,7 @@ const expectedPasteFileMimeTypes = [
  */
 function stripHtml(html: string) {
 	// See <https://github.com/developit/preact-markup/blob/4788b8d61b4e24f83688710746ee36e7464f7bbc/src/parse-markup.js#L60-L69>
+	// eslint-disable-next-line no-restricted-globals
 	const doc = document.implementation.createHTMLDocument('')
 	doc.documentElement.innerHTML = html.trim()
 	return doc.body.textContent || doc.body.innerText || ''
@@ -82,7 +83,7 @@ const INPUTS = ['input', 'select', 'textarea']
  * @internal
  */
 function areShortcutsDisabled(editor: Editor) {
-	const { activeElement } = document
+	const { activeElement } = editor.getContainerDocument()
 
 	return (
 		editor.menus.hasAnyOpenMenus() ||
@@ -586,8 +587,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
  * @public
  */
 const handleNativeOrMenuCopy = async (editor: Editor) => {
-	const navigator =
-		editor.getContainer().ownerDocument?.defaultView?.navigator ?? globalThis.navigator
+	const navigator = editor.getContainerWindow().navigator
 	const content = await editor.resolveAssetsInContent(
 		editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
 	)
@@ -639,8 +639,9 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 				textContent = ' '
 			}
 
+			const CBI = editor.getContainerWindow().ClipboardItem
 			navigator.clipboard.write([
-				new ClipboardItem({
+				new CBI({
 					'text/html': htmlBlob,
 					// What is this second blob used for?
 					'text/plain': new Blob([textContent], { type: 'text/plain' }),
@@ -692,12 +693,13 @@ export function useMenuClipboardEvents() {
 			// input instead; e.g. when pasting text into a text shape's content
 			if (editor.getEditingShapeId() !== null) return
 
-			if (Array.isArray(data) && data[0] instanceof ClipboardItem) {
+			const win = editor.getContainerWindow()
+			if (Array.isArray(data) && data[0] instanceof win.ClipboardItem) {
 				handlePasteFromClipboardApi({ editor, clipboardItems: data, point })
 				trackEvent('paste', { source: 'menu' })
 			} else {
-				// Read it first and then recurse, kind of weird
-				navigator.clipboard.read().then((clipboardItems) => {
+				const nav = win.navigator
+				nav.clipboard.read().then((clipboardItems) => {
 					paste(clipboardItems, source, point)
 				})
 			}
@@ -715,7 +717,7 @@ export function useMenuClipboardEvents() {
 /** @public */
 export function useNativeClipboardEvents() {
 	const editor = useEditor()
-	const ownerDocument = editor.getContainer().ownerDocument
+	const ownerDocument = editor.getContainerDocument()
 	const trackEvent = useUiEvents()
 
 	const appIsFocused = useValue('editor.isFocused', () => editor.getInstanceState().isFocused, [
@@ -796,14 +798,16 @@ export function useNativeClipboardEvents() {
 			// if we can read from the clipboard API, we want to try using that first. that allows
 			// us to access most things, and doesn't strip out metadata added to tldraw's own
 			// copy-as-png features - so copied shapes come back in at the correct size.
-			if (navigator.clipboard?.read) {
+			const win = editor.getContainerWindow()
+			const nav = win.navigator
+			if (nav.clipboard?.read) {
 				// We can't read files from the filesystem using the clipboard API though - they'll
 				// just come in as the file names instead. So we'll use the clipboard event's files
 				// as a fallback - if we only got text, but do have files, we use those instead.
 				const fallbackFiles = Array.from(e.clipboardData?.files || [])
-				navigator.clipboard.read().then(
+				nav.clipboard.read().then(
 					(clipboardItems) => {
-						if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof ClipboardItem) {
+						if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof win.ClipboardItem) {
 							handlePasteFromClipboardApi({ editor, clipboardItems, point, fallbackFiles })
 						}
 					},

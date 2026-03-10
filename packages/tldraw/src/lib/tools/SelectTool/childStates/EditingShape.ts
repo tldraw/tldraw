@@ -24,11 +24,12 @@ export class EditingShape extends StateNode {
 
 	private isTextInputFocused(): boolean {
 		const container = this.editor.getContainer()
+		const activeElement = this.editor.getContainerDocument().activeElement
 		return (
-			container.contains(document.activeElement) &&
-			(document.activeElement?.nodeName === 'INPUT' ||
-				document.activeElement?.nodeName === 'TEXTAREA' ||
-				(document.activeElement as HTMLElement)?.isContentEditable)
+			container.contains(activeElement) &&
+			(activeElement?.nodeName === 'INPUT' ||
+				activeElement?.nodeName === 'TEXTAREA' ||
+				(activeElement as HTMLElement)?.isContentEditable)
 		)
 	}
 

@@ -42,6 +42,7 @@ export async function getSvgAsImage(
 				await sleep(250)
 			}
 
+			// eslint-disable-next-line no-restricted-globals
 			const canvas = document.createElement('canvas') as HTMLCanvasElement
 			const ctx = canvas.getContext('2d')!
 

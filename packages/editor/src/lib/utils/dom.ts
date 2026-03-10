@@ -98,8 +98,9 @@ export const setStyleProperty = (
 }
 
 /** @internal */
-export function activeElementShouldCaptureKeys(ignoreButtons = false) {
-	const { activeElement } = document
+export function activeElementShouldCaptureKeys(ignoreButtons = false, doc?: Document) {
+	// eslint-disable-next-line no-restricted-globals
+	const { activeElement } = doc ?? document
 	const elements = ignoreButtons ? ['input', 'textarea'] : ['input', 'select', 'button', 'textarea']
 	return !!(
 		activeElement &&
