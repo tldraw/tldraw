@@ -19,6 +19,19 @@ afterEach(() => {
 vi.useFakeTimers()
 
 describe(HandTool, () => {
+	it('Uses one-finger zoom when coarse pointer double-taps and drags', () => {
+		editor.setCurrentTool('hand')
+		editor.updateInstanceState({ isCoarsePointer: true })
+
+		editor.pointerDown(0, 0).pointerUp(0, 0)
+		editor.pointerDown(0, 0)
+		editor.expectToBeIn('hand.one_finger_zooming')
+
+		const before = editor.getCamera().z
+		editor.pointerMove(0, 100).pointerUp(0, 100).forceTick()
+		expect(editor.getCamera().z).toBeGreaterThan(before)
+	})
+
 	it('Double taps to zoom in', () => {
 		editor.setCurrentTool('hand')
 		expect(editor.getZoomLevel()).toBe(1)
