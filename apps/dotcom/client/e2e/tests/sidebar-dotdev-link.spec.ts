@@ -8,7 +8,6 @@ test.describe('sidebar dot dev link', () => {
 	test.beforeEach(async ({ page, homePage, editor }) => {
 		await editor.ensureSidebarOpen()
 		await page.evaluate((key) => {
-			// eslint-disable-next-line no-restricted-syntax
 			window.localStorage.removeItem(key)
 		}, DOT_DEV_LOCAL_STORAGE_KEY)
 
@@ -38,7 +37,6 @@ test.describe('sidebar dot dev link', () => {
 		// Verify the localStorage was set to hide the link
 		await expect(async () => {
 			const storedValue = await page.evaluate(
-				// eslint-disable-next-line no-restricted-syntax
 				(key) => window.localStorage.getItem(key),
 				DOT_DEV_LOCAL_STORAGE_KEY
 			)
@@ -52,7 +50,6 @@ test.describe('sidebar dot dev link', () => {
 		await expect(page.getByTestId('tla-sidebar-dotdev-link')).not.toBeVisible()
 		await expect(async () => {
 			const storedValue = await page.evaluate(
-				// eslint-disable-next-line no-restricted-syntax
 				(key) => window.localStorage.getItem(key),
 				DOT_DEV_LOCAL_STORAGE_KEY
 			)
