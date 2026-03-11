@@ -27,7 +27,7 @@ export interface BlueprintRenderingOptions {
 }
 
 // @public
-export function createMermaidDiagram(editor: Editor, text: string, options?: MermaidDiagramOptions): Promise<null | string>;
+export function createMermaidDiagram(editor: Editor, text: string, options?: MermaidDiagramOptions): Promise<void>;
 
 // @public
 export interface DiagramMermaidBlueprint {
