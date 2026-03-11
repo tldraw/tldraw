@@ -24,11 +24,11 @@ The tldraw SDK uses several techniques to maintain smooth performance even with 
 
 Shapes outside the viewport don't need to render. The editor maintains a spatial index that tracks which shapes are visible, and hides off-screen shapes by setting `display: none` on their DOM elements. This means a canvas with 10,000 shapes might only render 50 if the rest are out of view.
 
-Culling happens automatically for all shapes. The shapes remain in the store and can still be selected or updated—they just don't incur rendering cost. See [Culling](/docs/culling) for details on how to control this behavior for custom shapes.
+Culling happens automatically for all shapes. The shapes remain in the store and can still be selected or updated—they just don't incur rendering cost. See [Culling](/sdk-features/culling) for details on how to control this behavior for custom shapes.
 
 ### Reactive signals
 
-The SDK uses reactive [signals](/docs/signals) instead of React's built-in state management. Signals automatically track dependencies and update only the parts of your application that actually depend on changed data.
+The SDK uses reactive [signals](/sdk-features/signals) instead of React's built-in state management. Signals automatically track dependencies and update only the parts of your application that actually depend on changed data.
 
 When a shape's props change, only that shape's component re-renders—not the entire canvas. The system tracks dependencies at a granular level, so changing a shape's color won't trigger updates for shapes that don't care about color.
 
@@ -36,7 +36,7 @@ This is why methods like `editor.getSelectedShapeIds()` return reactive values. 
 
 ### Batched store updates
 
-The [store](/docs/store) batches multiple changes into single updates. When you call methods like `editor.createShapes()` or `editor.updateShapes()` with multiple shapes, observers receive one notification with all changes rather than one per shape:
+The [store](/sdk-features/store) batches multiple changes into single updates. When you call methods like `editor.createShapes()` or `editor.updateShapes()` with multiple shapes, observers receive one notification with all changes rather than one per shape:
 
 ```ts
 // These changes are batched automatically
@@ -160,7 +160,7 @@ If you need animation, consider:
 - **Canvas rendering** for particle systems or complex animations
 - **Limiting concurrent animations** to a small number of shapes
 
-The [Animation](/docs/animation) article covers the editor's animation system. The animation system handles camera movement and occasional shape transitions. It's not designed for continuous per-shape animation.
+The [Animation](/sdk-features/animation) article covers the editor's animation system. The animation system handles camera movement and occasional shape transitions. It's not designed for continuous per-shape animation.
 
 ### Use stable values for zoom-dependent calculations
 
@@ -217,7 +217,7 @@ For most shapes, leave culling enabled.
 
 ## Editor options for performance
 
-Several [editor options](/docs/options) affect performance:
+Several [editor options](/sdk-features/options) affect performance:
 
 | Option                   | Default | Description                                      |
 | ------------------------ | ------- | ------------------------------------------------ |
@@ -259,8 +259,8 @@ If performance degrades with many shapes, look for:
 
 ## Related
 
-- [Culling](/docs/culling) — How viewport culling works and how to control it
-- [Signals](/docs/signals) — The reactive state system
-- [Store](/docs/store) — How the reactive database batches changes
-- [Options](/docs/options) — All available editor options
-- [Animation](/docs/animation) — The shape and camera animation systems
+- [Culling](/sdk-features/culling) — How viewport culling works and how to control it
+- [Signals](/sdk-features/signals) — The reactive state system
+- [Store](/sdk-features/store) — How the reactive database batches changes
+- [Options](/sdk-features/options) — All available editor options
+- [Animation](/sdk-features/animation) — The shape and camera animation systems

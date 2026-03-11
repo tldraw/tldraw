@@ -1,0 +1,23 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"jsx": "react-jsx",
+		"sourceMap": true,
+		"outDir": "dist",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"types": ["vite/client"]
+	},
+	"include": ["src/**/*.ts", "src/**/*.tsx", "server.ts", "main.ts", "vite.config.ts"],
+	"exclude": ["node_modules", "dist"],
+	"references": [
+		{
+			"path": "../../packages/tldraw"
+		}
+	]
+}

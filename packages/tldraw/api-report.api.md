@@ -1392,6 +1392,11 @@ export interface EmbedDefinition {
     readonly width: number;
 }
 
+// @public (undocumented)
+export interface EmbedShapeOptions {
+    readonly embedDefinitions: readonly TLEmbedDefinition[];
+}
+
 // @public
 export const embedShapePermissionDefaults: {
     readonly 'allow-downloads-without-user-activation': false;
@@ -1449,9 +1454,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>): TLEmbedShape;
     // (undocumented)
-    static props: RecordProps<TLEmbedShape>;
+    options: EmbedShapeOptions;
     // (undocumented)
-    static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
+    static props: RecordProps<TLEmbedShape>;
+    // @deprecated (undocumented)
+    static setEmbedDefinitions(embedDefinitions: readonly EmbedDefinition[]): void;
     // (undocumented)
     static type: "embed";
     // (undocumented)
@@ -3307,6 +3314,7 @@ export function TldrawArrowHints(): JSX.Element | null;
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
     assetUrls?: TLUiAssetUrlOverrides;
     components?: TLComponents;
+    // @deprecated
     embeds?: TLEmbedDefinition[];
     // @deprecated
     textOptions?: TLTextOptions;
@@ -3813,6 +3821,8 @@ export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElemen
     htmlButtonType?: 'button' | 'reset' | 'submit';
     // (undocumented)
     isActive?: boolean;
+    // (undocumented)
+    tooltip?: string;
     // (undocumented)
     type: 'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool';
 }
