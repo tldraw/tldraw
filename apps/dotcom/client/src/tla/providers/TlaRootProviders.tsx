@@ -88,10 +88,9 @@ if (!PUBLISHABLE_KEY) {
 const CLERK_LOAD_TIMEOUT_MS = 10_000
 
 const CLERK_ERROR_MESSAGES = {
-	header: 'Unable to connect',
-	para1:
-		"We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page.",
-	cta: 'Refresh',
+	header: appMessages.clerkUnavailable.defaultMessage,
+	para1: appMessages.clerkUnavailablePara.defaultMessage,
+	cta: appMessages.refresh.defaultMessage,
 }
 
 export function Component() {
