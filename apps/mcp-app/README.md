@@ -74,17 +74,13 @@ Add up to three servers in `~/.cursor/mcp.json`:
 
 `--cwd` ensures Cursor launches in the app folder. `-s` stops yarn from writing non-JSON noise to stdout, which breaks the stdio transport.
 
-### Claude Desktop setup
+### Claude Desktop local setup
 
-Update `~/Library/Application Support/Claude/claude_desktop_config.json`:
+For local Claude Desktop development, keep using `claude_desktop_config.json` for the local HTTP and stdio servers:
 
 ```json
 {
 	"mcpServers": {
-		"tldraw": {
-			"command": "npx",
-			"args": ["-y", "mcp-remote", "https://tldraw-mcp-app.tldraw.workers.dev/mcp"]
-		},
 		"tldraw-local": {
 			"command": "npx",
 			"args": ["-y", "mcp-remote", "http://127.0.0.1:8787/mcp"]
@@ -104,6 +100,21 @@ Update `~/Library/Application Support/Claude/claude_desktop_config.json`:
 	}
 }
 ```
+
+### Claude Desktop remote setup
+
+If you'd like to try the remote MCP server in Claude Desktop, use the in-app connector flow rather than adding the production URL to `claude_desktop_config.json`.
+
+1. Open Claude Desktop
+2. In the sidebar, go to **Customize**
+3. Open **Connectors**
+4. Click the button to add a connector, then choose **Add custom connector**
+5. Give it a name such as `tldraw`
+6. Paste `https://tldraw-mcp-app.tldraw.workers.dev/mcp` as the server URL
+
+The **Add custom connector** option is not available on the free plan, so you may need Max or another paid plan.
+
+If you need Notion access in Claude Desktop, use the Notion MCP connector for that separately.
 
 ### ChatGPT local dev
 
