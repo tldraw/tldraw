@@ -30,7 +30,14 @@ import {
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
-import { TLAsset, TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
+import {
+	TLAsset,
+	TLAssetId,
+	TLDOCUMENT_ID,
+	TLDocument,
+	TLRecord,
+	createTLSchema,
+} from '@tldraw/tlschema'
 import {
 	ExecutionQueue,
 	assert,
@@ -89,6 +96,21 @@ async function canAccessTestProductionFile(
 	} catch (_e) {
 		return false
 	}
+}
+
+function pruneUnusedAssetsForTldr(records: TLRecord[]): TLRecord[] {
+	const usedAssets = new Set<TLAssetId>()
+	for (const record of records) {
+		if (record.typeName === 'shape' && 'assetId' in record.props && record.props.assetId) {
+			usedAssets.add(record.props.assetId as TLAssetId)
+		}
+	}
+	return records.filter((r) => r.typeName !== 'asset' || usedAssets.has(r.id as TLAssetId))
+}
+
+function arrayBufferToBase64(ab: ArrayBuffer): string {
+	const bytes = new Uint8Array(ab)
+	return bytes.toBase64!()
 }
 
 const MB = 1024 * 1024
@@ -289,6 +311,11 @@ export class TLFileDurableObject extends DurableObject {
 			`/app/file/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_WRITE)
+		)
+		.get(
+			`/app/file/:roomId/download`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onDownloadTldr(req)
 		)
 		.post(
 			`/${ROOM_PREFIX}/:roomId/restore`,
@@ -591,6 +618,131 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			throw e
 		}
+	}
+
+	/** Stream .tldr download (schema + records, R2 assets inlined as base64). Same access as joining the file. */
+	async onDownloadTldr(req: IRequest): Promise<Response> {
+		const TLDRAW_FILE_MIMETYPE = 'application/vnd.tldraw+json'
+		const TLDRAW_FILE_FORMAT_VERSION = 1
+
+		if (!this.documentInfo.isApp) {
+			return new Response('Not found', { status: 404 })
+		}
+
+		const auth = await getAuth(req, this.env)
+		const file = await this.getAppFileRecord()
+		if (!file || file.isDeleted) {
+			return new Response('Not found', { status: 404 })
+		}
+
+		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
+			return new Response('Not found', { status: 404 })
+		}
+		if (!auth && !file.shared) {
+			return new Response('Unauthorized', { status: 401 })
+		}
+
+		const url = new URL(req.url)
+		const sessionId =
+			url.searchParams.get('instanceId') ?? url.searchParams.get('sessionId') ?? 'anon-download'
+		const rateLimitKey = auth?.userId ?? sessionId
+		if (await isRateLimited(this.env, rateLimitKey)) {
+			return new Response('Rate limited', { status: 429 })
+		}
+
+		let hasOwnerAccess = false
+		if (file.ownerId && file.ownerId === auth?.userId) {
+			hasOwnerAccess = true
+		} else if (file.owningGroupId && auth?.userId) {
+			const groupMember = await this.db
+				.selectFrom('group_user')
+				.where('groupId', '=', file.owningGroupId)
+				.where('userId', '=', auth.userId)
+				.executeTakeFirst()
+			if (groupMember) hasOwnerAccess = true
+		}
+		if (!hasOwnerAccess && !file.shared) {
+			return new Response('Forbidden', { status: 403 })
+		}
+
+		const storage = await this.getStorage()
+		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+		const snapshot = storage.getSnapshot()
+		const records = pruneUnusedAssetsForTldr(snapshot.documents.map((d) => d.state) as TLRecord[])
+
+		const assetRows = await this.db
+			.selectFrom('asset')
+			.where('fileId', '=', this.documentInfo.slug)
+			.select('objectName')
+			.execute()
+		const assetObjectNames = new Set(assetRows.map((r) => r.objectName))
+
+		const documentRecord = records.find((r) => r.typeName === 'document') as TLDocument | undefined
+		// Prefer the TlaFile.name (kept in sync by the app layer) over the TLDocument.name
+		// (which is only updated when the document is open in an editor).
+		const rawName = file.name?.trim() || documentRecord?.name?.trim()
+		const sanitized =
+			rawName?.replace(/[^ \w-]/g, '_').slice(0, 200) || `${this.documentInfo.slug}.tldr`
+		const filename = sanitized.endsWith('.tldr') ? sanitized : `${sanitized}.tldr`
+
+		const env = this.env
+		const stream = new ReadableStream({
+			async start(controller) {
+				try {
+					const encoder = new TextEncoder()
+					controller.enqueue(
+						encoder.encode(
+							`{"tldrawFileFormatVersion":${TLDRAW_FILE_FORMAT_VERSION},"schema":${JSON.stringify(snapshot.schema)},"records":[`
+						)
+					)
+					for (let i = 0; i < records.length; i++) {
+						let record = records[i] as TLRecord
+						const assetSrc = record.typeName === 'asset' ? (record as TLAsset).props.src : null
+						if (
+							record.typeName === 'asset' &&
+							(record as TLAsset).type !== 'bookmark' &&
+							assetSrc &&
+							!assetSrc.startsWith('data:')
+						) {
+							const objectName = new URL(assetSrc).pathname.split('/').pop()
+							if (objectName && assetObjectNames.has(objectName)) {
+								const blob = await env.UPLOADS.get(objectName)
+								if (blob) {
+									const ab = await blob.arrayBuffer()
+									const base64 = arrayBufferToBase64(ab)
+									const assetRecord = record as TLAsset
+									const mimeType =
+										assetRecord.type !== 'bookmark' &&
+										'mimeType' in assetRecord.props &&
+										assetRecord.props.mimeType
+											? assetRecord.props.mimeType
+											: 'application/octet-stream'
+									record = {
+										...record,
+										props: {
+											...(record as TLAsset).props,
+											src: `data:${mimeType};base64,${base64}`,
+										},
+									} as TLRecord
+								}
+							}
+						}
+						controller.enqueue(encoder.encode((i > 0 ? ',' : '') + JSON.stringify(record)))
+					}
+					controller.enqueue(encoder.encode(']}'))
+					controller.close()
+				} catch (e) {
+					controller.error(e)
+				}
+			},
+		})
+
+		return new Response(stream, {
+			headers: {
+				'Content-Type': TLDRAW_FILE_MIMETYPE,
+				'Content-Disposition': `attachment; filename="${filename}"`,
+			},
+		})
 	}
 
 	triggerPersist = throttle(() => {

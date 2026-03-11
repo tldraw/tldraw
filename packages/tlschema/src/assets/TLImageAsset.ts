@@ -17,6 +17,7 @@ export type TLImageAsset = TLBaseAsset<
 		mimeType: string | null
 		src: string | null
 		fileSize?: number
+		pixelRatio?: number
 	}
 >
 
@@ -60,6 +61,7 @@ export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidat
 		mimeType: T.string.nullable(),
 		src: T.srcUrl.nullable(),
 		fileSize: T.nonZeroNumber.optional(),
+		pixelRatio: T.positiveNumber.optional(),
 	})
 )
 
@@ -69,6 +71,7 @@ const Versions = createMigrationIds('com.tldraw.asset.image', {
 	MakeUrlsValid: 3,
 	AddFileSize: 4,
 	MakeFileSizeOptional: 5,
+	AddPixelRatio: 6,
 } as const)
 
 /**
@@ -163,6 +166,15 @@ export const imageAssetMigrations = createRecordMigrationSequence({
 				if (asset.props.fileSize === undefined) {
 					asset.props.fileSize = -1
 				}
+			},
+		},
+		{
+			id: Versions.AddPixelRatio,
+			up: (_asset: any) => {
+				// noop — pixelRatio is optional and undefined by default
+			},
+			down: (asset: any) => {
+				delete asset.props.pixelRatio
 			},
 		},
 	],

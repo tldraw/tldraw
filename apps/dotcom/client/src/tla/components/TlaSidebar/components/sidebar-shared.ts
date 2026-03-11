@@ -8,6 +8,7 @@ export interface RecentFile {
 
 export const messages = defineMessages({
 	create: { defaultMessage: 'Create file' },
+	createGroup: { defaultMessage: 'Create group' },
 	toggleSidebar: { defaultMessage: 'Toggle sidebar' },
 	accountMenu: { defaultMessage: 'Account menu' },
 	fileMenu: { defaultMessage: 'File menu' },

@@ -45,7 +45,6 @@ export async function getPierreHistorySnapshot(
 		}
 
 		const stream = streamPierreSnapshotAsJson(repo, commitHash)
-
 		return new Response(stream, {
 			headers: {
 				'content-type': 'application/json',

@@ -666,6 +666,8 @@ export async function getMediaAssetInfoPartial(
 
 	const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
 
+	const pixelRatio = 'pixelRatio' in size && size.pixelRatio !== 1 ? size.pixelRatio : undefined
+
 	const assetInfo = {
 		id: assetId,
 		type: isImageType ? 'image' : 'video',
@@ -678,6 +680,7 @@ export async function getMediaAssetInfoPartial(
 			fileSize: file.size,
 			mimeType: fileType,
 			isAnimated,
+			...(isImageType && pixelRatio ? { pixelRatio } : undefined),
 		},
 		meta: {},
 	} as TLImageAsset | TLVideoAsset
