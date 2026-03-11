@@ -39,7 +39,7 @@ runs:
     # Only save the cache on pushes to main to avoid per-PR duplicates.
     # Runs after install so the cache is fully populated.
     - name: Save yarn cache
-      if: github.event_name == 'push' && steps.yarn-cache.outputs.cache-hit != 'true'
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.yarn-cache.outputs.cache-hit != 'true'
       uses: actions/cache/save@v5
       with:
         path: |
