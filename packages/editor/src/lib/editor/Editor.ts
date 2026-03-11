@@ -109,7 +109,7 @@ import {
 	STYLUS_ERASER_BUTTON,
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
-import { getSvgAsImage } from '../exports/getSvgAsImage'
+import { getSvgAsImageWithOptions, trimSvgToContent } from '../exports/getSvgAsImage'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
@@ -9593,6 +9593,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			svg: serializer.serializeToString(result.svg),
 			width: result.width,
 			height: result.height,
+			trimPadding: result.trimPadding,
 		}
 	}
 
@@ -9616,30 +9617,45 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!result) throw new Error('Could not create SVG')
 
 		switch (withDefaults.format) {
-			case 'svg':
-				return {
-					blob: new Blob([result.svg], { type: 'image/svg+xml' }),
-					width: result.width,
-					height: result.height,
+			case 'svg': {
+				let svg = result.svg
+				let w = result.width
+				let h = result.height
+				if (result.trimPadding > 0) {
+					const trimmed = await trimSvgToContent(svg, {
+						width: w,
+						height: h,
+						trimPadding: result.trimPadding,
+						scale: withDefaults.scale,
+					})
+					if (trimmed) {
+						svg = trimmed.svg
+						w = trimmed.width
+						h = trimmed.height
+					}
 				}
+				return {
+					blob: new Blob([svg], { type: 'image/svg+xml' }),
+					width: w,
+					height: h,
+				}
+			}
 			case 'jpeg':
 			case 'png':
 			case 'webp': {
-				const blob = await getSvgAsImage(result.svg, {
+				const imageResult = await getSvgAsImageWithOptions(result.svg, {
 					type: withDefaults.format,
 					quality: withDefaults.quality,
 					pixelRatio: withDefaults.pixelRatio,
 					width: result.width,
 					height: result.height,
+					trimPadding: result.trimPadding,
+					scale: withDefaults.scale,
 				})
-				if (!blob) {
+				if (!imageResult) {
 					throw new Error('Could not construct image.')
 				}
-				return {
-					blob,
-					width: result.width,
-					height: result.height,
-				}
+				return imageResult
 			}
 			default: {
 				exhaustiveSwitchError(withDefaults.format)

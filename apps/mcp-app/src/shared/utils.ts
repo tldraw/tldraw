@@ -43,12 +43,34 @@ export function generateCheckpointId(): string {
 	return crypto.randomUUID().replace(/-/g, '').slice(0, 18)
 }
 
-export function resolveMcpAppHostName(potentialHostName: string): MCP_APP_HOST_NAMES | undefined {
+// these are what we get from server.server.getClientVersion() in the worker
+export function resolveMcpAppHostNameFromServerInfo(
+	potentialHostName: string
+): MCP_APP_HOST_NAMES | undefined {
 	const normalizedPotentialHostName = potentialHostName.trim().toLowerCase()
+
 	if (normalizedPotentialHostName.includes('cursor-vscode')) return 'cursor' // we expect something like "cursor-vscode (via mcp-remote 0.1.37)"
 	if (normalizedPotentialHostName.includes('visual studio code')) return 'vscode' // we expect something like "Visual Studio Code (via mcp-remote 0.1.37)"
-	if (normalizedPotentialHostName.includes('openai-mcp')) return 'chatgpt' // we expect something like "openai-mcp"
+	if (
+		normalizedPotentialHostName.includes('openai-mcp') ||
+		normalizedPotentialHostName.includes('chatgpt')
+	)
+		return 'chatgpt' // we expect something like "openai-mcp"
 	if (normalizedPotentialHostName.includes('claude-ai')) return 'claude' // we expect something like "claude-ai (via mcp-remote 0.1.37)"
+
+	return undefined
+}
+
+// these are what we expect from app.getHostVersion() (called in the client)
+export function resolveMcpAppHostNameFromClientInfo(
+	potentialHostName: string
+): MCP_APP_HOST_NAMES | undefined {
+	const normalizedPotentialHostName = potentialHostName.trim().toLowerCase()
+
+	if (normalizedPotentialHostName.includes('cursor')) return 'cursor'
+	if (normalizedPotentialHostName.includes('visual studio code')) return 'vscode'
+	if (normalizedPotentialHostName.includes('chatgpt')) return 'chatgpt'
+	if (normalizedPotentialHostName.includes('claude')) return 'claude'
 
 	return undefined
 }
