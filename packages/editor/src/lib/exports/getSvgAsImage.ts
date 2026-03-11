@@ -269,6 +269,7 @@ function trimExtraPadding(
 	const cropH = cropBottom - cropTop
 
 	// Create a new cropped canvas
+	// eslint-disable-next-line no-restricted-globals
 	const croppedCanvas = document.createElement('canvas')
 	croppedCanvas.width = cropW
 	croppedCanvas.height = cropH
