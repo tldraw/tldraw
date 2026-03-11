@@ -33,6 +33,8 @@ export async function getSvgAsImageWithOptions(
 ): Promise<{ blob: Blob; width: number; height: number } | null> {
 	const { type, width, height, quality = 1, pixelRatio = 2, trimPadding = 0, scale = 1 } = options
 
+	if (width <= 0 || height <= 0) return null
+
 	let [clampedWidth, clampedHeight] = clampToBrowserMaxCanvasSize(
 		width * pixelRatio,
 		height * pixelRatio
@@ -68,8 +70,6 @@ export async function getSvgAsImageWithOptions(
 			ctx.imageSmoothingEnabled = true
 			ctx.imageSmoothingQuality = 'high'
 			ctx.drawImage(image, 0, 0, clampedWidth, clampedHeight)
-
-			URL.revokeObjectURL(svgUrl)
 
 			resolve(canvas)
 		}
@@ -319,7 +319,6 @@ export async function trimSvgToContent(
 			ctx.imageSmoothingEnabled = true
 			ctx.imageSmoothingQuality = 'high'
 			ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight)
-			URL.revokeObjectURL(svgUrl)
 			resolve(canvas)
 		}
 
