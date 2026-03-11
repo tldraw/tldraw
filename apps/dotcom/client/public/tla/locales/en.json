@@ -179,6 +179,9 @@
   "5c6fe42bc2": {
     "translation": "Revoke this link and create a new one."
   },
+  "5d04a002ea": {
+    "translation": "Unable to connect"
+  },
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
   },
@@ -199,6 +202,9 @@
   },
   "639bae9ac6": {
     "translation": "you"
+  },
+  "63a6a88c06": {
+    "translation": "Refresh"
   },
   "6609dd239e": {
     "translation": "Something went wrong"
@@ -349,6 +355,9 @@
   },
   "9bef626805": {
     "translation": "Delete file"
+  },
+  "9ccb565b86": {
+    "translation": "We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page."
   },
   "9ceb927baa": {
     "translation": "Publish this file"
