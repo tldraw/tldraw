@@ -11,7 +11,7 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from './src/shared/types'
-import { resolveMcpAppHostName } from './src/shared/utils'
+import { resolveMcpAppHostNameFromServerInfo } from './src/shared/utils'
 import { loadCachedCanvasWidgetHtml } from './src/tools/loadCachedCanvasWidgetHtml'
 
 // --- Server factory ---
@@ -94,7 +94,7 @@ export function createServer() {
 
 	server.server.oninitialized = () => {
 		const clientInfo = server.server.getClientVersion()
-		const resolved = resolveMcpAppHostName(clientInfo?.name ?? '')
+		const resolved = resolveMcpAppHostNameFromServerInfo(clientInfo?.name ?? '')
 		if (resolved) clientHostName = resolved
 		console.error(
 			`[tldraw-mcp] Client connected: ${clientHostName ?? 'unknown'} v${clientInfo?.version ?? '?'}`
