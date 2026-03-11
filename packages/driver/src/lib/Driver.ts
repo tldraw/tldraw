@@ -29,14 +29,14 @@ export type PointerEventInit = Partial<TLPointerEventInfo> | TLShapeId
 export type EventModifiers = Partial<Pick<TLPointerEventInfo, 'shiftKey' | 'ctrlKey' | 'altKey'>>
 
 /**
- * EditorController wraps an Editor instance and provides an imperative API for driving it
+ * Driver wraps an Editor instance and provides an imperative API for driving it
  * programmatically. Useful for scripting, automation, REPL usage, and testing.
  *
  * All methods use only public Editor APIs and return `this` for fluent chaining.
  *
  * @public
  */
-export class EditorController {
+export class Driver {
 	/** The underlying Editor instance. */
 	private _cleanup: (() => void) | null = null
 

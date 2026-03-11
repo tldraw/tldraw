@@ -1,3 +1,4 @@
+import { Driver } from '@tldraw/driver'
 import {
 	Box,
 	BoxModel,
@@ -14,7 +15,6 @@ import {
 	createShapeId,
 	createTLStore,
 } from '@tldraw/editor'
-import { EditorController } from '@tldraw/editor-controller'
 import { vi } from 'vitest'
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
@@ -22,6 +22,7 @@ import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { registerDefaultSideEffects } from '../lib/defaultSideEffects'
 import { defaultTools } from '../lib/defaultTools'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
+import { shapesFromJsx } from './test-jsx'
 
 declare module 'vitest' {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -50,7 +51,7 @@ window.ClipboardItem = class {}
  * @returns A new TestEditor instance.
  * internal */
 export class TestEditor extends Editor {
-	controller: EditorController
+	controller: Driver
 
 	constructor(
 		options: Partial<Omit<TLEditorOptions, 'store'>> = {},
@@ -108,7 +109,7 @@ export class TestEditor extends Editor {
 		})
 		this.elm = elm
 		this.bounds = bounds
-		this.controller = new EditorController(this)
+		this.controller = new Driver(this)
 
 		// Pretty hacky way to mock the screen bounds
 		document.body.appendChild(this.elm)
@@ -212,7 +213,7 @@ export class TestEditor extends Editor {
 			return info
 		})
 
-	/* ---- Delegated to EditorController ---- */
+	/* ---- Delegated to Driver ---- */
 
 	getClipboard() {
 		return this.controller.clipboard
@@ -220,27 +221,27 @@ export class TestEditor extends Editor {
 	setClipboard(value: TLContent | null) {
 		this.controller.clipboard = value
 	}
-	getLastCreatedShapes(...args: Parameters<EditorController['getLastCreatedShapes']>) {
+	getLastCreatedShapes(...args: Parameters<Driver['getLastCreatedShapes']>) {
 		return this.controller.getLastCreatedShapes(...args)
 	}
 	getLastCreatedShape<T extends TLShape>() {
 		return this.controller.getLastCreatedShape<T>()
 	}
-	testShapeID(...args: Parameters<EditorController['testShapeID']>) {
+	testShapeID(...args: Parameters<Driver['testShapeID']>) {
 		return this.controller.testShapeID(...args)
 	}
-	testPageID(...args: Parameters<EditorController['testPageID']>) {
+	testPageID(...args: Parameters<Driver['testPageID']>) {
 		return this.controller.testPageID(...args)
 	}
-	copy(...args: Parameters<EditorController['copy']>) {
+	copy(...args: Parameters<Driver['copy']>) {
 		this.controller.copy(...args)
 		return this
 	}
-	cut(...args: Parameters<EditorController['cut']>) {
+	cut(...args: Parameters<Driver['cut']>) {
 		this.controller.cut(...args)
 		return this
 	}
-	paste(...args: Parameters<EditorController['paste']>) {
+	paste(...args: Parameters<Driver['paste']>) {
 		this.controller.paste(...args)
 		return this
 	}
@@ -250,93 +251,101 @@ export class TestEditor extends Editor {
 	getSelectionPageCenter() {
 		return this.controller.getSelectionPageCenter()
 	}
-	getPageCenter(...args: Parameters<EditorController['getPageCenter']>) {
+	getPageCenter(...args: Parameters<Driver['getPageCenter']>) {
 		return this.controller.getPageCenter(...args)
 	}
-	getPageRotationById(...args: Parameters<EditorController['getPageRotationById']>) {
+	getPageRotationById(...args: Parameters<Driver['getPageRotationById']>) {
 		return this.controller.getPageRotationById(...args)
 	}
-	getPageRotation(...args: Parameters<EditorController['getPageRotation']>) {
+	getPageRotation(...args: Parameters<Driver['getPageRotation']>) {
 		return this.controller.getPageRotation(...args)
 	}
-	getArrowsBoundTo(...args: Parameters<EditorController['getArrowsBoundTo']>) {
+	getArrowsBoundTo(...args: Parameters<Driver['getArrowsBoundTo']>) {
 		return this.controller.getArrowsBoundTo(...args)
 	}
-	forceTick(...args: Parameters<EditorController['forceTick']>) {
+	forceTick(...args: Parameters<Driver['forceTick']>) {
 		this.controller.forceTick(...args)
 		return this
 	}
-	pointerMove(...args: Parameters<EditorController['pointerMove']>) {
+	pointerMove(...args: Parameters<Driver['pointerMove']>) {
 		this.controller.pointerMove(...args)
 		return this
 	}
-	pointerDown(...args: Parameters<EditorController['pointerDown']>) {
+	pointerDown(...args: Parameters<Driver['pointerDown']>) {
 		this.controller.pointerDown(...args)
 		return this
 	}
-	pointerUp(...args: Parameters<EditorController['pointerUp']>) {
+	pointerUp(...args: Parameters<Driver['pointerUp']>) {
 		this.controller.pointerUp(...args)
 		return this
 	}
-	click(...args: Parameters<EditorController['click']>) {
+	click(...args: Parameters<Driver['click']>) {
 		this.controller.click(...args)
 		return this
 	}
-	rightClick(...args: Parameters<EditorController['rightClick']>) {
+	rightClick(...args: Parameters<Driver['rightClick']>) {
 		this.controller.rightClick(...args)
 		return this
 	}
-	doubleClick(...args: Parameters<EditorController['doubleClick']>) {
+	doubleClick(...args: Parameters<Driver['doubleClick']>) {
 		this.controller.doubleClick(...args)
 		return this
 	}
-	keyPress(...args: Parameters<EditorController['keyPress']>) {
+	keyPress(...args: Parameters<Driver['keyPress']>) {
 		this.controller.keyPress(...args)
 		return this
 	}
-	keyDown(...args: Parameters<EditorController['keyDown']>) {
+	keyDown(...args: Parameters<Driver['keyDown']>) {
 		this.controller.keyDown(...args)
 		return this
 	}
-	keyRepeat(...args: Parameters<EditorController['keyRepeat']>) {
+	keyRepeat(...args: Parameters<Driver['keyRepeat']>) {
 		this.controller.keyRepeat(...args)
 		return this
 	}
-	keyUp(...args: Parameters<EditorController['keyUp']>) {
+	keyUp(...args: Parameters<Driver['keyUp']>) {
 		this.controller.keyUp(...args)
 		return this
 	}
-	wheel(...args: Parameters<EditorController['wheel']>) {
+	wheel(...args: Parameters<Driver['wheel']>) {
 		this.controller.wheel(...args)
 		return this
 	}
-	pan(...args: Parameters<EditorController['pan']>) {
+	pan(...args: Parameters<Driver['pan']>) {
 		this.controller.pan(...args)
 		return this
 	}
-	pinchStart(...args: Parameters<EditorController['pinchStart']>) {
+	pinchStart(...args: Parameters<Driver['pinchStart']>) {
 		this.controller.pinchStart(...args)
 		return this
 	}
-	pinchTo(...args: Parameters<EditorController['pinchTo']>) {
+	pinchTo(...args: Parameters<Driver['pinchTo']>) {
 		this.controller.pinchTo(...args)
 		return this
 	}
-	pinchEnd(...args: Parameters<EditorController['pinchEnd']>) {
+	pinchEnd(...args: Parameters<Driver['pinchEnd']>) {
 		this.controller.pinchEnd(...args)
 		return this
 	}
-	rotateSelection(...args: Parameters<EditorController['rotateSelection']>) {
+	rotateSelection(...args: Parameters<Driver['rotateSelection']>) {
 		this.controller.rotateSelection(...args)
 		return this
 	}
-	translateSelection(...args: Parameters<EditorController['translateSelection']>) {
+	translateSelection(...args: Parameters<Driver['translateSelection']>) {
 		this.controller.translateSelection(...args)
 		return this
 	}
-	resizeSelection(...args: Parameters<EditorController['resizeSelection']>) {
+	resizeSelection(...args: Parameters<Driver['resizeSelection']>) {
 		this.controller.resizeSelection(...args)
 		return this
+	}
+
+	createShapesFromJsx(shapesJsx: React.JSX.Element | React.JSX.Element[]) {
+		const { shapes, assets, ids, bindings } = shapesFromJsx(shapesJsx)
+		this.createAssets(assets)
+		this.createShapes(shapes)
+		this.createBindings(bindings)
+		return ids
 	}
 
 	/* ---- Test assertions ---- */

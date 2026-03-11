@@ -1,5 +1,5 @@
 {
-	"name": "@tldraw/editor-controller",
+	"name": "@tldraw/driver",
 	"description": "Imperative API for driving the tldraw editor programmatically.",
 	"version": "4.3.0",
 	"author": {
@@ -18,7 +18,7 @@
 	"keywords": [
 		"tldraw",
 		"sdk",
-		"editor-controller",
+		"driver",
 		"automation",
 		"scripting"
 	],

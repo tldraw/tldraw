@@ -7,9 +7,5 @@
 		"noImplicitReturns": false,
 		"rootDir": "src"
 	},
-	"references": [
-		{ "path": "../editor" },
-		{ "path": "../editor-controller" },
-		{ "path": "../store" }
-	]
+	"references": [{ "path": "../editor" }, { "path": "../driver" }, { "path": "../store" }]
 }
