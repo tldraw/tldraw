@@ -2,6 +2,7 @@ name = "tldraw-mcp-app"
 main = "src/worker.ts"
 compatibility_date = "2025-03-10"
 compatibility_flags = ["nodejs_compat"]
+preview_urls = true
 
 [assets]
 directory = "./dist"
