@@ -10421,6 +10421,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/driver@workspace:*, @tldraw/driver@workspace:packages/driver":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/driver@workspace:packages/driver"
+  dependencies:
+    "@tldraw/editor": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    vitest: "npm:^3.2.4"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/editor@workspace:*, @tldraw/editor@workspace:packages/editor":
   version: 0.0.0-use.local
   resolution: "@tldraw/editor@workspace:packages/editor"
@@ -17718,6 +17729,7 @@ __metadata:
     "@tiptap/starter-kit": "npm:^3.12.1"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/driver": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@types/d3-geo": "npm:^3.1.0"
@@ -29141,6 +29153,7 @@ __metadata:
     "@tiptap/pm": "npm:^3.12.1"
     "@tiptap/react": "npm:^3.12.1"
     "@tiptap/starter-kit": "npm:^3.12.1"
+    "@tldraw/driver": "workspace:*"
     "@tldraw/editor": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@types/classnames": "npm:^2.3.4"

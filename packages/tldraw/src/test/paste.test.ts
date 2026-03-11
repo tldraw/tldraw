@@ -602,7 +602,7 @@ describe('When pasting into frames...', () => {
 		editor.setCamera({ x: 0, y: 0, z: 1 })
 
 		// Paste with preservePosition — shape should land at original position, inside the frame
-		editor.putContentOntoCurrentPage(editor.clipboard!, {
+		editor.putContentOntoCurrentPage(editor.getClipboard()!, {
 			preservePosition: true,
 			select: true,
 		})
