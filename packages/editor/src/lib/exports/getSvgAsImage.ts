@@ -43,43 +43,7 @@ export async function getSvgAsImageWithOptions(
 	clampedHeight = Math.floor(clampedHeight)
 	const effectiveScale = clampedWidth / width
 
-	// usually we would use `URL.createObjectURL` here, but chrome has a bug where `blob:` URLs of
-	// SVGs that use <foreignObject> mark the canvas as tainted, where data: ones do not.
-	// https://issues.chromium.org/issues/41054640
-	const svgUrl = await FileHelpers.blobToDataUrl(new Blob([svgString], { type: 'image/svg+xml' }))
-
-	const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
-		const image = Image()
-		image.crossOrigin = 'anonymous'
-
-		image.onload = async () => {
-			// safari will fire `onLoad` before the fonts in the SVG are
-			// actually loaded. just waiting around a while is brittle, but
-			// there doesn't seem to be any better solution for now :( see
-			// https://bugs.webkit.org/show_bug.cgi?id=219770
-			if (tlenv.isSafari) {
-				await sleep(250)
-			}
-
-			const canvas = document.createElement('canvas') as HTMLCanvasElement
-			const ctx = canvas.getContext('2d')!
-
-			canvas.width = clampedWidth
-			canvas.height = clampedHeight
-
-			ctx.imageSmoothingEnabled = true
-			ctx.imageSmoothingQuality = 'high'
-			ctx.drawImage(image, 0, 0, clampedWidth, clampedHeight)
-
-			resolve(canvas)
-		}
-
-		image.onerror = () => {
-			resolve(null)
-		}
-
-		image.src = svgUrl
-	})
+	const canvas = await renderSvgToCanvas(svgString, clampedWidth, clampedHeight)
 
 	if (!canvas) return null
 
@@ -118,6 +82,47 @@ export async function getSvgAsImageWithOptions(
 		width: outputCanvas.width / effectiveScale,
 		height: outputCanvas.height / effectiveScale,
 	}
+}
+
+async function renderSvgToCanvas(
+	svgString: string,
+	width: number,
+	height: number
+): Promise<HTMLCanvasElement | null> {
+	// usually we would use `URL.createObjectURL` here, but chrome has a bug where `blob:` URLs of
+	// SVGs that use <foreignObject> mark the canvas as tainted, where data: ones do not.
+	// https://issues.chromium.org/issues/41054640
+	const svgUrl = await FileHelpers.blobToDataUrl(new Blob([svgString], { type: 'image/svg+xml' }))
+
+	return new Promise<HTMLCanvasElement | null>((resolve) => {
+		const image = Image()
+		image.crossOrigin = 'anonymous'
+
+		image.onload = async () => {
+			// safari will fire `onLoad` before the fonts in the SVG are
+			// actually loaded. just waiting around a while is brittle, but
+			// there doesn't seem to be any better solution for now :( see
+			// https://bugs.webkit.org/show_bug.cgi?id=219770
+			if (tlenv.isSafari) {
+				await sleep(250)
+			}
+
+			const canvas = document.createElement('canvas') as HTMLCanvasElement
+			const ctx = canvas.getContext('2d')!
+			canvas.width = width
+			canvas.height = height
+			ctx.imageSmoothingEnabled = true
+			ctx.imageSmoothingQuality = 'high'
+			ctx.drawImage(image, 0, 0, width, height)
+			resolve(canvas)
+		}
+
+		image.onerror = () => {
+			resolve(null)
+		}
+
+		image.src = svgUrl
+	})
 }
 
 /**
@@ -302,33 +307,7 @@ export async function trimSvgToContent(
 
 	if (canvasWidth <= 0 || canvasHeight <= 0) return null
 
-	const svgUrl = await FileHelpers.blobToDataUrl(new Blob([svgString], { type: 'image/svg+xml' }))
-
-	const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
-		const image = Image()
-		image.crossOrigin = 'anonymous'
-
-		image.onload = async () => {
-			if (tlenv.isSafari) {
-				await sleep(250)
-			}
-
-			const canvas = document.createElement('canvas') as HTMLCanvasElement
-			const ctx = canvas.getContext('2d')!
-			canvas.width = canvasWidth
-			canvas.height = canvasHeight
-			ctx.imageSmoothingEnabled = true
-			ctx.imageSmoothingQuality = 'high'
-			ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight)
-			resolve(canvas)
-		}
-
-		image.onerror = () => {
-			resolve(null)
-		}
-
-		image.src = svgUrl
-	})
+	const canvas = await renderSvgToCanvas(svgString, canvasWidth, canvasHeight)
 
 	if (!canvas) return null
 
