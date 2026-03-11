@@ -2573,6 +2573,8 @@ export class Polyline2d extends Geometry2d {
     // (undocumented)
     hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
     // (undocumented)
+    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean): boolean;
+    // (undocumented)
     nearestPoint(A: VecLike): Vec;
     // (undocumented)
     protected get segments(): Edge2d[];

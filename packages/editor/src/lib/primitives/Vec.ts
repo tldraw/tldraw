@@ -430,7 +430,8 @@ export class Vec {
 	 * @param P - A point not on the line to test.
 	 */
 	static NearestPointOnLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): Vec {
-		return Vec.Mul(u, Vec.Sub(P, A).pry(u)).add(A)
+		const t = (P.x - A.x) * u.x + (P.y - A.y) * u.y
+		return new Vec(A.x + u.x * t, A.y + u.y * t)
 	}
 
 	static NearestPointOnLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp = true): Vec {
@@ -451,7 +452,10 @@ export class Vec {
 	}
 
 	static DistanceToLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): number {
-		return Vec.Dist(P, Vec.NearestPointOnLineThroughPoint(A, u, P))
+		// |cross(P-A, u)| = perpendicular distance to line through A with direction u
+		const dx = P.x - A.x
+		const dy = P.y - A.y
+		return Math.abs(dx * u.y - dy * u.x)
 	}
 
 	static DistanceToLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp = true): number {
@@ -508,13 +512,9 @@ export class Vec {
 	 */
 	static AngleBetween(A: VecLike, B: VecLike): number {
 		const p = A.x * B.x + A.y * B.y
-		const n = Math.sqrt(
-			(Math.pow(A.x, 2) + Math.pow(A.y, 2)) * (Math.pow(B.x, 2) + Math.pow(B.y, 2))
-		)
+		const n = Math.sqrt((A.x * A.x + A.y * A.y) * (B.x * B.x + B.y * B.y))
 		const sign = A.x * B.y - A.y * B.x < 0 ? -1 : 1
-		const angle = sign * Math.acos(clamp(p / n, -1, 1))
-
-		return angle
+		return sign * Math.acos(clamp(p / n, -1, 1))
 	}
 
 	/**
@@ -525,7 +525,7 @@ export class Vec {
 	 * @returns The interpolated point.
 	 */
 	static Lrp(A: VecLike, B: VecLike, t: number): Vec {
-		return Vec.Sub(B, A).mul(t).add(A)
+		return new Vec(A.x + (B.x - A.x) * t, A.y + (B.y - A.y) * t)
 	}
 
 	static Med(A: VecLike, B: VecLike): Vec {

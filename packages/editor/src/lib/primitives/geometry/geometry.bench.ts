@@ -22,6 +22,62 @@ describe('Vec line segment', () => {
 	})
 })
 
+// --- Vec utilities ---
+
+const vecA = new Vec(3, 4)
+const vecB = new Vec(-1, 2)
+const lineOrigin = new Vec(10, 10)
+const lineDir = new Vec(0.7071, 0.7071) // ~unit vector at 45°
+const lineTestP = new Vec(20, 15)
+
+describe('Vec utilities', () => {
+	bench('Lrp', () => {
+		Vec.Lrp(lsA, lsB, 0.35)
+	})
+
+	bench('AngleBetween', () => {
+		Vec.AngleBetween(vecA, vecB)
+	})
+
+	bench('NearestPointOnLineThroughPoint', () => {
+		Vec.NearestPointOnLineThroughPoint(lineOrigin, lineDir, lineTestP)
+	})
+
+	bench('DistanceToLineThroughPoint', () => {
+		Vec.DistanceToLineThroughPoint(lineOrigin, lineDir, lineTestP)
+	})
+})
+
+// --- Intersections ---
+
+import { intersectLineSegmentCircle, intersectLineSegmentLineSegment } from '../intersect'
+
+const intA1 = new Vec(0, 0)
+const intA2 = new Vec(100, 100)
+const intB1 = new Vec(100, 0)
+const intB2 = new Vec(0, 100)
+const intB1Miss = new Vec(200, 0)
+const intB2Miss = new Vec(200, 100)
+const intCenter = new Vec(50, 50)
+
+describe('Intersections', () => {
+	bench('lineSegment-lineSegment (hit)', () => {
+		intersectLineSegmentLineSegment(intA1, intA2, intB1, intB2)
+	})
+
+	bench('lineSegment-lineSegment (miss)', () => {
+		intersectLineSegmentLineSegment(intA1, intA2, intB1Miss, intB2Miss)
+	})
+
+	bench('lineSegment-circle (hit)', () => {
+		intersectLineSegmentCircle(intA1, intA2, intCenter, 30)
+	})
+
+	bench('lineSegment-circle (miss)', () => {
+		intersectLineSegmentCircle(intA1, intA2, intCenter, 5)
+	})
+})
+
 // --- Edge2d ---
 
 const edge = new Edge2d({ start: new Vec(0, 0), end: new Vec(100, 50) })
