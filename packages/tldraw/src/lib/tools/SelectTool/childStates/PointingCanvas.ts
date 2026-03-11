@@ -1,4 +1,4 @@
-import { StateNode, TLClickEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 
 export class PointingCanvas extends StateNode {
@@ -12,12 +12,6 @@ export class PointingCanvas extends StateNode {
 				this.editor.markHistoryStoppingPoint('selecting none')
 				this.editor.selectNone()
 			}
-		}
-	}
-
-	override onDoubleClick(info: TLClickEventInfo) {
-		if (info.phase === 'down' && this.editor.getInstanceState().isCoarsePointer) {
-			this.parent.transition('one_finger_zooming', info)
 		}
 	}
 
