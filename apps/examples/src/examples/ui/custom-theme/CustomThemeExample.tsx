@@ -1,6 +1,5 @@
-import { DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, TLThemes } from '@tldraw/editor'
 import { useState } from 'react'
-import { Tldraw } from 'tldraw'
+import { DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, Tldraw, TLThemes } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
