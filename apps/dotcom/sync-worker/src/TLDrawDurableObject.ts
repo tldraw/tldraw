@@ -665,12 +665,9 @@ export class TLFileDurableObject extends DurableObject {
 			return new Response('Forbidden', { status: 403 })
 		}
 
-		const key = getR2KeyForRoom({ slug: this.documentInfo.slug, isApp: true })
-		const roomR2 = await this.r2.rooms.get(key)
-		if (!roomR2) {
-			return new Response('Not found', { status: 404 })
-		}
-		const snapshot = (await roomR2.json()) as RoomSnapshot
+		const storage = await this.getStorage()
+		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+		const snapshot = storage.getSnapshot()
 		const records = pruneUnusedAssetsForTldr(snapshot.documents.map((d) => d.state) as TLRecord[])
 
 		const assetRows = await this.db
