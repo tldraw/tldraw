@@ -75,7 +75,7 @@ export class CubicSpline2d extends Geometry2d {
 		return nearest
 	}
 
-	override distanceToPoint(point: VecLike, hitInside = false): number {
+	override distanceToPoint(point: VecLike, _hitInside = false): number {
 		const { segments } = this
 		let minDist = Infinity
 		for (let i = 0; i < segments.length; i++) {

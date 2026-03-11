@@ -59,7 +59,6 @@ export class Circle2d extends Geometry2d {
 		const dy = point.y - _center.y
 		const dist = Math.sqrt(dx * dx + dy * dy)
 		const distToEdge = dist - radius
-		// If inside and we care about inside, return negative
 		if (distToEdge < 0 && (this.isFilled || hitInside)) {
 			return distToEdge
 		}
@@ -71,18 +70,14 @@ export class Circle2d extends Geometry2d {
 		const dx = point.x - _center.x
 		const dy = point.y - _center.y
 		const dist2 = dx * dx + dy * dy
-		// If filled or hitInside, point inside circle is a hit
 		if ((this.isFilled || hitInside) && dist2 <= radius * radius) {
 			return true
 		}
-		// Check if within margin of the edge: |sqrt(dist2) - radius| <= margin
-		// Equivalent to: (sqrt(dist2) - radius)^2 <= margin^2
-		// But we need the absolute value, so check both sides
 		const outerR = radius + margin
 		if (dist2 > outerR * outerR) return false
 		const innerR = radius - margin
-		if (innerR <= 0) return true // margin >= radius, everything inside outer is a hit
-		return dist2 <= outerR * outerR && dist2 >= innerR * innerR
+		if (innerR <= 0) return true
+		return dist2 >= innerR * innerR
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {

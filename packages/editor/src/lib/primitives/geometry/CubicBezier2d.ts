@@ -69,7 +69,7 @@ export class CubicBezier2d extends Polyline2d {
 		return nearest
 	}
 
-	override distanceToPoint(point: VecLike, hitInside = false): number {
+	override distanceToPoint(point: VecLike, _hitInside = false): number {
 		const { segments } = this
 		let minDist = Infinity
 		for (let i = 0; i < segments.length; i++) {

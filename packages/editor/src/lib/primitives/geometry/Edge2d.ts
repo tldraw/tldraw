@@ -40,7 +40,7 @@ export class Edge2d extends Geometry2d {
 		return new Vec(start.x + dx * t, start.y + dy * t)
 	}
 
-	override distanceToPoint(point: VecLike, hitInside = false): number {
+	override distanceToPoint(point: VecLike, _hitInside = false): number {
 		const { _start: start, _end: end, _dx: dx, _dy: dy, _len2: len2 } = this
 		if (len2 === 0) return Vec.Dist(point, start)
 
