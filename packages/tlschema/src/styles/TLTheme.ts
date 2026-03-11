@@ -1,5 +1,5 @@
 import { Expand } from '@tldraw/utils'
-import { defaultColorNames, TLDefaultColor } from './TLColorStyle'
+import { defaultColorNames, TLCustomColorNames, TLDefaultColor } from './TLColorStyle'
 
 /**
  * A color palette for a single mode (light or dark) within a theme.
@@ -14,7 +14,8 @@ export type TLThemeColorPalette = Expand<
 		solid: string
 		cursor: string
 		noteBorder: string
-	} & Record<(typeof defaultColorNames)[number], TLDefaultColor>
+	} & Record<(typeof defaultColorNames)[number], TLDefaultColor> &
+		Record<keyof TLCustomColorNames, TLDefaultColor>
 >
 
 /**

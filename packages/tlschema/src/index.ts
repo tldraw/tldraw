@@ -268,6 +268,8 @@ export { EnumStyleProp, StyleProp, type StylePropValue } from './styles/StylePro
 export {
 	defaultColorNames,
 	DefaultColorStyle,
+	registerColors,
+	type TLCustomColorNames,
 	type TLDefaultColor,
 	type TLDefaultColorStyle,
 } from './styles/TLColorStyle'

@@ -83,6 +83,7 @@ import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
+import { TLDefaultColorStyle } from '@tldraw/tlschema';
 import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
@@ -1764,14 +1765,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
             font: "draw" | "mono" | "sans" | "serif";
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
             h: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            labelColor: TLDefaultColorStyle;
             richText: {
                 attrs?: any;
                 content: unknown[];
@@ -1799,14 +1800,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
             font: "draw" | "mono" | "sans" | "serif";
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
             h: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            labelColor: TLDefaultColorStyle;
             richText: {
                 attrs?: any;
                 content: unknown[];
@@ -1943,6 +1944,9 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 
 // @public (undocumented)
 export function getAssetInfo(file: File, options: TLDefaultExternalContentHandlerOpts, assetId?: TLAssetId): Promise<TLImageAsset | TLVideoAsset>;
+
+// @public
+export function getColorStyleItems(): StyleValuesForUi<string>;
 
 // @public (undocumented)
 export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): {
@@ -2255,7 +2259,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "solid";
             points: {
                 [x: string]: {
@@ -2284,7 +2288,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "solid";
             points: {
                 [x: string]: {
@@ -2424,11 +2428,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         parentId: TLParentId;
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             font: "draw" | "mono" | "sans" | "serif";
             fontSizeAdjustment: number;
             growY: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            labelColor: TLDefaultColorStyle;
             richText: {
                 attrs?: any;
                 content: unknown[];
@@ -2455,11 +2459,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         parentId: TLParentId;
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             font: "draw" | "mono" | "sans" | "serif";
             fontSizeAdjustment: number;
             growY: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            labelColor: TLDefaultColorStyle;
             richText: {
                 attrs?: any;
                 content: unknown[];
@@ -3345,7 +3349,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         parentId: TLParentId;
         props: {
             autoSize: boolean;
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             font: "draw" | "mono" | "sans" | "serif";
             richText: {
                 attrs?: any;

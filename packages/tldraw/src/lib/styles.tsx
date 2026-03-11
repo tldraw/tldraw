@@ -1,3 +1,4 @@
+import { DefaultColorStyle } from '@tldraw/editor'
 import { TLUiIconJsx } from './ui/components/primitives/TldrawUiIcon'
 
 /** @public */
@@ -5,6 +6,19 @@ export type StyleValuesForUi<T> = readonly {
 	readonly value: T
 	readonly icon: string | TLUiIconJsx
 }[]
+
+/**
+ * Returns the current list of color style items for the style panel,
+ * reading dynamically from `DefaultColorStyle.values`. This picks up
+ * any colors added via `registerColors()`.
+ *
+ * @public
+ */
+export function getColorStyleItems(): StyleValuesForUi<string> {
+	return DefaultColorStyle.values
+		.filter((v) => v !== 'white')
+		.map((value) => ({ value, icon: 'color' as const }))
+}
 
 // todo: default styles prop?
 export const STYLES = {

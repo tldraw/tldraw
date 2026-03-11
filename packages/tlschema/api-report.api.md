@@ -309,8 +309,9 @@ export const embedShapeProps: RecordProps<TLEmbedShape>;
 export class EnumStyleProp<T> extends StyleProp<T> {
     // @internal
     constructor(id: string, defaultValue: T, values: readonly T[]);
+    addValues(...newValues: T[]): void;
     // (undocumented)
-    readonly values: readonly T[];
+    readonly values: T[];
 }
 
 // @public
@@ -608,6 +609,9 @@ export type RecordProps<R extends UnknownRecord & {
 export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> = MakeUndefinedOptional<{
     [K in keyof Config]: T.TypeOf<Config[K]>;
 }>;
+
+// @public
+export function registerColors(colorNames: string[]): void;
 
 // @public
 export const richTextValidator: T.ObjectValidator<{
@@ -914,6 +918,10 @@ export interface TLCursor {
 export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 
 // @public
+export interface TLCustomColorNames {
+}
+
+// @public
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public
@@ -949,7 +957,7 @@ export interface TLDefaultColor {
 }
 
 // @public (undocumented)
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
+export type TLDefaultColorStyle = (typeof defaultColorNames)[number] | keyof TLCustomColorNames;
 
 // @public
 export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
@@ -1504,7 +1512,7 @@ export type TLThemeColorPalette = Expand<{
     noteBorder: string;
     solid: string;
     text: string;
-} & Record<(typeof defaultColorNames)[number], TLDefaultColor>>;
+} & Record<(typeof defaultColorNames)[number], TLDefaultColor> & Record<keyof TLCustomColorNames, TLDefaultColor>>;
 
 // @public
 export type TLThemes = Record<string, TLTheme>;

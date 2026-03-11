@@ -1,4 +1,3 @@
-import { T } from '@tldraw/validate'
 import { StyleProp } from './StyleProp'
 
 /**
@@ -81,9 +80,26 @@ export const DefaultColorStyle = StyleProp.defineEnum('tldraw:color', {
 })
 
 /**
+ * An interface that can be extended via `declare module` to add custom color names
+ * to tldraw's color system. Each key becomes a valid color name.
+ *
+ * @example
+ * ```ts
+ * declare module '@tldraw/tlschema' {
+ *   interface TLCustomColorNames {
+ *     pink: true
+ *   }
+ * }
+ * ```
+ *
  * @public
  */
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>
+export interface TLCustomColorNames {}
+
+/**
+ * @public
+ */
+export type TLDefaultColorStyle = (typeof defaultColorNames)[number] | keyof TLCustomColorNames
 
 /**
  * @public
@@ -92,3 +108,22 @@ export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelcolor', 
 	defaultValue: 'black',
 	values: defaultColorNames,
 })
+
+/**
+ * Register custom color names at runtime. This adds the colors to both
+ * `DefaultColorStyle` and `DefaultLabelColorStyle` so they are available
+ * for validation and in the style panel.
+ *
+ * Must be called before rendering any tldraw components.
+ *
+ * @example
+ * ```ts
+ * registerColors(['pink', 'teal'])
+ * ```
+ *
+ * @public
+ */
+export function registerColors(colorNames: string[]): void {
+	;(DefaultColorStyle as any).addValues(...colorNames)
+	;(DefaultLabelColorStyle as any).addValues(...colorNames)
+}
