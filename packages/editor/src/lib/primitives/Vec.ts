@@ -476,6 +476,10 @@ export class Vec {
 		return isNaN(A.x) || isNaN(A.y)
 	}
 
+	static IsFinite(A: VecLike): boolean {
+		return Number.isFinite(A.x) && Number.isFinite(A.y)
+	}
+
 	/**
 	 * Get the angle from position A to position B.
 	 */
