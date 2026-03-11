@@ -81,6 +81,7 @@ export class FontEmbedder {
 }
 
 async function getDocumentFontFaces(doc: Document) {
+	const win = doc.defaultView ?? globalThis
 	const fontFaces: (ParsedFontFace[] | Promise<ParsedFontFace[] | null>)[] = []
 
 	// In exportToSvg we add the exported node to the DOM temporarily.
@@ -103,9 +104,9 @@ async function getDocumentFontFaces(doc: Document) {
 
 		if (cssRules) {
 			for (const rule of styleSheet.cssRules) {
-				if (rule instanceof CSSFontFaceRule) {
+				if (rule instanceof win.CSSFontFaceRule) {
 					fontFaces.push(parseCssFontFaces(rule.cssText, styleSheet.href ?? doc.baseURI))
-				} else if (rule instanceof CSSImportRule) {
+				} else if (rule instanceof win.CSSImportRule) {
 					const absoluteUrl = new URL(rule.href, rule.parentStyleSheet?.href ?? doc.baseURI)
 					fontFaces.push(fetchCssFontFaces(absoluteUrl.href))
 				}
