@@ -8,6 +8,7 @@ import {
 	EditMenuSubmenu,
 	MoveToPageMenu,
 	ReorderMenuSubmenu,
+	SelectAllInViewportMenuItem,
 	SelectAllMenuItem,
 } from '../menu-items'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
@@ -41,6 +42,7 @@ export function DefaultContextMenuContent() {
 			<ConversionsMenuGroup />
 			<TldrawUiMenuGroup id="select-all">
 				<SelectAllMenuItem />
+				<SelectAllInViewportMenuItem />
 			</TldrawUiMenuGroup>
 		</>
 	)

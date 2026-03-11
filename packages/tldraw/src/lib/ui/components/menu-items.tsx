@@ -312,6 +312,15 @@ export function SelectAllMenuItem() {
 	return <TldrawUiMenuActionItem actionId="select-all" disabled={!atLeastOneShapeOnPage} />
 }
 
+/** @public @react */
+export function SelectAllInViewportMenuItem() {
+	const atLeastOneShapeOnPage = useHasShapesOnPage()
+
+	return (
+		<TldrawUiMenuActionItem actionId="select-all-in-viewport" disabled={!atLeastOneShapeOnPage} />
+	)
+}
+
 /* ------------------ Delete Group ------------------ */
 
 /** @public @react */

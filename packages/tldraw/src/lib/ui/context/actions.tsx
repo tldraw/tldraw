@@ -1011,6 +1011,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'select-all-in-viewport',
+				label: 'action.select-all-in-viewport',
+				kbd: 'cmd+shift+a,ctrl+shift+a',
+				readonlyOk: true,
+				onSelect(source) {
+					editor.run(() => {
+						if (mustGoBackToSelectToolFirst()) return
+
+						trackEvent('select-all-in-viewport', { source })
+
+						editor.markHistoryStoppingPoint('select all in viewport')
+						editor.selectAllInViewport()
+					})
+				},
+			},
+			{
 				id: 'select-none',
 				label: 'action.select-none',
 				readonlyOk: true,

@@ -45,6 +45,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="copy" />
 				<TldrawUiMenuActionItem actionId="paste" />
 				<TldrawUiMenuActionItem actionId="select-all" />
+				<TldrawUiMenuActionItem actionId="select-all-in-viewport" />
 				<TldrawUiMenuActionItem actionId="delete" />
 				<TldrawUiMenuActionItem actionId="duplicate" />
 			</TldrawUiMenuGroup>

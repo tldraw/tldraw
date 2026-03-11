@@ -75,6 +75,7 @@ export interface TLUiEventMap {
 	}
 	'delete-shapes': null
 	'select-all-shapes': null
+	'select-all-in-viewport': null
 	'select-none-shapes': null
 	'rotate-ccw': { fine: boolean }
 	'rotate-cw': { fine: boolean }
