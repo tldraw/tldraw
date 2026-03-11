@@ -1,4 +1,5 @@
 import {
+	activeElementShouldCaptureKeys,
 	StateNode,
 	TLCancelEventInfo,
 	TLCompleteEventInfo,
@@ -24,12 +25,7 @@ export class EditingShape extends StateNode {
 
 	private isTextInputFocused(): boolean {
 		const container = this.editor.getContainer()
-		return (
-			container.contains(document.activeElement) &&
-			(document.activeElement?.nodeName === 'INPUT' ||
-				document.activeElement?.nodeName === 'TEXTAREA' ||
-				(document.activeElement as HTMLElement)?.isContentEditable)
-		)
+		return container.contains(document.activeElement) && activeElementShouldCaptureKeys(false)
 	}
 
 	override onEnter(info: EditingShapeInfo) {
@@ -49,15 +45,12 @@ export class EditingShape extends StateNode {
 	}
 
 	override onExit() {
-		const { editingShapeId } = this.editor.getCurrentPageState()
-		if (!editingShapeId) return
-
-		// Clear the editing shape
+		const hadEditingShape = !!this.editor.getEditingShapeId()
 		this.editor.setEditingShape(null)
 
 		updateHoveredShapeId.cancel()
 
-		if (this.info.isCreatingTextWhileToolLocked) {
+		if (this.info.isCreatingTextWhileToolLocked && hadEditingShape) {
 			this.parent.setCurrentToolIdMask(undefined)
 			this.editor.setCurrentTool('text', {})
 		}

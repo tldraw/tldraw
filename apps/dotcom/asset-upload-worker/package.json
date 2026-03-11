@@ -23,6 +23,6 @@
 		"@cloudflare/workers-types": "^4.20250913.0",
 		"@types/ws": "^8.18.1",
 		"lazyrepo": "0.0.0-alpha.27",
-		"wrangler": "^4.37.1"
+		"wrangler": "^4.67.0"
 	}
 }
