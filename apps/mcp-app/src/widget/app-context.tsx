@@ -13,7 +13,7 @@ export const McpAppContext = createContext<{
 	isDev: boolean
 	isDevLogVisible: boolean
 	toggleDevLog: (() => void) | null
-	appendDevLog: ((message: string) => void) | null
+	logIfDevMode: ((message: string) => void) | null
 }>({
 	displayMode: 'inline',
 	toggleFullscreen: null,
@@ -25,5 +25,5 @@ export const McpAppContext = createContext<{
 	isDev: false,
 	isDevLogVisible: false,
 	toggleDevLog: null,
-	appendDevLog: null,
+	logIfDevMode: null,
 })

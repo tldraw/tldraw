@@ -63,9 +63,18 @@ function SharePanelContent() {
 	const editor = useEditor()
 	const hasShapes = useValue('hasShapes', () => editor.getCurrentPageShapeIds().size > 0, [editor])
 
-	const { displayMode, toggleFullscreen, canFullscreen, canDownload, app, lastEditor, hostName } =
-		useContext(McpAppContext)
-	const { isDev, isDevLogVisible, toggleDevLog } = useContext(McpAppContext)
+	const {
+		displayMode,
+		toggleFullscreen,
+		canFullscreen,
+		canDownload,
+		app,
+		lastEditor,
+		hostName,
+		isDev,
+		isDevLogVisible,
+		toggleDevLog,
+	} = useContext(McpAppContext)
 
 	const isCodeEditor = useMemo(() => {
 		if (!hostName) return false
@@ -234,14 +243,17 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 	}, [])
 
-	const appendDevLog = useCallback((message: string) => {
-		if (!message) return
-		setDevLogEntries((entries) => {
-			const timestamp = new Date().toLocaleTimeString()
-			const nextEntries = [...entries, `[${timestamp}] ${message}`]
-			return nextEntries.slice(-MAX_DEV_LOG_ENTRIES)
-		})
-	}, [])
+	const logIfDevMode = useCallback(
+		(message: string) => {
+			if (!isDev) return
+			setDevLogEntries((entries) => {
+				const timestamp = new Date().toLocaleTimeString()
+				const nextEntries = [...entries, `[${timestamp}] ${message}`]
+				return nextEntries.slice(-MAX_DEV_LOG_ENTRIES)
+			})
+		},
+		[isDev]
+	)
 
 	const toggleDevLog = useCallback(() => {
 		setIsDevLogVisible((visible) => !visible)
@@ -291,7 +303,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			isDev,
 			isDevLogVisible,
 			toggleDevLog,
-			appendDevLog,
+			logIfDevMode,
 		}),
 		[
 			displayMode,
@@ -304,7 +316,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			isDev,
 			isDevLogVisible,
 			toggleDevLog,
-			appendDevLog,
+			logIfDevMode,
 		]
 	)
 
@@ -468,7 +480,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			if (bootstrap.isDev) {
 				setIsDevLogVisible(true)
 			}
-			appendDevLog(
+			logIfDevMode(
 				`Bootstrap loaded for session ${bootstrap.sessionId}${bootstrap.isDev ? ' (dev mode)' : ''}`
 			)
 
@@ -483,7 +495,7 @@ function TldrawCanvas({ app }: { app: App }) {
 					committedSnapshotRef.current = snapshot
 					if (bootstrap.checkpointId) {
 						checkpointIdRef.current = bootstrap.checkpointId
-						appendDevLog(
+						logIfDevMode(
 							`Restored embedded checkpoint ${bootstrap.checkpointId} with ${bootstrap.snapshot.shapes.length} shape(s)`
 						)
 					}
@@ -502,7 +514,7 @@ function TldrawCanvas({ app }: { app: App }) {
 					latestSnapshot.shapes.length > 0 &&
 					committedSnapshotRef.current.shapes.length === 0
 				) {
-					appendDevLog(
+					logIfDevMode(
 						`Restored latest local snapshot with ${latestSnapshot.shapes.length} shape(s)`
 					)
 					committedSnapshotRef.current = latestSnapshot
@@ -554,19 +566,19 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		app.ontoolinputpartial = (input) => {
-			appendDevLog(`Received partial tool input: ${JSON.stringify(input)}`)
+			logIfDevMode(`Received partial tool input: ${JSON.stringify(input)}`)
 			applyPreviewFromToolInput(input, true)
 		}
 
 		app.ontoolinput = (input) => {
-			appendDevLog(`Received tool input: ${JSON.stringify(input)}`)
+			logIfDevMode(`Received tool input: ${JSON.stringify(input)}`)
 			applyPreviewFromToolInput(input, false)
 		}
 
 		app.ontoolresult = (result) => {
 			const checkpoint = parseCheckpointFromToolResult(result)
 			if (!checkpoint) return
-			appendDevLog(`Received tool result for checkpoint ${checkpoint.checkpointId}`)
+			logIfDevMode(`Received tool result for checkpoint ${checkpoint.checkpointId}`)
 			markAiActivity()
 
 			const {
@@ -663,7 +675,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			clearPreviewAndRestoreCommitted()
 			requestShapeIdsRef.current = new Set<TLShapeId>()
 			markAiActivity()
-			appendDevLog('Tool invocation cancelled')
+			logIfDevMode('Tool invocation cancelled')
 		}
 
 		return () => {
@@ -676,7 +688,7 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 	}, [
 		app,
-		appendDevLog,
+		logIfDevMode,
 		applyPreviewFromToolInput,
 		clearPreviewAndRestoreCommitted,
 		markAiActivity,
