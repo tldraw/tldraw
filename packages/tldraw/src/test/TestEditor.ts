@@ -227,11 +227,11 @@ export class TestEditor extends Editor {
 	getLastCreatedShape<T extends TLShape>() {
 		return this.controller.getLastCreatedShape<T>()
 	}
-	testShapeID(...args: Parameters<Driver['testShapeID']>) {
-		return this.controller.testShapeID(...args)
+	testShapeID(...args: Parameters<Driver['createShapeID']>) {
+		return this.controller.createShapeID(...args)
 	}
-	testPageID(...args: Parameters<Driver['testPageID']>) {
-		return this.controller.testPageID(...args)
+	testPageID(...args: Parameters<Driver['createPageID']>) {
+		return this.controller.createPageID(...args)
 	}
 	copy(...args: Parameters<Driver['copy']>) {
 		this.controller.copy(...args)

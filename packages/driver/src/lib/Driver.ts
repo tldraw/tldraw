@@ -82,7 +82,7 @@ export class Driver {
 	 * Creates a shape ID from a string.
 	 * @param id - The string to convert to a shape ID.
 	 */
-	testShapeID(id: string) {
+	createShapeID(id: string) {
 		return createShapeId(id)
 	}
 
@@ -90,7 +90,7 @@ export class Driver {
 	 * Creates a page ID from a string.
 	 * @param id - The string to convert to a page ID.
 	 */
-	testPageID(id: string) {
+	createPageID(id: string) {
 		return PageRecordType.createId(id)
 	}
 
