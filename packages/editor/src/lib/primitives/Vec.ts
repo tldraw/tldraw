@@ -434,20 +434,20 @@ export class Vec {
 	}
 
 	static NearestPointOnLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp = true): Vec {
-		if (Vec.Equals(A, P)) return Vec.From(P)
-		if (Vec.Equals(B, P)) return Vec.From(P)
+		const dx = B.x - A.x
+		const dy = B.y - A.y
+		const d2 = dx * dx + dy * dy
 
-		const u = Vec.Tan(B, A)
-		const C = Vec.Add(A, Vec.Mul(u, Vec.Sub(P, A).pry(u)))
+		if (d2 === 0) return Vec.From(A)
+
+		let t = ((P.x - A.x) * dx + (P.y - A.y) * dy) / d2
 
 		if (clamp) {
-			if (C.x < Math.min(A.x, B.x)) return Vec.Cast(A.x < B.x ? A : B)
-			if (C.x > Math.max(A.x, B.x)) return Vec.Cast(A.x > B.x ? A : B)
-			if (C.y < Math.min(A.y, B.y)) return Vec.Cast(A.y < B.y ? A : B)
-			if (C.y > Math.max(A.y, B.y)) return Vec.Cast(A.y > B.y ? A : B)
+			if (t < 0) t = 0
+			else if (t > 1) t = 1
 		}
 
-		return C
+		return new Vec(A.x + t * dx, A.y + t * dy)
 	}
 
 	static DistanceToLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): number {
@@ -455,7 +455,22 @@ export class Vec {
 	}
 
 	static DistanceToLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp = true): number {
-		return Vec.Dist(P, Vec.NearestPointOnLineSegment(A, B, P, clamp))
+		const dx = B.x - A.x
+		const dy = B.y - A.y
+		const d2 = dx * dx + dy * dy
+
+		if (d2 === 0) return Vec.Dist(A, P)
+
+		let t = ((P.x - A.x) * dx + (P.y - A.y) * dy) / d2
+
+		if (clamp) {
+			if (t < 0) t = 0
+			else if (t > 1) t = 1
+		}
+
+		const nx = A.x + t * dx - P.x
+		const ny = A.y + t * dy - P.y
+		return Math.sqrt(nx * nx + ny * ny)
 	}
 
 	static Snap(A: VecLike, step = 1) {
