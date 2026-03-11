@@ -87,7 +87,7 @@ class FuzzTestInstance extends RandomSource {
 					id: this.id,
 					name: 'test',
 					color: 'red',
-					locale: 'en',
+					meta: {},
 				}))
 			)(this.store),
 		})

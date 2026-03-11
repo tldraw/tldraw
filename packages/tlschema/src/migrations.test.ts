@@ -2640,6 +2640,79 @@ describe('Adding textLastEditedBy to note shape', () => {
 	})
 })
 
+describe('Converting attribution user objects to ID strings (root shape)', () => {
+	const { up, down } = getTestMigration(rootShapeVersions.AttributionUserToId)
+
+	test('up converts createdBy/updatedBy objects to ID strings', () => {
+		const result = up({
+			meta: {
+				[tldrawShapeMetaKey]: {
+					createdBy: { id: 'user-1', name: 'Alice' },
+					updatedBy: { id: 'user-2', name: 'Bob' },
+					createdAt: 1000,
+					updatedAt: 2000,
+				},
+			},
+		})
+		expect(result.meta[tldrawShapeMetaKey].createdBy).toBe('user-1')
+		expect(result.meta[tldrawShapeMetaKey].updatedBy).toBe('user-2')
+	})
+
+	test('up is a no-op when no tlmeta', () => {
+		const result = up({ meta: {} })
+		expect(result.meta).toEqual({})
+	})
+
+	test('up is a no-op for null values', () => {
+		const result = up({
+			meta: {
+				[tldrawShapeMetaKey]: {
+					createdBy: null,
+					updatedBy: null,
+					createdAt: null,
+					updatedAt: null,
+				},
+			},
+		})
+		expect(result.meta[tldrawShapeMetaKey].createdBy).toBeNull()
+		expect(result.meta[tldrawShapeMetaKey].updatedBy).toBeNull()
+	})
+
+	test('down converts ID strings back to objects', () => {
+		const result = down({
+			meta: {
+				[tldrawShapeMetaKey]: {
+					createdBy: 'user-1',
+					updatedBy: 'user-2',
+					createdAt: 1000,
+					updatedAt: 2000,
+				},
+			},
+		})
+		expect(result.meta[tldrawShapeMetaKey].createdBy).toEqual({ id: 'user-1', name: '' })
+		expect(result.meta[tldrawShapeMetaKey].updatedBy).toEqual({ id: 'user-2', name: '' })
+	})
+})
+
+describe('Converting note textLastEditedBy to ID string', () => {
+	const { up, down } = getTestMigration(noteShapeVersions.LastEditedByToId)
+
+	test('up converts object to ID string', () => {
+		const result = up({ props: { textLastEditedBy: { id: 'user-1', name: 'Alice' } } })
+		expect(result.props.textLastEditedBy).toBe('user-1')
+	})
+
+	test('up is a no-op for null', () => {
+		const result = up({ props: { textLastEditedBy: null } })
+		expect(result.props.textLastEditedBy).toBeNull()
+	})
+
+	test('down converts ID string back to object', () => {
+		const result = down({ props: { textLastEditedBy: 'user-1' } })
+		expect(result.props.textLastEditedBy).toEqual({ id: 'user-1', name: '' })
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 // check that all migrator fns were called at least once

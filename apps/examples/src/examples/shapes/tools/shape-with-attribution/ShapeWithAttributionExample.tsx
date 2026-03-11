@@ -4,11 +4,11 @@ import {
 	RecordProps,
 	T,
 	TLShape,
+	TLUserStore,
 	Tldraw,
 	getTldrawMetaFromShapeMeta,
 	useEditor,
 	useValue,
-	type TLIdentityProvider,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './shape-with-attribution.css'
@@ -27,9 +27,9 @@ declare module 'tldraw' {
 type AttributedCardShape = TLShape<typeof ATTRIBUTED_CARD>
 
 // [2]
-const identity: TLIdentityProvider = {
-	getCurrentUser: () => ({ id: 'user-alice', name: 'Alice' }),
-	resolveUser: (id) => (id === 'user-alice' ? { id, name: 'Alice' } : null),
+const users: TLUserStore = {
+	getCurrentUser: () => ({ id: 'user-alice', name: 'Alice', meta: {} }),
+	resolve: (id) => (id === 'user-alice' ? { id, name: 'Alice', meta: {} } : null),
 }
 
 // [3]
@@ -108,8 +108,8 @@ export default function ShapeWithAttributionExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				shapeUtils={shapeUtils}
+				users={users}
 				onMount={(editor) => {
-					;(editor as any)._identity = identity
 					editor.createShape({
 						type: ATTRIBUTED_CARD,
 						x: 380,
@@ -129,9 +129,9 @@ Every shape automatically gets `meta.__tldraw` (with `createdBy`, `updatedBy`,
 `createdAt`, `updatedAt`) — no extra props needed for attribution.
 
 [2]
-A simple identity provider so shapes are attributed to "Alice". In a real app
+A simple TLUserStore so shapes are attributed to "Alice". In a real app
 this would be backed by your auth system. `getCurrentUser` returns who is
-logged in; `resolveUser` looks up any user ID for display-name resolution.
+logged in; `resolve` looks up any user ID for display-name resolution.
 
 [3]
 A React component that renders the shape body. We read the live shape from the
@@ -144,7 +144,7 @@ We extend BaseBoxShapeUtil so we get resize handling for free. The `component`
 method delegates to our React component that reads attribution data.
 
 [5]
-Mount the editor with our custom shape util, inject the identity provider, and
-create a card on the canvas. Try moving, resizing, or editing the card — the
-"Edited by" and "Last edit" fields update automatically.
+Mount the editor with our custom shape util, pass the user store as the `users`
+prop, and create a card on the canvas. Try moving, resizing, or editing the
+card — the "Edited by" and "Last edit" fields update automatically.
 */

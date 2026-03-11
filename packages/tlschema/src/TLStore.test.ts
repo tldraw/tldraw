@@ -330,6 +330,10 @@ describe('createIntegrityChecker', () => {
 			props: {
 				defaultName: 'Test Store',
 				assets: mockAssetStore,
+				users: {
+					getCurrentUser: () => null,
+					resolve: () => null,
+				},
 				onMount: vi.fn(),
 			},
 		})

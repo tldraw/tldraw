@@ -4,18 +4,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	createPresenceStateDerivation,
 	getDefaultUserPresence,
-	TLPresenceUserInfo,
 } from './createPresenceStateDerivation'
 import { createTLSchema } from './createTLSchema'
 import { TLINSTANCE_ID } from './records/TLInstance'
 import { TLPageId } from './records/TLPage'
 import { InstancePageStateRecordType } from './records/TLPageState'
 import { TLRecord } from './records/TLRecord'
-import { createIntegrityChecker, TLStoreProps } from './TLStore'
+import { createIntegrityChecker, TLStoreProps, TLUser } from './TLStore'
 
 describe('createPresenceStateDerivation', () => {
 	let store: Store<TLRecord, TLStoreProps>
-	let userSignal: ReturnType<typeof atom<TLPresenceUserInfo>>
+	let userSignal: ReturnType<typeof atom<TLUser>>
 
 	beforeEach(() => {
 		const schema = createTLSchema()
@@ -27,6 +26,10 @@ describe('createPresenceStateDerivation', () => {
 					upload: vi.fn().mockResolvedValue({ src: 'uploaded-url' }),
 					resolve: vi.fn().mockResolvedValue('resolved-url'),
 					remove: vi.fn().mockResolvedValue(undefined),
+				},
+				users: {
+					getCurrentUser: () => null,
+					resolve: () => null,
 				},
 				onMount: vi.fn(),
 			},
@@ -40,6 +43,7 @@ describe('createPresenceStateDerivation', () => {
 			id: 'user123',
 			name: 'Test User',
 			color: '#007AFF',
+			meta: {},
 		})
 	})
 
@@ -62,6 +66,7 @@ describe('createPresenceStateDerivation', () => {
 				id: 'user456',
 				name: 'Updated User',
 				color: '#FF6B6B',
+				meta: {},
 			})
 
 			const updatedPresence = presenceSignal.get()
@@ -111,6 +116,10 @@ describe('getDefaultUserPresence', () => {
 					resolve: vi.fn().mockResolvedValue('resolved-url'),
 					remove: vi.fn().mockResolvedValue(undefined),
 				},
+				users: {
+					getCurrentUser: () => null,
+					resolve: () => null,
+				},
 				onMount: vi.fn(),
 			},
 		})
@@ -126,10 +135,11 @@ describe('getDefaultUserPresence', () => {
 
 	describe('basic functionality', () => {
 		it('should return presence state with user info and default values', () => {
-			const user: TLPresenceUserInfo = {
+			const user: TLUser = {
 				id: 'test-user',
 				name: 'Test User',
 				color: '#00FF00',
+				meta: {},
 			}
 
 			const presence = getDefaultUserPresence(store, user)
@@ -140,7 +150,7 @@ describe('getDefaultUserPresence', () => {
 		})
 
 		it('should use defaults for missing user fields', () => {
-			const minimalUser: TLPresenceUserInfo = { id: 'minimal' }
+			const minimalUser: TLUser = { id: 'minimal', name: '', meta: {} }
 			const presence = getDefaultUserPresence(store, minimalUser)
 
 			expect(presence!.userName).toBe('')
@@ -151,7 +161,7 @@ describe('getDefaultUserPresence', () => {
 	describe('error conditions', () => {
 		it('should return null when required records are missing', () => {
 			store.remove([TLINSTANCE_ID])
-			const user: TLPresenceUserInfo = { id: 'test' }
+			const user: TLUser = { id: 'test', name: '', meta: {} }
 			expect(getDefaultUserPresence(store, user)).toBe(null)
 		})
 	})

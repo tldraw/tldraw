@@ -76,7 +76,6 @@ import { TLArrowShapeKind } from '@tldraw/editor';
 import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
-import { TLAttributionUser } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
@@ -2284,7 +2283,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             };
             scale: number;
             size: "l" | "m" | "s" | "xl";
-            textLastEditedBy: TLAttributionUser | null;
+            textLastEditedBy: null | string;
             url: string;
             verticalAlign: "end" | "middle" | "start";
         };

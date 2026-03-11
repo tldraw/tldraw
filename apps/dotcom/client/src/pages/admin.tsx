@@ -3,7 +3,7 @@ import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
-import { useTldrawUser } from '../tla/hooks/useUser'
+import { useTldrawCurrentUser } from '../tla/hooks/useUser'
 import styles from './admin.module.css'
 import { saveMigrationLog } from './migrationLogsDB'
 
@@ -74,7 +74,7 @@ function UserDataSummary({ data }: { data: ZStoreData }) {
 }
 
 export function Component() {
-	const user = useTldrawUser()
+	const user = useTldrawCurrentUser()
 	const [data, setData] = useState<any>(null)
 	const [error, setError] = useState(null as string | null)
 	const [replicatorData, setReplicatorData] = useState(null)

@@ -74,9 +74,6 @@ export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 // @public
 export const assetValidator: T.Validator<TLAsset>;
 
-// @public (undocumented)
-export const attributionUserValidator: T.Validator<null | TLAttributionUser>;
-
 // @public
 export class b64Vecs {
     static decodeFirstPoint(b64Points: string): null | VecModel;
@@ -161,7 +158,7 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
 }): T.ObjectValidator<Expand<    { [P in "fromId" | "id" | "meta" | "toId" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseBinding<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseBinding<Type, Props>[P] | undefined; }>>;
 
 // @public
-export function createPresenceStateDerivation($user: Signal<TLPresenceUserInfo>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence, unknown>;
+export function createPresenceStateDerivation($user: Signal<TLUser>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence, unknown>;
 
 // @public
 export function createShapeId(id?: string): TLShapeId;
@@ -360,7 +357,7 @@ export function getDefaultColorTheme(opts: {
 export function getDefaultTranslationLocale(): TLLanguage['locale'];
 
 // @public
-export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo): {
+export function getDefaultUserPresence(store: TLStore, user: TLUser): {
     brush: BoxModel | null;
     camera: {
         x: number;
@@ -812,12 +809,6 @@ export interface TLAssetStore {
         src: string;
     }>;
 }
-
-// @public
-export type TLAttributionUser = {
-    readonly id: string;
-    readonly name: string;
-};
 
 // @public
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
@@ -1373,7 +1364,7 @@ export interface TLNoteShapeProps {
     richText: TLRichText;
     scale: number;
     size: TLDefaultSizeStyle;
-    textLastEditedBy: null | TLAttributionUser;
+    textLastEditedBy: null | string;
     url: string;
     verticalAlign: TLDefaultVerticalAlignStyle;
 }
@@ -1417,13 +1408,6 @@ export type TLPointerId = RecordId<TLPointer>;
 
 // @public
 export type TLPresenceStateInfo = Parameters<(typeof InstancePresenceRecordType)['create']>[0];
-
-// @public
-export interface TLPresenceUserInfo {
-    color?: null | string;
-    id: string;
-    name?: null | string;
-}
 
 // @public
 export interface TLPropsMigration {
@@ -1499,9 +1483,9 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 // @public
 export type TLShapeTLMeta = {
     createdAt: null | number;
-    createdBy: null | TLAttributionUser;
+    createdBy: null | string;
     updatedAt: null | number;
-    updatedBy: null | TLAttributionUser;
+    updatedBy: null | string;
 };
 
 // @public
@@ -1516,6 +1500,7 @@ export interface TLStoreProps {
     };
     defaultName: string;
     onMount(editor: unknown): (() => void) | void;
+    users: Required<TLUserStore>;
 }
 
 // @public
@@ -1552,6 +1537,26 @@ export type TLUnknownBinding = TLBaseBinding<string, object>;
 
 // @public
 export type TLUnknownShape = TLBaseShape<string, object>;
+
+// @public
+export interface TLUser extends JsonObject {
+    // (undocumented)
+    readonly color?: string;
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly imageUrl?: string;
+    // (undocumented)
+    readonly meta: JsonObject;
+    // (undocumented)
+    readonly name: string;
+}
+
+// @public
+export interface TLUserStore {
+    getCurrentUser(): null | TLUser;
+    resolve?(userId: string): null | TLUser;
+}
 
 // @public
 export type TLVideoAsset = TLBaseAsset<'video', {

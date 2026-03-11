@@ -52,7 +52,6 @@ export {
 	createPresenceStateDerivation,
 	getDefaultUserPresence,
 	type TLPresenceStateInfo,
-	type TLPresenceUserInfo,
 } from './createPresenceStateDerivation'
 export {
 	createTLSchema,
@@ -179,7 +178,6 @@ export {
 	type TLArrowShapeProps,
 } from './shapes/TLArrowShape'
 export {
-	attributionUserValidator,
 	createShapeValidator,
 	defaultTlMeta,
 	getTldrawMetaFromShapeMeta,
@@ -187,7 +185,6 @@ export {
 	shapeIdValidator,
 	tldrawShapeMetaKey,
 	tlmetaValidator,
-	type TLAttributionUser,
 	type TLBaseShape,
 	type TLShapeMeta,
 	type TLShapeTLMeta,
@@ -309,6 +306,8 @@ export {
 	type TLStoreProps,
 	type TLStoreSchema,
 	type TLStoreSnapshot,
+	type TLUser,
+	type TLUserStore,
 } from './TLStore'
 export {
 	getDefaultTranslationLocale,

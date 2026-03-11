@@ -201,6 +201,69 @@ export interface TLAssetStore {
 }
 
 /**
+ * A user record for tldraw's user store. At minimum contains an `id` and `name`,
+ * but extends `JsonObject` so downstream SDK consumers can attach additional
+ * properties (avatar URL, color, role, etc.) without upstream schema changes.
+ *
+ * The `meta` field provides the standard tldraw extensibility point for
+ * app-specific data, consistent with shapes, assets, pages, and other records.
+ *
+ * @public
+ * @example
+ * ```ts
+ * const user: TLUser = {
+ *   id: 'user-123',
+ *   name: 'Alice',
+ *   color: '#e03131',
+ *   meta: { team: 'design' },
+ * }
+ * ```
+ */
+export interface TLUser extends JsonObject {
+	readonly id: string
+	readonly name: string
+	readonly color?: string
+	readonly imageUrl?: string
+	readonly meta: JsonObject
+}
+
+/**
+ * Interface for resolving user information in tldraw.
+ *
+ * A `TLUserStore` sits alongside the main {@link TLStore} and provides user
+ * resolution for attribution labels and display names. Implement this interface
+ * to connect tldraw to your auth/user system.
+ *
+ * @public
+ * @example
+ * ```ts
+ * const userStore: TLUserStore = {
+ *   getCurrentUser() {
+ *     return { id: myAuth.userId, name: myAuth.displayName, color: myAuth.color, meta: {} }
+ *   },
+ *   resolve(userId) {
+ *     return myUserCache.get(userId) ?? null
+ *   },
+ * }
+ * ```
+ */
+export interface TLUserStore {
+	/**
+	 * Return the currently authenticated user, or `null` for anonymous / unknown.
+	 * Called when stamping attribution on shape create/update.
+	 */
+	getCurrentUser(): TLUser | null
+
+	/**
+	 * Resolve an arbitrary user ID to display info.
+	 * Called when rendering attribution labels for shapes that may have been
+	 * created or edited by someone else.
+	 * Return `null` if the user cannot be resolved.
+	 */
+	resolve?(userId: string): TLUser | null
+}
+
+/**
  * Configuration properties for a tldraw store, defining its behavior and integrations.
  * These props are passed when creating a new store instance.
  *
@@ -228,6 +291,8 @@ export interface TLStoreProps {
 	defaultName: string
 	/** Asset store implementation for handling file uploads and storage */
 	assets: Required<TLAssetStore>
+	/** User store implementation for user resolution and attribution */
+	users: Required<TLUserStore>
 	/**
 	 * Called when an {@link @tldraw/editor#Editor} connected to this store is mounted.
 	 * Can optionally return a cleanup function that will be called when unmounted.

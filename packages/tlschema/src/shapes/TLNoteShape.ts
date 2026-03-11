@@ -17,7 +17,7 @@ import {
 	DefaultVerticalAlignStyle,
 	TLDefaultVerticalAlignStyle,
 } from '../styles/TLVerticalAlignStyle'
-import { TLAttributionUser, TLBaseShape, attributionUserValidator } from './TLBaseShape'
+import { TLBaseShape } from './TLBaseShape'
 
 /**
  * Properties for a note shape. Note shapes represent sticky notes or text annotations
@@ -64,8 +64,8 @@ export interface TLNoteShapeProps {
 	richText: TLRichText
 	/** Scale factor applied to the note shape for display */
 	scale: number
-	/** Identity snapshot of the person who last edited the note text */
-	textLastEditedBy: TLAttributionUser | null
+	/** User ID of the person who last edited the note text */
+	textLastEditedBy: string | null
 }
 
 /**
@@ -132,7 +132,7 @@ export const noteShapeProps: RecordProps<TLNoteShape> = {
 	url: T.linkUrl,
 	richText: richTextValidator,
 	scale: T.nonZeroNumber,
-	textLastEditedBy: attributionUserValidator,
+	textLastEditedBy: T.string.nullable(),
 }
 
 const Versions = createShapePropsMigrationIds('note', {
@@ -147,6 +147,7 @@ const Versions = createShapePropsMigrationIds('note', {
 	AddRichText: 9,
 	AddRichTextAttrs: 10,
 	AddLastEditedBy: 11,
+	LastEditedByToId: 12,
 })
 
 /**
@@ -276,6 +277,19 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.textLastEditedBy
+			},
+		},
+		{
+			id: Versions.LastEditedByToId,
+			up: (props: any) => {
+				if (props.textLastEditedBy && typeof props.textLastEditedBy === 'object') {
+					props.textLastEditedBy = props.textLastEditedBy.id
+				}
+			},
+			down: (props: any) => {
+				if (typeof props.textLastEditedBy === 'string') {
+					props.textLastEditedBy = { id: props.textLastEditedBy, name: '' }
+				}
 			},
 		},
 	],

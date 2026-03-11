@@ -1,4 +1,4 @@
-import { TLUserPreferences, atom, createTLUser } from '@tldraw/editor'
+import { TLUserPreferences, atom, createTLCurrentUser } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
@@ -29,7 +29,7 @@ describe('TLUserPreferences', () => {
 		})
 
 		editor = new TestEditor({
-			user: createTLUser({
+			user: createTLCurrentUser({
 				setUserPreferences: (preferences) => userPreferences.set(preferences),
 				userPreferences,
 			}),
@@ -63,7 +63,7 @@ describe('TLUserPreferences', () => {
 		const setUserPreferences = vi.fn((preferences) => userPreferences.set(preferences))
 
 		editor = new TestEditor({
-			user: createTLUser({
+			user: createTLCurrentUser({
 				setUserPreferences,
 				userPreferences,
 			}),
@@ -84,7 +84,7 @@ describe('TLUserPreferences', () => {
 		const setUserPreferences = vi.fn((preferences) => userPreferences.set(preferences))
 
 		editor = new TestEditor({
-			user: createTLUser({
+			user: createTLCurrentUser({
 				setUserPreferences,
 				userPreferences,
 			}),
@@ -105,7 +105,7 @@ describe('TLUserPreferences', () => {
 		const setUserPreferences = vi.fn((preferences) => userPreferences.set(preferences))
 
 		editor = new TestEditor({
-			user: createTLUser({
+			user: createTLCurrentUser({
 				setUserPreferences,
 				userPreferences,
 			}),

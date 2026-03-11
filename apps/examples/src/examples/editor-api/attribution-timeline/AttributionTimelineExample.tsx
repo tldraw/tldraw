@@ -6,10 +6,10 @@ import {
 	Tldraw,
 	TldrawUiButton,
 	TldrawUiSlider,
+	TLUser,
+	TLUserStore,
 	track,
 	useEditor,
-	type TLIdentityProvider,
-	type TLIdentityUser,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './attribution-timeline.css'
@@ -17,19 +17,19 @@ import './attribution-timeline.css'
 // There's a guide at the bottom of this file!
 
 // [1]
-const USERS: Record<string, TLIdentityUser> = {
-	'user-alice': { id: 'user-alice', name: 'Alice', color: '#e03131' },
-	'user-bob': { id: 'user-bob', name: 'Bob', color: '#1971c2' },
-	'user-carol': { id: 'user-carol', name: 'Carol', color: '#2f9e44' },
+const USERS: Record<string, TLUser> = {
+	'user-alice': { id: 'user-alice', name: 'Alice', color: '#e03131', meta: {} },
+	'user-bob': { id: 'user-bob', name: 'Bob', color: '#1971c2', meta: {} },
+	'user-carol': { id: 'user-carol', name: 'Carol', color: '#2f9e44', meta: {} },
 }
 
 let currentUserId = 'user-alice'
 
-const identity: TLIdentityProvider = {
+const users: TLUserStore = {
 	getCurrentUser() {
 		return USERS[currentUserId] ?? null
 	},
-	resolveUser(userId: string) {
+	resolve(userId: string) {
 		return USERS[userId] ?? null
 	},
 }
@@ -56,11 +56,9 @@ export default function AttributionTimelineExample() {
 		<div className="attribution-timeline-example">
 			<Tldraw
 				persistenceKey="attribution-timeline-example"
+				users={users}
 				components={{
 					TopPanel: UserSwitcher,
-				}}
-				onMount={(editor) => {
-					;(editor as any)._identity = identity
 				}}
 			>
 				<AttributionTimeline />
@@ -105,7 +103,7 @@ const AttributionTimeline = track(() => {
 	// [5]
 	const recordChange = useCallback(
 		(diff: RecordsDiff<any>) => {
-			const user = editor.getIdentity().getCurrentUser()
+			const user = editor.store.props.users.getCurrentUser()
 			const newEntry: AttributionTimelineEntry = {
 				timestamp: Date.now(),
 				diff,
@@ -365,8 +363,8 @@ const AttributionTimeline = track(() => {
 /*
 [1]
 A fake user directory. In a real app this would be backed by your auth system.
-The TLIdentityProvider tells the editor who is "logged in" — the editor calls
-getCurrentUser when stamping meta.__tldraw on shape create/update, and resolveUser
+The TLUserStore tells the editor who is "logged in" — the editor calls
+getCurrentUser when stamping meta.__tldraw on shape create/update, and resolve
 when rendering attribution labels.
 
 [2]
@@ -375,7 +373,7 @@ of whoever was active when the change was recorded.
 
 [3]
 The main component wires everything together: the TopPanel shows the user
-switcher, the identity provider is injected in onMount, and the
+switcher, the user store is passed as the `users` prop, and the
 AttributionTimeline child renders the bottom controls bar.
 
 [4]

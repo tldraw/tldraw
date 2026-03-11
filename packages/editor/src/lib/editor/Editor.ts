@@ -24,7 +24,6 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLAssetPartial,
-	TLAttributionUser,
 	TLBinding,
 	TLBindingCreate,
 	TLBindingId,
@@ -100,8 +99,7 @@ import {
 	getSnapshot,
 	loadSnapshot,
 } from '../config/TLEditorSnapshot'
-import { TLIdentityProvider } from '../config/TLIdentity'
-import { TLUser, createTLUser } from '../config/createTLUser'
+import { TLCurrentUser, createTLCurrentUser } from '../config/createTLCurrentUser'
 import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
@@ -225,7 +223,7 @@ export interface TLEditorOptions {
 	/**
 	 * A user defined externally to replace the default user.
 	 */
-	user?: TLUser
+	user?: TLCurrentUser
 	/**
 	 * The editor's initial active tool (or other state node id).
 	 */
@@ -272,12 +270,6 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
-	/**
-	 * An identity provider for attribution and user resolution.
-	 * If not provided, falls back to localStorage user preferences
-	 * and the collaborator presence list.
-	 */
-	identity?: TLIdentityProvider
 }
 
 /**
@@ -320,12 +312,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		textOptions: _textOptions,
 		getShapeVisibility,
 		fontAssetUrls,
-		identity,
 	}: TLEditorOptions) {
 		super()
 
 		this._getShapeVisibility = getShapeVisibility
-		this._identity = identity ?? null
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop
@@ -358,7 +348,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._textOptions = atom('text options', options?.text ?? null)
 
-		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
+		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())
 
 		this.getContainer = getContainer
@@ -835,7 +825,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
-	private readonly _identity: TLIdentityProvider | null
 
 	@computed
 	private getIsShapeHiddenCache() {
@@ -3955,78 +3944,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
 	}
 
-	// Identity & Attribution
+	// Attribution
 
 	/**
-	 * The identity provider used for shape attribution and user-name resolution.
-	 *
-	 * If an `identity` option was passed to the editor constructor it is used
-	 * directly. Otherwise a default provider is built from the local
-	 * {@link UserPreferencesManager} and the collaborator presence list.
-	 *
-	 * @public
-	 */
-	getIdentity(): TLIdentityProvider {
-		if (this._identity) return this._identity
-		return this._getDefaultIdentity()
-	}
-
-	private _getDefaultIdentity(): TLIdentityProvider {
-		return {
-			getCurrentUser: () => {
-				const id = this.user.getId()
-				if (!id) return null
-				return { id, name: this.user.getName(), color: this.user.getColor() }
-			},
-			resolveUser: (userId: string) => {
-				const currentId = this.user.getId()
-				if (userId === currentId) {
-					return { id: userId, name: this.user.getName(), color: this.user.getColor() }
-				}
-				const collaborator = this.getCollaborators().find((c) => c.userId === userId)
-				if (collaborator) {
-					return { id: userId, name: collaborator.userName, color: collaborator.color }
-				}
-				return null
-			},
-		}
-	}
-
-	/**
-	 * Get the current user as a `TLAttributionUser` for stamping into shape
-	 * `meta.__tldraw`. Returns `null` when no identity is configured or the user is anonymous.
-	 *
-	 * @public
-	 */
-	getAttributionUser(): TLAttributionUser | null {
-		const user = this.getIdentity().getCurrentUser()
-		if (!user) return null
-		return { id: user.id, name: user.name }
-	}
-
-	/**
-	 * Get the user ID to use for shape attribution. Delegates to
-	 * {@link Editor.getIdentity}.
+	 * Get the current user's ID for stamping into shape `meta.__tldraw`.
+	 * Returns `null` when the user store has no current user.
 	 *
 	 * @public
 	 */
 	getAttributionUserId(): string | null {
-		return this.getAttributionUser()?.id ?? null
+		return this.store.props.users.getCurrentUser()?.id ?? null
 	}
 
 	/**
-	 * Resolve a display name for an attribution user. When given a
-	 * `TLAttributionUser` object (as stored in `meta.__tldraw`), the live
-	 * identity provider is tried first and the stored name is used as fallback.
-	 * A plain string user ID is also accepted for backward compatibility.
+	 * Resolve a display name for a user ID. Looks up the user through the
+	 * store's {@link @tldraw/tlschema#TLUserStore} and returns their name,
+	 * or `null` if the user cannot be resolved.
 	 *
 	 * @public
 	 */
-	getAttributionDisplayName(user: TLAttributionUser | string | null): string | null {
-		if (!user) return null
-		const id = typeof user === 'string' ? user : user.id
-		const fallback = typeof user === 'string' ? null : user.name
-		return this.getIdentity().resolveUser(id)?.name ?? fallback
+	getAttributionDisplayName(userId: string | null): string | null {
+		if (!userId) return null
+		return this.store.props.users.resolve(userId)?.name ?? null
 	}
 
 	// Following
@@ -8163,14 +8102,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// Set attribution metadata, merging any explicitly provided fields
 				const now = Date.now()
-				const user = this.getAttributionUser()
+				const userId = this.getAttributionUserId()
 				shapeRecordToCreate = {
 					...shapeRecordToCreate,
 					meta: {
 						...shapeRecordToCreate.meta,
 						[tldrawShapeMetaKey]: {
-							createdBy: user,
-							updatedBy: user,
+							createdBy: userId,
+							updatedBy: userId,
 							createdAt: now,
 							updatedAt: now,
 							...(partialTlmeta as Partial<TLShapeTLMeta> | undefined),
@@ -8592,7 +8531,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// The reason is because things like, say, resizing, send the whole metadata into
 				// the updateShape call and then `updatedAt` never gets the correct date.
 				const now = Date.now()
-				const user = this.getAttributionUser()
+				const userId = this.getAttributionUserId()
 				const tlmeta = getTldrawMetaFromShapeMeta(shape.meta)
 				updated = {
 					...updated,
@@ -8600,7 +8539,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						...updated.meta,
 						[tldrawShapeMetaKey]: {
 							...tlmeta,
-							updatedBy: user,
+							updatedBy: userId,
 							updatedAt: now,
 						},
 					},

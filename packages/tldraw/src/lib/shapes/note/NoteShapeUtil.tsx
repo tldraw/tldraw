@@ -492,7 +492,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				...shape,
 				props: {
 					...shape.props,
-					textLastEditedBy: this.editor.getAttributionUser(),
+					textLastEditedBy: this.editor.getAttributionUserId(),
 				},
 			}
 		}

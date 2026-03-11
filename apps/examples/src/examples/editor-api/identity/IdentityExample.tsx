@@ -1,14 +1,14 @@
-import { useState } from 'react'
 import {
+	atom,
 	Editor,
 	getTldrawMetaFromShapeMeta,
 	Tldraw,
 	TldrawUiButton,
 	TLShape,
+	TLUser,
+	TLUserStore,
 	useEditor,
 	useValue,
-	type TLIdentityProvider,
-	type TLIdentityUser,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './identity.css'
@@ -16,43 +16,56 @@ import './identity.css'
 // There's a guide at the bottom of this file!
 
 // [1]
-const USERS: Record<string, TLIdentityUser> = {
-	'user-alice': { id: 'user-alice', name: 'Alice', color: '#e03131' },
-	'user-bob': { id: 'user-bob', name: 'Bob', color: '#1971c2' },
-	'user-carol': { id: 'user-carol', name: 'Carol', color: '#2f9e44' },
-}
+const usersAtom = atom<Record<string, TLUser>>('users', {
+	'user-alice': { id: 'user-alice', name: 'Alice', color: '#e03131', meta: {} },
+	'user-bob': { id: 'user-bob', name: 'Bob', color: '#1971c2', meta: {} },
+	'user-carol': { id: 'user-carol', name: 'Carol', color: '#2f9e44', meta: {} },
+})
 
-let currentUserId = 'user-alice'
+const currentUserIdAtom = atom('currentUserId', 'user-alice')
 
 // [2]
-const identity: TLIdentityProvider = {
+const users: TLUserStore = {
 	getCurrentUser() {
-		return USERS[currentUserId] ?? null
+		return usersAtom.get()[currentUserIdAtom.get()] ?? null
 	},
-	resolveUser(userId: string) {
-		return USERS[userId] ?? null
+	resolve(userId: string) {
+		return usersAtom.get()[userId] ?? null
 	},
 }
 
 // [3]
 function UserSwitcher() {
-	const [activeUserId, setActiveUserId] = useState(currentUserId)
+	const allUsers = useValue(usersAtom)
+	const activeUserId = useValue(currentUserIdAtom)
+	const activeUser = allUsers[activeUserId]
 
 	return (
 		<div className="tlui-menu identity-controls">
-			{Object.values(USERS).map((user) => (
+			{Object.values(allUsers).map((user) => (
 				<TldrawUiButton
 					key={user.id}
 					type={activeUserId === user.id ? 'primary' : 'normal'}
-					onClick={() => {
-						currentUserId = user.id
-						setActiveUserId(user.id)
-					}}
+					onClick={() => currentUserIdAtom.set(user.id)}
 				>
 					<span className="identity-dot" style={{ backgroundColor: user.color }} />
 					{user.name}
 				</TldrawUiButton>
 			))}
+			{activeUser && (
+				<input
+					className="identity-name-input"
+					value={activeUser.name}
+					onChange={(e) => {
+						usersAtom.update((prev) => ({
+							...prev,
+							[activeUserId]: { ...prev[activeUserId], name: e.target.value },
+						}))
+					}}
+					onPointerDown={(e) => e.stopPropagation()}
+					placeholder="Edit name…"
+				/>
+			)}
 		</div>
 	)
 }
@@ -71,7 +84,7 @@ function AttributionPanel() {
 		[editor]
 	)
 
-	const currentUser = useValue('current-user', () => editor.getIdentity().getCurrentUser(), [
+	const currentUser = useValue('current-user', () => editor.store.props.users.getCurrentUser(), [
 		editor,
 	])
 
@@ -81,7 +94,7 @@ function AttributionPanel() {
 				<div className="identity-section-title">Current user</div>
 				<div className="identity-row">
 					<span className="identity-label">Name</span>
-					<span style={{ color: currentUser?.color }}>{currentUser?.name ?? '—'}</span>
+					<span style={{ color: currentUser?.color }}>{currentUser?.name || '—'}</span>
 				</div>
 				<div className="identity-row">
 					<span className="identity-label">ID</span>
@@ -127,14 +140,14 @@ function formatTime(ts: number | null) {
 function attributionSummary(editor: Editor, shape: TLShape) {
 	const { createdBy, updatedBy, createdAt, updatedAt } = getTldrawMetaFromShapeMeta(shape.meta)
 
-	const createdByUser = createdBy ? editor.getIdentity().resolveUser(createdBy.id) : null
-	const updatedByUser = updatedBy ? editor.getIdentity().resolveUser(updatedBy.id) : null
+	const createdByUser = createdBy ? editor.store.props.users.resolve(createdBy) : null
+	const updatedByUser = updatedBy ? editor.store.props.users.resolve(updatedBy) : null
 
 	return {
 		type: shape.type,
-		createdByName: createdByUser?.name ?? createdBy?.name ?? '(unknown)',
+		createdByName: createdByUser?.name ?? '(unknown)',
 		createdByColor: createdByUser?.color,
-		updatedByName: updatedByUser?.name ?? updatedBy?.name ?? '(unknown)',
+		updatedByName: updatedByUser?.name ?? '(unknown)',
 		updatedByColor: updatedByUser?.color,
 		createdAt: formatTime(createdAt),
 		updatedAt: formatTime(updatedAt),
@@ -147,13 +160,10 @@ export default function IdentityExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="identity-example"
+				users={users}
 				components={{
 					TopPanel: UserSwitcher,
 					SharePanel: AttributionPanel,
-				}}
-				onMount={(editor) => {
-					// Inject the custom identity provider into the editor.
-					;(editor as any)._identity = identity
 				}}
 			/>
 		</div>
@@ -162,28 +172,32 @@ export default function IdentityExample() {
 
 /*
 [1]
-A fake user directory. In a real app this would be backed by your auth system
-or user service. Each user has an id, display name, and optional color.
+A fake user directory stored in a reactive atom. In a real app this would be
+backed by your auth system or user service. Each user has an id, display name,
+color, and a meta object for extra properties. Because it's an atom,
+changes (like renaming a user) automatically propagate to anything reading
+from the TLUserStore.
 
 [2]
-The custom TLIdentityProvider. `getCurrentUser` returns whoever is "logged in"
-right now (controlled by the switcher buttons). `resolveUser` looks up any user
-ID — the editor calls this when rendering attribution labels for shapes that
-may have been created or edited by someone else.
+The custom TLUserStore. `getCurrentUser` and `resolve` both read from the
+atoms, making them reactive — any computed or useValue that calls these
+functions will re-evaluate when the underlying data changes.
 
 [3]
-Buttons that let you switch which user is "logged in". After switching, any new
-shapes or edits will be attributed to the new user. Try drawing a shape as
-Alice, switching to Bob, then moving the shape — the "Updated by" field will
+The top panel lets you switch which user is "logged in" and edit the active
+user's name. Try drawing a shape as Alice, then renaming her — the attribution
+panel updates live. Switch to Bob and move the shape to see "Updated by"
 change.
 
 [4]
-The panel reads `editor.getIdentity().getCurrentUser()` to show who is active, and
-reads `shape.meta.__tldraw` for the selected shape to display attribution info. Each
-attribution field (`createdBy`, `updatedBy`) is a `{ id, name }` object — we try
-`resolveUser(id)` for live data and fall back to the stored name.
+The panel reads `editor.store.props.users.getCurrentUser()` to show who is active,
+and reads `shape.meta.__tldraw` for the selected shape to display attribution info.
+Each attribution field (`createdBy`, `updatedBy`) is a user ID string — we call
+`resolve(userId)` to get live display data. Because the user store reads from
+atoms, renaming a user updates the resolved names everywhere reactively.
 
 [5]
-We inject the custom identity provider in `onMount`. The TopPanel shows the
-user-switcher and the SharePanel shows the attribution inspector.
+We pass the custom user store as the `users` prop on the Tldraw component.
+The TopPanel shows the user-switcher with name editing, and the SharePanel
+shows the attribution inspector.
 */

@@ -51,7 +51,6 @@ import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
 import { TLAssetStore } from '@tldraw/tlschema';
-import { TLAttributionUser } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
 import { TLBinding } from '@tldraw/tlschema';
 import { TLBindingCreate } from '@tldraw/tlschema';
@@ -89,6 +88,7 @@ import { TLStoreSchema } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
+import { TLUserStore } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
@@ -506,17 +506,17 @@ export function createDeepLinkString(deepLink: TLDeepLink): string;
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
+// @public (undocumented)
+export function createTLCurrentUser(opts?: {
+    setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
+    userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
+}): TLCurrentUser;
+
 // @public
 export function createTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, assets, onMount, collaboration, ...rest }?: TLStoreOptions): TLStore;
-
-// @public (undocumented)
-export function createTLUser(opts?: {
-    setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
-    userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
-}): TLUser;
+export function createTLStore({ initialData, defaultName, id, assets, users, onMount, collaboration, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export class CubicBezier2d extends Polyline2d {
@@ -761,6 +761,9 @@ export const defaultUserPreferences: Readonly<{
     name: "";
 }>;
 
+// @public (undocumented)
+export const defaultUserStore: TLUserStore;
+
 // @public
 export function degreesToRadians(d: number): number;
 
@@ -815,7 +818,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls, identity }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1179,8 +1182,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
     getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
-    getAttributionDisplayName(user: null | string | TLAttributionUser): null | string;
-    getAttributionUser(): null | TLAttributionUser;
+    getAttributionDisplayName(userId: null | string): null | string;
     getAttributionUserId(): null | string;
     getBaseZoom(): number;
     getBinding(id: TLBindingId): TLBinding | undefined;
@@ -1251,7 +1253,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getHintingShapeIds(): TLShapeId[];
     getHoveredShape(): TLShape | undefined;
     getHoveredShapeId(): null | TLShapeId;
-    getIdentity(): TLIdentityProvider;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getInitialZoom(): number;
     getInstanceState(): TLInstance;
@@ -3344,6 +3345,14 @@ export interface TLCropInfo<T extends TLShape> {
 }
 
 // @public (undocumented)
+export interface TLCurrentUser {
+    // (undocumented)
+    readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
+    // (undocumented)
+    readonly userPreferences: Signal<TLUserPreferences>;
+}
+
+// @public (undocumented)
 export interface TLCursorProps {
     // (undocumented)
     chatMessage: string;
@@ -3446,7 +3455,7 @@ export interface TldrawEditorBaseProps {
     // @deprecated
     textOptions?: TLTextOptions;
     tools?: readonly TLStateNodeConstructor[];
-    user?: TLUser;
+    user?: TLCurrentUser;
 }
 
 // @public
@@ -3657,7 +3666,6 @@ export interface TLEditorOptions {
     };
     getContainer(): HTMLElement;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
-    identity?: TLIdentityProvider;
     inferDarkMode?: boolean;
     initialState?: string;
     // (undocumented)
@@ -3669,7 +3677,7 @@ export interface TLEditorOptions {
     // @deprecated
     textOptions?: TLTextOptions;
     tools: readonly TLStateNodeConstructor[];
-    user?: TLUser;
+    user?: TLCurrentUser;
 }
 
 // @public
@@ -4019,19 +4027,6 @@ export interface TLHistoryMark {
     id: string;
     // (undocumented)
     type: 'stop';
-}
-
-// @public
-export interface TLIdentityProvider {
-    getCurrentUser(): null | TLIdentityUser;
-    resolveUser(userId: string): null | TLIdentityUser;
-}
-
-// @public
-export interface TLIdentityUser {
-    readonly color?: string;
-    readonly id: string;
-    readonly name: string;
 }
 
 // @public (undocumented)
@@ -4453,6 +4448,7 @@ export interface TLStoreBaseOptions {
     initialData?: SerializedStore<TLRecord>;
     onMount?(editor: Editor): (() => void) | void;
     snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
+    users?: TLUserStore;
 }
 
 // @public (undocumented)
@@ -4615,14 +4611,6 @@ export interface TLUrlExternalContent extends TLBaseExternalContent {
     type: 'url';
     // (undocumented)
     url: string;
-}
-
-// @public (undocumented)
-export interface TLUser {
-    // (undocumented)
-    readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
-    // (undocumented)
-    readonly userPreferences: Signal<TLUserPreferences>;
 }
 
 // @public
@@ -4806,7 +4794,7 @@ export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>
 
 // @public (undocumented)
 export class UserPreferencesManager {
-    constructor(user: TLUser, inferDarkMode: boolean);
+    constructor(user: TLCurrentUser, inferDarkMode: boolean);
     // (undocumented)
     disposables: Set<() => void>;
     // (undocumented)
@@ -4886,10 +4874,10 @@ export function useSharedSafeId(id: string): SafeId;
 export function useSvgExportContext(): null | SvgExportContext;
 
 // @public (undocumented)
-export function useTldrawUser(opts: {
+export function useTldrawCurrentUser(opts: {
     setUserPreferences?: (userPreferences: TLUserPreferences) => void;
     userPreferences?: Signal<TLUserPreferences> | TLUserPreferences;
-}): TLUser;
+}): TLCurrentUser;
 
 // @public (undocumented)
 export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
