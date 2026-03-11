@@ -284,7 +284,6 @@ it('Draws a bunch', () => {
 	editor.selectAll()
 
 	const shape = { ...editor.getLastCreatedShape() }
-	// @ts-expect-error
-	delete shape.id
+	delete (shape as any).id
 	expect(shape).toMatchSnapshot('draw shape')
 })
