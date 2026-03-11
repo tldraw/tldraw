@@ -7,6 +7,7 @@ import { globalEditor } from '../../utils/globalEditor'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from '../components/TlaEditor/sneaky/SneakyDebugModeToast'
 import { components } from '../components/TlaEditor/TlaEditor'
+import { TlaAnonDotDevLink } from '../components/TlaSidebar/components/TlaAnonDotDevLink'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { importFromUrl } from '../utils/importFromUrl'
@@ -130,6 +131,7 @@ function LocalTldraw() {
 			>
 				<SneakyDarkModeSync />
 				<SneakyDebugModeToast />
+				<TlaAnonDotDevLink />
 			</LocalEditor>
 		</TlaAnonLayout>
 	)
