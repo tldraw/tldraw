@@ -25,6 +25,8 @@ export class Driver {
     click(x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers): this;
     clipboard: null | TLContent;
     copy(ids?: TLShapeId[]): this;
+    createPageID(id: string): TLPageId;
+    createShapeID(id: string): TLShapeId;
     cut(ids?: TLShapeId[]): this;
     dispose(): void;
     doubleClick(x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers): this;
@@ -60,8 +62,6 @@ export class Driver {
         handle?: RotateCorner;
         shiftKey?: boolean;
     }): this;
-    testPageID(id: string): TLPageId;
-    testShapeID(id: string): TLShapeId;
     translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>): this;
     wheel(dx: number, dy: number, options?: Partial<Omit<TLWheelEventInfo, "delta">>): this;
 }
