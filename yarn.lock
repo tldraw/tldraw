@@ -10567,7 +10567,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/mermaid@workspace:packages/mermaid":
+"@tldraw/mermaid@workspace:*, @tldraw/mermaid@workspace:packages/mermaid":
   version: 0.0.0-use.local
   resolution: "@tldraw/mermaid@workspace:packages/mermaid"
   dependencies:
@@ -17009,6 +17009,7 @@ __metadata:
     "@swc/plugin-formatjs": "npm:^5.1.1"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/mermaid": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
@@ -18590,6 +18591,7 @@ __metadata:
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/driver": "workspace:*"
+    "@tldraw/mermaid": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@types/d3-geo": "npm:^3.1.0"
@@ -18607,6 +18609,7 @@ __metadata:
     dotenv: "npm:^16.4.7"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash: "npm:^4.17.21"
+    mermaid: "npm:11.12.2"
     pdf-lib: "npm:^1.17.1"
     pdfjs-dist: "npm:^4.10.38"
     radix-ui: "npm:^1.4.2"
