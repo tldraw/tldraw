@@ -228,12 +228,14 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	override onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>) {
-		const { scaleX, scaleY } = info
+		const newScaleX = info.scaleX * shape.props.scaleX
+		const newScaleY = info.scaleY * shape.props.scaleY
+		if (newScaleX === 0 || newScaleY === 0) return
 
 		return {
 			props: {
-				scaleX: scaleX * shape.props.scaleX,
-				scaleY: scaleY * shape.props.scaleY,
+				scaleX: newScaleX,
+				scaleY: newScaleY,
 			},
 		}
 	}

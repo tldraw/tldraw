@@ -12,7 +12,7 @@ export async function returnFileSnapshot(env: Environment, fileSlug: string, isA
 	const tldrFile = {
 		tldrawFileFormatVersion: 1,
 		schema: snapshot.schema,
-		records: Object.values(snapshot.documents.map((doc: { state: { id: string } }) => doc.state)),
+		records: snapshot.documents.map((doc) => doc.state),
 	}
 
 	return new Response(JSON.stringify(tldrFile, null, 2), {

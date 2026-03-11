@@ -115,7 +115,7 @@ When the UI is hidden, you can't select tools using keyboard shortcuts. You can 
 editor.setCurrentTool('draw')
 ```
 
-All of tldraw's user interface works by controlling the editor via its methods. If you hide the user interface, you can still use these same methods to control the editor. See the [custom user interface example](/examples/custom-ui) for this in action.
+All of tldraw's user interface works by controlling the editor via its methods. If you hide the user interface, you can still use these same methods to control the editor. See the [custom user interface example](/examples/ui/custom-ui) for this in action.
 
 ## Extension points
 
@@ -171,7 +171,7 @@ Pass `null` to hide a component entirely. This is useful for focused experiences
 />
 ```
 
-See the [UI components hidden example](/examples/ui-components-hidden) for a complete list of hideable components.
+See the [UI components hidden example](/examples/ui/ui-components-hidden) for a complete list of hideable components.
 
 ## Overrides
 
@@ -213,7 +213,7 @@ export default function App() {
 }
 ```
 
-The `actions` object is a map of [TLUiActionItem](/reference/tldraw/TLUiActionItem)s, keyed by their `id`. See the [action overrides example](/examples/action-overrides) for more.
+The `actions` object is a map of [TLUiActionItem](/reference/tldraw/TLUiActionItem)s, keyed by their `id`. See the [action overrides example](/examples/ui/action-overrides) for more.
 
 ### Tools
 
@@ -237,7 +237,7 @@ const myOverrides: TLUiOverrides = {
 }
 ```
 
-The `tools` object is a map of [TLUiToolItem](/reference/tldraw/TLUiToolItem)s, keyed by their `id`. See the [add tool to toolbar example](/examples/add-tool-to-toolbar) for a complete implementation.
+The `tools` object is a map of [TLUiToolItem](/reference/tldraw/TLUiToolItem)s, keyed by their `id`. See the [add tool to toolbar example](/examples/ui/add-tool-to-toolbar) for a complete implementation.
 
 ### Translations
 
@@ -278,7 +278,7 @@ export default function App() {
 
 The callback receives the event name as a string and an object with information about the event's source (e.g. `menu` or `context-menu`) and other data specific to each event, such as the direction in an `align-shapes` event.
 
-Note that `onUiEvent` only fires for UI interactions. Calling [Editor#alignShapes](?) directly won't trigger this callback. See the [UI events example](/examples/ui-events) for more.
+Note that `onUiEvent` only fires for UI interactions. Calling [Editor#alignShapes](?) directly won't trigger this callback. See the [UI events example](/examples/events/ui-events) for more.
 
 ## Related articles
 
@@ -288,11 +288,11 @@ Note that `onUiEvent` only fires for UI interactions. Calling [Editor#alignShape
 
 ## Related examples
 
-- [Replace the entire UI](/examples/custom-ui) - Build a completely custom toolbar UI while using the editor's functionality
-- [Custom canvas components](/examples/custom-components) - Override individual canvas components like the brush selection box and scribble
-- [Hide the entire UI](/examples/hide-ui) - Use hideUi to hide the entire default interface
-- [Hide UI components](/examples/ui-components-hidden) - Selectively hide specific UI components
-- [Changing menus](/examples/custom-menus) - Create custom menus using tldraw's menu system
-- [Vertical toolbar](/examples/vertical-toolbar) - Switch to a vertical toolbar layout
-- [Add tool to toolbar](/examples/add-tool-to-toolbar) - Add a custom tool to the toolbar
-- [UI events](/examples/ui-events) - Listen to UI events like tool selection and menu interactions
+- [Replace the entire UI](/examples/ui/custom-ui) - Build a completely custom toolbar UI while using the editor's functionality
+- [Custom canvas components](/examples/ui/custom-components) - Override individual canvas components like the brush selection box and scribble
+- [Hide the entire UI](/examples/ui/hide-ui) - Use hideUi to hide the entire default interface
+- [Hide UI components](/examples/ui/ui-components-hidden) - Selectively hide specific UI components
+- [Changing menus](/examples/ui/custom-menus) - Create custom menus using tldraw's menu system
+- [Vertical toolbar](/examples/ui/vertical-toolbar) - Switch to a vertical toolbar layout
+- [Add tool to toolbar](/examples/ui/add-tool-to-toolbar) - Add a custom tool to the toolbar
+- [UI events](/examples/events/ui-events) - Listen to UI events like tool selection and menu interactions

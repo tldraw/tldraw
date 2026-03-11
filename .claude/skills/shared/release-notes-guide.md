@@ -45,7 +45,7 @@ Featured sections should include:
 | Improvements | `improvement`, `enhancement` | Enhances existing functionality  |
 | Bug fixes    | `bugfix`, `bug`,             | Fixes issues                     |
 
-Look for `### Release notes` and `### API changes` sections in PR bodies. Search for "breaking" to identify breaking changes.
+Look for `### Release notes` and `### API changes` sections in PR bodies. Search for "breaking" to identify breaking changes. Search for "deprecat" to identify deprecated APIs (mark with 🔜, not 💥).
 
 ### PRs to skip
 
@@ -129,13 +129,14 @@ With code examples:
 
 ### Breaking changes
 
-Mark breaking API changes with a 💥 prefix. Place breaking changes at the top of the API changes section:
+Mark breaking API changes with a 💥 prefix. Mark deprecations (APIs that still work but will be removed in a future release) with a 🔜 prefix. Place breaking changes at the top of the API changes section, followed by deprecations:
 
 ```markdown
 ## API changes
 
 - 💥 **`ShapeUtil.canEdit()`** signature changed to accept a `TLEditStartInfo` parameter. ([#7361](https://github.com/tldraw/tldraw/pull/7361))
 - 💥 **`oldMethod`** renamed to `newMethod`. ([#7400](https://github.com/tldraw/tldraw/pull/7400))
+- 🔜 **`Editor.legacyMethod()`** is deprecated. Use `Editor.newMethod()` instead. ([#7450](https://github.com/tldraw/tldraw/pull/7450))
 - Add `Editor.newMethod()` for doing something useful. ([#7123](https://github.com/tldraw/tldraw/pull/7123))
 ```
 
@@ -157,6 +158,14 @@ Brief description of what this feature does and why it matters.
 
 ```markdown
 ### Pluggable storage for TLSocketRoom ([#7320](https://github.com/tldraw/tldraw/pull/7320), [#7123](https://github.com/tldraw/tldraw/pull/7123))
+```
+
+**Deprecation featured sections** - add 🔜 to the heading:
+
+```markdown
+### 🔜 Deprecation of old API ([#0000](https://github.com/tldraw/tldraw/pull/0000))
+
+Brief description of what is deprecated and what to use instead.
 ```
 
 **Breaking change featured sections** - add 💥 to the heading and include a migration guide:

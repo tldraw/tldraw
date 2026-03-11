@@ -97,6 +97,32 @@ Include when changes affect `api-report.md`:
 - Changed `Editor.method()` to accept optional `options` parameter
 ```
 
+## Code changes table
+
+Create a table that includes net LOC changes for each of the following sections. The sum of all rows must match the total PR diff. Omit rows with no changes.
+
+- Core code — SDK packages (`packages/`) source, excluding tests and API reports
+- Tests — unit tests, e2e tests (`*.test.*`, `e2e/`)
+- Automated files — generated files (e.g. `api-report.api.md`, snapshots)
+- Documentation — docs site and examples (`apps/docs/`, `apps/examples/`)
+- Apps — application code (`apps/dotcom/`, `apps/mcp-app/`, `apps/vscode/`, etc.), excluding e2e tests
+- Templates — starter templates (`templates/`)
+- Config/tooling — config files, lock files, lint config, CI, build scripts (`eslint.config.*`, `yarn.lock`, etc.)
+
+```md
+### Code changes
+
+| Section         | LOC change |
+| --------------- | ---------- |
+| Core code       | +10 / -2   |
+| Tests           | +5 / -0    |
+| Automated files | +0 / -1    |
+| Documentation   | +2 / -0    |
+| Apps            | +3 / -1    |
+| Templates       | +0 / -0    |
+| Config/tooling  | +1 / -0    |
+```
+
 ## Related issues
 
 Search for and link relevant issues that this PR addresses.

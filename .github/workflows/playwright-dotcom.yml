@@ -16,12 +16,37 @@ defaults:
     shell: bash
 
 jobs:
+  check:
+    name: 'Check for relevant changes'
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.head.repo.fork == false }}
+    outputs:
+      relevant: ${{ steps.filter.outputs.relevant }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Check for relevant changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            relevant:
+              - 'packages/**'
+              - 'apps/dotcom/**'
+              - '.github/workflows/playwright-dotcom.yml'
+              - '.github/actions/**'
+              - 'yarn.lock'
+              - '!**/*.md'
+              - '!**/*.mdx'
+
   build:
     name: 'End to end tests (dotcom)'
+    needs: check
+    if: needs.check.outputs.relevant == 'true'
     timeout-minutes: 20
     runs-on: ubuntu-latest-8-cores-open
     environment: 'e2e-dotcom'
-    if: ${{ github.event.pull_request.head.repo.fork == false }}
 
     steps:
       - name: Check out code

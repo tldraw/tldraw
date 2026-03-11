@@ -29,7 +29,7 @@ import {
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { TLArrowInfo } from './arrow-types'
-import { getArrowInfo } from './shared'
+import { getArrowInfo } from './getArrowInfo'
 
 export function getArrowBodyGeometry(editor: Editor, shape: TLArrowShape) {
 	const info = getArrowInfo(editor, shape)!
@@ -226,8 +226,7 @@ interface ArrowheadInfo {
 	hasStartArrowhead: boolean
 	hasEndArrowhead: boolean
 }
-export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
-	const isEditing = editor.getEditingShapeId() === shape.id
+export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape, isEditing: boolean) {
 	if (!isEditing && isEmptyRichText(shape.props.richText)) {
 		// Short-circuit for empty labels.
 		const bodyGeom = getArrowBodyGeometry(editor, shape)

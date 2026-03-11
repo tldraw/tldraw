@@ -15,8 +15,33 @@ defaults:
     shell: bash
 
 jobs:
+  check:
+    name: 'Check for relevant changes'
+    runs-on: ubuntu-latest
+    outputs:
+      relevant: ${{ steps.filter.outputs.relevant }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Check for relevant changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            relevant:
+              - 'packages/**'
+              - 'apps/examples/**'
+              - '.github/workflows/playwright-examples.yml'
+              - '.github/actions/**'
+              - 'yarn.lock'
+              - '!**/*.md'
+              - '!**/*.mdx'
+
   build:
     name: 'End to end tests (examples)'
+    needs: check
+    if: needs.check.outputs.relevant == 'true'
     timeout-minutes: 20
     runs-on: ubuntu-latest-32-cores-open
 
