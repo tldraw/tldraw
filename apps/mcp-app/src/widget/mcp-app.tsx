@@ -187,6 +187,7 @@ function TldrawCanvas({ app }: { app: App }) {
 	const committedSnapshotRef = useRef<CanvasSnapshot>({ shapes: [], assets: [] })
 	const checkpointIdRef = useRef<string | null>(null)
 	const removeStoreListenerRef = useRef<(() => void) | null>(null)
+	const isDevRef = useRef(false)
 	const saveTimerRef = useRef<number | null>(null)
 	const requestShapeIdsRef = useRef<Set<TLShapeId>>(new Set())
 	const hasUserEditedSinceAiRef = useRef(false)
@@ -243,17 +244,14 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 	}, [])
 
-	const logIfDevMode = useCallback(
-		(message: string) => {
-			if (!isDev) return
-			setDevLogEntries((entries) => {
-				const timestamp = new Date().toLocaleTimeString()
-				const nextEntries = [...entries, `[${timestamp}] ${message}`]
-				return nextEntries.slice(-MAX_DEV_LOG_ENTRIES)
-			})
-		},
-		[isDev]
-	)
+	const logIfDevMode = useCallback((message: string) => {
+		if (!isDevRef.current) return
+		setDevLogEntries((entries) => {
+			const timestamp = new Date().toLocaleTimeString()
+			const nextEntries = [...entries, `[${timestamp}] ${message}`]
+			return nextEntries.slice(-MAX_DEV_LOG_ENTRIES)
+		})
+	}, [])
 
 	const toggleDevLog = useCallback(() => {
 		setIsDevLogVisible((visible) => !visible)
@@ -476,6 +474,7 @@ function TldrawCanvas({ app }: { app: App }) {
 		const bootstrap = getEmbeddedBootstrap()
 		if (bootstrap) {
 			setCurrentSessionId(bootstrap.sessionId)
+			isDevRef.current = bootstrap.isDev
 			setIsDev(bootstrap.isDev)
 			if (bootstrap.isDev) {
 				setIsDevLogVisible(true)
