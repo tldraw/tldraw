@@ -14,6 +14,7 @@ const TOP_LEVEL_ERROR_MESSAGES = {
 	header: 'Unable to connect',
 	para1:
 		'Something went wrong while loading the page. This is usually temporary. Please try refreshing.',
+	cta: 'Refresh',
 }
 
 const browserRouter = createBrowserRouter(router)

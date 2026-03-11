@@ -67,7 +67,7 @@ export function ErrorPage({
 
 /** An error boundary that shows an ErrorPage with a refresh button. */
 export class RefreshErrorBoundary extends Component<
-	{ children: ReactNode; messages: { header: string; para1: string; cta?: string } },
+	{ children: ReactNode; messages: { header: string; para1: string; cta: string } },
 	{ hasError: boolean }
 > {
 	state = { hasError: false }
@@ -81,11 +81,7 @@ export class RefreshErrorBoundary extends Component<
 			return (
 				<ErrorPage
 					messages={this.props.messages}
-					cta={
-						<button onClick={() => window.location.reload()}>
-							{this.props.messages.cta ?? 'Refresh'}
-						</button>
-					}
+					cta={<button onClick={() => window.location.reload()}>{this.props.messages.cta}</button>}
 				/>
 			)
 		}
