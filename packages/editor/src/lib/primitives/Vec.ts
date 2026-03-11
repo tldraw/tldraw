@@ -608,14 +608,15 @@ export class Vec {
 	 * @param A - The first point.
 	 * @param B - The second point.
 	 * @param steps - The number of points to return.
+	 * @param ease - The easing to use.
 	 */
-	static PointsBetween(A: VecModel, B: VecModel, steps = 6): Vec[] {
+	static PointsBetween(A: VecModel, B: VecModel, steps = 6, ease = EASINGS.easeInQuad): Vec[] {
 		const results: Vec[] = []
 
 		for (let i = 0; i < steps; i++) {
-			const t = EASINGS.easeInQuad(i / (steps - 1))
+			const t = ease(i / (steps - 1))
 			const point = Vec.Lrp(A, B, t)
-			point.z = Math.min(1, 0.5 + Math.abs(0.5 - ease(t)) * 0.65)
+			point.z = Math.min(1, 0.5 + Math.abs(0.5 - EASINGS.easeInOutQuad(t)) * 0.65)
 			results.push(point)
 		}
 
@@ -626,5 +627,3 @@ export class Vec {
 		return new Vec(Math.round(A.x / gridSize) * gridSize, Math.round(A.y / gridSize) * gridSize)
 	}
 }
-
-const ease = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t)
