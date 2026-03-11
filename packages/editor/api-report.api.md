@@ -530,7 +530,7 @@ export class CubicBezier2d extends Polyline2d {
         start: Vec;
     });
     // (undocumented)
-    distanceToPoint(point: VecLike, hitInside?: boolean): number;
+    distanceToPoint(point: VecLike, _hitInside?: boolean): number;
     // (undocumented)
     static GetAtT(segment: CubicBezier2d, t: number): Vec;
     // (undocumented)
@@ -549,7 +549,7 @@ export class CubicSpline2d extends Geometry2d {
         points: Vec[];
     });
     // (undocumented)
-    distanceToPoint(point: VecLike, hitInside?: boolean): number;
+    distanceToPoint(point: VecLike, _hitInside?: boolean): number;
     // (undocumented)
     getLength(): number;
     // (undocumented)
@@ -800,7 +800,7 @@ export class Edge2d extends Geometry2d {
         start: Vec;
     });
     // (undocumented)
-    distanceToPoint(point: VecLike, hitInside?: boolean): number;
+    distanceToPoint(point: VecLike, _hitInside?: boolean): number;
     // (undocumented)
     getLength(): number;
     // (undocumented)
