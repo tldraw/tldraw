@@ -10426,6 +10426,7 @@ __metadata:
   resolution: "@tldraw/driver@workspace:packages/driver"
   dependencies:
     "@tldraw/editor": "workspace:*"
+    "@tldraw/utils": "workspace:*"
     lazyrepo: "npm:0.0.0-alpha.27"
     vitest: "npm:^3.2.4"
   languageName: unknown

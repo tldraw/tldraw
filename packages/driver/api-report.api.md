@@ -39,9 +39,9 @@ export class Driver {
     getPageRotationById(id: TLShapeId): number;
     getSelectionPageCenter(): null | Vec;
     getViewportPageCenter(): Vec;
-    keyDown(key: string, options?: Partial<TLKeyboardEventInfo>): this;
-    keyPress(key: string, options?: Partial<TLKeyboardEventInfo>): this;
-    keyRepeat(key: string, options?: Partial<TLKeyboardEventInfo>): this;
+    keyDown(key: string, options?: Partial<Omit<TLKeyboardEventInfo, "key">>): this;
+    keyPress(key: string, options?: Partial<Omit<TLKeyboardEventInfo, "key">>): this;
+    keyRepeat(key: string, options?: Partial<Omit<TLKeyboardEventInfo, "key">>): this;
     keyUp(key: string, options?: Partial<Omit<TLKeyboardEventInfo, "key">>): this;
     pan(offset: VecLike): this;
     paste(point?: VecLike): this;

@@ -38,7 +38,8 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"@tldraw/editor": "workspace:*"
+		"@tldraw/editor": "workspace:*",
+		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27",

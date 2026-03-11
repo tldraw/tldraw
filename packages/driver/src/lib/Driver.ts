@@ -43,6 +43,9 @@ export class Driver {
 	constructor(public readonly editor: Editor) {
 		this._cleanup = this.editor.sideEffects.registerAfterCreateHandler('shape', (record) => {
 			this._lastCreatedShapes.push(record)
+			if (this._lastCreatedShapes.length > 1000) {
+				this._lastCreatedShapes = this._lastCreatedShapes.slice(-500)
+			}
 		})
 	}
 
@@ -240,7 +243,7 @@ export class Driver {
 	private getKeyboardEventInfo(
 		key: string,
 		name: TLKeyboardEventInfo['name'],
-		options = {} as Partial<Exclude<TLKeyboardEventInfo, 'point'>>
+		options = {} as Partial<Omit<TLKeyboardEventInfo, 'point'>>
 	): TLKeyboardEventInfo {
 		return {
 			shiftKey: key === 'Shift',
@@ -431,7 +434,7 @@ export class Driver {
 	 * @param key - The key to press (e.g. 'a', 'Enter', 'Shift').
 	 * @param options - Partial keyboard event overrides.
 	 */
-	keyPress(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
+	keyPress(key: string, options = {} as Partial<Omit<TLKeyboardEventInfo, 'key'>>) {
 		this.keyDown(key, options)
 		this.keyUp(key, options)
 		return this
@@ -442,7 +445,7 @@ export class Driver {
 	 * @param key - The key to press (e.g. 'a', 'Enter', 'Shift').
 	 * @param options - Partial keyboard event overrides.
 	 */
-	keyDown(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
+	keyDown(key: string, options = {} as Partial<Omit<TLKeyboardEventInfo, 'key'>>) {
 		this.editor.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) })
 		this.forceTick()
 		return this
@@ -453,7 +456,7 @@ export class Driver {
 	 * @param key - The key that is repeating (e.g. 'a', 'ArrowDown').
 	 * @param options - Partial keyboard event overrides.
 	 */
-	keyRepeat(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
+	keyRepeat(key: string, options = {} as Partial<Omit<TLKeyboardEventInfo, 'key'>>) {
 		this.editor.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) })
 		this.forceTick()
 		return this
