@@ -44,7 +44,7 @@ export function ErrorPage({
 	cta = <GoBackLink />,
 }: {
 	icon?: ReactNode
-	messages: { header: string; para1: string; para2?: string }
+	messages: { header: string; para1: string; para2?: string; cta?: string }
 	cta?: ReactNode
 }) {
 	return (
@@ -67,7 +67,7 @@ export function ErrorPage({
 
 /** An error boundary that shows an ErrorPage with a refresh button. */
 export class RefreshErrorBoundary extends Component<
-	{ children: ReactNode; messages: { header: string; para1: string } },
+	{ children: ReactNode; messages: { header: string; para1: string; cta?: string } },
 	{ hasError: boolean }
 > {
 	state = { hasError: false }
@@ -81,7 +81,11 @@ export class RefreshErrorBoundary extends Component<
 			return (
 				<ErrorPage
 					messages={this.props.messages}
-					cta={<button onClick={() => window.location.reload()}>Refresh</button>}
+					cta={
+						<button onClick={() => window.location.reload()}>
+							{this.props.messages.cta ?? 'Refresh'}
+						</button>
+					}
 				/>
 			)
 		}
