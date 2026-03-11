@@ -1,4 +1,5 @@
 import { Vec, VecLike } from '../Vec'
+import { pointInPolygon } from '../utils'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
@@ -45,21 +46,65 @@ export class Polyline2d extends Geometry2d {
 	}
 
 	nearestPoint(A: VecLike): Vec {
-		const { segments } = this
-		let nearest = this._points[0]
-		let dist = Infinity
-		let p: Vec // current point on segment
-		let d: number // distance from A to p
-		for (let i = 0; i < segments.length; i++) {
-			p = segments[i].nearestPoint(A)
-			d = Vec.Dist2(p, A)
-			if (d < dist) {
-				nearest = p
-				dist = d
+		const { vertices } = this
+		let bestX = vertices[0].x
+		let bestY = vertices[0].y
+		let bestDist2 = (A.x - bestX) * (A.x - bestX) + (A.y - bestY) * (A.y - bestY)
+
+		const limit = this.isClosed ? vertices.length : vertices.length - 1
+		for (let i = 0; i < limit; i++) {
+			const start = vertices[i]
+			const end = vertices[(i + 1) % vertices.length]
+			const dx = end.x - start.x
+			const dy = end.y - start.y
+			const len2 = dx * dx + dy * dy
+
+			let nx: number, ny: number
+			if (len2 === 0) {
+				nx = start.x
+				ny = start.y
+			} else {
+				const t = ((A.x - start.x) * dx + (A.y - start.y) * dy) / len2
+				if (t <= 0) {
+					nx = start.x
+					ny = start.y
+				} else if (t >= 1) {
+					nx = end.x
+					ny = end.y
+				} else {
+					nx = start.x + dx * t
+					ny = start.y + dy * t
+				}
+			}
+
+			const ex = A.x - nx
+			const ey = A.y - ny
+			const d2 = ex * ex + ey * ey
+			if (d2 < bestDist2) {
+				bestX = nx
+				bestY = ny
+				bestDist2 = d2
 			}
 		}
-		if (!nearest) throw Error('nearest point not found')
-		return nearest
+
+		return new Vec(bestX, bestY)
+	}
+
+	override hitTestPoint(point: VecLike, margin = 0, hitInside = false): boolean {
+		return this.distanceToPoint(point, hitInside) <= margin
+	}
+
+	override distanceToPoint(point: VecLike, hitInside = false): number {
+		const { segments } = this
+		let minDist = Infinity
+		for (let i = 0; i < segments.length; i++) {
+			const d = segments[i].distanceToPoint(point)
+			if (d < minDist) minDist = d
+		}
+		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
+			return -minDist
+		}
+		return minDist
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {

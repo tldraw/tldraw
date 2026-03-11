@@ -57,21 +57,13 @@ export class Arc2d extends Geometry2d {
 		if (t <= 0) return A
 		if (t >= 1) return B
 
-		// Get the point (P) on the arc, then pick the nearest of A, B, and P
-		const P = Vec.Sub(point, _center).uni().mul(radius).add(_center)
-
-		let nearest: Vec | undefined
-		let dist = Infinity
-		let d: number
-		for (const p of [A, B, P]) {
-			d = Vec.Dist2(point, p)
-			if (d < dist) {
-				nearest = p
-				dist = d
-			}
-		}
-		if (!nearest) throw Error('nearest point not found')
-		return nearest
+		// t is in (0,1), so the nearest point is the projection onto the arc
+		const dx = point.x - _center.x
+		const dy = point.y - _center.y
+		const len = Math.sqrt(dx * dx + dy * dy)
+		if (len === 0) return A
+		const scale = radius / len
+		return new Vec(_center.x + dx * scale, _center.y + dy * scale)
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
