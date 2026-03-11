@@ -273,8 +273,13 @@ function TooltipSingleton() {
 			const trigger = triggerRef.current
 
 			trigger.style.position = 'fixed'
-			trigger.style.left = `${activeRect.left}px`
-			trigger.style.top = `${activeRect.top}px`
+			trigger.style.left = '0px'
+			trigger.style.top = '0px'
+			const cbOffset = trigger.getBoundingClientRect()
+
+			trigger.style.left = `${activeRect.left - cbOffset.left}px`
+			trigger.style.top = `${activeRect.top - cbOffset.top}px`
+
 			trigger.style.width = `${activeRect.width}px`
 			trigger.style.height = `${activeRect.height}px`
 			trigger.style.pointerEvents = 'none'

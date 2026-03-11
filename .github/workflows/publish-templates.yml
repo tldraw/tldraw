@@ -25,7 +25,7 @@ jobs:
   publish:
     name: Publish templates
     timeout-minutes: 60
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest-16-cores-arm-open
 
     steps:
       - name: Check out code

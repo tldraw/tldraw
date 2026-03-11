@@ -821,65 +821,77 @@ export interface TLV1BaseBinding {
 }
 
 /** @internal */
-export enum TLV1ShapeType {
-	Sticky = 'sticky',
-	Ellipse = 'ellipse',
-	Rectangle = 'rectangle',
-	Triangle = 'triangle',
-	Draw = 'draw',
-	Arrow = 'arrow',
-	Text = 'text',
-	Group = 'group',
-	Image = 'image',
-	Video = 'video',
-}
+export const TLV1ShapeType = {
+	Sticky: 'sticky',
+	Ellipse: 'ellipse',
+	Rectangle: 'rectangle',
+	Triangle: 'triangle',
+	Draw: 'draw',
+	Arrow: 'arrow',
+	Text: 'text',
+	Group: 'group',
+	Image: 'image',
+	Video: 'video',
+} as const
+/** @internal */
+export type TLV1ShapeType = (typeof TLV1ShapeType)[keyof typeof TLV1ShapeType]
 
 /** @internal */
-export enum TLV1ColorStyle {
-	White = 'white',
-	LightGray = 'lightGray',
-	Gray = 'gray',
-	Black = 'black',
-	Green = 'green',
-	Cyan = 'cyan',
-	Blue = 'blue',
-	Indigo = 'indigo',
-	Violet = 'violet',
-	Red = 'red',
-	Orange = 'orange',
-	Yellow = 'yellow',
-}
+export const TLV1ColorStyle = {
+	White: 'white',
+	LightGray: 'lightGray',
+	Gray: 'gray',
+	Black: 'black',
+	Green: 'green',
+	Cyan: 'cyan',
+	Blue: 'blue',
+	Indigo: 'indigo',
+	Violet: 'violet',
+	Red: 'red',
+	Orange: 'orange',
+	Yellow: 'yellow',
+} as const
+/** @internal */
+export type TLV1ColorStyle = (typeof TLV1ColorStyle)[keyof typeof TLV1ColorStyle]
 
 /** @internal */
-export enum TLV1SizeStyle {
-	Small = 'small',
-	Medium = 'medium',
-	Large = 'large',
-}
+export const TLV1SizeStyle = {
+	Small: 'small',
+	Medium: 'medium',
+	Large: 'large',
+} as const
+/** @internal */
+export type TLV1SizeStyle = (typeof TLV1SizeStyle)[keyof typeof TLV1SizeStyle]
 
 /** @internal */
-export enum TLV1DashStyle {
-	Draw = 'draw',
-	Solid = 'solid',
-	Dashed = 'dashed',
-	Dotted = 'dotted',
-}
+export const TLV1DashStyle = {
+	Draw: 'draw',
+	Solid: 'solid',
+	Dashed: 'dashed',
+	Dotted: 'dotted',
+} as const
+/** @internal */
+export type TLV1DashStyle = (typeof TLV1DashStyle)[keyof typeof TLV1DashStyle]
 
 /** @internal */
-export enum TLV1AlignStyle {
-	Start = 'start',
-	Middle = 'middle',
-	End = 'end',
-	Justify = 'justify',
-}
+export const TLV1AlignStyle = {
+	Start: 'start',
+	Middle: 'middle',
+	End: 'end',
+	Justify: 'justify',
+} as const
+/** @internal */
+export type TLV1AlignStyle = (typeof TLV1AlignStyle)[keyof typeof TLV1AlignStyle]
 
 /** @internal */
-export enum TLV1FontStyle {
-	Script = 'script',
-	Sans = 'sans',
-	Serif = 'serif',
-	Mono = 'mono',
-}
+export const TLV1FontStyle = {
+	Script: 'script',
+	Sans: 'sans',
+	Serif: 'serif',
+	Mono: 'mono',
+} as const
+/** @internal */
+export type TLV1FontStyle = (typeof TLV1FontStyle)[keyof typeof TLV1FontStyle]
 
 /** @internal */
 export interface TLV1ShapeStyles {
@@ -915,14 +927,14 @@ export interface TLV1BaseShape {
 
 /** @internal */
 export interface TLV1DrawShape extends TLV1BaseShape {
-	type: TLV1ShapeType.Draw
+	type: typeof TLV1ShapeType.Draw
 	points: number[][]
 	isComplete: boolean
 }
 
 /** @internal */
 export interface TLV1RectangleShape extends TLV1BaseShape {
-	type: TLV1ShapeType.Rectangle
+	type: typeof TLV1ShapeType.Rectangle
 	size: number[]
 	label?: string
 	labelPoint?: number[]
@@ -930,7 +942,7 @@ export interface TLV1RectangleShape extends TLV1BaseShape {
 
 /** @internal */
 export interface TLV1EllipseShape extends TLV1BaseShape {
-	type: TLV1ShapeType.Ellipse
+	type: typeof TLV1ShapeType.Ellipse
 	radius: number[]
 	label?: string
 	labelPoint?: number[]
@@ -938,21 +950,23 @@ export interface TLV1EllipseShape extends TLV1BaseShape {
 
 /** @internal */
 export interface TLV1TriangleShape extends TLV1BaseShape {
-	type: TLV1ShapeType.Triangle
+	type: typeof TLV1ShapeType.Triangle
 	size: number[]
 	label?: string
 	labelPoint?: number[]
 }
 
 /** @internal */
-export enum TLV1Decoration {
-	Arrow = 'arrow',
-}
+export const TLV1Decoration = {
+	Arrow: 'arrow',
+} as const
+/** @internal */
+export type TLV1Decoration = (typeof TLV1Decoration)[keyof typeof TLV1Decoration]
 
 // The shape created with the arrow tool
 /** @internal */
 export interface TLV1ArrowShape extends TLV1BaseShape {
-	type: TLV1ShapeType.Arrow
+	type: typeof TLV1ShapeType.Arrow
 	bend: number
 	handles: {
 		start: TLV1Handle
@@ -980,14 +994,14 @@ export type TLV1Binding = TLV1ArrowBinding
 
 /** @internal */
 export interface TLV1ImageShape extends TLV1BaseShape {
-	type: TLV1ShapeType.Image
+	type: typeof TLV1ShapeType.Image
 	size: number[]
 	assetId: string
 }
 
 /** @internal */
 export interface TLV1VideoShape extends TLV1BaseShape {
-	type: TLV1ShapeType.Video
+	type: typeof TLV1ShapeType.Video
 	size: number[]
 	assetId: string
 	isPlaying: boolean
@@ -997,14 +1011,14 @@ export interface TLV1VideoShape extends TLV1BaseShape {
 // The shape created by the text tool
 /** @internal */
 export interface TLV1TextShape extends TLV1BaseShape {
-	type: TLV1ShapeType.Text
+	type: typeof TLV1ShapeType.Text
 	text: string
 }
 
 // The shape created by the sticky tool
 /** @internal */
 export interface TLV1StickyShape extends TLV1BaseShape {
-	type: TLV1ShapeType.Sticky
+	type: typeof TLV1ShapeType.Sticky
 	size: number[]
 	text: string
 }
@@ -1012,7 +1026,7 @@ export interface TLV1StickyShape extends TLV1BaseShape {
 // The shape created when multiple shapes are grouped
 /** @internal */
 export interface TLV1GroupShape extends TLV1BaseShape {
-	type: TLV1ShapeType.Group
+	type: typeof TLV1ShapeType.Group
 	size: number[]
 	children: string[]
 }
@@ -1066,14 +1080,16 @@ export interface TLV1PageState {
 }
 
 /** @internal */
-export enum TLV1AssetType {
-	Image = 'image',
-	Video = 'video',
-}
+export const TLV1AssetType = {
+	Image: 'image',
+	Video: 'video',
+} as const
+/** @internal */
+export type TLV1AssetType = (typeof TLV1AssetType)[keyof typeof TLV1AssetType]
 
 /** @internal */
 export interface TLV1ImageAsset extends TLV1BaseAsset {
-	type: TLV1AssetType.Image
+	type: typeof TLV1AssetType.Image
 	fileName: string
 	src: string
 	size: number[]
@@ -1081,7 +1097,7 @@ export interface TLV1ImageAsset extends TLV1BaseAsset {
 
 /** @internal */
 export interface TLV1VideoAsset extends TLV1BaseAsset {
-	type: TLV1AssetType.Video
+	type: typeof TLV1AssetType.Video
 	fileName: string
 	src: string
 	size: number[]

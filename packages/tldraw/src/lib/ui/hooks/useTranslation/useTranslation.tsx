@@ -110,12 +110,20 @@ export function TldrawUiTranslationProvider({
  * @public
  */
 export function useTranslation() {
-	const translation = useCurrentTranslation()
+	const translation = React.useContext(TranslationsContext)
+	const messages = translation?.messages ?? DEFAULT_TRANSLATION
+
+	React.useEffect(() => {
+		if (!translation?.messages) {
+			console.warn('No translation messages found, falling back to default translation.')
+		}
+	}, [translation?.messages])
+
 	return React.useCallback(
 		function msg(id?: Exclude<string, TLUiTranslationKey> | string) {
-			return translation.messages[id as TLUiTranslationKey] ?? id
+			return messages[id as TLUiTranslationKey] ?? id
 		},
-		[translation]
+		[messages]
 	)
 }
 

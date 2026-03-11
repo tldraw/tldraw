@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Arc2d,
 	Box,
@@ -45,6 +46,7 @@ import {
 	useEditor,
 	useIsEditing,
 	useSharedSafeId,
+	useValue,
 } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
@@ -68,20 +70,21 @@ import { getArrowheadPathForType } from './arrowheads'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
 import { ElbowArrowAxes } from './elbow/definitions'
 import { getElbowArrowSnapLines, perpDistanceToLineAngle } from './elbow/elbowArrowSnapLines'
+import { getArrowInfo } from './getArrowInfo'
 import {
 	TLArrowBindings,
 	createOrUpdateArrowBinding,
 	getArrowBindings,
-	getArrowInfo,
 	getArrowTerminalsInArrowSpace,
 	removeArrowBinding,
 } from './shared'
 
-enum ArrowHandles {
-	Start = 'start',
-	Middle = 'middle',
-	End = 'end',
-}
+const ArrowHandles = {
+	Start: 'start',
+	Middle: 'middle',
+	End: 'end',
+} as const
+type ArrowHandles = (typeof ArrowHandles)[keyof typeof ArrowHandles]
 
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
@@ -219,7 +222,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		let labelGeom
 		if (isEditing || !isEmptyRichText(shape.props.richText)) {
-			const labelPosition = getArrowLabelPosition(this.editor, shape)
+			const labelPosition = getArrowLabelPosition(this.editor, shape, isEditing)
 			if (debugFlags.debugGeometry.get()) {
 				debugGeom.push(...labelPosition.debugGeom)
 			}
@@ -430,7 +433,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	private onTerminalHandleDrag(
 		shape: TLArrowShape,
 		{ handle, isPrecise }: TLHandleDragInfo<TLArrowShape>,
-		handleId: ArrowHandles.Start | ArrowHandles.End
+		handleId: typeof ArrowHandles.Start | typeof ArrowHandles.End
 	) {
 		const bindings = getArrowBindings(this.editor, shape)
 
@@ -754,33 +757,50 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	component(shape: TLArrowShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
-		const onlySelectedShape = this.editor.getOnlySelectedShape()
-		const shouldDisplayHandles =
-			this.editor.isInAny(
-				'select.idle',
-				'select.pointing_handle',
-				'select.dragging_handle',
-				'select.translating',
-				'arrow.dragging'
-			) && !this.editor.getIsReadonly()
+		const { editor } = this
 
-		const info = getArrowInfo(this.editor, shape)
+		const theme = useDefaultColorTheme()
+
+		const shouldDisplayHandles = useValue(
+			'should display handles',
+			() => {
+				const { editor } = this
+				return (
+					!editor.getIsReadonly() &&
+					editor.getOnlySelectedShapeId() === shape.id &&
+					editor.isInAny(
+						'select.idle',
+						'select.pointing_handle',
+						'select.dragging_handle',
+						'select.translating',
+						'arrow.dragging'
+					)
+				)
+			},
+			[editor, shape.id]
+		)
+
+		const isSelected = useValue(
+			'is selected',
+			() => editor.getOnlySelectedShape()?.id === shape.id,
+			[editor, shape.id]
+		)
+
+		const isEditing = useValue('is editing', () => editor.getEditingShapeId() === shape.id, [
+			editor,
+			shape.id,
+		])
+
+		const info = getArrowInfo(editor, shape)
 		if (!info?.isValid) return null
 
-		const labelPosition = getArrowLabelPosition(this.editor, shape)
-		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const isEditing = this.editor.getEditingShapeId() === shape.id
+		const labelPosition = getArrowLabelPosition(editor, shape, isEditing)
 		const showArrowLabel = isEditing || !isEmptyRichText(shape.props.richText)
 
 		return (
 			<>
 				<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
-					<ArrowSvg
-						shape={shape}
-						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
-					/>
+					<ArrowSvg shape={shape} shouldDisplayHandles={shouldDisplayHandles} />
 					{shape.props.kind === 'elbow' && debugFlags.debugElbowArrows.get() && (
 						<ElbowArrowDebug arrow={shape} />
 					)}
@@ -797,7 +817,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
 						richText={shape.props.richText}
 						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
-						isSelected={isSelected}
+						isSelected={isSelected} // does this HAVE to be isSelected? or isOnlySelected?
 						padding={0}
 						showTextOutline={this.options.showTextOutline}
 						style={{
@@ -810,9 +830,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	indicator(shape: TLArrowShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isEditing = useIsEditing(shape.id)
-		// eslint-disable-next-line react-hooks/rules-of-hooks
+
 		const clipPathId = useSharedSafeId(shape.id + '_clip')
 
 		const info = getArrowInfo(this.editor, shape)
@@ -953,7 +972,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 
 		// Get arrow body path
-		const isForceSolid = this.editor.getEfficientZoomLevel() < shape.props.scale * 0.25
+		const isForceSolid = this.editor.getEfficientZoomLevel() < 0.25 / shape.props.scale
 		const bodyPathBuilder = getArrowBodyPathBuilder(info)
 		const bodyPath2D = bodyPathBuilder.toPath2D(
 			shape.props.dash === 'draw' && !isForceSolid
@@ -1061,22 +1080,26 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const theme = getDefaultColorTheme(ctx)
 		const scaleFactor = 1 / shape.props.scale
 
+		const showArrowLabel = !isEmptyRichText(shape.props.richText)
+
 		return (
 			<g transform={`scale(${scaleFactor})`}>
 				<ArrowSvg shape={shape} shouldDisplayHandles={false} />
-				<RichTextSVG
-					fontSize={getArrowLabelFontSize(shape)}
-					font={shape.props.font}
-					align="middle"
-					verticalAlign="middle"
-					labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
-					richText={shape.props.richText}
-					bounds={getArrowLabelPosition(this.editor, shape)
-						.box.clone()
-						.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
-					padding={0}
-					showTextOutline={this.options.showTextOutline}
-				/>
+				{showArrowLabel && (
+					<RichTextSVG
+						fontSize={getArrowLabelFontSize(shape)}
+						font={shape.props.font}
+						align="middle"
+						verticalAlign="middle"
+						labelColor={getColorValue(theme, shape.props.labelColor, 'solid')}
+						richText={shape.props.richText}
+						bounds={getArrowLabelPosition(this.editor, shape, false)
+							.box.clone()
+							.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
+						padding={0}
+						showTextOutline={this.options.showTextOutline}
+					/>
+				)}
 			</g>
 		)
 	}
@@ -1136,7 +1159,7 @@ const ArrowSvg = track(function ArrowSvg({
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
 	const info = getArrowInfo(editor, shape)
-	const isForceSolid = useEfficientZoomThreshold(shape.props.scale * 0.25)
+	const isForceSolid = useEfficientZoomThreshold(0.25 / shape.props.scale)
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
 	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
@@ -1184,7 +1207,7 @@ const ArrowSvg = track(function ArrowSvg({
 		})
 	}
 
-	const labelPosition = getArrowLabelPosition(editor, shape)
+	const labelPosition = getArrowLabelPosition(editor, shape, isEditing)
 
 	const clipStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
 	const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')

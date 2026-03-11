@@ -67,6 +67,14 @@ export function getPath(item: ApiItem): string {
 		return `${parentPath}#${childSlug}`
 	}
 
+	// Members of a namespace are rendered on the namespace page, not as
+	// standalone pages. Link to the namespace page with an anchor.
+	if (item.parent && item.parent.kind === ApiItemKind.Namespace) {
+		const parentPath = getPath(item.parent)
+		const childSlug = getSlug(item)
+		return `${parentPath}#${childSlug}`
+	}
+
 	return item.canonicalReference
 		.toString()
 		.replace(/^@tldraw\//, '')
