@@ -366,7 +366,7 @@ const AttributionTimeline = track(() => {
 [1]
 A fake user directory. In a real app this would be backed by your auth system.
 The TLIdentityProvider tells the editor who is "logged in" — the editor calls
-getCurrentUser when stamping tlmeta on shape create/update, and resolveUser
+getCurrentUser when stamping meta.__tldraw on shape create/update, and resolveUser
 when rendering attribution labels.
 
 [2]

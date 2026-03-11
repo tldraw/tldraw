@@ -7,7 +7,6 @@ import {
 	opacityValidator,
 	parentIdValidator,
 	shapeIdValidator,
-	tlmetaValidator,
 } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 
@@ -27,7 +26,6 @@ export function makePermissiveSchema(): TLSchema {
 		opacity: opacityValidator,
 		props: T.jsonValue as any,
 		meta: T.jsonValue as any,
-		tlmeta: tlmetaValidator,
 	}) as (typeof schema)['types']['shape']['validator']
 
 	const shapeType = schema.getType('shape')

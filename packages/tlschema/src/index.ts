@@ -181,13 +181,16 @@ export {
 export {
 	attributionUserValidator,
 	createShapeValidator,
-	defaultTlmeta,
+	defaultTlMeta,
+	getTldrawMetaFromShapeMeta,
 	parentIdValidator,
 	shapeIdValidator,
+	tldrawShapeMetaKey,
 	tlmetaValidator,
 	type TLAttributionUser,
 	type TLBaseShape,
-	type TLShapeTLmeta,
+	type TLShapeMeta,
+	type TLShapeTLMeta,
 } from './shapes/TLBaseShape'
 export {
 	bookmarkShapeMigrations,

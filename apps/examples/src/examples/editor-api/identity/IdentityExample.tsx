@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import {
 	Editor,
+	getTldrawMetaFromShapeMeta,
 	Tldraw,
 	TldrawUiButton,
 	TLShape,
-	TLShapeTLmeta,
 	useEditor,
 	useValue,
 	type TLIdentityProvider,
@@ -125,7 +125,7 @@ function formatTime(ts: number | null) {
 }
 
 function attributionSummary(editor: Editor, shape: TLShape) {
-	const { createdBy, updatedBy, createdAt, updatedAt }: TLShapeTLmeta = shape.tlmeta
+	const { createdBy, updatedBy, createdAt, updatedAt } = getTldrawMetaFromShapeMeta(shape.meta)
 
 	const createdByUser = createdBy ? editor.getIdentity().resolveUser(createdBy.id) : null
 	const updatedByUser = updatedBy ? editor.getIdentity().resolveUser(updatedBy.id) : null
@@ -179,7 +179,7 @@ change.
 
 [4]
 The panel reads `editor.getIdentity().getCurrentUser()` to show who is active, and
-reads `shape.tlmeta` for the selected shape to display attribution info. Each
+reads `shape.meta.__tldraw` for the selected shape to display attribution info. Each
 attribution field (`createdBy`, `updatedBy`) is a `{ id, name }` object — we try
 `resolveUser(id)` for live data and fall back to the stored name.
 

@@ -32,7 +32,6 @@ import { HandleSnapGeometry } from '@tldraw/editor';
 import { HTMLAttributes } from 'react';
 import { IndexKey } from '@tldraw/utils';
 import { IndexKey as IndexKey_2 } from '@tldraw/editor';
-import { JsonObject } from '@tldraw/utils';
 import { JSX } from 'react/jsx-runtime';
 import { JSX as JSX_2 } from 'react';
 import { JSXElementConstructor } from 'react';
@@ -139,8 +138,8 @@ import { TLShape } from '@tldraw/editor';
 import { TLShapeCrop } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
 import { TLShapeId as TLShapeId_2 } from '@tldraw/tlschema';
+import { TLShapeMeta } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/editor';
-import { TLShapeTLmeta } from '@tldraw/tlschema';
 import { TLShapeUtilCanBeLaidOutOpts } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
@@ -310,11 +309,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onHandleDrag(shape: TLArrowShape, info: TLHandleDragInfo<TLArrowShape>): ({
         id: TLShapeId_2;
-        meta?: Partial<JsonObject> | undefined;
+        meta?: Partial<TLShapeMeta> | undefined;
         props?: Partial<TLArrowShapeProps> | undefined;
-        tlmeta?: Partial<TLShapeTLmeta> | undefined;
         type: "arrow";
-    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "tlmeta" | "type">>) | {
+    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>) | {
         id: TLShapeId_2;
         props: {
             bend: number;
@@ -340,11 +338,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onTranslateStart(shape: TLArrowShape): ({
         id: TLShapeId_2;
-        meta?: Partial<JsonObject> | undefined;
+        meta?: Partial<TLShapeMeta> | undefined;
         props?: Partial<TLArrowShapeProps> | undefined;
-        tlmeta?: Partial<TLShapeTLmeta> | undefined;
         type: "arrow";
-    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "tlmeta" | "type">>) | undefined;
+    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>) | undefined;
     // (undocumented)
     options: ArrowShapeOptions;
     // (undocumented)
@@ -459,7 +456,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -469,7 +466,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
             w: number;
         };
         rotation: number;
-        tlmeta: TLShapeTLmeta;
         type: "bookmark";
         typeName: "shape";
         x: number;
@@ -480,7 +476,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -490,7 +486,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
             w: number;
         };
         rotation: number;
-        tlmeta: TLShapeTLmeta;
         type: "bookmark";
         typeName: "shape";
         x: number;
@@ -1691,7 +1686,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -1716,7 +1711,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             w: number;
         };
         rotation: number;
-        tlmeta: TLShapeTLmeta;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -1727,7 +1721,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -1752,7 +1746,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             w: number;
         };
         rotation: number;
-        tlmeta: TLShapeTLmeta;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -1763,14 +1756,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
             geo: "check-box";
         };
         rotation: number;
-        tlmeta: TLShapeTLmeta;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -1779,14 +1771,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
             geo: "rectangle";
         };
         rotation: number;
-        tlmeta: TLShapeTLmeta;
         type: "geo";
         typeName: "shape";
         x: number;
@@ -2117,7 +2108,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -2136,7 +2127,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
             spline: "cubic" | "line";
         };
         rotation: number;
-        tlmeta: TLShapeTLmeta;
         type: "line";
         typeName: "shape";
         x: number;
@@ -2147,7 +2137,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -2166,7 +2156,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
             spline: "cubic" | "line";
         };
         rotation: number;
-        tlmeta: TLShapeTLmeta;
         type: "line";
         typeName: "shape";
         x: number;
@@ -2278,7 +2267,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         id: TLShapeId;
         index: IndexKey_2;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -2300,7 +2289,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             verticalAlign: "end" | "middle" | "start";
         };
         rotation: number;
-        tlmeta: TLShapeTLmeta;
         type: "note";
         typeName: "shape";
         x: number;
@@ -3126,7 +3114,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -3144,7 +3132,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             w: number;
         };
         rotation: number;
-        tlmeta: TLShapeTLmeta;
         type: "text";
         typeName: "shape";
         x: number;

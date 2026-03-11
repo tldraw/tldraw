@@ -5,6 +5,7 @@ import {
 	T,
 	TLShape,
 	Tldraw,
+	getTldrawMetaFromShapeMeta,
 	useEditor,
 	useValue,
 	type TLIdentityProvider,
@@ -38,14 +39,14 @@ function AttributedCardComponent({ shape }: { shape: AttributedCardShape }) {
 	const attribution = useValue(
 		'card-attribution',
 		() => {
-			const { createdBy, updatedBy, createdAt, updatedAt } = shape.tlmeta
+			const { createdBy, updatedBy, createdAt, updatedAt } = getTldrawMetaFromShapeMeta(shape.meta)
 
 			const createdByName = editor.getAttributionDisplayName(createdBy)
 			const updatedByName = editor.getAttributionDisplayName(updatedBy)
 
 			return { createdByName, updatedByName, createdAt, updatedAt }
 		},
-		[shape.tlmeta, editor]
+		[shape.meta, editor]
 	)
 
 	return (
@@ -124,7 +125,7 @@ export default function ShapeWithAttributionExample() {
 /*
 [1]
 Register the custom shape type. Our shape has a fixed width/height and a label.
-Every shape automatically gets a `tlmeta` field (with `createdBy`, `updatedBy`,
+Every shape automatically gets `meta.__tldraw` (with `createdBy`, `updatedBy`,
 `createdAt`, `updatedAt`) — no extra props needed for attribution.
 
 [2]
@@ -136,7 +137,7 @@ logged in; `resolveUser` looks up any user ID for display-name resolution.
 A React component that renders the shape body. We read the live shape from the
 store via `editor.getShape(shape.id)` inside `useValue()` so that attribution
 updates (e.g. after a resize) trigger a re-render. The `shape` prop is a
-frozen snapshot — reading `shape.tlmeta` directly would not be reactive.
+frozen snapshot — reading `shape.meta.__tldraw` directly would not be reactive.
 
 [4]
 We extend BaseBoxShapeUtil so we get resize handling for free. The `component`

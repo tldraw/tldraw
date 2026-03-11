@@ -3,6 +3,8 @@ import {
 	TLIdentityProvider,
 	TLNoteShape,
 	createShapeId,
+	getTldrawMetaFromShapeMeta,
+	tldrawShapeMetaKey,
 	toRichText,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
@@ -22,16 +24,17 @@ const ids = {
 	note1: createShapeId('note1'),
 }
 
-describe('shape attribution (tlmeta)', () => {
+describe('shape attribution (meta.__tldraw)', () => {
 	it('sets createdBy and updatedBy as { id, name } on createShapes', () => {
 		const userId = editor.user.getId()
 		const userName = editor.user.getName()
 		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0 }])
 		const shape = editor.getShape<TLGeoShape>(ids.box1)!
-		expect(shape.tlmeta.createdBy).toEqual({ id: userId, name: userName })
-		expect(shape.tlmeta.updatedBy).toEqual({ id: userId, name: userName })
-		expect(shape.tlmeta.createdAt).toBeGreaterThan(0)
-		expect(shape.tlmeta.updatedAt).toBeGreaterThan(0)
+		const tlmeta = getTldrawMetaFromShapeMeta(shape.meta)
+		expect(tlmeta.createdBy).toEqual({ id: userId, name: userName })
+		expect(tlmeta.updatedBy).toEqual({ id: userId, name: userName })
+		expect(tlmeta.createdAt).toBeGreaterThan(0)
+		expect(tlmeta.updatedAt).toBeGreaterThan(0)
 	})
 
 	it('updates updatedBy but preserves createdBy on updateShapes', () => {
@@ -40,29 +43,39 @@ describe('shape attribution (tlmeta)', () => {
 
 		editor.updateShape({ id: ids.box1, type: 'geo', x: 50 })
 		const updated = editor.getShape<TLGeoShape>(ids.box1)!
+		const createdTlmeta = getTldrawMetaFromShapeMeta(created.meta)
+		const updatedTlmeta = getTldrawMetaFromShapeMeta(updated.meta)
 
-		expect(updated.tlmeta.createdBy).toEqual(created.tlmeta.createdBy)
-		expect(updated.tlmeta.createdAt).toBe(created.tlmeta.createdAt)
-		expect(updated.tlmeta.updatedBy).toEqual({
+		expect(updatedTlmeta.createdBy).toEqual(createdTlmeta.createdBy)
+		expect(updatedTlmeta.createdAt).toBe(createdTlmeta.createdAt)
+		expect(updatedTlmeta.updatedBy).toEqual({
 			id: editor.user.getId(),
 			name: editor.user.getName(),
 		})
-		expect(updated.tlmeta.updatedAt).toBeGreaterThanOrEqual(created.tlmeta.updatedAt!)
+		expect(updatedTlmeta.updatedAt).toBeGreaterThanOrEqual(createdTlmeta.updatedAt!)
 	})
 
-	it('preserves explicit tlmeta in partial on create', () => {
+	it('preserves explicit meta.__tldraw in partial on create', () => {
 		const customTlmeta = {
 			createdBy: { id: 'custom-user', name: 'Custom' },
 			updatedBy: { id: 'custom-user', name: 'Custom' },
 			createdAt: 1000,
 			updatedAt: 1000,
 		}
-		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, tlmeta: customTlmeta }])
+		editor.createShapes([
+			{
+				id: ids.box1,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				meta: { [tldrawShapeMetaKey]: customTlmeta },
+			},
+		])
 		const shape = editor.getShape<TLGeoShape>(ids.box1)!
-		expect(shape.tlmeta).toEqual(customTlmeta)
+		expect(getTldrawMetaFromShapeMeta(shape.meta)).toEqual(customTlmeta)
 	})
 
-	it('ignores explicit tlmeta in partial on update', () => {
+	it('ignores explicit meta.__tldraw in partial on update', () => {
 		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0 }])
 		const created = editor.getShape<TLGeoShape>(ids.box1)!
 		const customTlmeta = {
@@ -71,15 +84,22 @@ describe('shape attribution (tlmeta)', () => {
 			createdAt: 2000,
 			updatedAt: 2000,
 		}
-		editor.updateShape({ id: ids.box1, type: 'geo', x: 50, tlmeta: customTlmeta })
+		editor.updateShape({
+			id: ids.box1,
+			type: 'geo',
+			x: 50,
+			meta: { [tldrawShapeMetaKey]: customTlmeta },
+		})
 		const shape = editor.getShape<TLGeoShape>(ids.box1)!
-		expect(shape.tlmeta.createdBy).toEqual(created.tlmeta.createdBy)
-		expect(shape.tlmeta.createdAt).toBe(created.tlmeta.createdAt)
-		expect(shape.tlmeta.updatedBy).toEqual({
+		const createdTlmeta = getTldrawMetaFromShapeMeta(created.meta)
+		const shapeTlmeta = getTldrawMetaFromShapeMeta(shape.meta)
+		expect(shapeTlmeta.createdBy).toEqual(createdTlmeta.createdBy)
+		expect(shapeTlmeta.createdAt).toBe(createdTlmeta.createdAt)
+		expect(shapeTlmeta.updatedBy).toEqual({
 			id: editor.user.getId(),
 			name: editor.user.getName(),
 		})
-		expect(shape.tlmeta.updatedAt).toBeGreaterThanOrEqual(created.tlmeta.updatedAt!)
+		expect(shapeTlmeta.updatedAt).toBeGreaterThanOrEqual(createdTlmeta.updatedAt!)
 	})
 })
 
@@ -183,8 +203,9 @@ describe('TLIdentityProvider', () => {
 		customEditor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0 }])
 		const shape = customEditor.getShape<TLGeoShape>(ids.box1)!
 
-		expect(shape.tlmeta.createdBy).toEqual({ id: 'auth-user-42', name: 'Alice' })
-		expect(shape.tlmeta.updatedBy).toEqual({ id: 'auth-user-42', name: 'Alice' })
+		const tlmeta = getTldrawMetaFromShapeMeta(shape.meta)
+		expect(tlmeta.createdBy).toEqual({ id: 'auth-user-42', name: 'Alice' })
+		expect(tlmeta.updatedBy).toEqual({ id: 'auth-user-42', name: 'Alice' })
 		customEditor.dispose()
 	})
 

@@ -49,14 +49,17 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	TLShapeTLMeta,
 	TLStore,
 	TLStoreSnapshot,
 	TLVideoAsset,
 	createBindingId,
 	createShapeId,
 	getShapePropKeysByStyle,
+	getTldrawMetaFromShapeMeta,
 	isPageId,
 	isShapeId,
+	tldrawShapeMetaKey,
 } from '@tldraw/tlschema'
 import {
 	FileHelpers,
@@ -3991,7 +3994,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Get the current user as a `TLAttributionUser` for stamping into shape
-	 * `tlmeta`. Returns `null` when no identity is configured or the user is anonymous.
+	 * `meta.__tldraw`. Returns `null` when no identity is configured or the user is anonymous.
 	 *
 	 * @public
 	 */
@@ -4013,7 +4016,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Resolve a display name for an attribution user. When given a
-	 * `TLAttributionUser` object (as stored in `tlmeta`), the live
+	 * `TLAttributionUser` object (as stored in `meta.__tldraw`), the live
 	 * identity provider is tried first and the stored name is used as fallback.
 	 * A plain string user ID is also accepted for backward compatibility.
 	 *
@@ -8137,18 +8140,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// When we create the shape, take in the partial (the props coming into the
 				// function) and merge it with the default props.
-				const { tlmeta: partialTlmeta, ...partialWithoutTlmeta } = partial as any
+				const { meta: partialMeta, ...partialWithoutMeta } = partial as any
+				const { [tldrawShapeMetaKey]: partialTlmeta, ...partialMetaWithoutTlmeta } = (partialMeta ??
+					{}) as JsonObject
 				let shapeRecordToCreate = (
 					this.store.schema.types.shape as RecordType<
 						TLShape,
 						'type' | 'props' | 'index' | 'parentId'
 					>
 				).create({
-					...partialWithoutTlmeta,
+					...partialWithoutMeta,
 					index,
 					opacity: partial.opacity ?? opacityForNextShape,
 					parentId: partial.parentId ?? focusedGroupId,
 					props: 'props' in partial ? { ...initialProps, ...partial.props } : initialProps,
+					meta: partialMetaWithoutTlmeta,
 				})
 
 				if (shapeRecordToCreate.index === undefined) {
@@ -8160,12 +8166,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const user = this.getAttributionUser()
 				shapeRecordToCreate = {
 					...shapeRecordToCreate,
-					tlmeta: {
-						createdBy: user,
-						updatedBy: user,
-						createdAt: now,
-						updatedAt: now,
-						...partialTlmeta,
+					meta: {
+						...shapeRecordToCreate.meta,
+						[tldrawShapeMetaKey]: {
+							createdBy: user,
+							updatedBy: user,
+							createdAt: now,
+							updatedAt: now,
+							...(partialTlmeta as Partial<TLShapeTLMeta> | undefined),
+						},
 					},
 				}
 
@@ -8579,17 +8588,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 				updated = applyPartialToRecordWithProps(shape, partial)
 				if (updated === shape) continue
 
-				// Update attribution metadata (always system-set, ignoring any partial.tlmeta)
-				// The reason is because things like, say, resizing, send the whole tlmeta into
+				// Update attribution metadata (always system-set, ignoring any partial meta.__tldraw)
+				// The reason is because things like, say, resizing, send the whole metadata into
 				// the updateShape call and then `updatedAt` never gets the correct date.
 				const now = Date.now()
 				const user = this.getAttributionUser()
+				const tlmeta = getTldrawMetaFromShapeMeta(shape.meta)
 				updated = {
 					...updated,
-					tlmeta: {
-						...shape.tlmeta,
-						updatedBy: user,
-						updatedAt: now,
+					meta: {
+						...updated.meta,
+						[tldrawShapeMetaKey]: {
+							...tlmeta,
+							updatedBy: user,
+							updatedAt: now,
+						},
 					},
 				}
 
@@ -10951,9 +10964,9 @@ function applyPartialToRecordWithProps<
 >(
 	prev: T,
 	partial?: T extends T
-		? Omit<Partial<T>, 'props' | 'tlmeta'> & {
+		? Omit<Partial<T>, 'props'> & {
 				props?: Partial<T['props']>
-			} & ('tlmeta' extends keyof T ? { tlmeta?: Partial<T['tlmeta']> } : unknown)
+			}
 		: never
 ): T {
 	if (!partial) return prev
@@ -10972,8 +10985,8 @@ function applyPartialToRecordWithProps<
 		// There's a new value, so create the new shape if we haven't already (should we be cloning this?)
 		if (!next) next = { ...prev }
 
-		// for props / meta / tlmeta properties, we support updates with partials of this object
-		if (k === 'props' || k === 'meta' || k === 'tlmeta') {
+		// for props / meta properties, we support updates with partials of this object
+		if (k === 'props' || k === 'meta') {
 			;(next as any)[k] = { ...(prev as any)[k] }
 			for (const [nextKey, nextValue] of Object.entries(v as object)) {
 				;(next as any)[k][nextKey] = nextValue

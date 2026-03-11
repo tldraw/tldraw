@@ -16,7 +16,7 @@ import { pointerVersions } from './records/TLPointer'
 import { instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeVersions } from './records/TLShape'
 import { arrowShapeVersions } from './shapes/TLArrowShape'
-import { defaultTlmeta } from './shapes/TLBaseShape'
+import { defaultTlMeta, tldrawShapeMetaKey } from './shapes/TLBaseShape'
 import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
 import { drawShapeVersions } from './shapes/TLDrawShape'
 import { embedShapeVersions } from './shapes/TLEmbedShape'
@@ -2604,17 +2604,27 @@ describe('LegacyPointsConversion migration for highlight shape', () => {
 	})
 })
 
-describe('Adding tlmeta to root shape', () => {
-	const { up, down } = getTestMigration(rootShapeVersions.AddTlmeta)
+describe('Moving tlmeta to meta.__tldraw', () => {
+	const { up, down } = getTestMigration(rootShapeVersions.MoveTlmetaToMetaTldraw)
 
 	test('up works as expected', () => {
-		expect(up({})).toEqual({
-			tlmeta: defaultTlmeta,
+		expect(up({ tlmeta: { ...defaultTlMeta } })).toEqual({
+			meta: {
+				[tldrawShapeMetaKey]: defaultTlMeta,
+			},
 		})
 	})
 
 	test('down works as expected', () => {
-		expect(down({ tlmeta: { ...defaultTlmeta } })).toEqual({})
+		expect(
+			down({
+				meta: {
+					[tldrawShapeMetaKey]: { ...defaultTlMeta },
+				},
+			})
+		).toEqual({
+			meta: {},
+		})
 	})
 })
 

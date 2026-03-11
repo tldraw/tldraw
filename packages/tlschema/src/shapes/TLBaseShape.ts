@@ -11,7 +11,10 @@ import { TLParentId, TLShapeId } from '../records/TLShape'
  *
  * @public
  */
-export interface TLAttributionUser {
+// Annoyingly, this has to be a `type` instead of an `interface` because
+// it's used alongside a `JsonObject` which complicates the type inference.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TLAttributionUser = {
 	readonly id: string
 	readonly name: string
 }
@@ -31,7 +34,10 @@ export const attributionUserValidator: T.Validator<TLAttributionUser | null> =
  *
  * @public
  */
-export interface TLShapeTLmeta {
+// Annoyingly, this has to be a `type` instead of an `interface` because
+// it's used alongside a `JsonObject` which complicates the type inference.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TLShapeTLMeta = {
 	createdBy: TLAttributionUser | null
 	updatedBy: TLAttributionUser | null
 	createdAt: number | null
@@ -39,7 +45,7 @@ export interface TLShapeTLmeta {
 }
 
 /** @public */
-export const defaultTlmeta: TLShapeTLmeta = {
+export const defaultTlMeta: TLShapeTLMeta = {
 	createdBy: null,
 	updatedBy: null,
 	createdAt: null,
@@ -47,12 +53,26 @@ export const defaultTlmeta: TLShapeTLmeta = {
 }
 
 /** @public */
-export const tlmetaValidator: T.ObjectValidator<TLShapeTLmeta> = T.object<TLShapeTLmeta>({
+export const tlmetaValidator: T.ObjectValidator<TLShapeTLMeta> = T.object<TLShapeTLMeta>({
 	createdBy: attributionUserValidator,
 	updatedBy: attributionUserValidator,
 	createdAt: T.number.nullable(),
 	updatedAt: T.number.nullable(),
 })
+
+/** @public */
+export const tldrawShapeMetaKey = '__tldraw' as const
+
+/** @public */
+export type TLShapeMeta = JsonObject & {
+	[tldrawShapeMetaKey]?: TLShapeTLMeta
+}
+
+/** @public */
+export function getTldrawMetaFromShapeMeta(meta: JsonObject): TLShapeTLMeta {
+	const tldrawMeta = (meta as TLShapeMeta)[tldrawShapeMetaKey]
+	return tldrawMeta ? { ...defaultTlMeta, ...tldrawMeta } : { ...defaultTlMeta }
+}
 
 /**
  * Base interface for all shapes in tldraw.
@@ -123,8 +143,7 @@ export interface TLBaseShape<Type extends string, Props extends object> {
 	isLocked: boolean
 	opacity: TLOpacityType
 	props: Props
-	meta: JsonObject
-	tlmeta: TLShapeTLmeta
+	meta: TLShapeMeta
 }
 
 /**
@@ -227,7 +246,10 @@ export function createShapeValidator<
 		isLocked: T.boolean,
 		opacity: opacityValidator,
 		props: props ? T.object(props) : (T.jsonValue as any),
-		meta: meta ? T.object(meta) : (T.jsonValue as any),
-		tlmeta: tlmetaValidator,
+		meta: (meta
+			? T.object(meta).extend({
+					[tldrawShapeMetaKey]: tlmetaValidator.optional(),
+				})
+			: T.jsonValue) as any,
 	})
 }

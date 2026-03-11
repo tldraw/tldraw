@@ -10,7 +10,12 @@ import { T } from '@tldraw/validate'
 import { SchemaPropsInfo } from '../createTLSchema'
 import { TLPropsMigrations } from '../recordsWithProps'
 import { TLArrowShape } from '../shapes/TLArrowShape'
-import { TLBaseShape, createShapeValidator, defaultTlmeta } from '../shapes/TLBaseShape'
+import {
+	TLBaseShape,
+	createShapeValidator,
+	defaultTlMeta,
+	tldrawShapeMetaKey,
+} from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLDrawShape } from '../shapes/TLDrawShape'
 import { TLEmbedShape } from '../shapes/TLEmbedShape'
@@ -180,8 +185,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 			type: T['type']
 			props?: Partial<T['props']>
 			meta?: Partial<T['meta']>
-			tlmeta?: Partial<T['tlmeta']>
-		} & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta' | 'tlmeta'>>
+		} & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
 	: never
 
 /**
@@ -216,8 +220,7 @@ export type TLCreateShapePartial<T extends TLShape = TLShape> = T extends T
 			type: T['type']
 			props?: Partial<T['props']>
 			meta?: Partial<T['meta']>
-			tlmeta?: Partial<T['tlmeta']>
-		} & Partial<Omit<T, 'type' | 'props' | 'meta' | 'tlmeta'>>
+		} & Partial<Omit<T, 'type' | 'props' | 'meta'>>
 	: never
 
 /**
@@ -292,7 +295,7 @@ export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	HoistOpacity: 2,
 	AddMeta: 3,
 	AddWhite: 4,
-	AddTlmeta: 5,
+	MoveTlmetaToMetaTldraw: 5,
 })
 
 /**
@@ -356,12 +359,16 @@ export const rootShapeMigrations = createRecordMigrationSequence({
 			},
 		},
 		{
-			id: rootShapeVersions.AddTlmeta,
+			id: rootShapeVersions.MoveTlmetaToMetaTldraw,
 			up: (record: any) => {
-				record.tlmeta = { ...defaultTlmeta }
+				record.meta ??= {}
+				record.meta[tldrawShapeMetaKey] = { ...(record.tlmeta ?? defaultTlMeta) }
+				delete record.tlmeta
 			},
 			down: (record: any) => {
-				delete record.tlmeta
+				if (record.meta && tldrawShapeMetaKey in record.meta) {
+					delete record.meta[tldrawShapeMetaKey]
+				}
 			},
 		},
 	],
@@ -593,7 +600,8 @@ export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
 		rotation: 0,
 		isLocked: false,
 		opacity: 1,
-		meta: {},
-		tlmeta: { ...defaultTlmeta },
+		meta: {
+			[tldrawShapeMetaKey]: { ...defaultTlMeta },
+		},
 	}))
 }

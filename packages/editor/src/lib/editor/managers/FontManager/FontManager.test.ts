@@ -3,7 +3,8 @@ import {
 	TLShape,
 	TLShapeId,
 	createShapeId,
-	defaultTlmeta,
+	defaultTlMeta,
+	tldrawShapeMetaKey,
 	toRichText,
 } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
@@ -53,8 +54,9 @@ describe('FontManager', () => {
 		parentId: 'page:page' as TLParentId,
 		opacity: 1,
 		isLocked: false,
-		meta: {},
-		tlmeta: { ...defaultTlmeta },
+		meta: {
+			[tldrawShapeMetaKey]: { ...defaultTlMeta },
+		},
 		props: {
 			color: 'black',
 			size: 'xl',

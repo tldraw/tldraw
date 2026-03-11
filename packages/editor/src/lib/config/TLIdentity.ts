@@ -18,7 +18,7 @@ export interface TLIdentityUser {
  *
  * Implement this interface to provide a single source of truth for
  * "who is the current user?" and "who is user X?". The editor uses it
- * for shape attribution (`tlmeta`), display-name resolution, and
+ * for shape attribution (`meta.__tldraw`), display-name resolution, and
  * (in the future) presence.
  *
  * @example
@@ -36,7 +36,7 @@ export interface TLIdentityUser {
 export interface TLIdentityProvider {
 	/**
 	 * Return the currently authenticated user, or null for anonymous / unknown.
-	 * Called when stamping `tlmeta` on shape create/update.
+	 * Called when stamping `meta.__tldraw` on shape create/update.
 	 */
 	getCurrentUser(): TLIdentityUser | null
 

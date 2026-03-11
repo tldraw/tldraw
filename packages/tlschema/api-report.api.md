@@ -179,7 +179,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "tlmeta" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
+}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
 
 // @public
 export function createTLSchema({ shapes, bindings, migrations }?: {
@@ -294,7 +294,7 @@ export const DefaultSizeStyle: EnumStyleProp<"l" | "m" | "s" | "xl">;
 export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 
 // @public (undocumented)
-export const defaultTlmeta: TLShapeTLmeta;
+export const defaultTlMeta: TLShapeTLMeta;
 
 // @public
 export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
@@ -388,6 +388,9 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
 
 // @internal
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
+
+// @public (undocumented)
+export function getTldrawMetaFromShapeMeta(meta: JsonObject): TLShapeTLMeta;
 
 // @public
 export const groupShapeMigrations: TLPropsMigrations;
@@ -811,12 +814,10 @@ export interface TLAssetStore {
 }
 
 // @public
-export interface TLAttributionUser {
-    // (undocumented)
+export type TLAttributionUser = {
     readonly id: string;
-    // (undocumented)
     readonly name: string;
-}
+};
 
 // @public
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
@@ -847,7 +848,7 @@ export interface TLBaseShape<Type extends string, Props extends object> {
     // (undocumented)
     isLocked: boolean;
     // (undocumented)
-    meta: JsonObject;
+    meta: TLShapeMeta;
     // (undocumented)
     opacity: TLOpacityType;
     // (undocumented)
@@ -856,8 +857,6 @@ export interface TLBaseShape<Type extends string, Props extends object> {
     props: Props;
     // (undocumented)
     rotation: number;
-    // (undocumented)
-    tlmeta: TLShapeTLmeta;
     // (undocumented)
     type: Type;
     // (undocumented)
@@ -934,9 +933,8 @@ export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
 export type TLCreateShapePartial<T extends TLShape = TLShape> = T extends T ? {
     meta?: Partial<T['meta']>;
     props?: Partial<T['props']>;
-    tlmeta?: Partial<T['tlmeta']>;
     type: T['type'];
-} & Partial<Omit<T, 'meta' | 'props' | 'tlmeta' | 'type'>> : never;
+} & Partial<Omit<T, 'meta' | 'props' | 'type'>> : never;
 
 // @public
 export interface TLCursor {
@@ -1029,6 +1027,9 @@ export const TLDOCUMENT_ID: RecordId<TLDocument>;
 
 // @public
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>;
+
+// @public (undocumented)
+export const tldrawShapeMetaKey: "__tldraw";
 
 // @public
 export interface TLDrawShapeProps {
@@ -1356,7 +1357,7 @@ export interface TLLineShapeProps {
 export type TLLineShapeSplineStyle = T.TypeOf<typeof LineShapeSplineStyle>;
 
 // @public (undocumented)
-export const tlmetaValidator: T.ObjectValidator<TLShapeTLmeta>;
+export const tlmetaValidator: T.ObjectValidator<TLShapeTLMeta>;
 
 // @public
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>;
@@ -1482,26 +1483,26 @@ export interface TLShapeCrop {
 // @public
 export type TLShapeId = RecordId<TLShape>;
 
+// @public (undocumented)
+export type TLShapeMeta = JsonObject & {
+    [tldrawShapeMetaKey]?: TLShapeTLMeta;
+};
+
 // @public
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     id: TLShapeId;
     meta?: Partial<T['meta']>;
     props?: Partial<T['props']>;
-    tlmeta?: Partial<T['tlmeta']>;
     type: T['type'];
-} & Partial<Omit<T, 'id' | 'meta' | 'props' | 'tlmeta' | 'type'>> : never;
+} & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public
-export interface TLShapeTLmeta {
-    // (undocumented)
+export type TLShapeTLMeta = {
     createdAt: null | number;
-    // (undocumented)
     createdBy: null | TLAttributionUser;
-    // (undocumented)
     updatedAt: null | number;
-    // (undocumented)
     updatedBy: null | TLAttributionUser;
-}
+};
 
 // @public
 export type TLStore = Store<TLRecord, TLStoreProps>;
