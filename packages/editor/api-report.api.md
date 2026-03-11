@@ -5005,6 +5005,8 @@ export class Vec {
     // (undocumented)
     static FromArray(v: number[]): Vec;
     // (undocumented)
+    static IsFinite(A: VecLike): boolean;
+    // (undocumented)
     static IsNaN(A: VecLike): boolean;
     // (undocumented)
     static Len(A: VecLike): number;
