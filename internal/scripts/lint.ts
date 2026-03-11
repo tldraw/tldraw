@@ -14,14 +14,11 @@ async function main() {
 				pwd: REPO_ROOT,
 			}
 		)
-		const cacheLocation = path.join(relativeCwd, '.eslintcache')
 		await exec(
 			'yarn',
 			[
 				'eslint',
 				'--cache',
-				'--cache-location',
-				cacheLocation,
 				'--report-unused-disable-directives',
 				'--no-error-on-unmatched-pattern',
 				'--quiet',
