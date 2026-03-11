@@ -55,7 +55,6 @@ export class MainMenu {
 				this.page.getByTestId('main-menu-sub.preferences-content').getByText('Focus mode'),
 				this.page.getByTestId('main-menu-sub.preferences-content').getByText('Edge scrolling'),
 				this.page.getByTestId('main-menu-sub.preferences-content').getByText('Reduce motion'),
-				this.page.getByTestId('main-menu-sub.preferences-content').getByText('Debug mode'),
 				this.page.getByTestId('main-menu-sub.preferences-content').getByText('Language'),
 			],
 		}
