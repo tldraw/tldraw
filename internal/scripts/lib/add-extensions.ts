@@ -61,6 +61,15 @@ export function addJsExtensions(distDir: string) {
 				}
 				return false
 			},
+			visitCallExpression(path) {
+				if (
+					path.value.callee.type === 'Import' &&
+					path.value.arguments[0]?.type === 'StringLiteral'
+				) {
+					path.value.arguments[0].value = resolveRelativePath(file, path.value.arguments[0].value)
+				}
+				this.traverse(path)
+			},
 		})
 
 		writeFileSync(file, print(code).code)
