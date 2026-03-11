@@ -16,7 +16,6 @@ import {
 	RemoveFrameMenuItem,
 	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
-	ToggleDebugModeItem,
 	ToggleDynamicSizeModeItem,
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,
@@ -163,7 +162,6 @@ export function PreferencesGroup() {
 					<ToggleEdgeScrollingItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
-					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
 					<ColorSchemeMenu />
@@ -173,6 +171,7 @@ export function PreferencesGroup() {
 			</TldrawUiMenuSubmenu>
 			<LanguageMenu />
 			<KeyboardShortcutsMenuItem />
+			<TldrawUiMenuActionItem actionId="toggle-debug-mode" />
 		</TldrawUiMenuGroup>
 	)
 }
