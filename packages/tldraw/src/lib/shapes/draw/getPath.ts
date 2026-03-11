@@ -125,13 +125,17 @@ export function getPointsFromDrawSegment(
 		// A B <interpolated points> D
 		const A = Vec.From(_points[0])
 		const D = Vec.From(_points[1])
-		const uni = Vec.Tan(D, A)
 		const dist = Vec.Dist(D, A)
-		const nudgeDist = Math.min(1, Math.floor(dist / 4))
-		const B = Vec.Add(A, Vec.Mul(uni, nudgeDist))
-		const C = Vec.Add(D, Vec.Mul(uni, -nudgeDist))
-		const interpolatedPointsCount = Math.max(4, Math.floor(dist / 16))
-		points.push(A, ...Vec.PointsBetween(B, C, interpolatedPointsCount, EASINGS.easeInOutCubic), D)
+		if (dist === 0) {
+			points.push(A)
+		} else {
+			const uni = Vec.Tan(D, A)
+			const nudgeDist = Math.min(1, Math.floor(dist / 4))
+			const B = Vec.Add(A, Vec.Mul(uni, nudgeDist))
+			const C = Vec.Add(D, Vec.Mul(uni, -nudgeDist))
+			const interpolatedPointsCount = Math.max(4, Math.floor(dist / 16))
+			points.push(A, ...Vec.PointsBetween(B, C, interpolatedPointsCount, EASINGS.easeInOutCubic), D)
+		}
 	}
 
 	return points
