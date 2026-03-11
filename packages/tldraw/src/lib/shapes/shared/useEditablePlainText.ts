@@ -156,6 +156,7 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 						const plainText = e.clipboardData.getData('text/plain')
 						preventDefault(e)
 						if (plainText) {
+							// eslint-disable-next-line @typescript-eslint/no-deprecated -- best way to insert text with undo support
 							document.execCommand('insertText', false, plainText)
 						}
 					}
