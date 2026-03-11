@@ -31,9 +31,6 @@ export function createServer() {
 		assets: unknown[] = [],
 		bindings: unknown[] = []
 	): void {
-		console.error(
-			`[tldraw-mcp] saveCheckpoint: id=${id}, shapes=${shapes.length}, assets=${assets.length}, bindings=${bindings.length}, existing checkpoints=${checkpoints.size}`
-		)
 		checkpoints.set(id, { shapes, assets, bindings })
 		if (checkpoints.size > MAX_CHECKPOINTS) {
 			const oldest = checkpoints.keys().next().value
@@ -46,22 +43,13 @@ export function createServer() {
 			if (checkpoints.size > 0) {
 				const lastKey = [...checkpoints.keys()].at(-1)!
 				const entry = checkpoints.get(lastKey)!
-				console.error(
-					`[tldraw-mcp] getActiveShapes: activeCheckpointId was NULL, fell back to last checkpoint=${lastKey}, shapes=${entry.shapes.length}`
-				)
 				activeCheckpointId = lastKey
 				return entry.shapes
 			}
-			console.error(
-				`[tldraw-mcp] getActiveShapes: activeCheckpointId is NULL and no checkpoints, returning []`
-			)
 			return []
 		}
 		const entry = checkpoints.get(activeCheckpointId)
 		const shapes = entry?.shapes ?? []
-		console.error(
-			`[tldraw-mcp] getActiveShapes: activeCheckpointId=${activeCheckpointId}, shapes=${shapes.length}, checkpoints.size=${checkpoints.size}`
-		)
 		return shapes
 	}
 
@@ -96,9 +84,6 @@ export function createServer() {
 		const clientInfo = server.server.getClientVersion()
 		const resolved = resolveMcpAppHostNameFromServerInfo(clientInfo?.name ?? '')
 		if (resolved) clientHostName = resolved
-		console.error(
-			`[tldraw-mcp] Client connected: ${clientHostName ?? 'unknown'} v${clientInfo?.version ?? '?'}`
-		)
 	}
 
 	const deps: ServerDeps = {
