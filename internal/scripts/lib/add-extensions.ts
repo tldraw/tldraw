@@ -59,7 +59,7 @@ export function addJsExtensions(distDir: string) {
 				if (path.value.source) {
 					path.value.source.value = resolveRelativePath(file, path.value.source.value)
 				}
-				return false
+				this.traverse(path)
 			},
 			visitCallExpression(path) {
 				if (
