@@ -69,6 +69,16 @@ export class CubicBezier2d extends Polyline2d {
 		return nearest
 	}
 
+	override distanceToPoint(point: VecLike, hitInside = false): number {
+		const { segments } = this
+		let minDist = Infinity
+		for (let i = 0; i < segments.length; i++) {
+			const d = segments[i].distanceToPoint(point)
+			if (d < minDist) minDist = d
+		}
+		return minDist
+	}
+
 	getSvgPathData(first = true) {
 		const { _a: a, _b: b, _c: c, _d: d } = this
 		return `${first ? `M ${a.toFixed()} ` : ``} C${b.toFixed()} ${c.toFixed()} ${d.toFixed()}`

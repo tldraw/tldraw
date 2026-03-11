@@ -45,8 +45,44 @@ export class Circle2d extends Geometry2d {
 
 	nearestPoint(point: VecLike): Vec {
 		const { _center, _radius: radius } = this
-		if (_center.equals(point)) return Vec.AddXY(_center, radius, 0)
-		return Vec.Sub(point, _center).uni().mul(radius).add(_center)
+		const dx = point.x - _center.x
+		const dy = point.y - _center.y
+		const len = Math.sqrt(dx * dx + dy * dy)
+		if (len === 0) return new Vec(_center.x + radius, _center.y)
+		const scale = radius / len
+		return new Vec(_center.x + dx * scale, _center.y + dy * scale)
+	}
+
+	override distanceToPoint(point: VecLike, hitInside = false): number {
+		const { _center, _radius: radius } = this
+		const dx = point.x - _center.x
+		const dy = point.y - _center.y
+		const dist = Math.sqrt(dx * dx + dy * dy)
+		const distToEdge = dist - radius
+		// If inside and we care about inside, return negative
+		if (distToEdge < 0 && (this.isFilled || hitInside)) {
+			return distToEdge
+		}
+		return Math.abs(distToEdge)
+	}
+
+	override hitTestPoint(point: VecLike, margin = 0, hitInside = false): boolean {
+		const { _center, _radius: radius } = this
+		const dx = point.x - _center.x
+		const dy = point.y - _center.y
+		const dist2 = dx * dx + dy * dy
+		// If filled or hitInside, point inside circle is a hit
+		if ((this.isFilled || hitInside) && dist2 <= radius * radius) {
+			return true
+		}
+		// Check if within margin of the edge: |sqrt(dist2) - radius| <= margin
+		// Equivalent to: (sqrt(dist2) - radius)^2 <= margin^2
+		// But we need the absolute value, so check both sides
+		const outerR = radius + margin
+		if (dist2 > outerR * outerR) return false
+		const innerR = radius - margin
+		if (innerR <= 0) return true // margin >= radius, everything inside outer is a hit
+		return dist2 <= outerR * outerR && dist2 >= innerR * innerR
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {

@@ -1,4 +1,5 @@
 import { Vec, VecLike } from '../Vec'
+import { pointInPolygon } from '../utils'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
@@ -60,6 +61,19 @@ export class Polyline2d extends Geometry2d {
 		}
 		if (!nearest) throw Error('nearest point not found')
 		return nearest
+	}
+
+	override distanceToPoint(point: VecLike, hitInside = false): number {
+		const { segments } = this
+		let minDist = Infinity
+		for (let i = 0; i < segments.length; i++) {
+			const d = segments[i].distanceToPoint(point)
+			if (d < minDist) minDist = d
+		}
+		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
+			return -minDist
+		}
+		return minDist
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {

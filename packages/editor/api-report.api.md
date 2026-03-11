@@ -433,6 +433,8 @@ export class Circle2d extends Geometry2d {
         y?: number;
     };
     // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
+    // (undocumented)
     getBounds(): Box;
     // (undocumented)
     getSvgPathData(): string;
@@ -440,6 +442,8 @@ export class Circle2d extends Geometry2d {
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
+    // (undocumented)
+    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean): boolean;
     // (undocumented)
     nearestPoint(point: VecLike): Vec;
 }
@@ -526,6 +530,8 @@ export class CubicBezier2d extends Polyline2d {
         start: Vec;
     });
     // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
+    // (undocumented)
     static GetAtT(segment: CubicBezier2d, t: number): Vec;
     // (undocumented)
     getLength(_filters?: Geometry2dFilters, precision?: number): number;
@@ -542,6 +548,8 @@ export class CubicSpline2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
         points: Vec[];
     });
+    // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
     // (undocumented)
     getLength(): number;
     // (undocumented)
@@ -791,6 +799,8 @@ export class Edge2d extends Geometry2d {
         end: Vec;
         start: Vec;
     });
+    // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
     // (undocumented)
     getLength(): number;
     // (undocumented)
@@ -1620,6 +1630,8 @@ export class Ellipse2d extends Geometry2d {
         height: number;
         width: number;
     };
+    // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
     // (undocumented)
     get edges(): Edge2d[];
     // (undocumented)
@@ -2551,6 +2563,8 @@ export class Polyline2d extends Geometry2d {
         points: Vec[];
     });
     // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
+    // (undocumented)
     getLength(): number;
     // (undocumented)
     getSvgPathData(): string;
@@ -2941,6 +2955,8 @@ export class Stadium2d extends Geometry2d {
         height: number;
         width: number;
     };
+    // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
     // (undocumented)
     getBounds(): Box;
     // (undocumented)

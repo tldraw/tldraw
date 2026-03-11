@@ -75,6 +75,16 @@ export class CubicSpline2d extends Geometry2d {
 		return nearest
 	}
 
+	override distanceToPoint(point: VecLike, hitInside = false): number {
+		const { segments } = this
+		let minDist = Infinity
+		for (let i = 0; i < segments.length; i++) {
+			const d = segments[i].distanceToPoint(point)
+			if (d < minDist) minDist = d
+		}
+		return minDist
+	}
+
 	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
 		return this.segments.some((segment) => segment.hitTestLineSegment(A, B))
 	}
