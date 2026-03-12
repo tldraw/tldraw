@@ -46,18 +46,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 								title={msg('navigation-zone.toggle-minimap')}
 								onClick={toggleMinimap}
 							>
-								<TldrawUiButtonIcon
-									small
-									icon={
-										collapsed
-											? dir === 'rtl'
-												? 'chevron-left'
-												: 'chevron-right'
-											: dir === 'rtl'
-												? 'chevron-right'
-												: 'chevron-left'
-									}
-								/>
+								<TldrawUiButtonIcon small icon={collapsed ? 'chevron-left' : 'chevron-right'} />
 							</TldrawUiToolbarButton>
 						)}
 						{!collapsed && (
@@ -88,18 +77,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 								title={msg('navigation-zone.toggle-minimap')}
 								onClick={toggleMinimap}
 							>
-								<TldrawUiButtonIcon
-									small
-									icon={
-										collapsed
-											? dir === 'rtl'
-												? 'chevron-left'
-												: 'chevron-right'
-											: dir === 'rtl'
-												? 'chevron-right'
-												: 'chevron-left'
-									}
-								/>
+								<TldrawUiButtonIcon small icon={collapsed ? 'chevron-right' : 'chevron-left'} />
 							</TldrawUiToolbarButton>
 						)}
 					</>

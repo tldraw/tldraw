@@ -1523,7 +1523,6 @@ tldraw? probably.
 }
 
 .tl-container[dir='rtl'] .tlui-toast__viewport {
-	justify-content: flex-start;
 	padding: 0px 0px 64px var(--tl-space-3);
 }
 
