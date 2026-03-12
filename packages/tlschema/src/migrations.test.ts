@@ -15,7 +15,9 @@ import { instancePageStateVersions } from './records/TLPageState'
 import { pointerVersions } from './records/TLPointer'
 import { instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeVersions } from './records/TLShape'
+import { userVersions } from './records/TLUser'
 import { arrowShapeVersions } from './shapes/TLArrowShape'
+import { defaultTlMeta, tldrawShapeMetaKey } from './shapes/TLBaseShape'
 import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
 import { drawShapeVersions } from './shapes/TLDrawShape'
 import { embedShapeVersions } from './shapes/TLEmbedShape'
@@ -2102,6 +2104,21 @@ describe('Make image asset file size optional', () => {
 	})
 })
 
+describe('Add pixelRatio to image asset', () => {
+	const { up, down } = getTestMigration(imageAssetVersions.AddPixelRatio)
+
+	test('up works as expected', () => {
+		expect(up({ props: { w: 100, h: 100 } })).toEqual({ props: { w: 100, h: 100 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { w: 100, h: 100, pixelRatio: 2 } })).toEqual({
+			props: { w: 100, h: 100 },
+		})
+		expect(down({ props: { w: 100, h: 100 } })).toEqual({ props: { w: 100, h: 100 } })
+	})
+})
+
 describe('Add flipX, flipY to image shape', () => {
 	const { up, down } = getTestMigration(imageShapeVersions.AddFlipProps)
 
@@ -2585,6 +2602,124 @@ describe('LegacyPointsConversion migration for highlight shape', () => {
 
 		// LegacyPointsConversion.down is a no-op; Base64.down handles the conversion
 		expect(result.props.segments[0].path).toBe(deltaPath)
+	})
+})
+
+describe('Moving tlmeta to meta.__tldraw', () => {
+	const { up, down } = getTestMigration(rootShapeVersions.MoveTlmetaToMetaTldraw)
+
+	test('up works as expected', () => {
+		expect(up({ tlmeta: { ...defaultTlMeta } })).toEqual({
+			meta: {
+				[tldrawShapeMetaKey]: defaultTlMeta,
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				meta: {
+					[tldrawShapeMetaKey]: { ...defaultTlMeta },
+				},
+			})
+		).toEqual({
+			meta: {},
+		})
+	})
+})
+
+describe('Adding textLastEditedBy to note shape', () => {
+	const { up, down } = getTestMigration(noteShapeVersions.AddLastEditedBy)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { textLastEditedBy: null } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { textLastEditedBy: null } })).toEqual({ props: {} })
+	})
+})
+
+describe('Converting attribution user objects to ID strings (root shape)', () => {
+	const { up, down } = getTestMigration(rootShapeVersions.AttributionUserToId)
+
+	test('up converts createdBy/updatedBy objects to ID strings', () => {
+		const result = up({
+			meta: {
+				[tldrawShapeMetaKey]: {
+					createdBy: { id: 'user-1', name: 'Alice' },
+					updatedBy: { id: 'user-2', name: 'Bob' },
+					createdAt: 1000,
+					updatedAt: 2000,
+				},
+			},
+		})
+		expect(result.meta[tldrawShapeMetaKey].createdBy).toBe('user-1')
+		expect(result.meta[tldrawShapeMetaKey].updatedBy).toBe('user-2')
+	})
+
+	test('up is a no-op when no tlmeta', () => {
+		const result = up({ meta: {} })
+		expect(result.meta).toEqual({})
+	})
+
+	test('up is a no-op for null values', () => {
+		const result = up({
+			meta: {
+				[tldrawShapeMetaKey]: {
+					createdBy: null,
+					updatedBy: null,
+					createdAt: null,
+					updatedAt: null,
+				},
+			},
+		})
+		expect(result.meta[tldrawShapeMetaKey].createdBy).toBeNull()
+		expect(result.meta[tldrawShapeMetaKey].updatedBy).toBeNull()
+	})
+
+	test('down converts ID strings back to objects', () => {
+		const result = down({
+			meta: {
+				[tldrawShapeMetaKey]: {
+					createdBy: 'user-1',
+					updatedBy: 'user-2',
+					createdAt: 1000,
+					updatedAt: 2000,
+				},
+			},
+		})
+		expect(result.meta[tldrawShapeMetaKey].createdBy).toEqual({ id: 'user-1', name: '' })
+		expect(result.meta[tldrawShapeMetaKey].updatedBy).toEqual({ id: 'user-2', name: '' })
+	})
+})
+
+describe('Converting note textLastEditedBy to ID string', () => {
+	const { up, down } = getTestMigration(noteShapeVersions.LastEditedByToId)
+
+	test('up converts object to ID string', () => {
+		const result = up({ props: { textLastEditedBy: { id: 'user-1', name: 'Alice' } } })
+		expect(result.props.textLastEditedBy).toBe('user-1')
+	})
+
+	test('up is a no-op for null', () => {
+		const result = up({ props: { textLastEditedBy: null } })
+		expect(result.props.textLastEditedBy).toBeNull()
+	})
+
+	test('down converts ID string back to object', () => {
+		const result = down({ props: { textLastEditedBy: 'user-1' } })
+		expect(result.props.textLastEditedBy).toEqual({ id: 'user-1', name: '' })
+	})
+})
+
+describe('TLUser initial migration', () => {
+	const { up } = getTestMigration(userVersions.Initial)
+
+	test('up is a no-op', () => {
+		const record = { id: 'user:123', name: 'Test', color: '#000', imageUrl: '', meta: {} }
+		expect(up(record)).toEqual(record)
 	})
 })
 

@@ -8,6 +8,7 @@ import { TLInstancePageState } from './TLPageState'
 import { TLPointer } from './TLPointer'
 import { TLInstancePresence } from './TLPresence'
 import { TLShape } from './TLShape'
+import { TLUser } from './TLUser'
 
 /**
  * Union type representing all possible record types in a tldraw store.
@@ -63,3 +64,4 @@ export type TLRecord =
 	| TLShape
 	| TLInstancePresence
 	| TLPointer
+	| TLUser

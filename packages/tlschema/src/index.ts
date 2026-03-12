@@ -52,7 +52,6 @@ export {
 	createPresenceStateDerivation,
 	getDefaultUserPresence,
 	type TLPresenceStateInfo,
-	type TLPresenceUserInfo,
 } from './createPresenceStateDerivation'
 export {
 	createTLSchema,
@@ -60,6 +59,7 @@ export {
 	defaultShapeSchemas,
 	type SchemaPropsInfo,
 	type TLSchema,
+	type UserSchemaInfo,
 } from './createTLSchema'
 export {
 	CORE_ACTIVITIES,
@@ -175,6 +175,15 @@ export {
 	type TLUnknownShape,
 } from './records/TLShape'
 export {
+	createUserId,
+	createUserRecordType,
+	isUserId,
+	userIdValidator,
+	UserRecordType,
+	type TLUser,
+	type TLUserId,
+} from './records/TLUser'
+export {
 	type RecordProps,
 	type RecordPropsType,
 	type TLPropsMigration,
@@ -195,9 +204,15 @@ export {
 } from './shapes/TLArrowShape'
 export {
 	createShapeValidator,
+	defaultTlMeta,
+	getTldrawMetaFromShapeMeta,
 	parentIdValidator,
 	shapeIdValidator,
+	tldrawShapeMetaKey,
+	tlmetaValidator,
 	type TLBaseShape,
+	type TLShapeMeta,
+	type TLShapeTLMeta,
 } from './shapes/TLBaseShape'
 export {
 	bookmarkShapeMigrations,
@@ -316,6 +331,7 @@ export {
 	type TLStoreProps,
 	type TLStoreSchema,
 	type TLStoreSnapshot,
+	type TLUserStore,
 } from './TLStore'
 export {
 	getDefaultTranslationLocale,

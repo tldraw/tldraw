@@ -1,6 +1,7 @@
 import {
 	Box,
 	createShapeId,
+	defaultTlMeta,
 	Editor,
 	FONT_SIZES,
 	IndexKey,
@@ -9,6 +10,7 @@ import {
 	TLBindingCreate,
 	TLDefaultShape,
 	TLDrawShape,
+	tldrawShapeMetaKey,
 	TLGeoShape,
 	TLGeoShapeGeoStyle,
 	TLLineShape,
@@ -37,6 +39,8 @@ import {
 	FocusedTextShapePartial,
 	FocusedUnknownShape,
 } from './FocusedShape'
+
+const DEFAULT_TLMETA = { ...defaultTlMeta }
 
 /**
  * Convert a FocusedShape to a shape object to a tldraw shape using defaultShape for fallback values
@@ -223,6 +227,7 @@ function convertTextShapeToTldrawShape(
 		},
 		meta: {
 			note: focusedShape.note ?? defaultTextShape.meta?.note ?? '',
+			[tldrawShapeMetaKey]: DEFAULT_TLMETA,
 		},
 	}
 
@@ -339,6 +344,7 @@ function convertLineShapeToTldrawShape(
 			},
 			meta: {
 				note: focusedShape.note ?? defaultLineShape.meta?.note ?? '',
+				[tldrawShapeMetaKey]: DEFAULT_TLMETA,
 			},
 		},
 	}
@@ -400,6 +406,7 @@ function convertArrowShapeToTldrawShape(
 		},
 		meta: {
 			note: focusedShape.note ?? defaultArrowShape.meta?.note ?? '',
+			[tldrawShapeMetaKey]: DEFAULT_TLMETA,
 		},
 	}
 
@@ -516,6 +523,7 @@ function convertGeoShapeToTldrawShape(
 			},
 			meta: {
 				note: focusedShape.note ?? defaultGeoShape.meta?.note ?? '',
+				[tldrawShapeMetaKey]: DEFAULT_TLMETA,
 			},
 		},
 	}
@@ -564,9 +572,11 @@ function convertNoteShapeToTldrawShape(
 				scale: defaultNoteShape.props?.scale ?? 1,
 				url: defaultNoteShape.props?.url ?? '',
 				verticalAlign: defaultNoteShape.props?.verticalAlign ?? 'middle',
+				textLastEditedBy: defaultNoteShape.props?.textLastEditedBy ?? null,
 			},
 			meta: {
 				note: focusedShape.note ?? defaultNoteShape.meta?.note ?? '',
+				[tldrawShapeMetaKey]: DEFAULT_TLMETA,
 			},
 		},
 	}
@@ -609,6 +619,7 @@ function convertDrawShapeToTldrawShape(
 			},
 			meta: {
 				note: focusedShape.note ?? defaultDrawShape.meta?.note ?? '',
+				[tldrawShapeMetaKey]: DEFAULT_TLMETA,
 			},
 		},
 	}
@@ -636,6 +647,7 @@ function convertUnknownShapeToTldrawShape(
 			props: defaultShape.props ?? ({} as any),
 			meta: {
 				note: focusedShape.note ?? defaultShape.meta?.note ?? '',
+				[tldrawShapeMetaKey]: DEFAULT_TLMETA,
 			},
 		},
 	}

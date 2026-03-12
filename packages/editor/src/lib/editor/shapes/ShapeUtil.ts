@@ -69,7 +69,7 @@ export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
  */
 export interface TLShapeUtilCanBeLaidOutOpts {
 	/** The type of action causing the layout. */
-	type?: 'align' | 'distribute' | 'pack' | 'stack' | 'flip' | 'stretch'
+	type?: 'align' | 'distribute' | 'pack' | 'stack' | 'flip' | 'stretch' | 'resize_to_bounds'
 	/** The other shapes being laid out */
 	shapes?: TLShape[]
 }
@@ -588,6 +588,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 
 	getText(shape: Shape): string | undefined {
 		return undefined
+	}
+
+	/**
+	 * Return user IDs referenced in shape-specific props (not `meta.__tldraw`).
+	 * Used when copying shapes to include referenced users on the clipboard.
+	 * Override this if your shape stores user IDs in custom props.
+	 *
+	 * @public
+	 */
+	getReferencedUserIds(shape: Shape): string[] {
+		return EMPTY_ARRAY
 	}
 
 	getAriaDescriptor(shape: Shape): string | undefined {

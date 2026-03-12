@@ -98,13 +98,21 @@ export const setStyleProperty = (
 }
 
 /** @internal */
-export function activeElementShouldCaptureKeys(ignoreButtons = false) {
-	const { activeElement } = document
-	const elements = ignoreButtons ? ['input', 'textarea'] : ['input', 'select', 'button', 'textarea']
-	return !!(
-		activeElement &&
-		((activeElement as HTMLElement).isContentEditable ||
-			elements.indexOf(activeElement.tagName.toLowerCase()) > -1 ||
-			activeElement.classList.contains('tlui-slider__thumb'))
+export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMenus = true) {
+	if (!el) return false
+
+	const tagName = el.tagName.toLowerCase()
+	return (
+		(el as HTMLElement).isContentEditable ||
+		tagName === 'input' ||
+		tagName === 'textarea' ||
+		(includeButtonsAndMenus && tagName === 'select') ||
+		(includeButtonsAndMenus && tagName === 'button') ||
+		el.classList.contains('tlui-slider__thumb')
 	)
+}
+
+/** @internal */
+export function activeElementShouldCaptureKeys(includeButtonsAndMenus = true) {
+	return elementShouldCaptureKeys(document.activeElement, includeButtonsAndMenus)
 }

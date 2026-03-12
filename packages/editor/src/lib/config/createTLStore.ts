@@ -7,11 +7,15 @@ import {
 	TLStore,
 	TLStoreProps,
 	TLStoreSnapshot,
+	TLUserStore,
+	UserRecordType,
 	createTLSchema,
+	createUserId,
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
+import { getUserPreferences } from './TLUserPreferences'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 
@@ -28,6 +32,9 @@ export interface TLStoreBaseOptions {
 
 	/** How should this store upload & resolve assets? */
 	assets?: TLAssetStore
+
+	/** How should this store resolve users for attribution? */
+	users?: TLUserStore
 
 	/** Called when the store is connected to an {@link @tldraw/editor#Editor}. */
 	onMount?(editor: Editor): void | (() => void)
@@ -58,6 +65,19 @@ export type TLStoreOptions = TLStoreBaseOptions & {
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
 
 const defaultAssetResolve: NonNullable<TLAssetStore['resolve']> = (asset) => asset.props.src
+
+/** @public */
+export const defaultUserStore: TLUserStore = {
+	getCurrentUser: () => {
+		const prefs = getUserPreferences()
+		if (!prefs.id) return null
+		return UserRecordType.create({
+			id: createUserId(prefs.id),
+			name: prefs.name ?? '',
+			color: prefs.color ?? '',
+		})
+	},
+}
 
 /** @public */
 export const inlineBase64AssetStore: TLAssetStore = {
@@ -104,6 +124,7 @@ export function createTLStore({
 	defaultName = '',
 	id,
 	assets = inlineBase64AssetStore,
+	users = defaultUserStore,
 	onMount,
 	collaboration,
 	...rest
@@ -120,6 +141,15 @@ export function createTLStore({
 				upload: assets.upload,
 				resolve: assets.resolve ?? defaultAssetResolve,
 				remove: assets.remove ?? (() => Promise.resolve()),
+			},
+			users: {
+				getCurrentUser: users.getCurrentUser,
+				resolve:
+					users.resolve ??
+					((userId) => {
+						const current = users.getCurrentUser()
+						return current && current.id === createUserId(userId) ? current : null
+					}),
 			},
 			onMount: (editor) => {
 				assert(editor instanceof Editor)

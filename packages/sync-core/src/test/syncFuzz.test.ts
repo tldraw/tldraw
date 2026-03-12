@@ -2,10 +2,12 @@ import {
 	Editor,
 	TLRecord,
 	TLStore,
+	UserRecordType,
 	computed,
 	createPresenceStateDerivation,
 	createTLSchema,
 	createTLStore,
+	createUserId,
 	isRecordsDiffEmpty,
 	mockUniqueId,
 	uniqueId,
@@ -83,12 +85,13 @@ class FuzzTestInstance extends RandomSource {
 				this.editor = new FuzzEditor(this.id, this.seed, this.store)
 			},
 			presence: createPresenceStateDerivation(
-				computed('', () => ({
-					id: this.id,
-					name: 'test',
-					color: 'red',
-					locale: 'en',
-				}))
+				computed('', () =>
+					UserRecordType.create({
+						id: createUserId(this.id),
+						name: 'test',
+						color: 'red',
+					})
+				)
 			)(this.store),
 		})
 

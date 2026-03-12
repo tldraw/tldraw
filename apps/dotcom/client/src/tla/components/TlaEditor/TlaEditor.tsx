@@ -8,9 +8,12 @@ import {
 	TLComponents,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
+	TLUserStore,
 	Tldraw,
 	TldrawUiMenuItem,
+	UserRecordType,
 	createSessionStateSnapshotSignal,
+	createUserId,
 	parseDeepLinkString,
 	react,
 	throttle,
@@ -36,7 +39,7 @@ import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
-import { useTldrawUser } from '../../hooks/useUser'
+import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
@@ -134,18 +137,19 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			const deepLink = new URLSearchParams(window.location.search).get('d')
 			if (fileState?.lastSessionState) {
 				const sessionState = JSON.parse(fileState.lastSessionState.trim() || 'null')
-				if (sessionState) {
-					if (deepLink) {
-						// When using a deep link, only load preferences (not camera/page states)
-						// since the deep link will control navigation
-						const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
-						editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
-					} else {
-						editor.loadSnapshot({ session: sessionState }, { forceOverwriteSessionState: true })
-					}
+				if (sessionState && deepLink) {
+					// When using a deep link, only load preferences (not camera/page states)
+					// since the deep link will control navigation
+					const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
+					editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
+					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
+				} else if (sessionState) {
+					// No deep link - load the full session state including camera position
+					editor.loadSnapshot({ session: sessionState }, { forceOverwriteSessionState: true })
+				} else if (deepLink) {
+					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 				}
-			}
-			if (deepLink) {
+			} else if (deepLink) {
 				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 			}
 			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)
@@ -168,7 +172,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		[addDialog, trackRoomLoaded, trackNewRoomCreation, app, fileId, remountImageShapes, setIsReady]
 	)
 
-	const user = useTldrawUser()
+	const user = useTldrawCurrentUser()
 	const getUserToken = useEvent(async () => {
 		return (await user?.getToken()) ?? 'not-logged-in'
 	})
@@ -176,6 +180,21 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const assets = useMemo(() => {
 		return multiplayerAssetStore({ getFileId: () => fileId, getToken: getUserToken })
 	}, [fileId, getUserToken])
+
+	const users: TLUserStore | undefined = useMemo(() => {
+		const prefs = app?.tlUser.userPreferences
+		if (!prefs) return undefined
+		return {
+			getCurrentUser() {
+				const p = prefs.get()
+				return UserRecordType.create({
+					id: createUserId(p.id),
+					name: p.name ?? '',
+					color: p.color ?? '',
+				})
+			},
+		}
+	}, [app?.tlUser.userPreferences])
 
 	const store = useSync({
 		uri: useCallback(async () => {
@@ -186,7 +205,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			return url.toString()
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
-		userInfo: app?.tlUser.userPreferences,
+		users,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
 			trackEvent(message.type)
 		}, []),
