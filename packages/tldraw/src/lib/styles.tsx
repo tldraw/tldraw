@@ -1,4 +1,4 @@
-import { type TLTheme } from '@tldraw/editor'
+import { DefaultColorStyle, type TLTheme } from '@tldraw/editor'
 import { TLUiIconJsx } from './ui/components/primitives/TldrawUiIcon'
 
 /** @public */
@@ -7,21 +7,42 @@ export type StyleValuesForUi<T> = readonly {
 	readonly icon: string | TLUiIconJsx
 }[]
 
+function isPaletteColor(value: unknown): boolean {
+	return typeof value === 'object' && value !== null && 'solid' in value
+}
+
 /**
  * Returns the current list of color style items for the style panel,
  * derived from the theme's color palette. Only palette colors are included;
  * utility colors like `text`, `background`, etc. are excluded.
  *
+ * Colors are ordered by their position in {@link @tldraw/tlschema#DefaultColorStyle},
+ * followed by any additional theme colors in their object key order.
+ *
  * @public
  */
 export function getColorStyleItems(theme: TLTheme): StyleValuesForUi<string> {
-	return Object.entries(theme.colors)
-		.filter(
-			([key, value]) =>
-				// we remove white here temporarily, it's an easter egg color that the panel does not yet account for
-				key !== 'white' && typeof value === 'object' && value !== null && 'solid' in value
-		)
-		.map(([key]) => ({ value: key, icon: 'color' as const }))
+	const result: StyleValuesForUi<string>[number][] = []
+	const seen = new Set<string>()
+
+	// First, add colors in the preferred order from DefaultColorStyle
+	for (const name of DefaultColorStyle.values) {
+		if (name in theme.colors && isPaletteColor(theme.colors[name as keyof typeof theme.colors])) {
+			// we remove white here temporarily, it's an easter egg color that the panel does not yet account for
+			if (name === 'white') continue
+			result.push({ value: name, icon: 'color' as const })
+			seen.add(name)
+		}
+	}
+
+	// Then, append any remaining palette colors from the theme
+	for (const [key, value] of Object.entries(theme.colors)) {
+		if (!seen.has(key) && key !== 'white' && isPaletteColor(value)) {
+			result.push({ value: key, icon: 'color' as const })
+		}
+	}
+
+	return result
 }
 
 // todo: default styles prop?
