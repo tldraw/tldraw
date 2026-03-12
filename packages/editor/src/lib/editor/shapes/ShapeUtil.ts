@@ -35,17 +35,31 @@ export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T
 
 /**
  * Options passed to {@link ShapeUtil.canBind}. A binding that could be made. At least one of
- * `fromShapeType` or `toShapeType` will belong to this shape util.
+ * `fromShape` or `toShape` will belong to this shape util.
+ *
+ * The shapes may be full {@link @tldraw/tlschema#TLShape} objects when available, or just
+ * `{ type }` stubs when the shape hasn't been created yet (e.g. during arrow creation). Use
+ * `'id' in shape` to check whether the full shape is available.
  *
  * @public
  */
 export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
-	/** The type of shape referenced by the `fromId` of the binding. */
-	fromShapeType: TLShape['type']
-	/** The type of shape referenced by the `toId` of the binding. */
-	toShapeType: TLShape['type']
+	/** The shape referenced by the `fromId` of the binding, or a `{ type }` stub if unavailable. */
+	fromShape: TLShape | { type: TLShape['type'] }
+	/** The shape referenced by the `toId` of the binding, or a `{ type }` stub if unavailable. */
+	toShape: TLShape | { type: TLShape['type'] }
 	/** The type of binding. */
 	bindingType: string
+	/**
+	 * The type of shape referenced by the `fromId` of the binding.
+	 * @deprecated Use `fromShape.type` instead.
+	 */
+	fromShapeType: TLShape['type']
+	/**
+	 * The type of shape referenced by the `toId` of the binding.
+	 * @deprecated Use `toShape.type` instead.
+	 */
+	toShapeType: TLShape['type']
 }
 
 /**
@@ -55,7 +69,7 @@ export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
  */
 export interface TLShapeUtilCanBeLaidOutOpts {
 	/** The type of action causing the layout. */
-	type?: 'align' | 'distribute' | 'pack' | 'stack' | 'flip' | 'stretch'
+	type?: 'align' | 'distribute' | 'pack' | 'stack' | 'flip' | 'stretch' | 'resize_to_bounds'
 	/** The other shapes being laid out */
 	shapes?: TLShape[]
 }
@@ -74,6 +88,19 @@ export interface TLShapeUtilCanvasSvgDef {
 	key: string
 	component: React.ComponentType
 }
+
+/**
+ * Return type for {@link ShapeUtil.getIndicatorPath}. Can be either a simple Path2D
+ * or an object with additional rendering info like clip paths for complex indicators.
+ * @public
+ */
+export type TLIndicatorPath =
+	| Path2D
+	| {
+			path: Path2D
+			clipPath?: Path2D
+			additionalPaths?: Path2D[]
+	  }
 
 /** @public */
 export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
@@ -172,6 +199,37 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @public
 	 */
 	abstract indicator(shape: Shape): any
+
+	/**
+	 * Whether to use the legacy React-based indicator rendering.
+	 *
+	 * Override this to return `false` if your shape implements {@link ShapeUtil.getIndicatorPath}
+	 * for canvas-based indicator rendering.
+	 *
+	 * @returns `true` to use SVG indicators (default), `false` to use canvas indicators.
+	 * @public
+	 */
+	useLegacyIndicator(): boolean {
+		return true
+	}
+
+	/**
+	 * Get a Path2D for rendering the shape's indicator on the canvas.
+	 *
+	 * When implemented, this is used instead of {@link ShapeUtil.indicator} for more
+	 * efficient canvas-based indicator rendering. Shapes that return `undefined` will
+	 * fall back to SVG-based rendering via {@link ShapeUtil.indicator}.
+	 *
+	 * For complex indicators that need clipping (e.g., arrows with labels), return an
+	 * object with `path`, `clipPath`, and `additionalPaths` properties.
+	 *
+	 * @param shape - The shape.
+	 * @returns A Path2D to stroke, or an object with clipping info, or undefined to use SVG fallback.
+	 * @public
+	 */
+	getIndicatorPath(shape: Shape): TLIndicatorPath | undefined {
+		return undefined
+	}
 
 	/**
 	 * Get the font faces that should be rendered in the document in order for this shape to render

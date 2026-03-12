@@ -1,0 +1,78 @@
+---
+title: 'v4.1.0'
+created_at: 10/15/2025
+updated_at: 10/15/2025
+keywords:
+  - changelog
+  - release
+  - v4.1
+  - v4.1.0
+  - v4.1.1
+  - v4.1.2
+  - shader
+  - webgl
+  - starter-kit
+  - embed
+  - minimap
+status: published
+---
+
+This month's release introduces a new shader starter kit for WebGL integration, along with API additions for embed control, minimap filtering, and localStorage-backed atoms.
+
+## What's new
+
+### Shader starter kit ([#6847](https://github.com/tldraw/tldraw/pull/6847))
+
+A new template demonstrating WebGL shader integration with tldraw for dynamic, interactive backgrounds that respond to canvas interactions. Includes four complete examples:
+
+- **Fluid simulation** - Navier-Stokes dynamics
+- **Rainbow** - Animated gradients
+- **Shadows** - Raymarching and signed distance fields
+- **Minimal** - Bare-bones template for custom shaders
+
+Features configurable parameters, localStorage persistence, and full TypeScript support.
+
+## API changes
+
+- Add `embedOnPaste` option to `EmbedDefinition` for opting out of automatic embed-on-paste behavior. ([#6874](https://github.com/tldraw/tldraw/pull/6874))
+- Add `hideInMinimap` option to `ShapeUtil` for excluding shapes from the minimap. ([#6327](https://github.com/tldraw/tldraw/pull/6327))
+- Add `snapType?: 'point' | 'align'` to `TLHandle` for finer control over handle snapping. The `canSnap` property is now deprecated. ([#6883](https://github.com/tldraw/tldraw/pull/6883))
+- Expose `Editor#getShapePageBounds` and `isRecordsDiffEmpty` as public methods. ([#6871](https://github.com/tldraw/tldraw/pull/6871))
+- Add `localStorageAtom` to `@tldraw/state` for atoms backed by localStorage with cross-tab syncing. ([#6876](https://github.com/tldraw/tldraw/pull/6876))
+- Add inline style picker component variants. ([#6920](https://github.com/tldraw/tldraw/pull/6920))
+
+## Improvements
+
+- Make bookmark titles clickable. ([#6326](https://github.com/tldraw/tldraw/pull/6326))
+- Optimize mobile top bar rendering. ([#6895](https://github.com/tldraw/tldraw/pull/6895))
+- Add numpad Enter support for entering edit mode. ([#6830](https://github.com/tldraw/tldraw/pull/6830))
+- Consolidate preferences menu items. ([#6802](https://github.com/tldraw/tldraw/pull/6802))
+
+## Bug fixes
+
+- Fix accessibility shortcut typo. ([#6811](https://github.com/tldraw/tldraw/pull/6811))
+- Fix focus mode action missing. ([#6812](https://github.com/tldraw/tldraw/pull/6812))
+- Fix arrow rendering edge case. ([#6799](https://github.com/tldraw/tldraw/pull/6799))
+- Fix empty window opening on anchor click. ([#6817](https://github.com/tldraw/tldraw/pull/6817))
+- Fix missing translation key. ([#6826](https://github.com/tldraw/tldraw/pull/6826))
+- Fix shape index race condition. ([#6884](https://github.com/tldraw/tldraw/pull/6884))
+- Fix zero geometry vertices edge case. ([#6885](https://github.com/tldraw/tldraw/pull/6885))
+- Fix style panel button overflow. ([#6920](https://github.com/tldraw/tldraw/pull/6920))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.1.0)
+
+---
+
+## Patch releases
+
+### v4.1.1
+
+- Update the formatting of the `npm create tldraw` command in the CLI output.
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.1.1)
+
+### v4.1.2
+
+- Move `InFrontOfTheCanvas` component back out of the `.tl-canvas` element. ([#7021](https://github.com/tldraw/tldraw/pull/7021))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.1.2)

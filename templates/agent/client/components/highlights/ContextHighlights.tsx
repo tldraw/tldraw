@@ -1,13 +1,36 @@
 import { useMemo } from 'react'
 import { TLShapeId, useEditor, useValue } from 'tldraw'
 import { TldrawAgent } from '../../agent/TldrawAgent'
+import { useAgents } from '../../agent/TldrawAgentAppProvider'
 import { AreaHighlight, AreaHighlightProps } from './AreaHighlight'
 import { PointHighlight, PointHighlightProps } from './PointHighlight'
 
+/**
+ * Renders context highlights for all agents.
+ */
+export function AllContextHighlights() {
+	const agents = useAgents()
+
+	return (
+		<>
+			{agents.map((agent) => (
+				<ContextHighlights key={agent.id} agent={agent} />
+			))}
+		</>
+	)
+}
+
+/**
+ * Renders context highlights for a single agent.
+ */
 export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 	const editor = useEditor()
-	const selectedContextItems = useValue(agent.$contextItems)
-	const activeRequest = useValue(agent.$activeRequest)
+	const selectedContextItems = useValue(
+		'contextItems',
+		() => (agent.requests.isGenerating() ? [] : agent.context.getItems()),
+		[agent]
+	)
+	const activeRequest = useValue('activeRequest', () => agent.requests.getActiveRequest(), [agent])
 	const activeContextItems = activeRequest?.contextItems ?? []
 
 	const selectedAreas: AreaHighlightProps[] = useValue(
@@ -59,7 +82,7 @@ export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 				})
 				.filter((highlight) => highlight !== null)
 		},
-		[selectedContextItems]
+		[selectedContextItems, editor]
 	)
 
 	const activeShapes: AreaHighlightProps[] = useValue(
@@ -80,7 +103,7 @@ export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 				})
 				.filter((highlight) => highlight !== null)
 		},
-		[activeContextItems]
+		[activeContextItems, editor]
 	)
 
 	const selectedShapesAreas: AreaHighlightProps[] = useValue(
@@ -99,7 +122,7 @@ export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 				})
 				.filter((highlight) => highlight !== null)
 		},
-		[selectedContextItems]
+		[selectedContextItems, editor]
 	)
 
 	const activeShapeAreas: AreaHighlightProps[] = useValue(
@@ -118,7 +141,7 @@ export function ContextHighlights({ agent }: { agent: TldrawAgent }) {
 				})
 				.filter((highlight) => highlight !== null)
 		},
-		[activeContextItems]
+		[activeContextItems, editor]
 	)
 
 	const selectedPoints: PointHighlightProps[] = useValue(

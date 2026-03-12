@@ -9,7 +9,7 @@ import { TldrawAgent } from '../../agent/TldrawAgent'
  * If the action's util returns null, the action will not be shown in chat history.
  */
 export function getActionInfo(action: Streaming<AgentAction>, agent: TldrawAgent): ChatHistoryInfo {
-	const util = agent.getAgentActionUtil(action._type)
+	const util = agent.actions.getAgentActionUtil(action._type)
 	const info = util.getInfo(action) ?? { description: null }
 	const {
 		icon = null,

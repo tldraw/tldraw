@@ -1,0 +1,92 @@
+---
+title: 'v3.13.0'
+created_at: 5/22/2025
+updated_at: 5/22/2025
+keywords:
+  - changelog
+  - release
+  - v3.13
+  - v3.13.0
+  - v3.13.1
+  - v3.13.2
+  - v3.13.3
+  - v3.13.4
+  - elbow-arrows
+  - accessibility
+  - performance
+  - overlays
+status: published
+---
+
+This release introduces elbow arrows for technical diagramming and continues accessibility improvements toward WCAG compliance.
+
+## What's new
+
+### Elbow arrows
+
+The arrow shape now supports a new elbow connector style. These arrows travel between points using straight lines joined at right angles rather than curved paths, making them ideal for technical diagrams. Access this option through the arrow tool's line style settings.
+
+## API changes
+
+- 💥 **`ShapeUtil.canEditInReadOnly`** renamed to `ShapeUtil.canEditInReadonly` (note capitalization change).
+- 💥 **Arrow target highlights** migrated from `setHintingShapes` to a custom `TldrawOverlays` component; users of `<TldrawEditor />` must pass this component to the `Overlays` slot.
+- Add text measurement API that accepts arbitrary style parameters.
+- Add new `Overlays` component for camera-following canvas overlays.
+- Add `hasCustomTabBehavior` prop to `RichTextLabel` for custom tab logic.
+
+## Improvements
+
+- Auto-select link text when editing shape links.
+- Snap pasted text and embeds to grid when enabled.
+- Allow Figma embeds to work with selection links.
+- Show visual block indicating label placement when editing arrow labels.
+- Include background color in single frame exports.
+- Allow frames to be double-click resized to fit contents.
+- Allow style panel to focus with keyboard shortcut.
+- Add proper labels to more UI icons and handles.
+- Add container navigation shortcuts for moving selections in/out of frames and groups.
+- Make embed shapes keyboard-tabbable.
+- Add keyboard navigation to toolbars throughout the application.
+- Show rich text editing shortcuts in the help menu.
+- Improve performance of programmatic rotation of selected shapes.
+- Improve performance of multi-shape dragging operations.
+- Optimize selection evaluation to prevent unnecessary re-evaluations.
+
+## Bug fixes
+
+- Fix flattened shape backgrounds.
+- Fix screenreader behavior.
+- Fix tool consistency.
+- Fix text rendering.
+- Fix selection accuracy.
+- Fix arrow flickering during rotation.
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.13.0)
+
+---
+
+## Patch releases
+
+### v3.13.1
+
+- Show elbow arrow outline indicator on hover when creating elbow arrows. ([#6099](https://github.com/tldraw/tldraw/pull/6099))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.13.1)
+
+### v3.13.2
+
+- Fix LoadingScreen context bug where custom asset URL configuration was ignored. ([#6283](https://github.com/tldraw/tldraw/pull/6283))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.13.2)
+
+### v3.13.3
+
+- Fix overriding builtin tools not working. ([#6330](https://github.com/tldraw/tldraw/pull/6330))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.13.3)
+
+### v3.13.4
+
+- Fix cross-realm functionality issues. ([#6338](https://github.com/tldraw/tldraw/pull/6338))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.13.4)

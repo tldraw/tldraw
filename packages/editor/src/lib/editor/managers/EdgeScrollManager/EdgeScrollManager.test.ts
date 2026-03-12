@@ -240,41 +240,6 @@ describe('EdgeScrollManager', () => {
 		})
 	})
 
-	describe('camera movement conditions', () => {
-		it('should not move camera when not dragging', () => {
-			editor.inputs.setIsDragging(false)
-			mockInputs.setCurrentScreenPoint(new Vec(5, 300))
-
-			edgeScrollManager.updateEdgeScrolling(300)
-
-			expect(editor.setCamera).not.toHaveBeenCalled()
-		})
-
-		it('should not move camera when panning', () => {
-			editor.inputs.setIsPanning(true)
-			mockInputs.setCurrentScreenPoint(new Vec(5, 300))
-
-			edgeScrollManager.updateEdgeScrolling(300)
-
-			expect(editor.setCamera).not.toHaveBeenCalled()
-		})
-
-		it('should not move camera when camera is locked', () => {
-			editor.getCameraOptions.mockReturnValue({
-				isLocked: true,
-				panSpeed: 1,
-				zoomSpeed: 1,
-				zoomSteps: [1],
-				wheelBehavior: 'pan' as const,
-			})
-			mockInputs.setCurrentScreenPoint(new Vec(5, 300))
-
-			edgeScrollManager.updateEdgeScrolling(300)
-
-			expect(editor.setCamera).not.toHaveBeenCalled()
-		})
-	})
-
 	describe('camera movement calculation', () => {
 		it('should calculate scroll speed based on user preference', () => {
 			editor.user.getEdgeScrollSpeed.mockReturnValue(2)

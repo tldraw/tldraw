@@ -37,11 +37,20 @@ const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 }
 
 /** @public */
+export interface EmbedShapeOptions {
+	/** The embed definitions to use for this shape util. */
+	readonly embedDefinitions: readonly TLEmbedDefinition[]
+}
+
+/** @public */
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override type = 'embed' as const
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
-	private static embedDefinitions: readonly EmbedDefinition[] = DEFAULT_EMBED_DEFINITIONS
+
+	override options: EmbedShapeOptions = {
+		embedDefinitions: DEFAULT_EMBED_DEFINITIONS,
+	}
 
 	override canEditWhileLocked(shape: TLEmbedShape) {
 		const result = this.getEmbedDefinition(shape.props.url)
@@ -49,16 +58,23 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return result.definition.canEditWhileLocked ?? true
 	}
 
-	static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]) {
-		EmbedShapeUtil.embedDefinitions = embedDefinitions
+	private static legacyEmbedDefinitions: readonly EmbedDefinition[] | null = null
+
+	/** @deprecated - Use `EmbedShapeUtil.configure({ embedDefinitions: [...] })` instead. */
+	static setEmbedDefinitions(embedDefinitions: readonly EmbedDefinition[]) {
+		EmbedShapeUtil.legacyEmbedDefinitions = embedDefinitions
+	}
+
+	private getEmbedDefs(): readonly TLEmbedDefinition[] {
+		return EmbedShapeUtil.legacyEmbedDefinitions ?? this.options.embedDefinitions
 	}
 
 	getEmbedDefinitions(): readonly TLEmbedDefinition[] {
-		return EmbedShapeUtil.embedDefinitions
+		return this.getEmbedDefs()
 	}
 
 	getEmbedDefinition(url: string): TLEmbedResult {
-		return getEmbedInfo(EmbedShapeUtil.embedDefinitions, url)
+		return getEmbedInfo(this.getEmbedDefs(), url)
 	}
 
 	override getText(shape: TLEmbedShape) {
@@ -255,6 +271,25 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			<BookmarkIndicatorComponent w={BOOKMARK_WIDTH} h={BOOKMARK_JUST_URL_HEIGHT} />
 		)
 	}
+
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLEmbedShape): Path2D {
+		const path = new Path2D()
+		const embedInfo = this.getEmbedDefinition(shape.props.url)
+
+		if (embedInfo?.definition) {
+			const radius = embedInfo.definition.overrideOutlineRadius ?? 8
+			path.roundRect(0, 0, shape.props.w, shape.props.h, radius)
+		} else {
+			// Fallback to bookmark indicator
+			path.roundRect(0, 0, BOOKMARK_WIDTH, BOOKMARK_JUST_URL_HEIGHT, 6)
+		}
+		return path
+	}
+
 	override getInterpolatedProps(
 		startShape: TLEmbedShape,
 		endShape: TLEmbedShape,

@@ -187,7 +187,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	const schema = useTLSchemaFromUtils(schemaOpts)
 
 	const prefs = useShallowObjectIdentity(userInfo)
-	const getUserPresence = useReactiveEvent(_getUserPresence ?? getDefaultUserPresence)
+	const getUserPresence = useReactiveEvent(
+		(_getUserPresence ?? getDefaultUserPresence) as typeof getDefaultUserPresence
+	)
 	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
 
 	const userAtom = useAtom<TLPresenceUserInfo | Signal<TLPresenceUserInfo> | undefined>(
@@ -447,7 +449,7 @@ export interface UseSyncOptionsBase {
 	 *
 	 * The asset store must implement upload (for new files) and resolve
 	 * (for displaying existing files) methods. For prototyping, you can use
-	 * {@link tldraw#inlineBase64AssetStore} but this is not recommended for production.
+	 * {@link @tldraw/editor#inlineBase64AssetStore} but this is not recommended for production.
 	 *
 	 * @example
 	 * ```ts

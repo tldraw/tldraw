@@ -26,8 +26,11 @@ export const STYLES = {
 		{ value: 'none', icon: 'fill-none' },
 		{ value: 'semi', icon: 'fill-semi' },
 		{ value: 'solid', icon: 'fill-solid' },
+	],
+	fillExtra: [
 		{ value: 'pattern', icon: 'fill-pattern' },
-		// { value: 'fill', icon: 'fill-fill' },
+		{ value: 'lined-fill', icon: 'fill-lined-fill' },
+		{ value: 'fill', icon: 'fill-fill' },
 	],
 	dash: [
 		{ value: 'draw', icon: 'dash-draw' },

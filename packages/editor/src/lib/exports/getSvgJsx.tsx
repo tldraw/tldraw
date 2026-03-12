@@ -20,7 +20,7 @@ import {
 import { flushSync } from 'react-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
-import { Editor, TLRenderingShape } from '../editor/Editor'
+import type { Editor, TLRenderingShape } from '../editor/Editor'
 import { TLFontFace } from '../editor/managers/FontManager/FontManager'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import {
@@ -43,9 +43,15 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		scale = 1,
 		// should we include the background in the export? or is it transparent?
 		background = editor.getInstanceState().exportBackground,
-		padding = editor.options.defaultSvgPadding,
 		preserveAspectRatio,
 	} = opts
+
+	// Resolve the padding mode:
+	// - 'auto' (or undefined): render with default padding, then trim to actual visual content
+	// - number: fixed padding, no trimming
+	const isAutoTrim = typeof opts.padding !== 'number'
+	const renderPadding =
+		typeof opts.padding === 'number' ? opts.padding : editor.options.defaultSvgPadding
 
 	const isDarkMode = opts.darkMode ?? editor.user.getIsDarkMode()
 
@@ -60,14 +66,29 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		ids.length === 1 && editor.isShapeOfType(editor.getShape(ids[0])!, 'frame') ? ids[0] : null
 
 	let bbox: null | Box = null
+	let paddingWasApplied = false
 	if (opts.bounds) {
-		bbox = opts.bounds.clone().expandBy(padding)
+		// Explicit bounds: use exact bounds when auto, expand by padding when fixed
+		bbox = isAutoTrim ? opts.bounds.clone() : opts.bounds.clone().expandBy(renderPadding)
 	} else {
-		bbox = getExportDefaultBounds(editor, renderingShapes, padding, singleFrameShapeId)
+		const result = getExportDefaultBounds(
+			editor,
+			renderingShapes,
+			renderPadding,
+			singleFrameShapeId
+		)
+		bbox = result.box
+		paddingWasApplied = result.paddingApplied
 	}
 
 	// no unmasked shapes to export
 	if (!bbox) return
+
+	// When auto-trim is active and padding was applied by getExportDefaultBounds,
+	// the padding region is trimmable: exports will scan pixels from each edge inward
+	// and trim to the actual visual content bounds. This ensures visual overflow
+	// (strokes, arrowheads) is captured without unnecessary whitespace.
+	const trimPadding = isAutoTrim && paddingWasApplied ? renderPadding : 0
 
 	// We want the svg image to be BIGGER THAN USUAL to account for image quality
 	const w = bbox.width * scale
@@ -102,7 +123,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		</SvgExport>
 	)
 
-	return { jsx: svg, width: w, height: h, exportDelay }
+	return { jsx: svg, width: w, height: h, exportDelay, trimPadding }
 }
 
 /**
@@ -126,7 +147,7 @@ export function getExportDefaultBounds(
 	renderingShapes: TLRenderingShape[],
 	padding: number,
 	singleFrameShapeId: TLShapeId | null
-) {
+): { box: Box; paddingApplied: boolean } | { box: null; paddingApplied: false } {
 	let isBoundedByContainer = false
 	let bbox: null | Box = null
 
@@ -162,16 +183,17 @@ export function getExportDefaultBounds(
 	}
 
 	// No unmasked shapes to export
-	if (!bbox) return null
+	if (!bbox) return { box: null, paddingApplied: false }
 
 	// Only apply padding if:
 	// - Not exporting a single frame (frames have their own padding rules)
 	// - Not bounded by a container (containers define their own bounds precisely)
-	if (!singleFrameShapeId && !isBoundedByContainer) {
+	const paddingApplied = !singleFrameShapeId && !isBoundedByContainer
+	if (paddingApplied) {
 		bbox.expandBy(padding)
 	}
 
-	return bbox
+	return { box: bbox, paddingApplied }
 }
 
 function SvgExport({

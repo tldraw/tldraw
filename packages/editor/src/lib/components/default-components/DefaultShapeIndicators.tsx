@@ -1,8 +1,8 @@
 import { useValue } from '@tldraw/state-react'
 import { TLShapeId } from '@tldraw/tlschema'
 import { memo, useRef } from 'react'
+import { useEditorComponents } from '../../hooks/EditorComponentsContext'
 import { useEditor } from '../../hooks/useEditor'
-import { useEditorComponents } from '../../hooks/useEditorComponents'
 
 /** @public */
 export interface TLShapeIndicatorsProps {
@@ -89,9 +89,24 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
 	const { ShapeIndicator } = useEditorComponents()
+
+	// Filter out shapes that have canvas indicator support - only render shapes that use legacy SVG indicators
+	const shapesToRender = useValue(
+		'shapes to render for svg indicators',
+		() => {
+			return renderingShapes.filter(({ id }) => {
+				const shape = editor.getShape(id)
+				if (!shape) return false
+				const util = editor.getShapeUtil(shape)
+				return util.useLegacyIndicator()
+			})
+		},
+		[editor, renderingShapes]
+	)
+
 	if (!ShapeIndicator) return null
 
-	return renderingShapes.map(({ id }) => (
+	return shapesToRender.map(({ id }) => (
 		<ShapeIndicator
 			key={id + '_indicator'}
 			shapeId={id}

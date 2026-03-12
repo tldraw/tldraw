@@ -20,7 +20,7 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import { clearLocalSessionState } from '../../utils/local-session-state'
+import { resetLocalSessionStateButKeepTheme } from '../../utils/local-session-state'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
 
@@ -56,7 +56,7 @@ export function SignOutMenuItem() {
 
 	const handleSignout = useCallback(() => {
 		signoutAnalytics()
-		auth.signOut().then(clearLocalSessionState)
+		auth.signOut().then(resetLocalSessionStateButKeepTheme)
 		trackEvent('sign-out-clicked', { source: 'sidebar' })
 	}, [auth, trackEvent])
 

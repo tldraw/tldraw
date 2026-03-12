@@ -5,17 +5,18 @@ import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
 import { tlenv } from '../../globals/environment'
+import { useEditorComponents } from '../../hooks/EditorComponentsContext'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
 import { useContainer } from '../../hooks/useContainer'
 import { useDocumentEvents } from '../../hooks/useDocumentEvents'
 import { useEditor } from '../../hooks/useEditor'
-import { useEditorComponents } from '../../hooks/useEditorComponents'
 import { useFixSafariDoubleTapZoomPencilEvents } from '../../hooks/useFixSafariDoubleTapZoomPencilEvents'
 import { useGestureEvents } from '../../hooks/useGestureEvents'
 import { useHandleEvents } from '../../hooks/useHandleEvents'
 import { useSharedSafeId } from '../../hooks/useSafeId'
 import { useScreenBounds } from '../../hooks/useScreenBounds'
+import { ShapeCullingProvider, useShapeCulling } from '../../hooks/useShapeCulling'
 import { Box } from '../../primitives/Box'
 import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
@@ -26,6 +27,7 @@ import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
 import { Shape } from '../Shape'
+import { CanvasShapeIndicators } from './CanvasShapeIndicators'
 
 /** @public */
 export interface TLCanvasComponentProps {
@@ -113,7 +115,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	)
 
 	const hideShapes = useValue('debug_shapes', () => debugFlags.hideShapes.get(), [debugFlags])
-	const debugSvg = useValue('debug_svg', () => debugFlags.debugSvg.get(), [debugFlags])
 	const debugGeometry = useValue('debug_geometry', () => debugFlags.debugGeometry.get(), [
 		debugFlags,
 	])
@@ -156,9 +157,10 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 					<OnTheCanvasWrapper />
 					{SelectionBackground && <SelectionBackgroundWrapper />}
-					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
+					{hideShapes ? null : <ShapesLayer />}
 				</div>
 				<div className="tl-overlays">
+					<CanvasShapeIndicators />
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}
 						<BrushWrapper />
@@ -393,17 +395,27 @@ function OverlaysWrapper() {
 	)
 }
 
-function ShapesWithSVGs() {
+function ShapesLayer() {
 	const editor = useEditor()
-
+	const debugSvg = useValue('debug svg', () => debugFlags.debugSvg.get(), [debugFlags])
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
-	return renderingShapes.map((result) => (
-		<Fragment key={result.id + '_fragment'}>
-			<Shape {...result} />
-			<DebugSvgCopy id={result.id} mode="iframe" />
-		</Fragment>
-	))
+	return (
+		<ShapeCullingProvider>
+			{renderingShapes.map((result) =>
+				debugSvg ? (
+					<Fragment key={result.id + '_fragment'}>
+						<Shape {...result} />
+						<DebugSvgCopy id={result.id} mode="iframe" />
+					</Fragment>
+				) : (
+					<Shape key={result.id + '_shape'} {...result} />
+				)
+			)}
+			<CullingController />
+			{tlenv.isSafari && <ReflowIfNeeded />}
+		</ShapeCullingProvider>
+	)
 }
 function ReflowIfNeeded() {
 	const editor = useEditor()
@@ -426,26 +438,43 @@ function ReflowIfNeeded() {
 	return null
 }
 
-function ShapesToDisplay() {
+/**
+ * Centralized culling controller that updates shape container visibility.
+ * This single reactor replaces per-shape subscriptions for O(1) instead of O(N) subscriptions.
+ */
+function CullingController() {
 	const editor = useEditor()
+	const { updateCulling } = useShapeCulling()
 
-	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
-
-	return (
-		<>
-			{renderingShapes.map((result) => (
-				<Shape key={result.id + '_shape'} {...result} />
-			))}
-			{tlenv.isSafari && <ReflowIfNeeded />}
-		</>
+	useQuickReactor(
+		'update shape culling',
+		() => {
+			const culledShapes = editor.getCulledShapes()
+			updateCulling(culledShapes)
+		},
+		[editor, updateCulling]
 	)
+
+	return null
 }
 
 function HintedShapeIndicator() {
 	const editor = useEditor()
 	const { ShapeIndicator } = useEditorComponents()
 
-	const ids = useValue('hinting shape ids', () => dedupe(editor.getHintingShapeIds()), [editor])
+	const ids = useValue(
+		'hinting shape ids without canvas indicator',
+		() => {
+			// Filter to only shapes that use legacy SVG indicators
+			return dedupe(editor.getHintingShapeIds()).filter((id) => {
+				const shape = editor.getShape(id)
+				if (!shape) return false
+				const util = editor.getShapeUtil(shape)
+				return util.useLegacyIndicator()
+			})
+		},
+		[editor]
+	)
 
 	if (!ids.length) return null
 	if (!ShapeIndicator) return null

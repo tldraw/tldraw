@@ -57,7 +57,9 @@ export class Editor {
 	}
 
 	async getCurrentFileName() {
-		return await this.fileName.innerText()
+		const text = await this.fileName.innerText()
+		// The UI replaces spaces with \u00a0 to prevent line-breaking; normalise back.
+		return text.replace(/\u00a0/g, ' ')
 	}
 
 	@step
@@ -65,6 +67,7 @@ export class Editor {
 		await this.fileName.click()
 		await this.page.getByRole('textbox').fill(newName)
 		await this.page.keyboard.press('Enter')
+		await this.sidebar.mutationResolution()
 	}
 
 	@step

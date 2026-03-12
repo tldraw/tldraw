@@ -1,0 +1,65 @@
+---
+title: 'v3.12.0'
+created_at: 4/15/2025
+updated_at: 4/15/2025
+keywords:
+  - changelog
+  - release
+  - v3.12
+  - v3.12.0
+  - v3.12.1
+  - v3.12.2
+  - accessibility
+  - keyboard-navigation
+  - frames
+  - geometry
+status: published
+---
+
+This release focuses on accessibility improvements and API enhancements, with no breaking changes.
+
+## API changes
+
+- Add new `getShapeVisibility` prop replacing the deprecated `isShapeHidden`, allowing hidden children to override parent visibility states.
+- Allow frames to display colorful borders and labels by configuring `FrameShapeUtil` with `showColors: true`.
+- Add `Geometry2d` helper methods including `intersectLineSegment`, `intersectCircle`, `transform`, and filtering options.
+- Export two Tiptap extensions individually for rich text customization.
+
+## Improvements
+
+- Add keyboard-based selection movement between shapes using Tab and Cmd/Ctrl+Arrow keys.
+- Add screen reader announcements for tool and shape selection changes.
+- Add keyboard resizing capability via Cmd/Ctrl+Alt+Shift with +/- keys.
+- Improve semantic HTML5 tags and proper ARIA roles throughout the UI.
+- Simplify keyboard shortcut syntax (e.g., `'?!l'` becomes `'alt+shift+l'`).
+- Add atomic `Store.mergeRemoteChanges` with correct scope-triggered side effects.
+- Add smoother drawing on slower CPUs via `getCoalescedEvents`.
+- Add YouTube embed support for time/loop parameters.
+- Add optional asset URL overrides for unused Embed shape icons.
+
+## Bug fixes
+
+- Fix Firefox SVG pasting.
+- Fix TailwindCSS text export styling.
+- Fix image pasting efficiency.
+- Fix Miro shape compatibility.
+- Fix Safari trackpad zoom.
+- Fix performance regressions in rich text and iPad drawing.
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.12.0)
+
+---
+
+## Patch releases
+
+### v3.12.1
+
+- Fix group bounds containing text shapes. ([#5911](https://github.com/tldraw/tldraw/pull/5911))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.12.1)
+
+### v3.12.2
+
+- Restore DPR constrained shape dimensions. ([#6034](https://github.com/tldraw/tldraw/pull/6034))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.12.2)

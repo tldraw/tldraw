@@ -1,4 +1,4 @@
-import { SVGContainer, VecModel, useEditor, useValue } from 'tldraw'
+import { SVGContainer, useEditor, useValue, VecModel } from 'tldraw'
 
 export interface PointHighlightProps {
 	pagePoint: VecModel
@@ -8,14 +8,15 @@ export interface PointHighlightProps {
 
 export function PointHighlight({ pagePoint, color, generating }: PointHighlightProps) {
 	const editor = useEditor()
-	const screenPoint = useValue('screenPoint', () => editor.pageToViewport(pagePoint), [])
-	const r = 3
+	// Scale radius by 1/zoom to maintain constant visual size
+	const r = useValue('radius', () => 3 / editor.getZoomLevel(), [editor])
+
 	return (
 		<SVGContainer
 			className={`context-highlight ${generating ? 'context-highlight-generating' : ''}`}
 			style={{
-				top: screenPoint.y - r,
-				left: screenPoint.x - r,
+				top: pagePoint.y - r,
+				left: pagePoint.x - r,
 				width: r * 2,
 				height: r * 2,
 			}}

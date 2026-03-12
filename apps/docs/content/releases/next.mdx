@@ -1,0 +1,63 @@
+---
+title: Next release
+description: Changes coming in the next release
+author: tldraw
+date: 03/04/2026
+order: 0
+status: published
+last_version: v4.4.0
+---
+
+This release adds click-through on transparent image pixels, a new `Editor.resizeToBounds()` method, SVG sanitization for external content, and TypeScript enum-to-const refactoring for Node strip-types compatibility. It also includes various improvements and bug fixes.
+
+## What's new
+
+### Click-through on transparent image pixels ([#7942](https://github.com/tldraw/tldraw/pull/7942))
+
+Clicking on transparent areas of PNG, WebP, GIF, and AVIF images now selects shapes behind the image instead of the image itself. This works with cropped, flipped, and circle-cropped images.
+
+This is powered by a new `Geometry2d.ignoreHit(point)` method that allows geometries to reject successful hit tests.
+
+## API changes
+
+- Add `Geometry2d.ignoreHit(point)` for rejecting hit tests on transparent pixels. ([#7942](https://github.com/tldraw/tldraw/pull/7942))
+- Add `Editor.resizeToBounds(shapes, bounds)` for resizing shapes to fit target bounds. ([#8120](https://github.com/tldraw/tldraw/pull/8120))
+- Add `sanitizeSvg(svgText: string)` export for sanitizing SVG content against XSS and data exfiltration. ([#7896](https://github.com/tldraw/tldraw/pull/7896))
+- Add experimental `experimental__onDropOnCanvas` option to intercept canvas drop events. Return `true` from the callback to prevent the editor's default drop behavior. ([#7911](https://github.com/tldraw/tldraw/pull/7911))
+
+  ```tsx
+  <Tldraw
+  	options={{
+  		experimental__onDropOnCanvas: (point, event) => {
+  			// Handle drop at page-space point
+  			return true // prevent default
+  		},
+  	}}
+  />
+  ```
+
+- Replace TypeScript enums (`MigrationFailureReason`, `PORTRAIT_BREAKPOINT`) with `const` object + type alias pattern for compatibility with Node's built-in TypeScript support (strip-types). Values are unchanged. ([#8084](https://github.com/tldraw/tldraw/pull/8084))
+
+## Improvements
+
+- Simplify paste-parent selection to use `canReceiveNewChildrenOfType` instead of frame-specific checks. Prevent edge-only overlap from auto-reparenting pasted shapes into adjacent frames. ([#8057](https://github.com/tldraw/tldraw/pull/8057))
+- Save link and alt-text values when clicking outside the editor instead of discarding changes. ([#8037](https://github.com/tldraw/tldraw/pull/8037))
+- Add SVG sanitization on paste and file drop to prevent XSS and data exfiltration. ([#7896](https://github.com/tldraw/tldraw/pull/7896))
+- Fix circular dependencies across `@tldraw/state`, `@tldraw/editor`, and `@tldraw/tldraw` packages to improve compatibility with Jest mocking and tree-shaking. ([#7935](https://github.com/tldraw/tldraw/pull/7935))
+
+## Bug fixes
+
+- Fix shapes pasted with Ctrl+V not being parented to a frame when they land inside one. ([#7938](https://github.com/tldraw/tldraw/pull/7938))
+- Fix a crash when cropping custom shapes that don't include `isCircle` in their crop schema. ([#7931](https://github.com/tldraw/tldraw/pull/7931))
+- Fix a crash when loading session state without a `currentPageId` (e.g. when using deep links). ([#7994](https://github.com/tldraw/tldraw/pull/7994))
+- Fix U+2028/U+2029 line separators breaking chunked sync messages. ([#7918](https://github.com/tldraw/tldraw/pull/7918))
+- Fix "Download original" not triggering a download for cross-origin assets. ([#8090](https://github.com/tldraw/tldraw/pull/8090))
+- Fix arrow endpoints terminating at invisible clipped shape boundaries instead of at the frame edge. ([#7932](https://github.com/tldraw/tldraw/pull/7932))
+- Fix sticky notes having a hard shadow instead of a soft drop shadow when exported as SVG. ([#7934](https://github.com/tldraw/tldraw/pull/7934))
+- Fix rich text toolbar staying open when the editing shape is deleted by another user. ([#8050](https://github.com/tldraw/tldraw/pull/8050))
+- Fix SVG sanitizer stripping embedded SVG data URIs on `<image>` elements. Nested SVGs are now recursively sanitized instead of blocked. ([#8087](https://github.com/tldraw/tldraw/pull/8087))
+- Fix `TldrawSelectionForeground` crashing when used without `TldrawUiContextProvider`. ([#8011](https://github.com/tldraw/tldraw/pull/8011))
+- Fix dynamic-size shapes losing shadows and dashes too early when zoomed out. ([#8040](https://github.com/tldraw/tldraw/pull/8040))
+- Fix a crash when resizing draw or highlight shapes to zero width or height. ([#8067](https://github.com/tldraw/tldraw/pull/8067))
+- Fix crash when enabling Debug SVG with shapes on the canvas. ([#8101](https://github.com/tldraw/tldraw/pull/8101))
+- Fix `localOffset` mutation bug in `stretchShapes` when shapes have parent transforms. ([#8120](https://github.com/tldraw/tldraw/pull/8120))

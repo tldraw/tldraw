@@ -1,0 +1,84 @@
+.ui-showcase {
+	position: absolute;
+	top: 32px;
+	left: 32px;
+	pointer-events: all;
+	background: var(--color-panel);
+	border-radius: var(--radius-3);
+	padding: 16px;
+	width: 380px;
+	box-shadow: var(--shadow-2);
+	user-select: none;
+}
+
+.ui-showcase h2 {
+	margin: 0 0 16px 0;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.ui-showcase h3 {
+	margin: 0 0 8px 0;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--color-text-1);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.ui-showcase section {
+	margin-bottom: 20px;
+}
+
+.ui-showcase section:last-child {
+	margin-bottom: 0;
+}
+
+.ui-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.ui-row-wide {
+	width: 100%;
+}
+
+.ui-value {
+	font-size: 12px;
+	color: var(--color-text-1);
+	min-width: 40px;
+}
+
+.ui-popover-content {
+	padding: 12px 16px;
+	font-size: 13px;
+}
+
+.ui-popover-content p {
+	margin: 0 0 8px 0;
+}
+
+.ui-popover-content p:last-child {
+	margin-bottom: 0;
+}
+
+.ui-icon-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, 24px);
+	gap: 4px;
+}
+
+.ui-icon-cell {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	border-radius: 4px;
+}
+
+.ui-icon-cell:hover {
+	background: var(--color-muted-2);
+}

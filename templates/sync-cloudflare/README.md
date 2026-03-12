@@ -19,8 +19,6 @@ This is a production-ready backend for [tldraw sync](https://tldraw.dev/docs/syn
   making sure that every user gets connected to that instance. We've found that with this approach,
   each room is able to handle about 50 simultaneous collaborators.
 
-## Overview
-
 [![architecture](./arch.png)](https://www.tldraw.com/ro/Yb_QHJFP9syPZq1YrV3YR?v=-255,-148,2025,1265&p=page)
 
 When a user opens a room, they connect via Workers to a durable object. Each durable object is like

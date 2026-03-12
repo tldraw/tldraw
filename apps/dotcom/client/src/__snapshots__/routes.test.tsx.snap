@@ -35,8 +35,8 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/f/[^/]*/pierre-history/[^/]*/?$",
   },
   {
-    "reactRouterPattern": "/fairy-invite/:token",
-    "vercelRouterPattern": "^/fairy-invite/[^/]*/?$",
+    "reactRouterPattern": "/import",
+    "vercelRouterPattern": "^/import/?$",
   },
   {
     "reactRouterPattern": "/invite/:token",
@@ -61,10 +61,6 @@ exports[`the_routes 1`] = `
   {
     "reactRouterPattern": "/preview",
     "vercelRouterPattern": "^/preview/?$",
-  },
-  {
-    "reactRouterPattern": "/pricing",
-    "vercelRouterPattern": "^/pricing/?$",
   },
   {
     "reactRouterPattern": "/r/:boardId/history",

@@ -4,8 +4,8 @@ import classNames from 'classnames'
 import { memo, useLayoutEffect, useRef } from 'react'
 import type { Editor } from '../../editor/Editor'
 import { ShapeUtil } from '../../editor/shapes/ShapeUtil'
+import { useEditorComponents } from '../../hooks/EditorComponentsContext'
 import { useEditor } from '../../hooks/useEditor'
-import { useEditorComponents } from '../../hooks/useEditorComponents'
 import { OptionalErrorBoundary } from '../ErrorBoundary'
 
 // need an extra layer of indirection here to allow hooks to be used inside the indicator render
@@ -32,6 +32,11 @@ const InnerIndicator = memo(({ editor, id }: { editor: Editor; id: TLShapeId }) 
 
 	if (!shape || shape.isLocked) return null
 
+	const util = editor.getShapeUtil(shape)
+
+	// If the shape uses canvas indicators, it will be rendered by CanvasShapeIndicators
+	if (!util.useLegacyIndicator()) return null
+
 	return (
 		<OptionalErrorBoundary
 			fallback={ShapeIndicatorErrorFallback}
@@ -39,7 +44,7 @@ const InnerIndicator = memo(({ editor, id }: { editor: Editor; id: TLShapeId }) 
 				editor.annotateError(error, { origin: 'react.shapeIndicator', willCrashApp: false })
 			}
 		>
-			<EvenInnererIndicator key={shape.id} shape={shape} util={editor.getShapeUtil(shape)} />
+			<EvenInnererIndicator key={shape.id} shape={shape} util={util} />
 		</OptionalErrorBoundary>
 	)
 })

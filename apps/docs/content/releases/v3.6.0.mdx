@@ -1,0 +1,58 @@
+---
+title: 'v3.6.0'
+created_at: 4/12/2024
+updated_at: 4/12/2024
+keywords:
+  - changelog
+  - release
+  - v3.6
+  - v3.6.0
+  - v3.6.1
+  - helpers
+  - actions
+  - embeds
+  - export
+  - clipboard
+  - toasts
+status: published
+---
+
+This release focuses on developer experience improvements with expanded helper functions and various bug fixes across the editor, embed system, and export functionality.
+
+## What's new
+
+### Expanded helper functions ([#5041](https://github.com/tldraw/tldraw/pull/5041))
+
+Actions and toasts overrides now have access to a wider range of helper functions, including clipboard interactions, toast notifications, export utilities, printing, and more. This makes it easier to create custom actions and tools that integrate deeply with tldraw's functionality.
+
+## API changes
+
+- 💥 **`setEmbedDefinitions`** changed from an instance method to a static method on the `EmbedShapeUtil` class. Update your embed definitions to use `EmbedShapeUtil.setEmbedDefinitions()` instead of calling it on an instance. ([#5027](https://github.com/tldraw/tldraw/pull/5027))
+- 💥 **`ExtractOptionalKeys` and `ExtractRequiredKeys`** utility types removed. Use the new utility type for creating optional properties instead. ([#5055](https://github.com/tldraw/tldraw/pull/5055))
+
+## Improvements
+
+- Add utility type for making undefined properties optional, simplifying type definitions for shape props and other optional configurations. ([#5055](https://github.com/tldraw/tldraw/pull/5055))
+- Make notes properly snap to the grid after their position is updated, improving alignment consistency. ([#5010](https://github.com/tldraw/tldraw/pull/5010))
+- Add incremental derivation example demonstrating advanced computed value patterns. ([#5038](https://github.com/tldraw/tldraw/pull/5038))
+
+## Bug fixes
+
+- Fix asset resolution when copying and pasting multiple items, including proper handling of video assets. ([#5061](https://github.com/tldraw/tldraw/pull/5061))
+- Fix text clipping in scaled frames during export, ensuring all text content is visible in exported images. ([#5022](https://github.com/tldraw/tldraw/pull/5022))
+- Fix concurrent export operations interfering with each other's font loading. ([#5022](https://github.com/tldraw/tldraw/pull/5022))
+- Fix long-press point accuracy to ensure touch interactions register at the correct coordinates. ([#5032](https://github.com/tldraw/tldraw/pull/5032))
+- Fix export naming for single unnamed frames, which now receive appropriate default names. ([#4918](https://github.com/tldraw/tldraw/pull/4918))
+- Fix custom embeds not rendering correctly on initial mount. ([#5027](https://github.com/tldraw/tldraw/pull/5027))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.6.0)
+
+---
+
+## Patch releases
+
+### v3.6.1
+
+- Fix bugs in the editor, state-react, and tldraw packages. ([#5132](https://github.com/tldraw/tldraw/pull/5132))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.6.1)

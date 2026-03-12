@@ -9,6 +9,7 @@ import {
 	Editor,
 	TLRichText,
 	TLShapeId,
+	isEqual,
 	preventDefault,
 	useEditor,
 	useEvent,
@@ -71,7 +72,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	useLayoutEffect(() => {
 		if (!rTextEditor.current) {
 			rInitialRichText.current = richText
-		} else if (rInitialRichText.current !== richText) {
+		} else if (!isEqual(rInitialRichText.current, richText)) {
 			rTextEditor.current.commands.setContent(richText as JSONContent)
 		}
 	}, [richText])
@@ -174,6 +175,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 				handlePaste: (view: EditorView, event: ClipboardEvent) => {
 					onPaste(event)
 					if (event.defaultPrevented) return true
+					return false
 				},
 				handleDoubleClick: (_view, _pos, event) => onDoubleClick(event),
 				...editorProps,
@@ -290,6 +292,7 @@ function handleTab(editor: Editor, view: EditorView, event: KeyboardEvent) {
 				isInList = true
 				return false // Stop iteration
 			}
+			return true
 		})
 
 		// TODO: for now skip over lists. Later, we might consider handling them using

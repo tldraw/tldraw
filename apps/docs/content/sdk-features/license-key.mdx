@@ -1,0 +1,164 @@
+---
+title: License key
+created_at: 1/31/2026
+updated_at: 1/31/2026
+keywords:
+  - license
+  - license key
+  - watermark
+  - production
+  - trial
+  - commercial
+  - hobby
+status: published
+date: 1/31/2026
+---
+
+The tldraw SDK requires a license key to work in production. Without a valid key, the SDK runs in development mode only. License keys unlock production deployment and, depending on your license type, may remove the "made with tldraw" watermark.
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw licenseKey="your-license-key" />
+		</div>
+	)
+}
+```
+
+## How license keys work
+
+License keys are validated on the client. They can be public—you can safely include them in your frontend code. The SDK decodes and verifies the key locally without making network requests to a license server.
+
+Each key encodes:
+
+- **Allowed hosts**: The domains where the license is valid
+- **License type**: Trial, commercial, or hobby
+- **Expiration date**: When the license stops working
+
+The SDK determines development vs production by checking the protocol and hostname. HTTPS on a non-localhost domain is considered production; HTTP or localhost is development.
+
+## License types
+
+| Type       | Watermark | Duration | Purpose                           |
+| ---------- | --------- | -------- | --------------------------------- |
+| Trial      | No        | 100 days | Evaluate before purchasing        |
+| Commercial | No        | Annual   | Production use in commercial apps |
+| Hobby      | Yes       | Varies   | Non-commercial projects           |
+
+### Trial licenses
+
+Get a free 100-day trial by completing the [trial license form](https://tldraw.dev/get-a-license/trial). You'll receive a license key immediately by email. One trial per company or project.
+
+### Commercial licenses
+
+Request a commercial license through the [plans form](https://tldraw.dev/get-a-license/plans). The sales team will discuss your requirements and pricing. Commercial licenses remove the watermark and are required for any commercial use in production.
+
+### Hobby licenses
+
+For non-commercial projects, request a [hobby license](https://tldraw.dev/get-a-license/hobby). Hobby licenses keep the "made with tldraw" watermark visible. They're discretionary. The team reviews each request.
+
+## Development vs production
+
+In development environments, the SDK works without a license key. It detects development by checking:
+
+- **Protocol**: HTTP (not HTTPS) indicates development
+- **Hostname**: `localhost` indicates development
+- **Build mode**: `NODE_ENV !== 'production'` indicates development
+
+If any of these conditions are true, you're in development mode and the SDK works normally without a key.
+
+In production (HTTPS on a non-localhost domain with `NODE_ENV=production`), the SDK requires a valid license key. Without one, you'll see console errors about the missing or invalid license.
+
+## Domain validation
+
+License keys specify which domains they work on. The SDK validates the current hostname against the allowed hosts in the key.
+
+Domain matching supports:
+
+- **Exact matches**: `example.com` matches `example.com` and `www.example.com`
+- **Wildcards**: `*.example.com` matches any subdomain
+- **All domains**: Some enterprise licenses allow `*` for any domain
+
+If you deploy to a domain not covered by your license, the SDK treats it as unlicensed.
+
+## Grace period
+
+Annual and perpetual licenses have a 30-day grace period after expiration. During this period, the SDK continues working but logs warnings to the console. This gives you time to renew without service interruption.
+
+Evaluation (trial) licenses have no grace period—they stop working immediately on expiration.
+
+## Perpetual licenses
+
+Perpetual licenses don't have a time-based expiration. Instead, they're tied to a version: they work with any patch release indefinitely, but major or minor versions released after the license expiration date require renewal.
+
+Early versions of tldraw were sold with a perpetual license. While we no longer sell these licenses (except in exceptional cases), we still support them for existing customers.
+
+## Using the license key
+
+### Automatic environment variable detection
+
+The SDK automatically checks for license keys in common environment variables. If you set one of these, you don't need to pass the `licenseKey` prop:
+
+- `TLDRAW_LICENSE_KEY`
+- `NEXT_PUBLIC_TLDRAW_LICENSE_KEY` (Next.js)
+- `REACT_APP_TLDRAW_LICENSE_KEY` (Create React App)
+- `GATSBY_TLDRAW_LICENSE_KEY` (Gatsby)
+- `VITE_TLDRAW_LICENSE_KEY` (Vite)
+- `PUBLIC_TLDRAW_LICENSE_KEY` (SvelteKit, etc.)
+
+The SDK checks both `process.env` and `import.meta.env` versions of each variable.
+
+### Passing the key directly
+
+Pass the key to the `licenseKey` prop on `<Tldraw>` or `<TldrawEditor>`:
+
+```tsx
+<Tldraw licenseKey="tldraw-abc123..." />
+```
+
+For `<TldrawImage>`, the same prop works:
+
+```tsx
+<TldrawImage snapshot={snapshot} licenseKey="tldraw-abc123..." />
+```
+
+You can also reference an environment variable explicitly:
+
+```tsx
+<Tldraw licenseKey={process.env.NEXT_PUBLIC_TLDRAW_LICENSE_KEY} />
+```
+
+Since keys are validated client-side and are domain-restricted, exposing them in your bundle is safe.
+
+## Data collection
+
+License behavior differs by type:
+
+| License type | Data sent                                             |
+| ------------ | ----------------------------------------------------- |
+| Commercial   | None                                                  |
+| Hobby        | None                                                  |
+| Trial        | License hash and domain (for analytics, no user data) |
+| Unlicensed   | Domain tracking for watermark display                 |
+
+Trial licenses send a hashed version of the license key and deployment URL to tldraw's servers for analytics. No user data, canvas content, or personally identifiable information is collected.
+
+## Troubleshooting
+
+**Console shows "No tldraw license key provided" and "A license is required for production deployments"**: You're in production without a key. Add a valid `licenseKey` prop or set an environment variable.
+
+**Console shows "License key is not valid for this domain"**: Your key doesn't include the current domain. Contact sales@tldraw.com to update your allowed domains.
+
+**Console shows "Your tldraw evaluation license has expired"**: Trial licenses have no grace period. Contact sales@tldraw.com to purchase a full license.
+
+**Console shows "Your tldraw license has been expired for more than 30 days"**: Your license is past the 30-day grace period. Contact sales@tldraw.com to renew.
+
+**Key works locally but not in production**: Development mode doesn't require a key. Make sure you're passing the key correctly in your production build and that the domain matches your license.
+
+## Learn more
+
+See the [License](/community/license) page for full details on the tldraw license terms, including information about open source usage and trademark guidelines.

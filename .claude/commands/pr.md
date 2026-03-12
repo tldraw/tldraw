@@ -1,7 +1,7 @@
 ---
 description: Commit changes and create or update a pull request (project)
 argument-hint: [description]
-allowed-tools: Bash(git:*), Bash(gh:*), Skill(write-pr)
+allowed-tools: Bash(git:*), Bash(gh:*)
 model: opus
 ---
 

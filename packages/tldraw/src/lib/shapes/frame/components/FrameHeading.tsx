@@ -66,7 +66,7 @@ export const FrameHeading = memo(function FrameHeading({
 					side === 0 || side === 2 ? Math.ceil(width) : Math.ceil(height)
 				}px + ${showColors ? '0px' : 'var(--tl-frame-offset-width)'})`,
 				bottom: '100%',
-				transform: `${translation} scale(var(--tl-scale)) translateX(${offsetX}px)`,
+				transform: `${translation} scale(min(var(--tl-scale), 3.5)) translateX(${offsetX}px)`,
 			}}
 		>
 			<div

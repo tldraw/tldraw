@@ -1,5 +1,6 @@
-import { ReactNode } from 'react'
+import { Component, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { F, IntlProvider } from '../../tla/utils/i18n'
 import { isInIframe } from '../../utils/iFrame'
 
@@ -43,12 +44,12 @@ export function ErrorPage({
 	cta = <GoBackLink />,
 }: {
 	icon?: ReactNode
-	messages: { header: string; para1: string; para2?: string }
+	messages: { header: string; para1: string; para2?: string; cta?: string }
 	cta?: ReactNode
 }) {
 	return (
 		// This sits outside the regular providers, it needs to be able to have the intl object in the app context.
-		<IntlProvider defaultLocale="en" locale="en" messages={{}}>
+		<IntlProvider defaultLocale="en" locale="en" messages={translationsEnJson}>
 			<div className="error-page">
 				<div className="error-page__container">
 					{icon}
@@ -62,4 +63,28 @@ export function ErrorPage({
 			</div>
 		</IntlProvider>
 	)
+}
+
+/** An error boundary that shows an ErrorPage with a refresh button. */
+export class RefreshErrorBoundary extends Component<
+	{ children: ReactNode; messages: { header: string; para1: string; cta: string } },
+	{ hasError: boolean }
+> {
+	state = { hasError: false }
+
+	static getDerivedStateFromError() {
+		return { hasError: true }
+	}
+
+	render() {
+		if (this.state.hasError) {
+			return (
+				<ErrorPage
+					messages={this.props.messages}
+					cta={<button onClick={() => window.location.reload()}>{this.props.messages.cta}</button>}
+				/>
+			)
+		}
+		return this.props.children
+	}
 }

@@ -1,6 +1,12 @@
 import { VecModel } from '@tldraw/tlschema'
 import { EASINGS } from './easings'
-import { clamp, toFixed } from './utils'
+function clamp(n: number, min: number, max?: number): number {
+	return Math.max(min, typeof max !== 'undefined' ? Math.min(n, max) : n)
+}
+
+function toFixed(v: number) {
+	return Math.round(v * 1e2) / 1e2
+}
 
 /** @public */
 export type VecLike = Vec | VecModel
@@ -424,32 +430,51 @@ export class Vec {
 	 * @param P - A point not on the line to test.
 	 */
 	static NearestPointOnLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): Vec {
-		return Vec.Mul(u, Vec.Sub(P, A).pry(u)).add(A)
+		const t = (P.x - A.x) * u.x + (P.y - A.y) * u.y
+		return new Vec(A.x + u.x * t, A.y + u.y * t)
 	}
 
 	static NearestPointOnLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp = true): Vec {
-		if (Vec.Equals(A, P)) return Vec.From(P)
-		if (Vec.Equals(B, P)) return Vec.From(P)
+		const dx = B.x - A.x
+		const dy = B.y - A.y
+		const d2 = dx * dx + dy * dy
 
-		const u = Vec.Tan(B, A)
-		const C = Vec.Add(A, Vec.Mul(u, Vec.Sub(P, A).pry(u)))
+		if (d2 === 0) return Vec.From(A)
+
+		let t = ((P.x - A.x) * dx + (P.y - A.y) * dy) / d2
 
 		if (clamp) {
-			if (C.x < Math.min(A.x, B.x)) return Vec.Cast(A.x < B.x ? A : B)
-			if (C.x > Math.max(A.x, B.x)) return Vec.Cast(A.x > B.x ? A : B)
-			if (C.y < Math.min(A.y, B.y)) return Vec.Cast(A.y < B.y ? A : B)
-			if (C.y > Math.max(A.y, B.y)) return Vec.Cast(A.y > B.y ? A : B)
+			if (t < 0) t = 0
+			else if (t > 1) t = 1
 		}
 
-		return C
+		return new Vec(A.x + t * dx, A.y + t * dy)
 	}
 
 	static DistanceToLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): number {
-		return Vec.Dist(P, Vec.NearestPointOnLineThroughPoint(A, u, P))
+		// |cross(P-A, u)| = perpendicular distance to line through A with direction u
+		const dx = P.x - A.x
+		const dy = P.y - A.y
+		return Math.abs(dx * u.y - dy * u.x)
 	}
 
 	static DistanceToLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp = true): number {
-		return Vec.Dist(P, Vec.NearestPointOnLineSegment(A, B, P, clamp))
+		const dx = B.x - A.x
+		const dy = B.y - A.y
+		const d2 = dx * dx + dy * dy
+
+		if (d2 === 0) return Vec.Dist(A, P)
+
+		let t = ((P.x - A.x) * dx + (P.y - A.y) * dy) / d2
+
+		if (clamp) {
+			if (t < 0) t = 0
+			else if (t > 1) t = 1
+		}
+
+		const nx = A.x + t * dx - P.x
+		const ny = A.y + t * dy - P.y
+		return Math.sqrt(nx * nx + ny * ny)
 	}
 
 	static Snap(A: VecLike, step = 1) {
@@ -470,6 +495,10 @@ export class Vec {
 		return isNaN(A.x) || isNaN(A.y)
 	}
 
+	static IsFinite(A: VecLike): boolean {
+		return Number.isFinite(A.x) && Number.isFinite(A.y)
+	}
+
 	/**
 	 * Get the angle from position A to position B.
 	 */
@@ -483,13 +512,9 @@ export class Vec {
 	 */
 	static AngleBetween(A: VecLike, B: VecLike): number {
 		const p = A.x * B.x + A.y * B.y
-		const n = Math.sqrt(
-			(Math.pow(A.x, 2) + Math.pow(A.y, 2)) * (Math.pow(B.x, 2) + Math.pow(B.y, 2))
-		)
+		const n = Math.sqrt((A.x * A.x + A.y * A.y) * (B.x * B.x + B.y * B.y))
 		const sign = A.x * B.y - A.y * B.x < 0 ? -1 : 1
-		const angle = sign * Math.acos(clamp(p / n, -1, 1))
-
-		return angle
+		return sign * Math.acos(clamp(p / n, -1, 1))
 	}
 
 	/**
@@ -500,7 +525,7 @@ export class Vec {
 	 * @returns The interpolated point.
 	 */
 	static Lrp(A: VecLike, B: VecLike, t: number): Vec {
-		return Vec.Sub(B, A).mul(t).add(A)
+		return new Vec(A.x + (B.x - A.x) * t, A.y + (B.y - A.y) * t)
 	}
 
 	static Med(A: VecLike, B: VecLike): Vec {
@@ -598,14 +623,15 @@ export class Vec {
 	 * @param A - The first point.
 	 * @param B - The second point.
 	 * @param steps - The number of points to return.
+	 * @param ease - The easing to use.
 	 */
-	static PointsBetween(A: VecModel, B: VecModel, steps = 6): Vec[] {
+	static PointsBetween(A: VecModel, B: VecModel, steps = 6, ease = EASINGS.easeInQuad): Vec[] {
 		const results: Vec[] = []
 
 		for (let i = 0; i < steps; i++) {
-			const t = EASINGS.easeInQuad(i / (steps - 1))
+			const t = ease(i / (steps - 1))
 			const point = Vec.Lrp(A, B, t)
-			point.z = Math.min(1, 0.5 + Math.abs(0.5 - ease(t)) * 0.65)
+			point.z = Math.min(1, 0.5 + Math.abs(0.5 - EASINGS.easeInOutQuad(t)) * 0.65)
 			results.push(point)
 		}
 
@@ -616,5 +642,3 @@ export class Vec {
 		return new Vec(Math.round(A.x / gridSize) * gridSize, Math.round(A.y / gridSize) * gridSize)
 	}
 }
-
-const ease = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t)

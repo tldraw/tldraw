@@ -90,6 +90,7 @@
 	"action.save-copy": "Guardar una copia",
 	"action.select-all": "Seleccionar todo",
 	"action.select-none": "Deseleccionar todo",
+	"action.select-zoom-tool": "Zoom",
 	"action.send-backward": "Enviar hacia atrás",
 	"action.send-to-back": "Enviar al fondo",
 	"action.share-project": "Compartir este proyecto",

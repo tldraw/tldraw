@@ -1,0 +1,58 @@
+---
+title: 'v3.7.0'
+created_at: 7/1/2025
+updated_at: 7/1/2025
+keywords:
+  - changelog
+  - release
+  - v3.7
+  - v3.7.0
+  - v3.7.1
+  - v3.7.2
+  - presence
+  - sync
+  - performance
+status: published
+---
+
+This release delivers bug fixes and performance enhancements, including customization options for presence data synchronization.
+
+## What's new
+
+### Presence sync customization ([#5149](https://github.com/tldraw/tldraw/pull/5149))
+
+Developers can now customize what presence data is synced between clients, or disable presence syncing entirely. This enables optimization for high-latency connections and privacy-focused applications.
+
+## API changes
+
+- Allow `expandSelectionOutlinePx` to return a `Box` object to enable asymmetric expansion across different sides.
+- Modify behavior when using `editor.updateShape` to properly handle undefined values.
+
+## Bug fixes
+
+- Fix React Strict Mode listener bug affecting `store.listen`.
+- Fix image rotation and cropping functionality issues.
+- Fix CSS import failures during export/print operations.
+- Fix text measurement div leakage during development hot reloads.
+- Fix popover menu viewport overflow problems.
+- Fix GitHub Gist URL validation.
+- Fix image dimension limits for pasted content.
+- Fix pages menu and quick actions rendering.
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.7.0)
+
+---
+
+## Patch releases
+
+### v3.7.1
+
+- Pass custom migrations to `useLocalStore`. ([#5204](https://github.com/tldraw/tldraw/pull/5204))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.7.1)
+
+### v3.7.2
+
+- Fix pasting files copied from the local filesystem with cmd-v. ([#5225](https://github.com/tldraw/tldraw/pull/5225))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.7.2)

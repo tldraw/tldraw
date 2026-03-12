@@ -21,10 +21,6 @@ Have a little more time? Let's try out the tldraw SDK in a React project.
 
 If you're new to React, we recommend using a [Vite template](https://vitejs.dev/guide/#scaffolding-your-first-vite-project) as a starter. We'll assume your project is already running locally.
 
-Then follow the instructions to build your project.
-
-{/* Prefer to jump straight to some code? Try this [sandbox](https://stackblitz.com/edit/vitejs-vite-ahoswhus?file=src%2FApp.tsx). */}
-
 ## Getting started
 
 First, install the `tldraw` package from npm:
@@ -48,7 +44,7 @@ export default function App() {
 }
 ```
 
-That's pretty much it! At this point, you should have a complete working single-user canvas. You can draw and write on the canvas, add images and video, zoom and pan, copy and paste, undo and redo, and do just about everything else you'd expect to do on a canvas.
+That's pretty much it! At this point, you should have a complete working single-user canvas. You can draw, write, add images and video, zoom, pan, copy and paste, undo and redo—everything you'd expect from a canvas.
 
 You'll be starting from our default [shapes](/docs/shapes), [tools](/docs/tools), and [user interface](/docs/user-interface), but you can customize all of these things for your project if you wish. For now, let's show off a few more features.
 
@@ -74,7 +70,7 @@ Using a `persistenceKey` will use your browser's storage to ensure that your pro
 
 ## Real-time collaboration
 
-To add support for multiple users collaborating in realtime, you can use the [**tldraw sync**](/docs/sync) demo library. This library is a simple way to try out real-time collaboration in tldraw using temporary projects called rooms.
+To add support for multiple users collaborating in realtime, you can use the [**tldraw sync**](/docs/sync) demo library. This library adds real-time collaboration using temporary rooms.
 
 First, install the `@tldraw/sync` package:
 
@@ -110,16 +106,16 @@ If you want to go further with real-time collaboration, be sure to check out our
 
 ## Controlling the canvas
 
-One of the best parts of tldraw is its [editor](/docs/editor)'s runtime JavaScript API. Almost everything that can happen in tldraw can be done programmatically through the [Editor](/docs/editor) instance.
+The tldraw [editor](/docs/editor) has a runtime JavaScript API. Everything that can happen in tldraw can be done programmatically through the [Editor](/docs/editor) instance.
 
 For simplicity's sake, let's roll back our persistence and sync code. We can then use the `Tldraw` component's `onMount` callback to get access to the Editor instance. We'll use the editor to create a new shape on the canvas, select it, then slowly zoom to it.
 
 ```tsx
-import { Tldraw, toRichText } from 'tldraw'
+import { Editor, Tldraw, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 export default function App() {
-	const handleMount = (editor) => {
+	const handleMount = (editor: Editor) => {
 		editor.createShape({
 			type: 'text',
 			x: 200,
@@ -144,9 +140,9 @@ export default function App() {
 }
 ```
 
-The Editor is tldraw's huge god object for controlling the canvas. Be sure to check out the Editor API documentation for more information on what you can do with it, as well as our guide on using the editor.
+The Editor is tldraw's main interface for controlling the canvas. Be sure to check out the Editor API documentation for more information on what you can do with it, as well as our guide on using the editor.
 
-## Next Steps
+## Next steps
 
 Now that you've seen how the tldraw canvas works, you can:
 
@@ -156,7 +152,7 @@ Now that you've seen how the tldraw canvas works, you can:
 - Explore our [examples](/examples)
 - Build with our [starter kits](/starter-kits)
 
-You can do a lot with the tldraw SDK. In addition to our long-form docs, we have dozens of examples in our [examples section](/examples) that cover more of its functionality. You can run these locally with the tldraw [GitHub repository](https://github.com/tldraw/tldraw).
+The SDK lets you customize shapes, tools, UI, and more. In addition to our long-form docs, we have dozens of examples in our [examples section](/examples) that cover more of its functionality. You can run these locally with the tldraw [GitHub repository](https://github.com/tldraw/tldraw).
 
 ## Join our community
 

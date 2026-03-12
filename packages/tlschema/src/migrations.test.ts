@@ -1760,6 +1760,18 @@ describe('removes can move camera', () => {
 	})
 })
 
+describe('Add camera state to instance', () => {
+	const { up, down } = getTestMigration(instanceVersions.AddCameraState)
+
+	test('up works as expected', () => {
+		expect(up({})).toStrictEqual({ cameraState: 'idle' })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ cameraState: 'idle' })).toStrictEqual({})
+	})
+})
+
 describe('Add text align to text shapes', () => {
 	const { up, down } = getTestMigration(textShapeVersions.AddTextAlign)
 
@@ -2087,6 +2099,21 @@ describe('Make image asset file size optional', () => {
 		expect(down({ props: {} })).toEqual({ props: { fileSize: -1 } })
 		expect(down({ props: { fileSize: 0 } })).toEqual({ props: { fileSize: 0 } })
 		expect(down({ props: { fileSize: 1 } })).toEqual({ props: { fileSize: 1 } })
+	})
+})
+
+describe('Add pixelRatio to image asset', () => {
+	const { up, down } = getTestMigration(imageAssetVersions.AddPixelRatio)
+
+	test('up works as expected', () => {
+		expect(up({ props: { w: 100, h: 100 } })).toEqual({ props: { w: 100, h: 100 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { w: 100, h: 100, pixelRatio: 2 } })).toEqual({
+			props: { w: 100, h: 100 },
+		})
+		expect(down({ props: { w: 100, h: 100 } })).toEqual({ props: { w: 100, h: 100 } })
 	})
 })
 

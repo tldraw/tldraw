@@ -15,7 +15,7 @@
 			"name": "Branching chat",
 			"description": "Chat with an AI using a branching conversation interface.",
 			"shortDescription": "A branching chat interface.",
-			"order": 6
+			"order": 7
 		},
 		"scripts": {
 			"lint": null
@@ -37,7 +37,7 @@
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",
-		"wrangler": "^4.37.1",
+		"wrangler": "^4.67.0",
 		"zod": "^4.1.8"
 	},
 	"devDependencies": {

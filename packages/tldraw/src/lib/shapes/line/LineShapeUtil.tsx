@@ -205,6 +205,25 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		})
 	}
 
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLLineShape): Path2D {
+		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const path = getPathForLineShape(shape)
+		const { dash } = shape.props
+
+		return path.toPath2D({
+			style: dash === 'draw' ? 'draw' : 'solid',
+			strokeWidth: 1,
+			passes: 1,
+			randomSeed: shape.id,
+			offset: 0,
+			roundness: strokeWidth * 2,
+		})
+	}
+
 	override toSvg(shape: TLLineShape) {
 		return <LineShapeSvg shouldScale shape={shape} />
 	}

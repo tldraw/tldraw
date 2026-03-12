@@ -17,12 +17,12 @@ import {
 	approximately,
 	arrowBindingMigrations,
 	arrowBindingProps,
-	assert,
 	getIndexAbove,
 	getIndexBetween,
 	intersectLineSegmentCircle,
 } from '@tldraw/editor'
-import { getArrowBindings, getArrowInfo, removeArrowBinding } from '../../shapes/arrow/shared'
+import { getArrowInfo } from '../../shapes/arrow/getArrowInfo'
+import { getArrowBindings, removeArrowBinding } from '../../shapes/arrow/shared'
 
 /**
  * @public
@@ -58,8 +58,20 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 
 	// when the arrow itself changes
 	override onAfterChangeFromShape({
+		shapeBefore,
 		shapeAfter,
+		reason,
 	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
+		// When translating arrows together with their bound shapes, only x/y changes.
+		// In this case, bindings remain valid and no reparenting is needed.
+		// This is a significant performance optimization when moving many bound shapes.
+		if (
+			reason !== 'ancestry' &&
+			shapeBefore.parentId === shapeAfter.parentId &&
+			shapeBefore.index === shapeAfter.index
+		) {
+			return
+		}
 		arrowDidUpdate(this.editor, shapeAfter as TLArrowShape)
 	}
 
@@ -222,8 +234,14 @@ export function updateArrowTerminal({
 		throw new Error('expected arrow info')
 	}
 
-	const startPoint = useHandle ? info.start.handle : info.start.point
-	const endPoint = useHandle ? info.end.handle : info.end.point
+	const startPoint = getValidTerminalPoint(
+		useHandle ? info.start.handle : info.start.point,
+		arrow.props.start
+	)
+	const endPoint = getValidTerminalPoint(
+		useHandle ? info.end.handle : info.end.point,
+		arrow.props.end
+	)
 	const point = terminal === 'start' ? startPoint : endPoint
 
 	const update = {
@@ -238,30 +256,58 @@ export function updateArrowTerminal({
 	// fix up the bend:
 	if (info.type === 'arc') {
 		// find the new start/end points of the resulting arrow
-		const newStart = terminal === 'start' ? startPoint : info.start.handle
-		const newEnd = terminal === 'end' ? endPoint : info.end.handle
+		const newStart =
+			terminal === 'start'
+				? startPoint
+				: getValidTerminalPoint(info.start.handle, arrow.props.start)
+		const newEnd =
+			terminal === 'end' ? endPoint : getValidTerminalPoint(info.end.handle, arrow.props.end)
 		const newMidPoint = Vec.Med(newStart, newEnd)
+		const arrowDirection = Vec.Sub(newStart, newEnd)
+		if (approximately(Vec.Len2(arrowDirection), 0)) {
+			editor.updateShape(update)
+			if (unbind) {
+				removeArrowBinding(editor, arrow, terminal)
+			}
+			return
+		}
 
 		// intersect a line segment perpendicular to the new arrow with the old arrow arc to
 		// find the new mid-point
-		const lineSegment = Vec.Sub(newStart, newEnd)
+		const lineSegment = arrowDirection
 			.per()
 			.uni()
 			.mul(info.handleArc.radius * 2 * Math.sign(arrow.props.bend))
+		const targetPoint = Vec.Add(newMidPoint, lineSegment)
+		if (
+			!Vec.IsFinite(info.handleArc.center) ||
+			!Number.isFinite(info.handleArc.radius) ||
+			!Vec.IsFinite(targetPoint)
+		) {
+			editor.updateShape(update)
+			if (unbind) {
+				removeArrowBinding(editor, arrow, terminal)
+			}
+			return
+		}
 
 		// find the intersections with the old arrow arc:
 		const intersections = intersectLineSegmentCircle(
 			info.handleArc.center,
-			Vec.Add(newMidPoint, lineSegment),
+			targetPoint,
 			info.handleArc.center,
 			info.handleArc.radius
 		)
 
-		assert(intersections?.length === 1)
-		const bend = Vec.Dist(newMidPoint, intersections[0]) * Math.sign(arrow.props.bend)
-		// use `approximately` to avoid endless update loops
-		if (!approximately(bend, update.props.bend)) {
-			update.props.bend = bend
+		if (intersections?.length) {
+			const intersection = intersections.reduce((closest, candidate) =>
+				Vec.Dist2(candidate, targetPoint) < Vec.Dist2(closest, targetPoint) ? candidate : closest
+			)
+			const bend = Vec.Dist(newMidPoint, intersection) * Math.sign(arrow.props.bend)
+			// use `approximately` to avoid endless update loops
+			if (!approximately(bend, update.props.bend)) {
+				update.props.bend = bend
+			}
 		}
 	}
 
@@ -269,4 +315,11 @@ export function updateArrowTerminal({
 	if (unbind) {
 		removeArrowBinding(editor, arrow, terminal)
 	}
+}
+
+function getValidTerminalPoint(
+	point: { x: number; y: number },
+	fallback: { x: number; y: number }
+) {
+	return Vec.From(Vec.IsFinite(point) ? point : fallback)
 }

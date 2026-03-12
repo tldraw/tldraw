@@ -10,7 +10,10 @@ import { usePathname } from 'next/navigation'
 export function DocsSidebarMenu({
 	title,
 	elements,
+	isFirst = false,
+	hideTitle = false,
 }: {
+	isFirst: boolean
 	title: string
 	elements: {
 		type: string
@@ -19,14 +22,19 @@ export function DocsSidebarMenu({
 		url: string
 		groupId: string | null
 	}[]
+	hideTitle?: boolean
 }) {
 	const pathname = usePathname()
 	const groups = elements.some((e) => e.groupId) ? Object.values(APIGroup) : null
 
 	return (
-		<div className="mt-8 md:mt-12">
-			<h4 className="text-black dark:text-white uppercase text-xs font-semibold">{title}</h4>
-			<ul className="flex flex-col mt-2 gap-2 text-sm break-words">
+		<div className={cn(isFirst ? 'mt-0 md:mt-8' : 'mt-0 md:mt-12')}>
+			{!hideTitle && (
+				<h4 className="text-black dark:text-white uppercase text-xs w-full font-semibold md:sticky top-0 bg-white dark:bg-zinc-950 z-10 py-2">
+					{title}
+				</h4>
+			)}
+			<ul className={cn('flex flex-col gap-2 text-sm break-words', !hideTitle && 'mt-2')}>
 				{groups?.map((group, index) => {
 					const groupElements = elements.filter((e) => e.groupId === group)
 					if (groupElements.length === 0) return null
@@ -47,7 +55,7 @@ export function DocsSidebarMenu({
 													href={url}
 													data-active={pathname === url}
 													className={cn(
-														'sidebar-link line-clamp-1',
+														'sidebar-link w-full truncate',
 														pathname === url
 															? 'text-black dark:text-white font-semibold'
 															: 'hover:text-zinc-800 dark:hover:text-zinc-200'
@@ -69,7 +77,7 @@ export function DocsSidebarMenu({
 								href={url}
 								data-active={pathname === url}
 								className={cn(
-									'sidebar-link',
+									'sidebar-link block',
 									pathname === url || `/getting-started${pathname}` === url
 										? 'text-black dark:text-white font-semibold'
 										: 'hover:text-zinc-800 dark:hover:text-zinc-200'

@@ -132,13 +132,13 @@ meta: JsonObject;
 props: Props;
 type: Type;
 typeName: "asset";
-}[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: {
+}[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: {
 id: TLAssetId;
 meta: JsonObject;
 props: Props;
 type: Type;
 typeName: "asset";
-}[P_1] | undefined; }>>;
+}[P] | undefined; }>>;
 
 // @public
 export function createBindingId(id?: string): TLBindingId;
@@ -156,7 +156,7 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in "fromId" | "id" | "meta" | "toId" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseBinding<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseBinding<Type, Props>[P_1] | undefined; }>>;
+}): T.ObjectValidator<Expand<    { [P in "fromId" | "id" | "meta" | "toId" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseBinding<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseBinding<Type, Props>[P] | undefined; }>>;
 
 // @public
 export function createCustomRecordId<T extends string>(typeName: T, id?: string): RecordId<UnknownRecord> & `${T}:${string}`;
@@ -170,7 +170,7 @@ export function createCustomRecordMigrationIds<const S extends string, const T e
 export function createCustomRecordMigrationSequence(migrations: TLPropsMigrations): TLPropsMigrations;
 
 // @public
-export function createPresenceStateDerivation($user: Signal<TLPresenceUserInfo>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence>;
+export function createPresenceStateDerivation($user: Signal<TLPresenceUserInfo>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence, unknown>;
 
 // @public
 export function createShapeId(id?: string): TLShapeId;
@@ -188,10 +188,10 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>>;
+}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
 
 // @public
-export function createTLSchema({ shapes, bindings, records, migrations, }?: {
+export function createTLSchema({ shapes, bindings, records, migrations }?: {
     bindings?: Record<string, SchemaPropsInfo>;
     migrations?: readonly MigrationSequence[];
     records?: Record<string, CustomRecordInfo>;
@@ -734,7 +734,7 @@ export const TL_CURSOR_TYPES: Set<string>;
 export const TL_HANDLE_TYPES: Set<"clone" | "create" | "vertex" | "virtual">;
 
 // @public
-export const TL_SCRIBBLE_STATES: Set<"active" | "paused" | "starting" | "stopping">;
+export const TL_SCRIBBLE_STATES: Set<"active" | "complete" | "paused" | "starting" | "stopping">;
 
 // @public
 export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>;
@@ -1171,6 +1171,7 @@ export type TLImageAsset = TLBaseAsset<'image', {
     isAnimated: boolean;
     mimeType: null | string;
     name: string;
+    pixelRatio?: number;
     src: null | string;
     w: number;
 }>;
@@ -1216,6 +1217,7 @@ export type TLIndexedShapes = {
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     brush: BoxModel | null;
+    cameraState: 'idle' | 'moving';
     // (undocumented)
     chatMessage: string;
     // (undocumented)

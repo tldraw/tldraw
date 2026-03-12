@@ -96,12 +96,10 @@ export default defineConfig({
 
 	/* Run your local dev server before starting the tests */
 	webServer: {
-		command: 'yarn dev-app',
+		command: process.env.CI ? 'VITE_PREVIEW=1 yarn dev-app' : 'yarn preview-app',
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),
-		// remove comment if you wish to see the output of the server
-		// stdout: 'pipe',
-		// stderr: 'pipe',
+		timeout: process.env.CI ? 120_000 : 300_000,
 	},
 })

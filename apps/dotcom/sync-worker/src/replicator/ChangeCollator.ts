@@ -14,7 +14,6 @@ import { ZReplicationChange } from '../UserDataSyncer'
 import { Subscription } from './Subscription'
 import {
 	ChangeV2,
-	ReplicatedRow,
 	ReplicatedTable,
 	ReplicationEvent,
 	ReplicatorEffect,
@@ -223,7 +222,7 @@ export class LiveChangeCollator implements ChangeCollator {
 					}
 				: {
 						type: 'row_update',
-						row: change.row as ReplicatedRow,
+						row: change.row,
 						table: table as ReplicatedTable,
 						event: command,
 					}

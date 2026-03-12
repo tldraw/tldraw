@@ -331,44 +331,9 @@
 	background-color: var(--tla-color-low);
 }
 
-/* Fairy Invites Section */
-.fairyButtonContainer {
-	display: flex;
-	gap: 12px;
-	align-items: center;
-	margin-bottom: 16px;
-}
-
-.fairyAccessContainer {
-	margin-bottom: 24px;
-}
-
-.fairyEmailInput {
-	width: 250px;
-	margin-left: 8px;
-}
-
-.fairyDescriptionInput {
-	width: 200px;
-	margin-left: 8px;
-}
-
-.fairyMaxUsesInput {
-	width: 120px;
-	margin-left: 8px;
-}
-
 .tableActions {
 	display: flex;
 	gap: 8px;
-}
-
-.paddleSectionHeading {
-	margin-top: 32px;
-}
-
-.paddleButtonContainer {
-	margin-top: 16px;
 }
 
 /* Feature Flags */

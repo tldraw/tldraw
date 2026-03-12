@@ -1,4 +1,4 @@
-import { AgentIconType } from '../../client/components/icons/AgentIcon'
+import { AgentIconType } from '../icons/AgentIcon'
 import { BaseAgentAction } from './BaseAgentAction'
 import { Streaming } from './Streaming'
 

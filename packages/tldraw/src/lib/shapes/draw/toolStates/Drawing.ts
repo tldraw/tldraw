@@ -173,7 +173,9 @@ export class Drawing extends StateNode {
 		const { z = 0.5 } = this.info.point
 
 		this.isPen = isPen
-		this.isPenOrStylus = isPen || (z > 0 && z < 0.5) || (z > 0.5 && z < 1)
+		// if z === 0 on the initial point, treat this pen as a mouse because it's likely a broken pen
+		// or a broken OS.
+		this.isPenOrStylus = (isPen && z !== 0) || (z > 0 && z < 0.5) || (z > 0.5 && z < 1)
 
 		const pressure = this.isPenOrStylus ? z * 1.25 : 0.5
 
@@ -258,7 +260,7 @@ export class Drawing extends StateNode {
 			y: originPagePoint.y,
 			props: {
 				isPen: this.isPenOrStylus,
-				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
+				scale: this.editor.getResizeScaleFactor(),
 				segments: [
 					{
 						type: this.segmentMode,

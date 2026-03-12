@@ -120,8 +120,7 @@ function TlaEditorInner({
 				initialState={isReadonly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
-				deepLinks
-				options={{ actionShortcutsLocation: 'toolbar' }}
+				options={{ actionShortcutsLocation: 'toolbar', deepLinks: true }}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />

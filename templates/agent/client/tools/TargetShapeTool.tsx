@@ -1,6 +1,6 @@
 import { Box, BoxModel, StateNode, TLShape, VecModel } from 'tldraw'
-import { convertTldrawShapeToSimpleShape } from '../../shared/format/convertTldrawShapeToSimpleShape'
-import { $agentsAtom } from '../agent/agentsAtom'
+import { convertTldrawShapeToFocusedShape } from '../../shared/format/convertTldrawShapeToFocusedShape'
+import { AgentAppAgentsManager } from '../agent/managers/AgentAppAgentsManager'
 
 export class TargetShapeTool extends StateNode {
 	static override id = 'target-shape'
@@ -76,11 +76,11 @@ class TargetShapePointing extends StateNode {
 	override onPointerUp() {
 		this.editor.setHintingShapes([])
 		if (this.shape) {
-			const agents = $agentsAtom.get(this.editor)
+			const agents = AgentAppAgentsManager.getAgents(this.editor)
 			for (const agent of agents) {
-				agent.addToContext({
+				agent.context.add({
 					type: 'shape',
-					shape: convertTldrawShapeToSimpleShape(this.editor, this.shape),
+					shape: convertTldrawShapeToFocusedShape(this.editor, this.shape),
 					source: 'user',
 				})
 			}
@@ -113,22 +113,22 @@ class TargetShapeDragging extends StateNode {
 		})
 
 		if (!this.bounds) throw new Error('Bounds not set')
-		const agents = $agentsAtom.get(this.editor)
+		const agents = AgentAppAgentsManager.getAgents(this.editor)
 		if (this.shapes.length <= 3) {
 			for (const shape of this.shapes) {
 				for (const agent of agents) {
-					agent.addToContext({
+					agent.context.add({
 						type: 'shape',
-						shape: convertTldrawShapeToSimpleShape(this.editor, shape),
+						shape: convertTldrawShapeToFocusedShape(this.editor, shape),
 						source: 'user',
 					})
 				}
 			}
 		} else {
 			for (const agent of agents) {
-				agent.addToContext({
+				agent.context.add({
 					type: 'shapes',
-					shapes: this.shapes.map((shape) => convertTldrawShapeToSimpleShape(this.editor, shape)),
+					shapes: this.shapes.map((shape) => convertTldrawShapeToFocusedShape(this.editor, shape)),
 					source: 'user',
 				})
 			}

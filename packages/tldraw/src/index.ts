@@ -130,9 +130,9 @@ export {
 	type ElbowArrowSideReason,
 	type ElbowArrowTargetBox,
 } from './lib/shapes/arrow/elbow/definitions'
+export { getArrowInfo } from './lib/shapes/arrow/getArrowInfo'
 export {
 	getArrowBindings,
-	getArrowInfo,
 	getArrowTerminalsInArrowSpace,
 	type TLArrowBindings,
 } from './lib/shapes/arrow/shared'
@@ -140,7 +140,7 @@ export { createBookmarkFromUrl } from './lib/shapes/bookmark/bookmarks'
 export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
 export { DrawShapeUtil, type DrawShapeOptions } from './lib/shapes/draw/DrawShapeUtil'
-export { EmbedShapeUtil } from './lib/shapes/embed/EmbedShapeUtil'
+export { EmbedShapeUtil, type EmbedShapeOptions } from './lib/shapes/embed/EmbedShapeUtil'
 export { FrameShapeTool } from './lib/shapes/frame/FrameShapeTool'
 export { FrameShapeUtil, type FrameShapeOptions } from './lib/shapes/frame/FrameShapeUtil'
 export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
@@ -400,6 +400,7 @@ export {
 	TldrawUiDropdownMenuItem,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuSub,
+	TldrawUiDropdownMenuSubContent,
 	TldrawUiDropdownMenuSubTrigger,
 	TldrawUiDropdownMenuTrigger,
 	type TLUiDropdownMenuCheckboxItemProps,
@@ -407,6 +408,7 @@ export {
 	type TLUiDropdownMenuGroupProps,
 	type TLUiDropdownMenuItemProps,
 	type TLUiDropdownMenuRootProps,
+	type TLUiDropdownMenuSubContentProps,
 	type TLUiDropdownMenuSubProps,
 	type TLUiDropdownMenuSubTriggerProps,
 	type TLUiDropdownMenuTriggerProps,
@@ -426,6 +428,18 @@ export {
 	type TLUiPopoverProps,
 	type TLUiPopoverTriggerProps,
 } from './lib/ui/components/primitives/TldrawUiPopover'
+export {
+	TldrawUiSelect,
+	TldrawUiSelectContent,
+	TldrawUiSelectItem,
+	TldrawUiSelectTrigger,
+	TldrawUiSelectValue,
+	type TLUiSelectContentProps,
+	type TLUiSelectItemProps,
+	type TLUiSelectProps,
+	type TLUiSelectTriggerProps,
+	type TLUiSelectValueProps,
+} from './lib/ui/components/primitives/TldrawUiSelect'
 export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
 export {
 	TldrawUiToolbar,
@@ -637,7 +651,12 @@ export {
 	type TLUiToastsContextType,
 	type TLUiToastsProviderProps,
 } from './lib/ui/context/toasts'
-export { useCanRedo, useCanUndo, useUnlockedSelectedShapesCount } from './lib/ui/hooks/menu-hooks'
+export {
+	useCanApplySelectionAction,
+	useCanRedo,
+	useCanUndo,
+	useUnlockedSelectedShapesCount,
+} from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
 export {
 	useCollaborationStatus,
@@ -666,7 +685,7 @@ export {
 	type TLUiTranslationContextType,
 	type TLUiTranslationProviderProps,
 } from './lib/ui/hooks/useTranslation/useTranslation'
-export { type TLUiIconType } from './lib/ui/icon-types'
+export { iconTypes, type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrideHelpers, type TLUiOverrides } from './lib/ui/overrides'
 export { TldrawUi, TldrawUiInFrontOfTheCanvas, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { containBoxSize, downsizeImage, type BoxWidthHeight } from './lib/utils/assets/assets'
@@ -681,6 +700,7 @@ export {
 	setDefaultEditorAssetUrls,
 	type TLEditorAssetUrls,
 } from './lib/utils/static-assets/assetUrls'
+export { sanitizeSvg } from './lib/utils/svg/sanitizeSvg'
 export {
 	defaultAddFontsFromNode,
 	KeyboardShiftEnterTweakExtension,

@@ -408,11 +408,31 @@ test.describe('Actions on shapes', () => {
 
 		/* ---------------------- Misc ---------------------- */
 
-		// toggle lock
+		// These actions require selected shapes to run
+
+		await page.keyboard.press('r')
+		await page.mouse.click(100, 100)
+		await page.keyboard.press('r')
+		await page.mouse.click(100, 300)
+		await page.keyboard.press('r')
+		await page.mouse.click(300, 300)
+
+		// First verify they don't fire when nothing is selected
+		await page.keyboard.press('Escape') // deselect all
+		await page.keyboard.press('Escape') // deselect all
+		const prevEvent = await page.evaluate(() => __tldraw_ui_event)
+
 		await page.keyboard.press('Shift+l')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'toggle-lock',
-		})
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject(prevEvent)
+
+		await page.keyboard.press('Control+Shift+Alt+=')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject(prevEvent)
+
+		await page.keyboard.press('Control+Shift+Alt+-')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject(prevEvent)
+
+		// Now select shapes and verify the actions fire
+		await page.keyboard.press('Control+a')
 
 		await page.keyboard.press('Control+Shift+Alt+=')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
@@ -422,6 +442,12 @@ test.describe('Actions on shapes', () => {
 		await page.keyboard.press('Control+Shift+Alt+-')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 			name: 'shrink-shapes',
+		})
+
+		// toggle lock (must be the last one here)
+		await page.keyboard.press('Shift+l')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'toggle-lock',
 		})
 
 		// await page.keyboard.press('Control+i')

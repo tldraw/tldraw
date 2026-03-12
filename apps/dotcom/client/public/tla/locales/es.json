@@ -23,26 +23,17 @@
   "0a91f7fa87": {
     "translation": "Este archivo ha alcanzado su límite de tamaño y es posible que los cambios ya no se guarden. Elimine algún contenido o cree un nuevo archivo."
   },
-  "0ab1ef22a3": {
-    "translation": "Habla con el grupo…"
-  },
   "0b27918290": {
     "translation": "Archivo"
   },
   "0b9a4cde72": {
     "translation": "Menú de archivo"
   },
-  "0befa10111": {
-    "translation": "Hadas"
-  },
   "0d1f2bb523": {
     "translation": "Enviar comentarios"
   },
   "110a4b01be": {
     "translation": "Publicar"
-  },
-  "11a755d598": {
-    "translation": "Detener"
   },
   "129b9e34ea": {
     "translation": "Grupo de salida"
@@ -71,26 +62,11 @@
   "1dd1c5fb7f": {
     "translation": "Hoy"
   },
-  "23f879f41a": {
-    "translation": "Se alcanzó tu límite semanal de uso de hadas. Se reiniciará a principios de la próxima semana."
-  },
-  "243924bfd5": {
-    "translation": "Dormir"
-  },
   "2445e5e347": {
     "translation": "Crear grupo"
   },
   "250ddea65c": {
     "translation": "Acerca de tldraw"
-  },
-  "269097080b": {
-    "translation": "Tus hadas te están esperando"
-  },
-  "275173253d": {
-    "translation": "Convocar a todos"
-  },
-  "284d5cd0dd": {
-    "translation": "Modelo:"
   },
   "299cb00a7a": {
     "translation": "Error al cargar"
@@ -98,17 +74,11 @@
   "2c3ef76333": {
     "translation": "Mis archivos"
   },
-  "30cd34258a": {
-    "translation": "Un grupo de <b>hadas</b> ha llegado a tldraw durante el mes de diciembre. Para investigar más, encuentra al hada y haz clic en ella."
-  },
   "31246941ad": {
     "translation": "Tiene que iniciar sesión para ver este archivo."
   },
   "31418ce4ad": {
     "translation": "i18n: falta resaltado"
-  },
-  "3209f407ed": {
-    "translation": "tres hadas"
   },
   "32210b37e4": {
     "translation": "Agregar enlace"
@@ -121,21 +91,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34abfe7a0d": {
-    "translation": "Duerme todo"
-  },
-  "34e34c43ec": {
-    "translation": "Administrar"
-  },
-  "3596c1b1f7": {
-    "translation": "Dejar de seguir"
-  },
-  "3903aab323": {
-    "translation": "Seguir"
-  },
-  "3b6c2b4caa": {
-    "translation": "Condiciones de servicio"
   },
   "3bc7d6ea2f": {
     "translation": "Continúa con el correo electrónico"
@@ -155,14 +110,8 @@
   "44db318ee5": {
     "translation": "Obtenga ayuda en Discord"
   },
-  "45b43c2d28": {
-    "translation": "Las <strong>hadas</strong> han venido a tldraw durante el mes de diciembre."
-  },
   "46137245cd": {
     "translation": "¡Gracias por ayudarnos a mejorar tldraw!"
-  },
-  "465a8a92a4": {
-    "translation": "No se seleccionaron hadas"
   },
   "477df802ca": {
     "translation": "Para continuar editando copie el archivo a sus archivos."
@@ -182,9 +131,6 @@
   "49ee308734": {
     "translation": "Nombre"
   },
-  "4c41e0bd95": {
-    "translation": "Seleccionar todo"
-  },
   "4d0d3ddec9": {
     "translation": "Este sitio utiliza cookies para que la aplicación funcione y para recopilar análisis."
   },
@@ -193,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "Eliminar grupo…"
-  },
-  "4dab36ac83": {
-    "translation": "Más opciones"
   },
   "4e6fbf032b": {
     "translation": "¿Seguro que quieres eliminar este grupo? Esta acción no se puede deshacer."
@@ -224,9 +167,6 @@
   "56c34c6410": {
     "translation": "Política de privacidad"
   },
-  "5a2ccdc00a": {
-    "translation": "No se pudo canjear el código de invitación"
-  },
   "5a86b22fa0": {
     "translation": "Arrastra los archivos aquí, <create>crea un archivo</create> o <invite>copia el enlace de invitación</invite> para empezar."
   },
@@ -254,17 +194,11 @@
   "61057a0c84": {
     "translation": "Más tarde"
   },
-  "61daf2e53d": {
-    "translation": "Habla con {name}…"
-  },
   "625fd29749": {
     "translation": "Más antiguo"
   },
   "639bae9ac6": {
     "translation": "tú"
-  },
-  "6602bbeb29": {
-    "translation": "Guía"
   },
   "6609dd239e": {
     "translation": "Algo ha ido mal"
@@ -274,15 +208,6 @@
   },
   "6832ac5936": {
     "translation": "Introduce tu dirección de correo electrónico"
-  },
-  "688761c83e": {
-    "translation": "Despertar"
-  },
-  "68d390535e": {
-    "translation": "Ingrese su mensaje"
-  },
-  "6910bbdc82": {
-    "translation": "Nombre del hada"
   },
   "6a26f54883": {
     "translation": "Ayuda"
@@ -329,9 +254,6 @@
   "777f9e90cf": {
     "translation": "Solicitud no válida."
   },
-  "77f0abf1aa": {
-    "translation": "Te han invitado a <strong>tldraw hadas</strong>"
-  },
   "7827371d1a": {
     "translation": "Este archivo tldraw multijugador anónimo ahora es de solo lectura. Para continuar editándolo, inicia sesión y cópialo a tus archivos."
   },
@@ -340,9 +262,6 @@
   },
   "797799f35e": {
     "translation": "Enviar un problema en GitHub"
-  },
-  "79cc22ac6b": {
-    "translation": "Un hada es un ser pequeño que puede trabajar contigo en el lienzo. Las hadas pueden trabajar solas o en equipo. No hay límites a lo que un hada puede hacer. Nadie sabe de dónde vienen."
   },
   "7b1329f5ca": {
     "translation": "Manual de usuario"
@@ -371,12 +290,6 @@
   "815e116a2e": {
     "translation": "¿Tienes algún error, problema o idea para tldraw? ¡Háznoslo saber! Completa este formulario y nos pondremos en contacto por correo electrónico si es necesario. También puedes <discord>chatear con nosotros en Discord</discord> o <github>enviar un problema en GitHub</github>."
   },
-  "81aa2078d1": {
-    "translation": "Borrar todo"
-  },
-  "83218ac34c": {
-    "translation": "Bienvenido"
-  },
   "85a082de1b": {
     "translation": "Actualice la página para obtener la última versión de tldraw."
   },
@@ -386,29 +299,14 @@
   "86c66437fd": {
     "translation": "Cambiar el nombre del archivo"
   },
-  "8726ef8909": {
-    "translation": "Reinicio completo"
-  },
-  "88e83b88c5": {
-    "translation": "Comprar paquete de hadas"
-  },
   "8ad4303b83": {
     "translation": "No, gracias"
-  },
-  "8be569f100": {
-    "translation": "pago único"
   },
   "8c2d3d730c": {
     "translation": "Comprueba tu correo electrónico para encontrar un código de verificación."
   },
-  "8cf04a9734": {
-    "translation": "Hogar"
-  },
   "8eb2c00e96": {
     "translation": "Compartido con usted"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Acerca de"
   },
   "8ff3d0a705": {
     "translation": "Tarifa limitada"
@@ -425,14 +323,8 @@
   "930390d222": {
     "translation": "Enlace de invitación copiado"
   },
-  "94186070ef": {
-    "translation": "Deseleccionar"
-  },
   "9489b2f82a": {
     "translation": "Ya eres miembro de este grupo"
-  },
-  "94966d9074": {
-    "translation": "Enviar"
   },
   "95aacd4d4a": {
     "translation": "Inicia sesión con Google"
@@ -451,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "Claro"
-  },
-  "9953e9946b": {
-    "translation": "Vista de depuración"
   },
   "9b33f5c63c": {
     "translation": "¿No recibiste un código? <resend>Reenviar</resend>."
@@ -485,17 +374,11 @@
   "a239905023": {
     "translation": "Exportar imagen"
   },
-  "a286d9991c": {
-    "translation": "Unirse"
-  },
   "a3debabee7": {
     "translation": "Política de cookies"
   },
   "a4d3b161ce": {
     "translation": "Entregar"
-  },
-  "a603905470": {
-    "translation": "Depurar"
   },
   "a6cc403d56": {
     "translation": "Cualquiera con el enlace"
@@ -505,12 +388,6 @@
   },
   "a8873770ab": {
     "translation": "El archivo está creciendo mucho"
-  },
-  "a8de4c27a8": {
-    "translation": "Se alcanzó el límite semanal de hadas"
-  },
-  "a917baaf14": {
-    "translation": "Nuevo chat"
   },
   "a9ded1e5ce": {
     "translation": "Fondo"
@@ -527,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "El archivo está lleno"
-  },
-  "b34a671e2c": {
-    "translation": "Tiempo de respuesta del registro"
   },
   "b357b524e7": {
     "translation": "Dirección de correo electrónico"
@@ -558,9 +432,6 @@
   "bc88b0e89e": {
     "translation": "Compartido por {ownerName}"
   },
-  "be4f1c62d3": {
-    "translation": "Zoom al hada"
-  },
   "c2276c9127": {
     "translation": "Más información sobre el uso compartido."
   },
@@ -570,23 +441,11 @@
   "c303bd1095": {
     "translation": "No se ha podido publicar el archivo."
   },
-  "c3bf447eab": {
-    "translation": "Abierto"
-  },
-  "c3eb5c3b90": {
-    "translation": "Entiendo"
-  },
   "c4b39a1cc3": {
     "translation": "Cookies esenciales"
   },
-  "c54a624f46": {
-    "translation": "Aceptar invitación"
-  },
   "c6155aaecc": {
     "translation": "Nombre del grupo"
-  },
-  "c64518704c": {
-    "translation": "Uso"
   },
   "c655b27b1e": {
     "translation": "i18n: cadena larga"
@@ -611,9 +470,6 @@
   },
   "ce0547606c": {
     "translation": "Este archivo está llegando a su límite de tamaño. Considere eliminar contenido o crear un nuevo archivo."
-  },
-  "ce1424d44b": {
-    "translation": "¡Ya tienes acceso de hadas!"
   },
   "cea291e45e": {
     "translation": "Más información sobre publicaciones."
@@ -648,20 +504,11 @@
   "dbbebf3c03": {
     "translation": "Solo invitar"
   },
-  "dc30bc0c79": {
-    "translation": "Claro"
-  },
   "dcdaa754fe": {
     "translation": "URL de archivo tldraw no válida"
   },
-  "df6ff49394": {
-    "translation": "Las hadas son una función <strong>temporal</strong>. El 1 de enero de 2026, todas las hadas serán eliminadas de la aplicación. Quizás regresen algún día. Tu compra te da acceso a las hadas solo durante diciembre de 2025."
-  },
   "dfdb78a4e4": {
     "translation": "Indicadores de depuración de la aplicación"
-  },
-  "e062622261": {
-    "translation": "Seleccionar"
   },
   "e0c88179b3": {
     "translation": "Invitar a los miembros"
@@ -677,9 +524,6 @@
   },
   "e404559826": {
     "translation": "Condiciones de servicio"
-  },
-  "e43ec38a93": {
-    "translation": "Ir a"
   },
   "e81c4e4f2b": {
     "translation": "o"
@@ -708,26 +552,17 @@
   "ede55d955f": {
     "translation": "Lea nuestra <a>política de cookies</a> para obtener más información."
   },
-  "eee6f05922": {
-    "translation": "Disolver"
-  },
   "ef53538ae4": {
     "translation": "Miembros"
   },
   "ef7de3f485": {
     "translation": "seleccionado"
   },
-  "efde983742": {
-    "translation": "Convocar"
-  },
   "f09b16bc5f": {
     "translation": "Usamos cookies para mantener su sesión iniciada, sincronizar sus archivos y recopilar análisis que nos ayuden a mejorar tldraw."
   },
   "f0e8bff6f9": {
     "translation": "Configuración de usuario"
-  },
-  "f1206f9fad": {
-    "translation": "Configurar"
   },
   "f2569594b2": {
     "translation": "Utilizamos estas cookies para guardar sus archivos y configuraciones."

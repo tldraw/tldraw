@@ -38,6 +38,7 @@ export class Lasering extends StateNode {
 	}
 
 	private complete() {
+		this.editor.scribbles.complete(this.scribbleId)
 		this.parent.transition('idle')
 	}
 }

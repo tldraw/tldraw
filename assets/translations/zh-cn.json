@@ -90,6 +90,7 @@
 	"action.save-copy": "保存副本",
 	"action.select-all": "选中全部",
 	"action.select-none": "取消选中",
+	"action.select-zoom-tool": "缩放",
 	"action.send-backward": "下移一层",
 	"action.send-to-back": "置底",
 	"action.share-project": "共享此项目",

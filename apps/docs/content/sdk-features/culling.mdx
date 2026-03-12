@@ -1,0 +1,116 @@
+---
+title: Culling
+created_at: 12/20/2025
+updated_at: 12/29/2025
+keywords:
+  - culling
+  - visibility
+  - viewport
+  - performance
+  - rendering
+status: published
+date: 12/20/2025
+readability: 9
+voice: 8
+completeness: 9
+accuracy: 9
+notes: Example link path may need verification. Could add more contractions for voice.
+---
+
+The culling system optimizes rendering performance by hiding shapes that are outside the viewport.
+
+Culled shapes remain in the DOM but have their `display` property set to `none`, so they don't incur any rendering cost. The system uses incremental derivations to track visibility changes efficiently as the camera moves or shapes change. Performance stays consistent even with thousands of shapes on the canvas.
+
+## Using the culling APIs
+
+The editor provides two methods for working with culled shapes:
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function CullingExample() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				onMount={(editor) => {
+					// Get shapes outside the viewport (before selection filtering)
+					const notVisible = editor.getNotVisibleShapes()
+
+					// Get shapes that should not render (excludes selected/editing shapes)
+					const culled = editor.getCulledShapes()
+
+					console.log('Not visible:', notVisible.size)
+					console.log('Actually culled:', culled.size)
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+Use [Editor#getNotVisibleShapes](?) to get all shapes whose bounds don't intersect the viewport. Use [Editor#getCulledShapes](?) to get the final set of shapes that won't render. The difference between these is that `getCulledShapes` excludes selected shapes and the shape currently being edited, so users can always see what they're working with.
+
+## How it works
+
+The culling system operates in two layers.
+
+The first layer identifies all shapes whose page bounds don't intersect with the viewport. This calculation iterates through every shape on the current page and performs a bounds collision check. The comparison is fast enough to run reactively.
+
+The second layer refines this set by removing shapes that should remain visible despite being outside the viewport. Selected shapes and the currently editing shape are never culled. This means users can scroll a shape partially or fully out of view while still seeing and interacting with it.
+
+## Shape-level control
+
+Each shape type can opt out of culling by overriding the `canCull` method on its ShapeUtil. By default, `canCull` returns `true`, so most shapes participate in culling.
+
+```tsx
+import { ShapeUtil, TLBaseShape, RecordProps, T, Rectangle2d } from 'tldraw'
+
+type MyShape = TLBaseShape<'my-shape', { w: number; h: number; hasGlow: boolean }>
+
+class MyShapeUtil extends ShapeUtil<MyShape> {
+	static override type = 'my-shape' as const
+	static override props: RecordProps<MyShape> = {
+		w: T.number,
+		h: T.number,
+		hasGlow: T.boolean,
+	}
+
+	getDefaultProps(): MyShape['props'] {
+		return { w: 100, h: 100, hasGlow: false }
+	}
+
+	getGeometry(shape: MyShape) {
+		return new Rectangle2d({ width: shape.props.w, height: shape.props.h, isFilled: true })
+	}
+
+	override canCull(shape: MyShape): boolean {
+		// Shapes with glow effects shouldn't be culled because
+		// the glow might be visible even when the shape bounds aren't
+		if (shape.props.hasGlow) {
+			return false
+		}
+		return true
+	}
+
+	component(shape: MyShape) {
+		return <div style={{ width: shape.props.w, height: shape.props.h }} />
+	}
+
+	indicator(shape: MyShape) {
+		return <rect width={shape.props.w} height={shape.props.h} />
+	}
+}
+```
+
+When `canCull` returns `false`, the culling system treats that shape as always visible regardless of its position.
+
+Common reasons to disable culling:
+
+- Shapes with visual effects (shadows, glows) that extend beyond their bounds
+- Shapes that measure their DOM content and need to stay rendered
+- Shapes with animations that should continue even when off-screen
+
+## Related examples
+
+- **[Size from DOM](/examples/shapes/size-from-dom)** - A shape that disables culling because it measures its DOM element to determine size.

@@ -17,10 +17,10 @@ import {
 } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
+import { createDrawSegments } from '../lib/utils/test-helpers'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
 import { roundedBox } from './roundedBox'
-import { createDrawSegments } from './test-jsx'
 
 vi.useFakeTimers()
 

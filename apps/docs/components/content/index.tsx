@@ -1,8 +1,11 @@
 import { ApiHeading } from '@/components/content/api-heading'
+import { StarterKitBento } from '@/components/content/bento'
 import { Blockquote } from '@/components/content/blockquote'
 import { Callout } from '@/components/content/callout'
+import { CheckItem } from '@/components/content/check-item'
 import { Code, CodeLinks, FocusLines } from '@/components/content/code'
 import { Embed, StarterKitEmbed } from '@/components/content/embed'
+import { Feature } from '@/components/content/feature'
 import { Image } from '@/components/content/image'
 import { ParametersTable } from '@/components/content/parameters-table'
 import { ParametersTableDescription } from '@/components/content/parameters-table-description'
@@ -49,6 +52,8 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 					Image,
 					img: Image,
 					ApiHeading,
+					StarterKitBento,
+					Feature,
 					Callout,
 					FocusLines,
 					CodeLinks,
@@ -57,6 +62,7 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 					ParametersTableName,
 					ParametersTableRow,
 					ApiMemberTitle,
+					CheckItem,
 					blockquote: Blockquote,
 					Video,
 					YouTube,
@@ -67,7 +73,14 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 						remarkPlugins: [remarkGfm],
 						rehypePlugins: [
 							[rehypeAutolinkHeadings, {}],
-							[rehypeSlug, { enableCustomId: true, maintainCase: true, removeAccents: true }],
+							[
+								rehypeSlug,
+								{
+									enableCustomId: true,
+									maintainCase: true,
+									removeAccents: true,
+								},
+							],
 							[
 								shikiRehype as any,
 								{

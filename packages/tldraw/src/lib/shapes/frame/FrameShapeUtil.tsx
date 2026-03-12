@@ -36,6 +36,7 @@ import {
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
 import {
+	defaultEmptyAs,
 	getFrameHeadingOpts,
 	getFrameHeadingSide,
 	getFrameHeadingSize,
@@ -58,13 +59,6 @@ export interface FrameShapeOptions {
 	 * When true, the frame will resize its children when the frame itself is resized.
 	 */
 	resizeChildren: boolean
-}
-
-export function defaultEmptyAs(str: string, dflt: string) {
-	if (str.match(/^\s*$/)) {
-		return dflt
-	}
-	return str
 }
 
 /** @public */
@@ -334,6 +328,16 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	indicator(shape: TLFrameShape) {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
+	}
+
+	override useLegacyIndicator() {
+		return false
+	}
+
+	override getIndicatorPath(shape: TLFrameShape): Path2D {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 
 	override providesBackgroundForChildren(): boolean {

@@ -1,9 +1,9 @@
-import { SimpleShape } from './SimpleShape'
+import { FocusedShape } from './FocusedShape'
 
 export interface BlurryShape {
 	shapeId: string
 	text?: string
-	type: SimpleShape['_type']
+	type: FocusedShape['_type']
 	x: number
 	y: number
 	w: number

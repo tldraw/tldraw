@@ -1,0 +1,94 @@
+---
+title: 'v3.15.0'
+created_at: 7/30/2025
+updated_at: 7/30/2025
+keywords:
+  - changelog
+  - release
+  - v3.15
+  - v3.15.0
+  - v3.15.1
+  - v3.15.2
+  - v3.15.3
+  - v3.15.4
+  - v3.15.5
+  - cli
+  - npm-create-tldraw
+  - accessibility
+  - performance
+  - handle-callbacks
+status: published
+---
+
+This release introduces `npm create tldraw` for bootstrapping new projects, along with API additions, accessibility improvements, and performance optimizations.
+
+## What's new
+
+### npm create tldraw
+
+Developers can now initialize new tldraw projects by running `npm create tldraw` in their terminal, selecting from available starter templates.
+
+## API changes
+
+- Add handle interaction callbacks: `onHandleDragStart`, `onHandleDragEnd`, and cancellation callbacks (`onTranslateCancel`, `onResizeCancel`, `onRotateCancel`, `onHandleDragCancel`).
+- Add JSX icon support for custom icons in tool overrides, action overrides, buttons, and menu items.
+- Add `StateNode.addChild` method enabling dynamic tool functionality additions.
+- Convert `DefaultSpinner` component to SVG format, now accepts standard SVG properties.
+- Export `HeartToolbarItem` component.
+
+## Improvements
+
+- Enhance "Select All" functionality to intelligently select within a shape's common parent context (e.g., selecting shapes within a frame without selecting the frame itself).
+- Add user preference option to disable keyboard shortcuts.
+- Prevent frame drops.
+- Optimize the `useValue` and `useReactor` hooks.
+- Enhance frame rendering efficiency.
+- Expand `aria-hidden` application.
+- Improve keyboard navigation.
+- Add proper `role="radiogroup"` assignment for toggle groups.
+- Correct aria slider values.
+
+## Bug fixes
+
+- Fix HTML entity escaping in pasted content.
+- Fix text measurement accuracy.
+- Fix arrow rendering between circles.
+- Fix SVG text outline rendering.
+- Fix image toolbar camera movement interactions.
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.15.0)
+
+---
+
+## Patch releases
+
+### v3.15.1
+
+- Fix room change event handling in the sync core library. ([#6543](https://github.com/tldraw/tldraw/pull/6543))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.15.1)
+
+### v3.15.2
+
+- Fix editor remounting in a loop when given custom assetUrls. ([#6605](https://github.com/tldraw/tldraw/pull/6605))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.15.2)
+
+### v3.15.3
+
+- Enhance callback functionality for shape utilities. ([#6634](https://github.com/tldraw/tldraw/pull/6634))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.15.3)
+
+### v3.15.4
+
+- Fix potential bug in TLSyncClient. ([#6660](https://github.com/tldraw/tldraw/pull/6660))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.15.4)
+
+### v3.15.5
+
+- Show license flags message as a warning. ([#6843](https://github.com/tldraw/tldraw/pull/6843))
+- Fix expired internal license verification. ([#6843](https://github.com/tldraw/tldraw/pull/6843))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.15.5)

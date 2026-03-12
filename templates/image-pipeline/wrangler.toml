@@ -1,0 +1,29 @@
+
+name = "image-pipeline-template"
+main = "worker/worker.ts"
+compatibility_date = "2025-05-08"
+compatibility_flags = ["nodejs_compat"]
+upload_source_maps = true
+preview_urls = true
+
+[[routes]]
+pattern = "image-pipeline.templates.tldraw.dev"
+custom_domain = true
+
+[observability]
+enabled = true
+
+[assets]
+not_found_handling = "single-page-application"
+directory = "./dist/client"
+
+# Store generated images in an R2 bucket so they persist across sessions.
+[[r2_buckets]]
+binding = 'IMAGE_BUCKET'
+bucket_name = 'image-pipeline'
+preview_bucket_name = 'image-pipeline-preview'
+
+# Environment variables for AI provider API keys.
+# Set these with: wrangler secret put REPLICATE_API_TOKEN
+# Or use a .dev.vars file for local development:
+#   REPLICATE_API_TOKEN=...

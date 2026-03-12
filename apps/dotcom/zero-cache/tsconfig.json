@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"target": "ESNext",
-		"lib": ["dom", "dom.iterable", "esnext"],
+		"lib": ["DOM", "DOM.Iterable", "ESNext"],
 		"allowJs": true,
 		"skipLibCheck": true,
 		"strict": true,
@@ -15,7 +15,6 @@
 		"jsx": "preserve",
 		"jsxImportSource": "react",
 		"incremental": true,
-		"downlevelIteration": true,
 		"plugins": [{ "name": "next" }]
 	},
 	"include": ["**/*.ts", "**/*.tsx", "src/tla/layouts/TlaAnonLayout", "zero.config.ts"],

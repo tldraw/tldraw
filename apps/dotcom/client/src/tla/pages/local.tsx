@@ -1,13 +1,15 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { assert, getFromSessionStorage, react } from 'tldraw'
+import { assert, getFromSessionStorage, omit, react } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
+import { SneakyDebugModeToast } from '../components/TlaEditor/sneaky/SneakyDebugModeToast'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
+import { importFromUrl } from '../utils/importFromUrl'
 import { clearRedirectOnSignIn } from '../utils/redirect'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
@@ -25,7 +27,37 @@ export function Component() {
 			const redirectTo = getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
 			if (redirectTo) {
 				clearRedirectOnSignIn()
-				navigate(redirectTo, { replace: true })
+				if (redirectTo.startsWith('/')) {
+					navigate(redirectTo, { replace: true })
+					return
+				}
+			}
+
+			// Run pending import from URL (set by /import?url=... redirect)
+			const pendingImportUrl = location.state?.importUrl
+			if (pendingImportUrl) {
+				// need to remove importUrl from location state so it doesn't persist after the import
+				const state = omit(location.state, ['importUrl'])
+				const result = await importFromUrl(app, pendingImportUrl)
+				if (result.ok) {
+					app.ensureFileVisibleInSidebar(result.fileId)
+					navigate(routes.tlaFile(result.fileId), {
+						replace: true,
+						state,
+					})
+					return
+				} else {
+					// just update the state without navigating anywhere
+					navigate('.', { replace: true, state })
+				}
+				if (!result.toastAlreadyShown) {
+					app.toasts?.addToast({
+						severity: 'error',
+						title: 'Import failed',
+						description: result.error,
+						keepOpen: true,
+					})
+				}
 				return
 			}
 
@@ -38,12 +70,12 @@ export function Component() {
 						replace: true,
 						state: location.state,
 					})
+					return
 				} else {
 					// if the user has too many files we end up here.
 					// don't slurp the file and when they log out they'll
 					// be able to see the same content that was there before
 				}
-				return
 			}
 
 			const recentFiles = app.getMyFiles()
@@ -97,6 +129,7 @@ function LocalTldraw() {
 				options={{ actionShortcutsLocation: 'toolbar' }}
 			>
 				<SneakyDarkModeSync />
+				<SneakyDebugModeToast />
 			</LocalEditor>
 		</TlaAnonLayout>
 	)

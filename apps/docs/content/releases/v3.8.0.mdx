@@ -1,0 +1,58 @@
+---
+title: 'v3.8.0'
+created_at: 12/2/2025
+updated_at: 12/2/2025
+keywords:
+  - changelog
+  - release
+  - v3.8
+  - v3.8.0
+  - v3.8.1
+  - performance
+  - i18n
+  - react-19
+  - export
+status: published
+---
+
+This release delivers performance enhancements, UI improvements, and developer experience upgrades alongside bug fixes.
+
+## API changes
+
+- 💥 **`maxDrawShapePoints`** moved to `DrawShapeUtil.configure({ maxPoints })`.
+- 💥 **Asset upload** now returns `{ src, meta? }` object instead of string.
+- 💥 **JSON export option** removed; `useImageOrVideoAssetUrl` requires width parameter.
+- 💥 **`TldrawUiToasts` and `TldrawUiDialogs`** renamed to `DefaultToasts` and `DefaultDialogs`.
+- Add new `Editor.toImage` method for refined export functionality.
+- Add custom content handlers for pasted tldraw and excalidraw content.
+- Add "before-event" listener for custom input event handling.
+- Add `onCrop` method for shape-specific cropping customization.
+
+## Improvements
+
+- Add `ShapeUtil.configure` utility for passing options to shape utilities.
+- Allow note shapes to resize by scale.
+- Add geometric tool shortcut (`g` key) for quick selection.
+- Add URL drag-and-drop to create bookmark shapes on canvas.
+- Expand support to 40+ languages via i18n enhancements.
+- Add React 19 compatibility.
+- Improve frame performance through computation relocation.
+
+## Bug fixes
+
+- Fix dialog and edit menu glitches.
+- Fix mousewheel scrolling on elements.
+- Fix image export width.
+- Fix text paste behavior via keyboard shortcuts.
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.8.0)
+
+---
+
+## Patch releases
+
+### v3.8.1
+
+- Fix `TldrawImage` not functioning properly with `format=png`. ([#5429](https://github.com/tldraw/tldraw/pull/5429))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v3.8.1)

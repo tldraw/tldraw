@@ -1,0 +1,63 @@
+---
+title: LLM documentation
+status: published
+author: steveruizok
+date: 2/1/2026
+order: 8
+keywords:
+  - llm
+  - ai
+  - language model
+  - markdown
+  - llms.txt
+  - copy
+  - context
+  - agent
+---
+
+The tldraw docs are optimized for use with large language models (LLMs). Whether you're using an AI coding assistant, building an agent that works with tldraw, or prompting a chat model, you can access our documentation in formats designed for LLM consumption.
+
+## llms.txt
+
+We publish our documentation at [tldraw.dev/llms.txt](https://tldraw.dev/llms.txt), following the [llms.txt standard](https://llmstxt.org/) for providing LLM-friendly content. This file serves as an index to all SDK documentation, examples, and release notes.
+
+The index includes links to several focused exports:
+
+| File                                                      | Contents                             |
+| --------------------------------------------------------- | ------------------------------------ |
+| [llms.txt](https://tldraw.dev/llms.txt)                   | Index with links to all resources    |
+| [llms-full.txt](https://tldraw.dev/llms-full.txt)         | All SDK docs, releases, and examples |
+| [llms-docs.txt](https://tldraw.dev/llms-docs.txt)         | SDK feature documentation only       |
+| [llms-releases.txt](https://tldraw.dev/llms-releases.txt) | Release notes only                   |
+| [llms-examples.txt](https://tldraw.dev/llms-examples.txt) | Examples with full source code       |
+
+### Using llms.txt with AI assistants
+
+When working with an AI coding assistant, you can provide context by including the relevant llms.txt file in your prompt or conversation. For example:
+
+- Use `llms-docs.txt` when asking about SDK features, APIs, or implementation patterns
+- Use `llms-examples.txt` when looking for code examples or implementation references
+- Use `llms-releases.txt` when asking about recent changes or migration between versions
+- Use `llms-full.txt` when you need comprehensive context across all documentation
+
+Many AI tools support fetching URLs directly, so you can reference these files by URL in your prompts.
+
+## Copy markdown button
+
+Every documentation page on tldraw.dev includes a "Copy markdown" button in the header. Click it to copy the page content as clean markdown, ready to paste into any LLM conversation.
+
+This is useful when you want to:
+
+- Ask an AI assistant about a specific feature
+- Include documentation context in a prompt
+- Reference our docs in your own documentation or notes
+
+The copied markdown preserves headings, code blocks, links, and other formatting while removing site-specific elements that aren't relevant in a plain text context.
+
+## Building AI-powered apps
+
+If you're building AI-powered applications with tldraw, see our [AI integrations](/docs/ai) guide. It covers patterns for using the canvas with AI models, including:
+
+- Using the canvas to display AI-generated content
+- Building visual workflows with AI nodes
+- Creating AI agents that can read and manipulate the canvas

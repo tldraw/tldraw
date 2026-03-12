@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 export default function Page() {
 	return (
-		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:pt-8 isolate md:isolation-auto">
+		<div className="w-full max-w-screen-2xl mx-auto md:px-5 md:flex md:pt-8 isolate md:isolation-auto">
 			<DocsSidebar />
 			<div className="sticky top-14 z-10 flex items-center justify-between w-full h-12 px-5 bg-white border-b border-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 backdrop-blur md:hidden">
 				<DocsMobileSidebar />

@@ -230,6 +230,115 @@ describe('getDebouncedZoomLevel', () => {
 	})
 })
 
+describe('hover updates during camera movement', () => {
+	// Note: These tests verify the hover locking optimization during camera movement.
+	// Important: pan({ x, y }) moves the camera, which changes how screen coordinates
+	// map to page coordinates. After pan(10, 10), screen point (150, 150) maps to
+	// page point (140, 140). Tests account for this by positioning pointer well
+	// inside shapes so small pans don't move the effective page point outside.
+
+	// Note: Default geo shapes have fill: 'none' (hollow), so hit testing only works on edges.
+	// For interior points to register hits, shapes must have fill: 'solid'.
+
+	it('keeps hover when camera starts moving and pointer is over same shape', () => {
+		// Create a solid shape so we can hit anywhere inside it
+		editor.createShapes([{ type: 'geo', x: 100, y: 100, props: { w: 200, h: 200, fill: 'solid' } }])
+		const shape = editor.getLastCreatedShape()
+
+		// Move pointer to center of shape (200, 200 is center of 100-300 range)
+		editor.pointerMove(200, 200)
+		expect(editor.getHoveredShapeId()).toBe(shape.id)
+
+		// Start panning (camera moves)
+		// After pan(10,10), screen (200,200) -> page (190,190), still inside shape (100-300)
+		editor.pan({ x: 10, y: 10 })
+		expect(editor.getCameraState()).toBe('moving')
+
+		// Trigger a pointer move at the same screen position
+		// Page point is (190, 190) which is still inside the shape
+		editor.pointerMove(200, 200)
+		expect(editor.getHoveredShapeId()).toBe(shape.id)
+	})
+
+	it('clears and locks hover when pointer moves to empty area while camera is moving', () => {
+		// Create a solid shape so we can hit anywhere inside it
+		editor.createShapes([{ type: 'geo', x: 100, y: 100, props: { w: 200, h: 200, fill: 'solid' } }])
+		const shape = editor.getLastCreatedShape()
+
+		// Move pointer over shape to hover it
+		editor.pointerMove(200, 200)
+		expect(editor.getHoveredShapeId()).toBe(shape.id)
+
+		// Start panning
+		editor.pan({ x: 10, y: 10 })
+		expect(editor.getCameraState()).toBe('moving')
+
+		// Move pointer to empty area - hover changes to null, so it locks
+		editor.pointerMove(500, 500)
+		expect(editor.getHoveredShapeId()).toBe(null)
+
+		// Move pointer back to shape while still moving - should stay locked (no hover)
+		editor.pointerMove(200, 200)
+		expect(editor.getHoveredShapeId()).toBe(null)
+	})
+
+	it('resumes hover updates when camera becomes idle', () => {
+		// Create a solid shape so we can hit anywhere inside it
+		editor.createShapes([{ type: 'geo', x: 100, y: 100, props: { w: 200, h: 200, fill: 'solid' } }])
+		const shape = editor.getLastCreatedShape()
+
+		// Move pointer over shape
+		editor.pointerMove(200, 200)
+		expect(editor.getHoveredShapeId()).toBe(shape.id)
+
+		// Start panning and move pointer off shape to trigger lock
+		editor.pan({ x: 10, y: 10 })
+		expect(editor.getCameraState()).toBe('moving')
+		editor.pointerMove(500, 500) // Move to empty area
+		expect(editor.getHoveredShapeId()).toBe(null)
+
+		// Move pointer back over shape while still moving - still locked
+		editor.pointerMove(200, 200)
+		expect(editor.getHoveredShapeId()).toBe(null)
+
+		// Let camera settle
+		editor.forceTick(5)
+		expect(editor.getCameraState()).toBe('idle')
+
+		// Move pointer again now that camera is idle - hover should update
+		// After pan(10,10), screen (200,200) -> page (190,190), still inside shape
+		editor.pointerMove(200, 200)
+		expect(editor.getHoveredShapeId()).toBe(shape.id)
+	})
+
+	it('locks immediately if there is no current hover when camera starts moving', () => {
+		// Create a solid shape so we can hit anywhere inside it
+		editor.createShapes([{ type: 'geo', x: 100, y: 100, props: { w: 200, h: 200, fill: 'solid' } }])
+		const shape = editor.getLastCreatedShape()
+
+		// Pointer is not over any shape
+		editor.pointerMove(500, 500)
+		expect(editor.getHoveredShapeId()).toBe(null)
+
+		// Start panning
+		editor.pan({ x: 10, y: 10 })
+		expect(editor.getCameraState()).toBe('moving')
+
+		// Move pointer over shape while moving - should be locked since no previous hover
+		editor.pointerMove(200, 200)
+		expect(editor.getHoveredShapeId()).toBe(null)
+
+		// Let camera settle
+		editor.forceTick(5)
+		expect(editor.getCameraState()).toBe('idle')
+
+		// Move pointer again now that camera is idle - hover should work
+		// After pan(10,10), screen (200,200) -> page (190,190), still inside shape
+		editor.pointerMove(200, 200)
+		expect(editor.getHoveredShapeId()).toBe(shape.id)
+	})
+})
+
 describe('getEfficientZoomLevel', () => {
 	it('returns current zoom level when below shape threshold', () => {
 		// Default threshold is 500 shapes, we have 0

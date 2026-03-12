@@ -1,5 +1,6 @@
 import {
 	BaseBoxShapeUtil,
+	createShapeId,
 	IndexKey,
 	Polyline2d,
 	ShapeUtil,
@@ -14,7 +15,6 @@ import {
 	ZERO_INDEX_KEY,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
-import { TL } from './test-jsx'
 
 const TEST1_TYPE = 'test1'
 
@@ -50,9 +50,19 @@ describe('custom shape bounds snapping - translate', () => {
 	let ids: Record<string, TLShapeId>
 	beforeEach(() => {
 		editor = new TestEditor({ shapeUtils })
-		ids = editor.createShapesFromJsx([
-			<TL.geo ref="box" x={0} y={0} w={100} h={100} />,
-			<TL.test1 ref="test1" x={200} y={200} w={100} h={100} boundsSnapPoints={null} />,
+		ids = {
+			box: createShapeId('box'),
+			test1: createShapeId('test1'),
+		}
+		editor.createShapes([
+			{ id: ids.box, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{
+				id: ids.test1,
+				type: TEST1_TYPE,
+				x: 200,
+				y: 200,
+				props: { w: 100, h: 100, boundsSnapPoints: null },
+			},
 		])
 	})
 
@@ -255,17 +265,24 @@ describe('custom handle snapping', () => {
 	let ids: Record<string, TLShapeId>
 	beforeEach(() => {
 		editor = new TestEditor({ shapeUtils })
-		ids = editor.createShapesFromJsx([
-			<TL.line
-				ref="line"
-				x={0}
-				y={0}
-				points={{
-					a1: { id: 'a1', index: 'a1' as IndexKey, x: 0, y: 0 },
-					a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 100 },
-				}}
-			/>,
-			<TL.test2 ref="test2" x={200} y={200} w={100} h={100} />,
+		ids = {
+			line: createShapeId('line'),
+			test2: createShapeId('test2'),
+		}
+		editor.createShapes([
+			{
+				id: ids.line,
+				type: 'line',
+				x: 0,
+				y: 0,
+				props: {
+					points: {
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: 0, y: 0 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 100 },
+					},
+				},
+			},
+			{ id: ids.test2, type: TEST2_TYPE, x: 200, y: 200, props: { w: 100, h: 100 } },
 		])
 	})
 
@@ -644,16 +661,22 @@ describe('custom adjacent handle for shift snapping', () => {
 
 	beforeEach(() => {
 		editor = new TestEditor({ shapeUtils })
-		ids = editor.createShapesFromJsx([
-			<TL.bezier
-				ref="bezier"
-				x={0}
-				y={0}
-				start={{ x: 0, y: 0 }}
-				cp1={{ x: 50, y: 0 }}
-				cp2={{ x: 50, y: 100 }}
-				end={{ x: 100, y: 100 }}
-			/>,
+		ids = {
+			bezier: createShapeId('bezier'),
+		}
+		editor.createShapes([
+			{
+				id: ids.bezier,
+				type: 'bezier',
+				x: 0,
+				y: 0,
+				props: {
+					start: { x: 0, y: 0 },
+					cp1: { x: 50, y: 0 },
+					cp2: { x: 50, y: 100 },
+					end: { x: 100, y: 100 },
+				},
+			},
 		])
 	})
 

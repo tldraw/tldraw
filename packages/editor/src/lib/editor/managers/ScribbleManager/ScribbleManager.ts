@@ -1,7 +1,7 @@
 import { TLScribble, VecModel } from '@tldraw/tlschema'
 import { uniqueId } from '@tldraw/utils'
 import { Vec } from '../../../primitives/Vec'
-import { Editor } from '../../Editor'
+import type { Editor } from '../../Editor'
 
 /** @public */
 export interface ScribbleItem {
@@ -288,6 +288,26 @@ export class ScribbleManager {
 				}
 				if (session.options.idleTimeoutMs > 0) {
 					this.resetIdleTimeout(session)
+				}
+				return item
+			}
+		}
+		throw Error(`Scribble with id ${id} not found`)
+	}
+
+	/**
+	 * Mark a scribble as complete (done being drawn but not yet fading).
+	 * Searches all sessions.
+	 *
+	 * @param id - The scribble id
+	 * @public
+	 */
+	complete(id: string): ScribbleItem {
+		for (const session of this.sessions.values()) {
+			const item = session.items.find((i) => i.id === id)
+			if (item) {
+				if (item.scribble.state === 'starting' || item.scribble.state === 'active') {
+					item.scribble.state = 'complete'
 				}
 				return item
 			}

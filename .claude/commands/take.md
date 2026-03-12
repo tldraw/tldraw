@@ -1,7 +1,7 @@
 ---
 description: Take an issue from the GitHub repo and implement it.
 argument-hint: [issue number or description]
-allowed-tools: Bash(git:*), Bash(gh:*), Skill(write-pr), Skill(write-issue)
+allowed-tools: Bash(git:*), Bash(gh:*)
 model: opus
 ---
 

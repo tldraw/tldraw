@@ -1,0 +1,188 @@
+---
+title: Highlighting
+created_at: 1/31/2026
+updated_at: 1/31/2026
+keywords:
+  - highlight
+  - hover
+  - hinting
+  - shape indicator
+  - visual feedback
+  - page state
+  - hoveredShapeId
+  - hintingShapeIds
+status: published
+date: 1/31/2026
+---
+
+Shape highlighting shows visual indicators on shapes to provide feedback during user interactions. The editor tracks two types of highlighting: **hover** (the shape under the pointer) and **hints** (shapes you want to emphasize programmatically).
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				onMount={(editor) => {
+					// Highlight specific shapes with a visual indicator
+					const shapes = editor.getCurrentPageShapes()
+					if (shapes.length > 0) {
+						editor.setHintingShapes([shapes[0]])
+					}
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+## Hover highlighting
+
+The editor automatically tracks which shape is under the pointer and displays a selection-style indicator around it. This happens during idle states when the pointer moves over the canvas.
+
+### Reading hover state
+
+Use [Editor#getHoveredShapeId](?) or [Editor#getHoveredShape](?) to check which shape is currently hovered:
+
+```typescript
+// Get the hovered shape ID
+const hoveredId = editor.getHoveredShapeId()
+
+// Get the full shape object
+const hoveredShape = editor.getHoveredShape()
+
+if (hoveredShape) {
+	console.log('Hovering over:', hoveredShape.type)
+}
+```
+
+### Setting hover manually
+
+Use [Editor#setHoveredShape](?) to override the automatic hover detection:
+
+```typescript
+// Set hover by shape or ID
+editor.setHoveredShape(myShape)
+editor.setHoveredShape(myShape.id)
+
+// Clear hover
+editor.setHoveredShape(null)
+```
+
+Use this to highlight a shape that isn't directly under the pointer, such as when implementing custom interaction logic.
+
+### Automatic hover detection
+
+The editor's select tool automatically updates hover state as the pointer moves. The hover indicator appears when:
+
+- The editor is idle or editing a shape
+- The pointer is over the canvas (not UI elements)
+- The input is not coarse (not touch input)
+- The editor is not changing styles
+
+Touch devices don't show hover indicators because touch has no hovering concept.
+
+## Hint highlighting
+
+Hints let you highlight multiple shapes programmatically. Unlike hover (single shape, automatic), hints are manually controlled and can include any number of shapes.
+
+### Reading hints
+
+Use [Editor#getHintingShapeIds](?) or [Editor#getHintingShape](?) to get currently hinted shapes:
+
+```typescript
+// Get array of hinted shape IDs
+const hintedIds = editor.getHintingShapeIds()
+
+// Get array of hinted shape objects
+const hintedShapes = editor.getHintingShape()
+```
+
+### Setting hints
+
+Use [Editor#setHintingShapes](?) to highlight shapes:
+
+```typescript
+// Highlight shapes by ID or shape object
+editor.setHintingShapes([shape1, shape2])
+editor.setHintingShapes([shape1.id, shape2.id])
+
+// Clear all hints
+editor.setHintingShapes([])
+```
+
+Hinted shapes render with a thicker stroke (2.5px) than selected or hovered shapes (1.5px). This makes them stand out when you need to draw attention to specific shapes.
+
+### Common use cases
+
+**Draw attention to shapes during a tutorial:**
+
+```typescript
+function highlightNextStep(editor: Editor, shapeId: TLShapeId) {
+	editor.setHintingShapes([shapeId])
+	// Clear after 3 seconds
+	setTimeout(() => {
+		editor.setHintingShapes([])
+	}, 3000)
+}
+```
+
+**Show related shapes when one is selected:**
+
+```typescript
+editor.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next) => {
+	const selected = next.selectedShapeIds
+	if (selected.length === 1) {
+		// Find bindings connected to the selected shape
+		const bindings = editor.getBindingsToShape(selected[0], 'arrow')
+		const connectedShapeIds = bindings.map((b) => b.fromId)
+		editor.setHintingShapes(connectedShapeIds)
+	} else {
+		editor.setHintingShapes([])
+	}
+})
+```
+
+## Visual rendering
+
+Both hover and hint indicators use the same selection color (`--tl-color-selected` CSS variable). The editor renders them using either SVG or canvas depending on the shape's indicator implementation.
+
+| State    | Stroke width | Condition                          |
+| -------- | ------------ | ---------------------------------- |
+| Selected | 1.5px        | Shape is in selection              |
+| Hovered  | 1.5px        | Pointer is over shape (automatic)  |
+| Hinted   | 2.5px        | Shape is in hinting array (manual) |
+
+Collaborator selections render at 1.5px with their user color at reduced opacity.
+
+## Page state storage
+
+Hover and hint state are stored in [TLInstancePageState](?), which tracks per-page interaction state. Each page maintains its own hover and hint values.
+
+```typescript
+const pageState = editor.getCurrentPageState()
+
+pageState.hoveredShapeId // TLShapeId | null
+pageState.hintingShapeIds // TLShapeId[]
+```
+
+Both properties are ephemeral—they don't persist across sessions or sync between collaborators.
+
+## Related articles
+
+- [Instance state](/sdk-features/instance-state) — Session state including page state
+- [Selection](/sdk-features/selection) — Working with selected shapes
+- [Cursors](/sdk-features/cursors) — Cursor types and customization
+
+## API reference
+
+| Method                         | Description                            |
+| ------------------------------ | -------------------------------------- |
+| [Editor#getHoveredShapeId](?)  | Get the ID of the shape under pointer  |
+| [Editor#getHoveredShape](?)    | Get the shape object under pointer     |
+| [Editor#setHoveredShape](?)    | Manually set or clear hover state      |
+| [Editor#getHintingShapeIds](?) | Get IDs of shapes with hint indicators |
+| [Editor#getHintingShape](?)    | Get shapes with hint indicators        |
+| [Editor#setHintingShapes](?)   | Set shapes to show hint indicators     |

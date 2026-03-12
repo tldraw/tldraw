@@ -4,7 +4,7 @@ import { TodoItem } from '../../shared/types/TodoItem'
 import { TldrawAgent } from '../agent/TldrawAgent'
 
 export function TodoList({ agent }: { agent: TldrawAgent }) {
-	const todoItems = useValue(agent.$todoList)
+	const todoItems = useValue('todoList', () => agent.todos.getTodos(), [agent])
 
 	if (todoItems.length === 0) {
 		return null
@@ -14,17 +14,17 @@ export function TodoList({ agent }: { agent: TldrawAgent }) {
 		<div className="todo-list">
 			<div className="todo-list-items">
 				{todoItems.map((item) => (
-					<TodoListItem key={item.id} agent={agent} item={item} />
+					<TodoListItem key={item.id} item={item} agent={agent} />
 				))}
 			</div>
 		</div>
 	)
 }
 
-function TodoListItem({ agent, item }: { agent: TldrawAgent; item: TodoItem }) {
+function TodoListItem({ item, agent }: { item: TodoItem; agent: TldrawAgent }) {
 	const deleteTodo = useCallback(() => {
-		agent.$todoList.update((items) => items.filter((i) => i.id !== item.id))
-	}, [item.id, agent.$todoList])
+		agent.todos.delete([item.id])
+	}, [item.id, agent])
 
 	const getStatusIcon = (status: TodoItem['status']) => {
 		switch (status) {

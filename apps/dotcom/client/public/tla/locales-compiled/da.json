@@ -51,12 +51,6 @@
       "value": "Denne fil har nået sin størrelsesgrænse, og ændringerne kan muligvis ikke længere gemmes. Fjern noget indhold, eller start en ny fil."
     }
   ],
-  "0ab1ef22a3": [
-    {
-      "type": 0,
-      "value": "Tal med gruppen…"
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -69,12 +63,6 @@
       "value": "Fil menu"
     }
   ],
-  "0befa10111": [
-    {
-      "type": 0,
-      "value": "Feer"
-    }
-  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -85,12 +73,6 @@
     {
       "type": 0,
       "value": "Offentliggøre"
-    }
-  ],
-  "11a755d598": [
-    {
-      "type": 0,
-      "value": "Stop"
     }
   ],
   "129b9e34ea": [
@@ -147,18 +129,6 @@
       "value": "I dag"
     }
   ],
-  "23f879f41a": [
-    {
-      "type": 0,
-      "value": "Din ugentlige grænse for fe-forbrug er nået. Den nulstilles i starten af næste uge."
-    }
-  ],
-  "243924bfd5": [
-    {
-      "type": 0,
-      "value": "Sove"
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -169,24 +139,6 @@
     {
       "type": 0,
       "value": "Om tldraw"
-    }
-  ],
-  "269097080b": [
-    {
-      "type": 0,
-      "value": "Dine feer venter"
-    }
-  ],
-  "275173253d": [
-    {
-      "type": 0,
-      "value": "Indkald alle"
-    }
-  ],
-  "284d5cd0dd": [
-    {
-      "type": 0,
-      "value": "Model:"
     }
   ],
   "299cb00a7a": [
@@ -201,26 +153,6 @@
       "value": "Mine filer"
     }
   ],
-  "30cd34258a": [
-    {
-      "type": 0,
-      "value": "En flok "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "feer"
-        }
-      ],
-      "type": 8,
-      "value": "b"
-    },
-    {
-      "type": 0,
-      "value": " er kommet til tldraw i december måned. For at undersøge sagen nærmere, find feen og klik på den."
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -231,12 +163,6 @@
     {
       "type": 0,
       "value": "i18n: Fremhæv mangler"
-    }
-  ],
-  "3209f407ed": [
-    {
-      "type": 0,
-      "value": "tre feer"
     }
   ],
   "32210b37e4": [
@@ -261,36 +187,6 @@
     {
       "type": 0,
       "value": "Redaktør"
-    }
-  ],
-  "34abfe7a0d": [
-    {
-      "type": 0,
-      "value": "Sov alle"
-    }
-  ],
-  "34e34c43ec": [
-    {
-      "type": 0,
-      "value": "Styre"
-    }
-  ],
-  "3596c1b1f7": [
-    {
-      "type": 0,
-      "value": "Fjern følg"
-    }
-  ],
-  "3903aab323": [
-    {
-      "type": 0,
-      "value": "Følge"
-    }
-  ],
-  "3b6c2b4caa": [
-    {
-      "type": 0,
-      "value": "Servicevilkår"
     }
   ],
   "3bc7d6ea2f": [
@@ -329,32 +225,10 @@
       "value": "Få hjælp til Discord"
     }
   ],
-  "45b43c2d28": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Feer"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " er kommet for at tegne i december måned."
-    }
-  ],
   "46137245cd": [
     {
       "type": 0,
       "value": "Tak, fordi du hjælper os med at forbedre tldraw!"
-    }
-  ],
-  "465a8a92a4": [
-    {
-      "type": 0,
-      "value": "Ingen feer valgt"
     }
   ],
   "477df802ca": [
@@ -393,12 +267,6 @@
       "value": "Navn"
     }
   ],
-  "4c41e0bd95": [
-    {
-      "type": 0,
-      "value": "Vælg alle"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -415,12 +283,6 @@
     {
       "type": 0,
       "value": "Slet gruppe…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Flere muligheder"
     }
   ],
   "4e6fbf032b": [
@@ -485,12 +347,6 @@
     {
       "type": 0,
       "value": "Privatlivspolitik"
-    }
-  ],
-  "5a2ccdc00a": [
-    {
-      "type": 0,
-      "value": "Kunne ikke indløse invitationskoden"
     }
   ],
   "5a86b22fa0": [
@@ -575,20 +431,6 @@
       "value": "Senere"
     }
   ],
-  "61daf2e53d": [
-    {
-      "type": 0,
-      "value": "Tal til "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -599,12 +441,6 @@
     {
       "type": 0,
       "value": "du"
-    }
-  ],
-  "6602bbeb29": [
-    {
-      "type": 0,
-      "value": "Guide"
     }
   ],
   "6609dd239e": [
@@ -623,24 +459,6 @@
     {
       "type": 0,
       "value": "Indtast din e-mailadresse"
-    }
-  ],
-  "688761c83e": [
-    {
-      "type": 0,
-      "value": "Vågne"
-    }
-  ],
-  "68d390535e": [
-    {
-      "type": 0,
-      "value": "Indtast din besked"
-    }
-  ],
-  "6910bbdc82": [
-    {
-      "type": 0,
-      "value": "Feens navn"
     }
   ],
   "6a26f54883": [
@@ -733,22 +551,6 @@
       "value": "Ugyldig anmodning."
     }
   ],
-  "77f0abf1aa": [
-    {
-      "type": 0,
-      "value": "Du er blevet inviteret til at "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "tldraw feer"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    }
-  ],
   "7827371d1a": [
     {
       "type": 0,
@@ -765,12 +567,6 @@
     {
       "type": 0,
       "value": "Indsend et problem på GitHub"
-    }
-  ],
-  "79cc22ac6b": [
-    {
-      "type": 0,
-      "value": "En fe er en lille fyr, der kan arbejde sammen med dig på lærredet. Feer kan arbejde alene eller som et hold. Der er ingen grænser for, hvad en fe kan gøre. Ingen ved, hvor de kommer fra."
     }
   ],
   "7b1329f5ca": [
@@ -855,18 +651,6 @@
       "value": "."
     }
   ],
-  "81aa2078d1": [
-    {
-      "type": 0,
-      "value": "Ryd alt"
-    }
-  ],
-  "83218ac34c": [
-    {
-      "type": 0,
-      "value": "Velkomst"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -893,28 +677,10 @@
       "value": "Omdøb fil"
     }
   ],
-  "8726ef8909": [
-    {
-      "type": 0,
-      "value": "Hård nulstilling"
-    }
-  ],
-  "88e83b88c5": [
-    {
-      "type": 0,
-      "value": "Køb fe-pakke"
-    }
-  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "Nej tak"
-    }
-  ],
-  "8be569f100": [
-    {
-      "type": 0,
-      "value": "engangsbetaling"
     }
   ],
   "8c2d3d730c": [
@@ -923,22 +689,10 @@
       "value": "Tjek din e-mail for en bekræftelseskode."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Hjem"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Delt med dig"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "Om"
     }
   ],
   "8ff3d0a705": [
@@ -971,22 +725,10 @@
       "value": "Kopieret invitationslink"
     }
   ],
-  "94186070ef": [
-    {
-      "type": 0,
-      "value": "Fravælg"
-    }
-  ],
   "9489b2f82a": [
     {
       "type": 0,
       "value": "Du er allerede medlem af denne gruppe"
-    }
-  ],
-  "94966d9074": [
-    {
-      "type": 0,
-      "value": "Sende"
     }
   ],
   "95aacd4d4a": [
@@ -1023,12 +765,6 @@
     {
       "type": 0,
       "value": "Lys"
-    }
-  ],
-  "9953e9946b": [
-    {
-      "type": 0,
-      "value": "Fejlfindingsvisning"
     }
   ],
   "9b33f5c63c": [
@@ -1105,12 +841,6 @@
       "value": "Eksporter billede"
     }
   ],
-  "a286d9991c": [
-    {
-      "type": 0,
-      "value": "Deltag"
-    }
-  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1121,12 +851,6 @@
     {
       "type": 0,
       "value": "Indsend"
-    }
-  ],
-  "a603905470": [
-    {
-      "type": 0,
-      "value": "Fejlfinding"
     }
   ],
   "a6cc403d56": [
@@ -1145,18 +869,6 @@
     {
       "type": 0,
       "value": "Filen bliver stor"
-    }
-  ],
-  "a8de4c27a8": [
-    {
-      "type": 0,
-      "value": "Ugentlig fe-grænse nået"
-    }
-  ],
-  "a917baaf14": [
-    {
-      "type": 0,
-      "value": "Ny chat"
     }
   ],
   "a9ded1e5ce": [
@@ -1193,12 +905,6 @@
     {
       "type": 0,
       "value": "Filen er fuld"
-    }
-  ],
-  "b34a671e2c": [
-    {
-      "type": 0,
-      "value": "Logresponstid"
     }
   ],
   "b357b524e7": [
@@ -1295,12 +1001,6 @@
       "value": "ownerName"
     }
   ],
-  "be4f1c62d3": [
-    {
-      "type": 0,
-      "value": "Zoom til fe"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1333,40 +1033,16 @@
       "value": "Filen kunne ikke udgives."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Åben"
-    }
-  ],
-  "c3eb5c3b90": [
-    {
-      "type": 0,
-      "value": "Jeg forstår"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
       "value": "Vigtige cookies"
     }
   ],
-  "c54a624f46": [
-    {
-      "type": 0,
-      "value": "Accepter invitation"
-    }
-  ],
   "c6155aaecc": [
     {
       "type": 0,
       "value": "Gruppenavn"
-    }
-  ],
-  "c64518704c": [
-    {
-      "type": 0,
-      "value": "Brug"
     }
   ],
   "c655b27b1e": [
@@ -1415,12 +1091,6 @@
     {
       "type": 0,
       "value": "Denne fil nærmer sig sin størrelsesgrænse. Overvej at fjerne noget indhold eller starte en ny fil."
-    }
-  ],
-  "ce1424d44b": [
-    {
-      "type": 0,
-      "value": "Du har allerede adgang til feer!"
     }
   ],
   "cea291e45e": [
@@ -1517,48 +1187,16 @@
       "value": "Kun invitation"
     }
   ],
-  "dc30bc0c79": [
-    {
-      "type": 0,
-      "value": "Klar"
-    }
-  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "Ugyldig URL til tldraw-fil"
     }
   ],
-  "df6ff49394": [
-    {
-      "type": 0,
-      "value": "Feer er en "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "midlertidig"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " funktion. Den 1. januar 2026 fjernes alle feer fra applikationen. Måske vender de tilbage igen en dag. Dit køb gælder kun adgang til feer i december 2025."
-    }
-  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "App debug flag"
-    }
-  ],
-  "e062622261": [
-    {
-      "type": 0,
-      "value": "Vælge"
     }
   ],
   "e0c88179b3": [
@@ -1589,12 +1227,6 @@
     {
       "type": 0,
       "value": "Servicevilkår"
-    }
-  ],
-  "e43ec38a93": [
-    {
-      "type": 0,
-      "value": "Gå til"
     }
   ],
   "e81c4e4f2b": [
@@ -1665,12 +1297,6 @@
       "value": " for at få mere at vide."
     }
   ],
-  "eee6f05922": [
-    {
-      "type": 0,
-      "value": "Opløse"
-    }
-  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1683,12 +1309,6 @@
       "value": "udvalgte"
     }
   ],
-  "efde983742": [
-    {
-      "type": 0,
-      "value": "Tilkalde"
-    }
-  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1699,12 +1319,6 @@
     {
       "type": 0,
       "value": "Brugerindstillinger"
-    }
-  ],
-  "f1206f9fad": [
-    {
-      "type": 0,
-      "value": "Konfigurér"
     }
   ],
   "f2569594b2": [

@@ -312,6 +312,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			<TldrawUiPopoverTrigger data-testid="main.page-menu">
 				<TldrawUiButton
 					type="menu"
+					tooltip={currentPage.name}
 					title={currentPage.name}
 					data-testid="page-menu.button"
 					className="tlui-page-menu__trigger"
@@ -334,6 +335,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 								<TldrawUiButton
 									type="icon"
 									data-testid="page-menu.edit"
+									tooltip={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
 									title={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
 									onClick={toggleEditing}
 								>
@@ -342,6 +344,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 								<TldrawUiButton
 									type="icon"
 									data-testid="page-menu.create"
+									tooltip={msg(
+										maxPageCountReached
+											? 'page-menu.max-page-count-reached'
+											: 'page-menu.create-new-page'
+									)}
 									title={msg(
 										maxPageCountReached
 											? 'page-menu.max-page-count-reached'
@@ -446,6 +453,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 										className="tlui-page-menu__item__button"
 										onClick={() => changePage(page.id)}
 										onDoubleClick={toggleEditing}
+										tooltip={msg('page-menu.go-to-page')}
 										title={msg('page-menu.go-to-page')}
 										onKeyDown={(e) => {
 											if (e.key === 'Enter') {

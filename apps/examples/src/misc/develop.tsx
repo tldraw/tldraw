@@ -26,6 +26,7 @@ const ContextMenu = track(() => {
 	const oneShape = editor.getOnlySelectedShape()
 	const selectedShapes = editor.getSelectedShapes()
 	const tracked = trackedShapes.get()
+
 	return (
 		<DefaultContextMenu>
 			<DefaultContextMenuContent />

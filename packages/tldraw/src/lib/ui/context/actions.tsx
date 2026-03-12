@@ -17,12 +17,14 @@ import {
 	approximately,
 	compact,
 	createShapeId,
+	fetch,
 	kickoutOccludedShapes,
 	openWindow,
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
+import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
@@ -311,6 +313,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'copy-as-json',
+				label: {
+					default: 'action.copy-as-json',
+					menu: 'action.copy-as-json.short',
+					['context-menu']: 'action.copy-as-json.short',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
+					trackEvent('copy-as', { format: 'json', source })
+					helpers.copyAs(ids, 'json')
+				},
+			},
+			{
 				id: 'toggle-auto-size',
 				label: 'action.toggle-auto-size',
 				onSelect(source) {
@@ -369,18 +387,25 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'select-zoom-tool',
+				label: 'action.select-zoom-tool',
 				readonlyOk: true,
-				kbd: 'z',
+				kbd: 'z, !z',
 				onSelect(source) {
+					// Noop if user is actually cmd/ctrl+z'ing
+					if (editor.inputs.getAccelKey()) return
+
+					// Noop unless in the current tool's idle state
+					const path = editor.getPath()
+					if (!path.endsWith('.idle')) return
+
+					// Noop if already in zoom tool
 					if (editor.root.getCurrent()?.id === 'zoom') return
 
 					trackEvent('zoom-tool', { source })
-					if (!(editor.inputs.getShiftKey() || editor.inputs.getCtrlKey())) {
-						const currentTool = editor.root.getCurrent()
-						if (currentTool && currentTool.getCurrent()?.id === 'idle') {
-							editor.setCurrentTool('zoom', { onInteractionEnd: currentTool.id, maskAs: 'zoom' })
-						}
-					}
+					editor.setCurrentTool('zoom', {
+						onInteractionEnd: path,
+						maskAs: 'zoom',
+					})
 				},
 			},
 			{
@@ -1452,6 +1477,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.toggle-lock',
 				kbd: 'shift+l',
 				onSelect(source) {
+					if (!canApplySelectionAction()) return
 					editor.markHistoryStoppingPoint('locking')
 					trackEvent('toggle-lock', { source })
 					editor.toggleLock(editor.getSelectedShapeIds())
@@ -1666,6 +1692,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'a11y.enlarge-shape',
 				kbd: 'cmd+alt+shift+=,ctrl+alt+shift+=',
 				onSelect: async (source) => {
+					if (!canApplySelectionAction()) return
 					scaleShapes(1.1)
 					trackEvent('enlarge-shapes', { source })
 				},
@@ -1675,6 +1702,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'a11y.shrink-shape',
 				kbd: 'cmd+alt+shift+-,ctrl+alt+shift+-',
 				onSelect: async (source) => {
+					if (!canApplySelectionAction()) return
 					scaleShapes(1 / 1.1)
 					trackEvent('shrink-shapes', { source })
 				},
@@ -1742,22 +1770,23 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						if (!asset || !asset.props.src) continue
 
 						const url = await editor.resolveAssetUrl(asset.id, { shouldResolveToOriginal: true })
-						if (!url) return
+						if (!url) continue
 
-						const link = document.createElement('a')
-						link.href = url
-
-						if (
+						const name =
 							(asset.type === 'video' || asset.type === 'image') &&
 							!asset.props.src.startsWith('asset:')
-						) {
-							link.download = asset.props.name
-						} else {
-							link.download = 'download'
+								? asset.props.name
+								: 'download'
+
+						try {
+							const resp = await fetch(url)
+							if (!resp.ok) throw new Error(`Failed to fetch asset: ${resp.status}`)
+							const blob = await resp.blob()
+							downloadFile(new File([blob], name, { type: blob.type }))
+						} catch {
+							// Fallback: open in new tab (e.g. if CORS blocked)
+							openWindow(url, '_blank')
 						}
-						document.body.appendChild(link)
-						link.click()
-						document.body.removeChild(link)
 					}
 
 					trackEvent('download-original', { source })

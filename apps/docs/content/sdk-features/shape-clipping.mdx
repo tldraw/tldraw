@@ -1,0 +1,178 @@
+---
+title: Shape clipping
+created_at: 12/28/2025
+updated_at: 12/28/2025
+keywords:
+  - clipping
+  - masking
+  - clip path
+  - shapes
+  - frames
+  - children
+status: published
+date: 12/28/2025
+readability: 9
+voice: 9
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+Shape clipping lets parent shapes mask their children so content outside the parent's boundary is hidden. Frames are the primary example—drop shapes into a frame and they're cropped to the frame's edges. Custom shapes can define their own clip boundaries using any polygon.
+
+## How clipping works
+
+The clipping system uses two ShapeUtil methods that work together: `getClipPath` defines the clipping boundary as an array of points, and `shouldClipChild` controls which children get clipped.
+
+When a shape is a child of a clipping parent, the editor:
+
+1. Gets the parent's clip path from `getClipPath`
+2. Checks if this child should be clipped via `shouldClipChild`
+3. Transforms the clip path to page coordinates
+4. Applies it as a CSS clip-path during rendering
+
+If a shape has multiple clipping ancestors, their clip paths are intersected. A shape nested inside two clipping parents is clipped by both—only the overlapping region shows.
+
+## Implementing clipping
+
+To make a custom shape clip its children, implement `getClipPath` in your ShapeUtil:
+
+```tsx
+import { Rectangle2d, ShapeUtil, TLBaseShape, Vec } from 'tldraw'
+
+type MyClipShape = TLBaseShape<'my-clip', { w: number; h: number }>
+
+class MyClipShapeUtil extends ShapeUtil<MyClipShape> {
+	static override type = 'my-clip' as const
+
+	override getDefaultProps() {
+		return { w: 200, h: 200 }
+	}
+
+	override getGeometry(shape: MyClipShape) {
+		return new Rectangle2d({ width: shape.props.w, height: shape.props.h, isFilled: true })
+	}
+
+	override component(shape: MyClipShape) {
+		return <rect width={shape.props.w} height={shape.props.h} fill="transparent" stroke="black" />
+	}
+
+	override indicator(shape: MyClipShape) {
+		return <rect width={shape.props.w} height={shape.props.h} />
+	}
+
+	override getClipPath(shape: MyClipShape): Vec[] | undefined {
+		// Return polygon vertices in local coordinates
+		return [
+			new Vec(0, 0),
+			new Vec(shape.props.w, 0),
+			new Vec(shape.props.w, shape.props.h),
+			new Vec(0, shape.props.h),
+		]
+	}
+
+	override canReceiveNewChildrenOfType() {
+		return true
+	}
+}
+```
+
+The returned points define a polygon in the shape's local coordinate space. The editor transforms these points to page space before applying the clip. Return `undefined` to disable clipping entirely.
+
+> **Note for stroked shapes:** If your clipping shape has a stroke, consider insetting the clip path by half the stroke width so children are clipped to the inner boundary rather than the outer edge of the stroke. This prevents children from overlapping with the stroke itself.
+
+### Selective clipping
+
+By default, all children of a clipping parent are clipped. Override `shouldClipChild` to change this:
+
+```typescript
+override shouldClipChild(child: TLShape): boolean {
+	// Don't clip text shapes
+	if (child.type === 'text') return false
+	return true
+}
+```
+
+This lets you create clipping shapes where some content types break out of the boundary. You might clip geometric shapes but let labels extend beyond the edge.
+
+## Frame clipping
+
+Frames are the primary built-in example of clipping. The FrameShapeUtil implements clipping by returning its geometry vertices:
+
+```typescript
+override getClipPath(shape: TLFrameShape) {
+	return this.editor.getShapeGeometry(shape.id).vertices
+}
+```
+
+This clips to the frame's rectangular boundary. Content that extends beyond the frame's edges is hidden during rendering but still exists in the document—you can ungroup or move shapes out of the frame to see the clipped portions.
+
+## Reading shape masks
+
+The editor computes masks for any clipped shape. Use these methods to access mask data:
+
+| Method                     | Returns                  | Description                      |
+| -------------------------- | ------------------------ | -------------------------------- |
+| `getShapeMask`             | `VecLike[] \| undefined` | Mask polygon in page coordinates |
+| `getShapeClipPath`         | `string \| undefined`    | CSS `polygon(...)` string        |
+| `getShapeMaskedPageBounds` | `Box \| undefined`       | Bounds clipped by the mask       |
+
+```typescript
+const mask = editor.getShapeMask(shapeId)
+// Returns array of points in page space, or undefined if not clipped
+
+const clipPath = editor.getShapeClipPath(shapeId)
+// Returns a "polygon(...)" CSS string, or undefined
+
+const clippedBounds = editor.getShapeMaskedPageBounds(shapeId)
+// Returns the shape's page bounds intersected with its mask
+```
+
+These methods are useful for custom rendering, SVG export, or building UI that needs to understand clipping relationships.
+
+## Non-rectangular clip paths
+
+Clip paths can be any polygon. For a circular clip, approximate the circle with polygon segments:
+
+```typescript
+override getClipPath(shape: CircleShape): Vec[] | undefined {
+	const centerX = shape.props.w / 2
+	const centerY = shape.props.h / 2
+	const radius = Math.min(shape.props.w, shape.props.h) / 2
+	const segments = 48
+
+	const points: Vec[] = []
+	for (let i = 0; i < segments; i++) {
+		const angle = (i / segments) * Math.PI * 2
+		points.push(
+			new Vec(
+				centerX + Math.cos(angle) * radius,
+				centerY + Math.sin(angle) * radius
+			)
+		)
+	}
+	return points
+}
+```
+
+More segments create smoother curves. The performance cost is minimal since clip paths are cached and only recomputed when the shape changes.
+
+## Backgrounds and clipping
+
+Shapes that clip typically also provide backgrounds for their children. Override `providesBackgroundForChildren` to enable this:
+
+```typescript
+override providesBackgroundForChildren(): boolean {
+	return true
+}
+```
+
+When this returns true, child shapes with `backgroundComponent` methods have their backgrounds rendered above this shape rather than above the canvas background. This creates proper visual layering within clipping containers.
+
+## Clipping and hit testing
+
+Clipping affects both rendering and hit testing. The [Editor#getShapeAtPoint](?) method filters out shapes when the click point falls outside the shape's mask—you can't select a clipped shape by clicking its hidden portions.
+
+Snapping and bounds calculations use the shape's full geometry, so a clipped shape's bounds may extend beyond what's visible. Only rendering and hit testing are masked.
+
+For an example of custom clipping shapes, see the [custom clipping shape example](/examples/editor-api/custom-clipping-shape).

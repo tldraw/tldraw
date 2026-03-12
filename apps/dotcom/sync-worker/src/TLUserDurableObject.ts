@@ -1,5 +1,13 @@
-import { CustomMutatorImpl } from '@rocicorp/zero'
-import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/custom'
+import type {
+	AST,
+	Condition,
+	CustomMutatorImpl,
+	HumanReadable,
+	Query,
+	RunOptions,
+	TableMutator,
+	TableSchema,
+} from '@rocicorp/zero'
 import {
 	DB,
 	MIN_Z_PROTOCOL_VERSION,
@@ -9,7 +17,6 @@ import {
 	ZErrorCode,
 	ZServerSentPacket,
 	createMutators,
-	hasActiveFairyAccess,
 	schema,
 } from '@tldraw/dotcom-shared'
 import {
@@ -21,19 +28,39 @@ import { ExecutionQueue, IndexKey, assert, mapObjectMapValues, sleep } from '@tl
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import { Kysely, PostgresDialect, Transaction, sql } from 'kysely'
-import { Pool, PoolClient } from 'pg'
+import { Kysely, PostgresDialect, PostgresPoolClient, Transaction, sql } from 'kysely'
 import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
+import { TLPostgresPool } from './postgres'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { getFeatureFlag } from './utils/featureFlags'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 import { getClerkClient } from './utils/tla/getAuth'
 import { ChangeAccumulator, ServerCRUD } from './zero/ServerCrud'
-import { ServerQuery } from './zero/ServerQuery'
 import { ZMutationError } from './zero/ZMutationError'
+
+const ALLOWED_OPS = new Set(['=', '!=', '>', '<', '>=', '<=', 'IS', 'IS NOT'])
+
+function getQueryAstOrThrow(query: unknown): AST {
+	if (!query || typeof query !== 'object') {
+		throw new Error('Invalid query')
+	}
+	const ast = Reflect.get(query, 'ast')
+	if (!ast || typeof ast !== 'object' || !('table' in ast)) {
+		throw new Error('Invalid query')
+	}
+	return ast as AST
+}
+
+interface SocketMetadata {
+	protocolVersion: number
+	sessionId: string
+	userId: string
+}
+
+// How often to run the alarm for periodic maintenance (LSN updates)
+const ALARM_INTERVAL_MS = 10 * 60 * 1000 // 10 minutes
 
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
@@ -56,26 +83,20 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	cache: UserDataSyncer | null = null
 
+	private pool: TLPostgresPool
+
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
-
 		this.sentry = createSentry(ctx, env)
 
-		this.pool = new Pool({
-			connectionString: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
-			application_name: 'user-do',
-			idleTimeoutMillis: 3_000,
-			max: 1,
-		})
+		this.log = new Logger(env, 'TLUserDurableObject', this.sentry)
+		this.pool = new TLPostgresPool(env, this.log)
 
 		this.db = new Kysely<DB>({
 			dialect: new PostgresDialect({ pool: this.pool }),
 			log: ['error'],
 		})
 		this.measure = env.MEASURE
-
-		// debug logging in preview envs by default
-		this.log = new Logger(env, 'TLUserDurableObject', this.sentry)
 	}
 
 	private userId: string | null = null
@@ -153,116 +174,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				this.logEvent({ type: 'rate_limited', id: this.userId })
 				throw new Error('Rate limited')
 			}
-			if (!this.cache) {
-				this.coldStartStartTime = Date.now()
-				this.log.debug('creating cache', this.userId)
-				this.cache = new UserDataSyncer(
-					this.ctx,
-					this.env,
-					this.db,
-					this.userId,
-					(message) => this.broadcast(message),
-					this.logEvent.bind(this),
-					this.log
-				)
-			}
+			await this.ensureCache()
 		})
+		// User creation is handled by the .all() handler above; this just returns 200.
+		.post('/app/:userId/init', () => new Response('ok', { status: 200 }))
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
-		.post('/app/:userId/fairy/check-rate-limit', async () => {
-			if (!this.userId) {
-				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
-			}
-
-			const weekKey = getISOWeekKey()
-			const DEFAULT_WEEKLY_LIMIT = 25
-
-			const userFairies = await this.db
-				.selectFrom('user_fairies')
-				.where('userId', '=', this.userId)
-				.select(['weeklyUsage', 'weeklyLimit'])
-				.executeTakeFirst()
-
-			if (!userFairies) {
-				return Response.json({ error: 'User fairy record not found' }, { status: 404 })
-			}
-
-			const effectiveLimit = userFairies.weeklyLimit ?? DEFAULT_WEEKLY_LIMIT
-
-			if (effectiveLimit === 0) {
-				return Response.json({ error: 'Fairy access blocked' }, { status: 403 })
-			}
-
-			const currentUsage = userFairies.weeklyUsage[weekKey] || 0
-
-			if (currentUsage >= effectiveLimit) {
-				return Response.json({ error: 'Weekly rate limit exceeded' }, { status: 429 })
-			}
-
-			return new Response(null, { status: 200 })
-		})
-		.post('/app/:userId/fairy/record-usage', async (req) => {
-			if (!this.userId) {
-				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
-			}
-
-			const body = (await req.json()) as any
-			const { actualCost } = body
-
-			if (typeof actualCost !== 'number' || actualCost < 0 || !isFinite(actualCost)) {
-				return Response.json({ error: 'Invalid actualCost' }, { status: 400 })
-			}
-
-			const weekKey = getISOWeekKey()
-
-			// Atomic increment using PostgreSQL JSONB operators
-			const result = await this.db
-				.updateTable('user_fairies')
-				.set({
-					weeklyUsage: sql`
-						jsonb_set(
-							COALESCE("weeklyUsage", '{}'::jsonb),
-							${sql.lit(`{${weekKey}}`)},
-							to_jsonb(COALESCE(("weeklyUsage"->>${sql.lit(weekKey)})::numeric, 0) + ${actualCost}::numeric)
-						)
-					`,
-				})
-				.where('userId', '=', this.userId)
-				.returning(sql<number>`("weeklyUsage"->>${sql.lit(weekKey)})::numeric`.as('totalUsage'))
-				.executeTakeFirst()
-
-			if (!result) {
-				return Response.json({ error: 'User fairy record not found' }, { status: 404 })
-			}
-
-			return Response.json({ success: true, totalUsage: result.totalUsage })
-		})
-		.get('/app/:userId/fairy/has-access', async () => {
-			if (!this.userId) {
-				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
-			}
-
-			const flagEnabled = await getFeatureFlag(this.env, 'fairies')
-			if (!flagEnabled) {
-				return Response.json({ hasAccess: false })
-			}
-
-			const userFairies = await this.db
-				.selectFrom('user_fairies')
-				.where('userId', '=', this.userId)
-				.select(['fairyAccessExpiresAt', 'fairyLimit'])
-				.executeTakeFirst()
-
-			if (!userFairies) {
-				return Response.json({ hasAccess: false })
-			}
-
-			const hasAccess = hasActiveFairyAccess(
-				userFairies.fairyAccessExpiresAt ?? null,
-				userFairies.fairyLimit ?? null
-			)
-
-			return Response.json({ hasAccess })
-		})
 
 	// Handle a request to the Durable Object.
 	override async fetch(req: IRequest) {
@@ -285,51 +201,110 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
+	// --- Hibernation-aware cache management ---
+
+	private async ensureCache(): Promise<void> {
+		if (this.cache) return
+
+		// On hibernation wake-up, userId may be lost — restore from socket metadata
+		if (!this.userId) {
+			for (const socket of this.ctx.getWebSockets()) {
+				const meta = socket.deserializeAttachment() as SocketMetadata | null
+				if (meta?.userId) {
+					this.userId = meta.userId
+					this.log.debug('restored userId from socket metadata', this.userId)
+					break
+				}
+			}
+		}
+
+		if (!this.userId) {
+			throw new Error('Cannot initialize cache: userId not available')
+		}
+
+		this.coldStartStartTime = Date.now()
+		this.log.debug('creating cache', this.userId)
+		this.cache = new UserDataSyncer(
+			this.ctx,
+			this.env,
+			this.db,
+			this.userId,
+			(message) => this.broadcast(message),
+			this.logEvent.bind(this),
+			this.log
+		)
+	}
+
 	private assertCache(): asserts this is { cache: UserDataSyncer } {
 		assert(this.cache, 'no cache')
 	}
 
-	interval: NodeJS.Timeout | null = null
-
-	private maybeStartInterval() {
-		if (!this.interval) {
-			this.interval = setInterval(() => {
-				// do cache persist + cleanup
-				this.cache?.onInterval()
-
-				// clean up closed sockets if there are any
-				for (const socket of this.sockets.keys()) {
-					if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
-						this.sockets.delete(socket)
-					}
-				}
-
-				if (this.sockets.size === 0 && typeof this.interval === 'number') {
-					clearInterval(this.interval)
-					this.interval = null
-				}
-			}, 2000)
-		}
-	}
-
-	private readonly sockets = new Map<WebSocket, { protocolVersion: number; sessionId: string }>()
+	// Per-socket chunk assemblers (not preserved across hibernation, but that's ok —
+	// partially-assembled chunks from before hibernation would be stale anyway)
+	private readonly assemblers = new Map<WebSocket, JsonChunkAssembler>()
 
 	private makeCrud(
-		client: PoolClient,
+		client: PostgresPoolClient,
 		signal: AbortSignal,
 		changeAccumulator: ChangeAccumulator
-	): SchemaCRUD<TlaSchema> {
+	) {
 		return mapObjectMapValues(
 			schema.tables,
 			(_, table) => new ServerCRUD(client, table, signal, changeAccumulator)
-		)
+		) as { [K in keyof TlaSchema['tables']]: TableMutator<TlaSchema['tables'][K] & TableSchema> }
 	}
 
-	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
-		return mapObjectMapValues(
-			schema.tables,
-			(tableName) => new ServerQuery(signal, client, false, tableName) as any
-		)
+	private async executeServerQuery(
+		client: PostgresPoolClient,
+		ast: AST
+	): Promise<unknown[] | unknown> {
+		const table = ast.table
+		if (!(table in schema.tables)) {
+			throw new Error(`Unknown table: ${table}`)
+		}
+		const params: unknown[] = []
+		let paramIndex = 1
+
+		const quoteIdentifier = (s: string) => '"' + s.replace(/"/g, '""') + '"'
+
+		const processCondition = (condition: Condition): string => {
+			switch (condition.type) {
+				case 'and':
+					return `(${condition.conditions.map(processCondition).join(' AND ')})`
+				case 'or':
+					return `(${condition.conditions.map(processCondition).join(' OR ')})`
+				case 'simple': {
+					if (condition.left.type !== 'column') {
+						throw new Error(`Unsupported left operand type: ${condition.left.type}`)
+					}
+					if (condition.right.type !== 'literal') {
+						throw new Error(`Unsupported right operand type: ${condition.right.type}`)
+					}
+					const field = quoteIdentifier(condition.left.name)
+					if (!ALLOWED_OPS.has(condition.op)) {
+						throw new Error(`Unsupported operator in server query executor: ${condition.op}`)
+					}
+					params.push(condition.right.value)
+					return `${field} ${condition.op} $${paramIndex++}`
+				}
+				case 'correlatedSubquery':
+					throw new Error('Correlated subquery conditions are not supported')
+				default: {
+					const _exhaustive: never = condition
+					throw new Error(`Unknown condition type: ${(_exhaustive as any).type}`)
+				}
+			}
+		}
+
+		const whereClause = ast.where ? `WHERE ${processCondition(ast.where)}` : ''
+		const sql = `SELECT * FROM ${quoteIdentifier(table)} ${whereClause}`
+		const res = await client.query(sql, params)
+
+		// ast.limit === 1 means .one() was called
+		if (ast.limit === 1) {
+			return res.rows[0]
+		}
+		return res.rows
 	}
 
 	maybeReportColdStartTime(type: ZServerSentPacket['type']) {
@@ -345,15 +320,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.outgoingBuffer = null
 		if (!buffer) return
 
-		for (const [socket] of this.sockets.entries()) {
-			if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
-				this.sockets.delete(socket)
-				continue
-			}
+		for (const socket of this.ctx.getWebSockets()) {
 			if (socket.readyState !== WebSocket.OPEN) {
 				continue
 			}
-
 			socket.send(JSON.stringify(buffer))
 		}
 	}
@@ -373,7 +343,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	async onRequest(req: IRequest) {
 		assert(this.userId, 'User ID not set')
-		// handle legacy param names
 
 		const url = new URL(req.url)
 		const params = Object.fromEntries(url.searchParams.entries())
@@ -389,44 +358,25 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
-		serverWebSocket.accept()
+
+		// Use hibernation API — Cloudflare manages the socket lifecycle
+		this.ctx.acceptWebSocket(serverWebSocket)
+
+		// Store metadata on the socket so it survives hibernation
+		const metadata: SocketMetadata = {
+			protocolVersion,
+			sessionId,
+			userId: this.userId,
+		}
+		serverWebSocket.serializeAttachment(metadata)
 
 		if (protocolVersion < MIN_Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 
-		const assembler = new JsonChunkAssembler()
-		serverWebSocket.addEventListener('message', (e) => {
-			const res = assembler.handleMessage(e.data.toString())
-			if (!res) {
-				// not enough chunks yet
-				return
-			}
-			if ('error' in res) {
-				this.captureException(res.error, { source: 'serverWebSocket "message" event, bad chunk' })
-				return
-			}
-
-			this.messageQueue.push(() =>
-				this.handleSocketMessage(serverWebSocket, res.stringified).catch((e) =>
-					this.captureException(e, { source: 'serverWebSocket "message" event' })
-				)
-			)
-		})
-		serverWebSocket.addEventListener('close', () => {
-			this.sockets.delete(serverWebSocket)
-		})
-		serverWebSocket.addEventListener('error', (e) => {
-			this.captureException(e, { source: 'serverWebSocket "error" event' })
-			this.sockets.delete(serverWebSocket)
-		})
-
-		this.sockets.set(serverWebSocket, {
-			protocolVersion,
-			sessionId,
-		})
-		this.maybeStartInterval()
+		// Schedule alarm for periodic maintenance (LSN updates)
+		await this.maybeScheduleAlarm()
 
 		const initialData = this.cache.store.getCommittedData()
 		if (initialData) {
@@ -445,6 +395,79 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
+
+	// --- Hibernation lifecycle handlers ---
+
+	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+		await this.ensureCache()
+
+		const messageString = typeof message === 'string' ? message : new TextDecoder().decode(message)
+
+		// Get or create assembler for this socket
+		let assembler = this.assemblers.get(ws)
+		if (!assembler) {
+			assembler = new JsonChunkAssembler()
+			this.assemblers.set(ws, assembler)
+		}
+
+		const res = assembler.handleMessage(messageString)
+		if (!res) {
+			// not enough chunks yet
+			return
+		}
+		if ('error' in res) {
+			this.captureException(res.error, { source: 'webSocketMessage, bad chunk' })
+			return
+		}
+
+		await this.messageQueue.push(() =>
+			this.handleSocketMessage(ws, res.stringified).catch((e) =>
+				this.captureException(e, { source: 'webSocketMessage' })
+			)
+		)
+	}
+
+	override async webSocketClose(ws: WebSocket, code: number, reason: string, _wasClean: boolean) {
+		// Must reciprocate the close to complete the handshake, otherwise clients get 1006 errors
+		ws.close(code, reason)
+		this.assemblers.delete(ws)
+	}
+
+	override async webSocketError(ws: WebSocket, error: unknown) {
+		this.captureException(error, { source: 'webSocketError' })
+		this.assemblers.delete(ws)
+	}
+
+	// --- Alarm-based periodic maintenance (replaces setInterval) ---
+
+	override async alarm() {
+		try {
+			const sockets = this.ctx.getWebSockets()
+			if (sockets.length === 0) {
+				this.log.debug('no active sockets, skipping alarm')
+				return
+			}
+
+			await this.ensureCache()
+			this.cache?.maybeRequestLsnUpdate()
+
+			// Schedule next alarm
+			await this.maybeScheduleAlarm()
+		} catch (e) {
+			this.captureException(e, { source: 'alarm' })
+		}
+	}
+
+	private async maybeScheduleAlarm() {
+		if (this.ctx.getWebSockets().length > 0) {
+			const currentAlarm = await this.ctx.storage.getAlarm()
+			if (!currentAlarm) {
+				await this.ctx.storage.setAlarm(Date.now() + ALARM_INTERVAL_MS)
+			}
+		}
+	}
+
+	// --- Message handling ---
 
 	private async handleSocketMessage(socket: WebSocket, message: string) {
 		const rateLimited = await isRateLimited(this.env, this.userId!)
@@ -497,8 +520,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		socket?.send(JSON.stringify([msg]))
 	}
 
-	private pool: Pool
-
 	private async _doMutate(msg: ZClientSentMessage) {
 		this.log.debug('doMutate', this.userId, msg)
 		assert(msg.type === 'mutator', 'Invalid message type')
@@ -508,11 +529,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		try {
 			const changeAccumulator: ChangeAccumulator = {
 				file: { added: [] },
-				user_fairies: { added: [], updated: [], removed: [] },
-				file_fairies: { added: [], updated: [], removed: [] },
 			}
 
-			await client.query('BEGIN')
+			await client.query('BEGIN', [])
 
 			// Acquire shared advisory lock to coordinate with migration
 			// This will wait if migrate_user_to_groups is running (which uses exclusive lock)
@@ -536,22 +555,32 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						dbTransaction: {
 							wrappedTransaction: null as any,
 							async query(sqlString: string, params: unknown[]): Promise<any[]> {
-								return client.query(sqlString, params).then((res) => res.rows)
+								return client.query(sqlString, params).then((res: any) => res.rows)
+							},
+							async runQuery() {
+								throw new Error('runQuery not implemented')
 							},
 						},
 						mutate,
 						location: 'server',
 						reason: 'authoritative',
 						mutationID: 0,
-						query: this.makeQuery(client, controller.signal),
+						query: undefined as any, // deprecated, using run() instead
+						run: async <TTable extends keyof TlaSchema['tables'] & string, TReturn>(
+							query: Query<TTable, TlaSchema, TReturn>,
+							_options?: RunOptions
+						): Promise<HumanReadable<TReturn>> => {
+							const ast = getQueryAstOrThrow(query)
+							return this.executeServerQuery(client, ast) as Promise<HumanReadable<TReturn>>
+						},
 					},
-					msg.props
+					msg.props,
+					undefined // context
 				)
 			} finally {
 				controller.abort()
 			}
 
-			// await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
 			const res = await client.query<{ mutationNumber: number }>(
 				`insert into user_mutation_number ("userId", "mutationNumber") values ($1, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`,
 				[this.userId]
@@ -570,11 +599,16 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				timestamp: Date.now(),
 			})
 
-			await client.query('COMMIT')
+			await client.query('COMMIT', [])
+
+			// Check mutation status after the commit timeout has elapsed
+			setTimeout(() => {
+				this.cache?.checkMutationDidCommit(msg.mutationId).catch((e) => this.captureException(e))
+			}, 15_000)
 
 			await this.cache?.incorporateUnsyncedChanges(changeAccumulator)
 		} catch (e) {
-			await client.query('ROLLBACK')
+			await client.query('ROLLBACK', [])
 			throw e
 		} finally {
 			client.release()
@@ -600,9 +634,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			)
 		} catch (e: any) {
 			const code = e instanceof ZMutationError ? e.errorCode : ZErrorCode.unknown_error
+			const cause = e instanceof ZMutationError ? e.originalCause : e.cause
 			this.captureException(e, {
 				errorCode: code,
-				reason: e.cause ?? e.message ?? e.stack ?? JSON.stringify(e),
+				reason: cause ?? e.message ?? e.stack ?? JSON.stringify(e),
 			})
 			await this.rejectMutation(socket, msg.mutationId, code)
 		}
@@ -662,7 +697,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return
 		}
 		this.__test__isForceDowngraded = isDowngraded
-		for (const socket of this.sockets.keys()) {
+		for (const socket of this.ctx.getWebSockets()) {
 			socket.close()
 		}
 	}
@@ -775,10 +810,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		}
 		// Close all websocket connections to force reconnect with fresh data
-		for (const socket of this.sockets.keys()) {
+		for (const socket of this.ctx.getWebSockets()) {
 			socket.close()
 		}
-		this.sockets.clear()
 	}
 
 	async admin_getData(userId: string) {
@@ -801,10 +835,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	async admin_delete(userId: string) {
 		// Close all websocket connections
-		for (const socket of this.sockets.keys()) {
+		for (const socket of this.ctx.getWebSockets()) {
 			socket.close()
 		}
-		this.sockets.clear()
 
 		// Clear the cache/state
 		if (this.cache) {
@@ -814,24 +847,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		// Delete R2 data snapshot
 		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 
-		// Clear any intervals
-		if (this.interval) {
-			clearInterval(this.interval)
-			this.interval = null
-		}
+		// Clear any scheduled alarms
+		await this.ctx.storage.deleteAlarm()
 
 		await this.db.destroy()
 	}
-}
-
-function getISOWeekKey(): string {
-	const now = new Date()
-	const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
-	const dayNum = d.getUTCDay() || 7
-	// Move to Thursday of the ISO week (determines which year the week belongs to)
-	d.setUTCDate(d.getUTCDate() + 4 - dayNum)
-	const year = d.getUTCFullYear()
-	const yearStart = new Date(Date.UTC(year, 0, 1))
-	const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
-	return `${year}-W${String(week).padStart(2, '0')}`
 }

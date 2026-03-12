@@ -210,6 +210,7 @@ export interface Computed<Value, Diff = unknown> extends Signal<Value, Diff> {
  * @internal
  */
 class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
+	readonly __isComputed = true as const
 	lastChangedEpoch = GLOBAL_START_EPOCH
 	lastTraversedEpoch = GLOBAL_START_EPOCH
 
@@ -670,23 +671,12 @@ export function computed() {
 	}
 }
 
+import { isComputed as _isComputed } from './isComputed'
+
 /**
  * Returns true if the given value is a computed signal.
- * This is a type guard function that can be used to check if a value is a computed signal instance.
- *
- * @example
- * ```ts
- * const count = atom('count', 0)
- * const double = computed('double', () => count.get() * 2)
- *
- * console.log(isComputed(count))  // false
- * console.log(isComputed(double)) // true
- * ```
- *
- * @param value - The value to check
- * @returns True if the value is a computed signal, false otherwise
  * @public
  */
 export function isComputed(value: any): value is Computed<any> {
-	return !!(value && value instanceof _Computed)
+	return _isComputed(value)
 }

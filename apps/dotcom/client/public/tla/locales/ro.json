@@ -23,26 +23,17 @@
   "0a91f7fa87": {
     "translation": "Acest fișier a atins limita de dimensiune și este posibil ca modificările să nu mai fie salvate. Eliminați o parte din conținut sau începeți un fișier nou."
   },
-  "0ab1ef22a3": {
-    "translation": "Vorbește cu grupul…"
-  },
   "0b27918290": {
     "translation": "Fişier"
   },
   "0b9a4cde72": {
     "translation": "meniul Fișier"
   },
-  "0befa10111": {
-    "translation": "Zâne"
-  },
   "0d1f2bb523": {
     "translation": "Trimite feedback"
   },
   "110a4b01be": {
     "translation": "Publica"
-  },
-  "11a755d598": {
-    "translation": "Stop"
   },
   "129b9e34ea": {
     "translation": "Părăsește grupul"
@@ -71,26 +62,11 @@
   "1dd1c5fb7f": {
     "translation": "Astăzi"
   },
-  "23f879f41a": {
-    "translation": "Limita săptămânală de utilizare a zânelor a fost atinsă. Aceasta se va reseta la începutul săptămânii viitoare."
-  },
-  "243924bfd5": {
-    "translation": "Dormi"
-  },
   "2445e5e347": {
     "translation": "Creați un grup"
   },
   "250ddea65c": {
     "translation": "Despre tldraw"
-  },
-  "269097080b": {
-    "translation": "Zânele tale așteaptă"
-  },
-  "275173253d": {
-    "translation": "Invocă-i pe toți"
-  },
-  "284d5cd0dd": {
-    "translation": "Model:"
   },
   "299cb00a7a": {
     "translation": "Încărcarea nu a reușit"
@@ -98,17 +74,11 @@
   "2c3ef76333": {
     "translation": "Fișierele mele"
   },
-  "30cd34258a": {
-    "translation": "O mulțime de <b>zâne</b> au venit la tldraw pentru luna decembrie. Pentru a investiga mai departe, găsiți zâna și faceți clic pe ea."
-  },
   "31246941ad": {
     "translation": "Trebuie să vă conectați pentru a vedea acest fișier."
   },
   "31418ce4ad": {
     "translation": "i18n: Evidențiați Lipsă"
-  },
-  "3209f407ed": {
-    "translation": "trei zâne"
   },
   "32210b37e4": {
     "translation": "Adăugați link"
@@ -121,21 +91,6 @@
   },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "34abfe7a0d": {
-    "translation": "Dormiți toți"
-  },
-  "34e34c43ec": {
-    "translation": "Gestionează"
-  },
-  "3596c1b1f7": {
-    "translation": "Nu urmăriți"
-  },
-  "3903aab323": {
-    "translation": "Urmărește"
-  },
-  "3b6c2b4caa": {
-    "translation": "Termeni și condiții"
   },
   "3bc7d6ea2f": {
     "translation": "Continuă cu e-mailul"
@@ -155,14 +110,8 @@
   "44db318ee5": {
     "translation": "Obțineți ajutor pe Discord"
   },
-  "45b43c2d28": {
-    "translation": "<strong>Zânele</strong> au venit la desen în luna decembrie."
-  },
   "46137245cd": {
     "translation": "Vă mulțumim că ne ajutați să îmbunătățim tldraw!"
-  },
-  "465a8a92a4": {
-    "translation": "Nicio zână selectată"
   },
   "477df802ca": {
     "translation": "Pentru a continua editarea, vă rugăm să copiați fișierul în fișierele dvs."
@@ -182,9 +131,6 @@
   "49ee308734": {
     "translation": "Nume"
   },
-  "4c41e0bd95": {
-    "translation": "Selectați tot"
-  },
   "4d0d3ddec9": {
     "translation": "Acest site folosește cookie-uri pentru a face aplicația să funcționeze și pentru a colecta date analitice."
   },
@@ -193,9 +139,6 @@
   },
   "4da5988a2e": {
     "translation": "Ștergeți grupul…"
-  },
-  "4dab36ac83": {
-    "translation": "Mai multe opțiuni"
   },
   "4e6fbf032b": {
     "translation": "Sigur doriți să ștergeți acest grup? Această acțiune nu poate fi anulată."
@@ -224,9 +167,6 @@
   "56c34c6410": {
     "translation": "Politica de confidențialitate"
   },
-  "5a2ccdc00a": {
-    "translation": "Codul de invitație nu a putut fi valorificat"
-  },
   "5a86b22fa0": {
     "translation": "Trageți fișierele aici, <create>creați un fișier</create> sau <invite>copiați linkul de invitație</invite> pentru a începe."
   },
@@ -254,17 +194,11 @@
   "61057a0c84": {
     "translation": "Mai târziu"
   },
-  "61daf2e53d": {
-    "translation": "Vorbește cu {name}…"
-  },
   "625fd29749": {
     "translation": "Mai în vârstă"
   },
   "639bae9ac6": {
     "translation": "tu"
-  },
-  "6602bbeb29": {
-    "translation": "Ghid"
   },
   "6609dd239e": {
     "translation": "Ceva a mers prost"
@@ -274,15 +208,6 @@
   },
   "6832ac5936": {
     "translation": "Introdu adresa ta de e-mail"
-  },
-  "688761c83e": {
-    "translation": "Trezi"
-  },
-  "68d390535e": {
-    "translation": "Introdu mesajul tău"
-  },
-  "6910bbdc82": {
-    "translation": "Numele zânei"
   },
   "6a26f54883": {
     "translation": "Ajutor"
@@ -329,9 +254,6 @@
   "777f9e90cf": {
     "translation": "Solicitare nevalidă."
   },
-  "77f0abf1aa": {
-    "translation": "Ai fost invitat la <strong>tldraw zâne</strong>"
-  },
   "7827371d1a": {
     "translation": "Acest fișier multiplayer anonim tldraw este acum doar pentru citire. Pentru a continua editarea, vă rugăm să vă conectați și să îl copiați în fișierele dvs."
   },
@@ -340,9 +262,6 @@
   },
   "797799f35e": {
     "translation": "Trimiteți o problemă pe GitHub"
-  },
-  "79cc22ac6b": {
-    "translation": "O zână este un micuț care poate lucra cu tine pe pânză. Zânele pot lucra singure sau în echipă. Nu există limite la ceea ce poate face o zână. Nimeni nu știe de unde a venit."
   },
   "7b1329f5ca": {
     "translation": "Manual de utilizare"
@@ -371,12 +290,6 @@
   "815e116a2e": {
     "translation": "Aveți o eroare, o problemă sau o idee pentru tldraw? Anunțați-ne! Completați acest formular și vă vom contacta prin e-mail, dacă este necesar. De asemenea, puteți <discord>să discutați cu noi pe Discord</discord> sau <github>să trimiteți o problemă pe GitHub</github>."
   },
-  "81aa2078d1": {
-    "translation": "Ștergeți tot"
-  },
-  "83218ac34c": {
-    "translation": "Bun venit"
-  },
   "85a082de1b": {
     "translation": "Vă rugăm să reîmprospătați pagina pentru a obține cea mai recentă versiune de tldraw."
   },
@@ -386,29 +299,14 @@
   "86c66437fd": {
     "translation": "Redenumiți fișierul"
   },
-  "8726ef8909": {
-    "translation": "Resetare completă"
-  },
-  "88e83b88c5": {
-    "translation": "Cumpără pachetul Zâne"
-  },
   "8ad4303b83": {
     "translation": "Nu, mulțumesc"
-  },
-  "8be569f100": {
-    "translation": "plată unică"
   },
   "8c2d3d730c": {
     "translation": "Verifică-ți e-mailul pentru un cod de verificare."
   },
-  "8cf04a9734": {
-    "translation": "Acasă"
-  },
   "8eb2c00e96": {
     "translation": "Împărtășită cu tine"
-  },
-  "8f7f4c1ce7": {
-    "translation": "Despre"
   },
   "8ff3d0a705": {
     "translation": "Tarif limitat"
@@ -425,14 +323,8 @@
   "930390d222": {
     "translation": "Link de invitație copiat"
   },
-  "94186070ef": {
-    "translation": "Deselectați"
-  },
   "9489b2f82a": {
     "translation": "Ești deja membru al acestui grup"
-  },
-  "94966d9074": {
-    "translation": "Trimite"
   },
   "95aacd4d4a": {
     "translation": "Conectați-vă cu Google"
@@ -451,9 +343,6 @@
   },
   "9914a0ce04": {
     "translation": "Aprinde"
-  },
-  "9953e9946b": {
-    "translation": "Vizualizare de depanare"
   },
   "9b33f5c63c": {
     "translation": "Nu ați primit un cod? <resend>Retrimiteți</resend>."
@@ -485,17 +374,11 @@
   "a239905023": {
     "translation": "Exportați imaginea"
   },
-  "a286d9991c": {
-    "translation": "Alătură-te"
-  },
   "a3debabee7": {
     "translation": "Politica de cookie-uri"
   },
   "a4d3b161ce": {
     "translation": "Trimiteți"
-  },
-  "a603905470": {
-    "translation": "Depanare"
   },
   "a6cc403d56": {
     "translation": "Oricine are linkul"
@@ -505,12 +388,6 @@
   },
   "a8873770ab": {
     "translation": "Fișierul devine mare"
-  },
-  "a8de4c27a8": {
-    "translation": "Limita săptămânală a zânelor a fost atinsă"
-  },
-  "a917baaf14": {
-    "translation": "Chat nou"
   },
   "a9ded1e5ce": {
     "translation": "Fundal"
@@ -527,9 +404,6 @@
   },
   "b2c3c2e30c": {
     "translation": "Fișierul este plin"
-  },
-  "b34a671e2c": {
-    "translation": "Timp de răspuns în jurnal"
   },
   "b357b524e7": {
     "translation": "Adresa de e-mail"
@@ -558,9 +432,6 @@
   "bc88b0e89e": {
     "translation": "Distribuit de {ownerName}"
   },
-  "be4f1c62d3": {
-    "translation": "Zoom către zână"
-  },
   "c2276c9127": {
     "translation": "Aflați mai multe despre partajare."
   },
@@ -570,23 +441,11 @@
   "c303bd1095": {
     "translation": "Nu se poate publica fișierul."
   },
-  "c3bf447eab": {
-    "translation": "Deschide"
-  },
-  "c3eb5c3b90": {
-    "translation": "Am înțeles"
-  },
   "c4b39a1cc3": {
     "translation": "Cookie-uri esențiale"
   },
-  "c54a624f46": {
-    "translation": "Acceptă invitația"
-  },
   "c6155aaecc": {
     "translation": "Numele grupului"
-  },
-  "c64518704c": {
-    "translation": "Utilizare"
   },
   "c655b27b1e": {
     "translation": "i18n: șir lung"
@@ -611,9 +470,6 @@
   },
   "ce0547606c": {
     "translation": "Acest fișier se apropie de limita de dimensiune. Luați în considerare eliminarea unei părți din conținut sau crearea unui fișier nou."
-  },
-  "ce1424d44b": {
-    "translation": "Ai deja acces la zâne!"
   },
   "cea291e45e": {
     "translation": "Aflați mai multe despre publicare."
@@ -648,20 +504,11 @@
   "dbbebf3c03": {
     "translation": "Numai cu invitație"
   },
-  "dc30bc0c79": {
-    "translation": "Clar"
-  },
   "dcdaa754fe": {
     "translation": "Adresă URL fișier tldraw nevalidă"
   },
-  "df6ff49394": {
-    "translation": "Zânele sunt o funcție <strong>temporară</strong>. Pe 1 ianuarie 2026, toate zânele vor fi eliminate din aplicație. Poate că vor reveni într-o zi. Achiziția dvs. este pentru acces la zâne doar pentru decembrie 2025."
-  },
   "dfdb78a4e4": {
     "translation": "Indicatori de depanare a aplicației"
-  },
-  "e062622261": {
-    "translation": "Selecta"
   },
   "e0c88179b3": {
     "translation": "Invită membri"
@@ -677,9 +524,6 @@
   },
   "e404559826": {
     "translation": "Termeni și condiții"
-  },
-  "e43ec38a93": {
-    "translation": "Mergi la"
   },
   "e81c4e4f2b": {
     "translation": "sau"
@@ -708,26 +552,17 @@
   "ede55d955f": {
     "translation": "Citiți <a>politica noastră privind cookie-urile</a> pentru a afla mai multe."
   },
-  "eee6f05922": {
-    "translation": "Dizolva"
-  },
   "ef53538ae4": {
     "translation": "Membri"
   },
   "ef7de3f485": {
     "translation": "selectat"
   },
-  "efde983742": {
-    "translation": "Convoca"
-  },
   "f09b16bc5f": {
     "translation": "Folosim cookie-uri pentru a vă menține conectat(ă), pentru a vă sincroniza fișierele și pentru a colecta date analitice care să ne ajute să îmbunătățim tldraw."
   },
   "f0e8bff6f9": {
     "translation": "Setări utilizator"
-  },
-  "f1206f9fad": {
-    "translation": "Configurați"
   },
   "f2569594b2": {
     "translation": "Folosim aceste cookie-uri pentru a salva fișierele și setările dumneavoastră."

@@ -1,6 +1,4 @@
 import { BoxModel, JsonValue } from 'tldraw'
-import { AgentModelName } from '../../worker/models'
-import { SimpleShape } from '../format/SimpleShape'
 import { ContextItem } from './ContextItem'
 
 /**
@@ -9,18 +7,23 @@ import { ContextItem } from './ContextItem'
 export interface AgentRequest {
 	/**
 	 * Messages associated with the request.
+	 * These are the agent-facing messages that will be sent to the model.
 	 */
-	messages: string[]
+	agentMessages: string[]
 
 	/**
-	 * Items that the agent should pay particular attention to.
+	 * Optional user-facing messages that will be displayed in the UI.
+	 * Each index corresponds to the same index in the `agentMessages` array.
+	 * If a user-facing message is not provided for a particular message (null),
+	 * the UI may fall back to displaying the agent-facing message.
+	 * If this array is shorter than `agentMessages`, missing entries are treated as null.
 	 */
-	contextItems: ContextItem[]
+	userMessages: string[]
 
 	/**
-	 * Any shapes that have been selected as part of this request.
+	 * The bounds of the request.
 	 */
-	selectedShapes: SimpleShape[]
+	bounds: BoxModel
 
 	/**
 	 * Any extra data that has been retrieved as part of this request.
@@ -29,20 +32,18 @@ export interface AgentRequest {
 	data: (JsonValue | Promise<JsonValue>)[]
 
 	/**
-	 * The bounds of the request.
-	 */
-	bounds: BoxModel
-
-	/**
-	 * The model to use for the request.
-	 */
-	modelName: AgentModelName
-
-	/**
-	 * The type of request.
+	 * Where the request came from.
 	 * - 'user' is a request from the user.
-	 * - 'schedule' is a request from the schedule.
-	 * - 'todo' is a request from outstanding todo items.
+	 * - 'self' is a request from the agent itself.
+	 * - 'other-agent' is a request from another agent.
 	 */
-	type: 'user' | 'schedule' | 'todo'
+	source: 'user' | 'self' | 'other-agent'
+
+	/**
+	 * Context items that were active when this request was created.
+	 * This is a snapshot of the context at request creation time.
+	 */
+	contextItems: ContextItem[]
 }
+
+export type AgentRequestSource = AgentRequest['source']

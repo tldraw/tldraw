@@ -431,25 +431,25 @@ export class LicenseManager {
 	private outputMessages(messages: string[], type: 'warning' | 'error' = 'error') {
 		if (this.isTest) return
 		if (this.verbose) {
-			this.outputDelimiter()
+			this.outputDelimiter(type)
 			for (const message of messages) {
-				const color = type === 'warning' ? 'orange' : 'crimson'
 				const bgColor = type === 'warning' ? 'orange' : 'crimson'
 				// eslint-disable-next-line no-console
 				console.log(
 					`%c${message}`,
-					`color: ${color}; background: ${bgColor}; padding: 2px; border-radius: 3px;`
+					`color: white; background: ${bgColor}; padding: 2px; border-radius: 3px;`
 				)
 			}
-			this.outputDelimiter()
+			this.outputDelimiter(type)
 		}
 	}
 
-	private outputDelimiter() {
+	private outputDelimiter(type: 'warning' | 'error' = 'error') {
+		const bgColor = type === 'warning' ? 'orange' : 'crimson'
 		// eslint-disable-next-line no-console
 		console.log(
 			'%c-------------------------------------------------------------------',
-			`color: white; background: crimson; padding: 2px; border-radius: 3px;`
+			`color: white; background: ${bgColor}; padding: 2px; border-radius: 3px;`
 		)
 	}
 

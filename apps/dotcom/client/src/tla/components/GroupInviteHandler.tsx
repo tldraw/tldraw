@@ -52,6 +52,7 @@ export function GroupInviteHandler() {
 							id: 'group-invite-already-member',
 							title: alreadyMemberMsg,
 						})
+						app.navigateToGroupFiles(data.groupId)
 						return
 					}
 

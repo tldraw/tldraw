@@ -45,17 +45,24 @@ export const TEMPLATES: Template[] = [
 		repo: 'tldraw/chat-template',
 	},
 	{
+		name: 'Image pipeline',
+		description: 'Create a node-based builder for image generation pipelines.',
+		shortDescription: 'Visual node-based builder for image pipelines.',
+		order: 6,
+		repo: 'tldraw/image-pipeline-template',
+	},
+	{
 		name: 'Branching chat',
 		description: 'Chat with an AI using a branching conversation interface.',
 		shortDescription: 'A branching chat interface.',
-		order: 6,
+		order: 7,
 		repo: 'tldraw/branching-chat-template',
 	},
 	{
 		name: 'Shader',
 		description: 'Create WebGL shaders that respond to shapes on the canvas.',
 		shortDescription: 'Shaders on the canvas.',
-		order: 7,
+		order: 8,
 		repo: 'tldraw/shader-starter-kit',
 	},
 ]

@@ -122,6 +122,7 @@ class SizeReporter {
 			// otherwise, if we user platform=node, the bundle size is not reported correctly
 			'--external:os',
 			'--external:node:os',
+			'--external:node:timers',
 			'--external:crypto',
 			'--external:stream',
 			'--external:net',

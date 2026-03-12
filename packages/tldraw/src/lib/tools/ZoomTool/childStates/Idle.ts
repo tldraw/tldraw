@@ -1,4 +1,4 @@
-import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -11,5 +11,11 @@ export class Idle extends StateNode {
 
 	override onPointerDown() {
 		this.parent.transition('pointing', this.info)
+	}
+
+	override onKeyDown(info: TLKeyboardEventInfo) {
+		if (info.key === 'Shift') {
+			this.parent.transition('zoom_quick', this.info)
+		}
 	}
 }

@@ -1,0 +1,266 @@
+---
+title: Scribble
+created_at: 12/20/2025
+updated_at: 01/31/2026
+keywords:
+  - scribble
+  - highlight
+  - ScribbleManager
+  - session
+  - gesture
+  - visual-feedback
+status: published
+date: 01/31/2026
+readability: 8
+voice: 8
+completeness: 9
+accuracy: 10
+notes: ''
+---
+
+The scribble system draws temporary freehand paths for pointer-based interactions. Use scribbles to show visual feedback during tool operations like erasing, laser pointer drawing, or scribble-brush selection. Access the system through [Editor#scribbles](?).
+
+Scribbles exist only in instance state and fade out automatically after the tool operation completes. They're never persisted to the document.
+
+## How it works
+
+### Scribble lifecycle
+
+Every scribble moves through five states:
+
+| State    | Description                                                                                                                    |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Starting | The scribble collects points until it has more than 8. This prevents flickering for very short strokes.                        |
+| Paused   | Drawing pauses temporarily.                                                                                                    |
+| Active   | The scribble accumulates points as the pointer moves.                                                                          |
+| Complete | Drawing finishes but fading hasn't started yet. This allows taper effects to apply when the user lifts the pointer.            |
+| Stopping | The scribble fades out by progressively removing points from its tail. The manager deletes the scribble once all points clear. |
+
+The [ScribbleManager#tick](?) method updates all scribbles on every animation frame, handling state transitions, point management, and fade-out timing.
+
+### Fade-out behavior
+
+During fade-out, the scribble shrinks from the tail by removing points at regular intervals. Set `shrink` above zero for a smooth disappearance effect. The stroke width decreases along with the point count.
+
+The `delay` property controls how long a scribble stays at full length before shrinking. Self-consuming scribbles (the default) remove points from the start as you draw, maintaining a constant length.
+
+## Using scribbles
+
+The [ScribbleManager](?) provides two APIs: a direct API for basic use cases and a session-based API for complex scenarios requiring grouped behavior or custom fade modes.
+
+### Direct API
+
+The direct API works well for tools like the eraser that use self-consuming scribbles:
+
+```typescript
+import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
+
+export class Erasing extends StateNode {
+	static override id = 'erasing'
+
+	private scribbleId = ''
+
+	override onEnter(info: TLPointerEventInfo) {
+		const scribble = this.editor.scribbles.addScribble({
+			color: 'muted-1',
+			size: 12,
+		})
+		this.scribbleId = scribble.id
+		this.pushPointToScribble()
+	}
+
+	override onExit() {
+		this.editor.scribbles.stop(this.scribbleId)
+	}
+
+	override onPointerMove() {
+		this.pushPointToScribble()
+	}
+
+	private pushPointToScribble() {
+		const { x, y } = this.editor.inputs.getCurrentPagePoint()
+		this.editor.scribbles.addPoint(this.scribbleId, x, y)
+	}
+}
+```
+
+**Creating a scribble**: Call [ScribbleManager#addScribble](?) with optional configuration. The method returns a [ScribbleItem](?) containing the scribble's ID:
+
+```typescript
+const scribble = this.editor.scribbles.addScribble({
+	color: 'muted-1',
+	size: 12,
+})
+```
+
+**Adding points**: As the pointer moves, add points using the scribble ID. The [ScribbleManager#addPoint](?) method automatically deduplicates points that are too close together:
+
+```typescript
+const { x, y } = this.editor.inputs.getCurrentPagePoint()
+this.editor.scribbles.addPoint(scribble.id, x, y)
+```
+
+Pass an optional third parameter `z` (defaults to `0.5`) to control point pressure for variable-width strokes.
+
+**Stopping a scribble**: When the tool operation completes, stop the scribble to begin fade-out:
+
+```typescript
+this.editor.scribbles.stop(scribble.id)
+```
+
+The scribble transitions to stopping state and removes itself once all points clear.
+
+### Session API
+
+For more complex scenarios, use sessions to group multiple scribbles together and control their behavior. The laser pointer uses sessions to create a trailing effect where all scribbles fade together:
+
+```typescript
+import { StateNode, TLStateNodeConstructor } from '@tldraw/editor'
+
+export class LaserTool extends StateNode {
+	static override id = 'laser'
+	static override initial = 'idle'
+
+	private sessionId: string | null = null
+
+	getSessionId(): string {
+		// Reuse existing session if it's still active
+		if (this.sessionId && this.editor.scribbles.isSessionActive(this.sessionId)) {
+			return this.sessionId
+		}
+
+		// Create a new session
+		this.sessionId = this.editor.scribbles.startSession({
+			selfConsume: false,
+			idleTimeoutMs: this.editor.options.laserDelayMs,
+			fadeMode: 'grouped',
+			fadeEasing: 'ease-in',
+		})
+
+		return this.sessionId
+	}
+
+	override onCancel() {
+		if (this.sessionId && this.editor.scribbles.isSessionActive(this.sessionId)) {
+			this.editor.scribbles.clearSession(this.sessionId)
+			this.sessionId = null
+		}
+	}
+}
+```
+
+Child states add scribbles to the session and add points:
+
+```typescript
+export class Lasering extends StateNode {
+	static override id = 'lasering'
+
+	private scribbleId = ''
+	private sessionId = ''
+
+	override onEnter(info: { sessionId: string; scribbleId: string }) {
+		this.sessionId = info.sessionId
+		this.scribbleId = info.scribbleId
+		this.pushPointToScribble()
+	}
+
+	override onPointerMove() {
+		this.pushPointToScribble()
+	}
+
+	private pushPointToScribble() {
+		const { x, y } = this.editor.inputs.getCurrentPagePoint()
+		this.editor.scribbles.addPointToSession(this.sessionId, this.scribbleId, x, y)
+	}
+
+	override onTick() {
+		// Reset idle timeout on activity
+		this.editor.scribbles.extendSession(this.sessionId)
+	}
+
+	override onPointerUp() {
+		// Mark complete to apply taper, then let session handle fade
+		this.editor.scribbles.complete(this.scribbleId)
+		this.parent.transition('idle')
+	}
+}
+```
+
+## Scribble properties
+
+Scribbles support these visual properties:
+
+| Property  | Default        | Description                                                                                                         |
+| --------- | -------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `id`      | auto-generated | Unique identifier for the scribble                                                                                  |
+| `color`   | `'accent'`     | Canvas UI color: `'accent'`, `'white'`, `'black'`, `'selection-stroke'`, `'selection-fill'`, `'laser'`, `'muted-1'` |
+| `size`    | `20`           | Stroke width in pixels                                                                                              |
+| `opacity` | `0.8`          | Transparency from 0 to 1                                                                                            |
+| `delay`   | `0`            | Milliseconds before shrinking starts (for self-consuming scribbles)                                                 |
+| `shrink`  | `0.1`          | Rate at which stroke width decreases during fade-out (0 to 1)                                                       |
+| `taper`   | `true`         | Whether the stroke tapers at the ends                                                                               |
+
+All properties have defaults, so you only need to specify what you want to change.
+
+## Session options
+
+When using the session API, you can configure how scribbles behave:
+
+| Property         | Default                   | Description                                                                         |
+| ---------------- | ------------------------- | ----------------------------------------------------------------------------------- |
+| `id`             | auto-generated            | Session identifier                                                                  |
+| `selfConsume`    | `true`                    | Whether scribbles eat their own tail as you draw                                    |
+| `idleTimeoutMs`  | `0`                       | Auto-stop session after this many milliseconds of inactivity (0 disables)           |
+| `fadeMode`       | `'individual'`            | How scribbles fade: `'individual'` (each on its own) or `'grouped'` (fade together) |
+| `fadeEasing`     | `'linear'` or `'ease-in'` | Easing for grouped fade. Defaults to `'ease-in'` when fadeMode is `'grouped'`       |
+| `fadeDurationMs` | `laserFadeoutMs` (500ms)  | Duration of the fade in milliseconds                                                |
+
+By default, points are removed from the start as you draw, maintaining a constant scribble length. This works well for tools like the eraser that need immediate visual feedback without a persistent trail.
+
+When `selfConsume` is `false`, points accumulate while the session is active and only fade after the session stops. The laser pointer uses this with grouped fade mode. All strokes from a drawing session disappear together.
+
+## Customizing scribble rendering
+
+You can override the scribble component to customize how scribbles render. Pass a custom `Scribble` component through [TLEditorComponents](?). The component receives [TLScribbleProps](?) with `scribble`, `zoom`, `color`, `opacity`, and `className`. To customize how other users' scribbles appear in multiplayer, override the `CollaboratorScribble` component instead, which also receives `userId`.
+
+```tsx
+import { Tldraw, TLEditorComponents, getSvgPathFromPoints } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+const components: TLEditorComponents = {
+	Scribble: ({ scribble, zoom, opacity, color }) => {
+		if (!scribble.points.length) return null
+
+		return (
+			<svg className="tl-overlays__item">
+				<path
+					d={getSvgPathFromPoints(scribble.points, false)}
+					stroke={color ?? `var(--tl-color-${scribble.color})`}
+					strokeWidth={8 / zoom}
+					opacity={opacity ?? scribble.opacity}
+					fill="none"
+				/>
+			</svg>
+		)
+	},
+}
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw components={components} />
+		</div>
+	)
+}
+```
+
+The `@tldraw/editor` package provides [DefaultScribble](?) which uses [getSvgPathFromPoints](?) for simple stroked paths, as shown above. The `tldraw` package provides [TldrawScribble](?) which uses [getStroke](?) to create smooth, pressure-sensitive filled paths.
+
+## Related articles
+
+- [Tools](/sdk-features/tools) - Learn how tools use state nodes and handle pointer events
+- [UI components](/sdk-features/ui-components) - Customize canvas components including the scribble renderer
+
+## Related examples
+
+- [Custom components](/examples/ui/custom-components) - Override the Scribble component to customize scribble appearance

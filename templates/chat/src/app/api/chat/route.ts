@@ -8,7 +8,7 @@ export async function POST(req: Request) {
 	const { messages }: { messages: UIMessage[] } = await req.json()
 
 	const result = streamText({
-		model: google('gemini-2.5-flash'),
+		model: google('gemini-3-flash-preview'),
 		system: [
 			"You're a friendly AI chatbot.",
 			'The user can send you images, sketches and diagrams using your built-in tldraw whiteboard.',

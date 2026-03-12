@@ -2,14 +2,15 @@ import fs from 'fs'
 import matter from 'gray-matter'
 import path from 'path'
 import {
-	Article,
+	type Article,
 	ArticleStatus,
-	Articles,
-	Category,
-	InputCategory,
-	InputSection,
-	Section,
+	type Articles,
+	type Category,
+	type InputCategory,
+	type InputSection,
+	type Section,
 } from '../../types/content-types'
+import { getArticleKey } from './getArticleKey'
 import { CONTENT_DIR } from './utils'
 
 export function generateSection(section: InputSection, articles: Articles, index: number): Section {
@@ -36,34 +37,27 @@ export function generateSection(section: InputSection, articles: Articles, index
 	const dir = isExamplesSection
 		? path.join(process.cwd(), '..', 'examples', 'src', 'examples')
 		: path.join(CONTENT_DIR, sectionId)
-	const files = fs.readdirSync(dir, { withFileTypes: false })
+	const articleSources = isExamplesSection
+		? getExampleArticleSources(dir)
+		: getRegularArticleSources(dir)
 
-	for (const file of files) {
-		const filename = file.toString()
-		if (filename.startsWith('.')) continue
-		if (!isExamplesSection && !filename.endsWith('.mdx') && !filename.endsWith('.md')) {
-			throw new Error(`no non .md / mdx files pls: ${filename}`)
-		}
-
-		// Get the parsed file content using matter
-		const pathname = isExamplesSection
-			? path.join(dir, filename, 'README.md')
-			: path.join(dir, filename)
+	for (const { filename, pathname, articleId, categoryId } of articleSources) {
 		const fileContent = fs.readFileSync(pathname).toString()
 		const parsed = matter({ content: fileContent }, {})
 
 		if (skipUnpublishedArticles && parsed.data.status !== 'published') continue
 
-		const extension = path.extname(filename)
-		const articleId = filename.replace(extension, '')
+		const extension = isExamplesSection ? '.md' : path.extname(filename)
 
 		const article = getArticleData({
 			articleId,
+			categoryId,
 			sectionId,
 			parsed,
 			isGenerated: isReferenceSection,
 			extension,
 			componentCode: getComponentCode({ dir, filename, parsed }),
+			componentCodeFilename: getComponentCodeFilename({ parsed }),
 			componentCodeFiles: getComponentCodeFiles({ dir, filename, parsed }),
 		})
 
@@ -71,7 +65,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 			// The article is an index page, ie docs/docs
 			article.categoryIndex = -1
 			article.sectionIndex = -1
-			assignToArticles(section.id + '_index', article)
+			assignToArticles(getArticleKey(article), article)
 		} else {
 			// If the article is in a category and that category exists...
 			if (article.categoryId && sectionCategoryArticles[article.categoryId]) {
@@ -79,7 +73,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 				if (article.id === article.categoryId) {
 					article.categoryIndex = -1
 					article.sectionIndex = -1
-					assignToArticles(article.categoryId + '_index', article)
+					assignToArticles(getArticleKey(article), article)
 				} else {
 					// Otherwise, add it to the category's list of articles
 					sectionCategoryArticles[article.categoryId].push(article)
@@ -129,7 +123,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 		categoryArticles.sort(sortArticles).forEach((article, i) => {
 			article.categoryIndex = i
 			article.sectionIndex = articleSectionIndex
-			assignToArticles(article.id, article)
+			assignToArticles(getArticleKey(article), article)
 			articleSectionIndex++
 		})
 	})
@@ -158,19 +152,23 @@ const sortArticles = (articleA: Article, articleB: Article) => {
 
 function getArticleData({
 	articleId,
+	categoryId: categoryIdOverride,
 	sectionId,
 	parsed,
 	isGenerated,
 	extension,
 	componentCode,
+	componentCodeFilename,
 	componentCodeFiles,
 }: {
 	articleId: Article['id']
+	categoryId?: Category['id']
 	sectionId: Section['id']
 	parsed: matter.GrayMatterFile<string>
 	isGenerated: boolean
 	extension: string
 	componentCode: string | null
+	componentCodeFilename: string | null
 	componentCodeFiles: { [key: string]: string }
 }): Article {
 	const {
@@ -189,13 +187,17 @@ function getArticleData({
 		sourceUrl = null,
 		order,
 		apiTags = null,
-		category: categoryId = sectionId + '_ucg',
+		category: categoryIdFromFrontmatter = sectionId + '_ucg',
 	} = parsed.data
+	const categoryId = categoryIdOverride ?? categoryIdFromFrontmatter
+
+	const githubLink = sectionId === 'starter-kits' ? (parsed.data.githubLink ?? null) : null
+	const embed = sectionId === 'starter-kits' ? (parsed.data.embed ?? null) : null
 
 	const { content } = parsed
 
 	const article: Article = {
-		id: articleId,
+		id: getArticleKey({ sectionId, categoryId, id: articleId } as Article),
 		type: 'article',
 		sectionIndex: 0,
 		groupIndex: -1,
@@ -222,7 +224,10 @@ function getArticleData({
 		apiTags,
 		path: getArticlePath({ sectionId, categoryId, articleId }),
 		componentCode,
+		componentCodeFilename,
 		componentCodeFiles: componentCode ? JSON.stringify(componentCodeFiles) : null,
+		embed,
+		githubLink,
 	}
 
 	if (sectionId === 'examples' && article.content) {
@@ -230,8 +235,63 @@ function getArticleData({
 		article.description = splitUp[0]
 		article.content = splitUp.slice(1).join('---\n')
 	}
-
 	return article
+}
+
+function getRegularArticleSources(dir: string) {
+	const sources: Array<{
+		filename: string
+		pathname: string
+		articleId: string
+		categoryId?: string
+	}> = []
+
+	for (const file of fs.readdirSync(dir, { withFileTypes: false })) {
+		const filename = file.toString()
+		if (filename.startsWith('.')) continue
+		if (!filename.endsWith('.mdx') && !filename.endsWith('.md')) {
+			throw new Error(`no non .md / mdx files pls: ${filename}`)
+		}
+		sources.push({
+			filename,
+			pathname: path.join(dir, filename),
+			articleId: filename.replace(path.extname(filename), ''),
+		})
+	}
+
+	return sources
+}
+
+function getExampleArticleSources(dir: string) {
+	return getReadmePaths(dir).map((pathname) => {
+		const relativeDir = path.relative(dir, path.dirname(pathname)).replaceAll(path.sep, '/')
+		const segments = relativeDir.split('/')
+		if (segments.length < 2) {
+			throw new Error(`Example category folder missing for ${pathname}`)
+		}
+
+		return {
+			filename: relativeDir,
+			pathname,
+			articleId: segments[segments.length - 1],
+			categoryId: segments.slice(0, -1).join('/'),
+		}
+	})
+}
+
+function getReadmePaths(dir: string) {
+	const readmes: string[] = []
+	const entries = fs.readdirSync(dir, { withFileTypes: true })
+	for (const entry of entries) {
+		if (entry.name.startsWith('.')) continue
+		const pathname = path.join(dir, entry.name)
+		if (entry.isDirectory()) {
+			readmes.push(...getReadmePaths(pathname))
+		} else if (entry.isFile() && entry.name === 'README.md') {
+			readmes.push(pathname)
+		}
+	}
+	return readmes
 }
 
 function getArticlePath({
@@ -278,6 +338,14 @@ function getComponentCode({
 				)
 				.toString()
 		: null
+}
+
+function getComponentCodeFilename({ parsed }: { parsed: matter.GrayMatterFile<string> }) {
+	if (!parsed.data.component) return null
+	const component = parsed.data.component as string
+	// Remove leading ./ if present and ensure .tsx extension
+	const name = component.replace(/^\.\//, '')
+	return name.endsWith('.tsx') ? name : `${name}.tsx`
 }
 
 function getComponentCodeFiles({
