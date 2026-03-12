@@ -9,6 +9,10 @@
 	transition: padding-left 0.16s ease-in-out;
 	background-color: var(--tl-color-background);
 }
+
+:global(.tl-container[dir='rtl']) .layout {
+	transition: padding-right 0.16s ease-in-out;
+}
 .layout[data-resizing='true'] {
 	pointer-events: none;
 	transition: none !important;
@@ -19,6 +23,12 @@
 		padding-left: var(--tla-sidebar-width);
 		transition: padding-left 0.22s ease-out;
 	}
+}
+
+:global(.tl-container[dir='rtl']) .layout[data-sidebar='true'] {
+	padding-left: 0;
+	padding-right: var(--tla-sidebar-width);
+	transition: padding-right 0.22s ease-out;
 }
 
 .resizeHandle {
@@ -36,6 +46,11 @@
 	display: none;
 }
 
+:global(.tl-container[dir='rtl']) .resizeHandle {
+	left: auto;
+	right: calc(var(--tla-sidebar-width) - var(--hoverable-width) + 1px);
+}
+
 /* make the handle bigger while mouse is down to avoid flickering */
 .resizeHandle:active {
 	left: calc(
@@ -43,6 +58,13 @@
 	);
 	width: var(--active-width);
 	display: flex;
+}
+
+:global(.tl-container[dir='rtl']) .resizeHandle:active {
+	left: auto;
+	right: calc(
+		var(--tla-sidebar-width) - (var(--active-width) / 2) - (var(--hoverable-width) / 2) + 1px
+	);
 }
 
 @media (min-width: 768px) {
@@ -71,4 +93,9 @@
 	top: 4px;
 	margin-left: 4px;
 	z-index: 1;
+}
+
+:global(.tl-container[dir='rtl']) .toggleContainer {
+	margin-left: 0;
+	margin-right: 4px;
 }

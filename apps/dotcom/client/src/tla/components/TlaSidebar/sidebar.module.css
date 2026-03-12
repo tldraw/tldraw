@@ -15,6 +15,13 @@
 	transition: transform 0.16s ease-in-out;
 }
 
+:global(.tl-container[dir='rtl']) .sidebar {
+	left: auto;
+	right: calc(var(--tla-sidebar-width) * -1);
+	border-right: none;
+	border-left: 1px solid transparent;
+}
+
 .sidebarDragOverlay {
 	position: absolute;
 	inset: 0px;
@@ -59,6 +66,15 @@
 		transform: translate(100%, 0px);
 		transition: transform 0.22s ease-out;
 	}
+
+	:global(.tl-container[dir='rtl']) .sidebar {
+		border-right: none;
+		border-left: 1px solid var(--tl-color-low);
+	}
+
+	:global(.tl-container[dir='rtl']) .sidebar[data-visible='true'] {
+		transform: translate(-100%, 0px);
+	}
 }
 
 @media (max-width: 767px) {
@@ -71,6 +87,15 @@
 
 	.sidebar[data-visiblemobile='true'] {
 		transform: translate(100%, 0px);
+	}
+
+	:global(.tl-container[dir='rtl']) .sidebar {
+		left: auto;
+		right: calc(var(--w) * -1);
+	}
+
+	:global(.tl-container[dir='rtl']) .sidebar[data-visiblemobile='true'] {
+		transform: translate(-100%, 0px);
 	}
 
 	.sidebarOverlayMobile[data-visiblemobile='true'] {
@@ -259,6 +284,11 @@
 	flex-shrink: 0;
 	padding: 0px;
 	z-index: 10;
+}
+
+:global(.tl-container[dir='rtl']) .sidebarCreateFileButton {
+	right: auto;
+	left: -8px;
 }
 
 .sidebarCreateFileButton::after {
@@ -550,7 +580,7 @@
 	border: none;
 	position: relative;
 	outline: none;
-	margin-right: -10px;
+	margin-inline-end: -10px;
 	width: 36px;
 	height: 36px;
 	min-width: 0;
