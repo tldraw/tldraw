@@ -4,15 +4,14 @@ import {
 	DefaultHorizontalAlignStyle,
 	DefaultSizeStyle,
 	DefaultVerticalAlignStyle,
-	FONT_FAMILIES,
 	Geometry2d,
-	LABEL_FONT_SIZES,
 	PlainTextLabel,
 	Polygon2d,
 	RecordPropsType,
 	ShapeUtil,
 	T,
-	TEXT_PROPS,
+	TLDefaultFontStyle,
+	TLDefaultSizeStyle,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
@@ -22,10 +21,31 @@ import {
 	getColorValue,
 	resizeBox,
 	structuredClone,
-	useDefaultColorTheme,
+	useEditor,
 	vecModelValidator,
 } from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
+
+const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
+	s: 1.125,
+	m: 1.375,
+	l: 1.625,
+	xl: 2,
+}
+
+const TEXT_PROPS = {
+	fontWeight: 'normal',
+	fontVariant: 'normal',
+	fontStyle: 'normal',
+	padding: '0px',
+}
+
+const FONT_FAMILIES: Record<TLDefaultFontStyle, string> = {
+	draw: 'var(--tl-font-draw)',
+	sans: 'var(--tl-font-sans)',
+	serif: 'var(--tl-font-serif)',
+	mono: 'var(--tl-font-mono)',
+}
 
 const SPEECH_BUBBLE_TYPE = 'speech-bubble'
 
@@ -190,7 +210,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
+		const theme = useEditor().getCurrentTheme()
 
 		return (
 			<>
@@ -207,8 +227,8 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					type={type}
 					font={font}
 					textWidth={shape.props.w}
-					fontSize={LABEL_FONT_SIZES[size]}
-					lineHeight={TEXT_PROPS.lineHeight}
+					fontSize={theme.fontSize * LABEL_FONT_SIZES[size]}
+					lineHeight={theme.lineHeight}
 					align={align}
 					verticalAlign="start"
 					text={text}
@@ -239,10 +259,12 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	getGrowY(shape: SpeechBubbleShape, prevGrowY = 0) {
 		const PADDING = 17
 
+		const theme = this.editor.getCurrentTheme()
 		const nextTextSize = this.editor.textMeasure.measureText(shape.props.text, {
 			...TEXT_PROPS,
+			lineHeight: theme.lineHeight,
 			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontSize: LABEL_FONT_SIZES[shape.props.size],
+			fontSize: theme.fontSize * LABEL_FONT_SIZES[shape.props.size],
 			maxWidth: shape.props.w - PADDING * 2,
 		})
 

@@ -1,12 +1,12 @@
 ---
-title: Infer dark mode
+title: Dark mode
 component: ./InferDarkModeExample.tsx
 priority: 4
-keywords: [dark mode, theme, inferdarkmode, system preferences, color scheme]
+keywords: [dark mode, theme, system preferences, color scheme]
 ---
 
-Infer dark mode based on system preferences.
+Set the editor to dark mode using the `theme` prop.
 
 ---
 
-When the `Tldraw` component's `inferDarkMode` is true, the editor will infer its initial theme based on the user's system preferences, if available. You can toggle the dark mode by pressing `Command + /`.
+Set `theme="dark"` on the `Tldraw` component to use dark mode. You can toggle the dark mode by pressing `Command + /`.
