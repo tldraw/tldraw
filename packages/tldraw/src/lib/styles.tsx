@@ -1,4 +1,4 @@
-import { DefaultColorStyle } from '@tldraw/editor'
+import { type TLTheme } from '@tldraw/editor'
 import { TLUiIconJsx } from './ui/components/primitives/TldrawUiIcon'
 
 /** @public */
@@ -9,33 +9,23 @@ export type StyleValuesForUi<T> = readonly {
 
 /**
  * Returns the current list of color style items for the style panel,
- * reading dynamically from `DefaultColorStyle.values`. This picks up
- * any colors added via `registerColors()`.
+ * derived from the theme's color palette. Only palette colors are included;
+ * utility colors like `text`, `background`, etc. are excluded.
  *
  * @public
  */
-export function getColorStyleItems(): StyleValuesForUi<string> {
-	return DefaultColorStyle.values
-		.filter((v) => v !== 'white')
-		.map((value) => ({ value, icon: 'color' as const }))
+export function getColorStyleItems(theme: TLTheme): StyleValuesForUi<string> {
+	return Object.entries(theme.colors)
+		.filter(
+			([key, value]) =>
+				// we remove white here temporarily, it's an easter egg color that the panel does not yet account for
+				key !== 'white' && typeof value === 'object' && value !== null && 'solid' in value
+		)
+		.map(([key]) => ({ value: key, icon: 'color' as const }))
 }
 
 // todo: default styles prop?
 export const STYLES = {
-	color: [
-		{ value: 'black', icon: 'color' },
-		{ value: 'grey', icon: 'color' },
-		{ value: 'light-violet', icon: 'color' },
-		{ value: 'violet', icon: 'color' },
-		{ value: 'blue', icon: 'color' },
-		{ value: 'light-blue', icon: 'color' },
-		{ value: 'yellow', icon: 'color' },
-		{ value: 'orange', icon: 'color' },
-		{ value: 'green', icon: 'color' },
-		{ value: 'light-green', icon: 'color' },
-		{ value: 'light-red', icon: 'color' },
-		{ value: 'red', icon: 'color' },
-	],
 	fill: [
 		{ value: 'none', icon: 'fill-none' },
 		{ value: 'semi', icon: 'fill-semi' },

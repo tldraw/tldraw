@@ -193,11 +193,8 @@ export const defaultBindingSchemas: {
     };
 };
 
-// @public
-export const defaultColorNames: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red", "white"];
-
 // @public (undocumented)
-export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+export const DefaultColorStyle: EnumStyleProp<TLDefaultColorStyle>;
 
 // @public
 export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
@@ -310,6 +307,7 @@ export class EnumStyleProp<T> extends StyleProp<T> {
     // @internal
     constructor(id: string, defaultValue: T, values: readonly T[]);
     addValues(...newValues: T[]): void;
+    removeValues(...valuesToRemove: T[]): void;
     // (undocumented)
     readonly values: T[];
 }
@@ -611,7 +609,7 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 }>;
 
 // @public
-export function registerColors(colorNames: string[]): void;
+export function registerColors(colorNames: TLDefaultColorStyle[]): void;
 
 // @public
 export const richTextValidator: T.ObjectValidator<{
@@ -918,10 +916,6 @@ export interface TLCursor {
 export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 
 // @public
-export interface TLCustomColorNames {
-}
-
-// @public
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public
@@ -956,8 +950,10 @@ export interface TLDefaultColor {
     solid: string;
 }
 
-// @public (undocumented)
-export type TLDefaultColorStyle = (typeof defaultColorNames)[number] | keyof TLCustomColorNames;
+// @public
+export type TLDefaultColorStyle = {
+    [K in keyof TLThemeColors]: TLThemeColors[K] extends TLDefaultColor ? K : never;
+}[keyof TLThemeColors] & string;
 
 // @public
 export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
@@ -1498,7 +1494,7 @@ export interface TLTextShapeProps {
 // @public
 export interface TLTheme {
     // (undocumented)
-    colors: TLThemeColorPalette;
+    colors: TLThemeColors;
     fontSize: number;
     // (undocumented)
     id: string;
@@ -1506,13 +1502,44 @@ export interface TLTheme {
 }
 
 // @public
-export type TLThemeColorPalette = Expand<{
+export interface TLThemeColors {
+    // (undocumented)
+    'light-blue': TLDefaultColor;
+    // (undocumented)
+    'light-green': TLDefaultColor;
+    // (undocumented)
+    'light-red': TLDefaultColor;
+    // (undocumented)
+    'light-violet': TLDefaultColor;
+    // (undocumented)
     background: string;
+    // (undocumented)
+    black: TLDefaultColor;
+    // (undocumented)
+    blue: TLDefaultColor;
+    // (undocumented)
     cursor: string;
+    // (undocumented)
+    green: TLDefaultColor;
+    // (undocumented)
+    grey: TLDefaultColor;
+    // (undocumented)
     noteBorder: string;
+    // (undocumented)
+    orange: TLDefaultColor;
+    // (undocumented)
+    red: TLDefaultColor;
+    // (undocumented)
     solid: string;
+    // (undocumented)
     text: string;
-} & Record<(typeof defaultColorNames)[number], TLDefaultColor> & Record<keyof TLCustomColorNames, TLDefaultColor>>;
+    // (undocumented)
+    violet: TLDefaultColor;
+    // (undocumented)
+    white: TLDefaultColor;
+    // (undocumented)
+    yellow: TLDefaultColor;
+}
 
 // @public
 export type TLThemes = Record<string, TLTheme>;

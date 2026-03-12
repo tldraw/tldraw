@@ -1951,7 +1951,7 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 export function getAssetInfo(file: File, options: TLDefaultExternalContentHandlerOpts, assetId?: TLAssetId): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public
-export function getColorStyleItems(): StyleValuesForUi<string>;
+export function getColorStyleItems(theme: TLTheme): StyleValuesForUi<string>;
 
 // @public (undocumented)
 export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): {

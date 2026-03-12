@@ -11,8 +11,8 @@ import 'tldraw/tldraw.css'
 
 // Extend the type system so TypeScript knows about our custom color
 declare module 'tldraw' {
-	interface TLCustomColorNames {
-		pink: true
+	interface TLThemeColors {
+		pink: TLDefaultColor
 	}
 }
 

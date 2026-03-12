@@ -120,7 +120,8 @@ export class EnumStyleProp<T> extends StyleProp<T> {
 
 	/**
 	 * Add new values to this enum style prop at runtime. This is useful for extending
-	 * the built-in styles with custom values (e.g. adding custom colors).
+	 * the built-in styles with custom values (e.g. adding custom colors). Be sure to
+	 * also modify the associated types.
 	 *
 	 * @param newValues - The new values to add.
 	 *
@@ -130,6 +131,25 @@ export class EnumStyleProp<T> extends StyleProp<T> {
 		for (const v of newValues) {
 			if (!this.values.includes(v)) {
 				this.values.push(v)
+			}
+		}
+		// Rebuild the validator with the updated values
+		;(this as any).type = T.literalEnum(...this.values)
+	}
+
+	/**
+	 * Remove values from this enum style prop at runtime. This is useful for narrowing
+	 * the built-in styles with custom values (e.g. adding custom colors). Be sure to
+	 * also modify the associated types.
+	 *
+	 * @param valuesToRemove - The values to remove.
+	 *
+	 * @public
+	 */
+	removeValues(...valuesToRemove: T[]): void {
+		for (const v of valuesToRemove) {
+			if (this.values.includes(v)) {
+				this.values.splice(this.values.indexOf(v), 1)
 			}
 		}
 		// Rebuild the validator with the updated values
