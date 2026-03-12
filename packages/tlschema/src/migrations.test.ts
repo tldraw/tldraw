@@ -15,6 +15,7 @@ import { instancePageStateVersions } from './records/TLPageState'
 import { pointerVersions } from './records/TLPointer'
 import { instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeVersions } from './records/TLShape'
+import { userVersions } from './records/TLUser'
 import { arrowShapeVersions } from './shapes/TLArrowShape'
 import { defaultTlMeta, tldrawShapeMetaKey } from './shapes/TLBaseShape'
 import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
@@ -2710,6 +2711,15 @@ describe('Converting note textLastEditedBy to ID string', () => {
 	test('down converts ID string back to object', () => {
 		const result = down({ props: { textLastEditedBy: 'user-1' } })
 		expect(result.props.textLastEditedBy).toEqual({ id: 'user-1', name: '' })
+	})
+})
+
+describe('TLUser initial migration', () => {
+	const { up } = getTestMigration(userVersions.Initial)
+
+	test('up is a no-op', () => {
+		const record = { id: 'user:123', name: 'Test', color: '#000', imageUrl: '', meta: {} }
+		expect(up(record)).toEqual(record)
 	})
 })
 

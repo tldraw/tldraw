@@ -59,6 +59,7 @@ export {
 	defaultShapeSchemas,
 	type SchemaPropsInfo,
 	type TLSchema,
+	type UserSchemaInfo,
 } from './createTLSchema'
 export {
 	boxModelValidator,
@@ -160,6 +161,7 @@ export {
 } from './records/TLShape'
 export {
 	createUserId,
+	createUserRecordType,
 	isUserId,
 	userIdValidator,
 	UserRecordType,

@@ -179,14 +179,20 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
 
 // @public
-export function createTLSchema({ shapes, bindings, migrations }?: {
+export function createTLSchema({ shapes, bindings, user, migrations }?: {
     bindings?: Record<string, SchemaPropsInfo>;
     migrations?: readonly MigrationSequence[];
     shapes?: Record<string, SchemaPropsInfo>;
+    user?: UserSchemaInfo;
 }): TLSchema;
 
 // @public (undocumented)
 export function createUserId(id: string): TLUserId;
+
+// @public
+export function createUserRecordType(config?: {
+    meta?: Record<string, T.Validatable<any>>;
+}): RecordType<TLUser, never>;
 
 // @public
 export const defaultBindingSchemas: {
@@ -1607,6 +1613,12 @@ export const userIdValidator: T.Validator<TLUserId>;
 
 // @public (undocumented)
 export const UserRecordType: RecordType<TLUser, never>;
+
+// @public
+export interface UserSchemaInfo {
+    meta?: Record<string, T.Validatable<any>>;
+    migrations?: readonly MigrationSequence[];
+}
 
 // @public
 export interface VecModel {
