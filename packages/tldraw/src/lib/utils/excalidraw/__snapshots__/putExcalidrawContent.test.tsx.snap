@@ -2,9 +2,9 @@
 
 exports[`putExcalidrawContent test fixtures > bound-arrows.json 1`] = `
 {
-  "binding:8": {
-    "fromId": "shape:7",
-    "id": "binding:8",
+  "binding:7": {
+    "fromId": "shape:6",
+    "id": "binding:7",
     "meta": {},
     "props": {
       "isExact": false,
@@ -16,13 +16,13 @@ exports[`putExcalidrawContent test fixtures > bound-arrows.json 1`] = `
       "snap": "none",
       "terminal": "start",
     },
-    "toId": "shape:5",
+    "toId": "shape:4",
     "type": "arrow",
     "typeName": "binding",
   },
-  "binding:9": {
-    "fromId": "shape:7",
-    "id": "binding:9",
+  "binding:8": {
+    "fromId": "shape:6",
+    "id": "binding:8",
     "meta": {},
     "props": {
       "isExact": false,
@@ -34,7 +34,7 @@ exports[`putExcalidrawContent test fixtures > bound-arrows.json 1`] = `
       "snap": "none",
       "terminal": "end",
     },
-    "toId": "shape:6",
+    "toId": "shape:5",
     "type": "arrow",
     "typeName": "binding",
   },
@@ -52,8 +52,8 @@ exports[`putExcalidrawContent test fixtures > bound-arrows.json 1`] = `
     "name": "Page 1",
     "typeName": "page",
   },
-  "shape:5": {
-    "id": "shape:5",
+  "shape:4": {
+    "id": "shape:4",
     "index": "a1",
     "isLocked": false,
     "meta": {
@@ -96,8 +96,8 @@ exports[`putExcalidrawContent test fixtures > bound-arrows.json 1`] = `
     "x": 337.298828125,
     "y": 319.130859375,
   },
-  "shape:6": {
-    "id": "shape:6",
+  "shape:5": {
+    "id": "shape:5",
     "index": "a2",
     "isLocked": false,
     "meta": {
@@ -140,8 +140,8 @@ exports[`putExcalidrawContent test fixtures > bound-arrows.json 1`] = `
     "x": 586.361328125,
     "y": 284.068359375,
   },
-  "shape:7": {
-    "id": "shape:7",
+  "shape:6": {
+    "id": "shape:6",
     "index": "a3",
     "isLocked": false,
     "meta": {

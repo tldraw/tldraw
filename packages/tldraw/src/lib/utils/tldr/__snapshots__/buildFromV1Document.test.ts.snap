@@ -2,9 +2,9 @@
 
 exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
 {
-  "binding:12": {
-    "fromId": "shape:11",
-    "id": "binding:12",
+  "binding:11": {
+    "fromId": "shape:10",
+    "id": "binding:11",
     "meta": {},
     "props": {
       "isExact": false,
@@ -16,13 +16,13 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
       "snap": "center",
       "terminal": "start",
     },
-    "toId": "shape:10",
+    "toId": "shape:9",
     "type": "arrow",
     "typeName": "binding",
   },
-  "binding:13": {
-    "fromId": "shape:11",
-    "id": "binding:13",
+  "binding:12": {
+    "fromId": "shape:10",
+    "id": "binding:12",
     "meta": {},
     "props": {
       "isExact": false,
@@ -34,7 +34,7 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
       "snap": "none",
       "terminal": "end",
     },
-    "toId": "shape:9",
+    "toId": "shape:8",
     "type": "arrow",
     "typeName": "binding",
   },
@@ -54,50 +54,6 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
   },
   "shape:10": {
     "id": "shape:10",
-    "index": "a2",
-    "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
-    "opacity": 1,
-    "parentId": "page:page",
-    "props": {
-      "align": "middle",
-      "color": "red",
-      "dash": "draw",
-      "fill": "solid",
-      "font": "draw",
-      "geo": "rectangle",
-      "growY": 0,
-      "h": 114.39,
-      "labelColor": "red",
-      "richText": {
-        "content": [
-          {
-            "type": "paragraph",
-          },
-        ],
-        "type": "doc",
-      },
-      "scale": 1,
-      "size": "m",
-      "url": "",
-      "verticalAlign": "middle",
-      "w": 240.17,
-    },
-    "rotation": 0,
-    "type": "geo",
-    "typeName": "shape",
-    "x": 1616.09,
-    "y": 584.28,
-  },
-  "shape:11": {
-    "id": "shape:11",
     "index": "a3",
     "isLocked": false,
     "meta": {
@@ -147,8 +103,8 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
     "x": 1541.56,
     "y": 698.67,
   },
-  "shape:9": {
-    "id": "shape:9",
+  "shape:8": {
+    "id": "shape:8",
     "index": "a1",
     "isLocked": false,
     "meta": {
@@ -190,6 +146,50 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
     "typeName": "shape",
     "x": 1388.92,
     "y": 820.52,
+  },
+  "shape:9": {
+    "id": "shape:9",
+    "index": "a2",
+    "isLocked": false,
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
+    "opacity": 1,
+    "parentId": "page:page",
+    "props": {
+      "align": "middle",
+      "color": "red",
+      "dash": "draw",
+      "fill": "solid",
+      "font": "draw",
+      "geo": "rectangle",
+      "growY": 0,
+      "h": 114.39,
+      "labelColor": "red",
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
+      "scale": 1,
+      "size": "m",
+      "url": "",
+      "verticalAlign": "middle",
+      "w": 240.17,
+    },
+    "rotation": 0,
+    "type": "geo",
+    "typeName": "shape",
+    "x": 1616.09,
+    "y": 584.28,
   },
   "user:4": {
     "color": "#BD54C6",

@@ -423,7 +423,7 @@ test('onAfterChangeFromShape is called after the from shape is updated', () => {
 	expect(editor.getShape(ids.box1)?.meta).toMatchObject({
 		foo: 'bar',
 	})
-	expect.assertions(3)
+	expect.assertions(4)
 })
 
 test('onAfterChangeToShape is called after the to shape is updated', () => {
@@ -448,5 +448,5 @@ test('onAfterChangeToShape is called after the to shape is updated', () => {
 	expect(editor.getShape(ids.box2)?.meta).toMatchObject({
 		foo: 'bar',
 	})
-	expect.assertions(3)
+	expect.assertions(4)
 })

@@ -3989,7 +3989,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		) {
 			return
 		}
-		this.store.put([user])
+		this.run(
+			() => {
+				this.store.put([user])
+			},
+			{ history: 'ignore' }
+		)
 	}
 
 	/**
