@@ -508,10 +508,13 @@ export async function defaultHandleExternalTextContent(
 		align = isMultiLine ? (isRtl ? 'end' : 'start') : 'middle'
 	}
 
+	const theme = editor.getCurrentTheme()
+
 	const rawSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 		...TEXT_PROPS,
+		lineHeight: theme.lineHeight,
 		fontFamily: FONT_FAMILIES[defaultProps.font],
-		fontSize: FONT_SIZES[defaultProps.size],
+		fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
 		maxWidth: null,
 	})
 
@@ -523,8 +526,9 @@ export async function defaultHandleExternalTextContent(
 	if (rawSize.w > minWidth) {
 		const shrunkSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 			...TEXT_PROPS,
+			lineHeight: theme.lineHeight,
 			fontFamily: FONT_FAMILIES[defaultProps.font],
-			fontSize: FONT_SIZES[defaultProps.size],
+			fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
 			maxWidth: minWidth,
 		})
 		w = shrunkSize.w

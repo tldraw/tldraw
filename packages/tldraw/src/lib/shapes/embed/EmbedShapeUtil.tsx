@@ -12,6 +12,7 @@ import {
 	lerp,
 	resizeBox,
 	toDomPrecision,
+	useCurrentThemeId,
 	useIsEditing,
 	useSvgExportContext,
 	useValue,
@@ -27,13 +28,12 @@ import {
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { BookmarkIndicatorComponent, BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
 import { BOOKMARK_JUST_URL_HEIGHT, BOOKMARK_WIDTH } from '../bookmark/bookmarks'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
-const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
-	return Object.entries(permissions)
-		.filter(([_perm, isEnabled]) => isEnabled)
-		.map(([perm]) => perm)
-		.join(' ')
+/** @public */
+export interface EmbedShapeUtilDisplayValues {
+	showShadow: boolean
 }
 
 /** @public */
@@ -43,13 +43,33 @@ export interface EmbedShapeOptions {
 }
 
 /** @public */
+export interface EmbedShapeUtilOptions
+	extends ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues>,
+		EmbedShapeOptions {}
+
+const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
+	return Object.entries(permissions)
+		.filter(([_perm, isEnabled]) => isEnabled)
+		.map(([perm]) => perm)
+		.join(' ')
+}
+
+/** @public */
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override type = 'embed' as const
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
 
-	override options: EmbedShapeOptions = {
+	override options: EmbedShapeUtilOptions = {
 		embedDefinitions: DEFAULT_EMBED_DEFINITIONS,
+		getDisplayValues(): EmbedShapeUtilDisplayValues {
+			return {
+				showShadow: true,
+			}
+		},
+		getDisplayValueOverrides(): Partial<EmbedShapeUtilDisplayValues> {
+			return {}
+		},
 	}
 
 	override canEditWhileLocked(shape: TLEmbedShape) {
@@ -149,6 +169,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		const svgExport = useSvgExportContext()
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
+		const themeId = useCurrentThemeId()
+		const dv = getDisplayValues(this, shape, themeId)
 
 		const embedInfo = this.getEmbedDefinition(url)
 
@@ -179,7 +201,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						className="tl-embed"
 						style={{
 							border: 0,
-							boxShadow: getRotatedBoxShadow(pageRotation),
+							boxShadow: dv.showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
 							borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
 							background: embedInfo?.definition.backgroundColor ?? 'var(--tl-color-background)',
 							width: w,
@@ -209,6 +231,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						height={toDomPrecision(h)!}
 						isInteractive={isInteractive}
 						pageRotation={pageRotation}
+						showShadow={dv.showShadow}
 					/>
 				</HTMLContainer>
 			)
@@ -239,7 +262,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 							pointerEvents: isInteractive ? 'auto' : 'none',
 							// Fix for safari <https://stackoverflow.com/a/49150908>
 							zIndex: isInteractive ? '' : '-1',
-							boxShadow: getRotatedBoxShadow(pageRotation),
+							boxShadow: dv.showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
 							borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
 							background: embedInfo?.definition.backgroundColor,
 						}}
@@ -310,12 +333,14 @@ function Gist({
 	height,
 	style,
 	pageRotation,
+	showShadow,
 }: {
 	id: string
 	isInteractive: boolean
 	width: number
 	height: number
 	pageRotation: number
+	showShadow: boolean
 	style?: React.CSSProperties
 }) {
 	// Security warning:
@@ -345,7 +370,7 @@ function Gist({
 				pointerEvents: isInteractive ? 'all' : 'none',
 				// Fix for safari <https://stackoverflow.com/a/49150908>
 				zIndex: isInteractive ? '' : '-1',
-				boxShadow: getRotatedBoxShadow(pageRotation),
+				boxShadow: showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
 			}}
 			srcDoc={`
 			<html>

@@ -12,7 +12,6 @@ import {
 	Vec,
 	createComputedCache,
 	getColorValue,
-	getDefaultColorTheme,
 	getFontsFromRichText,
 	isEqual,
 	resizeScaled,
@@ -20,6 +19,7 @@ import {
 	textShapeProps,
 	toDomPrecision,
 	toRichText,
+	useCurrentThemeId,
 	useEditor,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
@@ -29,18 +29,33 @@ import {
 } from '../../utils/text/richText'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 
 const sizeCache = createComputedCache(
 	'text size',
 	(editor: Editor, shape: TLTextShape) => {
 		editor.fonts.trackFontsForShape(shape)
-		return getTextSize(editor, shape.props)
+		const util = editor.getShapeUtil(shape) as TextShapeUtil
+		const dv = getDisplayValues(util, shape)
+		return getTextSize(editor, shape.props, dv)
 	},
 	{ areRecordsEqual: (a, b) => a.props === b.props }
 )
 /** @public */
-export interface TextShapeOptions {
+export interface TextShapeUtilDisplayValues {
+	color: string
+	fontFamily: string
+	fontSize: number
+	lineHeight: number
+	fontWeight: string
+	fontStyle: string
+	fontVariant: string
+}
+
+/** @public */
+export interface TextShapeOptions
+	extends ShapeOptionsWithDisplayValues<TLTextShape, TextShapeUtilDisplayValues> {
 	/** How much addition padding should be added to the horizontal geometry of the shape when binding to an arrow? */
 	extraArrowHorizontalPadding: number
 	/** Whether to show the outline of the text shape (using the same color as the canvas). This helps with overlapping shapes. It does not show up on Safari, where text outline is a performance issues. */
@@ -56,6 +71,21 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	override options: TextShapeOptions = {
 		extraArrowHorizontalPadding: 10,
 		showTextOutline: true,
+		getDisplayValues(_editor, shape, theme): TextShapeUtilDisplayValues {
+			const { color, font, size } = shape.props
+			return {
+				color: getColorValue(theme, color, 'solid'),
+				fontFamily: FONT_FAMILIES[font],
+				fontSize: theme.fontSize * FONT_SIZES[size],
+				lineHeight: theme.lineHeight,
+				fontWeight: TEXT_PROPS.fontWeight,
+				fontStyle: TEXT_PROPS.fontStyle,
+				fontVariant: TEXT_PROPS.fontVariant,
+			}
+		},
+		getDisplayValueOverrides(): Partial<TextShapeUtilDisplayValues> {
+			return {}
+		},
 	}
 
 	getDefaultProps(): TLTextShape['props'] {
@@ -120,12 +150,13 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	component(shape: TLTextShape) {
 		const {
 			id,
-			props: { font, size, richText, color, scale, textAlign },
+			props: { richText, scale, textAlign },
 		} = shape
 
 		const { width, height } = this.getMinDimensions(shape)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const theme = useDefaultColorTheme()
+		const themeId = useCurrentThemeId()
+		const dv = getDisplayValues(this, shape, themeId)
 		const handleKeyDown = useTextShapeKeydownHandler(id)
 
 		return (
@@ -133,13 +164,13 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				shapeId={id}
 				classNamePrefix="tl-text-shape"
 				type="text"
-				font={font}
-				fontSize={FONT_SIZES[size]}
-				lineHeight={TEXT_PROPS.lineHeight}
-				align={textAlign}
-				verticalAlign="middle"
+				fontFamily={dv.fontFamily}
+				fontSize={dv.fontSize}
+				lineHeight={dv.lineHeight}
+				textAlign={textAlign === 'middle' ? 'center' : textAlign}
+				verticalAlign="center"
 				richText={richText}
-				labelColor={getColorValue(theme, color, 'solid')}
+				labelColor={dv.color}
 				isSelected={isSelected}
 				textWidth={width}
 				textHeight={height}
@@ -178,17 +209,18 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const width = bounds.width / (shape.props.scale ?? 1)
 		const height = bounds.height / (shape.props.scale ?? 1)
 
-		const theme = getDefaultColorTheme(ctx)
+		const dv = getDisplayValues(this, shape, ctx.themeId)
 
 		const exportBounds = new Box(0, 0, width, height)
 		return (
 			<RichTextSVG
-				fontSize={FONT_SIZES[shape.props.size]}
-				font={shape.props.font}
-				align={shape.props.textAlign}
-				verticalAlign="middle"
+				fontSize={dv.fontSize}
+				fontFamily={dv.fontFamily}
+				lineHeight={dv.lineHeight}
+				textAlign={shape.props.textAlign === 'middle' ? 'center' : shape.props.textAlign}
+				verticalAlign="center"
 				richText={shape.props.richText}
-				labelColor={getColorValue(theme, shape.props.color, 'solid')}
+				labelColor={dv.color}
 				bounds={exportBounds}
 				padding={0}
 				showTextOutline={this.options.showTextOutline}
@@ -250,7 +282,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const boundsA = this.getMinDimensions(prev)
 
 		// Will always be a fresh call to getTextSize
-		const boundsB = getTextSize(this.editor, next.props)
+		const dv = getDisplayValues(this, next)
+		const boundsB = getTextSize(this.editor, next.props, dv)
 
 		const wA = boundsA.width * prev.props.scale
 		const hA = boundsA.height * prev.props.scale
@@ -320,19 +353,21 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	// }
 }
 
-function getTextSize(editor: Editor, props: TLTextShape['props']) {
-	const { font, richText, size, w } = props
+function getTextSize(editor: Editor, props: TLTextShape['props'], dv: TextShapeUtilDisplayValues) {
+	const { richText, w } = props
 
 	const minWidth = 16
-	const fontSize = FONT_SIZES[size]
 
 	const maybeFixedWidth = props.autoSize ? null : Math.max(minWidth, Math.floor(w))
 
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 	const result = editor.textMeasure.measureHtml(html, {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[font],
-		fontSize: fontSize,
+		lineHeight: dv.lineHeight,
+		fontWeight: dv.fontWeight,
+		fontStyle: dv.fontStyle,
+		padding: '0px',
+		fontFamily: dv.fontFamily,
+		fontSize: dv.fontSize,
 		maxWidth: maybeFixedWidth,
 	})
 
@@ -341,7 +376,7 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 	// whatever we get to avoid wrapping.
 	return {
 		width: maybeFixedWidth ?? Math.max(minWidth, result.w + 1),
-		height: Math.max(fontSize, result.h),
+		height: Math.max(dv.fontSize, result.h),
 	}
 }
 
