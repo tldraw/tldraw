@@ -56,7 +56,14 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
     "id": "shape:10",
     "index": "a2",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -84,12 +91,6 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
       "w": 240.17,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 1616.09,
@@ -99,7 +100,14 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
     "id": "shape:11",
     "index": "a3",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -134,12 +142,6 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
       },
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "arrow",
     "typeName": "shape",
     "x": 1541.56,
@@ -149,7 +151,14 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
     "id": "shape:9",
     "index": "a1",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -177,16 +186,18 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
       "w": 136.64,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 1388.92,
     "y": 820.52,
+  },
+  "user:4": {
+    "color": "#BD54C6",
+    "id": "user:4",
+    "imageUrl": "",
+    "meta": {},
+    "name": "",
+    "typeName": "user",
   },
 }
 `;
@@ -247,7 +258,14 @@ exports[`buildFromV1Document test fixtures > exact-arrow-binding.tldr 1`] = `
     "id": "shape:10",
     "index": "a3",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -282,12 +300,6 @@ exports[`buildFromV1Document test fixtures > exact-arrow-binding.tldr 1`] = `
       },
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "arrow",
     "typeName": "shape",
     "x": 1510.86,
@@ -297,7 +309,14 @@ exports[`buildFromV1Document test fixtures > exact-arrow-binding.tldr 1`] = `
     "id": "shape:8",
     "index": "a1",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -325,12 +344,6 @@ exports[`buildFromV1Document test fixtures > exact-arrow-binding.tldr 1`] = `
       "w": 136.64,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 1418.93,
@@ -340,7 +353,14 @@ exports[`buildFromV1Document test fixtures > exact-arrow-binding.tldr 1`] = `
     "id": "shape:9",
     "index": "a2",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -368,16 +388,18 @@ exports[`buildFromV1Document test fixtures > exact-arrow-binding.tldr 1`] = `
       "w": 240.17,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 1616.09,
     "y": 584.28,
+  },
+  "user:4": {
+    "color": "#BD54C6",
+    "id": "user:4",
+    "imageUrl": "",
+    "meta": {},
+    "name": "",
+    "typeName": "user",
   },
 }
 `;
@@ -420,7 +442,14 @@ exports[`buildFromV1Document test fixtures > incorrect-arrow-binding.tldr 1`] = 
     "id": "shape:10",
     "index": "a1V",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -455,12 +484,6 @@ exports[`buildFromV1Document test fixtures > incorrect-arrow-binding.tldr 1`] = 
       },
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "arrow",
     "typeName": "shape",
     "x": 1544.3,
@@ -470,7 +493,14 @@ exports[`buildFromV1Document test fixtures > incorrect-arrow-binding.tldr 1`] = 
     "id": "shape:8",
     "index": "a1",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -498,12 +528,6 @@ exports[`buildFromV1Document test fixtures > incorrect-arrow-binding.tldr 1`] = 
       "w": 136.64,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 1391.66,
@@ -513,7 +537,14 @@ exports[`buildFromV1Document test fixtures > incorrect-arrow-binding.tldr 1`] = 
     "id": "shape:9",
     "index": "a2",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -541,16 +572,18 @@ exports[`buildFromV1Document test fixtures > incorrect-arrow-binding.tldr 1`] = 
       "w": 240.17,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 1362.24,
     "y": 784.23,
+  },
+  "user:4": {
+    "color": "#BD54C6",
+    "id": "user:4",
+    "imageUrl": "",
+    "meta": {},
+    "name": "",
+    "typeName": "user",
   },
 }
 `;

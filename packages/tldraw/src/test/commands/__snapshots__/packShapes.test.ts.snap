@@ -6,7 +6,14 @@ exports[`editor.packShapes > packs rotated shapes > packed shapes 1`] = `
     "id": "shape:boxA",
     "index": "a1",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -34,12 +41,6 @@ exports[`editor.packShapes > packs rotated shapes > packed shapes 1`] = `
       "w": 100,
     },
     "rotation": 3.141592653589793,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 192,
@@ -49,7 +50,14 @@ exports[`editor.packShapes > packs rotated shapes > packed shapes 1`] = `
     "id": "shape:boxB",
     "index": "a2",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -77,12 +85,6 @@ exports[`editor.packShapes > packs rotated shapes > packed shapes 1`] = `
       "w": 100,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 92,
@@ -92,7 +94,14 @@ exports[`editor.packShapes > packs rotated shapes > packed shapes 1`] = `
     "id": "shape:boxC",
     "index": "a3",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -120,12 +129,6 @@ exports[`editor.packShapes > packs rotated shapes > packed shapes 1`] = `
       "w": 100,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 208,
@@ -140,7 +143,14 @@ exports[`editor.packShapes > packs shapes > packed shapes 1`] = `
     "id": "shape:boxA",
     "index": "a1",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -168,12 +178,6 @@ exports[`editor.packShapes > packs shapes > packed shapes 1`] = `
       "w": 100,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 84,
@@ -183,7 +187,14 @@ exports[`editor.packShapes > packs shapes > packed shapes 1`] = `
     "id": "shape:boxB",
     "index": "a2",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -211,12 +222,6 @@ exports[`editor.packShapes > packs shapes > packed shapes 1`] = `
       "w": 100,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 200,
@@ -226,7 +231,14 @@ exports[`editor.packShapes > packs shapes > packed shapes 1`] = `
     "id": "shape:boxC",
     "index": "a3",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -254,12 +266,6 @@ exports[`editor.packShapes > packs shapes > packed shapes 1`] = `
       "w": 100,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 316,
@@ -274,7 +280,14 @@ exports[`editor.packShapes > packs shapes using the adjacent shape margin option
     "id": "shape:boxA",
     "index": "a1",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -302,12 +315,6 @@ exports[`editor.packShapes > packs shapes using the adjacent shape margin option
       "w": 100,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 99,
@@ -317,7 +324,14 @@ exports[`editor.packShapes > packs shapes using the adjacent shape margin option
     "id": "shape:boxB",
     "index": "a2",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -345,12 +359,6 @@ exports[`editor.packShapes > packs shapes using the adjacent shape margin option
       "w": 100,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 200,
@@ -360,7 +368,14 @@ exports[`editor.packShapes > packs shapes using the adjacent shape margin option
     "id": "shape:boxC",
     "index": "a3",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -388,12 +403,6 @@ exports[`editor.packShapes > packs shapes using the adjacent shape margin option
       "w": 100,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 301,

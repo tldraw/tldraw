@@ -56,7 +56,14 @@ exports[`putExcalidrawContent test fixtures > bound-arrows.json 1`] = `
     "id": "shape:5",
     "index": "a1",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -84,12 +91,6 @@ exports[`putExcalidrawContent test fixtures > bound-arrows.json 1`] = `
       "w": 149.70703125,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 337.298828125,
@@ -99,7 +100,14 @@ exports[`putExcalidrawContent test fixtures > bound-arrows.json 1`] = `
     "id": "shape:6",
     "index": "a2",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -127,12 +135,6 @@ exports[`putExcalidrawContent test fixtures > bound-arrows.json 1`] = `
       "w": 156.33984375,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 586.361328125,
@@ -142,7 +144,14 @@ exports[`putExcalidrawContent test fixtures > bound-arrows.json 1`] = `
     "id": "shape:7",
     "index": "a3",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -177,16 +186,18 @@ exports[`putExcalidrawContent test fixtures > bound-arrows.json 1`] = `
       },
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "arrow",
     "typeName": "shape",
     "x": 496.384765625,
     "y": 347.4204623362487,
+  },
+  "user:4": {
+    "color": "#7B66DC",
+    "id": "user:4",
+    "imageUrl": "",
+    "meta": {},
+    "name": "",
+    "typeName": "user",
   },
 }
 `;
@@ -247,7 +258,14 @@ exports[`putExcalidrawContent test fixtures > bound-elbow-arrows.json 1`] = `
     "id": "shape:4",
     "index": "a1",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -275,12 +293,6 @@ exports[`putExcalidrawContent test fixtures > bound-elbow-arrows.json 1`] = `
       "w": 206.46875,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 329.876953125,
@@ -290,7 +302,14 @@ exports[`putExcalidrawContent test fixtures > bound-elbow-arrows.json 1`] = `
     "id": "shape:5",
     "index": "a2",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -318,12 +337,6 @@ exports[`putExcalidrawContent test fixtures > bound-elbow-arrows.json 1`] = `
       "w": 175.85546875,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 574.267578125,
@@ -333,7 +346,14 @@ exports[`putExcalidrawContent test fixtures > bound-elbow-arrows.json 1`] = `
     "id": "shape:6",
     "index": "a3",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -368,16 +388,18 @@ exports[`putExcalidrawContent test fixtures > bound-elbow-arrows.json 1`] = `
       },
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "arrow",
     "typeName": "shape",
     "x": 755.123046875,
     "y": 524.066015625,
+  },
+  "user:4": {
+    "color": "#7B66DC",
+    "id": "user:4",
+    "imageUrl": "",
+    "meta": {},
+    "name": "",
+    "typeName": "user",
   },
 }
 `;
@@ -417,7 +439,14 @@ exports[`putExcalidrawContent test fixtures > image.json 1`] = `
     "id": "shape:4",
     "index": "a1",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -432,16 +461,18 @@ exports[`putExcalidrawContent test fixtures > image.json 1`] = `
       "w": 1,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "image",
     "typeName": "shape",
     "x": 539.5,
     "y": 359.5,
+  },
+  "user:4": {
+    "color": "#7B66DC",
+    "id": "user:4",
+    "imageUrl": "",
+    "meta": {},
+    "name": "",
+    "typeName": "user",
   },
 }
 `;
@@ -466,7 +497,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:10",
     "index": "a7",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -497,12 +535,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "line",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 110.60463469644037,
@@ -512,7 +544,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:11",
     "index": "a8",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -537,12 +576,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "line",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 113.5949593925252,
@@ -552,7 +585,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:12",
     "index": "a9",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -577,12 +617,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "line",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 186.96471175717943,
@@ -592,7 +626,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:13",
     "index": "aA",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -620,12 +661,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "w": 10.466136436296892,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 129.93494791041803,
@@ -635,7 +670,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:14",
     "index": "aB",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -678,12 +720,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "line",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 128.65338018352395,
@@ -693,7 +729,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:15",
     "index": "aC",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -730,12 +773,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 86.14805057488866,
@@ -745,7 +782,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:16",
     "index": "aD",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -788,12 +832,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 54.03295639352882,
@@ -803,7 +841,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:17",
     "index": "aE",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -825,12 +870,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "size": "s",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "draw",
     "typeName": "shape",
     "x": 52.02692266197482,
@@ -840,7 +879,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:18",
     "index": "aF",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -862,12 +908,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "size": "s",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "draw",
     "typeName": "shape",
     "x": 78.65118398409231,
@@ -877,7 +917,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:19",
     "index": "aG",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -902,12 +949,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 39.883171982572094,
@@ -917,7 +958,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:20",
     "index": "aH",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -948,12 +996,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 75.80724126246832,
@@ -963,7 +1005,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:21",
     "index": "aI",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1000,12 +1049,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 37.34235608370864,
@@ -1015,7 +1058,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:22",
     "index": "aJ",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1058,12 +1108,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 73.78340613938462,
@@ -1073,7 +1117,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:23",
     "index": "aK",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1116,12 +1167,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 303.5237174377894,
@@ -1131,7 +1176,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:24",
     "index": "aL",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1174,12 +1226,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 321.4126626602406,
@@ -1189,7 +1235,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:25",
     "index": "aM",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1226,12 +1279,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 240.77742880243295,
@@ -1241,7 +1288,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:26",
     "index": "aN",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1266,12 +1320,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 298.23026501301365,
@@ -1281,7 +1329,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:27",
     "index": "aO",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1312,12 +1367,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 262.6752860428437,
@@ -1327,7 +1376,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:28",
     "index": "aP",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1364,12 +1420,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 300.2777882573114,
@@ -1379,7 +1429,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:29",
     "index": "aQ",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1422,12 +1479,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 264.20529297726443,
@@ -1437,7 +1488,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:30",
     "index": "aR",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1465,12 +1523,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "w": 79.72274369009212,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 240.64516318993037,
@@ -1480,7 +1532,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:31",
     "index": "aS",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1523,12 +1582,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 284.4680954394512,
@@ -1538,7 +1591,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:32",
     "index": "aT",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1560,12 +1620,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "size": "s",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "draw",
     "typeName": "shape",
     "x": 286.4850257957596,
@@ -1575,7 +1629,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:33",
     "index": "aU",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1597,12 +1658,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "size": "s",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "draw",
     "typeName": "shape",
     "x": 261.71080446543874,
@@ -1612,7 +1667,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:34",
     "index": "aV",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1661,12 +1723,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 294.7648277640651,
@@ -1676,7 +1732,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:35",
     "index": "aW",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1713,12 +1776,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 253.04134763952607,
@@ -1728,7 +1785,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:36",
     "index": "aX",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1756,12 +1820,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "w": 7.840653983134871,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 217.47838135887787,
@@ -1771,7 +1829,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:37",
     "index": "aY",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1802,12 +1867,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "line",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 221.5413287284482,
@@ -1817,17 +1876,18 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:38",
     "index": "aY",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": "[Time]",
+        "createdBy": "[User]",
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "page:page",
     "props": {},
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "group",
     "typeName": "shape",
     "x": 377.74947728710913,
@@ -1837,7 +1897,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:4",
     "index": "a1",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1865,12 +1932,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "w": 79.72274369009212,
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "geo",
     "typeName": "shape",
     "x": 16.354966542628517,
@@ -1880,7 +1941,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:5",
     "index": "a2",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1923,12 +1991,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 34.35135494627548,
@@ -1938,7 +2000,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:6",
     "index": "a3",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -1981,12 +2050,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 16.836596012063637,
@@ -1996,7 +2059,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:7",
     "index": "a4",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -2033,12 +2103,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 96.93457894290896,
@@ -2048,7 +2112,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:8",
     "index": "a5",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -2103,12 +2174,6 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 32.642597977083824,
@@ -2118,7 +2183,14 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
     "id": "shape:9",
     "index": "a6",
     "isLocked": false,
-    "meta": {},
+    "meta": {
+      "__tldraw": {
+        "createdAt": null,
+        "createdBy": null,
+        "updatedAt": "[Time]",
+        "updatedBy": "[User]",
+      },
+    },
     "opacity": 1,
     "parentId": "shape:38",
     "props": {
@@ -2155,16 +2227,18 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "spline": "cubic",
     },
     "rotation": 0,
-    "tlmeta": {
-      "createdAt": null,
-      "createdBy": null,
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
     "type": "line",
     "typeName": "shape",
     "x": 13.953068626553431,
     "y": 122.40771110319884,
+  },
+  "user:4": {
+    "color": "#7B66DC",
+    "id": "user:4",
+    "imageUrl": "",
+    "meta": {},
+    "name": "",
+    "typeName": "user",
   },
 }
 `;

@@ -4013,7 +4013,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getAttributionUser(userId: string | null): TLUser | null {
 		if (!userId) return null
-		return this.store.get(createUserId(userId)) ?? null
+		return this.store.get(createUserId(userId)) ?? this.store.props.users.resolve(userId) ?? null
 	}
 
 	/**

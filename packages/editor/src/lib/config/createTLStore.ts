@@ -15,7 +15,7 @@ import {
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
-import { getUserPreferences } from './TLUserPreferences'
+import { defaultUserPreferences, getUserPreferences } from './TLUserPreferences'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 
@@ -74,7 +74,7 @@ export const defaultUserStore: TLUserStore = {
 		return UserRecordType.create({
 			id: createUserId(prefs.id),
 			name: prefs.name ?? '',
-			color: prefs.color ?? '',
+			color: prefs.color ?? defaultUserPreferences.color,
 		})
 	},
 }

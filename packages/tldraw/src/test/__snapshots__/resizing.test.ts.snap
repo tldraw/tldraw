@@ -5,7 +5,14 @@ exports[`When resizing a shape with children > Resizes a rotated draw shape > dr
   "id": "shape:lineA",
   "index": "a3",
   "isLocked": false,
-  "meta": {},
+  "meta": {
+    "__tldraw": {
+      "createdAt": "[Time]",
+      "createdBy": "[User]",
+      "updatedAt": "[Time]",
+      "updatedBy": "[User]",
+    },
+  },
   "opacity": 1,
   "parentId": "shape:boxA",
   "props": {
@@ -27,12 +34,6 @@ exports[`When resizing a shape with children > Resizes a rotated draw shape > dr
     "size": "m",
   },
   "rotation": 3.141592653589793,
-  "tlmeta": {
-    "createdAt": "[Time]",
-    "createdBy": "[User]",
-    "updatedAt": "[Time]",
-    "updatedBy": "[User]",
-  },
   "type": "draw",
   "typeName": "shape",
   "x": 100,
