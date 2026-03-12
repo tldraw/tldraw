@@ -10995,11 +10995,7 @@ function applyPartialToRecordWithProps<
 	T extends UnknownRecord & { type: string; props: object; meta: object },
 >(
 	prev: T,
-	partial?: T extends T
-		? Omit<Partial<T>, 'props'> & {
-				props?: Partial<T['props']>
-			}
-		: never
+	partial?: T extends T ? Omit<Partial<T>, 'props'> & { props?: Partial<T['props']> } : never
 ): T {
 	if (!partial) return prev
 	let next = null as null | T
@@ -11019,9 +11015,9 @@ function applyPartialToRecordWithProps<
 
 		// for props / meta properties, we support updates with partials of this object
 		if (k === 'props' || k === 'meta') {
-			;(next as any)[k] = { ...(prev as any)[k] }
+			next[k] = { ...prev[k] } as JsonObject
 			for (const [nextKey, nextValue] of Object.entries(v as object)) {
-				;(next as any)[k][nextKey] = nextValue
+				;(next[k] as JsonObject)[nextKey] = nextValue
 			}
 			continue
 		}
