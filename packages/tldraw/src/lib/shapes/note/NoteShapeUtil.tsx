@@ -105,9 +105,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override options: NoteShapeUtilOptions = {
 		resizeMode: 'none',
-		getDisplayValues(editor, shape): NoteShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme): NoteShapeUtilDisplayValues {
 			const { color, labelColor, font, size, align, verticalAlign } = shape.props
-			const theme = editor.getCurrentTheme()
 
 			return {
 				noteWidth: 200,

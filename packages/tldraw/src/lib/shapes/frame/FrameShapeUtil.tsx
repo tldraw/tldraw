@@ -85,8 +85,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override options: FrameShapeOptions = {
 		showColors: false,
 		resizeChildren: false,
-		getDisplayValues(editor, shape): FrameShapeUtilDisplayValues {
-			const theme = editor.getCurrentTheme()
+		getDisplayValues(_editor, shape, theme): FrameShapeUtilDisplayValues {
 			const { color } = shape.props
 			return {
 				fillColor: getColorValue(theme, 'black', 'frameFill'),

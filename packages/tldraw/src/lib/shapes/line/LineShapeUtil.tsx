@@ -50,8 +50,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override migrations = lineShapeMigrations
 
 	override options: LineShapeUtilOptions = {
-		getDisplayValues(editor, shape): LineShapeUtilDisplayValues {
-			const theme = editor.getCurrentTheme()
+		getDisplayValues(_editor, shape, theme): LineShapeUtilDisplayValues {
 			const { color, size } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),

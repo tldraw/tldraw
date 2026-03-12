@@ -128,8 +128,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return editor.inputs.getCtrlKey()
 		},
 		showTextOutline: true,
-		getDisplayValues(editor, shape): ArrowShapeUtilDisplayValues {
-			const theme = editor.getCurrentTheme()
+		getDisplayValues(_editor, shape, theme): ArrowShapeUtilDisplayValues {
 			const { color, fill, labelColor, size, font } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),

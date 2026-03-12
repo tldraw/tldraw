@@ -58,8 +58,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	override options: HighlightShapeOptions = {
 		maxPointsPerShape: 600,
-		getDisplayValues(editor, shape): HighlightShapeUtilDisplayValues {
-			const theme = editor.getCurrentTheme()
+		getDisplayValues(_editor, shape, theme): HighlightShapeUtilDisplayValues {
 			const { color, size } = shape.props
 			const useP3 = !debugFlags.forceSrgb.get() && tlenvReactive.get().supportsP3ColorSpace
 			const strokeColor = useP3

@@ -62,8 +62,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override options: DrawShapeOptions = {
 		maxPointsPerShape: 600,
-		getDisplayValues(editor, shape): DrawShapeUtilDisplayValues {
-			const theme = editor.getCurrentTheme()
+		getDisplayValues(_editor, shape, theme): DrawShapeUtilDisplayValues {
 			const { color, fill, size } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),

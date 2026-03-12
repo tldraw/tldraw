@@ -113,10 +113,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	override options: GeoShapeUtilOptions = {
 		showTextOutline: true,
-		getDisplayValues(editor, shape): GeoShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme): GeoShapeUtilDisplayValues {
 			const { color, size, labelColor, fill, align, verticalAlign, font } = shape.props
-
-			const theme = editor.getCurrentTheme()
 
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),
