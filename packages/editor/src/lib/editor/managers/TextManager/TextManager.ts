@@ -161,12 +161,15 @@ export class TextManager {
 		const resolvedFamily = this.resolveFontFamily(opts.fontFamily)
 		const key = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px/${opts.lineHeight} ${resolvedFamily}`
 
+		// Keep the shared context in sync with this wrapper's font.
+		// uWrap may use ctx.measureText for chars outside its initial LUT.
+		this.canvasCtx.font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${resolvedFamily}`
+
 		const cached = this.uwrapCache.get(key)
 		if (cached) return cached
 
 		// Configure the canvas context with the font
 		const ctx = this.canvasCtx
-		ctx.font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${resolvedFamily}`
 		// Note: Canvas2D doesn't directly support lineHeight, but uWrap only needs
 		// the font for character width measurement. Line height is handled separately.
 
@@ -214,28 +217,28 @@ export class TextManager {
 		if (opts.maxWidth !== null) {
 			// Wrapping mode: use uWrap to measure with a max width constraint
 			const wrapper = this.getUWrap(opts)
-			const availableWidth = opts.maxWidth - padding.left - padding.right
+			// Subtract a small fuzz factor so uwrap wraps slightly earlier than the
+			// exact pixel boundary. uwrap's character-width LUT can disagree with the
+			// browser's full text shaping by a few sub-pixels, causing off-by-one line
+			// counts at tight wrap points.
+			// TODO: 32 is just a placeholder for now.
+			const availableWidth = opts.maxWidth - padding.left - padding.right - 32
 			let lineCount = 0
 			let maxLineWidth = 0
 
-			// uWrap's types only declare (idx0, idx1) but the runtime also passes lineWidth as a 3rd arg
-			;(
-				wrapper.each as (
-					text: string,
-					width: number,
-					cb: (idx0: number, idx1: number, width: number) => void
-				) => void
-			)(text, availableWidth, (_idx0, _idx1, lineWidth) => {
+			wrapper.each(text, availableWidth, (idx0, idx1) => {
 				lineCount++
+				const lineWidth = this.canvasCtx.measureText(text.slice(idx0, idx1)).width
 				if (lineWidth > maxLineWidth) maxLineWidth = lineWidth
 			})
 
 			if (lineCount === 0) lineCount = 1
 
-			const w = Math.max(opts.maxWidth, minWidth)
+			const contentWidth = maxLineWidth + padding.left + padding.right
+			const w = Math.max(Math.min(opts.maxWidth, contentWidth), minWidth)
 			const h = lineCount * lineHeightPx + padding.top + padding.bottom
 
-			return { x: 0, y: 0, w, h, scrollWidth: 0 }
+			return { x: 0, y: 0, w, h, scrollWidth: Math.max(contentWidth, w) }
 		} else {
 			// No-wrap mode: measure each explicit line's width using canvas
 			// Set the font on the canvas context to match the requested font
