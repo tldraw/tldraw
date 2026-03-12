@@ -96,7 +96,7 @@ import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
 
 // @internal (undocumented)
-export function activeElementShouldCaptureKeys(ignoreButtons?: boolean): boolean;
+export function activeElementShouldCaptureKeys(includeButtonsAndMenus?: boolean): boolean;
 
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
@@ -437,6 +437,8 @@ export class Circle2d extends Geometry2d {
         y?: number;
     };
     // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
+    // (undocumented)
     getBounds(): Box;
     // (undocumented)
     getSvgPathData(): string;
@@ -444,6 +446,8 @@ export class Circle2d extends Geometry2d {
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
+    // (undocumented)
+    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean): boolean;
     // (undocumented)
     nearestPoint(point: VecLike): Vec;
 }
@@ -530,6 +534,8 @@ export class CubicBezier2d extends Polyline2d {
         start: Vec;
     });
     // (undocumented)
+    distanceToPoint(point: VecLike, _hitInside?: boolean): number;
+    // (undocumented)
     static GetAtT(segment: CubicBezier2d, t: number): Vec;
     // (undocumented)
     getLength(_filters?: Geometry2dFilters, precision?: number): number;
@@ -546,6 +552,8 @@ export class CubicSpline2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
         points: Vec[];
     });
+    // (undocumented)
+    distanceToPoint(point: VecLike, _hitInside?: boolean): number;
     // (undocumented)
     getLength(): number;
     // (undocumented)
@@ -801,6 +809,8 @@ export class Edge2d extends Geometry2d {
         end: Vec;
         start: Vec;
     });
+    // (undocumented)
+    distanceToPoint(point: VecLike, _hitInside?: boolean): number;
     // (undocumented)
     getLength(): number;
     // (undocumented)
@@ -1280,6 +1290,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getRenderingShapes(): TLRenderingShape[];
+    getResizeScaleFactor(): number;
     getRichTextEditor(): null | TiptapEditor;
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
@@ -1334,11 +1345,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
         height: number;
         svg: SVGSVGElement;
+        trimPadding: number;
         width: number;
     } | undefined>;
     getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
         height: number;
         svg: string;
+        trimPadding: number;
         width: number;
     } | undefined>;
     getTemporaryAssetPreview(assetId: TLAssetId): string | undefined;
@@ -1619,6 +1632,9 @@ export interface EditorProviderProps {
     editor: Editor;
 }
 
+// @internal (undocumented)
+export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMenus?: boolean): boolean;
+
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
@@ -1630,6 +1646,8 @@ export class Ellipse2d extends Geometry2d {
         height: number;
         width: number;
     };
+    // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
     // (undocumented)
     get edges(): Edge2d[];
     // (undocumented)
@@ -2564,6 +2582,8 @@ export class Polyline2d extends Geometry2d {
         points: Vec[];
     });
     // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
+    // (undocumented)
     getLength(): number;
     // (undocumented)
     getSvgPathData(): string;
@@ -2571,6 +2591,8 @@ export class Polyline2d extends Geometry2d {
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
+    // (undocumented)
+    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean): boolean;
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
     // (undocumented)
@@ -2954,6 +2976,8 @@ export class Stadium2d extends Geometry2d {
         height: number;
         width: number;
     };
+    // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
     // (undocumented)
     getBounds(): Box;
     // (undocumented)
@@ -4522,7 +4546,7 @@ export interface TLSvgExportOptions {
     background?: boolean;
     bounds?: Box;
     darkMode?: boolean;
-    padding?: number;
+    padding?: 'auto' | number;
     pixelRatio?: number;
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     scale?: number;
@@ -5039,6 +5063,8 @@ export class Vec {
     // (undocumented)
     static FromArray(v: number[]): Vec;
     // (undocumented)
+    static IsFinite(A: VecLike): boolean;
+    // (undocumented)
     static IsNaN(A: VecLike): boolean;
     // (undocumented)
     static Len(A: VecLike): number;
@@ -5081,7 +5107,7 @@ export class Vec {
     static Per(A: VecLike): Vec;
     // (undocumented)
     per(): this;
-    static PointsBetween(A: VecModel, B: VecModel, steps?: number): Vec[];
+    static PointsBetween(A: VecModel, B: VecModel, steps?: number, ease?: (t: number) => number): Vec[];
     // (undocumented)
     get pressure(): number;
     static Pry(A: VecLike, B: VecLike): number;

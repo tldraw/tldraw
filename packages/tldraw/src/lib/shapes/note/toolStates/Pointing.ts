@@ -43,7 +43,7 @@ export class Pointing extends StateNode {
 		const offset = getNoteShapeAdjacentPositionOffset(
 			this.editor,
 			center,
-			this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
+			this.editor.getResizeScaleFactor(),
 			dv.noteWidth,
 			dv.noteHeight
 		)
@@ -140,7 +140,7 @@ export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
 		x: center.x,
 		y: center.y,
 		props: {
-			scale: editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1,
+			scale: editor.getResizeScaleFactor(),
 		},
 	})
 

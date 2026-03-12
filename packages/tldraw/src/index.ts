@@ -151,6 +151,7 @@ export {
 } from './lib/shapes/draw/DrawShapeUtil'
 export {
 	EmbedShapeUtil,
+	type EmbedShapeOptions,
 	type EmbedShapeUtilDisplayValues,
 	type EmbedShapeUtilOptions,
 } from './lib/shapes/embed/EmbedShapeUtil'

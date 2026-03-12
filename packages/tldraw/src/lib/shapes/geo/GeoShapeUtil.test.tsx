@@ -1,6 +1,5 @@
 import { Group2d, IndexKey, TLGeoShape, TLShapeId, createShapeId, toRichText } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
-import { TL } from '../../../test/test-jsx'
 
 let editor: TestEditor
 let ids: Record<string, TLShapeId>
@@ -15,20 +14,25 @@ afterEach(() => {
 
 describe('Handle snapping', () => {
 	beforeEach(() => {
-		ids = editor.createShapesFromJsx(
-			<>
-				<TL.geo ref="geo" x={0} y={0} geo="rectangle" w={100} h={100} />
-				<TL.line
-					ref="line"
-					x={0}
-					y={0}
-					points={{
+		ids = {
+			geo: createShapeId('geo'),
+			line: createShapeId('line'),
+		}
+		editor.createShapes([
+			{ id: ids.geo, type: 'geo', x: 0, y: 0, props: { geo: 'rectangle', w: 100, h: 100 } },
+			{
+				id: ids.line,
+				type: 'line',
+				x: 0,
+				y: 0,
+				props: {
+					points: {
 						a1: { id: 'a1', index: 'a1' as IndexKey, x: 200, y: 0 },
 						a2: { id: 'a2', index: 'a2' as IndexKey, x: 200, y: 100 },
-					}}
-				/>
-			</>
-		)
+					},
+				},
+			},
+		])
 	})
 
 	const geoShape = () => {

@@ -37,9 +37,15 @@ export interface EmbedShapeUtilDisplayValues {
 }
 
 /** @public */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface EmbedShapeOptions {
+	/** The embed definitions to use for this shape util. */
+	readonly embedDefinitions: readonly TLEmbedDefinition[]
+}
+
+/** @public */
 export interface EmbedShapeUtilOptions
-	extends ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues> {}
+	extends ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues>,
+		EmbedShapeOptions {}
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 	return Object.entries(permissions)
@@ -53,9 +59,9 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override type = 'embed' as const
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
-	private static embedDefinitions: readonly EmbedDefinition[] = DEFAULT_EMBED_DEFINITIONS
 
 	override options: EmbedShapeUtilOptions = {
+		embedDefinitions: DEFAULT_EMBED_DEFINITIONS,
 		getDisplayValues(): EmbedShapeUtilDisplayValues {
 			return {
 				showShadow: true,
@@ -72,16 +78,23 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return result.definition.canEditWhileLocked ?? true
 	}
 
-	static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]) {
-		EmbedShapeUtil.embedDefinitions = embedDefinitions
+	private static legacyEmbedDefinitions: readonly EmbedDefinition[] | null = null
+
+	/** @deprecated - Use `EmbedShapeUtil.configure({ embedDefinitions: [...] })` instead. */
+	static setEmbedDefinitions(embedDefinitions: readonly EmbedDefinition[]) {
+		EmbedShapeUtil.legacyEmbedDefinitions = embedDefinitions
+	}
+
+	private getEmbedDefs(): readonly TLEmbedDefinition[] {
+		return EmbedShapeUtil.legacyEmbedDefinitions ?? this.options.embedDefinitions
 	}
 
 	getEmbedDefinitions(): readonly TLEmbedDefinition[] {
-		return EmbedShapeUtil.embedDefinitions
+		return this.getEmbedDefs()
 	}
 
 	getEmbedDefinition(url: string): TLEmbedResult {
-		return getEmbedInfo(EmbedShapeUtil.embedDefinitions, url)
+		return getEmbedInfo(this.getEmbedDefs(), url)
 	}
 
 	override getText(shape: TLEmbedShape) {

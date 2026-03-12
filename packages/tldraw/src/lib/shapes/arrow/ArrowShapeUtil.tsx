@@ -1122,6 +1122,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const dv = getDisplayValues(this, shape, ctx.themeId)
 		const scaleFactor = 1 / shape.props.scale
 
+		const showArrowLabel = !isEmptyRichText(shape.props.richText)
+
 		return (
 			<g transform={`scale(${scaleFactor})`}>
 				<ArrowSvg
@@ -1133,20 +1135,22 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					patternFillFallbackColor={dv.patternFillFallbackColor}
 					labelBorderRadius={dv.labelBorderRadius}
 				/>
-				<RichTextSVG
-					fontSize={dv.labelFontSize * shape.props.scale}
-					fontFamily={dv.labelFontFamily}
-					lineHeight={dv.labelLineHeight}
-					textAlign="center"
-					verticalAlign="center"
-					labelColor={dv.labelColor}
-					richText={shape.props.richText}
-					bounds={getArrowLabelPosition(this.editor, shape, false)
-						.box.clone()
-						.expandBy(-dv.labelPadding * shape.props.scale)}
-					padding={0}
-					showTextOutline={this.options.showTextOutline}
-				/>
+				{showArrowLabel && (
+					<RichTextSVG
+						fontSize={dv.labelFontSize * shape.props.scale}
+						fontFamily={dv.labelFontFamily}
+						lineHeight={dv.labelLineHeight}
+						textAlign="center"
+						verticalAlign="center"
+						labelColor={dv.labelColor}
+						richText={shape.props.richText}
+						bounds={getArrowLabelPosition(this.editor, shape, false)
+							.box.clone()
+							.expandBy(-dv.labelPadding * shape.props.scale)}
+						padding={0}
+						showTextOutline={this.options.showTextOutline}
+					/>
+				)}
 			</g>
 		)
 	}

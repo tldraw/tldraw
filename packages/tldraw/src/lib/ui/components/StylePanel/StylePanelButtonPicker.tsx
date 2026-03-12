@@ -1,5 +1,6 @@
 import {
 	DefaultColorStyle,
+	elementShouldCaptureKeys,
 	getColorValue,
 	SharedStyle,
 	StyleProp,
@@ -81,10 +82,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 			// is retained on a text label. That way, you can continue typing
 			// after selecting a style.
 			const origActiveEl = rPointingOriginalActiveElement.current
-			if (
-				origActiveEl &&
-				(['TEXTAREA', 'INPUT'].includes(origActiveEl.nodeName) || origActiveEl.isContentEditable)
-			) {
+			if (origActiveEl && elementShouldCaptureKeys(origActiveEl, false)) {
 				origActiveEl.focus()
 			} else if (breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM) {
 				editor.getContainer().focus()

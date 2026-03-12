@@ -452,6 +452,7 @@ export {
 } from './lib/utils/deepLinks'
 export {
 	activeElementShouldCaptureKeys,
+	elementShouldCaptureKeys,
 	loopToHtmlElement,
 	preventDefault,
 	releasePointerCapture,

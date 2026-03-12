@@ -132,6 +132,16 @@ interface TimingEntry {
 	durationMs: number
 }
 
+type WorkerId = 'asset-upload' | 'health' | 'multiplayer' | 'tldrawusercontent' | 'image-resize'
+
+interface WorkerDeployment {
+	id: WorkerId
+	stepLabel: string
+	timingLabel: string
+	dependsOn: WorkerId[]
+	run(args: { dryRun: boolean }): Promise<void>
+}
+
 const timings: TimingEntry[] = []
 
 function formatDurationMs(durationMs: number) {
@@ -163,6 +173,92 @@ function logTimingSummary() {
 				entry.durationMs
 			)}`
 		)
+	}
+}
+
+const workerDeployments: WorkerDeployment[] = [
+	{
+		id: 'multiplayer',
+		stepLabel: 'deploying multiplayer worker to cloudflare',
+		timingLabel: 'worker deploy: multiplayer',
+		dependsOn: [],
+		run: deployTlsyncWorker,
+	},
+	{
+		id: 'asset-upload',
+		stepLabel: 'deploying asset uploader to cloudflare',
+		timingLabel: 'worker deploy: asset-upload',
+		dependsOn: [],
+		run: deployAssetUploadWorker,
+	},
+	{
+		id: 'tldrawusercontent',
+		stepLabel: 'deploying tldrawusercontent worker to cloudflare',
+		timingLabel: 'worker deploy: tldrawusercontent',
+		dependsOn: ['multiplayer'],
+		run: deployTldrawUserContentWorker,
+	},
+	{
+		id: 'image-resize',
+		stepLabel: 'deploying image resizer to cloudflare',
+		timingLabel: 'worker deploy: image-resize',
+		dependsOn: ['multiplayer'],
+		run: deployImageResizeWorker,
+	},
+	{
+		id: 'health',
+		stepLabel: 'deploying health worker to cloudflare',
+		timingLabel: 'worker deploy: health',
+		dependsOn: [],
+		run: deployHealthWorker,
+	},
+]
+
+async function deployWorkersInDependencyOrder({
+	dryRun,
+	withDiscordSteps,
+	parallelizeReadyWorkers,
+}: {
+	dryRun: boolean
+	withDiscordSteps: boolean
+	parallelizeReadyWorkers: boolean
+}) {
+	const pending = new Map(workerDeployments.map((worker) => [worker.id, worker]))
+	const completed = new Set<WorkerId>()
+
+	while (pending.size > 0) {
+		const ready = [...pending.values()].filter((worker) =>
+			worker.dependsOn.every((dependency) => completed.has(dependency))
+		)
+
+		if (ready.length === 0) {
+			throw new Error('Cloudflare worker dependency cycle detected in deploy-dotcom.ts')
+		}
+
+		const deployWorker = async (worker: WorkerDeployment) => {
+			const timingLabel = dryRun
+				? worker.timingLabel.replace('worker deploy:', 'worker dry run:')
+				: worker.timingLabel
+			const deploy = () => withTiming(timingLabel, () => worker.run({ dryRun }))
+			if (withDiscordSteps) {
+				await discord.step(worker.stepLabel, deploy)
+			} else {
+				await deploy()
+			}
+		}
+
+		if (parallelizeReadyWorkers) {
+			await Promise.all(ready.map((worker) => deployWorker(worker)))
+		} else {
+			for (const worker of ready) {
+				await deployWorker(worker)
+			}
+		}
+
+		for (const worker of ready) {
+			pending.delete(worker.id)
+			completed.add(worker.id)
+		}
 	}
 }
 
@@ -236,26 +332,22 @@ async function main() {
 		discord.step('building dotcom app', async () => {
 			await withTiming('dotcom sentry release', () => createSentryRelease())
 			await withTiming('dotcom build', () => prepareDotcomApp())
-			await withTiming('dotcom sourcemap upload', () => uploadSourceMaps())
-			await withTiming('dotcom asset coalescing', () =>
-				coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
-			)
+			await Promise.all([
+				withTiming('dotcom sourcemap upload', () => uploadSourceMaps()),
+				withTiming('dotcom asset coalescing', () =>
+					coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
+				),
+			])
 		})
 	)
 
 	await withTiming('step: cloudflare deploy dry run', () =>
 		discord.step('cloudflare deploy dry run', async () => {
-			await withTiming('worker dry run: asset-upload', () =>
-				deployAssetUploadWorker({ dryRun: true })
-			)
-			await withTiming('worker dry run: health', () => deployHealthWorker({ dryRun: true }))
-			await withTiming('worker dry run: multiplayer', () => deployTlsyncWorker({ dryRun: true }))
-			await withTiming('worker dry run: tldrawusercontent', () =>
-				deployTldrawUserContentWorker({ dryRun: true })
-			)
-			await withTiming('worker dry run: image-resize', () =>
-				deployImageResizeWorker({ dryRun: true })
-			)
+			await deployWorkersInDependencyOrder({
+				dryRun: true,
+				withDiscordSteps: false,
+				parallelizeReadyWorkers: true,
+			})
 		})
 	)
 
@@ -263,40 +355,17 @@ async function main() {
 
 	await discord.message(`--- **pre-flight complete, starting real dotcom deploy** ---`)
 
-	// 2. deploy the cloudflare workers:
-	await withTiming('step: deploy asset uploader worker', () =>
-		discord.step('deploying asset uploader to cloudflare', async () => {
-			await withTiming('worker deploy: asset-upload', () =>
-				deployAssetUploadWorker({ dryRun: false })
-			)
-		})
-	)
-	await withTiming('step: deploy multiplayer worker', () =>
-		discord.step('deploying multiplayer worker to cloudflare', async () => {
-			await withTiming('worker deploy: multiplayer', () => deployTlsyncWorker({ dryRun: false }))
-		})
-	)
-	await withTiming('step: deploy tldrawusercontent worker', () =>
-		discord.step('deploying tldrawusercontent worker to cloudflare', async () => {
-			await withTiming('worker deploy: tldrawusercontent', () =>
-				deployTldrawUserContentWorker({ dryRun: false })
-			)
-		})
-	)
-	await withTiming('step: deploy image resizer worker', () =>
-		discord.step('deploying image resizer to cloudflare', async () => {
-			await withTiming('worker deploy: image-resize', () =>
-				deployImageResizeWorker({ dryRun: false })
-			)
-		})
-	)
-	await withTiming('step: deploy health worker', () =>
-		discord.step('deploying health worker to cloudflare', async () => {
-			await withTiming('worker deploy: health', () => deployHealthWorker({ dryRun: false }))
+	// 2. deploy cloudflare workers first.
+	// Worker dependencies are enforced by deployWorkersInDependencyOrder.
+	await withTiming('step: deploy cloudflare workers', () =>
+		deployWorkersInDependencyOrder({
+			dryRun: false,
+			withDiscordSteps: true,
+			parallelizeReadyWorkers: false,
 		})
 	)
 
-	// 3. deploy the pre-build dotcom app:
+	// 3. deploy dotcom app only after workers have successfully deployed.
 	const { deploymentUrl, inspectUrl } = await withTiming(
 		'step: deploy dotcom app to vercel',
 		async () =>
