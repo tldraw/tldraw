@@ -6,7 +6,7 @@ import {
 	createMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
-import { mapObjectMapValues, uniqueId } from '@tldraw/utils'
+import { assert, mapObjectMapValues, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TLPropsMigrations } from '../recordsWithProps'
 
@@ -122,6 +122,10 @@ export function processCustomRecordMigrations(
 			)
 		} else if ('sequenceId' in migrations) {
 			// Full MigrationSequence provided
+			assert(
+				sequenceId === migrations.sequenceId,
+				`sequenceId mismatch for ${typeName} custom record migrations. Expected '${sequenceId}', got '${migrations.sequenceId}'`
+			)
 			result.push(migrations)
 		} else if ('sequence' in migrations) {
 			// TLPropsMigrations format - convert to full MigrationSequence
