@@ -8,7 +8,9 @@ import {
 	TLStoreProps,
 	TLStoreSnapshot,
 	TLUserStore,
+	UserRecordType,
 	createTLSchema,
+	createUserId,
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
@@ -69,7 +71,11 @@ export const defaultUserStore: TLUserStore = {
 	getCurrentUser: () => {
 		const prefs = getUserPreferences()
 		if (!prefs.id) return null
-		return { id: prefs.id, name: prefs.name ?? '', color: prefs.color ?? undefined, meta: {} }
+		return UserRecordType.create({
+			id: createUserId(prefs.id),
+			name: prefs.name ?? '',
+			color: prefs.color ?? '',
+		})
 	},
 }
 
@@ -142,7 +148,7 @@ export function createTLStore({
 					users.resolve ??
 					((userId) => {
 						const current = users.getCurrentUser()
-						return current && current.id === userId ? current : null
+						return current && current.id === createUserId(userId) ? current : null
 					}),
 			},
 			onMount: (editor) => {

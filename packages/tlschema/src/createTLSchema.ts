@@ -22,6 +22,7 @@ import {
 	getShapePropKeysByStyle,
 	rootShapeMigrations,
 } from './records/TLShape'
+import { UserRecordType, userMigrations } from './records/TLUser'
 import { RecordProps, TLPropsMigrations, processPropsMigrations } from './recordsWithProps'
 import { arrowShapeMigrations, arrowShapeProps } from './shapes/TLArrowShape'
 import { TLBaseShape } from './shapes/TLBaseShape'
@@ -275,6 +276,7 @@ export function createTLSchema({
 			instance_presence: InstancePresenceRecordType,
 			pointer: PointerRecordType,
 			shape: ShapeRecordType,
+			user: UserRecordType,
 		},
 		{
 			migrations: [
@@ -289,6 +291,7 @@ export function createTLSchema({
 				pointerMigrations,
 				rootShapeMigrations,
 
+				userMigrations,
 				bookmarkAssetMigrations,
 				imageAssetMigrations,
 				videoAssetMigrations,

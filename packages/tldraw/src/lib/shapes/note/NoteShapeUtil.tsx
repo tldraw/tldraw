@@ -234,6 +234,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
+	override getReferencedUserIds(shape: TLNoteShape) {
+		return shape.props.textLastEditedBy ? [shape.props.textLastEditedBy] : []
+	}
+
 	override getFontFaces(shape: TLNoteShape) {
 		const fonts = isEmptyRichText(shape.props.richText)
 			? []

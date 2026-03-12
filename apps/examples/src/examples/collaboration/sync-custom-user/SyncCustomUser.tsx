@@ -1,6 +1,13 @@
 import { useSyncDemo } from '@tldraw/sync'
 import { useState } from 'react'
-import { TLUserPreferences, TLUserStore, Tldraw, useTldrawCurrentUser } from 'tldraw'
+import {
+	createUserId,
+	Tldraw,
+	TLUserPreferences,
+	TLUserStore,
+	UserRecordType,
+	useTldrawCurrentUser,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 
 export default function SyncCustomUserExample({ roomId }: { roomId: string }) {
@@ -15,12 +22,11 @@ export default function SyncCustomUserExample({ roomId }: { roomId: string }) {
 	// [2]
 	const users: TLUserStore = {
 		getCurrentUser() {
-			return {
-				id: userPreferences.id,
+			return UserRecordType.create({
+				id: createUserId(userPreferences.id),
 				name: userPreferences.name ?? '',
-				color: userPreferences.color ?? undefined,
-				meta: {},
-			}
+				color: userPreferences.color ?? '',
+			})
 		},
 	}
 

@@ -185,6 +185,9 @@ export function createTLSchema({ shapes, bindings, migrations }?: {
     shapes?: Record<string, SchemaPropsInfo>;
 }): TLSchema;
 
+// @public (undocumented)
+export function createUserId(id: string): TLUserId;
+
 // @public
 export const defaultBindingSchemas: {
     arrow: {
@@ -379,7 +382,7 @@ export function getDefaultUserPresence(store: TLStore, user: TLUser): {
     screenBounds: BoxModel;
     scribbles: TLScribble[];
     selectedShapeIds: TLShapeId[];
-    userId: string;
+    userId: TLUserId;
     userName: string;
 } | null;
 
@@ -436,6 +439,9 @@ export function isShape(record?: UnknownRecord): record is TLShape;
 
 // @public
 export function isShapeId(id?: string): id is TLShapeId;
+
+// @public (undocumented)
+export function isUserId(id: string): id is TLUserId;
 
 // @public (undocumented)
 export const LANGUAGES: readonly [{
@@ -1427,7 +1433,7 @@ export interface TLPropsMigrations {
 }
 
 // @public
-export type TLRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
+export type TLRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape | TLUser;
 
 // @public
 export type TLRichText = T.TypeOf<typeof richTextValidator>;
@@ -1539,18 +1545,19 @@ export type TLUnknownBinding = TLBaseBinding<string, object>;
 export type TLUnknownShape = TLBaseShape<string, object>;
 
 // @public
-export interface TLUser extends JsonObject {
+export interface TLUser extends BaseRecord<'user', TLUserId> {
     // (undocumented)
-    readonly color?: string;
+    color: string;
     // (undocumented)
-    readonly id: string;
+    imageUrl: string;
     // (undocumented)
-    readonly imageUrl?: string;
+    meta: JsonObject;
     // (undocumented)
-    readonly meta: JsonObject;
-    // (undocumented)
-    readonly name: string;
+    name: string;
 }
+
+// @public (undocumented)
+export type TLUserId = RecordId<TLUser>;
 
 // @public
 export interface TLUserStore {
@@ -1594,6 +1601,12 @@ export interface TLVideoShapeProps {
 
 // @public
 export function toRichText(text: string): TLRichText;
+
+// @public (undocumented)
+export const userIdValidator: T.Validator<TLUserId>;
+
+// @public (undocumented)
+export const UserRecordType: RecordType<TLUser, never>;
 
 // @public
 export interface VecModel {

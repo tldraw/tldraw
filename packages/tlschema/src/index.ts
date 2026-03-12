@@ -159,6 +159,14 @@ export {
 	type TLUnknownShape,
 } from './records/TLShape'
 export {
+	createUserId,
+	isUserId,
+	userIdValidator,
+	UserRecordType,
+	type TLUser,
+	type TLUserId,
+} from './records/TLUser'
+export {
 	type RecordProps,
 	type RecordPropsType,
 	type TLPropsMigration,
@@ -306,7 +314,6 @@ export {
 	type TLStoreProps,
 	type TLStoreSchema,
 	type TLStoreSnapshot,
-	type TLUser,
 	type TLUserStore,
 } from './TLStore'
 export {

@@ -11,7 +11,9 @@ import {
 	TLUserStore,
 	Tldraw,
 	TldrawUiMenuItem,
+	UserRecordType,
 	createSessionStateSnapshotSignal,
+	createUserId,
 	parseDeepLinkString,
 	react,
 	throttle,
@@ -185,7 +187,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return {
 			getCurrentUser() {
 				const p = prefs.get()
-				return { id: p.id, name: p.name ?? '', color: p.color ?? undefined, meta: {} }
+				return UserRecordType.create({
+					id: createUserId(p.id),
+					name: p.name ?? '',
+					color: p.color ?? '',
+				})
 			},
 		}
 	}, [app?.tlUser.userPreferences])

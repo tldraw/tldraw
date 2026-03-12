@@ -23,8 +23,10 @@ import {
 	TLStoreWithStatus,
 	TLUser,
 	TLUserStore,
+	UserRecordType,
 	computed,
 	createTLStore,
+	createUserId,
 	defaultUserPreferences,
 	defaultUserStore,
 	getDefaultUserPresence,
@@ -194,18 +196,22 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 						_users.resolve ??
 						((userId) => {
 							const current = _users.getCurrentUser()
-							return current && current.id === userId ? current : null
+							return current && current.id === createUserId(userId) ? current : null
 						}),
 				}
 			: {
 					getCurrentUser: defaultUserStore.getCurrentUser,
 					resolve: (userId) => {
 						const current = defaultUserStore.getCurrentUser()
-						if (current && current.id === userId) return current
+						if (current && current.id === createUserId(userId)) return current
 						const presences = store.query.records('instance_presence').get()
 						const match = presences.find((p) => p.userId === userId)
 						if (match) {
-							return { id: userId, name: match.userName, color: match.color, meta: {} }
+							return UserRecordType.create({
+								id: createUserId(userId),
+								name: match.userName,
+								color: match.color,
+							})
 						}
 						return null
 					},
@@ -215,12 +221,11 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			const user = users.getCurrentUser()
 			if (user) return user
 			const prefs = getUserPreferences()
-			return {
-				id: prefs.id,
+			return UserRecordType.create({
+				id: createUserId(prefs.id),
 				name: prefs.name ?? '',
 				color: prefs.color ?? defaultUserPreferences.color,
-				meta: {},
-			}
+			})
 		})
 
 		let socket: TLPersistentClientSocket<

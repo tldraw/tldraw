@@ -6,6 +6,8 @@ import {
 	TLShape,
 	TLUserStore,
 	Tldraw,
+	UserRecordType,
+	createUserId,
 	getTldrawMetaFromShapeMeta,
 	useEditor,
 	useValue,
@@ -27,9 +29,11 @@ declare module 'tldraw' {
 type AttributedCardShape = TLShape<typeof ATTRIBUTED_CARD>
 
 // [2]
+const aliceUser = UserRecordType.create({ id: createUserId('alice'), name: 'Alice' })
+
 const users: TLUserStore = {
-	getCurrentUser: () => ({ id: 'user-alice', name: 'Alice', meta: {} }),
-	resolve: (id) => (id === 'user-alice' ? { id, name: 'Alice', meta: {} } : null),
+	getCurrentUser: () => aliceUser,
+	resolve: (id) => (id === 'alice' ? aliceUser : null),
 }
 
 // [3]

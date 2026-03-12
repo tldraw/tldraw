@@ -15,6 +15,7 @@ import { PageRecordType, TLPageId } from './records/TLPage'
 import { InstancePageStateRecordType, TLInstancePageStateId } from './records/TLPageState'
 import { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
 import { TLRecord } from './records/TLRecord'
+import { TLUser } from './records/TLUser'
 
 /**
  * Redacts the source of an asset record for error reporting.
@@ -201,33 +202,6 @@ export interface TLAssetStore {
 }
 
 /**
- * A user record for tldraw's user store. At minimum contains an `id` and `name`,
- * but extends `JsonObject` so downstream SDK consumers can attach additional
- * properties (avatar URL, color, role, etc.) without upstream schema changes.
- *
- * The `meta` field provides the standard tldraw extensibility point for
- * app-specific data, consistent with shapes, assets, pages, and other records.
- *
- * @public
- * @example
- * ```ts
- * const user: TLUser = {
- *   id: 'user-123',
- *   name: 'Alice',
- *   color: '#e03131',
- *   meta: { team: 'design' },
- * }
- * ```
- */
-export interface TLUser extends JsonObject {
-	readonly id: string
-	readonly name: string
-	readonly color?: string
-	readonly imageUrl?: string
-	readonly meta: JsonObject
-}
-
-/**
  * Interface for resolving user information in tldraw.
  *
  * A `TLUserStore` sits alongside the main {@link TLStore} and provides user
@@ -239,7 +213,11 @@ export interface TLUser extends JsonObject {
  * ```ts
  * const userStore: TLUserStore = {
  *   getCurrentUser() {
- *     return { id: myAuth.userId, name: myAuth.displayName, color: myAuth.color, meta: {} }
+ *     return UserRecordType.create({
+ *       id: createUserId(myAuth.userId),
+ *       name: myAuth.displayName,
+ *       color: myAuth.color,
+ *     })
  *   },
  *   resolve(userId) {
  *     return myUserCache.get(userId) ?? null

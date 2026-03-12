@@ -88,6 +88,7 @@ import { TLStoreSchema } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
+import { TLUser } from '@tldraw/tlschema';
 import { TLUserStore } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
@@ -1153,6 +1154,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
     edgeScrollManager: EdgeScrollManager;
+    // @internal
+    _ensureUserRecord(user: TLUser): void;
     // @internal (undocumented)
     externalAssetContentHandlers: {
         [K in TLExternalAsset['type']]: {
@@ -1183,6 +1186,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getAttributionDisplayName(userId: null | string): null | string;
+    getAttributionUser(userId: null | string): null | TLUser;
     getAttributionUserId(): null | string;
     getBaseZoom(): number;
     getBinding(id: TLBindingId): TLBinding | undefined;
@@ -1274,6 +1278,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPath(): string;
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
+    // @internal
+    _getReferencedUserIds(shapes: TLShape[]): Set<string>;
     getRenderingShapes(): TLRenderingShape[];
     getRichTextEditor(): null | TiptapEditor;
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
@@ -2803,6 +2809,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
     getIndicatorPath(shape: Shape): TLIndicatorPath | undefined;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
+    getReferencedUserIds(shape: Shape): string[];
     // (undocumented)
     getText(shape: Shape): string | undefined;
     hideInMinimap?(shape: Shape): boolean;
@@ -3323,6 +3330,8 @@ export interface TLContent {
     schema: SerializedSchema;
     // (undocumented)
     shapes: TLShape[];
+    // (undocumented)
+    users?: TLUser[];
 }
 
 // @public

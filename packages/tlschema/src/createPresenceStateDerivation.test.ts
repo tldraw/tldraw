@@ -10,7 +10,8 @@ import { TLINSTANCE_ID } from './records/TLInstance'
 import { TLPageId } from './records/TLPage'
 import { InstancePageStateRecordType } from './records/TLPageState'
 import { TLRecord } from './records/TLRecord'
-import { createIntegrityChecker, TLStoreProps, TLUser } from './TLStore'
+import { createUserId, TLUser, UserRecordType } from './records/TLUser'
+import { createIntegrityChecker, TLStoreProps } from './TLStore'
 
 describe('createPresenceStateDerivation', () => {
 	let store: Store<TLRecord, TLStoreProps>
@@ -39,12 +40,14 @@ describe('createPresenceStateDerivation', () => {
 		const checker = createIntegrityChecker(store)
 		checker()
 
-		userSignal = atom('user', {
-			id: 'user123',
-			name: 'Test User',
-			color: '#007AFF',
-			meta: {},
-		})
+		userSignal = atom(
+			'user',
+			UserRecordType.create({
+				id: createUserId('user123'),
+				name: 'Test User',
+				color: '#007AFF',
+			})
+		)
 	})
 
 	afterEach(() => {
@@ -57,17 +60,18 @@ describe('createPresenceStateDerivation', () => {
 			const presenceSignal = derivation(store)
 			const presence = presenceSignal.get()
 
-			expect(presence!.userId).toBe('user123')
+			expect(presence!.userId).toBe('user:user123')
 			expect(presence!.userName).toBe('Test User')
 			expect(presence!.color).toBe('#007AFF')
 
 			// Update user signal
-			userSignal.set({
-				id: 'user456',
-				name: 'Updated User',
-				color: '#FF6B6B',
-				meta: {},
-			})
+			userSignal.set(
+				UserRecordType.create({
+					id: createUserId('user456'),
+					name: 'Updated User',
+					color: '#FF6B6B',
+				})
+			)
 
 			const updatedPresence = presenceSignal.get()
 			expect(updatedPresence!.userName).toBe('Updated User')
@@ -135,22 +139,21 @@ describe('getDefaultUserPresence', () => {
 
 	describe('basic functionality', () => {
 		it('should return presence state with user info and default values', () => {
-			const user: TLUser = {
-				id: 'test-user',
+			const user = UserRecordType.create({
+				id: createUserId('test-user'),
 				name: 'Test User',
 				color: '#00FF00',
-				meta: {},
-			}
+			})
 
 			const presence = getDefaultUserPresence(store, user)
 
-			expect(presence!.userId).toBe('test-user')
+			expect(presence!.userId).toBe('user:test-user')
 			expect(presence!.userName).toBe('Test User')
 			expect(presence!.color).toBe('#00FF00')
 		})
 
 		it('should use defaults for missing user fields', () => {
-			const minimalUser: TLUser = { id: 'minimal', name: '', meta: {} }
+			const minimalUser = UserRecordType.create({ id: createUserId('minimal') })
 			const presence = getDefaultUserPresence(store, minimalUser)
 
 			expect(presence!.userName).toBe('')
@@ -161,7 +164,7 @@ describe('getDefaultUserPresence', () => {
 	describe('error conditions', () => {
 		it('should return null when required records are missing', () => {
 			store.remove([TLINSTANCE_ID])
-			const user: TLUser = { id: 'test', name: '', meta: {} }
+			const user = UserRecordType.create({ id: createUserId('test') })
 			expect(getDefaultUserPresence(store, user)).toBe(null)
 		})
 	})

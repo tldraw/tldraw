@@ -1,10 +1,11 @@
 import { Signal, computed } from '@tldraw/state'
-import { TLStore, TLUser } from './TLStore'
+import { TLStore } from './TLStore'
 import { CameraRecordType } from './records/TLCamera'
 import { TLINSTANCE_ID } from './records/TLInstance'
 import { InstancePageStateRecordType } from './records/TLPageState'
 import { TLPOINTER_ID } from './records/TLPointer'
 import { InstancePresenceRecordType, TLInstancePresence } from './records/TLPresence'
+import { TLUser } from './records/TLUser'
 
 /**
  * Creates a derivation that represents the current presence state of the current user.
@@ -117,14 +118,14 @@ export function getDefaultUserPresence(store: TLStore, user: TLUser) {
 		brush: instance.brush,
 		scribbles: instance.scribbles,
 		userId: user.id,
-		userName: user.name ?? '',
+		userName: user.name,
 		followingUserId: instance.followingUserId,
 		camera: {
 			x: camera.x,
 			y: camera.y,
 			z: camera.z,
 		},
-		color: user.color ?? '#FF0000',
+		color: user.color || '#FF0000',
 		currentPageId: instance.currentPageId,
 		cursor: {
 			x: pointer.x,

@@ -1,7 +1,9 @@
 import {
 	TLGeoShape,
 	TLNoteShape,
+	UserRecordType,
 	createShapeId,
+	createUserId,
 	getTldrawMetaFromShapeMeta,
 	tldrawShapeMetaKey,
 	toRichText,
@@ -174,13 +176,13 @@ describe('note shape textLastEditedBy', () => {
 
 describe('TLUserStore', () => {
 	it('uses custom user store for attribution', () => {
+		const alice = UserRecordType.create({ id: createUserId('auth-user-42'), name: 'Alice' })
 		const customEditor = new TestEditor(
 			{},
 			{
 				users: {
-					getCurrentUser: () => ({ id: 'auth-user-42', name: 'Alice', meta: {} }),
-					resolve: (userId) =>
-						userId === 'auth-user-42' ? { id: userId, name: 'Alice', meta: {} } : null,
+					getCurrentUser: () => alice,
+					resolve: (userId) => (userId === 'auth-user-42' ? alice : null),
 				},
 			}
 		)
@@ -195,14 +197,16 @@ describe('TLUserStore', () => {
 	})
 
 	it('uses custom user store for display name resolution', () => {
+		const alice = UserRecordType.create({ id: createUserId('user-1'), name: 'Alice' })
+		const bob = UserRecordType.create({ id: createUserId('user-2'), name: 'Bob' })
 		const customEditor = new TestEditor(
 			{},
 			{
 				users: {
-					getCurrentUser: () => ({ id: 'user-1', name: 'Alice', meta: {} }),
+					getCurrentUser: () => alice,
 					resolve: (userId) => {
-						if (userId === 'user-1') return { id: userId, name: 'Alice', meta: {} }
-						if (userId === 'user-2') return { id: userId, name: 'Bob', meta: {} }
+						if (userId === 'user-1') return alice
+						if (userId === 'user-2') return bob
 						return null
 					},
 				},

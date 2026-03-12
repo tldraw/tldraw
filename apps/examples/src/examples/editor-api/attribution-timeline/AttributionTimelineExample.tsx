@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+	createUserId,
 	RecordsDiff,
 	reverseRecordsDiff,
 	squashRecordDiffs,
@@ -10,6 +11,7 @@ import {
 	TLUserStore,
 	track,
 	useEditor,
+	UserRecordType,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './attribution-timeline.css'
@@ -18,19 +20,31 @@ import './attribution-timeline.css'
 
 // [1]
 const USERS: Record<string, TLUser> = {
-	'user-alice': { id: 'user-alice', name: 'Alice', color: '#e03131', meta: {} },
-	'user-bob': { id: 'user-bob', name: 'Bob', color: '#1971c2', meta: {} },
-	'user-carol': { id: 'user-carol', name: 'Carol', color: '#2f9e44', meta: {} },
+	[createUserId('alice')]: UserRecordType.create({
+		id: createUserId('alice'),
+		name: 'Alice',
+		color: '#e03131',
+	}),
+	[createUserId('bob')]: UserRecordType.create({
+		id: createUserId('bob'),
+		name: 'Bob',
+		color: '#1971c2',
+	}),
+	[createUserId('carol')]: UserRecordType.create({
+		id: createUserId('carol'),
+		name: 'Carol',
+		color: '#2f9e44',
+	}),
 }
 
-let currentUserId = 'user-alice'
+let currentUserId = createUserId('alice')
 
 const users: TLUserStore = {
 	getCurrentUser() {
 		return USERS[currentUserId] ?? null
 	},
 	resolve(userId: string) {
-		return USERS[userId] ?? null
+		return USERS[createUserId(userId)] ?? null
 	},
 }
 

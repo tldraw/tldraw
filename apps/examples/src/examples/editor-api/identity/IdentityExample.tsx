@@ -1,5 +1,6 @@
 import {
 	atom,
+	createUserId,
 	Editor,
 	getTldrawMetaFromShapeMeta,
 	Tldraw,
@@ -8,6 +9,7 @@ import {
 	TLUser,
 	TLUserStore,
 	useEditor,
+	UserRecordType,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -17,12 +19,24 @@ import './identity.css'
 
 // [1]
 const usersAtom = atom<Record<string, TLUser>>('users', {
-	'user-alice': { id: 'user-alice', name: 'Alice', color: '#e03131', meta: {} },
-	'user-bob': { id: 'user-bob', name: 'Bob', color: '#1971c2', meta: {} },
-	'user-carol': { id: 'user-carol', name: 'Carol', color: '#2f9e44', meta: {} },
+	[createUserId('alice')]: UserRecordType.create({
+		id: createUserId('alice'),
+		name: 'Alice',
+		color: '#e03131',
+	}),
+	[createUserId('bob')]: UserRecordType.create({
+		id: createUserId('bob'),
+		name: 'Bob',
+		color: '#1971c2',
+	}),
+	[createUserId('carol')]: UserRecordType.create({
+		id: createUserId('carol'),
+		name: 'Carol',
+		color: '#2f9e44',
+	}),
 })
 
-const currentUserIdAtom = atom('currentUserId', 'user-alice')
+const currentUserIdAtom = atom('currentUserId', createUserId('alice'))
 
 // [2]
 const users: TLUserStore = {
@@ -30,7 +44,7 @@ const users: TLUserStore = {
 		return usersAtom.get()[currentUserIdAtom.get()] ?? null
 	},
 	resolve(userId: string) {
-		return usersAtom.get()[userId] ?? null
+		return usersAtom.get()[createUserId(userId)] ?? null
 	},
 }
 

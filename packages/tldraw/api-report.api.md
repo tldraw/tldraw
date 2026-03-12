@@ -2250,6 +2250,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLNoteShape, endShape: TLNoteShape, t: number): TLNoteShapeProps;
     // (undocumented)
+    getReferencedUserIds(shape: TLNoteShape): string[];
+    // (undocumented)
     getText(shape: TLNoteShape): string;
     // (undocumented)
     hideResizeHandles(): boolean;
