@@ -279,8 +279,25 @@ export function createTLSchema({
 	const InstanceRecordType = createInstanceRecordType(stylesById)
 
 	// Create RecordTypes for custom records
+	const builtInTypeNames = new Set([
+		'asset',
+		'binding',
+		'camera',
+		'document',
+		'instance',
+		'instance_page_state',
+		'page',
+		'instance_presence',
+		'pointer',
+		'shape',
+	])
 	const customRecordTypes: Record<string, { createId: any }> = {}
 	for (const [typeName, config] of Object.entries(records)) {
+		if (builtInTypeNames.has(typeName)) {
+			throw new Error(
+				`Custom record type name '${typeName}' conflicts with tldraw's built-in record type of that name. Choose a different name instead.`
+			)
+		}
 		customRecordTypes[typeName] = createCustomRecordType(typeName, config)
 	}
 
