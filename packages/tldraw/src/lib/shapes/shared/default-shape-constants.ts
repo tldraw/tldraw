@@ -1,6 +1,6 @@
 import { TLDefaultFontStyle, TLDefaultSizeStyle } from '@tldraw/editor'
 
-/** @public */
+/** @internal */
 export const TEXT_PROPS = {
 	fontWeight: 'normal',
 	fontVariant: 'normal',
@@ -8,7 +8,7 @@ export const TEXT_PROPS = {
 	padding: '0px',
 }
 
-/** @public */
+/** @internal */
 export const STROKE_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 2,
 	m: 3.5,
@@ -16,7 +16,7 @@ export const STROKE_SIZES: Record<TLDefaultSizeStyle, number> = {
 	xl: 10,
 }
 
-/** @public */
+/** @internal */
 export const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 1.125,
 	m: 1.5,
@@ -24,7 +24,7 @@ export const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	xl: 2.75,
 }
 
-/** @public */
+/** @internal */
 export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 1.125,
 	m: 1.375,
@@ -32,7 +32,7 @@ export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	xl: 2,
 }
 
-/** @public */
+/** @internal */
 export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 1.125,
 	m: 1.25,
@@ -40,7 +40,7 @@ export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	xl: 1.75,
 }
 
-/** @public */
+/** @internal */
 export const FONT_FAMILIES: Record<TLDefaultFontStyle, string> = {
 	draw: 'var(--tl-font-draw)',
 	sans: 'var(--tl-font-sans)',

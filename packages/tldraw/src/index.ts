@@ -200,14 +200,6 @@ export {
 	type CropBoxOptions,
 } from './lib/shapes/shared/crop'
 export {
-	ARROW_LABEL_FONT_SIZES,
-	FONT_FAMILIES,
-	FONT_SIZES,
-	LABEL_FONT_SIZES,
-	STROKE_SIZES,
-	TEXT_PROPS,
-} from './lib/shapes/shared/default-shape-constants'
-export {
 	allDefaultFontFaces,
 	DefaultFontFaces,
 	type TLDefaultFont,

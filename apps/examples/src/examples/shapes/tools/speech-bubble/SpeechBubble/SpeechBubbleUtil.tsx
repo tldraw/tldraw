@@ -4,15 +4,14 @@ import {
 	DefaultHorizontalAlignStyle,
 	DefaultSizeStyle,
 	DefaultVerticalAlignStyle,
-	FONT_FAMILIES,
 	Geometry2d,
-	LABEL_FONT_SIZES,
 	PlainTextLabel,
 	Polygon2d,
 	RecordPropsType,
 	ShapeUtil,
 	T,
-	TEXT_PROPS,
+	TLDefaultFontStyle,
+	TLDefaultSizeStyle,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
@@ -26,6 +25,27 @@ import {
 	vecModelValidator,
 } from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
+
+const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
+	s: 1.125,
+	m: 1.375,
+	l: 1.625,
+	xl: 2,
+}
+
+const TEXT_PROPS = {
+	fontWeight: 'normal',
+	fontVariant: 'normal',
+	fontStyle: 'normal',
+	padding: '0px',
+}
+
+const FONT_FAMILIES: Record<TLDefaultFontStyle, string> = {
+	draw: 'var(--tl-font-draw)',
+	sans: 'var(--tl-font-sans)',
+	serif: 'var(--tl-font-serif)',
+	mono: 'var(--tl-font-mono)',
+}
 
 const SPEECH_BUBBLE_TYPE = 'speech-bubble'
 

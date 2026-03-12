@@ -1,5 +1,12 @@
-import { FONT_SIZES } from 'tldraw'
+import { TLDefaultSizeStyle } from 'tldraw'
 import { z } from 'zod'
+
+const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
+	s: 1.125,
+	m: 1.5,
+	l: 2.25,
+	xl: 2.75,
+}
 
 export const FocusedFontSize = z.number()
 
@@ -30,7 +37,7 @@ export function convertFocusedFontSizeToTldrawFontSizeAndScale(
 		}
 	}
 
-	const textSize = closestSize[0] as keyof typeof FONT_SIZES
+	const textSize = closestSize[0] as TLDefaultSizeStyle
 	const scale = targetFontSize / closestPixelSize
 
 	return { textSize, scale }
@@ -44,7 +51,7 @@ export function convertFocusedFontSizeToTldrawFontSizeAndScale(
  * @returns The focused font size
  */
 export function convertTldrawFontSizeAndScaleToFocusedFontSize(
-	textSize: keyof typeof FONT_SIZES,
+	textSize: TLDefaultSizeStyle,
 	scale: number,
 	baseFontSize = DEFAULT_BASE_FONT_SIZE
 ) {

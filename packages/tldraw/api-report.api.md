@@ -191,9 +191,6 @@ export const allDefaultFontFaces: TLFontFace[];
 export function ArrangeMenuSubmenu(): JSX.Element | null;
 
 // @public (undocumented)
-export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
-
-// @public (undocumented)
 export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
     // (undocumented)
     getDefaultProps(): Partial<TLArrowBindingProps>;
@@ -1602,12 +1599,6 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
 export function FitFrameToContentMenuItem(): JSX.Element | null;
 
 // @public (undocumented)
-export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
-
-// @public (undocumented)
-export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
-
-// @public (undocumented)
 export interface FrameShapeOptions extends ShapeOptionsWithDisplayValues<TLFrameShape, FrameShapeUtilDisplayValues> {
     resizeChildren: boolean;
     showColors: boolean;
@@ -2182,9 +2173,6 @@ export const KeyboardShiftEnterTweakExtension: Extension<any, any>;
 
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX.Element | null;
-
-// @public (undocumented)
-export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
 export function LanguageMenu(): JSX.Element | null;
@@ -3047,9 +3035,6 @@ export function startEditingShapeWithRichText(editor: Editor, shapeOrId: TLShape
 // @public (undocumented)
 export function StarToolbarItem(): JSX.Element;
 
-// @public (undocumented)
-export const STROKE_SIZES: Record<TLDefaultSizeStyle, number>;
-
 // @public
 export interface StrokeOptions {
     easing?(pressure: number): number;
@@ -3259,14 +3244,6 @@ export type StyleValuesForUi<T> = readonly {
     readonly icon: string | TLUiIconJsx;
     readonly value: T;
 }[];
-
-// @public (undocumented)
-export const TEXT_PROPS: {
-    fontStyle: string;
-    fontVariant: string;
-    fontWeight: string;
-    padding: string;
-};
 
 // @public (undocumented)
 export interface TextAreaProps {
