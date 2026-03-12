@@ -1,0 +1,63 @@
+.custom-theme-toolbar {
+	pointer-events: all;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 8px;
+	bottom: 56px;
+	right: 8px;
+	width: 200px;
+	position: absolute;
+	height: fit-content;
+}
+
+.custom-theme-toolbar__header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.custom-theme-toolbar__header span {
+	font-weight: 600;
+}
+
+.custom-theme-toolbar__themes {
+	display: flex;
+	gap: 4px;
+}
+
+.custom-theme-toolbar__themes > button {
+	flex: 1;
+}
+
+.custom-theme-slider {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.custom-theme-slider__header {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+}
+
+.custom-theme-slider__label {
+	white-space: nowrap;
+}
+
+.custom-theme-slider__value {
+	font-variant-numeric: tabular-nums;
+	min-width: 36px;
+	text-align: right;
+}
+
+.custom-theme-slider__value[data-default='true'] {
+	opacity: 0.5;
+}
+
+.custom-theme-slider input[type='range'] {
+	width: 100%;
+	margin: 0;
+	accent-color: var(--color-selected);
+}

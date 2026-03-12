@@ -348,7 +348,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							shapeId={id}
 							type={type}
 							fontFamily={dv.labelFontFamily}
-							fontSize={(fontSizeAdjustment || dv.labelFontSize) * scale}
+							fontSize={(fontSizeAdjustment || 1) * dv.labelFontSize * scale}
 							lineHeight={dv.labelLineHeight}
 							textAlign={dv.labelHorizontalAlign}
 							verticalAlign={dv.labelVerticalAlign}
@@ -423,21 +423,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			),
 		})
 
-		const textLabel = (
-			<RichTextSVG
-				fontSize={shape.props.fontSizeAdjustment || dv.labelFontSize}
-				fontFamily={dv.labelFontFamily}
-				lineHeight={dv.labelLineHeight}
-				textAlign={dv.labelHorizontalAlign}
-				verticalAlign={dv.labelVerticalAlign}
-				richText={shape.props.richText}
-				labelColor={dv.labelColor}
-				bounds={bounds}
-				padding={dv.labelPadding}
-				showTextOutline={false}
-			/>
-		)
-
 		return (
 			<>
 				{ctx.isDarkMode ? null : (
@@ -450,7 +435,18 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					/>
 				)}
 				<rect rx={1} width={dv.noteWidth} height={bounds.h} fill={dv.noteBackgroundColor} />
-				{textLabel}
+				<RichTextSVG
+					fontSize={(shape.props.fontSizeAdjustment || 1) * dv.labelFontSize}
+					fontFamily={dv.labelFontFamily}
+					lineHeight={dv.labelLineHeight}
+					textAlign={dv.labelHorizontalAlign}
+					verticalAlign={dv.labelVerticalAlign}
+					richText={shape.props.richText}
+					labelColor={dv.labelColor}
+					bounds={bounds}
+					padding={dv.labelPadding}
+					showTextOutline={false}
+				/>
 			</>
 		)
 	}
@@ -583,7 +579,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return {
 			labelHeight: labelHeight,
 			labelWidth: labelWidth,
-			fontSizeAdjustment: fontSizeAdjustment,
+			fontSizeAdjustment:
+				fontSizeAdjustment === unadjustedFontSize ? 0 : fontSizeAdjustment / unadjustedFontSize,
 		}
 	}
 }

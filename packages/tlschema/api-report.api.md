@@ -1325,7 +1325,7 @@ export interface TLNoteShapeProps {
     align: TLDefaultHorizontalAlignStyle;
     color: TLDefaultColorStyle;
     font: TLDefaultFontStyle;
-    fontSizeAdjustment: number;
+    fontSizeAdjustment: null | number;
     growY: number;
     labelColor: TLDefaultColorStyle;
     richText: TLRichText;
