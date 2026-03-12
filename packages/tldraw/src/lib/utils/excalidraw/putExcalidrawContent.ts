@@ -22,9 +22,11 @@ import {
 	compact,
 	createBindingId,
 	createShapeId,
+	defaultTlMeta,
 	getIndexAbove,
 	getIndices,
 	isShapeId,
+	tldrawShapeMetaKey,
 	toRichText,
 } from '@tldraw/editor'
 
@@ -92,7 +94,9 @@ export async function putExcalidrawContent(
 			rotation: 0,
 			isLocked: element.locked,
 			opacity: getOpacity(element.opacity),
-			meta: {},
+			meta: {
+				[tldrawShapeMetaKey]: { ...defaultTlMeta },
+			},
 		} as const
 
 		if (element.angle !== 0) {

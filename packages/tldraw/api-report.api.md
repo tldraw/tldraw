@@ -32,7 +32,6 @@ import { HandleSnapGeometry } from '@tldraw/editor';
 import { HTMLAttributes } from 'react';
 import { IndexKey } from '@tldraw/utils';
 import { IndexKey as IndexKey_2 } from '@tldraw/editor';
-import { JsonObject } from '@tldraw/utils';
 import { JSX } from 'react/jsx-runtime';
 import { JSX as JSX_2 } from 'react';
 import { JSXElementConstructor } from 'react';
@@ -138,6 +137,7 @@ import { TLShape } from '@tldraw/editor';
 import { TLShapeCrop } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
 import { TLShapeId as TLShapeId_2 } from '@tldraw/tlschema';
+import { TLShapeMeta } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/editor';
 import { TLShapeUtilCanBeLaidOutOpts } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
@@ -308,7 +308,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onHandleDrag(shape: TLArrowShape, info: TLHandleDragInfo<TLArrowShape>): ({
         id: TLShapeId_2;
-        meta?: Partial<JsonObject> | undefined;
+        meta?: Partial<TLShapeMeta> | undefined;
         props?: Partial<TLArrowShapeProps> | undefined;
         type: "arrow";
     } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>) | {
@@ -337,7 +337,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onTranslateStart(shape: TLArrowShape): ({
         id: TLShapeId_2;
-        meta?: Partial<JsonObject> | undefined;
+        meta?: Partial<TLShapeMeta> | undefined;
         props?: Partial<TLArrowShapeProps> | undefined;
         type: "arrow";
     } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>) | undefined;
@@ -455,7 +455,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -475,7 +475,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -1685,7 +1685,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -1720,7 +1720,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -1755,7 +1755,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -1770,7 +1770,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -2107,7 +2107,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -2136,7 +2136,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -2250,6 +2250,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLNoteShape, endShape: TLNoteShape, t: number): TLNoteShapeProps;
     // (undocumented)
+    getReferencedUserIds(shape: TLNoteShape): string[];
+    // (undocumented)
     getText(shape: TLNoteShape): string;
     // (undocumented)
     hideResizeHandles(): boolean;
@@ -2266,7 +2268,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         id: TLShapeId;
         index: IndexKey_2;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {
@@ -2283,6 +2285,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             };
             scale: number;
             size: "l" | "m" | "s" | "xl";
+            textLastEditedBy: null | string;
             url: string;
             verticalAlign: "end" | "middle" | "start";
         };
@@ -2293,36 +2296,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape): {
-        id: TLShapeId;
-        index: IndexKey_2;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: number;
-        parentId: TLParentId;
-        props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            font: "draw" | "mono" | "sans" | "serif";
-            fontSizeAdjustment: number;
-            growY: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
-            scale: number;
-            size: "l" | "m" | "s" | "xl";
-            url: string;
-            verticalAlign: "end" | "middle" | "start";
-        };
-        rotation: number;
-        type: "note";
-        typeName: "shape";
-        x: number;
-        y: number;
-    } | undefined;
+    onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape): TLNoteShape | undefined;
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): {
         props: {
@@ -3141,7 +3115,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
-        meta: JsonObject;
+        meta: TLShapeMeta;
         opacity: number;
         parentId: TLParentId;
         props: {

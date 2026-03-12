@@ -1,5 +1,6 @@
 import { LegacyMigrations, MigrationSequence, StoreSchema, StoreValidator } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
+import { T } from '@tldraw/validate'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
 import { imageAssetMigrations } from './assets/TLImageAsset'
@@ -22,6 +23,7 @@ import {
 	getShapePropKeysByStyle,
 	rootShapeMigrations,
 } from './records/TLShape'
+import { UserRecordType, createUserRecordType, userMigrations } from './records/TLUser'
 import { RecordProps, TLPropsMigrations, processPropsMigrations } from './recordsWithProps'
 import { arrowShapeMigrations, arrowShapeProps } from './shapes/TLArrowShape'
 import { TLBaseShape } from './shapes/TLBaseShape'
@@ -189,6 +191,38 @@ export const defaultBindingSchemas = {
 } satisfies { [T in TLDefaultBinding['type']]: SchemaPropsInfo }
 
 /**
+ * Configuration for extending the user record type with custom metadata
+ * validators and migration sequences.
+ *
+ * @example
+ * ```ts
+ * import { T } from '@tldraw/validate'
+ *
+ * const userSchema: UserSchemaInfo = {
+ *   meta: {
+ *     isAdmin: T.boolean,
+ *     department: T.string,
+ *   },
+ * }
+ * ```
+ *
+ * @public
+ */
+export interface UserSchemaInfo {
+	/**
+	 * Validators for custom metadata fields on user records. Each field is
+	 * treated as optional — user records without these fields remain valid,
+	 * but when present, values are validated against the provided validators.
+	 */
+	meta?: Record<string, T.Validatable<any>>
+
+	/**
+	 * Additional migration sequences for evolving custom user data over time.
+	 */
+	migrations?: readonly MigrationSequence[]
+}
+
+/**
  * Creates a complete TLSchema for use with tldraw stores. This schema defines the structure,
  * validation, and migration sequences for all record types in a tldraw application.
  *
@@ -199,6 +233,7 @@ export const defaultBindingSchemas = {
  * @param options - Configuration options for the schema
  *   - shapes - Shape schema configurations. Defaults to defaultShapeSchemas if not provided
  *   - bindings - Binding schema configurations. Defaults to defaultBindingSchemas if not provided
+ *   - user - Custom user record configuration with meta validators and migrations
  *   - migrations - Additional migration sequences to include in the schema
  * @returns A complete TLSchema ready for use with Store creation
  *
@@ -222,20 +257,13 @@ export const defaultBindingSchemas = {
  *   },
  * })
  *
- * // Create schema with only specific shapes
- * const minimalSchema = createTLSchema({
- *   shapes: {
- *     geo: defaultShapeSchemas.geo,
- *     text: defaultShapeSchemas.text,
- *   },
- *   bindings: defaultBindingSchemas,
- * })
- *
- * // Use the schema with a store
- * const store = new Store({
- *   schema: customSchema,
- *   props: {
- *     defaultName: 'My Drawing',
+ * // Create schema with custom user metadata
+ * const schemaWithCustomUser = createTLSchema({
+ *   user: {
+ *     meta: {
+ *       isAdmin: T.boolean,
+ *       department: T.string,
+ *     },
  *   },
  * })
  * ```
@@ -243,10 +271,12 @@ export const defaultBindingSchemas = {
 export function createTLSchema({
 	shapes = defaultShapeSchemas,
 	bindings = defaultBindingSchemas,
+	user,
 	migrations,
 }: {
 	shapes?: Record<string, SchemaPropsInfo>
 	bindings?: Record<string, SchemaPropsInfo>
+	user?: UserSchemaInfo
 	migrations?: readonly MigrationSequence[]
 } = {}): TLSchema {
 	const stylesById = new Map<string, StyleProp<unknown>>()
@@ -262,6 +292,7 @@ export function createTLSchema({
 	const ShapeRecordType = createShapeRecordType(shapes)
 	const BindingRecordType = createBindingRecordType(bindings)
 	const InstanceRecordType = createInstanceRecordType(stylesById)
+	const CustomUserRecordType = user ? createUserRecordType(user) : UserRecordType
 
 	return StoreSchema.create(
 		{
@@ -275,6 +306,7 @@ export function createTLSchema({
 			instance_presence: InstancePresenceRecordType,
 			pointer: PointerRecordType,
 			shape: ShapeRecordType,
+			user: CustomUserRecordType,
 		},
 		{
 			migrations: [
@@ -289,6 +321,7 @@ export function createTLSchema({
 				pointerMigrations,
 				rootShapeMigrations,
 
+				userMigrations,
 				bookmarkAssetMigrations,
 				imageAssetMigrations,
 				videoAssetMigrations,
@@ -296,6 +329,7 @@ export function createTLSchema({
 				...processPropsMigrations<TLShape>('shape', shapes),
 				...processPropsMigrations<TLBinding>('binding', bindings),
 
+				...(user?.migrations ?? []),
 				...(migrations ?? []),
 			],
 			onValidationFailure,

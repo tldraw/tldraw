@@ -5,7 +5,14 @@ exports[`Misc > resizes > line shape after resize 1`] = `
   "id": "shape:line1",
   "index": "a1",
   "isLocked": false,
-  "meta": {},
+  "meta": {
+    "__tldraw": {
+      "createdAt": "[Time]",
+      "createdBy": "[User]",
+      "updatedAt": "[Time]",
+      "updatedBy": "[User]",
+    },
+  },
   "opacity": 1,
   "parentId": "page:page",
   "props": {

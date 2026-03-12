@@ -1,4 +1,11 @@
-import { createShapeId, TLFrameShape, TLGeoShape, TLLineShape } from '@tldraw/editor'
+import {
+	createShapeId,
+	defaultTlMeta,
+	tldrawShapeMetaKey,
+	TLFrameShape,
+	TLGeoShape,
+	TLLineShape,
+} from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
@@ -445,7 +452,7 @@ describe('When interacting with a shape...', () => {
 			rotation: 0,
 			isLocked: false,
 			opacity: 1,
-			meta: {},
+			meta: { [tldrawShapeMetaKey]: { ...defaultTlMeta } },
 			props: {
 				dash: 'draw',
 				size: 'm',
@@ -528,7 +535,7 @@ describe('When interacting with a shape...', () => {
 			rotation: 0,
 			isLocked: false,
 			opacity: 1,
-			meta: {},
+			meta: { [tldrawShapeMetaKey]: { ...defaultTlMeta } },
 			props: {
 				dash: 'draw',
 				size: 'm',

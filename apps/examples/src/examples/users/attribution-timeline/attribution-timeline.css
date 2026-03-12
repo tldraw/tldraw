@@ -1,0 +1,54 @@
+.attribution-timeline-example {
+	height: 100vh;
+	width: 100%;
+}
+
+.attribution-timeline-controls {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 0 16px;
+	background: var(--color-panel);
+	border-top: 1px solid var(--color-muted-1);
+	font-size: 12px;
+	color: var(--color-text-1);
+	z-index: 300;
+}
+
+.attribution-timeline-filters {
+	display: flex;
+	gap: 2px;
+	flex-shrink: 0;
+}
+
+.attribution-timeline-info {
+	flex-shrink: 0;
+	font-variant: tabular-nums;
+}
+
+.attribution-timeline-controls .tlui-slider__container {
+	flex: 1;
+}
+
+.attribution-timeline-example .tlui-layout {
+	height: calc(100% - 44px);
+}
+
+.attribution-timeline-user-switcher {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin: 8px;
+}
+
+.attribution-timeline-dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-right: 4px;
+}

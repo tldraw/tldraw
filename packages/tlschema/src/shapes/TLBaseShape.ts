@@ -5,6 +5,56 @@ import { idValidator } from '../misc/id-validator'
 import { TLParentId, TLShapeId } from '../records/TLShape'
 
 /**
+ * Attribution metadata tracked internally by tldraw.
+ *
+ * This metadata is separate from the developer-facing `meta` field and is
+ * automatically managed by the editor to track who created and last updated a shape.
+ * User references are stored as plain ID strings that are resolved through the
+ * {@link @tldraw/tlschema#TLUserStore} at runtime.
+ *
+ * @public
+ */
+// Annoyingly, this has to be a `type` instead of an `interface` because
+// it's used alongside a `JsonObject` which complicates the type inference.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TLShapeTLMeta = {
+	createdBy: string | null
+	updatedBy: string | null
+	createdAt: number | null
+	updatedAt: number | null
+}
+
+/** @public */
+export const defaultTlMeta: TLShapeTLMeta = {
+	createdBy: null,
+	updatedBy: null,
+	createdAt: null,
+	updatedAt: null,
+}
+
+/** @public */
+export const tlmetaValidator: T.ObjectValidator<TLShapeTLMeta> = T.object<TLShapeTLMeta>({
+	createdBy: T.string.nullable(),
+	updatedBy: T.string.nullable(),
+	createdAt: T.number.nullable(),
+	updatedAt: T.number.nullable(),
+})
+
+/** @public */
+export const tldrawShapeMetaKey = '__tldraw' as const
+
+/** @public */
+export type TLShapeMeta = JsonObject & {
+	[tldrawShapeMetaKey]?: TLShapeTLMeta
+}
+
+/** @public */
+export function getTldrawMetaFromShapeMeta(meta: JsonObject): TLShapeTLMeta {
+	const tldrawMeta = (meta as TLShapeMeta)[tldrawShapeMetaKey]
+	return tldrawMeta ? { ...defaultTlMeta, ...tldrawMeta } : { ...defaultTlMeta }
+}
+
+/**
  * Base interface for all shapes in tldraw.
  *
  * This interface defines the common properties that all shapes share, regardless of their
@@ -73,7 +123,7 @@ export interface TLBaseShape<Type extends string, Props extends object> {
 	isLocked: boolean
 	opacity: TLOpacityType
 	props: Props
-	meta: JsonObject
+	meta: TLShapeMeta
 }
 
 /**
@@ -176,6 +226,10 @@ export function createShapeValidator<
 		isLocked: T.boolean,
 		opacity: opacityValidator,
 		props: props ? T.object(props) : (T.jsonValue as any),
-		meta: meta ? T.object(meta) : (T.jsonValue as any),
+		meta: (meta
+			? T.object(meta).extend({
+					[tldrawShapeMetaKey]: tlmetaValidator.optional(),
+				})
+			: T.jsonValue) as any,
 	})
 }
