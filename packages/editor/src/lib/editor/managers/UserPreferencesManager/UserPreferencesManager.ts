@@ -9,10 +9,7 @@ export class UserPreferencesManager {
 	dispose() {
 		this.disposables.forEach((d) => d())
 	}
-	constructor(
-		private readonly user: TLUser,
-		private readonly inferDarkMode: boolean
-	) {
+	constructor(private readonly user: TLUser) {
 		if (typeof window === 'undefined' || !window.matchMedia) return
 
 		const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
@@ -64,7 +61,7 @@ export class UserPreferencesManager {
 			case 'system':
 				return this.systemColorScheme.get() === 'dark'
 			default:
-				return this.inferDarkMode ? this.systemColorScheme.get() === 'dark' : false
+				return false
 		}
 	}
 
