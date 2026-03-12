@@ -16,10 +16,11 @@ import {
 } from '@tldraw/editor'
 import { StrictMode } from 'react'
 import { vi } from 'vitest'
+import { TldrawSelectionForeground } from '../lib/canvas/TldrawSelectionForeground'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
+import { createDrawSegments } from '../lib/utils/test-helpers'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
-import { createDrawSegments } from './test-jsx'
 import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,
@@ -29,10 +30,12 @@ function checkAllShapes(editor: Editor, shapes: string[]) {
 	expect(Object.keys(editor!.shapeUtils)).toStrictEqual(shapes)
 }
 
-const textOptions = {
-	addFontsFromNode: defaultAddFontsFromNode,
-	tipTapConfig: {
-		extensions: tipTapDefaultExtensions,
+const options = {
+	text: {
+		addFontsFromNode: defaultAddFontsFromNode,
+		tipTapConfig: {
+			extensions: tipTapDefaultExtensions,
+		},
 	},
 }
 
@@ -178,7 +181,7 @@ describe('<TldrawEditor />', () => {
 				onMount={(editorApp) => {
 					editor = editorApp
 				}}
-				textOptions={textOptions}
+				options={options}
 			/>,
 			{ waitForPatterns: false }
 		)
@@ -270,6 +273,70 @@ describe('<TldrawEditor />', () => {
 		expect(editor.getCurrentToolId()).toBe('eraser')
 	})
 
+	it('Renders TldrawSelectionForeground without TldrawUiContextProvider', async () => {
+		// Unmock useTranslation so we test the real implementation.
+		// (setupVitest.js globally mocks it to prevent errors in other tests)
+		const actual = await vi.importActual<
+			typeof import('../lib/ui/hooks/useTranslation/useTranslation')
+		>('../lib/ui/hooks/useTranslation/useTranslation')
+		const translationModule = await import('../lib/ui/hooks/useTranslation/useTranslation')
+		const spy = vi
+			.spyOn(translationModule, 'useTranslation')
+			.mockImplementation(actual.useTranslation)
+
+		const errors: unknown[] = []
+		let editor = {} as Editor
+		await renderTldrawComponent(
+			<TldrawEditor
+				shapeUtils={defaultShapeUtils}
+				initialState="select"
+				tools={defaultTools}
+				components={{
+					SelectionForeground: TldrawSelectionForeground,
+					// Use a custom error fallback to detect errors that would
+					// otherwise be silently caught by the default error boundary
+					ErrorFallback: ({ error }) => {
+						errors.push(error)
+						return <div data-testid="test-error-fallback" />
+					},
+				}}
+				onMount={(editorApp) => {
+					editor = editorApp
+				}}
+				options={options}
+			/>,
+			{ waitForPatterns: false }
+		)
+
+		await act(async () => {
+			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } })
+		})
+
+		const id = createShapeId()
+		await act(async () => {
+			editor.createShapes([
+				{
+					id,
+					type: 'geo',
+					props: { w: 100, h: 100 },
+				},
+			])
+		})
+
+		// Select the shape — this triggers the selection foreground to render
+		// with resize/rotate handles that use useTranslation()
+		await act(async () => editor.select(id))
+
+		expect(editor.getSelectedShapeIds()).toHaveLength(1)
+		// Verify no errors were caught by the error boundary
+		// (useTranslation would throw without the fix, which the error boundary catches)
+		expect(errors).toHaveLength(0)
+		expect(document.querySelector('[data-testid="test-error-fallback"]')).toBeNull()
+		expect(document.querySelector('[data-testid="selection-foreground"]')).toBeTruthy()
+
+		spy.mockRestore()
+	})
+
 	it('renders correctly in strict mode', async () => {
 		const editorInstances = new Set<Editor>()
 		const onMount = vi.fn((editor: Editor) => {
@@ -302,7 +369,7 @@ describe('<TldrawEditor />', () => {
 		expect(editors.length).toBe(1)
 		expect(editors[0].getCameraOptions().isLocked).toBe(false)
 
-		renderer.rerender(<TldrawEditor onMount={onMount} cameraOptions={{ isLocked: true }} />)
+		renderer.rerender(<TldrawEditor onMount={onMount} options={{ camera: { isLocked: true } }} />)
 		expect(editors.length).toBe(1)
 		expect(editors[0].getCameraOptions().isLocked).toBe(true)
 	})
@@ -389,7 +456,7 @@ describe('<TldrawEditor />', () => {
 					onMount={onMount}
 					shapeUtils={defaultShapeUtils}
 					snapshot={snapshot}
-					textOptions={textOptions}
+					options={options}
 				/>
 			),
 			{ waitForPatterns: true }

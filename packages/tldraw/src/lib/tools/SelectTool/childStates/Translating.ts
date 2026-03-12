@@ -114,6 +114,7 @@ export class Translating extends StateNode {
 
 	override onTick({ elapsed }: TLTickEventInfo) {
 		const { editor } = this
+		if (!editor.inputs.getIsDragging() || editor.inputs.getIsPanning()) return
 		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 
@@ -342,7 +343,7 @@ export class Translating extends StateNode {
 
 		shapeSnapshots.forEach((shapeSnapshot) => {
 			const shape = editor.getShape(shapeSnapshot.shape.id)
-			if (!shape) return null
+			if (!shape) return
 			movingShapes.push(shape)
 
 			const parentTransform = isPageId(shape.parentId)

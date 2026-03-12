@@ -22,12 +22,15 @@ export function isAllowedOrigin(origin: string) {
 	if (origin === 'http://localhost:5420') return origin
 	if (origin === 'https://meet.google.com') return origin
 	if (origin === 'https://tldraw.dev') return origin
+	if (origin === 'https://tldraw.com') return origin
 	if (origin.endsWith('.tldraw.com')) return origin
 	if (origin.endsWith('.tldraw.dev')) return origin
 	if (origin.endsWith('.tldraw.club')) return origin
 	if (origin.endsWith('.tldraw.xyz')) return origin
 	if (origin.endsWith('.tldraw.workers.dev')) return origin
 	if (origin.endsWith('-tldraw.vercel.app')) return origin
+	if (origin === 'https://tldrawusercontent.com') return origin
+	if (origin.endsWith('.tldrawusercontent.com')) return origin
 	return undefined
 }
 

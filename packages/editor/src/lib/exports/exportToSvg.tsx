@@ -2,7 +2,7 @@ import { TLShapeId } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { Editor } from '../editor/Editor'
+import type { Editor } from '../editor/Editor'
 import { TLSvgExportOptions } from '../editor/types/misc-types'
 import { SVG_EXPORT_CLASSNAME } from './FontEmbedder'
 import { StyleEmbedder } from './StyleEmbedder'
@@ -70,7 +70,7 @@ export async function exportToSvg(
 		// apply any styles directly to the elements themselves.
 		await applyChangesToForeignObjects(svg)
 
-		return { svg, width: result.width, height: result.height }
+		return { svg, width: result.width, height: result.height, trimPadding: result.trimPadding }
 	} finally {
 		// eslint-disable-next-line no-restricted-globals
 		setTimeout(() => {

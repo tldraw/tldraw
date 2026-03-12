@@ -11,11 +11,12 @@ import {
 import { exhaustiveSwitchError, noop } from '@tldraw/utils'
 import { TLHistoryBatchOptions, TLHistoryEntry } from '../../types/history-types'
 
-enum HistoryRecorderState {
-	Recording = 'recording',
-	RecordingPreserveRedoStack = 'recordingPreserveRedoStack',
-	Paused = 'paused',
-}
+const HistoryRecorderState = {
+	Recording: 'recording',
+	RecordingPreserveRedoStack: 'recordingPreserveRedoStack',
+	Paused: 'paused',
+} as const
+type HistoryRecorderState = (typeof HistoryRecorderState)[keyof typeof HistoryRecorderState]
 
 /** @public */
 export class HistoryManager<R extends UnknownRecord> {

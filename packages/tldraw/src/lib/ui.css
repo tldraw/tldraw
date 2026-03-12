@@ -1,6 +1,21 @@
 /* @tldraw/ui */
 
 .tl-container {
+	/*
+	 * UI z-index layers
+	 *
+	 * menu-click-capture and panels (.tlui-layout) participate in the
+	 * container-level stacking context alongside the canvas layers:
+	 *   watermark (200) < canvas-in-front (250) < menu-click-capture (250) < panels (300)
+	 *
+	 * menus, toasts, header-footer, etc. are children of .tlui-layout
+	 * (which creates its own stacking context at z-index 300), so their
+	 * z-indices are relative to the layout, not the container.
+	 *
+	 * cursor and following-indicator are rendered inside canvas-in-front
+	 * (stacking context at z-index 250), so their z-indices are relative
+	 * to that context.
+	 */
 	--tl-layer-above: 1;
 	--tl-layer-focused-input: 10;
 	--tl-layer-menu-click-capture: 250;

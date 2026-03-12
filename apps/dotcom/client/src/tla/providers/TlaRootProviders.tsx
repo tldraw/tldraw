@@ -23,7 +23,7 @@ import {
 	useValue,
 } from 'tldraw'
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
-import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
+import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/ErrorPage'
 import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
@@ -66,6 +66,16 @@ export const appMessages = defineMessages({
 	oldBrowser: {
 		defaultMessage: 'Old browser detected. Please update your browser to use this app.',
 	},
+	clerkUnavailable: {
+		defaultMessage: 'Unable to connect',
+	},
+	clerkUnavailablePara: {
+		defaultMessage:
+			"We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page.",
+	},
+	refresh: {
+		defaultMessage: 'Refresh',
+	},
 })
 
 // @ts-ignore this is fine
@@ -73,6 +83,14 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
 if (!PUBLISHABLE_KEY) {
 	throw new Error('Missing Publishable Key')
+}
+
+const CLERK_LOAD_TIMEOUT_MS = 10_000
+
+const CLERK_ERROR_MESSAGES = {
+	header: appMessages.clerkUnavailable.defaultMessage,
+	para1: appMessages.clerkUnavailablePara.defaultMessage,
+	cta: appMessages.refresh.defaultMessage,
 }
 
 export function Component() {
@@ -112,20 +130,22 @@ export function Component() {
 				'tla-focus-mode': isFocusMode,
 			})}
 		>
-			<IntlWrapper locale={locale}>
-				<MaybeForceUserRefresh>
-					<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
-						{container && (
-							<ContainerProvider container={container}>
-								<InsideOfContainerContext>
-									<Outlet />
-									<LegalTermsAcceptance />
-								</InsideOfContainerContext>
-							</ContainerProvider>
-						)}
-					</SignedInProvider>
-				</MaybeForceUserRefresh>
-			</IntlWrapper>
+			<RefreshErrorBoundary messages={CLERK_ERROR_MESSAGES}>
+				<IntlWrapper locale={locale}>
+					<MaybeForceUserRefresh>
+						<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
+							{container && (
+								<ContainerProvider container={container}>
+									<InsideOfContainerContext>
+										<Outlet />
+										<LegalTermsAcceptance />
+									</InsideOfContainerContext>
+								</ContainerProvider>
+							)}
+						</SignedInProvider>
+					</MaybeForceUserRefresh>
+				</IntlWrapper>
+			</RefreshErrorBoundary>
 			<WatermarkOverride />
 		</div>
 	)
@@ -234,7 +254,32 @@ function SignedInProvider({
 		}
 	}, [auth.userId, auth.isSignedIn, auth.isLoaded])
 
-	if (!auth.isLoaded) return null
+	const [clerkTimedOut, setClerkTimedOut] = useState(false)
+
+	useEffect(() => {
+		if (auth.isLoaded) return
+		const timeout = setTimeout(() => setClerkTimedOut(true), CLERK_LOAD_TIMEOUT_MS)
+		return () => clearTimeout(timeout)
+	}, [auth.isLoaded])
+
+	if (!auth.isLoaded) {
+		if (clerkTimedOut) {
+			return (
+				<ErrorPage
+					messages={{
+						header: intl.formatMessage(appMessages.clerkUnavailable),
+						para1: intl.formatMessage(appMessages.clerkUnavailablePara),
+					}}
+					cta={
+						<button onClick={() => window.location.reload()}>
+							{intl.formatMessage(appMessages.refresh)}
+						</button>
+					}
+				/>
+			)
+		}
+		return null
+	}
 
 	// Old browsers check.
 	if (!('findLastIndex' in Array.prototype)) {

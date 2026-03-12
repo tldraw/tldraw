@@ -24,7 +24,7 @@ async function main() {
 				if (error) {
 					throw new Error(error.message)
 				}
-				if (stderr && stderr.search('warning') !== 0) {
+				if (stderr && !/^(warning|\(node:)/.test(stderr)) {
 					throw new Error(stderr)
 				}
 			}

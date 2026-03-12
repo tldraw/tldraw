@@ -337,7 +337,9 @@ export function getCropBox<T extends ShapeWithCrop>(
 	const newCrop: TLShapeCrop = {
 		topLeft: { x: tempBox.x / w, y: tempBox.y / h },
 		bottomRight: { x: tempBox.maxX / w, y: tempBox.maxY / h },
-		isCircle: crop.isCircle,
+	}
+	if (crop.isCircle != null) {
+		newCrop.isCircle = crop.isCircle
 	}
 
 	// If the crop hasn't changed, we can return early

@@ -2,7 +2,7 @@
 
 import { Queue } from '@cloudflare/workers-types'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import type { TLFileDurableObject } from './TLFileDurableObject'
+import type { TLFileDurableObject } from './TLDrawDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
 import type { TLPostgresReplicator } from './TLPostgresReplicator'
 import { TLStatsDurableObject } from './TLStatsDurableObject'
@@ -61,6 +61,7 @@ export interface Environment {
 	IS_LOCAL: string | undefined
 	WORKER_NAME: string | undefined
 	ASSET_UPLOAD_ORIGIN: string | undefined
+	USER_CONTENT_URL: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined

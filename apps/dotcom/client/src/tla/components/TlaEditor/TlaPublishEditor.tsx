@@ -56,7 +56,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 					globalEditor.set(editor)
 				}}
 				components={components}
-				deepLinks
+				options={{ deepLinks: true }}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />

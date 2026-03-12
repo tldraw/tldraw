@@ -1,4 +1,9 @@
 import { ComponentType, Fragment } from 'react'
+import { DEFAULT_CAMERA_OPTIONS } from './constants'
+import { TLCameraOptions } from './editor/types/misc-types'
+import { VecLike } from './primitives/Vec'
+import { TLDeepLinkOptions } from './utils/deepLinks'
+import { TLTextOptions } from './utils/richText'
 
 /**
  * Options for configuring tldraw. For defaults, see {@link defaultTldrawOptions}.
@@ -120,6 +125,46 @@ export interface TldrawOptions {
 	 * The distance (in screen pixels) at which shapes snap to guides and other shapes.
 	 */
 	readonly snapThreshold: number
+	/**
+	 * Options for the editor's camera. These are the initial camera options.
+	 * Use {@link Editor.setCameraOptions} to update camera options at runtime.
+	 */
+	readonly camera: Partial<TLCameraOptions>
+	/**
+	 * Options for the editor's text rendering. These include TipTap configuration and
+	 * font handling. These are the initial text options and cannot be changed at runtime.
+	 */
+	readonly text: TLTextOptions
+	/**
+	 * Options for syncing the editor's camera state with the URL. Set to `true` to enable
+	 * with default options, or pass an options object to customize behavior.
+	 *
+	 * @example
+	 * ```tsx
+	 * // Enable with defaults
+	 * <Tldraw options={{ deepLinks: true }} />
+	 *
+	 * // Enable with custom options
+	 * <Tldraw options={{ deepLinks: { param: 'd', debounceMs: 500 } }} />
+	 * ```
+	 */
+	readonly deepLinks: true | TLDeepLinkOptions | undefined
+	/**
+	 * Whether the quick-zoom brush preserves its screen-pixel size when the user
+	 * zooms the overview. When true, zooming in shrinks the target viewport (higher
+	 * return zoom); zooming out expands it. When false, the brush keeps the original
+	 * viewport's page dimensions regardless of overview zoom changes.
+	 */
+	readonly quickZoomPreservesScreenBounds: boolean
+	/**
+	 * Called when content is dropped on the canvas. Provides the page position
+	 * where the drop occurred and the underlying drag event object.
+	 * Return true to prevent default drop handling (files, URLs, etc.)
+	 */
+	experimental__onDropOnCanvas?(options: {
+		point: VecLike
+		event: React.DragEvent<Element>
+	}): boolean
 }
 
 /** @public */
@@ -178,4 +223,9 @@ export const defaultTldrawOptions = {
 	spacebarPanning: true,
 	zoomToFitPadding: 128,
 	snapThreshold: 8,
+	camera: DEFAULT_CAMERA_OPTIONS,
+	text: {},
+	deepLinks: undefined,
+	quickZoomPreservesScreenBounds: true,
+	experimental__onDropOnCanvas: undefined,
 } as const satisfies TldrawOptions

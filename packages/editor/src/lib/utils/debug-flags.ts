@@ -57,12 +57,6 @@ export const debugFlags = {
 	debugElbowArrows: createDebugValue('debugElbowArrows', { defaults: { all: false } }),
 } as const
 
-declare global {
-	interface Window {
-		tldrawLog(message: any): void
-	}
-}
-
 // --- 2. USE ---
 // In normal code, read from debug flags directly by calling .value on them:
 //    if (debugFlags.preventDefaultLogging.value) { ... }
@@ -106,20 +100,6 @@ export function createDebugValue<T>(
 		shouldStoreForSession,
 	})
 }
-
-// function createFeatureFlag<T>(
-// 	name: string,
-// 	{
-// 		defaults,
-// 		shouldStoreForSession = true,
-// 	}: { defaults: DebugFlagDefaults<T>; shouldStoreForSession?: boolean }
-// ) {
-// 	return createDebugValueBase({
-// 		name,
-// 		defaults,
-// 		shouldStoreForSession,
-// 	})
-// }
 
 function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 	const defaultValue = getDefaultValue(def)

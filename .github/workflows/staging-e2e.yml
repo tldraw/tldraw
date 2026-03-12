@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Run our setup
         uses: ./.github/actions/setup
@@ -41,7 +41,7 @@ jobs:
           echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./playwright.json').children.Version)")" >> $GITHUB_ENV
         working-directory: 'apps/dotcom/client'
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v5
         name: Check for Playwright browsers cache
         id: playwright-cache
         with:

@@ -96,7 +96,7 @@ export default [
 			sourceType: 'script',
 
 			parserOptions: {
-				project: true,
+				projectService: true,
 			},
 		},
 
@@ -367,6 +367,13 @@ export default [
 	},
 	{
 		files: ['internal/scripts/**/*'],
+
+		rules: {
+			'import/no-extraneous-dependencies': 'off',
+		},
+	},
+	{
+		files: ['apps/mcp-app/**/*'],
 
 		rules: {
 			'import/no-extraneous-dependencies': 'off',

@@ -45,7 +45,7 @@ gh pr list --state merged --base main --search "merged:2024-01-01..2024-02-01"
 For each PR, get the full details:
 
 ```bash
-gh pr view <PR_NUMBER> --json title,body,labels,author
+gh pr view <PR_NUMBER> --json title,body,labels,author,baseRefName
 ```
 
 Look for:
@@ -54,6 +54,8 @@ Look for:
 - `### API changes` section in PR body
 - Labels indicating category (api, bugfix, improvement, etc.)
 - Whether "breaking" appears in the PR
+
+**Important:** Only include PRs whose `baseRefName` is `main`. PRs merged into feature branches (e.g. `default-shape-customization`) are not yet released — they will be included when the feature branch itself is merged to main.
 
 ### 4. Find patch releases
 

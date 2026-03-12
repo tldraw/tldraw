@@ -32,7 +32,7 @@ jobs:
     name: 'Publish new version of public packages'
     environment: npm deploy
     timeout-minutes: 60
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest-16-cores-arm-open
 
     steps:
       - name: Check inputs
@@ -49,7 +49,7 @@ jobs:
           private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           token: ${{ steps.generate_token.outputs.token }}
 

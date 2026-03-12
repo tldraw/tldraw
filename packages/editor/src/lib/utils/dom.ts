@@ -3,7 +3,7 @@ This is used to facilitate double clicking and pointer capture on elements.
 
 The events in this file are possibly set on individual SVG elements, 
 such as handles or corner handles, rather than on HTML elements or 
-SVGSVGElements. Raw SVG elemnets do not support pointerCapture in 
+SVGSVGElements. Raw SVG elements do not support pointerCapture in
 most cases, meaning that in order for pointer capture to work, we 
 need to crawl up the DOM tree to find the nearest HTML element. Then,
 in order for that element to also call the `onPointerUp` event from
@@ -13,7 +13,6 @@ if the user clicks on a handle but the pointerup does not fire for
 whatever reason.
 */
 
-import React from 'react'
 import { debugFlags, pointerCaptureTrackingObject } from './debug-flags'
 
 /** @public */
@@ -26,10 +25,10 @@ export function loopToHtmlElement(elm: Element): HTMLElement {
 /**
  * This function calls `event.preventDefault()` for you. Why is that useful?
  *
- * Beacuase if you enable `window.preventDefaultLogging = true` it'll log out a message when it
+ * Because if you enable `window.preventDefaultLogging = true` it'll log out a message when it
  * happens. Because we use console.warn rather than (log) you'll get a stack trace in the inspector
  * telling you exactly where it happened. This is important because `e.preventDefault()` is the
- * source of many bugs, but unfortuantly it can't be avoided because it also stops a lot of default
+ * source of many bugs, but unfortunately it can't be avoided because it also stops a lot of default
  * behaviour which doesn't make sense in our UI
  *
  * @param event - To prevent default on
@@ -95,17 +94,25 @@ export const setStyleProperty = (
 	value: string | number
 ) => {
 	if (!elm) return
-	elm.style.setProperty(property, value as string)
+	elm.style.setProperty(property, String(value))
 }
 
 /** @internal */
-export function activeElementShouldCaptureKeys(allowButtons = false) {
-	const { activeElement } = document
-	const elements = allowButtons ? ['input', 'textarea'] : ['input', 'select', 'button', 'textarea']
-	return !!(
-		activeElement &&
-		((activeElement as HTMLElement).isContentEditable ||
-			elements.indexOf(activeElement.tagName.toLowerCase()) > -1 ||
-			activeElement.classList.contains('tlui-slider__thumb'))
+export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMenus = true) {
+	if (!el) return false
+
+	const tagName = el.tagName.toLowerCase()
+	return (
+		(el as HTMLElement).isContentEditable ||
+		tagName === 'input' ||
+		tagName === 'textarea' ||
+		(includeButtonsAndMenus && tagName === 'select') ||
+		(includeButtonsAndMenus && tagName === 'button') ||
+		el.classList.contains('tlui-slider__thumb')
 	)
+}
+
+/** @internal */
+export function activeElementShouldCaptureKeys(includeButtonsAndMenus = true) {
+	return elementShouldCaptureKeys(document.activeElement, includeButtonsAndMenus)
 }

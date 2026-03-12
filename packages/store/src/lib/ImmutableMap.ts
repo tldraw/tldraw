@@ -3,7 +3,6 @@
  * MIT License: https://github.com/immutable-js/immutable-js/blob/main/LICENSE
  * Copyright (c) 2014-present, Lee Byron and other contributors.
  */
-
 function smi(i32: number) {
 	return ((i32 >>> 1) & 0x40000000) | (i32 & 0xbfffffff)
 }
@@ -35,7 +34,7 @@ function hash(o: any) {
 		case 'number':
 			return hashNumber(v)
 		case 'string':
-			return v.length > STRING_HASH_CACHE_MIN_STRLEN ? cachedHashString(v) : hashString(v)
+			return cachedHashString(v)
 		case 'object':
 		case 'function':
 			return hashJSObj(v)
@@ -73,12 +72,12 @@ function cachedHashString(string: string) {
 	let hashed = stringHashCache[string]
 	if (hashed === undefined) {
 		hashed = hashString(string)
-		if (STRING_HASH_CACHE_SIZE === STRING_HASH_CACHE_MAX_SIZE) {
-			STRING_HASH_CACHE_SIZE = 0
+		if (stringHashCacheCount === STRING_HASH_CACHE_SIZE) {
+			stringHashCacheCount = 0
 			stringHashCache = {}
 		}
-		STRING_HASH_CACHE_SIZE++
 		stringHashCache[string] = hashed
+		stringHashCacheCount++
 	}
 	return hashed
 }
@@ -145,10 +144,9 @@ const symbolMap = Object.create(null)
 
 let _objHashUID = 0
 
-const STRING_HASH_CACHE_MIN_STRLEN = 16
-const STRING_HASH_CACHE_MAX_SIZE = 255
-let STRING_HASH_CACHE_SIZE = 0
 let stringHashCache: Record<string, number> = {}
+let stringHashCacheCount = 0
+const STRING_HASH_CACHE_SIZE = 24_000
 
 // Constants describing the size of trie nodes.
 const SHIFT = 5 // Resulted in best performance after ______?

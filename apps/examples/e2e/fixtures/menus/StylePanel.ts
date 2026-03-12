@@ -38,7 +38,6 @@ export class StylePanel {
 			none: this.page.getByTestId('style.fill.none'),
 			semi: this.page.getByTestId('style.fill.semi'),
 			solid: this.page.getByTestId('style.fill.solid'),
-			pattern: this.page.getByTestId('style.fill.pattern'),
 		}
 		this.dash = {
 			draw: this.page.getByTestId('style.dash.draw'),

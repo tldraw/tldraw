@@ -4,7 +4,7 @@ import { ReactElement, ReactNode, createContext, useContext, useEffect, useState
 import { ContainerProvider } from '../../hooks/useContainer'
 import { EditorProvider } from '../../hooks/useEditor'
 import { useEvent } from '../../hooks/useEvent'
-import { Editor } from '../Editor'
+import type { Editor } from '../Editor'
 
 /** @public */
 export interface SvgExportDef {

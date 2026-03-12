@@ -328,9 +328,6 @@ export function pointInPolygon(A: VecLike, points: VecLike[]): boolean {
 
 		b = points[(i + 1) % points.length]
 
-		// Point is on the polygon edge
-		if (Vec.Dist(A, a) + Vec.Dist(A, b) === Vec.Dist(a, b)) return true
-
 		if (a.y <= A.y) {
 			if (b.y > A.y && cross(a, b, A) > 0) {
 				windingNumber += 1

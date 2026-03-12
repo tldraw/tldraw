@@ -45,6 +45,7 @@ import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
+import { SneakyDebugModeToast } from './sneaky/SneakyDebugModeToast'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
@@ -132,11 +133,20 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 			const fileState = app.getFileState(fileId)
 			const deepLink = new URLSearchParams(window.location.search).get('d')
-			if (fileState?.lastSessionState && !deepLink) {
-				editor.loadSnapshot(
-					{ session: JSON.parse(fileState.lastSessionState.trim() || 'null') },
-					{ forceOverwriteSessionState: true }
-				)
+			if (fileState?.lastSessionState) {
+				const sessionState = JSON.parse(fileState.lastSessionState.trim() || 'null')
+				if (sessionState && deepLink) {
+					// When using a deep link, only load preferences (not camera/page states)
+					// since the deep link will control navigation
+					const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
+					editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
+					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
+				} else if (sessionState) {
+					// No deep link - load the full session state including camera position
+					editor.loadSnapshot({ session: sessionState }, { forceOverwriteSessionState: true })
+				} else if (deepLink) {
+					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
+				}
 			} else if (deepLink) {
 				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 			}
@@ -166,8 +176,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	})
 	const hasUser = !!user
 	const assets = useMemo(() => {
-		return multiplayerAssetStore(() => fileId)
-	}, [fileId])
+		return multiplayerAssetStore({ getFileId: () => fileId, getToken: getUserToken })
+	}, [fileId, getUserToken])
 
 	const store = useSync({
 		uri: useCallback(async () => {
@@ -244,8 +254,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={instanceComponents}
-				options={{ actionShortcutsLocation: 'toolbar' }}
-				deepLinks={deepLinks || undefined}
+				options={{ actionShortcutsLocation: 'toolbar', deepLinks: deepLinks ? true : undefined }}
 				overrides={[overrides, extraDragIconOverrides]}
 				getShapeVisibility={getShapeVisibility}
 			>
@@ -254,6 +263,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
+				<SneakyDebugModeToast />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)

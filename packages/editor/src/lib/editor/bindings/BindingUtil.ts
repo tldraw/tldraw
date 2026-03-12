@@ -5,7 +5,7 @@ import {
 	TLShape,
 	TLUnknownBinding,
 } from '@tldraw/tlschema'
-import { Editor } from '../Editor'
+import type { Editor } from '../Editor'
 
 /** @public */
 export interface TLBindingUtilConstructor<
