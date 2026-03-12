@@ -290,6 +290,7 @@ export function createTLSchema({
 		'instance_presence',
 		'pointer',
 		'shape',
+		'store',
 	])
 	const customRecordTypes: Record<string, { createId: any }> = {}
 	for (const [typeName, config] of Object.entries(records)) {
