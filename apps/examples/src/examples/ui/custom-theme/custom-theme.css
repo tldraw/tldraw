@@ -11,25 +11,6 @@
 	height: fit-content;
 }
 
-.custom-theme-toolbar__header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.custom-theme-toolbar__header span {
-	font-weight: 600;
-}
-
-.custom-theme-toolbar__themes {
-	display: flex;
-	gap: 4px;
-}
-
-.custom-theme-toolbar__themes > button {
-	flex: 1;
-}
-
 .custom-theme-slider {
 	display: flex;
 	flex-direction: column;

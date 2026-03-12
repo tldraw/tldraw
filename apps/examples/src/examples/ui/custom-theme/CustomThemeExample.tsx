@@ -7,6 +7,11 @@ import {
 	Tldraw,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
+	TldrawUiSelect,
+	TldrawUiSelectContent,
+	TldrawUiSelectItem,
+	TldrawUiSelectTrigger,
+	TldrawUiSelectValue,
 	TLThemes,
 	toRichText,
 } from 'tldraw'
@@ -210,21 +215,16 @@ function ThemeControls({
 }) {
 	return (
 		<div className="tlui-menu custom-theme-toolbar" onPointerDown={(e) => e.stopPropagation()}>
-			<div className="custom-theme-toolbar__header">
-				<span>Theme</span>
-			</div>
-			<div className="custom-theme-toolbar__themes">
-				{['light', 'dark', 'my-brand'].map((id) => (
-					<TldrawUiButton
-						key={id}
-						type="normal"
-						isActive={themeId === id}
-						onClick={() => onThemeChange(id)}
-					>
-						<TldrawUiButtonLabel>{id}</TldrawUiButtonLabel>
-					</TldrawUiButton>
-				))}
-			</div>
+			<TldrawUiSelect id="theme-select" value={themeId} onValueChange={onThemeChange}>
+				<TldrawUiSelectTrigger>
+					<TldrawUiSelectValue placeholder="Theme...">{themeId}</TldrawUiSelectValue>
+				</TldrawUiSelectTrigger>
+				<TldrawUiSelectContent side="bottom" align="start">
+					<TldrawUiSelectItem value="light" label="Light" />
+					<TldrawUiSelectItem value="dark" label="Dark" />
+					<TldrawUiSelectItem value="my-brand" label="My brand" />
+				</TldrawUiSelectContent>
+			</TldrawUiSelect>
 
 			<ThemeSlider
 				label="Font size"
