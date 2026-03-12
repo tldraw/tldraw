@@ -26,9 +26,9 @@ import {
 	useCurrentThemeId,
 } from '@tldraw/editor'
 
-import { STROKE_SIZES } from '../arrow/shared'
-import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
+import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
+import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
 
 const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
 
@@ -55,7 +55,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			const { color, size } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),
-				strokeWidth: STROKE_SIZES[size],
+				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
 			}
 		},
 		getDisplayValueOverrides(): Partial<LineShapeUtilDisplayValues> {

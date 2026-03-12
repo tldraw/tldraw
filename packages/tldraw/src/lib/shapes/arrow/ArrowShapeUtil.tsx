@@ -101,10 +101,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			xl: 66,
 		},
 		minElbowLegLength: {
-			s: STROKE_SIZES.s * 3,
-			m: STROKE_SIZES.m * 3,
-			l: STROKE_SIZES.l * 3,
-			xl: STROKE_SIZES.xl * 3,
+			s: 6,
+			m: 10.5,
+			l: 15,
+			xl: 30,
 		},
 		minElbowHandleDistance: 16,
 
@@ -133,7 +133,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			const { color, fill, labelColor, size, font } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),
-				strokeWidth: STROKE_SIZES[size],
+				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
 				fillColor:
 					fill === 'none'
 						? 'transparent'

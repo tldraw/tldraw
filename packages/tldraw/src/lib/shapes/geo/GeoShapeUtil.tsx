@@ -56,12 +56,8 @@ const GEO_SHAPE_MIN_WIDTHS = Object.freeze({
 	xl: 20,
 })
 
-const GEO_SHAPE_EXTRA_PADDINGS = Object.freeze({
-	s: 2,
-	m: 3.5,
-	l: 5,
-	xl: 10,
-})
+// Extra padding for geo shape labels matches the stroke width
+// Computed dynamically in getDisplayValues via theme.strokeWidth * STROKE_SIZES[size]
 
 const GEO_SHAPE_HORIZONTAL_ALIGNS = Object.freeze({
 	start: 'start',
@@ -124,8 +120,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),
-				strokeRoundness: STROKE_SIZES[size] * 2,
-				strokeWidth: STROKE_SIZES[size],
+				strokeRoundness: theme.strokeWidth * STROKE_SIZES[size] * 2,
+				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
 				fillColor:
 					fill === 'none'
 						? 'transparent'
@@ -137,7 +133,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: theme.fontSize * LABEL_FONT_SIZES[size],
 				labelMinWidth: GEO_SHAPE_MIN_WIDTHS[size],
-				labelExtraPadding: GEO_SHAPE_EXTRA_PADDINGS[size],
+				labelExtraPadding: theme.strokeWidth * STROKE_SIZES[size],
 				labelLineHeight: theme.lineHeight,
 				labelFontWeight: 'normal',
 				labelFontVariant: 'normal',
@@ -185,7 +181,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	override getGeometry(shape: TLGeoShape) {
 		const { props } = shape
 		const { scale } = props
-		const path = getGeoShapePath(shape)
+		const dv = getDisplayValues(this, shape)
+		const path = getGeoShapePath(shape, dv.strokeWidth)
 		const pathGeometry = path.toGeometry()
 
 		const scaledW = Math.max(1, props.w)
@@ -197,8 +194,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const unscaledLabelSize = isEmptyLabel
 			? GEO_SHAPE_EMPTY_LABEL_SIZE
 			: this.getUnscaledLabelSize(shape)
-
-		const dv = getDisplayValues(this, shape)
 
 		// Calculate minimum label dimensions based on font size and shape size
 		const unscaledMinWidth = Math.min(100, unscaledShapeW / 2)
@@ -375,7 +370,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { dash, scale } = shape.props
 		const dv = getDisplayValues(this, shape)
 
-		const path = getGeoShapePath(shape)
+		const path = getGeoShapePath(shape, dv.strokeWidth)
 
 		return path.toSvg({
 			style: dash === 'draw' ? 'draw' : 'solid',
@@ -399,7 +394,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { dash, scale } = shape.props
 		const dv = getDisplayValues(this, shape)
 
-		const path = getGeoShapePath(shape)
+		const path = getGeoShapePath(shape, dv.strokeWidth)
 
 		return path.toPath2D({
 			style: dash === 'draw' ? 'draw' : 'solid',

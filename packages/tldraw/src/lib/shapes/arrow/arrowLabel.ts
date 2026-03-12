@@ -10,6 +10,7 @@ import {
 	Polyline2d,
 	TLArrowShape,
 	TLShape,
+	TLTheme,
 	Vec,
 	VecLike,
 	clamp,
@@ -91,7 +92,7 @@ const labelSizeCache = createComputedCache(
 
 		// If the text is wider than the body, we need to squish it
 		const info = getArrowInfo(editor, shape)!
-		const labelToArrowPadding = getLabelToArrowPadding(shape)
+		const labelToArrowPadding = getLabelToArrowPadding(shape, editor.getCurrentTheme())
 		const margin =
 			info.type === 'elbow'
 				? Math.max(info.elbow.A.arrowheadOffset + labelToArrowPadding, 32) +
@@ -136,12 +137,14 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 	return labelSizeCache.get(editor, shape.id) ?? new Vec(0, 0)
 }
 
-function getLabelToArrowPadding(shape: TLArrowShape) {
-	const strokeWidth = STROKE_SIZES[shape.props.size]
+function getLabelToArrowPadding(shape: TLArrowShape, theme: TLTheme) {
+	const strokeWidth = theme.strokeWidth * STROKE_SIZES[shape.props.size]
+	const smallStrokeWidth = theme.strokeWidth * STROKE_SIZES.s
+	const xlStrokeWidth = theme.strokeWidth * STROKE_SIZES.xl
 	const labelToArrowPadding =
 		(LABEL_TO_ARROW_PADDING +
-			(strokeWidth - STROKE_SIZES.s) * 2 +
-			(strokeWidth === STROKE_SIZES.xl ? 20 : 0)) *
+			(strokeWidth - smallStrokeWidth) * 2 +
+			(strokeWidth >= xlStrokeWidth ? 20 : 0)) *
 		shape.props.scale
 
 	return labelToArrowPadding
@@ -157,7 +160,7 @@ function getArrowLabelRange(editor: Editor, shape: TLArrowShape, info: TLArrowIn
 	const dbg: Geometry2d[] = [new Group2d({ children: [bodyGeom], debugColor: 'lime' })]
 
 	const labelSize = getArrowLabelSize(editor, shape)
-	const labelToArrowPadding = getLabelToArrowPadding(shape)
+	const labelToArrowPadding = getLabelToArrowPadding(shape, editor.getCurrentTheme())
 	const paddingRelative = labelToArrowPadding / bodyGeom.length
 
 	// we can calculate the range by sticking the center of the label at the very start/end of the

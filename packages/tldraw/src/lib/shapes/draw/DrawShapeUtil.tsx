@@ -67,7 +67,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			const { color, fill, size } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),
-				strokeWidth: STROKE_SIZES[size],
+				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
 				fillColor:
 					fill === 'none'
 						? 'transparent'

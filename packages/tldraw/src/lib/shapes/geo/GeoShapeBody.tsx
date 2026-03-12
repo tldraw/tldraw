@@ -23,7 +23,7 @@ export function GeoShapeBody({
 	const strokeWidth = unscaledStrokeWidth * scaleToUse
 	const { dash, fill } = shape.props
 
-	const path = getGeoShapePath(shape)
+	const path = getGeoShapePath(shape, unscaledStrokeWidth)
 	const fillPath =
 		dash === 'draw' && !forceSolid
 			? path.toDrawD({ strokeWidth, randomSeed: shape.id, passes: 1, offset: 0, onlyFilled: true })

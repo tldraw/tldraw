@@ -7,6 +7,7 @@ export const DEFAULT_LIGHT_THEME: TLTheme = {
 	id: 'light',
 	fontSize: 16,
 	lineHeight: 1.35,
+	strokeWidth: 2,
 	colors: {
 		text: '#000000',
 		background: '#f9fafb',
@@ -231,6 +232,7 @@ export const DEFAULT_DARK_THEME: TLTheme = {
 	id: 'dark',
 	fontSize: 16,
 	lineHeight: 1.35,
+	strokeWidth: 2,
 	colors: {
 		text: 'hsl(210, 17%, 98%)',
 		background: 'hsl(240, 5%, 6.5%)',

@@ -15,20 +15,21 @@ import {
 	VecModel,
 	WeakCache,
 } from '@tldraw/editor'
-import { STROKE_SIZES } from '../arrow/shared'
 import { PathBuilder } from '../shared/PathBuilder'
 
 const pathCache = new WeakCache<TLGeoShape, PathBuilder>()
-export function getGeoShapePath(shape: TLGeoShape) {
-	return pathCache.get(shape, _getGeoPath)
+export function getGeoShapePath(shape: TLGeoShape, strokeWidth: number) {
+	// Cache is keyed on shape only. For x-box, strokeWidth affects the diagonal
+	// inset, but theme changes are rare enough that stale cache entries are acceptable.
+	return pathCache.get(shape, (s) => _getGeoPath(s, strokeWidth))
 }
 
-function _getGeoPath(shape: TLGeoShape) {
+function _getGeoPath(shape: TLGeoShape, strokeWidth: number) {
 	const w = Math.max(1, shape.props.w)
 	const h = Math.max(1, shape.props.h + shape.props.growY)
 	const cx = w / 2
 	const cy = h / 2
-	const sw = STROKE_SIZES[shape.props.size] * shape.props.scale
+	const sw = strokeWidth * shape.props.scale
 
 	const isFilled = shape.props.fill !== 'none'
 

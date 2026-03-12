@@ -1499,6 +1499,7 @@ export interface TLTheme {
     // (undocumented)
     id: string;
     lineHeight: number;
+    strokeWidth: number;
 }
 
 // @public

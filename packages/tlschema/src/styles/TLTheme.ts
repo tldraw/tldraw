@@ -85,6 +85,8 @@ export interface TLTheme {
 	fontSize: number
 	/** Base line height multiplier. @defaultValue 1.35 */
 	lineHeight: number
+	/** Base stroke width in pixels. Shape stroke widths are derived by multiplying this value. @defaultValue 2 */
+	strokeWidth: number
 	colors: TLThemeColors
 }
 

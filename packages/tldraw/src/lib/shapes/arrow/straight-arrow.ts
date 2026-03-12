@@ -1,10 +1,10 @@
 import { Editor, Mat, MatModel, TLArrowShape, Vec, VecLike } from '@tldraw/editor'
+import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { TLArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
 	BoundShapeInfo,
 	MIN_ARROW_LENGTH,
-	STROKE_SIZES,
 	TLArrowBindings,
 	clampArrowTerminalToMask,
 	getArrowTerminalsInArrowSpace,
@@ -86,6 +86,8 @@ export function getStraightArrowInfo(
 	let strokeOffsetB = 0
 	let minLength = MIN_ARROW_LENGTH * shape.props.scale
 
+	const theme = editor.getCurrentTheme()
+
 	const isSelfIntersection =
 		startShapeInfo && endShapeInfo && startShapeInfo.shape === endShapeInfo.shape
 
@@ -133,9 +135,9 @@ export function getStraightArrowInfo(
 			!startShapeInfo.isExact
 		) {
 			strokeOffsetA =
-				STROKE_SIZES[shape.props.size] / 2 +
+				(theme.strokeWidth * STROKE_SIZES[shape.props.size]) / 2 +
 				('size' in startShapeInfo.shape.props
-					? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
+					? (theme.strokeWidth * STROKE_SIZES[startShapeInfo.shape.props.size]) / 2
 					: 0)
 			offsetA = (BOUND_ARROW_OFFSET + strokeOffsetA) * shape.props.scale
 			minLength += strokeOffsetA * shape.props.scale
@@ -150,8 +152,10 @@ export function getStraightArrowInfo(
 			!endShapeInfo.isExact
 		) {
 			strokeOffsetB =
-				STROKE_SIZES[shape.props.size] / 2 +
-				('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
+				(theme.strokeWidth * STROKE_SIZES[shape.props.size]) / 2 +
+				('size' in endShapeInfo.shape.props
+					? (theme.strokeWidth * STROKE_SIZES[endShapeInfo.shape.props.size]) / 2
+					: 0)
 			offsetB = (BOUND_ARROW_OFFSET + strokeOffsetB) * shape.props.scale
 			minLength += strokeOffsetB * shape.props.scale
 		}
