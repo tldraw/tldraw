@@ -794,7 +794,7 @@
 	align-items: center;
 	width: 100%;
 	height: 40px;
-	padding-left: var(--tl-space-4);
+	padding-inline-start: var(--tl-space-4);
 	border-bottom: 1px solid var(--tl-color-divider);
 }
 
@@ -1473,7 +1473,7 @@ tldraw? probably.
 	align-items: center;
 	grid-template-columns: 1fr auto auto auto;
 	justify-content: space-between;
-	padding-left: var(--tl-space-4);
+	padding-inline-start: var(--tl-space-4);
 	border-top: 1px solid var(--tl-color-background);
 	font-size: 12px;
 	color: var(--tl-color-text-1);
@@ -1522,13 +1522,18 @@ tldraw? probably.
 	z-index: var(--tl-layer-toasts);
 }
 
+.tl-container[dir='rtl'] .tlui-toast__viewport {
+	justify-content: flex-start;
+	padding: 0px 0px 64px var(--tl-space-3);
+}
+
 .tlui-toast__viewport > * {
 	pointer-events: all;
 }
 
 .tlui-toast__icon {
 	padding-top: 11px;
-	padding-left: var(--tl-space-4);
+	padding-inline-start: var(--tl-space-4);
 	color: var(--tl-color-text-1);
 }
 
@@ -1626,6 +1631,18 @@ tldraw? probably.
 	.tlui-toast__container[data-swipe='end'] {
 		animation: tlui-slide-out 100ms ease-out;
 	}
+
+	.tl-container[dir='rtl'] .tlui-toast__container[data-state='open'] {
+		animation: tlui-slide-in-rtl 200ms cubic-bezier(0.785, 0.135, 0.15, 0.86);
+	}
+
+	.tl-container[dir='rtl'] .tlui-toast__container[data-state='closed'] {
+		animation: tlui-fade-out 100ms ease-in;
+	}
+
+	.tl-container[dir='rtl'] .tlui-toast__container[data-swipe='end'] {
+		animation: tlui-slide-out-rtl 100ms ease-out;
+	}
 }
 
 /* ---------------- Dialog ---------------- */
@@ -1667,7 +1684,7 @@ tldraw? probably.
 	align-items: center;
 	flex: 0;
 	z-index: var(--tl-layer-header-footer);
-	padding-left: var(--tl-space-4);
+	padding-inline-start: var(--tl-space-4);
 	color: var(--tl-color-text);
 	height: 40px;
 }
@@ -1956,7 +1973,7 @@ tldraw? probably.
 }
 
 .tlui-people-menu__avatar:nth-of-type(n + 2) {
-	margin-left: -12px;
+	margin-inline-start: -12px;
 }
 
 .tlui-people-menu__avatars-button[data-state='open'] {
@@ -2236,5 +2253,23 @@ tldraw? probably.
 	}
 	to {
 		transform: translateX(calc(100% + var(--tl-space-3)));
+	}
+}
+
+@keyframes tlui-slide-in-rtl {
+	from {
+		transform: translateX(calc(-100% - var(--tl-space-3)));
+	}
+	to {
+		transform: translateX(0px);
+	}
+}
+
+@keyframes tlui-slide-out-rtl {
+	from {
+		transform: translateX(var(--radix-toast-swipe-end-x));
+	}
+	to {
+		transform: translateX(calc(-100% - var(--tl-space-3)));
 	}
 }

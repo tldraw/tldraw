@@ -578,7 +578,7 @@
 	border: none;
 	position: relative;
 	outline: none;
-	margin-right: -10px;
+	margin-inline-end: -10px;
 	width: 36px;
 	height: 36px;
 	display: flex;
