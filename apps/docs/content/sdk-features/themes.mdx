@@ -254,15 +254,13 @@ const myThemes: TLThemes = {
 
 ## Using themes in shape utils
 
-For built-in shapes, override how theme colors are applied using `getDisplayValueOverrides` on a configured shape util. The editor passes itself as the first argument, so you have full access to the current theme:
+For built-in shapes, override how theme colors are applied using `getDisplayValueOverrides` on a configured shape util. The `theme` parameter is the resolved theme for the current context (which may differ from the editor's active theme during SVG export):
 
 ```typescript
 import { GeoShapeUtil, type GeoShapeUtilDisplayValues } from 'tldraw'
 
 const CustomGeoShapeUtil = GeoShapeUtil.configure({
-	getDisplayValueOverrides(editor, shape): Partial<GeoShapeUtilDisplayValues> {
-		const theme = editor.getCurrentTheme()
-
+	getDisplayValueOverrides(_editor, shape, theme): Partial<GeoShapeUtilDisplayValues> {
 		if (shape.isLocked) {
 			return { fillColor: theme.colors.red.solid }
 		}
