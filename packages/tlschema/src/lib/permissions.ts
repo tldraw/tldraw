@@ -1,28 +1,6 @@
 import type { TLShape } from '../records/TLShape'
-
-// TODO(#8147): TLIdentityUser, TLIdentityProvider, and TLAttributionUser are
-// defined here as a temporary home. Once PR #8147 lands they will be moved to
-// TLIdentity.ts and these local definitions should be removed in favour of
-// importing from there.
-
-/** @public */
-export interface TLIdentityUser {
-	readonly id: string
-	readonly name: string
-	readonly color?: string
-}
-
-/** @public */
-export interface TLIdentityProvider {
-	getCurrentUser(): TLIdentityUser | null
-	resolveUser(userId: string): TLIdentityUser | null
-}
-
-/** @public */
-export interface TLAttributionUser {
-	readonly id: string
-	readonly name: string
-}
+import type { TLUser } from '../records/TLUser'
+import { getTldrawMetaFromShapeMeta } from '../shapes/TLBaseShape'
 
 /** @public */
 export const CORE_ACTIVITIES = {
@@ -44,7 +22,7 @@ export type CoreActivityId = (typeof CORE_ACTIVITIES)[keyof typeof CORE_ACTIVITI
 
 /** @public */
 export interface TLPermissionContext {
-	user: TLIdentityUser
+	user: TLUser
 	activityId: string
 	targetShape?: TLShape
 	prevShape?: TLShape
@@ -64,25 +42,17 @@ export type TLAfterActionCallback = (context: TLPermissionContext, allowed: bool
 
 /** @public */
 export interface TLPermissionsManagerConfig {
-	// TODO(#8147): Once PR #8147 lands, the editor will expose a first-class `identity` option.
-	// At that point `TLPermissionsManagerConfig.identity` should be removed and the permissions
-	// manager should read the identity from `editor.getIdentity()` instead.
-	identity: TLIdentityProvider
 	rules?: Record<string, TLPermissionRule>
 }
 
-// TODO(#8147): getShapeCreator and getShapeCreatorId are temporary shims. Once PR #8147 lands,
-// shapes will carry a first-class `tlmeta.createdBy` field and these helpers should be removed.
-
-/** @public */
-export function getShapeCreator(shape: TLShape): TLAttributionUser | null {
-	const meta = shape.meta as Record<string, unknown>
-	return (meta?.createdBy as TLAttributionUser | undefined) ?? null
-}
-
-/** @public */
+/**
+ * Returns the user ID of the shape's creator from its `meta.__tldraw` attribution metadata.
+ *
+ * @public
+ */
 export function getShapeCreatorId(shape: TLShape): string | null {
-	return getShapeCreator(shape)?.id ?? null
+	const tlmeta = getTldrawMetaFromShapeMeta(shape.meta)
+	return tlmeta.createdBy ?? null
 }
 
 /** @public */

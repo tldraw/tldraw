@@ -12,14 +12,17 @@ import {
 	DefaultToolbar,
 	Editor,
 	TLComponents,
-	TLIdentityProvider,
-	TLIdentityUser,
 	TLPermissionRule,
 	TLPermissionsManagerConfig,
 	TLShape,
 	TLUiOverrides,
+	TLUser,
+	TLUserId,
+	TLUserStore,
 	Tldraw,
 	TldrawUiMenuItem,
+	UserRecordType,
+	createUserId,
 	getShapeCreatorId,
 	useIsToolSelected,
 	useTools,
@@ -35,18 +38,31 @@ import {
 	getShapeCell,
 } from './shapes'
 
-export const PLAYER_X_ID = 'player-x'
-export const PLAYER_O_ID = 'player-o'
+export const PLAYER_X_ID = createUserId('player-x')
+export const PLAYER_O_ID = createUserId('player-o')
 
-const PLAYER_USERS: Record<string, TLIdentityUser> = {
-	[PLAYER_X_ID]: { id: PLAYER_X_ID, name: 'Player X', color: '#cc2200' },
-	[PLAYER_O_ID]: { id: PLAYER_O_ID, name: 'Player O', color: '#0055cc' },
+const PLAYER_USERS: Record<TLUserId, TLUser> = {
+	[PLAYER_X_ID]: UserRecordType.create({
+		id: PLAYER_X_ID,
+		name: 'Player X',
+		color: '#cc2200',
+	}),
+	[PLAYER_O_ID]: UserRecordType.create({
+		id: PLAYER_O_ID,
+		name: 'Player O',
+		color: '#0055cc',
+	}),
 }
 
-function createPlayerIdentity(userId: string): TLIdentityProvider {
+function createPlayerUserStore(userId: TLUserId): TLUserStore {
 	return {
 		getCurrentUser: () => PLAYER_USERS[userId] ?? null,
-		resolveUser: (id) => PLAYER_USERS[id] ?? null,
+		resolve: (id) => {
+			for (const u of Object.values(PLAYER_USERS)) {
+				if (u.id === id) return u
+			}
+			return null
+		},
 	}
 }
 
@@ -65,8 +81,6 @@ const ticTacToeRules: Record<string, TLPermissionRule> = {
 		return getShapeCreatorId(prevShape) === user.id
 	},
 
-	// Granular update rules — these are checked AFTER update.shape passes,
-	// and only revert the specific change type that was denied.
 	[CORE_ACTIVITIES.ROTATE_SHAPE]: false,
 	[CORE_ACTIVITIES.EDIT_SHAPE_PROPS]: false,
 
@@ -102,7 +116,6 @@ const WIN_LINES = [
 ]
 
 function checkWinner(shapes: TLShape[]): 'X' | 'O' | 'draw' | null {
-	// Build a 3x3 grid indexed as [row * 3 + col]
 	const grid: (string | null)[] = Array(9).fill(null)
 
 	for (const shape of shapes) {
@@ -127,7 +140,7 @@ function checkWinner(shapes: TLShape[]): 'X' | 'O' | 'draw' | null {
 const BOARD_SIZE = CELL_SIZE * 3 // 360
 const LINE_THICKNESS = 6
 
-function initBoard(editor: Editor, userId: string) {
+function initBoard(editor: Editor, userId: TLUserId) {
 	if (userId !== PLAYER_X_ID) return
 
 	const hasBoard = editor.getCurrentPageShapes().some((s) => {
@@ -139,7 +152,6 @@ function initBoard(editor: Editor, userId: string) {
 	const halfThick = LINE_THICKNESS / 2
 
 	editor.createShapes([
-		// Vertical separator at x = 120
 		{
 			type: 'ttt-board-line',
 			x: CELL_SIZE - halfThick,
@@ -147,7 +159,6 @@ function initBoard(editor: Editor, userId: string) {
 			props: { w: LINE_THICKNESS, h: BOARD_SIZE },
 			meta: { isBoard: true },
 		},
-		// Vertical separator at x = 240
 		{
 			type: 'ttt-board-line',
 			x: CELL_SIZE * 2 - halfThick,
@@ -155,7 +166,6 @@ function initBoard(editor: Editor, userId: string) {
 			props: { w: LINE_THICKNESS, h: BOARD_SIZE },
 			meta: { isBoard: true },
 		},
-		// Horizontal separator at y = 120
 		{
 			type: 'ttt-board-line',
 			x: 0,
@@ -163,7 +173,6 @@ function initBoard(editor: Editor, userId: string) {
 			props: { w: BOARD_SIZE, h: LINE_THICKNESS },
 			meta: { isBoard: true },
 		},
-		// Horizontal separator at y = 240
 		{
 			type: 'ttt-board-line',
 			x: 0,
@@ -173,7 +182,6 @@ function initBoard(editor: Editor, userId: string) {
 		},
 	])
 
-	// Frame the camera on the board with some padding
 	editor.zoomToBounds(
 		{ x: -50, y: -50, w: BOARD_SIZE + 100, h: BOARD_SIZE + 100 },
 		{ animation: { duration: 0 } }
@@ -194,11 +202,8 @@ function makeToolbarComponents(playerToolId: string): TLComponents {
 			const isSelectSelected = useIsToolSelected(tools['select'])
 			return (
 				<DefaultToolbar {...props}>
-					{/* Select tool: needed to move/delete own pieces */}
 					<TldrawUiMenuItem {...tools['select']} isSelected={isSelectSelected} />
-					{/* Hand tool: for panning */}
 					<TldrawUiMenuItem {...tools['hand']} isSelected={isHandSelected} />
-					{/* Player-specific placement tool */}
 					{tools[playerToolId] && (
 						<TldrawUiMenuItem {...tools[playerToolId]} isSelected={isPlayerToolSelected} />
 					)}
@@ -208,13 +213,10 @@ function makeToolbarComponents(playerToolId: string): TLComponents {
 	}
 }
 
-function makeUiOverrides(playerId: string, playerToolId: string): TLUiOverrides {
+function makeUiOverrides(playerId: TLUserId, playerToolId: string): TLUiOverrides {
 	const isX = playerId === PLAYER_X_ID
 	return {
 		tools(editor, tools) {
-			// Register the player-specific placement tool in the UI system.
-			// Icons 'color' is used as a placeholder; a real implementation
-			// would provide custom SVG icons for X and O.
 			tools[playerToolId] = {
 				id: playerToolId,
 				icon: 'color',
@@ -234,9 +236,11 @@ const O_COMPONENTS = makeToolbarComponents('o-place')
 const X_OVERRIDES = makeUiOverrides(PLAYER_X_ID, 'x-place')
 const O_OVERRIDES = makeUiOverrides(PLAYER_O_ID, 'o-place')
 
+const permissionsConfig: TLPermissionsManagerConfig = { rules: ticTacToeRules }
+
 interface PlayerPanelProps {
 	label: string
-	userId: typeof PLAYER_X_ID | typeof PLAYER_O_ID
+	userId: TLUserId
 	store: ReturnType<typeof useSyncDemo>
 	tools: typeof X_TOOLS | typeof O_TOOLS
 	toolId: string
@@ -255,27 +259,9 @@ function PlayerPanel({
 	components,
 	onShapesChange,
 }: PlayerPanelProps) {
-	const identity = useMemo(() => createPlayerIdentity(userId), [userId])
-
-	const permissionsConfig = useMemo(
-		(): TLPermissionsManagerConfig => ({ identity, rules: ticTacToeRules }),
-		[identity]
-	)
-
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			initBoard(editor, userId)
-
-			// Stamp ownership (simulates PR #8147's tlmeta auto-stamping)
-			const user = identity.getCurrentUser()!
-			const cleanupAttribution = editor.sideEffects.registerBeforeCreateHandler(
-				'shape',
-				(shape, source) => {
-					if (source !== 'user') return shape
-					return { ...shape, meta: { ...shape.meta, createdBy: { id: user.id, name: user.name } } }
-				}
-			)
-
 			editor.setCurrentTool(toolId)
 
 			const cleanupListener = editor.store.listen(
@@ -284,11 +270,10 @@ function PlayerPanel({
 			)
 
 			return () => {
-				cleanupAttribution()
 				cleanupListener()
 			}
 		},
-		[userId, toolId, onShapesChange, identity]
+		[userId, toolId, onShapesChange]
 	)
 
 	const isX = userId === PLAYER_X_ID
@@ -321,7 +306,6 @@ function PlayerPanel({
 					components={components}
 					onMount={handleMount}
 					permissions={permissionsConfig}
-					// Restrict to a single page (tic-tac-toe doesn't need multiple pages)
 					options={{ maxPages: 1 }}
 				/>
 			</div>
@@ -330,15 +314,13 @@ function PlayerPanel({
 }
 
 export default function TicTacToeExample() {
-	// A unique room per page load ensures a fresh game each time.
 	const roomId = useMemo(() => `ttt-perms-${Math.random().toString(36).slice(2, 8)}`, [])
 
-	const playerXInfo = useMemo(() => ({ id: PLAYER_X_ID, name: 'Player X', color: '#cc2200' }), [])
-	const playerOInfo = useMemo(() => ({ id: PLAYER_O_ID, name: 'Player O', color: '#0055cc' }), [])
+	const userStoreX = useMemo(() => createPlayerUserStore(PLAYER_X_ID), [])
+	const userStoreO = useMemo(() => createPlayerUserStore(PLAYER_O_ID), [])
 
-	// Both editors connect to the same multiplayer room so their canvases stay in sync.
-	const storeX = useSyncDemo({ roomId, shapeUtils: CUSTOM_SHAPE_UTILS, userInfo: playerXInfo })
-	const storeO = useSyncDemo({ roomId, shapeUtils: CUSTOM_SHAPE_UTILS, userInfo: playerOInfo })
+	const storeX = useSyncDemo({ roomId, shapeUtils: CUSTOM_SHAPE_UTILS, users: userStoreX })
+	const storeO = useSyncDemo({ roomId, shapeUtils: CUSTOM_SHAPE_UTILS, users: userStoreO })
 
 	const [shapes, setShapes] = useState<TLShape[]>([])
 	const winner = checkWinner(shapes)

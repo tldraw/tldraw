@@ -4,12 +4,11 @@ import {
 	evaluateRule,
 	type TLAfterActionCallback,
 	type TLBeforeActionCallback,
-	type TLIdentityProvider,
-	type TLIdentityUser,
 	type TLPermissionContext,
 	type TLPermissionRule,
 	type TLPermissionsManagerConfig,
 	type TLShape,
+	type TLUser,
 } from '@tldraw/tlschema'
 import type { Editor } from '../../Editor'
 
@@ -21,7 +20,6 @@ import type { Editor } from '../../Editor'
  * @public
  */
 export class TLPermissionsManager {
-	private readonly identity: TLIdentityProvider
 	private readonly editor: Editor
 	private readonly rules: ReadonlyMap<string, TLPermissionRule>
 	private readonly beforeActionCallbacks: TLBeforeActionCallback[] = []
@@ -31,7 +29,6 @@ export class TLPermissionsManager {
 	/** @internal */
 	constructor(editor: Editor, config: TLPermissionsManagerConfig) {
 		this.editor = editor
-		this.identity = config.identity
 		this.rules = new Map(Object.entries(config.rules ?? {}))
 	}
 
@@ -67,11 +64,8 @@ export class TLPermissionsManager {
 				if (!user) return next
 
 				const ctx = { user, targetShape: prev, prevShape: prev, nextShape: next }
-				// Use canPerform for the coarse gate — it's an internal implementation check,
-				// not a meaningful event to report via onAfterAction.
 				if (!this.canPerform(CORE_ACTIVITIES.UPDATE_SHAPE, ctx)) return prev
 
-				// Granular checks — only run if a rule is registered
 				let result = next
 				if (
 					(next.x !== prev.x || next.y !== prev.y) &&
@@ -231,7 +225,9 @@ export class TLPermissionsManager {
 	canPerform(activityId: string, context?: Partial<TLPermissionContext>): boolean {
 		const user = context?.user ?? this.getCurrentUser()
 		if (!user) {
-			console.warn('tldraw: identity.getCurrentUser() returned null — all permissions denied.')
+			console.warn(
+				'tldraw: store.props.users.getCurrentUser() returned null — all permissions denied.'
+			)
 			return false
 		}
 
@@ -249,7 +245,9 @@ export class TLPermissionsManager {
 	tryPerform(activityId: string, context?: Partial<TLPermissionContext>): boolean {
 		const user = context?.user ?? this.getCurrentUser()
 		if (!user) {
-			console.warn('tldraw: identity.getCurrentUser() returned null — all permissions denied.')
+			console.warn(
+				'tldraw: store.props.users.getCurrentUser() returned null — all permissions denied.'
+			)
 			return false
 		}
 
@@ -316,8 +314,8 @@ export class TLPermissionsManager {
 	}
 
 	/** @public */
-	getCurrentUser(): TLIdentityUser | null {
-		return this.identity.getCurrentUser()
+	getCurrentUser(): TLUser | null {
+		return this.editor.store.props.users.getCurrentUser()
 	}
 
 	/** @public */

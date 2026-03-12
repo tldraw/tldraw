@@ -12,13 +12,16 @@ import {
 	DefaultToolbar,
 	Editor,
 	TLComponents,
-	TLIdentityProvider,
-	TLIdentityUser,
 	TLPermissionRule,
 	TLPermissionsManagerConfig,
+	TLUser,
+	TLUserId,
+	TLUserStore,
 	Tldraw,
 	TldrawUiMenuItem,
+	UserRecordType,
 	atom,
+	createUserId,
 	getShapeCreatorId,
 	useIsToolSelected,
 	useTools,
@@ -26,18 +29,33 @@ import {
 import 'tldraw/tldraw.css'
 import { PictWordCardShapeUtil } from './shapes'
 
-export const PLAYERS = ['player-1', 'player-2'] as const
+export const PLAYER_1_ID = createUserId('player-1')
+export const PLAYER_2_ID = createUserId('player-2')
+export const PLAYERS = [PLAYER_1_ID, PLAYER_2_ID] as const
 export type PlayerId = (typeof PLAYERS)[number]
 
-const PLAYER_USERS: Record<string, TLIdentityUser> = {
-	'player-1': { id: 'player-1', name: 'Player 1', color: '#d04000' },
-	'player-2': { id: 'player-2', name: 'Player 2', color: '#0055cc' },
+const PLAYER_USERS: Record<TLUserId, TLUser> = {
+	[PLAYER_1_ID]: UserRecordType.create({
+		id: PLAYER_1_ID,
+		name: 'Player 1',
+		color: '#d04000',
+	}),
+	[PLAYER_2_ID]: UserRecordType.create({
+		id: PLAYER_2_ID,
+		name: 'Player 2',
+		color: '#0055cc',
+	}),
 }
 
-function createPlayerIdentity(userId: string): TLIdentityProvider {
+function createPlayerUserStore(userId: TLUserId): TLUserStore {
 	return {
 		getCurrentUser: () => PLAYER_USERS[userId] ?? null,
-		resolveUser: (id) => PLAYER_USERS[id] ?? null,
+		resolve: (id) => {
+			for (const u of Object.values(PLAYER_USERS)) {
+				if (u.id === id) return u
+			}
+			return null
+		},
 	}
 }
 
@@ -75,7 +93,7 @@ const WORDS = [
 
 const CUSTOM_SHAPE_UTILS = [PictWordCardShapeUtil]
 
-function initWordCard(editor: Editor, userId: string, word: string) {
+function initWordCard(editor: Editor, userId: TLUserId, word: string) {
 	if (userId !== PLAYERS[0]) return
 
 	const hasCard = editor.getCurrentPageShapes().some((s) => {
@@ -84,17 +102,13 @@ function initWordCard(editor: Editor, userId: string, word: string) {
 	})
 	if (hasCard) return
 
-	const hostUser = PLAYER_USERS[PLAYERS[0]]
 	editor.createShapes([
 		{
 			type: 'pict-word-card',
 			x: 20,
 			y: 20,
 			props: { word },
-			meta: {
-				isWordCard: true,
-				createdBy: { id: hostUser.id, name: hostUser.name },
-			},
+			meta: { isWordCard: true },
 		},
 	])
 }
@@ -113,11 +127,11 @@ const GUESSER_COMPONENTS: TLComponents = {
 
 interface PlayerPanelProps {
 	userId: PlayerId
-	drawerId: string
-	drawerIdAtom: ReturnType<typeof atom<string>>
+	drawerId: TLUserId
+	drawerIdAtom: ReturnType<typeof atom<TLUserId>>
 	store: ReturnType<typeof useSyncDemo>
 	word: string
-	onEditorMount(userId: string, editor: Editor): void
+	onEditorMount(userId: TLUserId, editor: Editor): void
 }
 
 function PlayerPanel({
@@ -130,16 +144,11 @@ function PlayerPanel({
 }: PlayerPanelProps) {
 	const editorRef = useRef<Editor | null>(null)
 
-	const identity = useMemo(() => createPlayerIdentity(userId), [userId])
-
-	// Switch tools whenever this player's role changes between rounds.
 	useEffect(() => {
 		if (!editorRef.current) return
 		editorRef.current.setCurrentTool(userId === drawerId ? 'draw' : 'hand')
 	}, [drawerId, userId])
 
-	// Rules read drawerIdAtom.get() — a reactive read that creates dependencies
-	// in computed contexts (like the isShapeHidden computed cache).
 	const rules = useMemo(
 		(): Record<string, TLPermissionRule> => ({
 			[CORE_ACTIVITIES.CREATE_SHAPE]: ({ user }) => {
@@ -185,42 +194,19 @@ function PlayerPanel({
 		[drawerIdAtom]
 	)
 
-	const permissionsConfig = useMemo(
-		(): TLPermissionsManagerConfig => ({ identity, rules }),
-		[identity, rules]
-	)
+	const permissionsConfig = useMemo((): TLPermissionsManagerConfig => ({ rules }), [rules])
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			editorRef.current = editor
 			initWordCard(editor, userId, word)
 
-			// Stamp ownership on new shapes (simulates PR #8147's tlmeta).
-			const user = identity.getCurrentUser()!
-			const cleanupAttribution = editor.sideEffects.registerBeforeCreateHandler(
-				'shape',
-				(shape, source) => {
-					if (source !== 'user') return shape
-					return {
-						...shape,
-						meta: {
-							...shape.meta,
-							createdBy: { id: user.id, name: user.name },
-						},
-					}
-				}
-			)
-
 			onEditorMount(userId, editor)
 			editor.setCurrentTool(userId === drawerIdAtom.get() ? 'draw' : 'hand')
-
-			return () => {
-				cleanupAttribution()
-			}
 		},
 		// word intentionally excluded — initWordCard is one-time setup
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[userId, onEditorMount, identity, drawerIdAtom]
+		[userId, onEditorMount, drawerIdAtom]
 	)
 
 	const isDrawer = userId === drawerId
@@ -271,16 +257,14 @@ export default function PictionaryExample() {
 	const drawerId = PLAYERS[drawerIndex % PLAYERS.length]
 	const currentWord = WORDS[drawerIndex % WORDS.length]
 
-	// Reactive atom — shared with PlayerPanel so permission rules create
-	// reactive dependencies that invalidate the isShapeHidden computed cache.
-	const drawerIdAtom = useMemo(() => atom('drawerId', PLAYERS[0] as string), [])
+	const drawerIdAtom = useMemo(() => atom<TLUserId>('drawerId', PLAYERS[0]), [])
 	useEffect(() => {
 		drawerIdAtom.set(drawerId)
 	}, [drawerId, drawerIdAtom])
 
-	const editorsRef = useRef<Partial<Record<string, Editor>>>({})
+	const editorsRef = useRef<Partial<Record<TLUserId, Editor>>>({})
 
-	const handleEditorMount = useCallback((uid: string, editor: Editor) => {
+	const handleEditorMount = useCallback((uid: TLUserId, editor: Editor) => {
 		editorsRef.current[uid] = editor
 	}, [])
 
@@ -288,7 +272,6 @@ export default function PictionaryExample() {
 		const newIndex = drawerIndex + 1
 		const newWord = WORDS[newIndex % WORDS.length]
 
-		// Clear the board: delete all shapes except the word card.
 		const drawerEditor = editorsRef.current[drawerId]
 		if (drawerEditor) {
 			const idsToDelete = drawerEditor
@@ -300,7 +283,6 @@ export default function PictionaryExample() {
 			}
 		}
 
-		// Update the word card (PLAYERS[0] owns it via meta.createdBy).
 		const hostEditor = editorsRef.current[PLAYERS[0]]
 		if (hostEditor) {
 			const card = hostEditor
@@ -318,11 +300,11 @@ export default function PictionaryExample() {
 		setDrawerIndex(newIndex)
 	}, [drawerIndex, drawerId])
 
-	const userInfo1 = useMemo(() => ({ id: PLAYERS[0], name: 'Player 1', color: '#d04000' }), [])
-	const userInfo2 = useMemo(() => ({ id: PLAYERS[1], name: 'Player 2', color: '#0055cc' }), [])
+	const userStore1 = useMemo(() => createPlayerUserStore(PLAYERS[0]), [])
+	const userStore2 = useMemo(() => createPlayerUserStore(PLAYERS[1]), [])
 
-	const store1 = useSyncDemo({ roomId, shapeUtils: CUSTOM_SHAPE_UTILS, userInfo: userInfo1 })
-	const store2 = useSyncDemo({ roomId, shapeUtils: CUSTOM_SHAPE_UTILS, userInfo: userInfo2 })
+	const store1 = useSyncDemo({ roomId, shapeUtils: CUSTOM_SHAPE_UTILS, users: userStore1 })
+	const store2 = useSyncDemo({ roomId, shapeUtils: CUSTOM_SHAPE_UTILS, users: userStore2 })
 
 	return (
 		<div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>

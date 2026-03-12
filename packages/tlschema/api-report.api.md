@@ -413,10 +413,7 @@ export function getDefaultUserPresence(store: TLStore, user: TLUser): {
     userName: string;
 } | null;
 
-// @public (undocumented)
-export function getShapeCreator(shape: TLShape): null | TLAttributionUser;
-
-// @public (undocumented)
+// @public
 export function getShapeCreatorId(shape: TLShape): null | string;
 
 // @internal
@@ -852,14 +849,6 @@ export interface TLAssetStore {
     }>;
 }
 
-// @public (undocumented)
-export interface TLAttributionUser {
-    // (undocumented)
-    readonly id: string;
-    // (undocumented)
-    readonly name: string;
-}
-
 // @public
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
     meta: JsonObject;
@@ -1189,24 +1178,6 @@ export interface TLHighlightShapeProps {
     size: TLDefaultSizeStyle;
 }
 
-// @public (undocumented)
-export interface TLIdentityProvider {
-    // (undocumented)
-    getCurrentUser(): null | TLIdentityUser;
-    // (undocumented)
-    resolveUser(userId: string): null | TLIdentityUser;
-}
-
-// @public (undocumented)
-export interface TLIdentityUser {
-    // (undocumented)
-    readonly color?: string;
-    // (undocumented)
-    readonly id: string;
-    // (undocumented)
-    readonly name: string;
-}
-
 // @public
 export type TLImageAsset = TLBaseAsset<'image', {
     fileSize?: number;
@@ -1474,7 +1445,7 @@ export interface TLPermissionContext {
     // (undocumented)
     toolId?: string;
     // (undocumented)
-    user: TLIdentityUser;
+    user: TLUser;
 }
 
 // @public (undocumented)
@@ -1482,8 +1453,6 @@ export type TLPermissionRule = ((context: TLPermissionContext) => boolean) | boo
 
 // @public (undocumented)
 export interface TLPermissionsManagerConfig {
-    // (undocumented)
-    identity: TLIdentityProvider;
     // (undocumented)
     rules?: Record<string, TLPermissionRule>;
 }

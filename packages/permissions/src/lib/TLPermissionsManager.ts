@@ -2,11 +2,13 @@ import type { UnknownRecord } from '@tldraw/store'
 import { NetworkDiff, RecordOpType, applyObjectDiff, diffRecord } from '@tldraw/sync-core'
 import {
 	CORE_ACTIVITIES,
+	UserRecordType,
+	createUserId,
 	evaluateRule,
 	type TLBeforeActionCallback,
-	type TLIdentityUser,
 	type TLPermissionRule,
 	type TLShape,
+	type TLUser,
 } from '@tldraw/tlschema'
 
 // Re-export shared types from @tldraw/tlschema for consumers of this package.
@@ -15,14 +17,10 @@ import {
 export {
 	CORE_ACTIVITIES,
 	evaluateRule,
-	getShapeCreator,
 	getShapeCreatorId,
 	type CoreActivityId,
 	type TLAfterActionCallback,
-	type TLAttributionUser,
 	type TLBeforeActionCallback,
-	type TLIdentityProvider,
-	type TLIdentityUser,
 	type TLPermissionContext,
 	type TLPermissionRule,
 	type TLPermissionsManagerConfig,
@@ -47,7 +45,10 @@ export function createServerPermissionsFilter<
 	getRecord(id: string): R | undefined
 }) => NetworkDiff<R> {
 	return ({ meta, diff, getRecord }) => {
-		const user: TLIdentityUser = { id: meta.userId, name: meta.userName ?? meta.userId }
+		const user: TLUser = UserRecordType.create({
+			id: createUserId(meta.userId),
+			name: meta.userName ?? meta.userId,
+		})
 		const filtered: NetworkDiff<R> = {}
 
 		for (const [id, op] of Object.entries(diff) as [string, (typeof diff)[string]][]) {
@@ -89,13 +90,8 @@ export function createServerPermissionsFilter<
 						nextShape: next,
 					}
 
-					// Coarse check — drop the entire patch if UPDATE_SHAPE is denied
 					if (!evaluateRule(rules, CORE_ACTIVITIES.UPDATE_SHAPE, ctx, beforeActionCallbacks)) break
 
-					// Granular checks — mirror client-side installEnforcement logic.
-					// Only run a check when that rule is actually registered; revert only the
-					// denied fields so partial updates (e.g. editing props while move is blocked)
-					// still go through.
 					let allowedNext = next
 					if ((next.x !== prev.x || next.y !== prev.y) && CORE_ACTIVITIES.MOVE_SHAPE in rules) {
 						if (
@@ -135,11 +131,8 @@ export function createServerPermissionsFilter<
 					}
 
 					if (allowedNext === next) {
-						// Nothing was filtered — pass through the original patch unchanged
 						filtered[id] = op
 					} else {
-						// Some fields were reverted — recompute the patch from prev → allowedNext.
-						// diffRecord returns null when there is no net change (everything reverted).
 						const filteredPatch = diffRecord(prev, allowedNext)
 						if (filteredPatch) {
 							filtered[id] = [RecordOpType.Patch, filteredPatch]

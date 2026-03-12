@@ -12,36 +12,57 @@ import {
 	DefaultToolbar,
 	Editor,
 	TLComponents,
-	TLIdentityProvider,
-	TLIdentityUser,
 	TLPermissionRule,
 	TLPermissionsManagerConfig,
+	TLUser,
+	TLUserId,
+	TLUserStore,
 	Tldraw,
 	TldrawUiMenuItem,
+	UserRecordType,
+	createUserId,
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { BOARD_SIZE, ChkBoardShapeUtil, ChkPieceShapeUtil, pieceCorner } from './shapes'
 
-export const PLAYER_RED_ID = 'player-red'
-export const PLAYER_BLUE_ID = 'player-blue'
+export const PLAYER_RED_ID = createUserId('player-red')
+export const PLAYER_BLUE_ID = createUserId('player-blue')
 
-const PLAYER_USERS: Record<string, TLIdentityUser> = {
-	[PLAYER_RED_ID]: { id: PLAYER_RED_ID, name: 'Player Red', color: '#cc2200' },
-	[PLAYER_BLUE_ID]: { id: PLAYER_BLUE_ID, name: 'Player Blue', color: '#0055cc' },
+const PLAYER_USERS: Record<TLUserId, TLUser> = {
+	[PLAYER_RED_ID]: UserRecordType.create({
+		id: PLAYER_RED_ID,
+		name: 'Player Red',
+		color: '#cc2200',
+	}),
+	[PLAYER_BLUE_ID]: UserRecordType.create({
+		id: PLAYER_BLUE_ID,
+		name: 'Player Blue',
+		color: '#0055cc',
+	}),
 }
 
-function createPlayerIdentity(userId: string): TLIdentityProvider {
+const USER_ID_TO_FILL: Record<TLUserId, string> = {
+	[PLAYER_RED_ID]: 'red',
+	[PLAYER_BLUE_ID]: 'blue',
+}
+
+function createPlayerUserStore(userId: TLUserId): TLUserStore {
 	return {
 		getCurrentUser: () => PLAYER_USERS[userId] ?? null,
-		resolveUser: (id) => PLAYER_USERS[id] ?? null,
+		resolve: (id) => {
+			for (const u of Object.values(PLAYER_USERS)) {
+				if (u.id === id) return u
+			}
+			return null
+		},
 	}
 }
 
 const CUSTOM_SHAPE_UTILS = [ChkBoardShapeUtil, ChkPieceShapeUtil]
 
-function initBoard(editor: Editor, userId: string) {
+function initBoard(editor: Editor, userId: TLUserId) {
 	if (userId !== PLAYER_RED_ID) return
 
 	const hasBoard = editor.getCurrentPageShapes().some((s) => {
@@ -106,22 +127,19 @@ const CHECKERS_COMPONENTS: TLComponents = {
 
 interface PlayerPanelProps {
 	label: string
-	userId: typeof PLAYER_RED_ID | typeof PLAYER_BLUE_ID
+	userId: TLUserId
 	store: ReturnType<typeof useSyncDemo>
-	turnRef: React.RefObject<'red' | 'blue'>
+	turnRef: React.RefObject<TLUserId>
 }
 
 function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 	const [toast, setToast] = useState<string | null>(null)
 
-	// Auto-dismiss toast after 1.5s
 	useEffect(() => {
 		if (!toast) return
 		const timer = setTimeout(() => setToast(null), 1500)
 		return () => clearTimeout(timer)
 	}, [toast])
-
-	const identity = useMemo(() => createPlayerIdentity(userId), [userId])
 
 	const checkersRules = useMemo(
 		(): Record<string, TLPermissionRule> => ({
@@ -130,10 +148,9 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 				const meta = prevShape.meta as Record<string, unknown>
 				if (meta?.isBoard) return false
 				const props = prevShape.props as Record<string, unknown>
-				return props?.fill === user.id.replace('player-', '')
+				return props?.fill === USER_ID_TO_FILL[user.id as TLUserId]
 			},
 
-			// Block rotation; allow position + label changes
 			[CORE_ACTIVITIES.ROTATE_SHAPE]: false,
 
 			[CORE_ACTIVITIES.DELETE_SHAPE]: ({ user, targetShape }) => {
@@ -141,7 +158,7 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 				const meta = targetShape.meta as Record<string, unknown>
 				if (meta?.isBoard) return false
 				const props = targetShape.props as Record<string, unknown>
-				return props?.fill === user.id.replace('player-', '')
+				return props?.fill === USER_ID_TO_FILL[user.id as TLUserId]
 			},
 
 			[CORE_ACTIVITIES.SELECT_SHAPE]: ({ user, targetShape }) => {
@@ -149,7 +166,7 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 				const meta = targetShape.meta as Record<string, unknown>
 				if (meta?.isBoard) return false
 				const props = targetShape.props as Record<string, unknown>
-				return props?.fill === user.id.replace('player-', '')
+				return props?.fill === USER_ID_TO_FILL[user.id as TLUserId]
 			},
 
 			[CORE_ACTIVITIES.USE_TOOL]: ({ toolId }) => {
@@ -160,8 +177,8 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 	)
 
 	const permissionsConfig = useMemo(
-		(): TLPermissionsManagerConfig => ({ identity, rules: checkersRules }),
-		[identity, checkersRules]
+		(): TLPermissionsManagerConfig => ({ rules: checkersRules }),
+		[checkersRules]
 	)
 
 	const handleMount = useCallback(
@@ -171,26 +188,23 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 			const mgr = editor.permissions
 			if (!mgr) return
 
-			// Turn enforcement via onBeforeAction — reads turnRef.current at call time.
 			const cleanupBefore = mgr.onBeforeAction(({ user, activityId }) => {
 				if (
 					activityId === CORE_ACTIVITIES.UPDATE_SHAPE ||
 					activityId === CORE_ACTIVITIES.DELETE_SHAPE ||
 					activityId === CORE_ACTIVITIES.SELECT_SHAPE
 				) {
-					return turnRef.current === user.id.replace('player-', '')
+					return turnRef.current === user.id
 				}
 				return true
 			})
 
-			// Toast on denied actions (debounced — onAfterAction fires per shape in selection).
 			let pendingToast: string | null = null
 			let toastRafId: number | null = null
 			const cleanupAfter = mgr.onAfterAction(({ user, activityId }, allowed) => {
 				if (allowed) return
 				if (activityId === CORE_ACTIVITIES.SELECT_SHAPE) {
-					const playerColor = user.id.replace('player-', '')
-					pendingToast = turnRef.current !== playerColor ? 'Not your turn!' : 'Not your piece!'
+					pendingToast = turnRef.current !== user.id ? 'Not your turn!' : 'Not your piece!'
 					if (toastRafId === null) {
 						toastRafId = requestAnimationFrame(() => {
 							toastRafId = null
@@ -273,31 +287,23 @@ function PlayerPanel({ label, userId, store, turnRef }: PlayerPanelProps) {
 export default function CheckersExample() {
 	const roomId = useMemo(() => `chk-perms-${Math.random().toString(36).slice(2, 8)}`, [])
 
-	const playerRedInfo = useMemo(
-		() => ({ id: PLAYER_RED_ID, name: 'Player Red', color: '#cc2200' }),
-		[]
-	)
-	const playerBlueInfo = useMemo(
-		() => ({ id: PLAYER_BLUE_ID, name: 'Player Blue', color: '#0055cc' }),
-		[]
-	)
+	const userStoreRed = useMemo(() => createPlayerUserStore(PLAYER_RED_ID), [])
+	const userStoreBlue = useMemo(() => createPlayerUserStore(PLAYER_BLUE_ID), [])
 
-	const storeRed = useSyncDemo({ roomId, shapeUtils: CUSTOM_SHAPE_UTILS, userInfo: playerRedInfo })
+	const storeRed = useSyncDemo({ roomId, shapeUtils: CUSTOM_SHAPE_UTILS, users: userStoreRed })
 	const storeBlue = useSyncDemo({
 		roomId,
 		shapeUtils: CUSTOM_SHAPE_UTILS,
-		userInfo: playerBlueInfo,
+		users: userStoreBlue,
 	})
 
-	const [turn, setTurn] = useState<'red' | 'blue'>('red')
-	// Keep a ref in sync so that permission rules (created with useMemo) always
-	// read the current turn value without needing to be recreated.
+	const [turn, setTurn] = useState<TLUserId>(PLAYER_RED_ID)
 	const turnRef = useRef(turn)
 	turnRef.current = turn
 
 	const redColor = '#cc2200'
 	const blueColor = '#0055cc'
-	const turnColor = turn === 'red' ? redColor : blueColor
+	const turnColor = turn === PLAYER_RED_ID ? redColor : blueColor
 
 	return (
 		<div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -314,11 +320,9 @@ export default function CheckersExample() {
 				}}
 			>
 				<span>Turn:</span>
-				<strong style={{ color: turnColor }}>
-					Player {turn.charAt(0).toUpperCase() + turn.slice(1)}
-				</strong>
+				<strong style={{ color: turnColor }}>{PLAYER_USERS[turn]?.name ?? 'Unknown'}</strong>
 				<button
-					onClick={() => setTurn((t) => (t === 'red' ? 'blue' : 'red'))}
+					onClick={() => setTurn((t) => (t === PLAYER_RED_ID ? PLAYER_BLUE_ID : PLAYER_RED_ID))}
 					style={{
 						padding: '3px 10px',
 						fontSize: 12,

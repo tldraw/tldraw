@@ -147,18 +147,12 @@ export {
 } from './lib/editor/managers/FontManager/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryManager'
 export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
-export {
-	getShapeCreator,
-	getShapeCreatorId,
-} from './lib/editor/managers/PermissionsManager/attribution'
+export { getShapeCreatorId } from './lib/editor/managers/PermissionsManager/attribution'
 export {
 	CORE_ACTIVITIES,
 	type CoreActivityId,
 	type TLAfterActionCallback,
-	type TLAttributionUser,
 	type TLBeforeActionCallback,
-	type TLIdentityProvider,
-	type TLIdentityUser,
 	type TLPermissionContext,
 	type TLPermissionRule,
 	type TLPermissionsManagerConfig,

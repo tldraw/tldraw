@@ -7,14 +7,10 @@
 import { CORE_ACTIVITIES } from '@tldraw/tlschema';
 import { CoreActivityId } from '@tldraw/tlschema';
 import { evaluateRule } from '@tldraw/tlschema';
-import { getShapeCreator } from '@tldraw/tlschema';
 import { getShapeCreatorId } from '@tldraw/tlschema';
 import { NetworkDiff } from '@tldraw/sync-core';
 import { TLAfterActionCallback } from '@tldraw/tlschema';
-import { TLAttributionUser } from '@tldraw/tlschema';
 import { TLBeforeActionCallback } from '@tldraw/tlschema';
-import { TLIdentityProvider } from '@tldraw/tlschema';
-import { TLIdentityUser } from '@tldraw/tlschema';
 import { TLPermissionContext } from '@tldraw/tlschema';
 import { TLPermissionRule } from '@tldraw/tlschema';
 import { TLPermissionsManagerConfig } from '@tldraw/tlschema';
@@ -37,19 +33,11 @@ export function createServerPermissionsFilter<SessionMeta extends {
 
 export { evaluateRule }
 
-export { getShapeCreator }
-
 export { getShapeCreatorId }
 
 export { TLAfterActionCallback }
 
-export { TLAttributionUser }
-
 export { TLBeforeActionCallback }
-
-export { TLIdentityProvider }
-
-export { TLIdentityUser }
 
 export { TLPermissionContext }
 
