@@ -44,7 +44,7 @@ export const DefaultColorStyle = StyleProp.defineEnum('tldraw:color', {
 /**
  * @public
  */
-export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelcolor', {
+export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', {
 	defaultValue: 'black',
 	values: defaultColorNames,
 })
