@@ -232,6 +232,9 @@ describe('When cloning...', () => {
 		])
 	})
 
+	const getCurrentArrows = () =>
+		editor.getCurrentPageShapes().filter((shape): shape is TLArrowShape => shape.type === 'arrow')
+
 	it('clones a single shape and restores when stopping cloning', () => {
 		// Move the camera so that we are not at the edges, which causes the camera to move when we translate
 		expect(editor.getCurrentPageShapeIds().size).toBe(3)
@@ -360,6 +363,62 @@ describe('When cloning...', () => {
 		editor.keyDown('Alt')
 
 		expect(editor.getCurrentPageShapes().length).toBe(count1 + 3) // 2 new box and group
+	})
+
+	it('creates connector arrows between originals and clones while ctrl is held', () => {
+		editor.select(ids.box1, ids.box2).pointerDown(50, 50, ids.box1).pointerMove(50, 40)
+		editor.keyDown('Alt')
+
+		expect(getCurrentArrows()).toHaveLength(0)
+
+		editor.keyDown('Control')
+
+		const connectorArrows = getCurrentArrows()
+		expect(connectorArrows).toHaveLength(2)
+
+		const selectedCloneIds = new Set(editor.getSelectedShapeIds())
+		expect(selectedCloneIds.size).toBe(2)
+
+		for (const arrow of connectorArrows) {
+			const bindings = getArrowBindings(editor, arrow)
+			expect(bindings.start).toBeDefined()
+			expect(bindings.end).toBeDefined()
+			expect([ids.box1, ids.box2]).toContain(bindings.start!.toId)
+			expect(selectedCloneIds.has(bindings.end!.toId)).toBe(true)
+		}
+	})
+
+	it('creates connector arrows if ctrl is already held when cloning starts', () => {
+		editor.select(ids.box1).pointerDown(50, 50, ids.box1).pointerMove(50, 40)
+
+		editor.keyDown('Control')
+		editor.keyDown('Alt')
+
+		const connectorArrows = getCurrentArrows()
+		expect(connectorArrows).toHaveLength(1)
+
+		const bindings = getArrowBindings(editor, connectorArrows[0]!)
+		expect(bindings.start?.toId).toBe(ids.box1)
+		expect(bindings.end).toBeDefined()
+		expect(editor.getSelectedShapeIds()).toContain(bindings.end!.toId)
+	})
+
+	it('creates connector arrows when cloning grouped shapes', () => {
+		const groupId = createShapeId('group')
+		editor.groupShapes([ids.box1, ids.box2], { groupId })
+
+		editor
+			.pointerDown(50, 50, { shape: editor.getShape(groupId)!, target: 'shape' })
+			.pointerMove(199, 199)
+			.keyDown('Alt')
+			.keyDown('Control')
+
+		const connectorArrows = getCurrentArrows()
+		expect(connectorArrows).toHaveLength(1)
+
+		const bindings = getArrowBindings(editor, connectorArrows[0]!)
+		expect(bindings.start).toBeUndefined()
+		expect(bindings.end).toBeUndefined()
 	})
 })
 
