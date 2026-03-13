@@ -2773,6 +2773,9 @@ export interface RichTextSVGProps {
 // @public (undocumented)
 export function RotateCWMenuItem(): JSX.Element;
 
+// @public (undocumented)
+export const RTL_LANGUAGES: Set<string>;
+
 // @public
 export function sanitizeSvg(svgText: string): string;
 
@@ -5565,6 +5568,9 @@ export function useDefaultHelpers(): {
 
 // @public (undocumented)
 export function useDialogs(): TLUiDialogsContextType;
+
+// @public
+export function useDirection(): "ltr" | "rtl";
 
 // @public (undocumented)
 export function useEditablePlainText(shapeId: TLShapeId, type: ExtractShapeByProps<{
