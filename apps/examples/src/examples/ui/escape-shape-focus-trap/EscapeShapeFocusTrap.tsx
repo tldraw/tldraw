@@ -83,14 +83,14 @@ export default function EscapeShapeFocusTrapExample() {
 						const toolbarEl = getToolbar()
 						const isInToolbar = toolbarEl?.contains(document.activeElement)
 
-						// [5]
-						if (e.key === 'Tab' && !isInToolbar) {
-							const hasSelected = editor.getSelectedShapeIds().length > 0
-							const isOnCanvas =
-								document.activeElement === container ||
-								document.activeElement?.classList.contains('tl-container')
+					// [5]
+					if (e.key === 'Tab' && !isInToolbar) {
+						const hasSelected = editor.getOnlySelectedShapeId()
+						const isOnCanvas =
+							document.activeElement === container ||
+							document.activeElement?.classList.contains('tl-container')
 
-							if (hasSelected && isOnCanvas && !e.shiftKey) {
+						if (hasSelected && isOnCanvas && !e.shiftKey) {
 								e.preventDefault()
 								e.stopImmediatePropagation()
 								const btn = toolbarEl?.querySelector<HTMLElement>('button')
