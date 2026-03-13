@@ -1682,7 +1682,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     static migrations: TLPropsMigrations;
     // (undocumented)
     onBeforeCreate(shape: TLGeoShape): {
-        id: TLShapeId_2;
+        id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
@@ -1717,7 +1717,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     } | undefined;
     // (undocumented)
     onBeforeUpdate(prev: TLGeoShape, next: TLGeoShape): {
-        id: TLShapeId_2;
+        id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
@@ -1752,7 +1752,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     } | undefined;
     // (undocumented)
     onDoubleClick(shape: TLGeoShape): {
-        id: TLShapeId_2;
+        id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
@@ -1767,7 +1767,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         x: number;
         y: number;
     } | {
-        id: TLShapeId_2;
+        id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;

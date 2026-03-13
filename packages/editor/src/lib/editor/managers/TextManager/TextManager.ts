@@ -27,13 +27,14 @@ interface PoolItem {
 	appliedStyleKeys: string[]
 }
 
-interface BatchMeasurementRequest {
+/** @public */
+export interface BatchMeasurementRequest {
 	html: string
 	opts: TLMeasureTextOpts
 }
 
 /** @public */
-type TLMeasuredTextSize = BoxModel & {
+export type TLMeasuredTextSize = BoxModel & {
 	scrollWidth: number
 }
 
