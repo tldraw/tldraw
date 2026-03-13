@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <!-- Star shape -->
+  <polygon points="200,50 230,150 340,150 250,210 280,320 200,250 120,320 150,210 60,150 170,150" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Circle -->
+  <circle cx="200" cy="200" r="50" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Rectangle -->
+  <rect x="50" y="330" width="100" height="50" fill="none" stroke="black" stroke-width="2"/>
+</svg>

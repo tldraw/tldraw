@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('tldraw/tldraw.css');
+
+body {
+	font-family: 'Inter', sans-serif;
+	margin: 0;
+	overscroll-behavior: none;
+}
+
+.control-panel {
+	width: 280px;
+	min-width: 280px;
+	background: #fafafa;
+	border-right: 1px solid #e0e0e0;
+	overflow-y: auto;
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.control-panel h2 {
+	margin: 0 0 12px;
+	font-size: 16px;
+	font-weight: 700;
+	color: #1a1a1a;
+}
+
+.panel-section {
+	border-bottom: 1px solid #e8e8e8;
+	padding-bottom: 12px;
+	margin-bottom: 8px;
+}
+
+.panel-section h3 {
+	margin: 0 0 8px;
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #666;
+}
+
+.panel-section h4 {
+	margin: 8px 0 4px;
+	font-size: 11px;
+	font-weight: 600;
+	color: #888;
+}
+
+.panel-section label {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	font-size: 12px;
+	color: #444;
+	margin-bottom: 6px;
+}
+
+.panel-section select,
+.panel-section input[type='range'] {
+	width: 100%;
+}
+
+.panel-section select {
+	padding: 4px 6px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 12px;
+	background: white;
+}
+
+.panel-section input[type='range'] {
+	-webkit-appearance: none;
+	height: 4px;
+	background: #ddd;
+	border-radius: 2px;
+	outline: none;
+}
+
+.panel-section input[type='range']::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: #333;
+	cursor: pointer;
+}
+
+.checkbox-label {
+	flex-direction: row !important;
+	align-items: center;
+	gap: 6px !important;
+}
+
+.checkbox-label input[type='checkbox'] {
+	width: auto;
+}
+
+.button-row {
+	display: flex;
+	gap: 6px;
+	margin-top: 8px;
+}
+
+.button-row button {
+	flex: 1;
+	padding: 6px 10px;
+	border: none;
+	border-radius: 5px;
+	font-size: 12px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: opacity 0.15s;
+}
+
+.button-row button:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.button-row button.primary {
+	background: #333;
+	color: white;
+}
+
+.button-row button.primary:hover:not(:disabled) {
+	background: #111;
+}
+
+.button-row button.secondary {
+	background: #e8e8e8;
+	color: #333;
+}
+
+.button-row button.secondary:hover:not(:disabled) {
+	background: #d8d8d8;
+}
+
+.button-row button.danger {
+	background: #e53935;
+	color: white;
+}
+
+.button-row button.danger:hover:not(:disabled) {
+	background: #c62828;
+}
+
+.drop-zone {
+	border: 2px dashed #ccc;
+	border-radius: 8px;
+	padding: 16px;
+	text-align: center;
+	cursor: pointer;
+	font-size: 12px;
+	color: #888;
+	transition: all 0.15s;
+}
+
+.drop-zone:hover,
+.drop-zone.drag-over {
+	border-color: #333;
+	color: #333;
+	background: #f0f0f0;
+}
+
+.file-name {
+	color: #333;
+	font-weight: 500;
+}
