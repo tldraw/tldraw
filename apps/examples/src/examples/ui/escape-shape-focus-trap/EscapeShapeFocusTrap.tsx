@@ -85,7 +85,7 @@ export default function EscapeShapeFocusTrapExample() {
 
 						// [5]
 						if (e.key === 'Tab' && !isInToolbar) {
-							const hasSelected = editor.getSelectedShapeIds().length > 0
+							const hasSelected = editor.getOnlySelectedShapeId() !== null
 							const isOnCanvas =
 								document.activeElement === container ||
 								document.activeElement?.classList.contains('tl-container')
