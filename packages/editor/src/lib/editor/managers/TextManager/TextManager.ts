@@ -24,6 +24,7 @@ const textAlignmentsForLtr = {
 interface PoolItem {
 	el: HTMLDivElement
 	html: string
+	appliedStyleKeys: string[]
 }
 
 interface BatchMeasurementRequest {
@@ -108,6 +109,16 @@ export class TextManager {
 		return elm
 	}
 
+	private resetElementStyles(el: HTMLElement, appliedStyleKeys: string[]) {
+		for (const key of appliedStyleKeys) {
+			if (key in initialDefaultStyles) {
+				el.style.setProperty(key, initialDefaultStyles[key as keyof typeof initialDefaultStyles])
+			} else {
+				el.style.removeProperty(key)
+			}
+		}
+	}
+
 	private setElementStyles(el: HTMLElement, styles: Record<string, string | undefined | null>) {
 		type StyleValue = string | null
 		type RestoreEntry = [prop: string, value: StyleValue]
@@ -165,7 +176,7 @@ export class TextManager {
 		const fragment = document.createDocumentFragment()
 		while (this.poolElms.length < size) {
 			const el = this.createMeasurementEl()
-			this.poolElms.push({ el, html: '' })
+			this.poolElms.push({ el, html: '', appliedStyleKeys: [] })
 			fragment.appendChild(el)
 		}
 		this.editor.getContainer().appendChild(fragment)
@@ -184,42 +195,37 @@ export class TextManager {
 			el.remove()
 		}
 
-		const restoreStylesFns: Array<() => void> = []
+		for (let i = 0; i < requests.length; i++) {
+			const { html, opts } = requests[i]
+			const poolItem = this.getPoolItem(i)
 
-		try {
-			for (let i = 0; i < requests.length; i++) {
-				const { html, opts } = requests[i]
-				const poolItem = this.getPoolItem(i)
-
-				const { el } = poolItem
-				restoreStylesFns.push(this.setElementStyles(el, this.getMeasureStyles(opts)))
-				// Skip innerHTML parsing if the content hasn't changed
-				if (poolItem.html !== html) {
-					el.innerHTML = html
-					poolItem.html = html
-				}
-			}
-
-			const results: TLMeasuredTextSize[] = []
-			for (let i = 0; i < requests.length; i++) {
-				const el = this.getPoolItem(i).el
-				const scrollWidth = requests[i].opts.measureScrollWidth ? el.scrollWidth : 0
-				const rect = el.getBoundingClientRect()
-				results.push({
-					x: 0,
-					y: 0,
-					w: rect.width,
-					h: rect.height,
-					scrollWidth,
-				})
-			}
-
-			return results
-		} finally {
-			for (const restoreStyles of restoreStylesFns) {
-				restoreStyles()
+			const { el } = poolItem
+			this.resetElementStyles(el, poolItem.appliedStyleKeys)
+			const styles = this.getMeasureStyles(opts)
+			this.setElementStyles(el, styles)
+			poolItem.appliedStyleKeys = Object.keys(styles)
+			// Skip innerHTML parsing if the content hasn't changed
+			if (poolItem.html !== html) {
+				el.innerHTML = html
+				poolItem.html = html
 			}
 		}
+
+		const results: TLMeasuredTextSize[] = []
+		for (let i = 0; i < requests.length; i++) {
+			const el = this.getPoolItem(i).el
+			const scrollWidth = requests[i].opts.measureScrollWidth ? el.scrollWidth : 0
+			const rect = el.getBoundingClientRect()
+			results.push({
+				x: 0,
+				y: 0,
+				w: rect.width,
+				h: rect.height,
+				scrollWidth,
+			})
+		}
+
+		return results
 	}
 
 	measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize {
