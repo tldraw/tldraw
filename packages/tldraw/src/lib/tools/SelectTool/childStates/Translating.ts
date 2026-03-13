@@ -140,7 +140,6 @@ export class Translating extends StateNode {
 
 		if (this.isCloning && this.editor.inputs.getCtrlKey() && !this.isArrowConnecting) {
 			this.startArrowConnecting()
-			return
 		}
 
 		// need to update in case user pressed a different modifier key
@@ -180,7 +179,6 @@ export class Translating extends StateNode {
 		let unlockedSelectedIds = this.editor
 			.getSelectedShapeIds()
 			.filter((id) => !this.editor.isShapeOrAncestorLocked(id))
-		// const originalIds = Array.from(unlockedSelectedShapes.map((shape) => shape.id))
 
 		// If we can't create the shapes, don't even start cloning
 		if (!this.editor.canCreateShapes(unlockedSelectedIds)) return
