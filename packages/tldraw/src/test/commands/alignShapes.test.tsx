@@ -1,7 +1,6 @@
-import { Box, PI, TLShapeId } from '@tldraw/editor'
+import { Box, createShapeId, PI, TLShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
-import { TL } from '../test-jsx'
 
 let editor: TestEditor
 let ids: Record<string, TLShapeId>
@@ -10,10 +9,15 @@ vi.useFakeTimers()
 
 beforeEach(() => {
 	editor = new TestEditor()
-	ids = editor.createShapesFromJsx([
-		<TL.geo ref="boxA" x={0} y={0} w={100} h={100} />,
-		<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />,
-		<TL.geo ref="boxC" x={400} y={400} w={100} h={100} />,
+	ids = {
+		boxA: createShapeId('boxA'),
+		boxB: createShapeId('boxB'),
+		boxC: createShapeId('boxC'),
+	}
+	editor.createShapes([
+		{ id: ids.boxA, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+		{ id: ids.boxB, type: 'geo', x: 100, y: 100, props: { w: 50, h: 50 } },
+		{ id: ids.boxC, type: 'geo', x: 400, y: 400, props: { w: 100, h: 100 } },
 	])
 
 	editor.selectAll()
@@ -233,11 +237,15 @@ describe('When shapes are parented to other shapes...', () => {
 		editor = new TestEditor()
 		editor.selectAll()
 		editor.deleteShapes(editor.getSelectedShapeIds())
-		ids = editor.createShapesFromJsx([
-			<TL.geo ref="boxA" x={0} y={0} w={100} h={100}>
-				<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />
-			</TL.geo>,
-			<TL.geo ref="boxC" x={400} y={400} w={100} h={100} />,
+		ids = {
+			boxA: createShapeId('boxA'),
+			boxB: createShapeId('boxB'),
+			boxC: createShapeId('boxC'),
+		}
+		editor.createShapes([
+			{ id: ids.boxA, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: ids.boxB, type: 'geo', x: 100, y: 100, parentId: ids.boxA, props: { w: 50, h: 50 } },
+			{ id: ids.boxC, type: 'geo', x: 400, y: 400, props: { w: 100, h: 100 } },
 		])
 
 		editor.selectAll()

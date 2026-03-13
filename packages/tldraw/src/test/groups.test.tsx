@@ -19,7 +19,6 @@ import {
 } from '@tldraw/editor'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
-import { TL } from './test-jsx'
 
 let nextNanoId = 0
 mockUniqueId(() => `${nextNanoId++}`)
@@ -671,14 +670,32 @@ describe('the bounds of a group', () => {
 	})
 
 	it('accounts for label-only geometry', () => {
-		const { groupId } = editor.createShapesFromJsx([
-			<TL.group ref="groupId">
-				<TL.text ref="textId" x={10} y={10} richText={toRichText('Hello')} />
-				<TL.geo ref="geoId" w={100} h={100} x={0} y={100} />
-			</TL.group>,
+		const ids = {
+			groupId: createShapeId('groupId'),
+			textId: createShapeId('textId'),
+			geoId: createShapeId('geoId'),
+		}
+		editor.createShapes([
+			{ id: ids.groupId, type: 'group', x: 0, y: 0, props: {} },
+			{
+				id: ids.textId,
+				type: 'text',
+				x: 10,
+				y: 10,
+				parentId: ids.groupId,
+				props: { richText: toRichText('Hello') },
+			},
+			{
+				id: ids.geoId,
+				type: 'geo',
+				x: 0,
+				y: 100,
+				parentId: ids.groupId,
+				props: { w: 100, h: 100 },
+			},
 		])
 
-		expect(editor.getShapePageBounds(groupId)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(ids.groupId)!).toCloselyMatchObject({
 			x: 0,
 			y: 10,
 			w: 100,

@@ -1,6 +1,6 @@
 import { createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
-import { createDrawSegments } from './test-jsx'
+import { createDrawSegments } from '../lib/utils/test-helpers'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
