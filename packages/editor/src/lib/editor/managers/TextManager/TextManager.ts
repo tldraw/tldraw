@@ -386,8 +386,8 @@ export class TextManager {
 			width: `${elementWidth}px`,
 			height: 'min-content',
 			'text-align': textAlignmentsForLtr[opts.textAlign],
-			'overflow-wrap': shouldTruncateToFirstLine ? 'anywhere' : undefined,
-			'word-break': shouldTruncateToFirstLine ? 'break-all' : undefined,
+			'overflow-wrap': shouldTruncateToFirstLine ? 'anywhere' : 'break-word',
+			'word-break': shouldTruncateToFirstLine ? 'break-all' : 'normal',
 			...opts.otherStyles,
 		}
 		const restoreStyles = this.setElementStyles(elm, newStyles)
