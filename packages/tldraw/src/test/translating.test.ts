@@ -403,7 +403,7 @@ describe('When cloning...', () => {
 		expect(editor.getSelectedShapeIds()).toContain(bindings.end!.toId)
 	})
 
-	it('creates connector arrows when cloning grouped shapes', () => {
+	it('does not create connector arrows when cloning grouped shapes', () => {
 		const groupId = createShapeId('group')
 		editor.groupShapes([ids.box1, ids.box2], { groupId })
 
@@ -413,12 +413,7 @@ describe('When cloning...', () => {
 			.keyDown('Alt')
 			.keyDown('Control')
 
-		const connectorArrows = getCurrentArrows()
-		expect(connectorArrows).toHaveLength(1)
-
-		const bindings = getArrowBindings(editor, connectorArrows[0]!)
-		expect(bindings.start).toBeUndefined()
-		expect(bindings.end).toBeUndefined()
+		expect(getCurrentArrows()).toHaveLength(0)
 	})
 })
 

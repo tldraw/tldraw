@@ -242,9 +242,26 @@ export class Translating extends StateNode {
 
 		for (const [cloneId, originalId] of this.cloneSourceMap) {
 			const originalShape = this.editor.getShape(originalId)
-			if (!originalShape) return
+			if (!originalShape) continue
 
-			// if there are no style overrides from the shape we're cloning, use arrow defaults
+			const cloneShape = this.editor.getShape(cloneId)
+			if (!cloneShape) continue
+
+			if (
+				!this.editor.canBindShapes({
+					fromShape: { type: 'arrow' },
+					toShape: originalShape,
+					binding: 'arrow',
+				}) ||
+				!this.editor.canBindShapes({
+					fromShape: { type: 'arrow' },
+					toShape: cloneShape,
+					binding: 'arrow',
+				})
+			) {
+				continue
+			}
+
 			const styleOverrides = {
 				...this.editor.getShapeUtil('arrow').getDefaultProps(),
 				...getValidArrowStyleOverridesFromShape(this.editor, originalShape),
