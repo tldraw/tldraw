@@ -380,6 +380,8 @@ function App() {
 				<FillControls
 					options={fillOptions}
 					onChange={setFillOptions}
+					pressure={pressure}
+					onPressureChange={setPressure}
 					onGenerate={handleGenerate}
 					onClear={clearAll}
 					hasShapes={polygons.length > 0}
@@ -390,8 +392,6 @@ function App() {
 					onDurationChange={setDuration}
 					easingName={easingName}
 					onEasingChange={setEasingName}
-					pressure={pressure}
-					onPressureChange={setPressure}
 					onAnimate={handleAnimate}
 					onStop={handleStop}
 					isAnimating={isAnimating}

@@ -1,10 +1,8 @@
 import { FillStrategy, FillStrategyType } from '../types'
-import { contourStrategy } from './contour'
 import { zigzagStrategy } from './zigzag'
 
 const strategies: Record<FillStrategyType, FillStrategy> = {
 	zigzag: zigzagStrategy,
-	contour: contourStrategy,
 }
 
 /** Get a fill strategy by name */
@@ -21,4 +19,4 @@ export function registerStrategy(name: string, strategy: FillStrategy): void {
 	;(strategies as Record<string, FillStrategy>)[name] = strategy
 }
 
-export { contourStrategy, zigzagStrategy }
+export { zigzagStrategy }

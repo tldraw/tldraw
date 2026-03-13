@@ -1,8 +1,11 @@
-import { DEFAULT_FILL_OPTIONS, FillOptions, FillStrategyType } from '../lib/fill-path'
+import { DEFAULT_FILL_OPTIONS, FillOptions } from '../lib/fill-path'
+import { PressureOptions } from '../lib/path-animator/types'
 
 interface FillControlsProps {
 	options: FillOptions
 	onChange: (options: FillOptions) => void
+	pressure: PressureOptions
+	onPressureChange: (options: PressureOptions) => void
 	onGenerate: () => void
 	onClear: () => void
 	hasShapes: boolean
@@ -11,6 +14,8 @@ interface FillControlsProps {
 export function FillControls({
 	options,
 	onChange,
+	pressure,
+	onPressureChange,
 	onGenerate,
 	onClear,
 	hasShapes,
@@ -19,20 +24,13 @@ export function FillControls({
 		onChange({ ...options, ...partial })
 	}
 
+	const updatePressure = (partial: Partial<PressureOptions>) => {
+		onPressureChange({ ...pressure, ...partial })
+	}
+
 	return (
 		<div className="panel-section">
 			<h3>Fill path</h3>
-
-			<label>
-				Strategy
-				<select
-					value={options.strategy}
-					onChange={(e) => update({ strategy: e.target.value as FillStrategyType })}
-				>
-					<option value="zigzag">Zigzag (hatching)</option>
-					<option value="contour">Contour (offset)</option>
-				</select>
-			</label>
 
 			<label>
 				Step over: {options.stepOver}px
@@ -46,19 +44,17 @@ export function FillControls({
 				/>
 			</label>
 
-			{options.strategy === 'zigzag' && (
-				<label>
-					Angle: {options.angle}°
-					<input
-						type="range"
-						min={0}
-						max={180}
-						step={1}
-						value={options.angle}
-						onChange={(e) => update({ angle: parseFloat(e.target.value) })}
-					/>
-				</label>
-			)}
+			<label>
+				Angle: {options.angle}°
+				<input
+					type="range"
+					min={0}
+					max={180}
+					step={1}
+					value={options.angle}
+					onChange={(e) => update({ angle: parseFloat(e.target.value) })}
+				/>
+			</label>
 
 			<label>
 				Margin: {options.margin}px
@@ -72,16 +68,64 @@ export function FillControls({
 				/>
 			</label>
 
-			{options.strategy === 'zigzag' && (
-				<label className="checkbox-label">
-					<input
-						type="checkbox"
-						checked={options.connectEnds}
-						onChange={(e) => update({ connectEnds: e.target.checked })}
-					/>
-					Connect ends
-				</label>
-			)}
+			<label className="checkbox-label">
+				<input
+					type="checkbox"
+					checked={options.connectEnds}
+					onChange={(e) => update({ connectEnds: e.target.checked })}
+				/>
+				Connect ends
+			</label>
+
+			<h4>Pressure</h4>
+
+			<label>
+				Base: {pressure.basePressure.toFixed(2)}
+				<input
+					type="range"
+					min={0}
+					max={1}
+					step={0.01}
+					value={pressure.basePressure}
+					onChange={(e) => updatePressure({ basePressure: parseFloat(e.target.value) })}
+				/>
+			</label>
+
+			<label>
+				Variation: {pressure.pressureVariation.toFixed(2)}
+				<input
+					type="range"
+					min={0}
+					max={0.5}
+					step={0.01}
+					value={pressure.pressureVariation}
+					onChange={(e) => updatePressure({ pressureVariation: parseFloat(e.target.value) })}
+				/>
+			</label>
+
+			<label>
+				Frequency: {pressure.pressureFrequency.toFixed(3)}
+				<input
+					type="range"
+					min={0.01}
+					max={0.5}
+					step={0.005}
+					value={pressure.pressureFrequency}
+					onChange={(e) => updatePressure({ pressureFrequency: parseFloat(e.target.value) })}
+				/>
+			</label>
+
+			<label>
+				Seed: {pressure.seed}
+				<input
+					type="range"
+					min={0}
+					max={999}
+					step={1}
+					value={pressure.seed}
+					onChange={(e) => updatePressure({ seed: parseInt(e.target.value, 10) })}
+				/>
+			</label>
 
 			<div className="button-row">
 				<button onClick={onGenerate} disabled={!hasShapes} className="primary">

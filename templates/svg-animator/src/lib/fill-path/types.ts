@@ -11,7 +11,7 @@ export interface Polygon {
 }
 
 /** Available fill strategies */
-export type FillStrategyType = 'zigzag' | 'contour'
+export type FillStrategyType = 'zigzag'
 
 /** Options for fill path generation */
 export interface FillOptions {
