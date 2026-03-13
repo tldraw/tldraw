@@ -21,6 +21,21 @@ const textAlignmentsForLtr = {
 	'end-legacy': 'right',
 }
 
+interface PoolItem {
+	el: HTMLDivElement
+	html: string
+}
+
+interface BatchMeasurementRequest {
+	html: string
+	opts: TLMeasureTextOpts
+}
+
+/** @public */
+type TLMeasuredTextSize = BoxModel & {
+	scrollWidth: number
+}
+
 /** @public */
 export interface TLMeasureTextOpts {
 	fontStyle: string
@@ -73,170 +88,56 @@ const initialDefaultStyles = Object.freeze({
 /** @public */
 export class TextManager {
 	private elm: HTMLDivElement
+	private poolElms: PoolItem[] = []
 
 	constructor(public editor: Editor) {
+		this.elm = this.createMeasurementEl()
+		this.editor.getContainer().appendChild(this.elm)
+	}
+
+	private createMeasurementEl(): HTMLDivElement {
 		const elm = document.createElement('div')
 		elm.classList.add('tl-text')
 		elm.classList.add('tl-text-measure')
 		elm.setAttribute('dir', 'auto')
 		elm.tabIndex = -1
-		this.editor.getContainer().appendChild(elm)
-
-		this.elm = elm
-
 		for (const key of objectMapKeys(initialDefaultStyles)) {
 			elm.style.setProperty(key, initialDefaultStyles[key])
 		}
+
+		return elm
 	}
 
-	private setElementStyles(styles: Record<string, string | undefined>) {
-		const stylesToReinstate = {} as any
-		for (const key of objectMapKeys(styles)) {
-			if (typeof styles[key] === 'string') {
-				const oldValue = this.elm.style.getPropertyValue(key)
-				if (oldValue === styles[key]) continue
-				stylesToReinstate[key] = oldValue
-				this.elm.style.setProperty(key, styles[key])
+	private setElementStyles(el: HTMLElement, styles: Record<string, string | undefined | null>) {
+		type StyleValue = string | null
+		type RestoreEntry = [prop: string, value: StyleValue]
+
+		const restore: RestoreEntry[] = []
+
+		for (const [key, nextValue] of Object.entries(styles)) {
+			const oldValue = el.style.getPropertyValue(key)
+
+			if (typeof nextValue === 'string') {
+				if (oldValue === nextValue) continue
+				restore.push([key, oldValue || null])
+				el.style.setProperty(key, nextValue)
+			} else {
+				if (!oldValue) continue
+				restore.push([key, oldValue])
+				el.style.removeProperty(key)
 			}
 		}
+
 		return () => {
-			for (const key of objectMapKeys(stylesToReinstate)) {
-				this.elm.style.setProperty(key, stylesToReinstate[key])
+			for (const [key, value] of restore) {
+				if (value === null || value === '') el.style.removeProperty(key)
+				else el.style.setProperty(key, value)
 			}
 		}
 	}
 
-	/** Apply measurement styles to any element (shared by measureHtml and measureHtmlBatch). */
-	private applyMeasureStyles(el: HTMLElement, opts: TLMeasureTextOpts) {
-		el.style.setProperty('font-family', opts.fontFamily)
-		el.style.setProperty('font-style', opts.fontStyle)
-		el.style.setProperty('font-weight', opts.fontWeight)
-		el.style.setProperty('font-size', opts.fontSize + 'px')
-		el.style.setProperty('line-height', opts.lineHeight.toString())
-		el.style.setProperty('padding', opts.padding)
-		el.style.setProperty('max-width', opts.maxWidth ? opts.maxWidth + 'px' : null)
-		el.style.setProperty('min-width', opts.minWidth ? opts.minWidth + 'px' : null)
-		el.style.setProperty(
-			'overflow-wrap',
-			opts.disableOverflowWrapBreaking ? 'normal' : 'break-word'
-		)
-		if (opts.otherStyles) {
-			for (const key of objectMapKeys(opts.otherStyles)) {
-				if (typeof opts.otherStyles[key] === 'string') {
-					el.style.setProperty(key, opts.otherStyles[key])
-				}
-			}
-		}
-	}
-
-	/** Reset an element's styles back to the initial defaults. */
-	private resetMeasureStyles(el: HTMLElement) {
-		for (const key of objectMapKeys(initialDefaultStyles)) {
-			el.style.setProperty(key, initialDefaultStyles[key])
-		}
-		// Reset measurement styles to defaults
-		el.style.removeProperty('font-family')
-		el.style.removeProperty('font-style')
-		el.style.removeProperty('font-weight')
-		el.style.removeProperty('font-size')
-		el.style.removeProperty('line-height')
-		el.style.removeProperty('padding')
-	}
-
-	dispose() {
-		this.elm.remove()
-		for (const el of this.poolElms) {
-			el.remove()
-		}
-		this.poolElms.length = 0
-		this.poolElmHtml.length = 0
-	}
-
-	// Pool of temporary measurement elements for batch measurements
-	private poolElms: HTMLDivElement[] = []
-	private poolElmHtml: string[] = []
-
-	private getPoolElm(index: number): HTMLDivElement {
-		if (index < this.poolElms.length) {
-			return this.poolElms[index]
-		}
-		// Create new pool elements on demand
-		while (this.poolElms.length <= index) {
-			const el = document.createElement('div')
-			el.classList.add('tl-text')
-			el.classList.add('tl-text-measure')
-			el.setAttribute('dir', 'auto')
-			el.tabIndex = -1
-			for (const key of objectMapKeys(initialDefaultStyles)) {
-				el.style.setProperty(key, initialDefaultStyles[key])
-			}
-			this.editor.getContainer().appendChild(el)
-			this.poolElms.push(el)
-		}
-		return this.poolElms[index]
-	}
-
-	/**
-	 * Measure multiple HTML strings in a single batch to avoid layout thrashing.
-	 * Uses a pool of temporary measurement elements so all writes happen before all reads.
-	 */
-	measureHtmlBatch(
-		requests: Array<{ html: string; opts: TLMeasureTextOpts }>
-	): Array<BoxModel & { scrollWidth: number }> {
-		if (requests.length === 0) return []
-
-		// Write phase: apply styles and innerHTML to each pooled element
-		for (let i = 0; i < requests.length; i++) {
-			const { html, opts } = requests[i]
-			const el = this.getPoolElm(i)
-			this.applyMeasureStyles(el, opts)
-			// Skip innerHTML parsing if the content hasn't changed
-			if (this.poolElmHtml[i] !== html) {
-				el.innerHTML = html
-				this.poolElmHtml[i] = html
-			}
-		}
-
-		// Read phase: measure all elements (browser recalculates layout once)
-		const results: Array<BoxModel & { scrollWidth: number }> = []
-		for (let i = 0; i < requests.length; i++) {
-			const el = this.getPoolElm(i)
-			const scrollWidth = requests[i].opts.measureScrollWidth ? el.scrollWidth : 0
-			const rect = el.getBoundingClientRect()
-			results.push({
-				x: 0,
-				y: 0,
-				w: rect.width,
-				h: rect.height,
-				scrollWidth,
-			})
-		}
-
-		// Reset phase: clean up styles on used elements to avoid leaking
-		for (let i = 0; i < requests.length; i++) {
-			this.resetMeasureStyles(this.getPoolElm(i))
-		}
-
-		// Trim the pool: remove excess elements beyond what was needed
-		while (this.poolElms.length > requests.length) {
-			const el = this.poolElms.pop()!
-			el.remove()
-			this.poolElmHtml.pop()
-		}
-
-		return results
-	}
-
-	measureText(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
-		const div = document.createElement('div')
-		div.textContent = normalizeTextForDom(textToMeasure)
-		return this.measureHtml(div.innerHTML, opts)
-	}
-
-	measureHtml(html: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
-		const { elm } = this
-
-		const newStyles = {
+	private getMeasureStyles(opts: TLMeasureTextOpts): Record<string, string | undefined> {
+		return {
 			'font-family': opts.fontFamily,
 			'font-style': opts.fontStyle,
 			'font-weight': opts.fontWeight,
@@ -245,11 +146,92 @@ export class TextManager {
 			padding: opts.padding,
 			'max-width': opts.maxWidth ? opts.maxWidth + 'px' : undefined,
 			'min-width': opts.minWidth ? opts.minWidth + 'px' : undefined,
-			'overflow-wrap': opts.disableOverflowWrapBreaking ? 'normal' : undefined,
+			'overflow-wrap': opts.disableOverflowWrapBreaking ? 'normal' : 'break-word',
 			...opts.otherStyles,
 		}
+	}
 
-		const restoreStyles = this.setElementStyles(newStyles)
+	dispose() {
+		this.elm.remove()
+		for (const { el } of this.poolElms) {
+			el.remove()
+		}
+		this.poolElms.length = 0
+	}
+
+	private ensurePoolSize(size: number) {
+		if (this.poolElms.length >= size) return
+
+		const fragment = document.createDocumentFragment()
+		while (this.poolElms.length < size) {
+			const el = this.createMeasurementEl()
+			this.poolElms.push({ el, html: '' })
+			fragment.appendChild(el)
+		}
+		this.editor.getContainer().appendChild(fragment)
+	}
+
+	private getPoolItem(index: number): PoolItem {
+		this.ensurePoolSize(index + 1)
+		return this.poolElms[index]
+	}
+
+	measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[] {
+		if (requests.length === 0) return []
+
+		while (this.poolElms.length > requests.length) {
+			const { el } = this.poolElms.pop()!
+			el.remove()
+		}
+
+		const restoreStylesFns: Array<() => void> = []
+
+		try {
+			for (let i = 0; i < requests.length; i++) {
+				const { html, opts } = requests[i]
+				const poolItem = this.getPoolItem(i)
+
+				const { el } = poolItem
+				restoreStylesFns.push(this.setElementStyles(el, this.getMeasureStyles(opts)))
+				// Skip innerHTML parsing if the content hasn't changed
+				if (poolItem.html !== html) {
+					el.innerHTML = html
+					poolItem.html = html
+				}
+			}
+
+			const results: TLMeasuredTextSize[] = []
+			for (let i = 0; i < requests.length; i++) {
+				const el = this.getPoolItem(i).el
+				const scrollWidth = requests[i].opts.measureScrollWidth ? el.scrollWidth : 0
+				const rect = el.getBoundingClientRect()
+				results.push({
+					x: 0,
+					y: 0,
+					w: rect.width,
+					h: rect.height,
+					scrollWidth,
+				})
+			}
+
+			return results
+		} finally {
+			for (const restoreStyles of restoreStylesFns) {
+				restoreStyles()
+			}
+		}
+	}
+
+	measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize {
+		const div = document.createElement('div')
+		div.textContent = normalizeTextForDom(textToMeasure)
+		return this.measureHtml(div.innerHTML, opts)
+	}
+
+	measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize {
+		const { elm } = this
+
+		const restoreStyles = this.setElementStyles(elm, this.getMeasureStyles(opts))
 
 		try {
 			elm.innerHTML = html
@@ -401,7 +383,7 @@ export class TextManager {
 			'word-break': shouldTruncateToFirstLine ? 'break-all' : undefined,
 			...opts.otherStyles,
 		}
-		const restoreStyles = this.setElementStyles(newStyles)
+		const restoreStyles = this.setElementStyles(elm, newStyles)
 
 		try {
 			const normalizedText = normalizeTextForDom(textToMeasure)
