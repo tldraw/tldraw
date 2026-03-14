@@ -98,7 +98,7 @@ export function activeElementShouldCaptureKeys(includeButtonsAndMenus?: boolean)
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
-// @internal (undocumented)
+// @public (undocumented)
 export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, centerOverride }: {
     centerOverride?: VecLike;
     delta: number;
@@ -1880,7 +1880,7 @@ export function getPointsOnArc(startPoint: VecLike, endPoint: VecLike, center: n
 // @public (undocumented)
 export function getPolygonVertices(width: number, height: number, sides: number): Vec[];
 
-// @internal (undocumented)
+// @public (undocumented)
 export function getRotationSnapshot({ editor, ids }: {
     editor: Editor;
     ids: TLShapeId[];
@@ -1900,6 +1900,9 @@ export function getSvgAsImage(svgString: string, options: {
 
 // @public
 export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): string;
+
+// @internal (undocumented)
+export function getTranslatingSnapshot(editor: Editor, shapeIds: TLShapeId[]): null | TranslatingSnapshot;
 
 // @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
@@ -2483,6 +2486,18 @@ export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;
 // @public
 export function MenuClickCapture(): false | JSX.Element;
 
+// @public (undocumented)
+export interface MovingShapeSnapshot {
+    // (undocumented)
+    pagePoint: Vec;
+    // (undocumented)
+    pageRotation: number;
+    // (undocumented)
+    parentTransform: MatModel | null;
+    // (undocumented)
+    shape: TLShape;
+}
+
 // @internal
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
     x: number;
@@ -2663,6 +2678,40 @@ export interface ResizeBoxOptions {
 }
 
 // @public
+export class ResizeInteraction {
+    constructor(editor: Editor);
+    cancel(): void;
+    complete(): void;
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    snapshot: null | ResizeSnapshot;
+    start(opts: ResizeInteractionStartOpts): boolean;
+    update(opts?: {
+        isCreating?: boolean;
+    }): ResizeInteractionUpdateResult;
+}
+
+// @public (undocumented)
+export interface ResizeInteractionStartOpts {
+    // (undocumented)
+    creationCursorOffset?: VecLike;
+    // (undocumented)
+    handle: SelectionCorner | SelectionEdge;
+}
+
+// @public (undocumented)
+export interface ResizeInteractionUpdateResult {
+    // (undocumented)
+    cursor?: {
+        dragHandle: SelectionCorner | SelectionEdge;
+        isFlippedX: boolean;
+        isFlippedY: boolean;
+        rotation: number;
+    };
+}
+
+// @public
 export function resizeScaled(shape: TLBaseShape<any, {
     scale: number;
 }>, { initialBounds, scaleX, scaleY, newPoint, handle }: TLResizeInfo<any>): {
@@ -2672,6 +2721,35 @@ export function resizeScaled(shape: TLBaseShape<any, {
     x: number;
     y: number;
 };
+
+// @public (undocumented)
+export interface ResizeSnapshot {
+    // (undocumented)
+    canShapesDeform: boolean;
+    // (undocumented)
+    cursorHandleOffset: VecLike;
+    // (undocumented)
+    frames: {
+        children: TLShape[];
+        id: TLShapeId;
+    }[];
+    // (undocumented)
+    initialSelectionPageBounds: Box;
+    // (undocumented)
+    selectedShapeIds: TLShapeId[];
+    // (undocumented)
+    selectionBounds: Box;
+    // (undocumented)
+    selectionRotation: number;
+    // (undocumented)
+    shapeSnapshots: Map<TLShapeId, {
+        bounds: Box;
+        isAspectRatioLocked: boolean;
+        pageRotation: number;
+        pageTransform: Mat;
+        shape: TLShape;
+    }>;
+}
 
 // @public (undocumented)
 export type RichTextFontVisitor = (node: TiptapNode, state: RichTextFontVisitorState, addFont: (font: TLFontFace) => void) => RichTextFontVisitorState;
@@ -2697,6 +2775,41 @@ export const ROTATE_CORNER_TO_SELECTION_CORNER: {
 
 // @public (undocumented)
 export type RotateCorner = 'bottom_left_rotate' | 'bottom_right_rotate' | 'mobile_rotate' | 'top_left_rotate' | 'top_right_rotate';
+
+// @public
+export class RotateInteraction {
+    constructor(editor: Editor);
+    applyStart(delta: number): void;
+    cancel(): void;
+    complete(opts?: {
+        delta?: number;
+    }): void;
+    // (undocumented)
+    editor: Editor;
+    getRotationDelta(opts: {
+        snapToNearestDegree: boolean;
+    }): number;
+    static rotateOneOff(editor: Editor, ids: TLShapeId[], delta: number, opts?: {
+        center?: VecLike;
+    }): void;
+    // (undocumented)
+    snapshot: null | TLRotationSnapshot;
+    start(opts: RotateInteractionStartOpts): boolean;
+    update(opts: RotateInteractionUpdateOpts): void;
+}
+
+// @public (undocumented)
+export interface RotateInteractionStartOpts {
+    delta?: number;
+    // (undocumented)
+    ids: TLShapeId[];
+}
+
+// @public (undocumented)
+export interface RotateInteractionUpdateOpts {
+    // (undocumented)
+    delta: number;
+}
 
 // @public (undocumented)
 export function rotateSelectionHandle(handle: SelectionHandle, rotation: number): SelectionHandle;
@@ -4263,7 +4376,7 @@ export type TLResizeShapeOptions = Partial<{
     skipStartAndEndCallbacks: boolean;
 }>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface TLRotationSnapshot {
     // (undocumented)
     initialCursorAngle: number;
@@ -4729,6 +4842,46 @@ export interface TransformedGeometry2dOptions {
     isInternal?: boolean;
     // (undocumented)
     isLabel?: boolean;
+}
+
+// @public
+export class TranslateInteraction {
+    constructor(editor: Editor);
+    cancel(): void;
+    complete(): void;
+    // (undocumented)
+    editor: Editor;
+    restart(shapeIds: TLShapeId[]): boolean;
+    // (undocumented)
+    snapshot: null | TranslatingSnapshot;
+    start(opts: TranslateInteractionStartOpts): boolean;
+    static translateOneOff(editor: Editor, ids: TLShapeId[], offset: VecLike): void;
+    update(opts?: {
+        flatten?: 'x' | 'y' | null;
+        skipGridSnap?: boolean;
+        snapDelta?: VecLike;
+    }): void;
+    updateParentTransforms(): void;
+}
+
+// @public (undocumented)
+export interface TranslateInteractionStartOpts {
+    // (undocumented)
+    shapeIds: TLShapeId[];
+}
+
+// @public (undocumented)
+export interface TranslatingSnapshot {
+    // (undocumented)
+    averagePagePoint: Vec;
+    // (undocumented)
+    initialPageBounds: Box;
+    // (undocumented)
+    initialSnapPoints: BoundsSnapPoint[];
+    // (undocumented)
+    movingShapes: TLShape[];
+    // (undocumented)
+    shapeSnapshots: MovingShapeSnapshot[];
 }
 
 // @public (undocumented)

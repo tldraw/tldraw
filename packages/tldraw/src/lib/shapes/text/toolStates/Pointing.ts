@@ -75,15 +75,11 @@ export class Pointing extends StateNode {
 
 			const scale = this.editor.getResizeScaleFactor()
 
-			editor.setCurrentTool('select.resizing', {
-				...info,
-				target: 'selection',
+			this.parent.transition('resizing', {
+				info,
 				handle: 'right',
-				isCreating: true,
-				creatingMarkId: this.markId,
-				// Make sure the cursor offset takes into account how far we've already dragged
+				markId: this.markId,
 				creationCursorOffset: { x: currentDragDist * scale, y: 1 },
-				onInteractionEnd: 'text',
 				onCreate: () => {
 					startEditingShapeWithRichText(editor, shape.id)
 				},

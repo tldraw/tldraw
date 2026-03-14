@@ -112,6 +112,8 @@ import { exportToSvg } from '../exports/exportToSvg'
 import { getSvgAsImageWithOptions, trimSvgToContent } from '../exports/getSvgAsImage'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
+import { RotateInteraction } from '../interactions/RotateInteraction'
+import { TranslateInteraction } from '../interactions/TranslateInteraction'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
 import { Mat, MatLike } from '../primitives/Mat'
@@ -135,7 +137,6 @@ import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { getDroppedShapesToNewParents, kickoutOccludedShapes } from '../utils/reparenting'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
-import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
@@ -6336,15 +6337,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (ids.length <= 0) return this
 
-		const snapshot = getRotationSnapshot({ editor: this, ids })
-		if (!snapshot) return this
-		applyRotationToSnapshotShapes({
-			delta,
-			snapshot,
-			editor: this,
-			stage: 'one-off',
-			centerOverride: opts?.center,
-		})
+		RotateInteraction.rotateOneOff(this, ids, delta, opts)
 
 		return this
 	}
@@ -6397,18 +6390,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (shapes as TLShape[]).map((s) => s.id)
 
 		if (ids.length <= 0) return this
-		const changes: TLShapePartial[] = []
 
-		for (const id of ids) {
-			const shape = this.getShape(id)!
-			const localDelta = Vec.From(offset)
-			const parentTransform = this.getShapeParentTransform(shape)
-			if (parentTransform) localDelta.rot(-parentTransform.rotation())
-
-			changes.push(this.getChangesToTranslateShape(shape, localDelta.add(shape)))
-		}
-
-		this.updateShapes(changes)
+		TranslateInteraction.translateOneOff(this, ids, offset)
 
 		return this
 	}

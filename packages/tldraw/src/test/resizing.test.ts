@@ -3858,7 +3858,7 @@ it('uses the cross cursor when create resizing', () => {
 	editor.setCurrentTool('geo')
 	editor.pointerDown(0, 0)
 	editor.pointerMove(100, 100)
-	editor.expectToBeIn('select.resizing')
+	editor.expectToBeIn('geo.resizing')
 	expect(editor.getInstanceState().cursor.type).toBe('cross')
 	expect(editor.getInstanceState().cursor.rotation).toBe(0)
 
@@ -4082,7 +4082,7 @@ describe('cancelling a resize operation', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.resizing')
+		editor.expectToBeIn('geo.resizing')
 		const shape = editor.getLastCreatedShape()
 		expect(editor.getShapePageBounds(shape)).toMatchObject({ x: 0, y: 0, w: 100, h: 100 })
 		editor.cancel()

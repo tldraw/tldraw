@@ -19,100 +19,61 @@ import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
 	NOTE_CENTER_OFFSET,
 	getAvailableNoteAdjacentPositions,
-} from '../../../shapes/note/noteHelpers'
-import { DragAndDropManager } from '../DragAndDropManager'
+} from '../../shapes/note/noteHelpers'
 
-export type TranslatingInfo = TLPointerEventInfo & {
-	target: 'shape'
-	isCreating?: boolean
-	creatingMarkId?: string
-	onCreate?(): void
-	onInteractionEnd?: string | (() => void)
+/** @public */
+export interface CreationTranslatingInfo {
+	info: TLPointerEventInfo & { target: 'shape'; shape: TLShape }
+	markId: string
+	onCreate?(shape: TLShape | null): void
 }
 
-export class Translating extends StateNode {
+// Extended snapshot with note-specific data
+interface ExtendedSnapshot {
+	averagePagePoint: Vec
+	movingShapes: TLShape[]
+	shapeSnapshots: MovingShapeSnapshot[]
+	initialPageBounds: import('@tldraw/editor').Box
+	initialSnapPoints: BoundsSnapPoint[]
+	noteAdjacentPositions?: Vec[]
+	noteSnapshot?: (MovingShapeSnapshot & { shape: TLNoteShape }) | undefined
+}
+
+/**
+ * A state node for creation tools that need to translate a newly created shape.
+ * Uses TranslateInteraction directly — no cross-tool transition or tool ID masking needed.
+ *
+ * @public
+ */
+export class CreationTranslating extends StateNode {
 	static override id = 'translating'
 
-	info = {} as TranslatingInfo
-
 	interaction = new TranslateInteraction(this.editor)
-
-	/** Full selection snapshot (kept for stopCloning to restore). */
-	selectionSnapshot: ExtendedTranslatingSnapshot = {} as any
-
-	/** Active snapshot — may be swapped when cloning starts/stops. */
-	snapshot: ExtendedTranslatingSnapshot = {} as any
-
+	snapshot: ExtendedSnapshot = {} as any
 	markId = ''
+	onCreate?: (shape: TLShape | null) => void
 
-	isCloning = false
-	isCreating = false
-	onCreate(_shape: TLShape | null): void {
-		return
-	}
-
-	dragAndDropManager = new DragAndDropManager(this.editor)
-
-	override onEnter(info: TranslatingInfo) {
-		const { isCreating = false, creatingMarkId, onCreate = () => void null } = info
+	override onEnter(info: CreationTranslatingInfo) {
+		this.markId = info.markId
+		this.onCreate = info.onCreate
 
 		if (!this.editor.getSelectedShapeIds()?.length) {
 			this.parent.transition('idle')
 			return
 		}
 
-		this.info = info
-		if (typeof info.onInteractionEnd === 'string') {
-			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
-		}
-		this.isCreating = isCreating
-
-		this.markId = ''
-
-		if (isCreating) {
-			if (creatingMarkId) {
-				this.markId = creatingMarkId
-			} else {
-				const markId = this.editor.getMarkIdMatching(
-					`creating:${this.editor.getOnlySelectedShapeId()}`
-				)
-				if (markId) {
-					this.markId = markId
-				}
-			}
-		} else {
-			this.markId = this.editor.markHistoryStoppingPoint('translating')
-		}
-
-		this.onCreate = onCreate
-
-		this.isCloning = false
-		this.info = info
-
 		this.editor.setCursor({ type: 'move', rotation: 0 })
-		this.selectionSnapshot = getExtendedTranslatingSnapshot(this.editor)
+		this.snapshot = getExtendedSnapshot(this.editor)
 
-		// Don't clone on create; otherwise clone on altKey
-		if (!this.isCreating) {
-			if (this.editor.inputs.getAltKey()) {
-				this.startCloning()
-				if (this.isCloning) return
-			}
-		}
-
-		this.snapshot = this.selectionSnapshot
 		this.interaction.start({ shapeIds: this.snapshot.movingShapes.map((s) => s.id) })
-		this.handleStart()
+		this.editor.setHoveredShape(null)
 		this.updateShapes()
 	}
 
 	override onExit() {
-		this.parent.setCurrentToolIdMask(undefined)
-		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
 		this.editor.snaps.clearIndicators()
 		this.editor.setCursor({ type: 'default', rotation: 0 })
-		this.dragAndDropManager.clear()
 	}
 
 	override onTick({ elapsed }: TLTickEventInfo) {
@@ -126,22 +87,10 @@ export class Translating extends StateNode {
 	}
 
 	override onKeyDown() {
-		if (this.editor.inputs.getAltKey() && !this.isCloning) {
-			this.startCloning()
-			if (this.isCloning) return
-		}
-
-		// need to update in case user pressed a different modifier key
 		this.updateShapes()
 	}
 
 	override onKeyUp() {
-		if (!this.editor.inputs.getAltKey() && this.isCloning) {
-			this.stopCloning()
-			return
-		}
-
-		// need to update in case user pressed a different modifier key
 		this.updateShapes()
 	}
 
@@ -157,126 +106,36 @@ export class Translating extends StateNode {
 		this.cancel()
 	}
 
-	protected startCloning() {
-		if (this.isCreating) return
-		const shapeIds = Array.from(this.editor.getSelectedShapeIds())
-
-		if (!this.editor.canCreateShapes(shapeIds)) return
-
-		this.isCloning = true
-		this.reset()
-		this.markId = this.editor.markHistoryStoppingPoint('translate cloning')
-
-		this.editor.duplicateShapes(Array.from(this.editor.getSelectedShapeIds()))
-
-		this.snapshot = getExtendedTranslatingSnapshot(this.editor)
-		this.interaction.restart(this.snapshot.movingShapes.map((s) => s.id))
-		this.handleStart()
-		this.updateShapes()
-	}
-
-	protected stopCloning() {
-		this.isCloning = false
-		this.snapshot = this.selectionSnapshot
-		this.reset()
-		this.markId = this.editor.markHistoryStoppingPoint('translate')
-		this.interaction.restart(this.snapshot.movingShapes.map((s) => s.id))
-		this.updateShapes()
-	}
-
-	reset() {
+	private cancel() {
+		this.interaction.cancel()
 		this.editor.bailToMark(this.markId)
+		this.parent.transition('idle')
 	}
 
-	protected complete() {
+	private complete() {
 		this.updateShapes()
-		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
-		this.handleEnd()
+		this.interaction.complete()
 		kickoutOccludedShapes(
 			this.editor,
 			this.snapshot.movingShapes.map((s) => s.id)
 		)
 
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				if (this.editor.getInstanceState().isToolLocked) {
-					this.editor.setCurrentTool(onInteractionEnd)
-					return
-				}
-			} else {
-				onInteractionEnd()
-				return
-			}
-		}
-
-		if (this.isCreating) {
-			this.onCreate?.(this.editor.getOnlySelectedShape())
-		} else {
+		// When tool-locked, return to tool idle without calling onCreate
+		// (matches original behavior where onInteractionEnd fired before onCreate)
+		if (this.editor.getInstanceState().isToolLocked) {
 			this.parent.transition('idle')
-		}
-	}
-
-	private cancel() {
-		this.interaction.cancel()
-		this.reset()
-
-		const { onInteractionEnd } = this.info
-		if (onInteractionEnd) {
-			if (typeof onInteractionEnd === 'string') {
-				this.editor.setCurrentTool(onInteractionEnd)
-			} else {
-				onInteractionEnd()
-			}
 			return
 		}
-		this.parent.transition('idle', this.info)
-	}
 
-	protected handleStart() {
-		// The interaction already called onTranslateStart, so we just need
-		// to set up drag-and-drop.
-		this.dragAndDropManager.startDraggingShapes(
-			compact(this.snapshot.movingShapes.map((s) => this.editor.getShape(s.id))),
-			this.editor.inputs.getOriginPagePoint(),
-			this.updateParentTransforms
-		)
-
-		this.editor.setHoveredShape(null)
-	}
-
-	protected handleEnd() {
-		const { movingShapes } = this.snapshot
-
-		if (this.isCloning && movingShapes.length > 0) {
-			const currentAveragePagePoint = Vec.Average(
-				movingShapes.map((s) => this.editor.getShapePageTransform(s.id)!.point())
-			)
-			const offset = Vec.Sub(currentAveragePagePoint, this.selectionSnapshot.averagePagePoint)
-			if (!Vec.IsNaN(offset)) {
-				this.editor.updateInstanceState({
-					duplicateProps: {
-						shapeIds: movingShapes.map((s) => s.id),
-						offset: { x: offset.x, y: offset.y },
-					},
-				})
-			}
+		if (this.onCreate) {
+			this.onCreate(this.editor.getOnlySelectedShape())
+			return
 		}
 
-		this.interaction.complete()
+		this.editor.setCurrentTool('select', {})
 	}
 
-	protected updateShapes() {
-		const { snapshot } = this
-
-		// Ensure drag-and-drop is active
-		this.dragAndDropManager.startDraggingShapes(
-			snapshot.movingShapes,
-			this.editor.inputs.getOriginPagePoint(),
-			this.updateParentTransforms
-		)
-
-		// Compute snapping (stays in state node since it depends on note helpers from tldraw package)
+	private updateShapes() {
 		const snapResult = this.computeSnapDelta()
 
 		const shiftKey = this.editor.inputs.getShiftKey()
@@ -329,7 +188,6 @@ export class Translating extends StateNode {
 			})
 			return { snapDelta: Vec.From(nudge), skipGridSnap: false }
 		} else {
-			// Sticky note snapping
 			if (snapshot.noteSnapshot && snapshot.noteAdjacentPositions) {
 				const { scale } = snapshot.noteSnapshot.shape.props
 				const pageCenter = snapshot.noteSnapshot.pagePoint
@@ -363,23 +221,12 @@ export class Translating extends StateNode {
 	}
 
 	@bind
-	protected updateParentTransforms() {
+	private updateParentTransforms() {
 		this.interaction.updateParentTransforms()
 	}
 }
 
-// Extended snapshot that includes note-specific data (lives in tldraw, not editor)
-interface ExtendedTranslatingSnapshot {
-	averagePagePoint: Vec
-	movingShapes: TLShape[]
-	shapeSnapshots: MovingShapeSnapshot[]
-	initialPageBounds: import('@tldraw/editor').Box
-	initialSnapPoints: BoundsSnapPoint[]
-	noteAdjacentPositions?: Vec[]
-	noteSnapshot?: (MovingShapeSnapshot & { shape: TLNoteShape }) | undefined
-}
-
-function getExtendedTranslatingSnapshot(editor: Editor): ExtendedTranslatingSnapshot {
+function getExtendedSnapshot(editor: Editor): ExtendedSnapshot {
 	const movingShapes: TLShape[] = []
 	const pagePoints: Vec[] = []
 
@@ -468,6 +315,3 @@ function getExtendedTranslatingSnapshot(editor: Editor): ExtendedTranslatingSnap
 		noteSnapshot,
 	}
 }
-
-export { type ExtendedTranslatingSnapshot as TranslatingSnapshot }
-export type { MovingShapeSnapshot }

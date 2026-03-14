@@ -54,13 +54,9 @@ export class Pointing extends StateNode {
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.getIsDragging()) {
-			this.editor.setCurrentTool('select.translating', {
-				...info,
-				target: 'shape',
-				shape: this.shape,
-				onInteractionEnd: 'note',
-				isCreating: true,
-				creatingMarkId: this.markId,
+			this.parent.transition('translating', {
+				info: { ...info, target: 'shape', shape: this.shape },
+				markId: this.markId,
 				onCreate: () => {
 					startEditingShapeWithRichText(this.editor, this.shape.id)
 				},
