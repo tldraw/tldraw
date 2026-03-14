@@ -142,7 +142,7 @@ export function equals(a: any, b: any): boolean {
 	// Object.is handles NaN === NaN (true) and +0 === -0 (false)
 	if (Object.is(a, b)) return true
 	// Check custom .equals() method
-	if (a && typeof a === 'object' && typeof a.equals === 'function') return a.equals(b)
+	if (a && b && typeof a === 'object' && typeof a.equals === 'function') return a.equals(b)
 	return false
 }
 
