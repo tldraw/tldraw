@@ -10,7 +10,7 @@ import {
 import { areArraysShallowEqual, isEqual } from '@tldraw/utils'
 import { AtomMap } from './AtomMap'
 import { IdOf, UnknownRecord } from './BaseRecord'
-import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'
+import { executeQuery, QueryExpression } from './executeQuery'
 import { IncrementalSetConstructor } from './IncrementalSetConstructor'
 import { RecordsDiff } from './RecordsDiff'
 import { diffSets } from './setUtils'
@@ -601,10 +601,37 @@ export class StoreQueries<R extends UnknownRecord> {
 			isEqual,
 		})
 
+		// Compile query into path parts and operators for fast incremental checks
+		type CompiledMatcher = { parts: string[]; kind: 'eq' | 'neq' | 'gt'; value: any }
+		const compiledQuery = computed('ids_query_compiled:' + name, () => {
+			const q = cachedQuery.get() as QueryExpression<S>
+			const compiled: CompiledMatcher[] = []
+			const parts: string[] = []
+			const hasOwn = Object.prototype.hasOwnProperty
+			const walk = (obj: any) => {
+				for (const key in obj as any) {
+					if (!hasOwn.call(obj, key)) continue
+					const val = obj[key]
+					parts.push(key)
+					if (val && typeof val === 'object') {
+						if ('eq' in val) compiled.push({ parts: parts.slice(), kind: 'eq', value: val.eq })
+						else if ('neq' in val)
+							compiled.push({ parts: parts.slice(), kind: 'neq', value: val.neq })
+						else if ('gt' in val) compiled.push({ parts: parts.slice(), kind: 'gt', value: val.gt })
+						else walk(val)
+					}
+					parts.pop()
+				}
+			}
+			walk(q)
+			return compiled
+		})
+
 		return computed(
 			'query:' + name,
 			(prevValue, lastComputedEpoch) => {
 				const query = cachedQuery.get()
+				const compiled = compiledQuery.get()
 				if (isUninitialized(prevValue)) {
 					return fromScratch()
 				}
@@ -624,17 +651,37 @@ export class StoreQueries<R extends UnknownRecord> {
 					prevValue
 				) as IncrementalSetConstructor<IdOf<S>>
 
+				// Fast matcher using compiled paths
+				const matches = (obj: S) => {
+					for (let i = 0; i < compiled.length; i++) {
+						const c = compiled[i]
+						const value = this.getNestedValue(obj, c.parts as any)
+						switch (c.kind) {
+							case 'eq':
+								if (value !== c.value) return false
+								break
+							case 'neq':
+								if (value === c.value) return false
+								break
+							case 'gt':
+								if (typeof value !== 'number' || value <= c.value) return false
+								break
+						}
+					}
+					return true
+				}
+
 				for (const changes of history) {
 					for (const _id in changes.added) {
 						const added = changes.added[_id as IdOf<R>]
-						if (added.typeName === typeName && objectMatchesQuery(query, added)) {
+						if (added.typeName === typeName && matches(added as S)) {
 							setConstructor.add(added.id)
 						}
 					}
 					for (const _id in changes.updated) {
 						const updated = changes.updated[_id as IdOf<R>][1]
 						if (updated.typeName === typeName) {
-							if (objectMatchesQuery(query, updated)) {
+							if (matches(updated as S)) {
 								setConstructor.add(updated.id)
 							} else {
 								setConstructor.remove(updated.id)
