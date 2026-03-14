@@ -249,14 +249,14 @@ function parseActorManRects(root: Element): SvgRect[] {
 		let maxY = -Infinity
 		for (const line of group.querySelectorAll('line')) {
 			for (const attr of ['x1', 'x2']) {
-				const v = parseFloat(line.getAttribute(attr) || '0')
-				if (v < minX) minX = v
-				if (v > maxX) maxX = v
+				const coord = parseFloat(line.getAttribute(attr) || '0')
+				if (coord < minX) minX = coord
+				if (coord > maxX) maxX = coord
 			}
 			for (const attr of ['y1', 'y2']) {
-				const v = parseFloat(line.getAttribute(attr) || '0')
-				if (v < minY) minY = v
-				if (v > maxY) maxY = v
+				const coord = parseFloat(line.getAttribute(attr) || '0')
+				if (coord < minY) minY = coord
+				if (coord > maxY) maxY = coord
 			}
 		}
 		if (Number.isFinite(minX) && Number.isFinite(minY)) {
@@ -284,9 +284,9 @@ function computeActorLayouts(root: Element, actorCount: number, eventCount: numb
 				: actorManRects.length >= 2
 					? (actorManRects[0].y + actorManRects[actorManRects.length - 1].y) / 2
 					: 0
-		for (const r of actorManRects) {
-			if (r.y < midY) top.push(r)
-			else bottom.push(r)
+		for (const rect of actorManRects) {
+			if (rect.y < midY) top.push(rect)
+			else bottom.push(rect)
 		}
 		top.sort(byX)
 		bottom.sort(byX)
@@ -327,19 +327,19 @@ function computeActorLayouts(root: Element, actorCount: number, eventCount: numb
 		const refBottomEndY =
 			regularBottoms.length > 0 ? Math.max(...regularBottoms.map((r) => r.y + r.h)) : undefined
 
-		for (const r of top) {
-			if (!actorManSet.has(r)) continue
-			const centerY = r.y + r.h / 2
-			r.h = refHeight
-			r.w = Math.max(r.w, refWidth)
-			r.y = refTopY !== undefined ? refTopY : centerY - refHeight / 2
+		for (const rect of top) {
+			if (!actorManSet.has(rect)) continue
+			const centerY = rect.y + rect.h / 2
+			rect.h = refHeight
+			rect.w = Math.max(rect.w, refWidth)
+			rect.y = refTopY !== undefined ? refTopY : centerY - refHeight / 2
 		}
-		for (const r of bottom) {
-			if (!actorManSet.has(r)) continue
-			const centerY = r.y + r.h / 2
-			r.h = refHeight
-			r.w = Math.max(r.w, refWidth)
-			r.y = refBottomEndY !== undefined ? refBottomEndY - refHeight : centerY - refHeight / 2
+		for (const rect of bottom) {
+			if (!actorManSet.has(rect)) continue
+			const centerY = rect.y + rect.h / 2
+			rect.h = refHeight
+			rect.w = Math.max(rect.w, refWidth)
+			rect.y = refBottomEndY !== undefined ? refBottomEndY - refHeight : centerY - refHeight / 2
 		}
 	}
 

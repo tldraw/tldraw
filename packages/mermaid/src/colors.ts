@@ -21,18 +21,25 @@ export function parseClassDefFills(
 ): Map<string, TLDefaultColorStyle> {
 	const result = new Map<string, TLDefaultColorStyle>()
 
+	// Extracts the CSS text between <style>...</style> tags. Group 1 = raw CSS content.
 	const styleMatch = svgString.match(/<style[^>]*>([\s\S]*?)<\/style>/i)
 	if (!styleMatch?.[1]) return result
 	const css = styleMatch[1]
 
 	const classColors = new Map<string, { fill?: string; stroke?: string }>()
+	// Matches CSS rules like `.className > * { body }` or `.className rect { body }`.
+	// Group 1 = class name (e.g. "myClass"), group 2 = rule body between braces.
 	const ruleRegex = /\.([\w-]+)\s*(?:>|[\s])\s*(?:\*|\w+)\s*\{([^}]*)\}/g
 	let ruleMatch: RegExpExecArray | null
 	while ((ruleMatch = ruleRegex.exec(css)) !== null) {
 		const className = ruleMatch[1]!
 		const body = ruleMatch[2]!
 		if (classColors.has(className)) continue
+		// Extracts hex color from `fill: #abc123`. Group 1 = hex digits (3-8 chars,
+		// covering shorthand #RGB, #RRGGBB, and #RRGGBBAA).
 		const fillMatch = body.match(/fill:\s*#([0-9a-fA-F]{3,8})/)
+		// Same for `stroke:`. The boundary guard `(?:^|;|\s)` prevents matching
+		// `stroke-width:` or `stroke-dasharray:` which also start with "stroke".
 		const strokeMatch = body.match(/(?:^|;|\s)stroke:\s*#([0-9a-fA-F]{3,8})/)
 		if (fillMatch || strokeMatch) {
 			classColors.set(className, { fill: fillMatch?.[1], stroke: strokeMatch?.[1] })
@@ -41,8 +48,12 @@ export function parseClassDefFills(
 
 	if (classColors.size === 0) return result
 
+	// Escape regex metacharacters so the prefix can be safely embedded in a RegExp.
 	const escapedPrefix = idPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+	// Matches id attributes like id="flowchart-myNode-42" or id="state-Idle-0".
+	// Group 1 = the original node id from the diagram source (e.g. "myNode").
 	const idRegex = new RegExp(`\\bid="${escapedPrefix}(.+)-\\d+"`)
+	// Matches opening <g ...> SVG group tags. Group 1 = all tag attributes.
 	const tagRegex = /<g\b([^>]*)>/g
 	let tagMatch: RegExpExecArray | null
 	while ((tagMatch = tagRegex.exec(svgString)) !== null) {
@@ -50,6 +61,7 @@ export function parseClassDefFills(
 		const idMatch = attrs.match(idRegex)
 		if (!idMatch) continue
 		const nodeId = idMatch[1]!
+		// Extracts the class attribute value. Group 1 = space-separated class names.
 		const classMatch = attrs.match(/\bclass="([^"]*)"/)
 		if (!classMatch) continue
 		for (const className of classMatch[1]!.split(/\s+/)) {
@@ -71,6 +83,8 @@ export function parseClassDefFills(
 export function parseRgbToTldrawColor(
 	text: string
 ): { color: TLDefaultColorStyle; hasAlpha: boolean } | null {
+	// Matches `rgb(r, g, b)` or `rgba(r, g, b, a)` color strings.
+	// Groups 1-3 = red/green/blue integers, group 4 = optional alpha float.
 	const match = text.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/)
 	if (!match) return null
 	const r = parseInt(match[1], 10)
@@ -168,8 +182,9 @@ function classDefToTldrawColor(
 	const strokeRgb = strokeHex ? parseHexToRgb(strokeHex) : null
 
 	if (fillRgb && strokeRgb) {
-		const sw = 1 - FILL_WEIGHT
-		const blend = (i: number) => Math.round(fillRgb[i] * FILL_WEIGHT + strokeRgb[i] * sw)
+		const strokeWeight = 1 - FILL_WEIGHT
+		const blend = (channel: number) =>
+			Math.round(fillRgb[channel] * FILL_WEIGHT + strokeRgb[channel] * strokeWeight)
 		const blendHex =
 			blend(0).toString(16).padStart(2, '0') +
 			blend(1).toString(16).padStart(2, '0') +

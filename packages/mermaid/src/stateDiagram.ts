@@ -41,6 +41,8 @@ interface FlatState {
 
 function getEffectiveType(state: StateStmt): string {
 	if (state.type && state.type !== 'default') return state.type
+	// Mermaid auto-generates start/end pseudo-state ids ending with "_start"
+	// or "_end", optionally followed by a disambiguation digit (e.g. "_start2").
 	if (/_start\d*$/.test(state.id)) return 'start'
 	if (/_end\d*$/.test(state.id)) return 'end'
 	return state.type || 'default'
@@ -124,9 +126,9 @@ function flattenStateHierarchy(
 			}
 
 			const nested = flattenStateHierarchy(childStatesMap, childRelations, id, root)
-			for (const [k, v] of nested.leafStates) leafStates.set(k, v)
-			for (const [k, v] of nested.compoundLabels) compoundLabels.set(k, v)
-			for (const [k, v] of nested.parentOf) parentOf.set(k, v)
+			for (const [key, state] of nested.leafStates) leafStates.set(key, state)
+			for (const [key, label] of nested.compoundLabels) compoundLabels.set(key, label)
+			for (const [key, parent] of nested.parentOf) parentOf.set(key, parent)
 			allEdges.push(...nested.allEdges)
 		} else {
 			leafStates.set(id, {
@@ -243,12 +245,17 @@ export function stateToBlueprint(
 ): DiagramMermaidBlueprint {
 	const stateFillMap = parseClassDefFills(root.outerHTML, 'state-', STATE_KNOWN_CLASSES)
 
+	// Mermaid state diagram node DOM ids look like "state-Idle-0".
+	// Group 1 = original state id from the diagram source.
 	const svgNodes = parseNodesFromSvg(
 		root,
 		'.node',
 		(domId) => domId.match(/^state-(.+)-\d+$/)?.[1] ?? domId
 	)
 	const svgClusters = parseClustersFromSvg(root, '.statediagram-cluster')
+	// State diagram edges use anonymous data-ids like "edge0", "edge1" — they
+	// don't encode endpoint ids, so we return a sentinel and rely on proximity
+	// matching to pair them with the correct transition.
 	const svgEdges = parseAllEdgePointsFromSvg(root, (dataId) =>
 		/^edge\d+$/.test(dataId) ? { start: '', end: '' } : null
 	)
