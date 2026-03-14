@@ -564,8 +564,28 @@ describe('computed as a decorator', () => {
 		const secondVal = foo.getB()
 		expect(secondVal).toEqual({ b: 1 })
 
-		expect(firstVal).toBe(secondVal)
+		// As a leaf computed (no children), isEqual is skipped for performance,
+		// so the new object reference is stored even though values are equal
 		expect(numComputations).toBe(2)
+
+		// With a reactor (child), isEqual kicks in and deduplicates
+		let _reactorVal: any
+		const r = reactor('r', () => {
+			_reactorVal = foo.getB()
+		})
+		r.start()
+
+		foo.a.set(2)
+		const valWithChild = foo.getB()
+		expect(valWithChild).toEqual({ b: 4 })
+
+		foo.a.set(-2)
+		const valAfterNeg = foo.getB()
+		expect(valAfterNeg).toEqual({ b: 4 })
+		// isEqual returns true (same .b), so reference is preserved
+		expect(valAfterNeg).toBe(valWithChild)
+
+		r.stop()
 	})
 })
 
@@ -601,11 +621,96 @@ describe('computed isEqual', () => {
 		expect(b.get()).toBe(2)
 		expect(isEqual).not.toHaveBeenCalled()
 
+		// As a leaf computed (no children, no historyBuffer), isEqual is skipped
 		a.set(2)
+		expect(b.get()).toBe(4)
+		expect(isEqual).not.toHaveBeenCalled()
 
+		// Add a reactor so it has children — isEqual should now be called
+		const r = reactor('r', () => {
+			b.get()
+		})
+		r.start()
+
+		a.set(3)
+		expect(b.get()).toBe(6)
+		expect(isEqual).toHaveBeenCalledTimes(1)
+		expect(b.get()).toBe(6)
+		expect(isEqual).toHaveBeenCalledTimes(1)
+
+		r.stop()
+	})
+
+	it('skips isEqual for leaf computeds with no children', () => {
+		const isEqual = vi.fn((a, b) => a === b)
+
+		const a = atom('a', 1)
+		const b = computed('b', () => a.get() * 2, { isEqual })
+
+		// initialize
+		expect(b.get()).toBe(2)
+		expect(isEqual).not.toHaveBeenCalled()
+
+		// change the atom — leaf computed should skip isEqual
+		a.set(2)
+		expect(b.get()).toBe(4)
+		expect(isEqual).not.toHaveBeenCalled()
+
+		a.set(3)
+		expect(b.get()).toBe(6)
+		expect(isEqual).not.toHaveBeenCalled()
+	})
+
+	it('calls isEqual when computed has children, stops when children removed', () => {
+		const isEqual = vi.fn((a, b) => a === b)
+
+		const a = atom('a', 1)
+		const b = computed('b', () => a.get() * 2, { isEqual })
+
+		// initialize
+		expect(b.get()).toBe(2)
+
+		// add a reactor (child) — isEqual should now be called
+		const r = reactor('r', () => {
+			b.get()
+		})
+		r.start()
+
+		a.set(2)
+		expect(b.get()).toBe(4)
+		expect(isEqual).toHaveBeenCalled()
+
+		const callCount = isEqual.mock.calls.length
+
+		// remove the reactor — back to leaf, isEqual should be skipped
+		r.stop()
+
+		a.set(3)
+		expect(b.get()).toBe(6)
+		expect(isEqual).toHaveBeenCalledTimes(callCount)
+	})
+
+	it('calls isEqual for leaf computeds with historyBuffer', () => {
+		const isEqual = vi.fn((a, b) => a === b)
+
+		const a = atom('a', 1)
+		const b = computed('b', () => a.get() * 2, {
+			isEqual,
+			historyLength: 3,
+			computeDiff: (a, b) => b - a,
+		})
+
+		// initialize
+		expect(b.get()).toBe(2)
+		expect(isEqual).not.toHaveBeenCalled()
+
+		// even though no children, historyBuffer means isEqual must be called
+		a.set(2)
 		expect(b.get()).toBe(4)
 		expect(isEqual).toHaveBeenCalledTimes(1)
-		expect(b.get()).toBe(4)
-		expect(isEqual).toHaveBeenCalledTimes(1)
+
+		a.set(3)
+		expect(b.get()).toBe(6)
+		expect(isEqual).toHaveBeenCalledTimes(2)
 	})
 })
