@@ -144,25 +144,26 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 	// Extract all paths with matchers (flattens nested queries)
 	const matcherPaths = extractMatcherPaths(query)
 
-	// Build a set of matching IDs for each path
-	const matchIds = Object.fromEntries(matcherPaths.map(({ path }) => [path, new Set<IdOf<S>>()]))
+	// Build an array of matching ID sets directly (avoid Object.fromEntries allocation)
+	const matchSets: Set<IdOf<S>>[] = []
 
 	// For each path, use the index to find matching IDs
 	for (const { path, matcher } of matcherPaths) {
+		const matchIds = new Set<IdOf<S>>()
 		const index = store.index(typeName, path as any)
 
 		if ('eq' in matcher) {
 			const ids = index.get().get(matcher.eq)
 			if (ids) {
 				for (const id of ids) {
-					matchIds[path].add(id)
+					matchIds.add(id)
 				}
 			}
 		} else if ('neq' in matcher) {
 			for (const [value, ids] of index.get()) {
 				if (value !== matcher.neq) {
 					for (const id of ids) {
-						matchIds[path].add(id)
+						matchIds.add(id)
 					}
 				}
 			}
@@ -170,18 +171,23 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 			for (const [value, ids] of index.get()) {
 				if (typeof value === 'number' && value > matcher.gt) {
 					for (const id of ids) {
-						matchIds[path].add(id)
+						matchIds.add(id)
 					}
 				}
 			}
 		}
 
 		// Short-circuit if this set is empty - intersection will be empty
-		if (matchIds[path].size === 0) {
+		if (matchIds.size === 0) {
 			return new Set()
 		}
+
+		matchSets.push(matchIds)
 	}
 
+	// Fast path: only one predicate -> no intersection/copy needed
+	if (matchSets.length === 1) return matchSets[0]
+
 	// Intersect all the match sets
-	return intersectSets(Object.values(matchIds)) as Set<IdOf<S>>
+	return intersectSets(matchSets) as Set<IdOf<S>>
 }
