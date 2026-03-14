@@ -410,9 +410,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     ensureStoreIsUsable(): void;
     extractingChanges(fn: () => void): RecordsDiff<R>;
     filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope): {
-        added: { [K in IdOf<R>]: R; };
-        removed: { [K in IdOf<R>]: R; };
-        updated: { [K in IdOf<R>]: [from: R, to: R]; };
+        added: Record<IdOf<R>, R>;
+        removed: Record<IdOf<R>, R>;
+        updated: Record<IdOf<R>, [from: R, to: R]>;
     } | null;
     // (undocumented)
     _flushHistory(): void;
