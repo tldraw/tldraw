@@ -573,7 +573,13 @@ export class StoreQueries<R extends UnknownRecord> {
 			// deref type history early to allow first incremental update to use diffs
 			typeHistory.get()
 			const query: QueryExpression<S> = queryCreator()
-			if (Object.keys(query).length === 0) {
+			// Fast empty-query check without allocating an array
+			let isEmptyQuery = true
+			for (const _ in query as any) {
+				isEmptyQuery = false
+				break
+			}
+			if (isEmptyQuery) {
 				return this.getAllIdsForType(typeName)
 			}
 

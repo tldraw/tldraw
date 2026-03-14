@@ -107,11 +107,10 @@ export function reverseRecordsDiff(diff: RecordsDiff<any>) {
  * @public
  */
 export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>) {
-	return (
-		Object.keys(diff.added).length === 0 &&
-		Object.keys(diff.updated).length === 0 &&
-		Object.keys(diff.removed).length === 0
-	)
+	for (const _a in diff.added) return false
+	for (const _b in diff.updated) return false
+	for (const _c in diff.removed) return false
+	return true
 }
 
 /**
