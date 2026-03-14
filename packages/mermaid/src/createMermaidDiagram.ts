@@ -96,7 +96,8 @@ export async function createMermaidDiagram(
 				const vertices = db.getVertices() as Map<string, FlowVertex>
 				const edges = db.getEdges() as FlowEdge[]
 				const subGraphs = db.getSubGraphs() as FlowSubGraph[]
-				blueprint = flowchartToBlueprint(liveSvg, vertices, edges, subGraphs)
+				const classes = db.getClasses()
+				blueprint = flowchartToBlueprint(liveSvg, vertices, edges, subGraphs, classes)
 				break
 			}
 			case 'sequence': {
@@ -116,7 +117,8 @@ export async function createMermaidDiagram(
 				const db = diagramResult.db as StateDB
 				const states = db.getStates()
 				const relations = db.getRelations()
-				blueprint = stateToBlueprint(liveSvg, states, relations)
+				const classes = db.getClasses()
+				blueprint = stateToBlueprint(liveSvg, states, relations, classes)
 				break
 			}
 			default:

@@ -2,77 +2,43 @@ import { defaultColorNames, DefaultColorThemePalette } from '@tldraw/tlschema'
 import { TLDefaultColorStyle, TLDefaultDashStyle, TLDefaultSizeStyle } from 'tldraw'
 
 /**
- * Parse classDef colors from a Mermaid SVG string.
+ * Build a map of node id → tldraw color from Mermaid's classDef definitions.
  *
- * Reads the `<style>` block for CSS rules containing `fill` and/or `stroke`
- * hex colors, then matches node `<g>` elements whose DOM id starts with the
- * given prefix (e.g. "state-" or "flowchart-") to extract nodeId -> tldraw color.
+ * Uses the structured data from `db.getClasses()` and each node's `classes`
+ * array instead of parsing the SVG's `<style>` block with regex. For each
+ * node, looks up its applied classDef styles (fill/stroke hex colors) and
+ * blends them into the nearest tldraw palette color.
  *
- * Prefers stroke over fill when the fill is a near-neutral color (white/black),
- * since stroke is typically the more intentional color in a classDef.
- *
- * @param idPrefix - The prefix Mermaid uses for node DOM ids (e.g. "state-", "flowchart-")
- * @param knownClasses - Built-in CSS classes to skip (e.g. "node", "statediagram-state")
+ * @param classDefs - The classDef map from `db.getClasses()`, keyed by class name.
+ *   Each entry must have a `styles` array of CSS declarations (e.g. `["fill:#f96", "stroke:#333"]`).
+ * @param items - An iterable of `[nodeId, item]` entries where each item may have
+ *   a `classes` string array listing applied classDef names.
+ * @returns A map from node id to the nearest tldraw color derived from the classDef.
  */
-export function parseClassDefFills(
-	svgString: string,
-	idPrefix: string,
-	knownClasses: Set<string>
+export function buildClassDefColorMap(
+	classDefs: Map<string, { styles: string[] }>,
+	items: Iterable<[string, { classes?: string[] }]>
 ): Map<string, TLDefaultColorStyle> {
 	const result = new Map<string, TLDefaultColorStyle>()
+	if (classDefs.size === 0) return result
 
-	// Extracts the CSS text between <style>...</style> tags. Group 1 = raw CSS content.
-	const styleMatch = svgString.match(/<style[^>]*>([\s\S]*?)<\/style>/i)
-	if (!styleMatch?.[1]) return result
-	const css = styleMatch[1]
+	for (const [nodeId, item] of items) {
+		if (!item.classes || item.classes.length === 0) continue
 
-	const classColors = new Map<string, { fill?: string; stroke?: string }>()
-	// Matches CSS rules like `.className > * { body }` or `.className rect { body }`.
-	// Group 1 = class name (e.g. "myClass"), group 2 = rule body between braces.
-	const ruleRegex = /\.([\w-]+)\s*(?:>|[\s])\s*(?:\*|\w+)\s*\{([^}]*)\}/g
-	let ruleMatch: RegExpExecArray | null
-	while ((ruleMatch = ruleRegex.exec(css)) !== null) {
-		const className = ruleMatch[1]!
-		const body = ruleMatch[2]!
-		if (classColors.has(className)) continue
-		// Extracts hex color from `fill: #abc123`. Group 1 = hex digits (3-8 chars,
-		// covering shorthand #RGB, #RRGGBB, and #RRGGBBAA).
-		const fillMatch = body.match(/fill:\s*#([0-9a-fA-F]{3,8})/)
-		// Same for `stroke:`. The boundary guard `(?:^|;|\s)` prevents matching
-		// `stroke-width:` or `stroke-dasharray:` which also start with "stroke".
-		const strokeMatch = body.match(/(?:^|;|\s)stroke:\s*#([0-9a-fA-F]{3,8})/)
-		if (fillMatch || strokeMatch) {
-			classColors.set(className, { fill: fillMatch?.[1], stroke: strokeMatch?.[1] })
-		}
-	}
+		// Try each applied class in order; first match wins.
+		for (const className of item.classes) {
+			const classDef = classDefs.get(className)
+			if (!classDef || classDef.styles.length === 0) continue
 
-	if (classColors.size === 0) return result
+			const props = parseCssProps(classDef.styles)
+			const fillHex = stripHash(props.get('fill'))
+			const strokeHex = stripHash(props.get('stroke'))
+			if (!fillHex && !strokeHex) continue
 
-	// Escape regex metacharacters so the prefix can be safely embedded in a RegExp.
-	const escapedPrefix = idPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-	// Matches id attributes like id="flowchart-myNode-42" or id="state-Idle-0".
-	// Group 1 = the original node id from the diagram source (e.g. "myNode").
-	const idRegex = new RegExp(`\\bid="${escapedPrefix}(.+)-\\d+"`)
-	// Matches opening <g ...> SVG group tags. Group 1 = all tag attributes.
-	const tagRegex = /<g\b([^>]*)>/g
-	let tagMatch: RegExpExecArray | null
-	while ((tagMatch = tagRegex.exec(svgString)) !== null) {
-		const attrs = tagMatch[1]!
-		const idMatch = attrs.match(idRegex)
-		if (!idMatch) continue
-		const nodeId = idMatch[1]!
-		// Extracts the class attribute value. Group 1 = space-separated class names.
-		const classMatch = attrs.match(/\bclass="([^"]*)"/)
-		if (!classMatch) continue
-		for (const className of classMatch[1]!.split(/\s+/)) {
-			if (knownClasses.has(className)) continue
-			const colors = classColors.get(className)
-			if (colors) {
-				const color = classDefToTldrawColor(colors.fill, colors.stroke)
-				if (color) {
-					result.set(nodeId, color)
-					break
-				}
+			const color = classDefToTldrawColor(fillHex, strokeHex)
+			if (color) {
+				result.set(nodeId, color)
+				break
 			}
 		}
 	}
@@ -92,7 +58,6 @@ export function parseRgbToTldrawColor(
 	const b = parseInt(match[3], 10)
 	const a = match[4] !== undefined ? parseFloat(match[4]) : 1
 	const hex = `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`
-	console.log(hex)
 	return { color: nearestTldrawColor(hex), hasAlpha: a < 1 }
 }
 

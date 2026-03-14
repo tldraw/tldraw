@@ -1,11 +1,11 @@
-import type { StateStmt } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
+import type { StateStmt, StyleClass } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import type { TLDefaultColorStyle, TLGeoShape } from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
 	MermaidBlueprintGeoNode,
 } from './blueprint'
-import { parseClassDefFills } from './colors'
+import { buildClassDefColorMap } from './colors'
 import {
 	buildNodeCentersFromSvg,
 	parseAllEdgePointsFromSvg,
@@ -49,8 +49,6 @@ function getEffectiveType(state: StateStmt): string {
 }
 
 const UNLABELED_TYPES = new Set(['start', 'end'])
-
-const STATE_KNOWN_CLASSES = new Set(['node', 'statediagram-state', 'default'])
 
 function getStateLabel(state: StateStmt): string {
 	if (state.descriptions && state.descriptions.length > 0) {
@@ -238,12 +236,14 @@ function stateToNodes(
 const FRAME_PAD = 24
 const FRAME_TOP = 54
 
+/** Convert a parsed Mermaid state diagram into a tldraw blueprint of nodes and edges. */
 export function stateToBlueprint(
 	root: Element,
 	states: Map<string, StateStmt>,
-	relations: DiagramEdge[]
+	relations: DiagramEdge[],
+	classDefs?: Map<string, StyleClass>
 ): DiagramMermaidBlueprint {
-	const stateFillMap = parseClassDefFills(root.outerHTML, 'state-', STATE_KNOWN_CLASSES)
+	const stateFillMap = classDefs ? buildClassDefColorMap(classDefs, states) : new Map()
 
 	// Mermaid state diagram node DOM ids look like "state-Idle-0".
 	// Group 1 = original state id from the diagram source.
