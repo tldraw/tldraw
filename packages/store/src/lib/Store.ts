@@ -5,7 +5,6 @@ import {
 	getOwnProperty,
 	isEqual,
 	objectMapEntries,
-	objectMapKeys,
 	objectMapValues,
 	throttleToNextFrame,
 	uniqueId,
@@ -1099,9 +1098,16 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}: { runCallbacks?: boolean; ignoreEphemeralKeys?: boolean } = {}
 	) {
 		this.atomic(() => {
-			const toPut = objectMapValues(diff.added)
+			const toPut: R[] = []
 
-			for (const [_from, to] of objectMapValues(diff.updated)) {
+			// added
+			for (const _id in diff.added) {
+				toPut.push(diff.added[_id as IdOf<R>])
+			}
+
+			// updated
+			for (const _id in diff.updated) {
+				const to = diff.updated[_id as IdOf<R>][1]
 				const type = this.schema.getType(to.typeName)
 				if (ignoreEphemeralKeys && type.ephemeralKeySet.size) {
 					const existing = this.get(to.id)
@@ -1110,7 +1116,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 						continue
 					}
 					let changed: R | null = null
-					for (const [key, value] of Object.entries(to)) {
+					for (const key in to as any) {
+						const value = (to as any)[key]
 						if (type.ephemeralKeySet.has(key) || Object.is(value, getOwnProperty(existing, key))) {
 							continue
 						}
@@ -1124,7 +1131,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				}
 			}
 
-			const toRemove = objectMapKeys(diff.removed)
+			// removed
+			const toRemove: IdOf<R>[] = []
+			for (const _id in diff.removed) {
+				toRemove.push(_id as IdOf<R>)
+			}
 			if (toPut.length) {
 				this.put(toPut)
 			}
