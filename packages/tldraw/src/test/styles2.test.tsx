@@ -140,7 +140,7 @@ describe('Editor.styles', () => {
 			},
 		])
 
-		expect(editor.getSharedStyles()).toBe(initialStyles)
+		expect(editor.getSharedStyles()).toStrictEqual(initialStyles)
 	})
 })
 
