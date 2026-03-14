@@ -294,7 +294,11 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 			const result = this.derive(this.state, this.lastCheckedEpoch)
 			const newState = result instanceof WithDiff ? result.value : result
 			const isUninitialized = this.state === UNINITIALIZED
-			if (isUninitialized || !this.isEqual(newState, this.state)) {
+			if (
+				isUninitialized ||
+				(!this.historyBuffer && this.children.isEmpty) ||
+				!this.isEqual(newState, this.state)
+			) {
 				if (this.historyBuffer && !isUninitialized) {
 					const diff = result instanceof WithDiff ? result.diff : undefined
 					this.historyBuffer.pushEntry(
