@@ -1,5 +1,5 @@
 import { isPageId, TLShape, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
-import { compact } from '@tldraw/utils'
+import { compact, JsonObject } from '@tldraw/utils'
 import type { Editor } from '../editor/Editor'
 import { BoundsSnapPoint } from '../editor/managers/SnapManager/BoundsSnaps'
 import { Mat, MatModel } from '../primitives/Mat'
@@ -226,24 +226,20 @@ export class TranslateInteraction {
 
 			const afterTranslateStart = util.onTranslateStart?.(workingShape)
 			if (afterTranslateStart) {
-				workingShape = { ...workingShape, ...afterTranslateStart } as TLShape
+				workingShape = applyPartialToShape(workingShape, afterTranslateStart)
 			}
 
 			const newCoords = localDelta.add(shape)
-			workingShape = {
-				...workingShape,
-				x: newCoords.x,
-				y: newCoords.y,
-			}
+			workingShape = { ...workingShape, x: newCoords.x, y: newCoords.y }
 
 			const afterTranslate = util.onTranslate?.(shape, workingShape)
 			if (afterTranslate) {
-				workingShape = { ...workingShape, ...afterTranslate } as TLShape
+				workingShape = applyPartialToShape(workingShape, afterTranslate)
 			}
 
 			const afterTranslateEnd = util.onTranslateEnd?.(shape, workingShape)
 			if (afterTranslateEnd) {
-				workingShape = { ...workingShape, ...afterTranslateEnd } as TLShape
+				workingShape = applyPartialToShape(workingShape, afterTranslateEnd)
 			}
 
 			changes.push(workingShape)
@@ -312,4 +308,19 @@ export function getTranslatingSnapshot(
 		initialPageBounds: editor.getSelectionPageBounds()!,
 		initialSnapPoints,
 	}
+}
+
+/** Merge a shape partial into a shape, doing a shallow merge for `props` and `meta`. */
+function applyPartialToShape(shape: TLShape, partial: TLShapePartial): TLShape {
+	const result = { ...shape } as any
+	for (const [k, v] of Object.entries(partial)) {
+		if (v === undefined) continue
+		if (k === 'id' || k === 'type' || k === 'typeName') continue
+		if (k === 'props' || k === 'meta') {
+			result[k] = { ...shape[k as 'props' | 'meta'], ...(v as JsonObject) }
+		} else {
+			result[k] = v
+		}
+	}
+	return result
 }

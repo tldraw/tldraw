@@ -38,17 +38,8 @@ export class Resizing extends StateNode {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
 
-		const started = this.interaction.start({
-			handle: info.handle,
-			creationCursorOffset,
-		})
-
-		if (!started) {
-			console.error('Failed to create resize snapshot')
-			this.cancel()
-			return
-		}
-
+		// Set history mark before starting the interaction, so that
+		// onResizeStart callbacks are captured within the mark.
 		this.markId = ''
 
 		if (isCreating) {
@@ -64,6 +55,17 @@ export class Resizing extends StateNode {
 			}
 		} else {
 			this.markId = this.editor.markHistoryStoppingPoint('starting resizing')
+		}
+
+		const started = this.interaction.start({
+			handle: info.handle,
+			creationCursorOffset,
+		})
+
+		if (!started) {
+			console.error('Failed to create resize snapshot')
+			this.cancel()
+			return
 		}
 
 		if (isCreating) {
