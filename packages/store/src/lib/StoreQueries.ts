@@ -7,7 +7,7 @@ import {
 	RESET_VALUE,
 	withDiff,
 } from '@tldraw/state'
-import { areArraysShallowEqual, isEqual, objectMapValues } from '@tldraw/utils'
+import { areArraysShallowEqual, isEqual } from '@tldraw/utils'
 import { AtomMap } from './AtomMap'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'
@@ -202,7 +202,8 @@ export class StoreQueries<R extends UnknownRecord> {
 				let numUpdated = 0
 
 				for (const changes of diff) {
-					for (const added of objectMapValues(changes.added)) {
+					for (const _id in changes.added) {
+						const added = changes.added[_id as IdOf<R>]
 						if (added.typeName === typeName) {
 							if (res.removed[added.id as IdOf<S>]) {
 								const original = res.removed[added.id as IdOf<S>]
@@ -219,7 +220,8 @@ export class StoreQueries<R extends UnknownRecord> {
 						}
 					}
 
-					for (const [from, to] of objectMapValues(changes.updated)) {
+					for (const _id in changes.updated) {
+						const [from, to] = changes.updated[_id as IdOf<R>]
 						if (to.typeName === typeName) {
 							if (res.added[to.id as IdOf<S>]) {
 								res.added[to.id as IdOf<S>] = to as S
@@ -232,7 +234,8 @@ export class StoreQueries<R extends UnknownRecord> {
 						}
 					}
 
-					for (const removed of objectMapValues(changes.removed)) {
+					for (const _id in changes.removed) {
+						const removed = changes.removed[_id as IdOf<R>]
 						if (removed.typeName === typeName) {
 							if (res.added[removed.id as IdOf<S>]) {
 								// was added during this diff sequence, so just undo the add
@@ -387,7 +390,8 @@ export class StoreQueries<R extends UnknownRecord> {
 				}
 
 				for (const changes of history) {
-					for (const record of objectMapValues(changes.added)) {
+					for (const _id in changes.added) {
+						const record = changes.added[_id as IdOf<R>]
 						if (record.typeName === typeName) {
 							const value = getPropertyValue(record as S)
 							if (value !== undefined) {
@@ -395,7 +399,8 @@ export class StoreQueries<R extends UnknownRecord> {
 							}
 						}
 					}
-					for (const [from, to] of objectMapValues(changes.updated)) {
+					for (const _id in changes.updated) {
+						const [from, to] = changes.updated[_id as IdOf<R>]
 						if (to.typeName === typeName) {
 							const prev = getPropertyValue(from as S)
 							const next = getPropertyValue(to as S)
@@ -409,7 +414,8 @@ export class StoreQueries<R extends UnknownRecord> {
 							}
 						}
 					}
-					for (const record of objectMapValues(changes.removed)) {
+					for (const _id in changes.removed) {
+						const record = changes.removed[_id as IdOf<R>]
 						if (record.typeName === typeName) {
 							const value = getPropertyValue(record as S)
 							if (value !== undefined) {
@@ -611,12 +617,14 @@ export class StoreQueries<R extends UnknownRecord> {
 				) as IncrementalSetConstructor<IdOf<S>>
 
 				for (const changes of history) {
-					for (const added of objectMapValues(changes.added)) {
+					for (const _id in changes.added) {
+						const added = changes.added[_id as IdOf<R>]
 						if (added.typeName === typeName && objectMatchesQuery(query, added)) {
 							setConstructor.add(added.id)
 						}
 					}
-					for (const [_, updated] of objectMapValues(changes.updated)) {
+					for (const _id in changes.updated) {
+						const updated = changes.updated[_id as IdOf<R>][1]
 						if (updated.typeName === typeName) {
 							if (objectMatchesQuery(query, updated)) {
 								setConstructor.add(updated.id)
@@ -625,7 +633,8 @@ export class StoreQueries<R extends UnknownRecord> {
 							}
 						}
 					}
-					for (const removed of objectMapValues(changes.removed)) {
+					for (const _id in changes.removed) {
+						const removed = changes.removed[_id as IdOf<R>]
 						if (removed.typeName === typeName) {
 							setConstructor.remove(removed.id)
 						}

@@ -66,14 +66,13 @@ function extractMatcherPaths(
 ): Array<{ path: string; matcher: QueryValueMatcher<any> }> {
 	const paths: Array<{ path: string; matcher: QueryValueMatcher<any> }> = []
 
-	for (const [key, value] of Object.entries(query)) {
+	for (const key in query as any) {
+		const value = (query as any)[key]
 		const currentPath = prefix ? `${prefix}\\${key}` : key
 
 		if (isQueryValueMatcher(value)) {
-			// It's a direct matcher
 			paths.push({ path: currentPath, matcher: value })
 		} else if (typeof value === 'object' && value !== null) {
-			// It's a nested query - recurse into it
 			paths.push(...extractMatcherPaths(value as QueryExpression<any>, currentPath))
 		}
 	}
@@ -82,8 +81,9 @@ function extractMatcherPaths(
 }
 
 export function objectMatchesQuery<T extends object>(query: QueryExpression<T>, object: T) {
-	for (const [key, matcher] of Object.entries(query)) {
-		const value = object[key as keyof T]
+	for (const key in query as any) {
+		const matcher = (query as any)[key]
+		const value = (object as any)[key]
 
 		// if you add matching logic here, make sure you also update executeQuery,
 		// where initial data is pulled out of the indexes, since that requires different

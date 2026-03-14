@@ -1,4 +1,3 @@
-import { objectMapEntries } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 
 /**
@@ -79,7 +78,8 @@ export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff<R
  */
 export function reverseRecordsDiff(diff: RecordsDiff<any>) {
 	const result: RecordsDiff<any> = { added: diff.removed, removed: diff.added, updated: {} }
-	for (const [from, to] of Object.values(diff.updated)) {
+	for (const id in diff.updated) {
+		const [from, to] = diff.updated[id as IdOf<any>]
 		result.updated[from.id] = [to, from]
 	}
 	return result
@@ -204,7 +204,9 @@ export function squashRecordDiffsMutable<T extends UnknownRecord>(
 	diffs: RecordsDiff<T>[]
 ): void {
 	for (const diff of diffs) {
-		for (const [id, value] of objectMapEntries(diff.added)) {
+		for (const _id in diff.added) {
+			const id = _id as IdOf<T>
+			const value = diff.added[id]
 			if (target.removed[id]) {
 				const original = target.removed[id]
 				delete target.removed[id]
@@ -216,7 +218,9 @@ export function squashRecordDiffsMutable<T extends UnknownRecord>(
 			}
 		}
 
-		for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
+		for (const _id in diff.updated) {
+			const id = _id as IdOf<T>
+			const [_from, to] = diff.updated[id]
 			if (target.added[id]) {
 				target.added[id] = to
 				delete target.updated[id]
@@ -233,7 +237,9 @@ export function squashRecordDiffsMutable<T extends UnknownRecord>(
 			delete target.removed[id]
 		}
 
-		for (const [id, value] of objectMapEntries(diff.removed)) {
+		for (const _id in diff.removed) {
+			const id = _id as IdOf<T>
+			const value = diff.removed[id]
 			// the same record was added in this diff sequence, just drop it
 			if (target.added[id]) {
 				delete target.added[id]

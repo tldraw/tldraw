@@ -138,9 +138,9 @@ export class RecordType<
 			id: 'id' in properties ? properties.id : this.createId(),
 		} as any
 
-		for (const [k, v] of Object.entries(properties)) {
-			if (v !== undefined) {
-				result[k] = v
+		for (const k in properties) {
+			if ((properties as any)[k] !== undefined) {
+				result[k] = (properties as any)[k]
 			}
 		}
 
