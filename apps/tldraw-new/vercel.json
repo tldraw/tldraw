@@ -1,4 +1,9 @@
 {
-	"buildCommand": "",
-	"outputDirectory": "."
+	"redirects": [
+		{
+			"source": "/(.*)",
+			"destination": "https://tldraw.com/new",
+			"permanent": false
+		}
+	]
 }
