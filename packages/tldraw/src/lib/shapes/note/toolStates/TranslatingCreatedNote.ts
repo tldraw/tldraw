@@ -10,7 +10,6 @@ import {
 	TLTickEventInfo,
 	TranslateInteraction,
 	Vec,
-	bind,
 	compact,
 	isPageId,
 	kickoutOccludedShapes,
@@ -19,17 +18,15 @@ import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
 	NOTE_CENTER_OFFSET,
 	getAvailableNoteAdjacentPositions,
-} from '../../shapes/note/noteHelpers'
+} from '../noteHelpers'
 
-/** @public */
-export interface CreationTranslatingInfo {
+export interface TranslatingCreatedNoteInfo {
 	info: TLPointerEventInfo & { target: 'shape'; shape: TLShape }
 	markId: string
 	onCreate?(shape: TLShape | null): void
 }
 
-// Extended snapshot with note-specific data
-interface ExtendedSnapshot {
+interface NoteTranslatingSnapshot {
 	averagePagePoint: Vec
 	movingShapes: TLShape[]
 	shapeSnapshots: MovingShapeSnapshot[]
@@ -39,21 +36,15 @@ interface ExtendedSnapshot {
 	noteSnapshot?: (MovingShapeSnapshot & { shape: TLNoteShape }) | undefined
 }
 
-/**
- * A state node for creation tools that need to translate a newly created shape.
- * Uses TranslateInteraction directly — no cross-tool transition or tool ID masking needed.
- *
- * @public
- */
-export class CreationTranslating extends StateNode {
+export class TranslatingCreatedNote extends StateNode {
 	static override id = 'translating'
 
 	interaction = new TranslateInteraction(this.editor)
-	snapshot: ExtendedSnapshot = {} as any
+	snapshot: NoteTranslatingSnapshot = {} as any
 	markId = ''
 	onCreate?: (shape: TLShape | null) => void
 
-	override onEnter(info: CreationTranslatingInfo) {
+	override onEnter(info: TranslatingCreatedNoteInfo) {
 		this.markId = info.markId
 		this.onCreate = info.onCreate
 
@@ -63,7 +54,7 @@ export class CreationTranslating extends StateNode {
 		}
 
 		this.editor.setCursor({ type: 'move', rotation: 0 })
-		this.snapshot = getExtendedSnapshot(this.editor)
+		this.snapshot = getNoteTranslatingSnapshot(this.editor)
 
 		this.interaction.start({ shapeIds: this.snapshot.movingShapes.map((s) => s.id) })
 		this.editor.setHoveredShape(null)
@@ -120,8 +111,6 @@ export class CreationTranslating extends StateNode {
 			this.snapshot.movingShapes.map((s) => s.id)
 		)
 
-		// When tool-locked, return to tool idle without calling onCreate
-		// (matches original behavior where onInteractionEnd fired before onCreate)
 		if (this.editor.getInstanceState().isToolLocked) {
 			this.parent.transition('idle')
 			return
@@ -219,14 +208,9 @@ export class CreationTranslating extends StateNode {
 
 		return { skipGridSnap: false }
 	}
-
-	@bind
-	private updateParentTransforms() {
-		this.interaction.updateParentTransforms()
-	}
 }
 
-function getExtendedSnapshot(editor: Editor): ExtendedSnapshot {
+function getNoteTranslatingSnapshot(editor: Editor): NoteTranslatingSnapshot {
 	const movingShapes: TLShape[] = []
 	const pagePoints: Vec[] = []
 
