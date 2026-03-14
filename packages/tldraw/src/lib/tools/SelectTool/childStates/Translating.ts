@@ -15,11 +15,8 @@ import {
 	isPageId,
 	kickoutOccludedShapes,
 } from '@tldraw/editor'
-import {
-	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
-	NOTE_CENTER_OFFSET,
-	getAvailableNoteAdjacentPositions,
-} from '../../../shapes/note/noteHelpers'
+import { getAvailableNoteAdjacentPositions } from '../../../shapes/note/noteHelpers'
+import { computeTranslateSnapDelta } from '../../../utils/translating-snapping'
 import { DragAndDropManager } from '../DragAndDropManager'
 
 export type TranslatingInfo = TLPointerEventInfo & {
@@ -276,8 +273,7 @@ export class Translating extends StateNode {
 			this.updateParentTransforms
 		)
 
-		// Compute snapping (stays in state node since it depends on note helpers from tldraw package)
-		const snapResult = this.computeSnapDelta()
+		const snapResult = computeTranslateSnapDelta(this.editor, snapshot)
 
 		const shiftKey = this.editor.inputs.getShiftKey()
 		const delta = Vec.Sub(
@@ -295,71 +291,6 @@ export class Translating extends StateNode {
 			flatten,
 			skipGridSnap: snapResult.skipGridSnap,
 		})
-	}
-
-	private computeSnapDelta(): { snapDelta?: Vec; skipGridSnap: boolean } {
-		const { snapshot } = this
-		const { inputs } = this.editor
-		const shiftKey = inputs.getShiftKey()
-		const accelKey = inputs.getAccelKey()
-
-		const delta = Vec.Sub(inputs.getCurrentPagePoint(), inputs.getOriginPagePoint())
-
-		const flatten: 'x' | 'y' | null = shiftKey
-			? Math.abs(delta.x) < Math.abs(delta.y)
-				? 'x'
-				: 'y'
-			: null
-
-		if (flatten === 'x') {
-			delta.x = 0
-		} else if (flatten === 'y') {
-			delta.y = 0
-		}
-
-		this.editor.snaps.clearIndicators()
-
-		const isSnapping = this.editor.user.getIsSnapMode() ? !accelKey : accelKey
-		if (isSnapping && inputs.getPointerVelocity().len() < 0.5) {
-			const { nudge } = this.editor.snaps.shapeBounds.snapTranslateShapes({
-				dragDelta: delta,
-				initialSelectionPageBounds: snapshot.initialPageBounds,
-				lockedAxis: flatten,
-				initialSelectionSnapPoints: snapshot.initialSnapPoints,
-			})
-			return { snapDelta: Vec.From(nudge), skipGridSnap: false }
-		} else {
-			// Sticky note snapping
-			if (snapshot.noteSnapshot && snapshot.noteAdjacentPositions) {
-				const { scale } = snapshot.noteSnapshot.shape.props
-				const pageCenter = snapshot.noteSnapshot.pagePoint
-					.clone()
-					.add(delta)
-					.add(NOTE_CENTER_OFFSET.clone().mul(scale).rot(snapshot.noteSnapshot.pageRotation))
-
-				let min = NOTE_ADJACENT_POSITION_SNAP_RADIUS / this.editor.getZoomLevel()
-				let offset = new Vec(0, 0)
-				let snappedToPit = false
-				for (const pit of snapshot.noteAdjacentPositions) {
-					const deltaToPit = Vec.Sub(pageCenter, pit)
-					const dist = deltaToPit.len()
-					if (dist < min) {
-						snappedToPit = true
-						min = dist
-						offset = deltaToPit
-					}
-				}
-
-				if (snappedToPit) {
-					return {
-						snapDelta: new Vec(-offset.x, -offset.y),
-						skipGridSnap: true,
-					}
-				}
-			}
-		}
-
-		return { skipGridSnap: false }
 	}
 
 	@bind
