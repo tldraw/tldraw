@@ -469,6 +469,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let deletedBindings = new Map<TLBindingId, BindingOnDeleteOptions<any>>()
 		const deletedShapeIds = new Set<TLShapeId>()
 		const invalidParents = new Set<TLShapeId>()
+		const createdShapes = new Set<TLShapeId>()
 		let invalidBindingTypes = new Set<TLBinding['type']>()
 
 		this.disposables.add(
@@ -477,8 +478,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// and we want the next invocation of this handler to handle those separately
 				deletedShapeIds.clear()
 
+				const justCreatedShapeIds = new Set(createdShapes)
+				createdShapes.clear()
+
 				for (const parentId of invalidParents) {
 					invalidParents.delete(parentId)
+					if (justCreatedShapeIds.has(parentId)) continue
 					const parent = this.getShape(parentId)
 					if (!parent) continue
 
@@ -514,6 +519,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(
 			this.sideEffects.register({
 				shape: {
+					afterCreate: (shape) => {
+						createdShapes.add(shape.id)
+						if (shape.parentId && isShapeId(shape.parentId)) {
+							invalidParents.add(shape.parentId)
+						}
+					},
 					afterChange: (shapeBefore, shapeAfter) => {
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
 							invalidBindingTypes.add(binding.type)
