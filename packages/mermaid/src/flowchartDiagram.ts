@@ -1,11 +1,16 @@
-import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
+import type {
+	FlowClass,
+	FlowEdge,
+	FlowSubGraph,
+	FlowVertex,
+} from 'mermaid/dist/diagrams/flowchart/types.js'
 import { TLArrowShapeArrowheadStyle, TLDefaultDashStyle, TLGeoShape } from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
 	MermaidBlueprintGeoNode,
 } from './blueprint'
-import { parseClassDefFills, parseCssStyles, parseNodeInlineColor } from './colors'
+import { buildClassDefColorMap, parseCssStyles, parseNodeInlineColor } from './colors'
 import {
 	buildNodeCentersFromSvg,
 	parseAllEdgePointsFromSvg,
@@ -62,7 +67,6 @@ function mapEdgeStrokeToDash(stroke: string | undefined): TLDefaultDashStyle {
 }
 
 const FRAME_TOP_PAD = 14
-const FLOW_KNOWN_CLASSES = new Set(['node', 'default', 'flowchart-label'])
 
 function buildHierarchy(subGraphs: FlowSubGraph[]) {
 	const subGraphIds = new Set(subGraphs.map((subGraph) => subGraph.id))
@@ -80,13 +84,15 @@ function buildHierarchy(subGraphs: FlowSubGraph[]) {
 	return { nodeToSubGraph, subGraphParent }
 }
 
+/** Convert a parsed Mermaid flowchart into a tldraw blueprint of nodes and edges. */
 export function flowchartToBlueprint(
 	root: Element,
 	vertices: Map<string, FlowVertex>,
 	edges: FlowEdge[],
-	subGraphs?: FlowSubGraph[]
+	subGraphs?: FlowSubGraph[],
+	classDefs?: Map<string, FlowClass>
 ): DiagramMermaidBlueprint {
-	const nodeFillMap = parseClassDefFills(root.outerHTML, 'flowchart-', FLOW_KNOWN_CLASSES)
+	const nodeFillMap = classDefs ? buildClassDefColorMap(classDefs, vertices) : new Map()
 	// Mermaid assigns flowchart node DOM ids like "flowchart-myNode-42".
 	// Group 1 = the original node id from the diagram source.
 	const svgNodes = parseNodesFromSvg(root, '.node', (domId) => {
