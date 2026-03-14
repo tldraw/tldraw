@@ -15,15 +15,14 @@ runs:
       with:
         node-version: 24.13.1
 
-    - name: Restore node_modules cache
-      uses: actions/cache@v5
-      id: node-modules-cache
+    # Restore-only: PRs read from main's cache but never save their own copy.
+    # This avoids duplicating ~1GB of yarn cache per PR branch.
+    - name: Restore yarn cache
+      uses: actions/cache/restore@v5
+      id: yarn-cache
       with:
         path: |
-          node_modules
-          **/node_modules
           .yarn/cache
-          .yarn/unplugged
           .yarn/install-state.gz
         key: ${{ runner.os }}-node-24.13.1-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.yarn/patches/*') }}
         restore-keys: |
@@ -36,3 +35,14 @@ runs:
         # Hardened mode enables --check-resolutions on public PRs, adding ~15s.
         # See https://yarnpkg.com/features/security - Yarn recommends disabling in most jobs.
         YARN_ENABLE_HARDENED_MODE: 0
+
+    # Only save the cache on pushes to main to avoid per-PR duplicates.
+    # Runs after install so the cache is fully populated.
+    - name: Save yarn cache
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.yarn-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v5
+      with:
+        path: |
+          .yarn/cache
+          .yarn/install-state.gz
+        key: ${{ runner.os }}-node-24.13.1-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.yarn/patches/*') }}

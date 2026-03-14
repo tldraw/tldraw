@@ -59,6 +59,7 @@
 		"@tiptap/pm": "^3.12.1",
 		"@tiptap/react": "^3.12.1",
 		"@tiptap/starter-kit": "^3.12.1",
+		"@tldraw/driver": "workspace:*",
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"classnames": "^2.5.1",

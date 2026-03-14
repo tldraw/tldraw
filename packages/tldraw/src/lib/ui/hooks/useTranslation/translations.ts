@@ -10,6 +10,7 @@ import { DEFAULT_TRANSLATION } from './defaultTranslation'
 
 /* ----------------- (do not change) ---------------- */
 
+/** @public */
 export const RTL_LANGUAGES = new Set(['ar', 'fa', 'he', 'ur', 'ku'])
 
 /** @public */

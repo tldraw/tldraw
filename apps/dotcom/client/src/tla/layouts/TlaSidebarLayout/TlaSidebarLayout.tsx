@@ -80,9 +80,14 @@ export function TlaSidebarLayout({
 
 		if (rResizeState.current.name === 'resizing') {
 			const { startX, startWidth } = rResizeState.current
+			const direction = getComputedStyle(
+				rLayoutContainer.current ?? document.documentElement
+			).direction
+			const deltaX = moveEvent.clientX - startX
+			const widthDelta = direction === 'rtl' ? -deltaX : deltaX
 
 			const newWidth = Math.floor(
-				clamp(startWidth + (moveEvent.clientX - startX), MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH)
+				clamp(startWidth + widthDelta, MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH)
 			)
 
 			if (newWidth !== getLocalSessionStateUnsafe().sidebarWidth) {
