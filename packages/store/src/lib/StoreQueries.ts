@@ -349,10 +349,12 @@ export class StoreQueries<R extends UnknownRecord> {
 				if (record.typeName === typeName) {
 					const value = getPropertyValue(record as S)
 					if (value !== undefined) {
-						if (!res.has(value)) {
-							res.set(value, new Set())
+						let set = res.get(value)
+						if (!set) {
+							set = new Set()
+							res.set(value, set)
 						}
-						res.get(value)!.add(record.id)
+						set.add(record.id)
 					}
 				}
 			}
