@@ -602,7 +602,11 @@ export class StoreQueries<R extends UnknownRecord> {
 		})
 
 		// Compile query into path parts and operators for fast incremental checks
-		type CompiledMatcher = { parts: string[]; kind: 'eq' | 'neq' | 'gt'; value: any }
+		interface CompiledMatcher {
+			parts: string[]
+			kind: 'eq' | 'neq' | 'gt'
+			value: any
+		}
 		const compiledQuery = computed('ids_query_compiled:' + name, () => {
 			const q = cachedQuery.get() as QueryExpression<S>
 			const compiled: CompiledMatcher[] = []
@@ -630,7 +634,7 @@ export class StoreQueries<R extends UnknownRecord> {
 		return computed(
 			'query:' + name,
 			(prevValue, lastComputedEpoch) => {
-				const query = cachedQuery.get()
+				cachedQuery.get() // deref to track query dependencies
 				const compiled = compiledQuery.get()
 				if (isUninitialized(prevValue)) {
 					return fromScratch()
@@ -661,7 +665,7 @@ export class StoreQueries<R extends UnknownRecord> {
 								if (value !== c.value) return false
 								break
 							case 'neq':
-								if (value === c.value) return false
+								if (value === undefined || value === c.value) return false
 								break
 							case 'gt':
 								if (typeof value !== 'number' || value <= c.value) return false
