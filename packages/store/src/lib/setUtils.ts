@@ -26,14 +26,30 @@ import { CollectionDiff } from './Store'
  */
 export function intersectSets<T>(sets: Set<T>[]) {
 	if (sets.length === 0) return new Set<T>()
-	const first = sets[0]
-	const rest = sets.slice(1)
+	if (sets.length === 1) return new Set<T>(sets[0])
+
+	// Start with the smallest set to minimize iterations
+	let smallestIdx = 0
+	let smallestSize = sets[0].size
+	for (let i = 1; i < sets.length; i++) {
+		if (sets[i].size < smallestSize) {
+			smallestSize = sets[i].size
+			smallestIdx = i
+		}
+	}
+
+	// If the smallest set is empty, intersection is empty
+	if (smallestSize === 0) return new Set<T>()
+
+	const smallest = sets[smallestIdx]
 	const result = new Set<T>()
 
-	for (const val of first) {
-		if (rest.every((set) => set.has(val))) {
-			result.add(val)
+	outer: for (const val of smallest) {
+		for (let i = 0; i < sets.length; i++) {
+			if (i === smallestIdx) continue
+			if (!sets[i].has(val)) continue outer
 		}
+		result.add(val)
 	}
 
 	return result
