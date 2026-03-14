@@ -83,6 +83,18 @@ export function intersectSets<T>(sets: Set<T>[]) {
  * @public
  */
 export function diffSets<T>(prev: Set<T>, next: Set<T>): CollectionDiff<T> | undefined {
+	// Fast path: same instance means no change
+	if (prev === next) return undefined
+	// Fast paths for empty sets
+	const prevSize = prev.size
+	const nextSize = next.size
+	if (prevSize === 0) {
+		if (nextSize === 0) return undefined
+		return { added: new Set(next) }
+	}
+	if (nextSize === 0) {
+		return { removed: new Set(prev) }
+	}
 	const result: CollectionDiff<T> = {}
 
 	for (const val of next) {
