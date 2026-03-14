@@ -4,13 +4,40 @@ import type { Child, Signal } from './types'
 
 class CaptureStackFrame {
 	offset = 0
+	below: CaptureStackFrame | null = null
+	child: Child = undefined as any
+	maybeRemoved: Signal<any>[] | undefined = undefined
 
-	maybeRemoved?: Signal<any>[]
+	reset(below: CaptureStackFrame | null, child: Child) {
+		this.offset = 0
+		this.below = below
+		this.child = child
+		this.maybeRemoved = undefined
+	}
+}
 
-	constructor(
-		public readonly below: CaptureStackFrame | null,
-		public readonly child: Child
-	) {}
+// Simple free-list pool for CaptureStackFrames to avoid allocation on every computed eval
+let framePool: CaptureStackFrame | null = null
+
+function acquireFrame(below: CaptureStackFrame | null, child: Child): CaptureStackFrame {
+	let frame: CaptureStackFrame
+	if (framePool) {
+		frame = framePool
+		framePool = frame.below
+		frame.reset(below, child)
+	} else {
+		frame = new CaptureStackFrame()
+		frame.reset(below, child)
+	}
+	return frame
+}
+
+function releaseFrame(frame: CaptureStackFrame) {
+	// Clear references to avoid retaining memory
+	frame.child = undefined as any
+	frame.maybeRemoved = undefined
+	frame.below = framePool
+	framePool = frame
 }
 
 const inst = singleton('capture', () => ({ stack: null as null | CaptureStackFrame }))
@@ -68,7 +95,7 @@ export function unsafe__withoutCapture<T>(fn: () => T): T {
  * @internal
  */
 export function startCapturingParents(child: Child) {
-	inst.stack = new CaptureStackFrame(inst.stack, child)
+	inst.stack = acquireFrame(inst.stack, child)
 	if (child.__debug_ancestor_epochs__) {
 		const previousAncestorEpochs = child.__debug_ancestor_epochs__
 		child.__debug_ancestor_epochs__ = null
@@ -99,32 +126,35 @@ export function startCapturingParents(child: Child) {
  */
 export function stopCapturingParents() {
 	const frame = inst.stack!
+	const child = frame.child
 	inst.stack = frame.below
 
-	if (frame.offset < frame.child.parents.length) {
-		for (let i = frame.offset; i < frame.child.parents.length; i++) {
-			const maybeRemovedParent = frame.child.parents[i]
-			if (!frame.child.parentSet.has(maybeRemovedParent)) {
-				detach(maybeRemovedParent, frame.child)
+	if (frame.offset < child.parents.length) {
+		for (let i = frame.offset; i < child.parents.length; i++) {
+			const maybeRemovedParent = child.parents[i]
+			if (!child.parentSet.has(maybeRemovedParent)) {
+				detach(maybeRemovedParent, child)
 			}
 		}
 
-		frame.child.parents.length = frame.offset
-		frame.child.parentEpochs.length = frame.offset
+		child.parents.length = frame.offset
+		child.parentEpochs.length = frame.offset
 	}
 
 	if (frame.maybeRemoved) {
 		for (let i = 0; i < frame.maybeRemoved.length; i++) {
 			const maybeRemovedParent = frame.maybeRemoved[i]
-			if (!frame.child.parentSet.has(maybeRemovedParent)) {
-				detach(maybeRemovedParent, frame.child)
+			if (!child.parentSet.has(maybeRemovedParent)) {
+				detach(maybeRemovedParent, child)
 			}
 		}
 	}
 
-	if (frame.child.__debug_ancestor_epochs__) {
-		captureAncestorEpochs(frame.child, frame.child.__debug_ancestor_epochs__)
+	if (child.__debug_ancestor_epochs__) {
+		captureAncestorEpochs(child, child.__debug_ancestor_epochs__)
 	}
+
+	releaseFrame(frame)
 }
 
 /**
