@@ -292,6 +292,7 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 		try {
 			startCapturingParents(this)
 			const result = this.derive(this.state, this.lastCheckedEpoch)
+			const epochAfterDerive = getGlobalEpoch()
 			const newState = result instanceof WithDiff ? result.value : result
 			const isUninitialized = this.state === UNINITIALIZED
 			if (isUninitialized || !this.isEqual(newState, this.state)) {
@@ -299,26 +300,27 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 					const diff = result instanceof WithDiff ? result.diff : undefined
 					this.historyBuffer.pushEntry(
 						this.lastChangedEpoch,
-						getGlobalEpoch(),
+						epochAfterDerive,
 						diff ??
-							this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, getGlobalEpoch()) ??
+							this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, epochAfterDerive) ??
 							RESET_VALUE
 					)
 				}
-				this.lastChangedEpoch = getGlobalEpoch()
+				this.lastChangedEpoch = epochAfterDerive
 				this.state = newState
 			}
 			this.error = null
-			this.lastCheckedEpoch = getGlobalEpoch()
+			this.lastCheckedEpoch = epochAfterDerive
 
 			return this.state
 		} catch (e) {
+			const epochAfterError = getGlobalEpoch()
 			// if a derived value throws an error, we reset the state to UNINITIALIZED
 			if (this.state !== UNINITIALIZED) {
 				this.state = UNINITIALIZED as unknown as Value
-				this.lastChangedEpoch = getGlobalEpoch()
+				this.lastChangedEpoch = epochAfterError
 			}
-			this.lastCheckedEpoch = getGlobalEpoch()
+			this.lastCheckedEpoch = epochAfterError
 			// we also clear the history buffer if an error was thrown
 			if (this.historyBuffer) {
 				this.historyBuffer.clear()

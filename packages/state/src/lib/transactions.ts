@@ -137,11 +137,20 @@ function traverse(reactors: Set<Reactor>, child: Child) {
 	traverseChild(child)
 }
 
+// Reusable visitor function to avoid closure allocation in flushChanges/traverseAtomForCleanup
+let _flushReactors: Set<Reactor>
+function visitChildForFlush(child: Child) {
+	traverse(_flushReactors, child)
+}
+
 /**
  * Collect all of the reactors that need to run for an atom and run them.
  *
  * @param atoms - The atoms to flush changes for.
  */
+// Module-level reusable Set for flushChanges to avoid allocation per flush
+let reusableReactorSet: Set<Reactor> | null = null
+
 function flushChanges(atoms: Iterable<_Atom>) {
 	if (inst.globalIsReacting) {
 		throw new Error('flushChanges cannot be called during a reaction')
@@ -154,11 +163,13 @@ function flushChanges(atoms: Iterable<_Atom>) {
 		inst.globalIsReacting = true
 		inst.reactionEpoch = inst.globalEpoch
 
-		// Collect all of the visited reactors.
-		const reactors = new Set<Reactor>()
+		// Collect all of the visited reactors, reusing the Set when possible.
+		const reactors = reusableReactorSet ?? new Set<Reactor>()
+		reusableReactorSet = null
 
+		_flushReactors = reactors
 		for (const atom of atoms) {
-			atom.children.visit((child) => traverse(reactors, child))
+			atom.children.visit(visitChildForFlush)
 		}
 
 		// Run each reactor.
@@ -171,12 +182,16 @@ function flushChanges(atoms: Iterable<_Atom>) {
 			if (updateDepth++ > 1000) {
 				throw new Error('Reaction update depth limit exceeded')
 			}
-			const reactors = inst.cleanupReactors
+			const cleanupReactors = inst.cleanupReactors
 			inst.cleanupReactors = null
-			for (const r of reactors) {
+			for (const r of cleanupReactors) {
 				r.maybeScheduleEffect()
 			}
 		}
+
+		// Clear and stash the Set for reuse
+		reactors.clear()
+		reusableReactorSet = reactors
 	} finally {
 		inst.cleanupReactors = null
 		inst.globalIsReacting = false
@@ -215,7 +230,8 @@ export function atomDidChange(atom: _Atom, previousValue: any) {
 
 function traverseAtomForCleanup(atom: _Atom) {
 	const rs = (inst.cleanupReactors ??= new Set())
-	atom.children.visit((child) => traverse(rs, child))
+	_flushReactors = rs
+	atom.children.visit(visitChildForFlush)
 }
 
 /**
