@@ -18,6 +18,7 @@ import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
+import { createConnectedShape } from '../createConnectedShape'
 import { hasRichText, startEditingShapeWithRichText } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
@@ -443,6 +444,13 @@ export class Idle extends StateNode {
 			case 'ArrowRight':
 			case 'ArrowUp':
 			case 'ArrowDown': {
+				if (info.shiftKey && this.editor.inputs.keys.has('KeyA')) {
+					createConnectedShape(
+						this.editor,
+						info.code.replace('Arrow', '').toLowerCase() as 'left' | 'right' | 'up' | 'down'
+					)
+					return
+				}
 				if (info.accelKey) {
 					if (info.shiftKey) {
 						if (info.code === 'ArrowDown') {
@@ -497,6 +505,7 @@ export class Idle extends StateNode {
 			case 'ArrowRight':
 			case 'ArrowUp':
 			case 'ArrowDown': {
+				if (info.shiftKey && this.editor.inputs.keys.has('KeyA')) return // don't repeat-fire connected shape creation
 				if (info.accelKey) {
 					this.editor.selectAdjacentShape(
 						info.code.replace('Arrow', '').toLowerCase() as TLAdjacentDirection
