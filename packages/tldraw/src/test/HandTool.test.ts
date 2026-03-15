@@ -1,3 +1,4 @@
+import { Vec } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { HandTool } from '../lib/tools/HandTool/HandTool'
 import { TestEditor, createDefaultShapes } from './TestEditor'
@@ -18,6 +19,19 @@ afterEach(() => {
 vi.useFakeTimers()
 
 describe(HandTool, () => {
+	it('Uses one-finger zoom when coarse pointer double-taps and drags', () => {
+		editor.setCurrentTool('hand')
+		editor.updateInstanceState({ isCoarsePointer: true })
+
+		editor.pointerDown(0, 0).pointerUp(0, 0)
+		editor.pointerDown(0, 0)
+		editor.expectToBeIn('hand.one_finger_zooming')
+
+		const before = editor.getCamera().z
+		editor.pointerMove(0, 100).pointerUp(0, 100).forceTick()
+		expect(editor.getCamera().z).toBeGreaterThan(before)
+	})
+
 	it('Double taps to zoom in', () => {
 		editor.setCurrentTool('hand')
 		expect(editor.getZoomLevel()).toBe(1)
@@ -156,6 +170,16 @@ describe('When in the dragging state', () => {
 		expect(editor.getCamera().x).toBe(50)
 		expect(editor.getCamera().y).toBe(50)
 		editor.pointerUp()
+	})
+
+	it('Does not zoom when momentum panning on release', () => {
+		editor.setCurrentTool('hand')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(50, 50)
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
+		editor.pointerUp().forceTick()
+
+		expect(editor.getCamera().z).toBe(1)
 	})
 
 	// it('Moves the camera with inertia on pointer up', () => {
