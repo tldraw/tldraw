@@ -113,6 +113,7 @@ export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMe
 }
 
 /** @internal */
-export function activeElementShouldCaptureKeys(includeButtonsAndMenus = true) {
-	return elementShouldCaptureKeys(document.activeElement, includeButtonsAndMenus)
+export function activeElementShouldCaptureKeys(includeButtonsAndMenus = true, doc?: Document) {
+	// eslint-disable-next-line no-restricted-globals
+	return elementShouldCaptureKeys((doc ?? document).activeElement, includeButtonsAndMenus)
 }

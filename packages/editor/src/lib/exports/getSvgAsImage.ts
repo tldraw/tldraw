@@ -107,6 +107,7 @@ async function renderSvgToCanvas(
 				await sleep(250)
 			}
 
+			// eslint-disable-next-line no-restricted-globals
 			const canvas = document.createElement('canvas') as HTMLCanvasElement
 			const ctx = canvas.getContext('2d')!
 			canvas.width = width
@@ -268,6 +269,7 @@ function trimExtraPadding(
 	const cropH = cropBottom - cropTop
 
 	// Create a new cropped canvas
+	// eslint-disable-next-line no-restricted-globals
 	const croppedCanvas = document.createElement('canvas')
 	croppedCanvas.width = cropW
 	croppedCanvas.height = cropH

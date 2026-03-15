@@ -1,11 +1,13 @@
 export function getLocalFiles(options?: {
 	allowMultiple?: boolean
 	mimeTypes?: string[] | readonly string[]
+	document?: Document
 }) {
 	return new Promise<File[]>((resolve) => {
-		const { allowMultiple = true, mimeTypes = [] } = options || {}
+		// eslint-disable-next-line no-restricted-globals
+		const { allowMultiple = true, mimeTypes = [], document: doc = document } = options || {}
 
-		const input = document.createElement('input')
+		const input = doc.createElement('input')
 		input.type = 'file'
 		input.accept = mimeTypes?.join(',')
 		input.multiple = allowMultiple
@@ -35,7 +37,7 @@ export function getLocalFiles(options?: {
 			dispose()
 		}
 
-		document.body.appendChild(input)
+		doc.body.appendChild(input)
 		input.addEventListener('cancel', oncancel)
 		input.addEventListener('change', onchange)
 		input?.click()

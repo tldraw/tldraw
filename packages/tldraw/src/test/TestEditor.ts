@@ -57,6 +57,7 @@ export class TestEditor extends Editor {
 		options: Partial<Omit<TLEditorOptions, 'store'>> = {},
 		storeOptions: Partial<TLStoreOptions> = {}
 	) {
+		const document = globalThis.document
 		const elm = document.createElement('div')
 		const bounds = {
 			x: 0,
