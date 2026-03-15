@@ -11,6 +11,8 @@ import type { Editor } from '../../Editor'
  */
 export class FocusManager {
 	private disposeSideEffectListener?: () => void
+	private readonly boundHandleKeyDown: (e: KeyboardEvent) => void
+	private readonly boundHandleMouseDown: () => void
 
 	constructor(
 		public editor: Editor,
@@ -31,8 +33,10 @@ export class FocusManager {
 		}
 		this.updateContainerClass()
 
-		document.body.addEventListener('keydown', this.handleKeyDown.bind(this))
-		document.body.addEventListener('mousedown', this.handleMouseDown.bind(this))
+		this.boundHandleKeyDown = this.handleKeyDown.bind(this)
+		this.boundHandleMouseDown = this.handleMouseDown.bind(this)
+		document.body.addEventListener('keydown', this.boundHandleKeyDown)
+		document.body.addEventListener('mousedown', this.boundHandleMouseDown)
 	}
 
 	/**
@@ -84,8 +88,8 @@ export class FocusManager {
 	}
 
 	dispose() {
-		document.body.removeEventListener('keydown', this.handleKeyDown.bind(this))
-		document.body.removeEventListener('mousedown', this.handleMouseDown.bind(this))
+		document.body.removeEventListener('keydown', this.boundHandleKeyDown)
+		document.body.removeEventListener('mousedown', this.boundHandleMouseDown)
 		this.disposeSideEffectListener?.()
 	}
 }
