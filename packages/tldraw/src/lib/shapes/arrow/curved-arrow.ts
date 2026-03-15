@@ -11,11 +11,11 @@ import {
 	counterClockwiseAngleDist,
 	isSafeFloat,
 } from '@tldraw/editor'
+import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { TLArcInfo, TLArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
 	MIN_ARROW_LENGTH,
-	STROKE_SIZES,
 	TLArrowBindings,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	clampArrowTerminalToMask,
@@ -47,6 +47,8 @@ export function getCurvedArrowInfo(
 	// Check for divide-by-zero before we call uni()
 	const u = Vec.Len(distance) ? distance.uni() : Vec.From(distance) // unit vector between start and end
 	const middle = Vec.Add(med, u.per().mul(-bend)) // middle handle
+
+	const theme = editor.getCurrentTheme()
 
 	const startShapeInfo = getBoundShapeInfoForTerminal(editor, shape, 'start')
 	const endShapeInfo = getBoundShapeInfoForTerminal(editor, shape, 'end')
@@ -176,9 +178,9 @@ export function getCurvedArrowInfo(
 
 			if (arrowheadStart !== 'none') {
 				const strokeOffset =
-					STROKE_SIZES[shape.props.size] / 2 +
+					(theme.strokeWidth * STROKE_SIZES[shape.props.size]) / 2 +
 					('size' in startShapeInfo.shape.props
-						? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
+						? (theme.strokeWidth * STROKE_SIZES[startShapeInfo.shape.props.size]) / 2
 						: 0)
 				offsetA = (BOUND_ARROW_OFFSET + strokeOffset) * shape.props.scale
 				minLength += strokeOffset * shape.props.scale
@@ -259,8 +261,10 @@ export function getCurvedArrowInfo(
 
 			if (arrowheadEnd !== 'none') {
 				const strokeOffset =
-					STROKE_SIZES[shape.props.size] / 2 +
-					('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
+					(theme.strokeWidth * STROKE_SIZES[shape.props.size]) / 2 +
+					('size' in endShapeInfo.shape.props
+						? (theme.strokeWidth * STROKE_SIZES[endShapeInfo.shape.props.size]) / 2
+						: 0)
 				offsetB = (BOUND_ARROW_OFFSET + strokeOffset) * shape.props.scale
 				minLength += strokeOffset * shape.props.scale
 			}

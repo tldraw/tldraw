@@ -15,8 +15,9 @@ import {
 	VecLike,
 	VecModel,
 } from '@tldraw/editor'
+import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
-import { BOUND_ARROW_OFFSET, STROKE_SIZES, TLArrowBindings } from '../shared'
+import { BOUND_ARROW_OFFSET, TLArrowBindings } from '../shared'
 import {
 	ElbowArrowAxes,
 	ElbowArrowBox,
@@ -347,7 +348,9 @@ function getElbowArrowTerminalInfo(
 	binding: TLArrowBinding | undefined,
 	point: VecModel
 ): ElbowArrowTerminal {
-	const arrowStrokeSize = (STROKE_SIZES[arrow.props.size] * arrow.props.scale) / 2
+	const theme = editor.getCurrentTheme()
+	const arrowStrokeSize =
+		(theme.strokeWidth * STROKE_SIZES[arrow.props.size] * arrow.props.scale) / 2
 	const minEndSegmentLength = arrowStrokeSize * 3
 
 	if (binding) {
@@ -359,7 +362,9 @@ function getElbowArrowTerminalInfo(
 			if (arrow.props[arrowheadProp] !== 'none') {
 				const targetScale = 'scale' in target.props ? target.props.scale : 1
 				const targetStrokeSize =
-					'size' in target.props ? ((STROKE_SIZES[target.props.size] ?? 0) * targetScale) / 2 : 0
+					'size' in target.props
+						? (theme.strokeWidth * (STROKE_SIZES[target.props.size] ?? 0) * targetScale) / 2
+						: 0
 
 				arrowheadOffset =
 					arrowStrokeSize + targetStrokeSize + BOUND_ARROW_OFFSET * arrow.props.scale

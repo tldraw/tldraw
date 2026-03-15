@@ -144,7 +144,8 @@ export class Drawing extends StateNode {
 	getIsClosed(segments: TLDrawShapeSegment[], size: TLDefaultSizeStyle, scale: number) {
 		if (!this.canClose()) return false
 
-		const strokeWidth = STROKE_SIZES[size]
+		const theme = this.editor.getCurrentTheme()
+		const strokeWidth = theme.strokeWidth * STROKE_SIZES[size]
 		const firstPoint = b64Vecs.decodeFirstPoint(segments[0].path)
 		const lastSegment = segments[segments.length - 1]
 		const lastPoint = b64Vecs.decodeLastPoint(lastSegment.path)
@@ -217,7 +218,10 @@ export class Drawing extends StateNode {
 				this.pagePointWhereNextSegmentChanged = null
 				const segments = [...shape.props.segments, newSegment]
 
-				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+				if (
+					this.currentLineLength <
+					this.editor.getCurrentTheme().strokeWidth * STROKE_SIZES[shape.props.size] * 4
+				) {
 					this.currentLineLength = this.getLineLength(segments)
 				}
 
@@ -419,7 +423,10 @@ export class Drawing extends StateNode {
 
 					const finalSegments = [...newSegments, newFreeSegment]
 
-					if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+					if (
+						this.currentLineLength <
+						this.editor.getCurrentTheme().strokeWidth * STROKE_SIZES[shape.props.size] * 4
+					) {
 						this.currentLineLength = this.getLineLength(finalSegments)
 					}
 
@@ -618,7 +625,10 @@ export class Drawing extends StateNode {
 					path: b64Vecs.encodePoints(cachedPoints),
 				}
 
-				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+				if (
+					this.currentLineLength <
+					this.editor.getCurrentTheme().strokeWidth * STROKE_SIZES[shape.props.size] * 4
+				) {
 					this.currentLineLength = this.getLineLength(newSegments)
 				}
 
