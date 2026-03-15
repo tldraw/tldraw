@@ -15,10 +15,6 @@ export interface MatModel {
 	f: number
 }
 
-// function getIdentity() {
-//   return new Mat(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
-// }
-
 /** @public */
 export class Mat {
 	constructor(a: number, b: number, c: number, d: number, e: number, f: number) {
