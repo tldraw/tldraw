@@ -648,30 +648,48 @@ export class BoundsSnaps {
 	}) {
 		const { horizontal, vertical } = this.getVisibleGaps()
 
-		for (const gap of horizontal) {
-			// ignore this gap if the selection doesn't overlap with it in the y axis
+		this.snapToAxisGaps(horizontal, selectionPageBounds, nearestSnapsX, minOffset, 'x')
+		this.snapToAxisGaps(vertical, selectionPageBounds, nearestSnapsY, minOffset, 'y')
+	}
+
+	private snapToAxisGaps(
+		gaps: Gap[],
+		selectionPageBounds: Box,
+		nearestSnaps: NearestSnap[],
+		minOffset: Vec,
+		axis: 'x' | 'y'
+	) {
+		const crossMin = axis === 'x' ? 'minY' : ('minX' as const)
+		const crossMax = axis === 'x' ? 'maxY' : ('maxX' as const)
+		const size = axis === 'x' ? 'width' : ('height' as const)
+		const min = axis === 'x' ? 'minX' : ('minY' as const)
+		const max = axis === 'x' ? 'maxX' : ('maxY' as const)
+		const startDir = axis === 'x' ? 'left' : ('top' as const)
+		const endDir = axis === 'x' ? 'right' : ('bottom' as const)
+
+		for (const gap of gaps) {
 			if (
 				!rangesOverlap(
 					gap.breadthIntersection[0],
 					gap.breadthIntersection[1],
-					selectionPageBounds.minY,
-					selectionPageBounds.maxY
+					selectionPageBounds[crossMin],
+					selectionPageBounds[crossMax]
 				)
 			) {
 				continue
 			}
 
 			// check for center match
-			const gapMidX = gap.startEdge[0].x + gap.length / 2
-			const centerNudge = gapMidX - selectionPageBounds.center.x
-			const gapIsLargerThanSelection = gap.length > selectionPageBounds.width
+			const gapMid = gap.startEdge[0][axis] + gap.length / 2
+			const centerNudge = gapMid - selectionPageBounds.center[axis]
+			const gapIsLargerThanSelection = gap.length > selectionPageBounds[size]
 
-			if (gapIsLargerThanSelection && round(Math.abs(centerNudge)) <= round(minOffset.x)) {
-				if (round(Math.abs(centerNudge)) < round(minOffset.x)) {
+			if (gapIsLargerThanSelection && round(Math.abs(centerNudge)) <= round(minOffset[axis])) {
+				if (round(Math.abs(centerNudge)) < round(minOffset[axis])) {
 					// reset if we found a closer snap
-					nearestSnapsX.length = 0
+					nearestSnaps.length = 0
 				}
-				minOffset.x = Math.abs(centerNudge)
+				minOffset[axis] = Math.abs(centerNudge)
 
 				const snap: NearestSnap = {
 					type: 'gap_center',
@@ -720,13 +738,13 @@ export class BoundsSnaps {
 				//              │         │
 				//              └─────────┘
 
-				const otherCenterSnap = nearestSnapsX.find(({ type }) => type === 'gap_center') as
+				const otherCenterSnap = nearestSnaps.find(({ type }) => type === 'gap_center') as
 					| Extract<NearestSnap, { type: 'gap_center' }>
 					| undefined
 
 				const gapBreadthsOverlap =
 					otherCenterSnap &&
-					rangeIntersection(
+					rangesOverlap(
 						gap.breadthIntersection[0],
 						gap.breadthIntersection[1],
 						otherCenterSnap.gap.breadthIntersection[0],
@@ -735,185 +753,43 @@ export class BoundsSnaps {
 
 				// if there is another center snap and it's bigger than this one, and it overlaps with this one, replace it
 				if (otherCenterSnap && otherCenterSnap.gap.length > gap.length && gapBreadthsOverlap) {
-					nearestSnapsX[nearestSnapsX.indexOf(otherCenterSnap)] = snap
+					nearestSnaps[nearestSnaps.indexOf(otherCenterSnap)] = snap
 				} else if (!otherCenterSnap || !gapBreadthsOverlap) {
-					nearestSnapsX.push(snap)
+					nearestSnaps.push(snap)
 				}
 			}
 
-			// check for duplication left match
-			const duplicationLeftX = gap.startNode.pageBounds.minX - gap.length
-			const selectionRightX = selectionPageBounds.maxX
-
-			const duplicationLeftNudge = duplicationLeftX - selectionRightX
-			if (round(Math.abs(duplicationLeftNudge)) <= round(minOffset.x)) {
-				if (round(Math.abs(duplicationLeftNudge)) < round(minOffset.x)) {
-					// reset if we found a closer snap
-					nearestSnapsX.length = 0
+			// check for duplication start match
+			const dupStartPos = gap.startNode.pageBounds[min] - gap.length
+			const dupStartNudge = dupStartPos - selectionPageBounds[max]
+			if (round(Math.abs(dupStartNudge)) <= round(minOffset[axis])) {
+				if (round(Math.abs(dupStartNudge)) < round(minOffset[axis])) {
+					nearestSnaps.length = 0
 				}
-				minOffset.x = Math.abs(duplicationLeftNudge)
+				minOffset[axis] = Math.abs(dupStartNudge)
 
-				nearestSnapsX.push({
+				nearestSnaps.push({
 					type: 'gap_duplicate',
 					gap,
-					protrusionDirection: 'left',
-					nudge: duplicationLeftNudge,
+					protrusionDirection: startDir,
+					nudge: dupStartNudge,
 				})
 			}
 
-			// check for duplication right match
-			const duplicationRightX = gap.endNode.pageBounds.maxX + gap.length
-			const selectionLeftX = selectionPageBounds.minX
-
-			const duplicationRightNudge = duplicationRightX - selectionLeftX
-			if (round(Math.abs(duplicationRightNudge)) <= round(minOffset.x)) {
-				if (round(Math.abs(duplicationRightNudge)) < round(minOffset.x)) {
-					// reset if we found a closer snap
-					nearestSnapsX.length = 0
+			// check for duplication end match
+			const dupEndPos = gap.endNode.pageBounds[max] + gap.length
+			const dupEndNudge = dupEndPos - selectionPageBounds[min]
+			if (round(Math.abs(dupEndNudge)) <= round(minOffset[axis])) {
+				if (round(Math.abs(dupEndNudge)) < round(minOffset[axis])) {
+					nearestSnaps.length = 0
 				}
-				minOffset.x = Math.abs(duplicationRightNudge)
+				minOffset[axis] = Math.abs(dupEndNudge)
 
-				nearestSnapsX.push({
+				nearestSnaps.push({
 					type: 'gap_duplicate',
 					gap,
-					protrusionDirection: 'right',
-					nudge: duplicationRightNudge,
-				})
-			}
-		}
-
-		for (const gap of vertical) {
-			// ignore this gap if the selection doesn't overlap with it in the y axis
-			if (
-				!rangesOverlap(
-					gap.breadthIntersection[0],
-					gap.breadthIntersection[1],
-					selectionPageBounds.minX,
-					selectionPageBounds.maxX
-				)
-			) {
-				continue
-			}
-
-			// check for center match
-			const gapMidY = gap.startEdge[0].y + gap.length / 2
-			const centerNudge = gapMidY - selectionPageBounds.center.y
-
-			const gapIsLargerThanSelection = gap.length > selectionPageBounds.height
-
-			if (gapIsLargerThanSelection && round(Math.abs(centerNudge)) <= round(minOffset.y)) {
-				if (round(Math.abs(centerNudge)) < round(minOffset.y)) {
-					// reset if we found a closer snap
-					nearestSnapsY.length = 0
-				}
-				minOffset.y = Math.abs(centerNudge)
-
-				const snap: NearestSnap = {
-					type: 'gap_center',
-					gap,
-					nudge: centerNudge,
-				}
-
-				// we need to avoid creating visual noise with too many center snaps in situations
-				// where there are lots of adjacent items with even spacing
-				// so let's only show other center snaps where the gap's breadth does not overlap with this one
-				// i.e.
-				//                ┌───────────────┐
-				//                │               │
-				//                └──────┬────┬───┘
-				//                       ┼    │
-				//                 ┌─────┴┐   │
-				//                 │      │   ┼
-				//                 └─────┬┘   │
-				//                       ┼    │
-				//                   ┌───┴────┴───────┐
-				//                   │                │  ◄────  i'm dragging this one
-				//                   └───┬────┬───────┘
-				//            ─────►     ┼    │
-				//                 ┌─────┴┐   │                don't show these
-				// show these      │      │   ┼                larger gaps since
-				// smaller         └─────┬┘   │ ◄───────────── the smaller ones
-				// gaps                  ┼    │                cover the same
-				//              ─────►  ┌┴────┴─────┐          information
-				//                      │           │
-				//                      └───────────┘
-				//
-				// but we want to show all of these ones since the gap breadths don't overlap
-				//            ┌─────────────┐
-				//            │             │
-				// ┌────┐     └───┬─────────┘
-				// │    │         │
-				// └──┬─┘         ┼
-				//    ┼           │
-				// ┌──┴───────────┴─┐
-				// │                │ ◄───── i'm dragging this one
-				// └──┬───────────┬─┘
-				//    ┼           │
-				// ┌──┴────┐      ┼
-				// │       │      │
-				// └───────┘    ┌─┴───────┐
-				//              │         │
-				//              └─────────┘
-
-				const otherCenterSnap = nearestSnapsY.find(({ type }) => type === 'gap_center') as
-					| Extract<NearestSnap, { type: 'gap_center' }>
-					| undefined
-
-				const gapBreadthsOverlap =
-					otherCenterSnap &&
-					rangesOverlap(
-						otherCenterSnap.gap.breadthIntersection[0],
-						otherCenterSnap.gap.breadthIntersection[1],
-						gap.breadthIntersection[0],
-						gap.breadthIntersection[1]
-					)
-
-				// if there is another center snap and it's bigger than this one, and it overlaps with this one, replace it
-				if (otherCenterSnap && otherCenterSnap.gap.length > gap.length && gapBreadthsOverlap) {
-					nearestSnapsY[nearestSnapsY.indexOf(otherCenterSnap)] = snap
-				} else if (!otherCenterSnap || !gapBreadthsOverlap) {
-					nearestSnapsY.push(snap)
-				}
-				continue
-			}
-
-			// check for duplication top match
-			const duplicationTopY = gap.startNode.pageBounds.minY - gap.length
-			const selectionBottomY = selectionPageBounds.maxY
-
-			const duplicationTopNudge = duplicationTopY - selectionBottomY
-			if (round(Math.abs(duplicationTopNudge)) <= round(minOffset.y)) {
-				if (round(Math.abs(duplicationTopNudge)) < round(minOffset.y)) {
-					// reset if we found a closer snap
-					nearestSnapsY.length = 0
-				}
-				minOffset.y = Math.abs(duplicationTopNudge)
-
-				nearestSnapsY.push({
-					type: 'gap_duplicate',
-					gap,
-					protrusionDirection: 'top',
-					nudge: duplicationTopNudge,
-				})
-			}
-
-			// check for duplication bottom match
-			const duplicationBottomY = gap.endNode.pageBounds.maxY + gap.length
-			const selectionTopY = selectionPageBounds.minY
-
-			const duplicationBottomNudge = duplicationBottomY - selectionTopY
-			if (round(Math.abs(duplicationBottomNudge)) <= round(minOffset.y)) {
-				if (round(Math.abs(duplicationBottomNudge)) < round(minOffset.y)) {
-					// reset if we found a closer snap
-					nearestSnapsY.length = 0
-				}
-				minOffset.y = Math.abs(duplicationBottomNudge)
-
-				nearestSnapsY.push({
-					type: 'gap_duplicate',
-					gap,
-					protrusionDirection: 'bottom',
-					nudge: duplicationBottomNudge,
+					protrusionDirection: endDir,
+					nudge: dupEndNudge,
 				})
 			}
 		}
