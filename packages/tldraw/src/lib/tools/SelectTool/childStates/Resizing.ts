@@ -16,7 +16,6 @@ import {
 	VecLike,
 	areAnglesCompatible,
 	compact,
-	isAccelKey,
 	kickoutOccludedShapes,
 } from '@tldraw/editor'
 
@@ -266,7 +265,7 @@ export class Resizing extends StateNode {
 		//                            │
 		//                   cursorHandleOffset.x
 
-		const isHoldingAccel = isAccelKey(this.editor.inputs)
+		const isHoldingAccel = this.editor.inputs.getAccelKey()
 
 		const currentPagePoint = this.editor.inputs
 			.getCurrentPagePoint()

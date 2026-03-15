@@ -630,7 +630,7 @@ export class Idle extends StateNode {
 		} = this
 
 		// We want to use the "actual" shift key state,
-		// not the one that's in the editor.inputs.shiftKey,
+		// not the one from editor.inputs.getShiftKey(),
 		// because that one uses a short timeout on release
 		const shiftKey = keys.has('ShiftLeft')
 

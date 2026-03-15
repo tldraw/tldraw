@@ -1,4 +1,4 @@
-import { isAccelKey, StateNode, TLPointerEventInfo, TLShapeId } from '@tldraw/editor'
+import { StateNode, TLPointerEventInfo, TLShapeId } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -6,7 +6,7 @@ export class Pointing extends StateNode {
 	_isHoldingAccelKey = false
 
 	override onEnter() {
-		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
+		this._isHoldingAccelKey = this.editor.inputs.getAccelKey()
 
 		const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapesSorted = this.editor.getCurrentPageRenderingShapesSorted()
@@ -47,11 +47,11 @@ export class Pointing extends StateNode {
 	}
 
 	override onKeyUp() {
-		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
+		this._isHoldingAccelKey = this.editor.inputs.getAccelKey()
 	}
 
 	override onKeyDown() {
-		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
+		this._isHoldingAccelKey = this.editor.inputs.getAccelKey()
 	}
 
 	override onLongPress(info: TLPointerEventInfo) {
