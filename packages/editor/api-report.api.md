@@ -2776,6 +2776,9 @@ export function setPointerCapture(element: Element, event: PointerEvent | React.
 export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 
 // @public (undocumented)
+export function setTransform(elm: HTMLElement | null | SVGElement, x?: number, y?: number, scale?: number, rotate?: number, offsetX?: number, offsetY?: number): void;
+
+// @public (undocumented)
 export function setUserPreferences(user: TLUserPreferences): void;
 
 // @public (undocumented)
