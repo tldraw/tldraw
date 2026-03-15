@@ -2,11 +2,9 @@ import { Atom, Reactor, Signal, atom, computed, reactor, transact } from '@tldra
 import {
 	WeakCache,
 	assert,
-	filterEntries,
 	getOwnProperty,
 	isEqual,
 	objectMapEntries,
-	objectMapKeys,
 	objectMapValues,
 	throttleToNextFrame,
 	uniqueId,
@@ -568,19 +566,40 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @returns
 	 */
 	filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope) {
-		const result = {
-			added: filterEntries(change.added, (_, r) => this.scopedTypes[scope].has(r.typeName)),
-			updated: filterEntries(change.updated, (_, r) => this.scopedTypes[scope].has(r[1].typeName)),
-			removed: filterEntries(change.removed, (_, r) => this.scopedTypes[scope].has(r.typeName)),
+		const scopeTypes = this.scopedTypes[scope]
+
+		const added = {} as Record<IdOf<R>, R>
+		const updated = {} as Record<IdOf<R>, [from: R, to: R]>
+		const removed = {} as Record<IdOf<R>, R>
+
+		let hasChanges = false
+
+		for (const id in change.added) {
+			const rec = change.added[id as IdOf<R>]
+			if (scopeTypes.has(rec.typeName)) {
+				added[id as IdOf<R>] = rec
+				hasChanges = true
+			}
 		}
-		if (
-			Object.keys(result.added).length === 0 &&
-			Object.keys(result.updated).length === 0 &&
-			Object.keys(result.removed).length === 0
-		) {
-			return null
+
+		for (const id in change.updated) {
+			const [from, to] = change.updated[id as IdOf<R>]
+			if (scopeTypes.has(to.typeName)) {
+				updated[id as IdOf<R>] = [from, to]
+				hasChanges = true
+			}
 		}
-		return result
+
+		for (const id in change.removed) {
+			const rec = change.removed[id as IdOf<R>]
+			if (scopeTypes.has(rec.typeName)) {
+				removed[id as IdOf<R>] = rec
+				hasChanges = true
+			}
+		}
+
+		if (!hasChanges) return null
+		return { added, updated, removed }
 	}
 
 	/**
@@ -1079,9 +1098,16 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}: { runCallbacks?: boolean; ignoreEphemeralKeys?: boolean } = {}
 	) {
 		this.atomic(() => {
-			const toPut = objectMapValues(diff.added)
+			const toPut: R[] = []
 
-			for (const [_from, to] of objectMapValues(diff.updated)) {
+			// added
+			for (const _id in diff.added) {
+				toPut.push(diff.added[_id as IdOf<R>])
+			}
+
+			// updated
+			for (const _id in diff.updated) {
+				const to = diff.updated[_id as IdOf<R>][1]
 				const type = this.schema.getType(to.typeName)
 				if (ignoreEphemeralKeys && type.ephemeralKeySet.size) {
 					const existing = this.get(to.id)
@@ -1090,7 +1116,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 						continue
 					}
 					let changed: R | null = null
-					for (const [key, value] of Object.entries(to)) {
+					for (const key in to as any) {
+						const value = (to as any)[key]
 						if (type.ephemeralKeySet.has(key) || Object.is(value, getOwnProperty(existing, key))) {
 							continue
 						}
@@ -1104,7 +1131,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				}
 			}
 
-			const toRemove = objectMapKeys(diff.removed)
+			// removed
+			const toRemove: IdOf<R>[] = []
+			for (const _id in diff.removed) {
+				toRemove.push(_id as IdOf<R>)
+			}
 			if (toPut.length) {
 				this.put(toPut)
 			}

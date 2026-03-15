@@ -7,10 +7,10 @@ import {
 	RESET_VALUE,
 	withDiff,
 } from '@tldraw/state'
-import { areArraysShallowEqual, isEqual, objectMapValues } from '@tldraw/utils'
+import { areArraysShallowEqual, isEqual } from '@tldraw/utils'
 import { AtomMap } from './AtomMap'
 import { IdOf, UnknownRecord } from './BaseRecord'
-import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'
+import { executeQuery, QueryExpression } from './executeQuery'
 import { IncrementalSetConstructor } from './IncrementalSetConstructor'
 import { RecordsDiff } from './RecordsDiff'
 import { diffSets } from './setUtils'
@@ -202,7 +202,8 @@ export class StoreQueries<R extends UnknownRecord> {
 				let numUpdated = 0
 
 				for (const changes of diff) {
-					for (const added of objectMapValues(changes.added)) {
+					for (const _id in changes.added) {
+						const added = changes.added[_id as IdOf<R>]
 						if (added.typeName === typeName) {
 							if (res.removed[added.id as IdOf<S>]) {
 								const original = res.removed[added.id as IdOf<S>]
@@ -219,7 +220,8 @@ export class StoreQueries<R extends UnknownRecord> {
 						}
 					}
 
-					for (const [from, to] of objectMapValues(changes.updated)) {
+					for (const _id in changes.updated) {
+						const [from, to] = changes.updated[_id as IdOf<R>]
 						if (to.typeName === typeName) {
 							if (res.added[to.id as IdOf<S>]) {
 								res.added[to.id as IdOf<S>] = to as S
@@ -232,7 +234,8 @@ export class StoreQueries<R extends UnknownRecord> {
 						}
 					}
 
-					for (const removed of objectMapValues(changes.removed)) {
+					for (const _id in changes.removed) {
+						const removed = changes.removed[_id as IdOf<R>]
 						if (removed.typeName === typeName) {
 							if (res.added[removed.id as IdOf<S>]) {
 								// was added during this diff sequence, so just undo the add
@@ -346,10 +349,12 @@ export class StoreQueries<R extends UnknownRecord> {
 				if (record.typeName === typeName) {
 					const value = getPropertyValue(record as S)
 					if (value !== undefined) {
-						if (!res.has(value)) {
-							res.set(value, new Set())
+						let set = res.get(value)
+						if (!set) {
+							set = new Set()
+							res.set(value, set)
 						}
-						res.get(value)!.add(record.id)
+						set.add(record.id)
 					}
 				}
 			}
@@ -387,7 +392,8 @@ export class StoreQueries<R extends UnknownRecord> {
 				}
 
 				for (const changes of history) {
-					for (const record of objectMapValues(changes.added)) {
+					for (const _id in changes.added) {
+						const record = changes.added[_id as IdOf<R>]
 						if (record.typeName === typeName) {
 							const value = getPropertyValue(record as S)
 							if (value !== undefined) {
@@ -395,7 +401,8 @@ export class StoreQueries<R extends UnknownRecord> {
 							}
 						}
 					}
-					for (const [from, to] of objectMapValues(changes.updated)) {
+					for (const _id in changes.updated) {
+						const [from, to] = changes.updated[_id as IdOf<R>]
 						if (to.typeName === typeName) {
 							const prev = getPropertyValue(from as S)
 							const next = getPropertyValue(to as S)
@@ -409,7 +416,8 @@ export class StoreQueries<R extends UnknownRecord> {
 							}
 						}
 					}
-					for (const record of objectMapValues(changes.removed)) {
+					for (const _id in changes.removed) {
+						const record = changes.removed[_id as IdOf<R>]
 						if (record.typeName === typeName) {
 							const value = getPropertyValue(record as S)
 							if (value !== undefined) {
@@ -567,7 +575,13 @@ export class StoreQueries<R extends UnknownRecord> {
 			// deref type history early to allow first incremental update to use diffs
 			typeHistory.get()
 			const query: QueryExpression<S> = queryCreator()
-			if (Object.keys(query).length === 0) {
+			// Fast empty-query check without allocating an array
+			let isEmptyQuery = true
+			for (const _ in query as any) {
+				isEmptyQuery = false
+				break
+			}
+			if (isEmptyQuery) {
 				return this.getAllIdsForType(typeName)
 			}
 
@@ -587,10 +601,41 @@ export class StoreQueries<R extends UnknownRecord> {
 			isEqual,
 		})
 
+		// Compile query into path parts and operators for fast incremental checks
+		interface CompiledMatcher {
+			parts: string[]
+			kind: 'eq' | 'neq' | 'gt'
+			value: any
+		}
+		const compiledQuery = computed('ids_query_compiled:' + name, () => {
+			const q = cachedQuery.get() as QueryExpression<S>
+			const compiled: CompiledMatcher[] = []
+			const parts: string[] = []
+			const hasOwn = Object.prototype.hasOwnProperty
+			const walk = (obj: any) => {
+				for (const key in obj as any) {
+					if (!hasOwn.call(obj, key)) continue
+					const val = obj[key]
+					parts.push(key)
+					if (val && typeof val === 'object') {
+						if ('eq' in val) compiled.push({ parts: parts.slice(), kind: 'eq', value: val.eq })
+						else if ('neq' in val)
+							compiled.push({ parts: parts.slice(), kind: 'neq', value: val.neq })
+						else if ('gt' in val) compiled.push({ parts: parts.slice(), kind: 'gt', value: val.gt })
+						else walk(val)
+					}
+					parts.pop()
+				}
+			}
+			walk(q)
+			return compiled
+		})
+
 		return computed(
 			'query:' + name,
 			(prevValue, lastComputedEpoch) => {
-				const query = cachedQuery.get()
+				cachedQuery.get() // deref to track query dependencies
+				const compiled = compiledQuery.get()
 				if (isUninitialized(prevValue)) {
 					return fromScratch()
 				}
@@ -610,22 +655,45 @@ export class StoreQueries<R extends UnknownRecord> {
 					prevValue
 				) as IncrementalSetConstructor<IdOf<S>>
 
+				// Fast matcher using compiled paths
+				const matches = (obj: S) => {
+					for (let i = 0; i < compiled.length; i++) {
+						const c = compiled[i]
+						const value = this.getNestedValue(obj, c.parts as any)
+						switch (c.kind) {
+							case 'eq':
+								if (value !== c.value) return false
+								break
+							case 'neq':
+								if (value === undefined || value === c.value) return false
+								break
+							case 'gt':
+								if (typeof value !== 'number' || value <= c.value) return false
+								break
+						}
+					}
+					return true
+				}
+
 				for (const changes of history) {
-					for (const added of objectMapValues(changes.added)) {
-						if (added.typeName === typeName && objectMatchesQuery(query, added)) {
+					for (const _id in changes.added) {
+						const added = changes.added[_id as IdOf<R>]
+						if (added.typeName === typeName && matches(added as S)) {
 							setConstructor.add(added.id)
 						}
 					}
-					for (const [_, updated] of objectMapValues(changes.updated)) {
+					for (const _id in changes.updated) {
+						const updated = changes.updated[_id as IdOf<R>][1]
 						if (updated.typeName === typeName) {
-							if (objectMatchesQuery(query, updated)) {
+							if (matches(updated as S)) {
 								setConstructor.add(updated.id)
 							} else {
 								setConstructor.remove(updated.id)
 							}
 						}
 					}
-					for (const removed of objectMapValues(changes.removed)) {
+					for (const _id in changes.removed) {
+						const removed = changes.removed[_id as IdOf<R>]
 						if (removed.typeName === typeName) {
 							setConstructor.remove(removed.id)
 						}

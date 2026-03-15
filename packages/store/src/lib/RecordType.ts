@@ -133,14 +133,12 @@ export class RecordType<
 	create(
 		properties: Expand<Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>>
 	): R {
-		const result = {
-			...this.createDefaultProperties(),
-			id: 'id' in properties ? properties.id : this.createId(),
-		} as any
+		const result = this.createDefaultProperties() as any
+		result.id = 'id' in properties ? properties.id : this.createId()
 
-		for (const [k, v] of Object.entries(properties)) {
-			if (v !== undefined) {
-				result[k] = v
+		for (const k in properties) {
+			if ((properties as any)[k] !== undefined) {
+				result[k] = (properties as any)[k]
 			}
 		}
 
