@@ -4,16 +4,16 @@ import {
 	RotateCorner,
 	TLSelectionForegroundProps,
 	getCursor,
+	setTransform,
 	tlenv,
 	toDomPrecision,
 	track,
 	useEditor,
 	useSelectionEvents,
-	useTransform,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { PointerEventHandler, useRef } from 'react'
+import { PointerEventHandler } from 'react'
 import { useReadonly } from '../ui/hooks/useReadonly'
 import { useTranslation } from '../ui/hooks/useTranslation/useTranslation'
 import { TldrawCropHandles } from './TldrawCropHandles'
@@ -25,8 +25,6 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 }: TLSelectionForegroundProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const rSvg = useRef<SVGSVGElement>(null)
-
 	const isReadonlyMode = useReadonly()
 	const topEvents = useSelectionEvents('top')
 	const rightEvents = useSelectionEvents('right')
@@ -56,11 +54,6 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 	const selectionRotation = editor.getSelectionRotation()
 	const isShapeTooCloseToContextualToolbar =
 		selectionRotation / HALF_PI > 1.6 && selectionRotation / HALF_PI < 2.4
-	useTransform(rSvg, bounds?.x, bounds?.y, 1, selectionRotation, {
-		x: expandedBounds.x - bounds.x,
-		y: expandedBounds.y - bounds.y,
-	})
-
 	if (onlyShape && editor.isShapeHidden(onlyShape)) return null
 
 	const zoom = editor.getEfficientZoomLevel()
@@ -202,7 +195,19 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 			data-testid="selection-foreground"
 			aria-hidden="true"
 		>
-			<g ref={rSvg}>
+			<g
+				ref={(elm) =>
+					setTransform(
+						elm,
+						bounds?.x,
+						bounds?.y,
+						1,
+						selectionRotation,
+						expandedBounds.x - bounds.x,
+						expandedBounds.y - bounds.y
+					)
+				}
+			>
 				{shouldDisplayBox && (
 					<rect
 						className="tl-selection__fg__outline"

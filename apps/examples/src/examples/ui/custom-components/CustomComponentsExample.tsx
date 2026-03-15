@@ -1,20 +1,15 @@
-import { useRef } from 'react'
-import { Tldraw, TLEditorComponents, toDomPrecision, useTransform } from 'tldraw'
+import { setTransform, Tldraw, TLEditorComponents, toDomPrecision } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
 
 const components: TLEditorComponents = {
 	Brush: function MyBrush({ brush }) {
-		const rSvg = useRef<SVGSVGElement>(null)
-
-		useTransform(rSvg, brush.x, brush.y)
-
 		const w = toDomPrecision(Math.max(1, brush.w))
 		const h = toDomPrecision(Math.max(1, brush.h))
 
 		return (
-			<svg ref={rSvg} className="tl-overlays__item">
+			<svg ref={(elm) => setTransform(elm, brush.x, brush.y)} className="tl-overlays__item">
 				<rect className="tl-brush" stroke="red" fill="none" width={w} height={h} />
 			</svg>
 		)

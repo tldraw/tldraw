@@ -1,6 +1,5 @@
 import { BoxModel } from '@tldraw/tlschema'
-import { useRef } from 'react'
-import { useTransform } from '../../hooks/useTransform'
+import { setTransform } from '../../hooks/useTransform'
 import { toDomPrecision } from '../../primitives/utils'
 
 /** @public */
@@ -14,14 +13,15 @@ export interface TLBrushProps {
 
 /** @public @react */
 export const DefaultBrush = ({ brush, color, opacity, className }: TLBrushProps) => {
-	const rSvg = useRef<SVGSVGElement>(null)
-	useTransform(rSvg, brush.x, brush.y)
-
 	const w = toDomPrecision(Math.max(1, brush.w))
 	const h = toDomPrecision(Math.max(1, brush.h))
 
 	return (
-		<svg className="tl-overlays__item" ref={rSvg} aria-hidden="true">
+		<svg
+			className="tl-overlays__item"
+			ref={(elm) => setTransform(elm, brush.x, brush.y)}
+			aria-hidden="true"
+		>
 			{color ? (
 				<g className="tl-brush" opacity={opacity}>
 					<rect width={w} height={h} fill={color} opacity={0.75} />
