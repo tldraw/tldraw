@@ -305,7 +305,12 @@ export class Box {
 		return { x: this.x, y: this.y, w: this.w, h: this.h }
 	}
 
-	resize(handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number) {
+	resize(
+		handle: SelectionCorner | SelectionEdge | string,
+		dx: number,
+		dy: number,
+		isAspectRatioLocked = false
+	) {
 		const { minX: a0x, minY: a0y, maxX: a1x, maxY: a1y } = this
 		let { minX: b0x, minY: b0y, maxX: b1x, maxY: b1y } = this
 
@@ -347,6 +352,54 @@ export class Box {
 		const flipX = scaleX < 0
 		const flipY = scaleY < 0
 
+		if (isAspectRatioLocked) {
+			const aspectRatio = (a1x - a0x) / (a1y - a0y)
+			const bw = Math.abs(b1x - b0x)
+			const bh = Math.abs(b1y - b0y)
+			const tw = bw * (scaleY < 0 ? 1 : -1) * (1 / aspectRatio)
+			const th = bh * (scaleX < 0 ? 1 : -1) * aspectRatio
+			const isTall = aspectRatio < bw / bh
+
+			switch (handle) {
+				case 'top_left': {
+					if (isTall) b0y = b1y + tw
+					else b0x = b1x + th
+					break
+				}
+				case 'top_right': {
+					if (isTall) b0y = b1y + tw
+					else b1x = b0x - th
+					break
+				}
+				case 'bottom_right': {
+					if (isTall) b1y = b0y - tw
+					else b1x = b0x - th
+					break
+				}
+				case 'bottom_left': {
+					if (isTall) b1y = b0y - tw
+					else b0x = b1x + th
+					break
+				}
+				case 'bottom':
+				case 'top': {
+					const m = (b0x + b1x) / 2
+					const w = bh * aspectRatio
+					b0x = m - w / 2
+					b1x = m + w / 2
+					break
+				}
+				case 'left':
+				case 'right': {
+					const m = (b0y + b1y) / 2
+					const h = bw / aspectRatio
+					b0y = m - h / 2
+					b1y = m + h / 2
+					break
+				}
+			}
+		}
+
 		if (flipX) {
 			const t = b1x
 			b1x = b0x
@@ -363,6 +416,11 @@ export class Box {
 		this.minY = b0y
 		this.width = Math.abs(b1x - b0x)
 		this.height = Math.abs(b1y - b0y)
+
+		return {
+			scaleX: +((this.width / (a1x - a0x)) * (scaleX > 0 ? 1 : -1)).toFixed(5),
+			scaleY: +((this.height / (a1y - a0y)) * (scaleY > 0 ? 1 : -1)).toFixed(5),
+		}
 	}
 
 	union(box: BoxModel) {
@@ -486,119 +544,9 @@ export class Box {
 		dy: number,
 		isAspectRatioLocked = false
 	) {
-		const { minX: a0x, minY: a0y, maxX: a1x, maxY: a1y } = box
-		let { minX: b0x, minY: b0y, maxX: b1x, maxY: b1y } = box
-
-		// Use the delta to adjust the new box by changing its corners.
-		// The dragging handle (corner or edge) will determine which
-		// corners should change.
-		switch (handle) {
-			case 'left':
-			case 'top_left':
-			case 'bottom_left': {
-				b0x += dx
-				break
-			}
-			case 'right':
-			case 'top_right':
-			case 'bottom_right': {
-				b1x += dx
-				break
-			}
-		}
-		switch (handle) {
-			case 'top':
-			case 'top_left':
-			case 'top_right': {
-				b0y += dy
-				break
-			}
-			case 'bottom':
-			case 'bottom_left':
-			case 'bottom_right': {
-				b1y += dy
-				break
-			}
-		}
-
-		const scaleX = (b1x - b0x) / (a1x - a0x)
-		const scaleY = (b1y - b0y) / (a1y - a0y)
-
-		const flipX = scaleX < 0
-		const flipY = scaleY < 0
-
-		/*
-    2. Aspect ratio
-    If the aspect ratio is locked, adjust the corners so that the
-    new box's aspect ratio matches the original aspect ratio.
-    */
-		if (isAspectRatioLocked) {
-			const aspectRatio = (a1x - a0x) / (a1y - a0y)
-			const bw = Math.abs(b1x - b0x)
-			const bh = Math.abs(b1y - b0y)
-			const tw = bw * (scaleY < 0 ? 1 : -1) * (1 / aspectRatio)
-			const th = bh * (scaleX < 0 ? 1 : -1) * aspectRatio
-			const isTall = aspectRatio < bw / bh
-
-			switch (handle) {
-				case 'top_left': {
-					if (isTall) b0y = b1y + tw
-					else b0x = b1x + th
-					break
-				}
-				case 'top_right': {
-					if (isTall) b0y = b1y + tw
-					else b1x = b0x - th
-					break
-				}
-				case 'bottom_right': {
-					if (isTall) b1y = b0y - tw
-					else b1x = b0x - th
-					break
-				}
-				case 'bottom_left': {
-					if (isTall) b1y = b0y - tw
-					else b0x = b1x + th
-					break
-				}
-				case 'bottom':
-				case 'top': {
-					const m = (b0x + b1x) / 2
-					const w = bh * aspectRatio
-					b0x = m - w / 2
-					b1x = m + w / 2
-					break
-				}
-				case 'left':
-				case 'right': {
-					const m = (b0y + b1y) / 2
-					const h = bw / aspectRatio
-					b0y = m - h / 2
-					b1y = m + h / 2
-					break
-				}
-			}
-		}
-
-		if (flipX) {
-			const t = b1x
-			b1x = b0x
-			b0x = t
-		}
-
-		if (flipY) {
-			const t = b1y
-			b1y = b0y
-			b0y = t
-		}
-
-		const final = new Box(b0x, b0y, Math.abs(b1x - b0x), Math.abs(b1y - b0y))
-
-		return {
-			box: final,
-			scaleX: +((final.width / box.width) * (scaleX > 0 ? 1 : -1)).toFixed(5),
-			scaleY: +((final.height / box.height) * (scaleY > 0 ? 1 : -1)).toFixed(5),
-		}
+		const clone = new Box(box.x, box.y, box.w, box.h)
+		const { scaleX, scaleY } = clone.resize(handle, dx, dy, isAspectRatioLocked)
+		return { box: clone, scaleX, scaleY }
 	}
 
 	equals(other: Box | BoxModel) {

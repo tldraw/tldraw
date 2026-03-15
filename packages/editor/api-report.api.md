@@ -357,7 +357,10 @@ export class Box {
         scaleY: number;
     };
     // (undocumented)
-    resize(handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number): void;
+    resize(handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number, isAspectRatioLocked?: boolean): {
+        scaleX: number;
+        scaleY: number;
+    };
     // (undocumented)
     get right(): number;
     // (undocumented)
@@ -1958,10 +1961,6 @@ export class Group2d extends Geometry2d {
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind(): boolean;
-    // (undocumented)
-    canResize(): boolean;
-    // (undocumented)
-    canResizeChildren(): boolean;
     // (undocumented)
     component(shape: TLGroupShape): JSX.Element | null;
     // (undocumented)
