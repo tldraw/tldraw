@@ -5,7 +5,7 @@ import { Mat } from '../primitives/Mat'
 import { canonicalizeRotation } from '../primitives/utils'
 import { Vec, VecLike } from '../primitives/Vec'
 
-/** @internal */
+/** @public */
 export function getRotationSnapshot({
 	editor,
 	ids,
@@ -41,9 +41,7 @@ export function getRotationSnapshot({
 	}
 }
 
-/**
- * @internal
- **/
+/** @public */
 export interface TLRotationSnapshot {
 	initialPageCenter: Vec
 	initialCursorAngle: number
@@ -54,7 +52,7 @@ export interface TLRotationSnapshot {
 	}[]
 }
 
-/** @internal */
+/** @public */
 export function applyRotationToSnapshotShapes({
 	delta,
 	editor,

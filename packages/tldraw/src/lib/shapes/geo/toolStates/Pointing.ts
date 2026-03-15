@@ -46,14 +46,11 @@ export class Pointing extends StateNode {
 				return
 			}
 
-			this.editor.setCurrentTool('select.resizing', {
-				...info,
-				target: 'selection',
+			this.parent.transition('resizing', {
+				info,
 				handle: 'bottom_right',
-				isCreating: true,
-				creatingMarkId,
+				markId: creatingMarkId,
 				creationCursorOffset: { x: 1, y: 1 },
-				onInteractionEnd: 'geo',
 			})
 		}
 	}

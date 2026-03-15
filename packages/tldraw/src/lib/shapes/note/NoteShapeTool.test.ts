@@ -92,13 +92,13 @@ describe('When in the pointing state', () => {
 		editor.expectToBeIn('note.idle')
 	})
 
-	it('Enters the select.translating state on drag start', () => {
+	it('Enters the note.translating state on drag start', () => {
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(51, 51) // not far enough!
 		editor.expectToBeIn('note.pointing')
 		editor.pointerMove(55, 55)
-		editor.expectToBeIn('select.translating')
+		editor.expectToBeIn('note.translating')
 	})
 
 	it('Returns to the note tool on cancel from translating', () => {

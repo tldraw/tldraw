@@ -1,23 +1,16 @@
 import {
 	RotateCorner,
+	RotateInteraction,
 	StateNode,
 	TLPointerEventInfo,
-	TLRotationSnapshot,
-	applyRotationToSnapshotShapes,
-	degreesToRadians,
-	getRotationSnapshot,
 	kickoutOccludedShapes,
-	shortAngleDist,
-	snapAngle,
 } from '@tldraw/editor'
 import { CursorTypeMap } from './PointingResizeHandle'
-
-const ONE_DEGREE = Math.PI / 180
 
 export class Rotating extends StateNode {
 	static override id = 'rotating'
 
-	snapshot = {} as TLRotationSnapshot
+	interaction = new RotateInteraction(this.editor)
 
 	info = {} as Extract<TLPointerEventInfo, { target: 'selection' }> & {
 		onInteractionEnd?: string | (() => void)
@@ -28,7 +21,6 @@ export class Rotating extends StateNode {
 	override onEnter(
 		info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string | (() => void) }
 	) {
-		// Store the event information
 		this.info = info
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
@@ -36,40 +28,33 @@ export class Rotating extends StateNode {
 
 		this.markId = this.editor.markHistoryStoppingPoint('rotate start')
 
-		const snapshot = getRotationSnapshot({
-			editor: this.editor,
+		// Create snapshot first (without applying rotation yet)
+		const started = this.interaction.start({
 			ids: this.editor.getSelectedShapeIds(),
 		})
-		if (!snapshot) {
+		if (!started) {
 			this.parent.transition('idle', this.info)
 			return
 		}
-		this.snapshot = snapshot
 
-		// Trigger a pointer move
-		const newSelectionRotation = this._getRotationFromPointerPosition({
+		// Compute initial delta from pointer position (needs snapshot to exist)
+		const newSelectionRotation = this.interaction.getRotationDelta({
 			snapToNearestDegree: false,
 		})
 
-		applyRotationToSnapshotShapes({
-			editor: this.editor,
-			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: false }),
-			snapshot: this.snapshot,
-			stage: 'start',
-		})
+		// Apply the start stage with the computed delta (fires onRotateStart + onRotate)
+		this.interaction.applyStart(newSelectionRotation)
 
 		// Update cursor
 		this.editor.setCursor({
 			type: CursorTypeMap[this.info.handle as RotateCorner],
-			rotation: newSelectionRotation + this.snapshot.initialShapesRotation,
+			rotation: newSelectionRotation + (this.interaction.snapshot?.initialShapesRotation ?? 0),
 		})
 	}
 
 	override onExit() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.parent.setCurrentToolIdMask(undefined)
-
-		this.snapshot = {} as TLRotationSnapshot
 	}
 
 	override onPointerMove() {
@@ -99,37 +84,20 @@ export class Rotating extends StateNode {
 	// ---
 
 	private update() {
-		const newSelectionRotation = this._getRotationFromPointerPosition({
-			snapToNearestDegree: false,
-		})
-
-		applyRotationToSnapshotShapes({
-			editor: this.editor,
-			delta: newSelectionRotation,
-			snapshot: this.snapshot,
-			stage: 'update',
-		})
+		const delta = this.interaction.getRotationDelta({ snapToNearestDegree: false })
+		this.interaction.update({ delta })
 
 		// Update cursor
 		this.editor.setCursor({
 			type: CursorTypeMap[this.info.handle as RotateCorner],
-			rotation: newSelectionRotation + this.snapshot.initialShapesRotation,
+			rotation: delta + (this.interaction.snapshot?.initialShapesRotation ?? 0),
 		})
 	}
 
 	private cancel() {
-		// Call onRotateCancel callback before bailing to mark
-		const { shapeSnapshots } = this.snapshot
-
-		shapeSnapshots.forEach(({ shape }) => {
-			const current = this.editor.getShape(shape.id)
-			if (current) {
-				const util = this.editor.getShapeUtil(shape)
-				util.onRotateCancel?.(shape, current)
-			}
-		})
-
+		this.interaction.cancel()
 		this.editor.bailToMark(this.markId)
+
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {
 			if (typeof onInteractionEnd === 'string') {
@@ -143,16 +111,14 @@ export class Rotating extends StateNode {
 	}
 
 	private complete() {
-		applyRotationToSnapshotShapes({
-			editor: this.editor,
-			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: true }),
-			snapshot: this.snapshot,
-			stage: 'end',
-		})
-		kickoutOccludedShapes(
-			this.editor,
-			this.snapshot.shapeSnapshots.map((s) => s.shape.id)
-		)
+		const delta = this.interaction.getRotationDelta({ snapToNearestDegree: true })
+		const shapeIds =
+			this.interaction.snapshot?.shapeSnapshots.map((s) => s.shape.id) ??
+			this.editor.getSelectedShapeIds()
+		this.interaction.complete({ delta })
+
+		kickoutOccludedShapes(this.editor, shapeIds)
+
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {
 			if (typeof onInteractionEnd === 'string') {
@@ -163,31 +129,5 @@ export class Rotating extends StateNode {
 			return
 		}
 		this.parent.transition('idle', this.info)
-	}
-
-	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {
-		const shiftKey = this.editor.inputs.getShiftKey()
-		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
-		const { initialCursorAngle, initialShapesRotation, initialPageCenter } = this.snapshot
-
-		// The delta is the difference between the current angle and the initial angle
-		const preSnapRotationDelta = initialPageCenter.angle(currentPagePoint) - initialCursorAngle
-		let newSelectionRotation = initialShapesRotation + preSnapRotationDelta
-
-		if (shiftKey) {
-			newSelectionRotation = snapAngle(newSelectionRotation, 24)
-		} else if (snapToNearestDegree) {
-			newSelectionRotation = Math.round(newSelectionRotation / ONE_DEGREE) * ONE_DEGREE
-
-			if (this.editor.getInstanceState().isCoarsePointer) {
-				const snappedToRightAngle = snapAngle(newSelectionRotation, 4)
-				const angleToRightAngle = shortAngleDist(newSelectionRotation, snappedToRightAngle)
-				if (Math.abs(angleToRightAngle) < degreesToRadians(5)) {
-					newSelectionRotation = snappedToRightAngle
-				}
-			}
-		}
-
-		return newSelectionRotation - initialShapesRotation
 	}
 }
