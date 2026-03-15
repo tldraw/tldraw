@@ -520,6 +520,31 @@ export class Driver {
 		return this
 	}
 
+	private _pinch(
+		name: TLPinchEventInfo['name'],
+		x = this.editor.inputs.getCurrentScreenPoint().x,
+		y = this.editor.inputs.getCurrentScreenPoint().y,
+		z: number,
+		dx: number,
+		dy: number,
+		dz: number,
+		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
+	) {
+		this.editor.dispatch({
+			type: 'pinch',
+			name,
+			shiftKey: this.editor.inputs.getShiftKey(),
+			ctrlKey: this.editor.inputs.getCtrlKey(),
+			altKey: this.editor.inputs.getAltKey(),
+			metaKey: this.editor.inputs.getMetaKey(),
+			accelKey: isAccelKey(this.editor.inputs),
+			...options,
+			point: { x, y, z },
+			delta: { x: dx, y: dy, z: dz },
+		})
+		return this
+	}
+
 	/**
 	 * Dispatches a pinch start event.
 	 * @param x - Screen x coordinate. Defaults to current pointer.
@@ -539,18 +564,7 @@ export class Driver {
 		dz: number,
 		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
 	) {
-		this.editor.dispatch({
-			type: 'pinch',
-			name: 'pinch_start',
-			shiftKey: this.editor.inputs.getShiftKey(),
-			ctrlKey: this.editor.inputs.getCtrlKey(),
-			altKey: this.editor.inputs.getAltKey(),
-			metaKey: this.editor.inputs.getMetaKey(),
-			accelKey: isAccelKey(this.editor.inputs),
-			...options,
-			point: { x, y, z },
-			delta: { x: dx, y: dy, z: dz },
-		})
+		this._pinch('pinch_start', x, y, z, dx, dy, dz, options)
 		this.forceTick()
 		return this
 	}
@@ -574,18 +588,7 @@ export class Driver {
 		dz: number,
 		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
 	) {
-		this.editor.dispatch({
-			type: 'pinch',
-			name: 'pinch',
-			shiftKey: this.editor.inputs.getShiftKey(),
-			ctrlKey: this.editor.inputs.getCtrlKey(),
-			altKey: this.editor.inputs.getAltKey(),
-			metaKey: this.editor.inputs.getMetaKey(),
-			accelKey: isAccelKey(this.editor.inputs),
-			...options,
-			point: { x, y, z },
-			delta: { x: dx, y: dy, z: dz },
-		})
+		this._pinch('pinch', x, y, z, dx, dy, dz, options)
 		return this
 	}
 
@@ -608,18 +611,7 @@ export class Driver {
 		dz: number,
 		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
 	) {
-		this.editor.dispatch({
-			type: 'pinch',
-			name: 'pinch_end',
-			shiftKey: this.editor.inputs.getShiftKey(),
-			ctrlKey: this.editor.inputs.getCtrlKey(),
-			altKey: this.editor.inputs.getAltKey(),
-			metaKey: this.editor.inputs.getMetaKey(),
-			accelKey: isAccelKey(this.editor.inputs),
-			...options,
-			point: { x, y, z },
-			delta: { x: dx, y: dy, z: dz },
-		})
+		this._pinch('pinch_end', x, y, z, dx, dy, dz, options)
 		this.forceTick()
 		return this
 	}
