@@ -1,6 +1,6 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { createTLSchema, TLStoreSnapshot } from '@tldraw/tlschema'
-import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
+import { structuredClone } from '@tldraw/utils'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
@@ -137,11 +137,10 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
  * })
  *
  * // Update document programmatically
- * await room.updateStore(store => {
- *   const shape = store.get('shape:abc123')
+ * room.storage.transaction(txn => {
+ *   const shape = txn.get('shape:abc123')
  *   if (shape) {
- *     shape.x = 100
- *     store.put(shape)
+ *     txn.set(shape.id, { ...shape, x: 100 })
  *   }
  * })
  * ```
@@ -559,76 +558,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
-	 * Executes a transaction to modify the document store. Changes made within the
-	 * transaction are atomic and will be synchronized to all connected clients.
-	 * The transaction provides isolation from concurrent changes until it commits.
-	 *
-	 * @param updater - Function that receives store methods to make changes
-	 *   - store.get(id) - Retrieve a record (safe to mutate, but must call put() to commit)
-	 *   - store.put(record) - Save a modified record
-	 *   - store.getAll() - Get all records in the store
-	 *   - store.delete(id) - Remove a record from the store
-	 * @returns Promise that resolves when the transaction completes
-	 *
-	 * @example
-	 * ```ts
-	 * // Update multiple shapes in a single transaction
-	 * await room.updateStore(store => {
-	 *   const shape1 = store.get('shape:abc123')
-	 *   const shape2 = store.get('shape:def456')
-	 *
-	 *   if (shape1) {
-	 *     shape1.x = 100
-	 *     store.put(shape1)
-	 *   }
-	 *
-	 *   if (shape2) {
-	 *     shape2.meta.approved = true
-	 *     store.put(shape2)
-	 *   }
-	 * })
-	 * ```
-	 *
-	 * @example
-	 * ```ts
-	 * // Async transaction with external API call
-	 * await room.updateStore(async store => {
-	 *   const doc = store.get('document:main')
-	 *   if (doc) {
-	 *     doc.lastModified = await getCurrentTimestamp()
-	 *     store.put(doc)
-	 *   }
-	 * })
-	 * ```
-	 * @deprecated use the storage.transaction method instead
-	 */
-	// eslint-disable-next-line @typescript-eslint/no-deprecated
-	async updateStore(updater: (store: RoomStoreMethods<R>) => void | Promise<void>) {
-		if (this.isClosed()) {
-			throw new Error('Cannot update store on a closed room')
-		}
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		const ctx = new StoreUpdateContext<R>(
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			Object.fromEntries(this.getCurrentSnapshot().documents.map((d) => [d.state.id, d.state])),
-			this.room.schema
-		)
-		try {
-			await updater(ctx)
-		} finally {
-			ctx.close()
-		}
-		this.storage.transaction((txn) => {
-			for (const [id, record] of Object.entries(ctx.updates.puts)) {
-				txn.set(id, record as R)
-			}
-			for (const id of ctx.updates.deletes) {
-				txn.delete(id)
-			}
-		})
-	}
-
-	/**
 	 * Sends a custom message to a specific client session. This allows sending
 	 * application-specific data that doesn't modify the document state, such as
 	 * notifications, chat messages, or custom commands.
@@ -746,20 +675,6 @@ export type OmitVoid<T, KS extends keyof T = keyof T> = {
 }
 
 /**
- * Interface for making transactional changes to room store data. Used within
- * updateStore transactions to modify documents atomically.
- *
- * @example
- * ```ts
- * await room.updateStore((store) => {
- *   const shape = store.get('shape:123')
- *   if (shape) {
- *     store.put({ ...shape, x: shape.x + 10 })
- *   }
- *   store.delete('shape:456')
- * })
- * ```
- *
  * @public
  * @deprecated use the storage.transaction method instead
  */
@@ -789,69 +704,4 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
 	 * @returns Array of all records
 	 */
 	getAll(): R[]
-}
-
-/**
- * @deprecated use the storage.transaction method instead
- */
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-class StoreUpdateContext<R extends UnknownRecord> implements RoomStoreMethods<R> {
-	constructor(
-		private readonly snapshot: Record<string, UnknownRecord>,
-		private readonly schema: StoreSchema<R, any>
-	) {}
-	readonly updates = {
-		puts: {} as Record<string, UnknownRecord>,
-		deletes: new Set<string>(),
-	}
-	put(record: R): void {
-		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
-		const recordType = getOwnProperty(this.schema.types, record.typeName)
-		if (!recordType) {
-			throw new Error(`Missing definition for record type ${record.typeName}`)
-		}
-		const recordBefore = this.snapshot[record.id] ?? undefined
-		recordType.validate(record, recordBefore as R)
-
-		if (record.id in this.snapshot && isEqual(this.snapshot[record.id], record)) {
-			delete this.updates.puts[record.id]
-		} else {
-			this.updates.puts[record.id] = structuredClone(record)
-		}
-		this.updates.deletes.delete(record.id)
-	}
-	delete(recordOrId: R | string): void {
-		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
-		const id = typeof recordOrId === 'string' ? recordOrId : recordOrId.id
-		delete this.updates.puts[id]
-		if (this.snapshot[id]) {
-			this.updates.deletes.add(id)
-		}
-	}
-	get(id: string): R | null {
-		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
-		if (hasOwnProperty(this.updates.puts, id)) {
-			return structuredClone(this.updates.puts[id]) as R
-		}
-		if (this.updates.deletes.has(id)) {
-			return null
-		}
-		return structuredClone(this.snapshot[id] ?? null) as R
-	}
-
-	getAll(): R[] {
-		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
-		const result = Object.values(this.updates.puts)
-		for (const [id, record] of Object.entries(this.snapshot)) {
-			if (!this.updates.deletes.has(id) && !hasOwnProperty(this.updates.puts, id)) {
-				result.push(record)
-			}
-		}
-		return structuredClone(result) as R[]
-	}
-
-	private _isClosed = false
-	close() {
-		this._isClosed = true
-	}
 }

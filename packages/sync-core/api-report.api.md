@@ -292,7 +292,7 @@ export interface RoomSnapshot {
     tombstones?: Record<string, number>;
 }
 
-// @public @deprecated
+// @public @deprecated (undocumented)
 export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
     delete(recordOrId: R | string): void;
     get(id: string): null | R;
@@ -462,8 +462,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     sendCustomMessage(sessionId: string, data: any): void;
     // (undocumented)
     storage: TLSyncStorage<R>;
-    // @deprecated
-    updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
 // @public
