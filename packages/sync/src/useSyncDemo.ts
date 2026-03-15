@@ -6,6 +6,7 @@ import {
 	Signal,
 	TLAsset,
 	TLAssetStore,
+	TLBookmarkAsset,
 	TLPresenceStateInfo,
 	TLPresenceUserInfo,
 	TLStore,
@@ -281,46 +282,33 @@ function createDemoAssetStore(host: string): TLAssetStore {
  */
 async function createAssetFromUrlUsingDemoServer(host: string, url: string): Promise<TLAsset> {
 	const urlHash = getHashForString(url)
+
+	type BookmarkMeta = Pick<
+		TLBookmarkAsset['props'],
+		'description' | 'image' | 'favicon' | 'title'
+	> | null
+
+	let meta: BookmarkMeta = null
+
 	try {
-		// First, try to get the meta data from our endpoint
 		const fetchUrl = new URL(`${host}/bookmarks/unfurl`)
 		fetchUrl.searchParams.set('url', url)
-
-		const meta = (await (await fetch(fetchUrl, { method: 'POST' })).json()) as {
-			description?: string
-			image?: string
-			favicon?: string
-			title?: string
-		} | null
-
-		return {
-			id: AssetRecordType.createId(urlHash),
-			typeName: 'asset',
-			type: 'bookmark',
-			props: {
-				src: url,
-				description: meta?.description ?? '',
-				image: meta?.image ?? '',
-				favicon: meta?.favicon ?? '',
-				title: meta?.title ?? '',
-			},
-			meta: {},
-		}
+		meta = (await fetch(fetchUrl, { method: 'POST' }).then((d) => d.json())) as BookmarkMeta
 	} catch (error) {
-		// Otherwise, fallback to a blank bookmark
 		console.error(error)
-		return {
-			id: AssetRecordType.createId(urlHash),
-			typeName: 'asset',
-			type: 'bookmark',
-			props: {
-				src: url,
-				description: '',
-				image: '',
-				favicon: '',
-				title: '',
-			},
-			meta: {},
-		}
+	}
+
+	return {
+		id: AssetRecordType.createId(urlHash),
+		typeName: 'asset',
+		type: 'bookmark',
+		props: {
+			src: url,
+			description: meta?.description ?? '',
+			image: meta?.image ?? '',
+			favicon: meta?.favicon ?? '',
+			title: meta?.title ?? '',
+		},
+		meta: {},
 	}
 }

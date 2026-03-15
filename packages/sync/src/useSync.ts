@@ -234,10 +234,6 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				TLSocketServerSentEvent<TLRecord>
 			>
 		} else if (uri) {
-			if (connect) {
-				throw new Error('uri and connect cannot be used together')
-			}
-
 			socket = new ClientWebSocketAdapter(async () => {
 				const uriString = typeof uri === 'string' ? uri : await uri()
 
