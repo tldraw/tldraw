@@ -163,6 +163,8 @@ export {
 export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
 export {
 	TextManager,
+	type BatchMeasurementRequest,
+	type TLMeasuredTextSize,
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
