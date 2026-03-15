@@ -5,17 +5,21 @@ import {
 	MatModel,
 	PageRecordType,
 	StateNode,
+	TLArrowShapeProps,
 	TLNoteShape,
 	TLPointerEventInfo,
 	TLShape,
+	TLShapeId,
 	TLShapePartial,
 	TLTickEventInfo,
 	Vec,
 	bind,
 	compact,
+	createShapeId,
 	isPageId,
 	kickoutOccludedShapes,
 } from '@tldraw/editor'
+import { createOrUpdateArrowBinding } from '../../../shapes/arrow/shared'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
 	NOTE_CENTER_OFFSET,
@@ -43,6 +47,9 @@ export class Translating extends StateNode {
 	markId = ''
 
 	isCloning = false
+	isArrowConnecting = false
+	cloneArrowIds: TLShapeId[] = []
+	cloneSourceMap = new Map<TLShapeId, TLShapeId>() // cloneId -> originalId, used so we can bind connector arrows to the correct shapes
 	isCreating = false
 	onCreate(_shape: TLShape | null): void {
 		return
@@ -107,6 +114,9 @@ export class Translating extends StateNode {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
+		this.isArrowConnecting = false
+		this.cloneArrowIds = []
+		this.cloneSourceMap.clear()
 		this.editor.snaps.clearIndicators()
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.dragAndDropManager.clear()
@@ -128,6 +138,10 @@ export class Translating extends StateNode {
 			if (this.isCloning) return
 		}
 
+		if (this.isCloning && this.editor.inputs.getCtrlKey() && !this.isArrowConnecting) {
+			this.startArrowConnecting()
+		}
+
 		// need to update in case user pressed a different modifier key
 		this.updateShapes()
 	}
@@ -136,6 +150,10 @@ export class Translating extends StateNode {
 		if (!this.editor.inputs.getAltKey() && this.isCloning) {
 			this.stopCloning()
 			return
+		}
+
+		if (!this.editor.inputs.getCtrlKey() && this.isArrowConnecting) {
+			this.stopArrowConnecting()
 		}
 
 		// need to update in case user pressed a different modifier key
@@ -156,16 +174,42 @@ export class Translating extends StateNode {
 
 	protected startCloning() {
 		if (this.isCreating) return
-		const shapeIds = Array.from(this.editor.getSelectedShapeIds())
+
+		// we only want to clone unlocked shapes
+		let unlockedSelectedIds = this.editor
+			.getSelectedShapeIds()
+			.filter((id) => !this.editor.isShapeOrAncestorLocked(id))
 
 		// If we can't create the shapes, don't even start cloning
-		if (!this.editor.canCreateShapes(shapeIds)) return
+		if (!this.editor.canCreateShapes(unlockedSelectedIds)) return
 
 		this.isCloning = true
 		this.reset()
 		this.markId = this.editor.markHistoryStoppingPoint('translate cloning')
 
-		this.editor.duplicateShapes(Array.from(this.editor.getSelectedShapeIds()))
+		// recalculate unlocked selected shapes because this might have been changed by this.reset()
+		unlockedSelectedIds = this.editor
+			.getSelectedShapeIds()
+			.filter((id) => !this.editor.isShapeOrAncestorLocked(id))
+
+		this.editor.duplicateShapes(unlockedSelectedIds)
+
+		// After duplication, selection contains the clones so we can build the map of cloneId -> originalId
+		const cloneIds = Array.from(this.editor.getSelectedShapeIds()).filter(
+			(id) => !this.editor.isShapeOrAncestorLocked(id)
+		)
+		this.cloneSourceMap.clear()
+		for (let i = 0; i < unlockedSelectedIds.length; i++) {
+			const cloneId = cloneIds[i]
+			const originalId = unlockedSelectedIds[i]
+			if (cloneId && originalId) {
+				this.cloneSourceMap.set(cloneId, originalId)
+			}
+		}
+
+		if (this.isCloning && this.editor.inputs.getCtrlKey() && !this.isArrowConnecting) {
+			this.startArrowConnecting()
+		}
 
 		this.snapshot = getTranslatingSnapshot(this.editor)
 		this.handleStart()
@@ -173,11 +217,94 @@ export class Translating extends StateNode {
 	}
 
 	protected stopCloning() {
+		this.isArrowConnecting = false
+		this.cloneArrowIds = []
+		this.cloneSourceMap.clear()
 		this.isCloning = false
 		this.snapshot = this.selectionSnapshot
 		this.reset()
 		this.markId = this.editor.markHistoryStoppingPoint('translate')
 		this.updateShapes()
+	}
+
+	protected startArrowConnecting() {
+		if (!this.isCloning || this.isArrowConnecting) return
+
+		// Check we can create the arrow shapes
+		const arrowCount = this.cloneSourceMap.size
+		const placeholders = Array.from({ length: arrowCount }, () => ({ type: 'arrow' as const }))
+		if (!this.editor.canCreateShapes(placeholders)) return
+
+		this.isArrowConnecting = true
+		const arrowIds: TLShapeId[] = []
+
+		for (const [cloneId, originalId] of this.cloneSourceMap) {
+			const originalShape = this.editor.getShape(originalId)
+			if (!originalShape) continue
+
+			const cloneShape = this.editor.getShape(cloneId)
+			if (!cloneShape) continue
+
+			if (
+				!this.editor.canBindShapes({
+					fromShape: { type: 'arrow' },
+					toShape: originalShape,
+					binding: 'arrow',
+				}) ||
+				!this.editor.canBindShapes({
+					fromShape: { type: 'arrow' },
+					toShape: cloneShape,
+					binding: 'arrow',
+				})
+			) {
+				continue
+			}
+
+			const styleOverrides = {
+				...this.editor.getShapeUtil('arrow').getDefaultProps(),
+				...getValidArrowStyleOverridesFromShape(this.editor, originalShape),
+			}
+
+			const arrowId = createShapeId()
+
+			this.editor.createShape({
+				id: arrowId,
+				type: 'arrow',
+				x: 0,
+				y: 0,
+				props: { ...styleOverrides },
+			})
+
+			createOrUpdateArrowBinding(this.editor, arrowId, originalId, {
+				terminal: 'start',
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isExact: false,
+				isPrecise: false,
+				snap: 'none',
+			})
+
+			createOrUpdateArrowBinding(this.editor, arrowId, cloneId, {
+				terminal: 'end',
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isExact: false,
+				isPrecise: false,
+				snap: 'none',
+			})
+
+			arrowIds.push(arrowId)
+		}
+
+		this.cloneArrowIds = arrowIds
+	}
+
+	protected stopArrowConnecting() {
+		if (!this.isArrowConnecting) return
+		this.isArrowConnecting = false
+
+		if (this.cloneArrowIds.length > 0) {
+			this.editor.deleteShapes(this.cloneArrowIds)
+			this.cloneArrowIds = []
+		}
 	}
 
 	reset() {
@@ -454,6 +581,22 @@ export interface MovingShapeSnapshot {
 	pagePoint: Vec
 	pageRotation: number
 	parentTransform: MatModel | null
+}
+
+function getValidArrowStyleOverridesFromShape(
+	editor: Editor,
+	shape: TLShape
+): Partial<TLArrowShapeProps> {
+	const styleOverrides: Partial<TLArrowShapeProps> = {}
+
+	for (const [style, propKey] of editor.styleProps['arrow']) {
+		const value = editor.getShapeStyleIfExists(shape, style)
+		if (value !== undefined) {
+			styleOverrides[propKey as keyof TLArrowShapeProps] = value
+		}
+	}
+
+	return styleOverrides
 }
 
 export function moveShapesToPoint({
