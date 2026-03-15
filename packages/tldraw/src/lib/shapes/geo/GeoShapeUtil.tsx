@@ -346,7 +346,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				},
 			} as TLGeoShape)
 
-			const constrainedW = Math.max(absUnscaledW, unscaledLabelSize.w)
+			const constrainedW = Math.max(absUnscaledW, unscaledLabelSize.scrollWidth)
 			const constrainedH = Math.max(absUnscaledH, unscaledLabelSize.h)
 
 			overShrinkX = constrainedW - absUnscaledW
@@ -537,7 +537,7 @@ const EXTRA_PADDINGS = Object.freeze({
 	xl: 10,
 })
 
-const EMPTY_LABEL_SIZE = Object.freeze({ w: 0, h: 0 })
+const EMPTY_LABEL_SIZE = Object.freeze({ w: 0, h: 0, scrollWidth: 0 })
 
 // Margin between label edge and shape edge (in unscaled units)
 const LABEL_EDGE_MARGIN = 8
@@ -654,7 +654,10 @@ function expandShapeForFirstLabel(
 	return { w, h }
 }
 
-const labelSizesForGeo = new WeakCache<TLGeoShape, { w: number; h: number }>()
+const labelSizesForGeo = new WeakCache<
+	TLGeoShape,
+	{ w: number; h: number; scrollWidth: number }
+>()
 
 // Returns cached label size for the shape. Don't call with empty rich text.
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
@@ -688,5 +691,6 @@ function measureUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	return {
 		w: textSize.w + LABEL_PADDING * 2,
 		h: textSize.h + LABEL_PADDING * 2,
+		scrollWidth: Math.max(textSize.scrollWidth, textSize.w) + LABEL_PADDING * 2,
 	}
 }
