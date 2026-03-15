@@ -18,13 +18,6 @@ export class InputsManager {
 	getOriginPagePoint() {
 		return this._originPagePoint.get()
 	}
-	/**
-	 * @deprecated Use `getOriginPagePoint()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get originPagePoint() {
-		return this.getOriginPagePoint()
-	}
 
 	private _originScreenPoint = atom<Vec>('originScreenPoint', new Vec())
 	/**
@@ -32,13 +25,6 @@ export class InputsManager {
 	 */
 	getOriginScreenPoint() {
 		return this._originScreenPoint.get()
-	}
-	/**
-	 * @deprecated Use `getOriginScreenPoint()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get originScreenPoint() {
-		return this.getOriginScreenPoint()
 	}
 
 	private _previousPagePoint = atom<Vec>('previousPagePoint', new Vec())
@@ -48,13 +34,6 @@ export class InputsManager {
 	getPreviousPagePoint() {
 		return this._previousPagePoint.get()
 	}
-	/**
-	 * @deprecated Use `getPreviousPagePoint()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get previousPagePoint() {
-		return this.getPreviousPagePoint()
-	}
 
 	private _previousScreenPoint = atom<Vec>('previousScreenPoint', new Vec())
 	/**
@@ -62,13 +41,6 @@ export class InputsManager {
 	 */
 	getPreviousScreenPoint() {
 		return this._previousScreenPoint.get()
-	}
-	/**
-	 * @deprecated Use `getPreviousScreenPoint()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get previousScreenPoint() {
-		return this.getPreviousScreenPoint()
 	}
 
 	private _currentPagePoint = atom<Vec>('currentPagePoint', new Vec())
@@ -78,13 +50,6 @@ export class InputsManager {
 	getCurrentPagePoint() {
 		return this._currentPagePoint.get()
 	}
-	/**
-	 * @deprecated Use `getCurrentPagePoint()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentPagePoint() {
-		return this.getCurrentPagePoint()
-	}
 
 	private _currentScreenPoint = atom<Vec>('currentScreenPoint', new Vec())
 	/**
@@ -93,13 +58,6 @@ export class InputsManager {
 	getCurrentScreenPoint() {
 		return this._currentScreenPoint.get()
 	}
-	/**
-	 * @deprecated Use `getCurrentScreenPoint()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get currentScreenPoint() {
-		return this.getCurrentScreenPoint()
-	}
 
 	private _pointerVelocity = atom<Vec>('pointerVelocity', new Vec())
 	/**
@@ -107,13 +65,6 @@ export class InputsManager {
 	 */
 	getPointerVelocity() {
 		return this._pointerVelocity.get()
-	}
-	/**
-	 * @deprecated Use `getPointerVelocity()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get pointerVelocity() {
-		return this.getPointerVelocity()
 	}
 
 	/**
@@ -145,17 +96,6 @@ export class InputsManager {
 		return this._isPen.get()
 	}
 	/**
-	 * @deprecated Use `getIsPen()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get isPen() {
-		return this.getIsPen()
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	set isPen(isPen: boolean) {
-		this.setIsPen(isPen)
-	}
-	/**
 	 * @param isPen - Whether the input is from a pen.
 	 */
 	setIsPen(isPen: boolean) {
@@ -168,17 +108,6 @@ export class InputsManager {
 	 */
 	getShiftKey() {
 		return this._shiftKey.get()
-	}
-	/**
-	 * @deprecated Use `getShiftKey()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get shiftKey() {
-		return this.getShiftKey()
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	set shiftKey(shiftKey: boolean) {
-		this.setShiftKey(shiftKey)
 	}
 	/**
 	 * @param shiftKey - Whether the shift key is pressed.
@@ -196,17 +125,6 @@ export class InputsManager {
 		return this._metaKey.get()
 	}
 	/**
-	 * @deprecated Use `getMetaKey()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get metaKey() {
-		return this.getMetaKey()
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	set metaKey(metaKey: boolean) {
-		this.setMetaKey(metaKey)
-	}
-	/**
 	 * @param metaKey - Whether the meta key is pressed.
 	 * @internal
 	 */
@@ -220,17 +138,6 @@ export class InputsManager {
 	 */
 	getCtrlKey() {
 		return this._ctrlKey.get()
-	}
-	/**
-	 * @deprecated Use `getCtrlKey()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get ctrlKey() {
-		return this.getCtrlKey()
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	set ctrlKey(ctrlKey: boolean) {
-		this.setCtrlKey(ctrlKey)
 	}
 	/**
 	 * @param ctrlKey - Whether the ctrl key is pressed.
@@ -248,17 +155,6 @@ export class InputsManager {
 		return this._altKey.get()
 	}
 	/**
-	 * @deprecated Use `getAltKey()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get altKey() {
-		return this.getAltKey()
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	set altKey(altKey: boolean) {
-		this.setAltKey(altKey)
-	}
-	/**
 	 * @param altKey - Whether the alt key is pressed.
 	 * @internal
 	 */
@@ -272,13 +168,6 @@ export class InputsManager {
 	getAccelKey() {
 		return isAccelKey({ metaKey: this.getMetaKey(), ctrlKey: this.getCtrlKey() })
 	}
-	/**
-	 * @deprecated Use `getAccelKey()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get accelKey() {
-		return this.getAccelKey()
-	}
 
 	private _isDragging = atom<boolean>('isDragging', false)
 	/**
@@ -286,17 +175,6 @@ export class InputsManager {
 	 */
 	getIsDragging() {
 		return this._isDragging.get()
-	}
-	/**
-	 * Soon to be deprecated, use `getIsDragging()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get isDragging() {
-		return this.getIsDragging()
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	set isDragging(isDragging: boolean) {
-		this.setIsDragging(isDragging)
 	}
 	/**
 	 * @param isDragging - Whether the user is dragging.
@@ -311,17 +189,6 @@ export class InputsManager {
 	 */
 	getIsPointing() {
 		return this._isPointing.get()
-	}
-	/**
-	 * @deprecated Use `getIsPointing()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get isPointing() {
-		return this.getIsPointing()
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	set isPointing(isPointing: boolean) {
-		this.setIsPointing(isPointing)
 	}
 	/**
 	 * @param isPointing - Whether the user is pointing.
@@ -339,17 +206,6 @@ export class InputsManager {
 		return this._isPinching.get()
 	}
 	/**
-	 * @deprecated Use `getIsPinching()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get isPinching() {
-		return this.getIsPinching()
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	set isPinching(isPinching: boolean) {
-		this.setIsPinching(isPinching)
-	}
-	/**
 	 * @param isPinching - Whether the user is pinching.
 	 * @internal
 	 */
@@ -363,17 +219,6 @@ export class InputsManager {
 	 */
 	getIsEditing() {
 		return this._isEditing.get()
-	}
-	/**
-	 * @deprecated Use `getIsEditing()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get isEditing() {
-		return this.getIsEditing()
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	set isEditing(isEditing: boolean) {
-		this.setIsEditing(isEditing)
 	}
 	/**
 	 * @param isEditing - Whether the user is editing.
@@ -390,17 +235,6 @@ export class InputsManager {
 		return this._isPanning.get()
 	}
 	/**
-	 * @deprecated Use `getIsPanning()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get isPanning() {
-		return this.getIsPanning()
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	set isPanning(isPanning: boolean) {
-		this.setIsPanning(isPanning)
-	}
-	/**
 	 * @param isPanning - Whether the user is panning.
 	 * @internal
 	 */
@@ -414,17 +248,6 @@ export class InputsManager {
 	 */
 	getIsSpacebarPanning() {
 		return this._isSpacebarPanning.get()
-	}
-	/**
-	 * @deprecated Use `getIsSpacebarPanning()` instead.
-	 */
-	// eslint-disable-next-line no-restricted-syntax
-	get isSpacebarPanning() {
-		return this.getIsSpacebarPanning()
-	}
-	// eslint-disable-next-line no-restricted-syntax
-	set isSpacebarPanning(isSpacebarPanning: boolean) {
-		this.setIsSpacebarPanning(isSpacebarPanning)
 	}
 	/**
 	 * @param isSpacebarPanning - Whether the user is spacebar panning.

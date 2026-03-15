@@ -119,7 +119,7 @@ The `WebGLManager` has direct access to the tldraw editor instance, allowing you
 - Listen to shape changes: `this.editor.store.listen()`
 - Get camera state: `this.editor.getCamera()`
 - Convert coordinates: `this.editor.pageToViewport()`
-- Track pointer position: `this.editor.inputs.currentPagePoint`
+- Track pointer position: `this.editor.inputs.getCurrentPagePoint()`
 
 The fluid simulation example ([`src/fluid/FluidManager.ts`](src/fluid/FluidManager.ts)) demonstrates shape integration in depth.
 

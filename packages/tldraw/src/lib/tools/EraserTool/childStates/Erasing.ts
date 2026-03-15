@@ -1,11 +1,4 @@
-import {
-	Box,
-	StateNode,
-	TLPointerEventInfo,
-	TLShapeId,
-	isAccelKey,
-	pointInPolygon,
-} from '@tldraw/editor'
+import { Box, StateNode, TLPointerEventInfo, TLShapeId, pointInPolygon } from '@tldraw/editor'
 
 export class Erasing extends StateNode {
 	static override id = 'erasing'
@@ -20,7 +13,7 @@ export class Erasing extends StateNode {
 	_erasingShapeIds: TLShapeId[] = []
 
 	override onEnter(info: TLPointerEventInfo) {
-		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
+		this._isHoldingAccelKey = this.editor.inputs.getAccelKey()
 		this._firstErasingShapeId = this.editor.getErasingShapeIds()[0] // the first one should be the first one we hit... is it?
 		this._erasingShapeIds = this.editor.getErasingShapeIds()
 
@@ -85,12 +78,12 @@ export class Erasing extends StateNode {
 	}
 
 	override onKeyUp() {
-		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
+		this._isHoldingAccelKey = this.editor.inputs.getAccelKey()
 		this.update()
 	}
 
 	override onKeyDown() {
-		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
+		this._isHoldingAccelKey = this.editor.inputs.getAccelKey()
 		this.update()
 	}
 
