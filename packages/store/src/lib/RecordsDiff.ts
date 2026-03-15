@@ -107,11 +107,13 @@ export function reverseRecordsDiff(diff: RecordsDiff<any>) {
  * @public
  */
 export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>) {
-	return (
-		Object.keys(diff.added).length === 0 &&
-		Object.keys(diff.updated).length === 0 &&
-		Object.keys(diff.removed).length === 0
-	)
+	// eslint-disable-next-line no-unreachable-loop
+	for (const _ in diff.added) return false
+	// eslint-disable-next-line no-unreachable-loop
+	for (const _ in diff.updated) return false
+	// eslint-disable-next-line no-unreachable-loop
+	for (const _ in diff.removed) return false
+	return true
 }
 
 /**
@@ -204,45 +206,60 @@ export function squashRecordDiffsMutable<T extends UnknownRecord>(
 	diffs: RecordsDiff<T>[]
 ): void {
 	for (const diff of diffs) {
-		for (const [id, value] of objectMapEntries(diff.added)) {
-			if (target.removed[id]) {
-				const original = target.removed[id]
-				delete target.removed[id]
-				if (original !== value) {
-					target.updated[id] = [original, value]
-				}
-			} else {
-				target.added[id] = value
-			}
-		}
+		applyDiffToTarget(target, diff)
+	}
+}
 
-		for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
-			if (target.added[id]) {
-				target.added[id] = to
-				delete target.updated[id]
-				delete target.removed[id]
-				continue
-			}
-			if (target.updated[id]) {
-				target.updated[id] = [target.updated[id][0], to]
-				delete target.removed[id]
-				continue
-			}
-
-			target.updated[id] = diff.updated[id]
+/**
+ * Applies a single diff to a target diff by mutating the target in-place.
+ * This avoids the need to wrap a single diff in an array when only one diff is being applied.
+ *
+ * @param target - The diff to modify in-place (will be mutated)
+ * @param diff - The diff to apply to the target
+ * @internal
+ */
+export function applyDiffToTarget<T extends UnknownRecord>(
+	target: RecordsDiff<T>,
+	diff: RecordsDiff<T>
+): void {
+	for (const [id, value] of objectMapEntries(diff.added)) {
+		if (target.removed[id]) {
+			const original = target.removed[id]
 			delete target.removed[id]
+			if (original !== value) {
+				target.updated[id] = [original, value]
+			}
+		} else {
+			target.added[id] = value
+		}
+	}
+
+	for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
+		if (target.added[id]) {
+			target.added[id] = to
+			delete target.updated[id]
+			delete target.removed[id]
+			continue
+		}
+		if (target.updated[id]) {
+			target.updated[id] = [target.updated[id][0], to]
+			delete target.removed[id]
+			continue
 		}
 
-		for (const [id, value] of objectMapEntries(diff.removed)) {
-			// the same record was added in this diff sequence, just drop it
-			if (target.added[id]) {
-				delete target.added[id]
-			} else if (target.updated[id]) {
-				target.removed[id] = target.updated[id][0]
-				delete target.updated[id]
-			} else {
-				target.removed[id] = value
-			}
+		target.updated[id] = diff.updated[id]
+		delete target.removed[id]
+	}
+
+	for (const [id, value] of objectMapEntries(diff.removed)) {
+		// the same record was added in this diff sequence, just drop it
+		if (target.added[id]) {
+			delete target.added[id]
+		} else if (target.updated[id]) {
+			target.removed[id] = target.updated[id][0]
+			delete target.updated[id]
+		} else {
+			target.removed[id] = value
 		}
 	}
 }

@@ -11,6 +11,9 @@ import { Result } from '@tldraw/utils';
 import { Signal } from '@tldraw/state';
 import { UNINITIALIZED } from '@tldraw/state';
 
+// @internal
+export function applyDiffToTarget<T extends UnknownRecord>(target: RecordsDiff<T>, diff: RecordsDiff<T>): void;
+
 // @public
 export function assertIdType<R extends UnknownRecord>(id: string | undefined, type: RecordType<R, any>): asserts id is IdOf<R>;
 
