@@ -21,10 +21,11 @@ export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionFore
 		? editor.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
 		: 0
 
-	bounds =
-		expandOutlineBy instanceof Box
+	const expandedBounds = expandOutlineBy
+		? expandOutlineBy instanceof Box
 			? bounds.clone().expand(expandOutlineBy).zeroFix()
 			: bounds.clone().expandBy(expandOutlineBy).zeroFix()
+		: bounds
 
 	return (
 		<svg
@@ -36,8 +37,8 @@ export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionFore
 		>
 			<rect
 				className={classNames('tl-selection__fg__outline')}
-				width={toDomPrecision(bounds.width)}
-				height={toDomPrecision(bounds.height)}
+				width={toDomPrecision(expandedBounds.width)}
+				height={toDomPrecision(expandedBounds.height)}
 			/>
 		</svg>
 	)
