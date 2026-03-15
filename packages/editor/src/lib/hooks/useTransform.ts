@@ -26,5 +26,5 @@ export function useTransform(
 			trans += ` translate(${additionalOffset.x}px, ${additionalOffset.y}px)`
 		}
 		elm.style.transform = trans
-	})
+	}, [ref, x, y, scale, rotate, additionalOffset?.x, additionalOffset?.y])
 }
