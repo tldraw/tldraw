@@ -56,11 +56,9 @@ export class ArraySet<T> {
 	 */
 	add(elem: T) {
 		if (this.array) {
-			const idx = this.array.indexOf(elem)
-
-			// Return false if the element is already in the array.
-			if (idx !== -1) {
-				return false
+			// Bounded search - only check populated slots
+			for (let i = 0; i < this.arraySize; i++) {
+				if (this.array[i] === elem) return false
 			}
 
 			if (this.arraySize < ARRAY_SIZE_THRESHOLD) {
@@ -110,7 +108,14 @@ export class ArraySet<T> {
 	 */
 	remove(elem: T) {
 		if (this.array) {
-			const idx = this.array.indexOf(elem)
+			// Bounded search - only check populated slots
+			let idx = -1
+			for (let i = 0; i < this.arraySize; i++) {
+				if (this.array[i] === elem) {
+					idx = i
+					break
+				}
+			}
 
 			// If the item is not in the array, return false.
 			if (idx === -1) {
@@ -230,7 +235,11 @@ export class ArraySet<T> {
 	 */
 	has(elem: T) {
 		if (this.array) {
-			return this.array.indexOf(elem) !== -1
+			// Bounded search - only check populated slots
+			for (let i = 0; i < this.arraySize; i++) {
+				if (this.array[i] === elem) return true
+			}
+			return false
 		} else {
 			return this.set!.has(elem)
 		}
@@ -252,9 +261,13 @@ export class ArraySet<T> {
 	clear() {
 		if (this.set) {
 			this.set.clear()
-		} else {
+		} else if (this.array) {
+			// Reuse the existing array to avoid allocation.
+			// Fill used slots with undefined to release references.
+			for (let i = 0; i < this.arraySize; i++) {
+				this.array[i] = undefined
+			}
 			this.arraySize = 0
-			this.array = []
 		}
 	}
 
