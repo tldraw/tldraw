@@ -66,27 +66,31 @@ function createShapes() {
 		{ id: ids.A, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 		{ id: ids.B, type: 'frame', x: 200, y: 200, props: { w: 300, h: 300 } },
 		{ id: ids.C, type: 'geo', x: 200, y: 200, parentId: ids.B, props: { w: 50, h: 50 } },
-		{ id: ids.D, type: 'geo', x: 1000, y: 1000, parentId: ids.B, props: { w: 50, h: 50 } },
+		// D is placed far outside the viewport (in a different grid cell)
+		// page pos = (200+3000, 200+3000) = (3200, 3200), cell 6:6
+		{ id: ids.D, type: 'geo', x: 3000, y: 3000, parentId: ids.B, props: { w: 50, h: 50 } },
 	])
 	return ids
 }
 
 it('lists shapes in viewport', () => {
+	// Screen: 1800x900, viewport at z=1 covers (0,0)-(1800,900), grid cells 0:0 to 3:1
 	const ids = createShapes()
 	editor.selectNone()
-	// D is outside of the viewport, so it's clipped
+	// D (cell 6:6) is outside of the viewport, so it's culled
 	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.D]))
 
-	// Move the camera 201 pixels to the right and 201 pixels down
-	editor.pan({ x: -201, y: -201 })
+	// Move the camera far enough that A and C (cell 0:0) are no longer covered
+	editor.pan({ x: -600, y: -600 })
 	vi.advanceTimersByTime(500)
 
-	// A is now outside of the viewport, like D
-	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.D]))
+	// A and C are now outside of the viewport (same grid cell 0:0), like D
+	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.C, ids.D]))
 
-	editor.pan({ x: -900, y: -900 })
+	// Pan to D's area: viewport covers (3300,3300)-(5100,4200), cells 6:6 to 10:8
+	editor.pan({ x: -2700, y: -2700 })
 	vi.advanceTimersByTime(500)
-	// Now all shapes are outside of the viewport, except for D (which is clipped)
+	// Now all shapes are outside of the viewport, except for D
 	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.B, ids.C]))
 
 	editor.select(ids.B)
@@ -102,12 +106,16 @@ it('lists shapes in viewport', () => {
 const shapeSize = 100
 const numberOfShapes = 100
 
+// Grid cell size is 500px; shapes must be at least a full cell beyond the viewport
+// to guarantee they're in a non-overlapping grid cell.
+const GRID_MARGIN = 500
+
 function getChangeOutsideBounds(viewportSize: number) {
 	const changeDirection = Math.random() > 0.5 ? 1 : -1
 	const maxChange = 1000
-	const changeAmount = 1 + Math.random() * maxChange
+	const changeAmount = GRID_MARGIN + 1 + Math.random() * maxChange
 	if (changeDirection === 1) {
-		// We need to get past the viewport size and then add a bit more
+		// We need to get past the viewport size plus a full grid cell
 		return viewportSize + changeAmount
 	} else {
 		// We also need to take the shape size into account

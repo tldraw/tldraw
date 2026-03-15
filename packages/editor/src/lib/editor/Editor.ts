@@ -332,7 +332,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.snaps = new SnapManager(this)
 
 		this._spatialIndex = new SpatialIndexManager(this)
-		this.disposables.add(() => this._spatialIndex.dispose())
+		this.disposables.add(() => this._spatialIndex.destroy())
 
 		this.disposables.add(this.timers.dispose)
 

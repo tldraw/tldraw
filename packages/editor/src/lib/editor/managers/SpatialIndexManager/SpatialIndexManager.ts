@@ -1,174 +1,115 @@
-import { Computed, RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
-import type { RecordsDiff } from '@tldraw/store'
-import type { TLRecord } from '@tldraw/tlschema'
-import { TLPageId, TLShape, TLShapeId, isShape } from '@tldraw/tlschema'
-import { objectMapValues } from '@tldraw/utils'
+import { TLBinding, TLPageId, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { Box } from '../../../primitives/Box'
 import type { Editor } from '../../Editor'
-import { RBushIndex, type SpatialElement } from './RBushIndex'
+import { GridIndex } from './GridIndex'
 
 /**
  * Manages spatial indexing for efficient shape location queries.
  *
- * Uses an R-tree (via RBush) to enable O(log n) spatial queries instead of O(n) iteration.
- * Handles shapes with computed bounds (arrows, groups, custom shapes) by checking all shapes'
- * bounds on each update using the reactive bounds cache.
- *
- * Key features:
- * - Incremental updates using filterHistory pattern
- * - Leverages existing bounds cache reactivity for dependency tracking
- * - Works with any custom shape type with computed bounds
- * - Per-page index (rebuilds on page change)
- * - Optimized for viewport culling queries
+ * Uses a grid-based spatial index with fixed-size cells for efficient viewport culling.
+ * Updated eagerly via store side effects when shapes are created, changed, or deleted.
+ * Rebuilds when the current page changes.
  *
  * @internal
  */
 export class SpatialIndexManager {
-	private rbush: RBushIndex
-	private spatialIndexComputed: Computed<number>
-	private lastPageId: TLPageId | null = null
+	private grid = new GridIndex()
+	private currentPageId: TLPageId | null = null
+	private dispose: () => void
 
 	constructor(public readonly editor: Editor) {
-		this.rbush = new RBushIndex()
-		this.spatialIndexComputed = this.createSpatialIndexComputed()
-	}
-
-	private createSpatialIndexComputed() {
-		const shapeHistory = this.editor.store.query.filterHistory('shape')
-
-		return computed<number>('spatialIndex', (_prevValue, lastComputedEpoch) => {
-			if (isUninitialized(_prevValue)) {
-				return this.buildFromScratch(lastComputedEpoch)
-			}
-
-			const shapeDiff = shapeHistory.getDiffSince(lastComputedEpoch)
-
-			if (shapeDiff === RESET_VALUE) {
-				return this.buildFromScratch(lastComputedEpoch)
-			}
-
-			const currentPageId = this.editor.getCurrentPageId()
-			if (this.lastPageId !== currentPageId) {
-				return this.buildFromScratch(lastComputedEpoch)
-			}
-
-			// No shape changes - index is already up to date
-			if (shapeDiff.length === 0) {
-				return lastComputedEpoch
-			}
-
-			// Process incremental updates
-			this.processIncrementalUpdate(shapeDiff)
-
-			return lastComputedEpoch
+		this.dispose = this.editor.store.sideEffects.register({
+			shape: {
+				afterCreate: (shape: TLShape) => {
+					if (!this.isOnCurrentPage(shape)) return
+					this.updateShape(shape.id)
+					this.updateAncestors(shape)
+				},
+				afterChange: (_shapeBefore: TLShape, shapeAfter: TLShape) => {
+					if (!this.isOnCurrentPage(shapeAfter)) {
+						this.grid.remove(shapeAfter.id)
+						return
+					}
+					this.updateShape(shapeAfter.id)
+					this.updateAncestors(shapeAfter)
+					this.updateDescendants(shapeAfter.id)
+					this.updateBoundShapes(shapeAfter.id)
+				},
+				afterDelete: (shape: TLShape) => {
+					this.grid.remove(shape.id)
+				},
+			},
+			binding: {
+				afterCreate: (binding: TLBinding) => {
+					this.updateShape(binding.fromId)
+				},
+				afterChange: (_before: TLBinding, after: TLBinding) => {
+					this.updateShape(after.fromId)
+				},
+				afterDelete: (binding: TLBinding) => {
+					this.updateShape(binding.fromId)
+				},
+			},
 		})
 	}
 
-	private buildFromScratch(epoch: number): number {
-		this.rbush.clear()
-		this.lastPageId = this.editor.getCurrentPageId()
-
-		const shapes = this.editor.getCurrentPageShapes()
-		const elements: SpatialElement[] = []
-
-		// Collect all shape elements for bulk loading
-		for (const shape of shapes) {
-			const bounds = this.editor.getShapePageBounds(shape.id)
-			if (bounds) {
-				elements.push({
-					minX: bounds.minX,
-					minY: bounds.minY,
-					maxX: bounds.maxX,
-					maxY: bounds.maxY,
-					id: shape.id,
-				})
-			}
-		}
-
-		// Bulk load for efficiency
-		this.rbush.bulkLoad(elements)
-
-		return epoch
+	private isOnCurrentPage(shape: TLShape): boolean {
+		return this.editor.getAncestorPageId(shape) === this.currentPageId
 	}
 
-	private processIncrementalUpdate(shapeDiff: RecordsDiff<TLRecord>[]): void {
-		// Track shapes we've already processed from the diff
-		const processedShapeIds = new Set<TLShapeId>()
-
-		// 1. Process shape additions, removals, and updates from diff
-		for (const changes of shapeDiff) {
-			// Handle additions (only for shapes on current page)
-			for (const shape of objectMapValues(changes.added) as TLShape[]) {
-				if (isShape(shape) && this.editor.getAncestorPageId(shape) === this.lastPageId) {
-					const bounds = this.editor.getShapePageBounds(shape.id)
-					if (bounds) {
-						this.rbush.upsert(shape.id, bounds)
-					}
-					processedShapeIds.add(shape.id)
-				}
-			}
-
-			// Handle removals
-			for (const shape of objectMapValues(changes.removed) as TLShape[]) {
-				if (isShape(shape)) {
-					this.rbush.remove(shape.id)
-					processedShapeIds.add(shape.id)
-				}
-			}
-
-			// Handle updated shapes: page changes and bounds updates
-			for (const [, to] of objectMapValues(changes.updated) as [TLShape, TLShape][]) {
-				if (!isShape(to)) continue
-				processedShapeIds.add(to.id)
-
-				const isOnPage = this.editor.getAncestorPageId(to) === this.lastPageId
-
-				if (isOnPage) {
-					const bounds = this.editor.getShapePageBounds(to.id)
-					if (bounds) {
-						this.rbush.upsert(to.id, bounds)
-					}
-				} else {
-					this.rbush.remove(to.id)
-				}
-			}
+	private updateShape(id: TLShapeId): void {
+		const bounds = this.editor.getShapePageBounds(id)
+		if (bounds) {
+			this.grid.upsert(id, bounds)
+		} else {
+			this.grid.remove(id)
 		}
+	}
 
-		// 2. Check remaining shapes in index for bounds changes
-		// This handles shapes with computed bounds (arrows bound to moved shapes, groups with moved children, etc.)
-		const allShapeIds = this.rbush.getAllShapeIds()
+	private updateAncestors(shape: TLShape): void {
+		let current = this.editor.getShape(shape.parentId as TLShapeId)
+		while (current) {
+			this.updateShape(current.id)
+			current = this.editor.getShape(current.parentId as TLShapeId)
+		}
+	}
 
-		for (const shapeId of allShapeIds) {
-			if (processedShapeIds.has(shapeId)) continue
+	private updateDescendants(id: TLShapeId): void {
+		const childIds = this.editor.getSortedChildIdsForParent(id)
+		for (const childId of childIds) {
+			this.updateShape(childId)
+			this.updateDescendants(childId)
+		}
+	}
 
-			const currentBounds = this.editor.getShapePageBounds(shapeId)
-			const indexedBounds = this.rbush.getBounds(shapeId)
-
-			if (!this.areBoundsEqual(currentBounds, indexedBounds)) {
-				if (currentBounds) {
-					this.rbush.upsert(shapeId, currentBounds)
-				} else {
-					this.rbush.remove(shapeId)
-				}
+	private updateBoundShapes(id: TLShapeId): void {
+		const shape = this.editor.getShape(id)
+		if (!shape) return
+		for (const binding of this.editor.getBindingsInvolvingShape(shape)) {
+			// Update the "from" shape (e.g., the arrow) when a "to" shape (target) changes
+			if (binding.toId === id) {
+				this.updateShape(binding.fromId)
 			}
 		}
 	}
 
-	private areBoundsEqual(a: Box | undefined, b: Box | undefined): boolean {
-		if (!a && !b) return true
-		if (!a || !b) return false
-		return a.minX === b.minX && a.minY === b.minY && a.maxX === b.maxX && a.maxY === b.maxY
+	private ensureCurrentPage(): void {
+		const pageId = this.editor.getCurrentPageId()
+		if (this.currentPageId !== pageId) {
+			this.grid.clear()
+			this.currentPageId = pageId
+
+			for (const shape of this.editor.getCurrentPageShapes()) {
+				const bounds = this.editor.getShapePageBounds(shape.id)
+				if (bounds) {
+					this.grid.upsert(shape.id, bounds)
+				}
+			}
+		}
 	}
 
 	/**
 	 * Get shape IDs within the given bounds.
-	 * Optimized for viewport culling queries.
-	 *
-	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
-	 * ```ts
-	 * const candidates = editor.spatialIndex.getShapeIdsInsideBounds(bounds)
-	 * const sorted = editor.getCurrentPageShapesSorted().filter(s => candidates.has(s.id))
-	 * ```
 	 *
 	 * @param bounds - The bounds to search within
 	 * @returns Unordered set of shape IDs within the bounds
@@ -176,19 +117,12 @@ export class SpatialIndexManager {
 	 * @public
 	 */
 	getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId> {
-		this.spatialIndexComputed.get()
-		return this.rbush.search(bounds)
+		this.ensureCurrentPage()
+		return this.grid.search(bounds)
 	}
 
 	/**
 	 * Get shape IDs at a point (with optional margin).
-	 * Creates a small bounding box around the point and searches the spatial index.
-	 *
-	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
-	 * ```ts
-	 * const candidates = editor.spatialIndex.getShapeIdsAtPoint(point, margin)
-	 * const sorted = editor.getCurrentPageShapesSorted().filter(s => candidates.has(s.id))
-	 * ```
 	 *
 	 * @param point - The point to search at
 	 * @param margin - The margin around the point to search (default: 0)
@@ -197,18 +131,17 @@ export class SpatialIndexManager {
 	 * @public
 	 */
 	getShapeIdsAtPoint(point: { x: number; y: number }, margin = 0): Set<TLShapeId> {
-		this.spatialIndexComputed.get()
-		return this.rbush.search(new Box(point.x - margin, point.y - margin, margin * 2, margin * 2))
+		this.ensureCurrentPage()
+		return this.grid.search(new Box(point.x - margin, point.y - margin, margin * 2, margin * 2))
 	}
 
 	/**
 	 * Dispose of the spatial index manager.
-	 * Clears the R-tree to prevent memory leaks.
 	 *
 	 * @public
 	 */
-	dispose(): void {
-		this.rbush.dispose()
-		this.lastPageId = null
+	destroy(): void {
+		this.dispose()
+		this.grid.dispose()
 	}
 }
