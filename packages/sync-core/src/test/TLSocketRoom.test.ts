@@ -40,10 +40,11 @@ describe(TLSocketRoom, () => {
 		const room = new TLSocketRoom({
 			initialSnapshot: snapshot,
 		})
-		expect(room.getCurrentSnapshot()).not.toMatchObject({ clock: 0, documents: [] })
-		expect(room.getCurrentSnapshot().documentClock).toBe(0)
-		expect(room.getCurrentSnapshot().documents.sort((a, b) => a.state.id.localeCompare(b.state.id)))
-			.toMatchInlineSnapshot(`
+		expect(room.storage.getSnapshot!()).not.toMatchObject({ clock: 0, documents: [] })
+		expect(room.storage.getSnapshot!().documentClock).toBe(0)
+		expect(
+			room.storage.getSnapshot!().documents.sort((a, b) => a.state.id.localeCompare(b.state.id))
+		).toMatchInlineSnapshot(`
 		[
 		  {
 		    "lastChangedClock": 0,
@@ -75,7 +76,7 @@ describe(TLSocketRoom, () => {
 			initialSnapshot: store.getStoreSnapshot(),
 		})
 
-		expect(room.getCurrentSnapshot()).toMatchObject({ documentClock: 0, documents: [] })
+		expect(room.storage.getSnapshot!()).toMatchObject({ documentClock: 0, documents: [] })
 
 		// populate with an empty document (document:document and page:page records)
 		store.ensureStoreIsUsable()
@@ -83,9 +84,10 @@ describe(TLSocketRoom, () => {
 		const snapshot = store.getStoreSnapshot()
 		room.loadSnapshot(snapshot)
 
-		expect(room.getCurrentSnapshot().documentClock).toBe(1)
-		expect(room.getCurrentSnapshot().documents.sort((a, b) => a.state.id.localeCompare(b.state.id)))
-			.toMatchInlineSnapshot(`
+		expect(room.storage.getSnapshot!().documentClock).toBe(1)
+		expect(
+			room.storage.getSnapshot!().documents.sort((a, b) => a.state.id.localeCompare(b.state.id))
+		).toMatchInlineSnapshot(`
 		[
 		  {
 		    "lastChangedClock": 1,
@@ -258,7 +260,7 @@ describe(TLSocketRoom, () => {
 		await new Promise<void>((r) => queueMicrotask(r))
 		expect(called).toEqual(1)
 
-		room.loadSnapshot(room.getCurrentSnapshot())
+		room.loadSnapshot(room.storage.getSnapshot!())
 		expect(called).toEqual(1)
 
 		await addPage(room)
@@ -343,19 +345,19 @@ describe(TLSocketRoom, () => {
 			})
 
 			const deletionClock = room.getCurrentDocumentClock()
-			expect(room.getCurrentSnapshot().tombstones).toEqual({
+			expect(room.storage.getSnapshot!().tombstones).toEqual({
 				[testPageId]: deletionClock,
 			})
 
-			room.loadSnapshot(room.getCurrentSnapshot())
+			room.loadSnapshot(room.storage.getSnapshot!())
 
 			// Tombstones should be preserved
-			expect(room.getCurrentSnapshot().tombstones).toEqual({
+			expect(room.storage.getSnapshot!().tombstones).toEqual({
 				[testPageId]: deletionClock,
 			})
 
 			// Clock should not change since we loaded the same snapshot
-			expect(room.getCurrentSnapshot().documentClock).toBe(deletionClock)
+			expect(room.storage.getSnapshot!().documentClock).toBe(deletionClock)
 		})
 
 		it('preserves schema when resetting room state', () => {
@@ -365,13 +367,13 @@ describe(TLSocketRoom, () => {
 				initialSnapshot: store.getStoreSnapshot(),
 			})
 
-			const originalSchema = room.getCurrentSnapshot().schema
+			const originalSchema = room.storage.getSnapshot!().schema
 
 			// Reset with a new snapshot
 			const newSnapshot = store.getStoreSnapshot()
 			room.loadSnapshot(newSnapshot)
 
-			const result = room.getCurrentSnapshot()
+			const result = room.storage.getSnapshot!()
 			expect(result.schema).toEqual(originalSchema)
 		})
 	})
