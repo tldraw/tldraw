@@ -23,6 +23,7 @@ export {
 	type SynchronousStorage,
 } from './lib/migrate'
 export {
+	applyDiffToTarget,
 	createEmptyRecordsDiff,
 	isRecordsDiffEmpty,
 	reverseRecordsDiff,

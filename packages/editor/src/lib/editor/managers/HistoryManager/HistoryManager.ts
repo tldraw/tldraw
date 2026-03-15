@@ -1,5 +1,6 @@
 import { atom, EMPTY_ARRAY, transact } from '@tldraw/state'
 import {
+	applyDiffToTarget,
 	createEmptyRecordsDiff,
 	isRecordsDiffEmpty,
 	RecordsDiff,
@@ -17,6 +18,9 @@ const HistoryRecorderState = {
 	Paused: 'paused',
 } as const
 type HistoryRecorderState = (typeof HistoryRecorderState)[keyof typeof HistoryRecorderState]
+
+/** @internal */
+export const MAX_UNDO_STACK_SIZE = 10_000
 
 /** @public */
 export class HistoryManager<R extends UnknownRecord> {
@@ -48,7 +52,9 @@ export class HistoryManager<R extends UnknownRecord> {
 			switch (this.state) {
 				case HistoryRecorderState.Recording:
 					this.pendingDiff.apply(entry.changes)
-					this.stacks.update(({ undos }) => ({ undos, redos: stack() }))
+					if (this.stacks.get().redos.length > 0) {
+						this.stacks.update(({ undos }) => ({ undos, redos: stack() }))
+					}
 					break
 				case HistoryRecorderState.RecordingPreserveRedoStack:
 					this.pendingDiff.apply(entry.changes)
@@ -156,7 +162,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 					switch (undo.type) {
 						case 'diff':
-							squashRecordDiffsMutable(diffToUndo, [reverseRecordsDiff(undo.diff)])
+							applyDiffToTarget(diffToUndo, reverseRecordsDiff(undo.diff))
 							break
 						case 'stop':
 							if (!toMark) break loop
@@ -172,14 +178,15 @@ export class HistoryManager<R extends UnknownRecord> {
 			}
 
 			if (!didFindMark && toMark) {
-				// whoops, we didn't find the mark we were looking for
-				// don't do anything
+				// we didn't find the mark we were looking for — restore state and bail
+				this.pendingDiff.restore(pendingDiff)
 				return this
 			}
 
 			this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
+			this.trimUndoStack()
 		} finally {
 			this.state = previousState
 		}
@@ -219,7 +226,7 @@ export class HistoryManager<R extends UnknownRecord> {
 				redos = redos.tail
 
 				if (redo.type === 'diff') {
-					squashRecordDiffsMutable(diffToRedo, [redo.diff])
+					applyDiffToTarget(diffToRedo, redo.diff)
 				} else {
 					break
 				}
@@ -228,6 +235,7 @@ export class HistoryManager<R extends UnknownRecord> {
 			this.store.applyDiff(diffToRedo, { ignoreEphemeralKeys: true })
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
+			this.trimUndoStack()
 		} finally {
 			this.state = previousState
 		}
@@ -290,6 +298,7 @@ export class HistoryManager<R extends UnknownRecord> {
 			this.flushPendingDiff()
 			this.stacks.update(({ undos, redos }) => ({ undos: undos.push({ type: 'stop', id }), redos }))
 		})
+		this.trimUndoStack()
 	}
 
 	clear() {
@@ -307,6 +316,27 @@ export class HistoryManager<R extends UnknownRecord> {
 			top = top.tail
 		}
 		return null
+	}
+
+	private trimUndoStack() {
+		const { undos } = this.stacks.get()
+		if (undos.length <= MAX_UNDO_STACK_SIZE) return
+
+		// walk to the limit and truncate by creating a new stack from the kept entries
+		const kept: TLHistoryEntry<R>[] = []
+		let current: Stack<TLHistoryEntry<R>> = undos
+		for (let i = 0; i < MAX_UNDO_STACK_SIZE && current.head; i++) {
+			kept.push(current.head)
+			current = current.tail
+		}
+
+		// rebuild from bottom to top
+		let trimmed: Stack<TLHistoryEntry<R>> = stack()
+		for (let i = kept.length - 1; i >= 0; i--) {
+			trimmed = trimmed.push(kept[i])
+		}
+
+		this.stacks.update(({ redos }) => ({ undos: trimmed, redos }))
 	}
 
 	/** @internal */
@@ -338,12 +368,17 @@ class PendingDiff<R extends UnknownRecord> {
 		return diff
 	}
 
+	restore(diff: RecordsDiff<R>) {
+		this.diff = diff
+		this.isEmptyAtom.set(isRecordsDiffEmpty(diff))
+	}
+
 	isEmpty() {
 		return this.isEmptyAtom.get()
 	}
 
 	apply(diff: RecordsDiff<R>) {
-		squashRecordDiffsMutable(this.diff, [diff])
+		applyDiffToTarget(this.diff, diff)
 		this.isEmptyAtom.set(isRecordsDiffEmpty(this.diff))
 	}
 

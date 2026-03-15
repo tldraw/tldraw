@@ -1,7 +1,7 @@
 import { BaseRecord, RecordId, Store, StoreSchema, createRecordType } from '@tldraw/store'
 import { vi } from 'vitest'
 import { TLHistoryBatchOptions } from '../../types/history-types'
-import { HistoryManager } from './HistoryManager'
+import { HistoryManager, MAX_UNDO_STACK_SIZE } from './HistoryManager'
 
 interface TestRecord extends BaseRecord<'test', TestRecordId> {
 	value: number | string
@@ -736,6 +736,22 @@ describe('HistoryManager error scenarios and edge cases', () => {
 			expect(store.get(ids.a)!.value).toBe(originalValue)
 		})
 
+		it('should preserve pending diff when mark is not found', () => {
+			manager._mark('real-mark')
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+
+			// bail to a mark that doesn't exist
+			manager.bailToMark('non-existent-mark')
+
+			// the pending diff should still be intact
+			expect(store.get(ids.a)!.value).toBe(1)
+			expect(manager.getNumUndos()).toBeGreaterThan(0)
+
+			// a subsequent bail to the real mark should still work
+			manager.bailToMark('real-mark')
+			expect(store.get(ids.a)!.value).toBe(0)
+		})
+
 		it('should find mark correctly when it exists', () => {
 			manager._mark('existing-mark')
 			store.update(ids.a, (s) => ({ ...s, value: 1 }))
@@ -858,5 +874,41 @@ describe('HistoryManager error scenarios and edge cases', () => {
 			manager.undo()
 			expect(store.get(ids.a)!.value).toBe(initialValue)
 		})
+	})
+})
+
+describe('undo stack trimming', () => {
+	it('should trim the undo stack when it exceeds MAX_UNDO_STACK_SIZE', () => {
+		const store = new Store({ schema: testSchema, props: null })
+		store.put([testSchema.types.test.create({ id: ids.a, value: 0 })])
+		const manager = new HistoryManager<TestRecord>({ store })
+
+		// push entries well beyond the limit
+		for (let i = 1; i <= MAX_UNDO_STACK_SIZE + 500; i++) {
+			store.update(ids.a, (s) => ({ ...s, value: i }))
+			manager._mark(`mark-${i}`)
+		}
+
+		// the undo stack should have been trimmed
+		expect(manager.getNumUndos()).toBeLessThanOrEqual(MAX_UNDO_STACK_SIZE)
+	})
+
+	it('should still allow undo/redo after trimming', () => {
+		const store = new Store({ schema: testSchema, props: null })
+		store.put([testSchema.types.test.create({ id: ids.a, value: 0 })])
+		const manager = new HistoryManager<TestRecord>({ store })
+
+		for (let i = 1; i <= 20; i++) {
+			store.update(ids.a, (s) => ({ ...s, value: i }))
+			manager._mark(`mark-${i}`)
+		}
+
+		// undo should still work normally
+		manager.undo()
+		const afterUndo = store.get(ids.a)!.value as number
+		expect(afterUndo).toBeLessThan(20)
+
+		manager.redo()
+		expect(store.get(ids.a)!.value).toBe(20)
 	})
 })
