@@ -9,7 +9,7 @@ import { PageRecordType, TLPageId } from './records/TLPage'
 import { InstancePageStateRecordType } from './records/TLPageState'
 import { TLPOINTER_ID } from './records/TLPointer'
 import { TLRecord } from './records/TLRecord'
-import { TLShapeId } from './records/TLShape'
+import { createShapeId, TLShape, TLShapeId } from './records/TLShape'
 import {
 	createIntegrityChecker,
 	onValidationFailure,
@@ -639,6 +639,138 @@ describe('createIntegrityChecker', () => {
 			expect(store.has(TLINSTANCE_ID)).toBe(true)
 			expect(store.has(InstancePageStateRecordType.createId(pageId))).toBe(true)
 			expect(store.has(CameraRecordType.createId(pageId))).toBe(true)
+		})
+	})
+
+	describe('parent-child cycle repair', () => {
+		// Helper to create a minimal frame shape for testing
+		const createFrameShape = (
+			id: TLShapeId,
+			parentId: TLShapeId | TLPageId,
+			index: IndexKey = 'a1' as IndexKey
+		): TLShape => ({
+			id,
+			type: 'frame',
+			typeName: 'shape',
+			x: 0,
+			y: 0,
+			rotation: 0,
+			index,
+			parentId,
+			isLocked: false,
+			opacity: 1,
+			props: { w: 100, h: 100, name: '', color: 'black' },
+			meta: {},
+		})
+
+		// Common setup for all cycle repair tests
+		let checker: () => void
+		let pageId: TLPageId
+
+		beforeEach(() => {
+			checker = createIntegrityChecker(store)
+			checker() // Ensure store is initialized with a page
+			pageId = [...store.query.ids('page').get()][0] as TLPageId
+		})
+
+		it('should detect and repair a 2-way cycle', () => {
+			const shapeA = createShapeId('cycleA')
+			const shapeB = createShapeId('cycleB')
+
+			// Create shapes with a cycle: A -> B -> A
+			store.put([
+				createFrameShape(shapeA, shapeB, 'a1' as IndexKey),
+				createFrameShape(shapeB, shapeA, 'a2' as IndexKey),
+			])
+
+			checker()
+
+			// Both shapes should now be parented to the page (cycle repaired)
+			const shapeAAfter = store.get(shapeA) as TLShape
+			const shapeBAfter = store.get(shapeB) as TLShape
+			expect(shapeAAfter.parentId).toBe(pageId)
+			expect(shapeBAfter.parentId).toBe(pageId)
+		})
+
+		it('should detect and repair a 3-way cycle', () => {
+			const shapeA = createShapeId('cycle3A')
+			const shapeB = createShapeId('cycle3B')
+			const shapeC = createShapeId('cycle3C')
+
+			// Create shapes with a cycle: A -> B -> C -> A
+			store.put([
+				createFrameShape(shapeA, shapeB, 'a1' as IndexKey),
+				createFrameShape(shapeB, shapeC, 'a2' as IndexKey),
+				createFrameShape(shapeC, shapeA, 'a3' as IndexKey),
+			])
+
+			checker()
+
+			// All shapes should now be parented to the page
+			const shapeAAfter = store.get(shapeA) as TLShape
+			const shapeBAfter = store.get(shapeB) as TLShape
+			const shapeCAfter = store.get(shapeC) as TLShape
+			expect(shapeAAfter.parentId).toBe(pageId)
+			expect(shapeBAfter.parentId).toBe(pageId)
+			expect(shapeCAfter.parentId).toBe(pageId)
+		})
+
+		it('should repair self-referential shape (parentId = own id)', () => {
+			const shapeA = createShapeId('selfRef')
+
+			// Create a shape that is its own parent
+			store.put([createFrameShape(shapeA, shapeA, 'a1' as IndexKey)])
+
+			checker()
+
+			const shapeAAfter = store.get(shapeA) as TLShape
+			expect(shapeAAfter.parentId).toBe(pageId)
+		})
+
+		it('should correctly identify shapes leading to a cycle vs shapes in the cycle', () => {
+			const shapeD = createShapeId('leadingD')
+			const shapeA = createShapeId('inCycleA')
+			const shapeB = createShapeId('inCycleB')
+
+			// D -> A -> B -> A (D leads to cycle, A and B are in cycle)
+			store.put([
+				createFrameShape(shapeD, shapeA, 'a1' as IndexKey),
+				createFrameShape(shapeA, shapeB, 'a2' as IndexKey),
+				createFrameShape(shapeB, shapeA, 'a3' as IndexKey),
+			])
+
+			checker()
+
+			// A and B are in the cycle - should be repaired to page
+			const shapeAAfter = store.get(shapeA) as TLShape
+			const shapeBAfter = store.get(shapeB) as TLShape
+			expect(shapeAAfter.parentId).toBe(pageId)
+			expect(shapeBAfter.parentId).toBe(pageId)
+
+			// D was leading to the cycle - after repair, its parent (A) now points to page,
+			// so D's parent reference is still valid (A exists and points to page)
+			const shapeDAfter = store.get(shapeD) as TLShape
+			// D should still point to A (which is now fixed)
+			expect(shapeDAfter.parentId).toBe(shapeA)
+		})
+
+		it('should not modify valid parent-child hierarchies', () => {
+			const parentShape = createShapeId('validParent')
+			const childShape = createShapeId('validChild')
+
+			// Valid hierarchy: page -> parent -> child
+			store.put([
+				createFrameShape(parentShape, pageId, 'a1' as IndexKey),
+				createFrameShape(childShape, parentShape, 'a2' as IndexKey),
+			])
+
+			checker()
+
+			// Hierarchy should be unchanged
+			const parentAfter = store.get(parentShape) as TLShape
+			const childAfter = store.get(childShape) as TLShape
+			expect(parentAfter.parentId).toBe(pageId)
+			expect(childAfter.parentId).toBe(parentShape)
 		})
 	})
 })
