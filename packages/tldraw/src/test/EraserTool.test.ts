@@ -338,21 +338,65 @@ describe('When clicking and dragging', () => {
 		expect(editor.getShape(ids.box1)).toBeDefined()
 	})
 
-	it('Excludes a group if it was hovered when the drag started', () => {
+	it('Excludes a group if it was hovered when the drag started, but erases its children', () => {
 		editor.groupShapes([ids.box2, ids.box3], { groupId: ids.group1 })
 		editor.setCurrentTool('eraser')
 		editor.expectToBeIn('eraser.idle')
 		editor.pointerDown(275, 275) // in between box2 AND box3, so over of the new group
-		editor.pointerMove(280, 280) // still outside of the new group
+		editor.pointerMove(280, 280) // still in the gap between children
 		vi.advanceTimersByTime(16)
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
 		expect(editor.getErasingShapeIds()).toEqual([])
+		// Moving to (0,0) crosses through box2 (child of the group) and box1
 		editor.pointerMove(0, 0)
-		expect(editor.getErasingShapeIds()).toEqual([ids.box1])
+		// box2 is now erased as a child shape (not resolved to the excluded group)
+		expect(new Set(editor.getErasingShapeIds())).toEqual(new Set([ids.box1, ids.box2]))
 		expect(editor.getShape(ids.box1)).toBeDefined()
 		editor.pointerUp()
-		expect(editor.getShape(ids.group1)).toBeDefined()
+		// box1 and box2 are deleted; the group auto-dissolves since it only has one child left
 		expect(editor.getShape(ids.box1)).not.toBeDefined()
+		expect(editor.getShape(ids.box2)).not.toBeDefined()
+		expect(editor.getShape(ids.group1)).not.toBeDefined()
+		// box3 survives (it was reparented when the group dissolved)
+		expect(editor.getShape(ids.box3)).toBeDefined()
+	})
+
+	it('Erases child shapes when starting drag inside a group and dragging over them', () => {
+		editor.groupShapes([ids.box2, ids.box3], { groupId: ids.group1 })
+		editor.setCurrentTool('eraser')
+		editor.expectToBeIn('eraser.idle')
+		// Start inside the group bounds (between box2 and box3)
+		editor.pointerDown(275, 275)
+		// Drag directly over box3
+		editor.pointerMove(350, 350)
+		vi.advanceTimersByTime(16)
+		expect(editor.getInstanceState().scribbles.length).toBe(1)
+		// box3 should be marked for erasing as a child of the excluded group
+		expect(editor.getErasingShapeIds()).toEqual([ids.box3])
+		editor.pointerUp()
+		// box3 is deleted; the group auto-dissolves since it only has one child left
+		expect(editor.getShape(ids.box3)).not.toBeDefined()
+		expect(editor.getShape(ids.group1)).not.toBeDefined()
+		// box2 survives (reparented when the group dissolved)
+		expect(editor.getShape(ids.box2)).toBeDefined()
+	})
+
+	it('Erases the whole group when starting drag outside of it', () => {
+		editor.groupShapes([ids.box2, ids.box3], { groupId: ids.group1 })
+		editor.setCurrentTool('eraser')
+		editor.expectToBeIn('eraser.idle')
+		// Start outside the group
+		editor.pointerDown(-100, -100)
+		// Drag over box2 (child of group)
+		editor.pointerMove(125, 125)
+		vi.advanceTimersByTime(16)
+		expect(editor.getInstanceState().scribbles.length).toBe(1)
+		// The whole group should be erased since we started outside
+		expect(editor.getErasingShapeIds()).toEqual([ids.group1])
+		editor.pointerUp()
+		expect(editor.getShape(ids.group1)).not.toBeDefined()
+		expect(editor.getShape(ids.box2)).not.toBeDefined()
+		expect(editor.getShape(ids.box3)).not.toBeDefined()
 	})
 
 	it('Excludes a frame if it was hovered when the drag started', () => {
