@@ -116,8 +116,8 @@ describe('notVisibleShapes - basic culling', () => {
 	it('should update when zoom level changes', () => {
 		const shapeId = createShapeId('shape')
 
-		// Create shape just outside initial viewport
-		editor.createShapes([{ id: shapeId, type: 'geo', x: 1100, y: 500, props: { w: 100, h: 100 } }])
+		// Create shape well outside initial viewport (must be in a different grid cell)
+		editor.createShapes([{ id: shapeId, type: 'geo', x: 1600, y: 500, props: { w: 100, h: 100 } }])
 
 		// Initially outside
 		let notVisible = editor.getNotVisibleShapes()

@@ -10449,7 +10449,6 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/benchmark": "npm:^2.1.5"
-    "@types/rbush": "npm:^3.0.0"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@types/wicg-file-system-access": "npm:^2020.9.8"
@@ -10461,7 +10460,6 @@ __metadata:
     idb: "npm:^7.1.1"
     is-plain-object: "npm:^5.0.0"
     lazyrepo: "npm:0.0.0-alpha.27"
-    rbush: "npm:^3.0.1"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     resize-observer-polyfill: "npm:^1.5.1"
@@ -11633,13 +11631,6 @@ __metadata:
   version: 1.2.7
   resolution: "@types/range-parser@npm:1.2.7"
   checksum: 10/95640233b689dfbd85b8c6ee268812a732cf36d5affead89e806fe30da9a430767af8ef2cd661024fd97e19d61f3dec75af2df5e80ec3bea000019ab7028629a
-  languageName: node
-  linkType: hard
-
-"@types/rbush@npm:^3.0.0":
-  version: 3.0.4
-  resolution: "@types/rbush@npm:3.0.4"
-  checksum: 10/3f3b723f0f2542c7e2d493286c81177f3f2850c944c2f5d3296c86e02d4c206a447be7c982b23b82b95da9a2adc210d07cf870c1564f68b58eaa46d43073e013
   languageName: node
   linkType: hard
 
@@ -25709,13 +25700,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"quickselect@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "quickselect@npm:2.0.0"
-  checksum: 10/ed2e78431050d223fb75da20ee98011aef1a03f7cb04e1a32ee893402e640be3cfb76d72e9dbe01edf3bb457ff6a62e5c2d85748424d1aa531f6ba50daef098c
-  languageName: node
-  linkType: hard
-
 "radix-ui@npm:^1.4.2":
   version: 1.4.2
   resolution: "radix-ui@npm:1.4.2"
@@ -25835,15 +25819,6 @@ __metadata:
     iconv-lite: "npm:~0.7.0"
     unpipe: "npm:~1.0.0"
   checksum: 10/4168c82157bd69175d5bd960e59b74e253e237b358213694946a427a6f750a18b8e150f036fed3421b3e83294b071a4e2bb01037a79ccacdac05360c63d3ebba
-  languageName: node
-  linkType: hard
-
-"rbush@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "rbush@npm:3.0.1"
-  dependencies:
-    quickselect: "npm:^2.0.0"
-  checksum: 10/489e2e7d9889888ad533518f194e3ab7cc19b1f1365a38ee99fbdda542a47f41cda7dc89870180050f4d04ea402e9ff294e1d767d03c0f1694e0028b7609eec9
   languageName: node
   linkType: hard
 
