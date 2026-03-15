@@ -217,6 +217,12 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	private _operationCompleteHandlers: StoreOperationCompleteHandler[] = []
 
 	private _isEnabled = true
+
+	private _registerHandler<H>(handlersMap: { [K in string]?: H[] }, typeName: string, handler: H) {
+		if (!handlersMap[typeName]) handlersMap[typeName] = []
+		handlersMap[typeName]!.push(handler)
+		return () => remove(handlersMap[typeName]!, handler)
+	}
 	/**
 	 * Checks whether side effects are currently enabled.
 	 * When disabled, all side effect handlers are bypassed.
@@ -478,10 +484,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		typeName: T,
 		handler: StoreBeforeCreateHandler<R & { typeName: T }>
 	) {
-		const handlers = this._beforeCreateHandlers[typeName] as StoreBeforeCreateHandler<any>[]
-		if (!handlers) this._beforeCreateHandlers[typeName] = []
-		this._beforeCreateHandlers[typeName]!.push(handler)
-		return () => remove(this._beforeCreateHandlers[typeName]!, handler)
+		return this._registerHandler(this._beforeCreateHandlers, typeName, handler)
 	}
 
 	/**
@@ -510,10 +513,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		typeName: T,
 		handler: StoreAfterCreateHandler<R & { typeName: T }>
 	) {
-		const handlers = this._afterCreateHandlers[typeName] as StoreAfterCreateHandler<any>[]
-		if (!handlers) this._afterCreateHandlers[typeName] = []
-		this._afterCreateHandlers[typeName]!.push(handler)
-		return () => remove(this._afterCreateHandlers[typeName]!, handler)
+		return this._registerHandler(this._afterCreateHandlers, typeName, handler)
 	}
 
 	/**
@@ -546,10 +546,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		typeName: T,
 		handler: StoreBeforeChangeHandler<R & { typeName: T }>
 	) {
-		const handlers = this._beforeChangeHandlers[typeName] as StoreBeforeChangeHandler<any>[]
-		if (!handlers) this._beforeChangeHandlers[typeName] = []
-		this._beforeChangeHandlers[typeName]!.push(handler)
-		return () => remove(this._beforeChangeHandlers[typeName]!, handler)
+		return this._registerHandler(this._beforeChangeHandlers, typeName, handler)
 	}
 
 	/**
@@ -577,10 +574,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		typeName: T,
 		handler: StoreAfterChangeHandler<R & { typeName: T }>
 	) {
-		const handlers = this._afterChangeHandlers[typeName] as StoreAfterChangeHandler<any>[]
-		if (!handlers) this._afterChangeHandlers[typeName] = []
-		this._afterChangeHandlers[typeName]!.push(handler as StoreAfterChangeHandler<any>)
-		return () => remove(this._afterChangeHandlers[typeName]!, handler)
+		return this._registerHandler(this._afterChangeHandlers, typeName, handler)
 	}
 
 	/**
@@ -610,10 +604,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		typeName: T,
 		handler: StoreBeforeDeleteHandler<R & { typeName: T }>
 	) {
-		const handlers = this._beforeDeleteHandlers[typeName] as StoreBeforeDeleteHandler<any>[]
-		if (!handlers) this._beforeDeleteHandlers[typeName] = []
-		this._beforeDeleteHandlers[typeName]!.push(handler as StoreBeforeDeleteHandler<any>)
-		return () => remove(this._beforeDeleteHandlers[typeName]!, handler)
+		return this._registerHandler(this._beforeDeleteHandlers, typeName, handler)
 	}
 
 	/**
@@ -644,10 +635,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		typeName: T,
 		handler: StoreAfterDeleteHandler<R & { typeName: T }>
 	) {
-		const handlers = this._afterDeleteHandlers[typeName] as StoreAfterDeleteHandler<any>[]
-		if (!handlers) this._afterDeleteHandlers[typeName] = []
-		this._afterDeleteHandlers[typeName]!.push(handler as StoreAfterDeleteHandler<any>)
-		return () => remove(this._afterDeleteHandlers[typeName]!, handler)
+		return this._registerHandler(this._afterDeleteHandlers, typeName, handler)
 	}
 
 	/**
