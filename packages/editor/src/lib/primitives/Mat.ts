@@ -299,14 +299,3 @@ export class Mat {
 		return m instanceof Mat ? m : Mat.From(m)
 	}
 }
-
-/** @public */
-export function decomposeMatrix(m: MatLike) {
-	return {
-		x: m.e,
-		y: m.f,
-		scaleX: Math.sqrt(m.a * m.a + m.b * m.b),
-		scaleY: Math.sqrt(m.c * m.c + m.d * m.d),
-		rotation: Math.atan2(m.b, m.a),
-	}
-}

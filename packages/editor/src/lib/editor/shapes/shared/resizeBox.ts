@@ -33,87 +33,16 @@ export function resizeBox<T extends TLBaseBoxShape>(
 	let w = shape.props.w * scaleX
 	let h = shape.props.h * scaleY
 
-	const offset = new Vec(0, 0)
+	const isLeftHandle = handle === 'top_left' || handle === 'left' || handle === 'bottom_left'
+	const isTopHandle = handle === 'top_left' || handle === 'top' || handle === 'top_right'
+	const isXCenter = handle === 'top' || handle === 'bottom'
+	const isYCenter = handle === 'left' || handle === 'right'
 
-	if (w > 0) {
-		if (w < minWidth) {
-			switch (handle) {
-				case 'top_left':
-				case 'left':
-				case 'bottom_left': {
-					offset.x = w - minWidth
-					break
-				}
-				case 'top':
-				case 'bottom': {
-					offset.x = (w - minWidth) / 2
-					break
-				}
-				default: {
-					offset.x = 0
-				}
-			}
-			w = minWidth
-		}
-	} else {
-		offset.x = w
-		w = -w
-		if (w < minWidth) {
-			switch (handle) {
-				case 'top_left':
-				case 'left':
-				case 'bottom_left': {
-					offset.x = -w
-					break
-				}
-				default: {
-					offset.x = -minWidth
-				}
-			}
-
-			w = minWidth
-		}
-	}
-
-	if (h > 0) {
-		if (h < minHeight) {
-			switch (handle) {
-				case 'top_left':
-				case 'top':
-				case 'top_right': {
-					offset.y = h - minHeight
-					break
-				}
-				case 'right':
-				case 'left': {
-					offset.y = (h - minHeight) / 2
-					break
-				}
-				default: {
-					offset.y = 0
-				}
-			}
-
-			h = minHeight
-		}
-	} else {
-		offset.y = h
-		h = -h
-		if (h < minHeight) {
-			switch (handle) {
-				case 'top_left':
-				case 'top':
-				case 'top_right': {
-					offset.y = -h
-					break
-				}
-				default: {
-					offset.y = -minHeight
-				}
-			}
-			h = minHeight
-		}
-	}
+	const xResult = clampAxis(w, minWidth, isLeftHandle, isXCenter)
+	const yResult = clampAxis(h, minHeight, isTopHandle, isYCenter)
+	w = xResult.value
+	h = yResult.value
+	const offset = new Vec(xResult.offset, yResult.offset)
 
 	const { x, y } = offset.rot(shape.rotation).add(newPoint)
 
@@ -126,4 +55,23 @@ export function resizeBox<T extends TLBaseBoxShape>(
 			h: Math.min(maxHeight, h),
 		},
 	}
+}
+
+function clampAxis(value: number, minValue: number, isStart: boolean, isCenter: boolean) {
+	let offset = 0
+	if (value > 0) {
+		if (value < minValue) {
+			if (isStart) offset = value - minValue
+			else if (isCenter) offset = (value - minValue) / 2
+			value = minValue
+		}
+	} else {
+		offset = value
+		value = -value
+		if (value < minValue) {
+			offset = isStart ? -value : -minValue
+			value = minValue
+		}
+	}
+	return { value, offset }
 }

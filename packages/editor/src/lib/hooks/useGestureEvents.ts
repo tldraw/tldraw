@@ -168,7 +168,6 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			})
 		}
 
-		// let timeout: any
 		const updatePinchState = (isSafariTrackpadPinch: boolean) => {
 			if (isSafariTrackpadPinch) {
 				pinchState = 'zooming'
