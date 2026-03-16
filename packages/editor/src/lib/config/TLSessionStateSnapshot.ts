@@ -21,6 +21,7 @@ import {
 } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { tlenv } from '../globals/environment'
+import { getGlobalDocument, getGlobalWindow } from '../utils/dom'
 
 const tabIdKey = 'TLDRAW_TAB_ID_v2' as const
 
@@ -37,12 +38,11 @@ function iOS() {
 	if (!window) return false
 	return (
 		['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(
-			// eslint-disable-next-line @typescript-eslint/no-deprecated, no-restricted-syntax
-			window.navigator.platform
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			getGlobalWindow().navigator.platform
 		) ||
 		// iPad on iOS 13 detection
-		// eslint-disable-next-line no-restricted-globals
-		(tlenv.isDarwin && 'ontouchend' in document)
+		(tlenv.isDarwin && 'ontouchend' in getGlobalDocument())
 	)
 }
 
@@ -70,8 +70,7 @@ if (window) {
 	}
 }
 
-// eslint-disable-next-line no-restricted-syntax
-window?.addEventListener('beforeunload', () => {
+getGlobalWindow()?.addEventListener('beforeunload', () => {
 	setInSessionStorage(tabIdKey, TAB_ID)
 })
 

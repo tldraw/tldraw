@@ -1,3 +1,5 @@
+import { getGlobalDocument } from '@tldraw/editor'
+
 /** @public */
 export interface TLTypeFace {
 	url: string
@@ -38,8 +40,7 @@ export async function preloadFont(id: string, font: TLTypeFace, targetDocument?:
 
 	const fontInstance = new FontFace(id, `url(${url})`, descriptors)
 	await fontInstance.load()
-	// eslint-disable-next-line no-restricted-globals
-	;(targetDocument ?? document).fonts.add(fontInstance)
+	;(targetDocument ?? getGlobalDocument()).fonts.add(fontInstance)
 
 	// @ts-expect-error
 	fontInstance.$$_url = url

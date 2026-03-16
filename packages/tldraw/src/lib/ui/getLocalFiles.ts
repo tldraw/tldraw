@@ -1,11 +1,16 @@
+import { getGlobalDocument } from '@tldraw/editor'
+
 export function getLocalFiles(options?: {
 	allowMultiple?: boolean
 	mimeTypes?: string[] | readonly string[]
 	document?: Document
 }) {
 	return new Promise<File[]>((resolve) => {
-		// eslint-disable-next-line no-restricted-globals
-		const { allowMultiple = true, mimeTypes = [], document: doc = document } = options || {}
+		const {
+			allowMultiple = true,
+			mimeTypes = [],
+			document: doc = getGlobalDocument(),
+		} = options || {}
 
 		const input = doc.createElement('input')
 		input.type = 'file'

@@ -6,6 +6,7 @@ import { Editor } from '../../editor/Editor'
 import { getOwnerDocument } from '../../exports/domUtils'
 import { useEditorComponents } from '../../hooks/EditorComponentsContext'
 import { EditorProvider } from '../../hooks/useEditor'
+import { getGlobalWindow } from '../../utils/dom'
 import { hardResetEditor, refreshPage } from '../../utils/runtime'
 import { ErrorBoundary } from '../ErrorBoundary'
 
@@ -75,10 +76,8 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 
 		// if we can't find a theme class from the app or from a parent, we have
 		// to fall back on using a media query:
-		// eslint-disable-next-line no-restricted-syntax
-		if (typeof window !== 'undefined' && window.matchMedia) {
-			// eslint-disable-next-line no-restricted-syntax
-			setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches)
+		if (typeof window !== 'undefined' && getGlobalWindow().matchMedia) {
+			setIsDarkMode(getGlobalWindow().matchMedia('(prefers-color-scheme: dark)').matches)
 		}
 	}, [isDarkModeFromApp])
 

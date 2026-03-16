@@ -1,4 +1,11 @@
-import { Editor, sanitizeId, TLExportType, TLImageExportOptions, TLShapeId } from '@tldraw/editor'
+import {
+	Editor,
+	getGlobalDocument,
+	sanitizeId,
+	TLExportType,
+	TLImageExportOptions,
+	TLShapeId,
+} from '@tldraw/editor'
 
 /** @public */
 export interface ExportAsOptions extends TLImageExportOptions {
@@ -56,9 +63,8 @@ function getTimestamp() {
 }
 
 /** @internal */
-// eslint-disable-next-line no-restricted-globals
-export function downloadFile(file: File, doc: Document = document) {
-	const link = doc.createElement('a')
+export function downloadFile(file: File, doc?: Document) {
+	const link = (doc ?? getGlobalDocument()).createElement('a')
 	const url = URL.createObjectURL(file)
 	link.href = url
 	link.download = file.name

@@ -1,3 +1,5 @@
+import { getGlobalDocument } from './dom'
+
 /** @internal */
 export interface CanvasMaxSize {
 	maxWidth: number
@@ -94,8 +96,7 @@ const TEST_SIZES = {
  * @returns The maximum size of the canvas for the given dimension.
  */
 function getCanvasSize(dimension: 'width' | 'height' | 'area'): number {
-	// eslint-disable-next-line no-restricted-globals
-	const cropCvs = document.createElement('canvas')
+	const cropCvs = getGlobalDocument().createElement('canvas')
 	cropCvs.width = 1
 	cropCvs.height = 1
 	const cropCtx = cropCvs.getContext('2d')!
@@ -104,8 +105,7 @@ function getCanvasSize(dimension: 'width' | 'height' | 'area'): number {
 		const w = dimension === 'height' ? 1 : size
 		const h = dimension === 'width' ? 1 : size
 
-		// eslint-disable-next-line no-restricted-globals
-		const testCvs = document.createElement('canvas')
+		const testCvs = getGlobalDocument().createElement('canvas')
 		testCvs.width = w
 		testCvs.height = h
 		const testCtx = testCvs.getContext('2d')!
