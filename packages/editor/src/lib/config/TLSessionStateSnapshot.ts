@@ -70,7 +70,7 @@ if (window) {
 	}
 }
 
-getGlobalWindow()?.addEventListener('beforeunload', () => {
+window?.addEventListener('beforeunload', () => {
 	setInSessionStorage(tabIdKey, TAB_ID)
 })
 
