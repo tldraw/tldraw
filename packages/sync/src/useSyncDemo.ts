@@ -236,13 +236,15 @@ function createDemoAssetStore(host: string): TLAssetStore {
 				const networkCompensation =
 					!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
 
+				const pixelRatio = asset.props.pixelRatio ?? 1
+				const trueWidth = asset.props.w * pixelRatio
 				const width = Math.ceil(
 					Math.min(
-						asset.props.w *
+						trueWidth *
 							clamp(context.steppedScreenScale, 1 / 32, 1) *
 							networkCompensation *
 							context.dpr,
-						asset.props.w
+						trueWidth
 					)
 				)
 

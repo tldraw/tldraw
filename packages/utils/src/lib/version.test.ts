@@ -294,16 +294,32 @@ describe('version utilities', () => {
 			expect(mockConsoleLog).not.toHaveBeenCalled()
 		})
 
-		it('should handle package manager deduplication scenario', () => {
-			// The current implementation actually treats multiple registrations of the same
-			// package+version+modules as duplicates, so this will trigger a warning
+		it('should ignore duplicate registrations in Next.js dev mode', () => {
+			// In Next.js dev mode, Fast Refresh re-executes module-level code which causes
+			// the same library to register multiple times, producing a false positive warning.
+			vi.stubGlobal('__NEXT_DATA__', {})
+			const originalNodeEnv = process.env.NODE_ENV
+			process.env.NODE_ENV = 'development'
+
 			registerTldrawLibraryVersion('@tldraw/editor', '2.0.0', 'esm')
 			registerTldrawLibraryVersion('@tldraw/editor', '2.0.0', 'esm')
 			registerTldrawLibraryVersion('@tldraw/editor', '2.0.0', 'esm')
 
 			vi.runAllTimers()
 
-			// Multiple registrations of same version are detected as module duplicates
+			expect(mockConsoleLog).not.toHaveBeenCalled()
+
+			process.env.NODE_ENV = originalNodeEnv
+		})
+
+		it('should detect duplicate registrations outside Next.js dev mode', () => {
+			// Outside Next.js dev, duplicate exact registrations should still be
+			// tracked and trigger the multiple instances warning
+			registerTldrawLibraryVersion('@tldraw/editor', '2.0.0', 'esm')
+			registerTldrawLibraryVersion('@tldraw/editor', '2.0.0', 'esm')
+
+			vi.runAllTimers()
+
 			expect(mockConsoleLog).toHaveBeenCalled()
 			const logMessage = mockConsoleLog.mock.calls[0][0]
 			expect(logMessage).toContain('multiple instances')

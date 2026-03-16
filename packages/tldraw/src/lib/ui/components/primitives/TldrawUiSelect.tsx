@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import { Select as _Select } from 'radix-ui'
 import * as React from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useDirection } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { TldrawUiIcon } from './TldrawUiIcon'
 
@@ -52,6 +53,7 @@ export function TldrawUiSelect({
 	'aria-label': ariaLabel,
 }: TLUiSelectProps) {
 	const [open, handleOpenChange] = useMenuIsOpen(id, onOpenChange)
+	const dir = useDirection()
 
 	return (
 		<_Select.Root
@@ -60,7 +62,7 @@ export function TldrawUiSelect({
 			onOpenChange={handleOpenChange}
 			open={open}
 			disabled={disabled}
-			dir="ltr"
+			dir={dir}
 		>
 			<div
 				id={id}

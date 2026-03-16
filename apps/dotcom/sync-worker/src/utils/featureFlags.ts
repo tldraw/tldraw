@@ -4,17 +4,13 @@ import { Environment } from '../types'
 
 function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
 	// Default to enabled in dev/preview when no KV value exists
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const defaultEnabled = env.TLDRAW_ENV === 'development'
 
-	return {
-		sqlite_file_storage: {
-			enabled: defaultEnabled,
-			description: 'When ON: uses SQLite storage for TLFileDurableObject instead of in-memory',
-		},
-	}
+	return {}
 }
 
-const ALL_FLAGS: FeatureFlagKey[] = ['sqlite_file_storage']
+const ALL_FLAGS: FeatureFlagKey[] = []
 
 /**
  * Get feature flag value from KV store
