@@ -140,6 +140,9 @@
   "4da5988a2e": {
     "translation": "Suprimeix el grup…"
   },
+  "4dab36ac83": {
+    "translation": "Més opcions"
+  },
   "4e6fbf032b": {
     "translation": "Esteu segur que voleu suprimir aquest grup? Aquesta acció no es pot desfer."
   },
@@ -179,6 +182,9 @@
   "5c6fe42bc2": {
     "translation": "Revoca aquest enllaç i crea'n un de nou."
   },
+  "5d04a002ea": {
+    "translation": "No es pot connectar"
+  },
   "5d26ae7550": {
     "translation": "No hem pogut penjar part del contingut que vas crear abans d'iniciar la sessió."
   },
@@ -199,6 +205,9 @@
   },
   "639bae9ac6": {
     "translation": "tu"
+  },
+  "63a6a88c06": {
+    "translation": "Actualitza"
   },
   "6609dd239e": {
     "translation": "Alguna cosa va fallar"
@@ -350,6 +359,9 @@
   "9bef626805": {
     "translation": "Esborra el fitxer"
   },
+  "9ccb565b86": {
+    "translation": "Tenim problemes per connectar-nos al nostre servei d'autenticació. Això sol ser temporal. Si us plau, proveu d'actualitzar la pàgina."
+  },
   "9ceb927baa": {
     "translation": "Publica aquest fitxer"
   },
@@ -458,6 +470,9 @@
   },
   "c87aacf567": {
     "translation": "Tanca la sessió"
+  },
+  "c8a59e7135": {
+    "translation": "Ignora"
   },
   "c9cc8cce24": {
     "translation": "Desa"

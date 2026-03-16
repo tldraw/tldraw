@@ -285,6 +285,12 @@
       "value": "Elimina gruppo…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Altre opzioni"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
@@ -401,6 +407,12 @@
       "value": "Revoca questo collegamento e creane uno nuovo."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Impossibile connettersi"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +453,12 @@
     {
       "type": 0,
       "value": "Voi"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Aggiorna"
     }
   ],
   "6609dd239e": [
@@ -793,6 +811,12 @@
       "value": "Elimina file"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Stiamo riscontrando problemi di connessione al nostro servizio di autenticazione. Di solito si tratta di un problema temporaneo. Prova ad aggiornare la pagina."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1067,6 +1091,12 @@
     {
       "type": 0,
       "value": "Esci"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Congedare"
     }
   ],
   "c9cc8cce24": [

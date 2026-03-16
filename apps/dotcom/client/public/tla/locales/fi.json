@@ -140,6 +140,9 @@
   "4da5988a2e": {
     "translation": "Poista ryhmä…"
   },
+  "4dab36ac83": {
+    "translation": "Lisää vaihtoehtoja"
+  },
   "4e6fbf032b": {
     "translation": "Haluatko varmasti poistaa tämän ryhmän? Tätä toimintoa ei voi perua."
   },
@@ -179,6 +182,9 @@
   "5c6fe42bc2": {
     "translation": "Peruuta tämä linkki ja luo uusi."
   },
+  "5d04a002ea": {
+    "translation": "Yhteyden muodostaminen epäonnistui"
+  },
   "5d26ae7550": {
     "translation": "Emme pystyneet lataamaan osaa sisällöstä, jonka loit ennen kirjautumista."
   },
@@ -199,6 +205,9 @@
   },
   "639bae9ac6": {
     "translation": "sinä"
+  },
+  "63a6a88c06": {
+    "translation": "Päivitä"
   },
   "6609dd239e": {
     "translation": "Jotain meni pieleen"
@@ -350,6 +359,9 @@
   "9bef626805": {
     "translation": "Poista tiedosto"
   },
+  "9ccb565b86": {
+    "translation": "Meillä on ongelmia yhteyden muodostamisessa todennuspalveluumme. Tämä on yleensä väliaikaista. Yritä päivittää sivu."
+  },
   "9ceb927baa": {
     "translation": "Julkaise tämä tiedosto"
   },
@@ -458,6 +470,9 @@
   },
   "c87aacf567": {
     "translation": "Kirjaudu ulos"
+  },
+  "c8a59e7135": {
+    "translation": "Hylkää"
   },
   "c9cc8cce24": {
     "translation": "Tallentaa"

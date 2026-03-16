@@ -140,6 +140,9 @@
   "4da5988a2e": {
     "translation": "Groep verwijderen…"
   },
+  "4dab36ac83": {
+    "translation": "Meer opties"
+  },
   "4e6fbf032b": {
     "translation": "Weet u zeker dat u deze groep wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
   },
@@ -179,6 +182,9 @@
   "5c6fe42bc2": {
     "translation": "Trek deze link in en maak een nieuwe."
   },
+  "5d04a002ea": {
+    "translation": "Kan geen verbinding maken"
+  },
   "5d26ae7550": {
     "translation": "Een deel van de content die u hebt gemaakt voordat u zich aanmeldde, is niet geüpload."
   },
@@ -199,6 +205,9 @@
   },
   "639bae9ac6": {
     "translation": "Jij"
+  },
+  "63a6a88c06": {
+    "translation": "Vernieuwen"
   },
   "6609dd239e": {
     "translation": "Er is iets fout gegaan"
@@ -350,6 +359,9 @@
   "9bef626805": {
     "translation": "Bestand verwijderen"
   },
+  "9ccb565b86": {
+    "translation": "We ondervinden problemen met de verbinding met onze authenticatieservice. Dit is meestal tijdelijk. Probeer de pagina te vernieuwen."
+  },
   "9ceb927baa": {
     "translation": "Publiceer dit bestand"
   },
@@ -458,6 +470,9 @@
   },
   "c87aacf567": {
     "translation": "Afmelden"
+  },
+  "c8a59e7135": {
+    "translation": "Afwijzen"
   },
   "c9cc8cce24": {
     "translation": "Redden"

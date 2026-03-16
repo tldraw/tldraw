@@ -140,6 +140,9 @@
   "4da5988a2e": {
     "translation": "Csoport törlése…"
   },
+  "4dab36ac83": {
+    "translation": "További lehetőségek"
+  },
   "4e6fbf032b": {
     "translation": "Biztosan törölni szeretné ezt a csoportot? Ez a művelet nem vonható vissza."
   },
@@ -179,6 +182,9 @@
   "5c6fe42bc2": {
     "translation": "Vonja vissza ezt a linket, és hozzon létre egy újat."
   },
+  "5d04a002ea": {
+    "translation": "Sikertelen csatlakozás"
+  },
   "5d26ae7550": {
     "translation": "Nem sikerült feltöltenünk a bejelentkezés előtt létrehozott tartalmak egy részét."
   },
@@ -199,6 +205,9 @@
   },
   "639bae9ac6": {
     "translation": "te"
+  },
+  "63a6a88c06": {
+    "translation": "Frissítés"
   },
   "6609dd239e": {
     "translation": "Valami elromlott"
@@ -350,6 +359,9 @@
   "9bef626805": {
     "translation": "Fájl törlése"
   },
+  "9ccb565b86": {
+    "translation": "Problémát tapasztalunk a hitelesítési szolgáltatásunkhoz való csatlakozás során. Ez általában átmeneti probléma. Kérjük, próbálja meg frissíteni az oldalt."
+  },
   "9ceb927baa": {
     "translation": "Tegye közzé ezt a fájlt"
   },
@@ -458,6 +470,9 @@
   },
   "c87aacf567": {
     "translation": "Jelentkezzen ki"
+  },
+  "c8a59e7135": {
+    "translation": "Elvetés"
   },
   "c9cc8cce24": {
     "translation": "Megtakarítás"

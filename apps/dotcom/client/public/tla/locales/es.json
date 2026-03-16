@@ -140,6 +140,9 @@
   "4da5988a2e": {
     "translation": "Eliminar grupo…"
   },
+  "4dab36ac83": {
+    "translation": "Más opciones"
+  },
   "4e6fbf032b": {
     "translation": "¿Seguro que quieres eliminar este grupo? Esta acción no se puede deshacer."
   },
@@ -179,6 +182,9 @@
   "5c6fe42bc2": {
     "translation": "Revoca este enlace y crea uno nuevo."
   },
+  "5d04a002ea": {
+    "translation": "No se puede conectar"
+  },
   "5d26ae7550": {
     "translation": "No hemos podido subir parte del contenido que creó antes de iniciar sesión."
   },
@@ -199,6 +205,9 @@
   },
   "639bae9ac6": {
     "translation": "tú"
+  },
+  "63a6a88c06": {
+    "translation": "Refrescar"
   },
   "6609dd239e": {
     "translation": "Algo ha ido mal"
@@ -350,6 +359,9 @@
   "9bef626805": {
     "translation": "Eliminar archivo"
   },
+  "9ccb565b86": {
+    "translation": "Tenemos problemas para conectarnos a nuestro servicio de autenticación. Esto suele ser temporal. Intenta actualizar la página."
+  },
   "9ceb927baa": {
     "translation": "Publicar este archivo"
   },
@@ -458,6 +470,9 @@
   },
   "c87aacf567": {
     "translation": "Cerrar sesión"
+  },
+  "c8a59e7135": {
+    "translation": "Despedir"
   },
   "c9cc8cce24": {
     "translation": "Ahorrar"

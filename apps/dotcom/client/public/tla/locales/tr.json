@@ -140,6 +140,9 @@
   "4da5988a2e": {
     "translation": "Grubu sil…"
   },
+  "4dab36ac83": {
+    "translation": "Daha fazla seçenek"
+  },
   "4e6fbf032b": {
     "translation": "Bu grubu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
   },
@@ -179,6 +182,9 @@
   "5c6fe42bc2": {
     "translation": "Bu bağlantıyı iptal edin ve yeni bir bağlantı oluşturun."
   },
+  "5d04a002ea": {
+    "translation": "Bağlantı kurulamadı."
+  },
   "5d26ae7550": {
     "translation": "Oturum açmadan önce oluşturduğunuz bazı içerikleri yükleyemedik."
   },
@@ -199,6 +205,9 @@
   },
   "639bae9ac6": {
     "translation": "Sen"
+  },
+  "63a6a88c06": {
+    "translation": "Yenile"
   },
   "6609dd239e": {
     "translation": "Bir sorun oluştu"
@@ -350,6 +359,9 @@
   "9bef626805": {
     "translation": "Dosyayı sil"
   },
+  "9ccb565b86": {
+    "translation": "Kimlik doğrulama servisimize bağlanmada sorun yaşıyoruz. Bu genellikle geçici bir durumdur. Lütfen sayfayı yenilemeyi deneyin."
+  },
   "9ceb927baa": {
     "translation": "Bu dosyayı yayınla"
   },
@@ -458,6 +470,9 @@
   },
   "c87aacf567": {
     "translation": "Oturumu kapat"
+  },
+  "c8a59e7135": {
+    "translation": "Azletmek"
   },
   "c9cc8cce24": {
     "translation": "Kaydetmek"

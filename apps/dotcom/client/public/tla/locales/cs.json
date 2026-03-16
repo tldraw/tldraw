@@ -140,6 +140,9 @@
   "4da5988a2e": {
     "translation": "Smazat skupinu…"
   },
+  "4dab36ac83": {
+    "translation": "Více možností"
+  },
   "4e6fbf032b": {
     "translation": "Jste si jisti, že chcete tuto skupinu smazat? Tuto akci nelze vrátit zpět."
   },
@@ -179,6 +182,9 @@
   "5c6fe42bc2": {
     "translation": "Zrušte toto propojení a vytvořte nové."
   },
+  "5d04a002ea": {
+    "translation": "Nelze se připojit"
+  },
   "5d26ae7550": {
     "translation": "Nepodařilo se nám nahrát část obsahu, který jste vytvořili, než jste se přihlásili."
   },
@@ -199,6 +205,9 @@
   },
   "639bae9ac6": {
     "translation": "Vy"
+  },
+  "63a6a88c06": {
+    "translation": "Obnovit"
   },
   "6609dd239e": {
     "translation": "Něco se pokazilo"
@@ -350,6 +359,9 @@
   "9bef626805": {
     "translation": "Smazat soubor"
   },
+  "9ccb565b86": {
+    "translation": "Máme potíže s připojením k naší ověřovací službě. Toto je obvykle dočasné. Zkuste prosím obnovit stránku."
+  },
   "9ceb927baa": {
     "translation": "Publikovat tento soubor"
   },
@@ -458,6 +470,9 @@
   },
   "c87aacf567": {
     "translation": "Odhlaste se"
+  },
+  "c8a59e7135": {
+    "translation": "Propustit"
   },
   "c9cc8cce24": {
     "translation": "Uložit"

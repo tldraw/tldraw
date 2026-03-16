@@ -285,6 +285,12 @@
       "value": "Radera grupp…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Fler alternativ"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
@@ -401,6 +407,12 @@
       "value": "Återkalla den här länken och skapa en ny."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Det gick inte att ansluta"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +453,12 @@
     {
       "type": 0,
       "value": "du"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Uppdatera"
     }
   ],
   "6609dd239e": [
@@ -793,6 +811,12 @@
       "value": "Ta bort fil"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Vi har problem med att ansluta till vår autentiseringstjänst. Detta är vanligtvis tillfälligt. Försök att uppdatera sidan."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1067,6 +1091,12 @@
     {
       "type": 0,
       "value": "Logga ut"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Avfärda"
     }
   ],
   "c9cc8cce24": [

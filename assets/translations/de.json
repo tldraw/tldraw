@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "In Lesezeichen umwandeln",
 	"action.convert-to-embed": "In Einbettung umwandeln",
 	"action.copy": "Kopieren",
+	"action.copy-as-json": "Kopieren als JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Als PNG kopieren",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Als SVG kopieren",

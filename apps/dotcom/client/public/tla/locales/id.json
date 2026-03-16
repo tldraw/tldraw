@@ -140,6 +140,9 @@
   "4da5988a2e": {
     "translation": "Hapus grup…"
   },
+  "4dab36ac83": {
+    "translation": "Opsi lainnya"
+  },
   "4e6fbf032b": {
     "translation": "Yakin ingin menghapus grup ini? Tindakan ini tidak dapat dibatalkan."
   },
@@ -179,6 +182,9 @@
   "5c6fe42bc2": {
     "translation": "Cabut tautan ini dan buat yang baru."
   },
+  "5d04a002ea": {
+    "translation": "Tidak dapat terhubung"
+  },
   "5d26ae7550": {
     "translation": "Kami gagal mengunggah beberapa konten yang Anda buat sebelum masuk."
   },
@@ -199,6 +205,9 @@
   },
   "639bae9ac6": {
     "translation": "Anda"
+  },
+  "63a6a88c06": {
+    "translation": "Menyegarkan"
   },
   "6609dd239e": {
     "translation": "Terjadi kesalahan"
@@ -350,6 +359,9 @@
   "9bef626805": {
     "translation": "Hapus file"
   },
+  "9ccb565b86": {
+    "translation": "Kami mengalami masalah saat terhubung ke layanan otentikasi kami. Ini biasanya bersifat sementara. Silakan coba menyegarkan halaman."
+  },
   "9ceb927baa": {
     "translation": "Terbitkan file ini"
   },
@@ -458,6 +470,9 @@
   },
   "c87aacf567": {
     "translation": "Keluar"
+  },
+  "c8a59e7135": {
+    "translation": "Membubarkan"
   },
   "c9cc8cce24": {
     "translation": "Menyimpan"

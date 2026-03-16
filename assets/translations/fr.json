@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "Convertir en signet",
 	"action.convert-to-embed": "Convertir en intégration",
 	"action.copy": "Copier",
+	"action.copy-as-json": "Copier en tant que JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Copier en tant que PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Copier en tant que SVG",

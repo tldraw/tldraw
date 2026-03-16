@@ -285,6 +285,12 @@
       "value": "Ștergeți grupul…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Mai multe opțiuni"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
@@ -401,6 +407,12 @@
       "value": "Revocați acest link și creați unul nou."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Nu se poate conecta"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +453,12 @@
     {
       "type": 0,
       "value": "tu"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Reîmprospăta"
     }
   ],
   "6609dd239e": [
@@ -793,6 +811,12 @@
       "value": "Ștergeți fișierul"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Întâmpinăm probleme la conectarea la serviciul nostru de autentificare. De obicei, aceasta este o problemă temporară. Vă rugăm să încercați să actualizați pagina."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1071,6 +1095,12 @@
     {
       "type": 0,
       "value": "Sign out"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Închide"
     }
   ],
   "c9cc8cce24": [

@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "转换为书签",
 	"action.convert-to-embed": "转换为嵌入",
 	"action.copy": "复制",
+	"action.copy-as-json": "复制为 JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "复制为 PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "复制为 SVG",

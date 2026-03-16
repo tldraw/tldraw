@@ -285,6 +285,12 @@
       "value": "Padamkan kumpulan…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Lebih banyak pilihan"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
@@ -401,6 +407,12 @@
       "value": "Batalkan pautan ini dan buat yang baharu."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Tidak dapat menyambung"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +453,12 @@
     {
       "type": 0,
       "value": "awak"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Segarkan semula"
     }
   ],
   "6609dd239e": [
@@ -793,6 +811,12 @@
       "value": "Padam fail"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Kami menghadapi masalah untuk menyambung ke perkhidmatan pengesahan kami. Ini biasanya bersifat sementara. Sila cuba muat semula halaman."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1059,6 +1083,12 @@
     {
       "type": 0,
       "value": "Log keluar"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Ketepikan"
     }
   ],
   "c9cc8cce24": [

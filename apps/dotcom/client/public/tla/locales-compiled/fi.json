@@ -285,6 +285,12 @@
       "value": "Poista ryhmä…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Lisää vaihtoehtoja"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
@@ -401,6 +407,12 @@
       "value": "Peruuta tämä linkki ja luo uusi."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Yhteyden muodostaminen epäonnistui"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +453,12 @@
     {
       "type": 0,
       "value": "sinä"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Päivitä"
     }
   ],
   "6609dd239e": [
@@ -793,6 +811,12 @@
       "value": "Poista tiedosto"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Meillä on ongelmia yhteyden muodostamisessa todennuspalveluumme. Tämä on yleensä väliaikaista. Yritä päivittää sivu."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1067,6 +1091,12 @@
     {
       "type": 0,
       "value": "Kirjaudu ulos"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Hylkää"
     }
   ],
   "c9cc8cce24": [

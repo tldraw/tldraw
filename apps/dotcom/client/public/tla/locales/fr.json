@@ -140,6 +140,9 @@
   "4da5988a2e": {
     "translation": "Supprimer le groupe…"
   },
+  "4dab36ac83": {
+    "translation": "Plus d'options"
+  },
   "4e6fbf032b": {
     "translation": "Êtes-vous sûr de vouloir supprimer ce groupe ? Cette action est irréversible."
   },
@@ -179,6 +182,9 @@
   "5c6fe42bc2": {
     "translation": "Révoquez ce lien et créez-en un nouveau."
   },
+  "5d04a002ea": {
+    "translation": "Impossible de se connecter"
+  },
   "5d26ae7550": {
     "translation": "Nous n'avons pas réussi à importer une partie du contenu que vous avez créé avant de vous connecter."
   },
@@ -199,6 +205,9 @@
   },
   "639bae9ac6": {
     "translation": "toi"
+  },
+  "63a6a88c06": {
+    "translation": "Rafraîchir"
   },
   "6609dd239e": {
     "translation": "Une erreur s'est produite"
@@ -350,6 +359,9 @@
   "9bef626805": {
     "translation": "Supprimer le fichier"
   },
+  "9ccb565b86": {
+    "translation": "Nous rencontrons des difficultés pour nous connecter à notre service d'authentification. Ce problème est généralement temporaire. Veuillez actualiser la page."
+  },
   "9ceb927baa": {
     "translation": "Publier ce fichier"
   },
@@ -458,6 +470,9 @@
   },
   "c87aacf567": {
     "translation": "Se déconnecter"
+  },
+  "c8a59e7135": {
+    "translation": "Rejeter"
   },
   "c9cc8cce24": {
     "translation": "Sauvegarder"

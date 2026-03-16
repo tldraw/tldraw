@@ -285,6 +285,12 @@
       "value": "Eliminar grupo…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Máis opcións"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
@@ -401,6 +407,12 @@
       "value": "Revoga esta ligazón e crea unha nova."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Non se pode conectar"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +453,12 @@
     {
       "type": 0,
       "value": "ti"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Actualizar"
     }
   ],
   "6609dd239e": [
@@ -793,6 +811,12 @@
       "value": "Eliminar ficheiro"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Temos problemas para conectar co noso servizo de autenticación. Isto adoita ser temporal. Tenta actualizar a páxina."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1067,6 +1091,12 @@
     {
       "type": 0,
       "value": "Pechar sesión"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Rexeitar"
     }
   ],
   "c9cc8cce24": [

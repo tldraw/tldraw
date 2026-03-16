@@ -140,6 +140,9 @@
   "4da5988a2e": {
     "translation": "Slett gruppe…"
   },
+  "4dab36ac83": {
+    "translation": "Flere alternativer"
+  },
   "4e6fbf032b": {
     "translation": "Er du sikker på at du vil slette denne gruppen? Denne handlingen kan ikke angres."
   },
@@ -179,6 +182,9 @@
   "5c6fe42bc2": {
     "translation": "Tilbakekalle denne lenken og opprett en ny."
   },
+  "5d04a002ea": {
+    "translation": "Kan ikke koble til"
+  },
   "5d26ae7550": {
     "translation": "Vi klarte ikke å laste opp noe av innholdet du opprettet før du logget på."
   },
@@ -199,6 +205,9 @@
   },
   "639bae9ac6": {
     "translation": "du"
+  },
+  "63a6a88c06": {
+    "translation": "Forfriske"
   },
   "6609dd239e": {
     "translation": "Noe gikk galt"
@@ -350,6 +359,9 @@
   "9bef626805": {
     "translation": "Slett fil"
   },
+  "9ccb565b86": {
+    "translation": "Vi har problemer med å koble til autentiseringstjenesten vår. Dette er vanligvis midlertidig. Prøv å oppdatere siden."
+  },
   "9ceb927baa": {
     "translation": "Publiser denne filen"
   },
@@ -458,6 +470,9 @@
   },
   "c87aacf567": {
     "translation": "Logg ut"
+  },
+  "c8a59e7135": {
+    "translation": "Avskjedige"
   },
   "c9cc8cce24": {
     "translation": "Spare"

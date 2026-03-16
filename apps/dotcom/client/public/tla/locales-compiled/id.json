@@ -285,6 +285,12 @@
       "value": "Hapus grup…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Opsi lainnya"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
@@ -401,6 +407,12 @@
       "value": "Cabut tautan ini dan buat yang baru."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Tidak dapat terhubung"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +453,12 @@
     {
       "type": 0,
       "value": "Anda"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Menyegarkan"
     }
   ],
   "6609dd239e": [
@@ -793,6 +811,12 @@
       "value": "Hapus file"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Kami mengalami masalah saat terhubung ke layanan otentikasi kami. Ini biasanya bersifat sementara. Silakan coba menyegarkan halaman."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1059,6 +1083,12 @@
     {
       "type": 0,
       "value": "Keluar"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Membubarkan"
     }
   ],
   "c9cc8cce24": [

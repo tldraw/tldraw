@@ -285,6 +285,12 @@
       "value": "Xóa nhóm…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Nhiều tùy chọn hơn"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
@@ -401,6 +407,12 @@
       "value": "Thu hồi liên kết này và tạo liên kết mới."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Không thể kết nối"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +453,12 @@
     {
       "type": 0,
       "value": "Bạn"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Làm cho khỏe lại"
     }
   ],
   "6609dd239e": [
@@ -793,6 +811,12 @@
       "value": "Xóa tệp"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Chúng tôi đang gặp sự cố khi kết nối với dịch vụ xác thực. Đây thường chỉ là sự cố tạm thời. Vui lòng thử làm mới trang."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1059,6 +1083,12 @@
     {
       "type": 0,
       "value": "Đăng xuất"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Miễn nhiệm"
     }
   ],
   "c9cc8cce24": [

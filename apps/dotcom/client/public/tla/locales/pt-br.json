@@ -140,6 +140,9 @@
   "4da5988a2e": {
     "translation": "Excluir grupo…"
   },
+  "4dab36ac83": {
+    "translation": "Mais opções"
+  },
   "4e6fbf032b": {
     "translation": "Tem certeza de que deseja excluir este grupo? Esta ação não pode ser desfeita."
   },
@@ -179,6 +182,9 @@
   "5c6fe42bc2": {
     "translation": "Revogue este link e crie um novo."
   },
+  "5d04a002ea": {
+    "translation": "Não foi possível conectar"
+  },
   "5d26ae7550": {
     "translation": "Não foi possível fazer upload de parte do conteúdo que você criou antes de se conectar."
   },
@@ -199,6 +205,9 @@
   },
   "639bae9ac6": {
     "translation": "você"
+  },
+  "63a6a88c06": {
+    "translation": "Atualizar"
   },
   "6609dd239e": {
     "translation": "Algo deu errado"
@@ -350,6 +359,9 @@
   "9bef626805": {
     "translation": "Excluir arquivo"
   },
+  "9ccb565b86": {
+    "translation": "Estamos com dificuldades para conectar ao nosso serviço de autenticação. Isso geralmente é temporário. Por favor, tente atualizar a página."
+  },
   "9ceb927baa": {
     "translation": "Publicar este arquivo"
   },
@@ -458,6 +470,9 @@
   },
   "c87aacf567": {
     "translation": "Sair"
+  },
+  "c8a59e7135": {
+    "translation": "Liberar"
   },
   "c9cc8cce24": {
     "translation": "Salvar"

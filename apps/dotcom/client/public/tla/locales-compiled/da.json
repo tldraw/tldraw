@@ -285,6 +285,12 @@
       "value": "Slet gruppe…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Flere muligheder"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
@@ -401,6 +407,12 @@
       "value": "Tilbagekald dette link og opret et nyt."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Kan ikke oprette forbindelse"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +453,12 @@
     {
       "type": 0,
       "value": "du"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Opfriske"
     }
   ],
   "6609dd239e": [
@@ -793,6 +811,12 @@
       "value": "Slet fil"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Vi har problemer med at oprette forbindelse til vores godkendelsestjeneste. Dette er normalt midlertidigt. Prøv at opdatere siden."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1067,6 +1091,12 @@
     {
       "type": 0,
       "value": "Log ud"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Afskedige"
     }
   ],
   "c9cc8cce24": [

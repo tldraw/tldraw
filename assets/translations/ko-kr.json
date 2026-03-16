@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "북마크로 변환",
 	"action.convert-to-embed": "임베드로 변환",
 	"action.copy": "복사",
+	"action.copy-as-json": "JSON으로 복사",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "PNG로 복사",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "SVG로 복사",

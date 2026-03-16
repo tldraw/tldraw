@@ -140,6 +140,9 @@
   "4da5988a2e": {
     "translation": "Slet gruppe…"
   },
+  "4dab36ac83": {
+    "translation": "Flere muligheder"
+  },
   "4e6fbf032b": {
     "translation": "Er du sikker på, at du vil slette denne gruppe? Denne handling kan ikke fortrydes."
   },
@@ -179,6 +182,9 @@
   "5c6fe42bc2": {
     "translation": "Tilbagekald dette link og opret et nyt."
   },
+  "5d04a002ea": {
+    "translation": "Kan ikke oprette forbindelse"
+  },
   "5d26ae7550": {
     "translation": "Vi kunne ikke uploade noget af det indhold, du oprettede, før du loggede ind."
   },
@@ -199,6 +205,9 @@
   },
   "639bae9ac6": {
     "translation": "du"
+  },
+  "63a6a88c06": {
+    "translation": "Opfriske"
   },
   "6609dd239e": {
     "translation": "Noget gik galt"
@@ -350,6 +359,9 @@
   "9bef626805": {
     "translation": "Slet fil"
   },
+  "9ccb565b86": {
+    "translation": "Vi har problemer med at oprette forbindelse til vores godkendelsestjeneste. Dette er normalt midlertidigt. Prøv at opdatere siden."
+  },
   "9ceb927baa": {
     "translation": "Udgiv denne fil"
   },
@@ -458,6 +470,9 @@
   },
   "c87aacf567": {
     "translation": "Log ud"
+  },
+  "c8a59e7135": {
+    "translation": "Afskedige"
   },
   "c9cc8cce24": {
     "translation": "Spare"

@@ -285,6 +285,12 @@
       "value": "Usuń grupę…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Więcej opcji"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
@@ -401,6 +407,12 @@
       "value": "Usuń ten link i utwórz nowy."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Nie można połączyć"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +453,12 @@
     {
       "type": 0,
       "value": "Ty"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Odświeżać"
     }
   ],
   "6609dd239e": [
@@ -793,6 +811,12 @@
       "value": "Usuń plik"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Mamy problem z połączeniem się z naszą usługą uwierzytelniania. Zazwyczaj jest to problem tymczasowy. Spróbuj odświeżyć stronę."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1075,6 +1099,12 @@
     {
       "type": 0,
       "value": "Wyloguj się"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Odrzucać"
     }
   ],
   "c9cc8cce24": [
