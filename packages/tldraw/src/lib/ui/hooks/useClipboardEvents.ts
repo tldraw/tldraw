@@ -7,6 +7,7 @@ import {
 	activeElementShouldCaptureKeys,
 	assert,
 	compact,
+	getGlobalDocument,
 	isDefined,
 	preventDefault,
 	uniq,
@@ -39,8 +40,7 @@ const expectedPasteFileMimeTypes = [
  */
 function stripHtml(html: string) {
 	// See <https://github.com/developit/preact-markup/blob/4788b8d61b4e24f83688710746ee36e7464f7bbc/src/parse-markup.js#L60-L69>
-	// eslint-disable-next-line no-restricted-globals
-	const doc = document.implementation.createHTMLDocument('')
+	const doc = getGlobalDocument().implementation.createHTMLDocument('')
 	doc.documentElement.innerHTML = html.trim()
 	return doc.body.textContent || doc.body.innerText || ''
 }

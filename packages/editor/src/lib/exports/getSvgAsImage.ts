@@ -2,6 +2,7 @@ import { FileHelpers, Image, PngHelpers, sleep } from '@tldraw/utils'
 import { tlenv } from '../globals/environment'
 import { clampToBrowserMaxCanvasSize } from '../utils/browserCanvasMaxSize'
 import { debugFlags } from '../utils/debug-flags'
+import { getGlobalDocument } from '../utils/dom'
 
 /** @public */
 export async function getSvgAsImage(
@@ -107,8 +108,7 @@ async function renderSvgToCanvas(
 				await sleep(250)
 			}
 
-			// eslint-disable-next-line no-restricted-globals
-			const canvas = document.createElement('canvas') as HTMLCanvasElement
+			const canvas = getGlobalDocument().createElement('canvas') as HTMLCanvasElement
 			const ctx = canvas.getContext('2d')!
 			canvas.width = width
 			canvas.height = height
@@ -269,8 +269,7 @@ function trimExtraPadding(
 	const cropH = cropBottom - cropTop
 
 	// Create a new cropped canvas
-	// eslint-disable-next-line no-restricted-globals
-	const croppedCanvas = document.createElement('canvas')
+	const croppedCanvas = getGlobalDocument().createElement('canvas')
 	croppedCanvas.width = cropW
 	croppedCanvas.height = cropH
 	const croppedCtx = croppedCanvas.getContext('2d')!

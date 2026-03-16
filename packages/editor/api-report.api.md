@@ -1838,6 +1838,12 @@ export function getFontsFromRichText(editor: Editor, richText: TLRichText, initi
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
 
+// @internal
+export function getGlobalDocument(): Document;
+
+// @internal
+export function getGlobalWindow(): Window & typeof globalThis;
+
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
 

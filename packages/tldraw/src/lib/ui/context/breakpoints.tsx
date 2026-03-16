@@ -1,4 +1,4 @@
-import { useMaybeEditor, useValue } from '@tldraw/editor'
+import { getGlobalWindow, useMaybeEditor, useValue } from '@tldraw/editor'
 import React, { ReactNode, useContext } from 'react'
 import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from '../constants'
 
@@ -18,8 +18,7 @@ export function BreakPointProvider({ forceMobile = false, children }: BreakPoint
 		'breakpoint',
 		() => {
 			// This will recompute the viewport screen bounds changes...
-			// eslint-disable-next-line no-restricted-syntax -- fallback for when no editor context exists
-			const { width } = editor?.getViewportScreenBounds() ?? { width: window.innerWidth }
+			const { width } = editor?.getViewportScreenBounds() ?? { width: getGlobalWindow().innerWidth }
 
 			const maxBreakpoint = forceMobile
 				? PORTRAIT_BREAKPOINT.MOBILE_SM

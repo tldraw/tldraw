@@ -1,4 +1,9 @@
-import { MediaHelpers, assertExists, clampToBrowserMaxCanvasSize } from '@tldraw/editor'
+import {
+	MediaHelpers,
+	assertExists,
+	clampToBrowserMaxCanvasSize,
+	getGlobalDocument,
+} from '@tldraw/editor'
 
 /** @public */
 export interface BoxWidthHeight {
@@ -68,8 +73,7 @@ export async function downsizeImage(
 		Math.min(height * 2, h)
 	)
 
-	// eslint-disable-next-line no-restricted-globals
-	const canvas = document.createElement('canvas')
+	const canvas = getGlobalDocument().createElement('canvas')
 	canvas.width = desiredWidth
 	canvas.height = desiredHeight
 	const ctx = assertExists(

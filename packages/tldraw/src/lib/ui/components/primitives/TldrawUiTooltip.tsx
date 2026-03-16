@@ -2,6 +2,7 @@ import {
 	assert,
 	atom,
 	Editor,
+	getGlobalDocument,
 	tlenvReactive,
 	uniqueId,
 	useMaybeEditor,
@@ -231,8 +232,7 @@ function TooltipSingleton() {
 	}, [cameraState, isOpen, currentTooltip, editor])
 
 	useEffect(() => {
-		// eslint-disable-next-line no-restricted-globals
-		const doc = editor?.getContainerDocument() ?? document
+		const doc = editor?.getContainerDocument() ?? getGlobalDocument()
 		function handleKeyDown(event: KeyboardEvent) {
 			if (event.key === 'Escape' && currentTooltip && isOpen) {
 				hideAllTooltips()
@@ -248,8 +248,7 @@ function TooltipSingleton() {
 
 	// Hide tooltip and prevent new ones from opening while pointer is down
 	useEffect(() => {
-		// eslint-disable-next-line no-restricted-globals
-		const doc = editor?.getContainerDocument() ?? document
+		const doc = editor?.getContainerDocument() ?? getGlobalDocument()
 		function handlePointerDown() {
 			tooltipManager.handleEvent({ type: 'pointer_down' })
 		}

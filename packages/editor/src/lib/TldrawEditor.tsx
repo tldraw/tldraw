@@ -42,6 +42,7 @@ import { LicenseProvider } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { TLDeepLinkOptions } from './utils/deepLinks'
+import { getGlobalDocument } from './utils/dom'
 import { TLTextOptions } from './utils/richText'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
@@ -405,8 +406,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	return <TldrawEditorWithReadyStore {...rest} store={store.store} user={user} />
 })
 
-// eslint-disable-next-line no-restricted-globals
-const noAutoFocus = () => document.location.search.includes('tldraw_preserve_focus') // || !document.hasFocus() // breaks in nextjs
+const noAutoFocus = () => getGlobalDocument().location.search.includes('tldraw_preserve_focus')
 
 function TldrawEditorWithReadyStore({
 	onMount,

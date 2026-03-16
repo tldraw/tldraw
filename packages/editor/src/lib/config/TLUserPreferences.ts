@@ -2,6 +2,7 @@ import { atom } from '@tldraw/state'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
 import { getFromLocalStorage, setInLocalStorage, structuredClone, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
+import { getGlobalWindow } from '../utils/dom'
 
 const USER_DATA_KEY = 'TLDRAW_USER_DATA_v3'
 
@@ -154,10 +155,8 @@ function getRandomColor() {
 
 /** @internal */
 export function userPrefersReducedMotion() {
-	// eslint-disable-next-line no-restricted-syntax
-	if (typeof window !== 'undefined' && window.matchMedia) {
-		// eslint-disable-next-line no-restricted-syntax
-		return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
+	if (typeof window !== 'undefined' && getGlobalWindow().matchMedia) {
+		return getGlobalWindow().matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
 	}
 
 	return false

@@ -449,6 +449,8 @@ export {
 export {
 	activeElementShouldCaptureKeys,
 	elementShouldCaptureKeys,
+	getGlobalDocument,
+	getGlobalWindow,
 	loopToHtmlElement,
 	preventDefault,
 	releasePointerCapture,
