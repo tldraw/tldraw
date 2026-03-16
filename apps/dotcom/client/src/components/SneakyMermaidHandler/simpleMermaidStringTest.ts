@@ -12,16 +12,21 @@
  * pulling in the heavy mermaid library.
  */
 const FRONTMATTER_REGEX = /^-{3}\s*[\n\r]([\s\S]*?)[\n\r]-{3}\s*[\n\r]+/
-const DIRECTIVE_REGEX =
-	/%{2}{\s*(?:(\w+)\s*:|(\w+))\s*(?:(\w+)|((?:(?!}%{2}).|\r?\n)*))?\s*(?:}%{2})?/gi
-const COMMENT_REGEX = /\s*%%.*\n/gm
 const DIAGRAM_KEYWORD_REGEX =
 	/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|erDiagram|journey|gantt|pie|gitGraph|mindmap|timeline|sankey|xychart|block|quadrantChart|requirement|C4Context|C4Container|C4Component|C4Dynamic|C4Deployment|packet|kanban|architecture|treemap|radar|info)/
 
-export function simpleMermaidStringTest(text: string): boolean {
-	const cleaned = text
+/**
+ * Strip mermaid boilerplate (frontmatter, directives, comments) so only the
+ * diagram body remains. The two global regexes are created as fresh literals
+ * each call to avoid the stateful-lastIndex footgun of module-level /g regexes.
+ */
+function stripMermaidBoilerplate(text: string): string {
+	return text
 		.replace(FRONTMATTER_REGEX, '')
-		.replace(DIRECTIVE_REGEX, '')
-		.replace(COMMENT_REGEX, '\n')
-	return DIAGRAM_KEYWORD_REGEX.test(cleaned)
+		.replace(/%{2}{\s*(?:(\w+)\s*:|(\w+))\s*(?:(\w+)|((?:(?!}%{2}).|\r?\n)*))?\s*(?:}%{2})?/gi, '')
+		.replace(/\s*%%.*\n/gm, '\n')
+}
+
+export function simpleMermaidStringTest(text: string): boolean {
+	return DIAGRAM_KEYWORD_REGEX.test(stripMermaidBoilerplate(text))
 }
