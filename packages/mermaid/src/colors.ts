@@ -215,5 +215,5 @@ function nearestTldrawColor(hex: string): TLDefaultColorStyle {
 }
 
 function stripHash(value: string | undefined): string | undefined {
-	return value?.startsWith('#') ? value.slice(1) : undefined
+	return value?.startsWith('#') ? value.slice(1) : value
 }

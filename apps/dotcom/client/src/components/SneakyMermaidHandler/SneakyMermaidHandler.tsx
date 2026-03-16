@@ -33,7 +33,9 @@ export function SneakyMermaidHandler() {
 			}
 
 			try {
+				let didUseUnsupportedFallback = false
 				const onUnsupportedDiagram = async (svgString: string) => {
+					didUseUnsupportedFallback = true
 					await editor.putExternalContent({
 						type: 'svg-text',
 						text: svgString,
@@ -49,7 +51,9 @@ export function SneakyMermaidHandler() {
 				}
 
 				await createMermaidDiagram(editor, content.text, { onUnsupportedDiagram })
-				selectNewShapes()
+				if (!didUseUnsupportedFallback) {
+					selectNewShapes()
+				}
 			} catch (e) {
 				console.error(e)
 				await defaultHandleExternalTextContent(editor, content)
