@@ -58,6 +58,7 @@
 		"d3-geo": "^3.1.1",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
+		"matter-js": "^0.20.0",
 		"pdf-lib": "^1.17.1",
 		"pdfjs-dist": "^4.10.38",
 		"radix-ui": "^1.4.2",
@@ -73,6 +74,7 @@
 	"devDependencies": {
 		"@types/d3-geo": "^3.1.0",
 		"@types/lodash": "^4.17.14",
+		"@types/matter-js": "^0",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@types/topojson-client": "^3.1.5",
