@@ -113,6 +113,8 @@ describe('blueprint tests', () => {
   B -->|Yes| C[OK]
   B ---->|No| E[End]`)
 
+			expect(bp).toMatchSnapshot()
+
 			expect(bp.nodes).toHaveLength(4)
 			expect(bp.nodes.map((n) => n.id).sort()).toEqual(['A', 'B', 'C', 'E'])
 
@@ -144,6 +146,7 @@ describe('blueprint tests', () => {
 			const bp = await flowchartBlueprint(`flowchart LR
   Start --> Stop`)
 
+			expect(bp).toMatchSnapshot()
 			expect(bp.nodes).toHaveLength(2)
 			expect(bp.edges).toHaveLength(1)
 
@@ -172,6 +175,7 @@ describe('blueprint tests', () => {
     c1-->c2
   end`)
 
+			expect(bp).toMatchSnapshot()
 			const subgraphIds = ['one', 'two', 'three']
 			for (const id of subgraphIds) {
 				const sg = findNode(bp, id)
@@ -206,6 +210,7 @@ describe('blueprint tests', () => {
   D --> D
   D --> F[Done]`)
 
+			expect(bp).toMatchSnapshot()
 			expect(bp.nodes).toHaveLength(6)
 			expect(bp.edges).toHaveLength(7)
 
@@ -232,6 +237,7 @@ describe('blueprint tests', () => {
   D --> D
   D --> F[Done]`)
 
+			expect(bp).toMatchSnapshot()
 			expect(bp.nodes).toHaveLength(6)
 			expect(bp.edges).toHaveLength(7)
 
@@ -247,6 +253,7 @@ describe('blueprint tests', () => {
   class A green
   class B blue`)
 
+			expect(bp).toMatchSnapshot()
 			const startNode = findNodeByLabel(bp, 'Start')!
 			expect(startNode.fill).toBe('solid')
 			expect(startNode.color).toBe('light-green')
@@ -265,6 +272,7 @@ describe('blueprint tests', () => {
   class A,B svc;
   class C db;`)
 
+			expect(bp).toMatchSnapshot()
 			const svcNode = findNodeByLabel(bp, 'Auth Service')!
 			expect(svcNode.fill).toBe('solid')
 			expect(svcNode.color).toBe('blue')
@@ -283,6 +291,7 @@ describe('blueprint tests', () => {
   style C fill:#e8f5e9,stroke:#2e7d32
   style D fill:#ffebee,stroke:#c62828`)
 
+			expect(bp).toMatchSnapshot()
 			expect(findNodeByLabel(bp, 'Validation')!.fill).toBe('solid')
 			expect(findNodeByLabel(bp, 'Validation')!.color).toBe('orange')
 			expect(findNodeByLabel(bp, 'Success')!.fill).toBe('solid')
@@ -301,6 +310,7 @@ describe('blueprint tests', () => {
   linkStyle 0 stroke:#2a7,stroke-width:2px
   linkStyle 1 stroke:#27a,stroke-width:2px,stroke-dasharray: 4 3`)
 
+			expect(bp).toMatchSnapshot()
 			expect(bp.nodes).toHaveLength(2)
 			expect(bp.edges).toHaveLength(4)
 
@@ -319,6 +329,7 @@ describe('blueprint tests', () => {
   Moving --> Crash
   Crash --> [*]`)
 
+			expect(bp).toMatchSnapshot()
 			const still = findNode(bp, 'Still')!
 			expect(still).toBeDefined()
 			expect(still.label).toBe('Still')
@@ -350,6 +361,7 @@ describe('blueprint tests', () => {
   class Idle green
   class Active red`)
 
+			expect(bp).toMatchSnapshot()
 			const idle = findNode(bp, 'Idle')!
 			expect(idle.fill).toBe('solid')
 			expect(idle.color).toBe('light-green')
@@ -370,6 +382,7 @@ describe('blueprint tests', () => {
   }
   Session --> [*]: close`)
 
+			expect(bp).toMatchSnapshot()
 			const session = findNode(bp, 'Session')!
 			expect(session).toBeDefined()
 			expect(session.fill).toBe('semi')
@@ -404,6 +417,7 @@ describe('blueprint tests', () => {
     sA --> [*]
   }`)
 
+			expect(bp).toMatchSnapshot()
 			expect(findNode(bp, 'First')!.fill).toBe('semi')
 			expect(findNode(bp, 'Second')!.fill).toBe('semi')
 
@@ -423,6 +437,7 @@ describe('blueprint tests', () => {
     SLA clock may pause here
   end note`)
 
+			expect(bp).toMatchSnapshot()
 			expect(findNode(bp, 'TicketOpen')).toBeDefined()
 			expect(findNode(bp, 'Investigating')).toBeDefined()
 			expect(findNode(bp, 'WaitingForCustomer')).toBeDefined()
@@ -459,6 +474,7 @@ describe('blueprint tests', () => {
   Editor --> Suspended: sleep
   Suspended --> H: wake`)
 
+			expect(bp).toMatchSnapshot()
 			const editor = findNode(bp, 'Editor')!
 			expect(editor).toBeDefined()
 			expect(editor.fill).toBe('semi')
@@ -489,6 +505,7 @@ describe('blueprint tests', () => {
   John-->>Alice: Great!
   Alice-)John: See you later!`)
 
+			expect(bp).toMatchSnapshot()
 			expect(bp.edges).toHaveLength(3)
 			expect(bp.edges[0].label).toBe('Hello John, how are you?')
 			expect(bp.edges[0].dash).toBe('solid')
@@ -529,6 +546,7 @@ describe('blueprint tests', () => {
     W->>W: execute()
   end`)
 
+			expect(bp).toMatchSnapshot()
 			expect(bp.edges.length).toBeGreaterThanOrEqual(4)
 			expect(bp.edges[0].label).toBe('enqueue(job)')
 
@@ -556,6 +574,7 @@ describe('blueprint tests', () => {
   Note over Alice,John: Both see this
   John-->>Alice: Hi!`)
 
+			expect(bp).toMatchSnapshot()
 			const notes = bp.nodes.filter((n) => n.id.startsWith('note-'))
 			expect(notes).toHaveLength(3)
 			for (const note of notes) {
@@ -574,6 +593,7 @@ describe('blueprint tests', () => {
   John-->>-Alice: Hi Alice, I can hear you!
   John-->>-Alice: I feel great!`)
 
+			expect(bp).toMatchSnapshot()
 			const activations = bp.nodes.filter((n) => n.id.startsWith('activation-'))
 			expect(activations).toHaveLength(2)
 			for (const act of activations) {
@@ -599,6 +619,7 @@ describe('blueprint tests', () => {
   API-->>Client: Order JSON
   deactivate API`)
 
+			expect(bp).toMatchSnapshot()
 			const activations = bp.nodes.filter((n) => n.id.startsWith('activation-'))
 			expect(activations).toHaveLength(2)
 
@@ -618,6 +639,7 @@ describe('blueprint tests', () => {
   Bob-->>Alice: Hi
   Alice->>Bob: How are you?`)
 
+			expect(bp).toMatchSnapshot()
 			expect(bp.edges).toHaveLength(3)
 			expect(bp.edges[0].decoration).toEqual({ type: 'autonumber', value: '1' })
 			expect(bp.edges[1].decoration).toEqual({ type: 'autonumber', value: '2' })
@@ -635,6 +657,7 @@ describe('blueprint tests', () => {
     App-->>User: Show error message
   end`)
 
+			expect(bp).toMatchSnapshot()
 			const fragmentBox = findNode(bp, 'fragment-0')
 			expect(fragmentBox).toBeDefined()
 			expect(fragmentBox!.label).toBe('alt [Credentials valid]')
@@ -660,6 +683,7 @@ describe('blueprint tests', () => {
   JobRunner-->>App: Job started
   App-->>User: Report is processing`)
 
+			expect(bp).toMatchSnapshot()
 			const userTop = findNode(bp, 'actor-top-User')!
 			const jobRunnerTop = findNode(bp, 'actor-top-JobRunner')!
 			expect(jobRunnerTop).toBeDefined()
