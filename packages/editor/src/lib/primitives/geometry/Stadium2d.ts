@@ -1,6 +1,6 @@
 import { Box } from '../Box'
 import { Vec, VecLike } from '../Vec'
-import { PI } from '../utils'
+import { PI, pointInPolygon } from '../utils'
 import { Arc2d } from './Arc2d'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
@@ -81,6 +81,19 @@ export class Stadium2d extends Geometry2d {
 		}
 		if (!nearest) throw Error('nearest point not found')
 		return nearest
+	}
+
+	override distanceToPoint(point: VecLike, hitInside = false): number {
+		const { _a: a, _b: b, _c: c, _d: d } = this
+		let minDist = Infinity
+		for (const part of [a, b, c, d]) {
+			const dist = part.distanceToPoint(point)
+			if (dist < minDist) minDist = dist
+		}
+		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
+			return -minDist
+		}
+		return minDist
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike): boolean {

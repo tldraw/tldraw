@@ -69,7 +69,7 @@ export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
  */
 export interface TLShapeUtilCanBeLaidOutOpts {
 	/** The type of action causing the layout. */
-	type?: 'align' | 'distribute' | 'pack' | 'stack' | 'flip' | 'stretch'
+	type?: 'align' | 'distribute' | 'pack' | 'stack' | 'flip' | 'stretch' | 'resize_to_bounds'
 	/** The other shapes being laid out */
 	shapes?: TLShape[]
 }

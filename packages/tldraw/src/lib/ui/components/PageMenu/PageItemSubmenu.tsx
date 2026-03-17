@@ -56,7 +56,11 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	return (
 		<TldrawUiDropdownMenuRoot id={`page item submenu ${index}`}>
 			<TldrawUiDropdownMenuTrigger>
-				<TldrawUiButton type="icon" title={msg('page-menu.submenu.title')}>
+				<TldrawUiButton
+					type="icon"
+					tooltip={msg('page-menu.submenu.title')}
+					title={msg('page-menu.submenu.title')}
+				>
 					<TldrawUiButtonIcon icon="dots-vertical" small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>

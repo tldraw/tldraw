@@ -71,7 +71,7 @@ describe('Post-positioning reparent into frame', () => {
 		editor.selectNone()
 
 		// Paste without a point — shapes should land at viewport center, inside the frame
-		editor.putContentOntoCurrentPage(editor.clipboard!, { select: true })
+		editor.putContentOntoCurrentPage(editor.getClipboard()!, { select: true })
 
 		const [pastedId] = editor.getSelectedShapeIds()
 		expect(editor.getShape(pastedId)?.parentId).toBe(frameId)
@@ -104,7 +104,7 @@ describe('Paste parent selection with explicit point', () => {
 		editor.select(childId)
 		editor.copy()
 
-		editor.putContentOntoCurrentPage(editor.clipboard!, {
+		editor.putContentOntoCurrentPage(editor.getClipboard()!, {
 			point: { x: 500, y: 500 },
 			select: true,
 		})
@@ -146,7 +146,7 @@ describe('Paste parent selection with explicit point', () => {
 		editor.select(childId)
 		editor.copy()
 
-		editor.putContentOntoCurrentPage(editor.clipboard!, {
+		editor.putContentOntoCurrentPage(editor.getClipboard()!, {
 			point: { x: 450, y: 50 },
 			select: true,
 		})

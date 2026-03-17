@@ -209,17 +209,17 @@ async function main() {
 	nicelog(`Checking for circular dependencies in packages (${packageNames.length}):`)
 	nicelog(packageNames.join(', '))
 
-	const failedPackages: string[] = []
-
-	for (const packageName of packageNames) {
-		const packageEntryPath = entries[packageName]
-		nicelog(`Checking ${packageName}...`)
-		try {
+	const packageCheckResults = await Promise.allSettled(
+		packageNames.map(async (packageName) => {
+			const packageEntryPath = entries[packageName]
+			nicelog(`Checking ${packageName}...`)
 			await checkPackageForCircularDependencies(packageName, packageEntryPath)
-		} catch {
-			failedPackages.push(packageName)
-		}
-	}
+		})
+	)
+
+	const failedPackages = packageCheckResults.flatMap((result, index) =>
+		result.status === 'rejected' ? [packageNames[index]] : []
+	)
 
 	if (failedPackages.length > 0) {
 		console.error(

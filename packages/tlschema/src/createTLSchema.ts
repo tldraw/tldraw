@@ -9,6 +9,11 @@ import { stickerBindingMigrations, stickerBindingProps } from './bindings/TLStic
 import { AssetRecordType, assetMigrations } from './records/TLAsset'
 import { TLBinding, TLDefaultBinding, createBindingRecordType } from './records/TLBinding'
 import { CameraRecordType, cameraMigrations } from './records/TLCamera'
+import {
+	CustomRecordInfo,
+	createCustomRecordType,
+	processCustomRecordMigrations,
+} from './records/TLCustomRecord'
 import { DocumentRecordType, documentMigrations } from './records/TLDocument'
 import { createInstanceRecordType, instanceMigrations } from './records/TLInstance'
 import { PageRecordType, pageMigrations } from './records/TLPage'
@@ -197,12 +202,14 @@ export const defaultBindingSchemas = {
  * validation, and migration sequences for all record types in a tldraw application.
  *
  * The schema includes all core record types (pages, cameras, instances, etc.) plus the
- * shape and binding types you specify. Style properties are automatically collected from
- * all shapes to ensure consistency across the application.
+ * shape, binding, and custom record types you specify. Style properties are automatically
+ * collected from all shapes to ensure consistency across the application.
  *
  * @param options - Configuration options for the schema
  *   - shapes - Shape schema configurations. Defaults to defaultShapeSchemas if not provided
  *   - bindings - Binding schema configurations. Defaults to defaultBindingSchemas if not provided
+ *   - records - Custom record type configurations. These are additional record types beyond
+ *     the built-in shapes, bindings, assets, etc.
  *   - migrations - Additional migration sequences to include in the schema
  * @returns A complete TLSchema ready for use with Store creation
  *
@@ -226,13 +233,19 @@ export const defaultBindingSchemas = {
  *   },
  * })
  *
- * // Create schema with only specific shapes
- * const minimalSchema = createTLSchema({
- *   shapes: {
- *     geo: defaultShapeSchemas.geo,
- *     text: defaultShapeSchemas.text,
+ * // Create schema with custom record types
+ * const schemaWithCustomRecords = createTLSchema({
+ *   records: {
+ *     comment: {
+ *       scope: 'document',
+ *       validator: T.object({
+ *         id: T.string,
+ *         typeName: T.literal('comment'),
+ *         text: T.string,
+ *         shapeId: T.string,
+ *       }),
+ *     },
  *   },
- *   bindings: defaultBindingSchemas,
  * })
  *
  * // Use the schema with a store
@@ -247,10 +260,12 @@ export const defaultBindingSchemas = {
 export function createTLSchema({
 	shapes = defaultShapeSchemas,
 	bindings = defaultBindingSchemas,
+	records = {},
 	migrations,
 }: {
 	shapes?: Record<string, SchemaPropsInfo>
 	bindings?: Record<string, SchemaPropsInfo>
+	records?: Record<string, CustomRecordInfo>
 	migrations?: readonly MigrationSequence[]
 } = {}): TLSchema {
 	const stylesById = new Map<string, StyleProp<unknown>>()
@@ -267,6 +282,30 @@ export function createTLSchema({
 	const BindingRecordType = createBindingRecordType(bindings)
 	const InstanceRecordType = createInstanceRecordType(stylesById)
 
+	// Create RecordTypes for custom records
+	const builtInTypeNames = new Set([
+		'asset',
+		'binding',
+		'camera',
+		'document',
+		'instance',
+		'instance_page_state',
+		'page',
+		'instance_presence',
+		'pointer',
+		'shape',
+		'store',
+	])
+	const customRecordTypes: Record<string, { createId: any }> = {}
+	for (const [typeName, config] of Object.entries(records)) {
+		if (builtInTypeNames.has(typeName)) {
+			throw new Error(
+				`Custom record type name '${typeName}' conflicts with tldraw's built-in record type of that name. Choose a different name instead.`
+			)
+		}
+		customRecordTypes[typeName] = createCustomRecordType(typeName, config)
+	}
+
 	return StoreSchema.create(
 		{
 			asset: AssetRecordType,
@@ -279,6 +318,7 @@ export function createTLSchema({
 			instance_presence: InstancePresenceRecordType,
 			pointer: PointerRecordType,
 			shape: ShapeRecordType,
+			...customRecordTypes,
 		},
 		{
 			migrations: [
@@ -299,6 +339,7 @@ export function createTLSchema({
 
 				...processPropsMigrations<TLShape>('shape', shapes),
 				...processPropsMigrations<TLBinding>('binding', bindings),
+				...processCustomRecordMigrations(records),
 
 				...(migrations ?? []),
 			],

@@ -530,20 +530,28 @@ export type MigrationResult<T> =
 	| { type: 'success'; value: T }
 	| { type: 'error'; reason: MigrationFailureReason }
 
-/**
- * Enumeration of possible reasons why a migration might fail.
- *
- * These reasons help identify what went wrong during migration processing,
- * allowing applications to handle different failure scenarios appropriately.
- * Common failures include incompatible data formats, unknown record types,
- * and version mismatches between the data and available migrations.
- * @public
- */
-export enum MigrationFailureReason {
-	IncompatibleSubtype = 'incompatible-subtype',
-	UnknownType = 'unknown-type',
-	TargetVersionTooNew = 'target-version-too-new',
-	TargetVersionTooOld = 'target-version-too-old',
-	MigrationError = 'migration-error',
-	UnrecognizedSubtype = 'unrecognized-subtype',
+/** @public */
+export const MigrationFailureReason = {
+	IncompatibleSubtype: 'incompatible-subtype',
+	UnknownType: 'unknown-type',
+	TargetVersionTooNew: 'target-version-too-new',
+	TargetVersionTooOld: 'target-version-too-old',
+	MigrationError: 'migration-error',
+	UnrecognizedSubtype: 'unrecognized-subtype',
+} as const
+
+/** @public */
+export type MigrationFailureReason =
+	(typeof MigrationFailureReason)[keyof typeof MigrationFailureReason]
+
+// This is the magic part for backward compat:
+/** @public */
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export declare namespace MigrationFailureReason {
+	export type IncompatibleSubtype = typeof MigrationFailureReason.IncompatibleSubtype
+	export type UnknownType = typeof MigrationFailureReason.UnknownType
+	export type TargetVersionTooNew = typeof MigrationFailureReason.TargetVersionTooNew
+	export type TargetVersionTooOld = typeof MigrationFailureReason.TargetVersionTooOld
+	export type MigrationError = typeof MigrationFailureReason.MigrationError
+	export type UnrecognizedSubtype = typeof MigrationFailureReason.UnrecognizedSubtype
 }

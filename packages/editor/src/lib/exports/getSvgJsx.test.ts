@@ -63,9 +63,9 @@ beforeEach(() => {
 })
 
 describe('getExportDefaultBounds', () => {
-	it('returns null when no rendering shapes provided', () => {
+	it('returns null box when no rendering shapes provided', () => {
 		const result = getExportDefaultBounds(editor, [], 32, null)
-		expect(result).toBeNull()
+		expect(result.box).toBeNull()
 	})
 
 	it('returns bounds for single shape with padding', () => {
@@ -83,12 +83,13 @@ describe('getExportDefaultBounds', () => {
 
 		const result = getExportDefaultBounds(editor, [testShape], 32, null)
 
-		expect(result).toBeInstanceOf(Box)
+		expect(result.box).toBeInstanceOf(Box)
+		expect(result.paddingApplied).toBe(true)
 		// Bounds should include 32px padding on all sides
-		expect(result?.x).toBe(10 - 32) // -22
-		expect(result?.y).toBe(20 - 32) // -12
-		expect(result?.w).toBe(100 + 64) // 164 (32px on each side)
-		expect(result?.h).toBe(80 + 64) // 144 (32px on each side)
+		expect(result.box?.x).toBe(10 - 32) // -22
+		expect(result.box?.y).toBe(20 - 32) // -12
+		expect(result.box?.w).toBe(100 + 64) // 164 (32px on each side)
+		expect(result.box?.h).toBe(80 + 64) // 144 (32px on each side)
 	})
 
 	it('returns union bounds for multiple shapes with padding', () => {
@@ -116,12 +117,12 @@ describe('getExportDefaultBounds', () => {
 
 		const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-		expect(result).toBeInstanceOf(Box)
+		expect(result.box).toBeInstanceOf(Box)
 		// Raw bounds would be (0,0) to (90,90), with 32px padding on all sides
-		expect(result?.x).toBe(0 - 32) // -32
-		expect(result?.y).toBe(0 - 32) // -32
-		expect(result?.w).toBe(90 + 64) // 154
-		expect(result?.h).toBe(90 + 64) // 154
+		expect(result.box?.x).toBe(0 - 32) // -32
+		expect(result.box?.y).toBe(0 - 32) // -32
+		expect(result.box?.w).toBe(90 + 64) // 154
+		expect(result.box?.h).toBe(90 + 64) // 154
 	})
 
 	it('handles shapes with transforms correctly', () => {
@@ -142,10 +143,10 @@ describe('getExportDefaultBounds', () => {
 
 		const result = getExportDefaultBounds(editor, [testShape], 32, null)
 
-		expect(result).toBeInstanceOf(Box)
+		expect(result.box).toBeInstanceOf(Box)
 		// The rotated shape should have expanded bounds, plus padding
-		expect(result!.w).toBeGreaterThan(50 + 64)
-		expect(result!.h).toBeGreaterThan(40 + 64)
+		expect(result.box!.w).toBeGreaterThan(50 + 64)
+		expect(result.box!.h).toBeGreaterThan(40 + 64)
 	})
 
 	it('handles multiple overlapping shapes correctly', () => {
@@ -183,12 +184,12 @@ describe('getExportDefaultBounds', () => {
 
 		const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-		expect(result).toBeInstanceOf(Box)
+		expect(result.box).toBeInstanceOf(Box)
 		// Raw bounds would be (0,0) to (60,60), with 32px padding on all sides
-		expect(result?.x).toBe(0 - 32) // -32
-		expect(result?.y).toBe(0 - 32) // -32
-		expect(result?.w).toBe(60 + 64) // 124 (32px on each side)
-		expect(result?.h).toBe(60 + 64) // 124 (32px on each side)
+		expect(result.box?.x).toBe(0 - 32) // -32
+		expect(result.box?.y).toBe(0 - 32) // -32
+		expect(result.box?.w).toBe(60 + 64) // 124 (32px on each side)
+		expect(result.box?.h).toBe(60 + 64) // 124 (32px on each side)
 	})
 
 	it('handles complex geometry with multiple shapes', () => {
@@ -226,17 +227,17 @@ describe('getExportDefaultBounds', () => {
 
 		const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-		expect(result).toBeInstanceOf(Box)
+		expect(result.box).toBeInstanceOf(Box)
 
 		// The bounds should encompass:
 		// - shape1: (0, 0) to (50, 50)
 		// - shape2: (100, 100) to (160, 140)
 		// - shape3: (200, 50) to (240, 130)
 		// Raw total bounds: (0, 0) to (240, 140), with 32px padding on all sides
-		expect(result!.x).toBe(0 - 32) // -32 (leftmost edge with padding)
-		expect(result!.y).toBe(0 - 32) // -32 (topmost edge with padding)
-		expect(result!.w).toBe(240 + 64) // 304 (width + 32px on each side)
-		expect(result!.h).toBe(140 + 64) // 204 (height + 32px on each side)
+		expect(result.box!.x).toBe(0 - 32) // -32 (leftmost edge with padding)
+		expect(result.box!.y).toBe(0 - 32) // -32 (topmost edge with padding)
+		expect(result.box!.w).toBe(240 + 64) // 304 (width + 32px on each side)
+		expect(result.box!.h).toBe(140 + 64) // 204 (height + 32px on each side)
 	})
 
 	it('handles empty rendering shapes array after filtering', () => {
@@ -253,7 +254,7 @@ describe('getExportDefaultBounds', () => {
 		// Pass empty array to simulate filtered out shapes
 		const result = getExportDefaultBounds(editor, [], 32, null)
 
-		expect(result).toBeNull()
+		expect(result.box).toBeNull()
 	})
 
 	it('does not apply padding when exporting single frame shape', () => {
@@ -272,12 +273,13 @@ describe('getExportDefaultBounds', () => {
 		// Pass the shape ID as singleFrameShapeId to simulate single frame export
 		const result = getExportDefaultBounds(editor, [testShape], 32, shapeId)
 
-		expect(result).toBeInstanceOf(Box)
+		expect(result.box).toBeInstanceOf(Box)
+		expect(result.paddingApplied).toBe(false)
 		// No padding should be applied
-		expect(result?.x).toBe(10)
-		expect(result?.y).toBe(20)
-		expect(result?.w).toBe(100)
-		expect(result?.h).toBe(80)
+		expect(result.box?.x).toBe(10)
+		expect(result.box?.y).toBe(20)
+		expect(result.box?.w).toBe(100)
+		expect(result.box?.h).toBe(80)
 	})
 
 	describe('isExportBoundsContainer behavior', () => {
@@ -306,12 +308,12 @@ describe('getExportDefaultBounds', () => {
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// Raw bounds: (0,0) to (50,50), with padding
-			expect(result?.x).toBe(-32)
-			expect(result?.y).toBe(-32)
-			expect(result?.w).toBe(50 + 64) // 114
-			expect(result?.h).toBe(50 + 64) // 114
+			expect(result.box?.x).toBe(-32)
+			expect(result.box?.y).toBe(-32)
+			expect(result.box?.w).toBe(50 + 64) // 114
+			expect(result.box?.h).toBe(50 + 64) // 114
 		})
 
 		it('skips padding when container shape contains all other shapes', () => {
@@ -352,12 +354,12 @@ describe('getExportDefaultBounds', () => {
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// Should use container bounds without padding: (0,0) to (100,100)
-			expect(result?.x).toBe(0)
-			expect(result?.y).toBe(0)
-			expect(result?.w).toBe(100)
-			expect(result?.h).toBe(100)
+			expect(result.box?.x).toBe(0)
+			expect(result.box?.y).toBe(0)
+			expect(result.box?.w).toBe(100)
+			expect(result.box?.h).toBe(100)
 		})
 
 		it('applies padding when container does not contain all shapes', () => {
@@ -399,12 +401,12 @@ describe('getExportDefaultBounds', () => {
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// Total bounds: (0,0) to (100,100), with padding applied
-			expect(result?.x).toBe(-32)
-			expect(result?.y).toBe(-32)
-			expect(result?.w).toBe(100 + 64) // 164
-			expect(result?.h).toBe(100 + 64) // 164
+			expect(result.box?.x).toBe(-32)
+			expect(result.box?.y).toBe(-32)
+			expect(result.box?.w).toBe(100 + 64) // 164
+			expect(result.box?.h).toBe(100 + 64) // 164
 		})
 
 		it('works with multiple containers where one contains all', () => {
@@ -446,12 +448,12 @@ describe('getExportDefaultBounds', () => {
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// Should use the large container's bounds without padding
-			expect(result?.x).toBe(0)
-			expect(result?.y).toBe(0)
-			expect(result?.w).toBe(100)
-			expect(result?.h).toBe(100)
+			expect(result.box?.x).toBe(0)
+			expect(result.box?.y).toBe(0)
+			expect(result.box?.w).toBe(100)
+			expect(result.box?.h).toBe(100)
 		})
 
 		it('container behavior is overridden by single frame shape', () => {
@@ -482,12 +484,12 @@ describe('getExportDefaultBounds', () => {
 			// Single frame shape logic takes precedence over container logic
 			const result = getExportDefaultBounds(editor, testShapes, 32, containerId)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// Should use total bounds without padding (single frame overrides container)
-			expect(result?.x).toBe(0)
-			expect(result?.y).toBe(0)
-			expect(result?.w).toBe(100)
-			expect(result?.h).toBe(100)
+			expect(result.box?.x).toBe(0)
+			expect(result.box?.y).toBe(0)
+			expect(result.box?.w).toBe(100)
+			expect(result.box?.h).toBe(100)
 		})
 
 		it('handles containers with inner shapes correctly', () => {
@@ -517,13 +519,13 @@ describe('getExportDefaultBounds', () => {
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// Container (0,0,200,120) should contain inner shape bounds,
 			// so no padding should be applied
-			expect(result?.x).toBe(0)
-			expect(result?.y).toBe(0)
-			expect(result?.w).toBe(200)
-			expect(result?.h).toBe(120)
+			expect(result.box?.x).toBe(0)
+			expect(result.box?.y).toBe(0)
+			expect(result.box?.w).toBe(200)
+			expect(result.box?.h).toBe(120)
 		})
 
 		it('handles order sensitivity - container processed first', () => {
@@ -553,12 +555,12 @@ describe('getExportDefaultBounds', () => {
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// Container should contain regular shape, no padding applied
-			expect(result?.x).toBe(0)
-			expect(result?.y).toBe(0)
-			expect(result?.w).toBe(100)
-			expect(result?.h).toBe(100)
+			expect(result.box?.x).toBe(0)
+			expect(result.box?.y).toBe(0)
+			expect(result.box?.w).toBe(100)
+			expect(result.box?.h).toBe(100)
 		})
 
 		it('handles order sensitivity - regular shape processed first', () => {
@@ -588,12 +590,12 @@ describe('getExportDefaultBounds', () => {
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// Container should still contain regular shape, no padding applied
-			expect(result?.x).toBe(0)
-			expect(result?.y).toBe(0)
-			expect(result?.w).toBe(100)
-			expect(result?.h).toBe(100)
+			expect(result.box?.x).toBe(0)
+			expect(result.box?.y).toBe(0)
+			expect(result.box?.w).toBe(100)
+			expect(result.box?.h).toBe(100)
 		})
 
 		it('multiple containers - only one that contains all others skips padding', () => {
@@ -635,12 +637,12 @@ describe('getExportDefaultBounds', () => {
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// Large container contains everything (including small container), no padding
-			expect(result?.x).toBe(0)
-			expect(result?.y).toBe(0)
-			expect(result?.w).toBe(100)
-			expect(result?.h).toBe(100)
+			expect(result.box?.x).toBe(0)
+			expect(result.box?.y).toBe(0)
+			expect(result.box?.w).toBe(100)
+			expect(result.box?.h).toBe(100)
 		})
 
 		it('multiple containers - none contains all others, padding applied', () => {
@@ -692,13 +694,13 @@ describe('getExportDefaultBounds', () => {
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// No single container contains all others, padding should be applied
 			// Total bounds: (0,0) to (100,100), with padding
-			expect(result?.x).toBe(-32)
-			expect(result?.y).toBe(-32)
-			expect(result?.w).toBe(100 + 64) // 164
-			expect(result?.h).toBe(100 + 64) // 164
+			expect(result.box?.x).toBe(-32)
+			expect(result.box?.y).toBe(-32)
+			expect(result.box?.w).toBe(100 + 64) // 164
+			expect(result.box?.h).toBe(100 + 64) // 164
 		})
 
 		it('container covers most but not all shapes - padding applied', () => {
@@ -740,13 +742,13 @@ describe('getExportDefaultBounds', () => {
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// Container doesn't contain all shapes, padding applied
 			// Total bounds: (0,0) to (90,90), with padding
-			expect(result?.x).toBe(-32)
-			expect(result?.y).toBe(-32)
-			expect(result?.w).toBe(90 + 64) // 154
-			expect(result?.h).toBe(90 + 64) // 154
+			expect(result.box?.x).toBe(-32)
+			expect(result.box?.y).toBe(-32)
+			expect(result.box?.w).toBe(90 + 64) // 154
+			expect(result.box?.h).toBe(90 + 64) // 154
 		})
 
 		it('nested containers - inner container processed first', () => {
@@ -788,12 +790,12 @@ describe('getExportDefaultBounds', () => {
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// Outer container contains everything, should use outer bounds without padding
-			expect(result?.x).toBe(0)
-			expect(result?.y).toBe(0)
-			expect(result?.w).toBe(100)
-			expect(result?.h).toBe(100)
+			expect(result.box?.x).toBe(0)
+			expect(result.box?.y).toBe(0)
+			expect(result.box?.w).toBe(100)
+			expect(result.box?.h).toBe(100)
 		})
 
 		it('container-only shapes should not skip padding', () => {
@@ -822,13 +824,13 @@ describe('getExportDefaultBounds', () => {
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// Neither container fully contains the other, padding should be applied
 			// Total bounds: (0,0) to (80,80), with padding
-			expect(result?.x).toBe(-32)
-			expect(result?.y).toBe(-32)
-			expect(result?.w).toBe(80 + 64) // 144
-			expect(result?.h).toBe(80 + 64) // 144
+			expect(result.box?.x).toBe(-32)
+			expect(result.box?.y).toBe(-32)
+			expect(result.box?.w).toBe(80 + 64) // 144
+			expect(result.box?.h).toBe(80 + 64) // 144
 		})
 
 		it('single container with only itself skips padding', () => {
@@ -848,12 +850,12 @@ describe('getExportDefaultBounds', () => {
 
 			const result = getExportDefaultBounds(editor, testShapes, 32, null)
 
-			expect(result).toBeInstanceOf(Box)
+			expect(result.box).toBeInstanceOf(Box)
 			// Single container should skip padding (it trivially contains "all other shapes")
-			expect(result?.x).toBe(10)
-			expect(result?.y).toBe(20)
-			expect(result?.w).toBe(100)
-			expect(result?.h).toBe(80)
+			expect(result.box?.x).toBe(10)
+			expect(result.box?.y).toBe(20)
+			expect(result.box?.w).toBe(100)
+			expect(result.box?.h).toBe(80)
 		})
 	})
 })

@@ -226,8 +226,7 @@ interface ArrowheadInfo {
 	hasStartArrowhead: boolean
 	hasEndArrowhead: boolean
 }
-export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
-	const isEditing = editor.getEditingShapeId() === shape.id
+export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape, isEditing: boolean) {
 	if (!isEditing && isEmptyRichText(shape.props.richText)) {
 		// Short-circuit for empty labels.
 		const bodyGeom = getArrowBodyGeometry(editor, shape)
