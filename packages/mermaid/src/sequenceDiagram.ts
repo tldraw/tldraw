@@ -10,6 +10,26 @@ import type {
 import { parseRgbToTldrawColor } from './colors'
 import { getAccumulatedTranslate } from './svgParsing'
 
+export interface SvgRect {
+	x: number
+	y: number
+	w: number
+	h: number
+}
+
+export interface ActorLayout {
+	x: number
+	y: number
+	w: number
+	h: number
+	bottomY: number
+}
+
+export interface ParsedSequenceLayout {
+	actorLayouts: ActorLayout[]
+	noteRects: SvgRect[]
+}
+
 const LINETYPE = {
 	SOLID: 0,
 	DOTTED: 1,
@@ -215,21 +235,6 @@ interface ActivationSpan {
 	endEventIndex: number
 }
 
-interface SvgRect {
-	x: number
-	y: number
-	w: number
-	h: number
-}
-
-interface ActorLayout {
-	x: number
-	y: number
-	w: number
-	h: number
-	bottomY: number
-}
-
 function parseSvgRects(root: Element, selector: string): SvgRect[] {
 	const results: SvgRect[] = []
 	for (const rect of root.querySelectorAll(selector)) {
@@ -408,12 +413,40 @@ function getMessageLabel(msg: Message): string | undefined {
 	return typeof msg.message === 'string' ? msg.message : undefined
 }
 
+/** Count how many renderable events (signals + notes) a message list contains. */
+export function countSequenceEvents(messages: Message[]): number {
+	let count = 0
+	for (const msg of messages) {
+		if (isAutonumber(msg.type)) continue
+		if (getFragmentStartKeyword(msg.type)) continue
+		if (isFragmentEnd(msg.type)) continue
+		if (getFragmentSeparatorKeyword(msg.type)) continue
+		if (isActiveStart(msg.type) || isActiveEnd(msg.type)) continue
+		const isEvent =
+			(isSignalMessage(msg.type) && msg.from && msg.to) || (isNoteMessage(msg.type) && msg.from)
+		if (isEvent) count++
+	}
+	return count
+}
+
+/** Parse sequence-diagram SVG layout data for use by {@link sequenceToBlueprint}. */
+export function parseSequenceLayout(
+	root: Element,
+	actorCount: number,
+	eventCount: number
+): ParsedSequenceLayout {
+	return {
+		actorLayouts: computeActorLayouts(root, actorCount, eventCount),
+		noteRects: parseSvgRects(root, 'rect.note'),
+	}
+}
+
 /**
  * Build a complete blueprint for a sequence diagram:
  * top actors, lifelines, bottom actors, fragments, notes, and signal edges.
  */
 export function sequenceToBlueprint(
-	root: Element,
+	layout: ParsedSequenceLayout,
 	actors: Map<string, Actor>,
 	actorKeys: string[],
 	messages: Message[],
@@ -507,7 +540,7 @@ export function sequenceToBlueprint(
 	}
 
 	const eventCount = events.length
-	const layouts = computeActorLayouts(root, actorCount, eventCount)
+	const layouts = layout.actorLayouts
 
 	// Pre-compute lifecycle event indices for created/destroyed actors.
 	// We scan events for the first signal targeting each created actor
@@ -527,7 +560,7 @@ export function sequenceToBlueprint(
 	}
 
 	// Build blueprint
-	const svgNoteRects = parseSvgRects(root, 'rect.note')
+	const svgNoteRects = layout.noteRects
 	let svgNoteIndex = 0
 	const nodes: MermaidBlueprintGeoNode[] = []
 	const lines: MermaidBlueprintLineNode[] = []

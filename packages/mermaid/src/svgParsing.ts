@@ -1,16 +1,16 @@
-interface Vec2 {
+export interface Vec2 {
 	x: number
 	y: number
 }
 
-interface ParsedNode {
+export interface ParsedNode {
 	id: string
 	center: Vec2
 	width: number
 	height: number
 }
 
-interface ParsedCluster {
+export interface ParsedCluster {
 	id: string
 	topLeft: Vec2
 	width: number
@@ -146,10 +146,20 @@ export function parseClustersFromSvg(root: Element, selector: string): Map<strin
 	return out
 }
 
-interface ParsedEdge {
+export interface ParsedEdge {
 	start: string
 	end: string
 	points: Vec2[]
+}
+
+/**
+ * Pre-parsed SVG layout for flowchart and state diagram converters.
+ * Contains already-scaled node, cluster, and edge data.
+ */
+export interface ParsedDiagramLayout {
+	nodes: Map<string, ParsedNode>
+	clusters: Map<string, ParsedCluster>
+	edges: ParsedEdge[]
 }
 
 /**

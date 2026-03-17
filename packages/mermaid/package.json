@@ -48,9 +48,7 @@
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
-		"@vitest/browser": "^3.2.4",
 		"lazyrepo": "0.0.0-alpha.27",
-		"playwright": "*",
 		"vitest": "^3.2.4"
 	}
 }

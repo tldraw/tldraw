@@ -10,6 +10,7 @@ import {
 	buildNodeCentersFromSvg,
 	parseAllEdgePointsFromSvg,
 	parseClustersFromSvg,
+	type ParsedDiagramLayout,
 	parseNodesFromSvg,
 	scaleLayout,
 } from './svgParsing'
@@ -237,31 +238,30 @@ function stateToNodes(
 const FRAME_PAD = 24
 const FRAME_TOP = 54
 
+/** Parse state-diagram SVG layout data for use by {@link stateToBlueprint}. */
+export function parseStateDiagramLayout(root: Element): ParsedDiagramLayout {
+	const nodes = parseNodesFromSvg(
+		root,
+		'.node',
+		(domId) => domId.match(/^state-(.+)-\d+$/)?.[1] ?? domId
+	)
+	const clusters = parseClustersFromSvg(root, '.statediagram-cluster')
+	const edges = parseAllEdgePointsFromSvg(root, (dataId) =>
+		/^edge\d+$/.test(dataId) ? { start: '', end: '' } : null
+	)
+	scaleLayout(nodes, clusters, edges, LAYOUT_SCALE)
+	return { nodes, clusters, edges }
+}
+
 /** Convert a parsed Mermaid state diagram into a tldraw blueprint of nodes and edges. */
 export function stateToBlueprint(
-	root: Element,
+	layout: ParsedDiagramLayout,
 	states: Map<string, StateStmt>,
 	relations: DiagramEdge[],
 	classDefs?: Map<string, StyleClass>
 ): DiagramMermaidBlueprint {
 	const stateColorMap = classDefs ? buildClassDefColorMap(classDefs, states) : new Map()
-
-	// Mermaid state diagram node DOM ids look like "state-Idle-0".
-	// Group 1 = original state id from the diagram source.
-	const svgNodes = parseNodesFromSvg(
-		root,
-		'.node',
-		(domId) => domId.match(/^state-(.+)-\d+$/)?.[1] ?? domId
-	)
-	const svgClusters = parseClustersFromSvg(root, '.statediagram-cluster')
-	// State diagram edges use anonymous data-ids like "edge0", "edge1" — they
-	// don't encode endpoint ids, so we return a sentinel and rely on proximity
-	// matching to pair them with the correct transition.
-	const svgEdges = parseAllEdgePointsFromSvg(root, (dataId) =>
-		/^edge\d+$/.test(dataId) ? { start: '', end: '' } : null
-	)
-
-	scaleLayout(svgNodes, svgClusters, svgEdges, LAYOUT_SCALE)
+	const { nodes: svgNodes, clusters: svgClusters, edges: svgEdges } = layout
 	const nodeCenters = buildNodeCentersFromSvg(svgNodes, svgClusters)
 
 	const { leafStates, compoundLabels, parentOf, allEdges } = flattenStateHierarchy(

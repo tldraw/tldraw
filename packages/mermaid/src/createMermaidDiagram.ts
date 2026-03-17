@@ -6,10 +6,10 @@ import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/f
 import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
 import type { StateDB } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import { Editor } from 'tldraw'
-import { flowchartToBlueprint } from './flowchartDiagram'
+import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
 import { BlueprintRenderingOptions, renderBlueprint } from './renderBlueprint'
-import { sequenceToBlueprint } from './sequenceDiagram'
-import { stateToBlueprint } from './stateDiagram'
+import { countSequenceEvents, parseSequenceLayout, sequenceToBlueprint } from './sequenceDiagram'
+import { parseStateDiagramLayout, stateToBlueprint } from './stateDiagram'
 
 /** @public */
 export class MermaidDiagramError extends Error {
@@ -103,16 +103,21 @@ export async function createMermaidDiagram(
 				const edges = db.getEdges() as FlowEdge[]
 				const subGraphs = db.getSubGraphs() as FlowSubGraph[]
 				const classes = db.getClasses()
-				blueprint = flowchartToBlueprint(liveSvg, vertices, edges, subGraphs, classes)
+				const layout = parseFlowchartLayout(liveSvg)
+				blueprint = flowchartToBlueprint(layout, vertices, edges, subGraphs, classes)
 				break
 			}
 			case 'sequence': {
 				const db = diagramResult.db as SequenceDB
+				const actors = db.getActors()
+				const actorKeys = db.getActorKeys()
+				const messages = db.getMessages()
+				const layout = parseSequenceLayout(liveSvg, actorKeys.length, countSequenceEvents(messages))
 				blueprint = sequenceToBlueprint(
-					liveSvg,
-					db.getActors(),
-					db.getActorKeys(),
-					db.getMessages(),
+					layout,
+					actors,
+					actorKeys,
+					messages,
 					db.getCreatedActors(),
 					db.getDestroyedActors()
 				)
@@ -124,7 +129,8 @@ export async function createMermaidDiagram(
 				const states = db.getStates()
 				const relations = db.getRelations()
 				const classes = db.getClasses()
-				blueprint = stateToBlueprint(liveSvg, states, relations, classes)
+				const layout = parseStateDiagramLayout(liveSvg)
+				blueprint = stateToBlueprint(layout, states, relations, classes)
 				break
 			}
 			default:

@@ -9885,7 +9885,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/dom@npm:^10.0.0, @testing-library/dom@npm:^10.4.0":
+"@testing-library/dom@npm:^10.0.0":
   version: 10.4.1
   resolution: "@testing-library/dom@npm:10.4.1"
   dependencies:
@@ -9918,15 +9918,6 @@ __metadata:
     "@types/react-dom":
       optional: true
   checksum: 10/0ee9e31dd0d2396a924682d0e61a4ecc6bfab8eaff23dbf8a72c3c2ce22c116fa578148baeb4de75b968ef99d22e6e6aa0a00dba40286f71184918bb6bb5b06a
-  languageName: node
-  linkType: hard
-
-"@testing-library/user-event@npm:^14.6.1":
-  version: 14.6.1
-  resolution: "@testing-library/user-event@npm:14.6.1"
-  peerDependencies:
-    "@testing-library/dom": ">=7.21.4"
-  checksum: 10/34b74fff56a0447731a94b40d4cf246deb8dbc1c1e3aec93acd1c3377a760bb062e979f1572bb34ec164ad28ee2a391744b42d0d6d6cc16c4ce527e5e09610e1
   languageName: node
   linkType: hard
 
@@ -10573,10 +10564,8 @@ __metadata:
   dependencies:
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
-    "@vitest/browser": "npm:^3.2.4"
     lazyrepo: "npm:0.0.0-alpha.27"
     mermaid: "npm:11.12.2"
-    playwright: "npm:*"
     vitest: "npm:^3.2.4"
   peerDependencies:
     tldraw: "workspace:*"
@@ -12757,33 +12746,6 @@ __metadata:
     vite: ^5.0.0 || ^6.0.0 || ^7.0.0
     vue: ^3.2.25
   checksum: 10/62c45617aaf2eab533fa22ea6dfe646da210cc23a07b1697963ad54b091fed815357c96b5dc374f735886e04b0784a06172707d817f64008a36b937702194c75
-  languageName: node
-  linkType: hard
-
-"@vitest/browser@npm:^3.2.4":
-  version: 3.2.4
-  resolution: "@vitest/browser@npm:3.2.4"
-  dependencies:
-    "@testing-library/dom": "npm:^10.4.0"
-    "@testing-library/user-event": "npm:^14.6.1"
-    "@vitest/mocker": "npm:3.2.4"
-    "@vitest/utils": "npm:3.2.4"
-    magic-string: "npm:^0.30.17"
-    sirv: "npm:^3.0.1"
-    tinyrainbow: "npm:^2.0.0"
-    ws: "npm:^8.18.2"
-  peerDependencies:
-    playwright: "*"
-    vitest: 3.2.4
-    webdriverio: ^7.0.0 || ^8.0.0 || ^9.0.0
-  peerDependenciesMeta:
-    playwright:
-      optional: true
-    safaridriver:
-      optional: true
-    webdriverio:
-      optional: true
-  checksum: 10/f8ec0bff4006a81c3b843b5cf04f4ba1ffd8226eb5d4a98b134eddb83de8decced8788d2569aa632920ed6a346d3cfd856fcd53ee9083080a78c5baae3aae2de
   languageName: node
   linkType: hard
 
@@ -25938,7 +25900,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright@npm:*, playwright@npm:1.58.2":
+"playwright@npm:1.58.2":
   version: 1.58.2
   resolution: "playwright@npm:1.58.2"
   dependencies:
@@ -32427,7 +32389,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:^8.16.0, ws@npm:^8.18.0, ws@npm:^8.18.1, ws@npm:^8.18.2":
+"ws@npm:^8.16.0, ws@npm:^8.18.0, ws@npm:^8.18.1":
   version: 8.19.0
   resolution: "ws@npm:8.19.0"
   peerDependencies:

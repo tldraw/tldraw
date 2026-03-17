@@ -15,6 +15,7 @@ import {
 	buildNodeCentersFromSvg,
 	parseAllEdgePointsFromSvg,
 	parseClustersFromSvg,
+	type ParsedDiagramLayout,
 	parseNodesFromSvg,
 	scaleLayout,
 } from './svgParsing'
@@ -84,31 +85,31 @@ function buildHierarchy(subGraphs: FlowSubGraph[]) {
 	return { nodeToSubGraph, subGraphParent }
 }
 
+/** Parse flowchart-specific SVG layout data for use by {@link flowchartToBlueprint}. */
+export function parseFlowchartLayout(root: Element): ParsedDiagramLayout {
+	const nodes = parseNodesFromSvg(root, '.node', (domId) => {
+		const match = domId.match(/^flowchart-(.+)-\d+$/)
+		return match ? match[1] : domId
+	})
+	const clusters = parseClustersFromSvg(root, '.cluster')
+	const edges = parseAllEdgePointsFromSvg(root, (dataId) => {
+		const match = dataId.match(/^L_(.+)_([^_]+)_\d+$/)
+		return match ? { start: match[1], end: match[2] } : null
+	})
+	scaleLayout(nodes, clusters, edges, LAYOUT_SCALE)
+	return { nodes, clusters, edges }
+}
+
 /** Convert a parsed Mermaid flowchart into a tldraw blueprint of nodes and edges. */
 export function flowchartToBlueprint(
-	root: Element,
+	layout: ParsedDiagramLayout,
 	vertices: Map<string, FlowVertex>,
 	edges: FlowEdge[],
 	subGraphs?: FlowSubGraph[],
 	classDefs?: Map<string, FlowClass>
 ): DiagramMermaidBlueprint {
 	const nodeColorMap = classDefs ? buildClassDefColorMap(classDefs, vertices) : new Map()
-	// Mermaid assigns flowchart node DOM ids like "flowchart-myNode-42".
-	// Group 1 = the original node id from the diagram source.
-	const svgNodes = parseNodesFromSvg(root, '.node', (domId) => {
-		const match = domId.match(/^flowchart-(.+)-\d+$/)
-		return match ? match[1] : domId
-	})
-	const svgClusters = parseClustersFromSvg(root, '.cluster')
-	// Mermaid edge data-id attributes look like "L_startId_endId_0".
-	// Group 1 = start node id, group 2 = end node id (using [^_]+ so it
-	// stops at the trailing _digit suffix).
-	const svgEdges = parseAllEdgePointsFromSvg(root, (dataId) => {
-		const match = dataId.match(/^L_(.+)_([^_]+)_\d+$/)
-		return match ? { start: match[1], end: match[2] } : null
-	})
-
-	scaleLayout(svgNodes, svgClusters, svgEdges, LAYOUT_SCALE)
+	const { nodes: svgNodes, clusters: svgClusters, edges: svgEdges } = layout
 	const nodeCenters = buildNodeCentersFromSvg(svgNodes, svgClusters)
 
 	const allSubGraphs = subGraphs || []
