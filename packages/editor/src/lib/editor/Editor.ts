@@ -826,7 +826,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.disposables.add(
 			react('sync current user record', () => {
-				const user = this.store.props.users.getCurrentUser()
+				const user = this.store.props.users.getCurrentUser().get()
 				if (user) {
 					this._ensureUserRecord(user)
 				}
@@ -3964,7 +3964,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getAttributionUserId(): string | null {
-		const user = this.store.props.users.getCurrentUser()
+		const user = this.store.props.users.getCurrentUser().get()
 		if (!user) return null
 		this._ensureUserRecord(user)
 		return UserRecordType.parseId(user.id)
@@ -4004,7 +4004,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getAttributionDisplayName(userId: string | null): string | null {
 		if (!userId) return null
 		return (
-			this.store.props.users.resolve(userId)?.name ??
+			this.store.props.users.resolve(userId).get()?.name ??
 			this.store.get(createUserId(userId))?.name ??
 			null
 		)
@@ -4019,7 +4019,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getAttributionUser(userId: string | null): TLUser | null {
 		if (!userId) return null
-		return this.store.props.users.resolve(userId) ?? this.store.get(createUserId(userId)) ?? null
+		return (
+			this.store.props.users.resolve(userId).get() ?? this.store.get(createUserId(userId)) ?? null
+		)
 	}
 
 	/**

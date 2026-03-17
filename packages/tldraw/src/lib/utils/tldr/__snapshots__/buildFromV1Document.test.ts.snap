@@ -56,14 +56,7 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
     "id": "shape:10",
     "index": "a3",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -107,14 +100,7 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
     "id": "shape:8",
     "index": "a1",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -151,14 +137,7 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
     "id": "shape:9",
     "index": "a2",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -258,14 +237,7 @@ exports[`buildFromV1Document test fixtures > exact-arrow-binding.tldr 1`] = `
     "id": "shape:10",
     "index": "a3",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -309,14 +281,7 @@ exports[`buildFromV1Document test fixtures > exact-arrow-binding.tldr 1`] = `
     "id": "shape:8",
     "index": "a1",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -353,14 +318,7 @@ exports[`buildFromV1Document test fixtures > exact-arrow-binding.tldr 1`] = `
     "id": "shape:9",
     "index": "a2",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -442,14 +400,7 @@ exports[`buildFromV1Document test fixtures > incorrect-arrow-binding.tldr 1`] = 
     "id": "shape:10",
     "index": "a1V",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -493,14 +444,7 @@ exports[`buildFromV1Document test fixtures > incorrect-arrow-binding.tldr 1`] = 
     "id": "shape:8",
     "index": "a1",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "page:page",
     "props": {
@@ -537,14 +481,7 @@ exports[`buildFromV1Document test fixtures > incorrect-arrow-binding.tldr 1`] = 
     "id": "shape:9",
     "index": "a2",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "page:page",
     "props": {

@@ -1,6 +1,7 @@
 import {
 	TLNoteShape,
 	UserRecordType,
+	computed,
 	createShapeId,
 	createUserId,
 	toRichText,
@@ -167,12 +168,13 @@ describe('TLUserStore', () => {
 			{},
 			{
 				users: {
-					getCurrentUser: () => alice,
-					resolve: (userId) => {
-						if (userId === 'user-1') return alice
-						if (userId === 'user-2') return bob
-						return null
-					},
+					getCurrentUser: () => computed('currentUser', () => alice),
+					resolve: (userId) =>
+						computed('resolve-' + userId, () => {
+							if (userId === 'user-1') return alice
+							if (userId === 'user-2') return bob
+							return null
+						}),
 				},
 			}
 		)
@@ -194,7 +196,7 @@ describe('TLUserStore', () => {
 			{},
 			{
 				users: {
-					getCurrentUser: () => null,
+					getCurrentUser: () => computed('currentUser', () => null),
 				},
 			}
 		)

@@ -1542,8 +1542,8 @@ export type TLUserId = RecordId<TLUser>;
 
 // @public
 export interface TLUserStore {
-    getCurrentUser(): null | TLUser;
-    resolve?(userId: string): null | TLUser;
+    getCurrentUser(): Signal<null | TLUser>;
+    resolve?(userId: string): Signal<null | TLUser>;
 }
 
 // @public

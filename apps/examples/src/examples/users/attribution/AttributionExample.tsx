@@ -1,6 +1,8 @@
 import {
 	atom,
+	computed,
 	createUserId,
+	Signal,
 	Tldraw,
 	TldrawUiButton,
 	TLNoteShape,
@@ -38,12 +40,20 @@ const usersAtom = atom<Record<string, TLUser>>('users', {
 const currentUserIdAtom = atom('currentUserId', createUserId('alice'))
 
 // [2]
+const currentUserSignal = computed('currentUser', () => {
+	return usersAtom.get()[currentUserIdAtom.get()] ?? null
+})
+
+const resolveCache = new Map<string, Signal<TLUser | null>>()
 const users: TLUserStore = {
-	getCurrentUser() {
-		return usersAtom.get()[currentUserIdAtom.get()] ?? null
-	},
+	getCurrentUser: () => currentUserSignal,
 	resolve(userId: string) {
-		return usersAtom.get()[createUserId(userId)] ?? null
+		let signal = resolveCache.get(userId)
+		if (!signal) {
+			signal = computed('resolve-' + userId, () => usersAtom.get()[createUserId(userId)] ?? null)
+			resolveCache.set(userId, signal)
+		}
+		return signal
 	},
 }
 
@@ -97,9 +107,11 @@ function AttributionPanel() {
 		[editor]
 	)
 
-	const currentUser = useValue('current-user', () => editor.store.props.users.getCurrentUser(), [
-		editor,
-	])
+	const currentUser = useValue(
+		'current-user',
+		() => editor.store.props.users.getCurrentUser().get(),
+		[editor]
+	)
 
 	return (
 		<div className="attribution-panel">
@@ -142,7 +154,7 @@ function attributionSummary(editor: { store: { props: { users: TLUserStore } } }
 	const noteProps = shape.type === 'note' ? (shape as TLNoteShape).props : null
 	const textFirstEditedBy = noteProps?.textFirstEditedBy ?? null
 	const textFirstEditedByUser = textFirstEditedBy
-		? (editor.store.props.users.resolve?.(textFirstEditedBy) ?? null)
+		? (editor.store.props.users.resolve?.(textFirstEditedBy).get() ?? null)
 		: null
 
 	return {
@@ -176,9 +188,9 @@ and color. Because it's an atom, changes (like renaming a user) automatically
 propagate to anything reading from the TLUserStore.
 
 [2]
-The custom TLUserStore. `getCurrentUser` and `resolve` both read from the
-atoms, making them reactive — any computed or useValue that calls these
-functions will re-evaluate when the underlying data changes.
+The custom TLUserStore. `getCurrentUser` and `resolve` return reactive Signals
+derived from the atoms — any computed or useValue that reads `.get()` on these
+signals will re-evaluate when the underlying data changes.
 
 [3]
 The top panel lets you switch which user is "logged in" and edit the active
@@ -187,10 +199,10 @@ panel updates live. Switch to Bob and create a note with text to see
 "Text first edited by" appear.
 
 [4]
-The panel reads `editor.store.props.users.getCurrentUser()` to show who is active,
-and reads shape-specific props (like `textFirstEditedBy` on notes) for per-shape
-attribution. Each attribution field is a user ID string — we call `resolve(userId)`
-to get live display data.
+The panel reads `editor.store.props.users.getCurrentUser().get()` to show who is
+active, and reads shape-specific props (like `textFirstEditedBy` on notes) for
+per-shape attribution. Each attribution field is a user ID string — we call
+`resolve(userId).get()` to get live display data.
 
 [5]
 Extracts attribution info from a shape. Note shapes have a `textFirstEditedBy`

@@ -4,14 +4,7 @@ exports[`Draws a bunch > draw shape 1`] = `
 {
   "index": "a1",
   "isLocked": false,
-  "meta": {
-    "__tldraw": {
-      "createdAt": "[Time]",
-      "createdBy": "[User]",
-      "updatedAt": "[Time]",
-      "updatedBy": "[User]",
-    },
-  },
+  "meta": {},
   "opacity": 1,
   "parentId": "page:page",
   "props": {

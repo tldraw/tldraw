@@ -208,37 +208,50 @@ export interface TLAssetStore {
  * resolution for attribution labels and display names. Implement this interface
  * to connect tldraw to your auth/user system.
  *
+ * Both methods return reactive {@link @tldraw/state#Signal | Signals} so that
+ * the editor can automatically track changes to user data and re-render when
+ * a user's name, color, or avatar updates.
+ *
+ * Implementations should cache the returned signals — e.g. return the same
+ * `Signal` for repeated calls with the same `userId` — to avoid unnecessary
+ * re-computation.
+ *
  * @public
  * @example
  * ```ts
+ * const currentUser = computed('currentUser', () =>
+ *   UserRecordType.create({
+ *     id: createUserId(myAuth.userId),
+ *     name: myAuth.displayName,
+ *     color: myAuth.color,
+ *   })
+ * )
+ *
  * const userStore: TLUserStore = {
- *   getCurrentUser() {
- *     return UserRecordType.create({
- *       id: createUserId(myAuth.userId),
- *       name: myAuth.displayName,
- *       color: myAuth.color,
- *     })
- *   },
+ *   getCurrentUser: () => currentUser,
  *   resolve(userId) {
- *     return myUserCache.get(userId) ?? null
+ *     return computed('resolve-' + userId, () =>
+ *       myUserCache.get(userId) ?? null
+ *     )
  *   },
  * }
  * ```
  */
 export interface TLUserStore {
 	/**
-	 * Return the currently authenticated user, or `null` for anonymous / unknown.
+	 * Return a signal resolving to the currently authenticated user,
+	 * or `null` for anonymous / unknown.
 	 * Called when stamping attribution on shape create/update.
 	 */
-	getCurrentUser(): TLUser | null
+	getCurrentUser(): Signal<TLUser | null>
 
 	/**
-	 * Resolve an arbitrary user ID to display info.
+	 * Return a signal resolving an arbitrary user ID to display info.
 	 * Called when rendering attribution labels for shapes that may have been
 	 * created or edited by someone else.
-	 * Return `null` if the user cannot be resolved.
+	 * The signal's value should be `null` if the user cannot be resolved.
 	 */
-	resolve?(userId: string): TLUser | null
+	resolve?(userId: string): Signal<TLUser | null>
 }
 
 /**

@@ -1,6 +1,8 @@
 import { useSyncDemo } from '@tldraw/sync'
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
+	atom,
+	computed,
 	createUserId,
 	Tldraw,
 	TLUserPreferences,
@@ -20,15 +22,22 @@ export default function SyncCustomUserExample({ roomId }: { roomId: string }) {
 	})
 
 	// [2]
-	const users: TLUserStore = {
-		getCurrentUser() {
+	const userPrefsAtom = useRef(atom<TLUserPreferences>('userPrefs', userPreferences)).current
+	useEffect(() => {
+		userPrefsAtom.set(userPreferences)
+	}, [userPreferences, userPrefsAtom])
+
+	const users: TLUserStore = useMemo(() => {
+		const currentUser = computed('currentUser', () => {
+			const p = userPrefsAtom.get()
 			return UserRecordType.create({
-				id: createUserId(userPreferences.id),
-				name: userPreferences.name ?? '',
-				color: userPreferences.color ?? '',
+				id: createUserId(p.id),
+				name: p.name ?? '',
+				color: p.color ?? '',
 			})
-		},
-	}
+		})
+		return { getCurrentUser: () => currentUser }
+	}, [userPrefsAtom])
 
 	// [3]
 	const store = useSyncDemo({ roomId, users })
@@ -57,7 +66,7 @@ export default function SyncCustomUserExample({ roomId }: { roomId: string }) {
  * In this example we create an in-memory state for the user info, but in your system it's probably synchronized with a backend database somehow.
  *
  * 1. We get our user info and a function to set it from a `useState` hook. In your app this might come from a context provider or you might hook it up manually to your backend.
- * 2. We create a `TLUserStore` that returns the current user identity from the preferences state.
+ * 2. We bridge React state to a reactive atom, then create a `TLUserStore` whose `getCurrentUser()` returns a Signal derived from that atom.
  * 3. We use the `useSyncDemo` hook to create the multiplayer store, passing in the user store.
  * 4. We use the `useTldrawCurrentUser` hook to create a TLCurrentUser object, which allows the Editor to both read and update the user info and preferences.
  * 5. We render the `Tldraw` component with the multiplayer store and the user object.

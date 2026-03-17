@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+	atom,
+	computed,
 	createUserId,
 	RecordsDiff,
 	reverseRecordsDiff,
+	Signal,
 	squashRecordDiffs,
 	Tldraw,
 	TldrawUiButton,
@@ -37,14 +40,22 @@ const USERS: Record<string, TLUser> = {
 	}),
 }
 
-let currentUserId = createUserId('alice')
+const currentUserIdAtom = atom('currentUserId', createUserId('alice'))
 
+const currentUserSignal = computed('currentUser', () => {
+	return USERS[currentUserIdAtom.get()] ?? null
+})
+
+const resolveCache = new Map<string, Signal<TLUser | null>>()
 const users: TLUserStore = {
-	getCurrentUser() {
-		return USERS[currentUserId] ?? null
-	},
+	getCurrentUser: () => currentUserSignal,
 	resolve(userId: string) {
-		return USERS[createUserId(userId)] ?? null
+		let signal = resolveCache.get(userId)
+		if (!signal) {
+			signal = computed('resolve-' + userId, () => USERS[createUserId(userId)] ?? null)
+			resolveCache.set(userId, signal)
+		}
+		return signal
 	},
 }
 
@@ -82,7 +93,7 @@ export default function AttributionTimelineExample() {
 }
 
 function UserSwitcher() {
-	const [activeUserId, setActiveUserId] = useState(currentUserId)
+	const [activeUserId, setActiveUserId] = useState(currentUserIdAtom.get())
 
 	return (
 		<div className="tlui-menu attribution-timeline-user-switcher">
@@ -91,7 +102,7 @@ function UserSwitcher() {
 					key={user.id}
 					type={activeUserId === user.id ? 'primary' : 'normal'}
 					onClick={() => {
-						currentUserId = user.id
+						currentUserIdAtom.set(user.id)
 						setActiveUserId(user.id)
 					}}
 				>
@@ -117,7 +128,7 @@ const AttributionTimeline = track(() => {
 	// [5]
 	const recordChange = useCallback(
 		(diff: RecordsDiff<any>) => {
-			const user = editor.store.props.users.getCurrentUser()
+			const user = editor.store.props.users.getCurrentUser().get()
 			const newEntry: AttributionTimelineEntry = {
 				timestamp: Date.now(),
 				diff,

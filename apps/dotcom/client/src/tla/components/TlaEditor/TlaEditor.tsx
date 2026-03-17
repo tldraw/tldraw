@@ -12,6 +12,7 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	UserRecordType,
+	computed,
 	createSessionStateSnapshotSignal,
 	createUserId,
 	parseDeepLinkString,
@@ -184,15 +185,16 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const users: TLUserStore | undefined = useMemo(() => {
 		const prefs = app?.tlUser.userPreferences
 		if (!prefs) return undefined
+		const currentUser = computed('currentUser', () => {
+			const p = prefs.get()
+			return UserRecordType.create({
+				id: createUserId(p.id),
+				name: p.name ?? '',
+				color: p.color ?? '',
+			})
+		})
 		return {
-			getCurrentUser() {
-				const p = prefs.get()
-				return UserRecordType.create({
-					id: createUserId(p.id),
-					name: p.name ?? '',
-					color: p.color ?? '',
-				})
-			},
+			getCurrentUser: () => currentUser,
 		}
 	}, [app?.tlUser.userPreferences])
 
