@@ -55,6 +55,7 @@
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {
+		"@bokuweb/zstd-wasm": "^0.0.27",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",

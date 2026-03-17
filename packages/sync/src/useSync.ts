@@ -176,6 +176,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		userInfo,
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
+		useCompression,
 		...schemaOpts
 	} = opts
 
@@ -238,26 +239,29 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				throw new Error('uri and connect cannot be used together')
 			}
 
-			socket = new ClientWebSocketAdapter(async () => {
-				const uriString = typeof uri === 'string' ? uri : await uri()
+			socket = new ClientWebSocketAdapter(
+				async () => {
+					const uriString = typeof uri === 'string' ? uri : await uri()
 
-				// set sessionId as a query param on the uri
-				const withParams = new URL(uriString)
-				if (withParams.searchParams.has('sessionId')) {
-					throw new Error(
-						'useSync. "sessionId" is a reserved query param name. Please use a different name'
-					)
-				}
-				if (withParams.searchParams.has('storeId')) {
-					throw new Error(
-						'useSync. "storeId" is a reserved query param name. Please use a different name'
-					)
-				}
+					// set sessionId as a query param on the uri
+					const withParams = new URL(uriString)
+					if (withParams.searchParams.has('sessionId')) {
+						throw new Error(
+							'useSync. "sessionId" is a reserved query param name. Please use a different name'
+						)
+					}
+					if (withParams.searchParams.has('storeId')) {
+						throw new Error(
+							'useSync. "storeId" is a reserved query param name. Please use a different name'
+						)
+					}
 
-				withParams.searchParams.set('sessionId', TAB_ID)
-				withParams.searchParams.set('storeId', storeId)
-				return withParams.toString()
-			})
+					withParams.searchParams.set('sessionId', TAB_ID)
+					withParams.searchParams.set('storeId', storeId)
+					return withParams.toString()
+				},
+				{ useCompression }
+			)
 		} else {
 			throw new Error('uri or connect must be provided')
 		}
@@ -371,6 +375,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		getUserPresence,
 		onCustomMessageReceived,
+		useCompression,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
@@ -485,6 +490,15 @@ export interface UseSyncOptionsBase {
 	 * ```
 	 */
 	onCustomMessageReceived?(data: any): void
+
+	/**
+	 * Enable zstd dictionary compression for WebSocket messages.
+	 * This can significantly reduce bandwidth for sync traffic by using
+	 * a pre-trained dictionary that knows the structure of tldraw protocol messages.
+	 *
+	 * @experimental
+	 */
+	useCompression?: boolean
 
 	/** @internal */
 	onMount?(editor: Editor): void

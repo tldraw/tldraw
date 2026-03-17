@@ -1,6 +1,8 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { createTLSchema, TLStoreSnapshot } from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
+import { JsonChunkAssembler } from './chunk'
+import { decompressMessage, initCompression, isCompressedMessage } from './compression'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
@@ -11,7 +13,6 @@ import {
 	loadSnapshotIntoStorage,
 	TLSyncStorage,
 } from './TLSyncStorage'
-import { JsonChunkAssembler } from './chunk'
 import { TLSocketServerSentEvent } from './protocol'
 
 /**
@@ -86,6 +87,12 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	}) => void
 	/** @internal */
 	onPresenceChange?(): void
+	/**
+	 * Enable zstd dictionary compression for WebSocket messages.
+	 * When enabled, the room will initialize the zstd WASM module and
+	 * compress/decompress messages using a pre-trained dictionary.
+	 */
+	useCompression?: boolean
 }
 
 /**
@@ -216,6 +223,12 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			}
 		})
 		this.log = 'log' in opts ? opts.log : { error: console.error }
+
+		if (opts.useCompression) {
+			initCompression().catch((e) => {
+				this.log?.error?.('Failed to initialize zstd compression:', e)
+			})
+		}
 	}
 
 	/**
@@ -288,6 +301,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			isReadonly,
 			socket: new ServerSocketAdapter({
 				ws: socket,
+				useCompression: this.opts.useCompression,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
 					? (message, stringified) =>
 							this.opts.onBeforeSendMessage!({
@@ -340,8 +354,29 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		}
 
 		try {
-			const messageString =
-				typeof message === 'string' ? message : new TextDecoder().decode(message)
+			let messageString: string
+			if (typeof message === 'string') {
+				messageString = message
+			} else {
+				const bytes =
+					message instanceof ArrayBuffer
+						? new Uint8Array(message)
+						: new Uint8Array(
+								(message as ArrayBufferView).buffer,
+								(message as ArrayBufferView).byteOffset,
+								(message as ArrayBufferView).byteLength
+							)
+				if (isCompressedMessage(bytes)) {
+					const decompressed = decompressMessage(bytes)
+					if (decompressed) {
+						messageString = decompressed
+					} else {
+						messageString = new TextDecoder().decode(bytes)
+					}
+				} else {
+					messageString = new TextDecoder().decode(bytes)
+				}
+			}
 			const res = assembler.handleMessage(messageString)
 			if (!res) {
 				// not enough chunks yet

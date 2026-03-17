@@ -2,6 +2,16 @@ import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { chunk, JsonChunkAssembler } from './lib/chunk'
 export { ClientWebSocketAdapter, ReconnectManager } from './lib/ClientWebSocketAdapter'
 export {
+	compressMessage,
+	compressMessagePlain,
+	compressMessageWithMetrics,
+	decompressMessage,
+	initCompression,
+	isCompressionReady,
+	isCompressedMessage,
+	type CompressionMetrics,
+} from './lib/compression'
+export {
 	applyObjectDiff,
 	diffRecord,
 	getNetworkDiff,

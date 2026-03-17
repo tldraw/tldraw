@@ -1,4 +1,5 @@
 import { UnknownRecord } from '@tldraw/store'
+import { compressMessage, isCompressionReady } from './compression'
 import { TLRoomSocket } from './TLSyncRoom'
 import { TLSocketServerSentEvent } from './protocol'
 
@@ -51,12 +52,12 @@ export interface WebSocketMinimal {
 	) => void
 
 	/**
-	 * Sends a string message through the WebSocket connection.
+	 * Sends a message through the WebSocket connection.
 	 *
-	 * @param data - The string data to send
+	 * @param data - The string or binary data to send
 	 */
 	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	send: (data: string) => void
+	send: (data: string | ArrayBufferLike | ArrayBufferView) => void
 
 	/**
 	 * Closes the WebSocket connection.
@@ -95,6 +96,9 @@ export interface ServerSocketAdapterOptions<R extends UnknownRecord> {
 	 */
 	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	readonly onBeforeSendMessage?: (msg: TLSocketServerSentEvent<R>, stringified: string) => void
+
+	/** Whether to use zstd dictionary compression for this connection */
+	readonly useCompression?: boolean
 }
 
 /**
@@ -156,6 +160,15 @@ export class ServerSocketAdapter<R extends UnknownRecord> implements TLRoomSocke
 	sendMessage(msg: TLSocketServerSentEvent<R>) {
 		const message = JSON.stringify(msg)
 		this.opts.onBeforeSendMessage?.(msg, message)
+
+		if (this.opts.useCompression && isCompressionReady()) {
+			const compressed = compressMessage(message)
+			if (compressed) {
+				this.opts.ws.send(compressed)
+				return
+			}
+		}
+
 		this.opts.ws.send(message)
 	}
 

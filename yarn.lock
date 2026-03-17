@@ -1618,6 +1618,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bokuweb/zstd-wasm@npm:^0.0.27":
+  version: 0.0.27
+  resolution: "@bokuweb/zstd-wasm@npm:0.0.27"
+  checksum: 10/de97fe72e41d072f006726f97485db3f1eb64db2c2e6986ccb8f8ee142b75386be432bb519e089224eb13005d18e073048d94dac794cd6f1a0fb4fd1fa474d07
+  languageName: node
+  linkType: hard
+
 "@bomb.sh/args@npm:^0.3.1":
   version: 0.3.1
   resolution: "@bomb.sh/args@npm:0.3.1"
@@ -10684,6 +10691,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/sync-core@workspace:packages/sync-core"
   dependencies:
+    "@bokuweb/zstd-wasm": "npm:^0.0.27"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"

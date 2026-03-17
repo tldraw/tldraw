@@ -63,7 +63,9 @@ io.on('connection', async (socket) => {
 		// Create a socket adapter for TLSocketRoom
 		const socketAdapter: WebSocketMinimal = {
 			send: (message) => {
-				socket.emit('tldraw-message', JSON.parse(message))
+				const str =
+					typeof message === 'string' ? message : new TextDecoder().decode(message as ArrayBufferView)
+				socket.emit('tldraw-message', JSON.parse(str))
 			},
 			close: () => {
 				socket.disconnect()

@@ -2,6 +2,12 @@ import { atom, Atom } from '@tldraw/state'
 import { TLRecord } from '@tldraw/tlschema'
 import { assert, warnOnce } from '@tldraw/utils'
 import { chunk } from './chunk'
+import {
+	compressMessage,
+	decompressMessage,
+	initCompression,
+	isCompressionReady,
+} from './compression'
 import { TLSocketClientSentEvent, TLSocketServerSentEvent } from './protocol'
 import {
 	TLPersistentClientSocket,
@@ -97,6 +103,9 @@ export class ClientWebSocketAdapter
 		this._ws?.close()
 	}
 
+	private _useCompression: boolean
+	private _compressionReady = false
+
 	/**
 	 * Creates a new ClientWebSocketAdapter instance.
 	 *
@@ -104,9 +113,21 @@ export class ClientWebSocketAdapter
 	 *                 Can return a string directly or a Promise that resolves to a string.
 	 *                 This function is called each time a connection attempt is made,
 	 *                 allowing for dynamic URI generation (e.g., for authentication tokens).
+	 * @param opts - Optional configuration
+	 *   - useCompression: Enable zstd dictionary compression for this connection
 	 */
-	constructor(getUri: () => Promise<string> | string) {
+	constructor(
+		getUri: () => Promise<string> | string,
+		opts?: { useCompression?: boolean }
+	) {
+		this._useCompression = opts?.useCompression ?? false
 		this._reconnectManager = new ReconnectManager(this, getUri)
+
+		if (this._useCompression) {
+			initCompression().then(() => {
+				this._compressionReady = true
+			})
+		}
 	}
 
 	private _handleConnect() {
@@ -212,8 +233,26 @@ export class ClientWebSocketAdapter
 				this._ws === ws,
 				"sockets must only be orphaned when they are CLOSING or CLOSED, so they can't receive messages"
 			)
-			const parsed = JSON.parse(ev.data.toString())
+
+			let jsonString: string
+			if (ev.data instanceof ArrayBuffer) {
+				const bytes = new Uint8Array(ev.data)
+				const decompressed = decompressMessage(bytes)
+				if (decompressed) {
+					jsonString = decompressed
+				} else {
+					jsonString = new TextDecoder().decode(bytes)
+				}
+			} else {
+				jsonString = ev.data.toString()
+			}
+
+			const parsed = JSON.parse(jsonString)
 			this.messageListeners.forEach((cb) => cb(parsed))
+		}
+
+		if (this._useCompression) {
+			ws.binaryType = 'arraybuffer'
 		}
 
 		this._ws = ws
@@ -265,7 +304,17 @@ export class ClientWebSocketAdapter
 
 		if (!this._ws) return
 		if (this.connectionStatus === 'online') {
-			const chunks = chunk(JSON.stringify(msg))
+			const json = JSON.stringify(msg)
+
+			if (this._useCompression && this._compressionReady && isCompressionReady()) {
+				const compressed = compressMessage(json)
+				if (compressed) {
+					this._ws.send(compressed)
+					return
+				}
+			}
+
+			const chunks = chunk(json)
 			for (const part of chunks) {
 				this._ws.send(part)
 			}
