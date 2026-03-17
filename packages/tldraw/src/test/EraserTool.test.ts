@@ -385,10 +385,10 @@ describe('When clicking and dragging', () => {
 		editor.groupShapes([ids.box2, ids.box3], { groupId: ids.group1 })
 		editor.setCurrentTool('eraser')
 		editor.expectToBeIn('eraser.idle')
-		// Start outside the group
-		editor.pointerDown(-100, -100)
+		// Start outside the group (avoiding box1 which is at 0,0)
+		editor.pointerDown(150, -100)
 		// Drag over box2 (child of group)
-		editor.pointerMove(125, 125)
+		editor.pointerMove(150, 125)
 		vi.advanceTimersByTime(16)
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
 		// The whole group should be erased since we started outside
