@@ -10,12 +10,7 @@ import { T } from '@tldraw/validate'
 import { SchemaPropsInfo } from '../createTLSchema'
 import { TLPropsMigrations } from '../recordsWithProps'
 import { TLArrowShape } from '../shapes/TLArrowShape'
-import {
-	TLBaseShape,
-	createShapeValidator,
-	defaultTlMeta,
-	tldrawShapeMetaKey,
-} from '../shapes/TLBaseShape'
+import { TLBaseShape, createShapeValidator } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLDrawShape } from '../shapes/TLDrawShape'
 import { TLEmbedShape } from '../shapes/TLEmbedShape'
@@ -295,8 +290,6 @@ export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	HoistOpacity: 2,
 	AddMeta: 3,
 	AddWhite: 4,
-	MoveTlmetaToMetaTldraw: 5,
-	AttributionUserToId: 6,
 })
 
 /**
@@ -356,42 +349,6 @@ export const rootShapeMigrations = createRecordMigrationSequence({
 			down: (record: any) => {
 				if (record.props.color === 'white') {
 					record.props.color = 'black'
-				}
-			},
-		},
-		{
-			id: rootShapeVersions.MoveTlmetaToMetaTldraw,
-			up: (record: any) => {
-				record.meta ??= {}
-				record.meta[tldrawShapeMetaKey] = { ...(record.tlmeta ?? defaultTlMeta) }
-				delete record.tlmeta
-			},
-			down: (record: any) => {
-				if (record.meta && tldrawShapeMetaKey in record.meta) {
-					delete record.meta[tldrawShapeMetaKey]
-				}
-			},
-		},
-		{
-			id: rootShapeVersions.AttributionUserToId,
-			up: (record: any) => {
-				const tlmeta = record.meta?.[tldrawShapeMetaKey]
-				if (!tlmeta) return
-				if (tlmeta.createdBy && typeof tlmeta.createdBy === 'object') {
-					tlmeta.createdBy = tlmeta.createdBy.id
-				}
-				if (tlmeta.updatedBy && typeof tlmeta.updatedBy === 'object') {
-					tlmeta.updatedBy = tlmeta.updatedBy.id
-				}
-			},
-			down: (record: any) => {
-				const tlmeta = record.meta?.[tldrawShapeMetaKey]
-				if (!tlmeta) return
-				if (typeof tlmeta.createdBy === 'string') {
-					tlmeta.createdBy = { id: tlmeta.createdBy, name: '' }
-				}
-				if (typeof tlmeta.updatedBy === 'string') {
-					tlmeta.updatedBy = { id: tlmeta.updatedBy, name: '' }
 				}
 			},
 		},
@@ -624,8 +581,6 @@ export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
 		rotation: 0,
 		isLocked: false,
 		opacity: 1,
-		meta: {
-			[tldrawShapeMetaKey]: { ...defaultTlMeta },
-		},
+		meta: {},
 	}))
 }

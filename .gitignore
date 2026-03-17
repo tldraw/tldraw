@@ -123,6 +123,7 @@ license-report.md
 opencode.json
 
 # PR walkthrough intermediate files
+.claude/worktrees
 .claude/skills/pr-walkthrough/tmp
 .claude/skills/pr-walkthrough/out
 .claude/skills/pr-walkthrough/video/node_modules

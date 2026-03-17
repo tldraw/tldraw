@@ -378,8 +378,8 @@ const AttributionTimeline = track(() => {
 [1]
 A fake user directory. In a real app this would be backed by your auth system.
 The TLUserStore tells the editor who is "logged in" — the editor calls
-getCurrentUser when stamping meta.__tldraw on shape create/update, and resolve
-when rendering attribution labels.
+getCurrentUser for attribution purposes, and resolve when rendering
+attribution labels.
 
 [2]
 Each timeline entry extends the basic diff with the userId, name, and color
