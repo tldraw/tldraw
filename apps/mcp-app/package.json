@@ -34,7 +34,7 @@
 		"tldraw": "workspace:*",
 		"tsx": "^4.19.2",
 		"typescript": "^5.8.3",
-		"vite": "^7.0.1",
+		"vite": "^8.0.0",
 		"vite-plugin-singlefile": "^2.0.0",
 		"wrangler": "^4.67.0"
 	}

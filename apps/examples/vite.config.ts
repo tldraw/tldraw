@@ -82,7 +82,7 @@ export default defineConfig(({ mode }) => ({
 		target: 'es2022',
 		minify: false,
 	},
-	esbuild: {
+	oxc: {
 		target: 'es2022',
 	},
 	server: {
@@ -95,9 +95,6 @@ export default defineConfig(({ mode }) => ({
 	clearScreen: false,
 	optimizeDeps: {
 		exclude: ['@tldraw/assets'],
-		esbuildOptions: {
-			target: 'es2022',
-		},
 	},
 	define: {
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.VERCEL_ENV ?? 'development'),

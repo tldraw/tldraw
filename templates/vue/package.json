@@ -30,10 +30,10 @@
 	"devDependencies": {
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
-		"@vitejs/plugin-react-swc": "^3.10.2",
+		"@vitejs/plugin-react-swc": "^4.3.0",
 		"@vitejs/plugin-vue": "^6.0.0",
 		"typescript": "^5.8.3",
-		"vite": "^7.0.1",
+		"vite": "^8.0.0",
 		"vite-plugin-vue-devtools": "^7.7.7",
 		"vue-tsc": "^3.0.1"
 	}
