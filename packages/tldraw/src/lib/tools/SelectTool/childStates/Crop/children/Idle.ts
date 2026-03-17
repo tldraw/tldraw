@@ -42,7 +42,7 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'canvas': {
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
-				if (hitShape && !this.editor.isShapeOfType(hitShape, 'group')) {
+				if (hitShape && !this.editor.isShapeGroupLike(hitShape)) {
 					this.onPointerDown({
 						...info,
 						shape: hitShape,

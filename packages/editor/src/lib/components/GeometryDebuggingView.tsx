@@ -33,7 +33,7 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 			{renderingShapes.map((result) => {
 				const shape = editor.getShape(result.id)!
 
-				if (shape.type === 'group') return null
+				if (editor.isShapeGroupLike(shape)) return null
 
 				const geometry = editor.getShapeGeometry(shape)
 				const pageTransform = editor.getShapePageTransform(shape)!

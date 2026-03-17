@@ -12,6 +12,10 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	static override props = groupShapeProps
 	static override migrations = groupShapeMigrations
 
+	override isGroupLike() {
+		return true
+	}
+
 	override hideSelectionBoundsFg() {
 		return true
 	}
@@ -54,9 +58,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		const { hintingShapeIds } = this.editor.getCurrentPageState()
 		const isHintingOtherGroup =
 			hintingShapeIds.length > 0 &&
-			hintingShapeIds.some(
-				(id) => id !== shape.id && this.editor.isShapeOfType(this.editor.getShape(id)!, 'group')
-			)
+			hintingShapeIds.some((id) => id !== shape.id && this.editor.isShapeGroupLike(id))
 
 		const isFocused = this.editor.getCurrentPageState().focusedGroupId !== shape.id
 

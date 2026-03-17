@@ -733,7 +733,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							if (filtered.length > 0) {
 								const commonGroupAncestor = this.findCommonAncestor(
 									compact(filtered.map((id) => this.getShape(id))),
-									(shape) => this.isShapeOfType(shape, 'group')
+									(shape) => this.isShapeGroupLike(shape)
 								)
 
 								if (commonGroupAncestor) {
@@ -2265,7 +2265,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				throw Error(`Editor.setFocusedGroup: Shape with id ${id} does not exist`)
 			}
 
-			if (!this.isShapeOfType(shape, 'group')) {
+			if (!this.isShapeGroupLike(shape)) {
 				throw Error(
 					`Editor.setFocusedGroup: Cannot set focused group to shape of type ${shape.type}`
 				)
@@ -2292,9 +2292,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (focusedGroup) {
 			// If we have a focused layer, look for an ancestor of the focused shape that is a group
-			const match = this.findShapeAncestor(focusedGroup, (shape) =>
-				this.isShapeOfType(shape, 'group')
-			)
+			const match = this.findShapeAncestor(focusedGroup, (shape) => this.isShapeGroupLike(shape))
 			// If we have an ancestor that can become a focused layer, set it as the focused layer
 			this.setFocusedGroup(match?.id ?? null)
 			this.select(focusedGroup.id)
@@ -5310,7 +5308,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (
 				(shape.isLocked && !hitLocked) ||
 				this.isShapeHidden(shape) ||
-				this.isShapeOfType(shape, 'group')
+				this.isShapeGroupLike(shape)
 			)
 				return false
 			const pageMask = this.getShapeMask(shape)
@@ -5330,7 +5328,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (
 				this.isShapeFrameLike(shape) ||
 				((this.isShapeOfType(shape, 'note') ||
-					this.isShapeOfType(shape, 'arrow') ||
+					this.isShapeArrowLike(shape) ||
 					(this.isShapeOfType(shape, 'geo') && shape.props.fill === 'none')) &&
 					this.getShapeUtil(shape).getText(shape)?.trim())
 			) {
@@ -5690,6 +5688,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const s = typeof shape === 'string' ? this.getShape(shape) : shape
 		if (!s) return false
 		return this.getShapeUtil(s).isFrameLike(s)
+	}
+
+	/**
+	 * Whether the shape is group-like.
+	 *
+	 * @param shape - The shape (or shape id) to check.
+	 * @public
+	 */
+	isShapeGroupLike(shape: TLShapeId | TLShape): boolean {
+		const s = typeof shape === 'string' ? this.getShape(shape) : shape
+		if (!s) return false
+		return this.getShapeUtil(s).isGroupLike(s)
+	}
+
+	/**
+	 * Whether the shape is arrow-like.
+	 *
+	 * @param shape - The shape (or shape id) to check.
+	 * @public
+	 */
+	isShapeArrowLike(shape: TLShapeId | TLShape): boolean {
+		const s = typeof shape === 'string' ? this.getShape(shape) : shape
+		if (!s) return false
+		return this.getShapeUtil(s).isArrowLike(s)
 	}
 
 	/**
@@ -6094,7 +6116,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		while (node) {
 			if (
-				this.isShapeOfType(node, 'group') &&
+				this.isShapeGroupLike(node) &&
 				focusedGroup?.id !== node.id &&
 				!this.hasAncestor(focusedGroup, node.id) &&
 				(filter?.(node) ?? true)
@@ -6933,7 +6955,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shapesToFlipFirstPass = compact(ids.map((id) => this.getShape(id)))
 
 		for (const shape of shapesToFlipFirstPass) {
-			if (this.isShapeOfType(shape, 'group')) {
+			if (this.isShapeGroupLike(shape)) {
 				const childrenOfGroups = compact(
 					this.getSortedChildIdsForParent(shape.id).map((id) => this.getShape(id))
 				)
@@ -8385,10 +8407,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const idsToSelect = new Set<TLShapeId>()
 
 		// Get all groups in the selection
-		const groups: TLGroupShape[] = []
+		const groups: TLShape[] = []
 
 		shapesToUngroup.forEach((shape) => {
-			if (this.isShapeOfType(shape, 'group')) {
+			if (this.isShapeGroupLike(shape)) {
 				groups.push(shape)
 			} else {
 				idsToSelect.add(shape.id)
@@ -8398,7 +8420,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (groups.length === 0) return this
 
 		this.run(() => {
-			let group: TLGroupShape
+			let group: TLShape
 
 			for (let i = 0, n = groups.length; i < n; i++) {
 				group = groups[i]
@@ -8603,7 +8625,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	private _extractSharedStyles(shape: TLShape, sharedStyleMap: SharedStyleMap) {
-		if (this.isShapeOfType(shape, 'group')) {
+		if (this.isShapeGroupLike(shape)) {
 			// For groups, ignore the styles of the group shape and instead include the styles of the
 			// group's children. These are the shapes that would have their styles changed if the
 			// user called `setStyle` on the current selection.
@@ -8720,10 +8742,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const addShape = (shapeId: TLShapeId) => {
 				const shape = this.getShape(shapeId)
 				if (!shape) return
-				// For groups, ignore the opacity of the group shape and instead include
+				// For group-like shapes, ignore the opacity of the group shape and instead include
 				// the opacity of the group's children. These are the shapes that would have
 				// their opacity changed if the user called `setOpacity` on the current selection.
-				if (this.isShapeOfType(shape, 'group')) {
+				if (this.isShapeGroupLike(shape)) {
 					for (const childId of this.getSortedChildIdsForParent(shape.id)) {
 						addShape(childId)
 					}
@@ -8781,10 +8803,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (selectedShapes.length > 0) {
 			const shapesToUpdate: TLShape[] = []
 
-			// We can have many deep levels of grouped shape
-			// Making a recursive function to look through all the levels
 			const addShapeById = (shape: TLShape) => {
-				if (this.isShapeOfType(shape, 'group')) {
+				if (this.isShapeGroupLike(shape)) {
 					const childIds = this.getSortedChildIdsForParent(shape)
 					for (const childId of childIds) {
 						addShapeById(this.getShape(childId)!)
@@ -8865,10 +8885,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				updatePartial: TLShapePartial
 			}[] = []
 
-			// We can have many deep levels of grouped shape
-			// Making a recursive function to look through all the levels
 			const addShapeById = (shape: TLShape) => {
-				if (this.isShapeOfType(shape, 'group')) {
+				if (this.isShapeGroupLike(shape)) {
 					const childIds = this.getSortedChildIdsForParent(shape.id)
 					for (const childId of childIds) {
 						addShapeById(this.getShape(childId)!)

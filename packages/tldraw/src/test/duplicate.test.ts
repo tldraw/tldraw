@@ -295,7 +295,7 @@ describe('When duplicating shapes that include arrows', () => {
 			.select(
 				...editor
 					.getCurrentPageShapes()
-					.filter((s) => editor.isShapeOfType(s, 'arrow'))
+					.filter((s) => editor.isShapeArrowLike(s))
 					.map((s) => s.id)
 			)
 

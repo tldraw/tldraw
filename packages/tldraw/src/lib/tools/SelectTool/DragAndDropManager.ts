@@ -1,7 +1,6 @@
 import {
 	Editor,
 	IndexKey,
-	TLGroupShape,
 	TLParentId,
 	TLShape,
 	TLShapeId,
@@ -40,11 +39,11 @@ export class DragAndDropManager {
 		if (this.intervalTimerId !== -1) return
 
 		const shapesToActuallyMove = new Set(movingShapes)
-		const movingGroups = new Set<TLGroupShape>()
+		const movingGroups = new Set<TLShape>()
 
 		for (const shape of shapesToActuallyMove) {
 			const parent = editor.getShapeParent(shape)
-			if (parent && editor.isShapeOfType(parent, 'group')) {
+			if (parent && editor.isShapeGroupLike(parent)) {
 				if (!movingGroups.has(parent)) {
 					movingGroups.add(parent)
 				}
@@ -70,7 +69,7 @@ export class DragAndDropManager {
 			}
 			this.initialIndices.set(shape.id, shape.index)
 
-			const group = editor.findShapeAncestor(shape, (s) => editor.isShapeOfType(s, 'group'))
+			const group = editor.findShapeAncestor(shape, (s) => editor.isShapeGroupLike(s))
 			if (group) {
 				this.initialGroupIds.set(shape.id, group.id)
 			}

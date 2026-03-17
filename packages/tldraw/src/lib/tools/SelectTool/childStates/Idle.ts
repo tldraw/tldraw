@@ -185,7 +185,7 @@ export class Idle extends StateNode {
 
 				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 				const hitShape =
-					hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
+					hoveredShape && !this.editor.isShapeGroupLike(hoveredShape)
 						? hoveredShape
 						: (this.editor.getSelectedShapeAtPoint(currentPagePoint) ??
 							this.editor.getShapeAtPoint(currentPagePoint, {
@@ -196,13 +196,13 @@ export class Idle extends StateNode {
 				const focusedGroupId = this.editor.getFocusedGroupId()
 
 				if (hitShape) {
-					if (this.editor.isShapeOfType(hitShape, 'group')) {
+					if (this.editor.isShapeGroupLike(hitShape)) {
 						// Probably select the shape
 						selectOnCanvasPointerUp(this.editor, info)
 						return
 					} else {
 						const parent = this.editor.getShape(hitShape.parentId)
-						if (parent && this.editor.isShapeOfType(parent, 'group')) {
+						if (parent && this.editor.isShapeGroupLike(parent)) {
 							// The shape is the direct child of a group. If the group is
 							// selected, then we can select the shape. If the group is the
 							// focus layer id, then we can double click into it as usual.
@@ -359,7 +359,7 @@ export class Idle extends StateNode {
 			case 'canvas': {
 				const hoveredShape = this.editor.getHoveredShape()
 				const hitShape =
-					hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
+					hoveredShape && !this.editor.isShapeGroupLike(hoveredShape)
 						? hoveredShape
 						: this.editor.getShapeAtPoint(this.editor.inputs.getCurrentPagePoint(), {
 								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
@@ -526,7 +526,7 @@ export class Idle extends StateNode {
 				const selectedShapes = this.editor.getSelectedShapes()
 
 				// On enter, if every selected shape is a group, then select all of the children of the groups
-				if (selectedShapes.every((shape) => this.editor.isShapeOfType(shape, 'group'))) {
+				if (selectedShapes.every((shape) => this.editor.isShapeGroupLike(shape))) {
 					this.editor.setSelectedShapes(
 						selectedShapes.flatMap((shape) => this.editor.getSortedChildIdsForParent(shape.id))
 					)

@@ -123,7 +123,7 @@ const arrowBindingsCache = createComputedCache(
 )
 
 /** @public */
-export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings {
+export function getArrowBindings(editor: Editor, shape: TLShape): TLArrowBindings {
 	return arrowBindingsCache.get(editor, shape.id)!
 }
 

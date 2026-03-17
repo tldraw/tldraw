@@ -15,7 +15,7 @@ export function TldrawOverlays() {
 			if (editor.isIn('select.pointing_handle')) {
 				const node: PointingHandle = editor.getStateDescendant('select.pointing_handle')!
 				if (
-					node.info.shape.type === 'arrow' &&
+					editor.isShapeArrowLike(node.info.shape) &&
 					(node.info.handle.id === 'start' || node.info.handle.id === 'end')
 				) {
 					return true
@@ -25,7 +25,7 @@ export function TldrawOverlays() {
 			if (editor.isIn('select.dragging_handle')) {
 				const node: DraggingHandle = editor.getStateDescendant('select.dragging_handle')!
 				if (
-					node.info.shape.type === 'arrow' &&
+					editor.isShapeArrowLike(node.info.shape) &&
 					(node.info.handle.id === 'start' || node.info.handle.id === 'end')
 				) {
 					return true

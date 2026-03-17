@@ -2000,7 +2000,7 @@ describe('Group opacity', () => {
 		editor.setOpacityForNextShapes(0.5)
 		editor.groupShapes(editor.getSelectedShapeIds())
 		const group = editor.getShape(onlySelectedId())!
-		assert(editor.isShapeOfType(group, 'group'))
+		assert(editor.isShapeGroupLike(group))
 		expect(group.opacity).toBe(1)
 	})
 })

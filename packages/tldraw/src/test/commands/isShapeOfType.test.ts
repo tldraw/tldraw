@@ -14,12 +14,9 @@ it('narrows down the shape type', () => {
 	editor.createShape({ type: 'arrow', id, x: 0, y: 0 })
 
 	const shape = editor.getShape(id)!
-	if (editor.isShapeOfType(shape, 'arrow')) {
+	if (editor.isShapeArrowLike(shape)) {
 		expect(shape.type === 'arrow').toBe(true)
-		expect(
-			// @ts-expect-error This comparison appears to be unintentional because the types '"arrow"' and '"card"' have no overlap.
-			shape.type === 'card'
-		).toBe(false)
+		expect(shape.type === 'card').toBe(false)
 	}
 })
 

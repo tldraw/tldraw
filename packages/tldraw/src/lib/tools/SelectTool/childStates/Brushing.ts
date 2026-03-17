@@ -54,9 +54,7 @@ export class Brushing extends StateNode {
 		this.excludedShapeIds = new Set(
 			editor
 				.getCurrentPageShapes()
-				.filter(
-					(shape) => editor.isShapeOfType(shape, 'group') || editor.isShapeOrAncestorLocked(shape)
-				)
+				.filter((shape) => editor.isShapeGroupLike(shape) || editor.isShapeOrAncestorLocked(shape))
 				.map((shape) => shape.id)
 		)
 

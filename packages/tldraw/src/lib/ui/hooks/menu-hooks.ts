@@ -9,7 +9,7 @@ function shapesWithUnboundArrows(editor: Editor) {
 
 	return selectedShapes.filter((shape) => {
 		if (!shape) return false
-		if (editor.isShapeOfType(shape, 'arrow')) {
+		if (editor.isShapeArrowLike(shape)) {
 			const bindings = getArrowBindings(editor, shape)
 			if (bindings.start || bindings.end) return false
 		}
@@ -42,7 +42,7 @@ export const useAllowGroup = () => {
 			if (selectedShapes.length < 2) return false
 
 			for (const shape of selectedShapes) {
-				if (editor.isShapeOfType(shape, 'arrow')) {
+				if (editor.isShapeArrowLike(shape)) {
 					const bindings = getArrowBindings(editor, shape)
 					if (bindings.start) {
 						// if the other shape is not among the selected shapes...
@@ -69,7 +69,7 @@ export const useAllowUngroup = () => {
 	const editor = useEditor()
 	return useValue(
 		'allowUngroup',
-		() => editor.getSelectedShapeIds().some((id) => editor.getShape(id)?.type === 'group'),
+		() => editor.getSelectedShapeIds().some((id) => editor.isShapeGroupLike(id)),
 		[editor]
 	)
 }
@@ -186,9 +186,9 @@ export function useOnlyFlippableShape() {
 			const shape = editor.getOnlySelectedShape()
 			return (
 				shape &&
-				(editor.isShapeOfType(shape, 'group') ||
+				(editor.isShapeGroupLike(shape) ||
 					editor.isShapeOfType(shape, 'image') ||
-					editor.isShapeOfType(shape, 'arrow') ||
+					editor.isShapeArrowLike(shape) ||
 					editor.isShapeOfType(shape, 'line') ||
 					editor.isShapeOfType(shape, 'draw'))
 			)

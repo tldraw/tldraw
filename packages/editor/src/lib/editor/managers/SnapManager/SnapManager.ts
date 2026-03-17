@@ -89,7 +89,7 @@ export class SnapManager {
 				const pageBounds = editor.getShapePageBounds(childId)
 				if (!(pageBounds && renderingBounds.includes(pageBounds))) continue
 				// Snap to children of groups but not group itself
-				if (editor.isShapeOfType(childShape, 'group')) {
+				if (editor.isShapeGroupLike(childShape)) {
 					collectSnappableShapesFromParent(childId)
 					continue
 				}

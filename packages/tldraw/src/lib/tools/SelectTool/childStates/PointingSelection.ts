@@ -35,7 +35,7 @@ export class PointingSelection extends StateNode {
 	override onDoubleClick?(info: TLClickEventInfo) {
 		const hoveredShape = this.editor.getHoveredShape()
 		const hitShape =
-			hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
+			hoveredShape && !this.editor.isShapeGroupLike(hoveredShape)
 				? hoveredShape
 				: this.editor.getShapeAtPoint(this.editor.inputs.getCurrentPagePoint(), {
 						hitInside: true,

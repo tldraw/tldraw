@@ -129,6 +129,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		showTextOutline: true,
 	}
 
+	override isArrowLike() {
+		return true
+	}
 	override canEdit() {
 		return true
 	}

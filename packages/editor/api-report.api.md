@@ -1082,6 +1082,19 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                type: "sticker";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
                 type: "test-shape";
                 typeName: "shape";
                 x: number;
@@ -1381,6 +1394,9 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
     }): boolean;
+    isShapeArrowLike(shape: TLShape | TLShapeId): boolean;
+    isShapeFrameLike(shape: TLShape | TLShapeId): boolean;
+    isShapeGroupLike(shape: TLShape | TLShapeId): boolean;
     // (undocumented)
     isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
     isShapeInPage(shape: TLShape | TLShapeId, pageId?: TLPageId): boolean;
@@ -1394,6 +1410,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeOfType<T extends TLShape = TLShape>(shapeId: TLShapeId, type: T['type']): boolean;
     isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
+    isShapeStickerLike(shape: TLShape | TLShapeId): boolean;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
     markEventAsHandled(e: {
         nativeEvent: Event;
@@ -1972,6 +1989,8 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     hideSelectionBoundsFg(): boolean;
     // (undocumented)
     indicator(shape: TLGroupShape): JSX.Element;
+    // (undocumented)
+    isGroupLike(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -2824,8 +2843,12 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     hideSelectionBoundsBg(shape: Shape): boolean;
     hideSelectionBoundsFg(shape: Shape): boolean;
     abstract indicator(shape: Shape): any;
+    isArrowLike(_shape: Shape): boolean;
     isAspectRatioLocked(shape: Shape): boolean;
     isExportBoundsContainer(shape: Shape): boolean;
+    isFrameLike(_shape: Shape): boolean;
+    isGroupLike(_shape: Shape): boolean;
+    isStickerLike(_shape: Shape): boolean;
     static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     onBeforeCreate?(next: Shape): Shape | void;
     onBeforeUpdate?(prev: Shape, next: Shape): Shape | void;

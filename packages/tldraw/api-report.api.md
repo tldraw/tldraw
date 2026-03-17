@@ -144,6 +144,8 @@ import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLShapeUtilConstructor } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
+import { TLStickerBinding } from '@tldraw/editor';
+import { TLStickerShape } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
@@ -299,6 +301,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     hideSelectionBoundsFg(): boolean;
     // (undocumented)
     indicator(shape: TLArrowShape): JSX.Element | null;
+    // (undocumented)
+    isArrowLike(): boolean;
     // (undocumented)
     static migrations: MigrationSequence;
     // (undocumented)
@@ -888,7 +892,7 @@ export function DefaultActionsMenuContent(): JSX.Element;
 export function defaultAddFontsFromNode(node: Node_2, state: RichTextFontVisitorState, addFont: (font: TLFontFace) => void): RichTextFontVisitorState;
 
 // @public (undocumented)
-export const defaultBindingUtils: readonly [typeof ArrowBindingUtil];
+export const defaultBindingUtils: readonly [typeof ArrowBindingUtil, typeof StickerBindingUtil];
 
 // @public (undocumented)
 const DefaultContextMenu: NamedExoticComponent<TLUiContextMenuProps>;
@@ -1046,10 +1050,10 @@ export interface DefaultRichTextToolbarContentProps {
 }
 
 // @public (undocumented)
-export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
+export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof StickerShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
 
 // @public (undocumented)
-export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
+export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof StickerShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
 
 // @public (undocumented)
 export function DefaultSharePanel(): JSX.Element;
@@ -1604,6 +1608,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     isExportBoundsContainer(): boolean;
     // (undocumented)
+    isFrameLike(): boolean;
+    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onDoubleClickCorner(shape: TLFrameShape): {
@@ -1807,7 +1813,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 }
 
 // @public (undocumented)
-export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings;
+export function getArrowBindings(editor: Editor, shape: TLShape): TLArrowBindings;
 
 // @public (undocumented)
 export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined;
@@ -2840,6 +2846,58 @@ export function startEditingShapeWithRichText(editor: Editor, shapeOrId: TLShape
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX.Element;
+
+// @public (undocumented)
+export class StickerBindingUtil extends BindingUtil<TLStickerBinding> {
+    // (undocumented)
+    getDefaultProps(): Partial<TLStickerBinding['props']>;
+    // (undocumented)
+    static migrations: TLPropsMigrations;
+    // (undocumented)
+    onAfterChangeToShape({ binding, shapeAfter }: BindingOnShapeChangeOptions<TLStickerBinding>): void;
+    // (undocumented)
+    onBeforeIsolateFromShape(_options: BindingOnShapeIsolateOptions<TLStickerBinding>): void;
+    // (undocumented)
+    onBeforeIsolateToShape(_options: BindingOnShapeIsolateOptions<TLStickerBinding>): void;
+    // (undocumented)
+    static props: RecordProps<TLStickerBinding>;
+    // (undocumented)
+    static type: "sticker";
+}
+
+// @public (undocumented)
+export class StickerShapeTool extends StateNode {
+    // (undocumented)
+    static children(): TLStateNodeConstructor[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    shapeType: string;
+}
+
+// @public (undocumented)
+export class StickerShapeUtil extends BaseBoxShapeUtil<TLStickerShape> {
+    // (undocumented)
+    canResize(): boolean;
+    // (undocumented)
+    component(shape: TLStickerShape): JSX.Element;
+    // (undocumented)
+    getDefaultProps(): TLStickerShape['props'];
+    // (undocumented)
+    indicator(shape: TLStickerShape): JSX.Element;
+    // (undocumented)
+    isAspectRatioLocked(): boolean;
+    // (undocumented)
+    isStickerLike(): boolean;
+    // (undocumented)
+    static migrations: TLPropsMigrations;
+    // (undocumented)
+    static props: RecordProps<TLStickerShape>;
+    // (undocumented)
+    static type: "sticker";
+}
 
 // @public (undocumented)
 export const STROKE_SIZES: Record<TLDefaultSizeStyle, number>;

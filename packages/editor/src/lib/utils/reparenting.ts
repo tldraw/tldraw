@@ -1,5 +1,5 @@
 import { EMPTY_ARRAY } from '@tldraw/state'
-import { TLGroupShape, TLParentId, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { TLParentId, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { IndexKey, compact, getIndexAbove, getIndexBetween } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 import { intersectPolygonPolygon } from '../primitives/intersect'
@@ -91,7 +91,7 @@ export function kickoutOccludedShapes(
 		if (remainingShapesToReparent.size > 0) {
 			// The remaining shapes are going to be reparented to the old parent's containing group, if there was one, or else to the page
 			const newParentId =
-				editor.findShapeAncestor(prevParent, (s) => editor.isShapeOfType(s, 'group'))?.id ??
+				editor.findShapeAncestor(prevParent, (s) => editor.isShapeGroupLike(s))?.id ??
 				editor.getCurrentPageId()
 
 			remainingShapesToReparent.forEach((shape) => {
@@ -202,11 +202,11 @@ export function getDroppedShapesToNewParents(
 	cb?: (shape: TLShape, parent: TLShape) => boolean
 ) {
 	const shapesToActuallyCheck = new Set<TLShape>(shapes)
-	const movingGroups = new Set<TLGroupShape>()
+	const movingGroups = new Set<TLShape>()
 
 	for (const shape of shapes) {
 		const parent = editor.getShapeParent(shape)
-		if (parent && editor.isShapeOfType(parent, 'group')) {
+		if (parent && editor.isShapeGroupLike(parent)) {
 			if (!movingGroups.has(parent)) {
 				movingGroups.add(parent)
 			}
@@ -243,7 +243,7 @@ export function getDroppedShapesToNewParents(
 	parentCheck: for (let i = potentialParentShapes.length - 1; i >= 0; i--) {
 		const parentShape = potentialParentShapes[i]
 		const parentShapeContainingGroupId = editor.findShapeAncestor(parentShape, (s) =>
-			editor.isShapeOfType(s, 'group')
+			editor.isShapeGroupLike(s)
 		)?.id
 
 		const parentGeometry = editor.getShapeGeometry(parentShape)
@@ -269,7 +269,7 @@ export function getDroppedShapesToNewParents(
 			if (!shapeGroupIds.has(shape.id)) {
 				shapeGroupIds.set(
 					shape.id,
-					editor.findShapeAncestor(shape, (s) => editor.isShapeOfType(s, 'group'))?.id
+					editor.findShapeAncestor(shape, (s) => editor.isShapeGroupLike(s))?.id
 				)
 			}
 

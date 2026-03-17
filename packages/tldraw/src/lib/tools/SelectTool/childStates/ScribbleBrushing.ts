@@ -124,7 +124,7 @@ export class ScribbleBrushing extends StateNode {
 
 			// If the shape is a group or is already selected or locked, don't select it
 			if (
-				editor.isShapeOfType(shape, 'group') ||
+				editor.isShapeGroupLike(shape) ||
 				newlySelectedShapeIds.has(shape.id) ||
 				editor.isShapeOrAncestorLocked(shape)
 			) {

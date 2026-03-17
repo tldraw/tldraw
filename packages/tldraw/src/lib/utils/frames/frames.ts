@@ -22,7 +22,7 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]) {
 	const frames = compact(
 		ids
 			.map((id) => editor.getShape<TLFrameShape>(id))
-			.filter((f) => f && editor.isShapeOfType(f, 'frame'))
+			.filter((f) => f && editor.isShapeFrameLike(f))
 	)
 	if (!frames.length) return
 

@@ -479,6 +479,30 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	}
 
 	/**
+	 * Whether the shape behaves like a group — a transparent container whose
+	 * children are directly selectable, that is skipped in snapping, hit testing,
+	 * brushing, and erasing, and whose styles delegate to its children.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	isGroupLike(_shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Whether the shape behaves like an arrow — a connector with terminal
+	 * handles (start/end) that can bind to other shapes and shows binding
+	 * hints when dragging handles.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	isArrowLike(_shape: Shape): boolean {
+		return false
+	}
+
+	/**
 	 * Whether the shape behaves like a sticker — when translated and dropped on
 	 * another shape, it creates a binding so it follows that shape.
 	 *

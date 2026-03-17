@@ -1,4 +1,12 @@
-import { Editor, StateNode, TLHandle, TLNoteShape, TLPointerEventInfo, Vec } from '@tldraw/editor'
+import {
+	Editor,
+	StateNode,
+	TLArrowShape,
+	TLHandle,
+	TLNoteShape,
+	TLPointerEventInfo,
+	Vec,
+} from '@tldraw/editor'
 import { updateArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
@@ -21,7 +29,7 @@ export class PointingHandle extends StateNode {
 		this.didCtrlOnEnter = info.accelKey
 
 		const { shape } = info
-		if (this.editor.isShapeOfType(shape, 'arrow')) {
+		if (this.editor.isShapeArrowLike(shape)) {
 			const initialBindings = getArrowBindings(this.editor, shape)
 			const currentBinding = initialBindings[info.handle.id as 'start' | 'end']
 			const oppositeBinding = initialBindings[info.handle.id === 'start' ? 'end' : 'start']
@@ -31,7 +39,7 @@ export class PointingHandle extends StateNode {
 				updateArrowTargetState({
 					editor: this.editor,
 					pointInPageSpace: arrowTransform.applyToPoint(info.handle),
-					arrow: shape,
+					arrow: shape as TLArrowShape,
 					isPrecise: currentBinding.props.isPrecise,
 					currentBinding: currentBinding,
 					oppositeBinding: oppositeBinding,

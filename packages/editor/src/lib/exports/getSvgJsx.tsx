@@ -291,7 +291,7 @@ function SvgExport({
 
 					const shape = editor.getShape(id)!
 
-					if (editor.isShapeOfType(shape, 'group')) return []
+					if (editor.isShapeGroupLike(shape)) return []
 
 					const elements = []
 					const util = editor.getShapeUtil(shape)

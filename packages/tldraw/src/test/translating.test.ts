@@ -1749,7 +1749,7 @@ describe('translating a shape with a bound shape', () => {
 
 		const newArrow = editor
 			.getCurrentPageShapes()
-			.find((s) => editor.isShapeOfType(s, 'arrow') && s.id !== arrow1)! as TLArrowShape
+			.find((s) => editor.isShapeArrowLike(s) && s.id !== arrow1)! as TLArrowShape
 		expect(getArrowBindings(editor, newArrow)).toMatchObject({
 			start: { type: 'arrow' },
 			end: undefined,
