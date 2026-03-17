@@ -139,4 +139,8 @@ export class UserPreferencesManager {
 			defaultUserPreferences.isZoomDirectionInverted
 		)
 	}
+
+	@computed getIsOcrMode() {
+		return this.user.userPreferences.get().isOcrMode ?? defaultUserPreferences.isOcrMode
+	}
 }

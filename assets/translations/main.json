@@ -491,5 +491,7 @@
 	"handle.crop.bottom-right": "Crop bottom right",
 	"ui.close": "Close",
 	"ui.checked": "Checked",
-	"ui.unchecked": "Unchecked"
+	"ui.unchecked": "Unchecked",
+	"action.toggle-ocr-mode": "Toggle image OCR",
+	"action.toggle-ocr-mode.menu": "Image OCR"
 }

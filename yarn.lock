@@ -15189,6 +15189,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"comlink@npm:^4.4.1":
+  version: 4.4.2
+  resolution: "comlink@npm:4.4.2"
+  checksum: 10/ecee53b5b4536b3aa3f7636c383f831e68fbc013def77665cc7fad873d72cfa23b994e1ec4b49e83e4e909c1089a03acae03a523e33a5e5ed938cdb613456434
+  languageName: node
+  linkType: hard
+
 "comma-separated-tokens@npm:^2.0.0":
   version: 2.0.3
   resolution: "comma-separated-tokens@npm:2.0.3"
@@ -28762,6 +28769,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tesseract-wasm@npm:^0.11.0":
+  version: 0.11.0
+  resolution: "tesseract-wasm@npm:0.11.0"
+  dependencies:
+    comlink: "npm:^4.4.1"
+  checksum: 10/00e1ced5cf67c556ac775332f35f433ef52b637e9efb5ee3cd3ae63b1aef65a87edd427615fe30fb0a39e091140661029486ec57bf4083e814363cf4ceab2a3f
+  languageName: node
+  linkType: hard
+
 "test-exclude@npm:^7.0.1":
   version: 7.0.1
   resolution: "test-exclude@npm:7.0.1"
@@ -29170,6 +29186,7 @@ __metadata:
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     resize-observer-polyfill: "npm:^1.5.1"
+    tesseract-wasm: "npm:^0.11.0"
     vitest: "npm:^3.2.4"
   peerDependencies:
     react: ^18.2.0 || ^19.2.1

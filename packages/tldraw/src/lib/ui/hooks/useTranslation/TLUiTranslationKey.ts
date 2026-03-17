@@ -496,3 +496,5 @@ export type TLUiTranslationKey =
 	| 'ui.close'
 	| 'ui.checked'
 	| 'ui.unchecked'
+	| 'action.toggle-ocr-mode'
+	| 'action.toggle-ocr-mode.menu'

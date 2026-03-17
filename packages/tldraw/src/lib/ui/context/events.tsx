@@ -106,6 +106,7 @@ export interface TLUiEventMap {
 	'toggle-invert-zoom': null
 	'toggle-debug-mode': null
 	'toggle-dynamic-size-mode': null
+	'toggle-ocr-mode': null
 	'toggle-paste-at-cursor': null
 	'toggle-lock': null
 	'toggle-reduce-motion': null

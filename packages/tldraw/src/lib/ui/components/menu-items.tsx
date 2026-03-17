@@ -708,6 +708,14 @@ export function TogglePasteAtCursorItem() {
 	)
 }
 
+/** @public @react */
+export function ToggleOcrModeItem() {
+	const editor = useEditor()
+	const isOcrMode = useValue('ocr mode', () => editor.user.getIsOcrMode(), [editor])
+
+	return <TldrawUiMenuActionCheckboxItem actionId="toggle-ocr-mode" checked={isOcrMode} />
+}
+
 /* ---------------------- Print --------------------- */
 
 /** @public @react */

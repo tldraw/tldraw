@@ -21,6 +21,7 @@ import {
 	ToggleFocusModeItem,
 	ToggleGridItem,
 	ToggleLockMenuItem,
+	ToggleOcrModeItem,
 	TogglePasteAtCursorItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
@@ -162,6 +163,7 @@ export function PreferencesGroup() {
 					<ToggleEdgeScrollingItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
+					<ToggleOcrModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
 					<ColorSchemeMenu />

@@ -760,6 +760,7 @@ export const defaultUserPreferences: Readonly<{
     enhancedA11yMode: false;
     inputMode: null;
     isDynamicSizeMode: false;
+    isOcrMode: false;
     isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
@@ -4649,6 +4650,8 @@ export interface TLUserPreferences {
     // (undocumented)
     isDynamicSizeMode?: boolean | null;
     // (undocumented)
+    isOcrMode?: boolean | null;
+    // (undocumented)
     isPasteAtCursorMode?: boolean | null;
     // (undocumented)
     isSnapMode?: boolean | null;
@@ -4831,6 +4834,8 @@ export class UserPreferencesManager {
     getIsDarkMode(): boolean;
     // (undocumented)
     getIsDynamicResizeMode(): boolean;
+    // (undocumented)
+    getIsOcrMode(): boolean;
     // (undocumented)
     getIsPasteAtCursorMode(): boolean;
     // (undocumented)

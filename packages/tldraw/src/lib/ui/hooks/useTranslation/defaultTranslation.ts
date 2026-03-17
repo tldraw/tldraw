@@ -506,4 +506,6 @@ export const DEFAULT_TRANSLATION = {
 	'ui.close': 'Close',
 	'ui.checked': 'Checked',
 	'ui.unchecked': 'Unchecked',
+	'action.toggle-ocr-mode': 'Toggle image OCR',
+	'action.toggle-ocr-mode.menu': 'Image OCR',
 }

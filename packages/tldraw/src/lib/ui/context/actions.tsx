@@ -1257,6 +1257,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-ocr-mode',
+				label: {
+					default: 'action.toggle-ocr-mode',
+					menu: 'action.toggle-ocr-mode.menu',
+				},
+				readonlyOk: false,
+				onSelect(source) {
+					trackEvent('toggle-ocr-mode', { source })
+					editor.user.updateUserPreferences({
+						isOcrMode: !editor.user.getIsOcrMode(),
+					})
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-reduce-motion',
 				label: {
 					default: 'action.toggle-reduce-motion',

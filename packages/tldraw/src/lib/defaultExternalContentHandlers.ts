@@ -38,6 +38,7 @@ import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
+import { performOcr } from './utils/ocr/performOcr'
 import { renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
@@ -452,7 +453,48 @@ export async function defaultHandleExternalFileContent(
 		})
 	)
 
-	createShapesForAssets(editor, assetPartials, pagePoint)
+	const shapeIds = await createShapesForAssets(editor, assetPartials, pagePoint)
+
+	if (editor.user.getIsOcrMode()) {
+		for (let i = 0; i < shapeIds.length; i++) {
+			const shapeId = shapeIds[i]
+			const file = assetsToUpdate[i]?.file
+			if (!file || assetPartials[i]?.type !== 'image')
+				continue
+
+				// Fire and forget - not awaited
+			;(async () => {
+				const startTime = performance.now()
+				console.log(`[OCR] Starting OCR for shape ${shapeId}...`)
+				try {
+					const text = await performOcr(file)
+					const elapsed = (performance.now() - startTime).toFixed(0)
+					if (text) {
+						editor.updateShape({ id: shapeId, type: 'image', meta: { 'ocr-text': text } })
+						console.log(`[OCR] Completed in ${elapsed}ms (${text.length} chars)`)
+						const imageShape = editor.getShape(shapeId) as TLImageShape
+						if (!imageShape) return
+						editor.createShape({
+							id: createShapeId(),
+							type: 'text',
+							x: imageShape.x,
+							y: imageShape.y + imageShape.props.h + 12, // add some padding below the image
+							props: {
+								richText: toRichText(text),
+								autoSize: true,
+								w: imageShape.props.w,
+							},
+						})
+					} else {
+						console.log(`[OCR] No text found (${elapsed}ms)`)
+					}
+				} catch (error) {
+					const elapsed = (performance.now() - startTime).toFixed(0)
+					console.error(`[OCR] Failed after ${elapsed}ms:`, error)
+				}
+			})()
+		}
+	}
 }
 
 /** @public */

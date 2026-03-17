@@ -318,6 +318,7 @@ export {
 	ToggleInvertZoomItem,
 	ToggleKeyboardShortcutsItem,
 	ToggleLockMenuItem,
+	ToggleOcrModeItem,
 	TogglePasteAtCursorItem,
 	ToggleReduceMotionItem,
 	ToggleSnapModeItem,
