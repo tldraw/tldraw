@@ -222,6 +222,13 @@ export class PointingShape extends StateNode {
 	private startTranslating(info: TLPointerEventInfo) {
 		if (this.editor.getIsReadonly()) return
 
+		// If we didn't select the shape on enter (e.g. because it has an onClick handler),
+		// and there's no current selection, select it now before transitioning to translating.
+		if (!this.didSelectOnEnter && !this.editor.getSelectedShapeIds().length) {
+			this.editor.markHistoryStoppingPoint('selecting shape')
+			this.editor.setSelectedShapes([this.hitShapeForPointerUp.id])
+		}
+
 		// Re-focus the editor, just in case the text label of the shape has stolen focus
 		this.editor.focus()
 		this.parent.transition('translating', info)

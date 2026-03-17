@@ -7,7 +7,7 @@
 		"render": "remotion render Walkthrough"
 	},
 	"dependencies": {
-		"@remotion/cli": "4.0.301",
+		"@remotion/cli": "4.0.427",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"remotion": "4.0.301",
