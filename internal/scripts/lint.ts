@@ -17,9 +17,19 @@ async function main() {
 		await exec(
 			'yarn',
 			[
+				'oxlint',
+				'--config=.oxlintrc.json',
+				'--quiet',
+				...(shouldFix ? ['--fix'] : []),
+				relativeCwd,
+			],
+			{ pwd: REPO_ROOT }
+		)
+		await exec(
+			'yarn',
+			[
 				'eslint',
 				'--cache',
-				'--report-unused-disable-directives',
 				'--no-error-on-unmatched-pattern',
 				'--quiet',
 				...(shouldFix ? ['--fix'] : []),

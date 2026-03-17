@@ -7,6 +7,7 @@ import tsParser from '@typescript-eslint/parser'
 import formatjs from 'eslint-plugin-formatjs'
 import _import from 'eslint-plugin-import'
 import noOnlyTests from 'eslint-plugin-no-only-tests'
+import oxlint from 'eslint-plugin-oxlint'
 import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import path from 'node:path'
@@ -415,4 +416,7 @@ export default [
 			'local/no-at-internal': 'error',
 		},
 	},
+	// eslint-plugin-oxlint: auto-disables ESLint rules that Oxlint covers.
+	// Must be the last entry so it can override all previous rule configurations.
+	...oxlint.configs['flat/recommended'],
 ]

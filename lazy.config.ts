@@ -81,6 +81,7 @@ const config = {
 			runsAfter: { 'build-eslint-plugin': {} },
 			cache: {
 				inputs: {
+					include: ['<rootDir>/.oxlintrc.json'],
 					exclude: ['*.tsbuildinfo'],
 				},
 			},

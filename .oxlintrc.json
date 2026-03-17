@@ -1,0 +1,89 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"ignorePatterns": [
+		"**/node_modules/*",
+		"**/out/*",
+		"**/dist/*",
+		"**/dist-cjs/*",
+		"**/dist-esm/*",
+		"**/.tsbuild*",
+		"**/.lazy/*",
+		"**/.next/*",
+		"**/.wrangler/*",
+		"**/.vercel/*",
+		"**/*.md",
+		"**/_archive/*",
+		"**/*.css.map",
+		"**/*.js.map",
+		"**/*.d.ts",
+		"**/api/*",
+		"!**/pages/api/*",
+		"**/*.json",
+		"**/lazy.config.ts",
+		"**/next.config.js",
+		"**/setupTests.js",
+		"apps/vscode/extension/editor",
+		"apps/examples/www",
+		"apps/docs/api-content.json",
+		"apps/docs/content.json",
+		"apps/vscode/extension/editor/index.js",
+		"apps/vscode/extension/editor/tldraw-assets.json",
+		"**/sentry.server.config.js",
+		"**/scripts/upload-sourcemaps.js",
+		"**/scripts/lib/auto-plugin.js",
+		"**/coverage/**/*",
+		"apps/docs/postcss.config.js",
+		"apps/docs/tailwind.config.js",
+		"apps/dotcom/client/public/sw.js",
+		"apps/dotcom/client/public/theme-init.js",
+		"apps/analytics/public/*",
+		"**/.clasp.json",
+		"**/*.mjs",
+		"**/.*.js",
+		"packages/assets/*",
+		"packages/create-tldraw/cli.cjs",
+		"**/*/vitest.config.ts",
+		"**/*/setupVitest.js",
+		"**/*/zod-locales-shim.js",
+		"**/*/scripts/vite-zod-locale-plugin.js",
+		".claude/**/*"
+	],
+	"rules": {
+		"no-throw-literal": "off",
+		"no-console": "off",
+		"no-unused-vars": [
+			"error",
+			{
+				"argsIgnorePattern": "^_",
+				"varsIgnorePattern": "^_",
+				"caughtErrorsIgnorePattern": "^_"
+			}
+		],
+		"typescript/consistent-type-definitions": ["error", "interface"],
+		"react/jsx-no-target-blank": "error",
+		"react/rules-of-hooks": "error",
+		"react/exhaustive-deps": "error",
+		"jest/no-focused-tests": "error",
+
+		"no-fallthrough": "off",
+		"typescript/no-explicit-any": "off",
+		"typescript/ban-ts-comment": "off",
+		"typescript/no-non-null-assertion": "off",
+		"react/display-name": "off",
+		"react/prop-types": "off"
+	},
+	"overrides": [
+		{
+			"files": ["**/*.ts", "**/*.tsx"],
+			"rules": {
+				"no-console": ["error", { "allow": ["warn", "error"] }]
+			}
+		},
+		{
+			"files": ["internal/**/*", "templates/simple-server-example/**/*", "templates/**/*"],
+			"rules": {
+				"no-console": "off"
+			}
+		}
+	]
+}
