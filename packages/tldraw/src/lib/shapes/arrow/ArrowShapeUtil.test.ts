@@ -831,3 +831,97 @@ describe('Arrow terminal positioning bug fix', () => {
 		expect(info?.end.handle).toEqual(info?.end.point)
 	})
 })
+
+describe('When a bound shape is clipped by a frame', () => {
+	const frameId = createShapeId('frame')
+	const clippedBox = createShapeId('clippedBox')
+	const outsideBox = createShapeId('outsideBox')
+	const arrowId = createShapeId('clipArrow')
+
+	beforeEach(() => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+	})
+
+	it('clamps the arrow endpoint to the frame boundary for a straight arrow', () => {
+		// Create a frame at (0, 0) with size 200x200
+		editor.createShapes([
+			{
+				id: frameId,
+				type: 'frame',
+				x: 0,
+				y: 0,
+				props: { w: 200, h: 200 },
+			},
+		])
+
+		// Create a box inside the frame that extends beyond the right edge.
+		// In frame-local space: x=100..300, y=50..150.
+		// In page space: x=100..300, y=50..150.
+		// The frame clips at x=200, so the box from x=200 to x=300 is clipped.
+		editor.createShapes([
+			{
+				id: clippedBox,
+				type: 'geo',
+				x: 100,
+				y: 50,
+				parentId: frameId,
+				props: { w: 200, h: 100 },
+			},
+		])
+
+		// Create a box outside the frame to the right, at page (400, 50)
+		editor.createShapes([
+			{
+				id: outsideBox,
+				type: 'geo',
+				x: 400,
+				y: 50,
+				props: { w: 100, h: 100 },
+			},
+		])
+
+		// Create an arrow and bind it from the outside box to the clipped box
+		editor.createShapes([
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 450,
+				y: 100,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: -250, y: 0 },
+				},
+			},
+		])
+
+		createOrUpdateArrowBinding(editor, arrowId, outsideBox, {
+			terminal: 'start',
+			isExact: false,
+			isPrecise: false,
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			snap: 'none',
+		})
+
+		createOrUpdateArrowBinding(editor, arrowId, clippedBox, {
+			terminal: 'end',
+			isExact: false,
+			isPrecise: false,
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			snap: 'none',
+		})
+
+		const info = getArrowInfo(editor, arrowId)!
+		expect(info.isValid).toBe(true)
+
+		// The arrow's end point (in arrow space) converted to page space
+		// should not extend past the frame's right edge (x=200)
+		const arrowPageTransform = editor.getShapePageTransform(arrowId)!
+		const endPagePoint = arrowPageTransform.applyToPoint(info.end.point)
+
+		// The end point should be near the frame boundary (x=200), not at the
+		// clipped box's right edge (x=300). The arrowhead offset pushes it slightly
+		// past the frame boundary, which is expected.
+		expect(endPagePoint.x).toBeLessThanOrEqual(220)
+		expect(endPagePoint.x).toBeGreaterThan(190)
+	})
+})

@@ -107,10 +107,10 @@ export class Pointing extends StateNode {
 		const delta = new Vec(w / 2, h / 2)
 		const parentTransform = this.editor.getShapeParentTransform(shape)
 		if (parentTransform) delta.rot(-parentTransform.rotation())
-		let scale = 1
+		const scale = this.editor.getResizeScaleFactor()
 
-		if (this.editor.user.getIsDynamicResizeMode()) {
-			scale = 1 / this.editor.getZoomLevel()
+		// A scale factor of 1 means dynamic sizing is not affecting this shape.
+		if (scale !== 1) {
 			w *= scale
 			h *= scale
 			delta.mul(scale)

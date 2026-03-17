@@ -40,7 +40,7 @@ const menus = [
 	{
 		heading: 'Company',
 		items: [
-			{ caption: 'Events', href: '/events' },
+			{ caption: 'Videos', href: '/blog/events' },
 			{ caption: 'Careers', href: '/careers' },
 			{ caption: 'License', href: '/legal/tldraw-license' },
 			{ caption: 'Trademarks', href: '/legal/trademark-guidelines' },

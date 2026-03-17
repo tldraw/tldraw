@@ -45,6 +45,7 @@ import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
+import { SneakyDebugModeToast } from './sneaky/SneakyDebugModeToast'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
@@ -134,18 +135,19 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			const deepLink = new URLSearchParams(window.location.search).get('d')
 			if (fileState?.lastSessionState) {
 				const sessionState = JSON.parse(fileState.lastSessionState.trim() || 'null')
-				if (sessionState) {
-					if (deepLink) {
-						// When using a deep link, only load preferences (not camera/page states)
-						// since the deep link will control navigation
-						const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
-						editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
-					} else {
-						editor.loadSnapshot({ session: sessionState }, { forceOverwriteSessionState: true })
-					}
+				if (sessionState && deepLink) {
+					// When using a deep link, only load preferences (not camera/page states)
+					// since the deep link will control navigation
+					const { pageStates: _, currentPageId: _cpid, ...preferencesOnly } = sessionState
+					editor.loadSnapshot({ session: preferencesOnly }, { forceOverwriteSessionState: true })
+					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
+				} else if (sessionState) {
+					// No deep link - load the full session state including camera position
+					editor.loadSnapshot({ session: sessionState }, { forceOverwriteSessionState: true })
+				} else if (deepLink) {
+					editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 				}
-			}
-			if (deepLink) {
+			} else if (deepLink) {
 				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 			}
 			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)
@@ -261,6 +263,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
+				<SneakyDebugModeToast />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
