@@ -241,7 +241,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 					<label className={styles.sectionLabelLarge}>
 						<F {...messages.members} />{' '}
 						<span className={styles.memberCount}>{
-							// eslint-disable-next-line react/jsx-no-literals
+							// eslint-disable-next-line tldraw/jsx-no-literals
 							`(${groupMembership.groupMembers.length})`
 						}</span>
 					</label>

@@ -1,16 +1,16 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/state'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/state-react'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/store'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/tlschema'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/utils'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/validate'
 
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'

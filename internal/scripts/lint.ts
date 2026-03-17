@@ -17,11 +17,7 @@ async function main() {
 		await exec(
 			'yarn',
 			[
-				'eslint',
-				'--cache',
-				'--report-unused-disable-directives',
-				'--no-error-on-unmatched-pattern',
-				'--quiet',
+				'oxlint',
 				...(shouldFix ? ['--fix'] : []),
 				relativeCwd,
 			],

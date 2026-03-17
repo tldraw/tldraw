@@ -150,7 +150,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private lastDocumentClock = 0
 
-	// eslint-disable-next-line local/prefer-class-methods
+	// eslint-disable-next-line tldraw/prefer-class-methods
 	pruneSessions = () => {
 		for (const client of this.sessions.values()) {
 			switch (client.state) {

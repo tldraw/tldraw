@@ -252,7 +252,7 @@ export class TLFileDurableObject extends DurableObject {
 
 	_db: Kysely<DB> | null = null
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get db() {
 		if (!this._db) {
 			this._db = createPostgresConnectionPool(this.env, 'TLFileDurableObject')
@@ -334,7 +334,7 @@ export class TLFileDurableObject extends DurableObject {
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}

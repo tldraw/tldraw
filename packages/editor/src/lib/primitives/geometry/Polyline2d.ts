@@ -18,7 +18,7 @@ export class Polyline2d extends Geometry2d {
 		}
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	protected get segments() {
 		if (!this._segments) {
 			this._segments = []

@@ -307,7 +307,7 @@ export abstract class Geometry2d {
 
 	private _vertices: Vec[] | undefined
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get vertices(): Vec[] {
 		if (!this._vertices) {
 			this._vertices = this.getVertices(Geometry2dFilters.EXCLUDE_LABELS)
@@ -323,7 +323,7 @@ export abstract class Geometry2d {
 
 	private _boundsVertices: Vec[] | undefined
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get boundsVertices(): Vec[] {
 		if (!this._boundsVertices) {
 			this._boundsVertices = this.getBoundsVertices()
@@ -337,7 +337,7 @@ export abstract class Geometry2d {
 
 	private _bounds: Box | undefined
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get bounds(): Box {
 		if (!this._bounds) {
 			this._bounds = this.getBounds()
@@ -345,14 +345,14 @@ export abstract class Geometry2d {
 		return this._bounds
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get center() {
 		return this.bounds.center
 	}
 
 	private _area: number | undefined
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get area() {
 		if (!this._area) {
 			this._area = this.getArea()
@@ -397,7 +397,7 @@ export abstract class Geometry2d {
 
 	private _length?: number
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get length() {
 		if (this._length) return this._length
 		this._length = this.getLength(Geometry2dFilters.EXCLUDE_LABELS)
