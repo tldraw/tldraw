@@ -15,6 +15,13 @@
 	transition: transform 0.16s ease-in-out;
 }
 
+:global(.tl-container[dir='rtl']) .sidebar {
+	left: auto;
+	right: calc(var(--tla-sidebar-width) * -1);
+	border-right: none;
+	border-left: 1px solid transparent;
+}
+
 .sidebarDragOverlay {
 	position: absolute;
 	inset: 0px;
@@ -59,6 +66,15 @@
 		transform: translate(100%, 0px);
 		transition: transform 0.22s ease-out;
 	}
+
+	:global(.tl-container[dir='rtl']) .sidebar {
+		border-right: none;
+		border-left: 1px solid var(--tl-color-low);
+	}
+
+	:global(.tl-container[dir='rtl']) .sidebar[data-visible='true'] {
+		transform: translate(-100%, 0px);
+	}
 }
 
 @media (max-width: 767px) {
@@ -71,6 +87,15 @@
 
 	.sidebar[data-visiblemobile='true'] {
 		transform: translate(100%, 0px);
+	}
+
+	:global(.tl-container[dir='rtl']) .sidebar {
+		left: auto;
+		right: calc(var(--w) * -1);
+	}
+
+	:global(.tl-container[dir='rtl']) .sidebar[data-visiblemobile='true'] {
+		transform: translate(-100%, 0px);
 	}
 
 	.sidebarOverlayMobile[data-visiblemobile='true'] {
@@ -261,6 +286,11 @@
 	z-index: 10;
 }
 
+:global(.tl-container[dir='rtl']) .sidebarCreateFileButton {
+	right: auto;
+	left: -8px;
+}
+
 .sidebarCreateFileButton::after {
 	display: block;
 	content: '';
@@ -387,6 +417,7 @@
 	color: var(--tla-color-text-3);
 	background: none;
 	margin-right: -2px;
+	min-width: 0;
 }
 
 .sidebarHelpMenuTrigger::after {
@@ -530,7 +561,8 @@
 	position: absolute;
 	top: 0px;
 	left: 3px;
-	width: calc(100% - 6px);
+	/* 36px + 6px	 is the menu button width + padding */
+	width: calc(100% - 42px);
 	height: 100%;
 	cursor: pointer;
 	z-index: 2;
@@ -548,9 +580,10 @@
 	border: none;
 	position: relative;
 	outline: none;
-	margin-right: -10px;
+	margin-inline-end: -10px;
 	width: 36px;
 	height: 36px;
+	min-width: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -558,6 +591,10 @@
 	flex: 0 0 auto;
 	z-index: 3;
 	cursor: pointer;
+}
+
+.sidebarFileListItemMenuTrigger:after {
+	content: none;
 }
 
 .sidebarFileListItemMenuTrigger:focus-visible {
@@ -709,6 +746,7 @@
 	justify-content: center;
 	color: var(--tla-color-inactive);
 	transition: opacity 0.2s ease-in-out;
+	min-width: 0;
 }
 
 .sidebarDotDevDismissButton div {
@@ -918,6 +956,7 @@
 	justify-content: center;
 	width: 20px;
 	height: 20px;
+	min-width: 0;
 	border-radius: 4px;
 	color: var(--tla-color-text-3);
 	cursor: pointer;
@@ -930,6 +969,10 @@
 	inset: -8px -8px -8px -2px;
 	content: '';
 	pointer-events: auto;
+}
+
+.sidebarGroupItemButton:after {
+	content: none;
 }
 
 .sidebarGroupItemButton:hover {

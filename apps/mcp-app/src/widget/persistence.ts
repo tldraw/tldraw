@@ -113,6 +113,7 @@ declare global {
 export function getEmbeddedBootstrap(): {
 	sessionId: string
 	checkpointId?: string
+	isDev: boolean
 	snapshot?: CanvasSnapshot
 } | null {
 	const data = window.__TLDRAW_BOOTSTRAP__
@@ -121,6 +122,7 @@ export function getEmbeddedBootstrap(): {
 	if (!sessionId) return null
 
 	const checkpointId = typeof data.checkpointId === 'string' ? data.checkpointId : undefined
+	const isDev = data.isDev === true
 
 	let snapshot: CanvasSnapshot | undefined
 	if (Array.isArray(data.shapes) && data.shapes.length > 0) {
@@ -137,7 +139,7 @@ export function getEmbeddedBootstrap(): {
 		}
 	}
 
-	return { sessionId, checkpointId, snapshot }
+	return { sessionId, checkpointId, isDev, snapshot }
 }
 
 // --- Tool result parsing ---

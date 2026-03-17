@@ -17,6 +17,7 @@ import React, {
 	useRef,
 	useState,
 } from 'react'
+import { useDirection } from '../../hooks/useTranslation/useTranslation'
 import { useTldrawUiOrientation } from './layout'
 
 const DEFAULT_TOOLTIP_DELAY_MS = 700
@@ -207,6 +208,7 @@ function TooltipSingleton() {
 	const triggerRef = useRef<HTMLDivElement>(null)
 	const isFirstShowRef = useRef(true)
 	const editor = useMaybeEditor()
+	const dir = useDirection()
 
 	const currentTooltip = useValue(
 		'current tooltip',
@@ -273,8 +275,13 @@ function TooltipSingleton() {
 			const trigger = triggerRef.current
 
 			trigger.style.position = 'fixed'
-			trigger.style.left = `${activeRect.left}px`
-			trigger.style.top = `${activeRect.top}px`
+			trigger.style.left = '0px'
+			trigger.style.top = '0px'
+			const cbOffset = trigger.getBoundingClientRect()
+
+			trigger.style.left = `${activeRect.left - cbOffset.left}px`
+			trigger.style.top = `${activeRect.top - cbOffset.top}px`
+
 			trigger.style.width = `${activeRect.width}px`
 			trigger.style.height = `${activeRect.height}px`
 			trigger.style.pointerEvents = 'none'
@@ -320,7 +327,7 @@ function TooltipSingleton() {
 				sideOffset={currentTooltip.sideOffset}
 				avoidCollisions
 				collisionPadding={8}
-				dir="ltr"
+				dir={dir}
 			>
 				{currentTooltip.content}
 				<_Tooltip.Arrow className="tlui-tooltip__arrow" />
@@ -344,6 +351,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		ref
 	) => {
 		const editor = useMaybeEditor()
+		const dir = useDirection()
 		const tooltipId = useRef<string>(uniqueId())
 		const hasProvider = useContext(TooltipSingletonContext)
 		const enhancedA11yMode = useValue(
@@ -398,7 +406,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 						sideOffset={sideOffset}
 						avoidCollisions
 						collisionPadding={8}
-						dir="ltr"
+						dir={dir}
 					>
 						{content}
 						<_Tooltip.Arrow className="tlui-tooltip__arrow" />
