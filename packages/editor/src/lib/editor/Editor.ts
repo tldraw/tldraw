@@ -6876,8 +6876,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shapesMovingTogether = [shape]
 			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
 
-			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
+			this.collectShapesViaLayoutBindings({
+				bindings: this.getLayoutBindingsToShape(shape.id),
 				initialShapes: freshShapes,
 				resultShapes: shapesMovingTogether,
 				resultBounds: boundsOfShapesMovingTogether,
@@ -6899,9 +6899,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get all bindings _to_ a shape where the binding util indicates that bound
+	 * shapes should be grouped for layout operations.
+	 *
 	 * @internal
 	 */
-	private collectShapesViaArrowBindings(info: {
+	private getLayoutBindingsToShape(shape: TLShape | TLShapeId): TLBinding[] {
+		return this.getBindingsInvolvingShape(shape).filter((b) => {
+			const id = typeof shape === 'string' ? shape : shape.id
+			return b.toId === id && this.getBindingUtil(b).layoutsWithBoundShapes(b)
+		})
+	}
+
+	/**
+	 * Get all bindings involving a shape where the binding util indicates that
+	 * bound shapes should be grouped for layout operations.
+	 *
+	 * @internal
+	 */
+	private getLayoutBindingsInvolvingShape(shape: TLShape | TLShapeId): TLBinding[] {
+		return this.getBindingsInvolvingShape(shape).filter((b) =>
+			this.getBindingUtil(b).layoutsWithBoundShapes(b)
+		)
+	}
+
+	/**
+	 * @internal
+	 */
+	private collectShapesViaLayoutBindings(info: {
 		initialShapes: TLShape[]
 		resultShapes: TLShape[]
 		resultBounds: Box[]
@@ -6919,9 +6944,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (!shapePageBounds) continue
 						resultShapes.push(aligningShape)
 						resultBounds.push(shapePageBounds)
-						this.collectShapesViaArrowBindings({
+						this.collectShapesViaLayoutBindings({
 							...info,
-							bindings: this.getBindingsInvolvingShape(aligningShape, 'arrow'),
+							bindings: this.getLayoutBindingsInvolvingShape(aligningShape),
 						})
 					}
 				}

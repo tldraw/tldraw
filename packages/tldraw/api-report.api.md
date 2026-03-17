@@ -199,6 +199,8 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
     // (undocumented)
     getDefaultProps(): Partial<TLArrowBindingProps>;
     // (undocumented)
+    layoutsWithBoundShapes(): boolean;
+    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onAfterChange({ bindingAfter }: BindingOnChangeOptions<TLArrowBinding>): void;

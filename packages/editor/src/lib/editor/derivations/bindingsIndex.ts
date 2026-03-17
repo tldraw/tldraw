@@ -34,7 +34,7 @@ export const bindingsIndex = (editor: Editor): Computed<TLBindingsIndex> => {
 	const bindingsHistory = store.query.filterHistory('binding')
 	const bindingsQuery = store.query.records('binding')
 
-	return computed<TLBindingsIndex>('arrowBindingsIndex', (_lastValue, lastComputedEpoch) => {
+	return computed<TLBindingsIndex>('bindingsIndex', (_lastValue, lastComputedEpoch) => {
 		if (isUninitialized(_lastValue)) {
 			return fromScratch(bindingsQuery)
 		}

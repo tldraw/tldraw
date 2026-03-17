@@ -78,6 +78,7 @@ describe('SnapManager', () => {
 			getShapePageBounds: vi.fn(),
 			isShapeOfType: vi.fn(),
 			isShapeFrameLike: vi.fn(),
+			isShapeGroupLike: vi.fn(),
 		} as any
 
 		snapManager = new SnapManager(editor)
@@ -375,7 +376,7 @@ describe('SnapManager', () => {
 				return undefined
 			})
 
-			editor.isShapeOfType.mockImplementation((shape: any, type) => shape && shape.type === type)
+			editor.isShapeGroupLike.mockImplementation((shape: any) => shape && shape.type === 'group')
 
 			editor.getShapePageBounds.mockReturnValue(new Box(10, 10, 50, 50))
 

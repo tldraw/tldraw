@@ -42,6 +42,10 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		}
 	}
 
+	override layoutsWithBoundShapes() {
+		return true
+	}
+
 	// when the binding itself changes
 	override onAfterCreate({ binding }: BindingOnCreateOptions<TLArrowBinding>): void {
 		const arrow = this.editor.getShape(binding.fromId) as TLArrowShape | undefined

@@ -205,6 +205,7 @@ export abstract class BindingUtil<Binding extends TLBinding = TLBinding> {
     // (undocumented)
     editor: Editor;
     abstract getDefaultProps(): Partial<Binding['props']>;
+    layoutsWithBoundShapes(_binding: Binding): boolean;
     // (undocumented)
     static migrations?: TLPropsMigrations;
     onAfterChange?(options: BindingOnChangeOptions<Binding>): void;

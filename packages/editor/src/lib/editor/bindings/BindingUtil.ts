@@ -275,4 +275,17 @@ export abstract class BindingUtil<Binding extends TLBinding = TLBinding> {
 	 * isolation means, and when/how to use this callback.
 	 */
 	onBeforeIsolateToShape?(options: BindingOnShapeIsolateOptions<Binding>): void
+
+	/**
+	 * Whether shapes connected by this binding should be grouped together
+	 * during layout operations (align, distribute, stack, pack, stretch).
+	 *
+	 * For example, arrow bindings return `true` so that shapes connected by
+	 * arrows are treated as a unit when aligning or distributing.
+	 *
+	 * @public
+	 */
+	layoutsWithBoundShapes(_binding: Binding): boolean {
+		return false
+	}
 }
