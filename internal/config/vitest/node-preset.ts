@@ -32,6 +32,7 @@ export default defineConfig({
 		coverage: {
 			include: ['src/**/*.{ts,tsx}'],
 			exclude: ['**/*.test.*', '**/*.spec.*', '**/test/**', '**/__tests__/**'],
+			reporter: ['text', 'html'],
 		},
 	},
 	resolve: {

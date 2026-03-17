@@ -68,7 +68,7 @@
 		"api-check": "lazy api-check",
 		"test-ci": "yarn vitest run",
 		"test": "yarn vitest",
-		"test-coverage": "yarn vitest run --coverage && node internal/scripts/offer-coverage.mjs",
+		"test-coverage": "yarn vitest run --coverage && open coverage/index.html",
 		"e2e": "lazy e2e --filter='apps/examples'",
 		"e2e-dotcom": "lazy e2e --filter='apps/dotcom/*'",
 		"e2e-dotcom-x10": "lazy e2e-x10 --filter='apps/dotcom/*'",
