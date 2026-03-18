@@ -28,6 +28,28 @@ function spaFallbackPlugin(): Plugin {
 	}
 }
 
+/**
+ * Vite 8 + oxc can emit undecorated stage-3 decorator syntax from workspace deps.
+ * Lower decorators in final chunks so preview/runtime browsers can parse them.
+ */
+function lowerDecoratorsPlugin(): Plugin {
+	return {
+		name: 'lower-decorators',
+		apply: 'build',
+		async renderChunk(code, chunk) {
+			if (!chunk.fileName.endsWith('.js')) return null
+			const result = await transform(code, {
+				loader: 'js',
+				target: 'es2022',
+				supported: { decorators: false },
+				sourcefile: chunk.fileName,
+				sourcemap: true,
+			})
+			return { code: result.code, map: result.map }
+		},
+	}
+}
+
 const PR_NUMBER = process.env.VERCEL_GIT_PULL_REQUEST_ID
 
 function getEnv() {
@@ -73,7 +95,12 @@ const TLDRAW_BEMO_URL_STRING =
 				: undefined
 
 export default defineConfig(({ mode }) => ({
-	plugins: [spaFallbackPlugin(), react({ tsDecorators: true }), exampleReadmePlugin()],
+	plugins: [
+		spaFallbackPlugin(),
+		react({ tsDecorators: true }),
+		exampleReadmePlugin(),
+		lowerDecoratorsPlugin(),
+	],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
 	build: {
