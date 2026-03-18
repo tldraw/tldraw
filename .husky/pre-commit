@@ -19,7 +19,7 @@ for pkg in $CHANGED_PACKAGES; do
 	fi
 done
 if [ -n "$FILTER_ARGS" ]; then
-	npx lazy run build-api $FILTER_ARGS
+	ONLY_REFRESH_ASSETS_IF_NECESSARY=1 npx lazy run build-api $FILTER_ARGS
 	git add packages/*/api-report.api.md
 fi
 
