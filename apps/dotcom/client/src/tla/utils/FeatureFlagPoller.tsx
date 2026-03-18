@@ -9,9 +9,9 @@ const DEFAULT_FLAGS: FeatureFlags = {
 	proper_zero: { enabled: false },
 }
 
-// Module-level promise — starts fetching immediately on import
 let flagsPromise: Promise<FeatureFlags> | null = null
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }
+let _wasAuthenticated = false
 
 export function fetchFeatureFlags(): Promise<FeatureFlags> {
 	if (!flagsPromise) {
@@ -19,12 +19,18 @@ export function fetchFeatureFlags(): Promise<FeatureFlags> {
 			try {
 				const r = await fetch('/api/app/feature-flags')
 				if (!r.ok) throw new Error(`HTTP ${r.status}`)
+				_wasAuthenticated = r.headers.get('x-authenticated') === '1'
+				if (!_wasAuthenticated) {
+					// Allow subsequent callers to refetch once auth is available
+					flagsPromise = null
+				}
 				const flags = await r.json()
 				currentFlags = flags
 				return flags as FeatureFlags
 			} catch (err) {
 				console.error('[FeatureFlags] fetch failed:', err)
 				flagsPromise = null
+				_wasAuthenticated = false
 				currentFlags = { ...DEFAULT_FLAGS }
 				return { ...DEFAULT_FLAGS }
 			}
@@ -33,7 +39,13 @@ export function fetchFeatureFlags(): Promise<FeatureFlags> {
 	return flagsPromise
 }
 
-// Start immediately
+export function wasAuthenticated(): boolean {
+	return _wasAuthenticated
+}
+
+// Start fetching immediately — fast path for returning users with valid cookies.
+// If the session cookie is missing/expired the response header indicates the flags
+// were evaluated without auth, and useAppState will retry once Clerk is ready.
 fetchFeatureFlags()
 
 const REFETCH_INTERVAL = 60000 // 1 minute
@@ -68,7 +80,6 @@ export function FeatureFlagPoller() {
 
 		let interval: ReturnType<typeof setInterval>
 
-		// Wait for the initial fetch to complete, then start polling
 		fetchFeatureFlags().then(() => {
 			if (!mounted) return
 			prevProperZero = currentFlags.proper_zero?.enabled ?? false

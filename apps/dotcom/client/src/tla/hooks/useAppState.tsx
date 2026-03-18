@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { assertExists, atom } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
-import { fetchFeatureFlags } from '../utils/FeatureFlagPoller'
+import { fetchFeatureFlags, wasAuthenticated } from '../utils/FeatureFlagPoller'
 
 const appContext = createContext<TldrawApp | null>(null)
 
@@ -32,7 +32,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		let didCancel = false
 
 		;(async () => {
-			const flags = await fetchFeatureFlags()
+			let flags = await fetchFeatureFlags()
+			if (!wasAuthenticated()) {
+				// Module-level fetch ran without auth cookies, retry now that Clerk is ready
+				flags = await fetchFeatureFlags()
+			}
 			if (didCancel) return
 			const token = await auth.getToken()
 			if (!token) throw new Error('no token')

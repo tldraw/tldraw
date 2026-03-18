@@ -10,7 +10,6 @@ import { getAuth } from './tla/getAuth'
 
 function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
 	// Default to enabled in dev/preview when no KV value exists
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const defaultEnabled = env.TLDRAW_ENV === 'development'
 
 	return {
@@ -131,7 +130,12 @@ export async function getFeatureFlags(request: IRequest, env: Environment): Prom
 		})
 	)
 
-	return new Response(JSON.stringify(flags), { headers: { 'Content-Type': 'application/json' } })
+	return new Response(JSON.stringify(flags), {
+		headers: {
+			'Content-Type': 'application/json',
+			'x-authenticated': userId ? '1' : '0',
+		},
+	})
 }
 
 /**
