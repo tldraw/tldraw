@@ -12,6 +12,7 @@ import {
 	VecModel,
 	createShapeId,
 	getHashForBuffer,
+	toRichText,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
@@ -36,6 +37,18 @@ type TLFileAsset = TLBaseAsset<
 class FileAssetUtil extends AssetUtil<any> {
 	static override type = FILE_ASSET_TYPE
 
+	static supportedMimeTypes = [
+		'application/pdf',
+		'text/plain',
+		'text/csv',
+		'application/json',
+		'application/zip',
+		'application/xml',
+		'text/xml',
+	] as const
+
+	static supportedExtensions = ['.pdf', '.txt', '.csv', '.json', '.zip', '.xml'] as const
+
 	// [3]
 	static override props = {
 		name: T.string,
@@ -55,15 +68,7 @@ class FileAssetUtil extends AssetUtil<any> {
 
 	// [4]
 	override getSupportedMimeTypes() {
-		return [
-			'application/pdf',
-			'text/plain',
-			'text/csv',
-			'application/json',
-			'application/zip',
-			'application/xml',
-			'text/xml',
-		]
+		return [...FileAssetUtil.supportedMimeTypes]
 	}
 
 	// [5]
@@ -206,12 +211,28 @@ class FileCardShapeUtil extends BaseBoxShapeUtil<FileCardShape> {
 
 // [10]
 export default function CustomAssetTypeExample() {
+	const instructionText = `Drag a file with these supported extensions ${FileAssetUtil.supportedExtensions.join(', ')} onto the board`
+
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				assetUtils={[FileAssetUtil]}
 				shapeUtils={[FileCardShapeUtil]}
 				onMount={(editor) => {
+					if (editor.getCurrentPageShapes().length === 0) {
+						editor.createShapes([
+							{
+								id: createShapeId(),
+								type: 'text',
+								x: 100,
+								y: 100,
+								props: {
+									richText: toRichText(instructionText),
+								},
+							},
+						])
+					}
+
 					// [11]
 					editor.registerExternalAssetHandler('file', async ({ file, assetId }) => {
 						const assetUtil = editor.getAssetUtilForMimeType(file.type)

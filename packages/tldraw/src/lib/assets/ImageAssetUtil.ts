@@ -11,6 +11,7 @@ import {
 	imageAssetMigrations,
 	imageAssetProps,
 } from '@tldraw/editor'
+import { DEFAULT_MAX_IMAGE_DIMENSION } from '../defaultExternalContentHandlers'
 import { containBoxSize } from '../utils/assets/assets'
 
 /** @public */
@@ -20,7 +21,7 @@ export class ImageAssetUtil extends AssetUtil<TLImageAsset> {
 	static override migrations = imageAssetMigrations
 
 	override options = {
-		maxDimension: 5000,
+		maxDimension: DEFAULT_MAX_IMAGE_DIMENSION,
 	}
 
 	override getDefaultProps(): TLImageAsset['props'] {

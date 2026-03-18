@@ -51,21 +51,95 @@ import { StyleProp } from './styles/StyleProp'
  * metadata, and migration sequences for data evolution over time.
  *
  * @public
+ * @example
+ * ```ts
+ * import { arrowShapeMigrations, arrowShapeProps } from './shapes/TLArrowShape'
+ *
+ * const myShapeSchema: SchemaPropsInfo = {
+ *   migrations: arrowShapeMigrations,
+ *   props: arrowShapeProps,
+ *   meta: {
+ *     customField: T.string,
+ *   },
+ * }
+ * ```
  */
 export interface SchemaPropsInfo {
+	/**
+	 * Migration sequences for handling data evolution over time. Can be legacy migrations,
+	 * props-specific migrations, or general migration sequences.
+	 */
 	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
+
+	/**
+	 * Validation schema for the shape, binding, or asset properties.
+	 */
 	props?: Record<string, StoreValidator<any>>
+
+	/**
+	 * Validation schema for metadata fields.
+	 */
 	meta?: Record<string, StoreValidator<any>>
 }
 
 /**
- * The complete schema definition for a tldraw store.
+ * The complete schema definition for a tldraw store, encompassing all record types,
+ * validation rules, and migration sequences. This schema defines the structure of
+ * the persistent data model used by tldraw.
  *
  * @public
+ * @example
+ * ```ts
+ * import { createTLSchema, defaultShapeSchemas } from '@tldraw/tlschema'
+ * import { Store } from '@tldraw/store'
+ *
+ * const schema: TLSchema = createTLSchema({
+ *   shapes: defaultShapeSchemas,
+ * })
+ *
+ * const store = new Store({ schema })
+ * ```
  */
 export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
 
-/** @public */
+/**
+ * Default shape schema configurations for all built-in tldraw shape types.
+ * Each shape type includes its validation props and migration sequences.
+ *
+ * This object contains schema information for:
+ * - arrow: Directional lines that can bind to other shapes
+ * - bookmark: Website bookmark cards with preview information
+ * - draw: Freehand drawing paths created with drawing tools
+ * - embed: Embedded content from external services (YouTube, Figma, etc.)
+ * - frame: Container shapes for organizing content
+ * - geo: Geometric shapes (rectangles, ellipses, triangles, etc.)
+ * - group: Logical groupings of multiple shapes
+ * - highlight: Highlighting strokes from the highlighter tool
+ * - image: Raster image shapes referencing image assets
+ * - line: Multi-point lines and splines
+ * - note: Sticky note shapes with text content
+ * - text: Rich text shapes with formatting support
+ * - video: Video shapes referencing video assets
+ *
+ * @public
+ * @example
+ * ```ts
+ * import { createTLSchema, defaultShapeSchemas } from '@tldraw/tlschema'
+ *
+ * // Use all default shapes
+ * const schema = createTLSchema({
+ *   shapes: defaultShapeSchemas,
+ * })
+ *
+ * // Use only specific default shapes
+ * const minimalSchema = createTLSchema({
+ *   shapes: {
+ *     geo: defaultShapeSchemas.geo,
+ *     text: defaultShapeSchemas.text,
+ *   },
+ * })
+ * ```
+ */
 export const defaultShapeSchemas = {
 	arrow: { migrations: arrowShapeMigrations, props: arrowShapeProps },
 	bookmark: { migrations: bookmarkShapeMigrations, props: bookmarkShapeProps },
@@ -87,7 +161,35 @@ export const defaultShapeSchemas = {
 	}
 }
 
-/** @public */
+/**
+ * Default binding schema configurations for all built-in tldraw binding types.
+ * Bindings represent relationships between shapes, such as arrows connected to shapes.
+ *
+ * Currently includes:
+ * - arrow: Bindings that connect arrow shapes to other shapes at specific anchor points
+ *
+ * @public
+ * @example
+ * ```ts
+ * import { createTLSchema, defaultBindingSchemas } from '@tldraw/tlschema'
+ *
+ * // Use default bindings
+ * const schema = createTLSchema({
+ *   bindings: defaultBindingSchemas,
+ * })
+ *
+ * // Add custom binding alongside defaults
+ * const customSchema = createTLSchema({
+ *   bindings: {
+ *     ...defaultBindingSchemas,
+ *     myCustomBinding: {
+ *       props: myCustomBindingProps,
+ *       migrations: myCustomBindingMigrations,
+ *     },
+ *   },
+ * })
+ * ```
+ */
 export const defaultBindingSchemas = {
 	arrow: { migrations: arrowBindingMigrations, props: arrowBindingProps },
 } satisfies { [T in TLDefaultBinding['type']]: SchemaPropsInfo }
@@ -96,6 +198,14 @@ export const defaultBindingSchemas = {
  * Default asset schema configurations for all built-in tldraw asset types.
  *
  * @public
+ * @example
+ * ```ts
+ * import { createTLSchema, defaultAssetSchemas } from '@tldraw/tlschema'
+ *
+ * const schema = createTLSchema({
+ *   assets: defaultAssetSchemas,
+ * })
+ * ```
  */
 export const defaultAssetSchemas = {
 	image: { migrations: imageAssetMigrations, props: imageAssetProps },
@@ -109,9 +219,55 @@ export const defaultAssetSchemas = {
 }
 
 /**
- * Creates a complete TLSchema for use with tldraw stores.
+ * Creates a complete TLSchema for use with tldraw stores. This schema defines the structure,
+ * validation, and migration sequences for all record types in a tldraw application.
+ *
+ * The schema includes all core record types (pages, cameras, instances, etc.) plus the
+ * shape, binding, and asset types you specify. Style properties are automatically collected from
+ * all shapes to ensure consistency across the application.
+ *
+ * @param options - Configuration options for the schema
+ *   - shapes - Shape schema configurations. Defaults to defaultShapeSchemas if not provided
+ *   - bindings - Binding schema configurations. Defaults to defaultBindingSchemas if not provided
+ *   - assets - Asset schema configurations. Defaults to defaultAssetSchemas if not provided
+ *   - migrations - Additional migration sequences to include in the schema
+ * @returns A complete TLSchema ready for use with Store creation
  *
  * @public
+ * @example
+ * ```ts
+ * import {
+ *   createTLSchema,
+ *   defaultShapeSchemas,
+ *   defaultBindingSchemas,
+ *   defaultAssetSchemas,
+ * } from '@tldraw/tlschema'
+ * import { Store } from '@tldraw/store'
+ *
+ * // Create schema with all default shapes, bindings, and assets
+ * const schema = createTLSchema()
+ *
+ * // Create schema with custom shapes added
+ * const customSchema = createTLSchema({
+ *   shapes: {
+ *     ...defaultShapeSchemas,
+ *     myCustomShape: {
+ *       props: myCustomShapeProps,
+ *       migrations: myCustomShapeMigrations,
+ *     },
+ *   },
+ *   bindings: defaultBindingSchemas,
+ *   assets: defaultAssetSchemas,
+ * })
+ *
+ * // Use the schema with a store
+ * const store = new Store({
+ *   schema: customSchema,
+ *   props: {
+ *     defaultName: 'My Drawing',
+ *   },
+ * })
+ * ```
  */
 export function createTLSchema({
 	shapes = defaultShapeSchemas,

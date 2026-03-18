@@ -69,7 +69,7 @@ export const assetIdValidator: T.Validator<TLAssetId>;
 // @public
 export const assetMigrations: MigrationSequence;
 
-// @public (undocumented)
+// @public
 export const AssetRecordType: RecordType<TLDefaultAsset, "props" | "type">;
 
 // @public
@@ -245,7 +245,7 @@ export const defaultAssetSchemas: {
     };
 };
 
-// @public (undocumented)
+// @public
 export const defaultBindingSchemas: {
     arrow: {
         migrations: TLPropsMigrations;
@@ -288,7 +288,7 @@ export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "
 // @public
 export const DefaultLabelColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
 
-// @public (undocumented)
+// @public
 export const defaultShapeSchemas: {
     arrow: {
         migrations: MigrationSequence;
@@ -715,11 +715,8 @@ export const rootShapeMigrations: MigrationSequence;
 
 // @public
 export interface SchemaPropsInfo {
-    // (undocumented)
     meta?: Record<string, StoreValidator<any>>;
-    // (undocumented)
     migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
-    // (undocumented)
     props?: Record<string, StoreValidator<any>>;
 }
 
