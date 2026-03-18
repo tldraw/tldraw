@@ -31,21 +31,17 @@ export function MenuClickCapture() {
 		start: new Vec(),
 	})
 
-	const handlePointerDown = useCallback(
-		(e: PointerEvent) => {
-			if (e.button === 0) {
-				setIsPointing(true)
-				rPointerState.current = {
-					isDown: true,
-					isDragging: false,
-					start: new Vec(e.clientX, e.clientY),
-				}
-				rDidAPointerDownAndDragWhileMenuWasOpen.current = false
+	const handlePointerDown = useCallback((e: PointerEvent) => {
+		if (e.button === 0) {
+			setIsPointing(true)
+			rPointerState.current = {
+				isDown: true,
+				isDragging: false,
+				start: new Vec(e.clientX, e.clientY),
 			}
-			editor.menus.clearOpenMenus()
-		},
-		[editor]
-	)
+			rDidAPointerDownAndDragWhileMenuWasOpen.current = false
+		}
+	}, [])
 
 	const rDidAPointerDownAndDragWhileMenuWasOpen = useRef(false)
 
