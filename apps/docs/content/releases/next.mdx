@@ -5,10 +5,10 @@ author: tldraw
 date: 03/04/2026
 order: 0
 status: published
-last_version: v4.4.0
+last_version: v4.4.1
 ---
 
-This release adds click-through on transparent image pixels, a new `Editor.resizeToBounds()` method, SVG sanitization for external content, and TypeScript enum-to-const refactoring for Node strip-types compatibility. It also includes various improvements and bug fixes.
+This release adds click-through on transparent image pixels, configurable embed definitions via `EmbedShapeUtil.configure()`, correct high-DPI image sizing across platforms, and a new `Editor.resizeToBounds()` method. It also includes SVG sanitization for external content, TypeScript enum-to-const refactoring for Node strip-types compatibility, and various other improvements and bug fixes.
 
 ## What's new
 
@@ -18,10 +18,50 @@ Clicking on transparent areas of PNG, WebP, GIF, and AVIF images now selects sha
 
 This is powered by a new `Geometry2d.ignoreHit(point)` method that allows geometries to reject successful hit tests.
 
+### 💥 Configurable embed definitions ([#8034](https://github.com/tldraw/tldraw/pull/8034))
+
+Embed definitions are now configured through `EmbedShapeUtil.configure()` instead of the static `setEmbedDefinitions()` method, which has been removed. The `embeds` prop on `Tldraw` is deprecated in favor of this approach.
+
+```tsx
+import { EmbedShapeUtil, DEFAULT_EMBED_DEFINITIONS } from 'tldraw'
+
+const shapeUtils = [
+	EmbedShapeUtil.configure({
+		embedDefinitions: [...DEFAULT_EMBED_DEFINITIONS, myCustomEmbed],
+	}),
+]
+```
+
+<details>
+<summary>Migration guide</summary>
+
+Before:
+
+```ts
+EmbedShapeUtil.setEmbedDefinitions([...DEFAULT_EMBED_DEFINITIONS, myEmbed])
+```
+
+After:
+
+```ts
+const shapeUtils = [
+	EmbedShapeUtil.configure({
+		embedDefinitions: [...DEFAULT_EMBED_DEFINITIONS, myEmbed],
+	}),
+]
+```
+
+The `embeds` prop on `Tldraw` still works but is deprecated. Use `EmbedShapeUtil.configure()` instead.
+
+</details>
+
 ## API changes
 
+- 💥 **`EmbedShapeUtil.setEmbedDefinitions()`** removed. Use `EmbedShapeUtil.configure({ embedDefinitions: [...] })` instead. ([#8034](https://github.com/tldraw/tldraw/pull/8034))
+- 🔜 **`Tldraw` `embeds` prop** is deprecated. Configure embed definitions via `EmbedShapeUtil.configure()`. ([#8034](https://github.com/tldraw/tldraw/pull/8034))
 - Add `Geometry2d.ignoreHit(point)` for rejecting hit tests on transparent pixels. ([#7942](https://github.com/tldraw/tldraw/pull/7942))
 - Add `Editor.resizeToBounds(shapes, bounds)` for resizing shapes to fit target bounds. ([#8120](https://github.com/tldraw/tldraw/pull/8120))
+- Add `Editor.getResizeScaleFactor()` for computing the dynamic size scale factor at the current zoom level. ([#8042](https://github.com/tldraw/tldraw/pull/8042))
 - Add `sanitizeSvg(svgText: string)` export for sanitizing SVG content against XSS and data exfiltration. ([#7896](https://github.com/tldraw/tldraw/pull/7896))
 - Add experimental `experimental__onDropOnCanvas` option to intercept canvas drop events. Return `true` from the callback to prevent the editor's default drop behavior. ([#7911](https://github.com/tldraw/tldraw/pull/7911))
 
@@ -36,14 +76,17 @@ This is powered by a new `Geometry2d.ignoreHit(point)` method that allows geomet
   />
   ```
 
+- Add optional `pixelRatio` property to `TLImageAsset` for correct high-DPI image sizing. Detected automatically from PNG metadata. ([#8163](https://github.com/tldraw/tldraw/pull/8163))
 - Replace TypeScript enums (`MigrationFailureReason`, `PORTRAIT_BREAKPOINT`) with `const` object + type alias pattern for compatibility with Node's built-in TypeScript support (strip-types). Values are unchanged. ([#8084](https://github.com/tldraw/tldraw/pull/8084))
 
 ## Improvements
 
+- Improve arrow component rendering performance with finer-grained reactivity. ([#8167](https://github.com/tldraw/tldraw/pull/8167))
 - Simplify paste-parent selection to use `canReceiveNewChildrenOfType` instead of frame-specific checks. Prevent edge-only overlap from auto-reparenting pasted shapes into adjacent frames. ([#8057](https://github.com/tldraw/tldraw/pull/8057))
 - Save link and alt-text values when clicking outside the editor instead of discarding changes. ([#8037](https://github.com/tldraw/tldraw/pull/8037))
 - Add SVG sanitization on paste and file drop to prevent XSS and data exfiltration. ([#7896](https://github.com/tldraw/tldraw/pull/7896))
 - Fix circular dependencies across `@tldraw/state`, `@tldraw/editor`, and `@tldraw/tldraw` packages to improve compatibility with Jest mocking and tree-shaking. ([#7935](https://github.com/tldraw/tldraw/pull/7935))
+- Fix high-DPI image sizing to work correctly across macOS and Windows by detecting the source DPI baseline from PNG metadata. ([#8163](https://github.com/tldraw/tldraw/pull/8163))
 
 ## Bug fixes
 
@@ -61,3 +104,11 @@ This is powered by a new `Geometry2d.ignoreHit(point)` method that allows geomet
 - Fix a crash when resizing draw or highlight shapes to zero width or height. ([#8067](https://github.com/tldraw/tldraw/pull/8067))
 - Fix crash when enabling Debug SVG with shapes on the canvas. ([#8101](https://github.com/tldraw/tldraw/pull/8101))
 - Fix `localOffset` mutation bug in `stretchShapes` when shapes have parent transforms. ([#8120](https://github.com/tldraw/tldraw/pull/8120))
+- Fix arrow SVG export producing invalid negative `<foreignObject>` dimensions when arrows have no text label. ([#8137](https://github.com/tldraw/tldraw/pull/8137))
+- Fix arrow endpoint flickering when anchors are at exact shape boundaries. ([#8130](https://github.com/tldraw/tldraw/pull/8130))
+- Fix shapes dragged from the toolbar not respecting dynamic size mode. ([#8042](https://github.com/tldraw/tldraw/pull/8042))
+- Fix dragging unselected shapes that have an `onClick` handler. ([#7936](https://github.com/tldraw/tldraw/pull/7936))
+- Fix false positive "multiple instances" warning in Next.js dev mode. ([#7933](https://github.com/tldraw/tldraw/pull/7933))
+- Fix missing alt text on rendered image shapes in some cases. ([#8158](https://github.com/tldraw/tldraw/pull/8158))
+- Fix drawing on tablets that report zero pen pressure. ([#5693](https://github.com/tldraw/tldraw/pull/5693))
+- Fix `create-tldraw` CLI to always create a subdirectory from the project name. ([#8161](https://github.com/tldraw/tldraw/pull/8161))
