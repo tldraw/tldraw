@@ -19,10 +19,10 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250913.0",
+		"@cloudflare/workers-types": "^4.20260302.0",
 		"esbuild": "^0.25.6",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^5.8.3",
-		"wrangler": "^4.67.0"
+		"wrangler": "^4.75.0"
 	}
 }

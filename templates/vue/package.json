@@ -31,10 +31,10 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react-swc": "^4.3.0",
-		"@vitejs/plugin-vue": "^6.0.0",
+		"@vitejs/plugin-vue": "^6.0.5",
 		"typescript": "^5.8.3",
 		"vite": "^8.0.0",
-		"vite-plugin-vue-devtools": "^7.7.7",
+		"vite-plugin-vue-devtools": "^8.1.0",
 		"vue-tsc": "^3.0.1"
 	}
 }

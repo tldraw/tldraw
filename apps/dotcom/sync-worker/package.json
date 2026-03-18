@@ -45,13 +45,13 @@
 		"react-dom": "^19.2.1"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250913.0",
+		"@cloudflare/workers-types": "^4.20260302.0",
 		"@types/pg": "^8.11.11",
 		"@types/react": "^19.2.7",
 		"esbuild": "^0.25.6",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^5.8.3",
 		"vitest": "^3.2.4",
-		"wrangler": "^4.67.0"
+		"wrangler": "^4.75.0"
 	}
 }
