@@ -539,7 +539,6 @@ export function sequenceToBlueprint(
 		events.push(msg)
 	}
 
-	const eventCount = events.length
 	const layouts = layout.actorLayouts
 
 	// Pre-compute lifecycle event indices for created/destroyed actors.
