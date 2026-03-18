@@ -64,7 +64,7 @@
 		"@formatjs/cli": "^6.5.1",
 		"@playwright/test": "^1.58.2",
 		"@sentry/cli": "^2.41.1",
-		"@swc/plugin-formatjs": "^9.7.0",
+		"@swc/plugin-formatjs": "9.3.0",
 		"@tldraw/validate": "workspace:*",
 		"@types/lodash.pick": "^4.4.9",
 		"@types/md5": "^2.3.5",

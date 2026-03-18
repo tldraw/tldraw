@@ -94,7 +94,7 @@
 		"@lingual/i18n-check": "^0.5.5",
 		"@microsoft/api-extractor": "^7.55.2",
 		"@next/eslint-plugin-next": "^15.1.6",
-		"@swc/core": "^1.10.11",
+		"@swc/core": "^1.15.18",
 		"@types/adm-zip": "^0.5.7",
 		"@types/aws-lambda": "8.10.148",
 		"@types/glob": "^8.1.0",
