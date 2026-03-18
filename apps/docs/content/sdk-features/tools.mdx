@@ -146,7 +146,7 @@ export class DrawingPointing extends StateNode {
 	static override id = 'pointing'
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.parent.transition('drawing', info)
 		}
 	}

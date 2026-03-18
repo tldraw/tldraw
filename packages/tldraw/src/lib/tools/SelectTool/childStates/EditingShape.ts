@@ -71,7 +71,7 @@ export class EditingShape extends StateNode {
 		}
 
 		// Check if dragging from editing shape with blurred input
-		if (this.didPointerDownOnEditingShape && this.editor.inputs.isDragging) {
+		if (this.didPointerDownOnEditingShape && this.editor.inputs.getIsDragging()) {
 			if (this.editor.getIsReadonly()) return
 
 			const editingShape = this.editor.getEditingShape()

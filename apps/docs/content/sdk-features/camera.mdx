@@ -147,7 +147,7 @@ Zoom in or out. Both methods accept an optional screen point to zoom toward:
 ```typescript
 editor.zoomIn()
 editor.zoomOut()
-editor.zoomIn(editor.inputs.currentScreenPoint, { animation: { duration: 200 } })
+editor.zoomIn(editor.inputs.getCurrentScreenPoint(), { animation: { duration: 200 } })
 ```
 
 ### Zoom to content

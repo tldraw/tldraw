@@ -2092,19 +2092,7 @@ export const inlineBase64AssetStore: TLAssetStore;
 // @public (undocumented)
 export class InputsManager {
     constructor(editor: Editor);
-    // @deprecated (undocumented)
-    get accelKey(): boolean;
-    // @deprecated (undocumented)
-    get altKey(): boolean;
-    set altKey(altKey: boolean);
     readonly buttons: AtomSet<number>;
-    // @deprecated (undocumented)
-    get ctrlKey(): boolean;
-    set ctrlKey(ctrlKey: boolean);
-    // @deprecated (undocumented)
-    get currentPagePoint(): Vec;
-    // @deprecated (undocumented)
-    get currentScreenPoint(): Vec;
     getAccelKey(): boolean;
     getAltKey(): boolean;
     getCtrlKey(): boolean;
@@ -2124,40 +2112,7 @@ export class InputsManager {
     getPreviousPagePoint(): Vec;
     getPreviousScreenPoint(): Vec;
     getShiftKey(): boolean;
-    get isDragging(): boolean;
-    set isDragging(isDragging: boolean);
-    // @deprecated (undocumented)
-    get isEditing(): boolean;
-    set isEditing(isEditing: boolean);
-    // @deprecated (undocumented)
-    get isPanning(): boolean;
-    set isPanning(isPanning: boolean);
-    // @deprecated (undocumented)
-    get isPen(): boolean;
-    set isPen(isPen: boolean);
-    // @deprecated (undocumented)
-    get isPinching(): boolean;
-    set isPinching(isPinching: boolean);
-    // @deprecated (undocumented)
-    get isPointing(): boolean;
-    set isPointing(isPointing: boolean);
-    // @deprecated (undocumented)
-    get isSpacebarPanning(): boolean;
-    set isSpacebarPanning(isSpacebarPanning: boolean);
     readonly keys: AtomSet<string>;
-    // @deprecated (undocumented)
-    get metaKey(): boolean;
-    set metaKey(metaKey: boolean);
-    // @deprecated (undocumented)
-    get originPagePoint(): Vec;
-    // @deprecated (undocumented)
-    get originScreenPoint(): Vec;
-    // @deprecated (undocumented)
-    get pointerVelocity(): Vec;
-    // @deprecated (undocumented)
-    get previousPagePoint(): Vec;
-    // @deprecated (undocumented)
-    get previousScreenPoint(): Vec;
     // @internal (undocumented)
     setAltKey(altKey: boolean): void;
     // @internal (undocumented)
@@ -2182,9 +2137,6 @@ export class InputsManager {
     setPointerVelocity(pointerVelocity: Vec): void;
     // @internal (undocumented)
     setShiftKey(shiftKey: boolean): void;
-    // @deprecated (undocumented)
-    get shiftKey(): boolean;
-    set shiftKey(shiftKey: boolean);
     // (undocumented)
     toJson(): {
         altKey: boolean;
