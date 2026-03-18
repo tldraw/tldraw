@@ -3,7 +3,7 @@ import { IRequest } from 'itty-router'
 import { notFound } from './errors'
 
 function isTransientWorkerError(error: unknown): boolean {
-	const msg = (error instanceof Error ? error.message : null) ?? error?.toString?.() ?? ''
+	const msg = String(error)
 	return /internal error|connectivity|network connection lost|service temporarily unavailable|proxy request failed|unspecified error|connection (refused|reset|timed?\s?out)/i.test(
 		msg
 	)
