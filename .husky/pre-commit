@@ -1,14 +1,11 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-echo "Installing dependencies..."
-INSTALL_LOG="$(mktemp -t tldraw-precommit-install.XXXXXX)"
-if ! yarn install --immutable >"$INSTALL_LOG" 2>&1; then
-	cat "$INSTALL_LOG"
-	rm -f "$INSTALL_LOG"
-	exit 1
+# Only run yarn if package.json files have changed
+CHANGED_PACKAGE_JSON_FILES=$(git diff --cached --name-only -- ':(glob)**/package.json')
+if [ -n "$CHANGED_PACKAGE_JSON_FILES" ]; then
+	yarn install --immutable
 fi
-rm -f "$INSTALL_LOG"
 
 # Only run build-api for packages with staged changes
 CHANGED_PACKAGES=$(git diff --cached --name-only -- packages | cut -d/ -f2 | sort -u)
