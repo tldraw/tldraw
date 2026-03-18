@@ -46,7 +46,8 @@ export function useDocumentEvents() {
 	}, [container])
 
 	useEffect(() => {
-		if (typeof window === 'undefined' || !('matchMedia' in window)) return
+		const win = editor.getContainerWindow()
+		if (!('matchMedia' in win)) return
 
 		// https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio#monitoring_screen_resolution_or_zoom_level_changes
 		let remove: (() => void) | null = null
@@ -54,8 +55,8 @@ export function useDocumentEvents() {
 			if (remove != null) {
 				remove()
 			}
-			const mqString = `(resolution: ${window.devicePixelRatio}dppx)`
-			const media = matchMedia(mqString)
+			const mqString = `(resolution: ${win.devicePixelRatio}dppx)`
+			const media = win.matchMedia(mqString)
 			// Safari only started supporting `addEventListener('change',...) in version 14
 			// https://developer.mozilla.org/en-US/docs/Web/API/MediaQueryList/change_event
 			const safariCb = (ev: any) => {
@@ -79,7 +80,7 @@ export function useDocumentEvents() {
 					media.removeListener(safariCb)
 				}
 			}
-			editor.updateInstanceState({ devicePixelRatio: window.devicePixelRatio })
+			editor.updateInstanceState({ devicePixelRatio: win.devicePixelRatio })
 		}
 		updatePixelRatio()
 		return () => {
@@ -275,9 +276,10 @@ export function useDocumentEvents() {
 
 		container.addEventListener('wheel', handleWheel, { passive: false })
 
-		document.addEventListener('gesturestart', preventDefault)
-		document.addEventListener('gesturechange', preventDefault)
-		document.addEventListener('gestureend', preventDefault)
+		const ownerDoc = container.ownerDocument
+		ownerDoc.addEventListener('gesturestart', preventDefault)
+		ownerDoc.addEventListener('gesturechange', preventDefault)
+		ownerDoc.addEventListener('gestureend', preventDefault)
 
 		container.addEventListener('keydown', handleKeyDown)
 		container.addEventListener('keyup', handleKeyUp)
@@ -287,9 +289,9 @@ export function useDocumentEvents() {
 
 			container.removeEventListener('wheel', handleWheel)
 
-			document.removeEventListener('gesturestart', preventDefault)
-			document.removeEventListener('gesturechange', preventDefault)
-			document.removeEventListener('gestureend', preventDefault)
+			ownerDoc.removeEventListener('gesturestart', preventDefault)
+			ownerDoc.removeEventListener('gesturechange', preventDefault)
+			ownerDoc.removeEventListener('gestureend', preventDefault)
 
 			container.removeEventListener('keydown', handleKeyDown)
 			container.removeEventListener('keyup', handleKeyUp)
@@ -298,5 +300,8 @@ export function useDocumentEvents() {
 }
 
 function areShortcutsDisabled(editor: Editor) {
-	return editor.menus.hasOpenMenus() || activeElementShouldCaptureKeys()
+	return (
+		editor.menus.hasOpenMenus() ||
+		activeElementShouldCaptureKeys(true, editor.getContainerDocument())
+	)
 }
