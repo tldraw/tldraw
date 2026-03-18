@@ -1,7 +1,13 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-yarn install --immutable --silent
+INSTALL_LOG="$(mktemp -t tldraw-precommit-install.XXXXXX)"
+if ! yarn install --immutable >"$INSTALL_LOG" 2>&1; then
+	cat "$INSTALL_LOG"
+	rm -f "$INSTALL_LOG"
+	exit 1
+fi
+rm -f "$INSTALL_LOG"
 
 # Only run build-api for packages with staged changes
 CHANGED_PACKAGES=$(git diff --cached --name-only -- packages | cut -d/ -f2 | sort -u)
