@@ -54,7 +54,7 @@
 		"build-package": "lazy run build --filter 'packages/*'",
 		"preview-app": "yarn build-app && VITE_PREVIEW=1 yarn dev-app",
 		"preview-examples": "lazy run build --filter='apps/examples' && cd apps/examples && yarn preview",
-		"lint": "lazy lint",
+		"lint": "oxlint .",
 		"format": "oxfmt \"**/*.{js,jsx,ts,tsx,cjs,mjs}\"",
 		"format-current": "bash -c 'files=$(git diff --name-only --diff-filter d | grep -E \"\\.(js|jsx|ts|tsx|cjs|mjs)$\"); if [ -n \"$files\" ]; then echo \"$files\" | xargs oxfmt --no-error-on-unmatched-pattern; else echo No files to format; fi'",
 		"lint-current": "bash -c 'files=$(git diff --name-only --diff-filter d | grep -E \"\\.(js|jsx|ts|tsx)$\"); if [ -n \"$files\" ]; then echo \"$files\" | xargs oxlint; else echo No JS/TS files to lint; fi'",

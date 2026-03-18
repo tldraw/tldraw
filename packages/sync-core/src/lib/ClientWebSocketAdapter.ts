@@ -72,10 +72,10 @@ function debug(...args: any[]) {
  * }
  * ```
  */
-export class ClientWebSocketAdapter
-	implements
-		TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>>
-{
+export class ClientWebSocketAdapter implements TLPersistentClientSocket<
+	TLSocketClientSentEvent<TLRecord>,
+	TLSocketServerSentEvent<TLRecord>
+> {
 	_ws: WebSocket | null = null
 
 	isDisposed = false

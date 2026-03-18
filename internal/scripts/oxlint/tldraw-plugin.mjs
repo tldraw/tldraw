@@ -56,8 +56,7 @@ const rules = {
 	'no-whilst': {
 		meta: {
 			messages: {
-				noWhilst:
-					'Use "while" instead of "whilst" to maintain American English style, sorry.',
+				noWhilst: 'Use "while" instead of "whilst" to maintain American English style, sorry.',
 			},
 			type: 'problem',
 			schema: [],
@@ -420,10 +419,8 @@ const rules = {
 	'no-direct-storage': {
 		meta: {
 			messages: {
-				localStorage:
-					'Use the getFromLocalStorage/setInLocalStorage helpers instead',
-				sessionStorage:
-					'Use the getFromSessionStorage/setInSessionStorage helpers instead',
+				localStorage: 'Use the getFromLocalStorage/setInLocalStorage helpers instead',
+				sessionStorage: 'Use the getFromSessionStorage/setInSessionStorage helpers instead',
 			},
 			type: 'problem',
 			schema: [],
@@ -552,10 +549,7 @@ const rules = {
 		create(context) {
 			function isJSXChild(node) {
 				const parent = node.parent
-				return (
-					parent &&
-					(parent.type === 'JSXElement' || parent.type === 'JSXFragment')
-				)
+				return parent && (parent.type === 'JSXElement' || parent.type === 'JSXFragment')
 			}
 
 			return {
@@ -584,8 +578,7 @@ const rules = {
 	'method-signature-style': {
 		meta: {
 			messages: {
-				method:
-					'Shorthand method signature is required. Use `{{name}}(...): ...` instead.',
+				method: 'Shorthand method signature is required. Use `{{name}}(...): ...` instead.',
 			},
 			type: 'problem',
 			schema: [],
@@ -598,9 +591,7 @@ const rules = {
 					if (!typeAnn || typeAnn.type !== 'TSFunctionType') return
 
 					const name =
-						node.key.type === 'Identifier'
-							? node.key.name
-							: context.sourceCode.getText(node.key)
+						node.key.type === 'Identifier' ? node.key.name : context.sourceCode.getText(node.key)
 
 					context.report({
 						node,
@@ -611,9 +602,7 @@ const rules = {
 							const fnType = typeAnn
 							const params = fnType.params.map((p) => src.getText(p)).join(', ')
 							const typeParams = fnType.typeParameters ? src.getText(fnType.typeParameters) : ''
-							const returnType = fnType.returnType
-								? src.getText(fnType.returnType)
-								: ': void'
+							const returnType = fnType.returnType ? src.getText(fnType.returnType) : ': void'
 							const optional = node.optional ? '?' : ''
 							return fixer.replaceText(
 								node,
@@ -641,10 +630,7 @@ const rules = {
 				CallExpression(node) {
 					const callee = node.callee
 					if (callee.type !== 'MemberExpression') return
-					if (
-						callee.property.type !== 'Identifier' ||
-						callee.property.name !== 'only'
-					) {
+					if (callee.property.type !== 'Identifier' || callee.property.name !== 'only') {
 						return
 					}
 
@@ -675,9 +661,7 @@ const rules = {
 
 				const dmProp = descriptor.properties.find(
 					(p) =>
-						p.type === 'Property' &&
-						p.key.type === 'Identifier' &&
-						p.key.name === 'defaultMessage'
+						p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'defaultMessage'
 				)
 
 				if (!dmProp) {
@@ -715,10 +699,7 @@ const rules = {
 						checkDescriptor(node, node.arguments[0])
 					} else if (node.callee.type === 'Identifier' && node.callee.name === 'defineMessage') {
 						checkDescriptor(node, node.arguments[0])
-					} else if (
-						node.callee.type === 'Identifier' &&
-						node.callee.name === 'defineMessages'
-					) {
+					} else if (node.callee.type === 'Identifier' && node.callee.name === 'defineMessages') {
 						const arg = node.arguments[0]
 						if (arg?.type === 'ObjectExpression') {
 							for (const prop of arg.properties) {
@@ -730,10 +711,7 @@ const rules = {
 					}
 				},
 				JSXOpeningElement(node) {
-					if (
-						node.name.type !== 'JSXIdentifier' ||
-						node.name.name !== 'FormattedMessage'
-					) {
+					if (node.name.type !== 'JSXIdentifier' || node.name.name !== 'FormattedMessage') {
 						return
 					}
 					const dmAttr = node.attributes.find(

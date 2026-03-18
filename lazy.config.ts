@@ -65,14 +65,6 @@ const config = {
 		'e2e-x10': {
 			cache: 'none',
 		},
-		lint: {
-			execution: 'independent',
-			cache: {
-				inputs: {
-					exclude: ['*.tsbuildinfo'],
-				},
-			},
-		},
 		context: {
 			execution: 'independent',
 			cache: 'none',

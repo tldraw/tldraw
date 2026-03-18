@@ -7,7 +7,7 @@
 	"scripts": {
 		"build": "tsc && vite build --outDir public",
 		"dev": "vite",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"lint": "cd ../.. && yarn run -T oxlint apps/analytics",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"

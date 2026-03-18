@@ -50,7 +50,7 @@
 		"typescript": "^5.8.3"
 	},
 	"scripts": {
-		"lint": "yarn run -T tsx lint.ts"
+		"lint": "cd ../.. && yarn run -T oxlint internal/scripts"
 	},
 	"dependencies": {
 		"@lokalise/node-api": "^12.8.0",

@@ -44,7 +44,7 @@
 	],
 	"scripts": {
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"lint": "cd ../.. && yarn run -T oxlint packages/assets",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
