@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+echo "Installing dependencies..."
 INSTALL_LOG="$(mktemp -t tldraw-precommit-install.XXXXXX)"
 if ! yarn install --immutable >"$INSTALL_LOG" 2>&1; then
 	cat "$INSTALL_LOG"
