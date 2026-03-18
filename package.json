@@ -55,8 +55,8 @@
 		"preview-app": "yarn build-app && VITE_PREVIEW=1 yarn dev-app",
 		"preview-examples": "lazy run build --filter='apps/examples' && cd apps/examples && yarn preview",
 		"lint": "lazy lint",
-		"format": "prettier --write --cache '**/*.{yml,yaml,json,md,mdx,html,css,js,jsx,ts,tsx,cjs,mjs}'",
-		"format-current": "prettier --write --cache $(git diff --name-only --diff-filter d | xargs)",
+		"format": "oxfmt \"**/*.{js,jsx,ts,tsx,cjs,mjs}\"",
+		"format-current": "bash -c 'files=$(git diff --name-only --diff-filter d | grep -E \"\\.(js|jsx|ts|tsx|cjs|mjs)$\"); if [ -n \"$files\" ]; then echo \"$files\" | xargs oxfmt --no-error-on-unmatched-pattern; else echo No files to format; fi'",
 		"lint-current": "bash -c 'files=$(git diff --name-only --diff-filter d | grep -E \"\\.(js|jsx|ts|tsx)$\"); if [ -n \"$files\" ]; then echo \"$files\" | xargs oxlint; else echo No JS/TS files to lint; fi'",
 		"typecheck": "yarn refresh-assets && tsx internal/scripts/typecheck.ts",
 		"profile-typescript": "tsx internal/scripts/profile-typescript.ts",
@@ -83,8 +83,8 @@
 	},
 	"packageManager": "yarn@4.12.0",
 	"lint-staged": {
-		"*.{js,jsx,ts,tsx,json}": [
-			"prettier --write --cache --log-level=warn"
+		"*.{js,jsx,ts,tsx,cjs,mjs}": [
+			"oxfmt --no-error-on-unmatched-pattern"
 		]
 	},
 	"devDependencies": {
@@ -110,10 +110,9 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"license-report": "^6.7.1",
 		"lint-staged": "^15.4.3",
+		"oxfmt": "^0.41.0",
 		"oxlint": "^1.56.0",
 		"oxlint-tsgolint": "^0.17.0",
-		"prettier": "^3.6.1",
-		"prettier-plugin-organize-imports": "^4.1.0",
 		"rimraf": "^4.4.1",
 		"tsx": "^4.19.2",
 		"typescript": "^5.8.3",

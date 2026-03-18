@@ -60,10 +60,9 @@ jobs:
             **/.lazy
             **/.tsbuild
             **/*.tsbuildinfo
-            node_modules/.cache/prettier
-          key: test-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', '.oxlintrc.json', 'lazy.config.ts') }}-${{ github.sha }}
+          key: test-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', '.oxlintrc.json', '.oxfmtrc.json', 'lazy.config.ts') }}-${{ github.sha }}
           restore-keys: |
-            test-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', '.oxlintrc.json', 'lazy.config.ts') }}-
+            test-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', '.oxlintrc.json', '.oxfmtrc.json', 'lazy.config.ts') }}-
 
       - name: Typecheck
         run: yarn build-types

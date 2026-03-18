@@ -7,22 +7,13 @@ async function main() {
 	const relativeCwd = path.relative(REPO_ROOT, process.cwd())
 
 	try {
-		await exec(
-			'yarn',
-			['prettier', shouldFix ? '--write' : '--check', '--log-level=warn', '--cache', relativeCwd],
-			{
+		if (shouldFix) {
+			const filePattern = `${relativeCwd}/**/*.{js,jsx,ts,tsx,cjs,mjs}`
+			await exec('yarn', ['oxfmt', '--write', '--no-error-on-unmatched-pattern', filePattern], {
 				pwd: REPO_ROOT,
-			}
-		)
-		await exec(
-			'yarn',
-			[
-				'oxlint',
-				...(shouldFix ? ['--fix'] : []),
-				relativeCwd,
-			],
-			{ pwd: REPO_ROOT }
-		)
+			})
+		}
+		await exec('yarn', ['oxlint', ...(shouldFix ? ['--fix'] : []), relativeCwd], { pwd: REPO_ROOT })
 	} catch {
 		process.exit(1)
 	}
