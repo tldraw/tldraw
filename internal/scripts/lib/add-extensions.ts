@@ -20,7 +20,7 @@ function resolveRelativePath(importingFile: string, relativePath: string) {
 	}
 
 	// strip the file extension if applicable
-	relativePath.replace(/\.(m|c)?js$/, '')
+	relativePath = relativePath.replace(/\.(m|c)?js$/, '')
 
 	for (const extension of extensions) {
 		if (relativePath.endsWith(extension)) {
@@ -67,6 +67,13 @@ export function addJsExtensions(distDir: string) {
 					path.value.arguments[0]?.type === 'StringLiteral'
 				) {
 					path.value.arguments[0].value = resolveRelativePath(file, path.value.arguments[0].value)
+				}
+				this.traverse(path)
+			},
+			visitImportExpression(path) {
+				const source = path.value.source
+				if (source?.type === 'StringLiteral' || source?.type === 'Literal') {
+					source.value = resolveRelativePath(file, source.value)
 				}
 				this.traverse(path)
 			},
