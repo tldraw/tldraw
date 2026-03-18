@@ -7,7 +7,6 @@ import {
 	activeElementShouldCaptureKeys,
 	assert,
 	compact,
-	getGlobalDocument,
 	isDefined,
 	preventDefault,
 	uniq,
@@ -39,9 +38,7 @@ const expectedPasteFileMimeTypes = [
  * @internal
  */
 function stripHtml(html: string) {
-	// See <https://github.com/developit/preact-markup/blob/4788b8d61b4e24f83688710746ee36e7464f7bbc/src/parse-markup.js#L60-L69>
-	const doc = getGlobalDocument().implementation.createHTMLDocument('')
-	doc.documentElement.innerHTML = html.trim()
+	const doc = new DOMParser().parseFromString(html.trim(), 'text/html')
 	return doc.body.textContent || doc.body.innerText || ''
 }
 
