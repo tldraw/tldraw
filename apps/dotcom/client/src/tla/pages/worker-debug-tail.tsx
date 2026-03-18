@@ -51,8 +51,8 @@ export function Component() {
 			<div
 				style={{ padding: '4px 8px', cursor: 'pointer', position: 'fixed', top: 0, right: 0 }}
 				onClick={onClear}
-				// eslint-disable-next-line tldraw/jsx-no-literals
 			>
+				{/* eslint-disable-next-line tldraw/jsx-no-literals */}
 				🗑️
 			</div>
 			<div ref={ref} style={{ fontFamily: 'monospace', overflow: 'scroll', height: '100vh' }}></div>

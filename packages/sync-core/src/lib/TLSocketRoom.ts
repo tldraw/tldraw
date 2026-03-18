@@ -126,7 +126,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * Use for persisting snapshots to WebSocket attachments (e.g. Cloudflare hibernation).
 	 * The room clears any pending snapshot when the session closes.
 	 */
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	onSessionSnapshot?: (sessionId: string, snapshot: SessionStateSnapshot) => void
 }
 

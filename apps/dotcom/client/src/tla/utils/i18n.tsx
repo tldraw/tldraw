@@ -50,7 +50,7 @@ export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 			{isInternalLocale(intl.locale) ? (
 				<>{internalMessage}</>
 			) : (
-				/* eslint-disable-next-line formatjs/enforce-default-message */
+				/* eslint-disable-next-line tldraw/enforce-default-message */
 				<FormattedMessage id={id} {...props} />
 			)}
 		</span>

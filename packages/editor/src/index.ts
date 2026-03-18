@@ -455,6 +455,7 @@ export {
 	preventDefault,
 	releasePointerCapture,
 	setPointerCapture,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	stopEventPropagation,
 } from './lib/utils/dom'
 export { EditorAtom } from './lib/utils/EditorAtom'
