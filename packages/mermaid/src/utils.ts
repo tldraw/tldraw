@@ -35,9 +35,8 @@ export function getArrowBend(edgeData: { points: { x: number; y: number }[] }) {
 /** Normalize HTML line breaks to newlines, decode HTML entities, and trim. */
 export function sanitizeDiagramText(text: string): string {
 	if (typeof text !== 'string') return ''
-	const el = document.createElement('div')
-	el.innerHTML = text.replace(/<br\s*\/?>/gi, '\n')
-	return (el.textContent ?? '').trim()
+	const doc = new DOMParser().parseFromString(text.replace(/<br\s*\/?>/gi, '\n'), 'text/html')
+	return (doc.body.textContent ?? '').trim()
 }
 
 /** Scale factor applied to parsed SVG layout (nodes, clusters, edges). */
