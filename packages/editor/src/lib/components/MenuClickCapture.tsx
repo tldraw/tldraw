@@ -1,5 +1,6 @@
 import { useValue } from '@tldraw/state-react'
 import { PointerEvent, useCallback, useRef, useState } from 'react'
+import { LEFT_MOUSE_BUTTON, RIGHT_MOUSE_BUTTON } from '../constants'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { Vec } from '../primitives/Vec'
@@ -31,17 +32,22 @@ export function MenuClickCapture() {
 		start: new Vec(),
 	})
 
-	const handlePointerDown = useCallback((e: PointerEvent) => {
-		if (e.button === 0) {
-			setIsPointing(true)
-			rPointerState.current = {
-				isDown: true,
-				isDragging: false,
-				start: new Vec(e.clientX, e.clientY),
+	const handlePointerDown = useCallback(
+		(e: PointerEvent) => {
+			if (e.button === LEFT_MOUSE_BUTTON) {
+				setIsPointing(true)
+				rPointerState.current = {
+					isDown: true,
+					isDragging: false,
+					start: new Vec(e.clientX, e.clientY),
+				}
+				rDidAPointerDownAndDragWhileMenuWasOpen.current = false
+			} else if (e.button === RIGHT_MOUSE_BUTTON) {
+				canvasEvents.onPointerDown?.(e)
 			}
-			rDidAPointerDownAndDragWhileMenuWasOpen.current = false
-		}
-	}, [])
+		},
+		[canvasEvents]
+	)
 
 	const rDidAPointerDownAndDragWhileMenuWasOpen = useRef(false)
 
