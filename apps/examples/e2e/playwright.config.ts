@@ -103,7 +103,9 @@ const config: PlaywrightTestConfig = {
 	/* Run your local dev server before starting the tests */
 	webServer: [
 		{
-			command: process.env.CI ? 'yarn preview' : 'yarn preview-examples',
+			command: process.env.CI
+				? 'TLDRAW_E2E=1 yarn preview'
+				: 'TLDRAW_E2E=1 yarn preview-examples',
 			port: 5420,
 			reuseExistingServer: !process.env.CI,
 			cwd: process.env.CI ? path.join(__dirname, '..') : path.join(__dirname, '../../..'),

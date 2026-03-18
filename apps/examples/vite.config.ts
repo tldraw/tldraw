@@ -38,6 +38,7 @@ function lowerDecoratorsPlugin(): Plugin {
 		apply: 'build',
 		async renderChunk(code, chunk) {
 			if (!chunk.fileName.endsWith('.js')) return null
+			const { transform } = await import('esbuild')
 			const result = await transform(code, {
 				loader: 'js',
 				target: 'es2022',
@@ -66,6 +67,7 @@ function getEnv() {
 }
 
 const env = getEnv()
+const isE2ETestRun = process.env.TLDRAW_E2E === '1'
 
 // eslint-disable-next-line no-console
 console.log('build env:', env)
@@ -99,7 +101,7 @@ export default defineConfig(({ mode }) => ({
 		spaFallbackPlugin(),
 		react({ tsDecorators: true }),
 		exampleReadmePlugin(),
-		lowerDecoratorsPlugin(),
+		...(isE2ETestRun ? [lowerDecoratorsPlugin()] : []),
 	],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
