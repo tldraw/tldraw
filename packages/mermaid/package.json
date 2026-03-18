@@ -1,13 +1,13 @@
 {
-	"name": "@tldraw/state",
-	"description": "tldraw infinite canvas SDK (state).",
-	"version": "4.5.3",
+	"name": "@tldraw/mermaid",
+	"description": "Mermaid diagram to tldraw shape conversion.",
+	"version": "4.4.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
-	"license": "MIT",
+	"license": "SEE LICENSE IN LICENSE.md",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
@@ -17,11 +17,8 @@
 	},
 	"keywords": [
 		"tldraw",
-		"sdk",
-		"drawing",
-		"app",
-		"development",
-		"whiteboard",
+		"mermaid",
+		"diagram",
 		"canvas",
 		"infinite"
 	],
@@ -42,18 +39,16 @@
 		"pack-tarball": "yarn pack",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
-	"devDependencies": {
-		"@types/lodash": "^4.17.14",
-		"lodash": "^4.17.21",
-		"vitest": "^3.2.4"
-	},
 	"dependencies": {
-		"@tldraw/utils": "workspace:*"
+		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/utils": "workspace:*",
+		"mermaid": "11.12.2"
 	},
-	"typedoc": {
-		"readmeFile": "none",
-		"entryPoint": "./src/index.ts",
-		"displayName": "@tldraw/state",
-		"tsconfig": "./tsconfig.json"
+	"peerDependencies": {
+		"tldraw": "workspace:*"
+	},
+	"devDependencies": {
+		"lazyrepo": "0.0.0-alpha.27",
+		"vitest": "^3.2.4"
 	}
 }
