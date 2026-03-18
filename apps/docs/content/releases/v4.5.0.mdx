@@ -1,6 +1,6 @@
 ---
 title: v4.5.0
-description: Click-through on transparent pixels, configurable embed definitions, high-DPI image sizing, and more
+description: Click-through on transparent pixels, SVG sanitization, configurable embed definitions, high-DPI image sizing, and more
 author: tldraw
 date: 03/18/2026
 order: 0
@@ -19,7 +19,7 @@ keywords:
 
 [View on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.5.0)
 
-This release adds click-through on transparent image pixels, configurable embed definitions via `EmbedShapeUtil.configure()`, correct high-DPI image sizing across platforms, and a new `Editor.resizeToBounds()` method. It also includes SVG sanitization for external content, TypeScript enum-to-const refactoring for Node strip-types compatibility, and various other improvements and bug fixes.
+This release adds click-through on transparent image pixels, SVG sanitization for pasted and dropped content, configurable embed definitions via `EmbedShapeUtil.configure()`, and correct high-DPI image sizing across platforms. It also includes a new `Editor.resizeToBounds()` method, TypeScript enum-to-const refactoring for Node strip-types compatibility, and various other improvements and bug fixes.
 
 ## What's new
 
@@ -65,6 +65,18 @@ const shapeUtils = [
 The `embeds` prop on `Tldraw` still works but is deprecated. Use `EmbedShapeUtil.configure()` instead.
 
 </details>
+
+### SVG sanitization ([#7896](https://github.com/tldraw/tldraw/pull/7896), [#8087](https://github.com/tldraw/tldraw/pull/8087))
+
+Pasted and dropped SVG content is now sanitized against XSS and data exfiltration. The sanitizer uses an allowlist-based approach that blocks script injection, event handlers, dangerous URI schemes, and external resource loading while preserving tldraw's own SVG output (including `<foreignObject>` text rendering and CSS font references).
+
+The sanitizer is also available as a public export for custom content handling:
+
+```ts
+import { sanitizeSvg } from 'tldraw'
+
+const cleanSvg = sanitizeSvg(untrustedSvgText)
+```
 
 ## API changes
 
