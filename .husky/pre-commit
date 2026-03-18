@@ -3,7 +3,7 @@
 
 yarn install --immutable
 # Only run build-api for packages with staged changes
-CHANGED_PACKAGES=$(git diff --cached --name-only | grep '^packages/' | cut -d/ -f2 | sort -u)
+CHANGED_PACKAGES=$(git diff --cached --name-only -- packages | cut -d/ -f2 | sort -u)
 FILTER_ARGS=""
 for pkg in $CHANGED_PACKAGES; do
 	if [ -f "packages/$pkg/package.json" ] && grep -q '"build-api"' "packages/$pkg/package.json"; then
@@ -14,7 +14,11 @@ if [ -n "$FILTER_ARGS" ]; then
 	npx lazy run build-api $FILTER_ARGS
 	git add packages/*/api-report.api.md
 fi
-npx lazy run build-i18n
-git add apps/*/locales/*.json
-git add apps/*/locales-compiled/*.json
+# Only run build-i18n when dotcom client files change
+CHANGED_DOTCOM_CLIENT=$(git diff --cached --name-only -- apps/dotcom/client)
+if [ -n "$CHANGED_DOTCOM_CLIENT" ]; then
+	npx lazy run build-i18n --filter=apps/dotcom/client
+	git add apps/dotcom/client/locales/*.json
+	git add apps/dotcom/client/locales-compiled/*.json
+fi
 yarn lint-staged
