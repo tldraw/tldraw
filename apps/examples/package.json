@@ -81,6 +81,7 @@
 		"@types/topojson-specification": "^1.0.5",
 		"@vitejs/plugin-react-swc": "^4.3.0",
 		"dotenv": "^16.4.7",
+		"esbuild": "^0.25.6",
 		"remark": "^15.0.1",
 		"remark-frontmatter": "^5.0.0",
 		"remark-html": "^16.0.1",
