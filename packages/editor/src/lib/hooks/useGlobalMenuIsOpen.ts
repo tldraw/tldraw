@@ -19,7 +19,6 @@ export function useGlobalMenuIsOpen(
 			} else {
 				tlmenus.deleteOpenMenu(id)
 			}
-
 			onChange?.(isOpen)
 		},
 		[id, onChange]

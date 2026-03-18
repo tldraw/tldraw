@@ -50,7 +50,13 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 			if (!isOpen) {
 				const onlySelectedShape = editor.getOnlySelectedShape()
 
-				if (onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)) {
+				// Locked-shape selection on menu open is a coarse-pointer-only route (long press).
+				// Keep desktop right-click selection stable when re-targeting an already-open menu.
+				if (
+					editor.getInstanceState().isCoarsePointer &&
+					onlySelectedShape &&
+					editor.isShapeOrAncestorLocked(onlySelectedShape)
+				) {
 					editor.setSelectedShapes([])
 				}
 

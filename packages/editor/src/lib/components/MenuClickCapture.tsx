@@ -35,6 +35,9 @@ export function MenuClickCapture() {
 
 	const handlePointerDown = useCallback(
 		(e: PointerEvent) => {
+			const isCoarsePointer = editor.getInstanceState().isCoarsePointer || e.pointerType === 'touch'
+			const isPrimaryPointer =
+				e.button === LEFT_MOUSE_BUTTON || (isCoarsePointer && e.button === -1)
 			// On macOS, ctrl+left-click fires as button 0 with ctrlKey but triggers a
 			// contextmenu event just like a real right-click (button 2). We dispatch
 			// right_click directly so the editor updates state (selection, hovered shape)
@@ -49,17 +52,30 @@ export function MenuClickCapture() {
 					name: 'right_click',
 					...getPointerInfo(editor, e),
 				})
-			} else if (e.button === LEFT_MOUSE_BUTTON) {
+			} else if (isPrimaryPointer) {
+				// Dismiss open menus on primary pointer interactions. Keep this out of the
+				// right-click path to avoid racing with Radix contextmenu open handling.
+				editor.menus.clearOpenMenus()
 				setIsPointing(true)
 				rPointerState.current = {
 					isDown: true,
 					isDragging: false,
 					start: new Vec(e.clientX, e.clientY),
 				}
-				rDidAPointerDownAndDragWhileMenuWasOpen.current = false
+				// On coarse pointers, forward pointer_down immediately so long-press can
+				// retarget/open context menus while one is already open.
+				if (isCoarsePointer) {
+					canvasEvents.onPointerDown?.({
+						...e,
+						button: LEFT_MOUSE_BUTTON,
+					})
+					rDidAPointerDownAndDragWhileMenuWasOpen.current = true
+				} else {
+					rDidAPointerDownAndDragWhileMenuWasOpen.current = false
+				}
 			}
 		},
-		[editor]
+		[canvasEvents, editor]
 	)
 
 	const rDidAPointerDownAndDragWhileMenuWasOpen = useRef(false)
