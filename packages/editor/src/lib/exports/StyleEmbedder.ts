@@ -6,6 +6,7 @@ import {
 	getComputedStyle,
 	getRenderedChildNodes,
 	getRenderedChildren,
+	isElement,
 } from './domUtils'
 import { resourceToDataUrl } from './fetchCache'
 import { parseCssValueUrls, shouldIncludeCssProperty } from './parseCss'
@@ -49,7 +50,7 @@ export class StyleEmbedder {
 		{ shouldRespectDefaults = true, shouldSkipInheritedParentStyles = true }
 	) {
 		const defaultStyles = shouldRespectDefaults
-			? getDefaultStylesForTagName(element.tagName.toLowerCase())
+			? getDefaultStylesForTagName(element.ownerDocument, element.tagName.toLowerCase())
 			: NO_STYLES
 
 		const parentStyles = Object.assign({}, NO_STYLES) as Styles
@@ -116,14 +117,14 @@ export class StyleEmbedder {
 			const shadowRoot = element.shadowRoot
 
 			if (shadowRoot) {
-				const clonedCustomEl = document.createElement('div')
+				const clonedCustomEl = element.ownerDocument.createElement('div')
 				this.styles.set(clonedCustomEl, this.styles.get(element)!)
 
 				clonedCustomEl.setAttribute('data-tl-custom-element', element.tagName)
 				;(clonedParent ?? element.parentElement!).appendChild(clonedCustomEl)
 
 				for (const child of shadowRoot.childNodes) {
-					if (child instanceof Element) {
+					if (isElement(child)) {
 						visit(child, clonedCustomEl)
 					} else {
 						clonedCustomEl.appendChild(child.cloneNode(true))
@@ -144,7 +145,7 @@ export class StyleEmbedder {
 				clonedParent.appendChild(clonedEl)
 
 				for (const child of getRenderedChildNodes(element)) {
-					if (child instanceof Element) {
+					if (isElement(child)) {
 						visit(child, clonedEl)
 					} else {
 						clonedEl.appendChild(child.cloneNode(true))
@@ -295,36 +296,53 @@ function formatCss(style: ReadonlyStyles) {
 // when we're figuring out the default values for a tag, we need read them from a separate document
 // so they're not affected by the current document's styles
 let defaultStyleFrame:
-	| { iframe: HTMLIFrameElement; foreignObject: SVGForeignObjectElement; document: Document }
+	| {
+			iframe: HTMLIFrameElement
+			foreignObject: SVGForeignObjectElement
+			document: Document
+			ownerDocument: Document
+	  }
 	| undefined
 const defaultStylesByTagName: Record<string, ReadonlyStyles> = {}
-function getDefaultStyleFrame() {
-	if (!defaultStyleFrame) {
-		const frame = document.createElement('iframe')
+function getDefaultStyleFrame(ownerDoc: Document) {
+	if (!defaultStyleFrame || defaultStyleFrame.ownerDocument !== ownerDoc) {
+		destroyDefaultStyleFrame()
+		const frame = ownerDoc.createElement('iframe')
 		frame.style.display = 'none'
-		document.body.appendChild(frame)
+		ownerDoc.body.appendChild(frame)
 		const frameDocument = assertExists(frame.contentDocument, 'frame must have a document')
-		const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-		const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')
+		const svg = frameDocument.createElementNS('http://www.w3.org/2000/svg', 'svg')
+		const foreignObject = frameDocument.createElementNS(
+			'http://www.w3.org/2000/svg',
+			'foreignObject'
+		)
 		svg.appendChild(foreignObject)
 		frameDocument.body.appendChild(svg)
-		defaultStyleFrame = { iframe: frame, foreignObject, document: frameDocument }
+		defaultStyleFrame = {
+			iframe: frame,
+			foreignObject,
+			document: frameDocument,
+			ownerDocument: ownerDoc,
+		}
 	}
 	return defaultStyleFrame
 }
 
 function destroyDefaultStyleFrame() {
 	if (defaultStyleFrame) {
-		document.body.removeChild(defaultStyleFrame.iframe)
+		defaultStyleFrame.iframe.remove()
 		defaultStyleFrame = undefined
+	}
+	for (const tagName in defaultStylesByTagName) {
+		delete defaultStylesByTagName[tagName]
 	}
 }
 
 const defaultStyleReadOptions: ReadStyleOpts = { defaultStyles: NO_STYLES, parentStyles: NO_STYLES }
-function getDefaultStylesForTagName(tagName: string) {
+function getDefaultStylesForTagName(ownerDoc: Document, tagName: string) {
 	let existing = defaultStylesByTagName[tagName]
 	if (!existing) {
-		const { foreignObject, document } = getDefaultStyleFrame()
+		const { foreignObject, document } = getDefaultStyleFrame(ownerDoc)
 		const element = document.createElement(tagName)
 		foreignObject.appendChild(element)
 		existing = element.computedStyleMap

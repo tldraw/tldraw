@@ -25,7 +25,8 @@ export class EditingShape extends StateNode {
 
 	private isTextInputFocused(): boolean {
 		const container = this.editor.getContainer()
-		return container.contains(document.activeElement) && activeElementShouldCaptureKeys(false)
+		const doc = this.editor.getContainerDocument()
+		return container.contains(doc.activeElement) && activeElementShouldCaptureKeys(false, doc)
 	}
 
 	override onEnter(info: EditingShapeInfo) {
