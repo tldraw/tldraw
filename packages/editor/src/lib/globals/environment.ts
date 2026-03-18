@@ -1,4 +1,5 @@
 import { atom } from '@tldraw/state'
+import { getGlobalWindow } from '../utils/dom'
 
 /**
  * An object that contains information about the current device and environment.
@@ -27,7 +28,7 @@ if (typeof window !== 'undefined') {
 		tlenv.isChromeForIos = /crios.*safari/i.test(navigator.userAgent)
 		tlenv.isFirefox = /firefox/i.test(navigator.userAgent)
 		tlenv.isAndroid = /android/i.test(navigator.userAgent)
-		tlenv.isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
+		tlenv.isDarwin = getGlobalWindow().navigator.userAgent.toLowerCase().indexOf('mac') > -1
 	}
 	tlenv.hasCanvasSupport = 'Promise' in window && 'HTMLCanvasElement' in window
 	isForcedFinePointer = tlenv.isFirefox && !tlenv.isAndroid && !tlenv.isIos
@@ -48,7 +49,7 @@ const tlenvReactive = atom('tlenvReactive', {
 })
 
 if (typeof window !== 'undefined' && !isForcedFinePointer) {
-	const mql = window.matchMedia && window.matchMedia('(any-pointer: coarse)')
+	const mql = getGlobalWindow().matchMedia && getGlobalWindow().matchMedia('(any-pointer: coarse)')
 
 	const isCurrentCoarsePointer = () => tlenvReactive.__unsafe__getWithoutCapture().isCoarsePointer
 
@@ -66,7 +67,7 @@ if (typeof window !== 'undefined' && !isForcedFinePointer) {
 
 	// 2. Also update the coarse pointer state when a pointer down event occurs. We need `capture: true`
 	// here because the tldraw component itself stops propagation on pointer events it receives.
-	window.addEventListener(
+	getGlobalWindow().addEventListener(
 		'pointerdown',
 		(e: PointerEvent) => {
 			// when the user interacts with a mouse, we assume they have a fine pointer.
