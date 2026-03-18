@@ -1,6 +1,7 @@
 import { useValue } from '@tldraw/state-react'
 import { PointerEvent, useCallback, useRef, useState } from 'react'
 import { LEFT_MOUSE_BUTTON, RIGHT_MOUSE_BUTTON } from '../constants'
+import { tlenv } from '../globals/environment'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { Vec } from '../primitives/Vec'
@@ -34,7 +35,21 @@ export function MenuClickCapture() {
 
 	const handlePointerDown = useCallback(
 		(e: PointerEvent) => {
-			if (e.button === LEFT_MOUSE_BUTTON) {
+			// On macOS, ctrl+left-click fires as button 0 with ctrlKey but triggers a
+			// contextmenu event just like a real right-click (button 2). We dispatch
+			// right_click directly so the editor updates state (selection, hovered shape)
+			// before Radix processes the contextmenu event and renders the menu content.
+			const isRightClick =
+				e.button === RIGHT_MOUSE_BUTTON ||
+				(e.button === LEFT_MOUSE_BUTTON && e.ctrlKey && tlenv.isDarwin)
+			if (isRightClick) {
+				editor.dispatch({
+					type: 'pointer',
+					target: 'canvas',
+					name: 'right_click',
+					...getPointerInfo(editor, e),
+				})
+			} else if (e.button === LEFT_MOUSE_BUTTON) {
 				setIsPointing(true)
 				rPointerState.current = {
 					isDown: true,
@@ -42,11 +57,9 @@ export function MenuClickCapture() {
 					start: new Vec(e.clientX, e.clientY),
 				}
 				rDidAPointerDownAndDragWhileMenuWasOpen.current = false
-			} else if (e.button === RIGHT_MOUSE_BUTTON) {
-				canvasEvents.onPointerDown?.(e)
 			}
 		},
-		[canvasEvents]
+		[editor]
 	)
 
 	const rDidAPointerDownAndDragWhileMenuWasOpen = useRef(false)
