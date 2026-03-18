@@ -29,6 +29,7 @@ import {
 	TLSyncStorage,
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
+	type SessionStateSnapshot,
 } from '@tldraw/sync-core'
 import {
 	TLAsset,
@@ -49,9 +50,10 @@ import {
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import { Kysely } from 'kysely'
+import { Kysely, PostgresDialect } from 'kysely'
 import { PERSIST_INTERVAL_MS } from './config'
-import { createPostgresConnectionPool } from './postgres'
+import { Logger } from './Logger'
+import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
@@ -84,6 +86,13 @@ export const ROOM_NOT_FOUND = Symbol('room_not_found')
 interface SessionMeta {
 	storeId: string
 	userId: string | null
+}
+
+interface SocketAttachment {
+	sessionId: string
+	meta: SessionMeta
+	isReadonly: boolean
+	snapshot: SessionStateSnapshot | null
 }
 
 async function canAccessTestProductionFile(
@@ -178,6 +187,14 @@ export class TLFileDurableObject extends DurableObject {
 			this._room = this.getStorage().then(async (storage) => {
 				const room = new TLSocketRoom<TLRecord, SessionMeta>({
 					storage,
+					clientTimeout: Infinity,
+					onSessionSnapshot: (sessionId, snapshot) => {
+						const ws = this.sessionIdToWs.get(sessionId)
+						if (!ws) return
+						const attachment = this.getSocketAttachment(ws)
+						if (!attachment) return
+						ws.serializeAttachment({ ...attachment, snapshot })
+					},
 					onSessionRemoved: async (room, args) => {
 						this.logEvent({
 							type: 'client',
@@ -206,7 +223,8 @@ export class TLFileDurableObject extends DurableObject {
 						this._room = null
 						room.close()
 						this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
-						this._db?.destroy()
+						await this._pool?.end()
+						this._pool = null
 						this._db = null
 					},
 					onBeforeSendMessage: ({ message, stringified }) => {
@@ -220,6 +238,19 @@ export class TLFileDurableObject extends DurableObject {
 				})
 
 				this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
+				// Resume any sessions that survived hibernation
+				for (const ws of this.state.getWebSockets()) {
+					const attachment = ws.deserializeAttachment() as SocketAttachment | null
+					if (!attachment?.sessionId) continue
+					if (attachment.snapshot) {
+						room.handleSocketResume({
+							sessionId: attachment.sessionId,
+							socket: ws,
+							snapshot: attachment.snapshot,
+							meta: attachment.meta,
+						})
+					}
+				}
 				// Also associate file assets after we load the room
 				setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
 				return room
@@ -251,11 +282,19 @@ export class TLFileDurableObject extends DurableObject {
 	_documentInfo: DocumentInfo | null = null
 
 	_db: Kysely<DB> | null = null
+	_pool: TLPostgresPool | null = null
+	private readonly log: Logger
+	/** Map sessionId → ws so onSessionSnapshot can serialize to the right socket. */
+	private readonly sessionIdToWs = new Map<string, WebSocket>()
 
 	// eslint-disable-next-line tldraw/no-setter-getter
 	get db() {
 		if (!this._db) {
-			this._db = createPostgresConnectionPool(this.env, 'TLFileDurableObject')
+			this._pool = new TLPostgresPool(this.env, this.log)
+			this._db = new Kysely<DB>({
+				dialect: new PostgresDialect({ pool: this._pool }),
+				log: ['error'],
+			})
 		}
 		return this._db
 	}
@@ -272,6 +311,7 @@ export class TLFileDurableObject extends DurableObject {
 		this.sentryDSN = env.SENTRY_DSN
 		this.measure = env.MEASURE
 		this.sentry = createSentry(this.state, this.env)
+		this.log = new Logger(env, 'TLDrawDurableObject', this.sentry)
 		this.supabaseClient = createSupabaseClient(env)
 		this.pierreClient = createPierreClient(env)
 
@@ -280,6 +320,11 @@ export class TLFileDurableObject extends DurableObject {
 			rooms: env.ROOMS,
 			versionCache: env.ROOMS_HISTORY_EPHEMERAL,
 		}
+
+		// Respond to ping at the platform layer so the DO can hibernate
+		this.state.setWebSocketAutoResponse(
+			new WebSocketRequestResponsePair('{"type":"ping"}', '{"type":"pong"}')
+		)
 
 		state.blockConcurrencyWhile(async () => {
 			const existingDocumentInfo = (await this.storage.get('documentInfo')) as DocumentInfo | null
@@ -376,6 +421,56 @@ export class TLFileDurableObject extends DurableObject {
 				statusText: 'Internal Server Error',
 			})
 		}
+	}
+
+	// --- WebSocket hibernation API handlers ---
+
+	private getSocketAttachment(ws: WebSocket): SocketAttachment | null {
+		return ws.deserializeAttachment() as SocketAttachment | null
+	}
+
+	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+		const attachment = this.getSocketAttachment(ws)
+		if (!attachment?.sessionId) return
+		if (!this._documentInfo) return
+
+		this.sessionIdToWs.set(attachment.sessionId, ws)
+		const room = await this.getRoom()
+		room.handleSocketMessage(attachment.sessionId, message)
+	}
+
+	override async webSocketClose(ws: WebSocket) {
+		this.handleWebSocketEnd(ws, 'handleSocketClose')
+	}
+
+	override async webSocketError(ws: WebSocket) {
+		this.handleWebSocketEnd(ws, 'handleSocketError')
+	}
+
+	private async handleWebSocketEnd(
+		ws: WebSocket,
+		method: 'handleSocketClose' | 'handleSocketError'
+	) {
+		const attachment = this.getSocketAttachment(ws)
+		if (!attachment?.sessionId) return
+
+		this.sessionIdToWs.delete(attachment.sessionId)
+		if (!this._documentInfo) return
+
+		const room = await this.getRoom()
+
+		// If the DO was hibernating, this session was never re-added to the room.
+		// Resume it briefly so the room can broadcast presence removal to other clients.
+		if (attachment.snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
+			room.handleSocketResume({
+				sessionId: attachment.sessionId,
+				socket: ws,
+				snapshot: attachment.snapshot,
+				meta: attachment.meta,
+			})
+		}
+
+		room[method](attachment.sessionId)
 	}
 
 	_isRestoring = false
@@ -479,9 +574,9 @@ export class TLFileDurableObject extends DurableObject {
 		storeId ??= params.localClientId
 		const isNewSession = !this._room
 
-		// Create the websocket pair for the client
+		// Create the websocket pair for the client; use hibernation API
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
-		serverWebSocket.accept()
+		this.state.acceptWebSocket(serverWebSocket)
 
 		const closeSocket = (reason: TLSyncErrorCloseEventReason) => {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, reason)
@@ -573,6 +668,19 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		try {
+			const meta: SessionMeta = {
+				storeId: storeId ?? sessionId,
+				userId: auth?.userId ? auth.userId : null,
+			}
+			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
+			const attachment: SocketAttachment = {
+				sessionId,
+				meta,
+				isReadonly,
+				snapshot: null,
+			}
+			serverWebSocket.serializeAttachment(attachment)
+
 			const getRoomTimer = this.timer()
 			const room = await this.getRoom()
 			getRoomTimer.report('on_request_get_room')
@@ -584,13 +692,10 @@ export class TLFileDurableObject extends DurableObject {
 
 			// all good
 			room.handleSocketConnect({
-				sessionId: sessionId,
+				sessionId,
 				socket: serverWebSocket,
-				meta: {
-					storeId,
-					userId: auth?.userId ? auth.userId : null,
-				},
-				isReadonly: openMode === ROOM_OPEN_MODE.READ_ONLY,
+				meta,
+				isReadonly,
 			})
 			if (isNewSession) {
 				this.logEvent({

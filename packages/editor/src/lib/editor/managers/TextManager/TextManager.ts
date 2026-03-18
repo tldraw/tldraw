@@ -75,7 +75,7 @@ export class TextManager {
 	private elm: HTMLDivElement
 
 	constructor(public editor: Editor) {
-		const elm = document.createElement('div')
+		const elm = editor.getContainerDocument().createElement('div')
 		elm.classList.add('tl-text')
 		elm.classList.add('tl-text-measure')
 		elm.setAttribute('dir', 'auto')
@@ -111,7 +111,7 @@ export class TextManager {
 	}
 
 	measureText(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & { scrollWidth: number } {
-		const div = document.createElement('div')
+		const div = this.editor.getContainerDocument().createElement('div')
 		div.textContent = normalizeTextForDom(textToMeasure)
 		return this.measureHtml(div.innerHTML, opts)
 	}

@@ -1,4 +1,5 @@
 import { useLayoutEffect, useState } from 'react'
+import { useMaybeEditor } from './useEditor'
 
 /*!
  * BSD License: https://github.com/outline/rich-markdown-editor/blob/main/LICENSE
@@ -12,26 +13,27 @@ import { useLayoutEffect, useState } from 'react'
  */
 /** @public */
 export function useViewportHeight(): number {
-	const visualViewport = window.visualViewport
+	const editor = useMaybeEditor()
+	const win = editor?.getContainerWindow() ?? window
+	const vv = win.visualViewport
 	const [height, setHeight] = useState<number>(() =>
-		visualViewport ? visualViewport.height + visualViewport.offsetTop : window.innerHeight
+		vv ? vv.height + vv.offsetTop : win.innerHeight
 	)
 
 	useLayoutEffect(() => {
+		const win = editor?.getContainerWindow() ?? window
 		const handleResize = () => {
-			const visualViewport = window.visualViewport
-			setHeight(() =>
-				visualViewport ? visualViewport.height + visualViewport.offsetTop : window.innerHeight
-			)
+			const vv = win.visualViewport
+			setHeight(() => (vv ? vv.height + vv.offsetTop : win.innerHeight))
 		}
 
-		window.visualViewport?.addEventListener('resize', handleResize)
-		window.visualViewport?.addEventListener('scroll', handleResize)
+		win.visualViewport?.addEventListener('resize', handleResize)
+		win.visualViewport?.addEventListener('scroll', handleResize)
 
 		return () => {
-			window.visualViewport?.removeEventListener('resize', handleResize)
-			window.visualViewport?.removeEventListener('scroll', handleResize)
+			win.visualViewport?.removeEventListener('resize', handleResize)
+			win.visualViewport?.removeEventListener('scroll', handleResize)
 		}
-	}, [])
+	}, [editor])
 	return height
 }

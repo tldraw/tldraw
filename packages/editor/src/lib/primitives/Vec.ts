@@ -430,11 +430,14 @@ export class Vec {
 	 * @param P - A point not on the line to test.
 	 */
 	static NearestPointOnLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): Vec {
+		// Inlined: t = Vec.Sub(P, A).pry(u), return Vec.Mul(u, t).add(A)
 		const t = (P.x - A.x) * u.x + (P.y - A.y) * u.y
 		return new Vec(A.x + u.x * t, A.y + u.y * t)
 	}
 
 	static NearestPointOnLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp = true): Vec {
+		// Parametric projection of P onto segment AB.
+		// Inlined: d = Vec.Sub(B, A); t = Vec.Sub(P, A).pry(d) / d.len(); return Vec.Lrp(A, B, t)
 		const dx = B.x - A.x
 		const dy = B.y - A.y
 		const d2 = dx * dx + dy * dy
@@ -452,13 +455,17 @@ export class Vec {
 	}
 
 	static DistanceToLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): number {
-		// |cross(P-A, u)| = perpendicular distance to line through A with direction u
+		// Inlined: Vec.Dist(P, Vec.NearestPointOnLineThroughPoint(A, u, P))
+		// Uses |cross(P-A, u)| which equals the perpendicular distance when u is a unit vector.
 		const dx = P.x - A.x
 		const dy = P.y - A.y
 		return Math.abs(dx * u.y - dy * u.x)
 	}
 
 	static DistanceToLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp = true): number {
+		// Inlined: Vec.Dist(P, Vec.NearestPointOnLineSegment(A, B, P, clamp))
+		// Computes the nearest point via parametric t-projection then returns the scalar distance,
+		// avoiding the intermediate Vec allocation that NearestPointOnLineSegment would create.
 		const dx = B.x - A.x
 		const dy = B.y - A.y
 		const d2 = dx * dx + dy * dy
@@ -511,6 +518,7 @@ export class Vec {
 	 * two vectors, between -π and π. The sign indicates direction of angle.
 	 */
 	static AngleBetween(A: VecLike, B: VecLike): number {
+		// p = dot(A, B); n = |A| * |B| (uses x*x instead of Math.pow(x, 2))
 		const p = A.x * B.x + A.y * B.y
 		const n = Math.sqrt((A.x * A.x + A.y * A.y) * (B.x * B.x + B.y * B.y))
 		const sign = A.x * B.y - A.y * B.x < 0 ? -1 : 1
@@ -525,6 +533,7 @@ export class Vec {
 	 * @returns The interpolated point.
 	 */
 	static Lrp(A: VecLike, B: VecLike, t: number): Vec {
+		// Inlined: Vec.Sub(B, A).mul(t).add(A) — note: only interpolates x/y, not z.
 		return new Vec(A.x + (B.x - A.x) * t, A.y + (B.y - A.y) * t)
 	}
 

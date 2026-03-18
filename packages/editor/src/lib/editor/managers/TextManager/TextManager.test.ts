@@ -58,16 +58,15 @@ const mockCreateElement = vi.fn(() => {
 })
 
 // Mock editor
+const mockDocument = {
+	createElement: mockCreateElement,
+}
 const mockEditor = {
 	getContainer: vi.fn(() => ({
 		appendChild: vi.fn(),
 	})),
+	getContainerDocument: vi.fn(() => mockDocument),
 } as unknown as Editor
-
-// Setup global mocks
-global.document = {
-	createElement: mockCreateElement,
-} as any
 
 global.Range = vi.fn(() => ({
 	setStart: vi.fn(),

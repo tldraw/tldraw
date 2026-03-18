@@ -46,6 +46,9 @@ export class Polyline2d extends Geometry2d {
 	}
 
 	nearestPoint(A: VecLike): Vec {
+		// Inlined: for each segment, Edge2d.nearestPoint(A) + Vec.Dist2(result, A), pick closest.
+		// Inlines the per-segment nearest-point math to avoid N Edge2d.nearestPoint Vec allocations;
+		// only allocates a single Vec at the end for the best result.
 		const { vertices } = this
 		let bestX = vertices[0].x
 		let bestY = vertices[0].y

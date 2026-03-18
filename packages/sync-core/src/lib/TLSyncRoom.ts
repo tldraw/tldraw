@@ -15,6 +15,7 @@ import {
 	isNativeStructuredClone,
 	objectMapEntriesIterable,
 	Result,
+	throttle,
 } from '@tldraw/utils'
 import { createNanoEvents } from 'nanoevents'
 import {
@@ -150,12 +151,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private lastDocumentClock = 0
 
-	// eslint-disable-next-line tldraw/prefer-class-methods
-	pruneSessions = () => {
+	private pruneTimer: ReturnType<typeof setTimeout> | null = null
+
+	pruneSessions = throttle(() => {
+		if (this.pruneTimer) {
+			clearTimeout(this.pruneTimer)
+			this.pruneTimer = null
+		}
 		for (const client of this.sessions.values()) {
 			switch (client.state) {
 				case RoomSessionState.Connected: {
-					const hasTimedOut = timeSince(client.lastInteractionTime) > SESSION_IDLE_TIMEOUT
+					const hasTimedOut = timeSince(client.lastInteractionTime) > this.sessionIdleTimeout
 					if (hasTimedOut || !client.socket.isOpen) {
 						this.cancelSession(client.sessionId)
 					}
@@ -166,6 +172,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					if (hasTimedOut || !client.socket.isOpen) {
 						// remove immediately
 						this.removeSession(client.sessionId)
+					} else {
+						this.scheduleFollowUpPrune()
 					}
 					break
 				}
@@ -173,6 +181,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					const hasTimedOut = timeSince(client.cancellationTime) > SESSION_REMOVAL_WAIT_TIME
 					if (hasTimedOut) {
 						this.removeSession(client.sessionId)
+					} else {
+						this.scheduleFollowUpPrune()
 					}
 					break
 				}
@@ -181,11 +191,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 			}
 		}
+	}, 1000)
+
+	private scheduleFollowUpPrune() {
+		if (this.pruneTimer) return
+		this.pruneTimer = setTimeout(this.pruneSessions, SESSION_REMOVAL_WAIT_TIME + 100)
 	}
 
 	readonly presenceStore = new PresenceStore<R>()
 
-	private disposables: Array<() => void> = [interval(this.pruneSessions, 2000)]
+	private disposables: Array<() => void> = []
 
 	private _isClosed = false
 
@@ -225,17 +240,20 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private log?: TLSyncLog
 	public readonly schema: StoreSchema<R, any>
 	private onPresenceChange?(): void
+	private readonly sessionIdleTimeout: number
 
 	constructor(opts: {
 		log?: TLSyncLog
 		schema: StoreSchema<R, any>
 		onPresenceChange?(): void
 		storage: TLSyncStorage<R>
+		clientTimeout?: number
 	}) {
 		this.schema = opts.schema
 		this.log = opts.log
 		this.onPresenceChange = opts.onPresenceChange
 		this.storage = opts.storage
+		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
 
 		assert(
 			isNativeStructuredClone,
@@ -277,6 +295,24 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 			})
 		)
+
+		this.disposables.push(() => {
+			this.pruneSessions.cancel()
+			if (this.pruneTimer) {
+				clearTimeout(this.pruneTimer)
+				this.pruneTimer = null
+			}
+		})
+
+		// When clientTimeout is finite, run periodic pruning so idle sessions are
+		// cleaned up even with no traffic. When Infinity or 0 we skip the interval
+		// (e.g. for hibernation); without it, pruning only runs on message or when
+		// socket close/error triggers cancelSession, so pruning idle sessions
+		// reliably depends on the runtime delivering those events.
+		if (Number.isFinite(this.sessionIdleTimeout) && this.sessionIdleTimeout > 0) {
+			const pruneIntervalMs = Math.min(2000, Math.floor(this.sessionIdleTimeout / 4))
+			this.disposables.push(interval(() => this.pruneSessions(), pruneIntervalMs))
+		}
 	}
 	private broadcastExternalStorageChanges() {
 		this.storage.transaction((txn) => {
@@ -412,6 +448,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		} catch {
 			// noop, calling .close() multiple times is fine
 		}
+
+		this.scheduleFollowUpPrune()
 	}
 
 	readonly internalTxnId = 'TLSyncRoom.txn'
@@ -527,6 +565,60 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			supportsStringAppend: true,
 		})
 		return this
+	}
+
+	/**
+	 * Resume a previously-connected session directly into `Connected` state, bypassing the
+	 * connect handshake. Used after server hibernation when the WebSocket is still alive but
+	 * all in-memory state has been lost.
+	 *
+	 * @internal
+	 */
+	handleResumedSession(opts: {
+		sessionId: string
+		socket: TLRoomSocket<R>
+		meta: SessionMeta
+		isReadonly: boolean
+		serializedSchema: SerializedSchema
+		presenceId: string | null
+		presenceRecord: UnknownRecord | null
+		requiresLegacyRejection: boolean
+		supportsStringAppend: boolean
+	}) {
+		const {
+			sessionId,
+			socket,
+			meta,
+			isReadonly,
+			serializedSchema,
+			presenceId,
+			presenceRecord,
+			requiresLegacyRejection,
+			supportsStringAppend,
+		} = opts
+
+		const migrations = this.schema.getMigrationsSince(serializedSchema)
+		const requiresDownMigrations = migrations.ok ? migrations.value.length > 0 : false
+
+		this.sessions.set(sessionId, {
+			state: RoomSessionState.Connected,
+			sessionId,
+			socket,
+			presenceId: presenceId ?? this.presenceType?.createId() ?? null,
+			serializedSchema,
+			requiresDownMigrations,
+			lastInteractionTime: Date.now(),
+			debounceTimer: null,
+			outstandingDataMessages: [],
+			meta,
+			isReadonly,
+			requiresLegacyRejection,
+			supportsStringAppend,
+		})
+
+		if (presenceRecord && presenceId) {
+			this.presenceStore.set(presenceId, presenceRecord as R)
+		}
 	}
 
 	/**
