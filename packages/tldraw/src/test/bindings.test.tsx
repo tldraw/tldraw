@@ -10,7 +10,6 @@ import {
 	TLShapeId,
 	createBindingId,
 	createShapeId,
-	tldrawShapeMetaKey,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
@@ -404,10 +403,7 @@ test('onAfterChange is called after the binding is updated', () => {
 test('onAfterChangeFromShape is called after the from shape is updated', () => {
 	bindShapes(ids.box1, ids.box2)
 
-	const meta1 = editor.getShape(ids.box1)?.meta
-	expect(meta1).toBeDefined()
-	const { [tldrawShapeMetaKey]: _, ...rest1 } = meta1!
-	expect(rest1).toEqual({})
+	expect(editor.getShape(ids.box1)?.meta).toEqual({})
 	mockOnAfterChangeFromShape.mockImplementationOnce(() => {
 		expect(editor.getShape(ids.box1)?.meta).toMatchObject({
 			foo: 'bar',
@@ -423,16 +419,13 @@ test('onAfterChangeFromShape is called after the from shape is updated', () => {
 	expect(editor.getShape(ids.box1)?.meta).toMatchObject({
 		foo: 'bar',
 	})
-	expect.assertions(4)
+	expect.assertions(3)
 })
 
 test('onAfterChangeToShape is called after the to shape is updated', () => {
 	bindShapes(ids.box1, ids.box2)
 
-	const meta2 = editor.getShape(ids.box2)?.meta
-	expect(meta2).toBeDefined()
-	const { [tldrawShapeMetaKey]: _, ...rest2 } = meta2!
-	expect(rest2).toEqual({})
+	expect(editor.getShape(ids.box2)?.meta).toEqual({})
 	mockOnAfterChangeToShape.mockImplementationOnce(() => {
 		expect(editor.getShape(ids.box2)?.meta).toMatchObject({
 			foo: 'bar',
@@ -448,5 +441,5 @@ test('onAfterChangeToShape is called after the to shape is updated', () => {
 	expect(editor.getShape(ids.box2)?.meta).toMatchObject({
 		foo: 'bar',
 	})
-	expect.assertions(4)
+	expect.assertions(3)
 })

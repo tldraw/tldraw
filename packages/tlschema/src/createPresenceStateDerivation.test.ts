@@ -1,4 +1,4 @@
-import { atom } from '@tldraw/state'
+import { atom, computed } from '@tldraw/state'
 import { Store } from '@tldraw/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -29,8 +29,8 @@ describe('createPresenceStateDerivation', () => {
 					remove: vi.fn().mockResolvedValue(undefined),
 				},
 				users: {
-					getCurrentUser: () => null,
-					resolve: () => null,
+					getCurrentUser: () => computed('currentUser', () => null),
+					resolve: () => computed('resolve', () => null),
 				},
 				onMount: vi.fn(),
 			},
@@ -121,8 +121,8 @@ describe('getDefaultUserPresence', () => {
 					remove: vi.fn().mockResolvedValue(undefined),
 				},
 				users: {
-					getCurrentUser: () => null,
-					resolve: () => null,
+					getCurrentUser: () => computed('currentUser', () => null),
+					resolve: () => computed('resolve', () => null),
 				},
 				onMount: vi.fn(),
 			},

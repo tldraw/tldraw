@@ -189,36 +189,51 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	useEffect(() => {
 		const storeId = uniqueId()
 
+		const resolveCache = new Map<string, ReturnType<Required<TLUserStore>['resolve']>>()
 		const users: Required<TLUserStore> = _users
 			? {
 					getCurrentUser: _users.getCurrentUser,
 					resolve:
 						_users.resolve ??
 						((userId) => {
-							const current = _users.getCurrentUser()
-							return current && current.id === createUserId(userId) ? current : null
+							let signal = resolveCache.get(userId)
+							if (!signal) {
+								signal = computed('resolve-user-' + userId, () => {
+									const current = _users.getCurrentUser().get()
+									return current && current.id === createUserId(userId) ? current : null
+								})
+								resolveCache.set(userId, signal)
+							}
+							return signal
 						}),
 				}
 			: {
 					getCurrentUser: defaultUserStore.getCurrentUser,
 					resolve: (userId) => {
-						const current = defaultUserStore.getCurrentUser()
-						if (current && current.id === createUserId(userId)) return current
-						const presences = store.query.records('instance_presence').get()
-						const match = presences.find((p) => p.userId === userId)
-						if (match) {
-							return UserRecordType.create({
-								id: createUserId(userId),
-								name: match.userName,
-								color: match.color,
+						let signal = resolveCache.get(userId)
+						if (!signal) {
+							signal = computed('resolve-user-' + userId, () => {
+								const current = defaultUserStore.getCurrentUser().get()
+								if (current && current.id === createUserId(userId)) return current
+								const presences = store.query.records('instance_presence').get()
+								const match = presences.find((p) => p.userId === userId)
+								if (match) {
+									return UserRecordType.create({
+										id: createUserId(userId),
+										name: match.userName,
+										color: match.color,
+									})
+								}
+								return null
 							})
+							resolveCache.set(userId, signal)
 						}
-						return null
+						return signal
 					},
 				}
 
 		const currentUser = computed<TLUser>('currentUser', () => {
-			const user = users.getCurrentUser()
+			const user = users.getCurrentUser().get()
 			if (user) return user
 			const prefs = getUserPreferences()
 			return UserRecordType.create({
@@ -414,7 +429,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
  *   uri: 'wss://myserver.com/sync/room-123',
  *   assets: myAssetStore,
  *   users: {
- *     getCurrentUser: () => ({ id: 'user-1', name: 'Alice', color: '#ff0000', meta: {} }),
+ *     getCurrentUser: () => myCurrentUserSignal,
  *   },
  *   getUserPresence: (store, user) => ({
  *     userId: user.id,
@@ -456,9 +471,10 @@ export interface UseSyncOptionsBase {
 	/**
 	 * User store for identity, presence and attribution.
 	 *
-	 * Provides `getCurrentUser()` for the current user's identity (used for
+	 * Both methods return reactive {@link @tldraw/state#Signal | Signals}.
+	 * `getCurrentUser()` provides the current user's identity (used for
 	 * both presence broadcasting and shape attribution) and optionally
-	 * `resolve(userId)` for looking up other users by ID. If not provided,
+	 * `resolve(userId)` looks up other users by ID. If not provided,
 	 * a default implementation backed by localStorage user preferences is
 	 * used, with `resolve` falling back to presence records in the store.
 	 */

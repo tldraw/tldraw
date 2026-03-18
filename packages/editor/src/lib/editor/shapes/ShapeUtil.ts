@@ -591,7 +591,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	}
 
 	/**
-	 * Return user IDs referenced in shape-specific props (not `meta.__tldraw`).
+	 * Return user IDs referenced in shape-specific props.
 	 * Used when copying shapes to include referenced users on the clipboard.
 	 * Override this if your shape stores user IDs in custom props.
 	 *

@@ -120,7 +120,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			fontSizeAdjustment: 0,
 			url: '',
 			scale: 1,
-			textLastEditedBy: null,
+			textFirstEditedBy: null,
 		}
 	}
 
@@ -235,7 +235,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override getReferencedUserIds(shape: TLNoteShape) {
-		return shape.props.textLastEditedBy ? [shape.props.textLastEditedBy] : []
+		return shape.props.textFirstEditedBy ? [shape.props.textFirstEditedBy] : []
 	}
 
 	override getFontFaces(shape: TLNoteShape) {
@@ -247,7 +247,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					style: 'normal',
 				})
 
-		if (shape.props.textLastEditedBy && !isEmptyRichText(shape.props.richText)) {
+		if (shape.props.textFirstEditedBy && !isEmptyRichText(shape.props.richText)) {
 			return [...fonts, DefaultFontFaces.tldraw_sans.normal.normal]
 		}
 
@@ -268,7 +268,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				richText,
 				verticalAlign,
 				fontSizeAdjustment,
-				textLastEditedBy,
+				textFirstEditedBy,
 			},
 		} = shape
 
@@ -298,12 +298,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const attribution = useValue(
 			'attribution',
 			() => {
-				if (!textLastEditedBy || isEmpty) return null
-				const name = this.editor.getAttributionDisplayName(textLastEditedBy)
+				if (!textFirstEditedBy || isEmpty) return null
+				const name = this.editor.getAttributionDisplayName(textFirstEditedBy)
 				if (!name) return null
 				return { short: name.split(' ')[0], full: name }
 			},
-			[textLastEditedBy, isEmpty, this.editor]
+			[textFirstEditedBy, isEmpty, this.editor]
 		)
 
 		return (
@@ -434,10 +434,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			/>
 		)
 
-		const { textLastEditedBy } = shape.props
+		const { textFirstEditedBy } = shape.props
 		const attributionName =
-			textLastEditedBy && !isEmptyRichText(shape.props.richText)
-				? this.editor.getAttributionDisplayName(textLastEditedBy)?.split(' ')[0]
+			textFirstEditedBy && !isEmptyRichText(shape.props.richText)
+				? this.editor.getAttributionDisplayName(textFirstEditedBy)?.split(' ')[0]
 				: null
 
 		return (
@@ -492,12 +492,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		let shape = next
 		if (richTextChanged) {
-			shape = {
-				...shape,
-				props: {
-					...shape.props,
-					textLastEditedBy: this.editor.getAttributionUserId(),
-				},
+			if (isEmptyRichText(next.props.richText)) {
+				shape = {
+					...shape,
+					props: { ...shape.props, textFirstEditedBy: null },
+				}
+			} else if (!prev.props.textFirstEditedBy) {
+				shape = {
+					...shape,
+					props: { ...shape.props, textFirstEditedBy: this.editor.getAttributionUserId() },
+				}
 			}
 		}
 

@@ -1,4 +1,4 @@
-.identity-panel {
+.attribution-panel {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
@@ -10,13 +10,13 @@
 	box-shadow: var(--shadow-2);
 }
 
-.identity-section {
+.attribution-section {
 	display: flex;
 	flex-direction: column;
 	gap: 3px;
 }
 
-.identity-section-title {
+.attribution-section-title {
 	font-weight: 700;
 	font-size: 11px;
 	text-transform: uppercase;
@@ -25,34 +25,34 @@
 	margin-bottom: 2px;
 }
 
-.identity-row {
+.attribution-row {
 	display: flex;
 	justify-content: space-between;
 	gap: 12px;
 }
 
-.identity-label {
+.attribution-label {
 	font-weight: 600;
 	opacity: 0.6;
 }
 
-.identity-value {
+.attribution-value {
 	font-family: var(--tl-font-mono);
 	font-size: 11px;
 }
 
-.identity-hint {
+.attribution-hint {
 	opacity: 0.5;
 }
 
-.identity-controls {
+.attribution-controls {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 4px;
 	margin: 8px;
 }
 
-.identity-dot {
+.attribution-dot {
 	display: inline-block;
 	width: 8px;
 	height: 8px;
@@ -60,7 +60,7 @@
 	margin-right: 4px;
 }
 
-.identity-name-input {
+.attribution-name-input {
 	padding: 4px 8px;
 	border: 1px solid var(--color-muted-2);
 	border-radius: var(--radius-2);
@@ -72,6 +72,6 @@
 	min-width: 100px;
 }
 
-.identity-name-input:focus {
+.attribution-name-input:focus {
 	border-color: var(--color-selected);
 }

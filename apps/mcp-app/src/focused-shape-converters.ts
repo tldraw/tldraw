@@ -1,6 +1,4 @@
 import {
-	defaultTlMeta,
-	tldrawShapeMetaKey,
 	toRichText,
 	type IndexKey,
 	type TLBindingCreate,
@@ -158,7 +156,6 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): {
 		index: 'a1' as IndexKey,
 		meta: {
 			note: shape.note ?? '',
-			[tldrawShapeMetaKey]: defaultTlMeta,
 		},
 	}
 
@@ -309,7 +306,7 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): {
 						labelColor: 'black',
 						scale: 1,
 						url: '',
-						textLastEditedBy: null,
+						textFirstEditedBy: null,
 					},
 				} as TLShape,
 				bindings: [],

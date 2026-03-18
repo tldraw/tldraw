@@ -1,4 +1,4 @@
-import { Signal } from '@tldraw/state'
+import { Signal, computed } from '@tldraw/state'
 import { HistoryEntry, MigrationSequence, SerializedStore, Store, StoreSchema } from '@tldraw/store'
 import {
 	SchemaPropsInfo,
@@ -7,6 +7,7 @@ import {
 	TLStore,
 	TLStoreProps,
 	TLStoreSnapshot,
+	TLUser,
 	TLUserStore,
 	UserRecordType,
 	createTLSchema,
@@ -66,17 +67,19 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>
 
 const defaultAssetResolve: NonNullable<TLAssetStore['resolve']> = (asset) => asset.props.src
 
+const _defaultCurrentUser: Signal<TLUser | null> = computed('defaultCurrentUser', () => {
+	const prefs = getUserPreferences()
+	if (!prefs.id) return null
+	return UserRecordType.create({
+		id: createUserId(prefs.id),
+		name: prefs.name ?? '',
+		color: prefs.color ?? defaultUserPreferences.color,
+	})
+})
+
 /** @public */
 export const defaultUserStore: TLUserStore = {
-	getCurrentUser: () => {
-		const prefs = getUserPreferences()
-		if (!prefs.id) return null
-		return UserRecordType.create({
-			id: createUserId(prefs.id),
-			name: prefs.name ?? '',
-			color: prefs.color ?? defaultUserPreferences.color,
-		})
-	},
+	getCurrentUser: () => _defaultCurrentUser,
 }
 
 /** @public */
@@ -146,10 +149,20 @@ export function createTLStore({
 				getCurrentUser: users.getCurrentUser,
 				resolve:
 					users.resolve ??
-					((userId) => {
-						const current = users.getCurrentUser()
-						return current && current.id === createUserId(userId) ? current : null
-					}),
+					(() => {
+						const cache = new Map<string, Signal<TLUser | null>>()
+						return (userId: string) => {
+							let signal = cache.get(userId)
+							if (!signal) {
+								signal = computed('resolve-user-' + userId, () => {
+									const current = users.getCurrentUser().get()
+									return current && current.id === createUserId(userId) ? current : null
+								})
+								cache.set(userId, signal)
+							}
+							return signal
+						}
+					})(),
 			},
 			onMount: (editor) => {
 				assert(editor instanceof Editor)

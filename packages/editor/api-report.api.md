@@ -80,7 +80,6 @@ import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
 import { TLShapeCrop } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
-import { TLShapeMeta } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
@@ -916,7 +915,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -929,7 +928,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -942,7 +941,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -955,7 +954,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -968,7 +967,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -981,7 +980,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -994,7 +993,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -1007,7 +1006,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -1020,7 +1019,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -1033,7 +1032,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -1046,7 +1045,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -1059,7 +1058,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -1072,7 +1071,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -1085,7 +1084,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;
@@ -1098,7 +1097,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 id: TLShapeId;
                 index: IndexKey;
                 isLocked: boolean;
-                meta: TLShapeMeta;
+                meta: JsonObject;
                 opacity: number;
                 parentId: TLParentId;
                 props: any;

@@ -189,15 +189,9 @@ export {
 } from './shapes/TLArrowShape'
 export {
 	createShapeValidator,
-	defaultTlMeta,
-	getTldrawMetaFromShapeMeta,
 	parentIdValidator,
 	shapeIdValidator,
-	tldrawShapeMetaKey,
-	tlmetaValidator,
 	type TLBaseShape,
-	type TLShapeMeta,
-	type TLShapeTLMeta,
 } from './shapes/TLBaseShape'
 export {
 	bookmarkShapeMigrations,

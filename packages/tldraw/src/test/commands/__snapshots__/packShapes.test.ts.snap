@@ -6,14 +6,7 @@ exports[`editor.packShapes > packs rotated shapes > packed shapes 1`] = `
     "id": "shape:boxA",
     "index": "a1",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -50,14 +43,7 @@ exports[`editor.packShapes > packs rotated shapes > packed shapes 1`] = `
     "id": "shape:boxB",
     "index": "a2",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -94,14 +80,7 @@ exports[`editor.packShapes > packs rotated shapes > packed shapes 1`] = `
     "id": "shape:boxC",
     "index": "a3",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -143,14 +122,7 @@ exports[`editor.packShapes > packs shapes > packed shapes 1`] = `
     "id": "shape:boxA",
     "index": "a1",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -187,14 +159,7 @@ exports[`editor.packShapes > packs shapes > packed shapes 1`] = `
     "id": "shape:boxB",
     "index": "a2",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -231,14 +196,7 @@ exports[`editor.packShapes > packs shapes > packed shapes 1`] = `
     "id": "shape:boxC",
     "index": "a3",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -280,14 +238,7 @@ exports[`editor.packShapes > packs shapes using the adjacent shape margin option
     "id": "shape:boxA",
     "index": "a1",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -324,14 +275,7 @@ exports[`editor.packShapes > packs shapes using the adjacent shape margin option
     "id": "shape:boxB",
     "index": "a2",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": {
@@ -368,14 +312,7 @@ exports[`editor.packShapes > packs shapes using the adjacent shape margin option
     "id": "shape:boxC",
     "index": "a3",
     "isLocked": false,
-    "meta": {
-      "__tldraw": {
-        "createdAt": "[Time]",
-        "createdBy": "[User]",
-        "updatedAt": "[Time]",
-        "updatedBy": "[User]",
-      },
-    },
+    "meta": {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": {

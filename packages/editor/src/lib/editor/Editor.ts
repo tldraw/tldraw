@@ -48,7 +48,6 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-	TLShapeTLMeta,
 	TLStore,
 	TLStoreSnapshot,
 	TLUser,
@@ -59,10 +58,8 @@ import {
 	createShapeId,
 	createUserId,
 	getShapePropKeysByStyle,
-	getTldrawMetaFromShapeMeta,
 	isPageId,
 	isShapeId,
-	tldrawShapeMetaKey,
 } from '@tldraw/tlschema'
 import {
 	FileHelpers,
@@ -829,7 +826,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.disposables.add(
 			react('sync current user record', () => {
-				const user = this.store.props.users.getCurrentUser()
+				const user = this.store.props.users.getCurrentUser().get()
 				if (user) {
 					this._ensureUserRecord(user)
 				}
@@ -3960,14 +3957,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// Attribution
 
 	/**
-	 * Get the current user's ID for stamping into shape `meta.__tldraw`.
+	 * Get the current user's ID for attribution purposes.
 	 * Also ensures a `user:` record exists in the store for the current user.
 	 * Returns `null` when the user store has no current user.
 	 *
 	 * @public
 	 */
 	getAttributionUserId(): string | null {
-		const user = this.store.props.users.getCurrentUser()
+		const user = this.store.props.users.getCurrentUser().get()
 		if (!user) return null
 		this._ensureUserRecord(user)
 		return UserRecordType.parseId(user.id)
@@ -3998,41 +3995,44 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Resolve a display name for a user ID. Looks up the `user:` record
-	 * in the store, falling back to the {@link @tldraw/tlschema#TLUserStore}.
+	 * Resolve a display name for a user ID. Asks the
+	 * {@link @tldraw/tlschema#TLUserStore} first (the app's source of truth),
+	 * falling back to the `user:` record in the store.
 	 *
 	 * @public
 	 */
 	getAttributionDisplayName(userId: string | null): string | null {
 		if (!userId) return null
-		const record = this.store.get(createUserId(userId))
-		if (record) return record.name ?? null
-		return this.store.props.users.resolve(userId)?.name ?? null
+		return (
+			this.store.props.users.resolve(userId).get()?.name ??
+			this.store.get(createUserId(userId))?.name ??
+			null
+		)
 	}
 
 	/**
-	 * Resolve a user record by ID from the store, falling back to the
-	 * {@link @tldraw/tlschema#TLUserStore}.
+	 * Resolve a user record by ID. Asks the
+	 * {@link @tldraw/tlschema#TLUserStore} first (the app's source of truth),
+	 * falling back to the `user:` record in the store.
 	 *
 	 * @public
 	 */
 	getAttributionUser(userId: string | null): TLUser | null {
 		if (!userId) return null
-		return this.store.get(createUserId(userId)) ?? this.store.props.users.resolve(userId) ?? null
+		return (
+			this.store.props.users.resolve(userId).get() ?? this.store.get(createUserId(userId)) ?? null
+		)
 	}
 
 	/**
-	 * Collect user IDs referenced by a set of shapes (from both `meta.__tldraw`
-	 * and shape-specific props like `textLastEditedBy`).
+	 * Collect user IDs referenced by a set of shapes via shape-specific props
+	 * (e.g. `textFirstEditedBy` on notes).
 	 *
 	 * @internal
 	 */
 	_getReferencedUserIds(shapes: TLShape[]): Set<string> {
 		const userIds = new Set<string>()
 		for (const shape of shapes) {
-			const tlmeta = getTldrawMetaFromShapeMeta(shape.meta)
-			if (tlmeta.createdBy) userIds.add(tlmeta.createdBy)
-			if (tlmeta.updatedBy) userIds.add(tlmeta.updatedBy)
 			const util = this.getShapeUtil(shape)
 			for (const id of util.getReferencedUserIds(shape)) {
 				userIds.add(id)
@@ -8152,42 +8152,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// When we create the shape, take in the partial (the props coming into the
 				// function) and merge it with the default props.
-				const { meta: partialMeta, ...partialWithoutMeta } = partial as any
-				const { [tldrawShapeMetaKey]: partialTlmeta, ...partialMetaWithoutTlmeta } = (partialMeta ??
-					{}) as JsonObject
 				let shapeRecordToCreate = (
 					this.store.schema.types.shape as RecordType<
 						TLShape,
 						'type' | 'props' | 'index' | 'parentId'
 					>
 				).create({
-					...partialWithoutMeta,
+					...partial,
 					index,
 					opacity: partial.opacity ?? opacityForNextShape,
 					parentId: partial.parentId ?? focusedGroupId,
 					props: 'props' in partial ? { ...initialProps, ...partial.props } : initialProps,
-					meta: partialMetaWithoutTlmeta,
 				})
 
 				if (shapeRecordToCreate.index === undefined) {
 					throw Error('no index!')
-				}
-
-				// Set attribution metadata, merging any explicitly provided fields
-				const now = Date.now()
-				const userId = this.getAttributionUserId()
-				shapeRecordToCreate = {
-					...shapeRecordToCreate,
-					meta: {
-						...shapeRecordToCreate.meta,
-						[tldrawShapeMetaKey]: {
-							createdBy: userId,
-							updatedBy: userId,
-							createdAt: now,
-							updatedAt: now,
-							...(partialTlmeta as Partial<TLShapeTLMeta> | undefined),
-						},
-					},
 				}
 
 				const next = this.getShapeUtil(shapeRecordToCreate).onBeforeCreate?.(shapeRecordToCreate)
@@ -8599,24 +8578,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the update had no effect, we'll skip this update
 				updated = applyPartialToRecordWithProps(shape, partial)
 				if (updated === shape) continue
-
-				// Update attribution metadata (always system-set, ignoring any partial meta.__tldraw)
-				// The reason is because things like, say, resizing, send the whole metadata into
-				// the updateShape call and then `updatedAt` never gets the correct date.
-				const now = Date.now()
-				const userId = this.getAttributionUserId()
-				const tlmeta = getTldrawMetaFromShapeMeta(shape.meta)
-				updated = {
-					...updated,
-					meta: {
-						...updated.meta,
-						[tldrawShapeMetaKey]: {
-							...tlmeta,
-							updatedBy: userId,
-							updatedAt: now,
-						},
-					},
-				}
 
 				//if any shape has an onBeforeUpdate handler, call it and, if the handler returns a
 				// new shape, replace the old shape with the new one. This is used for example when
