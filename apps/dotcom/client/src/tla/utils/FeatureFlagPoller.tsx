@@ -6,7 +6,8 @@ export type FeatureFlags = Record<FeatureFlagKey, EvaluatedFeatureFlag>
 
 const DEFAULT_FLAGS: FeatureFlags = {
 	sqlite_file_storage: { enabled: false },
-	proper_zero: { enabled: false },
+	zero_enabled: { enabled: false },
+	zero_kill_switch: { enabled: false },
 }
 
 let flagsPromise: Promise<FeatureFlags> | null = null
@@ -51,13 +52,24 @@ fetchFeatureFlags()
 const REFETCH_INTERVAL = 60000 // 1 minute
 
 /**
- * React component that polls for feature flag changes after the initial fetch.
- * If proper_zero changes, it reloads the page.
+ * Determines whether a flag change should trigger a page reload.
+ * Only reloads when zero_kill_switch transitions to true from any non-true state.
+ */
+export function shouldReloadForFlagChange(prev: FeatureFlags, next: FeatureFlags): boolean {
+	const prevKillSwitch = prev.zero_kill_switch?.enabled
+	const nextKillSwitch = next.zero_kill_switch?.enabled
+	return nextKillSwitch === true && prevKillSwitch !== true
+}
+
+/**
+ * Polls for feature flag changes after the initial fetch.
+ * - zero_kill_switch: reload when it becomes true (emergency abort)
+ * - zero_enabled: changes are silent, take effect on next page load
  */
 export function FeatureFlagPoller() {
 	useEffect(() => {
 		let mounted = true
-		let prevProperZero = currentFlags.proper_zero?.enabled ?? false
+		let prevFlags: FeatureFlags = { ...currentFlags }
 
 		async function pollFlags() {
 			try {
@@ -66,12 +78,11 @@ export function FeatureFlagPoller() {
 				const data = await response.json()
 				if (!mounted) return
 
-				const properZero = data.proper_zero?.enabled ?? false
-				if (properZero !== prevProperZero) {
+				if (shouldReloadForFlagChange(prevFlags, data)) {
 					location.reload()
 					return
 				}
-				prevProperZero = properZero
+				prevFlags = data
 				currentFlags = data
 			} catch (err) {
 				console.warn('[FeatureFlags] poll error:', err)
@@ -82,7 +93,7 @@ export function FeatureFlagPoller() {
 
 		fetchFeatureFlags().then(() => {
 			if (!mounted) return
-			prevProperZero = currentFlags.proper_zero?.enabled ?? false
+			prevFlags = { ...currentFlags }
 			interval = setInterval(pollFlags, REFETCH_INTERVAL)
 		})
 

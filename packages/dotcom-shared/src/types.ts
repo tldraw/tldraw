@@ -219,7 +219,11 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 
 /* ----------------------- Feature Flags ---------------------- */
 
-export const FEATURE_FLAG_KEYS = ['sqlite_file_storage', 'proper_zero'] as const
+export const FEATURE_FLAG_KEYS = [
+	'sqlite_file_storage',
+	'zero_enabled',
+	'zero_kill_switch',
+] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
 export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag

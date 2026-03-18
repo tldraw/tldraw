@@ -18,11 +18,16 @@ function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagVa
 			enabled: defaultEnabled,
 			description: 'When ON: uses SQLite storage for TLFileDurableObject instead of in-memory',
 		},
-		proper_zero: {
+		zero_enabled: {
 			type: 'percentage',
 			percentage: 0,
 			enabled: false,
-			description: 'When ON: uses proper Zero client instead of ZeroPolyfill',
+			description: 'Percentage rollout of proper Zero client (takes effect on next page load)',
+		},
+		zero_kill_switch: {
+			type: 'boolean',
+			enabled: false,
+			description: 'Emergency kill switch — when enabled, forces all users off Zero immediately',
 		},
 	}
 }
@@ -34,7 +39,7 @@ export { FEATURE_FLAG_KEYS } from '@tldraw/dotcom-shared'
  * Hashes userId + flagName so a user gets independent buckets per flag.
  * https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1a_hash
  */
-function hashToPercentage(userId: string, flagName: string): number {
+export function hashToPercentage(userId: string, flagName: string): number {
 	const input = userId + flagName
 	let hash = 2166136261
 	for (let i = 0; i < input.length; i++) {
@@ -67,7 +72,7 @@ export async function getFeatureFlagValue(
  * Evaluate a flag for a specific user. Percentage flags use a deterministic
  * hash of userId+flagName. Boolean flags use the `enabled` field directly.
  */
-function evaluateFlagForUser(
+export function evaluateFlagForUser(
 	flag: FeatureFlagValue,
 	flagName: string,
 	userId: string | null

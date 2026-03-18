@@ -103,10 +103,13 @@ export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 let appId = 0
 
-function shouldUseProperZero(
+export function shouldUseProperZero(
 	flags: FeatureFlags,
 	email?: string | null
 ): { value: boolean; reason: string } {
+	if (flags.zero_kill_switch?.enabled) {
+		return { value: false, reason: 'kill switch active' }
+	}
 	const localOverride = getFromLocalStorage('useProperZero')
 	if (localOverride !== null) {
 		return { value: localOverride === 'true', reason: 'localStorage override' }
@@ -114,7 +117,7 @@ function shouldUseProperZero(
 	if (email?.endsWith('@tldraw.com')) {
 		return { value: true, reason: '@tldraw.com email' }
 	}
-	const flagEnabled = flags.proper_zero?.enabled ?? false
+	const flagEnabled = flags.zero_enabled?.enabled ?? false
 	return { value: flagEnabled, reason: 'server feature flag' }
 }
 
