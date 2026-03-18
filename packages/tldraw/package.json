@@ -1,7 +1,7 @@
 {
 	"name": "tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "4.4.0",
+	"version": "4.5.1",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -59,6 +59,7 @@
 		"@tiptap/pm": "^3.12.1",
 		"@tiptap/react": "^3.12.1",
 		"@tiptap/starter-kit": "^3.12.1",
+		"@tldraw/driver": "workspace:*",
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"classnames": "^2.5.1",

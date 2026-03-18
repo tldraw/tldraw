@@ -19,8 +19,8 @@ import { vi } from 'vitest'
 import { TldrawSelectionForeground } from '../lib/canvas/TldrawSelectionForeground'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
+import { createDrawSegments } from '../lib/utils/test-helpers'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
-import { createDrawSegments } from './test-jsx'
 import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,

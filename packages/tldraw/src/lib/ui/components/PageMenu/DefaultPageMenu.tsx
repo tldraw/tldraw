@@ -67,16 +67,17 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	useEffect(
 		function closePageMenuOnEnterPressAfterPressingEnterToConfirmRename() {
+			const doc = editor.getContainerDocument()
 			function handleKeyDown() {
 				if (isEditing) return
-				if (document.activeElement === document.body) {
+				if (doc.activeElement === doc.body) {
 					editor.menus.clearOpenMenus()
 				}
 			}
 
-			document.addEventListener('keydown', handleKeyDown, { passive: true })
+			doc.addEventListener('keydown', handleKeyDown, { passive: true })
 			return () => {
-				document.removeEventListener('keydown', handleKeyDown)
+				doc.removeEventListener('keydown', handleKeyDown)
 			}
 		},
 		[editor, isEditing]
@@ -115,7 +116,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	useEffect(() => {
 		if (!isOpen) return
 		editor.timers.requestAnimationFrame(() => {
-			const elm = document.querySelector(`[data-pageid="${currentPageId}"]`) as HTMLDivElement
+			const doc = editor.getContainerDocument()
+			const elm = doc.querySelector(`[data-pageid="${currentPageId}"]`) as HTMLDivElement
 
 			if (elm) {
 				elm.querySelector('button')?.focus()
@@ -279,7 +281,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			setIsEditing(true)
 
 			editor.timers.requestAnimationFrame(() => {
-				const elm = document.querySelector(`[data-pageid="${newPageId}"]`) as HTMLDivElement
+				const doc = editor.getContainerDocument()
+				const elm = doc.querySelector(`[data-pageid="${newPageId}"]`) as HTMLDivElement
 
 				if (elm) {
 					elm.querySelector('button')?.focus()

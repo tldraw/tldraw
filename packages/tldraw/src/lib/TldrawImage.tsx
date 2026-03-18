@@ -143,7 +143,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 
 		let isCancelled = false
 
-		const tempElm = document.createElement('div')
+		const tempElm = container.ownerDocument.createElement('div')
 		container.appendChild(tempElm)
 		container.classList.add('tl-container', 'tl-theme__light')
 

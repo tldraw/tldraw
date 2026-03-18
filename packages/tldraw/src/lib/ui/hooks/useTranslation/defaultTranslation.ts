@@ -22,6 +22,8 @@ export const DEFAULT_TRANSLATION = {
 	'action.back-to-content': 'Back to content',
 	'action.bring-forward': 'Bring forward',
 	'action.bring-to-front': 'Bring to front',
+	'action.copy-as-json.short': 'JSON',
+	'action.copy-as-json': 'Copy as JSON',
 	'action.copy-as-png.short': 'PNG',
 	'action.copy-as-png': 'Copy as PNG',
 	'action.copy-as-svg.short': 'SVG',

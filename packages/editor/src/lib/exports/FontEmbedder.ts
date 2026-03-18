@@ -11,7 +11,7 @@ export const SVG_EXPORT_CLASSNAME = 'tldraw-svg-export'
  * SVG.
  *
  * It works in three steps:
- * 1. `startFindingCurrentDocumentFontFaces` - this traverses the current document, finding all the
+ * 1. `startFindingDocumentFontFaces` - this traverses the given document, finding all the
  *    stylesheets in use (including those imported via `@import` rules etc) and extracting the
  *    @font-face declarations from them.
  * 2. `onFontFamilyValue` - as `StyleEmbedder` traverses the SVG, it will call this method with the
@@ -26,9 +26,9 @@ export class FontEmbedder {
 	private readonly fontFacesToEmbed = new Set<ParsedFontFace>()
 	private readonly pendingPromises: Promise<void>[] = []
 
-	startFindingCurrentDocumentFontFaces() {
+	startFindingDocumentFontFaces(doc: Document) {
 		assert(!this.fontFacesPromise, 'FontEmbedder already started')
-		this.fontFacesPromise = getCurrentDocumentFontFaces()
+		this.fontFacesPromise = getDocumentFontFaces(doc)
 	}
 
 	@bind onFontFamilyValue(fontFamilyValue: string) {
@@ -80,7 +80,8 @@ export class FontEmbedder {
 	}
 }
 
-async function getCurrentDocumentFontFaces() {
+async function getDocumentFontFaces(doc: Document) {
+	const win = doc.defaultView ?? globalThis
 	const fontFaces: (ParsedFontFace[] | Promise<ParsedFontFace[] | null>)[] = []
 
 	// In exportToSvg we add the exported node to the DOM temporarily.
@@ -88,7 +89,7 @@ async function getCurrentDocumentFontFaces() {
 	// DOM, when looking at document.styleSheets the number of nodes and stylesheets
 	// can grow unbounded (especially when using "Debug svg" and moving shapes around).
 	// To avoid this, we filter out the stylesheets that are part of the SVG export.
-	const styleSheetsWithoutSvgExports = Array.from(document.styleSheets).filter(
+	const styleSheetsWithoutSvgExports = Array.from(doc.styleSheets).filter(
 		(styleSheet) =>
 			!(styleSheet.ownerNode as HTMLElement | null)?.closest(`.${SVG_EXPORT_CLASSNAME}`)
 	)
@@ -103,10 +104,10 @@ async function getCurrentDocumentFontFaces() {
 
 		if (cssRules) {
 			for (const rule of styleSheet.cssRules) {
-				if (rule instanceof CSSFontFaceRule) {
-					fontFaces.push(parseCssFontFaces(rule.cssText, styleSheet.href ?? document.baseURI))
-				} else if (rule instanceof CSSImportRule) {
-					const absoluteUrl = new URL(rule.href, rule.parentStyleSheet?.href ?? document.baseURI)
+				if (rule instanceof win.CSSFontFaceRule) {
+					fontFaces.push(parseCssFontFaces(rule.cssText, styleSheet.href ?? doc.baseURI))
+				} else if (rule instanceof win.CSSImportRule) {
+					const absoluteUrl = new URL(rule.href, rule.parentStyleSheet?.href ?? doc.baseURI)
 					fontFaces.push(fetchCssFontFaces(absoluteUrl.href))
 				}
 			}

@@ -2,6 +2,7 @@ import {
 	assert,
 	atom,
 	Editor,
+	getGlobalDocument,
 	tlenvReactive,
 	uniqueId,
 	useMaybeEditor,
@@ -17,6 +18,7 @@ import React, {
 	useRef,
 	useState,
 } from 'react'
+import { useDirection } from '../../hooks/useTranslation/useTranslation'
 import { useTldrawUiOrientation } from './layout'
 
 const DEFAULT_TOOLTIP_DELAY_MS = 700
@@ -207,6 +209,7 @@ function TooltipSingleton() {
 	const triggerRef = useRef<HTMLDivElement>(null)
 	const isFirstShowRef = useRef(true)
 	const editor = useMaybeEditor()
+	const dir = useDirection()
 
 	const currentTooltip = useValue(
 		'current tooltip',
@@ -229,6 +232,7 @@ function TooltipSingleton() {
 	}, [cameraState, isOpen, currentTooltip, editor])
 
 	useEffect(() => {
+		const doc = editor?.getContainerDocument() ?? getGlobalDocument()
 		function handleKeyDown(event: KeyboardEvent) {
 			if (event.key === 'Escape' && currentTooltip && isOpen) {
 				hideAllTooltips()
@@ -236,14 +240,15 @@ function TooltipSingleton() {
 			}
 		}
 
-		document.addEventListener('keydown', handleKeyDown, { capture: true })
+		doc.addEventListener('keydown', handleKeyDown, { capture: true })
 		return () => {
-			document.removeEventListener('keydown', handleKeyDown, { capture: true })
+			doc.removeEventListener('keydown', handleKeyDown, { capture: true })
 		}
-	}, [currentTooltip, isOpen])
+	}, [editor, currentTooltip, isOpen])
 
 	// Hide tooltip and prevent new ones from opening while pointer is down
 	useEffect(() => {
+		const doc = editor?.getContainerDocument() ?? getGlobalDocument()
 		function handlePointerDown() {
 			tooltipManager.handleEvent({ type: 'pointer_down' })
 		}
@@ -252,17 +257,17 @@ function TooltipSingleton() {
 			tooltipManager.handleEvent({ type: 'pointer_up' })
 		}
 
-		document.addEventListener('pointerdown', handlePointerDown, { capture: true })
-		document.addEventListener('pointerup', handlePointerUp, { capture: true })
-		document.addEventListener('pointercancel', handlePointerUp, { capture: true })
+		doc.addEventListener('pointerdown', handlePointerDown, { capture: true })
+		doc.addEventListener('pointerup', handlePointerUp, { capture: true })
+		doc.addEventListener('pointercancel', handlePointerUp, { capture: true })
 		return () => {
-			document.removeEventListener('pointerdown', handlePointerDown, { capture: true })
-			document.removeEventListener('pointerup', handlePointerUp, { capture: true })
-			document.removeEventListener('pointercancel', handlePointerUp, { capture: true })
+			doc.removeEventListener('pointerdown', handlePointerDown, { capture: true })
+			doc.removeEventListener('pointerup', handlePointerUp, { capture: true })
+			doc.removeEventListener('pointercancel', handlePointerUp, { capture: true })
 			// Reset pointer state on unmount to prevent stuck state
 			tooltipManager.handleEvent({ type: 'pointer_up' })
 		}
-	}, [])
+	}, [editor])
 
 	// Update open state and trigger position
 	useEffect(() => {
@@ -325,7 +330,7 @@ function TooltipSingleton() {
 				sideOffset={currentTooltip.sideOffset}
 				avoidCollisions
 				collisionPadding={8}
-				dir="ltr"
+				dir={dir}
 			>
 				{currentTooltip.content}
 				<_Tooltip.Arrow className="tlui-tooltip__arrow" />
@@ -349,6 +354,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		ref
 	) => {
 		const editor = useMaybeEditor()
+		const dir = useDirection()
 		const tooltipId = useRef<string>(uniqueId())
 		const hasProvider = useContext(TooltipSingletonContext)
 		const enhancedA11yMode = useValue(
@@ -403,7 +409,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 						sideOffset={sideOffset}
 						avoidCollisions
 						collisionPadding={8}
-						dir="ltr"
+						dir={dir}
 					>
 						{content}
 						<_Tooltip.Arrow className="tlui-tooltip__arrow" />
