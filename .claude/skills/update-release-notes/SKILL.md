@@ -153,12 +153,21 @@ After editing `next.mdx` (and any archive files), commit and push from the tldra
 
 ```bash
 cd /tmp/tldraw
-git checkout -b update-release-notes
+BRANCH="update-release-notes-$(date -u +%Y%m%d-%H%M)"
+git checkout -b "$BRANCH"
 git add apps/docs/content/releases/
 git commit -m "docs: update release notes"
-git push -u origin update-release-notes
-gh pr create -R tldraw/tldraw --title "docs: update release notes" --body "Update next.mdx with entries from $(source)."
+git push -u origin "$BRANCH"
 ```
+
+Then create the PR following the standards in `@.claude/skills/write-pr/SKILL.md`:
+
+- **Title**: `docs(releases): update release notes`
+- **Change type**: `other`
+- **Test plan**: Remove the numbered list (no manual testing steps). Untick both unit tests and end to end tests.
+- **Release notes**: Omit this section (internal docs work with no user-facing impact)
+- **Description paragraph**: Start with "In order to..." and mention the source (`main` or `production`) and what was updated (new entries added, stale entries pruned, archival performed, etc.)
+- Include a **Code changes** table with a `Documentation` row
 
 ## The `last_version` field
 
