@@ -5,6 +5,9 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { defineConfig, Plugin } from 'vite'
 import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
+import { getMultiplayerServerURL } from './scripts/multiplayer-server-url'
+
+export { getMultiplayerServerURL }
 
 config({
 	path: './.env.local',
@@ -35,10 +38,6 @@ function spaFallbackPlugin(): Plugin {
 			})
 		},
 	}
-}
-
-export function getMultiplayerServerURL() {
-	return process.env.MULTIPLAYER_SERVER?.replace(/^ws/, 'http')
 }
 
 function urlOrLocalFallback(mode: string, url: string | undefined, localFallbackPort: number) {

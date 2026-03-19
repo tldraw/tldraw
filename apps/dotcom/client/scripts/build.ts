@@ -7,7 +7,7 @@ import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
 import { csp } from '../src/utils/csp'
-import { getMultiplayerServerURL } from '../vite.config'
+import { getMultiplayerServerURL } from './multiplayer-server-url'
 import { Config } from './vercel-output-config'
 
 const commonSecurityHeaders = {
