@@ -149,12 +149,23 @@ export class Drawing extends StateNode {
 		const lastSegment = segments[segments.length - 1]
 		const lastPoint = b64Vecs.decodeLastPoint(lastSegment.path)
 
+		const zoomLevel = this.editor.getZoomLevel()
+		const isDynamicResizingEnabled = this.editor.user.getIsDynamicResizeMode()
+
+		const threshold = isDynamicResizingEnabled // when dynamic resizing is enabled scale is 1/zoom, so the threshold should not scale directly with zoom at all
+			? (strokeWidth + 2) * scale // +2 keeps tiny strokes from being too hard to close
+			: // 6 is a base floor, 2 is stroke influence, 0.8 tempers width growth
+				6 +
+				2 * Math.sqrt(strokeWidth * 0.8) +
+				// 100 is low-zoom boost, 0.18 is the zoom knee, 3 controls falloff steepness
+				100 / (1 + Math.pow(zoomLevel / 0.18, 3))
+
 		return (
 			firstPoint !== null &&
 			lastPoint !== null &&
 			firstPoint !== lastPoint &&
 			this.currentLineLength > strokeWidth * 4 * scale &&
-			Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2 * scale)
+			Vec.DistMin(firstPoint, lastPoint, threshold)
 		)
 	}
 
