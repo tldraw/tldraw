@@ -161,7 +161,13 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
 export function createCachedUserResolve(resolveFn: (userId: string) => null | TLUser): (userId: string) => Signal<null | TLUser>;
 
 // @public
-export function createPresenceStateDerivation($user: Signal<null | TLUser>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence, unknown>;
+export function createPresenceStateDerivation($user: Signal<null | TLUser>, opts?: CreatePresenceStateDerivationOpts): (store: TLStore) => Signal<null | TLInstancePresence, unknown>;
+
+// @public (undocumented)
+export interface CreatePresenceStateDerivationOpts {
+    getUserPresence?: (store: TLStore, user: TLUser) => null | TLPresenceStateInfo;
+    instanceId?: TLInstancePresence['id'];
+}
 
 // @public
 export function createShapeId(id?: string): TLShapeId;

@@ -7,6 +7,17 @@ import { TLPOINTER_ID } from './records/TLPointer'
 import { InstancePresenceRecordType, TLInstancePresence } from './records/TLPresence'
 import { TLUser } from './records/TLUser'
 
+/** @public */
+export interface CreatePresenceStateDerivationOpts {
+	/** Custom instance ID. If not provided, one is generated from the store ID. */
+	instanceId?: TLInstancePresence['id']
+	/**
+	 * Override how presence state is built from the store and current user.
+	 * Defaults to {@link getDefaultUserPresence}.
+	 */
+	getUserPresence?: (store: TLStore, user: TLUser) => TLPresenceStateInfo | null
+}
+
 /**
  * Creates a derivation that represents the current presence state of the current user.
  *
@@ -16,7 +27,7 @@ import { TLUser } from './records/TLUser'
  * multiplayer scenarios.
  *
  * @param $user - A reactive signal containing the user information, or `null` when anonymous
- * @param instanceId - Optional custom instance ID. If not provided, one will be generated based on the store ID
+ * @param opts - Optional configuration for instance ID and presence derivation
  * @returns A function that takes a store and returns a computed signal of the user's presence state
  *
  * @example
@@ -36,14 +47,16 @@ import { TLUser } from './records/TLUser'
  */
 export function createPresenceStateDerivation(
 	$user: Signal<TLUser | null>,
-	instanceId?: TLInstancePresence['id']
+	opts?: CreatePresenceStateDerivationOpts
 ) {
+	const { instanceId, getUserPresence: _getUserPresence } = opts ?? {}
+	const getUserPresence = _getUserPresence ?? getDefaultUserPresence
 	return (store: TLStore): Signal<TLInstancePresence | null> => {
 		return computed('instancePresence', () => {
 			const user = $user.get()
 			if (!user) return null
 
-			const state = getDefaultUserPresence(store, user)
+			const state = getUserPresence(store, user)
 			if (!state) return null
 
 			return InstancePresenceRecordType.create({

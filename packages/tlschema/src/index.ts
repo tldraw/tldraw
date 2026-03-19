@@ -51,6 +51,7 @@ export {
 export {
 	createPresenceStateDerivation,
 	getDefaultUserPresence,
+	type CreatePresenceStateDerivationOpts,
 	type TLPresenceStateInfo,
 } from './createPresenceStateDerivation'
 export {

@@ -13,7 +13,6 @@ import {
 import { useEffect } from 'react'
 import {
 	Editor,
-	InstancePresenceRecordType,
 	TAB_ID,
 	TLAssetStore,
 	TLPresenceStateInfo,
@@ -26,6 +25,7 @@ import {
 	UserRecordType,
 	computed,
 	createCachedUserResolve,
+	createPresenceStateDerivation,
 	createTLStore,
 	createUserId,
 	defaultUserPreferences,
@@ -302,15 +302,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			},
 		})
 
-		const presence = computed('instancePresence', () => {
-			const presenceState = getUserPresence(store, currentUser.get())
-			if (!presenceState) return null
-
-			return InstancePresenceRecordType.create({
-				...presenceState,
-				id: InstancePresenceRecordType.createId(store.id),
-			})
-		})
+		const presence = createPresenceStateDerivation(currentUser, {
+			getUserPresence,
+		})(store)
 
 		const otherUserPresences = store.query.ids('instance_presence', () => ({
 			userId: { neq: currentUser.get().id },
