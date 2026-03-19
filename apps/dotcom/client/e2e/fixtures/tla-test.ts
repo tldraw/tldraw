@@ -116,7 +116,7 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 export { expect } from '@playwright/test'
 
 /** Stage 3 / TS 5.2+ method decorator context (subset; avoids coupling to a specific TS lib version). */
-type StepMethodDecoratorContext = {
+interface StepMethodDecoratorContext {
 	kind: 'method'
 	name: string | symbol
 }
@@ -132,7 +132,7 @@ function isStage3MethodDecoratorContext(value: unknown): value is StepMethodDeco
 
 /** Legacy method decorator (`experimentalDecorators`). */
 export function step<T extends (...args: any[]) => any>(
-	target: Object,
+	target: object,
 	propertyKey: string | symbol,
 	descriptor: TypedPropertyDescriptor<T>
 ): TypedPropertyDescriptor<T>
@@ -147,7 +147,7 @@ export function step<T extends (...args: any[]) => any>(
  * (e.g. when tests run under Node's `--no-strip-types` + modern emit).
  */
 export function step(
-	target: Object | ((...args: any[]) => any),
+	target: object | ((...args: any[]) => any),
 	propertyKeyOrContext: string | symbol | StepMethodDecoratorContext,
 	descriptor?: TypedPropertyDescriptor<(...args: any[]) => any>
 ): any {
