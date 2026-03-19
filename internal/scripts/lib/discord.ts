@@ -2,18 +2,19 @@ function sanitizeVariables(errorOutput: string): string {
 	let sanitized = errorOutput
 
 	// Sanitize wrangler --var KEY:VALUE patterns
-	sanitized = sanitized.replace(/(--var\s+)(\w+):[^ \n]+/g, '$1$2:***')
+	sanitized = sanitized.replace(/(--var\s+)(\w+):[^ \n]+/g, '$1$2:`***`')
 
-	// Sanitize KEY=VALUE patterns where KEY looks like an env var (e.g. flyctl secrets set)
-	sanitized = sanitized.replace(/\b([A-Z][A-Z_0-9]{2,})=[^ \n]+/g, '$1=***')
+	// Sanitize KEY=VALUE patterns where KEY looks like an env var and value is long enough
+	// to be a secret (e.g. flyctl secrets set). Short values like =debug are left alone.
+	sanitized = sanitized.replace(/\b([A-Z][A-Z_0-9]{2,})=([^ \n]{8,})/g, '$1=`***`')
 
 	// Sanitize --token VALUE and --token=VALUE patterns (e.g. vercel --token xxx)
-	sanitized = sanitized.replace(/(--token[\s=])\S+/g, '$1***')
+	sanitized = sanitized.replace(/(--token[\s=])\S+/g, '$1`***`')
 
 	// Sanitize connection strings (postgres://, redis://, etc.)
 	sanitized = sanitized.replace(
 		/\b(postgres|postgresql|mysql|redis|mongodb|amqp|https?):\/\/[^\s"']+/gi,
-		'$1://***'
+		'$1://`***`'
 	)
 
 	return sanitized
