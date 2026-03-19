@@ -28,7 +28,7 @@
 		"@types/node": "^22.15.31",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
-		"@vitejs/plugin-react-swc": "^4.3.0",
+		"@vitejs/plugin-react": "^6.0.1",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",

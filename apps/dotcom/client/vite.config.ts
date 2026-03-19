@@ -1,4 +1,5 @@
-import react from '@vitejs/plugin-react-swc'
+import formatjs from '@formatjs/unplugin/vite'
+import react from '@vitejs/plugin-react'
 import { config } from 'dotenv'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -60,18 +61,11 @@ export default defineConfig((env) => ({
 	plugins: [
 		spaFallbackPlugin(),
 		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
-		react({
-			tsDecorators: true,
-			plugins: [
-				[
-					'@swc/plugin-formatjs',
-					{
-						idInterpolationPattern: '[md5:contenthash:hex:10]',
-						additionalComponentNames: ['F'],
-						ast: true,
-					},
-				],
-			],
+		react(),
+		formatjs({
+			idInterpolationPattern: '[md5:contenthash:hex:10]',
+			additionalComponentNames: ['F'],
+			ast: true,
 		}),
 	],
 	publicDir: './public',

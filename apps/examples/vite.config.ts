@@ -1,4 +1,4 @@
-import react from '@vitejs/plugin-react-swc'
+import react from '@vitejs/plugin-react'
 import path from 'path'
 import { Plugin, PluginOption, defineConfig } from 'vite'
 
@@ -99,7 +99,7 @@ const TLDRAW_BEMO_URL_STRING =
 export default defineConfig(({ mode }) => ({
 	plugins: [
 		spaFallbackPlugin(),
-		react({ tsDecorators: true }),
+		react(),
 		exampleReadmePlugin(),
 		...(isE2ETestRun ? [lowerDecoratorsPlugin()] : []),
 	],

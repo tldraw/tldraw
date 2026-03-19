@@ -32,7 +32,7 @@
 	"dependencies": {
 		"@tldraw/sync": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
-		"@vitejs/plugin-react-swc": "^4.3.0",
+		"@vitejs/plugin-react": "^6.0.1",
 		"better-sqlite3": "^11.8.1",
 		"express": "^5.1.0",
 		"react": "^19.2.1",
