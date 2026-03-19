@@ -13,6 +13,7 @@ import { MakeUndefinedOptional } from '@tldraw/utils';
 import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
+import { RecordScope } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
@@ -161,6 +162,17 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
 export function createCachedUserResolve(resolveFn: (userId: string) => null | TLUser): (userId: string) => Signal<null | TLUser>;
 
 // @public
+export function createCustomRecordId<T extends string>(typeName: T, id?: string): RecordId<UnknownRecord> & `${T}:${string}`;
+
+// @public
+export function createCustomRecordMigrationIds<const S extends string, const T extends Record<string, number>>(recordType: S, ids: T): {
+    [k in keyof T]: `com.tldraw.${S}/${T[k]}`;
+};
+
+// @public
+export function createCustomRecordMigrationSequence(migrations: TLPropsMigrations): TLPropsMigrations;
+
+// @public
 export function createPresenceStateDerivation($user: Signal<null | TLUser>, opts?: CreatePresenceStateDerivationOpts): (store: TLStore) => Signal<null | TLInstancePresence, unknown>;
 
 // @public (undocumented)
@@ -188,9 +200,10 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
 
 // @public
-export function createTLSchema({ shapes, bindings, user, migrations }?: {
+export function createTLSchema({ shapes, bindings, user, records, migrations }?: {
     bindings?: Record<string, SchemaPropsInfo>;
     migrations?: readonly MigrationSequence[];
+    records?: Record<string, CustomRecordInfo>;
     shapes?: Record<string, SchemaPropsInfo>;
     user?: UserSchemaInfo;
 }): TLSchema;
@@ -202,6 +215,14 @@ export function createUserId(id: string): TLUserId;
 export function createUserRecordType(config?: {
     meta?: Record<string, T.Validatable<any>>;
 }): RecordType<TLUser, never>;
+
+// @public
+export interface CustomRecordInfo {
+    createDefaultProperties?: () => Record<string, unknown>;
+    migrations?: MigrationSequence | TLPropsMigrations;
+    scope: RecordScope;
+    validator: T.Validatable<any>;
+}
 
 // @public
 export const defaultBindingSchemas: {
@@ -436,6 +457,12 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 
 // @public
 export function isBindingId(id?: string): id is TLBindingId;
+
+// @public
+export function isCustomRecord(typeName: string, record?: UnknownRecord): boolean;
+
+// @public
+export function isCustomRecordId(typeName: string, id?: string): boolean;
 
 // @public
 export function isDocument(record?: UnknownRecord): record is TLDocument;
@@ -952,6 +979,9 @@ export interface TLCursor {
 export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 
 // @public
+export type TLCustomRecord = TLIndexedRecords[keyof TLIndexedRecords];
+
+// @public
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public
@@ -1008,6 +1038,9 @@ export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
 
 // @public
 export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
+
+// @public
+export type TLDefaultRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape | TLUser;
 
 // @public
 export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
@@ -1105,6 +1138,10 @@ export interface TLGeoShapeProps {
 export interface TLGlobalBindingPropsMap {
 }
 
+// @public
+export interface TLGlobalRecordPropsMap {
+}
+
 // @public (undocumented)
 export interface TLGlobalShapePropsMap {
 }
@@ -1181,6 +1218,11 @@ export type TLIndexedBindings = {
     [K in keyof TLGlobalBindingPropsMap | TLDefaultBinding['type'] as K extends TLDefaultBinding['type'] ? K extends keyof TLGlobalBindingPropsMap ? TLGlobalBindingPropsMap[K] extends null | undefined ? never : K : K : K]: K extends TLDefaultBinding['type'] ? K extends keyof TLGlobalBindingPropsMap ? TLBaseBinding<K, TLGlobalBindingPropsMap[K]> : Extract<TLDefaultBinding, {
         type: K;
     }> : TLBaseBinding<K, TLGlobalBindingPropsMap[K & keyof TLGlobalBindingPropsMap]>;
+};
+
+// @public
+export type TLIndexedRecords = {
+    [K in keyof TLGlobalRecordPropsMap as TLGlobalRecordPropsMap[K] extends null | undefined ? never : K]: TLGlobalRecordPropsMap[K];
 };
 
 // @public (undocumented)
@@ -1436,7 +1478,7 @@ export interface TLPropsMigrations {
 }
 
 // @public
-export type TLRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape | TLUser;
+export type TLRecord = TLCustomRecord | TLDefaultRecord;
 
 // @public
 export type TLRichText = T.TypeOf<typeof richTextValidator>;

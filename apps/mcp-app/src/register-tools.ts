@@ -209,7 +209,7 @@ export function registerTools(
 				return errorResponse(
 					'create_shapes',
 					err,
-					'Ensure shapesJson is a valid JSON array string of shapes objects (call read_me first for the format reference). '
+					'Ensure shapesJson is a valid JSON array string of shapes objects (call diagram_drawing_read_me first for the format reference). '
 				)
 			}
 		}
@@ -591,7 +591,7 @@ export function registerTools(
 			const sid = deps.getSessionId()
 			const hostName = opts.getClientHostName()
 
-			const bootstrap: Record<string, unknown> = { sessionId: sid, hostName }
+			const bootstrap: Record<string, unknown> = { sessionId: sid, isDev: opts.isDev }
 			if (activeId) {
 				const checkpoint = deps.loadCheckpoint(activeId)
 				if (checkpoint) {

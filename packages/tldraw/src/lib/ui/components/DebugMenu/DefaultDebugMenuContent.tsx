@@ -159,7 +159,7 @@ export function DefaultDebugMenuContent({
 						const shapes =
 							selectedShapes.length === 0 ? editor.getRenderingShapes() : selectedShapes
 						window.alert(
-							`Shapes ${shapes.length}, DOM nodes:${document.querySelector('.tl-shapes')!.querySelectorAll('*')?.length}`
+							`Shapes ${shapes.length}, DOM nodes:${editor.getContainerDocument().querySelector('.tl-shapes')!.querySelectorAll('*')?.length}`
 						)
 					}}
 				/>

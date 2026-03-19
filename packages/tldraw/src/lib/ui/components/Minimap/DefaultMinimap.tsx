@@ -117,15 +117,16 @@ export function DefaultMinimap() {
 				minimapRef.current.originPageCenter.setTo(_vpPageBounds.center)
 			}
 
+			const body = editor.getContainerDocument().body
 			function release(e: PointerEvent) {
 				if (elm) {
 					releasePointerCapture(elm, e)
 				}
 				rPointing.current = false
-				document.body.removeEventListener('pointerup', release)
+				body.removeEventListener('pointerup', release)
 			}
 
-			document.body.addEventListener('pointerup', release)
+			body.addEventListener('pointerup', release)
 		},
 		[editor]
 	)

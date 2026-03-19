@@ -112,8 +112,9 @@ import {
 	RIGHT_MOUSE_BUTTON,
 	STYLUS_ERASER_BUTTON,
 } from '../constants'
+import { getOwnerWindow } from '../exports/domUtils'
 import { exportToSvg } from '../exports/exportToSvg'
-import { getSvgAsImage } from '../exports/getSvgAsImage'
+import { getSvgAsImageWithOptions, trimSvgToContent } from '../exports/getSvgAsImage'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
@@ -1011,6 +1012,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getContainer: () => HTMLElement
+
+	/**
+	 * The document that the editor's container element belongs to.
+	 * Use this instead of the global `document` to support cross-window embedding.
+	 *
+	 * @internal
+	 */
+	getContainerDocument(): Document {
+		return this.getContainer().ownerDocument
+	}
+
+	/**
+	 * The window that the editor's container element belongs to.
+	 * Use this instead of the global `window` to support cross-window embedding.
+	 *
+	 * @internal
+	 */
+	getContainerWindow(): Window & typeof globalThis {
+		return getOwnerWindow(this.getContainer())
+	}
 
 	/**
 	 * Dispose the editor.
@@ -2785,6 +2806,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getCamera().z
 	}
 
+	/**
+	 * Get the scale factor used when creating or resizing shapes in dynamic size mode.
+	 *
+	 * @public
+	 */
+	@computed getResizeScaleFactor() {
+		return this.user.getIsDynamicResizeMode() ? 1 / this.getZoomLevel() : 1
+	}
+
 	private _debouncedZoomLevel = atom('debounced zoom level', 1)
 
 	/**
@@ -3778,13 +3808,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			screenBounds.height = Math.max(screenBounds.height, 1)
 		}
 
+		const doc = this.getContainerDocument()
 		const insets = [
 			// top
 			screenBounds.minY !== 0,
 			// right
-			!approximately(document.body.scrollWidth, screenBounds.maxX, 1),
+			!approximately(doc.body.scrollWidth, screenBounds.maxX, 1),
 			// bottom
-			!approximately(document.body.scrollHeight, screenBounds.maxY, 1),
+			!approximately(doc.body.scrollHeight, screenBounds.maxY, 1),
 			// left
 			screenBounds.minX !== 0,
 		]
@@ -9709,6 +9740,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			svg: serializer.serializeToString(result.svg),
 			width: result.width,
 			height: result.height,
+			trimPadding: result.trimPadding,
 		}
 	}
 
@@ -9732,30 +9764,45 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!result) throw new Error('Could not create SVG')
 
 		switch (withDefaults.format) {
-			case 'svg':
-				return {
-					blob: new Blob([result.svg], { type: 'image/svg+xml' }),
-					width: result.width,
-					height: result.height,
+			case 'svg': {
+				let svg = result.svg
+				let w = result.width
+				let h = result.height
+				if (result.trimPadding > 0) {
+					const trimmed = await trimSvgToContent(svg, {
+						width: w,
+						height: h,
+						trimPadding: result.trimPadding,
+						scale: withDefaults.scale,
+					})
+					if (trimmed) {
+						svg = trimmed.svg
+						w = trimmed.width
+						h = trimmed.height
+					}
 				}
+				return {
+					blob: new Blob([svg], { type: 'image/svg+xml' }),
+					width: w,
+					height: h,
+				}
+			}
 			case 'jpeg':
 			case 'png':
 			case 'webp': {
-				const blob = await getSvgAsImage(result.svg, {
+				const imageResult = await getSvgAsImageWithOptions(result.svg, {
 					type: withDefaults.format,
 					quality: withDefaults.quality,
 					pixelRatio: withDefaults.pixelRatio,
 					width: result.width,
 					height: result.height,
+					trimPadding: result.trimPadding,
+					scale: withDefaults.scale,
 				})
-				if (!blob) {
+				if (!imageResult) {
 					throw new Error('Could not construct image.')
 				}
-				return {
-					blob,
-					width: result.width,
-					height: result.height,
-				}
+				return imageResult
 			}
 			default: {
 				exhaustiveSwitchError(withDefaults.format)
@@ -10194,7 +10241,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					to: opts?.getTarget?.(this),
 				})
 
-				window.history.replaceState({}, document.title, url.toString())
+				window.history.replaceState({}, this.getContainerDocument().title, url.toString())
 			})
 
 		const scheduleEffect = debounce((execute: () => void) => execute(), opts?.debounceMs ?? 500)

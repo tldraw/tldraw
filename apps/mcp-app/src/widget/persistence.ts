@@ -3,7 +3,6 @@ import type { TLAsset, TLBindingCreate, TLShape } from 'tldraw'
 import { Editor, structuredClone } from 'tldraw'
 import { convertTldrawRecordToFocusedShape } from '../focused-shape-converters'
 import type { FocusedShape } from '../focused-shape-schema'
-import type { MCP_APP_HOST_NAMES } from '../shared/types'
 import { isPlainObject } from '../shared/utils'
 
 export interface CanvasSnapshot {
@@ -114,8 +113,8 @@ declare global {
 export function getEmbeddedBootstrap(): {
 	sessionId: string
 	checkpointId?: string
+	isDev: boolean
 	snapshot?: CanvasSnapshot
-	hostName?: MCP_APP_HOST_NAMES
 } | null {
 	const data = window.__TLDRAW_BOOTSTRAP__
 	if (!isPlainObject(data)) return null
@@ -123,8 +122,7 @@ export function getEmbeddedBootstrap(): {
 	if (!sessionId) return null
 
 	const checkpointId = typeof data.checkpointId === 'string' ? data.checkpointId : undefined
-	const hostName =
-		typeof data.hostName === 'string' ? (data.hostName as MCP_APP_HOST_NAMES) : undefined
+	const isDev = data.isDev === true
 
 	let snapshot: CanvasSnapshot | undefined
 	if (Array.isArray(data.shapes) && data.shapes.length > 0) {
@@ -141,7 +139,7 @@ export function getEmbeddedBootstrap(): {
 		}
 	}
 
-	return { sessionId, checkpointId, snapshot, hostName }
+	return { sessionId, checkpointId, isDev, snapshot }
 }
 
 // --- Tool result parsing ---

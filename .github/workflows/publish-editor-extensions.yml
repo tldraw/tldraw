@@ -34,8 +34,12 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v6
         with:
+          persist-credentials: false
           submodules: true
           token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Configure git credentials
+        run: git config --global url."https://x-access-token:${{ steps.generate_token.outputs.token }}@github.com/".insteadOf "https://github.com/"
 
       - uses: ./.github/actions/setup
 
