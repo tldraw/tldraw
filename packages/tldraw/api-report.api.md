@@ -2033,6 +2033,7 @@ export class ImageAssetUtil extends AssetUtil<TLImageAsset> {
         isAnimated: Validator<boolean>;
         mimeType: Validator<null | string>;
         name: Validator<string>;
+        pixelRatio: Validator<number | undefined>;
         src: Validator<null | string>;
         w: Validator<number>;
     };
