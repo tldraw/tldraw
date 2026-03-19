@@ -15,7 +15,7 @@ export interface CreatePresenceStateDerivationOpts {
 	 * Override how presence state is built from the store and current user.
 	 * Defaults to {@link getDefaultUserPresence}.
 	 */
-	getUserPresence?: (store: TLStore, user: TLUser) => TLPresenceStateInfo | null
+	getUserPresence?(store: TLStore, user: TLUser): TLPresenceStateInfo | null
 }
 
 /**
