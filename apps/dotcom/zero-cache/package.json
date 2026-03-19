@@ -27,7 +27,7 @@
 	"type": "module",
 	"dependencies": {
 		"@rocicorp/zero": "0.25.9",
-		"kysely": "^0.27.5",
+		"kysely": "^0.28.13",
 		"pg": "^8.13.1"
 	},
 	"devDependencies": {
