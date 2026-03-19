@@ -5,7 +5,7 @@ import type {
 	MermaidBlueprintEdge,
 	MermaidBlueprintGeoNode,
 } from './blueprint'
-import { parseRgbToTldrawColor } from './colors'
+import { parseSvgFillColors } from './colors'
 import type { ParsedNode } from './svgParsing'
 import { parseNodesFromSvg, scaleLayout } from './svgParsing'
 import { LAYOUT_SCALE } from './utils'
@@ -38,13 +38,6 @@ function mapMindmapTypeToGeo(type: number): TLGeoShapeGeoStyle {
 	}
 }
 
-const SECTION_COLORS: TLDefaultColorStyle[] = ['blue', 'orange', 'green', 'red', 'violet', 'grey']
-
-function getSectionColor(section: number | undefined): TLDefaultColorStyle {
-	if (section === undefined || section < 0) return 'black'
-	return SECTION_COLORS[section % SECTION_COLORS.length]
-}
-
 function getEdgeSizeForLevel(parentLevel: number): TLDefaultSizeStyle {
 	if (parentLevel <= 0) return 'l'
 	if (parentLevel === 1) return 'm'
@@ -57,7 +50,6 @@ interface FlatNode {
 	type: number
 	level: number
 	parentId: string | undefined
-	section: number | undefined
 	isRoot: boolean
 }
 
@@ -72,7 +64,6 @@ function flattenMindmapTree(
 		type: node.type,
 		level: node.level,
 		parentId,
-		section: node.section,
 		isRoot: !!node.isRoot,
 	})
 	for (const child of node.children) {
@@ -98,22 +89,7 @@ function parseMindmapNodeId(domId: string): string {
 export function parseMindmapLayout(root: Element): ParsedMindmapLayout {
 	const nodes = parseNodesFromSvg(root, '.node', parseMindmapNodeId)
 
-	const nodeColors = new Map<string, TLDefaultColorStyle>()
-	for (const groupEl of root.querySelectorAll('.node')) {
-		const rawId = groupEl.getAttribute('id') || ''
-		const id = parseMindmapNodeId(rawId)
-
-		const shape =
-			groupEl.querySelector('rect, circle, ellipse, polygon, path') ??
-			groupEl.querySelector('.label-container')
-		if (shape) {
-			const fill = shape.getAttribute('fill')
-			if (fill) {
-				const parsed = parseRgbToTldrawColor(fill)
-				if (parsed) nodeColors.set(id, parsed.color)
-			}
-		}
-	}
+	const nodeColors = parseSvgFillColors(root, '.node', parseMindmapNodeId)
 
 	scaleLayout(nodes, new Map(), [], LAYOUT_SCALE)
 
@@ -139,7 +115,7 @@ export function mindmapToBlueprint(
 		if (!svgNode) continue
 
 		const geo = mapMindmapTypeToGeo(flatNode.type)
-		const color = nodeColors.get(flatNode.id) ?? getSectionColor(flatNode.section)
+		const color = nodeColors.get(flatNode.id) ?? 'black'
 
 		let { width: w, height: h } = svgNode
 		if (flatNode.type === MINDMAP_NODE_TYPE.CIRCLE) {

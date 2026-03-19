@@ -125,6 +125,34 @@ export function parseNodeInlineColor(styles: string[] | undefined): ParsedNodeCo
 	return colors
 }
 
+/**
+ * Extract fill colors from rendered SVG node groups by reading the fill attribute
+ * from the first shape element in each group.
+ */
+export function parseSvgFillColors(
+	root: Element,
+	selector: string,
+	idParser: (domId: string) => string
+): Map<string, TLDefaultColorStyle> {
+	const result = new Map<string, TLDefaultColorStyle>()
+	for (const groupEl of root.querySelectorAll(selector)) {
+		const rawId = groupEl.getAttribute('id') || ''
+		const id = idParser(rawId)
+
+		const shape =
+			groupEl.querySelector('rect, circle, ellipse, polygon, path') ??
+			groupEl.querySelector('.label-container')
+		if (shape) {
+			const fill = shape.getAttribute('fill')
+			if (fill) {
+				const parsed = parseRgbToTldrawColor(fill)
+				if (parsed) result.set(id, parsed.color)
+			}
+		}
+	}
+	return result
+}
+
 function parseHexToRgb(hex: string): [number, number, number] | null {
 	const stripped = hex.replace(/^#/, '')
 	if (stripped.length === 3 || stripped.length === 4) {

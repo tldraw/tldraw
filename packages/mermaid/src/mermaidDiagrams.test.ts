@@ -1064,7 +1064,7 @@ describe('mindmapToBlueprint', () => {
 		expect(round.w).toBe(80)
 	})
 
-	it('uses SVG-extracted colors when available, falls back to section colors', () => {
+	it('uses SVG-extracted colors, falls back to black', () => {
 		const nodeColors = new Map<string, TLDefaultColorStyle>([['1', 'red']])
 		const layout = mindmapLayout(
 			[node('0', 0, 0, 100, 50), node('1', -150, 100, 80, 40), node('2', 150, 100, 80, 40)],
@@ -1073,19 +1073,16 @@ describe('mindmapToBlueprint', () => {
 		const tree = mindmapNode(0, 'Root', {
 			isRoot: true,
 			level: 0,
-			section: -1,
 			children: [
-				mindmapNode(1, 'SVG Color', { level: 1, section: 0 }),
-				mindmapNode(2, 'Section Color', { level: 1, section: 1 }),
+				mindmapNode(1, 'With Color', { level: 1 }),
+				mindmapNode(2, 'No Color', { level: 1 }),
 			],
 		})
 
 		const bp = mindmapToBlueprint(layout, tree)
 
-		// Node 1 should use SVG-extracted color
-		expect(findNodeByLabel(bp, 'SVG Color')!.color).toBe('red')
-		// Node 2 should fall back to section color (section 1 = orange)
-		expect(findNodeByLabel(bp, 'Section Color')!.color).toBe('orange')
+		expect(findNodeByLabel(bp, 'With Color')!.color).toBe('red')
+		expect(findNodeByLabel(bp, 'No Color')!.color).toBe('black')
 	})
 
 	it('colors edges to match their target node', () => {
@@ -1136,12 +1133,11 @@ describe('mindmapToBlueprint', () => {
 		expect(bp.edges).toHaveLength(0)
 	})
 
-	it('assigns black color when section is negative', () => {
+	it('defaults to black when no SVG color is extracted', () => {
 		const layout = mindmapLayout([node('0', 0, 0, 100, 50)])
 		const tree = mindmapNode(0, 'Root', {
 			isRoot: true,
 			level: 0,
-			section: -1,
 		})
 
 		const bp = mindmapToBlueprint(layout, tree)
