@@ -40,7 +40,6 @@
 		"@tldraw/sync": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"@vercel/analytics": "^1.4.1",
 		"axe-core": "^4.10.3",
 		"browser-fs-access": "^0.35.0",
 		"classnames": "^2.5.1",

@@ -93,11 +93,13 @@ async function build() {
 	const assetExtensions = [
 		...new Set(
 			assetsList
-				.filter((f) => !f.endsWith('.js.map'))
+				.filter((f) => !f.endsWith('.js.map') && f.includes('.'))
 				.map((f) => f.split('.').pop()!)
-				.filter(Boolean)
 		),
 	]
+	if (assetExtensions.length === 0) {
+		throw new Error('No asset extensions found in dist/assets')
+	}
 	const assetsToCacheRegex = `^\\/assets\\/.+\\.(${assetExtensions.join('|')})$`
 
 	writeFileSync(
