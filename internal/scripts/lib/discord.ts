@@ -7,6 +7,9 @@ function sanitizeVariables(errorOutput: string): string {
 	// Sanitize KEY=VALUE patterns where KEY looks like an env var (e.g. flyctl secrets set)
 	sanitized = sanitized.replace(/\b([A-Z][A-Z_0-9]{2,})=[^ \n]+/g, '$1=***')
 
+	// Sanitize --token VALUE and --token=VALUE patterns (e.g. vercel --token xxx)
+	sanitized = sanitized.replace(/(--token[\s=])\S+/g, '$1***')
+
 	// Sanitize connection strings (postgres://, redis://, etc.)
 	sanitized = sanitized.replace(
 		/\b(postgres|postgresql|mysql|redis|mongodb|amqp|https?):\/\/[^\s"']+/gi,
