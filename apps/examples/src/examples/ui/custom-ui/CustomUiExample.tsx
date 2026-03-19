@@ -81,7 +81,7 @@ const CustomUi = track(() => {
 	)
 })
 
-/* 
+/*
 This example shows how to create your own custom ui for the editor.
 
 [1]

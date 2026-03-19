@@ -72,5 +72,6 @@ export async function retry<T>(
 			await sleep(waitDuration)
 		}
 	}
+	// eslint-disable-next-line no-throw-literal
 	throw error
 }

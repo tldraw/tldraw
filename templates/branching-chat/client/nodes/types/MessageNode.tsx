@@ -29,7 +29,7 @@ export class MessageNodeDefinition extends NodeDefinition<MessageNode> {
 	static validator = MessageNode
 	title = 'Message'
 	heading = 'Message'
-	icon = (<SendIcon />)
+	icon = <SendIcon />
 	getDefault(): MessageNode {
 		return {
 			type: 'message',

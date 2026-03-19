@@ -1,0 +1,54 @@
+{
+	"name": "@tldraw/mermaid",
+	"description": "Mermaid diagram to tldraw shape conversion.",
+	"version": "4.4.0",
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"mermaid",
+		"diagram",
+		"canvas",
+		"infinite"
+	],
+	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
+	"main": "./src/index.ts",
+	"types": "./.tsbuild/index.d.ts",
+	"type": "module",
+	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
+	"files": [],
+	"scripts": {
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
+		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"postpack": "../../internal/scripts/postpack.sh",
+		"pack-tarball": "yarn pack",
+		"lint": "cd ../.. && yarn run -T oxlint packages/mermaid"
+	},
+	"dependencies": {
+		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/utils": "workspace:*",
+		"mermaid": "11.12.2"
+	},
+	"peerDependencies": {
+		"tldraw": "workspace:*"
+	},
+	"devDependencies": {
+		"lazyrepo": "0.0.0-alpha.27",
+		"vitest": "^3.2.4"
+	}
+}

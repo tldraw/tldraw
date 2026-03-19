@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/editor",
 	"description": "tldraw infinite canvas SDK (editor).",
-	"version": "4.5.2",
+	"version": "4.5.3",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -44,7 +44,7 @@
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "cd ../.. && yarn run -T oxlint packages/editor"
 	},
 	"dependencies": {
 		"@tiptap/core": "^3.12.1",

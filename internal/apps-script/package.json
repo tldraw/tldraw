@@ -27,7 +27,7 @@
 		"infinite"
 	],
 	"scripts": {
-		"lint": "yarn run -T tsx ../scripts/lint.ts",
+		"lint": "cd ../.. && yarn run -T oxlint internal/apps-script",
 		"glogin": "clasp login",
 		"glogout": "clasp logout",
 		"gcreate": "clasp create --type standalone --title \"tldraw.com\" --rootDir ./dist",

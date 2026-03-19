@@ -1,0 +1,428 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": ["unicorn", "react", "typescript", "nextjs"],
+	"jsPlugins": ["./internal/scripts/oxlint/tldraw-plugin.mjs"],
+	"categories": {
+		"correctness": "off"
+	},
+	"options": {
+		"typeAware": true
+	},
+	"env": {
+		"builtin": true
+	},
+	"settings": {
+		"next": {
+			"rootDir": ["apps/*/", "packages/*/"]
+		},
+		"react": {
+			"version": "19.2"
+		}
+	},
+	"ignorePatterns": [
+		".claude/**/*",
+		"**/node_modules/*",
+		"**/out/*",
+		"**/dist/*",
+		"**/dist-cjs/*",
+		"**/dist-esm/*",
+		"**/.tsbuild*",
+		"**/.lazy/*",
+		"**/.next/*",
+		"**/.wrangler/*",
+		"**/.vercel/*",
+		"**/*.md",
+		"**/_archive/*",
+		"**/*.css.map",
+		"**/*.js.map",
+		"**/*.d.ts",
+		"**/api/*",
+		"!**/pages/api/*",
+		"**/*.json",
+		"**/lazy.config.ts",
+		"**/next.config.js",
+		"**/setupTests.js",
+		"apps/vscode/extension/editor",
+		"apps/examples/www",
+		"apps/docs/api-content.json",
+		"apps/docs/content.json",
+		"apps/vscode/extension/editor/index.js",
+		"apps/vscode/extension/editor/tldraw-assets.json",
+		"**/sentry.server.config.js",
+		"**/scripts/upload-sourcemaps.js",
+		"**/scripts/lib/auto-plugin.js",
+		"**/coverage/**/*",
+		"apps/docs/postcss.config.js",
+		"apps/docs/tailwind.config.js",
+		"apps/dotcom/client/public/sw.js",
+		"apps/dotcom/client/public/theme-init.js",
+		"apps/analytics/public/*",
+		"**/.clasp.json",
+		"**/*.mjs",
+		"**/.*.js",
+		"packages/assets/*",
+		"packages/create-tldraw/cli.cjs",
+		"yarn.config.cjs",
+		"**/*/vitest.config.ts",
+		"**/*/setupVitest.js",
+		"**/*/zod-locales-shim.js",
+		"**/*/scripts/vite-zod-locale-plugin.js"
+	],
+	"rules": {
+		"no-unexpected-multiline": "error",
+		"constructor-super": "error",
+		"for-direction": "error",
+		"getter-return": "error",
+		"no-async-promise-executor": "error",
+		"no-case-declarations": "error",
+		"no-class-assign": "error",
+		"no-compare-neg-zero": "error",
+		"no-cond-assign": "error",
+		"no-const-assign": "error",
+		"no-constant-binary-expression": "error",
+		"no-constant-condition": "error",
+		"no-control-regex": "error",
+		"no-debugger": "error",
+		"no-delete-var": "error",
+		"no-dupe-class-members": "error",
+		"no-dupe-else-if": "error",
+		"no-dupe-keys": "error",
+		"no-duplicate-case": "error",
+		"no-empty": "error",
+		"no-empty-character-class": "error",
+		"no-empty-pattern": "error",
+		"no-empty-static-block": "error",
+		"no-ex-assign": "error",
+		"no-extra-boolean-cast": "error",
+		"no-func-assign": "error",
+		"no-global-assign": "error",
+		"no-import-assign": "error",
+		"no-invalid-regexp": "error",
+		"no-irregular-whitespace": "error",
+		"no-loss-of-precision": "error",
+		"no-misleading-character-class": "error",
+		"no-new-native-nonconstructor": "error",
+		"no-nonoctal-decimal-escape": "error",
+		"no-obj-calls": "error",
+		"no-prototype-builtins": "error",
+		"no-redeclare": "error",
+		"no-regex-spaces": "error",
+		"no-self-assign": "error",
+		"no-setter-return": "error",
+		"no-shadow-restricted-names": "error",
+		"no-sparse-arrays": "error",
+		"no-this-before-super": "error",
+		"no-undef": "error",
+		"no-unreachable": "error",
+		"no-unsafe-finally": "error",
+		"no-unsafe-negation": "error",
+		"no-unsafe-optional-chaining": "error",
+		"no-unused-labels": "error",
+		"no-unused-private-class-members": "error",
+		"no-unused-vars": [
+			"error",
+			{
+				"argsIgnorePattern": "^_",
+				"varsIgnorePattern": "^_",
+				"caughtErrorsIgnorePattern": "^_"
+			}
+		],
+		"no-useless-backreference": "error",
+		"no-useless-catch": "error",
+		"no-useless-escape": "error",
+		"no-with": "error",
+		"require-yield": "error",
+		"use-isnan": "error",
+		"valid-typeof": "error",
+		"no-throw-literal": "error",
+		"no-array-constructor": "error",
+		"no-unused-expressions": "error",
+
+		"react/jsx-key": "error",
+		"react/jsx-no-comment-textnodes": "error",
+		"react/jsx-no-duplicate-props": "error",
+		"react/jsx-no-target-blank": "error",
+		"react/jsx-no-undef": "error",
+		"react/no-children-prop": "error",
+		"react/no-danger-with-children": "error",
+		"react/no-direct-mutation-state": "error",
+		"react/no-find-dom-node": "error",
+		"react/no-is-mounted": "error",
+		"react/no-render-return-value": "error",
+		"react/no-string-refs": "error",
+		"react/no-unescaped-entities": "error",
+		"react/no-unknown-property": "error",
+		"react/require-render-return": "error",
+		"react-hooks/rules-of-hooks": "error",
+		"react-hooks/exhaustive-deps": "error",
+
+		"@typescript-eslint/no-duplicate-enum-values": "error",
+		"@typescript-eslint/no-empty-object-type": "error",
+		"@typescript-eslint/no-extra-non-null-assertion": "error",
+		"@typescript-eslint/no-misused-new": "error",
+		"@typescript-eslint/no-namespace": "error",
+		"@typescript-eslint/no-non-null-asserted-optional-chain": "error",
+		"@typescript-eslint/no-require-imports": "error",
+		"@typescript-eslint/no-this-alias": "error",
+		"@typescript-eslint/no-unnecessary-type-constraint": "error",
+		"@typescript-eslint/no-unsafe-declaration-merging": "error",
+		"@typescript-eslint/no-unsafe-function-type": "error",
+		"@typescript-eslint/no-wrapper-object-types": "error",
+		"@typescript-eslint/prefer-as-const": "error",
+		"@typescript-eslint/prefer-namespace-keyword": "error",
+		"@typescript-eslint/triple-slash-reference": "error",
+		"@typescript-eslint/no-deprecated": "error",
+		"@typescript-eslint/consistent-type-exports": [
+			"error",
+			{ "fixMixedExportsWithInlineTypeSpecifier": true }
+		],
+		"@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+
+		"@next/next/google-font-display": "warn",
+		"@next/next/google-font-preconnect": "warn",
+		"@next/next/next-script-for-ga": "warn",
+		"@next/next/no-async-client-component": "warn",
+		"@next/next/no-before-interactive-script-outside-document": "warn",
+		"@next/next/no-css-tags": "warn",
+		"@next/next/no-head-element": "warn",
+		"@next/next/no-page-custom-font": "warn",
+		"@next/next/no-styled-jsx-in-document": "warn",
+		"@next/next/no-sync-scripts": "error",
+		"@next/next/no-title-in-document-head": "warn",
+		"@next/next/no-typos": "warn",
+		"@next/next/no-unwanted-polyfillio": "warn",
+		"@next/next/inline-script-id": "error",
+		"@next/next/no-assign-module-variable": "error",
+		"@next/next/no-document-import-in-page": "error",
+		"@next/next/no-duplicate-head": "error",
+		"@next/next/no-head-import-in-document": "error",
+		"@next/next/no-script-component-in-head": "error",
+
+		"no-restricted-globals": [
+			"error",
+			{
+				"name": "structuredClone",
+				"message": "Use structuredClone from @tldraw/util instead"
+			}
+		],
+
+		"tldraw/no-export-star": "error",
+		"tldraw/no-internal-imports": "error",
+		"tldraw/tagged-components": "error",
+		"tldraw/prefer-class-methods": "error",
+		"tldraw/tsdoc-param-matching": "error",
+		"tldraw/no-whilst": "error",
+		"tldraw/no-tiptap-default-import": "error",
+		"tldraw/no-setter-getter": "error",
+		"tldraw/no-direct-storage": "error",
+		"tldraw/no-exported-arrow-const": "error",
+		"tldraw/no-focused-tests": "error",
+		"tldraw/enforce-default-message": ["error", "literal"],
+		"tldraw/method-signature-style": "error"
+	},
+	"overrides": [
+		{
+			"files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
+			"rules": {
+				"@typescript-eslint/explicit-module-boundary-types": "off",
+				"no-console": ["error", { "allow": ["warn", "error"] }],
+				"constructor-super": "off",
+				"getter-return": "off",
+				"no-class-assign": "off",
+				"no-const-assign": "off",
+				"no-dupe-class-members": "off",
+				"no-dupe-keys": "off",
+				"no-func-assign": "off",
+				"no-import-assign": "off",
+				"no-new-native-nonconstructor": "off",
+				"no-obj-calls": "off",
+				"no-redeclare": "off",
+				"no-setter-return": "off",
+				"no-this-before-super": "off",
+				"no-undef": "off",
+				"no-unreachable": "off",
+				"no-unsafe-negation": "off",
+				"no-with": "off",
+				"no-var": "error",
+				"prefer-const": "error",
+				"prefer-rest-params": "error",
+				"prefer-spread": "error"
+			}
+		},
+		{
+			"files": ["packages/editor/**/*", "packages/tldraw/**/*", "packages/utils/**/*"],
+			"rules": {
+				"tldraw/no-exported-arrow-const": "off",
+				"no-restricted-globals": [
+					"error",
+					{
+						"name": "fetch",
+						"message": "Use the fetch from @tldraw/util instead."
+					},
+					{
+						"name": "Image",
+						"message": "Use the Image from @tldraw/util instead."
+					},
+					{
+						"name": "setTimeout",
+						"message": "Use the timers from editor.timers instead."
+					},
+					{
+						"name": "setInterval",
+						"message": "Use the timers from editor.timers instead."
+					},
+					{
+						"name": "requestAnimationFrame",
+						"message": "Use the timers from editor.timers instead."
+					},
+					{
+						"name": "structuredClone",
+						"message": "Use structuredClone from @tldraw/util instead"
+					}
+				],
+				"tldraw/no-restricted-properties": [
+					"error",
+					[
+						{
+							"object": "window",
+							"property": "fetch",
+							"message": "Use the fetch from @tldraw/util instead."
+						},
+						{
+							"object": "window",
+							"property": "Image",
+							"message": "Use the Image from @tldraw/util instead."
+						},
+						{
+							"object": "window",
+							"property": "setTimeout",
+							"message": "Use the timers from editor.timers instead."
+						},
+						{
+							"object": "window",
+							"property": "setInterval",
+							"message": "Use the timers from editor.timers instead."
+						},
+						{
+							"object": "window",
+							"property": "requestAnimationFrame",
+							"message": "Use the timers from editor.timers instead."
+						}
+					]
+				],
+				"tldraw/img-referrer-policy": "error"
+			}
+		},
+		{
+			"files": ["apps/dotcom/client/**/*"],
+			"rules": {
+				"no-restricted-globals": [
+					"error",
+					{
+						"name": "fetch",
+						"message": "Use the fetch from @tldraw/util instead."
+					},
+					{
+						"name": "Image",
+						"message": "Use the Image from @tldraw/util instead."
+					},
+					{
+						"name": "structuredClone",
+						"message": "Use structuredClone from @tldraw/util instead"
+					}
+				],
+				"tldraw/no-restricted-properties": [
+					"error",
+					[
+						{
+							"object": "window",
+							"property": "fetch",
+							"message": "Use the fetch from @tldraw/util instead."
+						},
+						{
+							"object": "window",
+							"property": "Image",
+							"message": "Use the Image from @tldraw/util instead."
+						},
+						{
+							"object": "crypto",
+							"property": "randomUUID",
+							"message": "Please use the makeUUID util instead."
+						}
+					]
+				]
+			}
+		},
+		{
+			"files": ["apps/dotcom/client/src/tla/**/*"],
+			"rules": {
+				"no-restricted-imports": [
+					"error",
+					{
+						"paths": [
+							{
+								"name": "react-intl",
+								"message": "Please import useIntl from src/utils/intl instead."
+							}
+						]
+					}
+				],
+				"tldraw/jsx-no-literals": "error"
+			}
+		},
+		{
+			"files": ["**/scripts/**/*"],
+			"rules": {
+				"@typescript-eslint/no-require-imports": "off"
+			}
+		},
+		{
+			"files": ["internal/scripts/**/*"],
+			"rules": {
+				"tldraw/no-export-star": "off"
+			}
+		},
+		{
+			"files": ["apps/mcp-app/**/*"],
+			"rules": {
+				"tldraw/no-export-star": "off"
+			}
+		},
+		{
+			"files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts"],
+			"rules": {
+				"tldraw/no-restricted-properties": "off",
+				"no-restricted-globals": "off",
+				"react/jsx-key": "off",
+				"react/no-string-refs": "off"
+			}
+		},
+		{
+			"files": ["internal/**/*", "templates/simple-server-example/**/*"],
+			"rules": {
+				"no-console": "off"
+			}
+		},
+		{
+			"files": ["apps/examples/**/*"],
+			"rules": {
+				"tldraw/no-setter-getter": "off",
+				"tldraw/no-direct-storage": "off",
+				"tldraw/no-exported-arrow-const": "off",
+				"tldraw/img-referrer-policy": "off"
+			}
+		},
+		{
+			"files": ["templates/**/*"],
+			"rules": {
+				"tldraw/prefer-class-methods": "off",
+				"tldraw/no-setter-getter": "off",
+				"tldraw/no-direct-storage": "off",
+				"tldraw/no-exported-arrow-const": "off",
+				"tldraw/img-referrer-policy": "off",
+				"no-console": "off",
+				"tldraw/method-signature-style": "off"
+			}
+		}
+	]
+}

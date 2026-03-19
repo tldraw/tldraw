@@ -47,7 +47,7 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 	static validator = EarthquakeNode
 	title = 'Earthquake data'
 	heading = 'USGS Data'
-	icon = (<EarthquakeIcon />)
+	icon = <EarthquakeIcon />
 
 	getDefault(): EarthquakeNode {
 		return {

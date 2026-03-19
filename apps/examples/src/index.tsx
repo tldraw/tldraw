@@ -20,9 +20,7 @@ const ENABLE_STRICT_MODE = false
 // we use secret internal `setDefaultAssetUrls` functions to set these at the
 // top-level so assets don't need to be passed down in every single example.
 const assetUrls = getAssetUrlsByMetaUrl()
-// eslint-disable-next-line local/no-at-internal
 setDefaultEditorAssetUrls(assetUrls)
-// eslint-disable-next-line local/no-at-internal
 setDefaultUiAssetUrls(assetUrls)
 const gettingStartedExamples = examples.find((e) => e.id === 'Getting started')
 if (!gettingStartedExamples) throw new Error('Could not find getting started examples')

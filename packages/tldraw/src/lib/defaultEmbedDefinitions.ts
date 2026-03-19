@@ -672,9 +672,9 @@ export interface EmbedDefinition {
 	readonly canEditWhileLocked?: boolean
 	// TODO: FIXME this is ugly be required because some embeds have their own border radius for example spotify embeds
 	readonly overrideOutlineRadius?: number
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	readonly toEmbedUrl: (url: string) => string | undefined
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	readonly fromEmbedUrl: (url: string) => string | undefined
 }
 

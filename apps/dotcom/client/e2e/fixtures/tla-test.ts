@@ -138,7 +138,7 @@ export function repeatTest(
 	const getName = (i: number) => `${name} (${i + 1} of ${times})`
 	for (let i = 0; i < times; i++) {
 		if (only) {
-			// eslint-disable-next-line no-only-tests/no-only-tests
+			// eslint-disable-next-line tldraw/no-focused-tests
 			test.only(getName(i), fn)
 		} else {
 			test(getName(i), fn)

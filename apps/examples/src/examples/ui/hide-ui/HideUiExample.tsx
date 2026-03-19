@@ -9,7 +9,7 @@ export default function HideUiExample() {
 	)
 }
 
-/* 
+/*
 This example shows how to hide the UI of the editor. Simply pass the hideUi prop
 to the Tldraw component. This is useful if you want to build your own UI around
 the editor. See the custom ui example if you need help building your own UI.
