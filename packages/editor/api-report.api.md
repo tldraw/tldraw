@@ -9,14 +9,18 @@ import { AtomSet } from '@tldraw/store';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
+import { CORE_ACTIVITIES } from '@tldraw/tlschema';
+import { CoreActivityId } from '@tldraw/tlschema';
 import { Dispatch } from 'react';
 import { Editor as Editor_2 } from '@tiptap/core';
 import { EditorProviderProps as EditorProviderProps_2 } from '@tiptap/react';
+import { evaluateRule } from '@tldraw/tlschema';
 import EventEmitter from 'eventemitter3';
 import { ExoticComponent } from 'react';
 import { ExtractShapeByProps } from '@tldraw/tlschema';
 import { ForwardRefExoticComponent } from 'react';
 import { FragmentProps } from 'react';
+import { getShapeCreatorId } from '@tldraw/tlschema';
 import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
@@ -47,11 +51,13 @@ import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
 import { T } from '@tldraw/validate';
 import { Timers } from '@tldraw/utils';
+import { TLAfterActionCallback } from '@tldraw/tlschema';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
 import { TLAssetStore } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
+import { TLBeforeActionCallback } from '@tldraw/tlschema';
 import { TLBinding } from '@tldraw/tlschema';
 import { TLBindingCreate } from '@tldraw/tlschema';
 import { TLBindingId } from '@tldraw/tlschema';
@@ -73,6 +79,9 @@ import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
+import { TLPermissionContext } from '@tldraw/tlschema';
+import { TLPermissionRule } from '@tldraw/tlschema';
+import { TLPermissionsManagerConfig } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLRichText } from '@tldraw/tlschema';
@@ -488,6 +497,10 @@ export interface ContainerProviderProps {
     container: HTMLElement;
 }
 
+export { CORE_ACTIVITIES }
+
+export { CoreActivityId }
+
 // @public (undocumented)
 export const coreShapes: readonly [typeof GroupShapeUtil];
 
@@ -818,7 +831,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls, permissions: permissionsConfig }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1418,6 +1431,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     packShapes(shapes: TLShape[] | TLShapeId[], _gap?: number): this;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
+    readonly permissions: null | TLPermissionsManager;
     popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, opts?: {
         point?: VecLike;
@@ -1666,6 +1680,8 @@ export class ErrorBoundary extends React_2.Component<React_2.PropsWithChildren<T
 // @public (undocumented)
 export function ErrorScreen({ children }: LoadingScreenProps): JSX.Element;
 
+export { evaluateRule }
+
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
 
@@ -1881,6 +1897,8 @@ export function getRotationSnapshot({ editor, ids }: {
     editor: Editor;
     ids: TLShapeId[];
 }): null | TLRotationSnapshot;
+
+export { getShapeCreatorId }
 
 // @public (undocumented)
 export function getSnapshot(store: TLStore): TLEditorSnapshot;
@@ -3158,6 +3176,8 @@ export type TiptapNode = Node_2;
 // @public (undocumented)
 export type TLAdjacentDirection = 'down' | 'left' | 'next' | 'prev' | 'right' | 'up';
 
+export { TLAfterActionCallback }
+
 // @public (undocumented)
 export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
 
@@ -3193,6 +3213,8 @@ export interface TLBaseExternalContent {
     // (undocumented)
     sources?: TLExternalContentSource[];
 }
+
+export { TLBeforeActionCallback }
 
 // @public (undocumented)
 export interface TLBindingUtilConstructor<T extends TLBinding, U extends BindingUtil<T> = BindingUtil<T>> {
@@ -3459,6 +3481,7 @@ export interface TldrawEditorBaseProps {
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
+    permissions?: TLPermissionsManagerConfig;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     // @deprecated
     textOptions?: TLTextOptions;
@@ -3680,6 +3703,7 @@ export interface TLEditorOptions {
     licenseKey?: string;
     // (undocumented)
     options?: Partial<TldrawOptions>;
+    permissions?: TLPermissionsManagerConfig;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
     // @deprecated
@@ -4163,6 +4187,50 @@ export const tlmenus: {
 
 // @public
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;
+
+export { TLPermissionContext }
+
+export { TLPermissionRule }
+
+// @public
+export class TLPermissionsManager {
+    // @internal
+    constructor(editor: Editor, config: TLPermissionsManagerConfig);
+    // (undocumented)
+    canCopyPaste(): boolean;
+    // (undocumented)
+    canCreateShape(shapeType: string): boolean;
+    // (undocumented)
+    canDeleteShape(shape: TLShape): boolean;
+    // (undocumented)
+    canEditShapeProps(shape: TLShape): boolean;
+    // (undocumented)
+    canMoveShape(shape: TLShape): boolean;
+    canPerform(activityId: string, context?: Partial<TLPermissionContext>): boolean;
+    // (undocumented)
+    canRotateShape(shape: TLShape): boolean;
+    // (undocumented)
+    canSelectShape(shape: TLShape): boolean;
+    // (undocumented)
+    canUndoRedo(): boolean;
+    // (undocumented)
+    canUpdateShape(prev: TLShape, next: TLShape): boolean;
+    // (undocumented)
+    canUseTool(toolId: string): boolean;
+    // (undocumented)
+    canViewShape(shape: TLShape): boolean;
+    // (undocumented)
+    cleanup(): void;
+    // (undocumented)
+    getCurrentUser(): null | TLUser;
+    // @internal (undocumented)
+    installEnforcement(): void;
+    onAfterAction(callback: TLAfterActionCallback): () => void;
+    onBeforeAction(callback: TLBeforeActionCallback): () => void;
+    tryPerform(activityId: string, context?: Partial<TLPermissionContext>): boolean;
+}
+
+export { TLPermissionsManagerConfig }
 
 // @public (undocumented)
 export type TLPinchEvent = (info: TLPinchEventInfo) => void;
@@ -4735,6 +4803,9 @@ export function uniq<T>(array: {
     readonly [n: number]: T;
     readonly length: number;
 } | null | undefined): T[];
+
+// @public
+export function useCanPerform(activityId: string, context?: Partial<TLPermissionContext>): boolean;
 
 // @public (undocumented)
 export function useContainer(): HTMLElement;

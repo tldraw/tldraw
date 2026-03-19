@@ -22,6 +22,7 @@ import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { Editor } from './editor/Editor'
+import { TLPermissionsManagerConfig } from './editor/managers/PermissionsManager/permissions-types'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
 import type { TLEditorComponents } from './hooks/EditorComponentsContext'
@@ -219,6 +220,12 @@ export interface TldrawEditorBaseProps {
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
+
+	/**
+	 * Configuration for the permissions manager. Define this outside your component or wrap it in
+	 * `useMemo` — a new object on every render will recreate the manager and re-install all hooks.
+	 */
+	permissions?: TLPermissionsManagerConfig
 }
 
 /**
@@ -426,6 +433,7 @@ function TldrawEditorWithReadyStore({
 	licenseKey,
 	getShapeVisibility,
 	assetUrls,
+	permissions,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -439,6 +447,20 @@ function TldrawEditorWithReadyStore({
 	const [editor, setEditor] = useRefState<Editor | null>(null)
 
 	const canvasRef = useRef<HTMLDivElement | null>(null)
+
+	const prevPermissionsRef = useRef(permissions)
+	useEffect(() => {
+		if (
+			prevPermissionsRef.current !== undefined &&
+			permissions !== undefined &&
+			prevPermissionsRef.current !== permissions
+		) {
+			console.warn(
+				'tldraw: `permissions` prop changed between renders — editor recreated and registered callbacks lost. Wrap in useMemo.'
+			)
+		}
+		prevPermissionsRef.current = permissions
+	}, [permissions])
 
 	const _deepLinks = options?.deepLinks
 	const deepLinks = useShallowObjectIdentity(_deepLinks === true ? {} : _deepLinks)
@@ -485,6 +507,7 @@ function TldrawEditorWithReadyStore({
 				licenseKey,
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
+				permissions,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -520,6 +543,7 @@ function TldrawEditorWithReadyStore({
 			licenseKey,
 			getShapeVisibility,
 			assetUrls,
+			permissions,
 		]
 	)
 

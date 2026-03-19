@@ -147,6 +147,20 @@ export {
 } from './lib/editor/managers/FontManager/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryManager'
 export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
+export { getShapeCreatorId } from './lib/editor/managers/PermissionsManager/attribution'
+export {
+	CORE_ACTIVITIES,
+	type CoreActivityId,
+	type TLAfterActionCallback,
+	type TLBeforeActionCallback,
+	type TLPermissionContext,
+	type TLPermissionRule,
+	type TLPermissionsManagerConfig,
+} from './lib/editor/managers/PermissionsManager/permissions-types'
+export {
+	evaluateRule,
+	TLPermissionsManager,
+} from './lib/editor/managers/PermissionsManager/TLPermissionsManager'
 export {
 	ScribbleManager,
 	type ScribbleItem,
@@ -291,6 +305,7 @@ export { getSvgAsImage } from './lib/exports/getSvgAsImage'
 export { tlenv, tlenvReactive } from './lib/globals/environment'
 export { tlmenus } from './lib/globals/menus'
 export { tltime } from './lib/globals/time'
+export { useCanPerform } from './lib/hooks/useCanPerform'
 export {
 	ContainerProvider,
 	useContainer,

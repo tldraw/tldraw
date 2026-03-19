@@ -124,6 +124,24 @@ export function compressLegacySegments(segments: {
     type: 'free' | 'straight';
 }[]): TLDrawShapeSegment[];
 
+// @public (undocumented)
+export const CORE_ACTIVITIES: {
+    readonly COPY_PASTE: "edit.copy_paste";
+    readonly CREATE_SHAPE: "create.shape";
+    readonly DELETE_SHAPE: "delete.shape";
+    readonly EDIT_SHAPE_PROPS: "edit.shape_props";
+    readonly MOVE_SHAPE: "move.shape";
+    readonly ROTATE_SHAPE: "rotate.shape";
+    readonly SELECT_SHAPE: "select.shape";
+    readonly UNDO_REDO: "edit.undo_redo";
+    readonly UPDATE_SHAPE: "update.shape";
+    readonly USE_TOOL: "tool.use";
+    readonly VIEW_SHAPE: "view.shape";
+};
+
+// @public (undocumented)
+export type CoreActivityId = (typeof CORE_ACTIVITIES)[keyof typeof CORE_ACTIVITIES];
+
 // @public
 export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
 id: TLAssetId;
@@ -331,6 +349,9 @@ export class EnumStyleProp<T> extends StyleProp<T> {
     readonly values: readonly T[];
 }
 
+// @public (undocumented)
+export function evaluateRule(rules: ReadonlyMap<string, TLPermissionRule> | Record<string, TLPermissionRule>, activityId: string, context: TLPermissionContext, beforeActionCallbacks?: readonly TLBeforeActionCallback[]): boolean;
+
 // @public
 export type ExtractShapeByProps<P> = Extract<TLShape, {
     props: P;
@@ -388,6 +409,9 @@ export function getDefaultUserPresence(store: TLStore, user: TLUser): {
     userId: TLUserId;
     userName: string;
 } | null;
+
+// @public
+export function getShapeCreatorId(shape: TLShape): null | string;
 
 // @internal
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
@@ -721,6 +745,9 @@ export const TL_HANDLE_TYPES: Set<"clone" | "create" | "vertex" | "virtual">;
 // @public
 export const TL_SCRIBBLE_STATES: Set<"active" | "complete" | "paused" | "starting" | "stopping">;
 
+// @public (undocumented)
+export type TLAfterActionCallback = (context: TLPermissionContext, allowed: boolean) => void;
+
 // @public
 export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>;
 
@@ -863,6 +890,9 @@ export interface TLBaseShape<Type extends string, Props extends object> {
     // (undocumented)
     y: number;
 }
+
+// @public (undocumented)
+export type TLBeforeActionCallback = (context: TLPermissionContext) => boolean;
 
 // @public
 export type TLBinding<K extends keyof TLIndexedBindings = keyof TLIndexedBindings> = TLIndexedBindings[K];
@@ -1387,6 +1417,33 @@ export type TLPageId = RecordId<TLPage>;
 
 // @public
 export type TLParentId = TLPageId | TLShapeId;
+
+// @public (undocumented)
+export interface TLPermissionContext {
+    // (undocumented)
+    activityId: string;
+    // (undocumented)
+    nextShape?: TLShape;
+    // (undocumented)
+    prevShape?: TLShape;
+    // (undocumented)
+    shapeType?: string;
+    // (undocumented)
+    targetShape?: TLShape;
+    // (undocumented)
+    toolId?: string;
+    // (undocumented)
+    user: TLUser;
+}
+
+// @public (undocumented)
+export type TLPermissionRule = ((context: TLPermissionContext) => boolean) | boolean;
+
+// @public (undocumented)
+export interface TLPermissionsManagerConfig {
+    // (undocumented)
+    rules?: Record<string, TLPermissionRule>;
+}
 
 // @public
 export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
