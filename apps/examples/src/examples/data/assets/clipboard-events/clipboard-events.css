@@ -1,0 +1,43 @@
+.clipboard-events-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 8px;
+	padding: 8px;
+	background: var(--color-panel);
+	border-radius: 8px;
+	border: 1px solid var(--color-panel-contrast);
+	font-size: 12px;
+	min-width: 220px;
+}
+
+.clipboard-events-controls {
+	display: flex;
+	gap: 12px;
+}
+
+.clipboard-events-controls label {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	cursor: pointer;
+}
+
+.clipboard-events-log {
+	max-height: 120px;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.clipboard-events-empty {
+	color: var(--color-text-3);
+	font-style: italic;
+}
+
+.clipboard-events-entry {
+	padding: 2px 4px;
+	border-radius: 4px;
+	background: var(--color-muted-2);
+}

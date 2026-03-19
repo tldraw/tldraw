@@ -1,6 +1,7 @@
 import {
 	Editor,
 	FileHelpers,
+	TLExternalContent,
 	TLExternalContentSource,
 	Vec,
 	VecLike,
@@ -88,6 +89,19 @@ function areShortcutsDisabled(editor: Editor) {
 	)
 }
 
+/** @internal */
+export async function putPastedExternalContent(
+	editor: Editor,
+	content: TLExternalContent<unknown>
+) {
+	if (editor.options.onBeforePasteFromClipboard) {
+		const result = editor.options.onBeforePasteFromClipboard({ editor, content })
+		if (result === false) return
+		if (result != null) content = result
+	}
+	return editor.putExternalContent(content)
+}
+
 /**
  * Handle text pasted into the editor.
  * @param editor - The editor instance.
@@ -110,7 +124,7 @@ const handleText = (
 		pasteUrl(editor, data, point)
 	} else if (isSvgText(data)) {
 		editor.markHistoryStoppingPoint('paste')
-		editor.putExternalContent({
+		putPastedExternalContent(editor, {
 			type: 'svg-text',
 			text: data,
 			point,
@@ -118,7 +132,7 @@ const handleText = (
 		})
 	} else {
 		editor.markHistoryStoppingPoint('paste')
-		editor.putExternalContent({
+		putPastedExternalContent(editor, {
 			type: 'text',
 			text: data,
 			point,
@@ -471,7 +485,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	for (const result of results) {
 		if (result.type === 'tldraw') {
 			editor.markHistoryStoppingPoint('paste')
-			editor.putExternalContent({ type: 'tldraw', content: result.data, point })
+			putPastedExternalContent(editor, { type: 'tldraw', content: result.data, point })
 			return
 		}
 	}
@@ -480,7 +494,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	for (const result of results) {
 		if (result.type === 'excalidraw') {
 			editor.markHistoryStoppingPoint('paste')
-			editor.putExternalContent({ type: 'excalidraw', content: result.data, point })
+			putPastedExternalContent(editor, { type: 'excalidraw', content: result.data, point })
 			return
 		}
 	}
@@ -523,7 +537,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 				const html = stripHtml(result.data) ?? ''
 				if (html) {
 					editor.markHistoryStoppingPoint('paste')
-					editor.putExternalContent({
+					putPastedExternalContent(editor, {
 						type: 'text',
 						text: html,
 						html: result.data,
@@ -581,9 +595,9 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
  * @param editor - The editor instance.
  * @public
  */
-const handleNativeOrMenuCopy = async (editor: Editor) => {
+export const handleNativeOrMenuCopy = async (editor: Editor) => {
 	const navigator = editor.getContainerWindow().navigator
-	const content = await editor.resolveAssetsInContent(
+	let content = await editor.resolveAssetsInContent(
 		editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
 	)
 	if (!content) {
@@ -591,6 +605,12 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 			navigator.clipboard.writeText('')
 		}
 		return
+	}
+
+	if (editor.options.onBeforeCopyToClipboard) {
+		const result = editor.options.onBeforeCopyToClipboard({ editor, content })
+		if (result === false) return
+		if (result != null) content = result
 	}
 
 	// Use versioned clipboard format for better compression
@@ -731,6 +751,14 @@ export function useNativeClipboardEvents() {
 			}
 
 			preventDefault(e)
+
+			if (editor.options.onClipboardCopy) {
+				if (editor.options.onClipboardCopy({ editor, source: 'native' }) === true) {
+					trackEvent('copy', { source: 'kbd' })
+					return
+				}
+			}
+
 			await handleNativeOrMenuCopy(editor)
 			trackEvent('copy', { source: 'kbd' })
 		}
@@ -744,6 +772,14 @@ export function useNativeClipboardEvents() {
 				return
 			}
 			preventDefault(e)
+
+			if (editor.options.onClipboardCut) {
+				if (editor.options.onClipboardCut({ editor, source: 'native' }) === true) {
+					trackEvent('cut', { source: 'kbd' })
+					return
+				}
+			}
+
 			await handleNativeOrMenuCopy(editor)
 			editor.deleteShapes(editor.getSelectedShapeIds())
 			trackEvent('cut', { source: 'kbd' })
@@ -783,6 +819,21 @@ export function useNativeClipboardEvents() {
 			if (editor.inputs.getShiftKey()) pasteAtCursor = true
 			if (editor.user.getIsPasteAtCursorMode()) pasteAtCursor = !pasteAtCursor
 			if (pasteAtCursor) point = editor.inputs.getCurrentPagePoint()
+
+			if (editor.options.onClipboardPaste && e.clipboardData) {
+				if (
+					editor.options.onClipboardPaste({
+						editor,
+						source: 'native',
+						clipboardData: e.clipboardData,
+						point,
+					}) === true
+				) {
+					preventDefault(e)
+					trackEvent('paste', { source: 'kbd' })
+					return
+				}
+			}
 
 			const pasteFromEvent = () => {
 				if (e.clipboardData) {

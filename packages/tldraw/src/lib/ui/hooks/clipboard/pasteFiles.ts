@@ -1,4 +1,5 @@
 import { Editor, TLExternalContentSource, VecLike } from '@tldraw/editor'
+import { putPastedExternalContent } from '../useClipboardEvents'
 
 /**
  * When the clipboard has a file, create an image/video shape from the file and paste it into the scene.
@@ -20,7 +21,7 @@ export async function pasteFiles(
 
 	editor.markHistoryStoppingPoint('paste')
 
-	await editor.putExternalContent({
+	await putPastedExternalContent(editor, {
 		type: 'files',
 		files,
 		point,

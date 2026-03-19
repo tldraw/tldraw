@@ -1,5 +1,8 @@
 import { ComponentType, Fragment } from 'react'
 import { DEFAULT_CAMERA_OPTIONS } from './constants'
+import type { Editor } from './editor/Editor'
+import { TLContent } from './editor/types/clipboard-types'
+import { TLExternalContent } from './editor/types/external-content'
 import { TLCameraOptions } from './editor/types/misc-types'
 import { VecLike } from './primitives/Vec'
 import { TLDeepLinkOptions } from './utils/deepLinks'
@@ -157,6 +160,92 @@ export interface TldrawOptions {
 	 */
 	readonly quickZoomPreservesScreenBounds: boolean
 	/**
+	 * Called when the user copies shapes, whether via keyboard shortcut or menu action.
+	 *
+	 * Return `true` to prevent the default copy behavior. You can use the `handleNativeOrMenuCopy`
+	 * export from `@tldraw/tldraw` to perform the default copy behavior from your handler.
+	 */
+	onClipboardCopy?(info: { editor: Editor; source: 'native' | 'menu' }): boolean | void
+	/**
+	 * Called when the user cuts shapes, whether via keyboard shortcut or menu action.
+	 *
+	 * Return `true` to prevent the default cut behavior.
+	 */
+	onClipboardCut?(info: { editor: Editor; source: 'native' | 'menu' }): boolean | void
+	/**
+	 * Called when the user pastes, whether via keyboard shortcut or menu action.
+	 *
+	 * Return `true` to prevent the default paste behavior. You can call
+	 * `editor.putExternalContent()` from your handler to trigger specific content handling.
+	 *
+	 * For native paste events, `clipboardData` provides synchronous access to the clipboard
+	 * contents. For menu-triggered pastes, `clipboardData` is not available.
+	 */
+	onClipboardPaste?(
+		info:
+			| {
+					editor: Editor
+					source: 'native'
+					clipboardData: DataTransfer
+					point: VecLike | undefined
+			  }
+			| {
+					editor: Editor
+					source: 'menu'
+					clipboardData: null
+					point: VecLike | undefined
+			  }
+	): boolean | void
+	/**
+	 * Called before content is written to the clipboard during a copy or cut operation.
+	 * Receives the serialized content (shapes, bindings, assets) and can filter or transform
+	 * it before it reaches the clipboard.
+	 *
+	 * Return a modified `TLContent` object to change what is copied. Return `false` to cancel
+	 * the clipboard write entirely. Return `void` (or `undefined`) to pass through unchanged.
+	 *
+	 * @example
+	 * ```tsx
+	 * // Filter out "locked" shapes from copy
+	 * onBeforeCopyToClipboard({ content }) {
+	 *     return {
+	 *         ...content,
+	 *         shapes: content.shapes.filter(s => !s.meta.locked),
+	 *         rootShapeIds: content.rootShapeIds.filter(id =>
+	 *             content.shapes.find(s => s.id === id && !s.meta.locked)
+	 *         ),
+	 *     }
+	 * }
+	 * ```
+	 */
+	onBeforeCopyToClipboard?(info: { editor: Editor; content: TLContent }): TLContent | false | void
+	/**
+	 * Called before pasted content is processed and shapes are created. Receives the parsed
+	 * external content from the clipboard and can filter, transform, or cancel it.
+	 *
+	 * Return `false` to cancel the paste. Return a modified content object to transform it.
+	 * Return `void` (or `undefined`) to pass through unchanged.
+	 *
+	 * This only fires for clipboard paste operations (keyboard shortcuts and menu actions),
+	 * not for file drops or programmatic `putExternalContent` calls.
+	 *
+	 * @example
+	 * ```tsx
+	 * // Block pasting of image files
+	 * onBeforePasteFromClipboard({ content }) {
+	 *     if (content.type === 'files') {
+	 *         const nonImages = content.files.filter(f => !f.type.startsWith('image/'))
+	 *         if (nonImages.length === 0) return false
+	 *         return { ...content, files: nonImages }
+	 *     }
+	 * }
+	 * ```
+	 */
+	onBeforePasteFromClipboard?(info: {
+		editor: Editor
+		content: TLExternalContent<unknown>
+	}): TLExternalContent<unknown> | false | void
+	/**
 	 * Called when content is dropped on the canvas. Provides the page position
 	 * where the drop occurred and the underlying drag event object.
 	 * Return true to prevent default drop handling (files, URLs, etc.)
@@ -227,5 +316,10 @@ export const defaultTldrawOptions = {
 	text: {},
 	deepLinks: undefined,
 	quickZoomPreservesScreenBounds: true,
+	onClipboardCopy: undefined,
+	onClipboardCut: undefined,
+	onClipboardPaste: undefined,
+	onBeforeCopyToClipboard: undefined,
+	onBeforePasteFromClipboard: undefined,
 	experimental__onDropOnCanvas: undefined,
 } as const satisfies TldrawOptions

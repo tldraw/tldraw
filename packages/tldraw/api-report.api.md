@@ -1878,6 +1878,9 @@ export function GroupMenuItem(): JSX.Element | null;
 // @public (undocumented)
 export function GroupOrUngroupMenuItem(): JSX.Element;
 
+// @public
+export const handleNativeOrMenuCopy: (editor: Editor) => Promise<void>;
+
 // @public (undocumented)
 export class HandTool extends StateNode {
     // (undocumented)

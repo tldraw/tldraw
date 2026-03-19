@@ -738,6 +738,11 @@ export const defaultTldrawOptions: {
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
     readonly nonce: undefined;
+    readonly onBeforeCopyToClipboard: undefined;
+    readonly onBeforePasteFromClipboard: undefined;
+    readonly onClipboardCopy: undefined;
+    readonly onClipboardCut: undefined;
+    readonly onClipboardPaste: undefined;
     readonly quickZoomPreservesScreenBounds: true;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
@@ -3589,6 +3594,33 @@ export interface TldrawOptions {
     // (undocumented)
     readonly multiClickDurationMs: number;
     readonly nonce: string | undefined;
+    onBeforeCopyToClipboard?(info: {
+        content: TLContent;
+        editor: Editor;
+    }): false | TLContent | void;
+    onBeforePasteFromClipboard?(info: {
+        content: TLExternalContent<unknown>;
+        editor: Editor;
+    }): false | TLExternalContent<unknown> | void;
+    onClipboardCopy?(info: {
+        editor: Editor;
+        source: 'menu' | 'native';
+    }): boolean | void;
+    onClipboardCut?(info: {
+        editor: Editor;
+        source: 'menu' | 'native';
+    }): boolean | void;
+    onClipboardPaste?(info: {
+        clipboardData: DataTransfer;
+        editor: Editor;
+        point: undefined | VecLike;
+        source: 'native';
+    } | {
+        clipboardData: null;
+        editor: Editor;
+        point: undefined | VecLike;
+        source: 'menu';
+    }): boolean | void;
     readonly quickZoomPreservesScreenBounds: boolean;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
