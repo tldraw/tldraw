@@ -3,7 +3,6 @@ import { config } from 'dotenv'
 import glob from 'fast-glob'
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import json5 from 'json5'
-import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
 import { csp } from '../src/utils/csp'
@@ -91,8 +90,15 @@ async function build() {
 	writeFileSync('.vercel/output/static/index.html', newIndex)
 
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
-	const assetsToCache = assetsList.filter((f) => !f.endsWith('.js.map')).map((f) => `/assets/${f}`)
-	const assetsToCacheRegex = `^${regexgen(assetsToCache).source}$`
+	const assetExtensions = [
+		...new Set(
+			assetsList
+				.filter((f) => !f.endsWith('.js.map'))
+				.map((f) => f.split('.').pop()!)
+				.filter(Boolean)
+		),
+	]
+	const assetsToCacheRegex = `^\\/assets\\/.+\\.(${assetExtensions.join('|')})$`
 
 	writeFileSync(
 		'.vercel/output/config.json',
@@ -115,8 +121,8 @@ async function build() {
 							'X-Content-Type-Options': 'nosniff',
 						},
 					},
-					// cache static assets immutably. we use a regex here to match all assets we
-					// know exist so we don't apply caching headers to 404 pages.
+					// cache static assets immutably. we match by extension to avoid exceeding
+					// Vercel's 4096-char route limit (see #8286).
 					{
 						src: assetsToCacheRegex,
 						headers: {

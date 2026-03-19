@@ -12103,13 +12103,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/regexgen@npm:^1.3.3":
-  version: 1.3.3
-  resolution: "@types/regexgen@npm:1.3.3"
-  checksum: 10/aa95eeb89adc724edc9babf5d2b68d512ae09f1c8fb633997ae03fedfc09c30a5ea00a4bba3919a5e3f1ba02ec379e2e1ca3e147d99d05f38858ff477cb87855
-  languageName: node
-  linkType: hard
-
 "@types/responselike@npm:^1.0.0":
   version: 1.0.3
   resolution: "@types/responselike@npm:1.0.3"
@@ -12405,6 +12398,36 @@ __metadata:
   peerDependencies:
     react: ">= 16.8.0"
   checksum: 10/2c01c1b73bbdeecb9d51370f9117418953accad6789818e1b50f505dcba9e38685612b3fcb25a5dfcbf3a10ae561506378f5ab7586c773c4485ef86107d53898
+  languageName: node
+  linkType: hard
+
+"@vercel/analytics@npm:^1.4.1":
+  version: 1.6.1
+  resolution: "@vercel/analytics@npm:1.6.1"
+  peerDependencies:
+    "@remix-run/react": ^2
+    "@sveltejs/kit": ^1 || ^2
+    next: ">= 13"
+    react: ^18 || ^19 || ^19.0.0-rc
+    svelte: ">= 4"
+    vue: ^3
+    vue-router: ^4
+  peerDependenciesMeta:
+    "@remix-run/react":
+      optional: true
+    "@sveltejs/kit":
+      optional: true
+    next:
+      optional: true
+    react:
+      optional: true
+    svelte:
+      optional: true
+    vue:
+      optional: true
+    vue-router:
+      optional: true
+  checksum: 10/304c6cfef21cdec4c1a2c68c1664e323c1813d733972c9f3603b955ca899655b2a9a0084a34288548e6847ffb802c2916273e4b2bef70e5ce712254a18ae2f3c
   languageName: node
   linkType: hard
 
@@ -16753,7 +16776,7 @@ __metadata:
     "@types/qrcode": "npm:^1.5.5"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
-    "@types/regexgen": "npm:^1.3.3"
+    "@vercel/analytics": "npm:^1.4.1"
     "@vitejs/plugin-react-swc": "npm:^3.10.2"
     axe-core: "npm:^4.10.3"
     browser-fs-access: "npm:^0.35.0"
@@ -16778,7 +16801,6 @@ __metadata:
     react-intl: "npm:^8.1.3"
     react-markdown: "npm:^10.1.0"
     react-router-dom: "npm:^6.28.2"
-    regexgen: "npm:^1.3.0"
     tldraw: "workspace:*"
     vite: "npm:^7.0.1"
     vitest: "npm:^3.2.4"
@@ -20989,15 +21011,6 @@ __metadata:
     canvas:
       optional: true
   checksum: 10/e6bf7250ddd2fbcf68da0ea041a0dc63545dc4bf77fa3ff40a46ae45b1dac1ca55b87574ab904d1f8baeeb547c52cec493a22f545d7d413b320011f41150ec49
-  languageName: node
-  linkType: hard
-
-"jsesc@npm:^2.3.0":
-  version: 2.5.2
-  resolution: "jsesc@npm:2.5.2"
-  bin:
-    jsesc: bin/jsesc
-  checksum: 10/d2096abdcdec56969764b40ffc91d4a23408aa2f351b4d1c13f736f25476643238c43fdbaf38a191c26b1b78fd856d965f5d4d0dde7b89459cd94025190cdf13
   languageName: node
   linkType: hard
 
@@ -26526,13 +26539,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"regenerate@npm:^1.3.2":
-  version: 1.4.2
-  resolution: "regenerate@npm:1.4.2"
-  checksum: 10/dc6c95ae4b3ba6adbd7687cafac260eee4640318c7a95239d5ce847d9b9263979758389e862fe9c93d633b5792ea4ada5708df75885dc5aa05a309fa18140a87
-  languageName: node
-  linkType: hard
-
 "regex-recursion@npm:^5.1.1":
   version: 5.1.1
   resolution: "regex-recursion@npm:5.1.1"
@@ -26556,18 +26562,6 @@ __metadata:
   dependencies:
     regex-utilities: "npm:^2.3.0"
   checksum: 10/956d0f34afa8086551dc9a0e2c575cb6d7ed5122d6d440a72cfbcd1f9adb5a3dcce4dcb61ec69eaecfcbc508cfd25075ac60d011bab5f28f1b2a36220e09a245
-  languageName: node
-  linkType: hard
-
-"regexgen@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "regexgen@npm:1.3.0"
-  dependencies:
-    jsesc: "npm:^2.3.0"
-    regenerate: "npm:^1.3.2"
-  bin:
-    regexgen: bin/cli.js
-  checksum: 10/b23d4b743e8f7312db4622e3384b86dc0fac3a2dcc1f4a4daa70b678b4ee817e9a5cf22d2634576aca213306525b44ef23678d0b1d44cc42f95acdacc44b3c5e
   languageName: node
   linkType: hard
 
