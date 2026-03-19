@@ -29,19 +29,27 @@ await createMermaidDiagram(
 )
 ```
 
-Shapes are created at the center of the viewport by default. Pass a position to place them elsewhere:
+By default, shapes are centered on the viewport. You can control placement with `blueprintRender`:
 
 ```tsx
+// Center the diagram on a specific point (default behavior)
 await createMermaidDiagram(editor, diagramText, {
 	blueprintRender: {
-		position: { x: 200, y: 100 },
+		position: { x: 500, y: 300 },
 		centerOnPosition: true,
+	},
+})
+
+// Place the diagram's top-left corner at the given point
+await createMermaidDiagram(editor, diagramText, {
+	blueprintRender: {
+		position: { x: 0, y: 0 },
+		centerOnPosition: false,
 	},
 })
 ```
 
-If you wish for the diagram not to be centered on the position, or centered in
-the middle of the screen, you can turn `centerOnPosition` to false and voila!
+When `centerOnPosition` is `true` (the default), the diagram's center aligns with the given position. When `false`, the diagram's top-left corner aligns with it instead. If no `position` is provided, the diagram uses the viewport center — or the cursor position if the user has "paste at cursor" mode enabled.
 
 ## Supported diagram types
 
@@ -107,18 +115,55 @@ flowchart LR
 2. **Extract blueprint** — a diagram-specific converter reads positions from the SVG and semantic data from Mermaid's internal database, producing a `DiagramMermaidBlueprint`.
 3. **Create shapes** — `renderBlueprint` converts the blueprint into tldraw geo shapes, arrows, lines, frames, and groups.
 
-## Lazy loading
+## Example: paste handler
 
-The `mermaid` dependency is roughly 2 MB. If you're integrating this into a paste handler or similar, consider lazy-loading the package so it's only fetched when actually needed:
+A common integration is converting Mermaid text on paste. Here's a React component that registers itself as a text content handler — based on the pattern used on [tldraw.com](https://github.com/tldraw/tldraw/blob/main/apps/dotcom/client/src/components/SneakyMermaidHandler/SneakyMermaidHandler.tsx):
 
 ```tsx
-if (looksLikeMermaid(text)) {
-	const { createMermaidDiagram } = await import('@tldraw/mermaid')
-	await createMermaidDiagram(editor, text)
+import { useEffect } from 'react'
+import { defaultHandleExternalTextContent, useEditor } from 'tldraw'
+
+const MERMAID_KEYWORD =
+	/^\s*(flowchart|graph|sequenceDiagram|stateDiagram|classDiagram|erDiagram|gantt|pie|gitGraph|mindmap)/
+
+export function MermaidPasteHandler() {
+	const editor = useEditor()
+
+	useEffect(() => {
+		editor.registerExternalContentHandler('text', async (content) => {
+			if (!MERMAID_KEYWORD.test(content.text)) {
+				await defaultHandleExternalTextContent(editor, content)
+				return
+			}
+
+			try {
+				const { createMermaidDiagram } = await import('@tldraw/mermaid')
+				await createMermaidDiagram(editor, content.text, {
+					async onUnsupportedDiagram(svgString) {
+						await editor.putExternalContent({ type: 'svg-text', text: svgString })
+					},
+				})
+			} catch {
+				await defaultHandleExternalTextContent(editor, content)
+			}
+		})
+	}, [editor])
+
+	return null
 }
 ```
 
-The pre-screening check (`looksLikeMermaid` above) is application-specific — a simple regex against known diagram keywords (`flowchart`, `sequenceDiagram`, `stateDiagram`, `graph`, etc.) works well.
+Drop `<MermaidPasteHandler />` inside your `<Tldraw>` component and users can paste Mermaid text directly onto the canvas.
+
+The regex above is a simplified check. On tldraw.com the detection is handled by [`simpleMermaidStringTest`](https://github.com/tldraw/tldraw/blob/main/apps/dotcom/client/src/components/SneakyMermaidHandler/simpleMermaidStringTest.ts), which also strips YAML frontmatter (`---...---`), `%%{...}%%` directives, and `%%` comments before testing for the diagram keyword — making it more robust for real-world pasted content.
+
+## Lazy loading
+
+The `mermaid` dependency is roughly 2 MB. The paste handler above already lazy-loads with `await import('@tldraw/mermaid')` — the package is only fetched when the pasted text matches a Mermaid keyword. For your own integration, the same pattern applies: pre-screen with a lightweight regex, then dynamic-import the package only when needed.
+
+## Examples
+
+See the [Mermaid diagrams example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/use-cases/hundred-mermaids) in the examples app for a runnable demo that renders many diagram types at once. Run it locally with `yarn dev` from the repo root and visit `localhost:5420`.
 
 ## License
 
