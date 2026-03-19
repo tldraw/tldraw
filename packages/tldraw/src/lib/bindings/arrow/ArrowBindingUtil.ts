@@ -93,10 +93,13 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		reparentArrow(this.editor, binding.fromId)
 	}
 
-	// when the arrow is isolated we need to update it's x,y positions
+	// when the arrow is isolated we need to update its (x,y) positions
 	override onBeforeIsolateFromShape({
 		binding,
 	}: BindingOnShapeIsolateOptions<TLArrowBinding>): void {
+		if ((this.editor as Editor & { history: { isReplaying(): boolean } }).history.isReplaying())
+			return
+
 		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
 		if (!arrow) return
 		updateArrowTerminal({

@@ -80,6 +80,14 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	/** @internal */
+	private _isReplaying = false
+
+	/** @internal */
+	isReplaying() {
+		return this._isReplaying
+	}
+
+	/** @internal */
 	_isInBatch = false
 
 	batch(fn: () => void, opts?: TLHistoryBatchOptions) {
@@ -115,7 +123,9 @@ export class HistoryManager<R extends UnknownRecord> {
 	// History
 	_undo({ pushToRedoStack, toMark = undefined }: { pushToRedoStack: boolean; toMark?: string }) {
 		const previousState = this.state
+		const previousIsReplaying = this._isReplaying
 		this.state = HistoryRecorderState.Paused
+		this._isReplaying = true
 		try {
 			let { undos, redos } = this.stacks.get()
 
@@ -176,11 +186,11 @@ export class HistoryManager<R extends UnknownRecord> {
 				// don't do anything
 				return this
 			}
-
 			this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {
+			this._isReplaying = previousIsReplaying
 			this.state = previousState
 		}
 
@@ -195,7 +205,9 @@ export class HistoryManager<R extends UnknownRecord> {
 
 	redo() {
 		const previousState = this.state
+		const previousIsReplaying = this._isReplaying
 		this.state = HistoryRecorderState.Paused
+		this._isReplaying = true
 		try {
 			this.flushPendingDiff()
 
@@ -224,11 +236,11 @@ export class HistoryManager<R extends UnknownRecord> {
 					break
 				}
 			}
-
 			this.store.applyDiff(diffToRedo, { ignoreEphemeralKeys: true })
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {
+			this._isReplaying = previousIsReplaying
 			this.state = previousState
 		}
 
