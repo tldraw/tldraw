@@ -143,7 +143,7 @@ export async function createMermaidDiagram(
 				if (tree) {
 					db.assignSections(tree)
 					const layout = parseMindmapLayout(liveSvg)
-					blueprint = mindmapToBlueprint(layout, tree)
+					blueprint = mindmapToBlueprint(layout, tree, liveSvg)
 				}
 				break
 			}

@@ -5,7 +5,7 @@ import type {
 	MermaidBlueprintEdge,
 	MermaidBlueprintGeoNode,
 } from './blueprint'
-import { parseSvgFillColors } from './colors'
+import { parseRgbToTldrawColor } from './colors'
 import type { ParsedNode } from './svgParsing'
 import { parseNodesFromSvg, scaleLayout } from './svgParsing'
 import { LAYOUT_SCALE } from './utils'
@@ -50,6 +50,7 @@ interface FlatNode {
 	type: number
 	level: number
 	parentId: string | undefined
+	section: number | undefined
 	isRoot: boolean
 }
 
@@ -64,6 +65,7 @@ function flattenMindmapTree(
 		type: node.type,
 		level: node.level,
 		parentId,
+		section: node.section,
 		isRoot: !!node.isRoot,
 	})
 	for (const child of node.children) {
@@ -73,11 +75,10 @@ function flattenMindmapTree(
 
 /**
  * Pre-parsed SVG layout for mindmap diagram converters.
- * Contains already-scaled node positions and per-node fill colors extracted from the SVG.
+ * Contains already-scaled node positions extracted from the SVG.
  */
 export interface ParsedMindmapLayout {
 	nodes: Map<string, ParsedNode>
-	nodeColors: Map<string, TLDefaultColorStyle>
 }
 
 function parseMindmapNodeId(domId: string): string {
@@ -88,23 +89,33 @@ function parseMindmapNodeId(domId: string): string {
 /** Parse mindmap-specific SVG layout data for use by {@link mindmapToBlueprint}. */
 export function parseMindmapLayout(root: Element): ParsedMindmapLayout {
 	const nodes = parseNodesFromSvg(root, '.node', parseMindmapNodeId)
-
-	const nodeColors = parseSvgFillColors(root, '.node', parseMindmapNodeId)
-
 	scaleLayout(nodes, new Map(), [], LAYOUT_SCALE)
-
-	return { nodes, nodeColors }
+	return { nodes }
 }
 
 /** Convert a parsed Mermaid mindmap into a tldraw blueprint of nodes and edges. */
 export function mindmapToBlueprint(
 	layout: ParsedMindmapLayout,
-	mindmapTree: MindmapNode
+	mindmapTree: MindmapNode,
+	svgRoot: Element
 ): DiagramMermaidBlueprint {
 	const flatNodes: FlatNode[] = []
 	flattenMindmapTree(mindmapTree, undefined, flatNodes)
 
-	const { nodes: svgNodes, nodeColors } = layout
+	const { nodes: svgNodes } = layout
+
+	const nodeColors = new Map<string, TLDefaultColorStyle>()
+	for (const el of svgRoot.querySelectorAll('.node')) {
+		const rawId = el.getAttribute('id') || ''
+		const id = parseMindmapNodeId(rawId)
+		const shape =
+			el.querySelector('rect, circle, ellipse, polygon, path') ??
+			el.querySelector('.label-container')
+		if (shape) {
+			const parsed = parseRgbToTldrawColor(getComputedStyle(shape as Element).fill)
+			if (parsed) nodeColors.set(id, parsed.color)
+		}
+	}
 
 	const nodes: MermaidBlueprintGeoNode[] = []
 	const edges: MermaidBlueprintEdge[] = []

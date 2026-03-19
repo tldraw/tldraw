@@ -2,7 +2,6 @@ import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/f
 import type { MindmapNode } from 'mermaid/dist/diagrams/mindmap/mindmapTypes.js'
 import type { Actor, Message } from 'mermaid/dist/diagrams/sequence/types.js'
 import type { StateStmt } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
-import type { TLDefaultColorStyle } from 'tldraw'
 import type { DiagramMermaidBlueprint } from './blueprint'
 import { flowchartToBlueprint } from './flowchartDiagram'
 import { mindmapToBlueprint, type ParsedMindmapLayout } from './mindmapDiagram'
@@ -908,14 +907,26 @@ function mindmapNode(
 	} as MindmapNode
 }
 
-function mindmapLayout(
-	nodes: ParsedNode[],
-	nodeColors?: Map<string, TLDefaultColorStyle>
-): ParsedMindmapLayout {
+function mindmapLayout(nodes: ParsedNode[]): ParsedMindmapLayout {
 	return {
 		nodes: new Map(nodes.map((n) => [n.id, n])),
-		nodeColors: nodeColors ?? new Map(),
 	}
+}
+
+const emptySvg = document.createElement('div')
+
+function mockSvgWithColors(colors: Map<string, string>): Element {
+	const root = document.createElement('div')
+	for (const [id, fill] of colors) {
+		const group = document.createElement('div')
+		group.classList.add('node')
+		group.setAttribute('id', `node_${id}`)
+		const rect = document.createElement('rect')
+		rect.style.fill = fill
+		group.appendChild(rect)
+		root.appendChild(group)
+	}
+	return root
 }
 
 describe('mindmapToBlueprint', () => {
@@ -935,7 +946,7 @@ describe('mindmapToBlueprint', () => {
 			],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree)
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
 
 		expect(bp.nodes).toHaveLength(3)
 
@@ -970,7 +981,7 @@ describe('mindmapToBlueprint', () => {
 			],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree)
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
 
 		expect(bp.edges).toHaveLength(2)
 		for (const e of bp.edges) {
@@ -1006,7 +1017,7 @@ describe('mindmapToBlueprint', () => {
 			],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree)
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
 
 		expect(bp.edges).toHaveLength(3)
 		expect(findEdge(bp, '0', '1')!.size).toBe('l')
@@ -1038,7 +1049,7 @@ describe('mindmapToBlueprint', () => {
 			],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree)
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
 
 		expect(findNodeByLabel(bp, 'Default')!.geo).toBe('rectangle')
 		expect(findNodeByLabel(bp, 'Rect')!.geo).toBe('rectangle')
@@ -1057,7 +1068,7 @@ describe('mindmapToBlueprint', () => {
 			children: [mindmapNode(1, 'Round', { type: CIRCLE, level: 1, section: 0 })],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree)
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
 
 		const round = findNodeByLabel(bp, 'Round')!
 		expect(round.w).toBe(round.h)
@@ -1065,39 +1076,38 @@ describe('mindmapToBlueprint', () => {
 	})
 
 	it('uses SVG-extracted colors, falls back to black', () => {
-		const nodeColors = new Map<string, TLDefaultColorStyle>([['1', 'red']])
-		const layout = mindmapLayout(
-			[node('0', 0, 0, 100, 50), node('1', -150, 100, 80, 40), node('2', 150, 100, 80, 40)],
-			nodeColors
-		)
+		const layout = mindmapLayout([
+			node('0', 0, 0, 100, 50),
+			node('1', -150, 100, 80, 40),
+			node('2', 150, 100, 80, 40),
+		])
 		const tree = mindmapNode(0, 'Root', {
 			isRoot: true,
 			level: 0,
+			section: -1,
 			children: [
-				mindmapNode(1, 'With Color', { level: 1 }),
-				mindmapNode(2, 'No Color', { level: 1 }),
+				mindmapNode(1, 'With Color', { level: 1, section: 0 }),
+				mindmapNode(2, 'No Color', { level: 1, section: 1 }),
 			],
 		})
+		const svg = mockSvgWithColors(new Map([['1', 'rgb(224, 49, 49)']]))
 
-		const bp = mindmapToBlueprint(layout, tree)
+		const bp = mindmapToBlueprint(layout, tree, svg)
 
 		expect(findNodeByLabel(bp, 'With Color')!.color).toBe('red')
 		expect(findNodeByLabel(bp, 'No Color')!.color).toBe('black')
 	})
 
 	it('colors edges to match their target node', () => {
-		const nodeColors = new Map<string, TLDefaultColorStyle>([['1', 'green']])
-		const layout = mindmapLayout(
-			[node('0', 0, 0, 100, 50), node('1', 150, 100, 80, 40)],
-			nodeColors
-		)
+		const layout = mindmapLayout([node('0', 0, 0, 100, 50), node('1', 150, 100, 80, 40)])
 		const tree = mindmapNode(0, 'Root', {
 			isRoot: true,
 			level: 0,
 			children: [mindmapNode(1, 'Child', { level: 1, section: 0 })],
 		})
+		const svg = mockSvgWithColors(new Map([['1', 'rgb(9, 146, 104)']]))
 
-		const bp = mindmapToBlueprint(layout, tree)
+		const bp = mindmapToBlueprint(layout, tree, svg)
 
 		expect(bp.edges).toHaveLength(1)
 		expect(bp.edges[0].color).toBe('green')
@@ -1111,7 +1121,7 @@ describe('mindmapToBlueprint', () => {
 			children: [mindmapNode(1, 'Child', { level: 1, section: 0 })],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree)
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
 
 		for (const n of bp.nodes) {
 			expect(n.fill).toBe('solid')
@@ -1127,7 +1137,7 @@ describe('mindmapToBlueprint', () => {
 			children: [mindmapNode(1, 'Missing', { level: 1, section: 0 })],
 		})
 
-		const bp = mindmapToBlueprint(layout, tree)
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
 
 		expect(bp.nodes).toHaveLength(1)
 		expect(bp.edges).toHaveLength(0)
@@ -1140,7 +1150,7 @@ describe('mindmapToBlueprint', () => {
 			level: 0,
 		})
 
-		const bp = mindmapToBlueprint(layout, tree)
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
 
 		expect(findNodeByLabel(bp, 'Root')!.color).toBe('black')
 	})
