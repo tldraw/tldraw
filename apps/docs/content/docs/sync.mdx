@@ -22,7 +22,7 @@ notes: 'Thorough sync architecture coverage with good code examples. Migration s
 
 You can add realtime multi-user collaboration to your tldraw app by using **tldraw sync**. It's our library for fast, fault-tolerant shared document syncing. We use it in production on our flagship app [tldraw.com](https://tldraw.com).
 
-We offer a [hosted demo](/docs/collaboration#tldraw-sync-demo) of tldraw sync which is suitable for prototyping. To use tldraw sync in production, you will need to host it yourself.
+We offer a [hosted demo](/docs/collaboration) of tldraw sync which is suitable for prototyping. To use tldraw sync in production, you will need to host it yourself.
 
 ## Deploying tldraw sync
 
@@ -246,7 +246,7 @@ function MyApp() {
 Use [`createTLSchema`](?) to create a store schema, and pass that into [`TLSocketRoom`](?). You can
 use shape/binding utils here, but schema will only look at two properties:
 [`props`](/reference/editor/ShapeUtil#props) and
-[`migrations`](/docs/persistence#Shape-props-migrations). You need to provide the default shape
+[`migrations`](/sdk-features/persistence#migrations). You need to provide the default shape
 schemas if you're using them.
 
 ```tsx

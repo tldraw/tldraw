@@ -5,9 +5,9 @@ import { Geometry2d } from './Geometry2d'
 export class Edge2d extends Geometry2d {
 	private _start: Vec
 	private _end: Vec
-	private _d: Vec
-	private _u: Vec
-	private _ul: number
+	private _dx: number
+	private _dy: number
+	private _len2: number
 
 	constructor(config: { start: Vec; end: Vec }) {
 		super({ ...config, isClosed: false, isFilled: false })
@@ -16,13 +16,14 @@ export class Edge2d extends Geometry2d {
 		this._start = start
 		this._end = end
 
-		this._d = start.clone().sub(end) // the delta from start to end
-		this._u = this._d.clone().uni() // the unit vector of the edge
-		this._ul = this._u.len() // the length of the unit vector
+		// Precomputed segment delta and squared length (replaces Vec.Sub(end, start) and Vec.Len2)
+		this._dx = end.x - start.x
+		this._dy = end.y - start.y
+		this._len2 = this._dx * this._dx + this._dy * this._dy
 	}
 
 	override getLength() {
-		return this._d.len()
+		return Math.sqrt(this._len2)
 	}
 
 	override getVertices(): Vec[] {
@@ -30,17 +31,39 @@ export class Edge2d extends Geometry2d {
 	}
 
 	override nearestPoint(point: VecLike): Vec {
-		const { _start: start, _end: end, _d: d, _u: u, _ul: l } = this
-		if (d.len() === 0) return start // start and end are the same
-		if (l === 0) return start // no length in the unit vector
-		const k = Vec.Sub(point, start).dpr(u) / l
-		const cx = start.x + u.x * k
-		if (cx < Math.min(start.x, end.x)) return start.x < end.x ? start : end
-		if (cx > Math.max(start.x, end.x)) return start.x > end.x ? start : end
-		const cy = start.y + u.y * k
-		if (cy < Math.min(start.y, end.y)) return start.y < end.y ? start : end
-		if (cy > Math.max(start.y, end.y)) return start.y > end.y ? start : end
-		return new Vec(cx, cy)
+		// Inlined: Vec.NearestPointOnLineSegment(start, end, point)
+		// Uses precomputed dx/dy/len2 and parametric t-clamping instead of Vec allocations.
+		const { _start: start, _end: end, _dx: dx, _dy: dy, _len2: len2 } = this
+		if (len2 === 0) return start
+
+		const t = ((point.x - start.x) * dx + (point.y - start.y) * dy) / len2
+		if (t <= 0) return start
+		if (t >= 1) return end
+		return new Vec(start.x + dx * t, start.y + dy * t)
+	}
+
+	override distanceToPoint(point: VecLike, _hitInside = false): number {
+		// Inlined: Vec.Dist(point, this.nearestPoint(point))
+		// Finds nearest point via parametric t-projection then returns scalar distance directly,
+		// avoiding the Vec allocation that nearestPoint would create.
+		const { _start: start, _end: end, _dx: dx, _dy: dy, _len2: len2 } = this
+		if (len2 === 0) return Vec.Dist(point, start)
+
+		const t = ((point.x - start.x) * dx + (point.y - start.y) * dy) / len2
+		let nx: number, ny: number
+		if (t <= 0) {
+			nx = start.x
+			ny = start.y
+		} else if (t >= 1) {
+			nx = end.x
+			ny = end.y
+		} else {
+			nx = start.x + dx * t
+			ny = start.y + dy * t
+		}
+		const ex = point.x - nx
+		const ey = point.y - ny
+		return Math.sqrt(ex * ex + ey * ey)
 	}
 
 	getSvgPathData(first = true) {

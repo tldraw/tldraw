@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"target": "ES5",
-		"lib": ["dom", "dom.iterable", "esnext"],
+		"lib": ["DOM", "DOM.Iterable", "ESNext"],
 		"allowJs": true,
 		"skipLibCheck": true,
 		"strict": true,
@@ -24,6 +24,7 @@
 	"references": [
 		{ "path": "../../../packages/assets" },
 		{ "path": "../../../packages/dotcom-shared" },
+		{ "path": "../../../packages/mermaid" },
 		{ "path": "../../../packages/sync" },
 		{ "path": "../../../packages/sync-core" },
 		{ "path": "../../../packages/tldraw" },

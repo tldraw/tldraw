@@ -3,22 +3,27 @@
 # Uses `git cherry` (like extract-draft-changelog.tsx) to correctly
 # handle cherry-picked hotfix commits.
 #
-# Usage: ./get-new-prs.sh <release-branch>
-# Example: ./get-new-prs.sh v4.2.x
+# Usage: ./get-new-prs.sh <tldraw-repo-dir> <release-branch>
+# Example: ./get-new-prs.sh /tmp/tldraw v4.2.x
 #
 # Output:
-#   PR numbers (one per line), then a blank line, then any commits
-#   without PR numbers (hash + title) so the caller can investigate.
+#   PR numbers (one per line), then any commits
+#   without PR numbers (hash + title) on stderr.
+#
+# Requires a local clone of tldraw/tldraw.
 
 set -e
 
-if [ -z "$1" ]; then
-  echo "Usage: $0 <release-branch>" >&2
-  echo "Example: $0 v4.2.x" >&2
+if [ -z "$1" ] || [ -z "$2" ]; then
+  echo "Usage: $0 <tldraw-repo-dir> <release-branch>" >&2
+  echo "Example: $0 /tmp/tldraw v4.2.x" >&2
   exit 1
 fi
 
-RELEASE_BRANCH="$1"
+TLDRAW_REPO="$1"
+RELEASE_BRANCH="$2"
+
+cd "$TLDRAW_REPO"
 
 # Fetch to ensure we have latest refs
 git fetch origin production "$RELEASE_BRANCH" --quiet 2>/dev/null || true

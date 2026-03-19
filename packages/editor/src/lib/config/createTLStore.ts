@@ -1,6 +1,7 @@
 import { Signal } from '@tldraw/state'
 import { HistoryEntry, MigrationSequence, SerializedStore, Store, StoreSchema } from '@tldraw/store'
 import {
+	CustomRecordInfo,
 	SchemaPropsInfo,
 	TLAssetStore,
 	TLRecord,
@@ -44,6 +45,7 @@ export type TLStoreSchemaOptions =
 			bindingUtils?: readonly TLAnyBindingUtilConstructor[]
 			assetUtils?: readonly TLAnyAssetUtilConstructor[]
 			migrations?: readonly MigrationSequence[]
+			records?: Record<string, CustomRecordInfo>
 	  }
 
 /** @public */
@@ -94,6 +96,7 @@ export function createTLSchemaFromUtils(
 			'assetUtils' in opts && opts.assetUtils
 				? utilsToMap(checkAssets(opts.assetUtils))
 				: undefined,
+		records: 'records' in opts ? opts.records : undefined,
 		migrations: 'migrations' in opts ? opts.migrations : undefined,
 	})
 }

@@ -1,12 +1,21 @@
 #!/bin/bash
 # Get changelog status: versions, whether archival is needed, and the diff branch
 #
-# Usage: ./get-changelog-status.sh
+# Usage: ./get-changelog-status.sh <tldraw-repo-dir>
 # Output: JSON with version info and status
+#
+# Requires a local clone of tldraw/tldraw.
 
 set -e
 
-RELEASES_DIR="apps/docs/content/releases"
+if [ -z "$1" ]; then
+  echo "Usage: $0 <tldraw-repo-dir>" >&2
+  echo "Example: $0 /tmp/tldraw" >&2
+  exit 1
+fi
+
+TLDRAW_REPO="$1"
+RELEASES_DIR="$TLDRAW_REPO/apps/docs/content/releases"
 NEXT_FILE="$RELEASES_DIR/next.mdx"
 
 # Extract last_version from next.mdx frontmatter (if present)
@@ -16,7 +25,7 @@ if [ -f "$NEXT_FILE" ]; then
 fi
 
 # Get the latest published release from GitHub
-latest_release=$(gh release list --exclude-drafts --limit 1 --json tagName,publishedAt -q '.[0]' 2>/dev/null || echo '{}')
+latest_release=$(gh release list -R tldraw/tldraw --exclude-drafts --limit 1 --json tagName,publishedAt -q '.[0]' 2>/dev/null || echo '{}')
 latest_tag=$(echo "$latest_release" | jq -r '.tagName // empty')
 latest_date=$(echo "$latest_release" | jq -r '.publishedAt // empty')
 
@@ -59,6 +68,36 @@ if [ -f "$NEXT_FILE" ]; then
   fi
 fi
 
+# Determine source based on weeks since the last minor/major release.
+# The SDK releases every 4 weeks. During the first 3 weeks (development),
+# we gather PRs from main. At 3+ weeks (freeze week), we switch to production.
+#
+# Find the last minor or major release (skip patches like v4.3.1, v4.3.2)
+source="main"
+last_minor_date=""
+if [ -n "$latest_tag" ]; then
+  # Get the .0 release for the current minor version (e.g., v4.4.0)
+  minor_tag=$(echo "$latest_tag" | sed 's/^v//' | cut -d. -f1,2)
+  minor_release_tag="v${minor_tag}.0"
+  # Get the publish date of that .0 release
+  last_minor_date=$(gh release view "$minor_release_tag" -R tldraw/tldraw --json publishedAt -q '.publishedAt' 2>/dev/null || echo "")
+  if [ -n "$last_minor_date" ]; then
+    # Calculate weeks since the minor release
+    release_epoch=$(date -jf "%Y-%m-%dT%H:%M:%SZ" "$last_minor_date" "+%s" 2>/dev/null || date -d "$last_minor_date" "+%s" 2>/dev/null || echo "")
+    now_epoch=$(date "+%s")
+    if [ -n "$release_epoch" ]; then
+      days_since=$(( (now_epoch - release_epoch) / 86400 ))
+      weeks_since=$(( days_since / 7 ))
+      if [ "$weeks_since" -ge 3 ]; then
+        source="production"
+      fi
+    fi
+  fi
+fi
+
+# The last tag is the latest release tag (used by get-new-prs-from-main.sh)
+last_tag="${latest_tag}"
+
 # Output JSON
 cat <<EOF
 {
@@ -68,6 +107,8 @@ cat <<EOF
     "published_at": "${latest_date}"
   },
   "diff_branch": "${diff_branch}",
+  "last_tag": "${last_tag}",
+  "source": "${source}",
   "needs_archive": ${needs_archive},
   "archive_exists": ${archive_exists},
   "next_has_content": ${next_has_content}

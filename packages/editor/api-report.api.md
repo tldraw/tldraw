@@ -9,6 +9,7 @@ import { AtomSet } from '@tldraw/store';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
+import { CustomRecordInfo } from '@tldraw/tlschema';
 import { Dispatch } from 'react';
 import { Editor as Editor_2 } from '@tiptap/core';
 import { EditorProviderProps as EditorProviderProps_2 } from '@tiptap/react';
@@ -93,7 +94,7 @@ import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
 
 // @internal (undocumented)
-export function activeElementShouldCaptureKeys(ignoreButtons?: boolean): boolean;
+export function activeElementShouldCaptureKeys(includeButtonsAndMenus?: boolean, doc?: Document): boolean;
 
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
@@ -455,6 +456,8 @@ export class Circle2d extends Geometry2d {
         y?: number;
     };
     // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
+    // (undocumented)
     getBounds(): Box;
     // (undocumented)
     getSvgPathData(): string;
@@ -462,6 +465,8 @@ export class Circle2d extends Geometry2d {
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
+    // (undocumented)
+    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean): boolean;
     // (undocumented)
     nearestPoint(point: VecLike): Vec;
 }
@@ -548,6 +553,8 @@ export class CubicBezier2d extends Polyline2d {
         start: Vec;
     });
     // (undocumented)
+    distanceToPoint(point: VecLike, _hitInside?: boolean): number;
+    // (undocumented)
     static GetAtT(segment: CubicBezier2d, t: number): Vec;
     // (undocumented)
     getLength(_filters?: Geometry2dFilters, precision?: number): number;
@@ -564,6 +571,8 @@ export class CubicSpline2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
         points: Vec[];
     });
+    // (undocumented)
+    distanceToPoint(point: VecLike, _hitInside?: boolean): number;
     // (undocumented)
     getLength(): number;
     // (undocumented)
@@ -813,6 +822,8 @@ export class Edge2d extends Geometry2d {
         end: Vec;
         start: Vec;
     });
+    // (undocumented)
+    distanceToPoint(point: VecLike, _hitInside?: boolean): number;
     // (undocumented)
     getLength(): number;
     // (undocumented)
@@ -1244,6 +1255,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCollaborators(): TLInstancePresence[];
     getCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getContainer: () => HTMLElement;
+    // @internal
+    getContainerDocument(): Document;
+    // @internal
+    getContainerWindow(): Window & typeof globalThis;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     // @internal
     getCrashingError(): unknown;
@@ -1299,6 +1314,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getRenderingShapes(): TLRenderingShape[];
+    getResizeScaleFactor(): number;
     getRichTextEditor(): null | TiptapEditor;
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
@@ -1353,11 +1369,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
         height: number;
         svg: SVGSVGElement;
+        trimPadding: number;
         width: number;
     } | undefined>;
     getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
         height: number;
         svg: string;
+        trimPadding: number;
         width: number;
     } | undefined>;
     getTemporaryAssetPreview(assetId: TLAssetId): string | undefined;
@@ -1466,6 +1484,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): Promise<void>;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): this;
+    resizeToBounds(shapes: TLShape[] | TLShapeId[], bounds: BoxLike): this;
     // (undocumented)
     resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
     // (undocumented)
@@ -1636,6 +1655,9 @@ export interface EditorProviderProps {
     editor: Editor;
 }
 
+// @internal (undocumented)
+export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMenus?: boolean): boolean;
+
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
@@ -1647,6 +1669,8 @@ export class Ellipse2d extends Geometry2d {
         height: number;
         width: number;
     };
+    // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
     // (undocumented)
     get edges(): Edge2d[];
     // (undocumented)
@@ -1764,6 +1788,7 @@ export abstract class Geometry2d {
     hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean, _filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignore?: boolean;
+    ignoreHit(_point: VecLike): boolean;
     interpolateAlongEdge(t: number, _filters?: Geometry2dFilters): Vec;
     // (undocumented)
     intersectCircle(center: VecLike, radius: number, _filters?: Geometry2dFilters): VecLike[];
@@ -1847,8 +1872,20 @@ export function getFontsFromRichText(editor: Editor, richText: TLRichText, initi
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
 
+// @internal
+export function getGlobalDocument(): Document;
+
+// @internal
+export function getGlobalWindow(): Window & typeof globalThis;
+
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
+
+// @internal (undocumented)
+export function getOwnerDocument(nodeOrDocument: Document | Node | null | undefined): Document;
+
+// @internal (undocumented)
+export function getOwnerWindow(nodeOrDocument: Document | Node | null | undefined): Window & typeof globalThis;
 
 // @public (undocumented)
 export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: {
@@ -2577,6 +2614,8 @@ export class Polyline2d extends Geometry2d {
         points: Vec[];
     });
     // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
+    // (undocumented)
     getLength(): number;
     // (undocumented)
     getSvgPathData(): string;
@@ -2584,6 +2623,8 @@ export class Polyline2d extends Geometry2d {
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
+    // (undocumented)
+    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean): boolean;
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
     // (undocumented)
@@ -2967,6 +3008,8 @@ export class Stadium2d extends Geometry2d {
         height: number;
         width: number;
     };
+    // (undocumented)
+    distanceToPoint(point: VecLike, hitInside?: boolean): number;
     // (undocumented)
     getBounds(): Box;
     // (undocumented)
@@ -4401,7 +4444,7 @@ export interface TLShapeIndicatorsProps {
 // @public
 export interface TLShapeUtilCanBeLaidOutOpts {
     shapes?: TLShape[];
-    type?: 'align' | 'distribute' | 'flip' | 'pack' | 'stack' | 'stretch';
+    type?: 'align' | 'distribute' | 'flip' | 'pack' | 'resize_to_bounds' | 'stack' | 'stretch';
 }
 
 // @public
@@ -4498,6 +4541,7 @@ export type TLStoreSchemaOptions = {
     assetUtils?: readonly TLAnyAssetUtilConstructor[];
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     migrations?: readonly MigrationSequence[];
+    records?: Record<string, CustomRecordInfo>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
 } | {
     schema?: StoreSchema<TLRecord, TLStoreProps>;
@@ -4532,7 +4576,7 @@ export interface TLSvgExportOptions {
     background?: boolean;
     bounds?: Box;
     darkMode?: boolean;
-    padding?: number;
+    padding?: 'auto' | number;
     pixelRatio?: number;
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     scale?: number;
@@ -4723,6 +4767,8 @@ export class TransformedGeometry2d extends Geometry2d {
     hitTestLineSegment(A: VecLike, B: VecLike, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
+    // (undocumented)
+    ignoreHit(point: VecLike): boolean;
     // (undocumented)
     intersectCircle(center: VecLike, radius: number, filters?: Geometry2dFilters): Vec[];
     // (undocumented)
@@ -5047,6 +5093,8 @@ export class Vec {
     // (undocumented)
     static FromArray(v: number[]): Vec;
     // (undocumented)
+    static IsFinite(A: VecLike): boolean;
+    // (undocumented)
     static IsNaN(A: VecLike): boolean;
     // (undocumented)
     static Len(A: VecLike): number;
@@ -5089,7 +5137,7 @@ export class Vec {
     static Per(A: VecLike): Vec;
     // (undocumented)
     per(): this;
-    static PointsBetween(A: VecModel, B: VecModel, steps?: number): Vec[];
+    static PointsBetween(A: VecModel, B: VecModel, steps?: number, ease?: (t: number) => number): Vec[];
     // (undocumented)
     get pressure(): number;
     static Pry(A: VecLike, B: VecLike): number;

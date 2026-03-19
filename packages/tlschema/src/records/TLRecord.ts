@@ -10,9 +10,88 @@ import { TLInstancePresence } from './TLPresence'
 import { TLShape } from './TLShape'
 
 /**
+ * Interface for extending tldraw with custom record types via TypeScript module augmentation.
+ *
+ * Custom record types allow you to add entirely new data types to the tldraw store that
+ * don't fit into the existing shape, binding, or asset categories. Each key in this
+ * interface becomes a new record type name, and the value should be your full record type.
+ *
+ * @example
+ * ```ts
+ * import { BaseRecord, RecordId } from '@tldraw/store'
+ *
+ * // Define your custom record type
+ * interface TLComment extends BaseRecord<'comment', RecordId<TLComment>> {
+ *   text: string
+ *   shapeId: TLShapeId
+ *   authorId: string
+ *   createdAt: number
+ * }
+ *
+ * // Augment the global record props map
+ * declare module '@tldraw/tlschema' {
+ *   interface TLGlobalRecordPropsMap {
+ *     comment: TLComment
+ *   }
+ * }
+ *
+ * // Now TLRecord includes your custom comment type
+ * // and you can use it with createTLSchema()
+ * ```
+ *
+ * @public
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface TLGlobalRecordPropsMap {}
+
+/**
+ * Union type of all built-in tldraw record types.
+ *
+ * This includes persistent records (documents, pages, shapes, assets, bindings)
+ * and session/presence records (cameras, instances, pointers, page states).
+ *
+ * @public
+ */
+export type TLDefaultRecord =
+	| TLAsset
+	| TLBinding
+	| TLCamera
+	| TLDocument
+	| TLInstance
+	| TLInstancePageState
+	| TLPage
+	| TLShape
+	| TLInstancePresence
+	| TLPointer
+
+/**
+ * Index type that maps custom record type names to their record types.
+ *
+ * Similar to TLIndexedShapes and TLIndexedBindings, this type creates a mapping
+ * from type name keys to their corresponding record types, filtering out any
+ * disabled types (those set to null or undefined in TLGlobalRecordPropsMap).
+ *
+ * @public
+ */
+// prettier-ignore
+export type TLIndexedRecords = {
+	[K in keyof TLGlobalRecordPropsMap as TLGlobalRecordPropsMap[K] extends null | undefined
+		? never
+		: K]: TLGlobalRecordPropsMap[K]
+}
+
+/**
+ * Union type representing a custom record from the TLGlobalRecordPropsMap.
+ *
+ * @public
+ */
+export type TLCustomRecord = TLIndexedRecords[keyof TLIndexedRecords]
+
+/**
  * Union type representing all possible record types in a tldraw store.
  * This includes both persistent records (documents, pages, shapes, assets, bindings)
- * and session/presence records (cameras, instances, pointers, page states).
+ * and session/presence records (cameras, instances, pointers, page states),
+ * as well as any custom record types added via TLGlobalRecordPropsMap augmentation.
  *
  * Records are organized by scope:
  * - **document**: Persisted across sessions (shapes, pages, assets, bindings, documents)
@@ -52,14 +131,4 @@ import { TLShape } from './TLShape'
  *
  * @public
  */
-export type TLRecord =
-	| TLAsset
-	| TLBinding
-	| TLCamera
-	| TLDocument
-	| TLInstance
-	| TLInstancePageState
-	| TLPage
-	| TLShape
-	| TLInstancePresence
-	| TLPointer
+export type TLRecord = TLDefaultRecord | TLCustomRecord

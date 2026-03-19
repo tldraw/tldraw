@@ -309,7 +309,7 @@ exports[`putExcalidrawContent test fixtures > bound-elbow-arrows.json 1`] = `
     "props": {
       "arrowheadEnd": "arrow",
       "arrowheadStart": "none",
-      "bend": 19.412005026411514,
+      "bend": 19.41200502641156,
       "color": "black",
       "dash": "draw",
       "elbowMidPoint": 0.5,

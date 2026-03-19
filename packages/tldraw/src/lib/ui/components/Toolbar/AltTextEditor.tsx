@@ -29,7 +29,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 
 	const handleValueChange = (value: string) => setAltText(value)
 
-	const handleComplete = () => {
+	const handleComplete = useCallback(() => {
 		trackEvent('set-alt-text', { source })
 		const shape = editor.getShape<ExtractShapeByProps<{ altText: string }>>(shapeId)
 		if (!shape) return
@@ -41,12 +41,13 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 			},
 		])
 		onClose()
-	}
+	}, [trackEvent, source, editor, shapeId, altText, onClose])
 
 	const handleConfirm = () => handleComplete()
 	const handleAltTextCancel = useCallback(() => onClose(), [onClose])
 
 	useEffect(() => {
+		const doc = editor.getContainerDocument()
 		ref.current?.select()
 
 		function handleKeyDown(event: KeyboardEvent) {
@@ -56,11 +57,26 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 			}
 		}
 
-		document.addEventListener('keydown', handleKeyDown, { capture: true })
+		doc.addEventListener('keydown', handleKeyDown, { capture: true })
 		return () => {
-			document.removeEventListener('keydown', handleKeyDown, { capture: true })
+			doc.removeEventListener('keydown', handleKeyDown, { capture: true })
 		}
-	}, [handleAltTextCancel])
+	}, [editor, handleAltTextCancel])
+
+	useEffect(() => {
+		const doc = editor.getContainerDocument()
+		const handlePointerDown = (e: PointerEvent) => {
+			const toolbar = doc.querySelector('.tlui-media__toolbar')
+			if (toolbar?.contains(e.target as Node)) return
+			// If the pointer down is not in the toolbar, complete the alt text
+			handleComplete()
+		}
+		doc.addEventListener('pointerdown', handlePointerDown, { capture: true })
+
+		return () => {
+			doc.removeEventListener('pointerdown', handlePointerDown, { capture: true })
+		}
+	}, [editor, handleComplete])
 
 	return (
 		<>

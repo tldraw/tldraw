@@ -90,6 +90,8 @@ export interface TldrawBaseProps
 	/** Custom definitions for tldraw's embeds.
 	 *
 	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
+	 *
+	 * @deprecated Use `EmbedShapeUtil.configure({ embedDefinitions: embeds })` instead.
 	 */
 	embeds?: TLEmbedDefinition[]
 	/**
@@ -119,6 +121,8 @@ export function Tldraw(props: TldrawProps) {
 		bindingUtils = [],
 		assetUtils = [],
 		tools = [],
+		// needs to be here for backwards compatibility
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		embeds,
 		options,
 		// needs to be here for backwards compatibility with TldrawEditor
@@ -219,6 +223,7 @@ export function Tldraw(props: TldrawProps) {
 
 	const embedShapeUtil = shapeUtilsWithDefaults.find((util) => util.type === 'embed')
 	if (embedShapeUtil && embeds) {
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		EmbedShapeUtil.setEmbedDefinitions(embeds)
 	}
 
