@@ -19,7 +19,7 @@
 		"docker-down": "docker compose --env-file .env -f ./docker/docker-compose.yml down",
 		"migrate": "yarn tsx ./migrate.ts",
 		"clean": "yarn docker-down && ./clean.sh",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
+		"lint": "cd ../../.. && yarn run -T oxlint apps/dotcom/zero-cache",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"

@@ -960,7 +960,10 @@ async function coalesceWithPreviousAssets(assetsDir: string) {
 		// if they have the same name as the old assets becuase they will have different sentry debugIds
 		// and it will mess up the inline source viewer on sentry errors.
 		const out = tar.x({ cwd: assetsDir, 'keep-existing': true })
-		for await (const chunk of Body?.transformToWebStream() as any as AsyncIterable<Uint8Array>) {
+		if (!Body?.transformToWebStream) {
+			throw new Error(`Could not stream object ${obj.Key}`)
+		}
+		for await (const chunk of Body.transformToWebStream() as any as AsyncIterable<Uint8Array>) {
 			out.write(Buffer.from(chunk.buffer))
 		}
 		out.end()

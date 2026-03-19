@@ -16,7 +16,7 @@
 		"test-ci": "echo 'No tests yet'",
 		"test": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "lazy inherit",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "cd ../.. && yarn run -T oxlint templates/simple-server-example"
 	},
 	"devDependencies": {
 		"@types/better-sqlite3": "^7.6.12",

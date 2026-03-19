@@ -18,7 +18,7 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc && vite build",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"lint": "cd ../.. && yarn run -T oxlint templates/vue",
 		"preview": "vite preview"
 	},
 	"dependencies": {

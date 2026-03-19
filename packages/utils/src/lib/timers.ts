@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-properties */
+/* eslint-disable tldraw/no-restricted-properties */
 
 /**
  * A utility class for managing timeouts, intervals, and animation frames with context-based organization and automatic cleanup.

@@ -287,7 +287,7 @@ export class TLFileDurableObject extends DurableObject {
 	/** Map sessionId → ws so onSessionSnapshot can serialize to the right socket. */
 	private readonly sessionIdToWs = new Map<string, WebSocket>()
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get db() {
 		if (!this._db) {
 			this._pool = new TLPostgresPool(this.env, this.log)
@@ -379,7 +379,7 @@ export class TLFileDurableObject extends DurableObject {
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}

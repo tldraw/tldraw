@@ -17,6 +17,7 @@ test.describe('cookie consent banner', () => {
 		})
 
 		await page.evaluate((key) => {
+			// eslint-disable-next-line tldraw/no-direct-storage
 			window.localStorage.removeItem(key)
 		}, COOKIE_CONSENT_KEY)
 	})
@@ -72,6 +73,7 @@ test.describe('cookie consent banner', () => {
 
 			await expect(async () => {
 				const storedConsent = await page.evaluate(
+					// eslint-disable-next-line tldraw/no-direct-storage
 					(key) => window.localStorage.getItem(key),
 					COOKIE_CONSENT_KEY
 				)
@@ -93,6 +95,7 @@ test.describe('cookie consent banner', () => {
 
 			await expect(async () => {
 				const storedConsent = await page.evaluate(
+					// eslint-disable-next-line tldraw/no-direct-storage
 					(key) => window.localStorage.getItem(key),
 					COOKIE_CONSENT_KEY
 				)

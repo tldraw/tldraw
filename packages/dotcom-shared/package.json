@@ -30,7 +30,7 @@
 	"scripts": {
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"lint": "cd ../.. && yarn run -T oxlint packages/dotcom-shared",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	}
 }

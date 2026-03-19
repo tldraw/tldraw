@@ -115,19 +115,18 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 
 export { expect } from '@playwright/test'
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export function step(target: Function, context: any) {
-	if (context.kind === 'method') {
-		return async function (...args: any[]) {
-			// @ts-expect-error Parameter 'this' implicitly has an 'any' type.ts(7006)
-			return await test.step(`${this.constructor.name}.${context.name}`, async () => {
-				// @ts-expect-error Parameter 'this' implicitly has an 'any' type.ts(7006)
-				return target.apply(this, args)
-			})
-		}
-	} else {
-		console.error('Only supporting methods for step decorator.')
+export function step(
+	_target: object,
+	propertyKey: string,
+	descriptor: PropertyDescriptor
+): PropertyDescriptor {
+	const original = descriptor.value
+	descriptor.value = async function (...args: any[]) {
+		return await test.step(`${this.constructor.name}.${propertyKey}`, async () => {
+			return original.apply(this, args)
+		})
 	}
+	return descriptor
 }
 
 export function repeatTest(
@@ -138,7 +137,7 @@ export function repeatTest(
 	const getName = (i: number) => `${name} (${i + 1} of ${times})`
 	for (let i = 0; i < times; i++) {
 		if (only) {
-			// eslint-disable-next-line no-only-tests/no-only-tests
+			// eslint-disable-next-line tldraw/no-focused-tests
 			test.only(getName(i), fn)
 		} else {
 			test(getName(i), fn)

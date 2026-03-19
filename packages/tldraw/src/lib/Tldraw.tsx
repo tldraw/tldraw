@@ -73,9 +73,7 @@ export interface TLComponents extends TLEditorComponents, TLUiComponents {}
 
 /** @public */
 export interface TldrawBaseProps
-	extends TldrawUiProps,
-		TldrawEditorBaseProps,
-		TLExternalContentProps {
+	extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
 	/** Urls for custom assets.
 	 *
 	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.

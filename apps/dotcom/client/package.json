@@ -15,7 +15,7 @@
 		"build": "yarn run -T tsx scripts/build.ts",
 		"build-i18n": "yarn i18n:extract && yarn i18n:compile",
 		"start": "VITE_PREVIEW=1 yarn run -T tsx scripts/dev-app.ts",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
+		"lint": "cd ../../.. && yarn run -T oxlint apps/dotcom/client",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"i18n:extract": "formatjs extract 'src/{tla,pages,components}/**/*.ts*' --out-file public/tla/locales/en.json --additional-component-names F --id-interpolation-pattern '[md5:contenthash:hex:10]' --format lokalise",

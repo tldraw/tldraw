@@ -40,7 +40,7 @@ export class GenerateTextNodeDefinition extends NodeDefinition<GenerateTextNode>
 	static validator = GenerateTextNode
 	title = 'Generate text'
 	heading = 'Generate text'
-	icon = (<GenerateTextIcon />)
+	icon = <GenerateTextIcon />
 	category = 'process'
 	resultKeys = ['lastResultText'] as const
 	getDefault(): GenerateTextNode {

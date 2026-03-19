@@ -2,9 +2,9 @@ import type { TableMutator, TableSchema } from '@rocicorp/zero'
 import { OptimisticAppStore, TlaSchema, ZRowUpdate } from '@tldraw/dotcom-shared'
 import { assert, assertExists } from 'tldraw'
 
-export class ClientCRUD
-	implements TableMutator<TlaSchema['tables'][keyof TlaSchema['tables']] & TableSchema>
-{
+export class ClientCRUD implements TableMutator<
+	TlaSchema['tables'][keyof TlaSchema['tables']] & TableSchema
+> {
 	constructor(
 		private signal: AbortSignal,
 		private store: OptimisticAppStore,
