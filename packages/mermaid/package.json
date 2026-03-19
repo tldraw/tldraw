@@ -1,7 +1,7 @@
 {
-	"name": "@tldraw/validate",
-	"description": "A runtime validation library by tldraw.",
-	"version": "4.5.3",
+	"name": "@tldraw/mermaid",
+	"description": "Mermaid diagram to tldraw shape conversion.",
+	"version": "4.4.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -17,11 +17,8 @@
 	},
 	"keywords": [
 		"tldraw",
-		"sdk",
-		"drawing",
-		"app",
-		"development",
-		"whiteboard",
+		"mermaid",
+		"diagram",
 		"canvas",
 		"infinite"
 	],
@@ -40,12 +37,18 @@
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "cd ../.. && yarn run -T oxlint packages/validate"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"@tldraw/utils": "workspace:*"
+		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/utils": "workspace:*",
+		"mermaid": "11.12.2"
+	},
+	"peerDependencies": {
+		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.27"
+		"lazyrepo": "0.0.0-alpha.27",
+		"vitest": "^3.2.4"
 	}
 }
