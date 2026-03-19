@@ -115,14 +115,67 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 
 export { expect } from '@playwright/test'
 
+/** Stage 3 / TS 5.2+ method decorator context (subset; avoids coupling to a specific TS lib version). */
+type StepMethodDecoratorContext = {
+	kind: 'method'
+	name: string | symbol
+}
+
+function isStage3MethodDecoratorContext(value: unknown): value is StepMethodDecoratorContext {
+	return (
+		typeof value === 'object' &&
+		value !== null &&
+		'kind' in value &&
+		(value as StepMethodDecoratorContext).kind === 'method'
+	)
+}
+
+/** Legacy method decorator (`experimentalDecorators`). */
+export function step<T extends (...args: any[]) => any>(
+	target: Object,
+	propertyKey: string | symbol,
+	descriptor: TypedPropertyDescriptor<T>
+): TypedPropertyDescriptor<T>
+/** Stage 3 method decorator (e.g. Node `--no-strip-types`). */
+export function step<T extends (...args: any[]) => any>(
+	originalMethod: T,
+	context: StepMethodDecoratorContext
+): T
+/**
+ * Wraps page-object methods in `test.step` for clearer Playwright reports.
+ * Supports both legacy (`experimentalDecorators`) and Stage 3 method decorators
+ * (e.g. when tests run under Node's `--no-strip-types` + modern emit).
+ */
 export function step(
-	_target: object,
-	propertyKey: string,
-	descriptor: PropertyDescriptor
-): PropertyDescriptor {
+	target: Object | ((...args: any[]) => any),
+	propertyKeyOrContext: string | symbol | StepMethodDecoratorContext,
+	descriptor?: TypedPropertyDescriptor<(...args: any[]) => any>
+): any {
+	if (
+		descriptor === undefined &&
+		isStage3MethodDecoratorContext(propertyKeyOrContext) &&
+		typeof target === 'function'
+	) {
+		const original = target as (...args: any[]) => any
+		const ctx = propertyKeyOrContext
+		const key = typeof ctx.name === 'string' ? ctx.name : String(ctx.name)
+		return async function (this: object, ...args: any[]) {
+			return await test.step(`${(this as { constructor: { name: string } }).constructor.name}.${key}`, async () => {
+				return original.apply(this, args)
+			})
+		}
+	}
+
+	if (!descriptor?.value) {
+		throw new Error(
+			'step: expected a legacy method decorator with descriptor.value, or a Stage 3 method decorator'
+		)
+	}
+
+	const propertyKey = propertyKeyOrContext as string
 	const original = descriptor.value
-	descriptor.value = async function (...args: any[]) {
-		return await test.step(`${this.constructor.name}.${propertyKey}`, async () => {
+	descriptor.value = async function (this: object, ...args: any[]) {
+		return await test.step(`${(this as { constructor: { name: string } }).constructor.name}.${String(propertyKey)}`, async () => {
 			return original.apply(this, args)
 		})
 	}
