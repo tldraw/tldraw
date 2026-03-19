@@ -6,10 +6,10 @@ import type {
 	MermaidBlueprintGeoNode,
 } from './blueprint'
 import { parseRgbToTldrawColor } from './colors'
+import type { ParsedNode } from './svgParsing'
 import { parseNodesFromSvg, scaleLayout } from './svgParsing'
-import { LAYOUT_SCALE, sanitizeDiagramText } from './utils'
+import { LAYOUT_SCALE } from './utils'
 
-// Mermaid mindmap node type constants (from MindmapDB.nodeType)
 const MINDMAP_NODE_TYPE = {
 	DEFAULT: 0,
 	ROUNDED_RECT: 1,
@@ -38,31 +38,13 @@ function mapMindmapTypeToGeo(type: number): TLGeoShapeGeoStyle {
 	}
 }
 
-// Mermaid's theme colors for mindmap sections (default theme).
-// These are the cScale colors from the default mermaid theme that get applied
-// to mindmap nodes as section-<n> CSS classes.
-const SECTION_COLORS: TLDefaultColorStyle[] = [
-	'blue',
-	'orange',
-	'green',
-	'red',
-	'violet',
-	'grey',
-	'blue',
-	'orange',
-	'green',
-	'red',
-	'violet',
-	'grey',
-]
+const SECTION_COLORS: TLDefaultColorStyle[] = ['blue', 'orange', 'green', 'red', 'violet', 'grey']
 
 function getSectionColor(section: number | undefined): TLDefaultColorStyle {
 	if (section === undefined || section < 0) return 'black'
 	return SECTION_COLORS[section % SECTION_COLORS.length]
 }
 
-// Mermaid mindmap edges get thinner as depth increases.
-// Map to tldraw sizes so root→child edges are thickest.
 function getEdgeSizeForLevel(parentLevel: number): TLDefaultSizeStyle {
 	if (parentLevel <= 0) return 'l'
 	if (parentLevel === 1) return 'm'
@@ -71,7 +53,6 @@ function getEdgeSizeForLevel(parentLevel: number): TLDefaultSizeStyle {
 
 interface FlatNode {
 	id: string
-	numericId: number
 	label: string
 	type: number
 	level: number
@@ -87,7 +68,6 @@ function flattenMindmapTree(
 ): void {
 	out.push({
 		id: String(node.id),
-		numericId: node.id,
 		label: node.descr,
 		type: node.type,
 		level: node.level,
@@ -100,30 +80,29 @@ function flattenMindmapTree(
 	}
 }
 
-/** Convert a parsed Mermaid mindmap into a tldraw blueprint of nodes and edges. */
-export function mindmapToBlueprint(
-	root: Element,
-	mindmapTree: MindmapNode
-): DiagramMermaidBlueprint {
-	const flatNodes: FlatNode[] = []
-	flattenMindmapTree(mindmapTree, undefined, flatNodes)
+/**
+ * Pre-parsed SVG layout for mindmap diagram converters.
+ * Contains already-scaled node positions and per-node fill colors extracted from the SVG.
+ */
+export interface ParsedMindmapLayout {
+	nodes: Map<string, ParsedNode>
+	nodeColors: Map<string, TLDefaultColorStyle>
+}
 
-	// Mermaid mindmap node <g> elements have DOM ids like "node_0", "node_1".
-	// The `.node` class selector matches them; the id parser strips the "node_" prefix
-	// to get the numeric id that matches our flatNode ids.
-	const svgNodes = parseNodesFromSvg(root, '.node', (domId) => {
-		const match = domId.match(/^node_(\d+)$/)
-		return match ? match[1] : domId
-	})
+function parseMindmapNodeId(domId: string): string {
+	const match = domId.match(/^node_(\d+)$/)
+	return match ? match[1] : domId
+}
 
-	// Extract fill colors from SVG node background paths
+/** Parse mindmap-specific SVG layout data for use by {@link mindmapToBlueprint}. */
+export function parseMindmapLayout(root: Element): ParsedMindmapLayout {
+	const nodes = parseNodesFromSvg(root, '.node', parseMindmapNodeId)
+
 	const nodeColors = new Map<string, TLDefaultColorStyle>()
 	for (const groupEl of root.querySelectorAll('.node')) {
 		const rawId = groupEl.getAttribute('id') || ''
-		const match = rawId.match(/^node_(\d+)$/)
-		const id = match ? match[1] : rawId
+		const id = parseMindmapNodeId(rawId)
 
-		// Try to read fill color from the shape element
 		const shape =
 			groupEl.querySelector('rect, circle, ellipse, polygon, path') ??
 			groupEl.querySelector('.label-container')
@@ -136,8 +115,20 @@ export function mindmapToBlueprint(
 		}
 	}
 
-	const emptyClusters = new Map()
-	scaleLayout(svgNodes, emptyClusters, [], LAYOUT_SCALE)
+	scaleLayout(nodes, new Map(), [], LAYOUT_SCALE)
+
+	return { nodes, nodeColors }
+}
+
+/** Convert a parsed Mermaid mindmap into a tldraw blueprint of nodes and edges. */
+export function mindmapToBlueprint(
+	layout: ParsedMindmapLayout,
+	mindmapTree: MindmapNode
+): DiagramMermaidBlueprint {
+	const flatNodes: FlatNode[] = []
+	flattenMindmapTree(mindmapTree, undefined, flatNodes)
+
+	const { nodes: svgNodes, nodeColors } = layout
 
 	const nodes: MermaidBlueprintGeoNode[] = []
 	const edges: MermaidBlueprintEdge[] = []
@@ -148,8 +139,7 @@ export function mindmapToBlueprint(
 		if (!svgNode) continue
 
 		const geo = mapMindmapTypeToGeo(flatNode.type)
-		const color =
-			nodeColors.get(flatNode.id) ?? getSectionColor(flatNode.section)
+		const color = nodeColors.get(flatNode.id) ?? getSectionColor(flatNode.section)
 
 		let { width: w, height: h } = svgNode
 		if (flatNode.type === MINDMAP_NODE_TYPE.CIRCLE) {
@@ -163,7 +153,7 @@ export function mindmapToBlueprint(
 			w,
 			h,
 			geo,
-			label: sanitizeDiagramText(flatNode.label) || undefined,
+			label: flatNode.label || undefined,
 			fill: 'solid',
 			color,
 			size: flatNode.isRoot ? 'l' : 'm',
@@ -187,8 +177,6 @@ export function mindmapToBlueprint(
 	}
 
 	const nodeIds = new Set(nodes.map((n) => n.id))
-	const validEdges = edges.filter(
-		(e) => nodeIds.has(e.startNodeId) && nodeIds.has(e.endNodeId)
-	)
+	const validEdges = edges.filter((e) => nodeIds.has(e.startNodeId) && nodeIds.has(e.endNodeId))
 	return { nodes, edges: validEdges }
 }

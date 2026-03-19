@@ -8,7 +8,7 @@ import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
 import type { StateDB } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import { Editor } from 'tldraw'
 import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
-import { mindmapToBlueprint } from './mindmapDiagram'
+import { mindmapToBlueprint, parseMindmapLayout } from './mindmapDiagram'
 import { BlueprintRenderingOptions, renderBlueprint } from './renderBlueprint'
 import { countSequenceEvents, parseSequenceLayout, sequenceToBlueprint } from './sequenceDiagram'
 import { parseStateDiagramLayout, stateToBlueprint } from './stateDiagram'
@@ -142,7 +142,8 @@ export async function createMermaidDiagram(
 				const tree = db.getMindmap()
 				if (tree) {
 					db.assignSections(tree)
-					blueprint = mindmapToBlueprint(liveSvg, tree)
+					const layout = parseMindmapLayout(liveSvg)
+					blueprint = mindmapToBlueprint(layout, tree)
 				}
 				break
 			}

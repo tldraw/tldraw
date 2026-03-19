@@ -1,91 +1,76 @@
-import mermaid from 'mermaid'
-import type { FlowDB } from 'mermaid/dist/diagrams/flowchart/flowDb.d.ts'
 import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
-import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
-import type { StateDB } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
+import type { MindmapNode } from 'mermaid/dist/diagrams/mindmap/mindmapTypes.js'
+import type { Actor, Message } from 'mermaid/dist/diagrams/sequence/types.js'
+import type { StateStmt } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
+import type { TLDefaultColorStyle } from 'tldraw'
 import type { DiagramMermaidBlueprint } from './blueprint'
 import { flowchartToBlueprint } from './flowchartDiagram'
-import { sequenceToBlueprint } from './sequenceDiagram'
+import { mindmapToBlueprint, type ParsedMindmapLayout } from './mindmapDiagram'
+import {
+	countSequenceEvents,
+	sequenceToBlueprint,
+	type ParsedSequenceLayout,
+} from './sequenceDiagram'
 import { stateToBlueprint } from './stateDiagram'
+import type { ParsedCluster, ParsedDiagramLayout, ParsedEdge, ParsedNode } from './svgParsing'
 
-let renderId = 0
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
-const FONT_INFLATE = 1.4
-mermaid.initialize({
-	startOnLoad: false,
-	flowchart: { nodeSpacing: 80, rankSpacing: 80, padding: 20 },
-	state: { nodeSpacing: 80, rankSpacing: 80, padding: 20 },
-	sequence: { actorMargin: 50, noteMargin: 20 },
-	themeVariables: { fontSize: `${18 * FONT_INFLATE}px` },
-})
-
-async function prepareDiagram(text: string) {
-	const offscreen = document.createElement('div')
-	offscreen.style.position = 'absolute'
-	offscreen.style.left = '-9999px'
-	document.body.appendChild(offscreen)
-
-	const { svg } = await mermaid.render(`mermaid-test-${renderId++}`, text, offscreen)
-
-	let liveSvg = offscreen.querySelector('svg')
-	if (!liveSvg) {
-		offscreen.innerHTML = svg
-		liveSvg = offscreen.querySelector('svg')
-		if (!liveSvg) throw new Error('mermaid.render() produced no SVG element')
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-deprecated
-	const diagramResult = await mermaid.mermaidAPI.getDiagramFromText(text)
-
-	return { liveSvg, db: diagramResult.db, cleanup: () => offscreen.remove() }
+function node(id: string, cx: number, cy: number, w: number, h: number): ParsedNode {
+	return { id, center: { x: cx, y: cy }, width: w, height: h }
 }
 
-async function flowchartBlueprint(text: string): Promise<DiagramMermaidBlueprint> {
-	const { liveSvg, db, cleanup } = await prepareDiagram(text)
-	try {
-		const flowDb = db as FlowDB
-		return flowchartToBlueprint(
-			liveSvg,
-			flowDb.getVertices() as Map<string, FlowVertex>,
-			flowDb.getEdges() as FlowEdge[],
-			flowDb.getSubGraphs() as FlowSubGraph[],
-			flowDb.getClasses()
-		)
-	} finally {
-		cleanup()
+function cluster(id: string, x: number, y: number, w: number, h: number): ParsedCluster {
+	return { id, topLeft: { x, y }, width: w, height: h }
+}
+
+function edge(start: string, end: string, points: [number, number][]): ParsedEdge {
+	return { start, end, points: points.map(([x, y]) => ({ x, y })) }
+}
+
+function diagramLayout(
+	nodes: ParsedNode[],
+	clusters: ParsedCluster[] = [],
+	edges: ParsedEdge[] = []
+): ParsedDiagramLayout {
+	return {
+		nodes: new Map(nodes.map((n) => [n.id, n])),
+		clusters: new Map(clusters.map((c) => [c.id, c])),
+		edges,
 	}
 }
 
-async function sequenceBlueprint(text: string): Promise<DiagramMermaidBlueprint> {
-	const { liveSvg, db, cleanup } = await prepareDiagram(text)
-	try {
-		const sequenceDb = db as SequenceDB
-		return sequenceToBlueprint(
-			liveSvg,
-			sequenceDb.getActors(),
-			sequenceDb.getActorKeys(),
-			sequenceDb.getMessages(),
-			sequenceDb.getCreatedActors(),
-			sequenceDb.getDestroyedActors()
-		)
-	} finally {
-		cleanup()
-	}
+function vertex(
+	id: string,
+	opts: { text?: string; type?: string; classes?: string[]; styles?: string[] } = {}
+): [string, FlowVertex] {
+	return [
+		id,
+		{
+			id,
+			text: opts.text ?? id,
+			type: (opts.type ?? 'rect') as FlowVertex['type'],
+			classes: opts.classes ?? [],
+			styles: opts.styles ?? [],
+		} as FlowVertex,
+	]
 }
 
-async function stateBlueprint(text: string): Promise<DiagramMermaidBlueprint> {
-	const { liveSvg, db, cleanup } = await prepareDiagram(text)
-	try {
-		const stateDb = db as StateDB
-		return stateToBlueprint(
-			liveSvg,
-			stateDb.getStates(),
-			stateDb.getRelations(),
-			stateDb.getClasses()
-		)
-	} finally {
-		cleanup()
-	}
+function flowEdge(start: string, end: string, opts: Partial<FlowEdge> = {}): FlowEdge {
+	return {
+		start,
+		end,
+		type: opts.type ?? 'arrow_point',
+		text: opts.text ?? '',
+		stroke: opts.stroke ?? 'normal',
+		style: opts.style,
+	} as FlowEdge
+}
+
+function subGraph(id: string, title: string, nodes: string[]): FlowSubGraph {
+	return { id, title, nodes } as FlowSubGraph
 }
 
 function findNode(bp: DiagramMermaidBlueprint, id: string) {
@@ -100,597 +85,1067 @@ function findEdge(bp: DiagramMermaidBlueprint, from: string, to: string) {
 	return bp.edges.find((e) => e.startNodeId === from && e.endNodeId === to)
 }
 
-function hasPositiveSize(node: { w: number; h: number }) {
-	expect(node.w).toBeGreaterThan(0)
-	expect(node.h).toBeGreaterThan(0)
+// ---------------------------------------------------------------------------
+// Flowchart tests
+// ---------------------------------------------------------------------------
+
+describe('flowchartToBlueprint', () => {
+	it('maps nodes with correct id, label, geo, and positions', () => {
+		const layout = diagramLayout([node('A', 100, 50, 80, 40), node('B', 100, 150, 60, 60)])
+		const vertices = new Map([
+			vertex('A', { text: 'Start', type: 'rect' }),
+			vertex('B', { text: 'Is it?', type: 'diamond' }),
+		])
+		const edges = [flowEdge('A', 'B')]
+
+		const bp = flowchartToBlueprint(layout, vertices, edges)
+
+		expect(bp.nodes).toHaveLength(2)
+		const a = findNode(bp, 'A')!
+		expect(a.label).toBe('Start')
+		expect(a.geo).toBe('rectangle')
+		expect(a.x).toBe(100 - 80 / 2)
+		expect(a.y).toBe(50 - 40 / 2)
+		expect(a.w).toBe(80)
+		expect(a.h).toBe(40)
+
+		const b = findNode(bp, 'B')!
+		expect(b.label).toBe('Is it?')
+		expect(b.geo).toBe('diamond')
+	})
+
+	it('maps edge labels and arrowhead types', () => {
+		const layout = diagramLayout(
+			[node('A', 100, 50, 80, 40), node('B', 300, 50, 80, 40)],
+			[],
+			[
+				edge('A', 'B', [
+					[140, 50],
+					[260, 50],
+				]),
+			]
+		)
+		const vertices = new Map([vertex('A'), vertex('B')])
+		const edges = [flowEdge('A', 'B', { text: 'Yes', type: 'arrow_point' })]
+
+		const bp = flowchartToBlueprint(layout, vertices, edges)
+
+		expect(bp.edges).toHaveLength(1)
+		expect(bp.edges[0].label).toBe('Yes')
+		expect(bp.edges[0].arrowheadEnd).toBe('arrow')
+		expect(bp.edges[0].startNodeId).toBe('A')
+		expect(bp.edges[0].endNodeId).toBe('B')
+	})
+
+	it('maps various geo shape types', () => {
+		const types: [string, string][] = [
+			['diamond', 'diamond'],
+			['ellipse', 'ellipse'],
+			['circle', 'ellipse'],
+			['hexagon', 'hexagon'],
+			['trapezoid', 'trapezoid'],
+			['lean_right', 'rhombus'],
+			['lean_left', 'rhombus-2'],
+			['rect', 'rectangle'],
+			['round', 'rectangle'],
+			['subroutine', 'rectangle'],
+		]
+
+		for (const [mermaidType, expectedGeo] of types) {
+			const id = `node_${mermaidType}`
+			const layout = diagramLayout([node(id, 0, 0, 80, 40)])
+			const vertices = new Map([vertex(id, { type: mermaidType })])
+
+			const bp = flowchartToBlueprint(layout, vertices, [])
+			expect(findNode(bp, id)!.geo).toBe(expectedGeo)
+		}
+	})
+
+	it('handles circle type with equal width/height', () => {
+		const layout = diagramLayout([node('C', 100, 100, 60, 80)])
+		const vertices = new Map([vertex('C', { type: 'circle' })])
+
+		const bp = flowchartToBlueprint(layout, vertices, [])
+
+		const c = findNode(bp, 'C')!
+		expect(c.w).toBe(c.h)
+		expect(c.w).toBe(80)
+	})
+
+	it('creates subgraph frames with correct parent-child relationships', () => {
+		const layout = diagramLayout(
+			[node('a1', 50, 80, 60, 30), node('a2', 150, 80, 60, 30), node('b1', 300, 80, 60, 30)],
+			[cluster('sg1', 10, 40, 200, 100), cluster('sg2', 260, 40, 100, 100)]
+		)
+		const vertices = new Map([vertex('a1'), vertex('a2'), vertex('b1')])
+		const subGraphs = [
+			subGraph('sg1', 'Group One', ['a1', 'a2']),
+			subGraph('sg2', 'Group Two', ['b1']),
+		]
+
+		const bp = flowchartToBlueprint(layout, vertices, [], subGraphs)
+
+		const sg1 = findNode(bp, 'sg1')!
+		expect(sg1.label).toBe('Group One')
+		expect(sg1.fill).toBe('semi')
+		expect(sg1.verticalAlign).toBe('start')
+
+		expect(findNode(bp, 'a1')!.parentId).toBe('sg1')
+		expect(findNode(bp, 'a2')!.parentId).toBe('sg1')
+		expect(findNode(bp, 'b1')!.parentId).toBe('sg2')
+	})
+
+	it('computes bend for curved edges', () => {
+		const layout = diagramLayout(
+			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
+			[],
+			[
+				edge('A', 'B', [
+					[20, 0],
+					[100, -50],
+					[180, 0],
+				]),
+			]
+		)
+		const vertices = new Map([vertex('A'), vertex('B')])
+		const edges = [flowEdge('A', 'B')]
+
+		const bp = flowchartToBlueprint(layout, vertices, edges)
+		expect(bp.edges[0].bend).not.toBe(0)
+	})
+
+	it('handles self-loop edges with non-zero bend', () => {
+		const layout = diagramLayout(
+			[node('D', 100, 100, 80, 40)],
+			[],
+			[
+				edge('D', 'D', [
+					[100, 80],
+					[140, 40],
+					[100, 120],
+				]),
+			]
+		)
+		const vertices = new Map([vertex('D')])
+		const edges = [flowEdge('D', 'D')]
+
+		const bp = flowchartToBlueprint(layout, vertices, edges)
+		expect(bp.edges[0].startNodeId).toBe('D')
+		expect(bp.edges[0].endNodeId).toBe('D')
+		expect(bp.edges[0].bend).not.toBe(0)
+	})
+
+	it('filters out edges referencing missing nodes', () => {
+		const layout = diagramLayout([node('A', 0, 0, 40, 40)])
+		const vertices = new Map([vertex('A')])
+		const edges = [flowEdge('A', 'MISSING')]
+
+		const bp = flowchartToBlueprint(layout, vertices, edges)
+		expect(bp.edges).toHaveLength(0)
+	})
+
+	it('maps classDef fill colors', () => {
+		const layout = diagramLayout([node('A', 50, 50, 80, 40), node('B', 200, 50, 80, 40)])
+		const vertices = new Map([
+			vertex('A', { text: 'Start', classes: ['green'] }),
+			vertex('B', { text: 'End', classes: ['blue'] }),
+		])
+		const classDefs = new Map<string, { styles: string[] }>([
+			['green', { styles: ['fill:#00ff00'] }],
+			['blue', { styles: ['fill:#0000ff'] }],
+		])
+
+		const bp = flowchartToBlueprint(layout, vertices, [], undefined, classDefs as any)
+
+		expect(findNodeByLabel(bp, 'Start')!.fill).toBe('solid')
+		expect(findNodeByLabel(bp, 'Start')!.color).toBe('light-green')
+		expect(findNodeByLabel(bp, 'End')!.fill).toBe('solid')
+		expect(findNodeByLabel(bp, 'End')!.color).toBe('blue')
+	})
+
+	it('maps inline style fill/stroke colors', () => {
+		const layout = diagramLayout([node('A', 50, 50, 80, 40)])
+		const vertices = new Map([
+			vertex('A', { text: 'Styled', styles: ['fill:#ffebee', 'stroke:#c62828'] }),
+		])
+
+		const bp = flowchartToBlueprint(layout, vertices, [])
+
+		const a = findNodeByLabel(bp, 'Styled')!
+		expect(a.fill).toBe('solid')
+		expect(a.color).toBe('red')
+	})
+
+	it('maps edge dash styles from stroke-dasharray', () => {
+		const layout = diagramLayout(
+			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
+			[],
+			[
+				edge('A', 'B', [
+					[20, 0],
+					[180, 0],
+				]),
+			]
+		)
+		const vertices = new Map([vertex('A'), vertex('B')])
+		const edges = [flowEdge('A', 'B', { style: ['stroke-dasharray: 4 3'] })]
+
+		const bp = flowchartToBlueprint(layout, vertices, edges)
+		expect(bp.edges[0].dash).toBe('dashed')
+	})
+
+	it('maps dotted stroke to dotted dash', () => {
+		const layout = diagramLayout(
+			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
+			[],
+			[
+				edge('A', 'B', [
+					[20, 0],
+					[180, 0],
+				]),
+			]
+		)
+		const vertices = new Map([vertex('A'), vertex('B')])
+		const edges = [flowEdge('A', 'B', { stroke: 'dotted' })]
+
+		const bp = flowchartToBlueprint(layout, vertices, edges)
+		expect(bp.edges[0].dash).toBe('dotted')
+	})
+
+	it('maps double_arrow edge type to bidirectional arrowheads', () => {
+		const layout = diagramLayout(
+			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
+			[],
+			[
+				edge('A', 'B', [
+					[20, 0],
+					[180, 0],
+				]),
+			]
+		)
+		const vertices = new Map([vertex('A'), vertex('B')])
+		const edges = [flowEdge('A', 'B', { type: 'double_arrow_point' })]
+
+		const bp = flowchartToBlueprint(layout, vertices, edges)
+		expect(bp.edges[0].arrowheadEnd).toBe('arrow')
+		expect(bp.edges[0].arrowheadStart).toBe('arrow')
+	})
+})
+
+// ---------------------------------------------------------------------------
+// State diagram tests
+// ---------------------------------------------------------------------------
+
+describe('stateToBlueprint', () => {
+	function stateStmt(id: string, opts: Partial<StateStmt> = {}): [string, StateStmt] {
+		return [
+			id,
+			{
+				id,
+				type: opts.type ?? 'default',
+				description: opts.description ?? '',
+				descriptions: opts.descriptions,
+				doc: opts.doc,
+				note: (opts as any).note,
+				classes: opts.classes,
+				stmt: 'state',
+			} as StateStmt,
+		]
+	}
+
+	it('maps leaf states with correct geo and labels', () => {
+		const layout = diagramLayout([
+			node('Still', 100, 100, 80, 40),
+			node('Moving', 250, 100, 80, 40),
+		])
+		const states = new Map([stateStmt('Still'), stateStmt('Moving')])
+		const relations = [{ id1: 'Still', id2: 'Moving', relationTitle: 'go' }]
+
+		const bp = stateToBlueprint(layout, states, relations)
+
+		expect(findNode(bp, 'Still')!.label).toBe('Still')
+		expect(findNode(bp, 'Still')!.geo).toBe('rectangle')
+		expect(findNode(bp, 'Moving')!.label).toBe('Moving')
+		expect(findEdge(bp, 'Still', 'Moving')!.label).toBe('go')
+	})
+
+	it('maps start/end pseudo-states to ellipses', () => {
+		const layout = diagramLayout([
+			node('root_start', 50, 50, 20, 20),
+			node('root_end', 300, 50, 20, 20),
+			node('Idle', 175, 50, 80, 40),
+		])
+		const states = new Map([
+			stateStmt('root_start', { type: 'start' }),
+			stateStmt('root_end', { type: 'end' }),
+			stateStmt('Idle'),
+		])
+		const relations = [
+			{ id1: 'root_start', id2: 'Idle' },
+			{ id1: 'Idle', id2: 'root_end' },
+		]
+
+		const bp = stateToBlueprint(layout, states, relations)
+
+		const start = findNode(bp, 'root_start')!
+		expect(start.geo).toBe('ellipse')
+		expect(start.fill).toBe('solid')
+
+		const end = findNode(bp, 'root_end')!
+		expect(end.geo).toBe('ellipse')
+		expect(end.fill).toBe('none')
+
+		const endInner = findNode(bp, 'root_end__inner')!
+		expect(endInner.geo).toBe('ellipse')
+		expect(endInner.fill).toBe('solid')
+	})
+
+	it('maps choice states to diamonds', () => {
+		const layout = diagramLayout([node('D', 100, 100, 40, 40)])
+		const states = new Map([stateStmt('D', { type: 'choice' })])
+
+		const bp = stateToBlueprint(layout, states, [])
+		expect(findNode(bp, 'D')!.geo).toBe('diamond')
+	})
+
+	it('maps fork/join states to wide bars', () => {
+		const layout = diagramLayout([node('F', 100, 100, 20, 20)])
+		const states = new Map([stateStmt('F', { type: 'fork' })])
+
+		const bp = stateToBlueprint(layout, states, [])
+
+		const f = findNode(bp, 'F')!
+		expect(f.geo).toBe('rectangle')
+		expect(f.fill).toBe('solid')
+		expect(f.w).toBeGreaterThan(20)
+	})
+
+	it('creates compound state frames from clusters', () => {
+		const layout = diagramLayout(
+			[node('fA', 80, 100, 60, 30)],
+			[cluster('First', 20, 40, 200, 120)]
+		)
+		const states = new Map([
+			stateStmt('First', {
+				description: 'First',
+				doc: [
+					{ stmt: 'state', id: 'fA', type: 'default', description: '' } as unknown as StateStmt,
+				],
+			}),
+			stateStmt('fA'),
+		])
+
+		const bp = stateToBlueprint(layout, states, [])
+
+		const first = findNode(bp, 'First')!
+		expect(first.fill).toBe('semi')
+		expect(first.label).toBe('First')
+		expect(findNode(bp, 'fA')!.parentId).toBe('First')
+	})
+
+	it('creates note nodes with yellow color', () => {
+		const layout = diagramLayout([
+			node('Idle', 100, 100, 80, 40),
+			node('Idle----note', 250, 100, 100, 40),
+		])
+		const states = new Map([stateStmt('Idle', { note: { text: 'Important note' } } as any)])
+
+		const bp = stateToBlueprint(layout, states, [])
+
+		const noteNode = findNode(bp, 'Idle----note')!
+		expect(noteNode.label).toBe('Important note')
+		expect(noteNode.color).toBe('yellow')
+		expect(noteNode.fill).toBe('solid')
+
+		const noteEdge = findEdge(bp, 'Idle', 'Idle----note')!
+		expect(noteEdge.dash).toBe('dotted')
+		expect(noteEdge.arrowheadEnd).toBe('none')
+	})
+
+	it('maps classDef fill colors', () => {
+		const layout = diagramLayout([node('Idle', 100, 100, 80, 40)])
+		const states = new Map([stateStmt('Idle', { classes: ['green'] })])
+		const classDefs = new Map([['green', { styles: ['fill:#00ff00'] }]])
+
+		const bp = stateToBlueprint(layout, states, [], classDefs as any)
+
+		expect(findNode(bp, 'Idle')!.fill).toBe('solid')
+		expect(findNode(bp, 'Idle')!.color).toBe('light-green')
+	})
+
+	it('computes edge bend from SVG edge waypoints', () => {
+		const layout = diagramLayout(
+			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
+			[],
+			[
+				edge('', '', [
+					[0, 0],
+					[100, -40],
+					[200, 0],
+				]),
+			]
+		)
+		const states = new Map([stateStmt('A'), stateStmt('B')])
+		const relations = [{ id1: 'A', id2: 'B' }]
+
+		const bp = stateToBlueprint(layout, states, relations)
+		expect(findEdge(bp, 'A', 'B')!.bend).not.toBe(0)
+	})
+
+	it('filters out edges referencing missing nodes', () => {
+		const layout = diagramLayout([node('A', 0, 0, 40, 40)])
+		const states = new Map([stateStmt('A')])
+		const relations = [{ id1: 'A', id2: 'MISSING' }]
+
+		const bp = stateToBlueprint(layout, states, relations)
+		expect(bp.edges).toHaveLength(0)
+	})
+
+	it('uses auto-detected start/end types from ID suffixes', () => {
+		const layout = diagramLayout([
+			node('root_start', 50, 50, 20, 20),
+			node('root_end2', 300, 50, 20, 20),
+		])
+		const states = new Map([
+			stateStmt('root_start', { type: 'default' }),
+			stateStmt('root_end2', { type: 'default' }),
+		])
+
+		const bp = stateToBlueprint(layout, states, [])
+
+		expect(findNode(bp, 'root_start')!.geo).toBe('ellipse')
+		expect(findNode(bp, 'root_end2')!.geo).toBe('ellipse')
+	})
+})
+
+// ---------------------------------------------------------------------------
+// Sequence diagram tests
+// ---------------------------------------------------------------------------
+
+describe('sequenceToBlueprint', () => {
+	const LINETYPE = {
+		SOLID: 0,
+		DOTTED: 1,
+		NOTE: 2,
+		SOLID_CROSS: 3,
+		DOTTED_CROSS: 4,
+		SOLID_OPEN: 5,
+		DOTTED_OPEN: 6,
+		LOOP_START: 10,
+		LOOP_END: 11,
+		ALT_START: 12,
+		ALT_ELSE: 13,
+		ALT_END: 14,
+		OPT_START: 15,
+		OPT_END: 16,
+		ACTIVE_START: 17,
+		ACTIVE_END: 18,
+		PAR_START: 19,
+		PAR_AND: 20,
+		PAR_END: 21,
+		AUTONUMBER: 26,
+		CRITICAL_START: 27,
+		CRITICAL_OPTION: 28,
+		CRITICAL_END: 29,
+		BREAK_START: 30,
+		BREAK_END: 31,
+		BIDIRECTIONAL_SOLID: 33,
+		BIDIRECTIONAL_DOTTED: 34,
+	} as const
+
+	const PLACEMENT = {
+		LEFTOF: 0,
+		RIGHTOF: 1,
+		OVER: 2,
+	} as const
+
+	function actor(key: string, opts: Partial<Actor> = {}): [string, Actor] {
+		return [
+			key,
+			{
+				name: opts.name ?? key,
+				description: opts.description ?? key,
+				type: opts.type ?? 'participant',
+			} as Actor,
+		]
+	}
+
+	function msg(type: number, from: string, to: string, message = ''): Message {
+		return { type, from, to, message } as Message
+	}
+
+	function noteMsg(from: string, message: string, placement: number, to?: string): Message {
+		return { type: LINETYPE.NOTE, from, to: to ?? from, message, placement } as unknown as Message
+	}
+
+	function twoActorLayout(): ParsedSequenceLayout {
+		return {
+			actorLayouts: [
+				{ x: -150, y: -200, w: 100, h: 50, bottomY: 200 },
+				{ x: 150, y: -200, w: 100, h: 50, bottomY: 200 },
+			],
+			noteRects: [],
+		}
+	}
+
+	function threeActorLayout(
+		noteRects: { x: number; y: number; w: number; h: number }[] = []
+	): ParsedSequenceLayout {
+		return {
+			actorLayouts: [
+				{ x: -300, y: -200, w: 100, h: 50, bottomY: 200 },
+				{ x: 0, y: -200, w: 100, h: 50, bottomY: 200 },
+				{ x: 300, y: -200, w: 100, h: 50, bottomY: 200 },
+			],
+			noteRects,
+		}
+	}
+
+	it('creates top/bottom actor boxes and lifelines', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('Bob')])
+		const messages = [msg(LINETYPE.SOLID, 'Alice', 'Bob', 'Hello')]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+		expect(findNode(bp, 'actor-top-Alice')).toBeDefined()
+		expect(findNode(bp, 'actor-top-Bob')).toBeDefined()
+		expect(findNode(bp, 'actor-bottom-Alice')).toBeDefined()
+		expect(findNode(bp, 'actor-bottom-Bob')).toBeDefined()
+
+		expect(bp.lines!.find((l) => l.id === 'lifeline-Alice')).toBeDefined()
+		expect(bp.lines!.find((l) => l.id === 'lifeline-Bob')).toBeDefined()
+	})
+
+	it('creates groups for actor elements', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('Bob')])
+		const messages = [msg(LINETYPE.SOLID, 'Alice', 'Bob', 'Hi')]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+		expect(bp.groups).toEqual([
+			['actor-top-Alice', 'lifeline-Alice', 'actor-bottom-Alice'],
+			['actor-top-Bob', 'lifeline-Bob', 'actor-bottom-Bob'],
+		])
+	})
+
+	it('creates signal edges with correct labels and dash styles', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('John')])
+		const messages = [
+			msg(LINETYPE.SOLID, 'Alice', 'John', 'Hello John, how are you?'),
+			msg(LINETYPE.DOTTED, 'John', 'Alice', 'Great!'),
+			msg(LINETYPE.SOLID_OPEN, 'Alice', 'John', 'See you later!'),
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'John'], messages)
+
+		expect(bp.edges).toHaveLength(3)
+		expect(bp.edges[0].label).toBe('Hello John, how are you?')
+		expect(bp.edges[0].dash).toBe('solid')
+		expect(bp.edges[0].arrowheadEnd).toBe('arrow')
+
+		expect(bp.edges[1].label).toBe('Great!')
+		expect(bp.edges[1].dash).toBe('dotted')
+
+		expect(bp.edges[2].label).toBe('See you later!')
+		expect(bp.edges[2].arrowheadEnd).toBe('none')
+	})
+
+	it('maps arrow type variations correctly', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('A'), actor('B')])
+		const messages = [
+			msg(LINETYPE.SOLID_CROSS, 'A', 'B', 'cross'),
+			msg(LINETYPE.DOTTED_CROSS, 'B', 'A', 'dotted cross'),
+			msg(LINETYPE.DOTTED_OPEN, 'A', 'B', 'dotted open'),
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['A', 'B'], messages)
+
+		expect(bp.edges[0].arrowheadEnd).toBe('bar')
+		expect(bp.edges[0].dash).toBe('solid')
+		expect(bp.edges[1].arrowheadEnd).toBe('bar')
+		expect(bp.edges[1].dash).toBe('dotted')
+		expect(bp.edges[2].arrowheadEnd).toBe('none')
+		expect(bp.edges[2].dash).toBe('dotted')
+	})
+
+	it('creates self-message with non-zero bend', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('W')])
+		const messages = [msg(LINETYPE.SOLID, 'W', 'W', 'execute()')]
+
+		const bp = sequenceToBlueprint(layout, actors, ['W'], messages)
+
+		const selfEdge = bp.edges.find(
+			(e) => e.startNodeId === 'lifeline-W' && e.endNodeId === 'lifeline-W'
+		)
+		expect(selfEdge).toBeDefined()
+		expect(selfEdge!.label).toBe('execute()')
+		expect(selfEdge!.bend).not.toBe(0)
+	})
+
+	it('creates loop fragments', () => {
+		const layout = threeActorLayout()
+		const actors = new Map([actor('P'), actor('Q'), actor('W')])
+		const messages = [
+			msg(LINETYPE.SOLID, 'P', 'Q', 'enqueue'),
+			{ type: LINETYPE.LOOP_START, message: 'poll' } as unknown as Message,
+			msg(LINETYPE.SOLID, 'W', 'Q', 'dequeue'),
+			msg(LINETYPE.DOTTED, 'Q', 'W', 'job?'),
+			{ type: LINETYPE.LOOP_END } as unknown as Message,
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['P', 'Q', 'W'], messages)
+
+		const fragment = findNode(bp, 'fragment-0')
+		expect(fragment).toBeDefined()
+		expect(fragment!.label).toContain('loop')
+		expect(fragment!.label).toContain('poll')
+	})
+
+	it('creates alt/else fragments with separator lines and section labels', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('User'), actor('App')])
+		const messages = [
+			msg(LINETYPE.SOLID, 'User', 'App', 'Sign in'),
+			{ type: LINETYPE.ALT_START, message: 'Credentials valid' } as unknown as Message,
+			msg(LINETYPE.DOTTED, 'App', 'User', 'Redirect to dashboard'),
+			{ type: LINETYPE.ALT_ELSE, message: 'Credentials invalid' } as unknown as Message,
+			msg(LINETYPE.DOTTED, 'App', 'User', 'Show error'),
+			{ type: LINETYPE.ALT_END } as unknown as Message,
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['User', 'App'], messages)
+
+		const fragment = findNode(bp, 'fragment-0')
+		expect(fragment).toBeDefined()
+		expect(fragment!.label).toBe('alt [Credentials valid]')
+
+		const sepLine = bp.lines!.find((l) => l.id === 'fragment-0-sep-1')
+		expect(sepLine).toBeDefined()
+		expect(sepLine!.dash).toBe('dashed')
+		expect(sepLine!.endY).toBe(0)
+		expect(sepLine!.endX).toBeGreaterThan(0)
+
+		const sectionLabel = findNode(bp, 'fragment-0-section-1')
+		expect(sectionLabel).toBeDefined()
+		expect(sectionLabel!.label).toBe('[Credentials invalid]')
+	})
+
+	it('creates note nodes with yellow color and correct labels', () => {
+		const noteRect = { x: 10, y: 50, w: 120, h: 40 }
+		const layout: ParsedSequenceLayout = {
+			actorLayouts: [
+				{ x: -150, y: -200, w: 100, h: 50, bottomY: 200 },
+				{ x: 150, y: -200, w: 100, h: 50, bottomY: 200 },
+			],
+			noteRects: [noteRect],
+		}
+		const actors = new Map([actor('Alice'), actor('John')])
+		const messages = [
+			msg(LINETYPE.SOLID, 'Alice', 'John', 'Hello'),
+			noteMsg('Alice', 'Alice thinks', PLACEMENT.RIGHTOF),
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'John'], messages)
+
+		const note = bp.nodes.find((n) => n.id.startsWith('note-'))
+		expect(note).toBeDefined()
+		expect(note!.label).toBe('Alice thinks')
+		expect(note!.color).toBe('yellow')
+		expect(note!.fill).toBe('solid')
+		expect(note!.geo).toBe('rectangle')
+	})
+
+	it('creates activation boxes', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('John')])
+		const messages = [
+			msg(LINETYPE.SOLID, 'Alice', 'John', 'Hello'),
+			{ type: LINETYPE.ACTIVE_START, from: 'John' } as unknown as Message,
+			msg(LINETYPE.DOTTED, 'John', 'Alice', 'Reply'),
+			{ type: LINETYPE.ACTIVE_END, from: 'John' } as unknown as Message,
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'John'], messages)
+
+		const activations = bp.nodes.filter((n) => n.id.startsWith('activation-'))
+		expect(activations).toHaveLength(1)
+		expect(activations[0].fill).toBe('solid')
+		expect(activations[0].color).toBe('light-violet')
+		expect(activations[0].w).toBe(20)
+		expect(activations[0].h).toBeGreaterThan(0)
+	})
+
+	it('adds autonumber decorations', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('Alice'), actor('Bob')])
+		const messages = [
+			{ type: LINETYPE.AUTONUMBER } as unknown as Message,
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'Hello'),
+			msg(LINETYPE.DOTTED, 'Bob', 'Alice', 'Hi'),
+			msg(LINETYPE.SOLID, 'Alice', 'Bob', 'How are you?'),
+		]
+
+		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
+
+		expect(bp.edges).toHaveLength(3)
+		expect(bp.edges[0].decoration).toEqual({ type: 'autonumber', value: '1' })
+		expect(bp.edges[1].decoration).toEqual({ type: 'autonumber', value: '2' })
+		expect(bp.edges[2].decoration).toEqual({ type: 'autonumber', value: '3' })
+	})
+
+	it('maps bidirectional arrows', () => {
+		const layout = twoActorLayout()
+		const actors = new Map([actor('A'), actor('B')])
+		const messages = [msg(LINETYPE.BIDIRECTIONAL_SOLID, 'A', 'B', 'sync')]
+
+		const bp = sequenceToBlueprint(layout, actors, ['A', 'B'], messages)
+
+		expect(bp.edges[0].arrowheadEnd).toBe('arrow')
+		expect(bp.edges[0].arrowheadStart).toBe('arrow')
+	})
+
+	it('handles created actors with late-appearing top box', () => {
+		const layout = threeActorLayout()
+		const actors = new Map([actor('User'), actor('App'), actor('JobRunner')])
+		const createdActors = new Map([['JobRunner', 1]])
+		const messages = [
+			msg(LINETYPE.SOLID, 'User', 'App', 'Start report'),
+			msg(LINETYPE.SOLID, 'App', 'JobRunner', 'Spawn job'),
+			msg(LINETYPE.DOTTED, 'JobRunner', 'App', 'Job started'),
+		]
+
+		const bp = sequenceToBlueprint(
+			layout,
+			actors,
+			['User', 'App', 'JobRunner'],
+			messages,
+			createdActors
+		)
+
+		const jobRunnerTop = findNode(bp, 'actor-top-JobRunner')!
+		expect(jobRunnerTop).toBeDefined()
+		const userTop = findNode(bp, 'actor-top-User')!
+		expect(jobRunnerTop.y).toBeGreaterThan(userTop.y)
+
+		const creationEdge = bp.edges.find((e) => e.label === 'Spawn job')!
+		expect(creationEdge.endNodeId).toBe('actor-top-JobRunner')
+	})
+
+	it('maps actor types to correct geo', () => {
+		const layout: ParsedSequenceLayout = {
+			actorLayouts: [{ x: 0, y: -200, w: 100, h: 50, bottomY: 200 }],
+			noteRects: [],
+		}
+		const actors = new Map([actor('User', { type: 'actor' })])
+		const messages = [msg(LINETYPE.SOLID, 'User', 'User', 'think')]
+
+		const bp = sequenceToBlueprint(layout, actors, ['User'], messages)
+
+		expect(findNode(bp, 'actor-top-User')!.geo).toBe('ellipse')
+	})
+})
+
+// ---------------------------------------------------------------------------
+// countSequenceEvents tests
+// ---------------------------------------------------------------------------
+
+describe('countSequenceEvents', () => {
+	it('counts only signal and note messages', () => {
+		const messages = [
+			{ type: 0, from: 'A', to: 'B', message: 'Hello' },
+			{ type: 1, from: 'B', to: 'A', message: 'Hi' },
+			{ type: 10, message: 'loop' },
+			{ type: 11 },
+			{ type: 2, from: 'A', to: 'A', message: 'note' },
+		] as unknown as Message[]
+
+		expect(countSequenceEvents(messages)).toBe(3)
+	})
+
+	it('skips autonumber, fragment, and activation control messages', () => {
+		const messages = [
+			{ type: 26 },
+			{ type: 12, message: 'alt' },
+			{ type: 13, message: 'else' },
+			{ type: 14 },
+			{ type: 17, from: 'A' },
+			{ type: 18, from: 'A' },
+			{ type: 0, from: 'A', to: 'B', message: 'real' },
+		] as unknown as Message[]
+
+		expect(countSequenceEvents(messages)).toBe(1)
+	})
+})
+
+// ---------------------------------------------------------------------------
+// Mindmap tests
+// ---------------------------------------------------------------------------
+
+function mindmapNode(
+	id: number,
+	descr: string,
+	opts: {
+		type?: number
+		level?: number
+		section?: number
+		isRoot?: boolean
+		children?: MindmapNode[]
+	} = {}
+): MindmapNode {
+	return {
+		id,
+		descr,
+		type: opts.type ?? 0,
+		level: opts.level ?? 0,
+		section: opts.section ?? 0,
+		isRoot: opts.isRoot ?? false,
+		children: opts.children ?? [],
+	} as MindmapNode
 }
 
-describe('blueprint tests', () => {
-	describe('flowchart', () => {
-		it('simple TD flowchart', async () => {
-			const bp = await flowchartBlueprint(`flowchart TD
-  A[Start] --> B{Is it?}
-  B -->|Yes| C[OK]
-  B ---->|No| E[End]`)
+function mindmapLayout(
+	nodes: ParsedNode[],
+	nodeColors?: Map<string, TLDefaultColorStyle>
+): ParsedMindmapLayout {
+	return {
+		nodes: new Map(nodes.map((n) => [n.id, n])),
+		nodeColors: nodeColors ?? new Map(),
+	}
+}
 
-			expect(bp).toMatchSnapshot()
-
-			expect(bp.nodes).toHaveLength(4)
-			expect(bp.nodes.map((n) => n.id).sort()).toEqual(['A', 'B', 'C', 'E'])
-
-			const a = findNode(bp, 'A')!
-			expect(a.label).toBe('Start')
-			expect(a.geo).toBe('rectangle')
-			hasPositiveSize(a)
-
-			const b = findNode(bp, 'B')!
-			expect(b.label).toBe('Is it?')
-			expect(b.geo).toBe('diamond')
-
-			expect(bp.edges).toHaveLength(3)
-			const abEdge = findEdge(bp, 'A', 'B')!
-			expect(abEdge).toBeDefined()
-			expect(abEdge.arrowheadEnd).toBe('arrow')
-
-			const bcEdge = findEdge(bp, 'B', 'C')!
-			expect(bcEdge.label).toBe('Yes')
-
-			const beEdge = findEdge(bp, 'B', 'E')!
-			expect(beEdge.label).toBe('No')
-
-			// TD layout: A should be above B
-			expect(a.y).toBeLessThan(b.y)
+describe('mindmapToBlueprint', () => {
+	it('maps root and child nodes with correct labels and positions', () => {
+		const layout = mindmapLayout([
+			node('0', 0, 0, 120, 60),
+			node('1', -200, 100, 80, 40),
+			node('2', 200, 100, 80, 40),
+		])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			section: -1,
+			children: [
+				mindmapNode(1, 'Child A', { level: 1, section: 0 }),
+				mindmapNode(2, 'Child B', { level: 1, section: 1 }),
+			],
 		})
 
-		it('LR flowchart', async () => {
-			const bp = await flowchartBlueprint(`flowchart LR
-  Start --> Stop`)
+		const bp = mindmapToBlueprint(layout, tree)
 
-			expect(bp).toMatchSnapshot()
-			expect(bp.nodes).toHaveLength(2)
-			expect(bp.edges).toHaveLength(1)
+		expect(bp.nodes).toHaveLength(3)
 
-			const start = findNodeByLabel(bp, 'Start')!
-			const stop = findNodeByLabel(bp, 'Stop')!
-			hasPositiveSize(start)
-			hasPositiveSize(stop)
+		const root = findNodeByLabel(bp, 'Root')!
+		expect(root).toBeDefined()
+		expect(root.x).toBe(0 - 120 / 2)
+		expect(root.y).toBe(0 - 60 / 2)
+		expect(root.w).toBe(120)
+		expect(root.h).toBe(60)
+		expect(root.fill).toBe('solid')
+		expect(root.size).toBe('l')
+		expect(root.align).toBe('middle')
+		expect(root.verticalAlign).toBe('middle')
 
-			// LR layout: Start should be to the left of Stop
-			expect(start.x).toBeLessThan(stop.x)
-
-			expect(bp.edges[0].startNodeId).toBe('Start')
-			expect(bp.edges[0].endNodeId).toBe('Stop')
-		})
-
-		it('flowchart with subgraphs', async () => {
-			const bp = await flowchartBlueprint(`flowchart TB
-  c1-->a2
-  subgraph one
-    a1-->a2
-  end
-  subgraph two
-    b1-->b2
-  end
-  subgraph three
-    c1-->c2
-  end`)
-
-			expect(bp).toMatchSnapshot()
-			const subgraphIds = ['one', 'two', 'three']
-			for (const id of subgraphIds) {
-				const sg = findNode(bp, id)
-				expect(sg).toBeDefined()
-				expect(sg!.fill).toBe('semi')
-			}
-
-			const leafIds = ['a1', 'a2', 'b1', 'b2', 'c1', 'c2']
-			for (const id of leafIds) {
-				expect(findNode(bp, id)).toBeDefined()
-			}
-
-			expect(findNode(bp, 'a1')!.parentId).toBe('one')
-			expect(findNode(bp, 'a2')!.parentId).toBe('one')
-			expect(findNode(bp, 'b1')!.parentId).toBe('two')
-			expect(findNode(bp, 'c1')!.parentId).toBe('three')
-
-			expect(bp.edges.length).toBeGreaterThanOrEqual(3)
-			expect(findEdge(bp, 'a1', 'a2')).toBeDefined()
-			expect(findEdge(bp, 'b1', 'b2')).toBeDefined()
-			expect(findEdge(bp, 'c1', 'c2')).toBeDefined()
-			expect(findEdge(bp, 'c1', 'a2')).toBeDefined()
-		})
-
-		it('LR flowchart with parallel edges and self-loop', async () => {
-			const bp = await flowchartBlueprint(`flowchart LR
-  A[Client] -->|Request| B[Server]
-  B -->|Response| A
-  B --> C{Decision}
-  C -->|Yes| D[Process]
-  C -->|No| E[Reject]
-  D --> D
-  D --> F[Done]`)
-
-			expect(bp).toMatchSnapshot()
-			expect(bp.nodes).toHaveLength(6)
-			expect(bp.edges).toHaveLength(7)
-
-			expect(findEdge(bp, 'A', 'B')!.label).toBe('Request')
-			expect(findEdge(bp, 'B', 'A')!.label).toBe('Response')
-
-			const selfLoop = findEdge(bp, 'D', 'D')!
-			expect(selfLoop).toBeDefined()
-			expect(selfLoop.bend).not.toBe(0)
-
-			expect(findNode(bp, 'C')!.geo).toBe('diamond')
-
-			// LR: A should be left of B, B left of C
-			expect(findNode(bp, 'A')!.x).toBeLessThan(findNode(bp, 'C')!.x)
-		})
-
-		it('TB flowchart with parallel edges and self-loop', async () => {
-			const bp = await flowchartBlueprint(`flowchart TB
-  A[Client] -->|Request| B[Server]
-  B -->|Response| A
-  B --> C{Decision}
-  C -->|Yes| D[Process]
-  C -->|No| E[Reject]
-  D --> D
-  D --> F[Done]`)
-
-			expect(bp).toMatchSnapshot()
-			expect(bp.nodes).toHaveLength(6)
-			expect(bp.edges).toHaveLength(7)
-
-			// TB: A should be above C
-			expect(findNode(bp, 'A')!.y).toBeLessThan(findNode(bp, 'C')!.y)
-		})
-
-		it('flowchart with classDef fills', async () => {
-			const bp = await flowchartBlueprint(`flowchart TD
-  A[Start] --> B[End]
-  classDef green fill:#00ff00
-  classDef blue fill:#0000ff
-  class A green
-  class B blue`)
-
-			expect(bp).toMatchSnapshot()
-			const startNode = findNodeByLabel(bp, 'Start')!
-			expect(startNode.fill).toBe('solid')
-			expect(startNode.color).toBe('light-green')
-
-			const endNode = findNodeByLabel(bp, 'End')!
-			expect(endNode.fill).toBe('solid')
-			expect(endNode.color).toBe('blue')
-		})
-
-		it('flowchart with classDef fill+stroke', async () => {
-			const bp = await flowchartBlueprint(`flowchart TD
-  A[API Gateway] --> B[Auth Service]
-  B --> C[(Users DB)]
-  classDef svc fill:#e3f2fd,stroke:#1565c0;
-  classDef db fill:#f3e5f5,stroke:#6a1b9a;
-  class A,B svc;
-  class C db;`)
-
-			expect(bp).toMatchSnapshot()
-			const svcNode = findNodeByLabel(bp, 'Auth Service')!
-			expect(svcNode.fill).toBe('solid')
-			expect(svcNode.color).toBe('blue')
-
-			const dbNode = findNodeByLabel(bp, 'Users DB')!
-			expect(dbNode.fill).toBe('solid')
-			expect(dbNode.color).toBe('violet')
-		})
-
-		it('flowchart with inline style directives', async () => {
-			const bp = await flowchartBlueprint(`flowchart TD
-  A[Request] --> B[Validation]
-  B --> C[Success]
-  B --> D[Failure]
-  style B fill:#fff4cc,stroke:#cc9900,stroke-width:2px
-  style C fill:#e8f5e9,stroke:#2e7d32
-  style D fill:#ffebee,stroke:#c62828`)
-
-			expect(bp).toMatchSnapshot()
-			expect(findNodeByLabel(bp, 'Validation')!.fill).toBe('solid')
-			expect(findNodeByLabel(bp, 'Validation')!.color).toBe('orange')
-			expect(findNodeByLabel(bp, 'Success')!.fill).toBe('solid')
-			expect(findNodeByLabel(bp, 'Success')!.color).toBe('green')
-			expect(findNodeByLabel(bp, 'Failure')!.fill).toBe('solid')
-			expect(findNodeByLabel(bp, 'Failure')!.color).toBe('red')
-			expect(findNodeByLabel(bp, 'Request')!.fill).toBeUndefined()
-		})
-
-		it('flowchart with linkStyle color and dash', async () => {
-			const bp = await flowchartBlueprint(`flowchart LR
-  A[Client] -->|GET| B[API]
-  A -->|POST| B
-  B -->|200| A
-  B -->|400| A
-  linkStyle 0 stroke:#2a7,stroke-width:2px
-  linkStyle 1 stroke:#27a,stroke-width:2px,stroke-dasharray: 4 3`)
-
-			expect(bp).toMatchSnapshot()
-			expect(bp.nodes).toHaveLength(2)
-			expect(bp.edges).toHaveLength(4)
-
-			expect(bp.edges[0].label).toBe('GET')
-			expect(bp.edges[1].label).toBe('POST')
-			expect(bp.edges[1].dash).toBe('dashed')
-		})
+		const childA = findNodeByLabel(bp, 'Child A')!
+		expect(childA).toBeDefined()
+		expect(childA.size).toBe('m')
 	})
 
-	describe('state diagram', () => {
-		it('simple state diagram', async () => {
-			const bp = await stateBlueprint(`stateDiagram-v2
-  [*] --> Still
-  Still --> Moving
-  Moving --> Still
-  Moving --> Crash
-  Crash --> [*]`)
-
-			expect(bp).toMatchSnapshot()
-			const still = findNode(bp, 'Still')!
-			expect(still).toBeDefined()
-			expect(still.label).toBe('Still')
-			expect(still.geo).toBe('rectangle')
-			hasPositiveSize(still)
-
-			expect(findNode(bp, 'Moving')).toBeDefined()
-			expect(findNode(bp, 'Crash')).toBeDefined()
-
-			// Start/end pseudo-states
-			const startNodes = bp.nodes.filter((n) => n.id.includes('_start'))
-			expect(startNodes.length).toBeGreaterThanOrEqual(1)
-			const endNodes = bp.nodes.filter((n) => n.id.includes('_end'))
-			expect(endNodes.length).toBeGreaterThanOrEqual(1)
-
-			expect(bp.edges.length).toBeGreaterThanOrEqual(5)
-			expect(findEdge(bp, 'Still', 'Moving')).toBeDefined()
-			expect(findEdge(bp, 'Moving', 'Still')).toBeDefined()
-			expect(findEdge(bp, 'Moving', 'Crash')).toBeDefined()
+	it('creates edges from parent to children with no arrowheads', () => {
+		const layout = mindmapLayout([
+			node('0', 0, 0, 100, 50),
+			node('1', -150, 100, 80, 40),
+			node('2', 150, 100, 80, 40),
+		])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [
+				mindmapNode(1, 'A', { level: 1, section: 0 }),
+				mindmapNode(2, 'B', { level: 1, section: 1 }),
+			],
 		})
 
-		it('state diagram with classDef fills', async () => {
-			const bp = await stateBlueprint(`stateDiagram-v2
-  [*] --> Idle
-  Idle --> Active : start
-  Active --> [*]
-  classDef green fill:#00ff00
-  classDef red fill:#ff0000
-  class Idle green
-  class Active red`)
+		const bp = mindmapToBlueprint(layout, tree)
 
-			expect(bp).toMatchSnapshot()
-			const idle = findNode(bp, 'Idle')!
-			expect(idle.fill).toBe('solid')
-			expect(idle.color).toBe('light-green')
-
-			const active = findNode(bp, 'Active')!
-			expect(active.fill).toBe('solid')
-			expect(active.color).toBe('red')
-		})
-
-		it('compound state with bidirectional edges and self-loop', async () => {
-			const bp = await stateBlueprint(`stateDiagram-v2
-  [*] --> Session
-  state Session {
-    [*] --> Unauthed
-    Unauthed --> Authed: login
-    Authed --> Unauthed: logout
-    Authed --> Authed: refresh
-  }
-  Session --> [*]: close`)
-
-			expect(bp).toMatchSnapshot()
-			const session = findNode(bp, 'Session')!
-			expect(session).toBeDefined()
-			expect(session.fill).toBe('semi')
-
-			expect(findNode(bp, 'Unauthed')!.parentId).toBe('Session')
-			expect(findNode(bp, 'Authed')!.parentId).toBe('Session')
-
-			const loginEdge = findEdge(bp, 'Unauthed', 'Authed')!
-			expect(loginEdge).toBeDefined()
-			expect(loginEdge.label).toBe('login')
-
-			const logoutEdge = findEdge(bp, 'Authed', 'Unauthed')!
-			expect(logoutEdge).toBeDefined()
-			expect(logoutEdge.label).toBe('logout')
-
-			const selfLoop = findEdge(bp, 'Authed', 'Authed')!
-			expect(selfLoop).toBeDefined()
-			expect(selfLoop.label).toBe('refresh')
-			expect(selfLoop.bend).not.toBe(0)
-		})
-
-		it('compound state diagram', async () => {
-			const bp = await stateBlueprint(`stateDiagram-v2
-  [*] --> First
-  [*] --> Second
-  state First {
-    [*] --> fA
-    fA --> [*]
-  }
-  state Second {
-    [*] --> sA
-    sA --> [*]
-  }`)
-
-			expect(bp).toMatchSnapshot()
-			expect(findNode(bp, 'First')!.fill).toBe('semi')
-			expect(findNode(bp, 'Second')!.fill).toBe('semi')
-
-			expect(findNode(bp, 'fA')!.parentId).toBe('First')
-			expect(findNode(bp, 'sA')!.parentId).toBe('Second')
-		})
-
-		it('state diagram with notes', async () => {
-			const bp = await stateBlueprint(`stateDiagram-v2
-  [*] --> TicketOpen
-  TicketOpen --> Investigating: assign
-  Investigating --> WaitingForCustomer: need info
-  WaitingForCustomer --> Investigating: reply received
-  Investigating --> Resolved: fix applied
-  Resolved --> Closed: confirm
-  note right of WaitingForCustomer
-    SLA clock may pause here
-  end note`)
-
-			expect(bp).toMatchSnapshot()
-			expect(findNode(bp, 'TicketOpen')).toBeDefined()
-			expect(findNode(bp, 'Investigating')).toBeDefined()
-			expect(findNode(bp, 'WaitingForCustomer')).toBeDefined()
-			expect(findNode(bp, 'Resolved')).toBeDefined()
-			expect(findNode(bp, 'Closed')).toBeDefined()
-
-			const noteNode = bp.nodes.find((n) => n.id.includes('note'))
-			expect(noteNode).toBeDefined()
-			expect(noteNode!.label).toContain('SLA clock may pause here')
-			expect(noteNode!.color).toBe('yellow')
-
-			const noteEdge = bp.edges.find(
-				(e) => e.startNodeId === 'WaitingForCustomer' && e.endNodeId.includes('note')
-			)
-			expect(noteEdge).toBeDefined()
-			expect(noteEdge!.dash).toBe('dotted')
-		})
-
-		it('nested compound state with history node', async () => {
-			const bp = await stateBlueprint(`stateDiagram-v2
-  [*] --> Editor
-  state Editor {
-    [*] --> Viewing
-    state Mode {
-      [*] --> Select
-      Select --> Draw: pen tool
-      Draw --> Erase: eraser
-      Erase --> Select: pointer
-    }
-    Viewing --> Mode: edit
-    Mode --> Viewing: preview
-    state H <<history>>
-  }
-  Editor --> Suspended: sleep
-  Suspended --> H: wake`)
-
-			expect(bp).toMatchSnapshot()
-			const editor = findNode(bp, 'Editor')!
-			expect(editor).toBeDefined()
-			expect(editor.fill).toBe('semi')
-
-			const mode = findNode(bp, 'Mode')!
-			expect(mode).toBeDefined()
-			expect(mode.fill).toBe('semi')
-			expect(mode.parentId).toBe('Editor')
-
-			expect(findNode(bp, 'Select')!.parentId).toBe('Mode')
-			expect(findNode(bp, 'Viewing')!.parentId).toBe('Editor')
-
-			const hNode = findNode(bp, 'H')!
-			expect(hNode).toBeDefined()
-			expect(hNode.parentId).toBeUndefined()
-
-			expect(findEdge(bp, 'Viewing', 'Mode')!.label).toBe('edit')
-			expect(findEdge(bp, 'Mode', 'Viewing')!.label).toBe('preview')
-			expect(findEdge(bp, 'Editor', 'Suspended')).toBeDefined()
-			expect(findEdge(bp, 'Suspended', 'H')).toBeDefined()
-		})
+		expect(bp.edges).toHaveLength(2)
+		for (const e of bp.edges) {
+			expect(e.startNodeId).toBe('0')
+			expect(e.arrowheadEnd).toBe('none')
+			expect(e.arrowheadStart).toBe('none')
+			expect(e.bend).toBe(0)
+		}
 	})
 
-	describe('sequence diagram', () => {
-		it('simple sequence diagram', async () => {
-			const bp = await sequenceBlueprint(`sequenceDiagram
-  Alice->>John: Hello John, how are you?
-  John-->>Alice: Great!
-  Alice-)John: See you later!`)
-
-			expect(bp).toMatchSnapshot()
-			expect(bp.edges).toHaveLength(3)
-			expect(bp.edges[0].label).toBe('Hello John, how are you?')
-			expect(bp.edges[0].dash).toBe('solid')
-			expect(bp.edges[0].arrowheadEnd).toBe('arrow')
-			expect(bp.edges[1].label).toBe('Great!')
-			expect(bp.edges[1].dash).toBe('dotted')
-			expect(bp.edges[2].label).toBe('See you later!')
-
-			const aliceTop = findNode(bp, 'actor-top-Alice')!
-			const johnTop = findNode(bp, 'actor-top-John')!
-			expect(aliceTop).toBeDefined()
-			expect(johnTop).toBeDefined()
-			hasPositiveSize(aliceTop)
-
-			// Alice should be to the left of John
-			expect(aliceTop.x).toBeLessThan(johnTop.x)
-
-			expect(bp.lines!.find((l) => l.id === 'lifeline-Alice')).toBeDefined()
-			expect(bp.lines!.find((l) => l.id === 'lifeline-John')).toBeDefined()
-
-			expect(bp.groups).toEqual([
-				['actor-top-Alice', 'lifeline-Alice', 'actor-bottom-Alice'],
-				['actor-top-John', 'lifeline-John', 'actor-bottom-John'],
-			])
+	it('assigns decreasing edge sizes by tree depth', () => {
+		const layout = mindmapLayout([
+			node('0', 0, 0, 100, 50),
+			node('1', 0, 100, 80, 40),
+			node('2', 0, 200, 60, 30),
+			node('3', 0, 300, 60, 30),
+		])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [
+				mindmapNode(1, 'L1', {
+					level: 1,
+					section: 0,
+					children: [
+						mindmapNode(2, 'L2', {
+							level: 2,
+							section: 0,
+							children: [mindmapNode(3, 'L3', { level: 3, section: 0 })],
+						}),
+					],
+				}),
+			],
 		})
 
-		it('sequence diagram with loop, opt, and self-message', async () => {
-			const bp = await sequenceBlueprint(`sequenceDiagram
-  participant P as Producer
-  participant Q as Queue
-  participant W as Worker
-  P->>Q: enqueue(job)
-  loop poll
-    W->>Q: dequeue()
-    Q-->>W: job?
-  end
-  opt job received
-    W->>W: execute()
-  end`)
+		const bp = mindmapToBlueprint(layout, tree)
 
-			expect(bp).toMatchSnapshot()
-			expect(bp.edges.length).toBeGreaterThanOrEqual(4)
-			expect(bp.edges[0].label).toBe('enqueue(job)')
+		expect(bp.edges).toHaveLength(3)
+		expect(findEdge(bp, '0', '1')!.size).toBe('l')
+		expect(findEdge(bp, '1', '2')!.size).toBe('m')
+		expect(findEdge(bp, '2', '3')!.size).toBe('s')
+	})
 
-			const selfMsg = bp.edges.find(
-				(e) => e.startNodeId === 'lifeline-W' && e.endNodeId === 'lifeline-W'
-			)
-			expect(selfMsg).toBeDefined()
-			expect(selfMsg!.label).toBe('execute()')
-			expect(selfMsg!.bend).not.toBe(0)
-
-			const loopFragment = findNode(bp, 'fragment-0')
-			expect(loopFragment).toBeDefined()
-			expect(loopFragment!.label).toContain('loop')
-
-			const optFragment = findNode(bp, 'fragment-1')
-			expect(optFragment).toBeDefined()
-			expect(optFragment!.label).toContain('opt')
+	it('maps mindmap node types to correct geo shapes', () => {
+		const TYPES = { DEFAULT: 0, ROUNDED_RECT: 1, RECT: 2, CIRCLE: 3, CLOUD: 4, BANG: 5, HEXAGON: 6 }
+		const layout = mindmapLayout([
+			node('0', 0, 0, 100, 50),
+			node('1', -300, 100, 80, 40),
+			node('2', -150, 100, 80, 40),
+			node('3', 0, 100, 60, 60),
+			node('4', 150, 100, 80, 40),
+			node('5', 300, 100, 80, 40),
+			node('6', 450, 100, 80, 40),
+		])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [
+				mindmapNode(1, 'Default', { type: TYPES.DEFAULT, level: 1, section: 0 }),
+				mindmapNode(2, 'Rect', { type: TYPES.RECT, level: 1, section: 1 }),
+				mindmapNode(3, 'Circle', { type: TYPES.CIRCLE, level: 1, section: 2 }),
+				mindmapNode(4, 'Cloud', { type: TYPES.CLOUD, level: 1, section: 3 }),
+				mindmapNode(5, 'Bang', { type: TYPES.BANG, level: 1, section: 4 }),
+				mindmapNode(6, 'Hexagon', { type: TYPES.HEXAGON, level: 1, section: 5 }),
+			],
 		})
 
-		it('sequence diagram with notes', async () => {
-			const bp = await sequenceBlueprint(`sequenceDiagram
-  Alice->>John: Hello
-  Note right of Alice: Alice thinks
-  Note left of John: John ponders
-  Note over Alice,John: Both see this
-  John-->>Alice: Hi!`)
+		const bp = mindmapToBlueprint(layout, tree)
 
-			expect(bp).toMatchSnapshot()
-			const notes = bp.nodes.filter((n) => n.id.startsWith('note-'))
-			expect(notes).toHaveLength(3)
-			for (const note of notes) {
-				expect(note.color).toBe('yellow')
-				expect(note.fill).toBe('solid')
-				expect(note.geo).toBe('rectangle')
-			}
+		expect(findNodeByLabel(bp, 'Default')!.geo).toBe('rectangle')
+		expect(findNodeByLabel(bp, 'Rect')!.geo).toBe('rectangle')
+		expect(findNodeByLabel(bp, 'Circle')!.geo).toBe('ellipse')
+		expect(findNodeByLabel(bp, 'Cloud')!.geo).toBe('cloud')
+		expect(findNodeByLabel(bp, 'Bang')!.geo).toBe('star')
+		expect(findNodeByLabel(bp, 'Hexagon')!.geo).toBe('hexagon')
+	})
 
-			expect(notes.map((n) => n.label)).toEqual(['Alice thinks', 'John ponders', 'Both see this'])
+	it('uses circle type to equalize width and height', () => {
+		const CIRCLE = 3
+		const layout = mindmapLayout([node('0', 0, 0, 100, 50), node('1', 200, 0, 60, 80)])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [mindmapNode(1, 'Round', { type: CIRCLE, level: 1, section: 0 })],
 		})
 
-		it('sequence diagram with activation boxes', async () => {
-			const bp = await sequenceBlueprint(`sequenceDiagram
-  Alice->>+John: Hello John, how are you?
-  Alice->>+John: John, can you hear me?
-  John-->>-Alice: Hi Alice, I can hear you!
-  John-->>-Alice: I feel great!`)
+		const bp = mindmapToBlueprint(layout, tree)
 
-			expect(bp).toMatchSnapshot()
-			const activations = bp.nodes.filter((n) => n.id.startsWith('activation-'))
-			expect(activations).toHaveLength(2)
-			for (const act of activations) {
-				expect(act.fill).toBe('solid')
-				expect(act.color).toBe('light-violet')
-				expect(act.geo).toBe('rectangle')
-				expect(act.w).toBe(20)
-				expect(act.h).toBeGreaterThan(0)
-			}
+		const round = findNodeByLabel(bp, 'Round')!
+		expect(round.w).toBe(round.h)
+		expect(round.w).toBe(80)
+	})
+
+	it('uses SVG-extracted colors when available, falls back to section colors', () => {
+		const nodeColors = new Map<string, TLDefaultColorStyle>([['1', 'red']])
+		const layout = mindmapLayout(
+			[node('0', 0, 0, 100, 50), node('1', -150, 100, 80, 40), node('2', 150, 100, 80, 40)],
+			nodeColors
+		)
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			section: -1,
+			children: [
+				mindmapNode(1, 'SVG Color', { level: 1, section: 0 }),
+				mindmapNode(2, 'Section Color', { level: 1, section: 1 }),
+			],
 		})
 
-		it('sequence diagram with explicit activate/deactivate', async () => {
-			const bp = await sequenceBlueprint(`sequenceDiagram
-  participant Client
-  participant API
-  participant DB
-  Client->>API: Get order
-  activate API
-  API->>DB: Query order
-  activate DB
-  DB-->>API: Order row
-  deactivate DB
-  API-->>Client: Order JSON
-  deactivate API`)
+		const bp = mindmapToBlueprint(layout, tree)
 
-			expect(bp).toMatchSnapshot()
-			const activations = bp.nodes.filter((n) => n.id.startsWith('activation-'))
-			expect(activations).toHaveLength(2)
+		// Node 1 should use SVG-extracted color
+		expect(findNodeByLabel(bp, 'SVG Color')!.color).toBe('red')
+		// Node 2 should fall back to section color (section 1 = orange)
+		expect(findNodeByLabel(bp, 'Section Color')!.color).toBe('orange')
+	})
 
-			const apiLifeline = bp.lines!.find((l) => l.id === 'lifeline-API')!
-			const dbLifeline = bp.lines!.find((l) => l.id === 'lifeline-DB')!
-			const dbAct = activations.find((a) => a.x === dbLifeline.x - 10)!
-			const apiAct = activations.find((a) => a.x === apiLifeline.x - 10)!
-			expect(apiAct).toBeDefined()
-			expect(dbAct).toBeDefined()
-			expect(apiAct.h).toBeGreaterThan(dbAct.h)
+	it('colors edges to match their target node', () => {
+		const nodeColors = new Map<string, TLDefaultColorStyle>([['1', 'green']])
+		const layout = mindmapLayout(
+			[node('0', 0, 0, 100, 50), node('1', 150, 100, 80, 40)],
+			nodeColors
+		)
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [mindmapNode(1, 'Child', { level: 1, section: 0 })],
 		})
 
-		it('sequence diagram with autonumber', async () => {
-			const bp = await sequenceBlueprint(`sequenceDiagram
-  autonumber
-  Alice->>Bob: Hello
-  Bob-->>Alice: Hi
-  Alice->>Bob: How are you?`)
+		const bp = mindmapToBlueprint(layout, tree)
 
-			expect(bp).toMatchSnapshot()
-			expect(bp.edges).toHaveLength(3)
-			expect(bp.edges[0].decoration).toEqual({ type: 'autonumber', value: '1' })
-			expect(bp.edges[1].decoration).toEqual({ type: 'autonumber', value: '2' })
-			expect(bp.edges[2].decoration).toEqual({ type: 'autonumber', value: '3' })
+		expect(bp.edges).toHaveLength(1)
+		expect(bp.edges[0].color).toBe('green')
+	})
+
+	it('all nodes have solid fill', () => {
+		const layout = mindmapLayout([node('0', 0, 0, 100, 50), node('1', 150, 100, 80, 40)])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [mindmapNode(1, 'Child', { level: 1, section: 0 })],
 		})
 
-		it('sequence diagram with alt/else', async () => {
-			const bp = await sequenceBlueprint(`sequenceDiagram
-  participant User
-  participant App
-  User->>App: Sign in
-  alt Credentials valid
-    App-->>User: Redirect to dashboard
-  else Credentials invalid
-    App-->>User: Show error message
-  end`)
+		const bp = mindmapToBlueprint(layout, tree)
 
-			expect(bp).toMatchSnapshot()
-			const fragmentBox = findNode(bp, 'fragment-0')
-			expect(fragmentBox).toBeDefined()
-			expect(fragmentBox!.label).toBe('alt [Credentials valid]')
+		for (const n of bp.nodes) {
+			expect(n.fill).toBe('solid')
+		}
+	})
 
-			const sepLine = bp.lines!.find((l) => l.id === 'fragment-0-sep-1')
-			expect(sepLine).toBeDefined()
-			expect(sepLine!.endY).toBe(0)
-			expect(sepLine!.endX).toBeGreaterThan(0)
-			expect(sepLine!.dash).toBe('dashed')
-
-			const sectionLabel = bp.nodes.find((n) => n.id === 'fragment-0-section-1')
-			expect(sectionLabel).toBeDefined()
-			expect(sectionLabel!.label).toBe('[Credentials invalid]')
+	it('filters out edges referencing nodes missing from SVG layout', () => {
+		// SVG only has root — child node missing from parsed layout
+		const layout = mindmapLayout([node('0', 0, 0, 100, 50)])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [mindmapNode(1, 'Missing', { level: 1, section: 0 })],
 		})
 
-		it('sequence diagram with create participant', async () => {
-			const bp = await sequenceBlueprint(`sequenceDiagram
-  participant User
-  participant App
-  User->>App: Start report generation
-  create participant JobRunner
-  App->>JobRunner: Spawn background job
-  JobRunner-->>App: Job started
-  App-->>User: Report is processing`)
+		const bp = mindmapToBlueprint(layout, tree)
 
-			expect(bp).toMatchSnapshot()
-			const userTop = findNode(bp, 'actor-top-User')!
-			const jobRunnerTop = findNode(bp, 'actor-top-JobRunner')!
-			expect(jobRunnerTop).toBeDefined()
-			expect(jobRunnerTop.y).toBeGreaterThan(userTop.y)
+		expect(bp.nodes).toHaveLength(1)
+		expect(bp.edges).toHaveLength(0)
+	})
 
-			const creationEdge = bp.edges.find((e) => e.label === 'Spawn background job')!
-			expect(creationEdge.endNodeId).toBe('actor-top-JobRunner')
+	it('assigns black color when section is negative', () => {
+		const layout = mindmapLayout([node('0', 0, 0, 100, 50)])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			section: -1,
 		})
+
+		const bp = mindmapToBlueprint(layout, tree)
+
+		expect(findNodeByLabel(bp, 'Root')!.color).toBe('black')
 	})
 })
