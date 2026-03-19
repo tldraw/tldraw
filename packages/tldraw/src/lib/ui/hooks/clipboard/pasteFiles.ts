@@ -1,5 +1,5 @@
 import { Editor, TLExternalContentSource, VecLike } from '@tldraw/editor'
-import { putPastedExternalContent } from '../useClipboardEvents'
+import { putPastedExternalContent } from './putPastedContent'
 
 /**
  * When the clipboard has a file, create an image/video shape from the file and paste it into the scene.

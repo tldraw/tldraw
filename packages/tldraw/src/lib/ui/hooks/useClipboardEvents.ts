@@ -1,7 +1,6 @@
 import {
 	Editor,
 	FileHelpers,
-	TLExternalContent,
 	TLExternalContentSource,
 	Vec,
 	VecLike,
@@ -89,18 +88,8 @@ function areShortcutsDisabled(editor: Editor) {
 	)
 }
 
-/** @internal */
-export async function putPastedExternalContent(
-	editor: Editor,
-	content: TLExternalContent<unknown>
-) {
-	if (editor.options.onBeforePasteFromClipboard) {
-		const result = editor.options.onBeforePasteFromClipboard({ editor, content })
-		if (result === false) return
-		if (result != null) content = result
-	}
-	return editor.putExternalContent(content)
-}
+import { putPastedExternalContent } from './clipboard/putPastedContent'
+export { putPastedExternalContent } from './clipboard/putPastedContent'
 
 /**
  * Handle text pasted into the editor.

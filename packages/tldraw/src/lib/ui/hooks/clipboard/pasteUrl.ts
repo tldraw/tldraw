@@ -1,5 +1,5 @@
 import { Editor, TLExternalContentSource, VecLike } from '@tldraw/editor'
-import { putPastedExternalContent } from '../useClipboardEvents'
+import { putPastedExternalContent } from './putPastedContent'
 
 /**
  * When the clipboard has plain text that is a valid URL, create a bookmark shape and insert it into
