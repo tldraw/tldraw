@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	atom,
 	computed,
+	createCachedUserResolve,
 	createUserId,
 	RecordsDiff,
 	reverseRecordsDiff,
-	Signal,
 	squashRecordDiffs,
 	Tldraw,
 	TldrawUiButton,
@@ -46,17 +46,9 @@ const currentUserSignal = computed('currentUser', () => {
 	return USERS[currentUserIdAtom.get()] ?? null
 })
 
-const resolveCache = new Map<string, Signal<TLUser | null>>()
 const users: TLUserStore = {
 	getCurrentUser: () => currentUserSignal,
-	resolve(userId: string) {
-		let signal = resolveCache.get(userId)
-		if (!signal) {
-			signal = computed('resolve-' + userId, () => USERS[createUserId(userId)] ?? null)
-			resolveCache.set(userId, signal)
-		}
-		return signal
-	},
+	resolve: createCachedUserResolve((userId) => USERS[createUserId(userId)] ?? null),
 }
 
 // [2]

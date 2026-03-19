@@ -15,7 +15,7 @@ import { TLUser } from './records/TLUser'
  * position, selected shapes, camera position, and user metadata that gets synchronized in
  * multiplayer scenarios.
  *
- * @param $user - A reactive signal containing the user information
+ * @param $user - A reactive signal containing the user information, or `null` when anonymous
  * @param instanceId - Optional custom instance ID. If not provided, one will be generated based on the store ID
  * @returns A function that takes a store and returns a computed signal of the user's presence state
  *
@@ -35,7 +35,7 @@ import { TLUser } from './records/TLUser'
  * @public
  */
 export function createPresenceStateDerivation(
-	$user: Signal<TLUser>,
+	$user: Signal<TLUser | null>,
 	instanceId?: TLInstancePresence['id']
 ) {
 	return (store: TLStore): Signal<TLInstancePresence | null> => {

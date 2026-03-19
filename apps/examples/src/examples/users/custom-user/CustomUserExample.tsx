@@ -1,8 +1,8 @@
 import {
 	atom,
 	computed,
+	createCachedUserResolve,
 	createUserId,
-	Signal,
 	Tldraw,
 	TldrawUiButton,
 	TLUser,
@@ -56,17 +56,9 @@ const currentUserSignal = computed('currentUser', () => {
 	return usersAtom.get()[currentUserIdAtom.get()] ?? null
 })
 
-const resolveCache = new Map<string, Signal<TLUser | null>>()
 const users: TLUserStore = {
 	getCurrentUser: () => currentUserSignal,
-	resolve(userId: string) {
-		let signal = resolveCache.get(userId)
-		if (!signal) {
-			signal = computed('resolve-' + userId, () => usersAtom.get()[createUserId(userId)] ?? null)
-			resolveCache.set(userId, signal)
-		}
-		return signal
-	},
+	resolve: createCachedUserResolve((userId) => usersAtom.get()[createUserId(userId)] ?? null),
 }
 
 // [4]

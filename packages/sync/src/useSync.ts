@@ -25,6 +25,7 @@ import {
 	TLUserStore,
 	UserRecordType,
 	computed,
+	createCachedUserResolve,
 	createTLStore,
 	createUserId,
 	defaultUserPreferences,
@@ -189,49 +190,38 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	useEffect(() => {
 		const storeId = uniqueId()
 
-		const resolveCache = new Map<string, ReturnType<Required<TLUserStore>['resolve']>>()
 		const users: Required<TLUserStore> = _users
 			? {
 					getCurrentUser: _users.getCurrentUser,
 					resolve:
 						_users.resolve ??
-						((userId) => {
-							let signal = resolveCache.get(userId)
-							if (!signal) {
-								signal = computed('resolve-user-' + userId, () => {
-									const current = _users.getCurrentUser().get()
-									return current && current.id === createUserId(userId) ? current : null
-								})
-								resolveCache.set(userId, signal)
-							}
-							return signal
+						createCachedUserResolve((userId) => {
+							const current = _users.getCurrentUser().get()
+							return current && current.id === createUserId(userId) ? current : null
 						}),
 				}
 			: {
 					getCurrentUser: defaultUserStore.getCurrentUser,
-					resolve: (userId) => {
-						let signal = resolveCache.get(userId)
-						if (!signal) {
-							signal = computed('resolve-user-' + userId, () => {
-								const current = defaultUserStore.getCurrentUser().get()
-								if (current && current.id === createUserId(userId)) return current
-								const presences = store.query.records('instance_presence').get()
-								const match = presences.find((p) => p.userId === userId)
-								if (match) {
-									return UserRecordType.create({
-										id: createUserId(userId),
-										name: match.userName,
-										color: match.color,
-									})
-								}
-								return null
+					resolve: createCachedUserResolve((userId) => {
+						const current = defaultUserStore.getCurrentUser().get()
+						if (current && current.id === createUserId(userId)) return current
+						const presences = store.query.records('instance_presence').get()
+						const match = presences.find((p) => p.userId === userId)
+						if (match) {
+							return UserRecordType.create({
+								id: createUserId(userId),
+								name: match.userName,
+								color: match.color,
 							})
-							resolveCache.set(userId, signal)
 						}
-						return signal
-					},
+						return null
+					}),
 				}
 
+		// This always returns a non-null user for presence display, falling back
+		// to anonymous user preferences. The store receives the raw `users` object
+		// (where getCurrentUser() may return null), so attribution via
+		// getAttributionUserId() correctly returns null for anonymous sessions.
 		const currentUser = computed<TLUser>('currentUser', () => {
 			const user = users.getCurrentUser().get()
 			if (user) return user

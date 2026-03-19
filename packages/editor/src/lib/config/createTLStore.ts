@@ -10,6 +10,7 @@ import {
 	TLUser,
 	TLUserStore,
 	UserRecordType,
+	createCachedUserResolve,
 	createTLSchema,
 	createUserId,
 } from '@tldraw/tlschema'
@@ -149,20 +150,10 @@ export function createTLStore({
 				getCurrentUser: users.getCurrentUser,
 				resolve:
 					users.resolve ??
-					(() => {
-						const cache = new Map<string, Signal<TLUser | null>>()
-						return (userId: string) => {
-							let signal = cache.get(userId)
-							if (!signal) {
-								signal = computed('resolve-user-' + userId, () => {
-									const current = users.getCurrentUser().get()
-									return current && current.id === createUserId(userId) ? current : null
-								})
-								cache.set(userId, signal)
-							}
-							return signal
-						}
-					})(),
+					createCachedUserResolve((userId) => {
+						const current = users.getCurrentUser().get()
+						return current && current.id === createUserId(userId) ? current : null
+					}),
 			},
 			onMount: (editor) => {
 				assert(editor instanceof Editor)

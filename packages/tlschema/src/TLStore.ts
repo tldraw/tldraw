@@ -1,4 +1,4 @@
-import { Signal } from '@tldraw/state'
+import { Signal, computed } from '@tldraw/state'
 import {
 	SerializedStore,
 	Store,
@@ -252,6 +252,44 @@ export interface TLUserStore {
 	 * The signal's value should be `null` if the user cannot be resolved.
 	 */
 	resolve?(userId: string): Signal<TLUser | null>
+}
+
+/**
+ * Create a cached {@link TLUserStore.resolve} implementation.
+ *
+ * Wraps a reactive lookup function so that each `userId` gets a single
+ * stable {@link @tldraw/state#Signal | Signal} that is reused across calls.
+ * The `resolveFn` is evaluated inside a `computed`, so any `.get()` calls
+ * it makes are automatically tracked.
+ *
+ * @param resolveFn - A function that resolves a raw user-ID string to a
+ *   {@link TLUser} or `null`. Called reactively inside a `computed`.
+ * @returns A function suitable for use as `TLUserStore.resolve`.
+ *
+ * @example
+ * ```ts
+ * const users: TLUserStore = {
+ *   getCurrentUser: () => currentUserSignal,
+ *   resolve: createCachedUserResolve(
+ *     (userId) => usersAtom.get()[createUserId(userId)] ?? null
+ *   ),
+ * }
+ * ```
+ *
+ * @public
+ */
+export function createCachedUserResolve(
+	resolveFn: (userId: string) => TLUser | null
+): (userId: string) => Signal<TLUser | null> {
+	const cache = new Map<string, Signal<TLUser | null>>()
+	return (userId: string) => {
+		let signal = cache.get(userId)
+		if (!signal) {
+			signal = computed('resolve-user-' + userId, () => resolveFn(userId))
+			cache.set(userId, signal)
+		}
+		return signal
+	}
 }
 
 /**

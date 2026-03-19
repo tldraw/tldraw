@@ -303,6 +303,7 @@ export {
 	type TLDefaultVerticalAlignStyle,
 } from './styles/TLVerticalAlignStyle'
 export {
+	createCachedUserResolve,
 	type TLAssetContext,
 	type TLAssetStore,
 	type TLSerializedStore,
