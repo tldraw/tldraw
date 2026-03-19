@@ -1,3 +1,5 @@
+/* eslint-disable tldraw/no-direct-storage */
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	clearLocalStorage,

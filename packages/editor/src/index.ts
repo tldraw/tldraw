@@ -1,16 +1,16 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/state'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/state-react'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/store'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/tlschema'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/utils'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/validate'
 
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
@@ -455,6 +455,7 @@ export {
 	preventDefault,
 	releasePointerCapture,
 	setPointerCapture,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	stopEventPropagation,
 } from './lib/utils/dom'
 export { EditorAtom } from './lib/utils/EditorAtom'

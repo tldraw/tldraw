@@ -78,7 +78,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private userDispatchQueues: Map<string, ExecutionQueue> = new Map()
 
 	sentry
-	// eslint-disable-next-line local/prefer-class-methods
+	// eslint-disable-next-line tldraw/prefer-class-methods
 	private captureException = (exception: unknown, extras?: Record<string, unknown>) => {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.withScope((scope) => {

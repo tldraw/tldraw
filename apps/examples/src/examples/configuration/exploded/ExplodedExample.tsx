@@ -100,7 +100,7 @@ function InsideEditorAndUiContext() {
 	)
 }
 
-/* 
+/*
 The tldraw library is built from many sublibraries. This example shows how to build the tldraw
 component from its subcomponents for max customisation. You can edit, omit or add to these
 subcomponents to create your app.

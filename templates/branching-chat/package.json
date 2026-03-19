@@ -25,7 +25,7 @@
 		"build": "tsc && vite build",
 		"dev": "vite",
 		"preview": "vite preview",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "cd ../.. && yarn run -T oxlint templates/branching-chat"
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.14",

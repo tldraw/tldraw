@@ -1,5 +1,5 @@
 import { registerTldrawLibraryVersion } from 'tldraw'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from 'tldraw'
 
 registerTldrawLibraryVersion(

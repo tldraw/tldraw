@@ -24,7 +24,7 @@
 		"dev": "next dev",
 		"build": "next build",
 		"start": "next start",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "cd ../.. && yarn run -T oxlint templates/chat"
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.14",

@@ -238,11 +238,11 @@ export default [
 					name: 'structuredClone',
 					message: 'Use structuredClone from @tldraw/util instead',
 				},
-			{
-				name: 'document',
-				message:
-					'Use editor.getContainerDocument(), getOwnerDocument(), or getGlobalDocument() instead to support cross-window embedding.',
-			},
+				{
+					name: 'document',
+					message:
+						'Use editor.getContainerDocument(), getOwnerDocument(), or getGlobalDocument() instead to support cross-window embedding.',
+				},
 				{
 					name: 'getComputedStyle',
 					message:
@@ -338,12 +338,12 @@ export default [
 					message:
 						'Bare instanceof checks for DOM types fail across window boundaries. Use ownerDocument.defaultView or getOwnerWindow() to get the correct constructor.',
 				},
-			{
-				selector:
-					"MemberExpression[object.name='window'][property.name=/^(addEventListener|removeEventListener|getComputedStyle|getSelection|matchMedia|navigator|print|devicePixelRatio|innerWidth|innerHeight|scrollX|scrollY|visualViewport)$/]",
-				message:
-					'Use editor.getContainerWindow(), getOwnerWindow(), or getGlobalWindow() instead to support cross-window embedding.',
-			},
+				{
+					selector:
+						"MemberExpression[object.name='window'][property.name=/^(addEventListener|removeEventListener|getComputedStyle|getSelection|matchMedia|navigator|print|devicePixelRatio|innerWidth|innerHeight|scrollX|scrollY|visualViewport)$/]",
+					message:
+						'Use editor.getContainerWindow(), getOwnerWindow(), or getGlobalWindow() instead to support cross-window embedding.',
+				},
 			],
 		},
 	},
