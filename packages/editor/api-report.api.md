@@ -6,6 +6,7 @@
 
 import { Atom } from '@tldraw/state';
 import { AtomSet } from '@tldraw/store';
+import { Awaitable } from '@tldraw/utils';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
@@ -3616,13 +3617,13 @@ export interface TldrawOptions {
     onBeforeCopyToClipboard?(info: {
         content: TLContent;
         editor: Editor;
-    } & TLClipboardWriteInfo): false | TLContent | void;
+    } & TLClipboardWriteInfo): Awaitable<false | TLContent | void>;
     onBeforePasteFromClipboard?(info: {
         content: TLExternalContent<unknown>;
         editor: Editor;
         point?: VecLike;
         source: 'menu' | 'native';
-    }): false | TLExternalContent<unknown> | void;
+    }): Awaitable<false | TLExternalContent<unknown> | void>;
     onClipboardPasteRaw?(info: TLClipboardPasteRawInfo): false | void;
     readonly quickZoomPreservesScreenBounds: boolean;
     readonly snapThreshold: number;

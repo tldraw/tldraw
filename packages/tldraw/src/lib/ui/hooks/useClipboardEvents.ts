@@ -626,7 +626,7 @@ export const handleNativeOrMenuCopy = async (
 	}
 
 	if (editor.options.onBeforeCopyToClipboard) {
-		const result = editor.options.onBeforeCopyToClipboard({ editor, content, ...context })
+		const result = await editor.options.onBeforeCopyToClipboard({ editor, content, ...context })
 		if (result === false) return false
 		if (result != null) content = result
 	}

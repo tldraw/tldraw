@@ -1,3 +1,4 @@
+import { Awaitable } from '@tldraw/utils'
 import { ComponentType, Fragment } from 'react'
 import { DEFAULT_CAMERA_OPTIONS } from './constants'
 import type { Editor } from './editor/Editor'
@@ -201,7 +202,8 @@ export interface TldrawOptions {
 	 *
 	 * Return a modified `TLContent` object to change what is copied or cut. Return `false` to
 	 * cancel the clipboard write (for cut, the selected shapes are not removed). Return `void`
-	 * (or `undefined`) to pass through unchanged.
+	 * (or `undefined`) to pass through unchanged. You may return a `Promise` of those values if
+	 * the hook is async.
 	 *
 	 * @example
 	 * ```tsx
@@ -219,13 +221,14 @@ export interface TldrawOptions {
 	 */
 	onBeforeCopyToClipboard?(
 		info: { editor: Editor; content: TLContent } & TLClipboardWriteInfo
-	): TLContent | false | void
+	): Awaitable<TLContent | false | void>
 	/**
 	 * Called before pasted content is processed and shapes are created. Receives the parsed
 	 * external content from the clipboard and can filter, transform, or cancel it.
 	 *
 	 * Return `false` to cancel the paste. Return a modified content object to transform it.
-	 * Return `void` (or `undefined`) to pass through unchanged.
+	 * Return `void` (or `undefined`) to pass through unchanged. You may return a `Promise` of
+	 * those values if the hook is async.
 	 *
 	 * This only fires for clipboard paste operations (keyboard shortcuts and menu actions),
 	 * not for file drops or programmatic `putExternalContent` calls.
@@ -247,7 +250,7 @@ export interface TldrawOptions {
 		content: TLExternalContent<unknown>
 		source: 'native' | 'menu'
 		point?: VecLike
-	}): TLExternalContent<unknown> | false | void
+	}): Awaitable<TLExternalContent<unknown> | false | void>
 	/**
 	 * Called first for keyboard and menu paste, **before** tldraw reads or parses clipboard data
 	 * (and before {@link TldrawOptions.onBeforePasteFromClipboard}).

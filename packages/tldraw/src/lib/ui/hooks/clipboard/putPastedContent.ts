@@ -17,7 +17,7 @@ export async function putPastedExternalContent(
 		('point' in content ? (content as { point?: VecLike | undefined }).point : undefined)
 
 	if (editor.options.onBeforePasteFromClipboard) {
-		const result = editor.options.onBeforePasteFromClipboard({
+		const result = await editor.options.onBeforePasteFromClipboard({
 			editor,
 			content,
 			source: meta.source,

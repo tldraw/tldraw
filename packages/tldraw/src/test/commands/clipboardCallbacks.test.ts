@@ -116,6 +116,18 @@ describe('handleNativeOrMenuCopy', () => {
 		expect(window.navigator.clipboard.write).toHaveBeenCalled()
 	})
 
+	it('does not write to clipboard when hook returns false via Promise', async () => {
+		doMockClipboard()
+		editor = new TestEditor({
+			options: { onBeforeCopyToClipboard: async (): Promise<false> => false },
+		})
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
+		editor.selectAll()
+		const didCopy = await handleNativeOrMenuCopy(editor)
+		expect(didCopy).toBe(false)
+		expect(window.navigator.clipboard.write).not.toHaveBeenCalled()
+	})
+
 	it('does not write to clipboard when hook returns false', async () => {
 		doMockClipboard()
 		editor = new TestEditor({
@@ -147,6 +159,27 @@ describe('handleNativeOrMenuCopy', () => {
 				}),
 			})
 		)
+	})
+
+	it('uses modified content when hook returns a new object via Promise', async () => {
+		doMockClipboard()
+		editor = new TestEditor({
+			options: {
+				onBeforeCopyToClipboard: async ({ content }) => ({
+					...content,
+					shapes: content.shapes.filter((s) => s.id === ids.box1),
+					rootShapeIds: [ids.box1],
+				}),
+			},
+		})
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
+		])
+		editor.selectAll()
+
+		await handleNativeOrMenuCopy(editor)
+		expect(window.navigator.clipboard.write).toHaveBeenCalled()
 	})
 
 	it('uses modified content when hook returns a new object', async () => {
