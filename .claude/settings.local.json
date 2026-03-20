@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api:*)",
+      "Bash(wc -l /Users/mime/Sites/tldraw/packages/assets/translations/*.json)",
+      "Bash(grep -r translations /Users/mime/Sites/tldraw/packages/assets/src --include=*.ts --include=*.tsx)",
+      "Bash(wc -c /Users/mime/Sites/tldraw/packages/assets/translations/*.json)",
+      "Bash(ls /Users/mime/Sites/tldraw/packages/assets/translations/*.json)",
+      "Bash(node:*)"
+    ]
+  }
+}

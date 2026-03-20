@@ -1,0 +1,485 @@
+{
+  "generated": "2026-03-20",
+  "description": "Comprehensive translation audit for tldraw SDK and dotcom strings. Issues found by semantic review of translations across 9 major languages, plus structural audit of all 53 languages.",
+  "summary": {
+    "total_semantic_issues": 44,
+    "languages_reviewed": ["de", "fr", "es", "ja", "zh-cn", "ko-kr", "it", "pt-br", "ru"],
+    "structural_notes": {
+      "incomplete_languages": ["ku (Kurdish) - 402 missing SDK keys", "my (Myanmar) - 383 missing SDK keys"],
+      "new_untranslated_dotcom_keys": ["c8a59e7135 (Dismiss)", "63a6a88c06 (Refresh)", "9ccb565b86 (auth error message)", "5d04a002ea (Unable to connect)", "3e2ae04ff0 (Unsupported Mermaid diagram)", "5097d89907 (Unsupported diagram SVG fallback)", "4dab36ac83 (More options)"]
+    }
+  },
+  "issues": [
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "tool.rich-text-bold",
+      "english": "Bold",
+      "locales_affected": {
+        "ja": { "current": "大胆な", "problem": "Means 'audacious/daring' (personality trait)", "suggested": "太字" },
+        "ru": { "current": "Смелый", "problem": "Means 'brave/courageous' (personality trait)", "suggested": "Жирный" },
+        "de": { "current": "Deutlich", "problem": "Means 'clear/obvious'", "suggested": "Fett" },
+        "pt-br": { "current": "Audacioso", "problem": "Means 'audacious/daring' (personality trait)", "suggested": "Negrito" }
+      }
+    },
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "tool.rich-text-link",
+      "english": "Link",
+      "locales_affected": {
+        "zh-cn": { "current": "关联", "problem": "Means 'association/relation' (abstract concept), not a hyperlink", "suggested": "链接" },
+        "ru": { "current": "Связь", "problem": "Means 'connection/bond' (abstract concept), not a hyperlink", "suggested": "Ссылка" }
+      }
+    },
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "tool.media",
+      "english": "Media",
+      "locales_affected": {
+        "es": { "current": "Medios de comunicación", "problem": "Means 'mass media/news media', not digital media files", "suggested": "Multimedia" },
+        "ru": { "current": "СМИ", "problem": "Means 'mass media/news outlets' (abbreviation for Средства Массовой Информации)", "suggested": "Медиа" }
+      }
+    },
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "align-style.justify",
+      "english": "Justify",
+      "locales_affected": {
+        "de": { "current": "Rechtfertigen", "problem": "Means 'to justify/defend oneself' (moral sense), not text alignment", "suggested": "Blocksatz" }
+      }
+    },
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "align-style.end",
+      "english": "End",
+      "locales_affected": {
+        "de": { "current": "Beenden", "problem": "Means 'to quit/terminate' (verb), not the noun 'end' for text alignment", "suggested": "Ende" }
+      }
+    },
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "style-panel.arrowhead-end",
+      "english": "End",
+      "locales_affected": {
+        "de": { "current": "Beenden", "problem": "Means 'to quit/terminate' (verb), should be a noun label", "suggested": "Ende" }
+      }
+    },
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "style-panel.arrowhead-start",
+      "english": "Start",
+      "locales_affected": {
+        "de": { "current": "Starten", "problem": "Means 'to launch/start up' (verb), should be a noun label", "suggested": "Anfang" }
+      }
+    },
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "spline-style.cubic",
+      "english": "Cubic",
+      "locales_affected": {
+        "de": { "current": "Würfel", "problem": "Means 'cube/dice' (noun), not 'cubic' (spline curve type)", "suggested": "Kubisch" },
+        "ja": { "current": "立方体", "problem": "Means 'cube' (3D shape), not a cubic bezier curve", "suggested": "三次曲線" },
+        "zh-cn": { "current": "立方形", "problem": "Means 'cube shape', not a cubic bezier curve", "suggested": "三次曲线" }
+      }
+    },
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "font-style.mono",
+      "english": "Mono",
+      "locales_affected": {
+        "zh-cn": { "current": "黑白", "problem": "Means 'black and white', not monospace font", "suggested": "等宽" }
+      }
+    },
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "people-menu.anonymous-user",
+      "english": "New user",
+      "locales_affected": {
+        "de": { "current": "Neuer kunde", "problem": "Means 'new customer/client', not 'new user'", "suggested": "Neuer Benutzer" }
+      }
+    },
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "a11y.shape-image",
+      "english": "Image",
+      "locales_affected": {
+        "ko-kr": { "current": "영상", "problem": "Means 'video/footage', not a still image", "suggested": "이미지" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "geo-style.rhombus",
+      "english": "Rhombus",
+      "locales_affected": {
+        "fr": { "current": "Parallélogramme", "problem": "A rhombus is a special case of parallelogram; the correct French term is 'losange'", "suggested": "Losange" },
+        "ja": { "current": "平行四辺形", "problem": "Means 'parallelogram', not 'rhombus'", "suggested": "ひし形" },
+        "zh-cn": { "current": "菱形", "problem": "This is actually correct (菱形 = rhombus). No fix needed.", "suggested": null },
+        "ko-kr": { "current": "평행사변형", "problem": "Means 'parallelogram', not 'rhombus'", "suggested": "마름모" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "tool.rhombus",
+      "english": "Rhombus",
+      "locales_affected": {
+        "fr": { "current": "Parallélogramme", "problem": "Should be 'losange' (rhombus)", "suggested": "Losange" },
+        "ja": { "current": "平行四辺形", "problem": "Means 'parallelogram'", "suggested": "ひし形" },
+        "ko-kr": { "current": "마름모", "problem": "This is correct. No fix needed.", "suggested": null }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "geo-style.diamond",
+      "english": "Diamond",
+      "locales_affected": {
+        "de": { "current": "Diamant", "problem": "Means the gemstone, not the diamond shape. Should use the geometric term.", "suggested": "Raute" },
+        "es": { "current": "Diamante", "problem": "Means the gemstone. Spanish uses 'rombo' for the shape.", "suggested": "Rombo" },
+        "it": { "current": "Diamante", "problem": "Means the gemstone. Italian uses 'rombo' for the shape.", "suggested": "Rombo" },
+        "pt-br": { "current": "Diamante", "problem": "Means the gemstone. Portuguese uses 'losango' for the shape.", "suggested": "Losango" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "tool.diamond",
+      "english": "Diamond",
+      "locales_affected": {
+        "de": { "current": "Diamant", "problem": "Gemstone sense, not shape", "suggested": "Raute" },
+        "es": { "current": "Diamante", "problem": "Gemstone sense", "suggested": "Rombo" },
+        "it": { "current": "Diamante", "problem": "Gemstone sense", "suggested": "Rombo" },
+        "pt-br": { "current": "Diamante", "problem": "Gemstone sense", "suggested": "Losango" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "arrowheadEnd-style.diamond",
+      "english": "Diamond",
+      "locales_affected": {
+        "de": { "current": "Diamant", "problem": "Gemstone sense, not shape", "suggested": "Raute" },
+        "es": { "current": "Diamante", "problem": "Gemstone sense", "suggested": "Rombo" },
+        "it": { "current": "Diamante", "problem": "Gemstone sense", "suggested": "Rombo" },
+        "pt-br": { "current": "Diamante", "problem": "Gemstone sense", "suggested": "Losango" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "arrowheadStart-style.diamond",
+      "english": "Diamond",
+      "locales_affected": {
+        "de": { "current": "Diamant", "problem": "Gemstone sense, not shape", "suggested": "Raute" },
+        "es": { "current": "Diamante", "problem": "Gemstone sense", "suggested": "Rombo" },
+        "it": { "current": "Diamante", "problem": "Gemstone sense", "suggested": "Rombo" },
+        "pt-br": { "current": "Diamante", "problem": "Gemstone sense", "suggested": "Losango" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "tool.rich-text-highlight",
+      "english": "Highlight",
+      "locales_affected": {
+        "fr": { "current": "Souligner", "problem": "Means 'underline', not 'highlight'", "suggested": "Surligner" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "handle.rotate.mobile_rotate",
+      "english": "Rotate",
+      "locales_affected": {
+        "fr": { "current": "Retourner", "problem": "Means 'flip/turn over', not 'rotate'", "suggested": "Pivoter" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "tool.rotate-cw",
+      "english": "Rotate",
+      "locales_affected": {
+        "fr": { "current": "Retourner", "problem": "Means 'flip/turn over', not 'rotate'", "suggested": "Pivoter" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "geo-style.heart",
+      "english": "Heart",
+      "locales_affected": {
+        "ko-kr": { "current": "마음", "problem": "Means 'mind/feelings', not the heart shape", "suggested": "하트" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "tool.heart",
+      "english": "Heart",
+      "locales_affected": {
+        "ko-kr": { "current": "마음", "problem": "Means 'mind/feelings', not the heart shape", "suggested": "하트" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "tool.rich-text-italic",
+      "english": "Italic",
+      "locales_affected": {
+        "es": { "current": "Itálico", "problem": "Non-standard term in Spanish. Standard term for italic text is 'Cursiva'", "suggested": "Cursiva" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "action.pack",
+      "english": "Pack",
+      "locales_affected": {
+        "es": { "current": "Envasar", "problem": "Means 'to bottle/package goods', not 'pack shapes together'", "suggested": "Compactar" },
+        "de": { "current": "Verpacken", "problem": "Means 'to wrap/package for shipping', not 'pack shapes together'", "suggested": "Kompakt anordnen" },
+        "it": { "current": "Pacchetto", "problem": "Means 'package/parcel' (noun), should be a verb/action", "suggested": "Compatta" },
+        "pt-br": { "current": "Pacote", "problem": "Means 'package/parcel' (noun), should be a verb/action", "suggested": "Compactar" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "action.fork-project",
+      "english": "Fork this project",
+      "locales_affected": {
+        "de": { "current": "Dieses Projekt teilen", "problem": "Means 'share this project', identical to action.share-project", "suggested": "Dieses Projekt kopieren" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "action.fork-project-on-tldraw",
+      "english": "Fork project on tldraw",
+      "locales_affected": {
+        "de": { "current": "Projekt auf tldraw teilen", "problem": "Means 'share project on tldraw', confusable with sharing", "suggested": "Projekt auf tldraw kopieren" },
+        "es": { "current": "Proyecto de bifurcación en tldraw", "problem": "Awkward literal translation. Reads as 'branching project in tldraw'", "suggested": "Bifurcar proyecto en tldraw" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "tool.aspect-ratio.landscape",
+      "english": "Landscape (4:3)",
+      "locales_affected": {
+        "ko-kr": { "current": "풍경 (4:3)", "problem": "Means 'scenery/landscape painting', not landscape orientation", "suggested": "가로 (4:3)" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "tool.aspect-ratio.portrait",
+      "english": "Portrait (3:4)",
+      "locales_affected": {
+        "ko-kr": { "current": "인물 (3:4)", "problem": "Means 'person/figure', not portrait orientation", "suggested": "세로 (3:4)" }
+      }
+    },
+    {
+      "severity": "low",
+      "type": "typo",
+      "source": "sdk",
+      "key": "a11y.adjust-shape-styles",
+      "english": "Adjust shape styles",
+      "locales_affected": {
+        "de": { "current": "Formart anpassen", "problem": "Typo: 'Formart' should be 'Formstile' or 'Form-Stile'", "suggested": "Formstile anpassen" }
+      }
+    },
+    {
+      "severity": "low",
+      "type": "typo",
+      "source": "sdk",
+      "key": "a11y.open-context-menu",
+      "english": "Context menu…",
+      "locales_affected": {
+        "ja": { "current": "コンテントメニューを開きます", "problem": "Typo: 'コンテント' should be 'コンテキスト' (context)", "suggested": "コンテキストメニューを開きます" }
+      }
+    },
+    {
+      "severity": "low",
+      "type": "typo",
+      "source": "sdk",
+      "key": "action.distribute-horizontal",
+      "english": "Distribute horizontally",
+      "locales_affected": {
+        "pt-br": { "current": "Distruibuir na horizontal", "problem": "Typo: 'Distruibuir' should be 'Distribuir'", "suggested": "Distribuir na horizontal" }
+      }
+    },
+    {
+      "severity": "low",
+      "type": "typo",
+      "source": "sdk",
+      "key": "action.distribute-horizontal.short",
+      "english": "Distribute H",
+      "locales_affected": {
+        "pt-br": { "current": "Distruibuir na horizontal", "problem": "Same typo as above", "suggested": "Distribuir na horizontal" }
+      }
+    },
+    {
+      "severity": "low",
+      "type": "typo",
+      "source": "sdk",
+      "key": "action.distribute-vertical",
+      "english": "Distribute vertically",
+      "locales_affected": {
+        "pt-br": { "current": "Distruibuir na vertical", "problem": "Same typo", "suggested": "Distribuir na vertical" }
+      }
+    },
+    {
+      "severity": "low",
+      "type": "typo",
+      "source": "sdk",
+      "key": "action.distribute-vertical.short",
+      "english": "Distribute V",
+      "locales_affected": {
+        "pt-br": { "current": "Distruibuir na vertical", "problem": "Same typo", "suggested": "Distribuir na vertical" }
+      }
+    },
+    {
+      "severity": "low",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "people-menu.leading",
+      "english": "Following you",
+      "locales_affected": {
+        "ko-kr": { "current": "팔로우하기", "problem": "Means 'follow' (action), same as the follow button. Should indicate someone is following YOU.", "suggested": "나를 팔로우 중" }
+      }
+    },
+    {
+      "severity": "low",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "vscode.file-open.open",
+      "english": "Continue",
+      "locales_affected": {
+        "ja": { "current": "続く", "problem": "Means 'to be continued' (intransitive). Should be transitive form.", "suggested": "続ける" }
+      }
+    },
+    {
+      "severity": "low",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "handle.rotate.top_left_rotate",
+      "english": "Rotate top left",
+      "locales_affected": {
+        "it": { "current": "Ritaglia in alto a sinistra", "problem": "Means 'crop top left', not rotate. Copy-paste error from crop handles.", "suggested": "Ruota in alto a sinistra" }
+      }
+    },
+    {
+      "severity": "low",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "handle.rotate.top_right_rotate",
+      "english": "Rotate top right",
+      "locales_affected": {
+        "it": { "current": "Ritaglia in alto a destra", "problem": "Means 'crop top right'. Copy-paste error.", "suggested": "Ruota in alto a destra" }
+      }
+    },
+    {
+      "severity": "low",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "handle.rotate.bottom_left_rotate",
+      "english": "Rotate bottom left",
+      "locales_affected": {
+        "it": { "current": "Ritaglia in basso a sinistra", "problem": "Means 'crop bottom left'. Copy-paste error.", "suggested": "Ruota in basso a sinistra" }
+      }
+    },
+    {
+      "severity": "low",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "handle.rotate.bottom_right_rotate",
+      "english": "Rotate bottom right",
+      "locales_affected": {
+        "it": { "current": "Ritaglia in basso a destra", "problem": "Means 'crop bottom right'. Copy-paste error.", "suggested": "Ruota in basso a destra" }
+      }
+    },
+    {
+      "severity": "low",
+      "type": "wrong_word_sense",
+      "source": "sdk",
+      "key": "verticalAlign-style.start",
+      "english": "Top",
+      "locales_affected": {
+        "pt-br": { "current": "Principal", "problem": "Means 'main/principal', not 'top'", "suggested": "Topo" }
+      }
+    },
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "dotcom",
+      "key": "c8a59e7135",
+      "english": "Dismiss",
+      "locales_affected": {
+        "zh-cn": { "current": "解雇", "problem": "Means 'fire from a job'", "suggested": "关闭" },
+        "zh-tw": { "current": "解僱", "problem": "Means 'fire from a job'", "suggested": "關閉" },
+        "ko-kr": { "current": "해고하다", "problem": "Means 'fire from a job'", "suggested": "닫기" },
+        "es": { "current": "Despedir", "problem": "Means 'fire from a job'", "suggested": "Descartar" },
+        "ru": { "current": "Увольнять", "problem": "Means 'fire from a job'", "suggested": "Закрыть" },
+        "da": { "current": "Afskedige", "problem": "Means 'fire from a job'", "suggested": "Luk" },
+        "no": { "current": "Avskjedige", "problem": "Means 'fire from a job'", "suggested": "Lukk" },
+        "el": { "current": "Απολύω", "problem": "Means 'fire from a job'", "suggested": "Κλείσιμο" },
+        "he": { "current": "לְפַטֵר", "problem": "Means 'fire from a job'", "suggested": "סגור" },
+        "vi": { "current": "Miễn nhiệm", "problem": "Means 'fire from a job'", "suggested": "Bỏ qua" },
+        "it": { "current": "Congedare", "problem": "Means 'fire/discharge from a job'", "suggested": "Chiudi" },
+        "tr": { "current": "Azletmek", "problem": "Means 'fire from a job'", "suggested": "Kapat" }
+      }
+    },
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "dotcom",
+      "key": "63a6a88c06",
+      "english": "Refresh",
+      "locales_affected": {
+        "vi": { "current": "Làm cho khỏe lại", "problem": "Means 'make healthy again' (physical revival)", "suggested": "Tải lại" },
+        "ar": { "current": "ينعش", "problem": "Means 'physically revive'", "suggested": "تحديث" },
+        "el": { "current": "Φρεσκάρω", "problem": "Means 'to freshen up' (physical sense)", "suggested": "Ανανέωση" }
+      }
+    }
+  ]
+}
