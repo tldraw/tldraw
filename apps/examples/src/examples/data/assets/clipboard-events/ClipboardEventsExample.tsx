@@ -16,6 +16,7 @@ interface ClipboardEventsState {
 	disablePaste: boolean
 	filterRedOnCopy: boolean
 	filterRedOnPaste: boolean
+	handleRawPaste: boolean
 	log: ClipboardLog[]
 }
 
@@ -24,6 +25,7 @@ const state: ClipboardEventsState = {
 	disablePaste: false,
 	filterRedOnCopy: false,
 	filterRedOnPaste: false,
+	handleRawPaste: false,
 	log: [],
 }
 
@@ -55,23 +57,42 @@ function addLog(entry: ClipboardLog) {
 
 // [2]
 const options: Partial<TldrawOptions> = {
-	onClipboardCopy({ source }) {
-		const prevented = state.disableCopy
-		addLog({ action: 'copy', source, prevented })
-		return prevented || undefined
+	onClipboardPasteRaw(info) {
+		if (!state.handleRawPaste) return
+		if (info.source === 'keyboard') {
+			const kinds = info.clipboardData
+				? [...info.clipboardData.items].map((i) => `${i.kind}:${i.type}`).join(', ')
+				: '(no clipboardData)'
+			addLog({
+				action: 'raw-paste',
+				source: 'keyboard',
+				prevented: false,
+				detail: kinds,
+			})
+			return false
+		}
+		addLog({
+			action: 'raw-paste',
+			source: 'menu',
+			prevented: false,
+			detail: `${info.clipboardItems.length} clipboard item(s)`,
+		})
+		return false
 	},
-	onClipboardCut({ source }) {
-		const prevented = state.disableCopy
-		addLog({ action: 'cut', source, prevented })
-		return prevented || undefined
-	},
-	onClipboardPaste({ source }) {
-		const prevented = state.disablePaste
-		addLog({ action: 'paste', source, prevented })
-		return prevented || undefined
-	},
-	// [3]
-	onBeforeCopyToClipboard({ content }) {
+	onBeforeCopyToClipboard({ content, operation, source }) {
+		if (state.disableCopy) {
+			addLog({
+				action: operation,
+				source,
+				prevented: true,
+			})
+			return false
+		}
+		addLog({
+			action: operation,
+			source,
+			prevented: false,
+		})
 		if (!state.filterRedOnCopy) return
 		const filtered = content.shapes.filter((s) => !('color' in s.props && s.props.color === 'red'))
 		const filteredIds = new Set(filtered.map((s) => s.id))
@@ -88,8 +109,12 @@ const options: Partial<TldrawOptions> = {
 		})
 		return result
 	},
-	// [4]
-	onBeforePasteFromClipboard({ content }) {
+	onBeforePasteFromClipboard({ content, source }) {
+		if (state.disablePaste) {
+			addLog({ action: 'paste', source, prevented: true })
+			return false
+		}
+		addLog({ action: 'paste', source, prevented: false })
 		if (!state.filterRedOnPaste) return
 		if (content.type !== 'tldraw') return
 		const filtered = content.content.shapes.filter(
@@ -113,7 +138,7 @@ const options: Partial<TldrawOptions> = {
 	},
 }
 
-// [5]
+// [3]
 ;(window as any).__tldraw_clipboard_state = state
 ;(window as any).__tldraw_clipboard_updateState = updateState
 
@@ -136,6 +161,10 @@ function Controls() {
 		updateState({ filterRedOnPaste: !state.filterRedOnPaste })
 	}, [])
 
+	const toggleRawPaste = useCallback(() => {
+		updateState({ handleRawPaste: !state.handleRawPaste })
+	}, [])
+
 	return (
 		<div className="clipboard-events-panel">
 			<div className="clipboard-events-controls">
@@ -154,6 +183,10 @@ function Controls() {
 				<label>
 					<input type="checkbox" checked={state.filterRedOnPaste} onChange={toggleFilterPaste} />
 					Filter red on paste
+				</label>
+				<label>
+					<input type="checkbox" checked={state.handleRawPaste} onChange={toggleRawPaste} />
+					Handle raw paste (take over)
 				</label>
 			</div>
 			<div className="clipboard-events-log" data-testid="clipboard-log">
@@ -194,13 +227,16 @@ stable options object) can always read the latest values.
 The options object is created once and the callbacks read from the shared state module.
 This avoids issues with stale closures.
 
+onBeforeCopyToClipboard runs for both copy and cut; use `operation` to tell them apart.
+Return `false` to cancel the clipboard write. For cut, cancelling also keeps the selection.
+
+onBeforePasteFromClipboard runs when pasted content is about to be applied. Return
+`false` to cancel. `source` is `native` (keyboard) or `menu`.
+
+onClipboardPasteRaw runs first. `source` is `keyboard` (paste event + DataTransfer) or
+`menu` (ClipboardItem[] from the clipboard API). Return `false` to cancel tldraw's default
+paste handling for that gesture (same as other clipboard `onBefore*` hooks).
+
 [3]
-onBeforeCopyToClipboard filters red shapes from the clipboard content before it's written.
-
-[4]
-onBeforePasteFromClipboard filters red shapes from content when pasting. It only fires
-for paste operations (keyboard shortcuts and menu), not for file drops.
-
-[5]
 State and updater are exposed on window for E2E testing.
 */

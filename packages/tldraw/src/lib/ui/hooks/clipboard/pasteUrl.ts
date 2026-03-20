@@ -14,14 +14,19 @@ export async function pasteUrl(
 	editor: Editor,
 	url: string,
 	point?: VecLike,
-	sources?: TLExternalContentSource[]
+	sources?: TLExternalContentSource[],
+	clipboardPasteSource: 'native' | 'menu' = 'native'
 ) {
 	editor.markHistoryStoppingPoint('paste')
 
-	return await putPastedExternalContent(editor, {
-		type: 'url',
-		point,
-		url,
-		sources,
-	})
+	return await putPastedExternalContent(
+		editor,
+		{
+			type: 'url',
+			point,
+			url,
+			sources,
+		},
+		{ source: clipboardPasteSource, point }
+	)
 }

@@ -25,7 +25,7 @@ describe('putPastedExternalContent', () => {
 			type: 'text',
 			text: 'hello',
 		}
-		await putPastedExternalContent(editor, content)
+		await putPastedExternalContent(editor, content, { source: 'native' })
 		expect(spy).toHaveBeenCalledWith(content)
 		spy.mockRestore()
 	})
@@ -39,7 +39,7 @@ describe('putPastedExternalContent', () => {
 			type: 'text',
 			text: 'hello',
 		}
-		await putPastedExternalContent(editor, content)
+		await putPastedExternalContent(editor, content, { source: 'native' })
 		expect(spy).toHaveBeenCalledWith(content)
 		spy.mockRestore()
 	})
@@ -53,7 +53,7 @@ describe('putPastedExternalContent', () => {
 			type: 'text',
 			text: 'hello',
 		}
-		await putPastedExternalContent(editor, content)
+		await putPastedExternalContent(editor, content, { source: 'native' })
 		expect(spy).not.toHaveBeenCalled()
 		spy.mockRestore()
 	})
@@ -67,7 +67,7 @@ describe('putPastedExternalContent', () => {
 			options: { onBeforePasteFromClipboard: () => modified },
 		})
 		const spy = vi.spyOn(editor, 'putExternalContent').mockResolvedValue()
-		await putPastedExternalContent(editor, { type: 'text', text: 'original' })
+		await putPastedExternalContent(editor, { type: 'text', text: 'original' }, { source: 'native' })
 		expect(spy).toHaveBeenCalledWith(modified)
 		spy.mockRestore()
 	})
@@ -82,8 +82,13 @@ describe('putPastedExternalContent', () => {
 			type: 'text',
 			text: 'test',
 		}
-		await putPastedExternalContent(editor, content)
-		expect(hookFn).toHaveBeenCalledWith({ editor, content })
+		await putPastedExternalContent(editor, content, { source: 'native' })
+		expect(hookFn).toHaveBeenCalledWith({
+			editor,
+			content,
+			source: 'native',
+			point: undefined,
+		})
 	})
 })
 
@@ -118,7 +123,8 @@ describe('handleNativeOrMenuCopy', () => {
 		})
 		editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
 		editor.selectAll()
-		await handleNativeOrMenuCopy(editor)
+		const didCopy = await handleNativeOrMenuCopy(editor)
+		expect(didCopy).toBe(false)
 		expect(window.navigator.clipboard.write).not.toHaveBeenCalled()
 	})
 
@@ -134,6 +140,8 @@ describe('handleNativeOrMenuCopy', () => {
 		expect(hookFn).toHaveBeenCalledWith(
 			expect.objectContaining({
 				editor,
+				operation: 'copy',
+				source: 'menu',
 				content: expect.objectContaining({
 					shapes: expect.arrayContaining([expect.objectContaining({ id: ids.box1 })]),
 				}),

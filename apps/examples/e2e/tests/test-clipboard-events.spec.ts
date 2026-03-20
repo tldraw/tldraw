@@ -23,6 +23,7 @@ test.describe('clipboard event callbacks', () => {
 			;(window as any).__tldraw_clipboard_state.disablePaste = false
 			;(window as any).__tldraw_clipboard_state.filterRedOnCopy = false
 			;(window as any).__tldraw_clipboard_state.filterRedOnPaste = false
+			;(window as any).__tldraw_clipboard_state.handleRawPaste = false
 		})
 
 		await page.evaluate(() => {
@@ -32,7 +33,7 @@ test.describe('clipboard event callbacks', () => {
 		await page.locator('.tl-container').focus()
 	})
 
-	test('onClipboardCopy fires on keyboard copy', async ({ page, isMac }) => {
+	test('onBeforeCopyToClipboard runs on keyboard copy', async ({ page, isMac }) => {
 		const modifier = isMac ? 'Meta' : 'Control'
 		await page.keyboard.down(modifier)
 		await page.keyboard.press('KeyC')
@@ -44,7 +45,7 @@ test.describe('clipboard event callbacks', () => {
 		expect(log[0]).toMatchObject({ action: 'copy', source: 'native', prevented: false })
 	})
 
-	test('onClipboardCut fires on keyboard cut', async ({ page, isMac }) => {
+	test('onBeforeCopyToClipboard runs on keyboard cut', async ({ page, isMac }) => {
 		const modifier = isMac ? 'Meta' : 'Control'
 		await page.keyboard.down(modifier)
 		await page.keyboard.press('KeyX')
@@ -56,7 +57,7 @@ test.describe('clipboard event callbacks', () => {
 		expect(log[0]).toMatchObject({ action: 'cut', source: 'native', prevented: false })
 	})
 
-	test('onClipboardPaste fires on keyboard paste', async ({ page, isMac }) => {
+	test('onBeforePasteFromClipboard runs on keyboard paste', async ({ page, isMac }) => {
 		const modifier = isMac ? 'Meta' : 'Control'
 		await page.keyboard.down(modifier)
 		await page.keyboard.press('KeyC')
@@ -73,7 +74,7 @@ test.describe('clipboard event callbacks', () => {
 		expect(pasteEntry).toMatchObject({ action: 'paste', source: 'native', prevented: false })
 	})
 
-	test('onClipboardCopy can block copy', async ({ page, isMac }) => {
+	test('onBeforeCopyToClipboard can block copy', async ({ page, isMac }) => {
 		await page.evaluate(() => {
 			;(window as any).__tldraw_clipboard_state.disableCopy = true
 		})
@@ -89,7 +90,7 @@ test.describe('clipboard event callbacks', () => {
 		expect(log[0]).toMatchObject({ action: 'copy', source: 'native', prevented: true })
 	})
 
-	test('onClipboardPaste can block paste', async ({ page, isMac }) => {
+	test('onBeforePasteFromClipboard can block paste', async ({ page, isMac }) => {
 		const modifier = isMac ? 'Meta' : 'Control'
 
 		// Copy normally first
@@ -117,7 +118,7 @@ test.describe('clipboard event callbacks', () => {
 		expect(shapeCount).toBe(1)
 	})
 
-	test('onClipboardCut can block cut', async ({ page, isMac }) => {
+	test('onBeforeCopyToClipboard can block cut', async ({ page, isMac }) => {
 		await page.evaluate(() => {
 			;(window as any).__tldraw_clipboard_state.disableCopy = true
 		})
@@ -225,5 +226,37 @@ test.describe('clipboard event callbacks', () => {
 			action: 'filter-paste',
 			detail: 'kept 1/2 shapes',
 		})
+	})
+
+	test('onClipboardPasteRaw runs before parsed paste and can take over (keyboard)', async ({
+		page,
+		isMac,
+	}) => {
+		await page.evaluate(() => {
+			;(window as any).__tldraw_clipboard_state.handleRawPaste = true
+			;(window as any).__tldraw_clipboard_log = []
+		})
+
+		const modifier = isMac ? 'Meta' : 'Control'
+		await page.keyboard.down(modifier)
+		await page.keyboard.press('KeyC')
+		await page.keyboard.up(modifier)
+		await sleep(100)
+
+		await page.keyboard.down(modifier)
+		await page.keyboard.press('KeyV')
+		await page.keyboard.up(modifier)
+		await sleep(200)
+
+		const log = await page.evaluate(() => (window as any).__tldraw_clipboard_log)
+		const rawEntry = log.find((e: any) => e.action === 'raw-paste')
+		expect(rawEntry).toMatchObject({ source: 'keyboard' })
+		expect(rawEntry.detail).toContain('string')
+
+		const parsedPaste = log.find((e: any) => e.action === 'paste' && e.source === 'native')
+		expect(parsedPaste).toBeUndefined()
+
+		const shapeCount = await page.evaluate(() => editor.getCurrentPageShapes().length)
+		expect(shapeCount).toBe(1)
 	})
 })

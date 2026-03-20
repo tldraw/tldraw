@@ -81,6 +81,7 @@ import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
+import { TLClipboardWriteInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/tlschema';
@@ -1879,7 +1880,7 @@ export function GroupMenuItem(): JSX.Element | null;
 export function GroupOrUngroupMenuItem(): JSX.Element;
 
 // @public
-export const handleNativeOrMenuCopy: (editor: Editor) => Promise<void>;
+export const handleNativeOrMenuCopy: (editor: Editor, context?: TLClipboardWriteInfo) => Promise<boolean>;
 
 // @public (undocumented)
 export class HandTool extends StateNode {

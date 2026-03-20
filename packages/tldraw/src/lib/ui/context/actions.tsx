@@ -971,10 +971,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					if (editor.options.onClipboardCut) {
-						if (editor.options.onClipboardCut({ editor, source: 'menu' }) === true) return
-					}
-
 					editor.markHistoryStoppingPoint('cut')
 					helpers.cut(source)
 				},
@@ -988,10 +984,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					if (editor.options.onClipboardCopy) {
-						if (editor.options.onClipboardCopy({ editor, source: 'menu' }) === true) return
-					}
-
 					helpers.copy(source)
 				},
 			},
@@ -1000,20 +992,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.paste',
 				kbd: 'cmd+v,ctrl+v',
 				onSelect(source) {
-					if (editor.options.onClipboardPaste) {
-						const point =
-							source === 'context-menu' ? editor.inputs.getCurrentPagePoint() : undefined
-						if (
-							editor.options.onClipboardPaste({
-								editor,
-								source: 'menu',
-								clipboardData: null,
-								point,
-							}) === true
-						)
-							return
-					}
-
 					navigator.clipboard
 						?.read()
 						.then((clipboardItems) => {

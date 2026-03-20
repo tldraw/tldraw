@@ -13,7 +13,8 @@ export async function pasteFiles(
 	editor: Editor,
 	blobs: (File | Blob)[],
 	point?: VecLike,
-	sources?: TLExternalContentSource[]
+	sources?: TLExternalContentSource[],
+	clipboardPasteSource: 'native' | 'menu' = 'native'
 ) {
 	const files = blobs.map((blob) =>
 		blob instanceof File ? blob : new File([blob], 'tldrawFile', { type: blob.type })
@@ -21,10 +22,14 @@ export async function pasteFiles(
 
 	editor.markHistoryStoppingPoint('paste')
 
-	await putPastedExternalContent(editor, {
-		type: 'files',
-		files,
-		point,
-		sources,
-	})
+	await putPastedExternalContent(
+		editor,
+		{
+			type: 'files',
+			files,
+			point,
+			sources,
+		},
+		{ source: clipboardPasteSource, point }
+	)
 }

@@ -6,10 +6,12 @@ priority: 4
 keywords: [clipboard, copy, paste, cut, events, disable]
 ---
 
-Intercept native clipboard events using the `onClipboardCopy`, `onClipboardCut`, and `onClipboardPaste` options.
+Intercept clipboard copy, cut, and paste using `onBeforeCopyToClipboard` and `onBeforePasteFromClipboard`.
 
 ---
 
-This example shows how to use the clipboard event callbacks to intercept and control copy, cut, and paste behavior. The callbacks fire for both keyboard shortcuts and menu actions. Return `true` from a callback to prevent the default behavior.
+This example shows how to filter or cancel clipboard operations. The hooks run for both keyboard shortcuts and menu actions.
 
-The `onBeforePutExternalContent` callback lets you filter or transform content before shapes are created, regardless of how the content entered the editor (clipboard paste, file drop, etc.).
+- **`onBeforeCopyToClipboard`** — Receives serialized `TLContent` plus `operation` (`'copy'` | `'cut'`) and `source` (`'native'` | `'menu'`). Return a modified `TLContent` to change what is written, or `false` to cancel the write (for cut, the selection is not removed).
+
+- **`onBeforePasteFromClipboard`** — Runs when pasted content is about to be applied. Receives `source` (`'native'` | `'menu'`). Return `false` to cancel, or a modified `TLExternalContent` to transform. This hook applies to clipboard paste only, not file drops or other `putExternalContent` calls.

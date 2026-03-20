@@ -9,6 +9,41 @@ import { TLDeepLinkOptions } from './utils/deepLinks'
 import { TLTextOptions } from './utils/richText'
 
 /**
+ * Identifies how a clipboard write was triggered (copy vs cut, keyboard vs menu).
+ *
+ * @public
+ */
+export interface TLClipboardWriteInfo {
+	readonly operation: 'copy' | 'cut'
+	readonly source: 'native' | 'menu'
+}
+
+/**
+ * Raw clipboard paste payload, before tldraw parses clipboard contents into {@link TLExternalContent}.
+ *
+ * - `keyboard`: from the `paste` event — `clipboardData` is available synchronously (unlike async
+ *   `navigator.clipboard.read()`).
+ * - `menu`: from the app menu after `navigator.clipboard.read()` — only `ClipboardItem[]` exists
+ *   (no `DataTransfer`).
+ *
+ * @public
+ */
+export type TLClipboardPasteRawInfo =
+	| {
+			readonly editor: Editor
+			readonly source: 'keyboard'
+			readonly event: ClipboardEvent
+			readonly clipboardData: DataTransfer | null
+			readonly point: VecLike | undefined
+	  }
+	| {
+			readonly editor: Editor
+			readonly source: 'menu'
+			readonly clipboardItems: readonly ClipboardItem[]
+			readonly point: VecLike | undefined
+	  }
+
+/**
  * Options for configuring tldraw. For defaults, see {@link defaultTldrawOptions}.
  *
  * @example
@@ -160,54 +195,18 @@ export interface TldrawOptions {
 	 */
 	readonly quickZoomPreservesScreenBounds: boolean
 	/**
-	 * Called when the user copies shapes, whether via keyboard shortcut or menu action.
-	 *
-	 * Return `true` to prevent the default copy behavior. You can use the `handleNativeOrMenuCopy`
-	 * export from `@tldraw/tldraw` to perform the default copy behavior from your handler.
-	 */
-	onClipboardCopy?(info: { editor: Editor; source: 'native' | 'menu' }): boolean | void
-	/**
-	 * Called when the user cuts shapes, whether via keyboard shortcut or menu action.
-	 *
-	 * Return `true` to prevent the default cut behavior.
-	 */
-	onClipboardCut?(info: { editor: Editor; source: 'native' | 'menu' }): boolean | void
-	/**
-	 * Called when the user pastes, whether via keyboard shortcut or menu action.
-	 *
-	 * Return `true` to prevent the default paste behavior. You can call
-	 * `editor.putExternalContent()` from your handler to trigger specific content handling.
-	 *
-	 * For native paste events, `clipboardData` provides synchronous access to the clipboard
-	 * contents. For menu-triggered pastes, `clipboardData` is not available.
-	 */
-	onClipboardPaste?(
-		info:
-			| {
-					editor: Editor
-					source: 'native'
-					clipboardData: DataTransfer
-					point: VecLike | undefined
-			  }
-			| {
-					editor: Editor
-					source: 'menu'
-					clipboardData: null
-					point: VecLike | undefined
-			  }
-	): boolean | void
-	/**
 	 * Called before content is written to the clipboard during a copy or cut operation.
 	 * Receives the serialized content (shapes, bindings, assets) and can filter or transform
 	 * it before it reaches the clipboard.
 	 *
-	 * Return a modified `TLContent` object to change what is copied. Return `false` to cancel
-	 * the clipboard write entirely. Return `void` (or `undefined`) to pass through unchanged.
+	 * Return a modified `TLContent` object to change what is copied or cut. Return `false` to
+	 * cancel the clipboard write (for cut, the selected shapes are not removed). Return `void`
+	 * (or `undefined`) to pass through unchanged.
 	 *
 	 * @example
 	 * ```tsx
 	 * // Filter out "locked" shapes from copy
-	 * onBeforeCopyToClipboard({ content }) {
+	 * onBeforeCopyToClipboard({ content, operation }) {
 	 *     return {
 	 *         ...content,
 	 *         shapes: content.shapes.filter(s => !s.meta.locked),
@@ -218,7 +217,9 @@ export interface TldrawOptions {
 	 * }
 	 * ```
 	 */
-	onBeforeCopyToClipboard?(info: { editor: Editor; content: TLContent }): TLContent | false | void
+	onBeforeCopyToClipboard?(
+		info: { editor: Editor; content: TLContent } & TLClipboardWriteInfo
+	): TLContent | false | void
 	/**
 	 * Called before pasted content is processed and shapes are created. Receives the parsed
 	 * external content from the clipboard and can filter, transform, or cancel it.
@@ -244,7 +245,18 @@ export interface TldrawOptions {
 	onBeforePasteFromClipboard?(info: {
 		editor: Editor
 		content: TLExternalContent<unknown>
+		source: 'native' | 'menu'
+		point?: VecLike
 	}): TLExternalContent<unknown> | false | void
+	/**
+	 * Called first for keyboard and menu paste, **before** tldraw reads or parses clipboard data
+	 * (and before {@link TldrawOptions.onBeforePasteFromClipboard}).
+	 *
+	 * Return `false` to cancel tldraw's default paste handling for this gesture (same convention as
+	 * {@link TldrawOptions.onBeforePasteFromClipboard}). Use this when you handle paste yourself from
+	 * raw clipboard data, or to block the gesture entirely. Return `void` (or `undefined`) to continue.
+	 */
+	onClipboardPasteRaw?(info: TLClipboardPasteRawInfo): false | void
 	/**
 	 * Called when content is dropped on the canvas. Provides the page position
 	 * where the drop occurred and the underlying drag event object.
@@ -316,9 +328,6 @@ export const defaultTldrawOptions = {
 	text: {},
 	deepLinks: undefined,
 	quickZoomPreservesScreenBounds: true,
-	onClipboardCopy: undefined,
-	onClipboardCut: undefined,
-	onClipboardPaste: undefined,
 	onBeforeCopyToClipboard: undefined,
 	onBeforePasteFromClipboard: undefined,
 	experimental__onDropOnCanvas: undefined,

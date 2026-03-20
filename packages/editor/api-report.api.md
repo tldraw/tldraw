@@ -740,9 +740,6 @@ export const defaultTldrawOptions: {
     readonly nonce: undefined;
     readonly onBeforeCopyToClipboard: undefined;
     readonly onBeforePasteFromClipboard: undefined;
-    readonly onClipboardCopy: undefined;
-    readonly onClipboardCut: undefined;
-    readonly onClipboardPaste: undefined;
     readonly quickZoomPreservesScreenBounds: true;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
@@ -3318,6 +3315,28 @@ export type TLCLickEventName = 'double_click' | 'quadruple_click' | 'triple_clic
 // @public (undocumented)
 export type TLClickState = 'idle' | 'overflow' | 'pendingDouble' | 'pendingOverflow' | 'pendingQuadruple' | 'pendingTriple';
 
+// @public
+export type TLClipboardPasteRawInfo = {
+    readonly clipboardData: DataTransfer | null;
+    readonly editor: Editor;
+    readonly event: ClipboardEvent;
+    readonly point: undefined | VecLike;
+    readonly source: 'keyboard';
+} | {
+    readonly clipboardItems: readonly ClipboardItem[];
+    readonly editor: Editor;
+    readonly point: undefined | VecLike;
+    readonly source: 'menu';
+};
+
+// @public
+export interface TLClipboardWriteInfo {
+    // (undocumented)
+    readonly operation: 'copy' | 'cut';
+    // (undocumented)
+    readonly source: 'menu' | 'native';
+}
+
 // @public (undocumented)
 export interface TLCollaboratorHintProps {
     // (undocumented)
@@ -3597,30 +3616,14 @@ export interface TldrawOptions {
     onBeforeCopyToClipboard?(info: {
         content: TLContent;
         editor: Editor;
-    }): false | TLContent | void;
+    } & TLClipboardWriteInfo): false | TLContent | void;
     onBeforePasteFromClipboard?(info: {
         content: TLExternalContent<unknown>;
         editor: Editor;
+        point?: VecLike;
+        source: 'menu' | 'native';
     }): false | TLExternalContent<unknown> | void;
-    onClipboardCopy?(info: {
-        editor: Editor;
-        source: 'menu' | 'native';
-    }): boolean | void;
-    onClipboardCut?(info: {
-        editor: Editor;
-        source: 'menu' | 'native';
-    }): boolean | void;
-    onClipboardPaste?(info: {
-        clipboardData: DataTransfer;
-        editor: Editor;
-        point: undefined | VecLike;
-        source: 'native';
-    } | {
-        clipboardData: null;
-        editor: Editor;
-        point: undefined | VecLike;
-        source: 'menu';
-    }): boolean | void;
+    onClipboardPasteRaw?(info: TLClipboardPasteRawInfo): false | void;
     readonly quickZoomPreservesScreenBounds: boolean;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
