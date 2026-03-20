@@ -10,7 +10,11 @@ Instead of rendering a static SVG, `@tldraw/mermaid` parses Mermaid text and cre
 npm i @tldraw/mermaid
 ```
 
-> **Peer dependency:** this package requires `tldraw` to be installed in your project.
+**Peer dependencies:** your app must also include compatible versions of:
+
+- **`tldraw`** — the SDK this package plugs into
+- **`react`** — `^18.2.0` or `^19.2.1`
+- **`react-dom`** — `^18.2.0` or `^19.2.1`
 
 ## Quick start
 
