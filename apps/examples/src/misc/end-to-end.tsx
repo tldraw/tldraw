@@ -1,4 +1,5 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { createMermaidDiagram } from '@tldraw/mermaid'
 import { useEffect, useLayoutEffect } from 'react'
 import {
 	BaseBoxShapeUtil,
@@ -141,6 +142,14 @@ function SneakyExportButton() {
 			exportAsFormat: (format) =>
 				exportAs(editor, editor.selectAll().getSelectedShapeIds(), { format, name: 'test' }),
 			createShapeId: () => createShapeId(),
+			createMermaidDiagram: async (definition: string) => {
+				await createMermaidDiagram(editor, definition, {
+					blueprintRender: {
+						position: { x: 0, y: 0 },
+						centerOnPosition: false,
+					},
+				})
+			},
 			toRichText: (text: string) => toRichText(text),
 			b64VecsEncodePoints: (points: VecModel[]) => b64Vecs.encodePoints(points),
 			markAllArrowBindings: () => {

@@ -90,6 +90,7 @@ const test = base.extend<Fixtures>({
 				exportAsSvg: true,
 				exportAsFormat: true,
 				createShapeId: true,
+				createMermaidDiagram: true,
 				toRichText: true,
 				markAllArrowBindings: true,
 				b64VecsEncodePoints: true,
