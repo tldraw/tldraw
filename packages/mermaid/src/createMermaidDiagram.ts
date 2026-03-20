@@ -3,10 +3,12 @@ let nextMermaidId = 0
 import mermaid from 'mermaid'
 import type { FlowDB } from 'mermaid/dist/diagrams/flowchart/flowDb.d.ts'
 import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
+import type { MindmapDB } from 'mermaid/dist/diagrams/mindmap/mindmapDb.d.ts'
 import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
 import type { StateDB } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import { Editor } from 'tldraw'
 import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
+import { mindmapToBlueprint, parseMindmapLayout } from './mindmapDiagram'
 import { BlueprintRenderingOptions, renderBlueprint } from './renderBlueprint'
 import { countSequenceEvents, parseSequenceLayout, sequenceToBlueprint } from './sequenceDiagram'
 import { parseStateDiagramLayout, stateToBlueprint } from './stateDiagram'
@@ -30,6 +32,7 @@ const MERMAID_CONFIG = {
 	startOnLoad: false,
 	flowchart: { nodeSpacing: 80, rankSpacing: 80, padding: 20 },
 	state: { nodeSpacing: 80, rankSpacing: 80, padding: 20 },
+	mindmap: { padding: 20 },
 	sequence: { actorMargin: 50, noteMargin: 20 },
 	themeVariables: { fontSize: `${18 * FONT_INFLATE}px` },
 }
@@ -58,6 +61,7 @@ export async function createMermaidDiagram(
 		...(options.mermaidConfig ?? {}),
 		flowchart: { ...MERMAID_CONFIG.flowchart, ...options.mermaidConfig?.flowchart },
 		state: { ...MERMAID_CONFIG.state, ...options.mermaidConfig?.state },
+		mindmap: { ...MERMAID_CONFIG.mindmap, ...options.mermaidConfig?.mindmap },
 		sequence: { ...MERMAID_CONFIG.sequence, ...options.mermaidConfig?.sequence },
 		themeVariables: { ...MERMAID_CONFIG.themeVariables, ...options.mermaidConfig?.themeVariables },
 	})
@@ -131,6 +135,16 @@ export async function createMermaidDiagram(
 				const classes = db.getClasses()
 				const layout = parseStateDiagramLayout(liveSvg)
 				blueprint = stateToBlueprint(layout, states, relations, classes)
+				break
+			}
+			case 'mindmap': {
+				const db = diagramResult.db as MindmapDB
+				const tree = db.getMindmap()
+				if (tree) {
+					db.assignSections(tree)
+					const layout = parseMindmapLayout(liveSvg)
+					blueprint = mindmapToBlueprint(layout, tree, liveSvg)
+				}
 				break
 			}
 			default:

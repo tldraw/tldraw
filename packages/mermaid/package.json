@@ -45,6 +45,8 @@
 		"mermaid": "11.12.2"
 	},
 	"peerDependencies": {
+		"react": "^18.2.0 || ^19.2.1",
+		"react-dom": "^18.2.0 || ^19.2.1",
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {

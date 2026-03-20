@@ -1,8 +1,10 @@
 import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
+import type { MindmapNode } from 'mermaid/dist/diagrams/mindmap/mindmapTypes.js'
 import type { Actor, Message } from 'mermaid/dist/diagrams/sequence/types.js'
 import type { StateStmt } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import type { DiagramMermaidBlueprint } from './blueprint'
 import { flowchartToBlueprint } from './flowchartDiagram'
+import { mindmapToBlueprint, type ParsedMindmapLayout } from './mindmapDiagram'
 import {
 	countSequenceEvents,
 	sequenceToBlueprint,
@@ -876,5 +878,280 @@ describe('countSequenceEvents', () => {
 		] as unknown as Message[]
 
 		expect(countSequenceEvents(messages)).toBe(1)
+	})
+})
+
+// ---------------------------------------------------------------------------
+// Mindmap tests
+// ---------------------------------------------------------------------------
+
+function mindmapNode(
+	id: number,
+	descr: string,
+	opts: {
+		type?: number
+		level?: number
+		section?: number
+		isRoot?: boolean
+		children?: MindmapNode[]
+	} = {}
+): MindmapNode {
+	return {
+		id,
+		descr,
+		type: opts.type ?? 0,
+		level: opts.level ?? 0,
+		section: opts.section ?? 0,
+		isRoot: opts.isRoot ?? false,
+		children: opts.children ?? [],
+	} as MindmapNode
+}
+
+function mindmapLayout(nodes: ParsedNode[]): ParsedMindmapLayout {
+	return {
+		nodes: new Map(nodes.map((n) => [n.id, n])),
+	}
+}
+
+const emptySvg = document.createElement('div')
+
+function mockSvgWithColors(colors: Map<string, string>): Element {
+	const root = document.createElement('div')
+	for (const [id, fill] of colors) {
+		const group = document.createElement('div')
+		group.classList.add('node')
+		group.setAttribute('id', `node_${id}`)
+		const rect = document.createElement('rect')
+		rect.style.fill = fill
+		group.appendChild(rect)
+		root.appendChild(group)
+	}
+	return root
+}
+
+describe('mindmapToBlueprint', () => {
+	it('maps root and child nodes with correct labels and positions', () => {
+		const layout = mindmapLayout([
+			node('0', 0, 0, 120, 60),
+			node('1', -200, 100, 80, 40),
+			node('2', 200, 100, 80, 40),
+		])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			section: -1,
+			children: [
+				mindmapNode(1, 'Child A', { level: 1, section: 0 }),
+				mindmapNode(2, 'Child B', { level: 1, section: 1 }),
+			],
+		})
+
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+
+		expect(bp.nodes).toHaveLength(3)
+
+		const root = findNodeByLabel(bp, 'Root')!
+		expect(root).toBeDefined()
+		expect(root.x).toBe(0 - 120 / 2)
+		expect(root.y).toBe(0 - 60 / 2)
+		expect(root.w).toBe(120)
+		expect(root.h).toBe(60)
+		expect(root.fill).toBe('solid')
+		expect(root.size).toBe('l')
+		expect(root.align).toBe('middle')
+		expect(root.verticalAlign).toBe('middle')
+
+		const childA = findNodeByLabel(bp, 'Child A')!
+		expect(childA).toBeDefined()
+		expect(childA.size).toBe('m')
+	})
+
+	it('creates edges from parent to children with no arrowheads', () => {
+		const layout = mindmapLayout([
+			node('0', 0, 0, 100, 50),
+			node('1', -150, 100, 80, 40),
+			node('2', 150, 100, 80, 40),
+		])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [
+				mindmapNode(1, 'A', { level: 1, section: 0 }),
+				mindmapNode(2, 'B', { level: 1, section: 1 }),
+			],
+		})
+
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+
+		expect(bp.edges).toHaveLength(2)
+		for (const e of bp.edges) {
+			expect(e.startNodeId).toBe('0')
+			expect(e.arrowheadEnd).toBe('none')
+			expect(e.arrowheadStart).toBe('none')
+			expect(e.bend).toBe(0)
+		}
+	})
+
+	it('assigns decreasing edge sizes by tree depth', () => {
+		const layout = mindmapLayout([
+			node('0', 0, 0, 100, 50),
+			node('1', 0, 100, 80, 40),
+			node('2', 0, 200, 60, 30),
+			node('3', 0, 300, 60, 30),
+		])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [
+				mindmapNode(1, 'L1', {
+					level: 1,
+					section: 0,
+					children: [
+						mindmapNode(2, 'L2', {
+							level: 2,
+							section: 0,
+							children: [mindmapNode(3, 'L3', { level: 3, section: 0 })],
+						}),
+					],
+				}),
+			],
+		})
+
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+
+		expect(bp.edges).toHaveLength(3)
+		expect(findEdge(bp, '0', '1')!.size).toBe('l')
+		expect(findEdge(bp, '1', '2')!.size).toBe('m')
+		expect(findEdge(bp, '2', '3')!.size).toBe('s')
+	})
+
+	it('maps mindmap node types to correct geo shapes', () => {
+		const TYPES = { DEFAULT: 0, ROUNDED_RECT: 1, RECT: 2, CIRCLE: 3, CLOUD: 4, BANG: 5, HEXAGON: 6 }
+		const layout = mindmapLayout([
+			node('0', 0, 0, 100, 50),
+			node('1', -300, 100, 80, 40),
+			node('2', -150, 100, 80, 40),
+			node('3', 0, 100, 60, 60),
+			node('4', 150, 100, 80, 40),
+			node('5', 300, 100, 80, 40),
+			node('6', 450, 100, 80, 40),
+		])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [
+				mindmapNode(1, 'Default', { type: TYPES.DEFAULT, level: 1, section: 0 }),
+				mindmapNode(2, 'Rect', { type: TYPES.RECT, level: 1, section: 1 }),
+				mindmapNode(3, 'Circle', { type: TYPES.CIRCLE, level: 1, section: 2 }),
+				mindmapNode(4, 'Cloud', { type: TYPES.CLOUD, level: 1, section: 3 }),
+				mindmapNode(5, 'Bang', { type: TYPES.BANG, level: 1, section: 4 }),
+				mindmapNode(6, 'Hexagon', { type: TYPES.HEXAGON, level: 1, section: 5 }),
+			],
+		})
+
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+
+		expect(findNodeByLabel(bp, 'Default')!.geo).toBe('rectangle')
+		expect(findNodeByLabel(bp, 'Rect')!.geo).toBe('rectangle')
+		expect(findNodeByLabel(bp, 'Circle')!.geo).toBe('ellipse')
+		expect(findNodeByLabel(bp, 'Cloud')!.geo).toBe('cloud')
+		expect(findNodeByLabel(bp, 'Bang')!.geo).toBe('star')
+		expect(findNodeByLabel(bp, 'Hexagon')!.geo).toBe('hexagon')
+	})
+
+	it('uses circle type to equalize width and height', () => {
+		const CIRCLE = 3
+		const layout = mindmapLayout([node('0', 0, 0, 100, 50), node('1', 200, 0, 60, 80)])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [mindmapNode(1, 'Round', { type: CIRCLE, level: 1, section: 0 })],
+		})
+
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+
+		const round = findNodeByLabel(bp, 'Round')!
+		expect(round.w).toBe(round.h)
+		expect(round.w).toBe(80)
+	})
+
+	it('uses SVG-extracted colors, falls back to black', () => {
+		const layout = mindmapLayout([
+			node('0', 0, 0, 100, 50),
+			node('1', -150, 100, 80, 40),
+			node('2', 150, 100, 80, 40),
+		])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			section: -1,
+			children: [
+				mindmapNode(1, 'With Color', { level: 1, section: 0 }),
+				mindmapNode(2, 'No Color', { level: 1, section: 1 }),
+			],
+		})
+		const svg = mockSvgWithColors(new Map([['1', 'rgb(224, 49, 49)']]))
+
+		const bp = mindmapToBlueprint(layout, tree, svg)
+
+		expect(findNodeByLabel(bp, 'With Color')!.color).toBe('red')
+		expect(findNodeByLabel(bp, 'No Color')!.color).toBe('black')
+	})
+
+	it('colors edges to match their target node', () => {
+		const layout = mindmapLayout([node('0', 0, 0, 100, 50), node('1', 150, 100, 80, 40)])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [mindmapNode(1, 'Child', { level: 1, section: 0 })],
+		})
+		const svg = mockSvgWithColors(new Map([['1', 'rgb(9, 146, 104)']]))
+
+		const bp = mindmapToBlueprint(layout, tree, svg)
+
+		expect(bp.edges).toHaveLength(1)
+		expect(bp.edges[0].color).toBe('green')
+	})
+
+	it('all nodes have solid fill', () => {
+		const layout = mindmapLayout([node('0', 0, 0, 100, 50), node('1', 150, 100, 80, 40)])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [mindmapNode(1, 'Child', { level: 1, section: 0 })],
+		})
+
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+
+		for (const n of bp.nodes) {
+			expect(n.fill).toBe('solid')
+		}
+	})
+
+	it('filters out edges referencing nodes missing from SVG layout', () => {
+		// SVG only has root — child node missing from parsed layout
+		const layout = mindmapLayout([node('0', 0, 0, 100, 50)])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+			children: [mindmapNode(1, 'Missing', { level: 1, section: 0 })],
+		})
+
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+
+		expect(bp.nodes).toHaveLength(1)
+		expect(bp.edges).toHaveLength(0)
+	})
+
+	it('defaults to black when no SVG color is extracted', () => {
+		const layout = mindmapLayout([node('0', 0, 0, 100, 50)])
+		const tree = mindmapNode(0, 'Root', {
+			isRoot: true,
+			level: 0,
+		})
+
+		const bp = mindmapToBlueprint(layout, tree, emptySvg)
+
+		expect(findNodeByLabel(bp, 'Root')!.color).toBe('black')
 	})
 })
