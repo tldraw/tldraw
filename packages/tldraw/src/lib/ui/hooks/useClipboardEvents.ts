@@ -45,6 +45,41 @@ function stripHtml(html: string) {
 	return doc.body.textContent || doc.body.innerText || ''
 }
 
+/**
+ * Extract iframe src and dimensions from an HTML string containing an iframe element.
+ * Tries width/height HTML attributes first, then falls back to pixel values in the
+ * style attribute, then to sensible defaults.
+ * Returns null if no valid iframe is found.
+ * @internal
+ */
+export function extractIframeFromHtml(
+	html: string
+): { src: string; width: number; height: number } | null {
+	if (!html.includes('<iframe')) return null
+	const doc = new DOMParser().parseFromString(html, 'text/html')
+	const iframe = doc.querySelector('iframe')
+	if (!iframe) return null
+	const src = iframe.getAttribute('src')
+	if (!src || !isValidHttpURL(src)) return null
+
+	const attrWidth = parseInt(iframe.getAttribute('width') || '', 10)
+	const attrHeight = parseInt(iframe.getAttribute('height') || '', 10)
+
+	let styleWidth = NaN
+	let styleHeight = NaN
+	const style = iframe.getAttribute('style')
+	if (style) {
+		const wMatch = style.match(/\bwidth:\s*(\d+)px/)
+		const hMatch = style.match(/\bheight:\s*(\d+)px/)
+		if (wMatch) styleWidth = parseInt(wMatch[1], 10)
+		if (hMatch) styleHeight = parseInt(hMatch[1], 10)
+	}
+
+	const width = attrWidth || styleWidth || 425
+	const height = attrHeight || styleHeight || 350
+	return { src, width, height }
+}
+
 /** @public */
 export const isValidHttpURL = (url: string) => {
 	try {
@@ -488,9 +523,27 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste html content
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'html') {
-			// try to find a link
 			const rootNode = new DOMParser().parseFromString(result.data, 'text/html')
 			const bodyNode = rootNode.querySelector('body')
+
+			// Check for iframe embeds in HTML before stripping content
+			const iframeInfo = extractIframeFromHtml(result.data)
+			if (iframeInfo) {
+				editor.markHistoryStoppingPoint('paste')
+				editor.putExternalContent({
+					type: 'embed',
+					url: iframeInfo.src,
+					point,
+					embed: {
+						width: iframeInfo.width,
+						height: iframeInfo.height,
+						doesResize: true,
+					},
+				})
+				return
+			}
+
+			// try to find a link
 
 			// Edge on Windows 11 home appears to paste a link as a single <a/> in
 			// the HTML document. If we're pasting a single like tag we'll just
@@ -535,23 +588,22 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 			}
 		}
 
-		// Allow you to paste YouTube or Google Maps embeds, for example.
-		if (result.type === 'text' && result.subtype === 'text' && result.data.startsWith('<iframe ')) {
-			// try to find an iframe
-			const rootNode = new DOMParser().parseFromString(result.data, 'text/html')
-			const bodyNode = rootNode.querySelector('body')
-
-			const isSingleIframe =
-				bodyNode &&
-				Array.from(bodyNode.children).filter((el) => el.nodeType === 1).length === 1 &&
-				bodyNode.firstElementChild &&
-				bodyNode.firstElementChild.tagName === 'IFRAME' &&
-				bodyNode.firstElementChild.hasAttribute('src') &&
-				bodyNode.firstElementChild.getAttribute('src') !== ''
-
-			if (isSingleIframe) {
-				const src = bodyNode.firstElementChild.getAttribute('src')!
-				handleText(editor, src, point, results)
+		// Allow pasting any <iframe> embed code onto the canvas.
+		// Extracts the iframe src and dimensions, then creates an embed shape.
+		if (result.type === 'text' && result.subtype === 'text') {
+			const iframeInfo = extractIframeFromHtml(result.data)
+			if (iframeInfo) {
+				editor.markHistoryStoppingPoint('paste')
+				editor.putExternalContent({
+					type: 'embed',
+					url: iframeInfo.src,
+					point,
+					embed: {
+						width: iframeInfo.width,
+						height: iframeInfo.height,
+						doesResize: true,
+					},
+				})
 				return
 			}
 		}
