@@ -10907,8 +10907,6 @@ __metadata:
     kleur: "npm:^4.1.5"
     lazyrepo: "npm:0.0.0-alpha.27"
     minimist: "npm:^1.2.8"
-    prettier: "npm:^3.6.1"
-    prettier-plugin-organize-imports: "npm:^4.1.0"
     proper-lockfile: "npm:^4.1.2"
     recast: "npm:^0.22.0"
     rimraf: "npm:^4.4.1"
@@ -25637,21 +25635,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier-plugin-organize-imports@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "prettier-plugin-organize-imports@npm:4.1.0"
-  peerDependencies:
-    prettier: ">=2.0"
-    typescript: ">=2.9"
-    vue-tsc: ^2.1.0
-  peerDependenciesMeta:
-    vue-tsc:
-      optional: true
-  checksum: 10/8223af6d42d06f6a5140a2724a6c6c2cef4a2e149721ceb25b945af71f4de7499bc63e47ea003b9eee84e6b94728b59d91b4275d3c53b718a747e273fb30cee2
-  languageName: node
-  linkType: hard
-
-"prettier@npm:^3.2.5, prettier@npm:^3.5.3, prettier@npm:^3.6.1":
+"prettier@npm:^3.2.5, prettier@npm:^3.5.3":
   version: 3.6.2
   resolution: "prettier@npm:3.6.2"
   bin:
