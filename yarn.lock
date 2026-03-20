@@ -10917,6 +10917,8 @@ __metadata:
     mermaid: "npm:11.12.2"
     vitest: "npm:^3.2.4"
   peerDependencies:
+    react: ^18.2.0 || ^19.2.1
+    react-dom: ^18.2.0 || ^19.2.1
     tldraw: "workspace:*"
   languageName: unknown
   linkType: soft
