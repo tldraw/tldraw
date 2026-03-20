@@ -90,7 +90,8 @@
 	"devDependencies": {
 		"@lingual/i18n-check": "^0.5.5",
 		"@microsoft/api-extractor": "^7.55.2",
-		"@swc/core": "^1.10.11",
+		"@next/eslint-plugin-next": "^15.1.6",
+		"@swc/core": "^1.15.18",
 		"@types/adm-zip": "^0.5.7",
 		"@types/aws-lambda": "8.10.148",
 		"@types/glob": "^8.1.0",
@@ -137,7 +138,7 @@
 		"@sentry/cli": "^2.41.1",
 		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
-		"esbuild": "^0.25.6",
+		"esbuild": "^0.27.4",
 		"mime": "^4.0.6",
 		"purgecss": "^5.0.0",
 		"svgo": "^3.3.2"

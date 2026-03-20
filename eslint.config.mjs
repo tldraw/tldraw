@@ -11,7 +11,7 @@ import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import localRules from './internal/scripts/eslint/eslint-plugin.mjs'
+import localRules from './internal/scripts/oxlint/tldraw-plugin.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -436,7 +436,6 @@ export default [
 
 		rules: {
 			'no-restricted-syntax': 'off',
-			'local/no-at-internal': 'error',
 		},
 	},
 	{
@@ -448,7 +447,6 @@ export default [
 			'no-restricted-syntax': 'off',
 			'react/jsx-key': 'off',
 			'react/no-string-refs': 'off',
-			'local/no-at-internal': 'off',
 		},
 	},
 	{
@@ -465,7 +463,6 @@ export default [
 			'no-restricted-syntax': 'off',
 			'no-console': 'off',
 			'@typescript-eslint/method-signature-style': 'off',
-			'local/no-at-internal': 'error',
 		},
 	},
 ]
