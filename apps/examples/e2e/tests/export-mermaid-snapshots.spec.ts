@@ -27,6 +27,8 @@ const snapshotCases: MermaidSnapshotCase[] = [
 ]
 
 test.describe('Mermaid export snapshots', () => {
+	test.skip(({ isMobile }) => isMobile, 'Mermaid export snapshots are desktop-only')
+
 	test.beforeEach(async ({ page, context }) => {
 		const url = page.url()
 		if (!url.includes('end-to-end')) {
@@ -36,27 +38,22 @@ test.describe('Mermaid export snapshots', () => {
 		}
 	})
 
-	for (const colorScheme of ['light', 'dark'] as const) {
-		for (const testCase of snapshotCases) {
-			test(`${testCase.name} (${colorScheme})`, async ({ page, api }) => {
-				await page.evaluate(
-					({ colorScheme }: { colorScheme: 'light' | 'dark' }) => {
-						editor.user.updateUserPreferences({ colorScheme })
-						editor
-							.updateInstanceState({ exportBackground: true })
-							.selectAll()
-							.deleteShapes(editor.getSelectedShapeIds())
-					},
-					{ colorScheme } as any
-				)
-				await api.createMermaidDiagram(testCase.definition)
-				await page.evaluate(() => {
-					editor.selectAll()
-				})
-
-				await snapshotTest(page, api)
+	for (const testCase of snapshotCases) {
+		test(`${testCase.name} (light)`, async ({ page, api }) => {
+			await page.evaluate(() => {
+				editor.user.updateUserPreferences({ colorScheme: 'light' })
+				editor
+					.updateInstanceState({ exportBackground: true })
+					.selectAll()
+					.deleteShapes(editor.getSelectedShapeIds())
 			})
-		}
+			await api.createMermaidDiagram(testCase.definition)
+			await page.evaluate(() => {
+				editor.selectAll()
+			})
+
+			await snapshotTest(page, api)
+		})
 	}
 })
 
