@@ -31,7 +31,7 @@
 	"dependencies": {
 		"@clerk/clerk-react": "^5.53.3",
 		"@clerk/elements": "^0.23.74",
-		"@rocicorp/zero": "0.25.9",
+		"@rocicorp/zero": "0.26.1",
 		"@sentry/integrations": "^7.120.3",
 		"@sentry/react": "^7.120.3",
 		"@tldraw/assets": "workspace:*",
@@ -40,7 +40,6 @@
 		"@tldraw/sync": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"@types/regexgen": "^1.3.3",
 		"axe-core": "^4.10.3",
 		"browser-fs-access": "^0.35.0",
 		"classnames": "^2.5.1",
@@ -80,7 +79,6 @@
 		"kysely": "^0.27.5",
 		"lazyrepo": "0.0.0-alpha.27",
 		"pg": "^8.13.1",
-		"regexgen": "^1.3.0",
 		"vite": "^8.0.0",
 		"vitest": "^3.2.4",
 		"ws": "^8.18.0"
