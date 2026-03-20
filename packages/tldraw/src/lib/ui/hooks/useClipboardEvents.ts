@@ -621,9 +621,7 @@ export const handleNativeOrMenuCopy = async (
 		editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
 	)
 	if (!content) {
-		if (nav?.clipboard) {
-			nav.clipboard.writeText('')
-		}
+		nav?.clipboard?.writeText?.('')
 		return true
 	}
 
