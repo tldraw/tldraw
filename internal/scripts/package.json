@@ -35,7 +35,7 @@
 		"@types/node": "^22.15.31",
 		"ast-types": "^0.14.2",
 		"cross-fetch": "^3.2.0",
-		"esbuild": "^0.25.6",
+		"esbuild": "^0.27.4",
 		"glob": "^8.1.0",
 		"gray-matter": "^4.0.3",
 		"is-ci": "^3.0.1",

@@ -61,9 +61,9 @@
 	"devDependencies": {
 		"@clerk/testing": "^1.4.15",
 		"@formatjs/cli": "^6.5.1",
+		"@formatjs/unplugin": "^1.1.0",
 		"@playwright/test": "^1.58.2",
 		"@sentry/cli": "^2.41.1",
-		"@swc/plugin-formatjs": "^5.1.1",
 		"@tldraw/validate": "workspace:*",
 		"@types/lodash.pick": "^4.4.9",
 		"@types/md5": "^2.3.5",
@@ -71,7 +71,7 @@
 		"@types/qrcode": "^1.5.5",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
-		"@vitejs/plugin-react-swc": "^3.10.2",
+		"@vitejs/plugin-react": "^6.0.1",
 		"dotenv": "^16.4.7",
 		"fast-glob": "^3.3.3",
 		"identity-obj-proxy": "^3.0.0",
@@ -79,7 +79,7 @@
 		"kysely": "^0.27.5",
 		"lazyrepo": "0.0.0-alpha.27",
 		"pg": "^8.13.1",
-		"vite": "^7.0.1",
+		"vite": "^8.0.0",
 		"vitest": "^3.2.4",
 		"ws": "^8.18.0"
 	}

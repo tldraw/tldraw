@@ -27,7 +27,7 @@ export function useMsg(
 
 const INTERNAL_LOCALES = ['xx-AE', 'xx-LS']
 
-// We use `@swc/plugin-formatjs` in `vite.config.ts` to generate IDs for messages.
+// We use `@formatjs/unplugin` in `vite.config.ts` to generate IDs for messages.
 // This should always have an ID, so we throw an error if it's missing.
 function fetchId({ id }: MessageDescriptor) {
 	if (id) return id
