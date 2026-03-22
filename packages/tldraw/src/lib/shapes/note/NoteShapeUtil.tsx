@@ -88,8 +88,10 @@ export interface NoteShapeUtilDisplayValues {
 }
 
 /** @public */
-export interface NoteShapeUtilOptions
-	extends ShapeOptionsWithDisplayValues<TLNoteShape, NoteShapeUtilDisplayValues> {
+export interface NoteShapeUtilOptions extends ShapeOptionsWithDisplayValues<
+	TLNoteShape,
+	NoteShapeUtilDisplayValues
+> {
 	/**
 	 * How should the note shape resize? By default it does not resize (except automatically based on its text content),
 	 * but you can set it to be user-resizable using scale.

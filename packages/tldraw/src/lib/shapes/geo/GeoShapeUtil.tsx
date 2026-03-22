@@ -100,8 +100,10 @@ export interface GeoShapeUtilDisplayValues {
 }
 
 /** @public */
-export interface GeoShapeUtilOptions
-	extends ShapeOptionsWithDisplayValues<TLGeoShape, GeoShapeUtilDisplayValues> {
+export interface GeoShapeUtilOptions extends ShapeOptionsWithDisplayValues<
+	TLGeoShape,
+	GeoShapeUtilDisplayValues
+> {
 	showTextOutline: boolean
 }
 

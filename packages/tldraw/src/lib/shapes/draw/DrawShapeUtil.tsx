@@ -45,8 +45,10 @@ export interface DrawShapeUtilDisplayValues {
 }
 
 /** @public */
-export interface DrawShapeOptions
-	extends ShapeOptionsWithDisplayValues<TLDrawShape, DrawShapeUtilDisplayValues> {
+export interface DrawShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLDrawShape,
+	DrawShapeUtilDisplayValues
+> {
 	/**
 	 * The maximum number of points in a line before the draw tool will begin a new shape.
 	 * A higher number will lead to poor performance while drawing very long lines.

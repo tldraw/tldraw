@@ -64,8 +64,10 @@ export interface FrameShapeUtilDisplayValues {
 }
 
 /** @public */
-export interface FrameShapeOptions
-	extends ShapeOptionsWithDisplayValues<TLFrameShape, FrameShapeUtilDisplayValues> {
+export interface FrameShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLFrameShape,
+	FrameShapeUtilDisplayValues
+> {
 	/**
 	 * When true, the frame will display colors for the shape's headings and background.
 	 */

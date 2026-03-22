@@ -44,7 +44,8 @@ export interface EmbedShapeOptions {
 
 /** @public */
 export interface EmbedShapeUtilOptions
-	extends ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues>,
+	extends
+		ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues>,
 		EmbedShapeOptions {}
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {

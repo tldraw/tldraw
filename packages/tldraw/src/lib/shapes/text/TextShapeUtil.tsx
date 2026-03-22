@@ -54,8 +54,10 @@ export interface TextShapeUtilDisplayValues {
 }
 
 /** @public */
-export interface TextShapeOptions
-	extends ShapeOptionsWithDisplayValues<TLTextShape, TextShapeUtilDisplayValues> {
+export interface TextShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLTextShape,
+	TextShapeUtilDisplayValues
+> {
 	/** How much addition padding should be added to the horizontal geometry of the shape when binding to an arrow? */
 	extraArrowHorizontalPadding: number
 	/** Whether to show the outline of the text shape (using the same color as the canvas). This helps with overlapping shapes. It does not show up on Safari, where text outline is a performance issues. */

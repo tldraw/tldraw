@@ -41,8 +41,10 @@ export interface HighlightShapeUtilDisplayValues {
 }
 
 /** @public */
-export interface HighlightShapeOptions
-	extends ShapeOptionsWithDisplayValues<TLHighlightShape, HighlightShapeUtilDisplayValues> {
+export interface HighlightShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLHighlightShape,
+	HighlightShapeUtilDisplayValues
+> {
 	/**
 	 * The maximum number of points in a line before the draw tool will begin a new shape.
 	 * A higher number will lead to poor performance while drawing very long lines.

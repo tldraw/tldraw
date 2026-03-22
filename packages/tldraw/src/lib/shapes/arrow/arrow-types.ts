@@ -39,8 +39,10 @@ export interface ArrowShapeUtilDisplayValues {
  *
  * @public
  */
-export interface ArrowShapeOptions
-	extends ShapeOptionsWithDisplayValues<TLArrowShape, ArrowShapeUtilDisplayValues> {
+export interface ArrowShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLArrowShape,
+	ArrowShapeUtilDisplayValues
+> {
 	/**
 	 * How far should elbow arrows expand from the shapes they're targeting?
 	 */

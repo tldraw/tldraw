@@ -40,8 +40,10 @@ export interface LineShapeUtilDisplayValues {
 
 /** @public */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface LineShapeUtilOptions
-	extends ShapeOptionsWithDisplayValues<TLLineShape, LineShapeUtilDisplayValues> {}
+export interface LineShapeUtilOptions extends ShapeOptionsWithDisplayValues<
+	TLLineShape,
+	LineShapeUtilDisplayValues
+> {}
 
 /** @public */
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {

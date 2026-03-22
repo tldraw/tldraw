@@ -34,8 +34,10 @@ export type BookmarkShapeUtilDisplayValues = object
 
 /** @public */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface BookmarkShapeUtilOptions
-	extends ShapeOptionsWithDisplayValues<TLBookmarkShape, BookmarkShapeUtilDisplayValues> {}
+export interface BookmarkShapeUtilOptions extends ShapeOptionsWithDisplayValues<
+	TLBookmarkShape,
+	BookmarkShapeUtilDisplayValues
+> {}
 
 /** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
