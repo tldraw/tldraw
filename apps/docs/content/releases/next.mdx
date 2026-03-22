@@ -46,11 +46,7 @@ A new `@tldraw/editor-controller` package provides an imperative API for driving
 import { EditorController } from '@tldraw/editor-controller'
 
 const controller = new EditorController(editor)
-controller
-	.pointerMove(100, 100)
-	.pointerDown()
-	.pointerMove(200, 200)
-	.pointerUp()
+controller.pointerMove(100, 100).pointerDown().pointerMove(200, 200).pointerUp()
 ```
 
 This is useful for scripting, automation, agent workflows, and REPL-style interaction. The release includes a Scripter example demonstrating the package.

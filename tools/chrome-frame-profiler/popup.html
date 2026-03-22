@@ -1,0 +1,137 @@
+<!doctype html>
+<html>
+	<head>
+		<style>
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+			}
+			body {
+				font-family: system-ui, sans-serif;
+				font-size: 13px;
+				width: 360px;
+				padding: 12px;
+				color: #1a1a1a;
+			}
+			h1 {
+				font-size: 14px;
+				font-weight: 600;
+				margin-bottom: 8px;
+			}
+			.row {
+				display: flex;
+				gap: 6px;
+				margin-bottom: 8px;
+			}
+			button {
+				flex: 1;
+				padding: 6px 10px;
+				border: 1px solid #ccc;
+				border-radius: 4px;
+				background: #fff;
+				cursor: pointer;
+				font-size: 12px;
+				font-family: inherit;
+			}
+			button:hover {
+				background: #f0f0f0;
+			}
+			button:active {
+				background: #e0e0e0;
+			}
+			button:disabled {
+				opacity: 0.4;
+				cursor: default;
+			}
+			button.primary {
+				background: #2563eb;
+				color: white;
+				border-color: #2563eb;
+			}
+			button.primary:hover {
+				background: #1d4ed8;
+			}
+			.status {
+				font-size: 11px;
+				color: #666;
+				margin-bottom: 8px;
+			}
+			.status .dot {
+				display: inline-block;
+				width: 8px;
+				height: 8px;
+				border-radius: 50%;
+				margin-right: 4px;
+				vertical-align: middle;
+			}
+			.dot.on {
+				background: #22c55e;
+			}
+			.dot.off {
+				background: #ccc;
+			}
+			#summary {
+				background: #f8f8f8;
+				border: 1px solid #e5e5e5;
+				border-radius: 4px;
+				padding: 8px;
+				font-family: 'SF Mono', 'Menlo', monospace;
+				font-size: 11px;
+				line-height: 1.5;
+				max-height: 300px;
+				overflow-y: auto;
+				white-space: pre;
+				display: none;
+			}
+			.section-label {
+				font-size: 11px;
+				color: #999;
+				margin-bottom: 4px;
+			}
+			.hint {
+				font-size: 11px;
+				color: #999;
+				margin-top: 6px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Frame Profiler</h1>
+		<div class="status">
+			<span class="dot" id="dot"></span>
+			<span id="statusText">Not attached</span>
+		</div>
+
+		<div class="row">
+			<button id="attachBtn">Attach</button>
+			<button id="detachBtn" disabled>Detach</button>
+		</div>
+
+		<div class="row">
+			<button id="captureFrameBtn" class="primary" disabled>Capture 1 frame</button>
+			<button id="capture100Btn" disabled>100ms</button>
+			<button id="capture500Btn" disabled>500ms</button>
+		</div>
+
+		<div class="section-label">Delayed capture</div>
+		<div class="row">
+			<button id="delay3Btn" disabled>3s + 1 frame</button>
+			<button id="delay5Btn" disabled>5s + 1 frame</button>
+			<button id="delay5d500Btn" disabled>5s + 500ms</button>
+		</div>
+		<div class="row" id="countdownRow" style="display:none">
+			<button id="cancelBtn" style="background:#ef4444;color:white;border-color:#ef4444">Cancel (<span id="countdownText">5</span>s)</button>
+		</div>
+
+		<div class="row">
+			<button id="downloadBtn" disabled>Download .cpuprofile</button>
+			<button id="copyBtn" disabled>Copy summary</button>
+		</div>
+
+		<div id="summary"></div>
+		<div class="hint">Shortcut: <kbd>Cmd+Shift+.</kbd> to capture 1 frame</div>
+
+		<script src="popup.js"></script>
+	</body>
+</html>

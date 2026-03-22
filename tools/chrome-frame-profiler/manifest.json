@@ -1,0 +1,22 @@
+{
+	"manifest_version": 3,
+	"name": "Frame Profiler",
+	"version": "1.0",
+	"description": "Capture a V8 CPU profile for a single animation frame",
+	"permissions": ["debugger", "activeTab"],
+	"background": {
+		"service_worker": "background.js"
+	},
+	"action": {
+		"default_popup": "popup.html"
+	},
+	"commands": {
+		"capture-frame": {
+			"suggested_key": {
+				"default": "Ctrl+Shift+Period",
+				"mac": "Command+Shift+Period"
+			},
+			"description": "Capture one frame"
+		}
+	}
+}

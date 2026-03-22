@@ -10,6 +10,12 @@
 	</head>
 	<body>
 		<div id="root"></div>
+		<script>
+			// Disable React's console.createTask instrumentation — it wraps every
+			// component render in a "Run console task" that clutters the Performance
+			// flame chart without adding useful information.
+			console.createTask = undefined
+		</script>
 		<script type="module" src="./index.tsx"></script>
 		<noscript>You need to enable JavaScript to run tldraw. ✌️</noscript>
 	</body>
