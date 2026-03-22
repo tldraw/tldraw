@@ -1282,6 +1282,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPath(): string;
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
+    getRenderingShapeEntries(): TLRenderingShapeEntry[];
     getRenderingShapes(): TLRenderingShape[];
     getResizeScaleFactor(): number;
     getRichTextEditor(): null | TiptapEditor;
@@ -4238,6 +4239,14 @@ export interface TLRenderingShape {
     opacity: number;
     // (undocumented)
     shape: TLShape;
+    // (undocumented)
+    util: ShapeUtil;
+}
+
+// @public
+export interface TLRenderingShapeEntry {
+    // (undocumented)
+    id: TLShapeId;
     // (undocumented)
     util: ShapeUtil;
 }

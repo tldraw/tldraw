@@ -84,7 +84,6 @@ import {
 	lerp,
 	maxBy,
 	minBy,
-	sortById,
 	sortByIndex,
 	structuredClone,
 	uniqueId,
@@ -286,6 +285,19 @@ export interface TLRenderingShape {
 	index: number
 	backgroundIndex: number
 	opacity: number
+}
+
+/**
+ * A minimal entry for a shape that should be rendered. Unlike TLRenderingShape,
+ * this does not include layout metadata (index, opacity, etc.) and is designed
+ * to be very stable — it only changes when shapes are added, removed, hidden,
+ * or change type.
+ *
+ * @public
+ */
+export interface TLRenderingShapeEntry {
+	id: TLShapeId
+	util: ShapeUtil
 }
 
 /** @public */
@@ -4284,20 +4296,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getRenderingShapes() {
-		const renderingShapes = this.getUnorderedRenderingShapes(true)
+	@computed({ isEqual: renderingShapesEqual }) getRenderingShapes() {
+		// The tree walk in getUnorderedRenderingShapes produces a deterministic
+		// order (parent-first, children sorted by index). We no longer sort by id
+		// here — React's keyed reconciliation handles element identity via the
+		// `key` prop, and visual ordering is controlled by z-index set
+		// imperatively by the ShapeContainerManager. This avoids an O(n log n)
+		// sort on every revalidation.
+		return this.getUnorderedRenderingShapes(true)
+	}
 
-		// Its IMPORTANT that the result be sorted by id AND include the index
-		// that the shape should be displayed at. Steve, this is the past you
-		// telling the present you not to change this.
-
-		// We want to sort by id because moving elements about in the DOM will
-		// cause the element to get removed by react as it moves the DOM node. This
-		// causes <iframes/> to re-render which is hella annoying and a perf
-		// drain. By always sorting by 'id' we keep the shapes always in the
-		// same order; but we later use index to set the element's 'z-index'
-		// to change the "rendered" position in z-space.
-		return renderingShapes.sort(sortById)
+	/**
+	 * Get a stable list of shape entries that should be rendered. Unlike
+	 * {@link Editor.getRenderingShapes}, this only includes the shape id and
+	 * util — no layout metadata like index, opacity, or backgroundIndex.
+	 * This means the result only changes when shapes are added, removed,
+	 * hidden, or change type, making it suitable for driving React rendering
+	 * without unnecessary re-renders.
+	 *
+	 * @public
+	 */
+	@computed({ isEqual: renderingShapeEntriesEqual })
+	getRenderingShapeEntries(): TLRenderingShapeEntry[] {
+		// Derive from getRenderingShapes to avoid walking the shape tree twice.
+		// The custom isEqual ensures this only triggers React updates when the
+		// set of shapes actually changes (not on z-order/opacity changes).
+		return this.getRenderingShapes().map(({ id, util }) => ({ id, util }))
 	}
 
 	/* --------------------- Pages ---------------------- */
@@ -10983,6 +11007,33 @@ function withIsolatedShapes<T>(
 	} else {
 		throw result.error
 	}
+}
+
+function renderingShapesEqual(a: TLRenderingShape[], b: TLRenderingShape[]): boolean {
+	if (a === b) return true
+	if (a.length !== b.length) return false
+	for (let i = 0, n = a.length; i < n; i++) {
+		const prev = a[i]
+		const next = b[i]
+		if (prev.id !== next.id) return false
+		if (prev.index !== next.index) return false
+		if (prev.backgroundIndex !== next.backgroundIndex) return false
+		if (prev.opacity !== next.opacity) return false
+	}
+	return true
+}
+
+function renderingShapeEntriesEqual(
+	a: TLRenderingShapeEntry[],
+	b: TLRenderingShapeEntry[]
+): boolean {
+	if (a === b) return true
+	if (a.length !== b.length) return false
+	for (let i = 0, n = a.length; i < n; i++) {
+		if (a[i].id !== b[i].id) return false
+		if (a[i].util !== b[i].util) return false
+	}
+	return true
 }
 
 function getCameraFitXFitY(editor: Editor, cameraOptions: TLCameraOptions) {

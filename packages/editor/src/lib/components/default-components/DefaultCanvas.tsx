@@ -16,7 +16,7 @@ import { useGestureEvents } from '../../hooks/useGestureEvents'
 import { useHandleEvents } from '../../hooks/useHandleEvents'
 import { useSharedSafeId } from '../../hooks/useSafeId'
 import { useScreenBounds } from '../../hooks/useScreenBounds'
-import { ShapeCullingProvider, useShapeCulling } from '../../hooks/useShapeCulling'
+import { ShapeContainerManager, ShapeContainerManagerContext } from '../ShapeContainerManager'
 import { Box } from '../../primitives/Box'
 import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
@@ -398,23 +398,42 @@ function OverlaysWrapper() {
 function ShapesLayer() {
 	const editor = useEditor()
 	const debugSvg = useValue('debug svg', () => debugFlags.debugSvg.get(), [debugFlags])
-	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
+
+	// Subscribe to the stable entries list — only changes when shapes are
+	// added, removed, hidden, or change type. All layout metadata (z-index,
+	// opacity, transforms, culling) is handled imperatively by the manager.
+	const shapeEntries = useValue(
+		'rendering shape entries',
+		() => editor.getRenderingShapeEntries(),
+		[editor]
+	)
+
+	// Create and own the ShapeContainerManager for this canvas lifetime
+	const managerRef = useRef<ShapeContainerManager | null>(null)
+	if (!managerRef.current) {
+		managerRef.current = new ShapeContainerManager(editor)
+	}
+	useEffect(() => {
+		return () => {
+			managerRef.current?.dispose()
+			managerRef.current = null
+		}
+	}, [])
 
 	return (
-		<ShapeCullingProvider>
-			{renderingShapes.map((result) =>
+		<ShapeContainerManagerContext.Provider value={managerRef.current}>
+			{shapeEntries.map((entry) =>
 				debugSvg ? (
-					<Fragment key={result.id + '_fragment'}>
-						<Shape {...result} />
-						<DebugSvgCopy id={result.id} mode="iframe" />
+					<Fragment key={entry.id + '_fragment'}>
+						<Shape id={entry.id} util={entry.util} />
+						<DebugSvgCopy id={entry.id} mode="iframe" />
 					</Fragment>
 				) : (
-					<Shape key={result.id + '_shape'} {...result} />
+					<Shape key={entry.id + '_shape'} id={entry.id} util={entry.util} />
 				)
 			)}
-			<CullingController />
 			{tlenv.isSafari && <ReflowIfNeeded />}
-		</ShapeCullingProvider>
+		</ShapeContainerManagerContext.Provider>
 	)
 }
 function ReflowIfNeeded() {
@@ -435,26 +454,6 @@ function ReflowIfNeeded() {
 		},
 		[editor]
 	)
-	return null
-}
-
-/**
- * Centralized culling controller that updates shape container visibility.
- * This single reactor replaces per-shape subscriptions for O(1) instead of O(N) subscriptions.
- */
-function CullingController() {
-	const editor = useEditor()
-	const { updateCulling } = useShapeCulling()
-
-	useQuickReactor(
-		'update shape culling',
-		() => {
-			const culledShapes = editor.getCulledShapes()
-			updateCulling(culledShapes)
-		},
-		[editor, updateCulling]
-	)
-
 	return null
 }
 

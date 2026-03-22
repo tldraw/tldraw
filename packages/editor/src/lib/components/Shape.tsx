@@ -1,49 +1,39 @@
 import { react } from '@tldraw/state'
-import { useQuickReactor, useStateTracking } from '@tldraw/state-react'
+import { useStateTracking, useValue } from '@tldraw/state-react'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { memo, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditorComponents } from '../hooks/EditorComponentsContext'
 import { useEditor } from '../hooks/useEditor'
-import { useShapeCulling } from '../hooks/useShapeCulling'
-import { Mat } from '../primitives/Mat'
-import { areShapesContentEqual } from '../utils/areShapesContentEqual'
-import { setStyleProperty } from '../utils/dom'
 import { OptionalErrorBoundary } from './ErrorBoundary'
+import { useShapeContainerManager } from './ShapeContainerManager'
 
 /*
-This component renders shapes on the canvas. There are two stages: positioning
-and styling the shape's container using CSS, and then rendering the shape's 
-JSX using its shape util's render method. Rendering the "inside" of a shape is
-more expensive than positioning it or changing its color, so we use memo
-to wrap the inner shape and only re-render it when the shape's props change. 
+This component renders shapes on the canvas. All container positioning and
+styling (transforms, z-index, opacity, clip-path, culling) is handled
+imperatively by the ShapeContainerManager.
 
-The shape also receives props for its index and opacity. The index is used to
-determine the z-index of the shape, and the opacity is used to set the shape's
-opacity based on its own opacity and that of its parent's.
+This component is only responsible for:
+1. Registering its container refs with the manager
+2. Rendering the shape's JSX content via its shape util's render method
+
+The component receives only an id and util — no layout metadata. It does NOT
+subscribe to the shape record reactively, so position/rotation/opacity changes
+do not cause re-renders. InnerShape handles its own content reactivity.
 */
-export const Shape = memo(function Shape({
-	id,
-	shape,
-	util,
-	index,
-	backgroundIndex,
-	opacity,
-}: {
-	id: TLShapeId
-	shape: TLShape
-	util: ShapeUtil
-	index: number
-	backgroundIndex: number
-	opacity: number
-}) {
+export const Shape = memo(function Shape({ id, util }: { id: TLShapeId; util: ShapeUtil }) {
 	const editor = useEditor()
-
 	const { ShapeErrorFallback, ShapeWrapper } = useEditorComponents()
+	const manager = useShapeContainerManager()
 
 	const containerRef = useRef<HTMLDivElement>(null)
 	const bgContainerRef = useRef<HTMLDivElement>(null)
 
+	// Read shape non-reactively for initial render and ShapeWrapper data attributes.
+	// InnerShape handles its own reactive content updates.
+	const shape = editor.getShape(id)
+
+	// Load fonts required by this shape
 	useEffect(() => {
 		return react('load fonts', () => {
 			const fonts = editor.fonts.getShapeFontFaces(id)
@@ -51,88 +41,19 @@ export const Shape = memo(function Shape({
 		})
 	}, [editor, id])
 
-	const memoizedStuffRef = useRef({
-		transform: '',
-		clipPath: 'none',
-		width: 0,
-		height: 0,
-		x: 0,
-		y: 0,
-	})
-
-	useQuickReactor(
-		'set shape stuff',
-		() => {
-			const shape = editor.getShape(id)
-			if (!shape) return // probably the shape was just deleted
-
-			const prev = memoizedStuffRef.current
-
-			// Clip path
-			const clipPath = editor.getShapeClipPath(id) ?? 'none'
-			if (clipPath !== prev.clipPath) {
-				setStyleProperty(containerRef.current, 'clip-path', clipPath)
-				setStyleProperty(bgContainerRef.current, 'clip-path', clipPath)
-				prev.clipPath = clipPath
-			}
-
-			// Page transform
-			const pageTransform = editor.getShapePageTransform(id)
-			const transform = Mat.toCssString(pageTransform)
-			const bounds = editor.getShapeGeometry(shape).bounds
-
-			// Update if the tranform has changed
-			if (transform !== prev.transform) {
-				setStyleProperty(containerRef.current, 'transform', transform)
-				setStyleProperty(bgContainerRef.current, 'transform', transform)
-				prev.transform = transform
-			}
-
-			// Width / Height
-			const width = Math.max(bounds.width, 1)
-			const height = Math.max(bounds.height, 1)
-
-			if (width !== prev.width || height !== prev.height) {
-				setStyleProperty(containerRef.current, 'width', width + 'px')
-				setStyleProperty(containerRef.current, 'height', height + 'px')
-				setStyleProperty(bgContainerRef.current, 'width', width + 'px')
-				setStyleProperty(bgContainerRef.current, 'height', height + 'px')
-				prev.width = width
-				prev.height = height
-			}
-		},
-		[editor]
-	)
-
-	// This stuff changes pretty infrequently, so we can change them together
-	useLayoutEffect(() => {
-		const container = containerRef.current
-		const bgContainer = bgContainerRef.current
-
-		// Opacity
-		setStyleProperty(container, 'opacity', opacity)
-		setStyleProperty(bgContainer, 'opacity', opacity)
-
-		// Z-Index
-		setStyleProperty(container, 'z-index', index)
-		setStyleProperty(bgContainer, 'z-index', backgroundIndex)
-	}, [opacity, index, backgroundIndex])
-
-	// Register container refs with the centralized culling context.
-	// This runs on mount and handles initial display state.
-	const { register, unregister } = useShapeCulling()
+	// Register container refs with the imperative manager.
+	// The manager handles all transform, z-index, opacity, clip-path, and
+	// culling updates via reactive subscriptions — no React lifecycle needed.
 	useLayoutEffect(() => {
 		const container = containerRef.current
 		if (!container) return
 
-		// Check initial culling state and register with the context
-		const isCulled = editor.getCulledShapes().has(id)
-		register(id, container, bgContainerRef.current, isCulled)
-
+		manager.register(id, container, bgContainerRef.current)
 		return () => {
-			unregister(id)
+			manager.unregister(id)
 		}
-	}, [editor, id, register, unregister])
+	}, [manager, id])
+
 	const annotateError = useCallback(
 		(error: any) => editor.annotateError(error, { origin: 'shape', willCrashApp: false }),
 		[editor]
@@ -145,52 +66,67 @@ export const Shape = memo(function Shape({
 			{util.backgroundComponent && (
 				<ShapeWrapper ref={bgContainerRef} shape={shape} isBackground={true}>
 					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
-						<InnerShapeBackground shape={shape} util={util} />
+						<InnerShapeBackground id={id} util={util} />
 					</OptionalErrorBoundary>
 				</ShapeWrapper>
 			)}
 			<ShapeWrapper ref={containerRef} shape={shape} isBackground={false}>
 				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
-					<InnerShape shape={shape} util={util} />
+					<InnerShape id={id} util={util} />
 				</OptionalErrorBoundary>
 			</ShapeWrapper>
 		</>
 	)
 })
 
-export const InnerShape = memo(
-	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
-		return useStateTracking(
-			'InnerShape:' + shape.type,
-			() =>
-				// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
-				// calling the render method with stale data.
-				util.component(util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
-			[util, shape.id]
-		)
-	},
-	(prev, next) => areShapesContentEqual(prev.shape, next.shape) && prev.util === next.util
-)
+/**
+ * Subscribes to content-only changes for a shape (props and meta references).
+ * Position, rotation, and opacity changes do not trigger re-renders.
+ * Uses two separate useValue calls since each returns a stable reference
+ * that only changes when that specific part of the shape content changes.
+ */
+function useShapeContent(id: TLShapeId, util: ShapeUtil) {
+	useValue('shape props', () => util.editor.getShape(id)?.props, [util, id])
+	useValue('shape meta', () => util.editor.getShape(id)?.meta, [util, id])
+}
 
-export const InnerShapeBackground = memo(
-	function InnerShapeBackground<T extends TLShape>({
-		shape,
-		util,
-	}: {
-		shape: T
-		util: ShapeUtil<T>
-	}) {
-		return useStateTracking(
-			'InnerShape:' + shape.type,
-			() =>
-				// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
-				// calling the render method with stale data.
-				util.backgroundComponent?.(util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
-			[util, shape.id]
-		)
-	},
-	(prev, next) =>
-		prev.shape.props === next.shape.props &&
-		prev.shape.meta === next.shape.meta &&
-		prev.util === next.util
-)
+export const InnerShape = memo(function InnerShape({
+	id,
+	util,
+}: {
+	id: TLShapeId
+	util: ShapeUtil
+}) {
+	// Subscribe to content-only changes. This re-renders only when props change.
+	useShapeContent(id, util)
+
+	return useStateTracking(
+		'InnerShape:' + (util.constructor as typeof ShapeUtil).type,
+		() => {
+			const shape = util.editor.store.unsafeGetWithoutCapture(id) as TLShape | undefined
+			if (!shape) return null
+			return util.component(shape)
+		},
+		[util, id]
+	)
+})
+
+export const InnerShapeBackground = memo(function InnerShapeBackground({
+	id,
+	util,
+}: {
+	id: TLShapeId
+	util: ShapeUtil
+}) {
+	useShapeContent(id, util)
+
+	return useStateTracking(
+		'InnerShapeBackground:' + (util.constructor as typeof ShapeUtil).type,
+		() => {
+			const shape = util.editor.store.unsafeGetWithoutCapture(id) as TLShape | undefined
+			if (!shape) return null
+			return util.backgroundComponent?.(shape) ?? null
+		},
+		[util, id]
+	)
+})

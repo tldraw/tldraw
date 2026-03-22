@@ -131,6 +131,7 @@ export {
 	type TLEditorOptions,
 	type TLEditorRunOptions,
 	type TLRenderingShape,
+	type TLRenderingShapeEntry,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
 export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager/ClickManager'

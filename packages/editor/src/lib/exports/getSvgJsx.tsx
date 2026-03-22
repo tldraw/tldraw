@@ -493,7 +493,7 @@ function ForeignObjectShape({
 	shape: TLShape
 	util: ShapeUtil
 	className?: string
-	component: ComponentType<{ shape: TLShape; util: ShapeUtil }>
+	component: ComponentType<{ id: TLShapeId; util: ShapeUtil }>
 	bbox: Box
 	opacity: number
 }) {
@@ -527,7 +527,7 @@ function ForeignObjectShape({
 						opacity,
 					}}
 				>
-					<Component shape={shape} util={util} />
+					<Component id={shape.id} util={util} />
 				</div>
 			</foreignObject>
 		</ErrorBoundary>
