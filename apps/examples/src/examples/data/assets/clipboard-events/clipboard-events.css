@@ -2,11 +2,10 @@
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
-	margin: 8px;
-	padding: 8px;
-	background: var(--color-panel);
-	border-radius: 8px;
-	border: 1px solid var(--color-panel-contrast);
+	padding: 6px;
+	border: 1px solid #ccc;
+	box-shadow: none;
+	pointer-events: all;
 	font-size: 12px;
 	min-width: 220px;
 }
@@ -21,6 +20,7 @@
 	align-items: center;
 	gap: 4px;
 	cursor: pointer;
+	white-space: nowrap;
 }
 
 .clipboard-events-log {
@@ -32,12 +32,12 @@
 }
 
 .clipboard-events-empty {
-	color: var(--color-text-3);
+	color: #666;
 	font-style: italic;
 }
 
 .clipboard-events-entry {
 	padding: 2px 4px;
 	border-radius: 4px;
-	background: var(--color-muted-2);
+	background: #f5f5f5;
 }

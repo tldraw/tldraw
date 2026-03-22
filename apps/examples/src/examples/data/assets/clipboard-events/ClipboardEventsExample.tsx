@@ -17,6 +17,7 @@ interface ClipboardEventsState {
 	filterRedOnCopy: boolean
 	filterRedOnPaste: boolean
 	handleRawPaste: boolean
+	useAsyncCallbacks: boolean
 	log: ClipboardLog[]
 }
 
@@ -26,6 +27,7 @@ const state: ClipboardEventsState = {
 	filterRedOnCopy: false,
 	filterRedOnPaste: false,
 	handleRawPaste: false,
+	useAsyncCallbacks: false,
 	log: [],
 }
 
@@ -48,7 +50,7 @@ function getSnapshot() {
 }
 
 function addLog(entry: ClipboardLog) {
-	updateState({ log: [...state.log.slice(-9), entry] })
+	updateState({ log: [entry, ...state.log].slice(0, 3) })
 	;(window as any).__tldraw_clipboard_log = [
 		...((window as any).__tldraw_clipboard_log ?? []),
 		entry,
@@ -56,30 +58,43 @@ function addLog(entry: ClipboardLog) {
 }
 
 // [2]
+function delay(ms: number) {
+	return new Promise<void>((resolve) => setTimeout(resolve, ms))
+}
+
 const options: Partial<TldrawOptions> = {
 	onClipboardPasteRaw(info) {
 		if (!state.handleRawPaste) return
-		if (info.source === 'keyboard') {
-			const kinds = info.clipboardData
-				? [...info.clipboardData.items].map((i) => `${i.kind}:${i.type}`).join(', ')
-				: '(no clipboardData)'
+		function doThings() {
+			if (info.source === 'keyboard') {
+				const kinds = info.clipboardData
+					? [...info.clipboardData.items].map((i) => `${i.kind}:${i.type}`).join(', ')
+					: '(no clipboardData)'
+				addLog({
+					action: 'raw-paste',
+					source: 'keyboard',
+					prevented: false,
+					detail: `${kinds}${state.useAsyncCallbacks ? ' (async)' : ''}`,
+				})
+				return false
+			}
 			addLog({
 				action: 'raw-paste',
-				source: 'keyboard',
+				source: 'menu',
 				prevented: false,
-				detail: kinds,
+				detail: `${info.clipboardItems.length} clipboard item(s)${state.useAsyncCallbacks ? ' (async)' : ''}`,
 			})
-			return false
 		}
-		addLog({
-			action: 'raw-paste',
-			source: 'menu',
-			prevented: false,
-			detail: `${info.clipboardItems.length} clipboard item(s)`,
-		})
+
+		if (state.useAsyncCallbacks) {
+			delay(500).then(() => doThings())
+		} else {
+			doThings()
+		}
 		return false
 	},
-	onBeforeCopyToClipboard({ content, operation, source }) {
+	async onBeforeCopyToClipboard({ content, operation, source }) {
+		if (state.useAsyncCallbacks) await delay(500)
 		if (state.disableCopy) {
 			addLog({
 				action: operation,
@@ -109,7 +124,8 @@ const options: Partial<TldrawOptions> = {
 		})
 		return result
 	},
-	onBeforePasteFromClipboard({ content, source }) {
+	async onBeforePasteFromClipboard({ content, source }) {
+		if (state.useAsyncCallbacks) await delay(500)
 		if (state.disablePaste) {
 			addLog({ action: 'paste', source, prevented: true })
 			return false
@@ -165,6 +181,10 @@ function Controls() {
 		updateState({ handleRawPaste: !state.handleRawPaste })
 	}, [])
 
+	const toggleAsync = useCallback(() => {
+		updateState({ useAsyncCallbacks: !state.useAsyncCallbacks })
+	}, [])
+
 	return (
 		<div className="clipboard-events-panel">
 			<div className="clipboard-events-controls">
@@ -187,6 +207,10 @@ function Controls() {
 				<label>
 					<input type="checkbox" checked={state.handleRawPaste} onChange={toggleRawPaste} />
 					Handle raw paste (take over)
+				</label>
+				<label>
+					<input type="checkbox" checked={state.useAsyncCallbacks} onChange={toggleAsync} />
+					Async callbacks (500ms delay)
 				</label>
 			</div>
 			<div className="clipboard-events-log" data-testid="clipboard-log">
@@ -236,6 +260,9 @@ onBeforePasteFromClipboard runs when pasted content is about to be applied. Retu
 onClipboardPasteRaw runs first. `source` is `keyboard` (paste event + DataTransfer) or
 `menu` (ClipboardItem[] from the clipboard API). Return `false` to cancel tldraw's default
 paste handling for that gesture (same as other clipboard `onBefore*` hooks).
+
+All three callbacks support async (returning a Promise). The "Async callbacks" toggle adds a
+500ms delay to each callback to verify that async resolution works on all platforms.
 
 [3]
 State and updater are exposed on window for E2E testing.
