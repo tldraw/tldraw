@@ -50,7 +50,7 @@ export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', 
 })
 
 /**
- * Register custom color names at runtime. This adds the colors to both
+ * Register color names at runtime. This adds the colors to both
  * `DefaultColorStyle` and `DefaultLabelColorStyle` so they are available
  * for validation and in the style panel.
  *
@@ -58,12 +58,12 @@ export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', 
  *
  * @example
  * ```ts
- * registerCustomColors(['pink', 'teal'])
+ * registerColors(['pink', 'teal'])
  * ```
  *
  * @public
  */
-export function registerCustomColors(colorNames: TLDefaultColorStyle[]): void {
+export function registerColors(colorNames: TLDefaultColorStyle[]): void {
 	DefaultColorStyle.addValues(...colorNames)
 	DefaultLabelColorStyle.addValues(...colorNames)
 }

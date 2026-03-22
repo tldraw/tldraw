@@ -281,7 +281,7 @@ export {
 export { EnumStyleProp, StyleProp, type StylePropValue } from './styles/StyleProp'
 export {
 	DefaultColorStyle,
-	registerCustomColors as registerColors,
+	registerColors,
 	type TLDefaultColorStyle,
 } from './styles/TLColorStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
