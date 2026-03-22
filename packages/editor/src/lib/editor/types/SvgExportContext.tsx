@@ -43,7 +43,7 @@ export interface SvgExportContext {
 	readonly isDarkMode: boolean
 
 	/**
-	 * The theme ID to use for this export (e.g. `'light'`, `'dark'`, or a custom theme ID).
+	 * The theme ID to use for this export (e.g. `'light'`, `'dark'`, or a custom theme ID like `'company-brand'`).
 	 */
 	readonly themeId: string
 

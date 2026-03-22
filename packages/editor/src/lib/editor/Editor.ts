@@ -963,7 +963,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * A manager for the editor's color themes.
 	 *
-	 * @public
+	 * @internal
 	 */
 	readonly _themeManager: ThemeManager
 

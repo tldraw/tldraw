@@ -14,6 +14,7 @@ import classNames from 'classnames'
 import React, { useMemo } from 'react'
 import { renderHtmlFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
+import { isLegacyAlign } from './legacyProps'
 import { useEditableRichText } from './useEditableRichText'
 
 /** @public */
@@ -24,7 +25,7 @@ export interface RichTextLabelProps {
 	fontSize: number
 	lineHeight: number
 	textAlign: 'start' | 'center' | 'end'
-	verticalAlign: 'start' | 'center' | 'end'
+	verticalAlign: 'start' | 'middle' | 'end'
 	wrap?: boolean
 	richText?: TLRichText
 	labelColor: string
@@ -70,6 +71,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 }: RichTextLabelProps) {
 	const editor = useEditor()
 	const isDragging = React.useRef(false)
+	const legacyAlign = isLegacyAlign(textAlign)
 	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
 		useEditableRichText(shapeId, type, richText)
 
@@ -140,9 +142,13 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				fontFamily,
 				textAlign,
 				justifyContent:
-					textAlign === 'center' ? 'center' : textAlign === 'end' ? 'flex-end' : 'flex-start',
+					textAlign === 'center' || legacyAlign
+						? 'center'
+						: textAlign === 'end'
+							? 'flex-end'
+							: 'flex-start',
 				alignItems:
-					verticalAlign === 'center'
+					verticalAlign === 'middle'
 						? 'center'
 						: verticalAlign === 'end'
 							? 'flex-end'
@@ -200,7 +206,7 @@ export interface RichTextSVGProps {
 	fontFamily: string
 	lineHeight: number
 	textAlign: 'start' | 'center' | 'end'
-	verticalAlign: 'start' | 'center' | 'end'
+	verticalAlign: 'start' | 'middle' | 'end'
 	wrap?: boolean
 	labelColor: string
 	padding: number
@@ -227,14 +233,15 @@ export function RichTextSVG({
 }: RichTextSVGProps) {
 	const editor = useEditor()
 	const html = renderHtmlFromRichText(editor, richText)
+	const legacyAlign = isLegacyAlign(textAlign)
 	const justifyContent =
-		textAlign === 'center'
+		textAlign === 'center' || legacyAlign
 			? ('center' as const)
 			: textAlign === 'start'
 				? ('flex-start' as const)
 				: ('flex-end' as const)
 	const alignItems =
-		verticalAlign === 'center' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
+		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
 	const wrapperStyle = {
 		display: 'flex',
 		fontFamily,

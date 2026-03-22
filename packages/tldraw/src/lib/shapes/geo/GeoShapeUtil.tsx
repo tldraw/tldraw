@@ -70,7 +70,7 @@ const GEO_SHAPE_HORIZONTAL_ALIGNS = Object.freeze({
 
 const GEO_SHAPE_VERTICAL_ALIGNS = Object.freeze({
 	start: 'start',
-	middle: 'center',
+	middle: 'middle',
 	end: 'end',
 } as const)
 
@@ -93,7 +93,7 @@ export interface GeoShapeUtilDisplayValues {
 	labelFontVariant: string
 	labelFontStyle: string
 	labelHorizontalAlign: 'start' | 'center' | 'end'
-	labelVerticalAlign: 'start' | 'center' | 'end'
+	labelVerticalAlign: 'start' | 'middle' | 'end'
 	labelPadding: number
 	labelEdgeMargin: number
 	minSizeWithLabel: number

@@ -170,7 +170,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				fontSize={dv.fontSize}
 				lineHeight={dv.lineHeight}
 				textAlign={textAlign === 'middle' ? 'center' : textAlign}
-				verticalAlign="center"
+				verticalAlign="middle"
 				richText={richText}
 				labelColor={dv.color}
 				isSelected={isSelected}
@@ -220,7 +220,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				fontFamily={dv.fontFamily}
 				lineHeight={dv.lineHeight}
 				textAlign={shape.props.textAlign === 'middle' ? 'center' : shape.props.textAlign}
-				verticalAlign="center"
+				verticalAlign="middle"
 				richText={shape.props.richText}
 				labelColor={dv.color}
 				bounds={exportBounds}

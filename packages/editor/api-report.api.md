@@ -1542,6 +1542,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         [key: string]: Map<StyleProp<any>, string>;
     };
     readonly textMeasure: TextManager;
+    // @internal
     readonly _themeManager: ThemeManager;
     readonly timers: {
         dispose: () => void;
@@ -3175,7 +3176,7 @@ export class TextManager {
     }[];
 }
 
-// @public (undocumented)
+// @public
 export class ThemeManager {
     constructor(editor: Editor, themes?: TLThemes, initialTheme?: string);
     // (undocumented)

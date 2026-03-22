@@ -1904,7 +1904,7 @@ export interface GeoShapeUtilDisplayValues {
     // (undocumented)
     labelPadding: number;
     // (undocumented)
-    labelVerticalAlign: 'center' | 'end' | 'start';
+    labelVerticalAlign: 'end' | 'middle' | 'start';
     // (undocumented)
     minSizeWithLabel: number;
     // (undocumented)
@@ -2518,7 +2518,7 @@ export interface NoteShapeUtilDisplayValues {
     // (undocumented)
     labelPadding: number;
     // (undocumented)
-    labelVerticalAlign: 'center' | 'end' | 'start';
+    labelVerticalAlign: 'end' | 'middle' | 'start';
     // (undocumented)
     noteBackgroundColor: string;
     // (undocumented)
@@ -2925,7 +2925,7 @@ export interface RichTextLabelProps {
         richText: TLRichText;
     }>['type'];
     // (undocumented)
-    verticalAlign: 'center' | 'end' | 'start';
+    verticalAlign: 'end' | 'middle' | 'start';
     // (undocumented)
     wrap?: boolean;
 }
@@ -2954,7 +2954,7 @@ export interface RichTextSVGProps {
     // (undocumented)
     textAlign: 'center' | 'end' | 'start';
     // (undocumented)
-    verticalAlign: 'center' | 'end' | 'start';
+    verticalAlign: 'end' | 'middle' | 'start';
     // (undocumented)
     wrap?: boolean;
 }

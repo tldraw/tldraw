@@ -844,7 +844,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						fontSize={dv.labelFontSize * shape.props.scale}
 						lineHeight={dv.labelLineHeight}
 						textAlign="center"
-						verticalAlign="center"
+						verticalAlign="middle"
 						labelColor={dv.labelColor}
 						richText={shape.props.richText}
 						textWidth={labelPosition.box.w - dv.labelPadding * 2 * shape.props.scale}
@@ -1140,7 +1140,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						fontFamily={dv.labelFontFamily}
 						lineHeight={dv.labelLineHeight}
 						textAlign="center"
-						verticalAlign="center"
+						verticalAlign="middle"
 						labelColor={dv.labelColor}
 						richText={shape.props.richText}
 						bounds={getArrowLabelPosition(this.editor, shape, false)

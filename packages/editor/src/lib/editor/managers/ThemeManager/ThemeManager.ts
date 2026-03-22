@@ -10,7 +10,11 @@ function buildDefaultThemes(): TLThemes {
 	}
 }
 
-/** @public */
+/**
+ * Manages the editor's color themes, including the active theme and theme overrides.
+ *
+ * @public
+ */
 export class ThemeManager {
 	private readonly _themes: ReturnType<typeof atom<TLThemes>>
 	private readonly _themeOverride: ReturnType<typeof atom<string | null>>

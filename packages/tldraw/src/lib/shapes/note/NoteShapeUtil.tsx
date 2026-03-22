@@ -64,7 +64,7 @@ const NOTE_SHAPE_HORIZONTAL_ALIGNS = Object.freeze({
 
 const NOTE_SHAPE_VERTICAL_ALIGNS = Object.freeze({
 	start: 'start',
-	middle: 'center',
+	middle: 'middle',
 	end: 'end',
 } as const)
 
@@ -84,7 +84,7 @@ export interface NoteShapeUtilDisplayValues {
 	labelFontStyle: string
 	labelPadding: number
 	labelHorizontalAlign: 'start' | 'center' | 'end'
-	labelVerticalAlign: 'start' | 'center' | 'end'
+	labelVerticalAlign: 'start' | 'middle' | 'end'
 }
 
 /** @public */

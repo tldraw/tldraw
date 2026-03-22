@@ -165,6 +165,11 @@ export interface TldrawEditorBaseProps {
 	theme?: string
 
 	/**
+	 * Named color themes for the editor.
+	 */
+	themes?: TLThemes
+
+	/**
 	 * Camera options for the editor.
 	 *
 	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
@@ -223,11 +228,6 @@ export interface TldrawEditorBaseProps {
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
-
-	/**
-	 * Named color themes for the editor.
-	 */
-	themes?: TLThemes
 }
 
 /**
