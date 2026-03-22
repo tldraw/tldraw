@@ -94,11 +94,6 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 		)
 	}
 
-	// [7]
-	indicator(shape: ICardShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
-
 	// [8]
 	override onResize(shape: ICardShape, info: TLResizeInfo<ICardShape>) {
 		return resizeBox(shape, info)

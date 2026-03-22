@@ -49,10 +49,6 @@ class ValidatedShapeUtil extends ShapeUtil<ValidatedShape> {
 			</HTMLContainer>
 		)
 	}
-
-	indicator(shape: ValidatedShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }
 
 // [5]

@@ -75,11 +75,6 @@ export class ClickableShapeUtil extends BaseBoxShapeUtil<ClickableShape> {
 			</HTMLContainer>
 		)
 	}
-
-	// [5]
-	indicator(shape: ClickableShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }
 
 /*

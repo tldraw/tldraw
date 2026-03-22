@@ -1,4 +1,4 @@
-import { useEditor, useEditorComponents, useValue } from '@tldraw/editor'
+import { useEditor, useValue } from '@tldraw/editor'
 import { getArrowTargetState } from '../shapes/arrow/arrowTargetState'
 import { DraggingHandle } from '../tools/SelectTool/childStates/DraggingHandle'
 import { PointingHandle } from '../tools/SelectTool/childStates/PointingHandle'
@@ -45,8 +45,6 @@ export function TldrawOverlays() {
 /** @public @react */
 export function TldrawArrowHints() {
 	const editor = useEditor()
-	const { ShapeIndicator } = useEditorComponents()
-
 	const targetInfo = useValue('arrow target info', () => getArrowTargetState(editor), [editor])
 
 	if (!targetInfo) return null
@@ -57,8 +55,6 @@ export function TldrawArrowHints() {
 
 	return (
 		<>
-			{ShapeIndicator && <ShapeIndicator shapeId={targetInfo.target.id} />}
-
 			{showEdgeHints && (
 				<svg className="tl-overlays__item" aria-hidden="true">
 					<circle

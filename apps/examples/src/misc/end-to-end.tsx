@@ -37,9 +37,6 @@ class HtmlCssShapeUtil extends BaseBoxShapeUtil<HtmlCssShape> {
 	override component(shape: HtmlCssShape) {
 		return <HtmlCssShapeComponent shape={shape} />
 	}
-	override indicator(shape: HtmlCssShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }
 function HtmlCssShapeComponent({ shape }: { shape: HtmlCssShape }) {
 	const id = useUniqueSafeId()

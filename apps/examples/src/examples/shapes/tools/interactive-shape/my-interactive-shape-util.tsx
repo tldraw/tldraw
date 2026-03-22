@@ -91,11 +91,6 @@ export class myInteractiveShape extends BaseBoxShapeUtil<IMyInteractiveShape> {
 			</HTMLContainer>
 		)
 	}
-
-	// [5]
-	indicator(shape: IMyInteractiveShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }
 
 /*

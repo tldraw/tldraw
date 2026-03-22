@@ -38,10 +38,6 @@ export class MiniBoxShapeUtil extends BaseBoxShapeUtil<MiniBoxShape> {
 			</HTMLContainer>
 		)
 	}
-	//[d]
-	indicator(shape: MiniBoxShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }
 
 /*

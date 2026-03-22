@@ -27,7 +27,6 @@ import {
 	noteShapeProps,
 	resizeScaled,
 	rng,
-	toDomPrecision,
 	toRichText,
 	useEditor,
 	useValue,
@@ -325,21 +324,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</>
 		)
-	}
-
-	indicator(shape: TLNoteShape) {
-		const { scale } = shape.props
-		return (
-			<rect
-				rx={scale}
-				width={toDomPrecision(NOTE_SIZE * scale)}
-				height={toDomPrecision(getNoteHeight(shape))}
-			/>
-		)
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLNoteShape): Path2D {

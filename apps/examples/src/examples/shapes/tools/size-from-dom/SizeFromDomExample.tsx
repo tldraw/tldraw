@@ -158,13 +158,6 @@ export class DynamicSizeShapeUtil extends ShapeUtil<DynamicSizeShape> {
 			</div>
 		)
 	}
-
-	// [g]
-	indicator(shape: DynamicSizeShape) {
-		const { width, height } = this.editor.getShapeGeometry(shape).bounds
-
-		return <rect width={width} height={height} />
-	}
 }
 
 // [6]

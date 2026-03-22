@@ -86,10 +86,6 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 		)
 	}
 
-	indicator(shape: IMyEditableShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
-
 	// [3]
 	override onEditEnd(shape: IMyEditableShape) {
 		this.editor.animateShape(

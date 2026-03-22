@@ -17,15 +17,9 @@ import {
 	clamp,
 	createShapeId,
 	useEditor,
-	useUniqueSafeId,
 	useValue,
 	vecModelValidator,
 } from 'tldraw'
-import {
-	CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX,
-	CONNECTION_CENTER_HANDLE_SIZE_PX,
-	PORT_RADIUS_PX,
-} from '../constants'
 import { getAllConnectedNodes, getNodePorts } from '../nodes/nodePorts'
 import { getPortAtPoint } from '../ports/getPortAtPoint'
 import { updatePortState } from '../ports/portState'
@@ -35,7 +29,6 @@ import {
 	getConnectionBindings,
 	removeConnectionBinding,
 } from './ConnectionBindingUtil'
-import { insertNodeWithinConnection } from './insertNodeWithinConnection'
 
 const CONNECTION_TYPE = 'connection'
 
@@ -272,45 +265,6 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 	component(connection: ConnectionShape) {
 		return <ConnectionShape connection={connection} />
 	}
-
-	indicator(connection: ConnectionShape) {
-		const id = useUniqueSafeId()
-		const { start, end } = getConnectionTerminals(this.editor, connection)
-
-		return (
-			<>
-				<mask id={id}>
-					<rect
-						width={Math.abs(start.x - end.x) + 10}
-						height={Math.abs(start.y - end.y) + 10}
-						fill="white"
-						x={Math.min(start.x, end.x) - 5}
-						y={Math.min(start.y, end.y) - 5}
-					/>
-					<circle
-						key={'start'}
-						cx={start.x}
-						cy={start.y}
-						r={PORT_RADIUS_PX}
-						fill="black"
-						strokeWidth={0}
-					/>
-					<circle
-						key={'end'}
-						cx={end.x}
-						cy={end.y}
-						r={PORT_RADIUS_PX}
-						fill="black"
-						strokeWidth={0}
-					/>
-				</mask>
-				<g className="ConnectionShapeIndicator" mask={`url(#${id})`}>
-					<path d={getConnectionPath(start, end)} strokeWidth={2.1} strokeLinecap="round" />
-					<ConnectionCenterHandle connection={connection} center={Vec.Lrp(start, end, 0.5)} />
-				</g>
-			</>
-		)
-	}
 }
 
 // Main connection component that renders the SVG path
@@ -327,55 +281,6 @@ function ConnectionShape({ connection }: { connection: ConnectionShape }) {
 		<SVGContainer className={classNames('ConnectionShape')}>
 			<path d={getConnectionPath(start, end)} />
 		</SVGContainer>
-	)
-}
-
-// Center handle component that allows inserting nodes in the middle of connections
-function ConnectionCenterHandle({
-	connection,
-	center,
-}: {
-	connection: ConnectionShape
-	center: Vec
-}) {
-	const editor = useEditor()
-
-	// Only show the center handle when zoomed in and the connection is fully bound
-	const shouldShowCenterHandle = useValue(
-		'shouldShowCenterHandle',
-		() => {
-			const bindings = getConnectionBindings(editor, connection)
-			const isFullyBound = !!bindings.start && !!bindings.end
-			return editor.getZoomLevel() > 0.5 && isFullyBound
-		},
-		[editor, connection.id]
-	)
-
-	const plusR = CONNECTION_CENTER_HANDLE_SIZE_PX / 3 - 1
-
-	if (!shouldShowCenterHandle) return null
-
-	return (
-		<g
-			className="ConnectionCenterHandle"
-			style={{
-				transform: `translate(${center.x}px, ${center.y}px) scale(max(0.5, calc(1 / var(--tl-zoom))))`,
-			}}
-			onPointerDown={editor.markEventAsHandled}
-			onClick={() => {
-				insertNodeWithinConnection(editor, connection, 'vertical')
-			}}
-		>
-			<circle
-				className="ConnectionCenterHandle-hover"
-				r={CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX / 2}
-			/>
-			<circle className="ConnectionCenterHandle-ring" r={CONNECTION_CENTER_HANDLE_SIZE_PX / 2} />
-			<path
-				className="ConnectionCenterHandle-icon"
-				d={`M ${-plusR} 0 L ${plusR} 0 M 0 ${-plusR} L 0 ${plusR}`}
-			/>
-		</g>
 	)
 }
 

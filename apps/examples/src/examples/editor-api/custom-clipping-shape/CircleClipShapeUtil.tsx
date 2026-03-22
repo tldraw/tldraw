@@ -127,20 +127,6 @@ export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 		)
 	}
 
-	override indicator(shape: CircleClipShape) {
-		const radius = Math.min(shape.props.w, shape.props.h) / 2
-		const centerX = shape.props.w / 2
-		const centerY = shape.props.h / 2
-
-		return (
-			<circle
-				cx={toDomPrecision(centerX)}
-				cy={toDomPrecision(centerY)}
-				r={toDomPrecision(radius)}
-			/>
-		)
-	}
-
 	override onResize(shape: CircleClipShape, info: TLResizeInfo<CircleClipShape>) {
 		return resizeBox(shape, info)
 	}

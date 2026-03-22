@@ -54,15 +54,6 @@ export {
 } from './lib/components/default-components/DefaultSelectionForeground'
 export { type TLShapeErrorFallbackComponent } from './lib/components/default-components/DefaultShapeErrorFallback'
 export {
-	DefaultShapeIndicator,
-	type TLShapeIndicatorProps,
-} from './lib/components/default-components/DefaultShapeIndicator'
-export { type TLShapeIndicatorErrorFallbackComponent } from './lib/components/default-components/DefaultShapeIndicatorErrorFallback'
-export {
-	DefaultShapeIndicators,
-	type TLShapeIndicatorsProps,
-} from './lib/components/default-components/DefaultShapeIndicators'
-export {
 	DefaultShapeWrapper,
 	type TLShapeWrapperProps,
 } from './lib/components/default-components/DefaultShapeWrapper'

@@ -10,7 +10,6 @@ import {
 	bookmarkShapeProps,
 	lerp,
 	tlenv,
-	toDomPrecision,
 	useEditor,
 	useSvgExportContext,
 } from '@tldraw/editor'
@@ -75,14 +74,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		return <BookmarkShapeComponent assetId={assetId} url={url} h={h} rotation={rotation} />
 	}
 
-	override indicator(shape: TLBookmarkShape) {
-		return <BookmarkIndicatorComponent w={shape.props.w} h={shape.props.h} />
-	}
-
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLBookmarkShape): Path2D {
 		const path = new Path2D()
 		path.roundRect(0, 0, shape.props.w, shape.props.h, 6)
@@ -119,10 +110,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 			h: lerp(startShape.props.h, endShape.props.h, t),
 		}
 	}
-}
-
-export function BookmarkIndicatorComponent({ w, h }: { w: number; h: number }) {
-	return <rect width={toDomPrecision(w)} height={toDomPrecision(h)} rx="6" ry="6" />
 }
 
 export function BookmarkShapeComponent({

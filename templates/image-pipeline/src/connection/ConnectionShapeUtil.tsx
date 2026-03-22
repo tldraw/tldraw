@@ -21,12 +21,7 @@ import {
 	vecModelValidator,
 } from 'tldraw'
 import { onCanvasNodePickerState } from '../components/OnCanvasNodePicker'
-import {
-	CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX,
-	CONNECTION_CENTER_HANDLE_SIZE_PX,
-	PORT_TYPE_COLORS,
-	PortDataType,
-} from '../constants'
+import { PORT_TYPE_COLORS, PortDataType } from '../constants'
 import {
 	getAllConnectedNodes,
 	getNodeOutputPortInfo,
@@ -43,7 +38,6 @@ import {
 	getConnectionBindings,
 	removeConnectionBinding,
 } from './ConnectionBindingUtil'
-import { insertNodeWithinConnection } from './insertNodeWithinConnection'
 
 const CONNECTION_TYPE = 'connection'
 
@@ -300,16 +294,6 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 	component(connection: ConnectionShape) {
 		return <ConnectionShapeComponent connection={connection} />
 	}
-
-	indicator(connection: ConnectionShape) {
-		const { start, end } = getConnectionTerminals(this.editor, connection)
-		return (
-			<g className="ConnectionShapeIndicator">
-				<path d={getConnectionPath(start, end)} strokeWidth={2.1} strokeLinecap="round" />
-				<ConnectionCenterHandle connection={connection} center={Vec.Lrp(start, end, 0.5)} />
-			</g>
-		)
-	}
 }
 
 function ConnectionShapeComponent({ connection }: { connection: ConnectionShape }) {
@@ -355,53 +339,6 @@ function ConnectionShapeComponent({ connection }: { connection: ConnectionShape 
 				style={connectionColor ? { stroke: connectionColor } : undefined}
 			/>
 		</SVGContainer>
-	)
-}
-
-function ConnectionCenterHandle({
-	connection,
-	center,
-}: {
-	connection: ConnectionShape
-	center: Vec
-}) {
-	const editor = useEditor()
-
-	const shouldShowCenterHandle = useValue(
-		'shouldShowCenterHandle',
-		() => {
-			const bindings = getConnectionBindings(editor, connection)
-			const isFullyBound = !!bindings.start && !!bindings.end
-			return editor.getZoomLevel() > 0.5 && isFullyBound
-		},
-		[editor, connection.id]
-	)
-
-	const plusR = CONNECTION_CENTER_HANDLE_SIZE_PX / 3 - 1
-
-	if (!shouldShowCenterHandle) return null
-
-	return (
-		<g
-			className="ConnectionCenterHandle"
-			style={{
-				transform: `translate(${center.x}px, ${center.y}px) scale(max(0.5, calc(1 / var(--tl-zoom))))`,
-			}}
-			onPointerDown={editor.markEventAsHandled}
-			onClick={() => {
-				insertNodeWithinConnection(editor, connection)
-			}}
-		>
-			<circle
-				className="ConnectionCenterHandle-hover"
-				r={CONNECTION_CENTER_HANDLE_HOVER_SIZE_PX / 2}
-			/>
-			<circle className="ConnectionCenterHandle-ring" r={CONNECTION_CENTER_HANDLE_SIZE_PX / 2} />
-			<path
-				className="ConnectionCenterHandle-icon"
-				d={`M ${-plusR} 0 L ${plusR} 0 M 0 ${-plusR} L 0 ${plusR}`}
-			/>
-		</g>
 	)
 }
 

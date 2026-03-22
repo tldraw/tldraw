@@ -524,9 +524,6 @@ describe('getShapeUtil', () => {
 			component() {
 				throw new Error('Method not implemented.')
 			}
-			indicator() {
-				throw new Error('Method not implemented.')
-			}
 		}
 
 		myUtil = _MyFakeShapeUtil
@@ -936,9 +933,6 @@ describe('the geometry cache', () => {
 			})
 		}
 		component() {
-			throw new Error('Method not implemented.')
-		}
-		indicator() {
 			throw new Error('Method not implemented.')
 		}
 	}

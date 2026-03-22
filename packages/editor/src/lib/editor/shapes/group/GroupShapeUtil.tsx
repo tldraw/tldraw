@@ -78,12 +78,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		)
 	}
 
-	indicator(shape: TLGroupShape) {
-		// Not a class component, but eslint can't tell that :(
-		const bounds = this.editor.getShapeGeometry(shape).bounds
-		return <DashedOutlineBox className="" bounds={bounds} />
-	}
-
 	override onChildrenChange(group: TLGroupShape) {
 		const children = this.editor.getSortedChildIdsForParent(group.id)
 		if (children.length === 0) {

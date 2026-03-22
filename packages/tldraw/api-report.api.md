@@ -298,8 +298,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     hideSelectionBoundsFg(): boolean;
     // (undocumented)
-    indicator(shape: TLArrowShape): JSX.Element | null;
-    // (undocumented)
     static migrations: MigrationSequence;
     // (undocumented)
     onDoubleClickHandle(shape: TLArrowShape, handle: TLHandle): TLShapePartial<TLArrowShape> | void;
@@ -349,8 +347,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     toSvg(shape: TLArrowShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "arrow";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public
@@ -447,8 +443,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     hideSelectionBoundsFg(): boolean;
     // (undocumented)
-    indicator(shape: TLBookmarkShape): JSX.Element;
-    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onBeforeCreate(next: TLBookmarkShape): {
@@ -494,8 +488,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     static props: RecordProps<TLBookmarkShape>;
     // (undocumented)
     static type: "bookmark";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -1194,8 +1186,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     hideSelectionBoundsFg(shape: TLDrawShape): boolean;
     // (undocumented)
-    indicator(shape: TLDrawShape): JSX.Element;
-    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>): {
@@ -1212,8 +1202,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     toSvg(shape: TLDrawShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "draw";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -1446,8 +1434,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     hideSelectionBoundsFg(shape: TLEmbedShape): boolean;
     // (undocumented)
-    indicator(shape: TLEmbedShape): JSX.Element;
-    // (undocumented)
     isAspectRatioLocked(shape: TLEmbedShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -1461,8 +1447,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     static setEmbedDefinitions(embedDefinitions: readonly EmbedDefinition[]): void;
     // (undocumented)
     static type: "embed";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -1600,8 +1584,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     getText(shape: TLFrameShape): string | undefined;
     // (undocumented)
-    indicator(shape: TLFrameShape): JSX.Element;
-    // (undocumented)
     isExportBoundsContainer(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -1635,8 +1617,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     toSvg(shape: TLFrameShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "frame";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -1676,8 +1656,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     getInterpolatedProps(startShape: TLGeoShape, endShape: TLGeoShape, t: number): TLGeoShapeProps;
     // (undocumented)
     getText(shape: TLGeoShape): string;
-    // (undocumented)
-    indicator(shape: TLGeoShape): JSX.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -1802,8 +1780,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "geo";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -1956,8 +1932,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     hideSelectionBoundsFg(shape: TLHighlightShape): boolean;
     // (undocumented)
-    indicator(shape: TLHighlightShape): JSX.Element;
-    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>): {
@@ -1976,8 +1950,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     toSvg(shape: TLHighlightShape): JSX.Element;
     // (undocumented)
     static type: "highlight";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -2003,8 +1975,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
     // (undocumented)
-    indicator(shape: TLImageShape): JSX.Element | null;
-    // (undocumented)
     isAspectRatioLocked(): boolean;
     // (undocumented)
     isExportBoundsContainer(): boolean;
@@ -2020,8 +1990,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     toSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
     // (undocumented)
     static type: "image";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -2096,8 +2064,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     hideSelectionBoundsBg(): boolean;
     // (undocumented)
     hideSelectionBoundsFg(): boolean;
-    // (undocumented)
-    indicator(shape: TLLineShape): JSX.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -2179,8 +2145,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     toSvg(shape: TLLineShape): JSX.Element;
     // (undocumented)
     static type: "line";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -2255,8 +2219,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     hideResizeHandles(): boolean;
     // (undocumented)
     hideSelectionBoundsFg(): boolean;
-    // (undocumented)
-    indicator(shape: TLNoteShape): JSX.Element;
     // (undocumented)
     isAspectRatioLocked(): boolean;
     // (undocumented)
@@ -2339,8 +2301,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     toSvg(shape: TLNoteShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "note";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -3134,8 +3094,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     getText(shape: TLTextShape): string;
     // (undocumented)
-    indicator(shape: TLTextShape): JSX.Element | null;
-    // (undocumented)
     isAspectRatioLocked(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -3196,8 +3154,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     toSvg(shape: TLTextShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "text";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -3397,9 +3353,6 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 
 // @public (undocumented)
 export const TldrawSelectionForeground: NamedExoticComponent<TLSelectionForegroundProps>;
-
-// @public (undocumented)
-export function TldrawShapeIndicators(): JSX.Element;
 
 // @public (undocumented)
 export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
@@ -5717,8 +5670,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     getIndicatorPath(shape: TLVideoShape): Path2D;
     // (undocumented)
-    indicator(shape: TLVideoShape): JSX.Element;
-    // (undocumented)
     isAspectRatioLocked(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -5730,8 +5681,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     toSvg(shape: TLVideoShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
     // (undocumented)
     static type: "video";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)

@@ -55,7 +55,6 @@ class TestShape extends ShapeUtil<ITestShape> {
 	override canEdit() {
 		return true
 	}
-	indicator() {}
 	component() {}
 }
 

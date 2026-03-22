@@ -25,7 +25,6 @@ import {
 	modulate,
 	resizeBox,
 	structuredClone,
-	toDomPrecision,
 	useEditor,
 	useUniqueSafeId,
 	useValue,
@@ -171,28 +170,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 	component(shape: TLImageShape) {
 		return <ImageShape shape={shape} />
-	}
-
-	indicator(shape: TLImageShape) {
-		const isCropping = this.editor.getCroppingShapeId() === shape.id
-		if (isCropping) return null
-
-		if (shape.props.crop?.isCircle) {
-			return (
-				<ellipse
-					cx={toDomPrecision(shape.props.w / 2)}
-					cy={toDomPrecision(shape.props.h / 2)}
-					rx={toDomPrecision(shape.props.w / 2)}
-					ry={toDomPrecision(shape.props.h / 2)}
-				/>
-			)
-		}
-
-		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLImageShape): Path2D | undefined {

@@ -220,12 +220,6 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		)
 	}
 
-	indicator(shape: SpeechBubbleShape) {
-		const vertices = getSpeechBubbleVertices(shape)
-		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
-		return <path d={pathData} />
-	}
-
 	override onResize(shape: SpeechBubbleShape, info: TLResizeInfo<SpeechBubbleShape>) {
 		const resized = resizeBox(shape, info)
 		const next = structuredClone(info.initialShape)

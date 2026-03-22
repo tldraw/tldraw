@@ -133,8 +133,4 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 			</>
 		)
 	}
-
-	indicator(shape: SlideShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }

@@ -661,12 +661,6 @@ export function DefaultSelectionBackground({ bounds, rotation }: TLSelectionBack
 export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionForegroundProps): JSX.Element;
 
 // @public (undocumented)
-export const DefaultShapeIndicator: NamedExoticComponent<TLShapeIndicatorProps>;
-
-// @public (undocumented)
-export const DefaultShapeIndicators: NamedExoticComponent<TLShapeIndicatorsProps>;
-
-// @public (undocumented)
 export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
@@ -1987,8 +1981,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     hideSelectionBoundsFg(): boolean;
     // (undocumented)
-    indicator(shape: TLGroupShape): JSX.Element;
-    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onChildrenChange(group: TLGroupShape): void;
@@ -2839,7 +2831,8 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     hideRotateHandle(shape: Shape): boolean;
     hideSelectionBoundsBg(shape: Shape): boolean;
     hideSelectionBoundsFg(shape: Shape): boolean;
-    abstract indicator(shape: Shape): any;
+    // @deprecated (undocumented)
+    indicator(shape: Shape): any;
     isAspectRatioLocked(shape: Shape): boolean;
     isExportBoundsContainer(shape: Shape): boolean;
     static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
@@ -2884,7 +2877,6 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     static type: string;
-    useLegacyIndicator(): boolean;
 }
 
 // @public
@@ -3632,8 +3624,6 @@ export interface TLEditorComponents {
     // (undocumented)
     CollaboratorScribble?: ComponentType<TLScribbleProps> | null;
     // (undocumented)
-    CollaboratorShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null;
-    // (undocumented)
     Cursor?: ComponentType<TLCursorProps> | null;
     // (undocumented)
     ErrorFallback?: TLErrorFallbackComponent;
@@ -3659,12 +3649,6 @@ export interface TLEditorComponents {
     SelectionForeground?: ComponentType<TLSelectionForegroundProps> | null;
     // (undocumented)
     ShapeErrorFallback?: TLShapeErrorFallbackComponent;
-    // (undocumented)
-    ShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null;
-    // (undocumented)
-    ShapeIndicatorErrorFallback?: TLShapeIndicatorErrorFallbackComponent;
-    // (undocumented)
-    ShapeIndicators?: ComponentType | null;
     // (undocumented)
     ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null;
     // (undocumented)
@@ -4362,33 +4346,6 @@ export interface TLSessionStateSnapshot {
 export type TLShapeErrorFallbackComponent = ComponentType<{
     error: any;
 }>;
-
-// @public (undocumented)
-export type TLShapeIndicatorErrorFallbackComponent = ComponentType<{
-    error: unknown;
-}>;
-
-// @public (undocumented)
-export interface TLShapeIndicatorProps {
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    color?: string | undefined;
-    // (undocumented)
-    hidden?: boolean;
-    // (undocumented)
-    opacity?: number;
-    // (undocumented)
-    shapeId: TLShapeId;
-    // (undocumented)
-    userId?: string;
-}
-
-// @public (undocumented)
-export interface TLShapeIndicatorsProps {
-    hideAll?: boolean;
-    showAll?: boolean;
-}
 
 // @public
 export interface TLShapeUtilCanBeLaidOutOpts {

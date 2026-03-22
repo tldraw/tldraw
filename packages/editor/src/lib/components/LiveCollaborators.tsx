@@ -45,13 +45,8 @@ const Collaborator = track(function Collaborator({
 }) {
 	const editor = useEditor()
 
-	const {
-		CollaboratorBrush,
-		CollaboratorScribble,
-		CollaboratorCursor,
-		CollaboratorHint,
-		CollaboratorShapeIndicator,
-	} = useEditorComponents()
+	const { CollaboratorBrush, CollaboratorScribble, CollaboratorCursor, CollaboratorHint } =
+		useEditorComponents()
 
 	const zoomLevel = editor.getZoomLevel()
 	const viewportPageBounds = editor.getViewportPageBounds()
@@ -118,28 +113,6 @@ const Collaborator = track(function Collaborator({
 					))}
 				</>
 			) : null}
-			{CollaboratorShapeIndicator &&
-				selectedShapeIds
-					.filter((id) => {
-						// Skip hidden shapes
-						if (editor.isShapeHidden(id)) return false
-						// Only render SVG indicators for shapes that use legacy indicators
-						// Canvas-based indicators are handled by CanvasShapeIndicators
-						const shape = editor.getShape(id)
-						if (!shape) return false
-						const util = editor.getShapeUtil(shape)
-						return util.useLegacyIndicator()
-					})
-					.map((shapeId) => (
-						<CollaboratorShapeIndicator
-							className="tl-collaborator__shape-indicator"
-							key={userId + '_' + shapeId}
-							userId={userId}
-							shapeId={shapeId}
-							color={color}
-							opacity={0.5}
-						/>
-					))}
 		</>
 	)
 })

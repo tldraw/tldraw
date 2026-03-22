@@ -98,12 +98,6 @@ export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 		return null as any
 	}
 
-	override indicator(_shape: CircleClipShape) {
-		// For testing purposes, we'll just return null
-		// In a real implementation, this would return JSX
-		return null as any
-	}
-
 	override onResize(shape: CircleClipShape, info: TLResizeInfo<CircleClipShape>) {
 		return resizeBox(shape, info)
 	}

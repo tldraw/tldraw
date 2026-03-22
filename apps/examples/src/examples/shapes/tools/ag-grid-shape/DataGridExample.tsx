@@ -57,9 +57,6 @@ class AgGridShapeUtil extends BaseBoxShapeUtil<AgGridShape> {
 			</div>
 		)
 	}
-	override indicator(shape: AgGridShape) {
-		return <rect width={shape.props.w} height={shape.props.h} rx={8} ry={8} />
-	}
 }
 
 export default function DataGridExample() {

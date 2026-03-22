@@ -86,10 +86,6 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 			/>
 		)
 	}
-
-	override indicator(shape: ContainerShape) {
-		return <rect width={shape.props.width} height={shape.props.height} />
-	}
 }
 
 // The element shapes that can be placed inside the container shapes
@@ -136,10 +132,6 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 
 	override component(shape: ElementShape) {
 		return <HTMLContainer style={{ backgroundColor: shape.props.color }}></HTMLContainer>
-	}
-
-	override indicator() {
-		return <rect width={100} height={100} />
 	}
 
 	private getTargetContainer(shape: ElementShape, pageAnchor: Vec) {

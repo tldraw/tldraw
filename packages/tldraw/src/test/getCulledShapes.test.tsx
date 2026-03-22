@@ -42,10 +42,6 @@ class UncullableShapeUtil extends BaseBoxShapeUtil<UncullableShape> {
 	override component() {
 		return <div>Uncullable shape</div>
 	}
-
-	override indicator() {
-		return <div>Uncullable shape</div>
-	}
 }
 
 let editor: TestEditor

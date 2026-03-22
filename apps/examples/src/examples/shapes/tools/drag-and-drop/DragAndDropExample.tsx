@@ -56,10 +56,6 @@ class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 			/>
 		)
 	}
-
-	indicator() {
-		return <circle r={SLOT_SIZE / 2 - 10} cx={SLOT_SIZE / 2 - 10} cy={SLOT_SIZE / 2 - 10} />
-	}
 }
 
 // [4]
@@ -123,10 +119,6 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 				}}
 			/>
 		)
-	}
-
-	indicator() {
-		return <rect width={SLOT_SIZE * 5} height={SLOT_SIZE * 2} />
 	}
 }
 
