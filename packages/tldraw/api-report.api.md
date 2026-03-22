@@ -451,6 +451,10 @@ export interface BasePathBuilderOpts {
 }
 
 // @public (undocumented)
+export interface BookmarkShapeOptions extends ShapeOptionsWithDisplayValues<TLBookmarkShape, BookmarkShapeUtilDisplayValues> {
+}
+
+// @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     canResize(): boolean;
@@ -513,7 +517,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    options: BookmarkShapeUtilOptions;
+    options: BookmarkShapeOptions;
     // (undocumented)
     static props: RecordProps<TLBookmarkShape>;
     // (undocumented)
@@ -524,10 +528,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 // @public (undocumented)
 export type BookmarkShapeUtilDisplayValues = object;
-
-// @public (undocumented)
-export interface BookmarkShapeUtilOptions extends ShapeOptionsWithDisplayValues<TLBookmarkShape, BookmarkShapeUtilDisplayValues> {
-}
 
 // @public (undocumented)
 export interface BoxWidthHeight {
@@ -1436,7 +1436,7 @@ export interface EmbedDefinition {
 }
 
 // @public (undocumented)
-export interface EmbedShapeOptions {
+export interface EmbedShapeOptions extends ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues> {
     readonly embedDefinitions: readonly TLEmbedDefinition[];
 }
 
@@ -1497,7 +1497,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>): TLEmbedShape;
     // (undocumented)
-    options: EmbedShapeUtilOptions;
+    options: EmbedShapeOptions;
     // (undocumented)
     static props: RecordProps<TLEmbedShape>;
     // @deprecated (undocumented)
@@ -1512,10 +1512,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 export interface EmbedShapeUtilDisplayValues {
     // (undocumented)
     showShadow: boolean;
-}
-
-// @public (undocumented)
-export interface EmbedShapeUtilOptions extends ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues>, EmbedShapeOptions {
 }
 
 // @public (undocumented)
@@ -1714,6 +1710,12 @@ export interface FrameShapeUtilDisplayValues {
 export function FrameToolbarItem(): JSX.Element;
 
 // @public (undocumented)
+export interface GeoShapeOptions extends ShapeOptionsWithDisplayValues<TLGeoShape, GeoShapeUtilDisplayValues> {
+    // (undocumented)
+    showTextOutline: boolean;
+}
+
+// @public (undocumented)
 export class GeoShapeTool extends StateNode {
     // (undocumented)
     static children(): TLStateNodeConstructor[];
@@ -1864,7 +1866,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     };
     // (undocumented)
-    options: GeoShapeUtilOptions;
+    options: GeoShapeOptions;
     // (undocumented)
     static props: RecordProps<TLGeoShape>;
     // (undocumented)
@@ -1915,12 +1917,6 @@ export interface GeoShapeUtilDisplayValues {
     strokeRoundness: number;
     // (undocumented)
     strokeWidth: number;
-}
-
-// @public (undocumented)
-export interface GeoShapeUtilOptions extends ShapeOptionsWithDisplayValues<TLGeoShape, GeoShapeUtilDisplayValues> {
-    // (undocumented)
-    showTextOutline: boolean;
 }
 
 // @public (undocumented)
@@ -2121,6 +2117,10 @@ export function HighlightToolbarItem(): JSX.Element;
 export const iconTypes: readonly ["align-bottom", "align-center-horizontal", "align-center-vertical", "align-left", "align-right", "align-top", "alt", "arrow-arc", "arrow-cycle", "arrow-elbow", "arrow-left", "arrowhead-arrow", "arrowhead-bar", "arrowhead-diamond", "arrowhead-dot", "arrowhead-none", "arrowhead-square", "arrowhead-triangle-inverted", "arrowhead-triangle", "blob", "bold", "bookmark", "bring-forward", "bring-to-front", "broken", "bulletList", "check-circle", "check", "chevron-down", "chevron-left", "chevron-right", "chevron-up", "chevrons-ne", "chevrons-sw", "clipboard-copied", "clipboard-copy", "code", "color", "comment", "corners", "crop", "cross-2", "cross-circle", "dash-dashed", "dash-dotted", "dash-draw", "dash-solid", "disconnected", "discord", "distribute-horizontal", "distribute-vertical", "dot", "dots-horizontal", "dots-vertical", "download", "drag-handle-dots", "duplicate", "edit", "external-link", "fill-fill", "fill-lined-fill", "fill-none", "fill-pattern", "fill-semi", "fill-solid", "follow", "following", "font-draw", "font-mono", "font-sans", "font-serif", "geo-arrow-down", "geo-arrow-left", "geo-arrow-right", "geo-arrow-up", "geo-check-box", "geo-cloud", "geo-diamond", "geo-ellipse", "geo-heart", "geo-hexagon", "geo-octagon", "geo-oval", "geo-pentagon", "geo-rectangle", "geo-rhombus-2", "geo-rhombus", "geo-star", "geo-trapezoid", "geo-triangle", "geo-x-box", "github", "group", "heading", "help-circle", "highlight", "horizontal-align-end", "horizontal-align-middle", "horizontal-align-start", "info-circle", "italic", "leading", "link", "list", "lock", "manual", "menu", "minus", "mixed", "pack", "plus", "question-mark-circle", "question-mark", "redo", "reset-zoom", "rotate-ccw", "rotate-cw", "send-backward", "send-to-back", "share-1", "size-extra-large", "size-large", "size-medium", "size-small", "spline-cubic", "spline-line", "stack-horizontal", "stack-vertical", "status-offline", "stretch-horizontal", "stretch-vertical", "strike", "text-align-center", "text-align-left", "text-align-right", "toggle-off", "toggle-on", "tool-arrow", "tool-eraser", "tool-frame", "tool-hand", "tool-highlight", "tool-laser", "tool-line", "tool-media", "tool-note", "tool-pencil", "tool-pointer", "tool-screenshot", "tool-text", "trash", "twitter", "underline", "undo", "ungroup", "unlock", "vertical-align-end", "vertical-align-middle", "vertical-align-start", "warning-triangle", "zoom-in", "zoom-out"];
 
 // @public (undocumented)
+export interface ImageShapeOptions extends ShapeOptionsWithDisplayValues<TLImageShape, ImageShapeUtilDisplayValues> {
+}
+
+// @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop(): boolean;
@@ -2149,7 +2149,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>): TLImageShape;
     // (undocumented)
-    options: ImageShapeUtilOptions;
+    options: ImageShapeOptions;
     // (undocumented)
     static props: RecordProps<TLImageShape>;
     // (undocumented)
@@ -2162,10 +2162,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 // @public (undocumented)
 export interface ImageShapeUtilDisplayValues {
-}
-
-// @public (undocumented)
-export interface ImageShapeUtilOptions extends ShapeOptionsWithDisplayValues<TLImageShape, ImageShapeUtilDisplayValues> {
 }
 
 // @public (undocumented)
@@ -2198,6 +2194,10 @@ export class LaserTool extends StateNode {
 
 // @public (undocumented)
 export function LaserToolbarItem(): JSX.Element;
+
+// @public (undocumented)
+export interface LineShapeOptions extends ShapeOptionsWithDisplayValues<TLLineShape, LineShapeUtilDisplayValues> {
+}
 
 // @public (undocumented)
 export class LineShapeTool extends StateNode {
@@ -2315,7 +2315,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         };
     };
     // (undocumented)
-    options: LineShapeUtilOptions;
+    options: LineShapeOptions;
     // (undocumented)
     static props: RecordProps<TLLineShape>;
     // (undocumented)
@@ -2332,10 +2332,6 @@ export interface LineShapeUtilDisplayValues {
     strokeColor: string;
     // (undocumented)
     strokeWidth: number;
-}
-
-// @public (undocumented)
-export interface LineShapeUtilOptions extends ShapeOptionsWithDisplayValues<TLLineShape, LineShapeUtilDisplayValues> {
 }
 
 // @public (undocumented)
@@ -2367,6 +2363,11 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
     opts?: PathBuilderLineOpts;
     // (undocumented)
     type: 'move';
+}
+
+// @public (undocumented)
+export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<TLNoteShape, NoteShapeUtilDisplayValues> {
+    resizeMode: 'none' | 'scale';
 }
 
 // @public (undocumented)
@@ -2482,7 +2483,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    options: NoteShapeUtilOptions;
+    options: NoteShapeOptions;
     // (undocumented)
     static props: RecordProps<TLNoteShape>;
     // (undocumented)
@@ -2525,11 +2526,6 @@ export interface NoteShapeUtilDisplayValues {
     noteHeight: number;
     // (undocumented)
     noteWidth: number;
-}
-
-// @public (undocumented)
-export interface NoteShapeUtilOptions extends ShapeOptionsWithDisplayValues<TLNoteShape, NoteShapeUtilDisplayValues> {
-    resizeMode: 'none' | 'scale';
 }
 
 // @public (undocumented)

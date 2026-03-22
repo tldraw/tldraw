@@ -1764,6 +1764,37 @@ describe('Make font size adjustment a ratio on notes', () => {
 	})
 })
 
+describe('Font size adjustment identity on notes', () => {
+	const { up, down } = getTestMigration(noteShapeVersions.FontSizeAdjustmentIdentity)
+
+	test('up converts 0 to 1', () => {
+		expect(up({ props: { fontSizeAdjustment: 0 } })).toEqual({
+			props: { fontSizeAdjustment: 1 },
+		})
+	})
+
+	test('up leaves other values unchanged', () => {
+		expect(up({ props: { fontSizeAdjustment: 0.85 } })).toEqual({
+			props: { fontSizeAdjustment: 0.85 },
+		})
+		expect(up({ props: { fontSizeAdjustment: null } })).toEqual({
+			props: { fontSizeAdjustment: null },
+		})
+	})
+
+	test('down converts 1 to 0', () => {
+		expect(down({ props: { fontSizeAdjustment: 1 } })).toEqual({
+			props: { fontSizeAdjustment: 0 },
+		})
+	})
+
+	test('down leaves other values unchanged', () => {
+		expect(down({ props: { fontSizeAdjustment: 0.85 } })).toEqual({
+			props: { fontSizeAdjustment: 0.85 },
+		})
+	})
+})
+
 describe('removes can move camera', () => {
 	const { up, down } = getTestMigration(instanceVersions.RemoveCanMoveCamera)
 

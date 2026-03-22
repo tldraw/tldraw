@@ -141,7 +141,7 @@ export { createBookmarkFromUrl } from './lib/shapes/bookmark/bookmarks'
 export {
 	BookmarkShapeUtil,
 	type BookmarkShapeUtilDisplayValues,
-	type BookmarkShapeUtilOptions,
+	type BookmarkShapeOptions,
 } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
 export {
@@ -153,7 +153,6 @@ export {
 	EmbedShapeUtil,
 	type EmbedShapeOptions,
 	type EmbedShapeUtilDisplayValues,
-	type EmbedShapeUtilOptions,
 } from './lib/shapes/embed/EmbedShapeUtil'
 export { FrameShapeTool } from './lib/shapes/frame/FrameShapeTool'
 export {
@@ -165,7 +164,7 @@ export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
 export {
 	GeoShapeUtil,
 	type GeoShapeUtilDisplayValues,
-	type GeoShapeUtilOptions,
+	type GeoShapeOptions,
 } from './lib/shapes/geo/GeoShapeUtil'
 export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
 export {
@@ -176,19 +175,19 @@ export {
 export {
 	ImageShapeUtil,
 	type ImageShapeUtilDisplayValues,
-	type ImageShapeUtilOptions,
+	type ImageShapeOptions,
 } from './lib/shapes/image/ImageShapeUtil'
 export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export {
 	LineShapeUtil,
 	type LineShapeUtilDisplayValues,
-	type LineShapeUtilOptions,
+	type LineShapeOptions,
 } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export {
 	NoteShapeUtil,
 	type NoteShapeUtilDisplayValues,
-	type NoteShapeUtilOptions,
+	type NoteShapeOptions,
 } from './lib/shapes/note/NoteShapeUtil'
 export {
 	ASPECT_RATIO_OPTIONS,

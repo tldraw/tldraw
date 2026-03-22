@@ -37,16 +37,13 @@ export interface EmbedShapeUtilDisplayValues {
 }
 
 /** @public */
-export interface EmbedShapeOptions {
+export interface EmbedShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLEmbedShape,
+	EmbedShapeUtilDisplayValues
+> {
 	/** The embed definitions to use for this shape util. */
 	readonly embedDefinitions: readonly TLEmbedDefinition[]
 }
-
-/** @public */
-export interface EmbedShapeOptions
-	extends
-		ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues>,
-		EmbedShapeOptions {}
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 	return Object.entries(permissions)

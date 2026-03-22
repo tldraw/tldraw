@@ -144,6 +144,7 @@ const Versions = createShapePropsMigrationIds('note', {
 	AddRichText: 9,
 	AddRichTextAttrs: 10,
 	MakeFontSizeAdjustmentRatio: 11,
+	FontSizeAdjustmentIdentity: 12,
 })
 
 /**
@@ -273,6 +274,19 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				props.fontSizeAdjustment = 1
+			},
+		},
+		{
+			id: Versions.FontSizeAdjustmentIdentity,
+			up: (props) => {
+				if (props.fontSizeAdjustment === 0) {
+					props.fontSizeAdjustment = 1
+				}
+			},
+			down: (props) => {
+				if (props.fontSizeAdjustment === 1) {
+					props.fontSizeAdjustment = 0
+				}
 			},
 		},
 	],
