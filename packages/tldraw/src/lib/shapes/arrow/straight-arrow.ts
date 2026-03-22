@@ -15,7 +15,8 @@ import {
 export function getStraightArrowInfo(
 	editor: Editor,
 	shape: TLArrowShape,
-	bindings: TLArrowBindings
+	bindings: TLArrowBindings,
+	arrowStrokeWidth?: number
 ): TLArrowInfo {
 	const { arrowheadStart, arrowheadEnd } = shape.props
 
@@ -87,6 +88,7 @@ export function getStraightArrowInfo(
 	let minLength = MIN_ARROW_LENGTH * shape.props.scale
 
 	const theme = editor.getCurrentTheme()
+	const arrowSW = arrowStrokeWidth ?? theme.strokeWidth * STROKE_SIZES[shape.props.size]
 
 	const isSelfIntersection =
 		startShapeInfo && endShapeInfo && startShapeInfo.shape === endShapeInfo.shape
@@ -135,7 +137,7 @@ export function getStraightArrowInfo(
 			!startShapeInfo.isExact
 		) {
 			strokeOffsetA =
-				(theme.strokeWidth * STROKE_SIZES[shape.props.size]) / 2 +
+				arrowSW / 2 +
 				('size' in startShapeInfo.shape.props
 					? (theme.strokeWidth * STROKE_SIZES[startShapeInfo.shape.props.size]) / 2
 					: 0)
@@ -152,7 +154,7 @@ export function getStraightArrowInfo(
 			!endShapeInfo.isExact
 		) {
 			strokeOffsetB =
-				(theme.strokeWidth * STROKE_SIZES[shape.props.size]) / 2 +
+				arrowSW / 2 +
 				('size' in endShapeInfo.shape.props
 					? (theme.strokeWidth * STROKE_SIZES[endShapeInfo.shape.props.size]) / 2
 					: 0)

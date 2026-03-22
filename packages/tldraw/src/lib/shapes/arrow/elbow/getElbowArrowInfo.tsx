@@ -43,7 +43,8 @@ import {
 export function getElbowArrowInfo(
 	editor: Editor,
 	arrow: TLArrowShape,
-	bindings: TLArrowBindings
+	bindings: TLArrowBindings,
+	arrowStrokeWidth?: number
 ): ElbowArrowInfo {
 	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
 	const options: ElbowArrowOptions = {
@@ -54,8 +55,20 @@ export function getElbowArrowInfo(
 
 	// Before we can do anything else, we need to find the start and end terminals of the arrow.
 	// These contain the binding info, geometry, bounds, etc.
-	let startTerminal = getElbowArrowTerminalInfo(editor, arrow, bindings.start, arrow.props.start)
-	let endTerminal = getElbowArrowTerminalInfo(editor, arrow, bindings.end, arrow.props.end)
+	let startTerminal = getElbowArrowTerminalInfo(
+		editor,
+		arrow,
+		bindings.start,
+		arrow.props.start,
+		arrowStrokeWidth
+	)
+	let endTerminal = getElbowArrowTerminalInfo(
+		editor,
+		arrow,
+		bindings.end,
+		arrow.props.end,
+		arrowStrokeWidth
+	)
 	// unclosed paths are weird - we handle them outside of the initial terminal info.
 	startTerminal = adjustTerminalForUnclosedPathIfNeeded(startTerminal, endTerminal, options)
 	endTerminal = adjustTerminalForUnclosedPathIfNeeded(endTerminal, startTerminal, options)
@@ -346,11 +359,12 @@ function getElbowArrowTerminalInfo(
 	editor: Editor,
 	arrow: TLArrowShape,
 	binding: TLArrowBinding | undefined,
-	point: VecModel
+	point: VecModel,
+	arrowStrokeWidth?: number
 ): ElbowArrowTerminal {
 	const theme = editor.getCurrentTheme()
-	const arrowStrokeSize =
-		(theme.strokeWidth * STROKE_SIZES[arrow.props.size] * arrow.props.scale) / 2
+	const arrowSW = arrowStrokeWidth ?? theme.strokeWidth * STROKE_SIZES[arrow.props.size]
+	const arrowStrokeSize = (arrowSW * arrow.props.scale) / 2
 	const minEndSegmentLength = arrowStrokeSize * 3
 
 	if (binding) {

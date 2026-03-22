@@ -28,7 +28,8 @@ import { getStraightArrowInfo } from './straight-arrow'
 export function getCurvedArrowInfo(
 	editor: Editor,
 	shape: TLArrowShape,
-	bindings: TLArrowBindings
+	bindings: TLArrowBindings,
+	arrowStrokeWidth?: number
 ): TLArrowInfo {
 	const { arrowheadEnd, arrowheadStart } = shape.props
 	const bend = shape.props.bend
@@ -37,7 +38,7 @@ export function getCurvedArrowInfo(
 		Math.abs(bend) >
 		Math.abs(shape.props.bend * (WAY_TOO_BIG_ARROW_BEND_FACTOR * shape.props.scale))
 	) {
-		return getStraightArrowInfo(editor, shape, bindings)
+		return getStraightArrowInfo(editor, shape, bindings, arrowStrokeWidth)
 	}
 
 	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(editor, shape, bindings)
@@ -49,6 +50,7 @@ export function getCurvedArrowInfo(
 	const middle = Vec.Add(med, u.per().mul(-bend)) // middle handle
 
 	const theme = editor.getCurrentTheme()
+	const arrowSW = arrowStrokeWidth ?? theme.strokeWidth * STROKE_SIZES[shape.props.size]
 
 	const startShapeInfo = getBoundShapeInfoForTerminal(editor, shape, 'start')
 	const endShapeInfo = getBoundShapeInfoForTerminal(editor, shape, 'end')
@@ -93,7 +95,7 @@ export function getCurvedArrowInfo(
 		!isSafeFloat(handleArc.length) ||
 		!isSafeFloat(handleArc.size)
 	) {
-		return getStraightArrowInfo(editor, shape, bindings)
+		return getStraightArrowInfo(editor, shape, bindings, arrowStrokeWidth)
 	}
 
 	const tempA = a.clone()
@@ -178,7 +180,7 @@ export function getCurvedArrowInfo(
 
 			if (arrowheadStart !== 'none') {
 				const strokeOffset =
-					(theme.strokeWidth * STROKE_SIZES[shape.props.size]) / 2 +
+					arrowSW / 2 +
 					('size' in startShapeInfo.shape.props
 						? (theme.strokeWidth * STROKE_SIZES[startShapeInfo.shape.props.size]) / 2
 						: 0)
@@ -261,7 +263,7 @@ export function getCurvedArrowInfo(
 
 			if (arrowheadEnd !== 'none') {
 				const strokeOffset =
-					(theme.strokeWidth * STROKE_SIZES[shape.props.size]) / 2 +
+					arrowSW / 2 +
 					('size' in endShapeInfo.shape.props
 						? (theme.strokeWidth * STROKE_SIZES[endShapeInfo.shape.props.size]) / 2
 						: 0)

@@ -18,6 +18,7 @@ import {
 	toFixed,
 	uniqueId,
 } from '@tldraw/editor'
+import { getDisplayValues } from '../../shared/getDisplayValues'
 import { HighlightShapeUtil } from '../../highlight/HighlightShapeUtil'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { DrawShapeUtil } from '../DrawShapeUtil'
@@ -143,11 +144,18 @@ export class Drawing extends StateNode {
 		return this.shapeType !== 'highlight'
 	}
 
-	getIsClosed(segments: TLDrawShapeSegment[], size: TLDefaultSizeStyle, scale: number) {
+	getIsClosed(
+		segments: TLDrawShapeSegment[],
+		size: TLDefaultSizeStyle,
+		scale: number,
+		strokeWidth?: number
+	) {
 		if (!this.canClose()) return false
 
-		const theme = this.editor.getCurrentTheme()
-		const strokeWidth = theme.strokeWidth * STROKE_SIZES[size]
+		if (strokeWidth === undefined) {
+			const theme = this.editor.getCurrentTheme()
+			strokeWidth = theme.strokeWidth * STROKE_SIZES[size]
+		}
 		const firstPoint = b64Vecs.decodeFirstPoint(segments[0].path)
 		const lastSegment = segments[segments.length - 1]
 		const lastPoint = b64Vecs.decodeLastPoint(lastSegment.path)
@@ -230,10 +238,9 @@ export class Drawing extends StateNode {
 				this.pagePointWhereNextSegmentChanged = null
 				const segments = [...shape.props.segments, newSegment]
 
-				if (
-					this.currentLineLength <
-					this.editor.getCurrentTheme().strokeWidth * STROKE_SIZES[shape.props.size] * 4
-				) {
+				const dvStrokeWidth = (getDisplayValues(this.util as any, shape) as { strokeWidth: number })
+					.strokeWidth
+				if (this.currentLineLength < dvStrokeWidth * 4) {
 					this.currentLineLength = this.getLineLength(segments)
 				}
 
@@ -435,10 +442,10 @@ export class Drawing extends StateNode {
 
 					const finalSegments = [...newSegments, newFreeSegment]
 
-					if (
-						this.currentLineLength <
-						this.editor.getCurrentTheme().strokeWidth * STROKE_SIZES[shape.props.size] * 4
-					) {
+					const dvStrokeWidth = (
+						getDisplayValues(this.util as any, shape) as { strokeWidth: number }
+					).strokeWidth
+					if (this.currentLineLength < dvStrokeWidth * 4) {
 						this.currentLineLength = this.getLineLength(finalSegments)
 					}
 
@@ -637,10 +644,9 @@ export class Drawing extends StateNode {
 					path: b64Vecs.encodePoints(cachedPoints),
 				}
 
-				if (
-					this.currentLineLength <
-					this.editor.getCurrentTheme().strokeWidth * STROKE_SIZES[shape.props.size] * 4
-				) {
+				const dvStrokeWidth = (getDisplayValues(this.util as any, shape) as { strokeWidth: number })
+					.strokeWidth
+				if (this.currentLineLength < dvStrokeWidth * 4) {
 					this.currentLineLength = this.getLineLength(newSegments)
 				}
 
