@@ -13,9 +13,7 @@ custom_domain = true
 
 # Set up the durable object used for each tldraw room
 [durable_objects]
-bindings = [
-    { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
-]
+bindings = [{ name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" }]
 
 # Durable objects require migrations to create/modify/delete them
 [[migrations]]
@@ -24,6 +22,4 @@ new_classes = ["TldrawAiDurableObject"]
 
 [[migrations]]
 tag = "v2"
-renamed_classes = [
-    { from = "TldrawAiDurableObject", to = "AgentDurableObject" },
-]
+renamed_classes = [{ from = "TldrawAiDurableObject", to = "AgentDurableObject" }]
