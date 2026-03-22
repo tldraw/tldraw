@@ -76,14 +76,14 @@ const options: Partial<TldrawOptions> = {
 					prevented: false,
 					detail: `${kinds}${state.useAsyncCallbacks ? ' (async)' : ''}`,
 				})
-				return false
+			} else {
+				addLog({
+					action: 'raw-paste',
+					source: 'menu',
+					prevented: false,
+					detail: `${info.clipboardItems.length} clipboard item(s)${state.useAsyncCallbacks ? ' (async)' : ''}`,
+				})
 			}
-			addLog({
-				action: 'raw-paste',
-				source: 'menu',
-				prevented: false,
-				detail: `${info.clipboardItems.length} clipboard item(s)${state.useAsyncCallbacks ? ' (async)' : ''}`,
-			})
 		}
 
 		if (state.useAsyncCallbacks) {
