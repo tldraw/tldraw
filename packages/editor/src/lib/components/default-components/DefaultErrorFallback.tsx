@@ -24,6 +24,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 
 	let Canvas: React.ComponentType | null = null
 	try {
+		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const components = useEditorComponents()
 		Canvas = components.Canvas ?? null
 	} catch {

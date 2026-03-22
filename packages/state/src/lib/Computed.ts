@@ -227,7 +227,7 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 
 	children = new ArraySet<Child>()
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get isActivelyListening(): boolean {
 		return !this.children.isEmpty
 	}

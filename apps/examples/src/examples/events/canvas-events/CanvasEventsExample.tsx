@@ -55,7 +55,7 @@ export default function CanvasEventsExample() {
 	)
 }
 
-/* 
+/*
 This example shows how to listen to canvas events. This includes things like pointer and 
 keyboard events, but not things such as undo/redo, create/delete shapes, etc. Those are store events.
 

@@ -37,7 +37,7 @@
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "cd ../.. && yarn run -T oxlint packages/mermaid"
 	},
 	"dependencies": {
 		"@tldraw/tlschema": "workspace:*",
@@ -45,6 +45,8 @@
 		"mermaid": "11.12.2"
 	},
 	"peerDependencies": {
+		"react": "^18.2.0 || ^19.2.1",
+		"react-dom": "^18.2.0 || ^19.2.1",
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {

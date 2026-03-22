@@ -32,7 +32,7 @@ export class AtomSet<T> {
 	has(value: T): boolean {
 		return this.map.has(value)
 	}
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get size(): number {
 		return this.map.size
 	}

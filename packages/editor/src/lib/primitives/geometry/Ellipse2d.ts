@@ -23,7 +23,7 @@ export class Ellipse2d extends Geometry2d {
 		this._h = height
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get edges() {
 		if (!this._edges) {
 			const { vertices } = this
