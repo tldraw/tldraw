@@ -241,7 +241,7 @@ For built-in shapes, override how theme colors are applied using `getDisplayValu
 import { GeoShapeUtil, type GeoShapeUtilDisplayValues } from 'tldraw'
 
 const CustomGeoShapeUtil = GeoShapeUtil.configure({
-	getDisplayValueOverrides(_editor, shape, theme): Partial<GeoShapeUtilDisplayValues> {
+	getDisplayValueOverrides(_editor, shape, theme, _options): Partial<GeoShapeUtilDisplayValues> {
 		if (shape.isLocked) {
 			return { fillColor: theme.colors.red.solid }
 		}
@@ -250,6 +250,33 @@ const CustomGeoShapeUtil = GeoShapeUtil.configure({
 	},
 })
 ```
+
+Frame, note, and highlight shapes define their own per-theme color maps as shape options. To customize them, use `.configure()`:
+
+```typescript
+import { NoteShapeUtil } from 'tldraw'
+
+const CustomNoteUtil = NoteShapeUtil.configure({
+	noteColors: {
+		light: {
+			black: { fill: '#E8F5E9', text: '#1B5E20' }, // green-tinted notes
+			blue: { fill: '#E3F2FD', text: '#0D47A1' },
+			// ... other colors
+		},
+		dark: {
+			black: { fill: '#1B5E20', text: '#E8F5E9' },
+			blue: { fill: '#0D47A1', text: '#E3F2FD' },
+			// ... other colors
+		},
+	},
+	noteBorder: {
+		light: '#A5D6A7',
+		dark: '#2E7D32',
+	},
+})
+```
+
+Similarly, `FrameShapeUtil.configure({ frameColors: { ... } })` and `HighlightShapeUtil.configure({ highlightColors: { ... } })` let you override frame and highlight colors.
 
 For custom shapes, call `this.editor.getCurrentTheme()` or `useEditor().getCurrentTheme()` directly in your `component` and `indicator` methods:
 
