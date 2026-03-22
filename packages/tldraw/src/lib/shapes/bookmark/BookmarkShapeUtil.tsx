@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-empty-object-type
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
@@ -33,7 +34,6 @@ import {
 export type BookmarkShapeUtilDisplayValues = object
 
 /** @public */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface BookmarkShapeUtilOptions extends ShapeOptionsWithDisplayValues<
 	TLBookmarkShape,
 	BookmarkShapeUtilDisplayValues

@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-empty-object-type
 import {
 	BaseBoxShapeUtil,
 	Editor,
@@ -50,11 +51,9 @@ async function getDataURIFromURL(url: string): Promise<string> {
 const imageSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ImageShapeUtilDisplayValues {}
 
 /** @public */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ImageShapeUtilOptions extends ShapeOptionsWithDisplayValues<
 	TLImageShape,
 	ImageShapeUtilDisplayValues
