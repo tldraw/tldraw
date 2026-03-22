@@ -128,7 +128,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return editor.inputs.getCtrlKey()
 		},
 		showTextOutline: true,
-		getDisplayValues(_editor, shape, theme): ArrowShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme, _options): ArrowShapeUtilDisplayValues {
 			const { color, fill, labelColor, size, font } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),
@@ -148,7 +148,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				labelBorderRadius: 3.5,
 			}
 		},
-		getDisplayValueOverrides(): Partial<ArrowShapeUtilDisplayValues> {
+		getDisplayValueOverrides(
+			_editor,
+			_shape,
+			_theme,
+			_options
+		): Partial<ArrowShapeUtilDisplayValues> {
 			return {}
 		},
 	}

@@ -1596,6 +1596,13 @@ export function FitFrameToContentMenuItem(): JSX.Element | null;
 
 // @public (undocumented)
 export interface FrameShapeOptions extends ShapeOptionsWithDisplayValues<TLFrameShape, FrameShapeUtilDisplayValues> {
+    frameColors: Record<string, Record<string, {
+        fill: string;
+        headingFill: string;
+        headingStroke: string;
+        stroke: string;
+        text: string;
+    }>>;
     resizeChildren: boolean;
     showColors: boolean;
 }
@@ -2032,6 +2039,10 @@ export function hideAllTooltips(): void;
 
 // @public (undocumented)
 export interface HighlightShapeOptions extends ShapeOptionsWithDisplayValues<TLHighlightShape, HighlightShapeUtilDisplayValues> {
+    highlightColors: Record<string, Record<string, {
+        p3: string;
+        srgb: string;
+    }>>;
     readonly maxPointsPerShape: number;
 }
 
@@ -2367,6 +2378,11 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
 
 // @public (undocumented)
 export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<TLNoteShape, NoteShapeUtilDisplayValues> {
+    noteBorder: Record<string, string>;
+    noteColors: Record<string, Record<string, {
+        fill: string;
+        text: string;
+    }>>;
     resizeMode: 'none' | 'scale';
 }
 
@@ -3008,9 +3024,9 @@ export function setStrokePointRadii(strokePoints: StrokePoint[], options: Stroke
 // @public (undocumented)
 export interface ShapeOptionsWithDisplayValues<Shape extends TLShape, DisplayValues extends object> {
     // (undocumented)
-    getDisplayValueOverrides(editor: Editor, shape: Shape, theme: TLTheme): Partial<DisplayValues>;
+    getDisplayValueOverrides(editor: Editor, shape: Shape, theme: TLTheme, options: any): Partial<DisplayValues>;
     // (undocumented)
-    getDisplayValues(editor: Editor, shape: Shape, theme: TLTheme): DisplayValues;
+    getDisplayValues(editor: Editor, shape: Shape, theme: TLTheme, options: any): DisplayValues;
 }
 
 // @public (undocumented)

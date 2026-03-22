@@ -5,8 +5,16 @@ export interface ShapeOptionsWithDisplayValues<
 	Shape extends TLShape,
 	DisplayValues extends object,
 > {
-	getDisplayValues(editor: Editor, shape: Shape, theme: TLTheme): DisplayValues
-	getDisplayValueOverrides(editor: Editor, shape: Shape, theme: TLTheme): Partial<DisplayValues>
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	getDisplayValues(editor: Editor, shape: Shape, theme: TLTheme, options: any): DisplayValues
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	getDisplayValueOverrides(
+		editor: Editor,
+		shape: Shape,
+		theme: TLTheme,
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		options: any
+	): Partial<DisplayValues>
 }
 
 const dvCache = new WeakMap<TLShape, { theme: TLTheme; values: object }>()
@@ -25,8 +33,8 @@ export function getDisplayValues<Shape extends TLShape, DisplayValues extends ob
 	const cached = dvCache.get(shape)
 	if (cached && cached.theme === theme) return cached.values as DisplayValues
 	const values = {
-		...util.options.getDisplayValues(util.editor, shape, theme),
-		...util.options.getDisplayValueOverrides(util.editor, shape, theme),
+		...util.options.getDisplayValues(util.editor, shape, theme, util.options),
+		...util.options.getDisplayValueOverrides(util.editor, shape, theme, util.options),
 	}
 	dvCache.set(shape, { theme, values })
 	return values

@@ -1,7 +1,7 @@
 /**
  * Defines the color variants available for each color in the default theme.
  * Each color has multiple variants for different use cases like fills, strokes,
- * patterns, and UI elements like frames and notes.
+ * and patterns.
  *
  * @example
  * ```ts
@@ -12,7 +12,7 @@
  *   semi: '#dce1f8',
  *   pattern: '#6681ee',
  *   fill: '#4465e9',
- *   // ... other variants
+ *   linedFill: '#6580ec',
  * }
  * ```
  *
@@ -24,15 +24,6 @@ export interface TLDefaultColor {
 	pattern: string
 	fill: string // usually same as solid
 	linedFill: string // usually slightly lighter than fill
-	frameHeadingStroke: string
-	frameHeadingFill: string
-	frameStroke: string
-	frameFill: string
-	frameText: string
-	noteFill: string
-	noteText: string
-	highlightSrgb: string
-	highlightP3: string
 }
 
 /**
@@ -57,7 +48,6 @@ export interface TLThemeColors {
 	background: string
 	solid: string
 	cursor: string
-	noteBorder: string
 	black: TLDefaultColor
 	grey: TLDefaultColor
 	'light-violet': TLDefaultColor

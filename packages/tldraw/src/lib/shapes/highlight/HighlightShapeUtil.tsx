@@ -50,6 +50,11 @@ export interface HighlightShapeOptions extends ShapeOptionsWithDisplayValues<
 	 * A higher number will lead to poor performance while drawing very long lines.
 	 */
 	readonly maxPointsPerShape: number
+	/**
+	 * Per-theme, per-color highlight values for highlight shapes.
+	 * Maps `themeId` → `colorName` → `{ srgb, p3 }`.
+	 */
+	highlightColors: Record<string, Record<string, { srgb: string; p3: string }>>
 }
 
 /** @public */
@@ -60,12 +65,53 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	override options: HighlightShapeOptions = {
 		maxPointsPerShape: 600,
-		getDisplayValues(_editor, shape, theme): HighlightShapeUtilDisplayValues {
+		highlightColors: {
+			light: {
+				black: { srgb: '#fddd00', p3: 'color(display-p3 0.972 0.8205 0.05)' },
+				blue: { srgb: '#10acff', p3: 'color(display-p3 0.308 0.6632 0.9996)' },
+				green: { srgb: '#00ffc8', p3: 'color(display-p3 0.2536 0.984 0.7981)' },
+				grey: { srgb: '#cbe7f1', p3: 'color(display-p3 0.8163 0.9023 0.9416)' },
+				'light-blue': { srgb: '#00f4ff', p3: 'color(display-p3 0.1512 0.9414 0.9996)' },
+				'light-green': { srgb: '#65f641', p3: 'color(display-p3 0.563 0.9495 0.3857)' },
+				'light-red': { srgb: '#ff7fa3', p3: 'color(display-p3 0.9988 0.5301 0.6397)' },
+				'light-violet': { srgb: '#ff88ff', p3: 'color(display-p3 0.9676 0.5652 0.9999)' },
+				orange: { srgb: '#ffa500', p3: 'color(display-p3 0.9988 0.6905 0.266)' },
+				red: { srgb: '#ff636e', p3: 'color(display-p3 0.9992 0.4376 0.45)' },
+				violet: { srgb: '#c77cff', p3: 'color(display-p3 0.7469 0.5089 0.9995)' },
+				yellow: { srgb: '#fddd00', p3: 'color(display-p3 0.972 0.8705 0.05)' },
+				white: { srgb: '#ffffff', p3: 'color(display-p3 1 1 1)' },
+			},
+			dark: {
+				black: { srgb: '#d2b700', p3: 'color(display-p3 0.8078 0.6225 0.0312)' },
+				blue: { srgb: '#0079d2', p3: 'color(display-p3 0.0032 0.4655 0.7991)' },
+				green: { srgb: '#009774', p3: 'color(display-p3 0.0085 0.582 0.4604)' },
+				grey: { srgb: '#9cb4cb', p3: 'color(display-p3 0.6299 0.7012 0.7856)' },
+				'light-blue': { srgb: '#00bdc8', p3: 'color(display-p3 0.0023 0.7259 0.7735)' },
+				'light-green': { srgb: '#00a000', p3: 'color(display-p3 0.2711 0.6172 0.0195)' },
+				'light-red': { srgb: '#db005b', p3: 'color(display-p3 0.7849 0.0585 0.3589)' },
+				'light-violet': { srgb: '#c400c7', p3: 'color(display-p3 0.7024 0.0403 0.753)' },
+				orange: { srgb: '#d07a00', p3: 'color(display-p3 0.7699 0.4937 0.0085)' },
+				red: { srgb: '#de002c', p3: 'color(display-p3 0.7978 0.0509 0.2035)' },
+				violet: { srgb: '#9e00ee', p3: 'color(display-p3 0.5651 0.0079 0.8986)' },
+				yellow: { srgb: '#d2b700', p3: 'color(display-p3 0.8078 0.7225 0.0312)' },
+				white: { srgb: '#ffffff', p3: 'color(display-p3 1 1 1)' },
+			},
+		},
+		getDisplayValues(
+			_editor,
+			shape,
+			theme,
+			options: HighlightShapeOptions
+		): HighlightShapeUtilDisplayValues {
 			const { color, size } = shape.props
 			const useP3 = !debugFlags.forceSrgb.get() && tlenvReactive.get().supportsP3ColorSpace
-			const strokeColor = useP3
-				? getColorValue(theme, color, 'highlightP3')
-				: getColorValue(theme, color, 'highlightSrgb')
+			const highlightColor =
+				options.highlightColors[theme.id]?.[color] ?? options.highlightColors['light']?.[color]
+			const strokeColor = highlightColor
+				? useP3
+					? highlightColor.p3
+					: highlightColor.srgb
+				: getColorValue(theme, color, 'solid')
 			return {
 				strokeColor,
 				strokeWidth: theme.fontSize * FONT_SIZES[size] * 1.12,
@@ -73,7 +119,12 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 				overlayOpacity: 0.35,
 			}
 		},
-		getDisplayValueOverrides(): Partial<HighlightShapeUtilDisplayValues> {
+		getDisplayValueOverrides(
+			_editor,
+			_shape,
+			_theme,
+			_options
+		): Partial<HighlightShapeUtilDisplayValues> {
 			return {}
 		},
 	}
