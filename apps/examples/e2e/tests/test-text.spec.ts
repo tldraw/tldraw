@@ -269,7 +269,7 @@ test.describe('text measurement', () => {
 			return editor.getShape(id) as TLNoteShape
 		})
 
-		expect(shape.props.fontSizeAdjustment).toEqual(0)
+		expect(shape.props.fontSizeAdjustment).toEqual(1)
 	})
 
 	test('for auto-font-sizing shapes, should auto-size text that have slightly long words', async () => {

@@ -230,7 +230,7 @@ export function getNoteShapeForAdjacentPosition(
 				...shape.props,
 				richText: toRichText(''),
 				growY: 0,
-				fontSizeAdjustment: 0,
+				fontSizeAdjustment: 1,
 				url: '',
 			},
 		})

@@ -88,7 +88,7 @@ export interface NoteShapeUtilDisplayValues {
 }
 
 /** @public */
-export interface NoteShapeUtilOptions extends ShapeOptionsWithDisplayValues<
+export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<
 	TLNoteShape,
 	NoteShapeUtilDisplayValues
 > {
@@ -105,7 +105,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override props = noteShapeProps
 	static override migrations = noteShapeMigrations
 
-	override options: NoteShapeUtilOptions = {
+	override options: NoteShapeOptions = {
 		resizeMode: 'none',
 		getDisplayValues(_editor, shape, theme): NoteShapeUtilDisplayValues {
 			const { color, labelColor, font, size, align, verticalAlign } = shape.props
@@ -172,7 +172,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			verticalAlign: 'middle',
 			labelColor: 'black',
 			growY: 0,
-			fontSizeAdjustment: 0,
+			fontSizeAdjustment: 1,
 			url: '',
 			scale: 1,
 		}
@@ -349,7 +349,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							shapeId={id}
 							type={type}
 							fontFamily={dv.labelFontFamily}
-							fontSize={(fontSizeAdjustment || 1) * dv.labelFontSize * scale}
+							fontSize={(fontSizeAdjustment ?? 1) * dv.labelFontSize * scale}
 							lineHeight={dv.labelLineHeight}
 							textAlign={dv.labelHorizontalAlign}
 							verticalAlign={dv.labelVerticalAlign}
@@ -437,7 +437,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				)}
 				<rect rx={1} width={dv.noteWidth} height={bounds.h} fill={dv.noteBackgroundColor} />
 				<RichTextSVG
-					fontSize={(shape.props.fontSizeAdjustment || 1) * dv.labelFontSize}
+					fontSize={(shape.props.fontSizeAdjustment ?? 1) * dv.labelFontSize}
 					fontFamily={dv.labelFontFamily}
 					lineHeight={dv.labelLineHeight}
 					textAlign={dv.labelHorizontalAlign}
@@ -523,7 +523,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		if (isEmptyRichText(richText)) {
 			const minHeight = dv.labelFontSize * dv.labelLineHeight + dv.labelPadding * 2
-			return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 0 }
+			return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 1 }
 		}
 
 		const unadjustedFontSize = dv.labelFontSize
@@ -581,7 +581,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			labelHeight: labelHeight,
 			labelWidth: labelWidth,
 			fontSizeAdjustment:
-				fontSizeAdjustment === unadjustedFontSize ? 0 : fontSizeAdjustment / unadjustedFontSize,
+				fontSizeAdjustment === unadjustedFontSize ? 1 : fontSizeAdjustment / unadjustedFontSize,
 		}
 	}
 }

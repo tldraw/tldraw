@@ -40,7 +40,7 @@ export interface LineShapeUtilDisplayValues {
 }
 
 /** @public */
-export interface LineShapeUtilOptions extends ShapeOptionsWithDisplayValues<
+export interface LineShapeOptions extends ShapeOptionsWithDisplayValues<
 	TLLineShape,
 	LineShapeUtilDisplayValues
 > {}
@@ -51,7 +51,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override props = lineShapeProps
 	static override migrations = lineShapeMigrations
 
-	override options: LineShapeUtilOptions = {
+	override options: LineShapeOptions = {
 		getDisplayValues(_editor, shape, theme): LineShapeUtilDisplayValues {
 			const { color, size } = shape.props
 			return {

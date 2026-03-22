@@ -43,7 +43,7 @@ export interface EmbedShapeOptions {
 }
 
 /** @public */
-export interface EmbedShapeUtilOptions
+export interface EmbedShapeOptions
 	extends
 		ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues>,
 		EmbedShapeOptions {}
@@ -61,7 +61,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
 
-	override options: EmbedShapeUtilOptions = {
+	override options: EmbedShapeOptions = {
 		embedDefinitions: DEFAULT_EMBED_DEFINITIONS,
 		getDisplayValues(): EmbedShapeUtilDisplayValues {
 			return {

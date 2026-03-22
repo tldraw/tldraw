@@ -34,7 +34,7 @@ import {
 export type BookmarkShapeUtilDisplayValues = object
 
 /** @public */
-export interface BookmarkShapeUtilOptions extends ShapeOptionsWithDisplayValues<
+export interface BookmarkShapeOptions extends ShapeOptionsWithDisplayValues<
 	TLBookmarkShape,
 	BookmarkShapeUtilDisplayValues
 > {}
@@ -45,7 +45,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	static override props = bookmarkShapeProps
 	static override migrations = bookmarkShapeMigrations
 
-	override options: BookmarkShapeUtilOptions = {
+	override options: BookmarkShapeOptions = {
 		getDisplayValues(): BookmarkShapeUtilDisplayValues {
 			return {}
 		},

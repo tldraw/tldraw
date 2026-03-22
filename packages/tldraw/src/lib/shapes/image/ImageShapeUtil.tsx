@@ -54,7 +54,7 @@ const imageSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 export interface ImageShapeUtilDisplayValues {}
 
 /** @public */
-export interface ImageShapeUtilOptions extends ShapeOptionsWithDisplayValues<
+export interface ImageShapeOptions extends ShapeOptionsWithDisplayValues<
 	TLImageShape,
 	ImageShapeUtilDisplayValues
 > {}
@@ -65,7 +65,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override props = imageShapeProps
 	static override migrations = imageShapeMigrations
 
-	override options: ImageShapeUtilOptions = {
+	override options: ImageShapeOptions = {
 		getDisplayValues(): ImageShapeUtilDisplayValues {
 			return {}
 		},

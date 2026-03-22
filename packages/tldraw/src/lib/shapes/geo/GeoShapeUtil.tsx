@@ -100,7 +100,7 @@ export interface GeoShapeUtilDisplayValues {
 }
 
 /** @public */
-export interface GeoShapeUtilOptions extends ShapeOptionsWithDisplayValues<
+export interface GeoShapeOptions extends ShapeOptionsWithDisplayValues<
 	TLGeoShape,
 	GeoShapeUtilDisplayValues
 > {
@@ -113,7 +113,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override props = geoShapeProps
 	static override migrations = geoShapeMigrations
 
-	override options: GeoShapeUtilOptions = {
+	override options: GeoShapeOptions = {
 		showTextOutline: true,
 		getDisplayValues(_editor, shape, theme): GeoShapeUtilDisplayValues {
 			const { color, size, labelColor, fill, align, verticalAlign, font } = shape.props

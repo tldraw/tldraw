@@ -31,7 +31,7 @@ import { TLBaseShape } from './TLBaseShape'
  *   labelColor: 'black',
  *   size: 'm',
  *   font: 'draw',
- *   fontSizeAdjustment: 0,
+ *   fontSizeAdjustment: 1,
  *   align: 'middle',
  *   verticalAlign: 'middle',
  *   growY: 0,
@@ -50,7 +50,7 @@ export interface TLNoteShapeProps {
 	size: TLDefaultSizeStyle
 	/** Font family style for the note text */
 	font: TLDefaultFontStyle
-	/** Ratio to scale the base font size when text needs to shrink to fit. Null means needs recomputation, 0 means no adjustment, and values less than 1 indicate shrinkage. */
+	/** Ratio to scale the base font size when text needs to shrink to fit. Null means needs recomputation, 1 means no adjustment, and values less than 1 indicate shrinkage. */
 	fontSizeAdjustment: number | null
 	/** Horizontal alignment of text within the note */
 	align: TLDefaultHorizontalAlignStyle
@@ -219,7 +219,7 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.AddFontSizeAdjustment,
 			up: (props) => {
-				props.fontSizeAdjustment = 0
+				props.fontSizeAdjustment = 1
 			},
 			down: (props) => {
 				delete props.fontSizeAdjustment
@@ -272,7 +272,7 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 				props.fontSizeAdjustment = null
 			},
 			down: (props) => {
-				props.fontSizeAdjustment = 0
+				props.fontSizeAdjustment = 1
 			},
 		},
 	],

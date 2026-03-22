@@ -558,7 +558,7 @@ function convertNoteShapeToTldrawShape(
 				size: defaultNoteShape.props?.size ?? 's',
 				align: defaultNoteShape.props?.align ?? 'middle',
 				font: defaultNoteShape.props?.font ?? 'draw',
-				fontSizeAdjustment: defaultNoteShape.props?.fontSizeAdjustment ?? 0,
+				fontSizeAdjustment: defaultNoteShape.props?.fontSizeAdjustment ?? 1,
 				growY: defaultNoteShape.props?.growY ?? 0,
 				labelColor: defaultNoteShape.props?.labelColor ?? 'black',
 				scale: defaultNoteShape.props?.scale ?? 1,
