@@ -1,6 +1,7 @@
 import { atom, computed } from '@tldraw/state'
 import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
 import { TLUser } from '../../../config/createTLUser'
+import { getGlobalWindow } from '../../../utils/dom'
 
 /** @public */
 export class UserPreferencesManager {
@@ -13,9 +14,9 @@ export class UserPreferencesManager {
 		private readonly user: TLUser,
 		private readonly inferDarkMode: boolean
 	) {
-		if (typeof window === 'undefined' || !window.matchMedia) return
+		if (typeof window === 'undefined' || !getGlobalWindow().matchMedia) return
 
-		const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+		const darkModeMediaQuery = getGlobalWindow().matchMedia('(prefers-color-scheme: dark)')
 		if (darkModeMediaQuery?.matches) {
 			this.systemColorScheme.set('dark')
 		}

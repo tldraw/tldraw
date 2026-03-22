@@ -40,7 +40,7 @@ export function useEditablePlainText(
 	useEffect(() => {
 		if (!isEditing) return
 
-		if (document.activeElement !== rInput.current) {
+		if (editor.getContainerDocument().activeElement !== rInput.current) {
 			rInput.current?.focus()
 		}
 
@@ -152,7 +152,13 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 				const html = e.clipboardData.getData('text/html')
 				if (html) {
 					if (html.includes('<div data-tldraw')) {
+						// Paste the plain text data instead of the tldraw data
+						const plainText = e.clipboardData.getData('text/plain')
 						preventDefault(e)
+						if (plainText) {
+							// eslint-disable-next-line @typescript-eslint/no-deprecated -- best way to insert text with undo support
+							editor.getContainerDocument().execCommand('insertText', false, plainText)
+						}
 					}
 				}
 			}

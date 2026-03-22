@@ -161,7 +161,7 @@ editor.store.listen(handleChanges, { source: 'all', scope: 'document' })
 
 The `source` indicates where the change came from: `'user'` for local edits, `'remote'` for synchronized changes from other users.
 
-For maintaining internal consistency—like cleaning up bindings when a shape is deleted—use [side effects](/docs/side-effects) instead. Side effects are lifecycle hooks that can intercept and modify records during operations.
+For maintaining internal consistency—like cleaning up bindings when a shape is deleted—use [side effects](/sdk-features/side-effects) instead. Side effects are lifecycle hooks that can intercept and modify records during operations.
 
 ## Snapshots
 

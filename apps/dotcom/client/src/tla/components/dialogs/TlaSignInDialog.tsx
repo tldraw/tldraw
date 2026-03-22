@@ -269,7 +269,7 @@ function TlaEnterEmailStep({
 					<a href="/tos.html" target="_blank" rel="noopener noreferrer">
 						<F defaultMessage="Terms of Use" />
 					</a>
-					{/* eslint-disable-next-line react/jsx-no-literals */}
+					{/* eslint-disable-next-line tldraw/jsx-no-literals */}
 					{' · '}
 					<a href="/privacy.html" target="_blank" rel="noopener noreferrer">
 						<F defaultMessage="Privacy Policy" />
@@ -479,7 +479,7 @@ function TlaVerificationCodeStep({
 								>
 									{resendCooldown > 0 ? (
 										<>
-											{/* eslint-disable-next-line react/jsx-no-literals */}
+											{/* eslint-disable-next-line tldraw/jsx-no-literals */}
 											{chunks} ({resendCooldown})
 										</>
 									) : (

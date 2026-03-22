@@ -736,6 +736,22 @@ describe('HistoryManager error scenarios and edge cases', () => {
 			expect(store.get(ids.a)!.value).toBe(originalValue)
 		})
 
+		it('should preserve pending diff when mark is not found', () => {
+			manager._mark('real-mark')
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+
+			// bail to a mark that doesn't exist
+			manager.bailToMark('non-existent-mark')
+
+			// the pending diff should still be intact
+			expect(store.get(ids.a)!.value).toBe(1)
+			expect(manager.getNumUndos()).toBeGreaterThan(0)
+
+			// a subsequent bail to the real mark should still work
+			manager.bailToMark('real-mark')
+			expect(store.get(ids.a)!.value).toBe(0)
+		})
+
 		it('should find mark correctly when it exists', () => {
 			manager._mark('existing-mark')
 			store.update(ids.a, (s) => ({ ...s, value: 1 }))

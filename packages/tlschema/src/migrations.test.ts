@@ -2102,6 +2102,21 @@ describe('Make image asset file size optional', () => {
 	})
 })
 
+describe('Add pixelRatio to image asset', () => {
+	const { up, down } = getTestMigration(imageAssetVersions.AddPixelRatio)
+
+	test('up works as expected', () => {
+		expect(up({ props: { w: 100, h: 100 } })).toEqual({ props: { w: 100, h: 100 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { w: 100, h: 100, pixelRatio: 2 } })).toEqual({
+			props: { w: 100, h: 100 },
+		})
+		expect(down({ props: { w: 100, h: 100 } })).toEqual({ props: { w: 100, h: 100 } })
+	})
+})
+
 describe('Add flipX, flipY to image shape', () => {
 	const { up, down } = getTestMigration(imageShapeVersions.AddFlipProps)
 

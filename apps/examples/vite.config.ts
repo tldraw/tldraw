@@ -1,4 +1,4 @@
-import react from '@vitejs/plugin-react-swc'
+import react from '@vitejs/plugin-react'
 import path from 'path'
 import { Plugin, PluginOption, defineConfig } from 'vite'
 
@@ -73,7 +73,7 @@ const TLDRAW_BEMO_URL_STRING =
 				: undefined
 
 export default defineConfig(({ mode }) => ({
-	plugins: [spaFallbackPlugin(), react({ tsDecorators: true }), exampleReadmePlugin()],
+	plugins: [spaFallbackPlugin(), react(), exampleReadmePlugin()],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
 	build: {
@@ -82,7 +82,7 @@ export default defineConfig(({ mode }) => ({
 		target: 'es2022',
 		minify: false,
 	},
-	esbuild: {
+	oxc: {
 		target: 'es2022',
 	},
 	server: {
@@ -95,9 +95,6 @@ export default defineConfig(({ mode }) => ({
 	clearScreen: false,
 	optimizeDeps: {
 		exclude: ['@tldraw/assets'],
-		esbuildOptions: {
-			target: 'es2022',
-		},
 	},
 	define: {
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.VERCEL_ENV ?? 'development'),

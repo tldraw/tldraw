@@ -43,7 +43,7 @@ export class MinimapManager {
 	}
 
 	private _getColors() {
-		const style = getComputedStyle(this.editor.getContainer())
+		const style = this.editor.getContainerWindow().getComputedStyle(this.editor.getContainer())
 
 		return {
 			shapeFill: getRgba(style.getPropertyValue('--tl-color-text-3').trim()),

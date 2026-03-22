@@ -21,6 +21,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	const isSidebarOpen = useIsSidebarOpen()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 	const trackEvent = useTldrawAppUiEvents()
+	const createGroupMsg = useMsg(messages.createGroup)
 
 	useEffect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
@@ -84,14 +85,17 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
 					{hasGroups && (
-						<button
+						<TldrawUiButton
+							type="icon"
+							tooltip={createGroupMsg}
+							title={createGroupMsg}
 							className={styles.sidebarCreateFileButton}
 							onClick={handleCreateGroup}
 							data-testid="tla-create-group"
 							style={{ marginRight: -8, color: 'var(--tla-color-text-1)' }}
 						>
 							<TlaIcon icon="folder-new" />
-						</button>
+						</TldrawUiButton>
 					)}
 					<TlaSidebarCreateFileButton />
 				</div>
@@ -116,11 +120,13 @@ function LegacySidebarLayout() {
 	return <TlaSidebarRecentFiles />
 }
 
-import { uniqueId, useDialogs } from 'tldraw'
+import { TldrawUiButton, uniqueId, useDialogs } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useHasFlag } from '../../hooks/useHasFlag'
+import { useMsg } from '../../utils/i18n'
 import { CreateGroupDialog } from '../dialogs/CreateGroupDialog'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { messages } from './components/sidebar-shared'
 
 function NewSidebarLayout() {
 	return (

@@ -54,7 +54,7 @@ const defaultSessionState: TldrawAppSessionState = {
 		exportFormat: 'png',
 		exportTheme: 'auto',
 		exportBackground: true,
-		exportPadding: true,
+		exportPadding: false,
 	},
 	sidebarWidth: 260,
 }

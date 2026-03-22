@@ -54,6 +54,7 @@ export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLStatsDurableObject } from './TLStatsDurableObject'
 export { TLUserDurableObject } from './TLUserDurableObject'
+export class TLDrawDurableObject {}
 
 const { preflight, corsify } = cors({
 	origin: isAllowedOrigin,
@@ -131,6 +132,7 @@ const router = createRouter<Environment>()
 		}
 		return notFound()
 	})
+	.get('/app/file/:roomId/download', forwardRoomRequest)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({
@@ -316,7 +318,8 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				await db
 					.insertInto('asset')
 					.values({ objectName, fileId, userId })
-					.executeTakeFirstOrThrow()
+					.onConflict((oc) => oc.column('objectName').doNothing())
+					.execute()
 				message.ack()
 			} catch (_e) {
 				message.retry({

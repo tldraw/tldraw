@@ -1,5 +1,5 @@
 import { cloudflare } from '@cloudflare/vite-plugin'
-import react from '@vitejs/plugin-react-swc'
+import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'url'
 import { defineConfig } from 'vite'
 import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
@@ -10,11 +10,7 @@ export default defineConfig(() => {
 		plugins: [
 			zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
 			cloudflare(),
-			react(
-				/* EXCLUDE_FROM_TEMPLATE_EXPORT_START */
-				{ tsDecorators: true }
-				/* EXCLUDE_FROM_TEMPLATE_EXPORT_END */
-			),
+			react(),
 		],
 	}
 })

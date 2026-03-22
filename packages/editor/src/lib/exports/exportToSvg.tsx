@@ -4,10 +4,11 @@ import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import type { Editor } from '../editor/Editor'
 import { TLSvgExportOptions } from '../editor/types/misc-types'
-import { SVG_EXPORT_CLASSNAME } from './FontEmbedder'
-import { StyleEmbedder } from './StyleEmbedder'
+import { getOwnerWindow } from './domUtils'
 import { embedMedia } from './embedMedia'
+import { SVG_EXPORT_CLASSNAME } from './FontEmbedder'
 import { getSvgJsx } from './getSvgJsx'
+import { StyleEmbedder } from './StyleEmbedder'
 
 let idCounter = 1
 
@@ -26,7 +27,7 @@ export async function exportToSvg(
 	// without this CSS and layout aren't computed correctly, which we need to make sure any
 	// <foreignObject> elements have their styles and content inlined correctly.
 	const container = editor.getContainer()
-	const renderTarget = document.createElement('div')
+	const renderTarget = container.ownerDocument.createElement('div')
 	renderTarget.className = SVG_EXPORT_CLASSNAME
 	// we hide the element visually, but we don't want it to be focusable or interactive in any way either
 	renderTarget.inert = true
@@ -60,7 +61,7 @@ export async function exportToSvg(
 
 		// Extract the rendered SVG element from the react root
 		const svg = renderTarget.firstElementChild
-		assert(svg instanceof SVGSVGElement, 'Expected an SVG element')
+		assert(svg instanceof getOwnerWindow(container).SVGSVGElement, 'Expected an SVG element')
 
 		// And apply any changes to <foreignObject> elements that we need to make. while we're in
 		// the document, these elements work exactly as we'd expect from other dom elements - they
@@ -70,7 +71,7 @@ export async function exportToSvg(
 		// apply any styles directly to the elements themselves.
 		await applyChangesToForeignObjects(svg)
 
-		return { svg, width: result.width, height: result.height }
+		return { svg, width: result.width, height: result.height, trimPadding: result.trimPadding }
 	} finally {
 		// eslint-disable-next-line no-restricted-globals
 		setTimeout(() => {
@@ -95,7 +96,7 @@ async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 
 	try {
 		// begin traversing stylesheets to find @font-face declarations we might need to embed
-		styleEmbedder.fonts.startFindingCurrentDocumentFontFaces()
+		styleEmbedder.fonts.startFindingDocumentFontFaces(svg.ownerDocument)
 
 		// embed any media elements in the foreignObject children. images will get converted to data
 		// urls, and things like videos will be converted to images.
@@ -126,7 +127,7 @@ async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 
 		// add the CSS to the SVG
 		if (fontCss || pseudoCss) {
-			const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
+			const style = svg.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'style')
 			style.textContent = `${fontCss}\n${pseudoCss}`
 			svg.prepend(style)
 		}

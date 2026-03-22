@@ -36,6 +36,12 @@ describe('FocusManager', () => {
 		// Create mock dispose function
 		mockDispose = vi.fn()
 
+		// Mock document.body event listeners
+		originalAddEventListener = document.body.addEventListener
+		originalRemoveEventListener = document.body.removeEventListener
+		document.body.addEventListener = vi.fn()
+		document.body.removeEventListener = vi.fn()
+
 		// Mock editor
 		editor = {
 			sideEffects: {
@@ -44,16 +50,11 @@ describe('FocusManager', () => {
 			getInstanceState: vi.fn(() => ({ isFocused: false })),
 			updateInstanceState: vi.fn(),
 			getContainer: vi.fn(() => mockContainer),
+			getContainerDocument: vi.fn(() => document),
 			isIn: vi.fn(() => false),
 			getSelectedShapeIds: vi.fn(() => []),
 			complete: vi.fn(),
 		} as any
-
-		// Mock document.body event listeners
-		originalAddEventListener = document.body.addEventListener
-		originalRemoveEventListener = document.body.removeEventListener
-		document.body.addEventListener = vi.fn()
-		document.body.removeEventListener = vi.fn()
 	})
 
 	afterEach(() => {

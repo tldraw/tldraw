@@ -65,7 +65,7 @@ export default function StateStoreExample() {
 	)
 }
 
-/* 
+/*
 
 tldraw uses signals to manage its state and store. You can subscribe to values in the store 
 and run side effects when they change.
