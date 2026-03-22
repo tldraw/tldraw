@@ -21,6 +21,7 @@ export { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './lib/InMemorySyn
 export { NodeSqliteWrapper, type SyncSqliteDatabase } from './lib/NodeSqliteWrapper'
 export {
 	getTlsyncProtocolVersion,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	TLIncompatibilityReason,
 	type TLConnectRequest,
 	type TLPingRequest,
@@ -45,7 +46,9 @@ export { TLRemoteSyncError } from './lib/TLRemoteSyncError'
 export {
 	TLSocketRoom,
 	type OmitVoid,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	type RoomStoreMethods,
+	type SessionStateSnapshot,
 	type TLSocketRoomOptions,
 	type TLSyncLog,
 } from './lib/TLSocketRoom'

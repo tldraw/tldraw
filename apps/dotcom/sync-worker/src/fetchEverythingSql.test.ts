@@ -202,7 +202,7 @@ export const columnNamesByAlias = ${JSON.stringify(columnNamesByAlias, null, 2)}
 test('fetchEverythingSql snapshot (RUN `UPDATE_SNAPSHOTS=1 yarn test` IF THIS FAILS)', async () => {
 	const tmpFile = join(DIRNAME, '.fetchEverythingSql.tmp.ts')
 	writeFileSync(tmpFile, tsFile, 'utf-8')
-	execSync('yarn run -T prettier --write ' + tmpFile, {
+	execSync('yarn run -T oxfmt --write ' + tmpFile, {
 		stdio: 'inherit',
 		cwd: join(DIRNAME, '..'),
 		env: {

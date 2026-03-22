@@ -28,7 +28,7 @@ export default function CustomConfigExample() {
 	)
 }
 
-/* 
+/*
 Introduction:
 
 This example shows how to create a custom shape, and add your own icon for it to the toolbar.

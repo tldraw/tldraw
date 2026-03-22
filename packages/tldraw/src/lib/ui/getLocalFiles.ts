@@ -1,11 +1,18 @@
+import { getGlobalDocument } from '@tldraw/editor'
+
 export function getLocalFiles(options?: {
 	allowMultiple?: boolean
 	mimeTypes?: string[] | readonly string[]
+	document?: Document
 }) {
 	return new Promise<File[]>((resolve) => {
-		const { allowMultiple = true, mimeTypes = [] } = options || {}
+		const {
+			allowMultiple = true,
+			mimeTypes = [],
+			document: doc = getGlobalDocument(),
+		} = options || {}
 
-		const input = document.createElement('input')
+		const input = doc.createElement('input')
 		input.type = 'file'
 		input.accept = mimeTypes?.join(',')
 		input.multiple = allowMultiple
@@ -35,7 +42,7 @@ export function getLocalFiles(options?: {
 			dispose()
 		}
 
-		document.body.appendChild(input)
+		doc.body.appendChild(input)
 		input.addEventListener('cancel', oncancel)
 		input.addEventListener('change', onchange)
 		input?.click()

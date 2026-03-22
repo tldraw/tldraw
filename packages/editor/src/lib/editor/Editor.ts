@@ -110,6 +110,7 @@ import {
 	RIGHT_MOUSE_BUTTON,
 	STYLUS_ERASER_BUTTON,
 } from '../constants'
+import { getOwnerWindow } from '../exports/domUtils'
 import { exportToSvg } from '../exports/exportToSvg'
 import { getSvgAsImageWithOptions, trimSvgToContent } from '../exports/getSvgAsImage'
 import { tlmenus } from '../globals/menus'
@@ -1071,6 +1072,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getContainer: () => HTMLElement
+
+	/**
+	 * The document that the editor's container element belongs to.
+	 * Use this instead of the global `document` to support cross-window embedding.
+	 *
+	 * @internal
+	 */
+	getContainerDocument(): Document {
+		return this.getContainer().ownerDocument
+	}
+
+	/**
+	 * The window that the editor's container element belongs to.
+	 * Use this instead of the global `window` to support cross-window embedding.
+	 *
+	 * @internal
+	 */
+	getContainerWindow(): Window & typeof globalThis {
+		return getOwnerWindow(this.getContainer())
+	}
 
 	/**
 	 * Dispose the editor.
@@ -3847,13 +3868,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			screenBounds.height = Math.max(screenBounds.height, 1)
 		}
 
+		const doc = this.getContainerDocument()
 		const insets = [
 			// top
 			screenBounds.minY !== 0,
 			// right
-			!approximately(document.body.scrollWidth, screenBounds.maxX, 1),
+			!approximately(doc.body.scrollWidth, screenBounds.maxX, 1),
 			// bottom
-			!approximately(document.body.scrollHeight, screenBounds.maxY, 1),
+			!approximately(doc.body.scrollHeight, screenBounds.maxY, 1),
 			// left
 			screenBounds.minX !== 0,
 		]
@@ -10167,7 +10189,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					to: opts?.getTarget?.(this),
 				})
 
-				window.history.replaceState({}, document.title, url.toString())
+				window.history.replaceState({}, this.getContainerDocument().title, url.toString())
 			})
 
 		const scheduleEffect = debounce((execute: () => void) => execute(), opts?.debounceMs ?? 500)

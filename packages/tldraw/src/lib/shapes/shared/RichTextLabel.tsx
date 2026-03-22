@@ -96,7 +96,11 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	)
 
 	const handlePointerDown = (e: React.MouseEvent<HTMLDivElement>) => {
-		if (e.target instanceof HTMLElement && (e.target.tagName === 'A' || e.target.closest('a'))) {
+		const HTMLElementCtor = editor.getContainerWindow().HTMLElement
+		if (
+			e.target instanceof HTMLElementCtor &&
+			(e.target.tagName === 'A' || e.target.closest('a'))
+		) {
 			// This mousedown prevent default is to let dragging when over a link work.
 			preventDefault(e)
 

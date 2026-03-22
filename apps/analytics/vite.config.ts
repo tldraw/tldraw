@@ -13,7 +13,7 @@ export default defineConfig({
 			fileName: () => `tl-analytics.js`,
 			formats: ['umd'],
 		},
-		rollupOptions: {
+		rolldownOptions: {
 			// React and ReactDOM are now bundled instead of external
 		},
 	},

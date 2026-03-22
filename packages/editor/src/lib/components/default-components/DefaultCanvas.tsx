@@ -427,7 +427,7 @@ function ReflowIfNeeded() {
 			if (culledShapesRef.current === culledShapes) return
 
 			culledShapesRef.current = culledShapes
-			const canvas = document.getElementsByClassName('tl-canvas')
+			const canvas = editor.getContainerDocument().getElementsByClassName('tl-canvas')
 			if (canvas.length === 0) return
 			// This causes a reflow
 			// https://gist.github.com/paulirish/5d52fb081b3570c81e3a

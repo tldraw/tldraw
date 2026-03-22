@@ -18,6 +18,7 @@ import {
 	Vec,
 	WeakCache,
 	fetch,
+	getGlobalDocument,
 	imageShapeMigrations,
 	imageShapeProps,
 	lerp,
@@ -54,8 +55,10 @@ export interface ImageShapeUtilDisplayValues {}
 
 /** @public */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ImageShapeUtilOptions
-	extends ShapeOptionsWithDisplayValues<TLImageShape, ImageShapeUtilDisplayValues> {}
+export interface ImageShapeUtilOptions extends ShapeOptionsWithDisplayValues<
+	TLImageShape,
+	ImageShapeUtilDisplayValues
+> {}
 
 /** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
@@ -621,7 +624,7 @@ function getFirstFrameOfAnimatedImage(url: string) {
 		image.onload = () => {
 			if (cancelled) return
 
-			const canvas = document.createElement('canvas')
+			const canvas = getGlobalDocument().createElement('canvas')
 			canvas.width = image.width
 			canvas.height = image.height
 

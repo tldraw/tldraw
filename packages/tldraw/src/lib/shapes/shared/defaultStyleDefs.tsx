@@ -4,6 +4,7 @@ import {
 	TLDefaultFillStyle,
 	TLShapeUtilCanvasSvgDef,
 	debugFlags,
+	getGlobalDocument,
 	last,
 	suffixSafeId,
 	tlenv,
@@ -67,7 +68,7 @@ const generateImage = (dpr: number, currentZoom: number, solid: string) => {
 	return new Promise<Blob>((resolve, reject) => {
 		const size = TILE_PATTERN_SIZE * currentZoom * dpr
 
-		const canvasEl = document.createElement('canvas')
+		const canvasEl = getGlobalDocument().createElement('canvas')
 		canvasEl.width = size
 		canvasEl.height = size
 
@@ -108,7 +109,7 @@ const generateImage = (dpr: number, currentZoom: number, solid: string) => {
 }
 
 const canvasBlob = (size: [number, number], fn: (ctx: CanvasRenderingContext2D) => void) => {
-	const canvas = document.createElement('canvas')
+	const canvas = getGlobalDocument().createElement('canvas')
 	canvas.width = size[0]
 	canvas.height = size[1]
 	const ctx = canvas.getContext('2d')

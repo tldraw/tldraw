@@ -42,7 +42,7 @@ export class GenerateNodeDefinition extends NodeDefinition<GenerateNode> {
 	static validator = GenerateNode
 	title = 'Generate'
 	heading = 'Generate'
-	icon = (<GenerateIcon />)
+	icon = <GenerateIcon />
 	category = 'process'
 	resultKeys = ['lastResultUrl'] as const
 	getDefault(): GenerateNode {

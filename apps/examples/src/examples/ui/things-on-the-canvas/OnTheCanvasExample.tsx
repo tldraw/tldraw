@@ -94,7 +94,7 @@ export default function OnTheCanvasExample() {
 	)
 }
 
-/* 
+/*
 This example shows how you can use the onTheCanvas and inFrontOfTheCanvas components.
 onTheCanvas components will behave similarly to shapes, they will scale with the zoom
 and move when the page is panned. inFrontOfTheCanvas components don't scale with the

@@ -30,7 +30,7 @@
 		"build": "yarn run -T tsx scripts/build.ts",
 		"dev": "yarn run -T tsx scripts/dev.ts",
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
+		"lint": "cd ../../.. && yarn run -T oxlint apps/vscode/editor",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
@@ -45,7 +45,7 @@
 		"concurrently": "^9.1.2",
 		"create-serve": "1.0.1",
 		"dotenv": "^16.4.7",
-		"esbuild": "^0.25.6",
+		"esbuild": "^0.27.4",
 		"fs-extra": "^11.3.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^19.2.1",

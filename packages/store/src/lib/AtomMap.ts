@@ -350,7 +350,7 @@ export class AtomMap<K, V> implements Map<K, V> {
 	 * console.log(map.size) // 1
 	 * ```
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get size() {
 		return this.atoms.get().size
 	}

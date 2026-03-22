@@ -1149,7 +1149,7 @@ export function DiamondToolbarItem(): JSX.Element;
 export function DistributeMenuItems(): JSX.Element;
 
 // @internal (undocumented)
-export function downloadFile(file: File): void;
+export function downloadFile(file: File, doc?: Document): void;
 
 // @public
 export function downsizeImage(blob: Blob, width: number, height: number, opts?: {
@@ -1969,7 +1969,7 @@ export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl
 export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boolean): TLShape | undefined;
 
 // @public (undocumented)
-export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
+export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number, doc?: Document): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public (undocumented)
 export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, scaleX: number, scaleY: number, points?: Vec[]): Vec[];
@@ -2834,7 +2834,7 @@ export namespace PORTRAIT_BREAKPOINT {
 export function PreferencesGroup(): JSX.Element;
 
 // @public (undocumented)
-export function preloadFont(id: string, font: TLTypeFace): Promise<FontFace>;
+export function preloadFont(id: string, font: TLTypeFace, targetDocument?: Document): Promise<FontFace>;
 
 // @public (undocumented)
 export function PrintItem(): JSX.Element;
@@ -2961,6 +2961,9 @@ export interface RichTextSVGProps {
 
 // @public (undocumented)
 export function RotateCWMenuItem(): JSX.Element;
+
+// @public (undocumented)
+export const RTL_LANGUAGES: Set<string>;
 
 // @public
 export function sanitizeSvg(svgText: string): string;
@@ -5747,6 +5750,9 @@ export function useDefaultHelpers(): {
 
 // @public (undocumented)
 export function useDialogs(): TLUiDialogsContextType;
+
+// @public
+export function useDirection(): "ltr" | "rtl";
 
 // @public (undocumented)
 export function useEditablePlainText(shapeId: TLShapeId, type: ExtractShapeByProps<{

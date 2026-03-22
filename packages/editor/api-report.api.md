@@ -9,6 +9,7 @@ import { AtomSet } from '@tldraw/store';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
+import { CustomRecordInfo } from '@tldraw/tlschema';
 import { Dispatch } from 'react';
 import { Editor as Editor_2 } from '@tiptap/core';
 import { EditorProviderProps as EditorProviderProps_2 } from '@tiptap/react';
@@ -96,7 +97,7 @@ import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
 
 // @internal (undocumented)
-export function activeElementShouldCaptureKeys(includeButtonsAndMenus?: boolean): boolean;
+export function activeElementShouldCaptureKeys(includeButtonsAndMenus?: boolean, doc?: Document): boolean;
 
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
@@ -1233,6 +1234,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCollaborators(): TLInstancePresence[];
     getCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getContainer: () => HTMLElement;
+    // @internal
+    getContainerDocument(): Document;
+    // @internal
+    getContainerWindow(): Window & typeof globalThis;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     // @internal
     getCrashingError(): unknown;
@@ -1852,8 +1857,20 @@ export function getFontsFromRichText(editor: Editor, richText: TLRichText, initi
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
 
+// @internal
+export function getGlobalDocument(): Document;
+
+// @internal
+export function getGlobalWindow(): Window & typeof globalThis;
+
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
+
+// @internal (undocumented)
+export function getOwnerDocument(nodeOrDocument: Document | Node | null | undefined): Document;
+
+// @internal (undocumented)
+export function getOwnerWindow(nodeOrDocument: Document | Node | null | undefined): Window & typeof globalThis;
 
 // @public (undocumented)
 export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: {
@@ -4512,6 +4529,7 @@ export type TLStoreOptions = TLStoreBaseOptions & {
 export type TLStoreSchemaOptions = {
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     migrations?: readonly MigrationSequence[];
+    records?: Record<string, CustomRecordInfo>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
 } | {
     schema?: StoreSchema<TLRecord, TLStoreProps>;
