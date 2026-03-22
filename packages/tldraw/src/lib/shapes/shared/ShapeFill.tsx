@@ -61,11 +61,13 @@ export function PatternFill({ d, color, theme, scale }: ShapeFillProps) {
 
 	return (
 		<>
-			<pattern
-				id={scaledPatternId}
-				href={`#${sharedPatternId}`}
-				patternTransform={`scale(${scale})`}
-			/>
+			{!svgExport && !teenyTiny && (
+				<pattern
+					id={scaledPatternId}
+					href={`#${sharedPatternId}`}
+					patternTransform={`scale(${scale})`}
+				/>
+			)}
 			<path fill={getColorValue(theme, color, 'pattern')} d={d} />
 			<path
 				fill={
