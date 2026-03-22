@@ -29,8 +29,16 @@ import {
 	TLSyncStorage,
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
+	type SessionStateSnapshot,
 } from '@tldraw/sync-core'
-import { TLAsset, TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
+import {
+	TLAsset,
+	TLAssetId,
+	TLDOCUMENT_ID,
+	TLDocument,
+	TLRecord,
+	createTLSchema,
+} from '@tldraw/tlschema'
 import {
 	ExecutionQueue,
 	assert,
@@ -42,9 +50,10 @@ import {
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import { Kysely } from 'kysely'
+import { Kysely, PostgresDialect } from 'kysely'
 import { PERSIST_INTERVAL_MS } from './config'
-import { createPostgresConnectionPool } from './postgres'
+import { Logger } from './Logger'
+import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
@@ -79,6 +88,13 @@ interface SessionMeta {
 	userId: string | null
 }
 
+interface SocketAttachment {
+	sessionId: string
+	meta: SessionMeta
+	isReadonly: boolean
+	snapshot: SessionStateSnapshot | null
+}
+
 async function canAccessTestProductionFile(
 	env: Environment,
 	auth: { userId: string } | null
@@ -89,6 +105,21 @@ async function canAccessTestProductionFile(
 	} catch (_e) {
 		return false
 	}
+}
+
+function pruneUnusedAssetsForTldr(records: TLRecord[]): TLRecord[] {
+	const usedAssets = new Set<TLAssetId>()
+	for (const record of records) {
+		if (record.typeName === 'shape' && 'assetId' in record.props && record.props.assetId) {
+			usedAssets.add(record.props.assetId as TLAssetId)
+		}
+	}
+	return records.filter((r) => r.typeName !== 'asset' || usedAssets.has(r.id as TLAssetId))
+}
+
+function arrayBufferToBase64(ab: ArrayBuffer): string {
+	const bytes = new Uint8Array(ab)
+	return bytes.toBase64!()
 }
 
 const MB = 1024 * 1024
@@ -156,6 +187,14 @@ export class TLFileDurableObject extends DurableObject {
 			this._room = this.getStorage().then(async (storage) => {
 				const room = new TLSocketRoom<TLRecord, SessionMeta>({
 					storage,
+					clientTimeout: Infinity,
+					onSessionSnapshot: (sessionId, snapshot) => {
+						const ws = this.sessionIdToWs.get(sessionId)
+						if (!ws) return
+						const attachment = this.getSocketAttachment(ws)
+						if (!attachment) return
+						ws.serializeAttachment({ ...attachment, snapshot })
+					},
 					onSessionRemoved: async (room, args) => {
 						this.logEvent({
 							type: 'client',
@@ -184,7 +223,8 @@ export class TLFileDurableObject extends DurableObject {
 						this._room = null
 						room.close()
 						this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
-						this._db?.destroy()
+						await this._pool?.end()
+						this._pool = null
 						this._db = null
 					},
 					onBeforeSendMessage: ({ message, stringified }) => {
@@ -198,6 +238,19 @@ export class TLFileDurableObject extends DurableObject {
 				})
 
 				this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
+				// Resume any sessions that survived hibernation
+				for (const ws of this.state.getWebSockets()) {
+					const attachment = ws.deserializeAttachment() as SocketAttachment | null
+					if (!attachment?.sessionId) continue
+					if (attachment.snapshot) {
+						room.handleSocketResume({
+							sessionId: attachment.sessionId,
+							socket: ws,
+							snapshot: attachment.snapshot,
+							meta: attachment.meta,
+						})
+					}
+				}
 				// Also associate file assets after we load the room
 				setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
 				return room
@@ -229,11 +282,19 @@ export class TLFileDurableObject extends DurableObject {
 	_documentInfo: DocumentInfo | null = null
 
 	_db: Kysely<DB> | null = null
+	_pool: TLPostgresPool | null = null
+	private readonly log: Logger
+	/** Map sessionId → ws so onSessionSnapshot can serialize to the right socket. */
+	private readonly sessionIdToWs = new Map<string, WebSocket>()
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get db() {
 		if (!this._db) {
-			this._db = createPostgresConnectionPool(this.env, 'TLFileDurableObject')
+			this._pool = new TLPostgresPool(this.env, this.log)
+			this._db = new Kysely<DB>({
+				dialect: new PostgresDialect({ pool: this._pool }),
+				log: ['error'],
+			})
 		}
 		return this._db
 	}
@@ -250,6 +311,7 @@ export class TLFileDurableObject extends DurableObject {
 		this.sentryDSN = env.SENTRY_DSN
 		this.measure = env.MEASURE
 		this.sentry = createSentry(this.state, this.env)
+		this.log = new Logger(env, 'TLDrawDurableObject', this.sentry)
 		this.supabaseClient = createSupabaseClient(env)
 		this.pierreClient = createPierreClient(env)
 
@@ -258,6 +320,11 @@ export class TLFileDurableObject extends DurableObject {
 			rooms: env.ROOMS,
 			versionCache: env.ROOMS_HISTORY_EPHEMERAL,
 		}
+
+		// Respond to ping at the platform layer so the DO can hibernate
+		this.state.setWebSocketAutoResponse(
+			new WebSocketRequestResponsePair('{"type":"ping"}', '{"type":"pong"}')
+		)
 
 		state.blockConcurrencyWhile(async () => {
 			const existingDocumentInfo = (await this.storage.get('documentInfo')) as DocumentInfo | null
@@ -290,6 +357,11 @@ export class TLFileDurableObject extends DurableObject {
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_WRITE)
 		)
+		.get(
+			`/app/file/:roomId/download`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onDownloadTldr(req)
+		)
 		.post(
 			`/${ROOM_PREFIX}/:roomId/restore`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
@@ -307,7 +379,7 @@ export class TLFileDurableObject extends DurableObject {
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
@@ -349,6 +421,56 @@ export class TLFileDurableObject extends DurableObject {
 				statusText: 'Internal Server Error',
 			})
 		}
+	}
+
+	// --- WebSocket hibernation API handlers ---
+
+	private getSocketAttachment(ws: WebSocket): SocketAttachment | null {
+		return ws.deserializeAttachment() as SocketAttachment | null
+	}
+
+	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+		const attachment = this.getSocketAttachment(ws)
+		if (!attachment?.sessionId) return
+		if (!this._documentInfo) return
+
+		this.sessionIdToWs.set(attachment.sessionId, ws)
+		const room = await this.getRoom()
+		room.handleSocketMessage(attachment.sessionId, message)
+	}
+
+	override async webSocketClose(ws: WebSocket) {
+		this.handleWebSocketEnd(ws, 'handleSocketClose')
+	}
+
+	override async webSocketError(ws: WebSocket) {
+		this.handleWebSocketEnd(ws, 'handleSocketError')
+	}
+
+	private async handleWebSocketEnd(
+		ws: WebSocket,
+		method: 'handleSocketClose' | 'handleSocketError'
+	) {
+		const attachment = this.getSocketAttachment(ws)
+		if (!attachment?.sessionId) return
+
+		this.sessionIdToWs.delete(attachment.sessionId)
+		if (!this._documentInfo) return
+
+		const room = await this.getRoom()
+
+		// If the DO was hibernating, this session was never re-added to the room.
+		// Resume it briefly so the room can broadcast presence removal to other clients.
+		if (attachment.snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
+			room.handleSocketResume({
+				sessionId: attachment.sessionId,
+				socket: ws,
+				snapshot: attachment.snapshot,
+				meta: attachment.meta,
+			})
+		}
+
+		room[method](attachment.sessionId)
 	}
 
 	_isRestoring = false
@@ -452,9 +574,9 @@ export class TLFileDurableObject extends DurableObject {
 		storeId ??= params.localClientId
 		const isNewSession = !this._room
 
-		// Create the websocket pair for the client
+		// Create the websocket pair for the client; use hibernation API
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
-		serverWebSocket.accept()
+		this.state.acceptWebSocket(serverWebSocket)
 
 		const closeSocket = (reason: TLSyncErrorCloseEventReason) => {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, reason)
@@ -546,6 +668,19 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		try {
+			const meta: SessionMeta = {
+				storeId: storeId ?? sessionId,
+				userId: auth?.userId ? auth.userId : null,
+			}
+			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
+			const attachment: SocketAttachment = {
+				sessionId,
+				meta,
+				isReadonly,
+				snapshot: null,
+			}
+			serverWebSocket.serializeAttachment(attachment)
+
 			const getRoomTimer = this.timer()
 			const room = await this.getRoom()
 			getRoomTimer.report('on_request_get_room')
@@ -557,13 +692,10 @@ export class TLFileDurableObject extends DurableObject {
 
 			// all good
 			room.handleSocketConnect({
-				sessionId: sessionId,
+				sessionId,
 				socket: serverWebSocket,
-				meta: {
-					storeId,
-					userId: auth?.userId ? auth.userId : null,
-				},
-				isReadonly: openMode === ROOM_OPEN_MODE.READ_ONLY,
+				meta,
+				isReadonly,
 			})
 			if (isNewSession) {
 				this.logEvent({
@@ -591,6 +723,131 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			throw e
 		}
+	}
+
+	/** Stream .tldr download (schema + records, R2 assets inlined as base64). Same access as joining the file. */
+	async onDownloadTldr(req: IRequest): Promise<Response> {
+		const TLDRAW_FILE_MIMETYPE = 'application/vnd.tldraw+json'
+		const TLDRAW_FILE_FORMAT_VERSION = 1
+
+		if (!this.documentInfo.isApp) {
+			return new Response('Not found', { status: 404 })
+		}
+
+		const auth = await getAuth(req, this.env)
+		const file = await this.getAppFileRecord()
+		if (!file || file.isDeleted) {
+			return new Response('Not found', { status: 404 })
+		}
+
+		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
+			return new Response('Not found', { status: 404 })
+		}
+		if (!auth && !file.shared) {
+			return new Response('Unauthorized', { status: 401 })
+		}
+
+		const url = new URL(req.url)
+		const sessionId =
+			url.searchParams.get('instanceId') ?? url.searchParams.get('sessionId') ?? 'anon-download'
+		const rateLimitKey = auth?.userId ?? sessionId
+		if (await isRateLimited(this.env, rateLimitKey)) {
+			return new Response('Rate limited', { status: 429 })
+		}
+
+		let hasOwnerAccess = false
+		if (file.ownerId && file.ownerId === auth?.userId) {
+			hasOwnerAccess = true
+		} else if (file.owningGroupId && auth?.userId) {
+			const groupMember = await this.db
+				.selectFrom('group_user')
+				.where('groupId', '=', file.owningGroupId)
+				.where('userId', '=', auth.userId)
+				.executeTakeFirst()
+			if (groupMember) hasOwnerAccess = true
+		}
+		if (!hasOwnerAccess && !file.shared) {
+			return new Response('Forbidden', { status: 403 })
+		}
+
+		const storage = await this.getStorage()
+		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+		const snapshot = storage.getSnapshot()
+		const records = pruneUnusedAssetsForTldr(snapshot.documents.map((d) => d.state) as TLRecord[])
+
+		const assetRows = await this.db
+			.selectFrom('asset')
+			.where('fileId', '=', this.documentInfo.slug)
+			.select('objectName')
+			.execute()
+		const assetObjectNames = new Set(assetRows.map((r) => r.objectName))
+
+		const documentRecord = records.find((r) => r.typeName === 'document') as TLDocument | undefined
+		// Prefer the TlaFile.name (kept in sync by the app layer) over the TLDocument.name
+		// (which is only updated when the document is open in an editor).
+		const rawName = file.name?.trim() || documentRecord?.name?.trim()
+		const sanitized =
+			rawName?.replace(/[^ \w-]/g, '_').slice(0, 200) || `${this.documentInfo.slug}.tldr`
+		const filename = sanitized.endsWith('.tldr') ? sanitized : `${sanitized}.tldr`
+
+		const env = this.env
+		const stream = new ReadableStream({
+			async start(controller) {
+				try {
+					const encoder = new TextEncoder()
+					controller.enqueue(
+						encoder.encode(
+							`{"tldrawFileFormatVersion":${TLDRAW_FILE_FORMAT_VERSION},"schema":${JSON.stringify(snapshot.schema)},"records":[`
+						)
+					)
+					for (let i = 0; i < records.length; i++) {
+						let record = records[i] as TLRecord
+						const assetSrc = record.typeName === 'asset' ? (record as TLAsset).props.src : null
+						if (
+							record.typeName === 'asset' &&
+							(record as TLAsset).type !== 'bookmark' &&
+							assetSrc &&
+							!assetSrc.startsWith('data:')
+						) {
+							const objectName = new URL(assetSrc).pathname.split('/').pop()
+							if (objectName && assetObjectNames.has(objectName)) {
+								const blob = await env.UPLOADS.get(objectName)
+								if (blob) {
+									const ab = await blob.arrayBuffer()
+									const base64 = arrayBufferToBase64(ab)
+									const assetRecord = record as TLAsset
+									const mimeType =
+										assetRecord.type !== 'bookmark' &&
+										'mimeType' in assetRecord.props &&
+										assetRecord.props.mimeType
+											? assetRecord.props.mimeType
+											: 'application/octet-stream'
+									record = {
+										...record,
+										props: {
+											...(record as TLAsset).props,
+											src: `data:${mimeType};base64,${base64}`,
+										},
+									} as TLRecord
+								}
+							}
+						}
+						controller.enqueue(encoder.encode((i > 0 ? ',' : '') + JSON.stringify(record)))
+					}
+					controller.enqueue(encoder.encode(']}'))
+					controller.close()
+				} catch (e) {
+					controller.error(e)
+				}
+			},
+		})
+
+		return new Response(stream, {
+			headers: {
+				'Content-Type': TLDRAW_FILE_MIMETYPE,
+				'Content-Disposition': `attachment; filename="${filename}"`,
+			},
+		})
 	}
 
 	triggerPersist = throttle(() => {

@@ -212,8 +212,7 @@ export class TldrawApp {
 					return false
 				})
 			// Proactively refresh auth token before Clerk's 60s expiry.
-			// TODO: Rocicorp is working on improvements for token refresh. We can also
-			// configure longer-lived tokens in Clerk to reduce refresh frequency.
+			// In Zero 0.26+, this sends an updateAuth message without reconnecting.
 			const TOKEN_REFRESH_INTERVAL = 50_000
 			const refreshInterval = setInterval(() => {
 				refreshToken().catch((err) => {
@@ -951,7 +950,8 @@ export class TldrawApp {
 	async uploadTldrFiles(
 		files: File[],
 		onFirstFileUploaded?: (fileId: string) => void,
-		groupId?: string
+		groupId?: string,
+		onUploadError?: () => void
 	) {
 		const totalFiles = files.length
 		let uploadedFiles = 0
@@ -1020,6 +1020,7 @@ export class TldrawApp {
 					keepOpen: true,
 				})
 				console.error(res.error)
+				onUploadError?.()
 				return
 			}
 

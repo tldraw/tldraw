@@ -108,8 +108,9 @@ import {
 	RIGHT_MOUSE_BUTTON,
 	STYLUS_ERASER_BUTTON,
 } from '../constants'
+import { getOwnerWindow } from '../exports/domUtils'
 import { exportToSvg } from '../exports/exportToSvg'
-import { getSvgAsImage } from '../exports/getSvgAsImage'
+import { getSvgAsImageWithOptions, trimSvgToContent } from '../exports/getSvgAsImage'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
@@ -158,6 +159,7 @@ import {
 	TLEditStartInfo,
 	TLGeometryOpts,
 	TLResizeMode,
+	TLShapeUtilCanBeLaidOutOpts,
 	TLShapeUtilCanBindOpts,
 } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
@@ -997,6 +999,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getContainer: () => HTMLElement
+
+	/**
+	 * The document that the editor's container element belongs to.
+	 * Use this instead of the global `document` to support cross-window embedding.
+	 *
+	 * @internal
+	 */
+	getContainerDocument(): Document {
+		return this.getContainer().ownerDocument
+	}
+
+	/**
+	 * The window that the editor's container element belongs to.
+	 * Use this instead of the global `window` to support cross-window embedding.
+	 *
+	 * @internal
+	 */
+	getContainerWindow(): Window & typeof globalThis {
+		return getOwnerWindow(this.getContainer())
+	}
 
 	/**
 	 * Dispose the editor.
@@ -2771,6 +2793,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getCamera().z
 	}
 
+	/**
+	 * Get the scale factor used when creating or resizing shapes in dynamic size mode.
+	 *
+	 * @public
+	 */
+	@computed getResizeScaleFactor() {
+		return this.user.getIsDynamicResizeMode() ? 1 / this.getZoomLevel() : 1
+	}
+
 	private _debouncedZoomLevel = atom('debounced zoom level', 1)
 
 	/**
@@ -3764,13 +3795,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			screenBounds.height = Math.max(screenBounds.height, 1)
 		}
 
+		const doc = this.getContainerDocument()
 		const insets = [
 			// top
 			screenBounds.minY !== 0,
 			// right
-			!approximately(document.body.scrollWidth, screenBounds.maxX, 1),
+			!approximately(doc.body.scrollWidth, screenBounds.maxX, 1),
 			// bottom
-			!approximately(document.body.scrollHeight, screenBounds.maxY, 1),
+			!approximately(doc.body.scrollHeight, screenBounds.maxY, 1),
 			// left
 			screenBounds.minX !== 0,
 		]
@@ -6772,6 +6804,77 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Shared clustering logic for layout methods. Resolves shapes, optionally filters to
+	 * axis-aligned shapes, checks canBeLaidOut, and groups shapes into clusters via arrow bindings.
+	 *
+	 * @internal
+	 */
+	private getShapeClusters(
+		shapes: TLShapeId[] | TLShape[],
+		type: TLShapeUtilCanBeLaidOutOpts['type'],
+		opts?: { filterAxisAligned?: boolean }
+	): { clusters: { shapes: TLShape[]; pageBounds: Box }[]; allBounds: Box[] } {
+		const ids =
+			typeof shapes[0] === 'string'
+				? (shapes as TLShapeId[])
+				: (shapes as TLShape[]).map((s) => s.id)
+
+		// always fresh shapes
+		let freshShapes = compact(ids.map((id) => this.getShape(id)))
+
+		// optionally filter to axis-aligned shapes (rotation is a multiple of 90 degrees)
+		if (opts?.filterAxisAligned) {
+			freshShapes = freshShapes.filter(
+				(s) => this.getShapePageTransform(s)?.rotation() % (PI / 2) === 0
+			)
+		}
+
+		const clusters: { shapes: TLShape[]; pageBounds: Box }[] = []
+		const allBounds: Box[] = []
+		const visited = new Set<TLShapeId>()
+
+		for (const shape of freshShapes) {
+			if (visited.has(shape.id)) continue
+			visited.add(shape.id)
+
+			const shapePageBounds = this.getShapePageBounds(shape)
+			if (!shapePageBounds) continue
+
+			if (
+				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
+					type,
+					shapes: freshShapes,
+				})
+			) {
+				continue
+			}
+
+			const shapesMovingTogether = [shape]
+			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
+
+			this.collectShapesViaArrowBindings({
+				bindings: this.getBindingsToShape(shape.id, 'arrow'),
+				initialShapes: freshShapes,
+				resultShapes: shapesMovingTogether,
+				resultBounds: boundsOfShapesMovingTogether,
+				visited,
+			})
+
+			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
+			if (!commonPageBounds) continue
+
+			clusters.push({
+				shapes: shapesMovingTogether,
+				pageBounds: commonPageBounds,
+			})
+
+			allBounds.push(commonPageBounds)
+		}
+
+		return { clusters, allBounds }
+	}
+
+	/**
 	 * @internal
 	 */
 	private collectShapesViaArrowBindings(info: {
@@ -6916,61 +7019,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		gap?: number
 	): this {
 		const _gap = gap ?? this.options.adjacentShapeMargin
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
 		if (this.getIsReadonly()) return this
 
 		// todo: this has a lot of extra code to handle stacking with custom gaps or auto gaps or other things like that. I don't think anyone has ever used this stuff.
 
-		// always fresh shapes
-		const shapesToStackFirstPass = compact(ids.map((id) => this.getShape(id)))
-
-		const shapeClustersToStack: {
-			shapes: TLShape[]
-			pageBounds: Box
-		}[] = []
-		const allBounds: Box[] = []
-		const visited = new Set<TLShapeId>()
-
-		for (const shape of shapesToStackFirstPass) {
-			if (visited.has(shape.id)) continue
-			visited.add(shape.id)
-
-			const shapePageBounds = this.getShapePageBounds(shape)
-			if (!shapePageBounds) continue
-
-			if (
-				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
-					type: 'stack',
-					shapes: shapesToStackFirstPass,
-				})
-			) {
-				continue
-			}
-
-			const shapesMovingTogether = [shape]
-			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
-
-			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
-				initialShapes: shapesToStackFirstPass,
-				resultShapes: shapesMovingTogether,
-				resultBounds: boundsOfShapesMovingTogether,
-				visited,
-			})
-
-			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
-			if (!commonPageBounds) continue
-
-			shapeClustersToStack.push({
-				shapes: shapesMovingTogether,
-				pageBounds: commonPageBounds,
-			})
-
-			allBounds.push(commonPageBounds)
-		}
+		const { clusters: shapeClustersToStack } = this.getShapeClusters(shapes, 'stack')
 
 		const len = shapeClustersToStack.length
 		if ((_gap === 0 && len < 3) || len < 2) return this
@@ -7086,61 +7139,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const gap = _gap ?? this.options.adjacentShapeMargin
 
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const { clusters, allBounds } = this.getShapeClusters(shapes, 'pack')
 
-		// Always fresh shapes
-		const shapesToPackFirstPass = compact(ids.map((id) => this.getShape(id)))
-
-		const shapeClustersToPack: {
-			shapes: TLShape[]
-			pageBounds: Box
-			nextPageBounds: Box
-		}[] = []
-
-		const allBounds: Box[] = []
-		const visited = new Set<TLShapeId>()
-
-		for (const shape of shapesToPackFirstPass) {
-			if (visited.has(shape.id)) continue
-			visited.add(shape.id)
-
-			const shapePageBounds = this.getShapePageBounds(shape)
-			if (!shapePageBounds) continue
-
-			if (
-				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
-					type: 'pack',
-					shapes: shapesToPackFirstPass,
-				})
-			) {
-				continue
-			}
-
-			const shapesMovingTogether = [shape]
-			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
-
-			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
-				initialShapes: shapesToPackFirstPass,
-				resultShapes: shapesMovingTogether,
-				resultBounds: boundsOfShapesMovingTogether,
-				visited,
-			})
-
-			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
-			if (!commonPageBounds) continue
-
-			shapeClustersToPack.push({
-				shapes: shapesMovingTogether,
-				pageBounds: commonPageBounds,
-				nextPageBounds: commonPageBounds.clone(),
-			})
-
-			allBounds.push(commonPageBounds)
-		}
+		const shapeClustersToPack = clusters.map((cluster) => ({
+			...cluster,
+			nextPageBounds: cluster.pageBounds.clone(),
+		}))
 
 		if (shapeClustersToPack.length < 2) return this
 
@@ -7262,63 +7266,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	): this {
 		if (this.getIsReadonly()) return this
 
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
-
-		// Always get fresh shapes
-		const shapesToAlignFirstPass = compact(ids.map((id) => this.getShape(id)))
-
-		const shapeClustersToAlign: {
-			shapes: TLShape[]
-			pageBounds: Box
-		}[] = []
-		const allBounds: Box[] = []
-		const visited = new Set<TLShapeId>()
-
-		for (const shape of shapesToAlignFirstPass) {
-			if (visited.has(shape.id)) continue
-			visited.add(shape.id)
-
-			const shapePageBounds = this.getShapePageBounds(shape)
-			if (!shapePageBounds) continue
-
-			if (
-				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
-					type: 'align',
-					shapes: shapesToAlignFirstPass,
-				})
-			) {
-				continue
-			}
-
-			// In this implementation, we want to create psuedo-groups out of shapes that
-			// are moving together. At the moment shapes only move together if they're connected
-			// by arrows. So let's say A -> B -> C -> D and A, B, and C are selected. If we're
-			// aligning A, B, and C, then we want these to move together as one unit.
-
-			const shapesMovingTogether = [shape]
-			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
-
-			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
-				initialShapes: shapesToAlignFirstPass,
-				resultShapes: shapesMovingTogether,
-				resultBounds: boundsOfShapesMovingTogether,
-				visited,
-			})
-
-			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
-			if (!commonPageBounds) continue
-
-			shapeClustersToAlign.push({
-				shapes: shapesMovingTogether,
-				pageBounds: commonPageBounds,
-			})
-
-			allBounds.push(commonPageBounds)
-		}
+		const { clusters: shapeClustersToAlign, allBounds } = this.getShapeClusters(shapes, 'align')
 
 		if (shapeClustersToAlign.length < 2) return this
 
@@ -7393,59 +7341,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	distributeShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
 		if (this.getIsReadonly()) return this
 
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
-
-		// always fresh shapes
-		const shapesToDistributeFirstPass = compact(ids.map((id) => this.getShape(id)))
-
-		const shapeClustersToDistribute: {
-			shapes: TLShape[]
-			pageBounds: Box
-		}[] = []
-
-		const allBounds: Box[] = []
-		const visited = new Set<TLShapeId>()
-
-		for (const shape of shapesToDistributeFirstPass) {
-			if (visited.has(shape.id)) continue
-			visited.add(shape.id)
-
-			const shapePageBounds = this.getShapePageBounds(shape)
-			if (!shapePageBounds) continue
-
-			if (
-				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
-					type: 'distribute',
-					shapes: shapesToDistributeFirstPass,
-				})
-			) {
-				continue
-			}
-
-			const shapesMovingTogether = [shape]
-			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
-
-			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
-				initialShapes: shapesToDistributeFirstPass,
-				resultShapes: shapesMovingTogether,
-				resultBounds: boundsOfShapesMovingTogether,
-				visited,
-			})
-
-			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
-			if (!commonPageBounds) continue
-
-			shapeClustersToDistribute.push({
-				shapes: shapesMovingTogether,
-				pageBounds: commonPageBounds,
-			})
-
-			allBounds.push(commonPageBounds)
-		}
+		const { clusters: shapeClustersToDistribute } = this.getShapeClusters(shapes, 'distribute')
 
 		if (shapeClustersToDistribute.length < 3) return this
 
@@ -7473,6 +7369,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// If the first shape group is also the last shape group, distribute without it
 		if (first === last) {
 			const excludedShapeIds = new Set(first.shapes.map((s) => s.id))
+			const ids =
+				typeof shapes[0] === 'string'
+					? (shapes as TLShapeId[])
+					: (shapes as TLShape[]).map((s) => s.id)
 			return this.distributeShapes(
 				ids.filter((id) => !excludedShapeIds.has(id)),
 				operation
@@ -7542,62 +7442,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stretchShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
-
 		if (this.getIsReadonly()) return this
 
-		// always fresh shapes, skip anything that isn't rotated 90 deg
-		const shapesToStretchFirstPass = compact(ids.map((id) => this.getShape(id))).filter(
-			(s) => this.getShapePageTransform(s)?.rotation() % (PI / 2) === 0
+		const { clusters: shapeClustersToStretch, allBounds } = this.getShapeClusters(
+			shapes,
+			'stretch',
+			{ filterAxisAligned: true }
 		)
-
-		const shapeClustersToStretch: {
-			shapes: TLShape[]
-			pageBounds: Box
-		}[] = []
-
-		const allBounds: Box[] = []
-		const visited = new Set<TLShapeId>()
-
-		for (const shape of shapesToStretchFirstPass) {
-			if (visited.has(shape.id)) continue
-			visited.add(shape.id)
-
-			const shapePageBounds = this.getShapePageBounds(shape)
-			if (!shapePageBounds) continue
-
-			const shapesMovingTogether = [shape]
-			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
-
-			if (
-				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
-					type: 'stretch',
-				})
-			) {
-				continue
-			}
-
-			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
-				initialShapes: shapesToStretchFirstPass,
-				resultShapes: shapesMovingTogether,
-				resultBounds: boundsOfShapesMovingTogether,
-				visited,
-			})
-
-			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
-			if (!commonPageBounds) continue
-
-			shapeClustersToStretch.push({
-				shapes: shapesMovingTogether,
-				pageBounds: commonPageBounds,
-			})
-
-			allBounds.push(commonPageBounds)
-		}
 
 		if (shapeClustersToStretch.length < 2) return this
 
@@ -7631,7 +7482,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// First translate
 					const shapeLocalOffset = localOffset.clone()
 					const parentTransform = this.getShapeParentTransform(shape)
-					if (parentTransform) localOffset.rot(-parentTransform.rotation())
+					if (parentTransform) shapeLocalOffset.rot(-parentTransform.rotation())
 					shapeLocalOffset.add(shape)
 					const changes = this.getChangesToTranslateShape(shape, shapeLocalOffset)
 					this.updateShape(changes)
@@ -7645,6 +7496,77 @@ export class Editor extends EventEmitter<TLEventMap> {
 					})
 				}
 			})
+		})
+
+		return this
+	}
+
+	/**
+	 * Resize and reposition a set of shapes so that their combined page bounds matches the given
+	 * target bounds.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.resizeToBounds([box1, box2], { x: 0, y: 0, w: 500, h: 500 })
+	 * editor.resizeToBounds(editor.getSelectedShapeIds(), new Box(0, 0, 500, 500))
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to resize.
+	 * @param bounds - The target bounding box.
+	 *
+	 * @public
+	 */
+	resizeToBounds(shapes: TLShapeId[] | TLShape[], bounds: BoxLike): this {
+		if (this.getIsReadonly()) return this
+
+		const targetBounds = Box.From(bounds)
+
+		const { clusters: shapeClusters, allBounds } = this.getShapeClusters(
+			shapes,
+			'resize_to_bounds',
+			{ filterAxisAligned: true }
+		)
+
+		if (shapeClusters.length === 0) return this
+
+		const commonBounds = Box.Common(allBounds)
+		if (!commonBounds) return this
+		if (commonBounds.width === 0 || commonBounds.height === 0) return this
+
+		const scaleX = targetBounds.width / commonBounds.width
+		const scaleY = targetBounds.height / commonBounds.height
+		const scale = new Vec(scaleX, scaleY)
+
+		shapeClusters.forEach(({ shapes, pageBounds }) => {
+			const localOffset = new Vec(
+				targetBounds.minX -
+					commonBounds.minX +
+					(pageBounds.minX - commonBounds.minX) * (scaleX - 1),
+				targetBounds.minY - commonBounds.minY + (pageBounds.minY - commonBounds.minY) * (scaleY - 1)
+			)
+
+			const scaleOrigin = new Vec(
+				targetBounds.minX + (pageBounds.minX - commonBounds.minX) * scaleX,
+				targetBounds.minY + (pageBounds.minY - commonBounds.minY) * scaleY
+			)
+
+			for (const shape of shapes) {
+				// First translate
+				const shapeLocalOffset = localOffset.clone()
+				const parentTransform = this.getShapeParentTransform(shape)
+				if (parentTransform) shapeLocalOffset.rot(-parentTransform.rotation())
+				shapeLocalOffset.add(shape)
+				const changes = this.getChangesToTranslateShape(shape, shapeLocalOffset)
+				this.updateShape(changes)
+
+				// Then resize
+				this.resizeShape(shape.id, scale, {
+					initialBounds: this.getShapeGeometry(shape).bounds,
+					scaleOrigin,
+					isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
+					scaleAxisRotation: 0,
+				})
+			}
 		})
 
 		return this
@@ -9693,6 +9615,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			svg: serializer.serializeToString(result.svg),
 			width: result.width,
 			height: result.height,
+			trimPadding: result.trimPadding,
 		}
 	}
 
@@ -9716,30 +9639,45 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!result) throw new Error('Could not create SVG')
 
 		switch (withDefaults.format) {
-			case 'svg':
-				return {
-					blob: new Blob([result.svg], { type: 'image/svg+xml' }),
-					width: result.width,
-					height: result.height,
+			case 'svg': {
+				let svg = result.svg
+				let w = result.width
+				let h = result.height
+				if (result.trimPadding > 0) {
+					const trimmed = await trimSvgToContent(svg, {
+						width: w,
+						height: h,
+						trimPadding: result.trimPadding,
+						scale: withDefaults.scale,
+					})
+					if (trimmed) {
+						svg = trimmed.svg
+						w = trimmed.width
+						h = trimmed.height
+					}
 				}
+				return {
+					blob: new Blob([svg], { type: 'image/svg+xml' }),
+					width: w,
+					height: h,
+				}
+			}
 			case 'jpeg':
 			case 'png':
 			case 'webp': {
-				const blob = await getSvgAsImage(result.svg, {
+				const imageResult = await getSvgAsImageWithOptions(result.svg, {
 					type: withDefaults.format,
 					quality: withDefaults.quality,
 					pixelRatio: withDefaults.pixelRatio,
 					width: result.width,
 					height: result.height,
+					trimPadding: result.trimPadding,
+					scale: withDefaults.scale,
 				})
-				if (!blob) {
+				if (!imageResult) {
 					throw new Error('Could not construct image.')
 				}
-				return {
-					blob,
-					width: result.width,
-					height: result.height,
-				}
+				return imageResult
 			}
 			default: {
 				exhaustiveSwitchError(withDefaults.format)
@@ -10178,7 +10116,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					to: opts?.getTarget?.(this),
 				})
 
-				window.history.replaceState({}, document.title, url.toString())
+				window.history.replaceState({}, this.getContainerDocument().title, url.toString())
 			})
 
 		const scheduleEffect = debounce((execute: () => void) => execute(), opts?.debounceMs ?? 500)

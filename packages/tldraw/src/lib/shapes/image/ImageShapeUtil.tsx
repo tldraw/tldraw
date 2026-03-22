@@ -18,6 +18,7 @@ import {
 	Vec,
 	WeakCache,
 	fetch,
+	getGlobalDocument,
 	imageShapeMigrations,
 	imageShapeProps,
 	lerp,
@@ -440,7 +441,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 							src={loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
 							draggable={false}
-							alt=""
+							alt={shape.props.altText}
 						/>
 					)}
 					{nextSrc && (
@@ -602,7 +603,7 @@ function getFirstFrameOfAnimatedImage(url: string) {
 		image.onload = () => {
 			if (cancelled) return
 
-			const canvas = document.createElement('canvas')
+			const canvas = getGlobalDocument().createElement('canvas')
 			canvas.width = image.width
 			canvas.height = image.height
 

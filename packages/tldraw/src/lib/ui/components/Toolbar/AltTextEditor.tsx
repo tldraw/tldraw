@@ -47,6 +47,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 	const handleAltTextCancel = useCallback(() => onClose(), [onClose])
 
 	useEffect(() => {
+		const doc = editor.getContainerDocument()
 		ref.current?.select()
 
 		function handleKeyDown(event: KeyboardEvent) {
@@ -56,25 +57,26 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 			}
 		}
 
-		document.addEventListener('keydown', handleKeyDown, { capture: true })
+		doc.addEventListener('keydown', handleKeyDown, { capture: true })
 		return () => {
-			document.removeEventListener('keydown', handleKeyDown, { capture: true })
+			doc.removeEventListener('keydown', handleKeyDown, { capture: true })
 		}
-	}, [handleAltTextCancel])
+	}, [editor, handleAltTextCancel])
 
 	useEffect(() => {
+		const doc = editor.getContainerDocument()
 		const handlePointerDown = (e: PointerEvent) => {
-			const toolbar = document.querySelector('.tlui-media__toolbar')
+			const toolbar = doc.querySelector('.tlui-media__toolbar')
 			if (toolbar?.contains(e.target as Node)) return
 			// If the pointer down is not in the toolbar, complete the alt text
 			handleComplete()
 		}
-		document.addEventListener('pointerdown', handlePointerDown, { capture: true })
+		doc.addEventListener('pointerdown', handlePointerDown, { capture: true })
 
 		return () => {
-			document.removeEventListener('pointerdown', handlePointerDown, { capture: true })
+			doc.removeEventListener('pointerdown', handlePointerDown, { capture: true })
 		}
-	}, [handleComplete])
+	}, [editor, handleComplete])
 
 	return (
 		<>

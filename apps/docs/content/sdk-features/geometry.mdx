@@ -38,7 +38,7 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 
 The `isFilled` property controls hit testing behavior. A filled geometry registers hits inside its area. An unfilled geometry only responds to hits on its outline—useful for shapes like frames where you want to click through the middle.
 
-Geometry also powers [snapping](/docs/snapping). When you drag shapes, the snapping system uses geometry to find edges, centers, and corners to align to. Custom shapes can provide additional snap points by implementing [ShapeUtil#getBoundsSnapGeometry](?).
+Geometry also powers [snapping](/sdk-features/snapping). When you drag shapes, the snapping system uses geometry to find edges, centers, and corners to align to. Custom shapes can provide additional snap points by implementing [ShapeUtil#getBoundsSnapGeometry](?).
 
 ## Geometry primitives
 

@@ -178,7 +178,9 @@ export async function defaultHandleExternalFileReplaceContent(
 		sanitizedFile,
 		assetId,
 		isImage /* isImage */,
-		!isImage /* isVideo */
+		!isImage /* isVideo */,
+		undefined,
+		editor.getContainerDocument()
 	)
 	editor.createAssets([assetInfoPartial])
 
@@ -328,9 +330,10 @@ export async function defaultHandleExternalSvgTextContent(
 	let height = parseFloat(svg.getAttribute('height') || '0')
 
 	if (!(width && height)) {
-		document.body.appendChild(svg)
+		const doc = editor.getContainerDocument()
+		doc.body.appendChild(svg)
 		const box = svg.getBoundingClientRect()
-		document.body.removeChild(svg)
+		doc.body.removeChild(svg)
 
 		width = box.width
 		height = box.height
@@ -651,7 +654,8 @@ export async function getMediaAssetInfoPartial(
 	assetId: TLAssetId,
 	isImageType: boolean,
 	isVideoType: boolean,
-	maxImageDimension?: number
+	maxImageDimension?: number,
+	doc?: Document
 ) {
 	let fileType = file.type
 
@@ -661,10 +665,12 @@ export async function getMediaAssetInfoPartial(
 	}
 
 	const size = isImageType
-		? await MediaHelpers.getImageSize(file)
-		: await MediaHelpers.getVideoSize(file)
+		? await MediaHelpers.getImageSize(file, doc)
+		: await MediaHelpers.getVideoSize(file, doc)
 
 	const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
+
+	const pixelRatio = 'pixelRatio' in size && size.pixelRatio !== 1 ? size.pixelRatio : undefined
 
 	const assetInfo = {
 		id: assetId,
@@ -678,6 +684,7 @@ export async function getMediaAssetInfoPartial(
 			fileSize: file.size,
 			mimeType: fileType,
 			isAnimated,
+			...(isImageType && pixelRatio ? { pixelRatio } : undefined),
 		},
 		meta: {},
 	} as TLImageAsset | TLVideoAsset

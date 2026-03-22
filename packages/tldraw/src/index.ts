@@ -52,7 +52,7 @@ export {
 } from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
 export { DefaultToasts } from './lib/ui/components/Toasts'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/editor'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
 export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
@@ -140,7 +140,7 @@ export { createBookmarkFromUrl } from './lib/shapes/bookmark/bookmarks'
 export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
 export { DrawShapeUtil, type DrawShapeOptions } from './lib/shapes/draw/DrawShapeUtil'
-export { EmbedShapeUtil } from './lib/shapes/embed/EmbedShapeUtil'
+export { EmbedShapeUtil, type EmbedShapeOptions } from './lib/shapes/embed/EmbedShapeUtil'
 export { FrameShapeTool } from './lib/shapes/frame/FrameShapeTool'
 export { FrameShapeUtil, type FrameShapeOptions } from './lib/shapes/frame/FrameShapeUtil'
 export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
@@ -678,9 +678,10 @@ export {
 	type TLUiToolsProviderProps,
 } from './lib/ui/hooks/useTools'
 export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTranslationKey'
-export { type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
+export { RTL_LANGUAGES, type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
 export {
 	useCurrentTranslation,
+	useDirection,
 	useTranslation,
 	type TLUiTranslationContextType,
 	type TLUiTranslationProviderProps,

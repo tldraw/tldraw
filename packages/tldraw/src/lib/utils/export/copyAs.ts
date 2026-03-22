@@ -13,10 +13,10 @@ import {
 import { exportToImagePromiseForClipboard } from './export'
 
 /** @public */
-export type TLCopyType = 'svg' | 'png'
+export type TLCopyType = 'svg' | 'png' | 'json'
 
 /** @public */
-export interface CopyAsOptions extends TLImageExportOptions {
+export interface CopyAsOptions extends Omit<TLImageExportOptions, 'format'> {
 	/** The format to copy as. */
 	format: TLCopyType
 }
@@ -38,8 +38,20 @@ export function copyAs(editor: Editor, ids: TLShapeId[], opts: CopyAsOptions): P
 	// https://bugs.webkit.org/show_bug.cgi?id=222262
 
 	if (!navigator.clipboard) return Promise.reject(new Error('Copy not supported'))
+
+	if (opts.format === 'json') {
+		const content = editor.getContentFromCurrentPage(ids)
+		const jsonStr = JSON.stringify(content, null, '\t')
+		return navigator.clipboard.writeText(jsonStr)
+	}
+
+	const imageOpts: TLImageExportOptions = {
+		...opts,
+		format: opts.format as TLImageExportOptions['format'],
+	}
+
 	if (navigator.clipboard.write as any) {
-		const { blobPromise, mimeType } = exportToImagePromiseForClipboard(editor, ids, opts)
+		const { blobPromise, mimeType } = exportToImagePromiseForClipboard(editor, ids, imageOpts)
 
 		const types: Record<string, Promise<Blob>> = { [mimeType]: blobPromise }
 		const additionalMimeType = getAdditionalClipboardWriteType(opts.format)
@@ -55,7 +67,7 @@ export function copyAs(editor: Editor, ids: TLShapeId[], opts: CopyAsOptions): P
 	switch (opts.format) {
 		case 'svg': {
 			return fallbackWriteTextAsync(async () => {
-				const result = await editor.getSvgString(ids, opts)
+				const result = await editor.getSvgString(ids, imageOpts)
 
 				if (!result) throw new Error('Failed to copy')
 				return result.svg
