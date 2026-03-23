@@ -4,7 +4,12 @@ import { useNavigate } from 'react-router-dom'
 import { assertExists, atom } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
-import { fetchFeatureFlags, wasAuthenticated } from '../utils/FeatureFlagPoller'
+import {
+	DEFAULT_FLAGS,
+	FeatureFlags,
+	fetchFeatureFlags,
+	wasAuthenticated,
+} from '../utils/FeatureFlagPoller'
 
 const appContext = createContext<TldrawApp | null>(null)
 
@@ -31,11 +36,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		let _app: TldrawApp
 		let didCancel = false
 
+		const FETCH_TIMEOUT = 5000
+		function fetchFlagsWithTimeout(): Promise<FeatureFlags> {
+			return Promise.race([
+				fetchFeatureFlags(),
+				new Promise<FeatureFlags>((resolve) =>
+					setTimeout(() => resolve({ ...DEFAULT_FLAGS }), FETCH_TIMEOUT)
+				),
+			])
+		}
+
 		;(async () => {
-			let flags = await fetchFeatureFlags()
+			let flags = await fetchFlagsWithTimeout()
 			if (!wasAuthenticated()) {
-				// Module-level fetch ran without auth cookies, retry now that Clerk is ready
-				flags = await fetchFeatureFlags()
+				flags = await fetchFlagsWithTimeout()
 			}
 			if (didCancel) return
 			const token = await auth.getToken()

@@ -110,6 +110,9 @@ export function shouldUseProperZero(
 	if (flags.zero_kill_switch?.enabled) {
 		return { value: false, reason: 'kill switch active' }
 	}
+	if (typeof navigator !== 'undefined' && navigator.webdriver) {
+		return { value: false, reason: 'automated testing' }
+	}
 	const localOverride = getFromLocalStorage('useProperZero')
 	if (localOverride !== null) {
 		return { value: localOverride === 'true', reason: 'localStorage override' }

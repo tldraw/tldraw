@@ -14,8 +14,11 @@ import { shouldUseProperZero } from './TldrawApp'
 
 const mockedGetFromLocalStorage = vi.mocked(getFromLocalStorage)
 
+const originalWebdriver = navigator.webdriver
+
 afterEach(() => {
 	mockedGetFromLocalStorage.mockReset()
+	Object.defineProperty(navigator, 'webdriver', { value: originalWebdriver, configurable: true })
 })
 
 const FLAGS_OFF: FeatureFlags = {
@@ -44,6 +47,37 @@ describe('shouldUseProperZero', () => {
 
 		it('returns false when kill switch is active, even with localStorage override', () => {
 			mockedGetFromLocalStorage.mockReturnValue('true')
+			const flags: FeatureFlags = {
+				...FLAGS_OFF,
+				zero_kill_switch: { enabled: true },
+			}
+			const result = shouldUseProperZero(flags)
+			expect(result.value).toBe(false)
+			expect(result.reason).toBe('kill switch active')
+		})
+	})
+
+	describe('automated testing (navigator.webdriver)', () => {
+		it('returns false when webdriver is true, even for @tldraw.com emails', () => {
+			Object.defineProperty(navigator, 'webdriver', { value: true, configurable: true })
+			const result = shouldUseProperZero(FLAGS_OFF, 'dev@tldraw.com')
+			expect(result.value).toBe(false)
+			expect(result.reason).toBe('automated testing')
+		})
+
+		it('returns false when webdriver is true, even with zero_enabled flag', () => {
+			Object.defineProperty(navigator, 'webdriver', { value: true, configurable: true })
+			const flags: FeatureFlags = {
+				...FLAGS_OFF,
+				zero_enabled: { enabled: true },
+			}
+			const result = shouldUseProperZero(flags, 'dev@tldraw.com')
+			expect(result.value).toBe(false)
+			expect(result.reason).toBe('automated testing')
+		})
+
+		it('kill switch still takes priority over webdriver check', () => {
+			Object.defineProperty(navigator, 'webdriver', { value: true, configurable: true })
 			const flags: FeatureFlags = {
 				...FLAGS_OFF,
 				zero_kill_switch: { enabled: true },
@@ -102,7 +136,7 @@ describe('shouldUseProperZero', () => {
 	})
 
 	describe('priority order', () => {
-		it('kill switch > localStorage > email > flag', () => {
+		it('kill switch > webdriver > localStorage > email > flag', () => {
 			mockedGetFromLocalStorage.mockReturnValue('true')
 			const flags: FeatureFlags = {
 				sqlite_file_storage: { enabled: false },

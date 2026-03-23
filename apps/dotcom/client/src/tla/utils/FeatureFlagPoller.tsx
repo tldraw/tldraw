@@ -4,7 +4,7 @@ import { fetch } from 'tldraw'
 
 export type FeatureFlags = Record<FeatureFlagKey, EvaluatedFeatureFlag>
 
-const DEFAULT_FLAGS: FeatureFlags = {
+export const DEFAULT_FLAGS: FeatureFlags = {
 	sqlite_file_storage: { enabled: false },
 	zero_enabled: { enabled: false },
 	zero_kill_switch: { enabled: false },
