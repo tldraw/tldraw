@@ -24,8 +24,8 @@ fi
 CHANGED_DOTCOM_CLIENT=$(git diff --cached --name-only -- apps/dotcom/client)
 if [ -n "$CHANGED_DOTCOM_CLIENT" ]; then
 	npx lazy run build-i18n --filter=apps/dotcom/client
-	git add apps/dotcom/client/locales
-	git add apps/dotcom/client/locales-compiled
+	git add apps/dotcom/client/public/tla/locales
+	git add apps/dotcom/client/public/tla/locales-compiled
 fi
 
 yarn lint-staged
