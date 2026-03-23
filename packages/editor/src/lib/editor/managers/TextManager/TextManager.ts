@@ -98,7 +98,7 @@ export class TextManager {
 	}
 
 	private createMeasurementEl(): HTMLDivElement {
-		const elm = document.createElement('div')
+		const elm = this.editor.getContainerDocument().createElement('div')
 		elm.classList.add('tl-text')
 		elm.classList.add('tl-text-measure')
 		elm.setAttribute('dir', 'auto')
@@ -174,7 +174,7 @@ export class TextManager {
 	private ensurePoolSize(size: number) {
 		if (this.poolElms.length >= size) return
 
-		const fragment = document.createDocumentFragment()
+		const fragment = this.editor.getContainerDocument().createDocumentFragment()
 		while (this.poolElms.length < size) {
 			const el = this.createMeasurementEl()
 			this.poolElms.push({ el, html: '', appliedStyleKeys: [] })
@@ -230,7 +230,7 @@ export class TextManager {
 	}
 
 	measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize {
-		const div = document.createElement('div')
+		const div = this.editor.getContainerDocument().createElement('div')
 		div.textContent = normalizeTextForDom(textToMeasure)
 		return this.measureHtml(div.innerHTML, opts)
 	}

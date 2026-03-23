@@ -57,7 +57,10 @@ export class Arc2d extends Geometry2d {
 		if (t <= 0) return A
 		if (t >= 1) return B
 
-		// t is in (0,1), so the nearest point is the projection onto the arc
+		// Inlined: Vec.Sub(point, _center).uni().mul(radius).add(_center)
+		// When t is in (0,1), the nearest point is the radial projection of point onto the arc.
+		// Previously this also checked min-distance against A and B, but that's unnecessary when
+		// t is already in range — the radial projection is always closer.
 		const dx = point.x - _center.x
 		const dy = point.y - _center.y
 		const len = Math.sqrt(dx * dx + dy * dy)

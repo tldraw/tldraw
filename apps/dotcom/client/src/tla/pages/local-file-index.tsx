@@ -1,4 +1,4 @@
-/* eslint-disable react/jsx-no-literals */
+/* eslint-disable tldraw/jsx-no-literals */
 import { deleteDB } from 'idb'
 import { Link, useNavigate } from 'react-router-dom'
 import { compact } from 'tldraw'

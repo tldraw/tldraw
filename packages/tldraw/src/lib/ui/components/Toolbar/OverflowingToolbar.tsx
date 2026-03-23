@@ -260,7 +260,7 @@ export function OverflowingToolbar({
 		function handleKeyDown(event: KeyboardEvent) {
 			if (
 				areShortcutsDisabled(editor) ||
-				activeElementShouldCaptureKeys(false /* includeButton */)
+				activeElementShouldCaptureKeys(false /* includeButton */, editor.getContainerDocument())
 			) {
 				return
 			}
@@ -274,9 +274,10 @@ export function OverflowingToolbar({
 			}
 		}
 
-		document.addEventListener('keydown', handleKeyDown)
+		const doc = editor.getContainerDocument()
+		doc.addEventListener('keydown', handleKeyDown)
 		return () => {
-			document.removeEventListener('keydown', handleKeyDown)
+			doc.removeEventListener('keydown', handleKeyDown)
 		}
 	}, [editor])
 

@@ -29,7 +29,7 @@ export class WebViewMessageHandler {
 
 	isLoaded = false
 
-	// eslint-disable-next-line local/prefer-class-methods
+	// eslint-disable-next-line tldraw/prefer-class-methods
 	handle = async (e: VscodeMessage) => {
 		if (!this.document) return
 
