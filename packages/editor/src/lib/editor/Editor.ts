@@ -180,6 +180,7 @@ import {
 	TLUpdatePointerOptions,
 } from './types/misc-types'
 import { TLAdjacentDirection, TLResizeHandle } from './types/selection-types'
+import { tlenv } from '../globals/environment'
 
 /** @public */
 export type TLResizeShapeOptions = Partial<{
@@ -9751,6 +9752,49 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Switch to the select tool and open the context menu at the given screen
+	 * point. Used on coarse (touch) devices where a long press with a
+	 * non-select tool should behave like a right-click.
+	 *
+	 * @param screenPoint - The point in screen space to open the context menu at.
+	 * @param pointerInfo - Pointer event info for dispatching the right_click event.
+	 *
+	 * @internal
+	 */
+	_openCoarseLongPressContextMenu(
+		screenPoint: VecLike,
+		pointerInfo: {
+			point: VecLike
+			pointerId: number
+			button: number
+			isPen: boolean
+			shiftKey: boolean
+			altKey: boolean
+			ctrlKey: boolean
+			metaKey: boolean
+			accelKey: boolean
+		}
+	) {
+		this.updateInstanceState({ isToolLocked: false })
+		this.setCurrentTool('select')
+		this.dispatch({
+			type: 'pointer',
+			target: 'canvas',
+			name: 'right_click',
+			...pointerInfo,
+		})
+		this.getContainer()
+			.querySelector('.tl-canvas')
+			?.dispatchEvent(
+				new PointerEvent('contextmenu', {
+					clientX: screenPoint.x,
+					clientY: screenPoint.y,
+					bubbles: true,
+				})
+			)
+	}
+
+	/**
 	 * Dispatch a pointer move event in the current position of the pointer. This is useful when
 	 * external circumstances have changed (e.g. the camera moved or a shape was moved) and you want
 	 * the current interaction to respond to that change.
@@ -10584,15 +10628,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 							// Start a long press timeout
 							this._longPressTimeout = this.timers.setTimeout(() => {
 								const vsb = this.getViewportScreenBounds()
-								this.dispatch({
-									...info,
-									// important! non-obvious!! the screenpoint was adjusted using the
-									// viewport bounds, and will be again when this event is handled...
-									// so we need to counter-adjust from the stored value so that the
-									// new value is set correctly.
-									point: this.inputs.getOriginScreenPoint().clone().addXY(vsb.x, vsb.y),
-									name: 'long_press',
-								})
+								// important! non-obvious!! the screenpoint was adjusted using the
+								// viewport bounds, and will be again when this event is handled...
+								// so we need to counter-adjust from the stored value so that the
+								// new value is set correctly.
+								const point = this.inputs.getOriginScreenPoint().clone().addXY(vsb.x, vsb.y)
+
+								if (
+									this.getInstanceState().isCoarsePointer &&
+									this.getCurrentToolId() !== 'select'
+								) {
+									// Let creation tools clean up any shapes they started
+									if (this.getCurrentTool().shapeType) {
+										this.dispatch({ ...info, point, name: 'long_press' })
+									}
+									// point is already in clientX/clientY space (originScreenPoint + vsb)
+									this._openCoarseLongPressContextMenu(point, { ...info, point })
+								} else {
+									this.dispatch({
+										...info,
+										point,
+										name: 'long_press',
+									})
+								}
 							}, this.options.longPressDurationMs)
 						}
 
@@ -10844,6 +10902,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return
 				}
 			}
+		}
+
+		// right clicking should always open a context menu, so switch to the select tool before handling the event
+		const isRightClick =
+			(info.type === 'pointer' && info.name === 'right_click') ||
+			(tlenv.isDarwin &&
+				info.type === 'pointer' &&
+				info.name === 'pointer_down' &&
+				info.button === 0 &&
+				this.inputs.getCtrlKey())
+
+		if (isRightClick) {
+			this.updateInstanceState({ isToolLocked: false })
+			this.setCurrentTool('select')
 		}
 
 		// Send the event to the statechart. It will be handled by all

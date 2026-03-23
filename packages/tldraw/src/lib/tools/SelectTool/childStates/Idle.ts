@@ -37,6 +37,7 @@ export class Idle extends StateNode {
 	selectedShapesOnKeyDown: TLShape[] = []
 
 	override onEnter() {
+		console.log('idle on enter')
 		this.parent.setCurrentToolIdMask(undefined)
 		updateHoveredShapeId(this.editor)
 		this.selectedShapesOnKeyDown = []

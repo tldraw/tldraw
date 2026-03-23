@@ -12,6 +12,12 @@ export class Lasering extends StateNode {
 		this.pushPointToScribble()
 	}
 
+	override onLongPress() {
+		if (this.editor.getInstanceState().isCoarsePointer) {
+			this.complete()
+		}
+	}
+
 	override onPointerMove() {
 		this.pushPointToScribble()
 	}

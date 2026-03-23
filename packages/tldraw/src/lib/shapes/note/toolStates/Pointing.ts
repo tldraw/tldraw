@@ -18,51 +18,26 @@ import {
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	dragged = false
-
-	info = {} as TLPointerEventInfo
-
-	markId = ''
-
-	shape = {} as TLNoteShape
-
-	override onEnter() {
-		const { editor } = this
-
-		const id = createShapeId()
-		this.markId = editor.markHistoryStoppingPoint(`creating_note:${id}`)
-
-		// Check for note pits; if the pointer is close to one, place the note centered on the pit
-		const center = this.editor.inputs.getOriginPagePoint().clone()
-		const offset = getNoteShapeAdjacentPositionOffset(
-			this.editor,
-			center,
-			this.editor.getResizeScaleFactor()
-		)
-		if (offset) {
-			center.sub(offset)
-		}
-
-		// Allow this to trigger the max shapes reached alert
-		const shape = createNoteShape(this.editor, id, center)
-		if (shape) {
-			this.shape = shape
-		} else {
+	override onLongPress() {
+		if (this.editor.getInstanceState().isCoarsePointer) {
 			this.cancel()
 		}
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.getIsDragging()) {
+			const result = this.createShape()
+			if (!result) return
+
 			this.editor.setCurrentTool('select.translating', {
 				...info,
 				target: 'shape',
-				shape: this.shape,
+				shape: result.shape,
 				onInteractionEnd: 'note',
 				isCreating: true,
-				creatingMarkId: this.markId,
+				creatingMarkId: result.markId,
 				onCreate: () => {
-					startEditingShapeWithRichText(this.editor, this.shape.id)
+					startEditingShapeWithRichText(this.editor, result.shape.id)
 				},
 			})
 		}
@@ -85,16 +60,40 @@ export class Pointing extends StateNode {
 	}
 
 	private complete() {
+		const result = this.createShape()
+		if (!result) {
+			this.cancel()
+			return
+		}
+
 		if (this.editor.getInstanceState().isToolLocked) {
 			this.parent.transition('idle')
 		} else {
-			startEditingShapeWithRichText(this.editor, this.shape.id, { info: this.info })
+			startEditingShapeWithRichText(this.editor, result.shape.id)
 		}
 	}
 
 	private cancel() {
-		this.editor.bailToMark(this.markId)
-		this.parent.transition('idle', this.info)
+		this.parent.transition('idle')
+	}
+
+	private createShape() {
+		const id = createShapeId()
+		const markId = this.editor.markHistoryStoppingPoint(`creating_note:${id}`)
+
+		const center = this.editor.inputs.getOriginPagePoint().clone()
+		const offset = getNoteShapeAdjacentPositionOffset(
+			this.editor,
+			center,
+			this.editor.getResizeScaleFactor()
+		)
+		if (offset) {
+			center.sub(offset)
+		}
+
+		const shape = createNoteShape(this.editor, id, center)
+		if (!shape) return null
+		return { shape, markId }
 	}
 }
 

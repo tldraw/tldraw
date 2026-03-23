@@ -1419,6 +1419,18 @@ export class Editor extends EventEmitter<TLEventMap> {
         url?: string | URL;
     } | TLDeepLink): Editor;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
+    // @internal
+    _openCoarseLongPressContextMenu(screenPoint: VecLike, pointerInfo: {
+        accelKey: boolean;
+        altKey: boolean;
+        button: number;
+        ctrlKey: boolean;
+        isPen: boolean;
+        metaKey: boolean;
+        point: VecLike;
+        pointerId: number;
+        shiftKey: boolean;
+    }): void;
     // (undocumented)
     readonly options: TldrawOptions;
     packShapes(shapes: TLShape[] | TLShapeId[], _gap?: number): this;

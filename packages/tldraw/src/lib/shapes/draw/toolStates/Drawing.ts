@@ -62,6 +62,15 @@ export class Drawing extends StateNode {
 		this.startShape()
 	}
 
+	override onLongPress() {
+		if (this.editor.getInstanceState().isCoarsePointer) {
+			if (this.markId) {
+				this.editor.bailToMark(this.markId)
+			}
+			this.cancel()
+		}
+	}
+
 	override onPointerMove() {
 		const { inputs } = this.editor
 		const isPen = inputs.getIsPen()

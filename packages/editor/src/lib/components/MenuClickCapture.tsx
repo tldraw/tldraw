@@ -31,6 +31,8 @@ export function MenuClickCapture() {
 		start: new Vec(),
 	})
 
+	const rLongPressTimeout = useRef(-1 as any)
+
 	const handlePointerDown = useCallback(
 		(e: PointerEvent) => {
 			if (e.button === 0) {
@@ -41,6 +43,14 @@ export function MenuClickCapture() {
 					start: new Vec(e.clientX, e.clientY),
 				}
 				rDidAPointerDownAndDragWhileMenuWasOpen.current = false
+
+				if (editor.getInstanceState().isCoarsePointer) {
+					const pointerInfo = getPointerInfo(editor, e)
+					clearTimeout(rLongPressTimeout.current)
+					rLongPressTimeout.current = editor.timers.setTimeout(() => {
+						editor._openCoarseLongPressContextMenu({ x: e.clientX, y: e.clientY }, pointerInfo)
+					}, editor.options.longPressDurationMs)
+				}
 			}
 			editor.menus.clearOpenMenus()
 		},
@@ -63,6 +73,7 @@ export function MenuClickCapture() {
 					Vec.Dist2(rPointerState.current.start, new Vec(e.clientX, e.clientY)) >
 					editor.options.dragDistanceSquared
 				) {
+					clearTimeout(rLongPressTimeout.current)
 					rDidAPointerDownAndDragWhileMenuWasOpen.current = true
 					// Wehaddaeventitsadrag
 					rPointerState.current = {
@@ -93,6 +104,7 @@ export function MenuClickCapture() {
 
 	const handlePointerUp = useCallback(
 		(e: PointerEvent) => {
+			clearTimeout(rLongPressTimeout.current)
 			// Run the pointer up
 			canvasEvents.onPointerUp?.(e)
 			// Then turn off pointing

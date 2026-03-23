@@ -11,6 +11,12 @@ import {
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
+	override onLongPress() {
+		if (this.editor.getInstanceState().isCoarsePointer) {
+			this.cancel()
+		}
+	}
+
 	override onPointerUp() {
 		this.complete()
 	}
