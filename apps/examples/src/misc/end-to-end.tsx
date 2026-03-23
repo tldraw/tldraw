@@ -10,6 +10,7 @@ import {
 	createShapeId,
 	exportAs,
 	getArrowInfo,
+	mockUniqueId,
 	toRichText,
 	useActions,
 	useEditor,
@@ -21,6 +22,7 @@ import { EndToEndApi } from './EndToEndApi'
 ;(window as any).__tldraw_editor_events = []
 
 const HTML_TYPE = 'html' as const
+let nextMockShapeId = 0
 
 declare module 'tldraw' {
 	export interface TLGlobalShapePropsMap {
@@ -137,11 +139,17 @@ function SneakyExportButton() {
 	const actions = useActions()
 
 	useEffect(() => {
+		const resetMockShapeIds = () => {
+			nextMockShapeId = 0
+			mockUniqueId(() => `mock-${nextMockShapeId++}`)
+		}
+
 		const api: EndToEndApi = {
 			exportAsSvg: () => actions['export-as-svg'].onSelect('unknown'),
 			exportAsFormat: (format) =>
 				exportAs(editor, editor.selectAll().getSelectedShapeIds(), { format, name: 'test' }),
 			createShapeId: () => createShapeId(),
+			resetMockShapeIds,
 			createMermaidDiagram: async (definition: string) => {
 				await createMermaidDiagram(editor, definition, {
 					blueprintRender: {
