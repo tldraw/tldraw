@@ -93,7 +93,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const src = await videoSvgExportCache.get(asset, async () => {
 			const assetUrl = await ctx.resolveAssetUrl(asset.id, props.w)
 			if (!assetUrl) return null
-			const video = await MediaHelpers.loadVideo(assetUrl)
+			const video = await MediaHelpers.loadVideo(assetUrl, this.editor.getContainerDocument())
 			return await MediaHelpers.getVideoFrameAsDataUrl(video, 0)
 		})
 
@@ -130,10 +130,11 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 	const [isFullscreen, setIsFullscreen] = useState(false)
 
 	useEffect(() => {
-		const fullscreenChange = () => setIsFullscreen(document.fullscreenElement === rVideo.current)
-		document.addEventListener('fullscreenchange', fullscreenChange)
+		const doc = rVideo.current?.ownerDocument ?? editor.getContainerDocument()
+		const fullscreenChange = () => setIsFullscreen(doc.fullscreenElement === rVideo.current)
+		doc.addEventListener('fullscreenchange', fullscreenChange)
 
-		return () => document.removeEventListener('fullscreenchange', fullscreenChange)
+		return () => doc.removeEventListener('fullscreenchange', fullscreenChange)
 	})
 
 	// Focus the video when editing
@@ -142,7 +143,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 		if (!video) return
 
 		if (isEditing) {
-			if (document.activeElement !== video) {
+			if (video.ownerDocument.activeElement !== video) {
 				video.focus()
 			}
 		}

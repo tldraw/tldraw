@@ -3,11 +3,10 @@ import { config } from 'dotenv'
 import glob from 'fast-glob'
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import json5 from 'json5'
-import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
 import { csp } from '../src/utils/csp'
-import { getMultiplayerServerURL } from '../vite.config'
+import { getMultiplayerServerURL } from './multiplayer-server-url'
 import { Config } from './vercel-output-config'
 
 const commonSecurityHeaders = {
@@ -91,8 +90,17 @@ async function build() {
 	writeFileSync('.vercel/output/static/index.html', newIndex)
 
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
-	const assetsToCache = assetsList.filter((f) => !f.endsWith('.js.map')).map((f) => `/assets/${f}`)
-	const assetsToCacheRegex = `^${regexgen(assetsToCache).source}$`
+	const assetExtensions = [
+		...new Set(
+			assetsList
+				.filter((f) => !f.endsWith('.js.map') && f.includes('.'))
+				.map((f) => f.split('.').pop()!)
+		),
+	]
+	if (assetExtensions.length === 0) {
+		throw new Error('No asset extensions found in dist/assets')
+	}
+	const assetsToCacheRegex = `^\\/assets\\/.+\\.(${assetExtensions.join('|')})$`
 
 	writeFileSync(
 		'.vercel/output/config.json',
@@ -115,8 +123,8 @@ async function build() {
 							'X-Content-Type-Options': 'nosniff',
 						},
 					},
-					// cache static assets immutably. we use a regex here to match all assets we
-					// know exist so we don't apply caching headers to 404 pages.
+					// cache static assets immutably. we match by extension to avoid exceeding
+					// Vercel's 4096-char route limit (see #8286).
 					{
 						src: assetsToCacheRegex,
 						headers: {

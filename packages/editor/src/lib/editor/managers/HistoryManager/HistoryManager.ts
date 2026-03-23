@@ -172,8 +172,8 @@ export class HistoryManager<R extends UnknownRecord> {
 			}
 
 			if (!didFindMark && toMark) {
-				// whoops, we didn't find the mark we were looking for
-				// don't do anything
+				// we didn't find the mark we were looking for — restore state and bail
+				this.pendingDiff.restore(pendingDiff)
 				return this
 			}
 
@@ -336,6 +336,11 @@ class PendingDiff<R extends UnknownRecord> {
 		this.diff = createEmptyRecordsDiff<R>()
 		this.isEmptyAtom.set(true)
 		return diff
+	}
+
+	restore(diff: RecordsDiff<R>) {
+		this.diff = diff
+		this.isEmptyAtom.set(isRecordsDiffEmpty(diff))
 	}
 
 	isEmpty() {

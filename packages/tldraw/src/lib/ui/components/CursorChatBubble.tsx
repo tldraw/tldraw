@@ -65,10 +65,11 @@ function usePositionBubble(ref: RefObject<HTMLInputElement | null>) {
 			)
 		}
 
-		window.addEventListener('pointermove', positionChatBubble)
+		const win = editor.getContainerWindow()
+		win.addEventListener('pointermove', positionChatBubble)
 
 		return () => {
-			window.removeEventListener('pointermove', positionChatBubble)
+			win.removeEventListener('pointermove', positionChatBubble)
 		}
 	}, [ref, editor])
 }

@@ -30,7 +30,7 @@
 		"dev": "vite --host",
 		"preview": "vite preview --host",
 		"build": "vite build",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"lint": "cd ../.. && yarn run -T oxlint apps/examples",
 		"e2e": "NODE_OPTIONS='--no-strip-types' playwright test -c ./e2e/playwright.config.ts ./e2e/tests/",
 		"e2e-ui": "NODE_OPTIONS='--no-strip-types' playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/",
 		"e2e-perf": "NODE_OPTIONS='--no-strip-types' playwright test -c ./e2e/playwright.config.ts ./e2e/perf/",
@@ -49,6 +49,7 @@
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/driver": "workspace:*",
+		"@tldraw/mermaid": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/sync": "workspace:*",
 		"ag-grid-community": "^32.3.3",
@@ -58,6 +59,7 @@
 		"d3-geo": "^3.1.1",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
+		"mermaid": "11.12.2",
 		"pdf-lib": "^1.17.1",
 		"pdfjs-dist": "^4.10.38",
 		"radix-ui": "^1.4.2",
@@ -68,7 +70,7 @@
 		"tldraw": "workspace:*",
 		"topojson-client": "^3.1.0",
 		"us-atlas": "^3.0.1",
-		"vite": "^7.0.1"
+		"vite": "^8.0.1"
 	},
 	"devDependencies": {
 		"@types/d3-geo": "^3.1.0",
@@ -77,7 +79,7 @@
 		"@types/react-dom": "^19.2.3",
 		"@types/topojson-client": "^3.1.5",
 		"@types/topojson-specification": "^1.0.5",
-		"@vitejs/plugin-react-swc": "^3.10.2",
+		"@vitejs/plugin-react": "^6.0.1",
 		"dotenv": "^16.4.7",
 		"remark": "^15.0.1",
 		"remark-frontmatter": "^5.0.0",
