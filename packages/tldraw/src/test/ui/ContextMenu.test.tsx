@@ -128,7 +128,7 @@ it('closes context menu on touch-style pointer down in menu click capture', asyn
 
 	const capture = await screen.findByTestId('menu-click-capture.content')
 	fireEvent.pointerDown(capture, {
-		button: -1,
+		button: 0,
 		clientX: 20,
 		clientY: 20,
 		pointerId: 1,

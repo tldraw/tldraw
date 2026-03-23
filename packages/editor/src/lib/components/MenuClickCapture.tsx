@@ -35,9 +35,10 @@ export function MenuClickCapture() {
 
 	const handlePointerDown = useCallback(
 		(e: PointerEvent) => {
-			const isCoarsePointer = editor.getInstanceState().isCoarsePointer || e.pointerType === 'touch'
-			const isPrimaryPointer =
-				e.button === LEFT_MOUSE_BUTTON || (isCoarsePointer && e.button === -1)
+			console.log(e.button)
+			const isCoarsePointer = editor.getInstanceState().isCoarsePointer
+			// const isPrimaryPointer =
+			// 	e.button === LEFT_MOUSE_BUTTON //|| (isCoarsePointer && e.button === -1)
 			// On macOS, ctrl+left-click fires as button 0 with ctrlKey but triggers a
 			// contextmenu event just like a real right-click (button 2). We dispatch
 			// right_click directly so the editor updates state (selection, hovered shape)
@@ -52,7 +53,8 @@ export function MenuClickCapture() {
 					name: 'right_click',
 					...getPointerInfo(editor, e),
 				})
-			} else if (isPrimaryPointer) {
+			} else if (e.button === LEFT_MOUSE_BUTTON) {
+				console.log('primary pointer down')
 				// Dismiss open menus on primary pointer interactions. Keep this out of the
 				// right-click path to avoid racing with Radix contextmenu open handling.
 				editor.menus.clearOpenMenus()
