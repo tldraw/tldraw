@@ -1078,21 +1078,29 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						return Result.ok(undefined)
 					}
 				}
-				// Cycle check for existing shapes (A → B → A)
-				else if (wouldCreateCycle(storage, id, newParentId) && doc) {
-					// Keep the original parentId (consistent with client beforeChange handler)
-					const originalParentId = (doc as any).parentId as string
-					console.warn(
-						`[TLSyncRoom] Prevented parent cycle: shape ${id} cannot have parent ${newParentId}, keeping original parent ${originalParentId}`
-					)
-					state = {
-						...state,
-						parentId: originalParentId,
-						x: (doc as any).x,
-						y: (doc as any).y,
-						rotation: (doc as any).rotation,
-						index: (doc as any).index,
-					} as R
+				// Cycle check (A → B → A) - applies to both new and existing shapes
+				else if (wouldCreateCycle(storage, id, newParentId)) {
+					if (doc) {
+						// Keep the original parentId (consistent with client beforeChange handler)
+						const originalParentId = (doc as any).parentId as string
+						console.warn(
+							`[TLSyncRoom] Prevented parent cycle: shape ${id} cannot have parent ${newParentId}, keeping original parent ${originalParentId}`
+						)
+						state = {
+							...state,
+							parentId: originalParentId,
+							x: (doc as any).x,
+							y: (doc as any).y,
+							rotation: (doc as any).rotation,
+							index: (doc as any).index,
+						} as R
+					} else {
+						// New shape creating a cycle in a batch - skip this malformed record
+						console.warn(
+							`[TLSyncRoom] Rejected new shape creating cycle: shape ${id} cannot have parent ${newParentId}`
+						)
+						return Result.ok(undefined)
+					}
 				}
 			}
 
