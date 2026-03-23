@@ -3,8 +3,10 @@ import fs from 'fs'
 import path from 'path'
 
 const LOKALISE_API_TOKEN = process.env.LOKALISE_API_TOKEN!
-const SDK_PROJECT_ID = process.env.LOKALISE_TLDRAW_PROJECT_ID ?? '7889709363dce3272fc3f5.45273344'
-const DOTCOM_PROJECT_ID = process.env.LOKALISE_PROJECT_ID ?? '798928056725133a8769b5.60370878'
+const SDK_PROJECT_ID =
+	process.env.LOKALISE_TLDRAW_PROJECT_ID ?? '7889709363dce3272fc3f5.45273344'
+const DOTCOM_PROJECT_ID =
+	process.env.LOKALISE_PROJECT_ID ?? '798928056725133a8769b5.60370878'
 
 interface LocaleAffected {
 	current: string
@@ -25,38 +27,52 @@ interface IssuesFile {
 	issues: Issue[]
 }
 
-async function findKeyId(
+/**
+ * Convert our locale codes (e.g. "ko-kr", "zh-cn", "pt-br") to Lokalise format
+ * (e.g. "ko_KR", "zh_CN", "pt_BR"). Simple codes like "ja", "de" stay the same.
+ */
+function toLokaliseLocale(locale: string): string {
+	if (!locale.includes('-')) return locale
+	const [lang, region] = locale.split('-')
+	return `${lang}_${region.toUpperCase()}`
+}
+
+interface TranslationInfo {
+	translationId: number
+	currentValue: string
+	languageIso: string
+}
+
+async function findKeyTranslations(
 	api: LokaliseApi,
 	projectId: string,
-	keyName: string
-): Promise<number | null> {
-	// The Lokalise API supports filtering keys by name
+	keyName: string,
+	targetLocales: string[]
+): Promise<{ keyId: number; translations: Map<string, TranslationInfo> } | null> {
 	const result = await api.keys().list({
 		project_id: projectId,
 		filter_keys: keyName,
 		limit: 10,
+		include_translations: 1,
 	})
 
 	for (const key of result.items) {
 		if (key.key_name.web === keyName || key.key_name.other === keyName) {
-			return key.key_id
+			const translationMap = new Map<string, TranslationInfo>()
+			for (const t of key.translations ?? []) {
+				if (targetLocales.includes(t.language_iso)) {
+					translationMap.set(t.language_iso, {
+						translationId: t.translation_id,
+						currentValue: t.translation,
+						languageIso: t.language_iso,
+					})
+				}
+			}
+			return { keyId: key.key_id, translations: translationMap }
 		}
 	}
 
 	return null
-}
-
-async function updateKeyTranslations(
-	api: LokaliseApi,
-	projectId: string,
-	keyId: number,
-	translations: Array<{ language_iso: string; translation: string }>
-): Promise<void> {
-	await api.keys().update(
-		keyId,
-		{ translations: translations },
-		{ project_id: projectId }
-	)
 }
 
 async function main() {
@@ -90,66 +106,81 @@ async function main() {
 		const projectId = issue.source === 'sdk' ? SDK_PROJECT_ID : DOTCOM_PROJECT_ID
 		const projectLabel = issue.source === 'sdk' ? 'SDK' : 'Dotcom'
 
+		// Build a map of Lokalise locale -> our locale + fix info
+		const localeFixMap = new Map<
+			string,
+			{ ourLocale: string; info: LocaleAffected }
+		>()
+		for (const [locale, info] of Object.entries(issue.locales_affected)) {
+			if (!info.suggested) continue
+			localeFixMap.set(toLokaliseLocale(locale), { ourLocale: locale, info })
+		}
+
+		if (localeFixMap.size === 0) continue
+
+		const targetLocales = Array.from(localeFixMap.keys())
+
 		console.log(`\n[${projectLabel}] Looking up key: ${issue.key} (en: "${issue.english}")`)
 
-		let keyId: number | null
+		let keyData: Awaited<ReturnType<typeof findKeyTranslations>>
 		try {
-			keyId = await findKeyId(api, projectId, issue.key)
+			keyData = await findKeyTranslations(api, projectId, issue.key, targetLocales)
 		} catch (err) {
 			console.error(`  ERROR looking up key: ${err}`)
 			errorCount++
 			continue
 		}
 
-		if (!keyId) {
+		if (!keyData) {
 			console.log(`  SKIP: Key not found in Lokalise`)
 			skippedCount++
 			continue
 		}
 
-		console.log(`  Found key_id: ${keyId}`)
+		console.log(`  Found key_id: ${keyData.keyId}`)
 
-		const translations: Array<{ language_iso: string; translation: string }> = []
+		for (const [lokaliseLocale, { ourLocale, info }] of localeFixMap) {
+			const existing = keyData.translations.get(lokaliseLocale)
+			if (!existing) {
+				console.log(`  SKIP ${ourLocale}: No existing translation found in Lokalise for ${lokaliseLocale}`)
+				skippedCount++
+				continue
+			}
 
-		for (const [locale, info] of Object.entries(issue.locales_affected)) {
-			if (!info.suggested) continue
-
-			// Lokalise uses underscores in some locale codes
-			const lokaliseLocale = locale
+			// Verify the current value matches what we expect (safety check)
+			if (existing.currentValue !== info.current) {
+				console.log(
+					`  SKIP ${ourLocale}: Current value in Lokalise "${existing.currentValue}" doesn't match expected "${info.current}" — may have been fixed already`
+				)
+				skippedCount++
+				continue
+			}
 
 			console.log(
-				`  ${lokaliseLocale}: "${info.current}" → "${info.suggested}" (${info.problem})`
+				`  ${ourLocale} (${lokaliseLocale}): "${info.current}" → "${info.suggested}" (${info.problem})`
 			)
-			translations.push({
-				language_iso: lokaliseLocale,
-				translation: info.suggested,
-			})
-		}
 
-		if (translations.length === 0) {
-			console.log(`  SKIP: No translations to update`)
-			skippedCount++
-			continue
-		}
-
-		if (dryRun) {
-			console.log(`  DRY RUN: Would update ${translations.length} translation(s)`)
-			updatedCount += translations.length
-		} else {
-			try {
-				await updateKeyTranslations(api, projectId, keyId, translations)
-				console.log(`  Updated ${translations.length} translation(s)`)
-				updatedCount += translations.length
-			} catch (err) {
-				console.error(`  ERROR updating translations: ${err}`)
-				errorCount++
+			if (dryRun) {
+				updatedCount++
+			} else {
+				try {
+					await api.translations().update(
+						existing.translationId,
+						{ translation: info.suggested!, is_reviewed: false },
+						{ project_id: projectId }
+					)
+					updatedCount++
+				} catch (err) {
+					console.error(`  ERROR updating ${ourLocale}: ${err}`)
+					errorCount++
+				}
 			}
 		}
 	}
 
 	console.log(`\n=== Summary ===`)
 	console.log(`Updated: ${updatedCount} translation(s)`)
-	console.log(`Skipped: ${skippedCount} key(s)`)
+	console.log(`Skipped: ${skippedCount}`)
 	console.log(`Errors: ${errorCount}`)
 	if (dryRun) {
 		console.log(`\nThis was a dry run. Run without --dry-run to apply changes.`)
