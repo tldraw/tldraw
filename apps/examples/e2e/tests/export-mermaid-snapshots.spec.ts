@@ -46,8 +46,8 @@ test.describe('Mermaid export snapshots', () => {
 					.updateInstanceState({ exportBackground: true })
 					.selectAll()
 					.deleteShapes(editor.getSelectedShapeIds())
-				tldrawApi.resetMockShapeIds()
 			})
+			await api.resetMockShapeIds()
 			await api.createMermaidDiagram(testCase.definition)
 			await page.evaluate(() => {
 				editor.selectAll()
