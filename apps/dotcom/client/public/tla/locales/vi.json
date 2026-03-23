@@ -104,6 +104,9 @@
   "3d0238bf16": {
     "translation": "Chấp nhận tất cả"
   },
+  "3e2ae04ff0": {
+    "translation": "Sơ đồ nàng tiên cá không được hỗ trợ"
+  },
   "42e53c47c1": {
     "translation": "Liên hệ với chủ sở hữu để yêu cầu quyền truy cập."
   },
@@ -140,8 +143,14 @@
   "4da5988a2e": {
     "translation": "Xóa nhóm…"
   },
+  "4dab36ac83": {
+    "translation": "Nhiều tùy chọn hơn"
+  },
   "4e6fbf032b": {
     "translation": "Bạn có chắc chắn muốn xóa nhóm này không? Thao tác này không thể hoàn tác."
+  },
+  "5097d89907": {
+    "translation": "Sơ đồ không được hỗ trợ, thay vào đó sẽ tạo ra file SVG."
   },
   "50db1b7e1e": {
     "translation": "Không thể hủy xuất bản tệp này."
@@ -179,6 +188,9 @@
   "5c6fe42bc2": {
     "translation": "Thu hồi liên kết này và tạo liên kết mới."
   },
+  "5d04a002ea": {
+    "translation": "Không thể kết nối"
+  },
   "5d26ae7550": {
     "translation": "Chúng tôi không tải lên được một số nội dung bạn đã tạo trước khi bạn đăng nhập."
   },
@@ -199,6 +211,9 @@
   },
   "639bae9ac6": {
     "translation": "Bạn"
+  },
+  "63a6a88c06": {
+    "translation": "Làm cho khỏe lại"
   },
   "6609dd239e": {
     "translation": "Đã xảy ra lỗi"
@@ -350,6 +365,9 @@
   "9bef626805": {
     "translation": "Xóa tệp"
   },
+  "9ccb565b86": {
+    "translation": "Chúng tôi đang gặp sự cố khi kết nối với dịch vụ xác thực. Đây thường chỉ là sự cố tạm thời. Vui lòng thử làm mới trang."
+  },
   "9ceb927baa": {
     "translation": "Xuất bản tệp này"
   },
@@ -458,6 +476,9 @@
   },
   "c87aacf567": {
     "translation": "Đăng xuất"
+  },
+  "c8a59e7135": {
+    "translation": "Miễn nhiệm"
   },
   "c9cc8cce24": {
     "translation": "Cứu"

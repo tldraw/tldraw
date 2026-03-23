@@ -213,6 +213,12 @@
       "value": "Alle akzeptieren"
     }
   ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Nicht unterstütztes Mermaid-Diagramm"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -285,10 +291,22 @@
       "value": "Gruppe löschen…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Mehr Optionen"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Sind Sie sicher, dass Sie diese Gruppe löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Nicht unterstütztes Diagramm, es wird stattdessen eine SVG-Datei generiert."
     }
   ],
   "50db1b7e1e": [
@@ -401,6 +419,12 @@
       "value": "Diese Verknüpfung löschen und eine neue erstellen."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Verbindung nicht möglich"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +465,12 @@
     {
       "type": 0,
       "value": "Du"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Aktualisieren"
     }
   ],
   "6609dd239e": [
@@ -789,6 +819,12 @@
       "value": "Datei löschen"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Es gibt derzeit Probleme mit der Verbindung zu unserem Authentifizierungsdienst. Dies ist in der Regel nur vorübergehend. Bitte aktualisieren Sie die Seite."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1067,6 +1103,12 @@
     {
       "type": 0,
       "value": "Abmelden"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Zurückweisen"
     }
   ],
   "c9cc8cce24": [

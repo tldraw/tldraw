@@ -104,6 +104,9 @@
   "3d0238bf16": {
     "translation": "Prihvati sve"
   },
+  "3e2ae04ff0": {
+    "translation": "Nepodržani dijagram sirene"
+  },
   "42e53c47c1": {
     "translation": "Kontaktirajte vlasnika da zatražite pristup."
   },
@@ -140,8 +143,14 @@
   "4da5988a2e": {
     "translation": "Izbriši grupu…"
   },
+  "4dab36ac83": {
+    "translation": "Više opcija"
+  },
   "4e6fbf032b": {
     "translation": "Jeste li sigurni da želite izbrisati ovu grupu? Ova se radnja ne može poništiti."
+  },
+  "5097d89907": {
+    "translation": "Nepodržani dijagram, umjesto toga će se generirati SVG"
   },
   "50db1b7e1e": {
     "translation": "Nije moguće poništiti objavu datoteke."
@@ -179,6 +188,9 @@
   "5c6fe42bc2": {
     "translation": "Poništi ovu vezu i stvori novu."
   },
+  "5d04a002ea": {
+    "translation": "Nije moguće povezivanje"
+  },
   "5d26ae7550": {
     "translation": "Nismo uspjeli prenijeti dio sadržaja koji ste izradili prije nego što ste se prijavili."
   },
@@ -199,6 +211,9 @@
   },
   "639bae9ac6": {
     "translation": "vas"
+  },
+  "63a6a88c06": {
+    "translation": "Osvježiti"
   },
   "6609dd239e": {
     "translation": "Nešto nije u redu"
@@ -350,6 +365,9 @@
   "9bef626805": {
     "translation": "Izbriši datoteku"
   },
+  "9ccb565b86": {
+    "translation": "Imamo problema s povezivanjem s našom uslugom autentifikacije. To je obično privremeno. Pokušajte osvježiti stranicu."
+  },
   "9ceb927baa": {
     "translation": "Objavite ovu datoteku"
   },
@@ -458,6 +476,9 @@
   },
   "c87aacf567": {
     "translation": "Odjavi se"
+  },
+  "c8a59e7135": {
+    "translation": "Odbaciti"
   },
   "c9cc8cce24": {
     "translation": "Uštedjeti"

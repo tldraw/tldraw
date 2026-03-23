@@ -104,6 +104,9 @@
   "3d0238bf16": {
     "translation": "Aceitar todos"
   },
+  "3e2ae04ff0": {
+    "translation": "Diagrama de sereia sem suporte"
+  },
   "42e53c47c1": {
     "translation": "Contacte o proprietário para solicitar acesso."
   },
@@ -140,8 +143,14 @@
   "4da5988a2e": {
     "translation": "Excluir grupo…"
   },
+  "4dab36ac83": {
+    "translation": "Mais opções"
+  },
   "4e6fbf032b": {
     "translation": "Tem certeza de que deseja excluir este grupo? Esta ação não pode ser desfeita."
+  },
+  "5097d89907": {
+    "translation": "Diagrama não suportado, será gerado um SVG em vez disso."
   },
   "50db1b7e1e": {
     "translation": "Não foi possível anular a publicação do ficheiro."
@@ -179,6 +188,9 @@
   "5c6fe42bc2": {
     "translation": "Revogue este link e crie um novo."
   },
+  "5d04a002ea": {
+    "translation": "Não foi possível conectar"
+  },
   "5d26ae7550": {
     "translation": "Não conseguimos carregar alguns dos conteúdos que criou antes de iniciar sessão."
   },
@@ -199,6 +211,9 @@
   },
   "639bae9ac6": {
     "translation": "você"
+  },
+  "63a6a88c06": {
+    "translation": "Atualizar"
   },
   "6609dd239e": {
     "translation": "Algo correu mal"
@@ -350,6 +365,9 @@
   "9bef626805": {
     "translation": "Eliminar ficheiro"
   },
+  "9ccb565b86": {
+    "translation": "Estamos com dificuldades para conectar ao nosso serviço de autenticação. Isso geralmente é temporário. Por favor, tente atualizar a página."
+  },
   "9ceb927baa": {
     "translation": "Publicar este ficheiro"
   },
@@ -458,6 +476,9 @@
   },
   "c87aacf567": {
     "translation": "Terminar sessão"
+  },
+  "c8a59e7135": {
+    "translation": "Liberar"
   },
   "c9cc8cce24": {
     "translation": "Salvar"

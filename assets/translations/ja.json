@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "ブックマークに変換",
 	"action.convert-to-embed": "埋め込みに変換",
 	"action.copy": "コピー",
+	"action.copy-as-json": "JSONとしてコピー",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "PNGとしてコピー",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "SVGとしてコピー",

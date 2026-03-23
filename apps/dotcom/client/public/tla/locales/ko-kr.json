@@ -104,6 +104,9 @@
   "3d0238bf16": {
     "translation": "모두 수락"
   },
+  "3e2ae04ff0": {
+    "translation": "지원되지 않는 머메이드 다이어그램"
+  },
   "42e53c47c1": {
     "translation": "액세스 권한 요청은 소유주에게 문의하세요."
   },
@@ -140,8 +143,14 @@
   "4da5988a2e": {
     "translation": "그룹 삭제…"
   },
+  "4dab36ac83": {
+    "translation": "더 많은 옵션"
+  },
   "4e6fbf032b": {
     "translation": "이 그룹을 삭제하시겠습니까? 이 작업은 실행 취소할 수 없습니다."
+  },
+  "5097d89907": {
+    "translation": "지원되지 않는 다이어그램이므로 SVG를 생성합니다."
   },
   "50db1b7e1e": {
     "translation": "파일 게시를 취소할 수 없습니다."
@@ -179,6 +188,9 @@
   "5c6fe42bc2": {
     "translation": "이 링크를 취소하고 새 링크를 만드세요."
   },
+  "5d04a002ea": {
+    "translation": "연결할 수 없습니다"
+  },
   "5d26ae7550": {
     "translation": "로그인하기 전에 생성하신 콘텐츠 중 일부를 업로드하지 못했습니다."
   },
@@ -199,6 +211,9 @@
   },
   "639bae9ac6": {
     "translation": "너"
+  },
+  "63a6a88c06": {
+    "translation": "새로 고치다"
   },
   "6609dd239e": {
     "translation": "문제가 발생했습니다"
@@ -350,6 +365,9 @@
   "9bef626805": {
     "translation": "파일 삭제"
   },
+  "9ccb565b86": {
+    "translation": "인증 서비스 연결에 문제가 발생했습니다. 이는 일시적인 현상입니다. 페이지를 새로고침해 주세요."
+  },
   "9ceb927baa": {
     "translation": "이 파일 게시"
   },
@@ -458,6 +476,9 @@
   },
   "c87aacf567": {
     "translation": "로그아웃"
+  },
+  "c8a59e7135": {
+    "translation": "해고하다"
   },
   "c9cc8cce24": {
     "translation": "구하다"

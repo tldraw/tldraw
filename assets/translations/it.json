@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "Converti a segnalibro",
 	"action.convert-to-embed": "Converti in oggetto incorporato",
 	"action.copy": "Copia",
+	"action.copy-as-json": "Copia come JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Copia come PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Copia come SVG",
