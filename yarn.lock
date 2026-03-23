@@ -10993,7 +10993,7 @@ __metadata:
     js-cookie: "npm:^3.0.5"
     posthog-js: "npm:^1.281.0"
     typescript: "npm:^5.8.3"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
     vitest: "npm:^3.2.4"
     wrangler: "npm:^4.75.0"
   languageName: unknown
@@ -11339,7 +11339,7 @@ __metadata:
     tsx: "npm:^4.19.2"
     typescript: "npm:^5.8.3"
     unfurl.js: "npm:^6.4.0"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
     ws: "npm:^8.18.0"
   languageName: unknown
   linkType: soft
@@ -11369,7 +11369,7 @@ __metadata:
     tsx: "npm:^4.19.2"
     typescript: "npm:^5.8.3"
     unfurl.js: "npm:^6.4.0"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
   languageName: unknown
   linkType: soft
 
@@ -17125,7 +17125,7 @@ __metadata:
     react-markdown: "npm:^10.1.0"
     react-router-dom: "npm:^6.28.2"
     tldraw: "workspace:*"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
     vitest: "npm:^3.2.4"
     ws: "npm:^8.18.0"
   languageName: unknown
@@ -18342,7 +18342,7 @@ __metadata:
     topojson-client: "npm:^3.1.0"
     us-atlas: "npm:^3.0.1"
     vfile-matter: "npm:^5.0.0"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
   languageName: unknown
   linkType: soft
 
@@ -22273,7 +22273,7 @@ __metadata:
     tldraw: "workspace:*"
     tsx: "npm:^4.19.2"
     typescript: "npm:^5.8.3"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
     vite-plugin-singlefile: "npm:^2.3.2"
     wrangler: "npm:^4.75.0"
     zod: "npm:^4.1.8"
@@ -29067,7 +29067,7 @@ __metadata:
     react-markdown: "npm:^10.1.0"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
     wrangler: "npm:^4.75.0"
     zod: "npm:^4.1.8"
   languageName: unknown
@@ -29091,7 +29091,7 @@ __metadata:
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
     wrangler: "npm:^4.75.0"
     zod: "npm:^4.1.8"
   languageName: unknown
@@ -29133,7 +29133,7 @@ __metadata:
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
     wrangler: "npm:^4.75.0"
   languageName: unknown
   linkType: soft
@@ -29164,7 +29164,7 @@ __metadata:
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
   languageName: unknown
   linkType: soft
 
@@ -29189,7 +29189,7 @@ __metadata:
     react-router-dom: "npm:^6.28.2"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
     wrangler: "npm:^4.75.0"
   languageName: unknown
   linkType: soft
@@ -29205,7 +29205,7 @@ __metadata:
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
   languageName: unknown
   linkType: soft
 
@@ -29256,7 +29256,7 @@ __metadata:
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
     vite-plugin-vue-devtools: "npm:^8.1.0"
     vue: "npm:^3.5.17"
     vue-tsc: "npm:^3.0.1"
@@ -29276,7 +29276,7 @@ __metadata:
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
-    vite: "npm:^8.0.0"
+    vite: "npm:^8.0.1"
   languageName: unknown
   linkType: soft
 
@@ -30690,7 +30690,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^8.0.0":
+"vite@npm:^8.0.1":
   version: 8.0.1
   resolution: "vite@npm:8.0.1"
   dependencies:
