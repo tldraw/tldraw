@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "Pretvori u oznaku",
 	"action.convert-to-embed": "Pretvori u ugradnju",
 	"action.copy": "Kopiraj",
+	"action.copy-as-json": "Kopiraj kao JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Kopiraj kao PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Kopiraj kao SVG",

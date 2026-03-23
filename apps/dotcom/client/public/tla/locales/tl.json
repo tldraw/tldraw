@@ -104,6 +104,9 @@
   "3d0238bf16": {
     "translation": "Tanggapin lahat"
   },
+  "3e2ae04ff0": {
+    "translation": "Hindi sinusuportahang diagram ng Sirena"
+  },
   "42e53c47c1": {
     "translation": "Makipag-ugnayan sa may-ari para humiling ng access."
   },
@@ -140,8 +143,14 @@
   "4da5988a2e": {
     "translation": "Tanggalin ang pangkat…"
   },
+  "4dab36ac83": {
+    "translation": "Higit pang mga opsyon"
+  },
   "4e6fbf032b": {
     "translation": "Sigurado ka bang gusto mong tanggalin ang pangkat na ito? Ang pagkilos na ito ay hindi maaaring i-undo."
+  },
+  "5097d89907": {
+    "translation": "Hindi sinusuportahang diagram, bubuo na lang ng SVG"
   },
   "50db1b7e1e": {
     "translation": "Hindi ma-unpublish ang file."
@@ -179,6 +188,9 @@
   "5c6fe42bc2": {
     "translation": "Bawiin ang link na ito at gumawa ng bago."
   },
+  "5d04a002ea": {
+    "translation": "Hindi makakonekta"
+  },
   "5d26ae7550": {
     "translation": "Nabigo kaming mag-upload ng ilan sa nilalamang ginawa mo bago ka mag-sign in."
   },
@@ -199,6 +211,9 @@
   },
   "639bae9ac6": {
     "translation": "ikaw"
+  },
+  "63a6a88c06": {
+    "translation": "I-refresh"
   },
   "6609dd239e": {
     "translation": "Nagkaproblema"
@@ -350,6 +365,9 @@
   "9bef626805": {
     "translation": "Tanggalin ang file"
   },
+  "9ccb565b86": {
+    "translation": "Nagkakaproblema kami sa pagkonekta sa aming serbisyo ng pagpapatotoo. Karaniwan itong pansamantala lamang. Pakisubukang i-refresh ang pahina."
+  },
   "9ceb927baa": {
     "translation": "I-publish ang file na ito"
   },
@@ -458,6 +476,9 @@
   },
   "c87aacf567": {
     "translation": "Mag-sign out"
+  },
+  "c8a59e7135": {
+    "translation": "I-dismiss"
   },
   "c9cc8cce24": {
     "translation": "I-save"

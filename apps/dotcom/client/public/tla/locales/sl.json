@@ -104,6 +104,9 @@
   "3d0238bf16": {
     "translation": "Sprejmi vse"
   },
+  "3e2ae04ff0": {
+    "translation": "Nepodprt diagram morske deklice"
+  },
   "42e53c47c1": {
     "translation": "Za dostop zaprosite lastnika."
   },
@@ -140,8 +143,14 @@
   "4da5988a2e": {
     "translation": "Izbriši skupino …"
   },
+  "4dab36ac83": {
+    "translation": "Več možnosti"
+  },
   "4e6fbf032b": {
     "translation": "Ali ste prepričani, da želite izbrisati to skupino? Tega dejanja ni mogoče razveljaviti."
+  },
+  "5097d89907": {
+    "translation": "Nepodprt diagram, namesto tega bo ustvarjen SVG"
   },
   "50db1b7e1e": {
     "translation": "Ni mogoče preklicati objave datoteke."
@@ -179,6 +188,9 @@
   "5c6fe42bc2": {
     "translation": "Prekliči to povezavo in ustvari novo."
   },
+  "5d04a002ea": {
+    "translation": "Povezave ni mogoče vzpostaviti"
+  },
   "5d26ae7550": {
     "translation": "Nekatere vsebine, ki ste jo ustvarili, preden ste se prijavili, nismo uspeli naložiti."
   },
@@ -199,6 +211,9 @@
   },
   "639bae9ac6": {
     "translation": "ti"
+  },
+  "63a6a88c06": {
+    "translation": "Osveži"
   },
   "6609dd239e": {
     "translation": "Nekaj je šlo narobe"
@@ -350,6 +365,9 @@
   "9bef626805": {
     "translation": "Izbriši datoteko"
   },
+  "9ccb565b86": {
+    "translation": "Imamo težave s povezovanjem z našo storitvijo za preverjanje pristnosti. To je običajno začasno. Poskusite osvežiti stran."
+  },
   "9ceb927baa": {
     "translation": "Objavite to datoteko"
   },
@@ -458,6 +476,9 @@
   },
   "c87aacf567": {
     "translation": "Odjava"
+  },
+  "c8a59e7135": {
+    "translation": "Zavrzi"
   },
   "c9cc8cce24": {
     "translation": "Shrani"

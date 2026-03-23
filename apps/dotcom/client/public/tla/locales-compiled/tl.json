@@ -213,6 +213,12 @@
       "value": "Tanggapin lahat"
     }
   ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Hindi sinusuportahang diagram ng Sirena"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -285,10 +291,22 @@
       "value": "Tanggalin ang pangkat…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Higit pang mga opsyon"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Sigurado ka bang gusto mong tanggalin ang pangkat na ito? Ang pagkilos na ito ay hindi maaaring i-undo."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Hindi sinusuportahang diagram, bubuo na lang ng SVG"
     }
   ],
   "50db1b7e1e": [
@@ -401,6 +419,12 @@
       "value": "Bawiin ang link na ito at gumawa ng bago."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Hindi makakonekta"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +465,12 @@
     {
       "type": 0,
       "value": "ikaw"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "I-refresh"
     }
   ],
   "6609dd239e": [
@@ -793,6 +823,12 @@
       "value": "Tanggalin ang file"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Nagkakaproblema kami sa pagkonekta sa aming serbisyo ng pagpapatotoo. Karaniwan itong pansamantala lamang. Pakisubukang i-refresh ang pahina."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1083,6 +1119,12 @@
     {
       "type": 0,
       "value": "Mag-sign out"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "I-dismiss"
     }
   ],
   "c9cc8cce24": [
