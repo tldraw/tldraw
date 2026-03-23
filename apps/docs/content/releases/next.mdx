@@ -5,10 +5,10 @@ author: tldraw
 date: 03/18/2026
 order: 0
 status: published
-last_version: v4.5.1
+last_version: v4.5.3
 ---
 
-This release adds custom record types to the store, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, and smarter export trimming. It also includes various other improvements and bug fixes.
+This release adds Mermaid diagram support, custom record types to the store, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, and smarter export trimming. It also includes various other improvements and bug fixes.
 
 ## What's new
 
@@ -65,6 +65,18 @@ Tldraw now works correctly when embedded in iframes, Electron pop-out windows, a
 
 New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldraw/editor`, along with `Editor.getContainerDocument()` and `Editor.getContainerWindow()` convenience methods.
 
+### Mermaid diagram support ([#8194](https://github.com/tldraw/tldraw/pull/8194), [#8285](https://github.com/tldraw/tldraw/pull/8285))
+
+A new `@tldraw/mermaid` package converts Mermaid diagram syntax into native tldraw shapes. Paste Mermaid text to create flowcharts, sequence diagrams, state diagrams, and mind maps as editable shapes with proper arrows, bindings, and grouping. Unsupported diagram types fall back to SVG import.
+
+```tsx
+import { createMermaidDiagram } from '@tldraw/mermaid'
+
+await createMermaidDiagram(editor, 'graph TD; A-->B; B-->C;')
+```
+
+(contributed by [@kaneel](https://github.com/kaneel))
+
 ## API changes
 
 - Add `CustomRecordInfo` interface, `createCustomRecordId()`, `createCustomRecordMigrationIds()`, `createCustomRecordMigrationSequence()`, `isCustomRecord()`, `isCustomRecordId()` for custom record types. `createTLSchema()` and `createTLStore()` now accept a `records` option. ([#8213](https://github.com/tldraw/tldraw/pull/8213))
@@ -72,6 +84,7 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Add `handleSocketResume()`, `getSessionSnapshot()`, and `onSessionSnapshot` to `TLSocketRoom` for WebSocket hibernation support. Add `clientTimeout` option to `TLSyncRoom`. ([#8070](https://github.com/tldraw/tldraw/pull/8070))
 - Add `Editor.getContainerDocument()` and `Editor.getContainerWindow()` methods, and `getOwnerDocument()` / `getOwnerWindow()` helpers for cross-window embedding. ([#8196](https://github.com/tldraw/tldraw/pull/8196))
 - Add `useDirection()` hook for RTL support. ([#8033](https://github.com/tldraw/tldraw/pull/8033))
+- Add `@tldraw/mermaid` package with `createMermaidDiagram()`, `renderBlueprint()`, and `MermaidDiagramError` for converting Mermaid syntax to tldraw shapes. Supports flowcharts, sequence diagrams, state diagrams, and mind maps. ([#8194](https://github.com/tldraw/tldraw/pull/8194), [#8285](https://github.com/tldraw/tldraw/pull/8285))
 - Add `'json'` to `TLCopyType` for copying shapes as JSON in debug mode. ([#8206](https://github.com/tldraw/tldraw/pull/8206))
 - Change `TLSvgExportOptions.padding` to accept `number | 'auto'`. The `'auto'` mode (now default) renders with padding then trims to visual content bounds. ([#8202](https://github.com/tldraw/tldraw/pull/8202))
 - Add `Vec.IsFinite()` static method. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
@@ -90,4 +103,5 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix pasting into editable text shapes when the clipboard contains tldraw data. ([#8192](https://github.com/tldraw/tldraw/pull/8192))
 - Fix crash when isolating curved arrows with degenerate binding geometry. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 - Fix eraser not erasing shapes when starting a drag from inside a group's bounds. ([#8054](https://github.com/tldraw/tldraw/pull/8054))
+- Fix draw-shape loop-closing sensitivity so closing works more consistently across zoom levels. ([#8293](https://github.com/tldraw/tldraw/pull/8293))
 - Fix over-softened corners and end artifacts when shift-clicking to draw straight line segments. ([#7977](https://github.com/tldraw/tldraw/pull/7977))
