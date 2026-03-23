@@ -1,13 +1,15 @@
 import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
 import type { Actor, Message } from 'mermaid/dist/diagrams/sequence/types.js'
-import { TLArrowShapeArrowheadStyle, TLDefaultDashStyle, TLGeoShape } from 'tldraw'
+import { TLArrowShapeArrowheadStyle, TLDefaultDashStyle } from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
-	MermaidBlueprintGeoNode,
+	MermaidBlueprintNode,
 	MermaidBlueprintLineNode,
+	MermaidNodeRenderMapper,
 } from './blueprint'
 import { parseRgbToTldrawColor } from './colors'
+import { resolveMermaidNodeRender } from './defaultMermaidNodeRenderSpec'
 import { getAccumulatedTranslate } from './svgParsing'
 
 export interface SvgRect {
@@ -139,17 +141,6 @@ function getFragmentSeparatorKeyword(type: number | undefined): string | null {
 	if (type === LINETYPE.PAR_AND) return 'and'
 	if (type === LINETYPE.CRITICAL_OPTION) return 'option'
 	return null
-}
-
-function mapParticipantTypeToGeo(type: string): TLGeoShape['props']['geo'] {
-	switch (type) {
-		case 'actor':
-			return 'ellipse'
-		case 'database':
-			return 'oval'
-		default:
-			return 'rectangle'
-	}
 }
 
 /** Map a Mermaid LINETYPE value to tldraw arrow props. */
@@ -441,6 +432,10 @@ export function parseSequenceLayout(
 	}
 }
 
+export interface SequenceToBlueprintOptions {
+	mapNodeToRenderSpec?: MermaidNodeRenderMapper
+}
+
 /**
  * Build a complete blueprint for a sequence diagram:
  * top actors, lifelines, bottom actors, fragments, notes, and signal edges.
@@ -451,8 +446,10 @@ export function sequenceToBlueprint(
 	actorKeys: string[],
 	messages: Message[],
 	createdActors: Map<string, number> = new Map(),
-	destroyedActors: Map<string, number> = new Map()
+	destroyedActors: Map<string, number> = new Map(),
+	options?: SequenceToBlueprintOptions
 ): DiagramMermaidBlueprint {
+	const mapNode = options?.mapNodeToRenderSpec
 	const actorCount = actorKeys.length
 	const keyIndex = new Map(actorKeys.map((key, i) => [key, i]))
 
@@ -561,7 +558,7 @@ export function sequenceToBlueprint(
 	// Build blueprint
 	const svgNoteRects = layout.noteRects
 	let svgNoteIndex = 0
-	const nodes: MermaidBlueprintGeoNode[] = []
+	const nodes: MermaidBlueprintNode[] = []
 	const lines: MermaidBlueprintLineNode[] = []
 	const edges: MermaidBlueprintEdge[] = []
 
@@ -621,13 +618,16 @@ export function sequenceToBlueprint(
 		const boxTop = lifelineTop + eventStep * (span.startEventIndex + 1) - activationPad
 		const boxBottom = lifelineTop + eventStep * (span.endEventIndex + 1) + activationPad
 
+		const id = `activation-${span.origIdx}`
+		const kind = 'sequence_activation'
 		nodes.push({
-			id: `activation-${span.origIdx}`,
+			id,
+			kind,
 			x: lifelineCenterX - ACTIVATION_BOX_WIDTH / 2 + depth * ACTIVATION_NEST_OFFSET,
 			y: boxTop,
 			w: ACTIVATION_BOX_WIDTH,
 			h: boxBottom - boxTop,
-			geo: 'rectangle',
+			render: resolveMermaidNodeRender('sequence', id, kind, mapNode),
 			fill: 'solid',
 			color: 'light-violet',
 			size: 's',
@@ -653,26 +653,30 @@ export function sequenceToBlueprint(
 
 		const rgbColor =
 			fragment.keyword === 'rect' ? parseRgbToTldrawColor(fragment.sections[0].title) : null
+		const fragId = `fragment-${fragmentIndex}`
+		const fragKind = 'sequence_fragment'
 		if (rgbColor) {
 			nodes.push({
-				id: `fragment-${fragmentIndex}`,
+				id: fragId,
+				kind: fragKind,
 				x: leftX,
 				y: fragTop,
 				w: fragW,
 				h: fragH,
-				geo: 'rectangle',
+				render: resolveMermaidNodeRender('sequence', fragId, fragKind, mapNode),
 				fill: rgbColor.hasAlpha ? 'semi' : 'solid',
 				color: rgbColor.color,
 				size: 's',
 			})
 		} else {
 			nodes.push({
-				id: `fragment-${fragmentIndex}`,
+				id: fragId,
+				kind: fragKind,
 				x: leftX,
 				y: fragTop,
 				w: fragW,
 				h: fragH,
-				geo: 'rectangle',
+				render: resolveMermaidNodeRender('sequence', fragId, fragKind, mapNode),
 				dash: 'dashed',
 				fill: 'none',
 				color: 'light-blue',
@@ -697,13 +701,16 @@ export function sequenceToBlueprint(
 					size: 's',
 				})
 
+				const secId = `fragment-${fragmentIndex}-section-${s}`
+				const secKind = 'sequence_fragment_section'
 				nodes.push({
-					id: `fragment-${fragmentIndex}-section-${s}`,
+					id: secId,
+					kind: secKind,
 					x: leftX + FRAGMENT_SECTION_LABEL_PADDING,
 					y: sepY + FRAGMENT_SECTION_LABEL_PADDING,
 					w: fragW - FRAGMENT_SECTION_LABEL_PADDING * 2,
 					h: FRAGMENT_SECTION_LABEL_HEIGHT,
-					geo: 'rectangle',
+					render: resolveMermaidNodeRender('sequence', secId, secKind, mapNode),
 					fill: 'none',
 					dash: 'dashed',
 					color: 'light-blue',
@@ -724,9 +731,11 @@ export function sequenceToBlueprint(
 		const { x, y, w, h, bottomY } = layouts[i]
 		const isCreated = creationEventIndex.has(key)
 		const isDestroyed = destructionEventIndex.has(key)
+		const kind = actor.type
+		const label = actor.description || actor.name || key
 		const shared = {
-			geo: mapParticipantTypeToGeo(actor.type),
-			label: actor.description || actor.name || key,
+			kind,
+			label,
 			align: 'middle' as const,
 			verticalAlign: 'middle' as const,
 			size: 's' as const,
@@ -734,10 +743,28 @@ export function sequenceToBlueprint(
 
 		const creationY = isCreated ? lifelineTop + eventStep * (creationEventIndex.get(key)! + 1) : 0
 		const topY = isCreated ? creationY - h / 2 : y
-		nodes.push({ id: `actor-top-${key}`, x, y: topY, w, h, ...shared })
+		const topId = `actor-top-${key}`
+		nodes.push({
+			id: topId,
+			x,
+			y: topY,
+			w,
+			h,
+			...shared,
+			render: resolveMermaidNodeRender('sequence', topId, kind, mapNode),
+		})
 
 		if (!isDestroyed) {
-			nodes.push({ id: `actor-bottom-${key}`, x, y: bottomY, w, h, ...shared })
+			const botId = `actor-bottom-${key}`
+			nodes.push({
+				id: botId,
+				x,
+				y: bottomY,
+				w,
+				h,
+				...shared,
+				render: resolveMermaidNodeRender('sequence', botId, kind, mapNode),
+			})
 		}
 	}
 
@@ -818,13 +845,16 @@ export function sequenceToBlueprint(
 				noteX = fromCenterX - noteWidth / 2
 			}
 
+			const noteId = `note-${eventIndex}`
+			const noteKind = 'sequence_note'
 			nodes.push({
-				id: `note-${eventIndex}`,
+				id: noteId,
+				kind: noteKind,
 				x: noteX,
 				y: eventY - noteHeight / 2,
 				w: noteWidth,
 				h: noteHeight,
-				geo: 'rectangle',
+				render: resolveMermaidNodeRender('sequence', noteId, noteKind, mapNode),
 				fill: 'solid',
 				color: 'yellow',
 				dash: 'draw',
@@ -837,6 +867,7 @@ export function sequenceToBlueprint(
 	}
 
 	return {
+		diagramKind: 'sequence',
 		nodes,
 		edges,
 		lines,

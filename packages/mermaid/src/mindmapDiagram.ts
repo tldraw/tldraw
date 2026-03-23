@@ -1,16 +1,19 @@
 import type { MindmapNode } from 'mermaid/dist/diagrams/mindmap/mindmapTypes.js'
-import type { TLDefaultColorStyle, TLDefaultSizeStyle, TLGeoShapeGeoStyle } from 'tldraw'
+import type { TLDefaultColorStyle, TLDefaultSizeStyle } from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
-	MermaidBlueprintGeoNode,
+	MermaidBlueprintNode,
+	MermaidNodeRenderMapper,
 } from './blueprint'
 import { parseRgbToTldrawColor } from './colors'
+import { resolveMermaidNodeRender } from './defaultMermaidNodeRenderSpec'
 import { parseNodesFromSvg, scaleLayout } from './svgParsing'
 import type { ParsedNode } from './svgParsing'
 import { LAYOUT_SCALE } from './utils'
 
-const MINDMAP_NODE_TYPE = {
+/** Mermaid mindmap node `type` integers (`kind` on blueprint nodes is `String(type)`). @public */
+export const MERMAID_MINDMAP_NODE_TYPE = {
 	DEFAULT: 0,
 	ROUNDED_RECT: 1,
 	RECT: 2,
@@ -19,24 +22,6 @@ const MINDMAP_NODE_TYPE = {
 	BANG: 5,
 	HEXAGON: 6,
 } as const
-
-function mapMindmapTypeToGeo(type: number): TLGeoShapeGeoStyle {
-	switch (type) {
-		case MINDMAP_NODE_TYPE.CIRCLE:
-			return 'ellipse'
-		case MINDMAP_NODE_TYPE.CLOUD:
-			return 'cloud'
-		case MINDMAP_NODE_TYPE.HEXAGON:
-			return 'hexagon'
-		case MINDMAP_NODE_TYPE.BANG:
-			return 'star'
-		case MINDMAP_NODE_TYPE.RECT:
-		case MINDMAP_NODE_TYPE.ROUNDED_RECT:
-		case MINDMAP_NODE_TYPE.DEFAULT:
-		default:
-			return 'rectangle'
-	}
-}
 
 function getEdgeSizeForLevel(parentLevel: number): TLDefaultSizeStyle {
 	if (parentLevel <= 0) return 'l'
@@ -93,12 +78,18 @@ export function parseMindmapLayout(root: Element): ParsedMindmapLayout {
 	return { nodes }
 }
 
+export interface MindmapToBlueprintOptions {
+	mapNodeToRenderSpec?: MermaidNodeRenderMapper
+}
+
 /** Convert a parsed Mermaid mindmap into a tldraw blueprint of nodes and edges. */
 export function mindmapToBlueprint(
 	layout: ParsedMindmapLayout,
 	mindmapTree: MindmapNode,
-	svgRoot: Element
+	svgRoot: Element,
+	options?: MindmapToBlueprintOptions
 ): DiagramMermaidBlueprint {
+	const mapNode = options?.mapNodeToRenderSpec
 	const flatNodes: FlatNode[] = []
 	flattenMindmapTree(mindmapTree, undefined, flatNodes)
 
@@ -117,7 +108,7 @@ export function mindmapToBlueprint(
 		}
 	}
 
-	const nodes: MermaidBlueprintGeoNode[] = []
+	const nodes: MermaidBlueprintNode[] = []
 	const edges: MermaidBlueprintEdge[] = []
 	const levelById = new Map(flatNodes.map((n) => [n.id, n.level]))
 
@@ -125,21 +116,23 @@ export function mindmapToBlueprint(
 		const svgNode = svgNodes.get(flatNode.id)
 		if (!svgNode) continue
 
-		const geo = mapMindmapTypeToGeo(flatNode.type)
+		const kind = String(flatNode.type)
 		const color = nodeColors.get(flatNode.id) ?? 'black'
 
 		let { width: w, height: h } = svgNode
-		if (flatNode.type === MINDMAP_NODE_TYPE.CIRCLE) {
+		if (flatNode.type === MERMAID_MINDMAP_NODE_TYPE.CIRCLE) {
 			w = h = Math.max(w, h)
 		}
 
+		const id = flatNode.id
 		nodes.push({
-			id: flatNode.id,
+			id,
+			kind,
 			x: svgNode.center.x - w / 2,
 			y: svgNode.center.y - h / 2,
 			w,
 			h,
-			geo,
+			render: resolveMermaidNodeRender('mindmap', id, kind, mapNode),
 			label: flatNode.label || undefined,
 			fill: 'solid',
 			color,
@@ -165,5 +158,5 @@ export function mindmapToBlueprint(
 
 	const nodeIds = new Set(nodes.map((n) => n.id))
 	const validEdges = edges.filter((e) => nodeIds.has(e.startNodeId) && nodeIds.has(e.endNodeId))
-	return { nodes, edges: validEdges }
+	return { diagramKind: 'mindmap', nodes, edges: validEdges }
 }

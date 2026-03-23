@@ -3,11 +3,24 @@ import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
-	MermaidBlueprintGeoNode,
 	MermaidBlueprintLineNode,
+	MermaidBlueprintNode,
+	MermaidBlueprintNodeRenderSpec,
+	MermaidDiagramKind,
+	MermaidNodeRenderMapper,
 } from './blueprint'
 export { createMermaidDiagram, MermaidDiagramError } from './createMermaidDiagram'
-export type { MermaidDiagramOptions } from './createMermaidDiagram'
+export type { MermaidDiagramKindOptions, MermaidDiagramOptions } from './createMermaidDiagram'
+export {
+	defaultMermaidNodeRenderSpec,
+	resolveMermaidNodeRender,
+} from './defaultMermaidNodeRenderSpec'
+export { MERMAID_MINDMAP_NODE_TYPE } from './mindmapDiagram'
+export {
+	defaultCreateMermaidNodeFromBlueprint,
+	type MermaidNodeCreateFunction,
+	type MermaidNodeCreateFunctionArgs,
+} from './mermaidNodeCreateShape'
 export { renderBlueprint } from './renderBlueprint'
 export type { BlueprintRenderingOptions } from './renderBlueprint'
 

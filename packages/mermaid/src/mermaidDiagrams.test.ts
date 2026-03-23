@@ -2,7 +2,7 @@ import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/f
 import type { MindmapNode } from 'mermaid/dist/diagrams/mindmap/mindmapTypes.js'
 import type { Actor, Message } from 'mermaid/dist/diagrams/sequence/types.js'
 import type { StateStmt } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
-import type { DiagramMermaidBlueprint } from './blueprint'
+import type { DiagramMermaidBlueprint, MermaidBlueprintNode } from './blueprint'
 import { flowchartToBlueprint } from './flowchartDiagram'
 import { mindmapToBlueprint, type ParsedMindmapLayout } from './mindmapDiagram'
 import {
@@ -84,12 +84,16 @@ function findEdge(bp: DiagramMermaidBlueprint, from: string, to: string) {
 	return bp.edges.find((e) => e.startNodeId === from && e.endNodeId === to)
 }
 
+function expectNodeGeo(node: MermaidBlueprintNode, geo: string) {
+	expect(node.render).toEqual({ variant: 'geo', geo })
+}
+
 // ---------------------------------------------------------------------------
 // Flowchart tests
 // ---------------------------------------------------------------------------
 
 describe('flowchartToBlueprint', () => {
-	it('maps nodes with correct id, label, geo, and positions', () => {
+	it('maps nodes with correct id, label, default geo render spec, and positions', () => {
 		const layout = diagramLayout([node('A', 100, 50, 80, 40), node('B', 100, 150, 60, 60)])
 		const vertices = new Map([
 			vertex('A', { text: 'Start', type: 'rect' }),
@@ -99,18 +103,21 @@ describe('flowchartToBlueprint', () => {
 
 		const bp = flowchartToBlueprint(layout, vertices, edges)
 
+		expect(bp.diagramKind).toBe('flowchart')
 		expect(bp.nodes).toHaveLength(2)
 		const a = findNode(bp, 'A')!
+		expect(a.kind).toBe('rect')
 		expect(a.label).toBe('Start')
-		expect(a.geo).toBe('rectangle')
+		expectNodeGeo(a, 'rectangle')
 		expect(a.x).toBe(100 - 80 / 2)
 		expect(a.y).toBe(50 - 40 / 2)
 		expect(a.w).toBe(80)
 		expect(a.h).toBe(40)
 
 		const b = findNode(bp, 'B')!
+		expect(b.kind).toBe('diamond')
 		expect(b.label).toBe('Is it?')
-		expect(b.geo).toBe('diamond')
+		expectNodeGeo(b, 'diamond')
 	})
 
 	it('maps edge labels and arrowhead types', () => {
@@ -156,7 +163,7 @@ describe('flowchartToBlueprint', () => {
 			const vertices = new Map([vertex(id, { type: mermaidType })])
 
 			const bp = flowchartToBlueprint(layout, vertices, [])
-			expect(findNode(bp, id)!.geo).toBe(expectedGeo)
+			expectNodeGeo(findNode(bp, id)!, expectedGeo)
 		}
 	})
 
@@ -329,6 +336,33 @@ describe('flowchartToBlueprint', () => {
 		expect(bp.edges[0].arrowheadEnd).toBe('arrow')
 		expect(bp.edges[0].arrowheadStart).toBe('arrow')
 	})
+
+	it('mapNodeToRenderSpec overrides default geo when returning a spec', () => {
+		const layout = diagramLayout([node('A', 100, 50, 80, 40)])
+		const vertices = new Map([vertex('A', { type: 'diamond' })])
+		const bp = flowchartToBlueprint(layout, vertices, [], undefined, undefined, {
+			mapNodeToRenderSpec: ({ kind }) =>
+				kind === 'diamond' ? { variant: 'geo', geo: 'hexagon' } : undefined,
+		})
+		expectNodeGeo(findNode(bp, 'A')!, 'hexagon')
+	})
+
+	it('mapNodeToRenderSpec can set variant shape on blueprint nodes', () => {
+		const layout = diagramLayout([node('A', 100, 50, 80, 40)])
+		const vertices = new Map([vertex('A')])
+		const bp = flowchartToBlueprint(layout, vertices, [], undefined, undefined, {
+			mapNodeToRenderSpec: () => ({
+				variant: 'shape',
+				type: 'geo',
+				props: { geo: 'star' },
+			}),
+		})
+		expect(findNode(bp, 'A')!.render).toEqual({
+			variant: 'shape',
+			type: 'geo',
+			props: { geo: 'star' },
+		})
+	})
 })
 
 // ---------------------------------------------------------------------------
@@ -362,8 +396,9 @@ describe('stateToBlueprint', () => {
 
 		const bp = stateToBlueprint(layout, states, relations)
 
+		expect(bp.diagramKind).toBe('state')
 		expect(findNode(bp, 'Still')!.label).toBe('Still')
-		expect(findNode(bp, 'Still')!.geo).toBe('rectangle')
+		expectNodeGeo(findNode(bp, 'Still')!, 'rectangle')
 		expect(findNode(bp, 'Moving')!.label).toBe('Moving')
 		expect(findEdge(bp, 'Still', 'Moving')!.label).toBe('go')
 	})
@@ -387,15 +422,15 @@ describe('stateToBlueprint', () => {
 		const bp = stateToBlueprint(layout, states, relations)
 
 		const start = findNode(bp, 'root_start')!
-		expect(start.geo).toBe('ellipse')
+		expectNodeGeo(start, 'ellipse')
 		expect(start.fill).toBe('solid')
 
 		const end = findNode(bp, 'root_end')!
-		expect(end.geo).toBe('ellipse')
+		expectNodeGeo(end, 'ellipse')
 		expect(end.fill).toBe('none')
 
 		const endInner = findNode(bp, 'root_end__inner')!
-		expect(endInner.geo).toBe('ellipse')
+		expectNodeGeo(endInner, 'ellipse')
 		expect(endInner.fill).toBe('solid')
 	})
 
@@ -404,7 +439,7 @@ describe('stateToBlueprint', () => {
 		const states = new Map([stateStmt('D', { type: 'choice' })])
 
 		const bp = stateToBlueprint(layout, states, [])
-		expect(findNode(bp, 'D')!.geo).toBe('diamond')
+		expectNodeGeo(findNode(bp, 'D')!, 'diamond')
 	})
 
 	it('maps fork/join states to wide bars', () => {
@@ -414,7 +449,7 @@ describe('stateToBlueprint', () => {
 		const bp = stateToBlueprint(layout, states, [])
 
 		const f = findNode(bp, 'F')!
-		expect(f.geo).toBe('rectangle')
+		expectNodeGeo(f, 'rectangle')
 		expect(f.fill).toBe('solid')
 		expect(f.w).toBeGreaterThan(20)
 	})
@@ -512,8 +547,8 @@ describe('stateToBlueprint', () => {
 
 		const bp = stateToBlueprint(layout, states, [])
 
-		expect(findNode(bp, 'root_start')!.geo).toBe('ellipse')
-		expect(findNode(bp, 'root_end2')!.geo).toBe('ellipse')
+		expectNodeGeo(findNode(bp, 'root_start')!, 'ellipse')
+		expectNodeGeo(findNode(bp, 'root_end2')!, 'ellipse')
 	})
 })
 
@@ -607,6 +642,7 @@ describe('sequenceToBlueprint', () => {
 
 		const bp = sequenceToBlueprint(layout, actors, ['Alice', 'Bob'], messages)
 
+		expect(bp.diagramKind).toBe('sequence')
 		expect(findNode(bp, 'actor-top-Alice')).toBeDefined()
 		expect(findNode(bp, 'actor-top-Bob')).toBeDefined()
 		expect(findNode(bp, 'actor-bottom-Alice')).toBeDefined()
@@ -756,7 +792,7 @@ describe('sequenceToBlueprint', () => {
 		expect(note!.label).toBe('Alice thinks')
 		expect(note!.color).toBe('yellow')
 		expect(note!.fill).toBe('solid')
-		expect(note!.geo).toBe('rectangle')
+		expectNodeGeo(note!, 'rectangle')
 	})
 
 	it('creates activation boxes', () => {
@@ -845,7 +881,7 @@ describe('sequenceToBlueprint', () => {
 
 		const bp = sequenceToBlueprint(layout, actors, ['User'], messages)
 
-		expect(findNode(bp, 'actor-top-User')!.geo).toBe('ellipse')
+		expectNodeGeo(findNode(bp, 'actor-top-User')!, 'ellipse')
 	})
 })
 
@@ -948,6 +984,7 @@ describe('mindmapToBlueprint', () => {
 
 		const bp = mindmapToBlueprint(layout, tree, emptySvg)
 
+		expect(bp.diagramKind).toBe('mindmap')
 		expect(bp.nodes).toHaveLength(3)
 
 		const root = findNodeByLabel(bp, 'Root')!
@@ -1051,12 +1088,12 @@ describe('mindmapToBlueprint', () => {
 
 		const bp = mindmapToBlueprint(layout, tree, emptySvg)
 
-		expect(findNodeByLabel(bp, 'Default')!.geo).toBe('rectangle')
-		expect(findNodeByLabel(bp, 'Rect')!.geo).toBe('rectangle')
-		expect(findNodeByLabel(bp, 'Circle')!.geo).toBe('ellipse')
-		expect(findNodeByLabel(bp, 'Cloud')!.geo).toBe('cloud')
-		expect(findNodeByLabel(bp, 'Bang')!.geo).toBe('star')
-		expect(findNodeByLabel(bp, 'Hexagon')!.geo).toBe('hexagon')
+		expectNodeGeo(findNodeByLabel(bp, 'Default')!, 'rectangle')
+		expectNodeGeo(findNodeByLabel(bp, 'Rect')!, 'rectangle')
+		expectNodeGeo(findNodeByLabel(bp, 'Circle')!, 'ellipse')
+		expectNodeGeo(findNodeByLabel(bp, 'Cloud')!, 'cloud')
+		expectNodeGeo(findNodeByLabel(bp, 'Bang')!, 'star')
+		expectNodeGeo(findNodeByLabel(bp, 'Hexagon')!, 'hexagon')
 	})
 
 	it('uses circle type to equalize width and height', () => {

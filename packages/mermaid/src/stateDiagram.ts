@@ -1,11 +1,12 @@
 import type { StateStmt, StyleClass } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
-import type { TLGeoShape } from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
-	MermaidBlueprintGeoNode,
+	MermaidBlueprintNode,
+	MermaidNodeRenderMapper,
 } from './blueprint'
 import { buildClassDefColorMap, type ParsedNodeColors } from './colors'
+import { resolveMermaidNodeRender } from './defaultMermaidNodeRenderSpec'
 import {
 	buildNodeCentersFromSvg,
 	parseAllEdgePointsFromSvg,
@@ -15,18 +16,6 @@ import {
 	scaleLayout,
 } from './svgParsing'
 import { getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
-
-function mapStateTypeToGeo(type: string): TLGeoShape['props']['geo'] {
-	switch (type) {
-		case 'choice':
-			return 'diamond'
-		case 'start':
-		case 'end':
-			return 'ellipse'
-		default:
-			return 'rectangle'
-	}
-}
 
 interface DiagramEdge {
 	id1: string
@@ -155,41 +144,51 @@ function stateToNodes(
 	w: number,
 	h: number,
 	parentId: string | undefined,
-	colors: ParsedNodeColors | undefined
-): MermaidBlueprintGeoNode[] {
-	const base = { id: state.id, x, y, w, h, parentId, color: 'black' as const }
+	colors: ParsedNodeColors | undefined,
+	mapNode?: MermaidNodeRenderMapper
+): MermaidBlueprintNode[] {
+	const base = { x, y, w, h, parentId, color: 'black' as const }
 	const label = state.label || undefined
+
+	const node = (
+		id: string,
+		kind: string,
+		partial: Partial<Pick<MermaidBlueprintNode, 'x' | 'y' | 'w' | 'h' | 'parentId'>> &
+			Omit<MermaidBlueprintNode, 'id' | 'kind' | 'render' | 'x' | 'y' | 'w' | 'h' | 'parentId'>
+	): MermaidBlueprintNode => ({
+		id,
+		kind,
+		...base,
+		...partial,
+		render: resolveMermaidNodeRender('state', id, kind, mapNode),
+	})
 
 	switch (state.type) {
 		case 'note':
 			return [
-				{
-					...base,
-					geo: 'rectangle',
+				node(state.id, 'note', {
 					label,
 					fill: 'solid',
 					color: 'yellow',
 					size: 's',
 					align: 'middle',
 					verticalAlign: 'middle',
-				},
+				}),
 			]
 		case 'start':
-			return [{ ...base, geo: 'ellipse', fill: 'solid' }]
+			return [node(state.id, 'start', { fill: 'solid' })]
 		case 'end': {
 			const innerSize = w * 0.6
+			const innerId = `${state.id}__inner`
 			return [
-				{ ...base, geo: 'ellipse', fill: 'none' },
-				{
-					...base,
-					id: `${state.id}__inner`,
+				node(state.id, 'end', { fill: 'none' }),
+				node(innerId, 'end_inner', {
 					x: x + (w - innerSize) / 2,
 					y: y + (h - innerSize) / 2,
 					w: innerSize,
 					h: innerSize,
-					geo: 'ellipse',
 					fill: 'solid',
-				},
+				}),
 			]
 		}
 		case 'fork':
@@ -197,40 +196,34 @@ function stateToNodes(
 			const barW = w * 4
 			const barH = Math.max(16, barW / 10)
 			return [
-				{
-					...base,
+				node(state.id, state.type, {
 					x: x - (barW - w) / 2,
 					y: y + (h - barH) / 2,
 					w: barW,
 					h: barH,
-					geo: 'rectangle',
 					fill: 'solid',
-				},
+				}),
 			]
 		}
 		case 'choice':
 			return [
-				{
-					...base,
-					geo: 'diamond',
+				node(state.id, 'choice', {
 					label,
 					align: 'middle',
 					verticalAlign: 'middle',
 					size: 'm',
-				},
+				}),
 			]
 		default:
 			return [
-				{
-					...base,
-					geo: mapStateTypeToGeo(state.type),
+				node(state.id, state.type, {
 					label,
 					...(colors?.fillColor && { fill: 'solid' as const }),
 					...(colors && { color: colors.strokeColor ?? colors.fillColor }),
 					align: 'middle',
 					verticalAlign: 'middle',
 					size: 'm',
-				},
+				}),
 			]
 	}
 }
@@ -253,13 +246,19 @@ export function parseStateDiagramLayout(root: Element): ParsedDiagramLayout {
 	return { nodes, clusters, edges }
 }
 
+export interface StateToBlueprintOptions {
+	mapNodeToRenderSpec?: MermaidNodeRenderMapper
+}
+
 /** Convert a parsed Mermaid state diagram into a tldraw blueprint of nodes and edges. */
 export function stateToBlueprint(
 	layout: ParsedDiagramLayout,
 	states: Map<string, StateStmt>,
 	relations: DiagramEdge[],
-	classDefs?: Map<string, StyleClass>
+	classDefs?: Map<string, StyleClass>,
+	options?: StateToBlueprintOptions
 ): DiagramMermaidBlueprint {
+	const mapNode = options?.mapNodeToRenderSpec
 	const stateColorMap = classDefs ? buildClassDefColorMap(classDefs, states) : new Map()
 	const { nodes: svgNodes, clusters: svgClusters, edges: svgEdges } = layout
 	const nodeCenters = buildNodeCentersFromSvg(svgNodes, svgClusters)
@@ -382,7 +381,7 @@ export function stateToBlueprint(
 		}
 	}
 
-	const nodes: MermaidBlueprintGeoNode[] = []
+	const nodes: MermaidBlueprintNode[] = []
 	const blueprintEdges: MermaidBlueprintEdge[] = []
 
 	for (const compoundId of orderTopDown(
@@ -393,13 +392,15 @@ export function stateToBlueprint(
 		const bounds = frameBounds.get(compoundId)
 		if (!bounds) continue
 
+		const kind = 'compound'
 		nodes.push({
 			id: compoundId,
+			kind,
 			x: bounds.absX,
 			y: bounds.absY,
 			w: bounds.w,
 			h: bounds.h,
-			geo: 'rectangle',
+			render: resolveMermaidNodeRender('state', compoundId, kind, mapNode),
 			parentId: parentOf.get(compoundId),
 			label: compoundLabels.get(compoundId) || compoundId,
 			fill: 'semi',
@@ -423,7 +424,8 @@ export function stateToBlueprint(
 				layout.w,
 				layout.h,
 				parentOf.get(id),
-				stateColorMap.get(id)
+				stateColorMap.get(id),
+				mapNode
 			)
 		)
 	}
@@ -473,5 +475,5 @@ export function stateToBlueprint(
 	const validEdges = blueprintEdges.filter(
 		(e) => nodeIds.has(e.startNodeId) && nodeIds.has(e.endNodeId)
 	)
-	return { nodes, edges: validEdges }
+	return { diagramKind: 'state', nodes, edges: validEdges }
 }

@@ -84,26 +84,40 @@ Parses Mermaid text, extracts layout from the rendered SVG, builds a blueprint, 
 - **`text`** — Mermaid diagram source text.
 - **`options`** — optional `MermaidDiagramOptions`:
   - `mermaidConfig` — Mermaid configuration overrides (theme, spacing, etc.).
-  - `blueprintRender` — positioning options (`position`, `centerOnPosition`).
+  - `blueprintRender` — positioning and optional node creation override (`position`, `centerOnPosition`, `createShape`).
   - `onUnsupportedDiagram(svg)` — callback when the diagram type isn't natively supported.
+  - `flowchart`, `state`, `sequence`, `mindmap` — optional `{ mapNodeToRenderSpec }` per diagram family to customize how each node is rendered (see below).
 
 Throws `MermaidDiagramError` on parse failure or unsupported diagram type (if no callback is provided).
 
 ### `renderBlueprint(editor, blueprint, opts?)`
 
-Renders a pre-built `DiagramMermaidBlueprint` into the editor. Useful if you want to construct or modify a blueprint programmatically before rendering.
+Renders a pre-built `DiagramMermaidBlueprint` into the editor. Useful if you want to construct or modify a blueprint programmatically before rendering. Options include `createShape` to replace default node creation (you must still create a shape with the given `shapeId` so arrows bind correctly).
 
 ### `MermaidDiagramError`
 
 Error class with `type: 'parse' | 'unsupported'` and `diagramType` properties.
 
+### Customizing node shapes
+
+While building the blueprint, each node gets a **`render`** field (`MermaidBlueprintNodeRenderSpec`): either `{ variant: 'geo', geo }` (default, same tables as before) or `{ variant: 'shape', type, props }` for any shape type registered on your editor. Use **`mapNodeToRenderSpec`** on `createMermaidDiagram` options (`flowchart`, `state`, `sequence`, or `mindmap`) to return a spec from `{ nodeId, kind }`, or `undefined` to keep the package default for that node.
+
+At render time, **`defaultCreateMermaidNodeFromBlueprint`** turns `node.render` plus layout (size, colors, label text) into `editor.createShape`. Pass **`blueprintRender.createShape`** to replace that step entirely; you can call `defaultCreateMermaidNodeFromBlueprint` from your hook if you only need small tweaks.
+
+Custom `type` values must exist on the editor before import. Exotic shapes may need compatible geometry for arrow bindings to feel like built-in geo nodes.
+
+Helpers: **`defaultMermaidNodeRenderSpec`**, **`resolveMermaidNodeRender`**, **`MERMAID_MINDMAP_NODE_TYPE`** (mindmap `kind` strings match `String` of these integers).
+
 ### Types
 
-- **`DiagramMermaidBlueprint`** — intermediate representation: `{ nodes, edges, lines?, groups? }`.
-- **`MermaidBlueprintGeoNode`** — a shape node with position, size, geo type, label, colors, and optional `parentId`.
+- **`DiagramMermaidBlueprint`** — `{ diagramKind, nodes, edges, lines?, groups? }`.
+- **`MermaidBlueprintNode`** — layout, semantic `kind`, style fields, and `render` (how to create the tldraw shape).
+- **`MermaidBlueprintNodeRenderSpec`** — `variant: 'geo'` + `geo`, or `variant: 'shape'` + `type` + `props`.
+- **`MermaidDiagramKind`** — `'flowchart' | 'state' | 'sequence' | 'mindmap'`.
 - **`MermaidBlueprintEdge`** — an arrow with start/end node IDs, bend, arrowheads, dash style, and anchor positions.
 - **`MermaidBlueprintLineNode`** — a vertical or horizontal line (used for sequence diagram lifelines).
-- **`BlueprintRenderingOptions`** — position and centering options for `renderBlueprint`.
+- **`BlueprintRenderingOptions`** — position, centering, and optional `createShape` for `renderBlueprint`.
+- **`MermaidNodeCreateFunction` / `MermaidNodeCreateFunctionArgs`** — custom node creation callback contract.
 
 ## How it works
 
@@ -118,7 +132,7 @@ flowchart LR
 
 1. **Parse and render** — Mermaid parses the text and renders an SVG into an offscreen DOM element, giving us accurate layout positions via `getBBox()`.
 2. **Extract blueprint** — a diagram-specific converter reads positions from the SVG and semantic data from Mermaid's internal database, producing a `DiagramMermaidBlueprint`.
-3. **Create shapes** — `renderBlueprint` converts the blueprint into tldraw geo shapes, arrows, lines, frames, and groups.
+3. **Create shapes** — `renderBlueprint` reads each node’s `render` spec and creates tldraw shapes (geo or custom), plus arrows, lines, frames, and groups.
 
 ## Example: paste handler
 
