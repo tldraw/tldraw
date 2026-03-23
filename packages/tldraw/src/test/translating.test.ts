@@ -2207,7 +2207,7 @@ describe('cancelling a translate operation', () => {
 		editor.setCurrentTool('note')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.translating')
+		editor.expectToBeIn('note.translating')
 		const shape = editor.getLastCreatedShape()
 		expect(editor.getShapePageBounds(shape)?.center).toMatchObject({ x: 100, y: 100 })
 		editor.cancel()

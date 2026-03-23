@@ -327,6 +327,22 @@ export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
+	getTranslatingSnapshot,
+	ResizeInteraction,
+	RotateInteraction,
+	TranslateInteraction,
+} from './lib/interactions'
+export type {
+	MovingShapeSnapshot,
+	ResizeInteractionStartOpts,
+	ResizeInteractionUpdateResult,
+	ResizeSnapshot,
+	RotateInteractionStartOpts,
+	RotateInteractionUpdateOpts,
+	TranslateInteractionStartOpts,
+	TranslatingSnapshot,
+} from './lib/interactions'
+export {
 	LicenseManager,
 	type InvalidLicenseKeyResult,
 	type InvalidLicenseReason,

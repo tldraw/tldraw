@@ -351,7 +351,7 @@ describe('currentToolId', () => {
 		editor.setCurrentTool('geo')
 		expect(editor.getCurrentToolId()).toBe('geo')
 	})
-	it('stays the selected tool during shape creation interactions that technically use the select tool', () => {
+	it('stays the selected tool during shape creation interactions', () => {
 		expect(editor.getCurrentToolId()).toBe('select')
 
 		editor.setCurrentTool('geo')
@@ -359,7 +359,7 @@ describe('currentToolId', () => {
 		editor.pointerMove(100, 100)
 
 		expect(editor.getCurrentToolId()).toBe('geo')
-		editor.expectToBeIn('select.resizing')
+		editor.expectToBeIn('geo.resizing')
 	})
 
 	it('reverts back to select if we finish the interaction', () => {
@@ -370,7 +370,7 @@ describe('currentToolId', () => {
 		editor.pointerMove(100, 100)
 
 		expect(editor.getCurrentToolId()).toBe('geo')
-		editor.expectToBeIn('select.resizing')
+		editor.expectToBeIn('geo.resizing')
 
 		editor.pointerUp(100, 100)
 
@@ -385,7 +385,7 @@ describe('currentToolId', () => {
 		editor.pointerMove(100, 100)
 
 		expect(editor.getCurrentToolId()).toBe('geo')
-		editor.expectToBeIn('select.resizing')
+		editor.expectToBeIn('geo.resizing')
 
 		editor.cancel()
 

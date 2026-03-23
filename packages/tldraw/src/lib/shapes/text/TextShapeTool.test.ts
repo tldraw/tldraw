@@ -180,7 +180,7 @@ describe('When in the pointing state', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(0)
 	})
 
-	it('transitions to select.resizing when dragging and edits on pointer up', () => {
+	it('transitions to text.resizing when dragging and edits on pointer up', () => {
 		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
 
@@ -202,7 +202,7 @@ describe('When in the pointing state', () => {
 
 		// needs to be far enough
 		editor.pointerMove(100, 0)
-		editor.expectToBeIn('select.resizing')
+		editor.expectToBeIn('text.resizing')
 
 		// Create the shape immediately
 		expect(editor.getCurrentPageShapes().length).toBe(1)
@@ -264,7 +264,7 @@ describe('When resizing', () => {
 		editor.pointerDown(0, 0)
 		vi.advanceTimersByTime(200)
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.resizing')
+		editor.expectToBeIn('text.resizing')
 		editor.cancel()
 		editor.expectToBeIn('text.idle')
 		expect(editor.getCurrentPageShapes().length).toBe(0)
@@ -275,7 +275,7 @@ describe('When resizing', () => {
 		editor.pointerDown(0, 0)
 		vi.advanceTimersByTime(200)
 		editor.pointerMove(100, 100)
-		editor.expectToBeIn('select.resizing')
+		editor.expectToBeIn('text.resizing')
 		editor.interrupt()
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})

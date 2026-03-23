@@ -260,7 +260,7 @@ describe('Maximum shapes behavior', () => {
 			editor.expectToBeIn('geo.pointing')
 
 			editor.pointerMove(350, 150)
-			editor.expectToBeIn('select.resizing') // Enters resizing mode during drag creation
+			editor.expectToBeIn('geo.resizing') // Enters resizing mode during drag creation
 
 			editor.pointerUp(350, 150)
 

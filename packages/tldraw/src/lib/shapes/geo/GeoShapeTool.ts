@@ -1,13 +1,14 @@
 import { StateNode, TLStateNodeConstructor } from '@tldraw/editor'
 import { Idle } from './toolStates/Idle'
 import { Pointing } from './toolStates/Pointing'
+import { ResizingCreatedGeo } from './toolStates/ResizingCreatedGeo'
 
 /** @public */
 export class GeoShapeTool extends StateNode {
 	static override id = 'geo'
 	static override initial = 'idle'
 	static override children(): TLStateNodeConstructor[] {
-		return [Idle, Pointing]
+		return [Idle, Pointing, ResizingCreatedGeo]
 	}
 	override shapeType = 'geo'
 }
