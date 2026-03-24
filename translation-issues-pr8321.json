@@ -1,0 +1,93 @@
+{
+  "generated": "2026-03-24",
+  "description": "Translation issues found in PR #8321 (i18n download). Covers Mermaid proper noun mistranslation, additional Dismiss wrong-sense issues, and additional Refresh wrong-sense issues.",
+  "summary": {
+    "total_issues": 3
+  },
+  "issues": [
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "dotcom",
+      "key": "3e2ae04ff0",
+      "english": "Unsupported Mermaid diagram",
+      "description": "Mermaid is a proper noun (the diagramming library), not the mythical creature. Should be kept as 'Mermaid' in all languages.",
+      "locales_affected": {
+        "ar": { "current": "رسم تخطيطي غير مدعوم لحورية البحر", "problem": "Translated 'Mermaid' as 'حورية البحر' (sea fairy/mermaid creature)", "suggested": "رسم تخطيطي Mermaid غير مدعوم" },
+        "bn": { "current": "অসমর্থিত মৎস্যকন্যার চিত্র", "problem": "Translated 'Mermaid' as 'মৎস্যকন্যা' (fish maiden)", "suggested": "অসমর্থিত Mermaid চিত্র" },
+        "ca": { "current": "Diagrama de sirena no compatible", "problem": "Translated 'Mermaid' as 'sirena' (siren)", "suggested": "Diagrama de Mermaid no compatible" },
+        "cs": { "current": "Nepodporovaný diagram mořské panny", "problem": "Translated 'Mermaid' as 'mořská panna' (sea maiden)", "suggested": "Nepodporovaný diagram Mermaid" },
+        "da": { "current": "Ikke-understøttet havfruediagram", "problem": "Translated 'Mermaid' as 'havfrue' (mermaid creature)", "suggested": "Ikke-understøttet Mermaid-diagram" },
+        "el": { "current": "Μη υποστηριζόμενο διάγραμμα γοργόνας", "problem": "Translated 'Mermaid' as 'γοργόνα' (mermaid/gorgon)", "suggested": "Μη υποστηριζόμενο διάγραμμα Mermaid" },
+        "es": { "current": "Diagrama de sirena sin soporte", "problem": "Translated 'Mermaid' as 'sirena'", "suggested": "Diagrama de Mermaid sin soporte" },
+        "fa": { "current": "نمودار پری دریایی پشتیبانی نشده", "problem": "Translated 'Mermaid' as 'پری دریایی' (sea fairy)", "suggested": "نمودار Mermaid پشتیبانی‌نشده" },
+        "fi": { "current": "Ei-tuettu merenneitokaavio", "problem": "Translated 'Mermaid' as 'merenneito' (sea maiden)", "suggested": "Ei-tuettu Mermaid-kaavio" },
+        "fr": { "current": "Diagramme de sirène non pris en charge", "problem": "Translated 'Mermaid' as 'sirène'", "suggested": "Diagramme Mermaid non pris en charge" },
+        "gl": { "current": "Diagrama de serea sen soporte", "problem": "Translated 'Mermaid' as 'serea'", "suggested": "Diagrama de Mermaid sen soporte" },
+        "he": { "current": "דיאגרמת בת הים לא נתמכת", "problem": "Translated 'Mermaid' as 'בת הים' (daughter of the sea)", "suggested": "דיאגרמת Mermaid לא נתמכת" },
+        "hr": { "current": "Nepodržani dijagram sirene", "problem": "Translated 'Mermaid' as 'sirena'", "suggested": "Nepodržani Mermaid dijagram" },
+        "hu": { "current": "Nem támogatott sellődiagram", "problem": "Translated 'Mermaid' as 'sellő' (mermaid creature)", "suggested": "Nem támogatott Mermaid-diagram" },
+        "it": { "current": "Diagramma della sirena non supportato", "problem": "Translated 'Mermaid' as 'sirena'", "suggested": "Diagramma Mermaid non supportato" },
+        "km-kh": { "current": "ដ្យាក្រាមមច្ឆាដែលមិនគាំទ្រ", "problem": "Translated 'Mermaid' as 'មច្ឆា' (fish)", "suggested": "ដ្យាក្រាម Mermaid ដែលមិនគាំទ្រ" },
+        "kn": { "current": "ಬೆಂಬಲವಿಲ್ಲದ ಮತ್ಸ್ಯಕನ್ಯೆ ರೇಖಾಚಿತ್ರ", "problem": "Translated 'Mermaid' as 'ಮತ್ಸ್ಯಕನ್ಯೆ' (fish maiden)", "suggested": "ಬೆಂಬಲವಿಲ್ಲದ Mermaid ರೇಖಾಚಿತ್ರ" },
+        "mr": { "current": "असमर्थित मत्स्यकन्या आकृती", "problem": "Translated 'Mermaid' as 'मत्स्यकन्या' (fish maiden)", "suggested": "असमर्थित Mermaid आकृती" },
+        "ms": { "current": "Gambar rajah Duyung yang tidak disokong", "problem": "Translated 'Mermaid' as 'Duyung' (dugong/mermaid)", "suggested": "Gambar rajah Mermaid yang tidak disokong" },
+        "nl": { "current": "Niet-ondersteund zeemeermindiagram", "problem": "Translated 'Mermaid' as 'zeemeermin'", "suggested": "Niet-ondersteund Mermaid-diagram" },
+        "no": { "current": "Ustøttet havfruediagram", "problem": "Translated 'Mermaid' as 'havfrue'", "suggested": "Ustøttet Mermaid-diagram" },
+        "pl": { "current": "Nieobsługiwany diagram syreny", "problem": "Translated 'Mermaid' as 'syrena'", "suggested": "Nieobsługiwany diagram Mermaid" },
+        "pt-br": { "current": "Diagrama de sereia sem suporte", "problem": "Translated 'Mermaid' as 'sereia'", "suggested": "Diagrama Mermaid sem suporte" },
+        "pt-pt": { "current": "Diagrama de sereia sem suporte", "problem": "Translated 'Mermaid' as 'sereia'", "suggested": "Diagrama Mermaid sem suporte" },
+        "ro": { "current": "Diagramă de sirenă neacceptată", "problem": "Translated 'Mermaid' as 'sirenă'", "suggested": "Diagramă Mermaid neacceptată" },
+        "ru": { "current": "Неподдерживаемая диаграмма русалки", "problem": "Translated 'Mermaid' as 'русалка'", "suggested": "Неподдерживаемая диаграмма Mermaid" },
+        "sl": { "current": "Nepodprt diagram morske deklice", "problem": "Translated 'Mermaid' as 'morska deklica' (sea girl)", "suggested": "Nepodprt diagram Mermaid" },
+        "sv": { "current": "Ostödd sjöjungfrudiagram", "problem": "Translated 'Mermaid' as 'sjöjungfru'", "suggested": "Ostödd Mermaid-diagram" },
+        "ta": { "current": "ஆதரவற்ற தேவதை வரைபடம்", "problem": "Translated 'Mermaid' as 'தேவதை' (angel/fairy — not even mermaid!)", "suggested": "ஆதரவற்ற Mermaid வரைபடம்" },
+        "te": { "current": "మద్దతు లేని మత్స్యకన్య రేఖాచిత్రం", "problem": "Translated 'Mermaid' as 'మత్స్యకన్య' (fish maiden)", "suggested": "మద్దతు లేని Mermaid రేఖాచిత్రం" },
+        "th": { "current": "แผนภาพนางเงือกที่ไม่รองรับ", "problem": "Translated 'Mermaid' as 'นางเงือก'", "suggested": "แผนภาพ Mermaid ที่ไม่รองรับ" },
+        "tl": { "current": "Hindi sinusuportahang diagram ng Sirena", "problem": "Translated 'Mermaid' as 'Sirena'", "suggested": "Hindi sinusuportahang Mermaid diagram" },
+        "tr": { "current": "Desteklenmeyen Denizkızı diyagramı", "problem": "Translated 'Mermaid' as 'Denizkızı'", "suggested": "Desteklenmeyen Mermaid diyagramı" },
+        "uk": { "current": "Непідтримувана діаграма русалки", "problem": "Translated 'Mermaid' as 'русалка'", "suggested": "Непідтримувана діаграма Mermaid" },
+        "ur": { "current": "غیر تعاون یافتہ متسیستری خاکہ", "problem": "Garbled transliteration of mermaid creature", "suggested": "غیر تعاون یافتہ Mermaid خاکہ" },
+        "vi": { "current": "Sơ đồ nàng tiên cá không được hỗ trợ", "problem": "Translated 'Mermaid' as 'nàng tiên cá' (fairy fish maiden)", "suggested": "Sơ đồ Mermaid không được hỗ trợ" },
+        "zh-cn": { "current": "不支持的美人鱼图", "problem": "Translated 'Mermaid' as '美人鱼'", "suggested": "不支持的 Mermaid 图" },
+        "zh-tw": { "current": "不支持的美人魚圖", "problem": "Translated 'Mermaid' as '美人魚'", "suggested": "不支持的 Mermaid 圖" }
+      }
+    },
+    {
+      "severity": "high",
+      "type": "wrong_word_sense",
+      "source": "dotcom",
+      "key": "c8a59e7135",
+      "english": "Dismiss",
+      "description": "Additional languages (beyond those fixed in translation-issues.json) where 'Dismiss' uses reject/fire/dissolve sense instead of close/dismiss UI element.",
+      "locales_affected": {
+        "cs": { "current": "Propustit", "problem": "Means 'to fire/let go' (employment sense)", "suggested": "Zavřít" },
+        "de": { "current": "Zurückweisen", "problem": "Means 'to reject/refuse'", "suggested": "Schließen" },
+        "fr": { "current": "Rejeter", "problem": "Means 'to reject'", "suggested": "Fermer" },
+        "id": { "current": "Membubarkan", "problem": "Means 'to dissolve/disband' (an organization)", "suggested": "Tutup" },
+        "ja": { "current": "却下する", "problem": "Means 'to reject/deny' (formal ruling)", "suggested": "閉じる" },
+        "nl": { "current": "Afwijzen", "problem": "Means 'to reject/decline'", "suggested": "Sluiten" },
+        "pl": { "current": "Odrzucać", "problem": "Means 'to reject' (imperfective)", "suggested": "Zamknij" },
+        "pt-br": { "current": "Liberar", "problem": "Means 'to release/free'", "suggested": "Fechar" },
+        "pt-pt": { "current": "Liberar", "problem": "Means 'to release/free'", "suggested": "Fechar" },
+        "th": { "current": "อนุญาตให้ออกไป", "problem": "Means 'allow to leave/permit to go out'", "suggested": "ปิด" },
+        "hi-in": { "current": "नकार देना", "problem": "Means 'to deny/refuse'", "suggested": "बंद करें" },
+        "ur": { "current": "برطرف کرنا", "problem": "Means 'to fire from job/dismiss from service'", "suggested": "بند کریں" }
+      }
+    },
+    {
+      "severity": "medium",
+      "type": "wrong_word_sense",
+      "source": "dotcom",
+      "key": "63a6a88c06",
+      "english": "Refresh",
+      "description": "Additional languages where 'Refresh' uses physical/bodily sense instead of page reload.",
+      "locales_affected": {
+        "da": { "current": "Opfriske", "problem": "Means 'to liven up/invigorate' (physical sense)", "suggested": "Opdater" },
+        "es": { "current": "Refrescar", "problem": "Means 'to cool down/refresh physically'", "suggested": "Actualizar" },
+        "id": { "current": "Menyegarkan", "problem": "Means 'to invigorate/refresh physically'", "suggested": "Muat ulang" },
+        "no": { "current": "Forfriske", "problem": "Means 'to invigorate/refresh physically'", "suggested": "Oppdater" }
+      }
+    }
+  ]
+}

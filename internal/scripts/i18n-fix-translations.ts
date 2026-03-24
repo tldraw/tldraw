@@ -77,7 +77,10 @@ async function findKeyTranslations(
 
 async function main() {
 	const dryRun = process.argv.includes('--dry-run')
-	const issuesPath = path.resolve(__dirname, '../../translation-issues.json')
+	const fileArg = process.argv.find((a) => !a.startsWith('--') && a.endsWith('.json'))
+	const issuesPath = fileArg
+		? path.resolve(fileArg)
+		: path.resolve(__dirname, '../../translation-issues.json')
 	const issuesFile: IssuesFile = JSON.parse(fs.readFileSync(issuesPath, 'utf8'))
 
 	if (!LOKALISE_API_TOKEN) {
@@ -156,14 +159,16 @@ async function main() {
 				continue
 			}
 
-			console.log(
-				`  ${ourLocale} (${lokaliseLocale}): "${info.current}" → "${info.suggested}" (${info.problem})`
-			)
-
 			if (dryRun) {
+				console.log(
+					`  [DRY RUN] ${ourLocale} (${lokaliseLocale}):\n    current:   "${info.current}"\n    proposed:  "${info.suggested}"`
+				)
 				updatedCount++
 			} else {
 				try {
+					console.log(
+						`  ${ourLocale} (${lokaliseLocale}): "${info.current}" → "${info.suggested}"`
+					)
 					await api.translations().update(
 						existing.translationId,
 						{ translation: info.suggested!, is_reviewed: false },
