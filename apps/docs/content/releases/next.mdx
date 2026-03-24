@@ -5,10 +5,10 @@ author: tldraw
 date: 03/18/2026
 order: 0
 status: published
-last_version: v4.5.1
+last_version: v4.5.3
 ---
 
-This release adds custom record types to the store, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, and smarter export trimming. It also includes various other improvements and bug fixes.
+This release adds custom record types to the store, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, a new `@tldraw/mermaid` package for converting Mermaid diagrams into native tldraw shapes, RTL language support in the UI, cross-window embedding support, and smarter export trimming. It also includes various other improvements and bug fixes.
 
 ## What's new
 
@@ -59,6 +59,12 @@ This is useful for scripting, automation, agent workflows, and REPL-style intera
 
 The tldraw UI now supports right-to-left languages like Arabic. A new `useDirection()` hook returns `'ltr'` or `'rtl'` from the current translation context, and all Radix UI components and CSS have been updated to respect text direction. The `dir` attribute is set on `.tl-container`, and CSS uses logical properties (`margin-inline-start`, `inset-inline-end`, etc.) instead of physical ones.
 
+### @tldraw/mermaid ([#8194](https://github.com/tldraw/tldraw/pull/8194), [#8285](https://github.com/tldraw/tldraw/pull/8285))
+
+A new `@tldraw/mermaid` package converts Mermaid diagram syntax into native tldraw shapes. Pass a Mermaid string to `createMermaidDiagram()` and the package parses the syntax, extracts layout from a headless render, and produces shapes with proper bindings and styling.
+
+Supported diagram types include flowcharts, sequence diagrams, state diagrams, and mind maps. Unsupported types fall back to SVG import.
+
 ### Cross-window embedding support ([#8196](https://github.com/tldraw/tldraw/pull/8196))
 
 Tldraw now works correctly when embedded in iframes, Electron pop-out windows, and Obsidian plugins where the global `document` and `window` differ from the ones tldraw is mounted in. All bare `document` and `window` references have been replaced with container-aware alternatives.
@@ -72,6 +78,7 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Add `handleSocketResume()`, `getSessionSnapshot()`, and `onSessionSnapshot` to `TLSocketRoom` for WebSocket hibernation support. Add `clientTimeout` option to `TLSyncRoom`. ([#8070](https://github.com/tldraw/tldraw/pull/8070))
 - Add `Editor.getContainerDocument()` and `Editor.getContainerWindow()` methods, and `getOwnerDocument()` / `getOwnerWindow()` helpers for cross-window embedding. ([#8196](https://github.com/tldraw/tldraw/pull/8196))
 - Add `useDirection()` hook for RTL support. ([#8033](https://github.com/tldraw/tldraw/pull/8033))
+- Add `@tldraw/mermaid` package with `createMermaidDiagram()` and `renderBlueprint()` for converting Mermaid syntax into tldraw shapes. ([#8194](https://github.com/tldraw/tldraw/pull/8194))
 - Add `'json'` to `TLCopyType` for copying shapes as JSON in debug mode. ([#8206](https://github.com/tldraw/tldraw/pull/8206))
 - Change `TLSvgExportOptions.padding` to accept `number | 'auto'`. The `'auto'` mode (now default) renders with padding then trims to visual content bounds. ([#8202](https://github.com/tldraw/tldraw/pull/8202))
 - Add `Vec.IsFinite()` static method. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
@@ -81,6 +88,7 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 
 - Optimize geometry hot paths for hit testing: reduce allocations and function call overhead in `Vec`, `Edge2d`, `Circle2d`, `Arc2d`, `Polyline2d`, and intersection routines. Circle hit testing is up to 19x faster, polyline nearest-point is 6.8x faster. ([#8210](https://github.com/tldraw/tldraw/pull/8210))
 - Exports now automatically trim to visual content bounds, capturing overflow like thick strokes and arrowheads without extra whitespace. ([#8202](https://github.com/tldraw/tldraw/pull/8202))
+- Batch DOM measurements during multi-shape resize to eliminate layout thrashing when resizing many labeled geo shapes at once. ([#7949](https://github.com/tldraw/tldraw/pull/7949))
 - Move the debug mode toggle into the preferences submenu. ([#8259](https://github.com/tldraw/tldraw/pull/8259))
 
 ## Bug fixes
@@ -90,4 +98,5 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix pasting into editable text shapes when the clipboard contains tldraw data. ([#8192](https://github.com/tldraw/tldraw/pull/8192))
 - Fix crash when isolating curved arrows with degenerate binding geometry. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 - Fix eraser not erasing shapes when starting a drag from inside a group's bounds. ([#8054](https://github.com/tldraw/tldraw/pull/8054))
+- Fix draw shape loop-closing threshold not scaling with zoom level, causing loops to close too eagerly when zoomed out. ([#8293](https://github.com/tldraw/tldraw/pull/8293))
 - Fix over-softened corners and end artifacts when shift-clicking to draw straight line segments. ([#7977](https://github.com/tldraw/tldraw/pull/7977))

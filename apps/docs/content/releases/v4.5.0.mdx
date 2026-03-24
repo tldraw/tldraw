@@ -10,6 +10,7 @@ keywords:
   - release
   - v4.5
   - v4.5.0
+  - v4.5.3
   - transparent-pixels
   - embed-definitions
   - high-dpi
@@ -135,3 +136,13 @@ const cleanSvg = sanitizeSvg(untrustedSvgText)
 - Fix missing alt text on rendered image shapes in some cases. ([#8158](https://github.com/tldraw/tldraw/pull/8158))
 - Fix drawing on tablets that report zero pen pressure. ([#5693](https://github.com/tldraw/tldraw/pull/5693))
 - Fix `create-tldraw` CLI to always create a subdirectory from the project name. ([#8161](https://github.com/tldraw/tldraw/pull/8161))
+
+---
+
+## Patch releases
+
+### v4.5.3
+
+- Fix missing dynamic import file extension that caused build failures in some bundler configurations. ([#8278](https://github.com/tldraw/tldraw/pull/8278))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.5.3)
