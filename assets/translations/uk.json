@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "Перетворити у закладку",
 	"action.convert-to-embed": "Конвертувати у вбудовування",
 	"action.copy": "Копіювати",
+	"action.copy-as-json": "Копіювати як JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Копіювати як PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Копіювати як SVG",
