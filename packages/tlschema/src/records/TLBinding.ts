@@ -9,6 +9,7 @@ import { mapObjectMapValues, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TLArrowBinding } from '../bindings/TLArrowBinding'
 import { TLBaseBinding, createBindingValidator } from '../bindings/TLBaseBinding'
+import { TLStickerBinding } from '../bindings/TLStickerBinding'
 import { SchemaPropsInfo } from '../createTLSchema'
 import { TLPropsMigrations } from '../recordsWithProps'
 
@@ -36,7 +37,7 @@ import { TLPropsMigrations } from '../recordsWithProps'
  *
  * @public
  */
-export type TLDefaultBinding = TLArrowBinding
+export type TLDefaultBinding = TLArrowBinding | TLStickerBinding
 
 /**
  * A type for a binding that is available in the editor but whose type is
