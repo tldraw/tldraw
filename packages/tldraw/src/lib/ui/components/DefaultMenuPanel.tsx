@@ -4,8 +4,8 @@ import { PORTRAIT_BREAKPOINT } from '../constants'
 import { useBreakpoint } from '../context/breakpoints'
 import { useTldrawUiComponents } from '../context/components'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { TldrawUiToolbar } from './primitives/TldrawUiToolbar'
 import { TldrawUiRow } from './primitives/layout'
+import { TldrawUiToolbar } from './primitives/TldrawUiToolbar'
 
 /** @public @react */
 export const DefaultMenuPanel = memo(function MenuPanel() {

@@ -1,3 +1,5 @@
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { Content } from '@/components/content'
 import { StarterKitEmbed } from '@/components/content/embed'
 import { Example } from '@/components/content/example'
@@ -9,11 +11,9 @@ import { DocsSidebar } from '@/components/docs/docs-sidebar'
 import { DocsStarterSidebar } from '@/components/docs/docs-starter-sidebar'
 import { DocsTableOfContents } from '@/components/docs/docs-table-of-contents'
 import { SearchButton } from '@/components/search/SearchButton'
-import { db } from '@/utils/ContentDatabase'
 import { cn } from '@/utils/cn'
+import { db } from '@/utils/ContentDatabase'
 import { parseMarkdown } from '@/utils/parse-markdown'
-import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
 
 export async function generateMetadata(props: {
 	params: Promise<{ slug: string | string[] }>

@@ -2,8 +2,8 @@ import { PageRecordType } from '@tldraw/tlschema'
 import { IndexKey, promiseWithResolve } from '@tldraw/utils'
 import { Mock, vi } from 'vitest'
 import { createTLStore } from '../../config/createTLStore'
-import { TLLocalSyncClient } from './TLLocalSyncClient'
 import { hardReset } from './hardReset'
+import { TLLocalSyncClient } from './TLLocalSyncClient'
 
 class BroadcastChannelMock {
 	onmessage?: (e: MessageEvent) => void

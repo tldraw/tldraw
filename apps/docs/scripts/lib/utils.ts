@@ -1,7 +1,7 @@
+import path from 'path'
 import { ApiItem, ApiItemKind, ApiModel } from '@microsoft/api-extractor-model'
 import { slug as githubSlug } from 'github-slugger'
 import { format } from 'oxfmt'
-import path from 'path'
 
 /**
  * Structural interface for DocNode-like objects from any version of @microsoft/tsdoc.

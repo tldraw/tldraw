@@ -1,7 +1,7 @@
-/* eslint-disable no-useless-escape */
-import { Article } from '@/types/content-types'
 import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
+/* eslint-disable no-useless-escape */
+import { Article } from '@/types/content-types'
 
 export async function autoLinkDocs(db: Database<sqlite3.Database, sqlite3.Statement>) {
 	// replace [TLEditor](?) with [TLEditor](/reference/editor/TLEditor)?

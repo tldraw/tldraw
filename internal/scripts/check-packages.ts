@@ -1,5 +1,5 @@
-import kleur from 'kleur'
 import path, { join, relative } from 'path'
+import kleur from 'kleur'
 import {
 	REPO_ROOT,
 	readFileIfExists,

@@ -1,7 +1,7 @@
-import { cn } from '@/utils/cn'
 import { ArrowRightIcon } from '@heroicons/react/16/solid'
 import { CodeBracketIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
+import { cn } from '@/utils/cn'
 
 function Tag({ children }: { children: React.ReactNode; tag: string }) {
 	return <span className="border border-zinc-800 rounded-full px-1.5 text-xs">{children}</span>
