@@ -125,8 +125,4 @@ export class UsMapShapeUtil extends ShapeUtil<UsMapShape> {
 			</>
 		)
 	}
-
-	indicator(shape: UsMapShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }

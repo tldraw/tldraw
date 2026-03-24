@@ -82,10 +82,6 @@ export class MigratedShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 		)
 	}
 
-	indicator(shape: IMyShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
-
 	override onResize(shape: IMyShape, info: TLResizeInfo<IMyShape>) {
 		return resizeBox(shape, info)
 	}

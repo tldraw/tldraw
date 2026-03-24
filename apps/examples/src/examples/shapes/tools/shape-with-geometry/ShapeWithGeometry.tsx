@@ -72,13 +72,6 @@ class HouseShapeUtil extends ShapeUtil<HouseShape> {
 			</svg>
 		)
 	}
-	// [3]
-	override indicator(shape: HouseShape) {
-		const { house: houseVertices, door: doorVertices } = getHouseVertices(shape)
-		const housePathData = 'M' + houseVertices[0] + 'L' + houseVertices.slice(1) + 'Z'
-		const doorPathData = 'M' + doorVertices[0] + 'L' + doorVertices.slice(1) + 'Z'
-		return <path d={housePathData + doorPathData} />
-	}
 	override onResize(shape: HouseShape, info: TLResizeInfo<HouseShape>) {
 		const resized = resizeBox(shape, info)
 		const next = structuredClone(info.initialShape)

@@ -178,17 +178,6 @@ class YShapeUtil extends ShapeUtil<YShape> {
 			</HTMLContainer>
 		)
 	}
-
-	indicator(shape: YShape) {
-		const { center, armTop, armLeft, armRight } = shape.props
-		return (
-			<>
-				<line x1={center.x} y1={center.y} x2={armTop.x} y2={armTop.y} />
-				<line x1={center.x} y1={center.y} x2={armLeft.x} y2={armLeft.y} />
-				<line x1={center.x} y1={center.y} x2={armRight.x} y2={armRight.y} />
-			</>
-		)
-	}
 }
 
 const customShapes = [YShapeUtil]

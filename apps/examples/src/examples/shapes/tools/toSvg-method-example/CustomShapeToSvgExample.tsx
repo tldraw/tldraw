@@ -64,10 +64,6 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 		return <HTMLContainer style={{ backgroundColor: isDarkmode ? DARK_FILL : LIGHT_FILL }} />
 	}
 
-	indicator(shape: ICustomShape) {
-		return this.getSvgRect(shape)
-	}
-
 	// [1]
 	override toSvg(
 		shape: ICustomShape,

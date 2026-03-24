@@ -568,10 +568,6 @@ describe('Custom shapes', () => {
 				</HTMLContainer>
 			)
 		}
-
-		indicator(shape: CardShape) {
-			return <rect data-testid="card-indicator" width={shape.props.w} height={shape.props.h} />
-		}
 	}
 
 	class CardTool extends BaseBoxShapeTool {
@@ -632,9 +628,6 @@ describe('Custom shapes', () => {
 
 		// Select the shape
 		await act(async () => editor.select(id))
-
-		// Is the shape's component rendering?
-		expect(await screen.findByTestId('card-indicator')).toBeTruthy()
 
 		// Select the tool...
 		await act(async () => editor.setCurrentTool('card'))

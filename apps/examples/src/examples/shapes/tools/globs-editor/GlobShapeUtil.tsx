@@ -646,29 +646,6 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		return <GlobShape shape={shape} showControlLines={showControlLines} />
 	}
 
-	override indicator(shape: GlobShape) {
-		const zoomLevel = this.editor.getZoomLevel()
-
-		const globPoints = getGlobInfo(this.editor, shape)
-		if (!globPoints) return null
-
-		const pathBuilder = buildGlobPath(globPoints)
-		if (!pathBuilder) return null
-
-		return (
-			<SVGContainer>
-				<path
-					pointerEvents="none"
-					d={pathBuilder.toD()}
-					stroke="black"
-					strokeWidth={2 / zoomLevel}
-					opacity={0.25}
-					fill="blue"
-				/>
-			</SVGContainer>
-		)
-	}
-
 	override toSvg(shape: GlobShape) {
 		const globPoints = getGlobInfo(this.editor, shape)
 		if (!globPoints) return null

@@ -24,7 +24,6 @@ import {
 	getDefaultColorTheme,
 	lerp,
 	resizeBox,
-	toDomPrecision,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
@@ -324,14 +323,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				</g>
 			</>
 		)
-	}
-
-	indicator(shape: TLFrameShape) {
-		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLFrameShape): Path2D {

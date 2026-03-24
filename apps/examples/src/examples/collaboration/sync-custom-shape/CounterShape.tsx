@@ -58,10 +58,6 @@ export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
 			</HTMLContainer>
 		)
 	}
-
-	override indicator(shape: CounterShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }
 
 export class CounterShapeTool extends BaseBoxShapeTool {

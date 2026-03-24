@@ -25,7 +25,7 @@ import {
 	embedShapePermissionDefaults,
 } from '../../defaultEmbedDefinitions'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
-import { BookmarkIndicatorComponent, BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
+import { BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
 import { BOOKMARK_JUST_URL_HEIGHT, BOOKMARK_WIDTH } from '../bookmark/bookmarks'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
@@ -255,25 +255,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 				)}
 			</HTMLContainer>
 		)
-	}
-
-	override indicator(shape: TLEmbedShape) {
-		const embedInfo = this.getEmbedDefinition(shape.props.url)
-
-		return embedInfo?.definition ? (
-			<rect
-				width={toDomPrecision(shape.props.w)}
-				height={toDomPrecision(shape.props.h)}
-				rx={embedInfo?.definition.overrideOutlineRadius ?? 8}
-				ry={embedInfo?.definition.overrideOutlineRadius ?? 8}
-			/>
-		) : (
-			<BookmarkIndicatorComponent w={BOOKMARK_WIDTH} h={BOOKMARK_JUST_URL_HEIGHT} />
-		)
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLEmbedShape): Path2D {

@@ -81,10 +81,6 @@ class GlowShapeUtil extends BaseBoxShapeUtil<GlowShape> {
 			</HTMLContainer>
 		)
 	}
-
-	indicator(shape: GlowShape) {
-		return <rect width={shape.props.w} height={shape.props.h} rx={8} />
-	}
 }
 
 const shapeUtils = [GlowShapeUtil]

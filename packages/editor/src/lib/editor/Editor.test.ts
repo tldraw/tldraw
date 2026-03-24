@@ -46,7 +46,6 @@ class CustomShape extends ShapeUtil<ICustomShape> {
 			isFilled: shape.props.isFilled,
 		})
 	}
-	indicator() {}
 	component() {}
 }
 

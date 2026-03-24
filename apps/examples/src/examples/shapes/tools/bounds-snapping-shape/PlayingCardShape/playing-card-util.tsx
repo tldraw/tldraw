@@ -98,11 +98,6 @@ export class PlayingCardUtil extends BaseBoxShapeUtil<IPlayingCard> {
 			</HTMLContainer>
 		)
 	}
-
-	// [8]
-	indicator(shape: IPlayingCard) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }
 
 /*

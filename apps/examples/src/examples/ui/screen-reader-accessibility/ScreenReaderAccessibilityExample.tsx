@@ -65,10 +65,6 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 			</HTMLContainer>
 		)
 	}
-
-	indicator(shape: CardShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }
 
 const customShapes = [CardShapeUtil]

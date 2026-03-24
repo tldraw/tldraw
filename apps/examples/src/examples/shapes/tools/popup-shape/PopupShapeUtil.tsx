@@ -125,8 +125,4 @@ export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
 			</HTMLContainer>
 		)
 	}
-
-	indicator(shape: IMyPopupShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }

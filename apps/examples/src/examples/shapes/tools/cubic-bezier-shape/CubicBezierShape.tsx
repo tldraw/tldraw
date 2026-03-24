@@ -331,11 +331,6 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		)
 	}
 
-	indicator(shape: MyBezierCurveShape) {
-		const path = this.getGeometry(shape).getSvgPathData(true)
-		return <path d={path} />
-	}
-
 	private shouldShowControlLines(shape: MyBezierCurveShape) {
 		const selectedShape = this.editor.getOnlySelectedShape() === shape
 		if (!selectedShape) return false

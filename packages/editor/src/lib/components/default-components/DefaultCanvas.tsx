@@ -1,7 +1,7 @@
 import { react } from '@tldraw/state'
 import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
-import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
+import { modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
 import { tlenv } from '../../globals/environment'
@@ -38,7 +38,7 @@ export interface TLCanvasComponentProps {
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
 
-	const { SelectionBackground, Background, SvgDefs, ShapeIndicators } = useEditorComponents()
+	const { SelectionBackground, Background, SvgDefs } = useEditorComponents()
 
 	const rCanvas = useRef<HTMLDivElement>(null)
 	const rHtmlLayer = useRef<HTMLDivElement>(null)
@@ -166,8 +166,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<BrushWrapper />
 						<ScribbleWrapper />
 						<ZoomBrushWrapper />
-						{ShapeIndicators && <ShapeIndicators />}
-						<HintedShapeIndicator />
 						<SnapIndicatorWrapper />
 						<SelectionForegroundWrapper />
 						<HandlesWrapper />
@@ -456,32 +454,6 @@ function CullingController() {
 	)
 
 	return null
-}
-
-function HintedShapeIndicator() {
-	const editor = useEditor()
-	const { ShapeIndicator } = useEditorComponents()
-
-	const ids = useValue(
-		'hinting shape ids without canvas indicator',
-		() => {
-			// Filter to only shapes that use legacy SVG indicators
-			return dedupe(editor.getHintingShapeIds()).filter((id) => {
-				const shape = editor.getShape(id)
-				if (!shape) return false
-				const util = editor.getShapeUtil(shape)
-				return util.useLegacyIndicator()
-			})
-		},
-		[editor]
-	)
-
-	if (!ids.length) return null
-	if (!ShapeIndicator) return null
-
-	return ids.map((id) => (
-		<ShapeIndicator className="tl-user-indicator__hint" shapeId={id} key={id + '_hinting'} />
-	))
 }
 
 function CursorDef() {

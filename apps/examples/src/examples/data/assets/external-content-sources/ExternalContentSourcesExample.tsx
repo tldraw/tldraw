@@ -41,10 +41,6 @@ class DangerousHtmlExample extends BaseBoxShapeUtil<IDangerousHtmlShape> {
 			</HTMLContainer>
 		)
 	}
-
-	override indicator(shape: IDangerousHtmlShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }
 
 // [3]

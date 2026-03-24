@@ -99,10 +99,6 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		)
 	}
 
-	override indicator() {
-		return <rect width={32} height={32} x={offsetX} y={offsetY} />
-	}
-
 	override onTranslateStart(shape: PinShape) {
 		const bindings = this.editor.getBindingsFromShape(shape, PIN_TYPE)
 		this.editor.deleteBindings(bindings)

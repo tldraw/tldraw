@@ -71,10 +71,6 @@ export class PulseShapeUtil extends ShapeUtil<PulseShape> {
 	component(shape: PulseShape) {
 		return <PulseShapeComponent shape={shape} />
 	}
-
-	indicator(shape: PulseShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }
 
 // [5]

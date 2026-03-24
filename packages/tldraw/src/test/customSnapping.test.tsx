@@ -35,9 +35,6 @@ describe('custom shape bounds snapping - translate', () => {
 		override component() {
 			throw new Error('Method not implemented.')
 		}
-		override indicator() {
-			throw new Error('Method not implemented.')
-		}
 		override getBoundsSnapGeometry(shape: Test1Shape) {
 			return {
 				points: shape.props.boundsSnapPoints ?? undefined,
@@ -213,9 +210,6 @@ describe('custom handle snapping', () => {
 			}
 		}
 		override component() {
-			throw new Error('Method not implemented.')
-		}
-		override indicator() {
 			throw new Error('Method not implemented.')
 		}
 		override getHandleSnapGeometry(shape: Test2Shape) {
@@ -599,9 +593,6 @@ describe('custom adjacent handle for shift snapping', () => {
 			}
 		}
 		override component() {
-			throw new Error('Method not implemented.')
-		}
-		override indicator() {
 			throw new Error('Method not implemented.')
 		}
 		override getGeometry() {

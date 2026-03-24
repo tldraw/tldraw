@@ -112,10 +112,6 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 		)
 	}
 
-	override indicator() {
-		return <rect width={EXAM_MARK_WIDTH} height={EXAM_MARK_HEIGHT} rx={4} />
-	}
-
 	getGeometry() {
 		return new Rectangle2d({
 			width: EXAM_MARK_WIDTH,

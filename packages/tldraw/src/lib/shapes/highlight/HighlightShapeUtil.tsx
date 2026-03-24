@@ -126,31 +126,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		)
 	}
 
-	indicator(shape: TLHighlightShape) {
-		const forceSolid = useHighlightForceSolid(this.editor, shape)
-		const strokeWidth = getStrokeWidth(shape)
-
-		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
-		const allPointsFromSegments = getPointsFromDrawSegments(
-			shape.props.segments,
-			shape.props.scaleX,
-			shape.props.scaleY
-		)
-
-		let strokePath
-		if (strokePoints.length < 2) {
-			strokePath = getIndicatorDot(allPointsFromSegments[0], sw)
-		} else {
-			strokePath = getSvgPathFromStrokePoints(strokePoints, false)
-		}
-
-		return <path d={strokePath} />
-	}
-
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLHighlightShape): Path2D {
 		const strokeWidth = getStrokeWidth(shape)
 		const zoomLevel = this.editor.getEfficientZoomLevel()

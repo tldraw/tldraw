@@ -74,11 +74,6 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	component(shape: ICustomShape) {
 		return <HTMLContainer style={{ backgroundColor: '#efefef' }}>{shape.props.text}</HTMLContainer>
 	}
-
-	// [g]
-	indicator(shape: ICustomShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }
 
 // [4]

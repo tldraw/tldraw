@@ -92,10 +92,6 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		)
 	}
 
-	override indicator() {
-		return <rect width={32} height={32} x={offsetX} y={offsetY} />
-	}
-
 	override onTranslateStart(shape: StickerShape) {
 		const bindings = this.editor.getBindingsFromShape(shape, STICKER_TYPE)
 		this.editor.deleteBindings(bindings)

@@ -69,10 +69,6 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 			</HTMLContainer>
 		)
 	}
-
-	indicator(shape: IMyShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
 }
 
 // [6]
