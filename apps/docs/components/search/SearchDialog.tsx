@@ -1,4 +1,3 @@
-import { SearchEntry } from '@/utils/algolia'
 import { Combobox, ComboboxItem, ComboboxProvider, VisuallyHidden } from '@ariakit/react'
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { Hit } from 'instantsearch.js'
@@ -9,6 +8,7 @@ import { Dialog as _Dialog } from 'radix-ui'
 import { Fragment, startTransition, useState } from 'react'
 import { Highlight } from 'react-instantsearch'
 import { twJoin } from 'tailwind-merge'
+import { SearchEntry } from '@/utils/algolia'
 import { ContentHighlight } from './ContentHighlight'
 
 interface AutocompleteProps {

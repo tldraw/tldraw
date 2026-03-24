@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "Convertește la marcaj",
 	"action.convert-to-embed": "Convertește la înglobare",
 	"action.copy": "Copiază",
+	"action.copy-as-json": "Copiază ca JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Copiază ca PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Copiază ca SVG",

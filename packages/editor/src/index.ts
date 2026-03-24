@@ -338,7 +338,12 @@ export {
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
 export { LICENSE_TIMEOUT } from './lib/license/LicenseProvider'
-export { defaultTldrawOptions, type TldrawOptions } from './lib/options'
+export {
+	defaultTldrawOptions,
+	type TLClipboardPasteRawInfo,
+	type TLClipboardWriteInfo,
+	type TldrawOptions,
+} from './lib/options'
 export {
 	Box,
 	ROTATE_CORNER_TO_SELECTION_CORNER,

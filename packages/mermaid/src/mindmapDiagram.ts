@@ -6,8 +6,8 @@ import type {
 	MermaidBlueprintGeoNode,
 } from './blueprint'
 import { parseRgbToTldrawColor } from './colors'
-import type { ParsedNode } from './svgParsing'
 import { parseNodesFromSvg, scaleLayout } from './svgParsing'
+import type { ParsedNode } from './svgParsing'
 import { LAYOUT_SCALE } from './utils'
 
 const MINDMAP_NODE_TYPE = {

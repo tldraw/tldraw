@@ -67,6 +67,14 @@ export type RecursivePartial<T> = {
 export type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
 
 /**
+ * A value that may be returned synchronously or as a `Promise` / `PromiseLike`.
+ * Use with `await` or `Promise.resolve(...)` to normalize to a single `Promise`.
+ *
+ * @public
+ */
+export type Awaitable<T> = T | PromiseLike<T>
+
+/**
  * Makes specified keys in a type required while keeping all other properties as-is.
  * This is useful when you need to ensure certain optional properties are provided
  * in specific contexts without affecting the entire type structure.

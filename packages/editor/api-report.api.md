@@ -6,6 +6,7 @@
 
 import { Atom } from '@tldraw/state';
 import { AtomSet } from '@tldraw/store';
+import { Awaitable } from '@tldraw/utils';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
@@ -746,6 +747,9 @@ export const defaultTldrawOptions: {
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
     readonly nonce: undefined;
+    readonly onBeforeCopyToClipboard: undefined;
+    readonly onBeforePasteFromClipboard: undefined;
+    readonly onClipboardPasteRaw: undefined;
     readonly quickZoomPreservesScreenBounds: true;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
@@ -3336,6 +3340,28 @@ export type TLCLickEventName = 'double_click' | 'quadruple_click' | 'triple_clic
 // @public (undocumented)
 export type TLClickState = 'idle' | 'overflow' | 'pendingDouble' | 'pendingOverflow' | 'pendingQuadruple' | 'pendingTriple';
 
+// @public
+export type TLClipboardPasteRawInfo = {
+    readonly clipboardData: DataTransfer | null;
+    readonly editor: Editor;
+    readonly event: ClipboardEvent;
+    readonly point: undefined | VecLike;
+    readonly source: 'native-event';
+} | {
+    readonly clipboardItems: readonly ClipboardItem[];
+    readonly editor: Editor;
+    readonly point: undefined | VecLike;
+    readonly source: 'clipboard-read';
+};
+
+// @public
+export interface TLClipboardWriteInfo {
+    // (undocumented)
+    readonly operation: 'copy' | 'cut';
+    // (undocumented)
+    readonly source: 'menu' | 'native';
+}
+
 // @public (undocumented)
 export interface TLCollaboratorHintProps {
     // (undocumented)
@@ -3612,6 +3638,17 @@ export interface TldrawOptions {
     // (undocumented)
     readonly multiClickDurationMs: number;
     readonly nonce: string | undefined;
+    onBeforeCopyToClipboard?(info: {
+        content: TLContent;
+        editor: Editor;
+    } & TLClipboardWriteInfo): Awaitable<false | TLContent | void>;
+    onBeforePasteFromClipboard?(info: {
+        content: TLExternalContent<unknown>;
+        editor: Editor;
+        point?: VecLike;
+        source: 'clipboard-read' | 'native-event';
+    }): Awaitable<false | TLExternalContent<unknown> | void>;
+    onClipboardPasteRaw?(info: TLClipboardPasteRawInfo): false | void;
     readonly quickZoomPreservesScreenBounds: boolean;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;

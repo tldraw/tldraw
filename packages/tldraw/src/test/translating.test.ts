@@ -14,8 +14,8 @@ import {
 import { vi } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TranslatingInfo } from '../lib/tools/SelectTool/childStates/Translating'
-import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
+import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
 

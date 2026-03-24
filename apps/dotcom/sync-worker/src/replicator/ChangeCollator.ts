@@ -11,7 +11,6 @@ import {
 import { exhaustiveSwitchError } from '@tldraw/utils'
 import { DurableObject } from 'cloudflare:workers'
 import { ZReplicationChange } from '../UserDataSyncer'
-import { Subscription } from './Subscription'
 import {
 	ChangeV2,
 	ReplicatedTable,
@@ -19,6 +18,7 @@ import {
 	ReplicatorEffect,
 	Topic,
 } from './replicatorTypes'
+import { Subscription } from './Subscription'
 
 /**
  * Interface for collecting and organizing database changes for delivery to users.

@@ -1,5 +1,5 @@
-import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 export class DeleteFileDialog {
 	public readonly dialog: Locator

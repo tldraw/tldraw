@@ -1,10 +1,10 @@
 import { Signal, computed } from '@tldraw/state'
-import { TLStore } from './TLStore'
 import { CameraRecordType } from './records/TLCamera'
 import { TLINSTANCE_ID } from './records/TLInstance'
 import { InstancePageStateRecordType } from './records/TLPageState'
 import { TLPOINTER_ID } from './records/TLPointer'
 import { InstancePresenceRecordType, TLInstancePresence } from './records/TLPresence'
+import { TLStore } from './TLStore'
 
 /**
  * The information about a user which is used for multiplayer features.

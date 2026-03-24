@@ -1,8 +1,8 @@
 import assert from 'assert'
 import { BaseRecord, RecordId } from '../BaseRecord'
+import { MigrationSequence } from '../migrate'
 import { createRecordType } from '../RecordType'
 import { SerializedSchemaV2, StoreSchema } from '../StoreSchema'
-import { MigrationSequence } from '../migrate'
 
 const mockSequence = ({
 	id,

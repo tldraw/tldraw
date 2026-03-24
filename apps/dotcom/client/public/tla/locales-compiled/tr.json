@@ -213,6 +213,12 @@
       "value": "Hepsini kabul et"
     }
   ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Desteklenmeyen Mermaid diyagramı"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -285,10 +291,22 @@
       "value": "Grubu sil…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Daha fazla seçenek"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Bu grubu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Desteklenmeyen diyagram, bunun yerine SVG oluşturulacak."
     }
   ],
   "50db1b7e1e": [
@@ -401,6 +419,12 @@
       "value": "Bu bağlantıyı iptal edin ve yeni bir bağlantı oluşturun."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Bağlantı kurulamadı."
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +465,12 @@
     {
       "type": 0,
       "value": "Sen"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Yenile"
     }
   ],
   "6609dd239e": [
@@ -789,6 +819,12 @@
       "value": "Dosyayı sil"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Kimlik doğrulama servisimize bağlanmada sorun yaşıyoruz. Bu genellikle geçici bir durumdur. Lütfen sayfayı yenilemeyi deneyin."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1059,6 +1095,12 @@
     {
       "type": 0,
       "value": "Oturumu kapat"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Kapat"
     }
   ],
   "c9cc8cce24": [
