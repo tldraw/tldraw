@@ -191,6 +191,7 @@ export abstract class Geometry2d {
 			const dist = Vec.Dist(curr, next)
 			const newDistanceTraveled = distanceTraveled + dist
 			if (newDistanceTraveled >= distanceToTravel) {
+				if (dist === 0) return curr
 				const p = Vec.Lrp(
 					curr,
 					next,
@@ -241,7 +242,7 @@ export abstract class Geometry2d {
 		const distanceAlongRoute =
 			closestSegment.distanceToStart + Vec.Dist(closestSegment.start, closestSegment.nearestPoint)
 
-		return distanceAlongRoute / length
+		return length === 0 ? 0 : distanceAlongRoute / length
 	}
 
 	isPointInBounds(point: VecLike, margin = 0) {
