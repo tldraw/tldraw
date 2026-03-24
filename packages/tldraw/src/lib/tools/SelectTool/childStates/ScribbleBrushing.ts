@@ -133,9 +133,9 @@ export class ScribbleBrushing extends StateNode {
 
 			geometry = editor.getShapeGeometry(shape)
 
-			// If the scribble started inside of the frame, don't select it
+			// If the scribble started inside of a frame-like shape, don't select it
 			if (
-				editor.isShapeOfType(shape, 'frame') &&
+				editor.isShapeFrameLike(shape) &&
 				geometry.bounds.containsPoint(editor.getPointInShapeSpace(shape, originPagePoint))
 			) {
 				continue

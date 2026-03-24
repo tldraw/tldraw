@@ -1393,6 +1393,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
     }): boolean;
+    isShapeFrameLike(shape: TLShape | TLShapeId): boolean;
     // (undocumented)
     isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
     isShapeInPage(shape: TLShape | TLShapeId, pageId?: TLPageId): boolean;
@@ -2850,6 +2851,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked(shape: Shape): boolean;
     isExportBoundsContainer(shape: Shape): boolean;
+    isFrameLike(_shape: Shape): boolean;
     static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     onBeforeCreate?(next: Shape): Shape | void;
     onBeforeUpdate?(prev: Shape, next: Shape): Shape | void;
