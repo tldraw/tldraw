@@ -1,12 +1,6 @@
-import {
-	createShapeId,
-	TLGeoShapeProps,
-	TLRichText,
-	TLTextShapeProps,
-	Tldraw,
-	toRichText,
-} from 'tldraw'
+import { createShapeId, TLContent, TLRichText, TLTextShapeProps, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
+import companionCube from './companion-cube.json'
 import { PortalShapeUtil } from './PortalShapeUtil'
 import './portal-shapes.css'
 
@@ -55,56 +49,21 @@ export default function PortalShapesExample() {
 					])
 
 					// [3]
-					editor.createShapes([
-						{
-							type: 'text',
-							x: 0,
-							y: -100,
-							props: {
-								size: 'l',
-								richText: tagline,
-							} satisfies Partial<TLTextShapeProps>,
-						},
-						{
-							type: 'geo',
-							x: 160,
-							y: 50,
-							props: {
-								geo: 'star',
-								w: 80,
-								h: 80,
-								fill: 'solid',
-								color: 'yellow',
-								richText: toRichText(''),
-							} satisfies Partial<TLGeoShapeProps>,
-						},
-						{
-							type: 'geo',
-							x: 360,
-							y: 50,
-							props: {
-								geo: 'heart',
-								w: 80,
-								h: 80,
-								fill: 'solid',
-								color: 'red',
-								richText: toRichText(''),
-							} satisfies Partial<TLGeoShapeProps>,
-						},
-						{
-							type: 'geo',
-							x: 560,
-							y: 50,
-							props: {
-								geo: 'diamond',
-								w: 80,
-								h: 80,
-								fill: 'solid',
-								color: 'green',
-								richText: toRichText(''),
-							} satisfies Partial<TLGeoShapeProps>,
-						},
-					])
+					editor.createShape({
+						type: 'text',
+						x: 100,
+						y: 500,
+						props: {
+							size: 'l',
+							richText: tagline,
+						} satisfies Partial<TLTextShapeProps>,
+					})
+
+					// [4]
+					editor.putContentOntoCurrentPage(companionCube as unknown as TLContent, {
+						point: { x: 300, y: 20 },
+					})
+					editor.selectNone()
 
 					editor.zoomToFit({ animation: { duration: 0 } })
 					editor.zoomOut(undefined, { animation: { duration: 0 } })
@@ -124,6 +83,9 @@ Create a pair of linked portals — one blue, one orange. They find each
 other by color, so only one of each should exist on a page.
 
 [3]
-Drop a few shapes on the canvas for the user to drag into the portals,
-plus a text shape with the Portal tagline.
+Add the Portal tagline as a text shape.
+
+[4]
+Load the companion cube from a snapshot and place it on the canvas
+for the user to drag into the portals.
 */

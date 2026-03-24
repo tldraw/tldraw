@@ -13,6 +13,7 @@ import {
 	TLShape,
 	resizeBox,
 	toDomPrecision,
+	toRichText,
 } from 'tldraw'
 
 const PORTAL_SHAPE_TYPE = 'portal'
@@ -41,6 +42,8 @@ const COLORS = {
 		glow: 'rgba(249, 115, 22, 0.4)',
 	},
 } as const
+
+let teleportCount = 0
 
 export class PortalShapeUtil extends BaseBoxShapeUtil<PortalShape> {
 	static override type = PORTAL_SHAPE_TYPE
@@ -152,6 +155,16 @@ export class PortalShapeUtil extends BaseBoxShapeUtil<PortalShape> {
 			const pos = localPositions.get(s.id)!
 			const current = editor.getShape(s.id)!
 			editor.updateShape({ ...current, x: pos.x, y: pos.y })
+		}
+
+		teleportCount++
+		if (teleportCount === 3) {
+			editor.createShape({
+				type: 'text',
+				x: linked.x + linked.props.w + 40,
+				y: linked.y + linked.props.h / 2 - 20,
+				props: { size: 'xl', richText: toRichText('🍰') },
+			})
 		}
 	}
 
