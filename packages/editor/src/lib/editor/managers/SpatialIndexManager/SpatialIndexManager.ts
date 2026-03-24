@@ -74,7 +74,7 @@ export class SpatialIndexManager {
 		// Collect all shape elements for bulk loading
 		for (const shape of shapes) {
 			const bounds = this.editor.getShapePageBounds(shape.id)
-			if (bounds) {
+			if (bounds && isFinite(bounds.minX) && isFinite(bounds.minY)) {
 				elements.push({
 					minX: bounds.minX,
 					minY: bounds.minY,
@@ -101,7 +101,7 @@ export class SpatialIndexManager {
 			for (const shape of objectMapValues(changes.added) as TLShape[]) {
 				if (isShape(shape) && this.editor.getAncestorPageId(shape) === this.lastPageId) {
 					const bounds = this.editor.getShapePageBounds(shape.id)
-					if (bounds) {
+					if (bounds && isFinite(bounds.minX) && isFinite(bounds.minY)) {
 						this.rbush.upsert(shape.id, bounds)
 					}
 					processedShapeIds.add(shape.id)
@@ -125,7 +125,7 @@ export class SpatialIndexManager {
 
 				if (isOnPage) {
 					const bounds = this.editor.getShapePageBounds(to.id)
-					if (bounds) {
+					if (bounds && isFinite(bounds.minX) && isFinite(bounds.minY)) {
 						this.rbush.upsert(to.id, bounds)
 					}
 				} else {
@@ -145,7 +145,7 @@ export class SpatialIndexManager {
 			const indexedBounds = this.rbush.getBounds(shapeId)
 
 			if (!this.areBoundsEqual(currentBounds, indexedBounds)) {
-				if (currentBounds) {
+				if (currentBounds && isFinite(currentBounds.minX) && isFinite(currentBounds.minY)) {
 					this.rbush.upsert(shapeId, currentBounds)
 				} else {
 					this.rbush.remove(shapeId)
