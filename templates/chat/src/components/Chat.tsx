@@ -1,11 +1,11 @@
 'use client'
 
-import { useChatMessageStorage } from '@/hooks/useChatMessageStorage'
-import { uploadMessageContents } from '@/utils/uploadMessageContents'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, FileUIPart, TextUIPart, UIMessage } from 'ai'
 import { useCallback, useEffect } from 'react'
-import { TldrawUiTooltip, TLEditorSnapshot } from 'tldraw'
+import { TLEditorSnapshot } from 'tldraw'
+import { useChatMessageStorage } from '@/hooks/useChatMessageStorage'
+import { uploadMessageContents } from '@/utils/uploadMessageContents'
 import { useChatInputState } from '../hooks/useChatInputState'
 import { useScrollToBottom } from '../hooks/useScrollToBottom'
 import { ChatInput } from './ChatInput'
@@ -189,11 +189,9 @@ function ChatInner({
 			onDrop={handleDrop}
 		>
 			<div className="chat-header">
-				<TldrawUiTooltip content="Clear chat" side="right">
-					<button className="icon-button" onClick={handleClearChat}>
-						<ClearChatIcon />
-					</button>
-				</TldrawUiTooltip>
+				<button className="icon-button" onClick={handleClearChat} title="Clear chat">
+					<ClearChatIcon />
+				</button>
 			</div>
 			<MessageList messages={chat.messages} onImageClick={handleImageClick} />
 			<div className="chat-footer">

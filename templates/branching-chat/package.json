@@ -25,11 +25,11 @@
 		"build": "tsc && vite build",
 		"dev": "vite",
 		"preview": "vite preview",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "cd ../.. && yarn run -T oxlint templates/branching-chat"
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.14",
-		"@cloudflare/vite-plugin": "^1.13.2",
+		"@cloudflare/vite-plugin": "^1.29.1",
 		"ai": "^5.0.63",
 		"classnames": "^2.5.1",
 		"itty-router": "^5.0.18",
@@ -37,15 +37,15 @@
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",
-		"wrangler": "^4.37.1",
+		"wrangler": "^4.75.0",
 		"zod": "^4.1.8"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250913.0",
+		"@cloudflare/workers-types": "^4.20260302.0",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
-		"@vitejs/plugin-react-swc": "^3.10.2",
+		"@vitejs/plugin-react": "^6.0.1",
 		"typescript": "^5.8.3",
-		"vite": "^7.0.1"
+		"vite": "^8.0.1"
 	}
 }

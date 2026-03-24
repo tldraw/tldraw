@@ -13,7 +13,7 @@
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
+		"lint": "cd ../../.. && yarn run -T oxlint apps/dotcom/image-resize-worker"
 	},
 	"dependencies": {
 		"@tldraw/dotcom-shared": "workspace:*",
@@ -24,8 +24,8 @@
 		"react-dom": "^19.2.1"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250913.0",
+		"@cloudflare/workers-types": "^4.20260302.0",
 		"lazyrepo": "0.0.0-alpha.27",
-		"wrangler": "^4.37.1"
+		"wrangler": "^4.75.0"
 	}
 }

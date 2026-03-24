@@ -12,7 +12,7 @@ interface TldrawLibraryVersionInfo {
 
 const TLDRAW_LIBRARY_VERSION_KEY = '__TLDRAW_LIBRARY_VERSIONS__' as const
 
-// eslint-disable-next-line @typescript-eslint/prefer-namespace-keyword, @typescript-eslint/no-namespace
+// eslint-disable-next-line @typescript-eslint/prefer-namespace-keyword, @typescript-eslint/no-namespace, no-shadow-restricted-names
 declare module globalThis {
 	export const __TLDRAW_LIBRARY_VERSIONS__: TldrawLibraryVersionInfo
 }
@@ -93,6 +93,17 @@ export function registerTldrawLibraryVersion(name?: string, version?: string, mo
 	}
 
 	const info = getLibraryVersions()
+
+	// In Next.js dev mode, Fast Refresh re-executes module-level code which causes
+	// the same library to register multiple times, producing a false positive warning.
+	// We skip exact duplicates only in Next.js dev to avoid hiding genuine issues.
+	if (isNextjsDev()) {
+		const isDuplicate = info.versions.some(
+			(v) => v.name === name && v.version === version && v.modules === modules
+		)
+		if (isDuplicate) return
+	}
+
 	info.versions.push({ name, version, modules })
 
 	if (!info.scheduledNotice) {
@@ -217,6 +228,14 @@ const formats = {
 } as const
 function format(value: string, formatters: (keyof typeof formats)[] = []) {
 	return `\x1B[${formatters.map((f) => formats[f]).join(';')}m${value}\x1B[m`
+}
+
+function isNextjsDev(): boolean {
+	try {
+		return process.env.NODE_ENV === 'development' && '__NEXT_DATA__' in globalThis
+	} catch {
+		return false
+	}
 }
 
 function entry<K, V>(map: Map<K, V>, key: K, defaultValue: V): V {

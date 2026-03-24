@@ -16,9 +16,9 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { FontSize } from './FontSizeExtension'
-import './RichTextFontExtension.css'
 import { extensionFontFamilies } from './fonts'
+import './RichTextFontExtension.css'
+import { FontSize } from './FontSizeExtension'
 
 const fontOptions = [
 	{ label: 'Default', value: 'DEFAULT' },

@@ -1,16 +1,14 @@
-import { parse as parseArgs } from '@bomb.sh/args'
-import { outro, select, spinner, text } from '@clack/prompts'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import path, { relative, resolve } from 'node:path'
+import { relative, resolve } from 'node:path'
 import process from 'node:process'
 import { Readable } from 'node:stream'
+import { parse as parseArgs } from '@bomb.sh/args'
+import { outro, spinner, text } from '@clack/prompts'
 import picocolors from 'picocolors'
 import * as tar from 'tar'
 import { groupSelect, GroupSelectOption } from './group-select'
 import { Template, TEMPLATES } from './templates'
 import {
-	cancel,
-	emptyDir,
 	formatTargetDir,
 	getInstallCommand,
 	getPackageManager,
@@ -30,9 +28,8 @@ async function main() {
 		alias: {
 			h: 'help',
 			t: 'template',
-			o: 'overwrite',
 		},
-		boolean: ['help', 'overwrite', 'no-telemetry'],
+		boolean: ['help', 'no-telemetry'],
 		string: ['template'],
 	})
 
@@ -42,12 +39,14 @@ async function main() {
 	}
 
 	const maybeTargetDir = args._[0] ? formatTargetDir(resolve(String(args._[0]))) : undefined
-	const targetDir = maybeTargetDir ?? process.cwd()
 
 	const template = await templatePicker(args.template, args['no-telemetry'])
 	const name = await namePicker(maybeTargetDir)
 
-	await ensureDirectoryEmpty(targetDir, args.overwrite)
+	const requestedDir = maybeTargetDir ?? resolve(process.cwd(), name)
+	const targetDir = findAvailableDir(requestedDir)
+	mkdirSync(targetDir, { recursive: true })
+
 	await downloadTemplate(template, targetDir)
 	await renameTemplate(name, targetDir)
 
@@ -141,42 +140,17 @@ async function namePicker(argOption?: string) {
 	return pathToName(name)
 }
 
-async function ensureDirectoryEmpty(targetDir: string, overwriteArg: boolean) {
+function findAvailableDir(targetDir: string): string {
 	if (isDirEmpty(targetDir)) {
-		mkdirSync(targetDir, { recursive: true })
-		return
+		return targetDir
 	}
 
-	const overwrite = overwriteArg
-		? 'yes'
-		: await select({
-				message: picocolors.bold(
-					(targetDir === process.cwd()
-						? 'Current directory'
-						: `Target directory "${path.relative(process.cwd(), targetDir)}"`) + ` is not empty.`
-				),
-				options: [
-					{
-						label: 'Cancel',
-						value: 'no',
-					},
-					{
-						label: 'Remove existing files and continue',
-						value: 'yes',
-					},
-					{
-						label: 'Ignore existing files and continue',
-						value: 'ignore',
-					},
-				],
-			})
-
-	if (overwrite === 'no') {
-		cancel()
-	}
-
-	if (overwrite === 'yes') {
-		emptyDir(targetDir)
+	// Keep the user's chosen package name, but pick a suffixed directory if the target is unavailable.
+	for (let i = 1; ; i++) {
+		const candidate = `${targetDir}-${i}`
+		if (isDirEmpty(candidate)) {
+			return candidate
+		}
 	}
 }
 
@@ -232,7 +206,6 @@ function getHelp() {
 	const options = [
 		{ flags: '-h, --help', description: 'Display this help message.' },
 		{ flags: '-t, --template NAME', description: 'Use a specific template.' },
-		{ flags: '-o, --overwrite', description: 'Overwrite the target directory if it exists.' },
 		{ flags: '--no-telemetry', description: 'Disable anonymous usage tracking.' },
 	]
 

@@ -1,7 +1,7 @@
 import { LANGUAGES, fetch } from '@tldraw/editor'
 import { TLUiAssetUrls } from '../../assetUrls'
-import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
+import { TLUiTranslationKey } from './TLUiTranslationKey'
 
 // The default language (english) must have a value for every message.
 // Other languages may have missing messages. If the application finds
@@ -10,6 +10,7 @@ import { DEFAULT_TRANSLATION } from './defaultTranslation'
 
 /* ----------------- (do not change) ---------------- */
 
+/** @public */
 export const RTL_LANGUAGES = new Set(['ar', 'fa', 'he', 'ur', 'ku'])
 
 /** @public */

@@ -20,14 +20,13 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-
-import { ShapeFill } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
 import { interpolateSegments } from '../shared/interpolate-props'
+import { ShapeFill } from '../shared/ShapeFill'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import {
 	getDrawShapeStrokeDashArray,
@@ -228,12 +227,14 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	override onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>) {
-		const { scaleX, scaleY } = info
+		const newScaleX = info.scaleX * shape.props.scaleX
+		const newScaleY = info.scaleY * shape.props.scaleY
+		if (newScaleX === 0 || newScaleY === 0) return
 
 		return {
 			props: {
-				scaleX: scaleX * shape.props.scaleX,
-				scaleY: scaleY * shape.props.scaleY,
+				scaleX: newScaleX,
+				scaleY: newScaleY,
 			},
 		}
 	}

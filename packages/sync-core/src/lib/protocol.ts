@@ -69,8 +69,10 @@ export const TLIncompatibilityReason = {
  * @internal
  * @deprecated replaced by websocket .close status/reason
  */
+/* eslint-disable @typescript-eslint/no-deprecated */
 export type TLIncompatibilityReason =
 	(typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason]
+/* eslint-enable @typescript-eslint/no-deprecated */
 
 /**
  * Union type representing all possible message types that can be sent from server to client.

@@ -33,7 +33,6 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { allDefaultFontFaces } from './shapes/shared/defaultFonts'
-import { TldrawUi, TldrawUiInFrontOfTheCanvas, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiAssetUrlOverrides, useDefaultUiAssetUrlsWithOverrides } from './ui/assetUrls'
 import { LoadingScreen } from './ui/components/LoadingScreen'
 import { Spinner } from './ui/components/Spinner'
@@ -47,6 +46,7 @@ import {
 	useTranslation,
 } from './ui/hooks/useTranslation/useTranslation'
 import { useMergedTranslationOverrides } from './ui/overrides'
+import { TldrawUi, TldrawUiInFrontOfTheCanvas, TldrawUiProps } from './ui/TldrawUi'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from './utils/text/richText'
 
@@ -74,9 +74,7 @@ export interface TLComponents extends TLEditorComponents, TLUiComponents {}
 
 /** @public */
 export interface TldrawBaseProps
-	extends TldrawUiProps,
-		TldrawEditorBaseProps,
-		TLExternalContentProps {
+	extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
 	/** Urls for custom assets.
 	 *
 	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
@@ -90,6 +88,8 @@ export interface TldrawBaseProps
 	/** Custom definitions for tldraw's embeds.
 	 *
 	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
+	 *
+	 * @deprecated Use `EmbedShapeUtil.configure({ embedDefinitions: embeds })` instead.
 	 */
 	embeds?: TLEmbedDefinition[]
 	/**
@@ -118,6 +118,8 @@ export function Tldraw(props: TldrawProps) {
 		shapeUtils = [],
 		bindingUtils = [],
 		tools = [],
+		// needs to be here for backwards compatibility
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		embeds,
 		options,
 		// needs to be here for backwards compatibility with TldrawEditor
@@ -212,6 +214,7 @@ export function Tldraw(props: TldrawProps) {
 
 	const embedShapeUtil = shapeUtilsWithDefaults.find((util) => util.type === 'embed')
 	if (embedShapeUtil && embeds) {
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		EmbedShapeUtil.setEmbedDefinitions(embeds)
 	}
 

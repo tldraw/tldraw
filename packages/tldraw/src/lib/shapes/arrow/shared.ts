@@ -1,7 +1,10 @@
 import {
 	Editor,
 	Geometry2d,
+	intersectLineSegmentPolygon,
 	Mat,
+	MatModel,
+	pointInPolygon,
 	TLArrowBinding,
 	TLArrowBindingProps,
 	TLArrowShape,
@@ -12,6 +15,14 @@ import {
 import { createComputedCache } from '@tldraw/store'
 
 const MIN_ARROW_BEND = 8
+// Keep anchors off exact edges/corners to avoid degenerate arrow intersections.
+const NORMALIZED_ANCHOR_EPSILON = 1e-3
+
+function clampNormalizedAnchor(anchor: { x: number; y: number }) {
+	const clamp = (v: number) =>
+		Math.max(NORMALIZED_ANCHOR_EPSILON, Math.min(1 - NORMALIZED_ANCHOR_EPSILON, v))
+	return { x: clamp(anchor.x), y: clamp(anchor.y) }
+}
 
 export function getIsArrowStraight(shape: TLArrowShape) {
 	if (shape.props.kind !== 'arc') return false
@@ -75,16 +86,13 @@ export function getArrowTerminalInArrowSpace(
 		// the bound shape and transform it to page space, then transform
 		// it to arrow space
 		const { point, size } = editor.getShapeGeometry(boundShape).bounds
-		const shapePoint = Vec.Add(
-			point,
-			Vec.MulV(
-				// if the parent is the bound shape, then it's ALWAYS precise
-				binding.props.isPrecise || forceImprecise
-					? binding.props.normalizedAnchor
-					: { x: 0.5, y: 0.5 },
-				size
-			)
-		)
+		// If the parent is the bound shape, then it's always treated as precise.
+		const shouldUsePreciseAnchor = binding.props.isPrecise || forceImprecise
+		const normalizedAnchor = shouldUsePreciseAnchor
+			? clampNormalizedAnchor(binding.props.normalizedAnchor)
+			: { x: 0.5, y: 0.5 }
+
+		const shapePoint = Vec.Add(point, Vec.MulV(normalizedAnchor, size))
 		const pagePoint = Mat.applyToPoint(editor.getShapePageTransform(boundShape)!, shapePoint)
 		const arrowPoint = Mat.applyToPoint(Mat.Inverse(arrowPageTransform), pagePoint)
 		return arrowPoint
@@ -249,4 +257,54 @@ export function getBoundShapeRelationships(
 		if (endBounds.contains(startBounds)) return 'end-contains-start'
 	}
 	return 'safe'
+}
+
+/**
+ * If the arrow terminal point falls outside the bound shape's mask (e.g. when a shape
+ * extends beyond a frame boundary and is clipped), clamp the terminal to the mask boundary.
+ * Uses the binding anchor point (inside the shape/frame) as the ray origin, since the
+ * arrow endpoint may be entirely outside the mask.
+ *
+ * @internal
+ */
+export function clampArrowTerminalToMask(
+	editor: Editor,
+	point: Vec,
+	terminalHandle: Vec,
+	arrowPageTransform: MatModel,
+	targetShapeInfo?: BoundShapeInfo
+) {
+	if (!targetShapeInfo) return
+
+	const mask = editor.getShapeMask(targetShapeInfo.shape.id)
+	if (!mask) return
+
+	const pagePoint = Mat.applyToPoint(arrowPageTransform, point)
+
+	if (pointInPolygon(pagePoint, mask)) return
+
+	// The point is outside the mask (clipped). Cast a ray from the binding
+	// anchor (which is inside the shape, and typically inside the frame) through
+	// the intersection point on the shape boundary to find where it crosses the mask.
+	// We extend the line slightly past the anchor in case the anchor sits exactly
+	// on the mask boundary.
+	const pageAnchor = Mat.applyToPoint(arrowPageTransform, terminalHandle)
+	const direction = Vec.Sub(pageAnchor, pagePoint).uni()
+	const extendedAnchor = Vec.Add(pageAnchor, Vec.Mul(direction, 1))
+	const intersections = intersectLineSegmentPolygon(extendedAnchor, pagePoint, mask)
+	if (!intersections || intersections.length === 0) return
+
+	// Pick the intersection closest to the original point (nearest frame edge to the shape)
+	let closest = intersections[0]
+	let closestDist = Vec.Dist2(closest, pagePoint)
+	for (let i = 1; i < intersections.length; i++) {
+		const dist = Vec.Dist2(intersections[i], pagePoint)
+		if (dist < closestDist) {
+			closest = intersections[i]
+			closestDist = dist
+		}
+	}
+
+	const arrowPoint = Mat.applyToPoint(Mat.Inverse(arrowPageTransform), closest)
+	point.setTo(arrowPoint)
 }

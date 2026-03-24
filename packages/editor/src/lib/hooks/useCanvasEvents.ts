@@ -2,13 +2,18 @@ import { useValue } from '@tldraw/state-react'
 import React, { useEffect, useMemo } from 'react'
 import { RIGHT_MOUSE_BUTTON } from '../constants'
 import { tlenv } from '../globals/environment'
-import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
+import {
+	elementShouldCaptureKeys,
+	preventDefault,
+	releasePointerCapture,
+	setPointerCapture,
+} from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
 	const editor = useEditor()
-	const ownerDocument = editor.getContainer().ownerDocument
+	const ownerDocument = editor.getContainerDocument()
 	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
 	const events = useMemo(
@@ -75,18 +80,16 @@ export function useCanvasEvents() {
 			function onTouchEnd(e: React.TouchEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
 				editor.markEventAsHandled(e)
-				// check that e.target is an HTMLElement
-				if (!(e.target instanceof HTMLElement)) return
+				if (!(e.target instanceof editor.getContainerWindow().HTMLElement)) return
 
-				const editingShapeId = editor.getEditingShape()?.id
+				const editingShapeId = editor.getEditingShapeId()
 				if (
 					// if the target is not inside the editing shape
 					!(editingShapeId && e.target.closest(`[data-shape-id="${editingShapeId}"]`)) &&
 					// and the target is not an clickable element
 					e.target.tagName !== 'A' &&
-					// or a TextArea.tsx ?
-					e.target.tagName !== 'TEXTAREA' &&
-					!e.target.isContentEditable
+					// and the target is not an editable element
+					!elementShouldCaptureKeys(e.target, false)
 				) {
 					preventDefault(e)
 				}

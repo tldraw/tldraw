@@ -184,14 +184,10 @@ const useA11yDebug = (msg: string | undefined) => {
 					'font-weight: normal'
 				)
 			}
+			const doc = container.ownerDocument
 			const handleKeyUp = (e: KeyboardEvent) => {
-				const el = document.activeElement
-				if (
-					e.key === 'Tab' &&
-					el &&
-					el !== document.body &&
-					!el.classList.contains('tl-container')
-				) {
+				const el = doc.activeElement
+				if (e.key === 'Tab' && el && el !== doc.body && !el.classList.contains('tl-container')) {
 					const label = el.getAttribute('aria-label') || el.getAttribute('title') || el.textContent
 					if (label) {
 						log(label)
@@ -203,8 +199,8 @@ const useA11yDebug = (msg: string | undefined) => {
 				log(msg)
 			}
 
-			document.addEventListener('keyup', handleKeyUp)
-			return () => document.removeEventListener('keyup', handleKeyUp)
+			doc.addEventListener('keyup', handleKeyUp)
+			return () => doc.removeEventListener('keyup', handleKeyUp)
 		}
 		return undefined
 	}, [container, msg])

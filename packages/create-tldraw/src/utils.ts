@@ -1,6 +1,6 @@
-import { isCancel, outro } from '@clack/prompts'
-import { existsSync, readdirSync, rmSync } from 'node:fs'
+import { existsSync, lstatSync, readdirSync } from 'node:fs'
 import { basename, resolve } from 'node:path'
+import { isCancel, outro } from '@clack/prompts'
 
 export function nicelog(...args: unknown[]) {
 	// eslint-disable-next-line no-console
@@ -12,20 +12,13 @@ export function isDirEmpty(path: string) {
 		return true
 	}
 
+	// Existing files block the target path, so only directories should be inspected with readdirSync.
+	if (!lstatSync(path).isDirectory()) {
+		return false
+	}
+
 	const files = readdirSync(path)
 	return files.length === 0 || (files.length === 1 && files[0] === '.git')
-}
-
-export function emptyDir(dir: string) {
-	if (!existsSync(dir)) {
-		return
-	}
-	for (const file of readdirSync(dir)) {
-		if (file === '.git') {
-			continue
-		}
-		rmSync(resolve(dir, file), { recursive: true, force: true })
-	}
 }
 
 export function pathToName(path: string) {

@@ -13,16 +13,16 @@
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
+		"lint": "cd ../../.. && yarn run -T oxlint apps/dotcom/tldrawusercontent-worker"
 	},
 	"dependencies": {
 		"@tldraw/worker-shared": "workspace:*",
 		"itty-router": "^5.0.18"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250913.0",
+		"@cloudflare/workers-types": "^4.20260302.0",
 		"@types/ws": "^8.18.1",
 		"lazyrepo": "0.0.0-alpha.27",
-		"wrangler": "^4.37.1"
+		"wrangler": "^4.75.0"
 	}
 }

@@ -213,6 +213,12 @@
       "value": "Accepter tout"
     }
   ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Diagramme Mermaid non pris en charge"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -246,7 +252,7 @@
   "47f493a590": [
     {
       "type": 0,
-      "value": "Fichier d'épingles"
+      "value": "Épingler le fichier"
     }
   ],
   "49049467ff": [
@@ -285,10 +291,22 @@
       "value": "Supprimer le groupe…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Plus d'options"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Êtes-vous sûr de vouloir supprimer ce groupe ? Cette action est irréversible."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Diagramme non pris en charge, un SVG sera généré à la place."
     }
   ],
   "50db1b7e1e": [
@@ -401,6 +419,12 @@
       "value": "Révoquez ce lien et créez-en un nouveau."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Impossible de se connecter"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +465,12 @@
     {
       "type": 0,
       "value": "toi"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Rafraîchir"
     }
   ],
   "6609dd239e": [
@@ -793,6 +823,12 @@
       "value": "Supprimer le fichier"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Nous rencontrons des difficultés pour nous connecter à notre service d'authentification. Ce problème est généralement temporaire. Veuillez actualiser la page."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1067,6 +1103,12 @@
     {
       "type": 0,
       "value": "Se déconnecter"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Fermer"
     }
   ],
   "c9cc8cce24": [

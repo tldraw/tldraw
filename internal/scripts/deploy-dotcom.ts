@@ -1,5 +1,3 @@
-import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3'
-import { Upload } from '@aws-sdk/lib-storage'
 import assert from 'assert'
 import { execSync } from 'child_process'
 import * as fs from 'fs'
@@ -7,6 +5,8 @@ import { existsSync, readdirSync, writeFileSync } from 'fs'
 import path from 'path'
 import { performance } from 'perf_hooks'
 import { PassThrough } from 'stream'
+import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3'
+import { Upload } from '@aws-sdk/lib-storage'
 import * as tar from 'tar'
 import {
 	createGithubDeployment,
@@ -132,6 +132,16 @@ interface TimingEntry {
 	durationMs: number
 }
 
+type WorkerId = 'asset-upload' | 'health' | 'multiplayer' | 'tldrawusercontent' | 'image-resize'
+
+interface WorkerDeployment {
+	id: WorkerId
+	stepLabel: string
+	timingLabel: string
+	dependsOn: WorkerId[]
+	run(args: { dryRun: boolean }): Promise<void>
+}
+
 const timings: TimingEntry[] = []
 
 function formatDurationMs(durationMs: number) {
@@ -166,6 +176,92 @@ function logTimingSummary() {
 	}
 }
 
+const workerDeployments: WorkerDeployment[] = [
+	{
+		id: 'multiplayer',
+		stepLabel: 'deploying multiplayer worker to cloudflare',
+		timingLabel: 'worker deploy: multiplayer',
+		dependsOn: [],
+		run: deployTlsyncWorker,
+	},
+	{
+		id: 'asset-upload',
+		stepLabel: 'deploying asset uploader to cloudflare',
+		timingLabel: 'worker deploy: asset-upload',
+		dependsOn: [],
+		run: deployAssetUploadWorker,
+	},
+	{
+		id: 'tldrawusercontent',
+		stepLabel: 'deploying tldrawusercontent worker to cloudflare',
+		timingLabel: 'worker deploy: tldrawusercontent',
+		dependsOn: ['multiplayer'],
+		run: deployTldrawUserContentWorker,
+	},
+	{
+		id: 'image-resize',
+		stepLabel: 'deploying image resizer to cloudflare',
+		timingLabel: 'worker deploy: image-resize',
+		dependsOn: ['multiplayer'],
+		run: deployImageResizeWorker,
+	},
+	{
+		id: 'health',
+		stepLabel: 'deploying health worker to cloudflare',
+		timingLabel: 'worker deploy: health',
+		dependsOn: [],
+		run: deployHealthWorker,
+	},
+]
+
+async function deployWorkersInDependencyOrder({
+	dryRun,
+	withDiscordSteps,
+	parallelizeReadyWorkers,
+}: {
+	dryRun: boolean
+	withDiscordSteps: boolean
+	parallelizeReadyWorkers: boolean
+}) {
+	const pending = new Map(workerDeployments.map((worker) => [worker.id, worker]))
+	const completed = new Set<WorkerId>()
+
+	while (pending.size > 0) {
+		const ready = [...pending.values()].filter((worker) =>
+			worker.dependsOn.every((dependency) => completed.has(dependency))
+		)
+
+		if (ready.length === 0) {
+			throw new Error('Cloudflare worker dependency cycle detected in deploy-dotcom.ts')
+		}
+
+		const deployWorker = async (worker: WorkerDeployment) => {
+			const timingLabel = dryRun
+				? worker.timingLabel.replace('worker deploy:', 'worker dry run:')
+				: worker.timingLabel
+			const deploy = () => withTiming(timingLabel, () => worker.run({ dryRun }))
+			if (withDiscordSteps) {
+				await discord.step(worker.stepLabel, deploy)
+			} else {
+				await deploy()
+			}
+		}
+
+		if (parallelizeReadyWorkers) {
+			await Promise.all(ready.map((worker) => deployWorker(worker)))
+		} else {
+			for (const worker of ready) {
+				await deployWorker(worker)
+			}
+		}
+
+		for (const worker of ready) {
+			pending.delete(worker.id)
+			completed.add(worker.id)
+		}
+	}
+}
+
 if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
@@ -180,7 +276,7 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // All DBs use direct connections. Pooled connections (PgBouncer/Supavisor transaction mode) break
 // prepared statements which Zero's postgres.js driver uses internally.
 // Staging: Supabase Micro (60 max_connections, 200 pooled clients)
-// Preview: Neon 0.25 CU (104 max_connections shared across all preview branches)
+// Preview: Supabase branch instance (~60 max_connections per branch, isolated)
 // Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
 // TODO(production): tune these once we know prod Postgres limits
 const zeroConnectionLimits = {
@@ -192,7 +288,7 @@ const zeroConnectionLimits = {
 		rm: { upstream: 1, cvr: 3, change: 5 },
 		vs: { upstream: 5, cvr: 10, change: 3 },
 	},
-	// Previews use Neon DB
+	// Previews use Supabase branch DB
 	preview: {
 		single: { upstream: 3, cvr: 5, change: 3 },
 	},
@@ -236,26 +332,22 @@ async function main() {
 		discord.step('building dotcom app', async () => {
 			await withTiming('dotcom sentry release', () => createSentryRelease())
 			await withTiming('dotcom build', () => prepareDotcomApp())
-			await withTiming('dotcom sourcemap upload', () => uploadSourceMaps())
-			await withTiming('dotcom asset coalescing', () =>
-				coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
-			)
+			await Promise.all([
+				withTiming('dotcom sourcemap upload', () => uploadSourceMaps()),
+				withTiming('dotcom asset coalescing', () =>
+					coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
+				),
+			])
 		})
 	)
 
 	await withTiming('step: cloudflare deploy dry run', () =>
 		discord.step('cloudflare deploy dry run', async () => {
-			await withTiming('worker dry run: asset-upload', () =>
-				deployAssetUploadWorker({ dryRun: true })
-			)
-			await withTiming('worker dry run: health', () => deployHealthWorker({ dryRun: true }))
-			await withTiming('worker dry run: multiplayer', () => deployTlsyncWorker({ dryRun: true }))
-			await withTiming('worker dry run: tldrawusercontent', () =>
-				deployTldrawUserContentWorker({ dryRun: true })
-			)
-			await withTiming('worker dry run: image-resize', () =>
-				deployImageResizeWorker({ dryRun: true })
-			)
+			await deployWorkersInDependencyOrder({
+				dryRun: true,
+				withDiscordSteps: false,
+				parallelizeReadyWorkers: true,
+			})
 		})
 	)
 
@@ -263,40 +355,17 @@ async function main() {
 
 	await discord.message(`--- **pre-flight complete, starting real dotcom deploy** ---`)
 
-	// 2. deploy the cloudflare workers:
-	await withTiming('step: deploy asset uploader worker', () =>
-		discord.step('deploying asset uploader to cloudflare', async () => {
-			await withTiming('worker deploy: asset-upload', () =>
-				deployAssetUploadWorker({ dryRun: false })
-			)
-		})
-	)
-	await withTiming('step: deploy multiplayer worker', () =>
-		discord.step('deploying multiplayer worker to cloudflare', async () => {
-			await withTiming('worker deploy: multiplayer', () => deployTlsyncWorker({ dryRun: false }))
-		})
-	)
-	await withTiming('step: deploy tldrawusercontent worker', () =>
-		discord.step('deploying tldrawusercontent worker to cloudflare', async () => {
-			await withTiming('worker deploy: tldrawusercontent', () =>
-				deployTldrawUserContentWorker({ dryRun: false })
-			)
-		})
-	)
-	await withTiming('step: deploy image resizer worker', () =>
-		discord.step('deploying image resizer to cloudflare', async () => {
-			await withTiming('worker deploy: image-resize', () =>
-				deployImageResizeWorker({ dryRun: false })
-			)
-		})
-	)
-	await withTiming('step: deploy health worker', () =>
-		discord.step('deploying health worker to cloudflare', async () => {
-			await withTiming('worker deploy: health', () => deployHealthWorker({ dryRun: false }))
+	// 2. deploy cloudflare workers first.
+	// Worker dependencies are enforced by deployWorkersInDependencyOrder.
+	await withTiming('step: deploy cloudflare workers', () =>
+		deployWorkersInDependencyOrder({
+			dryRun: false,
+			withDiscordSteps: true,
+			parallelizeReadyWorkers: false,
 		})
 	)
 
-	// 3. deploy the pre-build dotcom app:
+	// 3. deploy dotcom app only after workers have successfully deployed.
 	const { deploymentUrl, inspectUrl } = await withTiming(
 		'step: deploy dotcom app to vercel',
 		async () =>
@@ -891,7 +960,10 @@ async function coalesceWithPreviousAssets(assetsDir: string) {
 		// if they have the same name as the old assets becuase they will have different sentry debugIds
 		// and it will mess up the inline source viewer on sentry errors.
 		const out = tar.x({ cwd: assetsDir, 'keep-existing': true })
-		for await (const chunk of Body?.transformToWebStream() as any as AsyncIterable<Uint8Array>) {
+		if (!Body?.transformToWebStream) {
+			throw new Error(`Could not stream object ${obj.Key}`)
+		}
+		for await (const chunk of Body.transformToWebStream() as any as AsyncIterable<Uint8Array>) {
 			out.write(Buffer.from(chunk.buffer))
 		}
 		out.end()

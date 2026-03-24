@@ -1,7 +1,7 @@
 {
 	"name": "tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "4.4.0",
+	"version": "4.5.3",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -46,7 +46,7 @@
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"lint": "cd ../.. && yarn run -T oxlint packages/tldraw",
 		"i18n:extract": "formatjs extract 'src/**/*.ts*' --out-file ../../assets/i18n/en.json --id-interpolation-pattern '[sha512:contenthash:base64:6]'",
 		"i18n:compile": "formatjs compile ../../assets/i18n/en.json --out-file ../../assets/i18n-compiled/en.json"
 	},
@@ -62,6 +62,7 @@
 		"@tiptap/pm": "^3.12.1",
 		"@tiptap/react": "^3.12.1",
 		"@tiptap/starter-kit": "^3.12.1",
+		"@tldraw/driver": "workspace:*",
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"classnames": "^2.5.1",

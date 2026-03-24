@@ -17,12 +17,14 @@ import {
 	approximately,
 	compact,
 	createShapeId,
+	fetch,
 	kickoutOccludedShapes,
 	openWindow,
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
+import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
@@ -308,6 +310,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'png', source })
 					helpers.copyAs(ids, 'png')
+				},
+			},
+			{
+				id: 'copy-as-json',
+				label: {
+					default: 'action.copy-as-json',
+					menu: 'action.copy-as-json.short',
+					['context-menu']: 'action.copy-as-json.short',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
+					trackEvent('copy-as', { format: 'json', source })
+					helpers.copyAs(ids, 'json')
 				},
 			},
 			{
@@ -1752,22 +1770,26 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						if (!asset || !asset.props.src) continue
 
 						const url = await editor.resolveAssetUrl(asset.id, { shouldResolveToOriginal: true })
-						if (!url) return
+						if (!url) continue
 
-						const link = document.createElement('a')
-						link.href = url
-
-						if (
+						const name =
 							(asset.type === 'video' || asset.type === 'image') &&
 							!asset.props.src.startsWith('asset:')
-						) {
-							link.download = asset.props.name
-						} else {
-							link.download = 'download'
+								? asset.props.name
+								: 'download'
+
+						try {
+							const resp = await fetch(url)
+							if (!resp.ok) throw new Error(`Failed to fetch asset: ${resp.status}`)
+							const blob = await resp.blob()
+							downloadFile(
+								new File([blob], name, { type: blob.type }),
+								editor.getContainerDocument()
+							)
+						} catch {
+							// Fallback: open in new tab (e.g. if CORS blocked)
+							openWindow(url, '_blank')
 						}
-						document.body.appendChild(link)
-						link.click()
-						document.body.removeChild(link)
 					}
 
 					trackEvent('download-original', { source })

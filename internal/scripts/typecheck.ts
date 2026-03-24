@@ -13,8 +13,6 @@ async function main() {
 		if (tsconfigExists) tsconfigFiles.push(tsconfigFile)
 	}
 
-	nicelog('Typechecking files:', tsconfigFiles)
-
 	const args = ['--build']
 	const isWatchMode = process.argv.includes('--watch')
 	if (process.argv.includes('--force')) args.push('--force')
@@ -23,19 +21,22 @@ async function main() {
 	if (process.argv.includes('--extendedDiagnostics')) args.push('--extendedDiagnostics')
 
 	const compilerPath = join(REPO_ROOT, 'node_modules/.bin/tsgo')
-	nicelog(`Using tsgo (TypeScript native compiler) for type checking`)
+	nicelog(`Using tsgo for type checking`)
 
 	// tsgo currently struggles to resolve some workspace package imports on a fresh checkout
 	// when all projects are passed in a single --build invocation. Building package
-	// workspaces first produces the declaration outputs needed for the full graph.
+	// workspaces first in topological order (leaves before dependents) produces the
+	// declaration outputs needed for the full graph.
 	const packageTsconfigFiles = tsconfigFiles.filter((file) =>
 		file.includes(`${path.sep}packages${path.sep}`)
 	)
 	if (packageTsconfigFiles.length > 0) {
+		const sortedPackageTsconfigFiles = await topoSortTsconfigs(packageTsconfigFiles)
 		const bootstrapArgs = ['--build']
 		if (process.argv.includes('--force')) bootstrapArgs.push('--force')
-		nicelog('Bootstrapping tsgo package references')
-		execFileSync(compilerPath, [...bootstrapArgs, ...packageTsconfigFiles], { stdio: 'inherit' })
+		for (const tsconfigFile of sortedPackageTsconfigFiles) {
+			execFileSync(compilerPath, [...bootstrapArgs, tsconfigFile], { stdio: 'inherit' })
+		}
 	}
 
 	// In watch mode, use execFileSync with inherited stdio - it handles everything
@@ -101,6 +102,48 @@ async function main() {
 			process.stderr.write(text)
 		})
 	})
+}
+
+/**
+ * Sort tsconfig files in topological order based on their `references` fields,
+ * so that leaf packages (no dependencies) come first and dependents come after
+ * all their dependencies. This is needed because tsgo --build doesn't always
+ * resolve the reference graph correctly on a fresh checkout.
+ */
+async function topoSortTsconfigs(tsconfigFiles: string[]): Promise<string[]> {
+	const dirToFile = new Map<string, string>()
+	const deps = new Map<string, string[]>()
+
+	for (const file of tsconfigFiles) {
+		const dir = path.dirname(file)
+		dirToFile.set(dir, file)
+		const tsconfig = await readJsonIfExists(file)
+		const refs: string[] = []
+		if (tsconfig?.references) {
+			for (const ref of tsconfig.references) {
+				refs.push(path.resolve(dir, ref.path))
+			}
+		}
+		deps.set(dir, refs)
+	}
+
+	const visited = new Set<string>()
+	const sorted: string[] = []
+
+	function visit(dir: string) {
+		if (visited.has(dir)) return
+		visited.add(dir)
+		for (const dep of deps.get(dir) ?? []) {
+			if (dirToFile.has(dep)) visit(dep)
+		}
+		sorted.push(dirToFile.get(dir)!)
+	}
+
+	for (const dir of dirToFile.keys()) {
+		visit(dir)
+	}
+
+	return sorted
 }
 
 main().catch((err) => {

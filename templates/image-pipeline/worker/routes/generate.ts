@@ -1,6 +1,6 @@
 import { IRequest } from 'itty-router'
-import type { GenerateParams } from '../providers'
 import { getProvider } from '../providers'
+import type { GenerateParams } from '../providers'
 
 /**
  * Request body for the /api/generate endpoint.
@@ -96,8 +96,8 @@ function dataUrlToBlob(dataUrl: string): ArrayBuffer {
 		for (let i = 0; i < binary.length; i++) {
 			bytes[i] = binary.charCodeAt(i)
 		}
-		return bytes.buffer
+		return bytes.buffer as ArrayBuffer
 	}
 	// For SVG data URLs, just encode as UTF-8
-	return new TextEncoder().encode(decodeURIComponent(base64)).buffer
+	return new TextEncoder().encode(decodeURIComponent(base64)).buffer as ArrayBuffer
 }

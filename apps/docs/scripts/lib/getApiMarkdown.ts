@@ -1,6 +1,3 @@
-import { APIGroup } from '@/types/content-types'
-import { TldrawApiModel } from '@/utils/TldrawApiModel'
-import { TABLE_OF_CONTENTS_CLASSNAME } from '@/utils/config'
 import {
 	ApiClass,
 	ApiConstructSignature,
@@ -25,6 +22,9 @@ import {
 	Excerpt,
 	HeritageType,
 } from '@microsoft/api-extractor-model'
+import { APIGroup } from '@/types/content-types'
+import { TABLE_OF_CONTENTS_CLASSNAME } from '@/utils/config'
+import { TldrawApiModel } from '@/utils/TldrawApiModel'
 import { MarkdownWriter, formatWithPrettier, getPath, getSlug } from './utils'
 
 interface Result {
@@ -181,7 +181,7 @@ function collectMembersAndExtends(model: TldrawApiModel, item: ApiItem) {
 					case ApiItemKind.Class:
 					case ApiItemKind.TypeAlias:
 					case ApiItemKind.Interface:
-						// TODO: document these
+						addMember(properties, member, inheritedFrom)
 						break
 					default:
 						model.nonBlockingError(

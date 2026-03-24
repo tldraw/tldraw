@@ -1,7 +1,6 @@
 import { PageRecordType, Vec, createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
-import { TL } from './test-jsx'
 
 vi.useFakeTimers()
 
@@ -83,9 +82,9 @@ test('it allows specifying a page target', async () => {
 
 	const boxA = createShapeId('a')
 	const boxB = createShapeId('b')
-	editor.createShapesFromJsx([
-		<TL.geo id={boxA} x={200} y={200} w={100} h={100} />,
-		<TL.geo id={boxB} x={1000} y={1000} w={100} h={100} />,
+	editor.createShapes([
+		{ id: boxA, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+		{ id: boxB, type: 'geo', x: 1000, y: 1000, props: { w: 100, h: 100 } },
 	])
 
 	vi.advanceTimersByTime(1000)

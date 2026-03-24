@@ -3,8 +3,8 @@
 
 import { execSync } from 'child_process'
 import { readFileSync, writeFileSync } from 'fs'
-import { glob } from 'glob'
 import { relative } from 'path'
+import { glob } from 'glob'
 import { exec } from './lib/exec'
 
 interface InlineLicense {

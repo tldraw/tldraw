@@ -17,15 +17,15 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
+import { TldrawUiRow } from '../primitives/layout'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
-import { TldrawUiRow } from '../primitives/layout'
+import { onMovePage } from './edit-pages-shared'
 import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
-import { onMovePage } from './edit-pages-shared'
 
 /** @public @react */
 export const DefaultPageMenu = memo(function DefaultPageMenu() {
@@ -67,16 +67,17 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	useEffect(
 		function closePageMenuOnEnterPressAfterPressingEnterToConfirmRename() {
+			const doc = editor.getContainerDocument()
 			function handleKeyDown() {
 				if (isEditing) return
-				if (document.activeElement === document.body) {
+				if (doc.activeElement === doc.body) {
 					editor.menus.clearOpenMenus()
 				}
 			}
 
-			document.addEventListener('keydown', handleKeyDown, { passive: true })
+			doc.addEventListener('keydown', handleKeyDown, { passive: true })
 			return () => {
-				document.removeEventListener('keydown', handleKeyDown)
+				doc.removeEventListener('keydown', handleKeyDown)
 			}
 		},
 		[editor, isEditing]
@@ -115,7 +116,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	useEffect(() => {
 		if (!isOpen) return
 		editor.timers.requestAnimationFrame(() => {
-			const elm = document.querySelector(`[data-pageid="${currentPageId}"]`) as HTMLDivElement
+			const doc = editor.getContainerDocument()
+			const elm = doc.querySelector(`[data-pageid="${currentPageId}"]`) as HTMLDivElement
 
 			if (elm) {
 				elm.querySelector('button')?.focus()
@@ -279,7 +281,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			setIsEditing(true)
 
 			editor.timers.requestAnimationFrame(() => {
-				const elm = document.querySelector(`[data-pageid="${newPageId}"]`) as HTMLDivElement
+				const doc = editor.getContainerDocument()
+				const elm = doc.querySelector(`[data-pageid="${newPageId}"]`) as HTMLDivElement
 
 				if (elm) {
 					elm.querySelector('button')?.focus()
@@ -312,6 +315,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			<TldrawUiPopoverTrigger data-testid="main.page-menu">
 				<TldrawUiButton
 					type="menu"
+					tooltip={currentPage.name}
 					title={currentPage.name}
 					data-testid="page-menu.button"
 					className="tlui-page-menu__trigger"
@@ -334,6 +338,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 								<TldrawUiButton
 									type="icon"
 									data-testid="page-menu.edit"
+									tooltip={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
 									title={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
 									onClick={toggleEditing}
 								>
@@ -342,6 +347,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 								<TldrawUiButton
 									type="icon"
 									data-testid="page-menu.create"
+									tooltip={msg(
+										maxPageCountReached
+											? 'page-menu.max-page-count-reached'
+											: 'page-menu.create-new-page'
+									)}
 									title={msg(
 										maxPageCountReached
 											? 'page-menu.max-page-count-reached'
@@ -446,6 +456,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 										className="tlui-page-menu__item__button"
 										onClick={() => changePage(page.id)}
 										onDoubleClick={toggleEditing}
+										tooltip={msg('page-menu.go-to-page')}
 										title={msg('page-menu.go-to-page')}
 										onKeyDown={(e) => {
 											if (e.key === 'Enter') {

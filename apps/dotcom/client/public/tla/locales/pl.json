@@ -104,6 +104,9 @@
   "3d0238bf16": {
     "translation": "Akceptuj wszystko"
   },
+  "3e2ae04ff0": {
+    "translation": "Nieobsługiwany diagram Mermaid"
+  },
   "42e53c47c1": {
     "translation": "Skontaktuj się z właścicielem, aby poprosić o dostęp."
   },
@@ -140,8 +143,14 @@
   "4da5988a2e": {
     "translation": "Usuń grupę…"
   },
+  "4dab36ac83": {
+    "translation": "Więcej opcji"
+  },
   "4e6fbf032b": {
     "translation": "Czy na pewno chcesz usunąć tę grupę? Tej czynności nie można cofnąć."
+  },
+  "5097d89907": {
+    "translation": "Nieobsługiwany diagram, zamiast tego zostanie wygenerowany plik SVG"
   },
   "50db1b7e1e": {
     "translation": "Nie można cofnąć publikacji pliku."
@@ -179,6 +188,9 @@
   "5c6fe42bc2": {
     "translation": "Usuń ten link i utwórz nowy."
   },
+  "5d04a002ea": {
+    "translation": "Nie można połączyć"
+  },
   "5d26ae7550": {
     "translation": "Nie udało nam się przesłać części treści utworzonych przed zalogowaniem."
   },
@@ -199,6 +211,9 @@
   },
   "639bae9ac6": {
     "translation": "Ty"
+  },
+  "63a6a88c06": {
+    "translation": "Odświeżać"
   },
   "6609dd239e": {
     "translation": "Coś poszło nie tak"
@@ -350,6 +365,9 @@
   "9bef626805": {
     "translation": "Usuń plik"
   },
+  "9ccb565b86": {
+    "translation": "Mamy problem z połączeniem się z naszą usługą uwierzytelniania. Zazwyczaj jest to problem tymczasowy. Spróbuj odświeżyć stronę."
+  },
   "9ceb927baa": {
     "translation": "Opublikuj ten plik"
   },
@@ -458,6 +476,9 @@
   },
   "c87aacf567": {
     "translation": "Wyloguj się"
+  },
+  "c8a59e7135": {
+    "translation": "Zamknij"
   },
   "c9cc8cce24": {
     "translation": "Ratować"

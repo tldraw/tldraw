@@ -1,7 +1,7 @@
 import { T } from '@tldraw/validate'
 import { SetValue } from '../util-types'
-import { TLCanvasUiColor, canvasUiColorTypeValidator } from './TLColor'
 import { VecModel, vecModelValidator } from './geometry-types'
+import { TLCanvasUiColor, canvasUiColorTypeValidator } from './TLColor'
 
 /**
  * All available scribble states used by the tldraw drawing system.

@@ -24,7 +24,7 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc && vite build",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"lint": "cd ../.. && yarn run -T oxlint templates/image-pipeline",
 		"preview": "vite preview"
 	},
 	"dependencies": {
@@ -36,12 +36,12 @@
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
-		"@cloudflare/vite-plugin": "^1.13.2",
+		"@cloudflare/vite-plugin": "^1.29.1",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
-		"@vitejs/plugin-react-swc": "^3.10.2",
+		"@vitejs/plugin-react": "^6.0.1",
 		"typescript": "^5.8.3",
-		"vite": "^7.0.1",
-		"wrangler": "^4.37.1"
+		"vite": "^8.0.1",
+		"wrangler": "^4.75.0"
 	}
 }

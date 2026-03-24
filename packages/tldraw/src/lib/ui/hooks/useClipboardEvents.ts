@@ -1,11 +1,14 @@
 import {
 	Editor,
 	FileHelpers,
+	TLClipboardWriteInfo,
 	TLExternalContentSource,
 	Vec,
 	VecLike,
+	activeElementShouldCaptureKeys,
 	assert,
 	compact,
+	getGlobalDocument,
 	isDefined,
 	preventDefault,
 	uniq,
@@ -38,7 +41,7 @@ const expectedPasteFileMimeTypes = [
  */
 function stripHtml(html: string) {
 	// See <https://github.com/developit/preact-markup/blob/4788b8d61b4e24f83688710746ee36e7464f7bbc/src/parse-markup.js#L60-L69>
-	const doc = document.implementation.createHTMLDocument('')
+	const doc = getGlobalDocument().implementation.createHTMLDocument('')
 	doc.documentElement.innerHTML = html.trim()
 	return doc.body.textContent || doc.body.innerText || ''
 }
@@ -74,23 +77,20 @@ const isSvgText = (text: string) => {
 	return /^<svg/.test(text)
 }
 
-const INPUTS = ['input', 'select', 'textarea']
-
 /**
  * Get whether to disallow clipboard events.
  *
  * @internal
  */
 function areShortcutsDisabled(editor: Editor) {
-	const { activeElement } = document
-
 	return (
 		editor.menus.hasAnyOpenMenus() ||
-		(activeElement &&
-			((activeElement as HTMLElement).isContentEditable ||
-				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
+		activeElementShouldCaptureKeys(false, editor.getContainerDocument())
 	)
 }
+
+import { putPastedExternalContent } from './clipboard/putPastedContent'
+export { putPastedExternalContent } from './clipboard/putPastedContent'
 
 /**
  * Handle text pasted into the editor.
@@ -103,31 +103,40 @@ const handleText = (
 	editor: Editor,
 	data: string,
 	point?: VecLike,
-	sources?: TLExternalContentSource[]
+	sources?: TLExternalContentSource[],
+	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event'
 ) => {
 	const validUrlList = getValidHttpURLList(data)
 	if (validUrlList) {
 		for (const url of validUrlList) {
-			pasteUrl(editor, url, point)
+			pasteUrl(editor, url, point, sources, clipboardPasteSource)
 		}
 	} else if (isValidHttpURL(data)) {
-		pasteUrl(editor, data, point)
+		pasteUrl(editor, data, point, sources, clipboardPasteSource)
 	} else if (isSvgText(data)) {
 		editor.markHistoryStoppingPoint('paste')
-		editor.putExternalContent({
-			type: 'svg-text',
-			text: data,
-			point,
-			sources,
-		})
+		putPastedExternalContent(
+			editor,
+			{
+				type: 'svg-text',
+				text: data,
+				point,
+				sources,
+			},
+			{ source: clipboardPasteSource, point }
+		)
 	} else {
 		editor.markHistoryStoppingPoint('paste')
-		editor.putExternalContent({
-			type: 'text',
-			text: data,
-			point,
-			sources,
-		})
+		putPastedExternalContent(
+			editor,
+			{
+				type: 'text',
+				text: data,
+				point,
+				sources,
+			},
+			{ source: clipboardPasteSource, point }
+		)
 	}
 }
 
@@ -215,7 +224,7 @@ const handlePasteFromEventClipboardData = async (
 		}
 	}
 
-	handleClipboardThings(editor, things, point)
+	handleClipboardThings(editor, things, point, 'native-event')
 }
 
 /**
@@ -232,11 +241,13 @@ const handlePasteFromClipboardApi = async ({
 	clipboardItems,
 	point,
 	fallbackFiles,
+	clipboardPasteSource,
 }: {
 	editor: Editor
 	clipboardItems: ClipboardItem[]
 	point?: VecLike
 	fallbackFiles?: File[]
+	clipboardPasteSource: 'native-event' | 'clipboard-read'
 }) => {
 	// We need to populate the array of clipboard things
 	// based on the ClipboardItems from the Clipboard API.
@@ -304,10 +315,15 @@ const handlePasteFromClipboardApi = async ({
 		)
 	}
 
-	return await handleClipboardThings(editor, things, point)
+	return await handleClipboardThings(editor, things, point, clipboardPasteSource)
 }
 
-async function handleClipboardThings(editor: Editor, things: ClipboardThing[], point?: VecLike) {
+async function handleClipboardThings(
+	editor: Editor,
+	things: ClipboardThing[],
+	point: VecLike | undefined,
+	clipboardPasteSource: 'native-event' | 'clipboard-read'
+) {
 	// 1. Handle files
 	//
 	// We need to handle files separately because if we want them to
@@ -323,7 +339,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 			throw Error('Too many files')
 		}
 		const fileBlobs = compact(await Promise.all(files.map((t) => t.source)))
-		return await pasteFiles(editor, fileBlobs, point)
+		return await pasteFiles(editor, fileBlobs, point, undefined, clipboardPasteSource)
 	}
 
 	// 2. Generate clipboard results for non-file things
@@ -475,7 +491,11 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	for (const result of results) {
 		if (result.type === 'tldraw') {
 			editor.markHistoryStoppingPoint('paste')
-			editor.putExternalContent({ type: 'tldraw', content: result.data, point })
+			putPastedExternalContent(
+				editor,
+				{ type: 'tldraw', content: result.data, point },
+				{ source: clipboardPasteSource, point }
+			)
 			return
 		}
 	}
@@ -484,7 +504,11 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	for (const result of results) {
 		if (result.type === 'excalidraw') {
 			editor.markHistoryStoppingPoint('paste')
-			editor.putExternalContent({ type: 'excalidraw', content: result.data, point })
+			putPastedExternalContent(
+				editor,
+				{ type: 'excalidraw', content: result.data, point },
+				{ source: clipboardPasteSource, point }
+			)
 			return
 		}
 	}
@@ -509,7 +533,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 			if (isHtmlSingleLink) {
 				const href = bodyNode.firstElementChild.getAttribute('href')!
-				handleText(editor, href, point, results)
+				handleText(editor, href, point, results, clipboardPasteSource)
 				return
 			}
 
@@ -517,7 +541,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
 				const html = stripHtml(result.data) ?? ''
 				if (html) {
-					handleText(editor, stripHtml(result.data), point, results)
+					handleText(editor, stripHtml(result.data), point, results, clipboardPasteSource)
 					return
 				}
 			}
@@ -527,13 +551,17 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 				const html = stripHtml(result.data) ?? ''
 				if (html) {
 					editor.markHistoryStoppingPoint('paste')
-					editor.putExternalContent({
-						type: 'text',
-						text: html,
-						html: result.data,
-						point,
-						sources: results,
-					})
+					putPastedExternalContent(
+						editor,
+						{
+							type: 'text',
+							text: html,
+							html: result.data,
+							point,
+							sources: results,
+						},
+						{ source: clipboardPasteSource, point }
+					)
 					return
 				}
 			}
@@ -555,7 +583,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 			if (isSingleIframe) {
 				const src = bodyNode.firstElementChild.getAttribute('src')!
-				handleText(editor, src, point, results)
+				handleText(editor, src, point, results, clipboardPasteSource)
 				return
 			}
 		}
@@ -564,7 +592,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste a link
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'url') {
-			pasteUrl(editor, result.data, point, results)
+			pasteUrl(editor, result.data, point, results, clipboardPasteSource)
 			return
 		}
 	}
@@ -573,29 +601,34 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'text' && result.data.trim()) {
 			// The clipboard may include multiple text items, but we only want to paste the first one
-			handleText(editor, result.data, point, results)
+			handleText(editor, result.data, point, results, clipboardPasteSource)
 			return
 		}
 	}
 }
 
 /**
- * When the user copies, write the contents to local storage and to the clipboard
+ * When the user copies or cuts, write the contents to the clipboard.
  *
- * @param editor - The editor instance.
  * @public
  */
-const handleNativeOrMenuCopy = async (editor: Editor) => {
-	const navigator =
-		editor.getContainer().ownerDocument?.defaultView?.navigator ?? globalThis.navigator
-	const content = await editor.resolveAssetsInContent(
+export const handleNativeOrMenuCopy = async (
+	editor: Editor,
+	context: TLClipboardWriteInfo = { operation: 'copy', source: 'menu' }
+): Promise<boolean> => {
+	const nav = editor.getContainerWindow().navigator
+	let content = await editor.resolveAssetsInContent(
 		editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
 	)
 	if (!content) {
-		if (navigator && navigator.clipboard) {
-			navigator.clipboard.writeText('')
-		}
-		return
+		nav?.clipboard?.writeText?.('')
+		return true
+	}
+
+	if (editor.options.onBeforeCopyToClipboard) {
+		const result = await editor.options.onBeforeCopyToClipboard({ editor, content, ...context })
+		if (result === false) return false
+		if (result != null) content = result
 	}
 
 	// Use versioned clipboard format for better compression
@@ -614,42 +647,44 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 	// Don't compress the final structure - just use plain JSON
 	const stringifiedClipboard = JSON.stringify(clipboardData)
 
-	if (typeof navigator === 'undefined') {
-		return
-	} else {
-		// Extract the text from the clipboard
-		const textItems = content.shapes
-			.map((shape) => {
-				const util = editor.getShapeUtil(shape)
-				return util.getText(shape)
-			})
-			.filter(isDefined)
-
-		if (navigator.clipboard?.write) {
-			const htmlBlob = new Blob([`<div data-tldraw>${stringifiedClipboard}</div>`], {
-				type: 'text/html',
-			})
-
-			let textContent = textItems.join(' ')
-
-			// This is a bug in chrome android where it won't paste content if
-			// the text/plain content is "" so we need to always add an empty
-			// space 🤬
-			if (textContent === '') {
-				textContent = ' '
-			}
-
-			navigator.clipboard.write([
-				new ClipboardItem({
-					'text/html': htmlBlob,
-					// What is this second blob used for?
-					'text/plain': new Blob([textContent], { type: 'text/plain' }),
-				}),
-			])
-		} else if (navigator.clipboard.writeText) {
-			navigator.clipboard.writeText(`<div data-tldraw>${stringifiedClipboard}</div>`)
-		}
+	if (typeof nav === 'undefined') {
+		return true
 	}
+
+	// Extract the text from the clipboard
+	const textItems = content.shapes
+		.map((shape) => {
+			const util = editor.getShapeUtil(shape)
+			return util.getText(shape)
+		})
+		.filter(isDefined)
+
+	if (nav.clipboard?.write) {
+		const htmlBlob = new Blob([`<div data-tldraw>${stringifiedClipboard}</div>`], {
+			type: 'text/html',
+		})
+
+		let textContent = textItems.join(' ')
+
+		// This is a bug in chrome android where it won't paste content if
+		// the text/plain content is "" so we need to always add an empty
+		// space 🤬
+		if (textContent === '') {
+			textContent = ' '
+		}
+
+		const CBI = editor.getContainerWindow().ClipboardItem
+		nav.clipboard.write([
+			new CBI({
+				'text/html': htmlBlob,
+				// What is this second blob used for?
+				'text/plain': new Blob([textContent], { type: 'text/plain' }),
+			}),
+		])
+	} else if (nav.clipboard?.writeText) {
+		nav.clipboard.writeText(`<div data-tldraw>${stringifiedClipboard}</div>`)
+	}
+	return true
 }
 
 /** @public */
@@ -662,8 +697,10 @@ export function useMenuClipboardEvents() {
 			assert(editor, 'editor is required for copy')
 			if (editor.getSelectedShapeIds().length === 0) return
 
-			await handleNativeOrMenuCopy(editor)
-			trackEvent('copy', { source })
+			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'copy', source: 'menu' })
+			if (didCopy) {
+				trackEvent('copy', { source })
+			}
 		},
 		[editor, trackEvent]
 	)
@@ -673,9 +710,11 @@ export function useMenuClipboardEvents() {
 			if (!editor) return
 			if (editor.getSelectedShapeIds().length === 0) return
 
-			await handleNativeOrMenuCopy(editor)
-			editor.deleteShapes(editor.getSelectedShapeIds())
-			trackEvent('cut', { source })
+			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'menu' })
+			if (didCopy) {
+				editor.deleteShapes(editor.getSelectedShapeIds())
+				trackEvent('cut', { source })
+			}
 		},
 		[editor, trackEvent]
 	)
@@ -692,12 +731,29 @@ export function useMenuClipboardEvents() {
 			// input instead; e.g. when pasting text into a text shape's content
 			if (editor.getEditingShapeId() !== null) return
 
-			if (Array.isArray(data) && data[0] instanceof ClipboardItem) {
-				handlePasteFromClipboardApi({ editor, clipboardItems: data, point })
+			const win = editor.getContainerWindow()
+			if (Array.isArray(data) && data[0] instanceof win.ClipboardItem) {
+				if (
+					editor.options.onClipboardPasteRaw?.({
+						editor,
+						source: 'clipboard-read',
+						clipboardItems: data,
+						point,
+					}) === false
+				) {
+					trackEvent('paste', { source: 'menu' })
+					return
+				}
+				handlePasteFromClipboardApi({
+					editor,
+					clipboardItems: data,
+					point,
+					clipboardPasteSource: 'clipboard-read',
+				})
 				trackEvent('paste', { source: 'menu' })
 			} else {
-				// Read it first and then recurse, kind of weird
-				navigator.clipboard.read().then((clipboardItems) => {
+				const nav = win.navigator
+				nav.clipboard.read().then((clipboardItems) => {
 					paste(clipboardItems, source, point)
 				})
 			}
@@ -715,7 +771,7 @@ export function useMenuClipboardEvents() {
 /** @public */
 export function useNativeClipboardEvents() {
 	const editor = useEditor()
-	const ownerDocument = editor.getContainer().ownerDocument
+	const ownerDocument = editor.getContainerDocument()
 	const trackEvent = useUiEvents()
 
 	const appIsFocused = useValue('editor.isFocused', () => editor.getInstanceState().isFocused, [
@@ -734,8 +790,11 @@ export function useNativeClipboardEvents() {
 			}
 
 			preventDefault(e)
-			await handleNativeOrMenuCopy(editor)
-			trackEvent('copy', { source: 'kbd' })
+
+			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'copy', source: 'native' })
+			if (didCopy) {
+				trackEvent('copy', { source: 'kbd' })
+			}
 		}
 
 		async function cut(e: ClipboardEvent) {
@@ -747,9 +806,12 @@ export function useNativeClipboardEvents() {
 				return
 			}
 			preventDefault(e)
-			await handleNativeOrMenuCopy(editor)
-			editor.deleteShapes(editor.getSelectedShapeIds())
-			trackEvent('cut', { source: 'kbd' })
+
+			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'native' })
+			if (didCopy) {
+				editor.deleteShapes(editor.getSelectedShapeIds())
+				trackEvent('cut', { source: 'kbd' })
+			}
 		}
 
 		let disablingMiddleClickPaste = false
@@ -787,6 +849,20 @@ export function useNativeClipboardEvents() {
 			if (editor.user.getIsPasteAtCursorMode()) pasteAtCursor = !pasteAtCursor
 			if (pasteAtCursor) point = editor.inputs.getCurrentPagePoint()
 
+			if (
+				editor.options.onClipboardPasteRaw?.({
+					editor,
+					source: 'native-event',
+					event: e,
+					clipboardData: e.clipboardData,
+					point,
+				}) === false
+			) {
+				preventDefault(e)
+				trackEvent('paste', { source: 'kbd' })
+				return
+			}
+
 			const pasteFromEvent = () => {
 				if (e.clipboardData) {
 					handlePasteFromEventClipboardData(editor, e.clipboardData, point)
@@ -796,15 +872,23 @@ export function useNativeClipboardEvents() {
 			// if we can read from the clipboard API, we want to try using that first. that allows
 			// us to access most things, and doesn't strip out metadata added to tldraw's own
 			// copy-as-png features - so copied shapes come back in at the correct size.
-			if (navigator.clipboard?.read) {
+			const win = editor.getContainerWindow()
+			const nav = win.navigator
+			if (nav.clipboard?.read) {
 				// We can't read files from the filesystem using the clipboard API though - they'll
 				// just come in as the file names instead. So we'll use the clipboard event's files
 				// as a fallback - if we only got text, but do have files, we use those instead.
 				const fallbackFiles = Array.from(e.clipboardData?.files || [])
-				navigator.clipboard.read().then(
+				nav.clipboard.read().then(
 					(clipboardItems) => {
-						if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof ClipboardItem) {
-							handlePasteFromClipboardApi({ editor, clipboardItems, point, fallbackFiles })
+						if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof win.ClipboardItem) {
+							handlePasteFromClipboardApi({
+								editor,
+								clipboardItems,
+								point,
+								fallbackFiles,
+								clipboardPasteSource: 'native-event',
+							})
 						}
 					},
 					() => {

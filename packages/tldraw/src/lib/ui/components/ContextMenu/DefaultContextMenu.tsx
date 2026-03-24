@@ -2,7 +2,7 @@ import { preventDefault, useContainer, useEditor, useEditorComponents } from '@t
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode, memo, useCallback, useEffect } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultContextMenuContent } from './DefaultContextMenuContent'
 
@@ -36,16 +36,17 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	)
 
 	useEffect(() => {
+		const body = editor.getContainerDocument().body
 		return () => {
-			// Cleanup the event listener when the component unmounts.
-			document.body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
+			body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
 				capture: true,
 			})
 		}
-	}, [preventEscapeFromLosingShapeFocus])
+	}, [editor, preventEscapeFromLosingShapeFocus])
 
 	const cb = useCallback(
 		(isOpen: boolean) => {
+			const body = editor.getContainerDocument().body
 			if (!isOpen) {
 				const onlySelectedShape = editor.getOnlySelectedShape()
 
@@ -54,12 +55,12 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 				}
 
 				editor.timers.requestAnimationFrame(() => {
-					document.body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
+					body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
 						capture: true,
 					})
 				})
 			} else {
-				document.body.addEventListener('keydown', preventEscapeFromLosingShapeFocus, {
+				body.addEventListener('keydown', preventEscapeFromLosingShapeFocus, {
 					capture: true,
 				})
 
@@ -92,6 +93,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	)
 
 	const container = useContainer()
+	const dir = useDirection()
 	const [isOpen, handleOpenChange] = useMenuIsOpen('context menu', cb)
 
 	// Get the context menu content, either the default component or the user's
@@ -100,7 +102,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	const content = children ?? <DefaultContextMenuContent />
 
 	return (
-		<_ContextMenu.Root dir="ltr" onOpenChange={handleOpenChange} modal={false}>
+		<_ContextMenu.Root dir={dir} onOpenChange={handleOpenChange} modal={false}>
 			<_ContextMenu.Trigger onContextMenu={undefined} dir="ltr" disabled={disabled}>
 				{Canvas ? <Canvas /> : null}
 			</_ContextMenu.Trigger>

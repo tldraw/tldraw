@@ -26,6 +26,9 @@ export { assert_2 as assert }
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
 // @public
+export type Awaitable<T> = PromiseLike<T> | T;
+
+// @public
 export function bind<T extends (...args: any[]) => any>(target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T>;
 
 // @public
@@ -41,7 +44,7 @@ export function clearSessionStorage(): void;
 export function compact<T>(arr: T[]): NonNullable<T>[];
 
 // @public
-export function debounce<T extends unknown[], U>(callback: (...args: T) => PromiseLike<U> | U, wait: number): {
+export function debounce<T extends unknown[], U>(callback: (...args: T) => Awaitable<U>, wait: number): {
     (...args: T): Promise<U>;
     cancel: () => void;
 };
@@ -293,17 +296,18 @@ export function measureDuration(_target: any, propertyKey: string, descriptor: P
 
 // @public
 export class MediaHelpers {
-    static getImageAndDimensions(src: string): Promise<{
+    static getImageAndDimensions(src: string, doc?: Document): Promise<{
         h: number;
         image: HTMLImageElement;
         w: number;
     }>;
-    static getImageSize(blob: Blob): Promise<{
+    static getImageSize(blob: Blob, doc?: Document): Promise<{
         h: number;
+        pixelRatio: number;
         w: number;
     }>;
     static getVideoFrameAsDataUrl(video: HTMLVideoElement, time?: number): Promise<string>;
-    static getVideoSize(blob: Blob): Promise<{
+    static getVideoSize(blob: Blob, doc?: Document): Promise<{
         h: number;
         w: number;
     }>;
@@ -312,7 +316,7 @@ export class MediaHelpers {
     static isImageType(mimeType: string): boolean;
     static isStaticImageType(mimeType: null | string): boolean;
     static isVectorImageType(mimeType: null | string): boolean;
-    static loadVideo(src: string): Promise<HTMLVideoElement>;
+    static loadVideo(src: string, doc?: Document): Promise<HTMLVideoElement>;
     static usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T>;
 }
 

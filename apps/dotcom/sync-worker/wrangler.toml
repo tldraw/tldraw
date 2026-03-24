@@ -1,5 +1,5 @@
 main = "src/worker.ts"
-compatibility_date = "2024-10-30"
+compatibility_date = "2025-06-05"
 workers_dev = true
 compatibility_flags = ["nodejs_compat"]
 
@@ -10,7 +10,7 @@ ip = "0.0.0.0"
 # these migrations are append-only. you can't change them. if you do need to change something, do so
 # by creating new migrations
 [[migrations]]
-tag = "v1"                            # Should be unique for each entry
+tag = "v1" # Should be unique for each entry
 new_classes = ["TLDrawDurableObject"]
 
 [[migrations]]
@@ -46,6 +46,7 @@ deleted_classes = ["TLAppDurableObject"]
 tag = "v9"
 new_sqlite_classes = ["TLFileDurableObject"]
 
+
 [[analytics_engine_datasets]]
 binding = "MEASURE"
 
@@ -65,12 +66,12 @@ MULTIPLAYER_SERVER = "http://localhost:3000"
 # staging is the same as a preview on main:
 [env.staging]
 name = "main-tldraw-multiplayer"
-workers_dev = true               # todo: remove this once clients are updated
+workers_dev = true # todo: remove this once clients are updated
 
 # production gets the proper name
 [env.production]
 name = "tldraw-multiplayer"
-workers_dev = true          # todo: remove this once clients are updated
+workers_dev = true # todo: remove this once clients are updated
 
 #################### Routing ####################
 # no custom routes for previews and development

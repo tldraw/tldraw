@@ -9,6 +9,8 @@ html[data-theme='dark'] body,
 html[data-theme='dark'] #root {
 	/* this is the same as --tl-color-background, if you ever update that, update this too */
 	background-color: hsl(240, 5%, 6.5%);
+	/* this is the same as --tl-color-text, if you ever update that, update this too */
+	color: hsl(210, 17%, 98%);
 	color-scheme: dark;
 }
 html[data-theme='light'],
@@ -35,6 +37,7 @@ html[data-theme='light'] #root {
 	html:not([data-theme='dark']) body,
 	html:not([data-theme='dark']) #root {
 		background-color: hsl(210, 20%, 98%);
+		color: hsl(210, 17%, 98%);
 		color-scheme: light;
 	}
 }
@@ -190,6 +193,8 @@ a {
 	align-items: center;
 	justify-content: center;
 	text-align: center;
+	max-width: 500px;
+	text-wrap: balance;
 }
 
 /* text-header mb-sm */
@@ -206,12 +211,16 @@ a {
 }
 
 /* text-primary-bold text-grey */
-.error-page__container a {
+.error-page__container a,
+.error-page__container button {
 	font-size: 14px;
 	font-weight: 500;
 	color: var(--text-color-2);
 	padding: 12px 4px;
 	text-decoration: underline;
+	background: none;
+	border: none;
+	cursor: pointer;
 }
 
 /* ------------------ Board history ----------------- */

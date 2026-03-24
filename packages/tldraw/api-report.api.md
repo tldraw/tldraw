@@ -81,6 +81,7 @@ import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
+import { TLClipboardWriteInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/tlschema';
@@ -577,7 +578,7 @@ export function copyAs(editor: Editor, ids: TLShapeId[], opts: CopyAsOptions): P
 export function CopyAsMenuGroup(): JSX.Element;
 
 // @public (undocumented)
-export interface CopyAsOptions extends TLImageExportOptions {
+export interface CopyAsOptions extends Omit<TLImageExportOptions, 'format'> {
     format: TLCopyType;
 }
 
@@ -1119,7 +1120,7 @@ export function DiamondToolbarItem(): JSX.Element;
 export function DistributeMenuItems(): JSX.Element;
 
 // @internal (undocumented)
-export function downloadFile(file: File): void;
+export function downloadFile(file: File, doc?: Document): void;
 
 // @public
 export function downsizeImage(blob: Blob, width: number, height: number, opts?: {
@@ -1204,7 +1205,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
             scaleX: number;
             scaleY: number;
         };
-    };
+    } | undefined;
     // (undocumented)
     options: DrawShapeOptions;
     // (undocumented)
@@ -1393,6 +1394,11 @@ export interface EmbedDefinition {
     readonly width: number;
 }
 
+// @public (undocumented)
+export interface EmbedShapeOptions {
+    readonly embedDefinitions: readonly TLEmbedDefinition[];
+}
+
 // @public
 export const embedShapePermissionDefaults: {
     readonly 'allow-downloads-without-user-activation': false;
@@ -1450,9 +1456,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>): TLEmbedShape;
     // (undocumented)
-    static props: RecordProps<TLEmbedShape>;
+    options: EmbedShapeOptions;
     // (undocumented)
-    static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
+    static props: RecordProps<TLEmbedShape>;
+    // @deprecated (undocumented)
+    static setEmbedDefinitions(embedDefinitions: readonly EmbedDefinition[]): void;
     // (undocumented)
     static type: "embed";
     // (undocumented)
@@ -1676,7 +1684,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     static migrations: TLPropsMigrations;
     // (undocumented)
     onBeforeCreate(shape: TLGeoShape): {
-        id: TLShapeId_2;
+        id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
@@ -1711,7 +1719,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     } | undefined;
     // (undocumented)
     onBeforeUpdate(prev: TLGeoShape, next: TLGeoShape): {
-        id: TLShapeId_2;
+        id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
@@ -1746,7 +1754,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     } | undefined;
     // (undocumented)
     onDoubleClick(shape: TLGeoShape): {
-        id: TLShapeId_2;
+        id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
@@ -1761,7 +1769,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         x: number;
         y: number;
     } | {
-        id: TLShapeId_2;
+        id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
@@ -1837,7 +1845,7 @@ export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl
 export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boolean): TLShape | undefined;
 
 // @public (undocumented)
-export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number): Promise<TLImageAsset | TLVideoAsset>;
+export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number, doc?: Document): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public (undocumented)
 export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, scaleX: number, scaleY: number, points?: Vec[]): Vec[];
@@ -1871,6 +1879,9 @@ export function GroupMenuItem(): JSX.Element | null;
 
 // @public (undocumented)
 export function GroupOrUngroupMenuItem(): JSX.Element;
+
+// @public
+export const handleNativeOrMenuCopy: (editor: Editor, context?: TLClipboardWriteInfo) => Promise<boolean>;
 
 // @public (undocumented)
 export class HandTool extends StateNode {
@@ -1959,7 +1970,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
             scaleX: number;
             scaleY: number;
         };
-    };
+    } | undefined;
     // (undocumented)
     options: HighlightShapeOptions;
     // (undocumented)
@@ -2603,30 +2614,45 @@ export interface PlainTextLabelProps {
 }
 
 // @public (undocumented)
-export enum PORTRAIT_BREAKPOINT {
+export const PORTRAIT_BREAKPOINT: {
+    readonly DESKTOP: 7;
+    readonly MOBILE_SM: 3;
+    readonly MOBILE_XS: 2;
+    readonly MOBILE_XXS: 1;
+    readonly MOBILE: 4;
+    readonly TABLET_SM: 5;
+    readonly TABLET: 6;
+    readonly ZERO: 0;
+};
+
+// @public (undocumented)
+export type PORTRAIT_BREAKPOINT = (typeof PORTRAIT_BREAKPOINT)[keyof typeof PORTRAIT_BREAKPOINT];
+
+// @public (undocumented)
+export namespace PORTRAIT_BREAKPOINT {
     // (undocumented)
-    DESKTOP = 7,
+    export type DESKTOP = typeof PORTRAIT_BREAKPOINT.DESKTOP;
     // (undocumented)
-    MOBILE = 4,
+    export type MOBILE = typeof PORTRAIT_BREAKPOINT.MOBILE;
     // (undocumented)
-    MOBILE_SM = 3,
+    export type MOBILE_SM = typeof PORTRAIT_BREAKPOINT.MOBILE_SM;
     // (undocumented)
-    MOBILE_XS = 2,
+    export type MOBILE_XS = typeof PORTRAIT_BREAKPOINT.MOBILE_XS;
     // (undocumented)
-    MOBILE_XXS = 1,
+    export type MOBILE_XXS = typeof PORTRAIT_BREAKPOINT.MOBILE_XXS;
     // (undocumented)
-    TABLET = 6,
+    export type TABLET = typeof PORTRAIT_BREAKPOINT.TABLET;
     // (undocumented)
-    TABLET_SM = 5,
+    export type TABLET_SM = typeof PORTRAIT_BREAKPOINT.TABLET_SM;
     // (undocumented)
-    ZERO = 0
+    export type ZERO = typeof PORTRAIT_BREAKPOINT.ZERO;
 }
 
 // @public (undocumented)
 export function PreferencesGroup(): JSX.Element;
 
 // @public (undocumented)
-export function preloadFont(id: string, font: TLTypeFace): Promise<FontFace>;
+export function preloadFont(id: string, font: TLTypeFace, targetDocument?: Document): Promise<FontFace>;
 
 // @public (undocumented)
 export function PrintItem(): JSX.Element;
@@ -2753,6 +2779,12 @@ export interface RichTextSVGProps {
 
 // @public (undocumented)
 export function RotateCWMenuItem(): JSX.Element;
+
+// @public (undocumented)
+export const RTL_LANGUAGES: Set<string>;
+
+// @public
+export function sanitizeSvg(svgText: string): string;
 
 // @public (undocumented)
 export function SelectAllMenuItem(): JSX.Element;
@@ -3243,7 +3275,7 @@ export interface TLComponents extends TLEditorComponents, TLUiComponents {
 }
 
 // @public (undocumented)
-export type TLCopyType = 'png' | 'svg';
+export type TLCopyType = 'json' | 'png' | 'svg';
 
 // @public (undocumented)
 export interface TLDefaultExternalContentHandlerOpts extends TLExternalContentProps {
@@ -3292,6 +3324,7 @@ export function TldrawArrowHints(): JSX.Element | null;
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
     assetUrls?: TLUiAssetUrlOverrides;
     components?: TLComponents;
+    // @deprecated
     embeds?: TLEmbedDefinition[];
     // @deprecated
     textOptions?: TLTextOptions;
@@ -3798,6 +3831,8 @@ export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElemen
     htmlButtonType?: 'button' | 'reset' | 'submit';
     // (undocumented)
     isActive?: boolean;
+    // (undocumented)
+    tooltip?: string;
     // (undocumented)
     type: 'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool';
 }
@@ -4909,7 +4944,7 @@ export interface TLUiTranslation {
 export type TLUiTranslationContextType = TLUiTranslation;
 
 // @public (undocumented)
-export type TLUiTranslationKey = 'a11y.adjust-shape-styles' | 'a11y.enlarge-shape' | 'a11y.enter-leave-container' | 'a11y.move-shape-faster' | 'a11y.move-shape' | 'a11y.multiple-shapes' | 'a11y.open-context-menu' | 'a11y.open-keyboard-shortcuts' | 'a11y.pan-camera' | 'a11y.repeat-shape' | 'a11y.rotate-shape-ccw-fine' | 'a11y.rotate-shape-ccw' | 'a11y.rotate-shape-cw-fine' | 'a11y.rotate-shape-cw' | 'a11y.select-shape-direction' | 'a11y.select-shape' | 'a11y.shape-image' | 'a11y.shape-index' | 'a11y.shape-video' | 'a11y.shrink-shape' | 'a11y.skip-to-main-content' | 'a11y.status' | 'action.align-bottom' | 'action.align-center-horizontal.short' | 'action.align-center-horizontal' | 'action.align-center-vertical.short' | 'action.align-center-vertical' | 'action.align-left' | 'action.align-right' | 'action.align-top' | 'action.back-to-content' | 'action.bring-forward' | 'action.bring-to-front' | 'action.convert-to-bookmark' | 'action.convert-to-embed' | 'action.copy-as-png.short' | 'action.copy-as-png' | 'action.copy-as-svg.short' | 'action.copy-as-svg' | 'action.copy' | 'action.cut' | 'action.delete' | 'action.distribute-horizontal.short' | 'action.distribute-horizontal' | 'action.distribute-vertical.short' | 'action.distribute-vertical' | 'action.download-original' | 'action.duplicate' | 'action.edit-link' | 'action.enhanced-a11y-mode.menu' | 'action.enhanced-a11y-mode' | 'action.exit-pen-mode' | 'action.export-all-as-png.short' | 'action.export-all-as-png' | 'action.export-all-as-svg.short' | 'action.export-all-as-svg' | 'action.export-as-png.short' | 'action.export-as-png' | 'action.export-as-svg.short' | 'action.export-as-svg' | 'action.fit-frame-to-content' | 'action.flatten-to-image' | 'action.flip-horizontal.short' | 'action.flip-horizontal' | 'action.flip-vertical.short' | 'action.flip-vertical' | 'action.fork-project-on-tldraw' | 'action.fork-project' | 'action.group' | 'action.insert-embed' | 'action.insert-media' | 'action.leave-shared-project' | 'action.new-project' | 'action.new-shared-project' | 'action.open-cursor-chat' | 'action.open-embed-link' | 'action.open-file' | 'action.open-kbd-shortcuts' | 'action.pack' | 'action.paste-error-description' | 'action.paste-error-title' | 'action.paste' | 'action.print' | 'action.redo' | 'action.remove-frame' | 'action.rename' | 'action.rotate-ccw' | 'action.rotate-cw' | 'action.save-copy' | 'action.select-all' | 'action.select-none' | 'action.select-zoom-tool' | 'action.send-backward' | 'action.send-to-back' | 'action.share-project' | 'action.stack-horizontal.short' | 'action.stack-horizontal' | 'action.stack-vertical.short' | 'action.stack-vertical' | 'action.stop-following' | 'action.stretch-horizontal.short' | 'action.stretch-horizontal' | 'action.stretch-vertical.short' | 'action.stretch-vertical' | 'action.toggle-auto-none' | 'action.toggle-auto-pan' | 'action.toggle-auto-size' | 'action.toggle-auto-zoom' | 'action.toggle-dark-mode.menu' | 'action.toggle-dark-mode' | 'action.toggle-debug-mode.menu' | 'action.toggle-debug-mode' | 'action.toggle-dynamic-size-mode.menu' | 'action.toggle-dynamic-size-mode' | 'action.toggle-edge-scrolling.menu' | 'action.toggle-edge-scrolling' | 'action.toggle-focus-mode.menu' | 'action.toggle-focus-mode' | 'action.toggle-grid.menu' | 'action.toggle-grid' | 'action.toggle-invert-zoom.menu' | 'action.toggle-invert-zoom' | 'action.toggle-keyboard-shortcuts.menu' | 'action.toggle-keyboard-shortcuts' | 'action.toggle-lock' | 'action.toggle-mouse' | 'action.toggle-paste-at-cursor.menu' | 'action.toggle-paste-at-cursor' | 'action.toggle-reduce-motion.menu' | 'action.toggle-reduce-motion' | 'action.toggle-snap-mode.menu' | 'action.toggle-snap-mode' | 'action.toggle-tool-lock.menu' | 'action.toggle-tool-lock' | 'action.toggle-trackpad' | 'action.toggle-transparent.context-menu' | 'action.toggle-transparent.menu' | 'action.toggle-transparent' | 'action.toggle-wrap-mode.menu' | 'action.toggle-wrap-mode' | 'action.undo' | 'action.ungroup' | 'action.unlock-all' | 'action.zoom-in' | 'action.zoom-out' | 'action.zoom-quick' | 'action.zoom-to-100' | 'action.zoom-to-fit' | 'action.zoom-to-selection' | 'actions-menu.title' | 'align-style.end' | 'align-style.justify' | 'align-style.middle' | 'align-style.start' | 'app.loading' | 'arrow-kind-style.arc' | 'arrow-kind-style.elbow' | 'arrowheadEnd-style.arrow' | 'arrowheadEnd-style.bar' | 'arrowheadEnd-style.diamond' | 'arrowheadEnd-style.dot' | 'arrowheadEnd-style.inverted' | 'arrowheadEnd-style.none' | 'arrowheadEnd-style.pipe' | 'arrowheadEnd-style.square' | 'arrowheadEnd-style.triangle' | 'arrowheadStart-style.arrow' | 'arrowheadStart-style.bar' | 'arrowheadStart-style.diamond' | 'arrowheadStart-style.dot' | 'arrowheadStart-style.inverted' | 'arrowheadStart-style.none' | 'arrowheadStart-style.pipe' | 'arrowheadStart-style.square' | 'arrowheadStart-style.triangle' | 'assets.files.amount-too-many' | 'assets.files.maximum-size' | 'assets.files.size-too-big' | 'assets.files.type-not-allowed' | 'assets.files.upload-failed' | 'assets.url.failed' | 'color-style.black' | 'color-style.blue' | 'color-style.green' | 'color-style.grey' | 'color-style.light-blue' | 'color-style.light-green' | 'color-style.light-red' | 'color-style.light-violet' | 'color-style.orange' | 'color-style.red' | 'color-style.violet' | 'color-style.white' | 'color-style.yellow' | 'context-menu.arrange' | 'context-menu.copy-as' | 'context-menu.edit' | 'context-menu.export-all-as' | 'context-menu.export-as' | 'context-menu.move-to-page' | 'context-menu.reorder' | 'context-menu.title' | 'context.pages.new-page' | 'cursor-chat.type-to-chat' | 'dash-style.dashed' | 'dash-style.dotted' | 'dash-style.draw' | 'dash-style.solid' | 'document-name-menu.copy-link' | 'document.default-name' | 'edit-link-dialog.cancel' | 'edit-link-dialog.clear' | 'edit-link-dialog.detail' | 'edit-link-dialog.external-link' | 'edit-link-dialog.invalid-url' | 'edit-link-dialog.save' | 'edit-link-dialog.title' | 'edit-link-dialog.url' | 'embed-dialog.back' | 'embed-dialog.cancel' | 'embed-dialog.create' | 'embed-dialog.instruction' | 'embed-dialog.invalid-url' | 'embed-dialog.title' | 'embed-dialog.url' | 'file-system.confirm-clear.cancel' | 'file-system.confirm-clear.continue' | 'file-system.confirm-clear.description' | 'file-system.confirm-clear.dont-show-again' | 'file-system.confirm-clear.title' | 'file-system.confirm-open.cancel' | 'file-system.confirm-open.description' | 'file-system.confirm-open.dont-show-again' | 'file-system.confirm-open.open' | 'file-system.confirm-open.title' | 'file-system.file-open-error.file-format-version-too-new' | 'file-system.file-open-error.generic-corrupted-file' | 'file-system.file-open-error.not-a-tldraw-file' | 'file-system.file-open-error.title' | 'file-system.shared-document-file-open-error.description' | 'file-system.shared-document-file-open-error.title' | 'fill-style.fill' | 'fill-style.lined-fill' | 'fill-style.none' | 'fill-style.pattern' | 'fill-style.semi' | 'fill-style.solid' | 'focus-mode.toggle-focus-mode' | 'font-style.draw' | 'font-style.mono' | 'font-style.sans' | 'font-style.serif' | 'geo-style.arrow-down' | 'geo-style.arrow-left' | 'geo-style.arrow-right' | 'geo-style.arrow-up' | 'geo-style.check-box' | 'geo-style.cloud' | 'geo-style.diamond' | 'geo-style.ellipse' | 'geo-style.heart' | 'geo-style.hexagon' | 'geo-style.octagon' | 'geo-style.oval' | 'geo-style.pentagon' | 'geo-style.rectangle' | 'geo-style.rhombus-2' | 'geo-style.rhombus' | 'geo-style.star' | 'geo-style.trapezoid' | 'geo-style.triangle' | 'geo-style.x-box' | 'handle.crop.bottom-left' | 'handle.crop.bottom-right' | 'handle.crop.bottom' | 'handle.crop.left' | 'handle.crop.right' | 'handle.crop.top-left' | 'handle.crop.top-right' | 'handle.crop.top' | 'handle.resize-bottom-left' | 'handle.resize-bottom-right' | 'handle.resize-bottom' | 'handle.resize-left' | 'handle.resize-right' | 'handle.resize-top-left' | 'handle.resize-top-right' | 'handle.resize-top' | 'handle.rotate.bottom_left_rotate' | 'handle.rotate.bottom_right_rotate' | 'handle.rotate.mobile_rotate' | 'handle.rotate.top_left_rotate' | 'handle.rotate.top_right_rotate' | 'help-menu.about' | 'help-menu.discord' | 'help-menu.github' | 'help-menu.import-tldr-file' | 'help-menu.keyboard-shortcuts' | 'help-menu.privacy' | 'help-menu.terms' | 'help-menu.title' | 'help-menu.twitter' | 'menu.accessibility' | 'menu.copy-as' | 'menu.edit' | 'menu.export-as' | 'menu.file' | 'menu.input-device' | 'menu.language' | 'menu.preferences' | 'menu.theme' | 'menu.title' | 'menu.view' | 'navigation-zone.minimap' | 'navigation-zone.title' | 'navigation-zone.toggle-minimap' | 'navigation-zone.zoom' | 'opacity-style.0.1' | 'opacity-style.0.25' | 'opacity-style.0.5' | 'opacity-style.0.75' | 'opacity-style.1' | 'page-menu.create-new-page' | 'page-menu.edit-done' | 'page-menu.edit-start' | 'page-menu.go-to-page' | 'page-menu.max-page-count-reached' | 'page-menu.new-page-initial-name' | 'page-menu.submenu.delete' | 'page-menu.submenu.duplicate-page' | 'page-menu.submenu.move-down' | 'page-menu.submenu.move-up' | 'page-menu.submenu.rename' | 'page-menu.submenu.title' | 'page-menu.title' | 'people-menu.anonymous-user' | 'people-menu.avatar-color' | 'people-menu.change-color' | 'people-menu.change-name' | 'people-menu.follow' | 'people-menu.following' | 'people-menu.invite' | 'people-menu.leading' | 'people-menu.title' | 'people-menu.user' | 'share-menu.copied' | 'share-menu.copy-link-note' | 'share-menu.copy-link' | 'share-menu.copy-readonly-link-note' | 'share-menu.copy-readonly-link' | 'share-menu.create-snapshot-link' | 'share-menu.creating-project' | 'share-menu.fork-note' | 'share-menu.offline-note' | 'share-menu.project-too-large' | 'share-menu.save-note' | 'share-menu.share-project' | 'share-menu.snapshot-link-note' | 'share-menu.title' | 'share-menu.upload-failed' | 'sharing.confirm-leave.cancel' | 'sharing.confirm-leave.description' | 'sharing.confirm-leave.dont-show-again' | 'sharing.confirm-leave.leave' | 'sharing.confirm-leave.title' | 'shortcuts-dialog.a11y' | 'shortcuts-dialog.collaboration' | 'shortcuts-dialog.edit' | 'shortcuts-dialog.file' | 'shortcuts-dialog.preferences' | 'shortcuts-dialog.text-formatting' | 'shortcuts-dialog.title' | 'shortcuts-dialog.tools' | 'shortcuts-dialog.transform' | 'shortcuts-dialog.view' | 'size-style.l' | 'size-style.m' | 'size-style.s' | 'size-style.xl' | 'spline-style.cubic' | 'spline-style.line' | 'status.offline' | 'style-panel.align' | 'style-panel.arrow-kind' | 'style-panel.arrowhead-end' | 'style-panel.arrowhead-start' | 'style-panel.arrowheads' | 'style-panel.color' | 'style-panel.dash' | 'style-panel.fill' | 'style-panel.font' | 'style-panel.geo' | 'style-panel.label-align' | 'style-panel.mixed' | 'style-panel.opacity' | 'style-panel.position' | 'style-panel.selected' | 'style-panel.size' | 'style-panel.spline' | 'style-panel.title' | 'style-panel.vertical-align' | 'theme.dark' | 'theme.light' | 'theme.system' | 'toast.close' | 'toast.error.copy-fail.desc' | 'toast.error.copy-fail.title' | 'toast.error.export-fail.desc' | 'toast.error.export-fail.title' | 'toast.error' | 'toast.info' | 'toast.success' | 'toast.warning' | 'tool-panel.more' | 'tool-panel.title' | 'tool.arrow-down' | 'tool.arrow-left' | 'tool.arrow-right' | 'tool.arrow-up' | 'tool.arrow' | 'tool.aspect-ratio.circle' | 'tool.aspect-ratio.landscape' | 'tool.aspect-ratio.original' | 'tool.aspect-ratio.portrait' | 'tool.aspect-ratio.square' | 'tool.aspect-ratio.wide' | 'tool.aspect-ratio' | 'tool.bookmark' | 'tool.check-box' | 'tool.cloud' | 'tool.diamond' | 'tool.draw' | 'tool.ellipse' | 'tool.embed' | 'tool.eraser' | 'tool.flip-horz' | 'tool.flip-vert' | 'tool.frame' | 'tool.hand' | 'tool.heart' | 'tool.hexagon' | 'tool.highlight' | 'tool.image-crop-confirm' | 'tool.image-crop' | 'tool.image-toolbar-title' | 'tool.image-zoom' | 'tool.laser' | 'tool.line' | 'tool.media-alt-text-confirm' | 'tool.media-alt-text-desc' | 'tool.media-alt-text' | 'tool.media' | 'tool.note' | 'tool.octagon' | 'tool.oval' | 'tool.pentagon' | 'tool.pointer-down' | 'tool.rectangle' | 'tool.replace-media' | 'tool.rhombus' | 'tool.rich-text-bold' | 'tool.rich-text-bulletList' | 'tool.rich-text-code' | 'tool.rich-text-header' | 'tool.rich-text-highlight' | 'tool.rich-text-italic' | 'tool.rich-text-link-remove' | 'tool.rich-text-link-visit' | 'tool.rich-text-link' | 'tool.rich-text-orderedList' | 'tool.rich-text-strikethrough' | 'tool.rich-text-toolbar-title' | 'tool.rotate-cw' | 'tool.select' | 'tool.star' | 'tool.text' | 'tool.trapezoid' | 'tool.triangle' | 'tool.x-box' | 'ui.checked' | 'ui.close' | 'ui.unchecked' | 'verticalAlign-style.end' | 'verticalAlign-style.middle' | 'verticalAlign-style.start' | 'vscode.file-open.backup-failed' | 'vscode.file-open.backup-saved' | 'vscode.file-open.backup' | 'vscode.file-open.desc' | 'vscode.file-open.dont-show-again' | 'vscode.file-open.open';
+export type TLUiTranslationKey = 'a11y.adjust-shape-styles' | 'a11y.enlarge-shape' | 'a11y.enter-leave-container' | 'a11y.move-shape-faster' | 'a11y.move-shape' | 'a11y.multiple-shapes' | 'a11y.open-context-menu' | 'a11y.open-keyboard-shortcuts' | 'a11y.pan-camera' | 'a11y.repeat-shape' | 'a11y.rotate-shape-ccw-fine' | 'a11y.rotate-shape-ccw' | 'a11y.rotate-shape-cw-fine' | 'a11y.rotate-shape-cw' | 'a11y.select-shape-direction' | 'a11y.select-shape' | 'a11y.shape-image' | 'a11y.shape-index' | 'a11y.shape-video' | 'a11y.shrink-shape' | 'a11y.skip-to-main-content' | 'a11y.status' | 'action.align-bottom' | 'action.align-center-horizontal.short' | 'action.align-center-horizontal' | 'action.align-center-vertical.short' | 'action.align-center-vertical' | 'action.align-left' | 'action.align-right' | 'action.align-top' | 'action.back-to-content' | 'action.bring-forward' | 'action.bring-to-front' | 'action.convert-to-bookmark' | 'action.convert-to-embed' | 'action.copy-as-json.short' | 'action.copy-as-json' | 'action.copy-as-png.short' | 'action.copy-as-png' | 'action.copy-as-svg.short' | 'action.copy-as-svg' | 'action.copy' | 'action.cut' | 'action.delete' | 'action.distribute-horizontal.short' | 'action.distribute-horizontal' | 'action.distribute-vertical.short' | 'action.distribute-vertical' | 'action.download-original' | 'action.duplicate' | 'action.edit-link' | 'action.enhanced-a11y-mode.menu' | 'action.enhanced-a11y-mode' | 'action.exit-pen-mode' | 'action.export-all-as-png.short' | 'action.export-all-as-png' | 'action.export-all-as-svg.short' | 'action.export-all-as-svg' | 'action.export-as-png.short' | 'action.export-as-png' | 'action.export-as-svg.short' | 'action.export-as-svg' | 'action.fit-frame-to-content' | 'action.flatten-to-image' | 'action.flip-horizontal.short' | 'action.flip-horizontal' | 'action.flip-vertical.short' | 'action.flip-vertical' | 'action.fork-project-on-tldraw' | 'action.fork-project' | 'action.group' | 'action.insert-embed' | 'action.insert-media' | 'action.leave-shared-project' | 'action.new-project' | 'action.new-shared-project' | 'action.open-cursor-chat' | 'action.open-embed-link' | 'action.open-file' | 'action.open-kbd-shortcuts' | 'action.pack' | 'action.paste-error-description' | 'action.paste-error-title' | 'action.paste' | 'action.print' | 'action.redo' | 'action.remove-frame' | 'action.rename' | 'action.rotate-ccw' | 'action.rotate-cw' | 'action.save-copy' | 'action.select-all' | 'action.select-none' | 'action.select-zoom-tool' | 'action.send-backward' | 'action.send-to-back' | 'action.share-project' | 'action.stack-horizontal.short' | 'action.stack-horizontal' | 'action.stack-vertical.short' | 'action.stack-vertical' | 'action.stop-following' | 'action.stretch-horizontal.short' | 'action.stretch-horizontal' | 'action.stretch-vertical.short' | 'action.stretch-vertical' | 'action.toggle-auto-none' | 'action.toggle-auto-pan' | 'action.toggle-auto-size' | 'action.toggle-auto-zoom' | 'action.toggle-dark-mode.menu' | 'action.toggle-dark-mode' | 'action.toggle-debug-mode.menu' | 'action.toggle-debug-mode' | 'action.toggle-dynamic-size-mode.menu' | 'action.toggle-dynamic-size-mode' | 'action.toggle-edge-scrolling.menu' | 'action.toggle-edge-scrolling' | 'action.toggle-focus-mode.menu' | 'action.toggle-focus-mode' | 'action.toggle-grid.menu' | 'action.toggle-grid' | 'action.toggle-invert-zoom.menu' | 'action.toggle-invert-zoom' | 'action.toggle-keyboard-shortcuts.menu' | 'action.toggle-keyboard-shortcuts' | 'action.toggle-lock' | 'action.toggle-mouse' | 'action.toggle-paste-at-cursor.menu' | 'action.toggle-paste-at-cursor' | 'action.toggle-reduce-motion.menu' | 'action.toggle-reduce-motion' | 'action.toggle-snap-mode.menu' | 'action.toggle-snap-mode' | 'action.toggle-tool-lock.menu' | 'action.toggle-tool-lock' | 'action.toggle-trackpad' | 'action.toggle-transparent.context-menu' | 'action.toggle-transparent.menu' | 'action.toggle-transparent' | 'action.toggle-wrap-mode.menu' | 'action.toggle-wrap-mode' | 'action.undo' | 'action.ungroup' | 'action.unlock-all' | 'action.zoom-in' | 'action.zoom-out' | 'action.zoom-quick' | 'action.zoom-to-100' | 'action.zoom-to-fit' | 'action.zoom-to-selection' | 'actions-menu.title' | 'align-style.end' | 'align-style.justify' | 'align-style.middle' | 'align-style.start' | 'app.loading' | 'arrow-kind-style.arc' | 'arrow-kind-style.elbow' | 'arrowheadEnd-style.arrow' | 'arrowheadEnd-style.bar' | 'arrowheadEnd-style.diamond' | 'arrowheadEnd-style.dot' | 'arrowheadEnd-style.inverted' | 'arrowheadEnd-style.none' | 'arrowheadEnd-style.pipe' | 'arrowheadEnd-style.square' | 'arrowheadEnd-style.triangle' | 'arrowheadStart-style.arrow' | 'arrowheadStart-style.bar' | 'arrowheadStart-style.diamond' | 'arrowheadStart-style.dot' | 'arrowheadStart-style.inverted' | 'arrowheadStart-style.none' | 'arrowheadStart-style.pipe' | 'arrowheadStart-style.square' | 'arrowheadStart-style.triangle' | 'assets.files.amount-too-many' | 'assets.files.maximum-size' | 'assets.files.size-too-big' | 'assets.files.type-not-allowed' | 'assets.files.upload-failed' | 'assets.url.failed' | 'color-style.black' | 'color-style.blue' | 'color-style.green' | 'color-style.grey' | 'color-style.light-blue' | 'color-style.light-green' | 'color-style.light-red' | 'color-style.light-violet' | 'color-style.orange' | 'color-style.red' | 'color-style.violet' | 'color-style.white' | 'color-style.yellow' | 'context-menu.arrange' | 'context-menu.copy-as' | 'context-menu.edit' | 'context-menu.export-all-as' | 'context-menu.export-as' | 'context-menu.move-to-page' | 'context-menu.reorder' | 'context-menu.title' | 'context.pages.new-page' | 'cursor-chat.type-to-chat' | 'dash-style.dashed' | 'dash-style.dotted' | 'dash-style.draw' | 'dash-style.solid' | 'document-name-menu.copy-link' | 'document.default-name' | 'edit-link-dialog.cancel' | 'edit-link-dialog.clear' | 'edit-link-dialog.detail' | 'edit-link-dialog.external-link' | 'edit-link-dialog.invalid-url' | 'edit-link-dialog.save' | 'edit-link-dialog.title' | 'edit-link-dialog.url' | 'embed-dialog.back' | 'embed-dialog.cancel' | 'embed-dialog.create' | 'embed-dialog.instruction' | 'embed-dialog.invalid-url' | 'embed-dialog.title' | 'embed-dialog.url' | 'file-system.confirm-clear.cancel' | 'file-system.confirm-clear.continue' | 'file-system.confirm-clear.description' | 'file-system.confirm-clear.dont-show-again' | 'file-system.confirm-clear.title' | 'file-system.confirm-open.cancel' | 'file-system.confirm-open.description' | 'file-system.confirm-open.dont-show-again' | 'file-system.confirm-open.open' | 'file-system.confirm-open.title' | 'file-system.file-open-error.file-format-version-too-new' | 'file-system.file-open-error.generic-corrupted-file' | 'file-system.file-open-error.not-a-tldraw-file' | 'file-system.file-open-error.title' | 'file-system.shared-document-file-open-error.description' | 'file-system.shared-document-file-open-error.title' | 'fill-style.fill' | 'fill-style.lined-fill' | 'fill-style.none' | 'fill-style.pattern' | 'fill-style.semi' | 'fill-style.solid' | 'focus-mode.toggle-focus-mode' | 'font-style.draw' | 'font-style.mono' | 'font-style.sans' | 'font-style.serif' | 'geo-style.arrow-down' | 'geo-style.arrow-left' | 'geo-style.arrow-right' | 'geo-style.arrow-up' | 'geo-style.check-box' | 'geo-style.cloud' | 'geo-style.diamond' | 'geo-style.ellipse' | 'geo-style.heart' | 'geo-style.hexagon' | 'geo-style.octagon' | 'geo-style.oval' | 'geo-style.pentagon' | 'geo-style.rectangle' | 'geo-style.rhombus-2' | 'geo-style.rhombus' | 'geo-style.star' | 'geo-style.trapezoid' | 'geo-style.triangle' | 'geo-style.x-box' | 'handle.crop.bottom-left' | 'handle.crop.bottom-right' | 'handle.crop.bottom' | 'handle.crop.left' | 'handle.crop.right' | 'handle.crop.top-left' | 'handle.crop.top-right' | 'handle.crop.top' | 'handle.resize-bottom-left' | 'handle.resize-bottom-right' | 'handle.resize-bottom' | 'handle.resize-left' | 'handle.resize-right' | 'handle.resize-top-left' | 'handle.resize-top-right' | 'handle.resize-top' | 'handle.rotate.bottom_left_rotate' | 'handle.rotate.bottom_right_rotate' | 'handle.rotate.mobile_rotate' | 'handle.rotate.top_left_rotate' | 'handle.rotate.top_right_rotate' | 'help-menu.about' | 'help-menu.discord' | 'help-menu.github' | 'help-menu.import-tldr-file' | 'help-menu.keyboard-shortcuts' | 'help-menu.privacy' | 'help-menu.terms' | 'help-menu.title' | 'help-menu.twitter' | 'menu.accessibility' | 'menu.copy-as' | 'menu.edit' | 'menu.export-as' | 'menu.file' | 'menu.input-device' | 'menu.language' | 'menu.preferences' | 'menu.theme' | 'menu.title' | 'menu.view' | 'navigation-zone.minimap' | 'navigation-zone.title' | 'navigation-zone.toggle-minimap' | 'navigation-zone.zoom' | 'opacity-style.0.1' | 'opacity-style.0.25' | 'opacity-style.0.5' | 'opacity-style.0.75' | 'opacity-style.1' | 'page-menu.create-new-page' | 'page-menu.edit-done' | 'page-menu.edit-start' | 'page-menu.go-to-page' | 'page-menu.max-page-count-reached' | 'page-menu.new-page-initial-name' | 'page-menu.submenu.delete' | 'page-menu.submenu.duplicate-page' | 'page-menu.submenu.move-down' | 'page-menu.submenu.move-up' | 'page-menu.submenu.rename' | 'page-menu.submenu.title' | 'page-menu.title' | 'people-menu.anonymous-user' | 'people-menu.avatar-color' | 'people-menu.change-color' | 'people-menu.change-name' | 'people-menu.follow' | 'people-menu.following' | 'people-menu.invite' | 'people-menu.leading' | 'people-menu.title' | 'people-menu.user' | 'share-menu.copied' | 'share-menu.copy-link-note' | 'share-menu.copy-link' | 'share-menu.copy-readonly-link-note' | 'share-menu.copy-readonly-link' | 'share-menu.create-snapshot-link' | 'share-menu.creating-project' | 'share-menu.fork-note' | 'share-menu.offline-note' | 'share-menu.project-too-large' | 'share-menu.save-note' | 'share-menu.share-project' | 'share-menu.snapshot-link-note' | 'share-menu.title' | 'share-menu.upload-failed' | 'sharing.confirm-leave.cancel' | 'sharing.confirm-leave.description' | 'sharing.confirm-leave.dont-show-again' | 'sharing.confirm-leave.leave' | 'sharing.confirm-leave.title' | 'shortcuts-dialog.a11y' | 'shortcuts-dialog.collaboration' | 'shortcuts-dialog.edit' | 'shortcuts-dialog.file' | 'shortcuts-dialog.preferences' | 'shortcuts-dialog.text-formatting' | 'shortcuts-dialog.title' | 'shortcuts-dialog.tools' | 'shortcuts-dialog.transform' | 'shortcuts-dialog.view' | 'size-style.l' | 'size-style.m' | 'size-style.s' | 'size-style.xl' | 'spline-style.cubic' | 'spline-style.line' | 'status.offline' | 'style-panel.align' | 'style-panel.arrow-kind' | 'style-panel.arrowhead-end' | 'style-panel.arrowhead-start' | 'style-panel.arrowheads' | 'style-panel.color' | 'style-panel.dash' | 'style-panel.fill' | 'style-panel.font' | 'style-panel.geo' | 'style-panel.label-align' | 'style-panel.mixed' | 'style-panel.opacity' | 'style-panel.position' | 'style-panel.selected' | 'style-panel.size' | 'style-panel.spline' | 'style-panel.title' | 'style-panel.vertical-align' | 'theme.dark' | 'theme.light' | 'theme.system' | 'toast.close' | 'toast.error.copy-fail.desc' | 'toast.error.copy-fail.title' | 'toast.error.export-fail.desc' | 'toast.error.export-fail.title' | 'toast.error' | 'toast.info' | 'toast.success' | 'toast.warning' | 'tool-panel.more' | 'tool-panel.title' | 'tool.arrow-down' | 'tool.arrow-left' | 'tool.arrow-right' | 'tool.arrow-up' | 'tool.arrow' | 'tool.aspect-ratio.circle' | 'tool.aspect-ratio.landscape' | 'tool.aspect-ratio.original' | 'tool.aspect-ratio.portrait' | 'tool.aspect-ratio.square' | 'tool.aspect-ratio.wide' | 'tool.aspect-ratio' | 'tool.bookmark' | 'tool.check-box' | 'tool.cloud' | 'tool.diamond' | 'tool.draw' | 'tool.ellipse' | 'tool.embed' | 'tool.eraser' | 'tool.flip-horz' | 'tool.flip-vert' | 'tool.frame' | 'tool.hand' | 'tool.heart' | 'tool.hexagon' | 'tool.highlight' | 'tool.image-crop-confirm' | 'tool.image-crop' | 'tool.image-toolbar-title' | 'tool.image-zoom' | 'tool.laser' | 'tool.line' | 'tool.media-alt-text-confirm' | 'tool.media-alt-text-desc' | 'tool.media-alt-text' | 'tool.media' | 'tool.note' | 'tool.octagon' | 'tool.oval' | 'tool.pentagon' | 'tool.pointer-down' | 'tool.rectangle' | 'tool.replace-media' | 'tool.rhombus' | 'tool.rich-text-bold' | 'tool.rich-text-bulletList' | 'tool.rich-text-code' | 'tool.rich-text-header' | 'tool.rich-text-highlight' | 'tool.rich-text-italic' | 'tool.rich-text-link-remove' | 'tool.rich-text-link-visit' | 'tool.rich-text-link' | 'tool.rich-text-orderedList' | 'tool.rich-text-strikethrough' | 'tool.rich-text-toolbar-title' | 'tool.rotate-cw' | 'tool.select' | 'tool.star' | 'tool.text' | 'tool.trapezoid' | 'tool.triangle' | 'tool.x-box' | 'ui.checked' | 'ui.close' | 'ui.unchecked' | 'verticalAlign-style.end' | 'verticalAlign-style.middle' | 'verticalAlign-style.start' | 'vscode.file-open.backup-failed' | 'vscode.file-open.backup-saved' | 'vscode.file-open.backup' | 'vscode.file-open.desc' | 'vscode.file-open.dont-show-again' | 'vscode.file-open.open';
 
 // @public (undocumented)
 export interface TLUiTranslationProviderProps {
@@ -4933,16 +4968,15 @@ export interface TLUiZoomMenuProps {
 }
 
 // @internal (undocumented)
-export enum TLV1AlignStyle {
-    // (undocumented)
-    End = "end",
-    // (undocumented)
-    Justify = "justify",
-    // (undocumented)
-    Middle = "middle",
-    // (undocumented)
-    Start = "start"
-}
+export const TLV1AlignStyle: {
+    readonly End: "end";
+    readonly Justify: "justify";
+    readonly Middle: "middle";
+    readonly Start: "start";
+};
+
+// @internal (undocumented)
+export type TLV1AlignStyle = (typeof TLV1AlignStyle)[keyof typeof TLV1AlignStyle];
 
 // @internal (undocumented)
 export interface TLV1ArrowBinding extends TLV1BaseBinding {
@@ -4975,19 +5009,20 @@ export interface TLV1ArrowShape extends TLV1BaseShape {
     // (undocumented)
     labelPoint?: number[];
     // (undocumented)
-    type: TLV1ShapeType.Arrow;
+    type: typeof TLV1ShapeType.Arrow;
 }
 
 // @internal (undocumented)
 export type TLV1Asset = TLV1ImageAsset | TLV1VideoAsset;
 
 // @internal (undocumented)
-export enum TLV1AssetType {
-    // (undocumented)
-    Image = "image",
-    // (undocumented)
-    Video = "video"
-}
+export const TLV1AssetType: {
+    readonly Image: "image";
+    readonly Video: "video";
+};
+
+// @internal (undocumented)
+export type TLV1AssetType = (typeof TLV1AssetType)[keyof typeof TLV1AssetType];
 
 // @internal (undocumented)
 export interface TLV1BaseAsset {
@@ -5067,50 +5102,42 @@ export interface TLV1Bounds {
 }
 
 // @internal (undocumented)
-export enum TLV1ColorStyle {
-    // (undocumented)
-    Black = "black",
-    // (undocumented)
-    Blue = "blue",
-    // (undocumented)
-    Cyan = "cyan",
-    // (undocumented)
-    Gray = "gray",
-    // (undocumented)
-    Green = "green",
-    // (undocumented)
-    Indigo = "indigo",
-    // (undocumented)
-    LightGray = "lightGray",
-    // (undocumented)
-    Orange = "orange",
-    // (undocumented)
-    Red = "red",
-    // (undocumented)
-    Violet = "violet",
-    // (undocumented)
-    White = "white",
-    // (undocumented)
-    Yellow = "yellow"
-}
+export const TLV1ColorStyle: {
+    readonly Black: "black";
+    readonly Blue: "blue";
+    readonly Cyan: "cyan";
+    readonly Gray: "gray";
+    readonly Green: "green";
+    readonly Indigo: "indigo";
+    readonly LightGray: "lightGray";
+    readonly Orange: "orange";
+    readonly Red: "red";
+    readonly Violet: "violet";
+    readonly White: "white";
+    readonly Yellow: "yellow";
+};
 
 // @internal (undocumented)
-export enum TLV1DashStyle {
-    // (undocumented)
-    Dashed = "dashed",
-    // (undocumented)
-    Dotted = "dotted",
-    // (undocumented)
-    Draw = "draw",
-    // (undocumented)
-    Solid = "solid"
-}
+export type TLV1ColorStyle = (typeof TLV1ColorStyle)[keyof typeof TLV1ColorStyle];
 
 // @internal (undocumented)
-export enum TLV1Decoration {
-    // (undocumented)
-    Arrow = "arrow"
-}
+export const TLV1DashStyle: {
+    readonly Dashed: "dashed";
+    readonly Dotted: "dotted";
+    readonly Draw: "draw";
+    readonly Solid: "solid";
+};
+
+// @internal (undocumented)
+export type TLV1DashStyle = (typeof TLV1DashStyle)[keyof typeof TLV1DashStyle];
+
+// @internal (undocumented)
+export const TLV1Decoration: {
+    readonly Arrow: "arrow";
+};
+
+// @internal (undocumented)
+export type TLV1Decoration = (typeof TLV1Decoration)[keyof typeof TLV1Decoration];
 
 // @internal (undocumented)
 export interface TLV1Document {
@@ -5135,7 +5162,7 @@ export interface TLV1DrawShape extends TLV1BaseShape {
     // (undocumented)
     points: number[][];
     // (undocumented)
-    type: TLV1ShapeType.Draw;
+    type: typeof TLV1ShapeType.Draw;
 }
 
 // @internal (undocumented)
@@ -5147,20 +5174,19 @@ export interface TLV1EllipseShape extends TLV1BaseShape {
     // (undocumented)
     radius: number[];
     // (undocumented)
-    type: TLV1ShapeType.Ellipse;
+    type: typeof TLV1ShapeType.Ellipse;
 }
 
 // @internal (undocumented)
-export enum TLV1FontStyle {
-    // (undocumented)
-    Mono = "mono",
-    // (undocumented)
-    Sans = "sans",
-    // (undocumented)
-    Script = "script",
-    // (undocumented)
-    Serif = "serif"
-}
+export const TLV1FontStyle: {
+    readonly Mono: "mono";
+    readonly Sans: "sans";
+    readonly Script: "script";
+    readonly Serif: "serif";
+};
+
+// @internal (undocumented)
+export type TLV1FontStyle = (typeof TLV1FontStyle)[keyof typeof TLV1FontStyle];
 
 // @internal (undocumented)
 export interface TLV1GroupShape extends TLV1BaseShape {
@@ -5169,7 +5195,7 @@ export interface TLV1GroupShape extends TLV1BaseShape {
     // (undocumented)
     size: number[];
     // (undocumented)
-    type: TLV1ShapeType.Group;
+    type: typeof TLV1ShapeType.Group;
 }
 
 // @internal (undocumented)
@@ -5195,7 +5221,7 @@ export interface TLV1ImageAsset extends TLV1BaseAsset {
     // (undocumented)
     src: string;
     // (undocumented)
-    type: TLV1AssetType.Image;
+    type: typeof TLV1AssetType.Image;
 }
 
 // @internal (undocumented)
@@ -5205,7 +5231,7 @@ export interface TLV1ImageShape extends TLV1BaseShape {
     // (undocumented)
     size: number[];
     // (undocumented)
-    type: TLV1ShapeType.Image;
+    type: typeof TLV1ShapeType.Image;
 }
 
 // @internal (undocumented)
@@ -5254,7 +5280,7 @@ export interface TLV1RectangleShape extends TLV1BaseShape {
     // (undocumented)
     size: number[];
     // (undocumented)
-    type: TLV1ShapeType.Rectangle;
+    type: typeof TLV1ShapeType.Rectangle;
 }
 
 // @internal (undocumented)
@@ -5279,38 +5305,31 @@ export interface TLV1ShapeStyles {
 }
 
 // @internal (undocumented)
-export enum TLV1ShapeType {
-    // (undocumented)
-    Arrow = "arrow",
-    // (undocumented)
-    Draw = "draw",
-    // (undocumented)
-    Ellipse = "ellipse",
-    // (undocumented)
-    Group = "group",
-    // (undocumented)
-    Image = "image",
-    // (undocumented)
-    Rectangle = "rectangle",
-    // (undocumented)
-    Sticky = "sticky",
-    // (undocumented)
-    Text = "text",
-    // (undocumented)
-    Triangle = "triangle",
-    // (undocumented)
-    Video = "video"
-}
+export const TLV1ShapeType: {
+    readonly Arrow: "arrow";
+    readonly Draw: "draw";
+    readonly Ellipse: "ellipse";
+    readonly Group: "group";
+    readonly Image: "image";
+    readonly Rectangle: "rectangle";
+    readonly Sticky: "sticky";
+    readonly Text: "text";
+    readonly Triangle: "triangle";
+    readonly Video: "video";
+};
 
 // @internal (undocumented)
-export enum TLV1SizeStyle {
-    // (undocumented)
-    Large = "large",
-    // (undocumented)
-    Medium = "medium",
-    // (undocumented)
-    Small = "small"
-}
+export type TLV1ShapeType = (typeof TLV1ShapeType)[keyof typeof TLV1ShapeType];
+
+// @internal (undocumented)
+export const TLV1SizeStyle: {
+    readonly Large: "large";
+    readonly Medium: "medium";
+    readonly Small: "small";
+};
+
+// @internal (undocumented)
+export type TLV1SizeStyle = (typeof TLV1SizeStyle)[keyof typeof TLV1SizeStyle];
 
 // @internal (undocumented)
 export interface TLV1StickyShape extends TLV1BaseShape {
@@ -5319,7 +5338,7 @@ export interface TLV1StickyShape extends TLV1BaseShape {
     // (undocumented)
     text: string;
     // (undocumented)
-    type: TLV1ShapeType.Sticky;
+    type: typeof TLV1ShapeType.Sticky;
 }
 
 // @internal (undocumented)
@@ -5327,7 +5346,7 @@ export interface TLV1TextShape extends TLV1BaseShape {
     // (undocumented)
     text: string;
     // (undocumented)
-    type: TLV1ShapeType.Text;
+    type: typeof TLV1ShapeType.Text;
 }
 
 // @internal (undocumented)
@@ -5339,7 +5358,7 @@ export interface TLV1TriangleShape extends TLV1BaseShape {
     // (undocumented)
     size: number[];
     // (undocumented)
-    type: TLV1ShapeType.Triangle;
+    type: typeof TLV1ShapeType.Triangle;
 }
 
 // @internal (undocumented)
@@ -5351,7 +5370,7 @@ export interface TLV1VideoAsset extends TLV1BaseAsset {
     // (undocumented)
     src: string;
     // (undocumented)
-    type: TLV1AssetType.Video;
+    type: typeof TLV1AssetType.Video;
 }
 
 // @internal (undocumented)
@@ -5365,7 +5384,7 @@ export interface TLV1VideoShape extends TLV1BaseShape {
     // (undocumented)
     size: number[];
     // (undocumented)
-    type: TLV1ShapeType.Video;
+    type: typeof TLV1ShapeType.Video;
 }
 
 // @public (undocumented)
@@ -5556,6 +5575,9 @@ export function useDefaultHelpers(): {
 
 // @public (undocumented)
 export function useDialogs(): TLUiDialogsContextType;
+
+// @public
+export function useDirection(): "ltr" | "rtl";
 
 // @public (undocumented)
 export function useEditablePlainText(shapeId: TLShapeId, type: ExtractShapeByProps<{

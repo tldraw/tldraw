@@ -147,8 +147,10 @@ export async function defaultHandleExternalFileAsset(
 	const isSuccess = notifyIfFileNotAllowed(file, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
-	const assetInfo = await getAssetInfo(file, options, assetId)
-	const result = await editor.uploadAsset(assetInfo, file)
+	const sanitizedFile = await maybeSanitizeSvgFile(file)
+	if (!sanitizedFile) assert(false, 'SVG file contained no safe content')
+	const assetInfo = await getAssetInfo(sanitizedFile, options, assetId)
+	const result = await editor.uploadAsset(assetInfo, sanitizedFile)
 	assetInfo.props.src = result.src
 	if (result.meta) assetInfo.meta = { ...assetInfo.meta, ...result.meta }
 
@@ -164,17 +166,21 @@ export async function defaultHandleExternalFileReplaceContent(
 	const isSuccess = notifyIfFileNotAllowed(file, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
+	const sanitizedFile = await maybeSanitizeSvgFile(file)
+	if (!sanitizedFile) return
 	const shape = editor.getShape(shapeId)
 	if (!shape) assert(false, 'Shape not found')
 
-	const hash = getHashForBuffer(await file.arrayBuffer())
+	const hash = getHashForBuffer(await sanitizedFile.arrayBuffer())
 	const assetId = AssetRecordType.createId(hash)
-	editor.createTemporaryAssetPreview(assetId, file)
+	editor.createTemporaryAssetPreview(assetId, sanitizedFile)
 	const assetInfoPartial = await getMediaAssetInfoPartial(
-		file,
+		sanitizedFile,
 		assetId,
 		isImage /* isImage */,
-		!isImage /* isVideo */
+		!isImage /* isVideo */,
+		undefined,
+		editor.getContainerDocument()
 	)
 	editor.createAssets([assetInfoPartial])
 
@@ -235,7 +241,7 @@ export async function defaultHandleExternalFileReplaceContent(
 
 	const asset = (await editor.getAssetForExternalContent({
 		type: 'file',
-		file,
+		file: sanitizedFile,
 		assetId,
 	})) as TLAsset
 
@@ -305,6 +311,10 @@ export async function defaultHandleExternalSvgTextContent(
 	editor: Editor,
 	{ point, text }: { point?: VecLike; text: string }
 ) {
+	const { sanitizeSvg } = await import('./utils/svg/sanitizeSvg')
+	text = sanitizeSvg(text)
+	if (!text) return
+
 	const position =
 		point ??
 		(editor.inputs.getShiftKey()
@@ -320,9 +330,10 @@ export async function defaultHandleExternalSvgTextContent(
 	let height = parseFloat(svg.getAttribute('height') || '0')
 
 	if (!(width && height)) {
-		document.body.appendChild(svg)
+		const doc = editor.getContainerDocument()
+		doc.body.appendChild(svg)
 		const box = svg.getBoundingClientRect()
-		document.body.removeChild(svg)
+		doc.body.removeChild(svg)
 
 		width = box.width
 		height = box.height
@@ -402,12 +413,20 @@ export async function defaultHandleExternalFileContent(
 		const isSuccess = notifyIfFileNotAllowed(file, options)
 		if (!isSuccess) continue
 
-		const assetInfo = await getAssetInfo(file, options)
-		if (acceptedImageMimeTypes.includes(file.type)) {
-			editor.createTemporaryAssetPreview(assetInfo.id, file)
+		const sanitizedFile = await maybeSanitizeSvgFile(file)
+		if (!sanitizedFile) {
+			toasts.addToast({
+				title: msg('assets.files.upload-failed'),
+				severity: 'error',
+			})
+			continue
+		}
+		const assetInfo = await getAssetInfo(sanitizedFile, options)
+		if (acceptedImageMimeTypes.includes(sanitizedFile.type)) {
+			editor.createTemporaryAssetPreview(assetInfo.id, sanitizedFile)
 		}
 		assetPartials.push(assetInfo)
-		assetsToUpdate.push({ asset: assetInfo, file })
+		assetsToUpdate.push({ asset: assetInfo, file: sanitizedFile })
 	}
 
 	Promise.allSettled(
@@ -635,7 +654,8 @@ export async function getMediaAssetInfoPartial(
 	assetId: TLAssetId,
 	isImageType: boolean,
 	isVideoType: boolean,
-	maxImageDimension?: number
+	maxImageDimension?: number,
+	doc?: Document
 ) {
 	let fileType = file.type
 
@@ -645,10 +665,12 @@ export async function getMediaAssetInfoPartial(
 	}
 
 	const size = isImageType
-		? await MediaHelpers.getImageSize(file)
-		: await MediaHelpers.getVideoSize(file)
+		? await MediaHelpers.getImageSize(file, doc)
+		: await MediaHelpers.getVideoSize(file, doc)
 
 	const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
+
+	const pixelRatio = 'pixelRatio' in size && size.pixelRatio !== 1 ? size.pixelRatio : undefined
 
 	const assetInfo = {
 		id: assetId,
@@ -662,6 +684,7 @@ export async function getMediaAssetInfoPartial(
 			fileSize: file.size,
 			mimeType: fileType,
 			isAnimated,
+			...(isImageType && pixelRatio ? { pixelRatio } : undefined),
 		},
 		meta: {},
 	} as TLImageAsset | TLVideoAsset
@@ -845,6 +868,19 @@ export function createEmptyBookmarkShape(
 	})
 
 	return editor.getShape(partial.id) as TLBookmarkShape
+}
+
+async function maybeSanitizeSvgFile(file: File): Promise<File | null> {
+	if (file.type !== 'image/svg+xml') return file
+	try {
+		const text = await file.text()
+		const { sanitizeSvg } = await import('./utils/svg/sanitizeSvg')
+		const sanitized = sanitizeSvg(text)
+		if (!sanitized) return null
+		return new File([sanitized], file.name, { type: file.type, lastModified: file.lastModified })
+	} catch {
+		return null
+	}
 }
 
 /**

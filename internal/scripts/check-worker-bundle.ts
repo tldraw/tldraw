@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, rmSync } from 'fs'
+import { resolve } from 'path'
 import kleur from 'kleur'
 import minimist from 'minimist'
-import { resolve } from 'path'
 import { exec } from './lib/exec'
 
 const args = minimist(process.argv.slice(2))
@@ -45,6 +45,7 @@ const EXTERNAL_DEPS = [
 	'node:path',
 	'node:process',
 	'node:os',
+	'node:timers',
 	'node:util',
 ]
 

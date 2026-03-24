@@ -23,7 +23,6 @@ import {
 	getLocalSessionState,
 	updateLocalSessionState,
 } from '../../../utils/local-session-state'
-import { TlaButton } from '../../TlaButton/TlaButton'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
@@ -32,6 +31,7 @@ import {
 	TlaMenuSelect,
 	TlaMenuSwitch,
 } from '../../tla-menu/tla-menu'
+import { TlaButton } from '../../TlaButton/TlaButton'
 import styles from '../file-share-menu.module.css'
 
 export function TlaExportTab() {
@@ -230,7 +230,7 @@ function ExportImageButton() {
 		}
 
 		const opts = {
-			padding: exportPadding ? editor.options.defaultSvgPadding : 0,
+			padding: exportPadding ? editor.options.defaultSvgPadding : ('auto' as const),
 			background: exportBackground,
 			darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
 			format: exportFormat as TLExportType,
@@ -346,7 +346,7 @@ async function getEditorImage(
 	const result = await editor.toImage(shapes, {
 		scale,
 		format: 'png',
-		padding: exportPadding ? editor.options.defaultSvgPadding : 0,
+		padding: exportPadding ? editor.options.defaultSvgPadding : ('auto' as const),
 		background: exportBackground,
 		darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
 	})

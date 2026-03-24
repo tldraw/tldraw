@@ -17,7 +17,6 @@ import {
 	rng,
 	useValue,
 } from '@tldraw/editor'
-
 import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
 import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
@@ -206,12 +205,14 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>) {
-		const { scaleX, scaleY } = info
+		const newScaleX = info.scaleX * shape.props.scaleX
+		const newScaleY = info.scaleY * shape.props.scaleY
+		if (newScaleX === 0 || newScaleY === 0) return
 
 		return {
 			props: {
-				scaleX: scaleX * shape.props.scaleX,
-				scaleY: scaleY * shape.props.scaleY,
+				scaleX: newScaleX,
+				scaleY: newScaleY,
 			},
 		}
 	}
