@@ -11,6 +11,7 @@ export function SvgUploader({ onSvgLoaded }: SvgUploaderProps) {
 
 	const handleFile = useCallback(
 		(file: File) => {
+			console.log('[SvgUploader] handleFile called', file.name)
 			if (!file.name.endsWith('.svg') && file.type !== 'image/svg+xml') {
 				alert('Please upload an SVG file')
 				return
@@ -18,6 +19,7 @@ export function SvgUploader({ onSvgLoaded }: SvgUploaderProps) {
 			const reader = new FileReader()
 			reader.onload = (e) => {
 				const text = e.target?.result as string
+				console.log('[SvgUploader] FileReader done, length:', text.length)
 				setFileName(file.name)
 				onSvgLoaded(text)
 			}
@@ -40,6 +42,8 @@ export function SvgUploader({ onSvgLoaded }: SvgUploaderProps) {
 		(e: React.ChangeEvent<HTMLInputElement>) => {
 			const file = e.target.files?.[0]
 			if (file) handleFile(file)
+			// Reset so re-uploading the same file triggers onChange again
+			e.target.value = ''
 		},
 		[handleFile]
 	)

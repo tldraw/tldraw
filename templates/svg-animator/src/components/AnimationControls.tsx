@@ -9,6 +9,8 @@ interface AnimationControlsProps {
 	onStop: () => void
 	isAnimating: boolean
 	hasFillPaths: boolean
+	showOriginalOnComplete: boolean
+	onShowOriginalOnCompleteChange: (value: boolean) => void
 }
 
 export function AnimationControls({
@@ -20,6 +22,8 @@ export function AnimationControls({
 	onStop,
 	isAnimating,
 	hasFillPaths,
+	showOriginalOnComplete,
+	onShowOriginalOnCompleteChange,
 }: AnimationControlsProps) {
 	return (
 		<div className="panel-section">
@@ -46,6 +50,15 @@ export function AnimationControls({
 						</option>
 					))}
 				</select>
+			</label>
+
+			<label className="checkbox-label">
+				<input
+					type="checkbox"
+					checked={showOriginalOnComplete}
+					onChange={(e) => onShowOriginalOnCompleteChange(e.target.checked)}
+				/>
+				Show original SVG on complete
 			</label>
 
 			<div className="button-row">

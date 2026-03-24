@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { b64Vecs, createShapeId, Editor, Tldraw } from 'tldraw'
+import { AssetRecordType, b64Vecs, createShapeId, Editor, Tldraw } from 'tldraw'
 import { AnimationControls } from './components/AnimationControls'
 import { FillControls } from './components/FillControls'
 import { SvgUploader } from './components/SvgUploader'
@@ -23,6 +23,7 @@ import { PressureOptions } from './lib/path-animator/types'
 // Shape IDs we track for cleanup
 const OUTLINE_PREFIX = 'outline-'
 const FILL_PREFIX = 'fill-'
+const ORIGINAL_SVG_ID = 'original-svg'
 
 const TLDRAW_COLORS = [
 	'black',
@@ -54,6 +55,29 @@ function pathCentroid(points: { x: number; y: number }[]) {
 	return { x: cx / n, y: cy / n }
 }
 
+/** Parse SVG dimensions from viewBox or width/height attributes */
+function getSvgDimensions(svgString: string) {
+	const parser = new DOMParser()
+	const doc = parser.parseFromString(svgString, 'image/svg+xml')
+	const svg = doc.querySelector('svg')
+	if (!svg) return null
+
+	const viewBox = svg.getAttribute('viewBox')
+	if (viewBox) {
+		const parts = viewBox
+			.trim()
+			.split(/[\s,]+/)
+			.map(Number)
+		return { x: parts[0] || 0, y: parts[1] || 0, w: parts[2] || 0, h: parts[3] || 0 }
+	}
+
+	const w = parseFloat(svg.getAttribute('width') || '0')
+	const h = parseFloat(svg.getAttribute('height') || '0')
+	if (w > 0 && h > 0) return { x: 0, y: 0, w, h }
+
+	return null
+}
+
 /** Compute bounding box for an array of points */
 function pointsBounds(points: { x: number; y: number }[]) {
 	let minX = Infinity,
@@ -77,6 +101,8 @@ function App() {
 	const animationRef = useRef<{ stop: () => void } | null>(null)
 	const [fillColor, setFillColor] = useState<TldrawColor>('red')
 	const [outlineColor, setOutlineColor] = useState<TldrawColor | 'transparent'>('black')
+	const [showOriginalOnComplete, setShowOriginalOnComplete] = useState(false)
+	const originalSvgRef = useRef<string>('')
 
 	const handleMount = useCallback((editor: Editor) => {
 		editorRef.current = editor
@@ -246,6 +272,7 @@ function App() {
 
 	const handleSvgLoaded = useCallback(
 		(svgString: string) => {
+			originalSvgRef.current = svgString
 			const polys = parseSvg(svgString)
 			clearCanvasShapes()
 			setPolygons(polys)
@@ -286,53 +313,131 @@ function App() {
 		drawFillPaths(results)
 	}, [polygons, fillOptions, drawFillPaths])
 
-	const handleAnimate = useCallback(() => {
+	const overlayOriginalSvg = useCallback(() => {
+		const editor = editorRef.current
+		if (!editor || !originalSvgRef.current) return
+
+		const dims = getSvgDimensions(originalSvgRef.current)
+		if (!dims) return
+
+		// Remove both fills and outlines so only the original SVG image remains
+		clearFillShapes()
+		const outlineIds = [...editor.getCurrentPageShapeIds()].filter(
+			(id) => typeof id === 'string' && id.includes(OUTLINE_PREFIX)
+		)
+		if (outlineIds.length > 0) {
+			editor.deleteShapes(outlineIds as any)
+		}
+
+		const svgDataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(originalSvgRef.current)))}`
+
+		const assetId = AssetRecordType.createId()
+		editor.createAssets([
+			{
+				id: assetId,
+				type: 'image',
+				typeName: 'asset',
+				props: {
+					name: 'original.svg',
+					src: svgDataUrl,
+					w: dims.w,
+					h: dims.h,
+					mimeType: 'image/svg+xml',
+					isAnimated: false,
+				},
+				meta: {},
+			},
+		])
+
+		editor.createShape({
+			id: createShapeId(ORIGINAL_SVG_ID),
+			type: 'image',
+			x: dims.x,
+			y: dims.y,
+			props: {
+				assetId,
+				w: dims.w,
+				h: dims.h,
+			},
+		})
+	}, [clearFillShapes])
+
+	const handleAnimate = useCallback(async () => {
 		const editor = editorRef.current
 		if (!editor || fillResults.length === 0) return
 
-		clearFillShapes()
 		setIsAnimating(true)
 
 		const easing = EASING_FUNCTIONS[easingName] || EASING_FUNCTIONS.easeInOutCubic
 
-		// Animate each fill path sequentially
-		let currentIndex = 0
+		// Promise-based animation runner — clears fills then animates sequentially
+		const animate = () => {
+			clearFillShapes()
+			return new Promise<void>((resolve) => {
+				let currentIndex = 0
 
-		const animateNext = () => {
-			if (currentIndex >= fillResults.length) {
-				setIsAnimating(false)
-				animationRef.current = null
-				return
-			}
+				const animateNext = () => {
+					if (currentIndex >= fillResults.length) {
+						animationRef.current = null
+						resolve()
+						return
+					}
 
-			const { path } = fillResults[currentIndex]
-			const resampled = resamplePath(path, 2)
+					const { path } = fillResults[currentIndex]
+					const resampled = resamplePath(path, 2)
 
-			const anim = animatePath(
-				editor,
-				resampled,
-				{
-					duration: duration / fillResults.length,
-					easing,
-					pressure,
-					segmentType: 'free',
-					color: fillColor,
-					onComplete: () => {
-						currentIndex++
-						animateNext()
-					},
-				},
-				{
-					createShapeId: () => createShapeId(FILL_PREFIX + currentIndex) as unknown as string,
-					encodePoints: (pts) => b64Vecs.encodePoints(pts),
+					const anim = animatePath(
+						editor,
+						resampled,
+						{
+							duration: duration / fillResults.length,
+							easing,
+							pressure,
+							segmentType: 'free',
+							color: fillColor,
+							onComplete: () => {
+								currentIndex++
+								animateNext()
+							},
+						},
+						{
+							createShapeId: () => createShapeId(FILL_PREFIX + currentIndex) as unknown as string,
+							encodePoints: (pts) => b64Vecs.encodePoints(pts),
+						}
+					)
+
+					animationRef.current = anim
 				}
-			)
 
-			animationRef.current = anim
+				animateNext()
+			})
 		}
 
-		animateNext()
-	}, [fillResults, duration, easingName, pressure, fillColor, clearFillShapes])
+		const currentBounds = editor.getViewportPageBounds()
+
+		const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
+
+		// ── Edit this block to control the animation pipeline ──
+		// Available: editor, animate(), delay(ms), clearFillShapes(), overlayOriginalSvg()
+		await animate()
+		// const newBounds = currentBounds.clone().scale(2)
+		// editor.zoomToBounds(newBounds, { animation: { duration: 300 } })
+		if (showOriginalOnComplete) {
+			overlayOriginalSvg()
+		}
+
+		setIsAnimating(false)
+	}, [
+		fillResults,
+		duration,
+		easingName,
+		pressure,
+		fillColor,
+		clearFillShapes,
+		showOriginalOnComplete,
+		overlayOriginalSvg,
+		// polygons,
+	])
 
 	const handleStop = useCallback(() => {
 		animationRef.current?.stop()
@@ -396,6 +501,8 @@ function App() {
 					onStop={handleStop}
 					isAnimating={isAnimating}
 					hasFillPaths={fillResults.length > 0}
+					showOriginalOnComplete={showOriginalOnComplete}
+					onShowOriginalOnCompleteChange={setShowOriginalOnComplete}
 				/>
 			</div>
 
