@@ -1,8 +1,8 @@
+import { format } from 'date-fns'
+import Link from 'next/link'
 import { BackToTopButton } from '@/components/common/back-to-top-button'
 import { GithubIcon } from '@/components/common/icon/github'
 import { Article } from '@/types/content-types'
-import { format } from 'date-fns'
-import Link from 'next/link'
 
 const githubContentRoot = 'https://github.com/tldraw/tldraw/blob/main/apps/docs/content/'
 

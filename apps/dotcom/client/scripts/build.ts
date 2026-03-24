@@ -1,7 +1,7 @@
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
 import glob from 'fast-glob'
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import json5 from 'json5'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'

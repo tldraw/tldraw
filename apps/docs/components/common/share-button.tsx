@@ -1,8 +1,8 @@
 'use client'
 
-import { cn } from '@/utils/cn'
 import { CheckIcon, ShareIcon } from '@heroicons/react/20/solid'
 import { useState } from 'react'
+import { cn } from '@/utils/cn'
 
 export function ShareButton({
 	url,

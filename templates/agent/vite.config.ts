@@ -1,6 +1,6 @@
+import { fileURLToPath } from 'url'
 import { cloudflare } from '@cloudflare/vite-plugin'
 import react from '@vitejs/plugin-react'
-import { fileURLToPath } from 'url'
 import { defineConfig } from 'vite'
 import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
 

@@ -1,5 +1,5 @@
-import { Icon } from '@/components/common/icon'
 import type React from 'react'
+import { Icon } from '@/components/common/icon'
 
 export function CheckItem({ children }: { children: React.ReactNode }) {
 	return (

@@ -38,8 +38,6 @@ import {
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
-import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
@@ -48,6 +46,8 @@ import {
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
