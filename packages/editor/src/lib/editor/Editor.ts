@@ -9071,6 +9071,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
+
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
