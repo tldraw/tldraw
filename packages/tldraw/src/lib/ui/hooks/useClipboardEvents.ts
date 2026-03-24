@@ -104,7 +104,7 @@ const handleText = (
 	data: string,
 	point?: VecLike,
 	sources?: TLExternalContentSource[],
-	clipboardPasteSource: 'native' | 'menu' = 'native'
+	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event'
 ) => {
 	const validUrlList = getValidHttpURLList(data)
 	if (validUrlList) {
@@ -224,7 +224,7 @@ const handlePasteFromEventClipboardData = async (
 		}
 	}
 
-	handleClipboardThings(editor, things, point, 'native')
+	handleClipboardThings(editor, things, point, 'native-event')
 }
 
 /**
@@ -247,7 +247,7 @@ const handlePasteFromClipboardApi = async ({
 	clipboardItems: ClipboardItem[]
 	point?: VecLike
 	fallbackFiles?: File[]
-	clipboardPasteSource: 'native' | 'menu'
+	clipboardPasteSource: 'native-event' | 'clipboard-read'
 }) => {
 	// We need to populate the array of clipboard things
 	// based on the ClipboardItems from the Clipboard API.
@@ -322,7 +322,7 @@ async function handleClipboardThings(
 	editor: Editor,
 	things: ClipboardThing[],
 	point: VecLike | undefined,
-	clipboardPasteSource: 'native' | 'menu'
+	clipboardPasteSource: 'native-event' | 'clipboard-read'
 ) {
 	// 1. Handle files
 	//
@@ -697,8 +697,10 @@ export function useMenuClipboardEvents() {
 			assert(editor, 'editor is required for copy')
 			if (editor.getSelectedShapeIds().length === 0) return
 
-			await handleNativeOrMenuCopy(editor, { operation: 'copy', source: 'menu' })
-			trackEvent('copy', { source })
+			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'copy', source: 'menu' })
+			if (didCopy) {
+				trackEvent('copy', { source })
+			}
 		},
 		[editor, trackEvent]
 	)
@@ -711,8 +713,8 @@ export function useMenuClipboardEvents() {
 			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'menu' })
 			if (didCopy) {
 				editor.deleteShapes(editor.getSelectedShapeIds())
+				trackEvent('cut', { source })
 			}
-			trackEvent('cut', { source })
 		},
 		[editor, trackEvent]
 	)
@@ -734,7 +736,7 @@ export function useMenuClipboardEvents() {
 				if (
 					editor.options.onClipboardPasteRaw?.({
 						editor,
-						source: 'menu',
+						source: 'clipboard-read',
 						clipboardItems: data,
 						point,
 					}) === false
@@ -746,7 +748,7 @@ export function useMenuClipboardEvents() {
 					editor,
 					clipboardItems: data,
 					point,
-					clipboardPasteSource: 'menu',
+					clipboardPasteSource: 'clipboard-read',
 				})
 				trackEvent('paste', { source: 'menu' })
 			} else {
@@ -789,8 +791,10 @@ export function useNativeClipboardEvents() {
 
 			preventDefault(e)
 
-			await handleNativeOrMenuCopy(editor, { operation: 'copy', source: 'native' })
-			trackEvent('copy', { source: 'kbd' })
+			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'copy', source: 'native' })
+			if (didCopy) {
+				trackEvent('copy', { source: 'kbd' })
+			}
 		}
 
 		async function cut(e: ClipboardEvent) {
@@ -806,8 +810,8 @@ export function useNativeClipboardEvents() {
 			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'native' })
 			if (didCopy) {
 				editor.deleteShapes(editor.getSelectedShapeIds())
+				trackEvent('cut', { source: 'kbd' })
 			}
-			trackEvent('cut', { source: 'kbd' })
 		}
 
 		let disablingMiddleClickPaste = false
@@ -848,7 +852,7 @@ export function useNativeClipboardEvents() {
 			if (
 				editor.options.onClipboardPasteRaw?.({
 					editor,
-					source: 'keyboard',
+					source: 'native-event',
 					event: e,
 					clipboardData: e.clipboardData,
 					point,
@@ -883,7 +887,7 @@ export function useNativeClipboardEvents() {
 								clipboardItems,
 								point,
 								fallbackFiles,
-								clipboardPasteSource: 'native',
+								clipboardPasteSource: 'native-event',
 							})
 						}
 					},

@@ -749,6 +749,7 @@ export const defaultTldrawOptions: {
     readonly nonce: undefined;
     readonly onBeforeCopyToClipboard: undefined;
     readonly onBeforePasteFromClipboard: undefined;
+    readonly onClipboardPasteRaw: undefined;
     readonly quickZoomPreservesScreenBounds: true;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
@@ -3328,12 +3329,12 @@ export type TLClipboardPasteRawInfo = {
     readonly editor: Editor;
     readonly event: ClipboardEvent;
     readonly point: undefined | VecLike;
-    readonly source: 'keyboard';
+    readonly source: 'native-event';
 } | {
     readonly clipboardItems: readonly ClipboardItem[];
     readonly editor: Editor;
     readonly point: undefined | VecLike;
-    readonly source: 'menu';
+    readonly source: 'clipboard-read';
 };
 
 // @public
@@ -3628,7 +3629,7 @@ export interface TldrawOptions {
         content: TLExternalContent<unknown>;
         editor: Editor;
         point?: VecLike;
-        source: 'menu' | 'native';
+        source: 'clipboard-read' | 'native-event';
     }): Awaitable<false | TLExternalContent<unknown> | void>;
     onClipboardPasteRaw?(info: TLClipboardPasteRawInfo): false | void;
     readonly quickZoomPreservesScreenBounds: boolean;

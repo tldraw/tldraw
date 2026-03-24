@@ -15,7 +15,7 @@ export async function pasteUrl(
 	url: string,
 	point?: VecLike,
 	sources?: TLExternalContentSource[],
-	clipboardPasteSource: 'native' | 'menu' = 'native'
+	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event'
 ) {
 	editor.markHistoryStoppingPoint('paste')
 

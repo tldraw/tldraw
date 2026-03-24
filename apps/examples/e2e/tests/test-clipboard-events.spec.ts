@@ -71,7 +71,11 @@ test.describe('clipboard event callbacks', () => {
 
 		const log = await page.evaluate(() => (window as any).__tldraw_clipboard_log)
 		const pasteEntry = log.find((e: any) => e.action === 'paste')
-		expect(pasteEntry).toMatchObject({ action: 'paste', source: 'native', prevented: false })
+		expect(pasteEntry).toMatchObject({
+			action: 'paste',
+			source: 'native-event',
+			prevented: false,
+		})
 	})
 
 	test('onBeforeCopyToClipboard can block copy', async ({ page, isMac }) => {
@@ -112,7 +116,11 @@ test.describe('clipboard event callbacks', () => {
 
 		const log = await page.evaluate(() => (window as any).__tldraw_clipboard_log)
 		const pasteEntry = log.find((e: any) => e.action === 'paste')
-		expect(pasteEntry).toMatchObject({ action: 'paste', source: 'native', prevented: true })
+		expect(pasteEntry).toMatchObject({
+			action: 'paste',
+			source: 'native-event',
+			prevented: true,
+		})
 
 		const shapeCount = await page.evaluate(() => editor.getCurrentPageShapes().length)
 		expect(shapeCount).toBe(1)
@@ -250,10 +258,10 @@ test.describe('clipboard event callbacks', () => {
 
 		const log = await page.evaluate(() => (window as any).__tldraw_clipboard_log)
 		const rawEntry = log.find((e: any) => e.action === 'raw-paste')
-		expect(rawEntry).toMatchObject({ source: 'keyboard' })
+		expect(rawEntry).toMatchObject({ source: 'native-event' })
 		expect(rawEntry.detail).toContain('string')
 
-		const parsedPaste = log.find((e: any) => e.action === 'paste' && e.source === 'native')
+		const parsedPaste = log.find((e: any) => e.action === 'paste' && e.source === 'native-event')
 		expect(parsedPaste).toBeUndefined()
 
 		const shapeCount = await page.evaluate(() => editor.getCurrentPageShapes().length)

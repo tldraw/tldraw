@@ -14,4 +14,4 @@ This example shows how to filter or cancel clipboard operations. The hooks run f
 
 - **`onBeforeCopyToClipboard`** — Receives serialized `TLContent` plus `operation` (`'copy'` | `'cut'`) and `source` (`'native'` | `'menu'`). Return a modified `TLContent` to change what is written, or `false` to cancel the write (for cut, the selection is not removed).
 
-- **`onBeforePasteFromClipboard`** — Runs when pasted content is about to be applied. Receives `source` (`'native'` | `'menu'`). Return `false` to cancel, or a modified `TLExternalContent` to transform. This hook applies to clipboard paste only, not file drops or other `putExternalContent` calls.
+- **`onBeforePasteFromClipboard`** — Runs when pasted content is about to be applied. Receives `source` (`'native-event'` | `'clipboard-read'`). Return `false` to cancel, or a modified `TLExternalContent` to transform. This hook applies to clipboard paste only, not file drops or other `putExternalContent` calls.

@@ -2,7 +2,7 @@ import { Editor, TLExternalContent, VecLike } from '@tldraw/editor'
 
 /** @internal */
 export interface PutPastedExternalContentMeta {
-	source: 'native' | 'menu'
+	source: 'native-event' | 'clipboard-read'
 	point?: VecLike
 }
 

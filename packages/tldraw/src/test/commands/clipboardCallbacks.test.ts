@@ -1,4 +1,4 @@
-import { TLExternalContent, createShapeId } from '@tldraw/editor'
+import { TLExternalContent, createShapeId, defaultTldrawOptions } from '@tldraw/editor'
 import { vi } from 'vitest'
 import {
 	handleNativeOrMenuCopy,
@@ -17,6 +17,14 @@ afterEach(() => {
 	editor?.dispose()
 })
 
+describe('defaultTldrawOptions', () => {
+	it('declares the clipboard callback defaults explicitly', () => {
+		expect(defaultTldrawOptions).toHaveProperty('onBeforeCopyToClipboard', undefined)
+		expect(defaultTldrawOptions).toHaveProperty('onBeforePasteFromClipboard', undefined)
+		expect(defaultTldrawOptions).toHaveProperty('onClipboardPasteRaw', undefined)
+	})
+})
+
 describe('putPastedExternalContent', () => {
 	it('calls putExternalContent when no hook is set', async () => {
 		editor = new TestEditor()
@@ -25,7 +33,7 @@ describe('putPastedExternalContent', () => {
 			type: 'text',
 			text: 'hello',
 		}
-		await putPastedExternalContent(editor, content, { source: 'native' })
+		await putPastedExternalContent(editor, content, { source: 'native-event' })
 		expect(spy).toHaveBeenCalledWith(content)
 		spy.mockRestore()
 	})
@@ -39,7 +47,7 @@ describe('putPastedExternalContent', () => {
 			type: 'text',
 			text: 'hello',
 		}
-		await putPastedExternalContent(editor, content, { source: 'native' })
+		await putPastedExternalContent(editor, content, { source: 'native-event' })
 		expect(spy).toHaveBeenCalledWith(content)
 		spy.mockRestore()
 	})
@@ -53,7 +61,7 @@ describe('putPastedExternalContent', () => {
 			type: 'text',
 			text: 'hello',
 		}
-		await putPastedExternalContent(editor, content, { source: 'native' })
+		await putPastedExternalContent(editor, content, { source: 'native-event' })
 		expect(spy).not.toHaveBeenCalled()
 		spy.mockRestore()
 	})
@@ -67,7 +75,11 @@ describe('putPastedExternalContent', () => {
 			options: { onBeforePasteFromClipboard: () => modified },
 		})
 		const spy = vi.spyOn(editor, 'putExternalContent').mockResolvedValue()
-		await putPastedExternalContent(editor, { type: 'text', text: 'original' }, { source: 'native' })
+		await putPastedExternalContent(
+			editor,
+			{ type: 'text', text: 'original' },
+			{ source: 'native-event' }
+		)
 		expect(spy).toHaveBeenCalledWith(modified)
 		spy.mockRestore()
 	})
@@ -82,11 +94,11 @@ describe('putPastedExternalContent', () => {
 			type: 'text',
 			text: 'test',
 		}
-		await putPastedExternalContent(editor, content, { source: 'native' })
+		await putPastedExternalContent(editor, content, { source: 'native-event' })
 		expect(hookFn).toHaveBeenCalledWith({
 			editor,
 			content,
-			source: 'native',
+			source: 'native-event',
 			point: undefined,
 		})
 	})
@@ -157,6 +169,23 @@ describe('handleNativeOrMenuCopy', () => {
 				content: expect.objectContaining({
 					shapes: expect.arrayContaining([expect.objectContaining({ id: ids.box1 })]),
 				}),
+			})
+		)
+	})
+
+	it('passes through explicit copy context', async () => {
+		doMockClipboard()
+		const hookFn = vi.fn(() => undefined)
+		editor = new TestEditor({
+			options: { onBeforeCopyToClipboard: hookFn },
+		})
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
+		editor.selectAll()
+		await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'native' })
+		expect(hookFn).toHaveBeenCalledWith(
+			expect.objectContaining({
+				operation: 'cut',
+				source: 'native',
 			})
 		)
 	})

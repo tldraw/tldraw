@@ -14,7 +14,7 @@ export async function pasteFiles(
 	blobs: (File | Blob)[],
 	point?: VecLike,
 	sources?: TLExternalContentSource[],
-	clipboardPasteSource: 'native' | 'menu' = 'native'
+	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event'
 ) {
 	const files = blobs.map((blob) =>
 		blob instanceof File ? blob : new File([blob], 'tldrawFile', { type: blob.type })

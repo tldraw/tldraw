@@ -22,9 +22,10 @@ export interface TLClipboardWriteInfo {
 /**
  * Raw clipboard paste payload, before tldraw parses clipboard contents into {@link TLExternalContent}.
  *
- * - `keyboard`: from the `paste` event — `clipboardData` is available synchronously (unlike async
+ * - `native-event`: from the `paste` event — `clipboardData` is available synchronously (unlike async
  *   `navigator.clipboard.read()`).
- * - `menu`: from the app menu after `navigator.clipboard.read()` — only `ClipboardItem[]` exists
+ * - `clipboard-read`: from an explicit `navigator.clipboard.read()` call — only `ClipboardItem[]`
+ *   exists
  *   (no `DataTransfer`).
  *
  * @public
@@ -32,14 +33,14 @@ export interface TLClipboardWriteInfo {
 export type TLClipboardPasteRawInfo =
 	| {
 			readonly editor: Editor
-			readonly source: 'keyboard'
+			readonly source: 'native-event'
 			readonly event: ClipboardEvent
 			readonly clipboardData: DataTransfer | null
 			readonly point: VecLike | undefined
 	  }
 	| {
 			readonly editor: Editor
-			readonly source: 'menu'
+			readonly source: 'clipboard-read'
 			readonly clipboardItems: readonly ClipboardItem[]
 			readonly point: VecLike | undefined
 	  }
@@ -248,11 +249,11 @@ export interface TldrawOptions {
 	onBeforePasteFromClipboard?(info: {
 		editor: Editor
 		content: TLExternalContent<unknown>
-		source: 'native' | 'menu'
+		source: 'native-event' | 'clipboard-read'
 		point?: VecLike
 	}): Awaitable<TLExternalContent<unknown> | false | void>
 	/**
-	 * Called first for keyboard and menu paste, **before** tldraw reads or parses clipboard data
+	 * Called first for keyboard and menu paste, **before** tldraw handles or parses clipboard data
 	 * (and before {@link TldrawOptions.onBeforePasteFromClipboard}).
 	 *
 	 * Return `false` to cancel tldraw's default paste handling for this gesture (same convention as
@@ -333,5 +334,6 @@ export const defaultTldrawOptions = {
 	quickZoomPreservesScreenBounds: true,
 	onBeforeCopyToClipboard: undefined,
 	onBeforePasteFromClipboard: undefined,
+	onClipboardPasteRaw: undefined,
 	experimental__onDropOnCanvas: undefined,
 } as const satisfies TldrawOptions

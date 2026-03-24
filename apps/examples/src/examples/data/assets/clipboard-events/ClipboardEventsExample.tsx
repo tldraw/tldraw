@@ -66,20 +66,20 @@ const options: Partial<TldrawOptions> = {
 	onClipboardPasteRaw(info) {
 		if (!state.handleRawPaste) return
 		function doThings() {
-			if (info.source === 'keyboard') {
+			if (info.source === 'native-event') {
 				const kinds = info.clipboardData
 					? [...info.clipboardData.items].map((i) => `${i.kind}:${i.type}`).join(', ')
 					: '(no clipboardData)'
 				addLog({
 					action: 'raw-paste',
-					source: 'keyboard',
+					source: 'native-event',
 					prevented: false,
 					detail: `${kinds}${state.useAsyncCallbacks ? ' (async)' : ''}`,
 				})
 			} else {
 				addLog({
 					action: 'raw-paste',
-					source: 'menu',
+					source: 'clipboard-read',
 					prevented: false,
 					detail: `${info.clipboardItems.length} clipboard item(s)${state.useAsyncCallbacks ? ' (async)' : ''}`,
 				})
@@ -255,10 +255,10 @@ onBeforeCopyToClipboard runs for both copy and cut; use `operation` to tell them
 Return `false` to cancel the clipboard write. For cut, cancelling also keeps the selection.
 
 onBeforePasteFromClipboard runs when pasted content is about to be applied. Return
-`false` to cancel. `source` is `native` (keyboard) or `menu`.
+`false` to cancel. `source` is `native-event` (keyboard paste event) or `clipboard-read`.
 
-onClipboardPasteRaw runs first. `source` is `keyboard` (paste event + DataTransfer) or
-`menu` (ClipboardItem[] from the clipboard API). Return `false` to cancel tldraw's default
+onClipboardPasteRaw runs first. `source` is `native-event` (paste event + DataTransfer) or
+`clipboard-read` (ClipboardItem[] from the clipboard API). Return `false` to cancel tldraw's default
 paste handling for that gesture (same as other clipboard `onBefore*` hooks).
 
 All three callbacks support async (returning a Promise). The "Async callbacks" toggle adds a
