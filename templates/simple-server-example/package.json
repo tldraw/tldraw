@@ -43,7 +43,7 @@
 		"react-router-dom": "^6.28.2",
 		"tldraw": "workspace:*",
 		"unfurl.js": "^6.4.0",
-		"vite": "^8.0.0",
+		"vite": "^8.0.1",
 		"ws": "^8.18.0"
 	}
 }

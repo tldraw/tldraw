@@ -53,6 +53,11 @@
 	border-color: var(--tla-color-primary);
 }
 
+.searchInput:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
 .errorMessage {
 	color: var(--tla-color-warning);
 	font-size: 12px;
@@ -364,6 +369,16 @@
 	gap: 8px;
 	cursor: pointer;
 	min-width: 200px;
+}
+
+.featureFlagLabel button:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.featureFlagDisabled {
+	opacity: 0.4;
+	cursor: not-allowed;
 }
 
 /* Batch Migration */

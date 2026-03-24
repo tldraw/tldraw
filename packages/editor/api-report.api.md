@@ -6,6 +6,7 @@
 
 import { Atom } from '@tldraw/state';
 import { AtomSet } from '@tldraw/store';
+import { Awaitable } from '@tldraw/utils';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
@@ -165,6 +166,14 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     getInterpolatedProps(startShape: Shape, endShape: Shape, t: number): Shape['props'];
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): any;
+}
+
+// @public (undocumented)
+export interface BatchMeasurementRequest {
+    // (undocumented)
+    html: string;
+    // (undocumented)
+    opts: TLMeasureTextOpts;
 }
 
 // @public
@@ -748,6 +757,9 @@ export const defaultTldrawOptions: {
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
     readonly nonce: undefined;
+    readonly onBeforeCopyToClipboard: undefined;
+    readonly onBeforePasteFromClipboard: undefined;
+    readonly onClipboardPasteRaw: undefined;
     readonly quickZoomPreservesScreenBounds: true;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
@@ -3163,13 +3175,11 @@ export class TextManager {
         }[];
     };
     // (undocumented)
-    measureHtml(html: string, opts: TLMeasureTextOpts): BoxModel & {
-        scrollWidth: number;
-    };
+    measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
     // (undocumented)
-    measureText(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & {
-        scrollWidth: number;
-    };
+    measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[];
+    // (undocumented)
+    measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
     measureTextSpans(textToMeasure: string, opts: TLMeasureTextSpanOpts): {
         box: BoxModel;
         text: string;
@@ -3350,6 +3360,28 @@ export type TLCLickEventName = 'double_click' | 'quadruple_click' | 'triple_clic
 
 // @public (undocumented)
 export type TLClickState = 'idle' | 'overflow' | 'pendingDouble' | 'pendingOverflow' | 'pendingQuadruple' | 'pendingTriple';
+
+// @public
+export type TLClipboardPasteRawInfo = {
+    readonly clipboardData: DataTransfer | null;
+    readonly editor: Editor;
+    readonly event: ClipboardEvent;
+    readonly point: undefined | VecLike;
+    readonly source: 'native-event';
+} | {
+    readonly clipboardItems: readonly ClipboardItem[];
+    readonly editor: Editor;
+    readonly point: undefined | VecLike;
+    readonly source: 'clipboard-read';
+};
+
+// @public
+export interface TLClipboardWriteInfo {
+    // (undocumented)
+    readonly operation: 'copy' | 'cut';
+    // (undocumented)
+    readonly source: 'menu' | 'native';
+}
 
 // @public (undocumented)
 export interface TLCollaboratorHintProps {
@@ -3628,6 +3660,17 @@ export interface TldrawOptions {
     // (undocumented)
     readonly multiClickDurationMs: number;
     readonly nonce: string | undefined;
+    onBeforeCopyToClipboard?(info: {
+        content: TLContent;
+        editor: Editor;
+    } & TLClipboardWriteInfo): Awaitable<false | TLContent | void>;
+    onBeforePasteFromClipboard?(info: {
+        content: TLExternalContent<unknown>;
+        editor: Editor;
+        point?: VecLike;
+        source: 'clipboard-read' | 'native-event';
+    }): Awaitable<false | TLExternalContent<unknown> | void>;
+    onClipboardPasteRaw?(info: TLClipboardPasteRawInfo): false | void;
     readonly quickZoomPreservesScreenBounds: boolean;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
@@ -4140,6 +4183,11 @@ export interface TLLoadSessionStateSnapshotOptions {
 export interface TLLoadSnapshotOptions {
     forceOverwriteSessionState?: boolean;
 }
+
+// @public (undocumented)
+export type TLMeasuredTextSize = BoxModel & {
+    scrollWidth: number;
+};
 
 // @public (undocumented)
 export interface TLMeasureTextOpts {

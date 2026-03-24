@@ -11,12 +11,12 @@ import { useRelevantStyles } from '../hooks/useRelevantStyles'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './primitives/Button/TldrawUiButtonIcon'
+import { useTldrawUiOrientation } from './primitives/layout'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from './primitives/TldrawUiPopover'
-import { useTldrawUiOrientation } from './primitives/layout'
 
 /** @public @react */
 export function MobileStylePanel() {

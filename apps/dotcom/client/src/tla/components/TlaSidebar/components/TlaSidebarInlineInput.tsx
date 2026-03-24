@@ -2,8 +2,8 @@ import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { TldrawUiInput } from 'tldraw'
 import { useHasFlag } from '../../../hooks/useHasFlag'
-import styles from '../sidebar.module.css'
 import { pinIcon } from './pinIcon'
+import styles from '../sidebar.module.css'
 
 export interface TlaSidebarInlineInputProps {
 	defaultValue?: string

@@ -18,12 +18,12 @@ import type { Editor, TLRenderingShape } from '../editor/Editor'
 import { TLFontFace } from '../editor/managers/FontManager/FontManager'
 import { getColorValue } from '../editor/managers/ThemeManager/defaultThemes'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
+import { TLImageExportOptions } from '../editor/types/misc-types'
 import {
 	SvgExportContext,
 	SvgExportContextProvider,
 	SvgExportDef,
 } from '../editor/types/SvgExportContext'
-import { TLImageExportOptions } from '../editor/types/misc-types'
 import { useEditor } from '../hooks/useEditor'
 import { useEvent } from '../hooks/useEvent'
 import { suffixSafeId, useUniqueSafeId } from '../hooks/useSafeId'

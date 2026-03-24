@@ -694,7 +694,11 @@ export {
 	useCanUndo,
 	useUnlockedSelectedShapesCount,
 } from './lib/ui/hooks/menu-hooks'
-export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
+export {
+	handleNativeOrMenuCopy,
+	useMenuClipboardEvents,
+	useNativeClipboardEvents,
+} from './lib/ui/hooks/useClipboardEvents'
 export {
 	useCollaborationStatus,
 	useShowCollaborationUi,

@@ -50,26 +50,27 @@ import {
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
-import { PathBuilder } from '../shared/PathBuilder'
-import { PatternFill } from '../shared/PatternFill'
-import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import {
 	ARROW_LABEL_FONT_SIZES,
 	ARROW_LABEL_PADDING,
 	FONT_FAMILIES,
 	STROKE_SIZES,
+	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import { PathBuilder } from '../shared/PathBuilder'
+import { PatternFill } from '../shared/PatternFill'
+import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { getDisplayValues } from '../shared/getDisplayValues'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { getArrowBodyPath, getArrowBodyPathBuilder, getArrowHandlePath } from './ArrowPath'
 import { ArrowShapeOptions, type ArrowShapeUtilDisplayValues } from './arrow-types'
 import { getArrowLabelDefaultPosition, getArrowLabelPosition } from './arrowLabel'
-import { updateArrowTargetState } from './arrowTargetState'
 import { getArrowheadPathForType } from './arrowheads'
-import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
+import { updateArrowTargetState } from './arrowTargetState'
 import { ElbowArrowAxes } from './elbow/definitions'
+import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
 import { getElbowArrowSnapLines, perpDistanceToLineAngle } from './elbow/elbowArrowSnapLines'
 import { getArrowInfo } from './getArrowInfo'
 import {

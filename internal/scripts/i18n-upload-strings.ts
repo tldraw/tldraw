@@ -1,6 +1,6 @@
-import { LokaliseApi } from '@lokalise/node-api'
 import fs from 'fs'
 import path from 'path'
+import { LokaliseApi } from '@lokalise/node-api'
 
 async function i18nUploadStrings() {
 	const projectId = process.env.LOKALISE_PROJECT_ID!

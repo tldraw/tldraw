@@ -1,7 +1,7 @@
 import { memo, useLayoutEffect, useRef } from 'react'
 import { useCurrentThemeId, useEditor, useValue } from 'tldraw'
-import { FluidManager } from './FluidManager'
 import { fluidConfig } from './config'
+import { FluidManager } from './FluidManager'
 
 /**
  * React component that renders the fluid simulation canvas.

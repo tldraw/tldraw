@@ -1,6 +1,6 @@
 import { IRequest } from 'itty-router'
-import type { GenerateParams } from '../providers'
 import { getProvider } from '../providers'
+import type { GenerateParams } from '../providers'
 
 /**
  * Request body for the /api/generate endpoint.

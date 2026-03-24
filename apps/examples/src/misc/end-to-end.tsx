@@ -1,4 +1,5 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { createMermaidDiagram } from '@tldraw/mermaid'
 import { useEffect, useLayoutEffect } from 'react'
 import {
 	BaseBoxShapeUtil,
@@ -9,6 +10,7 @@ import {
 	createShapeId,
 	exportAs,
 	getArrowInfo,
+	mockUniqueId,
 	toRichText,
 	useActions,
 	useEditor,
@@ -20,6 +22,7 @@ import { EndToEndApi } from './EndToEndApi'
 ;(window as any).__tldraw_editor_events = []
 
 const HTML_TYPE = 'html' as const
+let nextMockShapeId = 0
 
 declare module 'tldraw' {
 	export interface TLGlobalShapePropsMap {
@@ -136,11 +139,25 @@ function SneakyExportButton() {
 	const actions = useActions()
 
 	useEffect(() => {
+		const resetMockShapeIds = () => {
+			nextMockShapeId = 0
+			mockUniqueId(() => `mock-${nextMockShapeId++}`)
+		}
+
 		const api: EndToEndApi = {
 			exportAsSvg: () => actions['export-as-svg'].onSelect('unknown'),
 			exportAsFormat: (format) =>
 				exportAs(editor, editor.selectAll().getSelectedShapeIds(), { format, name: 'test' }),
 			createShapeId: () => createShapeId(),
+			resetMockShapeIds,
+			createMermaidDiagram: async (definition: string) => {
+				await createMermaidDiagram(editor, definition, {
+					blueprintRender: {
+						position: { x: 0, y: 0 },
+						centerOnPosition: false,
+					},
+				})
+			},
 			toRichText: (text: string) => toRichText(text),
 			b64VecsEncodePoints: (points: VecModel[]) => b64Vecs.encodePoints(points),
 			markAllArrowBindings: () => {

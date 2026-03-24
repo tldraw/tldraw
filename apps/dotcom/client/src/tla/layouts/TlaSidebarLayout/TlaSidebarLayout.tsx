@@ -1,8 +1,8 @@
 import React, { ReactNode, useCallback, useLayoutEffect, useRef } from 'react'
 import { clamp, tltime, useQuickReactor } from 'tldraw'
-import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
 import { TlaSidebarToggle } from '../../components/TlaSidebar/components/TlaSidebarToggle'
 import { TlaSidebarToggleMobile } from '../../components/TlaSidebar/components/TlaSidebarToggleMobile'
+import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import {
 	getLocalSessionState,

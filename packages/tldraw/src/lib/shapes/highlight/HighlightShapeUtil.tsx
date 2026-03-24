@@ -21,7 +21,6 @@ import {
 	useCurrentThemeId,
 	useValue,
 } from '@tldraw/editor'
-
 import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
 import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'

@@ -1,7 +1,7 @@
-import { LokaliseApi } from '@lokalise/node-api'
 import fs from 'fs'
-import JSZip from 'jszip'
 import path from 'path'
+import { LokaliseApi } from '@lokalise/node-api'
+import JSZip from 'jszip'
 
 async function fetchAndSave(
 	url: string,
