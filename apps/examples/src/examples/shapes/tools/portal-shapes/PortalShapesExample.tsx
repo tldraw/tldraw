@@ -43,14 +43,14 @@ export default function PortalShapesExample() {
 							type: 'portal',
 							x: 100,
 							y: 150,
-							props: { w: 250, h: 300, color: 'blue' },
+							props: { w: 200, h: 300, color: 'blue' },
 						},
 						{
 							id: orangeId,
 							type: 'portal',
 							x: 500,
 							y: 150,
-							props: { w: 250, h: 300, color: 'orange' },
+							props: { w: 200, h: 300, color: 'orange' },
 						},
 					])
 
@@ -58,8 +58,8 @@ export default function PortalShapesExample() {
 					editor.createShapes([
 						{
 							type: 'text',
-							x: 150,
-							y: 500,
+							x: 0,
+							y: -100,
 							props: {
 								size: 'l',
 								richText: tagline,
@@ -67,7 +67,7 @@ export default function PortalShapesExample() {
 						},
 						{
 							type: 'geo',
-							x: 120,
+							x: 160,
 							y: 50,
 							props: {
 								geo: 'star',
@@ -80,7 +80,7 @@ export default function PortalShapesExample() {
 						},
 						{
 							type: 'geo',
-							x: 250,
+							x: 360,
 							y: 50,
 							props: {
 								geo: 'heart',
@@ -93,7 +93,7 @@ export default function PortalShapesExample() {
 						},
 						{
 							type: 'geo',
-							x: 380,
+							x: 560,
 							y: 50,
 							props: {
 								geo: 'diamond',
