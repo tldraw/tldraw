@@ -1,7 +1,7 @@
 import { UnknownRecord } from '@tldraw/store'
 import { describe, expect, it, vi } from 'vitest'
-import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSocketServerSentEvent } from './protocol'
+import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 
 // Mock WebSocket implementations for testing different scenarios
 class MockWebSocket implements WebSocketMinimal {

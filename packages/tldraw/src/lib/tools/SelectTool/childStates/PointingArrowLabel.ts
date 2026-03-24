@@ -6,11 +6,11 @@ import {
 	TLShapeId,
 	Vec,
 } from '@tldraw/editor'
-import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import {
 	getArrowBodyGeometry,
 	getArrowLabelDefaultPosition,
 } from '../../../shapes/arrow/arrowLabel'
+import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { startEditingShapeWithRichText } from '../selectHelpers'
 
 export class PointingArrowLabel extends StateNode {

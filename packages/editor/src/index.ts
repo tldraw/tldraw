@@ -1,16 +1,16 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/state'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/state-react'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/store'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/tlschema'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/utils'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/validate'
 
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
@@ -163,6 +163,8 @@ export {
 export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
 export {
 	TextManager,
+	type BatchMeasurementRequest,
+	type TLMeasuredTextSize,
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
@@ -282,6 +284,7 @@ export {
 	type SvgExportContext,
 	type SvgExportDef,
 } from './lib/editor/types/SvgExportContext'
+export { getOwnerDocument, getOwnerWindow } from './lib/exports/domUtils'
 export { getSvgAsImage } from './lib/exports/getSvgAsImage'
 export { tlenv, tlenvReactive } from './lib/globals/environment'
 export { tlmenus } from './lib/globals/menus'
@@ -335,7 +338,12 @@ export {
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
 export { LICENSE_TIMEOUT } from './lib/license/LicenseProvider'
-export { defaultTldrawOptions, type TldrawOptions } from './lib/options'
+export {
+	defaultTldrawOptions,
+	type TLClipboardPasteRawInfo,
+	type TLClipboardWriteInfo,
+	type TldrawOptions,
+} from './lib/options'
 export {
 	Box,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
@@ -448,10 +456,13 @@ export {
 export {
 	activeElementShouldCaptureKeys,
 	elementShouldCaptureKeys,
+	getGlobalDocument,
+	getGlobalWindow,
 	loopToHtmlElement,
 	preventDefault,
 	releasePointerCapture,
 	setPointerCapture,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	stopEventPropagation,
 } from './lib/utils/dom'
 export { EditorAtom } from './lib/utils/EditorAtom'

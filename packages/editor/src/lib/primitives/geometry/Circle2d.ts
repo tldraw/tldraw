@@ -1,9 +1,9 @@
 import { Box } from '../Box'
-import { Vec, VecLike } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
 import { PI2, getPointOnCircle } from '../utils'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+import { Vec, VecLike } from '../Vec'
 import { getVerticesCountForArcLength } from './geometry-constants'
+import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Circle2d extends Geometry2d {
@@ -44,6 +44,8 @@ export class Circle2d extends Geometry2d {
 	}
 
 	nearestPoint(point: VecLike): Vec {
+		// Inlined: Vec.Sub(point, _center).uni().mul(radius).add(_center)
+		// Computes direction from center to point, normalizes, scales by radius, offsets by center.
 		const { _center, _radius: radius } = this
 		const dx = point.x - _center.x
 		const dy = point.y - _center.y
@@ -54,6 +56,9 @@ export class Circle2d extends Geometry2d {
 	}
 
 	override distanceToPoint(point: VecLike, hitInside = false): number {
+		// Inlined: Math.abs(Vec.Dist(point, _center) - radius)
+		// Computes distance from point to center, then subtracts radius for edge distance.
+		// Returns negative when inside a filled circle to indicate containment.
 		const { _center, _radius: radius } = this
 		const dx = point.x - _center.x
 		const dy = point.y - _center.y
@@ -66,6 +71,8 @@ export class Circle2d extends Geometry2d {
 	}
 
 	override hitTestPoint(point: VecLike, margin = 0, hitInside = false): boolean {
+		// Equivalent to: dist = Vec.Dist(point, _center); return dist within [radius - margin, radius + margin]
+		// Uses squared distances throughout to avoid any sqrt calls.
 		const { _center, _radius: radius } = this
 		const dx = point.x - _center.x
 		const dy = point.y - _center.y

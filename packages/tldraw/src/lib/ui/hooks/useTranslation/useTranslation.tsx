@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useAssetUrls } from '../../context/asset-urls'
-import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
+import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { TLUiTranslation, fetchTranslation } from './translations'
 
 /** @public */

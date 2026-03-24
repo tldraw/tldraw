@@ -8,7 +8,6 @@ import {
 	createShapeId,
 	maybeSnapToGrid,
 } from '@tldraw/editor'
-
 import { startEditingShapeWithRichText } from '../../../tools/SelectTool/selectHelpers'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,

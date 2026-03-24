@@ -6,12 +6,12 @@ import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { globalEditor } from '../../../utils/globalEditor'
-import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorPublishedSharePanel } from './editor-components/TlaEditorPublishedSharePanel'
-import styles from './editor.module.css'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
+import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+import styles from './editor.module.css'
 
 const components: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,

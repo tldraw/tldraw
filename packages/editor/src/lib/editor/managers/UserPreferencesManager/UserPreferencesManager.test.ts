@@ -1,7 +1,7 @@
 import { atom } from '@tldraw/state'
 import { Mocked, vi } from 'vitest'
-import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
 import { TLUser } from '../../../config/createTLUser'
+import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
 import { UserPreferencesManager } from './UserPreferencesManager'
 
 // Mock window.matchMedia

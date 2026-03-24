@@ -30,13 +30,10 @@ const protocolVersion = getTlsyncProtocolVersion()
 type TestRecord = TLRecord
 
 // Mock socket implementation for testing
-class MockSocket
-	implements
-		TLPersistentClientSocket<
-			TLSocketClientSentEvent<TestRecord>,
-			TLSocketServerSentEvent<TestRecord>
-		>
-{
+class MockSocket implements TLPersistentClientSocket<
+	TLSocketClientSentEvent<TestRecord>,
+	TLSocketServerSentEvent<TestRecord>
+> {
 	connectionStatus: 'online' | 'offline' | 'error' = 'offline'
 	private messageListeners: Array<(msg: TLSocketServerSentEvent<TestRecord>) => void> = []
 	private statusListeners: Array<(event: TLSocketStatusChangeEvent) => void> = []

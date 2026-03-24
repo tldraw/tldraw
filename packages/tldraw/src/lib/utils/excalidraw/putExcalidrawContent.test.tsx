@@ -1,7 +1,7 @@
-import { mockUniqueId } from '@tldraw/editor'
 import { readdirSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
+import { mockUniqueId } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { putExcalidrawContent } from './putExcalidrawContent'
 

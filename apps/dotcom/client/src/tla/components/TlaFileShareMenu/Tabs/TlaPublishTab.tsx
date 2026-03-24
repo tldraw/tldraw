@@ -8,7 +8,6 @@ import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
 import { F, FormattedRelativeTime } from '../../../utils/i18n'
-import { TlaButton } from '../../TlaButton/TlaButton'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
@@ -19,6 +18,7 @@ import {
 	TlaMenuSwitch,
 	TlaMenuTabsPage,
 } from '../../tla-menu/tla-menu'
+import { TlaButton } from '../../TlaButton/TlaButton'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
 // add errors to zero-polyfill toasts

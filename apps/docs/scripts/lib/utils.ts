@@ -1,7 +1,7 @@
+import path from 'path'
 import { ApiItem, ApiItemKind, ApiModel } from '@microsoft/api-extractor-model'
 import { slug as githubSlug } from 'github-slugger'
-import path from 'path'
-import prettier from 'prettier'
+import { format } from 'oxfmt'
 
 /**
  * Structural interface for DocNode-like objects from any version of @microsoft/tsdoc.
@@ -83,10 +83,9 @@ export function getPath(item: ApiItem): string {
 		.replace(/\./g, '-')
 }
 
-const prettierConfigPromise = prettier.resolveConfig(__dirname)
 const languages: { [tag: string]: string | undefined } = {
-	ts: 'typescript',
-	tsx: 'typescript',
+	ts: 'ts',
+	tsx: 'tsx',
 }
 
 export async function formatWithPrettier(
@@ -101,21 +100,19 @@ export async function formatWithPrettier(
 	if (!language) {
 		throw new Error(`Unknown language: ${languageTag}`)
 	}
-	const prettierConfig = await prettierConfigPromise
 	let formattedCode = code
 	try {
-		formattedCode = await prettier.format(code, {
-			...prettierConfig,
-			parser: language,
+		const result = await format(`snippet.${language}`, code, {
 			printWidth,
 			tabWidth: 2,
 			useTabs: false,
 		})
+		formattedCode = result.code
 	} catch {
 		console.warn(`☢️ Could not format code: ${code}`)
 	}
 
-	// sometimes prettier adds a semicolon to the start of the code when formatting expressions (JSX
+	// sometimes formatters add a semicolon to the start of the code when formatting expressions (JSX
 	// in particular), so strip it if we see it
 	if (formattedCode.startsWith(';')) {
 		formattedCode = formattedCode.slice(1)

@@ -19,9 +19,7 @@ directory = "./dist/client"
 
 # Set up the durable object used for each tldraw room
 [durable_objects]
-bindings = [
-    { name = "TLDRAW_DURABLE_OBJECT", class_name = "TldrawDurableObject" },
-]
+bindings = [{ name = "TLDRAW_DURABLE_OBJECT", class_name = "TldrawDurableObject" }]
 
 # Durable objects require migrations to create/modify/delete them
 # Using new_sqlite_classes for SQLite-backed storage
