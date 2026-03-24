@@ -3,9 +3,12 @@
 // This file re-exports them to preserve internal editor import paths.
 export {
 	CORE_ACTIVITIES,
+	createPermissionGate,
 	type CoreActivityId,
 	type TLAfterActionCallback,
 	type TLBeforeActionCallback,
+	type TLPermissionGate,
+	type TLPermissionGateOptions,
 	type TLPermissionContext,
 	type TLPermissionRule,
 	type TLPermissionsManagerConfig,

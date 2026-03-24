@@ -63,11 +63,14 @@ export {
 } from './createTLSchema'
 export {
 	CORE_ACTIVITIES,
+	createPermissionGate,
 	evaluateRule,
 	getShapeCreatorId,
 	type CoreActivityId,
 	type TLAfterActionCallback,
 	type TLBeforeActionCallback,
+	type TLPermissionGate,
+	type TLPermissionGateOptions,
 	type TLPermissionContext,
 	type TLPermissionRule,
 	type TLPermissionsManagerConfig,

@@ -157,6 +157,7 @@ import { InputsManager } from './managers/InputsManager/InputsManager'
 import { TLPermissionsManager } from './managers/PermissionsManager/TLPermissionsManager'
 import {
 	CORE_ACTIVITIES,
+	type TLPermissionContext,
 	TLPermissionsManagerConfig,
 } from './managers/PermissionsManager/permissions-types'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
@@ -824,13 +825,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.root.enter(undefined, 'initial')
 
-		// Permissions must be created after getContainer, root, and sideEffects
-		// are all initialized, since installEnforcement() depends on all three.
+		// Permissions are optional and only used when provided.
 		this.permissions = permissionsConfig ? new TLPermissionsManager(this, permissionsConfig) : null
-		if (this.permissions) {
-			this.permissions.installEnforcement()
-			this.disposables.add(() => this.permissions?.cleanup())
-		}
+		this.disposables.add(() => this.permissions?.cleanup())
 
 		this.edgeScrollManager = new EdgeScrollManager(this)
 		this.focusManager = new FocusManager(this, autoFocus)
@@ -997,6 +994,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly permissions: TLPermissionsManager | null
+
+	/** @internal */
+	private _tryPerformPermission(activityId: string, context?: Partial<TLPermissionContext>) {
+		return this.permissions?.tryPerform(activityId, context) ?? true
+	}
+
+	/** @internal */
+	private _hasPermissionRule(activityId: string) {
+		return this.permissions?.hasRule(activityId) ?? false
+	}
 
 	/**
 	 * A helper for measuring text.
@@ -1171,6 +1178,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	undo(): this {
+		if (!this._tryPerformPermission(CORE_ACTIVITIES.UNDO_REDO)) return this
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.undo()
@@ -1201,6 +1209,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	redo(): this {
+		if (!this._tryPerformPermission(CORE_ACTIVITIES.UNDO_REDO)) return this
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.redo()
@@ -1514,6 +1523,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCurrentTool(id: string, info = {}): this {
+		if (!this._tryPerformPermission(CORE_ACTIVITIES.USE_TOOL, { toolId: id })) return this
 		this.root.transition(id, info)
 		return this
 	}
@@ -1755,7 +1765,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setSelectedShapes(shapes: TLShapeId[] | TLShape[]): this {
 		return this.run(
 			() => {
-				const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
+				const requestedIds = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
+				const ids = requestedIds.filter((id) => {
+					const shape = this.getShape(id)
+					if (!shape) return false
+					return this._tryPerformPermission(CORE_ACTIVITIES.SELECT_SHAPE, { targetShape: shape })
+				})
 				const { selectedShapeIds: prevSelectedShapeIds } = this.getCurrentPageState()
 				const prevSet = new Set(prevSelectedShapeIds)
 
@@ -8228,8 +8243,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 					shapeRecordToCreate = next
 				}
 
-				shapeRecordsToCreate.push(shapeRecordToCreate)
+				if (
+					this._tryPerformPermission(CORE_ACTIVITIES.CREATE_SHAPE, {
+						targetShape: shapeRecordToCreate,
+						shapeType: shapeRecordToCreate.type,
+					})
+				) {
+					shapeRecordsToCreate.push(shapeRecordToCreate)
+				}
 			}
+
+			if (shapeRecordsToCreate.length === 0) return
 
 			// Add meta properties, if any, to the shapes
 			shapeRecordsToCreate.forEach((shape) => {
@@ -8654,9 +8678,40 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// new shape, replace the old shape with the new one. This is used for example when
 				// repositioning a text shape based on its new text content.
 				updated = this.getShapeUtil(shape).onBeforeUpdate?.(shape, updated) ?? updated
+				const updateContext = {
+					targetShape: shape,
+					prevShape: shape,
+					nextShape: updated,
+				}
+				if (!this._tryPerformPermission(CORE_ACTIVITIES.UPDATE_SHAPE, updateContext)) continue
+
+				if (
+					(updated.x !== shape.x || updated.y !== shape.y) &&
+					this._hasPermissionRule(CORE_ACTIVITIES.MOVE_SHAPE) &&
+					!this._tryPerformPermission(CORE_ACTIVITIES.MOVE_SHAPE, updateContext)
+				) {
+					updated = { ...updated, x: shape.x, y: shape.y }
+				}
+				if (
+					updated.rotation !== shape.rotation &&
+					this._hasPermissionRule(CORE_ACTIVITIES.ROTATE_SHAPE) &&
+					!this._tryPerformPermission(CORE_ACTIVITIES.ROTATE_SHAPE, updateContext)
+				) {
+					updated = { ...updated, rotation: shape.rotation }
+				}
+				if (
+					updated.props !== shape.props &&
+					this._hasPermissionRule(CORE_ACTIVITIES.EDIT_SHAPE_PROPS) &&
+					!this._tryPerformPermission(CORE_ACTIVITIES.EDIT_SHAPE_PROPS, updateContext)
+				) {
+					updated = { ...updated, props: shape.props } as TLShape
+				}
+				if (updated === shape) continue
 
 				updates.push(updated)
 			}
+
+			if (updates.length === 0) return
 
 			this.emit('edited-shapes', updates)
 			this.emit('edit')
@@ -8697,13 +8752,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shapeIdsToDelete = this._shouldIgnoreShapeLock
 			? shapeIds
 			: this._getUnlockedShapeIds(shapeIds)
+		const permittedRootShapeIds = shapeIdsToDelete.filter((id) => {
+			const shape = this.getShape(id)
+			return shape ? this._tryPerformPermission(CORE_ACTIVITIES.DELETE_SHAPE, { targetShape: shape }) : false
+		})
 
-		if (shapeIdsToDelete.length === 0) return this
+		if (permittedRootShapeIds.length === 0) return this
 
 		// We also need to delete these shapes' descendants
-		const allShapeIdsToDelete = new Set<TLShapeId>(shapeIdsToDelete)
+		const allShapeIdsToDelete = new Set<TLShapeId>(permittedRootShapeIds)
 
-		for (const id of shapeIdsToDelete) {
+		for (const id of permittedRootShapeIds) {
 			this.visitDescendants(id, (childId) => {
 				allShapeIdsToDelete.add(childId)
 			})
@@ -9211,6 +9270,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
+		if (!this._tryPerformPermission(CORE_ACTIVITIES.COPY_PASTE)) return
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
@@ -9225,6 +9285,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
+		if (!this._tryPerformPermission(CORE_ACTIVITIES.COPY_PASTE)) return
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 

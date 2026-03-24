@@ -1,9 +1,9 @@
-import { react } from '@tldraw/state'
 import {
 	CORE_ACTIVITIES,
-	evaluateRule,
+	createPermissionGate,
 	type TLAfterActionCallback,
 	type TLBeforeActionCallback,
+	type TLPermissionGate,
 	type TLPermissionContext,
 	type TLPermissionRule,
 	type TLPermissionsManagerConfig,
@@ -24,161 +24,17 @@ export class TLPermissionsManager {
 	private readonly rules: ReadonlyMap<string, TLPermissionRule>
 	private readonly beforeActionCallbacks: TLBeforeActionCallback[] = []
 	private readonly afterActionCallbacks: TLAfterActionCallback[] = []
-	private cleanupFns: (() => void)[] = []
+	private readonly gate: TLPermissionGate
 
 	/** @internal */
 	constructor(editor: Editor, config: TLPermissionsManagerConfig) {
 		this.editor = editor
 		this.rules = new Map(Object.entries(config.rules ?? {}))
-	}
-
-	/** @internal */
-	installEnforcement() {
-		const { editor } = this
-
-		// Create: delete disallowed shapes on next microtask
-		this.cleanupFns.push(
-			editor.sideEffects.registerAfterCreateHandler('shape', (shape, source) => {
-				if (source !== 'user') return
-				const user = this.getCurrentUser()
-				if (!user) return
-				if (
-					!this.tryPerform(CORE_ACTIVITIES.CREATE_SHAPE, {
-						user,
-						targetShape: shape,
-						shapeType: shape.type,
-					})
-				) {
-					Promise.resolve().then(() => {
-						if (editor.getShape(shape.id)) editor.deleteShape(shape.id)
-					})
-				}
-			})
-		)
-
-		// Update: revert disallowed changes with granular partial reversion
-		this.cleanupFns.push(
-			editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next, source) => {
-				if (source !== 'user') return next
-				const user = this.getCurrentUser()
-				if (!user) return next
-
-				const ctx = { user, targetShape: prev, prevShape: prev, nextShape: next }
-				if (!this.canPerform(CORE_ACTIVITIES.UPDATE_SHAPE, ctx)) return prev
-
-				let result = next
-				if (
-					(next.x !== prev.x || next.y !== prev.y) &&
-					this.rules.has(CORE_ACTIVITIES.MOVE_SHAPE)
-				) {
-					if (!this.tryPerform(CORE_ACTIVITIES.MOVE_SHAPE, ctx)) {
-						result = { ...result, x: prev.x, y: prev.y }
-					}
-				}
-				if (next.rotation !== prev.rotation && this.rules.has(CORE_ACTIVITIES.ROTATE_SHAPE)) {
-					if (!this.tryPerform(CORE_ACTIVITIES.ROTATE_SHAPE, ctx)) {
-						result = { ...result, rotation: prev.rotation }
-					}
-				}
-				if (next.props !== prev.props && this.rules.has(CORE_ACTIVITIES.EDIT_SHAPE_PROPS)) {
-					if (!this.tryPerform(CORE_ACTIVITIES.EDIT_SHAPE_PROPS, ctx)) {
-						result = { ...result, props: prev.props } as typeof next
-					}
-				}
-				return result
-			})
-		)
-
-		// Delete: block disallowed deletions
-		this.cleanupFns.push(
-			editor.sideEffects.registerBeforeDeleteHandler('shape', (shape, source) => {
-				if (source !== 'user') return undefined
-				const user = this.getCurrentUser()
-				if (!user) return undefined
-				return this.tryPerform(CORE_ACTIVITIES.DELETE_SHAPE, { user, targetShape: shape })
-					? undefined
-					: false
-			})
-		)
-
-		// Tool: enforce via reactive effect on getCurrentToolId()
-		if (this.rules.has(CORE_ACTIVITIES.USE_TOOL)) {
-			let lastAllowedTool = editor.getCurrentToolId()
-			this.cleanupFns.push(
-				react('tl-permissions-tool-enforcement', () => {
-					const toolId = editor.getCurrentToolId()
-					const user = this.getCurrentUser()
-					if (!user) return
-					if (!this.tryPerform(CORE_ACTIVITIES.USE_TOOL, { user, toolId })) {
-						editor.setCurrentTool(lastAllowedTool)
-					} else {
-						lastAllowedTool = toolId
-					}
-				})
-			)
-		}
-
-		// Selection: filter out shapes the user cannot select
-		this.cleanupFns.push(
-			editor.sideEffects.registerBeforeChangeHandler(
-				'instance_page_state',
-				(prev, next, source) => {
-					if (source !== 'user') return next
-					if (next.selectedShapeIds === prev.selectedShapeIds) return next
-					const user = this.getCurrentUser()
-					if (!user) return next
-
-					const allowedIds = next.selectedShapeIds.filter((id) => {
-						const shape = editor.getShape(id)
-						return shape
-							? this.tryPerform(CORE_ACTIVITIES.SELECT_SHAPE, { user, targetShape: shape })
-							: false
-					})
-					return allowedIds.length === next.selectedShapeIds.length
-						? next
-						: { ...next, selectedShapeIds: allowedIds }
-				}
-			)
-		)
-
-		// Clipboard: intercept copy/cut/paste DOM events
-		if (this.rules.has(CORE_ACTIVITIES.COPY_PASTE)) {
-			const container = editor.getContainer()
-			const block = (e: Event) => {
-				const user = this.getCurrentUser()
-				if (!user) return
-				if (!this.tryPerform(CORE_ACTIVITIES.COPY_PASTE, { user })) {
-					e.preventDefault()
-					e.stopPropagation()
-				}
-			}
-			container.addEventListener('copy', block, true)
-			container.addEventListener('cut', block, true)
-			container.addEventListener('paste', block, true)
-			this.cleanupFns.push(() => {
-				container.removeEventListener('copy', block, true)
-				container.removeEventListener('cut', block, true)
-				container.removeEventListener('paste', block, true)
-			})
-		}
-
-		// Undo/redo: intercept keyboard shortcuts
-		if (this.rules.has(CORE_ACTIVITIES.UNDO_REDO)) {
-			const container = editor.getContainer()
-			const block = (e: KeyboardEvent) => {
-				const isUndo = (e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey
-				const isRedo = (e.metaKey || e.ctrlKey) && ((e.key === 'z' && e.shiftKey) || e.key === 'y')
-				if (!isUndo && !isRedo) return
-				const user = this.getCurrentUser()
-				if (!user) return
-				if (!this.tryPerform(CORE_ACTIVITIES.UNDO_REDO, { user })) {
-					e.preventDefault()
-					e.stopPropagation()
-				}
-			}
-			container.addEventListener('keydown', block, true)
-			this.cleanupFns.push(() => container.removeEventListener('keydown', block, true))
-		}
+		this.gate = createPermissionGate({
+			rules: this.rules,
+			beforeActionCallbacks: this.beforeActionCallbacks,
+			afterActionCallbacks: this.afterActionCallbacks,
+		})
 	}
 
 	/**
@@ -232,7 +88,7 @@ export class TLPermissionsManager {
 		}
 
 		const fullContext: TLPermissionContext = { user, ...context, activityId }
-		return evaluateRule(this.rules, activityId, fullContext)
+		return this.gate.canPerform(activityId, fullContext)
 	}
 
 	/**
@@ -252,21 +108,16 @@ export class TLPermissionsManager {
 		}
 
 		const fullContext: TLPermissionContext = { user, ...context, activityId }
-		const allowed = evaluateRule(this.rules, activityId, fullContext, this.beforeActionCallbacks)
-
-		this.notifyAfterAction(fullContext, allowed)
-		return allowed
-	}
-
-	private notifyAfterAction(context: TLPermissionContext, allowed: boolean): void {
-		for (const cb of this.afterActionCallbacks) {
-			cb(context, allowed)
-		}
+		return this.gate.tryPerform(activityId, fullContext)
 	}
 
 	/** @public */
 	canCreateShape(shapeType: string): boolean {
 		return this.canPerform(CORE_ACTIVITIES.CREATE_SHAPE, { shapeType })
+	}
+	/** @internal */
+	hasRule(activityId: string): boolean {
+		return this.rules.has(activityId)
 	}
 	/** @public */
 	canUpdateShape(prev: TLShape, next: TLShape): boolean {
@@ -320,8 +171,6 @@ export class TLPermissionsManager {
 
 	/** @public */
 	cleanup() {
-		this.cleanupFns.forEach((fn) => fn())
-		this.cleanupFns = []
 		this.beforeActionCallbacks.length = 0
 		this.afterActionCallbacks.length = 0
 	}

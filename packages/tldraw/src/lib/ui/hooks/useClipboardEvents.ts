@@ -1,4 +1,5 @@
 import {
+	CORE_ACTIVITIES,
 	Editor,
 	FileHelpers,
 	TLExternalContentSource,
@@ -653,6 +654,7 @@ export function useMenuClipboardEvents() {
 		async function onCopy(source: TLUiEventSource) {
 			assert(editor, 'editor is required for copy')
 			if (editor.getSelectedShapeIds().length === 0) return
+			if (editor.permissions && !editor.permissions.tryPerform(CORE_ACTIVITIES.COPY_PASTE)) return
 
 			await handleNativeOrMenuCopy(editor)
 			trackEvent('copy', { source })
@@ -664,6 +666,7 @@ export function useMenuClipboardEvents() {
 		async function onCut(source: TLUiEventSource) {
 			if (!editor) return
 			if (editor.getSelectedShapeIds().length === 0) return
+			if (editor.permissions && !editor.permissions.tryPerform(CORE_ACTIVITIES.COPY_PASTE)) return
 
 			await handleNativeOrMenuCopy(editor)
 			editor.deleteShapes(editor.getSelectedShapeIds())
@@ -679,6 +682,7 @@ export function useMenuClipboardEvents() {
 			point?: VecLike
 		) {
 			if (!editor) return
+			if (editor.permissions && !editor.permissions.tryPerform(CORE_ACTIVITIES.COPY_PASTE)) return
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
@@ -724,6 +728,7 @@ export function useNativeClipboardEvents() {
 			) {
 				return
 			}
+			if (editor.permissions && !editor.permissions.tryPerform(CORE_ACTIVITIES.COPY_PASTE)) return
 
 			preventDefault(e)
 			await handleNativeOrMenuCopy(editor)
@@ -738,6 +743,7 @@ export function useNativeClipboardEvents() {
 			) {
 				return
 			}
+			if (editor.permissions && !editor.permissions.tryPerform(CORE_ACTIVITIES.COPY_PASTE)) return
 			preventDefault(e)
 			await handleNativeOrMenuCopy(editor)
 			editor.deleteShapes(editor.getSelectedShapeIds())
@@ -765,6 +771,7 @@ export function useNativeClipboardEvents() {
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
 			if (editor.getEditingShapeId() !== null || areShortcutsDisabled(editor)) return
+			if (editor.permissions && !editor.permissions.tryPerform(CORE_ACTIVITIES.COPY_PASTE)) return
 
 			// Where should the shapes go?
 			let point: Vec | undefined = undefined

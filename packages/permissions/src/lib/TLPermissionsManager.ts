@@ -3,9 +3,10 @@ import { NetworkDiff, RecordOpType, applyObjectDiff, diffRecord } from '@tldraw/
 import {
 	CORE_ACTIVITIES,
 	UserRecordType,
+	createPermissionGate,
 	createUserId,
-	evaluateRule,
 	type TLBeforeActionCallback,
+	type TLPermissionGate,
 	type TLPermissionRule,
 	type TLShape,
 	type TLUser,
@@ -16,11 +17,14 @@ import {
 // intentionally not re-exported here — it depends on browser APIs and React.
 export {
 	CORE_ACTIVITIES,
+	createPermissionGate,
 	evaluateRule,
 	getShapeCreatorId,
 	type CoreActivityId,
 	type TLAfterActionCallback,
 	type TLBeforeActionCallback,
+	type TLPermissionGate,
+	type TLPermissionGateOptions,
 	type TLPermissionContext,
 	type TLPermissionRule,
 	type TLPermissionsManagerConfig,
@@ -44,6 +48,11 @@ export function createServerPermissionsFilter<
 	diff: NetworkDiff<R>
 	getRecord(id: string): R | undefined
 }) => NetworkDiff<R> {
+	const gate: TLPermissionGate = createPermissionGate({
+		rules,
+		beforeActionCallbacks,
+	})
+
 	return ({ meta, diff, getRecord }) => {
 		const user: TLUser = UserRecordType.create({
 			id: createUserId(meta.userId),
@@ -61,17 +70,12 @@ export function createServerPermissionsFilter<
 				case RecordOpType.Put: {
 					const record = op[1] as unknown as TLShape
 					if (
-						evaluateRule(
-							rules,
-							CORE_ACTIVITIES.CREATE_SHAPE,
-							{
-								user,
-								activityId: CORE_ACTIVITIES.CREATE_SHAPE,
-								targetShape: record,
-								shapeType: record.type,
-							},
-							beforeActionCallbacks
-						)
+						gate.tryPerform(CORE_ACTIVITIES.CREATE_SHAPE, {
+							user,
+							activityId: CORE_ACTIVITIES.CREATE_SHAPE,
+							targetShape: record,
+							shapeType: record.type,
+						})
 					) {
 						filtered[id] = op
 					}
@@ -90,41 +94,35 @@ export function createServerPermissionsFilter<
 						nextShape: next,
 					}
 
-					if (!evaluateRule(rules, CORE_ACTIVITIES.UPDATE_SHAPE, ctx, beforeActionCallbacks)) break
+					if (!gate.tryPerform(CORE_ACTIVITIES.UPDATE_SHAPE, ctx)) break
 
 					let allowedNext = next
 					if ((next.x !== prev.x || next.y !== prev.y) && CORE_ACTIVITIES.MOVE_SHAPE in rules) {
 						if (
-							!evaluateRule(
-								rules,
-								CORE_ACTIVITIES.MOVE_SHAPE,
-								{ ...ctx, activityId: CORE_ACTIVITIES.MOVE_SHAPE },
-								beforeActionCallbacks
-							)
+							!gate.tryPerform(CORE_ACTIVITIES.MOVE_SHAPE, {
+								...ctx,
+								activityId: CORE_ACTIVITIES.MOVE_SHAPE,
+							})
 						) {
 							allowedNext = { ...allowedNext, x: prev.x, y: prev.y }
 						}
 					}
 					if (next.rotation !== prev.rotation && CORE_ACTIVITIES.ROTATE_SHAPE in rules) {
 						if (
-							!evaluateRule(
-								rules,
-								CORE_ACTIVITIES.ROTATE_SHAPE,
-								{ ...ctx, activityId: CORE_ACTIVITIES.ROTATE_SHAPE },
-								beforeActionCallbacks
-							)
+							!gate.tryPerform(CORE_ACTIVITIES.ROTATE_SHAPE, {
+								...ctx,
+								activityId: CORE_ACTIVITIES.ROTATE_SHAPE,
+							})
 						) {
 							allowedNext = { ...allowedNext, rotation: prev.rotation }
 						}
 					}
 					if (next.props !== prev.props && CORE_ACTIVITIES.EDIT_SHAPE_PROPS in rules) {
 						if (
-							!evaluateRule(
-								rules,
-								CORE_ACTIVITIES.EDIT_SHAPE_PROPS,
-								{ ...ctx, activityId: CORE_ACTIVITIES.EDIT_SHAPE_PROPS },
-								beforeActionCallbacks
-							)
+							!gate.tryPerform(CORE_ACTIVITIES.EDIT_SHAPE_PROPS, {
+								...ctx,
+								activityId: CORE_ACTIVITIES.EDIT_SHAPE_PROPS,
+							})
 						) {
 							allowedNext = { ...allowedNext, props: prev.props } as typeof next
 						}
@@ -144,16 +142,11 @@ export function createServerPermissionsFilter<
 					const shape = getRecord(id) as unknown as TLShape | undefined
 					if (
 						shape &&
-						evaluateRule(
-							rules,
-							CORE_ACTIVITIES.DELETE_SHAPE,
-							{
-								user,
-								activityId: CORE_ACTIVITIES.DELETE_SHAPE,
-								targetShape: shape,
-							},
-							beforeActionCallbacks
-						)
+						gate.tryPerform(CORE_ACTIVITIES.DELETE_SHAPE, {
+							user,
+							activityId: CORE_ACTIVITIES.DELETE_SHAPE,
+							targetShape: shape,
+						})
 					) {
 						filtered[id] = op
 					}

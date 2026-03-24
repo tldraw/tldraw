@@ -41,6 +41,19 @@ export type TLBeforeActionCallback = (context: TLPermissionContext) => boolean
 export type TLAfterActionCallback = (context: TLPermissionContext, allowed: boolean) => void
 
 /** @public */
+export interface TLPermissionGate {
+	canPerform(activityId: string, context: TLPermissionContext): boolean
+	tryPerform(activityId: string, context: TLPermissionContext): boolean
+}
+
+/** @public */
+export interface TLPermissionGateOptions {
+	rules: Record<string, TLPermissionRule> | ReadonlyMap<string, TLPermissionRule>
+	beforeActionCallbacks?: readonly TLBeforeActionCallback[]
+	afterActionCallbacks?: readonly TLAfterActionCallback[]
+}
+
+/** @public */
 export interface TLPermissionsManagerConfig {
 	rules?: Record<string, TLPermissionRule>
 }
@@ -75,4 +88,26 @@ export function evaluateRule(
 		}
 	}
 	return true
+}
+
+/** @public */
+export function createPermissionGate({
+	rules,
+	beforeActionCallbacks,
+	afterActionCallbacks,
+}: TLPermissionGateOptions): TLPermissionGate {
+	return {
+		canPerform(activityId, context) {
+			return evaluateRule(rules, activityId, context)
+		},
+		tryPerform(activityId, context) {
+			const allowed = evaluateRule(rules, activityId, context, beforeActionCallbacks)
+			if (afterActionCallbacks) {
+				for (const callback of afterActionCallbacks) {
+					callback(context, allowed)
+				}
+			}
+			return allowed
+		},
+	}
 }

@@ -1,6 +1,7 @@
 import { vi } from 'vitest'
 import {
 	Box,
+	CORE_ACTIVITIES,
 	Geometry2d,
 	RecordProps,
 	Rectangle2d,
@@ -74,6 +75,81 @@ describe('centerOnPoint', () => {
 	it('sets camera when isLocked is set and force flag is set', () => {
 		editor.centerOnPoint({ x: 0, y: 0 }, { force: true })
 		expect(editor.setCamera).toHaveBeenCalled()
+	})
+})
+
+describe('permissions integration', () => {
+	function createEditorWithRules(rules: Record<string, boolean>) {
+		return new Editor({
+			shapeUtils: [CustomShape],
+			bindingUtils: [],
+			tools: [],
+			store: createTLStore({ shapeUtils: [CustomShape], bindingUtils: [] }),
+			getContainer: () => document.body,
+			permissions: { rules },
+		})
+	}
+
+	it('blocks creating shapes before store mutations', () => {
+		const permissionsEditor = createEditorWithRules({
+			[CORE_ACTIVITIES.CREATE_SHAPE]: false,
+		})
+		const id = createShapeId('blocked-create')
+		permissionsEditor.createShape({
+			id,
+			type: 'my-custom-shape',
+			props: { w: 100, h: 100, text: 'nope' },
+		})
+
+		expect(permissionsEditor.getShape(id)).toBeUndefined()
+		permissionsEditor.dispose()
+	})
+
+	it('blocks updates when update.shape is denied', () => {
+		const permissionsEditor = createEditorWithRules({
+			[CORE_ACTIVITIES.UPDATE_SHAPE]: false,
+		})
+		const id = createShapeId('blocked-update')
+		permissionsEditor.createShape({
+			id,
+			type: 'my-custom-shape',
+			props: { w: 100, h: 100, text: 'before' },
+		})
+
+		permissionsEditor.updateShape({
+			id,
+			type: 'my-custom-shape',
+			props: { w: 200, h: 200, text: 'after', isFilled: false },
+		})
+
+		expect((permissionsEditor.getShape(id) as ICustomShape).props.text).toBe('before')
+		permissionsEditor.dispose()
+	})
+
+	it('filters disallowed selection targets', () => {
+		const permissionsEditor = createEditorWithRules({
+			[CORE_ACTIVITIES.SELECT_SHAPE]: ({ targetShape }) => targetShape?.id !== createShapeId('b'),
+		})
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		permissionsEditor.createShapes([
+			{ id: a, type: 'my-custom-shape' },
+			{ id: b, type: 'my-custom-shape' },
+		])
+
+		permissionsEditor.setSelectedShapes([a, b])
+		expect(permissionsEditor.getSelectedShapeIds()).toEqual([a])
+		permissionsEditor.dispose()
+	})
+
+	it('blocks tool changes when tool.use is denied', () => {
+		const permissionsEditor = createEditorWithRules({
+			[CORE_ACTIVITIES.USE_TOOL]: false,
+		})
+		const before = permissionsEditor.getCurrentToolId()
+		permissionsEditor.setCurrentTool('hand')
+		expect(permissionsEditor.getCurrentToolId()).toBe(before)
+		permissionsEditor.dispose()
 	})
 })
 
