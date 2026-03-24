@@ -1015,6 +1015,13 @@
 	left: -9999px;
 	padding: 8px 16px;
 	z-index: var(--tl-layer-toasts);
+
+}
+
+@media (hover: hover) {
+	.tl-skip-to-main-content:not(:disabled, [data-disabled]):hover {
+		z-index: var(--tl-layer-toasts);
+	}
 }
 
 .tl-skip-to-main-content:focus {
