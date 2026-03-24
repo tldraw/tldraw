@@ -48,7 +48,7 @@ export class ControlNetNodeDefinition extends NodeDefinition<ControlNetNode> {
 	static validator = ControlNetNode
 	title = 'ControlNet'
 	heading = 'ControlNet'
-	icon = (<ControlNetIcon />)
+	icon = <ControlNetIcon />
 	category = 'process'
 	resultKeys = ['lastResultUrl'] as const
 	getDefault(): ControlNetNode {

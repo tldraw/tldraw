@@ -52,7 +52,7 @@ export const MetaUiHelper = track(function MetaUiHelper() {
 	)
 })
 
-/* 
+/*
 This example shows how to add meta data to shapes when they are created and
 updated. In this case we are adding `updatedBy` and `updatedAt` fields.
 

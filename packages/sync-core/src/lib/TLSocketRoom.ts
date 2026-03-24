@@ -1,7 +1,9 @@
 import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
 import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
+import { JsonChunkAssembler } from './chunk'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
+import { TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
@@ -11,8 +13,6 @@ import {
 	loadSnapshotIntoStorage,
 	TLSyncStorage,
 } from './TLSyncStorage'
-import { JsonChunkAssembler } from './chunk'
-import { TLSocketServerSentEvent } from './protocol'
 
 /**
  * Strip potentially large fields from a tldraw instance_presence record so the
@@ -96,13 +96,13 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	clientTimeout?: number
 	log?: TLSyncLog
 	// a callback that is called when a client is disconnected
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	onSessionRemoved?: (
 		room: TLSocketRoom<R, SessionMeta>,
 		args: { sessionId: string; numSessionsRemaining: number; meta: SessionMeta }
 	) => void
 	// a callback that is called whenever a message is sent
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	onBeforeSendMessage?: (args: {
 		sessionId: string
 		/** @internal keep the protocol private for now */
@@ -110,7 +110,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 		stringified: string
 		meta: SessionMeta
 	}) => void
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	onAfterReceiveMessage?: (args: {
 		sessionId: string
 		/** @internal keep the protocol private for now */
@@ -126,7 +126,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * Use for persisting snapshots to WebSocket attachments (e.g. Cloudflare hibernation).
 	 * The room clears any pending snapshot when the session closes.
 	 */
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	onSessionSnapshot?: (sessionId: string, snapshot: SessionStateSnapshot) => void
 }
 
@@ -194,7 +194,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	private room: TLSyncRoom<R, SessionMeta>
 	private readonly sessions = new Map<
 		string,
-		// eslint-disable-next-line @typescript-eslint/method-signature-style
+		// eslint-disable-next-line tldraw/method-signature-style
 		{ assembler: JsonChunkAssembler; socket: WebSocketMinimal; unlisten: () => void }
 	>()
 	readonly log?: TLSyncLog

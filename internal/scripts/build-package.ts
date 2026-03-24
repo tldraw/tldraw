@@ -1,10 +1,10 @@
-import { build } from 'esbuild'
 import { copyFileSync, existsSync } from 'fs'
+import path from 'path'
+import { pathToFileURL } from 'url'
+import { build } from 'esbuild'
 import glob from 'glob'
 import kleur from 'kleur'
-import path from 'path'
 import rimraf from 'rimraf'
-import { pathToFileURL } from 'url'
 import { addJsExtensions } from './lib/add-extensions'
 import { readJsonIfExists } from './lib/file'
 

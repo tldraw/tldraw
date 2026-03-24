@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "Převést na záložku",
 	"action.convert-to-embed": "Převést na vložení",
 	"action.copy": "Kopírovat",
+	"action.copy-as-json": "Kopírovat jako JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Kopírovat jako PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Kopírovat jako SVG",

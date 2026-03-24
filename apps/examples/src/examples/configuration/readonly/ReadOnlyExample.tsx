@@ -14,7 +14,7 @@ export default function ReadOnlyExample() {
 	)
 }
 
-/* 
+/*
 This example shows how to make the editor read-only. We use the `onMount` prop to
 set the editor's `isReadonly` state to `true`. This will disable all editing
 functionality and show only the select tool, hand tool and laser pointer on the

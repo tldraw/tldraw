@@ -1,6 +1,6 @@
 import { UnknownRecord } from '@tldraw/store'
-import { TLRoomSocket } from './TLSyncRoom'
 import { TLSocketServerSentEvent } from './protocol'
+import { TLRoomSocket } from './TLSyncRoom'
 
 /**
  * Minimal server-side WebSocket interface that is compatible with various WebSocket implementations.
@@ -34,7 +34,7 @@ export interface WebSocketMinimal {
 	 * @param type - The event type to listen for
 	 * @param listener - The event handler function
 	 */
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	addEventListener?: (type: 'message' | 'close' | 'error', listener: (event: any) => void) => void
 
 	/**
@@ -44,7 +44,7 @@ export interface WebSocketMinimal {
 	 * @param type - The event type to stop listening for
 	 * @param listener - The event handler function to remove
 	 */
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	removeEventListener?: (
 		type: 'message' | 'close' | 'error',
 		listener: (event: any) => void
@@ -55,7 +55,7 @@ export interface WebSocketMinimal {
 	 *
 	 * @param data - The string data to send
 	 */
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	send: (data: string) => void
 
 	/**
@@ -64,7 +64,7 @@ export interface WebSocketMinimal {
 	 * @param code - Optional close code (default: 1000 for normal closure)
 	 * @param reason - Optional human-readable close reason
 	 */
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	close: (code?: number, reason?: string) => void
 
 	/**
@@ -93,7 +93,7 @@ export interface ServerSocketAdapterOptions<R extends UnknownRecord> {
 	 * @param msg - The message object being sent
 	 * @param stringified - The JSON stringified version of the message
 	 */
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	readonly onBeforeSendMessage?: (msg: TLSocketServerSentEvent<R>, stringified: string) => void
 }
 
@@ -140,7 +140,7 @@ export class ServerSocketAdapter<R extends UnknownRecord> implements TLRoomSocke
 	 *
 	 * @returns True if the connection is open (readyState === 1), false otherwise
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get isOpen(): boolean {
 		return this.opts.ws.readyState === 1 // ready state open
 	}

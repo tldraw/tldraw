@@ -24,7 +24,7 @@ export class PromptNodeDefinition extends NodeDefinition<PromptNode> {
 	static validator = PromptNode
 	title = 'Prompt'
 	heading = 'Prompt'
-	icon = (<PromptIcon />)
+	icon = <PromptIcon />
 	category = 'input'
 	getDefault(): PromptNode {
 		return {

@@ -19,7 +19,7 @@ export class Vec {
 		public z = 1
 	) {}
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get pressure() {
 		return this.z
 	}

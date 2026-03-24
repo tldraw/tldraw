@@ -7,6 +7,8 @@
  * - Tighter margins and spacing for density
  */
 
+import { writeFileSync } from 'fs'
+import { dirname, resolve } from 'path'
 import {
 	convertInchesToTwip,
 	Document,
@@ -16,8 +18,6 @@ import {
 	Paragraph,
 	TextRun,
 } from 'docx'
-import { writeFileSync } from 'fs'
-import { dirname, resolve } from 'path'
 import { nicelog } from './lib/nicelog'
 
 const DOCS_DIR = resolve(dirname(dirname(dirname(__filename))), 'documentation')

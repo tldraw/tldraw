@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "बुकमार्क में कनवर्ट करें",
 	"action.convert-to-embed": "एम्बेड में कनवर्ट करें",
 	"action.copy": "कॉपी करें",
+	"action.copy-as-json": "JSON के रूप में कॉपी करें",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "PNG के रूप में कॉपी करें",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "SVG के रूप में कॉपी करें",

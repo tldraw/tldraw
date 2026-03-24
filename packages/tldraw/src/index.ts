@@ -52,7 +52,7 @@ export {
 } from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
 export { DefaultToasts } from './lib/ui/components/Toasts'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/editor'
 export { BookmarkAssetUtil } from './lib/assets/BookmarkAssetUtil'
 export { ImageAssetUtil } from './lib/assets/ImageAssetUtil'
@@ -661,7 +661,11 @@ export {
 	useCanUndo,
 	useUnlockedSelectedShapesCount,
 } from './lib/ui/hooks/menu-hooks'
-export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
+export {
+	handleNativeOrMenuCopy,
+	useMenuClipboardEvents,
+	useNativeClipboardEvents,
+} from './lib/ui/hooks/useClipboardEvents'
 export {
 	useCollaborationStatus,
 	useShowCollaborationUi,

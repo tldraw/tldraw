@@ -27,7 +27,7 @@
 		"infinite"
 	],
 	"scripts": {
-		"lint": "yarn run -T tsx ../scripts/lint.ts",
+		"lint": "cd ../.. && yarn run -T oxlint internal/apps-script",
 		"glogin": "clasp login",
 		"glogout": "clasp logout",
 		"gcreate": "clasp create --type standalone --title \"tldraw.com\" --rootDir ./dist",
@@ -39,7 +39,7 @@
 		"build:staging": "yarn run -T tsx build-workspace-app.ts"
 	},
 	"dependencies": {
-		"@google/clasp": "^2.5.0"
+		"@google/clasp": "^3.2.0"
 	},
 	"devDependencies": {
 		"@types/google-apps-script": "^1.0.91"

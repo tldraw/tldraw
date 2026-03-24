@@ -1,5 +1,5 @@
-import { Octokit } from '@octokit/rest'
 import { appendFileSync } from 'node:fs'
+import { Octokit } from '@octokit/rest'
 import { extractChangelog } from './extract-draft-changelog'
 import { getAnyPackageDiff } from './lib/didAnyPackageChange'
 import { exec } from './lib/exec'

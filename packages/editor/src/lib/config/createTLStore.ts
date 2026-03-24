@@ -12,10 +12,10 @@ import {
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
-import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
 import { TLAnyAssetUtilConstructor, checkAssets } from './defaultAssets'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
+import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
 
 /** @public */
 export interface TLStoreBaseOptions {

@@ -1,5 +1,6 @@
-import { equals, getObjectSubset, iterableEquality, subsetEquality } from '@jest/expect-utils'
 import crypto from 'crypto'
+import { TextDecoder, TextEncoder } from 'util'
+import { equals, getObjectSubset, iterableEquality, subsetEquality } from '@jest/expect-utils'
 import {
 	matcherHint,
 	printDiffOrStringify,
@@ -7,7 +8,6 @@ import {
 	printReceived,
 	stringify,
 } from 'jest-matcher-utils'
-import { TextDecoder, TextEncoder } from 'util'
 
 if (typeof window !== 'undefined') {
 	await import('vitest-canvas-mock')

@@ -47,7 +47,7 @@ export default function UiEventsExample() {
 	)
 }
 
-/* 
+/*
 This example shows how to listen to UI events. This includes includes things like selecting a tool,
 grouping shapes, zooming etc. Events are included even if they are triggered by a keyboard shortcut.
 However, interactions with the style panel are not included. For a full list of events and sources,

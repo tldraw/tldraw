@@ -4,8 +4,8 @@ import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiRow } from '../primitives/layout'
+import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 
 export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId: string }) {
 	const editor = useEditor()

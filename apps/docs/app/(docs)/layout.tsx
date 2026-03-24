@@ -1,5 +1,5 @@
-import { DocsSearchBar } from '@/components/docs/docs-search-bar'
 import { Metadata } from 'next'
+import { DocsSearchBar } from '@/components/docs/docs-search-bar'
 
 export const metadata: Metadata = {
 	metadataBase: new URL('https://tldraw.dev'),
