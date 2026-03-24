@@ -1,5 +1,5 @@
-import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { Editor } from './Editor'
 import { step } from './tla-test'
 

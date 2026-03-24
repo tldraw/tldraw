@@ -1,3 +1,5 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { fixupPluginRules } from '@eslint/compat'
 import { FlatCompat } from '@eslint/eslintrc'
 import js from '@eslint/js'
@@ -9,9 +11,7 @@ import _import from 'eslint-plugin-import'
 import noOnlyTests from 'eslint-plugin-no-only-tests'
 import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import localRules from './internal/scripts/eslint/eslint-plugin.mjs'
+import localRules from './internal/scripts/oxlint/tldraw-plugin.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -238,11 +238,11 @@ export default [
 					name: 'structuredClone',
 					message: 'Use structuredClone from @tldraw/util instead',
 				},
-			{
-				name: 'document',
-				message:
-					'Use editor.getContainerDocument(), getOwnerDocument(), or getGlobalDocument() instead to support cross-window embedding.',
-			},
+				{
+					name: 'document',
+					message:
+						'Use editor.getContainerDocument(), getOwnerDocument(), or getGlobalDocument() instead to support cross-window embedding.',
+				},
 				{
 					name: 'getComputedStyle',
 					message:
@@ -338,12 +338,12 @@ export default [
 					message:
 						'Bare instanceof checks for DOM types fail across window boundaries. Use ownerDocument.defaultView or getOwnerWindow() to get the correct constructor.',
 				},
-			{
-				selector:
-					"MemberExpression[object.name='window'][property.name=/^(addEventListener|removeEventListener|getComputedStyle|getSelection|matchMedia|navigator|print|devicePixelRatio|innerWidth|innerHeight|scrollX|scrollY|visualViewport)$/]",
-				message:
-					'Use editor.getContainerWindow(), getOwnerWindow(), or getGlobalWindow() instead to support cross-window embedding.',
-			},
+				{
+					selector:
+						"MemberExpression[object.name='window'][property.name=/^(addEventListener|removeEventListener|getComputedStyle|getSelection|matchMedia|navigator|print|devicePixelRatio|innerWidth|innerHeight|scrollX|scrollY|visualViewport)$/]",
+					message:
+						'Use editor.getContainerWindow(), getOwnerWindow(), or getGlobalWindow() instead to support cross-window embedding.',
+				},
 			],
 		},
 	},
@@ -436,7 +436,6 @@ export default [
 
 		rules: {
 			'no-restricted-syntax': 'off',
-			'local/no-at-internal': 'error',
 		},
 	},
 	{
@@ -448,7 +447,6 @@ export default [
 			'no-restricted-syntax': 'off',
 			'react/jsx-key': 'off',
 			'react/no-string-refs': 'off',
-			'local/no-at-internal': 'off',
 		},
 	},
 	{
@@ -465,7 +463,6 @@ export default [
 			'no-restricted-syntax': 'off',
 			'no-console': 'off',
 			'@typescript-eslint/method-signature-style': 'off',
-			'local/no-at-internal': 'error',
 		},
 	},
 ]

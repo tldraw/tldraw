@@ -86,7 +86,7 @@ export default function ToolInToolbarExample() {
 	)
 }
 
-/* 
+/*
 Introduction:
 You can make an icon for your custom tool appear on tldraw's toolbar. To do this 
 you will need to override the toolbar component, pass in a custom component for 

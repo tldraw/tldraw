@@ -1024,4 +1024,351 @@ sequenceDiagram
     Worker->>Worker: parse chunk 3 with a suspiciously long status label for layout testing
     deactivate Worker`,
 	],
+	[
+		`mindmap
+    Root
+        A
+            B
+            C`,
+		`mindmap
+    root[Square]
+        A
+        B`,
+		`mindmap
+    root(Rounded square)
+        A
+        B`,
+		`mindmap
+    root((Circle))
+        A
+        B`,
+		`mindmap
+    root)Cloud(
+        A
+        B`,
+		`mindmap
+    root{{Hexagon}}
+        A
+        B`,
+		`mindmap
+    Root
+        A
+            B
+          C`,
+		`mindmap
+    Root
+        A
+        B
+            C
+            D
+        E
+            F`,
+		`mindmap
+    Project
+        Planning
+            Requirements
+            Timeline
+        Development
+            Frontend
+            Backend
+            Database
+        Testing
+            Unit tests
+            Integration`,
+		`mindmap
+    Web Development
+        Frontend
+            HTML
+            CSS
+            JavaScript
+                React
+                Vue
+                Angular
+        Backend
+            Node.js
+            Python
+            Go
+        DevOps
+            Docker
+            CI/CD
+            Monitoring`,
+		`mindmap
+    Company
+        Engineering
+            Platform
+            Product
+            Infrastructure
+        Design
+            UX
+            Visual
+        Marketing
+            Content
+            Analytics`,
+		`mindmap
+    root((Central Idea))
+        Branch A
+            Leaf 1
+            Leaf 2
+            Leaf 3
+        Branch B
+            Leaf 4
+            Leaf 5
+        Branch C
+            Leaf 6`,
+		`mindmap
+    root[Decision]
+        (Option A)
+            Pro 1
+            Pro 2
+        (Option B)
+            Pro 3
+            Con 1
+        (Option C)
+            Pro 4`,
+		`mindmap
+    Release Plan
+        v1.0
+            Core features
+            Bug fixes
+            Documentation
+        v1.1
+            Performance
+            New API
+        v2.0
+            Breaking changes
+            Migration guide
+            New architecture`,
+		`mindmap
+    Onboarding
+        Day 1
+            Setup
+            Intro meeting
+            Codebase tour
+        Week 1
+            First PR
+            Code review
+            Team lunch
+        Month 1
+            Own a feature
+            Present to team`,
+		`mindmap
+    root((tldraw))
+        Editor
+            Shapes
+            Tools
+            Bindings
+        Store
+            Records
+            Signals
+        UI
+            Components
+            Styles
+        Sync
+            Multiplayer
+            Persistence`,
+		`mindmap
+    Debugging
+        Check logs
+            Server logs
+            Client console
+        Reproduce
+            Steps
+            Environment
+        Fix
+            Root cause
+            Regression test
+        Deploy
+            Staging
+            Production`,
+		`mindmap
+    root[Quarterly Goals]
+        Reliability
+            Uptime target
+            Alerting
+            Incident response
+        Growth
+            New users
+            Retention
+            Activation
+        Platform
+            API v2
+            SDK improvements
+            Documentation`,
+		`mindmap
+    Meal Planning
+        Monday
+            Breakfast
+            Lunch
+            Dinner
+        Tuesday
+            Breakfast
+            Lunch
+            Dinner
+        Wednesday
+            Breakfast
+            Lunch
+            Dinner`,
+		`mindmap
+    root((AI))
+        Machine Learning
+            Supervised
+                Classification
+                Regression
+            Unsupervised
+                Clustering
+                Dimensionality Reduction
+        Deep Learning
+            CNNs
+            RNNs
+            Transformers
+        Applications
+            NLP
+            Computer Vision
+            Robotics`,
+		`mindmap
+  root((System Architecture))
+    Layer 1
+      Layer 2
+        Layer 3
+          Layer 4
+            Layer 5
+              Layer 6
+                Layer 7
+                  Layer 8
+                    Layer 9
+                      Layer 10`,
+		`mindmap
+  root((Wide Node))
+    A1
+    A2
+    A3
+    A4
+    A5
+    A6
+    A7
+    A8
+    A9
+    A10
+    A11
+    A12
+    A13`,
+		`mindmap
+  root((Product))
+    Design
+      UX
+        Research
+        Personas
+      UI
+    Engineering
+      Backend
+        APIs
+        DB
+      Frontend
+        Components
+        State
+    Marketing
+      SEO
+      Ads
+      Social`,
+		`mindmap
+  root((Documentation))
+    "This is a very long node label intended to test text wrapping and overflow behavior"
+      "Another extremely verbose and descriptive child node that could break layouts"
+        "Even deeper explanation with excessive verbosity and complexity"`,
+		`mindmap
+  root((Company))
+    CEO
+      Strategy
+    CTO
+      Engineering
+        Platform
+          Infra
+            Kubernetes
+    Intern`,
+		`mindmap
+  root((Duplicates))
+    Node
+      Node
+        Node
+    Node
+      Node`,
+		`mindmap
+  root((Numbers))
+    1
+      1.1
+        1.1.1
+    2
+      2.1
+      2.2
+    3`,
+		`mindmap
+  root((AI System))
+    Data
+      Collection
+      Cleaning
+      Labeling
+    Model
+      Training
+      Evaluation
+      Deployment
+    Ethics
+      Bias
+      Privacy
+      Transparency`,
+		`mindmap
+  root((Hybrid))
+    A
+      A1
+        A1a
+        A1b
+      A2
+    B
+      B1
+      B2
+      B3
+        B3a
+          B3a1
+    C`,
+		`mindmap
+  root((Uneven))
+    Short
+    Medium
+      Mid1
+      Mid2
+    VeryLong
+      L1
+        L2
+          L3
+            L4
+              L5`,
+		`mindmap
+  root((Knowledge))
+    Science
+      Physics
+      Chemistry
+      Biology
+    Arts
+      Music
+      Painting
+      Dance
+    Technology
+      Software
+      Hardware
+      AI`,
+		`mindmap
+  root((Decision))
+    Start
+      Yes
+        Continue
+          Optimize
+      No
+        Stop
+        Retry`,
+		`mindmap
+  root((Edge))
+    ""
+    " "
+    "   "
+    Filled`,
+	],
 ]

@@ -27,7 +27,7 @@ export function useMsg(
 
 const INTERNAL_LOCALES = ['xx-AE', 'xx-LS']
 
-// We use `@swc/plugin-formatjs` in `vite.config.ts` to generate IDs for messages.
+// We use `@formatjs/unplugin` in `vite.config.ts` to generate IDs for messages.
 // This should always have an ID, so we throw an error if it's missing.
 function fetchId({ id }: MessageDescriptor) {
 	if (id) return id
@@ -50,7 +50,7 @@ export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 			{isInternalLocale(intl.locale) ? (
 				<>{internalMessage}</>
 			) : (
-				/* eslint-disable-next-line formatjs/enforce-default-message */
+				/* eslint-disable-next-line tldraw/enforce-default-message */
 				<FormattedMessage id={id} {...props} />
 			)}
 		</span>

@@ -35,13 +35,13 @@
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
-		"format": "yarn run -T prettier --write --cache \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
+		"format": "yarn run -T oxfmt \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "cd ../.. && yarn run -T oxlint packages/tlschema"
 	},
 	"devDependencies": {
 		"kleur": "^4.1.5",

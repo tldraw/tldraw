@@ -1,6 +1,6 @@
 import { getColorValue, TLGeoShape } from '@tldraw/editor'
-import { ShapeFill } from '../../shared/ShapeFill'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
+import { ShapeFill } from '../../shared/ShapeFill'
 import { useDefaultColorTheme } from '../../shared/useDefaultColorTheme'
 import { getGeoShapePath } from '../getGeoShapePath'
 

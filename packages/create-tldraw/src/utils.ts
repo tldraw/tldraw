@@ -1,6 +1,6 @@
-import { isCancel, outro } from '@clack/prompts'
 import { existsSync, lstatSync, readdirSync } from 'node:fs'
 import { basename, resolve } from 'node:path'
+import { isCancel, outro } from '@clack/prompts'
 
 export function nicelog(...args: unknown[]) {
 	// eslint-disable-next-line no-console

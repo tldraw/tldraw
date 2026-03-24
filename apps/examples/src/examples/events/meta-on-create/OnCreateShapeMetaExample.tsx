@@ -41,7 +41,7 @@ export const MetaUiHelper = track(function MetaUiHelper() {
 	)
 })
 
-/* 
+/*
 This example demonstrates how to add your own data to shapes using the meta property as they're
 created. Check out the docs for a more detailed explanation of the meta property: 
 https://tldraw.dev/docs/shapes#Meta-information

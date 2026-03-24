@@ -52,7 +52,7 @@ export class UpscaleNodeDefinition extends NodeDefinition<UpscaleNode> {
 	title = 'Upscale'
 	heading = 'Upscale'
 	hidden = true as const
-	icon = (<UpscaleIcon />)
+	icon = <UpscaleIcon />
 	category = 'process'
 	resultKeys = ['lastResultUrl'] as const
 	getDefault(): UpscaleNode {

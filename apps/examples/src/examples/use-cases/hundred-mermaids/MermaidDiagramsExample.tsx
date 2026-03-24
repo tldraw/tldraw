@@ -72,6 +72,7 @@ function TopPanel() {
 			startOnLoad: false,
 			flowchart: { useMaxWidth: false, nodeSpacing: 80, rankSpacing: 80, padding: 20 },
 			state: { useMaxWidth: false, nodeSpacing: 80, rankSpacing: 80, padding: 20 },
+			mindmap: { useMaxWidth: false, padding: 20 },
 			sequence: { useMaxWidth: false, actorMargin: 50, noteMargin: 20 },
 			themeVariables: { fontSize: `${18 * FONT_INFLATE}px` },
 		})

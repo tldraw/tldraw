@@ -1,9 +1,9 @@
 'use client'
 
-import { ArticleHeading } from '@/types/content-types'
-import { cn } from '@/utils/cn'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { ArticleHeading } from '@/types/content-types'
+import { cn } from '@/utils/cn'
 
 export function HeadingsMenu({ headings }: { headings: ArticleHeading[] }) {
 	const [activeSlug, setActiveSlug] = useState('')
