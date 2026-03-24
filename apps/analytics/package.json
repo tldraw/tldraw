@@ -20,7 +20,7 @@
 		"@cloudflare/workers-types": "^4.20260302.0",
 		"@types/js-cookie": "^3.0.6",
 		"typescript": "^5.8.3",
-		"vite": "^8.0.0",
+		"vite": "^8.0.1",
 		"vitest": "^3.2.4",
 		"wrangler": "^4.75.0"
 	}

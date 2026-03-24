@@ -12,10 +12,16 @@ import {
 	SvgExportContext,
 	TLGeoShape,
 	TLGeoShapeProps,
+	TLMeasureTextOpts,
 	TLResizeInfo,
+	TLShape,
+	TLShapeId,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
+	VecLike,
 	WeakCache,
+	approximately,
+	areAnglesCompatible,
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
@@ -331,20 +337,26 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			const absUnscaledW = Math.abs(unscaledW)
 			const absUnscaledH = Math.abs(unscaledH)
 
-			// Measure the label at the constrained target dimensions so text wrapping is
-			// accounted for. We call measureUnscaledLabelSize directly (bypassing WeakCache)
-			// since temp shapes with resize dimensions change every frame. The WeakCache
-			// still helps getGeometry, onBeforeCreate, and onBeforeUpdate.
-			const measureW = Math.max(absUnscaledW, MIN_SIZE_WITH_LABEL)
-			const measureH = Math.max(absUnscaledH, MIN_SIZE_WITH_LABEL)
-			const unscaledLabelSize = measureUnscaledLabelSize(this.editor, {
-				...shape,
-				props: {
-					...shape.props,
-					w: measureW * shape.props.scale,
-					h: measureH * shape.props.scale,
-				},
-			} as TLGeoShape)
+			// Check the batch cache first (set by Resizing.ts during multi-shape resize).
+			// If not cached, measure the label at the constrained target dimensions so text
+			// wrapping is accounted for. We call measureUnscaledLabelSize directly (bypassing
+			// WeakCache) since temp shapes with resize dimensions change every frame.
+			const cached = getBatchLabelSizeCache(this.editor)?.get(shape.id)
+			let unscaledLabelSize: { w: number; h: number }
+			if (cached) {
+				unscaledLabelSize = cached
+			} else {
+				const measureW = Math.max(absUnscaledW, MIN_SIZE_WITH_LABEL)
+				const measureH = Math.max(absUnscaledH, MIN_SIZE_WITH_LABEL)
+				unscaledLabelSize = measureUnscaledLabelSize(this.editor, {
+					...shape,
+					props: {
+						...shape.props,
+						w: measureW * shape.props.scale,
+						h: measureH * shape.props.scale,
+					},
+				} as TLGeoShape)
+			}
 
 			const constrainedW = Math.max(absUnscaledW, unscaledLabelSize.w)
 			const constrainedH = Math.max(absUnscaledH, unscaledLabelSize.h)
@@ -654,10 +666,36 @@ function expandShapeForFirstLabel(
 	return { w, h }
 }
 
+// Per-editor batch cache, set by batchMeasureGeoLabels before the resize loop and cleared after.
+// When set, onResize will use pre-computed label sizes instead of measuring individually.
+// Uses a WeakMap keyed by editor to avoid issues with multiple editors on the same page.
+const _batchLabelSizeCaches = new WeakMap<Editor, Map<TLShapeId, { w: number; h: number }>>()
+
+/** @internal */
+export function setBatchLabelSizeCache(
+	editor: Editor,
+	cache: Map<TLShapeId, { w: number; h: number }> | null
+) {
+	if (cache) {
+		_batchLabelSizeCaches.set(editor, cache)
+	} else {
+		_batchLabelSizeCaches.delete(editor)
+	}
+}
+
+function getBatchLabelSizeCache(editor: Editor) {
+	return _batchLabelSizeCaches.get(editor)
+}
+
 const labelSizesForGeo = new WeakCache<TLGeoShape, { w: number; h: number }>()
 
 // Returns cached label size for the shape. Don't call with empty rich text.
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
+	// Check the batch cache first (set during multi-shape resize).
+	// This avoids re-measuring labels that were already batch-measured.
+	const batchCached = getBatchLabelSizeCache(editor)?.get(shape.id)
+	if (batchCached) return batchCached
+
 	return labelSizesForGeo.get(shape, () => {
 		return measureUnscaledLabelSize(editor, shape)
 	})
@@ -665,28 +703,134 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 
 // This is the expensive part of the code so we want to avoid calling it if we can
 function measureUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
+	const { html, opts } = getGeoLabelMeasurementRequest(editor, shape)
+	const textSize = editor.textMeasure.measureHtml(html, opts)
+
+	return {
+		w: textSize.w + LABEL_PADDING * 2,
+		h: textSize.h + LABEL_PADDING * 2,
+	}
+}
+
+/**
+ * Build the measurement request params (html + opts) for a geo shape's label
+ * without actually performing the measurement. Used by batch measurement.
+ */
+function getGeoLabelMeasurementRequest(
+	editor: Editor,
+	shape: TLGeoShape
+): { html: string; opts: TLMeasureTextOpts } {
 	const { richText, font, size, w } = shape.props
-
 	const minWidth = MIN_WIDTHS[size]
-
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
-	const textSize = editor.textMeasure.measureHtml(html, {
+	const opts: TLMeasureTextOpts = {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: LABEL_FONT_SIZES[size],
 		minWidth: minWidth,
 		maxWidth: Math.max(
-			// Guard because a DOM nodes can't be less 0
+			// Guard because a DOM node can't be less than 0
 			0,
 			// A 'w' width that we're setting as the min-width
 			Math.ceil(minWidth + EXTRA_PADDINGS[size]),
 			// The actual text size
 			Math.ceil(w / shape.props.scale - LABEL_PADDING * 2)
 		),
-	})
-
-	return {
-		w: textSize.w + LABEL_PADDING * 2,
-		h: textSize.h + LABEL_PADDING * 2,
 	}
+	return { html, opts }
+}
+
+/**
+ * Compute the target unscaled width for label measurement during resize.
+ * This replicates the measureW computation from onResize so batch measurement can
+ * build measurement requests without duplicating GeoShapeUtil internals.
+ */
+function getGeoResizeTargetWidth(initialProps: TLGeoShapeProps, scaleX: number): number {
+	const unscaledInitialW = initialProps.w / initialProps.scale
+	const absUnscaledW = Math.abs(unscaledInitialW * scaleX)
+	return Math.max(absUnscaledW, MIN_SIZE_WITH_LABEL)
+}
+
+/**
+ * Batch-measure all geo shape labels before the resize loop to avoid layout thrashing.
+ * For each geo shape with a non-empty label that has compatible rotation, compute the
+ * measurement request and batch all measurements in a single DOM pass.
+ * Sets the per-editor batch cache so onResize and getGeometry can use pre-computed sizes.
+ * @internal
+ */
+export function batchMeasureGeoLabels(
+	editor: Editor,
+	shapeSnapshots: Map<
+		TLShapeId,
+		{
+			shape: TLShape
+			pageRotation: number
+			isAspectRatioLocked: boolean
+		}
+	>,
+	scale: VecLike,
+	selectionRotation: number,
+	isAspectRatioLocked: boolean
+) {
+	const requests: Array<{ id: TLShapeId; html: string; opts: TLMeasureTextOpts }> = []
+
+	for (const [id, snapshot] of shapeSnapshots) {
+		// Only process geo shapes with non-empty text labels
+		if (!editor.isShapeOfType<TLGeoShape>(snapshot.shape, 'geo')) continue
+		const geoShape = snapshot.shape as TLGeoShape
+		if (isEmptyRichText(geoShape.props.richText)) continue
+
+		// Skip unaligned shapes — they take a different resize path (_resizeUnalignedShape)
+		// and won't use the standard onResize, so caching wouldn't help.
+		if (!areAnglesCompatible(snapshot.pageRotation, selectionRotation)) continue
+
+		// Compute the effective scaleX for this shape, replicating Editor.resizeShape logic.
+		// Shapes rotated 90° from the selection axis have their x/y scale swapped.
+		const areWidthAndHeightAlignedWithCorrectAxis = approximately(
+			(snapshot.pageRotation - selectionRotation) % Math.PI,
+			0
+		)
+
+		let effectiveScaleX: number
+		if (isAspectRatioLocked || snapshot.isAspectRatioLocked) {
+			// When aspect ratio is locked, both axes get the same absolute scale
+			const uniformScale = Math.max(Math.abs(scale.x), Math.abs(scale.y))
+			effectiveScaleX = uniformScale
+		} else {
+			effectiveScaleX = Math.abs(areWidthAndHeightAlignedWithCorrectAxis ? scale.x : scale.y)
+		}
+
+		// Compute the target width for measurement (same logic as onResize)
+		const targetW = getGeoResizeTargetWidth(geoShape.props, effectiveScaleX)
+
+		// Build a temporary shape with the target width for measurement
+		const tempShape = {
+			...geoShape,
+			props: {
+				...geoShape.props,
+				w: targetW * geoShape.props.scale,
+			},
+		} as TLGeoShape
+
+		const { html, opts } = getGeoLabelMeasurementRequest(editor, tempShape)
+		requests.push({ id, html, opts })
+	}
+
+	if (requests.length === 0) return
+
+	// Batch measure all labels in one DOM pass
+	const results = editor.textMeasure.measureHtmlBatch(
+		requests.map(({ html, opts }) => ({ html, opts }))
+	)
+
+	// Build the cache map with label sizes (adding padding)
+	const cache = new Map<TLShapeId, { w: number; h: number }>()
+	for (let i = 0; i < requests.length; i++) {
+		cache.set(requests[i].id, {
+			w: results[i].w + LABEL_PADDING * 2,
+			h: results[i].h + LABEL_PADDING * 2,
+		})
+	}
+
+	setBatchLabelSizeCache(editor, cache)
 }

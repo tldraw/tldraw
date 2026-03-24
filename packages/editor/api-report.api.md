@@ -164,6 +164,14 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     onResize(shape: any, info: TLResizeInfo<any>): any;
 }
 
+// @public (undocumented)
+export interface BatchMeasurementRequest {
+    // (undocumented)
+    html: string;
+    // (undocumented)
+    opts: TLMeasureTextOpts;
+}
+
 // @public
 export interface BindingOnChangeOptions<Binding extends TLBinding = TLBinding> {
     bindingAfter: Binding;
@@ -3145,13 +3153,11 @@ export class TextManager {
         }[];
     };
     // (undocumented)
-    measureHtml(html: string, opts: TLMeasureTextOpts): BoxModel & {
-        scrollWidth: number;
-    };
+    measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
     // (undocumented)
-    measureText(textToMeasure: string, opts: TLMeasureTextOpts): BoxModel & {
-        scrollWidth: number;
-    };
+    measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[];
+    // (undocumented)
+    measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
     measureTextSpans(textToMeasure: string, opts: TLMeasureTextSpanOpts): {
         box: BoxModel;
         text: string;
@@ -4135,6 +4141,11 @@ export interface TLLoadSessionStateSnapshotOptions {
 export interface TLLoadSnapshotOptions {
     forceOverwriteSessionState?: boolean;
 }
+
+// @public (undocumented)
+export type TLMeasuredTextSize = BoxModel & {
+    scrollWidth: number;
+};
 
 // @public (undocumented)
 export interface TLMeasureTextOpts {

@@ -10,7 +10,11 @@ Instead of rendering a static SVG, `@tldraw/mermaid` parses Mermaid text and cre
 npm i @tldraw/mermaid
 ```
 
-> **Peer dependency:** this package requires `tldraw` to be installed in your project.
+**Peer dependencies:** your app must also include compatible versions of:
+
+- **`tldraw`** — the SDK this package plugs into
+- **`react`** — `^18.2.0` or `^19.2.1`
+- **`react-dom`** — `^18.2.0` or `^19.2.1`
 
 ## Quick start
 
@@ -58,6 +62,7 @@ When `centerOnPosition` is `true` (the default), the diagram's center aligns wit
 | Flowchart        | `flowchart`, `graph` | Geo shapes, arrows, subgraph frames                                 |
 | Sequence diagram | `sequenceDiagram`    | Actor shapes, lifelines, signal arrows, fragment frames             |
 | State diagram    | `stateDiagram-v2`    | State shapes, transitions, compound state frames, fork/join, choice |
+| Mindmap          | `mindmap`            | Colored geo shapes, parent-child edges, tree hierarchy              |
 
 Unsupported diagram types (pie, gantt, class, ER, etc.) can be handled with the `onUnsupportedDiagram` callback — for example, to fall back to SVG import:
 

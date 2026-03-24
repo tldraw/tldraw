@@ -47,7 +47,7 @@
 		"@vitejs/plugin-react": "^6.0.1",
 		"concurrently": "^9.1.2",
 		"typescript": "^5.8.3",
-		"vite": "^8.0.0",
+		"vite": "^8.0.1",
 		"wrangler": "^4.75.0"
 	}
 }
