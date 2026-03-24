@@ -22,14 +22,14 @@ import { PreviewNodeDefinition } from './types/PreviewNode'
 import { PromptConcatNodeDefinition } from './types/PromptConcatNode'
 import { PromptNodeDefinition } from './types/PromptNode'
 import { RouterNodeDefinition } from './types/RouterNode'
-import { StyleTransferNodeDefinition } from './types/StyleTransferNode'
-import { UpscaleNodeDefinition } from './types/UpscaleNode'
 import {
 	ExecutionResult,
 	InfoValues,
 	NodeDefinition,
 	NodeDefinitionConstructor,
 } from './types/shared'
+import { StyleTransferNodeDefinition } from './types/StyleTransferNode'
+import { UpscaleNodeDefinition } from './types/UpscaleNode'
 
 /** All our node types */
 export const NodeDefinitions = {

@@ -1,7 +1,5 @@
 import { assert, invLerp } from '@tldraw/utils'
 import { Box } from '../Box'
-import { Mat, MatModel } from '../Mat'
-import { Vec, VecLike } from '../Vec'
 import {
 	intersectCirclePolygon,
 	intersectCirclePolyline,
@@ -12,7 +10,9 @@ import {
 	polygonIntersectsPolyline,
 	polygonsIntersect,
 } from '../intersect'
+import { Mat, MatModel } from '../Mat'
 import { approximately, pointInPolygon } from '../utils'
+import { Vec, VecLike } from '../Vec'
 
 /**
  * Filter geometry within a group.

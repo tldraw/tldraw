@@ -1,4 +1,3 @@
-import { MarkdownWriter } from '@/scripts/lib/utils'
 import {
 	ApiDocumentedItem,
 	ApiFunction,
@@ -10,6 +9,7 @@ import {
 	ExcerptTokenKind,
 } from '@microsoft/api-extractor-model'
 import { assert } from '@tldraw/utils'
+import { MarkdownWriter } from '@/scripts/lib/utils'
 
 export class TldrawApiModel extends ApiModel {
 	private reactComponents = new Set<ApiItem>()
