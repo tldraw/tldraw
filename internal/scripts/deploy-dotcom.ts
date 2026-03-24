@@ -1,5 +1,3 @@
-import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3'
-import { Upload } from '@aws-sdk/lib-storage'
 import assert from 'assert'
 import { execSync } from 'child_process'
 import * as fs from 'fs'
@@ -7,6 +5,8 @@ import { existsSync, readdirSync, writeFileSync } from 'fs'
 import path from 'path'
 import { performance } from 'perf_hooks'
 import { PassThrough } from 'stream'
+import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3'
+import { Upload } from '@aws-sdk/lib-storage'
 import * as tar from 'tar'
 import {
 	createGithubDeployment,

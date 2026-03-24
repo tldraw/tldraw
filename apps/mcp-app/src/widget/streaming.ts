@@ -1,5 +1,5 @@
-import type { TLBindingCreate, TLShape } from 'tldraw'
 import { structuredClone } from 'tldraw'
+import type { TLBindingCreate, TLShape } from 'tldraw'
 import {
 	convertFocusedShapeToTldrawRecord,
 	convertFocusedShapesToTldrawRecords,
