@@ -36,14 +36,14 @@
 		"@tldraw/sync-core": "workspace:*",
 		"@vitejs/plugin-react": "^6.0.1",
 		"better-sqlite3": "^11.8.1",
-		"fastify": "^5.7.4",
+		"fastify": "^5.8.1",
 		"itty-router": "^5.0.18",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"react-router-dom": "^6.28.2",
 		"tldraw": "workspace:*",
 		"unfurl.js": "^6.4.0",
-		"vite": "^8.0.0",
+		"vite": "^8.0.1",
 		"ws": "^8.18.0"
 	}
 }
