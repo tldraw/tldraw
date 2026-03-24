@@ -1,6 +1,6 @@
-import test from '@playwright/test'
 import * as fs from 'fs'
 import path from 'path'
+import test from '@playwright/test'
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname)
 

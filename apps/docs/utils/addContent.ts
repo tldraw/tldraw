@@ -1,7 +1,7 @@
-import type { Article, GeneratedContent } from '@/types/content-types'
 import console from 'console'
 import type { Database } from 'sqlite'
 import type sqlite3 from 'sqlite3'
+import type { Article, GeneratedContent } from '@/types/content-types'
 import { parseMarkdown } from './parse-markdown'
 
 export async function addContentToDb(

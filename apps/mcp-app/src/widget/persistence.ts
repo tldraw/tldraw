@@ -1,6 +1,6 @@
 import type { App } from '@modelcontextprotocol/ext-apps/react'
-import type { TLAsset, TLBindingCreate, TLShape } from 'tldraw'
 import { Editor, structuredClone } from 'tldraw'
+import type { TLAsset, TLBindingCreate, TLShape } from 'tldraw'
 import { convertTldrawRecordToFocusedShape } from '../focused-shape-converters'
 import type { FocusedShape } from '../focused-shape-schema'
 import { isPlainObject } from '../shared/utils'

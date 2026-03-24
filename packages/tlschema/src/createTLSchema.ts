@@ -1,6 +1,5 @@
 import { LegacyMigrations, MigrationSequence, StoreSchema, StoreValidator } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
-import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
 import { imageAssetMigrations } from './assets/TLImageAsset'
 import { videoAssetMigrations } from './assets/TLVideoAsset'
@@ -44,6 +43,7 @@ import { textShapeMigrations, textShapeProps } from './shapes/TLTextShape'
 import { videoShapeMigrations, videoShapeProps } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
 import { StyleProp } from './styles/StyleProp'
+import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 
 /**
  * Configuration information for a schema type (shape or binding), including its properties,

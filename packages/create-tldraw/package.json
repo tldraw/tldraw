@@ -52,7 +52,7 @@
 		"picocolors": "^1.1.1",
 		"string-width": "^7.2.0",
 		"strip-ansi": "^7.1.0",
-		"tar": "^7.4.3"
+		"tar": "^7.5.11"
 	},
 	"// because this is bundled, all dependencies should be dev dependencies.": null
 }

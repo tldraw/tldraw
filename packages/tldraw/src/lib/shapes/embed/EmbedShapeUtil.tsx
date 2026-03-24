@@ -15,7 +15,6 @@ import {
 	useSvgExportContext,
 	useValue,
 } from '@tldraw/editor'
-
 import {
 	DEFAULT_EMBED_DEFINITIONS,
 	EmbedDefinition,

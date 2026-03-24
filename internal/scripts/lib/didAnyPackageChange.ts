@@ -1,6 +1,6 @@
 import assert from 'assert'
-import * as diff from 'diff'
 import { writeFileSync } from 'fs'
+import * as diff from 'diff'
 import kleur from 'kleur'
 import * as tar from 'tar'
 import tmp from 'tmp'

@@ -1,5 +1,5 @@
-import { Icon, type IconName } from '@/components/common/icon'
 import type React from 'react'
+import { Icon, type IconName } from '@/components/common/icon'
 
 export function Feature({
 	icon,

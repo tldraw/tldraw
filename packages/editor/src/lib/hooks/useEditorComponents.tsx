@@ -19,8 +19,8 @@ import { DefaultShapeWrapper } from '../components/default-components/DefaultSha
 import { DefaultSnapIndicator } from '../components/default-components/DefaultSnapIndictor'
 import { DefaultSpinner } from '../components/default-components/DefaultSpinner'
 import { DefaultSvgDefs } from '../components/default-components/DefaultSvgDefs'
-import type { TLEditorComponents } from './EditorComponentsContext'
 import { EditorComponentsContext } from './EditorComponentsContext'
+import type { TLEditorComponents } from './EditorComponentsContext'
 import { useShallowObjectIdentity } from './useIdentity'
 
 export { useEditorComponents } from './EditorComponentsContext'
