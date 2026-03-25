@@ -279,6 +279,14 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // Preview: Supabase branch instance (~60 max_connections per branch, isolated)
 // Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
 // TODO(production): tune these once we know prod Postgres limits
+// Fly.io shared-cpu VM sizes per environment.
+// Max shared-cpu is 8x (8 CPUs, 16 GB RAM).
+const zeroVmSizes = {
+	staging: { rm: { cpus: 1, memory: '2gb' }, vs: { cpus: 2, memory: '4gb' } },
+	production: { rm: { cpus: 4, memory: '8gb' }, vs: { cpus: 8, memory: '16gb' } },
+	preview: { single: { cpus: 2, memory: '2gb' } },
+} as const
+
 const zeroConnectionLimits = {
 	staging: {
 		rm: { upstream: 1, cvr: 1, change: 3 },
@@ -308,6 +316,20 @@ interface MultiNodeConnLimits {
 const zeroConns = zeroConnectionLimits[env.TLDRAW_ENV as keyof typeof zeroConnectionLimits] as
 	| SingleNodeConnLimits
 	| MultiNodeConnLimits
+interface VmSize {
+	cpus: number
+	memory: string
+}
+interface SingleNodeVmSizes {
+	single: VmSize
+}
+interface MultiNodeVmSizes {
+	rm: VmSize
+	vs: VmSize
+}
+const zeroVm = zeroVmSizes[env.TLDRAW_ENV as keyof typeof zeroVmSizes] as
+	| SingleNodeVmSizes
+	| MultiNodeVmSizes
 
 async function main() {
 	const deployStart = performance.now()
@@ -682,6 +704,7 @@ async function deployZeroViaFlyIo() {
 // See https://zero.rocicorp.dev/docs/deployment for Zero deployment config reference
 function updateFlyioReplicationManagerToml(appName: string, backupPath: string): void {
 	assert('rm' in zeroConns, 'multi-node connection limits required')
+	assert('rm' in zeroVm, 'multi-node VM sizes required')
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio-replication-manager.template.toml')
 	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-replication-manager.toml')
 
@@ -701,6 +724,8 @@ function updateFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__RM_UPSTREAM_MAX_CONNS', String(zeroConns.rm.upstream))
 		.replaceAll('__RM_CVR_MAX_CONNS', String(zeroConns.rm.cvr))
 		.replaceAll('__RM_CHANGE_MAX_CONNS', String(zeroConns.rm.change))
+		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
+		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
@@ -711,6 +736,7 @@ function updateFlyioViewSyncerToml(
 	backupPath: string
 ): void {
 	assert('vs' in zeroConns, 'multi-node connection limits required')
+	assert('vs' in zeroVm, 'multi-node VM sizes required')
 	const tomlTemplate = path.join(zeroCacheFolder, 'flyio-view-syncer.template.toml')
 	const flyioTomlFile = path.join(zeroCacheFolder, 'flyio-view-syncer.toml')
 
@@ -733,6 +759,8 @@ function updateFlyioViewSyncerToml(
 		.replaceAll('__VS_UPSTREAM_MAX_CONNS', String(zeroConns.vs.upstream))
 		.replaceAll('__VS_CVR_MAX_CONNS', String(zeroConns.vs.cvr))
 		.replaceAll('__VS_CHANGE_MAX_CONNS', String(zeroConns.vs.change))
+		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
+		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 
