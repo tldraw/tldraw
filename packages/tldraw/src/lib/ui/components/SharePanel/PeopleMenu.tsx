@@ -3,14 +3,11 @@ import { Popover as _Popover } from 'radix-ui'
 import { ReactNode } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
+import { useTldrawUiComponents } from '../../context/components'
 import { useCollaborationStatus } from '../../hooks/useCollaborationStatus'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { OfflineIndicator } from '../OfflineIndicator/OfflineIndicator'
-import { PeopleMenuAvatar } from './PeopleMenuAvatar'
-import { PeopleMenuItem } from './PeopleMenuItem'
-import { PeopleMenuMore } from './PeopleMenuMore'
-import { UserPresenceEditor } from './UserPresenceEditor'
 
 /** @public */
 export interface PeopleMenuProps {
@@ -19,6 +16,8 @@ export interface PeopleMenuProps {
 
 /** @public @react */
 export function PeopleMenu({ children }: PeopleMenuProps) {
+	const { PeopleMenuAvatar, PeopleMenuItem, PeopleMenuMore, UserPresenceEditor } =
+		useTldrawUiComponents()
 	const msg = useTranslation()
 	const dir = useDirection()
 
@@ -39,16 +38,22 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 		return <OfflineIndicator />
 	}
 
-	if (!userIds.length) return null
+	if (
+		!userIds.length ||
+		(!children && !PeopleMenuAvatar && !PeopleMenuItem && !PeopleMenuMore && !UserPresenceEditor)
+	) {
+		return null
+	}
 
 	return (
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
 			<_Popover.Trigger dir={dir} asChild>
 				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
 					<div className="tlui-people-menu__avatars">
-						{userIds.slice(-maxAvatars).map((userId) => (
-							<PeopleMenuAvatar key={userId} userId={userId} />
-						))}
+						{PeopleMenuAvatar &&
+							userIds
+								.slice(-maxAvatars)
+								.map((userId) => <PeopleMenuAvatar key={userId} userId={userId} />)}
 						{userIds.length > 0 && (
 							<div
 								className="tlui-people-menu__avatar"
@@ -59,7 +64,9 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 								{userName?.[0] ?? ''}
 							</div>
 						)}
-						{userIds.length > maxAvatars && <PeopleMenuMore count={userIds.length - maxAvatars} />}
+						{PeopleMenuAvatar && PeopleMenuMore && userIds.length > maxAvatars && (
+							<PeopleMenuMore count={userIds.length - maxAvatars} />
+						)}
 					</div>
 				</button>
 			</_Popover.Trigger>
@@ -72,10 +79,12 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 					collisionPadding={4}
 				>
 					<div className="tlui-people-menu__wrapper">
-						<div className="tlui-people-menu__section">
-							<UserPresenceEditor />
-						</div>
-						{userIds.length > 0 && (
+						{UserPresenceEditor && (
+							<div className="tlui-people-menu__section">
+								<UserPresenceEditor />
+							</div>
+						)}
+						{PeopleMenuItem && userIds.length > 0 && (
 							<div className="tlui-people-menu__section">
 								{userIds.map((userId) => {
 									return <PeopleMenuItem key={userId + '_presence'} userId={userId} />
