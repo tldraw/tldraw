@@ -99,7 +99,7 @@ const env = makeEnv([
 	'ZERO_R2_SECRET_ACCESS_KEY',
 ])
 
-// Multinode (flyio-multinode) is staging-only right now, preview use single not as it is faster / cheaper
+// Multinode (flyio-multinode) is for staging + production, previews use single as it is faster / cheaper
 const deployZero =
 	env.DEPLOY_ZERO === 'false'
 		? false
@@ -420,6 +420,9 @@ function getZeroUrl() {
 			}
 			return 'https://staging.zero.tldraw.com/'
 		case 'production':
+			if (deployZero === 'flyio-multinode') {
+				return `https://${flyioAppName}.fly.dev/`
+			}
 			return 'https://production.zero.tldraw.com/'
 	}
 	return 'https://zero-backend-not-deployed.tldraw.com'
