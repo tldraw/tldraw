@@ -31,6 +31,7 @@ interface Meta {
 
 const EXTERNAL_DEPS = [
 	'cloudflare:*',
+	'*.wasm',
 	'crypto',
 	'tls',
 	'net',

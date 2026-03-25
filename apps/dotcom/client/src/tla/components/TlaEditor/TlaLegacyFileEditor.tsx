@@ -78,6 +78,7 @@ function TlaEditorInner({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${fileSlug}`,
 		roomId: fileSlug,
 		assets,
+		useCompression: true,
 		trackAnalyticsEvent: trackEvent,
 	})
 

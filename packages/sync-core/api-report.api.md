@@ -36,7 +36,9 @@ export function chunk(msg: string, maxSafeMessageSize?: number): string[];
 
 // @internal
 export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>> {
-    constructor(getUri: () => Promise<string> | string);
+    constructor(getUri: () => Promise<string> | string, opts?: {
+        useCompression?: boolean;
+    });
     close(): void;
     // (undocumented)
     _closeSocket(): void;
@@ -56,6 +58,36 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
     // (undocumented)
     _ws: null | WebSocket;
 }
+
+// @public (undocumented)
+export interface CompressionMetrics {
+    // (undocumented)
+    compressedSize: number;
+    // (undocumented)
+    method: 'none' | 'zstd-dict' | 'zstd';
+    // (undocumented)
+    originalSize: number;
+    // (undocumented)
+    ratio: number;
+}
+
+// @public
+export function compressMessage(json: string): null | Uint8Array;
+
+// @public
+export function compressMessagePlain(json: string): {
+    compressed: null | Uint8Array;
+    metrics: CompressionMetrics;
+};
+
+// @public
+export function compressMessageWithMetrics(json: string): {
+    compressed: null | Uint8Array;
+    metrics: CompressionMetrics;
+};
+
+// @public
+export function decompressMessage(data: Uint8Array): null | string;
 
 // @public
 export const DEFAULT_INITIAL_SNAPSHOT: {
@@ -104,6 +136,9 @@ export function getNetworkDiff<R extends UnknownRecord>(diff: RecordsDiff<R>): N
 export function getTlsyncProtocolVersion(): number;
 
 // @public
+export function initCompression(): Promise<void>;
+
+// @public
 export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
     constructor({ snapshot, onChange }?: {
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
@@ -133,6 +168,12 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
     // (undocumented)
     transaction<T>(callback: TLSyncStorageTransactionCallback<R, T>, opts?: TLSyncStorageTransactionOptions): TLSyncStorageTransactionResult<T, R>;
 }
+
+// @public
+export function isCompressedMessage(data: ArrayBuffer | Uint8Array): boolean;
+
+// @public
+export function isCompressionReady(): boolean;
 
 // @public
 export class JsonChunkAssembler {
@@ -528,6 +569,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     schema?: StoreSchema<R, any>;
     // (undocumented)
     storage?: TLSyncStorage<R>;
+    useCompression?: boolean;
 }
 
 // @internal
@@ -804,7 +846,7 @@ export interface WebSocketMinimal {
     close: (code?: number, reason?: string) => void;
     readyState: number;
     removeEventListener?: (type: 'close' | 'error' | 'message', listener: (event: any) => void) => void;
-    send: (data: string) => void;
+    send: (data: ArrayBufferLike | ArrayBufferView | string) => void;
 }
 
 // (No @packageDocumentation comment for this package)

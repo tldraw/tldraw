@@ -188,6 +188,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			return url.toString()
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
+		useCompression: true,
 		userInfo: app?.tlUser.userPreferences,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
 			trackEvent(message.type)

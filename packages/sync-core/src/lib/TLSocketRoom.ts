@@ -15,6 +15,14 @@ import {
 	TLSyncStorage,
 } from './TLSyncStorage'
 
+function debugSocketRoom(...args: any[]) {
+	// @ts-ignore
+	if (typeof globalThis !== 'undefined' && globalThis.__tldraw_socket_debug) {
+		// eslint-disable-next-line no-console
+		console.debug('[sync socket room]', ...args)
+	}
+}
+
 /**
  * Strip potentially large fields from a tldraw instance_presence record so the
  * snapshot stays small when stored in WebSocket attachments (e.g. for hibernation).
@@ -423,6 +431,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		try {
 			let messageString: string
 			if (typeof message === 'string') {
+				debugSocketRoom('received text message', {
+					sessionId,
+					length: message.length,
+				})
 				messageString = message
 			} else {
 				const bytes =
@@ -433,11 +445,24 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 								(message as ArrayBufferView).byteOffset,
 								(message as ArrayBufferView).byteLength
 							)
+				const compressed = isCompressedMessage(bytes)
+				debugSocketRoom('received binary message', {
+					sessionId,
+					byteLength: bytes.byteLength,
+					isCompressedPrefix: compressed,
+				})
 				if (isCompressedMessage(bytes)) {
 					const decompressed = decompressMessage(bytes)
 					if (decompressed) {
+						debugSocketRoom('decompressed inbound message', {
+							sessionId,
+							length: decompressed.length,
+						})
 						messageString = decompressed
 					} else {
+						debugSocketRoom('failed to decompress inbound message, falling back to text decode', {
+							sessionId,
+						})
 						messageString = new TextDecoder().decode(bytes)
 					}
 				} else {
@@ -447,9 +472,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			const res = assembler.handleMessage(messageString)
 			if (!res) {
 				// not enough chunks yet
+				debugSocketRoom('waiting for more message chunks', { sessionId })
 				return
 			}
 			if ('data' in res) {
+				debugSocketRoom('assembled inbound message', {
+					sessionId,
+					type: (res.data as { type?: string }).type ?? 'unknown',
+				})
 				// need to do this first in case the session gets removed as a result of handling the message
 				if (this.opts.onAfterReceiveMessage) {
 					const session = this.room.sessions.get(sessionId)

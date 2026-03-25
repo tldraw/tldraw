@@ -118,6 +118,7 @@ class SizeReporter {
 			'--minify',
 			'--watch',
 			'--external:cloudflare:*',
+			'--external:*.wasm',
 			// need to list out node packages that are used in the worker.
 			// otherwise, if we user platform=node, the bundle size is not reported correctly
 			'--external:os',

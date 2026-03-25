@@ -44,6 +44,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'script-src': [
 		`'self'`,
+		`'wasm-unsafe-eval'`,
 		'https://challenges.cloudflare.com',
 		'https://*.clerk.accounts.dev',
 		'https://clerk.tldraw.com',

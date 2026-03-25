@@ -6,6 +6,7 @@ import {
 	compressMessage,
 	decompressMessage,
 	initCompression,
+	isCompressedMessage,
 	isCompressionReady,
 } from './compression'
 import { TLSocketClientSentEvent, TLSocketServerSentEvent } from './protocol'
@@ -105,6 +106,23 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 
 	private _useCompression: boolean
 	private _compressionReady = false
+	private _compressionInitPromise: Promise<void> | null = null
+
+	private ensureCompressionInitialized() {
+		if (!this._compressionInitPromise) {
+			this._compressionInitPromise = initCompression()
+				.then(() => {
+					this._compressionReady = true
+					debug('compression initialized on client adapter')
+				})
+				.catch((error) => {
+					debug('compression init failed on client adapter', error)
+					this._compressionInitPromise = null
+					throw error
+				})
+		}
+		return this._compressionInitPromise
+	}
 
 	/**
 	 * Creates a new ClientWebSocketAdapter instance.
@@ -124,14 +142,20 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 		this._reconnectManager = new ReconnectManager(this, getUri)
 
 		if (this._useCompression) {
-			initCompression().then(() => {
-				this._compressionReady = true
+			this.ensureCompressionInitialized().catch(() => {
+				// swallow here; receive path will retry/lazily re-init if needed
 			})
 		}
 	}
 
 	private _handleConnect() {
 		debug('handleConnect')
+		if (this._useCompression && !isCompressionReady()) {
+			debug('socket connected before compression init; retrying init')
+			this.ensureCompressionInitialized().catch(() => {
+				// send path will continue with plain text until compression becomes ready
+			})
+		}
 
 		this._connectionStatus.set('online')
 		this.statusListeners.forEach((cb) => cb({ status: 'online' }))
@@ -228,7 +252,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 				debug('ignoring onerror for an orphaned socket')
 			}
 		}
-		ws.onmessage = (ev) => {
+		ws.onmessage = async (ev) => {
 			assert(
 				this._ws === ws,
 				"sockets must only be orphaned when they are CLOSING or CLOSED, so they can't receive messages"
@@ -237,17 +261,68 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 			let jsonString: string
 			if (ev.data instanceof ArrayBuffer) {
 				const bytes = new Uint8Array(ev.data)
-				const decompressed = decompressMessage(bytes)
+				const compressed = isCompressedMessage(bytes)
+				debug('ws.onmessage binary', {
+					byteLength: bytes.byteLength,
+					isCompressedPrefix: compressed,
+					compressionReady: isCompressionReady(),
+				})
+				let decompressed = decompressMessage(bytes)
+				if (compressed && !decompressed) {
+					debug('compressed binary frame arrived before decompressor ready; waiting for init')
+					await this.ensureCompressionInitialized().catch(() => {})
+					decompressed = decompressMessage(bytes)
+				}
 				if (decompressed) {
+					debug('binary frame decompressed successfully')
 					jsonString = decompressed
 				} else {
+					if (compressed) {
+						debug('compressed binary frame could not be decompressed after init attempt')
+					}
+					debug('binary frame could not be decompressed, falling back to text decode')
+					jsonString = new TextDecoder().decode(bytes)
+				}
+			} else if (ev.data instanceof Blob) {
+				const bytes = new Uint8Array(await ev.data.arrayBuffer())
+				const compressed = isCompressedMessage(bytes)
+				debug('ws.onmessage blob', {
+					byteLength: bytes.byteLength,
+					isCompressedPrefix: compressed,
+					compressionReady: isCompressionReady(),
+				})
+				let decompressed = decompressMessage(bytes)
+				if (compressed && !decompressed) {
+					debug('compressed blob frame arrived before decompressor ready; waiting for init')
+					await this.ensureCompressionInitialized().catch(() => {})
+					decompressed = decompressMessage(bytes)
+				}
+				if (decompressed) {
+					debug('blob frame decompressed successfully')
+					jsonString = decompressed
+				} else {
+					if (compressed) {
+						debug('compressed blob frame could not be decompressed after init attempt')
+					}
+					debug('blob frame could not be decompressed, falling back to text decode')
 					jsonString = new TextDecoder().decode(bytes)
 				}
 			} else {
+				debug('ws.onmessage text', { length: ev.data?.toString?.().length ?? 0 })
 				jsonString = ev.data.toString()
 			}
 
-			const parsed = JSON.parse(jsonString)
+			let parsed: TLSocketServerSentEvent<TLRecord>
+			try {
+				parsed = JSON.parse(jsonString)
+			} catch (error) {
+				debug('failed to parse ws payload as json', {
+					preview: jsonString.slice(0, 80),
+					length: jsonString.length,
+					error,
+				})
+				throw error
+			}
 			this.messageListeners.forEach((cb) => cb(parsed))
 		}
 
@@ -306,14 +381,36 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 		if (this.connectionStatus === 'online') {
 			const json = JSON.stringify(msg)
 
-			if (this._useCompression && this._compressionReady && isCompressionReady()) {
+			if (this._useCompression && !isCompressionReady()) {
+				debug('sending plain text because compression is not ready yet', {
+					type: msg.type,
+					byteLength: json.length,
+				})
+				this.ensureCompressionInitialized().catch(() => {
+					// best effort; keep sending plain text if unavailable
+				})
+			}
+
+			if (this._useCompression && isCompressionReady()) {
 				const compressed = compressMessage(json)
 				if (compressed) {
+					debug('sending compressed client message', {
+						type: msg.type,
+						originalBytes: json.length,
+						compressedBytes: compressed.length,
+					})
 					this._ws.send(compressed)
 					return
 				}
+				debug('compression ready but compressor returned null, sending plain text', {
+					type: msg.type,
+					byteLength: json.length,
+				})
 			}
 
+			if (this._useCompression) {
+				debug('sending plain text client message', { type: msg.type, byteLength: json.length })
+			}
 			const chunks = chunk(json)
 			for (const part of chunks) {
 				this._ws.send(part)

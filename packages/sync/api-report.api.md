@@ -61,6 +61,7 @@ export interface UseSyncOptionsBase {
     trackAnalyticsEvent?(name: string, data: {
         [key: string]: any;
     }): void;
+    useCompression?: boolean;
     userInfo?: Signal<TLPresenceUserInfo> | TLPresenceUserInfo;
 }
 

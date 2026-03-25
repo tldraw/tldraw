@@ -24,6 +24,8 @@ import {
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { IRequest, cors, json } from 'itty-router'
+// @ts-expect-error - Wrangler provides .wasm module imports in workers
+import zstdWasmModule from '../../../../node_modules/@bokuweb/zstd-wasm/dist/web/zstd.wasm'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
 import { healthCheckRoutes } from './healthCheckRoutes'
@@ -49,6 +51,13 @@ import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
+
+declare global {
+	var __tldrawZstdPrecompiledModule: WebAssembly.Module | undefined
+}
+
+globalThis.__tldrawZstdPrecompiledModule = zstdWasmModule as WebAssembly.Module
+
 export { TLFileDurableObject } from './TLDrawDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'

@@ -235,6 +235,7 @@ export class TLFileDurableObject extends DurableObject {
 							messageLength: stringified.length,
 						})
 					},
+					useCompression: true,
 				})
 
 				this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })

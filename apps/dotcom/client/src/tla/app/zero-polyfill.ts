@@ -49,7 +49,7 @@ export class Zero {
 			trackEvent: TLAppUiContextType
 		}
 	) {
-		this.socket = new ClientWebSocketAdapter(opts.getUri)
+		this.socket = new ClientWebSocketAdapter(opts.getUri, { useCompression: true })
 		this.socket.onStatusChange((e) => {
 			if (e.status === 'error') {
 				if (e.reason === TLSyncErrorCloseEventReason.CLIENT_TOO_OLD) {

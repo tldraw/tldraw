@@ -3,6 +3,14 @@ import { compressMessage, isCompressionReady } from './compression'
 import { TLRoomSocket } from './TLSyncRoom'
 import { TLSocketServerSentEvent } from './protocol'
 
+function debugServerSocket(...args: any[]) {
+	// @ts-ignore
+	if (typeof globalThis !== 'undefined' && globalThis.__tldraw_socket_debug) {
+		// eslint-disable-next-line no-console
+		console.debug('[sync server socket]', ...args)
+	}
+}
+
 /**
  * Minimal server-side WebSocket interface that is compatible with various WebSocket implementations.
  * This interface abstracts over different WebSocket libraries and platforms to provide a consistent
@@ -164,11 +172,17 @@ export class ServerSocketAdapter<R extends UnknownRecord> implements TLRoomSocke
 		if (this.opts.useCompression && isCompressionReady()) {
 			const compressed = compressMessage(message)
 			if (compressed) {
+				debugServerSocket('sending compressed message', {
+					type: msg.type,
+					originalBytes: message.length,
+					compressedBytes: compressed.length,
+				})
 				this.opts.ws.send(compressed)
 				return
 			}
 		}
 
+		debugServerSocket('sending plain message', { type: msg.type, bytes: message.length })
 		this.opts.ws.send(message)
 	}
 
