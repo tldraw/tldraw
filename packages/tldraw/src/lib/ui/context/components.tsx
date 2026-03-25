@@ -33,6 +33,14 @@ import {
 	TLUiQuickActionsProps,
 } from '../components/QuickActions/DefaultQuickActions'
 import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
+import { PeopleMenu } from '../components/SharePanel/PeopleMenu'
+import {
+	PeopleMenuAvatar,
+	TLUiPeopleMenuAvatarProps,
+} from '../components/SharePanel/PeopleMenuAvatar'
+import { PeopleMenuItem, TLUiPeopleMenuItemProps } from '../components/SharePanel/PeopleMenuItem'
+import { PeopleMenuMore, TLUiPeopleMenuMoreProps } from '../components/SharePanel/PeopleMenuMore'
+import { UserPresenceEditor } from '../components/SharePanel/UserPresenceEditor'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
 import { DefaultToasts } from '../components/Toasts'
 import { DefaultImageToolbar } from '../components/Toolbar/DefaultImageToolbar'
@@ -73,6 +81,11 @@ export interface TLUiComponents {
 	Toasts?: ComponentType | null
 	A11y?: ComponentType | null
 	FollowingIndicator?: ComponentType | null
+	PeopleMenu?: ComponentType | null
+	PeopleMenuAvatar?: ComponentType<TLUiPeopleMenuAvatarProps> | null
+	PeopleMenuItem?: ComponentType<TLUiPeopleMenuItemProps> | null
+	PeopleMenuMore?: ComponentType<TLUiPeopleMenuMoreProps> | null
+	UserPresenceEditor?: ComponentType | null
 }
 
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
@@ -121,6 +134,11 @@ export function TldrawUiComponentsProvider({
 					Toasts: DefaultToasts,
 					A11y: DefaultA11yAnnouncer,
 					FollowingIndicator: DefaultFollowingIndicator,
+					PeopleMenu: PeopleMenu,
+					PeopleMenuAvatar: PeopleMenuAvatar,
+					PeopleMenuItem: PeopleMenuItem,
+					PeopleMenuMore: PeopleMenuMore,
+					UserPresenceEditor: UserPresenceEditor,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]
