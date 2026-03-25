@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { defaultHandleExternalTextContent, useEditor, useToasts } from 'tldraw'
 import { defineMessages, useMsg } from '../../tla/utils/i18n'
-import { simpleMermaidStringTest } from './simpleMermaidStringTest'
+import { simpleMermaidStringTest, stripMarkdownMermaidFence } from './simpleMermaidStringTest'
 
 const messages = defineMessages({
 	unsupportedTitle: { defaultMessage: 'Unsupported Mermaid diagram' },
@@ -20,6 +20,8 @@ export function SneakyMermaidHandler() {
 				await defaultHandleExternalTextContent(editor, content)
 				return
 			}
+			// Strip markdown code fences if present (e.g. ```mermaid ... ```)
+			const mermaidText = stripMarkdownMermaidFence(content.text)
 			const { createMermaidDiagram } = await import('@tldraw/mermaid')
 			const shapesBefore = new Set(editor.getCurrentPageShapeIds())
 
@@ -48,7 +50,7 @@ export function SneakyMermaidHandler() {
 					})
 				}
 
-				await createMermaidDiagram(editor, content.text, { onUnsupportedDiagram })
+				await createMermaidDiagram(editor, mermaidText, { onUnsupportedDiagram })
 				selectNewShapes()
 			} catch (e) {
 				console.error(e)
