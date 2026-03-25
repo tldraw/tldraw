@@ -1214,7 +1214,9 @@ describe('Hibernation support', () => {
 
 				// The observer should have received a presence removal broadcast.
 				// Messages are wrapped in a { type: 'data', data: [...] } envelope.
-				const sentMessages = vi.mocked(observerSocket.send).mock.calls.map((c) => JSON.parse(c[0]))
+				const sentMessages = vi
+					.mocked(observerSocket.send)
+					.mock.calls.map((c) => JSON.parse(c[0] as string))
 				const hasPresenceRemoval = sentMessages.some(
 					(msg: {
 						type: string
