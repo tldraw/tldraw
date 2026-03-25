@@ -548,19 +548,14 @@ async function handleClipboardThings(
 
 			// If the html is NOT a link, and we have other texty content, then paste the html as a text shape
 			if (results.some((r) => r.type === 'text' && r.subtype !== 'html')) {
-				// Prefer the actual text/plain clipboard content over stripHtml(). HTML stripping
-				// via textContent loses line breaks between block elements (e.g. <div>…</div>),
-				// which breaks downstream handlers like mermaid diagram detection that rely on
-				// properly formatted multi-line text.
-				const plainTextResult = results.find((r) => r.type === 'text' && r.subtype === 'text')
-				const text = (plainTextResult?.data ?? stripHtml(result.data) ?? '').trim()
-				if (text) {
+				const html = stripHtml(result.data) ?? ''
+				if (html) {
 					editor.markHistoryStoppingPoint('paste')
 					putPastedExternalContent(
 						editor,
 						{
 							type: 'text',
-							text,
+							text: html,
 							html: result.data,
 							point,
 							sources: results,

@@ -15,14 +15,6 @@ const FRONTMATTER_REGEX = /^-{3}\s*[\n\r]([\s\S]*?)[\n\r]-{3}\s*[\n\r]+/
 const DIAGRAM_KEYWORD_REGEX =
 	/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|erDiagram|journey|gantt|pie|gitGraph|mindmap|timeline|sankey|xychart|block|quadrantChart|requirement|C4Context|C4Container|C4Component|C4Dynamic|C4Deployment|packet|kanban|architecture|treemap|radar|info)/
 
-/**
- * Matches a markdown code fence wrapping mermaid content, e.g.:
- *   ```mermaid
- *   flowchart TD
- *     A --> B
- *   ```
- * Captures the inner content so we can extract the diagram text.
- */
 const MARKDOWN_MERMAID_FENCE_REGEX = /^\s*```+\s*mermaid\s*\n([\s\S]*?)\n\s*```+\s*$/
 
 /**
@@ -37,10 +29,6 @@ function stripMermaidBoilerplate(text: string): string {
 		.replace(/\s*%%.*\n/gm, '\n')
 }
 
-/**
- * If the text is wrapped in a markdown mermaid code fence, extract the inner content.
- * Otherwise return the text as-is.
- */
 export function stripMarkdownMermaidFence(text: string): string {
 	const match = text.match(MARKDOWN_MERMAID_FENCE_REGEX)
 	return match ? match[1] : text

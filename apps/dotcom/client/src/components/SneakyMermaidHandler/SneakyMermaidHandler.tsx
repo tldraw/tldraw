@@ -16,12 +16,20 @@ export function SneakyMermaidHandler() {
 
 	useEffect(() => {
 		editor.registerExternalContentHandler('text', async (content) => {
-			if (!simpleMermaidStringTest(content.text)) {
+			// When both text/html and text/plain are on the clipboard, content.text may
+			// be derived from stripHtml() which loses line breaks. Check the original
+			// text/plain source as well for mermaid detection.
+			const plainTextSource = content.sources?.find(
+				(s) => s.type === 'text' && s.subtype === 'text'
+			)
+			const plainText = plainTextSource?.data ?? content.text
+			const textToTest = simpleMermaidStringTest(plainText) ? plainText : content.text
+
+			if (!simpleMermaidStringTest(textToTest)) {
 				await defaultHandleExternalTextContent(editor, content)
 				return
 			}
-			// Strip markdown code fences if present (e.g. ```mermaid ... ```)
-			const mermaidText = stripMarkdownMermaidFence(content.text)
+			const mermaidText = stripMarkdownMermaidFence(textToTest)
 			const { createMermaidDiagram } = await import('@tldraw/mermaid')
 			const shapesBefore = new Set(editor.getCurrentPageShapeIds())
 
