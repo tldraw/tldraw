@@ -22,6 +22,7 @@ import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { Editor } from './editor/Editor'
+import { TLPermissionsAdapter } from './editor/managers/PermissionsManager/permissions-adapter'
 import { TLPermissionsManagerConfig } from './editor/managers/PermissionsManager/permissions-types'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
@@ -226,6 +227,11 @@ export interface TldrawEditorBaseProps {
 	 * `useMemo` — a new object on every render will recreate the manager and re-install all hooks.
 	 */
 	permissions?: TLPermissionsManagerConfig
+	/**
+	 * Optional adapter for creating a custom permissions controller. This is useful for private
+	 * package integrations such as `@tldraw-x/permissions`.
+	 */
+	permissionsAdapter?: TLPermissionsAdapter
 }
 
 /**
@@ -434,6 +440,7 @@ function TldrawEditorWithReadyStore({
 	getShapeVisibility,
 	assetUrls,
 	permissions,
+	permissionsAdapter,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -508,6 +515,7 @@ function TldrawEditorWithReadyStore({
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
 				permissions,
+				permissionsAdapter,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -544,6 +552,7 @@ function TldrawEditorWithReadyStore({
 			getShapeVisibility,
 			assetUrls,
 			permissions,
+			permissionsAdapter,
 		]
 	)
 

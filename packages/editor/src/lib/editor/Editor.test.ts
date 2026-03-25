@@ -7,6 +7,8 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	T,
+	TLPermissionsAdapter,
+	TLPermissionsController,
 	TLShape,
 	createShapeId,
 	createTLStore,
@@ -89,6 +91,47 @@ describe('permissions integration', () => {
 			permissions: { rules },
 		})
 	}
+
+	function createStubController(): TLPermissionsController {
+		return {
+			canPerform: () => true,
+			tryPerform: () => true,
+			hasRule: () => true,
+			getCurrentUser: () => null,
+			onBeforeAction: () => () => undefined,
+			onAfterAction: () => () => undefined,
+			cleanup: () => undefined,
+		}
+	}
+
+	it('uses permissions adapter when provided', () => {
+		const create = vi.fn(() => createStubController())
+		const adapter: TLPermissionsAdapter = { create }
+		const permissionsEditor = new Editor({
+			shapeUtils: [CustomShape],
+			bindingUtils: [],
+			tools: [],
+			store: createTLStore({ shapeUtils: [CustomShape], bindingUtils: [] }),
+			getContainer: () => document.body,
+			permissions: { rules: {} },
+			permissionsAdapter: adapter,
+		})
+		expect(create).toHaveBeenCalledOnce()
+		expect(permissionsEditor.permissions).not.toBeNull()
+		permissionsEditor.dispose()
+	})
+
+	it('does not create permissions when no config is provided', () => {
+		const permissionsEditor = new Editor({
+			shapeUtils: [CustomShape],
+			bindingUtils: [],
+			tools: [],
+			store: createTLStore({ shapeUtils: [CustomShape], bindingUtils: [] }),
+			getContainer: () => document.body,
+		})
+		expect(permissionsEditor.permissions).toBeNull()
+		permissionsEditor.dispose()
+	})
 
 	it('blocks creating shapes before store mutations', () => {
 		const permissionsEditor = createEditorWithRules({

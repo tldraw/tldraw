@@ -154,6 +154,10 @@ import { FocusManager } from './managers/FocusManager/FocusManager'
 import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
+import {
+	type TLPermissionsAdapter,
+	type TLPermissionsController,
+} from './managers/PermissionsManager/permissions-adapter'
 import { TLPermissionsManager } from './managers/PermissionsManager/TLPermissionsManager'
 import {
 	CORE_ACTIVITIES,
@@ -267,6 +271,11 @@ export interface TLEditorOptions {
 	 */
 	permissions?: TLPermissionsManagerConfig
 	/**
+	 * Optional adapter that can create a custom permissions controller instead of using
+	 * the built-in {@link TLPermissionsManager}.
+	 */
+	permissionsAdapter?: TLPermissionsAdapter
+	/**
 	 * Provides a way to hide shapes.
 	 *
 	 * @example
@@ -328,6 +337,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		getShapeVisibility,
 		fontAssetUrls,
 		permissions: permissionsConfig,
+		permissionsAdapter,
 	}: TLEditorOptions) {
 		super()
 
@@ -337,7 +347,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (permissionsConfig?.rules && CORE_ACTIVITIES.VIEW_SHAPE in permissionsConfig.rules) {
 			const userVisibility = getShapeVisibility
 			this._getShapeVisibility = (shape, editor) => {
-				if (!editor.permissions?.canViewShape(shape)) return 'hidden'
+				if (!editor.permissions?.canPerform(CORE_ACTIVITIES.VIEW_SHAPE, { targetShape: shape }))
+					return 'hidden'
 				return userVisibility?.(shape, editor)
 			}
 		} else {
@@ -825,8 +836,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.root.enter(undefined, 'initial')
 
-		// Permissions are optional and only used when provided.
-		this.permissions = permissionsConfig ? new TLPermissionsManager(this, permissionsConfig) : null
+		this.permissions = permissionsConfig
+			? (permissionsAdapter?.create(this, permissionsConfig) ??
+				new TLPermissionsManager(this, permissionsConfig))
+			: null
 		this.disposables.add(() => this.permissions?.cleanup())
 
 		this.edgeScrollManager = new EdgeScrollManager(this)
@@ -993,7 +1006,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	readonly permissions: TLPermissionsManager | null
+	readonly permissions: TLPermissionsController | null
 
 	/** @internal */
 	private _tryPerformPermission(activityId: string, context?: Partial<TLPermissionContext>) {

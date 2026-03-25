@@ -147,6 +147,10 @@ export {
 } from './lib/editor/managers/FontManager/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryManager'
 export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
+export {
+	type TLPermissionsAdapter,
+	type TLPermissionsController,
+} from './lib/editor/managers/PermissionsManager/permissions-adapter'
 export { getShapeCreatorId } from './lib/editor/managers/PermissionsManager/attribution'
 export {
 	CORE_ACTIVITIES,
@@ -346,6 +350,7 @@ export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
+	FLAGS as TL_LICENSE_FLAGS,
 	LicenseManager,
 	type InvalidLicenseKeyResult,
 	type InvalidLicenseReason,

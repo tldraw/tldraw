@@ -22,6 +22,8 @@ export const FLAGS = {
 	// Native means the license is for native apps which switches
 	// on special-case logic.
 	NATIVE_LICENSE: 1 << 5,
+	// X permissions license enables private @tldraw-x/permissions integrations.
+	X_PERMISSIONS_LICENSE: 1 << 6,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -84,6 +86,7 @@ export interface ValidLicenseKeyResult {
 	isLicensedWithWatermark: boolean
 	isEvaluationLicense: boolean
 	isEvaluationLicenseExpired: boolean
+	hasXPermissionsLicense: boolean
 	daysSinceExpiry: number
 }
 
@@ -99,6 +102,7 @@ export class LicenseManager {
 	public isCryptoAvailable: boolean
 	state = atom<LicenseState>('license state', 'pending')
 	public verbose = true
+	private latestLicenseResult: LicenseFromKeyResult | null = null
 
 	constructor(licenseKey: string | undefined, testPublicKey?: string) {
 		this.isTest = process.env.NODE_ENV === 'test'
@@ -108,6 +112,7 @@ export class LicenseManager {
 
 		this.getLicenseFromKey(licenseKey)
 			.then((result) => {
+				this.latestLicenseResult = result
 				const licenseState = getLicenseState(
 					result,
 					(messages: string[]) => this.outputMessages(messages),
@@ -246,7 +251,9 @@ export class LicenseManager {
 				this.outputNoLicenseKeyProvided()
 			}
 
-			return { isLicenseParseable: false, reason: 'no-key-provided' }
+			const result: LicenseFromKeyResult = { isLicenseParseable: false, reason: 'no-key-provided' }
+			this.latestLicenseResult = result
+			return result
 		}
 
 		if (this.isDevelopment && !this.isCryptoAvailable) {
@@ -260,7 +267,12 @@ export class LicenseManager {
 			}
 			// We can't parse the license if we are in development mode since crypto
 			// is not available on http
-			return { isLicenseParseable: false, reason: 'has-key-development-mode' }
+			const result: LicenseFromKeyResult = {
+				isLicenseParseable: false,
+				reason: 'has-key-development-mode',
+			}
+			this.latestLicenseResult = result
+			return result
 		}
 
 		// Borrowed idea from AG Grid:
@@ -294,15 +306,18 @@ export class LicenseManager {
 				isEvaluationLicense,
 				isEvaluationLicenseExpired:
 					isEvaluationLicense && this.isEvaluationLicenseExpired(expiryDate),
+				hasXPermissionsLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.X_PERMISSIONS_LICENSE),
 				daysSinceExpiry,
 			}
 			this.outputLicenseInfoIfNeeded(result)
-
+			this.latestLicenseResult = result
 			return result
 		} catch (e: any) {
 			this.outputInvalidLicenseKey(e.message)
 			// If the license can't be parsed, it's invalid
-			return { isLicenseParseable: false, reason: 'invalid-license-key' }
+			const result: LicenseFromKeyResult = { isLicenseParseable: false, reason: 'invalid-license-key' }
+			this.latestLicenseResult = result
+			return result
 		}
 	}
 
@@ -400,6 +415,14 @@ export class LicenseManager {
 
 	private isFlagEnabled(flags: number, flag: number) {
 		return (flags & flag) === flag
+	}
+
+	/** @internal */
+	hasLicenseFlag(flag: number): boolean {
+		return (
+			this.latestLicenseResult?.isLicenseParseable === true &&
+			this.isFlagEnabled(this.latestLicenseResult.license.flags, flag)
+		)
 	}
 
 	private outputNoLicenseKeyProvided() {

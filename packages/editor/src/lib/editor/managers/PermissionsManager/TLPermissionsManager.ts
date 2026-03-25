@@ -11,6 +11,7 @@ import {
 	type TLUser,
 } from '@tldraw/tlschema'
 import type { Editor } from '../../Editor'
+import type { TLPermissionsController } from './permissions-adapter'
 
 /**
  * Evaluates declarative permission rules and lifecycle hooks to gate user activity.
@@ -19,7 +20,7 @@ import type { Editor } from '../../Editor'
  *
  * @public
  */
-export class TLPermissionsManager {
+export class TLPermissionsManager implements TLPermissionsController {
 	private readonly editor: Editor
 	private readonly rules: ReadonlyMap<string, TLPermissionRule>
 	private readonly beforeActionCallbacks: TLBeforeActionCallback[] = []
@@ -115,7 +116,7 @@ export class TLPermissionsManager {
 	canCreateShape(shapeType: string): boolean {
 		return this.canPerform(CORE_ACTIVITIES.CREATE_SHAPE, { shapeType })
 	}
-	/** @internal */
+	/** @public */
 	hasRule(activityId: string): boolean {
 		return this.rules.has(activityId)
 	}

@@ -75,7 +75,9 @@
 		"i18n-check": "i18n-check",
 		"i18n-upload-strings": "tsx internal/scripts/i18n-upload-strings.ts",
 		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts",
-		"add-framer-rewrites": "tsx apps/docs/scripts/add-framer-rewrites.ts"
+		"add-framer-rewrites": "tsx apps/docs/scripts/add-framer-rewrites.ts",
+		"x-permissions:link-local": "yarn workspace @tldraw/editor add @tldraw-x/permissions@portal:../../tldraw-x/packages/permissions",
+		"x-permissions:unlink-local": "yarn workspace @tldraw/editor remove @tldraw-x/permissions"
 	},
 	"engines": {
 		"npm": ">=7.0.0",
