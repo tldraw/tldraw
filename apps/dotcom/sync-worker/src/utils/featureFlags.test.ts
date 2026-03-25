@@ -150,12 +150,6 @@ describe('getFeatureFlagValue', () => {
 		expect(value).toMatchObject({ type: 'boolean', enabled: false })
 	})
 
-	it('returns defaults with enabled=true in development', async () => {
-		const env = makeEnv({}, 'development')
-		const value = await getFeatureFlagValue(env as any, 'sqlite_file_storage')
-		expect(value.enabled).toBe(true)
-	})
-
 	it('merges KV value over defaults', async () => {
 		const env = makeEnv({
 			zero_enabled: JSON.stringify({ enabled: true, percentage: 25 }),
@@ -287,8 +281,6 @@ describe('getFeatureFlagsAdmin (route handler)', () => {
 		const response = await getFeatureFlagsAdmin({} as any, env as any)
 		const body: any = await response.json()
 
-		expect(Object.keys(body).sort()).toEqual(
-			['sqlite_file_storage', 'zero_enabled', 'zero_kill_switch'].sort()
-		)
+		expect(Object.keys(body).sort()).toEqual(['zero_enabled', 'zero_kill_switch'].sort())
 	})
 })

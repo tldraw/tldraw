@@ -13,11 +13,6 @@ function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagVa
 	const defaultEnabled = env.TLDRAW_ENV === 'development'
 
 	return {
-		sqlite_file_storage: {
-			type: 'boolean',
-			enabled: defaultEnabled,
-			description: 'When ON: uses SQLite storage for TLFileDurableObject instead of in-memory',
-		},
 		zero_enabled: {
 			type: 'percentage',
 			percentage: 0,

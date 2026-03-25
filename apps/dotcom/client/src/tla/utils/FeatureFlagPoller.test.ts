@@ -8,7 +8,6 @@ vi.mock('tldraw', () => {
 
 function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 	return {
-		sqlite_file_storage: { enabled: false },
 		zero_enabled: { enabled: false },
 		zero_kill_switch: { enabled: false },
 		...overrides,
