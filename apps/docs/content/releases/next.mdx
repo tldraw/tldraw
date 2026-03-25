@@ -8,7 +8,7 @@ status: published
 last_version: v4.5.3
 ---
 
-This release adds custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, and smarter export trimming. It also includes various other improvements and bug fixes.
+This release adds clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, and smarter export trimming. It also includes various other improvements and bug fixes.
 
 ## What's new
 
@@ -76,6 +76,27 @@ await createMermaidDiagram(editor, `
 
 The package parses Mermaid syntax, extracts layout from the rendered SVG, and produces a diagram-agnostic blueprint that gets rendered into geo shapes, arrows, and groups.
 
+### Clipboard hooks ([#8290](https://github.com/tldraw/tldraw/pull/8290))
+
+New `TldrawOptions` hooks let you intercept and customize clipboard copy, cut, and paste. `onBeforeCopyToClipboard` filters or transforms serialized content before it hits the clipboard, `onBeforePasteFromClipboard` filters parsed paste payloads before shapes are created, and `onClipboardPasteRaw` handles raw clipboard data before tldraw's default paste pipeline.
+
+```tsx
+const options: Partial<TldrawOptions> = {
+	onBeforeCopyToClipboard(info, content) {
+		// filter shapes or transform content before copy/cut
+		return content
+	},
+	onBeforePasteFromClipboard(info, content) {
+		// filter or transform parsed paste content
+		return content
+	},
+	onClipboardPasteRaw(info) {
+		// handle raw clipboard data yourself; return false to cancel tldraw handling
+		return false
+	},
+}
+```
+
 ### Cross-window embedding support ([#8196](https://github.com/tldraw/tldraw/pull/8196))
 
 Tldraw now works correctly when embedded in iframes, Electron pop-out windows, and Obsidian plugins where the global `document` and `window` differ from the ones tldraw is mounted in. All bare `document` and `window` references have been replaced with container-aware alternatives.
@@ -84,6 +105,7 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 
 ## API changes
 
+- Add `onBeforeCopyToClipboard`, `onBeforePasteFromClipboard`, and `onClipboardPasteRaw` hooks to `TldrawOptions` for intercepting clipboard operations. Add `TLClipboardWriteInfo` and `TLClipboardPasteRawInfo` types. Export `handleNativeOrMenuCopy` from `@tldraw/tldraw`. ([#8290](https://github.com/tldraw/tldraw/pull/8290))
 - Add `CustomRecordInfo` interface, `createCustomRecordId()`, `createCustomRecordMigrationIds()`, `createCustomRecordMigrationSequence()`, `isCustomRecord()`, `isCustomRecordId()` for custom record types. `createTLSchema()` and `createTLStore()` now accept a `records` option. ([#8213](https://github.com/tldraw/tldraw/pull/8213))
 - Add `@tldraw/editor-controller` package with `EditorController` class for imperative editor control. ([#7952](https://github.com/tldraw/tldraw/pull/7952))
 - Add `handleSocketResume()`, `getSessionSnapshot()`, and `onSessionSnapshot` to `TLSocketRoom` for WebSocket hibernation support. Add `clientTimeout` option to `TLSyncRoom`. ([#8070](https://github.com/tldraw/tldraw/pull/8070))
