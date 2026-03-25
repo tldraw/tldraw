@@ -8665,9 +8665,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:0.26.1":
-  version: 0.26.1
-  resolution: "@rocicorp/zero@npm:0.26.1"
+"@rocicorp/zero@npm:1.0.0":
+  version: 1.0.0
+  resolution: "@rocicorp/zero@npm:1.0.0"
   dependencies:
     "@badrap/valita": "npm:0.3.11"
     "@databases/escape-identifier": "npm:^1.0.3"
@@ -8713,7 +8713,7 @@ __metadata:
     parse-prometheus-text-format: "npm:^1.1.1"
     pg-format: "npm:pg-format-fix@^1.0.5"
     postgres: "npm:3.4.7"
-    prettier: "npm:^3.5.3"
+    prettier: "npm:^3.8.1"
     semver: "npm:^7.5.4"
     tsx: "npm:^4.21.0"
     url-pattern: "npm:^1.0.3"
@@ -8736,7 +8736,7 @@ __metadata:
     zero-cache-dev: out/zero/src/zero-cache-dev.js
     zero-deploy-permissions: out/zero/src/deploy-permissions.js
     zero-out: out/zero/src/zero-out.js
-  checksum: 10/87d8ca786518867d26cb8afd46c0a8390cf86e42bdb008c0883f3dfdf39be717240fa5d453d05bc589c6471342906189bc3d04e6d809a714cd7f4def4afa102c
+  checksum: 10/1443dfa77642010faab6f67353d3773a2408eaa1dc08889af5b391aa288af059a2d1fae43e29a7ac504a91c246a562d669a6d4deffd1a1074bb85f06637583c6
   languageName: node
   linkType: hard
 
@@ -11106,7 +11106,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
-    "@rocicorp/zero": "npm:0.26.1"
+    "@rocicorp/zero": "npm:1.0.0"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -11130,7 +11130,7 @@ __metadata:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20260302.0"
     "@pierre/storage": "npm:^1.1.0"
-    "@rocicorp/zero": "npm:0.26.1"
+    "@rocicorp/zero": "npm:1.0.0"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
@@ -11576,7 +11576,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:0.26.1"
+    "@rocicorp/zero": "npm:1.0.0"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     esbuild: "npm:^0.27.4"
@@ -17083,7 +17083,7 @@ __metadata:
     "@formatjs/cli": "npm:^6.5.1"
     "@formatjs/unplugin": "npm:^1.1.0"
     "@playwright/test": "npm:^1.58.2"
-    "@rocicorp/zero": "npm:0.26.1"
+    "@rocicorp/zero": "npm:1.0.0"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
@@ -25500,12 +25500,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.2.5, prettier@npm:^3.5.3":
+"prettier@npm:^3.2.5":
   version: 3.6.2
   resolution: "prettier@npm:3.6.2"
   bin:
     prettier: bin/prettier.cjs
   checksum: 10/1213691706bcef1371d16ef72773c8111106c3533b660b1cc8ec158bd109cdf1462804125f87f981f23c4a3dba053b6efafda30ab0114cc5b4a725606bb9ff26
+  languageName: node
+  linkType: hard
+
+"prettier@npm:^3.8.1":
+  version: 3.8.1
+  resolution: "prettier@npm:3.8.1"
+  bin:
+    prettier: bin/prettier.cjs
+  checksum: 10/3da1cf8c1ef9bea828aa618553696c312e951f810bee368f6887109b203f18ee869fe88f66e65f9cf60b7cb1f2eae859892c860a300c062ff8ec69c381fc8dbd
   languageName: node
   linkType: hard
 
