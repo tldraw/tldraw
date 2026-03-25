@@ -157,7 +157,7 @@ const Control = ({
 	)
 }
 
-/* 
+/*
 This example shows how you can use the image export settings in tldraw when generating an image.
 
 1.

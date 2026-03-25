@@ -50,6 +50,11 @@
 	animation-delay: 2s;
 }
 
+:global(.tl-container[dir='rtl']) .cookieConsent {
+	margin-right: 0;
+	margin-left: 4px;
+}
+
 @keyframes slideUp {
 	0% {
 		transform: translate(0px, 110%);
@@ -151,6 +156,11 @@
 	right: 0;
 	z-index: var(--tl-layer-toasts);
 	width: fit-content;
+}
+
+:global(.tl-container[dir='rtl']) .cookieConsentWrapper {
+	right: auto;
+	left: 0;
 }
 
 .noPadding {

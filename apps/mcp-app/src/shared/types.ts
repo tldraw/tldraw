@@ -20,7 +20,7 @@ export interface RegisterToolsOptions {
 	extraConnectDomains?: string[]
 	/** Public origin of the deployed MCP worker, used for host-specific widget domains. */
 	workerOrigin?: string
-	/** When true, suppresses `ui.domain` on the canvas resource (required for local connectors). */
+	/** Flag so the tools, and thus the widget, know if they are running in dev mode. */
 	isDev: boolean
 	/** Logging function (defaults to console.error). */
 	log?(...args: unknown[]): void
@@ -37,7 +37,7 @@ export const MCP_SERVER_DESCRIPTION =
 	'An interactive tldraw canvas with tools for diagramming, drawing, and more.'
 export const MCP_SERVER_WEBSITE_URL = 'https://www.tldraw.com'
 export const MCP_SERVER_INSTRUCTIONS =
-	'Use read_me for shape format examples. For create_shapes, update_shapes, and delete_shapes, send JSON array strings (build the array first, then JSON.stringify). Use create_shapes before update_shapes or delete_shapes when the canvas is empty.'
+	'Use diagram_drawing_read_me for shape format examples. For create_shapes, update_shapes, and delete_shapes, send JSON array strings (build the array first, then JSON.stringify). Use create_shapes before update_shapes or delete_shapes when the canvas is empty.'
 
 export const CANVAS_RESOURCE_URI = 'ui://show-canvas/mcp-app.html'
 

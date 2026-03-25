@@ -23,7 +23,6 @@ import {
 	maybeSnapToGrid,
 	sortByIndex,
 } from '@tldraw/editor'
-
 import { STROKE_SIZES } from '../arrow/shared'
 import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'

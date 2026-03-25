@@ -1,38 +1,5 @@
 import { vi } from 'vitest'
 
-// Snapshot serializer that normalizes unstable tlmeta attribution fields.
-// createdAt/updatedAt are Date.now() timestamps and createdBy/updatedBy contain
-// randomly-generated user IDs, both of which change on every test run.
-const _normalizedTlmeta = new WeakSet()
-expect.addSnapshotSerializer({
-	test(val) {
-		return (
-			val != null &&
-			typeof val === 'object' &&
-			!Array.isArray(val) &&
-			!_normalizedTlmeta.has(val) &&
-			'createdAt' in val &&
-			'createdBy' in val &&
-			'updatedAt' in val &&
-			'updatedBy' in val
-		)
-	},
-	serialize(val, config, indentation, depth, refs, printer) {
-		const normalized = {}
-		for (const [k, v] of Object.entries(val)) {
-			if ((k === 'createdAt' || k === 'updatedAt') && v !== null) {
-				normalized[k] = '[Time]'
-			} else if ((k === 'createdBy' || k === 'updatedBy') && v !== null) {
-				normalized[k] = '[User]'
-			} else {
-				normalized[k] = v
-			}
-		}
-		_normalizedTlmeta.add(normalized)
-		return printer(normalized, config, indentation, depth, refs)
-	},
-})
-
 // Mock the breakpoints context to provide a default breakpoint value in tests
 // This prevents errors when components use useBreakpoint() without a BreakpointProvider
 vi.mock('./src/lib/ui/context/breakpoints', async () => {
@@ -113,9 +80,8 @@ const { version } = require('./package.json')
 // Window fetch mock for network requests - handles translation loading
 window.fetch = async (input, init) => {
 	if (input === `https://cdn.tldraw.com/${version}/translations/en.json`) {
-		const { DEFAULT_TRANSLATION } = await import(
-			'./src/lib/ui/hooks/useTranslation/defaultTranslation.ts'
-		)
+		const { DEFAULT_TRANSLATION } =
+			await import('./src/lib/ui/hooks/useTranslation/defaultTranslation.ts')
 		return {
 			ok: true,
 			json: async () => DEFAULT_TRANSLATION,

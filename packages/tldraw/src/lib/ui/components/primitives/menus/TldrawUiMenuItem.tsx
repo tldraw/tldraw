@@ -14,7 +14,7 @@ import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiToolItem } from '../../../hooks/useTools'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
-import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../../kbd-utils'
 import { Spinner } from '../../Spinner'
 import { TldrawUiButton } from '../Button/TldrawUiButton'
@@ -100,6 +100,7 @@ export function TldrawUiMenuItem<
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
 	const msg = useTranslation()
+	const dir = useDirection()
 
 	const [disableClicks, setDisableClicks] = useState(false)
 
@@ -144,7 +145,7 @@ export function TldrawUiMenuItem<
 
 			return (
 				<_ContextMenu.Item
-					dir="ltr"
+					dir={dir}
 					draggable={false}
 					className="tlui-button tlui-button__menu"
 					data-testid={`${sourceId}.${id}`}

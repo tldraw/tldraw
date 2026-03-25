@@ -1,4 +1,4 @@
-import { Signal } from '@tldraw/state'
+import { Signal, computed } from '@tldraw/state'
 import {
 	SerializedStore,
 	Store,
@@ -208,37 +208,88 @@ export interface TLAssetStore {
  * resolution for attribution labels and display names. Implement this interface
  * to connect tldraw to your auth/user system.
  *
+ * `currentUser` and `resolve` are reactive {@link @tldraw/state#Signal | Signals}
+ * so that the editor can automatically track changes to user data and
+ * re-render when a user's name, color, or avatar updates.
+ *
+ * Implementations should cache signals returned by `resolve` — e.g. return the
+ * same `Signal` for repeated calls with the same `userId` — to avoid
+ * unnecessary re-computation.
+ *
  * @public
  * @example
  * ```ts
+ * const currentUser = computed('currentUser', () =>
+ *   UserRecordType.create({
+ *     id: createUserId(myAuth.userId),
+ *     name: myAuth.displayName,
+ *     color: myAuth.color,
+ *   })
+ * )
+ *
  * const userStore: TLUserStore = {
- *   getCurrentUser() {
- *     return UserRecordType.create({
- *       id: createUserId(myAuth.userId),
- *       name: myAuth.displayName,
- *       color: myAuth.color,
- *     })
- *   },
+ *   currentUser,
  *   resolve(userId) {
- *     return myUserCache.get(userId) ?? null
+ *     return computed('resolve-' + userId, () =>
+ *       myUserCache.get(userId) ?? null
+ *     )
  *   },
  * }
  * ```
  */
 export interface TLUserStore {
 	/**
-	 * Return the currently authenticated user, or `null` for anonymous / unknown.
-	 * Called when stamping attribution on shape create/update.
+	 * A signal resolving to the currently authenticated user,
+	 * or `null` for anonymous / unknown.
+	 * Read when stamping attribution on shape create/update.
 	 */
-	getCurrentUser(): TLUser | null
+	currentUser: Signal<TLUser | null>
 
 	/**
-	 * Resolve an arbitrary user ID to display info.
+	 * Return a signal resolving an arbitrary user ID to display info.
 	 * Called when rendering attribution labels for shapes that may have been
 	 * created or edited by someone else.
-	 * Return `null` if the user cannot be resolved.
+	 * The signal's value should be `null` if the user cannot be resolved.
 	 */
-	resolve?(userId: string): TLUser | null
+	resolve?(userId: string): Signal<TLUser | null>
+}
+
+/**
+ * Create a cached {@link TLUserStore.resolve} implementation.
+ *
+ * Wraps a reactive lookup function so that each `userId` gets a single
+ * stable {@link @tldraw/state#Signal | Signal} that is reused across calls.
+ * The `resolveFn` is evaluated inside a `computed`, so any `.get()` calls
+ * it makes are automatically tracked.
+ *
+ * @param resolveFn - A function that resolves a raw user-ID string to a
+ *   {@link TLUser} or `null`. Called reactively inside a `computed`.
+ * @returns A function suitable for use as `TLUserStore.resolve`.
+ *
+ * @example
+ * ```ts
+ * const users: TLUserStore = {
+ *   currentUser: currentUserSignal,
+ *   resolve: createCachedUserResolve(
+ *     (userId) => usersAtom.get()[createUserId(userId)] ?? null
+ *   ),
+ * }
+ * ```
+ *
+ * @public
+ */
+export function createCachedUserResolve(
+	resolveFn: (userId: string) => TLUser | null
+): (userId: string) => Signal<TLUser | null> {
+	const cache = new Map<string, Signal<TLUser | null>>()
+	return (userId: string) => {
+		let signal = cache.get(userId)
+		if (!signal) {
+			signal = computed('resolve-user-' + userId, () => resolveFn(userId))
+			cache.set(userId, signal)
+		}
+		return signal
+	}
 }
 
 /**

@@ -313,6 +313,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'copy-as-json',
+				label: {
+					default: 'action.copy-as-json',
+					menu: 'action.copy-as-json.short',
+					['context-menu']: 'action.copy-as-json.short',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
+					trackEvent('copy-as', { format: 'json', source })
+					helpers.copyAs(ids, 'json')
+				},
+			},
+			{
 				id: 'toggle-auto-size',
 				label: 'action.toggle-auto-size',
 				onSelect(source) {
@@ -1766,7 +1782,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							const resp = await fetch(url)
 							if (!resp.ok) throw new Error(`Failed to fetch asset: ${resp.status}`)
 							const blob = await resp.blob()
-							downloadFile(new File([blob], name, { type: blob.type }))
+							downloadFile(
+								new File([blob], name, { type: blob.type }),
+								editor.getContainerDocument()
+							)
 						} catch {
 							// Fallback: open in new tab (e.g. if CORS blocked)
 							openWindow(url, '_blank')

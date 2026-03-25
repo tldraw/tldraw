@@ -5,6 +5,7 @@ import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
+import { SneakyDebugModeToast } from '../components/TlaEditor/sneaky/SneakyDebugModeToast'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
@@ -128,6 +129,7 @@ function LocalTldraw() {
 				options={{ actionShortcutsLocation: 'toolbar' }}
 			>
 				<SneakyDarkModeSync />
+				<SneakyDebugModeToast />
 			</LocalEditor>
 		</TlaAnonLayout>
 	)

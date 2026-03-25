@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "Ubah ke Bookmark",
 	"action.convert-to-embed": "Ubah ke Sematan",
 	"action.copy": "Salin",
+	"action.copy-as-json": "Salin sebagai JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Salin sebagai PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Salin sebagai SVG",

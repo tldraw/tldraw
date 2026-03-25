@@ -269,9 +269,9 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
  *
  * @internal
  */
-class InMemorySyncStorageTransaction<R extends UnknownRecord>
-	implements TLSyncStorageTransaction<R>
-{
+class InMemorySyncStorageTransaction<
+	R extends UnknownRecord,
+> implements TLSyncStorageTransaction<R> {
 	private _clock
 	private _closed = false
 

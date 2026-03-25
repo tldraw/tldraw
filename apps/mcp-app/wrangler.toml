@@ -2,6 +2,7 @@ name = "tldraw-mcp-app"
 main = "src/worker.ts"
 compatibility_date = "2025-03-10"
 compatibility_flags = ["nodejs_compat"]
+preview_urls = true
 
 [assets]
 directory = "./dist"
@@ -32,9 +33,9 @@ dataset = "MCP_ANALYTICS"
 name = "RATE_LIMITER"
 namespace_id = "2001"
 
-  [ratelimits.simple]
-  limit = 30
-  period = 60
+[ratelimits.simple]
+limit = 30
+period = 60
 
 [observability]
 enabled = true

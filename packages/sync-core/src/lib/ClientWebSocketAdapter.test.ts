@@ -1,5 +1,7 @@
 import { TLRecord, sleep } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+// NOTE: WebSocket resolution is handled by vitest.config.ts alias configuration
+import { WebSocketServer, WebSocket as WsWebSocket } from 'ws'
 import {
 	ACTIVE_MAX_DELAY,
 	ACTIVE_MIN_DELAY,
@@ -10,8 +12,6 @@ import {
 	INACTIVE_MIN_DELAY,
 	ReconnectManager,
 } from './ClientWebSocketAdapter'
-// NOTE: WebSocket resolution is handled by vitest.config.ts alias configuration
-import { WebSocketServer, WebSocket as WsWebSocket } from 'ws'
 import { TLSocketClientSentEvent, getTlsyncProtocolVersion } from './protocol'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from './TLSyncClient'
 

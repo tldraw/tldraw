@@ -2,8 +2,8 @@ import { TldrawUiButton } from 'tldraw'
 import { useMsg } from '../../../utils/i18n'
 import { TlaFileMenu } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import styles from '../sidebar.module.css'
 import { messages } from './sidebar-shared'
+import styles from '../sidebar.module.css'
 
 export function TlaSidebarFileLinkMenu({
 	fileId,

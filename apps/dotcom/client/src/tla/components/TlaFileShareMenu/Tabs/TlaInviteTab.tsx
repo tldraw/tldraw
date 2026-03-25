@@ -18,8 +18,8 @@ import {
 	TlaMenuSelect,
 	TlaMenuSwitch,
 } from '../../tla-menu/tla-menu'
-import { QrCode } from '../QrCode'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
+import { QrCode } from '../QrCode'
 
 const messages = defineMessages({
 	editor: { defaultMessage: 'Editor' },

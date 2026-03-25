@@ -36,7 +36,7 @@ export class SubtractNodeDefinition extends NodeDefinition<SubtractNode> {
 	static validator = SubtractNode
 	title = 'Subtract'
 	heading = 'Subtract'
-	icon = (<SubtractIcon />)
+	icon = <SubtractIcon />
 	getDefault(): SubtractNode {
 		return {
 			type: 'subtract',

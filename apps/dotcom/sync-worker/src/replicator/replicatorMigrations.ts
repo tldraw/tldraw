@@ -1,7 +1,7 @@
 import { Logger } from '../Logger'
 import { buildTopicsString, getTopics } from './ChangeCollator'
-import { getSubscriptionChanges, serializeSubscriptions } from './Subscription'
 import { ChangeV1, ChangeV2 } from './replicatorTypes'
+import { getSubscriptionChanges, serializeSubscriptions } from './Subscription'
 
 type Migration =
 	| {

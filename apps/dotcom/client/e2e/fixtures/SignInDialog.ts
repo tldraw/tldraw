@@ -1,5 +1,5 @@
-import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { step } from './tla-test'
 
 export class SignInDialog {

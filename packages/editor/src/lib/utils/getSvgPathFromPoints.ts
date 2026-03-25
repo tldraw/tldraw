@@ -1,5 +1,5 @@
-import { VecLike } from '../primitives/Vec'
 import { average, precise } from '../primitives/utils'
+import { VecLike } from '../primitives/Vec'
 
 /**
  * Turn an array of points into a path of quadratic curves.

@@ -1,5 +1,7 @@
 import {
 	atom,
+	computed,
+	createCachedUserResolve,
 	createUserId,
 	Tldraw,
 	TldrawUiButton,
@@ -50,13 +52,13 @@ const usersAtom = atom<Record<string, TLUser>>('users', {
 const currentUserIdAtom = atom('currentUserId', createUserId('alice'))
 
 // [3]
+const currentUserSignal = computed('currentUser', () => {
+	return usersAtom.get()[currentUserIdAtom.get()] ?? null
+})
+
 const users: TLUserStore = {
-	getCurrentUser() {
-		return usersAtom.get()[currentUserIdAtom.get()] ?? null
-	},
-	resolve(userId: string) {
-		return usersAtom.get()[createUserId(userId)] ?? null
-	},
+	currentUser: currentUserSignal,
+	resolve: createCachedUserResolve((userId) => usersAtom.get()[createUserId(userId)] ?? null),
 }
 
 // [4]
@@ -84,7 +86,7 @@ function UserSwitcher() {
 function CustomUserPanel() {
 	const editor = useEditor()
 
-	const currentUser = useValue('current-user', () => editor.store.props.users.getCurrentUser(), [
+	const currentUser = useValue('current-user', () => editor.store.props.users.currentUser.get(), [
 		editor,
 	])
 	const customMeta = asCustomMeta(currentUser)
@@ -156,9 +158,9 @@ in their `meta` object — `isAdmin` and `department`. In a real app this data
 would come from your authentication system or user service.
 
 [3]
-The custom TLUserStore. `getCurrentUser` and `resolve` both read from the
-atoms, making them reactive — any computed or useValue that calls these
-functions will re-evaluate when the underlying data changes.
+The custom TLUserStore. `currentUser` and `resolve` return reactive Signals
+derived from the atoms — any computed or useValue that reads `.get()` on these
+signals will re-evaluate when the underlying data changes.
 
 [4]
 The top panel lets you switch which user is "logged in". Each button shows

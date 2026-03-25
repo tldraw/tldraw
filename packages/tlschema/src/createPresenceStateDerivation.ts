@@ -1,11 +1,22 @@
 import { Signal, computed } from '@tldraw/state'
-import { TLStore } from './TLStore'
 import { CameraRecordType } from './records/TLCamera'
 import { TLINSTANCE_ID } from './records/TLInstance'
 import { InstancePageStateRecordType } from './records/TLPageState'
 import { TLPOINTER_ID } from './records/TLPointer'
 import { InstancePresenceRecordType, TLInstancePresence } from './records/TLPresence'
 import { TLUser } from './records/TLUser'
+import { TLStore } from './TLStore'
+
+/** @public */
+export interface CreatePresenceStateDerivationOpts {
+	/** Custom instance ID. If not provided, one is generated from the store ID. */
+	instanceId?: TLInstancePresence['id']
+	/**
+	 * Override how presence state is built from the store and current user.
+	 * Defaults to {@link getDefaultUserPresence}.
+	 */
+	getUserPresence?(store: TLStore, user: TLUser): TLPresenceStateInfo | null
+}
 
 /**
  * Creates a derivation that represents the current presence state of the current user.
@@ -15,8 +26,8 @@ import { TLUser } from './records/TLUser'
  * position, selected shapes, camera position, and user metadata that gets synchronized in
  * multiplayer scenarios.
  *
- * @param $user - A reactive signal containing the user information
- * @param instanceId - Optional custom instance ID. If not provided, one will be generated based on the store ID
+ * @param $user - A reactive signal containing the user information, or `null` when anonymous
+ * @param opts - Optional configuration for instance ID and presence derivation
  * @returns A function that takes a store and returns a computed signal of the user's presence state
  *
  * @example
@@ -35,15 +46,17 @@ import { TLUser } from './records/TLUser'
  * @public
  */
 export function createPresenceStateDerivation(
-	$user: Signal<TLUser>,
-	instanceId?: TLInstancePresence['id']
+	$user: Signal<TLUser | null>,
+	opts?: CreatePresenceStateDerivationOpts
 ) {
+	const { instanceId, getUserPresence: _getUserPresence } = opts ?? {}
+	const getUserPresence = _getUserPresence ?? getDefaultUserPresence
 	return (store: TLStore): Signal<TLInstancePresence | null> => {
 		return computed('instancePresence', () => {
 			const user = $user.get()
 			if (!user) return null
 
-			const state = getDefaultUserPresence(store, user)
+			const state = getUserPresence(store, user)
 			if (!state) return null
 
 			return InstancePresenceRecordType.create({

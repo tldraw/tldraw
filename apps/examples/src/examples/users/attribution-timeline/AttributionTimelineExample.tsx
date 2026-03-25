@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+	atom,
+	computed,
+	createCachedUserResolve,
 	createUserId,
 	RecordsDiff,
 	reverseRecordsDiff,
@@ -37,15 +40,15 @@ const USERS: Record<string, TLUser> = {
 	}),
 }
 
-let currentUserId = createUserId('alice')
+const currentUserIdAtom = atom('currentUserId', createUserId('alice'))
+
+const currentUserSignal = computed('currentUser', () => {
+	return USERS[currentUserIdAtom.get()] ?? null
+})
 
 const users: TLUserStore = {
-	getCurrentUser() {
-		return USERS[currentUserId] ?? null
-	},
-	resolve(userId: string) {
-		return USERS[createUserId(userId)] ?? null
-	},
+	currentUser: currentUserSignal,
+	resolve: createCachedUserResolve((userId) => USERS[createUserId(userId)] ?? null),
 }
 
 // [2]
@@ -82,7 +85,7 @@ export default function AttributionTimelineExample() {
 }
 
 function UserSwitcher() {
-	const [activeUserId, setActiveUserId] = useState(currentUserId)
+	const [activeUserId, setActiveUserId] = useState(currentUserIdAtom.get())
 
 	return (
 		<div className="tlui-menu attribution-timeline-user-switcher">
@@ -91,7 +94,7 @@ function UserSwitcher() {
 					key={user.id}
 					type={activeUserId === user.id ? 'primary' : 'normal'}
 					onClick={() => {
-						currentUserId = user.id
+						currentUserIdAtom.set(user.id)
 						setActiveUserId(user.id)
 					}}
 				>
@@ -117,7 +120,7 @@ const AttributionTimeline = track(() => {
 	// [5]
 	const recordChange = useCallback(
 		(diff: RecordsDiff<any>) => {
-			const user = editor.store.props.users.getCurrentUser()
+			const user = editor.store.props.users.currentUser.get()
 			const newEntry: AttributionTimelineEntry = {
 				timestamp: Date.now(),
 				diff,
@@ -377,9 +380,9 @@ const AttributionTimeline = track(() => {
 /*
 [1]
 A fake user directory. In a real app this would be backed by your auth system.
-The TLUserStore tells the editor who is "logged in" — the editor calls
-getCurrentUser when stamping meta.__tldraw on shape create/update, and resolve
-when rendering attribution labels.
+The TLUserStore tells the editor who is "logged in" — the editor reads
+currentUser for attribution purposes, and resolve when rendering
+attribution labels.
 
 [2]
 Each timeline entry extends the basic diff with the userId, name, and color

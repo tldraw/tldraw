@@ -1,6 +1,6 @@
-import { Browser, BrowserContext, Page, test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
+import { Browser, BrowserContext, Page, test } from '@playwright/test'
 import { Editor } from './Editor'
 import { ErrorPage } from './ErrorPages'
 import { GroupInviteDialog } from './GroupInviteDialog'

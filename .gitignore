@@ -89,6 +89,7 @@ apps/examples/www/index.js
 
 apps/examples/build.esbuild.json
 
+test-results
 apps/examples/e2e/test-results
 apps/examples/playwright-report
 apps/dotcom/client/test-results
@@ -123,6 +124,7 @@ license-report.md
 opencode.json
 
 # PR walkthrough intermediate files
+.claude/worktrees
 .claude/skills/pr-walkthrough/tmp
 .claude/skills/pr-walkthrough/out
 .claude/skills/pr-walkthrough/video/node_modules

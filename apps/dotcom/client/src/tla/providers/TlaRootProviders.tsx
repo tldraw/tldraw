@@ -10,6 +10,7 @@ import {
 	DefaultDialogs,
 	DefaultToasts,
 	EditorContext,
+	RTL_LANGUAGES,
 	TLUiEventHandler,
 	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
@@ -23,7 +24,7 @@ import {
 	useValue,
 } from 'tldraw'
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
-import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
+import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/ErrorPage'
 import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
@@ -35,7 +36,7 @@ import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { hasNotAcceptedLegal } from '../utils/auth'
-import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
+import { FeatureFlagPoller } from '../utils/FeatureFlagPoller'
 import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
 	getLocalSessionState,
@@ -44,6 +45,11 @@ import {
 } from '../utils/local-session-state'
 
 const assetUrls = getAssetUrlsByImport()
+
+function getTextDirection(locale: string): 'ltr' | 'rtl' {
+	const [language] = locale.toLowerCase().split('-')
+	return RTL_LANGUAGES.has(language) ? 'rtl' : 'ltr'
+}
 
 // Override watermark URLs globally for all dotcom editors
 function WatermarkOverride() {
@@ -66,6 +72,16 @@ export const appMessages = defineMessages({
 	oldBrowser: {
 		defaultMessage: 'Old browser detected. Please update your browser to use this app.',
 	},
+	clerkUnavailable: {
+		defaultMessage: 'Unable to connect',
+	},
+	clerkUnavailablePara: {
+		defaultMessage:
+			"We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page.",
+	},
+	refresh: {
+		defaultMessage: 'Refresh',
+	},
 })
 
 // @ts-ignore this is fine
@@ -75,6 +91,14 @@ if (!PUBLISHABLE_KEY) {
 	throw new Error('Missing Publishable Key')
 }
 
+const CLERK_LOAD_TIMEOUT_MS = 10_000
+
+const CLERK_ERROR_MESSAGES = {
+	header: appMessages.clerkUnavailable.defaultMessage,
+	para1: appMessages.clerkUnavailablePara.defaultMessage,
+	cta: appMessages.refresh.defaultMessage,
+}
+
 export function Component() {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
 	// TODO: this needs to default to the global setting of whatever the last chosen locale was, not 'en'
@@ -82,10 +106,12 @@ export function Component() {
 	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(
 		() => getLocalSessionState().theme
 	)
+	const dir = getTextDirection(locale)
 	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
 	const handleLocaleChange = (locale: string) => {
 		setLocale(locale)
 		document.documentElement.lang = locale
+		document.documentElement.dir = getTextDirection(locale)
 	}
 	const isFocusMode = useValue(
 		'isFocusMode',
@@ -106,26 +132,29 @@ export function Component() {
 	return (
 		<div
 			ref={setContainer}
+			dir={dir}
 			className={classNames(`tla tl-container tla-theme-container`, {
 				'tla-theme__light tl-theme__light': theme === 'light',
 				'tla-theme__dark tl-theme__dark': theme !== 'light',
 				'tla-focus-mode': isFocusMode,
 			})}
 		>
-			<IntlWrapper locale={locale}>
-				<MaybeForceUserRefresh>
-					<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
-						{container && (
-							<ContainerProvider container={container}>
-								<InsideOfContainerContext>
-									<Outlet />
-									<LegalTermsAcceptance />
-								</InsideOfContainerContext>
-							</ContainerProvider>
-						)}
-					</SignedInProvider>
-				</MaybeForceUserRefresh>
-			</IntlWrapper>
+			<RefreshErrorBoundary messages={CLERK_ERROR_MESSAGES}>
+				<IntlWrapper locale={locale}>
+					<MaybeForceUserRefresh>
+						<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
+							{container && (
+								<ContainerProvider container={container}>
+									<InsideOfContainerContext>
+										<Outlet />
+										<LegalTermsAcceptance />
+									</InsideOfContainerContext>
+								</ContainerProvider>
+							)}
+						</SignedInProvider>
+					</MaybeForceUserRefresh>
+				</IntlWrapper>
+			</RefreshErrorBoundary>
 			<WatermarkOverride />
 		</div>
 	)
@@ -234,7 +263,32 @@ function SignedInProvider({
 		}
 	}, [auth.userId, auth.isSignedIn, auth.isLoaded])
 
-	if (!auth.isLoaded) return null
+	const [clerkTimedOut, setClerkTimedOut] = useState(false)
+
+	useEffect(() => {
+		if (auth.isLoaded) return
+		const timeout = setTimeout(() => setClerkTimedOut(true), CLERK_LOAD_TIMEOUT_MS)
+		return () => clearTimeout(timeout)
+	}, [auth.isLoaded])
+
+	if (!auth.isLoaded) {
+		if (clerkTimedOut) {
+			return (
+				<ErrorPage
+					messages={{
+						header: intl.formatMessage(appMessages.clerkUnavailable),
+						para1: intl.formatMessage(appMessages.clerkUnavailablePara),
+					}}
+					cta={
+						<button onClick={() => window.location.reload()}>
+							{intl.formatMessage(appMessages.refresh)}
+						</button>
+					}
+				/>
+			)
+		}
+		return null
+	}
 
 	// Old browsers check.
 	if (!('findLastIndex' in Array.prototype)) {
@@ -252,7 +306,7 @@ function SignedInProvider({
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
-				<FeatureFlagsFetcher />
+				<FeatureFlagPoller />
 				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
@@ -260,15 +314,17 @@ function SignedInProvider({
 	}
 
 	return (
-		<AppStateProvider>
-			<UserProvider>
-				<ThemeContainer onThemeChange={onThemeChange}>
-					<FeatureFlagsFetcher />
-					<SignedInAnalytics />
-					{children}
-				</ThemeContainer>
-			</UserProvider>
-		</AppStateProvider>
+		<>
+			<FeatureFlagPoller />
+			<AppStateProvider>
+				<UserProvider>
+					<ThemeContainer onThemeChange={onThemeChange}>
+						<SignedInAnalytics />
+						{children}
+					</ThemeContainer>
+				</UserProvider>
+			</AppStateProvider>
+		</>
 	)
 }
 

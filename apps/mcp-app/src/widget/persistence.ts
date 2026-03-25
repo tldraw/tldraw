@@ -1,9 +1,8 @@
 import type { App } from '@modelcontextprotocol/ext-apps/react'
-import type { TLAsset, TLBindingCreate, TLShape } from 'tldraw'
 import { Editor, structuredClone } from 'tldraw'
+import type { TLAsset, TLBindingCreate, TLShape } from 'tldraw'
 import { convertTldrawRecordToFocusedShape } from '../focused-shape-converters'
 import type { FocusedShape } from '../focused-shape-schema'
-import type { MCP_APP_HOST_NAMES } from '../shared/types'
 import { isPlainObject } from '../shared/utils'
 
 export interface CanvasSnapshot {
@@ -57,7 +56,7 @@ export function loadLocalSnapshot(
 	checkpointId: string
 ): { shapes: TLShape[]; assets: TLAsset[]; bindings: TLBindingCreate[] } | null {
 	try {
-		// eslint-disable-next-line no-restricted-syntax
+		// eslint-disable-next-line tldraw/no-direct-storage
 		const raw = localStorage.getItem(localStorageKey(checkpointId))
 		if (!raw) return null
 		return parseSnapshotData(raw)
@@ -74,13 +73,13 @@ export function saveLocalSnapshot(
 ): void {
 	if (!currentSessionId) return
 	try {
-		// eslint-disable-next-line no-restricted-syntax
+		// eslint-disable-next-line tldraw/no-direct-storage
 		localStorage.setItem(
 			localStorageKey(checkpointId),
 			JSON.stringify({ shapes, assets, bindings })
 		)
 		// Track this as the latest checkpoint for this session
-		// eslint-disable-next-line no-restricted-syntax
+		// eslint-disable-next-line tldraw/no-direct-storage
 		localStorage.setItem(`tldraw:${currentSessionId}:latest`, checkpointId)
 	} catch {
 		// localStorage may be full or unavailable.
@@ -94,7 +93,7 @@ export function getLatestCheckpointSnapshot(): {
 } | null {
 	if (!currentSessionId) return null
 	try {
-		// eslint-disable-next-line no-restricted-syntax
+		// eslint-disable-next-line tldraw/no-direct-storage
 		const latestId = localStorage.getItem(`tldraw:${currentSessionId}:latest`)
 		if (!latestId) return null
 		return loadLocalSnapshot(latestId)
@@ -114,8 +113,8 @@ declare global {
 export function getEmbeddedBootstrap(): {
 	sessionId: string
 	checkpointId?: string
+	isDev: boolean
 	snapshot?: CanvasSnapshot
-	hostName?: MCP_APP_HOST_NAMES
 } | null {
 	const data = window.__TLDRAW_BOOTSTRAP__
 	if (!isPlainObject(data)) return null
@@ -123,8 +122,7 @@ export function getEmbeddedBootstrap(): {
 	if (!sessionId) return null
 
 	const checkpointId = typeof data.checkpointId === 'string' ? data.checkpointId : undefined
-	const hostName =
-		typeof data.hostName === 'string' ? (data.hostName as MCP_APP_HOST_NAMES) : undefined
+	const isDev = data.isDev === true
 
 	let snapshot: CanvasSnapshot | undefined
 	if (Array.isArray(data.shapes) && data.shapes.length > 0) {
@@ -141,7 +139,7 @@ export function getEmbeddedBootstrap(): {
 		}
 	}
 
-	return { sessionId, checkpointId, snapshot, hostName }
+	return { sessionId, checkpointId, isDev, snapshot }
 }
 
 // --- Tool result parsing ---

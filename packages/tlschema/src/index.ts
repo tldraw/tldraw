@@ -51,6 +51,7 @@ export {
 export {
 	createPresenceStateDerivation,
 	getDefaultUserPresence,
+	type CreatePresenceStateDerivationOpts,
 	type TLPresenceStateInfo,
 } from './createPresenceStateDerivation'
 export {
@@ -119,6 +120,14 @@ export {
 } from './records/TLBinding'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
 export {
+	createCustomRecordId,
+	createCustomRecordMigrationIds,
+	createCustomRecordMigrationSequence,
+	isCustomRecord,
+	isCustomRecordId,
+	type CustomRecordInfo,
+} from './records/TLCustomRecord'
+export {
 	DocumentRecordType,
 	isDocument,
 	TLDOCUMENT_ID,
@@ -153,7 +162,13 @@ export {
 	type TLInstancePresence,
 	type TLInstancePresenceID,
 } from './records/TLPresence'
-export { type TLRecord } from './records/TLRecord'
+export {
+	type TLCustomRecord,
+	type TLDefaultRecord,
+	type TLGlobalRecordPropsMap,
+	type TLIndexedRecords,
+	type TLRecord,
+} from './records/TLRecord'
 export {
 	createShapeId,
 	createShapePropsMigrationIds,
@@ -203,15 +218,9 @@ export {
 } from './shapes/TLArrowShape'
 export {
 	createShapeValidator,
-	defaultTlMeta,
-	getTldrawMetaFromShapeMeta,
 	parentIdValidator,
 	shapeIdValidator,
-	tldrawShapeMetaKey,
-	tlmetaValidator,
 	type TLBaseShape,
-	type TLShapeMeta,
-	type TLShapeTLMeta,
 } from './shapes/TLBaseShape'
 export {
 	bookmarkShapeMigrations,
@@ -323,6 +332,7 @@ export {
 	type TLDefaultVerticalAlignStyle,
 } from './styles/TLVerticalAlignStyle'
 export {
+	createCachedUserResolve,
 	type TLAssetContext,
 	type TLAssetStore,
 	type TLSerializedStore,

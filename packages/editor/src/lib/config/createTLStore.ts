@@ -1,23 +1,26 @@
-import { Signal } from '@tldraw/state'
+import { Signal, computed } from '@tldraw/state'
 import { HistoryEntry, MigrationSequence, SerializedStore, Store, StoreSchema } from '@tldraw/store'
 import {
+	CustomRecordInfo,
 	SchemaPropsInfo,
 	TLAssetStore,
 	TLRecord,
 	TLStore,
 	TLStoreProps,
 	TLStoreSnapshot,
+	TLUser,
 	TLUserStore,
 	UserRecordType,
+	createCachedUserResolve,
 	createTLSchema,
 	createUserId,
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
-import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
-import { getUserPreferences } from './TLUserPreferences'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
+import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
+import { defaultUserPreferences, getUserPreferences } from './TLUserPreferences'
 
 /** @public */
 export interface TLStoreBaseOptions {
@@ -49,6 +52,7 @@ export type TLStoreSchemaOptions =
 			shapeUtils?: readonly TLAnyShapeUtilConstructor[]
 			migrations?: readonly MigrationSequence[]
 			bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+			records?: Record<string, CustomRecordInfo>
 	  }
 
 /** @public */
@@ -66,17 +70,19 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>
 
 const defaultAssetResolve: NonNullable<TLAssetStore['resolve']> = (asset) => asset.props.src
 
+const _defaultCurrentUser: Signal<TLUser | null> = computed('defaultCurrentUser', () => {
+	const prefs = getUserPreferences()
+	if (!prefs.id) return null
+	return UserRecordType.create({
+		id: createUserId(prefs.id),
+		name: prefs.name ?? '',
+		color: prefs.color ?? defaultUserPreferences.color,
+	})
+})
+
 /** @public */
 export const defaultUserStore: TLUserStore = {
-	getCurrentUser: () => {
-		const prefs = getUserPreferences()
-		if (!prefs.id) return null
-		return UserRecordType.create({
-			id: createUserId(prefs.id),
-			name: prefs.name ?? '',
-			color: prefs.color ?? '',
-		})
-	},
+	currentUser: _defaultCurrentUser,
 }
 
 /** @public */
@@ -108,6 +114,7 @@ export function createTLSchemaFromUtils(
 			'bindingUtils' in opts && opts.bindingUtils
 				? utilsToMap(checkBindings(opts.bindingUtils))
 				: undefined,
+		records: 'records' in opts ? opts.records : undefined,
 		migrations: 'migrations' in opts ? opts.migrations : undefined,
 	})
 }
@@ -143,11 +150,11 @@ export function createTLStore({
 				remove: assets.remove ?? (() => Promise.resolve()),
 			},
 			users: {
-				getCurrentUser: users.getCurrentUser,
+				currentUser: users.currentUser,
 				resolve:
 					users.resolve ??
-					((userId) => {
-						const current = users.getCurrentUser()
+					createCachedUserResolve((userId) => {
+						const current = users.currentUser.get()
 						return current && current.id === createUserId(userId) ? current : null
 					}),
 			},

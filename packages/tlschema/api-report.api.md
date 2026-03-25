@@ -13,6 +13,7 @@ import { MakeUndefinedOptional } from '@tldraw/utils';
 import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
+import { RecordScope } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
@@ -176,7 +177,27 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
 }): T.ObjectValidator<Expand<    { [P in "fromId" | "id" | "meta" | "toId" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseBinding<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseBinding<Type, Props>[P] | undefined; }>>;
 
 // @public
-export function createPresenceStateDerivation($user: Signal<TLUser>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence, unknown>;
+export function createCachedUserResolve(resolveFn: (userId: string) => null | TLUser): (userId: string) => Signal<null | TLUser>;
+
+// @public
+export function createCustomRecordId<T extends string>(typeName: T, id?: string): RecordId<UnknownRecord> & `${T}:${string}`;
+
+// @public
+export function createCustomRecordMigrationIds<const S extends string, const T extends Record<string, number>>(recordType: S, ids: T): {
+    [k in keyof T]: `com.tldraw.${S}/${T[k]}`;
+};
+
+// @public
+export function createCustomRecordMigrationSequence(migrations: TLPropsMigrations): TLPropsMigrations;
+
+// @public
+export function createPresenceStateDerivation($user: Signal<null | TLUser>, opts?: CreatePresenceStateDerivationOpts): (store: TLStore) => Signal<null | TLInstancePresence, unknown>;
+
+// @public (undocumented)
+export interface CreatePresenceStateDerivationOpts {
+    getUserPresence?(store: TLStore, user: TLUser): null | TLPresenceStateInfo;
+    instanceId?: TLInstancePresence['id'];
+}
 
 // @public
 export function createShapeId(id?: string): TLShapeId;
@@ -197,9 +218,10 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
 
 // @public
-export function createTLSchema({ shapes, bindings, user, migrations }?: {
+export function createTLSchema({ shapes, bindings, user, records, migrations }?: {
     bindings?: Record<string, SchemaPropsInfo>;
     migrations?: readonly MigrationSequence[];
+    records?: Record<string, CustomRecordInfo>;
     shapes?: Record<string, SchemaPropsInfo>;
     user?: UserSchemaInfo;
 }): TLSchema;
@@ -211,6 +233,14 @@ export function createUserId(id: string): TLUserId;
 export function createUserRecordType(config?: {
     meta?: Record<string, T.Validatable<any>>;
 }): RecordType<TLUser, never>;
+
+// @public
+export interface CustomRecordInfo {
+    createDefaultProperties?: () => Record<string, unknown>;
+    migrations?: MigrationSequence | TLPropsMigrations;
+    scope: RecordScope;
+    validator: T.Validatable<any>;
+}
 
 // @public
 export const defaultBindingSchemas: {
@@ -317,9 +347,6 @@ export const DefaultSizeStyle: EnumStyleProp<"l" | "m" | "s" | "xl">;
 // @public
 export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 
-// @public (undocumented)
-export const defaultTlMeta: TLShapeTLMeta;
-
 // @public
 export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 
@@ -419,9 +446,6 @@ export function getShapeCreatorId(shape: TLShape): null | string;
 // @internal
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
 
-// @public (undocumented)
-export function getTldrawMetaFromShapeMeta(meta: JsonObject): TLShapeTLMeta;
-
 // @public
 export const groupShapeMigrations: TLPropsMigrations;
 
@@ -457,6 +481,12 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 
 // @public
 export function isBindingId(id?: string): id is TLBindingId;
+
+// @public
+export function isCustomRecord(typeName: string, record?: UnknownRecord): boolean;
+
+// @public
+export function isCustomRecordId(typeName: string, id?: string): boolean;
 
 // @public
 export function isDocument(record?: UnknownRecord): record is TLDocument;
@@ -878,7 +908,7 @@ export interface TLBaseShape<Type extends string, Props extends object> {
     // (undocumented)
     isLocked: boolean;
     // (undocumented)
-    meta: TLShapeMeta;
+    meta: JsonObject;
     // (undocumented)
     opacity: TLOpacityType;
     // (undocumented)
@@ -979,6 +1009,9 @@ export interface TLCursor {
 export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 
 // @public
+export type TLCustomRecord = TLIndexedRecords[keyof TLIndexedRecords];
+
+// @public
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public
@@ -1037,6 +1070,9 @@ export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
 export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
 
 // @public
+export type TLDefaultRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape | TLUser;
+
+// @public
 export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public
@@ -1060,9 +1096,6 @@ export const TLDOCUMENT_ID: RecordId<TLDocument>;
 
 // @public
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>;
-
-// @public (undocumented)
-export const tldrawShapeMetaKey: "__tldraw";
 
 // @public
 export interface TLDrawShapeProps {
@@ -1133,6 +1166,10 @@ export interface TLGeoShapeProps {
 
 // @public (undocumented)
 export interface TLGlobalBindingPropsMap {
+}
+
+// @public
+export interface TLGlobalRecordPropsMap {
 }
 
 // @public (undocumented)
@@ -1211,6 +1248,11 @@ export type TLIndexedBindings = {
     [K in keyof TLGlobalBindingPropsMap | TLDefaultBinding['type'] as K extends TLDefaultBinding['type'] ? K extends keyof TLGlobalBindingPropsMap ? TLGlobalBindingPropsMap[K] extends null | undefined ? never : K : K : K]: K extends TLDefaultBinding['type'] ? K extends keyof TLGlobalBindingPropsMap ? TLBaseBinding<K, TLGlobalBindingPropsMap[K]> : Extract<TLDefaultBinding, {
         type: K;
     }> : TLBaseBinding<K, TLGlobalBindingPropsMap[K & keyof TLGlobalBindingPropsMap]>;
+};
+
+// @public
+export type TLIndexedRecords = {
+    [K in keyof TLGlobalRecordPropsMap as TLGlobalRecordPropsMap[K] extends null | undefined ? never : K]: TLGlobalRecordPropsMap[K];
 };
 
 // @public (undocumented)
@@ -1389,9 +1431,6 @@ export interface TLLineShapeProps {
 // @public
 export type TLLineShapeSplineStyle = T.TypeOf<typeof LineShapeSplineStyle>;
 
-// @public (undocumented)
-export const tlmetaValidator: T.ObjectValidator<TLShapeTLMeta>;
-
 // @public
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>;
 
@@ -1406,7 +1445,7 @@ export interface TLNoteShapeProps {
     richText: TLRichText;
     scale: number;
     size: TLDefaultSizeStyle;
-    textLastEditedBy: null | string;
+    textFirstEditedBy: null | string;
     url: string;
     verticalAlign: TLDefaultVerticalAlignStyle;
 }
@@ -1496,7 +1535,7 @@ export interface TLPropsMigrations {
 }
 
 // @public
-export type TLRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape | TLUser;
+export type TLRecord = TLCustomRecord | TLDefaultRecord;
 
 // @public
 export type TLRichText = T.TypeOf<typeof richTextValidator>;
@@ -1536,11 +1575,6 @@ export interface TLShapeCrop {
 // @public
 export type TLShapeId = RecordId<TLShape>;
 
-// @public (undocumented)
-export type TLShapeMeta = JsonObject & {
-    [tldrawShapeMetaKey]?: TLShapeTLMeta;
-};
-
 // @public
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     id: TLShapeId;
@@ -1548,14 +1582,6 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     props?: Partial<T['props']>;
     type: T['type'];
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
-
-// @public
-export type TLShapeTLMeta = {
-    createdAt: null | number;
-    createdBy: null | string;
-    updatedAt: null | number;
-    updatedBy: null | string;
-};
 
 // @public
 export type TLStore = Store<TLRecord, TLStoreProps>;
@@ -1624,8 +1650,8 @@ export type TLUserId = RecordId<TLUser>;
 
 // @public
 export interface TLUserStore {
-    getCurrentUser(): null | TLUser;
-    resolve?(userId: string): null | TLUser;
+    currentUser: Signal<null | TLUser>;
+    resolve?(userId: string): Signal<null | TLUser>;
 }
 
 // @public

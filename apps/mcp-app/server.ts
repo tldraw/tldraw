@@ -1,7 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { TLShape } from 'tldraw'
 import { registerTools } from './src/register-tools'
-import type { MCP_APP_HOST_NAMES, ServerDeps } from './src/shared/types'
 import {
 	MAX_CHECKPOINTS,
 	MCP_SERVER_DESCRIPTION,
@@ -11,7 +10,8 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from './src/shared/types'
-import { resolveMcpAppHostName } from './src/shared/utils'
+import type { MCP_APP_HOST_NAMES, ServerDeps } from './src/shared/types'
+import { resolveMcpAppHostNameFromServerInfo } from './src/shared/utils'
 import { loadCachedCanvasWidgetHtml } from './src/tools/loadCachedCanvasWidgetHtml'
 
 // --- Server factory ---
@@ -31,9 +31,6 @@ export function createServer() {
 		assets: unknown[] = [],
 		bindings: unknown[] = []
 	): void {
-		console.error(
-			`[tldraw-mcp] saveCheckpoint: id=${id}, shapes=${shapes.length}, assets=${assets.length}, bindings=${bindings.length}, existing checkpoints=${checkpoints.size}`
-		)
 		checkpoints.set(id, { shapes, assets, bindings })
 		if (checkpoints.size > MAX_CHECKPOINTS) {
 			const oldest = checkpoints.keys().next().value
@@ -46,22 +43,13 @@ export function createServer() {
 			if (checkpoints.size > 0) {
 				const lastKey = [...checkpoints.keys()].at(-1)!
 				const entry = checkpoints.get(lastKey)!
-				console.error(
-					`[tldraw-mcp] getActiveShapes: activeCheckpointId was NULL, fell back to last checkpoint=${lastKey}, shapes=${entry.shapes.length}`
-				)
 				activeCheckpointId = lastKey
 				return entry.shapes
 			}
-			console.error(
-				`[tldraw-mcp] getActiveShapes: activeCheckpointId is NULL and no checkpoints, returning []`
-			)
 			return []
 		}
 		const entry = checkpoints.get(activeCheckpointId)
 		const shapes = entry?.shapes ?? []
-		console.error(
-			`[tldraw-mcp] getActiveShapes: activeCheckpointId=${activeCheckpointId}, shapes=${shapes.length}, checkpoints.size=${checkpoints.size}`
-		)
 		return shapes
 	}
 
@@ -94,11 +82,8 @@ export function createServer() {
 
 	server.server.oninitialized = () => {
 		const clientInfo = server.server.getClientVersion()
-		const resolved = resolveMcpAppHostName(clientInfo?.name ?? '')
+		const resolved = resolveMcpAppHostNameFromServerInfo(clientInfo?.name ?? '')
 		if (resolved) clientHostName = resolved
-		console.error(
-			`[tldraw-mcp] Client connected: ${clientHostName ?? 'unknown'} v${clientInfo?.version ?? '?'}`
-		)
 	}
 
 	const deps: ServerDeps = {

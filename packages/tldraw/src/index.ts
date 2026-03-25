@@ -52,7 +52,7 @@ export {
 } from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
 export { DefaultToasts } from './lib/ui/components/Toasts'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
-// eslint-disable-next-line local/no-export-star
+// eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/editor'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
 export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
@@ -657,7 +657,11 @@ export {
 	useCanUndo,
 	useUnlockedSelectedShapesCount,
 } from './lib/ui/hooks/menu-hooks'
-export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
+export {
+	handleNativeOrMenuCopy,
+	useMenuClipboardEvents,
+	useNativeClipboardEvents,
+} from './lib/ui/hooks/useClipboardEvents'
 export {
 	useCollaborationStatus,
 	useShowCollaborationUi,
@@ -678,9 +682,10 @@ export {
 	type TLUiToolsProviderProps,
 } from './lib/ui/hooks/useTools'
 export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTranslationKey'
-export { type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
+export { RTL_LANGUAGES, type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
 export {
 	useCurrentTranslation,
+	useDirection,
 	useTranslation,
 	type TLUiTranslationContextType,
 	type TLUiTranslationProviderProps,

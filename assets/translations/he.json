@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "המרה לסימנייה",
 	"action.convert-to-embed": "המרה להטמעה",
 	"action.copy": "העתק",
+	"action.copy-as-json": "העתק כ-JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "העתק כ-PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "העתק כ-SVG",

@@ -1,4 +1,4 @@
-import { writeFileSync } from 'fs'
+import { readFileSync, writeFileSync } from 'fs'
 import { join, resolve } from 'path'
 import { exec } from './lib/exec'
 import { readFileIfExists } from './lib/file'
@@ -14,9 +14,21 @@ const packagesOurTypesCanDependOn = [
 	'@types/react-dom',
 	'eventemitter3',
 	'nanoevents',
-	'@tiptap/react',
-	'@tiptap/core',
+	'react',
+	'react-dom',
 ]
+
+// These packages use subpath exports which require moduleResolution: "bundler".
+// We pin to the workspace's resolved versions to avoid installing broken releases.
+const pinnedPackages = ['@tiptap/core', '@tiptap/react', '@tiptap/pm']
+
+function getPinnedVersions(): string[] {
+	return pinnedPackages.map((pkg) => {
+		const pkgJsonPath = resolve(`./node_modules/${pkg}/package.json`)
+		const { version } = JSON.parse(readFileSync(pkgJsonPath, 'utf8'))
+		return `${pkg}@${version}`
+	})
+}
 
 main()
 
@@ -25,6 +37,8 @@ async function main() {
 		compilerOptions: {
 			lib: ['esnext', 'dom'],
 			strict: true,
+			module: 'esnext',
+			moduleResolution: 'bundler',
 			rootDir: '.',
 			paths: {},
 			esModuleInterop: true,
@@ -61,7 +75,9 @@ async function main() {
 	writeFileSync(`${tempDir}/tsconfig.json`, JSON.stringify(tsconfig, null, '\t'), 'utf8')
 	writeFileSync(`${tempDir}/package.json`, JSON.stringify({ dependencies: {} }, null, '\t'), 'utf8')
 
-	await exec('npm', ['install', ...packagesOurTypesCanDependOn], { pwd: tempDir })
+	await exec('npm', ['install', ...packagesOurTypesCanDependOn, ...getPinnedVersions()], {
+		pwd: tempDir,
+	})
 	await exec(resolve('./node_modules/.bin/tsc'), [], { pwd: tempDir })
 
 	await exec('rm', ['-rf', tempDir])

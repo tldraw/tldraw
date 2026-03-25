@@ -22,6 +22,8 @@ export type TLUiTranslationKey =
 	| 'action.back-to-content'
 	| 'action.bring-forward'
 	| 'action.bring-to-front'
+	| 'action.copy-as-json.short'
+	| 'action.copy-as-json'
 	| 'action.copy-as-png.short'
 	| 'action.copy-as-png'
 	| 'action.copy-as-svg.short'

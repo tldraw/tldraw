@@ -12,6 +12,7 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	UserRecordType,
+	computed,
 	createSessionStateSnapshotSignal,
 	createUserId,
 	parseDeepLinkString,
@@ -24,8 +25,8 @@ import {
 	useEvent,
 	useValue,
 } from 'tldraw'
+import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
-
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
@@ -41,17 +42,18 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
-import { A11yAudit } from './TlaDebug'
-import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
+import { SneakyDebugModeToast } from './sneaky/SneakyDebugModeToast'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
+import { A11yAudit } from './TlaDebug'
+import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
@@ -184,15 +186,16 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const users: TLUserStore | undefined = useMemo(() => {
 		const prefs = app?.tlUser.userPreferences
 		if (!prefs) return undefined
+		const currentUser = computed('currentUser', () => {
+			const p = prefs.get()
+			return UserRecordType.create({
+				id: createUserId(p.id),
+				name: p.name ?? '',
+				color: p.color ?? '',
+			})
+		})
 		return {
-			getCurrentUser() {
-				const p = prefs.get()
-				return UserRecordType.create({
-					id: createUserId(p.id),
-					name: p.name ?? '',
-					color: p.color ?? '',
-				})
-			},
+			currentUser,
 		}
 	}, [app?.tlUser.userPreferences])
 
@@ -278,8 +281,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
 				<SneakyToolSwitcher />
+				<SneakyMermaidHandler />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
+				<SneakyDebugModeToast />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)

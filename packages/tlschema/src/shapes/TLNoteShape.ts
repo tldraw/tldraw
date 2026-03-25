@@ -64,8 +64,8 @@ export interface TLNoteShapeProps {
 	richText: TLRichText
 	/** Scale factor applied to the note shape for display */
 	scale: number
-	/** User ID of the person who last edited the note text */
-	textLastEditedBy: string | null
+	/** User ID of the person who first edited the note text */
+	textFirstEditedBy: string | null
 }
 
 /**
@@ -132,7 +132,7 @@ export const noteShapeProps: RecordProps<TLNoteShape> = {
 	url: T.linkUrl,
 	richText: richTextValidator,
 	scale: T.nonZeroNumber,
-	textLastEditedBy: T.string.nullable(),
+	textFirstEditedBy: T.string.nullable(),
 }
 
 const Versions = createShapePropsMigrationIds('note', {
@@ -146,8 +146,8 @@ const Versions = createShapePropsMigrationIds('note', {
 	AddLabelColor: 8,
 	AddRichText: 9,
 	AddRichTextAttrs: 10,
-	AddLastEditedBy: 11,
-	LastEditedByToId: 12,
+	AddFirstEditedBy: 11,
+	FirstEditedByToId: 12,
 })
 
 /**
@@ -271,24 +271,24 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 			},
 		},
 		{
-			id: Versions.AddLastEditedBy,
+			id: Versions.AddFirstEditedBy,
 			up: (props) => {
-				props.textLastEditedBy = null
+				props.textFirstEditedBy = null
 			},
 			down: (props) => {
-				delete props.textLastEditedBy
+				delete props.textFirstEditedBy
 			},
 		},
 		{
-			id: Versions.LastEditedByToId,
+			id: Versions.FirstEditedByToId,
 			up: (props: any) => {
-				if (props.textLastEditedBy && typeof props.textLastEditedBy === 'object') {
-					props.textLastEditedBy = props.textLastEditedBy.id
+				if (props.textFirstEditedBy && typeof props.textFirstEditedBy === 'object') {
+					props.textFirstEditedBy = props.textFirstEditedBy.id
 				}
 			},
 			down: (props: any) => {
-				if (typeof props.textLastEditedBy === 'string') {
-					props.textLastEditedBy = { id: props.textLastEditedBy, name: '' }
+				if (typeof props.textFirstEditedBy === 'string') {
+					props.textFirstEditedBy = { id: props.textFirstEditedBy, name: '' }
 				}
 			},
 		},

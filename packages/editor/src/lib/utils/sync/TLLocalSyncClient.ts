@@ -9,8 +9,8 @@ import {
 	extractSessionStateFromLegacySnapshot,
 	loadSessionStateSnapshotIntoStore,
 } from '../../config/TLSessionStateSnapshot'
-import { LocalIndexedDb } from './LocalIndexedDb'
 import { showCantReadFromIndexDbAlert, showCantWriteToIndexDbAlert } from './alerts'
+import { LocalIndexedDb } from './LocalIndexedDb'
 
 /** How should we debounce persists? */
 const PERSIST_THROTTLE_MS = 350
@@ -266,6 +266,7 @@ export class TLLocalSyncClient {
 
 	private isPersisting = false
 	private didLastWriteError = false
+	// eslint-disable-next-line no-restricted-globals
 	private scheduledPersistTimeout: ReturnType<typeof setTimeout> | null = null
 
 	/**

@@ -13,7 +13,6 @@ import {
 import { useEffect } from 'react'
 import {
 	Editor,
-	InstancePresenceRecordType,
 	TAB_ID,
 	TLAssetStore,
 	TLPresenceStateInfo,
@@ -25,6 +24,8 @@ import {
 	TLUserStore,
 	UserRecordType,
 	computed,
+	createCachedUserResolve,
+	createPresenceStateDerivation,
 	createTLStore,
 	createUserId,
 	defaultUserPreferences,
@@ -114,7 +115,12 @@ export type RemoteTLStoreWithStatus = Exclude<
  *     uri: 'wss://myserver.com/sync/room-123',
  *     assets: myAssetStore,
  *     users: {
- *       getCurrentUser: () => ({ id: 'user-1', name: 'Alice', color: '#ff0000', meta: {} }),
+ *       currentUser: computed('current-user', () => ({
+ *         id: createUserId('user-1'),
+ *         name: 'Alice',
+ *         color: '#ff0000',
+ *         meta: {},
+ *       })),
  *     }
  *   })
  *
@@ -191,21 +197,21 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 		const users: Required<TLUserStore> = _users
 			? {
-					getCurrentUser: _users.getCurrentUser,
+					currentUser: _users.currentUser,
 					resolve:
 						_users.resolve ??
-						((userId) => {
-							const current = _users.getCurrentUser()
+						createCachedUserResolve((userId) => {
+							const current = _users.currentUser.get()
 							return current && current.id === createUserId(userId) ? current : null
 						}),
 				}
 			: {
-					getCurrentUser: defaultUserStore.getCurrentUser,
-					resolve: (userId) => {
-						const current = defaultUserStore.getCurrentUser()
+					currentUser: defaultUserStore.currentUser,
+					resolve: createCachedUserResolve((userId) => {
+						const current = defaultUserStore.currentUser.get()
 						if (current && current.id === createUserId(userId)) return current
 						const presences = store.query.records('instance_presence').get()
-						const match = presences.find((p) => p.userId === userId)
+						const match = presences.find((p) => p.userId === createUserId(userId))
 						if (match) {
 							return UserRecordType.create({
 								id: createUserId(userId),
@@ -214,11 +220,15 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 							})
 						}
 						return null
-					},
+					}),
 				}
 
+		// This always returns a non-null user for presence display, falling back
+		// to anonymous user preferences. The store receives the raw `users` object
+		// (where currentUser may return null), so attribution via
+		// getAttributionUserId() correctly returns null for anonymous sessions.
 		const currentUser = computed<TLUser>('currentUser', () => {
-			const user = users.getCurrentUser()
+			const user = users.currentUser.get()
 			if (user) return user
 			const prefs = getUserPreferences()
 			return UserRecordType.create({
@@ -297,15 +307,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			},
 		})
 
-		const presence = computed('instancePresence', () => {
-			const presenceState = getUserPresence(store, currentUser.get())
-			if (!presenceState) return null
-
-			return InstancePresenceRecordType.create({
-				...presenceState,
-				id: InstancePresenceRecordType.createId(store.id),
-			})
-		})
+		const presence = createPresenceStateDerivation(currentUser, {
+			getUserPresence,
+		})(store)
 
 		const otherUserPresences = store.query.ids('instance_presence', () => ({
 			userId: { neq: currentUser.get().id },
@@ -414,7 +418,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
  *   uri: 'wss://myserver.com/sync/room-123',
  *   assets: myAssetStore,
  *   users: {
- *     getCurrentUser: () => ({ id: 'user-1', name: 'Alice', color: '#ff0000', meta: {} }),
+ *     currentUser: myCurrentUserSignal,
  *   },
  *   getUserPresence: (store, user) => ({
  *     userId: user.id,
@@ -456,9 +460,10 @@ export interface UseSyncOptionsBase {
 	/**
 	 * User store for identity, presence and attribution.
 	 *
-	 * Provides `getCurrentUser()` for the current user's identity (used for
+	 * Both methods return reactive {@link @tldraw/state#Signal | Signals}.
+	 * `currentUser` provides the current user's identity (used for
 	 * both presence broadcasting and shape attribution) and optionally
-	 * `resolve(userId)` for looking up other users by ID. If not provided,
+	 * `resolve(userId)` looks up other users by ID. If not provided,
 	 * a default implementation backed by localStorage user preferences is
 	 * used, with `resolve` falling back to presence records in the store.
 	 */

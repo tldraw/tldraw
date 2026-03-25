@@ -5,8 +5,8 @@ import {
 } from '@modelcontextprotocol/ext-apps/server'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js'
-import type { TLShape } from 'tldraw'
 import { structuredClone } from 'tldraw'
+import type { TLShape } from 'tldraw'
 import { z } from 'zod'
 import {
 	convertFocusedShapesToTldrawRecords,
@@ -29,8 +29,8 @@ import {
 	deleteShapesInputSchema,
 	updateShapesInputSchema,
 } from './shared/tool-schemas'
-import type { RegisterToolsOptions, ServerDeps } from './shared/types'
 import { CANVAS_RESOURCE_URI } from './shared/types'
+import type { RegisterToolsOptions, ServerDeps } from './shared/types'
 import {
 	deepMerge,
 	errorResponse,
@@ -209,7 +209,7 @@ export function registerTools(
 				return errorResponse(
 					'create_shapes',
 					err,
-					'Ensure shapesJson is a valid JSON array string of shapes objects (call read_me first for the format reference). '
+					'Ensure shapesJson is a valid JSON array string of shapes objects (call diagram_drawing_read_me first for the format reference). '
 				)
 			}
 		}
@@ -591,7 +591,7 @@ export function registerTools(
 			const sid = deps.getSessionId()
 			const hostName = opts.getClientHostName()
 
-			const bootstrap: Record<string, unknown> = { sessionId: sid, hostName }
+			const bootstrap: Record<string, unknown> = { sessionId: sid, isDev: opts.isDev }
 			if (activeId) {
 				const checkpoint = deps.loadCheckpoint(activeId)
 				if (checkpoint) {

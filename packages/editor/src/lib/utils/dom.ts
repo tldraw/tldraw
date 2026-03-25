@@ -112,7 +112,39 @@ export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMe
 	)
 }
 
+/**
+ * Returns the global `document`. Use this instead of bare `document` to satisfy lint rules.
+ *
+ * When you have a DOM node or editor instance, prefer the scoped versions instead:
+ * - `getOwnerDocument(node)` – the document that owns a specific DOM node
+ * - `editor.getContainerDocument()` – the document where the editor is mounted
+ *
+ * @internal
+ */
+export function getGlobalDocument(): Document {
+	// eslint-disable-next-line no-restricted-globals
+	if (typeof document !== 'undefined') return document
+	return globalThis.document
+}
+
+/**
+ * Returns the global `window`. Use this instead of bare `window` to satisfy lint rules.
+ *
+ * When you have a DOM node or editor instance, prefer the scoped versions instead:
+ * - `getOwnerWindow(node)` – the window that owns a specific DOM node
+ * - `editor.getContainerWindow()` – the window where the editor is mounted
+ *
+ * @internal
+ */
+export function getGlobalWindow(): Window & typeof globalThis {
+	if (typeof window !== 'undefined') return window as Window & typeof globalThis
+	return globalThis as Window & typeof globalThis
+}
+
 /** @internal */
-export function activeElementShouldCaptureKeys(includeButtonsAndMenus = true) {
-	return elementShouldCaptureKeys(document.activeElement, includeButtonsAndMenus)
+export function activeElementShouldCaptureKeys(includeButtonsAndMenus = true, doc?: Document) {
+	return elementShouldCaptureKeys(
+		(doc ?? getGlobalDocument()).activeElement,
+		includeButtonsAndMenus
+	)
 }

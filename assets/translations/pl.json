@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "Przekształć w zakładkę",
 	"action.convert-to-embed": "Przekształć w osadzony element",
 	"action.copy": "Kopiuj",
+	"action.copy-as-json": "Kopiuj jako JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Kopiuj jako PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Kopiuj jako SVG",

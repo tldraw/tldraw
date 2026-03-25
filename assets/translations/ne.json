@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "बुकमार्कमा रूपान्तरण गर्नुहोस्",
 	"action.convert-to-embed": "एम्बेडमा रूपान्तरण गर्नुहोस्",
 	"action.copy": "कपि गर्नुहोस्",
+	"action.copy-as-json": "JSON को रूपमा प्रतिलिपि गर्नुहोस्",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "PNG को रूपमा प्रतिलिपि गर्नुहोस्",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "SVG को रूपमा प्रतिलिपि गर्नुहोस्",

@@ -24,12 +24,12 @@ import { useIsDragging } from '../../../hooks/useIsDragging'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
-import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { AddFileLinkDialog } from '../../dialogs/AddFileLinkDialog'
 import { GroupSettingsDialog } from '../../dialogs/GroupSettingsDialog'
-import styles from '../sidebar.module.css'
-import { TlaSidebarFileLink } from './TlaSidebarFileLink'
+import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { messages } from './sidebar-shared'
+import { TlaSidebarFileLink } from './TlaSidebarFileLink'
+import styles from '../sidebar.module.css'
 
 const groupMessages = defineMessages({
 	newFile: { defaultMessage: 'Create file' },

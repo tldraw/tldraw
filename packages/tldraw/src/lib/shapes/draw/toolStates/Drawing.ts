@@ -49,6 +49,7 @@ export class Drawing extends StateNode {
 	lastRecordedPoint = {} as Vec
 	mergeNextPoint = false
 	currentLineLength = 0
+	zoomOnEnter = 1
 
 	// Cache for current segment's points to avoid repeated b64 decode/encode
 	currentSegmentPoints: Vec[] = []
@@ -59,6 +60,7 @@ export class Drawing extends StateNode {
 		this.markId = null
 		this.info = info
 		this.lastRecordedPoint = this.editor.inputs.getCurrentPagePoint().clone()
+		this.zoomOnEnter = this.editor.getZoomLevel()
 		this.startShape()
 	}
 
@@ -80,7 +82,7 @@ export class Drawing extends StateNode {
 		if (this.isPenOrStylus) {
 			// Don't update the shape if we haven't moved far enough from the last time we recorded a point
 			const currentPagePoint = inputs.getCurrentPagePoint()
-			if (Vec.Dist(currentPagePoint, this.lastRecordedPoint) >= 1 / this.editor.getZoomLevel()) {
+			if (Vec.Dist(currentPagePoint, this.lastRecordedPoint) >= 1 / this.zoomOnEnter) {
 				this.lastRecordedPoint = currentPagePoint.clone()
 				this.mergeNextPoint = false
 			} else {
@@ -149,12 +151,22 @@ export class Drawing extends StateNode {
 		const lastSegment = segments[segments.length - 1]
 		const lastPoint = b64Vecs.decodeLastPoint(lastSegment.path)
 
+		const isDynamicResizingEnabled = this.editor.user.getIsDynamicResizeMode()
+
+		const threshold = isDynamicResizingEnabled // when dynamic resizing is enabled scale is 1/zoom, so the threshold should not scale directly with zoom at all
+			? (strokeWidth + 2) * scale // +2 keeps tiny strokes from being too hard to close
+			: // 6 is a base floor, 2 is stroke influence, 0.8 tempers width growth
+				6 +
+				2 * Math.sqrt(strokeWidth * 0.8) +
+				// 100 is low-zoom boost, 0.18 is the zoom knee, 3 controls falloff steepness
+				100 / (1 + Math.pow(this.zoomOnEnter / 0.18, 3))
+
 		return (
 			firstPoint !== null &&
 			lastPoint !== null &&
 			firstPoint !== lastPoint &&
 			this.currentLineLength > strokeWidth * 4 * scale &&
-			Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2 * scale)
+			Vec.DistMin(firstPoint, lastPoint, threshold)
 		)
 	}
 
@@ -260,7 +272,7 @@ export class Drawing extends StateNode {
 			y: originPagePoint.y,
 			props: {
 				isPen: this.isPenOrStylus,
-				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
+				scale: this.editor.getResizeScaleFactor(),
 				segments: [
 					{
 						type: this.segmentMode,
@@ -481,7 +493,7 @@ export class Drawing extends StateNode {
 				if (shouldSnap) {
 					if (newSegments.length > 2) {
 						let nearestPoint: VecModel | undefined = undefined
-						let minDistance = 8 / this.editor.getZoomLevel()
+						let minDistance = 8 / this.zoomOnEnter
 
 						// Don't try to snap to the last two segments
 						for (let i = 0, n = segments.length - 2; i < n; i++) {

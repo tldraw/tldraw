@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useAssetUrls } from '../../context/asset-urls'
-import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
+import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { TLUiTranslation, fetchTranslation } from './translations'
 
 /** @public */
@@ -125,6 +125,16 @@ export function useTranslation() {
 		},
 		[messages]
 	)
+}
+
+/**
+ * Returns the current text direction ('ltr' or 'rtl') based on the current translation.
+ *
+ * @public
+ */
+export function useDirection() {
+	const translation = useCurrentTranslation()
+	return translation.dir
 }
 
 export function untranslated(string: string) {

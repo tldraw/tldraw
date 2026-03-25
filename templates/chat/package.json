@@ -24,7 +24,7 @@
 		"dev": "next dev",
 		"build": "next build",
 		"start": "next start",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "cd ../.. && yarn run -T oxlint templates/chat"
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.14",
@@ -34,7 +34,7 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"ai": "^5.0.63",
-		"next": "^15.4.10",
+		"next": "^15.5.14",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"react-markdown": "^10.1.0",

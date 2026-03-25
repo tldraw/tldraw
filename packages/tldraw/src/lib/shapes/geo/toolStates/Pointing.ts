@@ -34,7 +34,7 @@ export class Pointing extends StateNode {
 							w: 1,
 							h: 1,
 							geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
-							scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
+							scale: this.editor.getResizeScaleFactor(),
 						},
 					},
 				])
@@ -77,7 +77,7 @@ export class Pointing extends StateNode {
 
 		this.editor.markHistoryStoppingPoint(`creating_geo:${id}`)
 
-		const scale = this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
+		const scale = this.editor.getResizeScaleFactor()
 
 		const geo = this.editor.getStyleForNextShape(GeoShapeGeoStyle)
 

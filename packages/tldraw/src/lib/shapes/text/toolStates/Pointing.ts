@@ -73,7 +73,7 @@ export class Pointing extends StateNode {
 
 			editor.select(id)
 
-			const scale = this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
+			const scale = this.editor.getResizeScaleFactor()
 
 			editor.setCurrentTool('select.resizing', {
 				...info,
@@ -133,7 +133,7 @@ export class Pointing extends StateNode {
 				richText: toRichText(''),
 				autoSize,
 				w: width,
-				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
+				scale: this.editor.getResizeScaleFactor(),
 			},
 		})
 

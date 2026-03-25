@@ -19,6 +19,7 @@ import {
 	isAccelKey,
 	kickoutOccludedShapes,
 } from '@tldraw/editor'
+import { batchMeasureGeoLabels, setBatchLabelSizeCache } from '../../../shapes/geo/GeoShapeUtil'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -363,6 +364,18 @@ export class Resizing extends StateNode {
 			})
 		}
 
+		// Batch-measure geo shape labels to avoid layout thrashing (only worth it for multiple shapes).
+		if (shapeSnapshots.size > 1) {
+			batchMeasureGeoLabels(
+				this.editor,
+				shapeSnapshots,
+				scale,
+				selectionRotation,
+				isAspectRatioLocked
+			)
+		}
+
+		// Resize all shapes (onResize will use the batch cache for geo shapes when available)
 		for (const id of shapeSnapshots.keys()) {
 			const snapshot = shapeSnapshots.get(id)!
 
@@ -471,6 +484,7 @@ export class Resizing extends StateNode {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.snaps.clearIndicators()
+		setBatchLabelSizeCache(this.editor, null)
 	}
 
 	private _createSnapshot() {

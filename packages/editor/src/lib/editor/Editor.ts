@@ -10,10 +10,10 @@ import {
 import {
 	ComputedCache,
 	RecordType,
-	StoreSideEffects,
-	StoreSnapshot,
 	UnknownRecord,
 	reverseRecordsDiff,
+	StoreSnapshot,
+	StoreSideEffects,
 } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -48,7 +48,6 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-	TLShapeTLMeta,
 	TLStore,
 	TLStoreSnapshot,
 	TLUser,
@@ -59,10 +58,8 @@ import {
 	createShapeId,
 	createUserId,
 	getShapePropKeysByStyle,
-	getTldrawMetaFromShapeMeta,
 	isPageId,
 	isShapeId,
-	tldrawShapeMetaKey,
 } from '@tldraw/tlschema'
 import {
 	FileHelpers,
@@ -97,15 +94,15 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
+import { TLCurrentUser, createTLCurrentUser } from '../config/createTLCurrentUser'
+import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
+import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	TLEditorSnapshot,
 	TLLoadSnapshotOptions,
 	getSnapshot,
 	loadSnapshot,
 } from '../config/TLEditorSnapshot'
-import { TLCurrentUser, createTLCurrentUser } from '../config/createTLCurrentUser'
-import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
-import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
@@ -115,20 +112,20 @@ import {
 	RIGHT_MOUSE_BUTTON,
 	STYLUS_ERASER_BUTTON,
 } from '../constants'
+import { getOwnerWindow } from '../exports/domUtils'
 import { exportToSvg } from '../exports/exportToSvg'
-import { getSvgAsImage } from '../exports/getSvgAsImage'
+import { getSvgAsImageWithOptions, trimSvgToContent } from '../exports/getSvgAsImage'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
-import { Mat, MatLike } from '../primitives/Mat'
-import { Vec, VecLike } from '../primitives/Vec'
 import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
+import { Mat, MatLike } from '../primitives/Mat'
 import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
-import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
+import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
 import { debugFlags } from '../utils/debug-flags'
@@ -143,6 +140,7 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { getDroppedShapesToNewParents, kickoutOccludedShapes } from '../utils/reparenting'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
+import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
@@ -869,7 +867,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.disposables.add(
 			react('sync current user record', () => {
-				const user = this.store.props.users.getCurrentUser()
+				const user = this.store.props.users.currentUser.get()
 				if (user) {
 					this._ensureUserRecord(user)
 				}
@@ -1071,6 +1069,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getContainer: () => HTMLElement
+
+	/**
+	 * The document that the editor's container element belongs to.
+	 * Use this instead of the global `document` to support cross-window embedding.
+	 *
+	 * @internal
+	 */
+	getContainerDocument(): Document {
+		return this.getContainer().ownerDocument
+	}
+
+	/**
+	 * The window that the editor's container element belongs to.
+	 * Use this instead of the global `window` to support cross-window embedding.
+	 *
+	 * @internal
+	 */
+	getContainerWindow(): Window & typeof globalThis {
+		return getOwnerWindow(this.getContainer())
+	}
 
 	/**
 	 * Dispose the editor.
@@ -2853,6 +2871,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getCamera().z
 	}
 
+	/**
+	 * Get the scale factor used when creating or resizing shapes in dynamic size mode.
+	 *
+	 * @public
+	 */
+	@computed getResizeScaleFactor() {
+		return this.user.getIsDynamicResizeMode() ? 1 / this.getZoomLevel() : 1
+	}
+
 	private _debouncedZoomLevel = atom('debounced zoom level', 1)
 
 	/**
@@ -3846,13 +3873,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			screenBounds.height = Math.max(screenBounds.height, 1)
 		}
 
+		const doc = this.getContainerDocument()
 		const insets = [
 			// top
 			screenBounds.minY !== 0,
 			// right
-			!approximately(document.body.scrollWidth, screenBounds.maxX, 1),
+			!approximately(doc.body.scrollWidth, screenBounds.maxX, 1),
 			// bottom
-			!approximately(document.body.scrollHeight, screenBounds.maxY, 1),
+			!approximately(doc.body.scrollHeight, screenBounds.maxY, 1),
 			// left
 			screenBounds.minX !== 0,
 		]
@@ -4025,14 +4053,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// Attribution
 
 	/**
-	 * Get the current user's ID for stamping into shape `meta.__tldraw`.
+	 * Get the current user's ID for attribution purposes.
 	 * Also ensures a `user:` record exists in the store for the current user.
 	 * Returns `null` when the user store has no current user.
 	 *
 	 * @public
 	 */
 	getAttributionUserId(): string | null {
-		const user = this.store.props.users.getCurrentUser()
+		const user = this.store.props.users.currentUser.get()
 		if (!user) return null
 		this._ensureUserRecord(user)
 		return UserRecordType.parseId(user.id)
@@ -4050,49 +4078,58 @@ export class Editor extends EventEmitter<TLEventMap> {
 			existing &&
 			existing.name === user.name &&
 			existing.color === user.color &&
-			existing.imageUrl === user.imageUrl
+			existing.imageUrl === user.imageUrl &&
+			existing.meta === user.meta
 		) {
 			return
 		}
-		this.store.put([user])
+		this.run(
+			() => {
+				this.store.put([user])
+			},
+			{ history: 'ignore' }
+		)
 	}
 
 	/**
-	 * Resolve a display name for a user ID. Looks up the `user:` record
-	 * in the store, falling back to the {@link @tldraw/tlschema#TLUserStore}.
+	 * Resolve a display name for a user ID. Asks the
+	 * {@link @tldraw/tlschema#TLUserStore} first (the app's source of truth),
+	 * falling back to the `user:` record in the store.
 	 *
 	 * @public
 	 */
 	getAttributionDisplayName(userId: string | null): string | null {
 		if (!userId) return null
-		const record = this.store.get(createUserId(userId))
-		if (record) return record.name ?? null
-		return this.store.props.users.resolve(userId)?.name ?? null
+		return (
+			this.store.props.users.resolve(userId).get()?.name ??
+			this.store.get(createUserId(userId))?.name ??
+			null
+		)
 	}
 
 	/**
-	 * Resolve a user record by ID from the store, falling back to the
-	 * {@link @tldraw/tlschema#TLUserStore}.
+	 * Resolve a user record by ID. Asks the
+	 * {@link @tldraw/tlschema#TLUserStore} first (the app's source of truth),
+	 * falling back to the `user:` record in the store.
 	 *
 	 * @public
 	 */
 	getAttributionUser(userId: string | null): TLUser | null {
 		if (!userId) return null
-		return this.store.get(createUserId(userId)) ?? null
+		return (
+			this.store.props.users.resolve(userId).get() ?? this.store.get(createUserId(userId)) ?? null
+		)
 	}
 
 	/**
-	 * Collect user IDs referenced by a set of shapes (from both `meta.__tldraw`
-	 * and shape-specific props like `textLastEditedBy`).
+	 * Collect user IDs referenced by a set of shapes via shape-specific props
+	 * (e.g. `textFirstEditedBy` on notes).
 	 *
 	 * @internal
 	 */
 	_getReferencedUserIds(shapes: TLShape[]): Set<string> {
 		const userIds = new Set<string>()
 		for (const shape of shapes) {
-			const tlmeta = getTldrawMetaFromShapeMeta(shape.meta)
-			if (tlmeta.createdBy) userIds.add(tlmeta.createdBy)
-			if (tlmeta.updatedBy) userIds.add(tlmeta.updatedBy)
 			const util = this.getShapeUtil(shape)
 			for (const id of util.getReferencedUserIds(shape)) {
 				userIds.add(id)
@@ -8212,42 +8249,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// When we create the shape, take in the partial (the props coming into the
 				// function) and merge it with the default props.
-				const { meta: partialMeta, ...partialWithoutMeta } = partial as any
-				const { [tldrawShapeMetaKey]: partialTlmeta, ...partialMetaWithoutTlmeta } = (partialMeta ??
-					{}) as JsonObject
 				let shapeRecordToCreate = (
 					this.store.schema.types.shape as RecordType<
 						TLShape,
 						'type' | 'props' | 'index' | 'parentId'
 					>
 				).create({
-					...partialWithoutMeta,
+					...partial,
 					index,
 					opacity: partial.opacity ?? opacityForNextShape,
 					parentId: partial.parentId ?? focusedGroupId,
 					props: 'props' in partial ? { ...initialProps, ...partial.props } : initialProps,
-					meta: partialMetaWithoutTlmeta,
 				})
 
 				if (shapeRecordToCreate.index === undefined) {
 					throw Error('no index!')
-				}
-
-				// Set attribution metadata, merging any explicitly provided fields
-				const now = Date.now()
-				const userId = this.getAttributionUserId()
-				shapeRecordToCreate = {
-					...shapeRecordToCreate,
-					meta: {
-						...shapeRecordToCreate.meta,
-						[tldrawShapeMetaKey]: {
-							createdBy: userId,
-							updatedBy: userId,
-							createdAt: now,
-							updatedAt: now,
-							...(partialTlmeta as Partial<TLShapeTLMeta> | undefined),
-						},
-					},
 				}
 
 				const next = this.getShapeUtil(shapeRecordToCreate).onBeforeCreate?.(shapeRecordToCreate)
@@ -8668,24 +8684,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the update had no effect, we'll skip this update
 				updated = applyPartialToRecordWithProps(shape, partial)
 				if (updated === shape) continue
-
-				// Update attribution metadata (always system-set, ignoring any partial meta.__tldraw)
-				// The reason is because things like, say, resizing, send the whole metadata into
-				// the updateShape call and then `updatedAt` never gets the correct date.
-				const now = Date.now()
-				const userId = this.getAttributionUserId()
-				const tlmeta = getTldrawMetaFromShapeMeta(shape.meta)
-				updated = {
-					...updated,
-					meta: {
-						...updated.meta,
-						[tldrawShapeMetaKey]: {
-							...tlmeta,
-							updatedBy: userId,
-							updatedAt: now,
-						},
-					},
-				}
 
 				//if any shape has an onBeforeUpdate handler, call it and, if the handler returns a
 				// new shape, replace the old shape with the new one. This is used for example when
@@ -9450,19 +9448,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			throw Error('Could not put content:\ncontent is missing a schema.')
 		}
 
-		if (content.users?.length) {
-			const existingUserIds = new Set(
-				this.store
-					.allRecords()
-					.filter((r): r is TLUser => r.typeName === 'user')
-					.map((r) => r.id)
-			)
-			const usersToCreate = content.users.filter((u) => !existingUserIds.has(u.id))
-			if (usersToCreate.length > 0) {
-				this.store.put(usersToCreate)
-			}
-		}
-
 		const { select = false, preserveIds = false, preservePosition = false } = opts
 		let { point = undefined } = opts
 
@@ -9475,6 +9460,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const assets: TLAsset[] = []
 		const shapes: TLShape[] = []
 		const bindings: TLBinding[] = []
+		const users: TLUser[] = []
 
 		// Let's treat the content as a store, and then migrate that store.
 		const store: StoreSnapshot<TLRecord> = {
@@ -9506,6 +9492,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 					bindings.push(record)
 					break
 				}
+				case 'user': {
+					users.push(record)
+					break
+				}
+			}
+		}
+
+		if (users.length > 0) {
+			const existingUserIds = new Set(
+				this.store
+					.allRecords()
+					.filter((r): r is TLUser => r.typeName === 'user')
+					.map((r) => r.id)
+			)
+			const usersToCreate = users.filter((u) => !existingUserIds.has(u.id))
+			if (usersToCreate.length > 0) {
+				this.store.put(usersToCreate)
 			}
 		}
 
@@ -9854,6 +9857,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			svg: serializer.serializeToString(result.svg),
 			width: result.width,
 			height: result.height,
+			trimPadding: result.trimPadding,
 		}
 	}
 
@@ -9877,30 +9881,45 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!result) throw new Error('Could not create SVG')
 
 		switch (withDefaults.format) {
-			case 'svg':
-				return {
-					blob: new Blob([result.svg], { type: 'image/svg+xml' }),
-					width: result.width,
-					height: result.height,
+			case 'svg': {
+				let svg = result.svg
+				let w = result.width
+				let h = result.height
+				if (result.trimPadding > 0) {
+					const trimmed = await trimSvgToContent(svg, {
+						width: w,
+						height: h,
+						trimPadding: result.trimPadding,
+						scale: withDefaults.scale,
+					})
+					if (trimmed) {
+						svg = trimmed.svg
+						w = trimmed.width
+						h = trimmed.height
+					}
 				}
+				return {
+					blob: new Blob([svg], { type: 'image/svg+xml' }),
+					width: w,
+					height: h,
+				}
+			}
 			case 'jpeg':
 			case 'png':
 			case 'webp': {
-				const blob = await getSvgAsImage(result.svg, {
+				const imageResult = await getSvgAsImageWithOptions(result.svg, {
 					type: withDefaults.format,
 					quality: withDefaults.quality,
 					pixelRatio: withDefaults.pixelRatio,
 					width: result.width,
 					height: result.height,
+					trimPadding: result.trimPadding,
+					scale: withDefaults.scale,
 				})
-				if (!blob) {
+				if (!imageResult) {
 					throw new Error('Could not construct image.')
 				}
-				return {
-					blob,
-					width: result.width,
-					height: result.height,
-				}
+				return imageResult
 			}
 			default: {
 				exhaustiveSwitchError(withDefaults.format)
@@ -10339,7 +10358,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					to: opts?.getTarget?.(this),
 				})
 
-				window.history.replaceState({}, document.title, url.toString())
+				window.history.replaceState({}, this.getContainerDocument().title, url.toString())
 			})
 
 		const scheduleEffect = debounce((execute: () => void) => execute(), opts?.debounceMs ?? 500)
@@ -11106,11 +11125,7 @@ function applyPartialToRecordWithProps<
 	T extends UnknownRecord & { type: string; props: object; meta: object },
 >(
 	prev: T,
-	partial?: T extends T
-		? Omit<Partial<T>, 'props'> & {
-				props?: Partial<T['props']>
-			}
-		: never
+	partial?: T extends T ? Omit<Partial<T>, 'props'> & { props?: Partial<T['props']> } : never
 ): T {
 	if (!partial) return prev
 	let next = null as null | T
@@ -11130,9 +11145,9 @@ function applyPartialToRecordWithProps<
 
 		// for props / meta properties, we support updates with partials of this object
 		if (k === 'props' || k === 'meta') {
-			;(next as any)[k] = { ...(prev as any)[k] }
+			next[k] = { ...prev[k] } as JsonObject
 			for (const [nextKey, nextValue] of Object.entries(v as object)) {
-				;(next as any)[k][nextKey] = nextValue
+				;(next[k] as JsonObject)[nextKey] = nextValue
 			}
 			continue
 		}

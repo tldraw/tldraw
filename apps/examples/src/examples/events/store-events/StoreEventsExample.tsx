@@ -102,7 +102,7 @@ export default function StoreEventsExample() {
 	)
 }
 
-/* 
+/*
 This example shows how to listen to store events. This includes things creating/deleting shapes,
 or moving between pages, but not things such as pointer and keyboard events. Those are canvas events.
 To listen to changes to the canvas, check out the canvas events example.

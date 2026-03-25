@@ -28,11 +28,11 @@ For runtime validation of custom meta fields, pass validators to `createTLSchema
 
 ```ts
 const schema = createTLSchema({
-  user: {
-    meta: {
-      isAdmin: T.boolean,
-      department: T.string,
-    },
-  },
+	user: {
+		meta: {
+			isAdmin: T.boolean,
+			department: T.string,
+		},
+	},
 })
 ```

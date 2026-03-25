@@ -87,7 +87,7 @@ export class ClickManager {
 	 *
 	 * @public
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get clickState() {
 		return this._clickState
 	}
