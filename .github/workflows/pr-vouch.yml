@@ -1,0 +1,73 @@
+name: PR Vouch
+
+on:
+  pull_request_target:
+    types: [opened, reopened]
+  issue_comment:
+    types: [created]
+  push:
+    branches: [main]
+    paths:
+      - .github/VOUCHED.td
+      - .github/workflows/pr-vouch.yml
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  collect-targets:
+    name: Collect PR targets
+    runs-on: ubuntu-latest
+    outputs:
+      targets: ${{ steps.collect.outputs.targets }}
+    steps:
+      - id: collect
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.eventName === "pull_request_target") {
+              const pr = context.payload.pull_request;
+              core.setOutput("targets", JSON.stringify([{ number: pr.number }]));
+              return;
+            }
+
+            if (context.eventName === "issue_comment") {
+              const issue = context.payload.issue;
+              const body = context.payload.comment?.body ?? "";
+              if (!issue?.pull_request || !body.includes("/recheck-vouch")) {
+                core.setOutput("targets", "[]");
+                return;
+              }
+              core.setOutput("targets", JSON.stringify([{ number: issue.number }]));
+              return;
+            }
+
+            const pulls = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              per_page: 100,
+            });
+            const targets = pulls.map((pull) => ({ number: pull.number }));
+            core.setOutput("targets", JSON.stringify(targets));
+
+  check:
+    name: Check PR ${{ matrix.target.number }}
+    needs: collect-targets
+    if: ${{ needs.collect-targets.outputs.targets != '[]' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pr-vouch-${{ matrix.target.number }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJson(needs.collect-targets.outputs.targets) }}
+    steps:
+      - uses: mitchellh/vouch/action/check-pr@v1
+        with:
+          pr-number: ${{ matrix.target.number }}
+          auto-close: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
