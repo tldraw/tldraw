@@ -1,4 +1,11 @@
-import { createShapeId, TLContent, TLRichText, TLTextShapeProps, Tldraw } from 'tldraw'
+import {
+	createShapeId,
+	TLContent,
+	TLShapePartial,
+	TLRichText,
+	TLTextShapeProps,
+	Tldraw,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 import companionCube from './companion-cube.json'
 import { PortalShapeUtil } from './PortalShapeUtil'
@@ -30,8 +37,7 @@ export default function PortalShapesExample() {
 					// [2]
 					const blueId = createShapeId('blue-portal')
 					const orangeId = createShapeId('orange-portal')
-
-					editor.createShapes([
+					const portalShapes = [
 						{
 							id: blueId,
 							type: 'portal',
@@ -46,7 +52,9 @@ export default function PortalShapesExample() {
 							y: 150,
 							props: { w: 200, h: 300, color: 'orange' },
 						},
-					])
+					] as const
+
+					editor.createShapes(portalShapes as unknown as TLShapePartial[])
 
 					// [3]
 					editor.createShape({

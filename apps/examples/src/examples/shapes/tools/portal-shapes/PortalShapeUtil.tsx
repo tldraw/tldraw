@@ -6,6 +6,7 @@ import {
 	RecordProps,
 	SVGContainer,
 	T,
+	TLBaseShape,
 	TLDragShapesInInfo,
 	TLDragShapesOutInfo,
 	TLDropShapesOverInfo,
@@ -18,17 +19,14 @@ import {
 
 const PORTAL_SHAPE_TYPE = 'portal'
 
-declare module 'tldraw' {
-	export interface TLGlobalShapePropsMap {
-		[PORTAL_SHAPE_TYPE]: {
-			w: number
-			h: number
-			color: 'blue' | 'orange'
-		}
+export type PortalShape = TLBaseShape<
+	typeof PORTAL_SHAPE_TYPE,
+	{
+		w: number
+		h: number
+		color: 'blue' | 'orange'
 	}
-}
-
-export type PortalShape = TLShape<typeof PORTAL_SHAPE_TYPE>
+>
 
 const COLORS = {
 	blue: {
@@ -45,15 +43,15 @@ const COLORS = {
 
 let teleportCount = 0
 
-export class PortalShapeUtil extends BaseBoxShapeUtil<PortalShape> {
+export class PortalShapeUtil extends BaseBoxShapeUtil<any> {
 	static override type = PORTAL_SHAPE_TYPE
-	static override props: RecordProps<PortalShape> = {
+	static override props: RecordProps<any> = {
 		w: T.number,
 		h: T.number,
 		color: T.literalEnum('blue', 'orange'),
 	}
 
-	override getDefaultProps(): PortalShape['props'] {
+	override getDefaultProps() {
 		return { w: 250, h: 300, color: 'blue' }
 	}
 
@@ -73,11 +71,11 @@ export class PortalShapeUtil extends BaseBoxShapeUtil<PortalShape> {
 		return true
 	}
 
-	override getClipPath(shape: PortalShape) {
+	override getClipPath(shape: any) {
 		return this.editor.getShapeGeometry(shape.id).vertices
 	}
 
-	override getGeometry(shape: PortalShape): Geometry2d {
+	override getGeometry(shape: any): Geometry2d {
 		return new Group2d({
 			children: [
 				new Ellipse2d({
@@ -89,30 +87,28 @@ export class PortalShapeUtil extends BaseBoxShapeUtil<PortalShape> {
 		})
 	}
 
-	override onResize(shape: PortalShape, info: TLResizeInfo<PortalShape>) {
+	override onResize(shape: any, info: TLResizeInfo<any>) {
 		return resizeBox(shape, info)
 	}
 
 	private findLinkedPortal(shape: PortalShape): PortalShape | undefined {
 		const otherColor = shape.props.color === 'blue' ? 'orange' : 'blue'
 		const allShapes = this.editor.getCurrentPageShapes()
-		return allShapes.find(
-			(s): s is PortalShape =>
-				s.type === PORTAL_SHAPE_TYPE && (s as PortalShape).props.color === otherColor
+		const linked = allShapes.find(
+			(s) =>
+				(s as any).type === PORTAL_SHAPE_TYPE &&
+				(s as unknown as PortalShape).props.color === otherColor
 		)
+		return linked as PortalShape | undefined
 	}
 
-	override onDragShapesIn(shape: PortalShape, shapes: TLShape[], _info: TLDragShapesInInfo) {
+	override onDragShapesIn(shape: any, shapes: TLShape[], _info: TLDragShapesInInfo) {
 		if (shapes.every((s) => s.parentId === shape.id)) return
 		if (shapes.some((s) => this.editor.hasAncestor(shape, s.id))) return
 		this.editor.reparentShapes(shapes, shape.id)
 	}
 
-	override onDragShapesOut(
-		shape: PortalShape,
-		draggingShapes: TLShape[],
-		info: TLDragShapesOutInfo
-	): void {
+	override onDragShapesOut(shape: any, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void {
 		if (!info.nextDraggingOverShapeId) {
 			this.editor.reparentShapes(
 				draggingShapes.filter((s) => s.parentId === shape.id && !s.isLocked),
@@ -122,8 +118,9 @@ export class PortalShapeUtil extends BaseBoxShapeUtil<PortalShape> {
 	}
 
 	// On drop, teleport: move shapes from this portal to the linked one.
-	override onDropShapesOver(shape: PortalShape, shapes: TLShape[], _info: TLDropShapesOverInfo) {
-		const linked = this.findLinkedPortal(shape)
+	override onDropShapesOver(shape: any, shapes: TLShape[], _info: TLDropShapesOverInfo) {
+		const portal = shape as PortalShape
+		const linked = this.findLinkedPortal(portal)
 		if (!linked) return
 
 		const { editor } = this
@@ -131,9 +128,9 @@ export class PortalShapeUtil extends BaseBoxShapeUtil<PortalShape> {
 		// First, ensure all dropped shapes are children of this portal so we
 		// have consistent local coordinates. Shapes dragged in during the drag
 		// are already parented here; shapes dropped directly may not be.
-		const needsReparent = shapes.filter((s) => s.parentId !== shape.id)
+		const needsReparent = shapes.filter((s) => s.parentId !== portal.id)
 		if (needsReparent.length > 0) {
-			editor.reparentShapes(needsReparent, shape.id)
+			editor.reparentShapes(needsReparent, portal.id)
 		}
 
 		// Re-read shapes after reparenting so local coords are up to date.
@@ -168,12 +165,13 @@ export class PortalShapeUtil extends BaseBoxShapeUtil<PortalShape> {
 		}
 	}
 
-	override component(shape: PortalShape) {
-		const theme = COLORS[shape.props.color]
-		const cx = shape.props.w / 2
-		const cy = shape.props.h / 2
-		const rx = shape.props.w / 2
-		const ry = shape.props.h / 2
+	override component(shape: any) {
+		const portal = shape as PortalShape
+		const theme = COLORS[portal.props.color]
+		const cx = portal.props.w / 2
+		const cy = portal.props.h / 2
+		const rx = portal.props.w / 2
+		const ry = portal.props.h / 2
 
 		return (
 			<SVGContainer>
@@ -191,15 +189,16 @@ export class PortalShapeUtil extends BaseBoxShapeUtil<PortalShape> {
 		)
 	}
 
-	override indicator(shape: PortalShape) {
-		const cx = shape.props.w / 2
-		const cy = shape.props.h / 2
+	override indicator(shape: any) {
+		const portal = shape as PortalShape
+		const cx = portal.props.w / 2
+		const cy = portal.props.h / 2
 		return (
 			<ellipse
 				cx={toDomPrecision(cx)}
 				cy={toDomPrecision(cy)}
-				rx={toDomPrecision(shape.props.w / 2)}
-				ry={toDomPrecision(shape.props.h / 2)}
+				rx={toDomPrecision(portal.props.w / 2)}
+				ry={toDomPrecision(portal.props.h / 2)}
 			/>
 		)
 	}
