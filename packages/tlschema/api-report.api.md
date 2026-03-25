@@ -212,6 +212,10 @@ export const defaultBindingSchemas: {
         migrations: TLPropsMigrations;
         props: RecordProps<TLArrowBinding>;
     };
+    sticker: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLStickerBinding>;
+    };
 };
 
 // @public
@@ -294,6 +298,10 @@ export const defaultShapeSchemas: {
     note: {
         migrations: TLPropsMigrations;
         props: RecordProps<TLNoteShape>;
+    };
+    sticker: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLStickerShape>;
     };
     text: {
         migrations: TLPropsMigrations;
@@ -689,6 +697,18 @@ export type ShapeWithCrop = ExtractShapeByProps<{
     w: number;
 }>;
 
+// @public (undocumented)
+export const stickerBindingMigrations: TLPropsMigrations;
+
+// @public (undocumented)
+export const stickerBindingProps: RecordProps<TLStickerBinding>;
+
+// @public (undocumented)
+export const stickerShapeMigrations: TLPropsMigrations;
+
+// @public (undocumented)
+export const stickerShapeProps: RecordProps<TLStickerShape>;
+
 // @public
 export class StyleProp<Type> implements T.Validatable<Type> {
     // @internal
@@ -961,7 +981,7 @@ export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 export type TLCustomRecord = TLIndexedRecords[keyof TLIndexedRecords];
 
 // @public
-export type TLDefaultBinding = TLArrowBinding;
+export type TLDefaultBinding = TLArrowBinding | TLStickerBinding;
 
 // @public
 export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
@@ -1022,7 +1042,7 @@ export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAli
 export type TLDefaultRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
 
 // @public
-export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLStickerShape | TLTextShape | TLVideoShape;
 
 // @public
 export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
@@ -1510,6 +1530,30 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     props?: Partial<T['props']>;
     type: T['type'];
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
+
+// @public (undocumented)
+export type TLStickerBinding = TLBaseBinding<'sticker', TLStickerBindingProps>;
+
+// @public (undocumented)
+export interface TLStickerBindingProps {
+    // (undocumented)
+    anchor: VecModel;
+    // (undocumented)
+    offset: VecModel;
+}
+
+// @public (undocumented)
+export type TLStickerShape = TLBaseShape<'sticker', TLStickerShapeProps>;
+
+// @public (undocumented)
+export interface TLStickerShapeProps {
+    // (undocumented)
+    emoji: string;
+    // (undocumented)
+    h: number;
+    // (undocumented)
+    w: number;
+}
 
 // @public
 export type TLStore = Store<TLRecord, TLStoreProps>;
