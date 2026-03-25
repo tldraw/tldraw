@@ -13,8 +13,6 @@ async function main() {
 		if (tsconfigExists) tsconfigFiles.push(tsconfigFile)
 	}
 
-	nicelog('Typechecking files:', tsconfigFiles)
-
 	const args = ['--build']
 	const isWatchMode = process.argv.includes('--watch')
 	if (process.argv.includes('--force')) args.push('--force')
@@ -23,7 +21,7 @@ async function main() {
 	if (process.argv.includes('--extendedDiagnostics')) args.push('--extendedDiagnostics')
 
 	const compilerPath = join(REPO_ROOT, 'node_modules/.bin/tsgo')
-	nicelog(`Using tsgo (TypeScript native compiler) for type checking`)
+	nicelog(`Using tsgo for type checking`)
 
 	// tsgo currently struggles to resolve some workspace package imports on a fresh checkout
 	// when all projects are passed in a single --build invocation. Building package
@@ -36,7 +34,6 @@ async function main() {
 		const sortedPackageTsconfigFiles = await topoSortTsconfigs(packageTsconfigFiles)
 		const bootstrapArgs = ['--build']
 		if (process.argv.includes('--force')) bootstrapArgs.push('--force')
-		nicelog('Bootstrapping tsgo package references')
 		for (const tsconfigFile of sortedPackageTsconfigFiles) {
 			execFileSync(compilerPath, [...bootstrapArgs, tsconfigFile], { stdio: 'inherit' })
 		}

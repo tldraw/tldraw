@@ -1,12 +1,11 @@
 import { isEqual } from 'lodash'
-import * as vscode from 'vscode'
-import { TLDrawDocument } from './TldrawDocument'
-import { loadFile } from './file'
-
 import { UnknownRecord } from 'tldraw'
+import * as vscode from 'vscode'
 // @ts-ignore
 import type { VscodeMessage } from '../../messages'
+import { loadFile } from './file'
 import { getMimeTypeFromPath } from './media'
+import { TLDrawDocument } from './TldrawDocument'
 import { unfurl } from './unfurl'
 import { nicelog } from './utils'
 
@@ -29,7 +28,7 @@ export class WebViewMessageHandler {
 
 	isLoaded = false
 
-	// eslint-disable-next-line local/prefer-class-methods
+	// eslint-disable-next-line tldraw/prefer-class-methods
 	handle = async (e: VscodeMessage) => {
 		if (!this.document) return
 

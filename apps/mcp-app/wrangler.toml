@@ -33,9 +33,9 @@ dataset = "MCP_ANALYTICS"
 name = "RATE_LIMITER"
 namespace_id = "2001"
 
-  [ratelimits.simple]
-  limit = 30
-  period = 60
+[ratelimits.simple]
+limit = 30
+period = 60
 
 [observability]
 enabled = true

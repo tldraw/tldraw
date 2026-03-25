@@ -15,20 +15,6 @@ defaults:
     shell: bash
 
 jobs:
-  lint:
-    name: 'Lint'
-    timeout-minutes: 15
-    runs-on: ubuntu-latest-16-cores-arm-open
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v6
-
-      - uses: ./.github/actions/setup
-
-      - name: Lint
-        run: yarn lint
-
   test:
     name: 'Tests & checks'
     timeout-minutes: 15
@@ -58,13 +44,9 @@ jobs:
           path: |
             .lazy
             **/.lazy
-            .eslintcache
             **/.tsbuild
             **/*.tsbuildinfo
-            node_modules/.cache/prettier
-          key: test-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', 'eslint.config.mjs', 'lazy.config.ts') }}-${{ github.sha }}
-          restore-keys: |
-            test-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', 'eslint.config.mjs', 'lazy.config.ts') }}-
+          key: test-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', '.oxlintrc.json', '.oxfmtrc.json', 'lazy.config.ts') }}
 
       - name: Typecheck
         run: yarn build-types
@@ -79,6 +61,9 @@ jobs:
 
       - name: Check API declarations and docs work as intended
         run: yarn api-check
+
+      - name: Lint
+        run: yarn lint
 
       - name: Check dotcom localizations
         run: |
@@ -107,9 +92,7 @@ jobs:
             **/.lazy
             **/.tsbuild
             **/*.tsbuildinfo
-          key: build-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', 'lazy.config.ts') }}-${{ github.sha }}
-          restore-keys: |
-            build-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', 'lazy.config.ts') }}-
+          key: build-tools-${{ runner.os }}-${{ hashFiles('yarn.lock', 'lazy.config.ts') }}
 
       - name: Build packages
         # the sed pipe makes sure that github annotations come through without

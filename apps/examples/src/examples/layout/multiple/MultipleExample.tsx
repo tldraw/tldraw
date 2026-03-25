@@ -193,7 +193,7 @@ function ABunchOfText() {
 	)
 }
 
-/* 
+/*
 This example shows how to use multiple editors on the same page. When doing this, you'll
 need to make sure that only one editor is focused at a time. We can manage this using 
 the autofocus prop on the tldraw component, along with React's context and set state 

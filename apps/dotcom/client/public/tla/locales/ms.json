@@ -104,6 +104,9 @@
   "3d0238bf16": {
     "translation": "Terima semua"
   },
+  "3e2ae04ff0": {
+    "translation": "Gambar rajah Mermaid yang tidak disokong"
+  },
   "42e53c47c1": {
     "translation": "Hubungi pemilik untuk meminta akses."
   },
@@ -140,8 +143,14 @@
   "4da5988a2e": {
     "translation": "Padamkan kumpulan…"
   },
+  "4dab36ac83": {
+    "translation": "Lebih banyak pilihan"
+  },
   "4e6fbf032b": {
     "translation": "Adakah anda pasti mahu memadamkan kumpulan ini? Tindakan ini tidak boleh dibuat asal."
+  },
+  "5097d89907": {
+    "translation": "Gambar rajah tidak disokong, sebaliknya akan menjana SVG"
   },
   "50db1b7e1e": {
     "translation": "Tidak dapat menyahterbitkan fail."
@@ -179,6 +188,9 @@
   "5c6fe42bc2": {
     "translation": "Batalkan pautan ini dan buat yang baharu."
   },
+  "5d04a002ea": {
+    "translation": "Tidak dapat menyambung"
+  },
   "5d26ae7550": {
     "translation": "Kami gagal memuat naik beberapa kandungan yang anda buat sebelum anda melog masuk."
   },
@@ -199,6 +211,9 @@
   },
   "639bae9ac6": {
     "translation": "awak"
+  },
+  "63a6a88c06": {
+    "translation": "Segarkan semula"
   },
   "6609dd239e": {
     "translation": "Sesuatu telah berlaku"
@@ -350,6 +365,9 @@
   "9bef626805": {
     "translation": "Padam fail"
   },
+  "9ccb565b86": {
+    "translation": "Kami menghadapi masalah untuk menyambung ke perkhidmatan pengesahan kami. Ini biasanya bersifat sementara. Sila cuba muat semula halaman."
+  },
   "9ceb927baa": {
     "translation": "Terbitkan fail ini"
   },
@@ -458,6 +476,9 @@
   },
   "c87aacf567": {
     "translation": "Log keluar"
+  },
+  "c8a59e7135": {
+    "translation": "Ketepikan"
   },
   "c9cc8cce24": {
     "translation": "Jimat"

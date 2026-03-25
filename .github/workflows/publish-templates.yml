@@ -30,6 +30,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup
 
@@ -45,7 +47,6 @@ jobs:
         run: |
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
-          git config --unset-all http.https://github.com/.extraheader
 
       - name: Export templates
         env:

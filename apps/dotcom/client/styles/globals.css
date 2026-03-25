@@ -9,6 +9,8 @@ html[data-theme='dark'] body,
 html[data-theme='dark'] #root {
 	/* this is the same as --tl-color-background, if you ever update that, update this too */
 	background-color: hsl(240, 5%, 6.5%);
+	/* this is the same as --tl-color-text, if you ever update that, update this too */
+	color: hsl(210, 17%, 98%);
 	color-scheme: dark;
 }
 html[data-theme='light'],
@@ -35,6 +37,7 @@ html[data-theme='light'] #root {
 	html:not([data-theme='dark']) body,
 	html:not([data-theme='dark']) #root {
 		background-color: hsl(210, 20%, 98%);
+		color: hsl(210, 17%, 98%);
 		color-scheme: light;
 	}
 }

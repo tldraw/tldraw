@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "Konverter til bogmærke",
 	"action.convert-to-embed": "Konverter til indlejret",
 	"action.copy": "Kopier",
+	"action.copy-as-json": "Kopier som JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Kopier som PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Kopier som SVG",

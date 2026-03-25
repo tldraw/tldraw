@@ -1,9 +1,8 @@
-import { useEditor } from 'tldraw'
-
 import { memo, useLayoutEffect, useRef } from 'react'
+import { useEditor } from 'tldraw'
 import { WebGLCanvas } from '../WebGLCanvas'
-import { ShadowShaderManager } from './ShadowShaderManager'
 import { shaderConfig } from './config'
+import { ShadowShaderManager } from './ShadowShaderManager'
 
 export const ShadowRenderer = memo(() => {
 	const editor = useEditor()

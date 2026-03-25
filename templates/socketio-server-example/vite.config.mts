@@ -1,9 +1,9 @@
-import react from '@vitejs/plugin-react-swc'
+import react from '@vitejs/plugin-react'
 import path from 'path'
 import { defineConfig } from 'vite'
 
 export default defineConfig(() => ({
-	plugins: [react({ tsDecorators: true })],
+	plugins: [react()],
 	root: path.join(__dirname, 'src/client'),
 	publicDir: path.join(__dirname, 'public'),
 	server: {

@@ -1,9 +1,9 @@
-import { ZColumn, schema } from '@tldraw/dotcom-shared'
-import { assert, assertExists, groupBy, structuredClone } from '@tldraw/utils'
 import { execSync } from 'child_process'
 import { readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
+import { ZColumn, schema } from '@tldraw/dotcom-shared'
+import { assert, assertExists, groupBy, structuredClone } from '@tldraw/utils'
 
 const DIRNAME = dirname(fileURLToPath(import.meta.url))
 
@@ -202,7 +202,7 @@ export const columnNamesByAlias = ${JSON.stringify(columnNamesByAlias, null, 2)}
 test('fetchEverythingSql snapshot (RUN `UPDATE_SNAPSHOTS=1 yarn test` IF THIS FAILS)', async () => {
 	const tmpFile = join(DIRNAME, '.fetchEverythingSql.tmp.ts')
 	writeFileSync(tmpFile, tsFile, 'utf-8')
-	execSync('yarn run -T prettier --write ' + tmpFile, {
+	execSync('yarn run -T oxfmt --write ' + tmpFile, {
 		stdio: 'inherit',
 		cwd: join(DIRNAME, '..'),
 		env: {

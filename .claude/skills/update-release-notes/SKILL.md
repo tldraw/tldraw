@@ -56,7 +56,12 @@ If a new release was published since `last_version` in `next.mdx`:
    - Set `title` to the version
    - Update dates
    - Add the GitHub release link after frontmatter
-3. Reset `next.mdx`:
+3. Add the new version to the releases index at `apps/docs/content/getting-started/releases.mdx`:
+   - Add a line at the top of the appropriate `## v{major}.x` section
+   - Format: `- [vX.Y](/releases/vX.Y.0) - Brief description`
+   - The description should be a short summary of the release highlights from the intro paragraph (3-5 key features, comma-separated)
+   - If a new major version section is needed, create it above the previous one
+4. Reset `next.mdx`:
    - Update `last_version` field to the new release
    - Clear the content sections
    - Keep the file structure for accumulating new changes
@@ -153,16 +158,39 @@ After editing `next.mdx` (and any archive files), commit and push from the tldra
 
 ```bash
 cd /tmp/tldraw
-git checkout -b update-release-notes
+BRANCH="update-release-notes-$(date -u +%Y%m%d-%H%M)"
+git checkout -b "$BRANCH"
 git add apps/docs/content/releases/
 git commit -m "docs: update release notes"
-git push -u origin update-release-notes
-gh pr create -R tldraw/tldraw --title "docs: update release notes" --body "Update next.mdx with entries from $(source)."
+git push -u origin "$BRANCH"
 ```
+
+Then create the PR following the standards in `@.claude/skills/write-pr/SKILL.md`:
+
+- **Title**: `docs(releases): update release notes`
+- **Change type**: `other`
+- **Test plan**: Remove the numbered list (no manual testing steps). Untick both unit tests and end to end tests.
+- **Release notes**: Omit this section (internal docs work with no user-facing impact)
+- **Description paragraph**: Start with "In order to..." and mention the source (`main` or `production`) and what was updated (new entries added, stale entries pruned, archival performed, etc.)
+- Include a **Code changes** table with a `Documentation` row
 
 ## The `last_version` field
 
 The `next.mdx` frontmatter includes a `last_version` field that tracks the most recent published release. This determines which PRs are "new" and need to be added.
+
+## SDK release workflow
+
+During an SDK release, this skill is run **twice** to get the docs site into its post-release state:
+
+1. **First run** — update `next.mdx` with all PRs that will ship in the release (source is `"production"` during freeze week). This ensures the release notes are complete before publishing.
+2. **Publish the release to NPM** — this happens outside of this skill.
+3. **Second run** — now that the release is published, the status script will detect `needs_archive: true`. This run:
+   - Archives `next.mdx` to a versioned file (e.g., `v4.5.0.mdx`)
+   - Adds the new version to the releases index (`releases.mdx`)
+   - Resets `next.mdx` with the new `last_version`
+   - Finds PRs that landed on `main` during the freeze (since the release tag) and adds them to the fresh `next.mdx`
+
+After the second run, the docs site reflects the published release and `next.mdx` already has a head start on the next cycle's changes.
 
 ## References
 

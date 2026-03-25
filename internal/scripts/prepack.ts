@@ -1,8 +1,8 @@
 import { execSync } from 'child_process'
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'fs'
-import glob from 'glob'
 import path from 'path'
 import { pathToFileURL } from 'url'
+import glob from 'glob'
 
 /** Prepares the package for publishing. the tarball in case it will be written to disk. */
 export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: string }) {

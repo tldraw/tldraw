@@ -16,13 +16,13 @@
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"check-bundle-size": "yarn run -T tsx ../../internal/scripts/check-worker-bundle.ts --entry src/worker.ts --size-limit-bytes 350000",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "cd ../.. && yarn run -T oxlint apps/analytics-worker"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250913.0",
-		"esbuild": "^0.25.6",
+		"@cloudflare/workers-types": "^4.20260302.0",
+		"esbuild": "^0.27.4",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^5.8.3",
-		"wrangler": "^4.67.0"
+		"wrangler": "^4.75.0"
 	}
 }

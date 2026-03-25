@@ -1,6 +1,6 @@
 import { Box, TLShapeId, createShapeId } from '@tldraw/editor'
-import { TestEditor } from '../TestEditor'
 import { TL } from '../test-jsx'
+import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 let ids: Record<string, TLShapeId>

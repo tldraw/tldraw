@@ -271,6 +271,7 @@ function TooltipSingleton() {
 
 	// Update open state and trigger position
 	useEffect(() => {
+		// eslint-disable-next-line no-restricted-globals
 		let timer: ReturnType<typeof setTimeout> | null = null
 		if (currentTooltip && triggerRef.current) {
 			// Position the invisible trigger element over the active element

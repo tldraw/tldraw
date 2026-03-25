@@ -1,7 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { TLShape } from 'tldraw'
 import { registerTools } from './src/register-tools'
-import type { MCP_APP_HOST_NAMES, ServerDeps } from './src/shared/types'
 import {
 	MAX_CHECKPOINTS,
 	MCP_SERVER_DESCRIPTION,
@@ -11,6 +10,7 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from './src/shared/types'
+import type { MCP_APP_HOST_NAMES, ServerDeps } from './src/shared/types'
 import { resolveMcpAppHostNameFromServerInfo } from './src/shared/utils'
 import { loadCachedCanvasWidgetHtml } from './src/tools/loadCachedCanvasWidgetHtml'
 

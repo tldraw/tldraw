@@ -4,6 +4,12 @@ import { useNavigate } from 'react-router-dom'
 import { assertExists, atom } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
+import {
+	DEFAULT_FLAGS,
+	FeatureFlags,
+	fetchFeatureFlags,
+	wasAuthenticated,
+} from '../utils/FeatureFlagPoller'
 
 const appContext = createContext<TldrawApp | null>(null)
 
@@ -28,13 +34,30 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
 	useEffect(() => {
 		let _app: TldrawApp
-
-		// Create the new user
 		let didCancel = false
-		auth.getToken().then((token) => {
+
+		const FETCH_TIMEOUT = 5000
+		function fetchFlagsWithTimeout(): Promise<FeatureFlags> {
+			return Promise.race([
+				fetchFeatureFlags(),
+				new Promise<FeatureFlags>((resolve) =>
+					setTimeout(() => resolve({ ...DEFAULT_FLAGS }), FETCH_TIMEOUT)
+				),
+			])
+		}
+
+		;(async () => {
+			let flags = await fetchFlagsWithTimeout()
+			if (!wasAuthenticated()) {
+				flags = await fetchFlagsWithTimeout()
+			}
+			if (didCancel) return
+			const token = await auth.getToken()
 			if (!token) throw new Error('no token')
-			TldrawApp.create({
+			const { app } = await TldrawApp.create({
 				userId: auth.userId,
+				email: user.primaryEmailAddress?.emailAddress,
+				flags,
 				getToken: async () => {
 					const token = await auth.getToken()
 					return token || undefined
@@ -44,14 +67,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				},
 				trackEvent,
 				navigate,
-			}).then(({ app }) => {
-				if (didCancel) {
-					app.dispose()
-					return
-				}
-				_app = app
-				setApp(app)
 			})
+			if (didCancel) {
+				app.dispose()
+				return
+			}
+			_app = app
+			setApp(app)
+		})().catch((err) => {
+			console.error('[AppState] Failed to initialize:', err)
 		})
 
 		return () => {

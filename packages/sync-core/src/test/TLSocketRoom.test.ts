@@ -1344,12 +1344,10 @@ describe('TLSocketRoom.updateStore', () => {
 			document.name = 'My lovely document'
 			store.put(document)
 		})
-		expect(
-			(
-				storage.getSnapshot().documents.find((r) => r.state.id === 'document:document')
-					?.state as any
-			).name
-		).toBe('My lovely document')
+		const docRecord = storage
+			.getSnapshot()
+			.documents.find((r) => r.state.id === 'document:document') as any
+		expect(docRecord.state.name).toBe('My lovely document')
 		expect(clock).toBeLessThan(storage.getClock())
 	})
 
@@ -1359,12 +1357,10 @@ describe('TLSocketRoom.updateStore', () => {
 			const document = store.get('document:document') as TLDocument
 			document.name = 'My lovely document'
 		})
-		expect(
-			(
-				storage.getSnapshot().documents.find((r) => r.state.id === 'document:document')
-					?.state as any
-			).name
-		).toBe('')
+		const docRecord = storage
+			.getSnapshot()
+			.documents.find((r) => r.state.id === 'document:document') as any
+		expect(docRecord.state.name).toBe('')
 		expect(clock).toBe(storage.getClock())
 	})
 

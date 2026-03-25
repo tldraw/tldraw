@@ -17,15 +17,15 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
+import { TldrawUiRow } from '../primitives/layout'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
-import { TldrawUiRow } from '../primitives/layout'
+import { onMovePage } from './edit-pages-shared'
 import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
-import { onMovePage } from './edit-pages-shared'
 
 /** @public @react */
 export const DefaultPageMenu = memo(function DefaultPageMenu() {

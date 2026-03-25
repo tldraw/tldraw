@@ -1,4 +1,4 @@
-/* eslint-disable react/no-string-refs, local/no-internal-imports */
+/* eslint-disable react/no-string-refs, tldraw/no-internal-imports */
 import { b64Vecs, degreesToRadians, TLShapeCrop, toRichText, VecModel } from 'tldraw'
 import { TL } from 'tldraw/src/test/test-jsx'
 
