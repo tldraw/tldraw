@@ -22,7 +22,6 @@ afterEach(() => {
 })
 
 const FLAGS_OFF: FeatureFlags = {
-	sqlite_file_storage: { enabled: false },
 	zero_enabled: { enabled: false },
 	zero_kill_switch: { enabled: false },
 }
@@ -139,7 +138,6 @@ describe('shouldUseProperZero', () => {
 		it('kill switch > webdriver > localStorage > email > flag', () => {
 			mockedGetFromLocalStorage.mockReturnValue('true')
 			const flags: FeatureFlags = {
-				sqlite_file_storage: { enabled: false },
 				zero_enabled: { enabled: true },
 				zero_kill_switch: { enabled: true },
 			}
