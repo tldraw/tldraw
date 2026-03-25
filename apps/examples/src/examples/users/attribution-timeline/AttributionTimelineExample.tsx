@@ -47,7 +47,7 @@ const currentUserSignal = computed('currentUser', () => {
 })
 
 const users: TLUserStore = {
-	getCurrentUser: () => currentUserSignal,
+	currentUser: currentUserSignal,
 	resolve: createCachedUserResolve((userId) => USERS[createUserId(userId)] ?? null),
 }
 
@@ -120,7 +120,7 @@ const AttributionTimeline = track(() => {
 	// [5]
 	const recordChange = useCallback(
 		(diff: RecordsDiff<any>) => {
-			const user = editor.store.props.users.getCurrentUser().get()
+			const user = editor.store.props.users.currentUser.get()
 			const newEntry: AttributionTimelineEntry = {
 				timestamp: Date.now(),
 				diff,
@@ -380,8 +380,8 @@ const AttributionTimeline = track(() => {
 /*
 [1]
 A fake user directory. In a real app this would be backed by your auth system.
-The TLUserStore tells the editor who is "logged in" — the editor calls
-getCurrentUser for attribution purposes, and resolve when rendering
+The TLUserStore tells the editor who is "logged in" — the editor reads
+currentUser for attribution purposes, and resolve when rendering
 attribution labels.
 
 [2]

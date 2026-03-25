@@ -332,7 +332,7 @@ describe('createIntegrityChecker', () => {
 				defaultName: 'Test Store',
 				assets: mockAssetStore,
 				users: {
-					getCurrentUser: () => computed('currentUser', () => null),
+					currentUser: computed('currentUser', () => null),
 					resolve: () => computed('resolve', () => null),
 				},
 				onMount: vi.fn(),

@@ -45,7 +45,7 @@ const currentUserSignal = computed('currentUser', () => {
 })
 
 const users: TLUserStore = {
-	getCurrentUser: () => currentUserSignal,
+	currentUser: currentUserSignal,
 	resolve: createCachedUserResolve((userId) => usersAtom.get()[createUserId(userId)] ?? null),
 }
 
@@ -99,11 +99,9 @@ function AttributionPanel() {
 		[editor]
 	)
 
-	const currentUser = useValue(
-		'current-user',
-		() => editor.store.props.users.getCurrentUser().get(),
-		[editor]
-	)
+	const currentUser = useValue('current-user', () => editor.store.props.users.currentUser.get(), [
+		editor,
+	])
 
 	return (
 		<div className="attribution-panel">
@@ -180,7 +178,7 @@ and color. Because it's an atom, changes (like renaming a user) automatically
 propagate to anything reading from the TLUserStore.
 
 [2]
-The custom TLUserStore. `getCurrentUser` and `resolve` return reactive Signals
+The custom TLUserStore. `currentUser` and `resolve` return reactive Signals
 derived from the atoms — any computed or useValue that reads `.get()` on these
 signals will re-evaluate when the underlying data changes.
 
@@ -191,7 +189,7 @@ panel updates live. Switch to Bob and create a note with text to see
 "Text first edited by" appear.
 
 [4]
-The panel reads `editor.store.props.users.getCurrentUser().get()` to show who is
+The panel reads `editor.store.props.users.currentUser.get()` to show who is
 active, and reads shape-specific props (like `textFirstEditedBy` on notes) for
 per-shape attribution. Each attribution field is a user ID string — we call
 `resolve(userId).get()` to get live display data.

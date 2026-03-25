@@ -195,7 +195,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			})
 		})
 		return {
-			getCurrentUser: () => currentUser,
+			currentUser,
 		}
 	}, [app?.tlUser.userPreferences])
 

@@ -208,13 +208,13 @@ export interface TLAssetStore {
  * resolution for attribution labels and display names. Implement this interface
  * to connect tldraw to your auth/user system.
  *
- * Both methods return reactive {@link @tldraw/state#Signal | Signals} so that
- * the editor can automatically track changes to user data and re-render when
- * a user's name, color, or avatar updates.
+ * `currentUser` and `resolve` are reactive {@link @tldraw/state#Signal | Signals}
+ * so that the editor can automatically track changes to user data and
+ * re-render when a user's name, color, or avatar updates.
  *
- * Implementations should cache the returned signals — e.g. return the same
- * `Signal` for repeated calls with the same `userId` — to avoid unnecessary
- * re-computation.
+ * Implementations should cache signals returned by `resolve` — e.g. return the
+ * same `Signal` for repeated calls with the same `userId` — to avoid
+ * unnecessary re-computation.
  *
  * @public
  * @example
@@ -228,7 +228,7 @@ export interface TLAssetStore {
  * )
  *
  * const userStore: TLUserStore = {
- *   getCurrentUser: () => currentUser,
+ *   currentUser,
  *   resolve(userId) {
  *     return computed('resolve-' + userId, () =>
  *       myUserCache.get(userId) ?? null
@@ -239,11 +239,11 @@ export interface TLAssetStore {
  */
 export interface TLUserStore {
 	/**
-	 * Return a signal resolving to the currently authenticated user,
+	 * A signal resolving to the currently authenticated user,
 	 * or `null` for anonymous / unknown.
-	 * Called when stamping attribution on shape create/update.
+	 * Read when stamping attribution on shape create/update.
 	 */
-	getCurrentUser(): Signal<TLUser | null>
+	currentUser: Signal<TLUser | null>
 
 	/**
 	 * Return a signal resolving an arbitrary user ID to display info.
@@ -269,7 +269,7 @@ export interface TLUserStore {
  * @example
  * ```ts
  * const users: TLUserStore = {
- *   getCurrentUser: () => currentUserSignal,
+ *   currentUser: currentUserSignal,
  *   resolve: createCachedUserResolve(
  *     (userId) => usersAtom.get()[createUserId(userId)] ?? null
  *   ),

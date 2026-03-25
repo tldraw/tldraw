@@ -115,7 +115,12 @@ export type RemoteTLStoreWithStatus = Exclude<
  *     uri: 'wss://myserver.com/sync/room-123',
  *     assets: myAssetStore,
  *     users: {
- *       getCurrentUser: () => ({ id: 'user-1', name: 'Alice', color: '#ff0000', meta: {} }),
+ *       currentUser: computed('current-user', () => ({
+ *         id: createUserId('user-1'),
+ *         name: 'Alice',
+ *         color: '#ff0000',
+ *         meta: {},
+ *       })),
  *     }
  *   })
  *
@@ -192,21 +197,21 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 		const users: Required<TLUserStore> = _users
 			? {
-					getCurrentUser: _users.getCurrentUser,
+					currentUser: _users.currentUser,
 					resolve:
 						_users.resolve ??
 						createCachedUserResolve((userId) => {
-							const current = _users.getCurrentUser().get()
+							const current = _users.currentUser.get()
 							return current && current.id === createUserId(userId) ? current : null
 						}),
 				}
 			: {
-					getCurrentUser: defaultUserStore.getCurrentUser,
+					currentUser: defaultUserStore.currentUser,
 					resolve: createCachedUserResolve((userId) => {
-						const current = defaultUserStore.getCurrentUser().get()
+						const current = defaultUserStore.currentUser.get()
 						if (current && current.id === createUserId(userId)) return current
 						const presences = store.query.records('instance_presence').get()
-						const match = presences.find((p) => p.userId === userId)
+						const match = presences.find((p) => p.userId === createUserId(userId))
 						if (match) {
 							return UserRecordType.create({
 								id: createUserId(userId),
@@ -220,10 +225,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 		// This always returns a non-null user for presence display, falling back
 		// to anonymous user preferences. The store receives the raw `users` object
-		// (where getCurrentUser() may return null), so attribution via
+		// (where currentUser may return null), so attribution via
 		// getAttributionUserId() correctly returns null for anonymous sessions.
 		const currentUser = computed<TLUser>('currentUser', () => {
-			const user = users.getCurrentUser().get()
+			const user = users.currentUser.get()
 			if (user) return user
 			const prefs = getUserPreferences()
 			return UserRecordType.create({
@@ -413,7 +418,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
  *   uri: 'wss://myserver.com/sync/room-123',
  *   assets: myAssetStore,
  *   users: {
- *     getCurrentUser: () => myCurrentUserSignal,
+ *     currentUser: myCurrentUserSignal,
  *   },
  *   getUserPresence: (store, user) => ({
  *     userId: user.id,
@@ -456,7 +461,7 @@ export interface UseSyncOptionsBase {
 	 * User store for identity, presence and attribution.
 	 *
 	 * Both methods return reactive {@link @tldraw/state#Signal | Signals}.
-	 * `getCurrentUser()` provides the current user's identity (used for
+	 * `currentUser` provides the current user's identity (used for
 	 * both presence broadcasting and shape attribution) and optionally
 	 * `resolve(userId)` looks up other users by ID. If not provided,
 	 * a default implementation backed by localStorage user preferences is

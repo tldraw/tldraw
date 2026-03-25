@@ -133,16 +133,16 @@ const currentUser = computed('currentUser', () =>
 const store = useSyncDemo({
 	roomId: 'my-room',
 	users: {
-		getCurrentUser: () => currentUser,
+		currentUser,
 	},
 })
 ```
 
-The `users` store is also used for shape attribution — the same `getCurrentUser()` identity stamps shapes with user IDs. Provide a `resolve` method to look up other users by ID:
+The `users` store is also used for shape attribution — the same `currentUser` signal stamps shapes with user IDs. Provide a `resolve` method to look up other users by ID:
 
 ```tsx
 const users: TLUserStore = {
-	getCurrentUser: () => myAuth.currentUser$,
+	currentUser: myAuth.currentUser$,
 	resolve: (userId) => myUserCache.getSignal(userId),
 }
 ```
@@ -187,7 +187,7 @@ export default function App({ roomId }: { roomId: string }) {
 				color: p.color ?? undefined,
 			})
 		})
-		return { getCurrentUser: () => currentUser }
+		return { currentUser }
 	}, [userPrefsAtom])
 
 	const store = useSyncDemo({ roomId, users })

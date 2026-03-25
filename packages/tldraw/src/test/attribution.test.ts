@@ -168,7 +168,7 @@ describe('TLUserStore', () => {
 			{},
 			{
 				users: {
-					getCurrentUser: () => computed('currentUser', () => alice),
+					currentUser: computed('currentUser', () => alice),
 					resolve: (userId) =>
 						computed('resolve-' + userId, () => {
 							if (userId === 'user-1') return alice
@@ -196,7 +196,7 @@ describe('TLUserStore', () => {
 			{},
 			{
 				users: {
-					getCurrentUser: () => computed('currentUser', () => null),
+					currentUser: computed('currentUser', () => null),
 				},
 			}
 		)

@@ -17,10 +17,10 @@ import {
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
-import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
-import { defaultUserPreferences, getUserPreferences } from './TLUserPreferences'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
+import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
+import { defaultUserPreferences, getUserPreferences } from './TLUserPreferences'
 
 /** @public */
 export interface TLStoreBaseOptions {
@@ -82,7 +82,7 @@ const _defaultCurrentUser: Signal<TLUser | null> = computed('defaultCurrentUser'
 
 /** @public */
 export const defaultUserStore: TLUserStore = {
-	getCurrentUser: () => _defaultCurrentUser,
+	currentUser: _defaultCurrentUser,
 }
 
 /** @public */
@@ -150,11 +150,11 @@ export function createTLStore({
 				remove: assets.remove ?? (() => Promise.resolve()),
 			},
 			users: {
-				getCurrentUser: users.getCurrentUser,
+				currentUser: users.currentUser,
 				resolve:
 					users.resolve ??
 					createCachedUserResolve((userId) => {
-						const current = users.getCurrentUser().get()
+						const current = users.currentUser.get()
 						return current && current.id === createUserId(userId) ? current : null
 					}),
 			},

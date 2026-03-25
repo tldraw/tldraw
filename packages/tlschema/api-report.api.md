@@ -177,7 +177,7 @@ export function createPresenceStateDerivation($user: Signal<null | TLUser>, opts
 
 // @public (undocumented)
 export interface CreatePresenceStateDerivationOpts {
-    getUserPresence?: (store: TLStore, user: TLUser) => null | TLPresenceStateInfo;
+    getUserPresence?(store: TLStore, user: TLUser): null | TLPresenceStateInfo;
     instanceId?: TLInstancePresence['id'];
 }
 
@@ -1593,7 +1593,7 @@ export type TLUserId = RecordId<TLUser>;
 
 // @public
 export interface TLUserStore {
-    getCurrentUser(): Signal<null | TLUser>;
+    currentUser: Signal<null | TLUser>;
     resolve?(userId: string): Signal<null | TLUser>;
 }
 

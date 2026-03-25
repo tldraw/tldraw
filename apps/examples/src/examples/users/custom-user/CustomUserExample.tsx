@@ -57,7 +57,7 @@ const currentUserSignal = computed('currentUser', () => {
 })
 
 const users: TLUserStore = {
-	getCurrentUser: () => currentUserSignal,
+	currentUser: currentUserSignal,
 	resolve: createCachedUserResolve((userId) => usersAtom.get()[createUserId(userId)] ?? null),
 }
 
@@ -86,11 +86,9 @@ function UserSwitcher() {
 function CustomUserPanel() {
 	const editor = useEditor()
 
-	const currentUser = useValue(
-		'current-user',
-		() => editor.store.props.users.getCurrentUser().get(),
-		[editor]
-	)
+	const currentUser = useValue('current-user', () => editor.store.props.users.currentUser.get(), [
+		editor,
+	])
 	const customMeta = asCustomMeta(currentUser)
 
 	return (
@@ -160,7 +158,7 @@ in their `meta` object — `isAdmin` and `department`. In a real app this data
 would come from your authentication system or user service.
 
 [3]
-The custom TLUserStore. `getCurrentUser` and `resolve` return reactive Signals
+The custom TLUserStore. `currentUser` and `resolve` return reactive Signals
 derived from the atoms — any computed or useValue that reads `.get()` on these
 signals will re-evaluate when the underlying data changes.
 

@@ -29,7 +29,7 @@ describe('createPresenceStateDerivation', () => {
 					remove: vi.fn().mockResolvedValue(undefined),
 				},
 				users: {
-					getCurrentUser: () => computed('currentUser', () => null),
+					currentUser: computed('currentUser', () => null),
 					resolve: () => computed('resolve', () => null),
 				},
 				onMount: vi.fn(),
@@ -121,7 +121,7 @@ describe('getDefaultUserPresence', () => {
 					remove: vi.fn().mockResolvedValue(undefined),
 				},
 				users: {
-					getCurrentUser: () => computed('currentUser', () => null),
+					currentUser: computed('currentUser', () => null),
 					resolve: () => computed('resolve', () => null),
 				},
 				onMount: vi.fn(),

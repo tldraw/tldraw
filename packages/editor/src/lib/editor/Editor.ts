@@ -94,6 +94,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
+import { TLCurrentUser, createTLCurrentUser } from '../config/createTLCurrentUser'
 import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
@@ -102,7 +103,6 @@ import {
 	getSnapshot,
 	loadSnapshot,
 } from '../config/TLEditorSnapshot'
-import { TLCurrentUser, createTLCurrentUser } from '../config/createTLCurrentUser'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
@@ -827,7 +827,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.disposables.add(
 			react('sync current user record', () => {
-				const user = this.store.props.users.getCurrentUser().get()
+				const user = this.store.props.users.currentUser.get()
 				if (user) {
 					this._ensureUserRecord(user)
 				}
@@ -3995,7 +3995,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getAttributionUserId(): string | null {
-		const user = this.store.props.users.getCurrentUser().get()
+		const user = this.store.props.users.currentUser.get()
 		if (!user) return null
 		this._ensureUserRecord(user)
 		return UserRecordType.parseId(user.id)
@@ -4013,7 +4013,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			existing &&
 			existing.name === user.name &&
 			existing.color === user.color &&
-			existing.imageUrl === user.imageUrl
+			existing.imageUrl === user.imageUrl &&
+			existing.meta === user.meta
 		) {
 			return
 		}
@@ -9337,19 +9338,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			throw Error('Could not put content:\ncontent is missing a schema.')
 		}
 
-		if (content.users?.length) {
-			const existingUserIds = new Set(
-				this.store
-					.allRecords()
-					.filter((r): r is TLUser => r.typeName === 'user')
-					.map((r) => r.id)
-			)
-			const usersToCreate = content.users.filter((u) => !existingUserIds.has(u.id))
-			if (usersToCreate.length > 0) {
-				this.store.put(usersToCreate)
-			}
-		}
-
 		const { select = false, preserveIds = false, preservePosition = false } = opts
 		let { point = undefined } = opts
 
@@ -9362,6 +9350,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const assets: TLAsset[] = []
 		const shapes: TLShape[] = []
 		const bindings: TLBinding[] = []
+		const users: TLUser[] = []
 
 		// Let's treat the content as a store, and then migrate that store.
 		const store: StoreSnapshot<TLRecord> = {
@@ -9393,6 +9382,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 					bindings.push(record)
 					break
 				}
+				case 'user': {
+					users.push(record)
+					break
+				}
+			}
+		}
+
+		if (users.length > 0) {
+			const existingUserIds = new Set(
+				this.store
+					.allRecords()
+					.filter((r): r is TLUser => r.typeName === 'user')
+					.map((r) => r.id)
+			)
+			const usersToCreate = users.filter((u) => !existingUserIds.has(u.id))
+			if (usersToCreate.length > 0) {
+				this.store.put(usersToCreate)
 			}
 		}
 
