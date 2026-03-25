@@ -8,10 +8,7 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
 
-function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
-	// Default to enabled in dev/preview when no KV value exists
-	const defaultEnabled = env.TLDRAW_ENV === 'development'
-
+function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
 	return {
 		zero_enabled: {
 			type: 'percentage',
