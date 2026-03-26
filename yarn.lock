@@ -2983,6 +2983,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@formatjs/cli@npm:^6.6.3":
+  version: 6.14.0
+  resolution: "@formatjs/cli@npm:6.14.0"
+  peerDependencies:
+    "@glimmer/syntax": ^0.84.3 || ^0.95.0
+    "@vue/compiler-core": ^3.5.0
+    content-tag: ^4.1.0
+    vue: ^3.5.0
+  peerDependenciesMeta:
+    "@glimmer/env":
+      optional: true
+    "@glimmer/reference":
+      optional: true
+    "@glimmer/syntax":
+      optional: true
+    "@glimmer/validator":
+      optional: true
+    "@vue/compiler-core":
+      optional: true
+    content-tag:
+      optional: true
+    vue:
+      optional: true
+  bin:
+    formatjs: bin/formatjs
+  checksum: 10/1612abc95a9acde6086786e6ca1934f628c370eb4d88488225c41475cc268be333f999b287dd2602f33547904d03eb31b5c1d5c4c79b71c824997a175dce6caa
+  languageName: node
+  linkType: hard
+
 "@formatjs/ecma402-abstract@npm:2.2.4":
   version: 2.2.4
   resolution: "@formatjs/ecma402-abstract@npm:2.2.4"
@@ -3200,7 +3229,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@formatjs/intl@npm:^3.1.6":
+"@formatjs/intl@npm:^3.1.3, @formatjs/intl@npm:^3.1.6":
   version: 3.1.8
   resolution: "@formatjs/intl@npm:3.1.8"
   dependencies:
@@ -29284,6 +29313,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw@workspace:packages/tldraw"
   dependencies:
+    "@formatjs/cli": "npm:^6.6.3"
+    "@formatjs/intl": "npm:^3.1.3"
     "@peculiar/webcrypto": "npm:^1.5.0"
     "@testing-library/dom": "npm:^10.0.0"
     "@testing-library/react": "npm:^16.0.0"

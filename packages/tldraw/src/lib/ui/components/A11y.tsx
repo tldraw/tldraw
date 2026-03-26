@@ -105,14 +105,16 @@ export function generateShapeAnnouncementMessage(args: {
 		const shapeUtil = editor.getShapeUtil(shape.type)
 
 		const isMedia = ['image', 'video'].includes(shape.type)
-		// Yeah, yeah this is a bit of a hack, we should get better translations.
-		let shapeType = ''
-		if (shape.type === 'geo') {
-			shapeType = msg(`geo-style.${(shape as TLGeoShape).props.geo}`)
-		} else if (isMedia) {
-			shapeType = msg(`a11y.shape-${shape.type}`)
-		} else {
-			shapeType = msg(`tool.${shape.type}`)
+		// Try getShapeName first (ICU i18n), then fall back to legacy lookup
+		let shapeType = shapeUtil.getShapeName(shape) ?? ''
+		if (!shapeType) {
+			if (shape.type === 'geo') {
+				shapeType = msg(`geo-style.${(shape as TLGeoShape).props.geo}`)
+			} else if (isMedia) {
+				shapeType = msg(`a11y.shape-${shape.type}`)
+			} else {
+				shapeType = msg(`tool.${shape.type}`)
+			}
 		}
 
 		// Get shape index in reading order

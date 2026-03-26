@@ -275,5 +275,8 @@ export function getAssetUrls(opts) {
 			vimeo: formatAssetUrl('./embed-icons/vimeo.png', opts),
 			youtube: formatAssetUrl('./embed-icons/youtube.png', opts),
 		},
+		i18n: {
+			en: formatAssetUrl('./i18n/en.json', opts),
+		},
 	}
 }
