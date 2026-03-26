@@ -29,6 +29,7 @@ html[data-theme='light'] #root {
 	html:not([data-theme='light']) body,
 	html:not([data-theme='light']) #root {
 		background-color: hsl(240, 5%, 6.5%);
+		color: hsl(210, 17%, 98%);
 		color-scheme: dark;
 	}
 }
@@ -37,7 +38,6 @@ html[data-theme='light'] #root {
 	html:not([data-theme='dark']) body,
 	html:not([data-theme='dark']) #root {
 		background-color: hsl(210, 20%, 98%);
-		color: hsl(210, 17%, 98%);
 		color-scheme: light;
 	}
 }
