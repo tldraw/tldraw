@@ -23,7 +23,7 @@ const browserRouter = createBrowserRouter(router)
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
 if (!PUBLISHABLE_KEY) {
-	throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env.local')
+	throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env.local!')
 }
 
 createRoot(document.getElementById('root')!).render(
