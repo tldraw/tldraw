@@ -9,9 +9,4 @@ Paste a linear Mermaid flowchart, run a simulated CI-style pipeline on the nodes
 
 ---
 
-This example demonstrate how users can leverage custom shapes with mermaid diagrams
-using the API of the @tldraw/mermaid package.
-
-In this example, you'll learn how to create custom shapes and use them in lieu 
-of flowchart node using the node mapper function but also how to even go deeper 
-by providing your own `createShape` to the blueprint renderer!
+This example demonstrates how to use custom shapes with Mermaid diagrams via the `@tldraw/mermaid` API: pass `blueprintRender.mapNodeToRenderSpec` to return a `MermaidBlueprintNodeRenderSpec` (here, the custom `flowchart-util` type plus parser-derived `pipelineStepIndex` props).

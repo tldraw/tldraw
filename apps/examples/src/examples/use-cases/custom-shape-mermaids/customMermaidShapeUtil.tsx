@@ -31,7 +31,7 @@ declare module 'tldraw' {
 			align: string
 			verticalAlign: string
 			mermaidNodeId: string
-			/** 1-based order from our linear parser; set in `mermaidPipelineBlueprint.createPipelineNodeFromBlueprint`. */
+			/** 1-based order from our linear parser; set in `mermaidPipelineBlueprint.mapNodeToRenderSpec`. */
 			pipelineStepIndex: number
 		}
 	}

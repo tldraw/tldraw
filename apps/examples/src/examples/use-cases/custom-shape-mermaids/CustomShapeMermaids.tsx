@@ -1,21 +1,15 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /**
  * Mermaid → linear pipeline demo: paste flowchart source, apply to the canvas, run simulated steps.
- * - `mapNodeToRenderSpec` maps each vertex to the custom `flowchart-util` type and `mermaidNodeId`.
- * - `blueprintRender.createShape` delegates to `defaultCreateMermaidNodeFromBlueprint`, then merges
- *   `pipelineStepIndex` from our parsed order (data Mermaid does not provide). Arrows still use the
- *   package-assigned `shapeId`.
+ * - `blueprintRender.mapNodeToRenderSpec` maps each flowchart vertex to the custom `flowchart-util`
+ *   shape and adds `pipelineStepIndex` from our linear parser (data Mermaid does not provide).
  */
 import { useCallback, useState } from 'react'
 import { TLComponents, Tldraw, TldrawUiButton, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { FlowchartShapeUtil } from './customMermaidShapeUtil'
 import './custom-shape-mermaid.css'
-import {
-	createPipelineNodeFromBlueprint,
-	mapNodeToRenderSpec,
-	setPipelineStepIndicesFromOrder,
-} from './mermaidPipelineBlueprint'
+import { mapNodeToRenderSpec, setPipelineStepIndicesFromOrder } from './mermaidPipelineBlueprint'
 import { type StepStatus, pipelineStateAtom, runFullPipeline } from './mermaidPipelineState'
 import { parseLinearPipelineFromMermaid } from './pipelineFromMermaid'
 
@@ -84,9 +78,8 @@ function TopPanel() {
 					blueprintRender: {
 						position: { x: 200, y: 400 },
 						centerOnPosition: false,
-						createShape: createPipelineNodeFromBlueprint,
+						mapNodeToRenderSpec,
 					},
-					flowchart: { mapNodeToRenderSpec },
 				})
 			} catch {
 				pipelineStateAtom.update((s) => ({
@@ -114,9 +107,9 @@ function TopPanel() {
 		<div className="custom-shape-mermaid">
 			<div>
 				Paste a <strong>linear</strong> <code>flowchart</code> (one path, no branches). Apply loads
-				it as actionable steps. <code>mapNodeToRenderSpec</code> picks the custom shape;
-				<code>createShape</code> adds the step number from our parser. Run simulates each step;
-				failures can be retried on the shape. Step status is only in memory for this demo.
+				it as actionable steps. <code>blueprintRender.mapNodeToRenderSpec</code> picks the custom
+				shape and step numbers from our parser. Run simulates each step; failures can be retried on
+				the shape. Step status is only in memory for this demo.
 			</div>
 			<textarea
 				value={mermaidText}
