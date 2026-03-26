@@ -63,6 +63,8 @@ import { TLCamera } from '@tldraw/tlschema';
 import { TLCreateShapePartial } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
+import { TLDefaultColor } from '@tldraw/tlschema';
+import { TLDefaultColorStyle } from '@tldraw/tlschema';
 import { TLDefaultDashStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
@@ -87,6 +89,8 @@ import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStoreSchema } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
+import { TLTheme } from '@tldraw/tlschema';
+import { TLThemes } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
@@ -634,6 +638,12 @@ export const DEFAULT_ANIMATION_OPTIONS: {
 export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions;
 
 // @public (undocumented)
+export const DEFAULT_DARK_THEME: TLTheme;
+
+// @public (undocumented)
+export const DEFAULT_LIGHT_THEME: TLTheme;
+
+// @public (undocumented)
 export function DefaultBackground(): JSX.Element;
 
 // @public (undocumented)
@@ -836,7 +846,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls, themes, theme }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1256,6 +1266,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageShapesInReadingOrder(): TLShape[];
     getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
+    getCurrentTheme(): TLTheme;
+    getCurrentThemeId(): keyof TLThemes;
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
     getDebouncedZoomLevel(): number;
@@ -1361,6 +1373,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     } | undefined>;
     getTemporaryAssetPreview(assetId: TLAssetId): string | undefined;
     getTextOptions(): TLTextOptions;
+    getThemes(): TLThemes;
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): TLRenderingShape[];
     getViewportPageBounds(): Box;
@@ -1515,6 +1528,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     _setShiftKeyTimeout(): void;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
+    setTheme(themeId: null | string): this;
     setTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLShape>;
@@ -1540,6 +1554,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         [key: string]: Map<StyleProp<any>, string>;
     };
     readonly textMeasure: TextManager;
+    // @internal
+    readonly _themeManager: ThemeManager;
     readonly timers: {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
@@ -1581,6 +1597,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     // @internal (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
+    updateThemes(themes: Partial<TLThemes>): void;
     updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): this;
     uploadAsset(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<{
         meta?: JsonObject;
@@ -1831,6 +1848,9 @@ export interface Geometry2dOptions extends TransformedGeometry2dOptions {
 
 // @public
 export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number): number;
+
+// @public
+export function getColorValue(theme: TLTheme, color: string | TLDefaultColorStyle, variant: keyof TLDefaultColor): string;
 
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
@@ -3115,6 +3135,7 @@ export interface SvgExportContext {
     readonly pixelRatio: null | number;
     resolveAssetUrl(assetId: TLAssetId, width: number): Promise<null | string>;
     readonly scale: number;
+    readonly themeId: string;
     waitUntil(promise: Promise<void>): void;
 }
 
@@ -3163,6 +3184,23 @@ export class TextManager {
         box: BoxModel;
         text: string;
     }[];
+}
+
+// @public
+export class ThemeManager {
+    constructor(editor: Editor, themes?: TLThemes, initialTheme?: string);
+    // (undocumented)
+    dispose(): void;
+    // (undocumented)
+    getCurrentTheme(): TLTheme;
+    getCurrentThemeId(): string;
+    // (undocumented)
+    getThemes(): TLThemes;
+    setCurrentTheme(themeId: null | string): void;
+    // (undocumented)
+    updateTheme(theme: TLTheme): void;
+    // (undocumented)
+    updateThemes(themes: Partial<TLThemes>): void;
 }
 
 // @internal (undocumented)
@@ -3501,7 +3539,6 @@ export interface TldrawEditorBaseProps {
     // @deprecated
     deepLinks?: TLDeepLinkOptions | true;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
-    inferDarkMode?: boolean;
     initialState?: string;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
@@ -3509,6 +3546,8 @@ export interface TldrawEditorBaseProps {
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     // @deprecated
     textOptions?: TLTextOptions;
+    theme?: string;
+    themes?: TLThemes;
     tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
@@ -3732,7 +3771,6 @@ export interface TLEditorOptions {
     };
     getContainer(): HTMLElement;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
-    inferDarkMode?: boolean;
     initialState?: string;
     // (undocumented)
     licenseKey?: string;
@@ -3742,6 +3780,8 @@ export interface TLEditorOptions {
     store: TLStore;
     // @deprecated
     textOptions?: TLTextOptions;
+    theme?: string;
+    themes?: TLThemes;
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
@@ -3794,6 +3834,7 @@ export const tlenv: {
 // @public
 export const tlenvReactive: Atom<    {
 isCoarsePointer: boolean;
+supportsP3ColorSpace: boolean;
 }, unknown>;
 
 // @public (undocumented)
@@ -4813,6 +4854,9 @@ export function useContainer(): HTMLElement;
 // @public (undocumented)
 export function useContainerIfExists(): HTMLElement | null;
 
+// @public (undocumented)
+export function useCurrentThemeId(): string;
+
 // @public
 export function useDelaySvgExport(): () => void;
 
@@ -4830,9 +4874,6 @@ export function useGlobalMenuIsOpen(id: string, onChange?: (isOpen: boolean) => 
 
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;
-
-// @public (undocumented)
-export function useIsDarkMode(): boolean;
 
 // @public (undocumented)
 export function useIsEditing(shapeId: TLShapeId): boolean;
@@ -4873,7 +4914,7 @@ export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>
 
 // @public (undocumented)
 export class UserPreferencesManager {
-    constructor(user: TLUser, inferDarkMode: boolean);
+    constructor(user: TLUser);
     // (undocumented)
     disposables: Set<() => void>;
     // (undocumented)

@@ -9,10 +9,12 @@ import {
 	maybeSnapToGrid,
 } from '@tldraw/editor'
 import { startEditingShapeWithRichText } from '../../../tools/SelectTool/selectHelpers'
+import { getDisplayValues } from '../../shared/getDisplayValues'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
 	getAvailableNoteAdjacentPositions,
 } from '../noteHelpers'
+import type { NoteShapeUtil } from '../NoteShapeUtil'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -31,12 +33,18 @@ export class Pointing extends StateNode {
 		const id = createShapeId()
 		this.markId = editor.markHistoryStoppingPoint(`creating_note:${id}`)
 
+		// Resolve note dimensions from the util's defaults
+		const noteUtil = editor.getShapeUtil('note') as NoteShapeUtil
+		const dv = getDisplayValues(noteUtil, { props: noteUtil.getDefaultProps() } as TLNoteShape)
+
 		// Check for note pits; if the pointer is close to one, place the note centered on the pit
 		const center = this.editor.inputs.getOriginPagePoint().clone()
 		const offset = getNoteShapeAdjacentPositionOffset(
 			this.editor,
 			center,
-			this.editor.getResizeScaleFactor()
+			this.editor.getResizeScaleFactor(),
+			dv.noteWidth,
+			dv.noteHeight
 		)
 		if (offset) {
 			center.sub(offset)
@@ -97,10 +105,22 @@ export class Pointing extends StateNode {
 	}
 }
 
-export function getNoteShapeAdjacentPositionOffset(editor: Editor, center: Vec, scale: number) {
+export function getNoteShapeAdjacentPositionOffset(
+	editor: Editor,
+	center: Vec,
+	scale: number,
+	noteWidth: number,
+	noteHeight: number
+) {
 	let min = NOTE_ADJACENT_POSITION_SNAP_RADIUS / editor.getZoomLevel() // in screen space
 	let offset: Vec | undefined
-	for (const pit of getAvailableNoteAdjacentPositions(editor, 0, scale, 0)) {
+	for (const pit of getAvailableNoteAdjacentPositions(editor, {
+		rotation: 0,
+		scale,
+		extraHeight: 0,
+		noteWidth,
+		noteHeight,
+	})) {
 		// only check page rotations of zero
 		const deltaToPit = Vec.Sub(center, pit)
 		const dist = deltaToPit.len()

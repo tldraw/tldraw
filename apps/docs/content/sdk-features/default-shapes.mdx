@@ -224,8 +224,9 @@ Configuration options:
 | Option              | Type     | Default | Description                                                                                     |
 | ------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------- |
 | `maxPointsPerShape` | `number` | `600`   | Maximum points before starting a new shape. Same behavior as draw shapes.                       |
-| `underlayOpacity`   | `number` | `0.82`  | Opacity of the underlay (background layer). Combined with overlay creates the highlight effect. |
-| `overlayOpacity`    | `number` | `0.35`  | Opacity of the overlay (foreground layer). Lower values create a more subtle highlight.         |
+| `highlightColors`   | `Record<string, Record<string, { srgb, p3 }>>` | (built-in palette) | Per-theme, per-color highlight colors in sRGB and Display P3. |
+
+The highlight's `underlayOpacity` (default `0.82`) and `overlayOpacity` (default `0.35`) are display values that can be overridden via `getDisplayValueOverrides`.
 
 ```tsx
 const ConfiguredHighlightUtil = HighlightShapeUtil.configure({
@@ -414,6 +415,7 @@ Configuration options:
 | ---------------- | --------- | ------- | ----------------------------------------------------------------------------------------------- |
 | `showColors`     | `boolean` | `false` | When true, frames display colored borders and header backgrounds based on the `color` property. |
 | `resizeChildren` | `boolean` | `false` | When true, resizing the frame also scales the frame's children proportionally.                  |
+| `frameColors`    | `Record<string, Record<string, { headingStroke, headingFill, stroke, fill, text }>>` | (built-in palette) | Per-theme, per-color frame colors. |
 
 When `showColors` is enabled, the frame's `color` property becomes a style that users can change from the style panel. When disabled, all frames appear with the same neutral styling.
 

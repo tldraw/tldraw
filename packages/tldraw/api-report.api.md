@@ -84,7 +84,7 @@ import { TLClickEventInfo } from '@tldraw/editor';
 import { TLClipboardWriteInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
-import { TLDefaultColorThemeColor } from '@tldraw/tlschema';
+import { TLDefaultColorStyle } from '@tldraw/tlschema';
 import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
@@ -149,6 +149,7 @@ import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
+import { TLTheme } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
@@ -191,9 +192,6 @@ export const allDefaultFontFaces: TLFontFace[];
 export function ArrangeMenuSubmenu(): JSX.Element | null;
 
 // @public (undocumented)
-export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
-
-// @public (undocumented)
 export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
     // (undocumented)
     getDefaultProps(): Partial<TLArrowBindingProps>;
@@ -225,7 +223,7 @@ export function ArrowLeftToolbarItem(): JSX.Element;
 export function ArrowRightToolbarItem(): JSX.Element;
 
 // @public
-export interface ArrowShapeOptions {
+export interface ArrowShapeOptions extends ShapeOptionsWithDisplayValues<TLArrowShape, ArrowShapeUtilDisplayValues> {
     readonly arcArrowCenterSnapDistance: number;
     readonly elbowArrowAxisSnapDistance: number;
     readonly elbowArrowCenterSnapDistance: number;
@@ -354,6 +352,30 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     useLegacyIndicator(): boolean;
 }
 
+// @public (undocumented)
+export interface ArrowShapeUtilDisplayValues {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    labelBorderRadius: number;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    labelFontFamily: string;
+    // (undocumented)
+    labelFontSize: number;
+    // (undocumented)
+    labelLineHeight: number;
+    // (undocumented)
+    labelPadding: number;
+    // (undocumented)
+    patternFillFallbackColor: string;
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeWidth: number;
+}
+
 // @public
 export interface ArrowTargetState {
     // (undocumented)
@@ -430,6 +452,10 @@ export interface BasePathBuilderOpts {
 }
 
 // @public (undocumented)
+export interface BookmarkShapeOptions extends ShapeOptionsWithDisplayValues<TLBookmarkShape, BookmarkShapeUtilDisplayValues> {
+}
+
+// @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     canResize(): boolean;
@@ -492,12 +518,17 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         y: number;
     } | undefined;
     // (undocumented)
+    options: BookmarkShapeOptions;
+    // (undocumented)
     static props: RecordProps<TLBookmarkShape>;
     // (undocumented)
     static type: "bookmark";
     // (undocumented)
     useLegacyIndicator(): boolean;
 }
+
+// @public (undocumented)
+export type BookmarkShapeUtilDisplayValues = object;
 
 // @public (undocumented)
 export interface BoxWidthHeight {
@@ -1150,7 +1181,7 @@ export interface DrawPathBuilderOpts extends BasePathBuilderOpts, DrawPathBuilde
 }
 
 // @public (undocumented)
-export interface DrawShapeOptions {
+export interface DrawShapeOptions extends ShapeOptionsWithDisplayValues<TLDrawShape, DrawShapeUtilDisplayValues> {
     readonly maxPointsPerShape: number;
 }
 
@@ -1215,6 +1246,18 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     static type: "draw";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface DrawShapeUtilDisplayValues {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    patternFillFallbackColor: string;
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeWidth: number;
 }
 
 // @public (undocumented)
@@ -1394,7 +1437,7 @@ export interface EmbedDefinition {
 }
 
 // @public (undocumented)
-export interface EmbedShapeOptions {
+export interface EmbedShapeOptions extends ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues> {
     readonly embedDefinitions: readonly TLEmbedDefinition[];
 }
 
@@ -1464,6 +1507,12 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     static type: "embed";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface EmbedShapeUtilDisplayValues {
+    // (undocumented)
+    showShadow: boolean;
 }
 
 // @public (undocumented)
@@ -1547,13 +1596,14 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
 export function FitFrameToContentMenuItem(): JSX.Element | null;
 
 // @public (undocumented)
-export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
-
-// @public (undocumented)
-export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
-
-// @public (undocumented)
-export interface FrameShapeOptions {
+export interface FrameShapeOptions extends ShapeOptionsWithDisplayValues<TLFrameShape, FrameShapeUtilDisplayValues> {
+    frameColors: Record<string, Record<string, {
+        fill: string;
+        headingFill: string;
+        headingStroke: string;
+        stroke: string;
+        text: string;
+    }>>;
     resizeChildren: boolean;
     showColors: boolean;
 }
@@ -1641,7 +1691,37 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 }
 
 // @public (undocumented)
+export interface FrameShapeUtilDisplayValues {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    headingFillColor: string;
+    // (undocumented)
+    headingStrokeColor: string;
+    // (undocumented)
+    headingTextColor: string;
+    // (undocumented)
+    showColorsFillColor: string;
+    // (undocumented)
+    showColorsHeadingFillColor: string;
+    // (undocumented)
+    showColorsHeadingStrokeColor: string;
+    // (undocumented)
+    showColorsHeadingTextColor: string;
+    // (undocumented)
+    showColorsStrokeColor: string;
+    // (undocumented)
+    strokeColor: string;
+}
+
+// @public (undocumented)
 export function FrameToolbarItem(): JSX.Element;
+
+// @public (undocumented)
+export interface GeoShapeOptions extends ShapeOptionsWithDisplayValues<TLGeoShape, GeoShapeUtilDisplayValues> {
+    // (undocumented)
+    showTextOutline: boolean;
+}
 
 // @public (undocumented)
 export class GeoShapeTool extends StateNode {
@@ -1691,14 +1771,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
             font: "draw" | "mono" | "sans" | "serif";
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
             h: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            labelColor: TLDefaultColorStyle;
             richText: {
                 attrs?: any;
                 content: unknown[];
@@ -1726,14 +1806,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
             font: "draw" | "mono" | "sans" | "serif";
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
             h: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            labelColor: TLDefaultColorStyle;
             richText: {
                 attrs?: any;
                 content: unknown[];
@@ -1794,9 +1874,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     };
     // (undocumented)
-    options: {
-        showTextOutline: boolean;
-    };
+    options: GeoShapeOptions;
     // (undocumented)
     static props: RecordProps<TLGeoShape>;
     // (undocumented)
@@ -1805,6 +1883,48 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     static type: "geo";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface GeoShapeUtilDisplayValues {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    labelEdgeMargin: number;
+    // (undocumented)
+    labelExtraPadding: number;
+    // (undocumented)
+    labelFontFamily: string;
+    // (undocumented)
+    labelFontSize: number;
+    // (undocumented)
+    labelFontStyle: string;
+    // (undocumented)
+    labelFontVariant: string;
+    // (undocumented)
+    labelFontWeight: string;
+    // (undocumented)
+    labelHorizontalAlign: 'center' | 'end' | 'start';
+    // (undocumented)
+    labelLineHeight: number;
+    // (undocumented)
+    labelMinWidth: number;
+    // (undocumented)
+    labelPadding: number;
+    // (undocumented)
+    labelVerticalAlign: 'end' | 'middle' | 'start';
+    // (undocumented)
+    minSizeWithLabel: number;
+    // (undocumented)
+    patternFillFallbackColor: string;
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeRoundness: number;
+    // (undocumented)
+    strokeWidth: number;
 }
 
 // @public (undocumented)
@@ -1825,6 +1945,9 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 // @public (undocumented)
 export function getAssetInfo(file: File, options: TLDefaultExternalContentHandlerOpts, assetId?: TLAssetId): Promise<TLImageAsset | TLVideoAsset>;
 
+// @public
+export function getColorStyleItems(theme: TLTheme): StyleValuesForUi<string>;
+
 // @public (undocumented)
 export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): {
     id: TLShapeId;
@@ -1836,6 +1959,12 @@ export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T
 
 // @public (undocumented)
 export function getDefaultCrop(): TLShapeCrop;
+
+// @public
+export function getDisplayValues<Shape extends TLShape, DisplayValues extends object>(util: {
+    editor: Editor;
+    options: ShapeOptionsWithDisplayValues<Shape, DisplayValues>;
+}, shape: Shape, themeId?: string): DisplayValues;
 
 // @public
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
@@ -1913,12 +2042,12 @@ export function HexagonToolbarItem(): JSX.Element;
 export function hideAllTooltips(): void;
 
 // @public (undocumented)
-export interface HighlightShapeOptions {
+export interface HighlightShapeOptions extends ShapeOptionsWithDisplayValues<TLHighlightShape, HighlightShapeUtilDisplayValues> {
+    highlightColors: Record<string, Record<string, {
+        p3: string;
+        srgb: string;
+    }>>;
     readonly maxPointsPerShape: number;
-    // (undocumented)
-    readonly overlayOpacity: number;
-    // (undocumented)
-    readonly underlayOpacity: number;
 }
 
 // @public (undocumented)
@@ -1975,9 +2104,9 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     static props: RecordProps<TLHighlightShape>;
     // (undocumented)
-    toBackgroundSvg(shape: TLHighlightShape): JSX.Element;
+    toBackgroundSvg(shape: TLHighlightShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
-    toSvg(shape: TLHighlightShape): JSX.Element;
+    toSvg(shape: TLHighlightShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "highlight";
     // (undocumented)
@@ -1985,10 +2114,26 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 }
 
 // @public (undocumented)
+export interface HighlightShapeUtilDisplayValues {
+    // (undocumented)
+    overlayOpacity: number;
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeWidth: number;
+    // (undocumented)
+    underlayOpacity: number;
+}
+
+// @public (undocumented)
 export function HighlightToolbarItem(): JSX.Element;
 
 // @public (undocumented)
 export const iconTypes: readonly ["align-bottom", "align-center-horizontal", "align-center-vertical", "align-left", "align-right", "align-top", "alt", "arrow-arc", "arrow-cycle", "arrow-elbow", "arrow-left", "arrowhead-arrow", "arrowhead-bar", "arrowhead-diamond", "arrowhead-dot", "arrowhead-none", "arrowhead-square", "arrowhead-triangle-inverted", "arrowhead-triangle", "blob", "bold", "bookmark", "bring-forward", "bring-to-front", "broken", "bulletList", "check-circle", "check", "chevron-down", "chevron-left", "chevron-right", "chevron-up", "chevrons-ne", "chevrons-sw", "clipboard-copied", "clipboard-copy", "code", "color", "comment", "corners", "crop", "cross-2", "cross-circle", "dash-dashed", "dash-dotted", "dash-draw", "dash-solid", "disconnected", "discord", "distribute-horizontal", "distribute-vertical", "dot", "dots-horizontal", "dots-vertical", "download", "drag-handle-dots", "duplicate", "edit", "external-link", "fill-fill", "fill-lined-fill", "fill-none", "fill-pattern", "fill-semi", "fill-solid", "follow", "following", "font-draw", "font-mono", "font-sans", "font-serif", "geo-arrow-down", "geo-arrow-left", "geo-arrow-right", "geo-arrow-up", "geo-check-box", "geo-cloud", "geo-diamond", "geo-ellipse", "geo-heart", "geo-hexagon", "geo-octagon", "geo-oval", "geo-pentagon", "geo-rectangle", "geo-rhombus-2", "geo-rhombus", "geo-star", "geo-trapezoid", "geo-triangle", "geo-x-box", "github", "group", "heading", "help-circle", "highlight", "horizontal-align-end", "horizontal-align-middle", "horizontal-align-start", "info-circle", "italic", "leading", "link", "list", "lock", "manual", "menu", "minus", "mixed", "pack", "plus", "question-mark-circle", "question-mark", "redo", "reset-zoom", "rotate-ccw", "rotate-cw", "send-backward", "send-to-back", "share-1", "size-extra-large", "size-large", "size-medium", "size-small", "spline-cubic", "spline-line", "stack-horizontal", "stack-vertical", "status-offline", "stretch-horizontal", "stretch-vertical", "strike", "text-align-center", "text-align-left", "text-align-right", "toggle-off", "toggle-on", "tool-arrow", "tool-eraser", "tool-frame", "tool-hand", "tool-highlight", "tool-laser", "tool-line", "tool-media", "tool-note", "tool-pencil", "tool-pointer", "tool-screenshot", "tool-text", "trash", "twitter", "underline", "undo", "ungroup", "unlock", "vertical-align-end", "vertical-align-middle", "vertical-align-start", "warning-triangle", "zoom-in", "zoom-out"];
+
+// @public (undocumented)
+export interface ImageShapeOptions extends ShapeOptionsWithDisplayValues<TLImageShape, ImageShapeUtilDisplayValues> {
+}
 
 // @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
@@ -2019,6 +2164,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>): TLImageShape;
     // (undocumented)
+    options: ImageShapeOptions;
+    // (undocumented)
     static props: RecordProps<TLImageShape>;
     // (undocumented)
     toSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
@@ -2029,13 +2176,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 }
 
 // @public (undocumented)
+export interface ImageShapeUtilDisplayValues {
+}
+
+// @public (undocumented)
 export const KeyboardShiftEnterTweakExtension: Extension<any, any>;
 
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX.Element | null;
-
-// @public (undocumented)
-export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
 export function LanguageMenu(): JSX.Element | null;
@@ -2061,6 +2209,10 @@ export class LaserTool extends StateNode {
 
 // @public (undocumented)
 export function LaserToolbarItem(): JSX.Element;
+
+// @public (undocumented)
+export interface LineShapeOptions extends ShapeOptionsWithDisplayValues<TLLineShape, LineShapeUtilDisplayValues> {
+}
 
 // @public (undocumented)
 export class LineShapeTool extends StateNode {
@@ -2115,7 +2267,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "solid";
             points: {
                 [x: string]: {
@@ -2144,7 +2296,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "solid";
             points: {
                 [x: string]: {
@@ -2178,13 +2330,23 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         };
     };
     // (undocumented)
+    options: LineShapeOptions;
+    // (undocumented)
     static props: RecordProps<TLLineShape>;
     // (undocumented)
-    toSvg(shape: TLLineShape): JSX.Element;
+    toSvg(shape: TLLineShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "line";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface LineShapeUtilDisplayValues {
+    // (undocumented)
+    strokeColor: string;
+    // (undocumented)
+    strokeWidth: number;
 }
 
 // @public (undocumented)
@@ -2219,7 +2381,12 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
 }
 
 // @public (undocumented)
-export interface NoteShapeOptions {
+export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<TLNoteShape, NoteShapeUtilDisplayValues> {
+    noteBorder: Record<string, string>;
+    noteColors: Record<string, Record<string, {
+        fill: string;
+        text: string;
+    }>>;
     resizeMode: 'none' | 'scale';
 }
 
@@ -2275,11 +2442,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         parentId: TLParentId;
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             font: "draw" | "mono" | "sans" | "serif";
             fontSizeAdjustment: number;
             growY: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            labelColor: TLDefaultColorStyle;
             richText: {
                 attrs?: any;
                 content: unknown[];
@@ -2306,11 +2473,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         parentId: TLParentId;
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             font: "draw" | "mono" | "sans" | "serif";
             fontSizeAdjustment: number;
             growY: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            labelColor: TLDefaultColorStyle;
             richText: {
                 attrs?: any;
                 content: unknown[];
@@ -2345,6 +2512,40 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     static type: "note";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface NoteShapeUtilDisplayValues {
+    // (undocumented)
+    borderColor: string;
+    // (undocumented)
+    borderWidth: number;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    labelFontFamily: string;
+    // (undocumented)
+    labelFontSize: number;
+    // (undocumented)
+    labelFontStyle: string;
+    // (undocumented)
+    labelFontVariant: string;
+    // (undocumented)
+    labelFontWeight: string;
+    // (undocumented)
+    labelHorizontalAlign: 'center' | 'end' | 'start';
+    // (undocumented)
+    labelLineHeight: number;
+    // (undocumented)
+    labelPadding: number;
+    // (undocumented)
+    labelVerticalAlign: 'end' | 'middle' | 'start';
+    // (undocumented)
+    noteBackgroundColor: string;
+    // (undocumented)
+    noteHeight: number;
+    // (undocumented)
+    noteWidth: number;
 }
 
 // @public (undocumented)
@@ -2702,15 +2903,11 @@ export const RichTextLabel: React_3.NamedExoticComponent<RichTextLabelProps>;
 // @public (undocumented)
 export interface RichTextLabelProps {
     // (undocumented)
-    align: TLDefaultHorizontalAlignStyle;
-    // (undocumented)
     bounds?: Box;
     // (undocumented)
     classNamePrefix?: string;
     // (undocumented)
-    fill?: TLDefaultFillStyle;
-    // (undocumented)
-    font: TLDefaultFontStyle;
+    fontFamily: string;
     // (undocumented)
     fontSize: number;
     // (undocumented)
@@ -2734,6 +2931,8 @@ export interface RichTextLabelProps {
     // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)
+    textAlign: 'center' | 'end' | 'start';
+    // (undocumented)
     textHeight?: number;
     // (undocumented)
     textWidth?: number;
@@ -2742,26 +2941,26 @@ export interface RichTextLabelProps {
         richText: TLRichText;
     }>['type'];
     // (undocumented)
-    verticalAlign: TLDefaultVerticalAlignStyle;
+    verticalAlign: 'end' | 'middle' | 'start';
     // (undocumented)
     wrap?: boolean;
 }
 
 // @public
-export function RichTextSVG({ bounds, richText, fontSize, font, align, verticalAlign, wrap, labelColor, padding, showTextOutline }: RichTextSVGProps): JSX.Element;
+export function RichTextSVG({ bounds, richText, fontSize, fontFamily, lineHeight, textAlign, verticalAlign, wrap, labelColor, padding, showTextOutline }: RichTextSVGProps): JSX.Element;
 
 // @public (undocumented)
 export interface RichTextSVGProps {
     // (undocumented)
-    align: TLDefaultHorizontalAlignStyle;
-    // (undocumented)
     bounds: Box;
     // (undocumented)
-    font: TLDefaultFontStyle;
+    fontFamily: string;
     // (undocumented)
     fontSize: number;
     // (undocumented)
     labelColor: string;
+    // (undocumented)
+    lineHeight: number;
     // (undocumented)
     padding: number;
     // (undocumented)
@@ -2769,7 +2968,9 @@ export interface RichTextSVGProps {
     // (undocumented)
     showTextOutline?: boolean;
     // (undocumented)
-    verticalAlign: TLDefaultVerticalAlignStyle;
+    textAlign: 'center' | 'end' | 'start';
+    // (undocumented)
+    verticalAlign: 'end' | 'middle' | 'start';
     // (undocumented)
     wrap?: boolean;
 }
@@ -2825,6 +3026,14 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
 
 // @public (undocumented)
+export interface ShapeOptionsWithDisplayValues<Shape extends TLShape, DisplayValues extends object> {
+    // (undocumented)
+    getDisplayValueOverrides(editor: Editor, shape: Shape, theme: TLTheme, options: any): Partial<DisplayValues>;
+    // (undocumented)
+    getDisplayValues(editor: Editor, shape: Shape, theme: TLTheme, options: any): DisplayValues;
+}
+
+// @public (undocumented)
 export interface SolidPathBuilderOpts extends BasePathBuilderOpts {
     // (undocumented)
     style: 'solid';
@@ -2844,9 +3053,6 @@ export function startEditingShapeWithRichText(editor: Editor, shapeOrId: TLShape
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX.Element;
-
-// @public (undocumented)
-export const STROKE_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public
 export interface StrokeOptions {
@@ -3059,15 +3265,6 @@ export type StyleValuesForUi<T> = readonly {
 }[];
 
 // @public (undocumented)
-export const TEXT_PROPS: {
-    fontStyle: string;
-    fontVariant: string;
-    fontWeight: string;
-    lineHeight: number;
-    padding: string;
-};
-
-// @public (undocumented)
 export interface TextAreaProps {
     // (undocumented)
     handleBlur(): void;
@@ -3099,7 +3296,7 @@ export interface TextAreaProps {
 }
 
 // @public (undocumented)
-export interface TextShapeOptions {
+export interface TextShapeOptions extends ShapeOptionsWithDisplayValues<TLTextShape, TextShapeUtilDisplayValues> {
     extraArrowHorizontalPadding: number;
     showTextOutline: boolean;
 }
@@ -3153,7 +3350,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         parentId: TLParentId;
         props: {
             autoSize: boolean;
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            color: TLDefaultColorStyle;
             font: "draw" | "mono" | "sans" | "serif";
             richText: {
                 attrs?: any;
@@ -3202,6 +3399,24 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     static type: "text";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface TextShapeUtilDisplayValues {
+    // (undocumented)
+    color: string;
+    // (undocumented)
+    fontFamily: string;
+    // (undocumented)
+    fontSize: number;
+    // (undocumented)
+    fontStyle: string;
+    // (undocumented)
+    fontVariant: string;
+    // (undocumented)
+    fontWeight: string;
+    // (undocumented)
+    lineHeight: number;
 }
 
 // @public (undocumented)
@@ -5520,27 +5735,6 @@ export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 export function useCurrentTranslation(): TLUiTranslation;
 
 // @public (undocumented)
-export function useDefaultColorTheme(): {
-    "light-blue": TLDefaultColorThemeColor;
-    "light-green": TLDefaultColorThemeColor;
-    "light-red": TLDefaultColorThemeColor;
-    "light-violet": TLDefaultColorThemeColor;
-    background: string;
-    black: TLDefaultColorThemeColor;
-    blue: TLDefaultColorThemeColor;
-    green: TLDefaultColorThemeColor;
-    grey: TLDefaultColorThemeColor;
-    id: "dark" | "light";
-    orange: TLDefaultColorThemeColor;
-    red: TLDefaultColorThemeColor;
-    solid: string;
-    text: string;
-    violet: TLDefaultColorThemeColor;
-    white: TLDefaultColorThemeColor;
-    yellow: TLDefaultColorThemeColor;
-};
-
-// @public (undocumented)
 export function useDefaultHelpers(): {
     addDialog: (dialog: Omit<TLUiDialog, "id"> & {
         id?: string | undefined;
@@ -5704,7 +5898,7 @@ export function useUiEvents(): TLUiEventContextType;
 export function useUnlockedSelectedShapesCount(min?: number, max?: number): boolean | number;
 
 // @public (undocumented)
-export interface VideoShapeOptions {
+export interface VideoShapeOptions extends ShapeOptionsWithDisplayValues<TLVideoShape, VideoShapeUtilDisplayValues> {
     autoplay: boolean;
 }
 
@@ -5736,6 +5930,10 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     static type: "video";
     // (undocumented)
     useLegacyIndicator(): boolean;
+}
+
+// @public (undocumented)
+export interface VideoShapeUtilDisplayValues {
 }
 
 // @public (undocumented)

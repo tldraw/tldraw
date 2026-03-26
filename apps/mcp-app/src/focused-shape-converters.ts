@@ -301,7 +301,7 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): {
 						font: shape.font ?? 'draw',
 						align: 'middle',
 						verticalAlign: 'middle',
-						fontSizeAdjustment: 0,
+						fontSizeAdjustment: 1,
 						growY: 0,
 						labelColor: 'black',
 						scale: 1,

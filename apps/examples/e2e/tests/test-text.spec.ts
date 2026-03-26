@@ -269,7 +269,7 @@ test.describe('text measurement', () => {
 			return editor.getShape(id) as TLNoteShape
 		})
 
-		expect(shape.props.fontSizeAdjustment).toEqual(32)
+		expect(shape.props.fontSizeAdjustment).toEqual(1)
 	})
 
 	test('for auto-font-sizing shapes, should auto-size text that have slightly long words', async () => {
@@ -291,7 +291,7 @@ test.describe('text measurement', () => {
 			return editor.getShape(id) as TLNoteShape
 		})
 
-		expect(shape.props.fontSizeAdjustment).toEqual(27)
+		expect(shape.props.fontSizeAdjustment).toEqual(0.84375)
 	})
 
 	test('for auto-font-sizing shapes, should auto-size text that have long words', async () => {
@@ -313,7 +313,7 @@ test.describe('text measurement', () => {
 			return editor.getShape(id) as TLNoteShape
 		})
 
-		expect(shape.props.fontSizeAdjustment).toEqual(20)
+		expect(shape.props.fontSizeAdjustment).toEqual(0.625)
 	})
 
 	test('for auto-font-sizing shapes, should wrap text that has words that are way too long', async () => {
@@ -337,7 +337,7 @@ test.describe('text measurement', () => {
 			return editor.getShape(id) as TLNoteShape
 		})
 
-		expect(shape.props.fontSizeAdjustment).toEqual(14)
+		expect(shape.props.fontSizeAdjustment).toEqual(0.4375)
 	})
 
 	test('should use custom renderMethod for text measurement', async () => {

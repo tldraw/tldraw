@@ -12,63 +12,68 @@ import {
 /** @internal */
 export const CLONE_HANDLE_MARGIN = 0
 /** @internal */
-export const NOTE_SIZE = 200
-/** @internal */
-export const NOTE_CENTER_OFFSET = new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2)
-/** @internal */
 export const NOTE_ADJACENT_POSITION_SNAP_RADIUS = 10
 
-const BASE_NOTE_POSITIONS = (editor: Editor) =>
+const BASE_NOTE_POSITIONS = (editor: Editor, noteWidth: number, noteHeight: number) =>
 	[
 		[
 			['a1' as IndexKey],
-			new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * -0.5 - editor.options.adjacentShapeMargin),
+			new Vec(noteWidth * 0.5, noteHeight * -0.5 - editor.options.adjacentShapeMargin),
 		], // t
 		[
 			['a2' as IndexKey],
-			new Vec(NOTE_SIZE * 1.5 + editor.options.adjacentShapeMargin, NOTE_SIZE * 0.5),
+			new Vec(noteWidth * 1.5 + editor.options.adjacentShapeMargin, noteHeight * 0.5),
 		], // r
 		[
 			['a3' as IndexKey],
-			new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * 1.5 + editor.options.adjacentShapeMargin),
+			new Vec(noteWidth * 0.5, noteHeight * 1.5 + editor.options.adjacentShapeMargin),
 		], // b
 		[
 			['a4' as IndexKey],
-			new Vec(NOTE_SIZE * -0.5 - editor.options.adjacentShapeMargin, NOTE_SIZE * 0.5),
+			new Vec(noteWidth * -0.5 - editor.options.adjacentShapeMargin, noteHeight * 0.5),
 		], // l
 	] as const
 
-function getBaseAdjacentNotePositions(editor: Editor, scale: number) {
-	if (scale === 1) return BASE_NOTE_POSITIONS(editor)
-	const s = NOTE_SIZE * scale
+function getBaseAdjacentNotePositions(
+	editor: Editor,
+	scale: number,
+	noteWidth: number,
+	noteHeight: number
+) {
+	if (scale === 1) return BASE_NOTE_POSITIONS(editor, noteWidth, noteHeight)
+	const w = noteWidth * scale
+	const h = noteHeight * scale
 	const m = editor.options.adjacentShapeMargin * scale
 	return [
-		[['a1' as IndexKey], new Vec(s * 0.5, s * -0.5 - m)], // t
-		[['a2' as IndexKey], new Vec(s * 1.5 + m, s * 0.5)], // r
-		[['a3' as IndexKey], new Vec(s * 0.5, s * 1.5 + m)], // b
-		[['a4' as IndexKey], new Vec(s * -0.5 - m, s * 0.5)], // l
+		[['a1' as IndexKey], new Vec(w * 0.5, h * -0.5 - m)], // t
+		[['a2' as IndexKey], new Vec(w * 1.5 + m, h * 0.5)], // r
+		[['a3' as IndexKey], new Vec(w * 0.5, h * 1.5 + m)], // b
+		[['a4' as IndexKey], new Vec(w * -0.5 - m, h * 0.5)], // l
 	] as const
+}
+
+/** @internal */
+export interface NoteAdjacentPositionsOpts {
+	pagePoint: Vec
+	pageRotation: number
+	growY: number
+	extraHeight: number
+	scale: number
+	noteWidth: number
+	noteHeight: number
 }
 
 /**
  * Get the adjacent positions for a particular note shape.
  *
- * @param pagePoint - The point of the note shape on the page.
- * @param pageRotation - The rotation of the note shape on the page.
- * @param growY - The growY of the note shape.
- * @param extraHeight - The extra height to add to the top position above the note shape (ie the growY of the dragging shape).
- *
  * @internal */
 export function getNoteAdjacentPositions(
 	editor: Editor,
-	pagePoint: Vec,
-	pageRotation: number,
-	growY: number,
-	extraHeight: number,
-	scale: number
+	opts: NoteAdjacentPositionsOpts
 ): Record<IndexKey, Vec> {
+	const { pagePoint, pageRotation, growY, extraHeight, scale, noteWidth, noteHeight } = opts
 	return Object.fromEntries(
-		getBaseAdjacentNotePositions(editor, scale).map(([id, v], i) => {
+		getBaseAdjacentNotePositions(editor, scale, noteWidth, noteHeight).map(([id, v], i) => {
 			const point = v.clone()
 			if (i === 0 && extraHeight) {
 				// apply top margin (the growY of the moving note shape)
@@ -82,22 +87,27 @@ export function getNoteAdjacentPositions(
 	)
 }
 
+/** @internal */
+export interface AvailableNoteAdjacentPositionsOpts {
+	rotation: number
+	scale: number
+	extraHeight: number
+	noteWidth: number
+	noteHeight: number
+}
+
 /**
  * Get all of the available note adjacent positions, excluding the selected shapes.
- *
- * @param editor - The editor instance.
- * @param rotation - The rotation of the note shape.
- * @param extraHeight - The extra height to add to the top position above the note shape (ie the growY of the dragging shape).
  *
  * @internal */
 export function getAvailableNoteAdjacentPositions(
 	editor: Editor,
-	rotation: number,
-	scale: number,
-	extraHeight: number
+	opts: AvailableNoteAdjacentPositionsOpts
 ) {
+	const { rotation, scale, extraHeight, noteWidth, noteHeight } = opts
 	const selectedShapeIds = new Set(editor.getSelectedShapeIds())
-	const minSize = (NOTE_SIZE + editor.options.adjacentShapeMargin + extraHeight) ** 2
+	const minSize =
+		(Math.max(noteWidth, noteHeight) + editor.options.adjacentShapeMargin + extraHeight) ** 2
 	const allCenters = new Map<TLNoteShape, Vec>()
 	const positions: (Vec | undefined)[] = []
 
@@ -122,14 +132,15 @@ export function getAvailableNoteAdjacentPositions(
 		// And push its position to the positions array
 		positions.push(
 			...Object.values(
-				getNoteAdjacentPositions(
-					editor,
-					transform.point(),
-					rotation,
-					shape.props.growY,
+				getNoteAdjacentPositions(editor, {
+					pagePoint: transform.point(),
+					pageRotation: rotation,
+					growY: shape.props.growY,
 					extraHeight,
-					scale
-				)
+					scale,
+					noteWidth,
+					noteHeight,
+				})
 			)
 		)
 	}
@@ -151,23 +162,25 @@ export function getAvailableNoteAdjacentPositions(
 	return compact(positions)
 }
 
+/** @internal */
+export interface NoteShapeForAdjacentPositionOpts {
+	shape: TLNoteShape
+	center: Vec
+	pageRotation: number
+	noteWidth: number
+	noteHeight: number
+	forceNew?: boolean
+}
+
 /**
  * For a particular adjacent note position, get the shape in that position or create a new one.
- *
- * @param editor - The editor instance.
- * @param shape - The note shape to create or select.
- * @param center - The center of the note shape.
- * @param pageRotation - The rotation of the note shape on the page.
- * @param forceNew - Whether to force the creation of a new note shape.
  *
  * @internal */
 export function getNoteShapeForAdjacentPosition(
 	editor: Editor,
-	shape: TLNoteShape,
-	center: Vec,
-	pageRotation: number,
-	forceNew = false
+	opts: NoteShapeForAdjacentPositionOpts
 ) {
+	const { shape, center, pageRotation, noteWidth, noteHeight, forceNew = false } = opts
 	// There might already be a note in that position! If there is, we'll
 	// select the next note and switch focus to it. If there's not, then
 	// we'll create a new note in that position.
@@ -178,7 +191,8 @@ export function getNoteShapeForAdjacentPosition(
 	// Start from the top of the stack, and work our way down
 	const allShapesOnPage = editor.getCurrentPageShapesSorted()
 
-	const minDistance = (NOTE_SIZE + editor.options.adjacentShapeMargin ** 2) ** shape.props.scale
+	const minDistance =
+		(Math.max(noteWidth, noteHeight) + editor.options.adjacentShapeMargin ** 2) ** shape.props.scale
 
 	for (let i = allShapesOnPage.length - 1; i >= 0; i--) {
 		const otherNote = allShapesOnPage[i]
@@ -216,7 +230,7 @@ export function getNoteShapeForAdjacentPosition(
 				...shape.props,
 				richText: toRichText(''),
 				growY: 0,
-				fontSizeAdjustment: 0,
+				fontSizeAdjustment: 1,
 				url: '',
 			},
 		})
@@ -231,7 +245,7 @@ export function getNoteShapeForAdjacentPosition(
 			createdShape,
 			Vec.Sub(
 				center,
-				Vec.Rot(NOTE_CENTER_OFFSET.clone().mul(createdShape.props.scale), pageRotation)
+				Vec.Rot(new Vec(noteWidth / 2, noteHeight / 2).mul(createdShape.props.scale), pageRotation)
 			)
 		)
 

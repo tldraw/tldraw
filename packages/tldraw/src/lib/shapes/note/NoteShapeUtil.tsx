@@ -2,7 +2,6 @@
 import {
 	Box,
 	EMPTY_ARRAY,
-	Editor,
 	Group2d,
 	IndexKey,
 	Rectangle2d,
@@ -19,7 +18,6 @@ import {
 	WeakCache,
 	exhaustiveSwitchError,
 	getColorValue,
-	getDefaultColorTheme,
 	getFontsFromRichText,
 	isEqual,
 	lerp,
@@ -29,6 +27,7 @@ import {
 	rng,
 	toDomPrecision,
 	toRichText,
+	useCurrentThemeId,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -47,25 +46,67 @@ import {
 	LABEL_PADDING,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
-import {
-	CLONE_HANDLE_MARGIN,
-	NOTE_CENTER_OFFSET,
-	NOTE_SIZE,
-	getNoteShapeForAdjacentPosition,
-} from './noteHelpers'
+import { CLONE_HANDLE_MARGIN, getNoteShapeForAdjacentPosition } from './noteHelpers'
+
+const NOTE_SHAPE_HORIZONTAL_ALIGNS = Object.freeze({
+	start: 'start',
+	middle: 'center',
+	end: 'end',
+	'start-legacy': 'start',
+	'end-legacy': 'end',
+	'middle-legacy': 'center',
+} as const)
+
+const NOTE_SHAPE_VERTICAL_ALIGNS = Object.freeze({
+	start: 'start',
+	middle: 'middle',
+	end: 'end',
+} as const)
 
 /** @public */
-export interface NoteShapeOptions {
+export interface NoteShapeUtilDisplayValues {
+	noteWidth: number
+	noteHeight: number
+	noteBackgroundColor: string
+	borderColor: string
+	borderWidth: number
+	labelColor: string
+	labelFontFamily: string
+	labelFontSize: number
+	labelLineHeight: number
+	labelFontWeight: string
+	labelFontVariant: string
+	labelFontStyle: string
+	labelPadding: number
+	labelHorizontalAlign: 'start' | 'center' | 'end'
+	labelVerticalAlign: 'start' | 'middle' | 'end'
+}
+
+/** @public */
+export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLNoteShape,
+	NoteShapeUtilDisplayValues
+> {
 	/**
 	 * How should the note shape resize? By default it does not resize (except automatically based on its text content),
 	 * but you can set it to be user-resizable using scale.
 	 */
 	resizeMode: 'none' | 'scale'
+	/**
+	 * Per-theme, per-color fill and text color values for note shapes.
+	 * Maps `themeId` → `colorName` → `{ fill, text }`.
+	 */
+	noteColors: Record<string, Record<string, { fill: string; text: string }>>
+	/**
+	 * Per-theme border color for note shapes.
+	 * Maps `themeId` → border color string.
+	 */
+	noteBorder: Record<string, string>
 }
 
 /** @public */
@@ -76,6 +117,75 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override options: NoteShapeOptions = {
 		resizeMode: 'none',
+		noteColors: {
+			light: {
+				black: { fill: '#FCE19C', text: '#000000' },
+				blue: { fill: '#8AA3FF', text: '#000000' },
+				green: { fill: '#6FC896', text: '#000000' },
+				grey: { fill: '#C0CAD3', text: '#000000' },
+				'light-blue': { fill: '#9BC4FD', text: '#000000' },
+				'light-green': { fill: '#98D08A', text: '#000000' },
+				'light-red': { fill: '#F7A5A1', text: '#000000' },
+				'light-violet': { fill: '#DFB0F9', text: '#000000' },
+				orange: { fill: '#FAA475', text: '#000000' },
+				red: { fill: '#FC8282', text: '#000000' },
+				violet: { fill: '#DB91FD', text: '#000000' },
+				yellow: { fill: '#FED49A', text: '#000000' },
+				white: { fill: '#FFFFFF', text: '#000000' },
+			},
+			dark: {
+				black: { fill: '#2c2c2c', text: '#f2f2f2' },
+				blue: { fill: '#2A3F98', text: '#f2f2f2' },
+				green: { fill: '#014429', text: '#f2f2f2' },
+				grey: { fill: '#56595F', text: '#f2f2f2' },
+				'light-blue': { fill: '#1F5495', text: '#f2f2f2' },
+				'light-green': { fill: '#21581D', text: '#f2f2f2' },
+				'light-red': { fill: '#7a3333', text: '#f2f2f2' },
+				'light-violet': { fill: '#762F8E', text: '#f2f2f2' },
+				orange: { fill: '#7c3905', text: '#f2f2f2' },
+				red: { fill: '#7e201f', text: '#f2f2f2' },
+				violet: { fill: '#5f1c70', text: '#f2f2f2' },
+				yellow: { fill: '#8a5e1c', text: '#f2f2f2' },
+				white: { fill: '#eaeaea', text: '#1d1d1d' },
+			},
+		},
+		noteBorder: {
+			light: 'rgb(144, 144, 144)',
+			dark: 'rgb(20, 20, 20)',
+		},
+		getDisplayValues(_editor, shape, theme, options: NoteShapeOptions): NoteShapeUtilDisplayValues {
+			const { color, labelColor, font, size, align, verticalAlign } = shape.props
+			const noteColor =
+				options.noteColors[theme.id]?.[color] ?? options.noteColors['light']?.[color]
+			return {
+				noteWidth: 200,
+				noteHeight: 200,
+				noteBackgroundColor: noteColor?.fill ?? getColorValue(theme, color, 'solid'),
+				borderColor: options.noteBorder[theme.id] ?? options.noteBorder['light'],
+				borderWidth: 2,
+				labelColor:
+					labelColor === 'black'
+						? (noteColor?.text ?? getColorValue(theme, color, 'solid'))
+						: getColorValue(theme, labelColor, 'fill'),
+				labelFontFamily: FONT_FAMILIES[font],
+				labelFontSize: theme.fontSize * LABEL_FONT_SIZES[size],
+				labelLineHeight: theme.lineHeight,
+				labelFontWeight: TEXT_PROPS.fontWeight,
+				labelFontVariant: TEXT_PROPS.fontVariant,
+				labelFontStyle: TEXT_PROPS.fontStyle,
+				labelPadding: LABEL_PADDING,
+				labelHorizontalAlign: NOTE_SHAPE_HORIZONTAL_ALIGNS[align],
+				labelVerticalAlign: NOTE_SHAPE_VERTICAL_ALIGNS[verticalAlign],
+			}
+		},
+		getDisplayValueOverrides(
+			_editor,
+			_shape,
+			_theme,
+			_options
+		): Partial<NoteShapeUtilDisplayValues> {
+			return {}
+		},
 	}
 
 	override canEdit() {
@@ -114,35 +224,37 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			verticalAlign: 'middle',
 			labelColor: 'black',
 			growY: 0,
-			fontSizeAdjustment: 0,
+			fontSizeAdjustment: 1,
 			url: '',
 			scale: 1,
 		}
 	}
 
 	getGeometry(shape: TLNoteShape) {
-		const { labelHeight, labelWidth } = getLabelSize(this.editor, shape)
+		const { labelHeight, labelWidth } = this.getLabelSize(shape)
 		const { scale } = shape.props
+
+		const dv = getDisplayValues(this, shape)
 
 		const lh = labelHeight * scale
 		const lw = labelWidth * scale
-		const nw = NOTE_SIZE * scale
-		const nh = getNoteHeight(shape)
+		const nw = dv.noteWidth * scale
+		const nh = getNoteHeight(shape, dv.noteHeight)
 
 		return new Group2d({
 			children: [
 				new Rectangle2d({ width: nw, height: nh, isFilled: true }),
 				new Rectangle2d({
 					x:
-						shape.props.align === 'start'
+						dv.labelHorizontalAlign === 'start'
 							? 0
-							: shape.props.align === 'end'
+							: dv.labelHorizontalAlign === 'end'
 								? nw - lw
 								: (nw - lw) / 2,
 					y:
-						shape.props.verticalAlign === 'start'
+						dv.labelVerticalAlign === 'start'
 							? 0
-							: shape.props.verticalAlign === 'end'
+							: dv.labelVerticalAlign === 'end'
 								? nh - lh
 								: (nh - lh) / 2,
 					width: lw,
@@ -163,8 +275,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const zoom = this.editor.getEfficientZoomLevel()
 		if (zoom * scale < 0.25) return []
 
-		const nh = getNoteHeight(shape)
-		const nw = NOTE_SIZE * scale
+		const dv = getDisplayValues(this, shape)
+		const nh = getNoteHeight(shape, dv.noteHeight)
+		const nw = dv.noteWidth * scale
 		const offset = (CLONE_HANDLE_MARGIN / zoom) * scale
 
 		if (zoom * scale < 0.5) {
@@ -242,27 +355,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	component(shape: TLNoteShape) {
-		const {
-			id,
-			type,
-			props: {
-				labelColor,
-				scale,
-				color,
-				font,
-				size,
-				align,
-				richText,
-				verticalAlign,
-				fontSizeAdjustment,
-			},
-		} = shape
+		const { id, type, props } = shape
+		const { scale, richText, fontSizeAdjustment } = props
 
 		const handleKeyDown = useNoteKeydownHandler(id)
-
-		const theme = useDefaultColorTheme()
-		const nw = NOTE_SIZE * scale
-		const nh = getNoteHeight(shape)
 
 		const rotation = useValue(
 			'shape rotation',
@@ -270,11 +366,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			[this.editor]
 		)
 
-		const isDarkMode = useValue('dark mode', () => this.editor.user.getIsDarkMode(), [this.editor])
+		const themeId = useCurrentThemeId()
+		const dv = getDisplayValues(this, shape, themeId)
+
+		const nw = dv.noteWidth * scale
+		const nh = getNoteHeight(shape, dv.noteHeight)
 
 		// Shadows are hidden when zoomed out far enough or in dark mode
 		let hideShadows = useEfficientZoomThreshold(0.25 / scale)
-		if (isDarkMode) hideShadows = true
+		if (themeId === 'dark') hideShadows = true
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
@@ -289,11 +389,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					style={{
 						width: nw,
 						height: nh,
-						backgroundColor: getColorValue(theme, color, 'noteFill'),
+						backgroundColor: dv.noteBackgroundColor,
 						borderBottom: hideShadows
-							? isDarkMode
-								? `${2 * scale}px solid rgb(20, 20, 20)`
-								: `${2 * scale}px solid rgb(144, 144, 144)`
+							? `${dv.borderWidth * scale}px solid ${dv.borderColor}`
 							: 'none',
 						boxShadow: hideShadows ? 'none' : getNoteShadow(shape.id, rotation, scale),
 					}}
@@ -302,20 +400,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						<RichTextLabel
 							shapeId={id}
 							type={type}
-							font={font}
-							fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
-							lineHeight={TEXT_PROPS.lineHeight}
-							align={align}
-							verticalAlign={verticalAlign}
+							fontFamily={dv.labelFontFamily}
+							fontSize={(fontSizeAdjustment ?? 1) * dv.labelFontSize * scale}
+							lineHeight={dv.labelLineHeight}
+							textAlign={dv.labelHorizontalAlign}
+							verticalAlign={dv.labelVerticalAlign}
 							richText={richText}
 							isSelected={isSelected}
-							labelColor={
-								labelColor === 'black'
-									? getColorValue(theme, color, 'noteText')
-									: getColorValue(theme, labelColor, 'fill')
-							}
+							labelColor={dv.labelColor}
 							wrap
-							padding={LABEL_PADDING * scale}
+							padding={dv.labelPadding * scale}
 							hasCustomTabBehavior
 							showTextOutline={false}
 							onKeyDown={handleKeyDown}
@@ -329,11 +423,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	indicator(shape: TLNoteShape) {
 		const { scale } = shape.props
+		const dv = getDisplayValues(this, shape)
 		return (
 			<rect
 				rx={scale}
-				width={toDomPrecision(NOTE_SIZE * scale)}
-				height={toDomPrecision(getNoteHeight(shape))}
+				width={toDomPrecision(dv.noteWidth * scale)}
+				height={toDomPrecision(getNoteHeight(shape, dv.noteHeight))}
 			/>
 		)
 	}
@@ -344,14 +439,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override getIndicatorPath(shape: TLNoteShape): Path2D {
 		const { scale } = shape.props
+		const dv = getDisplayValues(this, shape)
 		const path = new Path2D()
-		path.roundRect(0, 0, NOTE_SIZE * scale, getNoteHeight(shape), scale)
+		path.roundRect(0, 0, dv.noteWidth * scale, getNoteHeight(shape, dv.noteHeight), scale)
 		return path
 	}
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
-		const bounds = getBoundsForSVG(shape)
+		const dv = getDisplayValues(this, shape, ctx.themeId)
+		const bounds = new Box(0, 0, dv.noteWidth, dv.noteHeight + shape.props.growY)
 
 		const filterId = `note-shadow-${shape.id.replace(/:/g, '_')}` as SafeId
 
@@ -380,44 +476,36 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			),
 		})
 
-		const textLabel = (
-			<RichTextSVG
-				fontSize={shape.props.fontSizeAdjustment || LABEL_FONT_SIZES[shape.props.size]}
-				font={shape.props.font}
-				align={shape.props.align}
-				verticalAlign={shape.props.verticalAlign}
-				richText={shape.props.richText}
-				labelColor={getColorValue(theme, shape.props.color, 'noteText')}
-				bounds={bounds}
-				padding={LABEL_PADDING}
-				showTextOutline={false}
-			/>
-		)
-
 		return (
 			<>
 				{ctx.isDarkMode ? null : (
 					<rect
 						rx={1}
-						width={NOTE_SIZE}
+						width={dv.noteWidth}
 						height={bounds.h}
-						fill={getColorValue(theme, shape.props.color, 'noteFill')}
+						fill={dv.noteBackgroundColor}
 						filter={`url(#${filterId})`}
 					/>
 				)}
-				<rect
-					rx={1}
-					width={NOTE_SIZE}
-					height={bounds.h}
-					fill={getColorValue(theme, shape.props.color, 'noteFill')}
+				<rect rx={1} width={dv.noteWidth} height={bounds.h} fill={dv.noteBackgroundColor} />
+				<RichTextSVG
+					fontSize={(shape.props.fontSizeAdjustment ?? 1) * dv.labelFontSize}
+					fontFamily={dv.labelFontFamily}
+					lineHeight={dv.labelLineHeight}
+					textAlign={dv.labelHorizontalAlign}
+					verticalAlign={dv.labelVerticalAlign}
+					richText={shape.props.richText}
+					labelColor={dv.labelColor}
+					bounds={bounds}
+					padding={dv.labelPadding}
+					showTextOutline={false}
 				/>
-				{textLabel}
 			</>
 		)
 	}
 
 	override onBeforeCreate(next: TLNoteShape) {
-		return getNoteSizeAdjustments(this.editor, next)
+		return this.getNoteSizeAdjustments(next)
 	}
 
 	override onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape) {
@@ -429,7 +517,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			return
 		}
 
-		return getNoteSizeAdjustments(this.editor, next)
+		return this.getNoteSizeAdjustments(next)
 	}
 
 	override getInterpolatedProps(
@@ -442,101 +530,112 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
-}
 
-/**
- * Get the growY and fontSizeAdjustment for a shape.
- */
-function getNoteSizeAdjustments(editor: Editor, shape: TLNoteShape) {
-	const { labelHeight, fontSizeAdjustment } = getLabelSize(editor, shape)
-	// When the label height is more than the height of the shape, we add extra height to it
-	const growY = Math.max(0, labelHeight - NOTE_SIZE)
+	/**
+	 * Get the growY and fontSizeAdjustment for a shape.
+	 */
+	private getNoteSizeAdjustments(shape: TLNoteShape) {
+		const dv = getDisplayValues(this, shape)
+		const { labelHeight, fontSizeAdjustment } = this.getLabelSize(shape)
+		// When the label height is more than the height of the shape, we add extra height to it
+		const growY = Math.max(0, labelHeight - dv.noteHeight)
 
-	if (growY !== shape.props.growY || fontSizeAdjustment !== shape.props.fontSizeAdjustment) {
-		return {
-			...shape,
-			props: {
-				...shape.props,
-				growY,
-				fontSizeAdjustment,
-			},
+		if (growY !== shape.props.growY || fontSizeAdjustment !== shape.props.fontSizeAdjustment) {
+			return {
+				...shape,
+				props: {
+					...shape.props,
+					growY,
+					fontSizeAdjustment,
+				},
+			}
 		}
+
+		return undefined
 	}
 
-	return undefined
-}
+	private _labelSizesForNoteCache = new WeakCache<
+		TLShape,
+		{ labelHeight: number; labelWidth: number; fontSizeAdjustment: number }
+	>()
 
-/**
- * Get the label size for a note.
- */
-function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
-	const { richText } = shape.props
-
-	if (isEmptyRichText(richText)) {
-		const minHeight = LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2
-		return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 0 }
+	/**
+	 * Get the cached label size for the shape.
+	 */
+	private getLabelSize(shape: TLNoteShape) {
+		return this._labelSizesForNoteCache.get(shape, () => this.measureNoteLabelSize(shape))
 	}
 
-	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
+	/**
+	 * Expensively measure the label size for a note shape.
+	 */
+	private measureNoteLabelSize(shape: TLNoteShape) {
+		const dv = getDisplayValues(this, shape)
+		const { richText } = shape.props
 
-	let fontSizeAdjustment = 0
-	let iterations = 0
-	let labelHeight = NOTE_SIZE
-	let labelWidth = NOTE_SIZE
+		if (isEmptyRichText(richText)) {
+			const minHeight = dv.labelFontSize * dv.labelLineHeight + dv.labelPadding * 2
+			return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 1 }
+		}
 
-	// N.B. For some note shapes with text like 'hjhjhjhjhjhjhjhj', you'll run into
-	// some text measurement fuzziness where the browser swears there's no overflow (scrollWidth === width)
-	// but really there is when you enable overflow-wrap again. This helps account for that little bit
-	// of give.
-	const FUZZ = 1
+		const unadjustedFontSize = dv.labelFontSize
 
-	// We slightly make the font smaller if the text is too big for the note, width-wise.
-	do {
-		fontSizeAdjustment = Math.min(unadjustedFontSize, unadjustedFontSize - iterations)
-		const html = renderHtmlFromRichTextForMeasurement(editor, richText)
-		const nextTextSize = editor.textMeasure.measureHtml(html, {
-			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontSize: fontSizeAdjustment,
-			maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
-			disableOverflowWrapBreaking: true,
-			measureScrollWidth: true,
-		})
+		let fontSizeAdjustment = 0
+		let iterations = 0
+		let labelHeight = dv.noteHeight
+		let labelWidth = dv.noteWidth
 
-		labelHeight = nextTextSize.h + LABEL_PADDING * 2
-		labelWidth = nextTextSize.w + LABEL_PADDING * 2
+		// N.B. For some note shapes with text like 'hjhjhjhjhjhjhjhj', you'll run into
+		// some text measurement fuzziness where the browser swears there's no overflow (scrollWidth === width)
+		// but really there is when you enable overflow-wrap again. This helps account for that little bit
+		// of give.
+		const FUZZ = 1
 
-		if (fontSizeAdjustment <= 14) {
-			// Too small, just rely now on CSS `overflow-wrap: break-word`
-			// We need to recalculate the text measurement here with break-word enabled.
-			const html = renderHtmlFromRichTextForMeasurement(editor, richText)
-			const nextTextSizeWithOverflowBreak = editor.textMeasure.measureHtml(html, {
+		// We slightly make the font smaller if the text is too big for the note, width-wise.
+		do {
+			fontSizeAdjustment = Math.min(unadjustedFontSize, unadjustedFontSize - iterations)
+			const html = renderHtmlFromRichTextForMeasurement(this.editor, richText)
+			const nextTextSize = this.editor.textMeasure.measureHtml(html, {
 				...TEXT_PROPS,
-				fontFamily: FONT_FAMILIES[shape.props.font],
+				lineHeight: dv.labelLineHeight,
+				fontFamily: dv.labelFontFamily,
 				fontSize: fontSizeAdjustment,
-				maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
+				maxWidth: dv.noteWidth - dv.labelPadding * 2 - FUZZ,
+				disableOverflowWrapBreaking: true,
+				measureScrollWidth: true,
 			})
-			labelHeight = nextTextSizeWithOverflowBreak.h + LABEL_PADDING * 2
-			labelWidth = nextTextSizeWithOverflowBreak.w + LABEL_PADDING * 2
-			break
-		}
 
-		if (nextTextSize.scrollWidth.toFixed(0) === nextTextSize.w.toFixed(0)) {
-			break
-		}
-	} while (iterations++ < 50)
+			labelHeight = nextTextSize.h + dv.labelPadding * 2
+			labelWidth = nextTextSize.w + dv.labelPadding * 2
 
-	return {
-		labelHeight: labelHeight,
-		labelWidth: labelWidth,
-		fontSizeAdjustment: fontSizeAdjustment,
+			if (fontSizeAdjustment <= 14) {
+				// Too small, just rely now on CSS `overflow-wrap: break-word`
+				// We need to recalculate the text measurement here with break-word enabled.
+				const html = renderHtmlFromRichTextForMeasurement(this.editor, richText)
+				const nextTextSizeWithOverflowBreak = this.editor.textMeasure.measureHtml(html, {
+					...TEXT_PROPS,
+					lineHeight: dv.labelLineHeight,
+					fontFamily: dv.labelFontFamily,
+					fontSize: fontSizeAdjustment,
+					maxWidth: dv.noteWidth - dv.labelPadding * 2 - FUZZ,
+				})
+				labelHeight = nextTextSizeWithOverflowBreak.h + dv.labelPadding * 2
+				labelWidth = nextTextSizeWithOverflowBreak.w + dv.labelPadding * 2
+				break
+			}
+
+			if (nextTextSize.scrollWidth.toFixed(0) === nextTextSize.w.toFixed(0)) {
+				break
+			}
+		} while (iterations++ < 50)
+
+		return {
+			labelHeight: labelHeight,
+			labelWidth: labelWidth,
+			fontSizeAdjustment:
+				fontSizeAdjustment === unadjustedFontSize ? 1 : fontSizeAdjustment / unadjustedFontSize,
+		}
 	}
-}
-
-const labelSizesForNote = new WeakCache<TLShape, ReturnType<typeof getNoteLabelSize>>()
-
-function getLabelSize(editor: Editor, shape: TLNoteShape) {
-	return labelSizesForNote.get(shape, () => getNoteLabelSize(editor, shape))
 }
 
 function useNoteKeydownHandler(id: TLShapeId) {
@@ -566,23 +665,33 @@ function useNoteKeydownHandler(id: TLShapeId) {
 					isRightToLeftLanguage(renderPlaintextFromRichText(editor, shape.props.richText))
 				)
 
-				const offsetLength =
-					(NOTE_SIZE +
+				const noteUtil = editor.getShapeUtil(shape) as NoteShapeUtil
+				const dv = getDisplayValues(noteUtil, shape)
+
+				const noteOffset = isTab
+					? dv.noteWidth + editor.options.adjacentShapeMargin
+					: dv.noteHeight +
 						editor.options.adjacentShapeMargin +
 						// If we're growing down, we need to account for the current shape's growY
-						(isCmdEnter && !e.shiftKey ? shape.props.growY : 0)) *
-					shape.props.scale
+						(isCmdEnter && !e.shiftKey ? shape.props.growY : 0)
+				const offsetLength = noteOffset * shape.props.scale
 
 				const adjacentCenter = new Vec(
 					isTab ? (e.shiftKey != isRTL ? -1 : 1) : 0,
 					isCmdEnter ? (e.shiftKey ? -1 : 1) : 0
 				)
 					.mul(offsetLength)
-					.add(NOTE_CENTER_OFFSET.clone().mul(shape.props.scale))
+					.add(new Vec(dv.noteWidth / 2, dv.noteHeight / 2).mul(shape.props.scale))
 					.rot(pageRotation)
 					.add(pageTransform.point())
 
-				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
+				const newNote = getNoteShapeForAdjacentPosition(editor, {
+					shape,
+					center: adjacentCenter,
+					pageRotation,
+					noteWidth: dv.noteWidth,
+					noteHeight: dv.noteHeight,
+				})
 
 				if (newNote) {
 					startEditingShapeWithRichText(editor, newNote, { selectAll: true })
@@ -593,8 +702,8 @@ function useNoteKeydownHandler(id: TLShapeId) {
 	)
 }
 
-function getNoteHeight(shape: TLNoteShape) {
-	return (NOTE_SIZE + shape.props.growY) * shape.props.scale
+function getNoteHeight(shape: TLNoteShape, noteHeight: number) {
+	return (noteHeight + shape.props.growY) * shape.props.scale
 }
 
 function getNoteShadow(id: string, rotation: number, scale: number) {
@@ -606,11 +715,6 @@ function getNoteShadow(id: string, rotation: number, scale: number) {
 	const c = 6 * scale
 	const d = 7 * scale
 	return `0px ${a - lift}px ${a}px -${a}px rgba(15, 23, 31, .6),
-	0px ${(b + lift * d) * Math.max(0, oy)}px ${c + lift * d}px -${b + lift * c}px rgba(15, 23, 31, ${(0.3 + lift * 0.1).toFixed(2)}), 
+	0px ${(b + lift * d) * Math.max(0, oy)}px ${c + lift * d}px -${b + lift * c}px rgba(15, 23, 31, ${(0.3 + lift * 0.1).toFixed(2)}),
 	0px ${48 * scale}px ${10 * scale}px -${10 * scale}px inset rgba(15, 23, 44, ${((0.022 + random() * 0.005) * ((1 + oy) / 2)).toFixed(2)})`
-}
-
-function getBoundsForSVG(shape: TLNoteShape) {
-	// When rendering the SVG we don't want to adjust for scale
-	return new Box(0, 0, NOTE_SIZE, NOTE_SIZE + shape.props.growY)
 }

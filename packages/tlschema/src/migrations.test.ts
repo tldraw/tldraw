@@ -1740,11 +1740,58 @@ describe('Add font size adjustment to notes', () => {
 	const { up, down } = getTestMigration(noteShapeVersions.AddFontSizeAdjustment)
 
 	test('up works as expected', () => {
-		expect(up({ props: {} })).toEqual({ props: { fontSizeAdjustment: 0 } })
+		expect(up({ props: {} })).toEqual({ props: { fontSizeAdjustment: 1 } })
 	})
 
 	test('down works as expected', () => {
-		expect(down({ props: { fontSizeAdjustment: 0 } })).toEqual({ props: {} })
+		expect(down({ props: { fontSizeAdjustment: 1 } })).toEqual({ props: {} })
+	})
+})
+
+describe('Make font size adjustment a ratio on notes', () => {
+	const { up, down } = getTestMigration(noteShapeVersions.MakeFontSizeAdjustmentRatio)
+
+	test('up works as expected', () => {
+		expect(up({ props: { fontSizeAdjustment: 18 } })).toEqual({
+			props: { fontSizeAdjustment: null },
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { fontSizeAdjustment: null } })).toEqual({
+			props: { fontSizeAdjustment: 1 },
+		})
+	})
+})
+
+describe('Font size adjustment identity on notes', () => {
+	const { up, down } = getTestMigration(noteShapeVersions.FontSizeAdjustmentIdentity)
+
+	test('up converts 0 to 1', () => {
+		expect(up({ props: { fontSizeAdjustment: 0 } })).toEqual({
+			props: { fontSizeAdjustment: 1 },
+		})
+	})
+
+	test('up leaves other values unchanged', () => {
+		expect(up({ props: { fontSizeAdjustment: 0.85 } })).toEqual({
+			props: { fontSizeAdjustment: 0.85 },
+		})
+		expect(up({ props: { fontSizeAdjustment: null } })).toEqual({
+			props: { fontSizeAdjustment: null },
+		})
+	})
+
+	test('down converts 1 to 0', () => {
+		expect(down({ props: { fontSizeAdjustment: 1 } })).toEqual({
+			props: { fontSizeAdjustment: 0 },
+		})
+	})
+
+	test('down leaves other values unchanged', () => {
+		expect(down({ props: { fontSizeAdjustment: 0.85 } })).toEqual({
+			props: { fontSizeAdjustment: 0.85 },
+		})
 	})
 })
 

@@ -21,10 +21,10 @@ import {
 	frameShapeMigrations,
 	frameShapeProps,
 	getColorValue,
-	getDefaultColorTheme,
 	lerp,
 	resizeBox,
 	toDomPrecision,
+	useCurrentThemeId,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
@@ -33,7 +33,7 @@ import {
 	TLCreateTextJsxFromSpansOpts,
 	createTextJsxFromSpans,
 } from '../shared/createTextJsxFromSpans'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { FrameHeading } from './components/FrameHeading'
 import {
 	defaultEmptyAs,
@@ -50,7 +50,24 @@ const FRAME_HEADING_NOCOLORS_OFFSET_X = -7
 const FRAME_HEADING_OFFSET_Y = 4
 
 /** @public */
-export interface FrameShapeOptions {
+export interface FrameShapeUtilDisplayValues {
+	fillColor: string
+	strokeColor: string
+	showColorsFillColor: string
+	showColorsStrokeColor: string
+	headingFillColor: string
+	headingStrokeColor: string
+	headingTextColor: string
+	showColorsHeadingFillColor: string
+	showColorsHeadingStrokeColor: string
+	showColorsHeadingTextColor: string
+}
+
+/** @public */
+export interface FrameShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLFrameShape,
+	FrameShapeUtilDisplayValues
+> {
 	/**
 	 * When true, the frame will display colors for the shape's headings and background.
 	 */
@@ -59,6 +76,17 @@ export interface FrameShapeOptions {
 	 * When true, the frame will resize its children when the frame itself is resized.
 	 */
 	resizeChildren: boolean
+	/**
+	 * Per-theme, per-color values for frame shapes.
+	 * Maps `themeId` → `colorName` → `{ headingStroke, headingFill, stroke, fill, text }`.
+	 */
+	frameColors: Record<
+		string,
+		Record<
+			string,
+			{ headingStroke: string; headingFill: string; stroke: string; fill: string; text: string }
+		>
+	>
 }
 
 /** @public */
@@ -70,6 +98,227 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override options: FrameShapeOptions = {
 		showColors: false,
 		resizeChildren: false,
+		frameColors: {
+			light: {
+				black: {
+					headingStroke: '#717171',
+					headingFill: '#ffffff',
+					stroke: '#717171',
+					fill: '#ffffff',
+					text: '#000000',
+				},
+				blue: {
+					headingStroke: '#6681ec',
+					headingFill: '#f9fafe',
+					stroke: '#6681ec',
+					fill: '#f9fafe',
+					text: '#000000',
+				},
+				green: {
+					headingStroke: '#37a684',
+					headingFill: '#f8fcfa',
+					stroke: '#37a684',
+					fill: '#f8fcfa',
+					text: '#000000',
+				},
+				grey: {
+					headingStroke: '#aaaaab',
+					headingFill: '#fbfcfc',
+					stroke: '#aaaaab',
+					fill: '#fcfcfd',
+					text: '#000000',
+				},
+				'light-blue': {
+					headingStroke: '#6cb2f3',
+					headingFill: '#f8fbfe',
+					stroke: '#6cb2f3',
+					fill: '#fafcff',
+					text: '#000000',
+				},
+				'light-green': {
+					headingStroke: '#6dbe7c',
+					headingFill: '#f8fcf9',
+					stroke: '#6dbe7c',
+					fill: '#fafdfa',
+					text: '#000000',
+				},
+				'light-red': {
+					headingStroke: '#f89090',
+					headingFill: '#fffafa',
+					stroke: '#f89090',
+					fill: '#fffbfb',
+					text: '#000000',
+				},
+				'light-violet': {
+					headingStroke: '#e59bf5',
+					headingFill: '#fefaff',
+					stroke: '#e59bf5',
+					fill: '#fefbff',
+					text: '#000000',
+				},
+				orange: {
+					headingStroke: '#e68544',
+					headingFill: '#fef9f6',
+					stroke: '#e68544',
+					fill: '#fef9f6',
+					text: '#000000',
+				},
+				red: {
+					headingStroke: '#e55757',
+					headingFill: '#fef7f7',
+					stroke: '#e55757',
+					fill: '#fef9f9',
+					text: '#000000',
+				},
+				violet: {
+					headingStroke: '#bc62d3',
+					headingFill: '#fcf7fd',
+					stroke: '#bc62d3',
+					fill: '#fdf9fd',
+					text: '#000000',
+				},
+				yellow: {
+					headingStroke: '#f3bb6c',
+					headingFill: '#fefcf8',
+					stroke: '#f3bb6c',
+					fill: '#fffdfa',
+					text: '#000000',
+				},
+				white: {
+					headingStroke: '#7d7d7d',
+					headingFill: '#ffffff',
+					stroke: '#7d7d7d',
+					fill: '#ffffff',
+					text: '#000000',
+				},
+			},
+			dark: {
+				black: {
+					headingStroke: '#5c5c5c',
+					headingFill: '#252525',
+					stroke: '#5c5c5c',
+					fill: '#0c0c0c',
+					text: '#f2f2f2',
+				},
+				blue: {
+					headingStroke: '#384994',
+					headingFill: '#1C2036',
+					stroke: '#384994',
+					fill: '#11141f',
+					text: '#f2f2f2',
+				},
+				green: {
+					headingStroke: '#10513C',
+					headingFill: '#14241f',
+					stroke: '#10513C',
+					fill: '#0E1614',
+					text: '#f2f2f2',
+				},
+				grey: {
+					headingStroke: '#42474D',
+					headingFill: '#23262A',
+					stroke: '#42474D',
+					fill: '#151719',
+					text: '#f2f2f2',
+				},
+				'light-blue': {
+					headingStroke: '#075797',
+					headingFill: '#142839',
+					stroke: '#075797',
+					fill: '#0B1823',
+					text: '#f2f2f2',
+				},
+				'light-green': {
+					headingStroke: '#1C5427',
+					headingFill: '#18251A',
+					stroke: '#1C5427',
+					fill: '#0F1911',
+					text: '#f2f2f2',
+				},
+				'light-red': {
+					headingStroke: '#6f3232',
+					headingFill: '#341818',
+					stroke: '#6f3232',
+					fill: '#181212',
+					text: '#f2f2f2',
+				},
+				'light-violet': {
+					headingStroke: '#6c367a',
+					headingFill: '#2D2230',
+					stroke: '#6c367a',
+					fill: '#1C151E',
+					text: '#f2f2f2',
+				},
+				orange: {
+					headingStroke: '#773a0e',
+					headingFill: '#2f1d13',
+					stroke: '#773a0e',
+					fill: '#1c1512',
+					text: '#f2f2f2',
+				},
+				red: {
+					headingStroke: '#701e1e',
+					headingFill: '#301616',
+					stroke: '#701e1e',
+					fill: '#1b1313',
+					text: '#f2f2f2',
+				},
+				violet: {
+					headingStroke: '#6d1583',
+					headingFill: '#27152e',
+					stroke: '#6d1583',
+					fill: '#1b0f21',
+					text: '#f2f2f2',
+				},
+				yellow: {
+					headingStroke: '#684e12',
+					headingFill: '#2a2113',
+					stroke: '#684e12',
+					fill: '#1e1911',
+					text: '#f2f2f2',
+				},
+				white: {
+					headingStroke: '#ffffff',
+					headingFill: '#ffffff',
+					stroke: '#ffffff',
+					fill: '#ffffff',
+					text: '#000000',
+				},
+			},
+		},
+		getDisplayValues(
+			_editor,
+			shape,
+			theme,
+			options: FrameShapeOptions
+		): FrameShapeUtilDisplayValues {
+			const { color } = shape.props
+			const blackFrameColor =
+				options.frameColors[theme.id]?.['black'] ?? options.frameColors['light']?.['black']
+			const frameColor =
+				options.frameColors[theme.id]?.[color] ?? options.frameColors['light']?.[color]
+			return {
+				fillColor: blackFrameColor?.fill ?? getColorValue(theme, 'black', 'solid'),
+				strokeColor: blackFrameColor?.stroke ?? getColorValue(theme, 'black', 'solid'),
+				showColorsFillColor: frameColor?.fill ?? getColorValue(theme, color, 'solid'),
+				showColorsStrokeColor: frameColor?.stroke ?? getColorValue(theme, color, 'solid'),
+				headingFillColor: theme.colors.background,
+				headingStrokeColor: theme.colors.background,
+				headingTextColor: blackFrameColor?.text ?? getColorValue(theme, 'black', 'solid'),
+				showColorsHeadingFillColor: frameColor?.headingFill ?? getColorValue(theme, color, 'solid'),
+				showColorsHeadingStrokeColor:
+					frameColor?.headingStroke ?? getColorValue(theme, color, 'solid'),
+				showColorsHeadingTextColor: frameColor?.text ?? getColorValue(theme, color, 'solid'),
+			}
+		},
+		getDisplayValueOverrides(
+			_editor,
+			_shape,
+			_theme,
+			_options
+		): Partial<FrameShapeUtilDisplayValues> {
+			return {}
+		},
 	}
 
 	// evil crimes :)
@@ -208,7 +457,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override component(shape: TLFrameShape) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
+		const themeId = useCurrentThemeId()
+		const dv = getDisplayValues(this, shape, themeId)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isCreating = useValue(
@@ -226,24 +476,14 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 
 		const showFrameColors = this.options.showColors
-		const colorToUse = showFrameColors ? shape.props.color : 'black'
-		const frameFill = getColorValue(theme, colorToUse, 'frameFill')
-		const frameStroke = getColorValue(theme, colorToUse, 'frameStroke')
-		const frameHeadingStroke = showFrameColors
-			? getColorValue(theme, colorToUse, 'frameHeadingStroke')
-			: theme.background
-		const frameHeadingFill = showFrameColors
-			? getColorValue(theme, colorToUse, 'frameHeadingFill')
-			: theme.background
-		const frameHeadingText = getColorValue(theme, colorToUse, 'frameText')
 
 		return (
 			<>
 				<SVGContainer>
 					<rect
 						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
-						fill={frameFill}
-						stroke={frameStroke}
+						fill={showFrameColors ? dv.showColorsFillColor : dv.fillColor}
+						stroke={showFrameColors ? dv.showColorsStrokeColor : dv.strokeColor}
 						style={{
 							width: `calc(${shape.props.w}px + 1px / var(--tl-zoom))`,
 							height: `calc(${shape.props.h}px + 1px / var(--tl-zoom))`,
@@ -255,9 +495,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 					<FrameHeading
 						id={shape.id}
 						name={shape.props.name}
-						fill={frameHeadingFill}
-						stroke={frameHeadingStroke}
-						color={frameHeadingText}
+						fill={showFrameColors ? dv.showColorsHeadingFillColor : dv.headingFillColor}
+						stroke={showFrameColors ? dv.showColorsHeadingStrokeColor : dv.headingStrokeColor}
+						color={showFrameColors ? dv.showColorsHeadingTextColor : dv.headingTextColor}
 						width={shape.props.w}
 						height={shape.props.h}
 						offsetX={showFrameColors ? -1 : -7}
@@ -269,7 +509,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
+		const dv = getDisplayValues(this, shape, ctx.themeId)
 
 		// rotate right 45 deg
 		const labelSide = getFrameHeadingSide(this.editor, shape)
@@ -286,24 +526,19 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const text = createTextJsxFromSpans(this.editor, spans, opts)
 
 		const showFrameColors = this.options.showColors
-		const colorToUse = showFrameColors ? shape.props.color : 'black'
-		const frameFill = getColorValue(theme, colorToUse, 'frameFill')
-		const frameStroke = getColorValue(theme, colorToUse, 'frameStroke')
 		const frameHeadingStroke = showFrameColors
-			? getColorValue(theme, colorToUse, 'frameHeadingStroke')
-			: theme.background
-		const frameHeadingFill = showFrameColors
-			? getColorValue(theme, colorToUse, 'frameHeadingFill')
-			: theme.background
-		const frameHeadingText = getColorValue(theme, colorToUse, 'frameText')
+			? dv.showColorsHeadingStrokeColor
+			: dv.headingStrokeColor
+		const frameHeadingFill = showFrameColors ? dv.showColorsHeadingFillColor : dv.headingFillColor
+		const frameHeadingText = showFrameColors ? dv.showColorsHeadingTextColor : dv.headingTextColor
 
 		return (
 			<>
 				<rect
 					width={shape.props.w}
 					height={shape.props.h}
-					fill={frameFill}
-					stroke={frameStroke}
+					fill={showFrameColors ? dv.showColorsFillColor : dv.fillColor}
+					stroke={showFrameColors ? dv.showColorsStrokeColor : dv.strokeColor}
 					strokeWidth={1}
 					x={0}
 					rx={0}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Editor, EditorProvider, Tldraw, useEditor, useIsDarkMode, useValue } from 'tldraw'
+import { Editor, EditorProvider, Tldraw, useCurrentThemeId, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './inspector-panel.css'
 
@@ -30,7 +30,7 @@ function InspectorPanel() {
 		[editor, selectedShapes]
 	)
 
-	const isDarkMode = useIsDarkMode()
+	const isDarkMode = useCurrentThemeId() === 'dark'
 
 	const selectedShape = selectedShapes.length === 1 ? selectedShapes[0] : null
 
