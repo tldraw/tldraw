@@ -16,9 +16,11 @@ export function SneakyMermaidHandler() {
 
 	useEffect(() => {
 		editor.registerExternalContentHandler('text', async (content) => {
-			// When both text/html and text/plain are on the clipboard, content.text may
-			// be derived from stripHtml() which loses line breaks. Check the original
-			// text/plain source as well for mermaid detection.
+			// when pasting html, the derived text is stripped and loses line breaks
+			// which make evaluating mermaid diagrams impossible. We look into the
+			// sources and see if there's some plain text alongside the html and if
+			// there are, we can use this to evaluate mermaid diagrams.
+
 			const plainTextSource = content.sources?.find(
 				(s) => s.type === 'text' && s.subtype === 'text'
 			)
