@@ -1,17 +1,18 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /**
- * Mermaid → linear pipeline demo: paste flowchart source, apply to the canvas, run simulated steps.
- * - `blueprintRender.mapNodeToRenderSpec` maps each flowchart vertex to the custom `flowchart-util`
- *   shape and adds `pipelineStepIndex` from our linear parser (data Mermaid does not provide).
+ * Mermaid flowchart → DAG pipeline demo: paste flowchart/graph source, apply to the canvas, run simulated steps.
+ * - `blueprintRender.mapNodeToRenderSpec` maps each flowchart vertex to `flowchart-util` + `mermaidNodeId`.
+ * - After import, graph and layer badges come from arrows + bindings (`extractFlowchartPipelineFromEditor`).
  */
 import { useCallback, useState } from 'react'
 import { TLComponents, Tldraw, TldrawUiButton, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { FlowchartShapeUtil } from './customMermaidShapeUtil'
 import './custom-shape-mermaid.css'
-import { mapNodeToRenderSpec, setPipelineStepIndicesFromOrder } from './mermaidPipelineBlueprint'
+import { getFlowchartSourceError } from './flowchartSourceGuard'
+import { mapNodeToRenderSpec } from './mermaidPipelineBlueprint'
 import { type StepStatus, pipelineStateAtom, runFullPipeline } from './mermaidPipelineState'
-import { parseLinearPipelineFromMermaid } from './pipelineFromMermaid'
+import { applyPipelineStepIndices, extractFlowchartPipelineFromEditor } from './pipelineFromEditor'
 
 const components: TLComponents = {
 	TopPanel: TopPanel,
@@ -21,8 +22,10 @@ const customShapes = [FlowchartShapeUtil]
 
 const DEFAULT_MERMAID = `flowchart LR
   s1[Checkout] --> s2[Build]
-  s2 --> s3[Test]
-  s3 --> s4[Deploy]`
+  s2 --> s3[Unit tests]
+  s2 --> s4[Integration tests]
+  s3 --> s5[Deploy]
+  s4 --> s5`
 
 export default function MermaidDiagramsCustomShapes() {
 	return (
@@ -39,27 +42,24 @@ function TopPanel() {
 	const pipeline = useValue(pipelineStateAtom)
 
 	const canRun =
-		!pipeline.parseError && pipeline.orderedNodeIds.length > 0 && !pipeline.isRunning && !isApplying
+		!pipeline.parseError && pipeline.nodeIds.length > 0 && !pipeline.isRunning && !isApplying
 
 	const applyWorkflow = useCallback(async () => {
 		if (isApplying) return
 		setIsApplying(true)
 
 		try {
-			const parsed = parseLinearPipelineFromMermaid(mermaidText)
-			pipelineStateAtom.set({
-				orderedNodeIds: parsed.ok ? parsed.order : [],
-				statusByNodeId: parsed.ok
-					? (Object.fromEntries(parsed.order.map((id) => [id, 'pending' as const])) as Record<
-							string,
-							StepStatus
-						>)
-					: {},
-				parseError: parsed.ok ? null : parsed.error,
-				isRunning: false,
-			})
-
-			setPipelineStepIndicesFromOrder(parsed.ok ? parsed.order : null)
+			const sourceError = getFlowchartSourceError(mermaidText)
+			if (sourceError) {
+				pipelineStateAtom.set({
+					nodeIds: [],
+					edges: [],
+					statusByNodeId: {},
+					parseError: sourceError,
+					isRunning: false,
+				})
+				return
+			}
 
 			const [{ createMermaidDiagram }, { default: mermaid }] = await Promise.all([
 				import('@tldraw/mermaid'),
@@ -82,17 +82,43 @@ function TopPanel() {
 					},
 				})
 			} catch {
-				pipelineStateAtom.update((s) => ({
-					...s,
-					parseError: `An error occured please make sure your diagran is valid`,
-				}))
+				pipelineStateAtom.set({
+					nodeIds: [],
+					edges: [],
+					statusByNodeId: {},
+					parseError: `An error occurred; please make sure your diagram is valid.`,
+					isRunning: false,
+				})
+				return
+			}
+
+			const parsed = extractFlowchartPipelineFromEditor(editor)
+			if (!parsed.ok) {
+				pipelineStateAtom.set({
+					nodeIds: [],
+					edges: [],
+					statusByNodeId: {},
+					parseError: parsed.error,
+					isRunning: false,
+				})
+			} else {
+				pipelineStateAtom.set({
+					nodeIds: parsed.nodeIds,
+					edges: parsed.edges,
+					statusByNodeId: Object.fromEntries(
+						parsed.nodeIds.map((id) => [id, 'pending' as const])
+					) as Record<string, StepStatus>,
+					parseError: null,
+					isRunning: false,
+				})
+				applyPipelineStepIndices(editor, parsed.stepIndexByNodeId)
 			}
 
 			editor.selectNone()
 		} catch {
 			pipelineStateAtom.update((s) => ({
 				...s,
-				parseError: `An error occured please make sure your diagran is valid`,
+				parseError: `An error occurred; please make sure your diagram is valid.`,
 			}))
 		} finally {
 			setIsApplying(false)
@@ -106,10 +132,11 @@ function TopPanel() {
 	return (
 		<div className="custom-shape-mermaid">
 			<div>
-				Paste a <strong>linear</strong> <code>flowchart</code> (one path, no branches). Apply loads
-				it as actionable steps. <code>blueprintRender.mapNodeToRenderSpec</code> picks the custom
-				shape and step numbers from our parser. Run simulates each step; failures can be retried on
-				the shape. Step status is only in memory for this demo.
+				Paste a Mermaid <strong>flowchart</strong> or <strong>graph</strong> (branching is ok; merge
+				nodes run after <strong>all</strong> incoming steps pass). Apply runs Mermaid import, then
+				builds the DAG from <strong>arrows on the canvas</strong>. Run simulates steps; failures can
+				be retried on the shape. Step badges are Kahn layers, not a global sequence. Status is only
+				in memory for this demo.
 			</div>
 			<textarea
 				value={mermaidText}

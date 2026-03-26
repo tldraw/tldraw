@@ -1,9 +1,11 @@
 import { atom } from '@tldraw/state'
+import { predecessorsFromEdges } from './pipelineGraph'
 
 export type StepStatus = 'pending' | 'running' | 'passed' | 'failed'
 
 export interface PipelineState {
-	orderedNodeIds: string[]
+	nodeIds: string[]
+	edges: [string, string][]
 	statusByNodeId: Record<string, StepStatus>
 	parseError: string | null
 	isRunning: boolean
@@ -14,7 +16,8 @@ export interface PipelineState {
  * which is why this cannot live inside `useAtom` per component (each mount would get its own atom).
  */
 export const pipelineStateAtom = atom<PipelineState>('mermaidPipelineExample', {
-	orderedNodeIds: [],
+	nodeIds: [],
+	edges: [],
 	statusByNodeId: {},
 	parseError: null,
 	isRunning: false,
@@ -45,37 +48,69 @@ async function simulateStep(nodeId: string): Promise<boolean> {
 	return !failed
 }
 
-/** Resets every step to pending, then runs in order until a failure or completion. */
+function getReadyNodeIds(
+	nodeIds: string[],
+	edges: [string, string][],
+	statusByNodeId: Record<string, StepStatus>
+): string[] {
+	const preds = predecessorsFromEdges(edges)
+	return nodeIds.filter((id) => {
+		if (statusByNodeId[id] !== 'pending') return false
+		const ps = preds.get(id) ?? []
+		return ps.every((p) => statusByNodeId[p] === 'passed')
+	})
+}
+
+/**
+ * Runs pending steps in AND-join order until all pass, fail, or execution is blocked by a failure.
+ */
+async function drainPipelineSteps() {
+	while (true) {
+		const s = pipelineStateAtom.get()
+		const { nodeIds, edges, statusByNodeId } = s
+
+		const pending = nodeIds.filter((id) => statusByNodeId[id] === 'pending')
+		if (pending.length === 0) {
+			break
+		}
+
+		const ready = getReadyNodeIds(nodeIds, edges, statusByNodeId)
+		if (ready.length === 0) {
+			break
+		}
+
+		ready.sort()
+		for (const id of ready) {
+			const ok = await simulateStep(id)
+			if (!ok) {
+				return
+			}
+		}
+	}
+}
+
+/** Resets every step to pending, then runs until a failure or completion. */
 export async function runFullPipeline() {
 	const s = pipelineStateAtom.get()
-	if (s.isRunning || s.orderedNodeIds.length === 0 || s.parseError) return
+	if (s.isRunning || s.nodeIds.length === 0 || s.parseError) return
 
 	pipelineStateAtom.update((prev) => ({
 		...prev,
 		isRunning: true,
 		statusByNodeId: Object.fromEntries(
-			prev.orderedNodeIds.map((id) => [id, 'pending' as const])
+			prev.nodeIds.map((id) => [id, 'pending' as const])
 		) as Record<string, StepStatus>,
 	}))
 
-	const { orderedNodeIds } = pipelineStateAtom.get()
-	for (const id of orderedNodeIds) {
-		const ok = await simulateStep(id)
-		if (!ok) {
-			pipelineStateAtom.update((p) => ({ ...p, isRunning: false }))
-			return
-		}
-	}
+	await drainPipelineSteps()
 	pipelineStateAtom.update((p) => ({ ...p, isRunning: false }))
 }
 
-/** Re-runs a failed step, then continues with later steps if the retry succeeds. */
+/** Re-runs a failed step, then continues scheduling from current graph state. */
 export async function retryPipelineFromNode(nodeId: string) {
 	const s = pipelineStateAtom.get()
 	if (s.isRunning || s.statusByNodeId[nodeId] !== 'failed') return
-
-	const idx = s.orderedNodeIds.indexOf(nodeId)
-	if (idx < 0) return
+	if (!s.nodeIds.includes(nodeId)) return
 
 	pipelineStateAtom.update((p) => ({ ...p, isRunning: true }))
 
@@ -85,13 +120,6 @@ export async function retryPipelineFromNode(nodeId: string) {
 		return
 	}
 
-	const { orderedNodeIds } = pipelineStateAtom.get()
-	for (let j = idx + 1; j < orderedNodeIds.length; j++) {
-		const ok2 = await simulateStep(orderedNodeIds[j])
-		if (!ok2) {
-			pipelineStateAtom.update((p) => ({ ...p, isRunning: false }))
-			return
-		}
-	}
+	await drainPipelineSteps()
 	pipelineStateAtom.update((p) => ({ ...p, isRunning: false }))
 }
