@@ -49,11 +49,13 @@ import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
 import { T } from '@tldraw/validate';
 import { Timers } from '@tldraw/utils';
+import type { TLAfterActionCallback } from '@tldraw/tlschema';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
 import { TLAssetStore } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
+import type { TLBeforeActionCallback } from '@tldraw/tlschema';
 import { TLBinding } from '@tldraw/tlschema';
 import { TLBindingCreate } from '@tldraw/tlschema';
 import { TLBindingId } from '@tldraw/tlschema';
@@ -75,6 +77,8 @@ import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
+import type { TLPermissionContext } from '@tldraw/tlschema';
+import type { TLPermissionUser } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLRichText } from '@tldraw/tlschema';
@@ -836,7 +840,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options: _options, textOptions: _textOptions, getShapeVisibility, fontAssetUrls, permissionsAdapter }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1436,6 +1440,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     packShapes(shapes: TLShape[] | TLShapeId[], _gap?: number): this;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
+    readonly permissions: null | TLPermissionsController;
     popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, opts?: {
         point?: VecLike;
@@ -1694,6 +1699,17 @@ export function extractSessionStateFromLegacySnapshot(store: Record<string, Unkn
 
 // @internal (undocumented)
 export const featureFlags: Record<string, DebugFlag<boolean>>;
+
+// @public (undocumented)
+export const FLAGS: {
+    ANNUAL_LICENSE: number;
+    EVALUATION_LICENSE: number;
+    INTERNAL_LICENSE: number;
+    NATIVE_LICENSE: number;
+    PERPETUAL_LICENSE: number;
+    WITH_WATERMARK: number;
+    X_PERMISSIONS_LICENSE: number;
+};
 
 // @public (undocumented)
 export class FontManager {
@@ -3506,6 +3522,7 @@ export interface TldrawEditorBaseProps {
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
+    permissionsAdapter?: TLPermissionsAdapter;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     // @deprecated
     textOptions?: TLTextOptions;
@@ -3738,6 +3755,7 @@ export interface TLEditorOptions {
     licenseKey?: string;
     // (undocumented)
     options?: Partial<TldrawOptions>;
+    permissionsAdapter?: TLPermissionsAdapter;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
     // @deprecated
@@ -4226,6 +4244,30 @@ export const tlmenus: {
 
 // @public
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;
+
+// @public
+export interface TLPermissionsAdapter {
+    // (undocumented)
+    create(editor: Editor): null | TLPermissionsController;
+}
+
+// @public
+export interface TLPermissionsController {
+    // (undocumented)
+    canPerform(activityId: string, context?: Partial<TLPermissionContext>): boolean;
+    // (undocumented)
+    cleanup(): void;
+    // (undocumented)
+    getCurrentUser(): null | TLPermissionUser;
+    // (undocumented)
+    hasRule(activityId: string): boolean;
+    // (undocumented)
+    onAfterAction(callback: TLAfterActionCallback): () => void;
+    // (undocumented)
+    onBeforeAction(callback: TLBeforeActionCallback): () => void;
+    // (undocumented)
+    tryPerform(activityId: string, context?: Partial<TLPermissionContext>): boolean;
+}
 
 // @public (undocumented)
 export type TLPinchEvent = (info: TLPinchEventInfo) => void;
@@ -4807,6 +4849,9 @@ export function uniq<T>(array: {
     readonly length: number;
 } | null | undefined): T[];
 
+// @public
+export function useCanPerform(activityId: string, context?: Partial<TLPermissionContext>): boolean;
+
 // @public (undocumented)
 export function useContainer(): HTMLElement;
 
@@ -4999,6 +5044,8 @@ export interface ValidLicenseKeyResult {
     isLicenseParseable: true;
     // (undocumented)
     isNativeLicense: boolean;
+    // (undocumented)
+    isPermissionsLicensed: boolean;
     // (undocumented)
     isPerpetualLicense: boolean;
     // (undocumented)

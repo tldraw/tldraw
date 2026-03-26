@@ -148,6 +148,10 @@ import { FocusManager } from './managers/FocusManager/FocusManager'
 import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
+import type {
+	TLPermissionsAdapter,
+	TLPermissionsController,
+} from './managers/PermissionsManager/permissions-adapter'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
@@ -268,6 +272,13 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+	/**
+	 * Optional adapter that creates a permissions controller for this editor.
+	 * All permissions logic (rules, enforcement, server filtering) lives in the
+	 * adapter implementation — the editor only holds the resulting controller
+	 * reference for UI queries via {@link Editor.permissions}.
+	 */
+	permissionsAdapter?: TLPermissionsAdapter
 }
 
 /**
@@ -310,6 +321,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		textOptions: _textOptions,
 		getShapeVisibility,
 		fontAssetUrls,
+		permissionsAdapter,
 	}: TLEditorOptions) {
 		super()
 
@@ -796,6 +808,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.root.enter(undefined, 'initial')
 
+		this.permissions = permissionsAdapter?.create(this) ?? null
+		this.disposables.add(() => this.permissions?.cleanup())
+
 		this.edgeScrollManager = new EdgeScrollManager(this)
 		this.focusManager = new FocusManager(this, autoFocus)
 		this.disposables.add(this.focusManager.dispose.bind(this.focusManager))
@@ -973,6 +988,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly sideEffects: StoreSideEffects<TLRecord>
+
+	/**
+	 * The permissions controller, if one was provided via a permissions adapter.
+	 * `null` when no adapter is configured.
+	 *
+	 * All permissions logic (rules, enforcement, server filtering) lives in the
+	 * adapter implementation. The editor only holds this reference so that UI
+	 * code can query it (e.g. via {@link useCanPerform}).
+	 *
+	 * @public
+	 */
+	readonly permissions: TLPermissionsController | null
 
 	/**
 	 * A manager for moving the camera when the mouse is at the edge of the screen.
