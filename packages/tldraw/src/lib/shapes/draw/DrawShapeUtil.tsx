@@ -20,8 +20,6 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-
-import { PatternFill } from '../shared/PatternFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
@@ -30,6 +28,7 @@ import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
+import { PatternFill } from '../shared/PatternFill'
 import {
 	getDrawShapeStrokeDashArray,
 	getFreehandOptions,
@@ -64,7 +63,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override options: DrawShapeOptions = {
 		maxPointsPerShape: 600,
-		getDisplayValues(_editor, shape, theme, _options): DrawShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme): DrawShapeUtilDisplayValues {
 			const { color, fill, size } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),
@@ -78,12 +77,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
 			}
 		},
-		getDisplayValueOverrides(
-			_editor,
-			_shape,
-			_theme,
-			_options
-		): Partial<DrawShapeUtilDisplayValues> {
+		getDisplayValueOverrides(): Partial<DrawShapeUtilDisplayValues> {
 			return {}
 		},
 	}

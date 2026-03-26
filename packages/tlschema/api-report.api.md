@@ -953,7 +953,25 @@ export interface TLDefaultColor {
     // (undocumented)
     fill: string;
     // (undocumented)
+    frameFill: string;
+    // (undocumented)
+    frameHeadingFill: string;
+    // (undocumented)
+    frameHeadingStroke: string;
+    // (undocumented)
+    frameStroke: string;
+    // (undocumented)
+    frameText: string;
+    // (undocumented)
+    highlightP3: string;
+    // (undocumented)
+    highlightSrgb: string;
+    // (undocumented)
     linedFill: string;
+    // (undocumented)
+    noteFill: string;
+    // (undocumented)
+    noteText: string;
     // (undocumented)
     pattern: string;
     // (undocumented)
@@ -1548,6 +1566,8 @@ export interface TLThemeColors {
     green: TLDefaultColor;
     // (undocumented)
     grey: TLDefaultColor;
+    // (undocumented)
+    noteBorder: string;
     // (undocumented)
     orange: TLDefaultColor;
     // (undocumented)

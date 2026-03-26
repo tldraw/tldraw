@@ -28,7 +28,6 @@ import {
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 
@@ -73,7 +72,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	override options: TextShapeOptions = {
 		extraArrowHorizontalPadding: 10,
 		showTextOutline: true,
-		getDisplayValues(_editor, shape, theme, _options): TextShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme): TextShapeUtilDisplayValues {
 			const { color, font, size } = shape.props
 			return {
 				color: getColorValue(theme, color, 'solid'),
@@ -85,12 +84,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				fontVariant: TEXT_PROPS.fontVariant,
 			}
 		},
-		getDisplayValueOverrides(
-			_editor,
-			_shape,
-			_theme,
-			_options
-		): Partial<TextShapeUtilDisplayValues> {
+		getDisplayValueOverrides(): Partial<TextShapeUtilDisplayValues> {
 			return {}
 		},
 	}

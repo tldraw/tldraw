@@ -26,7 +26,6 @@ import {
 	sortByIndex,
 	useCurrentThemeId,
 } from '@tldraw/editor'
-
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
@@ -52,19 +51,14 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override migrations = lineShapeMigrations
 
 	override options: LineShapeOptions = {
-		getDisplayValues(_editor, shape, theme, _options): LineShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme): LineShapeUtilDisplayValues {
 			const { color, size } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),
 				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
 			}
 		},
-		getDisplayValueOverrides(
-			_editor,
-			_shape,
-			_theme,
-			_options
-		): Partial<LineShapeUtilDisplayValues> {
+		getDisplayValueOverrides(): Partial<LineShapeUtilDisplayValues> {
 			return {}
 		},
 	}

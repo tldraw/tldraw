@@ -41,6 +41,15 @@ function makeColor(solid: string, semi: string, pattern: string): TLDefaultColor
 		pattern,
 		fill: solid,
 		linedFill: semi,
+		frameHeadingStroke: solid,
+		frameHeadingFill: semi,
+		frameStroke: solid,
+		frameFill: semi,
+		frameText: solid,
+		noteFill: semi,
+		noteText: solid,
+		highlightSrgb: solid,
+		highlightP3: solid,
 	}
 }
 
@@ -69,11 +78,14 @@ const baseThemes: TLThemes = {
 			solid: '#16213e',
 			text: '#e0e0e0',
 			cursor: '#e94560',
+			noteBorder: '#e94560',
 			black: {
 				...DEFAULT_DARK_THEME.colors.black,
 				solid: '#e0e0e0',
 				semi: '#2a2a4a',
 				pattern: '#b0b0cc',
+				noteFill: '#e94560',
+				noteText: '#ffffff',
 			},
 			blue: {
 				...DEFAULT_DARK_THEME.colors.blue,

@@ -70,12 +70,22 @@ const myThemes: TLThemes = {
 			background: '#f8f8f8',
 			solid: '#fcfcfc',
 			cursor: '#000000',
+			noteBorder: '#e8e8e8',
 			black: {
 				solid: '#1d1d1d',
 				semi: '#e8e8e8',
 				pattern: '#494949',
 				fill: '#1d1d1d',
 				linedFill: '#e8e8e8',
+				frameHeadingStroke: '#1d1d1d',
+				frameHeadingFill: '#f5f5f5',
+				frameStroke: '#e2e2e2',
+				frameFill: '#fcfcfc',
+				frameText: '#1d1d1d',
+				noteFill: '#fddd00',
+				noteText: '#000000',
+				highlightSrgb: '#fddd00',
+				highlightP3: 'color(display-p3 0.972 0.8705 0.05)',
 			},
 			blue: {
 				solid: '#4263eb',
@@ -83,6 +93,15 @@ const myThemes: TLThemes = {
 				pattern: '#6681ee',
 				fill: '#4263eb',
 				linedFill: '#dce1f8',
+				frameHeadingStroke: '#4263eb',
+				frameHeadingFill: '#f0f2fd',
+				frameStroke: '#c5cdf3',
+				frameFill: '#f5f7fe',
+				frameText: '#4263eb',
+				noteFill: '#4263eb',
+				noteText: '#ffffff',
+				highlightSrgb: '#10acff',
+				highlightP3: 'color(display-p3 0.308 0.6632 0.9996)',
 			},
 			// ... other colors
 		},
@@ -100,17 +119,24 @@ const myThemes: TLThemes = {
 
 Each color in the palette is a [TLDefaultColor](?) with variants for different contexts:
 
-| Variant     | Purpose                                        |
-| ----------- | ---------------------------------------------- |
-| `solid`     | Full-opacity color for strokes and solid fills |
-| `semi`      | Semi-transparent color for background fills    |
-| `pattern`   | Color used in pattern/hatch fills              |
-| `fill`      | Explicit fill color (usually same as solid)    |
-| `linedFill` | Slightly lighter fill for lined patterns       |
+| Variant              | Purpose                                        |
+| -------------------- | ---------------------------------------------- |
+| `solid`              | Full-opacity color for strokes and solid fills |
+| `semi`               | Semi-transparent color for background fills    |
+| `pattern`            | Color used in pattern/hatch fills              |
+| `fill`               | Explicit fill color (usually same as solid)    |
+| `linedFill`          | Slightly lighter fill for lined patterns       |
+| `frameHeadingStroke` | Stroke color for frame headings                |
+| `frameHeadingFill`   | Fill color for frame headings                  |
+| `frameStroke`        | Stroke color for frame borders                 |
+| `frameFill`          | Fill color for frame backgrounds               |
+| `frameText`          | Text color inside frames                       |
+| `noteFill`           | Fill color for note shapes                     |
+| `noteText`           | Text color inside note shapes                  |
+| `highlightSrgb`      | Highlighter color in sRGB color space          |
+| `highlightP3`        | Highlighter color in Display P3 color space    |
 
-The palette also includes four base properties: `text` for default text color, `background` for the canvas background, `solid` for the default solid surface color, and `cursor` for the cursor color.
-
-Frame, note, and highlight shapes define their own color mappings via shape options (`frameColors`, `noteColors`/`noteBorder`, and `highlightColors`) rather than reading from the theme. These can be overridden by configuring the respective shape util with `.configure()`.
+The palette also includes five base properties: `text` for default text color, `background` for the canvas background, `solid` for the default solid surface color, `cursor` for the cursor color, and `noteBorder` for note shape borders.
 
 In addition to colors, each theme has a `fontSize` (default `16`) and `lineHeight` (default `1.35`). All default shape font sizes are derived by multiplying the base `fontSize` by a per-shape-type multiplier, so changing the base value scales all text proportionally.
 
@@ -241,7 +267,7 @@ For built-in shapes, override how theme colors are applied using `getDisplayValu
 import { GeoShapeUtil, type GeoShapeUtilDisplayValues } from 'tldraw'
 
 const CustomGeoShapeUtil = GeoShapeUtil.configure({
-	getDisplayValueOverrides(_editor, shape, theme, _options): Partial<GeoShapeUtilDisplayValues> {
+	getDisplayValueOverrides(_editor, shape, theme): Partial<GeoShapeUtilDisplayValues> {
 		if (shape.isLocked) {
 			return { fillColor: theme.colors.red.solid }
 		}
@@ -251,32 +277,34 @@ const CustomGeoShapeUtil = GeoShapeUtil.configure({
 })
 ```
 
-Frame, note, and highlight shapes define their own per-theme color maps as shape options. To customize them, use `.configure()`:
+Frame, note, and highlight shapes read their colors from the theme's color palette. To customize them, override the relevant color variants in your theme:
 
 ```typescript
-import { NoteShapeUtil } from 'tldraw'
+import { DEFAULT_LIGHT_THEME, DEFAULT_DARK_THEME } from 'tldraw'
 
-const CustomNoteUtil = NoteShapeUtil.configure({
-	noteColors: {
-		light: {
-			black: { fill: '#E8F5E9', text: '#1B5E20' }, // green-tinted notes
-			blue: { fill: '#E3F2FD', text: '#0D47A1' },
-			// ... other colors
-		},
-		dark: {
-			black: { fill: '#1B5E20', text: '#E8F5E9' },
-			blue: { fill: '#0D47A1', text: '#E3F2FD' },
+const myThemes = {
+	light: {
+		...DEFAULT_LIGHT_THEME,
+		colors: {
+			...DEFAULT_LIGHT_THEME.colors,
+			noteBorder: '#A5D6A7',
+			black: {
+				...DEFAULT_LIGHT_THEME.colors.black,
+				noteFill: '#E8F5E9', // green-tinted notes
+				noteText: '#1B5E20',
+			},
+			blue: {
+				...DEFAULT_LIGHT_THEME.colors.blue,
+				noteFill: '#E3F2FD',
+				noteText: '#0D47A1',
+			},
 			// ... other colors
 		},
 	},
-	noteBorder: {
-		light: '#A5D6A7',
-		dark: '#2E7D32',
-	},
-})
+}
 ```
 
-Similarly, `FrameShapeUtil.configure({ frameColors: { ... } })` and `HighlightShapeUtil.configure({ highlightColors: { ... } })` let you override frame and highlight colors.
+The same approach works for frame colors (`frameFill`, `frameStroke`, `frameHeadingFill`, `frameHeadingStroke`, `frameText`) and highlight colors (`highlightSrgb`, `highlightP3`).
 
 For custom shapes, call `this.editor.getCurrentTheme()` or `useEditor().getCurrentTheme()` directly in your `component` and `indicator` methods:
 

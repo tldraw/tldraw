@@ -97,16 +97,6 @@ export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<
 	 * but you can set it to be user-resizable using scale.
 	 */
 	resizeMode: 'none' | 'scale'
-	/**
-	 * Per-theme, per-color fill and text color values for note shapes.
-	 * Maps `themeId` → `colorName` → `{ fill, text }`.
-	 */
-	noteColors: Record<string, Record<string, { fill: string; text: string }>>
-	/**
-	 * Per-theme border color for note shapes.
-	 * Maps `themeId` → border color string.
-	 */
-	noteBorder: Record<string, string>
 }
 
 /** @public */
@@ -117,55 +107,17 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override options: NoteShapeOptions = {
 		resizeMode: 'none',
-		noteColors: {
-			light: {
-				black: { fill: '#FCE19C', text: '#000000' },
-				blue: { fill: '#8AA3FF', text: '#000000' },
-				green: { fill: '#6FC896', text: '#000000' },
-				grey: { fill: '#C0CAD3', text: '#000000' },
-				'light-blue': { fill: '#9BC4FD', text: '#000000' },
-				'light-green': { fill: '#98D08A', text: '#000000' },
-				'light-red': { fill: '#F7A5A1', text: '#000000' },
-				'light-violet': { fill: '#DFB0F9', text: '#000000' },
-				orange: { fill: '#FAA475', text: '#000000' },
-				red: { fill: '#FC8282', text: '#000000' },
-				violet: { fill: '#DB91FD', text: '#000000' },
-				yellow: { fill: '#FED49A', text: '#000000' },
-				white: { fill: '#FFFFFF', text: '#000000' },
-			},
-			dark: {
-				black: { fill: '#2c2c2c', text: '#f2f2f2' },
-				blue: { fill: '#2A3F98', text: '#f2f2f2' },
-				green: { fill: '#014429', text: '#f2f2f2' },
-				grey: { fill: '#56595F', text: '#f2f2f2' },
-				'light-blue': { fill: '#1F5495', text: '#f2f2f2' },
-				'light-green': { fill: '#21581D', text: '#f2f2f2' },
-				'light-red': { fill: '#7a3333', text: '#f2f2f2' },
-				'light-violet': { fill: '#762F8E', text: '#f2f2f2' },
-				orange: { fill: '#7c3905', text: '#f2f2f2' },
-				red: { fill: '#7e201f', text: '#f2f2f2' },
-				violet: { fill: '#5f1c70', text: '#f2f2f2' },
-				yellow: { fill: '#8a5e1c', text: '#f2f2f2' },
-				white: { fill: '#eaeaea', text: '#1d1d1d' },
-			},
-		},
-		noteBorder: {
-			light: 'rgb(144, 144, 144)',
-			dark: 'rgb(20, 20, 20)',
-		},
-		getDisplayValues(_editor, shape, theme, options: NoteShapeOptions): NoteShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme): NoteShapeUtilDisplayValues {
 			const { color, labelColor, font, size, align, verticalAlign } = shape.props
-			const noteColor =
-				options.noteColors[theme.id]?.[color] ?? options.noteColors['light']?.[color]
 			return {
 				noteWidth: 200,
 				noteHeight: 200,
-				noteBackgroundColor: noteColor?.fill ?? getColorValue(theme, color, 'solid'),
-				borderColor: options.noteBorder[theme.id] ?? options.noteBorder['light'],
+				noteBackgroundColor: getColorValue(theme, color, 'noteFill'),
+				borderColor: theme.colors.noteBorder,
 				borderWidth: 2,
 				labelColor:
 					labelColor === 'black'
-						? (noteColor?.text ?? getColorValue(theme, color, 'solid'))
+						? getColorValue(theme, color, 'noteText')
 						: getColorValue(theme, labelColor, 'fill'),
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: theme.fontSize * LABEL_FONT_SIZES[size],
@@ -178,12 +130,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				labelVerticalAlign: NOTE_SHAPE_VERTICAL_ALIGNS[verticalAlign],
 			}
 		},
-		getDisplayValueOverrides(
-			_editor,
-			_shape,
-			_theme,
-			_options
-		): Partial<NoteShapeUtilDisplayValues> {
+		getDisplayValueOverrides(): Partial<NoteShapeUtilDisplayValues> {
 			return {}
 		},
 	}

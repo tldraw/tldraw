@@ -39,7 +39,7 @@ describe('getDisplayValues', () => {
 
 	it('overrides merge on top of base values', () => {
 		const ConfiguredGeo = GeoShapeUtil.configure({
-			getDisplayValueOverrides(_editor, _shape, _theme, _options) {
+			getDisplayValueOverrides() {
 				return { strokeColor: '#ff0000' }
 			},
 		})
@@ -55,7 +55,7 @@ describe('getDisplayValues', () => {
 })
 
 describe('note shape colors', () => {
-	it('resolves colors from noteColors options for light theme', () => {
+	it('resolves colors from theme for light theme', () => {
 		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'blue' } }])
 		const shape = editor.getShape<TLNoteShape>(noteId)!
 		const util = editor.getShapeUtil('note') as NoteShapeUtil
@@ -82,8 +82,8 @@ describe('note shape colors', () => {
 		expect(dv.borderColor).toBe('rgb(144, 144, 144)')
 	})
 
-	it('falls back to light theme for unknown theme ID', () => {
-		// Add a custom theme without note colors
+	it('falls back to theme colors for custom theme', () => {
+		// Add a custom theme that copies light theme colors
 		const lightTheme = editor.getThemes()['light']
 		editor.updateThemes({
 			'custom-brand': { ...lightTheme, id: 'custom-brand' },
@@ -94,45 +94,39 @@ describe('note shape colors', () => {
 		const shape = editor.getShape<TLNoteShape>(noteId)!
 		const util = editor.getShapeUtil('note') as NoteShapeUtil
 		const dv = getDisplayValues(util, shape)
-		// Falls back to light theme's red note color
+		// Uses theme's red noteFill color
 		expect(dv.noteBackgroundColor).toBe('#FC8282')
 	})
 
-	it('can be customized via configure()', () => {
-		const ConfiguredNote = NoteShapeUtil.configure({
-			noteColors: {
-				light: {
-					black: { fill: '#CUSTOM1', text: '#CUSTOM2' },
-				},
-				dark: {
-					black: { fill: '#DARK1', text: '#DARK2' },
+	it('can be customized via theme overrides', () => {
+		const lightTheme = editor.getThemes()['light']
+		editor.updateThemes({
+			light: {
+				...lightTheme,
+				colors: {
+					...lightTheme.colors,
+					noteBorder: '#MYBORDER',
+					black: {
+						...lightTheme.colors.black,
+						noteFill: '#CUSTOM1',
+						noteText: '#CUSTOM2',
+					},
 				},
 			},
 		})
-		editor = new TestEditor({ shapeUtils: [ConfiguredNote] })
+
 		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'black' } }])
 		const shape = editor.getShape<TLNoteShape>(noteId)!
 		const util = editor.getShapeUtil('note') as NoteShapeUtil
 		const dv = getDisplayValues(util, shape)
 		expect(dv.noteBackgroundColor).toBe('#CUSTOM1')
 		expect(dv.labelColor).toBe('#CUSTOM2')
-	})
-
-	it('can override border color via configure()', () => {
-		const ConfiguredNote = NoteShapeUtil.configure({
-			noteBorder: { light: '#MYBORDER', dark: '#MYDARKBORDER' },
-		})
-		editor = new TestEditor({ shapeUtils: [ConfiguredNote] })
-		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0 }])
-		const shape = editor.getShape<TLNoteShape>(noteId)!
-		const util = editor.getShapeUtil('note') as NoteShapeUtil
-		const dv = getDisplayValues(util, shape)
 		expect(dv.borderColor).toBe('#MYBORDER')
 	})
 })
 
 describe('frame shape colors', () => {
-	it('resolves frame colors from options', () => {
+	it('resolves frame colors from theme', () => {
 		editor.createShapes([{ id: frameId, type: 'frame', x: 0, y: 0 }])
 		const shape = editor.getShape(frameId)!
 		const util = editor.getShapeUtil('frame') as FrameShapeUtil
@@ -142,21 +136,21 @@ describe('frame shape colors', () => {
 		expect(dv.strokeColor).toBe('#717171')
 	})
 
-	it('can be customized via configure()', () => {
-		const ConfiguredFrame = FrameShapeUtil.configure({
-			frameColors: {
-				light: {
+	it('can be customized via theme overrides', () => {
+		const lightTheme = editor.getThemes()['light']
+		editor.updateThemes({
+			light: {
+				...lightTheme,
+				colors: {
+					...lightTheme.colors,
 					black: {
-						headingStroke: '#AAA',
-						headingFill: '#BBB',
-						stroke: '#CCC',
-						fill: '#DDD',
-						text: '#EEE',
+						...lightTheme.colors.black,
+						frameStroke: '#CCC',
+						frameFill: '#DDD',
 					},
 				},
 			},
 		})
-		editor = new TestEditor({ shapeUtils: [ConfiguredFrame] })
 		editor.createShapes([{ id: frameId, type: 'frame', x: 0, y: 0 }])
 		const shape = editor.getShape(frameId)!
 		const util = editor.getShapeUtil('frame') as FrameShapeUtil
@@ -167,7 +161,7 @@ describe('frame shape colors', () => {
 })
 
 describe('highlight shape colors', () => {
-	it('resolves highlight colors from options', () => {
+	it('resolves highlight colors from theme', () => {
 		const hlId = createShapeId('hl')
 		editor.createShapes([
 			{
@@ -185,15 +179,21 @@ describe('highlight shape colors', () => {
 		expect(dv.strokeColor).toBeTruthy()
 	})
 
-	it('can be customized via configure()', () => {
-		const ConfiguredHighlight = HighlightShapeUtil.configure({
-			highlightColors: {
-				light: {
-					black: { srgb: '#CUSTOM_HL', p3: 'color(display-p3 1 0 0)' },
+	it('can be customized via theme overrides', () => {
+		const lightTheme = editor.getThemes()['light']
+		editor.updateThemes({
+			light: {
+				...lightTheme,
+				colors: {
+					...lightTheme.colors,
+					black: {
+						...lightTheme.colors.black,
+						highlightSrgb: '#CUSTOM_HL',
+						highlightP3: 'color(display-p3 1 0 0)',
+					},
 				},
 			},
 		})
-		editor = new TestEditor({ shapeUtils: [ConfiguredHighlight] })
 		const hlId = createShapeId('hl')
 		editor.createShapes([
 			{
@@ -226,7 +226,7 @@ describe('arrow strokeWidth from display values', () => {
 
 	it('configure() override of strokeWidth flows to display values', () => {
 		const ConfiguredArrow = ArrowShapeUtil.configure({
-			getDisplayValueOverrides(_editor, _shape, _theme, _options) {
+			getDisplayValueOverrides() {
 				return { strokeWidth: 999 }
 			},
 		})

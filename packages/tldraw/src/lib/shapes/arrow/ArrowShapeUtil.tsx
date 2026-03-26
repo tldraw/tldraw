@@ -59,15 +59,15 @@ import {
 } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import { getDisplayValues } from '../shared/getDisplayValues'
 import { PathBuilder } from '../shared/PathBuilder'
 import { PatternFill } from '../shared/PatternFill'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
-import { getDisplayValues } from '../shared/getDisplayValues'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
-import { getArrowBodyPath, getArrowBodyPathBuilder, getArrowHandlePath } from './ArrowPath'
 import { ArrowShapeOptions, type ArrowShapeUtilDisplayValues } from './arrow-types'
-import { getArrowLabelDefaultPosition, getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
+import { getArrowLabelDefaultPosition, getArrowLabelPosition } from './arrowLabel'
+import { getArrowBodyPath, getArrowBodyPathBuilder, getArrowHandlePath } from './ArrowPath'
 import { updateArrowTargetState } from './arrowTargetState'
 import { ElbowArrowAxes } from './elbow/definitions'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
@@ -129,7 +129,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return editor.inputs.getCtrlKey()
 		},
 		showTextOutline: true,
-		getDisplayValues(_editor, shape, theme, _options): ArrowShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme): ArrowShapeUtilDisplayValues {
 			const { color, fill, labelColor, size, font } = shape.props
 			return {
 				strokeColor: getColorValue(theme, color, 'solid'),
@@ -149,12 +149,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				labelBorderRadius: 3.5,
 			}
 		},
-		getDisplayValueOverrides(
-			_editor,
-			_shape,
-			_theme,
-			_options
-		): Partial<ArrowShapeUtilDisplayValues> {
+		getDisplayValueOverrides(): Partial<ArrowShapeUtilDisplayValues> {
 			return {}
 		},
 	}

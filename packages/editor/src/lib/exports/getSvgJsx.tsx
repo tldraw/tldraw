@@ -457,15 +457,11 @@ function SvgExport({
 			| {
 					options: {
 						showColors: boolean
-						frameColors?: Record<string, Record<string, { fill: string }>>
 					}
 			  }
 		if (frameShapeUtil?.options.showColors) {
 			const shape = editor.getShape(singleFrameShapeId)! as TLFrameShape
-			const frameColors = frameShapeUtil.options.frameColors
-			const frameColor =
-				frameColors?.[theme.id]?.[shape.props.color] ?? frameColors?.['light']?.[shape.props.color]
-			backgroundColor = frameColor?.fill ?? getColorValue(theme, shape.props.color, 'solid')
+			backgroundColor = getColorValue(theme, shape.props.color, 'frameFill')
 		} else {
 			backgroundColor = theme.colors.solid
 		}
