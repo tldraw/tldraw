@@ -133,4 +133,6 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix crash when isolating curved arrows with degenerate binding geometry. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 - Fix eraser not erasing shapes when starting a drag from inside a group's bounds. ([#8054](https://github.com/tldraw/tldraw/pull/8054))
 - Fix over-softened corners and end artifacts when shift-clicking to draw straight line segments. ([#7977](https://github.com/tldraw/tldraw/pull/7977))
+- Fix all shapes disappearing when a labeled arrow has zero length (e.g. when both endpoints overlap). ([#8329](https://github.com/tldraw/tldraw/pull/8329))
+- Fix the "back to content" button flickering when both the "back to content" and "move focus" buttons are visible. ([#8334](https://github.com/tldraw/tldraw/pull/8334)) (contributed by [@kaneel](https://github.com/kaneel))
 - Fix draw-shape loop-closing sensitivity so closing works more consistently across zoom levels. ([#8293](https://github.com/tldraw/tldraw/pull/8293))
