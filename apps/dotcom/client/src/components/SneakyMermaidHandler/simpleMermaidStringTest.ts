@@ -16,6 +16,11 @@ const DIAGRAM_KEYWORD_REGEX =
 	/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|erDiagram|journey|gantt|pie|gitGraph|mindmap|timeline|sankey|xychart|block|quadrantChart|requirement|C4Context|C4Container|C4Component|C4Dynamic|C4Deployment|packet|kanban|architecture|treemap|radar|info)/
 
 /**
+ * Captures the inner content of a mermaid code blog marked by ```mermaid
+ */
+const MARKDOWN_MERMAID_FENCE_REGEX = /^\s*```+\s*mermaid\s*\n([\s\S]*?)\n\s*```+\s*$/
+
+/**
  * Strip mermaid boilerplate (frontmatter, directives, comments) so only the
  * diagram body remains. The two global regexes are created as fresh literals
  * each call to avoid the stateful-lastIndex footgun of module-level /g regexes.
@@ -27,6 +32,11 @@ function stripMermaidBoilerplate(text: string): string {
 		.replace(/\s*%%.*\n/gm, '\n')
 }
 
+export function stripMarkdownMermaidFence(text: string): string {
+	const match = text.match(MARKDOWN_MERMAID_FENCE_REGEX)
+	return match ? match[1] : text
+}
+
 export function simpleMermaidStringTest(text: string): boolean {
-	return DIAGRAM_KEYWORD_REGEX.test(stripMermaidBoilerplate(text))
+	return DIAGRAM_KEYWORD_REGEX.test(stripMermaidBoilerplate(stripMarkdownMermaidFence(text)))
 }
