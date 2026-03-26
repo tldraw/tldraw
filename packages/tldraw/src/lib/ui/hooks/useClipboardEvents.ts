@@ -18,6 +18,7 @@ import {
 } from '@tldraw/editor'
 import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
+import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
 import { TLDRAW_CUSTOM_PNG_MIME_TYPE, getCanonicalClipboardReadType } from '../../utils/clipboard'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { pasteFiles } from './clipboard/pasteFiles'
@@ -845,7 +846,8 @@ export function useNativeClipboardEvents() {
 					const point = editor.user.getIsPasteAtCursorMode()
 						? editor.inputs.getCurrentPagePoint()
 						: editor.getViewportPageBounds().center
-					handleText(editor, text, point)
+					editor.markHistoryStoppingPoint('paste')
+					defaultHandleExternalTextContent(editor, { text, point })
 				}
 				preventDefault(e)
 				trackEvent('paste', { source: 'kbd' })
