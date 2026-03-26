@@ -925,3 +925,66 @@ describe('When a bound shape is clipped by a frame', () => {
 		expect(endPagePoint.x).toBeGreaterThan(190)
 	})
 })
+
+describe('Zero-length arrows', () => {
+	it('reports isValid false', () => {
+		const id = createShapeId('zero-arrow')
+		editor.createShapes([
+			{
+				id,
+				type: 'arrow',
+				x: 0,
+				y: 0,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 0, y: 0 },
+				},
+			},
+		])
+		const shape = editor.getShape(id) as TLArrowShape
+		const info = getArrowInfo(editor, shape)
+		expect(info!.isValid).toBe(false)
+	})
+
+	it('with label does not produce NaN page bounds', () => {
+		const id = createShapeId('zero-label-arrow')
+		editor.createShapes([
+			{
+				id,
+				type: 'arrow',
+				x: 0,
+				y: 0,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 0, y: 0 },
+					richText: toRichText('Label'),
+				},
+			},
+		])
+		const bounds = editor.getShapePageBounds(id)
+		if (bounds) {
+			expect(bounds.isValid()).toBe(true)
+		}
+	})
+
+	it('with label does not corrupt spatial index', () => {
+		const geoId = createShapeId('geo-for-spatial')
+		const arrowId = createShapeId('zero-spatial-arrow')
+		editor.createShapes([
+			{ id: geoId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 200,
+				y: 200,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 0, y: 0 },
+					richText: toRichText('Label'),
+				},
+			},
+		])
+		const shapesAtPoint = editor.getShapesAtPoint({ x: 50, y: 50 }, { hitInside: true })
+		expect(shapesAtPoint.some((s) => s.id === geoId)).toBe(true)
+	})
+})
