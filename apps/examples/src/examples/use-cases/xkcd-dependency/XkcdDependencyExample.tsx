@@ -1,4 +1,4 @@
-import Matter from 'matter-js'
+import RAPIER from '@dimforge/rapier2d-compat'
 import { useEffect, useRef } from 'react'
 import { createShapeId, Tldraw, TLShapeId, toRichText, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -74,15 +74,17 @@ function processBlocks(): Block[] {
 
 function XkcdDependency() {
 	const editor = useEditor()
-	const engineRef = useRef<Matter.Engine | null>(null)
-	const bodiesRef = useRef<{ id: TLShapeId; body: Matter.Body; w: number; h: number }[]>([])
+	const worldRef = useRef<RAPIER.World | null>(null)
+	const bodiesRef = useRef<{ id: TLShapeId; body: RAPIER.RigidBody; w: number; h: number }[]>([])
 
-	// Set up shapes and physics
 	useEffect(() => {
+		let cancelled = false
+		let onTick: (() => void) | null = null
+		let removeListener: (() => void) | null = null
+
 		const blocks = processBlocks()
 		const depBlock = blocks[DEPENDENCY_BLOCK_INDEX]
 
-		// Create tldraw shapes for each block
 		const shapes = blocks.map((block, i) => {
 			const id = createShapeId(`xkcd-${i}`)
 			return {
@@ -101,13 +103,11 @@ function XkcdDependency() {
 			}
 		})
 
-		// Add a title text shape above the tower
 		const titleId = createShapeId('xkcd-title')
 		const minX = Math.min(...blocks.map((b) => b.x))
 		const maxX = Math.max(...blocks.map((b) => b.x + b.w))
 		const minY = Math.min(...blocks.map((b) => b.y))
 
-		// Add annotation text and arrow pointing at the dependency block
 		const annotationId = createShapeId('xkcd-annotation')
 		const arrowId = createShapeId('xkcd-arrow')
 		const depId = createShapeId(`xkcd-${DEPENDENCY_BLOCK_INDEX}`)
@@ -160,14 +160,46 @@ function XkcdDependency() {
 				x: minX,
 				y: groundY + 30,
 				props: {
-					richText: toRichText('With apologies to xkcd.com/2347\nInspired by p5js.org/isohedral'),
+					richText: {
+						type: 'doc',
+						content: [
+							{
+								type: 'paragraph',
+								content: [
+									{ type: 'text', text: 'With apologies to ' },
+									{
+										type: 'text',
+										text: 'xkcd.com/2347',
+										marks: [{ type: 'link', attrs: { href: 'https://xkcd.com/2347' } }],
+									},
+								],
+							},
+							{
+								type: 'paragraph',
+								content: [
+									{ type: 'text', text: 'Inspired by ' },
+									{
+										type: 'text',
+										text: 'editor.p5js.org/isohedral',
+										marks: [
+											{
+												type: 'link',
+												attrs: {
+													href: 'https://editor.p5js.org/isohedral/full/vJa5RiZWs',
+												},
+											},
+										],
+									},
+								],
+							},
+						],
+					},
 					size: 's',
 					color: 'grey',
 				},
 			},
 		])
 
-		// Bind the arrow end to the dependency block
 		editor.createBindings([
 			{
 				fromId: arrowId,
@@ -182,137 +214,152 @@ function XkcdDependency() {
 			},
 		])
 
-		// Set up Matter.js physics engine
-		const engine = Matter.Engine.create({ enableSleeping: true })
-		engine.gravity.y = 1
-		engineRef.current = engine
-
-		// Create ground
-		const ground = Matter.Bodies.rectangle(
-			(minX + maxX) / 2,
-			groundY + 50,
-			(maxX - minX) * 3,
-			100,
-			{ isStatic: true }
-		)
-		Matter.Composite.add(engine.world, ground)
-
-		// Track block IDs and dimensions (no physics bodies yet — created on demand)
-		const blockMeta = blocks.map((block, i) => ({
-			id: createShapeId(`xkcd-${i}`),
-			w: block.w,
-			h: block.h,
-		}))
-		const blockIdSet = new Set(blockMeta.map((b) => b.id as string))
-		bodiesRef.current = []
-
-		// Zoom to fit the tower
 		editor.zoomToFit({ animation: { duration: 300 } })
 
-		// Activate physics: read current shape positions and create dynamic bodies
-		let physicsActive = false
-		function activatePhysics(excludeId?: string) {
-			if (physicsActive) return
-			physicsActive = true
+		RAPIER.init().then(() => {
+			if (cancelled) return
 
+			const world = new RAPIER.World({ x: 0, y: 200 })
+			worldRef.current = world
+
+			// Static ground body below the tower
+			const groundBody = world.createRigidBody(
+				RAPIER.RigidBodyDesc.fixed().setTranslation((minX + maxX) / 2, groundY + 50)
+			)
+			world.createCollider(RAPIER.ColliderDesc.cuboid(((maxX - minX) * 3) / 2, 50), groundBody)
+
+			// Dynamic bodies for each block
+			const blockIdSet = new Set<string>()
 			const bodies: typeof bodiesRef.current = []
-			for (const meta of blockMeta) {
-				if (meta.id === excludeId) continue
-				if (!blockIdSet.has(meta.id)) continue
-				const shape = editor.getShape(meta.id)
-				if (!shape) continue
-				const body = Matter.Bodies.rectangle(
-					shape.x + meta.w / 2,
-					shape.y + meta.h / 2,
-					meta.w,
-					meta.h,
-					{ restitution: 0.1, friction: 0.8, frictionStatic: 0.5 }
+			for (let i = 0; i < blocks.length; i++) {
+				const block = blocks[i]
+				const id = createShapeId(`xkcd-${i}`)
+				blockIdSet.add(id)
+				const body = world.createRigidBody(
+					RAPIER.RigidBodyDesc.dynamic()
+						.setTranslation(block.x + block.w / 2, block.y + block.h / 2)
+						.setCanSleep(true)
 				)
-				Matter.Composite.add(engine.world, body)
-				bodies.push({ id: meta.id, body, w: meta.w, h: meta.h })
+				world.createCollider(
+					RAPIER.ColliderDesc.cuboid(block.w / 2, block.h / 2)
+						.setRestitution(0.05)
+						.setFriction(0.1),
+					body
+				)
+				bodies.push({ id, body, w: block.w, h: block.h })
 			}
 			bodiesRef.current = bodies
-		}
 
-		// Flag to ignore store events triggered by the physics sync
-		let updatingFromPhysics = false
+			// Warm up: settle any overlaps from the initial layout, then sleep everything
+			for (let i = 0; i < 120; i++) world.step()
+			const settled: { id: TLShapeId; type: 'geo'; x: number; y: number; rotation: number }[] = []
+			for (const { id, body, w, h } of bodies) {
+				const pos = body.translation()
+				settled.push({
+					id,
+					type: 'geo',
+					x: pos.x - w / 2,
+					y: pos.y - h / 2,
+					rotation: body.rotation(),
+				})
+				body.sleep()
+			}
+			editor.updateShapes(settled)
 
-		// Listen for user changes
-		const removeListener = editor.store.listen(
-			({ changes }) => {
-				if (updatingFromPhysics) return
-				const eng = engineRef.current
-				if (!eng) return
+			let updatingFromPhysics = false
+			const kinematicIds = new Set<string>()
 
-				// Handle deletions — activate physics if not already, remove the body
-				for (const key of Object.keys(changes.removed)) {
-					if (!blockIdSet.has(key)) continue
-					blockIdSet.delete(key)
-					if (!physicsActive) {
-						activatePhysics(key)
-					} else {
+			// Only handle deletions — drag syncing is done in the tick handler
+			removeListener = editor.store.listen(
+				({ changes }) => {
+					if (updatingFromPhysics) return
+
+					for (const key of Object.keys(changes.removed)) {
+						if (!blockIdSet.has(key)) continue
+						blockIdSet.delete(key)
+						kinematicIds.delete(key)
 						const idx = bodiesRef.current.findIndex((b) => b.id === key)
 						if (idx !== -1) {
-							Matter.Composite.remove(eng.world, bodiesRef.current[idx].body)
+							world.removeRigidBody(bodiesRef.current[idx].body)
 							bodiesRef.current.splice(idx, 1)
 						}
+						for (const { body } of bodiesRef.current) body.wakeUp()
 					}
+				},
+				{ source: 'user', scope: 'document' }
+			)
+
+			onTick = () => {
+				if (!worldRef.current) return
+
+				const selectedIds = new Set(editor.getSelectedShapeIds() as string[])
+
+				// Release bodies that are no longer selected back to dynamic
+				for (const id of kinematicIds) {
+					if (selectedIds.has(id)) continue
+					kinematicIds.delete(id)
+					const entry = bodiesRef.current.find((b) => b.id === id)
+					if (!entry) continue
+					entry.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true)
+					entry.body.setLinvel({ x: 0, y: 0 }, true)
+					entry.body.setAngvel(0, true)
+					for (const { body } of bodiesRef.current) body.wakeUp()
 				}
 
-				// Handle moves — activate physics if not already, sync position
-				for (const [key, value] of Object.entries(changes.updated)) {
-					if (!blockIdSet.has(key)) continue
-					if (!physicsActive) {
-						activatePhysics()
+				// Switch selected bodies to kinematic so they follow the user's drag
+				for (const entry of bodiesRef.current) {
+					if (!selectedIds.has(entry.id as string)) continue
+					if (!kinematicIds.has(entry.id as string)) {
+						entry.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
+						kinematicIds.add(entry.id as string)
 					}
-					const shape = (value as [unknown, { x: number; y: number; rotation: number }])[1]
-					const entry = bodiesRef.current.find((b) => b.id === key)
-					if (!entry) continue
-					Matter.Body.setPosition(entry.body, {
+					const shape = editor.getShape(entry.id)
+					if (!shape) continue
+					entry.body.setNextKinematicTranslation({
 						x: shape.x + entry.w / 2,
 						y: shape.y + entry.h / 2,
 					})
-					Matter.Body.setAngle(entry.body, shape.rotation)
-					Matter.Body.setVelocity(entry.body, { x: 0, y: 0 })
+					entry.body.setNextKinematicRotation(shape.rotation)
 				}
-			},
-			{ source: 'user', scope: 'document' }
-		)
 
-		// Physics tick — only runs once physics is activated
-		function onTick() {
-			if (!physicsActive) return
-			const eng = engineRef.current
-			if (!eng) return
+				world.step()
 
-			Matter.Engine.update(eng, 1000 / 60)
+				// Sync non-selected, non-sleeping bodies back to tldraw shapes
+				const updates: {
+					id: TLShapeId
+					type: 'geo'
+					x: number
+					y: number
+					rotation: number
+				}[] = []
+				for (const { id, body, w, h } of bodiesRef.current) {
+					if (kinematicIds.has(id as string)) continue
+					if (body.isSleeping()) continue
+					const pos = body.translation()
+					const bx = pos.x - w / 2
+					const by = pos.y - h / 2
+					if (!isFinite(bx) || !isFinite(by)) continue
+					updates.push({ id, type: 'geo', x: bx, y: by, rotation: body.rotation() })
+				}
 
-			const updates: { id: TLShapeId; type: 'geo'; x: number; y: number; rotation: number }[] = []
-			for (const { id, body, w, h } of bodiesRef.current) {
-				if (body.isSleeping) continue
-				const bx = body.position.x - w / 2
-				const by = body.position.y - h / 2
-				if (!isFinite(bx) || !isFinite(by)) continue
-				updates.push({ id, type: 'geo', x: bx, y: by, rotation: body.angle })
+				if (updates.length > 0) {
+					updatingFromPhysics = true
+					editor.updateShapes(updates)
+					updatingFromPhysics = false
+				}
 			}
 
-			if (updates.length > 0) {
-				updatingFromPhysics = true
-				editor.updateShapes(updates)
-				updatingFromPhysics = false
-			}
-		}
-
-		editor.on('tick', onTick)
+			editor.on('tick', onTick)
+		})
 
 		return () => {
-			editor.off('tick', onTick)
-			removeListener()
-			if (engineRef.current) {
-				Matter.Engine.clear(engineRef.current)
-				engineRef.current = null
+			cancelled = true
+			if (onTick) editor.off('tick', onTick)
+			if (removeListener) removeListener()
+			if (worldRef.current) {
+				worldRef.current.free()
+				worldRef.current = null
 			}
-			// Clean up shapes so strict mode re-mount works
 			const shapeIds: TLShapeId[] = blocks.map((_, i) => createShapeId(`xkcd-${i}`))
 			shapeIds.push(titleId, annotationId, arrowId, creditId)
 			editor.deleteShapes(shapeIds)

@@ -1958,6 +1958,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@dimforge/rapier2d-compat@npm:^0.19.3":
+  version: 0.19.3
+  resolution: "@dimforge/rapier2d-compat@npm:0.19.3"
+  checksum: 10/a67fef205d145942edff166548e46b68e863de495e77d8479d4ec4e83c2f350aededd5db06836f5516373b8c16b7027eb6cd66167b56ae995d5a4f27b57b1fd3
+  languageName: node
+  linkType: hard
+
 "@dotenvx/dotenvx@npm:^1.39.0":
   version: 1.39.0
   resolution: "@dotenvx/dotenvx@npm:1.39.0"
@@ -12375,13 +12382,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/matter-js@npm:^0":
-  version: 0.20.2
-  resolution: "@types/matter-js@npm:0.20.2"
-  checksum: 10/aca95dab43e71106ff00c741a90b60752f2d5b17d48e0b2ea111b5f9f554f609d9cbac672a360b6b856cd9b2adb4a69f6fc1b66a18ad5fad359ea9d3f78ba80d
-  languageName: node
-  linkType: hard
-
 "@types/md5@npm:^2.3.5":
   version: 2.3.5
   resolution: "@types/md5@npm:2.3.5"
@@ -18307,6 +18307,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
+    "@dimforge/rapier2d-compat": "npm:^0.19.3"
     "@playwright/test": "npm:^1.58.2"
     "@tiptap/core": "npm:^3.12.1"
     "@tiptap/extension-font-family": "npm:^3.12.1"
@@ -18321,7 +18322,6 @@ __metadata:
     "@tldraw/sync": "workspace:*"
     "@types/d3-geo": "npm:^3.1.0"
     "@types/lodash": "npm:^4.17.14"
-    "@types/matter-js": "npm:^0"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@types/topojson-client": "npm:^3.1.5"
@@ -18335,7 +18335,6 @@ __metadata:
     dotenv: "npm:^16.4.7"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash: "npm:^4.17.21"
-    matter-js: "npm:^0.20.0"
     mermaid: "npm:11.12.2"
     pdf-lib: "npm:^1.17.1"
     pdfjs-dist: "npm:^4.10.38"
@@ -22262,13 +22261,6 @@ __metadata:
   version: 1.1.0
   resolution: "math-intrinsics@npm:1.1.0"
   checksum: 10/11df2eda46d092a6035479632e1ec865b8134bdfc4bd9e571a656f4191525404f13a283a515938c3a8de934dbfd9c09674d9da9fa831e6eb7e22b50b197d2edd
-  languageName: node
-  linkType: hard
-
-"matter-js@npm:^0.20.0":
-  version: 0.20.0
-  resolution: "matter-js@npm:0.20.0"
-  checksum: 10/db275f6b7ab5e7174692b5699cd31cb8be92af5e6b4acf944f82b5c4e61ceee79bd164578011dd90c996d106a8fc4f717087eb3845492a1b3bb6df7ca38d4d87
   languageName: node
   linkType: hard
 
