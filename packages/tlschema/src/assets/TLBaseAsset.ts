@@ -107,21 +107,24 @@ export const assetIdValidator = idValidator<TLAssetId>('asset')
  *
  * @public
  */
-export function createAssetValidator<Type extends string, Props extends JsonObject>(
+export function createAssetValidator<
+	Type extends string,
+	Props extends JsonObject,
+	Meta extends JsonObject = JsonObject,
+>(
 	type: Type,
-	props: T.Validator<Props>
+	props?: T.Validator<Props> | { [K in keyof Props]: T.Validatable<Props[K]> },
+	meta?: { [K in keyof Meta]: T.Validatable<Meta[K]> }
 ) {
-	return T.object<{
-		id: TLAssetId
-		typeName: 'asset'
-		type: Type
-		props: Props
-		meta: JsonObject
-	}>({
+	// Determine if props is a Validator instance or a per-key record
+	const propsValidator =
+		props instanceof T.Validator ? props : props ? T.object(props) : (T.jsonValue as any)
+
+	return T.object<TLBaseAsset<Type, Props>>({
 		id: assetIdValidator,
 		typeName: T.literal('asset'),
 		type: T.literal(type),
-		props,
-		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+		props: propsValidator,
+		meta: meta ? T.object(meta) : (T.jsonValue as T.ObjectValidator<JsonObject>),
 	})
 }

@@ -1,6 +1,6 @@
 import { createMigrationIds, createRecordMigrationSequence } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLAsset } from '../records/TLAsset'
+import { RecordProps } from '../recordsWithProps'
 import { TLBaseAsset, createAssetValidator } from './TLBaseAsset'
 
 /**
@@ -51,18 +51,21 @@ export type TLImageAsset = TLBaseAsset<
  *
  * @public
  */
+/** @public */
+export const imageAssetProps = {
+	w: T.number,
+	h: T.number,
+	name: T.string,
+	isAnimated: T.boolean,
+	mimeType: T.string.nullable(),
+	src: T.srcUrl.nullable(),
+	fileSize: T.nonZeroNumber.optional(),
+	pixelRatio: T.positiveNumber.optional(),
+} satisfies RecordProps<TLImageAsset>
+
 export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidator(
 	'image',
-	T.object({
-		w: T.number,
-		h: T.number,
-		name: T.string,
-		isAnimated: T.boolean,
-		mimeType: T.string.nullable(),
-		src: T.srcUrl.nullable(),
-		fileSize: T.nonZeroNumber.optional(),
-		pixelRatio: T.positiveNumber.optional(),
-	})
+	T.object(imageAssetProps)
 )
 
 const Versions = createMigrationIds('com.tldraw.asset.image', {
@@ -109,7 +112,7 @@ export { Versions as imageAssetVersions }
 export const imageAssetMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.asset.image',
 	recordType: 'asset',
-	filter: (asset) => (asset as TLAsset).type === 'image',
+	filter: (asset) => (asset as TLImageAsset).type === 'image',
 	sequence: [
 		{
 			id: Versions.AddIsAnimated,
