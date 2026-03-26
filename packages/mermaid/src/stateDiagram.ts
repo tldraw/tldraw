@@ -3,10 +3,8 @@ import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
 	MermaidBlueprintNode,
-	MermaidNodeRenderMapper,
 } from './blueprint'
 import { buildClassDefColorMap, type ParsedNodeColors } from './colors'
-import { resolveMermaidNodeRender } from './defaultMermaidNodeRenderSpec'
 import {
 	buildNodeCentersFromSvg,
 	parseAllEdgePointsFromSvg,
@@ -144,8 +142,7 @@ function stateToNodes(
 	w: number,
 	h: number,
 	parentId: string | undefined,
-	colors: ParsedNodeColors | undefined,
-	mapNode?: MermaidNodeRenderMapper
+	colors: ParsedNodeColors | undefined
 ): MermaidBlueprintNode[] {
 	const base = { x, y, w, h, parentId, color: 'black' as const }
 	const label = state.label || undefined
@@ -154,13 +151,12 @@ function stateToNodes(
 		id: string,
 		kind: string,
 		partial: Partial<Pick<MermaidBlueprintNode, 'x' | 'y' | 'w' | 'h' | 'parentId'>> &
-			Omit<MermaidBlueprintNode, 'id' | 'kind' | 'render' | 'x' | 'y' | 'w' | 'h' | 'parentId'>
+			Omit<MermaidBlueprintNode, 'id' | 'kind' | 'x' | 'y' | 'w' | 'h' | 'parentId'>
 	): MermaidBlueprintNode => ({
 		id,
 		kind,
 		...base,
 		...partial,
-		render: resolveMermaidNodeRender('state', id, kind, mapNode),
 	})
 
 	switch (state.type) {
@@ -246,19 +242,13 @@ export function parseStateDiagramLayout(root: Element): ParsedDiagramLayout {
 	return { nodes, clusters, edges }
 }
 
-export interface StateToBlueprintOptions {
-	mapNodeToRenderSpec?: MermaidNodeRenderMapper
-}
-
 /** Convert a parsed Mermaid state diagram into a tldraw blueprint of nodes and edges. */
 export function stateToBlueprint(
 	layout: ParsedDiagramLayout,
 	states: Map<string, StateStmt>,
 	relations: DiagramEdge[],
-	classDefs?: Map<string, StyleClass>,
-	options?: StateToBlueprintOptions
+	classDefs?: Map<string, StyleClass>
 ): DiagramMermaidBlueprint {
-	const mapNode = options?.mapNodeToRenderSpec
 	const stateColorMap = classDefs ? buildClassDefColorMap(classDefs, states) : new Map()
 	const { nodes: svgNodes, clusters: svgClusters, edges: svgEdges } = layout
 	const nodeCenters = buildNodeCentersFromSvg(svgNodes, svgClusters)
@@ -400,7 +390,6 @@ export function stateToBlueprint(
 			y: bounds.absY,
 			w: bounds.w,
 			h: bounds.h,
-			render: resolveMermaidNodeRender('state', compoundId, kind, mapNode),
 			parentId: parentOf.get(compoundId),
 			label: compoundLabels.get(compoundId) || compoundId,
 			fill: 'semi',
@@ -424,8 +413,7 @@ export function stateToBlueprint(
 				layout.w,
 				layout.h,
 				parentOf.get(id),
-				stateColorMap.get(id),
-				mapNode
+				stateColorMap.get(id)
 			)
 		)
 	}

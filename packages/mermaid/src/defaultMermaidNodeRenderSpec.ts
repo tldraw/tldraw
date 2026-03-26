@@ -1,5 +1,6 @@
 import type { TLGeoShapeGeoStyle } from 'tldraw'
 import type {
+	MermaidBlueprintNode,
 	MermaidBlueprintNodeRenderSpec,
 	MermaidDiagramKind,
 	MermaidNodeRenderMapper,
@@ -87,7 +88,7 @@ function mindmapKindToGeo(kind: string): TLGeoShapeGeoStyle {
 
 /**
  * Default built-in mapping from {@link MermaidDiagramKind} + semantic `kind` to a geo {@link MermaidBlueprintNodeRenderSpec}.
- * Used when the user does not supply `mapNodeToRenderSpec` for that diagram, or when the mapper returns `undefined`.
+ * Used when `mapNodeToRenderSpec` is omitted from `renderBlueprint` options, or when the mapper returns `undefined`.
  * @public
  */
 export function defaultMermaidNodeRenderSpec(
@@ -115,14 +116,20 @@ export function defaultMermaidNodeRenderSpec(
 }
 
 /**
- * Uses the optional per-diagram mapper when it returns a value; otherwise {@link defaultMermaidNodeRenderSpec}.
+ * Uses the optional mapper when it returns a value; otherwise {@link defaultMermaidNodeRenderSpec}.
  * @public
  */
 export function resolveMermaidNodeRender(
 	diagramKind: MermaidDiagramKind,
-	nodeId: string,
-	kind: string,
+	node: MermaidBlueprintNode,
 	mapper?: MermaidNodeRenderMapper | undefined
 ): MermaidBlueprintNodeRenderSpec {
-	return mapper?.({ nodeId, kind }) ?? defaultMermaidNodeRenderSpec(diagramKind, kind)
+	return (
+		mapper?.({
+			diagramKind,
+			nodeId: node.id,
+			kind: node.kind,
+			node,
+		}) ?? defaultMermaidNodeRenderSpec(diagramKind, node.kind)
+	)
 }

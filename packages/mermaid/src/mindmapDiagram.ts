@@ -4,10 +4,8 @@ import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
 	MermaidBlueprintNode,
-	MermaidNodeRenderMapper,
 } from './blueprint'
 import { parseRgbToTldrawColor } from './colors'
-import { resolveMermaidNodeRender } from './defaultMermaidNodeRenderSpec'
 import { parseNodesFromSvg, scaleLayout } from './svgParsing'
 import type { ParsedNode } from './svgParsing'
 import { LAYOUT_SCALE } from './utils'
@@ -78,18 +76,12 @@ export function parseMindmapLayout(root: Element): ParsedMindmapLayout {
 	return { nodes }
 }
 
-export interface MindmapToBlueprintOptions {
-	mapNodeToRenderSpec?: MermaidNodeRenderMapper
-}
-
 /** Convert a parsed Mermaid mindmap into a tldraw blueprint of nodes and edges. */
 export function mindmapToBlueprint(
 	layout: ParsedMindmapLayout,
 	mindmapTree: MindmapNode,
-	svgRoot: Element,
-	options?: MindmapToBlueprintOptions
+	svgRoot: Element
 ): DiagramMermaidBlueprint {
-	const mapNode = options?.mapNodeToRenderSpec
 	const flatNodes: FlatNode[] = []
 	flattenMindmapTree(mindmapTree, undefined, flatNodes)
 
@@ -132,7 +124,6 @@ export function mindmapToBlueprint(
 			y: svgNode.center.y - h / 2,
 			w,
 			h,
-			render: resolveMermaidNodeRender('mindmap', id, kind, mapNode),
 			label: flatNode.label || undefined,
 			fill: 'solid',
 			color,

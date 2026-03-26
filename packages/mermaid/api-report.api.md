@@ -20,7 +20,7 @@ import type { TLShapeId } from 'tldraw';
 export interface BlueprintRenderingOptions {
     // (undocumented)
     centerOnPosition?: boolean;
-    createShape?: MermaidNodeCreateFunction;
+    mapNodeToRenderSpec?: MermaidNodeRenderMapper;
     // (undocumented)
     position?: {
         x: number;
@@ -140,7 +140,6 @@ export interface MermaidBlueprintNode {
     label?: string;
     // (undocumented)
     parentId?: string;
-    render: MermaidBlueprintNodeRenderSpec;
     // (undocumented)
     size?: TLDefaultSizeStyle;
     // (undocumented)
@@ -175,31 +174,15 @@ export class MermaidDiagramError extends Error {
 // @public
 export type MermaidDiagramKind = 'flowchart' | 'mindmap' | 'sequence' | 'state';
 
-// @public
-export interface MermaidDiagramKindOptions {
-    mapNodeToRenderSpec?: MermaidNodeRenderMapper;
-}
-
 // @public (undocumented)
 export interface MermaidDiagramOptions {
     // (undocumented)
     blueprintRender?: BlueprintRenderingOptions;
     // (undocumented)
-    flowchart?: MermaidDiagramKindOptions;
-    // (undocumented)
     mermaidConfig?: Record<string, any>;
     // (undocumented)
-    mindmap?: MermaidDiagramKindOptions;
-    // (undocumented)
     onUnsupportedDiagram?(svg: string): Promise<void>;
-    // (undocumented)
-    sequence?: MermaidDiagramKindOptions;
-    // (undocumented)
-    state?: MermaidDiagramKindOptions;
 }
-
-// @public
-export type MermaidNodeCreateFunction = (args: MermaidNodeCreateFunctionArgs) => TLShape;
 
 // @public
 export interface MermaidNodeCreateFunctionArgs {
@@ -211,6 +194,7 @@ export interface MermaidNodeCreateFunctionArgs {
     node: MermaidBlueprintNode;
     // (undocumented)
     parentShapeId?: TLShapeId;
+    render: MermaidBlueprintNodeRenderSpec;
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
@@ -222,6 +206,8 @@ export interface MermaidNodeCreateFunctionArgs {
 // @public
 export type MermaidNodeRenderMapper = (input: {
     nodeId: string;
+    node: MermaidBlueprintNode;
+    diagramKind: MermaidDiagramKind;
     kind: string;
 }) => MermaidBlueprintNodeRenderSpec | undefined;
 
@@ -229,7 +215,7 @@ export type MermaidNodeRenderMapper = (input: {
 export function renderBlueprint(editor: Editor, blueprint: DiagramMermaidBlueprint, opts?: BlueprintRenderingOptions): void;
 
 // @public
-export function resolveMermaidNodeRender(diagramKind: MermaidDiagramKind, nodeId: string, kind: string, mapper?: MermaidNodeRenderMapper | undefined): MermaidBlueprintNodeRenderSpec;
+export function resolveMermaidNodeRender(diagramKind: MermaidDiagramKind, node: MermaidBlueprintNode, mapper?: MermaidNodeRenderMapper | undefined): MermaidBlueprintNodeRenderSpec;
 
 // (No @packageDocumentation comment for this package)
 

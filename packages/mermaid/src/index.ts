@@ -10,7 +10,7 @@ export type {
 	MermaidNodeRenderMapper,
 } from './blueprint'
 export { createMermaidDiagram, MermaidDiagramError } from './createMermaidDiagram'
-export type { MermaidDiagramKindOptions, MermaidDiagramOptions } from './createMermaidDiagram'
+export type { MermaidDiagramOptions } from './createMermaidDiagram'
 export {
 	defaultMermaidNodeRenderSpec,
 	resolveMermaidNodeRender,
@@ -18,7 +18,6 @@ export {
 export { MERMAID_MINDMAP_NODE_TYPE } from './mindmapDiagram'
 export {
 	defaultCreateMermaidNodeFromBlueprint,
-	type MermaidNodeCreateFunction,
 	type MermaidNodeCreateFunctionArgs,
 } from './mermaidNodeCreateShape'
 export { renderBlueprint } from './renderBlueprint'

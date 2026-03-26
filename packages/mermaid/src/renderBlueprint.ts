@@ -4,11 +4,10 @@ import type {
 	MermaidBlueprintEdge,
 	MermaidBlueprintLineNode,
 	MermaidBlueprintNode,
+	MermaidNodeRenderMapper,
 } from './blueprint'
-import {
-	defaultCreateMermaidNodeFromBlueprint,
-	type MermaidNodeCreateFunction,
-} from './mermaidNodeCreateShape'
+import { resolveMermaidNodeRender } from './defaultMermaidNodeRenderSpec'
+import { defaultCreateMermaidNodeFromBlueprint } from './mermaidNodeCreateShape'
 import { orderTopDown, sanitizeDiagramText } from './utils'
 
 /** @public */
@@ -16,10 +15,10 @@ export interface BlueprintRenderingOptions {
 	centerOnPosition?: boolean
 	position?: { x: number; y: number }
 	/**
-	 * Replaces default node creation for {@link DiagramMermaidBlueprint.nodes} only. Must create a shape
-	 * with `id: shapeId` so arrow bindings resolve. Omit to use {@link defaultCreateMermaidNodeFromBlueprint}.
+	 * Return a custom {@link MermaidBlueprintNodeRenderSpec} per node, or `undefined` for package defaults.
+	 * Called from {@link renderBlueprint} for each node (after layout offsets are known).
 	 */
-	createShape?: MermaidNodeCreateFunction
+	mapNodeToRenderSpec?: MermaidNodeRenderMapper
 }
 
 const defaultBlueprintRenderingOptions = {
@@ -33,8 +32,8 @@ export function renderBlueprint(
 	opts?: BlueprintRenderingOptions
 ) {
 	const options = { ...defaultBlueprintRenderingOptions, ...(opts || {}) }
-	const createNodeShape = options.createShape ?? defaultCreateMermaidNodeFromBlueprint
 	const { nodes, edges, lines, diagramKind } = blueprint
+	const mapper = options.mapNodeToRenderSpec
 
 	const bounds = computeBlueprintBounds(nodes, lines)
 	const center = options.position
@@ -94,7 +93,8 @@ export function renderBlueprint(
 		const x = parent ? absoluteX - (offsetX + parent.x) : absoluteX
 		const y = parent ? absoluteY - (offsetY + parent.y) : absoluteY
 
-		createNodeShape({
+		const render = resolveMermaidNodeRender(diagramKind, node, mapper)
+		defaultCreateMermaidNodeFromBlueprint({
 			editor,
 			node,
 			shapeId,
@@ -102,6 +102,7 @@ export function renderBlueprint(
 			y,
 			parentShapeId,
 			diagramKind,
+			render,
 		})
 	}
 

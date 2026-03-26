@@ -1,73 +1,78 @@
-import type { TLShapeId } from 'tldraw'
 import { describe, expect, it, vi } from 'vitest'
 import { defaultCreateMermaidNodeFromBlueprint } from './mermaidNodeCreateShape'
 
 describe('defaultCreateMermaidNodeFromBlueprint', () => {
-	it('creates a geo shape from render.variant geo', () => {
+	it('creates a geo shape with merged props', () => {
 		const createShape = vi.fn()
-		const getShape = vi.fn(() => ({ id: 'shape:s1', type: 'geo' }))
+		const getShape = vi.fn(() => ({ id: 's1', type: 'geo' }))
 		const editor = { createShape, getShape } as any
-
+		const node = {
+			id: 'A',
+			kind: 'rect',
+			x: 0,
+			y: 0,
+			w: 100,
+			h: 50,
+			label: 'Hi',
+		}
 		defaultCreateMermaidNodeFromBlueprint({
 			editor,
-			node: {
-				id: 'n',
-				x: 0,
-				y: 0,
-				w: 10,
-				h: 20,
-				kind: 'rect',
-				render: { variant: 'geo', geo: 'diamond' },
-			},
-			shapeId: 'shape:s1' as TLShapeId,
-			x: 5,
-			y: 6,
+			node,
+			shapeId: 's1' as any,
+			x: 10,
+			y: 20,
 			diagramKind: 'flowchart',
+			render: { variant: 'geo', geo: 'diamond' },
 		})
-
 		expect(createShape).toHaveBeenCalledWith(
 			expect.objectContaining({
-				id: 'shape:s1',
+				id: 's1',
 				type: 'geo',
-				x: 5,
-				y: 6,
-				props: expect.objectContaining({ geo: 'diamond', w: 10, h: 20 }),
+				x: 10,
+				y: 20,
+				props: expect.objectContaining({
+					geo: 'diamond',
+					w: 100,
+					h: 50,
+				}),
 			})
 		)
-		expect(getShape).toHaveBeenCalledWith('shape:s1')
 	})
 
-	it('merges layout props with variant shape props', () => {
+	it('creates a custom shape type with merged props', () => {
 		const createShape = vi.fn()
-		const getShape = vi.fn(() => ({ id: 'shape:s2', type: 'note' }))
+		const getShape = vi.fn(() => ({ id: 's2', type: 'text' }))
 		const editor = { createShape, getShape } as any
-
+		const node = {
+			id: 'B',
+			kind: 'rect',
+			x: 0,
+			y: 0,
+			w: 80,
+			h: 40,
+		}
 		defaultCreateMermaidNodeFromBlueprint({
 			editor,
-			node: {
-				id: 'n',
-				x: 0,
-				y: 0,
-				w: 30,
-				h: 40,
-				kind: 'rect',
-				color: 'red' as const,
-				render: {
-					variant: 'shape',
-					type: 'note',
-					props: { growY: 12 },
-				},
-			},
-			shapeId: 'shape:s2' as TLShapeId,
-			x: 1,
-			y: 2,
+			node,
+			shapeId: 's2' as any,
+			x: 0,
+			y: 0,
 			diagramKind: 'flowchart',
+			render: {
+				variant: 'shape',
+				type: 'text',
+				props: { font: 'draw' },
+			},
 		})
-
 		expect(createShape).toHaveBeenCalledWith(
 			expect.objectContaining({
-				type: 'note',
-				props: expect.objectContaining({ w: 30, h: 40, color: 'red', growY: 12 }),
+				id: 's2',
+				type: 'text',
+				props: expect.objectContaining({
+					w: 80,
+					h: 40,
+					font: 'draw',
+				}),
 			})
 		)
 	})

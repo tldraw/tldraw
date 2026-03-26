@@ -6,10 +6,8 @@ import type {
 	MermaidBlueprintEdge,
 	MermaidBlueprintNode,
 	MermaidBlueprintLineNode,
-	MermaidNodeRenderMapper,
 } from './blueprint'
 import { parseRgbToTldrawColor } from './colors'
-import { resolveMermaidNodeRender } from './defaultMermaidNodeRenderSpec'
 import { getAccumulatedTranslate } from './svgParsing'
 
 export interface SvgRect {
@@ -432,10 +430,6 @@ export function parseSequenceLayout(
 	}
 }
 
-export interface SequenceToBlueprintOptions {
-	mapNodeToRenderSpec?: MermaidNodeRenderMapper
-}
-
 /**
  * Build a complete blueprint for a sequence diagram:
  * top actors, lifelines, bottom actors, fragments, notes, and signal edges.
@@ -446,10 +440,8 @@ export function sequenceToBlueprint(
 	actorKeys: string[],
 	messages: Message[],
 	createdActors: Map<string, number> = new Map(),
-	destroyedActors: Map<string, number> = new Map(),
-	options?: SequenceToBlueprintOptions
+	destroyedActors: Map<string, number> = new Map()
 ): DiagramMermaidBlueprint {
-	const mapNode = options?.mapNodeToRenderSpec
 	const actorCount = actorKeys.length
 	const keyIndex = new Map(actorKeys.map((key, i) => [key, i]))
 
@@ -627,7 +619,6 @@ export function sequenceToBlueprint(
 			y: boxTop,
 			w: ACTIVATION_BOX_WIDTH,
 			h: boxBottom - boxTop,
-			render: resolveMermaidNodeRender('sequence', id, kind, mapNode),
 			fill: 'solid',
 			color: 'light-violet',
 			size: 's',
@@ -663,7 +654,6 @@ export function sequenceToBlueprint(
 				y: fragTop,
 				w: fragW,
 				h: fragH,
-				render: resolveMermaidNodeRender('sequence', fragId, fragKind, mapNode),
 				fill: rgbColor.hasAlpha ? 'semi' : 'solid',
 				color: rgbColor.color,
 				size: 's',
@@ -676,7 +666,6 @@ export function sequenceToBlueprint(
 				y: fragTop,
 				w: fragW,
 				h: fragH,
-				render: resolveMermaidNodeRender('sequence', fragId, fragKind, mapNode),
 				dash: 'dashed',
 				fill: 'none',
 				color: 'light-blue',
@@ -710,7 +699,6 @@ export function sequenceToBlueprint(
 					y: sepY + FRAGMENT_SECTION_LABEL_PADDING,
 					w: fragW - FRAGMENT_SECTION_LABEL_PADDING * 2,
 					h: FRAGMENT_SECTION_LABEL_HEIGHT,
-					render: resolveMermaidNodeRender('sequence', secId, secKind, mapNode),
 					fill: 'none',
 					dash: 'dashed',
 					color: 'light-blue',
@@ -751,7 +739,6 @@ export function sequenceToBlueprint(
 			w,
 			h,
 			...shared,
-			render: resolveMermaidNodeRender('sequence', topId, kind, mapNode),
 		})
 
 		if (!isDestroyed) {
@@ -763,7 +750,6 @@ export function sequenceToBlueprint(
 				w,
 				h,
 				...shared,
-				render: resolveMermaidNodeRender('sequence', botId, kind, mapNode),
 			})
 		}
 	}
@@ -854,7 +840,6 @@ export function sequenceToBlueprint(
 				y: eventY - noteHeight / 2,
 				w: noteWidth,
 				h: noteHeight,
-				render: resolveMermaidNodeRender('sequence', noteId, noteKind, mapNode),
 				fill: 'solid',
 				color: 'yellow',
 				dash: 'draw',

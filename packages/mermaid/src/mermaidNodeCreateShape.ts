@@ -1,10 +1,14 @@
 import type { Editor, TLGeoShape, TLShape, TLShapeId } from 'tldraw'
 import { toRichText } from 'tldraw'
-import type { MermaidBlueprintNode, MermaidDiagramKind } from './blueprint'
+import type {
+	MermaidBlueprintNode,
+	MermaidBlueprintNodeRenderSpec,
+	MermaidDiagramKind,
+} from './blueprint'
 import { sanitizeDiagramText } from './utils'
 
 /**
- * Arguments for {@link MermaidNodeCreateFunction}. `x` / `y` are in shape space (parent-relative when
+ * Arguments for {@link defaultCreateMermaidNodeFromBlueprint}. `x` / `y` are in shape space (parent-relative when
  * `parentShapeId` is set), matching {@link renderBlueprint}.
  * @public
  */
@@ -16,23 +20,18 @@ export interface MermaidNodeCreateFunctionArgs {
 	y: number
 	parentShapeId?: TLShapeId
 	diagramKind: MermaidDiagramKind
+	/** Materialization spec (from {@link resolveMermaidNodeRender} or your mapper). */
+	render: MermaidBlueprintNodeRenderSpec
 }
 
 /**
- * Creates the tldraw shape for one Mermaid blueprint node. Must create a shape with `id: shapeId`
- * (used for arrow bindings) and return that shape. Synchronous only.
- * @public
- */
-export type MermaidNodeCreateFunction = (args: MermaidNodeCreateFunctionArgs) => TLShape
-
-/**
- * Default node creation: reads `node.render` and calls `editor.createShape` once with layout-derived props.
+ * Creates the tldraw shape for one Mermaid blueprint node using `render` and layout-derived props.
  * @public
  */
 export function defaultCreateMermaidNodeFromBlueprint(
 	args: MermaidNodeCreateFunctionArgs
 ): TLShape {
-	const { editor, node, shapeId, x, y, parentShapeId } = args
+	const { editor, node, shapeId, x, y, parentShapeId, render } = args
 	const baseProps = {
 		w: node.w,
 		h: node.h,
@@ -45,7 +44,7 @@ export function defaultCreateMermaidNodeFromBlueprint(
 		...(node.verticalAlign && { verticalAlign: node.verticalAlign }),
 	}
 
-	if (node.render.variant === 'geo') {
+	if (render.variant === 'geo') {
 		editor.createShape<TLGeoShape>({
 			id: shapeId,
 			type: 'geo',
@@ -54,19 +53,19 @@ export function defaultCreateMermaidNodeFromBlueprint(
 			parentId: parentShapeId,
 			props: {
 				...baseProps,
-				geo: node.render.geo,
+				geo: render.geo,
 			},
 		})
 	} else {
 		editor.createShape({
 			id: shapeId,
-			type: node.render.type as any,
+			type: render.type as any,
 			x,
 			y,
 			parentId: parentShapeId,
 			props: {
 				...baseProps,
-				...node.render.props,
+				...render.props,
 			},
 		})
 	}

@@ -17,18 +17,23 @@ export type MermaidDiagramKind = 'flowchart' | 'state' | 'sequence' | 'mindmap'
 
 /**
  * Optional hook: return a custom render spec for this node, or `undefined` to use the package default mapper.
+ * Invoked from {@link renderBlueprint}.
  * @public
  */
 export type MermaidNodeRenderMapper = (input: {
+	/** Same as {@link DiagramMermaidBlueprint.diagramKind} for this blueprint. */
+	diagramKind: MermaidDiagramKind
 	/** Blueprint node id (stable binding key). */
 	nodeId: string
 	/** Semantic kind for this node in its diagram family. */
 	kind: string
+	/** Layout and style fields for this node (no materialization spec — that is what you return). */
+	node: MermaidBlueprintNode
 }) => MermaidBlueprintNodeRenderSpec | undefined
 
 /**
- * Instructions for creating one blueprint node on the canvas.
- * Set while building the blueprint; {@link renderBlueprint} consumes this without recomputing Mermaid → tldraw mapping.
+ * Instructions for creating one blueprint node on the canvas: geo variant or custom shape type + props.
+ * Merged with layout-derived props in {@link defaultCreateMermaidNodeFromBlueprint}.
  * @public
  */
 export type MermaidBlueprintNodeRenderSpec =
@@ -42,7 +47,7 @@ export type MermaidBlueprintNodeRenderSpec =
 			variant: 'shape'
 			/** Must match `editor.createShape({ type })` — same string as in the app’s shape schema. */
 			type: string
-			/** Partial props merged with layout-derived props (size, colors, label text, …) in {@link renderBlueprint}. */
+			/** Partial props merged with layout-derived props (size, colors, label text, …) in {@link defaultCreateMermaidNodeFromBlueprint}. */
 			props: Record<string, unknown>
 	  }
 
@@ -60,7 +65,7 @@ export interface DiagramMermaidBlueprint {
 }
 
 /**
- * One node in the blueprint: layout, semantic kind, style fields, and how to materialize it on the canvas.
+ * One node in the blueprint: layout and semantic kind from Mermaid (materialization is resolved at {@link renderBlueprint} via `mapNodeToRenderSpec` or defaults).
  * @public
  */
 export interface MermaidBlueprintNode {
@@ -82,8 +87,6 @@ export interface MermaidBlueprintNode {
 	size?: TLDefaultSizeStyle
 	align?: TLDefaultHorizontalAlignStyle
 	verticalAlign?: TLDefaultVerticalAlignStyle
-	/** Filled when the blueprint is built; read at render time. */
-	render: MermaidBlueprintNodeRenderSpec
 }
 
 /** @public */

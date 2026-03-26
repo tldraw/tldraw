@@ -7,7 +7,6 @@ import type { MindmapDB } from 'mermaid/dist/diagrams/mindmap/mindmapDb.d.ts'
 import type { SequenceDB } from 'mermaid/dist/diagrams/sequence/sequenceDb.d.ts'
 import type { StateDB } from 'mermaid/dist/diagrams/state/stateDb.d.ts'
 import { Editor } from 'tldraw'
-import type { MermaidNodeRenderMapper } from './blueprint'
 import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
 import { mindmapToBlueprint, parseMindmapLayout } from './mindmapDiagram'
 import { BlueprintRenderingOptions, renderBlueprint } from './renderBlueprint'
@@ -38,26 +37,11 @@ const MERMAID_CONFIG = {
 	themeVariables: { fontSize: `${18 * FONT_INFLATE}px` },
 }
 
-/**
- * Per-diagram options for node render mapping while building the blueprint.
- * @public
- */
-export interface MermaidDiagramKindOptions {
-	/**
-	 * Return a custom render spec for a node, or `undefined` to use the package default for that diagram + `kind`.
-	 */
-	mapNodeToRenderSpec?: MermaidNodeRenderMapper
-}
-
 /** @public */
 export interface MermaidDiagramOptions {
 	mermaidConfig?: Record<string, any>
 	blueprintRender?: BlueprintRenderingOptions
 	onUnsupportedDiagram?(svg: string): Promise<void>
-	flowchart?: MermaidDiagramKindOptions
-	state?: MermaidDiagramKindOptions
-	sequence?: MermaidDiagramKindOptions
-	mindmap?: MermaidDiagramKindOptions
 }
 
 /**
@@ -124,9 +108,7 @@ export async function createMermaidDiagram(
 				const subGraphs = db.getSubGraphs() as FlowSubGraph[]
 				const classes = db.getClasses()
 				const layout = parseFlowchartLayout(liveSvg)
-				blueprint = flowchartToBlueprint(layout, vertices, edges, subGraphs, classes, {
-					mapNodeToRenderSpec: options.flowchart?.mapNodeToRenderSpec,
-				})
+				blueprint = flowchartToBlueprint(layout, vertices, edges, subGraphs, classes)
 				break
 			}
 			case 'sequence': {
@@ -141,8 +123,7 @@ export async function createMermaidDiagram(
 					actorKeys,
 					messages,
 					db.getCreatedActors(),
-					db.getDestroyedActors(),
-					{ mapNodeToRenderSpec: options.sequence?.mapNodeToRenderSpec }
+					db.getDestroyedActors()
 				)
 				break
 			}
@@ -153,9 +134,7 @@ export async function createMermaidDiagram(
 				const relations = db.getRelations()
 				const classes = db.getClasses()
 				const layout = parseStateDiagramLayout(liveSvg)
-				blueprint = stateToBlueprint(layout, states, relations, classes, {
-					mapNodeToRenderSpec: options.state?.mapNodeToRenderSpec,
-				})
+				blueprint = stateToBlueprint(layout, states, relations, classes)
 				break
 			}
 			case 'mindmap': {
@@ -164,9 +143,7 @@ export async function createMermaidDiagram(
 				if (tree) {
 					db.assignSections(tree)
 					const layout = parseMindmapLayout(liveSvg)
-					blueprint = mindmapToBlueprint(layout, tree, liveSvg, {
-						mapNodeToRenderSpec: options.mindmap?.mapNodeToRenderSpec,
-					})
+					blueprint = mindmapToBlueprint(layout, tree, liveSvg)
 				}
 				break
 			}

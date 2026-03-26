@@ -9,10 +9,8 @@ import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
 	MermaidBlueprintNode,
-	MermaidNodeRenderMapper,
 } from './blueprint'
 import { buildClassDefColorMap, parseCssStyles, parseNodeInlineColor } from './colors'
-import { resolveMermaidNodeRender } from './defaultMermaidNodeRenderSpec'
 import {
 	buildNodeCentersFromSvg,
 	parseAllEdgePointsFromSvg,
@@ -73,21 +71,14 @@ export function parseFlowchartLayout(root: Element): ParsedDiagramLayout {
 	return { nodes, clusters, edges }
 }
 
-export interface FlowchartToBlueprintOptions {
-	/** If set, may return a custom render spec per node; `undefined` falls back to package defaults. */
-	mapNodeToRenderSpec?: MermaidNodeRenderMapper
-}
-
 /** Convert a parsed Mermaid flowchart into a tldraw blueprint of nodes and edges. */
 export function flowchartToBlueprint(
 	layout: ParsedDiagramLayout,
 	vertices: Map<string, FlowVertex>,
 	edges: FlowEdge[],
 	subGraphs?: FlowSubGraph[],
-	classDefs?: Map<string, FlowClass>,
-	options?: FlowchartToBlueprintOptions
+	classDefs?: Map<string, FlowClass>
 ): DiagramMermaidBlueprint {
-	const mapNode = options?.mapNodeToRenderSpec
 	const nodeColorMap = classDefs ? buildClassDefColorMap(classDefs, vertices) : new Map()
 	const { nodes: svgNodes, clusters: svgClusters, edges: svgEdges } = layout
 	const nodeCenters = buildNodeCentersFromSvg(svgNodes, svgClusters)
@@ -116,7 +107,6 @@ export function flowchartToBlueprint(
 			y: cluster.topLeft.y - FRAME_TOP_PAD,
 			w: cluster.width,
 			h: cluster.height + FRAME_TOP_PAD,
-			render: resolveMermaidNodeRender('flowchart', id, kind, mapNode),
 			parentId: subGraphParent.get(subGraph.id),
 			label: subGraph.title || subGraph.id,
 			fill: 'semi',
@@ -148,7 +138,6 @@ export function flowchartToBlueprint(
 			y: svgNode.center.y - h / 2,
 			w,
 			h,
-			render: resolveMermaidNodeRender('flowchart', id, kind, mapNode),
 			parentId: nodeToSubGraph.get(id),
 			label: vertex.text || undefined,
 			...(colors?.fillColor && { fill: 'solid' as const }),
