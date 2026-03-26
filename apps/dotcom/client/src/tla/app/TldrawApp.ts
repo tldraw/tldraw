@@ -56,8 +56,8 @@ import {
 	assertExists,
 	atom,
 	computed,
+	createTLCurrentUser,
 	createTLSchema,
-	createTLUser,
 	dataUrlToFile,
 	defaultUserPreferences,
 	getUserPreferences,
@@ -491,7 +491,7 @@ export class TldrawApp {
 		this.lastGroupFileOrderings.delete(groupId)
 	}
 
-	tlUser = createTLUser({
+	tlUser = createTLCurrentUser({
 		userPreferences: computed('user prefs', () => {
 			const user = this.getUser()
 			return {

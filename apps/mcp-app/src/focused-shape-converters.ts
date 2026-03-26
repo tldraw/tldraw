@@ -306,6 +306,7 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): {
 						labelColor: 'black',
 						scale: 1,
 						url: '',
+						textFirstEditedBy: null,
 					},
 				} as TLShape,
 				bindings: [],

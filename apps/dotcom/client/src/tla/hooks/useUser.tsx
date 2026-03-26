@@ -57,12 +57,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
 	return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }
 
-export function useTldrawUser() {
+export function useTldrawCurrentUser() {
 	return useContext(UserContext)
 }
 
 export function useLoggedInUser() {
-	const user = useTldrawUser()
+	const user = useTldrawCurrentUser()
 	if (!user) throw new Error('User not signed in')
 	return user
 }

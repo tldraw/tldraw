@@ -117,47 +117,53 @@ See the [Assets](/docs/assets) documentation for more on implementing asset stor
 
 ## User identity
 
-By default, users get a random name and color. To customize this, pass `userInfo`:
+By default, users get a random name and color from localStorage. To customize this, pass a `users` store whose methods return reactive `Signal` values:
 
 ```tsx
-const store = useSyncDemo({
-	roomId: 'my-room',
-	userInfo: {
-		id: 'user-123',
+import { computed, UserRecordType, createUserId } from 'tldraw'
+
+const currentUser = computed('currentUser', () =>
+	UserRecordType.create({
+		id: createUserId('user-123'),
 		name: 'Alice',
 		color: '#ff0000',
+	})
+)
+
+const store = useSyncDemo({
+	roomId: 'my-room',
+	users: {
+		currentUser,
 	},
 })
 ```
 
-For dynamic user info that updates during the session, use an atom:
+The `users` store is also used for shape attribution — the same `currentUser` signal stamps shapes with user IDs. Provide a `resolve` method to look up other users by ID:
 
 ```tsx
-import { atom } from 'tldraw'
-
-const userInfo = atom('userInfo', {
-	id: 'user-123',
-	name: 'Alice',
-	color: '#ff0000',
-})
-
-// Later, update the user info
-userInfo.set({ ...userInfo.get(), name: 'Alice (away)' })
-
-const store = useSyncDemo({
-	roomId: 'my-room',
-	userInfo,
-})
+const users: TLUserStore = {
+	currentUser: myAuth.currentUser$,
+	resolve: (userId) => myUserCache.getSignal(userId),
+}
 ```
 
-### Integrating with useTldrawUser
+### Integrating with useTldrawCurrentUser
 
-If you need to let users edit their preferences through tldraw's UI, use `useTldrawUser`:
+If you need to let users edit their preferences through tldraw's UI, use `useTldrawCurrentUser`:
 
 ```tsx
 import { useSyncDemo } from '@tldraw/sync'
-import { useState } from 'react'
-import { TLUserPreferences, Tldraw, useTldrawUser } from 'tldraw'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+	atom,
+	computed,
+	createUserId,
+	TLUserPreferences,
+	TLUserStore,
+	Tldraw,
+	UserRecordType,
+	useTldrawCurrentUser,
+} from 'tldraw'
 
 export default function App({ roomId }: { roomId: string }) {
 	const [userPreferences, setUserPreferences] = useState<TLUserPreferences>({
@@ -167,8 +173,25 @@ export default function App({ roomId }: { roomId: string }) {
 		colorScheme: 'dark',
 	})
 
-	const store = useSyncDemo({ roomId, userInfo: userPreferences })
-	const user = useTldrawUser({ userPreferences, setUserPreferences })
+	const userPrefsAtom = useRef(atom('userPrefs', userPreferences)).current
+	useEffect(() => {
+		userPrefsAtom.set(userPreferences)
+	}, [userPreferences, userPrefsAtom])
+
+	const users: TLUserStore = useMemo(() => {
+		const currentUser = computed('currentUser', () => {
+			const p = userPrefsAtom.get()
+			return UserRecordType.create({
+				id: createUserId(p.id),
+				name: p.name ?? '',
+				color: p.color ?? undefined,
+			})
+		})
+		return { currentUser }
+	}, [userPrefsAtom])
+
+	const store = useSyncDemo({ roomId, users })
+	const user = useTldrawCurrentUser({ userPreferences, setUserPreferences })
 
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>

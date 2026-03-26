@@ -1,3 +1,4 @@
+import { computed } from '@tldraw/state'
 import { Store } from '@tldraw/store'
 import { annotateError, IndexKey, structuredClone } from '@tldraw/utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -330,6 +331,10 @@ describe('createIntegrityChecker', () => {
 			props: {
 				defaultName: 'Test Store',
 				assets: mockAssetStore,
+				users: {
+					currentUser: computed('currentUser', () => null),
+					resolve: () => computed('resolve', () => null),
+				},
 				onMount: vi.fn(),
 			},
 		})

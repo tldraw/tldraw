@@ -590,6 +590,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 		return undefined
 	}
 
+	/**
+	 * Return user IDs referenced in shape-specific props.
+	 * Used when copying shapes to include referenced users on the clipboard.
+	 * Override this if your shape stores user IDs in custom props.
+	 *
+	 * @public
+	 */
+	getReferencedUserIds(shape: Shape): string[] {
+		return EMPTY_ARRAY
+	}
+
 	getAriaDescriptor(shape: Shape): string | undefined {
 		return undefined
 	}
