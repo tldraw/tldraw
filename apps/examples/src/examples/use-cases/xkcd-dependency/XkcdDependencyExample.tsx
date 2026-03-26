@@ -130,11 +130,11 @@ function XkcdDependency() {
 			{
 				id: annotationId,
 				type: 'text',
-				x: depBlock.x - 320,
-				y: depBlock.y + depBlock.h + 40,
+				x: depBlock.x + 220,
+				y: depBlock.y + depBlock.h - 300,
 				props: {
 					richText: toRichText(
-						'A project some random person in\nNebraska has been mass-maintaining\nsince 2003'
+						'A project some\nrandom person\nin Nebraska has\nbeen thanklessly\nmaintaining\nsince 2003'
 					),
 					size: 's',
 					color: 'black',
@@ -150,6 +150,9 @@ function XkcdDependency() {
 					end: { x: 30, y: -50 },
 					color: 'black',
 					size: 's',
+					kind: 'arc',
+					bend: -70,
+					elbowMidPoint: 0.5,
 					arrowheadStart: 'none',
 					arrowheadEnd: 'arrow',
 				},
@@ -209,6 +212,17 @@ function XkcdDependency() {
 					terminal: 'end',
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isPrecise: false,
+					isExact: false,
+				},
+			},
+			{
+				fromId: arrowId,
+				toId: annotationId,
+				type: 'arrow',
+				props: {
+					terminal: 'start',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: true,
 					isExact: false,
 				},
 			},
