@@ -1,5 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
-
 import { Editor, TldrawEditor, createShapeId } from '@tldraw/editor'
 import 'tldraw/tldraw.css'
 import { MiniBoxShapeUtil } from './MiniBoxShape'

@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "Konvertálás könyvjelzővé",
 	"action.convert-to-embed": "Konvertálás beágyazássá",
 	"action.copy": "Másolás",
+	"action.copy-as-json": "Másolás JSON-ként",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Másolás PNG-ként",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Másolás SVG-ként",

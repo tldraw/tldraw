@@ -243,7 +243,7 @@ export function CopyAsMenuGroup() {
 		>
 			<TldrawUiMenuGroup id="copy-as-group">
 				<TldrawUiMenuActionItem actionId="copy-as-svg" />
-				{Boolean(window.navigator.clipboard?.write) && (
+				{Boolean(editor.getContainerWindow().navigator.clipboard?.write) && (
 					<TldrawUiMenuActionItem actionId="copy-as-png" />
 				)}
 				{isDebugMode && <TldrawUiMenuActionItem actionId="copy-as-json" />}

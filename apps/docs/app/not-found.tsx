@@ -1,14 +1,14 @@
 /* eslint-disable react/no-unescaped-entities */
 'use client'
 
-import { DiscordIcon } from '@/components/common/icon/discord'
-import { DocsSearchBar } from '@/components/docs/docs-search-bar'
-import { NavigationLink } from '@/components/navigation/link'
-import Handwritten404 from '@/public/images/404.svg'
 import { RocketLaunchIcon } from '@heroicons/react/16/solid'
 import { AcademicCapIcon, BookOpenIcon, NewspaperIcon, PlayIcon } from '@heroicons/react/20/solid'
 import Image from 'next/image'
 import Link from 'next/link'
+import { DiscordIcon } from '@/components/common/icon/discord'
+import { DocsSearchBar } from '@/components/docs/docs-search-bar'
+import { NavigationLink } from '@/components/navigation/link'
+import Handwritten404 from '@/public/images/404.svg'
 
 const links = [
 	{

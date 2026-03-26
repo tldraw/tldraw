@@ -15,12 +15,12 @@ import { useBreakpoint } from '../../context/breakpoints'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiGrid, TldrawUiRow } from '../primitives/layout'
 import {
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
 } from '../primitives/TldrawUiToolbar'
-import { TldrawUiGrid, TldrawUiRow } from '../primitives/layout'
 import { useStylePanelContext } from './StylePanelContext'
 import { StylePanelSubheading } from './StylePanelSubheading'
 
@@ -77,7 +77,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 	} = useMemo(() => {
 		const handlePointerUp = () => {
 			rPointing.current = false
-			window.removeEventListener('pointerup', handlePointerUp)
+			editor.getContainerWindow().removeEventListener('pointerup', handlePointerUp)
 
 			// This is fun little micro-optimization to make sure that the focus
 			// is retained on a text label. That way, you can continue typing
@@ -106,8 +106,9 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 			onValueChange(style, id as T)
 
 			rPointing.current = true
-			rPointingOriginalActiveElement.current = document.activeElement as HTMLElement
-			window.addEventListener('pointerup', handlePointerUp) // see TLD-658
+			rPointingOriginalActiveElement.current = editor.getContainerDocument()
+				.activeElement as HTMLElement
+			editor.getContainerWindow().addEventListener('pointerup', handlePointerUp) // see TLD-658
 		}
 
 		const handleButtonPointerEnter = (e: React.PointerEvent<HTMLButtonElement>) => {

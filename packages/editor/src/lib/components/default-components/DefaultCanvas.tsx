@@ -19,8 +19,8 @@ import { useScreenBounds } from '../../hooks/useScreenBounds'
 import { ShapeCullingProvider, useShapeCulling } from '../../hooks/useShapeCulling'
 import { Box } from '../../primitives/Box'
 import { Mat } from '../../primitives/Mat'
-import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
+import { Vec } from '../../primitives/Vec'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
@@ -427,7 +427,7 @@ function ReflowIfNeeded() {
 			if (culledShapesRef.current === culledShapes) return
 
 			culledShapesRef.current = culledShapes
-			const canvas = document.getElementsByClassName('tl-canvas')
+			const canvas = editor.getContainerDocument().getElementsByClassName('tl-canvas')
 			if (canvas.length === 0) return
 			// This causes a reflow
 			// https://gist.github.com/paulirish/5d52fb081b3570c81e3a

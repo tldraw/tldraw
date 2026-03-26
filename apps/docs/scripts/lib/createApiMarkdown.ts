@@ -1,8 +1,8 @@
-import { APIGroup, InputSection } from '@/types/content-types'
-import { TldrawApiModel } from '@/utils/TldrawApiModel'
-import { nicelog } from '@/utils/nicelog'
 import fs from 'fs'
 import path from 'path'
+import { APIGroup, InputSection } from '@/types/content-types'
+import { nicelog } from '@/utils/nicelog'
+import { TldrawApiModel } from '@/utils/TldrawApiModel'
 import { getApiMarkdown } from './getApiMarkdown'
 import { CONTENT_DIR, getSlug } from './utils'
 

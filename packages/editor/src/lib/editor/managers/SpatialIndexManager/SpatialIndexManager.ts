@@ -1,7 +1,7 @@
 import { Computed, RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
 import type { RecordsDiff } from '@tldraw/store'
-import type { TLRecord } from '@tldraw/tlschema'
 import { TLPageId, TLShape, TLShapeId, isShape } from '@tldraw/tlschema'
+import type { TLRecord } from '@tldraw/tlschema'
 import { objectMapValues } from '@tldraw/utils'
 import { Box } from '../../../primitives/Box'
 import type { Editor } from '../../Editor'

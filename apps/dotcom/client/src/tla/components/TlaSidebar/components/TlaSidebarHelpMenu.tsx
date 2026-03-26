@@ -8,7 +8,6 @@ import {
 	TldrawUiMenuGroup,
 } from 'tldraw'
 import { defineMessages, useMsg } from '../../../utils/i18n'
-import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	CookieConsentMenuItem,
 	DotDevMenuItem,
@@ -16,6 +15,7 @@ import {
 	LegalSummaryMenuItem,
 	UserManualMenuItem,
 } from '../../menu-items/menu-items'
+import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 
 const messages = defineMessages({

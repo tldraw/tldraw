@@ -1,5 +1,5 @@
-import { Icon, IconName } from '@/components/common/icon'
 import Link from 'next/link'
+import { Icon, IconName } from '@/components/common/icon'
 
 export function SocialLink({
 	caption,

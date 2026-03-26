@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "Chuyển đổi thành Dấu trang",
 	"action.convert-to-embed": "Chuyển đổi sang Nhúng",
 	"action.copy": "Sao chép",
+	"action.copy-as-json": "Sao chép định dạng JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Sao chép định dạng PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Sao chép định dạng SVG",

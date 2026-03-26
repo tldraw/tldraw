@@ -1,9 +1,9 @@
 'use client'
 
-import { NavigationLink } from '@/components/navigation/link'
 import { RocketLaunchIcon } from '@heroicons/react/16/solid'
 import { AcademicCapIcon, CommandLineIcon, CubeIcon, PlayIcon } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
+import { NavigationLink } from '@/components/navigation/link'
 
 const categoryLinks = [
 	{

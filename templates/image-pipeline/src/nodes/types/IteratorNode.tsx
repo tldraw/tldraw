@@ -41,7 +41,7 @@ export class IteratorNodeDefinition extends NodeDefinition<IteratorNode> {
 	title = 'Iterator'
 	heading = 'Iterator'
 	hidden = true as const
-	icon = (<IteratorIcon />)
+	icon = <IteratorIcon />
 	category = 'utility'
 	resultKeys = ['lastResultUrl', 'completedCount', 'totalCount'] as const
 	getDefault(): IteratorNode {

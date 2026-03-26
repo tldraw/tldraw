@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 import { Driver } from '@tldraw/driver'
 import {
 	Box,
