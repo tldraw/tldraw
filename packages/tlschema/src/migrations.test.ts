@@ -2616,25 +2616,6 @@ describe('Adding textFirstEditedBy to note shape', () => {
 	})
 })
 
-describe('Converting note textFirstEditedBy to ID string', () => {
-	const { up, down } = getTestMigration(noteShapeVersions.FirstEditedByToId)
-
-	test('up converts object to ID string', () => {
-		const result = up({ props: { textFirstEditedBy: { id: 'user-1', name: 'Alice' } } })
-		expect(result.props.textFirstEditedBy).toBe('user-1')
-	})
-
-	test('up is a no-op for null', () => {
-		const result = up({ props: { textFirstEditedBy: null } })
-		expect(result.props.textFirstEditedBy).toBeNull()
-	})
-
-	test('down converts ID string back to object', () => {
-		const result = down({ props: { textFirstEditedBy: 'user-1' } })
-		expect(result.props.textFirstEditedBy).toEqual({ id: 'user-1', name: '' })
-	})
-})
-
 describe('TLUser initial migration', () => {
 	const { up } = getTestMigration(userVersions.Initial)
 

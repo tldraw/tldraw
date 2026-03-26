@@ -147,7 +147,6 @@ const Versions = createShapePropsMigrationIds('note', {
 	AddRichText: 9,
 	AddRichTextAttrs: 10,
 	AddFirstEditedBy: 11,
-	FirstEditedByToId: 12,
 })
 
 /**
@@ -277,19 +276,6 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.textFirstEditedBy
-			},
-		},
-		{
-			id: Versions.FirstEditedByToId,
-			up: (props: any) => {
-				if (props.textFirstEditedBy && typeof props.textFirstEditedBy === 'object') {
-					props.textFirstEditedBy = props.textFirstEditedBy.id
-				}
-			},
-			down: (props: any) => {
-				if (typeof props.textFirstEditedBy === 'string') {
-					props.textFirstEditedBy = { id: props.textFirstEditedBy, name: '' }
-				}
 			},
 		},
 	],
