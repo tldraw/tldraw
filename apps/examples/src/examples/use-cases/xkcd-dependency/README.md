@@ -1,7 +1,7 @@
 ---
-title: xkcd 2347
+title: Gravity sim (xkcd 2347)
 component: ./XkcdDependencyExample.tsx
-keywords: [physics, animation, fun, xkcd, rapier]
+keywords: [physics, gravity, animation, fun, xkcd, rapier]
 priority: 10
 ---
 
