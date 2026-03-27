@@ -5,10 +5,10 @@ author: tldraw
 date: 03/18/2026
 order: 0
 status: published
-last_version: v4.5.3
+last_version: v4.5.4
 ---
 
-This release adds clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, and smarter export trimming. It also includes various other improvements and bug fixes.
+This release adds shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, and smarter export trimming. It also includes various other improvements and bug fixes.
 
 ## What's new
 
@@ -97,6 +97,34 @@ const options: Partial<TldrawOptions> = {
 }
 ```
 
+### Shape attribution and TLUserStore ([#8147](https://github.com/tldraw/tldraw/pull/8147))
+
+A new shape attribution system tracks who created and last edited shapes. The `TLUserStore` provider interface connects tldraw to your auth system with reactive `Signal`-based methods: `getCurrentUser()` returns the active user for presence and attribution, while `resolve(userId)` resolves any user ID to display info.
+
+```tsx
+<Tldraw
+	users={{
+		getCurrentUser: () => currentUserSignal,
+		resolve: (userId) => resolvedUserSignal(userId),
+	}}
+/>
+```
+
+User records are now document-scoped via the unified `TLUser` record type. SDK users can extend user records with custom validated metadata through `createTLSchema`:
+
+```tsx
+const schema = createTLSchema({
+	user: {
+		meta: {
+			isAdmin: T.boolean,
+			department: T.string,
+		},
+	},
+})
+```
+
+Note shapes now track and display a "first edited by" attribution label in the bottom-right corner, showing who first added text to the note.
+
 ### Cross-window embedding support ([#8196](https://github.com/tldraw/tldraw/pull/8196))
 
 Tldraw now works correctly when embedded in iframes, Electron pop-out windows, and Obsidian plugins where the global `document` and `window` differ from the ones tldraw is mounted in. All bare `document` and `window` references have been replaced with container-aware alternatives.
@@ -117,6 +145,7 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Change `Vec.PointsBetween()` to accept an optional `ease` parameter. ([#7977](https://github.com/tldraw/tldraw/pull/7977))
 - Add `@tldraw/mermaid` package with `createMermaidDiagram()`, `renderBlueprint()`, and `MermaidDiagramError` for converting Mermaid syntax to tldraw shapes. ([#8194](https://github.com/tldraw/tldraw/pull/8194))
 - Add `TextManager.measureHtmlBatch()` for batched DOM text measurement. ([#7949](https://github.com/tldraw/tldraw/pull/7949))
+- Add `TLUserStore` interface with `getCurrentUser()` and `resolve()` for connecting tldraw to auth systems. Add unified `TLUser` record type, `UserRecordType`, `createUserId`, `isUserId`, `userIdValidator`, and `createUserRecordType()` for extensible user schemas. Add `user` parameter to `createTLSchema()`. Add `Editor.getAttributionUser()`, `Editor.getAttributionUserId()`, and `Editor.getAttributionDisplayName()`. Add `textFirstEditedBy` prop to `TLNoteShapeProps`. ([#8147](https://github.com/tldraw/tldraw/pull/8147))
 
 ## Improvements
 
@@ -134,3 +163,5 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix eraser not erasing shapes when starting a drag from inside a group's bounds. ([#8054](https://github.com/tldraw/tldraw/pull/8054))
 - Fix over-softened corners and end artifacts when shift-clicking to draw straight line segments. ([#7977](https://github.com/tldraw/tldraw/pull/7977))
 - Fix draw-shape loop-closing sensitivity so closing works more consistently across zoom levels. ([#8293](https://github.com/tldraw/tldraw/pull/8293))
+- Fix all shapes disappearing when a labeled arrow has zero length due to NaN propagation through the spatial index. ([#8329](https://github.com/tldraw/tldraw/pull/8329))
+- Fix "back to content" button flickering when both it and the "move focus to canvas" button are visible. ([#8334](https://github.com/tldraw/tldraw/pull/8334)) (contributed by [@kaneel](https://github.com/kaneel))
