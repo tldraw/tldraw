@@ -261,9 +261,7 @@ const myThemes: TLThemes = {
 
 ## Adding custom colors
 
-You can add entirely new colors (beyond the built-in palette) by extending the [TLThemeColors](?) interface and including the color in your themes. Custom colors are registered automatically when you pass `themes`.
-
-First, extend the type system with module augmentation:
+You can add new colors beyond the built-in palette. Extend the [TLThemeColors](?) interface with module augmentation and include the color in your themes:
 
 ```typescript
 import { TLDefaultColor } from 'tldraw'
@@ -275,11 +273,7 @@ declare module 'tldraw' {
 }
 ```
 
-Then include the color in your themes:
-
 ```tsx
-import { DEFAULT_LIGHT_THEME, DEFAULT_DARK_THEME, Tldraw, TLThemes } from 'tldraw'
-
 const themes: TLThemes = {
 	light: {
 		...DEFAULT_LIGHT_THEME,
@@ -316,29 +310,24 @@ const themes: TLThemes = {
 	},
 }
 
-// The `themes` prop tells tldraw about the custom color:
 <Tldraw themes={themes} />
 ```
 
-When creating a store directly (e.g. for use with `new Editor(...)` outside React), pass `themes` to [createTLStore](?):
+tldraw validates shape properties (including colors) when data enters the store, for example when loading from IndexedDB or syncing from a server. Passing `themes` tells tldraw about your custom colors *before* data is loaded, so they pass validation. When creating a store yourself, pass `themes` there too, and still pass `themes` to `<Tldraw>` so the editor knows how to render them:
 
 ```typescript
-import { createTLStore } from 'tldraw'
-
+// Direct store creation, pass themes to both
 const store = createTLStore({ themes })
-```
+<Tldraw store={store} themes={themes} />
 
-For multiplayer via [useSync](?), pass `themes` there too:
-
-```typescript
-import { useSync } from '@tldraw/sync'
-
+// Multiplayer, pass themes to both
 const store = useSync({ uri: '...', assets: myAssets, themes })
+<Tldraw store={store} themes={themes} />
 ```
 
-Make sure every theme in your `themes` map includes an entry for every custom color. If a shape uses a color that doesn't exist in the active theme, it won't render correctly.
+Every theme should include an entry for every custom color. If a shape uses a color that doesn't exist in the active theme, it won't render correctly.
 
-See the [Custom theme](/examples/ui/custom-theme) example for a complete working demo.
+See the [Custom theme](/examples/ui/custom-theme) example for a complete demo.
 
 ## Using themes in shape utils
 
