@@ -323,7 +323,7 @@ describe('parseFlags / userHasFlag', () => {
 describe('user mutations', () => {
 	const userId = 'user_aaaa11112222bbbb'
 
-	it('update own profile', async () => {
+	it('user can update own profile', async () => {
 		const { tx } = createMockTx({
 			user: [makeUser({ id: userId })],
 			file: [],
@@ -336,7 +336,7 @@ describe('user mutations', () => {
 		await expectValid(() => m.user.update(tx, { id: userId, name: 'New Name' }))
 	})
 
-	it('update other user forbidden', async () => {
+	it('user cannot update another user', async () => {
 		const otherId = 'user_other1234567890'
 		const { tx } = createMockTx({
 			user: [makeUser({ id: userId }), makeUser({ id: otherId })],
@@ -350,7 +350,7 @@ describe('user mutations', () => {
 		await expectForbidden(() => m.user.update(tx, { id: otherId, name: 'Hacked' }))
 	})
 
-	it('change immutable field (email) forbidden', async () => {
+	it('cannot change immutable field (email)', async () => {
 		const { tx } = createMockTx({
 			user: [makeUser({ id: userId })],
 			file: [],
@@ -363,7 +363,7 @@ describe('user mutations', () => {
 		await expectForbidden(() => m.user.update(tx, { id: userId, email: 'evil@evil.com' }))
 	})
 
-	it('change flags field allowed', async () => {
+	it('user can change own flags field', async () => {
 		const { tx } = createMockTx({
 			user: [makeUser({ id: userId })],
 			file: [],
@@ -395,7 +395,7 @@ describe('file mutations', () => {
 		}
 	}
 
-	it('owner updates own file (group model)', async () => {
+	it('group member can update file', async () => {
 		const s = baseStore()
 		const f = makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })
 		s.file.push(f)
@@ -404,7 +404,7 @@ describe('file mutations', () => {
 		await expectValid(() => m.file.update(tx, { id: f.id, name: 'Renamed' }))
 	})
 
-	it('shared user (not member) cannot update', async () => {
+	it('shared user without group membership cannot update file', async () => {
 		const otherId = 'user_other1234567890'
 		const s = baseStore()
 		const f = makeFile({
@@ -419,7 +419,7 @@ describe('file mutations', () => {
 		await expectForbidden(() => m.file.update(tx, { id: f.id, name: 'Hacked' }))
 	})
 
-	it('immutable field (ownerId) forbidden', async () => {
+	it('cannot change immutable field (ownerId)', async () => {
 		const s = baseStore()
 		const f = makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })
 		s.file.push(f)
@@ -428,7 +428,7 @@ describe('file mutations', () => {
 		await expectForbidden(() => m.file.update(tx, { id: f.id, ownerId: 'evil' }))
 	})
 
-	it('immutable field (owningGroupId) forbidden', async () => {
+	it('cannot change immutable field (owningGroupId)', async () => {
 		const s = baseStore()
 		const f = makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })
 		s.file.push(f)
@@ -439,7 +439,7 @@ describe('file mutations', () => {
 		)
 	})
 
-	it('immutable field (isDeleted) forbidden', async () => {
+	it('cannot change immutable field (isDeleted)', async () => {
 		const s = baseStore()
 		const f = makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })
 		s.file.push(f)
@@ -448,7 +448,7 @@ describe('file mutations', () => {
 		await expectForbidden(() => m.file.update(tx, { id: f.id, isDeleted: true }))
 	})
 
-	it('non-owner non-member non-shared forbidden', async () => {
+	it('unrelated user cannot update file', async () => {
 		const strangerId = 'user_stranger12345678'
 		const s = baseStore()
 		const f = makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId, shared: false })
@@ -463,7 +463,7 @@ describe('file creation', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupId = 'group_aaa11112222bbb'
 
-	it('migrated user, member of target group', async () => {
+	it('migrated user can create file in own group', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -485,7 +485,7 @@ describe('file creation', () => {
 		)
 	})
 
-	it('migrated user, NOT member of target group forbidden', async () => {
+	it('migrated user cannot create file in another group', async () => {
 		const otherGroup = 'group_other123456789'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -508,7 +508,7 @@ describe('file creation', () => {
 		)
 	})
 
-	it('at MAX_NUMBER_OF_FILES (legacy path)', async () => {
+	it('legacy user cannot exceed MAX_NUMBER_OF_FILES', async () => {
 		// NOTE: the migrated createFile path does NOT call assertNotMaxFiles.
 		// Only the legacy (insertWithFileState) path enforces the limit.
 		const files = Array.from({ length: MAX_NUMBER_OF_FILES }, (_, i) =>
@@ -535,7 +535,7 @@ describe('file creation', () => {
 		)
 	})
 
-	it('legacy user creates file via ownerId path', async () => {
+	it('legacy user can create file via ownerId path', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: '' })],
 			file: [],
@@ -563,7 +563,7 @@ describe('file_state mutations', () => {
 	const groupId = 'group_aaa11112222bbb'
 	const fileId = 'file_aaaa11112222bbbb'
 
-	it('update own file_state', async () => {
+	it('user can update own file_state', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupId, shared: true })],
@@ -577,7 +577,7 @@ describe('file_state mutations', () => {
 		await expectValid(() => m.file_state.update(tx, { userId, fileId, lastVisitAt: Date.now() }))
 	})
 
-	it('update other user file_state forbidden', async () => {
+	it("user cannot update another user's file_state", async () => {
 		const otherId = 'user_other1234567890'
 		const s = {
 			user: [makeUser({ id: userId })],
@@ -594,7 +594,7 @@ describe('file_state mutations', () => {
 		)
 	})
 
-	it('server insert file_state for inaccessible file forbidden', async () => {
+	it('server cannot insert file_state for inaccessible file', async () => {
 		const inaccessibleFile = makeFile({
 			id: 'file_inaccessible12345',
 			owningGroupId: groupId,
@@ -621,7 +621,7 @@ describe('onEnterFile', () => {
 	const groupId = 'group_aaa11112222bbb'
 	const fileId = 'file_aaaa11112222bbbb'
 
-	it('server, user has access', async () => {
+	it('user with access can enter file', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupId })],
@@ -637,7 +637,7 @@ describe('onEnterFile', () => {
 		expect(s.file_state.length).toBe(1)
 	})
 
-	it('server, user has NO access forbidden', async () => {
+	it('user without access cannot enter file', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupId, shared: false })],
@@ -651,7 +651,7 @@ describe('onEnterFile', () => {
 		await expectForbidden(() => m.onEnterFile(tx, { fileId, time: Date.now() }))
 	})
 
-	it('file already in user group, no duplicate group_file', async () => {
+	it('entering file already in group does not create duplicate group_file', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupId, shared: true })],
@@ -671,7 +671,7 @@ describe('onEnterFile', () => {
 describe('group mutations', () => {
 	const userId = 'user_aaaa11112222bbbb'
 
-	it('create group with groups_backend flag', async () => {
+	it('migrated user can create group', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -689,7 +689,7 @@ describe('group mutations', () => {
 		expect((s.group_user as TlaGroupUser[])[0]?.role).toBe('owner')
 	})
 
-	it('create group without groups_backend flag forbidden', async () => {
+	it('legacy user cannot create group', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: '' })],
 			file: [],
@@ -703,7 +703,7 @@ describe('group mutations', () => {
 		await expectForbidden(() => m.createGroup(tx, { id: 'group_new123456789ab', name: 'My Group' }))
 	})
 
-	it('update group name as owner', async () => {
+	it('owner can update group name', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -718,7 +718,7 @@ describe('group mutations', () => {
 		await expectValid(() => m.updateGroup(tx, { id: groupId, name: 'Renamed' }))
 	})
 
-	it('update group name as admin forbidden', async () => {
+	it('admin cannot update group name', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -733,7 +733,7 @@ describe('group mutations', () => {
 		await expectForbidden(() => m.updateGroup(tx, { id: groupId, name: 'Renamed' }))
 	})
 
-	it('delete group as owner', async () => {
+	it('owner can delete group', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const fileId = 'file_aaaa11112222bbbb'
 		const s = {
@@ -752,7 +752,7 @@ describe('group mutations', () => {
 		expect(s.group_file.length).toBe(0)
 	})
 
-	it('delete group as non-owner forbidden', async () => {
+	it('non-owner cannot delete group', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -773,7 +773,7 @@ describe('membership', () => {
 	const groupId = 'group_aaa11112222bbb'
 	const memberId = 'user_member12345678ab'
 
-	it('owner sets member role', async () => {
+	it('owner can set member roles', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -791,7 +791,7 @@ describe('membership', () => {
 		expect(s.group_user.find((gu) => gu.userId === memberId)?.role).toBe('owner')
 	})
 
-	it('admin tries to set roles forbidden', async () => {
+	it('admin cannot set member roles', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -810,7 +810,7 @@ describe('membership', () => {
 		)
 	})
 
-	it('demote last owner to admin forbidden', async () => {
+	it('cannot demote last owner to admin', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -829,7 +829,7 @@ describe('membership', () => {
 		)
 	})
 
-	it('last owner tries to leave forbidden', async () => {
+	it('last owner cannot leave group', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -843,7 +843,7 @@ describe('membership', () => {
 		await expectForbidden(() => m.leaveGroup(tx, { groupId }))
 	})
 
-	it('non-owner member leaves', async () => {
+	it('non-owner member can leave group', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -868,7 +868,7 @@ describe('file operations across groups', () => {
 	const groupB = 'group_bbb11112222ccc'
 	const fileId = 'file_aaaa11112222bbbb'
 
-	it('moveFileToGroup: member of both groups', async () => {
+	it('member of both groups can move file between them', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -886,7 +886,7 @@ describe('file operations across groups', () => {
 		expect(s.file[0]?.owningGroupId).toBe(groupB)
 	})
 
-	it('moveFileToGroup: member of source only forbidden', async () => {
+	it('member of source group only cannot move file to other group', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -900,7 +900,7 @@ describe('file operations across groups', () => {
 		await expectForbidden(() => m.moveFileToGroup(tx, { fileId, groupId: groupB }))
 	})
 
-	it('moveFileToGroup: member of target only forbidden', async () => {
+	it('member of target group only cannot move file from other group', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -914,7 +914,7 @@ describe('file operations across groups', () => {
 		await expectForbidden(() => m.moveFileToGroup(tx, { fileId, groupId: groupB }))
 	})
 
-	it('removeFileFromGroup: admin', async () => {
+	it('admin can remove file from group', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -929,7 +929,7 @@ describe('file operations across groups', () => {
 		expect(s.file[0]?.isDeleted).toBe(true)
 	})
 
-	it('addFileLinkToGroup: member + file access', async () => {
+	it('member with file access can add file link to group', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -947,7 +947,7 @@ describe('file operations across groups', () => {
 		expect(s.group_file.find((gf) => gf.groupId === groupB)).toBeDefined()
 	})
 
-	it('addFileLinkToGroup: member + no file access (server) forbidden', async () => {
+	it('member without file access cannot add file link to group', async () => {
 		const otherGroup = 'group_other123456789'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -962,7 +962,7 @@ describe('file operations across groups', () => {
 		await expectForbidden(() => m.addFileLinkToGroup(tx, { fileId, groupId: groupB }))
 	})
 
-	it('addFileLinkToGroup: not member of target forbidden', async () => {
+	it('non-member cannot add file link to group', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA, shared: true })],
@@ -980,7 +980,7 @@ describe('file operations across groups', () => {
 describe('home group special case', () => {
 	const userId = 'user_aaaa11112222bbbb'
 
-	it('assertUserIsGroupMember(userId, userId) passes (home group shortcut)', async () => {
+	it('home group shortcut passes membership check', async () => {
 		// createFile with groupId === userId should pass the membership check
 		// even without a group_user row, because of the userId === groupId shortcut
 		const s = {
@@ -1005,7 +1005,7 @@ describe('home group special case', () => {
 		)
 	})
 
-	it('assertUserIsGroupOwner(userId, userId) passes (home group shortcut)', async () => {
+	it('home group shortcut passes ownership check', async () => {
 		// updateGroup with id === userId should pass assertUserIsGroupOwner
 		// via the shortcut, even if there's no group_user row
 		const s = {
@@ -1026,7 +1026,7 @@ describe('regenerateGroupInviteSecret', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupId = 'group_aaa11112222bbb'
 
-	it('regenerate as admin/owner', async () => {
+	it('admin can regenerate invite secret', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -1042,7 +1042,7 @@ describe('regenerateGroupInviteSecret', () => {
 		expect(s.group[0]?.inviteSecret).not.toBe('old_secret_1234567')
 	})
 
-	it('regenerate as non-admin forbidden', async () => {
+	it('non-member cannot regenerate invite secret', async () => {
 		const nonAdminId = 'user_nonadmin1234567'
 		const s = {
 			user: [makeUser({ id: nonAdminId, flags: 'groups_backend' })],
@@ -1063,7 +1063,7 @@ describe('immutable column bypass attempts', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupId = 'group_aaa11112222bbb'
 
-	it('change file.ownerId to self blocked', async () => {
+	it('cannot change file.ownerId to self', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })],
@@ -1077,7 +1077,7 @@ describe('immutable column bypass attempts', () => {
 		await expectForbidden(() => m.file.update(tx, { id: 'file_aaaa11112222bbbb', ownerId: userId }))
 	})
 
-	it('change file.owningGroupId blocked', async () => {
+	it('cannot change file.owningGroupId', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })],
@@ -1093,7 +1093,7 @@ describe('immutable column bypass attempts', () => {
 		)
 	})
 
-	it('set isDeleted:true blocked via immutableColumns', async () => {
+	it('cannot set isDeleted:true', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })],
@@ -1125,7 +1125,7 @@ describe('immutable column bypass attempts', () => {
 		await expectValid(() => m.file.update(tx, { id: 'file_aaaa11112222bbbb', isDeleted: false }))
 	})
 
-	it('server file_state insert for inaccessible file blocked', async () => {
+	it('cannot insert file_state for inaccessible file on server', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_secret12345678', owningGroupId: groupId, shared: false })],
@@ -1141,7 +1141,7 @@ describe('immutable column bypass attempts', () => {
 		)
 	})
 
-	it('file_state immutable field (firstVisitAt) blocked', async () => {
+	it('cannot change immutable file_state field (firstVisitAt)', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })],
@@ -1180,7 +1180,7 @@ describe('file access control logic', () => {
 		await expectValid(() => m.file.update(tx, { id: 'file_legacy12345678a', name: 'Updated' }))
 	})
 
-	it('legacy file — non-owner forbidden even if shared', async () => {
+	it('legacy file — non-owner cannot update even if shared', async () => {
 		const otherId = 'user_other1234567890'
 		const s = {
 			user: [makeUser({ id: userId })],
@@ -1196,7 +1196,7 @@ describe('file access control logic', () => {
 		await expectForbidden(() => m.file.update(tx, { id: 'file_legacy12345678a', name: 'Hacked' }))
 	})
 
-	it('shared file allows onEnterFile (read access) on server', async () => {
+	it('non-member can enter shared file (read access)', async () => {
 		const otherId = 'user_other1234567890'
 		const s = {
 			user: [makeUser({ id: userId })],
@@ -1212,7 +1212,7 @@ describe('file access control logic', () => {
 		await expectValid(() => m.onEnterFile(tx, { fileId: 'file_shared123456789', time: Date.now() }))
 	})
 
-	it('deleted file forbidden', async () => {
+	it('cannot enter deleted file', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_deleted1234567a', owningGroupId: groupId, isDeleted: true })],
@@ -1228,7 +1228,7 @@ describe('file access control logic', () => {
 		)
 	})
 
-	it('file with neither ownerId nor owningGroupId is bad_request', async () => {
+	it('cannot enter file with neither ownerId nor owningGroupId', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [
