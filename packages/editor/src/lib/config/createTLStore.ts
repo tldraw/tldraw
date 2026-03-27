@@ -8,7 +8,9 @@ import {
 	TLStore,
 	TLStoreProps,
 	TLStoreSnapshot,
+	TLThemes,
 	createTLSchema,
+	registerColorsFromThemes,
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
@@ -29,6 +31,13 @@ export interface TLStoreBaseOptions {
 
 	/** How should this store upload & resolve assets? */
 	assets?: TLAssetStore
+
+	/**
+	 * Named color themes. When provided, custom color names are automatically
+	 * registered before the store is constructed so persisted data with those
+	 * colors passes validation on load.
+	 */
+	themes?: TLThemes
 
 	/** Called when the store is connected to an {@link @tldraw/editor#Editor}. */
 	onMount?(editor: Editor): void | (() => void)
@@ -109,8 +118,10 @@ export function createTLStore({
 	assets = inlineBase64AssetStore,
 	onMount,
 	collaboration,
+	themes,
 	...rest
 }: TLStoreOptions = {}): TLStore {
+	registerColorsFromThemes(themes)
 	const schema = createTLSchemaFromUtils(rest)
 
 	const store = new Store({

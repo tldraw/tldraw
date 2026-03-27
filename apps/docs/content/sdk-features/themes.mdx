@@ -259,6 +259,87 @@ const myThemes: TLThemes = {
 <Tldraw themes={myThemes} />
 ```
 
+## Adding custom colors
+
+You can add entirely new colors (beyond the built-in palette) by extending the [TLThemeColors](?) interface and including the color in your themes. Custom colors are registered automatically when you pass `themes`.
+
+First, extend the type system with module augmentation:
+
+```typescript
+import { TLDefaultColor } from 'tldraw'
+
+declare module 'tldraw' {
+	interface TLThemeColors {
+		pink: TLDefaultColor
+	}
+}
+```
+
+Then include the color in your themes:
+
+```tsx
+import { DEFAULT_LIGHT_THEME, DEFAULT_DARK_THEME, Tldraw, TLThemes } from 'tldraw'
+
+const themes: TLThemes = {
+	light: {
+		...DEFAULT_LIGHT_THEME,
+		colors: {
+			...DEFAULT_LIGHT_THEME.colors,
+			pink: {
+				solid: '#e91e8c',
+				semi: '#fce4f2',
+				pattern: '#f06baf',
+				fill: '#e91e8c',
+				linedFill: '#fce4f2',
+				frameHeadingStroke: '#e91e8c',
+				frameHeadingFill: '#fce4f2',
+				frameStroke: '#e91e8c',
+				frameFill: '#fce4f2',
+				frameText: '#e91e8c',
+				noteFill: '#fce4f2',
+				noteText: '#e91e8c',
+				highlightSrgb: '#e91e8c',
+				highlightP3: '#e91e8c',
+			},
+		},
+	},
+	dark: {
+		...DEFAULT_DARK_THEME,
+		colors: {
+			...DEFAULT_DARK_THEME.colors,
+			pink: {
+				solid: '#f06baf',
+				semi: '#3d1a2e',
+				// ... other variants
+			},
+		},
+	},
+}
+
+// The `themes` prop tells tldraw about the custom color:
+<Tldraw themes={themes} />
+```
+
+When creating a store directly (e.g. for use with `new Editor(...)` outside React), pass `themes` to [createTLStore](?):
+
+```typescript
+import { createTLStore } from 'tldraw'
+
+const store = createTLStore({ themes })
+```
+
+For multiplayer via [useSync](?), pass `themes` there too:
+
+```typescript
+import { useSync } from '@tldraw/sync'
+
+const store = useSync({ uri: '...', assets: myAssets, themes })
+```
+
+Make sure every theme in your `themes` map includes an entry for every custom color. If a shape uses a color that doesn't exist in the active theme, it won't render correctly.
+
+See the [Custom theme](/examples/ui/custom-theme) example for a complete working demo.
+
 ## Using themes in shape utils
 
 For built-in shapes, override how theme colors are applied using `getDisplayValueOverrides` on a configured shape util. The `theme` parameter is the resolved theme for the current context (which may differ from the editor's active theme during SVG export):
@@ -335,5 +416,6 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 
 ## Related examples
 
+- [Custom theme](/examples/ui/custom-theme) - Add a custom color, create multiple named themes, and adjust theme values with sliders.
 - [Changing default colors](/examples/ui/changing-default-colors) - Customize the light theme's color palette using `editor.updateThemes()`.
 - [Display options](/examples/configuration/display-options) - Override how built-in shapes render using `getDisplayValueOverrides`.

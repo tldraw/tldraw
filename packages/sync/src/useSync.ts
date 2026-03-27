@@ -24,6 +24,7 @@ import {
 	TLStore,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
+	TLThemes,
 	computed,
 	createTLStore,
 	defaultUserPreferences,
@@ -176,6 +177,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		userInfo,
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
+		themes,
 		...schemaOpts
 	} = opts
 
@@ -279,6 +281,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			schema,
 			assets,
 			onMount,
+			themes,
 			collaboration: {
 				status: collaborationStatusSignal,
 				mode: syncMode,
@@ -371,6 +374,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		getUserPresence,
 		onCustomMessageReceived,
+		themes,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
@@ -417,6 +421,13 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
  * @public
  */
 export interface UseSyncOptionsBase {
+	/**
+	 * Named color themes. When provided, custom color names are automatically
+	 * registered before the store is constructed so persisted data with those
+	 * colors passes validation on load.
+	 */
+	themes?: TLThemes
+
 	/**
 	 * User information for multiplayer presence and identification.
 	 *

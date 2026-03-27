@@ -1,5 +1,11 @@
 import { MigrationSequence, Store } from '@tldraw/store'
-import { TLShape, TLStore, TLStoreSnapshot, TLThemes } from '@tldraw/tlschema'
+import {
+	TLShape,
+	TLStore,
+	TLStoreSnapshot,
+	TLThemes,
+	registerColorsFromThemes,
+} from '@tldraw/tlschema'
 import { annotateError, Required } from '@tldraw/utils'
 import classNames from 'classnames'
 import React, {
@@ -267,6 +273,10 @@ export const TldrawEditor = memo(function TldrawEditor({
 	deepLinks: _deepLinks,
 	...rest
 }: TldrawEditorProps) {
+	// Safety net: register colors early so persisted data with custom colors
+	// passes validation even when the user passes an external store.
+	registerColorsFromThemes(rest.themes)
+
 	const [container, setContainer] = useState<HTMLElement | null>(null)
 	const user = useMemo(() => _user ?? createTLUser(), [_user])
 
@@ -354,6 +364,7 @@ function TldrawEditorWithOwnStore(
 		user,
 		assets,
 		migrations,
+		themes,
 	} = props
 
 	const syncedStore = useLocalStore({
@@ -366,6 +377,7 @@ function TldrawEditorWithOwnStore(
 		snapshot,
 		assets,
 		migrations,
+		themes,
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />

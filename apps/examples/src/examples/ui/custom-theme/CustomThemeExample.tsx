@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import {
 	DEFAULT_DARK_THEME,
 	DEFAULT_LIGHT_THEME,
-	registerColors,
 	TLDefaultColor,
 	Tldraw,
 	TldrawUiButton,
@@ -18,20 +17,15 @@ import {
 import 'tldraw/tldraw.css'
 import './custom-theme.css'
 
-// Extend the type system so TypeScript knows about our custom color
+// [1]
+// Extend the type system so TypeScript knows about our custom color.
+// That's all you need — because we pass `themes` to `<Tldraw>`, the
+// custom color name is registered automatically at store creation time.
 declare module 'tldraw' {
 	interface TLThemeColors {
 		pink: TLDefaultColor
 	}
 }
-
-// There's a guide at the bottom of this file!
-
-// [1]
-// Register a custom "pink" color so it appears in the style panel and
-// passes validation everywhere. Call this before rendering any tldraw
-// components.
-registerColors(['pink'])
 
 // Helper to create a full color entry from a base solid color
 function makeColor(solid: string, semi: string, pattern: string): TLDefaultColor {
@@ -154,7 +148,7 @@ export default function CustomThemeExample() {
 							richText: toRichText('Hello'),
 						},
 					})
-					// [4] Use the custom "pink" color registered above
+					// [4] Use the custom "pink" color declared in our themes
 					editor.createShape({
 						type: 'geo',
 						x: 600,
@@ -309,9 +303,9 @@ function ThemeSlider({
 /*
 
 [1]
-Register a custom color name ("pink") with `registerColors()`. This extends
-the `DefaultColorStyle` and `DefaultLabelColorStyle` validators so the new
-color passes validation and appears in the style panel automatically.
+Extend the `TLThemeColors` interface via module augmentation to add a
+custom "pink" color. Because `themes` is passed to `<Tldraw>`, the
+custom color name is registered automatically.
 
 [2]
 Define color entries for light and dark variants. Each theme that includes
@@ -322,8 +316,8 @@ A simple theme switcher overlay. Clicking a button sets the active theme
 by ID. You could also call `editor.setTheme('my-brand')` imperatively.
 
 [4]
-Create a shape using the custom "pink" color. Because we called
-`registerColors(['pink'])` at module scope, this value passes validation.
+Create a shape using the custom "pink" color. Because themes declare
+the color, it passes validation automatically.
 
 [5]
 Default values for the adjustable theme properties. These match the defaults
