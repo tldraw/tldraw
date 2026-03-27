@@ -26,6 +26,7 @@ import {
 	TLStoreWithStatus,
 	TLThemes,
 	computed,
+	registerColorsFromThemes,
 	createTLStore,
 	defaultUserPreferences,
 	getDefaultUserPresence,
@@ -186,6 +187,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	// is allowed to be unstable (e.g. userInfo)
 	const __never__: never = 0 as any as keyof Omit<typeof schemaOpts, keyof TLStoreSchemaOptions>
 
+	registerColorsFromThemes(themes)
 	const schema = useTLSchemaFromUtils(schemaOpts)
 
 	const prefs = useShallowObjectIdentity(userInfo)
@@ -281,7 +283,6 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			schema,
 			assets,
 			onMount,
-			themes,
 			collaboration: {
 				status: collaborationStatusSignal,
 				mode: syncMode,
@@ -374,7 +375,6 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		getUserPresence,
 		onCustomMessageReceived,
-		themes,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(

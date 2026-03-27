@@ -71,4 +71,17 @@ export function registerColorsFromThemes(themes: TLThemes | undefined): void {
 		DefaultColorStyle.addValues(...colorNames)
 		DefaultLabelColorStyle.addValues(...colorNames)
 	}
+
+	if (process.env.NODE_ENV !== 'production') {
+		const themeEntries = Object.entries(themes)
+		for (const color of colorNames) {
+			for (const [id, theme] of themeEntries) {
+				if (!(color in theme.colors)) {
+					console.warn(
+						`Theme '${id}' is missing color '${color}'. Shapes using this color won't render correctly in this theme.`
+					)
+				}
+			}
+		}
+	}
 }

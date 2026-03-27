@@ -273,8 +273,9 @@ export const TldrawEditor = memo(function TldrawEditor({
 	deepLinks: _deepLinks,
 	...rest
 }: TldrawEditorProps) {
-	// Safety net: register colors early so persisted data with custom colors
-	// passes validation even when the user passes an external store.
+	// Register custom colors before effects run. For external stores, users
+	// should also pass themes to createTLStore so colors are registered before
+	// data is loaded into the store.
 	registerColorsFromThemes(rest.themes)
 
 	const [container, setContainer] = useState<HTMLElement | null>(null)
