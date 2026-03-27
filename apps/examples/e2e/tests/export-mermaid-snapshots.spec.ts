@@ -1,6 +1,6 @@
-import { Page, expect } from '@playwright/test'
 import assert from 'assert'
 import { rename, writeFile } from 'fs/promises'
+import { Page, expect } from '@playwright/test'
 import { Editor } from 'tldraw'
 import mermaidDefinitions from '../../src/examples/use-cases/hundred-mermaids/mermaids'
 import test, { ApiFixture } from '../fixtures/fixtures'
