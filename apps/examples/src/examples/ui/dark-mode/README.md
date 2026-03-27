@@ -1,6 +1,6 @@
 ---
 title: Dark mode
-component: ./InferDarkModeExample.tsx
+component: ./DarkModeExample.tsx
 priority: 4
 keywords: [dark mode, theme, system preferences, color scheme]
 ---
