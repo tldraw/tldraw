@@ -728,4 +728,34 @@ describe('Box', () => {
 			expect(result).not.toBe(zeroBox) // different object
 		})
 	})
+
+	describe('Box.isValid', () => {
+		it('returns true for normal box', () => {
+			expect(new Box(10, 20, 100, 200).isValid()).toBe(true)
+		})
+
+		it('returns false when x is NaN', () => {
+			expect(new Box(NaN, 0, 100, 100).isValid()).toBe(false)
+		})
+
+		it('returns false when y is NaN', () => {
+			expect(new Box(0, NaN, 100, 100).isValid()).toBe(false)
+		})
+
+		it('returns false when w is NaN', () => {
+			expect(new Box(0, 0, NaN, 100).isValid()).toBe(false)
+		})
+
+		it('returns false when h is NaN', () => {
+			expect(new Box(0, 0, 100, NaN).isValid()).toBe(false)
+		})
+
+		it('returns false for Infinity', () => {
+			expect(new Box(Infinity, 0, 100, 100).isValid()).toBe(false)
+		})
+
+		it('returns true for zero-sized box', () => {
+			expect(new Box(0, 0, 0, 0).isValid()).toBe(true)
+		})
+	})
 })
