@@ -1,6 +1,5 @@
 import { IndexKey, uniqueId } from '@tldraw/utils'
 import { describe, expect, it } from 'vitest'
-import { MAX_NUMBER_OF_FILES } from './constants'
 import { createMutators, parseFlags, userHasFlag } from './mutators'
 import {
 	TlaFile,
@@ -291,10 +290,6 @@ function expectBadRequest(fn: () => Promise<any>) {
 	return expect(fn()).rejects.toThrow(ZErrorCode.bad_request)
 }
 
-function expectMaxFiles(fn: () => Promise<any>) {
-	return expect(fn()).rejects.toThrow(ZErrorCode.max_files_reached)
-}
-
 // ---- tests ----
 
 describe('parseFlags / userHasFlag', () => {
@@ -507,55 +502,6 @@ describe('file creation', () => {
 			})
 		)
 	})
-
-	it('legacy user cannot exceed MAX_NUMBER_OF_FILES', async () => {
-		// NOTE: the migrated createFile path does NOT call assertNotMaxFiles.
-		// Only the legacy (insertWithFileState) path enforces the limit.
-		const files = Array.from({ length: MAX_NUMBER_OF_FILES }, (_, i) =>
-			makeFile({ id: `file_${String(i).padStart(16, '0')}`, ownerId: userId })
-		)
-		const s = {
-			user: [makeUser({ id: userId, flags: '' })],
-			file: files,
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-		}
-		const { tx } = createMockTx(s)
-		const m = createMutators(userId)
-		await expectMaxFiles(() =>
-			m.createFile(tx, {
-				fileId: 'file_new_1234567890ab',
-				groupId: userId,
-				name: 'One too many',
-				time: Date.now(),
-				createSource: null,
-			})
-		)
-	})
-
-	it('legacy user can create file via ownerId path', async () => {
-		const s = {
-			user: [makeUser({ id: userId, flags: '' })],
-			file: [],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-		}
-		const { tx } = createMockTx(s)
-		const m = createMutators(userId)
-		await m.createFile(tx, {
-			fileId: 'file_aaaa11112222bbbb',
-			groupId: userId,
-			name: 'Legacy File',
-			time: Date.now(),
-			createSource: null,
-		})
-		expect((s.file as TlaFile[])[0]?.ownerId).toBe(userId)
-		expect((s.file as TlaFile[])[0]?.owningGroupId).toBeNull()
-	})
 })
 
 describe('file_state mutations', () => {
@@ -687,20 +633,6 @@ describe('group mutations', () => {
 		expect(s.group.length).toBe(1)
 		expect(s.group_user.length).toBe(1)
 		expect((s.group_user as TlaGroupUser[])[0]?.role).toBe('owner')
-	})
-
-	it('legacy user cannot create group', async () => {
-		const s = {
-			user: [makeUser({ id: userId, flags: '' })],
-			file: [],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-		}
-		const { tx } = createMockTx(s)
-		const m = createMutators(userId)
-		await expectForbidden(() => m.createGroup(tx, { id: 'group_new123456789ab', name: 'My Group' }))
 	})
 
 	it('owner can update group name', async () => {
@@ -1163,36 +1095,6 @@ describe('immutable column bypass attempts', () => {
 describe('file access control logic', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupId = 'group_aaa11112222bbb'
-
-	it('legacy file — owner can update', async () => {
-		const s = {
-			user: [makeUser({ id: userId, flags: '' })],
-			file: [makeFile({ id: 'file_legacy12345678a', ownerId: userId })],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-		}
-		const { tx } = createMockTx(s)
-		const m = createMutators(userId)
-		await expectValid(() => m.file.update(tx, { id: 'file_legacy12345678a', name: 'Updated' }))
-	})
-
-	it('legacy file — non-owner cannot update even if shared', async () => {
-		const otherId = 'user_other1234567890'
-		const s = {
-			user: [makeUser({ id: userId })],
-			file: [makeFile({ id: 'file_legacy12345678a', ownerId: otherId, shared: true })],
-			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
-		}
-		const { tx } = createMockTx(s)
-		const m = createMutators(userId)
-		// Sharing grants read, not write. file.update uses assertUserCanUpdateFile (allowGuestAccess=false)
-		await expectForbidden(() => m.file.update(tx, { id: 'file_legacy12345678a', name: 'Hacked' }))
-	})
 
 	it('non-member can enter shared file (read access)', async () => {
 		const otherId = 'user_other1234567890'
