@@ -55,7 +55,6 @@ import {
 	ARROW_LABEL_PADDING,
 	FONT_FAMILIES,
 	STROKE_SIZES,
-	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
