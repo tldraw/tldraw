@@ -636,9 +636,6 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 }>;
 
 // @public
-export function registerColors(colorNames: TLDefaultColorStyle[]): void;
-
-// @public
 export function registerColorsFromThemes(themes: TLThemes | undefined): void;
 
 // @public
