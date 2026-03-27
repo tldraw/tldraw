@@ -30,7 +30,7 @@
 		"build": "yarn run -T tsx scripts/build.ts",
 		"dev": "yarn run -T tsx scripts/dev.ts",
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-		"lint": "cd ../../.. && yarn run -T oxlint apps/vscode/editor",
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"

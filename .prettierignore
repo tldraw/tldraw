@@ -39,3 +39,4 @@ apps/dotcom/zero-cache/docker/docker-compose.yml
 lerna.json
 
 internal/scripts/eslint/eslint-plugin.mjs
+apps/dotcom/zero-cache/.schema.js

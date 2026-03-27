@@ -38,7 +38,7 @@
 		"build": "./scripts/build.sh",
 		"prepack": "yarn build",
 		"pack-tarball": "yarn pack",
-		"lint": "cd ../.. && yarn run -T oxlint packages/create-tldraw"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"devDependencies": {
 		"@bomb.sh/args": "^0.3.1",
