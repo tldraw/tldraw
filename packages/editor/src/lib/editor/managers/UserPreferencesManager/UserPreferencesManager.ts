@@ -1,6 +1,6 @@
 import { atom, computed } from '@tldraw/state'
-import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
 import { TLCurrentUser } from '../../../config/createTLCurrentUser'
+import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
 import { getGlobalWindow } from '../../../utils/dom'
 
 /** @public */

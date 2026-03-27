@@ -12,7 +12,7 @@
 		"dev:http": "yarn build && wrangler dev --var \"MCP_IS_DEV:true\"",
 		"dev:tunnel": "yarn build && bash dev-tunnel.sh",
 		"deploy": "yarn build && wrangler deploy",
-		"lint": "cd ../.. && yarn run -T oxlint apps/mcp-app",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
