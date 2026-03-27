@@ -95,6 +95,20 @@ describe('simpleMermaidStringTest', () => {
 			const text = '```mermaid\n%%{init: {"theme":"dark"}}%%\nflowchart LR\n  A --> B\n```'
 			expect(simpleMermaidStringTest(text)).toBe(true)
 		})
+
+		it('does not consume later non-mermaid fences in the same paste', () => {
+			const text = [
+				'```mermaid',
+				'flowchart TD',
+				'  A --> B',
+				'```',
+				'',
+				'```javascript',
+				'const x = 1',
+				'```',
+			].join('\n')
+			expect(simpleMermaidStringTest(text)).toBe(true)
+		})
 	})
 
 	describe('negative cases', () => {
@@ -127,6 +141,11 @@ describe('simpleMermaidStringTest', () => {
 			const text = '```javascript\nconst x = 1\n```'
 			expect(simpleMermaidStringTest(text)).toBe(false)
 		})
+
+		it('rejects a fence label that is not lowercase mermaid', () => {
+			const text = '```MERMAID\npie\n  "A" : 1\n```'
+			expect(simpleMermaidStringTest(text)).toBe(false)
+		})
 	})
 })
 
@@ -149,5 +168,35 @@ describe('stripMarkdownMermaidFence', () => {
 	it('handles extra backticks', () => {
 		const text = '````mermaid\ngantt\n  title Plan\n````'
 		expect(stripMarkdownMermaidFence(text)).toBe('gantt\n  title Plan')
+	})
+
+	it('stops at the first closing fence when more blocks follow', () => {
+		const text = [
+			'```mermaid',
+			'flowchart TD',
+			'  A --> B',
+			'```',
+			'',
+			'# More',
+			'',
+			'```js',
+			'x',
+			'```',
+		].join('\n')
+		expect(stripMarkdownMermaidFence(text)).toBe('flowchart TD\n  A --> B')
+	})
+
+	it('does not close on a shorter inner fence than the opening run', () => {
+		const text = ['````mermaid', 'flowchart TD', '  A --> B', '```', '  note text', '````'].join(
+			'\n'
+		)
+		expect(stripMarkdownMermaidFence(text)).toBe(
+			['flowchart TD', '  A --> B', '```', '  note text'].join('\n')
+		)
+	})
+
+	it('handles CRLF line endings in the fence', () => {
+		const text = '```mermaid\r\nflowchart TD\r\n  A --> B\r\n```'
+		expect(stripMarkdownMermaidFence(text)).toBe('flowchart TD\r\n  A --> B')
 	})
 })
