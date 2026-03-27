@@ -594,7 +594,7 @@ describe('file_state mutations', () => {
 		)
 	})
 
-	it('server cannot insert file_state for inaccessible file', async () => {
+	it('server cannot update file_state for inaccessible file', async () => {
 		const inaccessibleFile = makeFile({
 			id: 'file_inaccessible12345',
 			owningGroupId: groupId,
@@ -603,7 +603,7 @@ describe('file_state mutations', () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [inaccessibleFile],
-			file_state: [],
+			file_state: [makeFileState({ userId, fileId: inaccessibleFile.id })],
 			group: [makeGroup({ id: groupId })],
 			group_user: [], // userId NOT a member
 			group_file: [],
@@ -611,7 +611,7 @@ describe('file_state mutations', () => {
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await expectForbidden(() =>
-			m.file_state.insert(tx, makeFileState({ userId, fileId: inaccessibleFile.id }))
+			m.file_state.update(tx, { userId, fileId: inaccessibleFile.id, lastVisitAt: Date.now() })
 		)
 	})
 })
@@ -1107,10 +1107,7 @@ describe('immutable column bypass attempts', () => {
 		await expectForbidden(() => m.file.update(tx, { id: 'file_aaaa11112222bbbb', isDeleted: true }))
 	})
 
-	it('NOTE: isDeleted:false bypasses immutable check (truthiness bug)', async () => {
-		// disallowImmutableMutations uses assert(!data[col]) which is a truthiness check.
-		// false is falsy, so !false = true, and the assertion passes.
-		// This means a client could set isDeleted:false to "undelete" a file.
+	it('cannot set isDeleted:false (falsy value still blocked)', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId, isDeleted: false })],
@@ -1121,15 +1118,16 @@ describe('immutable column bypass attempts', () => {
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		// This currently SUCCEEDS — documenting the behavior
-		await expectValid(() => m.file.update(tx, { id: 'file_aaaa11112222bbbb', isDeleted: false }))
+		await expectForbidden(() =>
+			m.file.update(tx, { id: 'file_aaaa11112222bbbb', isDeleted: false })
+		)
 	})
 
-	it('cannot insert file_state for inaccessible file on server', async () => {
+	it('cannot update file_state for inaccessible file on server', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: 'file_secret12345678', owningGroupId: groupId, shared: false })],
-			file_state: [],
+			file_state: [makeFileState({ userId, fileId: 'file_secret12345678' })],
 			group: [makeGroup({ id: groupId })],
 			group_user: [], // not a member
 			group_file: [],
@@ -1137,7 +1135,7 @@ describe('immutable column bypass attempts', () => {
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await expectForbidden(() =>
-			m.file_state.insert(tx, makeFileState({ userId, fileId: 'file_secret12345678' }))
+			m.file_state.update(tx, { userId, fileId: 'file_secret12345678', lastVisitAt: Date.now() })
 		)
 	})
 
