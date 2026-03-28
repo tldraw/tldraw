@@ -124,17 +124,25 @@ describe('TextManager', () => {
 			padding: '0px',
 		}
 
-		it('should call measureHtml with normalized text', () => {
-			const spy = vi.spyOn(textManager, 'measureHtml')
-			textManager.measureText('Hello World', defaultOpts)
-			expect(spy).toHaveBeenCalledWith('Hello World', defaultOpts)
+		it('should return measurement result using pretext', () => {
+			const result = textManager.measureText('Hello World', defaultOpts)
+			expect(result).toMatchObject({
+				x: 0,
+				y: 0,
+				w: expect.any(Number),
+				h: expect.any(Number),
+				scrollWidth: 0,
+			})
+			expect(result.w).toBeGreaterThan(0)
+			expect(result.h).toBeGreaterThan(0)
 		})
 
-		it('should normalize line breaks', () => {
-			const spy = vi.spyOn(textManager, 'measureHtml')
-			textManager.measureText('Hello\nWorld\r\nTest', defaultOpts)
-			// The text should be normalized to use consistent line breaks
-			expect(spy).toHaveBeenCalled()
+		it('should handle text with line breaks', () => {
+			const result = textManager.measureText('Hello\nWorld\r\nTest', defaultOpts)
+			expect(result.h).toBeGreaterThan(0)
+			// Multi-line text should be taller than single line
+			const singleLine = textManager.measureText('Hello', defaultOpts)
+			expect(result.h).toBeGreaterThan(singleLine.h)
 		})
 
 		it('should handle empty text', () => {
@@ -144,6 +152,14 @@ describe('TextManager', () => {
 			expect(result).toHaveProperty('w')
 			expect(result).toHaveProperty('h')
 			expect(result).toHaveProperty('scrollWidth')
+		})
+
+		it('should measure scrollWidth when requested', () => {
+			const result = textManager.measureText('Hello World', {
+				...defaultOpts,
+				measureScrollWidth: true,
+			})
+			expect(result.scrollWidth).toBeGreaterThan(0)
 		})
 	})
 
@@ -170,6 +186,24 @@ describe('TextManager', () => {
 			})
 		})
 
+		it('should strip HTML and measure text', () => {
+			const htmlResult = textManager.measureHtml('<p dir="auto">Hello</p>', defaultOpts)
+			const textResult = textManager.measureText('Hello', defaultOpts)
+			// HTML-stripped measurement should match plain text measurement
+			expect(htmlResult.w).toBe(textResult.w)
+			expect(htmlResult.h).toBe(textResult.h)
+		})
+
+		it('should handle paragraph breaks in HTML', () => {
+			const result = textManager.measureHtml(
+				'<p dir="auto">Hello</p><p dir="auto">World</p>',
+				defaultOpts
+			)
+			const singleLine = textManager.measureHtml('<p dir="auto">Hello</p>', defaultOpts)
+			// Two paragraphs should be taller
+			expect(result.h).toBeGreaterThan(singleLine.h)
+		})
+
 		it('should handle null maxWidth', () => {
 			const opts = { ...defaultOpts, maxWidth: null }
 			const result = textManager.measureHtml('Test', opts)
@@ -186,24 +220,6 @@ describe('TextManager', () => {
 			const opts = { ...defaultOpts, disableOverflowWrapBreaking: true }
 			const result = textManager.measureHtml('Test', opts)
 
-			expect(result).toMatchObject({
-				x: 0,
-				y: 0,
-				w: expect.any(Number),
-				h: expect.any(Number),
-			})
-		})
-
-		it('should handle other styles', () => {
-			const opts = {
-				...defaultOpts,
-				otherStyles: {
-					'text-decoration': 'underline',
-					color: 'red',
-				},
-			}
-
-			const result = textManager.measureHtml('Test', opts)
 			expect(result).toMatchObject({
 				x: 0,
 				y: 0,
@@ -285,17 +301,6 @@ describe('TextManager', () => {
 		})
 
 		it('should return array of text spans for non-empty text', () => {
-			// Mock measureElementTextNodeSpans to return some spans
-			vi.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
-				spans: [
-					{
-						text: 'Hello World',
-						box: { x: 0, y: 0, w: 100, h: 16 },
-					},
-				],
-				didTruncate: false,
-			})
-
 			const result = textManager.measureTextSpans('Hello World', defaultOpts)
 
 			expect(Array.isArray(result)).toBe(true)
@@ -305,16 +310,6 @@ describe('TextManager', () => {
 		})
 
 		it('should handle wrap overflow', () => {
-			vi.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
-				spans: [
-					{
-						text: 'Hello World',
-						box: { x: 0, y: 0, w: 100, h: 16 },
-					},
-				],
-				didTruncate: false,
-			})
-
 			const opts = { ...defaultOpts, overflow: 'wrap' as const }
 			const result = textManager.measureTextSpans('Hello World', opts)
 
@@ -322,53 +317,13 @@ describe('TextManager', () => {
 		})
 
 		it('should handle truncate-ellipsis overflow', () => {
-			// Mock the calls for ellipsis handling
-			vi.spyOn(textManager, 'measureElementTextNodeSpans')
-				.mockReturnValueOnce({
-					spans: [
-						{
-							text: 'Hello Wo',
-							box: { x: 0, y: 0, w: 80, h: 16 },
-						},
-					],
-					didTruncate: true,
-				})
-				.mockReturnValueOnce({
-					spans: [
-						{
-							text: '…',
-							box: { x: 0, y: 0, w: 10, h: 16 },
-						},
-					],
-					didTruncate: false,
-				})
-				.mockReturnValueOnce({
-					spans: [
-						{
-							text: 'Hello W',
-							box: { x: 0, y: 0, w: 70, h: 16 },
-						},
-					],
-					didTruncate: false,
-				})
-
 			const opts = { ...defaultOpts, overflow: 'truncate-ellipsis' as const }
-			const result = textManager.measureTextSpans('Hello World', opts)
+			const result = textManager.measureTextSpans('Hello World this is a very long text', opts)
 
 			expect(Array.isArray(result)).toBe(true)
 		})
 
 		it('should handle truncate-clip overflow', () => {
-			vi.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
-				spans: [
-					{
-						text: 'Hello Wo',
-						box: { x: 0, y: 0, w: 80, h: 16 },
-					},
-				],
-				didTruncate: true,
-			})
-
 			const opts = { ...defaultOpts, overflow: 'truncate-clip' as const }
 			const result = textManager.measureTextSpans('Hello World', opts)
 
@@ -376,16 +331,6 @@ describe('TextManager', () => {
 		})
 
 		it('should handle different text alignments', () => {
-			vi.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
-				spans: [
-					{
-						text: 'Test',
-						box: { x: 0, y: 0, w: 40, h: 16 },
-					},
-				],
-				didTruncate: false,
-			})
-
 			const alignments: Array<TLMeasureTextSpanOpts['textAlign']> = ['start', 'middle', 'end']
 
 			alignments.forEach((textAlign) => {
@@ -396,16 +341,6 @@ describe('TextManager', () => {
 		})
 
 		it('should handle custom font properties', () => {
-			vi.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
-				spans: [
-					{
-						text: 'Test',
-						box: { x: 0, y: 0, w: 40, h: 16 },
-					},
-				],
-				didTruncate: false,
-			})
-
 			const opts = {
 				...defaultOpts,
 				fontSize: 18,
@@ -413,29 +348,6 @@ describe('TextManager', () => {
 				fontWeight: 'bold',
 				fontStyle: 'italic',
 				lineHeight: 1.5,
-			}
-
-			const result = textManager.measureTextSpans('Test', opts)
-			expect(Array.isArray(result)).toBe(true)
-		})
-
-		it('should handle other styles', () => {
-			vi.spyOn(textManager, 'measureElementTextNodeSpans').mockReturnValue({
-				spans: [
-					{
-						text: 'Test',
-						box: { x: 0, y: 0, w: 40, h: 16 },
-					},
-				],
-				didTruncate: false,
-			})
-
-			const opts = {
-				...defaultOpts,
-				otherStyles: {
-					'text-shadow': '1px 1px 1px black',
-					'letter-spacing': '1px',
-				},
 			}
 
 			const result = textManager.measureTextSpans('Test', opts)

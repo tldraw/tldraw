@@ -1,6 +1,15 @@
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
 import { objectMapKeys } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
+import {
+	clearCache,
+	layout,
+	layoutWithLines,
+	prepare,
+	prepareWithSegments,
+	walkLineRanges,
+	type PreparedTextWithSegments,
+} from './pretext/layout'
 
 const fixNewLines = /\r?\n|\r/g
 
@@ -87,6 +96,86 @@ const initialDefaultStyles = Object.freeze({
 	'min-width': null,
 })
 
+// --- Pretext helpers ---
+
+function buildFontString(opts: {
+	fontStyle: string
+	fontWeight: string
+	fontSize: number
+	fontFamily: string
+}): string {
+	return `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${opts.fontFamily}`
+}
+
+function parsePadding(padding: string): number {
+	// Padding is usually a simple "Xpx" string
+	const match = padding.match(/^(\d+(?:\.\d+)?)px$/)
+	return match ? parseFloat(match[1]) : 0
+}
+
+const htmlEntityMap: Record<string, string> = {
+	'&amp;': '&',
+	'&lt;': '<',
+	'&gt;': '>',
+	'&quot;': '"',
+	'&#39;': "'",
+	'&apos;': "'",
+	'&#x27;': "'",
+	'&#x2F;': '/',
+	'&nbsp;': ' ',
+}
+
+const htmlEntityRegex = /&(?:amp|lt|gt|quot|apos|nbsp|#39|#x27|#x2F);/g
+
+function stripHtmlToText(html: string): string {
+	// Convert paragraph breaks to newlines
+	let text = html.replace(/<\/p>\s*<p[^>]*>/gi, '\n')
+	// Convert <br> tags to newlines
+	text = text.replace(/<br\s*\/?>/gi, '\n')
+	// Strip all remaining HTML tags
+	text = text.replace(/<[^>]+>/g, '')
+	// Decode HTML entities
+	text = text.replace(htmlEntityRegex, (entity) => htmlEntityMap[entity] ?? entity)
+	return text
+}
+
+/**
+ * Measure text using pretext by splitting into paragraphs (to handle newlines,
+ * since pretext only supports white-space: normal).
+ */
+function measureWithPretext(
+	text: string,
+	font: string,
+	maxWidth: number,
+	lineHeightPx: number
+): { w: number; h: number } {
+	if (text === '') return { w: 0, h: 0 }
+
+	const paragraphs = text.split('\n')
+	let totalHeight = 0
+	let maxLineWidth = 0
+
+	for (let i = 0; i < paragraphs.length; i++) {
+		const para = paragraphs[i]
+		if (para === '' || para === ' ') {
+			// Empty paragraph = one line of height
+			totalHeight += lineHeightPx
+			continue
+		}
+
+		const prepared = prepareWithSegments(para, font)
+		const result = layout(prepared, maxWidth, lineHeightPx)
+		totalHeight += result.height
+
+		// Track max line width
+		walkLineRanges(prepared, maxWidth, (line) => {
+			if (line.width > maxLineWidth) maxLineWidth = line.width
+		})
+	}
+
+	return { w: Math.ceil(maxLineWidth), h: Math.ceil(totalHeight) }
+}
+
 /** @public */
 export class TextManager {
 	private elm: HTMLDivElement
@@ -169,6 +258,7 @@ export class TextManager {
 			el.remove()
 		}
 		this.poolElms.length = 0
+		clearCache()
 	}
 
 	private ensurePoolSize(size: number) {
@@ -191,71 +281,38 @@ export class TextManager {
 	measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[] {
 		if (requests.length === 0) return []
 
-		while (this.poolElms.length > requests.length) {
-			const { el } = this.poolElms.pop()!
-			el.remove()
-		}
-
-		for (let i = 0; i < requests.length; i++) {
-			const { html, opts } = requests[i]
-			const poolItem = this.getPoolItem(i)
-
-			const { el } = poolItem
-			this.resetElementStyles(el, poolItem.appliedStyleKeys)
-			const styles = this.getMeasureStyles(opts)
-			this.setElementStyles(el, styles)
-			poolItem.appliedStyleKeys = Object.keys(styles)
-			// Skip innerHTML parsing if the content hasn't changed
-			if (poolItem.html !== html) {
-				el.innerHTML = html
-				poolItem.html = html
-			}
-		}
-
-		const results: TLMeasuredTextSize[] = []
-		for (let i = 0; i < requests.length; i++) {
-			const el = this.getPoolItem(i).el
-			const scrollWidth = requests[i].opts.measureScrollWidth ? el.scrollWidth : 0
-			const rect = el.getBoundingClientRect()
-			results.push({
-				x: 0,
-				y: 0,
-				w: rect.width,
-				h: rect.height,
-				scrollWidth,
-			})
-		}
-
-		return results
+		return requests.map(({ html, opts }) => this.measureHtml(html, opts))
 	}
 
 	measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize {
-		const div = this.editor.getContainerDocument().createElement('div')
-		div.textContent = normalizeTextForDom(textToMeasure)
-		return this.measureHtml(div.innerHTML, opts)
+		const text = normalizeTextForDom(textToMeasure)
+		const font = buildFontString(opts)
+		const padding = parsePadding(opts.padding)
+		const lineHeightPx = opts.lineHeight * opts.fontSize
+		const maxWidth = opts.maxWidth ? opts.maxWidth - padding * 2 : 1e9
+
+		const { w, h } = measureWithPretext(text, font, maxWidth, lineHeightPx)
+
+		let scrollWidth = 0
+		if (opts.measureScrollWidth) {
+			const unwrapped = measureWithPretext(text, font, 1e9, lineHeightPx)
+			scrollWidth = unwrapped.w + padding * 2
+		}
+
+		const resultW = Math.max(w + padding * 2, opts.minWidth ?? 0)
+
+		return {
+			x: 0,
+			y: 0,
+			w: resultW,
+			h: h + padding * 2,
+			scrollWidth,
+		}
 	}
 
 	measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize {
-		const { elm } = this
-
-		const restoreStyles = this.setElementStyles(elm, this.getMeasureStyles(opts))
-
-		try {
-			elm.innerHTML = html
-
-			const scrollWidth = opts.measureScrollWidth ? elm.scrollWidth : 0
-			const rect = elm.getBoundingClientRect()
-
-			return {
-				x: 0,
-				y: 0,
-				w: rect.width,
-				h: rect.height,
-				scrollWidth,
-			}
-		} finally {
-			restoreStyles()
-		}
+		const text = stripHtmlToText(html)
+		return this.measureText(text, opts)
 	}
 
 	/**
@@ -359,12 +416,10 @@ export class TextManager {
 	}
 
 	/**
-	 * Measure text into individual spans. Spans are created by rendering the
-	 * text, then dividing it up according to line breaks and word boundaries.
+	 * Measure text into individual spans. Spans are created using pretext's
+	 * segment-level layout, then grouped by word/space boundaries.
 	 *
-	 * It works by having the browser render the text, then measuring the
-	 * position of each character. You can use this to replicate the text-layout
-	 * algorithm of the current browser in e.g. an SVG export.
+	 * You can use this to replicate the text-layout algorithm in e.g. an SVG export.
 	 */
 	measureTextSpans(
 		textToMeasure: string,
@@ -372,70 +427,221 @@ export class TextManager {
 	): { text: string; box: BoxModel }[] {
 		if (textToMeasure === '') return []
 
-		const { elm } = this
-
+		const font = buildFontString(opts)
+		const lineHeightPx = opts.lineHeight * opts.fontSize
 		const shouldTruncateToFirstLine =
 			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
-		const newStyles = {
-			'font-family': opts.fontFamily,
-			'font-style': opts.fontStyle,
-			'font-weight': opts.fontWeight,
-			'font-size': opts.fontSize + 'px',
-			'line-height': opts.lineHeight.toString(),
-			width: `${elementWidth}px`,
-			height: 'min-content',
-			'text-align': textAlignmentsForLtr[opts.textAlign],
-			'overflow-wrap': shouldTruncateToFirstLine ? 'anywhere' : 'break-word',
-			'word-break': shouldTruncateToFirstLine ? 'break-all' : 'normal',
-			...opts.otherStyles,
-		}
-		const restoreStyles = this.setElementStyles(elm, newStyles)
 
-		try {
-			const normalizedText = normalizeTextForDom(textToMeasure)
+		const normalizedText = normalizeTextForDom(textToMeasure)
+		const paragraphs = normalizedText.split('\n')
 
-			// Render the text into the measurement element:
-			elm.textContent = normalizedText
+		const allSpans: { text: string; box: BoxModel }[] = []
+		let yOffset = 0
 
-			// actually measure the text:
-			const { spans, didTruncate } = this.measureElementTextNodeSpans(elm, {
-				shouldTruncateToFirstLine,
-			})
-
-			if (opts.overflow === 'truncate-ellipsis' && didTruncate) {
-				// we need to measure the ellipsis to know how much space it takes up
-				elm.textContent = '…'
-				const ellipsisWidth = Math.ceil(this.measureElementTextNodeSpans(elm).spans[0].box.w)
-
-				// then, we need to subtract that space from the width we have and measure again:
-				elm.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
-				elm.textContent = normalizedText
-				const truncatedSpans = this.measureElementTextNodeSpans(elm, {
-					shouldTruncateToFirstLine: true,
-				}).spans
-
-				// Finally, we add in our ellipsis at the end of the last span. We
-				// have to do this after measuring, not before, because adding the
-				// ellipsis changes how whitespace might be getting collapsed by the
-				// browser.
-				const lastSpan = truncatedSpans[truncatedSpans.length - 1]!
-				truncatedSpans.push({
-					text: '…',
-					box: {
-						x: Math.min(lastSpan.box.x + lastSpan.box.w, opts.width - opts.padding - ellipsisWidth),
-						y: lastSpan.box.y,
-						w: ellipsisWidth,
-						h: lastSpan.box.h,
-					},
-				})
-
-				return truncatedSpans
+		for (const para of paragraphs) {
+			if (para === '' || para === ' ') {
+				yOffset += lineHeightPx
+				if (shouldTruncateToFirstLine && allSpans.length > 0) break
+				continue
 			}
 
-			return spans
-		} finally {
-			restoreStyles()
+			const prepared = prepareWithSegments(para, font)
+			const maxWidth = shouldTruncateToFirstLine ? 1e9 : elementWidth
+			const { lines } = layoutWithLines(prepared, maxWidth, lineHeightPx)
+
+			for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+				if (shouldTruncateToFirstLine && (lineIdx > 0 || allSpans.length > 0)) break
+
+				const line = lines[lineIdx]
+				const lineY = yOffset + lineIdx * lineHeightPx
+
+				// Compute alignment offset
+				let alignOffsetX = 0
+				const align = textAlignmentsForLtr[opts.textAlign] ?? 'left'
+				if (align === 'center') {
+					alignOffsetX = (elementWidth - line.width) / 2
+				} else if (align === 'right') {
+					alignOffsetX = elementWidth - line.width
+				}
+
+				// Build spans from segments within this line
+				const lineSpans = buildSpansFromLine(prepared, line, lineY, lineHeightPx, alignOffsetX)
+				for (const span of lineSpans) {
+					allSpans.push(span)
+				}
+			}
+
+			yOffset += lines.length * lineHeightPx
+
+			if (shouldTruncateToFirstLine && allSpans.length > 0) break
 		}
+
+		// Handle truncate-ellipsis
+		if (opts.overflow === 'truncate-ellipsis' && allSpans.length > 0) {
+			const ellipsisPrepared = prepare('…', font)
+			const ellipsisResult = layout(ellipsisPrepared, 1e9, lineHeightPx)
+			// Get the ellipsis width using walkLineRanges
+			const ellipsisPreparedWithSegments = prepareWithSegments('…', font)
+			let ellipsisWidth = 0
+			walkLineRanges(ellipsisPreparedWithSegments, 1e9, (l) => {
+				ellipsisWidth = l.width
+			})
+
+			// Check if the text was actually truncated (more content than fits on one line)
+			const fullText = normalizedText.replace(/\n/g, ' ')
+			const fullPrepared = prepare(fullText, font)
+			const fullResult = layout(fullPrepared, 1e9, lineHeightPx)
+			const wasTruncated = fullResult.lineCount > 1 || paragraphs.length > 1
+
+			if (wasTruncated) {
+				// Re-measure with reduced width for ellipsis
+				const reducedWidth = elementWidth - Math.ceil(ellipsisWidth)
+				const rePrepared = prepareWithSegments(paragraphs[0] === '' ? ' ' : paragraphs[0], font)
+				const reLayout = layoutWithLines(rePrepared, reducedWidth, lineHeightPx)
+
+				if (reLayout.lines.length > 0) {
+					const firstLine = reLayout.lines[0]
+
+					// Rebuild spans from the truncated first line
+					allSpans.length = 0
+					const truncatedSpans = buildSpansFromLine(
+						rePrepared,
+						firstLine,
+						0,
+						lineHeightPx,
+						0 // no alignment for truncated text
+					)
+					for (const span of truncatedSpans) {
+						allSpans.push(span)
+					}
+
+					// Add ellipsis span
+					const lastSpan = allSpans[allSpans.length - 1]
+					const ellipsisX = lastSpan
+						? Math.min(lastSpan.box.x + lastSpan.box.w, opts.width - opts.padding - ellipsisWidth)
+						: 0
+					allSpans.push({
+						text: '…',
+						box: {
+							x: ellipsisX,
+							y: lastSpan?.box.y ?? 0,
+							w: ellipsisWidth,
+							h: lineHeightPx,
+						},
+					})
+				}
+			}
+		}
+
+		return allSpans
 	}
+}
+
+/**
+ * Build per-word/space spans from a pretext layout line using the segment data.
+ */
+function buildSpansFromLine(
+	prepared: PreparedTextWithSegments,
+	line: {
+		text: string
+		width: number
+		start: { segmentIndex: number; graphemeIndex: number }
+		end: { segmentIndex: number; graphemeIndex: number }
+	},
+	lineY: number,
+	lineHeightPx: number,
+	alignOffsetX: number
+): { text: string; box: BoxModel }[] {
+	const spans: { text: string; box: BoxModel }[] = []
+
+	// Use the line text and compute approximate word/space spans
+	// by walking through the text and grouping by space/non-space boundaries
+	const lineText = line.text
+	if (lineText.length === 0) return spans
+
+	// We need segment widths to position spans accurately. Walk through the
+	// segments that belong to this line and accumulate positions.
+	const internalPrepared = prepared as unknown as {
+		widths: number[]
+		kinds: string[]
+		segments: string[]
+		breakableWidths: (number[] | null)[]
+	}
+
+	let xPos = alignOffsetX
+	let currentText = ''
+	let currentX = alignOffsetX
+	let currentIsSpace: boolean | null = null
+
+	// Walk segments within the line range
+	const startSeg = line.start.segmentIndex
+	const endSeg = line.end.segmentIndex
+	const startGrapheme = line.start.graphemeIndex
+
+	for (let si = startSeg; si <= endSeg && si < internalPrepared.segments.length; si++) {
+		const segText = internalPrepared.segments[si]
+		const segWidth = internalPrepared.widths[si]
+		const segKind = internalPrepared.kinds[si]
+
+		if (segKind === 'soft-hyphen') continue
+
+		// Handle partial segments at start/end of line
+		let text = segText
+		let width = segWidth
+
+		if (si === startSeg && startGrapheme > 0) {
+			// Partial segment at start - approximate width proportionally
+			const fullLen = segText.length
+			text = segText.slice(startGrapheme)
+			width = segWidth * (text.length / fullLen)
+		}
+
+		if (si === endSeg && line.end.graphemeIndex > 0) {
+			// Partial segment at end
+			const fullLen = segText.length
+			if (si === startSeg && startGrapheme > 0) {
+				text = segText.slice(startGrapheme, line.end.graphemeIndex)
+			} else {
+				text = segText.slice(0, line.end.graphemeIndex)
+			}
+			width = segWidth * (text.length / fullLen)
+		} else if (si === endSeg && line.end.graphemeIndex === 0) {
+			// End segment with graphemeIndex 0 means we don't include this segment
+			break
+		}
+
+		const isSpace = segKind === 'space'
+
+		if (currentIsSpace !== null && isSpace !== currentIsSpace) {
+			// Boundary between space and non-space - emit current span
+			if (currentText.length > 0) {
+				spans.push({
+					text: currentText,
+					box: { x: currentX, y: lineY, w: xPos - currentX, h: lineHeightPx },
+				})
+			}
+			currentText = text
+			currentX = xPos
+			currentIsSpace = isSpace
+		} else {
+			if (currentIsSpace === null) {
+				currentIsSpace = isSpace
+				currentX = xPos
+			}
+			currentText += text
+		}
+
+		xPos += width
+	}
+
+	// Emit final span
+	if (currentText.length > 0) {
+		spans.push({
+			text: currentText,
+			box: { x: currentX, y: lineY, w: xPos - currentX, h: lineHeightPx },
+		})
+	}
+
+	return spans
 }
