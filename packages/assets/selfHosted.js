@@ -83,6 +83,7 @@ export function getAssetUrls(opts) {
 			'dash-dashed': iconsIcon0MergedSvg + '#dash-dashed',
 			'dash-dotted': iconsIcon0MergedSvg + '#dash-dotted',
 			'dash-draw': iconsIcon0MergedSvg + '#dash-draw',
+			'dash-none': iconsIcon0MergedSvg + '#dash-none',
 			'dash-solid': iconsIcon0MergedSvg + '#dash-solid',
 			disconnected: iconsIcon0MergedSvg + '#disconnected',
 			discord: iconsIcon0MergedSvg + '#discord',

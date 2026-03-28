@@ -37,6 +37,7 @@ export const STYLES = {
 		{ value: 'dashed', icon: 'dash-dashed' },
 		{ value: 'dotted', icon: 'dash-dotted' },
 		{ value: 'solid', icon: 'dash-solid' },
+		{ value: 'none', icon: 'dash-none' },
 	],
 	size: [
 		{ value: 's', icon: 'size-small' },

@@ -69,6 +69,7 @@ export type AssetUrls = {
 		'dash-dashed': string
 		'dash-dotted': string
 		'dash-draw': string
+		'dash-none': string
 		'dash-solid': string
 		disconnected: string
 		discord: string

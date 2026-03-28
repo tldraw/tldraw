@@ -165,6 +165,7 @@ export function getAssetUrlsByImport(opts) {
 			'dash-dashed': iconsIcon0MergedSvg2 + '#dash-dashed',
 			'dash-dotted': iconsIcon0MergedSvg2 + '#dash-dotted',
 			'dash-draw': iconsIcon0MergedSvg2 + '#dash-draw',
+			'dash-none': iconsIcon0MergedSvg2 + '#dash-none',
 			'dash-solid': iconsIcon0MergedSvg2 + '#dash-solid',
 			disconnected: iconsIcon0MergedSvg2 + '#disconnected',
 			discord: iconsIcon0MergedSvg2 + '#discord',

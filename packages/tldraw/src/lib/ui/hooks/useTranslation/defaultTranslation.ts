@@ -166,6 +166,7 @@ export const DEFAULT_TRANSLATION = {
 	'dash-style.dotted': 'Dotted',
 	'dash-style.draw': 'Draw',
 	'dash-style.solid': 'Solid',
+	'dash-style.none': 'None',
 	'size-style.s': 'Small',
 	'size-style.m': 'Medium',
 	'size-style.l': 'Large',

@@ -210,6 +210,10 @@ function getXBoxPath(
 		.lineTo(0, h)
 		.close()
 
+	if (dash === 'none') {
+		return path
+	}
+
 	if (dash === 'dashed' || dash === 'dotted') {
 		return path
 			.moveTo(0, 0, {

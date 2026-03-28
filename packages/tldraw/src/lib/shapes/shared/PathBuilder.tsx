@@ -60,7 +60,16 @@ export interface DrawPathBuilderOpts extends BasePathBuilderOpts, DrawPathBuilde
 }
 
 /** @public */
-export type PathBuilderOpts = SolidPathBuilderOpts | DashedPathBuilderOpts | DrawPathBuilderOpts
+export interface NonePathBuilderOpts extends BasePathBuilderOpts {
+	style: 'none'
+}
+
+/** @public */
+export type PathBuilderOpts =
+	| SolidPathBuilderOpts
+	| DashedPathBuilderOpts
+	| DrawPathBuilderOpts
+	| NonePathBuilderOpts
 
 /** @public */
 export interface PathBuilderCommandOpts {
@@ -507,6 +516,9 @@ export class PathBuilder {
 	}
 
 	toSvg(opts: PathBuilderOpts) {
+		if (opts.style === 'none') {
+			return null
+		}
 		if (opts.forceSolid) {
 			return this.toSolidSvg(opts)
 		}
@@ -526,6 +538,9 @@ export class PathBuilder {
 	}
 
 	toPath2D(opts: PathBuilderOpts): Path2D {
+		if (opts.style === 'none') {
+			return new Path2D()
+		}
 		if (opts.forceSolid || opts.style === 'solid') {
 			return new Path2D(this.toD({ onlyFilled: opts.onlyFilled }))
 		}
