@@ -5,7 +5,6 @@ import {
 	clearCache,
 	layout,
 	layoutWithLines,
-	prepare,
 	prepareWithSegments,
 	walkLineRanges,
 	type PreparedTextWithSegments,
@@ -139,9 +138,35 @@ function stripHtmlToText(html: string): string {
 	return text
 }
 
+// --- PreparedText cache ---
+// Caches PreparedTextWithSegments by (text, font) so that subsequent
+// measurements of the same text at different widths only pay the cheap
+// layout() cost (~0.0002ms) instead of re-preparing (~0.03ms).
+
+const preparedCache = new Map<string, PreparedTextWithSegments>()
+const PREPARED_CACHE_MAX = 2048
+
+function getCachedPrepared(text: string, font: string): PreparedTextWithSegments {
+	const key = text + '\0' + font
+	let prepared = preparedCache.get(key)
+	if (prepared) return prepared
+
+	// Evict entire cache when it gets too large (simple strategy, avoids LRU overhead)
+	if (preparedCache.size >= PREPARED_CACHE_MAX) {
+		preparedCache.clear()
+	}
+
+	prepared = prepareWithSegments(text, font)
+	preparedCache.set(key, prepared)
+	return prepared
+}
+
 /**
  * Measure text using pretext by splitting into paragraphs (to handle newlines,
  * since pretext only supports white-space: normal).
+ *
+ * Uses a single walkLineRanges pass per paragraph for both width and height,
+ * and reuses cached PreparedTextWithSegments handles across calls.
  */
 function measureWithPretext(
 	text: string,
@@ -163,14 +188,13 @@ function measureWithPretext(
 			continue
 		}
 
-		const prepared = prepareWithSegments(para, font)
-		const result = layout(prepared, maxWidth, lineHeightPx)
-		totalHeight += result.height
+		const prepared = getCachedPrepared(para, font)
 
-		// Track max line width
-		walkLineRanges(prepared, maxWidth, (line) => {
+		// Single pass: walkLineRanges gives us both line count and max width
+		const lineCount = walkLineRanges(prepared, maxWidth, (line) => {
 			if (line.width > maxLineWidth) maxLineWidth = line.width
 		})
+		totalHeight += lineCount * lineHeightPx
 	}
 
 	return { w: Math.ceil(maxLineWidth), h: Math.ceil(totalHeight) }
@@ -258,6 +282,7 @@ export class TextManager {
 			el.remove()
 		}
 		this.poolElms.length = 0
+		preparedCache.clear()
 		clearCache()
 	}
 
@@ -293,10 +318,13 @@ export class TextManager {
 
 		const { w, h } = measureWithPretext(text, font, maxWidth, lineHeightPx)
 
+		// For scrollWidth, reuse the same cached prepared handles — only the
+		// layout pass (walkLineRanges with Infinity width) is repeated, which
+		// is pure arithmetic over already-cached segment widths.
 		let scrollWidth = 0
 		if (opts.measureScrollWidth) {
-			const unwrapped = measureWithPretext(text, font, 1e9, lineHeightPx)
-			scrollWidth = unwrapped.w + padding * 2
+			const { w: unwrappedW } = measureWithPretext(text, font, 1e9, lineHeightPx)
+			scrollWidth = unwrappedW + padding * 2
 		}
 
 		const resultW = Math.max(w + padding * 2, opts.minWidth ?? 0)
@@ -446,7 +474,7 @@ export class TextManager {
 				continue
 			}
 
-			const prepared = prepareWithSegments(para, font)
+			const prepared = getCachedPrepared(para, font)
 			const maxWidth = shouldTruncateToFirstLine ? 1e9 : elementWidth
 			const { lines } = layoutWithLines(prepared, maxWidth, lineHeightPx)
 
@@ -479,25 +507,23 @@ export class TextManager {
 
 		// Handle truncate-ellipsis
 		if (opts.overflow === 'truncate-ellipsis' && allSpans.length > 0) {
-			const ellipsisPrepared = prepare('…', font)
-			const ellipsisResult = layout(ellipsisPrepared, 1e9, lineHeightPx)
-			// Get the ellipsis width using walkLineRanges
-			const ellipsisPreparedWithSegments = prepareWithSegments('…', font)
+			// Get ellipsis width from cached prepared handle
+			const ellipsisPrepared = getCachedPrepared('…', font)
 			let ellipsisWidth = 0
-			walkLineRanges(ellipsisPreparedWithSegments, 1e9, (l) => {
+			walkLineRanges(ellipsisPrepared, 1e9, (l) => {
 				ellipsisWidth = l.width
 			})
 
 			// Check if the text was actually truncated (more content than fits on one line)
 			const fullText = normalizedText.replace(/\n/g, ' ')
-			const fullPrepared = prepare(fullText, font)
+			const fullPrepared = getCachedPrepared(fullText, font)
 			const fullResult = layout(fullPrepared, 1e9, lineHeightPx)
 			const wasTruncated = fullResult.lineCount > 1 || paragraphs.length > 1
 
 			if (wasTruncated) {
 				// Re-measure with reduced width for ellipsis
 				const reducedWidth = elementWidth - Math.ceil(ellipsisWidth)
-				const rePrepared = prepareWithSegments(paragraphs[0] === '' ? ' ' : paragraphs[0], font)
+				const rePrepared = getCachedPrepared(paragraphs[0] === '' ? ' ' : paragraphs[0], font)
 				const reLayout = layoutWithLines(rePrepared, reducedWidth, lineHeightPx)
 
 				if (reLayout.lines.length > 0) {
