@@ -28,7 +28,7 @@ async function getMarkdownForOverview(db: DbType) {
 
 	const features = await db.all('SELECT * FROM articles WHERE sectionId = "sdk-features"')
 	const releases = await db.all(
-		'SELECT * FROM articles WHERE sectionId = "releases" ORDER BY id DESC'
+		`SELECT * FROM articles WHERE sectionId = "releases" AND id NOT LIKE '%/next' ORDER BY id DESC`
 	)
 	const examples = await db.all('SELECT * FROM articles WHERE sectionId = "examples"')
 
@@ -71,7 +71,7 @@ async function getMarkdownForDocs(db: DbType) {
 async function getMarkdownForReleases(db: DbType) {
 	let result = `# tldraw SDK releases\n`
 	const releases = await db.all(
-		'SELECT * FROM articles WHERE sectionId = "releases" ORDER BY id DESC'
+		`SELECT * FROM articles WHERE sectionId = "releases" AND id NOT LIKE '%/next' ORDER BY id DESC`
 	)
 
 	for (const release of releases) {
