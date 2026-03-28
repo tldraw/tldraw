@@ -1,10 +1,10 @@
 /* eslint-disable prefer-rest-params */
 import { assert } from '@tldraw/utils'
 import { ArraySet } from './ArraySet'
-import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent, startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
 import { EMPTY_ARRAY, equals, haveParentsChanged, singleton } from './helpers'
+import { HistoryBuffer } from './HistoryBuffer'
 import { getGlobalEpoch, getIsReacting, getReactionEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 import { logComputedGetterWarning } from './warnings'

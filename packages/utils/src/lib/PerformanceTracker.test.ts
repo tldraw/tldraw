@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { PerformanceTracker } from './PerformanceTracker'
 import { PERFORMANCE_COLORS, PERFORMANCE_PREFIX_COLOR } from './perf'
+import { PerformanceTracker } from './PerformanceTracker'
 
 describe('PerformanceTracker', () => {
 	let tracker: PerformanceTracker

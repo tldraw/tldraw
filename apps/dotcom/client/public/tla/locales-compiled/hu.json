@@ -213,6 +213,12 @@
       "value": "Összes elfogadása"
     }
   ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Nem támogatott Mermaid-diagram"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -285,10 +291,22 @@
       "value": "Csoport törlése…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "További lehetőségek"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Biztosan törölni szeretné ezt a csoportot? Ez a művelet nem vonható vissza."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Nem támogatott diagram, SVG-t generál helyette"
     }
   ],
   "50db1b7e1e": [
@@ -401,6 +419,12 @@
       "value": "Vonja vissza ezt a linket, és hozzon létre egy újat."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Sikertelen csatlakozás"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +465,12 @@
     {
       "type": 0,
       "value": "te"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Frissítés"
     }
   ],
   "6609dd239e": [
@@ -789,6 +819,12 @@
       "value": "Fájl törlése"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Problémát tapasztalunk a hitelesítési szolgáltatásunkhoz való csatlakozás során. Ez általában átmeneti probléma. Kérjük, próbálja meg frissíteni az oldalt."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1059,6 +1095,12 @@
     {
       "type": 0,
       "value": "Jelentkezzen ki"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Elvetés"
     }
   ],
   "c9cc8cce24": [

@@ -54,10 +54,10 @@
 		"build-package": "lazy run build --filter 'packages/*'",
 		"preview-app": "yarn build-app && VITE_PREVIEW=1 yarn dev-app",
 		"preview-examples": "lazy run build --filter='apps/examples' && cd apps/examples && yarn preview",
-		"lint": "oxlint .",
-		"format": "oxfmt \"**/*.{js,jsx,ts,tsx,cjs,mjs}\"",
-		"format-current": "bash -c 'files=$(git diff --name-only --diff-filter d | grep -E \"\\.(js|jsx|ts|tsx|cjs|mjs)$\"); if [ -n \"$files\" ]; then echo \"$files\" | xargs oxfmt --no-error-on-unmatched-pattern; else echo No files to format; fi'",
-		"lint-current": "bash -c 'files=$(git diff --name-only --diff-filter d | grep -E \"\\.(js|jsx|ts|tsx)$\"); if [ -n \"$files\" ]; then echo \"$files\" | xargs oxlint; else echo No JS/TS files to lint; fi'",
+		"lint": "tsx internal/scripts/lint.ts",
+		"format": "tsx internal/scripts/lint.ts --fix",
+		"format-current": "tsx internal/scripts/lint.ts --fix --current",
+		"lint-current": "tsx internal/scripts/lint.ts --current",
 		"typecheck": "yarn refresh-assets && tsx internal/scripts/typecheck.ts",
 		"profile-typescript": "tsx internal/scripts/profile-typescript.ts",
 		"profile-tsserver": "tsx internal/scripts/profile-tsserver.ts",
@@ -83,7 +83,7 @@
 	},
 	"packageManager": "yarn@4.12.0",
 	"lint-staged": {
-		"*.{js,jsx,ts,tsx,cjs,mjs}": [
+		"*.{js,jsx,ts,tsx,cjs,mjs,css,md,mdx,html,yml,yaml}": [
 			"oxfmt --no-error-on-unmatched-pattern"
 		]
 	},

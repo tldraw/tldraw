@@ -1,7 +1,7 @@
-/* eslint-disable tldraw/no-internal-imports, react/no-string-refs */
-import { Page, expect } from '@playwright/test'
 import assert from 'assert'
 import { rename, writeFile } from 'fs/promises'
+/* eslint-disable tldraw/no-internal-imports, react/no-string-refs */
+import { Page, expect } from '@playwright/test'
 import { ReactElement } from 'react'
 import {
 	DefaultColorStyle,

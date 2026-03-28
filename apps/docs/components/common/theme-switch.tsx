@@ -1,9 +1,9 @@
 'use client'
 
-import { cn } from '@/utils/cn'
 import { MoonIcon, SunIcon } from '@heroicons/react/20/solid'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import { cn } from '@/utils/cn'
 
 const themes = [
 	{ id: 'light', name: 'Light Mode', icon: SunIcon },

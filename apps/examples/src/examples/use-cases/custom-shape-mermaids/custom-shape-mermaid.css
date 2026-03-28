@@ -1,0 +1,47 @@
+.custom-shape-mermaid {
+	position: fixed;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 1000;
+	padding: 10px 12px;
+	background: #f1f3f4;
+	border-radius: 0 0 8px 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	max-width: 440px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	font-size: 12px;
+	color: #444;
+	line-height: 1.4;
+}
+
+.custom-shape-mermaid__textarea {
+	width: 100%;
+	font-family: ui-monospace, monospace;
+	padding: 8px;
+	border-radius: 4px;
+	border: 1px solid #ccc;
+	resize: vertical;
+	box-sizing: border-box;
+	pointer-events: auto;
+}
+
+.custom-shape-mermaid__error {
+	color: #842029;
+	background: #f8d7da;
+	padding: 8px;
+	border-radius: 4px;
+}
+
+.custom-shape-mermaid__controls {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.custom-shape-mermaid__notice {
+	font-size: 12px;
+	color: #666;
+}

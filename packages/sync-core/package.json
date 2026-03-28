@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync-core",
 	"description": "tldraw infinite canvas SDK (multiplayer sync).",
-	"version": "4.5.3",
+	"version": "4.5.4",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -35,7 +35,7 @@
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
-		"lint": "cd ../.. && yarn run -T oxlint packages/sync-core",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",

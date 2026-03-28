@@ -1,25 +1,24 @@
-import {
-	createShapeId,
-	Editor,
-	IndexKey,
-	TLGeoShape,
-	TLLineShape,
-	TLShapeId,
-	toRichText,
-	Vec,
-} from 'tldraw'
+import { createShapeId, Editor, IndexKey, TLLineShape, TLShapeId, toRichText, Vec } from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
-	MermaidBlueprintGeoNode,
 	MermaidBlueprintLineNode,
+	MermaidBlueprintNode,
+	MermaidNodeRenderMapper,
 } from './blueprint'
+import { resolveMermaidNodeRender } from './defaultMermaidNodeRenderSpec'
+import { defaultCreateMermaidNodeFromBlueprint } from './mermaidNodeCreateShape'
 import { orderTopDown, sanitizeDiagramText } from './utils'
 
 /** @public */
 export interface BlueprintRenderingOptions {
 	centerOnPosition?: boolean
 	position?: { x: number; y: number }
+	/**
+	 * Return a custom {@link MermaidBlueprintNodeRenderSpec} per node, or `undefined` for package defaults.
+	 * Called from {@link renderBlueprint} for each node (after layout offsets are known).
+	 */
+	mapNodeToRenderSpec?: MermaidNodeRenderMapper
 }
 
 const defaultBlueprintRenderingOptions = {
@@ -33,7 +32,8 @@ export function renderBlueprint(
 	opts?: BlueprintRenderingOptions
 ) {
 	const options = { ...defaultBlueprintRenderingOptions, ...(opts || {}) }
-	const { nodes, edges, lines } = blueprint
+	const { nodes, edges, lines, diagramKind } = blueprint
+	const mapper = options.mapNodeToRenderSpec
 
 	const bounds = computeBlueprintBounds(nodes, lines)
 	const center = options.position
@@ -93,24 +93,16 @@ export function renderBlueprint(
 		const x = parent ? absoluteX - (offsetX + parent.x) : absoluteX
 		const y = parent ? absoluteY - (offsetY + parent.y) : absoluteY
 
-		editor.createShape<TLGeoShape>({
-			id: shapeId,
-			type: 'geo',
+		const render = resolveMermaidNodeRender(diagramKind, node, mapper)
+		defaultCreateMermaidNodeFromBlueprint({
+			editor,
+			node,
+			shapeId,
 			x,
 			y,
-			parentId: parentShapeId,
-			props: {
-				geo: node.geo,
-				w: node.w,
-				h: node.h,
-				fill: node.fill ?? 'none',
-				color: node.color ?? 'black',
-				dash: node.dash ?? 'draw',
-				size: node.size ?? 'm',
-				...(node.label && { richText: toRichText(sanitizeDiagramText(node.label)) }),
-				...(node.align && { align: node.align }),
-				...(node.verticalAlign && { verticalAlign: node.verticalAlign }),
-			},
+			parentShapeId,
+			diagramKind,
+			render,
 		})
 	}
 
@@ -347,7 +339,7 @@ function createArrowFromEdge(
 }
 
 function computeBlueprintBounds(
-	nodes: MermaidBlueprintGeoNode[],
+	nodes: MermaidBlueprintNode[],
 	lines?: MermaidBlueprintLineNode[]
 ): { minX: number; minY: number; maxX: number; maxY: number } {
 	let minX = Infinity,

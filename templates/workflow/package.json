@@ -24,7 +24,7 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc && vite build",
-		"lint": "cd ../.. && yarn run -T oxlint templates/workflow",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"preview": "vite preview"
 	},
 	"dependencies": {
@@ -39,6 +39,6 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.1",
 		"typescript": "^5.8.3",
-		"vite": "^8.0.0"
+		"vite": "^8.0.1"
 	}
 }

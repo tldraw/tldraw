@@ -11,8 +11,8 @@ import {
 	useValue,
 } from 'tldraw'
 import { executionState, startExecution, stopExecution } from '../execution/executionState'
-import { NodeShape } from '../nodes/NodeShapeUtil'
 import { getNodePortConnections } from '../nodes/nodePorts'
+import { NodeShape } from '../nodes/NodeShapeUtil'
 import { PlayIcon } from './icons/PlayIcon'
 import { StopIcon } from './icons/StopIcon'
 

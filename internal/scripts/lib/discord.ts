@@ -13,7 +13,7 @@ function sanitizeVariables(errorOutput: string): string {
 
 	// Sanitize connection strings (postgres://, redis://, etc.)
 	sanitized = sanitized.replace(
-		/\b(postgres|postgresql|mysql|redis|mongodb|amqp|https?):\/\/[^\s"']+/gi,
+		/\b(postgres|postgresql|mysql|redis|mongodb|amqp):\/\/[^\s"']+/gi,
 		'$1://`***`'
 	)
 

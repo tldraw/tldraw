@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "تبدیل به نشانه‌گذاری",
 	"action.convert-to-embed": "تبدیل به جاسازی",
 	"action.copy": "رونوشت",
+	"action.copy-as-json": "رونوشت به‌عنوان JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "رونوشت به‌عنوان PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "رونوشت به‌عنوان SVG",

@@ -81,15 +81,20 @@ export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLCon
 export { MenuClickCapture } from './lib/components/MenuClickCapture'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export {
+	createTLCurrentUser,
+	useTldrawCurrentUser,
+	type TLCurrentUser,
+} from './lib/config/createTLCurrentUser'
+export {
 	createTLSchemaFromUtils,
 	createTLStore,
+	defaultUserStore,
 	inlineBase64AssetStore,
 	type TLStoreBaseOptions,
 	type TLStoreEventInfo,
 	type TLStoreOptions,
 	type TLStoreSchemaOptions,
 } from './lib/config/createTLStore'
-export { createTLUser, useTldrawUser, type TLUser } from './lib/config/createTLUser'
 export { type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
 export {
@@ -164,6 +169,8 @@ export {
 export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
 export {
 	TextManager,
+	type BatchMeasurementRequest,
+	type TLMeasuredTextSize,
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
@@ -337,7 +344,12 @@ export {
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
 export { LICENSE_TIMEOUT } from './lib/license/LicenseProvider'
-export { defaultTldrawOptions, type TldrawOptions } from './lib/options'
+export {
+	defaultTldrawOptions,
+	type TLClipboardPasteRawInfo,
+	type TLClipboardWriteInfo,
+	type TldrawOptions,
+} from './lib/options'
 export {
 	Box,
 	ROTATE_CORNER_TO_SELECTION_CORNER,

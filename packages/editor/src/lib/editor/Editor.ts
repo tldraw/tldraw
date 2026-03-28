@@ -10,10 +10,10 @@ import {
 import {
 	ComputedCache,
 	RecordType,
-	StoreSideEffects,
-	StoreSnapshot,
 	UnknownRecord,
 	reverseRecordsDiff,
+	StoreSnapshot,
+	StoreSideEffects,
 } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -50,9 +50,13 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
+	TLUser,
+	TLUserId,
 	TLVideoAsset,
+	UserRecordType,
 	createBindingId,
 	createShapeId,
+	createUserId,
 	getShapePropKeysByStyle,
 	isPageId,
 	isShapeId,
@@ -89,15 +93,15 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
+import { TLCurrentUser, createTLCurrentUser } from '../config/createTLCurrentUser'
+import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
+import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	TLEditorSnapshot,
 	TLLoadSnapshotOptions,
 	getSnapshot,
 	loadSnapshot,
 } from '../config/TLEditorSnapshot'
-import { TLUser, createTLUser } from '../config/createTLUser'
-import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
-import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
@@ -114,14 +118,13 @@ import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
-import { Mat, MatLike } from '../primitives/Mat'
-import { Vec, VecLike } from '../primitives/Vec'
 import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
+import { Mat, MatLike } from '../primitives/Mat'
 import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
-import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
+import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
 import { debugFlags } from '../utils/debug-flags'
@@ -136,6 +139,7 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { getDroppedShapesToNewParents, kickoutOccludedShapes } from '../utils/reparenting'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
+import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
@@ -220,7 +224,7 @@ export interface TLEditorOptions {
 	/**
 	 * A user defined externally to replace the default user.
 	 */
-	user?: TLUser
+	user?: TLCurrentUser
 	/**
 	 * The editor's initial active tool (or other state node id).
 	 */
@@ -358,7 +362,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._textOptions = atom('text options', options?.text ?? null)
 
-		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
+		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())
 
 		this.getContainer = getContainer
@@ -832,6 +836,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 				})
 			)
 		}
+
+		this.disposables.add(
+			react('sync current user record', () => {
+				const user = this.store.props.users.currentUser.get()
+				if (user) {
+					this._ensureUserRecord(user)
+				}
+			})
+		)
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
@@ -3982,6 +3995,94 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getCollaboratorsOnCurrentPage() {
 		const currentPageId = this.getCurrentPageId()
 		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
+	}
+
+	// Attribution
+
+	/**
+	 * Get the current user's ID for attribution purposes.
+	 * Also ensures a `user:` record exists in the store for the current user.
+	 * Returns `null` when the user store has no current user.
+	 *
+	 * @public
+	 */
+	getAttributionUserId(): string | null {
+		const user = this.store.props.users.currentUser.get()
+		if (!user) return null
+		this._ensureUserRecord(user)
+		return UserRecordType.parseId(user.id)
+	}
+
+	/**
+	 * Ensure a user record exists in the store for the given user,
+	 * updating it if the data has changed.
+	 *
+	 * @internal
+	 */
+	_ensureUserRecord(user: TLUser): void {
+		const existing = this.store.get(user.id)
+		if (
+			existing &&
+			existing.name === user.name &&
+			existing.color === user.color &&
+			existing.imageUrl === user.imageUrl &&
+			existing.meta === user.meta
+		) {
+			return
+		}
+		this.run(
+			() => {
+				this.store.put([user])
+			},
+			{ history: 'ignore' }
+		)
+	}
+
+	/**
+	 * Resolve a display name for a user ID. Asks the
+	 * {@link @tldraw/tlschema#TLUserStore} first (the app's source of truth),
+	 * falling back to the `user:` record in the store.
+	 *
+	 * @public
+	 */
+	getAttributionDisplayName(userId: string | null): string | null {
+		if (!userId) return null
+		return (
+			this.store.props.users.resolve(userId).get()?.name ??
+			this.store.get(createUserId(userId))?.name ??
+			null
+		)
+	}
+
+	/**
+	 * Resolve a user record by ID. Asks the
+	 * {@link @tldraw/tlschema#TLUserStore} first (the app's source of truth),
+	 * falling back to the `user:` record in the store.
+	 *
+	 * @public
+	 */
+	getAttributionUser(userId: string | null): TLUser | null {
+		if (!userId) return null
+		return (
+			this.store.props.users.resolve(userId).get() ?? this.store.get(createUserId(userId)) ?? null
+		)
+	}
+
+	/**
+	 * Collect user IDs referenced by a set of shapes via shape-specific props
+	 * (e.g. `textFirstEditedBy` on notes).
+	 *
+	 * @internal
+	 */
+	_getReferencedUserIds(shapes: TLShape[]): Set<string> {
+		const userIds = new Set<string>()
+		for (const shape of shapes) {
+			const util = this.getShapeUtil(shape)
+			for (const id of util.getReferencedUserIds(shape)) {
+				userIds.add(id)
+			}
+		}
+		return userIds
 	}
 
 	// Following
@@ -9095,6 +9196,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
+
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
@@ -9180,12 +9282,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 				assets.push(asset)
 			}
 
+			const users: TLUser[] = []
+			const seenUserIds = new Set<TLUserId>()
+			for (const userId of this._getReferencedUserIds(shapes)) {
+				const recordId = createUserId(userId)
+				if (seenUserIds.has(recordId)) continue
+				seenUserIds.add(recordId)
+				const user = this.store.get(recordId)
+				if (user) users.push(user)
+			}
+
 			return {
 				schema: this.store.schema.serialize(),
 				shapes,
 				rootShapeIds,
 				bindings,
 				assets,
+				users,
 			}
 		})
 	}
@@ -9261,6 +9374,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const assets: TLAsset[] = []
 		const shapes: TLShape[] = []
 		const bindings: TLBinding[] = []
+		const users: TLUser[] = []
 
 		// Let's treat the content as a store, and then migrate that store.
 		const store: StoreSnapshot<TLRecord> = {
@@ -9270,6 +9384,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				...Object.fromEntries(
 					content.bindings?.map((bindings) => [bindings.id, bindings] as const) ?? []
 				),
+				...Object.fromEntries(content.users?.map((user) => [user.id, user] as const) ?? []),
 			},
 			schema: content.schema,
 		}
@@ -9291,6 +9406,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 					bindings.push(record)
 					break
 				}
+				case 'user': {
+					users.push(record)
+					break
+				}
+			}
+		}
+
+		if (users.length > 0) {
+			const existingUserIds = new Set(
+				this.store
+					.allRecords()
+					.filter((r): r is TLUser => r.typeName === 'user')
+					.map((r) => r.id)
+			)
+			const usersToCreate = users.filter((u) => !existingUserIds.has(u.id))
+			if (usersToCreate.length > 0) {
+				this.store.put(usersToCreate)
 			}
 		}
 

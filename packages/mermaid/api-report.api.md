@@ -13,11 +13,14 @@ import type { TLDefaultHorizontalAlignStyle } from 'tldraw';
 import type { TLDefaultSizeStyle } from 'tldraw';
 import type { TLDefaultVerticalAlignStyle } from 'tldraw';
 import type { TLGeoShapeGeoStyle } from 'tldraw';
+import type { TLShape } from 'tldraw';
+import type { TLShapeId } from 'tldraw';
 
 // @public (undocumented)
 export interface BlueprintRenderingOptions {
     // (undocumented)
     centerOnPosition?: boolean;
+    mapNodeToRenderSpec?: MermaidNodeRenderMapper;
     // (undocumented)
     position?: {
         x: number;
@@ -29,7 +32,15 @@ export interface BlueprintRenderingOptions {
 export function createMermaidDiagram(editor: Editor, text: string, options?: MermaidDiagramOptions): Promise<void>;
 
 // @public
+export function defaultCreateMermaidNodeFromBlueprint(args: MermaidNodeCreateFunctionArgs): TLShape;
+
+// @public
+export function defaultMermaidNodeRenderSpec(diagramKind: MermaidDiagramKind, kind: string): MermaidBlueprintNodeRenderSpec;
+
+// @public
 export interface DiagramMermaidBlueprint {
+    // (undocumented)
+    diagramKind: MermaidDiagramKind;
     // (undocumented)
     edges: MermaidBlueprintEdge[];
     // (undocumented)
@@ -37,8 +48,19 @@ export interface DiagramMermaidBlueprint {
     // (undocumented)
     lines?: MermaidBlueprintLineNode[];
     // (undocumented)
-    nodes: MermaidBlueprintGeoNode[];
+    nodes: MermaidBlueprintNode[];
 }
+
+// @public
+export const MERMAID_MINDMAP_NODE_TYPE: {
+    readonly BANG: 5;
+    readonly CIRCLE: 3;
+    readonly CLOUD: 4;
+    readonly DEFAULT: 0;
+    readonly HEXAGON: 6;
+    readonly RECT: 2;
+    readonly ROUNDED_RECT: 1;
+};
 
 // @public (undocumented)
 export interface MermaidBlueprintEdge {
@@ -80,38 +102,6 @@ export interface MermaidBlueprintEdge {
 }
 
 // @public (undocumented)
-export interface MermaidBlueprintGeoNode {
-    // (undocumented)
-    align?: TLDefaultHorizontalAlignStyle;
-    // (undocumented)
-    color?: TLDefaultColorStyle;
-    // (undocumented)
-    dash?: TLDefaultDashStyle;
-    // (undocumented)
-    fill?: TLDefaultFillStyle;
-    // (undocumented)
-    geo: TLGeoShapeGeoStyle;
-    // (undocumented)
-    h: number;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    label?: string;
-    // (undocumented)
-    parentId?: string;
-    // (undocumented)
-    size?: TLDefaultSizeStyle;
-    // (undocumented)
-    verticalAlign?: TLDefaultVerticalAlignStyle;
-    // (undocumented)
-    w: number;
-    // (undocumented)
-    x: number;
-    // (undocumented)
-    y: number;
-}
-
-// @public (undocumented)
 export interface MermaidBlueprintLineNode {
     // (undocumented)
     color?: TLDefaultColorStyle;
@@ -131,6 +121,47 @@ export interface MermaidBlueprintLineNode {
     y: number;
 }
 
+// @public
+export interface MermaidBlueprintNode {
+    // (undocumented)
+    align?: TLDefaultHorizontalAlignStyle;
+    // (undocumented)
+    color?: TLDefaultColorStyle;
+    // (undocumented)
+    dash?: TLDefaultDashStyle;
+    // (undocumented)
+    fill?: TLDefaultFillStyle;
+    // (undocumented)
+    h: number;
+    // (undocumented)
+    id: string;
+    kind: string;
+    // (undocumented)
+    label?: string;
+    // (undocumented)
+    parentId?: string;
+    // (undocumented)
+    size?: TLDefaultSizeStyle;
+    // (undocumented)
+    verticalAlign?: TLDefaultVerticalAlignStyle;
+    // (undocumented)
+    w: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export type MermaidBlueprintNodeRenderSpec = {
+    type: string;
+    props: Record<string, unknown>;
+    variant: 'shape';
+} | {
+    variant: 'geo';
+    geo: TLGeoShapeGeoStyle;
+};
+
 // @public (undocumented)
 export class MermaidDiagramError extends Error {
     constructor(diagramType: string, type: 'parse' | 'unsupported');
@@ -139,6 +170,9 @@ export class MermaidDiagramError extends Error {
     // (undocumented)
     type: 'parse' | 'unsupported';
 }
+
+// @public
+export type MermaidDiagramKind = 'flowchart' | 'mindmap' | 'sequence' | 'state';
 
 // @public (undocumented)
 export interface MermaidDiagramOptions {
@@ -150,8 +184,38 @@ export interface MermaidDiagramOptions {
     onUnsupportedDiagram?(svg: string): Promise<void>;
 }
 
+// @public
+export interface MermaidNodeCreateFunctionArgs {
+    // (undocumented)
+    diagramKind: MermaidDiagramKind;
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    node: MermaidBlueprintNode;
+    // (undocumented)
+    parentShapeId?: TLShapeId;
+    render: MermaidBlueprintNodeRenderSpec;
+    // (undocumented)
+    shapeId: TLShapeId;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export type MermaidNodeRenderMapper = (input: {
+    nodeId: string;
+    node: MermaidBlueprintNode;
+    diagramKind: MermaidDiagramKind;
+    kind: string;
+}) => MermaidBlueprintNodeRenderSpec | undefined;
+
 // @public (undocumented)
 export function renderBlueprint(editor: Editor, blueprint: DiagramMermaidBlueprint, opts?: BlueprintRenderingOptions): void;
+
+// @public
+export function resolveMermaidNodeRender(diagramKind: MermaidDiagramKind, node: MermaidBlueprintNode, mapper?: MermaidNodeRenderMapper | undefined): MermaidBlueprintNodeRenderSpec;
 
 // (No @packageDocumentation comment for this package)
 

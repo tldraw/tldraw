@@ -1,0 +1,62 @@
+/* Custom flowchart node rendered by FlowchartShapeUtil (canvas HTML overlay). */
+
+.flowchart-util-shape {
+	position: relative;
+	/* `.tl-html-container` uses pointer-events: none; override so Retry and label interact. */
+	pointer-events: all;
+	border-radius: 6px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 6px;
+	overflow: hidden;
+}
+
+.flowchart-util-shape--pending {
+	background-color: #e8eaed;
+	border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.flowchart-util-shape--running {
+	background-color: #fff3cd;
+	border: 2px solid #856404;
+}
+
+.flowchart-util-shape--passed {
+	background-color: #d1e7dd;
+	border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.flowchart-util-shape--failed {
+	background-color: #f8d7da;
+	border: 2px solid #842029;
+}
+
+.flowchart-util-shape__step-badge {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	z-index: 2;
+	font-size: 10px;
+	font-weight: 600;
+	line-height: 1;
+	padding: 2px 6px;
+	border-radius: 4px;
+	background: rgba(0, 0, 0, 0.06);
+	color: #333;
+	pointer-events: none;
+}
+
+.flowchart-util-shape__label {
+	position: relative;
+	flex: 1;
+	align-self: stretch;
+	min-height: 0;
+	width: 100%;
+}
+
+.flowchart-util-shape__retry {
+	margin-bottom: 6px;
+	cursor: pointer;
+}

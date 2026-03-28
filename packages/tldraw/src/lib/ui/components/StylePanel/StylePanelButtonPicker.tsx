@@ -15,12 +15,12 @@ import { useBreakpoint } from '../../context/breakpoints'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiGrid, TldrawUiRow } from '../primitives/layout'
 import {
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
 } from '../primitives/TldrawUiToolbar'
-import { TldrawUiGrid, TldrawUiRow } from '../primitives/layout'
 import { useStylePanelContext } from './StylePanelContext'
 import { StylePanelSubheading } from './StylePanelSubheading'
 

@@ -30,7 +30,7 @@
 		"dev": "vite --host",
 		"preview": "vite preview --host",
 		"build": "vite build",
-		"lint": "cd ../.. && yarn run -T oxlint apps/examples",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"e2e": "NODE_OPTIONS='--no-strip-types' playwright test -c ./e2e/playwright.config.ts ./e2e/tests/",
 		"e2e-ui": "NODE_OPTIONS='--no-strip-types' playwright test --ui -c ./e2e/playwright.config.ts ./e2e/tests/",
 		"e2e-perf": "NODE_OPTIONS='--no-strip-types' playwright test -c ./e2e/playwright.config.ts ./e2e/perf/",
@@ -70,7 +70,7 @@
 		"tldraw": "workspace:*",
 		"topojson-client": "^3.1.0",
 		"us-atlas": "^3.0.1",
-		"vite": "^8.0.0"
+		"vite": "^8.0.1"
 	},
 	"devDependencies": {
 		"@types/d3-geo": "^3.1.0",
