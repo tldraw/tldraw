@@ -165,6 +165,7 @@ export type TLUiTranslationKey =
 	| 'dash-style.dotted'
 	| 'dash-style.draw'
 	| 'dash-style.solid'
+	| 'dash-style.none'
 	| 'size-style.s'
 	| 'size-style.m'
 	| 'size-style.l'

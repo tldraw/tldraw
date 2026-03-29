@@ -345,6 +345,18 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 		? getDot(allPointsFromSegments[0], 0)
 		: getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
 
+	if (shape.props.dash === 'none') {
+		return (
+			<ShapeFill
+				d={solidStrokePath}
+				theme={theme}
+				color={shape.props.color}
+				fill={isDot || shape.props.isClosed ? shape.props.fill : 'none'}
+				scale={shape.props.scale}
+			/>
+		)
+	}
+
 	return (
 		<>
 			<ShapeFill

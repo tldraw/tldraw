@@ -25,6 +25,10 @@ export function GeoShapeBody({
 			? path.toDrawD({ strokeWidth, randomSeed: shape.id, passes: 1, offset: 0, onlyFilled: true })
 			: path.toD({ onlyFilled: true })
 
+	if (dash === 'none') {
+		return <ShapeFill theme={theme} d={fillPath} color={color} fill={fill} scale={scaleToUse} />
+	}
+
 	return (
 		<>
 			<ShapeFill theme={theme} d={fillPath} color={color} fill={fill} scale={scaleToUse} />
