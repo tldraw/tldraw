@@ -19922,10 +19922,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hotkeys-js@npm:^3.13.9":
-  version: 3.13.9
-  resolution: "hotkeys-js@npm:3.13.9"
-  checksum: 10/452bf1763276bca14fad0d61c9374896f69606998dcef685c68729486cc19a59090d7902785e78e75bbf002025f6e3c7ef18dd1c10b9c5bec6b930b2e0b6e4d2
+"hotkeys-js@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "hotkeys-js@npm:4.0.2"
+  checksum: 10/76fdcff36899d3bf7abc5d9431fa5d404daccd81159eb8efd112480f403ca328ec471c636893150072228d60683b893450784454624af6fb77b1f0da7b4f377b
   languageName: node
   linkType: hard
 
@@ -29348,7 +29348,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.5.1"
-    hotkeys-js: "npm:^3.13.9"
+    hotkeys-js: "npm:^4.0.2"
     idb: "npm:^7.1.1"
     lazyrepo: "npm:0.0.0-alpha.27"
     lz-string: "npm:^1.5.0"

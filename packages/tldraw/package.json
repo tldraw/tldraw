@@ -63,7 +63,7 @@
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"classnames": "^2.5.1",
-		"hotkeys-js": "^3.13.9",
+		"hotkeys-js": "^4.0.2",
 		"idb": "^7.1.1",
 		"lz-string": "^1.5.0",
 		"radix-ui": "^1.4.2"
