@@ -584,6 +584,38 @@ describe('HistoryManager getters and utilities', () => {
 			store.update(ids.a, (s) => ({ ...s, value: 2 }))
 			expect(manager.getNumRedos()).toBe(0)
 		})
+
+		it('should only report replaying while undoing or redoing', () => {
+			const replayStates: boolean[] = []
+			const dispose = store.addHistoryInterceptor(() => {
+				replayStates.push(manager.isReplaying())
+			})
+
+			store.update(ids.a, (s) => ({ ...s, value: 1 }))
+			expect(replayStates).toEqual([false])
+
+			replayStates.length = 0
+			manager.undo()
+			expect(replayStates).toEqual([true])
+			expect(manager.isReplaying()).toBe(false)
+
+			replayStates.length = 0
+			manager.redo()
+			expect(replayStates).toEqual([true])
+			expect(manager.isReplaying()).toBe(false)
+
+			replayStates.length = 0
+			manager.batch(
+				() => {
+					store.update(ids.a, (s) => ({ ...s, value: 2 }))
+				},
+				{ history: 'ignore' }
+			)
+			expect(replayStates).toEqual([false])
+			expect(manager.isReplaying()).toBe(false)
+
+			dispose()
+		})
 	})
 
 	describe('getMarkIdMatching', () => {
