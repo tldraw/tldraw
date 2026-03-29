@@ -547,6 +547,18 @@ export function centerSelectionAroundPoint(editor: Editor, position: VecLike): v
 export function CheckBoxToolbarItem(): JSX.Element;
 
 // @public
+export function cleanupCanvas(editor: Editor, opts?: CleanupCanvasOptions): void;
+
+// @public (undocumented)
+export interface CleanupCanvasOptions {
+    arrowBendCandidates?: number[];
+    arrowClearance?: number;
+    maxIterations?: number;
+    padding?: number;
+    shapeIds?: TLShapeId[];
+}
+
+// @public
 export function clearArrowTargetState(editor: Editor): void;
 
 // @public (undocumented)
@@ -2663,6 +2675,34 @@ export function ReorderMenuItems(): JSX.Element;
 
 // @public (undocumented)
 export function ReorderMenuSubmenu(): JSX.Element | null;
+
+// @public
+export function rerouteArrows(editor: Editor, opts?: RerouteArrowsOptions): void;
+
+// @public (undocumented)
+export interface RerouteArrowsOptions {
+    bendCandidates?: number[];
+    clearance?: number;
+    shapeIds?: TLShapeId[];
+}
+
+// @public
+export function resolveShapeOverlaps(editor: Editor, opts?: ResolveShapeOverlapsOptions): void;
+
+// @public (undocumented)
+export interface ResolveShapeOverlapsOptions {
+    maxIterations?: number;
+    padding?: number;
+    shapeIds?: TLShapeId[];
+}
+
+// @public
+export function resolveTextWordWrap(editor: Editor, opts?: ResolveTextWordWrapOptions): void;
+
+// @public (undocumented)
+export interface ResolveTextWordWrapOptions {
+    shapeIds?: TLShapeId[];
+}
 
 // @public (undocumented)
 export function RhombusToolbarItem(): JSX.Element;
