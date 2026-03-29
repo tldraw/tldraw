@@ -16,7 +16,7 @@ Previous version (auto-detected from git history): !`node ${CLAUDE_SKILL_DIR}/de
 
 !`mkdir -p ${CLAUDE_SKILL_DIR}/references && curl -s https://tldraw.dev/llms-releases.txt | node ${CLAUDE_SKILL_DIR}/filter-changelog.mjs $(node ${CLAUDE_SKILL_DIR}/detect-versions.mjs) > ${CLAUDE_SKILL_DIR}/references/tldraw-releases.txt && echo "Saved filtered changelog to ${CLAUDE_SKILL_DIR}/references/tldraw-releases.txt ($(wc -l < ${CLAUDE_SKILL_DIR}/references/tldraw-releases.txt) lines)"`
 
-!`curl -s https://tldraw.dev/llms-full.txt > ${CLAUDE_SKILL_DIR}/references/tldraw-full-docs.txt && echo "Saved full docs to ${CLAUDE_SKILL_DIR}/references/tldraw-full-docs.txt ($(wc -l < ${CLAUDE_SKILL_DIR}/references/tldraw-full-docs.txt) lines)"`
+!`mkdir -p ${CLAUDE_SKILL_DIR}/references && curl -s https://tldraw.dev/llms-full.txt > ${CLAUDE_SKILL_DIR}/references/tldraw-full-docs.txt && echo "Saved full docs to ${CLAUDE_SKILL_DIR}/references/tldraw-full-docs.txt ($(wc -l < ${CLAUDE_SKILL_DIR}/references/tldraw-full-docs.txt) lines)"`
 
 - **[Filtered changelog](references/tldraw-releases.txt)** — release notes for versions between the previous version and now. Read this first to understand what changed.
 - **[Full docs](references/tldraw-full-docs.txt)** — complete tldraw SDK docs (~1.5MB). Do NOT read this upfront. Use Grep or Read with line ranges to search for specific topics as needed (e.g., custom shapes, TLTextOptions).
