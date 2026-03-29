@@ -1053,7 +1053,7 @@ export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShape
 export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
 
 // @public (undocumented)
-export function DefaultSharePanel(): JSX.Element;
+export function DefaultSharePanel(): JSX.Element | null;
 
 // @public (undocumented)
 export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
@@ -3845,6 +3845,14 @@ export interface TLUiComponents {
     // (undocumented)
     PageMenu?: ComponentType | null;
     // (undocumented)
+    PeopleMenu?: ComponentType | null;
+    // (undocumented)
+    PeopleMenuAvatar?: ComponentType<TLUiPeopleMenuAvatarProps> | null;
+    // (undocumented)
+    PeopleMenuItem?: ComponentType<TLUiPeopleMenuItemProps> | null;
+    // (undocumented)
+    PeopleMenuMore?: ComponentType<TLUiPeopleMenuMoreProps> | null;
+    // (undocumented)
     QuickActions?: ComponentType<TLUiQuickActionsProps> | null;
     // (undocumented)
     RichTextToolbar?: ComponentType<TLUiRichTextToolbarProps> | null;
@@ -3858,6 +3866,8 @@ export interface TLUiComponents {
     Toolbar?: ComponentType | null;
     // (undocumented)
     TopPanel?: ComponentType | null;
+    // (undocumented)
+    UserPresenceEditor?: ComponentType | null;
     // (undocumented)
     VideoToolbar?: ComponentType | null;
     // (undocumented)
@@ -4595,6 +4605,24 @@ export interface TLUiOverrides {
     tools?(editor: Editor, tools: TLUiToolsContextType, helpers: TLUiOverrideHelpers): TLUiToolsContextType;
     // (undocumented)
     translations?: TLUiTranslationProviderProps['overrides'];
+}
+
+// @public (undocumented)
+export interface TLUiPeopleMenuAvatarProps {
+    // (undocumented)
+    userId: string;
+}
+
+// @public (undocumented)
+export interface TLUiPeopleMenuItemProps {
+    // (undocumented)
+    userId: string;
+}
+
+// @public (undocumented)
+export interface TLUiPeopleMenuMoreProps {
+    // (undocumented)
+    count: number;
 }
 
 // @public (undocumented)

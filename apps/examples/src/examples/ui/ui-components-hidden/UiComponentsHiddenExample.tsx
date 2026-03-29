@@ -29,6 +29,11 @@ const components: Required<TLUiComponents> = {
 	Toasts: null,
 	A11y: null,
 	FollowingIndicator: null,
+	PeopleMenu: null,
+	PeopleMenuAvatar: null,
+	PeopleMenuItem: null,
+	PeopleMenuMore: null,
+	UserPresenceEditor: null,
 }
 
 export default function UiComponentsHiddenExample() {
