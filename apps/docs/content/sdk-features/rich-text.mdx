@@ -113,7 +113,7 @@ This configuration disables blockquotes, code blocks, and horizontal rules to ke
 
 ### Custom extensions
 
-You can add custom TipTap extensions through the `textOptions` prop on the Tldraw component. This lets you add new formatting options, custom keyboard shortcuts, or specialized behavior:
+You can add custom TipTap extensions through the `options` prop on the Tldraw component. This lets you add new formatting options, custom keyboard shortcuts, or specialized behavior:
 
 ```tsx
 import { Mark, mergeAttributes } from '@tiptap/core'
@@ -139,16 +139,18 @@ const CustomMark = Mark.create({
 	},
 })
 
-const textOptions = {
-	tipTapConfig: {
-		extensions: [StarterKit, CustomMark],
+const options = {
+	text: {
+		tipTapConfig: {
+			extensions: [StarterKit, CustomMark],
+		},
 	},
 }
 
 export default function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw textOptions={textOptions} />
+			<Tldraw options={options} />
 		</div>
 	)
 }
@@ -314,20 +316,22 @@ The function accepts an initial font state representing the base font. It walks 
 
 ### Custom font resolution
 
-You can override font resolution by providing a custom `addFontsFromNode` function through `textOptions`. This lets you use custom fonts or alternative font mapping strategies:
+You can override font resolution by providing a custom `addFontsFromNode` function through `options.text`. This lets you use custom fonts or alternative font mapping strategies:
 
 ```typescript
-const textOptions = {
-	tipTapConfig: {
-		extensions: [StarterKit],
-	},
-	addFontsFromNode: (node, state, addFont) => {
-		// Custom font resolution logic
-		if (node.marks.some((m) => m.type.name === 'bold')) {
-			state = { ...state, weight: 'bold' }
-		}
-		// Call addFont() with required font faces
-		return state
+const options = {
+	text: {
+		tipTapConfig: {
+			extensions: [StarterKit],
+		},
+		addFontsFromNode: (node, state, addFont) => {
+			// Custom font resolution logic
+			if (node.marks.some((m) => m.type.name === 'bold')) {
+				state = { ...state, weight: 'bold' }
+			}
+			// Call addFont() with required font faces
+			return state
+		},
 	},
 }
 ```
@@ -402,19 +406,21 @@ The rich text system offers several ways to customize behavior:
 | **Custom toolbar**           | Replace or extend the rich text toolbar with different formatting controls     |
 | **Font resolution**          | Override font resolution to use custom fonts or alternative loading strategies |
 
-The `textOptions` prop accepts a `tipTapConfig` object that passes through to TipTap's editor configuration, giving you access to all TipTap configuration options:
+The `options.text` field accepts a `tipTapConfig` object that passes through to TipTap's editor configuration, giving you access to all TipTap configuration options:
 
 ```typescript
-const textOptions = {
-	tipTapConfig: {
-		extensions: [...],
-		editorProps: {
-			attributes: {
-				class: 'custom-editor',
+const options = {
+	text: {
+		tipTapConfig: {
+			extensions: [...],
+			editorProps: {
+				attributes: {
+					class: 'custom-editor',
+				},
 			},
 		},
+		addFontsFromNode: customFontResolver,
 	},
-	addFontsFromNode: customFontResolver,
 }
 ```
 
