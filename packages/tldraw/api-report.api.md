@@ -1605,6 +1605,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     isExportBoundsContainer(): boolean;
     // (undocumented)
+    isFrameLike(): boolean;
+    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onDoubleClickCorner(shape: TLFrameShape): {
