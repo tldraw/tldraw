@@ -62,7 +62,7 @@ function disallowImmutableMutations<
 	S extends TlaFilePartial | TlaFileStatePartial | TlaUserPartial,
 >(data: S, immutableColumns: Set<keyof S>) {
 	for (const immutableColumn of immutableColumns) {
-		assert(!data[immutableColumn], ZErrorCode.forbidden)
+		assert(!(immutableColumn in data), ZErrorCode.forbidden)
 	}
 }
 
