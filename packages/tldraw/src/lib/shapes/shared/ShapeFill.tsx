@@ -5,6 +5,7 @@ import {
 	TLDefaultFillStyle,
 	useEditor,
 	useSvgExportContext,
+	useUniqueSafeId,
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
@@ -47,16 +48,26 @@ export const ShapeFill = React.memo(function ShapeFill({
 	}
 })
 
-export function PatternFill({ d, color, theme }: ShapeFillProps) {
+export function PatternFill({ d, color, theme, scale }: ShapeFillProps) {
 	const editor = useEditor()
 	const svgExport = useSvgExportContext()
 	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
 	const getHashPatternZoomName = useGetHashPatternZoomName()
+	const scaledPatternId = useUniqueSafeId()
 
-	const teenyTiny = zoomLevel <= 0.18
+	const effectiveZoom = zoomLevel * scale
+	const teenyTiny = effectiveZoom <= 0.18
+	const sharedPatternId = getHashPatternZoomName(effectiveZoom, theme.id)
 
 	return (
 		<>
+			{!svgExport && !teenyTiny && (
+				<pattern
+					id={scaledPatternId}
+					href={`#${sharedPatternId}`}
+					patternTransform={`scale(${scale})`}
+				/>
+			)}
 			<path fill={getColorValue(theme, color, 'pattern')} d={d} />
 			<path
 				fill={
@@ -64,7 +75,7 @@ export function PatternFill({ d, color, theme }: ShapeFillProps) {
 						? `url(#${getHashPatternZoomName(1, theme.id)})`
 						: teenyTiny
 							? getColorValue(theme, color, 'semi')
-							: `url(#${getHashPatternZoomName(zoomLevel, theme.id)})`
+							: `url(#${scaledPatternId})`
 				}
 				d={d}
 			/>

@@ -158,19 +158,19 @@ export function useGetHashPatternZoomName() {
 	)
 }
 
-function getPatternLodsToGenerate(maxZoom: number) {
+function getPatternLodsToGenerate(maxEffectiveZoom: number) {
 	const levels = []
 	const minLod = 0
-	const maxLod = getPatternLodForZoomLevel(maxZoom)
+	const maxLod = getPatternLodForZoomLevel(maxEffectiveZoom)
 	for (let i = minLod; i <= maxLod; i++) {
 		levels.push(Math.pow(2, i))
 	}
 	return levels
 }
 
-function getDefaultPatterns(maxZoom: number): PatternDef[] {
+function getDefaultPatterns(maxEffectiveZoom: number): PatternDef[] {
 	const defaultPixels = getDefaultPixels()
-	return getPatternLodsToGenerate(maxZoom).flatMap((zoom) => [
+	return getPatternLodsToGenerate(maxEffectiveZoom).flatMap((zoom) => [
 		{ zoom, url: defaultPixels.white, theme: 'light' },
 		{ zoom, url: defaultPixels.black, theme: 'dark' },
 	])
@@ -181,12 +181,20 @@ function usePattern() {
 	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
 		editor,
 	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
+	// In dynamic size mode, new shapes are created with scale = 1 / zoomLevel.
+	// For pattern LOD generation, we use the worst-case effective zoom:
+	// a shape created at min zoom and later viewed at max zoom (maxZoom / minZoom)
+	const maxEffectiveZoom = useValue(
+		'maxEffectiveZoom',
+		() => {
+			const steps = editor.getCameraOptions().zoomSteps
+			return last(steps)! / steps[0]
+		},
+		[editor]
+	)
 	const [isReady, setIsReady] = useState(false)
 	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
+		getDefaultPatterns(maxEffectiveZoom)
 	)
 	const getHashPatternZoomName = useGetHashPatternZoomName()
 
@@ -197,7 +205,7 @@ function usePattern() {
 		}
 
 		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
+			getPatternLodsToGenerate(maxEffectiveZoom).flatMap<Promise<PatternDef>>((zoom) => [
 				generateImage(dpr, zoom, false).then((blob) => ({
 					zoom,
 					theme: 'light',
@@ -226,7 +234,7 @@ function usePattern() {
 				}
 			})
 		}
-	}, [dpr, maxZoom])
+	}, [dpr, maxEffectiveZoom])
 
 	const defs = (
 		<>
