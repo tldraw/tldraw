@@ -1958,6 +1958,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@dimforge/rapier2d-compat@npm:^0.19.3":
+  version: 0.19.3
+  resolution: "@dimforge/rapier2d-compat@npm:0.19.3"
+  checksum: 10/a67fef205d145942edff166548e46b68e863de495e77d8479d4ec4e83c2f350aededd5db06836f5516373b8c16b7027eb6cd66167b56ae995d5a4f27b57b1fd3
+  languageName: node
+  linkType: hard
+
 "@dotenvx/dotenvx@npm:^1.39.0":
   version: 1.39.0
   resolution: "@dotenvx/dotenvx@npm:1.39.0"
@@ -18309,6 +18316,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
+    "@dimforge/rapier2d-compat": "npm:^0.19.3"
     "@playwright/test": "npm:^1.58.2"
     "@tiptap/core": "npm:^3.12.1"
     "@tiptap/extension-font-family": "npm:^3.12.1"
