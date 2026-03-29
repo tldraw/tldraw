@@ -18,6 +18,7 @@ import {
 } from '@tldraw/editor'
 import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
+import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
 import { TLDRAW_CUSTOM_PNG_MIME_TYPE, getCanonicalClipboardReadType } from '../../utils/clipboard'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { pasteFiles } from './clipboard/pasteFiles'
@@ -836,18 +837,28 @@ export function useNativeClipboardEvents() {
 			// input instead; e.g. when pasting text into a text shape's content
 			if (editor.getEditingShapeId() !== null || areShortcutsDisabled(editor)) return
 
-			// Where should the shapes go?
-			let point: Vec | undefined = undefined
-			let pasteAtCursor = false
+			// Cmd+Shift+V / Ctrl+Shift+V = paste as plain text (no formatting)
+			if (editor.inputs.getShiftKey() && editor.inputs.getAccelKey()) {
+				const text = e.clipboardData?.getData('text/plain')
+				if (text?.trim()) {
+					// Use an explicit center here because the downstream external-text handler
+					// treats bare Shift + undefined point as "paste at cursor".
+					const point = editor.user.getIsPasteAtCursorMode()
+						? editor.inputs.getCurrentPagePoint()
+						: editor.getViewportPageBounds().center
+					editor.markHistoryStoppingPoint('paste')
+					defaultHandleExternalTextContent(editor, { text, point })
+				}
+				preventDefault(e)
+				trackEvent('paste', { source: 'kbd' })
+				return
+			}
 
-			// | Shiftkey | Paste at cursor mode | Paste at point? |
-			// |    N 		|         N            |       N 				 |
-			// |    Y 		|         N            |       Y 				 |
-			// |    N 		|         Y            |       Y 				 |
-			// |    Y 		|         Y            |       N 				 |
-			if (editor.inputs.getShiftKey()) pasteAtCursor = true
-			if (editor.user.getIsPasteAtCursorMode()) pasteAtCursor = !pasteAtCursor
-			if (pasteAtCursor) point = editor.inputs.getCurrentPagePoint()
+			// Both Cmd+V and Cmd+Shift+V paste at center by default,
+			// or at cursor when the paste-at-cursor preference is on.
+			const point = editor.user.getIsPasteAtCursorMode()
+				? editor.inputs.getCurrentPagePoint()
+				: undefined
 
 			if (
 				editor.options.onClipboardPasteRaw?.({
