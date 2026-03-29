@@ -3699,16 +3699,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.once('stop-camera-animation', cancel)
 
+		const dirZ = direction.z ?? 0
+
 		const moveCamera = (elapsed: number) => {
 			const { x: cx, y: cy, z: cz } = this.getCamera()
-			const movementVec = Vec.Mul(direction, (currentSpeed * elapsed) / cz)
+
+			// Pan movement from x/y direction
+			const dx = (direction.x * (currentSpeed * elapsed)) / cz
+			const dy = (direction.y * (currentSpeed * elapsed)) / cz
+
+			let newCx = cx + dx
+			let newCy = cy + dy
+			let newCz = cz
+
+			// animate zoom if z direction is passed in
+			if (dirZ !== 0) {
+				newCz = cz * (1 + dirZ * currentSpeed * elapsed)
+				// Adjust x/y to keep the viewport center fixed while zooming
+				const center = this.getViewportScreenCenter()
+				newCx += center.x / newCz - center.x / cz
+				newCy += center.y / newCz - center.y / cz
+			}
 
 			// Apply friction
 			currentSpeed *= 1 - friction
 			if (currentSpeed < speedThreshold) {
 				cancel()
 			} else {
-				this._setCamera(new Vec(cx + movementVec.x, cy + movementVec.y, cz))
+				this._setCamera(new Vec(newCx, newCy, newCz))
 			}
 		}
 
@@ -10847,7 +10865,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 
 							if (slideSpeed > 0) {
-								this.slideCamera({ speed: slideSpeed, direction: slideDirection })
+								this.slideCamera({
+									speed: slideSpeed,
+									direction: { x: slideDirection.x, y: slideDirection.y, z: 0 },
+								})
 							}
 						} else {
 							if (info.button === STYLUS_ERASER_BUTTON) {
