@@ -57,7 +57,7 @@ export default function App() {
 
 ## Theme structure
 
-A theme is a [TLTheme](?) object with an `id`, a `colors` palette, and base `fontSize` and `lineHeight` values. Light and dark modes are separate themes:
+A theme is a [TLTheme](?) object with an `id`, a `colors` palette, and base `fontSize`, `lineHeight`, and `strokeWidth` values. Light and dark modes are separate themes:
 
 ```typescript
 const myThemes: TLThemes = {
@@ -65,6 +65,7 @@ const myThemes: TLThemes = {
 		id: 'light',
 		fontSize: 16,
 		lineHeight: 1.35,
+		strokeWidth: 2,
 		colors: {
 			text: '#000000',
 			background: '#f8f8f8',
@@ -110,6 +111,7 @@ const myThemes: TLThemes = {
 		id: 'dark',
 		fontSize: 16,
 		lineHeight: 1.35,
+		strokeWidth: 2,
 		colors: {
 			// ... dark mode equivalents
 		},
@@ -122,7 +124,7 @@ Each color in the palette is a [TLDefaultColor](?) with variants for different c
 | Variant              | Purpose                                        |
 | -------------------- | ---------------------------------------------- |
 | `solid`              | Full-opacity color for strokes and solid fills |
-| `semi`               | Semi-transparent color for background fills    |
+| `semi`               | Muted color for the semi fill style            |
 | `pattern`            | Color used in pattern/hatch fills              |
 | `fill`               | Explicit fill color (usually same as solid)    |
 | `linedFill`          | Slightly lighter fill for lined patterns       |
@@ -138,7 +140,7 @@ Each color in the palette is a [TLDefaultColor](?) with variants for different c
 
 The palette also includes five base properties: `text` for default text color, `background` for the canvas background, `solid` for the default solid surface color, `cursor` for the cursor color, and `noteBorder` for note shape borders.
 
-In addition to colors, each theme has a `fontSize` (default `16`) and `lineHeight` (default `1.35`). All default shape font sizes are derived by multiplying the base `fontSize` by a per-shape-type multiplier, so changing the base value scales all text proportionally.
+In addition to colors, each theme has a `fontSize` (default `16`), `lineHeight` (default `1.35`), and `strokeWidth` (default `2`). All default shape font sizes are derived by multiplying the base `fontSize` by a per-shape-type multiplier, and stroke widths work the same way with `strokeWidth`, so changing these base values scales text and strokes proportionally.
 
 ## Reading the current theme
 
@@ -239,12 +241,14 @@ const myThemes: TLThemes = {
 		id: 'light',
 		fontSize: 16,
 		lineHeight: 1.35,
+		strokeWidth: 2,
 		colors: { /* ... */ },
 	},
 	dark: {
 		id: 'dark',
 		fontSize: 16,
 		lineHeight: 1.35,
+		strokeWidth: 2,
 		colors: { /* ... */ },
 	},
 	// You can also add custom themes with any name:
@@ -252,6 +256,7 @@ const myThemes: TLThemes = {
 		id: 'company-brand',
 		fontSize: 16,
 		lineHeight: 1.35,
+		strokeWidth: 2,
 		colors: { /* ... */ },
 	},
 }
@@ -315,12 +320,16 @@ const themes: TLThemes = {
 
 tldraw validates shape properties (including colors) when data enters the store, for example when loading from IndexedDB or syncing from a server. Passing `themes` tells tldraw about your custom colors *before* data is loaded, so they pass validation. When creating a store yourself, pass `themes` there too, and still pass `themes` to `<Tldraw>` so the editor knows how to render them:
 
+**Direct store creation:**
+
 ```tsx
-// Direct store creation, pass themes to both
 const store = createTLStore({ themes })
 <Tldraw store={store} themes={themes} />
+```
 
-// Multiplayer, pass themes to both
+**Multiplayer:**
+
+```tsx
 const store = useSync({ uri: '...', assets: myAssets, themes })
 <Tldraw store={store} themes={themes} />
 ```
@@ -400,7 +409,7 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 | [Editor#getCurrentTheme](?)   | Get the current theme object (with `id` and `colors`)       |
 | [Editor#getCurrentThemeId](?) | Get the ID of the active theme (e.g. `'light'` or `'dark'`) |
 | [Editor#getThemes](?)         | Get all registered themes                                   |
-| [Editor#updateThemes](?)      | Merge overrides into registered themes                      |
+| [Editor#updateThemes](?)      | Replace registered themes (shallow spread, not deep-merged) |
 | [Editor#setTheme](?)          | Set the active theme by ID, or `null` for automatic         |
 
 ## Related examples
