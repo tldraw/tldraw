@@ -101,11 +101,10 @@ import { useEditor, useValue } from 'tldraw'
 function AttributionLabel({ userId }: { userId: string }) {
 	const editor = useEditor()
 
-	const name = useValue(
-		'attribution-name',
-		() => editor.getAttributionDisplayName(userId),
-		[editor, userId]
-	)
+	const name = useValue('attribution-name', () => editor.getAttributionDisplayName(userId), [
+		editor,
+		userId,
+	])
 
 	if (!name) return null
 	return <span>{name}</span>
@@ -176,20 +175,20 @@ Custom metadata is validated and persisted alongside the standard user fields. A
 
 ## API reference
 
-| Method | Description |
-| --- | --- |
-| `editor.getAttributionUserId()` | Get the current user's ID for stamping shapes. Returns `string \| null` |
-| `editor.getAttributionDisplayName(userId)` | Resolve a display name from a user ID. Returns `string \| null` |
-| `editor.getAttributionUser(userId)` | Resolve a full [TLUser](?) record from a user ID |
+| Method                                     | Description                                                             |
+| ------------------------------------------ | ----------------------------------------------------------------------- |
+| `editor.getAttributionUserId()`            | Get the current user's ID for stamping shapes. Returns `string \| null` |
+| `editor.getAttributionDisplayName(userId)` | Resolve a display name from a user ID. Returns `string \| null`         |
+| `editor.getAttributionUser(userId)`        | Resolve a full [TLUser](?) record from a user ID                        |
 
-| Type | Description |
-| --- | --- |
-| `TLUserStore` | Interface for connecting to your auth/user system |
-| [TLUser](?) | A user record in the store |
-| `UserRecordType` | The default user record type |
-| `createUserId` | Create a typed user ID |
-| `createCachedUserResolve` | Create a cached resolve function for `TLUserStore` |
-| `createUserRecordType` | Build a user record type with custom meta validators |
+| Type                      | Description                                          |
+| ------------------------- | ---------------------------------------------------- |
+| `TLUserStore`             | Interface for connecting to your auth/user system    |
+| [TLUser](?)               | A user record in the store                           |
+| `UserRecordType`          | The default user record type                         |
+| `createUserId`            | Create a typed user ID                               |
+| `createCachedUserResolve` | Create a cached resolve function for `TLUserStore`   |
+| `createUserRecordType`    | Build a user record type with custom meta validators |
 
 For setting up user identity in multiplayer, see the [Collaboration](/sdk-features/collaboration#user-identity) page.
 
