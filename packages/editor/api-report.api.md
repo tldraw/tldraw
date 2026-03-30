@@ -526,7 +526,7 @@ export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | 
 export function createTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, assets, onMount, collaboration, ...rest }?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, assets, onMount, collaboration, themes, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function createTLUser(opts?: {
@@ -4560,6 +4560,7 @@ export interface TLStoreBaseOptions {
     initialData?: SerializedStore<TLRecord>;
     onMount?(editor: Editor): (() => void) | void;
     snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
+    themes?: TLThemes;
 }
 
 // @public (undocumented)
