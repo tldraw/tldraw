@@ -213,9 +213,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							shapeId={id}
 							type={type}
 							font={font}
-							fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
+							fontSize={LABEL_FONT_SIZES[size]}
 							lineHeight={TEXT_PROPS.lineHeight}
-							padding={LABEL_PADDING * shape.props.scale}
+							padding={LABEL_PADDING}
 							fill={fill}
 							align={align}
 							verticalAlign={verticalAlign}
@@ -224,6 +224,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							labelColor={getColorValue(theme, props.labelColor, 'solid')}
 							wrap
 							showTextOutline={this.options.showTextOutline}
+							style={{
+								transform: `scale(${shape.props.scale})`,
+								transformOrigin: 'top left',
+								width: shape.props.w / shape.props.scale,
+								height: (shape.props.h + props.growY) / shape.props.scale,
+							}}
 						/>
 					</HTMLContainer>
 				)}

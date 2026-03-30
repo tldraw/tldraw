@@ -343,7 +343,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							shapeId={id}
 							type={type}
 							font={font}
-							fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
+							fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
 							lineHeight={TEXT_PROPS.lineHeight}
 							align={align}
 							verticalAlign={verticalAlign}
@@ -355,10 +355,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 									: getColorValue(theme, labelColor, 'fill')
 							}
 							wrap
-							padding={LABEL_PADDING * scale}
+							padding={LABEL_PADDING}
 							hasCustomTabBehavior
 							showTextOutline={false}
 							onKeyDown={handleKeyDown}
+							style={{
+								transform: `scale(${scale})`,
+								transformOrigin: 'top left',
+								width: NOTE_SIZE,
+								height: NOTE_SIZE + shape.props.growY,
+							}}
 						/>
 					)}
 				</div>
@@ -681,7 +687,8 @@ function getNoteShadow(id: string, rotation: number, scale: number) {
 	const b = 4 * scale
 	const c = 6 * scale
 	const d = 7 * scale
-	return `0px ${a - lift}px ${a}px -${a}px rgba(15, 23, 31, .6),
+	// Clamped so shadow never goes above the note at small scales (e.g. dynamic size mode at high zoom)
+	return `0px ${Math.max(0, a - lift)}px ${a}px -${a}px rgba(15, 23, 31, .6),
 	0px ${(b + lift * d) * Math.max(0, oy)}px ${c + lift * d}px -${b + lift * c}px rgba(15, 23, 31, ${(0.3 + lift * 0.1).toFixed(2)}), 
 	0px ${48 * scale}px ${10 * scale}px -${10 * scale}px inset rgba(15, 23, 44, ${((0.022 + random() * 0.005) * ((1 + oy) / 2)).toFixed(2)})`
 }
