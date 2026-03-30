@@ -21,50 +21,37 @@ test.describe('paste text measurement', () => {
 					.filter((s): s is TLTextShape => s.type === 'text')
 				const shape = shapes[shapes.length - 1]
 
-				// Get the geometry bounds (computed using renderHtmlFromRichTextForMeasurement)
-				const geoBounds = editor.getShapeGeometry(shape).bounds
-
 				return {
-					shape: { x: shape.x, y: shape.y, props: shape.props },
-					geoBounds: { w: geoBounds.w, h: geoBounds.h },
+					x: shape.x,
+					y: shape.y,
+					w: shape.props.w,
 				}
 			},
 			{ text, html }
 		)
 	}
 
-	test('pasted plain text shape dimensions match its geometry', async ({ page }) => {
-		const { shape, geoBounds } = await pasteTextAndGetShape(page, 'Hello world')
+	test('pasting the same text as plain text or html produces the same shape', async ({ page }) => {
+		const plainText = await pasteTextAndGetShape(page, 'Hello world')
 
-		// The shape's w prop should be close to the geometry width.
-		// Before the fix, paste used different HTML for measurement than the
-		// shape geometry, causing a mismatch.
-		expect(Math.abs(shape.props.w - geoBounds.w)).toBeLessThanOrEqual(1)
-	})
-
-	test('pasted html text shape dimensions match its geometry', async ({ page }) => {
-		const { shape, geoBounds } = await pasteTextAndGetShape(
+		const withInlineStyles = await pasteTextAndGetShape(
 			page,
 			'Hello world',
-			'<p>Hello <strong>world</strong></p>'
+			`<p class="p1" style="margin: 0px; font: 400 12px Helvetica; color: rgb(0, 0, 0);">Hello world</p>`
 		)
 
-		expect(Math.abs(shape.props.w - geoBounds.w)).toBeLessThanOrEqual(1)
-	})
-
-	test('pasted multiline text shape dimensions match its geometry', async ({ page }) => {
-		const { shape, geoBounds } = await pasteTextAndGetShape(page, 'Line one\nLine two\nLine three')
-
-		expect(Math.abs(shape.props.w - geoBounds.w)).toBeLessThanOrEqual(1)
-	})
-
-	test('pasted multiline html shape dimensions match its geometry', async ({ page }) => {
-		const { shape, geoBounds } = await pasteTextAndGetShape(
+		const withProsemirrorMeta = await pasteTextAndGetShape(
 			page,
-			'Line one\nLine two',
-			'<p>Line one</p><p>Line two</p>'
+			'Hello world',
+			`<meta charset="utf-8"><p dir="auto" data-pm-slice="0 0 []">Hello world</p>`
 		)
 
-		expect(Math.abs(shape.props.w - geoBounds.w)).toBeLessThanOrEqual(1)
+		expect(plainText.x).toBe(withInlineStyles.x)
+		expect(plainText.y).toBe(withInlineStyles.y)
+		expect(plainText.w).toBe(withInlineStyles.w)
+
+		expect(plainText.x).toBe(withProsemirrorMeta.x)
+		expect(plainText.y).toBe(withProsemirrorMeta.y)
+		expect(plainText.w).toBe(withProsemirrorMeta.w)
 	})
 })
