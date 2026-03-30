@@ -13,6 +13,7 @@ import { TLPresenceUserInfo } from 'tldraw';
 import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
+import { TLThemes } from 'tldraw';
 
 // @public
 export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
@@ -57,6 +58,7 @@ export interface UseSyncOptionsBase {
     onMount?(editor: Editor): void;
     // @internal
     roomId?: string;
+    themes?: TLThemes;
     // @internal (undocumented)
     trackAnalyticsEvent?(name: string, data: {
         [key: string]: any;

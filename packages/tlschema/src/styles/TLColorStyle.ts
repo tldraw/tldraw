@@ -1,5 +1,5 @@
 import { StyleProp } from './StyleProp'
-import { TLDefaultColor, TLThemeColors } from './TLTheme'
+import { TLDefaultColor, TLThemeColors, TLThemes } from './TLTheme'
 
 /**
  * The names of all available shape colors, derived from {@link TLThemeColors}.
@@ -50,20 +50,38 @@ export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', 
 })
 
 /**
- * Register color names at runtime. This adds the colors to both
- * `DefaultColorStyle` and `DefaultLabelColorStyle` so they are available
- * for validation and in the style panel.
- *
- * Must be called before rendering any tldraw components.
- *
- * @example
- * ```ts
- * registerColors(['pink', 'teal'])
- * ```
+ * Scan a {@link TLThemes} map and register any custom color names found.
+ * A color entry is any key in `TLThemeColors` whose value is an object
+ * (i.e. a {@link TLDefaultColor}), as opposed to utility strings like
+ * `background` or `text`.
  *
  * @public
  */
-export function registerColors(colorNames: TLDefaultColorStyle[]): void {
-	DefaultColorStyle.addValues(...colorNames)
-	DefaultLabelColorStyle.addValues(...colorNames)
+export function registerColorsFromThemes(themes: TLThemes | undefined): void {
+	if (!themes) return
+	const colorNames = new Set<TLDefaultColorStyle>()
+	for (const theme of Object.values(themes)) {
+		for (const [key, value] of Object.entries(theme.colors)) {
+			if (typeof value === 'object' && value !== null) {
+				colorNames.add(key as TLDefaultColorStyle)
+			}
+		}
+	}
+	if (colorNames.size > 0) {
+		DefaultColorStyle.addValues(...colorNames)
+		DefaultLabelColorStyle.addValues(...colorNames)
+	}
+
+	if (process.env.NODE_ENV !== 'production') {
+		const themeEntries = Object.entries(themes)
+		for (const color of colorNames) {
+			for (const [id, theme] of themeEntries) {
+				if (!(color in theme.colors)) {
+					console.warn(
+						`Theme '${id}' is missing color '${color}'. Shapes using this color won't render correctly in this theme.`
+					)
+				}
+			}
+		}
+	}
 }
