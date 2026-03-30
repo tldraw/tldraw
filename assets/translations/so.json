@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "U beddel xusuusin",
 	"action.convert-to-embed": "U beddel embed",
 	"action.copy": "Koobi",
+	"action.copy-as-json": "Koobiyee JSON ahaan",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Koobiyee PNG ahaan",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Koobiyee SVG ahaan",

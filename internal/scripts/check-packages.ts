@@ -14,7 +14,7 @@ const packagesWithoutTSConfigs: ReadonlySet<string> = new Set(['config'])
 
 // all packages should have these scripts
 const expectedPackageJsonScriptsForAll = {
-	lint: (packageDir: string) => workspaceLintScript(packageDir),
+	lint: tsScript('lint.ts'),
 }
 
 const expectedTestScripts = {
@@ -53,7 +53,7 @@ const packageJsonScriptExceptions: Record<string, Record<string, () => string | 
 		lint: () => undefined,
 	},
 	'@tldraw/monorepo': {
-		lint: () => 'oxlint .',
+		lint: () => undefined,
 	},
 	'@tldraw/assets': {
 		test: () => undefined,
@@ -256,12 +256,6 @@ function scriptPath(packageDir: string, scriptName: string) {
 
 function tsScript(scriptName: string) {
 	return (packageDir: string) => `yarn run -T tsx ${scriptPath(packageDir, scriptName)}`
-}
-
-function workspaceLintScript(packageDir: string) {
-	const toRoot = path.relative(packageDir, REPO_ROOT) || '.'
-	const workspacePath = path.relative(REPO_ROOT, packageDir) || '.'
-	return `cd ${toRoot} && yarn run -T oxlint ${workspacePath}`
 }
 
 async function checkLibraryContents({

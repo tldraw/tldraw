@@ -1,5 +1,6 @@
 import { Mat } from '../Mat'
 import { Vec, VecLike } from '../Vec'
+import { Edge2d } from './Edge2d'
 import { Geometry2dFilters } from './Geometry2d'
 import { Group2d } from './Group2d'
 import { Rectangle2d } from './Rectangle2d'
@@ -453,6 +454,26 @@ describe('Group2d getBoundsVertices', () => {
 
 		const boundsVertices = group.getBoundsVertices()
 		expect(boundsVertices).toEqual([])
+	})
+})
+
+describe('interpolateAlongEdge', () => {
+	it('returns vertex when segment has zero length', () => {
+		const edge = new Edge2d({ start: new Vec(5, 5), end: new Vec(5, 5) })
+		const result = edge.interpolateAlongEdge(0.5)
+		expect(result.x).toBe(5)
+		expect(result.y).toBe(5)
+		expect(Number.isFinite(result.x)).toBe(true)
+		expect(Number.isFinite(result.y)).toBe(true)
+	})
+})
+
+describe('uninterpolateAlongEdge', () => {
+	it('returns 0 when geometry has zero length', () => {
+		const edge = new Edge2d({ start: new Vec(5, 5), end: new Vec(5, 5) })
+		const result = edge.uninterpolateAlongEdge(new Vec(5, 5))
+		expect(result).toBe(0)
+		expect(Number.isFinite(result)).toBe(true)
 	})
 })
 

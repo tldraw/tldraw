@@ -221,7 +221,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					: new Polyline2d({ points: info.route.points })
 
 		let labelGeom
-		if (isEditing || !isEmptyRichText(shape.props.richText)) {
+		if (info.isValid && (isEditing || !isEmptyRichText(shape.props.richText))) {
 			const labelPosition = getArrowLabelPosition(this.editor, shape, isEditing)
 			if (debugFlags.debugGeometry.get()) {
 				debugGeom.push(...labelPosition.debugGeom)

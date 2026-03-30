@@ -2,14 +2,12 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FeatureFlags } from './FeatureFlagPoller'
 
 const mockFetch = vi.fn()
-vi.mock('tldraw', async () => {
-	const actual = await vi.importActual<typeof import('tldraw')>('tldraw')
-	return { ...actual, fetch: (...args: any[]) => mockFetch(...args) }
+vi.mock('tldraw', () => {
+	return { fetch: (...args: any[]) => mockFetch(...args) }
 })
 
 function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 	return {
-		sqlite_file_storage: { enabled: false },
 		zero_enabled: { enabled: false },
 		zero_kill_switch: { enabled: false },
 		...overrides,
