@@ -72,9 +72,12 @@ export function useKeyboardShortcuts() {
 			}
 
 			if (SKIP_KBDS.includes(tool.id)) continue
+			const toolHotkeys = getHotkeysStringFromKbd(tool.kbd)
 
-			hot(getHotkeysStringFromKbd(tool.kbd), (event) => {
+			hot(toolHotkeys, (event) => {
 				if (areShortcutsDisabled(editor)) return
+				// Reserve shifted key combos for interactions unless this tool shortcut explicitly uses shift.
+				if (event.shiftKey && !toolHotkeys.includes('shift+')) return
 				preventDefault(event)
 				tool.onSelect('kbd')
 			})
