@@ -155,6 +155,7 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Optimize geometry hot paths for hit testing: reduce allocations and function call overhead in `Vec`, `Edge2d`, `Circle2d`, `Arc2d`, `Polyline2d`, and intersection routines. Circle hit testing is up to 19x faster, polyline nearest-point is 6.8x faster. ([#8210](https://github.com/tldraw/tldraw/pull/8210))
 - Exports now automatically trim to visual content bounds, capturing overflow like thick strokes and arrowheads without extra whitespace. ([#8202](https://github.com/tldraw/tldraw/pull/8202))
 - Improve resize performance for multiple geo shapes with text labels by batching DOM measurements into a single pass per frame. ([#7949](https://github.com/tldraw/tldraw/pull/7949))
+- Update hotkeys-js from v3 to v4, picking up improvements to keyboard layout handling and stuck-key fixes on fullscreen changes. ([#8372](https://github.com/tldraw/tldraw/pull/8372))
 - Move the debug mode toggle into the preferences submenu. ([#8259](https://github.com/tldraw/tldraw/pull/8259))
 
 ## Bug fixes
