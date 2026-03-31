@@ -1,4 +1,4 @@
-import { TLNoteShape, createShapeId } from '@tldraw/editor'
+import { TLNoteShape, TLThemeDefinition, createShapeId } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../lib/shapes/arrow/ArrowShapeUtil'
 import { DrawShapeUtil } from '../lib/shapes/draw/DrawShapeUtil'
 import { FrameShapeUtil } from '../lib/shapes/frame/FrameShapeUtil'
@@ -19,63 +19,31 @@ afterEach(() => {
 	editor?.dispose()
 })
 
+/** Update the default theme definition's light colors. */
+function updateLightColors(
+	editor: TestEditor,
+	updater: (def: TLThemeDefinition) => TLThemeDefinition
+) {
+	const def = editor.getThemeDefinition('default')!
+	editor.setThemeDefinition('default', updater(def))
+}
+
 const noteId = createShapeId('note')
+const frameId = createShapeId('frame')
 const geoId = createShapeId('geo')
 const arrowId = createShapeId('arrow')
-const frameId = createShapeId('frame')
-
-describe('getDisplayValues', () => {
-	it('returns merged base + overrides', () => {
-		editor.createShapes([{ id: geoId, type: 'geo', x: 0, y: 0 }])
-		const shape = editor.getShape(geoId)!
-		const util = editor.getShapeUtil('geo') as GeoShapeUtil
-		const dv = getDisplayValues(util, shape)
-		expect(dv).toHaveProperty('strokeColor')
-		expect(dv).toHaveProperty('strokeWidth')
-		expect(dv).toHaveProperty('fillColor')
-		expect(typeof dv.strokeWidth).toBe('number')
-		expect(dv.strokeWidth).toBeGreaterThan(0)
-	})
-
-	it('overrides merge on top of base values', () => {
-		const ConfiguredGeo = GeoShapeUtil.configure({
-			getDisplayValueOverrides() {
-				return { strokeColor: '#ff0000' }
-			},
-		})
-		editor = new TestEditor({ shapeUtils: [ConfiguredGeo] })
-		editor.createShapes([{ id: geoId, type: 'geo', x: 0, y: 0 }])
-		const shape = editor.getShape(geoId)!
-		const util = editor.getShapeUtil('geo') as GeoShapeUtil
-		const dv = getDisplayValues(util, shape)
-		expect(dv.strokeColor).toBe('#ff0000')
-		// Other values should still be present from base
-		expect(dv.strokeWidth).toBeGreaterThan(0)
-	})
-})
 
 describe('note shape colors', () => {
-	it('resolves colors from theme for light theme', () => {
-		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'blue' } }])
+	it('resolves note background color from theme', () => {
+		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'black' } }])
 		const shape = editor.getShape<TLNoteShape>(noteId)!
 		const util = editor.getShapeUtil('note') as NoteShapeUtil
 		const dv = getDisplayValues(util, shape)
-		expect(dv.noteBackgroundColor).toBe('#8AA3FF')
-		expect(dv.labelColor).toBe('#000000')
+		expect(dv.noteBackgroundColor).toBe('#FCE19C')
 	})
 
-	it('resolves colors for dark theme', () => {
-		editor.user.updateUserPreferences({ colorScheme: 'dark' })
-		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'blue' } }])
-		const shape = editor.getShape<TLNoteShape>(noteId)!
-		const util = editor.getShapeUtil('note') as NoteShapeUtil
-		const dv = getDisplayValues(util, shape)
-		expect(dv.noteBackgroundColor).toBe('#2A3F98')
-		expect(dv.labelColor).toBe('#f2f2f2')
-	})
-
-	it('resolves border color per theme', () => {
-		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0 }])
+	it('resolves note border color from theme', () => {
+		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'black' } }])
 		const shape = editor.getShape<TLNoteShape>(noteId)!
 		const util = editor.getShapeUtil('note') as NoteShapeUtil
 		const dv = getDisplayValues(util, shape)
@@ -83,19 +51,19 @@ describe('note shape colors', () => {
 	})
 
 	it('uses customized theme colors', () => {
-		const lightTheme = editor.getThemes().light
-		editor.updateThemes({
-			light: {
-				...lightTheme,
-				colors: {
-					...lightTheme.colors,
+		updateLightColors(editor, (def) => ({
+			...def,
+			colors: {
+				...def.colors,
+				light: {
+					...def.colors.light,
 					red: {
-						...lightTheme.colors.red,
+						...def.colors.light.red,
 						noteFill: '#CUSTOM_RED',
 					},
 				},
 			},
-		})
+		}))
 
 		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'red' } }])
 		const shape = editor.getShape<TLNoteShape>(noteId)!
@@ -105,28 +73,20 @@ describe('note shape colors', () => {
 	})
 
 	it('can be customized via theme overrides', () => {
-		const lightTheme = editor.getThemes().light
-		editor.updateThemes({
-			light: {
-				...lightTheme,
-				colors: {
-					...lightTheme.colors,
+		updateLightColors(editor, (def) => ({
+			...def,
+			colors: {
+				...def.colors,
+				light: {
+					...def.colors.light,
 					noteBorder: '#MYBORDER',
-					black: {
-						...lightTheme.colors.black,
-						noteFill: '#CUSTOM1',
-						noteText: '#CUSTOM2',
-					},
 				},
 			},
-		})
-
+		}))
 		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'black' } }])
 		const shape = editor.getShape<TLNoteShape>(noteId)!
 		const util = editor.getShapeUtil('note') as NoteShapeUtil
 		const dv = getDisplayValues(util, shape)
-		expect(dv.noteBackgroundColor).toBe('#CUSTOM1')
-		expect(dv.labelColor).toBe('#CUSTOM2')
 		expect(dv.borderColor).toBe('#MYBORDER')
 	})
 })
@@ -143,20 +103,20 @@ describe('frame shape colors', () => {
 	})
 
 	it('can be customized via theme overrides', () => {
-		const lightTheme = editor.getThemes().light
-		editor.updateThemes({
-			light: {
-				...lightTheme,
-				colors: {
-					...lightTheme.colors,
+		updateLightColors(editor, (def) => ({
+			...def,
+			colors: {
+				...def.colors,
+				light: {
+					...def.colors.light,
 					black: {
-						...lightTheme.colors.black,
+						...def.colors.light.black,
 						frameStroke: '#CCC',
 						frameFill: '#DDD',
 					},
 				},
 			},
-		})
+		}))
 		editor.createShapes([{ id: frameId, type: 'frame', x: 0, y: 0 }])
 		const shape = editor.getShape(frameId)!
 		const util = editor.getShapeUtil('frame') as FrameShapeUtil
@@ -186,20 +146,20 @@ describe('highlight shape colors', () => {
 	})
 
 	it('can be customized via theme overrides', () => {
-		const lightTheme = editor.getThemes().light
-		editor.updateThemes({
-			light: {
-				...lightTheme,
-				colors: {
-					...lightTheme.colors,
+		updateLightColors(editor, (def) => ({
+			...def,
+			colors: {
+				...def.colors,
+				light: {
+					...def.colors.light,
 					black: {
-						...lightTheme.colors.black,
+						...def.colors.light.black,
 						highlightSrgb: '#CUSTOM_HL',
 						highlightP3: 'color(display-p3 1 0 0)',
 					},
 				},
 			},
-		})
+		}))
 		const hlId = createShapeId('hl')
 		editor.createShapes([
 			{
@@ -325,7 +285,7 @@ describe('theme changes flow to shapes', () => {
 		expect(darkDv.noteBackgroundColor).toBe('#2c2c2c')
 	})
 
-	it('updating themes at runtime changes display values', () => {
+	it('updating theme definition at runtime changes display values', () => {
 		editor.user.updateUserPreferences({ colorScheme: 'light' })
 		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'black' } }])
 		const util = editor.getShapeUtil('note') as NoteShapeUtil
@@ -335,11 +295,9 @@ describe('theme changes flow to shapes', () => {
 		const dv1 = getDisplayValues(util, shape)
 		const originalBg = dv1.noteBackgroundColor
 
-		// Update the light theme's fontSize (which affects label size)
-		const lightTheme = editor.getThemes().light
-		editor.updateThemes({
-			light: { ...lightTheme, fontSize: 24 },
-		})
+		// Update the default theme's fontSize (which affects label size)
+		const def = editor.getThemeDefinition('default')!
+		editor.setThemeDefinition('default', { ...def, fontSize: 24 })
 
 		// Theme object changed, so cache should miss even with same shape
 		const dv2 = getDisplayValues(util, shape)

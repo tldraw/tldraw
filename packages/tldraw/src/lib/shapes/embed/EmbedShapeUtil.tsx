@@ -12,7 +12,7 @@ import {
 	lerp,
 	resizeBox,
 	toDomPrecision,
-	useCurrentThemeId,
+	useColorMode,
 	useIsEditing,
 	useSvgExportContext,
 	useValue,
@@ -166,8 +166,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		const svgExport = useSvgExportContext()
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
-		const themeId = useCurrentThemeId()
-		const dv = getDisplayValues(this, shape, themeId)
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 
 		const embedInfo = this.getEmbedDefinition(url)
 

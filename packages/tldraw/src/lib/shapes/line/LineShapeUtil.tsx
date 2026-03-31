@@ -24,7 +24,7 @@ import {
 	mapObjectMapValues,
 	maybeSnapToGrid,
 	sortByIndex,
-	useCurrentThemeId,
+	useColorMode,
 } from '@tldraw/editor'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
@@ -210,8 +210,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	component(shape: TLLineShape) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const themeId = useCurrentThemeId()
-		const dv = getDisplayValues(this, shape, themeId)
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 		return (
 			<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
 				<LineShapeSvg shape={shape} strokeColor={dv.strokeColor} strokeWidth={dv.strokeWidth} />

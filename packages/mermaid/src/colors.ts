@@ -1,9 +1,4 @@
-import {
-	DEFAULT_LIGHT_THEME,
-	TLDefaultColorStyle,
-	TLDefaultDashStyle,
-	TLDefaultSizeStyle,
-} from 'tldraw'
+import { DEFAULT_THEME, TLDefaultColorStyle, TLDefaultDashStyle, TLDefaultSizeStyle } from 'tldraw'
 
 type Color = [number, number, number, number]
 
@@ -166,7 +161,7 @@ const defaultColorNames: TLDefaultColorStyle[] = [
 
 const TLDRAW_PALETTE: [TLDefaultColorStyle, number, number, number][] = defaultColorNames.map(
 	(name) => {
-		const { solid } = DEFAULT_LIGHT_THEME.colors[name]
+		const { solid } = DEFAULT_THEME.colors.light[name]
 		const rgb = parseHexToRgb(solid)!
 		return [name, rgb[0], rgb[1], rgb[2]]
 	}

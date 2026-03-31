@@ -6,7 +6,7 @@ import { memo, useEffect, useRef } from 'react'
 import { Editor } from '../../editor/Editor'
 import { TLIndicatorPath } from '../../editor/shapes/ShapeUtil'
 import { getComputedStyle } from '../../exports/domUtils'
-import { useCurrentThemeId } from '../../hooks/useCurrentThemeId'
+import { useColorMode } from '../../hooks/useColorMode'
 import { useEditor } from '../../hooks/useEditor'
 import { useActivePeerIds$ } from '../../hooks/usePeerIds'
 
@@ -133,14 +133,14 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 
 	// Cache the selected color to avoid getComputedStyle on every render
 	const rSelectedColor = useRef<string | null>(null)
-	const themeId = useCurrentThemeId()
+	const colorMode = useColorMode()
 
 	useEffect(() => {
 		const timer = editor.timers.setTimeout(() => {
 			rSelectedColor.current = null
 		}, 0)
 		return () => clearTimeout(timer)
-	}, [themeId, editor])
+	}, [colorMode, editor])
 
 	// Get active peer IDs (already handles time-based state transitions)
 	const activePeerIds$ = useActivePeerIds$()

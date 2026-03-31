@@ -18,7 +18,7 @@ import {
 	lerp,
 	rng,
 	tlenvReactive,
-	useCurrentThemeId,
+	useColorMode,
 	useValue,
 } from '@tldraw/editor'
 import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw/getPath'
@@ -141,8 +141,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override backgroundComponent(shape: TLHighlightShape) {
-		const themeId = useCurrentThemeId()
-		const dv = getDisplayValues(this, shape, themeId)
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 		const sw = dv.strokeWidth * shape.props.scale
 		const forceSolid = useHighlightForceSolid(this.editor, sw)
 		return (

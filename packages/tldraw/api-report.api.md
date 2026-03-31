@@ -1953,7 +1953,7 @@ export function getDefaultCrop(): TLShapeCrop;
 export function getDisplayValues<Shape extends TLShape, DisplayValues extends object>(util: {
     editor: Editor;
     options: ShapeOptionsWithDisplayValues<Shape, DisplayValues>;
-}, shape: Shape, themeId?: string): DisplayValues;
+}, shape: Shape, colorMode?: string): DisplayValues;
 
 // @public
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;

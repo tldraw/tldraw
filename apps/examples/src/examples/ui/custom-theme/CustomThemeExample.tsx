@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react'
 import {
-	DEFAULT_DARK_THEME,
-	DEFAULT_LIGHT_THEME,
+	DEFAULT_THEME,
 	TLDefaultColor,
-	TLThemes,
+	TLThemeDefinition,
 	Tldraw,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -14,8 +13,8 @@ import './custom-theme.css'
 
 // [1]
 // Extend the type system so TypeScript knows about our custom color.
-// That's all you need — because we pass `themes` to `<Tldraw>`, the
-// custom color name is registered automatically at store creation time.
+// That's all you need — because we pass `themeDefinitions` to `<Tldraw>`,
+// the custom color name is registered automatically at store creation time.
 declare module 'tldraw' {
 	interface TLThemeColors {
 		pink: TLDefaultColor
@@ -58,20 +57,18 @@ export default function CustomThemeExample() {
 	const [lineHeight, setLineHeight] = useState(DEFAULTS.lineHeight)
 	const [strokeWidth, setStrokeWidth] = useState(DEFAULTS.strokeWidth)
 
-	// [4] Customize both light and dark themes: add the custom "pink"
-	// color and merge slider overrides so adjustments apply to both.
-	const themes = useMemo<TLThemes>(() => {
-		const overrides = { fontSize, lineHeight, strokeWidth }
+	// [4] Customize the default theme: add the custom "pink" color
+	// and merge slider overrides so adjustments apply to both modes.
+	const themeDefinitions = useMemo<Record<string, TLThemeDefinition>>(() => {
 		return {
-			light: {
-				...DEFAULT_LIGHT_THEME,
-				...overrides,
-				colors: { ...DEFAULT_LIGHT_THEME.colors, pink: pinkLight },
-			},
-			dark: {
-				...DEFAULT_DARK_THEME,
-				...overrides,
-				colors: { ...DEFAULT_DARK_THEME.colors, pink: pinkDark },
+			default: {
+				fontSize,
+				lineHeight,
+				strokeWidth,
+				colors: {
+					light: { ...DEFAULT_THEME.colors.light, pink: pinkLight },
+					dark: { ...DEFAULT_THEME.colors.dark, pink: pinkDark },
+				},
 			},
 		}
 	}, [fontSize, lineHeight, strokeWidth])
@@ -80,7 +77,7 @@ export default function CustomThemeExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="custom-theme-example"
-				themes={themes}
+				themeDefinitions={themeDefinitions}
 				onMount={(editor) => {
 					if (editor.getCurrentPageShapeIds().size > 0) return
 
@@ -241,27 +238,27 @@ function ThemeSlider({
 
 [1]
 Extend the `TLThemeColors` interface via module augmentation to add a
-custom "pink" color. Because `themes` is passed to `<Tldraw>`, the
-custom color name is registered automatically.
+custom "pink" color. Because `themeDefinitions` is passed to `<Tldraw>`,
+the custom color name is registered automatically.
 
 [2]
-Define color entries for light and dark variants. Each theme that includes
-the custom color needs a full `TLDefaultColor` entry for it.
+Define color entries for light and dark variants. Each theme definition
+needs a full `TLDefaultColor` entry for the custom color in both palettes.
 
 [3]
 Default values for the adjustable theme properties. These match the defaults
-in `DEFAULT_LIGHT_THEME` and `DEFAULT_DARK_THEME`.
+in `DEFAULT_THEME`.
 
 [4]
-The `themes` object is recomputed whenever a slider changes. Because
-`Tldraw` accepts `themes` as a prop, updating the object triggers a
-reactive theme change — shapes immediately re-render with the new values.
-The active theme (light or dark) is determined by the user's color scheme
-preference, which can be toggled via the built-in dark mode shortcut.
+The `themeDefinitions` object is recomputed whenever a slider changes.
+Because `Tldraw` accepts `themeDefinitions` as a prop, updating the object
+triggers a reactive theme change — shapes immediately re-render with the
+new values. The active color mode (light or dark) is determined by the
+user's color scheme preference.
 
 [5]
-Create a shape using the custom "pink" color. Because themes declare
-the color, it passes validation automatically.
+Create a shape using the custom "pink" color. Because the theme definition
+declares the color, it passes validation automatically.
 
 [6]
 A panel with sliders for `fontSize`, `lineHeight`, and `strokeWidth`.

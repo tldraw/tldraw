@@ -28,7 +28,7 @@ import {
 	rng,
 	toDomPrecision,
 	toRichText,
-	useCurrentThemeId,
+	useColorMode,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -326,15 +326,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			[this.editor]
 		)
 
-		const themeId = useCurrentThemeId()
-		const dv = getDisplayValues(this, shape, themeId)
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 
 		const nw = dv.noteWidth * scale
 		const nh = getNoteHeight(shape, dv.noteHeight)
 
 		// Shadows are hidden when zoomed out far enough or in dark mode
 		let hideShadows = useEfficientZoomThreshold(0.25 / scale)
-		if (themeId === 'dark') hideShadows = true
+		if (colorMode === 'dark') hideShadows = true
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 

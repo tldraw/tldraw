@@ -19,7 +19,7 @@ import {
 	textShapeProps,
 	toDomPrecision,
 	toRichText,
-	useCurrentThemeId,
+	useColorMode,
 	useEditor,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
@@ -156,8 +156,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		const { width, height } = this.getMinDimensions(shape)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const themeId = useCurrentThemeId()
-		const dv = getDisplayValues(this, shape, themeId)
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 		const handleKeyDown = useTextShapeKeydownHandler(id)
 
 		return (

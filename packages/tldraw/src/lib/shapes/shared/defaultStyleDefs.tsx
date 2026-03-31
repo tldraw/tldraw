@@ -32,7 +32,7 @@ function HashPatternForExport() {
 	const maskId = useUniqueSafeId()
 	const editor = useEditor()
 	const { colors } = editor.getCurrentTheme()
-	const colorMode = editor._themeManager.getCurrentThemeId()
+	const colorMode = editor._themeManager.getColorMode()
 	const t = 8 / 12
 	return (
 		<>
@@ -193,9 +193,9 @@ function usePattern() {
 			return
 		}
 
-		const themes = editor.getThemes()
-		const lightSolid = themes.light.colors.solid
-		const darkSolid = themes.dark.colors.solid
+		const definition = editor.getThemeDefinition(editor.getActiveThemeName())!
+		const lightSolid = definition.colors.light.solid
+		const darkSolid = definition.colors.dark.solid
 
 		const promise = Promise.all(
 			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [

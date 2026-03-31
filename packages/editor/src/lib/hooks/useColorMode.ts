@@ -3,14 +3,14 @@ import { useSvgExportContext } from '../editor/types/SvgExportContext'
 import { useEditor } from './useEditor'
 
 /** @public */
-export function useCurrentThemeId(): string {
+export function useColorMode(): 'light' | 'dark' {
 	const editor = useEditor()
 	const exportContext = useSvgExportContext()
 	return useValue(
-		'currentThemeId',
+		'colorMode',
 		() => {
-			if (exportContext) return exportContext.themeId
-			return editor._themeManager.getCurrentThemeId()
+			if (exportContext) return exportContext.themeId === 'dark' ? 'dark' : 'light'
+			return editor._themeManager.getColorMode()
 		},
 		[exportContext, editor]
 	)

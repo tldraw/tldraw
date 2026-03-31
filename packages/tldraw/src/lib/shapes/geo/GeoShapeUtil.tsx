@@ -30,7 +30,7 @@ import {
 	isEqual,
 	lerp,
 	toRichText,
-	useCurrentThemeId,
+	useColorMode,
 	useValue,
 } from '@tldraw/editor'
 import {
@@ -320,8 +320,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		)
 		const isReadyForEditing = useIsReadyForEditing(editor, shape.id)
 		const isForceSolid = useEfficientZoomThreshold(0.25 / shape.props.scale)
-		const themeId = useCurrentThemeId()
-		const dv = getDisplayValues(this, shape, themeId)
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 
 		const { w, h, richText, url } = props
 

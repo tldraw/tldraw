@@ -16,7 +16,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
 import type { Editor, TLRenderingShape } from '../editor/Editor'
 import { TLFontFace } from '../editor/managers/FontManager/FontManager'
-import { getColorValue } from '../editor/managers/ThemeManager/defaultThemes'
+import { getColorValue, resolveTheme } from '../editor/managers/ThemeManager/defaultThemes'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { TLImageExportOptions } from '../editor/types/misc-types'
 import {
@@ -50,11 +50,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		typeof opts.padding === 'number' ? opts.padding : editor.options.defaultSvgPadding
 
 	const themeId =
-		opts.darkMode !== undefined
-			? opts.darkMode
-				? 'dark'
-				: 'light'
-			: String(editor.getCurrentThemeId())
+		opts.darkMode !== undefined ? (opts.darkMode ? 'dark' : 'light') : String(editor.getColorMode())
 	const isDarkMode = themeId === 'dark'
 
 	// ---Figure out which shapes we need to include
@@ -227,8 +223,9 @@ function SvgExport({
 	waitUntil(promise: Promise<void>): void
 }) {
 	const masksId = useUniqueSafeId()
-	const themes = editor.getThemes()
-	const theme = themeId === 'dark' ? themes.dark : themes.light
+	const colorMode = (themeId === 'dark' ? 'dark' : 'light') as 'light' | 'dark'
+	const definition = editor.getThemeDefinition(editor.getActiveThemeName())!
+	const theme = resolveTheme(definition, colorMode)
 
 	const stateAtom = useAtom<{
 		defsById: Record<

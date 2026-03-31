@@ -51,7 +51,7 @@ import {
 	TLStore,
 	TLStoreSnapshot,
 	TLTheme,
-	TLThemes,
+	TLThemeDefinition,
 	TLUser,
 	TLUserId,
 	TLVideoAsset,
@@ -276,9 +276,15 @@ export interface TLEditorOptions {
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 	/**
-	 * Custom light and dark themes for the editor.
+	 * Named theme definitions for the editor. Each theme contains shared
+	 * properties (font size, line height, stroke width) and color palettes
+	 * for both light and dark modes.
 	 */
-	themes?: Partial<TLThemes>
+	themeDefinitions?: Record<string, TLThemeDefinition>
+	/**
+	 * The name of the initially active theme. Defaults to `'default'`.
+	 */
+	activeTheme?: string
 }
 
 /**
@@ -321,7 +327,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		getShapeVisibility,
 		inferDarkMode,
 		fontAssetUrls,
-		themes,
+		themeDefinitions,
+		activeTheme,
 	}: TLEditorOptions) {
 		super()
 
@@ -366,7 +373,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.textMeasure = new TextManager(this)
 		this.disposables.add(() => this.textMeasure.dispose())
 
-		this._themeManager = new ThemeManager(this, themes)
+		this._themeManager = new ThemeManager(this, {
+			definitions: themeDefinitions,
+			activeTheme,
+		})
 		this.disposables.add(() => this._themeManager.dispose())
 
 		this._tickManager = new TickManager(this)
@@ -979,41 +989,76 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly _themeManager: ThemeManager
 
 	/**
-	 * Get the light and dark themes.
+	 * Get the current color mode (`'light'` or `'dark'`), based on the user's dark mode preference.
 	 *
 	 * @public
 	 */
-	getThemes(): TLThemes {
-		return this._themeManager.getThemes()
+	getColorMode(): 'light' | 'dark' {
+		return this._themeManager.getColorMode()
 	}
 
 	/**
-	 * Customize the light theme, the dark theme, or both.
-	 *
-	 * @param themes - Partial map of themes to merge.
+	 * Get the name of the active theme.
 	 *
 	 * @public
 	 */
-	updateThemes(themes: Partial<TLThemes>): void {
-		this._themeManager.updateThemes(themes)
+	getActiveThemeName(): string {
+		return this._themeManager.getActiveThemeName()
 	}
 
 	/**
-	 * Get the current theme based on the user's dark mode preference.
+	 * Set the active theme by name. The theme must have been previously registered
+	 * via {@link Editor.setThemeDefinition}.
+	 *
+	 * @public
+	 */
+	setActiveThemeName(name: string): void {
+		this._themeManager.setActiveThemeName(name)
+	}
+
+	/**
+	 * Get all registered theme definitions.
+	 *
+	 * @public
+	 */
+	getThemeDefinitions(): Record<string, TLThemeDefinition> {
+		return this._themeManager.getThemeDefinitions()
+	}
+
+	/**
+	 * Get a single theme definition by name.
+	 *
+	 * @public
+	 */
+	getThemeDefinition(name: string): TLThemeDefinition | undefined {
+		return this._themeManager.getThemeDefinition(name)
+	}
+
+	/**
+	 * Register or update a named theme definition.
+	 *
+	 * @public
+	 */
+	setThemeDefinition(name: string, definition: TLThemeDefinition): void {
+		this._themeManager.setThemeDefinition(name, definition)
+	}
+
+	/**
+	 * Remove a named theme definition. Cannot remove the `'default'` theme.
+	 *
+	 * @public
+	 */
+	removeThemeDefinition(name: string): void {
+		this._themeManager.removeThemeDefinition(name)
+	}
+
+	/**
+	 * Get the resolved current theme, based on the active theme and color mode.
 	 *
 	 * @public
 	 */
 	getCurrentTheme(): TLTheme {
 		return this._themeManager.getCurrentTheme()
-	}
-
-	/**
-	 * Get the current theme ID (`'light'` or `'dark'`).
-	 *
-	 * @public
-	 */
-	getCurrentThemeId(): 'light' | 'dark' {
-		return this._themeManager.getCurrentThemeId()
 	}
 
 	/**

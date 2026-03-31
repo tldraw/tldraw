@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLTheme } from '@tldraw/editor'
+import { Editor, TLShape, TLTheme, resolveTheme } from '@tldraw/editor'
 
 /** @public */
 export interface ShapeOptionsWithDisplayValues<
@@ -19,15 +19,16 @@ const dvCache = new WeakMap<TLShape, { theme: TLTheme; values: object }>()
 export function getDisplayValues<Shape extends TLShape, DisplayValues extends object>(
 	util: { editor: Editor; options: ShapeOptionsWithDisplayValues<Shape, DisplayValues> },
 	shape: Shape,
-	themeId?: string
+	colorMode?: string
 ): DisplayValues {
-	const themes = util.editor.getThemes()
-	const theme =
-		themeId === 'dark'
-			? themes.dark
-			: themeId === 'light'
-				? themes.light
-				: util.editor.getCurrentTheme()
+	let theme: TLTheme
+	if (colorMode) {
+		const mode = colorMode === 'dark' ? 'dark' : 'light'
+		const definition = util.editor.getThemeDefinition(util.editor.getActiveThemeName())!
+		theme = resolveTheme(definition, mode)
+	} else {
+		theme = util.editor.getCurrentTheme()
+	}
 	const cached = dvCache.get(shape)
 	if (cached && cached.theme === theme) return cached.values as DisplayValues
 	const values = {

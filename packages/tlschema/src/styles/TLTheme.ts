@@ -74,8 +74,8 @@ export interface TLThemeColors {
 }
 
 /**
- * A theme definition containing a single color palette.
- * Light and dark modes are separate top-level themes rather than nested within one theme.
+ * A resolved theme — the flat, ready-to-use object that consumers read at runtime.
+ * Produced by resolving a {@link TLThemeDefinition} for a specific color mode.
  *
  * @public
  */
@@ -91,11 +91,32 @@ export interface TLTheme {
 }
 
 /**
- * The light and dark themes used by the editor.
+ * A theme definition containing shared properties and color palettes for
+ * both light and dark modes.
+ *
+ * @example
+ * ```ts
+ * const myTheme: TLThemeDefinition = {
+ *   fontSize: 18,
+ *   colors: {
+ *     light: { ... },
+ *     dark: { ... },
+ *   },
+ * }
+ * editor.setThemeDefinition('custom', myTheme)
+ * ```
  *
  * @public
  */
-export interface TLThemes {
-	light: TLTheme
-	dark: TLTheme
+export interface TLThemeDefinition {
+	/** Base font size in pixels. Shape font sizes are derived by multiplying this value. @defaultValue 16 */
+	fontSize?: number
+	/** Base line height multiplier. @defaultValue 1.35 */
+	lineHeight?: number
+	/** Base stroke width in pixels. Shape stroke widths are derived by multiplying this value. @defaultValue 2 */
+	strokeWidth?: number
+	colors: {
+		light: TLThemeColors
+		dark: TLThemeColors
+	}
 }

@@ -1,62 +1,99 @@
 import { atom, computed } from '@tldraw/state'
-import { TLTheme, TLThemes } from '@tldraw/tlschema'
+import { TLTheme, TLThemeDefinition } from '@tldraw/tlschema'
 import type { Editor } from '../../Editor'
-import { DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME } from './defaultThemes'
-
-function buildDefaultThemes(): TLThemes {
-	return {
-		light: DEFAULT_LIGHT_THEME,
-		dark: DEFAULT_DARK_THEME,
-	}
-}
+import { DEFAULT_THEME, resolveTheme } from './defaultThemes'
 
 /**
- * Manages the editor's light and dark color themes.
+ * Manages the editor's color themes.
  *
- * The active theme is determined by the user's dark mode preference.
- * Both themes can be customized via {@link ThemeManager.updateThemes}.
+ * Stores named theme definitions (each containing light and dark color palettes
+ * alongside shared properties like font size). The active theme is resolved by
+ * combining the active theme name with the user's color mode preference.
  *
  * @public
  */
 export class ThemeManager {
-	private readonly _themes: ReturnType<typeof atom<TLThemes>>
+	private readonly _definitions: ReturnType<typeof atom<Record<string, TLThemeDefinition>>>
+	private readonly _activeThemeName: ReturnType<typeof atom<string>>
 
 	constructor(
 		private readonly editor: Editor,
-		themes?: Partial<TLThemes>
+		options?: {
+			definitions?: Record<string, TLThemeDefinition>
+			activeTheme?: string
+		}
 	) {
-		const defaultThemes = buildDefaultThemes()
-		this._themes = atom('ThemeManager._themes', {
-			light: themes?.light ?? defaultThemes.light,
-			dark: themes?.dark ?? defaultThemes.dark,
+		this._definitions = atom('ThemeManager._definitions', {
+			default: DEFAULT_THEME,
+			...options?.definitions,
 		})
+		this._activeThemeName = atom('ThemeManager._activeThemeName', options?.activeTheme ?? 'default')
 	}
 
-	/** Get the light and dark themes. */
-	getThemes(): TLThemes {
-		return this._themes.get()
-	}
-
-	/** Customize the light theme, the dark theme, or both. */
-	updateThemes(themes: Partial<TLThemes>): void {
-		this._themes.update((prev) => ({
-			light: themes.light ?? prev.light,
-			dark: themes.dark ?? prev.dark,
-		}))
-	}
-
-	/**
-	 * Get the current theme ID (`'light'` or `'dark'`), based on the user's dark mode preference.
-	 */
-	@computed getCurrentThemeId(): 'light' | 'dark' {
+	/** Get the current color mode based on the user's dark mode preference. */
+	@computed getColorMode(): 'light' | 'dark' {
 		return this.editor.user.getIsDarkMode() ? 'dark' : 'light'
 	}
 
+	/** Get the name of the active theme. */
+	getActiveThemeName(): string {
+		return this._activeThemeName.get()
+	}
+
+	/** Set the active theme by name. The theme must have been previously registered. */
+	setActiveThemeName(name: string): void {
+		if (process.env.NODE_ENV !== 'production') {
+			if (!(name in this._definitions.get())) {
+				console.warn(
+					`Theme '${name}' not found. Available themes: ${Object.keys(this._definitions.get()).join(', ')}`
+				)
+			}
+		}
+		this._activeThemeName.set(name)
+	}
+
+	/** Get all registered theme definitions. */
+	getThemeDefinitions(): Record<string, TLThemeDefinition> {
+		return this._definitions.get()
+	}
+
+	/** Get a single theme definition by name. */
+	getThemeDefinition(name: string): TLThemeDefinition | undefined {
+		return this._definitions.get()[name]
+	}
+
+	/** Register or update a named theme definition. */
+	setThemeDefinition(name: string, definition: TLThemeDefinition): void {
+		this._definitions.update((prev) => ({ ...prev, [name]: definition }))
+	}
+
+	/** Remove a named theme definition. Cannot remove the 'default' theme. */
+	removeThemeDefinition(name: string): void {
+		if (name === 'default') {
+			if (process.env.NODE_ENV !== 'production') {
+				console.warn("Cannot remove the 'default' theme.")
+			}
+			return
+		}
+		this._definitions.update((prev) => {
+			const next = { ...prev }
+			delete next[name]
+			return next
+		})
+		// If the removed theme was active, fall back to 'default'
+		if (this._activeThemeName.get() === name) {
+			this._activeThemeName.set('default')
+		}
+	}
+
 	/**
-	 * Get the resolved current theme object, based on the user's dark mode preference.
+	 * Get the resolved current theme object, based on the active theme name and color mode.
 	 */
 	@computed getCurrentTheme(): TLTheme {
-		return this._themes.get()[this.getCurrentThemeId()]
+		const name = this._activeThemeName.get()
+		const definitions = this._definitions.get()
+		const definition = definitions[name] ?? definitions['default']
+		return resolveTheme(definition, this.getColorMode())
 	}
 
 	/** Clean up any resources held by the manager. */

@@ -24,7 +24,7 @@ import {
 	lerp,
 	resizeBox,
 	toDomPrecision,
-	useCurrentThemeId,
+	useColorMode,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
@@ -243,8 +243,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override component(shape: TLFrameShape) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const themeId = useCurrentThemeId()
-		const dv = getDisplayValues(this, shape, themeId)
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isCreating = useValue(

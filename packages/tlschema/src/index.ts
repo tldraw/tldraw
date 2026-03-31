@@ -291,7 +291,7 @@ export {
 export { EnumStyleProp, StyleProp, type StylePropValue } from './styles/StyleProp'
 export {
 	DefaultColorStyle,
-	registerColorsFromThemes,
+	registerColorsFromThemeDefinitions,
 	type TLDefaultColorStyle,
 } from './styles/TLColorStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
@@ -311,7 +311,7 @@ export {
 	type TLDefaultColor,
 	type TLTheme,
 	type TLThemeColors,
-	type TLThemes,
+	type TLThemeDefinition,
 } from './styles/TLTheme'
 export {
 	DefaultVerticalAlignStyle,

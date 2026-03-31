@@ -8,7 +8,7 @@ import {
 	releasePointerCapture,
 	setPointerCapture,
 	useContainer,
-	useCurrentThemeId,
+	useColorMode,
 	useEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
@@ -190,7 +190,7 @@ export function DefaultMinimap() {
 		[editor]
 	)
 
-	const themeId = useCurrentThemeId()
+	const colorMode = useColorMode()
 
 	React.useEffect(() => {
 		// need to wait a tick for next theme css to be applied
@@ -199,7 +199,7 @@ export function DefaultMinimap() {
 			minimapRef.current?.updateColors()
 			minimapRef.current?.render()
 		})
-	}, [themeId, editor])
+	}, [colorMode, editor])
 
 	return (
 		<div className="tlui-minimap">

@@ -9,18 +9,18 @@ keywords:
   - dark mode
   - light mode
   - TLTheme
-  - TLThemes
+  - TLThemeDefinition
   - TLThemeColors
   - ThemeManager
   - getCurrentTheme
-  - getCurrentThemeId
-  - updateThemes
-  - useCurrentThemeId
+  - getColorMode
+  - setThemeDefinition
+  - useColorMode
 status: published
 date: 3/7/2026
 ---
 
-Themes control the color palette used to render shapes in tldraw. Light and dark modes are separate top-level themes, and the editor automatically selects the right one based on the user's color scheme preference.
+Themes control the color palette used to render shapes in tldraw. A theme definition bundles color palettes for both light and dark modes alongside shared properties like font size and stroke width. The editor automatically selects the right color mode based on the user's preference.
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -30,19 +30,20 @@ export default function App() {
 	return (
 		<Tldraw
 			onMount={(editor) => {
-				// Read the current theme
+				// Read the current resolved theme
 				const theme = editor.getCurrentTheme()
 				console.log(theme.colors.red.solid) // e.g. '#e03131'
 
-				// Customize the light theme
-				const lightTheme = editor.getThemes()['light']
-				editor.updateThemes({
-					light: {
-						...lightTheme,
-						colors: {
-							...lightTheme.colors,
+				// Customize the default theme's light colors
+				const def = editor.getThemeDefinition('default')!
+				editor.setThemeDefinition('default', {
+					...def,
+					colors: {
+						...def.colors,
+						light: {
+							...def.colors.light,
 							black: {
-								...lightTheme.colors.black,
+								...def.colors.light.black,
 								solid: 'navy',
 							},
 						},
@@ -56,16 +57,17 @@ export default function App() {
 
 ## Theme structure
 
-A theme is a [TLTheme](?) object with an `id`, a `colors` palette, and base `fontSize`, `lineHeight`, and `strokeWidth` values. Light and dark modes are separate themes:
+A theme definition is a [TLThemeDefinition](?) object with color palettes for both light and dark modes, plus shared `fontSize`, `lineHeight`, and `strokeWidth` values:
 
 ```typescript
-const myThemes: TLThemes = {
-	light: {
-		id: 'light',
-		fontSize: 16,
-		lineHeight: 1.35,
-		strokeWidth: 2,
-		colors: {
+import { DEFAULT_THEME, TLThemeDefinition } from 'tldraw'
+
+const myTheme: TLThemeDefinition = {
+	fontSize: 16,
+	lineHeight: 1.35,
+	strokeWidth: 2,
+	colors: {
+		light: {
 			text: '#000000',
 			background: '#f8f8f8',
 			solid: '#fcfcfc',
@@ -89,34 +91,18 @@ const myThemes: TLThemes = {
 			},
 			blue: {
 				solid: '#4263eb',
-				semi: '#dce1f8',
-				pattern: '#6681ee',
-				fill: '#4263eb',
-				linedFill: '#dce1f8',
-				frameHeadingStroke: '#4263eb',
-				frameHeadingFill: '#f0f2fd',
-				frameStroke: '#c5cdf3',
-				frameFill: '#f5f7fe',
-				frameText: '#4263eb',
-				noteFill: '#4263eb',
-				noteText: '#ffffff',
-				highlightSrgb: '#10acff',
-				highlightP3: 'color(display-p3 0.308 0.6632 0.9996)',
+				// ... other variants
 			},
 			// ... other colors
 		},
-	},
-	dark: {
-		id: 'dark',
-		fontSize: 16,
-		lineHeight: 1.35,
-		strokeWidth: 2,
-		colors: {
+		dark: {
 			// ... dark mode equivalents
 		},
 	},
 }
 ```
+
+At runtime, the editor resolves a definition into a flat [TLTheme](?) by combining the shared properties with the color palette for the current color mode. Consumers always get a `TLTheme` with a single `colors` object.
 
 Each color in the palette is a [TLDefaultColor](?) with variants for different contexts:
 
@@ -139,11 +125,11 @@ Each color in the palette is a [TLDefaultColor](?) with variants for different c
 
 The palette also includes five base properties: `text` for default text color, `background` for the canvas background, `solid` for the default solid surface color, `cursor` for the cursor color, and `noteBorder` for note shape borders.
 
-In addition to colors, each theme has a `fontSize` (default `16`), `lineHeight` (default `1.35`), and `strokeWidth` (default `2`). All default shape font sizes are derived by multiplying the base `fontSize` by a per-shape-type multiplier, and stroke widths work the same way with `strokeWidth`, so changing these base values scales text and strokes proportionally.
+In addition to colors, each theme has a `fontSize` (default `16`), `lineHeight` (default `1.35`), and `strokeWidth` (default `2`). All default shape font sizes are derived by multiplying the base `fontSize` by a per-shape-type multiplier, and stroke widths work the same way with `strokeWidth`, so changing these base values scales text and strokes proportionally. Because these are shared across light and dark modes, you only set them once per theme definition.
 
 ## Reading the current theme
 
-Use [Editor#getCurrentTheme](?) to get the active theme. This is reactive: components that read it will re-render when the theme changes.
+Use [Editor#getCurrentTheme](?) to get the resolved theme. This is reactive: components that read it will re-render when the theme changes.
 
 ```tsx
 function MyComponent() {
@@ -174,18 +160,12 @@ const theme = editor.getCurrentTheme()
 const color = getColorValue(theme, 'red', 'solid') // '#e03131'
 ```
 
-## Switching themes
+## Color mode
 
-The editor selects the `'light'` or `'dark'` theme based on the user's color scheme preference. Use [Editor#getCurrentThemeId](?) to get the active theme ID:
+The editor selects `'light'` or `'dark'` colors based on the user's color scheme preference. Use [Editor#getColorMode](?) to get the current mode:
 
 ```typescript
-const themeId = editor.getCurrentThemeId() // 'light' or 'dark'
-```
-
-You can set the theme via the `theme` prop on [Tldraw](?) or [TldrawEditor](?):
-
-```tsx
-<Tldraw theme="dark" />
+const colorMode = editor.getColorMode() // 'light' or 'dark'
 ```
 
 To change the color scheme preference at runtime, update user preferences:
@@ -196,28 +176,29 @@ editor.user.updateUserPreferences({ colorScheme: 'dark' })
 
 See [User preferences](/sdk-features/user-preferences) for more on color scheme settings.
 
-The [useCurrentThemeId](?) hook provides a reactive theme ID for use in React components:
+The [useColorMode](?) hook provides a reactive color mode for use in React components:
 
 ```tsx
 function MyComponent() {
-	const themeId = useCurrentThemeId() // reactive, re-renders on change
-	return <div>Current theme: {themeId}</div>
+	const colorMode = useColorMode() // reactive, re-renders on change
+	return <div>Current mode: {colorMode}</div>
 }
 ```
 
 ## Customizing colors
 
-Use [Editor#updateThemes](?) to override specific colors in a theme:
+Use [Editor#setThemeDefinition](?) to override specific colors in a theme:
 
 ```typescript
-const lightTheme = editor.getThemes()['light']
-editor.updateThemes({
-	light: {
-		...lightTheme,
-		colors: {
-			...lightTheme.colors,
+const def = editor.getThemeDefinition('default')!
+editor.setThemeDefinition('default', {
+	...def,
+	colors: {
+		...def.colors,
+		light: {
+			...def.colors.light,
 			black: {
-				...lightTheme.colors.black,
+				...def.colors.light.black,
 				solid: 'navy',
 			},
 		},
@@ -225,40 +206,27 @@ editor.updateThemes({
 })
 ```
 
-You can also pass themes as a prop on the [Tldraw](?) or [TldrawEditor](?) component. The prop is reactive: when it changes, the editor's themes update automatically.
+You can also pass theme definitions as a prop on the [Tldraw](?) or [TldrawEditor](?) component. The prop is reactive: when it changes, the editor's themes update automatically.
 
 ```tsx
-const myThemes: TLThemes = {
-	light: {
-		id: 'light',
+const themeDefinitions: Record<string, TLThemeDefinition> = {
+	default: {
 		fontSize: 16,
 		lineHeight: 1.35,
 		strokeWidth: 2,
-		colors: { /* ... */ },
-	},
-	dark: {
-		id: 'dark',
-		fontSize: 16,
-		lineHeight: 1.35,
-		strokeWidth: 2,
-		colors: { /* ... */ },
-	},
-	// You can also add custom themes with any name:
-	'company-brand': {
-		id: 'company-brand',
-		fontSize: 16,
-		lineHeight: 1.35,
-		strokeWidth: 2,
-		colors: { /* ... */ },
+		colors: {
+			light: { /* ... */ },
+			dark: { /* ... */ },
+		},
 	},
 }
 
-<Tldraw themes={myThemes} />
+<Tldraw themeDefinitions={themeDefinitions} />
 ```
 
 ## Adding custom colors
 
-You can add new colors beyond the built-in palette. Extend the [TLThemeColors](?) interface with module augmentation and include the color in your themes:
+You can add new colors beyond the built-in palette. Extend the [TLThemeColors](?) interface with module augmentation and include the color in your theme definitions:
 
 ```typescript
 import { TLDefaultColor } from 'tldraw'
@@ -271,62 +239,49 @@ declare module 'tldraw' {
 ```
 
 ```tsx
-const themes: TLThemes = {
-	light: {
-		...DEFAULT_LIGHT_THEME,
+import { DEFAULT_THEME, TLThemeDefinition } from 'tldraw'
+
+const themeDefinitions: Record<string, TLThemeDefinition> = {
+	default: {
+		...DEFAULT_THEME,
 		colors: {
-			...DEFAULT_LIGHT_THEME.colors,
-			pink: {
-				solid: '#e91e8c',
-				semi: '#fce4f2',
-				pattern: '#f06baf',
-				fill: '#e91e8c',
-				linedFill: '#fce4f2',
-				frameHeadingStroke: '#e91e8c',
-				frameHeadingFill: '#fce4f2',
-				frameStroke: '#e91e8c',
-				frameFill: '#fce4f2',
-				frameText: '#e91e8c',
-				noteFill: '#fce4f2',
-				noteText: '#e91e8c',
-				highlightSrgb: '#e91e8c',
-				highlightP3: '#e91e8c',
+			light: {
+				...DEFAULT_THEME.colors.light,
+				pink: {
+					solid: '#e91e8c',
+					semi: '#fce4f2',
+					pattern: '#f06baf',
+					fill: '#e91e8c',
+					linedFill: '#fce4f2',
+					frameHeadingStroke: '#e91e8c',
+					frameHeadingFill: '#fce4f2',
+					frameStroke: '#e91e8c',
+					frameFill: '#fce4f2',
+					frameText: '#e91e8c',
+					noteFill: '#fce4f2',
+					noteText: '#e91e8c',
+					highlightSrgb: '#e91e8c',
+					highlightP3: '#e91e8c',
+				},
 			},
-		},
-	},
-	dark: {
-		...DEFAULT_DARK_THEME,
-		colors: {
-			...DEFAULT_DARK_THEME.colors,
-			pink: {
-				solid: '#f06baf',
-				semi: '#3d1a2e',
-				// ... other variants
+			dark: {
+				...DEFAULT_THEME.colors.dark,
+				pink: {
+					solid: '#f06baf',
+					semi: '#3d1a2e',
+					// ... other variants
+				},
 			},
 		},
 	},
 }
 
-<Tldraw themes={themes} />
+<Tldraw themeDefinitions={themeDefinitions} />
 ```
 
-tldraw validates shape properties (including colors) when data enters the store, for example when loading from IndexedDB or syncing from a server. Passing `themes` tells tldraw about your custom colors _before_ data is loaded, so they pass validation. When creating a store yourself, pass `themes` there too, and still pass `themes` to `<Tldraw>` so the editor knows how to render them:
+tldraw validates shape properties (including colors) when data enters the store, for example when loading from IndexedDB or syncing from a server. Passing `themeDefinitions` tells tldraw about your custom colors _before_ data is loaded, so they pass validation.
 
-**Direct store creation:**
-
-```tsx
-const store = createTLStore({ themes })
-<Tldraw store={store} themes={themes} />
-```
-
-**Multiplayer:**
-
-```tsx
-const store = useSync({ uri: '...', assets: myAssets, themes })
-<Tldraw store={store} themes={themes} />
-```
-
-Every theme should include an entry for every custom color. If a shape uses a color that doesn't exist in the active theme, it won't render correctly.
+Every theme should include an entry for every custom color in both light and dark palettes. If a shape uses a color that doesn't exist in the active theme, it won't render correctly.
 
 See the [Custom theme](/examples/ui/custom-theme) example for a complete demo.
 
@@ -348,29 +303,30 @@ const CustomGeoShapeUtil = GeoShapeUtil.configure({
 })
 ```
 
-Frame, note, and highlight shapes read their colors from the theme's color palette. To customize them, override the relevant color variants in your theme:
+Frame, note, and highlight shapes read their colors from the theme's color palette. To customize them, override the relevant color variants in your theme definition:
 
 ```typescript
-import { DEFAULT_LIGHT_THEME, DEFAULT_DARK_THEME } from 'tldraw'
+import { DEFAULT_THEME, TLThemeDefinition } from 'tldraw'
 
-const myThemes = {
-	light: {
-		...DEFAULT_LIGHT_THEME,
-		colors: {
-			...DEFAULT_LIGHT_THEME.colors,
+const myTheme: TLThemeDefinition = {
+	...DEFAULT_THEME,
+	colors: {
+		light: {
+			...DEFAULT_THEME.colors.light,
 			noteBorder: '#A5D6A7',
 			black: {
-				...DEFAULT_LIGHT_THEME.colors.black,
+				...DEFAULT_THEME.colors.light.black,
 				noteFill: '#E8F5E9', // green-tinted notes
 				noteText: '#1B5E20',
 			},
 			blue: {
-				...DEFAULT_LIGHT_THEME.colors.blue,
+				...DEFAULT_THEME.colors.light.blue,
 				noteFill: '#E3F2FD',
 				noteText: '#0D47A1',
 			},
 			// ... other colors
 		},
+		dark: DEFAULT_THEME.colors.dark,
 	},
 }
 ```
@@ -396,15 +352,19 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 
 ## Editor API reference
 
-| Method                        | Description                                                 |
-| ----------------------------- | ----------------------------------------------------------- |
-| [Editor#getCurrentTheme](?)   | Get the current theme object (with `id` and `colors`)       |
-| [Editor#getCurrentThemeId](?) | Get the ID of the active theme (e.g. `'light'` or `'dark'`) |
-| [Editor#getThemes](?)         | Get all registered themes                                   |
-| [Editor#updateThemes](?)      | Replace registered themes (shallow spread, not deep-merged) |
+| Method                            | Description                                       |
+| --------------------------------- | ------------------------------------------------- |
+| [Editor#getCurrentTheme](?)       | Get the resolved theme (colors for current mode)  |
+| [Editor#getColorMode](?)          | Get the active color mode (`'light'` or `'dark'`) |
+| [Editor#getThemeDefinitions](?)   | Get all registered theme definitions              |
+| [Editor#getThemeDefinition](?)    | Get a theme definition by name                    |
+| [Editor#setThemeDefinition](?)    | Register or update a named theme definition       |
+| [Editor#removeThemeDefinition](?) | Remove a named theme definition                   |
+| [Editor#getActiveThemeName](?)    | Get the name of the active theme                  |
+| [Editor#setActiveThemeName](?)    | Set the active theme by name                      |
 
 ## Related examples
 
-- [Custom theme](/examples/ui/custom-theme) - Add a custom color, create multiple named themes, and adjust theme values with sliders.
-- [Changing default colors](/examples/ui/changing-default-colors) - Customize the light theme's color palette using `editor.updateThemes()`.
+- [Custom theme](/examples/ui/custom-theme) - Add a custom color, and adjust theme values with sliders.
+- [Changing default colors](/examples/ui/changing-default-colors) - Customize the default theme's color palette.
 - [Display options](/examples/configuration/display-options) - Override how built-in shapes render using `getDisplayValueOverrides`.

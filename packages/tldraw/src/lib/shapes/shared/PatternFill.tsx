@@ -1,4 +1,4 @@
-import { useCurrentThemeId, useEditor, useSvgExportContext, useValue } from '@tldraw/editor'
+import { useColorMode, useEditor, useSvgExportContext, useValue } from '@tldraw/editor'
 import { useGetHashPatternZoomName } from './defaultStyleDefs'
 
 export function PatternFill({
@@ -13,7 +13,7 @@ export function PatternFill({
 	const editor = useEditor()
 	const svgExport = useSvgExportContext()
 	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
-	const themeId = useCurrentThemeId()
+	const colorMode = useColorMode()
 	const getHashPatternZoomName = useGetHashPatternZoomName()
 	const teenyTiny = zoomLevel <= 0.18
 
@@ -23,10 +23,10 @@ export function PatternFill({
 			<path
 				fill={
 					svgExport
-						? `url(#${getHashPatternZoomName(1, themeId)})`
+						? `url(#${getHashPatternZoomName(1, colorMode)})`
 						: teenyTiny
 							? patternFillFallbackColor
-							: `url(#${getHashPatternZoomName(zoomLevel, themeId)})`
+							: `url(#${getHashPatternZoomName(zoomLevel, colorMode)})`
 				}
 				d={d}
 			/>
