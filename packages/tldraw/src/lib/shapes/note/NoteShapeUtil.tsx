@@ -602,7 +602,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		const unadjustedFontSize = dv.labelFontSize
 
-		let fontSizeAdjustment = 0
+		let fontSizeAdjustment = unadjustedFontSize
 		let iterations = 0
 		let labelHeight = dv.noteHeight
 		let labelWidth = dv.noteWidth

@@ -3,7 +3,6 @@ import { useSvgExportContext } from '../editor/types/SvgExportContext'
 import { useEditor } from './useEditor'
 
 /** @public */
-/** @public */
 export function useCurrentThemeId(): string {
 	const editor = useEditor()
 	const exportContext = useSvgExportContext()

@@ -85,11 +85,7 @@ import { TLClipboardWriteInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorStyle } from '@tldraw/tlschema';
-import { TLDefaultFillStyle } from '@tldraw/editor';
-import { TLDefaultFontStyle } from '@tldraw/editor';
-import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
-import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
 import { TLDragShapesOutInfo } from '@tldraw/editor';
 import { TLDragShapesOverInfo } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
@@ -2726,15 +2722,11 @@ export const PlainTextLabel: React_3.NamedExoticComponent<PlainTextLabelProps>;
 // @public (undocumented)
 export interface PlainTextLabelProps {
     // (undocumented)
-    align: TLDefaultHorizontalAlignStyle;
-    // (undocumented)
     bounds?: Box;
     // (undocumented)
     classNamePrefix?: string;
     // (undocumented)
-    fill?: TLDefaultFillStyle;
-    // (undocumented)
-    font: TLDefaultFontStyle;
+    fontFamily: string;
     // (undocumented)
     fontSize: number;
     // (undocumented)
@@ -2756,6 +2748,8 @@ export interface PlainTextLabelProps {
     // (undocumented)
     text?: string;
     // (undocumented)
+    textAlign: 'center' | 'end' | 'start';
+    // (undocumented)
     textHeight?: number;
     // (undocumented)
     textWidth?: number;
@@ -2764,7 +2758,7 @@ export interface PlainTextLabelProps {
         text: string;
     }>['type'];
     // (undocumented)
-    verticalAlign: TLDefaultVerticalAlignStyle;
+    verticalAlign: 'end' | 'middle' | 'start';
     // (undocumented)
     wrap?: boolean;
 }
