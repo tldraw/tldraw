@@ -194,8 +194,8 @@ function usePattern() {
 		}
 
 		const themes = editor.getThemes()
-		const lightSolid = (themes['light'] ?? themes[Object.keys(themes)[0]]).colors.solid
-		const darkSolid = (themes['dark'] ?? themes[Object.keys(themes)[0]]).colors.solid
+		const lightSolid = themes.light.colors.solid
+		const darkSolid = themes.dark.colors.solid
 
 		const promise = Promise.all(
 			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [

@@ -82,24 +82,30 @@ describe('note shape colors', () => {
 		expect(dv.borderColor).toBe('rgb(144, 144, 144)')
 	})
 
-	it('falls back to theme colors for custom theme', () => {
-		// Add a custom theme that copies light theme colors
-		const lightTheme = editor.getThemes()['light']
+	it('uses customized theme colors', () => {
+		const lightTheme = editor.getThemes().light
 		editor.updateThemes({
-			'custom-brand': { ...lightTheme, id: 'custom-brand' },
+			light: {
+				...lightTheme,
+				colors: {
+					...lightTheme.colors,
+					red: {
+						...lightTheme.colors.red,
+						noteFill: '#CUSTOM_RED',
+					},
+				},
+			},
 		})
-		editor.setTheme('custom-brand')
 
 		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'red' } }])
 		const shape = editor.getShape<TLNoteShape>(noteId)!
 		const util = editor.getShapeUtil('note') as NoteShapeUtil
 		const dv = getDisplayValues(util, shape)
-		// Uses theme's red noteFill color
-		expect(dv.noteBackgroundColor).toBe('#FC8282')
+		expect(dv.noteBackgroundColor).toBe('#CUSTOM_RED')
 	})
 
 	it('can be customized via theme overrides', () => {
-		const lightTheme = editor.getThemes()['light']
+		const lightTheme = editor.getThemes().light
 		editor.updateThemes({
 			light: {
 				...lightTheme,
@@ -137,7 +143,7 @@ describe('frame shape colors', () => {
 	})
 
 	it('can be customized via theme overrides', () => {
-		const lightTheme = editor.getThemes()['light']
+		const lightTheme = editor.getThemes().light
 		editor.updateThemes({
 			light: {
 				...lightTheme,
@@ -180,7 +186,7 @@ describe('highlight shape colors', () => {
 	})
 
 	it('can be customized via theme overrides', () => {
-		const lightTheme = editor.getThemes()['light']
+		const lightTheme = editor.getThemes().light
 		editor.updateThemes({
 			light: {
 				...lightTheme,
@@ -330,7 +336,7 @@ describe('theme changes flow to shapes', () => {
 		const originalBg = dv1.noteBackgroundColor
 
 		// Update the light theme's fontSize (which affects label size)
-		const lightTheme = editor.getThemes()['light']
+		const lightTheme = editor.getThemes().light
 		editor.updateThemes({
 			light: { ...lightTheme, fontSize: 24 },
 		})

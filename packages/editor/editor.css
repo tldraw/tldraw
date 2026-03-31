@@ -625,37 +625,6 @@ input,
 	overflow-wrap: break-word;
 }
 
-.tl-text-wrapper[data-font='draw'] {
-	font-family: var(--tl-font-draw);
-}
-
-.tl-text-wrapper[data-font='sans'] {
-	font-family: var(--tl-font-sans);
-}
-
-.tl-text-wrapper[data-font='serif'] {
-	font-family: var(--tl-font-serif);
-}
-
-.tl-text-wrapper[data-font='mono'] {
-	font-family: var(--tl-font-mono);
-}
-
-.tl-text-wrapper[data-align='start'],
-.tl-text-wrapper[data-align='start-legacy'] {
-	text-align: left;
-}
-
-.tl-text-wrapper[data-align='middle'],
-.tl-text-wrapper[data-align='middle-legacy'] {
-	text-align: center;
-}
-
-.tl-text-wrapper[data-align='end'],
-.tl-text-wrapper[data-align='end-legacy'] {
-	text-align: right;
-}
-
 .tl-plain-text-wrapper[data-isediting='true'] .tl-text-content {
 	opacity: 0;
 }

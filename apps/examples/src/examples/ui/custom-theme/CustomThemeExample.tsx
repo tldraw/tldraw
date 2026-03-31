@@ -3,15 +3,10 @@ import {
 	DEFAULT_DARK_THEME,
 	DEFAULT_LIGHT_THEME,
 	TLDefaultColor,
+	TLThemes,
 	Tldraw,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
-	TldrawUiSelect,
-	TldrawUiSelectContent,
-	TldrawUiSelectItem,
-	TldrawUiSelectTrigger,
-	TldrawUiSelectValue,
-	TLThemes,
 	toRichText,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -51,53 +46,7 @@ function makeColor(solid: string, semi: string, pattern: string): TLDefaultColor
 const pinkLight = makeColor('#e91e8c', '#fce4f2', '#f06baf')
 const pinkDark = makeColor('#f06baf', '#3d1a2e', '#e91e8c')
 
-const baseThemes: TLThemes = {
-	light: {
-		...DEFAULT_LIGHT_THEME,
-		colors: { ...DEFAULT_LIGHT_THEME.colors, pink: pinkLight },
-	},
-	dark: {
-		...DEFAULT_DARK_THEME,
-		colors: { ...DEFAULT_DARK_THEME.colors, pink: pinkDark },
-	},
-	'my-brand': {
-		id: 'my-brand',
-		fontSize: DEFAULT_DARK_THEME.fontSize,
-		lineHeight: DEFAULT_DARK_THEME.lineHeight,
-		strokeWidth: DEFAULT_DARK_THEME.strokeWidth,
-		colors: {
-			...DEFAULT_DARK_THEME.colors,
-			pink: pinkDark,
-			background: '#1a1a2e',
-			solid: '#16213e',
-			text: '#e0e0e0',
-			cursor: '#e94560',
-			noteBorder: '#e94560',
-			black: {
-				...DEFAULT_DARK_THEME.colors.black,
-				solid: '#e0e0e0',
-				semi: '#2a2a4a',
-				pattern: '#b0b0cc',
-				noteFill: '#e94560',
-				noteText: '#ffffff',
-			},
-			blue: {
-				...DEFAULT_DARK_THEME.colors.blue,
-				solid: '#0f3460',
-				semi: '#1a1a3e',
-				pattern: '#1a5276',
-			},
-			red: {
-				...DEFAULT_DARK_THEME.colors.red,
-				solid: '#e94560',
-				semi: '#2e1a2e',
-				pattern: '#c0392b',
-			},
-		},
-	},
-}
-
-// [5] Defaults for the adjustable theme values
+// [3] Defaults for the adjustable theme values
 const DEFAULTS = {
 	fontSize: 16,
 	lineHeight: 1.35,
@@ -105,20 +54,26 @@ const DEFAULTS = {
 }
 
 export default function CustomThemeExample() {
-	const [themeId, setThemeId] = useState<string>('light')
 	const [fontSize, setFontSize] = useState(DEFAULTS.fontSize)
 	const [lineHeight, setLineHeight] = useState(DEFAULTS.lineHeight)
 	const [strokeWidth, setStrokeWidth] = useState(DEFAULTS.strokeWidth)
 
-	// [6] Merge slider overrides into every theme so the adjustment
-	// applies regardless of which theme is active.
+	// [4] Customize both light and dark themes: add the custom "pink"
+	// color and merge slider overrides so adjustments apply to both.
 	const themes = useMemo<TLThemes>(() => {
 		const overrides = { fontSize, lineHeight, strokeWidth }
-		const result: TLThemes = {}
-		for (const [id, theme] of Object.entries(baseThemes)) {
-			result[id] = { ...theme, ...overrides }
+		return {
+			light: {
+				...DEFAULT_LIGHT_THEME,
+				...overrides,
+				colors: { ...DEFAULT_LIGHT_THEME.colors, pink: pinkLight },
+			},
+			dark: {
+				...DEFAULT_DARK_THEME,
+				...overrides,
+				colors: { ...DEFAULT_DARK_THEME.colors, pink: pinkDark },
+			},
 		}
-		return result
 	}, [fontSize, lineHeight, strokeWidth])
 
 	return (
@@ -126,7 +81,6 @@ export default function CustomThemeExample() {
 			<Tldraw
 				persistenceKey="custom-theme-example"
 				themes={themes}
-				theme={themeId}
 				onMount={(editor) => {
 					if (editor.getCurrentPageShapeIds().size > 0) return
 
@@ -148,7 +102,7 @@ export default function CustomThemeExample() {
 							richText: toRichText('Hello'),
 						},
 					})
-					// [4] Use the custom "pink" color declared in our themes
+					// [5] Use the custom "pink" color declared in our themes
 					editor.createShape({
 						type: 'geo',
 						x: 600,
@@ -173,8 +127,6 @@ export default function CustomThemeExample() {
 				}}
 			>
 				<ThemeControls
-					themeId={themeId}
-					onThemeChange={setThemeId}
 					fontSize={fontSize}
 					onFontSizeChange={setFontSize}
 					lineHeight={lineHeight}
@@ -187,10 +139,8 @@ export default function CustomThemeExample() {
 	)
 }
 
-// [7] A collapsible panel with theme switcher buttons and value sliders.
+// [6] A panel with sliders to adjust theme values in real time.
 function ThemeControls({
-	themeId,
-	onThemeChange,
 	fontSize,
 	onFontSizeChange,
 	lineHeight,
@@ -198,8 +148,6 @@ function ThemeControls({
 	strokeWidth,
 	onStrokeWidthChange,
 }: {
-	themeId: string
-	onThemeChange(id: string): void
 	fontSize: number
 	onFontSizeChange(v: number): void
 	lineHeight: number
@@ -209,17 +157,6 @@ function ThemeControls({
 }) {
 	return (
 		<div className="tlui-menu custom-theme-toolbar" onPointerDown={(e) => e.stopPropagation()}>
-			<TldrawUiSelect id="theme-select" value={themeId} onValueChange={onThemeChange}>
-				<TldrawUiSelectTrigger>
-					<TldrawUiSelectValue placeholder="Theme...">{themeId}</TldrawUiSelectValue>
-				</TldrawUiSelectTrigger>
-				<TldrawUiSelectContent side="bottom" align="start">
-					<TldrawUiSelectItem value="light" label="Light" />
-					<TldrawUiSelectItem value="dark" label="Dark" />
-					<TldrawUiSelectItem value="my-brand" label="My brand" />
-				</TldrawUiSelectContent>
-			</TldrawUiSelect>
-
 			<ThemeSlider
 				label="Font size"
 				value={fontSize}
@@ -312,26 +249,24 @@ Define color entries for light and dark variants. Each theme that includes
 the custom color needs a full `TLDefaultColor` entry for it.
 
 [3]
-A simple theme switcher overlay. Clicking a button sets the active theme
-by ID. You could also call `editor.setTheme('my-brand')` imperatively.
-
-[4]
-Create a shape using the custom "pink" color. Because themes declare
-the color, it passes validation automatically.
-
-[5]
 Default values for the adjustable theme properties. These match the defaults
 in `DEFAULT_LIGHT_THEME` and `DEFAULT_DARK_THEME`.
 
-[6]
+[4]
 The `themes` object is recomputed whenever a slider changes. Because
 `Tldraw` accepts `themes` as a prop, updating the object triggers a
 reactive theme change — shapes immediately re-render with the new values.
+The active theme (light or dark) is determined by the user's color scheme
+preference, which can be toggled via the built-in dark mode shortcut.
 
-[7]
-A collapsible panel with sliders for `fontSize`, `lineHeight`, and
-`strokeWidth`. Adjusting these values lets you see in real time how
-theme values affect shape rendering. Try drawing some shapes with
-different sizes and then moving the stroke width slider!
+[5]
+Create a shape using the custom "pink" color. Because themes declare
+the color, it passes validation automatically.
+
+[6]
+A panel with sliders for `fontSize`, `lineHeight`, and `strokeWidth`.
+Adjusting these values lets you see in real time how theme values affect
+shape rendering. Try drawing some shapes with different sizes and then
+moving the stroke width slider!
 
 */
