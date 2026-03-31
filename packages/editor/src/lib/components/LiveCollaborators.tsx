@@ -11,6 +11,8 @@ import {
 	getCollaboratorStateFromElapsedTime,
 	shouldShowCollaborator,
 } from '../utils/collaboratorState'
+import { DefaultBrush } from './default-components/DefaultBrush'
+import { DefaultScribble } from './default-components/DefaultScribble'
 
 export const LiveCollaborators = track(function Collaborators() {
 	const peerIds = usePeerIds()
@@ -71,7 +73,7 @@ const Collaborator = track(function Collaborator({
 
 	return (
 		<>
-			{brush && CollaboratorBrush ? (
+			{brush && CollaboratorBrush && CollaboratorBrush !== DefaultBrush ? (
 				<CollaboratorBrush
 					className="tl-collaborator__brush"
 					key={userId + '_brush'}
@@ -103,7 +105,7 @@ const Collaborator = track(function Collaborator({
 					viewport={viewportPageBounds}
 				/>
 			) : null}
-			{CollaboratorScribble && scribbles.length ? (
+			{CollaboratorScribble && CollaboratorScribble !== DefaultScribble && scribbles.length ? (
 				<>
 					{scribbles.map((scribble) => (
 						<CollaboratorScribble

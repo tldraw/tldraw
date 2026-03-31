@@ -27,7 +27,11 @@ import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
 import { Shape } from '../Shape'
+import { CanvasOverlays } from './CanvasOverlays'
 import { CanvasShapeIndicators } from './CanvasShapeIndicators'
+import { DefaultBrush } from './DefaultBrush'
+import { DefaultScribble } from './DefaultScribble'
+import { DefaultSnapIndicator } from './DefaultSnapIndictor'
 
 /** @public */
 export interface TLCanvasComponentProps {
@@ -161,6 +165,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				</div>
 				<div className="tl-overlays">
 					<CanvasShapeIndicators />
+					<CanvasOverlays />
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}
 						<BrushWrapper />
@@ -215,7 +220,8 @@ function ScribbleWrapper() {
 	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
 	const { Scribble } = useEditorComponents()
 
-	if (!(Scribble && scribbles.length)) return null
+	if (!Scribble || Scribble === DefaultScribble) return null
+	if (!scribbles.length) return null
 
 	return scribbles.map((scribble) => (
 		<Scribble key={scribble.id} className="tl-user-scribble" scribble={scribble} zoom={zoomLevel} />
@@ -227,7 +233,8 @@ function BrushWrapper() {
 	const brush = useValue('brush', () => editor.getInstanceState().brush, [editor])
 	const { Brush } = useEditorComponents()
 
-	if (!(Brush && brush)) return null
+	if (!Brush || Brush === DefaultBrush) return null
+	if (!brush) return null
 
 	return <Brush className="tl-user-brush" brush={brush} />
 }
@@ -237,7 +244,8 @@ function ZoomBrushWrapper() {
 	const zoomBrush = useValue('zoomBrush', () => editor.getInstanceState().zoomBrush, [editor])
 	const { ZoomBrush } = useEditorComponents()
 
-	if (!(ZoomBrush && zoomBrush)) return null
+	if (!ZoomBrush || ZoomBrush === DefaultBrush) return null
+	if (!zoomBrush) return null
 
 	return <ZoomBrush className="tl-user-brush tl-zoom-brush" brush={zoomBrush} />
 }
@@ -248,7 +256,8 @@ function SnapIndicatorWrapper() {
 	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
 	const { SnapIndicator } = useEditorComponents()
 
-	if (!(SnapIndicator && lines.length > 0)) return null
+	if (!SnapIndicator || SnapIndicator === DefaultSnapIndicator) return null
+	if (lines.length === 0) return null
 
 	return lines.map((line) => (
 		<SnapIndicator key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />
