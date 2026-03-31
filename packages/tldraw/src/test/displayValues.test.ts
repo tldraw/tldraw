@@ -55,7 +55,7 @@ describe('note shape colors', () => {
 				light: {
 					...def.colors.light,
 					red: {
-						...def.colors.light.red,
+						...def.colors.light.red!,
 						noteFill: '#CUSTOM_RED',
 					},
 				},
@@ -77,6 +77,11 @@ describe('note shape colors', () => {
 				light: {
 					...def.colors.light,
 					noteBorder: '#MYBORDER',
+					black: {
+						...def.colors.light.black!,
+						noteFill: '#CUSTOM1',
+						noteText: '#CUSTOM2',
+					},
 				},
 			},
 		}))
@@ -107,7 +112,7 @@ describe('frame shape colors', () => {
 				light: {
 					...def.colors.light,
 					black: {
-						...def.colors.light.black,
+						...def.colors.light.black!,
 						frameStroke: '#CCC',
 						frameFill: '#DDD',
 					},
@@ -150,7 +155,7 @@ describe('highlight shape colors', () => {
 				light: {
 					...def.colors.light,
 					black: {
-						...def.colors.light.black,
+						...def.colors.light.black!,
 						highlightSrgb: '#CUSTOM_HL',
 						highlightP3: 'color(display-p3 1 0 0)',
 					},

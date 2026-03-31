@@ -16,6 +16,7 @@ import {
 	createTLSchema,
 	createUserId,
 	registerColorsFromThemeDefinitions,
+	registerFontsFromThemeDefinitions,
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
@@ -147,6 +148,7 @@ export function createTLStore({
 	...rest
 }: TLStoreOptions = {}): TLStore {
 	registerColorsFromThemeDefinitions(themeDefinitions)
+	registerFontsFromThemeDefinitions(themeDefinitions)
 	const schema = createTLSchemaFromUtils(rest)
 
 	const store = new Store({

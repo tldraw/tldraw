@@ -18,7 +18,7 @@ export default function ChangingDefaultColorsExample() {
 							light: {
 								...def.colors.light,
 								black: {
-									...def.colors.light.black,
+									...def.colors.light.black!,
 									solid: 'aqua',
 								},
 							},

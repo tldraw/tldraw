@@ -1,4 +1,4 @@
-import { TLDefaultFontStyle, TLDefaultSizeStyle } from '@tldraw/editor'
+import { TLDefaultSizeStyle, TLTheme } from '@tldraw/editor'
 
 /** @internal */
 export const TEXT_PROPS = {
@@ -41,11 +41,18 @@ export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 }
 
 /** @internal */
-export const FONT_FAMILIES: Record<TLDefaultFontStyle, string> = {
+export const FONT_FAMILIES: Record<string, string> = {
 	draw: 'var(--tl-font-draw)',
 	sans: 'var(--tl-font-sans)',
 	serif: 'var(--tl-font-serif)',
 	mono: 'var(--tl-font-mono)',
+}
+
+/** @internal */
+export function getFontFamily(theme: TLTheme, font: string): string {
+	const themeFont = theme.fonts?.[font as keyof typeof theme.fonts]
+	if (themeFont) return themeFont.fontFamily
+	return FONT_FAMILIES[font] ?? font
 }
 
 /** @internal */

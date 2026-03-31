@@ -1,4 +1,10 @@
-import { DefaultColorStyle, type TLThemeColors } from '@tldraw/editor'
+import {
+	DefaultColorStyle,
+	DefaultFontStyle,
+	type TLTheme,
+	type TLThemeColorPalette,
+	type TLThemeFont,
+} from '@tldraw/editor'
 import { TLUiIconJsx } from './ui/components/primitives/TldrawUiIcon'
 
 /** @public */
@@ -21,7 +27,7 @@ function isPaletteColor(value: unknown): boolean {
  *
  * @public
  */
-export function getColorStyleItems(colors: TLThemeColors): StyleValuesForUi<string> {
+export function getColorStyleItems(colors: TLThemeColorPalette): StyleValuesForUi<string> {
 	const result: StyleValuesForUi<string>[number][] = []
 	const seen = new Set<string>()
 
@@ -43,6 +49,54 @@ export function getColorStyleItems(colors: TLThemeColors): StyleValuesForUi<stri
 	}
 
 	return result
+}
+
+const defaultFontIcons: Record<string, string> = {
+	draw: 'font-draw',
+	sans: 'font-sans',
+	serif: 'font-serif',
+	mono: 'font-mono',
+}
+
+function isFontEntry(value: unknown): value is TLThemeFont {
+	return typeof value === 'object' && value !== null && 'fontFamily' in value
+}
+
+/**
+ * Returns the current list of font style items for the style panel,
+ * derived from the theme's font palette.
+ *
+ * Fonts are ordered by their position in {@link @tldraw/tlschema#DefaultFontStyle},
+ * followed by any additional theme fonts in their object key order.
+ *
+ * @public
+ */
+export function getFontStyleItems(theme: TLTheme): StyleValuesForUi<string> {
+	const result: StyleValuesForUi<string>[number][] = []
+	const seen = new Set<string>()
+
+	if (!theme.fonts) return STYLES.font
+
+	for (const name of DefaultFontStyle.values) {
+		const entry = theme.fonts[name as keyof typeof theme.fonts]
+		if (name in theme.fonts && isFontEntry(entry)) {
+			result.push({ value: name, icon: fontIcon(entry, name) })
+			seen.add(name)
+		}
+	}
+
+	for (const [key, value] of Object.entries(theme.fonts)) {
+		if (!seen.has(key) && isFontEntry(value)) {
+			result.push({ value: key, icon: fontIcon(value, key) })
+		}
+	}
+
+	return result
+}
+
+function fontIcon(font: TLThemeFont, name: string): string | TLUiIconJsx {
+	if (font.icon != null) return font.icon as string | TLUiIconJsx
+	return defaultFontIcons[name] ?? 'font-draw'
 }
 
 // todo: default styles prop?

@@ -660,6 +660,9 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 export function registerColorsFromThemeDefinitions(definitions: Record<string, TLTheme> | undefined): void;
 
 // @public
+export function registerFontsFromThemeDefinitions(definitions: Record<string, TLTheme> | undefined): void;
+
+// @public
 export const richTextValidator: T.ObjectValidator<{
     attrs?: any;
     content: unknown[];
@@ -1013,7 +1016,7 @@ export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
 export type TLDefaultFillStyle = T.TypeOf<typeof DefaultFillStyle>;
 
 // @public
-export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
+export type TLDefaultFontStyle = keyof TLThemeFonts & string;
 
 // @public
 export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
@@ -1075,6 +1078,29 @@ export interface TLEmbedShapeProps {
     h: number;
     url: string;
     w: number;
+}
+
+// @public
+export interface TLFontFace {
+    readonly ascentOverride?: string;
+    readonly descentOverride?: string;
+    readonly family: string;
+    readonly featureSettings?: string;
+    readonly lineGapOverride?: string;
+    readonly src: TLFontFaceSource;
+    readonly stretch?: string;
+    readonly style?: string;
+    readonly unicodeRange?: string;
+    readonly weight?: string;
+}
+
+// @public
+export interface TLFontFaceSource {
+    // (undocumented)
+    format?: string;
+    // (undocumented)
+    tech?: string;
+    url: string;
 }
 
 // @public
@@ -1553,13 +1579,18 @@ export interface TLTextShapeProps {
 export interface TLTheme {
     // (undocumented)
     colors: {
-        dark: TLThemeColors;
-        light: TLThemeColors;
+        dark: TLThemeColorPalette;
+        light: TLThemeColorPalette;
     };
+    // (undocumented)
+    fonts?: Partial<TLThemeFonts>;
     fontSize: number;
     lineHeight: number;
     strokeWidth: number;
 }
+
+// @public
+export type TLThemeColorPalette = Pick<TLThemeColors, TLThemeUiColorKeys> & Partial<Omit<TLThemeColors, TLThemeUiColorKeys>>;
 
 // @public
 export interface TLThemeColors {
@@ -1601,6 +1632,25 @@ export interface TLThemeColors {
     yellow: TLDefaultColor;
 }
 
+// @public
+export interface TLThemeFont {
+    faces?: TLFontFace[];
+    fontFamily: string;
+    icon?: unknown;
+}
+
+// @public
+export interface TLThemeFonts {
+    // (undocumented)
+    draw: TLThemeFont;
+    // (undocumented)
+    mono: TLThemeFont;
+    // (undocumented)
+    sans: TLThemeFont;
+    // (undocumented)
+    serif: TLThemeFont;
+}
+
 // @public (undocumented)
 export type TLThemeId = keyof TLThemes & string;
 
@@ -1609,6 +1659,9 @@ export interface TLThemes {
     // (undocumented)
     default: TLTheme;
 }
+
+// @public
+export type TLThemeUiColorKeys = 'background' | 'cursor' | 'noteBorder' | 'solid' | 'text';
 
 // @public
 export type TLUnknownBinding = TLBaseBinding<string, object>;

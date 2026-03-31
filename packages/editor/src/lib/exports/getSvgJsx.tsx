@@ -1,5 +1,6 @@
 import { useAtom, useValue } from '@tldraw/state-react'
 import { TLFrameShape, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { TLFontFace } from '@tldraw/tlschema'
 import { hasOwnProperty, promiseWithResolve, uniqueId } from '@tldraw/utils'
 import {
 	ComponentType,
@@ -15,7 +16,6 @@ import { flushSync } from 'react-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
 import type { Editor, TLRenderingShape } from '../editor/Editor'
-import { TLFontFace } from '../editor/managers/FontManager/FontManager'
 import { getColorValue } from '../editor/managers/ThemeManager/defaultThemes'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { TLImageExportOptions } from '../editor/types/misc-types'

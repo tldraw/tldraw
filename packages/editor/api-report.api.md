@@ -68,6 +68,7 @@ import { TLDefaultColorStyle } from '@tldraw/tlschema';
 import { TLDefaultDashStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
+import { TLFontFace } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
@@ -90,7 +91,9 @@ import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStoreSchema } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLTheme } from '@tldraw/tlschema';
+import { TLThemeColorPalette } from '@tldraw/tlschema';
 import { TLThemeColors } from '@tldraw/tlschema';
+import { TLThemeFonts } from '@tldraw/tlschema';
 import { TLThemeId } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
@@ -642,6 +645,9 @@ export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions;
 
 // @public
 export const DEFAULT_THEME: TLTheme;
+
+// @public (undocumented)
+export const DEFAULT_THEME_FONTS: TLThemeFonts;
 
 // @public (undocumented)
 export function DefaultBackground(): JSX.Element;
@@ -1864,7 +1870,7 @@ export interface Geometry2dOptions extends TransformedGeometry2dOptions {
 export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number): number;
 
 // @public
-export function getColorValue(colors: TLThemeColors, color: string | TLDefaultColorStyle, variant: keyof TLDefaultColor): string;
+export function getColorValue(colors: TLThemeColorPalette | TLThemeColors, color: string | TLDefaultColorStyle, variant: keyof TLDefaultColor): string;
 
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
@@ -4056,29 +4062,6 @@ export interface TLFilesExternalContent extends TLBaseExternalContent {
     ignoreParent?: boolean;
     // (undocumented)
     type: 'files';
-}
-
-// @public
-export interface TLFontFace {
-    readonly ascentOverride?: string;
-    readonly descentOverride?: string;
-    readonly family: string;
-    readonly featureSettings?: string;
-    readonly lineGapOverride?: string;
-    readonly src: TLFontFaceSource;
-    readonly stretch?: string;
-    readonly style?: string;
-    readonly unicodeRange?: string;
-    readonly weight?: string;
-}
-
-// @public
-export interface TLFontFaceSource {
-    // (undocumented)
-    format?: string;
-    // (undocumented)
-    tech?: string;
-    url: string;
 }
 
 // @public

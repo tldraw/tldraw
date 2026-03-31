@@ -10,7 +10,6 @@ import {
 	RecordPropsType,
 	ShapeUtil,
 	T,
-	TLDefaultFontStyle,
 	TLDefaultSizeStyle,
 	TLHandle,
 	TLHandleDragInfo,
@@ -40,7 +39,7 @@ const TEXT_PROPS = {
 	padding: '0px',
 }
 
-const FONT_FAMILIES: Record<TLDefaultFontStyle, string> = {
+const FONT_FAMILIES: Record<string, string> = {
 	draw: 'var(--tl-font-draw)',
 	sans: 'var(--tl-font-sans)',
 	serif: 'var(--tl-font-serif)',

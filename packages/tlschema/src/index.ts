@@ -296,9 +296,11 @@ export {
 } from './styles/TLColorStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
 export { DefaultFillStyle, type TLDefaultFillStyle } from './styles/TLFillStyle'
+export { type TLFontFace, type TLFontFaceSource } from './styles/TLFontFace'
 export {
 	DefaultFontFamilies,
 	DefaultFontStyle,
+	registerFontsFromThemeDefinitions,
 	type TLDefaultFontStyle,
 } from './styles/TLFontStyle'
 export {
@@ -309,10 +311,14 @@ export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
 export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TLTextAlignStyle'
 export {
 	type TLDefaultColor,
-	type TLThemeColors,
 	type TLTheme,
+	type TLThemeColorPalette,
+	type TLThemeColors,
+	type TLThemeFont,
+	type TLThemeFonts,
 	type TLThemeId,
 	type TLThemes,
+	type TLThemeUiColorKeys,
 } from './styles/TLTheme'
 export {
 	DefaultVerticalAlignStyle,

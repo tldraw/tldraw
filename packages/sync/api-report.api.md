@@ -11,7 +11,7 @@ import { TLPresenceStateInfo } from 'tldraw';
 import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
-import { TLThemeDefinition } from 'tldraw';
+import { TLTheme } from 'tldraw';
 import { TLUser } from 'tldraw';
 import { TLUserStore } from 'tldraw';
 
@@ -58,7 +58,7 @@ export interface UseSyncOptionsBase {
     onMount?(editor: Editor): void;
     // @internal
     roomId?: string;
-    themeDefinitions?: Record<string, TLThemeDefinition>;
+    themeDefinitions?: Record<string, TLTheme>;
     // @internal (undocumented)
     trackAnalyticsEvent?(name: string, data: {
         [key: string]: any;

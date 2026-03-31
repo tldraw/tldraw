@@ -53,10 +53,11 @@ import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/r
 import {
 	ARROW_LABEL_FONT_SIZES,
 	ARROW_LABEL_PADDING,
-	FONT_FAMILIES,
 	STROKE_SIZES,
+	getFontFamily,
 } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
+import { getThemeFontFaces } from '../shared/defaultFonts'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getDisplayValues } from '../shared/getDisplayValues'
 import { PathBuilder } from '../shared/PathBuilder'
@@ -142,7 +143,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							: getColorValue(colors, color, DEFAULT_FILL_COLOR_NAMES[fill]),
 				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
 				labelColor: getColorValue(colors, labelColor, 'solid'),
-				labelFontFamily: FONT_FAMILIES[font],
+				labelFontFamily: getFontFamily(theme, font),
 				labelFontSize: theme.fontSize * ARROW_LABEL_FONT_SIZES[size],
 				labelLineHeight: theme.lineHeight,
 				labelPadding: ARROW_LABEL_PADDING,
@@ -195,6 +196,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override getFontFaces(shape: TLArrowShape) {
 		if (isEmptyRichText(shape.props.richText)) return EMPTY_ARRAY
 
+		const themeFaces = getThemeFontFaces(this.editor.getCurrentTheme(), shape.props.font)
+		if (themeFaces) return themeFaces
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',

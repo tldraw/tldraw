@@ -50,10 +50,13 @@ export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', 
 })
 
 /**
- * Scan theme definitions and register any custom color names found.
+ * Scan theme definitions and sync color registrations to match.
  * A color entry is any key in `TLThemeColors` whose value is an object
  * (i.e. a {@link TLDefaultColor}), as opposed to utility strings like
  * `background` or `text`.
+ *
+ * Colors present in themes but not yet registered will be added.
+ * Colors currently registered but absent from all themes will be removed.
  *
  * @public
  */
@@ -74,6 +77,12 @@ export function registerColorsFromThemeDefinitions(
 	if (colorNames.size > 0) {
 		DefaultColorStyle.addValues(...colorNames)
 		DefaultLabelColorStyle.addValues(...colorNames)
+	}
+
+	const toRemove = DefaultColorStyle.values.filter((v) => !colorNames.has(v as TLDefaultColorStyle))
+	if (toRemove.length > 0) {
+		DefaultColorStyle.removeValues(...toRemove)
+		DefaultLabelColorStyle.removeValues(...toRemove)
 	}
 
 	if (process.env.NODE_ENV !== 'production') {

@@ -43,12 +43,12 @@ import {
 } from '../../utils/text/richText'
 import { isRightToLeftLanguage } from '../../utils/text/text'
 import {
-	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
 	LABEL_PADDING,
 	TEXT_PROPS,
+	getFontFamily,
 } from '../shared/default-shape-constants'
-import { DefaultFontFaces } from '../shared/defaultFonts'
+import { DefaultFontFaces, getThemeFontFaces } from '../shared/defaultFonts'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
@@ -123,7 +123,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					labelColor === 'black'
 						? getColorValue(colors, color, 'noteText')
 						: getColorValue(colors, labelColor, 'fill'),
-				labelFontFamily: FONT_FAMILIES[font],
+				labelFontFamily: getFontFamily(theme, font),
 				labelFontSize: theme.fontSize * LABEL_FONT_SIZES[size],
 				labelLineHeight: theme.lineHeight,
 				labelFontWeight: TEXT_PROPS.fontWeight,
@@ -311,6 +311,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		if (shape.props.textFirstEditedBy && !isEmptyRichText(shape.props.richText)) {
 			return [...fonts, DefaultFontFaces.tldraw_sans.normal.normal]
 		}
+		const themeFaces = getThemeFontFaces(this.editor.getCurrentTheme(), shape.props.font)
+		if (themeFaces) return [...themeFaces, ...fonts]
 
 		return fonts.length ? fonts : EMPTY_ARRAY
 	}

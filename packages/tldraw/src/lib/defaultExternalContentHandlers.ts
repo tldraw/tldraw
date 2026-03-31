@@ -33,7 +33,7 @@ import { EmbedDefinition } from './defaultEmbedDefinitions'
 import { createBookmarkFromUrl } from './shapes/bookmark/bookmarks'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
-import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
+import { FONT_SIZES, TEXT_PROPS, getFontFamily } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
@@ -514,7 +514,7 @@ export async function defaultHandleExternalTextContent(
 	const rawSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 		...TEXT_PROPS,
 		lineHeight: theme.lineHeight,
-		fontFamily: FONT_FAMILIES[defaultProps.font],
+		fontFamily: getFontFamily(theme, defaultProps.font),
 		fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
 		maxWidth: null,
 	})
@@ -528,7 +528,7 @@ export async function defaultHandleExternalTextContent(
 		const shrunkSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 			...TEXT_PROPS,
 			lineHeight: theme.lineHeight,
-			fontFamily: FONT_FAMILIES[defaultProps.font],
+			fontFamily: getFontFamily(theme, defaultProps.font),
 			fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
 			maxWidth: minWidth,
 		})
