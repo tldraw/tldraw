@@ -62,12 +62,15 @@ A new `@tldraw/mermaid` package converts Mermaid diagram syntax into native tldr
 ```tsx
 import { createMermaidDiagram } from '@tldraw/mermaid'
 
-await createMermaidDiagram(editor, `
+await createMermaidDiagram(
+	editor,
+	`
   graph TD
     A[Start] --> B{Decision}
     B -->|Yes| C[Action]
     B -->|No| D[End]
-`)
+`
+)
 ```
 
 The package parses Mermaid syntax, extracts layout from the rendered SVG, and produces a diagram-agnostic blueprint that gets rendered into geo shapes, arrows, and groups.
