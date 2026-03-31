@@ -1,6 +1,6 @@
 import { BoxModel } from '@tldraw/tlschema'
-import { Vec, VecLike } from './Vec'
 import { approximatelyLte, PI, PI2, toPrecision } from './utils'
+import { Vec, VecLike } from './Vec'
 
 /** @public */
 export type BoxLike = BoxModel | Box

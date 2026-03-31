@@ -12,7 +12,6 @@ import { McpAgent } from 'agents/mcp'
 import type { TLShape } from 'tldraw'
 import { Logger } from './logger'
 import { registerTools } from './register-tools'
-import type { MCP_APP_HOST_NAMES, ServerDeps } from './shared/types'
 import {
 	MAX_CHECKPOINTS,
 	MCP_SERVER_DESCRIPTION,
@@ -22,6 +21,7 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from './shared/types'
+import type { MCP_APP_HOST_NAMES, ServerDeps } from './shared/types'
 import { parseTlShapes, resolveMcpAppHostNameFromServerInfo } from './shared/utils'
 
 // --- Types ---

@@ -15,15 +15,15 @@ import {
 import { IndexKey } from '@tldraw/utils'
 import { ReactElement } from 'react'
 import { Box, SelectionHandle } from '../../primitives/Box'
-import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
+import { Vec } from '../../primitives/Vec'
 import type { Editor } from '../Editor'
 import { TLFontFace } from '../managers/FontManager/FontManager'
 import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
-import { SvgExportContext } from '../types/SvgExportContext'
 import { TLClickEventInfo } from '../types/event-types'
 import { TLResizeHandle } from '../types/selection-types'
+import { SvgExportContext } from '../types/SvgExportContext'
 
 /** @public */
 export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
@@ -588,6 +588,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 
 	getText(shape: Shape): string | undefined {
 		return undefined
+	}
+
+	/**
+	 * Return user IDs referenced in shape-specific props.
+	 * Used when copying shapes to include referenced users on the clipboard.
+	 * Override this if your shape stores user IDs in custom props.
+	 *
+	 * @public
+	 */
+	getReferencedUserIds(shape: Shape): string[] {
+		return EMPTY_ARRAY
 	}
 
 	getAriaDescriptor(shape: Shape): string | undefined {

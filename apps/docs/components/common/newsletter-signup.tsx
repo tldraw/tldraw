@@ -1,13 +1,13 @@
 'use client'
 
+import { Field, Input, Label } from '@headlessui/react'
+import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid'
+import { FormEventHandler, useCallback, useState } from 'react'
 import { track } from '@/app/analytics'
 import { Button } from '@/components/common/button'
 import { submitNewsletterSignup } from '@/scripts/submit-newsletter-signup'
 import { cn } from '@/utils/cn'
 import { useLocalStorageState } from '@/utils/storage'
-import { Field, Input, Label } from '@headlessui/react'
-import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid'
-import { FormEventHandler, useCallback, useState } from 'react'
 
 // when debugging is true, the form will always show (even if the user has submitted)
 const DEBUGGING = false

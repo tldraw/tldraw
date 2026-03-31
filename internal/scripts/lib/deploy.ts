@@ -1,6 +1,6 @@
-import * as github from '@actions/github'
 import { readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
+import * as github from '@actions/github'
 import { exec } from './exec'
 
 export function getDeployInfo() {

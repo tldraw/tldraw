@@ -1,5 +1,5 @@
-import { StoreSchema } from '../StoreSchema'
 import { MigrationSequence, createMigrationSequence } from '../migrate'
+import { StoreSchema } from '../StoreSchema'
 
 describe('dependsOn', () => {
 	it('requires the depended on ids to be present', () => {

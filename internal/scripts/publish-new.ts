@@ -1,5 +1,5 @@
-import { Octokit } from '@octokit/rest'
 import assert from 'assert'
+import { Octokit } from '@octokit/rest'
 import minimist from 'minimist'
 import { SemVer, parse } from 'semver'
 import { exec } from './lib/exec'

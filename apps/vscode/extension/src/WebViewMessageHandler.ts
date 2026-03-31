@@ -1,12 +1,11 @@
 import { isEqual } from 'lodash'
-import * as vscode from 'vscode'
-import { TLDrawDocument } from './TldrawDocument'
-import { loadFile } from './file'
-
 import { UnknownRecord } from 'tldraw'
+import * as vscode from 'vscode'
 // @ts-ignore
 import type { VscodeMessage } from '../../messages'
+import { loadFile } from './file'
 import { getMimeTypeFromPath } from './media'
+import { TLDrawDocument } from './TldrawDocument'
 import { unfurl } from './unfurl'
 import { nicelog } from './utils'
 

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { UnknownRecord } from './BaseRecord'
-import { SerializedStore } from './Store'
 import {
 	type Migration,
 	type MigrationId,
@@ -13,6 +12,7 @@ import {
 	sortMigrations,
 	validateMigrations,
 } from './migrate'
+import { SerializedStore } from './Store'
 
 describe('createMigrationIds', () => {
 	it('creates properly formatted migration IDs', () => {

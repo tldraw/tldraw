@@ -81,6 +81,7 @@ import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
+import { TLClipboardWriteInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/tlschema';
@@ -1682,7 +1683,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     static migrations: TLPropsMigrations;
     // (undocumented)
     onBeforeCreate(shape: TLGeoShape): {
-        id: TLShapeId_2;
+        id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
@@ -1717,7 +1718,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     } | undefined;
     // (undocumented)
     onBeforeUpdate(prev: TLGeoShape, next: TLGeoShape): {
-        id: TLShapeId_2;
+        id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
@@ -1752,7 +1753,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     } | undefined;
     // (undocumented)
     onDoubleClick(shape: TLGeoShape): {
-        id: TLShapeId_2;
+        id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
@@ -1767,7 +1768,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         x: number;
         y: number;
     } | {
-        id: TLShapeId_2;
+        id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
@@ -1877,6 +1878,9 @@ export function GroupMenuItem(): JSX.Element | null;
 
 // @public (undocumented)
 export function GroupOrUngroupMenuItem(): JSX.Element;
+
+// @public
+export const handleNativeOrMenuCopy: (editor: Editor, context?: TLClipboardWriteInfo) => Promise<boolean>;
 
 // @public (undocumented)
 export class HandTool extends StateNode {
@@ -2250,6 +2254,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLNoteShape, endShape: TLNoteShape, t: number): TLNoteShapeProps;
     // (undocumented)
+    getReferencedUserIds(shape: TLNoteShape): string[];
+    // (undocumented)
     getText(shape: TLNoteShape): string;
     // (undocumented)
     hideResizeHandles(): boolean;
@@ -2283,6 +2289,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             };
             scale: number;
             size: "l" | "m" | "s" | "xl";
+            textFirstEditedBy: null | string;
             url: string;
             verticalAlign: "end" | "middle" | "start";
         };
@@ -2293,36 +2300,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape): {
-        id: TLShapeId;
-        index: IndexKey_2;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: number;
-        parentId: TLParentId;
-        props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            font: "draw" | "mono" | "sans" | "serif";
-            fontSizeAdjustment: number;
-            growY: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
-            scale: number;
-            size: "l" | "m" | "s" | "xl";
-            url: string;
-            verticalAlign: "end" | "middle" | "start";
-        };
-        rotation: number;
-        type: "note";
-        typeName: "shape";
-        x: number;
-        y: number;
-    } | undefined;
+    onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape): TLNoteShape | undefined;
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): {
         props: {

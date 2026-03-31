@@ -1,3 +1,5 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { fixupPluginRules } from '@eslint/compat'
 import { FlatCompat } from '@eslint/eslintrc'
 import js from '@eslint/js'
@@ -9,8 +11,6 @@ import _import from 'eslint-plugin-import'
 import noOnlyTests from 'eslint-plugin-no-only-tests'
 import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import localRules from './internal/scripts/oxlint/tldraw-plugin.mjs'
 
 const __filename = fileURLToPath(import.meta.url)

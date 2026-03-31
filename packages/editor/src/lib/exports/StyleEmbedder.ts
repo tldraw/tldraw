@@ -1,5 +1,4 @@
 import { assertExists, getOwnProperty, objectMapValues, uniqueId } from '@tldraw/utils'
-import { FontEmbedder } from './FontEmbedder'
 import { ReadonlyStyles, Styles, cssRules } from './cssRules'
 import {
 	elementStyle,
@@ -9,6 +8,7 @@ import {
 	isElement,
 } from './domUtils'
 import { resourceToDataUrl } from './fetchCache'
+import { FontEmbedder } from './FontEmbedder'
 import { parseCssValueUrls, shouldIncludeCssProperty } from './parseCss'
 
 const NO_STYLES = {} as const

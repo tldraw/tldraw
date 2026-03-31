@@ -1,5 +1,5 @@
-import { Vec, VecLike } from '../Vec'
 import { pointInPolygon } from '../utils'
+import { Vec, VecLike } from '../Vec'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 

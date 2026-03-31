@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "Yer işaretine dönüştür",
 	"action.convert-to-embed": "Yerleştirmeye dönüştür",
 	"action.copy": "Kopyala",
+	"action.copy-as-json": "JSON olarak kopyala",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "PNG olarak kopyala",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "SVG olarak kopyala",

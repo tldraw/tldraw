@@ -1,5 +1,5 @@
-import { SerializedSchemaV2, StoreSchema } from '../StoreSchema'
 import { MigrationSequence } from '../migrate'
+import { SerializedSchemaV2, StoreSchema } from '../StoreSchema'
 
 const mockSequence = ({
 	id,

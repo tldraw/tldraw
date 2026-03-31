@@ -26,6 +26,9 @@ export { assert_2 as assert }
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
 // @public
+export type Awaitable<T> = PromiseLike<T> | T;
+
+// @public
 export function bind<T extends (...args: any[]) => any>(target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T>;
 
 // @public
@@ -41,7 +44,7 @@ export function clearSessionStorage(): void;
 export function compact<T>(arr: T[]): NonNullable<T>[];
 
 // @public
-export function debounce<T extends unknown[], U>(callback: (...args: T) => PromiseLike<U> | U, wait: number): {
+export function debounce<T extends unknown[], U>(callback: (...args: T) => Awaitable<U>, wait: number): {
     (...args: T): Promise<U>;
     cancel: () => void;
 };

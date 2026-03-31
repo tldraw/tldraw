@@ -1,5 +1,5 @@
-import type { TLBindingCreate, TLShape, TLShapeId } from 'tldraw'
 import { Box, Editor, structuredClone } from 'tldraw'
+import type { TLBindingCreate, TLShape, TLShapeId } from 'tldraw'
 import type { CanvasSnapshot } from './persistence'
 
 /**

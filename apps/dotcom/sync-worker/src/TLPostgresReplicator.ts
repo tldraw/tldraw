@@ -12,29 +12,28 @@ import {
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { Kysely, sql } from 'kysely'
-
 import { LogicalReplicationService, Wal2Json, Wal2JsonPlugin } from 'pg-logical-replication'
 import { Logger } from './Logger'
-import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { LiveChangeCollator, buildTopicsString, getTopics } from './replicator/ChangeCollator'
+import { getResumeType } from './replicator/getResumeType'
+import { pruneTopicSubscriptionsSql } from './replicator/pruneTopicSubscriptions'
+import { migrate } from './replicator/replicatorMigrations'
+import { ChangeV2, ReplicationEvent, replicatedTables } from './replicator/replicatorTypes'
 import {
 	TopicSubscriptionTree,
 	getSubscriptionChanges,
 	parseTopicSubscriptionTree,
 	serializeSubscriptions,
 } from './replicator/Subscription'
-import { getResumeType } from './replicator/getResumeType'
-import { pruneTopicSubscriptionsSql } from './replicator/pruneTopicSubscriptions'
-import { migrate } from './replicator/replicatorMigrations'
-import { ChangeV2, ReplicationEvent, replicatedTables } from './replicator/replicatorTypes'
 import {
 	Analytics,
 	Environment,
 	TLPostgresReplicatorEvent,
 	TLPostgresReplicatorRebootSource,
 } from './types'
+import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { EventData, writeDataPoint } from './utils/analytics'
 import {
 	getRoomDurableObject,

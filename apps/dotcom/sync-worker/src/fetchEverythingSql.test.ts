@@ -1,9 +1,9 @@
-import { ZColumn, schema } from '@tldraw/dotcom-shared'
-import { assert, assertExists, groupBy, structuredClone } from '@tldraw/utils'
 import { execSync } from 'child_process'
 import { readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
+import { ZColumn, schema } from '@tldraw/dotcom-shared'
+import { assert, assertExists, groupBy, structuredClone } from '@tldraw/utils'
 
 const DIRNAME = dirname(fileURLToPath(import.meta.url))
 

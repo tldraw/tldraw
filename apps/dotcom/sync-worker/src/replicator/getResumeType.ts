@@ -2,8 +2,8 @@ import { SqlStorage } from '@cloudflare/workers-types'
 import { Logger } from '../Logger'
 import { ZReplicationEventWithoutSequenceInfo } from '../UserDataSyncer'
 import { CatchUpChangeCollator } from './ChangeCollator'
-import { parseSubscriptions } from './Subscription'
 import { ChangeV2, Topic } from './replicatorTypes'
+import { parseSubscriptions } from './Subscription'
 
 export function getResumeType({
 	sqlite,

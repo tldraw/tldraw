@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "Muunna kirjanmerkiksi",
 	"action.convert-to-embed": "Muunna upotettavaksi",
 	"action.copy": "Kopioi",
+	"action.copy-as-json": "Kopioi JSON-muodossa",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "Kopioi PNG-muodossa",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "Kopioi SVG-muodossa",

@@ -4,8 +4,8 @@ import { useRef } from 'react'
 import { useSharedSafeId } from '../../hooks/useSafeId'
 import { useTransform } from '../../hooks/useTransform'
 import { Box } from '../../primitives/Box'
-import { Vec } from '../../primitives/Vec'
 import { clamp } from '../../primitives/utils'
+import { Vec } from '../../primitives/Vec'
 
 /** @public */
 export interface TLCollaboratorHintProps {

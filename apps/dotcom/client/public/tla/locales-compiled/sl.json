@@ -213,6 +213,12 @@
       "value": "Sprejmi vse"
     }
   ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Nepodprt diagram Mermaid"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -285,10 +291,22 @@
       "value": "Izbriši skupino …"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Več možnosti"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Ali ste prepričani, da želite izbrisati to skupino? Tega dejanja ni mogoče razveljaviti."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Nepodprt diagram, namesto tega bo ustvarjen SVG"
     }
   ],
   "50db1b7e1e": [
@@ -401,6 +419,12 @@
       "value": "Prekliči to povezavo in ustvari novo."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Povezave ni mogoče vzpostaviti"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +465,12 @@
     {
       "type": 0,
       "value": "ti"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Osveži"
     }
   ],
   "6609dd239e": [
@@ -793,6 +823,12 @@
       "value": "Izbriši datoteko"
     }
   ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Imamo težave s povezovanjem z našo storitvijo za preverjanje pristnosti. To je običajno začasno. Poskusite osvežiti stran."
+    }
+  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1075,6 +1111,12 @@
     {
       "type": 0,
       "value": "Odjava"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Zavrzi"
     }
   ],
   "c9cc8cce24": [

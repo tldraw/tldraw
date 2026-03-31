@@ -1,6 +1,6 @@
+import { MetadataRoute } from 'next'
 import { db } from '@/utils/ContentDatabase'
 import { fetchFramerPaths } from '@/utils/framer-sitemap'
-import { MetadataRoute } from 'next'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const paths = await db.getAllPaths()
