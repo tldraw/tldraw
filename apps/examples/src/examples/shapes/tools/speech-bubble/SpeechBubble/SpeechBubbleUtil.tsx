@@ -225,11 +225,11 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 				<PlainTextLabel
 					shapeId={id}
 					type={type}
-					font={font}
+					fontFamily={FONT_FAMILIES[font]}
 					textWidth={shape.props.w}
 					fontSize={theme.fontSize * LABEL_FONT_SIZES[size]}
 					lineHeight={theme.lineHeight}
-					align={align}
+					textAlign={align as 'start' | 'center' | 'end'}
 					verticalAlign="start"
 					text={text}
 					labelColor={getColorValue(theme, color, 'solid')}
