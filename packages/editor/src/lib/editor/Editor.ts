@@ -50,6 +50,8 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
+	TLTheme,
+	TLThemes,
 	TLUser,
 	TLUserId,
 	TLVideoAsset,
@@ -156,6 +158,7 @@ import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
+import { ThemeManager } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import {
@@ -235,7 +238,7 @@ export interface TLEditorOptions {
 	 */
 	autoFocus?: boolean
 	/**
-	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
+	 * Whether to infer dark mode from the OS preference.
 	 */
 	inferDarkMode?: boolean
 	/**
@@ -272,6 +275,10 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+	/**
+	 * Custom light and dark themes for the editor.
+	 */
+	themes?: Partial<TLThemes>
 }
 
 /**
@@ -307,13 +314,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		cameraOptions,
 		initialState,
 		autoFocus,
-		inferDarkMode,
 		options: _options,
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
+		inferDarkMode,
 		fontAssetUrls,
+		themes,
 	}: TLEditorOptions) {
 		super()
 
@@ -348,19 +356,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 			...options?.camera,
 		})
 
+		this.getContainer = getContainer
+
 		this._textOptions = atom('text options', options?.text ?? null)
 
 		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())
 
-		this.getContainer = getContainer
-
 		this.textMeasure = new TextManager(this)
 		this.disposables.add(() => this.textMeasure.dispose())
 
-		this.fonts = new FontManager(this, fontAssetUrls)
+		this._themeManager = new ThemeManager(this, themes)
+		this.disposables.add(() => this._themeManager.dispose())
 
 		this._tickManager = new TickManager(this)
+		this.disposables.add(() => this._tickManager.dispose())
+
+		this.fonts = new FontManager(this, fontAssetUrls)
 
 		this.inputs = new InputsManager(this)
 
@@ -958,6 +970,51 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly user: UserPreferencesManager
+
+	/**
+	 * A manager for the editor's color themes.
+	 *
+	 * @internal
+	 */
+	readonly _themeManager: ThemeManager
+
+	/**
+	 * Get the light and dark themes.
+	 *
+	 * @public
+	 */
+	getThemes(): TLThemes {
+		return this._themeManager.getThemes()
+	}
+
+	/**
+	 * Customize the light theme, the dark theme, or both.
+	 *
+	 * @param themes - Partial map of themes to merge.
+	 *
+	 * @public
+	 */
+	updateThemes(themes: Partial<TLThemes>): void {
+		this._themeManager.updateThemes(themes)
+	}
+
+	/**
+	 * Get the current theme based on the user's dark mode preference.
+	 *
+	 * @public
+	 */
+	getCurrentTheme(): TLTheme {
+		return this._themeManager.getCurrentTheme()
+	}
+
+	/**
+	 * Get the current theme ID (`'light'` or `'dark'`).
+	 *
+	 * @public
+	 */
+	getCurrentThemeId(): 'light' | 'dark' {
+		return this._themeManager.getCurrentThemeId()
+	}
 
 	/**
 	 * A helper for measuring text.

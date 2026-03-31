@@ -8,12 +8,14 @@ import {
 	TLStore,
 	TLStoreProps,
 	TLStoreSnapshot,
+	TLThemes,
 	TLUser,
 	TLUserStore,
 	UserRecordType,
 	createCachedUserResolve,
 	createTLSchema,
 	createUserId,
+	registerColorsFromThemes,
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
@@ -35,6 +37,13 @@ export interface TLStoreBaseOptions {
 
 	/** How should this store upload & resolve assets? */
 	assets?: TLAssetStore
+
+	/**
+	 * Named color themes. When provided, custom color names are automatically
+	 * registered before the store is constructed so persisted data with those
+	 * colors passes validation on load.
+	 */
+	themes?: Partial<TLThemes>
 
 	/** How should this store resolve users for attribution? */
 	users?: TLUserStore
@@ -134,8 +143,10 @@ export function createTLStore({
 	users = defaultUserStore,
 	onMount,
 	collaboration,
+	themes,
 	...rest
 }: TLStoreOptions = {}): TLStore {
+	registerColorsFromThemes(themes)
 	const schema = createTLSchemaFromUtils(rest)
 
 	const store = new Store({

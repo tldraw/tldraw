@@ -88,7 +88,7 @@ describe('UserPreferencesManager', () => {
 				removeEventListener: vi.fn(),
 			})
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, true)
 
 			expect(userPreferencesManager.systemColorScheme.get()).toBe('dark')
 		})
@@ -103,7 +103,7 @@ describe('UserPreferencesManager', () => {
 				removeEventListener: mockRemoveEventListener,
 			})
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, true)
 
 			expect(mockAddEventListener).toHaveBeenCalledWith('change', expect.any(Function))
 		})
@@ -123,7 +123,7 @@ describe('UserPreferencesManager', () => {
 				removeEventListener: vi.fn(),
 			})
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, true)
 
 			expect(userPreferencesManager.systemColorScheme.get()).toBe('light')
 
@@ -158,7 +158,7 @@ describe('UserPreferencesManager', () => {
 				removeEventListener: mockRemoveEventListener,
 			})
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, true)
 			userPreferencesManager.dispose()
 
 			expect(mockRemoveEventListener).toHaveBeenCalledWith('change', expect.any(Function))
@@ -282,18 +282,12 @@ describe('UserPreferencesManager', () => {
 			expect(userPreferencesManager.getIsDarkMode()).toBe(true)
 		})
 
-		it('should use inferDarkMode when colorScheme is undefined', () => {
+		it('should default to light when colorScheme is undefined', () => {
 			userPreferencesAtom.set({ ...mockUserPreferences, colorScheme: undefined })
 
-			// With inferDarkMode = true
-			const managerWithInfer = new UserPreferencesManager(mockUser, true)
-			managerWithInfer.systemColorScheme.set('dark')
-			expect(managerWithInfer.getIsDarkMode()).toBe(true)
-
-			// With inferDarkMode = false
-			const managerWithoutInfer = new UserPreferencesManager(mockUser, false)
-			managerWithoutInfer.systemColorScheme.set('dark')
-			expect(managerWithoutInfer.getIsDarkMode()).toBe(false)
+			const manager = new UserPreferencesManager(mockUser, false)
+			manager.systemColorScheme.set('dark')
+			expect(manager.getIsDarkMode()).toBe(false)
 		})
 	})
 
@@ -619,7 +613,7 @@ describe('UserPreferencesManager', () => {
 
 	describe('integration scenarios', () => {
 		it('should work with real-world preference scenarios', () => {
-			userPreferencesManager = new UserPreferencesManager(mockUser, true)
+			userPreferencesManager = new UserPreferencesManager(mockUser, false)
 
 			// User starts with system preference
 			userPreferencesManager.updateUserPreferences({ colorScheme: 'system' })
