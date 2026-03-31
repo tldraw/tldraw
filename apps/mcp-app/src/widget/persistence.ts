@@ -1,8 +1,6 @@
 import type { App } from '@modelcontextprotocol/ext-apps/react'
 import { Editor, structuredClone } from 'tldraw'
 import type { TLAsset, TLBindingCreate, TLShape } from 'tldraw'
-import { convertTldrawRecordToFocusedShape } from '../focused-shape-converters'
-import type { FocusedShape } from '../focused-shape-schema'
 import { isPlainObject } from '../shared/utils'
 
 export interface CanvasSnapshot {
@@ -17,10 +15,6 @@ let currentSessionId: string | null = null
 
 export function setCurrentSessionId(id: string): void {
 	currentSessionId = id
-}
-
-export function getCurrentSessionId(): string | null {
-	return currentSessionId
 }
 
 function localStorageKey(checkpointId: string): string {
@@ -203,39 +197,27 @@ export function parseCheckpointFromToolResult(result: unknown): CheckpointResult
 
 // --- Canvas context push ---
 
-export function getEditorFocusedShapes(editor: Editor): FocusedShape[] {
-	const shapes: FocusedShape[] = []
-	for (const record of editor.getCurrentPageShapes()) {
-		try {
-			const focused = convertTldrawRecordToFocusedShape(record)
-			// Enrich arrow shapes with binding info from the editor
-			if (focused._type === 'arrow') {
-				const arrowBindings = editor.getBindingsFromShape(record.id, 'arrow')
-				for (const binding of arrowBindings) {
-					const terminal = (binding.props as { terminal?: string }).terminal
-					const targetId = binding.toId.replace(/^shape:/, '')
-					if (terminal === 'start') {
-						focused.fromId = targetId
-					} else if (terminal === 'end') {
-						focused.toId = targetId
-					}
-				}
-			}
-			shapes.push(focused)
-		} catch {
-			// Ignore malformed records.
-		}
-	}
-	return shapes
-}
-
 export function pushCanvasContext(app: App, editor: Editor) {
-	const focusedShapes = getEditorFocusedShapes(editor)
-	const text =
-		focusedShapes.length > 0
-			? `Current canvas shapes:\n${JSON.stringify(focusedShapes, null, 2)}`
-			: 'Canvas is empty.'
-	app.updateModelContext({ content: [{ type: 'text', text }] })
+	const shapes = [...editor.getCurrentPageShapes()].map((shape) => structuredClone(shape))
+	const assets = [...editor.getAssets()].map((asset) => structuredClone(asset))
+	const bindings = getEditorBindings(editor)
+
+	void app.updateModelContext({
+		content: [
+			{
+				type: 'text',
+				text:
+					shapes.length > 0
+						? `Current canvas state is attached as raw TLShape, asset, and binding data (${shapes.length} shape(s)).`
+						: 'Canvas is empty.',
+			},
+		],
+		structuredContent: {
+			shapes,
+			assets,
+			bindings,
+		},
+	})
 }
 
 export function getEditorBindings(editor: Editor): TLBindingCreate[] {
@@ -256,7 +238,11 @@ export function getEditorBindings(editor: Editor): TLBindingCreate[] {
 	return bindings
 }
 
-export function saveCheckpointToServer(app: App, checkpointId: string, editor: Editor) {
+export async function saveCheckpointToServer(
+	app: App,
+	checkpointId: string,
+	editor: Editor
+): Promise<boolean> {
 	const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
 	const assets = [...editor.getAssets()].map((a) => structuredClone(a))
 	const bindings = getEditorBindings(editor)
@@ -270,12 +256,13 @@ export function saveCheckpointToServer(app: App, checkpointId: string, editor: E
 	if (bindings.length > 0) {
 		args.bindingsJson = JSON.stringify(bindings)
 	}
-	app
-		.callServerTool({
+	try {
+		const result = await app.callServerTool({
 			name: 'save_checkpoint',
 			arguments: args,
 		})
-		.catch(() => {
-			// Best-effort; failure is non-fatal.
-		})
+		return result.isError !== true
+	} catch {
+		return false
+	}
 }
