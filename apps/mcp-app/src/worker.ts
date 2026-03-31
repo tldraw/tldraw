@@ -9,7 +9,6 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
-import type { TLShape } from 'tldraw'
 import { Logger } from './logger'
 import { registerTools } from './register-tools'
 import {
@@ -22,13 +21,14 @@ import {
 	MCP_SERVER_WEBSITE_URL,
 } from './shared/types'
 import type { MCP_APP_HOST_NAMES, ServerDeps } from './shared/types'
-import { parseTlShapes, resolveMcpAppHostNameFromServerInfo } from './shared/utils'
+import { resolveMcpAppHostNameFromServerInfo } from './shared/utils'
 
 // --- Types ---
 
 interface Env {
 	MCP_OBJECT: DurableObjectNamespace
 	ASSETS: Fetcher
+	LOADER: WorkerLoader
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
 	MCP_IS_DEV: string
@@ -137,9 +137,6 @@ export class TldrawMCP extends McpAgent<Env> {
 			saveCheckpoint: (id, shapes, assets = [], bindings = []) =>
 				this.saveCheckpoint(id, shapes, assets, bindings),
 			loadCheckpoint: (id) => this.loadCheckpoint(id),
-			getActiveShapes: () => this.getActiveShapes(),
-			getActiveAssets: () => this.getActiveAssets(),
-			getActiveBindings: () => this.getActiveBindings(),
 			getActiveCheckpointId: () => this.activeCheckpointId,
 			setActiveCheckpointId: (id) => {
 				this.activeCheckpointId = id
@@ -155,6 +152,7 @@ export class TldrawMCP extends McpAgent<Env> {
 			log: this.logger.toLogFn(),
 			extraResourceDomains: workerOrigin ? [workerOrigin] : [],
 			extraConnectDomains: workerOrigin ? [workerOrigin] : [],
+			searchWorkerLoader: this.env.LOADER,
 			workerOrigin,
 			isDev: this.isDev,
 			analytics: this.env.MCP_ANALYTICS,
@@ -189,24 +187,6 @@ export class TldrawMCP extends McpAgent<Env> {
 			assets: parsed.assets ?? [],
 			bindings: parsed.bindings ?? [],
 		}
-	}
-
-	getActiveShapes(): TLShape[] {
-		if (!this.activeCheckpointId) return []
-		const checkpoint = this.loadCheckpoint(this.activeCheckpointId)
-		return checkpoint ? parseTlShapes(checkpoint.shapes) : []
-	}
-
-	getActiveAssets(): unknown[] {
-		if (!this.activeCheckpointId) return []
-		const checkpoint = this.loadCheckpoint(this.activeCheckpointId)
-		return checkpoint ? checkpoint.assets : []
-	}
-
-	getActiveBindings(): unknown[] {
-		if (!this.activeCheckpointId) return []
-		const checkpoint = this.loadCheckpoint(this.activeCheckpointId)
-		return checkpoint ? checkpoint.bindings : []
 	}
 }
 
