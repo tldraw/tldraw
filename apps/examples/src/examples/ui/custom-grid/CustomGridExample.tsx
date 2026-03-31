@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
-import { TLComponents, Tldraw, approximately, useEditor, useIsDarkMode, useValue } from 'tldraw'
+import { TLComponents, Tldraw, approximately, useCurrentThemeId, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 /**
@@ -14,7 +14,7 @@ const components: TLComponents = {
 		// [2]
 		const screenBounds = useValue('screenBounds', () => editor.getViewportScreenBounds(), [])
 		const devicePixelRatio = useValue('dpr', () => editor.getInstanceState().devicePixelRatio, [])
-		const isDarkMode = useIsDarkMode()
+		const isDarkMode = useCurrentThemeId() === 'dark'
 
 		const canvas = useRef<HTMLCanvasElement>(null)
 
