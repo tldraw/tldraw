@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { TLWheelEventInfo } from '../editor/types/event-types'
+import { tlenv } from '../globals/environment'
 import { Vec } from '../primitives/Vec'
 import { preventDefault } from '../utils/dom'
 import { isAccelKey } from '../utils/keyboard'
@@ -368,26 +369,35 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 		elm.addEventListener('wheel', onWheel, { passive: false })
 
-		// Touch pinch via pointer events
-		elm.addEventListener('pointerdown', onPointerDown)
-		elm.addEventListener('pointermove', onPointerMove)
-		elm.addEventListener('pointerup', onPointerUp)
-		elm.addEventListener('pointercancel', onPointerCancel)
+		// On touch devices (iOS), use pointer events for pinch.
+		// On non-touch Safari (macOS trackpad), use GestureEvent.
+		// Never use both simultaneously — on iOS Safari, both event types fire
+		// for the same pinch gesture, causing conflicting state updates.
+		const useGestureEvents = !tlenv.isIos && 'GestureEvent' in window
 
-		// Safari trackpad pinch via GestureEvent
-		elm.addEventListener('gesturestart', onGestureStart)
-		elm.addEventListener('gesturechange', onGestureChange)
-		elm.addEventListener('gestureend', onGestureEnd)
+		if (useGestureEvents) {
+			elm.addEventListener('gesturestart', onGestureStart)
+			elm.addEventListener('gesturechange', onGestureChange)
+			elm.addEventListener('gestureend', onGestureEnd)
+		} else {
+			elm.addEventListener('pointerdown', onPointerDown)
+			elm.addEventListener('pointermove', onPointerMove)
+			elm.addEventListener('pointerup', onPointerUp)
+			elm.addEventListener('pointercancel', onPointerCancel)
+		}
 
 		return () => {
 			elm.removeEventListener('wheel', onWheel)
-			elm.removeEventListener('pointerdown', onPointerDown)
-			elm.removeEventListener('pointermove', onPointerMove)
-			elm.removeEventListener('pointerup', onPointerUp)
-			elm.removeEventListener('pointercancel', onPointerCancel)
-			elm.removeEventListener('gesturestart', onGestureStart)
-			elm.removeEventListener('gesturechange', onGestureChange)
-			elm.removeEventListener('gestureend', onGestureEnd)
+			if (useGestureEvents) {
+				elm.removeEventListener('gesturestart', onGestureStart)
+				elm.removeEventListener('gesturechange', onGestureChange)
+				elm.removeEventListener('gestureend', onGestureEnd)
+			} else {
+				elm.removeEventListener('pointerdown', onPointerDown)
+				elm.removeEventListener('pointermove', onPointerMove)
+				elm.removeEventListener('pointerup', onPointerUp)
+				elm.removeEventListener('pointercancel', onPointerCancel)
+			}
 		}
 	}, [editor, ref])
 }
