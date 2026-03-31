@@ -90,6 +90,8 @@ import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLUnknownAsset } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
+import { TLUser } from '@tldraw/tlschema';
+import { TLUserStore } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
@@ -540,17 +542,17 @@ export function createDeepLinkString(deepLink: TLDeepLink): string;
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
+// @public (undocumented)
+export function createTLCurrentUser(opts?: {
+    setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
+    userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
+}): TLCurrentUser;
+
 // @public
 export function createTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, assets, onMount, collaboration, ...rest }?: TLStoreOptions): TLStore;
-
-// @public (undocumented)
-export function createTLUser(opts?: {
-    setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
-    userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
-}): TLUser;
+export function createTLStore({ initialData, defaultName, id, assets, users, onMount, collaboration, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export class CubicBezier2d extends Polyline2d {
@@ -801,6 +803,9 @@ export const defaultUserPreferences: Readonly<{
     locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
     name: "";
 }>;
+
+// @public (undocumented)
+export const defaultUserStore: TLUserStore;
 
 // @public
 export function degreesToRadians(d: number): number;
@@ -1196,6 +1201,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
     edgeScrollManager: EdgeScrollManager;
+    // @internal
+    _ensureUserRecord(user: TLUser): void;
     // @internal (undocumented)
     externalAssetContentHandlers: {
         [K in TLExternalAsset['type']]: {
@@ -1231,6 +1238,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     getAssetUtil(type: string): AssetUtil;
     getAssetUtilForMimeType(mimeType: string): AssetUtil | null;
+    getAttributionDisplayName(userId: null | string): null | string;
+    getAttributionUser(userId: null | string): null | TLUser;
+    getAttributionUserId(): null | string;
     getBaseZoom(): number;
     getBinding(id: TLBindingId): TLBinding | undefined;
     getBindingsFromShape<K extends TLBinding['type']>(shape: TLShape | TLShapeId, type: K): Extract<TLBinding, {
@@ -1325,6 +1335,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPath(): string;
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
+    // @internal
+    _getReferencedUserIds(shapes: TLShape[]): Set<string>;
     getRenderingShapes(): TLRenderingShape[];
     getResizeScaleFactor(): number;
     getRichTextEditor(): null | TiptapEditor;
@@ -2878,6 +2890,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
     getIndicatorPath(shape: Shape): TLIndicatorPath | undefined;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
+    getReferencedUserIds(shape: Shape): string[];
     // (undocumented)
     getText(shape: Shape): string | undefined;
     hideInMinimap?(shape: Shape): boolean;
@@ -3435,6 +3448,8 @@ export interface TLContent {
     schema: SerializedSchema;
     // (undocumented)
     shapes: TLShape[];
+    // (undocumented)
+    users?: TLUser[];
 }
 
 // @public
@@ -3454,6 +3469,14 @@ export interface TLCropInfo<T extends TLShape> {
         h: number;
         w: number;
     };
+}
+
+// @public (undocumented)
+export interface TLCurrentUser {
+    // (undocumented)
+    readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
+    // (undocumented)
+    readonly userPreferences: Signal<TLUserPreferences>;
 }
 
 // @public (undocumented)
@@ -3560,7 +3583,7 @@ export interface TldrawEditorBaseProps {
     // @deprecated
     textOptions?: TLTextOptions;
     tools?: readonly TLStateNodeConstructor[];
-    user?: TLUser;
+    user?: TLCurrentUser;
 }
 
 // @public
@@ -3794,7 +3817,7 @@ export interface TLEditorOptions {
     // @deprecated
     textOptions?: TLTextOptions;
     tools: readonly TLStateNodeConstructor[];
-    user?: TLUser;
+    user?: TLCurrentUser;
 }
 
 // @public
@@ -4570,6 +4593,7 @@ export interface TLStoreBaseOptions {
     initialData?: SerializedStore<TLRecord>;
     onMount?(editor: Editor): (() => void) | void;
     snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
+    users?: TLUserStore;
 }
 
 // @public (undocumented)
@@ -4734,14 +4758,6 @@ export interface TLUrlExternalContent extends TLBaseExternalContent {
     type: 'url';
     // (undocumented)
     url: string;
-}
-
-// @public (undocumented)
-export interface TLUser {
-    // (undocumented)
-    readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
-    // (undocumented)
-    readonly userPreferences: Signal<TLUserPreferences>;
 }
 
 // @public
@@ -4925,7 +4941,7 @@ export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>
 
 // @public (undocumented)
 export class UserPreferencesManager {
-    constructor(user: TLUser, inferDarkMode: boolean);
+    constructor(user: TLCurrentUser, inferDarkMode: boolean);
     // (undocumented)
     disposables: Set<() => void>;
     // (undocumented)
@@ -5005,10 +5021,10 @@ export function useSharedSafeId(id: string): SafeId;
 export function useSvgExportContext(): null | SvgExportContext;
 
 // @public (undocumented)
-export function useTldrawUser(opts: {
+export function useTldrawCurrentUser(opts: {
     setUserPreferences?: (userPreferences: TLUserPreferences) => void;
     userPreferences?: Signal<TLUserPreferences> | TLUserPreferences;
-}): TLUser;
+}): TLCurrentUser;
 
 // @public (undocumented)
 export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;

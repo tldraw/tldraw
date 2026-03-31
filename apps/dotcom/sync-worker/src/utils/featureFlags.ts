@@ -8,16 +8,8 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
 
-function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
-	// Default to enabled in dev/preview when no KV value exists
-	const defaultEnabled = env.TLDRAW_ENV === 'development'
-
+function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
 	return {
-		sqlite_file_storage: {
-			type: 'boolean',
-			enabled: defaultEnabled,
-			description: 'When ON: uses SQLite storage for TLFileDurableObject instead of in-memory',
-		},
 		zero_enabled: {
 			type: 'percentage',
 			percentage: 0,

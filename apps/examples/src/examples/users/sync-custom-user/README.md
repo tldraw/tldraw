@@ -8,9 +8,8 @@ keywords:
     sync,
     useSyncDemo,
     user preferences,
-    useTldrawUser,
-    user info,
-    userInfo,
+    useTldrawCurrentUser,
+    TLUserStore,
     collaboration,
     presence,
   ]

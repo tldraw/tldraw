@@ -55,8 +55,8 @@ export {
 export {
 	createPresenceStateDerivation,
 	getDefaultUserPresence,
+	type CreatePresenceStateDerivationOpts,
 	type TLPresenceStateInfo,
-	type TLPresenceUserInfo,
 } from './createPresenceStateDerivation'
 export {
 	createTLSchema,
@@ -65,6 +65,7 @@ export {
 	defaultShapeSchemas,
 	type SchemaPropsInfo,
 	type TLSchema,
+	type UserSchemaInfo,
 } from './createTLSchema'
 export {
 	boxModelValidator,
@@ -182,6 +183,15 @@ export {
 	type TLShapePartial,
 	type TLUnknownShape,
 } from './records/TLShape'
+export {
+	createUserId,
+	createUserRecordType,
+	isUserId,
+	userIdValidator,
+	UserRecordType,
+	type TLUser,
+	type TLUserId,
+} from './records/TLUser'
 export {
 	type RecordProps,
 	type RecordPropsType,
@@ -317,6 +327,7 @@ export {
 	type TLDefaultVerticalAlignStyle,
 } from './styles/TLVerticalAlignStyle'
 export {
+	createCachedUserResolve,
 	type TLAssetContext,
 	type TLAssetStore,
 	type TLSerializedStore,
@@ -324,6 +335,7 @@ export {
 	type TLStoreProps,
 	type TLStoreSchema,
 	type TLStoreSnapshot,
+	type TLUserStore,
 } from './TLStore'
 export {
 	getDefaultTranslationLocale,

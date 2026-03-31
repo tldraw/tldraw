@@ -1,6 +1,6 @@
 import { LegacyMigrations, MigrationSequence, StoreSchema, StoreValidator } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
-import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
+import { T } from '@tldraw/validate'
 import { TLBaseAsset } from './assets/TLBaseAsset'
 import { bookmarkAssetMigrations, bookmarkAssetProps } from './assets/TLBookmarkAsset'
 import { imageAssetMigrations, imageAssetProps } from './assets/TLImageAsset'
@@ -33,6 +33,7 @@ import {
 	getShapePropKeysByStyle,
 	rootShapeMigrations,
 } from './records/TLShape'
+import { UserRecordType, createUserRecordType, userMigrations } from './records/TLUser'
 import { RecordProps, TLPropsMigrations, processPropsMigrations } from './recordsWithProps'
 import { arrowShapeMigrations, arrowShapeProps } from './shapes/TLArrowShape'
 import { TLBaseShape } from './shapes/TLBaseShape'
@@ -50,6 +51,7 @@ import { textShapeMigrations, textShapeProps } from './shapes/TLTextShape'
 import { videoShapeMigrations, videoShapeProps } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
 import { StyleProp } from './styles/StyleProp'
+import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 
 /**
  * Configuration information for a schema type (shape, binding, or asset), including its properties,
@@ -224,6 +226,38 @@ export const defaultAssetSchemas = {
 }
 
 /**
+ * Configuration for extending the user record type with custom metadata
+ * validators and migration sequences.
+ *
+ * @example
+ * ```ts
+ * import { T } from '@tldraw/validate'
+ *
+ * const userSchema: UserSchemaInfo = {
+ *   meta: {
+ *     isAdmin: T.boolean,
+ *     department: T.string,
+ *   },
+ * }
+ * ```
+ *
+ * @public
+ */
+export interface UserSchemaInfo {
+	/**
+	 * Validators for custom metadata fields on user records. Each field is
+	 * treated as optional — user records without these fields remain valid,
+	 * but when present, values are validated against the provided validators.
+	 */
+	meta?: Record<string, T.Validatable<any>>
+
+	/**
+	 * Additional migration sequences for evolving custom user data over time.
+	 */
+	migrations?: readonly MigrationSequence[]
+}
+
+/**
  * Creates a complete TLSchema for use with tldraw stores. This schema defines the structure,
  * validation, and migration sequences for all record types in a tldraw application.
  *
@@ -235,6 +269,7 @@ export const defaultAssetSchemas = {
  *   - shapes - Shape schema configurations. Defaults to defaultShapeSchemas if not provided
  *   - bindings - Binding schema configurations. Defaults to defaultBindingSchemas if not provided
  *   - assets - Asset schema configurations. Defaults to defaultAssetSchemas if not provided
+ *   - user - Custom user record configuration with meta validators and migrations
  *   - records - Custom record type configurations. These are additional record types beyond
  *     the built-in shapes, bindings, assets, etc.
  *   - migrations - Additional migration sequences to include in the schema
@@ -267,6 +302,16 @@ export const defaultAssetSchemas = {
  *   assets: defaultAssetSchemas,
  * })
  *
+ * // Create schema with custom user metadata
+ * const schemaWithCustomUser = createTLSchema({
+ *   user: {
+ *     meta: {
+ *       isAdmin: T.boolean,
+ *       department: T.string,
+ *     },
+ *   },
+ * })
+ *
  * // Create schema with custom record types
  * const schemaWithCustomRecords = createTLSchema({
  *   records: {
@@ -295,12 +340,14 @@ export function createTLSchema({
 	shapes = defaultShapeSchemas,
 	bindings = defaultBindingSchemas,
 	assets = defaultAssetSchemas,
+	user,
 	records = {},
 	migrations,
 }: {
 	shapes?: Record<string, SchemaPropsInfo>
 	bindings?: Record<string, SchemaPropsInfo>
 	assets?: Record<string, SchemaPropsInfo>
+	user?: UserSchemaInfo
 	records?: Record<string, CustomRecordInfo>
 	migrations?: readonly MigrationSequence[]
 } = {}): TLSchema {
@@ -318,6 +365,7 @@ export function createTLSchema({
 	const BindingRecordType = createBindingRecordType(bindings)
 	const _AssetRecordType = createAssetRecordType(assets)
 	const InstanceRecordType = createInstanceRecordType(stylesById)
+	const CustomUserRecordType = user ? createUserRecordType(user) : UserRecordType
 
 	// Create RecordTypes for custom records
 	const builtInTypeNames = new Set([
@@ -332,6 +380,7 @@ export function createTLSchema({
 		'pointer',
 		'shape',
 		'store',
+		'user',
 	])
 	const customRecordTypes: Record<string, { createId: any }> = {}
 	for (const [typeName, config] of Object.entries(records)) {
@@ -355,6 +404,7 @@ export function createTLSchema({
 			instance_presence: InstancePresenceRecordType,
 			pointer: PointerRecordType,
 			shape: ShapeRecordType,
+			user: CustomUserRecordType,
 			...customRecordTypes,
 		},
 		{
@@ -370,11 +420,14 @@ export function createTLSchema({
 				pointerMigrations,
 				rootShapeMigrations,
 
+				userMigrations,
+
 				...processPropsMigrations<TLUnknownAsset>('asset', assets),
 				...processPropsMigrations<TLShape>('shape', shapes),
 				...processPropsMigrations<TLBinding>('binding', bindings),
 				...processCustomRecordMigrations(records),
 
+				...(user?.migrations ?? []),
 				...(migrations ?? []),
 			],
 			onValidationFailure,

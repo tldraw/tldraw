@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tlschema",
 	"description": "tldraw infinite canvas SDK (schema).",
-	"version": "4.5.3",
+	"version": "4.5.4",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -41,7 +41,7 @@
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "cd ../.. && yarn run -T oxlint packages/tlschema"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"devDependencies": {
 		"kleur": "^4.1.5",

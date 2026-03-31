@@ -1478,6 +1478,19 @@ input,
 	color: currentColor;
 }
 
+.tl-note__attribution {
+	position: absolute;
+	bottom: calc(4px * var(--note-attribution-scale, 1));
+	right: calc(8px * var(--note-attribution-scale, 1));
+	font-family: var(--tl-font-sans);
+	pointer-events: auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 60%;
+	z-index: 1;
+}
+
 /* ------------------- Frame shape ------------------- */
 
 .tl-frame__body {
