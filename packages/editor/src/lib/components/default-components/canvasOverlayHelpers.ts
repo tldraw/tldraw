@@ -1,13 +1,15 @@
-import { BoxModel, TLScribble } from '@tldraw/tlschema'
+import { createComputedCache } from '@tldraw/store'
+import { BoxModel, TLShape, TLShapeId, TLScribble } from '@tldraw/tlschema'
 import { useEffect, useRef } from 'react'
 import { Editor } from '../../editor/Editor'
 import {
 	GapsSnapIndicator,
 	PointsSnapIndicator,
 } from '../../editor/managers/SnapManager/SnapManager'
+import { TLIndicatorPath } from '../../editor/shapes/ShapeUtil'
 import { getComputedStyle } from '../../exports/domUtils'
-import { useCurrentThemeId } from '../../hooks/useCurrentThemeId'
 import { useEditor } from '../../hooks/useEditor'
+import { useIsDarkMode } from '../../hooks/useIsDarkMode'
 import { rangeIntersection } from '../../primitives/utils'
 import { getSvgPathFromPoints } from '../../utils/getSvgPathFromPoints'
 
@@ -17,11 +19,11 @@ import { getSvgPathFromPoints } from '../../utils/getSvgPathFromPoints'
 export function useCssColorCache() {
 	const editor = useEditor()
 	const rColorCache = useRef<Map<string, string>>(new Map())
-	const themeId = useCurrentThemeId()
+	const isDarkMode = useIsDarkMode()
 	useEffect(() => {
 		const timer = editor.timers.setTimeout(() => rColorCache.current.clear(), 0)
 		return () => clearTimeout(timer)
-	}, [themeId, editor])
+	}, [isDarkMode, editor])
 	return rColorCache
 }
 
@@ -232,4 +234,160 @@ export function drawGapsSnap(
 		}
 	}
 	ctx.stroke()
+}
+
+// --- Shape indicator types and functions ---
+
+export interface CollaboratorIndicatorData {
+	color: string
+	shapeIds: TLShapeId[]
+}
+
+export interface IndicatorRenderData {
+	idsToDisplay: Set<TLShapeId>
+	renderingShapeIds: Set<TLShapeId>
+	hintingShapeIds: TLShapeId[]
+	collaboratorIndicators: CollaboratorIndicatorData[]
+}
+
+const indicatorPathCache = createComputedCache(
+	'indicatorPath',
+	(editor: Editor, shape: TLShape) => {
+		const util = editor.getShapeUtil(shape)
+		return util.getIndicatorPath(shape)
+	}
+)
+
+function drawIndicatorPath(ctx: CanvasRenderingContext2D, indicatorPath: TLIndicatorPath) {
+	if (indicatorPath instanceof Path2D) {
+		ctx.stroke(indicatorPath)
+	} else {
+		const { path, clipPath, additionalPaths } = indicatorPath
+
+		if (clipPath) {
+			ctx.save()
+			ctx.clip(clipPath, 'evenodd')
+			ctx.stroke(path)
+			ctx.restore()
+		} else {
+			ctx.stroke(path)
+		}
+
+		if (additionalPaths) {
+			for (const additionalPath of additionalPaths) {
+				ctx.stroke(additionalPath)
+			}
+		}
+	}
+}
+
+function drawShapeIndicator(
+	ctx: CanvasRenderingContext2D,
+	editor: Editor,
+	shapeId: TLShapeId,
+	renderingShapeIds: Set<TLShapeId>
+): boolean {
+	if (!renderingShapeIds.has(shapeId)) return false
+
+	const shape = editor.getShape(shapeId)
+	if (!shape || shape.isLocked) return false
+
+	const pageTransform = editor.getShapePageTransform(shape)
+	if (!pageTransform) return false
+
+	const indicatorPath = indicatorPathCache.get(editor, shape.id)
+	if (!indicatorPath) return false
+
+	ctx.save()
+	ctx.transform(
+		pageTransform.a,
+		pageTransform.b,
+		pageTransform.c,
+		pageTransform.d,
+		pageTransform.e,
+		pageTransform.f
+	)
+	drawIndicatorPath(ctx, indicatorPath)
+	ctx.restore()
+
+	return true
+}
+
+/** Draws all shape indicators (collaborator, selected/hovered, hinted) in z-order. */
+export function drawShapeIndicators(
+	ctx: CanvasRenderingContext2D,
+	editor: Editor,
+	renderData: IndicatorRenderData,
+	zoom: number,
+	selectedColor: string
+) {
+	const { idsToDisplay, renderingShapeIds, hintingShapeIds, collaboratorIndicators } = renderData
+
+	ctx.lineCap = 'round'
+	ctx.lineJoin = 'round'
+
+	// 1. Collaborator indicators (0.7 opacity, underneath local indicators)
+	ctx.lineWidth = 1.5 / zoom
+	for (const collaborator of collaboratorIndicators) {
+		ctx.strokeStyle = collaborator.color
+		ctx.globalAlpha = 0.7
+		for (const shapeId of collaborator.shapeIds) {
+			drawShapeIndicator(ctx, editor, shapeId, renderingShapeIds)
+		}
+	}
+
+	// 2. Selected/hovered indicators
+	ctx.globalAlpha = 1.0
+	ctx.strokeStyle = selectedColor
+	ctx.lineWidth = 1.5 / zoom
+	for (const shapeId of idsToDisplay) {
+		drawShapeIndicator(ctx, editor, shapeId, renderingShapeIds)
+	}
+
+	// 3. Hinted indicators (thicker stroke)
+	if (hintingShapeIds.length > 0) {
+		ctx.lineWidth = 2.5 / zoom
+		for (const shapeId of hintingShapeIds) {
+			drawShapeIndicator(ctx, editor, shapeId, renderingShapeIds)
+		}
+	}
+}
+
+// --- Equality helpers for IndicatorRenderData ---
+
+function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
+	if (a.size !== b.size) return false
+	for (const item of a) {
+		if (!b.has(item)) return false
+	}
+	return true
+}
+
+function arraysEqual<T>(a: readonly T[], b: readonly T[]): boolean {
+	if (a.length !== b.length) return false
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) return false
+	}
+	return true
+}
+
+function collaboratorIndicatorsEqual(
+	a: CollaboratorIndicatorData[],
+	b: CollaboratorIndicatorData[]
+): boolean {
+	if (a.length !== b.length) return false
+	for (let i = 0; i < a.length; i++) {
+		if (a[i].color !== b[i].color) return false
+		if (!arraysEqual(a[i].shapeIds, b[i].shapeIds)) return false
+	}
+	return true
+}
+
+export function renderDataEqual(a: IndicatorRenderData, b: IndicatorRenderData): boolean {
+	return (
+		setsEqual(a.idsToDisplay, b.idsToDisplay) &&
+		setsEqual(a.renderingShapeIds, b.renderingShapeIds) &&
+		arraysEqual(a.hintingShapeIds, b.hintingShapeIds) &&
+		collaboratorIndicatorsEqual(a.collaboratorIndicators, b.collaboratorIndicators)
+	)
 }

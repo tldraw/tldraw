@@ -28,7 +28,6 @@ import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
 import { Shape } from '../Shape'
 import { CanvasOverlays } from './CanvasOverlays'
-import { CanvasShapeIndicators } from './CanvasShapeIndicators'
 import { DefaultBrush } from './DefaultBrush'
 import { DefaultScribble } from './DefaultScribble'
 import { DefaultSnapIndicator } from './DefaultSnapIndictor'
@@ -164,7 +163,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					{hideShapes ? null : <ShapesLayer />}
 				</div>
 				<div className="tl-overlays">
-					<CanvasShapeIndicators />
 					<CanvasOverlays />
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}

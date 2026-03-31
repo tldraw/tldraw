@@ -1,16 +1,22 @@
-import { useQuickReactor } from '@tldraw/state-react'
+import { useComputed, useQuickReactor } from '@tldraw/state-react'
+import { TLShapeId } from '@tldraw/tlschema'
 import { BoxModel, TLScribble } from '@tldraw/tlschema'
+import { dedupe } from '@tldraw/utils'
 import { memo, useRef } from 'react'
 import { useEditorComponents } from '../../hooks/EditorComponentsContext'
 import { useEditor } from '../../hooks/useEditor'
 import { useActivePeerIds$ } from '../../hooks/usePeerIds'
 import {
+	CollaboratorIndicatorData,
+	IndicatorRenderData,
 	drawBrush,
 	drawCollaboratorBrush,
 	drawGapsSnap,
 	drawPointsSnap,
 	drawScribble,
+	drawShapeIndicators,
 	getCachedCssColor,
+	renderDataEqual,
 	setupCanvasContext,
 	useCssColorCache,
 } from './canvasOverlayHelpers'
@@ -29,17 +35,6 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 	const shouldDrawScribble = Scribble === DefaultScribble
 	const shouldDrawCollabScribble = CollaboratorScribble === DefaultScribble
 	const shouldDrawSnaps = SnapIndicator === DefaultSnapIndicator
-
-	if (
-		!shouldDrawBrush &&
-		!shouldDrawCollabBrush &&
-		!shouldDrawZoomBrush &&
-		!shouldDrawScribble &&
-		!shouldDrawCollabScribble &&
-		!shouldDrawSnaps
-	) {
-		return null
-	}
 
 	return (
 		<CanvasOverlaysInner
@@ -73,6 +68,71 @@ function CanvasOverlaysInner({
 	const rColorCache = useCssColorCache()
 	const activePeerIds$ = useActivePeerIds$()
 
+	// Compute indicator render data with custom equality to avoid unnecessary redraws
+	const $renderData = useComputed(
+		'indicator render data',
+		() => {
+			const renderingShapeIds = new Set(editor.getRenderingShapes().map((s) => s.id))
+
+			// Compute ids to display for selected/hovered shapes
+			const idsToDisplay = new Set<TLShapeId>()
+			const instanceState = editor.getInstanceState()
+			const isChangingStyle = instanceState.isChangingStyle
+			const isIdleOrEditing = editor.isInAny('select.idle', 'select.editing_shape')
+			const isInSelectState = editor.isInAny(
+				'select.brushing',
+				'select.scribble_brushing',
+				'select.pointing_shape',
+				'select.pointing_selection',
+				'select.pointing_handle'
+			)
+
+			if (!isChangingStyle && (isIdleOrEditing || isInSelectState)) {
+				for (const id of editor.getSelectedShapeIds()) {
+					idsToDisplay.add(id)
+				}
+				if (isIdleOrEditing && instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
+					const hovered = editor.getHoveredShapeId()
+					if (hovered) idsToDisplay.add(hovered)
+				}
+			}
+
+			// Compute hinting shape ids
+			const hintingShapeIds = dedupe(editor.getHintingShapeIds())
+
+			// Compute collaborator indicators
+			const collaboratorIndicators: CollaboratorIndicatorData[] = []
+			const currentPageId = editor.getCurrentPageId()
+			const activePeerIds = activePeerIds$.get()
+
+			const collaborators = editor.getCollaborators()
+			for (const peerId of activePeerIds.values()) {
+				const presence = collaborators.find((c) => c.userId === peerId)
+				if (!presence || presence.currentPageId !== currentPageId) continue
+
+				const visibleShapeIds = presence.selectedShapeIds.filter(
+					(id) => renderingShapeIds.has(id) && !editor.isShapeHidden(id)
+				)
+
+				if (visibleShapeIds.length > 0) {
+					collaboratorIndicators.push({
+						color: presence.color,
+						shapeIds: visibleShapeIds,
+					})
+				}
+			}
+
+			return {
+				idsToDisplay,
+				renderingShapeIds,
+				hintingShapeIds,
+				collaboratorIndicators,
+			} satisfies IndicatorRenderData
+		},
+		{ isEqual: renderDataEqual },
+		[editor, activePeerIds$]
+	)
+
 	useQuickReactor(
 		'canvas overlays',
 		() => {
@@ -81,8 +141,9 @@ function CanvasOverlaysInner({
 			const ctx = canvas.getContext('2d')
 			if (!ctx) return
 
-			// --- Read all overlay data ---
+			// --- Read all reactive data ---
 
+			const renderData = $renderData.get()
 			const brush = shouldDrawBrush ? editor.getInstanceState().brush : null
 			const zoomBrush = shouldDrawZoomBrush ? editor.getInstanceState().zoomBrush : null
 			const scribbles = shouldDrawScribble
@@ -147,17 +208,6 @@ function CanvasOverlaysInner({
 			ctx.resetTransform()
 			ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-			if (
-				!brush &&
-				!zoomBrush &&
-				scribbles.length === 0 &&
-				snapIndicators.length === 0 &&
-				!collabBrushData &&
-				!collabScribbleData
-			) {
-				return
-			}
-
 			// --- Setup camera transform ---
 
 			const zoom = setupCanvasContext(canvas, ctx, editor)
@@ -165,7 +215,11 @@ function CanvasOverlaysInner({
 
 			// --- Draw in z-order ---
 
-			// Brush
+			// 1-3. Shape indicators (collaborator, selected/hovered, hinted)
+			const selectedColor = getCachedCssColor(canvas, cache, '--tl-color-selected')
+			drawShapeIndicators(ctx, editor, renderData, zoom, selectedColor)
+
+			// 4. Brush
 			if (brush) {
 				drawBrush(
 					ctx,
@@ -176,14 +230,14 @@ function CanvasOverlaysInner({
 				)
 			}
 
-			// Collaborator brushes
+			// 5. Collaborator brushes
 			if (collabBrushData) {
 				for (const item of collabBrushData) {
 					drawCollaboratorBrush(ctx, item.brush, zoom, item.color, 0.1)
 				}
 			}
 
-			// Scribbles
+			// 6. Scribbles
 			if (scribbles.length > 0) {
 				ctx.lineCap = 'round'
 				ctx.lineJoin = 'round'
@@ -194,7 +248,7 @@ function CanvasOverlaysInner({
 				}
 			}
 
-			// Collaborator scribbles
+			// 6b. Collaborator scribbles
 			if (collabScribbleData) {
 				ctx.lineCap = 'round'
 				ctx.lineJoin = 'round'
@@ -203,7 +257,7 @@ function CanvasOverlaysInner({
 				}
 			}
 
-			// Zoom brush
+			// 7. Zoom brush
 			if (zoomBrush) {
 				drawBrush(
 					ctx,
@@ -214,7 +268,7 @@ function CanvasOverlaysInner({
 				)
 			}
 
-			// Snap indicators
+			// 8. Snap indicators
 			if (snapIndicators.length > 0) {
 				ctx.lineCap = 'butt'
 				ctx.lineJoin = 'miter'
@@ -230,6 +284,7 @@ function CanvasOverlaysInner({
 		},
 		[
 			editor,
+			$renderData,
 			shouldDrawBrush,
 			shouldDrawCollabBrush,
 			shouldDrawZoomBrush,
