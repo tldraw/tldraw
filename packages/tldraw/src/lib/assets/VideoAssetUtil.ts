@@ -3,10 +3,7 @@ import {
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	MediaHelpers,
 	TLAssetId,
-	TLShapePartial,
 	TLVideoAsset,
-	VecLike,
-	createShapeId,
 	videoAssetMigrations,
 	videoAssetProps,
 } from '@tldraw/editor'
@@ -61,21 +58,6 @@ export class VideoAssetUtil extends AssetUtil<TLVideoAsset> {
 				isAnimated: true,
 			},
 			meta: {},
-		}
-	}
-
-	override createShape(asset: TLVideoAsset, position: VecLike): TLShapePartial | null {
-		return {
-			id: createShapeId(),
-			type: 'video',
-			x: position.x,
-			y: position.y,
-			opacity: 1,
-			props: {
-				assetId: asset.id,
-				w: asset.props.w,
-				h: asset.props.h,
-			},
 		}
 	}
 }

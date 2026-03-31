@@ -4,9 +4,6 @@ import {
 	MediaHelpers,
 	TLAssetId,
 	TLImageAsset,
-	TLShapePartial,
-	VecLike,
-	createShapeId,
 	imageAssetMigrations,
 	imageAssetProps,
 } from '@tldraw/editor'
@@ -73,20 +70,5 @@ export class ImageAssetUtil extends AssetUtil<TLImageAsset> {
 		}
 
 		return assetInfo
-	}
-
-	override createShape(asset: TLImageAsset, position: VecLike): TLShapePartial | null {
-		return {
-			id: createShapeId(),
-			type: 'image',
-			x: position.x,
-			y: position.y,
-			opacity: 1,
-			props: {
-				assetId: asset.id,
-				w: asset.props.w,
-				h: asset.props.h,
-			},
-		}
 	}
 }

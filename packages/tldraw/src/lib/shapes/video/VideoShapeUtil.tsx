@@ -4,8 +4,12 @@ import {
 	MediaHelpers,
 	SvgExportContext,
 	TLAsset,
+	TLShapePartial,
+	TLVideoAsset,
 	TLVideoShape,
+	VecModel,
 	WeakCache,
+	createShapeId,
 	toDomPrecision,
 	useEditor,
 	useEditorComponents,
@@ -35,6 +39,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override type = 'video' as const
 	static override props = videoShapeProps
 	static override migrations = videoShapeMigrations
+	static override handledAssetTypes = ['video'] as const
 
 	override options: VideoShapeOptions = {
 		autoplay: true,
@@ -58,6 +63,22 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			// Not used, but once upon a time were used to sync video state between users
 			time: 0,
 			playing: true,
+		}
+	}
+
+	override createShapeForAsset(asset: TLAsset, position: VecModel): TLShapePartial | null {
+		const videoAsset = asset as TLVideoAsset
+		return {
+			id: createShapeId(),
+			type: 'video',
+			x: position.x,
+			y: position.y,
+			opacity: 1,
+			props: {
+				assetId: videoAsset.id,
+				w: videoAsset.props.w,
+				h: videoAsset.props.h,
+			},
 		}
 	}
 

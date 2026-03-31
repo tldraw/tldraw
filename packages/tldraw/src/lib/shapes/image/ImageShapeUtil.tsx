@@ -11,12 +11,15 @@ import {
 	SvgExportContext,
 	TLAsset,
 	TLAssetId,
+	TLImageAsset,
 	TLImageShape,
 	TLImageShapeProps,
 	TLResizeInfo,
 	TLShapePartial,
 	Vec,
+	VecModel,
 	WeakCache,
+	createShapeId,
 	fetch,
 	getGlobalDocument,
 	imageShapeMigrations,
@@ -53,6 +56,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override type = 'image' as const
 	static override props = imageShapeProps
 	static override migrations = imageShapeMigrations
+	static override handledAssetTypes = ['image'] as const
 
 	override isAspectRatioLocked() {
 		return true
@@ -75,6 +79,22 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			flipX: false,
 			flipY: false,
 			altText: '',
+		}
+	}
+
+	override createShapeForAsset(asset: TLAsset, position: VecModel): TLShapePartial | null {
+		const imageAsset = asset as TLImageAsset
+		return {
+			id: createShapeId(),
+			type: 'image',
+			x: position.x,
+			y: position.y,
+			opacity: 1,
+			props: {
+				assetId: imageAsset.id,
+				w: imageAsset.props.w,
+				h: imageAsset.props.h,
+			},
 		}
 	}
 

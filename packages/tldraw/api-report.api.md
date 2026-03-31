@@ -2013,8 +2013,6 @@ export const iconTypes: readonly ["align-bottom", "align-center-horizontal", "al
 // @public (undocumented)
 export class ImageAssetUtil extends AssetUtil<TLImageAsset> {
     // (undocumented)
-    createShape(asset: TLImageAsset, position: VecLike): null | TLShapePartial;
-    // (undocumented)
     getAssetFromFile(file: File, assetId: TLAssetId): Promise<null | TLImageAsset>;
     // (undocumented)
     getDefaultProps(): TLImageAsset['props'];
@@ -2049,6 +2047,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     component(shape: TLImageShape): JSX.Element;
     // (undocumented)
+    createShapeForAsset(asset: TLAsset, position: VecModel): null | TLShapePartial;
+    // (undocumented)
     getAriaDescriptor(shape: TLImageShape): string;
     // (undocumented)
     getDefaultProps(): TLImageShape['props'];
@@ -2058,6 +2058,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     getIndicatorPath(shape: TLImageShape): Path2D | undefined;
     // (undocumented)
     getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
+    // (undocumented)
+    static handledAssetTypes: readonly ["image"];
     // (undocumented)
     indicator(shape: TLImageShape): JSX.Element | null;
     // (undocumented)
@@ -5732,8 +5734,6 @@ export function useUnlockedSelectedShapesCount(min?: number, max?: number): bool
 // @public (undocumented)
 export class VideoAssetUtil extends AssetUtil<TLVideoAsset> {
     // (undocumented)
-    createShape(asset: TLVideoAsset, position: VecLike): null | TLShapePartial;
-    // (undocumented)
     getAssetFromFile(file: File, assetId: TLAssetId): Promise<null | TLVideoAsset>;
     // (undocumented)
     getDefaultProps(): TLVideoAsset['props'];
@@ -5771,11 +5771,15 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     component(shape: TLVideoShape): JSX.Element;
     // (undocumented)
+    createShapeForAsset(asset: TLAsset, position: VecModel): null | TLShapePartial;
+    // (undocumented)
     getAriaDescriptor(shape: TLVideoShape): string;
     // (undocumented)
     getDefaultProps(): TLVideoShape['props'];
     // (undocumented)
     getIndicatorPath(shape: TLVideoShape): Path2D;
+    // (undocumented)
+    static handledAssetTypes: readonly ["video"];
     // (undocumented)
     indicator(shape: TLVideoShape): JSX.Element;
     // (undocumented)
