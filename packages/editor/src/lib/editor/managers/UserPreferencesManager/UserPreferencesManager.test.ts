@@ -88,7 +88,7 @@ describe('UserPreferencesManager', () => {
 				removeEventListener: vi.fn(),
 			})
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, true)
 
 			expect(userPreferencesManager.systemColorScheme.get()).toBe('dark')
 		})
@@ -103,7 +103,7 @@ describe('UserPreferencesManager', () => {
 				removeEventListener: mockRemoveEventListener,
 			})
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, true)
 
 			expect(mockAddEventListener).toHaveBeenCalledWith('change', expect.any(Function))
 		})
@@ -123,7 +123,7 @@ describe('UserPreferencesManager', () => {
 				removeEventListener: vi.fn(),
 			})
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, true)
 
 			expect(userPreferencesManager.systemColorScheme.get()).toBe('light')
 
@@ -158,7 +158,7 @@ describe('UserPreferencesManager', () => {
 				removeEventListener: mockRemoveEventListener,
 			})
 
-			userPreferencesManager = new UserPreferencesManager(mockUser, false)
+			userPreferencesManager = new UserPreferencesManager(mockUser, true)
 			userPreferencesManager.dispose()
 
 			expect(mockRemoveEventListener).toHaveBeenCalledWith('change', expect.any(Function))
