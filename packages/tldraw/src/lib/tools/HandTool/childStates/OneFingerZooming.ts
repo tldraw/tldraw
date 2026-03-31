@@ -7,7 +7,6 @@ export class OneFingerZooming extends StateNode {
 	private initialCamera = new Vec()
 	private initialZoom = 1
 	private originScreenY = 0
-	private zoomDirection = 0
 
 	override onEnter(_info: TLPointerEventInfo) {
 		const camera = this.editor.getCamera()
@@ -27,7 +26,6 @@ export class OneFingerZooming extends StateNode {
 		// we won't respect the user's zoom direction preference because it only applies
 		// to mouse input
 		const dy = (this.originScreenY - currentScreenY) * -1
-		this.zoomDirection = dy
 
 		// ~200px of drag ≈ 2x zoom change.
 		const zoomFactor = Math.pow(2, dy / 200)
@@ -62,10 +60,10 @@ export class OneFingerZooming extends StateNode {
 		const velocityAtPointerUp = Math.min(pointerVelocity.len(), 2)
 
 		if (velocityAtPointerUp > 0.1) {
-			// direction.z is a rate multiplier: positive = zoom in, negative = zoom out.
+			// Use velocity y-sign for momentum direction (positive y = moving down = zoom in)
 			this.editor.slideCamera({
 				speed: velocityAtPointerUp,
-				direction: { x: 0, y: 0, z: Math.sign(this.zoomDirection) * 0.01 },
+				direction: { x: 0, y: 0, z: Math.sign(pointerVelocity.y) * 0.01 },
 			})
 		}
 		this.parent.transition('idle')
