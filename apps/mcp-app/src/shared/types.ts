@@ -4,9 +4,6 @@ import type { TLShape } from 'tldraw'
 export interface ServerDeps {
 	saveCheckpoint(id: string, shapes: TLShape[], assets?: unknown[], bindings?: unknown[]): void
 	loadCheckpoint(id: string): { shapes: unknown[]; assets: unknown[]; bindings: unknown[] } | null
-	getActiveShapes(): TLShape[]
-	getActiveAssets(): unknown[]
-	getActiveBindings(): unknown[]
 	getActiveCheckpointId(): string | null
 	setActiveCheckpointId(id: string): void
 	getSessionId(): string
@@ -18,6 +15,8 @@ export interface RegisterToolsOptions {
 	extraResourceDomains?: string[]
 	/** Extra CSP connect domains. */
 	extraConnectDomains?: string[]
+	/** Dynamic Workers loader for sandboxed server-side code execution. */
+	searchWorkerLoader: DynamicWorkerLoader
 	/** Public origin of the deployed MCP worker, used for host-specific widget domains. */
 	workerOrigin?: string
 	/** Flag so the tools, and thus the widget, know if they are running in dev mode. */
@@ -30,6 +29,18 @@ export interface RegisterToolsOptions {
 	getClientHostName(): MCP_APP_HOST_NAMES | undefined
 }
 
+export interface DynamicWorkerLoader {
+	load(code: {
+		compatibilityDate: string
+		mainModule: string
+		modules: Record<string, string | { js: string }>
+		env?: unknown
+		globalOutbound?: null
+	}): {
+		getEntrypoint(name?: string): unknown
+	}
+}
+
 export const MCP_SERVER_NAME = 'tldraw'
 export const MCP_SERVER_VERSION = '0.1.0'
 export const MCP_SERVER_TITLE = 'tldraw Canvas'
@@ -37,7 +48,7 @@ export const MCP_SERVER_DESCRIPTION =
 	'An interactive tldraw canvas with tools for diagramming, drawing, and more.'
 export const MCP_SERVER_WEBSITE_URL = 'https://www.tldraw.com'
 export const MCP_SERVER_INSTRUCTIONS =
-	'Use diagram_drawing_read_me for shape format examples. For create_shapes, update_shapes, and delete_shapes, send JSON array strings (build the array first, then JSON.stringify). Use create_shapes before update_shapes or delete_shapes when the canvas is empty.'
+	'Use `search` to query the tldraw Editor API spec (e.g. search for methods by category or name). Use `exec` to run JavaScript on the canvas — your code receives `editor` (the tldraw Editor instance) and helpers like toRichText, createShapeId, createArrowBetweenShapes. The current canvas state is kept in model context as raw TLShape, asset, and binding data.'
 
 export const CANVAS_RESOURCE_URI = 'ui://show-canvas/mcp-app.html'
 

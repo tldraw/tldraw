@@ -1,10 +1,3 @@
-import {
-	FocusedShapeSchema,
-	FocusedShapeUpdateSchema,
-	type FocusedShape,
-	type FocusedShapeUpdate,
-} from './focused-shape-schema'
-
 function tryParseArray(json: string): unknown[] | null {
 	try {
 		const parsed = JSON.parse(json)
@@ -30,8 +23,7 @@ function getPrevNonWhitespace(output: string): string | null {
 	return null
 }
 
-export function healJsonArrayString(input: string): string {
-	// Normalize common typographic quotes first.
+function healJsonArrayString(input: string): string {
 	const normalized = input.replace(/[\u201C\u201D]/g, '"')
 
 	let output = ''
@@ -54,7 +46,6 @@ export function healJsonArrayString(input: string): string {
 		}
 
 		if (char === '"') {
-			// Heal the recurring model mistake: stray quote after a number, e.g. `"x": 100",`.
 			const prev = getPrevNonWhitespace(output)
 			const next = getNextNonWhitespace(normalized, i + 1)
 			if (prev && /[0-9]/.test(prev) && (next === ',' || next === '}' || next === ']')) {
@@ -65,7 +56,6 @@ export function healJsonArrayString(input: string): string {
 			continue
 		}
 
-		// Heal trailing commas outside strings, e.g. `[{"x":1},]`.
 		if (char === ',') {
 			const next = getNextNonWhitespace(normalized, i + 1)
 			if (next === ']' || next === '}') {
@@ -90,47 +80,4 @@ export function parseJsonArray(json: string, fieldName: string): unknown[] {
 	throw new Error(
 		`${fieldName} must be a JSON array string. Build an array first, then pass JSON.stringify(array).`
 	)
-}
-
-export function parseFocusedShapesInput(json: string): FocusedShape[] {
-	const parsed = parseJsonArray(json, 'shapesJson')
-	const normalized: FocusedShape[] = []
-	for (const input of parsed) {
-		const result = FocusedShapeSchema.safeParse(input)
-		if (!result.success) {
-			throw new Error(result.error.issues[0]?.message ?? 'Invalid shape in shapesJson')
-		}
-		normalized.push(result.data)
-	}
-	return normalized
-}
-
-export function parseFocusedShapeUpdatesInput(json: string): FocusedShapeUpdate[] {
-	const parsed = parseJsonArray(json, 'updatesJson')
-
-	const normalized: FocusedShapeUpdate[] = []
-	for (const input of parsed) {
-		const result = FocusedShapeUpdateSchema.safeParse(input)
-		if (!result.success) {
-			throw new Error(result.error.issues[0]?.message ?? 'Invalid shape update in updatesJson')
-		}
-		normalized.push(result.data)
-	}
-	return normalized
-}
-
-export function parseShapeIdsInput(json: string): string[] {
-	const parsed = parseJsonArray(json, 'shapeIdsJson')
-	return parsed.filter((id): id is string => typeof id === 'string')
-}
-
-export function parseBooleanFlag(value: unknown, defaultValue = false): boolean {
-	if (typeof value === 'boolean') return value
-	if (typeof value === 'number') return value !== 0
-	if (typeof value === 'string') {
-		const normalized = value.trim().toLowerCase()
-		if (['true', '1', 'yes', 'y', 'on'].includes(normalized)) return true
-		if (['false', '0', 'no', 'n', 'off'].includes(normalized)) return false
-	}
-	return defaultValue
 }
