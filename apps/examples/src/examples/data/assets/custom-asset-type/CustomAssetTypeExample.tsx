@@ -1,5 +1,4 @@
 import {
-	AssetRecordType,
 	AssetUtil,
 	BaseBoxShapeUtil,
 	HTMLContainer,
@@ -11,7 +10,6 @@ import {
 	Tldraw,
 	VecModel,
 	createShapeId,
-	getHashForBuffer,
 	toRichText,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -235,28 +233,6 @@ export default function CustomAssetTypeExample() {
 							},
 						])
 					}
-
-					// [11]
-					editor.registerExternalAssetHandler('file', async ({ file, assetId }) => {
-						const assetUtil = editor.getAssetUtilForMimeType(file.type)
-						if (!assetUtil) throw new Error(`Unsupported file type: ${file.type}`)
-
-						const hash = getHashForBuffer(await file.arrayBuffer())
-						assetId ??= AssetRecordType.createId(hash)
-
-						const asset = await assetUtil.getAssetFromFile(file, assetId)
-						if (!asset) throw new Error('Could not create asset')
-
-						// In a real app, you'd upload the file to a server here and set
-						// asset.props.src to the URL. For this example we use a data URL.
-						const reader = new FileReader()
-						const src = await new Promise<string>((resolve) => {
-							reader.onload = () => resolve(reader.result as string)
-							reader.readAsDataURL(file)
-						})
-
-						return { ...asset, props: { ...asset.props, src } } as TLFileAsset
-					})
 				}}
 			/>
 		</div>
@@ -272,6 +248,7 @@ with a custom shape.
 [1]
 Define a custom asset type using TLBaseAsset. The props describe what information we
 store for each file: its name, size, MIME type, and a source URL for downloading.
+We augment TLGlobalAssetPropsMap so that TLAsset includes our custom type.
 
 [2]
 FileAssetUtil extends AssetUtil and tells the editor how to handle our custom asset type.
@@ -287,7 +264,8 @@ accepts the file's MIME type.
 
 [5]
 getAssetFromFile creates an asset record from a dropped file. This is called during the
-file-handling pipeline to extract metadata before upload.
+file-handling pipeline to extract metadata before upload. The src is left as null here
+because TLAssetStore.upload will provide the URL after the file is stored.
 
 [6]
 createShape returns a shape partial that the editor places on the canvas when this
@@ -307,12 +285,10 @@ If the asset has a src URL, the filename becomes a clickable download link.
 [10]
 We pass both the custom AssetUtil and ShapeUtil to the Tldraw component. The assetUtils
 prop registers our FileAssetUtil alongside the default image, video, and bookmark utils.
-
-[11]
-We override the default 'file' external asset handler to support our custom asset type.
-The handler uses getAssetUtilForMimeType to find the right AssetUtil for each file,
-then creates the asset. In a real application, you'd upload the file to your server
-and set the src to a permanent URL. This example uses data URLs for simplicity.
+No custom file handler is needed — the default handler automatically uses our AssetUtil
+for matching MIME types and uploads files via TLAssetStore. In a real app, you'd provide
+a custom TLAssetStore via the `assets` prop to upload files to your server (see the
+"hosted images" example). Here we use the default store which inlines files as data URLs.
 
 Try it: drag a PDF, text file, or CSV onto the canvas!
 */
