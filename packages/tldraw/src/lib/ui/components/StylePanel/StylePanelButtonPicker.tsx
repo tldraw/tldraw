@@ -8,7 +8,6 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import { memo, useMemo, useRef } from 'react'
-import { useDefaultColorTheme } from '../../../shapes/shared/useDefaultColorTheme'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -61,8 +60,8 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 		onValueChange = ctx.onValueChange,
 		onHistoryMark = ctx.onHistoryMark,
 	} = props
-	const theme = useDefaultColorTheme()
 	const editor = useEditor()
+	const theme = editor.getCurrentTheme()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 

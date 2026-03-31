@@ -1,5 +1,157 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`Accepts a scale option > Basic SVG 1`] = `
+<wrapper>
+  <svg
+    class="tl-container tl-theme__force-sRGB tl-theme__light"
+    data-color-mode="light"
+    direction="ltr"
+    height="564"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    style="background-color: rgb(249, 250, 251);"
+    viewBox="-32 -32 564 564"
+    width="564"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <mask
+        id="_export_4_r_b_"
+      >
+        <rect
+          fill="white"
+          height="8"
+          width="8"
+          x="0"
+          y="0"
+        />
+        <g
+          stroke="black"
+          stroke-linecap="round"
+        >
+          <line
+            x1="0.6666666666666666"
+            x2="2"
+            y1="2"
+            y2="0.6666666666666666"
+          />
+          <line
+            x1="3.333333333333333"
+            x2="4.666666666666666"
+            y1="4.666666666666666"
+            y2="3.333333333333333"
+          />
+          <line
+            x1="6"
+            x2="7.333333333333333"
+            y1="7.333333333333333"
+            y2="6"
+          />
+        </g>
+      </mask>
+      <pattern
+        height="8"
+        id="_export_4_r_a__hash_pattern_light_0"
+        patternUnits="userSpaceOnUse"
+        width="8"
+      >
+        <rect
+          fill="#fcfffe"
+          height="8"
+          mask="url(#_export_4_r_b_)"
+          width="8"
+          x="0"
+          y="0"
+        />
+      </pattern>
+      <style>
+        @font-face {
+  font-family: "tldraw_draw";
+  font-weight: normal;
+  src: url("data:font/woff2;base64,") format(woff2);
+}
+      </style>
+    </defs>
+  </svg>
+</wrapper>
+`;
+
+exports[`Gets the bounding box at the correct size > All shapes 1`] = `
+<wrapper>
+  <svg
+    class="tl-container tl-theme__force-sRGB tl-theme__light"
+    data-color-mode="light"
+    direction="ltr"
+    height="564"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    style="background-color: rgb(249, 250, 251);"
+    viewBox="-32 -32 564 564"
+    width="564"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <mask
+        id="_export_2_r_5_"
+      >
+        <rect
+          fill="white"
+          height="8"
+          width="8"
+          x="0"
+          y="0"
+        />
+        <g
+          stroke="black"
+          stroke-linecap="round"
+        >
+          <line
+            x1="0.6666666666666666"
+            x2="2"
+            y1="2"
+            y2="0.6666666666666666"
+          />
+          <line
+            x1="3.333333333333333"
+            x2="4.666666666666666"
+            y1="4.666666666666666"
+            y2="3.333333333333333"
+          />
+          <line
+            x1="6"
+            x2="7.333333333333333"
+            y1="7.333333333333333"
+            y2="6"
+          />
+        </g>
+      </mask>
+      <pattern
+        height="8"
+        id="_export_2_r_4__hash_pattern_light_0"
+        patternUnits="userSpaceOnUse"
+        width="8"
+      >
+        <rect
+          fill="#fcfffe"
+          height="8"
+          mask="url(#_export_2_r_5_)"
+          width="8"
+          x="0"
+          y="0"
+        />
+      </pattern>
+      <style>
+        @font-face {
+  font-family: "tldraw_draw";
+  font-weight: normal;
+  src: url("data:font/woff2;base64,") format(woff2);
+}
+      </style>
+    </defs>
+  </svg>
+</wrapper>
+`;
+
 exports[`Matches a snapshot > Basic SVG 1`] = `
 <wrapper>
   <svg
