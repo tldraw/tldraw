@@ -1,5 +1,5 @@
-import { Octokit } from '@octokit/rest'
 import { appendFileSync } from 'node:fs'
+import { Octokit } from '@octokit/rest'
 import { extractChangelog } from './extract-draft-changelog'
 import { getAnyPackageDiff } from './lib/didAnyPackageChange'
 import { exec } from './lib/exec'
@@ -45,6 +45,10 @@ async function main() {
 	if (isLatestVersion) {
 		await publishProductionDocsAndExamplesAndBemo()
 	}
+
+	// Ensure asset directories exist before comparing package contents.
+	// CI may skip postinstall (and thus refresh-assets) when install-state.gz is cached.
+	await exec('yarn', ['refresh-assets', '--force'])
 
 	// Skip releasing a new version if the package contents are identical.
 	// This may happen when cherry-picking docs-only changes.

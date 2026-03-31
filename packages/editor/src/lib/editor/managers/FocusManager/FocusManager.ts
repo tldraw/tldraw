@@ -1,3 +1,4 @@
+import { bind } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 
 /**
@@ -11,8 +12,6 @@ import type { Editor } from '../../Editor'
  */
 export class FocusManager {
 	private disposeSideEffectListener?: () => void
-	private readonly boundHandleKeyDown: (e: KeyboardEvent) => void
-	private readonly boundHandleMouseDown: () => void
 
 	constructor(
 		public editor: Editor,
@@ -33,10 +32,9 @@ export class FocusManager {
 		}
 		this.updateContainerClass()
 
-		this.boundHandleKeyDown = this.handleKeyDown.bind(this)
-		this.boundHandleMouseDown = this.handleMouseDown.bind(this)
-		document.body.addEventListener('keydown', this.boundHandleKeyDown)
-		document.body.addEventListener('mousedown', this.boundHandleMouseDown)
+		const body = editor.getContainerDocument().body
+		body.addEventListener('keydown', this.handleKeyDown)
+		body.addEventListener('mousedown', this.handleMouseDown)
 	}
 
 	/**
@@ -60,9 +58,9 @@ export class FocusManager {
 		container.classList.add('tl-container__no-focus-ring')
 	}
 
-	private handleKeyDown(keyEvent: KeyboardEvent) {
+	@bind private handleKeyDown(keyEvent: KeyboardEvent) {
 		const container = this.editor.getContainer()
-		const activeEl = document.activeElement
+		const activeEl = container.ownerDocument.activeElement
 		// Edit mode should remove the focus ring, however if the active element's
 		// parent is the contextual toolbar, then allow it.
 		if (this.editor.isIn('select.editing_shape') && !activeEl?.closest('.tlui-contextual-toolbar'))
@@ -73,7 +71,7 @@ export class FocusManager {
 		}
 	}
 
-	private handleMouseDown() {
+	@bind private handleMouseDown() {
 		const container = this.editor.getContainer()
 		container.classList.add('tl-container__no-focus-ring')
 	}
@@ -88,8 +86,9 @@ export class FocusManager {
 	}
 
 	dispose() {
-		document.body.removeEventListener('keydown', this.boundHandleKeyDown)
-		document.body.removeEventListener('mousedown', this.boundHandleMouseDown)
+		const body = this.editor.getContainerDocument().body
+		body.removeEventListener('keydown', this.handleKeyDown)
+		body.removeEventListener('mousedown', this.handleMouseDown)
 		this.disposeSideEffectListener?.()
 	}
 }

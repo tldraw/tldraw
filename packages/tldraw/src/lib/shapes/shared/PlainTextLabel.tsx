@@ -10,8 +10,8 @@ import {
 import classNames from 'classnames'
 import React from 'react'
 import { PlainTextArea } from '../text/PlainTextArea'
-import { TextHelpers } from './TextHelpers'
 import { isLegacyAlign } from './legacyProps'
+import { TextHelpers } from './TextHelpers'
 import { useEditablePlainText } from './useEditablePlainText'
 
 /** @public */

@@ -1,7 +1,7 @@
 import { Composition, staticFile } from 'remotion'
-import { Walkthrough } from './Walkthrough'
 import { FPS, HEIGHT, WIDTH } from './styles'
 import type { Manifest } from './types'
+import { Walkthrough } from './Walkthrough'
 
 export const Root: React.FC = () => {
 	return (

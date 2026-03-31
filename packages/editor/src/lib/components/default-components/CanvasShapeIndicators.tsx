@@ -5,6 +5,7 @@ import { dedupe } from '@tldraw/utils'
 import { memo, useEffect, useRef } from 'react'
 import { Editor } from '../../editor/Editor'
 import { TLIndicatorPath } from '../../editor/shapes/ShapeUtil'
+import { getComputedStyle } from '../../exports/domUtils'
 import { useEditor } from '../../hooks/useEditor'
 import { useIsDarkMode } from '../../hooks/useIsDarkMode'
 import { useActivePeerIds$ } from '../../hooks/usePeerIds'
@@ -223,7 +224,7 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 				$renderData.get()
 
 			const { w, h } = editor.getViewportScreenBounds()
-			const dpr = window.devicePixelRatio || 1
+			const dpr = editor.getInstanceState().devicePixelRatio
 			const { x: cx, y: cy, z: zoom } = editor.getCamera()
 
 			const canvasWidth = Math.ceil(w * dpr)

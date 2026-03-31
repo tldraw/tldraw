@@ -11,10 +11,10 @@ import {
 	createRecordType,
 } from '@tldraw/store'
 import { vi, type Mock } from 'vitest'
-import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
-import { RoomSnapshot, TLRoomSocket } from '../lib/TLSyncRoom'
 import { RecordOpType, ValueOpType } from '../lib/diff'
 import { TLSocketServerSentEvent, getTlsyncProtocolVersion } from '../lib/protocol'
+import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
+import { RoomSnapshot, TLRoomSocket } from '../lib/TLSyncRoom'
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
 

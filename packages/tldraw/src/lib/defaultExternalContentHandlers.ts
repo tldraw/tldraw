@@ -38,7 +38,7 @@ import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
-import { renderRichTextFromHTML } from './utils/text/richText'
+import { renderHtmlFromRichTextForMeasurement, renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
 /**
@@ -178,7 +178,9 @@ export async function defaultHandleExternalFileReplaceContent(
 		sanitizedFile,
 		assetId,
 		isImage /* isImage */,
-		!isImage /* isVideo */
+		!isImage /* isVideo */,
+		undefined,
+		editor.getContainerDocument()
 	)
 	editor.createAssets([assetInfoPartial])
 
@@ -328,9 +330,10 @@ export async function defaultHandleExternalSvgTextContent(
 	let height = parseFloat(svg.getAttribute('height') || '0')
 
 	if (!(width && height)) {
-		document.body.appendChild(svg)
+		const doc = editor.getContainerDocument()
+		doc.body.appendChild(svg)
 		const box = svg.getBoundingClientRect()
-		document.body.removeChild(svg)
+		doc.body.removeChild(svg)
 
 		width = box.width
 		height = box.height
@@ -496,10 +499,8 @@ export async function defaultHandleExternalTextContent(
 	let autoSize: boolean
 	let align = 'middle' as TLTextShapeProps['textAlign']
 
-	const htmlToMeasure = html ?? cleanedUpPlaintext.replace(/\n/g, '<br>')
-	const isMultiLine = html
-		? richTextToPaste.content.length > 1
-		: cleanedUpPlaintext.split('\n').length > 1
+	const htmlToMeasure = renderHtmlFromRichTextForMeasurement(editor, richTextToPaste)
+	const isMultiLine = richTextToPaste.content.length > 1
 
 	// check whether the text contains the most common characters in RTL languages
 	const isRtl = isRightToLeftLanguage(cleanedUpPlaintext)
@@ -651,7 +652,8 @@ export async function getMediaAssetInfoPartial(
 	assetId: TLAssetId,
 	isImageType: boolean,
 	isVideoType: boolean,
-	maxImageDimension?: number
+	maxImageDimension?: number,
+	doc?: Document
 ) {
 	let fileType = file.type
 
@@ -661,8 +663,8 @@ export async function getMediaAssetInfoPartial(
 	}
 
 	const size = isImageType
-		? await MediaHelpers.getImageSize(file)
-		: await MediaHelpers.getVideoSize(file)
+		? await MediaHelpers.getImageSize(file, doc)
+		: await MediaHelpers.getVideoSize(file, doc)
 
 	const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
 

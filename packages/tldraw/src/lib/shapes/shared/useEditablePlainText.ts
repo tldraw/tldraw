@@ -40,7 +40,7 @@ export function useEditablePlainText(
 	useEffect(() => {
 		if (!isEditing) return
 
-		if (document.activeElement !== rInput.current) {
+		if (editor.getContainerDocument().activeElement !== rInput.current) {
 			rInput.current?.focus()
 		}
 
@@ -157,7 +157,7 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 						preventDefault(e)
 						if (plainText) {
 							// eslint-disable-next-line @typescript-eslint/no-deprecated -- best way to insert text with undo support
-							document.execCommand('insertText', false, plainText)
+							editor.getContainerDocument().execCommand('insertText', false, plainText)
 						}
 					}
 				}

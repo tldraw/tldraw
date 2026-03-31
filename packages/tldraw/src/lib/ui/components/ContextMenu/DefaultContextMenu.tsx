@@ -36,16 +36,17 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	)
 
 	useEffect(() => {
+		const body = editor.getContainerDocument().body
 		return () => {
-			// Cleanup the event listener when the component unmounts.
-			document.body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
+			body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
 				capture: true,
 			})
 		}
-	}, [preventEscapeFromLosingShapeFocus])
+	}, [editor, preventEscapeFromLosingShapeFocus])
 
 	const cb = useCallback(
 		(isOpen: boolean) => {
+			const body = editor.getContainerDocument().body
 			if (!isOpen) {
 				const onlySelectedShape = editor.getOnlySelectedShape()
 
@@ -54,12 +55,12 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 				}
 
 				editor.timers.requestAnimationFrame(() => {
-					document.body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
+					body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
 						capture: true,
 					})
 				})
 			} else {
-				document.body.addEventListener('keydown', preventEscapeFromLosingShapeFocus, {
+				body.addEventListener('keydown', preventEscapeFromLosingShapeFocus, {
 					capture: true,
 				})
 

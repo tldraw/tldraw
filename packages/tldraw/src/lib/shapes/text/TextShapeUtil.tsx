@@ -27,8 +27,8 @@ import {
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
-import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
 const sizeCache = createComputedCache(

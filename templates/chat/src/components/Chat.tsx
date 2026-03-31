@@ -1,11 +1,11 @@
 'use client'
 
-import { useChatMessageStorage } from '@/hooks/useChatMessageStorage'
-import { uploadMessageContents } from '@/utils/uploadMessageContents'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, FileUIPart, TextUIPart, UIMessage } from 'ai'
 import { useCallback, useEffect } from 'react'
 import { TLEditorSnapshot } from 'tldraw'
+import { useChatMessageStorage } from '@/hooks/useChatMessageStorage'
+import { uploadMessageContents } from '@/utils/uploadMessageContents'
 import { useChatInputState } from '../hooks/useChatInputState'
 import { useScrollToBottom } from '../hooks/useScrollToBottom'
 import { ChatInput } from './ChatInput'

@@ -3,9 +3,9 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { CatchUpChangeCollator, LiveChangeCollator, getEffects } from './ChangeCollator'
-import { Subscription, serializeSubscriptions } from './Subscription'
 import { migrate } from './replicatorMigrations'
 import { ChangeV2, Topic } from './replicatorTypes'
+import { Subscription, serializeSubscriptions } from './Subscription'
 import {
 	MockLogger,
 	SqlStorageAdapter,

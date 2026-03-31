@@ -1,5 +1,4 @@
 import * as github from '@actions/github'
-
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'

@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "แปลงเป็นบุ๊กมาร์ก",
 	"action.convert-to-embed": "แปลงเป็น Embed",
 	"action.copy": "คัดลอก",
+	"action.copy-as-json": "คัดลอกเป็น JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "คัดลอกเป็น PNG",
 	"action.copy-as-png.short": "PNG",
 	"action.copy-as-svg": "คัดลอกเป็น SVG",

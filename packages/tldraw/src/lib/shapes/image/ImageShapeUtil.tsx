@@ -18,6 +18,7 @@ import {
 	Vec,
 	WeakCache,
 	fetch,
+	getGlobalDocument,
 	imageShapeMigrations,
 	imageShapeProps,
 	lerp,
@@ -32,8 +33,8 @@ import {
 import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
-import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { getUncroppedSize } from '../shared/crop'
+import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 import { TRANSPARENT_IMAGE_MIMETYPES, getAlphaData, preloadAlphaData } from './ImageAlphaCache'
@@ -602,7 +603,7 @@ function getFirstFrameOfAnimatedImage(url: string) {
 		image.onload = () => {
 			if (cancelled) return
 
-			const canvas = document.createElement('canvas')
+			const canvas = getGlobalDocument().createElement('canvas')
 			canvas.width = image.width
 			canvas.height = image.height
 

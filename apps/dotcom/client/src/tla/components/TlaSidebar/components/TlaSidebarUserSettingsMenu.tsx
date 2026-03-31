@@ -11,13 +11,13 @@ import {
 } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
-import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	ColorThemeSubmenu,
 	DebugMenuGroup,
 	ImportFileActionItem,
 	SignOutMenuItem,
 } from '../../menu-items/menu-items'
+import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 
 const messages = defineMessages({

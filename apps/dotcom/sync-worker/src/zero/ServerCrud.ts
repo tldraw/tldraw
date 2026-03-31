@@ -41,9 +41,9 @@ const db = new Kysely<DB>({
 	},
 })
 
-export class ServerCRUD
-	implements TableMutator<TlaSchema['tables'][keyof TlaSchema['tables']] & TableSchema>
-{
+export class ServerCRUD implements TableMutator<
+	TlaSchema['tables'][keyof TlaSchema['tables']] & TableSchema
+> {
 	constructor(
 		private readonly client: PostgresPoolClient,
 		private readonly table: TlaSchema['tables'][keyof TlaSchema['tables']],

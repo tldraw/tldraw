@@ -50,7 +50,7 @@ function CustomShareZone() {
 	)
 }
 
-/* 
+/*
 This example shows how to pass in a custom component to the share panel and top panel.
 The share panel is in the top right corner above the style menu, the top panel is in 
 the top center.

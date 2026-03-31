@@ -16,7 +16,6 @@ import {
 	useSvgExportContext,
 	useValue,
 } from '@tldraw/editor'
-
 import {
 	DEFAULT_EMBED_DEFINITIONS,
 	EmbedDefinition,
@@ -25,8 +24,8 @@ import {
 	embedShapePermissionDefaults,
 } from '../../defaultEmbedDefinitions'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
-import { BookmarkIndicatorComponent, BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
 import { BOOKMARK_JUST_URL_HEIGHT, BOOKMARK_WIDTH } from '../bookmark/bookmarks'
+import { BookmarkIndicatorComponent, BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {

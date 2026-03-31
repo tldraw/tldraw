@@ -114,7 +114,10 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 		'text shape ids',
 		() => {
 			const allIds = editor.getShapeAndDescendantIds(selectedShapeIds)
-			return [...allIds].filter((id) => (editor.getShape(id)?.props as any).richText)
+			return [...allIds].filter((id) => {
+				const shape = editor.getShape(id) as any
+				return !!shape?.props?.richText
+			})
 		},
 		[editor, selectedShapeIds]
 	)

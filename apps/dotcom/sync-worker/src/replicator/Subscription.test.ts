@@ -1,10 +1,10 @@
+import { Topic } from './replicatorTypes'
 import {
 	Subscription,
 	getSubscriptionChanges,
 	parseSubscriptions,
 	serializeSubscriptions,
 } from './Subscription'
-import { Topic } from './replicatorTypes'
 
 describe('getSubscriptionChanges', () => {
 	it('should return null for empty changes', () => {

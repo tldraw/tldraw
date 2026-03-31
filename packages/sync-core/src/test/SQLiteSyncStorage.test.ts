@@ -1,3 +1,4 @@
+import { DatabaseSync } from 'node:sqlite'
 import {
 	BaseRecord,
 	createMigrationSequence,
@@ -13,7 +14,6 @@ import {
 	TLRecord,
 } from '@tldraw/tlschema'
 import { IndexKey, ZERO_INDEX_KEY } from '@tldraw/utils'
-import { DatabaseSync } from 'node:sqlite'
 import { vi } from 'vitest'
 import { MAX_TOMBSTONES, TOMBSTONE_PRUNE_BUFFER_SIZE } from '../lib/InMemorySyncStorage'
 import { NodeSqliteWrapper } from '../lib/NodeSqliteWrapper'

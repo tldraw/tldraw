@@ -160,7 +160,7 @@ export class FontManager {
 			loadingPromise: instance
 				.load()
 				.then(() => {
-					document.fonts.add(instance)
+					this.editor.getContainerDocument().fonts.add(instance)
 					this.fontStates.update(font, (s) => ({ ...s, state: 'ready' }))
 				})
 				.catch((err) => {
@@ -193,7 +193,8 @@ export class FontManager {
 	}
 
 	private findOrCreateFontFace(font: TLFontFace) {
-		for (const existing of document.fonts) {
+		const fonts = this.editor.getContainerDocument().fonts
+		for (const existing of fonts) {
 			if (
 				existing.family === font.family &&
 				objectMapEntries(defaultFontFaceDescriptors).every(
@@ -210,7 +211,7 @@ export class FontManager {
 			display: 'swap',
 		})
 
-		document.fonts.add(instance)
+		fonts.add(instance)
 
 		return instance
 	}

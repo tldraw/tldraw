@@ -17,7 +17,6 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import type { MCP_APP_HOST_NAMES } from '../shared/types'
 import {
 	MCP_SERVER_DESCRIPTION,
 	MCP_SERVER_NAME,
@@ -25,6 +24,7 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from '../shared/types'
+import type { MCP_APP_HOST_NAMES } from '../shared/types'
 import { isHostCodeEditor, resolveMcpAppHostNameFromClientInfo } from '../shared/utils'
 import { McpAppContext } from './app-context'
 import { exportTldr } from './export-tldr'

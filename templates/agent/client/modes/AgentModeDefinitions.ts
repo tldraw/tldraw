@@ -1,6 +1,5 @@
 import type { AgentAction } from '../../shared/types/AgentAction'
 import type { PromptPart } from '../../shared/types/PromptPart'
-
 // Import action utils to ensure they register themselves
 import { AddDetailActionUtil } from '../actions/AddDetailActionUtil'
 import { AlignActionUtil } from '../actions/AlignActionUtil'
@@ -26,7 +25,6 @@ import { ThinkActionUtil } from '../actions/ThinkActionUtil'
 import { UnknownActionUtil } from '../actions/UnknownActionUtil'
 import { UpdateActionUtil } from '../actions/UpdateActionUtil'
 import { UpsertTodoListItemActionUtil } from '../actions/UpsertTodoListItemActionUtil'
-
 // Import prompt part utils to ensure they register themselves
 import { AgentViewportBoundsPartUtil } from '../parts/AgentViewportBoundsPartUtil'
 import { BlurryShapesPartUtil } from '../parts/BlurryShapesPartUtil'

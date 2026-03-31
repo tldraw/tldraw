@@ -1,6 +1,6 @@
 import type { App } from '@modelcontextprotocol/ext-apps/react'
-import type { TLAsset, TLBindingCreate, TLShape } from 'tldraw'
 import { Editor, structuredClone } from 'tldraw'
+import type { TLAsset, TLBindingCreate, TLShape } from 'tldraw'
 import { convertTldrawRecordToFocusedShape } from '../focused-shape-converters'
 import type { FocusedShape } from '../focused-shape-schema'
 import { isPlainObject } from '../shared/utils'
@@ -56,7 +56,7 @@ export function loadLocalSnapshot(
 	checkpointId: string
 ): { shapes: TLShape[]; assets: TLAsset[]; bindings: TLBindingCreate[] } | null {
 	try {
-		// eslint-disable-next-line no-restricted-syntax
+		// eslint-disable-next-line tldraw/no-direct-storage
 		const raw = localStorage.getItem(localStorageKey(checkpointId))
 		if (!raw) return null
 		return parseSnapshotData(raw)
@@ -73,13 +73,13 @@ export function saveLocalSnapshot(
 ): void {
 	if (!currentSessionId) return
 	try {
-		// eslint-disable-next-line no-restricted-syntax
+		// eslint-disable-next-line tldraw/no-direct-storage
 		localStorage.setItem(
 			localStorageKey(checkpointId),
 			JSON.stringify({ shapes, assets, bindings })
 		)
 		// Track this as the latest checkpoint for this session
-		// eslint-disable-next-line no-restricted-syntax
+		// eslint-disable-next-line tldraw/no-direct-storage
 		localStorage.setItem(`tldraw:${currentSessionId}:latest`, checkpointId)
 	} catch {
 		// localStorage may be full or unavailable.
@@ -93,7 +93,7 @@ export function getLatestCheckpointSnapshot(): {
 } | null {
 	if (!currentSessionId) return null
 	try {
-		// eslint-disable-next-line no-restricted-syntax
+		// eslint-disable-next-line tldraw/no-direct-storage
 		const latestId = localStorage.getItem(`tldraw:${currentSessionId}:latest`)
 		if (!latestId) return null
 		return loadLocalSnapshot(latestId)

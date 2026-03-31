@@ -1,6 +1,6 @@
+import fs from 'fs'
 import { Page } from '@playwright/test'
 import { DB, userHasFlag } from '@tldraw/dotcom-shared'
-import fs from 'fs'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
 import { OTHER_USERS, USERS } from '../consts'

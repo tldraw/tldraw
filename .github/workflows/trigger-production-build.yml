@@ -34,9 +34,13 @@ jobs:
 
       - uses: actions/checkout@v6
         with:
+          persist-credentials: false
           token: ${{ steps.generate_token.outputs.token }}
           ref: refs/heads/production
           fetch-depth: 0
+
+      - name: Configure git credentials
+        run: git config --global url."https://x-access-token:${{ steps.generate_token.outputs.token }}@github.com/".insteadOf "https://github.com/"
 
       - name: Get target commit hash (manual dispatch)
         if: github.event_name == 'workflow_dispatch'

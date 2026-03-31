@@ -1,7 +1,7 @@
 import { atom } from '@tldraw/state'
 import { Mocked, vi } from 'vitest'
+import { TLCurrentUser } from '../../../config/createTLCurrentUser'
 import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
-import { TLUser } from '../../../config/createTLUser'
 import { UserPreferencesManager } from './UserPreferencesManager'
 
 // Mock window.matchMedia
@@ -9,7 +9,7 @@ const mockMatchMedia = vi.fn()
 window.matchMedia = mockMatchMedia
 
 describe('UserPreferencesManager', () => {
-	let mockUser: Mocked<TLUser>
+	let mockUser: Mocked<TLCurrentUser>
 	let mockUserPreferences: TLUserPreferences
 	let userPreferencesAtom: any
 	let userPreferencesManager: UserPreferencesManager

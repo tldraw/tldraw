@@ -85,6 +85,7 @@ describe('FontManager', () => {
 			getShapeUtil: vi.fn(() => mockShapeUtil),
 			getCurrentPageShapeIds: vi.fn(() => new Set()),
 			getShape: vi.fn(),
+			getContainerDocument: vi.fn(() => document),
 			isDisposed: false,
 		} as any
 

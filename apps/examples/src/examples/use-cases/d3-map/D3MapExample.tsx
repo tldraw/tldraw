@@ -1,9 +1,9 @@
 import { Editor, TLComponents, Tldraw, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { UsMapShapeUtil } from './UsMapShapeUtil'
-import { UsStateShapeUtil } from './UsStateShapeUtil'
-import './d3-map.css'
 import { MAP_HEIGHT, MAP_WIDTH } from './us-map-data'
+import { UsMapShapeUtil } from './UsMapShapeUtil'
+import './d3-map.css'
+import { UsStateShapeUtil } from './UsStateShapeUtil'
 
 export const STATE_COLORS = [
 	'#4e79a7',

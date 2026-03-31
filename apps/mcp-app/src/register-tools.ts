@@ -5,8 +5,8 @@ import {
 } from '@modelcontextprotocol/ext-apps/server'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js'
-import type { TLShape } from 'tldraw'
 import { structuredClone } from 'tldraw'
+import type { TLShape } from 'tldraw'
 import { z } from 'zod'
 import {
 	convertFocusedShapesToTldrawRecords,
@@ -29,8 +29,8 @@ import {
 	deleteShapesInputSchema,
 	updateShapesInputSchema,
 } from './shared/tool-schemas'
-import type { RegisterToolsOptions, ServerDeps } from './shared/types'
 import { CANVAS_RESOURCE_URI } from './shared/types'
+import type { RegisterToolsOptions, ServerDeps } from './shared/types'
 import {
 	deepMerge,
 	errorResponse,

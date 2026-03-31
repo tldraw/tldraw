@@ -15,11 +15,11 @@ import { DefaultDebugPanel } from '../components/DefaultDebugPanel'
 import { DefaultFollowingIndicator } from '../components/DefaultFollowingIndicator'
 import { DefaultMenuPanel } from '../components/DefaultMenuPanel'
 import { DefaultDialogs } from '../components/Dialogs'
-import { TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
 import {
 	DefaultHelperButtons,
 	TLUiHelperButtonsProps,
 } from '../components/HelperButtons/DefaultHelperButtons'
+import { TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
 import {
 	DefaultKeyboardShortcutsDialog,
 	TLUiKeyboardShortcutsDialogProps,
