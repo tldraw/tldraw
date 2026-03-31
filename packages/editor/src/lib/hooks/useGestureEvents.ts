@@ -135,6 +135,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 		// Accumulated scale offset, clamped to bounds — replaces @use-gesture's offset[0]
 		let scaleOffset = 1
+		let initScaleFrom = 1 // the scale-space zoom level when the pinch started
 
 		function updatePinchState(isSafariTrackpadPinch: boolean) {
 			if (isSafariTrackpadPinch) {
@@ -214,7 +215,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 				initDistanceBetweenFingers = distance
 				currDistanceBetweenFingers = distance
 				initZoom = editor.getZoomLevel()
-				scaleOffset = getScaleFrom()
+				initScaleFrom = getScaleFrom()
+				scaleOffset = initScaleFrom
 
 				dispatchPinchEvent('pinch_start', origin, { x: 0, y: 0 }, editor.getZoomLevel(), event)
 			}
@@ -242,7 +244,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			// Update scale offset: ratio of current distance to initial distance, applied to initial scale
 			const bounds = getScaleBounds()
 			if (initDistanceBetweenFingers > 0) {
-				const rawScale = getScaleFrom() * (distance / initDistanceBetweenFingers)
+				const rawScale = initScaleFrom * (distance / initDistanceBetweenFingers)
 				scaleOffset = Math.min(bounds.max, Math.max(bounds.min, rawScale))
 			}
 
