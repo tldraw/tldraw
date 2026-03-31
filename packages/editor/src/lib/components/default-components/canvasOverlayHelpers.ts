@@ -125,7 +125,8 @@ export function drawScribble(
 export function drawPointsSnap(
 	ctx: CanvasRenderingContext2D,
 	indicator: PointsSnapIndicator,
-	zoom: number
+	zoom: number,
+	color: string
 ) {
 	const { points } = indicator
 	const l = 2.5 / zoom
@@ -149,7 +150,7 @@ export function drawPointsSnap(
 		secondY = minY
 	}
 
-	ctx.strokeStyle = 'lime'
+	ctx.strokeStyle = color
 
 	ctx.beginPath()
 	ctx.moveTo(firstX, firstY)
@@ -169,7 +170,8 @@ export function drawPointsSnap(
 export function drawGapsSnap(
 	ctx: CanvasRenderingContext2D,
 	indicator: GapsSnapIndicator,
-	zoom: number
+	zoom: number,
+	color: string
 ) {
 	const { gaps, direction } = indicator
 	const l = 3.5 / zoom
@@ -207,7 +209,7 @@ export function drawGapsSnap(
 	if (edgeIntersection === null) return
 
 	const midPoint = (edgeIntersection[0] + edgeIntersection[1]) / 2
-	ctx.strokeStyle = 'cyan'
+	ctx.strokeStyle = color
 
 	ctx.beginPath()
 	for (const { startEdge, endEdge } of gaps) {

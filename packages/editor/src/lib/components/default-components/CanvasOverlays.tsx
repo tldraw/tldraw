@@ -270,14 +270,15 @@ function CanvasOverlaysInner({
 
 			// 8. Snap indicators
 			if (snapIndicators.length > 0) {
+				const snapColor = getCachedCssColor(canvas, cache, '--tl-color-snap')
 				ctx.lineCap = 'butt'
 				ctx.lineJoin = 'miter'
 				ctx.lineWidth = 1 / zoom
 				for (const indicator of snapIndicators) {
 					if (indicator.type === 'points') {
-						drawPointsSnap(ctx, indicator, zoom)
+						drawPointsSnap(ctx, indicator, zoom, snapColor)
 					} else if (indicator.type === 'gaps') {
-						drawGapsSnap(ctx, indicator, zoom)
+						drawGapsSnap(ctx, indicator, zoom, snapColor)
 					}
 				}
 			}
