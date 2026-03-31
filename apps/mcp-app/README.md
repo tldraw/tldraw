@@ -31,7 +31,7 @@ Run all commands from `apps/mcp-app`.
 | Command           | What it does                                                                                       |
 | ----------------- | -------------------------------------------------------------------------------------------------- |
 | `yarn build`      | Build the widget HTML                                                                              |
-| `yarn dev`        | Build widget + start local Cloudflare worker (HTTP MCP on `localhost:8787`)                       |
+| `yarn dev`        | Build widget + start local Cloudflare worker (HTTP MCP on `localhost:8787`)                        |
 | `yarn dev:tunnel` | Build widget + start a Cloudflare tunnel + local worker with `WORKER_ORIGIN` set to the tunnel URL |
 | `yarn deploy`     | Build widget + deploy the Cloudflare worker to production                                          |
 
