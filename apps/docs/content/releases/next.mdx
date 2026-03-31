@@ -156,6 +156,7 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Exports now automatically trim to visual content bounds, capturing overflow like thick strokes and arrowheads without extra whitespace. ([#8202](https://github.com/tldraw/tldraw/pull/8202))
 - Improve resize performance for multiple geo shapes with text labels by batching DOM measurements into a single pass per frame. ([#7949](https://github.com/tldraw/tldraw/pull/7949))
 - Move the debug mode toggle into the preferences submenu. ([#8259](https://github.com/tldraw/tldraw/pull/8259))
+- Update hotkeys-js keyboard shortcut library from v3 to v4, picking up improvements to keyboard layout handling. ([#8372](https://github.com/tldraw/tldraw/pull/8372))
 
 ## Bug fixes
 
@@ -168,3 +169,4 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix draw-shape loop-closing sensitivity so closing works more consistently across zoom levels. ([#8293](https://github.com/tldraw/tldraw/pull/8293))
 - Fix all shapes disappearing when a labeled arrow has zero length due to NaN propagation through the spatial index. ([#8329](https://github.com/tldraw/tldraw/pull/8329))
 - Fix "back to content" button flickering when both it and the "move focus to canvas" button are visible. ([#8334](https://github.com/tldraw/tldraw/pull/8334)) (contributed by [@kaneel](https://github.com/kaneel))
+- Fix slight positioning drift when pasting text onto the canvas. ([#8345](https://github.com/tldraw/tldraw/pull/8345))
