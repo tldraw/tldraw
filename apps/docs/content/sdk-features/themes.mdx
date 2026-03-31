@@ -310,7 +310,7 @@ const themes: TLThemes = {
 <Tldraw themes={themes} />
 ```
 
-tldraw validates shape properties (including colors) when data enters the store, for example when loading from IndexedDB or syncing from a server. Passing `themes` tells tldraw about your custom colors *before* data is loaded, so they pass validation. When creating a store yourself, pass `themes` there too, and still pass `themes` to `<Tldraw>` so the editor knows how to render them:
+tldraw validates shape properties (including colors) when data enters the store, for example when loading from IndexedDB or syncing from a server. Passing `themes` tells tldraw about your custom colors _before_ data is loaded, so they pass validation. When creating a store yourself, pass `themes` there too, and still pass `themes` to `<Tldraw>` so the editor knows how to render them:
 
 **Direct store creation:**
 

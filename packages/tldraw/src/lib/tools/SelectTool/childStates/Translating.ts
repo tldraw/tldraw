@@ -16,11 +16,11 @@ import {
 	isPageId,
 	kickoutOccludedShapes,
 } from '@tldraw/editor'
-import type { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
 	getAvailableNoteAdjacentPositions,
 } from '../../../shapes/note/noteHelpers'
+import type { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
 import { getDisplayValues } from '../../../shapes/shared/getDisplayValues'
 import { DragAndDropManager } from '../DragAndDropManager'
 

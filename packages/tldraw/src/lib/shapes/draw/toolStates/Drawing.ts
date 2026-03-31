@@ -18,9 +18,9 @@ import {
 	toFixed,
 	uniqueId,
 } from '@tldraw/editor'
-import { getDisplayValues } from '../../shared/getDisplayValues'
 import { HighlightShapeUtil } from '../../highlight/HighlightShapeUtil'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
+import { getDisplayValues } from '../../shared/getDisplayValues'
 import { DrawShapeUtil } from '../DrawShapeUtil'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
