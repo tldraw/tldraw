@@ -15,6 +15,13 @@ import { cn } from '@/utils/cn'
 import { db } from '@/utils/ContentDatabase'
 import { parseMarkdown } from '@/utils/parse-markdown'
 
+export async function generateStaticParams() {
+	const paths = await db.getAllPaths()
+	return paths.map((path) => ({ slug: path.replace(/^\//, '').split('/') }))
+}
+
+export const dynamicParams = false
+
 export async function generateMetadata(props: {
 	params: Promise<{ slug: string | string[] }>
 }): Promise<Metadata> {
@@ -32,7 +39,6 @@ export async function generateMetadata(props: {
 	}
 	return metadata
 }
-export const dynamicParams = true
 
 export default async function Page(props: { params: Promise<{ slug: string | string[] }> }) {
 	const params = await props.params

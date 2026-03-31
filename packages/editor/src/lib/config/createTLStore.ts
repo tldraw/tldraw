@@ -1,4 +1,4 @@
-import { Signal } from '@tldraw/state'
+import { Signal, computed } from '@tldraw/state'
 import { HistoryEntry, MigrationSequence, SerializedStore, Store, StoreSchema } from '@tldraw/store'
 import {
 	CustomRecordInfo,
@@ -9,7 +9,12 @@ import {
 	TLStoreProps,
 	TLStoreSnapshot,
 	TLThemes,
+	TLUser,
+	TLUserStore,
+	UserRecordType,
+	createCachedUserResolve,
 	createTLSchema,
+	createUserId,
 	registerColorsFromThemes,
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
@@ -17,6 +22,7 @@ import { Editor } from '../editor/Editor'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
+import { defaultUserPreferences, getUserPreferences } from './TLUserPreferences'
 
 /** @public */
 export interface TLStoreBaseOptions {
@@ -38,6 +44,9 @@ export interface TLStoreBaseOptions {
 	 * colors passes validation on load.
 	 */
 	themes?: TLThemes
+
+	/** How should this store resolve users for attribution? */
+	users?: TLUserStore
 
 	/** Called when the store is connected to an {@link @tldraw/editor#Editor}. */
 	onMount?(editor: Editor): void | (() => void)
@@ -69,6 +78,21 @@ export type TLStoreOptions = TLStoreBaseOptions & {
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
 
 const defaultAssetResolve: NonNullable<TLAssetStore['resolve']> = (asset) => asset.props.src
+
+const _defaultCurrentUser: Signal<TLUser | null> = computed('defaultCurrentUser', () => {
+	const prefs = getUserPreferences()
+	if (!prefs.id) return null
+	return UserRecordType.create({
+		id: createUserId(prefs.id),
+		name: prefs.name ?? '',
+		color: prefs.color ?? defaultUserPreferences.color,
+	})
+})
+
+/** @public */
+export const defaultUserStore: TLUserStore = {
+	currentUser: _defaultCurrentUser,
+}
 
 /** @public */
 export const inlineBase64AssetStore: TLAssetStore = {
@@ -116,6 +140,7 @@ export function createTLStore({
 	defaultName = '',
 	id,
 	assets = inlineBase64AssetStore,
+	users = defaultUserStore,
 	onMount,
 	collaboration,
 	themes,
@@ -134,6 +159,15 @@ export function createTLStore({
 				upload: assets.upload,
 				resolve: assets.resolve ?? defaultAssetResolve,
 				remove: assets.remove ?? (() => Promise.resolve()),
+			},
+			users: {
+				currentUser: users.currentUser,
+				resolve:
+					users.resolve ??
+					createCachedUserResolve((userId) => {
+						const current = users.currentUser.get()
+						return current && current.id === createUserId(userId) ? current : null
+					}),
 			},
 			onMount: (editor) => {
 				assert(editor instanceof Editor)

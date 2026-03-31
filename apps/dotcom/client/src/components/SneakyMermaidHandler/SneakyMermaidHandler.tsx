@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { defaultHandleExternalTextContent, useEditor, useToasts } from 'tldraw'
 import { defineMessages, useMsg } from '../../tla/utils/i18n'
-import { simpleMermaidStringTest } from './simpleMermaidStringTest'
+import { simpleMermaidStringTest, stripMarkdownMermaidFence } from './simpleMermaidStringTest'
 
 const messages = defineMessages({
 	unsupportedTitle: { defaultMessage: 'Unsupported Mermaid diagram' },
@@ -16,10 +16,22 @@ export function SneakyMermaidHandler() {
 
 	useEffect(() => {
 		editor.registerExternalContentHandler('text', async (content) => {
-			if (!simpleMermaidStringTest(content.text)) {
+			// when pasting html, the derived text is stripped and loses line breaks
+			// which make evaluating mermaid diagrams impossible. We look into the
+			// sources and see if there's some plain text alongside the html and if
+			// there are, we can use this to evaluate mermaid diagrams.
+
+			const plainTextSource = content.sources?.find(
+				(s) => s.type === 'text' && s.subtype === 'text'
+			)
+			const plainText = plainTextSource?.data ?? content.text
+			const textToTest = simpleMermaidStringTest(plainText) ? plainText : content.text
+
+			if (!simpleMermaidStringTest(textToTest)) {
 				await defaultHandleExternalTextContent(editor, content)
 				return
 			}
+			const mermaidText = stripMarkdownMermaidFence(textToTest)
 			const { createMermaidDiagram } = await import('@tldraw/mermaid')
 			const shapesBefore = new Set(editor.getCurrentPageShapeIds())
 
@@ -48,7 +60,7 @@ export function SneakyMermaidHandler() {
 					})
 				}
 
-				await createMermaidDiagram(editor, content.text, { onUnsupportedDiagram })
+				await createMermaidDiagram(editor, mermaidText, { onUnsupportedDiagram })
 				selectNewShapes()
 			} catch (e) {
 				console.error(e)

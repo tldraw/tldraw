@@ -22,8 +22,8 @@ import React, {
 import { version } from '../version'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
+import { createTLCurrentUser, TLCurrentUser } from './config/createTLCurrentUser'
 import { TLStoreBaseOptions } from './config/createTLStore'
-import { createTLUser, TLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
@@ -160,7 +160,7 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * The user interacting with the editor.
 	 */
-	user?: TLUser
+	user?: TLCurrentUser
 
 	/**
 	 * The active theme ID. When set, overrides the automatic light/dark
@@ -279,7 +279,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	registerColorsFromThemes(rest.themes)
 
 	const [container, setContainer] = useState<HTMLElement | null>(null)
-	const user = useMemo(() => _user ?? createTLUser(), [_user])
+	const user = useMemo(() => _user ?? createTLCurrentUser(), [_user])
 
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
@@ -350,7 +350,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 
 function TldrawEditorWithOwnStore(
 	props: Required<
-		TldrawEditorProps & { store: undefined; user: TLUser },
+		TldrawEditorProps & { store: undefined; user: TLCurrentUser },
 		'shapeUtils' | 'bindingUtils' | 'tools'
 	>
 ) {
@@ -364,6 +364,7 @@ function TldrawEditorWithOwnStore(
 		sessionId,
 		user,
 		assets,
+		users,
 		migrations,
 		themes,
 	} = props
@@ -377,6 +378,7 @@ function TldrawEditorWithOwnStore(
 		defaultName,
 		snapshot,
 		assets,
+		users,
 		migrations,
 		themes,
 	})
@@ -389,7 +391,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	user,
 	...rest
 }: Required<
-	TldrawEditorProps & { store: TLStoreWithStatus; user: TLUser },
+	TldrawEditorProps & { store: TLStoreWithStatus; user: TLCurrentUser },
 	'shapeUtils' | 'bindingUtils' | 'tools'
 >) {
 	const container = useContainer()
@@ -450,7 +452,7 @@ function TldrawEditorWithReadyStore({
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
-		user: TLUser
+		user: TLCurrentUser
 	},
 	'shapeUtils' | 'bindingUtils' | 'tools'
 >) {

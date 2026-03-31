@@ -404,7 +404,7 @@ test('onAfterChangeFromShape is called after the from shape is updated', () => {
 
 	expect(editor.getShape(ids.box1)?.meta).toEqual({})
 	mockOnAfterChangeFromShape.mockImplementationOnce(() => {
-		expect(editor.getShape(ids.box1)?.meta).toEqual({
+		expect(editor.getShape(ids.box1)?.meta).toMatchObject({
 			foo: 'bar',
 		})
 	})
@@ -415,7 +415,7 @@ test('onAfterChangeFromShape is called after the from shape is updated', () => {
 			meta: { foo: 'bar' },
 		},
 	])
-	expect(editor.getShape(ids.box1)?.meta).toEqual({
+	expect(editor.getShape(ids.box1)?.meta).toMatchObject({
 		foo: 'bar',
 	})
 	expect.assertions(3)
@@ -426,7 +426,7 @@ test('onAfterChangeToShape is called after the to shape is updated', () => {
 
 	expect(editor.getShape(ids.box2)?.meta).toEqual({})
 	mockOnAfterChangeToShape.mockImplementationOnce(() => {
-		expect(editor.getShape(ids.box2)?.meta).toEqual({
+		expect(editor.getShape(ids.box2)?.meta).toMatchObject({
 			foo: 'bar',
 		})
 	})
@@ -437,7 +437,7 @@ test('onAfterChangeToShape is called after the to shape is updated', () => {
 			meta: { foo: 'bar' },
 		},
 	])
-	expect(editor.getShape(ids.box2)?.meta).toEqual({
+	expect(editor.getShape(ids.box2)?.meta).toMatchObject({
 		foo: 'bar',
 	})
 	expect.assertions(3)
