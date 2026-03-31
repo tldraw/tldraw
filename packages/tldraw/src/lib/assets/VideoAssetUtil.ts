@@ -7,7 +7,6 @@ import {
 	TLVideoAsset,
 	VecLike,
 	createShapeId,
-	getHashForBuffer,
 	videoAssetMigrations,
 	videoAssetProps,
 } from '@tldraw/editor'
@@ -17,6 +16,12 @@ export class VideoAssetUtil extends AssetUtil<TLVideoAsset> {
 	static override type = 'video' as const
 	static override props = videoAssetProps
 	static override migrations = videoAssetMigrations
+
+	override options: {
+		supportedMimeTypes: readonly string[] | null
+	} = {
+		supportedMimeTypes: null,
+	}
 
 	override getDefaultProps(): TLVideoAsset['props'] {
 		return {
@@ -30,13 +35,10 @@ export class VideoAssetUtil extends AssetUtil<TLVideoAsset> {
 	}
 
 	override getSupportedMimeTypes(): readonly string[] {
-		return DEFAULT_SUPPORT_VIDEO_TYPES
+		return this.options.supportedMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES
 	}
 
 	override async getAssetFromFile(file: File, assetId: TLAssetId): Promise<TLVideoAsset | null> {
-		const hash = getHashForBuffer(await file.arrayBuffer())
-		const id = assetId ?? (`asset:${hash}` as TLAssetId)
-
 		let fileType = file.type
 		if (fileType === 'video/quicktime') {
 			// hack to make .mov videos work
@@ -46,7 +48,7 @@ export class VideoAssetUtil extends AssetUtil<TLVideoAsset> {
 		const size = await MediaHelpers.getVideoSize(file)
 
 		return {
-			id,
+			id: assetId,
 			type: 'video',
 			typeName: 'asset',
 			props: {

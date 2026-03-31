@@ -95,6 +95,8 @@ export {
 	type TLAssetPartial,
 	type TLAssetShape,
 	type TLDefaultAsset,
+	type TLGlobalAssetPropsMap,
+	type TLIndexedAssets,
 	type TLUnknownAsset,
 } from './records/TLAsset'
 export {

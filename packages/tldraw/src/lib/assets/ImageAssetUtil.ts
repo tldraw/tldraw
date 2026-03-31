@@ -7,7 +7,6 @@ import {
 	TLShapePartial,
 	VecLike,
 	createShapeId,
-	getHashForBuffer,
 	imageAssetMigrations,
 	imageAssetProps,
 } from '@tldraw/editor'
@@ -20,8 +19,12 @@ export class ImageAssetUtil extends AssetUtil<TLImageAsset> {
 	static override props = imageAssetProps
 	static override migrations = imageAssetMigrations
 
-	override options = {
+	override options: {
+		maxDimension: number
+		supportedMimeTypes: readonly string[] | null
+	} = {
 		maxDimension: DEFAULT_MAX_IMAGE_DIMENSION,
+		supportedMimeTypes: null,
 	}
 
 	override getDefaultProps(): TLImageAsset['props'] {
@@ -36,18 +39,15 @@ export class ImageAssetUtil extends AssetUtil<TLImageAsset> {
 	}
 
 	override getSupportedMimeTypes(): readonly string[] {
-		return DEFAULT_SUPPORTED_IMAGE_TYPES
+		return this.options.supportedMimeTypes ?? DEFAULT_SUPPORTED_IMAGE_TYPES
 	}
 
 	override async getAssetFromFile(file: File, assetId: TLAssetId): Promise<TLImageAsset | null> {
-		const hash = getHashForBuffer(await file.arrayBuffer())
-		const id = assetId ?? (`asset:${hash}` as TLAssetId)
-
 		const size = await MediaHelpers.getImageSize(file)
 		const isAnimated = await MediaHelpers.isAnimated(file)
 
 		const assetInfo: TLImageAsset = {
-			id,
+			id: assetId,
 			type: 'image',
 			typeName: 'asset',
 			props: {

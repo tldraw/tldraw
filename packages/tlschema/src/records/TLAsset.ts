@@ -47,15 +47,50 @@ export type TLDefaultAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
  */
 export type TLUnknownAsset = TLBaseAsset<string, object>
 
+/** @public */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface TLGlobalAssetPropsMap {}
+
+/** @public */
+// prettier-ignore
+export type TLIndexedAssets = {
+	[K in keyof TLGlobalAssetPropsMap | TLDefaultAsset['type'] as K extends TLDefaultAsset['type']
+		? K extends keyof TLGlobalAssetPropsMap
+			? TLGlobalAssetPropsMap[K] extends null | undefined
+				? never
+				: K
+			: K
+		: K]: K extends TLDefaultAsset['type']
+		? K extends keyof TLGlobalAssetPropsMap
+			? TLBaseAsset<K, TLGlobalAssetPropsMap[K]>
+			: Extract<TLDefaultAsset, { type: K }>
+		: TLBaseAsset<K, TLGlobalAssetPropsMap[K & keyof TLGlobalAssetPropsMap]>
+}
+
 /**
  * The set of all assets that are available in the editor.
  *
- * In the default schema this is equivalent to `TLDefaultAsset`. When custom assets are added
- * via `createTLSchema({ assets })`, the runtime record type accepts those additional asset types.
+ * This is the primary asset type used throughout tldraw. It includes both the
+ * built-in default assets and any custom assets registered via
+ * {@link TLGlobalAssetPropsMap} augmentation.
+ *
+ * You can use this type without a type argument to work with any asset, or pass
+ * a specific asset type string (e.g., `'image'`, `'video'`, `'bookmark'`) to
+ * narrow down to that specific asset type.
+ *
+ * @example
+ * ```ts
+ * // Register a custom asset type
+ * declare module '@tldraw/tlschema' {
+ *   interface TLGlobalAssetPropsMap {
+ *     file: { name: string; size: number; mimeType: string; src: string | null }
+ *   }
+ * }
+ * ```
  *
  * @public
  */
-export type TLAsset = TLDefaultAsset
+export type TLAsset<K extends keyof TLIndexedAssets = keyof TLIndexedAssets> = TLIndexedAssets[K]
 
 /**
  * Migration version identifiers for asset record schema evolution.

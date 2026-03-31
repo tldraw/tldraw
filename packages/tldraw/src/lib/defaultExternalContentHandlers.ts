@@ -1,7 +1,6 @@
 import {
 	AssetRecordType,
 	Editor,
-	MediaHelpers,
 	TLAsset,
 	TLAssetId,
 	TLBookmarkAsset,
@@ -34,7 +33,6 @@ import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
-import { containBoxSize } from './utils/assets/assets'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
 import { renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
@@ -148,6 +146,7 @@ export async function defaultHandleExternalFileAsset(
 	const sanitizedFile = await maybeSanitizeSvgFile(file)
 	if (!sanitizedFile) assert(false, 'SVG file contained no safe content')
 	const assetInfo = await getAssetInfo(editor, sanitizedFile, assetId)
+	if (!assetInfo) assert(false, `No asset util found for MIME type "${file.type}"`)
 	const result = await editor.uploadAsset(assetInfo, sanitizedFile)
 	assetInfo.props.src = result.src
 	if (result.meta) assetInfo.meta = { ...assetInfo.meta, ...result.meta }
@@ -175,6 +174,8 @@ export async function defaultHandleExternalFileReplaceContent(
 	const assetInfoPartial = (await getAssetInfo(editor, sanitizedFile, assetId)) as
 		| TLImageAsset
 		| TLVideoAsset
+		| null
+	if (!assetInfoPartial) return
 	editor.createAssets([assetInfoPartial])
 
 	// And update the shape
@@ -415,6 +416,7 @@ export async function defaultHandleExternalFileContent(
 			continue
 		}
 		const assetInfo = await getAssetInfo(editor, sanitizedFile)
+		if (!assetInfo) continue
 		if (assetInfo.type === 'image') {
 			editor.createTemporaryAssetPreview(assetInfo.id, sanitizedFile)
 		}
@@ -639,59 +641,6 @@ export async function defaultHandleExternalExcalidrawContent(
 	editor.run(() => {
 		putExcalidrawContent(editor, content, point)
 	})
-}
-
-/** @public */
-export async function getMediaAssetInfoPartial(
-	file: File,
-	assetId: TLAssetId,
-	isImageType: boolean,
-	isVideoType: boolean,
-	maxImageDimension?: number,
-	doc?: Document
-) {
-	let fileType = file.type
-
-	if (file.type === 'video/quicktime') {
-		// hack to make .mov videos work
-		fileType = 'video/mp4'
-	}
-
-	const size = isImageType
-		? await MediaHelpers.getImageSize(file, doc)
-		: await MediaHelpers.getVideoSize(file, doc)
-
-	const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
-
-	const pixelRatio = 'pixelRatio' in size && size.pixelRatio !== 1 ? size.pixelRatio : undefined
-
-	const assetInfo = {
-		id: assetId,
-		type: isImageType ? 'image' : 'video',
-		typeName: 'asset',
-		props: {
-			name: file.name,
-			src: '',
-			w: size.w,
-			h: size.h,
-			fileSize: file.size,
-			mimeType: fileType,
-			isAnimated,
-			...(isImageType && pixelRatio ? { pixelRatio } : undefined),
-		},
-		meta: {},
-	} as TLImageAsset | TLVideoAsset
-
-	if (maxImageDimension && isFinite(maxImageDimension)) {
-		const size = { w: assetInfo.props.w, h: assetInfo.props.h }
-		const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
-		if (size !== resizedSize && MediaHelpers.isStaticImageType(file.type)) {
-			assetInfo.props.w = resizedSize.w
-			assetInfo.props.h = resizedSize.h
-		}
-	}
-
-	return assetInfo
 }
 
 /**
@@ -919,10 +868,7 @@ export async function getAssetInfo(editor: Editor, file: File, assetId?: TLAsset
 	assetId ??= AssetRecordType.createId(hash)
 
 	const assetUtil = editor.getAssetUtilForMimeType(file.type)
-	assert(assetUtil, `No asset util found for MIME type "${file.type}"`)
+	if (!assetUtil) return null
 
-	const assetInfo = await assetUtil.getAssetFromFile(file, assetId)
-	assert(assetInfo, `Asset util returned null for file "${file.name}"`)
-
-	return assetInfo
+	return await assetUtil.getAssetFromFile(file, assetId)
 }

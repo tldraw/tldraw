@@ -91,7 +91,6 @@ export {
 	defaultHandleExternalUrlAsset,
 	defaultHandleExternalUrlContent,
 	getAssetInfo,
-	getMediaAssetInfoPartial,
 	notifyIfFileNotAllowed,
 	registerDefaultExternalContentHandlers,
 	type TLDefaultExternalContentHandlerOpts,

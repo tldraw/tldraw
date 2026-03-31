@@ -15,7 +15,10 @@ import {
 	useShallowArrayIdentity,
 	useShallowObjectIdentity,
 } from '@tldraw/editor'
+import { TLAnyAssetUtilConstructor } from '@tldraw/editor'
 import { useMemo } from 'react'
+import { ImageAssetUtil } from './assets/ImageAssetUtil'
+import { VideoAssetUtil } from './assets/VideoAssetUtil'
 import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawOverlays } from './canvas/TldrawOverlays'
 import { TldrawScribble } from './canvas/TldrawScribble'
@@ -105,6 +108,34 @@ export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps
 
 const allDefaultTools = [...defaultTools, ...defaultShapeTools]
 
+function configureDefaultAssetUtils(
+	assetUtils: readonly TLAnyAssetUtilConstructor[],
+	overrides: Pick<
+		TLExternalContentProps,
+		'maxImageDimension' | 'acceptedImageMimeTypes' | 'acceptedVideoMimeTypes'
+	>
+): readonly TLAnyAssetUtilConstructor[] {
+	const { maxImageDimension, acceptedImageMimeTypes, acceptedVideoMimeTypes } = overrides
+	const needsImageConfig = maxImageDimension !== undefined || acceptedImageMimeTypes !== undefined
+	const needsVideoConfig = acceptedVideoMimeTypes !== undefined
+	if (!needsImageConfig && !needsVideoConfig) return assetUtils
+
+	return assetUtils.map((util) => {
+		if (needsImageConfig && util.type === 'image') {
+			return ImageAssetUtil.configure({
+				...(maxImageDimension !== undefined && { maxDimension: maxImageDimension }),
+				...(acceptedImageMimeTypes !== undefined && { supportedMimeTypes: acceptedImageMimeTypes }),
+			})
+		}
+		if (needsVideoConfig && util.type === 'video') {
+			return VideoAssetUtil.configure({
+				...(acceptedVideoMimeTypes !== undefined && { supportedMimeTypes: acceptedVideoMimeTypes }),
+			})
+		}
+		return util
+	})
+}
+
 /** @public @react */
 export function Tldraw(props: TldrawProps) {
 	const {
@@ -173,8 +204,12 @@ export function Tldraw(props: TldrawProps) {
 
 	const _assetUtils = useShallowArrayIdentity(assetUtils)
 	const assetUtilsWithDefaults = useMemo(
-		() => mergeArraysAndReplaceDefaults('type', _assetUtils, defaultAssetUtils),
-		[_assetUtils]
+		() =>
+			configureDefaultAssetUtils(
+				mergeArraysAndReplaceDefaults('type', _assetUtils, defaultAssetUtils),
+				{ maxImageDimension, acceptedImageMimeTypes, acceptedVideoMimeTypes }
+			),
+		[_assetUtils, maxImageDimension, acceptedImageMimeTypes, acceptedVideoMimeTypes]
 	)
 
 	const _tools = useShallowArrayIdentity(tools)

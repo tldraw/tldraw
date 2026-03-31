@@ -23,18 +23,23 @@ import 'tldraw/tldraw.css'
 // [1]
 const FILE_ASSET_TYPE = 'file' as const
 
-type TLFileAsset = TLBaseAsset<
-	typeof FILE_ASSET_TYPE,
-	{
-		name: string
-		size: number
-		mimeType: string
-		src: string | null
+interface FileAssetProps {
+	name: string
+	size: number
+	mimeType: string
+	src: string | null
+}
+
+type TLFileAsset = TLBaseAsset<typeof FILE_ASSET_TYPE, FileAssetProps>
+
+declare module 'tldraw' {
+	interface TLGlobalAssetPropsMap {
+		[FILE_ASSET_TYPE]: FileAssetProps
 	}
->
+}
 
 // [2]
-class FileAssetUtil extends AssetUtil<any> {
+class FileAssetUtil extends AssetUtil<TLFileAsset> {
 	static override type = FILE_ASSET_TYPE
 
 	static supportedMimeTypes = [
@@ -73,18 +78,15 @@ class FileAssetUtil extends AssetUtil<any> {
 
 	// [5]
 	override async getAssetFromFile(file: File, assetId: TLAssetId): Promise<TLFileAsset> {
-		const hash = getHashForBuffer(await file.arrayBuffer())
-		const id = assetId ?? (`asset:${hash}` as TLAssetId)
-
 		return {
-			id,
+			id: assetId,
 			type: FILE_ASSET_TYPE,
 			typeName: 'asset',
 			props: {
 				name: file.name,
 				size: file.size,
 				mimeType: file.type,
-				src: '',
+				src: null,
 			},
 			meta: {},
 		}
@@ -218,6 +220,7 @@ export default function CustomAssetTypeExample() {
 			<Tldraw
 				assetUtils={[FileAssetUtil]}
 				shapeUtils={[FileCardShapeUtil]}
+				persistenceKey="custom-asset-type-example"
 				onMount={(editor) => {
 					if (editor.getCurrentPageShapes().length === 0) {
 						editor.createShapes([
@@ -252,7 +255,7 @@ export default function CustomAssetTypeExample() {
 							reader.readAsDataURL(file)
 						})
 
-						return AssetRecordType.create({ ...asset, props: { ...asset.props, src } })
+						return { ...asset, props: { ...asset.props, src } } as TLFileAsset
 					})
 				}}
 			/>

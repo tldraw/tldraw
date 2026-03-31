@@ -85,7 +85,6 @@ import { TLClickEventInfo } from '@tldraw/editor';
 import { TLClipboardWriteInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
-import { TLDefaultAsset } from '@tldraw/tlschema';
 import { TLDefaultColorThemeColor } from '@tldraw/tlschema';
 import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/editor';
@@ -958,7 +957,7 @@ export function defaultHandleExternalExcalidrawContent(editor: Editor, { point, 
 }): Promise<void>;
 
 // @public (undocumented)
-export function defaultHandleExternalFileAsset(editor: Editor, { file, assetId }: TLFileExternalAsset, options: TLDefaultExternalContentHandlerOpts): Promise<TLDefaultAsset>;
+export function defaultHandleExternalFileAsset(editor: Editor, { file, assetId }: TLFileExternalAsset, options: TLDefaultExternalContentHandlerOpts): Promise<TLAsset<"bookmark" | "image" | "video">>;
 
 // @public (undocumented)
 export function defaultHandleExternalFileContent(editor: Editor, { point, files }: {
@@ -1847,7 +1846,7 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 };
 
 // @public (undocumented)
-export function getAssetInfo(editor: Editor, file: File, assetId?: TLAssetId): Promise<TLDefaultAsset>;
+export function getAssetInfo(editor: Editor, file: File, assetId?: TLAssetId): Promise<null | TLAsset>;
 
 // @public (undocumented)
 export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): {
@@ -1866,9 +1865,6 @@ export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl
 
 // @public (undocumented)
 export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boolean): TLShape | undefined;
-
-// @public (undocumented)
-export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number, doc?: Document): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public (undocumented)
 export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, scaleX: number, scaleY: number, points?: Vec[]): Vec[];
@@ -2029,6 +2025,7 @@ export class ImageAssetUtil extends AssetUtil<TLImageAsset> {
     // (undocumented)
     options: {
         maxDimension: number;
+        supportedMimeTypes: null | readonly string[];
     };
     // (undocumented)
     static props: {
@@ -5744,6 +5741,10 @@ export class VideoAssetUtil extends AssetUtil<TLVideoAsset> {
     getSupportedMimeTypes(): readonly string[];
     // (undocumented)
     static migrations: MigrationSequence;
+    // (undocumented)
+    options: {
+        supportedMimeTypes: null | readonly string[];
+    };
     // (undocumented)
     static props: {
         fileSize: Validator<number | undefined>;

@@ -70,7 +70,7 @@ export const assetIdValidator: T.Validator<TLAssetId>;
 export const assetMigrations: MigrationSequence;
 
 // @public
-export const AssetRecordType: RecordType<TLDefaultAsset, "props" | "type">;
+export const AssetRecordType: RecordType<TLAsset<"bookmark" | "image" | "video">, "props" | "type">;
 
 // @public
 export class b64Vecs {
@@ -890,7 +890,7 @@ export interface TLArrowShapeProps {
 }
 
 // @public
-export type TLAsset = TLDefaultAsset;
+export type TLAsset<K extends keyof TLIndexedAssets = keyof TLIndexedAssets> = TLIndexedAssets[K];
 
 // @public
 export interface TLAssetContext {
@@ -1213,6 +1213,10 @@ export interface TLGeoShapeProps {
 }
 
 // @public (undocumented)
+export interface TLGlobalAssetPropsMap {
+}
+
+// @public (undocumented)
 export interface TLGlobalBindingPropsMap {
 }
 
@@ -1290,6 +1294,13 @@ export interface TLImageShapeProps {
     url: string;
     w: number;
 }
+
+// @public (undocumented)
+export type TLIndexedAssets = {
+    [K in keyof TLGlobalAssetPropsMap | TLDefaultAsset['type'] as K extends TLDefaultAsset['type'] ? K extends keyof TLGlobalAssetPropsMap ? TLGlobalAssetPropsMap[K] extends null | undefined ? never : K : K : K]: K extends TLDefaultAsset['type'] ? K extends keyof TLGlobalAssetPropsMap ? TLBaseAsset<K, TLGlobalAssetPropsMap[K]> : Extract<TLDefaultAsset, {
+        type: K;
+    }> : TLBaseAsset<K, TLGlobalAssetPropsMap[K & keyof TLGlobalAssetPropsMap]>;
+};
 
 // @public (undocumented)
 export type TLIndexedBindings = {
