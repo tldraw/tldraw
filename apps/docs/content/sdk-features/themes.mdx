@@ -14,7 +14,6 @@ keywords:
   - ThemeManager
   - getCurrentTheme
   - getCurrentThemeId
-  - setTheme
   - updateThemes
   - useCurrentThemeId
 status: published
@@ -183,20 +182,13 @@ The editor selects the `'light'` or `'dark'` theme based on the user's color sch
 const themeId = editor.getCurrentThemeId() // 'light' or 'dark'
 ```
 
-To explicitly set a theme, use [Editor#setTheme](?):
-
-```typescript
-editor.setTheme('dark') // switch to dark theme
-editor.setTheme(null) // revert to automatic selection
-```
-
-You can also set the theme via the `theme` prop on [Tldraw](?) or [TldrawEditor](?):
+You can set the theme via the `theme` prop on [Tldraw](?) or [TldrawEditor](?):
 
 ```tsx
 <Tldraw theme="dark" />
 ```
 
-To change the automatic color scheme preference, update user preferences:
+To change the color scheme preference at runtime, update user preferences:
 
 ```typescript
 editor.user.updateUserPreferences({ colorScheme: 'dark' })
@@ -410,7 +402,6 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 | [Editor#getCurrentThemeId](?) | Get the ID of the active theme (e.g. `'light'` or `'dark'`) |
 | [Editor#getThemes](?)         | Get all registered themes                                   |
 | [Editor#updateThemes](?)      | Replace registered themes (shallow spread, not deep-merged) |
-| [Editor#setTheme](?)          | Set the active theme by ID, or `null` for automatic         |
 
 ## Related examples
 
