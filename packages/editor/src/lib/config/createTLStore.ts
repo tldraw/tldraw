@@ -43,7 +43,7 @@ export interface TLStoreBaseOptions {
 	 * registered before the store is constructed so persisted data with those
 	 * colors passes validation on load.
 	 */
-	themes?: TLThemes
+	themes?: Partial<TLThemes>
 
 	/** How should this store resolve users for attribution? */
 	users?: TLUserStore

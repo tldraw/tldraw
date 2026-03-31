@@ -21,7 +21,14 @@ export function getDisplayValues<Shape extends TLShape, DisplayValues extends ob
 	shape: Shape,
 	themeId?: string
 ): DisplayValues {
-	const theme = themeId ? util.editor.getThemes()[themeId] : util.editor.getCurrentTheme()
+	// Resolve theme by ID when provided; if missing or unknown, fall back to current theme
+	let theme: TLTheme
+	if (themeId) {
+		const themes = util.editor.getThemes()
+		theme = themes[themeId] ?? util.editor.getCurrentTheme()
+	} else {
+		theme = util.editor.getCurrentTheme()
+	}
 	const cached = dvCache.get(shape)
 	if (cached && cached.theme === theme) return cached.values as DisplayValues
 	const values = {

@@ -657,7 +657,7 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 }>;
 
 // @public
-export function registerColorsFromThemes(themes: TLThemes | undefined): void;
+export function registerColorsFromThemes(themes: Partial<TLThemes> | undefined): void;
 
 // @public
 export const richTextValidator: T.ObjectValidator<{
@@ -1601,7 +1601,12 @@ export interface TLThemeColors {
 }
 
 // @public
-export type TLThemes = Record<string, TLTheme>;
+export interface TLThemes {
+    // (undocumented)
+    dark: TLTheme;
+    // (undocumented)
+    light: TLTheme;
+}
 
 // @public
 export type TLUnknownBinding = TLBaseBinding<string, object>;

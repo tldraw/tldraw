@@ -91,8 +91,11 @@ export interface TLTheme {
 }
 
 /**
- * A map of named themes. Each key is a theme name and each value is a theme definition.
+ * The light and dark themes used by the editor.
  *
  * @public
  */
-export type TLThemes = Record<string, TLTheme>
+export interface TLThemes {
+	light: TLTheme
+	dark: TLTheme
+}

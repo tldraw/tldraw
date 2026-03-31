@@ -11,67 +11,55 @@ function buildDefaultThemes(): TLThemes {
 }
 
 /**
- * Manages the editor's color themes, including the active theme and theme overrides.
+ * Manages the editor's light and dark color themes.
+ *
+ * The active theme is determined by the user's dark mode preference.
+ * Both themes can be customized via {@link ThemeManager.updateThemes}.
  *
  * @public
  */
 export class ThemeManager {
 	private readonly _themes: ReturnType<typeof atom<TLThemes>>
-	private readonly _themeOverride: ReturnType<typeof atom<string | null>>
 
 	constructor(
 		private readonly editor: Editor,
-		themes?: TLThemes,
-		initialTheme?: string
+		themes?: Partial<TLThemes>
 	) {
+		const defaultThemes = buildDefaultThemes()
 		this._themes = atom('ThemeManager._themes', {
-			...buildDefaultThemes(),
-			...themes,
+			light: themes?.light ?? defaultThemes.light,
+			dark: themes?.dark ?? defaultThemes.dark,
 		})
-		this._themeOverride = atom('ThemeManager._themeOverride', initialTheme ?? null)
 	}
 
+	/** Get the light and dark themes. */
 	getThemes(): TLThemes {
 		return this._themes.get()
 	}
 
-	updateTheme(theme: TLTheme): void {
-		this._themes.update((prev) => ({
-			...prev,
-			[theme.id]: theme,
-		}))
-	}
-
+	/** Customize the light theme, the dark theme, or both. */
 	updateThemes(themes: Partial<TLThemes>): void {
 		this._themes.update((prev) => ({
-			...prev,
-			...(themes as TLThemes),
+			light: themes.light ?? prev.light,
+			dark: themes.dark ?? prev.dark,
 		}))
 	}
 
 	/**
-	 * Set the active theme by ID, overriding the automatic dark-mode-based selection.
-	 * Pass `null` to clear the override and revert to automatic selection.
+	 * Get the current theme ID (`'light'` or `'dark'`), based on the user's dark mode preference.
 	 */
-	setCurrentTheme(themeId: string | null): void {
-		this._themeOverride.set(themeId)
-	}
-
-	/**
-	 * Get the current theme ID.
-	 */
-	@computed getCurrentThemeId(): string {
-		const override = this._themeOverride.get()
-		if (override !== null) return override
+	@computed getCurrentThemeId(): 'light' | 'dark' {
 		return this.editor.user.getIsDarkMode() ? 'dark' : 'light'
 	}
 
+	/**
+	 * Get the resolved current theme object, based on the user's dark mode preference.
+	 */
 	@computed getCurrentTheme(): TLTheme {
-		const themes = this._themes.get()
-		const themeId = this.getCurrentThemeId()
-		return themes[themeId] ?? themes['light']
+		return this._themes.get()[this.getCurrentThemeId()]
 	}
 
+	/** Clean up any resources held by the manager. */
 	dispose() {
 		// currently no subscriptions to tear down, but here for consistency
 		// with the manager pattern and for future use

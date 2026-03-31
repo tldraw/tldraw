@@ -57,7 +57,7 @@ export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', 
  *
  * @public
  */
-export function registerColorsFromThemes(themes: TLThemes | undefined): void {
+export function registerColorsFromThemes(themes: Partial<TLThemes> | undefined): void {
 	if (!themes) return
 	const colorNames = new Set<TLDefaultColorStyle>()
 	for (const theme of Object.values(themes)) {

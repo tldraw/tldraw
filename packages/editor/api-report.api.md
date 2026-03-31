@@ -851,7 +851,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, inferDarkMode, fontAssetUrls, themes, theme }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, inferDarkMode, fontAssetUrls, themes }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1277,7 +1277,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
     getCurrentTheme(): TLTheme;
-    getCurrentThemeId(): keyof TLThemes;
+    getCurrentThemeId(): 'dark' | 'light';
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
     getDebouncedZoomLevel(): number;
@@ -1540,7 +1540,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     _setShiftKeyTimeout(): void;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
-    setTheme(themeId: null | string): this;
     setTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLShape>;
@@ -3201,18 +3200,11 @@ export class TextManager {
 
 // @public
 export class ThemeManager {
-    constructor(editor: Editor, themes?: TLThemes, initialTheme?: string);
-    // (undocumented)
+    constructor(editor: Editor, themes?: Partial<TLThemes>);
     dispose(): void;
-    // (undocumented)
     getCurrentTheme(): TLTheme;
-    getCurrentThemeId(): string;
-    // (undocumented)
+    getCurrentThemeId(): 'dark' | 'light';
     getThemes(): TLThemes;
-    setCurrentTheme(themeId: null | string): void;
-    // (undocumented)
-    updateTheme(theme: TLTheme): void;
-    // (undocumented)
     updateThemes(themes: Partial<TLThemes>): void;
 }
 
@@ -3569,8 +3561,7 @@ export interface TldrawEditorBaseProps {
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     // @deprecated
     textOptions?: TLTextOptions;
-    theme?: string;
-    themes?: TLThemes;
+    themes?: Partial<TLThemes>;
     tools?: readonly TLStateNodeConstructor[];
     user?: TLCurrentUser;
 }
@@ -3804,8 +3795,7 @@ export interface TLEditorOptions {
     store: TLStore;
     // @deprecated
     textOptions?: TLTextOptions;
-    theme?: string;
-    themes?: TLThemes;
+    themes?: Partial<TLThemes>;
     tools: readonly TLStateNodeConstructor[];
     user?: TLCurrentUser;
 }
@@ -4584,7 +4574,7 @@ export interface TLStoreBaseOptions {
     initialData?: SerializedStore<TLRecord>;
     onMount?(editor: Editor): (() => void) | void;
     snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
-    themes?: TLThemes;
+    themes?: Partial<TLThemes>;
     users?: TLUserStore;
 }
 

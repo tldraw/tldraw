@@ -163,17 +163,9 @@ export interface TldrawEditorBaseProps {
 	user?: TLCurrentUser
 
 	/**
-	 * The active theme ID. When set, overrides the automatic light/dark
-	 * selection based on the user's dark mode preference.
-	 *
-	 * Must correspond to a key in the `themes` map (defaults are `'light'` and `'dark'`).
+	 * Custom light and dark themes for the editor.
 	 */
-	theme?: string
-
-	/**
-	 * Named color themes for the editor.
-	 */
-	themes?: TLThemes
+	themes?: Partial<TLThemes>
 
 	/**
 	 * Camera options for the editor.
@@ -448,7 +440,6 @@ function TldrawEditorWithReadyStore({
 	getShapeVisibility,
 	assetUrls,
 	themes,
-	theme,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -476,7 +467,6 @@ function TldrawEditorWithReadyStore({
 		cameraOptions,
 		deepLinks,
 		themes,
-		theme,
 	})
 
 	useLayoutEffect(() => {
@@ -486,14 +476,12 @@ function TldrawEditorWithReadyStore({
 			cameraOptions,
 			deepLinks,
 			themes,
-			theme,
 		}
-	}, [autoFocus, initialState, cameraOptions, deepLinks, themes, theme])
+	}, [autoFocus, initialState, cameraOptions, deepLinks, themes])
 
 	useLayoutEffect(
 		() => {
-			const { autoFocus, initialState, cameraOptions, deepLinks, themes, theme } =
-				editorOptionsRef.current
+			const { autoFocus, initialState, cameraOptions, deepLinks, themes } = editorOptionsRef.current
 			const editor = new Editor({
 				store,
 				shapeUtils,
@@ -510,7 +498,6 @@ function TldrawEditorWithReadyStore({
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
 				themes,
-				theme,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -570,13 +557,6 @@ function TldrawEditorWithReadyStore({
 			editor.updateThemes(themes)
 		}
 	}, [editor, themes])
-
-	// keep the editor up to date with the active theme
-	useLayoutEffect(() => {
-		if (editor) {
-			editor.setTheme(theme ?? null)
-		}
-	}, [editor, theme])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(

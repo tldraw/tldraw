@@ -242,13 +242,6 @@ export interface TLEditorOptions {
 	 */
 	inferDarkMode?: boolean
 	/**
-	 * The initial active theme ID. When set, overrides the automatic light/dark
-	 * selection based on the user's dark mode preference.
-	 *
-	 * Must correspond to a key in the `themes` map (defaults are `'light'` and `'dark'`).
-	 */
-	theme?: string
-	/**
 	 * Options for the editor's camera.
 	 *
 	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
@@ -283,9 +276,9 @@ export interface TLEditorOptions {
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 	/**
-	 * Named color themes for the editor.
+	 * Custom light and dark themes for the editor.
 	 */
-	themes?: TLThemes
+	themes?: Partial<TLThemes>
 }
 
 /**
@@ -329,7 +322,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		inferDarkMode,
 		fontAssetUrls,
 		themes,
-		theme,
 	}: TLEditorOptions) {
 		super()
 
@@ -374,7 +366,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.textMeasure = new TextManager(this)
 		this.disposables.add(() => this.textMeasure.dispose())
 
-		this._themeManager = new ThemeManager(this, themes, theme)
+		this._themeManager = new ThemeManager(this, themes)
 		this.disposables.add(() => this._themeManager.dispose())
 
 		this._tickManager = new TickManager(this)
@@ -987,7 +979,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly _themeManager: ThemeManager
 
 	/**
-	 * Get the map of all registered themes.
+	 * Get the light and dark themes.
 	 *
 	 * @public
 	 */
@@ -996,7 +988,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Merge additional themes into the editor's theme map.
+	 * Customize the light theme, the dark theme, or both.
 	 *
 	 * @param themes - Partial map of themes to merge.
 	 *
@@ -1007,35 +999,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the current theme.
+	 * Get the current theme based on the user's dark mode preference.
 	 *
 	 * @public
 	 */
 	getCurrentTheme(): TLTheme {
-		// internally a computed
 		return this._themeManager.getCurrentTheme()
-	}
-	/**
-	 * Get the id of the active theme.
-	 *
-	 * @public
-	 */
-	getCurrentThemeId(): keyof TLThemes {
-		// internally a computed
-		return this._themeManager.getCurrentThemeId()
 	}
 
 	/**
-	 * Set the active theme by ID.
-	 *
-	 * @param themeId - The theme ID to activate, or `null` to revert to automatic
-	 *   selection based on the user's dark mode preference.
+	 * Get the current theme ID (`'light'` or `'dark'`).
 	 *
 	 * @public
 	 */
-	setTheme(themeId: string | null): this {
-		this._themeManager.setCurrentTheme(themeId)
-		return this
+	getCurrentThemeId(): 'light' | 'dark' {
+		return this._themeManager.getCurrentThemeId()
 	}
 
 	/**

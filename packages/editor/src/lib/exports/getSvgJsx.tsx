@@ -228,7 +228,7 @@ function SvgExport({
 }) {
 	const masksId = useUniqueSafeId()
 	const themes = editor.getThemes()
-	const theme = themes[themeId] ?? themes[Object.keys(themes)[0]]
+	const theme = themeId === 'dark' ? themes.dark : themes.light
 
 	const stateAtom = useAtom<{
 		defsById: Record<
