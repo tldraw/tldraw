@@ -5,6 +5,7 @@ import { Editor } from '../../editor/Editor'
 import {
 	GapsSnapIndicator,
 	PointsSnapIndicator,
+	SnapIndicator,
 } from '../../editor/managers/SnapManager/SnapManager'
 import { TLIndicatorPath } from '../../editor/shapes/ShapeUtil'
 import { getComputedStyle } from '../../exports/domUtils'
@@ -72,11 +73,12 @@ export function getCachedCssColor(
 
 export function drawBrush(
 	ctx: CanvasRenderingContext2D,
-	brush: BoxModel,
+	brush: BoxModel | null,
 	zoom: number,
 	fillColor: string,
 	strokeColor: string
 ) {
+	if (!brush) return
 	const w = Math.max(1, brush.w)
 	const h = Math.max(1, brush.h)
 	ctx.fillStyle = fillColor
@@ -86,7 +88,7 @@ export function drawBrush(
 	ctx.strokeRect(brush.x, brush.y, w, h)
 }
 
-export function drawCollaboratorBrush(
+function drawCollaboratorBrush(
 	ctx: CanvasRenderingContext2D,
 	brush: BoxModel,
 	zoom: number,
@@ -105,7 +107,18 @@ export function drawCollaboratorBrush(
 	ctx.globalAlpha = 1
 }
 
-export function drawScribble(
+export function drawCollaboratorBrushes(
+	ctx: CanvasRenderingContext2D,
+	items: Array<{ brush: BoxModel; color: string }> | null,
+	zoom: number
+) {
+	if (!items) return
+	for (const item of items) {
+		drawCollaboratorBrush(ctx, item.brush, zoom, item.color, 0.1)
+	}
+}
+
+function drawScribble(
 	ctx: CanvasRenderingContext2D,
 	scribble: TLScribble,
 	zoom: number,
@@ -122,7 +135,56 @@ export function drawScribble(
 	ctx.globalAlpha = 1
 }
 
-export function drawPointsSnap(
+export function drawScribbles(
+	ctx: CanvasRenderingContext2D,
+	scribbles: TLScribble[],
+	zoom: number,
+	canvas: HTMLCanvasElement,
+	colorCache: Map<string, string>
+) {
+	if (!scribbles.length) return
+	ctx.lineCap = 'round'
+	ctx.lineJoin = 'round'
+	for (const scribble of scribbles) {
+		if (!scribble.points.length) continue
+		const color = getCachedCssColor(canvas, colorCache, `--tl-color-${scribble.color}`)
+		drawScribble(ctx, scribble, zoom, color, scribble.opacity)
+	}
+}
+
+export function drawCollaboratorScribbles(
+	ctx: CanvasRenderingContext2D,
+	items: Array<{ scribble: TLScribble; color: string; opacity: number }> | null,
+	zoom: number
+) {
+	if (!items) return
+	ctx.lineCap = 'round'
+	ctx.lineJoin = 'round'
+	for (const item of items) {
+		drawScribble(ctx, item.scribble, zoom, item.color, item.opacity)
+	}
+}
+
+export function drawSnapIndicators(
+	ctx: CanvasRenderingContext2D,
+	indicators: SnapIndicator[],
+	zoom: number,
+	color: string
+) {
+	if (!indicators.length) return
+	ctx.lineCap = 'butt'
+	ctx.lineJoin = 'miter'
+	ctx.lineWidth = 1 / zoom
+	for (const indicator of indicators) {
+		if (indicator.type === 'points') {
+			drawPointsSnap(ctx, indicator, zoom, color)
+		} else if (indicator.type === 'gaps') {
+			drawGapsSnap(ctx, indicator, zoom, color)
+		}
+	}
+}
+
+function drawPointsSnap(
 	ctx: CanvasRenderingContext2D,
 	indicator: PointsSnapIndicator,
 	zoom: number,
@@ -167,7 +229,7 @@ export function drawPointsSnap(
 	}
 }
 
-export function drawGapsSnap(
+function drawGapsSnap(
 	ctx: CanvasRenderingContext2D,
 	indicator: GapsSnapIndicator,
 	zoom: number,

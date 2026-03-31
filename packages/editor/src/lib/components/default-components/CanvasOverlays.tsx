@@ -10,11 +10,11 @@ import {
 	CollaboratorIndicatorData,
 	IndicatorRenderData,
 	drawBrush,
-	drawCollaboratorBrush,
-	drawGapsSnap,
-	drawPointsSnap,
-	drawScribble,
+	drawCollaboratorBrushes,
+	drawCollaboratorScribbles,
+	drawScribbles,
 	drawShapeIndicators,
+	drawSnapIndicators,
 	getCachedCssColor,
 	renderDataEqual,
 	setupCanvasContext,
@@ -203,85 +203,39 @@ function CanvasOverlaysInner({
 				}
 			}
 
-			// --- Clear ---
+			// --- Draw ---
 
 			ctx.resetTransform()
 			ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-			// --- Setup camera transform ---
-
 			const zoom = setupCanvasContext(canvas, ctx, editor)
 			const cache = rColorCache.current
 
-			// --- Draw in z-order ---
-
-			// 1-3. Shape indicators (collaborator, selected/hovered, hinted)
 			const selectedColor = getCachedCssColor(canvas, cache, '--tl-color-selected')
 			drawShapeIndicators(ctx, editor, renderData, zoom, selectedColor)
-
-			// 4. Brush
-			if (brush) {
-				drawBrush(
-					ctx,
-					brush,
-					zoom,
-					getCachedCssColor(canvas, cache, '--tl-color-brush-fill'),
-					getCachedCssColor(canvas, cache, '--tl-color-brush-stroke')
-				)
-			}
-
-			// 5. Collaborator brushes
-			if (collabBrushData) {
-				for (const item of collabBrushData) {
-					drawCollaboratorBrush(ctx, item.brush, zoom, item.color, 0.1)
-				}
-			}
-
-			// 6. Scribbles
-			if (scribbles.length > 0) {
-				ctx.lineCap = 'round'
-				ctx.lineJoin = 'round'
-				for (const scribble of scribbles) {
-					if (!scribble.points.length) continue
-					const color = getCachedCssColor(canvas, cache, `--tl-color-${scribble.color}`)
-					drawScribble(ctx, scribble, zoom, color, scribble.opacity)
-				}
-			}
-
-			// 6b. Collaborator scribbles
-			if (collabScribbleData) {
-				ctx.lineCap = 'round'
-				ctx.lineJoin = 'round'
-				for (const item of collabScribbleData) {
-					drawScribble(ctx, item.scribble, zoom, item.color, item.opacity)
-				}
-			}
-
-			// 7. Zoom brush
-			if (zoomBrush) {
-				drawBrush(
-					ctx,
-					zoomBrush,
-					zoom,
-					getCachedCssColor(canvas, cache, '--tl-color-brush-fill'),
-					getCachedCssColor(canvas, cache, '--tl-color-brush-stroke')
-				)
-			}
-
-			// 8. Snap indicators
-			if (snapIndicators.length > 0) {
-				const snapColor = getCachedCssColor(canvas, cache, '--tl-color-snap')
-				ctx.lineCap = 'butt'
-				ctx.lineJoin = 'miter'
-				ctx.lineWidth = 1 / zoom
-				for (const indicator of snapIndicators) {
-					if (indicator.type === 'points') {
-						drawPointsSnap(ctx, indicator, zoom, snapColor)
-					} else if (indicator.type === 'gaps') {
-						drawGapsSnap(ctx, indicator, zoom, snapColor)
-					}
-				}
-			}
+			drawBrush(
+				ctx,
+				brush,
+				zoom,
+				getCachedCssColor(canvas, cache, '--tl-color-brush-fill'),
+				getCachedCssColor(canvas, cache, '--tl-color-brush-stroke')
+			)
+			drawCollaboratorBrushes(ctx, collabBrushData, zoom)
+			drawScribbles(ctx, scribbles, zoom, canvas, cache)
+			drawCollaboratorScribbles(ctx, collabScribbleData, zoom)
+			drawBrush(
+				ctx,
+				zoomBrush,
+				zoom,
+				getCachedCssColor(canvas, cache, '--tl-color-brush-fill'),
+				getCachedCssColor(canvas, cache, '--tl-color-brush-stroke')
+			)
+			drawSnapIndicators(
+				ctx,
+				snapIndicators,
+				zoom,
+				getCachedCssColor(canvas, cache, '--tl-color-snap')
+			)
 		},
 		[
 			editor,
