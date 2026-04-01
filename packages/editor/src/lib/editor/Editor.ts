@@ -221,11 +221,6 @@ export interface TLEditorOptions {
 	 */
 	tools: readonly TLStateNodeConstructor[]
 	/**
-	 * Should return a containing html element which has all the styles applied to the editor. If not
-	 * given, the body element will be used.
-	 */
-	getContainer(): HTMLElement
-	/**
 	 * A user defined externally to replace the default user.
 	 */
 	user?: TLCurrentUser
@@ -237,29 +232,13 @@ export interface TLEditorOptions {
 	 * Whether to automatically focus the editor when it mounts.
 	 */
 	autoFocus?: boolean
-	/**
-	 * The editor's color scheme. Defaults to `'light'`.
-	 *
-	 * - `'light'` - Always use light mode.
-	 * - `'dark'` - Always use dark mode.
-	 * - `'system'` - Follow the OS color scheme preference.
-	 */
-	colorScheme?: 'light' | 'dark' | 'system'
-	/**
-	 * Options for the editor's camera.
-	 *
-	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
-	 */
-	cameraOptions?: Partial<TLCameraOptions>
-	options?: Partial<TldrawOptions>
-	/**
-	 * Text options for the editor.
-	 *
-	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
-	 */
-	textOptions?: TLTextOptions
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
+	/**
+	 * Should return a containing html element which has all the styles applied to the editor. If not
+	 * given, the body element will be used.
+	 */
+	getContainer(): HTMLElement
 	/**
 	 * Provides a way to hide shapes.
 	 *
@@ -284,11 +263,36 @@ export interface TLEditorOptions {
 	 * properties (font size, line height, stroke width) and color palettes
 	 * for both light and dark modes.
 	 */
-	themeDefinitions?: Partial<Record<TLThemeId, TLTheme>>
+	themes?: Partial<Record<TLThemeId, TLTheme>>
 	/**
 	 * The id of the initially active theme. Defaults to `'default'`.
 	 */
-	activeTheme?: TLThemeId
+	initialTheme?: TLThemeId
+	/**
+	 * The editor's color scheme preference, controls the default color mode. Defaults to `'light'`.
+	 *
+	 * - `'light'` - Always use light mode.
+	 * - `'dark'` - Always use dark mode.
+	 * - `'system'` - Follow the OS color scheme preference.
+	 */
+	colorScheme?: 'light' | 'dark' | 'system'
+	/**
+	 * Additional configuration options for the tldraw editor.
+	 */
+	options?: Partial<TldrawOptions>
+	// --- Deprecated ----
+	/**
+	 * Options for the editor's camera.
+	 *
+	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
+	 */
+	cameraOptions?: Partial<TLCameraOptions>
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 }
 
 /**
@@ -331,8 +335,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		getShapeVisibility,
 		colorScheme,
 		fontAssetUrls,
-		themeDefinitions,
-		activeTheme,
+		themes,
+		initialTheme,
 	}: TLEditorOptions) {
 		super()
 
@@ -378,8 +382,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(() => this.textMeasure.dispose())
 
 		this._themeManager = new ThemeManager(this, {
-			themes: themeDefinitions,
-			initial: activeTheme,
+			themes: themes,
+			initial: initialTheme,
 		})
 		this.disposables.add(() => this._themeManager.dispose())
 
@@ -968,6 +972,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly snaps: SnapManager
 
+	/**
+	 * A manager for the spatial index, tracking where shapes exist on the canvas.
+	 *
+	 * @internal
+	 */
 	private readonly _spatialIndex: SpatialIndexManager
 
 	/**
@@ -986,11 +995,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly user: UserPreferencesManager
 
 	/**
-	 * A manager for the editor's color themes.
+	 * A manager for the editor's themes.
 	 *
 	 * @internal
 	 */
-	readonly _themeManager: ThemeManager
+	private readonly _themeManager: ThemeManager
 
 	/**
 	 * A helper for measuring text.
@@ -1091,6 +1100,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Set the color mode. Note that this is a convenience method that passes the mode to
+	 * `user.updateUserPreferences`, which is the source of truth for the user's color mode preference.
+	 *
+	 * @public
+	 */
+	setColorMode(mode: 'light' | 'dark') {
+		this.user.updateUserPreferences({ colorScheme: mode })
+		return this
+	}
+
+	/**
 	 * Get the id of the current theme.
 	 *
 	 * @public
@@ -1113,8 +1133,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setCurrentTheme(id: TLThemeId): void {
+	setCurrentTheme(id: TLThemeId) {
 		this._themeManager.setCurrentTheme(id)
+		return this
 	}
 
 	/**
@@ -1144,8 +1165,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		themes:
 			| Record<TLThemeId, TLTheme>
 			| ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>)
-	): void {
+	) {
 		this._themeManager.updateThemes(themes)
+		return this
 	}
 
 	/**
@@ -1153,17 +1175,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateTheme(id: TLThemeId, definition: Partial<TLTheme>): void {
+	updateTheme(id: TLThemeId, definition: Partial<TLTheme>) {
 		this._themeManager.updateTheme(id, definition)
-	}
-
-	/**
-	 * Remove a named theme definition. Cannot remove the `'default'` theme.
-	 *
-	 * @public
-	 */
-	removeTheme(id: TLThemeId): void {
-		this._themeManager.removeTheme(id)
+		return this
 	}
 
 	/* ------------------- Shape Utils ------------------ */

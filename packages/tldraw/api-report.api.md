@@ -2981,9 +2981,9 @@ export function setStrokePointRadii(strokePoints: StrokePoint[], options: Stroke
 // @public (undocumented)
 export interface ShapeOptionsWithDisplayValues<Shape extends TLShape, DisplayValues extends object> {
     // (undocumented)
-    getDisplayValueOverrides(editor: Editor, shape: Shape, theme: TLTheme, colorMode: 'dark' | 'light'): Partial<DisplayValues>;
+    getCustomDisplayValues(editor: Editor, shape: Shape, theme: TLTheme, colorMode: 'dark' | 'light'): Partial<DisplayValues>;
     // (undocumented)
-    getDisplayValues(editor: Editor, shape: Shape, theme: TLTheme, colorMode: 'dark' | 'light'): DisplayValues;
+    getDefaultDisplayValues(editor: Editor, shape: Shape, theme: TLTheme, colorMode: 'dark' | 'light'): DisplayValues;
 }
 
 // @public (undocumented)

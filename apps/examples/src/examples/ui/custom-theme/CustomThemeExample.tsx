@@ -13,7 +13,7 @@ import './custom-theme.css'
 
 // [1]
 // Extend the type system so TypeScript knows about our custom color.
-// That's all you need — because we pass `themeDefinitions` to `<Tldraw>`,
+// That's all you need — because we pass `themes` to `<Tldraw>`,
 // the custom color name is registered automatically at store creation time.
 declare module 'tldraw' {
 	interface TLThemeColors {
@@ -59,7 +59,7 @@ export default function CustomThemeExample() {
 
 	// [4] Customize the default theme: add the custom "pink" color
 	// and merge slider overrides so adjustments apply to both modes.
-	const themeDefinitions = useMemo<Record<string, TLTheme>>(() => {
+	const themes = useMemo<Record<string, TLTheme>>(() => {
 		return {
 			default: {
 				fontSize,
@@ -77,7 +77,7 @@ export default function CustomThemeExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="custom-theme-example"
-				themeDefinitions={themeDefinitions}
+				themes={themes}
 				onMount={(editor) => {
 					if (editor.getCurrentPageShapeIds().size > 0) return
 
@@ -238,7 +238,7 @@ function ThemeSlider({
 
 [1]
 Extend the `TLThemeColors` interface via module augmentation to add a
-custom "pink" color. Because `themeDefinitions` is passed to `<Tldraw>`,
+custom "pink" color. Because `themes` is passed to `<Tldraw>`,
 the custom color name is registered automatically.
 
 [2]
@@ -250,8 +250,8 @@ Default values for the adjustable theme properties. These match the defaults
 in `DEFAULT_THEME`.
 
 [4]
-The `themeDefinitions` object is recomputed whenever a slider changes.
-Because `Tldraw` accepts `themeDefinitions` as a prop, updating the object
+The `themes` object is recomputed whenever a slider changes.
+Because `Tldraw` accepts `themes` as a prop, updating the object
 triggers a reactive theme change — shapes immediately re-render with the
 new values. The active color mode (light or dark) is determined by the
 user's color scheme preference.

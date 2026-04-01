@@ -216,7 +216,7 @@ editor.setThemeDefinition('default', {
 You can also pass theme definitions as a prop on the [Tldraw](?) or [TldrawEditor](?) component. The prop is reactive: when it changes, the editor's themes update automatically.
 
 ```tsx
-const themeDefinitions: Record<string, TLTheme> = {
+const themes: Record<string, TLTheme> = {
 	default: {
 		fontSize: 16,
 		lineHeight: 1.35,
@@ -228,7 +228,7 @@ const themeDefinitions: Record<string, TLTheme> = {
 	},
 }
 
-<Tldraw themeDefinitions={themeDefinitions} />
+<Tldraw themes={themes} />
 ```
 
 ## Adding custom colors
@@ -248,7 +248,7 @@ declare module 'tldraw' {
 ```tsx
 import { DEFAULT_THEME, TLTheme } from 'tldraw'
 
-const themeDefinitions: Record<string, TLTheme> = {
+const themes: Record<string, TLTheme> = {
 	default: {
 		...DEFAULT_THEME,
 		colors: {
@@ -283,10 +283,10 @@ const themeDefinitions: Record<string, TLTheme> = {
 	},
 }
 
-<Tldraw themeDefinitions={themeDefinitions} />
+<Tldraw themes={themes} />
 ```
 
-tldraw validates shape properties (including colors) when data enters the store, for example when loading from IndexedDB or syncing from a server. Passing `themeDefinitions` tells tldraw about your custom colors _before_ data is loaded, so they pass validation.
+tldraw validates shape properties (including colors) when data enters the store, for example when loading from IndexedDB or syncing from a server. Passing `themes` tells tldraw about your custom colors _before_ data is loaded, so they pass validation.
 
 Every theme should include an entry for every custom color in both light and dark palettes. If a shape uses a color that doesn't exist in the active theme, it won't render correctly.
 
@@ -359,16 +359,17 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 
 ## Editor API reference
 
-| Method                            | Description                                       |
-| --------------------------------- | ------------------------------------------------- |
-| [Editor#getCurrentTheme](?)       | Get the resolved theme (colors for current mode)  |
-| [Editor#getColorMode](?)          | Get the active color mode (`'light'` or `'dark'`) |
-| [Editor#getThemeDefinitions](?)   | Get all registered theme definitions              |
-| [Editor#getThemeDefinition](?)    | Get a theme definition by name                    |
-| [Editor#setThemeDefinition](?)    | Register or update a named theme definition       |
-| [Editor#removeThemeDefinition](?) | Remove a named theme definition                   |
-| [Editor#getActiveThemeName](?)    | Get the name of the active theme                  |
-| [Editor#setActiveThemeName](?)    | Set the active theme by name                      |
+| Method                         | Description                                       |
+| ------------------------------ | ------------------------------------------------- |
+| [Editor#getCurrentTheme](?)    | Get the current theme definition                  |
+| [Editor#getCurrentThemeId](?)  | Get the id of the current theme                   |
+| [Editor#setCurrentTheme](?)    | Set the current theme by id                       |
+| [Editor#getThemes](?)          | Get all registered themes                         |
+| [Editor#getTheme](?)           | Get a theme by id                                 |
+| [Editor#updateTheme](?)        | Update a named theme                              |
+| [Editor#updateThemes](?)       | Update or remove themes (must keep `'default'`)   |
+| [Editor#getColorMode](?)       | Get the active color mode (`'light'` or `'dark'`) |
+| [Editor#setColorMode](?)       | Set the color mode (`'light'` or `'dark'`)        |
 
 ## Related examples
 

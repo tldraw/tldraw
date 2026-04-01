@@ -57,7 +57,7 @@ const SUNSET_THEME: TLTheme = {
 }
 
 // [3]
-const themeDefinitions: Partial<Record<TLThemeId, TLTheme>> = {
+const themes: Partial<Record<TLThemeId, TLTheme>> = {
 	ocean: OCEAN_THEME,
 	sunset: SUNSET_THEME,
 }
@@ -86,7 +86,7 @@ export default function MultipleThemesExample() {
 			{/* [4] */}
 			<Tldraw
 				persistenceKey="multiple-themes-example"
-				themeDefinitions={themeDefinitions}
+				themes={themes}
 				onMount={createInitialShapes}
 			>
 				<ThemeSwitcher />
@@ -148,11 +148,11 @@ Define theme objects by spreading `DEFAULT_THEME` and overriding just the colors
 you want to change. Each theme contains both `light` and `dark` color palettes.
 
 [3]
-Pass the custom themes via `themeDefinitions`. The `default` theme is always
+Pass the custom themes via `themes`. The `default` theme is always
 available, so you only need to register additional themes here.
 
 [4]
-The `<Tldraw>` component accepts `themeDefinitions` to register themes at
+The `<Tldraw>` component accepts `themes` to register themes at
 mount time. You can also register themes later via `editor.updateTheme()`.
 
 [5]

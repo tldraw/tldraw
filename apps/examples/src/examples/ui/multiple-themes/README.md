@@ -9,4 +9,4 @@ Register multiple named themes and switch between them at runtime.
 
 ---
 
-Use `TLThemes` module augmentation to register custom theme IDs, then pass theme definitions via the `themeDefinitions` prop. Switch the active theme with `editor.setCurrentTheme()`.
+Use `TLThemes` module augmentation to register custom theme IDs, then pass theme definitions via the `themes` prop. Switch the active theme with `editor.setCurrentTheme()`.

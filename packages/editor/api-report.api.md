@@ -92,6 +92,7 @@ import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLTheme } from '@tldraw/tlschema';
 import { TLThemeColors } from '@tldraw/tlschema';
 import { TLThemeId } from '@tldraw/tlschema';
+import { TLThemes } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLUser } from '@tldraw/tlschema';
@@ -535,7 +536,7 @@ export function createTLCurrentUser(opts?: {
 export function createTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, assets, users, onMount, collaboration, themeDefinitions, ...rest }?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, assets, users, onMount, collaboration, themes, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export class CubicBezier2d extends Polyline2d {
@@ -849,7 +850,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themeDefinitions, activeTheme }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1479,7 +1480,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent<E>['type'], E>(type: T, handler: ((info: T extends TLExternalContent<E>['type'] ? Extract<TLExternalContent<E>, {
         type: T;
     }> : TLExternalContent<E>) => void) | null): this;
-    removeTheme(id: TLThemeId): void;
     removeTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
@@ -1520,11 +1520,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     _setAltKeyTimeout(): void;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
     setCameraOptions(opts: Partial<TLCameraOptions>): this;
+    setColorMode(mode: 'dark' | 'light'): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     // @internal (undocumented)
     _setCtrlKeyTimeout(): void;
     setCurrentPage(page: TLPage | TLPageId): this;
-    setCurrentTheme(id: TLThemeId): void;
+    setCurrentTheme(id: TLThemeId): this;
     setCurrentTool(id: string, info?: {}): this;
     setCursor(cursor: Partial<TLCursor>): this;
     setEditingShape(shape: null | TLShape | TLShapeId): this;
@@ -1567,8 +1568,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         [key: string]: Map<StyleProp<any>, string>;
     };
     readonly textMeasure: TextManager;
-    // @internal
-    readonly _themeManager: ThemeManager;
     readonly timers: {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
@@ -1610,8 +1609,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     // @internal (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
-    updateTheme(id: TLThemeId, definition: Partial<TLTheme>): void;
-    updateThemes(themes: ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>) | Record<TLThemeId, TLTheme>): void;
+    updateTheme(id: TLThemeId, definition: Partial<TLTheme>): this;
+    updateThemes(themes: ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>) | Record<TLThemeId, TLTheme>): this;
     updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): this;
     uploadAsset(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<{
         meta?: JsonObject;
@@ -3214,7 +3213,6 @@ export class ThemeManager {
     getCurrentThemeId(): TLThemeId;
     getTheme(id: TLThemeId): TLTheme | undefined;
     getThemes(): Record<TLThemeId, TLTheme>;
-    removeTheme(id: TLThemeId): void;
     setCurrentTheme(id: TLThemeId): void;
     updateTheme(id: TLThemeId, definition: ((definition: TLTheme) => TLTheme) | Partial<TLTheme>): void;
     // (undocumented)
@@ -3552,7 +3550,6 @@ export const TldrawEditor: React_3.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
 export interface TldrawEditorBaseProps {
-    activeTheme?: TLThemeId;
     assetUrls?: {
         fonts?: {
             [key: string]: string | undefined;
@@ -3570,13 +3567,14 @@ export interface TldrawEditorBaseProps {
     deepLinks?: TLDeepLinkOptions | true;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     initialState?: string;
+    initialTheme?: TLThemeId;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     // @deprecated
     textOptions?: TLTextOptions;
-    themeDefinitions?: Partial<Record<TLThemeId, TLTheme>>;
+    themes?: Partial<TLThemes>;
     tools?: readonly TLStateNodeConstructor[];
     user?: TLCurrentUser;
 }
@@ -3790,7 +3788,6 @@ export interface TLEditorComponents {
 
 // @public (undocumented)
 export interface TLEditorOptions {
-    activeTheme?: TLThemeId;
     autoFocus?: boolean;
     bindingUtils: readonly TLAnyBindingUtilConstructor[];
     // @deprecated
@@ -3803,15 +3800,15 @@ export interface TLEditorOptions {
     getContainer(): HTMLElement;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     initialState?: string;
+    initialTheme?: TLThemeId;
     // (undocumented)
     licenseKey?: string;
-    // (undocumented)
     options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
     // @deprecated
     textOptions?: TLTextOptions;
-    themeDefinitions?: Partial<Record<TLThemeId, TLTheme>>;
+    themes?: Partial<Record<TLThemeId, TLTheme>>;
     tools: readonly TLStateNodeConstructor[];
     user?: TLCurrentUser;
 }
@@ -4590,7 +4587,7 @@ export interface TLStoreBaseOptions {
     initialData?: SerializedStore<TLRecord>;
     onMount?(editor: Editor): (() => void) | void;
     snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
-    themeDefinitions?: Record<string, TLTheme>;
+    themes?: Partial<TLThemes>;
     users?: TLUserStore;
 }
 

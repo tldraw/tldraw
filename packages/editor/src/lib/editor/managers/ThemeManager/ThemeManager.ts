@@ -1,4 +1,4 @@
-import { Atom, atom, computed, transact } from '@tldraw/state'
+import { Atom, atom, computed } from '@tldraw/state'
 import { TLTheme, TLThemeId } from '@tldraw/tlschema'
 import type { Editor } from '../../Editor'
 import { DEFAULT_THEME } from './defaultThemes'
@@ -77,12 +77,20 @@ export class ThemeManager {
 			| Record<TLThemeId, TLTheme>
 			| ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>)
 	): void {
-		if (typeof themes === 'function') {
-			this._themes.update((prev) => themes(prev))
-			return
-		}
-
-		this._themes.update((prev) => ({ ...prev, ...themes }))
+		this._themes.update((prev) => {
+			const next = typeof themes === 'function' ? themes(prev) : { ...prev, ...themes }
+			if (process.env.NODE_ENV !== 'production') {
+				if (!('default' in next)) {
+					console.warn("The 'default' theme cannot be removed.")
+					return prev
+				}
+			}
+			// If the current theme was removed, fall back to 'default'
+			if (!(this._currentThemeId.get() in next)) {
+				this._currentThemeId.set('default')
+			}
+			return next
+		})
 	}
 
 	/** Register or update a named theme definition. */
@@ -95,29 +103,6 @@ export class ThemeManager {
 			[id]:
 				typeof definition === 'function' ? definition(prev[id]) : { ...prev[id], ...definition },
 		}))
-	}
-
-	/** Remove a named theme definition. Cannot remove the 'default' theme. */
-	removeTheme(id: TLThemeId): void {
-		if (id === 'default') {
-			if (process.env.NODE_ENV !== 'production') {
-				console.warn("Cannot remove the 'default' theme. Try updating it instead.")
-			}
-			return
-		}
-
-		transact(() => {
-			this._themes.update((prev) => {
-				const next = { ...prev }
-				delete next[id]
-				return next
-			})
-
-			// If the removed theme was current, fall back to 'default'
-			if (this._currentThemeId.get() === id) {
-				this._currentThemeId.set('default')
-			}
-		})
 	}
 
 	/** Clean up any resources held by the manager. */
