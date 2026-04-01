@@ -50,6 +50,8 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
+	TLTheme,
+	TLThemeDefinition,
 	TLUser,
 	TLUserId,
 	TLVideoAsset,
@@ -156,6 +158,7 @@ import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
+import { ThemeManager } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import {
@@ -235,7 +238,7 @@ export interface TLEditorOptions {
 	 */
 	autoFocus?: boolean
 	/**
-	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
+	 * Whether to infer dark mode from the OS preference.
 	 */
 	inferDarkMode?: boolean
 	/**
@@ -272,6 +275,16 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+	/**
+	 * Named theme definitions for the editor. Each theme contains shared
+	 * properties (font size, line height, stroke width) and color palettes
+	 * for both light and dark modes.
+	 */
+	themeDefinitions?: Record<string, TLThemeDefinition>
+	/**
+	 * The name of the initially active theme. Defaults to `'default'`.
+	 */
+	activeTheme?: string
 }
 
 /**
@@ -307,13 +320,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		cameraOptions,
 		initialState,
 		autoFocus,
-		inferDarkMode,
 		options: _options,
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
+		inferDarkMode,
 		fontAssetUrls,
+		themeDefinitions,
+		activeTheme,
 	}: TLEditorOptions) {
 		super()
 
@@ -348,19 +363,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 			...options?.camera,
 		})
 
+		this.getContainer = getContainer
+
 		this._textOptions = atom('text options', options?.text ?? null)
 
 		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())
 
-		this.getContainer = getContainer
-
 		this.textMeasure = new TextManager(this)
 		this.disposables.add(() => this.textMeasure.dispose())
 
-		this.fonts = new FontManager(this, fontAssetUrls)
+		this._themeManager = new ThemeManager(this, {
+			definitions: themeDefinitions,
+			activeTheme,
+		})
+		this.disposables.add(() => this._themeManager.dispose())
 
 		this._tickManager = new TickManager(this)
+		this.disposables.add(() => this._tickManager.dispose())
+
+		this.fonts = new FontManager(this, fontAssetUrls)
 
 		this.inputs = new InputsManager(this)
 
@@ -958,6 +980,86 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly user: UserPreferencesManager
+
+	/**
+	 * A manager for the editor's color themes.
+	 *
+	 * @internal
+	 */
+	readonly _themeManager: ThemeManager
+
+	/**
+	 * Get the current color mode (`'light'` or `'dark'`), based on the user's dark mode preference.
+	 *
+	 * @public
+	 */
+	getColorMode(): 'light' | 'dark' {
+		return this._themeManager.getColorMode()
+	}
+
+	/**
+	 * Get the name of the active theme.
+	 *
+	 * @public
+	 */
+	getActiveThemeName(): string {
+		return this._themeManager.getActiveThemeName()
+	}
+
+	/**
+	 * Set the active theme by name. The theme must have been previously registered
+	 * via {@link Editor.setThemeDefinition}.
+	 *
+	 * @public
+	 */
+	setActiveThemeName(name: string): void {
+		this._themeManager.setActiveThemeName(name)
+	}
+
+	/**
+	 * Get all registered theme definitions.
+	 *
+	 * @public
+	 */
+	getThemeDefinitions(): Record<string, TLThemeDefinition> {
+		return this._themeManager.getThemeDefinitions()
+	}
+
+	/**
+	 * Get a single theme definition by name.
+	 *
+	 * @public
+	 */
+	getThemeDefinition(name: string): TLThemeDefinition | undefined {
+		return this._themeManager.getThemeDefinition(name)
+	}
+
+	/**
+	 * Register or update a named theme definition.
+	 *
+	 * @public
+	 */
+	setThemeDefinition(name: string, definition: TLThemeDefinition): void {
+		this._themeManager.setThemeDefinition(name, definition)
+	}
+
+	/**
+	 * Remove a named theme definition. Cannot remove the `'default'` theme.
+	 *
+	 * @public
+	 */
+	removeThemeDefinition(name: string): void {
+		this._themeManager.removeThemeDefinition(name)
+	}
+
+	/**
+	 * Get the resolved current theme, based on the active theme and color mode.
+	 *
+	 * @public
+	 */
+	getCurrentTheme(): TLTheme {
+		return this._themeManager.getCurrentTheme()
+	}
 
 	/**
 	 * A helper for measuring text.

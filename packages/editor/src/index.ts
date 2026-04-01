@@ -173,6 +173,8 @@ export {
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
+export { DEFAULT_THEME, resolveTheme } from './lib/editor/managers/ThemeManager/defaultThemes'
+export { ThemeManager } from './lib/editor/managers/ThemeManager/ThemeManager'
 export { TickManager } from './lib/editor/managers/TickManager/TickManager'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
@@ -300,6 +302,7 @@ export {
 	useContainerIfExists,
 	type ContainerProviderProps,
 } from './lib/hooks/useContainer'
+export { useColorMode } from './lib/hooks/useColorMode'
 export { getCursor } from './lib/hooks/useCursor'
 export {
 	EditorContext,
@@ -314,7 +317,6 @@ export { useEvent, useReactiveEvent } from './lib/hooks/useEvent'
 export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
-export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
 export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePassThroughMouseOverEvents } from './lib/hooks/usePassThroughMouseOverEvents'
@@ -512,3 +514,5 @@ registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_VERSION,
 	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )
+
+export { getColorValue } from './lib/editor/managers/ThemeManager/defaultThemes'

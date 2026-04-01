@@ -1,5 +1,11 @@
 import { MigrationSequence, Store } from '@tldraw/store'
-import { TLShape, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
+import {
+	TLShape,
+	TLStore,
+	TLStoreSnapshot,
+	TLThemeDefinition,
+	registerColorsFromThemeDefinitions,
+} from '@tldraw/tlschema'
 import { annotateError, Required } from '@tldraw/utils'
 import classNames from 'classnames'
 import React, {
@@ -157,9 +163,14 @@ export interface TldrawEditorBaseProps {
 	user?: TLCurrentUser
 
 	/**
-	 * Whether to infer dark mode from the user's OS. Defaults to false.
+	 * Named theme definitions for the editor.
 	 */
-	inferDarkMode?: boolean
+	themeDefinitions?: Record<string, TLThemeDefinition>
+
+	/**
+	 * The name of the initially active theme. Defaults to `'default'`.
+	 */
+	activeTheme?: string
 
 	/**
 	 * Camera options for the editor.
@@ -259,6 +270,11 @@ export const TldrawEditor = memo(function TldrawEditor({
 	deepLinks: _deepLinks,
 	...rest
 }: TldrawEditorProps) {
+	// Register custom colors before effects run. For external stores, users
+	// should also pass themeDefinitions to createTLStore so colors are registered
+	// before data is loaded into the store.
+	registerColorsFromThemeDefinitions(rest.themeDefinitions)
+
 	const [container, setContainer] = useState<HTMLElement | null>(null)
 	const user = useMemo(() => _user ?? createTLCurrentUser(), [_user])
 
@@ -420,13 +436,14 @@ function TldrawEditorWithReadyStore({
 	user,
 	initialState,
 	autoFocus = true,
-	inferDarkMode,
 	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	cameraOptions,
 	options,
 	licenseKey,
 	getShapeVisibility,
 	assetUrls,
+	themeDefinitions,
+	activeTheme,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -448,27 +465,29 @@ function TldrawEditorWithReadyStore({
 	const editorOptionsRef = useRef({
 		// for these, it's because they're only used when the editor first mounts:
 		autoFocus: autoFocus && !noAutoFocus(),
-		inferDarkMode,
 		initialState,
 
 		// for these, it's because we keep them up to date in a separate effect:
 		cameraOptions,
 		deepLinks,
+		themeDefinitions,
+		activeTheme,
 	})
 
 	useLayoutEffect(() => {
 		editorOptionsRef.current = {
 			autoFocus: autoFocus && !noAutoFocus(),
-			inferDarkMode,
 			initialState,
 			cameraOptions,
 			deepLinks,
+			themeDefinitions,
+			activeTheme,
 		}
-	}, [autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks])
+	}, [autoFocus, initialState, cameraOptions, deepLinks, themeDefinitions, activeTheme])
 
 	useLayoutEffect(
 		() => {
-			const { autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks } =
+			const { autoFocus, initialState, cameraOptions, deepLinks, themeDefinitions, activeTheme } =
 				editorOptionsRef.current
 			const editor = new Editor({
 				store,
@@ -480,12 +499,13 @@ function TldrawEditorWithReadyStore({
 				initialState,
 				// we should check for some kind of query parameter that turns off autofocus
 				autoFocus,
-				inferDarkMode,
 				cameraOptions,
 				options,
 				licenseKey,
 				getShapeVisibility,
 				fontAssetUrls: assetUrls?.fonts,
+				themeDefinitions,
+				activeTheme,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -538,6 +558,21 @@ function TldrawEditorWithReadyStore({
 			editor.setCameraOptions({ ...cameraOptions, ...options?.camera })
 		}
 	}, [editor, cameraOptions, options?.camera])
+
+	// keep the editor up to date with the latest theme definitions
+	useLayoutEffect(() => {
+		if (editor && themeDefinitions) {
+			for (const [name, def] of Object.entries(themeDefinitions)) {
+				editor.setThemeDefinition(name, def)
+			}
+		}
+	}, [editor, themeDefinitions])
+
+	useLayoutEffect(() => {
+		if (editor && activeTheme) {
+			editor.setActiveThemeName(activeTheme)
+		}
+	}, [editor, activeTheme])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(
