@@ -31,7 +31,7 @@ import { TLBaseShape } from './TLBaseShape'
  *   labelColor: 'black',
  *   size: 'm',
  *   font: 'draw',
- *   fontSizeAdjustment: 0,
+ *   fontSizeAdjustment: 1,
  *   align: 'middle',
  *   verticalAlign: 'middle',
  *   growY: 0,
@@ -50,8 +50,8 @@ export interface TLNoteShapeProps {
 	size: TLDefaultSizeStyle
 	/** Font family style for the note text */
 	font: TLDefaultFontStyle
-	/** Adjustment to the base font size (positive increases, negative decreases) */
-	fontSizeAdjustment: number
+	/** Ratio to scale the base font size when text needs to shrink to fit. Null means needs recomputation, 1 means no adjustment, and values less than 1 indicate shrinkage. */
+	fontSizeAdjustment: number | null
 	/** Horizontal alignment of text within the note */
 	align: TLDefaultHorizontalAlignStyle
 	/** Vertical alignment of text within the note */
@@ -91,7 +91,7 @@ export interface TLNoteShapeProps {
  *     labelColor: 'black',
  *     size: 's',
  *     font: 'sans',
- *     fontSizeAdjustment: 2,
+ *     fontSizeAdjustment: 0.85,
  *     align: 'start',
  *     verticalAlign: 'start',
  *     growY: 50,
@@ -125,7 +125,7 @@ export const noteShapeProps: RecordProps<TLNoteShape> = {
 	labelColor: DefaultLabelColorStyle,
 	size: DefaultSizeStyle,
 	font: DefaultFontStyle,
-	fontSizeAdjustment: T.positiveNumber,
+	fontSizeAdjustment: T.positiveNumber.nullable(),
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
 	growY: T.positiveNumber,
@@ -146,7 +146,8 @@ const Versions = createShapePropsMigrationIds('note', {
 	AddLabelColor: 8,
 	AddRichText: 9,
 	AddRichTextAttrs: 10,
-	AddFirstEditedBy: 11,
+	MakeFontSizeAdjustmentRatio: 11,
+	AddFirstEditedBy: 12,
 })
 
 /**
@@ -222,7 +223,7 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.AddFontSizeAdjustment,
 			up: (props) => {
-				props.fontSizeAdjustment = 0
+				props.fontSizeAdjustment = 1
 			},
 			down: (props) => {
 				delete props.fontSizeAdjustment
@@ -267,6 +268,15 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 				if (props.richText && 'attrs' in props.richText) {
 					delete props.richText.attrs
 				}
+			},
+		},
+		{
+			id: Versions.MakeFontSizeAdjustmentRatio,
+			up: (props) => {
+				props.fontSizeAdjustment = null
+			},
+			down: (props) => {
+				props.fontSizeAdjustment = 0
 			},
 		},
 		{
