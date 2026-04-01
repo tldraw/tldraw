@@ -27,6 +27,10 @@ import { ForwardRefExoticComponent } from 'react';
 import { Geometry2d } from '@tldraw/editor';
 import { Geometry2dFilters } from '@tldraw/editor';
 import { Geometry2dOptions } from '@tldraw/editor';
+import { getStroke } from '@tldraw/editor';
+import { getStrokeOutlinePoints } from '@tldraw/editor';
+import { getStrokePoints } from '@tldraw/editor';
+import { getSvgPathFromStrokePoints } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
 import { HTMLAttributes } from 'react';
@@ -59,10 +63,13 @@ import { RefObject } from 'react';
 import { Result } from '@tldraw/editor';
 import { RichTextFontVisitorState } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
+import { setStrokePointRadii } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
 import { ShapeWithCrop } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
+import { StrokeOptions } from '@tldraw/editor';
+import { StrokePoint } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
 import { SVGProps } from 'react';
@@ -1852,17 +1859,13 @@ export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, scaleX: nu
 // @public (undocumented)
 export function getPointsFromDrawSegments(segments: TLDrawShapeSegment[], scaleX?: number, scaleY?: number): Vec[];
 
-// @public
-export function getStroke(points: VecLike[], options?: StrokeOptions): Vec[];
+export { getStroke }
 
-// @public
-export function getStrokeOutlinePoints(strokePoints: StrokePoint[], options?: StrokeOptions): Vec[];
+export { getStrokeOutlinePoints }
 
-// @public
-export function getStrokePoints(rawInputPoints: VecLike[], options?: StrokeOptions): StrokePoint[];
+export { getStrokePoints }
 
-// @public
-export function getSvgPathFromStrokePoints(points: StrokePoint[], closed?: boolean): string;
+export { getSvgPathFromStrokePoints }
 
 // @public
 export function getUncroppedSize(shapeSize: {
@@ -2795,8 +2798,7 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 
-// @public (undocumented)
-export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
+export { setStrokePointRadii }
 
 // @public (undocumented)
 export interface SolidPathBuilderOpts extends BasePathBuilderOpts {
@@ -2822,45 +2824,9 @@ export function StarToolbarItem(): JSX.Element;
 // @public (undocumented)
 export const STROKE_SIZES: Record<TLDefaultSizeStyle, number>;
 
-// @public
-export interface StrokeOptions {
-    easing?(pressure: number): number;
-    end?: {
-        cap?: boolean;
-        easing?(distance: number): number;
-        taper?: boolean | number;
-    };
-    last?: boolean;
-    simulatePressure?: boolean;
-    size?: number;
-    smoothing?: number;
-    start?: {
-        cap?: boolean;
-        easing?(distance: number): number;
-        taper?: boolean | number;
-    };
-    // (undocumented)
-    streamline?: number;
-    thinning?: number;
-}
+export { StrokeOptions }
 
-// @public
-export interface StrokePoint {
-    // (undocumented)
-    distance: number;
-    // (undocumented)
-    input: Vec;
-    // (undocumented)
-    point: Vec;
-    // (undocumented)
-    pressure: number;
-    // (undocumented)
-    radius: number;
-    // (undocumented)
-    runningLength: number;
-    // (undocumented)
-    vector: Vec;
-}
+export { StrokePoint }
 
 // @public (undocumented)
 export function StylePanelArrowheadPicker(): JSX.Element | null;

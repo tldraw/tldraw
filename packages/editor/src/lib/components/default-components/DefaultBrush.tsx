@@ -1,7 +1,9 @@
 import { BoxModel } from '@tldraw/tlschema'
-import { useRef } from 'react'
+import classNames from 'classnames'
+import { useLayoutEffect, useRef } from 'react'
+import { getComputedStyle } from '../../exports/domUtils'
+import { useEditor } from '../../hooks/useEditor'
 import { useTransform } from '../../hooks/useTransform'
-import { toDomPrecision } from '../../primitives/utils'
 
 /** @public */
 export interface TLBrushProps {
@@ -14,22 +16,42 @@ export interface TLBrushProps {
 
 /** @public @react */
 export const DefaultBrush = ({ brush, color, opacity, className }: TLBrushProps) => {
-	const rSvg = useRef<SVGSVGElement>(null)
-	useTransform(rSvg, brush.x, brush.y)
+	const editor = useEditor()
+	const rCanvas = useRef<HTMLCanvasElement>(null)
+	useTransform(rCanvas, brush.x, brush.y)
 
-	const w = toDomPrecision(Math.max(1, brush.w))
-	const h = toDomPrecision(Math.max(1, brush.h))
+	useLayoutEffect(() => {
+		const canvas = rCanvas.current
+		if (!canvas) return
+		const ctx = canvas.getContext('2d')
+		if (!ctx) return
 
-	return (
-		<svg className="tl-overlays__item" ref={rSvg} aria-hidden="true">
-			{color ? (
-				<g className="tl-brush" opacity={opacity}>
-					<rect width={w} height={h} fill={color} opacity={0.75} />
-					<rect width={w} height={h} fill="none" stroke={color} opacity={0.1} />
-				</g>
-			) : (
-				<rect className={`tl-brush tl-brush__default ${className}`} width={w} height={h} />
-			)}
-		</svg>
-	)
+		const dpr = editor.getInstanceState().devicePixelRatio
+		const zoom = editor.getCamera().z
+
+		const w = Math.max(1, brush.w)
+		const h = Math.max(1, brush.h)
+
+		const canvasW = Math.ceil(w * zoom * dpr)
+		const canvasH = Math.ceil(h * zoom * dpr)
+		canvas.width = canvasW
+		canvas.height = canvasH
+		canvas.style.width = w + 'px'
+		canvas.style.height = h + 'px'
+
+		ctx.scale(zoom * dpr, zoom * dpr)
+
+		const style = getComputedStyle(canvas)
+		const alpha = opacity ?? 1
+
+		ctx.globalAlpha = alpha
+		ctx.fillStyle = color ?? style.getPropertyValue('--tl-color-brush-fill')
+		ctx.fillRect(0, 0, w, h)
+
+		ctx.strokeStyle = color ?? style.getPropertyValue('--tl-color-brush-stroke')
+		ctx.lineWidth = 1 / zoom
+		ctx.strokeRect(0, 0, w, h)
+	})
+
+	return <canvas ref={rCanvas} className={classNames('tl-overlays__item', className)} />
 }

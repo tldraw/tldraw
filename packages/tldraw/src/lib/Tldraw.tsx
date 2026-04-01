@@ -18,7 +18,6 @@ import {
 import { useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawOverlays } from './canvas/TldrawOverlays'
-import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { TldrawShapeIndicators } from './canvas/TldrawShapeIndicators'
 import { defaultBindingUtils } from './defaultBindingUtils'
@@ -143,9 +142,7 @@ export function Tldraw(props: TldrawProps) {
 	}, [rest.hideUi, CustomInFrontOfTheCanvas])
 	const componentsWithDefault = useMemo(
 		() => ({
-			Scribble: TldrawScribble,
 			ShapeIndicators: TldrawShapeIndicators,
-			CollaboratorScribble: TldrawScribble,
 			SelectionForeground: TldrawSelectionForeground,
 			Handles: TldrawHandles,
 			Overlays: TldrawOverlays,

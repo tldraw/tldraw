@@ -11,8 +11,6 @@ import {
 	getCollaboratorStateFromElapsedTime,
 	shouldShowCollaborator,
 } from '../utils/collaboratorState'
-import { DefaultBrush } from './default-components/DefaultBrush'
-import { DefaultScribble } from './default-components/DefaultScribble'
 
 export const LiveCollaborators = track(function Collaborators() {
 	const peerIds = usePeerIds()
@@ -73,7 +71,7 @@ const Collaborator = track(function Collaborator({
 
 	return (
 		<>
-			{brush && CollaboratorBrush && CollaboratorBrush !== DefaultBrush ? (
+			{brush && CollaboratorBrush ? (
 				<CollaboratorBrush
 					className="tl-collaborator__brush"
 					key={userId + '_brush'}
@@ -105,7 +103,7 @@ const Collaborator = track(function Collaborator({
 					viewport={viewportPageBounds}
 				/>
 			) : null}
-			{CollaboratorScribble && CollaboratorScribble !== DefaultScribble && scribbles.length ? (
+			{CollaboratorScribble && scribbles.length ? (
 				<>
 					{scribbles.map((scribble) => (
 						<CollaboratorScribble
@@ -126,7 +124,7 @@ const Collaborator = track(function Collaborator({
 						// Skip hidden shapes
 						if (editor.isShapeHidden(id)) return false
 						// Only render SVG indicators for shapes that use legacy indicators
-						// Canvas-based indicators are handled by CanvasOverlays
+						// Canvas-based indicators are handled by CanvasShapeIndicators
 						const shape = editor.getShape(id)
 						if (!shape) return false
 						const util = editor.getShapeUtil(shape)

@@ -1182,7 +1182,7 @@ input,
 	contain: size layout;
 }
 
-.tl-canvas-overlays {
+.tl-canvas-indicators {
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
