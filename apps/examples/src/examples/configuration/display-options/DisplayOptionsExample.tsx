@@ -66,8 +66,8 @@ export default function DisplayOptionsExample() {
 
 /*
 [1]
-Use GeoShapeUtil.configure() to provide a getDisplayValueOverrides function.
-This function receives the editor, shape, and dark mode flag, and returns
+Use GeoShapeUtil.configure() to provide a getCustomDisplayValues function.
+This function receives the editor, shape, theme, and colorMode, and returns
 a partial set of display values to override. Here we change the font for
 ellipses to monospace italic.
 

@@ -1,5 +1,5 @@
 import { StyleProp } from './StyleProp'
-import { TLTheme, TLThemeFont, TLThemeFonts } from './TLTheme'
+import { TLTheme, TLThemeFont, TLThemeFonts, TLThemes } from './TLTheme'
 
 /**
  * Default font style property used by tldraw shapes for text styling.
@@ -102,8 +102,7 @@ export function isFontEntry(value: unknown): value is TLThemeFont {
  *
  * @public
  */
-export function registerFontsFromThemes(definitions: Record<string, TLTheme> | undefined): void {
-	if (!definitions) return
+export function registerFontsFromThemes(definitions: TLThemes): void {
 	const fontNames = new Set<string>()
 	for (const def of Object.values(definitions)) {
 		if (!def.fonts) continue
@@ -125,11 +124,11 @@ export function registerFontsFromThemes(definitions: Record<string, TLTheme> | u
 	}
 
 	if (process.env.NODE_ENV !== 'production') {
-		for (const [name, def] of Object.entries(definitions)) {
+		for (const def of Object.values(definitions)) {
 			for (const font of fontNames) {
 				if (!def.fonts || !(font in def.fonts)) {
 					console.warn(
-						`Theme '${name}' is missing font '${font}'. Shapes using this font won't render correctly in this theme.`
+						`Theme '${def.id}' is missing font '${font}'. Shapes using this font won't render correctly in this theme.`
 					)
 				}
 			}

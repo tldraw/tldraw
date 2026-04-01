@@ -169,11 +169,8 @@ export {
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
-export {
-	DEFAULT_THEME,
-	DEFAULT_THEME_FONTS,
-} from './lib/editor/managers/ThemeManager/defaultThemes'
-export { ThemeManager } from './lib/editor/managers/ThemeManager/ThemeManager'
+export { DEFAULT_THEME } from './lib/editor/managers/ThemeManager/defaultThemes'
+export { ThemeManager, resolveThemes } from './lib/editor/managers/ThemeManager/ThemeManager'
 export { TickManager } from './lib/editor/managers/TickManager/TickManager'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'

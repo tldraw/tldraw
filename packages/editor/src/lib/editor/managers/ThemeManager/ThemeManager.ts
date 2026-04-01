@@ -1,23 +1,12 @@
 import { Atom, atom, computed } from '@tldraw/state'
-import { TLTheme, TLThemeId } from '@tldraw/tlschema'
+import { TLTheme, TLThemeId, TLThemes } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 import { DEFAULT_THEME } from './defaultThemes'
 
-/**
- * Merge a partial theme into a base theme, filling in missing top-level
- * fields from the base.
- *
- * @internal
- */
-export function mergeTheme(base: TLTheme, input: Partial<TLTheme>): TLTheme {
-	return {
-		fontSize: input.fontSize ?? base.fontSize,
-		lineHeight: input.lineHeight ?? base.lineHeight,
-		strokeWidth: input.strokeWidth ?? base.strokeWidth,
-		fonts: input.fonts ?? base.fonts,
-		colors: input.colors ?? base.colors,
-	}
+/** @public */
+export function resolveThemes(themes?: Partial<TLThemes>): TLThemes {
+	return { default: DEFAULT_THEME, ...themes } as TLThemes
 }
 
 /**
@@ -35,26 +24,18 @@ export function mergeTheme(base: TLTheme, input: Partial<TLTheme>): TLTheme {
  * @public
  */
 export class ThemeManager {
-	private readonly _themes: Atom<Record<TLThemeId, TLTheme>>
+	private readonly _themes: Atom<TLThemes>
 	private readonly _currentThemeId: Atom<TLThemeId>
 
 	constructor(
 		private readonly editor: Editor,
-		options?: {
-			themes?: Partial<Record<TLThemeId, Partial<TLTheme>>>
-			initial?: TLThemeId
+		options: {
+			themes: TLThemes
+			initial: TLThemeId
 		}
 	) {
-		const resolved = { default: DEFAULT_THEME } as Record<TLThemeId, TLTheme>
-		if (options?.themes) {
-			for (const [id, input] of Object.entries(options.themes) as [TLThemeId, Partial<TLTheme>][]) {
-				if (input) {
-					resolved[id] = mergeTheme(resolved[id] ?? DEFAULT_THEME, input)
-				}
-			}
-		}
-		this._themes = atom('ThemeManager._definitions', resolved)
-		this._currentThemeId = atom('ThemeManager._currentThemeName', options?.initial ?? 'default')
+		this._themes = atom('ThemeManager._definitions', options.themes)
+		this._currentThemeId = atom('ThemeManager._currentThemeName', options.initial)
 	}
 
 	/** Get the current color mode based on the user's dark mode preference. */
@@ -63,7 +44,7 @@ export class ThemeManager {
 	}
 
 	/** Get all registered theme definitions. */
-	getThemes(): Record<TLThemeId, TLTheme> {
+	getThemes(): TLThemes {
 		return this._themes.get()
 	}
 
@@ -94,14 +75,9 @@ export class ThemeManager {
 		this._currentThemeId.set(id)
 	}
 
-	updateThemes(
-		themes:
-			| Record<TLThemeId, TLTheme>
-			| ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>)
-	): void {
+	updateThemes(themes: TLThemes | ((themes: TLThemes) => TLThemes)): void {
 		this._themes.update((prev) => {
-			const next =
-				typeof themes === 'function' ? themes(structuredClone(prev)) : { ...prev, ...themes }
+			const next = typeof themes === 'function' ? themes(structuredClone(prev)) : themes
 			if (process.env.NODE_ENV !== 'production') {
 				if (!('default' in next)) {
 					console.warn("The 'default' theme cannot be removed.")
@@ -117,16 +93,10 @@ export class ThemeManager {
 	}
 
 	/** Register or update a named theme definition. */
-	updateTheme(
-		id: TLThemeId,
-		definition: Partial<TLTheme> | ((definition: TLTheme) => TLTheme)
-	): void {
+	updateTheme(theme: TLTheme): void {
 		this._themes.update((prev) => ({
 			...prev,
-			[id]:
-				typeof definition === 'function'
-					? definition(structuredClone(prev[id]))
-					: { ...prev[id], ...definition },
+			[theme.id]: theme,
 		}))
 	}
 

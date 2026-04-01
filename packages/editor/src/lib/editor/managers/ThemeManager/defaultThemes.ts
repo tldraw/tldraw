@@ -4,122 +4,7 @@ import {
 	TLDefaultColorStyle,
 	TLTheme,
 	TLThemeColors,
-	TLThemeFonts,
 } from '@tldraw/tlschema'
-
-/** @public */
-export const DEFAULT_THEME_FONTS: TLThemeFonts = {
-	draw: {
-		fontFamily: DefaultFontFamilies.draw,
-		faces: [
-			{ family: 'tldraw_draw', src: { url: 'tldraw_draw', format: 'woff2' }, weight: 'normal' },
-			{
-				family: 'tldraw_draw',
-				src: { url: 'tldraw_draw_bold', format: 'woff2' },
-				weight: 'bold',
-			},
-			{
-				family: 'tldraw_draw',
-				src: { url: 'tldraw_draw_italic', format: 'woff2' },
-				weight: 'normal',
-				style: 'italic',
-			},
-			{
-				family: 'tldraw_draw',
-				src: { url: 'tldraw_draw_italic_bold', format: 'woff2' },
-				weight: 'bold',
-				style: 'italic',
-			},
-		],
-	},
-	sans: {
-		fontFamily: DefaultFontFamilies.sans,
-		faces: [
-			{
-				family: 'tldraw_sans',
-				src: { url: 'tldraw_sans', format: 'woff2' },
-				weight: 'normal',
-				style: 'normal',
-			},
-			{
-				family: 'tldraw_sans',
-				src: { url: 'tldraw_sans_bold', format: 'woff2' },
-				weight: 'bold',
-				style: 'normal',
-			},
-			{
-				family: 'tldraw_sans',
-				src: { url: 'tldraw_sans_italic', format: 'woff2' },
-				weight: 'normal',
-				style: 'italic',
-			},
-			{
-				family: 'tldraw_sans',
-				src: { url: 'tldraw_sans_italic_bold', format: 'woff2' },
-				weight: 'bold',
-				style: 'italic',
-			},
-		],
-	},
-	serif: {
-		fontFamily: DefaultFontFamilies.serif,
-		faces: [
-			{
-				family: 'tldraw_serif',
-				src: { url: 'tldraw_serif', format: 'woff2' },
-				weight: 'normal',
-				style: 'normal',
-			},
-			{
-				family: 'tldraw_serif',
-				src: { url: 'tldraw_serif_bold', format: 'woff2' },
-				weight: 'bold',
-				style: 'normal',
-			},
-			{
-				family: 'tldraw_serif',
-				src: { url: 'tldraw_serif_italic', format: 'woff2' },
-				weight: 'normal',
-				style: 'italic',
-			},
-			{
-				family: 'tldraw_serif',
-				src: { url: 'tldraw_serif_italic_bold', format: 'woff2' },
-				weight: 'bold',
-				style: 'italic',
-			},
-		],
-	},
-	mono: {
-		fontFamily: DefaultFontFamilies.mono,
-		faces: [
-			{
-				family: 'tldraw_mono',
-				src: { url: 'tldraw_mono', format: 'woff2' },
-				weight: 'normal',
-				style: 'normal',
-			},
-			{
-				family: 'tldraw_mono',
-				src: { url: 'tldraw_mono_bold', format: 'woff2' },
-				weight: 'bold',
-				style: 'normal',
-			},
-			{
-				family: 'tldraw_mono',
-				src: { url: 'tldraw_mono_italic', format: 'woff2' },
-				weight: 'normal',
-				style: 'italic',
-			},
-			{
-				family: 'tldraw_mono',
-				src: { url: 'tldraw_mono_italic_bold', format: 'woff2' },
-				weight: 'bold',
-				style: 'italic',
-			},
-		],
-	},
-}
 
 /**
  * The default theme definition containing color palettes for both light and dark modes.
@@ -127,10 +12,122 @@ export const DEFAULT_THEME_FONTS: TLThemeFonts = {
  * @public
  */
 export const DEFAULT_THEME: TLTheme = {
+	id: 'default',
 	fontSize: 16,
 	lineHeight: 1.35,
 	strokeWidth: 2,
-	fonts: DEFAULT_THEME_FONTS,
+	fonts: {
+		draw: {
+			fontFamily: DefaultFontFamilies.draw,
+			faces: [
+				{ family: 'tldraw_draw', src: { url: 'tldraw_draw', format: 'woff2' }, weight: 'normal' },
+				{
+					family: 'tldraw_draw',
+					src: { url: 'tldraw_draw_bold', format: 'woff2' },
+					weight: 'bold',
+				},
+				{
+					family: 'tldraw_draw',
+					src: { url: 'tldraw_draw_italic', format: 'woff2' },
+					weight: 'normal',
+					style: 'italic',
+				},
+				{
+					family: 'tldraw_draw',
+					src: { url: 'tldraw_draw_italic_bold', format: 'woff2' },
+					weight: 'bold',
+					style: 'italic',
+				},
+			],
+		},
+		sans: {
+			fontFamily: DefaultFontFamilies.sans,
+			faces: [
+				{
+					family: 'tldraw_sans',
+					src: { url: 'tldraw_sans', format: 'woff2' },
+					weight: 'normal',
+					style: 'normal',
+				},
+				{
+					family: 'tldraw_sans',
+					src: { url: 'tldraw_sans_bold', format: 'woff2' },
+					weight: 'bold',
+					style: 'normal',
+				},
+				{
+					family: 'tldraw_sans',
+					src: { url: 'tldraw_sans_italic', format: 'woff2' },
+					weight: 'normal',
+					style: 'italic',
+				},
+				{
+					family: 'tldraw_sans',
+					src: { url: 'tldraw_sans_italic_bold', format: 'woff2' },
+					weight: 'bold',
+					style: 'italic',
+				},
+			],
+		},
+		serif: {
+			fontFamily: DefaultFontFamilies.serif,
+			faces: [
+				{
+					family: 'tldraw_serif',
+					src: { url: 'tldraw_serif', format: 'woff2' },
+					weight: 'normal',
+					style: 'normal',
+				},
+				{
+					family: 'tldraw_serif',
+					src: { url: 'tldraw_serif_bold', format: 'woff2' },
+					weight: 'bold',
+					style: 'normal',
+				},
+				{
+					family: 'tldraw_serif',
+					src: { url: 'tldraw_serif_italic', format: 'woff2' },
+					weight: 'normal',
+					style: 'italic',
+				},
+				{
+					family: 'tldraw_serif',
+					src: { url: 'tldraw_serif_italic_bold', format: 'woff2' },
+					weight: 'bold',
+					style: 'italic',
+				},
+			],
+		},
+		mono: {
+			fontFamily: DefaultFontFamilies.mono,
+			faces: [
+				{
+					family: 'tldraw_mono',
+					src: { url: 'tldraw_mono', format: 'woff2' },
+					weight: 'normal',
+					style: 'normal',
+				},
+				{
+					family: 'tldraw_mono',
+					src: { url: 'tldraw_mono_bold', format: 'woff2' },
+					weight: 'bold',
+					style: 'normal',
+				},
+				{
+					family: 'tldraw_mono',
+					src: { url: 'tldraw_mono_italic', format: 'woff2' },
+					weight: 'normal',
+					style: 'italic',
+				},
+				{
+					family: 'tldraw_mono',
+					src: { url: 'tldraw_mono_italic_bold', format: 'woff2' },
+					weight: 'bold',
+					style: 'italic',
+				},
+			],
+		},
+	},
 	colors: {
 		light: {
 			text: '#000000',
@@ -572,7 +569,7 @@ export const DEFAULT_THEME: TLTheme = {
  * Resolves a color style value to its actual CSS color string for a given theme and variant.
  * If the color is not a default theme color, returns the color value as-is.
  *
- * @param theme - The color theme to use for resolution
+ * @param colors - The color palette for the current color mode (e.g. `theme.colors[colorMode]`)
  * @param color - The color style value to resolve
  * @param variant - Which variant of the color to return (solid, fill, pattern, etc.)
  * @returns The CSS color string for the specified color and variant

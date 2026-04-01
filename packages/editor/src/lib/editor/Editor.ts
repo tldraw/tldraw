@@ -52,6 +52,7 @@ import {
 	TLStoreSnapshot,
 	TLTheme,
 	TLThemeId,
+	TLThemes,
 	TLUser,
 	TLUserId,
 	TLVideoAsset,
@@ -158,7 +159,7 @@ import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
-import { ThemeManager } from './managers/ThemeManager/ThemeManager'
+import { resolveThemes, ThemeManager } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import {
@@ -263,7 +264,7 @@ export interface TLEditorOptions {
 	 * properties (font size, line height, stroke width) and color palettes
 	 * for both light and dark modes.
 	 */
-	themes?: Partial<Record<TLThemeId, TLTheme>>
+	themes?: Partial<TLThemes>
 	/**
 	 * The id of the initially active theme. Defaults to `'default'`.
 	 */
@@ -382,8 +383,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(() => this.textMeasure.dispose())
 
 		this._themeManager = new ThemeManager(this, {
-			themes: themes,
-			initial: initialTheme,
+			themes: resolveThemes(themes),
+			initial: initialTheme ?? 'default',
 		})
 		this.disposables.add(() => this._themeManager.dispose())
 
@@ -1149,7 +1150,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getThemes(): Record<TLThemeId, TLTheme> {
+	getThemes(): TLThemes {
 		return this._themeManager.getThemes()
 	}
 
@@ -1167,11 +1168,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateThemes(
-		themes:
-			| Record<TLThemeId, TLTheme>
-			| ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>)
-	) {
+	updateThemes(themes: TLThemes | ((themes: TLThemes) => TLThemes)) {
 		this._themeManager.updateThemes(themes)
 		return this
 	}
@@ -1181,8 +1178,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateTheme(id: TLThemeId, definition: Partial<TLTheme> | ((theme: TLTheme) => TLTheme)) {
-		this._themeManager.updateTheme(id, definition)
+	updateTheme(theme: TLTheme) {
+		this._themeManager.updateTheme(theme)
 		return this
 	}
 

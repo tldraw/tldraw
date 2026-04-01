@@ -10,12 +10,12 @@ export default function ChangingDefaultColorsExample() {
 			<Tldraw
 				persistenceKey="example"
 				onMount={(editor) => {
-					editor.updateTheme('default', (theme) => {
-						// The callback receives a deep copy of the theme,
-						// so you can mutate it directly and return it.
-						theme.colors.light.black.solid = 'aqua'
-						return theme
-					})
+					const theme = { ...editor.getTheme('default')! }
+					theme.colors = {
+						...theme.colors,
+						light: { ...theme.colors.light, black: { ...theme.colors.light.black, solid: 'aqua' } },
+					}
+					editor.updateTheme(theme)
 				}}
 			/>
 		</div>
@@ -25,9 +25,8 @@ export default function ChangingDefaultColorsExample() {
 /*
 
 [1]
-Use editor.updateTheme() with a callback to customize a theme's color palette.
-The callback receives a deep copy of the current theme, so you can mutate it
-directly and return it.
+Use editor.updateTheme() to customize a theme's color palette.
+Get the current theme with editor.getTheme(), modify it, and pass it back.
 
 Remember that you can't add or remove colors here yet. These colors are
 used by our default shapes and we need to make sure that we don't end

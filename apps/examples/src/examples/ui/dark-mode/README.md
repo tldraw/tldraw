@@ -5,8 +5,8 @@ priority: 4
 keywords: [dark mode, theme, system preferences, color scheme]
 ---
 
-Set the editor to dark mode using the `theme` prop.
+Set the editor to dark mode using the `colorScheme` prop.
 
 ---
 
-Set `theme="dark"` on the `Tldraw` component to use dark mode. You can toggle the dark mode by pressing `Command + /`.
+Set `colorScheme="dark"` on the `Tldraw` component to use dark mode.

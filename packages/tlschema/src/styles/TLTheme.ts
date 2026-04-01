@@ -185,21 +185,24 @@ export type TLThemeColors = Pick<TLThemeDefaultColors, TLThemeUiColorKeys> &
  * @example
  * ```ts
  * const myTheme: TLTheme = {
+ *   id: 'custom',
  *   fontSize: 16,
  *   lineHeight: 1.35,
  *   strokeWidth: 2,
- *   fonts: DEFAULT_THEME_FONTS,
+ *   fonts: DEFAULT_THEME.fonts,
  *   colors: {
  *     light: { ... },
  *     dark: { ... },
  *   },
  * }
- * editor.updateTheme('custom', myTheme)
+ * editor.updateTheme(myTheme)
  * ```
  *
  * @public
  */
 export interface TLTheme {
+	/** Unique identifier for this theme. Used as the key in the theme registry. */
+	id: TLThemeId
 	/** Base font size in pixels. Shape font sizes are derived by multiplying this value. */
 	fontSize: number
 	/** Base line height multiplier. */
@@ -207,7 +210,7 @@ export interface TLTheme {
 	/** Base stroke width in pixels. Shape stroke widths are derived by multiplying this value. */
 	strokeWidth: number
 	/** Font definitions. Individual fonts may be absent if removed by a custom theme. */
-	fonts: Partial<TLThemeFonts>
+	fonts: TLThemeFonts
 	colors: {
 		light: TLThemeColors
 		dark: TLThemeColors

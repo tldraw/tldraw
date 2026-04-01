@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import {
 	DEFAULT_THEME,
-	DEFAULT_THEME_FONTS,
 	TLDefaultColor,
 	TLTheme,
 	TLThemeFont,
+	TLThemes,
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiButton,
@@ -20,7 +20,7 @@ import './custom-theme.css'
 // Extend the type system so TypeScript knows about our custom color and font.
 // Because we pass `themes` to `<Tldraw>`, the custom names are
 // registered automatically at store creation time.
-declare module 'tldraw' {
+declare module '@tldraw/tlschema' {
 	interface TLThemeDefaultColors {
 		pink: TLDefaultColor
 	}
@@ -29,7 +29,7 @@ declare module 'tldraw' {
 		cursive: TLThemeFont
 	}
 	// [7] Remove the "light-*" color variants from the palette.
-	interface TLRemovedDefaultColors {
+	interface TLRemovedDefaultThemeColors {
 		'light-violet': true
 		'light-blue': true
 		'light-green': true
@@ -109,7 +109,7 @@ const cursiveFont: TLThemeFont = {
 }
 
 // [10] Build a reduced font palette: drop "serif", keep the rest, add custom fonts.
-const { serif: _serif, ...keptFonts } = DEFAULT_THEME_FONTS
+const { serif: _serif, ...keptFonts } = DEFAULT_THEME.fonts
 const customFonts: TLTheme['fonts'] = { ...keptFonts, pixel: pixelFont, cursive: cursiveFont }
 
 // [11] Build a reduced color palette: drop "light-*" variants, add "pink".
@@ -150,9 +150,10 @@ export default function CustomThemeExample() {
 
 	// [4] Customize the default theme: add the custom "pink" color,
 	// custom fonts, and merge slider overrides so adjustments apply to both modes.
-	const themes = useMemo<Record<string, TLTheme>>(() => {
+	const themes = useMemo<Partial<TLThemes>>(() => {
 		return {
 			default: {
+				id: 'default',
 				fontSize,
 				lineHeight,
 				strokeWidth,
@@ -348,7 +349,7 @@ function ThemeSlider({
 /*
 
 [1]
-Extend `TLThemeColors` and `TLThemeFonts` interfaces via module augmentation
+Extend `TLThemeDefaultColors` and `TLThemeFonts` interfaces via module augmentation
 to add a custom "pink" color and custom "pixel" / "cursive" fonts. Because
 `themes` is passed to `<Tldraw>`, these names are registered
 automatically.

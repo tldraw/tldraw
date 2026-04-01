@@ -4,6 +4,7 @@ import {
 	Editor,
 	TLTheme,
 	TLThemeId,
+	TLThemes,
 	Tldraw,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -16,7 +17,7 @@ import 'tldraw/tldraw.css'
 // There's a guide at the bottom of this file!
 
 // [1]
-declare module 'tldraw' {
+declare module '@tldraw/tlschema' {
 	interface TLThemes {
 		ocean: TLTheme
 		sunset: TLTheme
@@ -26,6 +27,7 @@ declare module 'tldraw' {
 // [2]
 const OCEAN_THEME: TLTheme = {
 	...DEFAULT_THEME,
+	id: 'ocean',
 	colors: {
 		light: {
 			...DEFAULT_THEME.colors.light,
@@ -58,6 +60,7 @@ const OCEAN_THEME: TLTheme = {
 
 const SUNSET_THEME: TLTheme = {
 	...DEFAULT_THEME,
+	id: 'sunset',
 	colors: {
 		light: {
 			...DEFAULT_THEME.colors.light,
@@ -89,7 +92,7 @@ const SUNSET_THEME: TLTheme = {
 }
 
 // [3]
-const themes: Partial<Record<TLThemeId, TLTheme>> = {
+const themes: Partial<TLThemes> = {
 	ocean: OCEAN_THEME,
 	sunset: SUNSET_THEME,
 }

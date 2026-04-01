@@ -9,6 +9,7 @@ import {
 	registerColorsFromThemes,
 	registerFontsFromThemes,
 } from '@tldraw/tlschema'
+import { resolveThemes } from './editor/managers/ThemeManager/ThemeManager'
 import { annotateError, Required } from '@tldraw/utils'
 import classNames from 'classnames'
 import React, {
@@ -285,8 +286,9 @@ export const TldrawEditor = memo(function TldrawEditor({
 	// Register custom colors and fonts before effects run. For external stores,
 	// users should also pass themes to createTLStore so they are
 	// registered before data is loaded into the store.
-	registerColorsFromThemes(rest.themes)
-	registerFontsFromThemes(rest.themes)
+	const resolvedThemes = resolveThemes(rest.themes)
+	registerColorsFromThemes(resolvedThemes)
+	registerFontsFromThemes(resolvedThemes)
 
 	const [container, setContainer] = useState<HTMLElement | null>(null)
 	const user = useMemo(() => _user ?? createTLCurrentUser(), [_user])
@@ -587,8 +589,8 @@ function TldrawEditorWithReadyStore({
 	// keep the editor up to date with the latest theme definitions
 	useLayoutEffect(() => {
 		if (editor && themes) {
-			for (const [name, def] of Object.entries(themes) as [TLThemeId, TLTheme][]) {
-				editor.updateTheme(name, def)
+			for (const def of Object.values(themes) as TLTheme[]) {
+				editor.updateTheme(def)
 			}
 		}
 	}, [editor, themes])

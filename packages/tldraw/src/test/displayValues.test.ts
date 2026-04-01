@@ -21,8 +21,7 @@ afterEach(() => {
 
 /** Update the default theme definition's light colors. */
 function updateLightColors(editor: TestEditor, updater: (def: TLTheme) => TLTheme) {
-	const def = editor.getTheme('default')!
-	editor.updateTheme('default', updater(def))
+	editor.updateTheme(updater(editor.getTheme('default')!))
 }
 
 const noteId = createShapeId('note')
@@ -298,8 +297,7 @@ describe('theme changes flow to shapes', () => {
 		const originalBg = dv1.noteBackgroundColor
 
 		// Update the default theme's fontSize (which affects label size)
-		const def = editor.getTheme('default')!
-		editor.updateTheme('default', { ...def, fontSize: 24 })
+		editor.updateTheme({ ...editor.getTheme('default')!, fontSize: 24 })
 
 		// Theme object changed, so cache should miss even with same shape
 		const dv2 = getDisplayValues(util, shape)

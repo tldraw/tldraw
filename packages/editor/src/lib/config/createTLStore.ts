@@ -20,6 +20,7 @@ import {
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
+import { resolveThemes } from '../editor/managers/ThemeManager/ThemeManager'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
@@ -147,8 +148,9 @@ export function createTLStore({
 	themes,
 	...rest
 }: TLStoreOptions = {}): TLStore {
-	registerColorsFromThemes(themes)
-	registerFontsFromThemes(themes)
+	const resolvedThemes = resolveThemes(themes)
+	registerColorsFromThemes(resolvedThemes)
+	registerFontsFromThemes(resolvedThemes)
 	const schema = createTLSchemaFromUtils(rest)
 
 	const store = new Store({

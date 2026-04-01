@@ -1,5 +1,5 @@
 import { StyleProp } from './StyleProp'
-import { TLDefaultColor, TLTheme, TLThemeDefaultColors } from './TLTheme'
+import { TLDefaultColor, TLTheme, TLThemeDefaultColors, TLThemes } from './TLTheme'
 
 /**
  * The names of all available shape colors, derived from {@link TLThemeDefaultColors}.
@@ -60,8 +60,7 @@ export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', 
  *
  * @public
  */
-export function registerColorsFromThemes(definitions: Record<string, TLTheme> | undefined): void {
-	if (!definitions) return
+export function registerColorsFromThemes(definitions: TLThemes): void {
 	const colorNames = new Set<TLDefaultColorStyle>()
 	for (const def of Object.values(definitions)) {
 		for (const colorPalette of [def.colors.light, def.colors.dark]) {
@@ -84,16 +83,16 @@ export function registerColorsFromThemes(definitions: Record<string, TLTheme> | 
 	}
 
 	if (process.env.NODE_ENV !== 'production') {
-		for (const [name, def] of Object.entries(definitions)) {
+		for (const def of Object.values(definitions)) {
 			for (const color of colorNames) {
 				if (!(color in def.colors.light)) {
 					console.warn(
-						`Theme '${name}' light palette is missing color '${color}'. Shapes using this color won't render correctly.`
+						`Theme '${def.id}' light palette is missing color '${color}'. Shapes using this color won't render correctly.`
 					)
 				}
 				if (!(color in def.colors.dark)) {
 					console.warn(
-						`Theme '${name}' dark palette is missing color '${color}'. Shapes using this color won't render correctly.`
+						`Theme '${def.id}' dark palette is missing color '${color}'. Shapes using this color won't render correctly.`
 					)
 				}
 			}
