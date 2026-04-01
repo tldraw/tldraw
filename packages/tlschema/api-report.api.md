@@ -1489,7 +1489,7 @@ export interface TLPropsMigrations {
 export type TLRecord = TLCustomRecord | TLDefaultRecord;
 
 // @public
-export interface TLRemovedThemeColors {
+export interface TLRemovedDefaultThemeColors {
 }
 
 // @public
@@ -1596,7 +1596,7 @@ export interface TLTheme {
 }
 
 // @public
-export type TLThemeColors = Pick<TLThemeDefaultColors, TLThemeUiColorKeys> & Omit<TLThemeDefaultColors, keyof TLRemovedThemeColors | TLThemeUiColorKeys>;
+export type TLThemeColors = Pick<TLThemeDefaultColors, TLThemeUiColorKeys> & Omit<TLThemeDefaultColors, keyof TLRemovedDefaultThemeColors | TLThemeUiColorKeys>;
 
 // @public
 export interface TLThemeDefaultColors {
