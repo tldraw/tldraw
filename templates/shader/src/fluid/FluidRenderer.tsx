@@ -1,5 +1,5 @@
 import { memo, useLayoutEffect, useRef } from 'react'
-import { useEditor, useIsDarkMode, useValue } from 'tldraw'
+import { useColorMode, useEditor, useValue } from 'tldraw'
 import { fluidConfig } from './config'
 import { FluidManager } from './FluidManager'
 
@@ -14,7 +14,7 @@ export const FluidRenderer = memo(() => {
 	const editor = useEditor()
 	const rCanvas = useRef<HTMLCanvasElement>(null)
 	const rFluidManager = useRef<FluidManager | null>(null)
-	const darkMode = useIsDarkMode()
+	const darkMode = useColorMode() === 'dark'
 
 	const config = useValue('config', () => fluidConfig.get(), [])
 
