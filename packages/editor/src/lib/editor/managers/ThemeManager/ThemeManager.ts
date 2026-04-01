@@ -10,6 +10,11 @@ import { DEFAULT_THEME } from './defaultThemes'
  * alongside shared properties like font size). The active theme is resolved by
  * combining the active theme name with the user's color mode preference.
  *
+ * **Terminology:**
+ * - **Theme** (`TLTheme`): A named set of colors and typographic values for both light and dark modes.
+ * - **Color mode** (`'light' | 'dark'`): The resolved appearance mode, derived from the user's
+ *   `colorScheme` preference (`'light' | 'dark' | 'system'`). Access via `getColorMode()`.
+ *
  * @public
  */
 export class ThemeManager {

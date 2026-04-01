@@ -255,7 +255,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override toSvg(shape: TLLineShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.themeId === 'dark' ? 'dark' : 'light')
+		const dv = getDisplayValues(this, shape, ctx.colorMode)
 		return (
 			<LineShapeSvg
 				shouldScale

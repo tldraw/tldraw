@@ -1119,7 +1119,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		const dv = getDisplayValues(this, shape, ctx.themeId === 'dark' ? 'dark' : 'light')
+		const dv = getDisplayValues(this, shape, ctx.colorMode)
 		const scaleFactor = 1 / shape.props.scale
 
 		const showArrowLabel = !isEmptyRichText(shape.props.richText)

@@ -90,7 +90,8 @@ import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStoreSchema } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLTheme } from '@tldraw/tlschema';
-import { TLThemeDefinition } from '@tldraw/tlschema';
+import { TLThemeColors } from '@tldraw/tlschema';
+import { TLThemeId } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLUser } from '@tldraw/tlschema';
@@ -640,7 +641,7 @@ export const DEFAULT_ANIMATION_OPTIONS: {
 export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions;
 
 // @public
-export const DEFAULT_THEME: TLThemeDefinition;
+export const DEFAULT_THEME: TLTheme;
 
 // @public (undocumented)
 export function DefaultBackground(): JSX.Element;
@@ -1210,7 +1211,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         focusContainer?: boolean | undefined;
     }): this;
     readonly fonts: FontManager;
-    getActiveThemeName(): string;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
     getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined>;
@@ -1276,6 +1276,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
     getCurrentTheme(): TLTheme;
+    getCurrentThemeId(): TLThemeId;
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
     getDebouncedZoomLevel(): number;
@@ -1383,8 +1384,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     } | undefined>;
     getTemporaryAssetPreview(assetId: TLAssetId): string | undefined;
     getTextOptions(): TLTextOptions;
-    getThemeDefinition(name: string): TLThemeDefinition | undefined;
-    getThemeDefinitions(): Record<string, TLThemeDefinition>;
+    getTheme(id: TLThemeId): TLTheme | undefined;
+    getThemes(): Record<TLThemeId, TLTheme>;
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): TLRenderingShape[];
     getViewportPageBounds(): Box;
@@ -1478,7 +1479,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent<E>['type'], E>(type: T, handler: ((info: T extends TLExternalContent<E>['type'] ? Extract<TLExternalContent<E>, {
         type: T;
     }> : TLExternalContent<E>) => void) | null): this;
-    removeThemeDefinition(name: string): void;
+    removeTheme(id: TLThemeId): void;
     removeTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
@@ -1515,7 +1516,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         considerAllShapes?: boolean;
     }): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
-    setActiveThemeName(name: string): void;
     // @internal (undocumented)
     _setAltKeyTimeout(): void;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
@@ -1524,6 +1524,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     _setCtrlKeyTimeout(): void;
     setCurrentPage(page: TLPage | TLPageId): this;
+    setCurrentTheme(id: TLThemeId): void;
     setCurrentTool(id: string, info?: {}): this;
     setCursor(cursor: Partial<TLCursor>): this;
     setEditingShape(shape: null | TLShape | TLShapeId): this;
@@ -1541,7 +1542,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     _setShiftKeyTimeout(): void;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
-    setThemeDefinition(name: string, definition: TLThemeDefinition): void;
     setTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLShape>;
@@ -1610,6 +1610,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     // @internal (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
+    updateTheme(id: TLThemeId, definition: Partial<TLTheme>): void;
+    updateThemes(themes: ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>) | Record<TLThemeId, TLTheme>): void;
     updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): this;
     uploadAsset(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<{
         meta?: JsonObject;
@@ -1862,7 +1864,7 @@ export interface Geometry2dOptions extends TransformedGeometry2dOptions {
 export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number): number;
 
 // @public
-export function getColorValue(theme: TLTheme, color: string | TLDefaultColorStyle, variant: keyof TLDefaultColor): string;
+export function getColorValue(colors: TLThemeColors, color: string | TLDefaultColorStyle, variant: keyof TLDefaultColor): string;
 
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
@@ -2733,9 +2735,6 @@ export function resizeScaled(shape: TLBaseShape<any, {
     y: number;
 };
 
-// @public
-export function resolveTheme(definition: TLThemeDefinition, colorMode: 'dark' | 'light'): TLTheme;
-
 // @public (undocumented)
 export type RichTextFontVisitor = (node: TiptapNode, state: RichTextFontVisitorState, addFont: (font: TLFontFace) => void) => RichTextFontVisitorState;
 
@@ -3147,11 +3146,11 @@ export type SVGContainerProps = React_2.ComponentProps<'svg'>;
 // @public (undocumented)
 export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
+    readonly colorMode: 'dark' | 'light';
     readonly isDarkMode: boolean;
     readonly pixelRatio: null | number;
     resolveAssetUrl(assetId: TLAssetId, width: number): Promise<null | string>;
     readonly scale: number;
-    readonly themeId: string;
     waitUntil(promise: Promise<void>): void;
 }
 
@@ -3205,18 +3204,21 @@ export class TextManager {
 // @public
 export class ThemeManager {
     constructor(editor: Editor, options?: {
-        activeTheme?: string;
-        definitions?: Record<string, TLThemeDefinition>;
+        initial?: TLThemeId;
+        themes?: Partial<Record<TLThemeId, TLTheme>>;
     });
     dispose(): void;
-    getActiveThemeName(): string;
     getColorMode(): 'dark' | 'light';
+    // (undocumented)
     getCurrentTheme(): TLTheme;
-    getThemeDefinition(name: string): TLThemeDefinition | undefined;
-    getThemeDefinitions(): Record<string, TLThemeDefinition>;
-    removeThemeDefinition(name: string): void;
-    setActiveThemeName(name: string): void;
-    setThemeDefinition(name: string, definition: TLThemeDefinition): void;
+    getCurrentThemeId(): TLThemeId;
+    getTheme(id: TLThemeId): TLTheme | undefined;
+    getThemes(): Record<TLThemeId, TLTheme>;
+    removeTheme(id: TLThemeId): void;
+    setCurrentTheme(id: TLThemeId): void;
+    updateTheme(id: TLThemeId, definition: ((definition: TLTheme) => TLTheme) | Partial<TLTheme>): void;
+    // (undocumented)
+    updateThemes(themes: ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>) | Record<TLThemeId, TLTheme>): void;
 }
 
 // @internal (undocumented)
@@ -3550,7 +3552,7 @@ export const TldrawEditor: React_3.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
 export interface TldrawEditorBaseProps {
-    activeTheme?: string;
+    activeTheme?: TLThemeId;
     assetUrls?: {
         fonts?: {
             [key: string]: string | undefined;
@@ -3573,7 +3575,7 @@ export interface TldrawEditorBaseProps {
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     // @deprecated
     textOptions?: TLTextOptions;
-    themeDefinitions?: Record<string, TLThemeDefinition>;
+    themeDefinitions?: Partial<Record<TLThemeId, TLTheme>>;
     tools?: readonly TLStateNodeConstructor[];
     user?: TLCurrentUser;
 }
@@ -3787,7 +3789,7 @@ export interface TLEditorComponents {
 
 // @public (undocumented)
 export interface TLEditorOptions {
-    activeTheme?: string;
+    activeTheme?: TLThemeId;
     autoFocus?: boolean;
     bindingUtils: readonly TLAnyBindingUtilConstructor[];
     // @deprecated
@@ -3808,7 +3810,7 @@ export interface TLEditorOptions {
     store: TLStore;
     // @deprecated
     textOptions?: TLTextOptions;
-    themeDefinitions?: Record<string, TLThemeDefinition>;
+    themeDefinitions?: Partial<Record<TLThemeId, TLTheme>>;
     tools: readonly TLStateNodeConstructor[];
     user?: TLCurrentUser;
 }
@@ -4587,7 +4589,7 @@ export interface TLStoreBaseOptions {
     initialData?: SerializedStore<TLRecord>;
     onMount?(editor: Editor): (() => void) | void;
     snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
-    themeDefinitions?: Record<string, TLThemeDefinition>;
+    themeDefinitions?: Record<string, TLTheme>;
     users?: TLUserStore;
 }
 

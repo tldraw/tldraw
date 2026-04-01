@@ -49,9 +49,9 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	const renderPadding =
 		typeof opts.padding === 'number' ? opts.padding : editor.options.defaultSvgPadding
 
-	const themeId =
-		opts.darkMode !== undefined ? (opts.darkMode ? 'dark' : 'light') : String(editor.getColorMode())
-	const isDarkMode = themeId === 'dark'
+	const colorMode: 'light' | 'dark' =
+		opts.darkMode !== undefined ? (opts.darkMode ? 'dark' : 'light') : editor.getColorMode()
+	const isDarkMode = colorMode === 'dark'
 
 	// ---Figure out which shapes we need to include
 	const shapeIdsToInclude = editor.getShapeAndDescendantIds(ids)
@@ -113,7 +113,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 			background={background}
 			singleFrameShapeId={singleFrameShapeId}
 			isDarkMode={isDarkMode}
-			themeId={themeId}
+			colorMode={colorMode}
 			renderingShapes={renderingShapes}
 			onMount={initialEffectPromise.resolve}
 			waitUntil={exportDelay.waitUntil}
@@ -204,7 +204,7 @@ function SvgExport({
 	background,
 	singleFrameShapeId,
 	isDarkMode,
-	themeId,
+	colorMode,
 	renderingShapes,
 	onMount,
 	waitUntil,
@@ -217,13 +217,12 @@ function SvgExport({
 	background: boolean
 	singleFrameShapeId: TLShapeId | null
 	isDarkMode: boolean
-	themeId: string
+	colorMode: 'light' | 'dark'
 	renderingShapes: TLRenderingShape[]
 	onMount(): void
 	waitUntil(promise: Promise<void>): void
 }) {
 	const masksId = useUniqueSafeId()
-	const colorMode = (themeId === 'dark' ? 'dark' : 'light') as 'light' | 'dark'
 	const theme = editor.getCurrentTheme()
 
 	const stateAtom = useAtom<{
@@ -258,7 +257,7 @@ function SvgExport({
 	const exportContext = useMemo(
 		(): SvgExportContext => ({
 			isDarkMode,
-			themeId,
+			colorMode,
 			waitUntil,
 			addExportDef,
 			scale,
@@ -274,7 +273,7 @@ function SvgExport({
 				})
 			},
 		}),
-		[isDarkMode, themeId, waitUntil, addExportDef, scale, pixelRatio, editor]
+		[isDarkMode, colorMode, waitUntil, addExportDef, scale, pixelRatio, editor]
 	)
 
 	const didRenderRef = useRef(false)

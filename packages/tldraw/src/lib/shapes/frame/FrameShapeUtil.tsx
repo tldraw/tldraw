@@ -296,7 +296,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.themeId === 'dark' ? 'dark' : 'light')
+		const dv = getDisplayValues(this, shape, ctx.colorMode)
 
 		// rotate right 45 deg
 		const labelSide = getFrameHeadingSide(this.editor, shape)

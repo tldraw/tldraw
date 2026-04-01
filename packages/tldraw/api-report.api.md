@@ -146,6 +146,7 @@ import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLTheme } from '@tldraw/editor';
+import { TLThemeColors } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
@@ -1935,7 +1936,7 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 export function getAssetInfo(file: File, options: TLDefaultExternalContentHandlerOpts, assetId?: TLAssetId): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public
-export function getColorStyleItems(theme: TLTheme): StyleValuesForUi<string>;
+export function getColorStyleItems(colors: TLThemeColors): StyleValuesForUi<string>;
 
 // @public (undocumented)
 export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): {
@@ -1953,7 +1954,7 @@ export function getDefaultCrop(): TLShapeCrop;
 export function getDisplayValues<Shape extends TLShape, DisplayValues extends object>(util: {
     editor: Editor;
     options: ShapeOptionsWithDisplayValues<Shape, DisplayValues>;
-}, shape: Shape, colorMode?: string): DisplayValues;
+}, shape: Shape, colorMode?: 'dark' | 'light'): DisplayValues;
 
 // @public
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
@@ -2980,9 +2981,9 @@ export function setStrokePointRadii(strokePoints: StrokePoint[], options: Stroke
 // @public (undocumented)
 export interface ShapeOptionsWithDisplayValues<Shape extends TLShape, DisplayValues extends object> {
     // (undocumented)
-    getDisplayValueOverrides(editor: Editor, shape: Shape, theme: TLTheme): Partial<DisplayValues>;
+    getDisplayValueOverrides(editor: Editor, shape: Shape, theme: TLTheme, colorMode: 'dark' | 'light'): Partial<DisplayValues>;
     // (undocumented)
-    getDisplayValues(editor: Editor, shape: Shape, theme: TLTheme): DisplayValues;
+    getDisplayValues(editor: Editor, shape: Shape, theme: TLTheme, colorMode: 'dark' | 'light'): DisplayValues;
 }
 
 // @public (undocumented)

@@ -79,7 +79,7 @@ export interface TLThemeColors {
  *
  * @example
  * ```ts
- * const myTheme: TLThemeDefinition = {
+ * const myTheme: TLTheme = {
  *   fontSize: 16,
  *   lineHeight: 1.35,
  *   strokeWidth: 2,

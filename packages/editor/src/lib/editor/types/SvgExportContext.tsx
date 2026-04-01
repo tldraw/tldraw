@@ -43,9 +43,9 @@ export interface SvgExportContext {
 	readonly isDarkMode: boolean
 
 	/**
-	 * The theme ID to use for this export (e.g. `'light'`, `'dark'`, or a custom theme ID like `'company-brand'`).
+	 * The color mode to use for this export.
 	 */
-	readonly themeId: string
+	readonly colorMode: 'light' | 'dark'
 
 	/**
 	 * The scale of the export - how much CSS pixels will be scaled up/down by.

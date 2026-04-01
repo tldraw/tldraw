@@ -9,7 +9,6 @@ keywords:
   - dark mode
   - light mode
   - TLTheme
-  - TLThemeDefinition
   - TLThemeColors
   - ThemeManager
   - getCurrentTheme
@@ -57,12 +56,12 @@ export default function App() {
 
 ## Theme structure
 
-A theme definition is a [TLThemeDefinition](?) object with color palettes for both light and dark modes, plus shared `fontSize`, `lineHeight`, and `strokeWidth` values:
+A theme definition is a [TLTheme](?) object with color palettes for both light and dark modes, plus shared `fontSize`, `lineHeight`, and `strokeWidth` values:
 
 ```typescript
-import { DEFAULT_THEME, TLThemeDefinition } from 'tldraw'
+import { DEFAULT_THEME, TLTheme } from 'tldraw'
 
-const myTheme: TLThemeDefinition = {
+const myTheme: TLTheme = {
 	fontSize: 16,
 	lineHeight: 1.35,
 	strokeWidth: 2,
@@ -209,7 +208,7 @@ editor.setThemeDefinition('default', {
 You can also pass theme definitions as a prop on the [Tldraw](?) or [TldrawEditor](?) component. The prop is reactive: when it changes, the editor's themes update automatically.
 
 ```tsx
-const themeDefinitions: Record<string, TLThemeDefinition> = {
+const themeDefinitions: Record<string, TLTheme> = {
 	default: {
 		fontSize: 16,
 		lineHeight: 1.35,
@@ -239,9 +238,9 @@ declare module 'tldraw' {
 ```
 
 ```tsx
-import { DEFAULT_THEME, TLThemeDefinition } from 'tldraw'
+import { DEFAULT_THEME, TLTheme } from 'tldraw'
 
-const themeDefinitions: Record<string, TLThemeDefinition> = {
+const themeDefinitions: Record<string, TLTheme> = {
 	default: {
 		...DEFAULT_THEME,
 		colors: {
@@ -306,9 +305,9 @@ const CustomGeoShapeUtil = GeoShapeUtil.configure({
 Frame, note, and highlight shapes read their colors from the theme's color palette. To customize them, override the relevant color variants in your theme definition:
 
 ```typescript
-import { DEFAULT_THEME, TLThemeDefinition } from 'tldraw'
+import { DEFAULT_THEME, TLTheme } from 'tldraw'
 
-const myTheme: TLThemeDefinition = {
+const myTheme: TLTheme = {
 	...DEFAULT_THEME,
 	colors: {
 		light: {
