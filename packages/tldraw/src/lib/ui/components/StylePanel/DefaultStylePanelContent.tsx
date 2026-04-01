@@ -11,15 +11,15 @@ import {
 	DefaultTextAlignStyle,
 	DefaultVerticalAlignStyle,
 	GeoShapeGeoStyle,
-	LineShapeSplineStyle,
-	TLArrowShapeArrowheadStyle,
 	kickoutOccludedShapes,
+	LineShapeSplineStyle,
 	minBy,
+	TLArrowShapeArrowheadStyle,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
-import { STYLES } from '../../../styles'
+import { getColorStyleItems, STYLES } from '../../../styles'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -74,6 +74,8 @@ export function StylePanelSection({ children }: StylePanelSectionProps) {
 
 /** @public @react */
 export function StylePanelColorPicker() {
+	const editor = useEditor()
+	const theme = editor.getCurrentTheme()
 	const { styles } = useStylePanelContext()
 	const msg = useTranslation()
 	const color = styles.get(DefaultColorStyle)
@@ -84,7 +86,7 @@ export function StylePanelColorPicker() {
 			title={msg('style-panel.color')}
 			uiType="color"
 			style={DefaultColorStyle}
-			items={STYLES.color}
+			items={getColorStyleItems(theme)}
 			value={color}
 		/>
 	)
