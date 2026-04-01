@@ -31,89 +31,87 @@
 }
 
 .tla-theme__light {
-	--tla-color-sidebar: hsl(0, 0%, 99%);
-	--tla-color-tooltip: hsla(200, 14%, 4%, 1);
-	--tla-color-canvas: hsl(210, 20%, 98%);
-	--tla-color-panel: hsl(0, 0%, 100%);
-	--tla-color-text-1: hsl(204, 8%, 5%);
-	--tla-color-text-2: hsl(204, 2%, 20%);
-	--tla-color-text-3: hsl(204, 4%, 45%);
-	--tla-color-contrast: hsl(0, 0%, 100%);
-	--tla-color-low: hsl(204, 16%, 94%);
-	--tla-color-border: hsl(204, 16%, 85%);
-	--tla-color-hover-1: hsl(204, 16%, 4%, 3%);
-	--tla-color-hover-2: hsl(204, 16%, 4%, 4.5%);
-	--tla-color-hover-3: hsla(0, 0%, 100%, 32.5%);
-	--tla-color-overlay: hsla(240, 16%, 2%, 30%);
-	--tla-color-cta: hsl(214, 92%, 50%);
-	--tla-color-cta-hover: hsl(214, 92%, 53%);
-	--tla-color-inactive: hsl(204, 4%, 55%);
-	--tla-color-inactive-hover: hsl(204, 4%, 59%);
-	--tla-color-primary: hsl(214, 84%, 56%);
-	--tla-color-primary-hover: hsl(214, 84%, 58%);
-	--tla-color-secondary: hsl(0, 0%, 92%);
-	--tla-color-secondary-hover: hsl(0, 0%, 93.5%);
-	--tla-color-secondary-border: hsl(0, 0%, 80%);
-	--tla-color-accent-1: hsl(50, 91%, 70%);
-	--tla-color-accent-2: hsl(28, 88%, 57%);
-	--tla-color-accent-3: hsl(135, 59%, 49%);
-	--tla-color-warning: hsl(0, 88%, 57%);
-	--tla-color-drop-zone: hsl(204, 16%, 4%, 2.5%);
+	/* App chrome */
+	--tla-color-sidebar: #f7f7f2;
+	--tla-color-tooltip: #292929;
+	--tla-color-canvas: #f7f7f2;
+	--tla-color-panel: #ffffff;
+	--tla-color-text-1: #292929;
+	--tla-color-text-2: #4e4d4b;
+	--tla-color-text-3: #72726e;
+	--tla-color-contrast: #ffffff;
+	--tla-color-low: #eaebe5;
+	--tla-color-border: #e2e3dc;
+	--tla-color-hover-1: rgba(41, 41, 41, 0.03);
+	--tla-color-hover-2: rgba(41, 41, 41, 0.035);
+	--tla-color-hover-3: rgba(255, 255, 255, 0.325);
+	--tla-color-overlay: rgba(41, 41, 41, 0.3);
+	--tla-color-cta: #576f00;
+	--tla-color-cta-hover: #677b01;
+	--tla-color-inactive: #72726e;
+	--tla-color-inactive-hover: #818179;
+	--tla-color-primary: #576f00;
+	--tla-color-primary-hover: #677b01;
+	--tla-color-secondary: #eaebe5;
+	--tla-color-secondary-hover: #f2f2ec;
+	--tla-color-secondary-border: #e2e3dc;
+	--tla-color-accent-1: #e5eacd;
+	--tla-color-accent-2: #ed9212;
+	--tla-color-accent-3: #576f00;
+	--tla-color-warning: #e02518;
+	--tla-color-drop-zone: rgba(41, 41, 41, 0.025);
 	/* Shadows */
-	/* --tla-shadow-primary-highlight: inset 0px 4px 2px -4px hsl(214, 94%, 94%),
-		inset 4px 4px 4px -6px hsl(214, 94%, 100%); */
-	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
+	--tla-shadow-1: 0px 1px 2px rgba(41, 41, 41, 0.18), 0px 1px 3px rgba(41, 41, 41, 0.07);
 	--tla-shadow-2:
-		0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
-		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tla-color-contrast);
+		0px 0px 2px rgba(41, 41, 41, 0.12), 0px 2px 3px rgba(41, 41, 41, 0.18),
+		0px 2px 6px rgba(41, 41, 41, 0.08), inset 0px 0px 0px 1px var(--tla-color-contrast);
 	--tla-shadow-3:
-		0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
+		0px 1px 2px rgba(41, 41, 41, 0.2), 0px 2px 6px rgba(41, 41, 41, 0.1),
 		inset 0px 0px 0px 1px var(--tla-color-contrast);
 	--tla-shadow-4:
-		0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
-		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--tla-color-contrast);
+		0px 0px 3px rgba(41, 41, 41, 0.14), 0px 5px 4px rgba(41, 41, 41, 0.12),
+		0px 2px 16px rgba(41, 41, 41, 0.05), inset 0px 0px 0px 1px var(--tla-color-contrast);
 }
 
 .tla-theme__dark {
-	--tla-color-sidebar: hsl(0, 0%, 5%);
-	--tla-color-tooltip: hsla(0, 0%, 100%, 1);
-	--tla-color-canvas: hsl(240, 5%, 6.5%);
-	--tla-color-panel: hsl(240, 6%, 13%);
-	--tla-color-text-1: hsl(204, 8%, 98%);
-	--tla-color-text-2: hsl(204, 5%, 85%);
-	--tla-color-text-3: hsl(204, 4%, 75%);
-	--tla-color-contrast: hsl(0, 0%, 100%);
-	--tla-color-low: hsl(240, 4%, 11%);
-	--tla-color-border: hsl(240, 12%, 20%);
-	--tla-color-hover-1: hsl(240, 8%, 100%, 3%);
-	--tla-color-hover-2: hsl(240, 8%, 100%, 5%);
-	--tla-color-hover-3: hsl(204, 16%, 4%, 3%);
-	--tla-color-overlay: hsla(240, 0%, 0%, 81%);
-	--tla-color-cta: hsl(214, 100%, 50%);
-	--tla-color-cta-hover: hsl(214, 100%, 52%);
-	--tla-color-inactive: hsl(204, 4%, 45%);
-	--tla-color-inactive-hover: hsl(204, 4%, 49%);
-	--tla-color-primary: hsl(214, 84%, 46%);
-	--tla-color-primary-hover: hsl(214, 84%, 50%);
-	--tla-color-secondary: hsl(0, 0%, 20%);
-	--tla-color-secondary-hover: hsl(0, 0%, 22%);
-	--tla-color-secondary-border: hsl(0, 0%, 25%);
-	--tla-color-accent-1: hsl(50, 91%, 60%);
-	--tla-color-accent-2: hsl(28, 88%, 47%);
-	--tla-color-accent-3: hsl(135, 59%, 39%);
-	--tla-color-warning: hsl(0, 95%, 65%);
-	--tla-color-drop-zone: hsl(204, 16%, 4%, 2.5%);
+	/* App chrome */
+	--tla-color-sidebar: #292929;
+	--tla-color-tooltip: #fcfcf8;
+	--tla-color-canvas: #212121;
+	--tla-color-panel: #363635;
+	--tla-color-text-1: #fcfcf8;
+	--tla-color-text-2: #acada8;
+	--tla-color-text-3: #9e9e99;
+	--tla-color-contrast: #fcfcf8;
+	--tla-color-low: #292929;
+	--tla-color-border: #4e4d4b;
+	--tla-color-hover-1: rgba(252, 252, 248, 0.03);
+	--tla-color-hover-2: rgba(252, 252, 248, 0.05);
+	--tla-color-hover-3: rgba(41, 41, 41, 0.03);
+	--tla-color-overlay: rgba(14, 15, 12, 0.81);
+	--tla-color-cta: #677b01;
+	--tla-color-cta-hover: #788c15;
+	--tla-color-inactive: #9e9e99;
+	--tla-color-inactive-hover: #acada8;
+	--tla-color-primary: #788c15;
+	--tla-color-primary-hover: #b2c248;
+	--tla-color-secondary: #4e4d4b;
+	--tla-color-secondary-hover: #6a6c6a;
+	--tla-color-secondary-border: #6a6c6a;
+	--tla-color-accent-1: #434625;
+	--tla-color-accent-2: #ed9212;
+	--tla-color-accent-3: #788c15;
+	--tla-color-warning: #e02518;
+	--tla-color-drop-zone: rgba(252, 252, 248, 0.025);
 	/* Shadows */
-	/* --tla-shadow-primary-highlight: inset 0px 1px 1px -1px hsl(214, 94%, 72%),
-		inset 4px 4px 4px -6px hsl(214, 94%, 80%); */
 	--tla-shadow-1:
-		0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
+		0px 1px 2px rgba(14, 15, 12, 0.2), 0px 1px 3px rgba(14, 15, 12, 0.28),
 		inset 0px 0px 0px 1px var(--tla-color-panel);
 	--tla-shadow-2:
-		0px 1px 3px hsla(0, 44%, 27%, 0.666), 0px 2px 6px hsl(0, 0%, 0%, 33%),
+		0px 1px 3px rgba(14, 15, 12, 0.66), 0px 2px 6px rgba(14, 15, 12, 0.33),
 		inset 0px 0px 0px 1px var(--tla-color-panel);
 	--tla-shadow-3:
-		0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
+		0px 1px 3px rgba(14, 15, 12, 0.5), 0px 2px 12px rgba(14, 15, 12, 0.5),
 		inset 0px 0px 0px 1px var(--tla-color-panel);
 }
 
