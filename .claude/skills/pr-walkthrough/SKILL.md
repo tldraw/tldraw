@@ -56,7 +56,7 @@ Avoid redundancy, especially between intro and first content segment.
 
 ### Step 3: Generate audio and timestamps
 
-Generate all narration as a **single audio file**, then split it into per-segment clips. This produces consistent voice, volume, and pacing across the entire walkthrough.
+Generate per-segment audio clips with one TTS call per segment. This avoids chunking, alignment, and splitting entirely — each segment is short enough for a single reliable TTS call.
 
 Write a `narration.json` file, then run the `generate-audio.sh` CLI tool:
 
@@ -70,7 +70,7 @@ Write a `narration.json` file, then run the `generate-audio.sh` CLI tool:
 
 ```json
 {
-	"style": "Read the following walkthrough narration in a calm, steady, professional tone. Speak at a measured pace as if the author of a pull request were walking a colleague through the code changes. Between each numbered section, leave a brief pause — no more than one second of silence.",
+	"style": "Read the following walkthrough narration in a calm, steady, professional tone. Speak at a measured pace as if the author of a pull request were walking a colleague through the code changes.",
 	"voice": "Iapetus",
 	"slides": [
 		"This pull request adds group-aware binding resolution to the arrow tool...",
@@ -82,21 +82,20 @@ Write a `narration.json` file, then run the `generate-audio.sh` CLI tool:
 
 - **`style`** — Voice persona and pacing instructions. Keep it short and specific.
 - **`voice`** — Gemini voice name (default: `Iapetus`).
-- **`slides`** — Array of narration text, one entry per segment. The script adds `[1]`, `[2]` section markers automatically.
+- **`slides`** — Array of narration text, one entry per segment.
 
 #### How it works
 
-1. The script builds a single prompt: style preamble + numbered sections with all segment narrations.
-2. One API call to `gemini-2.5-pro-tts` generates the full narration as a single WAV. The 32k-token context window is plenty for 5-7 minutes.
-3. The WAV is uploaded to the Gemini Files API, then a `gemini-2.5-flash` call listens to the audio alongside the segment texts and returns the start timestamp (in seconds) of each segment. The script splits at those boundaries.
+1. For each segment, the script builds a prompt: style preamble + segment text.
+2. One API call to `gemini-2.5-pro-tts` per segment generates a WAV clip directly.
+3. Each clip is validated (duration sanity check vs word count) and retried automatically if the output is bad.
+4. Leading/trailing silence is trimmed from each clip.
 
 **Output:** Per-segment audio clips (`audio-00.wav`, ...) and a `durations.json` file mapping each audio filename to its duration in seconds.
 
 **Dependencies:** ffmpeg / ffprobe. No Python packages required beyond the standard library.
 
 **Do NOT use** `[pause long]` or `[pause medium]` markup tags in the narration text — the model may read them aloud literally.
-
-**TTS truncation:** If `generate-audio.sh` fails because the TTS output was truncated (zero-length clips at the end), **do not shorten the narration**. Instead, reduce `MAX_WORDS_PER_CHUNK` in the script (e.g., from 600 to 400) so the narration is split across more TTS API calls. The script already supports multi-chunk generation — it generates each chunk separately and concatenates the results. The fix is always to split into more chunks, never to cut content from the script.
 
 ### Step 4: Write the manifest
 

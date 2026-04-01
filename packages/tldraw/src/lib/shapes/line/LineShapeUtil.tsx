@@ -51,14 +51,14 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override migrations = lineShapeMigrations
 
 	override options: LineShapeOptions = {
-		getDisplayValues(_editor, shape, theme, colorMode): LineShapeUtilDisplayValues {
+		getDefaultDisplayValues(_editor, shape, theme, colorMode): LineShapeUtilDisplayValues {
 			const { color, size } = shape.props
 			return {
 				strokeColor: getColorValue(theme.colors[colorMode], color, 'solid'),
 				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
 			}
 		},
-		getDisplayValueOverrides(): Partial<LineShapeUtilDisplayValues> {
+		getCustomDisplayValues(): Partial<LineShapeUtilDisplayValues> {
 			return {}
 		},
 	}

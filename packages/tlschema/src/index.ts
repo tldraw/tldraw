@@ -291,7 +291,7 @@ export {
 export { EnumStyleProp, StyleProp, type StylePropValue } from './styles/StyleProp'
 export {
 	DefaultColorStyle,
-	registerColorsFromThemeDefinitions,
+	registerColorsFromThemes,
 	type TLDefaultColorStyle,
 } from './styles/TLColorStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
@@ -301,7 +301,7 @@ export {
 	DefaultFontFamilies,
 	DefaultFontStyle,
 	isFontEntry,
-	registerFontsFromThemeDefinitions,
+	registerFontsFromThemes,
 	type TLDefaultFontStyle,
 } from './styles/TLFontStyle'
 export {

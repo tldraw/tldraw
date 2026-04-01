@@ -66,10 +66,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override migrations = imageShapeMigrations
 
 	override options: ImageShapeOptions = {
-		getDisplayValues(): ImageShapeUtilDisplayValues {
+		getDefaultDisplayValues(): ImageShapeUtilDisplayValues {
 			return {}
 		},
-		getDisplayValueOverrides(): Partial<ImageShapeUtilDisplayValues> {
+		getCustomDisplayValues(): Partial<ImageShapeUtilDisplayValues> {
 			return {}
 		},
 	}

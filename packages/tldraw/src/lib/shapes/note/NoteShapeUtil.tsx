@@ -110,7 +110,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override options: NoteShapeOptions = {
 		resizeMode: 'none',
-		getDisplayValues(_editor, shape, theme, colorMode): NoteShapeUtilDisplayValues {
+		getDefaultDisplayValues(_editor, shape, theme, colorMode): NoteShapeUtilDisplayValues {
 			const { color, labelColor, font, size, align, verticalAlign } = shape.props
 			const colors = theme.colors[colorMode]
 			return {
@@ -134,7 +134,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				labelVerticalAlign: NOTE_SHAPE_VERTICAL_ALIGNS[verticalAlign],
 			}
 		},
-		getDisplayValueOverrides(): Partial<NoteShapeUtilDisplayValues> {
+		getCustomDisplayValues(): Partial<NoteShapeUtilDisplayValues> {
 			return {}
 		},
 	}

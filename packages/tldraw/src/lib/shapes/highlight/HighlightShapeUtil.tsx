@@ -59,7 +59,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	override options: HighlightShapeOptions = {
 		maxPointsPerShape: 600,
-		getDisplayValues(_editor, shape, theme, colorMode): HighlightShapeUtilDisplayValues {
+		getDefaultDisplayValues(_editor, shape, theme, colorMode): HighlightShapeUtilDisplayValues {
 			const { color, size } = shape.props
 			const colors = theme.colors[colorMode]
 			const useP3 = !debugFlags.forceSrgb.get() && tlenvReactive.get().supportsP3ColorSpace
@@ -73,7 +73,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 				overlayOpacity: 0.35,
 			}
 		},
-		getDisplayValueOverrides(): Partial<HighlightShapeUtilDisplayValues> {
+		getCustomDisplayValues(): Partial<HighlightShapeUtilDisplayValues> {
 			return {}
 		},
 	}

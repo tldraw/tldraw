@@ -102,7 +102,7 @@ export function isFontEntry(value: unknown): value is TLThemeFont {
  *
  * @public
  */
-export function registerFontsFromThemeDefinitions(
+export function registerFontsFromThemes(
 	definitions: Record<string, TLTheme> | undefined
 ): void {
 	if (!definitions) return

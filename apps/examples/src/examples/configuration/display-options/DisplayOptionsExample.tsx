@@ -3,7 +3,7 @@ import 'tldraw/tldraw.css'
 
 // [1]
 const CustomGeoShapeUtil = GeoShapeUtil.configure({
-	getDisplayValueOverrides(editor, shape): Partial<GeoShapeUtilDisplayValues> {
+	getCustomDisplayValues(editor, shape): Partial<GeoShapeUtilDisplayValues> {
 		const values: Partial<GeoShapeUtilDisplayValues> = {}
 
 		if (shape.isLocked) {

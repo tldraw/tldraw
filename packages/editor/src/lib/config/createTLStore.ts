@@ -8,15 +8,15 @@ import {
 	TLStore,
 	TLStoreProps,
 	TLStoreSnapshot,
-	TLTheme,
+	TLThemes,
 	TLUser,
 	TLUserStore,
 	UserRecordType,
 	createCachedUserResolve,
 	createTLSchema,
 	createUserId,
-	registerColorsFromThemeDefinitions,
-	registerFontsFromThemeDefinitions,
+	registerColorsFromThemes,
+	registerFontsFromThemes,
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
@@ -44,7 +44,7 @@ export interface TLStoreBaseOptions {
 	 * registered before the store is constructed so persisted data with those
 	 * colors passes validation on load.
 	 */
-	themeDefinitions?: Record<string, TLTheme>
+	themes?: Partial<TLThemes>
 
 	/** How should this store resolve users for attribution? */
 	users?: TLUserStore
@@ -144,11 +144,11 @@ export function createTLStore({
 	users = defaultUserStore,
 	onMount,
 	collaboration,
-	themeDefinitions,
+	themes,
 	...rest
 }: TLStoreOptions = {}): TLStore {
-	registerColorsFromThemeDefinitions(themeDefinitions)
-	registerFontsFromThemeDefinitions(themeDefinitions)
+	registerColorsFromThemes(themes)
+	registerFontsFromThemes(themes)
 	const schema = createTLSchemaFromUtils(rest)
 
 	const store = new Store({

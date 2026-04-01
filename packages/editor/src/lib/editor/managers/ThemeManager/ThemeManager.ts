@@ -1,4 +1,4 @@
-import { Atom, atom, computed, transact } from '@tldraw/state'
+import { Atom, atom, computed } from '@tldraw/state'
 import { TLTheme, TLThemeId } from '@tldraw/tlschema'
 import type { Editor } from '../../Editor'
 import { DEFAULT_THEME } from './defaultThemes'
@@ -23,8 +23,8 @@ export function mergeTheme(base: TLTheme, input: Partial<TLTheme>): TLTheme {
  * Manages the editor's color themes.
  *
  * Stores named theme definitions (each containing light and dark color palettes
- * alongside shared properties like font size). The active theme is resolved by
- * combining the active theme name with the user's color mode preference.
+ * alongside shared properties like font size). The current theme is resolved by
+ * combining the current theme name with the user's color mode preference.
  *
  * **Terminology:**
  * - **Theme** (`TLTheme`): A named set of colors and typographic values for both light and dark modes.
@@ -53,7 +53,7 @@ export class ThemeManager {
 			}
 		}
 		this._themes = atom('ThemeManager._definitions', resolved)
-		this._currentThemeId = atom('ThemeManager._activeThemeName', options?.initial ?? 'default')
+		this._currentThemeId = atom('ThemeManager._currentThemeName', options?.initial ?? 'default')
 	}
 
 	/** Get the current color mode based on the user's dark mode preference. */
@@ -71,7 +71,7 @@ export class ThemeManager {
 		return this._themes.get()[id]
 	}
 
-	/** Get the id of the active theme. */
+	/** Get the id of the current theme. */
 	getCurrentThemeId(): TLThemeId {
 		return this._currentThemeId.get()
 	}
@@ -80,7 +80,7 @@ export class ThemeManager {
 		return this._themes.get()[this.getCurrentThemeId()]!
 	}
 
-	/** Set the active theme by name. The theme must have been previously registered. */
+	/** Set the current theme by name. The theme must have been previously registered. */
 	setCurrentTheme(id: TLThemeId): void {
 		if (process.env.NODE_ENV !== 'production') {
 			if (!(id in this._themes.get())) {
@@ -98,12 +98,20 @@ export class ThemeManager {
 			| Record<TLThemeId, TLTheme>
 			| ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>)
 	): void {
-		if (typeof themes === 'function') {
-			this._themes.update((prev) => themes(prev))
-			return
-		}
-
-		this._themes.update((prev) => ({ ...prev, ...themes }))
+		this._themes.update((prev) => {
+			const next = typeof themes === 'function' ? themes(prev) : { ...prev, ...themes }
+			if (process.env.NODE_ENV !== 'production') {
+				if (!('default' in next)) {
+					console.warn("The 'default' theme cannot be removed.")
+					return prev
+				}
+			}
+			// If the current theme was removed, fall back to 'default'
+			if (!(this._currentThemeId.get() in next)) {
+				this._currentThemeId.set('default')
+			}
+			return next
+		})
 	}
 
 	/** Register or update a named theme definition. */
@@ -118,29 +126,6 @@ export class ThemeManager {
 					? definition(prev[id])
 					: mergeTheme(prev[id] ?? DEFAULT_THEME, definition),
 		}))
-	}
-
-	/** Remove a named theme definition. Cannot remove the 'default' theme. */
-	removeTheme(id: TLThemeId): void {
-		if (id === 'default') {
-			if (process.env.NODE_ENV !== 'production') {
-				console.warn("Cannot remove the 'default' theme. Try updating it instead.")
-			}
-			return
-		}
-
-		transact(() => {
-			this._themes.update((prev) => {
-				const next = { ...prev }
-				delete next[id]
-				return next
-			})
-
-			// If the removed theme was active, fall back to 'default'
-			if (this._currentThemeId.get() === id) {
-				this._currentThemeId.set('default')
-			}
-		})
 	}
 
 	/** Clean up any resources held by the manager. */

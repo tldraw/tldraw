@@ -123,7 +123,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	override options: GeoShapeOptions = {
 		showTextOutline: true,
-		getDisplayValues(_editor, shape, theme, colorMode): GeoShapeUtilDisplayValues {
+		getDefaultDisplayValues(_editor, shape, theme, colorMode): GeoShapeUtilDisplayValues {
 			const { color, size, labelColor, fill, align, verticalAlign, font } = shape.props
 			const colors = theme.colors[colorMode]
 
@@ -156,7 +156,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				minSizeWithLabel: (LABEL_PADDING + 1) * 3,
 			}
 		},
-		getDisplayValueOverrides(_editor, _shape): Partial<GeoShapeUtilDisplayValues> {
+		getCustomDisplayValues(_editor, _shape): Partial<GeoShapeUtilDisplayValues> {
 			return {}
 		},
 	}

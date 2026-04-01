@@ -5,8 +5,9 @@ import {
 	TLStoreSnapshot,
 	TLTheme,
 	TLThemeId,
-	registerColorsFromThemeDefinitions,
-	registerFontsFromThemeDefinitions,
+	TLThemes,
+	registerColorsFromThemes,
+	registerFontsFromThemes,
 } from '@tldraw/tlschema'
 import { annotateError, Required } from '@tldraw/utils'
 import classNames from 'classnames'
@@ -165,14 +166,23 @@ export interface TldrawEditorBaseProps {
 	user?: TLCurrentUser
 
 	/**
-	 * Named theme definitions for the editor.
+	 * The editor's color scheme. Defaults to `'light'`.
+	 *
+	 * - `'light'` - Always use light mode.
+	 * - `'dark'` - Always use dark mode.
+	 * - `'system'` - Follow the OS color scheme preference.
 	 */
-	themeDefinitions?: Partial<Record<TLThemeId, TLTheme>>
+	colorScheme?: 'light' | 'dark' | 'system'
+
+	/**
+	 * Named themes for the editor.
+	 */
+	themes?: Partial<TLThemes>
 
 	/**
 	 * The id of the initially active theme. Defaults to `'default'`.
 	 */
-	activeTheme?: TLThemeId
+	initialTheme?: TLThemeId
 
 	/**
 	 * Camera options for the editor.
@@ -273,10 +283,10 @@ export const TldrawEditor = memo(function TldrawEditor({
 	...rest
 }: TldrawEditorProps) {
 	// Register custom colors and fonts before effects run. For external stores,
-	// users should also pass themeDefinitions to createTLStore so they are
+	// users should also pass themes to createTLStore so they are
 	// registered before data is loaded into the store.
-	registerColorsFromThemeDefinitions(rest.themeDefinitions)
-	registerFontsFromThemeDefinitions(rest.themeDefinitions)
+	registerColorsFromThemes(rest.themes)
+	registerFontsFromThemes(rest.themes)
 
 	const [container, setContainer] = useState<HTMLElement | null>(null)
 	const user = useMemo(() => _user ?? createTLCurrentUser(), [_user])
@@ -444,9 +454,10 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	getShapeVisibility,
+	colorScheme,
 	assetUrls,
-	themeDefinitions,
-	activeTheme,
+	themes,
+	initialTheme,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -473,8 +484,8 @@ function TldrawEditorWithReadyStore({
 		// for these, it's because we keep them up to date in a separate effect:
 		cameraOptions,
 		deepLinks,
-		themeDefinitions,
-		activeTheme,
+		themes,
+		initialTheme,
 	})
 
 	useLayoutEffect(() => {
@@ -483,14 +494,14 @@ function TldrawEditorWithReadyStore({
 			initialState,
 			cameraOptions,
 			deepLinks,
-			themeDefinitions,
-			activeTheme,
+			themes,
+			initialTheme,
 		}
-	}, [autoFocus, initialState, cameraOptions, deepLinks, themeDefinitions, activeTheme])
+	}, [autoFocus, initialState, cameraOptions, deepLinks, themes, initialTheme])
 
 	useLayoutEffect(
 		() => {
-			const { autoFocus, initialState, cameraOptions, deepLinks, themeDefinitions, activeTheme } =
+			const { autoFocus, initialState, cameraOptions, deepLinks, themes, initialTheme } =
 				editorOptionsRef.current
 			const editor = new Editor({
 				store,
@@ -506,9 +517,10 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				getShapeVisibility,
+				colorScheme,
 				fontAssetUrls: assetUrls?.fonts,
-				themeDefinitions,
-				activeTheme,
+				themes: themes,
+				initialTheme: initialTheme,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -564,18 +576,18 @@ function TldrawEditorWithReadyStore({
 
 	// keep the editor up to date with the latest theme definitions
 	useLayoutEffect(() => {
-		if (editor && themeDefinitions) {
-			for (const [name, def] of Object.entries(themeDefinitions) as [TLThemeId, TLTheme][]) {
+		if (editor && themes) {
+			for (const [name, def] of Object.entries(themes) as [TLThemeId, TLTheme][]) {
 				editor.updateTheme(name, def)
 			}
 		}
-	}, [editor, themeDefinitions])
+	}, [editor, themes])
 
 	useLayoutEffect(() => {
-		if (editor && activeTheme) {
-			editor.setCurrentTheme(activeTheme)
+		if (editor && initialTheme) {
+			editor.setCurrentTheme(initialTheme)
 		}
-	}, [editor, activeTheme])
+	}, [editor, initialTheme])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(

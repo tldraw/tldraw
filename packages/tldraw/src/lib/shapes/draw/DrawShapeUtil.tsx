@@ -63,7 +63,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override options: DrawShapeOptions = {
 		maxPointsPerShape: 600,
-		getDisplayValues(_editor, shape, theme, colorMode): DrawShapeUtilDisplayValues {
+		getDefaultDisplayValues(_editor, shape, theme, colorMode): DrawShapeUtilDisplayValues {
 			const { color, fill, size } = shape.props
 			const colors = theme.colors[colorMode]
 			return {
@@ -78,7 +78,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
 			}
 		},
-		getDisplayValueOverrides(): Partial<DrawShapeUtilDisplayValues> {
+		getCustomDisplayValues(): Partial<DrawShapeUtilDisplayValues> {
 			return {}
 		},
 	}

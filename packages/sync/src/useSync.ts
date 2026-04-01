@@ -20,15 +20,15 @@ import {
 	TLStore,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
-	TLTheme,
+	TLThemes,
 	TLUser,
 	TLUserStore,
 	UserRecordType,
 	computed,
 	createCachedUserResolve,
 	createPresenceStateDerivation,
-	registerColorsFromThemeDefinitions,
-	registerFontsFromThemeDefinitions,
+	registerColorsFromThemes,
+	registerFontsFromThemes,
 	createTLStore,
 	createUserId,
 	defaultUserPreferences,
@@ -180,7 +180,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
-		themeDefinitions,
+		themes,
 		...schemaOpts
 	} = opts
 
@@ -189,8 +189,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	// is allowed to be unstable
 	const __never__: never = 0 as any as keyof Omit<typeof schemaOpts, keyof TLStoreSchemaOptions>
 
-	registerColorsFromThemeDefinitions(themeDefinitions)
-	registerFontsFromThemeDefinitions(themeDefinitions)
+	registerColorsFromThemes(themes)
+	registerFontsFromThemes(themes)
 	const schema = useTLSchemaFromUtils(schemaOpts)
 
 	const getUserPresence = useReactiveEvent(
@@ -442,7 +442,7 @@ export interface UseSyncOptionsBase {
 	 * registered before the store is constructed so persisted data with those
 	 * colors passes validation on load.
 	 */
-	themeDefinitions?: Record<string, TLTheme>
+	themes?: Partial<TLThemes>
 
 	/**
 	 * Asset store implementation for handling file uploads and storage.

@@ -65,6 +65,7 @@ export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export {
 	DEFAULT_EMBED_DEFINITIONS,
 	embedShapePermissionDefaults,
+	unknownEmbedShapePermissionOverrides,
 	type CustomEmbedDefinition,
 	type DefaultEmbedDefinitionType,
 	type EmbedDefinition,
