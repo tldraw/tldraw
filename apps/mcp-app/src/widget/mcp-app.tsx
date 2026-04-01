@@ -6,16 +6,17 @@ import {
 	type TLBindingCreate,
 	type TLComponents,
 	type TLShapeId,
+	type TLUiEventHandler,
 	DefaultToolbar,
 	DefaultToolbarContent,
 	Editor,
 	Tldraw,
 	TldrawUiIcon,
-	structuredClone,
 	useEditor,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import tldrawLogoUrl from '../../plugins/tldraw-mcp/assets/logo.svg'
 import {
 	MCP_SERVER_DESCRIPTION,
 	MCP_SERVER_NAME,
@@ -26,20 +27,22 @@ import {
 import type { MCP_APP_HOST_NAMES } from '../shared/types'
 import { isHostCodeEditor, resolveMcpAppHostNameFromClientInfo } from '../shared/utils'
 import { McpAppContext } from './app-context'
+import { DEV_LOG_PANEL_GAP, DEV_LOG_PANEL_HEIGHT, DevLogPanel, useDevLog } from './dev-log'
 import { executeCode } from './exec-helpers'
 import { exportTldr } from './export-tldr'
 import { ImageDropGuard, uiOverrides } from './image-guard'
 import {
 	type CanvasSnapshot,
-	getEditorBindings,
 	getEmbeddedBootstrap,
 	getLatestCheckpointSnapshot,
 	loadLocalSnapshot,
 	parseCheckpointFromToolResult,
+	clearCanvasContext,
 	pushCanvasContext,
 	saveCheckpointToServer,
 	saveLocalSnapshot,
 	setCurrentSessionId,
+	syncEditorState,
 } from './persistence'
 import { applySnapshot, zoomToFitRequestShapes } from './snapshot'
 
@@ -47,9 +50,6 @@ const LICENSE_KEY = import.meta.env.VITE_TLDRAW_LICENSE_KEY as string
 
 const EDITOR_HEIGHT = 600
 const SAVE_DEBOUNCE_MS = 500
-const MAX_DEV_LOG_ENTRIES = 200
-const DEV_LOG_PANEL_HEIGHT = 140
-const DEV_LOG_PANEL_GAP = 8
 
 function SharePanelContent() {
 	const editor = useEditor()
@@ -161,27 +161,40 @@ const tldrawComponents: TLComponents = {
 	Toolbar: DynamicToolbar,
 }
 
+const ERROR_BANNER_HEIGHT = 30
+
+function parseHostTheme(value: unknown): 'light' | 'dark' | null {
+	return value === 'dark' || value === 'light' ? value : null
+}
+
 function TldrawCanvas({ app }: { app: App }) {
 	const [displayMode, setDisplayMode] =
 		useState<Extract<McpUiDisplayMode, 'inline' | 'fullscreen'>>('inline')
 	const [containerHeight, setContainerHeight] = useState<number | null>(null)
 	const [lastEditor, setLastEditor] = useState<'user' | 'ai'>('ai')
-	const [isDev, setIsDev] = useState(false)
-	const [isDevLogVisible, setIsDevLogVisible] = useState(false)
-	const [devLogEntries, setDevLogEntries] = useState<string[]>([])
 	const [hostContext, setHostContext] = useState(() => app.getHostContext())
+	const [hostTheme, setHostTheme] = useState<'light' | 'dark'>(() => {
+		const initialTheme = parseHostTheme(
+			(app.getHostContext() as { theme?: string } | undefined)?.theme
+		)
+		return initialTheme ?? 'light'
+	})
+	const [canvasTheme, setCanvasTheme] = useState<'light' | 'dark'>(hostTheme)
+	const [execError, setExecError] = useState<string | null>(null)
 	const editorRef = useRef<Editor | null>(null)
 
 	const pendingSnapshotRef = useRef<CanvasSnapshot | null>(null)
 	const committedSnapshotRef = useRef<CanvasSnapshot>({ shapes: [], assets: [] })
 	const checkpointIdRef = useRef<string | null>(null)
 	const removeStoreListenerRef = useRef<(() => void) | null>(null)
-	const isDevRef = useRef(false)
 	const editorReadyResolveRef = useRef<((editor: Editor) => void) | null>(null)
 	const editorReadyPromiseRef = useRef<Promise<Editor> | null>(null)
 	const saveTimerRef = useRef<number | null>(null)
 	const hasUserEditedSinceAiRef = useRef(false)
 	const lastEditorRef = useRef<'user' | 'ai'>('ai')
+
+	const { isDev, isDevLogVisible, devLogEntries, logIfDevMode, toggleDevLog, enableDevMode } =
+		useDevLog()
 
 	const hostCapabilities = useMemo(() => {
 		return app.getHostCapabilities()
@@ -192,6 +205,32 @@ function TldrawCanvas({ app }: { app: App }) {
 	}, [app])
 
 	const isMobilePlatform = hostContext?.platform === 'mobile'
+	const isDarkTheme = canvasTheme === 'dark'
+
+	const syncThemeFromEditor = useCallback(() => {
+		const editor = editorRef.current
+		if (!editor) return
+		setCanvasTheme(editor.user.getIsDarkMode() ? 'dark' : 'light')
+	}, [])
+
+	const applyHostThemeToEditor = useCallback((theme: 'light' | 'dark') => {
+		setHostTheme(theme)
+		setCanvasTheme(theme)
+		const editor = editorRef.current
+		if (!editor) return
+		editor.user.updateUserPreferences({ colorScheme: theme })
+	}, [])
+
+	const handleUiEvent = useCallback<TLUiEventHandler>(
+		(name) => {
+			const eventName = name as string
+			if (eventName !== 'toggle-dark-mode' && eventName !== 'color-scheme') return
+			queueMicrotask(() => {
+				syncThemeFromEditor()
+			})
+		},
+		[syncThemeFromEditor]
+	)
 
 	const canFullscreen = useMemo(() => {
 		if (isMobilePlatform) return false
@@ -218,6 +257,17 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 	}, [hostInfo])
 
+	const teardownEditor = useCallback(() => {
+		removeStoreListenerRef.current?.()
+		removeStoreListenerRef.current = null
+		if (saveTimerRef.current !== null) {
+			window.clearTimeout(saveTimerRef.current)
+			saveTimerRef.current = null
+		}
+		editorRef.current?.dispose()
+		editorRef.current = null
+	}, [])
+
 	const markAiActivity = useCallback(() => {
 		hasUserEditedSinceAiRef.current = false
 		if (lastEditorRef.current !== 'ai') {
@@ -234,39 +284,16 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 	}, [])
 
-	const logIfDevMode = useCallback((message: string) => {
-		if (!isDevRef.current) return
-		setDevLogEntries((entries) => {
-			const timestamp = new Date().toLocaleTimeString()
-			const nextEntries = [...entries, `[${timestamp}] ${message}`]
-			return nextEntries.slice(-MAX_DEV_LOG_ENTRIES)
-		})
-	}, [])
-
-	const toggleDevLog = useCallback(() => {
-		setIsDevLogVisible((visible) => !visible)
-	}, [])
-
 	const toggleFullscreen = useCallback(async () => {
 		const newMode = displayMode === 'fullscreen' ? 'inline' : 'fullscreen'
 		if (newMode === 'fullscreen' && (isMobilePlatform || !canFullscreen)) {
 			return
 		}
 
-		// Sync current editor state before leaving fullscreen
 		if (newMode === 'inline') {
 			const editor = editorRef.current
 			if (editor) {
-				const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
-				const assets = [...editor.getAssets()].map((a) => structuredClone(a))
-				const bindings = getEditorBindings(editor)
-				committedSnapshotRef.current = { shapes, assets, bindings }
-				pushCanvasContext(app, editor)
-				const cpId = checkpointIdRef.current
-				if (cpId) {
-					saveLocalSnapshot(cpId, shapes, assets, bindings)
-					void saveCheckpointToServer(app, cpId, editor)
-				}
+				committedSnapshotRef.current = syncEditorState(app, editor, checkpointIdRef.current)
 			}
 		}
 
@@ -313,7 +340,6 @@ function TldrawCanvas({ app }: { app: App }) {
 		const editor = editorRef.current
 		if (editor) return Promise.resolve(editor)
 
-		// Reuse existing promise if already waiting
 		if (editorReadyPromiseRef.current) return editorReadyPromiseRef.current
 
 		editorReadyPromiseRef.current = new Promise<Editor>((resolve) => {
@@ -329,43 +355,31 @@ function TldrawCanvas({ app }: { app: App }) {
 		saveTimerRef.current = window.setTimeout(() => {
 			saveTimerRef.current = null
 			const editor = editorRef.current
-			const cpId = checkpointIdRef.current
 			if (!editor) return
-
-			// Push model context
-			pushCanvasContext(app, editor)
-
-			// Persist to localStorage + server
-			if (cpId) {
-				const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
-				const assets = [...editor.getAssets()].map((a) => structuredClone(a))
-				const bindings = getEditorBindings(editor)
-				saveLocalSnapshot(cpId, shapes, assets, bindings)
-				void saveCheckpointToServer(app, cpId, editor)
-			}
+			syncEditorState(app, editor, checkpointIdRef.current)
 		}, SAVE_DEBOUNCE_MS)
 	}, [app])
 
 	useEffect(() => {
 		setHostContext(app.getHostContext())
+		const initialTheme = parseHostTheme(
+			(app.getHostContext() as { theme?: string } | undefined)?.theme
+		)
+		if (initialTheme) {
+			applyHostThemeToEditor(initialTheme)
+		}
 
-		// Sync bootstrap: read session ID + checkpoint data embedded in the HTML
-		// by the resource handler. This avoids async callServerTool on mount which
-		// caused issues on ChatGPT and was too slow for streaming preview.
 		const bootstrap = getEmbeddedBootstrap()
 		if (bootstrap) {
 			setCurrentSessionId(bootstrap.sessionId)
-			isDevRef.current = bootstrap.isDev
-			setIsDev(bootstrap.isDev)
 			if (bootstrap.isDev) {
-				setIsDevLogVisible(true)
+				enableDevMode()
 			}
 			logIfDevMode(
 				`Bootstrap loaded for session ${bootstrap.sessionId}${bootstrap.isDev ? ' (dev mode)' : ''}`
 			)
 
 			if (bootstrap.snapshot && bootstrap.snapshot.shapes.length > 0) {
-				// Don't overwrite if a tool result already committed shapes
 				if (committedSnapshotRef.current.shapes.length === 0) {
 					const snapshot: CanvasSnapshot = {
 						shapes: bootstrap.snapshot.shapes,
@@ -387,7 +401,6 @@ function TldrawCanvas({ app }: { app: App }) {
 					}
 				}
 			} else {
-				// No embedded snapshot — try session-scoped localStorage
 				const latestSnapshot = getLatestCheckpointSnapshot()
 				if (
 					latestSnapshot &&
@@ -409,31 +422,29 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		app.onhostcontextchanged = (ctx) => {
-			setHostContext(app.getHostContext() ?? ctx)
+			const nextContext = app.getHostContext() ?? ctx
+			setHostContext(nextContext)
+			const nextTheme = parseHostTheme(
+				(ctx as { theme?: string } | undefined)?.theme ??
+					(nextContext as { theme?: string } | undefined)?.theme
+			)
+			if (nextTheme) {
+				// Host theme changes take precedence over local preference changes.
+				applyHostThemeToEditor(nextTheme)
+			}
 
 			const dims = ctx.containerDimensions
 			if (dims && 'height' in dims) {
 				setContainerHeight(dims.height)
 			}
 
-			// Only update display mode if the host explicitly provides it
 			if (ctx.displayMode !== undefined) {
 				const newMode = ctx.displayMode === 'fullscreen' ? 'fullscreen' : 'inline'
 
-				// Sync editor state before host exits fullscreen
 				if (newMode !== 'fullscreen') {
 					const editor = editorRef.current
 					if (editor) {
-						const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
-						const assets = [...editor.getAssets()].map((a) => structuredClone(a))
-						const bindings = getEditorBindings(editor)
-						committedSnapshotRef.current = { shapes, assets, bindings }
-						pushCanvasContext(app, editor)
-						const cpId = checkpointIdRef.current
-						if (cpId) {
-							saveLocalSnapshot(cpId, shapes, assets, bindings)
-							void saveCheckpointToServer(app, cpId, editor)
-						}
+						committedSnapshotRef.current = syncEditorState(app, editor, checkpointIdRef.current)
 					}
 				}
 
@@ -448,7 +459,6 @@ function TldrawCanvas({ app }: { app: App }) {
 			logIfDevMode(`Exec called via ontoolinput`)
 			markAiActivity()
 
-			// Fire-and-forget: execute code and resolve via callServerTool
 			void (async () => {
 				const editor = await waitForEditor()
 				logIfDevMode('Exec: editor ready, executing code')
@@ -459,30 +469,30 @@ function TldrawCanvas({ app }: { app: App }) {
 				)
 
 				if (execResult.success) {
-					const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
-					const assets = [...editor.getAssets()].map((a) => structuredClone(a))
-					const bindings = getEditorBindings(editor)
-
-					committedSnapshotRef.current = { shapes, assets, bindings }
-
 					const cpId = checkpointIdRef.current ?? crypto.randomUUID()
 					checkpointIdRef.current = cpId
-					saveLocalSnapshot(cpId, shapes, assets, bindings)
-					void saveCheckpointToServer(app, cpId, editor)
 
 					const resultStr =
 						execResult.result !== undefined ? JSON.stringify(execResult.result, null, 2) : undefined
-					pushCanvasContext(app, editor, {
+					committedSnapshotRef.current = syncEditorState(app, editor, cpId, {
 						message: resultStr
 							? `Code executed successfully on canvas. Return value:\n${resultStr}`
 							: 'Code executed successfully on canvas.',
 					})
 
-					const allShapeIds = new Set(shapes.map((s) => s.id))
+					const snapshot = committedSnapshotRef.current
+					const allShapeIds = new Set(snapshot.shapes.map((s) => s.id))
 					zoomToFitRequestShapes(editor, allShapeIds)
+				} else {
+					clearCanvasContext(app, {
+						message:
+							'Canvas context was cleared because code execution failed. Fix the error before using the canvas context again.',
+					})
+					teardownEditor()
+					setExecError(execResult.error ?? 'Unknown error')
+					void app.sendSizeChanged({ width: 400, height: ERROR_BANNER_HEIGHT })
 				}
 
-				// Resolve the pending exec via callServerTool
 				const callbackArgs = execResult.success
 					? { channel: 'exec', result: { success: true, result: execResult.result } }
 					: { channel: 'exec', result: { success: false, error: execResult.error } }
@@ -563,14 +573,17 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		return () => {
-			if (saveTimerRef.current !== null) {
-				window.clearTimeout(saveTimerRef.current)
-				saveTimerRef.current = null
-			}
-			removeStoreListenerRef.current?.()
-			removeStoreListenerRef.current = null
+			teardownEditor()
 		}
-	}, [app, logIfDevMode, markAiActivity, waitForEditor])
+	}, [
+		app,
+		applyHostThemeToEditor,
+		enableDevMode,
+		logIfDevMode,
+		markAiActivity,
+		teardownEditor,
+		waitForEditor,
+	])
 
 	useEffect(() => {
 		if (!isMobilePlatform || displayMode !== 'fullscreen') return
@@ -584,7 +597,6 @@ function TldrawCanvas({ app }: { app: App }) {
 			.catch(() => {})
 	}, [app, displayMode, isMobilePlatform])
 
-	// Set explicit height on html/body in fullscreen
 	useEffect(() => {
 		if (displayMode === 'fullscreen' && containerHeight) {
 			const h = `${containerHeight}px`
@@ -599,8 +611,8 @@ function TldrawCanvas({ app }: { app: App }) {
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			editorRef.current = editor
+			editor.user.updateUserPreferences({ colorScheme: canvasTheme })
 
-			// Resolve any pending waitForEditor() calls
 			if (editorReadyResolveRef.current) {
 				editorReadyResolveRef.current(editor)
 				editorReadyResolveRef.current = null
@@ -616,7 +628,6 @@ function TldrawCanvas({ app }: { app: App }) {
 				{ source: 'user', scope: 'document' }
 			)
 
-			// Keep viewport center stable when the container resizes (fullscreen toggle).
 			editor.sideEffects.registerAfterChangeHandler('instance', (prev, next) => {
 				const pb = prev.screenBounds
 				const nb = next.screenBounds
@@ -637,7 +648,6 @@ function TldrawCanvas({ app }: { app: App }) {
 				})
 			})
 
-			// Apply any snapshot that arrived before the editor was ready
 			const pendingSnapshot = pendingSnapshotRef.current
 			if (pendingSnapshot) {
 				pendingSnapshotRef.current = null
@@ -646,8 +656,51 @@ function TldrawCanvas({ app }: { app: App }) {
 
 			pushCanvasContext(app, editor)
 		},
-		[app, markUserEdit, scheduleSave]
+		[app, canvasTheme, markUserEdit, scheduleSave]
 	)
+
+	if (execError) {
+		return (
+			<div
+				style={{
+					width: '100%',
+					height: ERROR_BANNER_HEIGHT,
+					display: 'flex',
+					alignItems: 'center',
+					color: isDarkTheme ? '#f0f0f0' : '#2e2e2e',
+					fontSize: 12,
+					lineHeight: 1.4,
+					marginLeft: -12,
+					marginTop: -1,
+					gap: 10,
+				}}
+			>
+				<img
+					src={tldrawLogoUrl}
+					alt="tldraw logo"
+					style={{
+						width: 16,
+						height: 16,
+						filter: isDarkTheme ? 'none' : 'brightness(0) saturate(100%)',
+					}}
+				/>
+				<span style={{ fontWeight: 500 }}>Error editing canvas:</span>
+				<span
+					title={execError}
+					style={{
+						flex: 1,
+						overflow: 'hidden',
+						textOverflow: 'ellipsis',
+						whiteSpace: 'nowrap',
+						color: isDarkTheme ? '#bdbdbd' : '#5f5f5f',
+						fontWeight: 400,
+					}}
+				>
+					{execError}
+				</span>
+			</div>
+		)
+	}
 
 	const isFullscreen = displayMode === 'fullscreen'
 
@@ -694,6 +747,7 @@ function TldrawCanvas({ app }: { app: App }) {
 					<Tldraw
 						licenseKey={LICENSE_KEY}
 						onMount={handleMount}
+						onUiEvent={handleUiEvent}
 						components={tldrawComponents}
 						overrides={uiOverrides}
 					>
@@ -701,24 +755,7 @@ function TldrawCanvas({ app }: { app: App }) {
 					</Tldraw>
 				</div>
 				{isDev && isDevLogVisible && (
-					<div
-						style={{
-							flex: isFullscreen ? '0 0 160px' : undefined,
-							minHeight: 80,
-							maxHeight: isFullscreen ? 200 : DEV_LOG_PANEL_HEIGHT,
-							overflow: 'auto',
-							padding: 12,
-							border: '1px solid var(--tl-color-muted-2)',
-							borderRadius: 8,
-							background: 'var(--tl-color-panel)',
-							fontFamily: 'monospace',
-							fontSize: 12,
-							lineHeight: 1.5,
-							whiteSpace: 'pre-wrap',
-						}}
-					>
-						{devLogEntries.length > 0 ? devLogEntries.join('\n') : 'Dev log ready.'}
-					</div>
+					<DevLogPanel entries={devLogEntries} isFullscreen={isFullscreen} />
 				)}
 			</div>
 		</McpAppContext.Provider>

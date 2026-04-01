@@ -459,6 +459,27 @@ function main() {
 		helpers: helpers.helpers,
 	}
 
+	if (fs.existsSync(outPath)) {
+		try {
+			const existingRaw = fs.readFileSync(outPath, 'utf8')
+			const existing = JSON.parse(existingRaw) as Record<string, unknown>
+			const hasChanges =
+				existing.memberCount !== output.memberCount ||
+				JSON.stringify(existing.categories) !== JSON.stringify(output.categories) ||
+				JSON.stringify(existing.members) !== JSON.stringify(output.members) ||
+				JSON.stringify(existing.types) !== JSON.stringify(output.types) ||
+				existing.helperCount !== output.helperCount ||
+				JSON.stringify(existing.helpers) !== JSON.stringify(output.helpers)
+
+			if (!hasChanges) {
+				console.error('No editor API changes detected; using cached src/editor-api.json')
+				return
+			}
+		} catch {
+			// If the existing file cannot be parsed, regenerate it.
+		}
+	}
+
 	fs.writeFileSync(outPath, JSON.stringify(output, null, 2))
 	console.error(
 		`Wrote ${members.length} members (${categories.length} categories), ${types.shapeCount} shape types, and ${helpers.helperCount} exec helpers to src/editor-api.json`

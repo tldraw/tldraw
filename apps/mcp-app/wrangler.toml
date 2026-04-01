@@ -1,5 +1,6 @@
 name = "tldraw-mcp-app"
 main = "src/worker.ts"
+# Keep in sync with WORKER_COMPATIBILITY_DATE in src/shared/types.ts
 compatibility_date = "2025-03-10"
 compatibility_flags = ["nodejs_compat"]
 preview_urls = true

@@ -199,6 +199,38 @@ export function parseCheckpointFromToolResult(result: unknown): CheckpointResult
 	}
 }
 
+// --- Snapshot capture + sync ---
+
+/**
+ * Capture the current editor state as a cloned snapshot.
+ */
+export function captureEditorSnapshot(editor: Editor): CanvasSnapshot {
+	return {
+		shapes: [...editor.getCurrentPageShapes()].map((s) => structuredClone(s)),
+		assets: [...editor.getAssets()].map((a) => structuredClone(a)),
+		bindings: getEditorBindings(editor),
+	}
+}
+
+/**
+ * Push model context and persist the editor state to localStorage + server.
+ * Returns the captured snapshot so the caller can store it.
+ */
+export function syncEditorState(
+	app: App,
+	editor: Editor,
+	checkpointId: string | null,
+	opts?: { message?: string }
+): CanvasSnapshot {
+	const snapshot = captureEditorSnapshot(editor)
+	pushCanvasContext(app, editor, opts)
+	if (checkpointId) {
+		saveLocalSnapshot(checkpointId, snapshot.shapes, snapshot.assets, snapshot.bindings ?? [])
+		void saveCheckpointToServer(app, checkpointId, editor)
+	}
+	return snapshot
+}
+
 // --- Canvas context push ---
 
 export function pushCanvasContext(app: App, editor: Editor, opts?: { message?: string }) {
@@ -212,6 +244,16 @@ export function pushCanvasContext(app: App, editor: Editor, opts?: { message?: s
 		content: [{ type: 'text', text }],
 		structuredContent: {
 			shapes,
+		},
+	})
+}
+
+export function clearCanvasContext(app: App, opts?: { message?: string }) {
+	const text = opts?.message ?? 'Canvas context was cleared.'
+	void app.updateModelContext({
+		content: [{ type: 'text', text }],
+		structuredContent: {
+			shapes: [],
 		},
 	})
 }

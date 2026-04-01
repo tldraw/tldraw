@@ -1,5 +1,5 @@
-import { DEFAULT_SUPPORTED_IMAGE_TYPES } from '@tldraw/utils'
 import type { TLShape } from 'tldraw'
+import packageJson from '../../package.json'
 import type { PendingRequests } from './pending-requests'
 
 export interface ServerDeps {
@@ -46,7 +46,7 @@ export interface DynamicWorkerLoader {
 }
 
 export const MCP_SERVER_NAME = 'tldraw'
-export const MCP_SERVER_VERSION = '0.1.0'
+export const MCP_SERVER_VERSION = packageJson.version
 export const MCP_SERVER_TITLE = 'tldraw Canvas'
 export const MCP_SERVER_DESCRIPTION =
 	'An interactive tldraw canvas with tools for diagramming, drawing, and more.'
@@ -56,22 +56,8 @@ export const MCP_SERVER_INSTRUCTIONS =
 
 export const CANVAS_RESOURCE_URI = 'ui://show-canvas/mcp-app.html'
 
-const MIME_TO_EXT: Record<string, string> = {
-	'image/jpeg': 'jpg',
-	'image/png': 'png',
-	'image/webp': 'webp',
-	'image/gif': 'gif',
-	'image/apng': 'apng',
-	'image/avif': 'avif',
-	'image/svg+xml': 'svg',
-}
-
-export const ALLOWED_IMAGE_TYPES: Record<string, string> = Object.fromEntries(
-	DEFAULT_SUPPORTED_IMAGE_TYPES.filter((mime) => mime in MIME_TO_EXT).map((mime) => [
-		mime,
-		MIME_TO_EXT[mime],
-	])
-)
+/** Must match `compatibility_date` in wrangler.toml. */
+export const WORKER_COMPATIBILITY_DATE = '2025-03-10'
 
 export const MAX_CHECKPOINTS = 200
 

@@ -2,7 +2,6 @@ import { registerAppResource, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/e
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
-import { parseJsonArray } from './parse-json'
 import { CANVAS_RESOURCE_URI } from './shared/types'
 import type { RegisterToolsOptions, ServerDeps } from './shared/types'
 import { errorResponse, parseTlShapes } from './shared/utils'
@@ -30,6 +29,16 @@ function injectBootstrapData(html: string, bootstrap: Record<string, unknown>): 
 	const lastIdx = html.lastIndexOf('</head>')
 	if (lastIdx === -1) return html
 	return html.slice(0, lastIdx) + bootstrapScript + html.slice(lastIdx)
+}
+
+function parseArrayJson(json: string, fieldName: string): unknown[] {
+	const parsed = JSON.parse(json)
+	if (!Array.isArray(parsed)) {
+		throw new Error(
+			`${fieldName} must be a JSON array string. Build an array first, then pass JSON.stringify(array).`
+		)
+	}
+	return parsed
 }
 
 async function getWidgetDomain(
@@ -70,22 +79,24 @@ export function registerTools(
 
 	// --- _exec_callback (app-only: widget resolves pending exec via callServerTool) ---
 
+	const execCallbackSchema = z.object({
+		channel: z.string(),
+		result: z
+			.object({
+				success: z.boolean(),
+				result: z.unknown().optional(),
+				error: z.string().optional(),
+			})
+			.optional(),
+		error: z.string().optional(),
+	})
+
 	server.registerTool(
 		'_exec_callback',
 		{
 			title: 'Exec Callback',
 			description: 'App-only: widget calls this to resolve a pending exec request.',
-			inputSchema: z.object({
-				channel: z.string(),
-				result: z
-					.object({
-						success: z.boolean(),
-						result: z.unknown().optional(),
-						error: z.string().optional(),
-					})
-					.optional(),
-				error: z.string().optional(),
-			}),
+			inputSchema: execCallbackSchema,
 			annotations: {
 				readOnlyHint: false,
 				destructiveHint: false,
@@ -98,11 +109,7 @@ export function registerTools(
 			channel,
 			result,
 			error,
-		}: {
-			channel: string
-			result?: { success: boolean; result?: unknown; error?: string }
-			error?: string
-		}): Promise<CallToolResult> => {
+		}: z.infer<typeof execCallbackSchema>): Promise<CallToolResult> => {
 			if (error) {
 				opts.pendingRequests.reject(channel, error)
 			} else {
@@ -195,10 +202,10 @@ export function registerTools(
 				log(
 					`[tldraw-mcp] save_checkpoint called: checkpointId=${checkpointId}, prev activeCheckpointId=${deps.getActiveCheckpointId()}`
 				)
-				const raw = parseJsonArray(shapesJson, 'shapesJson')
+				const raw = parseArrayJson(shapesJson, 'shapesJson')
 				const shapes = parseTlShapes(raw)
-				const assets = assetsJson ? parseJsonArray(assetsJson, 'assetsJson') : []
-				const bindings = bindingsJson ? parseJsonArray(bindingsJson, 'bindingsJson') : []
+				const assets = assetsJson ? parseArrayJson(assetsJson, 'assetsJson') : []
+				const bindings = bindingsJson ? parseArrayJson(bindingsJson, 'bindingsJson') : []
 				deps.saveCheckpoint(checkpointId, shapes, assets, bindings)
 				deps.setActiveCheckpointId(checkpointId)
 				log(

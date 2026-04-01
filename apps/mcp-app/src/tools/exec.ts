@@ -37,7 +37,7 @@ export function registerExecTool(
 			},
 			_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
 		},
-		async ({ code }: { code: string }): Promise<CallToolResult> => {
+		async ({ code: _code }: { code: string }): Promise<CallToolResult> => {
 			opts.analytics?.writeDataPoint({
 				blobs: ['tool_called', 'exec'],
 			})

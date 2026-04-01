@@ -2,7 +2,7 @@
  * Generic pending-request store for bridging async server↔widget communication.
  *
  * One pending request per named channel. The server creates a pending request
- * and awaits it; the widget resolves or rejects it via an HTTP callback.
+ * and awaits it; the widget resolves or rejects it via `callServerTool('_exec_callback')`.
  *
  * Handles the race condition where the callback arrives before the pending
  * request is created: early results are buffered and returned immediately

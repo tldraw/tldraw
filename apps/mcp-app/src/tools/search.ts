@@ -2,6 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
 import editorApi from '../editor-api.json'
+import { WORKER_COMPATIBILITY_DATE } from '../shared/types'
 import type { DynamicWorkerLoader } from '../shared/types'
 
 const spec = {
@@ -12,11 +13,9 @@ const spec = {
 	helpers: editorApi.helpers,
 }
 
-const SEARCH_TIMEOUT_MS = 5000
+const SEARCH_TIMEOUT_MS = 5_000
 const SEARCH_RUNNER_MODULE = 'search-runner.js'
 const SEARCH_RUNNER_ENTRYPOINT = 'SearchRunner'
-// Keep this in sync with `wrangler.toml`.
-const SEARCH_WORKER_COMPATIBILITY_DATE = '2025-03-10'
 
 type SearchWorkerResult = { success: true; value: unknown } | { success: false; error: string }
 
@@ -52,7 +51,7 @@ ${code}
 
 async function runSearchInDynamicWorker(loader: DynamicWorkerLoader, code: string) {
 	const worker = loader.load({
-		compatibilityDate: SEARCH_WORKER_COMPATIBILITY_DATE,
+		compatibilityDate: WORKER_COMPATIBILITY_DATE,
 		mainModule: SEARCH_RUNNER_MODULE,
 		modules: {
 			[SEARCH_RUNNER_MODULE]: {
