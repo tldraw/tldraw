@@ -240,6 +240,7 @@ export {
 	type VideoShapeOptions,
 	type VideoShapeUtilDisplayValues,
 } from './lib/shapes/video/VideoShapeUtil'
+export { getFontFamily } from './lib/shapes/shared/default-shape-constants'
 export { getColorStyleItems, getFontStyleItems, type StyleValuesForUi } from './lib/styles'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'

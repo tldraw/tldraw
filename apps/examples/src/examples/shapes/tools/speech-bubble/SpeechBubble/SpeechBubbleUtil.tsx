@@ -18,6 +18,7 @@ import {
 	Vec,
 	ZERO_INDEX_KEY,
 	getColorValue,
+	getFontFamily,
 	resizeBox,
 	structuredClone,
 	useEditor,
@@ -37,13 +38,6 @@ const TEXT_PROPS = {
 	fontVariant: 'normal',
 	fontStyle: 'normal',
 	padding: '0px',
-}
-
-const FONT_FAMILIES: Record<string, string> = {
-	draw: 'var(--tl-font-draw)',
-	sans: 'var(--tl-font-sans)',
-	serif: 'var(--tl-font-serif)',
-	mono: 'var(--tl-font-mono)',
 }
 
 const SPEECH_BUBBLE_TYPE = 'speech-bubble'
@@ -226,7 +220,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 				<PlainTextLabel
 					shapeId={id}
 					type={type}
-					fontFamily={FONT_FAMILIES[font]}
+					fontFamily={getFontFamily(theme, font)}
 					textWidth={shape.props.w}
 					fontSize={theme.fontSize * LABEL_FONT_SIZES[size]}
 					lineHeight={theme.lineHeight}
@@ -264,7 +258,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const nextTextSize = this.editor.textMeasure.measureText(shape.props.text, {
 			...TEXT_PROPS,
 			lineHeight: theme.lineHeight,
-			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontFamily: getFontFamily(theme, shape.props.font),
 			fontSize: theme.fontSize * LABEL_FONT_SIZES[shape.props.size],
 			maxWidth: shape.props.w - PADDING * 2,
 		})

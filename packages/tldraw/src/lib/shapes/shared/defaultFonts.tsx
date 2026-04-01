@@ -158,5 +158,12 @@ export function getThemeFontFaces(theme: TLTheme, font: string): TLFontFace[] | 
 	if (builtinFamily in DefaultFontFaces) return undefined
 
 	const themeFont = theme.fonts?.[font as keyof typeof theme.fonts]
+	if (process.env.NODE_ENV !== 'production') {
+		if (!themeFont) {
+			console.warn(
+				`Font '${font}' is not defined in the current theme. Shapes using this font may not render correctly.`
+			)
+		}
+	}
 	return themeFont?.faces ?? EMPTY_ARRAY
 }

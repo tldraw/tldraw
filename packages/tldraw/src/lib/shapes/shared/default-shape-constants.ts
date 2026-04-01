@@ -48,7 +48,7 @@ export const FONT_FAMILIES: Record<string, string> = {
 	mono: 'var(--tl-font-mono)',
 }
 
-/** @internal */
+/** @public */
 export function getFontFamily(theme: TLTheme, font: string): string {
 	const themeFont = theme.fonts?.[font as keyof typeof theme.fonts]
 	if (themeFont) return themeFont.fontFamily

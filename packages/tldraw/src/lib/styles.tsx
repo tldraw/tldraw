@@ -1,6 +1,7 @@
 import {
 	DefaultColorStyle,
 	DefaultFontStyle,
+	isFontEntry,
 	type TLTheme,
 	type TLThemeColorPalette,
 	type TLThemeFont,
@@ -56,10 +57,6 @@ const defaultFontIcons: Record<string, string> = {
 	sans: 'font-sans',
 	serif: 'font-serif',
 	mono: 'font-mono',
-}
-
-function isFontEntry(value: unknown): value is TLThemeFont {
-	return typeof value === 'object' && value !== null && 'fontFamily' in value
 }
 
 /**

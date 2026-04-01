@@ -87,7 +87,8 @@ export const DefaultFontFamilies = {
 	mono: "'tldraw_mono', monospace",
 }
 
-function isFontEntry(value: unknown): value is TLThemeFont {
+/** @internal */
+export function isFontEntry(value: unknown): value is TLThemeFont {
 	return typeof value === 'object' && value !== null && 'fontFamily' in value
 }
 

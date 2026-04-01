@@ -449,6 +449,9 @@ export function isCustomRecordId(typeName: string, id?: string): boolean;
 // @public
 export function isDocument(record?: UnknownRecord): record is TLDocument;
 
+// @internal (undocumented)
+export function isFontEntry(value: unknown): value is TLThemeFont;
+
 // @public
 export function isPageId(id: string): id is TLPageId;
 

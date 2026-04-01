@@ -1961,6 +1961,9 @@ export function getDisplayValues<Shape extends TLShape, DisplayValues extends ob
 // @public
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
 
+// @public (undocumented)
+export function getFontFamily(theme: TLTheme, font: string): string;
+
 // @public
 export function getFontStyleItems(theme: TLTheme): StyleValuesForUi<string>;
 

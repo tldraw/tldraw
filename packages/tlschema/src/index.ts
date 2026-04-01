@@ -300,6 +300,7 @@ export { type TLFontFace, type TLFontFaceSource } from './styles/TLFontFace'
 export {
 	DefaultFontFamilies,
 	DefaultFontStyle,
+	isFontEntry,
 	registerFontsFromThemeDefinitions,
 	type TLDefaultFontStyle,
 } from './styles/TLFontStyle'
