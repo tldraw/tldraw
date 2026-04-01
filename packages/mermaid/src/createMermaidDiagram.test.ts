@@ -1,16 +1,20 @@
-vi.mock('tldraw', () => ({
-	createShapeId: () => `shape:mock-0` as any,
-	toRichText: (text: string) => ({
-		type: 'doc',
-		content: [{ type: 'paragraph', content: [{ type: 'text', text }] }],
-	}),
-	Vec: {
-		Min: (a: { x: number; y: number }, b: { x: number; y: number }) => ({
-			x: Math.min(a.x, b.x),
-			y: Math.min(a.y, b.y),
+vi.mock('tldraw', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('tldraw')>()
+	return {
+		...actual,
+		createShapeId: () => `shape:mock-0` as any,
+		toRichText: (text: string) => ({
+			type: 'doc',
+			content: [{ type: 'paragraph', content: [{ type: 'text', text }] }],
 		}),
-	},
-}))
+		Vec: {
+			Min: (a: { x: number; y: number }, b: { x: number; y: number }) => ({
+				x: Math.min(a.x, b.x),
+				y: Math.min(a.y, b.y),
+			}),
+		},
+	}
+})
 
 import { createMermaidDiagram, MermaidDiagramError } from './createMermaidDiagram'
 
