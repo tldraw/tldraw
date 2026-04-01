@@ -31,7 +31,7 @@ import { TLBaseShape } from './TLBaseShape'
  *   labelColor: 'black',
  *   size: 'm',
  *   font: 'draw',
- *   fontSizeAdjustment: 1,
+ *   fontSizeAdjustment: null,
  *   align: 'middle',
  *   verticalAlign: 'middle',
  *   growY: 0,
@@ -223,7 +223,7 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.AddFontSizeAdjustment,
 			up: (props) => {
-				props.fontSizeAdjustment = 1
+				props.fontSizeAdjustment = 0
 			},
 			down: (props) => {
 				delete props.fontSizeAdjustment
@@ -273,7 +273,11 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.MakeFontSizeAdjustmentRatio,
 			up: (props) => {
-				props.fontSizeAdjustment = null
+				// Old system stored 0 for "no adjustment" or an absolute pixel font size.
+				// New system stores a ratio (1 = no adjustment, <1 = shrunk).
+				// We can convert 0 → 1 (no adjustment), but non-zero values need
+				// recomputation (null) since we don't know the base font size here.
+				props.fontSizeAdjustment = props.fontSizeAdjustment === 0 ? 1 : null
 			},
 			down: (props) => {
 				props.fontSizeAdjustment = 0

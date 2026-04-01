@@ -1181,7 +1181,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateTheme(id: TLThemeId, definition: Partial<TLTheme>) {
+	updateTheme(id: TLThemeId, definition: Partial<TLTheme> | ((theme: TLTheme) => TLTheme)) {
 		this._themeManager.updateTheme(id, definition)
 		return this
 	}

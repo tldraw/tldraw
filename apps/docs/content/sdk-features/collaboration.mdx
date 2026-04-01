@@ -138,7 +138,7 @@ const store = useSyncDemo({
 })
 ```
 
-The `users` store is also used for shape attribution — the same `currentUser` signal stamps shapes with user IDs. Provide a `resolve` method to look up other users by ID:
+The `users` store is also used for shape attribution — the same `currentUser` signal stamps shapes with user IDs. See the [Attribution](/sdk-features/attribution) page for details on tracking which users create or edit shapes. Provide a `resolve` method to look up other users by ID:
 
 ```tsx
 const users: TLUserStore = {
