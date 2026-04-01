@@ -6,6 +6,7 @@ import {
 	HALF_PI,
 	PageRecordType,
 	Result,
+	TLAudioShape,
 	TLEmbedShape,
 	TLImageShape,
 	TLShape,
@@ -75,9 +76,11 @@ export interface ActionsProviderProps {
 export function supportsDownloadingOriginal(
 	shape: TLShape,
 	editor: Editor
-): shape is TLImageShape | TLVideoShape {
+): shape is TLImageShape | TLVideoShape | TLAudioShape {
 	return (
-		(editor.isShapeOfType(shape, 'image') || editor.isShapeOfType(shape, 'video')) &&
+		(editor.isShapeOfType(shape, 'image') ||
+			editor.isShapeOfType(shape, 'video') ||
+			editor.isShapeOfType(shape, 'audio')) &&
 		!!(shape as any).props.assetId
 	)
 }
@@ -1749,6 +1752,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect: async (source) => {
 					trackEvent('video-replace', { source })
 					helpers.replaceVideo()
+				},
+			},
+			{
+				id: 'audio-replace',
+				label: 'tool.replace-media',
+				icon: 'arrow-cycle',
+				readonlyOk: false,
+				onSelect: async (source) => {
+					trackEvent('audio-replace', { source })
+					helpers.replaceAudio()
 				},
 			},
 			{

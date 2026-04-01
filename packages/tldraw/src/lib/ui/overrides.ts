@@ -51,18 +51,35 @@ export function useDefaultHelpers() {
 	}, [editor, mimeTypes])
 
 	const replaceMedia = useCallback(
-		async (isImage: boolean) => {
+		async ({
+			isImage,
+			isVideo,
+			isAudio,
+		}: {
+			isImage?: boolean
+			isVideo?: boolean
+			isAudio?: boolean
+		}) => {
 			if (!editor) return
 			const files = await getLocalFiles({
 				allowMultiple: false,
 				mimeTypes: mimeTypes?.filter((m) =>
-					isImage ? m.startsWith('image/') : m.startsWith('video/')
+					isImage
+						? m.startsWith('image/')
+						: isVideo
+							? m.startsWith('video/')
+							: m.startsWith('audio/')
 				),
 				document: editor.getContainerDocument(),
 			})
 			if (!files.length) return
 			const shape = editor.getOnlySelectedShape()
-			if (!shape || (isImage && shape.type !== 'image') || (!isImage && shape.type !== 'video'))
+			if (
+				!shape ||
+				(isImage && shape.type !== 'image') ||
+				(isVideo && shape.type !== 'video') ||
+				(isAudio && shape.type !== 'audio')
+			)
 				return
 
 			editor.markHistoryStoppingPoint('replace media')
@@ -72,14 +89,17 @@ export function useDefaultHelpers() {
 				type: 'file-replace',
 				file,
 				shapeId: shape.id,
-				isImage,
+				isImage: !!isImage,
+				isVideo: !!isVideo,
+				isAudio: !!isAudio,
 			})
 		},
 		[editor, mimeTypes]
 	)
 
-	const replaceImage = useCallback(() => replaceMedia(true /* isImage */), [replaceMedia])
-	const replaceVideo = useCallback(() => replaceMedia(false /* isImage */), [replaceMedia])
+	const replaceImage = useCallback(() => replaceMedia({ isImage: true }), [replaceMedia])
+	const replaceVideo = useCallback(() => replaceMedia({ isVideo: true }), [replaceMedia])
+	const replaceAudio = useCallback(() => replaceMedia({ isAudio: true }), [replaceMedia])
 
 	return useMemo(
 		() => ({
@@ -94,6 +114,7 @@ export function useDefaultHelpers() {
 			insertMedia,
 			replaceImage,
 			replaceVideo,
+			replaceAudio,
 			printSelectionOrPages,
 			cut,
 			copy,
@@ -114,6 +135,7 @@ export function useDefaultHelpers() {
 			insertMedia,
 			replaceImage,
 			replaceVideo,
+			replaceAudio,
 			printSelectionOrPages,
 			cut,
 			copy,

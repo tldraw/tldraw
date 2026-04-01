@@ -2,6 +2,7 @@ import { LegacyMigrations, MigrationSequence, StoreSchema, StoreValidator } from
 import { objectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TLBaseAsset } from './assets/TLBaseAsset'
+import { audioAssetMigrations, audioAssetProps } from './assets/TLAudioAsset'
 import { bookmarkAssetMigrations, bookmarkAssetProps } from './assets/TLBookmarkAsset'
 import { imageAssetMigrations, imageAssetProps } from './assets/TLImageAsset'
 import { videoAssetMigrations, videoAssetProps } from './assets/TLVideoAsset'
@@ -36,6 +37,7 @@ import {
 import { UserRecordType, createUserRecordType, userMigrations } from './records/TLUser'
 import { RecordProps, TLPropsMigrations, processPropsMigrations } from './recordsWithProps'
 import { arrowShapeMigrations, arrowShapeProps } from './shapes/TLArrowShape'
+import { audioShapeMigrations, audioShapeProps } from './shapes/TLAudioShape'
 import { TLBaseShape } from './shapes/TLBaseShape'
 import { bookmarkShapeMigrations, bookmarkShapeProps } from './shapes/TLBookmarkShape'
 import { drawShapeMigrations, drawShapeProps } from './shapes/TLDrawShape'
@@ -149,6 +151,7 @@ export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
  */
 export const defaultShapeSchemas = {
 	arrow: { migrations: arrowShapeMigrations, props: arrowShapeProps },
+	audio: { migrations: audioShapeMigrations, props: audioShapeProps },
 	bookmark: { migrations: bookmarkShapeMigrations, props: bookmarkShapeProps },
 	draw: { migrations: drawShapeMigrations, props: drawShapeProps },
 	embed: { migrations: embedShapeMigrations, props: embedShapeProps },
@@ -215,6 +218,7 @@ export const defaultBindingSchemas = {
  * ```
  */
 export const defaultAssetSchemas = {
+	audio: { migrations: audioAssetMigrations, props: audioAssetProps },
 	image: { migrations: imageAssetMigrations, props: imageAssetProps },
 	video: { migrations: videoAssetMigrations, props: videoAssetProps },
 	bookmark: { migrations: bookmarkAssetMigrations, props: bookmarkAssetProps },

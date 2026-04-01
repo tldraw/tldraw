@@ -10,7 +10,7 @@ import { TldrawUiInput } from '../primitives/TldrawUiInput'
 export interface AltTextEditorProps {
 	shapeId: TLShapeId
 	onClose(): void
-	source: 'image-toolbar' | 'video-toolbar'
+	source: 'image-toolbar' | 'video-toolbar' | 'audio-toolbar'
 }
 
 /** @public @react */

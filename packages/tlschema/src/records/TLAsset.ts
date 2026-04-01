@@ -7,6 +7,7 @@ import {
 import { mapObjectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { createAssetValidator, TLBaseAsset } from '../assets/TLBaseAsset'
+import { TLAudioAsset } from '../assets/TLAudioAsset'
 import { TLBookmarkAsset } from '../assets/TLBookmarkAsset'
 import { TLImageAsset } from '../assets/TLImageAsset'
 import { TLVideoAsset } from '../assets/TLVideoAsset'
@@ -37,7 +38,10 @@ import { ExtractShapeByProps } from './TLShape'
  *
  * @public
  */
-export type TLDefaultAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
+/** @public */
+export type TLMediaAsset = TLImageAsset | TLVideoAsset | TLAudioAsset
+
+export type TLDefaultAsset = TLMediaAsset | TLBookmarkAsset
 
 /**
  * A type for an asset that is available in the editor but whose type is

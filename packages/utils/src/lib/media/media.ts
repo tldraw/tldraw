@@ -88,6 +88,23 @@ export const DEFAULT_SUPPORT_VIDEO_TYPES = Object.freeze([
 	'video/quicktime' as const,
 ])
 /**
+ * Array of supported audio MIME types.
+ *
+ * @public
+ */
+export const DEFAULT_SUPPORT_AUDIO_TYPES = Object.freeze([
+	'audio/webm' as const,
+	'audio/ogg' as const,
+	'audio/mp3' as const,
+	'audio/mp4' as const,
+	'audio/mpeg' as const,
+	'audio/aac' as const,
+	'audio/flac' as const,
+	'audio/wav' as const,
+	'audio/x-wav' as const,
+	'audio/x-m4a' as const,
+])
+/**
  * Array of all supported media MIME types, combining images and videos.
  *
  * @example
@@ -102,6 +119,7 @@ export const DEFAULT_SUPPORT_VIDEO_TYPES = Object.freeze([
 export const DEFAULT_SUPPORTED_MEDIA_TYPES = Object.freeze([
 	...DEFAULT_SUPPORTED_IMAGE_TYPES,
 	...DEFAULT_SUPPORT_VIDEO_TYPES,
+	...DEFAULT_SUPPORT_AUDIO_TYPES,
 ])
 /**
  * Comma-separated string of all supported media MIME types, useful for HTML file input accept attributes.
@@ -129,6 +147,58 @@ export const DEFAULT_SUPPORTED_MEDIA_TYPE_LIST = DEFAULT_SUPPORTED_MEDIA_TYPES.j
  * @public
  */
 export class MediaHelpers {
+	/**
+	 * Load an audio element from a URL.
+	 * @public
+	 */
+	static loadAudio(src: string): Promise<HTMLAudioElement> {
+		return new Promise((resolve, reject) => {
+			// eslint-disable-next-line no-restricted-globals
+			const audio = document.createElement('audio')
+			audio.onloadeddata = () => resolve(audio)
+			audio.onerror = (e) => {
+				console.error(e)
+				reject(new Error('Could not load audio'))
+			}
+			audio.crossOrigin = 'anonymous'
+			audio.src = src
+		})
+	}
+
+	/**
+	 * Extract ID3/metadata tags (title, cover art) from an audio file.
+	 * Uses the jsmediatags-web library, loaded dynamically to reduce bundle size.
+	 * @public
+	 */
+	static async getAudioTags(blob: Blob): Promise<{ title: string; coverArt: string }> {
+		// @ts-ignore no types available currently
+		const jsmediatags = await import('jsmediatags-web')
+
+		return new Promise((resolve) => {
+			jsmediatags.read(blob, {
+				onSuccess: function (mediaInfo: any) {
+					const result = {
+						title: '',
+						coverArt: '',
+					}
+					if (mediaInfo.tags?.picture) {
+						const { data, format } = mediaInfo.tags.picture
+						const base64String = data.map((x: number) => String.fromCharCode(x)).join('')
+						result.coverArt = `data:${format};base64,${window.btoa(base64String)}`
+					}
+					if (mediaInfo.tags?.title) {
+						result.title = mediaInfo.tags.title
+					}
+					resolve(result)
+				},
+				onError: function (error: any) {
+					console.error('Could not decode audio tags:', error.type, error.info)
+					resolve({ title: '', coverArt: '' })
+				},
+			})
+		})
+	}
+
 	/**
 	 * Load a video element from a URL with cross-origin support.
 	 *

@@ -61,6 +61,8 @@ export interface TLFileReplaceExternalContent extends TLBaseExternalContent {
 	file: File
 	shapeId: TLShapeId
 	isImage: boolean
+	isVideo?: boolean
+	isAudio?: boolean
 }
 
 /** @public */

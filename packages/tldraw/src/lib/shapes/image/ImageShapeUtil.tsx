@@ -35,7 +35,7 @@ import { memo, useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { getUncroppedSize } from '../shared/crop'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
+import { useMediaAsset } from '../shared/useMediaAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 import { TRANSPARENT_IMAGE_MIMETYPES, getAlphaData, preloadAlphaData } from './ImageAlphaCache'
 import { ImageEllipse2d, ImageRectangle2d } from './ImageAlphaGeometry'
@@ -315,7 +315,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	const editor = useEditor()
 
 	const { w } = getUncroppedSize(shape.props, shape.props.crop)
-	const { asset, url } = useImageOrVideoAsset({
+	const { asset, url } = useMediaAsset({
 		shapeId: shape.id,
 		assetId: shape.props.assetId,
 		width: w,
