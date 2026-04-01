@@ -102,9 +102,7 @@ export function isFontEntry(value: unknown): value is TLThemeFont {
  *
  * @public
  */
-export function registerFontsFromThemes(
-	definitions: Record<string, TLTheme> | undefined
-): void {
+export function registerFontsFromThemes(definitions: Record<string, TLTheme> | undefined): void {
 	if (!definitions) return
 	const fontNames = new Set<string>()
 	for (const def of Object.values(definitions)) {

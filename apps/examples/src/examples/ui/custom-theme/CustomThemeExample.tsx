@@ -58,7 +58,7 @@ const pinkDark = makeColor('#f06baf', '#3d1a2e', '#e91e8c')
 // The `icon` field provides a React element for the style panel button.
 const pixelFont: TLThemeFont = {
 	fontFamily: "'Silkscreen', sans-serif",
-	icon: <div style={{ fontFamily: 'Silkscreen, sans-serif', fontSize: 16, lineHeight: 1 }}>A</div>,
+	icon: <div style={{ fontFamily: 'Silkscreen, sans-serif', fontSize: 16, lineHeight: 1 }}>Aa</div>,
 	faces: [
 		{
 			family: 'Silkscreen',
@@ -78,7 +78,7 @@ const pixelFont: TLThemeFont = {
 // Custom font — use a Google Font loaded via full URLs.
 const cursiveFont: TLThemeFont = {
 	fontFamily: "'Comic Neue', cursive",
-	icon: <div style={{ fontFamily: "'Comic Neue', cursive", fontSize: 16, lineHeight: 1 }}>A</div>,
+	icon: <div style={{ fontFamily: "'Comic Neue', cursive", fontSize: 16, lineHeight: 1 }}>Aa</div>,
 	faces: [
 		{
 			family: 'Comic Neue',
@@ -165,8 +165,8 @@ export default function CustomThemeExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="custom-theme-example"
-			themes={themes}
-			overrides={uiOverrides}
+				themes={themes}
+				overrides={uiOverrides}
 				onMount={(editor) => {
 					if (editor.getCurrentPageShapeIds().size > 0) return
 

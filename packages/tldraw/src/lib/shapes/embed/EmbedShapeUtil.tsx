@@ -25,8 +25,7 @@ import {
 	unknownEmbedShapePermissionOverrides,
 } from '../../defaultEmbedDefinitions'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
-import { BOOKMARK_JUST_URL_HEIGHT, BOOKMARK_WIDTH } from '../bookmark/bookmarks'
-import { BookmarkIndicatorComponent, BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
+import { BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 

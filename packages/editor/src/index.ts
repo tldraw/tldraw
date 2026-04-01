@@ -169,7 +169,10 @@ export {
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
-export { DEFAULT_THEME, DEFAULT_THEME_FONTS } from './lib/editor/managers/ThemeManager/defaultThemes'
+export {
+	DEFAULT_THEME,
+	DEFAULT_THEME_FONTS,
+} from './lib/editor/managers/ThemeManager/defaultThemes'
 export { ThemeManager } from './lib/editor/managers/ThemeManager/ThemeManager'
 export { TickManager } from './lib/editor/managers/TickManager/TickManager'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'
