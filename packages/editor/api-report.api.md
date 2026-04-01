@@ -145,7 +145,6 @@ export abstract class AssetUtil<Asset extends TLAsset = TLAsset> {
     static configure<T extends TLAssetUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
         options: infer Options;
     } ? Partial<Options> : never): T;
-    createShape(_asset: Asset, _position: VecModel): null | TLShapePartial;
     // (undocumented)
     editor: Editor;
     getAssetFromFile(_file: File, _assetId: TLAssetId): Promise<Asset | null>;
@@ -1383,6 +1382,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeUtil<S extends TLShape>(shape: S | S['type'] | TLShapePartial<S>): ShapeUtil<S>;
     // (undocumented)
     getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
+    getShapeUtilForAssetType(assetType: string): ShapeUtil | undefined;
     getSharedOpacity(): SharedStyle<number>;
     getSharedStyles(): ReadonlySharedStyleMap;
     // (undocumented)
@@ -2874,6 +2874,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
         options: infer Options;
     } ? Partial<Options> : never): T;
+    createShapeForAsset?(asset: TLAsset, position: VecModel): null | TLShapePartial;
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)
@@ -2893,6 +2894,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     getReferencedUserIds(shape: Shape): string[];
     // (undocumented)
     getText(shape: Shape): string | undefined;
+    static handledAssetTypes?: readonly string[];
     hideInMinimap?(shape: Shape): boolean;
     hideResizeHandles(shape: Shape): boolean;
     hideRotateHandle(shape: Shape): boolean;
@@ -4545,6 +4547,8 @@ export interface TLShapeUtilCanvasSvgDef {
 export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
     // (undocumented)
     new (editor: Editor): U;
+    // (undocumented)
+    handledAssetTypes?: readonly string[];
     // (undocumented)
     migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     // (undocumented)

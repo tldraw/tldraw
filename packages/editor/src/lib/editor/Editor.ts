@@ -407,6 +407,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.shapeUtils = _shapeUtils
 		this.styleProps = _styleProps
 
+		const _shapeUtilsByAssetType = {} as Record<string, ShapeUtil<any>>
+		for (const Util of allShapeUtils) {
+			const assetTypes = Util.handledAssetTypes
+			if (assetTypes) {
+				for (const assetType of assetTypes) {
+					_shapeUtilsByAssetType[assetType] = _shapeUtils[Util.type]
+				}
+			}
+		}
+		this._shapeUtilsByAssetType = _shapeUtilsByAssetType
+
 		const allBindingUtils = checkBindings(bindingUtils)
 		const _bindingUtils = {} as Record<string, BindingUtil<any>>
 		for (const Util of allBindingUtils) {
@@ -1073,6 +1084,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	shapeUtils: { readonly [K in string]?: ShapeUtil<TLShape> }
 
+	/** @internal */
+	private _shapeUtilsByAssetType: { readonly [K in string]?: ShapeUtil<TLShape> } = {}
+
 	styleProps: { [key: string]: Map<StyleProp<any>, string> }
 
 	/**
@@ -1113,6 +1127,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	hasShapeUtil(arg: string | { type: string }): boolean {
 		const type = typeof arg === 'string' ? arg : arg.type
 		return hasOwnProperty(this.shapeUtils, type)
+	}
+
+	/**
+	 * Get the shape util that handles the given asset type.
+	 * Returns the shape util whose {@link ShapeUtil.handledAssetTypes} includes
+	 * the given asset type, or undefined if none matches.
+	 *
+	 * @param assetType - The asset type string.
+	 * @public
+	 */
+	getShapeUtilForAssetType(assetType: string): ShapeUtil | undefined {
+		return getOwnProperty(this._shapeUtilsByAssetType, assetType)
 	}
 
 	/* ------------------- Binding Utils ------------------ */

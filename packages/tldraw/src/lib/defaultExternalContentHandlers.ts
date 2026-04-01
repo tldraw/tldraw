@@ -667,12 +667,10 @@ export async function createShapesForAssets(
 
 	for (let i = 0; i < assets.length; i++) {
 		const asset = assets[i]
-		if (!editor.hasAssetUtil(asset)) continue
-		const assetUtil = editor.getAssetUtil(asset)
-		const partial = assetUtil.createShape(asset, currentPoint)
+		const shapeUtil = editor.getShapeUtilForAssetType(asset.type)
+		const partial = shapeUtil?.createShapeForAsset?.(asset, currentPoint) ?? null
 		if (partial) {
 			partials.push(partial)
-			// Advance x position based on asset width if available
 			if ('w' in asset.props && typeof asset.props.w === 'number') {
 				currentPoint.x += asset.props.w
 			}

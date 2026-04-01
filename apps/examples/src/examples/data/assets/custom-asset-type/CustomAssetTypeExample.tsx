@@ -3,6 +3,7 @@ import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
 	T,
+	TLAsset,
 	TLAssetId,
 	TLBaseAsset,
 	TLShape,
@@ -89,26 +90,10 @@ class FileAssetUtil extends AssetUtil<TLFileAsset> {
 			meta: {},
 		}
 	}
-
-	// [6]
-	override createShape(asset: TLFileAsset, position: VecModel): TLShapePartial {
-		return {
-			id: createShapeId(),
-			type: FILE_CARD_TYPE,
-			x: position.x,
-			y: position.y,
-			props: {
-				assetId: asset.id,
-				w: 200,
-				h: 64,
-			},
-		}
-	}
 }
 
 // --- Custom shape to display file assets ---
 
-// [7]
 const FILE_CARD_TYPE = 'file-card' as const
 
 declare module 'tldraw' {
@@ -131,15 +116,31 @@ function formatFileSize(bytes: number): string {
 	return `${value % 1 === 0 ? value : value.toFixed(1)} ${units[i]}`
 }
 
-// [8]
+// [6]
 class FileCardShapeUtil extends BaseBoxShapeUtil<FileCardShape> {
 	static override type = FILE_CARD_TYPE
+	static override handledAssetTypes = [FILE_ASSET_TYPE] as const
 
 	override getDefaultProps() {
 		return {
 			assetId: null as TLAssetId | null,
 			w: 200,
 			h: 64,
+		}
+	}
+
+	// [7]
+	override createShapeForAsset(asset: TLAsset, position: VecModel): TLShapePartial {
+		return {
+			id: createShapeId(),
+			type: FILE_CARD_TYPE,
+			x: position.x,
+			y: position.y,
+			props: {
+				assetId: asset.id,
+				w: 200,
+				h: 64,
+			},
 		}
 	}
 
@@ -181,7 +182,7 @@ class FileCardShapeUtil extends BaseBoxShapeUtil<FileCardShape> {
 								color: 'var(--color-text-1)',
 							}}
 						>
-							{/* [9] */}
+							{/* [8] */}
 							{src ? (
 								<a
 									href={src}
@@ -209,7 +210,7 @@ class FileCardShapeUtil extends BaseBoxShapeUtil<FileCardShape> {
 	}
 }
 
-// [10]
+// [9]
 export default function CustomAssetTypeExample() {
 	const instructionText = `Drag a file with these supported extensions ${FileAssetUtil.supportedExtensions.join(', ')} onto the board`
 
@@ -240,10 +241,10 @@ export default function CustomAssetTypeExample() {
 }
 
 /*
-This example shows how to use the AssetUtil API to add support for non-media file types.
-By default, tldraw supports images, videos, and bookmarks. With a custom AssetUtil, you
-can handle any file type—like PDFs, CSVs, or text files—and display them on the canvas
-with a custom shape.
+This example shows how to use AssetUtil and ShapeUtil together to add support for
+non-media file types. By default, tldraw supports images, videos, and bookmarks.
+With a custom AssetUtil and ShapeUtil, you can handle any file type—like PDFs, CSVs,
+or text files—and display them on the canvas with a custom shape.
 
 [1]
 Define a custom asset type using TLBaseAsset. The props describe what information we
@@ -252,6 +253,7 @@ We augment TLGlobalAssetPropsMap so that TLAsset includes our custom type.
 
 [2]
 FileAssetUtil extends AssetUtil and tells the editor how to handle our custom asset type.
+It handles file-to-asset conversion and MIME type matching.
 
 [3]
 Static props define the schema validators for the asset's properties. These use
@@ -268,21 +270,18 @@ file-handling pipeline to extract metadata before upload. The src is left as nul
 because TLAssetStore.upload will provide the URL after the file is stored.
 
 [6]
-createShape returns a shape partial that the editor places on the canvas when this
-asset is created. Here we create a file-card shape that references the asset.
+FileCardShapeUtil declares handledAssetTypes to tell the editor that this shape can be
+created from file assets. It renders files as cards on the canvas.
 
 [7]
-We define a custom shape type to display file assets on the canvas. The shape has an
-assetId prop that references the file asset, plus width and height for layout.
+createShapeForAsset returns a shape partial that the editor places on the canvas when
+this asset is created. The shape util declares which asset types it handles, and the
+editor calls this method to produce the shape.
 
 [8]
-FileCardShapeUtil renders the file as a card showing the filename, size, and a download
-link. It reads the asset from the editor's store to get the file metadata.
-
-[9]
 If the asset has a src URL, the filename becomes a clickable download link.
 
-[10]
+[9]
 We pass both the custom AssetUtil and ShapeUtil to the Tldraw component. The assetUtils
 prop registers our FileAssetUtil alongside the default image, video, and bookmark utils.
 No custom file handler is needed — the default handler automatically uses our AssetUtil
