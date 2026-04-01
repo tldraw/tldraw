@@ -234,7 +234,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						draggable={false}
 						// eslint-disable-next-line @typescript-eslint/no-deprecated
 						frameBorder="0"
-						referrerPolicy="no-referrer-when-downgrade"
+						referrerPolicy="strict-origin-when-cross-origin"
 						tabIndex={isEditing ? 0 : -1}
 						allowFullScreen
 						style={{
@@ -337,7 +337,7 @@ function Gist({
 			frameBorder="0"
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			scrolling="no"
-			referrerPolicy="no-referrer-when-downgrade"
+			referrerPolicy="strict-origin-when-cross-origin"
 			tabIndex={isInteractive ? 0 : -1}
 			style={{
 				...style,
