@@ -310,7 +310,7 @@ export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TL
 export {
 	type TLDefaultColor,
 	type TLThemeColors,
-	type TLTheme as TLTheme,
+	type TLTheme,
 	type TLThemeId,
 	type TLThemes,
 } from './styles/TLTheme'
