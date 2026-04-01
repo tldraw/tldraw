@@ -164,6 +164,15 @@ export interface TldrawEditorBaseProps {
 	user?: TLCurrentUser
 
 	/**
+	 * The editor's color scheme. Defaults to `'light'`.
+	 *
+	 * - `'light'` - Always use light mode.
+	 * - `'dark'` - Always use dark mode.
+	 * - `'system'` - Follow the OS color scheme preference.
+	 */
+	colorScheme?: 'light' | 'dark' | 'system'
+
+	/**
 	 * Named theme definitions for the editor.
 	 */
 	themeDefinitions?: Partial<Record<TLThemeId, TLTheme>>
@@ -442,6 +451,7 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	getShapeVisibility,
+	colorScheme,
 	assetUrls,
 	themeDefinitions,
 	activeTheme,
@@ -504,6 +514,7 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				getShapeVisibility,
+				colorScheme,
 				fontAssetUrls: assetUrls?.fonts,
 				themeDefinitions,
 				activeTheme,

@@ -12,9 +12,8 @@ export class UserPreferencesManager {
 	}
 	constructor(
 		private readonly user: TLCurrentUser,
-		private readonly inferDarkMode: boolean
+		private readonly colorScheme: 'light' | 'dark' | 'system'
 	) {
-		if (!inferDarkMode) return
 		if (typeof window === 'undefined' || !getGlobalWindow().matchMedia) return
 
 		const darkModeMediaQuery = getGlobalWindow().matchMedia('(prefers-color-scheme: dark)')
@@ -58,21 +57,17 @@ export class UserPreferencesManager {
 	}
 
 	@computed getIsDarkMode() {
-		switch (this.user.userPreferences.get().colorScheme) {
+		const userColorScheme = this.user.userPreferences.get().colorScheme
+		const scheme = userColorScheme ?? this.colorScheme
+		switch (scheme) {
 			case 'dark':
 				return true
 			case 'light':
 				return false
 			case 'system':
 				return this.systemColorScheme.get() === 'dark'
-			default: {
-				// If infer dark mode is on, then use the system color
-				if (this.inferDarkMode) {
-					return this.systemColorScheme.get() === 'dark'
-				}
-				// Otherwise, the default is light
+			default:
 				return false
-			}
 		}
 	}
 

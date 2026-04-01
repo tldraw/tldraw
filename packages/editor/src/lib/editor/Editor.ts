@@ -238,9 +238,13 @@ export interface TLEditorOptions {
 	 */
 	autoFocus?: boolean
 	/**
-	 * Whether to infer dark mode from the OS preference.
+	 * The editor's color scheme. Defaults to `'light'`.
+	 *
+	 * - `'light'` - Always use light mode.
+	 * - `'dark'` - Always use dark mode.
+	 * - `'system'` - Follow the OS color scheme preference.
 	 */
-	inferDarkMode?: boolean
+	colorScheme?: 'light' | 'dark' | 'system'
 	/**
 	 * Options for the editor's camera.
 	 *
@@ -325,7 +329,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
-		inferDarkMode,
+		colorScheme,
 		fontAssetUrls,
 		themeDefinitions,
 		activeTheme,
@@ -367,7 +371,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._textOptions = atom('text options', options?.text ?? null)
 
-		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), inferDarkMode ?? false)
+		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), colorScheme ?? 'light')
 		this.disposables.add(() => this.user.dispose())
 
 		this.textMeasure = new TextManager(this)
@@ -989,91 +993,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly _themeManager: ThemeManager
 
 	/**
-	 * Get the current color mode (`'light'` or `'dark'`), based on the user's dark mode preference.
-	 *
-	 * @public
-	 */
-	getColorMode(): 'light' | 'dark' {
-		return this._themeManager.getColorMode()
-	}
-
-	/**
-	 * Get the id of the current theme.
-	 *
-	 * @public
-	 */
-	getCurrentThemeId(): TLThemeId {
-		return this._themeManager.getCurrentThemeId()
-	}
-
-	/**
-	 * Get the current theme definition.
-	 *
-	 * @public
-	 */
-	getCurrentTheme(): TLTheme {
-		return this._themeManager.getCurrentTheme()
-	}
-
-	/**
-	 * Set the current theme by id.
-	 *
-	 * @public
-	 */
-	setCurrentTheme(id: TLThemeId): void {
-		this._themeManager.setCurrentTheme(id)
-	}
-
-	/**
-	 * Get all registered theme definitions.
-	 *
-	 * @public
-	 */
-	getThemes(): Record<TLThemeId, TLTheme> {
-		return this._themeManager.getThemes()
-	}
-
-	/**
-	 * Get a single theme definition by id.
-	 *
-	 * @public
-	 */
-	getTheme(id: TLThemeId): TLTheme | undefined {
-		return this._themeManager.getTheme(id)
-	}
-
-	/**
-	 * Update one or more theme definitions.
-	 *
-	 * @public
-	 */
-	updateThemes(
-		themes:
-			| Record<TLThemeId, TLTheme>
-			| ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>)
-	): void {
-		this._themeManager.updateThemes(themes)
-	}
-
-	/**
-	 * Update a named theme definition.
-	 *
-	 * @public
-	 */
-	updateTheme(id: TLThemeId, definition: Partial<TLTheme>): void {
-		this._themeManager.updateTheme(id, definition)
-	}
-
-	/**
-	 * Remove a named theme definition. Cannot remove the `'default'` theme.
-	 *
-	 * @public
-	 */
-	removeTheme(id: TLThemeId): void {
-		this._themeManager.removeTheme(id)
-	}
-
-	/**
 	 * A helper for measuring text.
 	 *
 	 * @public
@@ -1158,6 +1077,93 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.dispose()
 		this.isDisposed = true
 		this.emit('dispose')
+	}
+
+	/* ------------------ Themes (shadowing the theme manager) ------------------ */
+
+	/**
+	 * Get the current color mode (`'light'` or `'dark'`), based on the user's dark mode preference.
+	 *
+	 * @public
+	 */
+	getColorMode(): 'light' | 'dark' {
+		return this._themeManager.getColorMode()
+	}
+
+	/**
+	 * Get the id of the current theme.
+	 *
+	 * @public
+	 */
+	getCurrentThemeId(): TLThemeId {
+		return this._themeManager.getCurrentThemeId()
+	}
+
+	/**
+	 * Get the current theme definition.
+	 *
+	 * @public
+	 */
+	getCurrentTheme(): TLTheme {
+		return this._themeManager.getCurrentTheme()
+	}
+
+	/**
+	 * Set the current theme by id.
+	 *
+	 * @public
+	 */
+	setCurrentTheme(id: TLThemeId): void {
+		this._themeManager.setCurrentTheme(id)
+	}
+
+	/**
+	 * Get all registered theme definitions.
+	 *
+	 * @public
+	 */
+	getThemes(): Record<TLThemeId, TLTheme> {
+		return this._themeManager.getThemes()
+	}
+
+	/**
+	 * Get a single theme definition by id.
+	 *
+	 * @public
+	 */
+	getTheme(id: TLThemeId): TLTheme | undefined {
+		return this._themeManager.getTheme(id)
+	}
+
+	/**
+	 * Update one or more theme definitions.
+	 *
+	 * @public
+	 */
+	updateThemes(
+		themes:
+			| Record<TLThemeId, TLTheme>
+			| ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>)
+	): void {
+		this._themeManager.updateThemes(themes)
+	}
+
+	/**
+	 * Update a named theme definition.
+	 *
+	 * @public
+	 */
+	updateTheme(id: TLThemeId, definition: Partial<TLTheme>): void {
+		this._themeManager.updateTheme(id, definition)
+	}
+
+	/**
+	 * Remove a named theme definition. Cannot remove the `'default'` theme.
+	 *
+	 * @public
+	 */
+	removeTheme(id: TLThemeId): void {
+		this._themeManager.removeTheme(id)
 	}
 
 	/* ------------------- Shape Utils ------------------ */
