@@ -555,6 +555,7 @@ function TldrawEditorWithReadyStore({
 		// if any of these change, we need to recreate the editor.
 		[
 			bindingUtils,
+			colorScheme,
 			container,
 			options,
 			shapeUtils,
