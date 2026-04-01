@@ -4,7 +4,14 @@ import { structuredClone } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 import { DEFAULT_THEME } from './defaultThemes'
 
-/** @public */
+/**
+ * Resolve a partial set of user-provided themes into a complete {@link TLThemes}
+ * record by merging with `DEFAULT_THEME`. The result is suitable for passing to
+ * {@link registerColorsFromThemes}, {@link registerFontsFromThemes}, and the
+ * {@link ThemeManager} constructor.
+ *
+ * @public
+ */
 export function resolveThemes(themes?: Partial<TLThemes>): TLThemes {
 	return { default: DEFAULT_THEME, ...themes } as TLThemes
 }
@@ -48,7 +55,7 @@ export class ThemeManager {
 		return this._themes.get()
 	}
 
-	/** Get a single theme definition by name. */
+	/** Get a single theme definition by id. */
 	getTheme(id: TLThemeId): TLTheme | undefined {
 		return this._themes.get()[id]
 	}
@@ -62,7 +69,7 @@ export class ThemeManager {
 		return this._themes.get()[this.getCurrentThemeId()]!
 	}
 
-	/** Set the current theme by name. The theme must have been previously registered. */
+	/** Set the current theme by id. The theme must have been previously registered. */
 	setCurrentTheme(id: TLThemeId): void {
 		if (process.env.NODE_ENV !== 'production') {
 			if (!(id in this._themes.get())) {
@@ -75,6 +82,7 @@ export class ThemeManager {
 		this._currentThemeId.set(id)
 	}
 
+	/** Replace all theme definitions, or update them via a callback that receives a deep copy. */
 	updateThemes(themes: TLThemes | ((themes: TLThemes) => TLThemes)): void {
 		this._themes.update((prev) => {
 			const next = typeof themes === 'function' ? themes(structuredClone(prev)) : themes

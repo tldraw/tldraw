@@ -52,7 +52,7 @@ export default function App() {
 
 ## Theme structure
 
-A theme definition is a [TLTheme](?) object with color palettes for both light and dark modes, plus shared `fontSize`, `lineHeight`, and `strokeWidth` values:
+A theme definition is a [TLTheme](?) object with an `id`, color palettes for both light and dark modes, font definitions, and shared `fontSize`, `lineHeight`, and `strokeWidth` values:
 
 ```typescript
 import { DEFAULT_THEME, TLTheme } from 'tldraw'
@@ -62,6 +62,7 @@ const myTheme: TLTheme = {
 	fontSize: 16,
 	lineHeight: 1.35,
 	strokeWidth: 2,
+	fonts: DEFAULT_THEME.fonts,
 	colors: {
 		light: {
 			text: '#000000',
@@ -99,7 +100,7 @@ const myTheme: TLTheme = {
 }
 ```
 
-A [TLTheme](?) always contains both `light` and `dark` palettes under `colors`. To get the palette for the current color mode, index into `theme.colors` with the result of [Editor#getColorMode](?).
+Each [TLTheme](?) has a unique `id` used as the key in the theme registry, and always contains both `light` and `dark` palettes under `colors`. To get the palette for the current color mode, index into `theme.colors` with the result of [Editor#getColorMode](?).
 
 Each color in the palette is a [TLDefaultColor](?) with variants for different contexts:
 
@@ -225,6 +226,7 @@ const themes: Partial<TLThemes> = {
 		fontSize: 16,
 		lineHeight: 1.35,
 		strokeWidth: 2,
+		fonts: DEFAULT_THEME.fonts,
 		colors: {
 			light: { /* ... */ },
 			dark: { /* ... */ },
@@ -401,8 +403,8 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 | [Editor#setCurrentTheme](?)   | Set the current theme by id                       |
 | [Editor#getThemes](?)         | Get all registered themes                         |
 | [Editor#getTheme](?)          | Get a theme by id                                 |
-| [Editor#updateTheme](?)       | Update a named theme                              |
-| [Editor#updateThemes](?)      | Update or remove themes (must keep `'default'`)   |
+| [Editor#updateTheme](?)       | Register or update a theme (keyed by `id`)        |
+| [Editor#updateThemes](?)      | Replace all themes or update via callback         |
 | [Editor#getColorMode](?)      | Get the active color mode (`'light'` or `'dark'`) |
 | [Editor#setColorMode](?)      | Set the color mode (`'light'` or `'dark'`)        |
 

@@ -1164,7 +1164,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Update one or more theme definitions.
+	 * Replace all theme definitions, or update them via a callback that receives a deep copy.
+	 * The `'default'` theme must always be present in the result.
+	 *
+	 * @example
+	 * ```ts
+	 * // Replace all themes
+	 * editor.updateThemes({ default: myDefaultTheme, ocean: myOceanTheme })
+	 *
+	 * // Update via callback
+	 * editor.updateThemes((themes) => {
+	 *   delete themes.ocean
+	 *   return themes
+	 * })
+	 * ```
 	 *
 	 * @public
 	 */
@@ -1174,7 +1187,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Update a named theme definition.
+	 * Register or update a single theme definition. The theme is keyed by its `id` property.
+	 *
+	 * @example
+	 * ```ts
+	 * // Override a property on the default theme
+	 * editor.updateTheme({ ...editor.getTheme('default')!, fontSize: 24 })
+	 *
+	 * // Register a new theme
+	 * editor.updateTheme({ id: 'ocean', ...myOceanTheme })
+	 * ```
 	 *
 	 * @public
 	 */
