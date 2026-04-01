@@ -161,19 +161,27 @@ const color = getColorValue(theme, 'red', 'solid') // '#e03131'
 
 ## Color mode
 
-The editor selects `'light'` or `'dark'` colors based on the user's color scheme preference. Use [Editor#getColorMode](?) to get the current mode:
+The editor selects `'light'` or `'dark'` colors based on its `colorScheme` setting. Set the initial color scheme via the `colorScheme` prop:
+
+```tsx
+<Tldraw colorScheme="dark" />
+```
+
+The `colorScheme` prop accepts `'light'` (default), `'dark'`, or `'system'` (follows the OS preference).
+
+Use [Editor#getColorMode](?) to read the resolved mode at runtime:
 
 ```typescript
 const colorMode = editor.getColorMode() // 'light' or 'dark'
 ```
 
-To change the color scheme preference at runtime, update user preferences:
+Users can also override the color scheme via their preferences:
 
 ```typescript
 editor.user.updateUserPreferences({ colorScheme: 'dark' })
 ```
 
-See [User preferences](/sdk-features/user-preferences) for more on color scheme settings.
+When set, the user preference takes priority over the `colorScheme` prop. See [User preferences](/sdk-features/user-preferences) for more.
 
 The [useColorMode](?) hook provides a reactive color mode for use in React components:
 

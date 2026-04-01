@@ -128,6 +128,8 @@ const isDark = editor.user.getIsDarkMode()
 // true if colorScheme is 'dark', or 'system' with OS in dark mode
 ```
 
+The editor-level `colorScheme` prop sets the default color scheme. When a user preference is set, it takes priority over the prop. See [Themes](/sdk-features/themes#color-mode) for more.
+
 ## Persistence and synchronization
 
 Preferences persist to localStorage under the key `TLDRAW_USER_DATA_v3`. Each save includes a version number, and the system runs migrations when loading older data to keep preferences compatible across tldraw releases.
