@@ -39,7 +39,7 @@ export async function submitFeedback(req: IRequest, env: Environment) {
 
 	const userId = allowContact ? await getUserEmail(env, auth.userId) : '~' + auth.userId.slice(-4)
 
-	// Try to create a Plain thread (non-blocking — Discord post still happens on failure)
+	// Create a Plain thread if configured. Failures are caught so the Discord post still goes through.
 	let plainThreadUrl: string | null = null
 	if (env.PLAIN_API_KEY) {
 		try {
@@ -104,7 +104,7 @@ const UPSERT_CUSTOMER_MUTATION = `
 mutation upsertCustomer($input: UpsertCustomerInput!) {
   upsertCustomer(input: $input) {
     customer { id }
-    error { message type code }
+    error { message code }
   }
 }
 `
@@ -113,12 +113,21 @@ const CREATE_THREAD_MUTATION = `
 mutation createThread($input: CreateThreadInput!) {
   createThread(input: $input) {
     thread { id }
-    error { message type code }
+    error { message code }
   }
 }
 `
 
-async function plainRequest(env: Environment, query: string, variables: Record<string, unknown>) {
+interface PlainMutationResult {
+	error?: { message: string; code: string }
+}
+
+async function plainMutation<T extends PlainMutationResult>(
+	env: Environment,
+	query: string,
+	variables: Record<string, unknown>,
+	resultKey: string
+): Promise<T> {
 	const res = await fetch('https://core-api.uk.plain.com/graphql/v1', {
 		method: 'POST',
 		headers: {
@@ -132,38 +141,43 @@ async function plainRequest(env: Environment, query: string, variables: Record<s
 		throw new Error(`Plain API returned ${res.status}: ${await res.text()}`)
 	}
 
-	const body = (await res.json()) as Record<string, unknown>
-	const errors = body.errors as { message: string }[] | undefined
-	if (errors?.length) {
-		throw new Error(`Plain GraphQL error: ${errors[0].message}`)
+	const body = (await res.json()) as {
+		data?: Record<string, unknown>
+		errors?: { message: string }[]
+	}
+	if (body.errors?.length) {
+		throw new Error(`Plain GraphQL error: ${body.errors[0].message}`)
 	}
 
-	return body.data as Record<string, unknown>
+	const result = body.data?.[resultKey] as T | undefined
+	if (result?.error) {
+		throw new Error(`Plain ${resultKey} error: ${result.error.message} (${result.error.code})`)
+	}
+	if (!result) {
+		throw new Error(`Plain ${resultKey} returned no result`)
+	}
+
+	return result
 }
 
 async function upsertPlainCustomer(env: Environment, email: string): Promise<string> {
-	const input = {
-		identifier: { emailAddress: email },
-		onCreate: { fullName: email, email: { email, isVerified: false } },
-		onUpdate: {},
-	}
+	const result = await plainMutation<PlainMutationResult & { customer?: { id: string } }>(
+		env,
+		UPSERT_CUSTOMER_MUTATION,
+		{
+			input: {
+				identifier: { emailAddress: email },
+				onCreate: { fullName: email, email: { email, isVerified: false } },
+				onUpdate: {},
+			},
+		},
+		'upsertCustomer'
+	)
 
-	const data = await plainRequest(env, UPSERT_CUSTOMER_MUTATION, { input })
-	const result = data.upsertCustomer as {
-		customer?: { id: string }
-		error?: { message: string; type: string; code: string }
-	}
-
-	if (result?.error) {
-		throw new Error(`Plain upsertCustomer error: ${result.error.message} (${result.error.code})`)
-	}
-
-	const customerId = result?.customer?.id
-	if (!customerId) {
+	if (!result.customer?.id) {
 		throw new Error('Plain upsertCustomer returned no customer id')
 	}
-
-	return customerId
+	return result.customer.id
 }
 
 async function createPlainThread(
@@ -173,46 +187,26 @@ async function createPlainThread(
 	const customerEmail = email ?? 'anonymous-feedback@tldraw.com'
 	const customerId = await upsertPlainCustomer(env, customerEmail)
 
-	const fromLabel = email ?? 'anonymous'
-	const title = `Dotcom feedback from ${fromLabel}`
-
-	const truncatedDescription =
-		description.length > 200 ? description.slice(0, 200) + '…' : description
-
-	const components = [
+	const result = await plainMutation<PlainMutationResult & { thread?: { id: string } }>(
+		env,
+		CREATE_THREAD_MUTATION,
 		{
-			componentText: {
-				text: `${description}\n\nURL: ${url}`,
+			input: {
+				customerIdentifier: { customerId },
+				title: `Dotcom feedback from ${email ?? 'anonymous'}`,
+				description: description.length > 200 ? description.slice(0, 200) + '…' : description,
+				components: [{ componentText: { text: `${description}\n\nURL: ${url}` } }],
+				...(env.PLAIN_LABEL_TYPE_ID && { labelTypeIds: [env.PLAIN_LABEL_TYPE_ID] }),
 			},
 		},
-	]
+		'createThread'
+	)
 
-	const input: Record<string, unknown> = {
-		customerIdentifier: { customerId },
-		title,
-		description: truncatedDescription,
-		components,
-	}
-
-	if (env.PLAIN_LABEL_TYPE_ID) {
-		input.labelTypeIds = [env.PLAIN_LABEL_TYPE_ID]
-	}
-
-	const data = await plainRequest(env, CREATE_THREAD_MUTATION, { input })
-	const result = data.createThread as {
-		thread?: { id: string }
-		error?: { message: string; type: string; code: string }
-	}
-
-	if (result?.error) {
-		throw new Error(`Plain createThread error: ${result.error.message} (${result.error.code})`)
-	}
-
-	const threadId = result?.thread?.id
-	if (!threadId) {
+	if (!result.thread?.id) {
 		throw new Error('Plain createThread returned no thread id')
 	}
 
+	const threadId = result.thread.id
 	if (env.PLAIN_WORKSPACE_ID) {
 		return `https://app.plain.com/workspace/${env.PLAIN_WORKSPACE_ID}/thread/${threadId}/`
 	}
