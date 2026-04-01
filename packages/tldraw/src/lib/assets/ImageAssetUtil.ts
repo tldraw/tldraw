@@ -40,8 +40,10 @@ export class ImageAssetUtil extends AssetUtil<TLImageAsset> {
 	}
 
 	override async getAssetFromFile(file: File, assetId: TLAssetId): Promise<TLImageAsset | null> {
-		const size = await MediaHelpers.getImageSize(file)
+		const doc = this.editor.getContainerDocument()
+		const size = await MediaHelpers.getImageSize(file, doc)
 		const isAnimated = await MediaHelpers.isAnimated(file)
+		const pixelRatio = 'pixelRatio' in size && size.pixelRatio !== 1 ? size.pixelRatio : undefined
 
 		const assetInfo: TLImageAsset = {
 			id: assetId,
@@ -55,6 +57,7 @@ export class ImageAssetUtil extends AssetUtil<TLImageAsset> {
 				fileSize: file.size,
 				mimeType: file.type,
 				isAnimated,
+				...(pixelRatio ? { pixelRatio } : undefined),
 			},
 			meta: {},
 		}

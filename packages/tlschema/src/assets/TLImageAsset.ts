@@ -51,7 +51,6 @@ export type TLImageAsset = TLBaseAsset<
  *
  * @public
  */
-/** @public */
 export const imageAssetProps = {
 	w: T.number,
 	h: T.number,

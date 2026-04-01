@@ -92,7 +92,7 @@ export const bindingIdValidator: T.Validator<TLBindingId>;
 // @public
 export const bookmarkAssetMigrations: MigrationSequence;
 
-// @public (undocumented)
+// @public
 export const bookmarkAssetProps: {
     description: T.Validator<string>;
     favicon: T.Validator<string>;
@@ -500,7 +500,7 @@ export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__ty
 // @public
 export const imageAssetMigrations: MigrationSequence;
 
-// @public (undocumented)
+// @public
 export const imageAssetProps: {
     fileSize: T.Validator<number | undefined>;
     h: T.Validator<number>;
@@ -1754,7 +1754,7 @@ export const vecModelValidator: T.ObjectValidator<VecModel>;
 // @public
 export const videoAssetMigrations: MigrationSequence;
 
-// @public (undocumented)
+// @public
 export const videoAssetProps: {
     fileSize: T.Validator<number | undefined>;
     h: T.Validator<number>;

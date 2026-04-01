@@ -1,5 +1,7 @@
 import {
 	AssetRecordType,
+	DEFAULT_SUPPORTED_IMAGE_TYPES,
+	DEFAULT_SUPPORT_VIDEO_TYPES,
 	Editor,
 	TLAsset,
 	TLAssetId,
@@ -801,6 +803,7 @@ async function maybeSanitizeSvgFile(file: File): Promise<File | null> {
 /**
  * Checks if a file is allowed to be uploaded. If it is not, it will show a toast explaining why to the user.
  *
+ * @param editor - The editor instance
  * @param file - The file to check
  * @param options - The options for the external content handler
  * @returns True if the file is allowed, false otherwise
@@ -811,11 +814,21 @@ export function notifyIfFileNotAllowed(
 	file: File,
 	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const { maxAssetSize = DEFAULT_MAX_ASSET_SIZE, toasts, msg } = options
+	const {
+		maxAssetSize = DEFAULT_MAX_ASSET_SIZE,
+		acceptedImageMimeTypes,
+		acceptedVideoMimeTypes,
+		toasts,
+		msg,
+	} = options
 
-	// Check if any registered asset util accepts this file type
-	const assetUtil = editor.getAssetUtilForMimeType(file.type)
-	if (!assetUtil) {
+	// If explicit MIME type lists are provided, use them; otherwise check asset utils
+	const isFileTypeAllowed =
+		acceptedImageMimeTypes || acceptedVideoMimeTypes
+			? (acceptedImageMimeTypes ?? DEFAULT_SUPPORTED_IMAGE_TYPES).includes(file.type) ||
+				(acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES).includes(file.type)
+			: !!editor.getAssetUtilForMimeType(file.type)
+	if (!isFileTypeAllowed) {
 		toasts.addToast({
 			title: msg('assets.files.type-not-allowed'),
 			severity: 'error',
@@ -862,8 +875,10 @@ export function notifyIfFileNotAllowed(
 
 /** @public */
 export async function getAssetInfo(editor: Editor, file: File, assetId?: TLAssetId) {
-	const hash = getHashForBuffer(await file.arrayBuffer())
-	assetId ??= AssetRecordType.createId(hash)
+	if (!assetId) {
+		const hash = getHashForBuffer(await file.arrayBuffer())
+		assetId = AssetRecordType.createId(hash)
+	}
 
 	const assetUtil = editor.getAssetUtilForMimeType(file.type)
 	if (!assetUtil) return null

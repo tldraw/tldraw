@@ -81,7 +81,6 @@ export type TLVideoAsset = TLBaseAsset<
  *
  * @public
  */
-/** @public */
 export const videoAssetProps = {
 	w: T.number,
 	h: T.number,

@@ -42,7 +42,6 @@ export type TLBookmarkAsset = TLBaseAsset<
  *
  * @public
  */
-/** @public */
 export const bookmarkAssetProps = {
 	title: T.string,
 	description: T.string,

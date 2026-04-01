@@ -42,7 +42,8 @@ export class VideoAssetUtil extends AssetUtil<TLVideoAsset> {
 			fileType = 'video/mp4'
 		}
 
-		const size = await MediaHelpers.getVideoSize(file)
+		const doc = this.editor.getContainerDocument()
+		const size = await MediaHelpers.getVideoSize(file, doc)
 
 		return {
 			id: assetId,
