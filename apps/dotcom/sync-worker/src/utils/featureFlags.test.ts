@@ -165,12 +165,14 @@ describe('getFeatureFlagValue', () => {
 	})
 
 	it('returns defaults on KV error', async () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const env = makeEnv()
 		env.FEATURE_FLAGS.get = vi.fn(async () => {
 			throw new Error('KV down')
 		})
 		const value = await getFeatureFlagValue(env as any, 'zero_kill_switch')
 		expect(value).toMatchObject({ type: 'boolean', enabled: false })
+		consoleSpy.mockRestore()
 	})
 })
 

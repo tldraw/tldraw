@@ -24,9 +24,9 @@ timeout = "5s"
 path = "/"
 
 [[vm]]
-memory = "2gb"
+memory = "__VM_MEMORY"
 cpu_kind = "shared"
-cpus = 2
+cpus = __VM_CPUS
 
 [mounts]
 source = "sqlite_db"

@@ -1,5 +1,5 @@
 import { atom, computed } from '@tldraw/state'
-import { TLUser } from '../../../config/createTLUser'
+import { TLCurrentUser } from '../../../config/createTLCurrentUser'
 import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
 import { getGlobalWindow } from '../../../utils/dom'
 
@@ -11,7 +11,7 @@ export class UserPreferencesManager {
 		this.disposables.forEach((d) => d())
 	}
 	constructor(
-		private readonly user: TLUser,
+		private readonly user: TLCurrentUser,
 		private readonly inferDarkMode: boolean
 	) {
 		if (typeof window === 'undefined' || !getGlobalWindow().matchMedia) return

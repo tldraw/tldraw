@@ -16,9 +16,13 @@ const DIAGRAM_KEYWORD_REGEX =
 	/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|erDiagram|journey|gantt|pie|gitGraph|mindmap|timeline|sankey|xychart|block|quadrantChart|requirement|C4Context|C4Container|C4Component|C4Dynamic|C4Deployment|packet|kanban|architecture|treemap|radar|info)/
 
 /**
- * Captures the inner content of a mermaid code blog marked by ```mermaid
+ * Leading ```mermaid (or longer run) fence, closed by the first line that ends
+ * the same run length (CommonMark-style: inner shorter ``` lines do not close a
+ * longer fence). Trailing markdown after the block is allowed so multi-block
+ * pastes do not pull in later fences. Group 1 = fence run, group 2 = diagram body.
  */
-const MARKDOWN_MERMAID_FENCE_REGEX = /^\s*```+\s*mermaid\s*\n([\s\S]*?)\n\s*```+\s*$/
+const MARKDOWN_MERMAID_FENCE_REGEX =
+	/^\s*(```+)\s*mermaid\s*\r?\n([\s\S]*?)\r?\n\s*\1\s*(?:[\s\S]*)$/
 
 /**
  * Strip mermaid boilerplate (frontmatter, directives, comments) so only the
@@ -34,7 +38,7 @@ function stripMermaidBoilerplate(text: string): string {
 
 export function stripMarkdownMermaidFence(text: string): string {
 	const match = text.match(MARKDOWN_MERMAID_FENCE_REGEX)
-	return match ? match[1] : text
+	return match ? match[2] : text
 }
 
 export function simpleMermaidStringTest(text: string): boolean {
