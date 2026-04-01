@@ -3,7 +3,7 @@ import {
 	DefaultFontStyle,
 	isFontEntry,
 	type TLTheme,
-	type TLThemeColorPalette,
+	type TLThemeColors,
 	type TLThemeFont,
 } from '@tldraw/editor'
 import { TLUiIconJsx } from './ui/components/primitives/TldrawUiIcon'
@@ -28,7 +28,7 @@ function isPaletteColor(value: unknown): boolean {
  *
  * @public
  */
-export function getColorStyleItems(colors: TLThemeColorPalette): StyleValuesForUi<string> {
+export function getColorStyleItems(colors: TLThemeColors): StyleValuesForUi<string> {
 	const result: StyleValuesForUi<string>[number][] = []
 	const seen = new Set<string>()
 

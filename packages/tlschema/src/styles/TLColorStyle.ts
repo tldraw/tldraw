@@ -1,15 +1,15 @@
 import { StyleProp } from './StyleProp'
-import { TLDefaultColor, TLTheme, TLThemeColors } from './TLTheme'
+import { TLDefaultColor, TLTheme, TLThemeDefaultColors } from './TLTheme'
 
 /**
- * The names of all available shape colors, derived from {@link TLThemeColors}.
- * Extend {@link TLThemeColors} to add custom color names.
+ * The names of all available shape colors, derived from {@link TLThemeDefaultColors}.
+ * Extend {@link TLThemeDefaultColors} to add custom color names.
  *
  * @public
  */
 export type TLDefaultColorStyle = {
-	[K in keyof TLThemeColors]: TLThemeColors[K] extends TLDefaultColor ? K : never
-}[keyof TLThemeColors] &
+	[K in keyof TLThemeDefaultColors]: TLThemeDefaultColors[K] extends TLDefaultColor ? K : never
+}[keyof TLThemeDefaultColors] &
 	string
 
 /**

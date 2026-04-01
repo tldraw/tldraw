@@ -1489,6 +1489,10 @@ export interface TLPropsMigrations {
 export type TLRecord = TLCustomRecord | TLDefaultRecord;
 
 // @public
+export interface TLRemovedThemeColors {
+}
+
+// @public
 export type TLRichText = T.TypeOf<typeof richTextValidator>;
 
 // @public
@@ -1582,14 +1586,17 @@ export interface TLTextShapeProps {
 export interface TLTheme {
     // (undocumented)
     colors: {
-        dark: TLThemeColors;
-        light: TLThemeColors;
+        dark: TLThemeColorPalette;
+        light: TLThemeColorPalette;
     };
     fonts: Partial<TLThemeFonts>;
     fontSize: number;
     lineHeight: number;
     strokeWidth: number;
 }
+
+// @public
+export type TLThemeColorPalette = Pick<TLThemeColors, TLThemeUiColorKeys> & Omit<TLThemeColors, keyof TLRemovedThemeColors | TLThemeUiColorKeys>;
 
 // @public
 export interface TLThemeColors {
@@ -1613,6 +1620,8 @@ export interface TLThemeColors {
     green: TLDefaultColor;
     // (undocumented)
     grey: TLDefaultColor;
+    // (undocumented)
+    negativeSpace: string;
     // (undocumented)
     noteBorder: string;
     // (undocumented)
@@ -1658,6 +1667,9 @@ export interface TLThemes {
     // (undocumented)
     default: TLTheme;
 }
+
+// @public
+export type TLThemeUiColorKeys = 'background' | 'cursor' | 'negativeSpace' | 'noteBorder' | 'solid' | 'text';
 
 // @public
 export type TLUnknownBinding = TLBaseBinding<string, object>;

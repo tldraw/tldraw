@@ -91,7 +91,7 @@ import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStoreSchema } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLTheme } from '@tldraw/tlschema';
-import { TLThemeColors } from '@tldraw/tlschema';
+import { TLThemeColorPalette } from '@tldraw/tlschema';
 import { TLThemeFonts } from '@tldraw/tlschema';
 import { TLThemeId } from '@tldraw/tlschema';
 import { TLThemes } from '@tldraw/tlschema';
@@ -1868,7 +1868,7 @@ export interface Geometry2dOptions extends TransformedGeometry2dOptions {
 export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number): number;
 
 // @public
-export function getColorValue(colors: TLThemeColors, color: string | TLDefaultColorStyle, variant: keyof TLDefaultColor): string;
+export function getColorValue(colors: TLThemeColorPalette, color: string | TLDefaultColorStyle, variant: keyof TLDefaultColor): string;
 
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;

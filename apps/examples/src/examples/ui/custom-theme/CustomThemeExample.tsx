@@ -21,7 +21,7 @@ import './custom-theme.css'
 // Because we pass `themes` to `<Tldraw>`, the custom names are
 // registered automatically at store creation time.
 declare module 'tldraw' {
-	interface TLThemeColors {
+	interface TLThemeDefaultColors {
 		pink: TLDefaultColor
 	}
 	interface TLThemeFonts {
@@ -29,7 +29,7 @@ declare module 'tldraw' {
 		cursive: TLThemeFont
 	}
 	// [7] Remove the "light-*" color variants from the palette.
-	interface TLRemovedThemeColors {
+	interface TLRemovedDefaultColors {
 		'light-violet': true
 		'light-blue': true
 		'light-green': true

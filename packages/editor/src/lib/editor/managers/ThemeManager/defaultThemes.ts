@@ -3,7 +3,7 @@ import {
 	TLDefaultColor,
 	TLDefaultColorStyle,
 	TLTheme,
-	TLThemeColorPalette,
+	TLThemeColors,
 	TLThemeFonts,
 } from '@tldraw/tlschema'
 
@@ -596,7 +596,7 @@ export const DEFAULT_THEME: TLTheme = {
  * @public
  */
 export function getColorValue(
-	colors: TLThemeColorPalette,
+	colors: TLThemeColors,
 	color: TLDefaultColorStyle | string,
 	variant: keyof TLDefaultColor
 ): string {

@@ -54,7 +54,7 @@ export interface TLDefaultColor {
  *
  * @public
  */
-export interface TLThemeColors {
+export interface TLThemeDefaultColors {
 	text: string
 	background: string
 	negativeSpace: string
@@ -134,12 +134,12 @@ export interface TLThemeFonts {
 
 /**
  * Augment this interface to remove built-in palette colors from themes.
- * Each key you add will be omitted from {@link TLThemeColorPalette}.
+ * Each key you add will be omitted from {@link TLThemeColors}.
  *
  * @example
  * ```ts
  * declare module '@tldraw/tlschema' {
- *   interface TLRemovedThemeColors {
+ *   interface TLRemovedDefaultThemeColors {
  *     'light-violet': true
  *     'light-blue': true
  *   }
@@ -148,11 +148,12 @@ export interface TLThemeFonts {
  *
  * @public
  */
-export interface TLRemovedThemeColors {}
+// oxlint-disable-next-line typescript/no-empty-object-type
+export interface TLRemovedDefaultThemeColors {}
 
 /**
- * Keys in {@link TLThemeColors} that are required UI infrastructure colors
- * and cannot be removed via {@link TLRemovedThemeColors}.
+ * Keys in {@link TLThemeDefaultColors} that are required UI infrastructure colors
+ * and cannot be removed via {@link TLRemovedDefaultThemeColors}.
  *
  * @public
  */
@@ -166,18 +167,18 @@ export type TLThemeUiColorKeys =
 
 /**
  * A color palette for one color mode. UI colors are always required.
- * Palette colors removed via {@link TLRemovedThemeColors} are omitted.
+ * Palette colors removed via {@link TLRemovedDefaultThemeColors} are omitted.
  *
  * @public
  */
-export type TLThemeColorPalette = Pick<TLThemeColors, TLThemeUiColorKeys> &
-	Omit<TLThemeColors, TLThemeUiColorKeys | keyof TLRemovedThemeColors>
+export type TLThemeColors = Pick<TLThemeDefaultColors, TLThemeUiColorKeys> &
+	Omit<TLThemeDefaultColors, TLThemeUiColorKeys | keyof TLRemovedDefaultThemeColors>
 
 /**
  * A theme definition containing shared properties and color/font palettes for
  * both light and dark modes.
  *
- * To remove palette colors from themes, augment {@link TLRemovedThemeColors}.
+ * To remove palette colors from themes, augment {@link TLRemovedDefaultThemeColors}.
  * UI colors (`text`, `background`, `negativeSpace`, `solid`, `cursor`, `noteBorder`)
  * are always required.
  *
@@ -208,8 +209,8 @@ export interface TLTheme {
 	/** Font definitions. Individual fonts may be absent if removed by a custom theme. */
 	fonts: Partial<TLThemeFonts>
 	colors: {
-		light: TLThemeColorPalette
-		dark: TLThemeColorPalette
+		light: TLThemeColors
+		dark: TLThemeColors
 	}
 }
 
