@@ -46,10 +46,10 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	static override migrations = bookmarkShapeMigrations
 
 	override options: BookmarkShapeOptions = {
-		getDisplayValues(): BookmarkShapeUtilDisplayValues {
+		getDefaultDisplayValues(): BookmarkShapeUtilDisplayValues {
 			return {}
 		},
-		getDisplayValueOverrides(): Partial<BookmarkShapeUtilDisplayValues> {
+		getCustomDisplayValues(): Partial<BookmarkShapeUtilDisplayValues> {
 			return {}
 		},
 	}

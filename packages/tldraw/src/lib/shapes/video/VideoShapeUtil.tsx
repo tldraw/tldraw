@@ -46,10 +46,10 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 	override options: VideoShapeOptions = {
 		autoplay: true,
-		getDisplayValues(): VideoShapeUtilDisplayValues {
+		getDefaultDisplayValues(): VideoShapeUtilDisplayValues {
 			return {}
 		},
-		getDisplayValueOverrides(): Partial<VideoShapeUtilDisplayValues> {
+		getCustomDisplayValues(): Partial<VideoShapeUtilDisplayValues> {
 			return {}
 		},
 	}

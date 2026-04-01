@@ -5,13 +5,13 @@ export interface ShapeOptionsWithDisplayValues<
 	Shape extends TLShape,
 	DisplayValues extends object,
 > {
-	getDisplayValues(
+	getDefaultDisplayValues(
 		editor: Editor,
 		shape: Shape,
 		theme: TLTheme,
 		colorMode: 'light' | 'dark'
 	): DisplayValues
-	getDisplayValueOverrides(
+	getCustomDisplayValues(
 		editor: Editor,
 		shape: Shape,
 		theme: TLTheme,
@@ -41,8 +41,8 @@ export function getDisplayValues<Shape extends TLShape, DisplayValues extends ob
 		return cached.values as DisplayValues
 	}
 	const values = {
-		...util.options.getDisplayValues(util.editor, shape, theme, resolvedColorMode),
-		...util.options.getDisplayValueOverrides(util.editor, shape, theme, resolvedColorMode),
+		...util.options.getDefaultDisplayValues(util.editor, shape, theme, resolvedColorMode),
+		...util.options.getCustomDisplayValues(util.editor, shape, theme, resolvedColorMode),
 	}
 	dvCache.set(shape, { theme, colorMode: resolvedColorMode, values })
 	return values

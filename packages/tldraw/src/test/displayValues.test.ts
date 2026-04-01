@@ -189,7 +189,7 @@ describe('arrow strokeWidth from display values', () => {
 
 	it('configure() override of strokeWidth flows to display values', () => {
 		const ConfiguredArrow = ArrowShapeUtil.configure({
-			getDisplayValueOverrides() {
+			getCustomDisplayValues() {
 				return { strokeWidth: 999 }
 			},
 		})

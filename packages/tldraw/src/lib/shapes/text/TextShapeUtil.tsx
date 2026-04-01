@@ -72,7 +72,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	override options: TextShapeOptions = {
 		extraArrowHorizontalPadding: 10,
 		showTextOutline: true,
-		getDisplayValues(_editor, shape, theme, colorMode): TextShapeUtilDisplayValues {
+		getDefaultDisplayValues(_editor, shape, theme, colorMode): TextShapeUtilDisplayValues {
 			const { color, font, size } = shape.props
 			return {
 				color: getColorValue(theme.colors[colorMode], color, 'solid'),
@@ -84,7 +84,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				fontVariant: TEXT_PROPS.fontVariant,
 			}
 		},
-		getDisplayValueOverrides(): Partial<TextShapeUtilDisplayValues> {
+		getCustomDisplayValues(): Partial<TextShapeUtilDisplayValues> {
 			return {}
 		},
 	}

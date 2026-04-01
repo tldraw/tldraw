@@ -7,8 +7,8 @@ import { DEFAULT_THEME } from './defaultThemes'
  * Manages the editor's color themes.
  *
  * Stores named theme definitions (each containing light and dark color palettes
- * alongside shared properties like font size). The active theme is resolved by
- * combining the active theme name with the user's color mode preference.
+ * alongside shared properties like font size). The current theme is resolved by
+ * combining the current theme name with the user's color mode preference.
  *
  * **Terminology:**
  * - **Theme** (`TLTheme`): A named set of colors and typographic values for both light and dark modes.
@@ -32,7 +32,7 @@ export class ThemeManager {
 			default: DEFAULT_THEME,
 			...options?.themes,
 		})
-		this._currentThemeId = atom('ThemeManager._activeThemeName', options?.initial ?? 'default')
+		this._currentThemeId = atom('ThemeManager._currentThemeName', options?.initial ?? 'default')
 	}
 
 	/** Get the current color mode based on the user's dark mode preference. */
@@ -50,7 +50,7 @@ export class ThemeManager {
 		return this._themes.get()[id]
 	}
 
-	/** Get the id of the active theme. */
+	/** Get the id of the current theme. */
 	getCurrentThemeId(): TLThemeId {
 		return this._currentThemeId.get()
 	}
@@ -59,7 +59,7 @@ export class ThemeManager {
 		return this._themes.get()[this.getCurrentThemeId()]!
 	}
 
-	/** Set the active theme by name. The theme must have been previously registered. */
+	/** Set the current theme by name. The theme must have been previously registered. */
 	setCurrentTheme(id: TLThemeId): void {
 		if (process.env.NODE_ENV !== 'production') {
 			if (!(id in this._themes.get())) {
@@ -113,7 +113,7 @@ export class ThemeManager {
 				return next
 			})
 
-			// If the removed theme was active, fall back to 'default'
+			// If the removed theme was current, fall back to 'default'
 			if (this._currentThemeId.get() === id) {
 				this._currentThemeId.set('default')
 			}

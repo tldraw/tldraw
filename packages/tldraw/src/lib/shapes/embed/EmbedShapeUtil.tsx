@@ -59,12 +59,12 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	override options: EmbedShapeOptions = {
 		embedDefinitions: DEFAULT_EMBED_DEFINITIONS,
-		getDisplayValues(): EmbedShapeUtilDisplayValues {
+		getDefaultDisplayValues(): EmbedShapeUtilDisplayValues {
 			return {
 				showShadow: true,
 			}
 		},
-		getDisplayValueOverrides(): Partial<EmbedShapeUtilDisplayValues> {
+		getCustomDisplayValues(): Partial<EmbedShapeUtilDisplayValues> {
 			return {}
 		},
 	}
