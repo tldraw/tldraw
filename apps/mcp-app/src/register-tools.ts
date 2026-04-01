@@ -68,6 +68,50 @@ export function registerTools(
 
 	registerExecTool(server, { analytics, log, pendingRequests: opts.pendingRequests })
 
+	// --- _exec_callback (app-only: widget resolves pending exec via callServerTool) ---
+
+	server.registerTool(
+		'_exec_callback',
+		{
+			title: 'Exec Callback',
+			description: 'App-only: widget calls this to resolve a pending exec request.',
+			inputSchema: z.object({
+				channel: z.string(),
+				result: z
+					.object({
+						success: z.boolean(),
+						result: z.unknown().optional(),
+						error: z.string().optional(),
+					})
+					.optional(),
+				error: z.string().optional(),
+			}),
+			annotations: {
+				readOnlyHint: false,
+				destructiveHint: false,
+				idempotentHint: false,
+				openWorldHint: false,
+			},
+			_meta: { ui: { visibility: ['app'] } },
+		},
+		async ({
+			channel,
+			result,
+			error,
+		}: {
+			channel: string
+			result?: { success: boolean; result?: unknown; error?: string }
+			error?: string
+		}): Promise<CallToolResult> => {
+			if (error) {
+				opts.pendingRequests.reject(channel, error)
+			} else {
+				opts.pendingRequests.resolve(channel, result)
+			}
+			return { content: [{ type: 'text', text: 'ok' }] }
+		}
+	)
+
 	// --- read_checkpoint (app-only) ---
 
 	server.registerTool(

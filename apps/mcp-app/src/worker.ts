@@ -169,47 +169,6 @@ export class TldrawMCP extends McpAgent<Env> {
 		})
 	}
 
-	// --- Callback handler (widget → server bridge) ---
-
-	override async onRequest(request: Request): Promise<Response> {
-		const url = new URL(request.url)
-		if (url.pathname === '/callback' && request.method === 'POST') {
-			return this.handleCallback(request)
-		}
-		return super.onRequest(request)
-	}
-
-	private async handleCallback(request: Request): Promise<Response> {
-		try {
-			const body = (await request.json()) as {
-				channel?: string
-				result?: unknown
-				error?: string
-			}
-			const channel = body.channel
-			if (typeof channel !== 'string') {
-				this.logger.error('Callback: missing channel in body')
-				return Response.json({ error: 'Missing channel' }, { status: 400 })
-			}
-
-			this.logger.info(`Callback received for channel "${channel}"`, {
-				hasError: !!body.error,
-				hasResult: body.result !== undefined,
-			})
-
-			if (body.error) {
-				this.pendingRequests.reject(channel, body.error)
-			} else {
-				this.pendingRequests.resolve(channel, body.result)
-			}
-
-			return Response.json({ ok: true })
-		} catch (err) {
-			this.logger.error('Callback handler error', { error: String(err) })
-			return Response.json({ error: 'Invalid request' }, { status: 400 })
-		}
-	}
-
 	// --- Checkpoint helpers ---
 
 	saveCheckpoint(id: string, shapes: unknown[], assets: unknown[] = [], bindings: unknown[] = []) {
@@ -281,22 +240,6 @@ export default {
 			// SSE transport (legacy)
 			if (url.pathname === '/sse' || url.pathname.startsWith('/sse/')) {
 				return sseHandler.fetch(request, env, ctx)
-			}
-
-			// Widget callback endpoint (resolves pending requests in the DO)
-			if (url.pathname === '/callback' && request.method === 'POST') {
-				const mcpSessionId = request.headers.get('mcp-session-id')
-				console.log(`[callback] Received callback, mcp-session-id: ${mcpSessionId ?? 'MISSING'}`)
-				if (!mcpSessionId) {
-					return corsResponse(new Response('Missing Mcp-Session-Id header', { status: 400 }))
-				}
-				const doName = `streamable-http:${mcpSessionId}`
-				console.log(`[callback] Routing to DO: ${doName}`)
-				const doId = env.MCP_OBJECT.idFromName(doName)
-				const stub = env.MCP_OBJECT.get(doId)
-				const doResponse = await stub.fetch(request)
-				console.log(`[callback] DO responded with status: ${doResponse.status}`)
-				return corsResponse(doResponse)
 			}
 
 			// Streamable HTTP transport

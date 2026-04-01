@@ -177,8 +177,8 @@ function TldrawCanvas({ app }: { app: App }) {
 	const checkpointIdRef = useRef<string | null>(null)
 	const removeStoreListenerRef = useRef<(() => void) | null>(null)
 	const isDevRef = useRef(false)
-	const workerOriginRef = useRef<string | undefined>(undefined)
-	const mcpSessionIdRef = useRef<string | undefined>(undefined)
+	const editorReadyResolveRef = useRef<((editor: Editor) => void) | null>(null)
+	const editorReadyPromiseRef = useRef<Promise<Editor> | null>(null)
 	const saveTimerRef = useRef<number | null>(null)
 	const hasUserEditedSinceAiRef = useRef(false)
 	const lastEditorRef = useRef<'user' | 'ai'>('ai')
@@ -308,6 +308,20 @@ function TldrawCanvas({ app }: { app: App }) {
 		]
 	)
 
+	/** Returns the editor, waiting for mount if it hasn't happened yet. */
+	const waitForEditor = useCallback((): Promise<Editor> => {
+		const editor = editorRef.current
+		if (editor) return Promise.resolve(editor)
+
+		// Reuse existing promise if already waiting
+		if (editorReadyPromiseRef.current) return editorReadyPromiseRef.current
+
+		editorReadyPromiseRef.current = new Promise<Editor>((resolve) => {
+			editorReadyResolveRef.current = resolve
+		})
+		return editorReadyPromiseRef.current
+	}, [])
+
 	const scheduleSave = useCallback(() => {
 		if (saveTimerRef.current !== null) {
 			window.clearTimeout(saveTimerRef.current)
@@ -342,14 +356,12 @@ function TldrawCanvas({ app }: { app: App }) {
 		if (bootstrap) {
 			setCurrentSessionId(bootstrap.sessionId)
 			isDevRef.current = bootstrap.isDev
-			workerOriginRef.current = bootstrap.workerOrigin
-			mcpSessionIdRef.current = bootstrap.mcpSessionId
 			setIsDev(bootstrap.isDev)
 			if (bootstrap.isDev) {
 				setIsDevLogVisible(true)
 			}
 			logIfDevMode(
-				`Bootstrap loaded for session ${bootstrap.sessionId}${bootstrap.isDev ? ' (dev mode)' : ''}, workerOrigin: ${bootstrap.workerOrigin ?? 'MISSING'}, mcpSessionId: ${bootstrap.mcpSessionId ?? 'MISSING'}`
+				`Bootstrap loaded for session ${bootstrap.sessionId}${bootstrap.isDev ? ' (dev mode)' : ''}`
 			)
 
 			if (bootstrap.snapshot && bootstrap.snapshot.shapes.length > 0) {
@@ -433,35 +445,13 @@ function TldrawCanvas({ app }: { app: App }) {
 			const code = params.arguments?.code
 			if (typeof code !== 'string' || !code.trim()) return
 
-			const workerOrigin = workerOriginRef.current
-			const mcpSessionId = mcpSessionIdRef.current
-			if (!workerOrigin || !mcpSessionId) {
-				logIfDevMode('Exec: missing workerOrigin or mcpSessionId, skipping callback')
-				return
-			}
-
 			logIfDevMode(`Exec called via ontoolinput`)
 			markAiActivity()
 
-			const callbackUrl = `${workerOrigin}/callback`
-
-			// Fire-and-forget: execute code and POST result to the server callback
+			// Fire-and-forget: execute code and resolve via callServerTool
 			void (async () => {
-				const editor = editorRef.current
-				if (!editor) {
-					logIfDevMode(`Exec: editor not mounted, sending error callback to ${callbackUrl}`)
-					await fetch(callbackUrl, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							'Mcp-Session-Id': mcpSessionId,
-						},
-						body: JSON.stringify({ channel: 'exec', error: 'Editor is not mounted yet.' }),
-					}).catch((err) => {
-						logIfDevMode(`Exec: error callback POST failed: ${err}`)
-					})
-					return
-				}
+				const editor = await waitForEditor()
+				logIfDevMode('Exec: editor ready, executing code')
 
 				const execResult = await executeCode(editor, code)
 				logIfDevMode(
@@ -492,28 +482,16 @@ function TldrawCanvas({ app }: { app: App }) {
 					zoomToFitRequestShapes(editor, allShapeIds)
 				}
 
-				// POST result back to the server to resolve the pending tool call
-				const callbackBody = {
-					channel: 'exec',
-					...(execResult.success
-						? { result: { success: true, result: execResult.result } }
-						: { result: { success: false, error: execResult.error } }),
-				}
-				logIfDevMode(
-					`Exec: POSTing callback to ${callbackUrl} (session: ${mcpSessionId}): ${JSON.stringify(callbackBody)}`
-				)
+				// Resolve the pending exec via callServerTool
+				const callbackArgs = execResult.success
+					? { channel: 'exec', result: { success: true, result: execResult.result } }
+					: { channel: 'exec', result: { success: false, error: execResult.error } }
+				logIfDevMode(`Exec: calling _exec_callback: ${JSON.stringify(callbackArgs)}`)
 				try {
-					const resp = await fetch(callbackUrl, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							'Mcp-Session-Id': mcpSessionId,
-						},
-						body: JSON.stringify(callbackBody),
-					})
-					logIfDevMode(`Exec: callback response status: ${resp.status}`)
+					await app.callServerTool({ name: '_exec_callback', arguments: callbackArgs })
+					logIfDevMode('Exec: _exec_callback succeeded')
 				} catch (err) {
-					logIfDevMode(`Exec: callback POST failed: ${err}`)
+					logIfDevMode(`Exec: _exec_callback failed: ${err}`)
 				}
 			})()
 		}
@@ -592,7 +570,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			removeStoreListenerRef.current?.()
 			removeStoreListenerRef.current = null
 		}
-	}, [app, logIfDevMode, markAiActivity])
+	}, [app, logIfDevMode, markAiActivity, waitForEditor])
 
 	useEffect(() => {
 		if (!isMobilePlatform || displayMode !== 'fullscreen') return
@@ -621,6 +599,13 @@ function TldrawCanvas({ app }: { app: App }) {
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			editorRef.current = editor
+
+			// Resolve any pending waitForEditor() calls
+			if (editorReadyResolveRef.current) {
+				editorReadyResolveRef.current(editor)
+				editorReadyResolveRef.current = null
+				editorReadyPromiseRef.current = null
+			}
 
 			removeStoreListenerRef.current?.()
 			removeStoreListenerRef.current = editor.store.listen(
