@@ -302,8 +302,13 @@ declare module 'tldraw' {
 Then omit those colors when building your theme object:
 
 ```typescript
-const { 'light-violet': _, 'light-blue': __, 'light-green': ___, 'light-red': ____, ...kept } =
-	DEFAULT_THEME.colors.light
+const {
+	'light-violet': _,
+	'light-blue': __,
+	'light-green': ___,
+	'light-red': ____,
+	...kept
+} = DEFAULT_THEME.colors.light
 ```
 
 Colors removed this way won't appear in the style panel. UI infrastructure colors (`text`, `background`, `solid`, `cursor`, `noteBorder`, `negativeSpace`) cannot be removed.

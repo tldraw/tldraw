@@ -156,7 +156,13 @@ export interface TLRemovedThemeColors {}
  *
  * @public
  */
-export type TLThemeUiColorKeys = 'text' | 'background' | 'negativeSpace' | 'solid' | 'cursor' | 'noteBorder'
+export type TLThemeUiColorKeys =
+	| 'text'
+	| 'background'
+	| 'negativeSpace'
+	| 'solid'
+	| 'cursor'
+	| 'noteBorder'
 
 /**
  * A color palette for one color mode. UI colors are always required.
