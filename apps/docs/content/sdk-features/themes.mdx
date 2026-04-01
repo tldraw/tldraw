@@ -59,6 +59,7 @@ const myTheme: TLTheme = {
 		light: {
 			text: '#000000',
 			background: '#f8f8f8',
+			negativeSpace: '#f8f8f8',
 			solid: '#fcfcfc',
 			cursor: '#000000',
 			noteBorder: '#e8e8e8',
@@ -112,9 +113,9 @@ Each color in the palette is a [TLDefaultColor](?) with variants for different c
 | `highlightSrgb`      | Highlighter color in sRGB color space          |
 | `highlightP3`        | Highlighter color in Display P3 color space    |
 
-The palette also includes five base properties: `text` for default text color, `background` for the canvas background, `solid` for the default solid surface color, `cursor` for the cursor color, and `noteBorder` for note shape borders.
+The palette also includes six base properties: `text` for default text color, `background` for the canvas background color used in SVG exports, `negativeSpace` for areas that should appear to "cut through" to the background (e.g. frame heading knockouts and text outlines), `solid` for the default solid surface color, `cursor` for the cursor color, and `noteBorder` for note shape borders. In the default themes, `background` and `negativeSpace` have the same value, but custom themes can set them independently.
 
-> Note: The `background` property is used by shapes and exports to match the canvas background color, but the actual visible canvas background is set separately via the `--tl-color-background` CSS variable. If you customize `background` in your theme, make sure the CSS variable matches — otherwise exports and shape rendering may use a different background color than what's shown on the canvas.
+> Note: The `background` property is used in SVG exports to set the canvas background, but the actual visible canvas background is set separately via the `--tl-color-background` CSS variable. If you customize `background` in your theme, make sure the CSS variable matches — otherwise exports may use a different background color than what's shown on the canvas.
 
 In addition to colors, each theme has a `fontSize` (default `16`), `lineHeight` (default `1.35`), and `strokeWidth` (default `2`). All default shape font sizes are derived by multiplying the base `fontSize` by a per-shape-type multiplier, and stroke widths work the same way with `strokeWidth`, so changing these base values scales text and strokes proportionally. Because these are shared across light and dark modes, you only set them once per theme definition.
 
@@ -282,6 +283,30 @@ tldraw validates shape properties (including colors) when data enters the store,
 Every theme should include an entry for every custom color in both light and dark palettes. If a shape uses a color that doesn't exist in the active theme, it won't render correctly.
 
 See the [Custom theme](/examples/ui/custom-theme) example for a complete demo.
+
+## Removing colors
+
+To remove built-in palette colors, augment the `TLRemovedThemeColors` interface. Any key you add will be omitted from the theme's color palette type, so TypeScript will no longer expect it:
+
+```typescript
+declare module 'tldraw' {
+	interface TLRemovedThemeColors {
+		'light-violet': true
+		'light-blue': true
+		'light-green': true
+		'light-red': true
+	}
+}
+```
+
+Then omit those colors when building your theme object:
+
+```typescript
+const { 'light-violet': _, 'light-blue': __, 'light-green': ___, 'light-red': ____, ...kept } =
+	DEFAULT_THEME.colors.light
+```
+
+Colors removed this way won't appear in the style panel. UI infrastructure colors (`text`, `background`, `solid`, `cursor`, `noteBorder`, `negativeSpace`) cannot be removed.
 
 ## Using themes in shape utils
 

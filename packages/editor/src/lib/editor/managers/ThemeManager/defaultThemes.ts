@@ -3,7 +3,7 @@ import {
 	TLDefaultColor,
 	TLDefaultColorStyle,
 	TLTheme,
-	TLThemeColors,
+	TLThemeColorPalette,
 	TLThemeFonts,
 } from '@tldraw/tlschema'
 
@@ -135,6 +135,7 @@ export const DEFAULT_THEME: TLTheme = {
 		light: {
 			text: '#000000',
 			background: '#f9fafb',
+			negativeSpace: '#f9fafb',
 			solid: '#fcfffe',
 			cursor: 'black',
 			noteBorder: 'rgb(144, 144, 144)',
@@ -350,6 +351,7 @@ export const DEFAULT_THEME: TLTheme = {
 		dark: {
 			text: 'hsl(210, 17%, 98%)',
 			background: 'hsl(240, 5%, 6.5%)',
+			negativeSpace: 'hsl(240, 5%, 6.5%)',
 			solid: '#010403',
 			cursor: 'white',
 			noteBorder: 'rgb(20, 20, 20)',
@@ -594,7 +596,7 @@ export const DEFAULT_THEME: TLTheme = {
  * @public
  */
 export function getColorValue(
-	colors: TLThemeColors,
+	colors: TLThemeColorPalette,
 	color: TLDefaultColorStyle | string,
 	variant: keyof TLDefaultColor
 ): string {

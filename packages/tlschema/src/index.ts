@@ -312,12 +312,15 @@ export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
 export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TLTextAlignStyle'
 export {
 	type TLDefaultColor,
+	type TLRemovedThemeColors,
 	type TLTheme,
+	type TLThemeColorPalette,
 	type TLThemeColors,
 	type TLThemeFont,
 	type TLThemeFonts,
 	type TLThemeId,
 	type TLThemes,
+	type TLThemeUiColorKeys,
 } from './styles/TLTheme'
 export {
 	DefaultVerticalAlignStyle,

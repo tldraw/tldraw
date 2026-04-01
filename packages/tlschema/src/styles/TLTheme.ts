@@ -57,6 +57,7 @@ export interface TLDefaultColor {
 export interface TLThemeColors {
 	text: string
 	background: string
+	negativeSpace: string
 	solid: string
 	cursor: string
 	noteBorder: string
@@ -132,12 +133,47 @@ export interface TLThemeFonts {
 }
 
 /**
+ * Augment this interface to remove built-in palette colors from themes.
+ * Each key you add will be omitted from {@link TLThemeColorPalette}.
+ *
+ * @example
+ * ```ts
+ * declare module '@tldraw/tlschema' {
+ *   interface TLRemovedThemeColors {
+ *     'light-violet': true
+ *     'light-blue': true
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
+export interface TLRemovedThemeColors {}
+
+/**
+ * Keys in {@link TLThemeColors} that are required UI infrastructure colors
+ * and cannot be removed via {@link TLRemovedThemeColors}.
+ *
+ * @public
+ */
+export type TLThemeUiColorKeys = 'text' | 'background' | 'negativeSpace' | 'solid' | 'cursor' | 'noteBorder'
+
+/**
+ * A color palette for one color mode. UI colors are always required.
+ * Palette colors removed via {@link TLRemovedThemeColors} are omitted.
+ *
+ * @public
+ */
+export type TLThemeColorPalette = Pick<TLThemeColors, TLThemeUiColorKeys> &
+	Omit<TLThemeColors, TLThemeUiColorKeys | keyof TLRemovedThemeColors>
+
+/**
  * A theme definition containing shared properties and color/font palettes for
  * both light and dark modes.
  *
- * Palette colors within `colors.light` / `colors.dark` are individually
- * optional — omit keys to remove colors from the style panel. UI colors
- * (`text`, `background`, `solid`, `cursor`, `noteBorder`) are always required.
+ * To remove palette colors from themes, augment {@link TLRemovedThemeColors}.
+ * UI colors (`text`, `background`, `negativeSpace`, `solid`, `cursor`, `noteBorder`)
+ * are always required.
  *
  * @example
  * ```ts
@@ -166,8 +202,8 @@ export interface TLTheme {
 	/** Font definitions. Individual fonts may be absent if removed by a custom theme. */
 	fonts: Partial<TLThemeFonts>
 	colors: {
-		light: TLThemeColors
-		dark: TLThemeColors
+		light: TLThemeColorPalette
+		dark: TLThemeColorPalette
 	}
 }
 
