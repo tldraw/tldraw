@@ -7,9 +7,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import { createTextJsxFromSpans } from './createTextJsxFromSpans'
-import { TEXT_PROPS } from './default-shape-constants'
 import { getLegacyOffsetX } from './legacyProps'
-import { useDefaultColorTheme } from './useDefaultColorTheme'
 
 export function SvgTextLabel({
 	fontSize,
@@ -37,7 +35,7 @@ export function SvgTextLabel({
 	showTextOutline?: boolean
 }) {
 	const editor = useEditor()
-	const theme = useDefaultColorTheme()
+	const { colors } = editor.getCurrentTheme()
 
 	const opts = {
 		fontSize,
@@ -47,7 +45,7 @@ export function SvgTextLabel({
 		width: Math.ceil(bounds.width),
 		height: Math.ceil(bounds.height),
 		padding,
-		lineHeight: TEXT_PROPS.lineHeight,
+		lineHeight: editor.getCurrentTheme().lineHeight,
 		fontStyle: 'normal',
 		fontWeight: 'normal',
 		overflow: 'wrap' as const,
@@ -71,8 +69,8 @@ export function SvgTextLabel({
 
 	let outlineSpans = null
 	if (showTextOutline && stroke) {
-		opts.fill = theme.background
-		opts.stroke = theme.background
+		opts.fill = colors.background
+		opts.stroke = colors.background
 		opts.strokeWidth = 3
 		outlineSpans = createTextJsxFromSpans(editor, spans, opts)
 	}
