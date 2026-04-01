@@ -31,6 +31,7 @@ cpus = __VM_CPUS
 [mounts]
 source = "sqlite_db"
 destination = "/data"
+initial_size = "__VOLUME_SIZE"
 
 [[files]]
 guest_path = "/etc/litestream.yml"
