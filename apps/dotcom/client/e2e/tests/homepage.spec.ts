@@ -52,11 +52,11 @@ test.describe('preferences', () => {
 			await expect(page.locator('div.tla-theme__dark.tl-theme__dark')).not.toBeVisible()
 			await expect(page.locator('div.tl-background')).toHaveCSS(
 				'background-color',
-				'rgb(249, 250, 251)'
+				'rgb(247, 247, 242)'
 			)
 			await expect(page.locator('div.tla-theme-container')).toHaveCSS(
 				'background-color',
-				'rgb(252, 252, 252)'
+				'rgb(247, 247, 242)'
 			)
 		})
 		await test.step('can toggle dark mode', async () => {
@@ -69,11 +69,11 @@ test.describe('preferences', () => {
 				await expect(page.locator('div.tla-theme__dark.tl-theme__dark')).toBeVisible()
 				await expect(page.locator('div.tl-background')).toHaveCSS(
 					'background-color',
-					'rgb(16, 16, 17)'
+					'rgb(33, 33, 33)'
 				)
 				await expect(page.locator('div.tla-theme-container')).toHaveCSS(
 					'background-color',
-					'rgb(13, 13, 13)'
+					'rgb(41, 41, 41)'
 				)
 			}, page)
 		})

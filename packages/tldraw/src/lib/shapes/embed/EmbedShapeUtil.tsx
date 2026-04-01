@@ -3,7 +3,6 @@
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
-	Rectangle2d,
 	TLEmbedShape,
 	TLEmbedShapeProps,
 	TLResizeInfo,
@@ -24,8 +23,7 @@ import {
 	embedShapePermissionDefaults,
 } from '../../defaultEmbedDefinitions'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
-import { BOOKMARK_JUST_URL_HEIGHT, BOOKMARK_WIDTH } from '../bookmark/bookmarks'
-import { BookmarkIndicatorComponent, BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
+import { BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
@@ -92,7 +90,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return true
 	}
 	override canResize(shape: TLEmbedShape) {
-		return !!this.getEmbedDefinition(shape.props.url)?.definition?.doesResize
+		return this.getEmbedDefinition(shape.props.url)?.definition?.doesResize ?? true
 	}
 	override canEditInReadonly() {
 		return true
@@ -107,14 +105,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override getGeometry(shape: TLEmbedShape) {
-		const embedInfo = this.getEmbedDefinition(shape.props.url)
-		if (!embedInfo?.definition) {
-			return new Rectangle2d({
-				width: BOOKMARK_WIDTH,
-				height: BOOKMARK_JUST_URL_HEIGHT,
-				isFilled: true,
-			})
-		}
 		return super.getGeometry(shape)
 	}
 
@@ -215,16 +205,18 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 		const sandbox = getSandboxPermissions({
 			...embedShapePermissionDefaults,
-			...(embedInfo?.definition.overridePermissions ?? {}),
+			...(embedInfo?.definition?.overridePermissions ?? {}),
 		})
+
+		const iframeSrc = embedInfo?.embedUrl ?? url
 
 		return (
 			<HTMLContainer className="tl-embed-container" id={shape.id}>
-				{embedInfo?.definition ? (
+				{iframeSrc ? (
 					<iframe
 						className="tl-embed"
 						sandbox={sandbox}
-						src={embedInfo.embedUrl}
+						src={iframeSrc}
 						width={toDomPrecision(w)}
 						height={toDomPrecision(h)}
 						draggable={false}
@@ -239,8 +231,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 							// Fix for safari <https://stackoverflow.com/a/49150908>
 							zIndex: isInteractive ? '' : '-1',
 							boxShadow: getRotatedBoxShadow(pageRotation),
-							borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
-							background: embedInfo?.definition.backgroundColor,
+							borderRadius: embedInfo?.definition?.overrideOutlineRadius ?? 8,
+							background: embedInfo?.definition?.backgroundColor,
 						}}
 					/>
 				) : (
@@ -258,16 +250,15 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	override indicator(shape: TLEmbedShape) {
 		const embedInfo = this.getEmbedDefinition(shape.props.url)
+		const radius = embedInfo?.definition?.overrideOutlineRadius ?? 8
 
-		return embedInfo?.definition ? (
+		return (
 			<rect
 				width={toDomPrecision(shape.props.w)}
 				height={toDomPrecision(shape.props.h)}
-				rx={embedInfo?.definition.overrideOutlineRadius ?? 8}
-				ry={embedInfo?.definition.overrideOutlineRadius ?? 8}
+				rx={radius}
+				ry={radius}
 			/>
-		) : (
-			<BookmarkIndicatorComponent w={BOOKMARK_WIDTH} h={BOOKMARK_JUST_URL_HEIGHT} />
 		)
 	}
 
@@ -278,14 +269,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	override getIndicatorPath(shape: TLEmbedShape): Path2D {
 		const path = new Path2D()
 		const embedInfo = this.getEmbedDefinition(shape.props.url)
-
-		if (embedInfo?.definition) {
-			const radius = embedInfo.definition.overrideOutlineRadius ?? 8
-			path.roundRect(0, 0, shape.props.w, shape.props.h, radius)
-		} else {
-			// Fallback to bookmark indicator
-			path.roundRect(0, 0, BOOKMARK_WIDTH, BOOKMARK_JUST_URL_HEIGHT, 6)
-		}
+		const radius = embedInfo?.definition?.overrideOutlineRadius ?? 8
+		path.roundRect(0, 0, shape.props.w, shape.props.h, radius)
 		return path
 	}
 
