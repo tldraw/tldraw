@@ -177,6 +177,8 @@ function TldrawCanvas({ app }: { app: App }) {
 	const checkpointIdRef = useRef<string | null>(null)
 	const removeStoreListenerRef = useRef<(() => void) | null>(null)
 	const isDevRef = useRef(false)
+	const workerOriginRef = useRef<string | undefined>(undefined)
+	const mcpSessionIdRef = useRef<string | undefined>(undefined)
 	const saveTimerRef = useRef<number | null>(null)
 	const hasUserEditedSinceAiRef = useRef(false)
 	const lastEditorRef = useRef<'user' | 'ai'>('ai')
@@ -340,12 +342,14 @@ function TldrawCanvas({ app }: { app: App }) {
 		if (bootstrap) {
 			setCurrentSessionId(bootstrap.sessionId)
 			isDevRef.current = bootstrap.isDev
+			workerOriginRef.current = bootstrap.workerOrigin
+			mcpSessionIdRef.current = bootstrap.mcpSessionId
 			setIsDev(bootstrap.isDev)
 			if (bootstrap.isDev) {
 				setIsDevLogVisible(true)
 			}
 			logIfDevMode(
-				`Bootstrap loaded for session ${bootstrap.sessionId}${bootstrap.isDev ? ' (dev mode)' : ''}`
+				`Bootstrap loaded for session ${bootstrap.sessionId}${bootstrap.isDev ? ' (dev mode)' : ''}, workerOrigin: ${bootstrap.workerOrigin ?? 'MISSING'}, mcpSessionId: ${bootstrap.mcpSessionId ?? 'MISSING'}`
 			)
 
 			if (bootstrap.snapshot && bootstrap.snapshot.shapes.length > 0) {
@@ -425,43 +429,101 @@ function TldrawCanvas({ app }: { app: App }) {
 			}
 		}
 
+		app.ontoolinput = (params) => {
+			const code = params.arguments?.code
+			if (typeof code !== 'string' || !code.trim()) return
+
+			const workerOrigin = workerOriginRef.current
+			const mcpSessionId = mcpSessionIdRef.current
+			if (!workerOrigin || !mcpSessionId) {
+				logIfDevMode('Exec: missing workerOrigin or mcpSessionId, skipping callback')
+				return
+			}
+
+			logIfDevMode(`Exec called via ontoolinput`)
+			markAiActivity()
+
+			const callbackUrl = `${workerOrigin}/callback`
+
+			// Fire-and-forget: execute code and POST result to the server callback
+			void (async () => {
+				const editor = editorRef.current
+				if (!editor) {
+					logIfDevMode(`Exec: editor not mounted, sending error callback to ${callbackUrl}`)
+					await fetch(callbackUrl, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'Mcp-Session-Id': mcpSessionId,
+						},
+						body: JSON.stringify({ channel: 'exec', error: 'Editor is not mounted yet.' }),
+					}).catch((err) => {
+						logIfDevMode(`Exec: error callback POST failed: ${err}`)
+					})
+					return
+				}
+
+				const execResult = await executeCode(editor, code)
+				logIfDevMode(
+					`Exec ${execResult.success ? 'succeeded' : 'failed'}: ${JSON.stringify(execResult.result ?? execResult.error)}`
+				)
+
+				if (execResult.success) {
+					const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
+					const assets = [...editor.getAssets()].map((a) => structuredClone(a))
+					const bindings = getEditorBindings(editor)
+
+					committedSnapshotRef.current = { shapes, assets, bindings }
+
+					const cpId = checkpointIdRef.current ?? crypto.randomUUID()
+					checkpointIdRef.current = cpId
+					saveLocalSnapshot(cpId, shapes, assets, bindings)
+					void saveCheckpointToServer(app, cpId, editor)
+
+					const resultStr =
+						execResult.result !== undefined ? JSON.stringify(execResult.result, null, 2) : undefined
+					pushCanvasContext(app, editor, {
+						message: resultStr
+							? `Code executed successfully on canvas. Return value:\n${resultStr}`
+							: 'Code executed successfully on canvas.',
+					})
+
+					const allShapeIds = new Set(shapes.map((s) => s.id))
+					zoomToFitRequestShapes(editor, allShapeIds)
+				}
+
+				// POST result back to the server to resolve the pending tool call
+				const callbackBody = {
+					channel: 'exec',
+					...(execResult.success
+						? { result: { success: true, result: execResult.result } }
+						: { result: { success: false, error: execResult.error } }),
+				}
+				logIfDevMode(
+					`Exec: POSTing callback to ${callbackUrl} (session: ${mcpSessionId}): ${JSON.stringify(callbackBody)}`
+				)
+				try {
+					const resp = await fetch(callbackUrl, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'Mcp-Session-Id': mcpSessionId,
+						},
+						body: JSON.stringify(callbackBody),
+					})
+					logIfDevMode(`Exec: callback response status: ${resp.status}`)
+				} catch (err) {
+					logIfDevMode(`Exec: callback POST failed: ${err}`)
+				}
+			})()
+		}
+
 		app.onteardown = async () => {
 			return {}
 		}
 
 		app.ontoolresult = async (result) => {
 			markAiActivity()
-
-			const structuredContent = (result as any)?.structuredContent
-			if (structuredContent?.action === 'exec' && typeof structuredContent.code === 'string') {
-				logIfDevMode(`Received exec tool result`)
-				const editor = editorRef.current
-				if (!editor) {
-					logIfDevMode('Exec: editor not mounted, skipping')
-					return
-				}
-
-				const execResult = await executeCode(editor, structuredContent.code)
-				logIfDevMode(
-					`Exec ${execResult.success ? 'succeeded' : 'failed'}: ${JSON.stringify(execResult.result ?? execResult.error)}`
-				)
-
-				const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
-				const assets = [...editor.getAssets()].map((a) => structuredClone(a))
-				const bindings = getEditorBindings(editor)
-
-				committedSnapshotRef.current = { shapes, assets, bindings }
-
-				const cpId = checkpointIdRef.current ?? crypto.randomUUID()
-				checkpointIdRef.current = cpId
-				saveLocalSnapshot(cpId, shapes, assets, bindings)
-				void saveCheckpointToServer(app, cpId, editor)
-				pushCanvasContext(app, editor)
-
-				const allShapeIds = new Set(shapes.map((s) => s.id))
-				zoomToFitRequestShapes(editor, allShapeIds)
-				return
-			}
 
 			const checkpoint = parseCheckpointFromToolResult(result)
 			if (!checkpoint) return

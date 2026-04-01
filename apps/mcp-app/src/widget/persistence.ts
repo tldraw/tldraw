@@ -108,6 +108,8 @@ export function getEmbeddedBootstrap(): {
 	sessionId: string
 	checkpointId?: string
 	isDev: boolean
+	workerOrigin?: string
+	mcpSessionId?: string
 	snapshot?: CanvasSnapshot
 } | null {
 	const data = window.__TLDRAW_BOOTSTRAP__
@@ -117,6 +119,8 @@ export function getEmbeddedBootstrap(): {
 
 	const checkpointId = typeof data.checkpointId === 'string' ? data.checkpointId : undefined
 	const isDev = data.isDev === true
+	const workerOrigin = typeof data.workerOrigin === 'string' ? data.workerOrigin : undefined
+	const mcpSessionId = typeof data.mcpSessionId === 'string' ? data.mcpSessionId : undefined
 
 	let snapshot: CanvasSnapshot | undefined
 	if (Array.isArray(data.shapes) && data.shapes.length > 0) {
@@ -133,7 +137,7 @@ export function getEmbeddedBootstrap(): {
 		}
 	}
 
-	return { sessionId, checkpointId, isDev, snapshot }
+	return { sessionId, checkpointId, isDev, workerOrigin, mcpSessionId, snapshot }
 }
 
 // --- Tool result parsing ---
@@ -197,25 +201,17 @@ export function parseCheckpointFromToolResult(result: unknown): CheckpointResult
 
 // --- Canvas context push ---
 
-export function pushCanvasContext(app: App, editor: Editor) {
+export function pushCanvasContext(app: App, editor: Editor, opts?: { message?: string }) {
 	const shapes = [...editor.getCurrentPageShapes()].map((shape) => structuredClone(shape))
-	const assets = [...editor.getAssets()].map((asset) => structuredClone(asset))
-	const bindings = getEditorBindings(editor)
+
+	const canvasStatus = shapes.length > 0 ? `Current canvas state is attached.` : 'Canvas is empty.'
+
+	const text = opts?.message ? `${opts.message}\n\n${canvasStatus}` : canvasStatus
 
 	void app.updateModelContext({
-		content: [
-			{
-				type: 'text',
-				text:
-					shapes.length > 0
-						? `Current canvas state is attached as raw TLShape, asset, and binding data (${shapes.length} shape(s)).`
-						: 'Canvas is empty.',
-			},
-		],
+		content: [{ type: 'text', text }],
 		structuredContent: {
 			shapes,
-			assets,
-			bindings,
 		},
 	})
 }

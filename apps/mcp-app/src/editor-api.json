@@ -1,6 +1,6 @@
 {
-  "extractedAt": "2026-03-31T09:30:03.078Z",
-  "memberCount": 302,
+  "extractedAt": "2026-04-01T11:42:38.555Z",
+  "memberCount": 305,
   "categories": [
     "assets",
     "bindings",
@@ -1680,6 +1680,33 @@
       "params": [],
       "examples": [],
       "category": "pages"
+    },
+    {
+      "name": "getAttributionUserId",
+      "kind": "method",
+      "signature": "() => string | null",
+      "description": "Get the current user's ID for attribution purposes.\nAlso ensures a `user:` record exists in the store for the current user.\nReturns `null` when the user store has no current user.",
+      "params": [],
+      "examples": [],
+      "category": "other"
+    },
+    {
+      "name": "getAttributionDisplayName",
+      "kind": "method",
+      "signature": "(userId: string | null) => string | null",
+      "description": "Resolve a display name for a user ID. Asks the\n{@link @tldraw/tlschema#TLUserStore} first (the app's source of truth),\nfalling back to the `user:` record in the store.",
+      "params": [],
+      "examples": [],
+      "category": "other"
+    },
+    {
+      "name": "getAttributionUser",
+      "kind": "method",
+      "signature": "(userId: string | null) => TLUser | null",
+      "description": "Resolve a user record by ID. Asks the\n{@link @tldraw/tlschema#TLUserStore} first (the app's source of truth),\nfalling back to the `user:` record in the store.",
+      "params": [],
+      "examples": [],
+      "category": "other"
     },
     {
       "name": "startFollowingUser",
@@ -4655,6 +4682,12 @@
             "name": "scale",
             "signature": "number",
             "description": "Scale factor applied to the note shape for display",
+            "optional": false
+          },
+          {
+            "name": "textFirstEditedBy",
+            "signature": "string | null",
+            "description": "User ID of the person who first edited the note text",
             "optional": false
           }
         ]

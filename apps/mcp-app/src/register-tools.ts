@@ -66,7 +66,7 @@ export function registerTools(
 
 	// --- exec (client-side code execution) ---
 
-	registerExecTool(server, { analytics, log })
+	registerExecTool(server, { analytics, log, pendingRequests: opts.pendingRequests })
 
 	// --- read_checkpoint (app-only) ---
 
@@ -198,7 +198,12 @@ export function registerTools(
 			const sid = deps.getSessionId()
 			const hostName = opts.getClientHostName()
 
-			const bootstrap: Record<string, unknown> = { sessionId: sid, isDev: opts.isDev }
+			const bootstrap: Record<string, unknown> = {
+				sessionId: sid,
+				isDev: opts.isDev,
+				workerOrigin: opts.workerOrigin,
+				mcpSessionId: deps.getMcpSessionId(),
+			}
 			if (activeId) {
 				const checkpoint = deps.loadCheckpoint(activeId)
 				if (checkpoint) {

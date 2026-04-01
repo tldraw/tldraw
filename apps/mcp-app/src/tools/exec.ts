@@ -2,11 +2,18 @@ import { registerAppTool } from '@modelcontextprotocol/ext-apps/server'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
+import type { PendingRequests } from '../shared/pending-requests'
 import { CANVAS_RESOURCE_URI } from '../shared/types'
+
+const EXEC_CALLBACK_TIMEOUT_MS = 30_000
 
 export function registerExecTool(
 	server: McpServer,
-	opts: { analytics?: AnalyticsEngineDataset; log(...args: unknown[]): void }
+	opts: {
+		analytics?: AnalyticsEngineDataset
+		log(...args: unknown[]): void
+		pendingRequests: PendingRequests
+	}
 ) {
 	registerAppTool(
 		server,
@@ -34,14 +41,48 @@ export function registerExecTool(
 			opts.analytics?.writeDataPoint({
 				blobs: ['tool_called', 'exec'],
 			})
-			opts.log('[tldraw-mcp] exec called')
+			opts.log('[tldraw-mcp] exec called, waiting for widget callback...')
 
-			return {
-				content: [{ type: 'text', text: 'Code executed on canvas.' }],
-				structuredContent: {
-					action: 'exec' as const,
-					code,
-				},
+			try {
+				const result = (await opts.pendingRequests.create('exec', EXEC_CALLBACK_TIMEOUT_MS)) as {
+					success: boolean
+					result?: unknown
+					error?: string
+				}
+
+				if (!result.success) {
+					opts.log(`[tldraw-mcp] exec failed: ${result.error}`)
+					return {
+						content: [
+							{
+								type: 'text',
+								text: `Runtime error executing code on canvas. The code was NOT applied successfully. Fix the error and try again.\n\nError: ${result.error}`,
+							},
+						],
+						isError: true,
+					}
+				}
+
+				const resultStr =
+					result.result !== undefined ? JSON.stringify(result.result, null, 2) : undefined
+				const text = resultStr
+					? `Code executed successfully on canvas. Return value:\n${resultStr}`
+					: 'Code executed successfully on canvas.'
+
+				opts.log(`[tldraw-mcp] exec succeeded`)
+				return { content: [{ type: 'text', text }] }
+			} catch (err) {
+				const message = err instanceof Error ? err.message : String(err)
+				opts.log(`[tldraw-mcp] exec error: ${message}`)
+				return {
+					content: [
+						{
+							type: 'text',
+							text: `Exec failed: ${message}`,
+						},
+					],
+					isError: true,
+				}
 			}
 		}
 	)

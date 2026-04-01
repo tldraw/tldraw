@@ -1,5 +1,6 @@
 import { DEFAULT_SUPPORTED_IMAGE_TYPES } from '@tldraw/utils'
 import type { TLShape } from 'tldraw'
+import type { PendingRequests } from './pending-requests'
 
 export interface ServerDeps {
 	saveCheckpoint(id: string, shapes: TLShape[], assets?: unknown[], bindings?: unknown[]): void
@@ -7,6 +8,7 @@ export interface ServerDeps {
 	getActiveCheckpointId(): string | null
 	setActiveCheckpointId(id: string): void
 	getSessionId(): string
+	getMcpSessionId(): string
 	loadWidgetHtml(): Promise<string>
 }
 
@@ -27,6 +29,8 @@ export interface RegisterToolsOptions {
 	analytics?: AnalyticsEngineDataset
 	/** Returns the resolved host name of the connected client. */
 	getClientHostName(): MCP_APP_HOST_NAMES | undefined
+	/** Pending requests store for widget→server callback bridge. */
+	pendingRequests: PendingRequests
 }
 
 export interface DynamicWorkerLoader {
