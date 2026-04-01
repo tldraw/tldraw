@@ -20,12 +20,14 @@ import {
 	TLStore,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
+	TLThemeDefinition,
 	TLUser,
 	TLUserStore,
 	UserRecordType,
 	computed,
 	createCachedUserResolve,
 	createPresenceStateDerivation,
+	registerColorsFromThemeDefinitions,
 	createTLStore,
 	createUserId,
 	defaultUserPreferences,
@@ -177,6 +179,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
+		themeDefinitions,
 		...schemaOpts
 	} = opts
 
@@ -185,6 +188,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	// is allowed to be unstable
 	const __never__: never = 0 as any as keyof Omit<typeof schemaOpts, keyof TLStoreSchemaOptions>
 
+	registerColorsFromThemeDefinitions(themeDefinitions)
 	const schema = useTLSchemaFromUtils(schemaOpts)
 
 	const getUserPresence = useReactiveEvent(
@@ -431,6 +435,13 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
  * @public
  */
 export interface UseSyncOptionsBase {
+	/**
+	 * Named theme definitions. When provided, custom color names are automatically
+	 * registered before the store is constructed so persisted data with those
+	 * colors passes validation on load.
+	 */
+	themeDefinitions?: Record<string, TLThemeDefinition>
+
 	/**
 	 * Asset store implementation for handling file uploads and storage.
 	 *
