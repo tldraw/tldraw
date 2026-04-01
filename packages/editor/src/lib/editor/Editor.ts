@@ -389,6 +389,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._tickManager = new TickManager(this)
 		this.disposables.add(() => this._tickManager.dispose())
+		this.disposables.add(() => {
+			// Reset camera state to 'idle' so the store isn't left stuck at 'moving'
+			// when tick events stop (e.g. React strict mode disposes while camera is moving)
+			this.off('tick', this._decayCameraStateTimeout)
+			this._setCameraState('idle')
+		})
 
 		this.fonts = new FontManager(this, fontAssetUrls)
 

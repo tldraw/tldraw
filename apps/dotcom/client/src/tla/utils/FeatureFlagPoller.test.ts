@@ -115,6 +115,9 @@ describe('fetchFeatureFlags', () => {
 		mockFetch.mockReset()
 		// Module-level fetchFeatureFlags() fires on import. Use an unauthenticated
 		// response so the promise cache is cleared and each test starts fresh.
+		// Two responses needed: one for the module-level call, one for the explicit await
+		// (the unauthenticated response clears the cache, so the second call refetches).
+		mockFetchResponse(makeFlags(), false)
 		mockFetchResponse(makeFlags(), false)
 		const mod = await import('./FeatureFlagPoller')
 		fetchFeatureFlags = mod.fetchFeatureFlags
@@ -152,17 +155,21 @@ describe('fetchFeatureFlags', () => {
 	})
 
 	it('returns default flags on fetch error', async () => {
+		const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		mockFetch.mockRejectedValueOnce(new Error('network down'))
 		const flags = await fetchFeatureFlags()
 		expect(flags.zero_kill_switch.enabled).toBe(false)
 		expect(flags.zero_enabled.enabled).toBe(false)
 		expect(wasAuthenticated()).toBe(false)
+		spy.mockRestore()
 	})
 
 	it('returns default flags on non-ok response', async () => {
+		const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		mockFetch.mockResolvedValueOnce({ ok: false, status: 500 })
 		const flags = await fetchFeatureFlags()
 		expect(flags.zero_kill_switch.enabled).toBe(false)
 		expect(flags.zero_enabled.enabled).toBe(false)
+		spy.mockRestore()
 	})
 })

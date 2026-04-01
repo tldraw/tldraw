@@ -3,7 +3,6 @@
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
-	Rectangle2d,
 	TLEmbedShape,
 	TLEmbedShapeProps,
 	TLResizeInfo,
@@ -23,6 +22,7 @@ import {
 	TLEmbedDefinition,
 	TLEmbedShapePermissions,
 	embedShapePermissionDefaults,
+	unknownEmbedShapePermissionOverrides,
 } from '../../defaultEmbedDefinitions'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { BOOKMARK_JUST_URL_HEIGHT, BOOKMARK_WIDTH } from '../bookmark/bookmarks'
@@ -110,7 +110,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return true
 	}
 	override canResize(shape: TLEmbedShape) {
-		return !!this.getEmbedDefinition(shape.props.url)?.definition?.doesResize
+		return this.getEmbedDefinition(shape.props.url)?.definition?.doesResize ?? true
 	}
 	override canEditInReadonly() {
 		return true
@@ -125,14 +125,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override getGeometry(shape: TLEmbedShape) {
-		const embedInfo = this.getEmbedDefinition(shape.props.url)
-		if (!embedInfo?.definition) {
-			return new Rectangle2d({
-				width: BOOKMARK_WIDTH,
-				height: BOOKMARK_JUST_URL_HEIGHT,
-				isFilled: true,
-			})
-		}
 		return super.getGeometry(shape)
 	}
 
@@ -216,14 +208,30 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			typeof window !== 'undefined' && (window !== window.top || window.self !== window.parent)
 		if (isIframe && embedInfo?.definition.type === 'tldraw') return null
 
+		const sandbox = getSandboxPermissions({
+			...embedShapePermissionDefaults,
+			...(embedInfo
+				? (embedInfo.definition.overridePermissions ?? {})
+				: unknownEmbedShapePermissionOverrides),
+		})
+
 		if (embedInfo?.definition.type === 'github_gist') {
 			const idFromGistUrl = embedInfo.url.split('/').pop()
 			if (!idFromGistUrl) throw Error('No gist id!')
+
+			// Gist embeds use srcDoc, so we must disable allow-same-origin. Otherwise
+			// the embedded script shares the parent's origin and can escape the sandbox.
+			const gistSandbox = getSandboxPermissions({
+				...embedShapePermissionDefaults,
+				...(embedInfo?.definition?.overridePermissions ?? {}),
+				'allow-same-origin': false,
+			})
 
 			return (
 				<HTMLContainer className="tl-embed-container" id={shape.id}>
 					<Gist
 						id={idFromGistUrl}
+						sandbox={gistSandbox}
 						width={toDomPrecision(w)!}
 						height={toDomPrecision(h)!}
 						isInteractive={isInteractive}
@@ -234,18 +242,15 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			)
 		}
 
-		const sandbox = getSandboxPermissions({
-			...embedShapePermissionDefaults,
-			...(embedInfo?.definition.overridePermissions ?? {}),
-		})
+		const iframeSrc = embedInfo?.embedUrl ?? url
 
 		return (
 			<HTMLContainer className="tl-embed-container" id={shape.id}>
-				{embedInfo?.definition ? (
+				{iframeSrc ? (
 					<iframe
 						className="tl-embed"
 						sandbox={sandbox}
-						src={embedInfo.embedUrl}
+						src={iframeSrc}
 						width={toDomPrecision(w)}
 						height={toDomPrecision(h)}
 						draggable={false}
@@ -260,8 +265,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 							// Fix for safari <https://stackoverflow.com/a/49150908>
 							zIndex: isInteractive ? '' : '-1',
 							boxShadow: dv.showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
-							borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
-							background: embedInfo?.definition.backgroundColor,
+							borderRadius: embedInfo?.definition?.overrideOutlineRadius ?? 8,
+							background: embedInfo?.definition?.backgroundColor,
 						}}
 					/>
 				) : (
@@ -279,16 +284,15 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	override indicator(shape: TLEmbedShape) {
 		const embedInfo = this.getEmbedDefinition(shape.props.url)
+		const radius = embedInfo?.definition?.overrideOutlineRadius ?? 8
 
-		return embedInfo?.definition ? (
+		return (
 			<rect
 				width={toDomPrecision(shape.props.w)}
 				height={toDomPrecision(shape.props.h)}
-				rx={embedInfo?.definition.overrideOutlineRadius ?? 8}
-				ry={embedInfo?.definition.overrideOutlineRadius ?? 8}
+				rx={radius}
+				ry={radius}
 			/>
-		) : (
-			<BookmarkIndicatorComponent w={BOOKMARK_WIDTH} h={BOOKMARK_JUST_URL_HEIGHT} />
 		)
 	}
 
@@ -299,14 +303,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	override getIndicatorPath(shape: TLEmbedShape): Path2D {
 		const path = new Path2D()
 		const embedInfo = this.getEmbedDefinition(shape.props.url)
-
-		if (embedInfo?.definition) {
-			const radius = embedInfo.definition.overrideOutlineRadius ?? 8
-			path.roundRect(0, 0, shape.props.w, shape.props.h, radius)
-		} else {
-			// Fallback to bookmark indicator
-			path.roundRect(0, 0, BOOKMARK_WIDTH, BOOKMARK_JUST_URL_HEIGHT, 6)
-		}
+		const radius = embedInfo?.definition?.overrideOutlineRadius ?? 8
+		path.roundRect(0, 0, shape.props.w, shape.props.h, radius)
 		return path
 	}
 
@@ -325,6 +323,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 function Gist({
 	id,
+	sandbox,
 	isInteractive,
 	width,
 	height,
@@ -333,6 +332,7 @@ function Gist({
 	showShadow,
 }: {
 	id: string
+	sandbox: string
 	isInteractive: boolean
 	width: number
 	height: number
@@ -353,6 +353,7 @@ function Gist({
 	return (
 		<iframe
 			className="tl-embed"
+			sandbox={sandbox}
 			draggable={false}
 			width={toDomPrecision(width)}
 			height={toDomPrecision(height)}
