@@ -9,6 +9,7 @@ keywords:
   - dark mode
   - light mode
   - TLTheme
+  - TLThemeDefaultColors
   - TLThemeColors
   - ThemeManager
   - getCurrentTheme
@@ -225,13 +226,13 @@ const themes: Record<string, TLTheme> = {
 
 ## Adding custom colors
 
-You can add new colors beyond the built-in palette. Extend the [TLThemeColors](?) interface with module augmentation and include the color in your theme definitions:
+You can add new colors beyond the built-in palette. Extend the [TLThemeDefaultColors](?) interface with module augmentation and include the color in your theme definitions:
 
 ```typescript
 import { TLDefaultColor } from 'tldraw'
 
 declare module 'tldraw' {
-	interface TLThemeColors {
+	interface TLThemeDefaultColors {
 		pink: TLDefaultColor
 	}
 }
@@ -286,11 +287,11 @@ See the [Custom theme](/examples/ui/custom-theme) example for a complete demo.
 
 ## Removing colors
 
-To remove built-in palette colors, augment the `TLRemovedThemeColors` interface. Any key you add will be omitted from the theme's color palette type, so TypeScript will no longer expect it:
+To remove built-in palette colors, augment the `TLRemovedDefaultThemeColors` interface. Any key you add will be omitted from `TLThemeColors`, so TypeScript will no longer expect it in theme definitions:
 
 ```typescript
 declare module 'tldraw' {
-	interface TLRemovedThemeColors {
+	interface TLRemovedDefaultThemeColors {
 		'light-violet': true
 		'light-blue': true
 		'light-green': true
