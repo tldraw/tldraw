@@ -5,10 +5,10 @@ import type { Editor } from '../../Editor'
 import { DEFAULT_THEME } from './defaultThemes'
 
 /**
- * Resolve a partial set of user-provided themes into a complete {@link TLThemes}
+ * Resolve a partial set of user-provided themes into a complete `TLThemes`
  * record by merging with `DEFAULT_THEME`. The result is suitable for passing to
- * {@link registerColorsFromThemes}, {@link registerFontsFromThemes}, and the
- * {@link ThemeManager} constructor.
+ * `registerColorsFromThemes`, `registerFontsFromThemes`, and the
+ * `ThemeManager` constructor.
  *
  * @public
  */
