@@ -312,7 +312,7 @@ export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
 export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TLTextAlignStyle'
 export {
 	type TLDefaultColor,
-	type TLRemovedDefaultThemeColors as TLRemovedThemeColors,
+	type TLRemovedDefaultThemeColors,
 	type TLTheme,
 	type TLThemeColors,
 	type TLThemeDefaultColors,
