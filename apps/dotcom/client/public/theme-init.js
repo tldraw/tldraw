@@ -11,13 +11,13 @@
 				// this helps with safari
 				if (parsed.theme === 'dark') {
 					// this is the same as --tl-color-background, if you ever update that, update this too
-					document.documentElement.style.backgroundColor = 'hsl(240, 5%, 6.5%)' 
+					document.documentElement.style.backgroundColor = '#212121'
 					// this is the same as --tl-color-text, if you ever update that, update this too
-					document.documentElement.style.color = 'hsl(210, 17%, 98%)'
+					document.documentElement.style.color = '#fcfcf8'
 					document.documentElement.style.colorScheme = 'dark'
 				} else if (parsed.theme === 'light') {
 					// this is the same as --tl-color-background, if you ever update that, update this too
-					document.documentElement.style.backgroundColor = 'hsl(210, 20%, 98%)'
+					document.documentElement.style.backgroundColor = '#f7f7f2'
 					document.documentElement.style.colorScheme = 'light'
 				}
 			}
