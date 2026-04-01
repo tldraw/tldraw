@@ -5439,6 +5439,9 @@ export function UndoRedoGroup(): JSX.Element;
 // @public (undocumented)
 export function UngroupMenuItem(): JSX.Element | null;
 
+// @public
+export const unknownEmbedShapePermissionOverrides: TLEmbedShapePermissions;
+
 // @public (undocumented)
 export function UnlockAllMenuItem(): JSX.Element;
 
