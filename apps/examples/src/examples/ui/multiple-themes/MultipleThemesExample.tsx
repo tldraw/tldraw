@@ -116,7 +116,11 @@ function ThemeSwitcher() {
 	return (
 		<div style={useMemo(() => styles.container, [])}>
 			{(Object.keys(THEME_LABELS) as TLThemeId[]).map((id) => (
-				<TldrawUiButton key={id} type={currentThemeId === id ? 'primary' : 'normal'} onClick={() => handleClick(id)}>
+				<TldrawUiButton
+					key={id}
+					type={currentThemeId === id ? 'primary' : 'normal'}
+					onClick={() => handleClick(id)}
+				>
 					<TldrawUiButtonLabel>{THEME_LABELS[id]}</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			))}

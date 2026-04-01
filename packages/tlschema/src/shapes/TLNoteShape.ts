@@ -146,8 +146,8 @@ const Versions = createShapePropsMigrationIds('note', {
 	AddLabelColor: 8,
 	AddRichText: 9,
 	AddRichTextAttrs: 10,
-	MakeFontSizeAdjustmentRatio: 11,
-	AddFirstEditedBy: 12,
+	AddFirstEditedBy: 11,
+	MakeFontSizeAdjustmentRatio: 12,
 })
 
 /**
@@ -271,6 +271,15 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 			},
 		},
 		{
+			id: Versions.AddFirstEditedBy,
+			up: (props) => {
+				props.textFirstEditedBy = null
+			},
+			down: (props) => {
+				delete props.textFirstEditedBy
+			},
+		},
+		{
 			id: Versions.MakeFontSizeAdjustmentRatio,
 			up: (props) => {
 				// Old system stored 0 for "no adjustment" or an absolute pixel font size.
@@ -281,15 +290,6 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				props.fontSizeAdjustment = 0
-			},
-		},
-		{
-			id: Versions.AddFirstEditedBy,
-			up: (props) => {
-				props.textFirstEditedBy = null
-			},
-			down: (props) => {
-				delete props.textFirstEditedBy
 			},
 		},
 	],
