@@ -72,8 +72,6 @@ export function getFontStyleItems(theme: TLTheme): StyleValuesForUi<string> {
 	const result: StyleValuesForUi<string>[number][] = []
 	const seen = new Set<string>()
 
-	if (!theme.fonts) return STYLES.font
-
 	for (const name of DefaultFontStyle.values) {
 		const entry = theme.fonts[name as keyof typeof theme.fonts]
 		if (name in theme.fonts && isFontEntry(entry)) {

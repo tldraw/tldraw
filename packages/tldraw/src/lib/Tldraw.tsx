@@ -281,7 +281,6 @@ function InsideOfEditorAndUiContext({
 		// Also preload any custom font faces defined in themes
 		const themes = editor.getThemes()
 		for (const theme of Object.values(themes)) {
-			if (!theme.fonts) continue
 			for (const font of Object.values(theme.fonts)) {
 				if (font.faces?.length) {
 					editor.fonts.requestFonts(font.faces)

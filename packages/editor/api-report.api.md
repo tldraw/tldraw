@@ -3211,7 +3211,7 @@ export class TextManager {
 export class ThemeManager {
     constructor(editor: Editor, options?: {
         initial?: TLThemeId;
-        themes?: Partial<Record<TLThemeId, TLTheme>>;
+        themes?: Partial<Record<TLThemeId, Partial<TLTheme>>>;
     });
     dispose(): void;
     getColorMode(): 'dark' | 'light';

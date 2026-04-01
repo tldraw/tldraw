@@ -1585,8 +1585,7 @@ export interface TLTheme {
         dark: TLThemeColorPalette;
         light: TLThemeColorPalette;
     };
-    // (undocumented)
-    fonts?: Partial<TLThemeFonts>;
+    fonts: Partial<TLThemeFonts>;
     fontSize: number;
     lineHeight: number;
     strokeWidth: number;

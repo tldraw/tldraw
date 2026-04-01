@@ -149,9 +149,9 @@ export type TLThemeColorPalette = Pick<TLThemeColors, TLThemeUiColorKeys> &
  * A theme definition containing shared properties and color/font palettes for
  * both light and dark modes.
  *
- * Fonts and palette colors are optional — omit keys to remove them from the
- * style panel and prevent shapes from using them. UI colors (`text`,
- * `background`, `solid`, `cursor`, `noteBorder`) are always required.
+ * Palette colors within `colors.light` / `colors.dark` are individually
+ * optional — omit keys to remove colors from the style panel. UI colors
+ * (`text`, `background`, `solid`, `cursor`, `noteBorder`) are always required.
  *
  * @example
  * ```ts
@@ -177,7 +177,8 @@ export interface TLTheme {
 	lineHeight: number
 	/** Base stroke width in pixels. Shape stroke widths are derived by multiplying this value. */
 	strokeWidth: number
-	fonts?: Partial<TLThemeFonts>
+	/** Font definitions. Individual fonts may be absent if removed by a custom theme. */
+	fonts: Partial<TLThemeFonts>
 	colors: {
 		light: TLThemeColorPalette
 		dark: TLThemeColorPalette

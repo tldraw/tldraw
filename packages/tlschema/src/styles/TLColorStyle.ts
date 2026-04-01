@@ -1,5 +1,5 @@
 import { StyleProp } from './StyleProp'
-import { TLDefaultColor, TLThemeColors, TLTheme } from './TLTheme'
+import { TLDefaultColor, TLTheme, TLThemeColors } from './TLTheme'
 
 /**
  * The names of all available shape colors, derived from {@link TLThemeColors}.

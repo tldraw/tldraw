@@ -157,7 +157,7 @@ export function getThemeFontFaces(theme: TLTheme, font: string): TLFontFace[] | 
 	const builtinFamily = `tldraw_${font}` as keyof TLDefaultFonts
 	if (builtinFamily in DefaultFontFaces) return undefined
 
-	const themeFont = theme.fonts?.[font as keyof typeof theme.fonts]
+	const themeFont = theme.fonts[font as keyof typeof theme.fonts]
 	if (process.env.NODE_ENV !== 'production') {
 		if (!themeFont) {
 			console.warn(

@@ -50,7 +50,7 @@ export const FONT_FAMILIES: Record<string, string> = {
 
 /** @public */
 export function getFontFamily(theme: TLTheme, font: string): string {
-	const themeFont = theme.fonts?.[font as keyof typeof theme.fonts]
+	const themeFont = theme.fonts[font as keyof typeof theme.fonts]
 	if (themeFont) return themeFont.fontFamily
 	return FONT_FAMILIES[font] ?? font
 }
