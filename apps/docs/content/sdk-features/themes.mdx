@@ -114,6 +114,8 @@ Each color in the palette is a [TLDefaultColor](?) with variants for different c
 
 The palette also includes five base properties: `text` for default text color, `background` for the canvas background, `solid` for the default solid surface color, `cursor` for the cursor color, and `noteBorder` for note shape borders.
 
+> Note: The `background` property is used by shapes and exports to match the canvas background color, but the actual visible canvas background is set separately via the `--tl-color-background` CSS variable. If you customize `background` in your theme, make sure the CSS variable matches — otherwise exports and shape rendering may use a different background color than what's shown on the canvas.
+
 In addition to colors, each theme has a `fontSize` (default `16`), `lineHeight` (default `1.35`), and `strokeWidth` (default `2`). All default shape font sizes are derived by multiplying the base `fontSize` by a per-shape-type multiplier, and stroke widths work the same way with `strokeWidth`, so changing these base values scales text and strokes proportionally. Because these are shared across light and dark modes, you only set them once per theme definition.
 
 ## Reading the current theme

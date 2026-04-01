@@ -105,19 +105,12 @@ const cursiveFont: TLThemeFont = {
 const { serif: _serif, ...keptFonts } = DEFAULT_THEME_FONTS
 const customFonts: TLTheme['fonts'] = { ...keptFonts, pixel: pixelFont, cursive: cursiveFont }
 
-// [11] Build a reduced color palette: drop "light-*" variants, add "pink".
-function colorsWithoutLightVariants(
+// [11] Build a color palette that adds the custom "pink" color.
+function colorsWithPink(
 	base: typeof DEFAULT_THEME.colors.light | typeof DEFAULT_THEME.colors.dark,
 	pink: TLDefaultColor
 ) {
-	const {
-		'light-violet': _lv,
-		'light-blue': _lb,
-		'light-green': _lg,
-		'light-red': _lr,
-		...kept
-	} = base
-	return { ...kept, pink }
+	return { ...base, pink }
 }
 
 // [12] Translation overrides so the style panel shows human-readable names
@@ -154,8 +147,8 @@ export default function CustomThemeExample() {
 				strokeWidth,
 				fonts: customFonts,
 				colors: {
-					light: colorsWithoutLightVariants(DEFAULT_THEME.colors.light, pinkLight),
-					dark: colorsWithoutLightVariants(DEFAULT_THEME.colors.dark, pinkDark),
+					light: colorsWithPink(DEFAULT_THEME.colors.light, pinkLight),
+					dark: colorsWithPink(DEFAULT_THEME.colors.dark, pinkDark),
 				},
 			},
 		}
@@ -406,9 +399,8 @@ default font palette and spread the rest. The serif font option disappears
 from the style panel. Two custom fonts are added in its place.
 
 [11]
-Demonstrate removing built-in colors: destructure out the "light-*" color
-variants from the default palette. They won't appear in the style panel.
-The custom "pink" color is added in their place.
+Add a custom "pink" color to the default palette by spreading the base
+colors and adding the new entry.
 
 [12]
 Translation overrides provide human-readable names for custom style values.

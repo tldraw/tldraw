@@ -313,13 +313,11 @@ export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TL
 export {
 	type TLDefaultColor,
 	type TLTheme,
-	type TLThemeColorPalette,
 	type TLThemeColors,
 	type TLThemeFont,
 	type TLThemeFonts,
 	type TLThemeId,
 	type TLThemes,
-	type TLThemeUiColorKeys,
 } from './styles/TLTheme'
 export {
 	DefaultVerticalAlignStyle,

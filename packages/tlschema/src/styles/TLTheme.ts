@@ -132,20 +132,6 @@ export interface TLThemeFonts {
 }
 
 /**
- * Keys in TLThemeColors that are required UI infrastructure (not shape palette colors).
- * @public
- */
-export type TLThemeUiColorKeys = 'text' | 'background' | 'solid' | 'cursor' | 'noteBorder'
-
-/**
- * A color palette for one color mode. UI colors are required; palette colors
- * are optional — omit them to remove colors from the style panel.
- * @public
- */
-export type TLThemeColorPalette = Pick<TLThemeColors, TLThemeUiColorKeys> &
-	Partial<Omit<TLThemeColors, TLThemeUiColorKeys>>
-
-/**
  * A theme definition containing shared properties and color/font palettes for
  * both light and dark modes.
  *
@@ -180,8 +166,8 @@ export interface TLTheme {
 	/** Font definitions. Individual fonts may be absent if removed by a custom theme. */
 	fonts: Partial<TLThemeFonts>
 	colors: {
-		light: TLThemeColorPalette
-		dark: TLThemeColorPalette
+		light: TLThemeColors
+		dark: TLThemeColors
 	}
 }
 

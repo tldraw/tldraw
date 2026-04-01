@@ -166,7 +166,6 @@
 	/* UI */
 	--tl-color-low: hsl(204, 16%, 94%);
 	--tl-color-low-border: hsl(204, 16%, 92%);
-	--tl-color-culled: hsl(204, 14%, 93%);
 	--tl-color-muted-none: hsl(0, 0%, 0%, 0%);
 	--tl-color-muted-0: hsl(0, 0%, 0%, 2%);
 	--tl-color-muted-1: hsl(0, 0%, 0%, 10%);
@@ -224,7 +223,6 @@
 	/* UI */
 	--tl-color-low: hsl(260, 4.5%, 10.5%);
 	--tl-color-low-border: hsl(207, 10%, 10%);
-	--tl-color-culled: hsl(210, 11%, 19%);
 	--tl-color-muted-none: hsl(0, 0%, 100%, 0%);
 	--tl-color-muted-0: hsl(0, 0%, 100%, 2%);
 	--tl-color-muted-1: hsl(0, 0%, 100%, 10%);
