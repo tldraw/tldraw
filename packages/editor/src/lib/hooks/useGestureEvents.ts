@@ -115,8 +115,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 		const initPointBetweenFingers = new Vec()
 		const prevPointBetweenFingers = new Vec()
 
-		// Track active touch pointers
-		const activePointers = new Map<number, { x: number; y: number }>()
+		// Track active touches
+		let activeTouches: Touch[] = []
 
 		function getScaleBounds() {
 			const baseZoom = editor.getBaseZoom()
@@ -181,7 +181,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			origin: { x: number; y: number },
 			delta: { x: number; y: number },
 			zoom: number,
-			event: PointerEvent | GestureEvent
+			event: TouchEvent | GestureEvent
 		) {
 			editor.dispatch({
 				type: 'pinch',
@@ -196,32 +196,30 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			})
 		}
 
-		function getOriginAndDistance() {
-			const pts = [...activePointers.values()]
+		function getOriginAndDistance(t0: Touch, t1: Touch) {
 			const origin = {
-				x: (pts[0].x + pts[1].x) / 2,
-				y: (pts[0].y + pts[1].y) / 2,
+				x: (t0.clientX + t1.clientX) / 2,
+				y: (t0.clientY + t1.clientY) / 2,
 			}
-			const distance = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y)
+			const distance = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY)
 			return { origin, distance }
 		}
 
-		function onPointerDown(event: PointerEvent) {
-			if (event.pointerType !== 'touch') return
+		function onTouchStart(event: TouchEvent) {
 			if (!(event.target === elm || elm?.contains(event.target as Node))) return
 
-			activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+			activeTouches = Array.from(event.touches)
 
-			if (activePointers.size === 2) {
+			if (activeTouches.length === 2) {
 				// Two fingers down — start pinch
 				pinchState = 'not sure'
-				const { origin, distance } = getOriginAndDistance()
+				const { origin, distance } = getOriginAndDistance(activeTouches[0], activeTouches[1])
 
 				prevPointBetweenFingers.x = origin.x
 				prevPointBetweenFingers.y = origin.y
 				initPointBetweenFingers.x = origin.x
 				initPointBetweenFingers.y = origin.y
-				initDistanceBetweenFingers = distance
+				initDistanceBetweenFingers = Math.max(distance, 1)
 				currDistanceBetweenFingers = distance
 				initZoom = editor.getZoomLevel()
 				initScaleFrom = getScaleFrom()
@@ -231,15 +229,12 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			}
 		}
 
-		function onPointerMove(event: PointerEvent) {
-			if (event.pointerType !== 'touch') return
-			if (!activePointers.has(event.pointerId)) return
+		function onTouchMove(event: TouchEvent) {
+			activeTouches = Array.from(event.touches)
 
-			activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+			if (activeTouches.length < 2) return
 
-			if (activePointers.size < 2) return
-
-			const { origin, distance } = getOriginAndDistance()
+			const { origin, distance } = getOriginAndDistance(activeTouches[0], activeTouches[1])
 			currDistanceBetweenFingers = distance
 
 			const dx = origin.x - prevPointBetweenFingers.x
@@ -255,10 +250,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			// pinched out and their fingers are touching; this produces
 			// very unstable zooming behavior.
 			const bounds = getScaleBounds()
-			if (initDistanceBetweenFingers > 0) {
-				const rawScale = initScaleFrom * (distance / initDistanceBetweenFingers)
-				scaleOffset = Math.min(bounds.max, Math.max(bounds.min, rawScale))
-			}
+			const rawScale = initScaleFrom * (distance / initDistanceBetweenFingers)
+			scaleOffset = Math.min(bounds.max, Math.max(bounds.min, rawScale))
 
 			switch (pinchState) {
 				case 'zooming': {
@@ -273,13 +266,11 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			}
 		}
 
-		function onPointerUp(event: PointerEvent) {
-			if (event.pointerType !== 'touch') return
+		function onTouchEnd(event: TouchEvent) {
+			const wasPinching = activeTouches.length >= 2
+			activeTouches = Array.from(event.touches)
 
-			const wasPinching = activePointers.size >= 2
-			activePointers.delete(event.pointerId)
-
-			if (wasPinching && activePointers.size < 2) {
+			if (wasPinching && activeTouches.length < 2) {
 				// Pinch ended
 				const scale = scaleOffset ** editor.getCameraOptions().zoomSpeed
 				const origin = { ...prevPointBetweenFingers }
@@ -289,10 +280,6 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 					dispatchPinchEvent('pinch_end', origin, { x: origin.x, y: origin.y }, scale, event)
 				})
 			}
-		}
-
-		function onPointerCancel(event: PointerEvent) {
-			onPointerUp(event)
 		}
 
 		// --- Safari trackpad pinch (GestureEvent) ---
@@ -391,10 +378,10 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			elm.addEventListener('gesturechange', onGestureChange)
 			elm.addEventListener('gestureend', onGestureEnd)
 		} else {
-			elm.addEventListener('pointerdown', onPointerDown)
-			elm.addEventListener('pointermove', onPointerMove)
-			elm.addEventListener('pointerup', onPointerUp)
-			elm.addEventListener('pointercancel', onPointerCancel)
+			elm.addEventListener('touchstart', onTouchStart)
+			elm.addEventListener('touchmove', onTouchMove)
+			elm.addEventListener('touchend', onTouchEnd)
+			elm.addEventListener('touchcancel', onTouchEnd)
 		}
 
 		return () => {
@@ -404,10 +391,10 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 				elm.removeEventListener('gesturechange', onGestureChange)
 				elm.removeEventListener('gestureend', onGestureEnd)
 			} else {
-				elm.removeEventListener('pointerdown', onPointerDown)
-				elm.removeEventListener('pointermove', onPointerMove)
-				elm.removeEventListener('pointerup', onPointerUp)
-				elm.removeEventListener('pointercancel', onPointerCancel)
+				elm.removeEventListener('touchstart', onTouchStart)
+				elm.removeEventListener('touchmove', onTouchMove)
+				elm.removeEventListener('touchend', onTouchEnd)
+				elm.removeEventListener('touchcancel', onTouchEnd)
 			}
 		}
 	}, [editor, ref])
