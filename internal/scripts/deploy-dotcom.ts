@@ -285,8 +285,12 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // Fly.io shared-cpu VM sizes per environment.
 // Max shared-cpu is 8x (8 CPUs, 16 GB RAM).
 const zeroVmSizes = {
-	staging: { rm: { cpus: 1, memory: '2gb' }, vs: { cpus: 2, memory: '4gb' } },
-	production: { rm: { cpus: 4, memory: '8gb' }, vs: { cpus: 8, memory: '16gb' } },
+	staging: { rm: { cpus: 1, memory: '2gb' }, vs: { cpus: 2, memory: '4gb' }, volumeSize: '1gb' },
+	production: {
+		rm: { cpus: 4, memory: '8gb' },
+		vs: { cpus: 8, memory: '16gb' },
+		volumeSize: '8gb',
+	},
 	preview: { single: { cpus: 2, memory: '2gb' } },
 } as const
 
@@ -329,6 +333,7 @@ interface SingleNodeVmSizes {
 interface MultiNodeVmSizes {
 	rm: VmSize
 	vs: VmSize
+	volumeSize: string
 }
 const zeroVm = zeroVmSizes[env.TLDRAW_ENV as keyof typeof zeroVmSizes] as
 	| SingleNodeVmSizes
@@ -732,6 +737,7 @@ function updateFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__RM_CHANGE_MAX_CONNS', String(zeroConns.rm.change))
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
+		.replaceAll('__VOLUME_SIZE', zeroVm.volumeSize)
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
@@ -767,6 +773,7 @@ function updateFlyioViewSyncerToml(
 		.replaceAll('__VS_CHANGE_MAX_CONNS', String(zeroConns.vs.change))
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
+		.replaceAll('__VOLUME_SIZE', zeroVm.volumeSize)
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 
