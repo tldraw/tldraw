@@ -20,7 +20,7 @@ import {
 	TLStore,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
-	TLThemeDefinition,
+	TLTheme,
 	TLUser,
 	TLUserStore,
 	UserRecordType,
@@ -440,7 +440,7 @@ export interface UseSyncOptionsBase {
 	 * registered before the store is constructed so persisted data with those
 	 * colors passes validation on load.
 	 */
-	themeDefinitions?: Record<string, TLThemeDefinition>
+	themeDefinitions?: Record<string, TLTheme>
 
 	/**
 	 * Asset store implementation for handling file uploads and storage.

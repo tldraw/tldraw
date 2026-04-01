@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import {
 	DEFAULT_THEME,
 	TLDefaultColor,
-	TLThemeDefinition,
+	TLTheme,
 	Tldraw,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -59,7 +59,7 @@ export default function CustomThemeExample() {
 
 	// [4] Customize the default theme: add the custom "pink" color
 	// and merge slider overrides so adjustments apply to both modes.
-	const themeDefinitions = useMemo<Record<string, TLThemeDefinition>>(() => {
+	const themeDefinitions = useMemo<Record<string, TLTheme>>(() => {
 		return {
 			default: {
 				fontSize,

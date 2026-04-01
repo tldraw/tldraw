@@ -1,4 +1,4 @@
-import { TLNoteShape, TLThemeDefinition, createShapeId } from '@tldraw/editor'
+import { TLNoteShape, TLTheme, createShapeId } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../lib/shapes/arrow/ArrowShapeUtil'
 import { DrawShapeUtil } from '../lib/shapes/draw/DrawShapeUtil'
 import { FrameShapeUtil } from '../lib/shapes/frame/FrameShapeUtil'
@@ -20,10 +20,7 @@ afterEach(() => {
 })
 
 /** Update the default theme definition's light colors. */
-function updateLightColors(
-	editor: TestEditor,
-	updater: (def: TLThemeDefinition) => TLThemeDefinition
-) {
+function updateLightColors(editor: TestEditor, updater: (def: TLTheme) => TLTheme) {
 	const def = editor.getTheme('default')!
 	editor.updateTheme('default', updater(def))
 }

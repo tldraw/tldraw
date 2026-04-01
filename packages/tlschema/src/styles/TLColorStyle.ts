@@ -1,5 +1,5 @@
 import { StyleProp } from './StyleProp'
-import { TLDefaultColor, TLThemeColors, TLThemeDefinition } from './TLTheme'
+import { TLDefaultColor, TLThemeColors, TLTheme } from './TLTheme'
 
 /**
  * The names of all available shape colors, derived from {@link TLThemeColors}.
@@ -58,7 +58,7 @@ export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', 
  * @public
  */
 export function registerColorsFromThemeDefinitions(
-	definitions: Record<string, TLThemeDefinition> | undefined
+	definitions: Record<string, TLTheme> | undefined
 ): void {
 	if (!definitions) return
 	const colorNames = new Set<TLDefaultColorStyle>()

@@ -1,5 +1,5 @@
 import { Atom, atom, computed, transact } from '@tldraw/state'
-import { TLThemeDefinition, TLThemeId } from '@tldraw/tlschema'
+import { TLTheme, TLThemeId } from '@tldraw/tlschema'
 import type { Editor } from '../../Editor'
 import { DEFAULT_THEME } from './defaultThemes'
 
@@ -13,13 +13,13 @@ import { DEFAULT_THEME } from './defaultThemes'
  * @public
  */
 export class ThemeManager {
-	private readonly _themes: Atom<Record<TLThemeId, TLThemeDefinition>>
+	private readonly _themes: Atom<Record<TLThemeId, TLTheme>>
 	private readonly _currentThemeId: Atom<TLThemeId>
 
 	constructor(
 		private readonly editor: Editor,
 		options?: {
-			themes?: Partial<Record<TLThemeId, TLThemeDefinition>>
+			themes?: Partial<Record<TLThemeId, TLTheme>>
 			initial?: TLThemeId
 		}
 	) {
@@ -36,12 +36,12 @@ export class ThemeManager {
 	}
 
 	/** Get all registered theme definitions. */
-	getThemes(): Record<TLThemeId, TLThemeDefinition> {
+	getThemes(): Record<TLThemeId, TLTheme> {
 		return this._themes.get()
 	}
 
 	/** Get a single theme definition by name. */
-	getTheme(id: TLThemeId): TLThemeDefinition | undefined {
+	getTheme(id: TLThemeId): TLTheme | undefined {
 		return this._themes.get()[id]
 	}
 
@@ -50,7 +50,7 @@ export class ThemeManager {
 		return this._currentThemeId.get()
 	}
 
-	getCurrentTheme(): TLThemeDefinition {
+	getCurrentTheme(): TLTheme {
 		return this._themes.get()[this.getCurrentThemeId()]!
 	}
 
@@ -69,8 +69,8 @@ export class ThemeManager {
 
 	updateThemes(
 		themes:
-			| Record<TLThemeId, TLThemeDefinition>
-			| ((themes: Record<TLThemeId, TLThemeDefinition>) => Record<TLThemeId, TLThemeDefinition>)
+			| Record<TLThemeId, TLTheme>
+			| ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>)
 	): void {
 		if (typeof themes === 'function') {
 			this._themes.update((prev) => themes(prev))
@@ -83,16 +83,12 @@ export class ThemeManager {
 	/** Register or update a named theme definition. */
 	updateTheme(
 		id: TLThemeId,
-		definition:
-			| Partial<TLThemeDefinition>
-			| ((definition: TLThemeDefinition) => TLThemeDefinition)
+		definition: Partial<TLTheme> | ((definition: TLTheme) => TLTheme)
 	): void {
 		this._themes.update((prev) => ({
 			...prev,
 			[id]:
-				typeof definition === 'function'
-					? definition(prev[id])
-					: { ...prev[id], ...definition },
+				typeof definition === 'function' ? definition(prev[id]) : { ...prev[id], ...definition },
 		}))
 	}
 

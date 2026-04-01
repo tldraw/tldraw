@@ -50,7 +50,7 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
-	TLThemeDefinition,
+	TLTheme,
 	TLThemeId,
 	TLUser,
 	TLUserId,
@@ -280,7 +280,7 @@ export interface TLEditorOptions {
 	 * properties (font size, line height, stroke width) and color palettes
 	 * for both light and dark modes.
 	 */
-	themeDefinitions?: Partial<Record<TLThemeId, TLThemeDefinition>>
+	themeDefinitions?: Partial<Record<TLThemeId, TLTheme>>
 	/**
 	 * The id of the initially active theme. Defaults to `'default'`.
 	 */
@@ -1011,7 +1011,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getCurrentTheme(): TLThemeDefinition {
+	getCurrentTheme(): TLTheme {
 		return this._themeManager.getCurrentTheme()
 	}
 
@@ -1029,7 +1029,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getThemes(): Record<TLThemeId, TLThemeDefinition> {
+	getThemes(): Record<TLThemeId, TLTheme> {
 		return this._themeManager.getThemes()
 	}
 
@@ -1038,7 +1038,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getTheme(id: TLThemeId): TLThemeDefinition | undefined {
+	getTheme(id: TLThemeId): TLTheme | undefined {
 		return this._themeManager.getTheme(id)
 	}
 
@@ -1049,8 +1049,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updateThemes(
 		themes:
-			| Record<TLThemeId, TLThemeDefinition>
-			| ((themes: Record<TLThemeId, TLThemeDefinition>) => Record<TLThemeId, TLThemeDefinition>)
+			| Record<TLThemeId, TLTheme>
+			| ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>)
 	): void {
 		this._themeManager.updateThemes(themes)
 	}
@@ -1060,7 +1060,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateTheme(id: TLThemeId, definition: Partial<TLThemeDefinition>): void {
+	updateTheme(id: TLThemeId, definition: Partial<TLTheme>): void {
 		this._themeManager.updateTheme(id, definition)
 	}
 

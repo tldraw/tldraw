@@ -1,16 +1,11 @@
-import {
-	TLDefaultColor,
-	TLDefaultColorStyle,
-	TLThemeColors,
-	TLThemeDefinition,
-} from '@tldraw/tlschema'
+import { TLDefaultColor, TLDefaultColorStyle, TLThemeColors, TLTheme } from '@tldraw/tlschema'
 
 /**
  * The default theme definition containing color palettes for both light and dark modes.
  *
  * @public
  */
-export const DEFAULT_THEME: TLThemeDefinition = {
+export const DEFAULT_THEME: TLTheme = {
 	fontSize: 16,
 	lineHeight: 1.35,
 	strokeWidth: 2,

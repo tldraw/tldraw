@@ -93,7 +93,7 @@ export interface TLThemeColors {
  *
  * @public
  */
-export interface TLThemeDefinition {
+export interface TLTheme {
 	/** Base font size in pixels. Shape font sizes are derived by multiplying this value. */
 	fontSize: number
 	/** Base line height multiplier. */
@@ -114,7 +114,7 @@ export interface TLThemeDefinition {
  * ```ts
  * declare module '@tldraw/tlschema' {
  *   interface TLThemes {
- *     corporate: TLThemeDefinition
+ *     corporate: TLTheme
  *   }
  * }
  * ```
@@ -122,7 +122,7 @@ export interface TLThemeDefinition {
  * @public
  */
 export interface TLThemes {
-	default: TLThemeDefinition
+	default: TLTheme
 }
 
 /** @public */

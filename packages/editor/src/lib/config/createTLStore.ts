@@ -8,7 +8,7 @@ import {
 	TLStore,
 	TLStoreProps,
 	TLStoreSnapshot,
-	TLThemeDefinition,
+	TLTheme,
 	TLUser,
 	TLUserStore,
 	UserRecordType,
@@ -43,7 +43,7 @@ export interface TLStoreBaseOptions {
 	 * registered before the store is constructed so persisted data with those
 	 * colors passes validation on load.
 	 */
-	themeDefinitions?: Record<string, TLThemeDefinition>
+	themeDefinitions?: Record<string, TLTheme>
 
 	/** How should this store resolve users for attribution? */
 	users?: TLUserStore

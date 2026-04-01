@@ -3,7 +3,7 @@ import {
 	TLShape,
 	TLStore,
 	TLStoreSnapshot,
-	TLThemeDefinition,
+	TLTheme,
 	TLThemeId,
 	registerColorsFromThemeDefinitions,
 } from '@tldraw/tlschema'
@@ -166,7 +166,7 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * Named theme definitions for the editor.
 	 */
-	themeDefinitions?: Partial<Record<TLThemeId, TLThemeDefinition>>
+	themeDefinitions?: Partial<Record<TLThemeId, TLTheme>>
 
 	/**
 	 * The id of the initially active theme. Defaults to `'default'`.
@@ -563,7 +563,7 @@ function TldrawEditorWithReadyStore({
 	// keep the editor up to date with the latest theme definitions
 	useLayoutEffect(() => {
 		if (editor && themeDefinitions) {
-			for (const [name, def] of Object.entries(themeDefinitions) as [TLThemeId, TLThemeDefinition][]) {
+			for (const [name, def] of Object.entries(themeDefinitions) as [TLThemeId, TLTheme][]) {
 				editor.updateTheme(name, def)
 			}
 		}

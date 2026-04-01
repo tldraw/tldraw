@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLThemeDefinition } from '@tldraw/editor'
+import { Editor, TLShape, TLTheme } from '@tldraw/editor'
 
 /** @public */
 export interface ShapeOptionsWithDisplayValues<
@@ -8,20 +8,20 @@ export interface ShapeOptionsWithDisplayValues<
 	getDisplayValues(
 		editor: Editor,
 		shape: Shape,
-		theme: TLThemeDefinition,
+		theme: TLTheme,
 		colorMode: 'light' | 'dark'
 	): DisplayValues
 	getDisplayValueOverrides(
 		editor: Editor,
 		shape: Shape,
-		theme: TLThemeDefinition,
+		theme: TLTheme,
 		colorMode: 'light' | 'dark'
 	): Partial<DisplayValues>
 }
 
 const dvCache = new WeakMap<
 	TLShape,
-	{ theme: TLThemeDefinition; colorMode: 'light' | 'dark'; values: object }
+	{ theme: TLTheme; colorMode: 'light' | 'dark'; values: object }
 >()
 
 /**
