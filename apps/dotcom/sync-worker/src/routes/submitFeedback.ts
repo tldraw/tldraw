@@ -100,6 +100,15 @@ async function getUserEmail(env: Environment, userId: string) {
 	return email
 }
 
+const UPSERT_CUSTOMER_MUTATION = `
+mutation upsertCustomer($input: UpsertCustomerInput!) {
+  upsertCustomer(input: $input) {
+    customer { id }
+    error { message type code }
+  }
+}
+`
+
 const CREATE_THREAD_MUTATION = `
 mutation createThread($input: CreateThreadInput!) {
   createThread(input: $input) {
@@ -109,13 +118,60 @@ mutation createThread($input: CreateThreadInput!) {
 }
 `
 
+async function plainRequest(env: Environment, query: string, variables: Record<string, unknown>) {
+	const res = await fetch('https://core-api.uk.plain.com/graphql/v1', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${env.PLAIN_API_KEY}`,
+		},
+		body: JSON.stringify({ query, variables }),
+	})
+
+	if (!res.ok) {
+		throw new Error(`Plain API returned ${res.status}: ${await res.text()}`)
+	}
+
+	const body = (await res.json()) as Record<string, unknown>
+	const errors = body.errors as { message: string }[] | undefined
+	if (errors?.length) {
+		throw new Error(`Plain GraphQL error: ${errors[0].message}`)
+	}
+
+	return body.data as Record<string, unknown>
+}
+
+async function upsertPlainCustomer(env: Environment, email: string): Promise<string> {
+	const input = {
+		identifier: { emailAddress: email },
+		onCreate: { fullName: email, email: { email, isVerified: false } },
+		onUpdate: {},
+	}
+
+	const data = await plainRequest(env, UPSERT_CUSTOMER_MUTATION, { input })
+	const result = data.upsertCustomer as {
+		customer?: { id: string }
+		error?: { message: string; type: string; code: string }
+	}
+
+	if (result?.error) {
+		throw new Error(`Plain upsertCustomer error: ${result.error.message} (${result.error.code})`)
+	}
+
+	const customerId = result?.customer?.id
+	if (!customerId) {
+		throw new Error('Plain upsertCustomer returned no customer id')
+	}
+
+	return customerId
+}
+
 async function createPlainThread(
 	env: Environment,
 	{ description, url, email }: { description: string; url: string; email: string | null }
 ): Promise<string> {
-	const customerIdentifier = email
-		? { emailAddress: email }
-		: { emailAddress: 'anonymous-feedback@tldraw.com' }
+	const customerEmail = email ?? 'anonymous-feedback@tldraw.com'
+	const customerId = await upsertPlainCustomer(env, customerEmail)
 
 	const fromLabel = email ?? 'anonymous'
 	const title = `Dotcom feedback from ${fromLabel}`
@@ -132,7 +188,7 @@ async function createPlainThread(
 	]
 
 	const input: Record<string, unknown> = {
-		customerIdentifier,
+		customerIdentifier: { customerId },
 		title,
 		description: truncatedDescription,
 		components,
@@ -142,37 +198,12 @@ async function createPlainThread(
 		input.labelTypeIds = [env.PLAIN_LABEL_TYPE_ID]
 	}
 
-	const res = await fetch('https://core-api.uk.plain.com/graphql/v1', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${env.PLAIN_API_KEY}`,
-		},
-		body: JSON.stringify({
-			query: CREATE_THREAD_MUTATION,
-			variables: { input },
-		}),
-	})
-
-	if (!res.ok) {
-		throw new Error(`Plain API returned ${res.status}: ${await res.text()}`)
+	const data = await plainRequest(env, CREATE_THREAD_MUTATION, { input })
+	const result = data.createThread as {
+		thread?: { id: string }
+		error?: { message: string; type: string; code: string }
 	}
 
-	const body = (await res.json()) as {
-		data?: {
-			createThread?: {
-				thread?: { id: string }
-				error?: { message: string; type: string; code: string }
-			}
-		}
-		errors?: { message: string }[]
-	}
-
-	if (body.errors?.length) {
-		throw new Error(`Plain GraphQL error: ${body.errors[0].message}`)
-	}
-
-	const result = body.data?.createThread
 	if (result?.error) {
 		throw new Error(`Plain createThread error: ${result.error.message} (${result.error.code})`)
 	}
@@ -182,5 +213,8 @@ async function createPlainThread(
 		throw new Error('Plain createThread returned no thread id')
 	}
 
+	if (env.PLAIN_WORKSPACE_ID) {
+		return `https://app.plain.com/workspace/${env.PLAIN_WORKSPACE_ID}/thread/${threadId}/`
+	}
 	return `https://app.plain.com/thread/${threadId}`
 }

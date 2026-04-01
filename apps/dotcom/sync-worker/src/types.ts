@@ -31,6 +31,7 @@ export interface Environment {
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
 	PLAIN_API_KEY?: string
 	PLAIN_LABEL_TYPE_ID?: string
+	PLAIN_WORKSPACE_ID?: string
 
 	MEASURE: Analytics | undefined
 
