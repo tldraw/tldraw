@@ -2,8 +2,12 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FeatureFlags } from './FeatureFlagPoller'
 
 const mockFetch = vi.fn()
+let mockLocalStorage: Record<string, string> = {}
 vi.mock('tldraw', () => {
-	return { fetch: (...args: any[]) => mockFetch(...args) }
+	return {
+		fetch: (...args: any[]) => mockFetch(...args),
+		getFromLocalStorage: (key: string) => mockLocalStorage[key] ?? null,
+	}
 })
 
 function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
@@ -33,17 +37,40 @@ describe('shouldReloadForFlagChange', () => {
 	})
 
 	describe('zero_kill_switch transitions', () => {
-		it('reloads when kill switch goes false → true', () => {
-			const prev = makeFlags({ zero_kill_switch: { enabled: false } })
+		it('reloads when kill switch goes false → true and user had zero enabled', () => {
+			const prev = makeFlags({
+				zero_kill_switch: { enabled: false },
+				zero_enabled: { enabled: true },
+			})
 			const next = makeFlags({ zero_kill_switch: { enabled: true } })
 			expect(shouldReloadForFlagChange(prev, next)).toBe(true)
 		})
 
-		it('reloads when kill switch goes undefined → true', () => {
-			const prev = makeFlags()
+		it('reloads when kill switch goes undefined → true and user had zero enabled', () => {
+			const prev = makeFlags({ zero_enabled: { enabled: true } })
 			delete (prev as any).zero_kill_switch
 			const next = makeFlags({ zero_kill_switch: { enabled: true } })
 			expect(shouldReloadForFlagChange(prev, next)).toBe(true)
+		})
+
+		it('does NOT reload when kill switch activates but user did not have zero enabled', () => {
+			const prev = makeFlags({
+				zero_kill_switch: { enabled: false },
+				zero_enabled: { enabled: false },
+			})
+			const next = makeFlags({ zero_kill_switch: { enabled: true } })
+			expect(shouldReloadForFlagChange(prev, next)).toBe(false)
+		})
+
+		it('reloads when kill switch activates and user has localStorage override', () => {
+			mockLocalStorage = { useProperZero: 'true' }
+			const prev = makeFlags({
+				zero_kill_switch: { enabled: false },
+				zero_enabled: { enabled: false },
+			})
+			const next = makeFlags({ zero_kill_switch: { enabled: true } })
+			expect(shouldReloadForFlagChange(prev, next)).toBe(true)
+			mockLocalStorage = {}
 		})
 
 		it('does NOT reload when kill switch stays true → true', () => {
