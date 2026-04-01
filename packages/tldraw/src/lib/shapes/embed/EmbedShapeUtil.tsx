@@ -187,14 +187,30 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			typeof window !== 'undefined' && (window !== window.top || window.self !== window.parent)
 		if (isIframe && embedInfo?.definition.type === 'tldraw') return null
 
+		const sandbox = getSandboxPermissions({
+			...embedShapePermissionDefaults,
+			...(embedInfo
+				? (embedInfo.definition.overridePermissions ?? {})
+				: unknownEmbedShapePermissionOverrides),
+		})
+
 		if (embedInfo?.definition.type === 'github_gist') {
 			const idFromGistUrl = embedInfo.url.split('/').pop()
 			if (!idFromGistUrl) throw Error('No gist id!')
+
+			// Gist embeds use srcDoc, so we must disable allow-same-origin. Otherwise
+			// the embedded script shares the parent's origin and can escape the sandbox.
+			const gistSandbox = getSandboxPermissions({
+				...embedShapePermissionDefaults,
+				...(embedInfo?.definition?.overridePermissions ?? {}),
+				'allow-same-origin': false,
+			})
 
 			return (
 				<HTMLContainer className="tl-embed-container" id={shape.id}>
 					<Gist
 						id={idFromGistUrl}
+						sandbox={gistSandbox}
 						width={toDomPrecision(w)!}
 						height={toDomPrecision(h)!}
 						isInteractive={isInteractive}
@@ -203,13 +219,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 				</HTMLContainer>
 			)
 		}
-
-		const sandbox = getSandboxPermissions({
-			...embedShapePermissionDefaults,
-			...(embedInfo
-				? (embedInfo.definition.overridePermissions ?? {})
-				: unknownEmbedShapePermissionOverrides),
-		})
 
 		const iframeSrc = embedInfo?.embedUrl ?? url
 
@@ -292,6 +301,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 function Gist({
 	id,
+	sandbox,
 	isInteractive,
 	width,
 	height,
@@ -299,6 +309,7 @@ function Gist({
 	pageRotation,
 }: {
 	id: string
+	sandbox: string
 	isInteractive: boolean
 	width: number
 	height: number
@@ -318,6 +329,7 @@ function Gist({
 	return (
 		<iframe
 			className="tl-embed"
+			sandbox={sandbox}
 			draggable={false}
 			width={toDomPrecision(width)}
 			height={toDomPrecision(height)}
