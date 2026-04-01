@@ -39,13 +39,14 @@ import {
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
 import {
-	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
 	LABEL_PADDING,
 	STROKE_SIZES,
 	TEXT_PROPS,
+	getFontFamily,
 } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
+import { getThemeFontFaces } from '../shared/defaultFonts'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -138,7 +139,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							: getColorValue(colors, color, DEFAULT_FILL_COLOR_NAMES[fill]),
 				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
 				labelColor: getColorValue(colors, labelColor, 'solid'), // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
-				labelFontFamily: FONT_FAMILIES[font],
+				labelFontFamily: getFontFamily(theme, font),
 				labelFontSize: theme.fontSize * LABEL_FONT_SIZES[size],
 				labelMinWidth: GEO_SHAPE_MIN_WIDTHS[size],
 				labelExtraPadding: theme.strokeWidth * STROKE_SIZES[size],
@@ -304,6 +305,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		if (isEmptyRichText(shape.props.richText)) {
 			return EMPTY_ARRAY
 		}
+		const themeFaces = getThemeFontFaces(this.editor.getCurrentTheme(), shape.props.font)
+		if (themeFaces) return themeFaces
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',
@@ -840,7 +843,7 @@ function getGeoLabelMeasurementRequest(
 	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 	const opts: TLMeasureTextOpts = {
 		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[font],
+		fontFamily: getFontFamily(theme, font),
 		fontSize: theme.fontSize * LABEL_FONT_SIZES[size],
 		lineHeight: theme.lineHeight,
 		minWidth: minWidth,

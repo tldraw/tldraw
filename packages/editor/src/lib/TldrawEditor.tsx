@@ -7,6 +7,7 @@ import {
 	TLThemeId,
 	TLThemes,
 	registerColorsFromThemes,
+	registerFontsFromThemes,
 } from '@tldraw/tlschema'
 import { annotateError, Required } from '@tldraw/utils'
 import classNames from 'classnames'
@@ -281,10 +282,11 @@ export const TldrawEditor = memo(function TldrawEditor({
 	deepLinks: _deepLinks,
 	...rest
 }: TldrawEditorProps) {
-	// Register custom colors before effects run. For external stores, users
-	// should also pass themes to createTLStore so colors are registered
-	// before data is loaded into the store.
+	// Register custom colors and fonts before effects run. For external stores,
+	// users should also pass themes to createTLStore so they are
+	// registered before data is loaded into the store.
 	registerColorsFromThemes(rest.themes)
+	registerFontsFromThemes(rest.themes)
 
 	const [container, setContainer] = useState<HTMLElement | null>(null)
 	const user = useMemo(() => _user ?? createTLCurrentUser(), [_user])

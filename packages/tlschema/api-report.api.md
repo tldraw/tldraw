@@ -449,6 +449,9 @@ export function isCustomRecordId(typeName: string, id?: string): boolean;
 // @public
 export function isDocument(record?: UnknownRecord): record is TLDocument;
 
+// @internal (undocumented)
+export function isFontEntry(value: unknown): value is TLThemeFont;
+
 // @public
 export function isPageId(id: string): id is TLPageId;
 
@@ -658,6 +661,9 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 
 // @public
 export function registerColorsFromThemes(definitions: Record<string, TLTheme> | undefined): void;
+
+// @public
+export function registerFontsFromThemes(definitions: Record<string, TLTheme> | undefined): void;
 
 // @public
 export const richTextValidator: T.ObjectValidator<{
@@ -1013,7 +1019,7 @@ export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
 export type TLDefaultFillStyle = T.TypeOf<typeof DefaultFillStyle>;
 
 // @public
-export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
+export type TLDefaultFontStyle = keyof TLThemeFonts & string;
 
 // @public
 export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
@@ -1075,6 +1081,29 @@ export interface TLEmbedShapeProps {
     h: number;
     url: string;
     w: number;
+}
+
+// @public
+export interface TLFontFace {
+    readonly ascentOverride?: string;
+    readonly descentOverride?: string;
+    readonly family: string;
+    readonly featureSettings?: string;
+    readonly lineGapOverride?: string;
+    readonly src: TLFontFaceSource;
+    readonly stretch?: string;
+    readonly style?: string;
+    readonly unicodeRange?: string;
+    readonly weight?: string;
+}
+
+// @public
+export interface TLFontFaceSource {
+    // (undocumented)
+    format?: string;
+    // (undocumented)
+    tech?: string;
+    url: string;
 }
 
 // @public
@@ -1556,6 +1585,7 @@ export interface TLTheme {
         dark: TLThemeColors;
         light: TLThemeColors;
     };
+    fonts: Partial<TLThemeFonts>;
     fontSize: number;
     lineHeight: number;
     strokeWidth: number;
@@ -1599,6 +1629,25 @@ export interface TLThemeColors {
     white: TLDefaultColor;
     // (undocumented)
     yellow: TLDefaultColor;
+}
+
+// @public
+export interface TLThemeFont {
+    faces?: TLFontFace[];
+    fontFamily: string;
+    icon?: unknown;
+}
+
+// @public
+export interface TLThemeFonts {
+    // (undocumented)
+    draw: TLThemeFont;
+    // (undocumented)
+    mono: TLThemeFont;
+    // (undocumented)
+    sans: TLThemeFont;
+    // (undocumented)
+    serif: TLThemeFont;
 }
 
 // @public (undocumented)

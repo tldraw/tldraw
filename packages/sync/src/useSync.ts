@@ -28,6 +28,7 @@ import {
 	createCachedUserResolve,
 	createPresenceStateDerivation,
 	registerColorsFromThemes,
+	registerFontsFromThemes,
 	createTLStore,
 	createUserId,
 	defaultUserPreferences,
@@ -189,6 +190,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	const __never__: never = 0 as any as keyof Omit<typeof schemaOpts, keyof TLStoreSchemaOptions>
 
 	registerColorsFromThemes(themes)
+	registerFontsFromThemes(themes)
 	const schema = useTLSchemaFromUtils(schemaOpts)
 
 	const getUserPresence = useReactiveEvent(
