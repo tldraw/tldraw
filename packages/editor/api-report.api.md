@@ -1609,7 +1609,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     // @internal (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
-    updateTheme(id: TLThemeId, definition: Partial<TLTheme>): this;
+    updateTheme(id: TLThemeId, definition: ((theme: TLTheme) => TLTheme) | Partial<TLTheme>): this;
     updateThemes(themes: ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>) | Record<TLThemeId, TLTheme>): this;
     updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): this;
     uploadAsset(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<{
