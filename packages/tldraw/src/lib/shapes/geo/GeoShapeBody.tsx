@@ -1,0 +1,52 @@
+import { TLGeoShape } from '@tldraw/editor'
+import { PatternFill } from '../shared/PatternFill'
+import { getGeoShapePath } from './getGeoShapePath'
+
+export function GeoShapeBody({
+	shape,
+	shouldScale,
+	forceSolid,
+	strokeColor,
+	strokeWidth: unscaledStrokeWidth,
+	fillColor,
+	patternFillFallbackColor,
+}: {
+	shape: TLGeoShape
+	shouldScale: boolean
+	forceSolid: boolean
+	strokeColor: string
+	strokeWidth: number
+	fillColor: string
+	patternFillFallbackColor: string
+}) {
+	const scaleToUse = shouldScale ? shape.props.scale : 1
+	const strokeWidth = unscaledStrokeWidth * scaleToUse
+	const { dash, fill } = shape.props
+
+	const path = getGeoShapePath(shape, unscaledStrokeWidth)
+	const fillPath =
+		dash === 'draw' && !forceSolid
+			? path.toDrawD({ strokeWidth, randomSeed: shape.id, passes: 1, offset: 0, onlyFilled: true })
+			: path.toD({ onlyFilled: true })
+
+	return (
+		<>
+			{fill === 'none' ? null : fill === 'pattern' ? (
+				<PatternFill
+					d={fillPath}
+					fillColor={fillColor}
+					patternFillFallbackColor={patternFillFallbackColor}
+				/>
+			) : (
+				<path fill={fillColor} d={fillPath} />
+			)}
+			{path.toSvg({
+				style: dash,
+				strokeWidth,
+				forceSolid,
+				randomSeed: shape.id,
+				props: { fill: 'none', stroke: strokeColor },
+			})}
+		</>
+	)
+}

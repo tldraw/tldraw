@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-empty-object-type
 import {
 	BaseBoxShapeUtil,
 	Editor,
@@ -34,6 +35,7 @@ import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { getUncroppedSize } from '../shared/crop'
+import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
@@ -49,10 +51,28 @@ async function getDataURIFromURL(url: string): Promise<string> {
 const imageSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
+export interface ImageShapeUtilDisplayValues {}
+
+/** @public */
+export interface ImageShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLImageShape,
+	ImageShapeUtilDisplayValues
+> {}
+
+/** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override type = 'image' as const
 	static override props = imageShapeProps
 	static override migrations = imageShapeMigrations
+
+	override options: ImageShapeOptions = {
+		getDefaultDisplayValues(): ImageShapeUtilDisplayValues {
+			return {}
+		},
+		getCustomDisplayValues(): Partial<ImageShapeUtilDisplayValues> {
+			return {}
+		},
+	}
 
 	override isAspectRatioLocked() {
 		return true
