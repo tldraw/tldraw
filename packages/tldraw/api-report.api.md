@@ -85,6 +85,7 @@ import { TLClipboardWriteInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorStyle } from '@tldraw/tlschema';
+import { TLDefaultFontStyle } from '@tldraw/tlschema';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TLDragShapesOutInfo } from '@tldraw/editor';
 import { TLDragShapesOverInfo } from '@tldraw/editor';
@@ -102,7 +103,8 @@ import { TLEmbedShapeProps } from '@tldraw/editor';
 import { TLEventInfo } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
 import { TLFileExternalAsset } from '@tldraw/editor';
-import { TLFontFace } from '@tldraw/editor';
+import { TLFontFace } from '@tldraw/tlschema';
+import { TLFontFace as TLFontFace_2 } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
 import { TLFrameShapeProps } from '@tldraw/editor';
 import { TLGeometryOpts } from '@tldraw/editor';
@@ -146,7 +148,7 @@ import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLTheme } from '@tldraw/editor';
-import { TLThemeColors } from '@tldraw/editor';
+import { TLThemeColorPalette } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
@@ -183,7 +185,7 @@ export type AlertSeverity = 'error' | 'info' | 'success' | 'warning';
 export function AlignMenuItems(): JSX.Element;
 
 // @public (undocumented)
-export const allDefaultFontFaces: TLFontFace[];
+export const allDefaultFontFaces: TLFontFace_2[];
 
 // @public (undocumented)
 export function ArrangeMenuSubmenu(): JSX.Element | null;
@@ -914,7 +916,7 @@ export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
 export function DefaultActionsMenuContent(): JSX.Element;
 
 // @public (undocumented)
-export function defaultAddFontsFromNode(node: Node_2, state: RichTextFontVisitorState, addFont: (font: TLFontFace) => void): RichTextFontVisitorState;
+export function defaultAddFontsFromNode(node: Node_2, state: RichTextFontVisitorState, addFont: (font: TLFontFace_2) => void): RichTextFontVisitorState;
 
 // @public (undocumented)
 export const defaultBindingUtils: readonly [typeof ArrowBindingUtil];
@@ -1764,7 +1766,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
-            font: "draw" | "mono" | "sans" | "serif";
+            font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
             h: number;
@@ -1799,7 +1801,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
-            font: "draw" | "mono" | "sans" | "serif";
+            font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
             h: number;
@@ -1936,7 +1938,7 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 export function getAssetInfo(file: File, options: TLDefaultExternalContentHandlerOpts, assetId?: TLAssetId): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public
-export function getColorStyleItems(colors: TLThemeColors): StyleValuesForUi<string>;
+export function getColorStyleItems(colors: TLThemeColorPalette): StyleValuesForUi<string>;
 
 // @public (undocumented)
 export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T>, opts?: CropBoxOptions): {
@@ -1958,6 +1960,12 @@ export function getDisplayValues<Shape extends TLShape, DisplayValues extends ob
 
 // @public
 export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
+
+// @public (undocumented)
+export function getFontFamily(theme: TLTheme, font: string): string;
+
+// @public
+export function getFontStyleItems(theme: TLTheme): StyleValuesForUi<string>;
 
 // @public (undocumented)
 export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boolean): TLShape | undefined;
@@ -2426,7 +2434,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             color: TLDefaultColorStyle;
-            font: "draw" | "mono" | "sans" | "serif";
+            font: TLDefaultFontStyle;
             fontSizeAdjustment: number;
             growY: number;
             labelColor: TLDefaultColorStyle;
@@ -3304,7 +3312,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         props: {
             autoSize: boolean;
             color: TLDefaultColorStyle;
-            font: "draw" | "mono" | "sans" | "serif";
+            font: TLDefaultFontStyle;
             richText: {
                 attrs?: any;
                 content: unknown[];
@@ -3454,13 +3462,13 @@ export interface TLDefaultExternalContentHandlerOpts extends TLExternalContentPr
 export interface TLDefaultFont {
     // (undocumented)
     italic: {
-        bold: TLFontFace;
-        normal: TLFontFace;
+        bold: TLFontFace_2;
+        normal: TLFontFace_2;
     };
     // (undocumented)
     normal: {
-        bold: TLFontFace;
-        normal: TLFontFace;
+        bold: TLFontFace_2;
+        normal: TLFontFace_2;
     };
 }
 

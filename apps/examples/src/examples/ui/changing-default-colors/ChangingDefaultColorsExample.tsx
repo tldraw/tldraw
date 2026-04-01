@@ -1,4 +1,4 @@
-import { structuredClone, Tldraw } from 'tldraw'
+import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -10,11 +10,19 @@ export default function ChangingDefaultColorsExample() {
 			<Tldraw
 				persistenceKey="example"
 				onMount={(editor) => {
-					editor.updateTheme('default', (theme) => {
-						const newTheme = structuredClone(theme) // make a deep copy of the old theme
-						newTheme.colors.light.black.solid = 'aqua'
-						return newTheme
-					})
+					editor.updateTheme('default', (theme) => ({
+						...theme,
+						colors: {
+							...theme.colors,
+							light: {
+								...theme.colors.light,
+								black: {
+									...theme.colors.light.black!,
+									solid: 'aqua',
+								},
+							},
+						},
+					}))
 				}}
 			/>
 		</div>

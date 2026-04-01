@@ -19,7 +19,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
-import { getColorStyleItems, STYLES } from '../../../styles'
+import { getColorStyleItems, getFontStyleItems, STYLES } from '../../../styles'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -230,6 +230,8 @@ export function StylePanelSizePicker() {
 
 /** @public @react */
 export function StylePanelFontPicker() {
+	const editor = useEditor()
+	const theme = editor.getCurrentTheme()
 	const { styles } = useStylePanelContext()
 	const msg = useTranslation()
 	const font = styles.get(DefaultFontStyle)
@@ -240,7 +242,7 @@ export function StylePanelFontPicker() {
 			title={msg('style-panel.font')}
 			uiType="font"
 			style={DefaultFontStyle}
-			items={STYLES.font}
+			items={getFontStyleItems(theme)}
 			value={font}
 		/>
 	)

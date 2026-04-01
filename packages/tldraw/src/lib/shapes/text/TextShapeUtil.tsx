@@ -27,7 +27,8 @@ import {
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
-import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { FONT_SIZES, TEXT_PROPS, getFontFamily } from '../shared/default-shape-constants'
+import { getThemeFontFaces } from '../shared/defaultFonts'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 
@@ -76,7 +77,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			const { color, font, size } = shape.props
 			return {
 				color: getColorValue(theme.colors[colorMode], color, 'solid'),
-				fontFamily: FONT_FAMILIES[font],
+				fontFamily: getFontFamily(theme, font),
 				fontSize: theme.fontSize * FONT_SIZES[size],
 				lineHeight: theme.lineHeight,
 				fontWeight: TEXT_PROPS.fontWeight,
@@ -128,7 +129,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override getFontFaces(shape: TLTextShape) {
-		// no need for an empty rich text check here
+		const themeFaces = getThemeFontFaces(this.editor.getCurrentTheme(), shape.props.font)
+		if (themeFaces) return themeFaces
 		return getFontsFromRichText(this.editor, shape.props.richText, {
 			family: `tldraw_${shape.props.font}`,
 			weight: 'normal',

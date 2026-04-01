@@ -278,6 +278,16 @@ function InsideOfEditorAndUiContext({
 		// quickly, without having to wait for them to load in.
 		editor.fonts.requestFonts(allDefaultFontFaces)
 
+		// Also preload any custom font faces defined in themes
+		const themes = editor.getThemes()
+		for (const theme of Object.values(themes)) {
+			for (const font of Object.values(theme.fonts)) {
+				if (font.faces?.length) {
+					editor.fonts.requestFonts(font.faces)
+				}
+			}
+		}
+
 		editor.once('edit', () => trackEvent('edit', { source: 'unknown' }))
 
 		// for content handling, first we register the default handlers...

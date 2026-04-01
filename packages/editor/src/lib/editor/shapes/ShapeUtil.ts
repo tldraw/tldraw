@@ -12,13 +12,13 @@ import {
 	TLShapePartial,
 	TLUnknownShape,
 } from '@tldraw/tlschema'
+import { TLFontFace } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { ReactElement } from 'react'
 import { Box, SelectionHandle } from '../../primitives/Box'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Vec } from '../../primitives/Vec'
 import type { Editor } from '../Editor'
-import { TLFontFace } from '../managers/FontManager/FontManager'
 import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { TLClickEventInfo } from '../types/event-types'

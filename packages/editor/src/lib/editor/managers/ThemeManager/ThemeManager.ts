@@ -4,6 +4,22 @@ import type { Editor } from '../../Editor'
 import { DEFAULT_THEME } from './defaultThemes'
 
 /**
+ * Merge a partial theme into a base theme, filling in missing top-level
+ * fields from the base.
+ *
+ * @internal
+ */
+export function mergeTheme(base: TLTheme, input: Partial<TLTheme>): TLTheme {
+	return {
+		fontSize: input.fontSize ?? base.fontSize,
+		lineHeight: input.lineHeight ?? base.lineHeight,
+		strokeWidth: input.strokeWidth ?? base.strokeWidth,
+		fonts: input.fonts ?? base.fonts,
+		colors: input.colors ?? base.colors,
+	}
+}
+
+/**
  * Manages the editor's color themes.
  *
  * Stores named theme definitions (each containing light and dark color palettes
@@ -24,14 +40,19 @@ export class ThemeManager {
 	constructor(
 		private readonly editor: Editor,
 		options?: {
-			themes?: Partial<Record<TLThemeId, TLTheme>>
+			themes?: Partial<Record<TLThemeId, Partial<TLTheme>>>
 			initial?: TLThemeId
 		}
 	) {
-		this._themes = atom('ThemeManager._definitions', {
-			default: DEFAULT_THEME,
-			...options?.themes,
-		})
+		const resolved = { default: DEFAULT_THEME } as Record<TLThemeId, TLTheme>
+		if (options?.themes) {
+			for (const [id, input] of Object.entries(options.themes) as [TLThemeId, Partial<TLTheme>][]) {
+				if (input) {
+					resolved[id] = mergeTheme(resolved[id] ?? DEFAULT_THEME, input)
+				}
+			}
+		}
+		this._themes = atom('ThemeManager._definitions', resolved)
 		this._currentThemeId = atom('ThemeManager._currentThemeName', options?.initial ?? 'default')
 	}
 
@@ -101,7 +122,9 @@ export class ThemeManager {
 		this._themes.update((prev) => ({
 			...prev,
 			[id]:
-				typeof definition === 'function' ? definition(prev[id]) : { ...prev[id], ...definition },
+				typeof definition === 'function'
+					? definition(prev[id])
+					: mergeTheme(prev[id] ?? DEFAULT_THEME, definition),
 		}))
 	}
 
