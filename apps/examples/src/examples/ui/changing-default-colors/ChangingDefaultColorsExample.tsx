@@ -17,7 +17,7 @@ export default function ChangingDefaultColorsExample() {
 							light: {
 								...theme.colors.light,
 								black: {
-									...theme.colors.light.black,
+									...theme.colors.light.black!,
 									solid: 'aqua',
 								},
 							},
