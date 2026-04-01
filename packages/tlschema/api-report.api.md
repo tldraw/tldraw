@@ -660,10 +660,10 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 }>;
 
 // @public
-export function registerColorsFromThemes(definitions: Record<string, TLTheme> | undefined): void;
+export function registerColorsFromThemes(definitions: TLThemes): void;
 
 // @public
-export function registerFontsFromThemes(definitions: Record<string, TLTheme> | undefined): void;
+export function registerFontsFromThemes(definitions: TLThemes): void;
 
 // @public
 export const richTextValidator: T.ObjectValidator<{
@@ -1589,8 +1589,9 @@ export interface TLTheme {
         dark: TLThemeColors;
         light: TLThemeColors;
     };
-    fonts: Partial<TLThemeFonts>;
+    fonts: TLThemeFonts;
     fontSize: number;
+    id: TLThemeId;
     lineHeight: number;
     strokeWidth: number;
 }
