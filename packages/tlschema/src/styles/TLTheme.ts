@@ -74,49 +74,56 @@ export interface TLThemeColors {
 }
 
 /**
- * A resolved theme — the flat, ready-to-use object that consumers read at runtime.
- * Produced by resolving a {@link TLThemeDefinition} for a specific color mode.
- *
- * @public
- */
-export interface TLTheme {
-	id: string
-	/** Base font size in pixels. Shape font sizes are derived by multiplying this value. @defaultValue 16 */
-	fontSize: number
-	/** Base line height multiplier. @defaultValue 1.35 */
-	lineHeight: number
-	/** Base stroke width in pixels. Shape stroke widths are derived by multiplying this value. @defaultValue 2 */
-	strokeWidth: number
-	colors: TLThemeColors
-}
-
-/**
  * A theme definition containing shared properties and color palettes for
  * both light and dark modes.
  *
  * @example
  * ```ts
  * const myTheme: TLThemeDefinition = {
- *   fontSize: 18,
+ *   fontSize: 16,
+ *   lineHeight: 1.35,
+ *   strokeWidth: 2,
  *   colors: {
  *     light: { ... },
  *     dark: { ... },
  *   },
  * }
- * editor.setThemeDefinition('custom', myTheme)
+ * editor.updateTheme('custom', myTheme)
  * ```
  *
  * @public
  */
 export interface TLThemeDefinition {
-	/** Base font size in pixels. Shape font sizes are derived by multiplying this value. @defaultValue 16 */
-	fontSize?: number
-	/** Base line height multiplier. @defaultValue 1.35 */
-	lineHeight?: number
-	/** Base stroke width in pixels. Shape stroke widths are derived by multiplying this value. @defaultValue 2 */
-	strokeWidth?: number
+	/** Base font size in pixels. Shape font sizes are derived by multiplying this value. */
+	fontSize: number
+	/** Base line height multiplier. */
+	lineHeight: number
+	/** Base stroke width in pixels. Shape stroke widths are derived by multiplying this value. */
+	strokeWidth: number
 	colors: {
 		light: TLThemeColors
 		dark: TLThemeColors
 	}
 }
+
+/**
+ * A registry of available themes. Extend this interface via module
+ * augmentation to register custom themes for type-safe theme IDs.
+ *
+ * @example
+ * ```ts
+ * declare module '@tldraw/tlschema' {
+ *   interface TLThemes {
+ *     corporate: TLThemeDefinition
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
+export interface TLThemes {
+	default: TLThemeDefinition
+}
+
+/** @public */
+export type TLThemeId = keyof TLThemes & string

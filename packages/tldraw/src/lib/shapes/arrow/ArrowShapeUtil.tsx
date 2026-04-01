@@ -128,19 +128,20 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return editor.inputs.getCtrlKey()
 		},
 		showTextOutline: true,
-		getDisplayValues(_editor, shape, theme): ArrowShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme, colorMode): ArrowShapeUtilDisplayValues {
 			const { color, fill, labelColor, size, font } = shape.props
+			const colors = theme.colors[colorMode]
 			return {
-				strokeColor: getColorValue(theme, color, 'solid'),
+				strokeColor: getColorValue(colors, color, 'solid'),
 				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
 				fillColor:
 					fill === 'none'
 						? 'transparent'
 						: fill === 'semi'
-							? theme.colors.solid
-							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
-				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
-				labelColor: getColorValue(theme, labelColor, 'solid'),
+							? colors.solid
+							: getColorValue(colors, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
+				labelColor: getColorValue(colors, labelColor, 'solid'),
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: theme.fontSize * ARROW_LABEL_FONT_SIZES[size],
 				labelLineHeight: theme.lineHeight,
@@ -1118,7 +1119,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		const dv = getDisplayValues(this, shape, ctx.themeId)
+		const dv = getDisplayValues(this, shape, ctx.themeId === 'dark' ? 'dark' : 'light')
 		const scaleFactor = 1 / shape.props.scale
 
 		const showArrowLabel = !isEmptyRichText(shape.props.richText)

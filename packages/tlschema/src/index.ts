@@ -309,9 +309,10 @@ export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
 export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TLTextAlignStyle'
 export {
 	type TLDefaultColor,
-	type TLTheme,
 	type TLThemeColors,
 	type TLThemeDefinition,
+	type TLThemeId,
+	type TLThemes,
 } from './styles/TLTheme'
 export {
 	DefaultVerticalAlignStyle,

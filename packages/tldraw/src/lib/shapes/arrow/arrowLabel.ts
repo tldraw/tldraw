@@ -10,7 +10,7 @@ import {
 	Polyline2d,
 	TLArrowShape,
 	TLShape,
-	TLTheme,
+	TLThemeDefinition,
 	Vec,
 	VecLike,
 	clamp,
@@ -137,7 +137,7 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 	return labelSizeCache.get(editor, shape.id) ?? new Vec(0, 0)
 }
 
-function getLabelToArrowPadding(shape: TLArrowShape, theme: TLTheme) {
+function getLabelToArrowPadding(shape: TLArrowShape, theme: TLThemeDefinition) {
 	const strokeWidth = theme.strokeWidth * STROKE_SIZES[shape.props.size]
 	const smallStrokeWidth = theme.strokeWidth * STROKE_SIZES.s
 	const xlStrokeWidth = theme.strokeWidth * STROKE_SIZES.xl

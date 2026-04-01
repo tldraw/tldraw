@@ -10,7 +10,7 @@ export function useColorMode(): 'light' | 'dark' {
 		'colorMode',
 		() => {
 			if (exportContext) return exportContext.themeId === 'dark' ? 'dark' : 'light'
-			return editor._themeManager.getColorMode()
+			return editor.getColorMode()
 		},
 		[exportContext, editor]
 	)

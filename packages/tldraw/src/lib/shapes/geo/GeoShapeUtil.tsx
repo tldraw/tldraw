@@ -122,21 +122,22 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	override options: GeoShapeOptions = {
 		showTextOutline: true,
-		getDisplayValues(_editor, shape, theme): GeoShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme, colorMode): GeoShapeUtilDisplayValues {
 			const { color, size, labelColor, fill, align, verticalAlign, font } = shape.props
+			const colors = theme.colors[colorMode]
 
 			return {
-				strokeColor: getColorValue(theme, color, 'solid'),
+				strokeColor: getColorValue(colors, color, 'solid'),
 				strokeRoundness: theme.strokeWidth * STROKE_SIZES[size] * 2,
 				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
 				fillColor:
 					fill === 'none'
 						? 'transparent'
 						: fill === 'semi'
-							? theme.colors.solid
-							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
-				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
-				labelColor: getColorValue(theme, labelColor, 'solid'), // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
+							? colors.solid
+							: getColorValue(colors, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
+				labelColor: getColorValue(colors, labelColor, 'solid'), // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: theme.fontSize * LABEL_FONT_SIZES[size],
 				labelMinWidth: GEO_SHAPE_MIN_WIDTHS[size],
@@ -415,7 +416,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.themeId)
+		const dv = getDisplayValues(this, shape, ctx.themeId === 'dark' ? 'dark' : 'light')
 		const { richText, fill, scale, growY, w, h } = shape.props
 		// We need to scale the shape to 1x for export
 		const newShape = {

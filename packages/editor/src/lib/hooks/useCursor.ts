@@ -77,7 +77,7 @@ export function useCursor() {
 				return
 			}
 
-			const { cursor } = editor.getCurrentTheme().colors
+			const { cursor } = editor.getCurrentTheme().colors[editor.getColorMode()]
 			container.style.setProperty('--tl-cursor', getCursor(type, rotation, cursor))
 		},
 		[editor, container]

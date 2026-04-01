@@ -58,6 +58,7 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 
 	component(shape: IMyShape) {
 		const theme = this.editor.getCurrentTheme()
+		const colors = theme.colors[this.editor.getColorMode()]
 
 		return (
 			<HTMLContainer
@@ -68,7 +69,7 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 					style={{
 						// [3]
 						fontSize: theme.fontSize * FONT_SIZES[shape.props.size],
-						color: getColorValue(theme, shape.props.color, 'solid'),
+						color: getColorValue(colors, shape.props.color, 'solid'),
 					}}
 				>
 					Select the shape and use the style panel to change the font size and color

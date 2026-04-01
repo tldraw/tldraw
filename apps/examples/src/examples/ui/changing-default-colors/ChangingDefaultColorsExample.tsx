@@ -10,8 +10,8 @@ export default function ChangingDefaultColorsExample() {
 			<Tldraw
 				persistenceKey="example"
 				onMount={(editor) => {
-					const def = editor.getThemeDefinition('default')!
-					editor.setThemeDefinition('default', {
+					const def = editor.getTheme('default')!
+					editor.updateTheme('default', {
 						...def,
 						colors: {
 							...def.colors,
@@ -33,7 +33,7 @@ export default function ChangingDefaultColorsExample() {
 /*
 
 [1]
-Use editor.setThemeDefinition() to customize a theme's color palette.
+Use editor.updateTheme() to customize a theme's color palette.
 This replaces the theme definition, so spread the existing definition
 and only override the colors you want to change.
 

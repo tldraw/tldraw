@@ -110,18 +110,19 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override options: NoteShapeOptions = {
 		resizeMode: 'none',
-		getDisplayValues(_editor, shape, theme): NoteShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme, colorMode): NoteShapeUtilDisplayValues {
 			const { color, labelColor, font, size, align, verticalAlign } = shape.props
+			const colors = theme.colors[colorMode]
 			return {
 				noteWidth: 200,
 				noteHeight: 200,
-				noteBackgroundColor: getColorValue(theme, color, 'noteFill'),
-				borderColor: theme.colors.noteBorder,
+				noteBackgroundColor: getColorValue(colors, color, 'noteFill'),
+				borderColor: colors.noteBorder,
 				borderWidth: 2,
 				labelColor:
 					labelColor === 'black'
-						? getColorValue(theme, color, 'noteText')
-						: getColorValue(theme, labelColor, 'fill'),
+						? getColorValue(colors, color, 'noteText')
+						: getColorValue(colors, labelColor, 'fill'),
 				labelFontFamily: FONT_FAMILIES[font],
 				labelFontSize: theme.fontSize * LABEL_FONT_SIZES[size],
 				labelLineHeight: theme.lineHeight,
@@ -432,7 +433,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.themeId)
+		const dv = getDisplayValues(this, shape, ctx.themeId === 'dark' ? 'dark' : 'light')
 		const bounds = new Box(0, 0, dv.noteWidth, dv.noteHeight + shape.props.growY)
 
 		const filterId = `note-shadow-${shape.id.replace(/:/g, '_')}` as SafeId

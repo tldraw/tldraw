@@ -95,6 +95,7 @@ function CustomShapeComponent({ shape }: { shape: ICustomShape }) {
 	const { id, type, props } = shape
 	const editor = useEditor()
 	const theme = useValue('theme', () => editor.getCurrentTheme(), [editor])
+	const colors = theme.colors[editor.getColorMode()]
 	const pipeline = useValue(pipelineStateAtom)
 	const status: StepStatus = props.mermaidNodeId
 		? (pipeline.statusByNodeId[props.mermaidNodeId] ?? 'pending')
@@ -129,7 +130,7 @@ function CustomShapeComponent({ shape }: { shape: ICustomShape }) {
 					verticalAlign={props.verticalAlign as any}
 					richText={props.richText}
 					isSelected={isOnlySelected}
-					labelColor={getColorValue(theme, props.color as any, 'solid')}
+					labelColor={getColorValue(colors, props.color as any, 'solid')}
 					wrap
 					showTextOutline={false}
 				/>

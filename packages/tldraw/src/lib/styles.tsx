@@ -1,4 +1,4 @@
-import { DefaultColorStyle, type TLTheme } from '@tldraw/editor'
+import { DefaultColorStyle, type TLThemeColors } from '@tldraw/editor'
 import { TLUiIconJsx } from './ui/components/primitives/TldrawUiIcon'
 
 /** @public */
@@ -21,13 +21,13 @@ function isPaletteColor(value: unknown): boolean {
  *
  * @public
  */
-export function getColorStyleItems(theme: TLTheme): StyleValuesForUi<string> {
+export function getColorStyleItems(colors: TLThemeColors): StyleValuesForUi<string> {
 	const result: StyleValuesForUi<string>[number][] = []
 	const seen = new Set<string>()
 
 	// First, add colors in the preferred order from DefaultColorStyle
 	for (const name of DefaultColorStyle.values) {
-		if (name in theme.colors && isPaletteColor(theme.colors[name as keyof typeof theme.colors])) {
+		if (name in colors && isPaletteColor(colors[name as keyof typeof colors])) {
 			// we remove white here temporarily, it's an easter egg color that the panel does not yet account for
 			if (name === 'white') continue
 			result.push({ value: name, icon: 'color' as const })
@@ -36,7 +36,7 @@ export function getColorStyleItems(theme: TLTheme): StyleValuesForUi<string> {
 	}
 
 	// Then, append any remaining palette colors from the theme
-	for (const [key, value] of Object.entries(theme.colors)) {
+	for (const [key, value] of Object.entries(colors)) {
 		if (!seen.has(key) && key !== 'white' && isPaletteColor(value)) {
 			result.push({ value: key, icon: 'color' as const })
 		}

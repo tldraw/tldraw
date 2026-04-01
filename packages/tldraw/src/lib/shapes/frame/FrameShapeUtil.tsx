@@ -87,19 +87,20 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override options: FrameShapeOptions = {
 		showColors: false,
 		resizeChildren: false,
-		getDisplayValues(_editor, shape, theme): FrameShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme, colorMode): FrameShapeUtilDisplayValues {
 			const { color } = shape.props
+			const colors = theme.colors[colorMode]
 			return {
-				fillColor: getColorValue(theme, 'black', 'frameFill'),
-				strokeColor: getColorValue(theme, 'black', 'frameStroke'),
-				showColorsFillColor: getColorValue(theme, color, 'frameFill'),
-				showColorsStrokeColor: getColorValue(theme, color, 'frameStroke'),
-				headingFillColor: theme.colors.background,
-				headingStrokeColor: theme.colors.background,
-				headingTextColor: getColorValue(theme, 'black', 'frameText'),
-				showColorsHeadingFillColor: getColorValue(theme, color, 'frameHeadingFill'),
-				showColorsHeadingStrokeColor: getColorValue(theme, color, 'frameHeadingStroke'),
-				showColorsHeadingTextColor: getColorValue(theme, color, 'frameText'),
+				fillColor: getColorValue(colors, 'black', 'frameFill'),
+				strokeColor: getColorValue(colors, 'black', 'frameStroke'),
+				showColorsFillColor: getColorValue(colors, color, 'frameFill'),
+				showColorsStrokeColor: getColorValue(colors, color, 'frameStroke'),
+				headingFillColor: colors.background,
+				headingStrokeColor: colors.background,
+				headingTextColor: getColorValue(colors, 'black', 'frameText'),
+				showColorsHeadingFillColor: getColorValue(colors, color, 'frameHeadingFill'),
+				showColorsHeadingStrokeColor: getColorValue(colors, color, 'frameHeadingStroke'),
+				showColorsHeadingTextColor: getColorValue(colors, color, 'frameText'),
 			}
 		},
 		getDisplayValueOverrides(): Partial<FrameShapeUtilDisplayValues> {
@@ -295,7 +296,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.themeId)
+		const dv = getDisplayValues(this, shape, ctx.themeId === 'dark' ? 'dark' : 'light')
 
 		// rotate right 45 deg
 		const labelSide = getFrameHeadingSide(this.editor, shape)

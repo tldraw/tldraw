@@ -33,6 +33,7 @@ export function CustomRenderer() {
 
 			const renderingShapes = editor.getRenderingShapes()
 			const theme = editor.getCurrentTheme()
+			const colors = theme.colors[editor.getColorMode()]
 			const currentPageId = editor.getCurrentPageId()
 
 			for (const { shape, opacity } of renderingShapes) {
@@ -71,17 +72,17 @@ export function CustomRenderer() {
 							}
 						}
 					}
-					ctx.strokeStyle = getColorValue(theme, shape.props.color, 'solid')
+					ctx.strokeStyle = getColorValue(colors, shape.props.color, 'solid')
 					ctx.lineWidth = 4
 					ctx.stroke()
 					if (shape.props.fill !== 'none' && shape.props.isClosed) {
-						ctx.fillStyle = getColorValue(theme, shape.props.color, 'semi')
+						ctx.fillStyle = getColorValue(colors, shape.props.color, 'semi')
 						ctx.fill()
 					}
 				} else if (editor.isShapeOfType(shape, 'geo')) {
 					// Draw a geo shape
 					const bounds = editor.getShapeGeometry(shape).bounds
-					ctx.strokeStyle = getColorValue(theme, shape.props.color, 'solid')
+					ctx.strokeStyle = getColorValue(colors, shape.props.color, 'solid')
 					ctx.lineWidth = 2
 					ctx.strokeRect(bounds.minX, bounds.minY, bounds.width, bounds.height)
 				} else {

@@ -59,12 +59,13 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	override options: HighlightShapeOptions = {
 		maxPointsPerShape: 600,
-		getDisplayValues(_editor, shape, theme): HighlightShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme, colorMode): HighlightShapeUtilDisplayValues {
 			const { color, size } = shape.props
+			const colors = theme.colors[colorMode]
 			const useP3 = !debugFlags.forceSrgb.get() && tlenvReactive.get().supportsP3ColorSpace
 			const strokeColor = useP3
-				? getColorValue(theme, color, 'highlightP3')
-				: getColorValue(theme, color, 'highlightSrgb')
+				? getColorValue(colors, color, 'highlightP3')
+				: getColorValue(colors, color, 'highlightSrgb')
 			return {
 				strokeColor,
 				strokeWidth: theme.fontSize * FONT_SIZES[size] * 1.12,
@@ -208,7 +209,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override toSvg(shape: TLHighlightShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.themeId)
+		const dv = getDisplayValues(this, shape, ctx.themeId === 'dark' ? 'dark' : 'light')
 		const strokeWidth = dv.strokeWidth * shape.props.scale
 		const forceSolid = strokeWidth < 1.5
 		const scaleFactor = 1 / shape.props.scale
@@ -226,7 +227,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override toBackgroundSvg(shape: TLHighlightShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.themeId)
+		const dv = getDisplayValues(this, shape, ctx.themeId === 'dark' ? 'dark' : 'light')
 		const strokeWidth = dv.strokeWidth * shape.props.scale
 		const forceSolid = strokeWidth < 1.5
 		const scaleFactor = 1 / shape.props.scale

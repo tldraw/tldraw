@@ -63,18 +63,19 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override options: DrawShapeOptions = {
 		maxPointsPerShape: 600,
-		getDisplayValues(_editor, shape, theme): DrawShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme, colorMode): DrawShapeUtilDisplayValues {
 			const { color, fill, size } = shape.props
+			const colors = theme.colors[colorMode]
 			return {
-				strokeColor: getColorValue(theme, color, 'solid'),
+				strokeColor: getColorValue(colors, color, 'solid'),
 				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
 				fillColor:
 					fill === 'none'
 						? 'transparent'
 						: fill === 'semi'
-							? theme.colors.solid
-							: getColorValue(theme, color, DEFAULT_FILL_COLOR_NAMES[fill]),
-				patternFillFallbackColor: getColorValue(theme, color, 'semi'),
+							? colors.solid
+							: getColorValue(colors, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
 			}
 		},
 		getDisplayValueOverrides(): Partial<DrawShapeUtilDisplayValues> {
@@ -250,7 +251,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		const dv = getDisplayValues(this, shape, ctx.themeId)
+		const dv = getDisplayValues(this, shape, ctx.themeId === 'dark' ? 'dark' : 'light')
 		const scaleFactor = 1 / shape.props.scale
 		return (
 			<g transform={`scale(${scaleFactor})`}>

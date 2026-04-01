@@ -50,8 +50,8 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
-	TLTheme,
 	TLThemeDefinition,
+	TLThemeId,
 	TLUser,
 	TLUserId,
 	TLVideoAsset,
@@ -280,11 +280,11 @@ export interface TLEditorOptions {
 	 * properties (font size, line height, stroke width) and color palettes
 	 * for both light and dark modes.
 	 */
-	themeDefinitions?: Record<string, TLThemeDefinition>
+	themeDefinitions?: Partial<Record<TLThemeId, TLThemeDefinition>>
 	/**
-	 * The name of the initially active theme. Defaults to `'default'`.
+	 * The id of the initially active theme. Defaults to `'default'`.
 	 */
-	activeTheme?: string
+	activeTheme?: TLThemeId
 }
 
 /**
@@ -374,8 +374,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(() => this.textMeasure.dispose())
 
 		this._themeManager = new ThemeManager(this, {
-			definitions: themeDefinitions,
-			activeTheme,
+			themes: themeDefinitions,
+			initial: activeTheme,
 		})
 		this.disposables.add(() => this._themeManager.dispose())
 
@@ -998,22 +998,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the name of the active theme.
+	 * Get the id of the current theme.
 	 *
 	 * @public
 	 */
-	getActiveThemeName(): string {
-		return this._themeManager.getActiveThemeName()
+	getCurrentThemeId(): TLThemeId {
+		return this._themeManager.getCurrentThemeId()
 	}
 
 	/**
-	 * Set the active theme by name. The theme must have been previously registered
-	 * via {@link Editor.setThemeDefinition}.
+	 * Get the current theme definition.
 	 *
 	 * @public
 	 */
-	setActiveThemeName(name: string): void {
-		this._themeManager.setActiveThemeName(name)
+	getCurrentTheme(): TLThemeDefinition {
+		return this._themeManager.getCurrentTheme()
+	}
+
+	/**
+	 * Set the current theme by id.
+	 *
+	 * @public
+	 */
+	setCurrentTheme(id: TLThemeId): void {
+		this._themeManager.setCurrentTheme(id)
 	}
 
 	/**
@@ -1021,26 +1029,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getThemeDefinitions(): Record<string, TLThemeDefinition> {
-		return this._themeManager.getThemeDefinitions()
+	getThemes(): Record<TLThemeId, TLThemeDefinition> {
+		return this._themeManager.getThemes()
 	}
 
 	/**
-	 * Get a single theme definition by name.
+	 * Get a single theme definition by id.
 	 *
 	 * @public
 	 */
-	getThemeDefinition(name: string): TLThemeDefinition | undefined {
-		return this._themeManager.getThemeDefinition(name)
+	getTheme(id: TLThemeId): TLThemeDefinition | undefined {
+		return this._themeManager.getTheme(id)
 	}
 
 	/**
-	 * Register or update a named theme definition.
+	 * Update one or more theme definitions.
 	 *
 	 * @public
 	 */
-	setThemeDefinition(name: string, definition: TLThemeDefinition): void {
-		this._themeManager.setThemeDefinition(name, definition)
+	updateThemes(
+		themes:
+			| Record<TLThemeId, TLThemeDefinition>
+			| ((themes: Record<TLThemeId, TLThemeDefinition>) => Record<TLThemeId, TLThemeDefinition>)
+	): void {
+		this._themeManager.updateThemes(themes)
+	}
+
+	/**
+	 * Update a named theme definition.
+	 *
+	 * @public
+	 */
+	updateTheme(id: TLThemeId, definition: Partial<TLThemeDefinition>): void {
+		this._themeManager.updateTheme(id, definition)
 	}
 
 	/**
@@ -1048,17 +1069,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	removeThemeDefinition(name: string): void {
-		this._themeManager.removeThemeDefinition(name)
-	}
-
-	/**
-	 * Get the resolved current theme, based on the active theme and color mode.
-	 *
-	 * @public
-	 */
-	getCurrentTheme(): TLTheme {
-		return this._themeManager.getCurrentTheme()
+	removeTheme(id: TLThemeId): void {
+		this._themeManager.removeTheme(id)
 	}
 
 	/**

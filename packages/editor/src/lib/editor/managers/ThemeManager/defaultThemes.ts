@@ -1,23 +1,9 @@
-import { TLDefaultColor, TLDefaultColorStyle, TLTheme, TLThemeDefinition } from '@tldraw/tlschema'
-
-const DEFAULT_FONT_SIZE = 16
-const DEFAULT_LINE_HEIGHT = 1.35
-const DEFAULT_STROKE_WIDTH = 2
-
-/**
- * Resolve a theme definition into a flat theme for a given color mode.
- *
- * @public
- */
-export function resolveTheme(definition: TLThemeDefinition, colorMode: 'light' | 'dark'): TLTheme {
-	return {
-		id: colorMode,
-		fontSize: definition.fontSize ?? DEFAULT_FONT_SIZE,
-		lineHeight: definition.lineHeight ?? DEFAULT_LINE_HEIGHT,
-		strokeWidth: definition.strokeWidth ?? DEFAULT_STROKE_WIDTH,
-		colors: definition.colors[colorMode],
-	}
-}
+import {
+	TLDefaultColor,
+	TLDefaultColorStyle,
+	TLThemeColors,
+	TLThemeDefinition,
+} from '@tldraw/tlschema'
 
 /**
  * The default theme definition containing color palettes for both light and dark modes.
@@ -25,9 +11,9 @@ export function resolveTheme(definition: TLThemeDefinition, colorMode: 'light' |
  * @public
  */
 export const DEFAULT_THEME: TLThemeDefinition = {
-	fontSize: DEFAULT_FONT_SIZE,
-	lineHeight: DEFAULT_LINE_HEIGHT,
-	strokeWidth: DEFAULT_STROKE_WIDTH,
+	fontSize: 16,
+	lineHeight: 1.35,
+	strokeWidth: 2,
 	colors: {
 		light: {
 			text: '#000000',
@@ -476,28 +462,28 @@ export const DEFAULT_THEME: TLThemeDefinition = {
  * ```ts
  * import { getColorValue } from 'tldraw'
  *
- * const theme = editor.getCurrentTheme()
+ * const colors = editor.getCurrentTheme().colors[editor.getColorMode()]
  *
  * // Get the solid variant of red
- * const redSolid = getColorValue(theme, 'red', 'solid') // '#e03131'
+ * const redSolid = getColorValue(colors, 'red', 'solid') // '#e03131'
  *
  * // Get the fill variant of blue
- * const blueFill = getColorValue(theme, 'blue', 'fill') // '#4465e9'
+ * const blueFill = getColorValue(colors, 'blue', 'fill') // '#4465e9'
  *
  * // Custom color passes through unchanged
- * const customColor = getColorValue(theme, '#ff0000', 'solid') // '#ff0000'
+ * const customColor = getColorValue(colors, '#ff0000', 'solid') // '#ff0000'
  * ```
  *
  * @public
  */
 export function getColorValue(
-	theme: TLTheme,
+	colors: TLThemeColors,
 	color: TLDefaultColorStyle | string,
 	variant: keyof TLDefaultColor
 ): string {
-	if (!(color in theme.colors)) {
+	if (!(color in colors)) {
 		// If the color is not a key in the theme's colors, assume it's a custom color value and return it directly
 		return color
 	}
-	return theme.colors[color as TLDefaultColorStyle][variant]
+	return colors[color as TLDefaultColorStyle][variant]
 }

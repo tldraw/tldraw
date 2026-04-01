@@ -1,7 +1,7 @@
-import { atom, computed } from '@tldraw/state'
-import { TLTheme, TLThemeDefinition } from '@tldraw/tlschema'
+import { Atom, atom, computed, transact } from '@tldraw/state'
+import { TLThemeDefinition, TLThemeId } from '@tldraw/tlschema'
 import type { Editor } from '../../Editor'
-import { DEFAULT_THEME, resolveTheme } from './defaultThemes'
+import { DEFAULT_THEME } from './defaultThemes'
 
 /**
  * Manages the editor's color themes.
@@ -13,21 +13,21 @@ import { DEFAULT_THEME, resolveTheme } from './defaultThemes'
  * @public
  */
 export class ThemeManager {
-	private readonly _definitions: ReturnType<typeof atom<Record<string, TLThemeDefinition>>>
-	private readonly _activeThemeName: ReturnType<typeof atom<string>>
+	private readonly _themes: Atom<Record<TLThemeId, TLThemeDefinition>>
+	private readonly _currentThemeId: Atom<TLThemeId>
 
 	constructor(
 		private readonly editor: Editor,
 		options?: {
-			definitions?: Record<string, TLThemeDefinition>
-			activeTheme?: string
+			themes?: Partial<Record<TLThemeId, TLThemeDefinition>>
+			initial?: TLThemeId
 		}
 	) {
-		this._definitions = atom('ThemeManager._definitions', {
+		this._themes = atom('ThemeManager._definitions', {
 			default: DEFAULT_THEME,
-			...options?.definitions,
+			...options?.themes,
 		})
-		this._activeThemeName = atom('ThemeManager._activeThemeName', options?.activeTheme ?? 'default')
+		this._currentThemeId = atom('ThemeManager._activeThemeName', options?.initial ?? 'default')
 	}
 
 	/** Get the current color mode based on the user's dark mode preference. */
@@ -35,65 +35,88 @@ export class ThemeManager {
 		return this.editor.user.getIsDarkMode() ? 'dark' : 'light'
 	}
 
-	/** Get the name of the active theme. */
-	getActiveThemeName(): string {
-		return this._activeThemeName.get()
-	}
-
-	/** Set the active theme by name. The theme must have been previously registered. */
-	setActiveThemeName(name: string): void {
-		if (process.env.NODE_ENV !== 'production') {
-			if (!(name in this._definitions.get())) {
-				console.warn(
-					`Theme '${name}' not found. Available themes: ${Object.keys(this._definitions.get()).join(', ')}`
-				)
-			}
-		}
-		this._activeThemeName.set(name)
-	}
-
 	/** Get all registered theme definitions. */
-	getThemeDefinitions(): Record<string, TLThemeDefinition> {
-		return this._definitions.get()
+	getThemes(): Record<TLThemeId, TLThemeDefinition> {
+		return this._themes.get()
 	}
 
 	/** Get a single theme definition by name. */
-	getThemeDefinition(name: string): TLThemeDefinition | undefined {
-		return this._definitions.get()[name]
+	getTheme(id: TLThemeId): TLThemeDefinition | undefined {
+		return this._themes.get()[id]
+	}
+
+	/** Get the id of the active theme. */
+	getCurrentThemeId(): TLThemeId {
+		return this._currentThemeId.get()
+	}
+
+	getCurrentTheme(): TLThemeDefinition {
+		return this._themes.get()[this.getCurrentThemeId()]!
+	}
+
+	/** Set the active theme by name. The theme must have been previously registered. */
+	setCurrentTheme(id: TLThemeId): void {
+		if (process.env.NODE_ENV !== 'production') {
+			if (!(id in this._themes.get())) {
+				console.warn(
+					`Theme '${id}' not found. Available themes: ${Object.keys(this._themes.get()).join(', ')}`
+				)
+			}
+		}
+
+		this._currentThemeId.set(id)
+	}
+
+	updateThemes(
+		themes:
+			| Record<TLThemeId, TLThemeDefinition>
+			| ((themes: Record<TLThemeId, TLThemeDefinition>) => Record<TLThemeId, TLThemeDefinition>)
+	): void {
+		if (typeof themes === 'function') {
+			this._themes.update((prev) => themes(prev))
+			return
+		}
+
+		this._themes.update((prev) => ({ ...prev, ...themes }))
 	}
 
 	/** Register or update a named theme definition. */
-	setThemeDefinition(name: string, definition: TLThemeDefinition): void {
-		this._definitions.update((prev) => ({ ...prev, [name]: definition }))
+	updateTheme(
+		id: TLThemeId,
+		definition:
+			| Partial<TLThemeDefinition>
+			| ((definition: TLThemeDefinition) => TLThemeDefinition)
+	): void {
+		this._themes.update((prev) => ({
+			...prev,
+			[id]:
+				typeof definition === 'function'
+					? definition(prev[id])
+					: { ...prev[id], ...definition },
+		}))
 	}
 
 	/** Remove a named theme definition. Cannot remove the 'default' theme. */
-	removeThemeDefinition(name: string): void {
-		if (name === 'default') {
+	removeTheme(id: TLThemeId): void {
+		if (id === 'default') {
 			if (process.env.NODE_ENV !== 'production') {
-				console.warn("Cannot remove the 'default' theme.")
+				console.warn("Cannot remove the 'default' theme. Try updating it instead.")
 			}
 			return
 		}
-		this._definitions.update((prev) => {
-			const next = { ...prev }
-			delete next[name]
-			return next
-		})
-		// If the removed theme was active, fall back to 'default'
-		if (this._activeThemeName.get() === name) {
-			this._activeThemeName.set('default')
-		}
-	}
 
-	/**
-	 * Get the resolved current theme object, based on the active theme name and color mode.
-	 */
-	@computed getCurrentTheme(): TLTheme {
-		const name = this._activeThemeName.get()
-		const definitions = this._definitions.get()
-		const definition = definitions[name] ?? definitions['default']
-		return resolveTheme(definition, this.getColorMode())
+		transact(() => {
+			this._themes.update((prev) => {
+				const next = { ...prev }
+				delete next[id]
+				return next
+			})
+
+			// If the removed theme was active, fall back to 'default'
+			if (this._currentThemeId.get() === id) {
+				this._currentThemeId.set('default')
+			}
+		})
 	}
 
 	/** Clean up any resources held by the manager. */

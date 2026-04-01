@@ -51,10 +51,10 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override migrations = lineShapeMigrations
 
 	override options: LineShapeOptions = {
-		getDisplayValues(_editor, shape, theme): LineShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme, colorMode): LineShapeUtilDisplayValues {
 			const { color, size } = shape.props
 			return {
-				strokeColor: getColorValue(theme, color, 'solid'),
+				strokeColor: getColorValue(theme.colors[colorMode], color, 'solid'),
 				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
 			}
 		},
@@ -255,7 +255,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override toSvg(shape: TLLineShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.themeId)
+		const dv = getDisplayValues(this, shape, ctx.themeId === 'dark' ? 'dark' : 'light')
 		return (
 			<LineShapeSvg
 				shouldScale

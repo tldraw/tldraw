@@ -4,6 +4,7 @@ import {
 	TLStore,
 	TLStoreSnapshot,
 	TLThemeDefinition,
+	TLThemeId,
 	registerColorsFromThemeDefinitions,
 } from '@tldraw/tlschema'
 import { annotateError, Required } from '@tldraw/utils'
@@ -165,12 +166,12 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * Named theme definitions for the editor.
 	 */
-	themeDefinitions?: Record<string, TLThemeDefinition>
+	themeDefinitions?: Partial<Record<TLThemeId, TLThemeDefinition>>
 
 	/**
-	 * The name of the initially active theme. Defaults to `'default'`.
+	 * The id of the initially active theme. Defaults to `'default'`.
 	 */
-	activeTheme?: string
+	activeTheme?: TLThemeId
 
 	/**
 	 * Camera options for the editor.
@@ -562,15 +563,15 @@ function TldrawEditorWithReadyStore({
 	// keep the editor up to date with the latest theme definitions
 	useLayoutEffect(() => {
 		if (editor && themeDefinitions) {
-			for (const [name, def] of Object.entries(themeDefinitions)) {
-				editor.setThemeDefinition(name, def)
+			for (const [name, def] of Object.entries(themeDefinitions) as [TLThemeId, TLThemeDefinition][]) {
+				editor.updateTheme(name, def)
 			}
 		}
 	}, [editor, themeDefinitions])
 
 	useLayoutEffect(() => {
 		if (editor && activeTheme) {
-			editor.setActiveThemeName(activeTheme)
+			editor.setCurrentTheme(activeTheme)
 		}
 	}, [editor, activeTheme])
 

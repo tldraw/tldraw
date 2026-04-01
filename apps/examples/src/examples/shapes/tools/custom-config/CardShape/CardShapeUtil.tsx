@@ -63,6 +63,7 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 		const { editor } = this
 		const bounds = editor.getShapeGeometry(shape).bounds
 		const theme = editor.getCurrentTheme()
+		const colors = theme.colors[editor.getColorMode()]
 		const { color } = shape.props
 
 		//[a]
@@ -79,8 +80,8 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 					alignItems: 'center',
 					justifyContent: 'center',
 					pointerEvents: 'all',
-					backgroundColor: getColorValue(theme, color, 'semi'),
-					color: getColorValue(theme, color, 'solid'),
+					backgroundColor: getColorValue(colors, color, 'semi'),
+					color: getColorValue(colors, color, 'solid'),
 				}}
 			>
 				<h2>Clicks: {count}</h2>

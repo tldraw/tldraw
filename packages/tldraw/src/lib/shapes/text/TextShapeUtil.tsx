@@ -72,10 +72,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	override options: TextShapeOptions = {
 		extraArrowHorizontalPadding: 10,
 		showTextOutline: true,
-		getDisplayValues(_editor, shape, theme): TextShapeUtilDisplayValues {
+		getDisplayValues(_editor, shape, theme, colorMode): TextShapeUtilDisplayValues {
 			const { color, font, size } = shape.props
 			return {
-				color: getColorValue(theme, color, 'solid'),
+				color: getColorValue(theme.colors[colorMode], color, 'solid'),
 				fontFamily: FONT_FAMILIES[font],
 				fontSize: theme.fontSize * FONT_SIZES[size],
 				lineHeight: theme.lineHeight,
@@ -210,7 +210,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const width = bounds.width / (shape.props.scale ?? 1)
 		const height = bounds.height / (shape.props.scale ?? 1)
 
-		const dv = getDisplayValues(this, shape, ctx.themeId)
+		const dv = getDisplayValues(this, shape, ctx.themeId === 'dark' ? 'dark' : 'light')
 
 		const exportBounds = new Box(0, 0, width, height)
 		return (

@@ -124,7 +124,8 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		const zoom = this.editor.getZoomLevel()
 
 		const theme = this.editor.getCurrentTheme()
-		const blue = getColorValue(theme, 'blue', 'solid')
+		const colors = theme.colors[this.editor.getColorMode()]
+		const blue = getColorValue(colors, 'blue', 'solid')
 
 		return <circle r={shape.props.radius} strokeWidth={1 / zoom} stroke={blue} fill="none" />
 	}

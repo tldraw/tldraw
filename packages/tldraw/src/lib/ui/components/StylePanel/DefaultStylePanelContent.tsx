@@ -76,6 +76,7 @@ export function StylePanelSection({ children }: StylePanelSectionProps) {
 export function StylePanelColorPicker() {
 	const editor = useEditor()
 	const theme = editor.getCurrentTheme()
+	const colorMode = editor.getColorMode()
 	const { styles } = useStylePanelContext()
 	const msg = useTranslation()
 	const color = styles.get(DefaultColorStyle)
@@ -86,7 +87,7 @@ export function StylePanelColorPicker() {
 			title={msg('style-panel.color')}
 			uiType="color"
 			style={DefaultColorStyle}
-			items={getColorStyleItems(theme)}
+			items={getColorStyleItems(theme.colors[colorMode])}
 			value={color}
 		/>
 	)

@@ -35,7 +35,9 @@ export function SvgTextLabel({
 	showTextOutline?: boolean
 }) {
 	const editor = useEditor()
-	const { colors } = editor.getCurrentTheme()
+	const theme = editor.getCurrentTheme()
+	const colorMode = editor.getColorMode()
+	const colors = theme.colors[colorMode]
 
 	const opts = {
 		fontSize,
@@ -45,7 +47,7 @@ export function SvgTextLabel({
 		width: Math.ceil(bounds.width),
 		height: Math.ceil(bounds.height),
 		padding,
-		lineHeight: editor.getCurrentTheme().lineHeight,
+		lineHeight: theme.lineHeight,
 		fontStyle: 'normal',
 		fontWeight: 'normal',
 		overflow: 'wrap' as const,
