@@ -1,5 +1,5 @@
 import { StyleProp } from './StyleProp'
-import { TLTheme, TLThemeFont, TLThemeFonts, TLThemes } from './TLTheme'
+import { TLThemeFont, TLThemeFonts, TLThemes } from './TLTheme'
 
 /**
  * Default font style property used by tldraw shapes for text styling.
