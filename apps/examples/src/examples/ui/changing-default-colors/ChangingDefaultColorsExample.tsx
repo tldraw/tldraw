@@ -1,4 +1,4 @@
-import { structuredClone, Tldraw } from 'tldraw'
+import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -11,9 +11,10 @@ export default function ChangingDefaultColorsExample() {
 				persistenceKey="example"
 				onMount={(editor) => {
 					editor.updateTheme('default', (theme) => {
-						const newTheme = structuredClone(theme) // make a deep copy of the old theme
-						newTheme.colors.light.black.solid = 'aqua'
-						return newTheme
+						// The callback receives a deep copy of the theme,
+						// so you can mutate it directly and return it.
+						theme.colors.light.black.solid = 'aqua'
+						return theme
 					})
 				}}
 			/>
@@ -25,8 +26,8 @@ export default function ChangingDefaultColorsExample() {
 
 [1]
 Use editor.updateTheme() with a callback to customize a theme's color palette.
-The callback receives the current theme, so you can spread it and only
-override the colors you want to change.
+The callback receives a deep copy of the current theme, so you can mutate it
+directly and return it.
 
 Remember that you can't add or remove colors here yet. These colors are
 used by our default shapes and we need to make sure that we don't end

@@ -13,7 +13,7 @@ keywords:
   - ThemeManager
   - getCurrentTheme
   - getColorMode
-  - setThemeDefinition
+  - updateTheme
   - useColorMode
 status: published
 date: 3/7/2026
@@ -34,19 +34,9 @@ export default function App() {
 				console.log(theme.colors.red.solid) // e.g. '#e03131'
 
 				// Customize the default theme's light colors
-				const def = editor.getThemeDefinition('default')!
-				editor.setThemeDefinition('default', {
-					...def,
-					colors: {
-						...def.colors,
-						light: {
-							...def.colors.light,
-							black: {
-								...def.colors.light.black,
-								solid: 'navy',
-							},
-						},
-					},
+				editor.updateTheme('default', (theme) => {
+					theme.colors.light.black.solid = 'navy'
+					return theme
 				})
 			}}
 		/>
@@ -194,22 +184,21 @@ function MyComponent() {
 
 ## Customizing colors
 
-Use [Editor#setThemeDefinition](?) to override specific colors in a theme:
+Use [Editor#updateTheme](?) with a callback to override specific colors in a theme. The callback receives a deep copy of the theme, so you can mutate it directly:
 
 ```typescript
-const def = editor.getThemeDefinition('default')!
-editor.setThemeDefinition('default', {
-	...def,
-	colors: {
-		...def.colors,
-		light: {
-			...def.colors.light,
-			black: {
-				...def.colors.light.black,
-				solid: 'navy',
-			},
-		},
-	},
+editor.updateTheme('default', (theme) => {
+	theme.colors.light.black.solid = 'navy'
+	return theme
+})
+```
+
+You can also pass a partial theme object to merge:
+
+```typescript
+editor.updateTheme('default', {
+	fontSize: 18,
+	strokeWidth: 3,
 })
 ```
 

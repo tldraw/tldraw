@@ -29,13 +29,29 @@ const OCEAN_THEME: TLTheme = {
 	colors: {
 		light: {
 			...DEFAULT_THEME.colors.light,
-			background: '#e8f4f8',
-			solid: '#f0f8ff',
+			blue: {
+				...DEFAULT_THEME.colors.light.blue,
+				solid: '#2b7ab5',
+			},
+			violet: {
+				...DEFAULT_THEME.colors.light.violet,
+				solid: '#6a5acd',
+				noteFill: '#b8a9e8',
+				noteText: '#000000',
+			},
 		},
 		dark: {
 			...DEFAULT_THEME.colors.dark,
-			background: '#0a1628',
-			solid: '#0d1f3c',
+			blue: {
+				...DEFAULT_THEME.colors.dark.blue,
+				solid: '#3a9bd5',
+			},
+			violet: {
+				...DEFAULT_THEME.colors.dark.violet,
+				solid: '#7b6bd4',
+				noteFill: '#3a2d6e',
+				noteText: '#f2f2f2',
+			},
 		},
 	},
 }
@@ -45,13 +61,29 @@ const SUNSET_THEME: TLTheme = {
 	colors: {
 		light: {
 			...DEFAULT_THEME.colors.light,
-			background: '#fff5eb',
-			solid: '#fff8f0',
+			blue: {
+				...DEFAULT_THEME.colors.light.blue,
+				solid: '#e07038',
+			},
+			violet: {
+				...DEFAULT_THEME.colors.light.violet,
+				solid: '#9b4dca',
+				noteFill: '#dab0f0',
+				noteText: '#000000',
+			},
 		},
 		dark: {
 			...DEFAULT_THEME.colors.dark,
-			background: '#1a0f0a',
-			solid: '#2d1a0f',
+			blue: {
+				...DEFAULT_THEME.colors.dark.blue,
+				solid: '#f0884a',
+			},
+			violet: {
+				...DEFAULT_THEME.colors.dark.violet,
+				solid: '#b060d8',
+				noteFill: '#5c2870',
+				noteText: '#f2f2f2',
+			},
 		},
 	},
 }
@@ -75,7 +107,7 @@ function createInitialShapes(editor: Editor) {
 			type: 'note',
 			x: 350,
 			y: 100,
-			props: { color: 'violet', richText: toRichText('Background color changes') },
+			props: { color: 'violet', richText: toRichText('Colors change per theme') },
 		},
 	])
 }

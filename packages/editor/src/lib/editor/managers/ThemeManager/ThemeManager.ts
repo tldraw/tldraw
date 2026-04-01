@@ -1,5 +1,6 @@
 import { Atom, atom, computed } from '@tldraw/state'
 import { TLTheme, TLThemeId } from '@tldraw/tlschema'
+import { structuredClone } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 import { DEFAULT_THEME } from './defaultThemes'
 
@@ -78,7 +79,7 @@ export class ThemeManager {
 			| ((themes: Record<TLThemeId, TLTheme>) => Record<TLThemeId, TLTheme>)
 	): void {
 		this._themes.update((prev) => {
-			const next = typeof themes === 'function' ? themes(prev) : { ...prev, ...themes }
+			const next = typeof themes === 'function' ? themes(structuredClone(prev)) : { ...prev, ...themes }
 			if (process.env.NODE_ENV !== 'production') {
 				if (!('default' in next)) {
 					console.warn("The 'default' theme cannot be removed.")
@@ -101,7 +102,9 @@ export class ThemeManager {
 		this._themes.update((prev) => ({
 			...prev,
 			[id]:
-				typeof definition === 'function' ? definition(prev[id]) : { ...prev[id], ...definition },
+				typeof definition === 'function'
+					? definition(structuredClone(prev[id]))
+					: { ...prev[id], ...definition },
 		}))
 	}
 

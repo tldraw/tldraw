@@ -478,6 +478,7 @@ function TldrawEditorWithReadyStore({
 		// for these, it's because they're only used when the editor first mounts:
 		autoFocus: autoFocus && !noAutoFocus(),
 		initialState,
+		colorScheme,
 
 		// for these, it's because we keep them up to date in a separate effect:
 		cameraOptions,
@@ -490,17 +491,25 @@ function TldrawEditorWithReadyStore({
 		editorOptionsRef.current = {
 			autoFocus: autoFocus && !noAutoFocus(),
 			initialState,
+			colorScheme,
 			cameraOptions,
 			deepLinks,
 			themes,
 			initialTheme,
 		}
-	}, [autoFocus, initialState, cameraOptions, deepLinks, themes, initialTheme])
+	}, [autoFocus, initialState, colorScheme, cameraOptions, deepLinks, themes, initialTheme])
 
 	useLayoutEffect(
 		() => {
-			const { autoFocus, initialState, cameraOptions, deepLinks, themes, initialTheme } =
-				editorOptionsRef.current
+			const {
+				autoFocus,
+				initialState,
+				colorScheme: initColorScheme,
+				cameraOptions,
+				deepLinks,
+				themes,
+				initialTheme,
+			} = editorOptionsRef.current
 			const editor = new Editor({
 				store,
 				shapeUtils,
@@ -515,7 +524,7 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				getShapeVisibility,
-				colorScheme,
+				colorScheme: initColorScheme,
 				fontAssetUrls: assetUrls?.fonts,
 				themes: themes,
 				initialTheme: initialTheme,
