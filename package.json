@@ -83,7 +83,11 @@
 	},
 	"packageManager": "yarn@4.12.0",
 	"lint-staged": {
-		"*.{js,jsx,ts,tsx,cjs,mjs,css,md,mdx,html,yml,yaml}": [
+		"*.{js,jsx,ts,tsx}": [
+			"oxlint --fix-dangerously --no-error-on-unmatched-pattern",
+			"oxfmt --write --no-error-on-unmatched-pattern"
+		],
+		"*.{cjs,mjs,css,md,mdx,html,yml,yaml}": [
 			"oxfmt --no-error-on-unmatched-pattern"
 		]
 	},
