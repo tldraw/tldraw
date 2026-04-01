@@ -9,7 +9,6 @@ import {
 	registerColorsFromThemes,
 	registerFontsFromThemes,
 } from '@tldraw/tlschema'
-import { resolveThemes } from './editor/managers/ThemeManager/ThemeManager'
 import { annotateError, Required } from '@tldraw/utils'
 import classNames from 'classnames'
 import React, {
@@ -32,6 +31,7 @@ import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { Editor } from './editor/Editor'
+import { resolveThemes } from './editor/managers/ThemeManager/ThemeManager'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
 import { useEditorComponents } from './hooks/EditorComponentsContext'
