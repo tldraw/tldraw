@@ -1,6 +1,5 @@
 import { useComputed, useQuickReactor } from '@tldraw/state-react'
-import { TLShapeId } from '@tldraw/tlschema'
-import { BoxModel, TLScribble } from '@tldraw/tlschema'
+import { BoxModel, TLScribble, TLShapeId } from '@tldraw/tlschema'
 import { dedupe } from '@tldraw/utils'
 import { memo, useRef } from 'react'
 import { useEditorComponents } from '../../hooks/EditorComponentsContext'
@@ -144,11 +143,10 @@ function CanvasOverlaysInner({
 			// --- Read all reactive data ---
 
 			const renderData = $renderData.get()
-			const brush = shouldDrawBrush ? editor.getInstanceState().brush : null
-			const zoomBrush = shouldDrawZoomBrush ? editor.getInstanceState().zoomBrush : null
-			const scribbles = shouldDrawScribble
-				? editor.getInstanceState().scribbles
-				: ([] as TLScribble[])
+			const instanceState = editor.getInstanceState()
+			const brush = shouldDrawBrush ? instanceState.brush : null
+			const zoomBrush = shouldDrawZoomBrush ? instanceState.zoomBrush : null
+			const scribbles = shouldDrawScribble ? instanceState.scribbles : ([] as TLScribble[])
 			const snapIndicators = shouldDrawSnaps ? editor.snaps.getIndicators() : []
 
 			let collabBrushData: Array<{ brush: BoxModel; color: string }> | null = null

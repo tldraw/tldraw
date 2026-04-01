@@ -30,7 +30,7 @@ export function useCssColorCache() {
 
 // --- Shared helpers ---
 
-/** Sets up canvas size and camera transform. Only call when there's content to draw. */
+/** Sets up canvas size and camera transform. */
 export function setupCanvasContext(
 	canvas: HTMLCanvasElement,
 	ctx: CanvasRenderingContext2D,
@@ -61,11 +61,11 @@ export function getCachedCssColor(
 	cache: Map<string, string>,
 	varName: string
 ): string {
-	let color = cache.get(varName)
-	if (!color) {
-		color = getComputedStyle(canvas).getPropertyValue(varName)
-		cache.set(varName, color)
+	if (cache.has(varName)) {
+		return cache.get(varName)!
 	}
+	const color = getComputedStyle(canvas).getPropertyValue(varName)
+	cache.set(varName, color)
 	return color
 }
 
@@ -390,11 +390,11 @@ export function drawShapeIndicators(
 	ctx.lineCap = 'round'
 	ctx.lineJoin = 'round'
 
-	// 1. Collaborator indicators (0.7 opacity, underneath local indicators)
+	// 1. Collaborator indicators (0.5 opacity, underneath local indicators)
 	ctx.lineWidth = 1.5 / zoom
 	for (const collaborator of collaboratorIndicators) {
 		ctx.strokeStyle = collaborator.color
-		ctx.globalAlpha = 0.7
+		ctx.globalAlpha = 0.5
 		for (const shapeId of collaborator.shapeIds) {
 			drawShapeIndicator(ctx, editor, shapeId, renderingShapeIds)
 		}
