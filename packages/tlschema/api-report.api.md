@@ -1009,8 +1009,8 @@ export interface TLDefaultColor {
 
 // @public
 export type TLDefaultColorStyle = {
-    [K in keyof TLThemeColors]: TLThemeColors[K] extends TLDefaultColor ? K : never;
-}[keyof TLThemeColors] & string;
+    [K in keyof TLThemeDefaultColors]: TLThemeDefaultColors[K] extends TLDefaultColor ? K : never;
+}[keyof TLThemeDefaultColors] & string;
 
 // @public
 export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
@@ -1586,8 +1586,8 @@ export interface TLTextShapeProps {
 export interface TLTheme {
     // (undocumented)
     colors: {
-        dark: TLThemeColorPalette;
-        light: TLThemeColorPalette;
+        dark: TLThemeColors;
+        light: TLThemeColors;
     };
     fonts: Partial<TLThemeFonts>;
     fontSize: number;
@@ -1596,10 +1596,10 @@ export interface TLTheme {
 }
 
 // @public
-export type TLThemeColorPalette = Pick<TLThemeColors, TLThemeUiColorKeys> & Omit<TLThemeColors, keyof TLRemovedThemeColors | TLThemeUiColorKeys>;
+export type TLThemeColors = Pick<TLThemeDefaultColors, TLThemeUiColorKeys> & Omit<TLThemeDefaultColors, keyof TLRemovedThemeColors | TLThemeUiColorKeys>;
 
 // @public
-export interface TLThemeColors {
+export interface TLThemeDefaultColors {
     // (undocumented)
     'light-blue': TLDefaultColor;
     // (undocumented)
