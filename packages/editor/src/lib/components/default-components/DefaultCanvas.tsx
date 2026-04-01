@@ -215,8 +215,7 @@ function ScribbleWrapper() {
 	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
 	const { Scribble } = useEditorComponents()
 
-	if (!Scribble) return null
-	if (!scribbles.length) return null
+	if (!(Scribble && scribbles.length)) return null
 
 	return scribbles.map((scribble) => (
 		<Scribble key={scribble.id} className="tl-user-scribble" scribble={scribble} zoom={zoomLevel} />
@@ -228,8 +227,7 @@ function BrushWrapper() {
 	const brush = useValue('brush', () => editor.getInstanceState().brush, [editor])
 	const { Brush } = useEditorComponents()
 
-	if (!Brush) return null
-	if (!brush) return null
+	if (!(Brush && brush)) return null
 
 	return <Brush className="tl-user-brush" brush={brush} />
 }
@@ -239,8 +237,7 @@ function ZoomBrushWrapper() {
 	const zoomBrush = useValue('zoomBrush', () => editor.getInstanceState().zoomBrush, [editor])
 	const { ZoomBrush } = useEditorComponents()
 
-	if (!ZoomBrush) return null
-	if (!zoomBrush) return null
+	if (!(ZoomBrush && zoomBrush)) return null
 
 	return <ZoomBrush className="tl-user-brush tl-zoom-brush" brush={zoomBrush} />
 }
@@ -251,8 +248,7 @@ function SnapIndicatorWrapper() {
 	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
 	const { SnapIndicator } = useEditorComponents()
 
-	if (!SnapIndicator) return null
-	if (lines.length === 0) return null
+	if (!(SnapIndicator && lines.length > 0)) return null
 
 	return lines.map((line) => (
 		<SnapIndicator key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />

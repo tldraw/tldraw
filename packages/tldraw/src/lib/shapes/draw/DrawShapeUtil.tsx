@@ -17,10 +17,12 @@ import {
 	last,
 	lerp,
 	rng,
+	getStrokePoints,
+	getSvgPathFromStrokePoints,
+	svgInk,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { getStrokePoints, getSvgPathFromStrokePoints, svgInk } from '@tldraw/editor'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { interpolateSegments } from '../shared/interpolate-props'

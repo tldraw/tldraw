@@ -8,8 +8,8 @@ import {
 	Vec,
 	b64Vecs,
 	modulate,
+	StrokeOptions,
 } from '@tldraw/editor'
-import { StrokeOptions } from '@tldraw/editor'
 
 const PEN_EASING = (t: number) => t * 0.65 + SIN((t * PI) / 2) * 0.35
 

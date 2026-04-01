@@ -14,14 +14,12 @@ import {
 	highlightShapeProps,
 	last,
 	lerp,
-	rng,
-	useValue,
-} from '@tldraw/editor'
-import {
+	getSvgPathFromStrokePoints,
 	getStrokeOutlinePoints,
 	getStrokePoints,
+	rng,
 	setStrokePointRadii,
-	getSvgPathFromStrokePoints,
+	useValue,
 } from '@tldraw/editor'
 import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
