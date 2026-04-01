@@ -109,8 +109,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 		// --- Touch pinch handling ---
 
-		let initDistanceBetweenFingers = 1
-		let initZoom = 1
+		let initDistanceBetweenFingers = 1 // the distance between the two fingers when the pinch starts
+		let initZoom = 1 // the zoom level when the pinch starts
 		let currDistanceBetweenFingers = 0
 		const initPointBetweenFingers = new Vec()
 		const prevPointBetweenFingers = new Vec()
@@ -147,7 +147,14 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 				return
 			}
 
+			// Initial: [touch]-------origin-------[touch]
+			// Current: [touch]-----------origin----------[touch]
+			//                          |----|     |------------|
+			//             originDistance ^           ^ touchDistance
+
+			// How far have the two touch points moved towards or away from each other?
 			const touchDistance = Math.abs(currDistanceBetweenFingers - initDistanceBetweenFingers)
+			// How far has the point between the touches moved?
 			const originDistance = Vec.Dist(initPointBetweenFingers, prevPointBetweenFingers)
 
 			switch (pinchState) {
@@ -160,6 +167,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 					break
 				}
 				case 'panning': {
+					// Slightly more touch distance needed to go from panning to zooming
 					if (touchDistance > 64) {
 						pinchState = 'zooming'
 					}
@@ -242,7 +250,10 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 			updatePinchState(false)
 
-			// Update scale offset: ratio of current distance to initial distance, applied to initial scale
+			// Only update the zoom if the pointers are far enough apart;
+			// a very small touchDistance means that the user has probably
+			// pinched out and their fingers are touching; this produces
+			// very unstable zooming behavior.
 			const bounds = getScaleBounds()
 			if (initDistanceBetweenFingers > 0) {
 				const rawScale = initScaleFrom * (distance / initDistanceBetweenFingers)
