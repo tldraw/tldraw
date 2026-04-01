@@ -110,7 +110,7 @@ const cursiveFont: TLThemeFont = {
 
 // [10] Build a reduced font palette: drop "serif", keep the rest, add custom fonts.
 const { serif: _serif, ...keptFonts } = DEFAULT_THEME.fonts
-const customFonts: TLTheme['fonts'] = { ...keptFonts, pixel: pixelFont, cursive: cursiveFont }
+const customFonts = { ...keptFonts, pixel: pixelFont, cursive: cursiveFont } as TLTheme['fonts']
 
 // [11] Build a reduced color palette: drop "light-*" variants, add "pink".
 function colorsWithoutLightVariants(base: Record<string, unknown>, pink: TLDefaultColor) {
