@@ -5,10 +5,10 @@ author: tldraw
 date: 03/18/2026
 order: 0
 status: published
-last_version: v4.5.4
+last_version: v4.5.6
 ---
 
-This release adds shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, and smarter export trimming. It also includes various other improvements and bug fixes.
+This release adds shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, arbitrary iframe embed pasting, and smarter export trimming. It also includes various other improvements and bug fixes.
 
 ## What's new
 
@@ -127,6 +127,10 @@ const schema = createTLSchema({
 
 Note shapes now track and display a "first edited by" attribution label in the bottom-right corner, showing who first added text to the note.
 
+### Arbitrary iframe embeds ([#8306](https://github.com/tldraw/tldraw/pull/8306))
+
+Paste any `<iframe>` embed code onto the canvas to create an embed shape. Previously only URLs matching known providers (YouTube, Google Maps, etc.) worked. Now any valid iframe with an HTTP(S) source creates an embed directly, supporting services like OpenStreetMap, SoundCloud, Loom, and more.
+
 ### Cross-window embedding support ([#8196](https://github.com/tldraw/tldraw/pull/8196))
 
 Tldraw now works correctly when embedded in iframes, Electron pop-out windows, and Obsidian plugins where the global `document` and `window` differ from the ones tldraw is mounted in. All bare `document` and `window` references have been replaced with container-aware alternatives.
@@ -135,6 +139,7 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 
 ## API changes
 
+- Add support for pasting arbitrary `<iframe>` embed codes to create embed shapes from any service. ([#8306](https://github.com/tldraw/tldraw/pull/8306))
 - Add `onBeforeCopyToClipboard`, `onBeforePasteFromClipboard`, and `onClipboardPasteRaw` hooks to `TldrawOptions` for intercepting clipboard operations. Add `TLClipboardWriteInfo` and `TLClipboardPasteRawInfo` types. Export `handleNativeOrMenuCopy` from `@tldraw/tldraw`. ([#8290](https://github.com/tldraw/tldraw/pull/8290))
 - Add `CustomRecordInfo` interface, `createCustomRecordId()`, `createCustomRecordMigrationIds()`, `createCustomRecordMigrationSequence()`, `isCustomRecord()`, `isCustomRecordId()` for custom record types. `createTLSchema()` and `createTLStore()` now accept a `records` option. ([#8213](https://github.com/tldraw/tldraw/pull/8213))
 - Add `@tldraw/editor-controller` package with `EditorController` class for imperative editor control. ([#7952](https://github.com/tldraw/tldraw/pull/7952))
@@ -156,6 +161,8 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Exports now automatically trim to visual content bounds, capturing overflow like thick strokes and arrowheads without extra whitespace. ([#8202](https://github.com/tldraw/tldraw/pull/8202))
 - Improve resize performance for multiple geo shapes with text labels by batching DOM measurements into a single pass per frame. ([#7949](https://github.com/tldraw/tldraw/pull/7949))
 - Move the debug mode toggle into the preferences submenu. ([#8259](https://github.com/tldraw/tldraw/pull/8259))
+- Replace `@use-gesture/react` with custom gesture handling, reducing bundle size and eliminating a stale dependency. ([#8392](https://github.com/tldraw/tldraw/pull/8392))
+- Tighten iframe `referrerPolicy` to `strict-origin-when-cross-origin` to avoid leaking document URLs to embed providers. ([#8412](https://github.com/tldraw/tldraw/pull/8412))
 - Update hotkeys-js keyboard shortcut library from v3 to v4, picking up improvements to keyboard layout handling. ([#8372](https://github.com/tldraw/tldraw/pull/8372))
 
 ## Bug fixes
@@ -170,3 +177,6 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix all shapes disappearing when a labeled arrow has zero length due to NaN propagation through the spatial index. ([#8329](https://github.com/tldraw/tldraw/pull/8329))
 - Fix "back to content" button flickering when both it and the "move focus to canvas" button are visible. ([#8334](https://github.com/tldraw/tldraw/pull/8334)) (contributed by [@kaneel](https://github.com/kaneel))
 - Fix slight positioning drift when pasting text onto the canvas. ([#8345](https://github.com/tldraw/tldraw/pull/8345))
+- Fix camera state getting permanently stuck at 'moving' when the editor is disposed mid-camera-transition, blocking all shape interactions. ([#8396](https://github.com/tldraw/tldraw/pull/8396))
+- Fix missing sandbox attribute on GitHub Gist embeds. ([#8403](https://github.com/tldraw/tldraw/pull/8403))
+- Restrict sandbox permissions for unknown/arbitrary embeds to mitigate security risks from untrusted content. ([#8404](https://github.com/tldraw/tldraw/pull/8404))
