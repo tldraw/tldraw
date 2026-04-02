@@ -6,6 +6,16 @@ import ts from 'typescript'
 const scriptPath = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(scriptPath)
 const outPath = path.join(__dirname, '..', 'src', 'editor-api.json')
+const methodMapOutPath = path.join(
+	__dirname,
+	'..',
+	'src',
+	'widget',
+	'focused',
+	'generated-method-map.ts'
+)
+const formatTsPath = path.join(__dirname, '..', 'src', 'widget', 'focused', 'format.ts')
+const execHelpersPath = path.join(__dirname, '..', 'src', 'widget', 'exec-helpers.ts')
 
 // In the tldraw monorepo, packages build to .tsbuild/
 const repoRoot = path.resolve(__dirname, '..', '..', '..')
@@ -60,6 +70,66 @@ interface ExtractedShapeType {
 	propsType: string
 	propsDescription: string
 	props: ExtractedTypeProperty[]
+}
+
+interface ExtractedTypesSection {
+	shapeCount: number
+	shapeTypes: string[]
+	shapes: ExtractedShapeType[]
+}
+
+interface ExtractedTypeMember {
+	name: string
+	kind: 'method' | 'property' | 'getter'
+	signature: string
+	description: string
+	params: ExtractedParam[]
+	examples: string[]
+	optional: boolean
+	static: boolean
+}
+
+interface ExtractedNamedType {
+	name: string
+	kind: 'class' | 'interface' | 'type' | 'function' | 'const'
+	signature: string
+	description: string
+	params?: ExtractedParam[]
+	examples?: string[]
+	members?: ExtractedTypeMember[]
+	aliasedTo?: string
+	resolvedType?: ExtractedNamedType
+	relatedTypes?: ExtractedNamedType[]
+}
+
+interface ExtractedExecHelper {
+	name: string
+	source: 'local' | 'tldraw'
+	origin: string
+	signature: string
+	description: string
+	params: ExtractedParam[]
+	examples: string[]
+	typeInfo?: ExtractedNamedType
+}
+
+interface ExtractedExecSection {
+	helperCount: number
+	helpers: ExtractedExecHelper[]
+}
+
+type NamedDeclaration =
+	| ts.ClassDeclaration
+	| ts.InterfaceDeclaration
+	| ts.TypeAliasDeclaration
+	| ts.FunctionDeclaration
+	| ts.VariableDeclaration
+
+interface DeclarationContext {
+	program: ts.Program
+	checker: ts.TypeChecker
+	declarations: Map<string, NamedDeclaration>
+	sourceFiles: Map<string, ts.SourceFile>
 }
 
 // --- Helpers ---
@@ -183,7 +253,467 @@ function isExcludedComment(member: ts.Node, sourceFile: ts.SourceFile): boolean 
 		.includes('Excluded from this release type')
 }
 
-// --- Extraction ---
+// --- Declaration context ---
+
+function createDeclarationContext(entryPaths: string[]): DeclarationContext {
+	const program = ts.createProgram(entryPaths, {
+		target: ts.ScriptTarget.ES2020,
+		jsx: ts.JsxEmit.ReactJSX,
+		moduleResolution: ts.ModuleResolutionKind.Node10,
+	})
+	const declarations = new Map<string, NamedDeclaration>()
+	const sourceFiles = new Map<string, ts.SourceFile>()
+	const indexedSourceFiles = new Set(entryPaths.map((entryPath) => path.resolve(entryPath)))
+
+	for (const sourceFile of program.getSourceFiles()) {
+		sourceFiles.set(sourceFile.fileName, sourceFile)
+		const shouldIndex =
+			indexedSourceFiles.has(path.resolve(sourceFile.fileName)) ||
+			sourceFile.fileName.includes('/packages/') ||
+			sourceFile.fileName.includes('/node_modules/@tldraw/') ||
+			sourceFile.fileName.includes('/node_modules/tldraw/')
+		if (!shouldIndex) continue
+
+		ts.forEachChild(sourceFile, (node) => {
+			if (
+				(ts.isClassDeclaration(node) ||
+					ts.isInterfaceDeclaration(node) ||
+					ts.isTypeAliasDeclaration(node) ||
+					ts.isFunctionDeclaration(node)) &&
+				node.name
+			) {
+				declarations.set(node.name.text, node)
+				return
+			}
+
+			if (ts.isVariableStatement(node)) {
+				for (const declaration of node.declarationList.declarations) {
+					if (ts.isIdentifier(declaration.name)) {
+						declarations.set(declaration.name.text, declaration)
+					}
+				}
+			}
+		})
+	}
+
+	return {
+		program,
+		checker: program.getTypeChecker(),
+		declarations,
+		sourceFiles,
+	}
+}
+
+function getDeclarationSourceFile(declaration: NamedDeclaration): ts.SourceFile {
+	return declaration.getSourceFile()
+}
+
+function getDeclarationKind(declaration: NamedDeclaration): ExtractedNamedType['kind'] {
+	if (ts.isClassDeclaration(declaration)) return 'class'
+	if (ts.isInterfaceDeclaration(declaration)) return 'interface'
+	if (ts.isFunctionDeclaration(declaration)) return 'function'
+	if (ts.isVariableDeclaration(declaration)) return 'const'
+	return 'type'
+}
+
+function getDeclarationSignature(
+	declaration: NamedDeclaration,
+	sourceFile: ts.SourceFile,
+	checker: ts.TypeChecker
+): string {
+	if (ts.isTypeAliasDeclaration(declaration)) {
+		return declaration.type.getText(sourceFile)
+	}
+
+	if (ts.isFunctionDeclaration(declaration)) {
+		try {
+			const signature = checker.getSignatureFromDeclaration(declaration)
+			if (signature) {
+				return checker.signatureToString(
+					signature,
+					declaration,
+					ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteArrowStyleSignature
+				)
+			}
+			return checker.typeToString(
+				checker.getTypeAtLocation(declaration),
+				declaration,
+				ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteArrowStyleSignature
+			)
+		} catch {
+			return '(unknown)'
+		}
+	}
+
+	if (ts.isVariableDeclaration(declaration)) {
+		try {
+			if (declaration.type) return declaration.type.getText(sourceFile)
+			return checker.typeToString(
+				checker.getTypeAtLocation(declaration),
+				declaration,
+				ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteArrowStyleSignature
+			)
+		} catch {
+			return '(unknown)'
+		}
+	}
+
+	const heritage = declaration.heritageClauses
+		?.map((clause) => clause.getText(sourceFile))
+		.filter(Boolean)
+		.join(' ')
+
+	if (ts.isClassDeclaration(declaration)) {
+		const abstractPrefix = declaration.modifiers?.some(
+			(modifier) => modifier.kind === ts.SyntaxKind.AbstractKeyword
+		)
+			? 'abstract '
+			: ''
+		return `${abstractPrefix}class ${declaration.name?.text ?? '(anonymous)'}${
+			heritage ? ` ${heritage}` : ''
+		}`
+	}
+
+	return `interface ${declaration.name.text}${heritage ? ` ${heritage}` : ''}`
+}
+
+function getMemberSignature(
+	member: ts.ClassElement | ts.TypeElement,
+	sourceFile: ts.SourceFile,
+	checker: ts.TypeChecker
+): string {
+	let signature = '(unknown)'
+	try {
+		if (
+			(ts.isPropertyDeclaration(member) ||
+				ts.isPropertySignature(member) ||
+				ts.isMethodDeclaration(member) ||
+				ts.isMethodSignature(member)) &&
+			member.type
+		) {
+			signature = member.type.getText(sourceFile)
+		} else {
+			signature = checker.typeToString(
+				checker.getTypeAtLocation(member),
+				member,
+				ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteArrowStyleSignature
+			)
+		}
+	} catch {
+		// keep fallback
+	}
+	return signature
+}
+
+function extractTypeMembers(
+	declaration: ts.ClassDeclaration | ts.InterfaceDeclaration,
+	context: DeclarationContext
+): ExtractedTypeMember[] {
+	const sourceFile = getDeclarationSourceFile(declaration)
+	const members: ExtractedTypeMember[] = []
+
+	for (const member of declaration.members) {
+		if (isExcludedComment(member, sourceFile)) continue
+
+		if (ts.isClassDeclaration(declaration)) {
+			const modifiers = ts.canHaveModifiers(member) ? ts.getModifiers(member) : undefined
+			if (
+				modifiers?.some(
+					(modifier) =>
+						modifier.kind === ts.SyntaxKind.PrivateKeyword ||
+						modifier.kind === ts.SyntaxKind.ProtectedKeyword
+				)
+			) {
+				continue
+			}
+		}
+
+		if (ts.isConstructorDeclaration(member)) continue
+
+		const name = 'name' in member ? getPropertyName(member.name) : undefined
+		if (!name || name.startsWith('_')) continue
+
+		let kind: ExtractedTypeMember['kind']
+		if (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) {
+			kind = 'method'
+		} else if (ts.isGetAccessorDeclaration(member) || ts.isGetAccessor(member)) {
+			kind = 'getter'
+		} else if (ts.isPropertyDeclaration(member) || ts.isPropertySignature(member)) {
+			kind = 'property'
+		} else {
+			continue
+		}
+
+		const jsdoc = extractJsDoc(member, sourceFile)
+		if (jsdoc.description === '__EXCLUDED__') continue
+
+		members.push({
+			name,
+			kind,
+			signature: getMemberSignature(member, sourceFile, context.checker),
+			description: jsdoc.description,
+			params: jsdoc.params,
+			examples: jsdoc.examples,
+			optional: 'questionToken' in member && !!member.questionToken,
+			static:
+				ts.isClassDeclaration(declaration) &&
+				(ts.canHaveModifiers(member) ? ts.getModifiers(member) : undefined)?.some(
+					(modifier) => modifier.kind === ts.SyntaxKind.StaticKeyword
+				) === true,
+		})
+	}
+
+	return members
+}
+
+function extractNamedType(
+	name: string,
+	context: DeclarationContext,
+	visited = new Set<string>()
+): ExtractedNamedType | undefined {
+	if (visited.has(name)) return undefined
+	const declaration = context.declarations.get(name)
+	if (!declaration) return undefined
+
+	visited.add(name)
+
+	const sourceFile = getDeclarationSourceFile(declaration)
+	const result: ExtractedNamedType = {
+		name,
+		kind: getDeclarationKind(declaration),
+		signature: getDeclarationSignature(declaration, sourceFile, context.checker),
+		description: extractJsDoc(declaration, sourceFile).description,
+		params: extractJsDoc(declaration, sourceFile).params,
+		examples: extractJsDoc(declaration, sourceFile).examples,
+	}
+
+	if (ts.isClassDeclaration(declaration) || ts.isInterfaceDeclaration(declaration)) {
+		result.members = extractTypeMembers(declaration, context)
+		return result
+	}
+
+	if (ts.isFunctionDeclaration(declaration) || ts.isVariableDeclaration(declaration)) {
+		return result
+	}
+
+	result.aliasedTo = declaration.type.getText(sourceFile)
+
+	if (ts.isTypeReferenceNode(declaration.type)) {
+		const baseTypeName = declaration.type.typeName.getText(sourceFile)
+		if (baseTypeName !== name) {
+			result.resolvedType = extractNamedType(baseTypeName, context, visited)
+		}
+
+		const relatedTypeNames = (declaration.type.typeArguments ?? [])
+			.filter((arg): arg is ts.TypeReferenceNode => ts.isTypeReferenceNode(arg))
+			.map((arg) => arg.getText(sourceFile))
+			.filter((typeName) => {
+				if (typeName === baseTypeName) return false
+				const relatedDeclaration = context.declarations.get(typeName)
+				return !!relatedDeclaration && ts.isInterfaceDeclaration(relatedDeclaration)
+			})
+
+		const relatedTypes = relatedTypeNames
+			.map((typeName) => extractNamedType(typeName, context, visited))
+			.filter((type): type is ExtractedNamedType => type !== undefined)
+
+		if (relatedTypes.length > 0) {
+			result.relatedTypes = relatedTypes
+		}
+	}
+
+	return result
+}
+
+function getSymbolDeclaration(
+	symbol: ts.Symbol | undefined,
+	checker: ts.TypeChecker
+): NamedDeclaration | undefined {
+	if (!symbol) return undefined
+	const resolvedSymbol =
+		symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
+	const declaration = resolvedSymbol.declarations?.find(
+		(declaration): declaration is NamedDeclaration =>
+			ts.isClassDeclaration(declaration) ||
+			ts.isInterfaceDeclaration(declaration) ||
+			ts.isTypeAliasDeclaration(declaration) ||
+			ts.isFunctionDeclaration(declaration) ||
+			ts.isVariableDeclaration(declaration)
+	)
+	return declaration
+}
+
+function extractNamedTypeFromDeclaration(
+	declaration: NamedDeclaration,
+	context: DeclarationContext
+): ExtractedNamedType | undefined {
+	const name = ts.isVariableDeclaration(declaration)
+		? ts.isIdentifier(declaration.name)
+			? declaration.name.text
+			: undefined
+		: declaration.name?.text
+	if (!name) return undefined
+	if (!context.declarations.has(name)) {
+		context.declarations.set(name, declaration)
+	}
+	return extractNamedType(name, context)
+}
+
+function findNode<T extends ts.Node>(
+	root: ts.Node,
+	predicate: (node: ts.Node) => node is T
+): T | undefined {
+	let result: T | undefined
+	const visit = (node: ts.Node) => {
+		if (result) return
+		if (predicate(node)) {
+			result = node
+			return
+		}
+		ts.forEachChild(node, visit)
+	}
+	visit(root)
+	return result
+}
+
+// --- Extract exec helpers from exec-helpers.ts ---
+
+function extractExecHelpers(): ExtractedExecSection {
+	const context = createDeclarationContext([
+		execHelpersPath,
+		editorDtsPath,
+		storeDtsPath,
+		tlschemaDtsPath,
+	])
+	const sourceFile = context.sourceFiles.get(execHelpersPath)
+	if (!sourceFile) {
+		throw new Error(`Could not load source file: ${execHelpersPath}`)
+	}
+
+	// Find the helpers object inside createExecHelpers function
+	const helpersDeclaration = findNode(
+		sourceFile,
+		(node): node is ts.VariableDeclaration =>
+			ts.isVariableDeclaration(node) &&
+			ts.isIdentifier(node.name) &&
+			node.name.text === 'helpers' &&
+			!!node.initializer &&
+			ts.isObjectLiteralExpression(node.initializer)
+	)
+
+	if (
+		!helpersDeclaration ||
+		!helpersDeclaration.initializer ||
+		!ts.isObjectLiteralExpression(helpersDeclaration.initializer)
+	) {
+		throw new Error('Could not find helpers object in exec-helpers.ts')
+	}
+
+	// Collect tldraw imports
+	const tldrawImports = new Map<string, string>()
+	for (const statement of sourceFile.statements) {
+		if (!ts.isImportDeclaration(statement)) continue
+		if (
+			!ts.isStringLiteral(statement.moduleSpecifier) ||
+			statement.moduleSpecifier.text !== 'tldraw'
+		)
+			continue
+		if (
+			!statement.importClause?.namedBindings ||
+			!ts.isNamedImports(statement.importClause.namedBindings)
+		) {
+			continue
+		}
+
+		for (const element of statement.importClause.namedBindings.elements) {
+			const localName = element.name.text
+			const importedName = element.propertyName?.text ?? localName
+			tldrawImports.set(localName, importedName)
+		}
+	}
+
+	const helpers: ExtractedExecHelper[] = []
+
+	for (const property of helpersDeclaration.initializer.properties) {
+		if (!ts.isPropertyAssignment(property) && !ts.isShorthandPropertyAssignment(property)) continue
+
+		const helperName = getPropertyName(property.name)
+		if (!helperName) continue
+
+		const initializer = ts.isPropertyAssignment(property) ? property.initializer : property.name
+		let typeInfo: ExtractedNamedType | undefined
+		let source: ExtractedExecHelper['source'] = 'local'
+		let origin = helperName
+
+		if (ts.isIdentifier(initializer)) {
+			const importedName = tldrawImports.get(initializer.text)
+			if (importedName) {
+				source = 'tldraw'
+				origin = importedName
+				typeInfo = extractNamedType(importedName, context)
+			}
+
+			if (!typeInfo) {
+				const symbol = context.checker.getSymbolAtLocation(initializer)
+				const declaration = getSymbolDeclaration(symbol, context.checker)
+				typeInfo = declaration ? extractNamedTypeFromDeclaration(declaration, context) : undefined
+				if (declaration && declaration.getSourceFile().fileName.includes('/packages/')) {
+					source = 'tldraw'
+					origin = ts.isVariableDeclaration(declaration)
+						? ts.isIdentifier(declaration.name)
+							? declaration.name.text
+							: 'tldraw'
+						: (declaration.name?.text ?? 'tldraw')
+				}
+			}
+		} else if (ts.isCallExpression(initializer) && ts.isIdentifier(initializer.expression)) {
+			// Factory function pattern: someFn(editor) — resolve the inner return type
+			const factoryName = initializer.expression.text
+			const declaration = context.declarations.get(factoryName)
+			if (declaration && ts.isFunctionDeclaration(declaration)) {
+				const returnStatement = findNode(
+					declaration,
+					(node): node is ts.ReturnStatement =>
+						ts.isReturnStatement(node) && !!node.expression && ts.isArrowFunction(node.expression)
+				)
+				if (returnStatement?.expression && ts.isArrowFunction(returnStatement.expression)) {
+					typeInfo = {
+						name: helperName,
+						kind: 'function',
+						signature: context.checker.typeToString(
+							context.checker.getTypeAtLocation(returnStatement.expression),
+							returnStatement.expression,
+							ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteArrowStyleSignature
+						),
+						description: extractJsDoc(declaration, sourceFile).description,
+						params: extractJsDoc(declaration, sourceFile).params,
+						examples: extractJsDoc(declaration, sourceFile).examples,
+					}
+				}
+			}
+			source = 'local'
+			origin = helperName
+		}
+
+		helpers.push({
+			name: helperName,
+			source,
+			origin,
+			signature: typeInfo?.signature ?? '(unknown)',
+			description: typeInfo?.description ?? '',
+			params: typeInfo?.params ?? [],
+			examples: typeInfo?.examples ?? [],
+			typeInfo,
+		})
+	}
+
+	return {
+		helperCount: helpers.length,
+		helpers,
+	}
+}
+
+// --- Extract Editor members ---
 
 function extract(): ExtractedMember[] {
 	const program = ts.createProgram([editorDtsPath, storeDtsPath, tlschemaDtsPath], {
@@ -266,223 +796,570 @@ function extract(): ExtractedMember[] {
 	return members
 }
 
-function extractShapeTypes(): {
-	shapeCount: number
-	shapeTypes: string[]
-	shapes: ExtractedShapeType[]
-} {
-	// Collect all .d.ts files under tlschema .tsbuild to find shape type definitions
-	const tlschemaBuildDir = path.dirname(tlschemaDtsPath)
-	const allDtsFiles: string[] = []
-	function walkDir(dir: string) {
-		for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-			const fullPath = path.join(dir, entry.name)
-			if (entry.isDirectory()) walkDir(fullPath)
-			else if (entry.name.endsWith('.d.ts')) allDtsFiles.push(fullPath)
-		}
-	}
-	walkDir(tlschemaBuildDir)
+// --- Extract focused shape types from format.ts ---
 
-	const program = ts.createProgram(allDtsFiles, {
-		target: ts.ScriptTarget.ES2020,
-		moduleResolution: ts.ModuleResolutionKind.Node10,
-	})
-	const checker = program.getTypeChecker()
+const FOCUSED_SHAPE_INTERFACES = [
+	'FocusedGeoShape',
+	'FocusedTextShape',
+	'FocusedArrowShape',
+	'FocusedLineShape',
+	'FocusedNoteShape',
+	'FocusedDrawShape',
+]
 
-	const interfaces = new Map<string, { decl: ts.InterfaceDeclaration; sf: ts.SourceFile }>()
-	const typeAliases: Array<{ decl: ts.TypeAliasDeclaration; sf: ts.SourceFile }> = []
-
-	for (const sourceFile of program.getSourceFiles()) {
-		if (!sourceFile.fileName.includes('tlschema')) continue
-		ts.forEachChild(sourceFile, (node) => {
-			if (ts.isInterfaceDeclaration(node)) {
-				interfaces.set(node.name.text, { decl: node, sf: sourceFile })
-			} else if (ts.isTypeAliasDeclaration(node)) {
-				typeAliases.push({ decl: node, sf: sourceFile })
-			}
-		})
+function extractFocusedShapeTypes(): ExtractedTypesSection {
+	const context = createDeclarationContext([formatTsPath, editorDtsPath, tlschemaDtsPath])
+	const sourceFile = context.sourceFiles.get(formatTsPath)
+	if (!sourceFile) {
+		throw new Error(`Could not load source file: ${formatTsPath}`)
 	}
 
+	const allShapeTypes: string[] = []
 	const shapes: ExtractedShapeType[] = []
 
-	for (const { decl: alias, sf } of typeAliases) {
-		if (!/^TL[A-Z].*Shape$/.test(alias.name.text)) continue
-		if (!ts.isTypeReferenceNode(alias.type)) continue
-		if (alias.type.typeName.getText(sf) !== 'TLBaseShape') continue
-
-		const [shapeTypeNode, propsTypeNode] = alias.type.typeArguments ?? []
-		if (
-			!shapeTypeNode ||
-			!ts.isLiteralTypeNode(shapeTypeNode) ||
-			!ts.isStringLiteral(shapeTypeNode.literal)
-		) {
+	for (const ifaceName of FOCUSED_SHAPE_INTERFACES) {
+		const declaration = context.declarations.get(ifaceName)
+		if (!declaration || !ts.isInterfaceDeclaration(declaration)) {
+			console.error(`Warning: could not find interface ${ifaceName} in format.ts`)
 			continue
 		}
 
-		if (!propsTypeNode || !ts.isTypeReferenceNode(propsTypeNode)) continue
+		const ifaceSourceFile = declaration.getSourceFile()
+		const jsdoc = extractJsDoc(declaration, ifaceSourceFile)
 
-		const shapeType = shapeTypeNode.literal.text
-		const propsType = propsTypeNode.typeName.getText(sf)
-		const propsEntry = interfaces.get(propsType)
-		const propsInterface = propsEntry?.decl
-		const propsSf = propsEntry?.sf ?? sf
-		const props = propsInterface
-			? propsInterface.members
-					.map((member) => {
-						if (!ts.isPropertySignature(member) && !ts.isPropertyDeclaration(member)) return null
-						const name = getPropertyName(member.name)
-						if (!name) return null
+		const props: ExtractedTypeProperty[] = []
+		let shapeType = ''
 
-						const description = extractJsDoc(member, propsSf).description
-						let signature = '(unknown)'
-						try {
-							signature = member.type
-								? member.type.getText(propsSf)
-								: checker.typeToString(
-										checker.getTypeAtLocation(member),
-										member,
-										ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteArrowStyleSignature
-									)
-						} catch {
-							// keep fallback
-						}
+		for (const member of declaration.members) {
+			if (!ts.isPropertySignature(member) && !ts.isPropertyDeclaration(member)) continue
+			const propName = getPropertyName(member.name)
+			if (!propName) continue
 
-						return {
-							name,
-							signature,
-							description,
-							optional: !!member.questionToken,
-						}
-					})
-					.filter((prop): prop is ExtractedTypeProperty => prop !== null)
-			: []
+			let signature = '(unknown)'
+			try {
+				const memberType = context.checker.getTypeAtLocation(member)
+				signature = context.checker.typeToString(
+					memberType,
+					member,
+					ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.InTypeAlias
+				)
+			} catch {
+				if (member.type) signature = member.type.getText(ifaceSourceFile)
+			}
+
+			const propJsdoc = extractJsDoc(member, ifaceSourceFile)
+
+			if (propName === '_type') {
+				const memberType = context.checker.getTypeAtLocation(member)
+				if (memberType.isStringLiteral()) {
+					shapeType = memberType.value
+				} else if (memberType.isUnion()) {
+					for (const t of memberType.types) {
+						if (t.isStringLiteral()) allShapeTypes.push(t.value)
+					}
+					shapeType = 'geo'
+				}
+			}
+
+			props.push({
+				name: propName,
+				signature,
+				description: propJsdoc.description,
+				optional: !!member.questionToken,
+			})
+		}
+
+		if (shapeType && shapeType !== 'geo') {
+			allShapeTypes.push(shapeType)
+		}
+
+		const displayName = ifaceName.replace(/^Focused/, '')
+		const propNames = props.map((p) => p.name).join(', ')
 
 		shapes.push({
-			name: alias.name.text,
+			name: displayName,
 			shapeType,
-			signature: alias.type.getText(sf),
-			description: extractJsDoc(alias, sf).description,
-			propsType,
-			propsDescription: propsInterface ? extractJsDoc(propsInterface, propsSf).description : '',
+			signature: `{ ${propNames} }`,
+			description: jsdoc.description,
+			propsType: `${displayName}Props`,
+			propsDescription: jsdoc.description,
 			props,
 		})
 	}
 
-	shapes.sort((a, b) => a.shapeType.localeCompare(b.shapeType))
-
 	return {
 		shapeCount: shapes.length,
-		shapeTypes: shapes.map((shape) => shape.shapeType),
+		shapeTypes: allShapeTypes,
 		shapes,
 	}
 }
 
-// Hardcoded helper metadata — these are the helpers injected into the exec context.
-// We define them here rather than parsing source code, since the MCP app's helpers
-// are a known, stable set.
-function getExecHelpers() {
-	return {
-		helperCount: 14,
-		helpers: [
-			{ name: 'toRichText', source: 'tldraw', signature: '(text: string) => TLRichText' },
-			{
-				name: 'renderPlaintextFromRichText',
-				source: 'tldraw',
-				signature: '(richText: TLRichText) => string',
-			},
-			{ name: 'createShapeId', source: 'tldraw', signature: '(id?: string) => TLShapeId' },
-			{
-				name: 'createBindingId',
-				source: 'tldraw',
-				signature: '(id?: string) => TLBindingId',
-			},
-			{ name: 'Box', source: 'tldraw', signature: 'typeof Box' },
-			{ name: 'Vec', source: 'tldraw', signature: 'typeof Vec' },
-			{ name: 'Mat', source: 'tldraw', signature: 'typeof Mat' },
-			{
-				name: 'clamp',
-				source: 'tldraw',
-				signature: '(value: number, min: number, max: number) => number',
-			},
-			{
-				name: 'degreesToRadians',
-				source: 'tldraw',
-				signature: '(degrees: number) => number',
-			},
-			{
-				name: 'radiansToDegrees',
-				source: 'tldraw',
-				signature: '(radians: number) => number',
-			},
-			{
-				name: 'getDefaultColorTheme',
-				source: 'tldraw',
-				signature: '(opts: { isDarkMode: boolean }) => TLDefaultColorTheme',
-			},
-			{
-				name: 'getArrowBindings',
-				source: 'tldraw',
-				signature: '(editor: Editor, arrow: TLArrowShape) => TLArrowBindings',
-			},
-			{
-				name: 'fitFrameToContent',
-				source: 'tldraw',
-				signature: '(editor: Editor, id: TLShapeId, opts?: object) => void',
-			},
-			{
-				name: 'createArrowBetweenShapes',
-				source: 'local',
-				signature:
-					'(fromId: TLShapeId, toId: TLShapeId, opts?: { bend?: number; text?: string }) => Editor',
-			},
-		],
+// --- Generate METHOD_MAP ---
+
+type ArgKind =
+	| 'id'
+	| 'id-or-shape'
+	| 'ids-or-shapes'
+	| 'spread-ids'
+	| 'shape-partial'
+	| 'shape-partials'
+	| 'update-partial'
+	| 'update-partials'
+type RetKind =
+	| 'this'
+	| 'shape'
+	| 'shape-or-null'
+	| 'shapes'
+	| 'id'
+	| 'id-or-null'
+	| 'ids'
+	| 'id-set'
+
+interface MethodMapEntry {
+	args: ArgKind[]
+	ret: RetKind
+}
+
+function generateMethodMap(
+	editorClass: ts.ClassDeclaration,
+	context: DeclarationContext
+): Record<string, MethodMapEntry> {
+	const map: Record<string, MethodMapEntry> = {}
+
+	for (const member of editorClass.members) {
+		const modifiers = ts.canHaveModifiers(member) ? ts.getModifiers(member) : undefined
+		if (
+			modifiers?.some(
+				(m) => m.kind === ts.SyntaxKind.PrivateKeyword || m.kind === ts.SyntaxKind.ProtectedKeyword
+			)
+		)
+			continue
+
+		const name = member.name && ts.isIdentifier(member.name) ? member.name.text : undefined
+		if (!name || name.startsWith('_')) continue
+
+		const memberType = context.checker.getTypeAtLocation(member)
+		const signatures = memberType.getCallSignatures()
+		if (signatures.length === 0) continue
+
+		const args: ArgKind[] = []
+		let ret: RetKind | null = null
+
+		for (const sig of signatures) {
+			for (let i = 0; i < sig.parameters.length; i++) {
+				const param = sig.parameters[i]
+				const paramType = context.checker.getTypeOfSymbolAtLocation(param, member)
+				const paramStr = context.checker.typeToString(
+					paramType,
+					member,
+					ts.TypeFormatFlags.NoTruncation
+				)
+				const isRest = !!(
+					param.declarations?.[0] &&
+					ts.isParameter(param.declarations[0]) &&
+					param.declarations[0].dotDotDotToken
+				)
+
+				if (args[i]) continue
+
+				const argKind = classifyParamType(paramStr, isRest)
+				if (argKind) {
+					while (args.length < i) args.push('id')
+					args[i] = argKind
+				}
+			}
+
+			if (!ret) {
+				const retType = sig.getReturnType()
+				const retStr = context.checker.typeToString(
+					retType,
+					member,
+					ts.TypeFormatFlags.NoTruncation
+				)
+				ret = classifyReturnType(retType, retStr, context.checker, member)
+			}
+		}
+
+		if (args.length > 0 || ret) {
+			map[name] = { args, ret: ret ?? 'this' }
+		}
+	}
+
+	return map
+}
+
+function classifyParamType(typeStr: string, isRest: boolean): ArgKind | null {
+	if (typeStr.includes('TLCreateShapePartial')) {
+		return typeStr.includes('[]') ? 'shape-partials' : 'shape-partial'
+	}
+	if (typeStr.includes('TLShapePartial')) {
+		if (typeStr.includes('[]') || typeStr.includes('Array')) return 'update-partials'
+		return 'update-partial'
+	}
+	if (isRest && (typeStr.includes('TLShapeId') || typeStr.includes('TLShape'))) {
+		return 'spread-ids'
+	}
+	if (
+		(typeStr.includes('TLShape[]') || typeStr.includes('TLShapeId[]')) &&
+		typeStr.includes('[]')
+	) {
+		return 'ids-or-shapes'
+	}
+	if (
+		typeStr.includes('TLShape') ||
+		typeStr.includes('TLShapeId') ||
+		typeStr.includes('TLParentId')
+	) {
+		return 'id-or-shape'
+	}
+	return null
+}
+
+function classifyReturnType(
+	retType: ts.Type,
+	typeStr: string,
+	checker: ts.TypeChecker,
+	member: ts.ClassElement
+): RetKind | null {
+	if (typeStr === 'this') return 'this'
+
+	if (typeStr.includes('Set<') && typeStr.includes('TLShapeId')) return 'id-set'
+
+	let resolvedStr = typeStr
+	if (retType.isTypeParameter()) {
+		const constraint = retType.getConstraint()
+		if (constraint) {
+			resolvedStr = checker.typeToString(constraint, member, ts.TypeFormatFlags.NoTruncation)
+		}
+	}
+
+	if (retType.isUnion()) {
+		let hasShapeType = false
+		let hasShapeIdType = false
+		let hasNullish = false
+		for (const t of retType.types) {
+			let resolved = t
+			if (t.isTypeParameter()) {
+				const c = t.getConstraint()
+				if (c) resolved = c
+			}
+			const s = checker.typeToString(resolved)
+			if (s === 'undefined' || s === 'null') hasNullish = true
+			else if (s.includes('TLShapeId')) hasShapeIdType = true
+			else if (s.includes('Shape')) hasShapeType = true
+		}
+		if (hasShapeType && !hasShapeIdType) return 'shape-or-null'
+		if (hasShapeIdType && hasNullish) return 'id-or-null'
+	}
+
+	if (
+		resolvedStr.includes('TLShape') &&
+		!resolvedStr.includes('TLShapeId') &&
+		(resolvedStr.includes('[]') || typeStr.includes('[]'))
+	)
+		return 'shapes'
+
+	if (resolvedStr.includes('TLShapeId') && resolvedStr.includes('[]')) return 'ids'
+
+	if (resolvedStr.includes('TLShape') && !resolvedStr.includes('TLShapeId')) {
+		if (/\bTLShape\b/.test(resolvedStr)) return 'shape-or-null'
+	}
+
+	if (
+		resolvedStr.includes('TLShapeId') &&
+		(resolvedStr.includes('null') || resolvedStr.includes('undefined'))
+	) {
+		return 'id-or-null'
+	}
+
+	return null
+}
+
+function writeMethodMap(map: Record<string, MethodMapEntry>) {
+	const lines = [
+		'// AUTO-GENERATED by scripts/extract-editor-api.ts — do not edit manually',
+		'',
+		'export interface MethodSpec {',
+		'\targs: ArgKind[]',
+		'\tret: RetKind',
+		'}',
+		'',
+		"export type ArgKind = 'id' | 'id-or-shape' | 'ids-or-shapes' | 'spread-ids' | 'shape-partial' | 'shape-partials' | 'update-partial' | 'update-partials'",
+		'',
+		"export type RetKind = 'this' | 'shape' | 'shape-or-null' | 'shapes' | 'id' | 'id-or-null' | 'ids' | 'id-set'",
+		'',
+		'export const METHOD_MAP: Record<string, MethodSpec> = {',
+	]
+
+	for (const [name, spec] of Object.entries(map)) {
+		const argsStr = spec.args.map((a) => `'${a}'`).join(', ')
+		lines.push(`\t${name}: { args: [${argsStr}], ret: '${spec.ret}' },`)
+	}
+
+	lines.push('}')
+	lines.push('')
+
+	fs.writeFileSync(methodMapOutPath, lines.join('\n'))
+}
+
+// --- Post-processing: signature rewrites + example conversion ---
+
+/**
+ * Read a Record<string, string> from an object literal in a source file,
+ * unwrapping `as const` if present.
+ */
+function readStringRecord(sourceFile: ts.SourceFile, varName: string): Record<string, string> {
+	const entries: Record<string, string> = {}
+	ts.forEachChild(sourceFile, (node) => {
+		if (!ts.isVariableStatement(node)) return
+		for (const decl of node.declarationList.declarations) {
+			if (!ts.isIdentifier(decl.name) || decl.name.text !== varName) continue
+			let init = decl.initializer
+			if (init && ts.isAsExpression(init)) init = init.expression
+			if (!init || !ts.isObjectLiteralExpression(init)) continue
+			for (const prop of init.properties) {
+				if (!ts.isPropertyAssignment(prop)) continue
+				const key = getPropertyName(prop.name)
+				if (!key) continue
+				entries[key] = prop.initializer.getText(sourceFile).replace(/['"]/g, '')
+			}
+		}
+	})
+	return entries
+}
+
+let GEO_TO_FOCUSED: Record<string, string> = {}
+let TLDRAW_TO_FOCUSED_FILL: Record<string, string> = {}
+
+const INTERNAL_PROPS = new Set([
+	'typeName',
+	'rotation',
+	'index',
+	'parentId',
+	'opacity',
+	'isLocked',
+	'meta',
+	'dash',
+	'size',
+	'font',
+	'scale',
+	'growY',
+	'labelColor',
+	'url',
+	'verticalAlign',
+	'autoSize',
+	'fontSizeAdjustment',
+	'elbowMidPoint',
+	'labelPosition',
+	'arrowheadEnd',
+	'arrowheadStart',
+	'spline',
+])
+
+function convertOldFormatExample(example: string): string {
+	if (!example.includes('props:') && !(example.includes('type:') && !example.includes('_type'))) {
+		return example
+	}
+
+	try {
+		const wrapped = `const __ex = ${example.includes(';') ? `(() => { ${example} })()` : example}`
+		const sf = ts.createSourceFile(
+			'example.ts',
+			wrapped,
+			ts.ScriptTarget.Latest,
+			false,
+			ts.ScriptKind.TS
+		)
+
+		let result = example
+		const replacements: Array<{ start: number; end: number; text: string }> = []
+
+		function visitNode(node: ts.Node) {
+			if (ts.isObjectLiteralExpression(node)) {
+				const converted = tryConvertShapeObject(node, sf)
+				if (converted) {
+					const prefixLen = wrapped.indexOf(example)
+					const start = node.getStart(sf) - prefixLen
+					const end = node.getEnd() - prefixLen
+					if (start >= 0 && end <= example.length) {
+						replacements.push({ start, end, text: converted })
+					}
+				}
+			}
+			ts.forEachChild(node, visitNode)
+		}
+
+		ts.forEachChild(sf, visitNode)
+
+		replacements.sort((a, b) => b.start - a.start)
+		for (const rep of replacements) {
+			result = result.slice(0, rep.start) + rep.text + result.slice(rep.end)
+		}
+		return result
+	} catch {
+		return example
 	}
 }
 
+function tryConvertShapeObject(node: ts.ObjectLiteralExpression, sf: ts.SourceFile): string | null {
+	const props = new Map<string, string>()
+	let nestedProps: Map<string, string> | null = null
+	let hasSpread = false
+
+	for (const prop of node.properties) {
+		if (ts.isSpreadAssignment(prop)) {
+			hasSpread = true
+			continue
+		}
+		if (!ts.isPropertyAssignment(prop)) continue
+		const name = getPropertyName(prop.name)
+		if (!name) continue
+
+		if (name === 'props' && ts.isObjectLiteralExpression(prop.initializer)) {
+			nestedProps = new Map()
+			for (const inner of prop.initializer.properties) {
+				if (!ts.isPropertyAssignment(inner)) continue
+				const innerName = getPropertyName(inner.name)
+				if (innerName) nestedProps.set(innerName, inner.initializer.getText(sf))
+			}
+		} else {
+			props.set(name, prop.initializer.getText(sf))
+		}
+	}
+
+	const typeVal = props.get('type')
+	if (!typeVal) return null
+	const typeStr = typeVal.replace(/['"]/g, '')
+
+	const shapeTypes = new Set(['geo', 'text', 'arrow', 'line', 'note', 'draw'])
+	if (!shapeTypes.has(typeStr)) return null
+
+	if (hasSpread) return null
+
+	const out: Array<[string, string]> = []
+
+	if (typeStr === 'geo' && nestedProps?.has('geo')) {
+		const geoVal = nestedProps.get('geo')!.replace(/['"]/g, '')
+		out.push(['_type', `'${GEO_TO_FOCUSED[geoVal] ?? geoVal}'`])
+		nestedProps.delete('geo')
+	} else {
+		out.push(['_type', `'${typeStr}'`])
+	}
+
+	if (props.has('id')) {
+		let idVal = props.get('id')!
+		const match = idVal.match(/createShapeId\(\s*['"]([^'"]*)['"]\s*\)/)
+		if (match) idVal = `'${match[1]}'`
+		out.push(['shapeId', idVal])
+	}
+
+	for (const key of ['x', 'y']) {
+		if (props.has(key)) out.push([key, props.get(key)!])
+	}
+
+	if (nestedProps) {
+		for (const [key, val] of nestedProps) {
+			if (INTERNAL_PROPS.has(key)) continue
+
+			if (key === 'richText') {
+				const rtMatch = val.match(/toRichText\(\s*(['"].*?['"])\s*\)/)
+				if (rtMatch) out.push(['text', rtMatch[1]])
+				continue
+			}
+
+			if (key === 'fill') {
+				const fillStr = val.replace(/['"]/g, '')
+				out.push(['fill', `'${TLDRAW_TO_FOCUSED_FILL[fillStr] ?? fillStr}'`])
+				continue
+			}
+
+			if (key === 'color') {
+				out.push(['color', val])
+				continue
+			}
+
+			out.push([key, val])
+		}
+	}
+
+	const handled = new Set(['type', 'id', 'x', 'y', 'props'])
+	for (const [key, val] of props) {
+		if (handled.has(key) || INTERNAL_PROPS.has(key)) continue
+		out.push([key, val])
+	}
+
+	return '{ ' + out.map(([k, v]) => `${k}: ${v}`).join(', ') + ' }'
+}
+
+function rewriteSignature(sig: string): string {
+	return sig
+		.replace(/TLCreateShapePartial(<[^>]*>)?/g, 'TLShape')
+		.replace(/TLShapePartial(<[^>]*>)?/g, 'Partial<TLShape>')
+		.replace(/TLShapeId/g, 'string')
+		.replace(/TLParentId/g, 'string')
+}
+
+function postProcessMembers(members: ExtractedMember[]): ExtractedMember[] {
+	return members.map((m) => ({
+		...m,
+		signature: rewriteSignature(m.signature),
+		examples: m.examples.map(convertOldFormatExample),
+	}))
+}
+
+// --- Main ---
+
 function main() {
 	console.error(
-		`Extracting Editor API from:\n  ${editorDtsPath}\n  ${storeDtsPath}\n  ${tlschemaDtsPath}`
+		`Extracting Editor API from:\n  ${editorDtsPath}\n  ${storeDtsPath}\n  ${tlschemaDtsPath}\n  ${formatTsPath}\n  ${execHelpersPath}`
 	)
 
+	// Read conversion maps from format.ts via AST
+	const formatSf = ts.createSourceFile(
+		formatTsPath,
+		fs.readFileSync(formatTsPath, 'utf-8'),
+		ts.ScriptTarget.Latest
+	)
+	GEO_TO_FOCUSED = readStringRecord(formatSf, 'GEO_TO_FOCUSED_TYPES')
+	TLDRAW_TO_FOCUSED_FILL = readStringRecord(formatSf, 'SHAPE_TO_FOCUSED_FILLS')
+
 	const members = extract()
-	const types = extractShapeTypes()
-	const helpers = getExecHelpers()
+	const types = extractFocusedShapeTypes()
+	const exec = extractExecHelpers()
 	const categories = [...new Set(members.map((m) => m.category))].sort()
+
+	// Generate METHOD_MAP
+	const editorContext = createDeclarationContext([editorDtsPath, storeDtsPath, tlschemaDtsPath])
+	const editorSourceFile = editorContext.sourceFiles.get(editorDtsPath)
+	let editorClass: ts.ClassDeclaration | undefined
+	if (editorSourceFile) {
+		ts.forEachChild(editorSourceFile, (node) => {
+			if (ts.isClassDeclaration(node) && node.name?.text === 'Editor') {
+				editorClass = node
+			}
+		})
+	}
+	if (editorClass) {
+		const methodMap = generateMethodMap(editorClass, editorContext)
+		writeMethodMap(methodMap)
+		console.error(
+			`Wrote ${Object.keys(methodMap).length} method map entries to generated-method-map.ts`
+		)
+	}
 
 	const output = {
 		extractedAt: new Date().toISOString(),
 		memberCount: members.length,
 		categories,
-		members,
+		members: postProcessMembers(members),
 		types,
-		helperCount: helpers.helperCount,
-		helpers: helpers.helpers,
-	}
-
-	if (fs.existsSync(outPath)) {
-		try {
-			const existingRaw = fs.readFileSync(outPath, 'utf8')
-			const existing = JSON.parse(existingRaw) as Record<string, unknown>
-			const hasChanges =
-				existing.memberCount !== output.memberCount ||
-				JSON.stringify(existing.categories) !== JSON.stringify(output.categories) ||
-				JSON.stringify(existing.members) !== JSON.stringify(output.members) ||
-				JSON.stringify(existing.types) !== JSON.stringify(output.types) ||
-				existing.helperCount !== output.helperCount ||
-				JSON.stringify(existing.helpers) !== JSON.stringify(output.helpers)
-
-			if (!hasChanges) {
-				console.error('No editor API changes detected; using cached src/editor-api.json')
-				return
-			}
-		} catch {
-			// If the existing file cannot be parsed, regenerate it.
-		}
+		helperCount: exec.helperCount,
+		helpers: exec.helpers,
 	}
 
 	fs.writeFileSync(outPath, JSON.stringify(output, null, 2))
 	console.error(
-		`Wrote ${members.length} members (${categories.length} categories), ${types.shapeCount} shape types, and ${helpers.helperCount} exec helpers to src/editor-api.json`
+		`Wrote ${members.length} members (${categories.length} categories), ${types.shapeCount} shape types, and ${exec.helperCount} exec helpers to src/editor-api.json`
 	)
 }
 

@@ -20,13 +20,23 @@ export function registerExecTool(
 		'exec',
 		{
 			title: 'Execute Code',
-			description:
-				'Execute JavaScript code on the tldraw canvas. The code runs in the widget with access to the live `editor` instance (tldraw Editor) and helper functions: toRichText, renderPlaintextFromRichText, createShapeId, createBindingId, Box, Vec, Mat, clamp, degreesToRadians, radiansToDegrees, getDefaultColorTheme, getArrowBindings, fitFrameToContent, createArrowBetweenShapes. Use the `search` tool first to discover available Editor methods.',
+			description: `Execute JavaScript code on the tldraw canvas. The code runs in the widget with access to the live \`editor\` instance, helper functions, and normal js. Use the \`search\` tool first to discover available Editor methods and shape types.
+
+Shapes and text grow depending on the amount of text they have. Use clever scripting to ensure there are no unintended overlaps.
+
+Examples:
+- Create a rectangle: editor.createShape({ _type: 'rectangle', shapeId: 'box1', x: 200, y: 120, w: 320, h: 180, text: 'Hello' })
+- Connect shapes with an arrow: editor.createShape({ _type: 'arrow', shapeId: 'a1', fromId: 'box1', toId: 'box2', x1: 0, y1: 0, x2: 100, y2: 0 })
+- Select and zoom: editor.select('box1'); editor.zoomToSelection()
+- Read shapes: return editor.getCurrentPageShapes()
+- Distribute evenly: editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
+- Box around shapes: boxShapes(['box1', 'box2'], { text: 'Group label', color: 'blue' })
+- Stack shapes dynamically: editor.createShape({ _type: 'rectangle', shapeId: 'a', x: 0, y: 0, w: 300, h: 200, text: 'First box\\nwith wrapping text' }); const bounds = editor.getShapePageBounds('a'); editor.createShape({ _type: 'rectangle', shapeId: 'b', x: 0, y: bounds.maxY + 20, w: 300, h: 200, text: 'Below first' })`,
 			inputSchema: z.object({
 				code: z
 					.string()
 					.describe(
-						'JavaScript code to execute. Has access to `editor` (tldraw Editor instance) and helper functions. Can be async.'
+						'JavaScript code to execute. Has access to `editor` (tldraw Editor instance) and helper functions.'
 					),
 			}),
 			annotations: {

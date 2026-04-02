@@ -2,6 +2,7 @@ import {
 	Box,
 	type Editor,
 	Mat,
+	TLShapeId,
 	Vec,
 	clamp,
 	createBindingId,
@@ -11,18 +12,36 @@ import {
 	getArrowBindings,
 	getDefaultColorTheme,
 	radiansToDegrees,
-	renderPlaintextFromRichText,
 	toRichText,
 } from 'tldraw'
+import { createFocusedEditorProxy } from './focused/focused-editor-proxy'
 
+function ensureTldrawShapeId(id: string): TLShapeId {
+	if (id.startsWith('shape:')) return id as TLShapeId
+	return ('shape:' + id) as TLShapeId
+}
+
+/**
+ * Create an arrow shape that connects two existing shapes by their IDs.
+ *
+ * @param fromId - The shape ID to connect the arrow start to
+ * @param toId - The shape ID to connect the arrow end to
+ * @param opts - Optional arrow properties: bend (-1 to 1) and text label
+ *
+ * @example
+ * createArrowBetweenShapes('box1', 'box2')
+ * createArrowBetweenShapes('box1', 'box2', { text: 'next', bend: 0.5 })
+ */
 function createArrowBetweenShapesFn(editor: Editor) {
 	return (fromId: string, toId: string, opts?: { bend?: number; text?: string }) => {
 		const arrowId = createShapeId()
+		const resolvedFromId = ensureTldrawShapeId(fromId)
+		const resolvedToId = ensureTldrawShapeId(toId)
 		editor.createShape({
 			id: arrowId,
 			type: 'arrow',
 			props: {
-				...(opts?.text ? { text: toRichText(opts.text) } : {}),
+				...(opts?.text ? { richText: toRichText(opts.text) } : {}),
 				...(opts?.bend != null ? { bend: opts.bend } : {}),
 			},
 		})
@@ -31,7 +50,7 @@ function createArrowBetweenShapesFn(editor: Editor) {
 				id: createBindingId(),
 				type: 'arrow',
 				fromId: arrowId,
-				toId: fromId as any,
+				toId: resolvedFromId,
 				props: {
 					terminal: 'start',
 					isPrecise: false,
@@ -43,7 +62,7 @@ function createArrowBetweenShapesFn(editor: Editor) {
 				id: createBindingId(),
 				type: 'arrow',
 				fromId: arrowId,
-				toId: toId as any,
+				toId: resolvedToId,
 				props: {
 					terminal: 'end',
 					isPrecise: false,
@@ -56,10 +75,57 @@ function createArrowBetweenShapesFn(editor: Editor) {
 	}
 }
 
+const BOX_SHAPES_MARGIN = 40
+
+/**
+ * Create a rectangle shape around a group of existing shapes with a margin.
+ *
+ * @param shapesOrIds - Array of shape IDs or shape objects to box around
+ * @param opts - Optional properties: shapeId, color, fill, text, note
+ *
+ * @example
+ * boxShapes(['box1', 'box2'], { text: 'Group A', color: 'blue' })
+ */
+function boxShapesFn(editor: Editor) {
+	return (
+		shapesOrIds: (string | { shapeId: string })[],
+		opts?: { shapeId?: string; color?: string; fill?: string; text?: string; note?: string }
+	) => {
+		const ids = shapesOrIds.map((s) =>
+			typeof s === 'string' ? ensureTldrawShapeId(s) : ensureTldrawShapeId(s.shapeId)
+		)
+
+		const bounds = editor.getShapesPageBounds(ids)
+		if (!bounds) return editor
+
+		const boxId = opts?.shapeId ? ensureTldrawShapeId(opts.shapeId) : createShapeId()
+
+		editor.createShape({
+			id: boxId,
+			type: 'geo',
+			x: bounds.x - BOX_SHAPES_MARGIN,
+			y: bounds.y - BOX_SHAPES_MARGIN,
+			props: {
+				geo: 'rectangle',
+				w: bounds.w + BOX_SHAPES_MARGIN * 2,
+				h: bounds.h + BOX_SHAPES_MARGIN * 2,
+				color: (opts?.color ?? 'black') as any,
+				fill: 'none' as any,
+				align: 'start' as any,
+				verticalAlign: 'start' as any,
+				...(opts?.text ? { richText: toRichText(opts.text) } : {}),
+			},
+			meta: { note: opts?.note ?? '' },
+		})
+
+		editor.sendToBack([boxId])
+
+		return editor
+	}
+}
+
 export function createExecHelpers(editor: Editor) {
 	const helpers = {
-		toRichText,
-		renderPlaintextFromRichText,
 		createShapeId,
 		createBindingId,
 		Box,
@@ -72,6 +138,7 @@ export function createExecHelpers(editor: Editor) {
 		getArrowBindings,
 		fitFrameToContent,
 		createArrowBetweenShapes: createArrowBetweenShapesFn(editor),
+		boxShapes: boxShapesFn(editor),
 	}
 
 	return helpers
@@ -92,8 +159,6 @@ function serializeResult(result: unknown) {
 async function loadExecModule(code: string) {
 	const moduleSource = `export default async function runExec({ editor, helpers }) {
 	const {
-		toRichText,
-		renderPlaintextFromRichText,
 		createShapeId,
 		createBindingId,
 		Box,
@@ -106,6 +171,7 @@ async function loadExecModule(code: string) {
 		getArrowBindings,
 		fitFrameToContent,
 		createArrowBetweenShapes,
+		boxShapes,
 	} = helpers
 
 	return await (async () => {
@@ -128,13 +194,14 @@ export async function executeCode(
 	editor: Editor,
 	code: string
 ): Promise<{ success: boolean; result?: unknown; error?: string }> {
+	const focusedEditor = createFocusedEditorProxy(editor)
 	const helpers = createExecHelpers(editor)
 
 	try {
 		const runExec = await loadExecModule(code)
 
 		const result = await Promise.race([
-			runExec({ editor, helpers }),
+			runExec({ editor: focusedEditor, helpers }),
 			new Promise((_, reject) =>
 				setTimeout(
 					() => reject(new Error(`Execution timed out after ${EXEC_TIMEOUT_MS}ms`)),

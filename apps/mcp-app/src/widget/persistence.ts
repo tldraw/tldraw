@@ -2,6 +2,7 @@ import type { App } from '@modelcontextprotocol/ext-apps/react'
 import { Editor, structuredClone } from 'tldraw'
 import type { TLAsset, TLBindingCreate, TLShape } from 'tldraw'
 import { isPlainObject } from '../shared/utils'
+import { convertTldrawShapeToFocusedShape } from './focused/to-focused'
 
 export interface CanvasSnapshot {
 	shapes: TLShape[]
@@ -234,7 +235,9 @@ export function syncEditorState(
 // --- Canvas context push ---
 
 export function pushCanvasContext(app: App, editor: Editor, opts?: { message?: string }) {
-	const shapes = [...editor.getCurrentPageShapes()].map((shape) => structuredClone(shape))
+	const shapes = [...editor.getCurrentPageShapes()].map((shape) =>
+		convertTldrawShapeToFocusedShape(editor, shape)
+	)
 
 	const canvasStatus = shapes.length > 0 ? `Current canvas state is attached.` : 'Canvas is empty.'
 

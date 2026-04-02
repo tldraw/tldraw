@@ -96,8 +96,13 @@ export function registerSearchTool(
 		'search',
 		{
 			title: 'Search Editor API',
-			description:
-				'Search the tldraw Editor API spec by writing JavaScript that receives a `spec` object and returns a result. The spec contains: spec.members (all Editor methods/properties with name, kind, signature, description, category), spec.categories (category names), spec.types.shapes (shape type definitions with props), spec.helpers (exec helper functions). Example: return spec.members.filter(m => m.category === "shapes").map(m => ({ name: m.name, signature: m.signature }))',
+			description: `Search the tldraw Editor API spec by writing JavaScript that receives a \`spec\` object and returns a result. The spec contains: spec.members (all Editor methods/properties with name, kind, signature, description, category), spec.categories (category names), spec.types.shapes (focused shape type definitions with props), spec.types.shapeTypes (list of all shape type strings), spec.helpers (exec helper functions with descriptions, params, examples).
+
+Examples:
+- Find shape methods: return spec.members.filter(m => m.category === "shapes").map(m => ({ name: m.name, signature: m.signature }))
+- Get arrow shape props: return spec.types.shapes.find(s => s.shapeType === "arrow")
+- List all categories: return spec.categories
+- Find a helper: return spec.helpers.find(h => h.name === "createArrowBetweenShapes")`,
 			inputSchema: z.object({
 				code: z
 					.string()
