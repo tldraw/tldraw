@@ -8,6 +8,7 @@ import {
 	Tldraw,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
+	structuredClone,
 	toRichText,
 	useEditor,
 	useValue,
