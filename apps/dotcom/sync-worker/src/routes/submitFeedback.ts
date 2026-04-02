@@ -193,7 +193,7 @@ async function createPlainThread(
 		{
 			input: {
 				customerIdentifier: { customerId },
-				title: `Dotcom feedback from ${email ?? 'anonymous'}`,
+				title: 'tldraw.com feedback',
 				description: description.length > 200 ? description.slice(0, 200) + '…' : description,
 				components: [{ componentText: { text: `${description}\n\nURL: ${url}` } }],
 				...(env.PLAIN_LABEL_TYPE_ID && { labelTypeIds: [env.PLAIN_LABEL_TYPE_ID] }),
