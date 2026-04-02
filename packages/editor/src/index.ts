@@ -183,7 +183,6 @@ export {
 	type TLInteractionEndPerfEvent,
 	type TLInteractionStartPerfEvent,
 	type TLPerfEventMap,
-	type TLPerfFrameTimeStats,
 	type TLShapeOperationPerfEvent,
 	type TLUndoRedoPerfEvent,
 } from './lib/editor/managers/PerformanceManager/perf-types'

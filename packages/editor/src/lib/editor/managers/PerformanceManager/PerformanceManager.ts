@@ -9,7 +9,6 @@ import type {
 	TLInteractionEndPerfEvent,
 	TLInteractionStartPerfEvent,
 	TLPerfEventMap,
-	TLPerfFrameTimeStats,
 	TLShapeOperationPerfEvent,
 	TLUndoRedoPerfEvent,
 } from './perf-types'
@@ -19,9 +18,8 @@ function percentile(sorted: number[], p: number): number {
 	return sorted[Math.max(0, idx)]
 }
 
-function computeFrameTimeStats(frameTimes: number[]): TLPerfFrameTimeStats {
-	if (frameTimes.length === 0)
-		return { avg: 0, median: 0, p95: 0, p99: 0, min: 0, max: 0, frameTimes }
+function computeFrameTimeStats(frameTimes: number[]) {
+	if (frameTimes.length === 0) return { avg: 0, median: 0, p95: 0, p99: 0, min: 0, max: 0 }
 	const sorted = [...frameTimes].sort((a, b) => a - b)
 	const sum = sorted.reduce((a, b) => a + b, 0)
 	return {
@@ -31,7 +29,6 @@ function computeFrameTimeStats(frameTimes: number[]): TLPerfFrameTimeStats {
 		p99: percentile(sorted, 0.99),
 		min: sorted[0],
 		max: sorted[sorted.length - 1],
-		frameTimes,
 	}
 }
 
@@ -152,7 +149,7 @@ export class PerformanceManager {
 		if (this.emitter.listenerCount('interaction:end') === 0) return
 
 		const duration = performance.now() - interaction.startTime
-		const frameTimeStats = computeFrameTimeStats(interaction.frameTimes)
+		const stats = computeFrameTimeStats(interaction.frameTimes)
 
 		const event: TLInteractionEndPerfEvent = {
 			name: interaction.name,
@@ -161,7 +158,13 @@ export class PerformanceManager {
 			fps:
 				interaction.frameTimes.length > 0 ? (interaction.frameTimes.length / duration) * 1000 : 0,
 			frameCount: interaction.frameTimes.length,
-			frameTimeStats,
+			avgFrameTime: stats.avg,
+			medianFrameTime: stats.median,
+			p95FrameTime: stats.p95,
+			p99FrameTime: stats.p99,
+			minFrameTime: stats.min,
+			maxFrameTime: stats.max,
+			frameTimes: interaction.frameTimes,
 			updateCount: interaction.updateCount,
 			shapeCount: this.editor.getCurrentPageShapeIds().size,
 			selectedShapeTypes: interaction.selectedShapeTypes,
@@ -246,7 +249,7 @@ export class PerformanceManager {
 		if (this.emitter.listenerCount('camera:end') === 0) return
 
 		const duration = performance.now() - camera.startTime
-		const frameTimeStats = computeFrameTimeStats(camera.frameTimes)
+		const stats = computeFrameTimeStats(camera.frameTimes)
 		const viewportBounds = this.editor.getViewportScreenBounds()
 
 		const event: TLCameraEndPerfEvent = {
@@ -254,9 +257,16 @@ export class PerformanceManager {
 			duration,
 			fps: camera.frameTimes.length > 0 ? (camera.frameTimes.length / duration) * 1000 : 0,
 			frameCount: camera.frameTimes.length,
-			frameTimeStats,
+			avgFrameTime: stats.avg,
+			medianFrameTime: stats.median,
+			p95FrameTime: stats.p95,
+			p99FrameTime: stats.p99,
+			minFrameTime: stats.min,
+			maxFrameTime: stats.max,
+			frameTimes: camera.frameTimes,
 			shapeCount: this.editor.getCurrentPageShapeIds().size,
-			viewport: { width: viewportBounds.w, height: viewportBounds.h },
+			viewportWidth: viewportBounds.w,
+			viewportHeight: viewportBounds.h,
 		}
 		this.emitter.emit('camera:end', event)
 	}

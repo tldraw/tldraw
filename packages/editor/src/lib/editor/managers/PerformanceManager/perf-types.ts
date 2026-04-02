@@ -1,15 +1,4 @@
 /** @public */
-export interface TLPerfFrameTimeStats {
-	avg: number
-	median: number
-	p95: number
-	p99: number
-	min: number
-	max: number
-	frameTimes: number[]
-}
-
-/** @public */
 export interface TLInteractionStartPerfEvent {
 	name: string
 	path: string
@@ -23,7 +12,14 @@ export interface TLInteractionEndPerfEvent {
 	duration: number
 	fps: number
 	frameCount: number
-	frameTimeStats: TLPerfFrameTimeStats
+	avgFrameTime: number
+	medianFrameTime: number
+	p95FrameTime: number
+	p99FrameTime: number
+	minFrameTime: number
+	maxFrameTime: number
+	/** Raw frame durations for local analysis. Exclude when sending to analytics. */
+	frameTimes: number[]
 	updateCount: number
 	shapeCount: number
 	selectedShapeTypes: Record<string, number>
@@ -41,9 +37,17 @@ export interface TLCameraEndPerfEvent {
 	duration: number
 	fps: number
 	frameCount: number
-	frameTimeStats: TLPerfFrameTimeStats
+	avgFrameTime: number
+	medianFrameTime: number
+	p95FrameTime: number
+	p99FrameTime: number
+	minFrameTime: number
+	maxFrameTime: number
+	/** Raw frame durations for local analysis. Exclude when sending to analytics. */
+	frameTimes: number[]
 	shapeCount: number
-	viewport: { width: number; height: number }
+	viewportWidth: number
+	viewportHeight: number
 }
 
 /** @public */

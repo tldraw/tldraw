@@ -3309,22 +3309,32 @@ export interface TLCameraConstraints {
 // @public (undocumented)
 export interface TLCameraEndPerfEvent {
     // (undocumented)
+    avgFrameTime: number;
+    // (undocumented)
     duration: number;
     // (undocumented)
     fps: number;
     // (undocumented)
     frameCount: number;
+    frameTimes: number[];
     // (undocumented)
-    frameTimeStats: TLPerfFrameTimeStats;
+    maxFrameTime: number;
+    // (undocumented)
+    medianFrameTime: number;
+    // (undocumented)
+    minFrameTime: number;
+    // (undocumented)
+    p95FrameTime: number;
+    // (undocumented)
+    p99FrameTime: number;
     // (undocumented)
     shapeCount: number;
     // (undocumented)
     type: 'panning' | 'zooming';
     // (undocumented)
-    viewport: {
-        height: number;
-        width: number;
-    };
+    viewportHeight: number;
+    // (undocumented)
+    viewportWidth: number;
 }
 
 // @public (undocumented)
@@ -4202,15 +4212,26 @@ export type TLIndicatorPath = {
 // @public (undocumented)
 export interface TLInteractionEndPerfEvent {
     // (undocumented)
+    avgFrameTime: number;
+    // (undocumented)
     duration: number;
     // (undocumented)
     fps: number;
     // (undocumented)
     frameCount: number;
+    frameTimes: number[];
     // (undocumented)
-    frameTimeStats: TLPerfFrameTimeStats;
+    maxFrameTime: number;
+    // (undocumented)
+    medianFrameTime: number;
+    // (undocumented)
+    minFrameTime: number;
     // (undocumented)
     name: string;
+    // (undocumented)
+    p95FrameTime: number;
+    // (undocumented)
+    p99FrameTime: number;
     // (undocumented)
     path: string;
     // (undocumented)
@@ -4372,24 +4393,6 @@ export interface TLPerfEventMap {
     redo: [TLUndoRedoPerfEvent];
     // (undocumented)
     undo: [TLUndoRedoPerfEvent];
-}
-
-// @public (undocumented)
-export interface TLPerfFrameTimeStats {
-    // (undocumented)
-    avg: number;
-    // (undocumented)
-    frameTimes: number[];
-    // (undocumented)
-    max: number;
-    // (undocumented)
-    median: number;
-    // (undocumented)
-    min: number;
-    // (undocumented)
-    p95: number;
-    // (undocumented)
-    p99: number;
 }
 
 // @public (undocumented)

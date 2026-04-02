@@ -11,6 +11,7 @@ function PerfPanel() {
 	useEffect(() => {
 		// [2]
 		const unsub = editor.performance.on('interaction:end', (event) => {
+			console.log('interaction:end', event)
 			setLastEvent(event)
 		})
 		return unsub
@@ -43,19 +44,19 @@ function PerfPanel() {
 						<div className="perf-section-title">Frame times</div>
 						<div className="perf-row">
 							<span className="perf-label">Avg</span>
-							<span className="perf-value">{lastEvent.frameTimeStats.avg.toFixed(1)}ms</span>
+							<span className="perf-value">{lastEvent.avgFrameTime.toFixed(1)}ms</span>
 						</div>
 						<div className="perf-row">
 							<span className="perf-label">Median</span>
-							<span className="perf-value">{lastEvent.frameTimeStats.median.toFixed(1)}ms</span>
+							<span className="perf-value">{lastEvent.medianFrameTime.toFixed(1)}ms</span>
 						</div>
 						<div className="perf-row">
 							<span className="perf-label">p95</span>
-							<span className="perf-value">{lastEvent.frameTimeStats.p95.toFixed(1)}ms</span>
+							<span className="perf-value">{lastEvent.p95FrameTime.toFixed(1)}ms</span>
 						</div>
 						<div className="perf-row">
 							<span className="perf-label">p99</span>
-							<span className="perf-value">{lastEvent.frameTimeStats.p99.toFixed(1)}ms</span>
+							<span className="perf-value">{lastEvent.p99FrameTime.toFixed(1)}ms</span>
 						</div>
 					</div>
 					<div className="perf-section">
