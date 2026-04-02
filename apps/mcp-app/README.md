@@ -8,20 +8,19 @@ The app has two parts: a **server** and a **widget**.
 
 ### Server
 
-The server registers MCP tools (`create_shapes`, `update_shapes`, `delete_shapes`, `diagram_drawing_read_me`) and serves the widget HTML as an MCP App resource.
+The server runs in Cloudflare Workers via `src/worker.ts`, using a Durable Object (`TldrawMCP`) backed by SQLite for persistent checkpoint storage.
 
-There are two entry points:
+It exposes:
 
-- `main.ts` — Node.js stdio transport, for local clients like Claude Desktop and Cursor
-- `src/worker.ts` — Cloudflare Workers with a Durable Object (`TldrawMCP`) backed by SQLite for persistent checkpoint storage
-
-Both entry points share tool registration logic in `src/register-tools.ts`.
+- `search` — query the extracted Editor API spec in a sandboxed worker
+- `exec` — execute JavaScript against the live editor in the widget
+- `save_checkpoint` / `read_checkpoint` — app-only support tools used by the widget
 
 ### Widget
 
 The widget is a React app (`src/widget/mcp-app.tsx`) that renders a full tldraw canvas inside the MCP host's iframe.
 
-The widget handles streaming previews (shapes appear as the model streams tool arguments), and syncing state back to the server.
+The widget executes `exec` code against the live editor, syncs the resulting canvas state back to the server, and keeps the model context updated with raw `TLShape`, asset, and binding data.
 
 ## Developing
 
@@ -33,8 +32,7 @@ Run all commands from `apps/mcp-app`.
 | ----------------- | -------------------------------------------------------------------------------------------------- |
 | `yarn build`      | Build the widget HTML                                                                              |
 | `yarn dev`        | Build widget + start local Cloudflare worker (HTTP MCP on `localhost:8787`)                        |
-| `yarn dev:stdio`  | Build widget + Start a local stdio MCP server                                                      |
-| `yarn dev:tunnel` | Build widget + Start a Cloudflare tunnel + local worker with `WORKER_ORIGIN` set to the tunnel URL |
+| `yarn dev:tunnel` | Build widget + start a Cloudflare tunnel + local worker with `WORKER_ORIGIN` set to the tunnel URL |
 | `yarn deploy`     | Build widget + deploy the Cloudflare worker to production                                          |
 
 `yarn dev:tunnel` requires the `cloudflared` CLI to be installed on your machine.
@@ -43,7 +41,7 @@ The worker defaults to production-safe behavior in `wrangler.toml`, including se
 
 ### Cursor setup
 
-Add these three servers in `~/.cursor/mcp.json`:
+Add these two servers in `~/.cursor/mcp.json`:
 
 ```json
 {
@@ -55,28 +53,14 @@ Add these three servers in `~/.cursor/mcp.json`:
 		"tldraw-local": {
 			"command": "npx",
 			"args": ["-y", "mcp-remote", "http://127.0.0.1:8787/mcp"]
-		},
-		"tldraw-local-stdio": {
-			"command": "yarn",
-			"args": [
-				"--cwd",
-				"<path-to-tldraw-repo>/tldraw/apps/mcp-app",
-				"run",
-				"-s",
-				"tsx",
-				"main.ts",
-				"--stdio"
-			]
 		}
 	}
 }
 ```
 
-`--cwd` ensures Cursor launches in the app folder. `-s` stops yarn from writing non-JSON noise to stdout, which breaks the stdio transport.
-
 ### Claude Desktop local setup
 
-For local Claude Desktop development, use `claude_desktop_config.json` for the local HTTP and stdio servers:
+For local Claude Desktop development, use `claude_desktop_config.json` with the local HTTP server:
 
 ```json
 {
@@ -84,18 +68,6 @@ For local Claude Desktop development, use `claude_desktop_config.json` for the l
 		"tldraw-local": {
 			"command": "npx",
 			"args": ["-y", "mcp-remote", "http://127.0.0.1:8787/mcp"]
-		},
-		"tldraw-local-stdio": {
-			"command": "yarn",
-			"args": [
-				"--cwd",
-				"<path-to-tldraw-repo>/tldraw/apps/mcp-app",
-				"run",
-				"-s",
-				"tsx",
-				"main.ts",
-				"--stdio"
-			]
 		}
 	}
 }
@@ -130,7 +102,7 @@ ChatGPT requires an HTTPS origin, so you need a Cloudflare tunnel. You must be a
 ### Iteration loop
 
 1. Make code changes in `apps/mcp-app`
-2. Run the relevant script (`dev`, `dev:stdio`, or `dev:tunnel`)
+2. Run the relevant script (`dev` or `dev:tunnel`)
 3. Disconnect and reconnect the MCP server in your client (or reload the page/app)
 4. When making widget changes, make sure to rebuild, either by running `yarn build` or rerunning any of the dev scripts.
 

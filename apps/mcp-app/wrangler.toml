@@ -1,5 +1,6 @@
 name = "tldraw-mcp-app"
 main = "src/worker.ts"
+# Keep in sync with WORKER_COMPATIBILITY_DATE in src/shared/types.ts
 compatibility_date = "2025-03-10"
 compatibility_flags = ["nodejs_compat"]
 preview_urls = true
@@ -27,6 +28,9 @@ MCP_IS_DEV = "false"
 [[analytics_engine_datasets]]
 binding = "MCP_ANALYTICS"
 dataset = "MCP_ANALYTICS"
+
+[[worker_loaders]]
+binding = "LOADER"
 
 #################### Rate limiting ####################
 [[ratelimits]]

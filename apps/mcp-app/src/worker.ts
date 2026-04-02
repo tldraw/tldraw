@@ -9,9 +9,9 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
-import type { TLShape } from 'tldraw'
 import { Logger } from './logger'
 import { registerTools } from './register-tools'
+import { PendingRequests } from './shared/pending-requests'
 import {
 	MAX_CHECKPOINTS,
 	MCP_SERVER_DESCRIPTION,
@@ -22,13 +22,14 @@ import {
 	MCP_SERVER_WEBSITE_URL,
 } from './shared/types'
 import type { MCP_APP_HOST_NAMES, ServerDeps } from './shared/types'
-import { parseTlShapes, resolveMcpAppHostNameFromServerInfo } from './shared/utils'
+import { resolveMcpAppHostNameFromServerInfo } from './shared/utils'
 
 // --- Types ---
 
 interface Env {
 	MCP_OBJECT: DurableObjectNamespace
 	ASSETS: Fetcher
+	LOADER: WorkerLoader
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
 	MCP_IS_DEV: string
@@ -81,6 +82,12 @@ export class TldrawMCP extends McpAgent<Env> {
 	sessionId: string = ''
 	logger = new Logger('TldrawMCP', this.logsEnabled)
 	clientHostName: MCP_APP_HOST_NAMES | undefined = undefined
+	pendingRequests = new PendingRequests()
+
+	/** The MCP session ID used for DO routing (extracted from DO name). */
+	get mcpSessionId(): string {
+		return (this as any).name?.replace(/^streamable-http:/, '') ?? ''
+	}
 
 	async init() {
 		this.server.server.oninitialized = () => {
@@ -137,15 +144,13 @@ export class TldrawMCP extends McpAgent<Env> {
 			saveCheckpoint: (id, shapes, assets = [], bindings = []) =>
 				this.saveCheckpoint(id, shapes, assets, bindings),
 			loadCheckpoint: (id) => this.loadCheckpoint(id),
-			getActiveShapes: () => this.getActiveShapes(),
-			getActiveAssets: () => this.getActiveAssets(),
-			getActiveBindings: () => this.getActiveBindings(),
 			getActiveCheckpointId: () => this.activeCheckpointId,
 			setActiveCheckpointId: (id) => {
 				this.activeCheckpointId = id
 				void this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
 			},
 			getSessionId: () => this.sessionId,
+			getMcpSessionId: () => this.mcpSessionId,
 			loadWidgetHtml: async () => widgetHtml,
 		}
 
@@ -155,10 +160,12 @@ export class TldrawMCP extends McpAgent<Env> {
 			log: this.logger.toLogFn(),
 			extraResourceDomains: workerOrigin ? [workerOrigin] : [],
 			extraConnectDomains: workerOrigin ? [workerOrigin] : [],
+			searchWorkerLoader: this.env.LOADER,
 			workerOrigin,
 			isDev: this.isDev,
 			analytics: this.env.MCP_ANALYTICS,
 			getClientHostName: () => this.clientHostName,
+			pendingRequests: this.pendingRequests,
 		})
 	}
 
@@ -189,24 +196,6 @@ export class TldrawMCP extends McpAgent<Env> {
 			assets: parsed.assets ?? [],
 			bindings: parsed.bindings ?? [],
 		}
-	}
-
-	getActiveShapes(): TLShape[] {
-		if (!this.activeCheckpointId) return []
-		const checkpoint = this.loadCheckpoint(this.activeCheckpointId)
-		return checkpoint ? parseTlShapes(checkpoint.shapes) : []
-	}
-
-	getActiveAssets(): unknown[] {
-		if (!this.activeCheckpointId) return []
-		const checkpoint = this.loadCheckpoint(this.activeCheckpointId)
-		return checkpoint ? checkpoint.assets : []
-	}
-
-	getActiveBindings(): unknown[] {
-		if (!this.activeCheckpointId) return []
-		const checkpoint = this.loadCheckpoint(this.activeCheckpointId)
-		return checkpoint ? checkpoint.bindings : []
 	}
 }
 
