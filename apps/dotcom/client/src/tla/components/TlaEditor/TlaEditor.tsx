@@ -15,6 +15,8 @@ import {
 	computed,
 	createSessionStateSnapshotSignal,
 	createUserId,
+	PostHogSink,
+	RumMonitor,
 	parseDeepLinkString,
 	react,
 	throttle,
@@ -130,9 +132,21 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			// Register the external asset handler
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 
+			// Set up Real User Monitoring for performance tracking
+			const rum = new RumMonitor(editor, {
+				enabled: true,
+				sampleRate: 0.1,
+				sinks: [
+					new PostHogSink({
+						capture: (name, props) => trackEvent(name, props),
+					}),
+				],
+			})
+			rum.start()
+
 			if (!app) {
 				setIsReady()
-				return
+				return () => rum.dispose()
 			}
 
 			const fileState = app.getFileState(fileId)
@@ -167,6 +181,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}).then(setIsReady)
 
 			return () => {
+				rum.dispose()
 				fileStateUpdater.dispose()
 				abortController.abort()
 			}

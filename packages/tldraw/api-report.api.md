@@ -5763,6 +5763,7 @@ export function ZoomToSelectionMenuItem(): JSX.Element;
 
 
 export * from "@tldraw/editor";
+export * from "@tldraw/rum";
 
 // (No @packageDocumentation comment for this package)
 
