@@ -9,6 +9,7 @@ import type {
 	TLInteractionEndPerfEvent,
 	TLInteractionStartPerfEvent,
 	TLPerfEventMap,
+	TLPerfLongAnimationFrame,
 	TLShapeOperationPerfEvent,
 	TLUndoRedoPerfEvent,
 } from './perf-types'
@@ -32,6 +33,29 @@ function computeFrameTimeStats(frameTimes: number[]) {
 	}
 }
 
+function toLoafEntry(entry: PerformanceEntry): TLPerfLongAnimationFrame | null {
+	// LoAF entries have these properties but TypeScript doesn't know about them yet
+	const e = entry as PerformanceEntry & {
+		blockingDuration?: number
+		scripts?: ReadonlyArray<{
+			sourceURL?: string
+			invoker?: string
+			duration?: number
+		}>
+	}
+	if (typeof e.duration !== 'number') return null
+	return {
+		startTime: e.startTime,
+		duration: e.duration,
+		blockingDuration: e.blockingDuration ?? 0,
+		scripts: (e.scripts ?? []).map((s) => ({
+			sourceURL: s.sourceURL ?? '',
+			invoker: s.invoker ?? '',
+			duration: s.duration ?? 0,
+		})),
+	}
+}
+
 /** @public */
 export class PerformanceManager {
 	/** @internal */
@@ -47,6 +71,7 @@ export class PerformanceManager {
 		frameTimes: number[]
 		updateCount: number
 		selectedShapeTypes: Record<string, number>
+		loafEntries: TLPerfLongAnimationFrame[]
 	} | null = null
 
 	// Active camera tracking
@@ -55,6 +80,7 @@ export class PerformanceManager {
 		startTime: number
 		frameTimes: number[]
 		timeout: number | null
+		loafEntries: TLPerfLongAnimationFrame[]
 	} | null = null
 
 	// Lazy listener cleanup functions
@@ -62,6 +88,9 @@ export class PerformanceManager {
 	private shapeCreatedCleanup: (() => void) | null = null
 	private shapeEditedCleanup: (() => void) | null = null
 	private shapeDeletedCleanup: (() => void) | null = null
+
+	// LoAF observer
+	private loafObserver: PerformanceObserver | null = null
 
 	constructor(editor: Editor) {
 		this.editor = editor
@@ -130,6 +159,7 @@ export class PerformanceManager {
 			frameTimes: [],
 			updateCount: 0,
 			selectedShapeTypes,
+			loafEntries: [],
 		}
 
 		const event: TLInteractionStartPerfEvent = {
@@ -168,6 +198,7 @@ export class PerformanceManager {
 			updateCount: interaction.updateCount,
 			shapeCount: this.editor.getCurrentPageShapeIds().size,
 			selectedShapeTypes: interaction.selectedShapeTypes,
+			longAnimationFrames: interaction.loafEntries.length > 0 ? interaction.loafEntries : undefined,
 		}
 		this.emitter.emit('interaction:end', event)
 	}
@@ -229,6 +260,7 @@ export class PerformanceManager {
 			startTime: performance.now(),
 			frameTimes: [],
 			timeout: this.editor.timers.setTimeout(() => this._endCameraSession(), 50),
+			loafEntries: [],
 		}
 
 		if (this.emitter.listenerCount('camera:start') > 0) {
@@ -267,6 +299,7 @@ export class PerformanceManager {
 			shapeCount: this.editor.getCurrentPageShapeIds().size,
 			viewportWidth: viewportBounds.w,
 			viewportHeight: viewportBounds.h,
+			longAnimationFrames: camera.loafEntries.length > 0 ? camera.loafEntries : undefined,
 		}
 		this.emitter.emit('camera:end', event)
 	}
@@ -348,12 +381,62 @@ export class PerformanceManager {
 		this.emitter.emit('shapes:deleted', event)
 	}
 
+	// --- LoAF observer ---
+
+	private _startLoafObserver() {
+		if (typeof PerformanceObserver === 'undefined') return
+
+		try {
+			const supported = PerformanceObserver.supportedEntryTypes
+			if (!supported?.includes('long-animation-frame')) return
+		} catch {
+			return
+		}
+
+		this.loafObserver = new PerformanceObserver((list) => {
+			const isInteractionActive = this.activeInteraction !== null
+			const isCameraActive = this.activeCamera !== null
+
+			if (!isInteractionActive && !isCameraActive) return
+
+			for (const entry of list.getEntries()) {
+				const loaf = toLoafEntry(entry)
+				if (!loaf) continue
+
+				if (isInteractionActive) {
+					this.activeInteraction!.loafEntries.push(loaf)
+				}
+				if (isCameraActive) {
+					this.activeCamera!.loafEntries.push(loaf)
+				}
+			}
+		})
+
+		this.loafObserver.observe({ type: 'long-animation-frame', buffered: false })
+	}
+
+	private _stopLoafObserver() {
+		if (this.loafObserver) {
+			this.loafObserver.disconnect()
+			this.loafObserver = null
+		}
+	}
+
+	// --- Lazy listener management ---
+
 	private _needsFrameListener(): boolean {
 		return (
 			this.emitter.listenerCount('frame') > 0 ||
 			this.emitter.listenerCount('interaction:start') > 0 ||
 			this.emitter.listenerCount('interaction:end') > 0 ||
 			this.emitter.listenerCount('camera:start') > 0 ||
+			this.emitter.listenerCount('camera:end') > 0
+		)
+	}
+
+	private _needsLoafObserver(): boolean {
+		return (
+			this.emitter.listenerCount('interaction:end') > 0 ||
 			this.emitter.listenerCount('camera:end') > 0
 		)
 	}
@@ -371,6 +454,13 @@ export class PerformanceManager {
 			if (this._needsFrameListener()) {
 				this.editor.on('frame', this._onFrame)
 				this.frameCleanup = () => this.editor.off('frame', this._onFrame)
+			}
+		}
+
+		// LoAF observer needed when interaction:end or camera:end listeners exist
+		if (!this.loafObserver && (event === 'interaction:end' || event === 'camera:end')) {
+			if (this._needsLoafObserver()) {
+				this._startLoafObserver()
 			}
 		}
 
@@ -402,6 +492,13 @@ export class PerformanceManager {
 			if (!this._needsFrameListener()) {
 				this.frameCleanup()
 				this.frameCleanup = null
+			}
+		}
+
+		// Stop LoAF observer when no longer needed
+		if (this.loafObserver && (event === 'interaction:end' || event === 'camera:end')) {
+			if (!this._needsLoafObserver()) {
+				this._stopLoafObserver()
 			}
 		}
 

@@ -23,6 +23,12 @@ export interface TLInteractionEndPerfEvent {
 	updateCount: number
 	shapeCount: number
 	selectedShapeTypes: Record<string, number>
+	/**
+	 * Long animation frames observed during this interaction (Chromium 123+).
+	 * Only present when the browser supports the Long Animation Frames API and
+	 * at least one long frame was observed.
+	 */
+	longAnimationFrames?: TLPerfLongAnimationFrame[]
 }
 
 /** @public */
@@ -48,6 +54,12 @@ export interface TLCameraEndPerfEvent {
 	shapeCount: number
 	viewportWidth: number
 	viewportHeight: number
+	/**
+	 * Long animation frames observed during this camera operation (Chromium 123+).
+	 * Only present when the browser supports the Long Animation Frames API and
+	 * at least one long frame was observed.
+	 */
+	longAnimationFrames?: TLPerfLongAnimationFrame[]
 }
 
 /** @public */
@@ -71,6 +83,32 @@ export interface TLUndoRedoPerfEvent {
 	type: 'undo' | 'redo'
 	undoDepth: number
 	redoDepth: number
+}
+
+/**
+ * A long animation frame observed by the browser during an interaction.
+ * Available only in browsers that support the Long Animation Frames API (Chromium 123+).
+ * @public
+ */
+export interface TLPerfLongAnimationFrame {
+	/** Frame start time (relative to timeOrigin). */
+	startTime: number
+	/** Total frame duration in ms. */
+	duration: number
+	/** Time the main thread was blocked in ms. */
+	blockingDuration: number
+	/** Scripts that contributed to the long frame. */
+	scripts: TLPerfLongAnimationFrameScript[]
+}
+
+/** A script attribution entry from a long animation frame. @public */
+export interface TLPerfLongAnimationFrameScript {
+	/** The script source URL (may be empty for inline scripts). */
+	sourceURL: string
+	/** The function name or invoker description. */
+	invoker: string
+	/** Time spent in this script in ms. */
+	duration: number
 }
 
 /** @public */

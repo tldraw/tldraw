@@ -3317,6 +3317,7 @@ export interface TLCameraEndPerfEvent {
     // (undocumented)
     frameCount: number;
     frameTimes: number[];
+    longAnimationFrames?: TLPerfLongAnimationFrame[];
     // (undocumented)
     maxFrameTime: number;
     // (undocumented)
@@ -4220,6 +4221,7 @@ export interface TLInteractionEndPerfEvent {
     // (undocumented)
     frameCount: number;
     frameTimes: number[];
+    longAnimationFrames?: TLPerfLongAnimationFrame[];
     // (undocumented)
     maxFrameTime: number;
     // (undocumented)
@@ -4393,6 +4395,21 @@ export interface TLPerfEventMap {
     redo: [TLUndoRedoPerfEvent];
     // (undocumented)
     undo: [TLUndoRedoPerfEvent];
+}
+
+// @public
+export interface TLPerfLongAnimationFrame {
+    blockingDuration: number;
+    duration: number;
+    scripts: TLPerfLongAnimationFrameScript[];
+    startTime: number;
+}
+
+// @public
+export interface TLPerfLongAnimationFrameScript {
+    duration: number;
+    invoker: string;
+    sourceURL: string;
 }
 
 // @public (undocumented)
