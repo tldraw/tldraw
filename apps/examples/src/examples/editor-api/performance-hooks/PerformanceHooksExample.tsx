@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { TLInteractionEndPerfEvent, Tldraw, useEditor } from 'tldraw'
+import { PerformanceApiAdapter, TLInteractionEndPerfEvent, Tldraw, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './performance-hooks.css'
 
@@ -13,7 +13,14 @@ function PerfPanel() {
 		const unsub = editor.performance.on('interaction:end', (event) => {
 			setLastEvent(event)
 		})
-		return unsub
+
+		// [3]
+		const adapter = new PerformanceApiAdapter(editor.performance)
+
+		return () => {
+			unsub()
+			adapter.dispose()
+		}
 	}, [editor])
 
 	return (
@@ -73,7 +80,7 @@ function PerfPanel() {
 	)
 }
 
-// [3]
+// [4]
 export default function PerformanceHooksExample() {
 	const handleMount = useCallback((editor: any) => {
 		editor.createShapes([
@@ -105,6 +112,14 @@ time distribution stats (avg, median, p95, p99) plus context like
 shape count and interaction name.
 
 [3]
+The PerformanceApiAdapter pipes perf events into the browser's
+Performance API (`performance.mark()` / `performance.measure()`).
+Open DevTools → Performance tab → record → interact with shapes →
+stop recording, and you'll see named measures like
+`tldraw:interaction:translating` in the Timings lane. It's optional
+and tree-shakeable — only included if you import it.
+
+[4]
 We create some shapes on mount so there's something to interact with.
 Select a shape and resize or drag it to see the performance panel update.
 */
