@@ -1,4 +1,5 @@
 import type { TLShapeId } from '@tldraw/tlschema'
+import { bind } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
 import type { Editor } from '../../Editor'
 import type {
@@ -56,7 +57,7 @@ export class PerformanceManager {
 		type: 'panning' | 'zooming'
 		startTime: number
 		frameTimes: number[]
-		timeout: ReturnType<typeof setTimeout> | null
+		timeout: number | null
 	} | null = null
 
 	// Lazy listener cleanup functions
@@ -195,7 +196,10 @@ export class PerformanceManager {
 				this._startCameraSession(type)
 			} else {
 				// Reset timeout
-				this.activeCamera.timeout = setTimeout(() => this._endCameraSession(), 50)
+				this.activeCamera.timeout = this.editor.timers.setTimeout(
+					() => this._endCameraSession(),
+					50
+				)
 			}
 		} else {
 			this._startCameraSession(type)
@@ -221,7 +225,7 @@ export class PerformanceManager {
 			type,
 			startTime: performance.now(),
 			frameTimes: [],
-			timeout: setTimeout(() => this._endCameraSession(), 50),
+			timeout: this.editor.timers.setTimeout(() => this._endCameraSession(), 50),
 		}
 
 		if (this.emitter.listenerCount('camera:start') > 0) {
@@ -257,7 +261,8 @@ export class PerformanceManager {
 		this.emitter.emit('camera:end', event)
 	}
 
-	private _onFrame = (elapsed: number) => {
+	@bind
+	private _onFrame(elapsed: number) {
 		// Record frame time for active interaction/camera
 		if (this.activeInteraction) {
 			this.activeInteraction.frameTimes.push(elapsed)
@@ -281,7 +286,8 @@ export class PerformanceManager {
 		}
 	}
 
-	private _onShapesCreated = (records: any[]) => {
+	@bind
+	private _onShapesCreated(records: any[]) {
 		if (this.emitter.listenerCount('shapes:created') === 0) return
 		const shapeTypes: Record<string, number> = {}
 		for (const record of records) {
@@ -300,7 +306,8 @@ export class PerformanceManager {
 		this.emitter.emit('shapes:created', event)
 	}
 
-	private _onShapesEdited = (records: any[]) => {
+	@bind
+	private _onShapesEdited(records: any[]) {
 		if (this.emitter.listenerCount('shapes:updated') === 0) return
 		const shapeTypes: Record<string, number> = {}
 		for (const record of records) {
@@ -319,7 +326,8 @@ export class PerformanceManager {
 		this.emitter.emit('shapes:updated', event)
 	}
 
-	private _onShapesDeleted = (ids: TLShapeId[]) => {
+	@bind
+	private _onShapesDeleted(ids: TLShapeId[]) {
 		if (this.emitter.listenerCount('shapes:deleted') === 0) return
 		const event: TLShapeOperationPerfEvent = {
 			operation: 'delete',

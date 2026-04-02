@@ -16,63 +16,59 @@ function PerfPanel() {
 		return unsub
 	}, [editor])
 
-	if (!lastEvent) {
-		return (
-			<div className="perf-panel">
-				<div className="perf-hint">Drag or resize a shape to see performance stats</div>
-			</div>
-		)
-	}
-
-	const { name, frameTimeStats, fps, frameCount, shapeCount, duration } = lastEvent
-
 	return (
 		<div className="perf-panel">
-			<div className="perf-section">
-				<div className="perf-section-title">Last interaction</div>
-				<div className="perf-row">
-					<span className="perf-label">State</span>
-					<span>{name}</span>
-				</div>
-				<div className="perf-row">
-					<span className="perf-label">Duration</span>
-					<span className="perf-value">{duration.toFixed(0)}ms</span>
-				</div>
-				<div className="perf-row">
-					<span className="perf-label">FPS</span>
-					<span className="perf-value">{fps.toFixed(1)}</span>
-				</div>
-				<div className="perf-row">
-					<span className="perf-label">Frames</span>
-					<span className="perf-value">{frameCount}</span>
-				</div>
-			</div>
-			<div className="perf-section">
-				<div className="perf-section-title">Frame times</div>
-				<div className="perf-row">
-					<span className="perf-label">Avg</span>
-					<span className="perf-value">{frameTimeStats.avg.toFixed(1)}ms</span>
-				</div>
-				<div className="perf-row">
-					<span className="perf-label">Median</span>
-					<span className="perf-value">{frameTimeStats.median.toFixed(1)}ms</span>
-				</div>
-				<div className="perf-row">
-					<span className="perf-label">p95</span>
-					<span className="perf-value">{frameTimeStats.p95.toFixed(1)}ms</span>
-				</div>
-				<div className="perf-row">
-					<span className="perf-label">p99</span>
-					<span className="perf-value">{frameTimeStats.p99.toFixed(1)}ms</span>
-				</div>
-			</div>
-			<div className="perf-section">
-				<div className="perf-section-title">Context</div>
-				<div className="perf-row">
-					<span className="perf-label">Shapes</span>
-					<span className="perf-value">{shapeCount}</span>
-				</div>
-			</div>
+			{lastEvent ? (
+				<>
+					<div className="perf-section">
+						<div className="perf-section-title">Last interaction</div>
+						<div className="perf-row">
+							<span className="perf-label">State</span>
+							<span>{lastEvent.name}</span>
+						</div>
+						<div className="perf-row">
+							<span className="perf-label">Duration</span>
+							<span className="perf-value">{lastEvent.duration.toFixed(0)}ms</span>
+						</div>
+						<div className="perf-row">
+							<span className="perf-label">FPS</span>
+							<span className="perf-value">{lastEvent.fps.toFixed(1)}</span>
+						</div>
+						<div className="perf-row">
+							<span className="perf-label">Frames</span>
+							<span className="perf-value">{lastEvent.frameCount}</span>
+						</div>
+					</div>
+					<div className="perf-section">
+						<div className="perf-section-title">Frame times</div>
+						<div className="perf-row">
+							<span className="perf-label">Avg</span>
+							<span className="perf-value">{lastEvent.frameTimeStats.avg.toFixed(1)}ms</span>
+						</div>
+						<div className="perf-row">
+							<span className="perf-label">Median</span>
+							<span className="perf-value">{lastEvent.frameTimeStats.median.toFixed(1)}ms</span>
+						</div>
+						<div className="perf-row">
+							<span className="perf-label">p95</span>
+							<span className="perf-value">{lastEvent.frameTimeStats.p95.toFixed(1)}ms</span>
+						</div>
+						<div className="perf-row">
+							<span className="perf-label">p99</span>
+							<span className="perf-value">{lastEvent.frameTimeStats.p99.toFixed(1)}ms</span>
+						</div>
+					</div>
+					<div className="perf-section">
+						<div className="perf-section-title">Context</div>
+						<div className="perf-row">
+							<span className="perf-label">Shapes</span>
+							<span className="perf-value">{lastEvent.shapeCount}</span>
+						</div>
+					</div>
+				</>
+			) : (
+				<div className="perf-hint">Drag or resize a shape to see performance stats</div>
+			)}
 		</div>
 	)
 }
@@ -97,8 +93,9 @@ export default function PerformanceHooksExample() {
 /*
 [1]
 The PerfPanel component subscribes to `editor.performance` events
-and displays frame time statistics for the most recent interaction.
-It's placed in the InFrontOfTheCanvas slot, positioned in the bottom-right corner.
+and displays frame time statistics for the most recent completed
+interaction. It's placed in the InFrontOfTheCanvas slot, positioned
+in the bottom-right corner.
 
 [2]
 `editor.performance.on('interaction:end', fn)` returns an unsubscribe
