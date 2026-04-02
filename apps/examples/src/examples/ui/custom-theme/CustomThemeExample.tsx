@@ -320,28 +320,44 @@ function ThemeSlider({
 	step: number
 	defaultValue: number
 }) {
+	const [localValue, setLocalValue] = useState(value)
 	const isDragging = useRef(false)
 
-	const isDefault = value === defaultValue
+	// sync from parent when not actively dragging
+	if (!isDragging.current && localValue !== value) {
+		setLocalValue(value)
+	}
 
-	const handleInput = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			// if (!isDragging.current) return
-			isDragging.current = false
-			onChange(Number(e.target.value))
-		},
-		[onChange]
-	)
+	const isDefault = localValue === defaultValue
+
+	const handleInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		isDragging.current = true
+		setLocalValue(Number(e.target.value))
+	}, [])
+
+	const handleCommit = useCallback(() => {
+		if (!isDragging.current) return
+		isDragging.current = false
+		onChange(localValue)
+	}, [onChange, localValue])
 
 	return (
 		<div className="custom-theme-slider">
 			<div className="custom-theme-slider__header">
 				<span className="custom-theme-slider__label">{label}</span>
 				<span className="custom-theme-slider__value" data-default={isDefault}>
-					{value % 1 === 0 ? value : value.toFixed(2)}
+					{localValue % 1 === 0 ? localValue : localValue.toFixed(2)}
 				</span>
 			</div>
-			<input type="range" min={min} max={max} step={step} value={value} onChange={handleInput} />
+			<input
+				type="range"
+				min={min}
+				max={max}
+				step={step}
+				value={localValue}
+				onChange={handleInput}
+				onPointerUp={handleCommit}
+			/>
 		</div>
 	)
 }
