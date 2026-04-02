@@ -468,6 +468,27 @@ describe('LicenseManager', () => {
 			expect(result.isLicensedWithWatermark).toBe(true)
 		})
 
+		it('Checks for permissions license flag', async () => {
+			const permissionsLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			permissionsLicenseInfo[PROPERTIES.FLAGS] |= FLAGS.X_PERMISSIONS_LICENSE
+			const permissionsLicenseKey = await generateLicenseKey(
+				JSON.stringify(permissionsLicenseInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				permissionsLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isPermissionsLicensed).toBe(true)
+		})
+
+		it('Has isPermissionsLicensed false when flag not set', async () => {
+			const standardLicenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = (await licenseManager.getLicenseFromKey(
+				standardLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isPermissionsLicensed).toBe(false)
+		})
+
 		it('Checks for evaluation license', async () => {
 			const evaluationLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
 			evaluationLicenseInfo[PROPERTIES.FLAGS] = FLAGS.EVALUATION_LICENSE
@@ -701,6 +722,7 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 		isLicensedWithWatermark: false,
 		isEvaluationLicense: false,
 		isEvaluationLicenseExpired: false,
+		isPermissionsLicensed: false,
 		daysSinceExpiry: 0,
 		// WatermarkManager does not check these fields, it relies on the calculated values like isAnnualLicenseExpired
 		license: {

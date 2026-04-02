@@ -334,6 +334,16 @@ export {
 	type TLLanguage,
 } from './translations/translations'
 export { type SetValue } from './util-types'
+export {
+	CORE_ACTIVITIES,
+	type CoreActivityId,
+	type TLAfterActionCallback,
+	type TLBeforeActionCallback,
+	type TLPermissionContext,
+	type TLPermissionRule,
+	type TLPermissionUser,
+	type TLPermissionsManagerConfig,
+} from './lib/permissions'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

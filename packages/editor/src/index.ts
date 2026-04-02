@@ -148,6 +148,10 @@ export {
 export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryManager'
 export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
 export {
+	type TLPermissionsAdapter,
+	type TLPermissionsController,
+} from './lib/editor/managers/PermissionsManager/permissions-adapter'
+export {
 	ScribbleManager,
 	type ScribbleItem,
 	type ScribbleSessionOptions,
@@ -300,6 +304,7 @@ export {
 	useContainerIfExists,
 	type ContainerProviderProps,
 } from './lib/hooks/useContainer'
+export { useCanPerform } from './lib/hooks/useCanPerform'
 export { getCursor } from './lib/hooks/useCursor'
 export {
 	EditorContext,
@@ -334,6 +339,7 @@ export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
+	FLAGS,
 	LicenseManager,
 	type InvalidLicenseKeyResult,
 	type InvalidLicenseReason,

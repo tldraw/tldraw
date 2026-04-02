@@ -5,6 +5,7 @@ import { importPublicKey, str2ab } from '../utils/licensing'
 
 const GRACE_PERIOD_DAYS = 30
 
+/** @public */
 export const FLAGS = {
 	// -- MUTUALLY EXCLUSIVE FLAGS --
 	// Annual means the license expires after a time period, usually 1 year.
@@ -22,6 +23,8 @@ export const FLAGS = {
 	// Native means the license is for native apps which switches
 	// on special-case logic.
 	NATIVE_LICENSE: 1 << 5,
+	// Enables the permissions add-on.
+	X_PERMISSIONS_LICENSE: 1 << 6,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -84,6 +87,7 @@ export interface ValidLicenseKeyResult {
 	isLicensedWithWatermark: boolean
 	isEvaluationLicense: boolean
 	isEvaluationLicenseExpired: boolean
+	isPermissionsLicensed: boolean
 	daysSinceExpiry: number
 }
 
@@ -294,6 +298,7 @@ export class LicenseManager {
 				isEvaluationLicense,
 				isEvaluationLicenseExpired:
 					isEvaluationLicense && this.isEvaluationLicenseExpired(expiryDate),
+				isPermissionsLicensed: this.isFlagEnabled(licenseInfo.flags, FLAGS.X_PERMISSIONS_LICENSE),
 				daysSinceExpiry,
 			}
 			this.outputLicenseInfoIfNeeded(result)
