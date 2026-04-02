@@ -25,71 +25,27 @@ declare module '@tldraw/tlschema' {
 }
 
 // [2]
-const OCEAN_THEME: TLTheme = {
-	...DEFAULT_THEME,
-	id: 'ocean',
-	colors: {
-		light: {
-			...DEFAULT_THEME.colors.light,
-			blue: {
-				...DEFAULT_THEME.colors.light.blue,
-				solid: '#2b7ab5',
-			},
-			violet: {
-				...DEFAULT_THEME.colors.light.violet,
-				solid: '#6a5acd',
-				noteFill: '#b8a9e8',
-				noteText: '#000000',
-			},
-		},
-		dark: {
-			...DEFAULT_THEME.colors.dark,
-			blue: {
-				...DEFAULT_THEME.colors.dark.blue,
-				solid: '#3a9bd5',
-			},
-			violet: {
-				...DEFAULT_THEME.colors.dark.violet,
-				solid: '#7b6bd4',
-				noteFill: '#3a2d6e',
-				noteText: '#f2f2f2',
-			},
-		},
-	},
-}
+const OCEAN_THEME: TLTheme = structuredClone(DEFAULT_THEME)
+OCEAN_THEME.id = 'ocean'
+OCEAN_THEME.colors.light.blue.solid = '#2b7ab5'
+OCEAN_THEME.colors.light.violet.solid = '#6a5acd'
+OCEAN_THEME.colors.light.violet.noteFill = '#b8a9e8'
+OCEAN_THEME.colors.light.violet.noteText = '#000000'
+OCEAN_THEME.colors.dark.blue.solid = '#3a9bd5'
+OCEAN_THEME.colors.dark.violet.solid = '#7b6bd4'
+OCEAN_THEME.colors.dark.violet.noteFill = '#3a2d6e'
+OCEAN_THEME.colors.dark.violet.noteText = '#f2f2f2'
 
-const SUNSET_THEME: TLTheme = {
-	...DEFAULT_THEME,
-	id: 'sunset',
-	colors: {
-		light: {
-			...DEFAULT_THEME.colors.light,
-			blue: {
-				...DEFAULT_THEME.colors.light.blue,
-				solid: '#e07038',
-			},
-			violet: {
-				...DEFAULT_THEME.colors.light.violet,
-				solid: '#9b4dca',
-				noteFill: '#dab0f0',
-				noteText: '#000000',
-			},
-		},
-		dark: {
-			...DEFAULT_THEME.colors.dark,
-			blue: {
-				...DEFAULT_THEME.colors.dark.blue,
-				solid: '#f0884a',
-			},
-			violet: {
-				...DEFAULT_THEME.colors.dark.violet,
-				solid: '#b060d8',
-				noteFill: '#5c2870',
-				noteText: '#f2f2f2',
-			},
-		},
-	},
-}
+const SUNSET_THEME: TLTheme = structuredClone(DEFAULT_THEME)
+SUNSET_THEME.id = 'sunset'
+SUNSET_THEME.colors.light.blue.solid = '#e07038'
+SUNSET_THEME.colors.light.violet.solid = '#9b4dca'
+SUNSET_THEME.colors.light.violet.noteFill = '#dab0f0'
+SUNSET_THEME.colors.light.violet.noteText = '#000000'
+SUNSET_THEME.colors.dark.blue.solid = '#f0884a'
+SUNSET_THEME.colors.dark.violet.solid = '#b060d8'
+SUNSET_THEME.colors.dark.violet.noteFill = '#5c2870'
+SUNSET_THEME.colors.dark.violet.noteText = '#f2f2f2'
 
 // [3]
 const themes: Partial<TLThemes> = {
@@ -183,7 +139,7 @@ This gives you type-safe theme names throughout the API — `editor.setCurrentTh
 will autocomplete, and passing an unregistered name will be a type error.
 
 [2]
-Define theme objects by spreading `DEFAULT_THEME` and overriding just the colors
+Define theme objects by cloning `DEFAULT_THEME` and overriding just the colors
 you want to change. Each theme contains both `light` and `dark` color palettes.
 
 [3]
