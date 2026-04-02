@@ -1,4 +1,5 @@
 import { ArrowShapeUtil } from './shapes/arrow/ArrowShapeUtil'
+import { AudioShapeUtil } from './shapes/audio/AudioShapeUtil'
 import { BookmarkShapeUtil } from './shapes/bookmark/BookmarkShapeUtil'
 import { DrawShapeUtil } from './shapes/draw/DrawShapeUtil'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
@@ -25,4 +26,5 @@ export const defaultShapeUtils = [
 	EmbedShapeUtil,
 	ImageShapeUtil,
 	VideoShapeUtil,
+	AudioShapeUtil,
 ] as const

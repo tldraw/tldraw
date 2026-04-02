@@ -37,6 +37,7 @@ export { mockUniqueId, restoreUniqueId, uniqueId } from './lib/id'
 export { getFirstFromIterable } from './lib/iterable'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
 export {
+	DEFAULT_SUPPORT_AUDIO_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORTED_MEDIA_TYPE_LIST,

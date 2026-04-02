@@ -55,6 +55,7 @@ export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTr
 // eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/editor'
 export { BookmarkAssetUtil } from './lib/assets/BookmarkAssetUtil'
+export { AudioAssetUtil } from './lib/assets/AudioAssetUtil'
 export { ImageAssetUtil } from './lib/assets/ImageAssetUtil'
 export { VideoAssetUtil } from './lib/assets/VideoAssetUtil'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
@@ -153,6 +154,11 @@ export {
 	HighlightShapeUtil,
 	type HighlightShapeOptions,
 } from './lib/shapes/highlight/HighlightShapeUtil'
+export {
+	AudioShapeUtil,
+	AUDIO_WIDTH,
+	AUDIO_HEIGHT,
+} from './lib/shapes/audio/AudioShapeUtil'
 export { ImageShapeUtil } from './lib/shapes/image/ImageShapeUtil'
 export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
@@ -197,10 +203,15 @@ export {
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditablePlainText } from './lib/shapes/shared/useEditablePlainText'
 export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
+/** @deprecated Use useMediaAsset instead */
 export {
 	useImageOrVideoAsset,
 	type UseImageOrVideoAssetOptions,
 } from './lib/shapes/shared/useImageOrVideoAsset'
+export {
+	useMediaAsset,
+	type UseMediaAssetOptions,
+} from './lib/shapes/shared/useMediaAsset'
 export { PlainTextArea } from './lib/shapes/text/PlainTextArea'
 export { RichTextArea, type TextAreaProps } from './lib/shapes/text/RichTextArea'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
@@ -515,6 +526,14 @@ export {
 	StylePanelSubheading,
 	type StylePanelSubheadingProps,
 } from './lib/ui/components/StylePanel/StylePanelSubheading'
+export {
+	DefaultAudioToolbar,
+	type TLUiAudioToolbarProps,
+} from './lib/ui/components/Toolbar/DefaultAudioToolbar'
+export {
+	DefaultAudioToolbarContent,
+	type DefaultAudioToolbarContentProps,
+} from './lib/ui/components/Toolbar/DefaultAudioToolbarContent'
 export {
 	DefaultImageToolbar,
 	type TLUiImageToolbarProps,

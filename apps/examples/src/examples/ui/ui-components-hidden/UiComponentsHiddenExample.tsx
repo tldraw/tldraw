@@ -25,6 +25,7 @@ const components: Required<TLUiComponents> = {
 	RichTextToolbar: null,
 	ImageToolbar: null,
 	VideoToolbar: null,
+	AudioToolbar: null,
 	Dialogs: null,
 	Toasts: null,
 	A11y: null,

@@ -31,6 +31,11 @@
  */
 
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
+export {
+	audioAssetMigrations,
+	audioAssetProps,
+	type TLAudioAsset,
+} from './assets/TLAudioAsset'
 export { assetIdValidator, createAssetValidator, type TLBaseAsset } from './assets/TLBaseAsset'
 export {
 	bookmarkAssetMigrations,
@@ -95,6 +100,7 @@ export {
 	type TLAssetPartial,
 	type TLAssetShape,
 	type TLDefaultAsset,
+	type TLMediaAsset,
 	type TLGlobalAssetPropsMap,
 	type TLIndexedAssets,
 	type TLUnknownAsset,
@@ -213,6 +219,12 @@ export {
 	type TLArrowShapeKind,
 	type TLArrowShapeProps,
 } from './shapes/TLArrowShape'
+export {
+	audioShapeMigrations,
+	audioShapeProps,
+	type TLAudioShape,
+	type TLAudioShapeProps,
+} from './shapes/TLAudioShape'
 export {
 	createShapeValidator,
 	parentIdValidator,

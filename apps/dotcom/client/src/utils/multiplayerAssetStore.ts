@@ -68,8 +68,8 @@ export function multiplayerAssetStore(opts?: {
 				}
 			}
 
-			// We don't deal with videos at the moment.
-			if (asset.type === 'video') return asset.props.src
+			// We don't deal with videos or audio at the moment.
+			if (asset.type === 'video' || asset.type === 'audio') return asset.props.src
 
 			// Assert it's an image to make TS happy.
 			if (asset.type !== 'image') return null

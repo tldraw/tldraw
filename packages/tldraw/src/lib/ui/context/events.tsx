@@ -24,6 +24,7 @@ export type TLUiEventSource =
 	| 'rich-text-menu'
 	| 'image-toolbar'
 	| 'video-toolbar'
+	| 'audio-toolbar'
 	| 'unknown'
 
 /** @public */
@@ -132,6 +133,7 @@ export interface TLUiEventMap {
 	'drag-tool': { id: string }
 	'image-replace': null
 	'video-replace': null
+	'audio-replace': null
 	'open-kbd-shortcuts': null
 	'rich-text': {
 		operation:

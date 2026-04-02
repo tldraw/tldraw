@@ -3,6 +3,7 @@ import {
 	Editor,
 	TLAsset,
 	TLAssetId,
+	TLAudioAsset,
 	TLBookmarkAsset,
 	TLBookmarkShape,
 	TLContent,
@@ -178,6 +179,7 @@ export async function defaultHandleExternalFileReplaceContent(
 	const assetInfoPartial = (await getAssetInfo(editor, sanitizedFile, assetId)) as
 		| TLImageAsset
 		| TLVideoAsset
+		| TLAudioAsset
 		| null
 	if (!assetInfoPartial) return
 	editor.createAssets([assetInfoPartial])
@@ -232,6 +234,16 @@ export async function defaultHandleExternalFileReplaceContent(
 					assetId: assetId,
 					w: assetInfoPartial.props.w,
 					h: assetInfoPartial.props.h,
+				},
+			},
+		])
+	} else if (shape.type === 'audio') {
+		editor.updateShapes([
+			{
+				id: shape.id,
+				type: shape.type,
+				props: {
+					assetId: assetId,
 				},
 			},
 		])

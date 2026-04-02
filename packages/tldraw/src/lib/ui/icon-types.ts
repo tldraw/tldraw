@@ -113,6 +113,8 @@ export type TLUiIconType =
 	| 'minus'
 	| 'mixed'
 	| 'pack'
+	| 'pause'
+	| 'play'
 	| 'plus'
 	| 'question-mark-circle'
 	| 'question-mark'
@@ -127,6 +129,10 @@ export type TLUiIconType =
 	| 'size-large'
 	| 'size-medium'
 	| 'size-small'
+	| 'speaker-loud'
+	| 'speaker-moderate'
+	| 'speaker-off'
+	| 'speaker-quiet'
 	| 'spline-cubic'
 	| 'spline-line'
 	| 'stack-horizontal'
@@ -278,6 +284,8 @@ export const iconTypes = [
 	'minus',
 	'mixed',
 	'pack',
+	'pause',
+	'play',
 	'plus',
 	'question-mark-circle',
 	'question-mark',
@@ -292,6 +300,10 @@ export const iconTypes = [
 	'size-large',
 	'size-medium',
 	'size-small',
+	'speaker-loud',
+	'speaker-moderate',
+	'speaker-off',
+	'speaker-quiet',
 	'spline-cubic',
 	'spline-line',
 	'stack-horizontal',

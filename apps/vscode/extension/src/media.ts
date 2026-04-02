@@ -19,6 +19,20 @@ const EXTENSION_TO_DEFAULT_MIME_TYPE = {
 	webm: 'video/webm',
 	mov: 'video/quicktime',
 	qt: 'video/quicktime',
+
+	// Audio extensions
+	ogg: 'audio/ogg',
+	mp3: 'audio/mp3',
+	mpeg: 'audio/mpeg',
+	aac: 'audio/aac',
+	flac: 'audio/flac',
+	wav: 'audio/wav',
+	m4a: 'audio/x-m4a',
+
+	// These are actual file extensions, just mime types.
+	'x-mp4': 'audio/mp4',
+	'x-wav': 'audio/x-wav',
+	'x-webm': 'audio/webm',
 } as const
 
 type DefaultSupportedMimeType = (typeof DEFAULT_SUPPORTED_MEDIA_TYPES)[number]

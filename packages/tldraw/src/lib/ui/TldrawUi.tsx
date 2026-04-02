@@ -237,14 +237,21 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 
 /** @public @react */
 export function TldrawUiInFrontOfTheCanvas() {
-	const { RichTextToolbar, ImageToolbar, VideoToolbar, CursorChatBubble, FollowingIndicator } =
-		useTldrawUiComponents()
+	const {
+		RichTextToolbar,
+		ImageToolbar,
+		VideoToolbar,
+		AudioToolbar,
+		CursorChatBubble,
+		FollowingIndicator,
+	} = useTldrawUiComponents()
 
 	return (
 		<>
 			{RichTextToolbar && <RichTextToolbar />}
 			{ImageToolbar && <ImageToolbar />}
 			{VideoToolbar && <VideoToolbar />}
+			{AudioToolbar && <AudioToolbar />}
 			{FollowingIndicator && <FollowingIndicator />}
 			{CursorChatBubble && <CursorChatBubble />}
 		</>
