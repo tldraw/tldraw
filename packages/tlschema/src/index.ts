@@ -51,8 +51,8 @@ export {
 export {
 	createPresenceStateDerivation,
 	getDefaultUserPresence,
+	type CreatePresenceStateDerivationOpts,
 	type TLPresenceStateInfo,
-	type TLPresenceUserInfo,
 } from './createPresenceStateDerivation'
 export {
 	createTLSchema,
@@ -60,6 +60,7 @@ export {
 	defaultShapeSchemas,
 	type SchemaPropsInfo,
 	type TLSchema,
+	type UserSchemaInfo,
 } from './createTLSchema'
 export {
 	boxModelValidator,
@@ -174,6 +175,15 @@ export {
 	type TLUnknownShape,
 } from './records/TLShape'
 export {
+	createUserId,
+	createUserRecordType,
+	isUserId,
+	userIdValidator,
+	UserRecordType,
+	type TLUser,
+	type TLUserId,
+} from './records/TLUser'
+export {
 	type RecordProps,
 	type RecordPropsType,
 	type TLPropsMigration,
@@ -280,21 +290,18 @@ export {
 } from './shapes/TLVideoShape'
 export { EnumStyleProp, StyleProp, type StylePropValue } from './styles/StyleProp'
 export {
-	defaultColorNames,
 	DefaultColorStyle,
-	DefaultColorThemePalette,
-	DefaultLabelColorStyle,
-	getColorValue,
-	getDefaultColorTheme,
+	registerColorsFromThemes,
 	type TLDefaultColorStyle,
-	type TLDefaultColorTheme,
-	type TLDefaultColorThemeColor,
 } from './styles/TLColorStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
 export { DefaultFillStyle, type TLDefaultFillStyle } from './styles/TLFillStyle'
+export { type TLFontFace, type TLFontFaceSource } from './styles/TLFontFace'
 export {
 	DefaultFontFamilies,
 	DefaultFontStyle,
+	isFontEntry,
+	registerFontsFromThemes,
 	type TLDefaultFontStyle,
 } from './styles/TLFontStyle'
 export {
@@ -304,10 +311,23 @@ export {
 export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
 export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TLTextAlignStyle'
 export {
+	type TLDefaultColor,
+	type TLRemovedDefaultThemeColors,
+	type TLTheme,
+	type TLThemeColors,
+	type TLThemeDefaultColors,
+	type TLThemeFont,
+	type TLThemeFonts,
+	type TLThemeId,
+	type TLThemes,
+	type TLThemeUiColorKeys,
+} from './styles/TLTheme'
+export {
 	DefaultVerticalAlignStyle,
 	type TLDefaultVerticalAlignStyle,
 } from './styles/TLVerticalAlignStyle'
 export {
+	createCachedUserResolve,
 	type TLAssetContext,
 	type TLAssetStore,
 	type TLSerializedStore,
@@ -315,6 +335,7 @@ export {
 	type TLStoreProps,
 	type TLStoreSchema,
 	type TLStoreSnapshot,
+	type TLUserStore,
 } from './TLStore'
 export {
 	getDefaultTranslationLocale,

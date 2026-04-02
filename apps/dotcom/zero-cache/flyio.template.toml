@@ -25,6 +25,7 @@ cpus = 2
 [mounts]
 source = "sqlite_db"
 destination = "/data"
+initial_size = "1gb"
 
 [env]
 ZERO_REPLICA_FILE = "/data/sync-replica.db"

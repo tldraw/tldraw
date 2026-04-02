@@ -50,9 +50,16 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
+	TLTheme,
+	TLThemeId,
+	TLThemes,
+	TLUser,
+	TLUserId,
 	TLVideoAsset,
+	UserRecordType,
 	createBindingId,
 	createShapeId,
+	createUserId,
 	getShapePropKeysByStyle,
 	isPageId,
 	isShapeId,
@@ -90,7 +97,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
-import { TLUser, createTLUser } from '../config/createTLUser'
+import { TLCurrentUser, createTLCurrentUser } from '../config/createTLCurrentUser'
 import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
@@ -152,6 +159,7 @@ import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
+import { resolveThemes, ThemeManager } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import {
@@ -214,14 +222,9 @@ export interface TLEditorOptions {
 	 */
 	tools: readonly TLStateNodeConstructor[]
 	/**
-	 * Should return a containing html element which has all the styles applied to the editor. If not
-	 * given, the body element will be used.
-	 */
-	getContainer(): HTMLElement
-	/**
 	 * A user defined externally to replace the default user.
 	 */
-	user?: TLUser
+	user?: TLCurrentUser
 	/**
 	 * The editor's initial active tool (or other state node id).
 	 */
@@ -230,25 +233,13 @@ export interface TLEditorOptions {
 	 * Whether to automatically focus the editor when it mounts.
 	 */
 	autoFocus?: boolean
-	/**
-	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
-	 */
-	inferDarkMode?: boolean
-	/**
-	 * Options for the editor's camera.
-	 *
-	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
-	 */
-	cameraOptions?: Partial<TLCameraOptions>
-	options?: Partial<TldrawOptions>
-	/**
-	 * Text options for the editor.
-	 *
-	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
-	 */
-	textOptions?: TLTextOptions
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
+	/**
+	 * Should return a containing html element which has all the styles applied to the editor. If not
+	 * given, the body element will be used.
+	 */
+	getContainer(): HTMLElement
 	/**
 	 * Provides a way to hide shapes.
 	 *
@@ -268,6 +259,41 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+	/**
+	 * Named theme definitions for the editor. Each theme contains shared
+	 * properties (font size, line height, stroke width) and color palettes
+	 * for both light and dark modes.
+	 */
+	themes?: Partial<TLThemes>
+	/**
+	 * The id of the initially active theme. Defaults to `'default'`.
+	 */
+	initialTheme?: TLThemeId
+	/**
+	 * The editor's color scheme preference, controls the default color mode. Defaults to `'light'`.
+	 *
+	 * - `'light'` - Always use light mode.
+	 * - `'dark'` - Always use dark mode.
+	 * - `'system'` - Follow the OS color scheme preference.
+	 */
+	colorScheme?: 'light' | 'dark' | 'system'
+	/**
+	 * Additional configuration options for the tldraw editor.
+	 */
+	options?: Partial<TldrawOptions>
+	// --- Deprecated ----
+	/**
+	 * Options for the editor's camera.
+	 *
+	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
+	 */
+	cameraOptions?: Partial<TLCameraOptions>
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 }
 
 /**
@@ -303,13 +329,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		cameraOptions,
 		initialState,
 		autoFocus,
-		inferDarkMode,
 		options: _options,
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
+		colorScheme,
 		fontAssetUrls,
+		themes,
+		initialTheme,
 	}: TLEditorOptions) {
 		super()
 
@@ -344,19 +372,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 			...options?.camera,
 		})
 
+		this.getContainer = getContainer
+
 		this._textOptions = atom('text options', options?.text ?? null)
 
-		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
+		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), colorScheme ?? 'light')
 		this.disposables.add(() => this.user.dispose())
-
-		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
 		this.disposables.add(() => this.textMeasure.dispose())
 
-		this.fonts = new FontManager(this, fontAssetUrls)
+		this._themeManager = new ThemeManager(this, {
+			themes: resolveThemes(themes),
+			initial: initialTheme ?? 'default',
+		})
+		this.disposables.add(() => this._themeManager.dispose())
 
 		this._tickManager = new TickManager(this)
+		this.disposables.add(() => this._tickManager.dispose())
+		this.disposables.add(() => {
+			// Reset camera state to 'idle' so the store isn't left stuck at 'moving'
+			// when tick events stop (e.g. React strict mode disposes while camera is moving)
+			this.off('tick', this._decayCameraStateTimeout)
+			this._setCameraState('idle')
+		})
+
+		this.fonts = new FontManager(this, fontAssetUrls)
 
 		this.inputs = new InputsManager(this)
 
@@ -820,6 +861,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 				})
 			)
 		}
+
+		this.disposables.add(
+			react('sync current user record', () => {
+				const user = this.store.props.users.currentUser.get()
+				if (user) {
+					this._ensureUserRecord(user)
+				}
+			})
+		)
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
@@ -929,6 +979,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly snaps: SnapManager
 
+	/**
+	 * A manager for the spatial index, tracking where shapes exist on the canvas.
+	 *
+	 * @internal
+	 */
 	private readonly _spatialIndex: SpatialIndexManager
 
 	/**
@@ -945,6 +1000,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly user: UserPreferencesManager
+
+	/**
+	 * A manager for the editor's themes.
+	 *
+	 * @internal
+	 */
+	private readonly _themeManager: ThemeManager
 
 	/**
 	 * A helper for measuring text.
@@ -1031,6 +1093,116 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.dispose()
 		this.isDisposed = true
 		this.emit('dispose')
+	}
+
+	/* ------------------ Themes (shadowing the theme manager) ------------------ */
+
+	/**
+	 * Get the current color mode (`'light'` or `'dark'`), based on the user's dark mode preference.
+	 *
+	 * @public
+	 */
+	getColorMode(): 'light' | 'dark' {
+		return this._themeManager.getColorMode()
+	}
+
+	/**
+	 * Set the color mode. Note that this is a convenience method that passes the mode to
+	 * `user.updateUserPreferences`, which is the source of truth for the user's color mode preference.
+	 *
+	 * @public
+	 */
+	setColorMode(mode: 'light' | 'dark') {
+		this.user.updateUserPreferences({ colorScheme: mode })
+		return this
+	}
+
+	/**
+	 * Get the id of the current theme.
+	 *
+	 * @public
+	 */
+	getCurrentThemeId(): TLThemeId {
+		return this._themeManager.getCurrentThemeId()
+	}
+
+	/**
+	 * Get the current theme definition.
+	 *
+	 * @public
+	 */
+	getCurrentTheme(): TLTheme {
+		return this._themeManager.getCurrentTheme()
+	}
+
+	/**
+	 * Set the current theme by id.
+	 *
+	 * @public
+	 */
+	setCurrentTheme(id: TLThemeId) {
+		this._themeManager.setCurrentTheme(id)
+		return this
+	}
+
+	/**
+	 * Get all registered theme definitions.
+	 *
+	 * @public
+	 */
+	getThemes(): TLThemes {
+		return this._themeManager.getThemes()
+	}
+
+	/**
+	 * Get a single theme definition by id.
+	 *
+	 * @public
+	 */
+	getTheme(id: TLThemeId): TLTheme | undefined {
+		return this._themeManager.getTheme(id)
+	}
+
+	/**
+	 * Replace all theme definitions, or update them via a callback that receives a deep copy.
+	 * The `'default'` theme must always be present in the result.
+	 *
+	 * @example
+	 * ```ts
+	 * // Replace all themes
+	 * editor.updateThemes({ default: myDefaultTheme, ocean: myOceanTheme })
+	 *
+	 * // Update via callback
+	 * editor.updateThemes((themes) => {
+	 *   delete themes.ocean
+	 *   return themes
+	 * })
+	 * ```
+	 *
+	 * @public
+	 */
+	updateThemes(themes: TLThemes | ((themes: TLThemes) => TLThemes)) {
+		this._themeManager.updateThemes(themes)
+		return this
+	}
+
+	/**
+	 * Register or update a single theme definition. The theme is keyed by its `id` property.
+	 *
+	 * @example
+	 * ```ts
+	 * // Override a property on the default theme
+	 * editor.updateTheme({ ...editor.getTheme('default')!, fontSize: 24 })
+	 *
+	 * // Register a new theme
+	 * editor.updateTheme({ id: 'ocean', ...myOceanTheme })
+	 * ```
+	 *
+	 * @public
+	 */
+	updateTheme(theme: TLTheme) {
+		this._themeManager.updateTheme(theme)
+		return this
 	}
 
 	/* ------------------- Shape Utils ------------------ */
@@ -3970,6 +4142,94 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getCollaboratorsOnCurrentPage() {
 		const currentPageId = this.getCurrentPageId()
 		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
+	}
+
+	// Attribution
+
+	/**
+	 * Get the current user's ID for attribution purposes.
+	 * Also ensures a `user:` record exists in the store for the current user.
+	 * Returns `null` when the user store has no current user.
+	 *
+	 * @public
+	 */
+	getAttributionUserId(): string | null {
+		const user = this.store.props.users.currentUser.get()
+		if (!user) return null
+		this._ensureUserRecord(user)
+		return UserRecordType.parseId(user.id)
+	}
+
+	/**
+	 * Ensure a user record exists in the store for the given user,
+	 * updating it if the data has changed.
+	 *
+	 * @internal
+	 */
+	_ensureUserRecord(user: TLUser): void {
+		const existing = this.store.get(user.id)
+		if (
+			existing &&
+			existing.name === user.name &&
+			existing.color === user.color &&
+			existing.imageUrl === user.imageUrl &&
+			existing.meta === user.meta
+		) {
+			return
+		}
+		this.run(
+			() => {
+				this.store.put([user])
+			},
+			{ history: 'ignore' }
+		)
+	}
+
+	/**
+	 * Resolve a display name for a user ID. Asks the
+	 * {@link @tldraw/tlschema#TLUserStore} first (the app's source of truth),
+	 * falling back to the `user:` record in the store.
+	 *
+	 * @public
+	 */
+	getAttributionDisplayName(userId: string | null): string | null {
+		if (!userId) return null
+		return (
+			this.store.props.users.resolve(userId).get()?.name ??
+			this.store.get(createUserId(userId))?.name ??
+			null
+		)
+	}
+
+	/**
+	 * Resolve a user record by ID. Asks the
+	 * {@link @tldraw/tlschema#TLUserStore} first (the app's source of truth),
+	 * falling back to the `user:` record in the store.
+	 *
+	 * @public
+	 */
+	getAttributionUser(userId: string | null): TLUser | null {
+		if (!userId) return null
+		return (
+			this.store.props.users.resolve(userId).get() ?? this.store.get(createUserId(userId)) ?? null
+		)
+	}
+
+	/**
+	 * Collect user IDs referenced by a set of shapes via shape-specific props
+	 * (e.g. `textFirstEditedBy` on notes).
+	 *
+	 * @internal
+	 */
+	_getReferencedUserIds(shapes: TLShape[]): Set<string> {
+		const userIds = new Set<string>()
+		for (const shape of shapes) {
+			const util = this.getShapeUtil(shape)
+			for (const id of util.getReferencedUserIds(shape)) {
+				userIds.add(id)
+			}
+		}
+		return userIds
 	}
 
 	// Following
@@ -9157,12 +9417,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 				assets.push(asset)
 			}
 
+			const users: TLUser[] = []
+			const seenUserIds = new Set<TLUserId>()
+			for (const userId of this._getReferencedUserIds(shapes)) {
+				const recordId = createUserId(userId)
+				if (seenUserIds.has(recordId)) continue
+				seenUserIds.add(recordId)
+				const user = this.store.get(recordId)
+				if (user) users.push(user)
+			}
+
 			return {
 				schema: this.store.schema.serialize(),
 				shapes,
 				rootShapeIds,
 				bindings,
 				assets,
+				users,
 			}
 		})
 	}
@@ -9238,6 +9509,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const assets: TLAsset[] = []
 		const shapes: TLShape[] = []
 		const bindings: TLBinding[] = []
+		const users: TLUser[] = []
 
 		// Let's treat the content as a store, and then migrate that store.
 		const store: StoreSnapshot<TLRecord> = {
@@ -9247,6 +9519,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				...Object.fromEntries(
 					content.bindings?.map((bindings) => [bindings.id, bindings] as const) ?? []
 				),
+				...Object.fromEntries(content.users?.map((user) => [user.id, user] as const) ?? []),
 			},
 			schema: content.schema,
 		}
@@ -9268,6 +9541,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 					bindings.push(record)
 					break
 				}
+				case 'user': {
+					users.push(record)
+					break
+				}
+			}
+		}
+
+		if (users.length > 0) {
+			const existingUserIds = new Set(
+				this.store
+					.allRecords()
+					.filter((r): r is TLUser => r.typeName === 'user')
+					.map((r) => r.id)
+			)
+			const usersToCreate = users.filter((u) => !existingUserIds.has(u.id))
+			if (usersToCreate.length > 0) {
+				this.store.put(usersToCreate)
 			}
 		}
 

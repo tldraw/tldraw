@@ -1,7 +1,7 @@
 {
 	"name": "tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "4.5.3",
+	"version": "4.5.6",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -46,7 +46,7 @@
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "cd ../.. && yarn run -T oxlint packages/tldraw"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"files": [
 		"tldraw.css"
@@ -63,7 +63,7 @@
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"classnames": "^2.5.1",
-		"hotkeys-js": "^3.13.9",
+		"hotkeys-js": "^4.0.2",
 		"idb": "^7.1.1",
 		"lz-string": "^1.5.0",
 		"radix-ui": "^1.4.2"

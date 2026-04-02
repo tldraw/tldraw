@@ -33,12 +33,12 @@ import { EmbedDefinition } from './defaultEmbedDefinitions'
 import { createBookmarkFromUrl } from './shapes/bookmark/bookmarks'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
-import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
+import { FONT_SIZES, TEXT_PROPS, getFontFamily } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
-import { renderRichTextFromHTML } from './utils/text/richText'
+import { renderHtmlFromRichTextForMeasurement, renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
 /**
@@ -499,10 +499,8 @@ export async function defaultHandleExternalTextContent(
 	let autoSize: boolean
 	let align = 'middle' as TLTextShapeProps['textAlign']
 
-	const htmlToMeasure = html ?? cleanedUpPlaintext.replace(/\n/g, '<br>')
-	const isMultiLine = html
-		? richTextToPaste.content.length > 1
-		: cleanedUpPlaintext.split('\n').length > 1
+	const htmlToMeasure = renderHtmlFromRichTextForMeasurement(editor, richTextToPaste)
+	const isMultiLine = richTextToPaste.content.length > 1
 
 	// check whether the text contains the most common characters in RTL languages
 	const isRtl = isRightToLeftLanguage(cleanedUpPlaintext)
@@ -511,10 +509,13 @@ export async function defaultHandleExternalTextContent(
 		align = isMultiLine ? (isRtl ? 'end' : 'start') : 'middle'
 	}
 
+	const theme = editor.getCurrentTheme()
+
 	const rawSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[defaultProps.font],
-		fontSize: FONT_SIZES[defaultProps.size],
+		lineHeight: theme.lineHeight,
+		fontFamily: getFontFamily(theme, defaultProps.font),
+		fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
 		maxWidth: null,
 	})
 
@@ -526,8 +527,9 @@ export async function defaultHandleExternalTextContent(
 	if (rawSize.w > minWidth) {
 		const shrunkSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[defaultProps.font],
-			fontSize: FONT_SIZES[defaultProps.size],
+			lineHeight: theme.lineHeight,
+			fontFamily: getFontFamily(theme, defaultProps.font),
+			fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
 			maxWidth: minWidth,
 		})
 		w = shrunkSize.w

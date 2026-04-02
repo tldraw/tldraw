@@ -1958,6 +1958,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@dimforge/rapier2d-compat@npm:^0.19.3":
+  version: 0.19.3
+  resolution: "@dimforge/rapier2d-compat@npm:0.19.3"
+  checksum: 10/a67fef205d145942edff166548e46b68e863de495e77d8479d4ec4e83c2f350aededd5db06836f5516373b8c16b7027eb6cd66167b56ae995d5a4f27b57b1fd3
+  languageName: node
+  linkType: hard
+
 "@dotenvx/dotenvx@npm:^1.39.0":
   version: 1.39.0
   resolution: "@dotenvx/dotenvx@npm:1.39.0"
@@ -8665,9 +8672,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:0.26.1":
-  version: 0.26.1
-  resolution: "@rocicorp/zero@npm:0.26.1"
+"@rocicorp/zero@npm:1.0.0":
+  version: 1.0.0
+  resolution: "@rocicorp/zero@npm:1.0.0"
   dependencies:
     "@badrap/valita": "npm:0.3.11"
     "@databases/escape-identifier": "npm:^1.0.3"
@@ -8713,7 +8720,7 @@ __metadata:
     parse-prometheus-text-format: "npm:^1.1.1"
     pg-format: "npm:pg-format-fix@^1.0.5"
     postgres: "npm:3.4.7"
-    prettier: "npm:^3.5.3"
+    prettier: "npm:^3.8.1"
     semver: "npm:^7.5.4"
     tsx: "npm:^4.21.0"
     url-pattern: "npm:^1.0.3"
@@ -8736,7 +8743,7 @@ __metadata:
     zero-cache-dev: out/zero/src/zero-cache-dev.js
     zero-deploy-permissions: out/zero/src/deploy-permissions.js
     zero-out: out/zero/src/zero-out.js
-  checksum: 10/87d8ca786518867d26cb8afd46c0a8390cf86e42bdb008c0883f3dfdf39be717240fa5d453d05bc589c6471342906189bc3d04e6d809a714cd7f4def4afa102c
+  checksum: 10/1443dfa77642010faab6f67353d3773a2408eaa1dc08889af5b391aa288af059a2d1fae43e29a7ac504a91c246a562d669a6d4deffd1a1074bb85f06637583c6
   languageName: node
   linkType: hard
 
@@ -11106,7 +11113,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
-    "@rocicorp/zero": "npm:0.26.1"
+    "@rocicorp/zero": "npm:1.0.0"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -11130,7 +11137,7 @@ __metadata:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20260302.0"
     "@pierre/storage": "npm:^1.1.0"
-    "@rocicorp/zero": "npm:0.26.1"
+    "@rocicorp/zero": "npm:1.0.0"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
@@ -11191,7 +11198,6 @@ __metadata:
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@types/wicg-file-system-access": "npm:^2020.9.8"
-    "@use-gesture/react": "npm:^10.3.1"
     benchmark: "npm:^2.1.4"
     classnames: "npm:^2.5.1"
     eventemitter3: "npm:^4.0.7"
@@ -11576,7 +11582,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:0.26.1"
+    "@rocicorp/zero": "npm:1.0.0"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     esbuild: "npm:^0.27.4"
@@ -12618,6 +12624,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/regexgen@npm:^1":
+  version: 1.3.3
+  resolution: "@types/regexgen@npm:1.3.3"
+  checksum: 10/aa95eeb89adc724edc9babf5d2b68d512ae09f1c8fb633997ae03fedfc09c30a5ea00a4bba3919a5e3f1ba02ec379e2e1ca3e147d99d05f38858ff477cb87855
+  languageName: node
+  linkType: hard
+
 "@types/retry@npm:*":
   version: 0.12.5
   resolution: "@types/retry@npm:0.12.5"
@@ -12893,24 +12906,6 @@ __metadata:
   version: 1.2.0
   resolution: "@ungap/structured-clone@npm:1.2.0"
   checksum: 10/c6fe89a505e513a7592e1438280db1c075764793a2397877ff1351721fe8792a966a5359769e30242b3cd023f2efb9e63ca2ca88019d73b564488cc20e3eab12
-  languageName: node
-  linkType: hard
-
-"@use-gesture/core@npm:10.3.1":
-  version: 10.3.1
-  resolution: "@use-gesture/core@npm:10.3.1"
-  checksum: 10/66c5bda4cf75927e0d1f9cb1b1a0a06d9812f918dfd634b768b6011385ce7b295ca89e0b016f4fe7a6d97d571726653b75c4271fd7f635bb8c159bf7886ce21c
-  languageName: node
-  linkType: hard
-
-"@use-gesture/react@npm:^10.3.1":
-  version: 10.3.1
-  resolution: "@use-gesture/react@npm:10.3.1"
-  dependencies:
-    "@use-gesture/core": "npm:10.3.1"
-  peerDependencies:
-    react: ">= 16.8.0"
-  checksum: 10/2c01c1b73bbdeecb9d51370f9117418953accad6789818e1b50f505dcba9e38685612b3fcb25a5dfcbf3a10ae561506378f5ab7586c773c4485ef86107d53898
   languageName: node
   linkType: hard
 
@@ -17083,7 +17078,7 @@ __metadata:
     "@formatjs/cli": "npm:^6.5.1"
     "@formatjs/unplugin": "npm:^1.1.0"
     "@playwright/test": "npm:^1.58.2"
-    "@rocicorp/zero": "npm:0.26.1"
+    "@rocicorp/zero": "npm:1.0.0"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
@@ -17100,6 +17095,7 @@ __metadata:
     "@types/qrcode": "npm:^1.5.5"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
+    "@types/regexgen": "npm:^1"
     "@vitejs/plugin-react": "npm:^6.0.1"
     axe-core: "npm:^4.10.3"
     browser-fs-access: "npm:^0.35.0"
@@ -17124,6 +17120,7 @@ __metadata:
     react-intl: "npm:^8.1.3"
     react-markdown: "npm:^10.1.0"
     react-router-dom: "npm:^6.28.2"
+    regexgen: "npm:^1.3.0"
     tldraw: "workspace:*"
     vite: "npm:^8.0.1"
     vitest: "npm:^3.2.4"
@@ -18300,6 +18297,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
+    "@dimforge/rapier2d-compat": "npm:^0.19.3"
     "@playwright/test": "npm:^1.58.2"
     "@tiptap/core": "npm:^3.12.1"
     "@tiptap/extension-font-family": "npm:^3.12.1"
@@ -19905,10 +19903,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hotkeys-js@npm:^3.13.9":
-  version: 3.13.9
-  resolution: "hotkeys-js@npm:3.13.9"
-  checksum: 10/452bf1763276bca14fad0d61c9374896f69606998dcef685c68729486cc19a59090d7902785e78e75bbf002025f6e3c7ef18dd1c10b9c5bec6b930b2e0b6e4d2
+"hotkeys-js@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "hotkeys-js@npm:4.0.2"
+  checksum: 10/76fdcff36899d3bf7abc5d9431fa5d404daccd81159eb8efd112480f403ca328ec471c636893150072228d60683b893450784454624af6fb77b1f0da7b4f377b
   languageName: node
   linkType: hard
 
@@ -21127,6 +21125,15 @@ __metadata:
     canvas:
       optional: true
   checksum: 10/e6bf7250ddd2fbcf68da0ea041a0dc63545dc4bf77fa3ff40a46ae45b1dac1ca55b87574ab904d1f8baeeb547c52cec493a22f545d7d413b320011f41150ec49
+  languageName: node
+  linkType: hard
+
+"jsesc@npm:^2.3.0":
+  version: 2.5.2
+  resolution: "jsesc@npm:2.5.2"
+  bin:
+    jsesc: bin/jsesc
+  checksum: 10/d2096abdcdec56969764b40ffc91d4a23408aa2f351b4d1c13f736f25476643238c43fdbaf38a191c26b1b78fd856d965f5d4d0dde7b89459cd94025190cdf13
   languageName: node
   linkType: hard
 
@@ -25500,12 +25507,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.2.5, prettier@npm:^3.5.3":
-  version: 3.6.2
-  resolution: "prettier@npm:3.6.2"
+"prettier@npm:^3.2.5, prettier@npm:^3.8.1":
+  version: 3.8.1
+  resolution: "prettier@npm:3.8.1"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 10/1213691706bcef1371d16ef72773c8111106c3533b660b1cc8ec158bd109cdf1462804125f87f981f23c4a3dba053b6efafda30ab0114cc5b4a725606bb9ff26
+  checksum: 10/3da1cf8c1ef9bea828aa618553696c312e951f810bee368f6887109b203f18ee869fe88f66e65f9cf60b7cb1f2eae859892c860a300c062ff8ec69c381fc8dbd
   languageName: node
   linkType: hard
 
@@ -26585,6 +26592,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"regenerate@npm:^1.3.2":
+  version: 1.4.2
+  resolution: "regenerate@npm:1.4.2"
+  checksum: 10/dc6c95ae4b3ba6adbd7687cafac260eee4640318c7a95239d5ce847d9b9263979758389e862fe9c93d633b5792ea4ada5708df75885dc5aa05a309fa18140a87
+  languageName: node
+  linkType: hard
+
 "regex-recursion@npm:^5.1.1":
   version: 5.1.1
   resolution: "regex-recursion@npm:5.1.1"
@@ -26608,6 +26622,18 @@ __metadata:
   dependencies:
     regex-utilities: "npm:^2.3.0"
   checksum: 10/956d0f34afa8086551dc9a0e2c575cb6d7ed5122d6d440a72cfbcd1f9adb5a3dcce4dcb61ec69eaecfcbc508cfd25075ac60d011bab5f28f1b2a36220e09a245
+  languageName: node
+  linkType: hard
+
+"regexgen@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "regexgen@npm:1.3.0"
+  dependencies:
+    jsesc: "npm:^2.3.0"
+    regenerate: "npm:^1.3.2"
+  bin:
+    regexgen: bin/cli.js
+  checksum: 10/b23d4b743e8f7312db4622e3384b86dc0fac3a2dcc1f4a4daa70b678b4ee817e9a5cf22d2634576aca213306525b44ef23678d0b1d44cc42f95acdacc44b3c5e
   languageName: node
   linkType: hard
 
@@ -29303,7 +29329,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.5.1"
-    hotkeys-js: "npm:^3.13.9"
+    hotkeys-js: "npm:^4.0.2"
     idb: "npm:^7.1.1"
     lazyrepo: "npm:0.0.0-alpha.27"
     lz-string: "npm:^1.5.0"
