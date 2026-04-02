@@ -11,7 +11,6 @@ function PerfPanel() {
 	useEffect(() => {
 		// [2]
 		const unsub = editor.performance.on('interaction:end', (event) => {
-			console.log('interaction:end', event)
 			setLastEvent(event)
 		})
 		return unsub
