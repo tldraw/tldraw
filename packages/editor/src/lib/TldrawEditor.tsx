@@ -378,6 +378,7 @@ function TldrawEditorWithOwnStore(
 		assets,
 		users,
 		migrations,
+		themes,
 	} = props
 
 	const syncedStore = useLocalStore({
@@ -391,6 +392,7 @@ function TldrawEditorWithOwnStore(
 		assets,
 		users,
 		migrations,
+		themes,
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />
