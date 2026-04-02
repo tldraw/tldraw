@@ -10,8 +10,8 @@
  */
 
 interface PendingEntry {
-	resolve: (value: unknown) => void
-	reject: (reason: Error) => void
+	resolve(value: unknown): void
+	reject(reason: Error): void
 	timer: ReturnType<typeof setTimeout>
 }
 

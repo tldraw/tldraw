@@ -85,7 +85,7 @@ export class TldrawMCP extends McpAgent<Env> {
 	pendingRequests = new PendingRequests()
 
 	/** The MCP session ID used for DO routing (extracted from DO name). */
-	get mcpSessionId(): string {
+	getMcpSessionId(): string {
 		return (this as any).name?.replace(/^streamable-http:/, '') ?? ''
 	}
 
@@ -150,7 +150,7 @@ export class TldrawMCP extends McpAgent<Env> {
 				void this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
 			},
 			getSessionId: () => this.sessionId,
-			getMcpSessionId: () => this.mcpSessionId,
+			getMcpSessionId: () => this.getMcpSessionId(),
 			loadWidgetHtml: async () => widgetHtml,
 		}
 

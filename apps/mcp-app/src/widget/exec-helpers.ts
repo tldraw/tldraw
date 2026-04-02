@@ -21,18 +21,18 @@ function ensureTldrawShapeId(id: string): TLShapeId {
 	return ('shape:' + id) as TLShapeId
 }
 
-/**
- * Create an arrow shape that connects two existing shapes by their IDs.
- *
- * @param fromId - The shape ID to connect the arrow start to
- * @param toId - The shape ID to connect the arrow end to
- * @param opts - Optional arrow properties: bend (-1 to 1) and text label
- *
- * @example
- * createArrowBetweenShapes('box1', 'box2')
- * createArrowBetweenShapes('box1', 'box2', { text: 'next', bend: 0.5 })
- */
 function createArrowBetweenShapesFn(editor: Editor) {
+	/**
+	 * Create an arrow shape that connects two existing shapes by their IDs.
+	 *
+	 * @param fromId - The shape ID to connect the arrow start to.
+	 * @param toId - The shape ID to connect the arrow end to.
+	 * @param opts - Optional arrow properties: bend (-1 to 1) and text label.
+	 *
+	 * @example
+	 * createArrowBetweenShapes('box1', 'box2')
+	 * createArrowBetweenShapes('box1', 'box2', { text: 'next', bend: 0.5 })
+	 */
 	return (fromId: string, toId: string, opts?: { bend?: number; text?: string }) => {
 		const arrowId = createShapeId()
 		const resolvedFromId = ensureTldrawShapeId(fromId)
@@ -77,16 +77,16 @@ function createArrowBetweenShapesFn(editor: Editor) {
 
 const BOX_SHAPES_MARGIN = 40
 
-/**
- * Create a rectangle shape around a group of existing shapes with a margin.
- *
- * @param shapesOrIds - Array of shape IDs or shape objects to box around
- * @param opts - Optional properties: shapeId, color, fill, text, note
- *
- * @example
- * boxShapes(['box1', 'box2'], { text: 'Group A', color: 'blue' })
- */
 function boxShapesFn(editor: Editor) {
+	/**
+	 * Create a rectangle shape around a group of existing shapes with a margin.
+	 *
+	 * @param shapesOrIds - Array of shape IDs or shape objects to box around.
+	 * @param opts - Optional properties: shapeId, color, fill, text, note.
+	 *
+	 * @example
+	 * boxShapes(['box1', 'box2'], { text: 'Group A', color: 'blue' })
+	 */
 	return (
 		shapesOrIds: (string | { shapeId: string })[],
 		opts?: { shapeId?: string; color?: string; fill?: string; text?: string; note?: string }
