@@ -1,7 +1,5 @@
 import {
 	AssetRecordType,
-	DEFAULT_SUPPORTED_IMAGE_TYPES,
-	DEFAULT_SUPPORT_VIDEO_TYPES,
 	Editor,
 	TLAsset,
 	TLAssetId,
@@ -63,13 +61,17 @@ export interface TLExternalContentProps {
 	 */
 	maxAssetSize?: number
 	/**
-	 * The mime types of images that are allowed to be handled. Defaults to
-	 * DEFAULT_SUPPORTED_IMAGE_TYPES.
+	 * The mime types of images that are allowed to be handled. When using the
+	 * `Tldraw` component, defaults to `DEFAULT_SUPPORTED_IMAGE_TYPES`. If neither
+	 * this nor `acceptedVideoMimeTypes` is provided, the registered asset utils
+	 * determine which MIME types are allowed.
 	 */
 	acceptedImageMimeTypes?: readonly string[]
 	/**
-	 * The mime types of videos that are allowed to be handled. Defaults to
-	 * DEFAULT_SUPPORT_VIDEO_TYPES.
+	 * The mime types of videos that are allowed to be handled. When using the
+	 * `Tldraw` component, defaults to `DEFAULT_SUPPORT_VIDEO_TYPES`. If neither
+	 * this nor `acceptedImageMimeTypes` is provided, the registered asset utils
+	 * determine which MIME types are allowed.
 	 */
 	acceptedVideoMimeTypes?: readonly string[]
 }
@@ -822,11 +824,10 @@ export function notifyIfFileNotAllowed(
 		msg,
 	} = options
 
-	// If explicit MIME type lists are provided, use them; otherwise check asset utils
 	const isFileTypeAllowed =
 		acceptedImageMimeTypes || acceptedVideoMimeTypes
-			? (acceptedImageMimeTypes ?? DEFAULT_SUPPORTED_IMAGE_TYPES).includes(file.type) ||
-				(acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES).includes(file.type)
+			? (acceptedImageMimeTypes ?? []).includes(file.type) ||
+				(acceptedVideoMimeTypes ?? []).includes(file.type)
 			: !!editor.getAssetUtilForMimeType(file.type)
 	if (!isFileTypeAllowed) {
 		toasts.addToast({
