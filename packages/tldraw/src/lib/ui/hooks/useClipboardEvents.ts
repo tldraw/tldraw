@@ -3,7 +3,6 @@ import {
 	FileHelpers,
 	TLClipboardWriteInfo,
 	TLExternalContentSource,
-	Vec,
 	VecLike,
 	activeElementShouldCaptureKeys,
 	assert,
