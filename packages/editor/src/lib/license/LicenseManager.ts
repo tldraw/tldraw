@@ -23,7 +23,7 @@ export const FLAGS = {
 	// Native means the license is for native apps which switches
 	// on special-case logic.
 	NATIVE_LICENSE: 1 << 5,
-	// Enables the @tldraw-x/permissions package.
+	// Enables the permissions add-on.
 	X_PERMISSIONS_LICENSE: 1 << 6,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
