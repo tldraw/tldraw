@@ -1,0 +1,113 @@
+import { useCallback, useEffect, useState } from 'react'
+import { TLInteractionEndPerfEvent, Tldraw, useEditor } from 'tldraw'
+import 'tldraw/tldraw.css'
+import './performance-hooks.css'
+
+// [1]
+function PerfPanel() {
+	const editor = useEditor()
+	const [lastEvent, setLastEvent] = useState<TLInteractionEndPerfEvent | null>(null)
+
+	useEffect(() => {
+		// [2]
+		const unsub = editor.performance.on('interaction:end', (event) => {
+			setLastEvent(event)
+		})
+		return unsub
+	}, [editor])
+
+	if (!lastEvent) {
+		return (
+			<div className="perf-panel">
+				<div className="perf-hint">Drag or resize a shape to see performance stats</div>
+			</div>
+		)
+	}
+
+	const { name, frameTimeStats, fps, frameCount, shapeCount, duration } = lastEvent
+
+	return (
+		<div className="perf-panel">
+			<div className="perf-section">
+				<div className="perf-section-title">Last interaction</div>
+				<div className="perf-row">
+					<span className="perf-label">State</span>
+					<span>{name}</span>
+				</div>
+				<div className="perf-row">
+					<span className="perf-label">Duration</span>
+					<span className="perf-value">{duration.toFixed(0)}ms</span>
+				</div>
+				<div className="perf-row">
+					<span className="perf-label">FPS</span>
+					<span className="perf-value">{fps.toFixed(1)}</span>
+				</div>
+				<div className="perf-row">
+					<span className="perf-label">Frames</span>
+					<span className="perf-value">{frameCount}</span>
+				</div>
+			</div>
+			<div className="perf-section">
+				<div className="perf-section-title">Frame times</div>
+				<div className="perf-row">
+					<span className="perf-label">Avg</span>
+					<span className="perf-value">{frameTimeStats.avg.toFixed(1)}ms</span>
+				</div>
+				<div className="perf-row">
+					<span className="perf-label">Median</span>
+					<span className="perf-value">{frameTimeStats.median.toFixed(1)}ms</span>
+				</div>
+				<div className="perf-row">
+					<span className="perf-label">p95</span>
+					<span className="perf-value">{frameTimeStats.p95.toFixed(1)}ms</span>
+				</div>
+				<div className="perf-row">
+					<span className="perf-label">p99</span>
+					<span className="perf-value">{frameTimeStats.p99.toFixed(1)}ms</span>
+				</div>
+			</div>
+			<div className="perf-section">
+				<div className="perf-section-title">Context</div>
+				<div className="perf-row">
+					<span className="perf-label">Shapes</span>
+					<span className="perf-value">{shapeCount}</span>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+// [3]
+export default function PerformanceHooksExample() {
+	const handleMount = useCallback((editor: any) => {
+		editor.createShapes([
+			{ type: 'geo', x: 100, y: 100, props: { w: 200, h: 200, fill: 'solid' } },
+			{ type: 'geo', x: 400, y: 100, props: { w: 150, h: 150, geo: 'ellipse', fill: 'solid' } },
+			{ type: 'geo', x: 200, y: 350, props: { w: 250, h: 100, geo: 'diamond', fill: 'solid' } },
+		])
+	}, [])
+
+	return (
+		<div className="tldraw__editor">
+			<Tldraw onMount={handleMount} components={{ InFrontOfTheCanvas: PerfPanel }} />
+		</div>
+	)
+}
+
+/*
+[1]
+The PerfPanel component subscribes to `editor.performance` events
+and displays frame time statistics for the most recent interaction.
+It's placed in the InFrontOfTheCanvas slot, positioned in the bottom-right corner.
+
+[2]
+`editor.performance.on('interaction:end', fn)` returns an unsubscribe
+function, which we call on cleanup. The event fires when any interaction
+completes (translate, resize, rotate, draw, etc.) and includes frame
+time distribution stats (avg, median, p95, p99) plus context like
+shape count and interaction name.
+
+[3]
+We create some shapes on mount so there's something to interact with.
+Select a shape and resize or drag it to see the performance panel update.
+*/

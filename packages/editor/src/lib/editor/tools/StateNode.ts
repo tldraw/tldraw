@@ -195,6 +195,10 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 			this.performanceTracker.start(this.id)
 		}
 
+		if (this.type === 'leaf') {
+			this.editor.performance._notifyInteractionStart(this.id, this.getPath())
+		}
+
 		this._isActive.set(true)
 		this.onEnter?.(info, from)
 
@@ -210,6 +214,11 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		if (debugFlags.measurePerformance.get() && this.performanceTracker.isStarted()) {
 			this.performanceTracker.stop()
 		}
+
+		if (this.type === 'leaf') {
+			this.editor.performance._notifyInteractionEnd()
+		}
+
 		this._isActive.set(false)
 		this.onExit?.(info, to)
 
