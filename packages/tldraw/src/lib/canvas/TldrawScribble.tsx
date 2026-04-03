@@ -1,38 +1,101 @@
-import { EASINGS, TLScribbleProps, getSvgPathFromPoints, getStroke } from '@tldraw/editor'
+import {
+	EASINGS,
+	TLScribbleProps,
+	getSvgPathFromPoints,
+	useEditor,
+	useTransform,
+} from '@tldraw/editor'
 import classNames from 'classnames'
+import { useLayoutEffect, useRef } from 'react'
+import { getStroke } from '../shapes/shared/freehand/getStroke'
+
+function getComputedStyle(element: Element) {
+	return element.ownerDocument.defaultView!.getComputedStyle(element)
+}
 
 /** @public @react */
 export function TldrawScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps) {
-	if (!scribble.points.length) return null
+	const editor = useEditor()
+	const rCanvas = useRef<HTMLCanvasElement>(null)
 
-	const stroke = getStroke(scribble.points, {
-		size: scribble.size / zoom,
-		start: { taper: scribble.taper, easing: EASINGS.linear },
-		last: scribble.state === 'complete' || scribble.state === 'stopping',
-		simulatePressure: false,
-		streamline: 0.32,
-	})
-
-	let d: string
-
-	if (stroke.length < 4) {
-		// the stroke will be 3 points as a sort of shrugging fail state, so let's draw a dot instead
-		const r = scribble.size / zoom / 2
-		const { x, y } = scribble.points[scribble.points.length - 1]
-		d = `M ${x - r},${y} a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 ${-r * 2},0`
-	} else {
-		// If we do have a stroke, then draw the stroke path
-		d = getSvgPathFromPoints(stroke)
+	// Compute bounding box of scribble points
+	const points = scribble.points
+	let minX = Infinity,
+		minY = Infinity,
+		maxX = -Infinity,
+		maxY = -Infinity
+	for (const p of points) {
+		if (p.x < minX) minX = p.x
+		if (p.y < minY) minY = p.y
+		if (p.x > maxX) maxX = p.x
+		if (p.y > maxY) maxY = p.y
 	}
 
-	return (
-		<svg className={className ? classNames('tl-overlays__item', className) : className}>
-			<path
-				className="tl-scribble"
-				d={d}
-				fill={color ?? `var(--tl-color-${scribble.color})`}
-				opacity={opacity ?? scribble.opacity}
-			/>
-		</svg>
-	)
+	// Add padding for stroke width
+	const padding = (scribble.size / zoom) * 2
+	minX -= padding
+	minY -= padding
+	maxX += padding
+	maxY += padding
+
+	const bboxW = Math.max(1, maxX - minX)
+	const bboxH = Math.max(1, maxY - minY)
+
+	useTransform(rCanvas, minX, minY)
+
+	useLayoutEffect(() => {
+		const canvas = rCanvas.current
+		if (!canvas) return
+		if (!points.length) return
+		const ctx = canvas.getContext('2d')
+		if (!ctx) return
+
+		const dpr = editor.getInstanceState().devicePixelRatio
+		const cameraZoom = editor.getCamera().z
+
+		const canvasW = Math.ceil(bboxW * cameraZoom * dpr)
+		const canvasH = Math.ceil(bboxH * cameraZoom * dpr)
+		canvas.width = canvasW
+		canvas.height = canvasH
+		canvas.style.width = bboxW + 'px'
+		canvas.style.height = bboxH + 'px'
+
+		ctx.scale(cameraZoom * dpr, cameraZoom * dpr)
+		ctx.translate(-minX, -minY)
+
+		const stroke = getStroke(points, {
+			size: scribble.size / zoom,
+			start: { taper: scribble.taper, easing: EASINGS.linear },
+			last: scribble.state === 'complete' || scribble.state === 'stopping',
+			simulatePressure: false,
+			streamline: 0.32,
+		})
+
+		if (stroke.length < 4) {
+			// Draw a dot for very short strokes
+			const r = scribble.size / zoom / 2
+			const { x, y } = points[points.length - 1]
+			ctx.beginPath()
+			ctx.arc(x, y, r, 0, Math.PI * 2)
+		} else {
+			// Draw the freehand stroke as a filled path
+			const pathStr = getSvgPathFromPoints(stroke)
+			const path = new Path2D(pathStr)
+			ctx.beginPath()
+			ctx.globalAlpha = opacity ?? scribble.opacity
+			const style = getComputedStyle(canvas)
+			ctx.fillStyle = color ?? style.getPropertyValue(`--tl-color-${scribble.color}`)
+			ctx.fill(path)
+			return
+		}
+
+		const style = getComputedStyle(canvas)
+		ctx.globalAlpha = opacity ?? scribble.opacity
+		ctx.fillStyle = color ?? style.getPropertyValue(`--tl-color-${scribble.color}`)
+		ctx.fill()
+	})
+
+	if (!points.length) return null
+
+	return <canvas ref={rCanvas} className={classNames('tl-overlays__item', className)} />
 }

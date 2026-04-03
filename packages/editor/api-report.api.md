@@ -1929,15 +1929,6 @@ export function getRotationSnapshot({ editor, ids }: {
 // @public (undocumented)
 export function getSnapshot(store: TLStore): TLEditorSnapshot;
 
-// @public
-export function getStroke(points: VecLike[], options?: StrokeOptions): Vec[];
-
-// @public
-export function getStrokeOutlinePoints(strokePoints: StrokePoint[], options?: StrokeOptions): Vec[];
-
-// @public
-export function getStrokePoints(rawInputPoints: VecLike[], options?: StrokeOptions): StrokePoint[];
-
 // @public (undocumented)
 export function getSvgAsImage(svgString: string, options: {
     height: number;
@@ -1949,9 +1940,6 @@ export function getSvgAsImage(svgString: string, options: {
 
 // @public
 export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): string;
-
-// @public
-export function getSvgPathFromStrokePoints(points: StrokePoint[], closed?: boolean): string;
 
 // @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
@@ -2828,9 +2816,6 @@ export function setPointerCapture(element: Element, event: PointerEvent | React.
 export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 
 // @public (undocumented)
-export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
-
-// @public (undocumented)
 export function setUserPreferences(user: TLUserPreferences): void;
 
 // @public (undocumented)
@@ -3127,46 +3112,6 @@ export const stopEventPropagation: (e: any) => any;
 // @internal (undocumented)
 export type StoreName = (typeof Table)[keyof typeof Table];
 
-// @public
-export interface StrokeOptions {
-    easing?(pressure: number): number;
-    end?: {
-        cap?: boolean;
-        easing?(distance: number): number;
-        taper?: boolean | number;
-    };
-    last?: boolean;
-    simulatePressure?: boolean;
-    size?: number;
-    smoothing?: number;
-    start?: {
-        cap?: boolean;
-        easing?(distance: number): number;
-        taper?: boolean | number;
-    };
-    // (undocumented)
-    streamline?: number;
-    thinning?: number;
-}
-
-// @public
-export interface StrokePoint {
-    // (undocumented)
-    distance: number;
-    // (undocumented)
-    input: Vec;
-    // (undocumented)
-    point: Vec;
-    // (undocumented)
-    pressure: number;
-    // (undocumented)
-    radius: number;
-    // (undocumented)
-    runningLength: number;
-    // (undocumented)
-    vector: Vec;
-}
-
 // @public (undocumented)
 export function suffixSafeId(id: SafeId, suffix: string): SafeId;
 
@@ -3193,9 +3138,6 @@ export interface SvgExportDef {
     // (undocumented)
     key: string;
 }
-
-// @public (undocumented)
-export function svgInk(rawInputPoints: VecLike[], options?: StrokeOptions): string;
 
 // @public
 export const TAB_ID: string;

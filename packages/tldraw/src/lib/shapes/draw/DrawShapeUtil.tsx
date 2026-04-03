@@ -17,14 +17,14 @@ import {
 	last,
 	lerp,
 	rng,
-	getStrokePoints,
-	getSvgPathFromStrokePoints,
-	svgInk,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import { getStrokePoints } from '../shared/freehand/getStrokePoints'
+import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
+import { svgInk } from '../shared/freehand/svgInk'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { ShapeFill } from '../shared/ShapeFill'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'

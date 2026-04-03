@@ -179,16 +179,12 @@ export {
 	type TLDefaultFont,
 	type TLDefaultFonts,
 } from './lib/shapes/shared/defaultFonts'
-// freehand re-exports (moved to @tldraw/editor)
-export {
-	getStroke,
-	getStrokeOutlinePoints,
-	getStrokePoints,
-	setStrokePointRadii,
-	getSvgPathFromStrokePoints,
-	type StrokeOptions,
-	type StrokePoint,
-} from '@tldraw/editor'
+export { getStroke } from './lib/shapes/shared/freehand/getStroke'
+export { getStrokeOutlinePoints } from './lib/shapes/shared/freehand/getStrokeOutlinePoints'
+export { getStrokePoints } from './lib/shapes/shared/freehand/getStrokePoints'
+export { setStrokePointRadii } from './lib/shapes/shared/freehand/setStrokePointRadii'
+export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
+export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
 export { PlainTextLabel, type PlainTextLabelProps } from './lib/shapes/shared/PlainTextLabel'
 export {
 	RichTextLabel,

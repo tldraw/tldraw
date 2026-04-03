@@ -4,8 +4,6 @@ import { useLayoutEffect, useRef } from 'react'
 import { getComputedStyle } from '../../exports/domUtils'
 import { useEditor } from '../../hooks/useEditor'
 import { useTransform } from '../../hooks/useTransform'
-import { EASINGS } from '../../primitives/easings'
-import { getStroke } from '../../primitives/freehand/getStroke'
 import { getSvgPathFromPoints } from '../../utils/getSvgPathFromPoints'
 
 /** @public */
@@ -37,7 +35,8 @@ export function DefaultScribble({ scribble, zoom, color, opacity, className }: T
 	}
 
 	// Add padding for stroke width
-	const padding = (scribble.size / zoom) * 2
+	const strokeWidth = 8 / zoom
+	const padding = strokeWidth * 2
 	minX -= padding
 	minY -= padding
 	maxX += padding
@@ -68,37 +67,16 @@ export function DefaultScribble({ scribble, zoom, color, opacity, className }: T
 		ctx.scale(cameraZoom * dpr, cameraZoom * dpr)
 		ctx.translate(-minX, -minY)
 
-		const stroke = getStroke(points, {
-			size: scribble.size / zoom,
-			start: { taper: scribble.taper, easing: EASINGS.linear },
-			last: scribble.state === 'complete' || scribble.state === 'stopping',
-			simulatePressure: false,
-			streamline: 0.32,
-		})
-
-		if (stroke.length < 4) {
-			// Draw a dot for very short strokes
-			const r = scribble.size / zoom / 2
-			const { x, y } = points[points.length - 1]
-			ctx.beginPath()
-			ctx.arc(x, y, r, 0, Math.PI * 2)
-		} else {
-			// Draw the freehand stroke as a filled path
-			const pathStr = getSvgPathFromPoints(stroke)
-			const path = new Path2D(pathStr)
-			ctx.beginPath()
-			// We use the path directly
-			ctx.globalAlpha = opacity ?? scribble.opacity
-			const style = getComputedStyle(canvas)
-			ctx.fillStyle = color ?? style.getPropertyValue(`--tl-color-${scribble.color}`)
-			ctx.fill(path)
-			return
-		}
+		const pathStr = getSvgPathFromPoints(points, false)
+		const path = new Path2D(pathStr)
 
 		const style = getComputedStyle(canvas)
 		ctx.globalAlpha = opacity ?? scribble.opacity
-		ctx.fillStyle = color ?? style.getPropertyValue(`--tl-color-${scribble.color}`)
-		ctx.fill()
+		ctx.strokeStyle = color ?? style.getPropertyValue(`--tl-color-${scribble.color}`)
+		ctx.lineWidth = strokeWidth
+		ctx.lineCap = 'round'
+		ctx.lineJoin = 'round'
+		ctx.stroke(path)
 	})
 
 	if (!points.length) return null

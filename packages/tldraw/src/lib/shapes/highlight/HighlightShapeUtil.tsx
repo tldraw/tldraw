@@ -14,15 +14,15 @@ import {
 	highlightShapeProps,
 	last,
 	lerp,
-	getSvgPathFromStrokePoints,
-	getStrokeOutlinePoints,
-	getStrokePoints,
 	rng,
-	setStrokePointRadii,
 	useValue,
 } from '@tldraw/editor'
 import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
+import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
+import { getStrokePoints } from '../shared/freehand/getStrokePoints'
+import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
+import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
