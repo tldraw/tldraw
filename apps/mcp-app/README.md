@@ -24,9 +24,20 @@ The widget executes `exec` code against the live editor, syncs the resulting can
 
 ## Developing
 
-Run all commands from `apps/mcp-app`.
+### Prerequisites
+
+The widget build depends on generated files (`editor-api.json`, `generated-method-map.ts`) that are extracted from the editor's TypeScript declarations. Before you can develop or build the mcp-app, you need to build the core packages first:
+
+```bash
+# from the repo root
+yarn build
+```
+
+This produces the `.tsbuild/` output that `yarn extract-api` reads from. The `build` and `dev` scripts run `extract-api` automatically, so you don't need to call it separately.
 
 ### Package scripts
+
+Run all commands from `apps/mcp-app`.
 
 | Command           | What it does                                                                                       |
 | ----------------- | -------------------------------------------------------------------------------------------------- |

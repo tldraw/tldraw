@@ -2,6 +2,10 @@
 MCP_APPS_GUIDE.md
 mcp-deployed-server-plan.md
 
+# Generated build artifacts (from `yarn extract-api`)
+src/editor-api.json
+src/widget/focused/generated-method-map.ts
+
 # Environment secrets
 .env
 .dev.vars
