@@ -8,15 +8,19 @@ import {
 	TLStore,
 	TLStoreProps,
 	TLStoreSnapshot,
+	TLThemes,
 	TLUser,
 	TLUserStore,
 	UserRecordType,
 	createCachedUserResolve,
 	createTLSchema,
 	createUserId,
+	registerColorsFromThemes,
+	registerFontsFromThemes,
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
+import { resolveThemes } from '../editor/managers/ThemeManager/ThemeManager'
 import { TLAnyAssetUtilConstructor, checkAssets } from './defaultAssets'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
@@ -36,6 +40,13 @@ export interface TLStoreBaseOptions {
 
 	/** How should this store upload & resolve assets? */
 	assets?: TLAssetStore
+
+	/**
+	 * Named theme definitions. When provided, custom color names are automatically
+	 * registered before the store is constructed so persisted data with those
+	 * colors passes validation on load.
+	 */
+	themes?: Partial<TLThemes>
 
 	/** How should this store resolve users for attribution? */
 	users?: TLUserStore
@@ -140,8 +151,12 @@ export function createTLStore({
 	users = defaultUserStore,
 	onMount,
 	collaboration,
+	themes,
 	...rest
 }: TLStoreOptions = {}): TLStore {
+	const resolvedThemes = resolveThemes(themes)
+	registerColorsFromThemes(resolvedThemes)
+	registerFontsFromThemes(resolvedThemes)
 	const schema = createTLSchemaFromUtils(rest)
 
 	const store = new Store({

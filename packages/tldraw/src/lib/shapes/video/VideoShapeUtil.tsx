@@ -20,6 +20,7 @@ import {
 import classNames from 'classnames'
 import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
+import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
@@ -27,7 +28,14 @@ import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 const videoSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
-export interface VideoShapeOptions {
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface VideoShapeUtilDisplayValues {}
+
+/** @public */
+export interface VideoShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLVideoShape,
+	VideoShapeUtilDisplayValues
+> {
 	/**
 	 * Should videos play automatically?
 	 */
@@ -43,6 +51,12 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 	override options: VideoShapeOptions = {
 		autoplay: true,
+		getDefaultDisplayValues(): VideoShapeUtilDisplayValues {
+			return {}
+		},
+		getCustomDisplayValues(): Partial<VideoShapeUtilDisplayValues> {
+			return {}
+		},
 	}
 
 	override canEdit() {
