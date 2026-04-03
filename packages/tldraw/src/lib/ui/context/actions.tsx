@@ -27,6 +27,7 @@ import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
+import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { DefaultKeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
@@ -1000,6 +1001,57 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								source,
 								source === 'context-menu' ? editor.inputs.getCurrentPagePoint() : undefined
 							)
+						})
+						.catch(() => {
+							helpers.addToast({
+								title: helpers.msg('action.paste-error-title'),
+								description: helpers.msg('action.paste-error-description'),
+								severity: 'error',
+							})
+						})
+				},
+			},
+			{
+				// Cmd+Option+V: paste at cursor (or center if paste-at-cursor pref is on)
+				id: 'paste-at-cursor',
+				label: 'action.paste',
+				kbd: '$?v',
+				onSelect(source) {
+					const pasteAtCursor = !editor.user.getIsPasteAtCursorMode()
+					const point = pasteAtCursor
+						? editor.inputs.getCurrentPagePoint()
+						: undefined
+					navigator.clipboard
+						?.read()
+						.then((clipboardItems) => {
+							helpers.paste(clipboardItems, source, point)
+						})
+						.catch(() => {
+							helpers.addToast({
+								title: helpers.msg('action.paste-error-title'),
+								description: helpers.msg('action.paste-error-description'),
+								severity: 'error',
+							})
+						})
+				},
+			},
+			{
+				// Cmd+Shift+Option+V: paste plain text at cursor (or center if pref is on)
+				id: 'paste-plain-text-at-cursor',
+				label: 'action.paste',
+				kbd: '$!?v',
+				onSelect() {
+					const pasteAtCursor = !editor.user.getIsPasteAtCursorMode()
+					const point = pasteAtCursor
+						? editor.inputs.getCurrentPagePoint()
+						: editor.getViewportPageBounds().center
+					navigator.clipboard
+						?.readText()
+						.then((text) => {
+							if (text?.trim()) {
+								editor.markHistoryStoppingPoint('paste')
+								defaultHandleExternalTextContent(editor, { text, point })
+							}
 						})
 						.catch(() => {
 							helpers.addToast({

@@ -3,6 +3,7 @@ import { vi } from 'vitest'
 import {
 	handleNativeOrMenuCopy,
 	putPastedExternalContent,
+	resolvePasteModifiers,
 } from '../../lib/ui/hooks/useClipboardEvents'
 import { TestEditor } from '../TestEditor'
 
@@ -237,5 +238,101 @@ describe('handleNativeOrMenuCopy', () => {
 		editor = new TestEditor()
 		await handleNativeOrMenuCopy(editor)
 		expect(window.navigator.clipboard.write).not.toHaveBeenCalled()
+	})
+})
+
+describe('resolvePasteModifiers', () => {
+	it('cmd+v: regular paste, default position (pref off)', () => {
+		const result = resolvePasteModifiers(false, false, false)
+		expect(result).toEqual({ isPlainText: false, pasteAtCursor: false })
+	})
+
+	it('cmd+v: regular paste, default position (pref on)', () => {
+		const result = resolvePasteModifiers(false, false, true)
+		expect(result).toEqual({ isPlainText: false, pasteAtCursor: true })
+	})
+
+	it('cmd+shift+v: plain text, default position (pref off)', () => {
+		const result = resolvePasteModifiers(true, false, false)
+		expect(result).toEqual({ isPlainText: true, pasteAtCursor: false })
+	})
+
+	it('cmd+shift+v: plain text, default position (pref on)', () => {
+		const result = resolvePasteModifiers(true, false, true)
+		expect(result).toEqual({ isPlainText: true, pasteAtCursor: true })
+	})
+
+	it('cmd+option+v: regular paste, inverted position (pref off → cursor)', () => {
+		const result = resolvePasteModifiers(false, true, false)
+		expect(result).toEqual({ isPlainText: false, pasteAtCursor: true })
+	})
+
+	it('cmd+option+v: regular paste, inverted position (pref on → center)', () => {
+		const result = resolvePasteModifiers(false, true, true)
+		expect(result).toEqual({ isPlainText: false, pasteAtCursor: false })
+	})
+
+	it('cmd+shift+option+v: plain text, inverted position (pref off → cursor)', () => {
+		const result = resolvePasteModifiers(true, true, false)
+		expect(result).toEqual({ isPlainText: true, pasteAtCursor: true })
+	})
+
+	it('cmd+shift+option+v: plain text, inverted position (pref on → center)', () => {
+		const result = resolvePasteModifiers(true, true, true)
+		expect(result).toEqual({ isPlainText: true, pasteAtCursor: false })
+	})
+})
+
+describe('editor modifier delay vs native modifier state', () => {
+	beforeEach(() => {
+		vi.useFakeTimers()
+		editor = new TestEditor()
+	})
+
+	afterEach(() => {
+		vi.useRealTimers()
+	})
+
+	it('editor getShiftKey stays true for 150ms after shift is released (demonstrating the delay)', () => {
+		// Press shift
+		editor.dispatch({
+			type: 'keyboard',
+			name: 'key_down',
+			key: 'Shift',
+			shiftKey: true,
+			ctrlKey: false,
+			altKey: false,
+			metaKey: false,
+			accelKey: false,
+			code: 'ShiftLeft',
+		})
+		editor.forceTick()
+		expect(editor.inputs.getShiftKey()).toBe(true)
+
+		// Release shift
+		editor.dispatch({
+			type: 'keyboard',
+			name: 'key_up',
+			key: 'Shift',
+			shiftKey: false,
+			ctrlKey: false,
+			altKey: false,
+			metaKey: false,
+			accelKey: false,
+			code: 'ShiftLeft',
+		})
+		editor.forceTick()
+
+		// Editor still thinks shift is held due to 150ms delay
+		expect(editor.inputs.getShiftKey()).toBe(true)
+
+		// A native keydown event would report shiftKey=false immediately.
+		// This is the race condition: if cmd+v fires within this 150ms window,
+		// using editor.inputs.getShiftKey() would incorrectly return true,
+		// causing a plain text paste when the user wanted a regular paste.
+
+		// After 150ms, the editor finally catches up
+		vi.advanceTimersByTime(150)
+		expect(editor.inputs.getShiftKey()).toBe(false)
 	})
 })

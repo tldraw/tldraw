@@ -23,6 +23,27 @@ import { TLUiEventSource, useUiEvents } from '../context/events'
 import { pasteFiles } from './clipboard/pasteFiles'
 import { pasteUrl } from './clipboard/pasteUrl'
 
+/**
+ * Resolves paste modifier keys into plain-text and position behavior.
+ * Alt/Option inverts the paste-at-cursor user preference.
+ *
+ * @param isShift - Whether the Shift key is pressed (indicates plain text paste)
+ * @param isAlt - Whether the Alt/Option key is pressed (inverts paste position preference)
+ * @param pasteAtCursorPref - The user's preference for pasting at the cursor (true) or center (false)
+ *
+ * @internal
+ */
+export function resolvePasteModifiers(
+	isShift: boolean,
+	isAlt: boolean,
+	pasteAtCursorPref: boolean
+) {
+	return {
+		isPlainText: isShift,
+		pasteAtCursor: isAlt ? !pasteAtCursorPref : pasteAtCursorPref,
+	}
+}
+
 // Expected paste mime types. The earlier in this array they appear, the higher preference we give
 // them. For example, we prefer the `web image/png+tldraw` type to plain `image/png` as it does not
 // strip some of the extra metadata we write into it.
@@ -877,6 +898,15 @@ export function useNativeClipboardEvents() {
 			}
 		}
 
+		// Track native modifier state from the most recent keydown. We use this
+		// instead of editor.inputs.getShiftKey() because the editor applies a
+		// 150ms delay on modifier release (to prevent physical race conditions
+		// with pointer events), which can cause false positives here.
+		let nativeShiftKey = false
+		const trackModifiers = (e: KeyboardEvent) => {
+			nativeShiftKey = e.shiftKey
+		}
+
 		const paste = (e: ClipboardEvent) => {
 			if (disablingMiddleClickPaste) {
 				editor.markEventAsHandled(e)
@@ -889,11 +919,9 @@ export function useNativeClipboardEvents() {
 			if (editor.getEditingShapeId() !== null || areShortcutsDisabled(editor)) return
 
 			// Cmd+Shift+V / Ctrl+Shift+V = paste as plain text (no formatting)
-			if (editor.inputs.getShiftKey() && editor.inputs.getAccelKey()) {
+			if (nativeShiftKey) {
 				const text = e.clipboardData?.getData('text/plain')
 				if (text?.trim()) {
-					// Use an explicit center here because the downstream external-text handler
-					// treats bare Shift + undefined point as "paste at cursor".
 					const point = editor.user.getIsPasteAtCursorMode()
 						? editor.inputs.getCurrentPagePoint()
 						: editor.getViewportPageBounds().center
@@ -905,8 +933,9 @@ export function useNativeClipboardEvents() {
 				return
 			}
 
-			// Both Cmd+V and Cmd+Shift+V paste at center by default,
-			// or at cursor when the paste-at-cursor preference is on.
+			// Cmd+V: paste at center by default, or at cursor when the preference is on.
+			// (Cmd+Option+V and Cmd+Shift+Option+V are handled as actions in actions.tsx
+			// because the browser only fires paste events for Cmd+V and Cmd+Shift+V.)
 			const point = editor.user.getIsPasteAtCursorMode()
 				? editor.inputs.getCurrentPagePoint()
 				: undefined
@@ -970,12 +999,16 @@ export function useNativeClipboardEvents() {
 		ownerDocument?.addEventListener('cut', cut)
 		ownerDocument?.addEventListener('paste', paste)
 		ownerDocument?.addEventListener('pointerup', pointerUpHandler)
+		ownerDocument?.addEventListener('keydown', trackModifiers, true)
+		ownerDocument?.addEventListener('keyup', trackModifiers, true)
 
 		return () => {
 			ownerDocument?.removeEventListener('copy', copy)
 			ownerDocument?.removeEventListener('cut', cut)
 			ownerDocument?.removeEventListener('paste', paste)
 			ownerDocument?.removeEventListener('pointerup', pointerUpHandler)
+			ownerDocument?.removeEventListener('keydown', trackModifiers, true)
+			ownerDocument?.removeEventListener('keyup', trackModifiers, true)
 		}
 	}, [editor, trackEvent, appIsFocused, ownerDocument])
 }
