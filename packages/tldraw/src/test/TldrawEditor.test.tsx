@@ -257,7 +257,7 @@ describe('<TldrawEditor />', () => {
 		)
 
 		// Check that the canvas overlays element is present
-		expect(document.querySelector('.tl-canvas-overlays')).toBeTruthy()
+		expect(document.querySelector('.tl-canvas-indicators')).toBeTruthy()
 
 		// Select one of the shapes (the note shape)
 		const noteShapeId = shapeIds[9] // note is at index 9
