@@ -1,4 +1,5 @@
 import { createRouter, notFound } from '@tldraw/worker-shared'
+import { sql } from 'kysely'
 import { createPostgresConnectionPool } from './postgres'
 import { isDebugLogging, type Environment } from './types'
 import { getStatsDurableObjct } from './utils/durableObjects'
@@ -58,6 +59,31 @@ export const healthCheckRoutes = createRouter<Environment>()
 			return new Response('ok', { status: 200 })
 		} catch (_e) {
 			return new Response('Could not reach the database', { status: 500 })
+		}
+	})
+	.get('/health-check/zero-replicator', async (_, env) => {
+		try {
+			const db = createPostgresConnectionPool(env, '/health-check/zero-replicator')
+			const result = await sql<{ status: string }>`
+				SELECT
+					CASE
+						WHEN write_lsn IS NULL THEN 'STALLED'
+						WHEN write_lag > interval '1 minute' THEN 'LAGGING'
+						ELSE 'HEALTHY'
+					END AS status
+				FROM pg_stat_replication
+				WHERE application_name = 'zero-replicator'
+			`.execute(db)
+			if (result.rows.length === 0) {
+				return new Response('zero-replicator not connected', { status: 500 })
+			}
+			const status = result.rows[0].status
+			if (status !== 'HEALTHY') {
+				return new Response(`zero-replicator: ${status}`, { status: 500 })
+			}
+			return new Response('ok', { status: 200 })
+		} catch (_e) {
+			return new Response('Could not check zero-replicator status', { status: 500 })
 		}
 	})
 	.all('*', notFound)
