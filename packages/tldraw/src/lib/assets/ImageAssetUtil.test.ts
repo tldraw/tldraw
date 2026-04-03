@@ -96,8 +96,8 @@ describe('ImageAssetUtil', () => {
 
 		it('should constrain dimensions to maxDimension for static images', async () => {
 			vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({
-				w: 4000,
-				h: 2000,
+				w: 8000,
+				h: 4000,
 				pixelRatio: 1,
 			})
 			vi.spyOn(MediaHelpers, 'isAnimated').mockResolvedValue(false)
@@ -108,8 +108,9 @@ describe('ImageAssetUtil', () => {
 			const asset = await util.getAssetFromFile(file, assetId)
 
 			expect(asset).not.toBeNull()
-			expect(asset!.props.w).toBeLessThanOrEqual(util.options.maxDimension)
-			expect(asset!.props.h).toBeLessThanOrEqual(util.options.maxDimension)
+			// Input 8000x4000 should be constrained to 5000x2500
+			expect(asset!.props.w).toBe(5000)
+			expect(asset!.props.h).toBe(2500)
 		})
 	})
 })
