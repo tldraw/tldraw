@@ -178,12 +178,20 @@ function usePattern() {
 	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
 		editor,
 	])
-	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
-		editor,
-	])
+	// In dynamic size mode, new shapes are created with scale = 1 / zoomLevel.
+	// For pattern LOD generation, we use the worst-case effective zoom:
+	// a shape created at min zoom and later viewed at max zoom (maxZoom / minZoom)
+	const maxEffectiveZoom = useValue(
+		'maxEffectiveZoom',
+		() => {
+			const steps = editor.getCameraOptions().zoomSteps
+			return last(steps)! / steps[0]
+		},
+		[editor]
+	)
 	const [isReady, setIsReady] = useState(false)
 	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
-		getDefaultPatterns(maxZoom)
+		getDefaultPatterns(maxEffectiveZoom)
 	)
 	const getHashPatternZoomName = useGetHashPatternZoomName()
 
@@ -198,7 +206,7 @@ function usePattern() {
 		const darkSolid = definition.colors.dark.solid
 
 		const promise = Promise.all(
-			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
+			getPatternLodsToGenerate(maxEffectiveZoom).flatMap<Promise<PatternDef>>((zoom) => [
 				generateImage(dpr, zoom, lightSolid).then((blob) => ({
 					zoom,
 					theme: 'light',
@@ -227,7 +235,7 @@ function usePattern() {
 				}
 			})
 		}
-	}, [dpr, maxZoom, editor])
+	}, [dpr, maxEffectiveZoom, editor])
 
 	const defs = (
 		<>
