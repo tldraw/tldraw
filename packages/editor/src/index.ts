@@ -15,6 +15,7 @@ export * from '@tldraw/validate'
 
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
 export { DefaultBrush, type TLBrushProps } from './lib/components/default-components/DefaultBrush'
+export { prepareCanvas } from './lib/components/default-components/canvas-overlay-helpers'
 export {
 	DefaultCanvas,
 	type TLCanvasComponentProps,

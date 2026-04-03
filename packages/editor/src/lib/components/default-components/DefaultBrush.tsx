@@ -1,9 +1,9 @@
 import { BoxModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { useLayoutEffect, useRef } from 'react'
-import { getComputedStyle } from '../../exports/domUtils'
 import { useEditor } from '../../hooks/useEditor'
 import { useTransform } from '../../hooks/useTransform'
+import { prepareCanvas } from './canvas-overlay-helpers'
 
 /** @public */
 export interface TLBrushProps {
@@ -23,25 +23,10 @@ export const DefaultBrush = ({ brush, color, opacity, className }: TLBrushProps)
 	useLayoutEffect(() => {
 		const canvas = rCanvas.current
 		if (!canvas) return
-		const ctx = canvas.getContext('2d')
-		if (!ctx) return
-
-		const dpr = editor.getInstanceState().devicePixelRatio
-		const zoom = editor.getCamera().z
-
 		const w = Math.max(1, brush.w)
 		const h = Math.max(1, brush.h)
 
-		const canvasW = Math.ceil(w * zoom * dpr)
-		const canvasH = Math.ceil(h * zoom * dpr)
-		canvas.width = canvasW
-		canvas.height = canvasH
-		canvas.style.width = w + 'px'
-		canvas.style.height = h + 'px'
-
-		ctx.scale(zoom * dpr, zoom * dpr)
-
-		const style = getComputedStyle(canvas)
+		const { ctx, zoom, style } = prepareCanvas(editor, canvas, w, h)
 		const alpha = opacity ?? 1
 
 		ctx.globalAlpha = alpha

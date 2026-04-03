@@ -1,10 +1,10 @@
 import { TLScribble } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { useLayoutEffect, useRef } from 'react'
-import { getComputedStyle } from '../../exports/domUtils'
 import { useEditor } from '../../hooks/useEditor'
 import { useTransform } from '../../hooks/useTransform'
 import { getSvgPathFromPoints } from '../../utils/getSvgPathFromPoints'
+import { prepareCanvas } from './canvas-overlay-helpers'
 
 /** @public */
 export interface TLScribbleProps {
@@ -51,26 +51,11 @@ export function DefaultScribble({ scribble, zoom, color, opacity, className }: T
 		const canvas = rCanvas.current
 		if (!canvas) return
 		if (!points.length) return
-		const ctx = canvas.getContext('2d')
-		if (!ctx) return
-
-		const dpr = editor.getInstanceState().devicePixelRatio
-		const cameraZoom = editor.getCamera().z
-
-		const canvasW = Math.ceil(bboxW * cameraZoom * dpr)
-		const canvasH = Math.ceil(bboxH * cameraZoom * dpr)
-		canvas.width = canvasW
-		canvas.height = canvasH
-		canvas.style.width = bboxW + 'px'
-		canvas.style.height = bboxH + 'px'
-
-		ctx.scale(cameraZoom * dpr, cameraZoom * dpr)
+		const { ctx, style } = prepareCanvas(editor, canvas, bboxW, bboxH)
 		ctx.translate(-minX, -minY)
 
 		const pathStr = getSvgPathFromPoints(points, false)
 		const path = new Path2D(pathStr)
-
-		const style = getComputedStyle(canvas)
 		ctx.globalAlpha = opacity ?? scribble.opacity
 		ctx.strokeStyle = color ?? style.getPropertyValue(`--tl-color-${scribble.color}`)
 		ctx.lineWidth = strokeWidth

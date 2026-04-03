@@ -5,10 +5,10 @@ import {
 	PointsSnapIndicator,
 	type SnapIndicator,
 } from '../../editor/managers/SnapManager/SnapManager'
-import { getComputedStyle } from '../../exports/domUtils'
 import { useEditor } from '../../hooks/useEditor'
 import { useTransform } from '../../hooks/useTransform'
 import { rangeIntersection } from '../../primitives/utils'
+import { prepareCanvas } from './canvas-overlay-helpers'
 
 /** @public */
 export interface TLSnapIndicatorProps {
@@ -30,26 +30,9 @@ export function DefaultSnapIndicator({ line, zoom, className }: TLSnapIndicatorP
 	useLayoutEffect(() => {
 		const canvas = rCanvas.current
 		if (!canvas) return
-		const ctx = canvas.getContext('2d')
-		if (!ctx) return
-
-		const dpr = editor.getInstanceState().devicePixelRatio
-		const cameraZoom = editor.getCamera().z
-
-		const w = bounds.w
-		const h = bounds.h
-
-		const canvasW = Math.ceil(w * cameraZoom * dpr)
-		const canvasH = Math.ceil(h * cameraZoom * dpr)
-		canvas.width = canvasW
-		canvas.height = canvasH
-		canvas.style.width = w + 'px'
-		canvas.style.height = h + 'px'
-
-		ctx.scale(cameraZoom * dpr, cameraZoom * dpr)
+		const { ctx, zoom: cameraZoom, style } = prepareCanvas(editor, canvas, bounds.w, bounds.h)
 		ctx.translate(-bounds.x, -bounds.y)
 
-		const style = getComputedStyle(canvas)
 		const color = style.getPropertyValue('--tl-color-snap')
 
 		ctx.strokeStyle = color

@@ -2646,6 +2646,13 @@ export class Polyline2d extends Geometry2d {
 // @public (undocumented)
 export function precise(A: VecLike): string;
 
+// @public (undocumented)
+export function prepareCanvas(editor: Editor, canvas: HTMLCanvasElement, w: number, h: number): {
+    ctx: CanvasRenderingContext2D;
+    style: CSSStyleDeclaration;
+    zoom: number;
+};
+
 // @public
 export function preventDefault(event: Event | React.BaseSyntheticEvent): void;
 

@@ -2,16 +2,13 @@ import {
 	EASINGS,
 	TLScribbleProps,
 	getSvgPathFromPoints,
+	prepareCanvas,
 	useEditor,
 	useTransform,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useLayoutEffect, useRef } from 'react'
 import { getStroke } from '../shapes/shared/freehand/getStroke'
-
-function getComputedStyle(element: Element) {
-	return element.ownerDocument.defaultView!.getComputedStyle(element)
-}
 
 /** @public @react */
 export function TldrawScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps) {
@@ -47,20 +44,7 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 		const canvas = rCanvas.current
 		if (!canvas) return
 		if (!points.length) return
-		const ctx = canvas.getContext('2d')
-		if (!ctx) return
-
-		const dpr = editor.getInstanceState().devicePixelRatio
-		const cameraZoom = editor.getCamera().z
-
-		const canvasW = Math.ceil(bboxW * cameraZoom * dpr)
-		const canvasH = Math.ceil(bboxH * cameraZoom * dpr)
-		canvas.width = canvasW
-		canvas.height = canvasH
-		canvas.style.width = bboxW + 'px'
-		canvas.style.height = bboxH + 'px'
-
-		ctx.scale(cameraZoom * dpr, cameraZoom * dpr)
+		const { ctx, style } = prepareCanvas(editor, canvas, bboxW, bboxH)
 		ctx.translate(-minX, -minY)
 
 		const stroke = getStroke(points, {
@@ -83,13 +67,11 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 			const path = new Path2D(pathStr)
 			ctx.beginPath()
 			ctx.globalAlpha = opacity ?? scribble.opacity
-			const style = getComputedStyle(canvas)
 			ctx.fillStyle = color ?? style.getPropertyValue(`--tl-color-${scribble.color}`)
 			ctx.fill(path)
 			return
 		}
 
-		const style = getComputedStyle(canvas)
 		ctx.globalAlpha = opacity ?? scribble.opacity
 		ctx.fillStyle = color ?? style.getPropertyValue(`--tl-color-${scribble.color}`)
 		ctx.fill()
