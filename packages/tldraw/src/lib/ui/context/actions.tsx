@@ -23,11 +23,11 @@ import {
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
 import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
-import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { DefaultKeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
@@ -1018,9 +1018,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$?v',
 				onSelect(source) {
 					const pasteAtCursor = !editor.user.getIsPasteAtCursorMode()
-					const point = pasteAtCursor
-						? editor.inputs.getCurrentPagePoint()
-						: undefined
+					const point = pasteAtCursor ? editor.inputs.getCurrentPagePoint() : undefined
 					navigator.clipboard
 						?.read()
 						.then((clipboardItems) => {
