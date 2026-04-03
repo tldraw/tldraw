@@ -2651,7 +2651,7 @@ export function prepareCanvas(editor: Editor, canvas: HTMLCanvasElement, w: numb
     ctx: CanvasRenderingContext2D;
     style: CSSStyleDeclaration;
     zoom: number;
-};
+} | null;
 
 // @public
 export function preventDefault(event: Event | React.BaseSyntheticEvent): void;

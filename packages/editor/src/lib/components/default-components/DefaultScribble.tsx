@@ -23,24 +23,31 @@ export function DefaultScribble({ scribble, zoom, color, opacity, className }: T
 
 	// Compute bounding box of scribble points
 	const points = scribble.points
-	let minX = Infinity,
-		minY = Infinity,
-		maxX = -Infinity,
-		maxY = -Infinity
-	for (const p of points) {
-		if (p.x < minX) minX = p.x
-		if (p.y < minY) minY = p.y
-		if (p.x > maxX) maxX = p.x
-		if (p.y > maxY) maxY = p.y
-	}
 
 	// Add padding for stroke width
 	const strokeWidth = 8 / zoom
 	const padding = strokeWidth * 2
-	minX -= padding
-	minY -= padding
-	maxX += padding
-	maxY += padding
+
+	let minX = 0,
+		minY = 0,
+		maxX = 0,
+		maxY = 0
+	if (points.length) {
+		minX = Infinity
+		minY = Infinity
+		maxX = -Infinity
+		maxY = -Infinity
+		for (const p of points) {
+			if (p.x < minX) minX = p.x
+			if (p.y < minY) minY = p.y
+			if (p.x > maxX) maxX = p.x
+			if (p.y > maxY) maxY = p.y
+		}
+		minX -= padding
+		minY -= padding
+		maxX += padding
+		maxY += padding
+	}
 
 	const bboxW = Math.max(1, maxX - minX)
 	const bboxH = Math.max(1, maxY - minY)
@@ -51,7 +58,9 @@ export function DefaultScribble({ scribble, zoom, color, opacity, className }: T
 		const canvas = rCanvas.current
 		if (!canvas) return
 		if (!points.length) return
-		const { ctx, style } = prepareCanvas(editor, canvas, bboxW, bboxH)
+		const result = prepareCanvas(editor, canvas, bboxW, bboxH)
+		if (!result) return
+		const { ctx, style } = result
 		ctx.translate(-minX, -minY)
 
 		const pathStr = getSvgPathFromPoints(points, false)

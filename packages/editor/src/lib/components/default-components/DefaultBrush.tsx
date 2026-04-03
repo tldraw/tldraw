@@ -26,17 +26,33 @@ export const DefaultBrush = ({ brush, color, opacity, className }: TLBrushProps)
 		const w = Math.max(1, brush.w)
 		const h = Math.max(1, brush.h)
 
-		const { ctx, zoom, style } = prepareCanvas(editor, canvas, w, h)
-		const alpha = opacity ?? 1
+		const result = prepareCanvas(editor, canvas, w, h)
+		if (!result) return
+		const { ctx, zoom, style } = result
 
-		ctx.globalAlpha = alpha
-		ctx.fillStyle = color ?? style.getPropertyValue('--tl-color-brush-fill')
-		ctx.fillRect(0, 0, w, h)
-
-		ctx.strokeStyle = color ?? style.getPropertyValue('--tl-color-brush-stroke')
-		ctx.lineWidth = 1 / zoom
-		ctx.strokeRect(0, 0, w, h)
+		if (color) {
+			const alpha = opacity ?? 1
+			ctx.globalAlpha = alpha * 0.75
+			ctx.fillStyle = color
+			ctx.fillRect(0, 0, w, h)
+			ctx.globalAlpha = alpha * 0.1
+			ctx.strokeStyle = color
+			ctx.lineWidth = 1 / zoom
+			ctx.strokeRect(0, 0, w, h)
+		} else {
+			ctx.fillStyle = style.getPropertyValue('--tl-color-brush-fill')
+			ctx.fillRect(0, 0, w, h)
+			ctx.strokeStyle = style.getPropertyValue('--tl-color-brush-stroke')
+			ctx.lineWidth = 1 / zoom
+			ctx.strokeRect(0, 0, w, h)
+		}
 	})
 
-	return <canvas ref={rCanvas} className={classNames('tl-overlays__item', className)} />
+	return (
+		<canvas
+			ref={rCanvas}
+			className={classNames('tl-overlays__item', className)}
+			aria-hidden="true"
+		/>
+	)
 }

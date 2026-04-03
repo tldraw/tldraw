@@ -8,11 +8,12 @@ export function prepareCanvas(editor: Editor, canvas: HTMLCanvasElement, w: numb
 	canvas.height = Math.ceil(h * zoom * dpr)
 	canvas.style.width = w + 'px'
 	canvas.style.height = h + 'px'
-	const ctx = canvas.getContext('2d')!
+	const ctx = canvas.getContext('2d')
+	if (!ctx) return null
 	ctx.scale(zoom * dpr, zoom * dpr)
 	return { ctx, zoom, style: getComputedStyle(canvas) }
 }
 
 function getComputedStyle(element: Element) {
-	return element.ownerDocument.defaultView!.getComputedStyle(element)
+	return (element.ownerDocument.defaultView ?? globalThis).getComputedStyle(element)
 }

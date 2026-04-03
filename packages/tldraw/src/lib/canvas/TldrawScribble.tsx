@@ -17,23 +17,30 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 
 	// Compute bounding box of scribble points
 	const points = scribble.points
-	let minX = Infinity,
-		minY = Infinity,
-		maxX = -Infinity,
-		maxY = -Infinity
-	for (const p of points) {
-		if (p.x < minX) minX = p.x
-		if (p.y < minY) minY = p.y
-		if (p.x > maxX) maxX = p.x
-		if (p.y > maxY) maxY = p.y
-	}
 
 	// Add padding for stroke width
 	const padding = (scribble.size / zoom) * 2
-	minX -= padding
-	minY -= padding
-	maxX += padding
-	maxY += padding
+
+	let minX = 0,
+		minY = 0,
+		maxX = 0,
+		maxY = 0
+	if (points.length) {
+		minX = Infinity
+		minY = Infinity
+		maxX = -Infinity
+		maxY = -Infinity
+		for (const p of points) {
+			if (p.x < minX) minX = p.x
+			if (p.y < minY) minY = p.y
+			if (p.x > maxX) maxX = p.x
+			if (p.y > maxY) maxY = p.y
+		}
+		minX -= padding
+		minY -= padding
+		maxX += padding
+		maxY += padding
+	}
 
 	const bboxW = Math.max(1, maxX - minX)
 	const bboxH = Math.max(1, maxY - minY)
@@ -44,7 +51,9 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 		const canvas = rCanvas.current
 		if (!canvas) return
 		if (!points.length) return
-		const { ctx, style } = prepareCanvas(editor, canvas, bboxW, bboxH)
+		const result = prepareCanvas(editor, canvas, bboxW, bboxH)
+		if (!result) return
+		const { ctx, style } = result
 		ctx.translate(-minX, -minY)
 
 		const stroke = getStroke(points, {
@@ -55,26 +64,20 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 			streamline: 0.32,
 		})
 
+		ctx.globalAlpha = opacity ?? scribble.opacity
+		ctx.fillStyle = color ?? style.getPropertyValue(`--tl-color-${scribble.color}`)
+
 		if (stroke.length < 4) {
-			// Draw a dot for very short strokes
 			const r = scribble.size / zoom / 2
 			const { x, y } = points[points.length - 1]
 			ctx.beginPath()
 			ctx.arc(x, y, r, 0, Math.PI * 2)
+			ctx.fill()
 		} else {
-			// Draw the freehand stroke as a filled path
 			const pathStr = getSvgPathFromPoints(stroke)
 			const path = new Path2D(pathStr)
-			ctx.beginPath()
-			ctx.globalAlpha = opacity ?? scribble.opacity
-			ctx.fillStyle = color ?? style.getPropertyValue(`--tl-color-${scribble.color}`)
 			ctx.fill(path)
-			return
 		}
-
-		ctx.globalAlpha = opacity ?? scribble.opacity
-		ctx.fillStyle = color ?? style.getPropertyValue(`--tl-color-${scribble.color}`)
-		ctx.fill()
 	})
 
 	if (!points.length) return null

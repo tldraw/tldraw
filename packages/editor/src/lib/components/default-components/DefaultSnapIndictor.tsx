@@ -30,7 +30,9 @@ export function DefaultSnapIndicator({ line, zoom, className }: TLSnapIndicatorP
 	useLayoutEffect(() => {
 		const canvas = rCanvas.current
 		if (!canvas) return
-		const { ctx, zoom: cameraZoom, style } = prepareCanvas(editor, canvas, bounds.w, bounds.h)
+		const result = prepareCanvas(editor, canvas, bounds.w, bounds.h)
+		if (!result) return
+		const { ctx, zoom: cameraZoom, style } = result
 		ctx.translate(-bounds.x, -bounds.y)
 
 		const color = style.getPropertyValue('--tl-color-snap')
@@ -47,7 +49,13 @@ export function DefaultSnapIndicator({ line, zoom, className }: TLSnapIndicatorP
 		}
 	})
 
-	return <canvas ref={rCanvas} className={classNames('tl-overlays__item', className)} />
+	return (
+		<canvas
+			ref={rCanvas}
+			className={classNames('tl-overlays__item', className)}
+			aria-hidden="true"
+		/>
+	)
 }
 
 function getSnapIndicatorBounds(
@@ -150,9 +158,10 @@ function drawGapsSnap(ctx: CanvasRenderingContext2D, indicator: GapsSnapIndicato
 	let nextEdgeIntersection: number[] | null = null
 
 	for (const gap of gaps) {
+		if (!edgeIntersection) break
 		nextEdgeIntersection = rangeIntersection(
-			edgeIntersection![0],
-			edgeIntersection![1],
+			edgeIntersection[0],
+			edgeIntersection[1],
 			horizontal ? gap.startEdge[0].y : gap.startEdge[0].x,
 			horizontal ? gap.startEdge[1].y : gap.startEdge[1].x
 		)
