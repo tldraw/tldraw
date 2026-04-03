@@ -254,8 +254,9 @@ export type TLAssetShape = ExtractShapeByProps<{ assetId: TLAssetId }>
  * @example
  * ```ts
  * const migrations = createAssetPropsMigrationSequence({
- *   currentVersion: 1,
- *   migrators: {},
+ *   sequence: [
+ *     { id: 'com.myapp.asset.custom/1', up: (props) => { props.newField = '' } },
+ *   ],
  * })
  * ```
  *

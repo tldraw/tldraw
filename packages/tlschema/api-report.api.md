@@ -70,10 +70,7 @@ export const assetIdValidator: T.Validator<TLAssetId>;
 export const assetMigrations: MigrationSequence;
 
 // @public
-export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
-
-// @public
-export const assetValidator: T.Validator<TLAsset>;
+export const AssetRecordType: RecordType<TLAsset<"bookmark" | "image" | "video">, "props" | "type">;
 
 // @public
 export class b64Vecs {
@@ -91,6 +88,18 @@ export class b64Vecs {
 
 // @public
 export const bindingIdValidator: T.Validator<TLBindingId>;
+
+// @public
+export const bookmarkAssetMigrations: MigrationSequence;
+
+// @public (undocumented)
+export const bookmarkAssetProps: {
+    description: T.Validator<string>;
+    favicon: T.Validator<string>;
+    image: T.Validator<string>;
+    src: T.Validator<null | string>;
+    title: T.Validator<string>;
+};
 
 // @public
 export const bookmarkShapeMigrations: TLPropsMigrations;
@@ -126,19 +135,30 @@ export function compressLegacySegments(segments: {
 }[]): TLDrawShapeSegment[];
 
 // @public
-export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
+export function createAssetPropsMigrationIds<S extends string, T extends Record<string, number>>(assetType: S, ids: T): {
+    [k in keyof T]: `com.tldraw.asset.${S}/${T[k]}`;
+};
+
+// @public
+export function createAssetPropsMigrationSequence(migrations: TLPropsMigrations): TLPropsMigrations;
+
+// @internal
+export function createAssetRecordType(assets: Record<string, SchemaPropsInfo>): RecordType<    {
 id: TLAssetId;
 meta: JsonObject;
-props: Props;
-type: Type;
+props: {
+[x: string]: /*elided*/ any;
+};
+type: string;
 typeName: "asset";
-}[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: {
-id: TLAssetId;
-meta: JsonObject;
-props: Props;
-type: Type;
-typeName: "asset";
-}[P] | undefined; }>>;
+}, "props" | "type">;
+
+// @public
+export function createAssetValidator<Type extends string, Props extends JsonObject, Meta extends JsonObject = JsonObject>(type: Type, props?: {
+    [K in keyof Props]: T.Validatable<Props[K]>;
+} | T.Validator<Props>, meta?: {
+    [K in keyof Meta]: T.Validatable<Meta[K]>;
+}): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseAsset<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseAsset<Type, Props>[P] | undefined; }>>;
 
 // @public
 export function createBindingId(id?: string): TLBindingId;
@@ -200,7 +220,8 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
 
 // @public
-export function createTLSchema({ shapes, bindings, user, records, migrations }?: {
+export function createTLSchema({ shapes, bindings, assets, user, records, migrations }?: {
+    assets?: Record<string, SchemaPropsInfo>;
     bindings?: Record<string, SchemaPropsInfo>;
     migrations?: readonly MigrationSequence[];
     records?: Record<string, CustomRecordInfo>;
@@ -223,6 +244,45 @@ export interface CustomRecordInfo {
     scope: RecordScope;
     validator: T.Validatable<any>;
 }
+
+// @public
+export const defaultAssetSchemas: {
+    bookmark: {
+        migrations: MigrationSequence;
+        props: {
+            description: T.Validator<string>;
+            favicon: T.Validator<string>;
+            image: T.Validator<string>;
+            src: T.Validator<null | string>;
+            title: T.Validator<string>;
+        };
+    };
+    image: {
+        migrations: MigrationSequence;
+        props: {
+            fileSize: T.Validator<number | undefined>;
+            h: T.Validator<number>;
+            isAnimated: T.Validator<boolean>;
+            mimeType: T.Validator<null | string>;
+            name: T.Validator<string>;
+            pixelRatio: T.Validator<number | undefined>;
+            src: T.Validator<null | string>;
+            w: T.Validator<number>;
+        };
+    };
+    video: {
+        migrations: MigrationSequence;
+        props: {
+            fileSize: T.Validator<number | undefined>;
+            h: T.Validator<number>;
+            isAnimated: T.Validator<boolean>;
+            mimeType: T.Validator<null | string>;
+            name: T.Validator<string>;
+            src: T.Validator<null | string>;
+            w: T.Validator<number>;
+        };
+    };
+};
 
 // @public
 export const defaultBindingSchemas: {
@@ -418,6 +478,21 @@ export const highlightShapeProps: RecordProps<TLHighlightShape>;
 
 // @public
 export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
+
+// @public
+export const imageAssetMigrations: MigrationSequence;
+
+// @public (undocumented)
+export const imageAssetProps: {
+    fileSize: T.Validator<number | undefined>;
+    h: T.Validator<number>;
+    isAnimated: T.Validator<boolean>;
+    mimeType: T.Validator<null | string>;
+    name: T.Validator<string>;
+    pixelRatio: T.Validator<number | undefined>;
+    src: T.Validator<null | string>;
+    w: T.Validator<number>;
+};
 
 // @public
 export const ImageShapeCrop: T.ObjectValidator<TLShapeCrop>;
@@ -806,7 +881,7 @@ export interface TLArrowShapeProps {
 }
 
 // @public
-export type TLAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
+export type TLAsset<K extends keyof TLIndexedAssets = keyof TLIndexedAssets> = TLIndexedAssets[K];
 
 // @public
 export interface TLAssetContext {
@@ -971,6 +1046,9 @@ export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 
 // @public
 export type TLCustomRecord = TLIndexedRecords[keyof TLIndexedRecords];
+
+// @public
+export type TLDefaultAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
 
 // @public
 export type TLDefaultBinding = TLArrowBinding;
@@ -1143,6 +1221,10 @@ export interface TLGeoShapeProps {
 }
 
 // @public (undocumented)
+export interface TLGlobalAssetPropsMap {
+}
+
+// @public (undocumented)
 export interface TLGlobalBindingPropsMap {
 }
 
@@ -1220,6 +1302,13 @@ export interface TLImageShapeProps {
     url: string;
     w: number;
 }
+
+// @public (undocumented)
+export type TLIndexedAssets = {
+    [K in keyof TLGlobalAssetPropsMap | TLDefaultAsset['type'] as K extends TLDefaultAsset['type'] ? K extends keyof TLGlobalAssetPropsMap ? TLGlobalAssetPropsMap[K] extends null | undefined ? never : K : K : K]: K extends TLDefaultAsset['type'] ? K extends keyof TLGlobalAssetPropsMap ? TLBaseAsset<K, TLGlobalAssetPropsMap[K]> : Extract<TLDefaultAsset, {
+        type: K;
+    }> : TLBaseAsset<K, TLGlobalAssetPropsMap[K & keyof TLGlobalAssetPropsMap]>;
+};
 
 // @public (undocumented)
 export type TLIndexedBindings = {
@@ -1673,6 +1762,9 @@ export interface TLThemes {
 export type TLThemeUiColorKeys = 'background' | 'cursor' | 'negativeSpace' | 'noteBorder' | 'solid' | 'text';
 
 // @public
+export type TLUnknownAsset = TLBaseAsset<string, object>;
+
+// @public
 export type TLUnknownBinding = TLBaseBinding<string, object>;
 
 // @public
@@ -1760,6 +1852,20 @@ export interface VecModel {
 
 // @public
 export const vecModelValidator: T.ObjectValidator<VecModel>;
+
+// @public
+export const videoAssetMigrations: MigrationSequence;
+
+// @public (undocumented)
+export const videoAssetProps: {
+    fileSize: T.Validator<number | undefined>;
+    h: T.Validator<number>;
+    isAnimated: T.Validator<boolean>;
+    mimeType: T.Validator<null | string>;
+    name: T.Validator<string>;
+    src: T.Validator<null | string>;
+    w: T.Validator<number>;
+};
 
 // @public
 export const videoShapeMigrations: TLPropsMigrations;

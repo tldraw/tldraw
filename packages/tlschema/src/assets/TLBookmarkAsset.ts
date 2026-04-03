@@ -18,30 +18,7 @@ export type TLBookmarkAsset = TLBaseAsset<
 	}
 >
 
-/**
- * Validator for TLBookmarkAsset records. Validates the structure and data types
- * of bookmark asset properties including title, description, image, favicon, and source URL.
- *
- * @example
- * ```ts
- * const bookmarkData = {
- *   id: 'asset:bookmark1',
- *   typeName: 'asset',
- *   type: 'bookmark',
- *   props: {
- *     title: 'Example Website',
- *     description: 'A great example site',
- *     image: 'https://example.com/preview.jpg',
- *     favicon: 'https://example.com/favicon.ico',
- *     src: 'https://example.com'
- *   }
- * }
- *
- * const isValid = bookmarkAssetValidator.isValid(bookmarkData)
- * ```
- *
- * @public
- */
+/** @public */
 export const bookmarkAssetProps = {
 	title: T.string,
 	description: T.string,
@@ -50,6 +27,7 @@ export const bookmarkAssetProps = {
 	src: T.srcUrl.nullable(),
 } satisfies RecordProps<TLBookmarkAsset>
 
+/** Validator for bookmark assets. @public */
 export const bookmarkAssetValidator: T.Validator<TLBookmarkAsset> = createAssetValidator(
 	'bookmark',
 	T.object(bookmarkAssetProps)

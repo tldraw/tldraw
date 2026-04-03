@@ -21,36 +21,7 @@ export type TLImageAsset = TLBaseAsset<
 	}
 >
 
-/**
- * Validator for image assets. Validates the structure and properties of TLImageAsset records
- * to ensure data integrity when image assets are stored or retrieved from the tldraw store.
- *
- * @example
- * ```ts
- * import { imageAssetValidator } from '@tldraw/tlschema'
- *
- * const imageAsset = {
- *   id: 'asset:image123',
- *   typeName: 'asset',
- *   type: 'image',
- *   props: {
- *     w: 800,
- *     h: 600,
- *     name: 'photo.jpg',
- *     isAnimated: false,
- *     mimeType: 'image/jpeg',
- *     src: 'https://example.com/photo.jpg',
- *     fileSize: 156000
- *   },
- *   meta: {}
- * }
- *
- * // Validate the asset
- * const isValid = imageAssetValidator.validate(imageAsset)
- * ```
- *
- * @public
- */
+/** @public */
 export const imageAssetProps = {
 	w: T.number,
 	h: T.number,
@@ -62,6 +33,7 @@ export const imageAssetProps = {
 	pixelRatio: T.positiveNumber.optional(),
 } satisfies RecordProps<TLImageAsset>
 
+/** Validator for image assets. @public */
 export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidator(
 	'image',
 	T.object(imageAssetProps)
