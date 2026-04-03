@@ -357,11 +357,31 @@ export class Idle extends StateNode {
 	override onRightClick(info: TLPointerEventInfo) {
 		switch (info.target) {
 			case 'canvas': {
+				const selectedShapeIds = this.editor.getSelectedShapeIds()
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
+				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
+
+				// Check selection bounds first so that right-clicking inside the
+				// selection preserves it, even when a filled shape sits behind it.
+				if (
+					selectedShapeIds.length > 1 ||
+					(onlySelectedShape &&
+						!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
+				) {
+					if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
+						this.onRightClick({
+							...info,
+							target: 'selection',
+						})
+						return
+					}
+				}
+
 				const hoveredShape = this.editor.getHoveredShape()
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
 						? hoveredShape
-						: this.editor.getShapeAtPoint(this.editor.inputs.getCurrentPagePoint(), {
+						: this.editor.getShapeAtPoint(currentPagePoint, {
 								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
 								hitInside: false,
 								hitLabels: true,
@@ -377,24 +397,6 @@ export class Idle extends StateNode {
 						target: 'shape',
 					})
 					return
-				}
-
-				const selectedShapeIds = this.editor.getSelectedShapeIds()
-				const onlySelectedShape = this.editor.getOnlySelectedShape()
-				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
-
-				if (
-					selectedShapeIds.length > 1 ||
-					(onlySelectedShape &&
-						!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
-				) {
-					if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
-						this.onRightClick({
-							...info,
-							target: 'selection',
-						})
-						return
-					}
 				}
 
 				this.editor.selectNone()
