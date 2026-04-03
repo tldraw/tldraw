@@ -387,6 +387,7 @@ function DrawShapeSvg({
 							)}
 							fillColor={fillColor}
 							patternFillFallbackColor={patternFillFallbackColor}
+							scale={shape.props.scale}
 						/>
 					) : (
 						<path
@@ -417,6 +418,7 @@ function DrawShapeSvg({
 					d={solidStrokePath}
 					fillColor={fillColor}
 					patternFillFallbackColor={patternFillFallbackColor}
+					scale={shape.props.scale}
 				/>
 			) : (
 				<path fill={fillColor} d={solidStrokePath} />

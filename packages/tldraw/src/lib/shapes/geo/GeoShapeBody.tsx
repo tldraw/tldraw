@@ -36,6 +36,7 @@ export function GeoShapeBody({
 					d={fillPath}
 					fillColor={fillColor}
 					patternFillFallbackColor={patternFillFallbackColor}
+					scale={scaleToUse}
 				/>
 			) : (
 				<path fill={fillColor} d={fillPath} />

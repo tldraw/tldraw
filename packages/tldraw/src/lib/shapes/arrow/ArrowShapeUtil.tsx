@@ -1327,6 +1327,7 @@ const ArrowSvg = track(function ArrowSvg({
 							d={as}
 							fillColor={fillColor}
 							patternFillFallbackColor={patternFillFallbackColor}
+							scale={shape.props.scale}
 						/>
 					) : (
 						<path fill={fillColor} d={as} />
@@ -1339,6 +1340,7 @@ const ArrowSvg = track(function ArrowSvg({
 							d={ae}
 							fillColor={fillColor}
 							patternFillFallbackColor={patternFillFallbackColor}
+							scale={shape.props.scale}
 						/>
 					) : (
 						<path fill={fillColor} d={ae} />
