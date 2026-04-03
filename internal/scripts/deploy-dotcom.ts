@@ -300,7 +300,7 @@ const zeroConnectionLimits = {
 		vs: { upstream: 2, cvr: 3, change: 1 },
 	},
 	production: {
-		rm: { upstream: 1, cvr: 3, change: 5 },
+		rm: { upstream: 5, cvr: 10, change: 15 },
 		vs: { upstream: 8, cvr: 10, change: 3 },
 	},
 	// Previews use Supabase branch DB
