@@ -669,7 +669,7 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 
 function withStatementTimeout(connString: string): string {
 	const separator = connString.includes('?') ? '&' : '?'
-	return `${connString}${separator}statement_timeout=0`
+	return `${connString}${separator}statement_timeout=1800000`
 }
 
 function updateFlyioToml(appName: string): void {
