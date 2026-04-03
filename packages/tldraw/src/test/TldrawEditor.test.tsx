@@ -256,7 +256,7 @@ describe('<TldrawEditor />', () => {
 			shapeTypesToTest.length
 		)
 
-		// Check that the canvas overlays element is present
+		// Check that the canvas indicators element is present
 		expect(document.querySelector('.tl-canvas-indicators')).toBeTruthy()
 
 		// Select one of the shapes (the note shape)
