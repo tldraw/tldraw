@@ -128,11 +128,7 @@ const isDark = editor.user.getIsDarkMode()
 // true if colorScheme is 'dark', or 'system' with OS in dark mode
 ```
 
-You can also use the `inferDarkMode` prop on the Tldraw component to automatically infer the initial theme from the user's system preference:
-
-```tsx
-<Tldraw inferDarkMode />
-```
+The editor-level `colorScheme` prop sets the default color scheme. When a user preference is set, it takes priority over the prop. See [Themes](/sdk-features/themes#color-mode) for more.
 
 ## Persistence and synchronization
 
@@ -151,4 +147,3 @@ Preferences are validated using `userTypeValidator` from `@tldraw/editor`. Inval
 ## Related examples
 
 - [Toggle dark mode](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/dark-mode-toggle) - Toggle between light and dark mode by changing `colorScheme`.
-- [Infer dark mode](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/infer-dark-mode) - Automatically infer the initial theme from the user's system preference.

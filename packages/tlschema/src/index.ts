@@ -290,21 +290,18 @@ export {
 } from './shapes/TLVideoShape'
 export { EnumStyleProp, StyleProp, type StylePropValue } from './styles/StyleProp'
 export {
-	defaultColorNames,
 	DefaultColorStyle,
-	DefaultColorThemePalette,
-	DefaultLabelColorStyle,
-	getColorValue,
-	getDefaultColorTheme,
+	registerColorsFromThemes,
 	type TLDefaultColorStyle,
-	type TLDefaultColorTheme,
-	type TLDefaultColorThemeColor,
 } from './styles/TLColorStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
 export { DefaultFillStyle, type TLDefaultFillStyle } from './styles/TLFillStyle'
+export { type TLFontFace, type TLFontFaceSource } from './styles/TLFontFace'
 export {
 	DefaultFontFamilies,
 	DefaultFontStyle,
+	isFontEntry,
+	registerFontsFromThemes,
 	type TLDefaultFontStyle,
 } from './styles/TLFontStyle'
 export {
@@ -313,6 +310,18 @@ export {
 } from './styles/TLHorizontalAlignStyle'
 export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
 export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TLTextAlignStyle'
+export {
+	type TLDefaultColor,
+	type TLRemovedDefaultThemeColors,
+	type TLTheme,
+	type TLThemeColors,
+	type TLThemeDefaultColors,
+	type TLThemeFont,
+	type TLThemeFonts,
+	type TLThemeId,
+	type TLThemes,
+	type TLThemeUiColorKeys,
+} from './styles/TLTheme'
 export {
 	DefaultVerticalAlignStyle,
 	type TLDefaultVerticalAlignStyle,

@@ -50,6 +50,9 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
+	TLTheme,
+	TLThemeId,
+	TLThemes,
 	TLUser,
 	TLUserId,
 	TLVideoAsset,
@@ -156,6 +159,7 @@ import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
+import { resolveThemes, ThemeManager } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import {
@@ -218,11 +222,6 @@ export interface TLEditorOptions {
 	 */
 	tools: readonly TLStateNodeConstructor[]
 	/**
-	 * Should return a containing html element which has all the styles applied to the editor. If not
-	 * given, the body element will be used.
-	 */
-	getContainer(): HTMLElement
-	/**
 	 * A user defined externally to replace the default user.
 	 */
 	user?: TLCurrentUser
@@ -234,25 +233,13 @@ export interface TLEditorOptions {
 	 * Whether to automatically focus the editor when it mounts.
 	 */
 	autoFocus?: boolean
-	/**
-	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
-	 */
-	inferDarkMode?: boolean
-	/**
-	 * Options for the editor's camera.
-	 *
-	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
-	 */
-	cameraOptions?: Partial<TLCameraOptions>
-	options?: Partial<TldrawOptions>
-	/**
-	 * Text options for the editor.
-	 *
-	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
-	 */
-	textOptions?: TLTextOptions
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
+	/**
+	 * Should return a containing html element which has all the styles applied to the editor. If not
+	 * given, the body element will be used.
+	 */
+	getContainer(): HTMLElement
 	/**
 	 * Provides a way to hide shapes.
 	 *
@@ -272,6 +259,41 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+	/**
+	 * Named theme definitions for the editor. Each theme contains shared
+	 * properties (font size, line height, stroke width) and color palettes
+	 * for both light and dark modes.
+	 */
+	themes?: Partial<TLThemes>
+	/**
+	 * The id of the initially active theme. Defaults to `'default'`.
+	 */
+	initialTheme?: TLThemeId
+	/**
+	 * The editor's color scheme preference, controls the default color mode. Defaults to `'light'`.
+	 *
+	 * - `'light'` - Always use light mode.
+	 * - `'dark'` - Always use dark mode.
+	 * - `'system'` - Follow the OS color scheme preference.
+	 */
+	colorScheme?: 'light' | 'dark' | 'system'
+	/**
+	 * Additional configuration options for the tldraw editor.
+	 */
+	options?: Partial<TldrawOptions>
+	// --- Deprecated ----
+	/**
+	 * Options for the editor's camera.
+	 *
+	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
+	 */
+	cameraOptions?: Partial<TLCameraOptions>
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 }
 
 /**
@@ -307,13 +329,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		cameraOptions,
 		initialState,
 		autoFocus,
-		inferDarkMode,
 		options: _options,
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
+		colorScheme,
 		fontAssetUrls,
+		themes,
+		initialTheme,
 	}: TLEditorOptions) {
 		super()
 
@@ -348,25 +372,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 			...options?.camera,
 		})
 
+		this.getContainer = getContainer
+
 		this._textOptions = atom('text options', options?.text ?? null)
 
-		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), inferDarkMode ?? false)
+		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), colorScheme ?? 'light')
 		this.disposables.add(() => this.user.dispose())
-
-		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
 		this.disposables.add(() => this.textMeasure.dispose())
 
-		this.fonts = new FontManager(this, fontAssetUrls)
+		this._themeManager = new ThemeManager(this, {
+			themes: resolveThemes(themes),
+			initial: initialTheme ?? 'default',
+		})
+		this.disposables.add(() => this._themeManager.dispose())
 
 		this._tickManager = new TickManager(this)
+		this.disposables.add(() => this._tickManager.dispose())
 		this.disposables.add(() => {
 			// Reset camera state to 'idle' so the store isn't left stuck at 'moving'
 			// when tick events stop (e.g. React strict mode disposes while camera is moving)
 			this.off('tick', this._decayCameraStateTimeout)
 			this._setCameraState('idle')
 		})
+
+		this.fonts = new FontManager(this, fontAssetUrls)
 
 		this.inputs = new InputsManager(this)
 
@@ -948,6 +979,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly snaps: SnapManager
 
+	/**
+	 * A manager for the spatial index, tracking where shapes exist on the canvas.
+	 *
+	 * @internal
+	 */
 	private readonly _spatialIndex: SpatialIndexManager
 
 	/**
@@ -964,6 +1000,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly user: UserPreferencesManager
+
+	/**
+	 * A manager for the editor's themes.
+	 *
+	 * @internal
+	 */
+	private readonly _themeManager: ThemeManager
 
 	/**
 	 * A helper for measuring text.
@@ -1045,11 +1088,132 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	dispose() {
+		// Stop any in-progress camera animations and following before
+		// running disposables, so their cleanup listeners fire first
+		this.stopCameraAnimation()
+		if (this.getInstanceState().followingUserId) {
+			this.stopFollowingUser()
+		}
+
 		this.disposables.forEach((dispose) => dispose())
 		this.disposables.clear()
+
+		// Clear any open menus for this editor's context
+		this.menus.clearOpenMenus()
+
 		this.store.dispose()
 		this.isDisposed = true
 		this.emit('dispose')
+	}
+
+	/* ------------------ Themes (shadowing the theme manager) ------------------ */
+
+	/**
+	 * Get the current color mode (`'light'` or `'dark'`), based on the user's dark mode preference.
+	 *
+	 * @public
+	 */
+	getColorMode(): 'light' | 'dark' {
+		return this._themeManager.getColorMode()
+	}
+
+	/**
+	 * Set the color mode. Note that this is a convenience method that passes the mode to
+	 * `user.updateUserPreferences`, which is the source of truth for the user's color mode preference.
+	 *
+	 * @public
+	 */
+	setColorMode(mode: 'light' | 'dark') {
+		this.user.updateUserPreferences({ colorScheme: mode })
+		return this
+	}
+
+	/**
+	 * Get the id of the current theme.
+	 *
+	 * @public
+	 */
+	getCurrentThemeId(): TLThemeId {
+		return this._themeManager.getCurrentThemeId()
+	}
+
+	/**
+	 * Get the current theme definition.
+	 *
+	 * @public
+	 */
+	getCurrentTheme(): TLTheme {
+		return this._themeManager.getCurrentTheme()
+	}
+
+	/**
+	 * Set the current theme by id.
+	 *
+	 * @public
+	 */
+	setCurrentTheme(id: TLThemeId) {
+		this._themeManager.setCurrentTheme(id)
+		return this
+	}
+
+	/**
+	 * Get all registered theme definitions.
+	 *
+	 * @public
+	 */
+	getThemes(): TLThemes {
+		return this._themeManager.getThemes()
+	}
+
+	/**
+	 * Get a single theme definition by id.
+	 *
+	 * @public
+	 */
+	getTheme(id: TLThemeId): TLTheme | undefined {
+		return this._themeManager.getTheme(id)
+	}
+
+	/**
+	 * Replace all theme definitions, or update them via a callback that receives a deep copy.
+	 * The `'default'` theme must always be present in the result.
+	 *
+	 * @example
+	 * ```ts
+	 * // Replace all themes
+	 * editor.updateThemes({ default: myDefaultTheme, ocean: myOceanTheme })
+	 *
+	 * // Update via callback
+	 * editor.updateThemes((themes) => {
+	 *   delete themes.ocean
+	 *   return themes
+	 * })
+	 * ```
+	 *
+	 * @public
+	 */
+	updateThemes(themes: TLThemes | ((themes: TLThemes) => TLThemes)) {
+		this._themeManager.updateThemes(themes)
+		return this
+	}
+
+	/**
+	 * Register or update a single theme definition. The theme is keyed by its `id` property.
+	 *
+	 * @example
+	 * ```ts
+	 * // Override a property on the default theme
+	 * editor.updateTheme({ ...editor.getTheme('default')!, fontSize: 24 })
+	 *
+	 * // Register a new theme
+	 * editor.updateTheme({ id: 'ocean', ...myOceanTheme })
+	 * ```
+	 *
+	 * @public
+	 */
+	updateTheme(theme: TLTheme) {
+		this._themeManager.updateTheme(theme)
+		return this
 	}
 
 	/* ------------------- Shape Utils ------------------ */
