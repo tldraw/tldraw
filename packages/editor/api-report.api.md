@@ -94,6 +94,7 @@ import { TLTheme } from '@tldraw/tlschema';
 import { TLThemeColors } from '@tldraw/tlschema';
 import { TLThemeId } from '@tldraw/tlschema';
 import { TLThemes } from '@tldraw/tlschema';
+import { TLUnknownAsset } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLUser } from '@tldraw/tlschema';
@@ -143,6 +144,26 @@ export class Arc2d extends Geometry2d {
 
 // @public
 export function areAnglesCompatible(a: number, b: number): boolean;
+
+// @public
+export abstract class AssetUtil<Asset extends TLAsset = TLAsset> {
+    constructor(editor: Editor);
+    acceptsMimeType(mimeType: string): boolean;
+    static configure<T extends TLAssetUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
+    // (undocumented)
+    editor: Editor;
+    getAssetFromFile(_file: File, _assetId: TLAssetId): Promise<Asset | null>;
+    abstract getDefaultProps(): Asset['props'];
+    getSupportedMimeTypes(): readonly string[];
+    // (undocumented)
+    static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
+    options: {};
+    // (undocumented)
+    static props?: RecordProps<TLUnknownAsset>;
+    static type: string;
+}
 
 // @public (undocumented)
 export function average(A: VecLike, B: VecLike): string;
@@ -851,7 +872,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -862,6 +883,9 @@ export class Editor extends EventEmitter<TLEventMap> {
         tags?: Record<string, boolean | number | string>;
         willCrashApp: boolean;
     }): this;
+    assetUtils: {
+        readonly [K in string]?: AssetUtil<TLAsset>;
+    };
     bail(): this;
     bailToMark(id: string): this;
     bindingUtils: {
@@ -1217,6 +1241,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
     getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
+    getAssetUtil<S extends TLAsset>(asset: {
+        type: S['type'];
+    } | S): AssetUtil<S>;
+    // (undocumented)
+    getAssetUtil(type: string): AssetUtil;
+    getAssetUtilForMimeType(mimeType: string): AssetUtil | null;
     getAttributionDisplayName(userId: null | string): null | string;
     getAttributionUser(userId: null | string): null | TLUser;
     getAttributionUserId(): null | string;
@@ -1365,6 +1395,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeUtil<S extends TLShape>(shape: S | S['type'] | TLShapePartial<S>): ShapeUtil<S>;
     // (undocumented)
     getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
+    getShapeUtilForAssetType(assetType: string): ShapeUtil | undefined;
     getSharedOpacity(): SharedStyle<number>;
     getSharedStyles(): ReadonlySharedStyleMap;
     // (undocumented)
@@ -1404,6 +1435,9 @@ export class Editor extends EventEmitter<TLEventMap> {
         select: boolean;
     }>): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
+    hasAssetUtil(arg: {
+        type: string;
+    } | string): boolean;
     // (undocumented)
     hasExternalAssetHandler(type: TLExternalAsset['type']): boolean;
     hasShapeUtil(shape: TLShape | TLShapePartial<TLShape>): boolean;
@@ -2865,6 +2899,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
         options: infer Options;
     } ? Partial<Options> : never): T;
+    createShapeForAsset?(asset: TLAsset, position: VecModel): null | TLShapePartial;
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)
@@ -2884,6 +2919,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     getReferencedUserIds(shape: Shape): string[];
     // (undocumented)
     getText(shape: Shape): string | undefined;
+    static handledAssetTypes?: readonly string[];
     hideInMinimap?(shape: Shape): boolean;
     hideResizeHandles(shape: Shape): boolean;
     hideRotateHandle(shape: Shape): boolean;
@@ -3251,10 +3287,25 @@ export type TiptapNode = Node_2;
 export type TLAdjacentDirection = 'down' | 'left' | 'next' | 'prev' | 'right' | 'up';
 
 // @public (undocumented)
+export type TLAnyAssetUtilConstructor = TLAssetUtilConstructor<any>;
+
+// @public (undocumented)
 export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
 
 // @public (undocumented)
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
+
+// @public (undocumented)
+export interface TLAssetUtilConstructor<T extends TLAsset = TLAsset, U extends AssetUtil<T> = AssetUtil<T>> {
+    // (undocumented)
+    new (editor: Editor): U;
+    // (undocumented)
+    migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
+    // (undocumented)
+    props?: RecordProps<T>;
+    // (undocumented)
+    type: T['type'];
+}
 
 // @public (undocumented)
 export type TLBaseBoxShape = ExtractShapeByProps<{
@@ -3558,6 +3609,7 @@ export interface TldrawEditorBaseProps {
             [key: string]: string | undefined;
         };
     };
+    assetUtils?: readonly TLAnyAssetUtilConstructor[];
     autoFocus?: boolean;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     // @deprecated
@@ -3791,6 +3843,7 @@ export interface TLEditorComponents {
 
 // @public (undocumented)
 export interface TLEditorOptions {
+    assetUtils?: readonly TLAnyAssetUtilConstructor[];
     autoFocus?: boolean;
     bindingUtils: readonly TLAnyBindingUtilConstructor[];
     // @deprecated
@@ -4520,6 +4573,8 @@ export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T
     // (undocumented)
     new (editor: Editor): U;
     // (undocumented)
+    handledAssetTypes?: readonly string[];
+    // (undocumented)
     migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     // (undocumented)
     props?: RecordProps<T>;
@@ -4585,6 +4640,7 @@ export type TLStoreOptions = TLStoreBaseOptions & {
 
 // @public (undocumented)
 export type TLStoreSchemaOptions = {
+    assetUtils?: readonly TLAnyAssetUtilConstructor[];
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     migrations?: readonly MigrationSequence[];
     records?: Record<string, CustomRecordInfo>;

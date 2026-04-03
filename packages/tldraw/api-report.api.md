@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AssetUtil } from '@tldraw/editor';
 import { Atom } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
@@ -153,6 +154,7 @@ import { TLUrlExternalAsset } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
+import { Validator } from '@tldraw/validate';
 import { Vec } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
 import { VecModel } from '@tldraw/editor';
@@ -448,6 +450,24 @@ export interface BasePathBuilderOpts {
     props?: SVGProps<SVGPathElement & SVGGElement>;
     // (undocumented)
     strokeWidth: number;
+}
+
+// @public (undocumented)
+export class BookmarkAssetUtil extends AssetUtil<TLBookmarkAsset> {
+    // (undocumented)
+    getDefaultProps(): TLBookmarkAsset['props'];
+    // (undocumented)
+    static migrations: MigrationSequence;
+    // (undocumented)
+    static props: {
+        description: Validator<string>;
+        favicon: Validator<string>;
+        image: Validator<string>;
+        src: Validator<null | string>;
+        title: Validator<string>;
+    };
+    // (undocumented)
+    static type: "bookmark";
 }
 
 // @public (undocumented)
@@ -919,6 +939,9 @@ export function DefaultActionsMenuContent(): JSX.Element;
 export function defaultAddFontsFromNode(node: Node_2, state: RichTextFontVisitorState, addFont: (font: TLFontFace_2) => void): RichTextFontVisitorState;
 
 // @public (undocumented)
+export const defaultAssetUtils: readonly [typeof ImageAssetUtil, typeof VideoAssetUtil, typeof BookmarkAssetUtil];
+
+// @public (undocumented)
 export const defaultBindingUtils: readonly [typeof ArrowBindingUtil];
 
 // @public (undocumented)
@@ -964,7 +987,7 @@ export function defaultHandleExternalExcalidrawContent(editor: Editor, { point, 
 }): Promise<void>;
 
 // @public (undocumented)
-export function defaultHandleExternalFileAsset(editor: Editor, { file, assetId }: TLFileExternalAsset, options: TLDefaultExternalContentHandlerOpts): Promise<TLAsset>;
+export function defaultHandleExternalFileAsset(editor: Editor, { file, assetId }: TLFileExternalAsset, options: TLDefaultExternalContentHandlerOpts): Promise<TLAsset<"bookmark" | "image" | "video">>;
 
 // @public (undocumented)
 export function defaultHandleExternalFileContent(editor: Editor, { point, files }: {
@@ -1935,7 +1958,7 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 };
 
 // @public (undocumented)
-export function getAssetInfo(file: File, options: TLDefaultExternalContentHandlerOpts, assetId?: TLAssetId): Promise<TLImageAsset | TLVideoAsset>;
+export function getAssetInfo(editor: Editor, file: File, assetId?: TLAssetId): Promise<null | TLAsset>;
 
 // @public
 export function getColorStyleItems(colors: TLThemeColors): StyleValuesForUi<string>;
@@ -1969,9 +1992,6 @@ export function getFontStyleItems(theme: TLTheme): StyleValuesForUi<string>;
 
 // @public (undocumented)
 export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boolean): TLShape | undefined;
-
-// @public (undocumented)
-export function getMediaAssetInfoPartial(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean, maxImageDimension?: number, doc?: Document): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public (undocumented)
 export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, scaleX: number, scaleY: number, points?: Vec[]): Vec[];
@@ -2126,6 +2146,36 @@ export function HighlightToolbarItem(): JSX.Element;
 export const iconTypes: readonly ["align-bottom", "align-center-horizontal", "align-center-vertical", "align-left", "align-right", "align-top", "alt", "arrow-arc", "arrow-cycle", "arrow-elbow", "arrow-left", "arrowhead-arrow", "arrowhead-bar", "arrowhead-diamond", "arrowhead-dot", "arrowhead-none", "arrowhead-square", "arrowhead-triangle-inverted", "arrowhead-triangle", "blob", "bold", "bookmark", "bring-forward", "bring-to-front", "broken", "bulletList", "check-circle", "check", "chevron-down", "chevron-left", "chevron-right", "chevron-up", "chevrons-ne", "chevrons-sw", "clipboard-copied", "clipboard-copy", "code", "color", "comment", "corners", "crop", "cross-2", "cross-circle", "dash-dashed", "dash-dotted", "dash-draw", "dash-solid", "disconnected", "discord", "distribute-horizontal", "distribute-vertical", "dot", "dots-horizontal", "dots-vertical", "download", "drag-handle-dots", "duplicate", "edit", "external-link", "fill-fill", "fill-lined-fill", "fill-none", "fill-pattern", "fill-semi", "fill-solid", "follow", "following", "font-draw", "font-mono", "font-sans", "font-serif", "geo-arrow-down", "geo-arrow-left", "geo-arrow-right", "geo-arrow-up", "geo-check-box", "geo-cloud", "geo-diamond", "geo-ellipse", "geo-heart", "geo-hexagon", "geo-octagon", "geo-oval", "geo-pentagon", "geo-rectangle", "geo-rhombus-2", "geo-rhombus", "geo-star", "geo-trapezoid", "geo-triangle", "geo-x-box", "github", "group", "heading", "help-circle", "highlight", "horizontal-align-end", "horizontal-align-middle", "horizontal-align-start", "info-circle", "italic", "leading", "link", "list", "lock", "manual", "menu", "minus", "mixed", "pack", "plus", "question-mark-circle", "question-mark", "redo", "reset-zoom", "rotate-ccw", "rotate-cw", "send-backward", "send-to-back", "share-1", "size-extra-large", "size-large", "size-medium", "size-small", "spline-cubic", "spline-line", "stack-horizontal", "stack-vertical", "status-offline", "stretch-horizontal", "stretch-vertical", "strike", "text-align-center", "text-align-left", "text-align-right", "toggle-off", "toggle-on", "tool-arrow", "tool-eraser", "tool-frame", "tool-hand", "tool-highlight", "tool-laser", "tool-line", "tool-media", "tool-note", "tool-pencil", "tool-pointer", "tool-screenshot", "tool-text", "trash", "twitter", "underline", "undo", "ungroup", "unlock", "vertical-align-end", "vertical-align-middle", "vertical-align-start", "warning-triangle", "zoom-in", "zoom-out"];
 
 // @public (undocumented)
+export class ImageAssetUtil extends AssetUtil<TLImageAsset> {
+    // (undocumented)
+    getAssetFromFile(file: File, assetId: TLAssetId): Promise<null | TLImageAsset>;
+    // (undocumented)
+    getDefaultProps(): TLImageAsset['props'];
+    // (undocumented)
+    getSupportedMimeTypes(): readonly string[];
+    // (undocumented)
+    static migrations: MigrationSequence;
+    // (undocumented)
+    options: {
+        maxDimension: number;
+        supportedMimeTypes: null | readonly string[];
+    };
+    // (undocumented)
+    static props: {
+        fileSize: Validator<number | undefined>;
+        h: Validator<number>;
+        isAnimated: Validator<boolean>;
+        mimeType: Validator<null | string>;
+        name: Validator<string>;
+        pixelRatio: Validator<number | undefined>;
+        src: Validator<null | string>;
+        w: Validator<number>;
+    };
+    // (undocumented)
+    static type: "image";
+}
+
+// @public (undocumented)
 export interface ImageShapeOptions extends ShapeOptionsWithDisplayValues<TLImageShape, ImageShapeUtilDisplayValues> {
 }
 
@@ -2136,6 +2186,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     component(shape: TLImageShape): JSX.Element;
     // (undocumented)
+    createShapeForAsset(asset: TLAsset, position: VecModel): null | TLShapePartial;
+    // (undocumented)
     getAriaDescriptor(shape: TLImageShape): string;
     // (undocumented)
     getDefaultProps(): TLImageShape['props'];
@@ -2145,6 +2197,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     getIndicatorPath(shape: TLImageShape): Path2D | undefined;
     // (undocumented)
     getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
+    // (undocumented)
+    static handledAssetTypes: readonly ["image"];
     // (undocumented)
     indicator(shape: TLImageShape): JSX.Element | null;
     // (undocumented)
@@ -2515,7 +2569,7 @@ export interface NoteShapeUtilDisplayValues {
 export function NoteToolbarItem(): JSX.Element;
 
 // @public
-export function notifyIfFileNotAllowed(file: File, options: TLDefaultExternalContentHandlerOpts): boolean;
+export function notifyIfFileNotAllowed(editor: Editor, file: File, options: TLDefaultExternalContentHandlerOpts): boolean;
 
 // @public (undocumented)
 export function OfflineIndicator(): JSX.Element;
@@ -5862,6 +5916,34 @@ export function useUiEvents(): TLUiEventContextType;
 export function useUnlockedSelectedShapesCount(min?: number, max?: number): boolean | number;
 
 // @public (undocumented)
+export class VideoAssetUtil extends AssetUtil<TLVideoAsset> {
+    // (undocumented)
+    getAssetFromFile(file: File, assetId: TLAssetId): Promise<null | TLVideoAsset>;
+    // (undocumented)
+    getDefaultProps(): TLVideoAsset['props'];
+    // (undocumented)
+    getSupportedMimeTypes(): readonly string[];
+    // (undocumented)
+    static migrations: MigrationSequence;
+    // (undocumented)
+    options: {
+        supportedMimeTypes: null | readonly string[];
+    };
+    // (undocumented)
+    static props: {
+        fileSize: Validator<number | undefined>;
+        h: Validator<number>;
+        isAnimated: Validator<boolean>;
+        mimeType: Validator<null | string>;
+        name: Validator<string>;
+        src: Validator<null | string>;
+        w: Validator<number>;
+    };
+    // (undocumented)
+    static type: "video";
+}
+
+// @public (undocumented)
 export interface VideoShapeOptions extends ShapeOptionsWithDisplayValues<TLVideoShape, VideoShapeUtilDisplayValues> {
     autoplay: boolean;
 }
@@ -5873,11 +5955,15 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     component(shape: TLVideoShape): JSX.Element;
     // (undocumented)
+    createShapeForAsset(asset: TLAsset, position: VecModel): null | TLShapePartial;
+    // (undocumented)
     getAriaDescriptor(shape: TLVideoShape): string;
     // (undocumented)
     getDefaultProps(): TLVideoShape['props'];
     // (undocumented)
     getIndicatorPath(shape: TLVideoShape): Path2D;
+    // (undocumented)
+    static handledAssetTypes: readonly ["video"];
     // (undocumented)
     indicator(shape: TLVideoShape): JSX.Element;
     // (undocumented)
