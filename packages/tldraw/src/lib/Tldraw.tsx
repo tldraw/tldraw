@@ -122,13 +122,13 @@ function configureDefaultAssetUtils(
 
 	return assetUtils.map((util) => {
 		if (needsImageConfig && util.type === 'image') {
-			return ImageAssetUtil.configure({
+			return (util as typeof ImageAssetUtil).configure({
 				...(maxImageDimension !== undefined && { maxDimension: maxImageDimension }),
 				...(acceptedImageMimeTypes !== undefined && { supportedMimeTypes: acceptedImageMimeTypes }),
 			})
 		}
 		if (needsVideoConfig && util.type === 'video') {
-			return VideoAssetUtil.configure({
+			return (util as typeof VideoAssetUtil).configure({
 				...(acceptedVideoMimeTypes !== undefined && { supportedMimeTypes: acceptedVideoMimeTypes }),
 			})
 		}
