@@ -17,7 +17,10 @@ import {
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
-import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
+import {
+	cancelUpdateHoveredShapeId,
+	updateHoveredShapeId,
+} from '../../selection-logic/updateHoveredShapeId'
 import { hasRichText, startEditingShapeWithRichText } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
@@ -44,7 +47,7 @@ export class Idle extends StateNode {
 	}
 
 	override onExit() {
-		updateHoveredShapeId.cancel()
+		cancelUpdateHoveredShapeId(this.editor)
 	}
 
 	override onPointerMove() {

@@ -10,7 +10,10 @@ import {
 import { getTextLabels } from '../../../utils/shapes/shapes'
 import { renderPlaintextFromRichText } from '../../../utils/text/richText'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
-import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
+import {
+	cancelUpdateHoveredShapeId,
+	updateHoveredShapeId,
+} from '../../selection-logic/updateHoveredShapeId'
 
 interface EditingShapeInfo {
 	isCreatingTextWhileToolLocked?: boolean
@@ -49,7 +52,7 @@ export class EditingShape extends StateNode {
 		const hadEditingShape = !!this.editor.getEditingShapeId()
 		this.editor.setEditingShape(null)
 
-		updateHoveredShapeId.cancel()
+		cancelUpdateHoveredShapeId(this.editor)
 
 		if (this.info.isCreatingTextWhileToolLocked && hadEditingShape) {
 			this.parent.setCurrentToolIdMask(undefined)
