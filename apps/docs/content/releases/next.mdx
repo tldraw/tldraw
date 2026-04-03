@@ -5,12 +5,73 @@ author: tldraw
 date: 03/18/2026
 order: 0
 status: published
-last_version: v4.5.3
+last_version: v4.5.6
 ---
 
-This release adds clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, and smarter export trimming. It also includes various other improvements and bug fixes.
+This release adds a first-class theme system with display values for customizing default shapes, shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, arbitrary iframe embed pasting, and smarter export trimming. It also includes various other improvements and bug fixes.
 
 ## What's new
+
+### 💥 Theme system with display values ([#8410](https://github.com/tldraw/tldraw/pull/8410))
+
+A new first-class theme system replaces the previous approach where colors were hardcoded and resolved inline. Themes are now named, registered objects that shape utils consume via a structured display values pipeline.
+
+Register custom themes via `TLThemes` module augmentation for type-safe IDs, add or remove palette colors via `TLThemeDefaultColors` and `TLRemovedDefaultThemeColors`, and pass themes to the editor via the `themes` and `initialTheme` props:
+
+```tsx
+<Tldraw
+	themes={{ corporate: myCorporateTheme }}
+	initialTheme="corporate"
+/>
+```
+
+Each default shape util defines `getDefaultDisplayValues` to resolve visual properties (colors, stroke widths, font sizes) from the current theme and color mode. Override display values for a default shape with `getCustomDisplayValues`:
+
+```tsx
+const MyDrawShapeUtil = DrawShapeUtil.configure({
+	getCustomDisplayValues(_editor, _shape, _theme, _colorMode) {
+		return { strokeWidth: 10 }
+	},
+})
+```
+
+New editor methods include `getCurrentTheme()`, `setCurrentTheme()`, `getThemes()`, `updateTheme()`, `updateThemes()`, and `getColorMode()`.
+
+<details>
+<summary>Migration guide</summary>
+
+The `inferDarkMode` prop has been renamed to `colorScheme` and changed from `boolean` to `'light' | 'dark' | 'system'`:
+
+```tsx
+// Before
+<Tldraw inferDarkMode />
+
+// After
+<Tldraw colorScheme="system" />
+```
+
+`useIsDarkMode()` has been renamed to `useColorMode()` and returns `'dark' | 'light'` instead of `boolean`.
+
+`getDefaultColorTheme()` and `DefaultColorThemePalette` have been removed. Use `editor.getCurrentTheme().colors[colorMode]` instead:
+
+```tsx
+// Before
+const theme = getDefaultColorTheme({ isDarkMode })
+
+// After
+const theme = editor.getCurrentTheme()
+const colors = theme.colors[editor.getColorMode()]
+```
+
+`useDefaultColorTheme()` has been removed. Use `editor.getCurrentTheme()` and `useColorMode()` instead.
+
+`FONT_FAMILIES`, `FONT_SIZES`, `LABEL_FONT_SIZES`, `STROKE_SIZES`, `TEXT_PROPS`, and `ARROW_LABEL_FONT_SIZES` have been removed — these are now resolved via display values.
+
+`SvgExportContext.themeId` has been renamed to `SvgExportContext.colorMode` and changed from `string` to `'light' | 'dark'`.
+
+`getColorValue()` now takes `TLThemeColors` as its first argument instead of `TLDefaultColorTheme`.
+
+</details>
 
 ### Custom record types ([#8213](https://github.com/tldraw/tldraw/pull/8213))
 
@@ -46,11 +107,7 @@ A new `@tldraw/editor-controller` package provides an imperative API for driving
 import { EditorController } from '@tldraw/editor-controller'
 
 const controller = new EditorController(editor)
-controller
-	.pointerMove(100, 100)
-	.pointerDown()
-	.pointerMove(200, 200)
-	.pointerUp()
+controller.pointerMove(100, 100).pointerDown().pointerMove(200, 200).pointerUp()
 ```
 
 This is useful for scripting, automation, agent workflows, and REPL-style interaction. The release includes a Scripter example demonstrating the package.
@@ -59,22 +116,27 @@ This is useful for scripting, automation, agent workflows, and REPL-style intera
 
 The tldraw UI now supports right-to-left languages like Arabic. A new `useDirection()` hook returns `'ltr'` or `'rtl'` from the current translation context, and all Radix UI components and CSS have been updated to respect text direction. The `dir` attribute is set on `.tl-container`, and CSS uses logical properties (`margin-inline-start`, `inset-inline-end`, etc.) instead of physical ones.
 
-### @tldraw/mermaid ([#8194](https://github.com/tldraw/tldraw/pull/8194), [#8285](https://github.com/tldraw/tldraw/pull/8285))
+### @tldraw/mermaid ([#8194](https://github.com/tldraw/tldraw/pull/8194), [#8285](https://github.com/tldraw/tldraw/pull/8285), [#8322](https://github.com/tldraw/tldraw/pull/8322))
 
 A new `@tldraw/mermaid` package converts Mermaid diagram syntax into native tldraw shapes. Paste Mermaid text to create flowcharts, sequence diagrams, state diagrams, and mind maps as editable shapes on the canvas.
 
 ```tsx
 import { createMermaidDiagram } from '@tldraw/mermaid'
 
-await createMermaidDiagram(editor, `
+await createMermaidDiagram(
+	editor,
+	`
   graph TD
     A[Start] --> B{Decision}
     B -->|Yes| C[Action]
     B -->|No| D[End]
-`)
+`
+)
 ```
 
 The package parses Mermaid syntax, extracts layout from the rendered SVG, and produces a diagram-agnostic blueprint that gets rendered into geo shapes, arrows, and groups.
+
+Node creation is extensible: pass `mapNodeToRenderSpec` per diagram type to map diagram nodes to different shapes, or use `createShape` in `BlueprintRenderingOptions` to take full control of how nodes are created on the canvas.
 
 ### Clipboard hooks ([#8290](https://github.com/tldraw/tldraw/pull/8290))
 
@@ -97,6 +159,38 @@ const options: Partial<TldrawOptions> = {
 }
 ```
 
+### Shape attribution and TLUserStore ([#8147](https://github.com/tldraw/tldraw/pull/8147))
+
+A new shape attribution system tracks who created and last edited shapes. The `TLUserStore` provider interface connects tldraw to your auth system with reactive `Signal`-based methods: `getCurrentUser()` returns the active user for presence and attribution, while `resolve(userId)` resolves any user ID to display info.
+
+```tsx
+<Tldraw
+	users={{
+		getCurrentUser: () => currentUserSignal,
+		resolve: (userId) => resolvedUserSignal(userId),
+	}}
+/>
+```
+
+User records are now document-scoped via the unified `TLUser` record type. SDK users can extend user records with custom validated metadata through `createTLSchema`:
+
+```tsx
+const schema = createTLSchema({
+	user: {
+		meta: {
+			isAdmin: T.boolean,
+			department: T.string,
+		},
+	},
+})
+```
+
+Note shapes now track and display a "first edited by" attribution label in the bottom-right corner, showing who first added text to the note.
+
+### Arbitrary iframe embeds ([#8306](https://github.com/tldraw/tldraw/pull/8306))
+
+Paste any `<iframe>` embed code onto the canvas to create an embed shape. Previously only URLs matching known providers (YouTube, Google Maps, etc.) worked. Now any valid iframe with an HTTP(S) source creates an embed directly, supporting services like OpenStreetMap, SoundCloud, Loom, and more.
+
 ### Cross-window embedding support ([#8196](https://github.com/tldraw/tldraw/pull/8196))
 
 Tldraw now works correctly when embedded in iframes, Electron pop-out windows, and Obsidian plugins where the global `document` and `window` differ from the ones tldraw is mounted in. All bare `document` and `window` references have been replaced with container-aware alternatives.
@@ -105,6 +199,17 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 
 ## API changes
 
+- 💥 Remove `defaultColorNames`, `DefaultColorThemePalette`, `DefaultLabelColorStyle`, `TLDefaultColorTheme` type, and `getDefaultColorTheme()` from `@tldraw/tlschema`. Use `editor.getCurrentTheme().colors` instead. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
+- 💥 Remove `ARROW_LABEL_FONT_SIZES`, `FONT_FAMILIES`, `FONT_SIZES`, `LABEL_FONT_SIZES`, `STROKE_SIZES`, `TEXT_PROPS`, and `useDefaultColorTheme()` from `@tldraw/tldraw`. These are now resolved via display values. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
+- 💥 Rename `inferDarkMode` prop to `colorScheme` (`boolean` → `'light' | 'dark' | 'system'`). Rename `useIsDarkMode()` to `useColorMode()` (returns `'dark' | 'light'` instead of `boolean`). ([#8410](https://github.com/tldraw/tldraw/pull/8410))
+- 💥 Rename `SvgExportContext.themeId` to `SvgExportContext.colorMode` (`string` → `'light' | 'dark'`). ([#8410](https://github.com/tldraw/tldraw/pull/8410))
+- 💥 Change `getColorValue()` first argument from `TLDefaultColorTheme` to `TLThemeColors`. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
+- 💥 Change `PlainTextLabelProps` and `RichTextLabelProps`: `font` → `fontFamily`, `align` → `textAlign`, `fill` removed. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
+- Add `TLTheme`, `TLThemeId`, `TLThemes`, `TLThemeDefaultColors`, `TLThemeColors`, `TLRemovedDefaultThemeColors`, `ThemeManager`, `getDisplayValues()`, `getColorValue()`, and `DEFAULT_THEME` for the new theme system. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
+- Add `themes` and `initialTheme` props to `<Tldraw>` and `<TldrawEditor>`. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
+- Add `getCurrentTheme()`, `setCurrentTheme()`, `getThemes()`, `getTheme()`, `updateTheme()`, `updateThemes()`, and `getColorMode()` to the editor. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
+- Add `getDefaultDisplayValues` and `getCustomDisplayValues` to shape util options for theme-aware visual properties. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
+- Add support for pasting arbitrary `<iframe>` embed codes to create embed shapes from any service. ([#8306](https://github.com/tldraw/tldraw/pull/8306))
 - Add `onBeforeCopyToClipboard`, `onBeforePasteFromClipboard`, and `onClipboardPasteRaw` hooks to `TldrawOptions` for intercepting clipboard operations. Add `TLClipboardWriteInfo` and `TLClipboardPasteRawInfo` types. Export `handleNativeOrMenuCopy` from `@tldraw/tldraw`. ([#8290](https://github.com/tldraw/tldraw/pull/8290))
 - Add `CustomRecordInfo` interface, `createCustomRecordId()`, `createCustomRecordMigrationIds()`, `createCustomRecordMigrationSequence()`, `isCustomRecord()`, `isCustomRecordId()` for custom record types. `createTLSchema()` and `createTLStore()` now accept a `records` option. ([#8213](https://github.com/tldraw/tldraw/pull/8213))
 - Add `@tldraw/editor-controller` package with `EditorController` class for imperative editor control. ([#7952](https://github.com/tldraw/tldraw/pull/7952))
@@ -116,13 +221,17 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Add `Vec.IsFinite()` static method. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 - Change `Vec.PointsBetween()` to accept an optional `ease` parameter. ([#7977](https://github.com/tldraw/tldraw/pull/7977))
 - Add `@tldraw/mermaid` package with `createMermaidDiagram()`, `renderBlueprint()`, and `MermaidDiagramError` for converting Mermaid syntax to tldraw shapes. ([#8194](https://github.com/tldraw/tldraw/pull/8194))
+- Add `mapNodeToRenderSpec` per-diagram-type option and `createShape` override to `@tldraw/mermaid` for customizing how diagram nodes are rendered as shapes. ([#8322](https://github.com/tldraw/tldraw/pull/8322))
 - Add `TextManager.measureHtmlBatch()` for batched DOM text measurement. ([#7949](https://github.com/tldraw/tldraw/pull/7949))
+- Add `TLUserStore` interface with `getCurrentUser()` and `resolve()` for connecting tldraw to auth systems. Add unified `TLUser` record type, `UserRecordType`, `createUserId`, `isUserId`, `userIdValidator`, and `createUserRecordType()` for extensible user schemas. Add `user` parameter to `createTLSchema()`. Add `Editor.getAttributionUser()`, `Editor.getAttributionUserId()`, and `Editor.getAttributionDisplayName()`. Add `textFirstEditedBy` prop to `TLNoteShapeProps`. ([#8147](https://github.com/tldraw/tldraw/pull/8147))
 
 ## Improvements
 
 - Optimize geometry hot paths for hit testing: reduce allocations and function call overhead in `Vec`, `Edge2d`, `Circle2d`, `Arc2d`, `Polyline2d`, and intersection routines. Circle hit testing is up to 19x faster, polyline nearest-point is 6.8x faster. ([#8210](https://github.com/tldraw/tldraw/pull/8210))
 - Exports now automatically trim to visual content bounds, capturing overflow like thick strokes and arrowheads without extra whitespace. ([#8202](https://github.com/tldraw/tldraw/pull/8202))
 - Improve resize performance for multiple geo shapes with text labels by batching DOM measurements into a single pass per frame. ([#7949](https://github.com/tldraw/tldraw/pull/7949))
+- Replace `@use-gesture/react` dependency with custom gesture handling, reducing bundle size and eliminating a stale dependency. ([#8392](https://github.com/tldraw/tldraw/pull/8392))
+- Tighten iframe referrer policy for embeds to send only the origin instead of the full URL to third-party embed providers. ([#8412](https://github.com/tldraw/tldraw/pull/8412))
 - Move the debug mode toggle into the preferences submenu. ([#8259](https://github.com/tldraw/tldraw/pull/8259))
 
 ## Bug fixes
@@ -134,3 +243,10 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix eraser not erasing shapes when starting a drag from inside a group's bounds. ([#8054](https://github.com/tldraw/tldraw/pull/8054))
 - Fix over-softened corners and end artifacts when shift-clicking to draw straight line segments. ([#7977](https://github.com/tldraw/tldraw/pull/7977))
 - Fix draw-shape loop-closing sensitivity so closing works more consistently across zoom levels. ([#8293](https://github.com/tldraw/tldraw/pull/8293))
+- Fix all shapes disappearing when a labeled arrow has zero length due to NaN propagation through the spatial index. ([#8329](https://github.com/tldraw/tldraw/pull/8329))
+- Fix "back to content" button flickering when both it and the "move focus to canvas" button are visible. ([#8334](https://github.com/tldraw/tldraw/pull/8334)) (contributed by [@kaneel](https://github.com/kaneel))
+- Fix slight positioning drift when pasting text onto the canvas. ([#8345](https://github.com/tldraw/tldraw/pull/8345))
+- Fix camera state getting permanently stuck at 'moving' when the editor is disposed mid-camera-transition, blocking all shape interactions. ([#8396](https://github.com/tldraw/tldraw/pull/8396))
+- Fix missing sandbox attribute on GitHub Gist embeds. ([#8403](https://github.com/tldraw/tldraw/pull/8403))
+- Restrict sandbox permissions for unknown/arbitrary embeds to mitigate security risks from untrusted content. ([#8404](https://github.com/tldraw/tldraw/pull/8404))
+- Fix leaked camera animations, following subscriptions, and stale menu state when the editor is disposed during active operations. ([#8422](https://github.com/tldraw/tldraw/pull/8422))

@@ -1,8 +1,10 @@
+// oxlint-disable typescript/no-empty-object-type
 import {
 	Group2d,
 	HandleSnapGeometry,
 	SVGContainer,
 	ShapeUtil,
+	SvgExportContext,
 	TLHandle,
 	TLHandleDragInfo,
 	TLLineShape,
@@ -22,18 +24,44 @@ import {
 	mapObjectMapValues,
 	maybeSnapToGrid,
 	sortByIndex,
+	useColorMode,
 } from '@tldraw/editor'
-import { STROKE_SIZES } from '../arrow/shared'
+import { STROKE_SIZES } from '../shared/default-shape-constants'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
 const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
+
+/** @public */
+export interface LineShapeUtilDisplayValues {
+	strokeColor: string
+	strokeWidth: number
+}
+
+/** @public */
+export interface LineShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLLineShape,
+	LineShapeUtilDisplayValues
+> {}
 
 /** @public */
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override type = 'line' as const
 	static override props = lineShapeProps
 	static override migrations = lineShapeMigrations
+
+	override options: LineShapeOptions = {
+		getDefaultDisplayValues(_editor, shape, theme, colorMode): LineShapeUtilDisplayValues {
+			const { color, size } = shape.props
+			return {
+				strokeColor: getColorValue(theme.colors[colorMode], color, 'solid'),
+				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
+			}
+		},
+		getCustomDisplayValues(): Partial<LineShapeUtilDisplayValues> {
+			return {}
+		},
+	}
 
 	override hideResizeHandles() {
 		return true
@@ -181,15 +209,18 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	component(shape: TLLineShape) {
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 		return (
 			<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
-				<LineShapeSvg shape={shape} />
+				<LineShapeSvg shape={shape} strokeColor={dv.strokeColor} strokeWidth={dv.strokeWidth} />
 			</SVGContainer>
 		)
 	}
 
 	indicator(shape: TLLineShape) {
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const strokeWidth = getDisplayValues(this, shape).strokeWidth * shape.props.scale
 		const path = getPathForLineShape(shape)
 		const { dash } = shape.props
 
@@ -209,7 +240,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override getIndicatorPath(shape: TLLineShape): Path2D {
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
+		const strokeWidth = getDisplayValues(this, shape).strokeWidth * shape.props.scale
 		const path = getPathForLineShape(shape)
 		const { dash } = shape.props
 
@@ -223,8 +254,16 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		})
 	}
 
-	override toSvg(shape: TLLineShape) {
-		return <LineShapeSvg shouldScale shape={shape} />
+	override toSvg(shape: TLLineShape, ctx: SvgExportContext) {
+		const dv = getDisplayValues(this, shape, ctx.colorMode)
+		return (
+			<LineShapeSvg
+				shouldScale
+				shape={shape}
+				strokeColor={dv.strokeColor}
+				strokeWidth={dv.strokeWidth}
+			/>
+		)
 	}
 
 	override getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry {
@@ -347,21 +386,23 @@ function LineShapeSvg({
 	shape,
 	shouldScale = false,
 	forceSolid = false,
+	strokeColor,
+	strokeWidth: baseStrokeWidth,
 }: {
 	shape: TLLineShape
 	shouldScale?: boolean
 	forceSolid?: boolean
+	strokeColor: string
+	strokeWidth: number
 }) {
-	const theme = useDefaultColorTheme()
-
 	const path = getPathForLineShape(shape)
-	const { dash, color, size } = shape.props
+	const { dash } = shape.props
 
 	const scaleFactor = 1 / shape.props.scale
 
 	const scale = shouldScale ? scaleFactor : 1
 
-	const strokeWidth = STROKE_SIZES[size] * shape.props.scale
+	const strokeWidth = baseStrokeWidth * shape.props.scale
 
 	return path.toSvg({
 		style: dash,
@@ -370,7 +411,7 @@ function LineShapeSvg({
 		randomSeed: shape.id,
 		props: {
 			transform: `scale(${scale})`,
-			stroke: getColorValue(theme, color, 'solid'),
+			stroke: strokeColor,
 			fill: 'none',
 		},
 	})

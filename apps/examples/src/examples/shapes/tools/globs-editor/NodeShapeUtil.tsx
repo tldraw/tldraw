@@ -11,7 +11,6 @@ import {
 	TLHandleDragInfo,
 	TLResizeInfo,
 	TLShape,
-	useDefaultColorTheme,
 	useValue,
 	Vec,
 	ZERO_INDEX_KEY,
@@ -124,9 +123,9 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	override indicator(shape: NodeShape) {
 		const zoom = this.editor.getZoomLevel()
 
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
-		const blue = getColorValue(theme, 'blue', 'solid')
+		const theme = this.editor.getCurrentTheme()
+		const colors = theme.colors[this.editor.getColorMode()]
+		const blue = getColorValue(colors, 'blue', 'solid')
 
 		return <circle r={shape.props.radius} strokeWidth={1 / zoom} stroke={blue} fill="none" />
 	}

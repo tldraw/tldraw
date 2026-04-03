@@ -3,7 +3,6 @@ import {
 	FileHelpers,
 	TLClipboardWriteInfo,
 	TLExternalContentSource,
-	Vec,
 	VecLike,
 	activeElementShouldCaptureKeys,
 	assert,
@@ -18,10 +17,32 @@ import {
 } from '@tldraw/editor'
 import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
+import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
 import { TLDRAW_CUSTOM_PNG_MIME_TYPE, getCanonicalClipboardReadType } from '../../utils/clipboard'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { pasteFiles } from './clipboard/pasteFiles'
 import { pasteUrl } from './clipboard/pasteUrl'
+
+/**
+ * Resolves paste modifier keys into plain-text and position behavior.
+ * Alt/Option inverts the paste-at-cursor user preference.
+ *
+ * @param isShift - Whether the Shift key is pressed (indicates plain text paste)
+ * @param isAlt - Whether the Alt/Option key is pressed (inverts paste position preference)
+ * @param pasteAtCursorPref - The user's preference for pasting at the cursor (true) or center (false)
+ *
+ * @internal
+ */
+export function resolvePasteModifiers(
+	isShift: boolean,
+	isAlt: boolean,
+	pasteAtCursorPref: boolean
+) {
+	return {
+		isPlainText: isShift,
+		pasteAtCursor: isAlt ? !pasteAtCursorPref : pasteAtCursorPref,
+	}
+}
 
 // Expected paste mime types. The earlier in this array they appear, the higher preference we give
 // them. For example, we prefer the `web image/png+tldraw` type to plain `image/png` as it does not
@@ -44,6 +65,41 @@ function stripHtml(html: string) {
 	const doc = getGlobalDocument().implementation.createHTMLDocument('')
 	doc.documentElement.innerHTML = html.trim()
 	return doc.body.textContent || doc.body.innerText || ''
+}
+
+/**
+ * Extract iframe src and dimensions from an HTML string containing an iframe element.
+ * Tries width/height HTML attributes first, then falls back to pixel values in the
+ * style attribute, then to sensible defaults.
+ * Returns null if no valid iframe is found.
+ * @internal
+ */
+export function extractIframeFromHtml(
+	html: string
+): { src: string; width: number; height: number } | null {
+	if (!html.includes('<iframe')) return null
+	const doc = new DOMParser().parseFromString(html, 'text/html')
+	const iframe = doc.querySelector('iframe')
+	if (!iframe) return null
+	const src = iframe.getAttribute('src')
+	if (!src || !isValidHttpURL(src)) return null
+
+	const attrWidth = parseInt(iframe.getAttribute('width') || '', 10)
+	const attrHeight = parseInt(iframe.getAttribute('height') || '', 10)
+
+	let styleWidth = NaN
+	let styleHeight = NaN
+	const style = iframe.getAttribute('style')
+	if (style) {
+		const wMatch = style.match(/\bwidth:\s*(\d+)px/)
+		const hMatch = style.match(/\bheight:\s*(\d+)px/)
+		if (wMatch) styleWidth = parseInt(wMatch[1], 10)
+		if (hMatch) styleHeight = parseInt(hMatch[1], 10)
+	}
+
+	const width = attrWidth || styleWidth || 425
+	const height = attrHeight || styleHeight || 350
+	return { src, width, height }
 }
 
 /** @public */
@@ -516,9 +572,27 @@ async function handleClipboardThings(
 	// Try to paste html content
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'html') {
-			// try to find a link
 			const rootNode = new DOMParser().parseFromString(result.data, 'text/html')
 			const bodyNode = rootNode.querySelector('body')
+
+			// Check for iframe embeds in HTML before stripping content
+			const iframeInfo = extractIframeFromHtml(result.data)
+			if (iframeInfo) {
+				editor.markHistoryStoppingPoint('paste')
+				editor.putExternalContent({
+					type: 'embed',
+					url: iframeInfo.src,
+					point,
+					embed: {
+						width: iframeInfo.width,
+						height: iframeInfo.height,
+						doesResize: true,
+					},
+				})
+				return
+			}
+
+			// try to find a link
 
 			// Edge on Windows 11 home appears to paste a link as a single <a/> in
 			// the HTML document. If we're pasting a single like tag we'll just
@@ -567,23 +641,22 @@ async function handleClipboardThings(
 			}
 		}
 
-		// Allow you to paste YouTube or Google Maps embeds, for example.
-		if (result.type === 'text' && result.subtype === 'text' && result.data.startsWith('<iframe ')) {
-			// try to find an iframe
-			const rootNode = new DOMParser().parseFromString(result.data, 'text/html')
-			const bodyNode = rootNode.querySelector('body')
-
-			const isSingleIframe =
-				bodyNode &&
-				Array.from(bodyNode.children).filter((el) => el.nodeType === 1).length === 1 &&
-				bodyNode.firstElementChild &&
-				bodyNode.firstElementChild.tagName === 'IFRAME' &&
-				bodyNode.firstElementChild.hasAttribute('src') &&
-				bodyNode.firstElementChild.getAttribute('src') !== ''
-
-			if (isSingleIframe) {
-				const src = bodyNode.firstElementChild.getAttribute('src')!
-				handleText(editor, src, point, results, clipboardPasteSource)
+		// Allow pasting any <iframe> embed code onto the canvas.
+		// Extracts the iframe src and dimensions, then creates an embed shape.
+		if (result.type === 'text' && result.subtype === 'text') {
+			const iframeInfo = extractIframeFromHtml(result.data)
+			if (iframeInfo) {
+				editor.markHistoryStoppingPoint('paste')
+				editor.putExternalContent({
+					type: 'embed',
+					url: iframeInfo.src,
+					point,
+					embed: {
+						width: iframeInfo.width,
+						height: iframeInfo.height,
+						doesResize: true,
+					},
+				})
 				return
 			}
 		}
@@ -825,6 +898,15 @@ export function useNativeClipboardEvents() {
 			}
 		}
 
+		// Track native modifier state from the most recent keydown. We use this
+		// instead of editor.inputs.getShiftKey() because the editor applies a
+		// 150ms delay on modifier release (to prevent physical race conditions
+		// with pointer events), which can cause false positives here.
+		let nativeShiftKey = false
+		const trackModifiers = (e: KeyboardEvent) => {
+			nativeShiftKey = e.shiftKey
+		}
+
 		const paste = (e: ClipboardEvent) => {
 			if (disablingMiddleClickPaste) {
 				editor.markEventAsHandled(e)
@@ -836,18 +918,27 @@ export function useNativeClipboardEvents() {
 			// input instead; e.g. when pasting text into a text shape's content
 			if (editor.getEditingShapeId() !== null || areShortcutsDisabled(editor)) return
 
-			// Where should the shapes go?
-			let point: Vec | undefined = undefined
-			let pasteAtCursor = false
+			// Cmd+Shift+V / Ctrl+Shift+V = paste as plain text (no formatting)
+			if (nativeShiftKey) {
+				const text = e.clipboardData?.getData('text/plain')
+				if (text?.trim()) {
+					const point = editor.user.getIsPasteAtCursorMode()
+						? editor.inputs.getCurrentPagePoint()
+						: editor.getViewportPageBounds().center
+					editor.markHistoryStoppingPoint('paste')
+					defaultHandleExternalTextContent(editor, { text, point })
+				}
+				preventDefault(e)
+				trackEvent('paste', { source: 'kbd' })
+				return
+			}
 
-			// | Shiftkey | Paste at cursor mode | Paste at point? |
-			// |    N 		|         N            |       N 				 |
-			// |    Y 		|         N            |       Y 				 |
-			// |    N 		|         Y            |       Y 				 |
-			// |    Y 		|         Y            |       N 				 |
-			if (editor.inputs.getShiftKey()) pasteAtCursor = true
-			if (editor.user.getIsPasteAtCursorMode()) pasteAtCursor = !pasteAtCursor
-			if (pasteAtCursor) point = editor.inputs.getCurrentPagePoint()
+			// Cmd+V: paste at center by default, or at cursor when the preference is on.
+			// (Cmd+Option+V and Cmd+Shift+Option+V are handled as actions in actions.tsx
+			// because the browser only fires paste events for Cmd+V and Cmd+Shift+V.)
+			const point = editor.user.getIsPasteAtCursorMode()
+				? editor.inputs.getCurrentPagePoint()
+				: undefined
 
 			if (
 				editor.options.onClipboardPasteRaw?.({
@@ -908,12 +999,16 @@ export function useNativeClipboardEvents() {
 		ownerDocument?.addEventListener('cut', cut)
 		ownerDocument?.addEventListener('paste', paste)
 		ownerDocument?.addEventListener('pointerup', pointerUpHandler)
+		ownerDocument?.addEventListener('keydown', trackModifiers, true)
+		ownerDocument?.addEventListener('keyup', trackModifiers, true)
 
 		return () => {
 			ownerDocument?.removeEventListener('copy', copy)
 			ownerDocument?.removeEventListener('cut', cut)
 			ownerDocument?.removeEventListener('paste', paste)
 			ownerDocument?.removeEventListener('pointerup', pointerUpHandler)
+			ownerDocument?.removeEventListener('keydown', trackModifiers, true)
+			ownerDocument?.removeEventListener('keyup', trackModifiers, true)
 		}
 	}, [editor, trackEvent, appIsFocused, ownerDocument])
 }
