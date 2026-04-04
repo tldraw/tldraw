@@ -19,10 +19,7 @@ A new first-class theme system replaces the previous approach where colors were 
 Register custom themes via `TLThemes` module augmentation for type-safe IDs, add or remove palette colors via `TLThemeDefaultColors` and `TLRemovedDefaultThemeColors`, and pass themes to the editor via the `themes` and `initialTheme` props:
 
 ```tsx
-<Tldraw
-	themes={{ corporate: myCorporateTheme }}
-	initialTheme="corporate"
-/>
+<Tldraw themes={{ corporate: myCorporateTheme }} initialTheme="corporate" />
 ```
 
 Each default shape util defines `getDefaultDisplayValues` to resolve visual properties (colors, stroke widths, font sizes) from the current theme and color mode. Override display values for a default shape with `getCustomDisplayValues`:
@@ -200,11 +197,15 @@ import { AssetUtil } from '@tldraw/editor'
 
 class AudioAssetUtil extends AssetUtil<TLAudioAsset> {
 	static override type = 'audio' as const
-	override getSupportedMimeTypes() { return ['audio/mpeg', 'audio/wav'] }
-	override async getAssetFromFile(editor, file) { /* ... */ }
+	override getSupportedMimeTypes() {
+		return ['audio/mpeg', 'audio/wav']
+	}
+	override async getAssetFromFile(editor, file) {
+		/* ... */
+	}
 }
 
-<Tldraw assetUtils={[AudioAssetUtil]} />
+;<Tldraw assetUtils={[AudioAssetUtil]} />
 ```
 
 `TLAssetStore` keeps `upload`/`resolve`/`remove` as cross-cutting concerns, while `AssetUtil` handles type-specific behavior: MIME types, file-to-asset metadata, and asset-to-shape creation.
