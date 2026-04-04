@@ -5,10 +5,10 @@ author: tldraw
 date: 03/18/2026
 order: 0
 status: published
-last_version: v4.5.6
+last_version: v4.5.7
 ---
 
-This release adds a first-class theme system with display values for customizing default shapes, shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, arbitrary iframe embed pasting, and smarter export trimming. It also includes various other improvements and bug fixes.
+This release adds a first-class theme system with display values for customizing default shapes, extensible asset types via a new `AssetUtil` system, shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, arbitrary iframe embed pasting, a paste-as-plain-text keyboard shortcut, and smarter export trimming. It also includes various other improvements and bug fixes.
 
 ## What's new
 
@@ -191,6 +191,43 @@ Note shapes now track and display a "first edited by" attribution label in the b
 
 Paste any `<iframe>` embed code onto the canvas to create an embed shape. Previously only URLs matching known providers (YouTube, Google Maps, etc.) worked. Now any valid iframe with an HTTP(S) source creates an embed directly, supporting services like OpenStreetMap, SoundCloud, Loom, and more.
 
+### 💥 Extensible asset types ([#8031](https://github.com/tldraw/tldraw/pull/8031))
+
+A new `AssetUtil` base class follows the `ShapeUtil` / `BindingUtil` pattern, making the asset system extensible. Previously, assets were a hardcoded union of image, video, and bookmark types. Now you can register custom asset types with their own MIME type handling, file-to-asset conversion, and shape creation logic.
+
+```tsx
+import { AssetUtil } from '@tldraw/editor'
+
+class AudioAssetUtil extends AssetUtil<TLAudioAsset> {
+	static override type = 'audio' as const
+	override getSupportedMimeTypes() { return ['audio/mpeg', 'audio/wav'] }
+	override async getAssetFromFile(editor, file) { /* ... */ }
+}
+
+<Tldraw assetUtils={[AudioAssetUtil]} />
+```
+
+`TLAssetStore` keeps `upload`/`resolve`/`remove` as cross-cutting concerns, while `AssetUtil` handles type-specific behavior: MIME types, file-to-asset metadata, and asset-to-shape creation.
+
+<details>
+<summary>Migration guide</summary>
+
+`assetValidator` has been removed. Use `imageAssetValidator`, `videoAssetValidator`, or `bookmarkAssetValidator` instead.
+
+`getMediaAssetInfoPartial` has been removed. Use `AssetUtil.getAssetFromFile` instead.
+
+`notifyIfFileNotAllowed` signature changed from `(file, options)` to `(editor, file, options)`.
+
+`getAssetInfo` signature changed from `(file, options, assetId?)` to `(editor, file, assetId?)` and now returns `TLAsset | null` instead of throwing.
+
+</details>
+
+### Paste as plain text ([#8347](https://github.com/tldraw/tldraw/pull/8347))
+
+A new `Cmd+Shift+V` / `Ctrl+Shift+V` shortcut pastes clipboard content as plain text, stripping HTML and rich formatting. This is the standard shortcut in most apps.
+
+Note: `Cmd+Shift+V` previously toggled paste-at-cursor positioning. Since the "Paste at cursor" preference now covers that use case, this shortcut has been repurposed for plain text paste. Users who relied on `Cmd+Shift+V` for paste-at-cursor should use the preference toggle instead.
+
 ### Cross-window embedding support ([#8196](https://github.com/tldraw/tldraw/pull/8196))
 
 Tldraw now works correctly when embedded in iframes, Electron pop-out windows, and Obsidian plugins where the global `document` and `window` differ from the ones tldraw is mounted in. All bare `document` and `window` references have been replaced with container-aware alternatives.
@@ -205,6 +242,10 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - 💥 Rename `SvgExportContext.themeId` to `SvgExportContext.colorMode` (`string` → `'light' | 'dark'`). ([#8410](https://github.com/tldraw/tldraw/pull/8410))
 - 💥 Change `getColorValue()` first argument from `TLDefaultColorTheme` to `TLThemeColors`. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
 - 💥 Change `PlainTextLabelProps` and `RichTextLabelProps`: `font` → `fontFamily`, `align` → `textAlign`, `fill` removed. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
+- 💥 Remove `assetValidator`. Use `imageAssetValidator`, `videoAssetValidator`, or `bookmarkAssetValidator` instead. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
+- 💥 Remove `getMediaAssetInfoPartial`. Use `AssetUtil.getAssetFromFile` instead. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
+- 💥 Change `notifyIfFileNotAllowed` signature from `(file, options)` to `(editor, file, options)`. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
+- 💥 Change `getAssetInfo` signature from `(file, options, assetId?)` to `(editor, file, assetId?)` and return `TLAsset | null` instead of throwing. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
 - Add `TLTheme`, `TLThemeId`, `TLThemes`, `TLThemeDefaultColors`, `TLThemeColors`, `TLRemovedDefaultThemeColors`, `ThemeManager`, `getDisplayValues()`, `getColorValue()`, and `DEFAULT_THEME` for the new theme system. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
 - Add `themes` and `initialTheme` props to `<Tldraw>` and `<TldrawEditor>`. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
 - Add `getCurrentTheme()`, `setCurrentTheme()`, `getThemes()`, `getTheme()`, `updateTheme()`, `updateThemes()`, and `getColorMode()` to the editor. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
@@ -218,12 +259,13 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Add `useDirection()` hook for RTL support. ([#8033](https://github.com/tldraw/tldraw/pull/8033))
 - Add `'json'` to `TLCopyType` for copying shapes as JSON in debug mode. ([#8206](https://github.com/tldraw/tldraw/pull/8206))
 - Change `TLSvgExportOptions.padding` to accept `number | 'auto'`. The `'auto'` mode (now default) renders with padding then trims to visual content bounds. ([#8202](https://github.com/tldraw/tldraw/pull/8202))
-- Add `Vec.IsFinite()` static method. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 - Change `Vec.PointsBetween()` to accept an optional `ease` parameter. ([#7977](https://github.com/tldraw/tldraw/pull/7977))
 - Add `@tldraw/mermaid` package with `createMermaidDiagram()`, `renderBlueprint()`, and `MermaidDiagramError` for converting Mermaid syntax to tldraw shapes. ([#8194](https://github.com/tldraw/tldraw/pull/8194))
 - Add `mapNodeToRenderSpec` per-diagram-type option and `createShape` override to `@tldraw/mermaid` for customizing how diagram nodes are rendered as shapes. ([#8322](https://github.com/tldraw/tldraw/pull/8322))
 - Add `TextManager.measureHtmlBatch()` for batched DOM text measurement. ([#7949](https://github.com/tldraw/tldraw/pull/7949))
 - Add `TLUserStore` interface with `getCurrentUser()` and `resolve()` for connecting tldraw to auth systems. Add unified `TLUser` record type, `UserRecordType`, `createUserId`, `isUserId`, `userIdValidator`, and `createUserRecordType()` for extensible user schemas. Add `user` parameter to `createTLSchema()`. Add `Editor.getAttributionUser()`, `Editor.getAttributionUserId()`, and `Editor.getAttributionDisplayName()`. Add `textFirstEditedBy` prop to `TLNoteShapeProps`. ([#8147](https://github.com/tldraw/tldraw/pull/8147))
+- Add `AssetUtil` base class with `configure()`, `getDefaultProps()`, `getSupportedMimeTypes()`, `getAssetFromFile()`, and `createShape()`. Add `assetUtils` prop to `<Tldraw>`. Add `Editor.getAssetUtil()`, `Editor.hasAssetUtil()`, and `Editor.getAssetUtilForMimeType()`. Add `TLGlobalAssetPropsMap` for type-safe custom asset registration. Add `createAssetRecordType()`, `defaultAssetSchemas`, and `assets` parameter to `createTLSchema()`. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
+- Add `Cmd+Shift+V` / `Ctrl+Shift+V` shortcut to paste clipboard content as plain text. `Cmd+Shift+V` no longer toggles paste-at-cursor positioning. ([#8347](https://github.com/tldraw/tldraw/pull/8347))
 
 ## Improvements
 
@@ -233,20 +275,21 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Replace `@use-gesture/react` dependency with custom gesture handling, reducing bundle size and eliminating a stale dependency. ([#8392](https://github.com/tldraw/tldraw/pull/8392))
 - Tighten iframe referrer policy for embeds to send only the origin instead of the full URL to third-party embed providers. ([#8412](https://github.com/tldraw/tldraw/pull/8412))
 - Move the debug mode toggle into the preferences submenu. ([#8259](https://github.com/tldraw/tldraw/pull/8259))
+- Update hotkeys-js keyboard shortcut library from v3 to v4, picking up TypeScript rewrite and keyboard layout handling improvements. ([#8372](https://github.com/tldraw/tldraw/pull/8372))
 
 ## Bug fixes
 
 - Fix `bailToMark` silently discarding pending history changes when the target mark doesn't exist. ([#8260](https://github.com/tldraw/tldraw/pull/8260))
 - Fix `FocusManager.dispose()` not actually removing document event listeners due to `.bind()` creating new function references. ([#8232](https://github.com/tldraw/tldraw/pull/8232))
 - Fix pasting into editable text shapes when the clipboard contains tldraw data. ([#8192](https://github.com/tldraw/tldraw/pull/8192))
-- Fix crash when isolating curved arrows with degenerate binding geometry. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 - Fix eraser not erasing shapes when starting a drag from inside a group's bounds. ([#8054](https://github.com/tldraw/tldraw/pull/8054))
 - Fix over-softened corners and end artifacts when shift-clicking to draw straight line segments. ([#7977](https://github.com/tldraw/tldraw/pull/7977))
 - Fix draw-shape loop-closing sensitivity so closing works more consistently across zoom levels. ([#8293](https://github.com/tldraw/tldraw/pull/8293))
-- Fix all shapes disappearing when a labeled arrow has zero length due to NaN propagation through the spatial index. ([#8329](https://github.com/tldraw/tldraw/pull/8329))
 - Fix "back to content" button flickering when both it and the "move focus to canvas" button are visible. ([#8334](https://github.com/tldraw/tldraw/pull/8334)) (contributed by [@kaneel](https://github.com/kaneel))
 - Fix slight positioning drift when pasting text onto the canvas. ([#8345](https://github.com/tldraw/tldraw/pull/8345))
-- Fix camera state getting permanently stuck at 'moving' when the editor is disposed mid-camera-transition, blocking all shape interactions. ([#8396](https://github.com/tldraw/tldraw/pull/8396))
 - Fix missing sandbox attribute on GitHub Gist embeds. ([#8403](https://github.com/tldraw/tldraw/pull/8403))
 - Restrict sandbox permissions for unknown/arbitrary embeds to mitigate security risks from untrusted content. ([#8404](https://github.com/tldraw/tldraw/pull/8404))
 - Fix leaked camera animations, following subscriptions, and stale menu state when the editor is disposed during active operations. ([#8422](https://github.com/tldraw/tldraw/pull/8422))
+- Fix right-clicking inside a multi-selection over a filled background shape changing the selection. ([#8434](https://github.com/tldraw/tldraw/pull/8434))
+- Fix memory leak where the Editor was retained after unmount via a shared throttled `updateHoveredShapeId` closure. ([#8439](https://github.com/tldraw/tldraw/pull/8439))
+- Fix pattern fill not scaling correctly with dynamic size mode. ([#8441](https://github.com/tldraw/tldraw/pull/8441))
