@@ -969,8 +969,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						y={toDomPrecision(labelBounds.y)}
 						width={labelBounds.w}
 						height={labelBounds.h}
-						rx={dv.labelBorderRadius}
-						ry={dv.labelBorderRadius}
+						rx={dv.labelBorderRadius * shape.props.scale}
+						ry={dv.labelBorderRadius * shape.props.scale}
 					/>
 				)}
 			</g>
@@ -1084,7 +1084,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					labelBounds.y,
 					labelBounds.w,
 					labelBounds.h,
-					dv.labelBorderRadius
+					dv.labelBorderRadius * shape.props.scale
 				)
 				additionalPaths.push(labelPath)
 			}
