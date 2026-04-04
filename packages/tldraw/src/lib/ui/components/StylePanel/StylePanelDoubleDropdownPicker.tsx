@@ -26,7 +26,7 @@ export interface StylePanelDoubleDropdownPickerProps<T extends string> {
 	styleB: StyleProp<T>
 	valueA: SharedStyle<T>
 	valueB: SharedStyle<T>
-	onValueChange?(style: StyleProp<T>, value: T, options?: { skipNextShapeStyle?: boolean }): void
+	onValueChange?(style: StyleProp<T>, value: T): void
 }
 
 function StylePanelDoubleDropdownPickerInner<T extends string>(
@@ -111,13 +111,8 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 										data-testid={`style.${uiTypeA}.${item.value}`}
 										type="icon"
 										key={item.value}
-										onClick={(e: React.MouseEvent) => {
-											const skipNextShapeStyle = e.metaKey || e.ctrlKey
-											onValueChange(
-												styleA,
-												item.value,
-												skipNextShapeStyle ? { skipNextShapeStyle } : undefined
-											)
+										onClick={() => {
+											onValueChange(styleA, item.value)
 											tlmenus.deleteOpenMenu(idA, editor.contextId)
 											setIsOpenA(false)
 										}}
@@ -157,13 +152,8 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 										type="icon"
 										title={`${msg(labelB)} — ${msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)}`}
 										data-testid={`style.${uiTypeB}.${item.value}`}
-										onClick={(e: React.MouseEvent) => {
-											const skipNextShapeStyle = e.metaKey || e.ctrlKey
-											onValueChange(
-												styleB,
-												item.value,
-												skipNextShapeStyle ? { skipNextShapeStyle } : undefined
-											)
+										onClick={() => {
+											onValueChange(styleB, item.value)
 											tlmenus.deleteOpenMenu(idB, editor.contextId)
 											setIsOpenB(false)
 										}}

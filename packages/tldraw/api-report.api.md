@@ -3128,9 +3128,7 @@ export interface StylePanelButtonPickerProps<T extends string> {
     // (undocumented)
     onHistoryMark?(id: string): void;
     // (undocumented)
-    onValueChange?(style: StyleProp<T>, value: T, options?: {
-        skipNextShapeStyle?: boolean;
-    }): void;
+    onValueChange?(style: StyleProp<T>, value: T): void;
     // (undocumented)
     style: StyleProp<T>;
     // (undocumented)
@@ -3151,7 +3149,7 @@ export interface StylePanelContext {
     // (undocumented)
     onHistoryMark(id: string): void;
     // (undocumented)
-    onValueChange<T>(style: StyleProp<T>, value: T, options?: StylePanelValueChangeOptions): void;
+    onValueChange<T>(style: StyleProp<T>, value: T): void;
     // (undocumented)
     styles: ReadonlySharedStyleMap;
 }
@@ -3189,9 +3187,7 @@ export interface StylePanelDoubleDropdownPickerProps<T extends string> {
     // (undocumented)
     labelB: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
     // (undocumented)
-    onValueChange?(style: StyleProp<T>, value: T, options?: {
-        skipNextShapeStyle?: boolean;
-    }): void;
+    onValueChange?(style: StyleProp<T>, value: T): void;
     // (undocumented)
     styleA: StyleProp<T>;
     // (undocumented)
@@ -3221,9 +3217,7 @@ export interface StylePanelDropdownPickerProps<T extends string> {
     // (undocumented)
     label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
     // (undocumented)
-    onValueChange?(style: StyleProp<T>, value: T, options?: {
-        skipNextShapeStyle?: boolean;
-    }): void;
+    onValueChange?(style: StyleProp<T>, value: T): void;
     // (undocumented)
     style: StyleProp<T>;
     // (undocumented)
@@ -3278,11 +3272,6 @@ export interface StylePanelSubheadingProps {
 
 // @public (undocumented)
 export function StylePanelTextAlignPicker(): JSX.Element | null;
-
-// @public (undocumented)
-export interface StylePanelValueChangeOptions {
-    skipNextShapeStyle?: boolean;
-}
 
 // @public (undocumented)
 export type StyleValuesForUi<T> = readonly {

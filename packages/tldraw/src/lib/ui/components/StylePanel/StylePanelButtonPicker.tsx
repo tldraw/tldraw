@@ -30,7 +30,7 @@ export interface StylePanelButtonPickerProps<T extends string> {
 	style: StyleProp<T>
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
-	onValueChange?(style: StyleProp<T>, value: T, options?: { skipNextShapeStyle?: boolean }): void
+	onValueChange?(style: StyleProp<T>, value: T): void
 	onHistoryMark?(id: string): void
 }
 
@@ -67,7 +67,6 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 
 	const rPointing = useRef(false)
 	const rPointingOriginalActiveElement = useRef<HTMLElement | null>(null)
-	const rModifierKey = useRef(false)
 
 	const {
 		handleButtonClick,
@@ -77,7 +76,6 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 	} = useMemo(() => {
 		const handlePointerUp = () => {
 			rPointing.current = false
-			rModifierKey.current = false
 			editor.getContainerWindow().removeEventListener('pointerup', handlePointerUp)
 
 			// This is fun little micro-optimization to make sure that the focus
@@ -92,27 +90,19 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 			rPointingOriginalActiveElement.current = null
 		}
 
-		const getModifierOptions = (e: React.PointerEvent<HTMLButtonElement>) => {
-			const skipNextShapeStyle = e.metaKey || e.ctrlKey
-			return skipNextShapeStyle ? { skipNextShapeStyle } : undefined
-		}
-
 		const handleButtonClick = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 			if (value.type === 'shared' && value.value === id) return
 
 			onHistoryMark?.('point picker item')
-			onValueChange(style, id as T, getModifierOptions(e))
+			onValueChange(style, id as T)
 		}
 
 		const handleButtonPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 
-			rModifierKey.current = e.metaKey || e.ctrlKey
-			const options = rModifierKey.current ? { skipNextShapeStyle: true } : undefined
-
 			onHistoryMark?.('point picker item')
-			onValueChange(style, id as T, options)
+			onValueChange(style, id as T)
 
 			rPointing.current = true
 			rPointingOriginalActiveElement.current = editor.getContainerDocument()
@@ -124,16 +114,14 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 			if (!rPointing.current) return
 
 			const { id } = e.currentTarget.dataset
-			// Use the modifier state from the initial pointer down for drag-to-paint
-			const options = rModifierKey.current ? { skipNextShapeStyle: true } : undefined
-			onValueChange(style, id as T, options)
+			onValueChange(style, id as T)
 		}
 
 		const handleButtonPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 			if (value.type === 'shared' && value.value === id) return
 
-			onValueChange(style, id as T, getModifierOptions(e))
+			onValueChange(style, id as T)
 		}
 
 		return {
