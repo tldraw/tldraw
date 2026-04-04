@@ -5,7 +5,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { ReactNode, memo, useCallback, useEffect, useRef } from 'react'
+import { ReactNode, memo, useEffect, useRef } from 'react'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { DefaultStylePanelContent } from './DefaultStylePanelContent'
 import { StylePanelContextProvider } from './StylePanelContext'
@@ -37,6 +37,15 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	}
 
 	useEffect(() => {
+		const elm = ref.current as HTMLDivElement | null
+		if (!elm) return
+
+		function handlePointerMove(event: PointerEvent) {
+			// Prevent pointer move events from propagating to the
+			// canvas when the pointer is over the style panel.
+			event.stopPropagation()
+		}
+
 		function handleKeyDown(event: KeyboardEvent) {
 			if (
 				event.key === 'Escape' &&
@@ -47,10 +56,11 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 			}
 		}
 
-		const stylePanelContainerEl = ref.current
-		stylePanelContainerEl?.addEventListener('keydown', handleKeyDown, { capture: true })
+		elm.addEventListener('pointermove', handlePointerMove, { capture: true })
+		elm.addEventListener('keydown', handleKeyDown, { capture: true })
 		return () => {
-			stylePanelContainerEl?.removeEventListener('keydown', handleKeyDown, { capture: true })
+			elm.removeEventListener('pointermove', handlePointerMove, { capture: true })
+			elm.removeEventListener('keydown', handleKeyDown, { capture: true })
 		}
 	}, [editor])
 
