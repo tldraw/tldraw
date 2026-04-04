@@ -56,6 +56,7 @@ export function StylePanelContextProvider({ children, styles }: StylePanelContex
 		},
 		[editor, trackEvent]
 	)
+
 	const onOpacityChange = useCallback(
 		function (opacity: number) {
 			const skipNextShapeStyle = unsafe__withoutCapture(
