@@ -3149,6 +3149,8 @@ export interface StylePanelContext {
     // (undocumented)
     onHistoryMark(id: string): void;
     // (undocumented)
+    onOpacityChange(opacity: number): void;
+    // (undocumented)
     onValueChange<T>(style: StyleProp<T>, value: T): void;
     // (undocumented)
     styles: ReadonlySharedStyleMap;

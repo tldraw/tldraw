@@ -1,4 +1,10 @@
-import { ReadonlySharedStyleMap, StyleProp, useEditor, useValue } from '@tldraw/editor'
+import {
+	ReadonlySharedStyleMap,
+	StyleProp,
+	unsafe__withoutCapture,
+	useEditor,
+	useValue,
+} from '@tldraw/editor'
 import { createContext, useCallback, useContext } from 'react'
 import { useUiEvents } from '../../context/events'
 
@@ -8,6 +14,7 @@ export interface StylePanelContext {
 	enhancedA11yMode: boolean
 	onHistoryMark(id: string): void
 	onValueChange<T>(style: StyleProp<T>, value: T): void
+	onOpacityChange(opacity: number): void
 }
 const StylePanelContext = createContext<null | StylePanelContext>(null)
 
@@ -28,7 +35,13 @@ export function StylePanelContextProvider({ children, styles }: StylePanelContex
 	])
 	const onValueChange = useCallback(
 		function <T>(style: StyleProp<T>, value: T) {
-			const skipNextShapeStyle = editor.inputs.getCtrlKey() || editor.inputs.getMetaKey()
+			// If the user is holding down the accelerator key (Ctrl on Windows/Linux, Cmd on Mac)
+			// while shapes are selected, interpret that as a wish to change the style for their
+			// current selected shapes but not for the next shapes.
+			const skipNextShapeStyle = unsafe__withoutCapture(
+				() => editor.getSelectedShapeIds().length > 0 && editor.inputs.getAccelKey()
+			)
+
 			editor.run(() => {
 				if (editor.isIn('select')) {
 					editor.setStyleForSelectedShapes(style, value)
@@ -43,6 +56,26 @@ export function StylePanelContextProvider({ children, styles }: StylePanelContex
 		},
 		[editor, trackEvent]
 	)
+	const onOpacityChange = useCallback(
+		function (opacity: number) {
+			const skipNextShapeStyle = unsafe__withoutCapture(
+				() => editor.getSelectedShapeIds().length > 0 && editor.inputs.getAccelKey()
+			)
+
+			editor.run(() => {
+				if (editor.isIn('select')) {
+					editor.setOpacityForSelectedShapes(opacity)
+				}
+				if (!skipNextShapeStyle) {
+					editor.setOpacityForNextShapes(opacity)
+				}
+				editor.updateInstanceState({ isChangingStyle: true })
+			})
+
+			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value: opacity })
+		},
+		[editor, trackEvent]
+	)
 
 	return (
 		<StylePanelContext.Provider
@@ -51,6 +84,7 @@ export function StylePanelContextProvider({ children, styles }: StylePanelContex
 				enhancedA11yMode,
 				onHistoryMark,
 				onValueChange,
+				onOpacityChange,
 			}}
 		>
 			{children}
