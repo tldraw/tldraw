@@ -650,6 +650,9 @@ export class Idle extends StateNode {
 
 		if (!ephemeral) this.editor.markHistoryStoppingPoint('nudge shapes')
 
+		// Hide the selection overlay while nudging, same as when changing styles
+		this.editor.updateInstanceState({ isChangingStyle: true })
+
 		const { gridSize } = this.editor.getDocumentSettings()
 
 		const step = this.editor.getInstanceState().isGridMode
