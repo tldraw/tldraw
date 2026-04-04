@@ -48,6 +48,7 @@ export class Idle extends StateNode {
 	}
 
 	override onExit() {
+		this.editor.updateInstanceState({ isChangingStyle: false })
 		cancelUpdateHoveredShapeId(this.editor)
 	}
 
