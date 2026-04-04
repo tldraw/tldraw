@@ -423,15 +423,17 @@ function DrawShapeSvg({
 			) : (
 				<path fill={fillColor} d={solidStrokePath} />
 			)}
-			<path
-				d={solidStrokePath}
-				strokeLinecap="round"
-				fill={isDot ? strokeColor : 'none'}
-				stroke={strokeColor}
-				strokeWidth={sw}
-				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, dotAdjustment)}
-				strokeDashoffset="0"
-			/>
+			{shape.props.dash !== 'none' && (
+				<path
+					d={solidStrokePath}
+					strokeLinecap="round"
+					fill={isDot ? strokeColor : 'none'}
+					stroke={strokeColor}
+					strokeWidth={sw}
+					strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, dotAdjustment)}
+					strokeDashoffset="0"
+				/>
+			)}
 		</>
 	)
 }
