@@ -31,12 +31,6 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
-	const handlePointerOut = useCallback(() => {
-		if (!isMobile) {
-			editor.updateInstanceState({ isChangingStyle: false })
-		}
-	}, [editor, isMobile])
-
 	const defaultStyles = useRelevantStyles()
 	if (styles === undefined) {
 		styles = defaultStyles
@@ -68,7 +62,6 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 				className={classNames('tlui-style-panel', { 'tlui-style-panel__wrapper': !isMobile })}
 				data-ismobile={isMobile}
 				data-enhanced-a11y-mode={enhancedA11yMode}
-				onPointerLeave={handlePointerOut}
 			>
 				<StylePanelContextProvider styles={styles}>
 					{children ?? <DefaultStylePanelContent />}

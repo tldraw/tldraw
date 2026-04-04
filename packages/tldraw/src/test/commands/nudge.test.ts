@@ -308,6 +308,17 @@ describe('When nudging, the selection overlay is hidden...', () => {
 		editor.keyUp('ArrowUp')
 	})
 
+	it('Clears isChangingStyle when the pointer moves over the canvas', () => {
+		editor.setSelectedShapes([ids.boxA])
+
+		editor.keyDown('ArrowUp')
+		expect(editor.getInstanceState().isChangingStyle).toBe(true)
+		editor.keyUp('ArrowUp')
+
+		editor.pointerMove(50, 50)
+		expect(editor.getInstanceState().isChangingStyle).toBe(false)
+	})
+
 	it('Sets isChangingStyle to true on key repeat', () => {
 		editor.setSelectedShapes([ids.boxA])
 

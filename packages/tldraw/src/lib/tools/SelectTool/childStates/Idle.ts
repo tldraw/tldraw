@@ -13,6 +13,7 @@ import {
 	kickoutOccludedShapes,
 	pointInPolygon,
 	toRichText,
+	unsafe__withoutCapture,
 } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
@@ -52,6 +53,9 @@ export class Idle extends StateNode {
 
 	override onPointerMove() {
 		updateHoveredShapeId(this.editor)
+		if (unsafe__withoutCapture(() => this.editor.getInstanceState()).isChangingStyle) {
+			this.editor.updateInstanceState({ isChangingStyle: false })
+		}
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
