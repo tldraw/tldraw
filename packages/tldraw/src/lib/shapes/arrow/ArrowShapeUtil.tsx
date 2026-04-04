@@ -845,18 +845,20 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						shapeId={shape.id}
 						type="arrow"
 						fontFamily={dv.labelFontFamily}
-						fontSize={dv.labelFontSize * shape.props.scale}
+						fontSize={dv.labelFontSize}
 						lineHeight={dv.labelLineHeight}
 						textAlign="center"
 						verticalAlign="middle"
 						labelColor={dv.labelColor}
 						richText={shape.props.richText}
-						textWidth={labelPosition.box.w - dv.labelPadding * 2 * shape.props.scale}
+						textWidth={
+							(labelPosition.box.w - dv.labelPadding * 2 * shape.props.scale) / shape.props.scale
+						}
 						isSelected={isSelected}
 						padding={0}
 						showTextOutline={this.options.showTextOutline}
 						style={{
-							transform: `translate(${labelPosition.box.center.x}px, ${labelPosition.box.center.y}px)`,
+							transform: `translate(${labelPosition.box.center.x}px, ${labelPosition.box.center.y}px) scale(${shape.props.scale})`,
 						}}
 					/>
 				)}
