@@ -539,6 +539,7 @@ export {
 	useStylePanelContext,
 	type StylePanelContext,
 	type StylePanelContextProviderProps,
+	type StylePanelValueChangeOptions,
 } from './lib/ui/components/StylePanel/StylePanelContext'
 export {
 	StylePanelDoubleDropdownPicker,

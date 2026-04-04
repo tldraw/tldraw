@@ -103,6 +103,12 @@ export function StylePanelOpacityPicker() {
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 
+	const rModifierKey = React.useRef(false)
+
+	const handleOpacityPointerDown = React.useCallback((e: React.PointerEvent) => {
+		rModifierKey.current = e.metaKey || e.ctrlKey
+	}, [])
+
 	const handleOpacityValueChange = React.useCallback(
 		(value: number) => {
 			const item = tldrawSupportedOpacities[value]
@@ -110,7 +116,9 @@ export function StylePanelOpacityPicker() {
 				if (editor.isIn('select')) {
 					editor.setOpacityForSelectedShapes(item)
 				}
-				editor.setOpacityForNextShapes(item)
+				if (!rModifierKey.current) {
+					editor.setOpacityForNextShapes(item)
+				}
 				editor.updateInstanceState({ isChangingStyle: true })
 			})
 
@@ -135,16 +143,19 @@ export function StylePanelOpacityPicker() {
 			{enhancedA11yMode && (
 				<StylePanelSubheading>{msg('style-panel.opacity')}</StylePanelSubheading>
 			)}
-			<TldrawUiSlider
-				data-testid="style.opacity"
-				value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
-				label={opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity.value}`}
-				onValueChange={handleOpacityValueChange}
-				steps={tldrawSupportedOpacities.length - 1}
-				title={msg('style-panel.opacity')}
-				onHistoryMark={onHistoryMark}
-				ariaValueModifier={25}
-			/>
+			{/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+			<div onPointerDownCapture={handleOpacityPointerDown}>
+				<TldrawUiSlider
+					data-testid="style.opacity"
+					value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
+					label={opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity.value}`}
+					onValueChange={handleOpacityValueChange}
+					steps={tldrawSupportedOpacities.length - 1}
+					title={msg('style-panel.opacity')}
+					onHistoryMark={onHistoryMark}
+					ariaValueModifier={25}
+				/>
+			</div>
 		</>
 	)
 }
@@ -217,8 +228,8 @@ export function StylePanelSizePicker() {
 			style={DefaultSizeStyle}
 			items={STYLES.size}
 			value={size}
-			onValueChange={(style, value) => {
-				onValueChange(style, value)
+			onValueChange={(style, value, options) => {
+				onValueChange(style, value, options)
 				const selectedShapeIds = editor.getSelectedShapeIds()
 				if (selectedShapeIds.length > 0) {
 					kickoutOccludedShapes(editor, selectedShapeIds)

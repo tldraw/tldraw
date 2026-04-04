@@ -3,11 +3,17 @@ import { createContext, useCallback, useContext } from 'react'
 import { useUiEvents } from '../../context/events'
 
 /** @public */
+export interface StylePanelValueChangeOptions {
+	/** If true, only apply the style to selected shapes without updating the default style for next shapes. */
+	skipNextShapeStyle?: boolean
+}
+
+/** @public */
 export interface StylePanelContext {
 	styles: ReadonlySharedStyleMap
 	enhancedA11yMode: boolean
 	onHistoryMark(id: string): void
-	onValueChange<T>(style: StyleProp<T>, value: T): void
+	onValueChange<T>(style: StyleProp<T>, value: T, options?: StylePanelValueChangeOptions): void
 }
 const StylePanelContext = createContext<null | StylePanelContext>(null)
 
@@ -27,12 +33,14 @@ export function StylePanelContextProvider({ children, styles }: StylePanelContex
 		editor,
 	])
 	const onValueChange = useCallback(
-		function <T>(style: StyleProp<T>, value: T) {
+		function <T>(style: StyleProp<T>, value: T, options?: StylePanelValueChangeOptions) {
 			editor.run(() => {
 				if (editor.isIn('select')) {
 					editor.setStyleForSelectedShapes(style, value)
 				}
-				editor.setStyleForNextShapes(style, value)
+				if (!options?.skipNextShapeStyle) {
+					editor.setStyleForNextShapes(style, value)
+				}
 				editor.updateInstanceState({ isChangingStyle: true })
 			})
 

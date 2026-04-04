@@ -25,7 +25,7 @@ export interface StylePanelDropdownPickerProps<T extends string> {
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
 	type: 'icon' | 'tool' | 'menu'
-	onValueChange?(style: StyleProp<T>, value: T): void
+	onValueChange?(style: StyleProp<T>, value: T, options?: { skipNextShapeStyle?: boolean }): void
 	/** Override the test ID prefix. Defaults to uiType. */
 	testIdType?: string
 }
@@ -110,9 +110,14 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 										msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
 									}
 									isActive={icon === item.icon}
-									onClick={() => {
+									onClick={(e: React.MouseEvent) => {
 										ctx.onHistoryMark('select style dropdown item')
-										onValueChange(style, item.value)
+										const skipNextShapeStyle = e.metaKey || e.ctrlKey
+										onValueChange(
+											style,
+											item.value,
+											skipNextShapeStyle ? { skipNextShapeStyle } : undefined
+										)
 										tlmenus.deleteOpenMenu(popoverId, editor.contextId)
 										setIsOpen(false)
 									}}
