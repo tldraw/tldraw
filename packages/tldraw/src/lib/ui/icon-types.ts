@@ -49,7 +49,6 @@ export type TLUiIconType =
 	| 'dash-dashed'
 	| 'dash-dotted'
 	| 'dash-draw'
-	| 'dash-none'
 	| 'dash-solid'
 	| 'disconnected'
 	| 'discord'
@@ -215,7 +214,6 @@ export const iconTypes = [
 	'dash-dashed',
 	'dash-dotted',
 	'dash-draw',
-	'dash-none',
 	'dash-solid',
 	'disconnected',
 	'discord',
