@@ -25,6 +25,8 @@ export interface TldrawAppSessionState {
 	shareMenuActiveTab: 'share' | 'export' | 'publish' | 'anon-share'
 	sidebarActiveTab: 'recent' | 'groups' | 'shared' | 'drafts' | 'starred'
 	theme: 'light' | 'dark'
+	colorTheme: string
+	colorThemeBackground?: string
 	views: {
 		[key: string]: {
 			sort: 'recent' | 'newest' | 'oldest' | 'atoz' | 'ztoa'
@@ -48,6 +50,7 @@ const defaultSessionState: TldrawAppSessionState = {
 	shareMenuActiveTab: 'share',
 	sidebarActiveTab: 'recent',
 	theme: 'light',
+	colorTheme: 'default',
 	views: {},
 	flags: {},
 	exportSettings: {
@@ -111,11 +114,13 @@ export function clearLocalSessionState() {
 
 // we use this to help remove flashbangs on signout/signin
 export function resetLocalSessionStateButKeepTheme() {
-	const currentTheme = getLocalSessionStateUnsafe().theme
+	const { theme: currentTheme, colorTheme, colorThemeBackground } = getLocalSessionStateUnsafe()
 	clearLocalSessionState()
 	const newState: TldrawAppSessionState = {
 		...getDefaultSessionState(),
 		theme: currentTheme,
+		colorTheme: colorTheme ?? 'default',
+		colorThemeBackground,
 	}
 	localSessionState.set(newState)
 	setInLocalStorage(STORAGE_KEY, JSON.stringify(newState))

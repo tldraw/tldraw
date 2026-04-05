@@ -17,10 +17,15 @@ import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
 import { signoutAnalytics } from '../../../utils/analytics'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { UI_THEMES } from '../../themes/ui-themes'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import { resetLocalSessionStateButKeepTheme } from '../../utils/local-session-state'
+import {
+	getLocalSessionState,
+	resetLocalSessionStateButKeepTheme,
+	updateLocalSessionState,
+} from '../../utils/local-session-state'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
 
@@ -78,6 +83,39 @@ export function ColorThemeSubmenu() {
 	const editor = useMaybeEditor()
 	if (!editor) return null
 	return <ColorSchemeMenu />
+}
+
+export function UIThemeSubmenu() {
+	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
+	const trackEvent = useTldrawAppUiEvents()
+
+	return (
+		<TldrawUiMenuSubmenu id="ui-theme" label="Color theme">
+			<TldrawUiMenuGroup id="ui-theme-options">
+				{UI_THEMES.map(({ id, name, lightBackground, darkBackground }) => (
+					<TldrawUiMenuCheckboxItem
+						key={id}
+						id={`ui-theme-${id}`}
+						label={name}
+						checked={colorTheme === id}
+						readonlyOk
+						onSelect={() => {
+							const currentScheme = getLocalSessionState().theme
+							const bg = currentScheme === 'dark' ? darkBackground : lightBackground
+							updateLocalSessionState(() => ({
+								colorTheme: id,
+								colorThemeBackground: id === 'default' ? undefined : bg,
+							}))
+							trackEvent('set-color-theme', {
+								source: 'user-preferences',
+								theme: id,
+							})
+						}}
+					/>
+				))}
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
 }
 
 export function CookieConsentMenuItem() {
