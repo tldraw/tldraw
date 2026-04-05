@@ -2,6 +2,7 @@ import {
 	Box,
 	Editor,
 	Geometry2d,
+	HALF_PI,
 	OverlayUtil,
 	Rectangle2d,
 	RotateCorner,
@@ -23,6 +24,12 @@ export interface TLSelectionForegroundOverlay extends TLOverlay {
 	}
 }
 
+/** @public */
+export interface SelectionForegroundOverlayOptions {
+	strokeColor: string
+	bgColor: string
+}
+
 /**
  * Overlay util for selection foreground handles (resize corners/edges, rotate corners, mobile rotate).
  * Each interactive element of the selection foreground becomes its own overlay instance.
@@ -31,6 +38,11 @@ export interface TLSelectionForegroundOverlay extends TLOverlay {
  */
 export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForegroundOverlay> {
 	static override type = 'selection_foreground'
+
+	override options: SelectionForegroundOverlayOptions = {
+		strokeColor: 'var(--tl-color-selection-stroke)',
+		bgColor: 'var(--tl-color-background)',
+	}
 
 	override isActive(): boolean {
 		const bounds = this.editor.getSelectionRotatedPageBounds()
@@ -270,6 +282,189 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		})
 	}
 
+	override render(ctx: CanvasRenderingContext2D, _overlays: TLSelectionForegroundOverlay[]): void {
+		const editor = this.editor
+		const bounds = editor.getSelectionRotatedPageBounds()
+		if (!bounds) return
+
+		const onlyShape = editor.getOnlySelectedShape()
+		if (onlyShape && editor.isShapeHidden(onlyShape)) return
+
+		const expandOutlineBy = onlyShape
+			? editor.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
+			: 0
+		const expandedBounds =
+			expandOutlineBy instanceof Box
+				? bounds.clone().expand(expandOutlineBy).zeroFix()
+				: bounds.clone().expandBy(expandOutlineBy).zeroFix()
+
+		const rotation = editor.getSelectionRotation()
+		const zoom = editor.getEfficientZoomLevel()
+		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
+		const isChangingStyle = editor.getInstanceState().isChangingStyle
+		const isLockedShape = onlyShape && editor.isShapeOrAncestorLocked(onlyShape)
+
+		const width = expandedBounds.width
+		const height = expandedBounds.height
+		const size = 8 / zoom
+
+		const isTinyX = width < size * 2
+		const isTinyY = height < size * 2
+
+		const showSelectionBounds =
+			(onlyShape ? !editor.getShapeUtil(onlyShape).hideSelectionBoundsFg(onlyShape) : true) &&
+			!isChangingStyle
+
+		const shouldDisplayBox =
+			showSelectionBounds &&
+			editor.isInAny(
+				'select.idle',
+				'select.brushing',
+				'select.scribble_brushing',
+				'select.pointing_canvas',
+				'select.pointing_selection',
+				'select.pointing_shape',
+				'select.crop.idle',
+				'select.crop.pointing_crop',
+				'select.crop.pointing_crop_handle',
+				'select.pointing_resize_handle'
+			)
+
+		const shouldDisplayControls =
+			editor.isInAny(
+				'select.idle',
+				'select.pointing_selection',
+				'select.pointing_shape',
+				'select.crop.idle'
+			) &&
+			!isChangingStyle &&
+			!editor.getIsReadonly()
+
+		const showResizeHandles =
+			shouldDisplayControls &&
+			!isLockedShape &&
+			(onlyShape
+				? editor.getShapeUtil(onlyShape).canResize(onlyShape) &&
+					!editor.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
+				: true)
+
+		const showCropHandles =
+			editor.isInAny(
+				'select.crop.idle',
+				'select.crop.pointing_crop',
+				'select.crop.pointing_crop_handle'
+			) && !editor.getIsReadonly()
+
+		const hideAlternateCornerHandles = isTinyX || isTinyY
+		const showOnlyOneHandle = isTinyX && isTinyY
+
+		const showMobileRotateHandle =
+			isCoarsePointer &&
+			shouldDisplayControls &&
+			!isLockedShape &&
+			(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
+
+		const strokeColor = this._resolveColor(this.options.strokeColor)
+		const bgColor = this._resolveColor(this.options.bgColor)
+
+		// Transform to local selection space
+		const expandDx = expandedBounds.x - bounds.x
+		const expandDy = expandedBounds.y - bounds.y
+
+		ctx.save()
+		ctx.translate(bounds.x, bounds.y)
+		ctx.rotate(rotation)
+		ctx.translate(expandDx, expandDy)
+
+		// Selection outline
+		if (shouldDisplayBox) {
+			ctx.strokeStyle = strokeColor
+			ctx.lineWidth = 1.5 / zoom
+			ctx.strokeRect(0, 0, width, height)
+		}
+
+		// Corner resize handle squares (visual only)
+		if (showResizeHandles && !showCropHandles) {
+			ctx.fillStyle = bgColor
+			ctx.strokeStyle = strokeColor
+			ctx.lineWidth = 1.5 / zoom
+
+			const drawCorner = (x: number, y: number, hidden: boolean) => {
+				if (hidden) return
+				ctx.fillRect(x - size / 2, y - size / 2, size, size)
+				ctx.strokeRect(x - size / 2, y - size / 2, size, size)
+			}
+
+			drawCorner(0, 0, false) // top-left always shown
+			drawCorner(width, 0, hideAlternateCornerHandles) // top-right
+			drawCorner(width, height, showOnlyOneHandle) // bottom-right
+			drawCorner(0, height, hideAlternateCornerHandles) // bottom-left
+		}
+
+		// Mobile rotate handle
+		if (showMobileRotateHandle) {
+			const isSmallX = width < size * 4
+			const isSmallY = height < size * 4
+			const mobileHandleMultiplier = 1.75
+			const targetSize = (6 / zoom) * mobileHandleMultiplier
+
+			const isMediaShape =
+				onlyShape &&
+				(editor.isShapeOfType(onlyShape, 'image') || editor.isShapeOfType(onlyShape, 'video'))
+			const selectionRotation = editor.getSelectionRotation()
+			const isShapeTooCloseToContextualToolbar =
+				selectionRotation / HALF_PI > 1.6 && selectionRotation / HALF_PI < 2.4
+
+			const cx = isSmallX ? -targetSize * 1.5 : width / 2
+			const cy = isSmallX
+				? height / 2
+				: isMediaShape && !isShapeTooCloseToContextualToolbar
+					? height + targetSize * 1.5
+					: -targetSize * 1.5
+
+			const SQUARE_ROOT_PI = Math.sqrt(Math.PI)
+			const fgRadius = size / SQUARE_ROOT_PI
+
+			// Foreground circle
+			ctx.fillStyle = bgColor
+			ctx.strokeStyle = strokeColor
+			ctx.lineWidth = 1.5 / zoom
+			ctx.beginPath()
+			ctx.arc(cx, cy, fgRadius, 0, Math.PI * 2)
+			ctx.fill()
+			ctx.stroke()
+		}
+
+		// Text resize handles
+		if (shouldDisplayControls && isCoarsePointer && onlyShape && onlyShape.type === 'text') {
+			const isSmallY = height < size * 4
+			const mobileHandleMultiplier = 1.75
+			const targetSize = (6 / zoom) * mobileHandleMultiplier
+			const targetSizeY = (isSmallY ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
+			const textHandleHeight = Math.min(24 / zoom, height - targetSizeY * 3)
+			if (textHandleHeight * zoom >= 4) {
+				ctx.fillStyle = strokeColor
+				const hw = size / 2
+				const r = size / 4
+				// Left handle
+				this._roundRect(ctx, 0 - hw / 2, height / 2 - textHandleHeight / 2, hw, textHandleHeight, r)
+				ctx.fill()
+				// Right handle
+				this._roundRect(
+					ctx,
+					width - hw / 2,
+					height / 2 - textHandleHeight / 2,
+					hw,
+					textHandleHeight,
+					r
+				)
+				ctx.fill()
+			}
+		}
+
+		ctx.restore()
+	}
+
 	override getCursor(overlay: TLSelectionForegroundOverlay): TLCursorType | undefined {
 		const editor = this.editor
 		const rotation = editor.getSelectionRotation()
@@ -392,6 +587,35 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 					h: targetSizeY * 3,
 				}
 		}
+	}
+
+	/** @internal */
+	_resolveColor(value: string): string {
+		if (!value.startsWith('var(')) return value
+		const varName = value.slice(4, -1)
+		const container = this.editor.getContainer()
+		return getComputedStyle(container).getPropertyValue(varName) || value
+	}
+
+	private _roundRect(
+		ctx: CanvasRenderingContext2D,
+		x: number,
+		y: number,
+		w: number,
+		h: number,
+		r: number
+	) {
+		ctx.beginPath()
+		ctx.moveTo(x + r, y)
+		ctx.lineTo(x + w - r, y)
+		ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+		ctx.lineTo(x + w, y + h - r)
+		ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+		ctx.lineTo(x + r, y + h)
+		ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+		ctx.lineTo(x, y + r)
+		ctx.quadraticCurveTo(x, y, x + r, y)
+		ctx.closePath()
 	}
 
 	private _getRotateHandleLocalRect(

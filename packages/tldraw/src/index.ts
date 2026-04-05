@@ -77,6 +77,7 @@ export {
 export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
 export {
 	SelectionForegroundOverlayUtil,
+	type SelectionForegroundOverlayOptions,
 	type TLSelectionForegroundOverlay,
 } from './lib/overlays/SelectionForegroundOverlayUtil'
 export {

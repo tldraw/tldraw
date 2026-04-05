@@ -3050,6 +3050,14 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 // @public (undocumented)
 export function SelectAllMenuItem(): JSX.Element;
 
+// @public (undocumented)
+export interface SelectionForegroundOverlayOptions {
+    // (undocumented)
+    bgColor: string;
+    // (undocumented)
+    strokeColor: string;
+}
+
 // @public
 export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForegroundOverlay> {
     // (undocumented)
@@ -3060,6 +3068,12 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
     getOverlays(): TLSelectionForegroundOverlay[];
     // (undocumented)
     isActive(): boolean;
+    // (undocumented)
+    options: SelectionForegroundOverlayOptions;
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, _overlays: TLSelectionForegroundOverlay[]): void;
+    // @internal (undocumented)
+    _resolveColor(value: string): string;
     // (undocumented)
     static type: string;
 }

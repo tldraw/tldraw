@@ -332,7 +332,9 @@ describe('<TldrawEditor />', () => {
 		// (useTranslation would throw without the fix, which the error boundary catches)
 		expect(errors).toHaveLength(0)
 		expect(document.querySelector('[data-testid="test-error-fallback"]')).toBeNull()
-		expect(document.querySelector('[data-testid="selection-foreground"]')).toBeTruthy()
+		// Selection foreground is now rendered via the OverlayUtil canvas system,
+		// so we verify via the canvas-overlays element instead of the old SVG element
+		expect(document.querySelector('.tl-canvas-overlays')).toBeTruthy()
 
 		spy.mockRestore()
 	})
