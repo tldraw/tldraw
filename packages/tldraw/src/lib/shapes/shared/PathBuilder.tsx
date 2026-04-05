@@ -811,9 +811,17 @@ export class PathBuilder {
 				tangentToNext,
 				tangentToPrev,
 			} of drawCommands) {
-				const offset = command.isClose
-					? lastMoveToOffset
-					: { x: random() * offsetAmount, y: random() * offsetAmount }
+				let offset: VecLike
+				if (command.isClose) {
+					offset = lastMoveToOffset
+				} else {
+					const angle = random() * Math.PI // [-π, π) since random() returns [-1, 1)
+					const magnitude = Math.sqrt(Math.abs(random())) * offsetAmount // sqrt for uniform area distribution
+					offset = {
+						x: Math.cos(angle) * magnitude,
+						y: Math.sin(angle) * magnitude,
+					}
+				}
 
 				if (command.type === 'move') {
 					lastMoveToOffset = offset
