@@ -2628,6 +2628,7 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
     getGeometry(_overlay: T): Geometry2d | null;
     abstract getOverlays(): T[];
     abstract isActive(): boolean;
+    render(_ctx: CanvasRenderingContext2D, _overlays: T[]): void;
     // (undocumented)
     static type: string;
 }

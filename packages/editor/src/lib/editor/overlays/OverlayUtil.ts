@@ -63,4 +63,13 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
 	getCursor(_overlay: T): TLCursorType | undefined {
 		return undefined
 	}
+
+	/**
+	 * Render all active overlays into the canvas context.
+	 * The context is already transformed to page space (camera transform applied).
+	 * Called reactively when overlays or editor state changes.
+	 *
+	 * Return false or undefined to indicate nothing was rendered.
+	 */
+	render(_ctx: CanvasRenderingContext2D, _overlays: T[]): void {}
 }

@@ -27,6 +27,7 @@ import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
 import { Shape } from '../Shape'
+import { CanvasOverlays } from './CanvasOverlays'
 import { CanvasShapeIndicators } from './CanvasShapeIndicators'
 
 /** @public */
@@ -161,9 +162,9 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				</div>
 				<div className="tl-overlays">
 					<CanvasShapeIndicators />
+					<CanvasOverlays />
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}
-						<BrushWrapper />
 						<ScribbleWrapper />
 						<ZoomBrushWrapper />
 						{ShapeIndicators && <ShapeIndicators />}
@@ -220,16 +221,6 @@ function ScribbleWrapper() {
 	return scribbles.map((scribble) => (
 		<Scribble key={scribble.id} className="tl-user-scribble" scribble={scribble} zoom={zoomLevel} />
 	))
-}
-
-function BrushWrapper() {
-	const editor = useEditor()
-	const brush = useValue('brush', () => editor.getInstanceState().brush, [editor])
-	const { Brush } = useEditorComponents()
-
-	if (!(Brush && brush)) return null
-
-	return <Brush className="tl-user-brush" brush={brush} />
 }
 
 function ZoomBrushWrapper() {
