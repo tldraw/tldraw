@@ -25,6 +25,25 @@ Tldraw's UI supports 50 languages out of the box, including right-to-left langua
 
 The user's locale is stored in [user preferences](/sdk-features/user-preferences). By default, tldraw detects the browser's language and selects the closest match from supported languages.
 
+The simplest way to set the locale is with the `locale` prop on the `Tldraw` component:
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw locale="fr" />
+		</div>
+	)
+}
+```
+
+The `locale` prop takes priority over the browser's language preferences but can still be overridden by the user's explicit locale preference (e.g. via `editor.user.updateUserPreferences`).
+
+You can also set the locale imperatively after the editor mounts:
+
 ```tsx
 import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
