@@ -165,10 +165,8 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					<CanvasOverlays />
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}
-						<ScribbleWrapper />
 						{ShapeIndicators && <ShapeIndicators />}
 						<HintedShapeIndicator />
-						<SnapIndicatorWrapper />
 						<SelectionForegroundWrapper />
 						<HandlesWrapper />
 						<OverlaysWrapper />
@@ -207,32 +205,6 @@ function GridWrapper() {
 	if (!(Grid && isGridMode)) return null
 
 	return <Grid x={x} y={y} z={z} size={gridSize} />
-}
-
-function ScribbleWrapper() {
-	const editor = useEditor()
-	const scribbles = useValue('scribbles', () => editor.getInstanceState().scribbles, [editor])
-	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
-	const { Scribble } = useEditorComponents()
-
-	if (!(Scribble && scribbles.length)) return null
-
-	return scribbles.map((scribble) => (
-		<Scribble key={scribble.id} className="tl-user-scribble" scribble={scribble} zoom={zoomLevel} />
-	))
-}
-
-function SnapIndicatorWrapper() {
-	const editor = useEditor()
-	const lines = useValue('snapLines', () => editor.snaps.getIndicators(), [editor])
-	const zoomLevel = useValue('zoomLevel', () => editor.getEfficientZoomLevel(), [editor])
-	const { SnapIndicator } = useEditorComponents()
-
-	if (!(SnapIndicator && lines.length > 0)) return null
-
-	return lines.map((line) => (
-		<SnapIndicator key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />
-	))
 }
 
 function HandlesWrapper() {

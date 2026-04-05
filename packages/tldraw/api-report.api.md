@@ -65,6 +65,7 @@ import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
 import { ShapeWithCrop } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
+import { SnapIndicator } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
@@ -136,6 +137,7 @@ import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLResizeInfo } from '@tldraw/editor';
 import { TLRichText } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
+import { TLScribble } from '@tldraw/editor';
 import { TLScribbleProps } from '@tldraw/editor';
 import { TLSelectionForegroundProps } from '@tldraw/editor';
 import { TLSelectionHandle } from '@tldraw/editor';
@@ -1106,7 +1108,7 @@ export function DefaultMinimap(): JSX.Element;
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
 
 // @public (undocumented)
-export const defaultOverlayUtils: readonly [typeof SelectionForegroundOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil];
+export const defaultOverlayUtils: readonly [typeof SelectionForegroundOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil];
 
 // @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
@@ -3031,6 +3033,20 @@ export const RTL_LANGUAGES: Set<string>;
 // @public
 export function sanitizeSvg(svgText: string): string;
 
+// @public
+export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
+    // (undocumented)
+    getOverlays(): TLScribbleOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLScribbleOverlay[]): void;
+    // @internal (undocumented)
+    _resolveColor(value: string): string;
+    // (undocumented)
+    static type: string;
+}
+
 // @public (undocumented)
 export function SelectAllMenuItem(): JSX.Element;
 
@@ -3092,6 +3108,28 @@ export interface ShapeOptionsWithDisplayValues<Shape extends TLShape, DisplayVal
     getCustomDisplayValues(editor: Editor, shape: Shape, theme: TLTheme, colorMode: 'dark' | 'light'): Partial<DisplayValues>;
     // (undocumented)
     getDefaultDisplayValues(editor: Editor, shape: Shape, theme: TLTheme, colorMode: 'dark' | 'light'): DisplayValues;
+}
+
+// @public (undocumented)
+export interface SnapIndicatorOverlayOptions {
+    // (undocumented)
+    gapsColor: string;
+    // (undocumented)
+    pointsColor: string;
+}
+
+// @public
+export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay> {
+    // (undocumented)
+    getOverlays(): TLSnapIndicatorOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: SnapIndicatorOverlayOptions;
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLSnapIndicatorOverlay[]): void;
+    // (undocumented)
+    static type: string;
 }
 
 // @public (undocumented)
@@ -3988,11 +4026,27 @@ export interface TLExternalContentProps {
 }
 
 // @public (undocumented)
+export interface TLScribbleOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        scribble: TLScribble;
+    };
+}
+
+// @public (undocumented)
 export interface TLSelectionForegroundOverlay extends TLOverlay {
     // (undocumented)
     props: {
         handle: RotateCorner | TLSelectionHandle;
         overlayType: 'mobile_rotate' | 'resize_handle' | 'rotate_handle';
+    };
+}
+
+// @public (undocumented)
+export interface TLSnapIndicatorOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        line: SnapIndicator;
     };
 }
 

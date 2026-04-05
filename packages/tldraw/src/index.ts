@@ -74,10 +74,16 @@ export {
 	type TLZoomBrushOverlay,
 	type ZoomBrushOverlayOptions,
 } from './lib/overlays/ZoomBrushOverlayUtil'
+export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
 export {
 	SelectionForegroundOverlayUtil,
 	type TLSelectionForegroundOverlay,
 } from './lib/overlays/SelectionForegroundOverlayUtil'
+export {
+	SnapIndicatorOverlayUtil,
+	type SnapIndicatorOverlayOptions,
+	type TLSnapIndicatorOverlay,
+} from './lib/overlays/SnapIndicatorOverlayUtil'
 export { defaultAssetUtils } from './lib/defaultAssetUtils'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export { defaultOverlayUtils } from './lib/defaultOverlayUtils'
