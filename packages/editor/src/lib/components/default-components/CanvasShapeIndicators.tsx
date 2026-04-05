@@ -1,3 +1,4 @@
+import { atom } from '@tldraw/state'
 import { useComputed, useQuickReactor } from '@tldraw/state-react'
 import { createComputedCache } from '@tldraw/store'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
@@ -6,7 +7,6 @@ import { memo, useEffect, useRef } from 'react'
 import { Editor } from '../../editor/Editor'
 import { TLIndicatorPath } from '../../editor/shapes/ShapeUtil'
 import { getComputedStyle } from '../../exports/domUtils'
-import { useColorMode } from '../../hooks/useColorMode'
 import { useEditor } from '../../hooks/useEditor'
 import { useActivePeerIds$ } from '../../hooks/usePeerIds'
 
@@ -131,16 +131,27 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 	const editor = useEditor()
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
-	// Cache the selected color to avoid getComputedStyle on every render
-	const rSelectedColor = useRef<string | null>(null)
-	const colorMode = useColorMode()
+	// Resolved selected color, updated when the container's inline style changes (theme switch).
+	// Stored as an atom so the quick reactor re-runs when it changes.
+	const selectedColor$ = useRef(atom('selected color', null as string | null)).current
 
 	useEffect(() => {
-		const timer = editor.timers.setTimeout(() => {
-			rSelectedColor.current = null
-		}, 0)
-		return () => clearTimeout(timer)
-	}, [colorMode, editor])
+		const canvas = canvasRef.current
+		if (!canvas) return
+
+		const container = canvas.closest('.tl-container') as HTMLElement | null
+		if (!container) return
+
+		const resolve = () => {
+			selectedColor$.set(getComputedStyle(canvas).getPropertyValue('--tl-color-selected'))
+		}
+		resolve()
+
+		const observer = new MutationObserver(resolve)
+		observer.observe(container, { attributes: true, attributeFilter: ['style'] })
+
+		return () => observer.disconnect()
+	}, [selectedColor$])
 
 	// Get active peer IDs (already handles time-based state transitions)
 	const activePeerIds$ = useActivePeerIds$()
@@ -261,12 +272,8 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 			// Reset alpha for local indicators
 			ctx.globalAlpha = 1.0
 
-			// Use cached color, only call getComputedStyle when cache is empty
-			if (!rSelectedColor.current) {
-				rSelectedColor.current = getComputedStyle(canvas).getPropertyValue('--tl-color-selected')
-			}
-
-			ctx.strokeStyle = rSelectedColor.current
+			ctx.strokeStyle =
+				selectedColor$.get() ?? getComputedStyle(canvas).getPropertyValue('--tl-color-selected')
 
 			// Draw selected/hovered indicators (1.5px stroke)
 			ctx.lineWidth = 1.5 / zoom

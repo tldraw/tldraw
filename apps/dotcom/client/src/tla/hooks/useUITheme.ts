@@ -3,28 +3,38 @@ import { useValue } from 'tldraw'
 import { getUITheme } from '../themes/ui-themes'
 import { getLocalSessionState } from '../utils/local-session-state'
 
+function applyThemeToElement(el: HTMLElement, props: Record<string, string>) {
+	for (const [key, value] of Object.entries(props)) {
+		el.style.setProperty(`--${key}`, value)
+	}
+}
+
+function clearThemeFromElement(el: HTMLElement, keys: string[]) {
+	for (const key of keys) {
+		el.style.removeProperty(`--${key}`)
+	}
+}
+
 /**
  * Applies CSS variable overrides from the selected UI color theme to the
- * closest `.tla-theme-container` element. When the theme is 'default',
- * any previously-applied overrides are removed so the base CSS classes
- * (`.tl-theme__light` / `.tl-theme__dark`) take effect.
+ * `.tla-theme-container` element and any inner `.tl-container` elements.
+ * Uses a MutationObserver to catch editor containers that mount later.
  */
 export function useUITheme() {
 	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
 	const theme = useValue('theme', () => getLocalSessionState().theme, [])
-	const containerRef = useRef<HTMLElement | null>(null)
-	const appliedKeysRef = useRef<string[]>([])
+	const appliedRef = useRef<{ keys: string[]; elements: HTMLElement[] }>({ keys: [], elements: [] })
 
 	useEffect(() => {
 		const container = document.querySelector('.tla-theme-container') as HTMLElement | null
 		if (!container) return
-		containerRef.current = container
 
-		// Clear previous overrides
-		for (const key of appliedKeysRef.current) {
-			container.style.removeProperty(key)
+		// Clear previous overrides from all previously-targeted elements
+		const prev = appliedRef.current
+		for (const el of prev.elements) {
+			clearThemeFromElement(el, prev.keys)
 		}
-		appliedKeysRef.current = []
+		appliedRef.current = { keys: [], elements: [] }
 
 		if (colorTheme === 'default') return
 
@@ -32,26 +42,40 @@ export function useUITheme() {
 		if (!themeData) return
 
 		const variant = theme === 'dark' ? themeData.dark : themeData.light
-		const keys: string[] = []
+		const allProps = { ...variant.tl, ...variant.tla }
+		const keys = Object.keys(allProps)
 
-		for (const [key, value] of Object.entries(variant.tl)) {
-			const prop = `--${key}`
-			container.style.setProperty(prop, value)
-			keys.push(prop)
+		// Apply to the container and any existing inner .tl-container elements
+		const targets = [container, ...container.querySelectorAll<HTMLElement>('.tl-container')]
+		for (const el of targets) {
+			applyThemeToElement(el, allProps)
 		}
-		for (const [key, value] of Object.entries(variant.tla)) {
-			const prop = `--${key}`
-			container.style.setProperty(prop, value)
-			keys.push(prop)
-		}
+		appliedRef.current = { keys, elements: [...targets] }
 
-		appliedKeysRef.current = keys
+		// Watch for new .tl-container elements mounting inside the container
+		const observer = new MutationObserver((mutations) => {
+			for (const mutation of mutations) {
+				for (const node of mutation.addedNodes) {
+					if (!(node instanceof HTMLElement)) continue
+					const newContainers = node.classList.contains('tl-container')
+						? [node]
+						: [...node.querySelectorAll<HTMLElement>('.tl-container')]
+					for (const el of newContainers) {
+						applyThemeToElement(el, allProps)
+						appliedRef.current.elements.push(el)
+					}
+				}
+			}
+		})
+		observer.observe(container, { childList: true, subtree: true })
 
 		return () => {
-			for (const key of keys) {
-				container.style.removeProperty(key)
+			observer.disconnect()
+			const current = appliedRef.current
+			for (const el of current.elements) {
+				clearThemeFromElement(el, current.keys)
 			}
-			appliedKeysRef.current = []
+			appliedRef.current = { keys: [], elements: [] }
 		}
 	}, [colorTheme, theme])
 }

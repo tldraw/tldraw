@@ -135,8 +135,8 @@ export function Component() {
 			ref={setContainer}
 			dir={dir}
 			className={classNames(`tla tl-container tla-theme-container`, {
-				'tla-theme__light tl-theme__light': theme === 'light',
-				'tla-theme__dark tl-theme__dark': theme !== 'light',
+				'tl-theme__light tla-theme__light': theme === 'light',
+				'tl-theme__dark tla-theme__dark': theme !== 'light',
 				'tla-focus-mode': isFocusMode,
 			})}
 		>
