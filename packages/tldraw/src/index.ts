@@ -76,6 +76,11 @@ export {
 } from './lib/overlays/ZoomBrushOverlayUtil'
 export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
 export {
+	ShapeHandleOverlayUtil,
+	type ShapeHandleOverlayOptions,
+	type TLShapeHandleOverlay,
+} from './lib/overlays/ShapeHandleOverlayUtil'
+export {
 	SelectionForegroundOverlayUtil,
 	type SelectionForegroundOverlayOptions,
 	type TLSelectionForegroundOverlay,

@@ -123,31 +123,42 @@ export class Idle extends StateNode {
 				const { overlay } = info
 				const overlayType = overlay.props.overlayType as string | undefined
 
-				switch (overlayType) {
-					case 'rotate_handle': {
-						// Re-dispatch as a selection event with the rotate corner handle
+				// Check overlay type to determine how to route the event
+				if (overlay.type === 'shape_handle') {
+					// Re-dispatch as a handle event
+					const shape = this.editor.getShape(overlay.props.shapeId as any)
+					if (shape) {
 						this.onPointerDown({
 							...info,
-							target: 'selection',
+							target: 'handle',
+							shape,
 							handle: overlay.props.handle as any,
 						})
-						break
 					}
-					case 'resize_handle': {
-						// Re-dispatch as a selection event with the resize handle
-						this.onPointerDown({
-							...info,
-							target: 'selection',
-							handle: overlay.props.handle as any,
-						})
-						break
-					}
-					default: {
-						// Unknown overlay type — treat as a selection pointer down
-						this.onPointerDown({
-							...info,
-							target: 'selection',
-						})
+				} else {
+					switch (overlayType) {
+						case 'rotate_handle': {
+							this.onPointerDown({
+								...info,
+								target: 'selection',
+								handle: overlay.props.handle as any,
+							})
+							break
+						}
+						case 'resize_handle': {
+							this.onPointerDown({
+								...info,
+								target: 'selection',
+								handle: overlay.props.handle as any,
+							})
+							break
+						}
+						default: {
+							this.onPointerDown({
+								...info,
+								target: 'selection',
+							})
+						}
 					}
 				}
 				break

@@ -1108,7 +1108,7 @@ export function DefaultMinimap(): JSX.Element;
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
 
 // @public (undocumented)
-export const defaultOverlayUtils: readonly [typeof SelectionForegroundOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil];
+export const defaultOverlayUtils: readonly [typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil];
 
 // @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
@@ -3117,6 +3117,34 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
 
 // @public (undocumented)
+export interface ShapeHandleOverlayOptions {
+    // (undocumented)
+    fgColor: string;
+    // (undocumented)
+    strokeColor: string;
+}
+
+// @public
+export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
+    // (undocumented)
+    getCursor(_overlay: TLShapeHandleOverlay): TLCursorType | undefined;
+    // (undocumented)
+    getGeometry(overlay: TLShapeHandleOverlay): Geometry2d | null;
+    // (undocumented)
+    getOverlays(): TLShapeHandleOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: ShapeHandleOverlayOptions;
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLShapeHandleOverlay[]): void;
+    // @internal (undocumented)
+    _resolveColor(value: string): string;
+    // (undocumented)
+    static type: string;
+}
+
+// @public (undocumented)
 export interface ShapeOptionsWithDisplayValues<Shape extends TLShape, DisplayValues extends object> {
     // (undocumented)
     getCustomDisplayValues(editor: Editor, shape: Shape, theme: TLTheme, colorMode: 'dark' | 'light'): Partial<DisplayValues>;
@@ -4053,6 +4081,15 @@ export interface TLSelectionForegroundOverlay extends TLOverlay {
     props: {
         handle: RotateCorner | TLSelectionHandle;
         overlayType: 'mobile_rotate' | 'resize_handle' | 'rotate_handle';
+    };
+}
+
+// @public (undocumented)
+export interface TLShapeHandleOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        handle: TLHandle;
+        shapeId: TLShapeId;
     };
 }
 
