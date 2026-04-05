@@ -101,6 +101,18 @@ export interface TldrawBaseProps
 	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
 	 */
 	textOptions?: TLTextOptions
+	/**
+	 * The locale to use for the editor's UI. When set, this takes priority over
+	 * the browser's language preferences (`navigator.languages`) but can still be
+	 * overridden by the user's explicit locale preference (e.g. via
+	 * `editor.user.updateUserPreferences({ locale: '...' })`).
+	 *
+	 * @example
+	 * ```tsx
+	 * <Tldraw locale="fr" />
+	 * ```
+	 */
+	locale?: string
 }
 
 /** @public */
@@ -154,6 +166,7 @@ export function Tldraw(props: TldrawProps) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		embeds,
 		options,
+		locale,
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
@@ -267,7 +280,7 @@ export function Tldraw(props: TldrawProps) {
 		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(rest.assetUrls)}>
 			<TldrawUiTranslationProvider
 				overrides={useMergedTranslationOverrides(rest.overrides)}
-				locale={rest.user?.userPreferences.get().locale ?? defaultUserPreferences.locale}
+				locale={rest.user?.userPreferences.get().locale ?? locale ?? defaultUserPreferences.locale}
 			>
 				<TldrawEditor
 					initialState="select"
