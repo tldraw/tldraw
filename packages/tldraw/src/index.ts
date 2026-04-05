@@ -64,8 +64,16 @@ export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
 export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
-export { BrushOverlayUtil, type TLBrushOverlay } from './lib/overlays/BrushOverlayUtil'
-export { ZoomBrushOverlayUtil, type TLZoomBrushOverlay } from './lib/overlays/ZoomBrushOverlayUtil'
+export {
+	BrushOverlayUtil,
+	type BrushOverlayOptions,
+	type TLBrushOverlay,
+} from './lib/overlays/BrushOverlayUtil'
+export {
+	ZoomBrushOverlayUtil,
+	type TLZoomBrushOverlay,
+	type ZoomBrushOverlayOptions,
+} from './lib/overlays/ZoomBrushOverlayUtil'
 export {
 	SelectionForegroundOverlayUtil,
 	type TLSelectionForegroundOverlay,

@@ -573,6 +573,14 @@ export interface BreakPointProviderProps {
     forceMobile?: boolean;
 }
 
+// @public (undocumented)
+export interface BrushOverlayOptions {
+    // (undocumented)
+    fill: string;
+    // (undocumented)
+    stroke: string;
+}
+
 // @public
 export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
     // (undocumented)
@@ -580,7 +588,11 @@ export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
+    options: BrushOverlayOptions;
+    // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[]): void;
+    // @internal (undocumented)
+    _resolveColor(value: string): string;
     // (undocumented)
     static type: string;
 }
@@ -6059,6 +6071,14 @@ export function ViewSubmenu(): JSX.Element;
 // @public (undocumented)
 export function XBoxToolbarItem(): JSX.Element;
 
+// @public (undocumented)
+export interface ZoomBrushOverlayOptions {
+    // (undocumented)
+    fill: string;
+    // (undocumented)
+    stroke: string;
+}
+
 // @public
 export class ZoomBrushOverlayUtil extends OverlayUtil<TLZoomBrushOverlay> {
     // (undocumented)
@@ -6066,7 +6086,11 @@ export class ZoomBrushOverlayUtil extends OverlayUtil<TLZoomBrushOverlay> {
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
+    options: ZoomBrushOverlayOptions;
+    // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLZoomBrushOverlay[]): void;
+    // @internal (undocumented)
+    _resolveColor(value: string): string;
     // (undocumented)
     static type: string;
 }

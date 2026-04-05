@@ -10,6 +10,12 @@ export interface TLBrushOverlay extends TLOverlay {
 	}
 }
 
+/** @public */
+export interface BrushOverlayOptions {
+	fill: string
+	stroke: string
+}
+
 /**
  * Overlay util for the selection brush rectangle.
  *
@@ -17,6 +23,11 @@ export interface TLBrushOverlay extends TLOverlay {
  */
 export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
 	static override type = 'brush'
+
+	override options: BrushOverlayOptions = {
+		fill: 'var(--tl-color-brush-fill)',
+		stroke: 'var(--tl-color-brush-stroke)',
+	}
 
 	override isActive(): boolean {
 		return this.editor.getInstanceState().brush !== null
@@ -49,27 +60,19 @@ export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
 		ctx.beginPath()
 		ctx.rect(x, y, w, h)
 
-		// Fill
-		ctx.fillStyle = this._brushFill
+		ctx.fillStyle = this._resolveColor(this.options.fill)
 		ctx.fill()
 
-		// Stroke
 		ctx.lineWidth = 1 / zoom
-		ctx.strokeStyle = this._brushStroke
+		ctx.strokeStyle = this._resolveColor(this.options.stroke)
 		ctx.stroke()
 	}
 
-	private get _brushFill(): string {
-		return this._getThemeColor('--tl-color-brush-fill', 'hsla(0, 0%, 56%, 0.102)')
-	}
-
-	private get _brushStroke(): string {
-		return this._getThemeColor('--tl-color-brush-stroke', 'hsla(0, 0%, 56%, 0.251)')
-	}
-
-	private _getThemeColor(varName: string, fallback: string): string {
+	/** @internal */
+	_resolveColor(value: string): string {
+		if (!value.startsWith('var(')) return value
+		const varName = value.slice(4, -1)
 		const container = this.editor.getContainer()
-		const value = getComputedStyle(container).getPropertyValue(varName)
-		return value || fallback
+		return getComputedStyle(container).getPropertyValue(varName) || value
 	}
 }

@@ -16,6 +16,10 @@ export interface TLOverlay {
 export interface TLOverlayUtilConstructor<U extends OverlayUtil = OverlayUtil> {
 	new (editor: Editor): U
 	type: string
+	configure<T extends TLOverlayUtilConstructor<any>>(
+		this: T,
+		options: T extends new (...args: any[]) => { options: infer Options } ? Partial<Options> : never
+	): T
 }
 
 /** @public */
@@ -30,12 +34,42 @@ export type TLAnyOverlayUtilConstructor = TLOverlayUtilConstructor<any>
  * - Produce overlay instances from current editor state
  * - Provide hit-test geometry for interactive overlays
  * - Provide cursor style on hover
+ * - Render into a canvas 2D context
  *
  * @public
  */
 export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
 	constructor(public editor: Editor) {}
 	static type: string
+
+	/**
+	 * Options for this overlay util. Override this to provide customization options.
+	 * Use {@link OverlayUtil.configure} to customize existing overlay utils.
+	 *
+	 * @public
+	 */
+	options = {}
+
+	/**
+	 * Create a new overlay util class with the given options merged in.
+	 *
+	 * @example
+	 * ```ts
+	 * const MyBrush = BrushOverlayUtil.configure({ fill: 'rgba(0,0,255,0.1)' })
+	 * ```
+	 *
+	 * @public
+	 */
+	static configure<T extends TLOverlayUtilConstructor<any>>(
+		this: T,
+		options: T extends new (...args: any[]) => { options: infer Options } ? Partial<Options> : never
+	): T {
+		// @ts-expect-error -- typescript has no idea what's going on here but it's fine
+		return class extends this {
+			// @ts-expect-error
+			options = { ...this.options, ...options }
+		}
+	}
 
 	/**
 	 * Whether this overlay util's overlays should currently be active.
@@ -68,8 +102,6 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
 	 * Render all active overlays into the canvas context.
 	 * The context is already transformed to page space (camera transform applied).
 	 * Called reactively when overlays or editor state changes.
-	 *
-	 * Return false or undefined to indicate nothing was rendered.
 	 */
 	render(_ctx: CanvasRenderingContext2D, _overlays: T[]): void {}
 }

@@ -2622,12 +2622,16 @@ export class OverlayManager {
 // @public
 export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
     constructor(editor: Editor);
+    static configure<T extends TLOverlayUtilConstructor<any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
     // (undocumented)
     editor: Editor;
     getCursor(_overlay: T): TLCursorType | undefined;
     getGeometry(_overlay: T): Geometry2d | null;
     abstract getOverlays(): T[];
     abstract isActive(): boolean;
+    options: {};
     render(_ctx: CanvasRenderingContext2D, _overlays: T[]): void;
     // (undocumented)
     static type: string;
@@ -4380,6 +4384,10 @@ export interface TLOverlay {
 export interface TLOverlayUtilConstructor<U extends OverlayUtil = OverlayUtil> {
     // (undocumented)
     new (editor: Editor): U;
+    // (undocumented)
+    configure<T extends TLOverlayUtilConstructor<any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
     // (undocumented)
     type: string;
 }
