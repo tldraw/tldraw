@@ -22,9 +22,9 @@ export class Sidebar {
 		this.createGroupButton = this.page.getByTestId('tla-create-group')
 		this.userSettingsMenu = this.page.getByTestId('tla-sidebar-user-settings-trigger')
 		this.helpMenu = this.page.getByTestId('tla-sidebar-help-menu-trigger')
-		this.themeButton = this.page.getByText('Theme')
+		this.themeButton = this.page.getByTestId('dialog-sub.help menu color-scheme-button')
 		this.darkModeButton = this.page.getByText('Dark')
-		this.signOutButton = this.page.getByText('Sign out')
+		this.signOutButton = this.page.getByRole('menuitem', { name: 'Sign out' })
 	}
 
 	async isVisible() {
