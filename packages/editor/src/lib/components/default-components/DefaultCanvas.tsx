@@ -162,7 +162,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				</div>
 				<div className="tl-overlays">
 					<CanvasShapeIndicators />
-					<CanvasOverlays />
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}
 						{ShapeIndicators && <ShapeIndicators />}
@@ -170,6 +169,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<OverlaysWrapper />
 						<LiveCollaborators />
 					</div>
+					<CanvasOverlays />
 				</div>
 				<MovingCameraHitTestBlocker />
 			</div>
