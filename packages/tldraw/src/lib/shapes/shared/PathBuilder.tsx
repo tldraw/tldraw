@@ -815,12 +815,9 @@ export class PathBuilder {
 				if (command.isClose) {
 					offset = lastMoveToOffset
 				} else {
-					const angle = random() * Math.PI // [-π, π) since random() returns [-1, 1)
-					const magnitude = Math.sqrt(Math.abs(random())) * offsetAmount // sqrt for uniform area distribution
-					offset = {
-						x: Math.cos(angle) * magnitude,
-						y: Math.sin(angle) * magnitude,
-					}
+					const direction = new Vec(random(), random()).uni()
+					const magnitude = Math.sqrt(Math.abs(random())) * offsetAmount
+					offset = Vec.Mul(direction, magnitude)
 				}
 
 				if (command.type === 'move') {
