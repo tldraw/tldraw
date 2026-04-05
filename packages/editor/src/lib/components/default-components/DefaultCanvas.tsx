@@ -166,7 +166,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}
 						<ScribbleWrapper />
-						<ZoomBrushWrapper />
 						{ShapeIndicators && <ShapeIndicators />}
 						<HintedShapeIndicator />
 						<SnapIndicatorWrapper />
@@ -221,16 +220,6 @@ function ScribbleWrapper() {
 	return scribbles.map((scribble) => (
 		<Scribble key={scribble.id} className="tl-user-scribble" scribble={scribble} zoom={zoomLevel} />
 	))
-}
-
-function ZoomBrushWrapper() {
-	const editor = useEditor()
-	const zoomBrush = useValue('zoomBrush', () => editor.getInstanceState().zoomBrush, [editor])
-	const { ZoomBrush } = useEditorComponents()
-
-	if (!(ZoomBrush && zoomBrush)) return null
-
-	return <ZoomBrush className="tl-user-brush tl-zoom-brush" brush={zoomBrush} />
 }
 
 function SnapIndicatorWrapper() {

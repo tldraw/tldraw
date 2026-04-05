@@ -1094,7 +1094,7 @@ export function DefaultMinimap(): JSX.Element;
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
 
 // @public (undocumented)
-export const defaultOverlayUtils: readonly [typeof SelectionForegroundOverlayUtil, typeof BrushOverlayUtil];
+export const defaultOverlayUtils: readonly [typeof SelectionForegroundOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil];
 
 // @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
@@ -5671,6 +5671,17 @@ export interface TLV1VideoShape extends TLV1BaseShape {
 }
 
 // @public (undocumented)
+export interface TLZoomBrushOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        h: number;
+        w: number;
+        x: number;
+        y: number;
+    };
+}
+
+// @public (undocumented)
 export function ToggleAutoSizeMenuItem(): JSX.Element | null;
 
 // @public (undocumented)
@@ -6047,6 +6058,18 @@ export function ViewSubmenu(): JSX.Element;
 
 // @public (undocumented)
 export function XBoxToolbarItem(): JSX.Element;
+
+// @public
+export class ZoomBrushOverlayUtil extends OverlayUtil<TLZoomBrushOverlay> {
+    // (undocumented)
+    getOverlays(): TLZoomBrushOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLZoomBrushOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
 
 // @public (undocumented)
 export function ZoomOrRotateMenuItem(): JSX.Element;
