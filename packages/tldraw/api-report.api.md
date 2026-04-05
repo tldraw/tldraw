@@ -42,6 +42,7 @@ import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
+import { OverlayUtil } from '@tldraw/editor';
 import { PerfectDashTerminal } from '@tldraw/editor';
 import { PointerEvent as PointerEvent_2 } from 'react';
 import { Polygon2d } from '@tldraw/editor';
@@ -59,6 +60,7 @@ import { RefAttributes } from 'react';
 import { RefObject } from 'react';
 import { Result } from '@tldraw/editor';
 import { RichTextFontVisitorState } from '@tldraw/editor';
+import { RotateCorner } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
 import { ShapeWithCrop } from '@tldraw/editor';
@@ -85,6 +87,7 @@ import { TLClickEventInfo } from '@tldraw/editor';
 import { TLClipboardWriteInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
+import { TLCursorType } from '@tldraw/editor';
 import { TLDefaultColorStyle } from '@tldraw/tlschema';
 import { TLDefaultFontStyle } from '@tldraw/tlschema';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
@@ -125,6 +128,7 @@ import { TLLineShape } from '@tldraw/editor';
 import { TLLineShapePoint } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
 import { TLNoteShapeProps } from '@tldraw/editor';
+import { TLOverlay } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/tlschema';
 import { TLPointerEventInfo } from '@tldraw/editor';
@@ -134,6 +138,7 @@ import { TLRichText } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribbleProps } from '@tldraw/editor';
 import { TLSelectionForegroundProps } from '@tldraw/editor';
+import { TLSelectionHandle } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeCrop } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
@@ -1075,6 +1080,9 @@ export function DefaultMinimap(): JSX.Element;
 
 // @public (undocumented)
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
+
+// @public (undocumented)
+export const defaultOverlayUtils: readonly [typeof SelectionForegroundOverlayUtil];
 
 // @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
@@ -3002,6 +3010,20 @@ export function sanitizeSvg(svgText: string): string;
 // @public (undocumented)
 export function SelectAllMenuItem(): JSX.Element;
 
+// @public
+export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForegroundOverlay> {
+    // (undocumented)
+    getCursor(overlay: TLSelectionForegroundOverlay): TLCursorType | undefined;
+    // (undocumented)
+    getGeometry(overlay: TLSelectionForegroundOverlay): Geometry2d | null;
+    // (undocumented)
+    getOverlays(): TLSelectionForegroundOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    static type: string;
+}
+
 // @public (undocumented)
 export class SelectTool extends StateNode {
     // (undocumented)
@@ -3928,6 +3950,15 @@ export interface TLExternalContentProps {
     acceptedVideoMimeTypes?: readonly string[];
     maxAssetSize?: number;
     maxImageDimension?: number;
+}
+
+// @public (undocumented)
+export interface TLSelectionForegroundOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        handle: RotateCorner | TLSelectionHandle;
+        overlayType: 'mobile_rotate' | 'resize_handle' | 'rotate_handle';
+    };
 }
 
 // @public (undocumented)

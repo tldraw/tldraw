@@ -872,7 +872,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1494,6 +1494,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
     readonly options: TldrawOptions;
+    readonly overlays: OverlayManager;
     packShapes(shapes: TLShape[] | TLShapeId[], _gap?: number): this;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
@@ -2597,6 +2598,40 @@ export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLE
 // @public (undocumented)
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
+// @public (undocumented)
+export class OverlayManager {
+    constructor(editor: Editor);
+    // (undocumented)
+    readonly editor: Editor;
+    getActiveOverlays(): TLOverlay[];
+    // (undocumented)
+    getHoveredOverlay(): null | TLOverlay;
+    // (undocumented)
+    getHoveredOverlayId(): null | string;
+    getOverlayAtPoint(point: VecLike, margin?: number): null | TLOverlay;
+    getUtil<T extends OverlayUtil>(type: string): T;
+    getUtilForOverlay(overlay: TLOverlay): OverlayUtil;
+    // @internal (undocumented)
+    readonly _overlayUtils: Map<string, OverlayUtil<TLOverlay>>;
+    // @internal
+    registerUtil(util: OverlayUtil): void;
+    // (undocumented)
+    setHoveredOverlay(id: null | string): void;
+}
+
+// @public
+export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
+    constructor(editor: Editor);
+    // (undocumented)
+    editor: Editor;
+    getCursor(_overlay: T): TLCursorType | undefined;
+    getGeometry(_overlay: T): Geometry2d | null;
+    abstract getOverlays(): T[];
+    abstract isActive(): boolean;
+    // (undocumented)
+    static type: string;
+}
+
 // @public
 export function parseDeepLinkString(deepLinkString: string): TLDeepLink;
 
@@ -3293,6 +3328,9 @@ export type TLAnyAssetUtilConstructor = TLAssetUtilConstructor<any>;
 export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
 
 // @public (undocumented)
+export type TLAnyOverlayUtilConstructor = TLOverlayUtilConstructor<any>;
+
+// @public (undocumented)
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
 
 // @public (undocumented)
@@ -3626,6 +3664,7 @@ export interface TldrawEditorBaseProps {
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
+    overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     // @deprecated
     textOptions?: TLTextOptions;
@@ -3860,6 +3899,7 @@ export interface TLEditorOptions {
     // (undocumented)
     licenseKey?: string;
     options?: Partial<TldrawOptions>;
+    overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
     // @deprecated
@@ -4329,6 +4369,21 @@ export const tlmenus: {
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;
 
 // @public (undocumented)
+export interface TLOverlay {
+    id: string;
+    props: Record<string, unknown>;
+    type: string;
+}
+
+// @public (undocumented)
+export interface TLOverlayUtilConstructor<U extends OverlayUtil = OverlayUtil> {
+    // (undocumented)
+    new (editor: Editor): U;
+    // (undocumented)
+    type: string;
+}
+
+// @public (undocumented)
 export type TLPinchEvent = (info: TLPinchEventInfo) => void;
 
 // @public (undocumented)
@@ -4367,6 +4422,10 @@ export type TLPointerEventTarget = {
     handle?: TLSelectionHandle;
     shape?: undefined;
     target: 'selection';
+} | {
+    overlay: TLOverlay;
+    shape?: undefined;
+    target: 'overlay';
 } | {
     shape: TLShape;
     target: 'shape';

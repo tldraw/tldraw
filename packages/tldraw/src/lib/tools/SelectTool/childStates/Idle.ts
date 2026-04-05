@@ -18,6 +18,7 @@ import {
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
+import { updateHoveredOverlayId } from '../../selection-logic/updateHoveredOverlayId'
 import {
 	cancelUpdateHoveredShapeId,
 	updateHoveredShapeId,
@@ -42,7 +43,10 @@ export class Idle extends StateNode {
 
 	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
-		updateHoveredShapeId(this.editor)
+		// Check overlays first, then shapes
+		if (!updateHoveredOverlayId(this.editor)) {
+			updateHoveredShapeId(this.editor)
+		}
 		this.selectedShapesOnKeyDown = []
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
@@ -53,7 +57,10 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerMove() {
-		updateHoveredShapeId(this.editor)
+		// Check overlays first, then shapes
+		if (!updateHoveredOverlayId(this.editor)) {
+			updateHoveredShapeId(this.editor)
+		}
 		if (unsafe__withoutCapture(() => this.editor.getInstanceState()).isChangingStyle) {
 			this.editor.updateInstanceState({ isChangingStyle: false })
 		}
@@ -62,6 +69,21 @@ export class Idle extends StateNode {
 	override onPointerDown(info: TLPointerEventInfo) {
 		switch (info.target) {
 			case 'canvas': {
+				// Check overlays first — if we hit an overlay, re-dispatch as an overlay event
+				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
+				const hitOverlay = this.editor.overlays.getOverlayAtPoint(
+					currentPagePoint,
+					this.editor.options.hitTestMargin / this.editor.getZoomLevel()
+				)
+				if (hitOverlay) {
+					this.onPointerDown({
+						...info,
+						target: 'overlay',
+						overlay: hitOverlay,
+					})
+					return
+				}
+
 				// Check to see if we hit any shape under the pointer; if so,
 				// handle this as a pointer down on the shape instead of the canvas
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
@@ -76,7 +98,6 @@ export class Idle extends StateNode {
 
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
-				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 				if (
 					selectedShapeIds.length > 1 ||
@@ -93,6 +114,42 @@ export class Idle extends StateNode {
 				}
 
 				this.parent.transition('pointing_canvas', info)
+				break
+			}
+			case 'overlay': {
+				// Overlay events carry the overlay instance which has props
+				// describing what kind of overlay it is. Delegate to the appropriate
+				// state transition based on the overlay's props.
+				const { overlay } = info
+				const overlayType = overlay.props.overlayType as string | undefined
+
+				switch (overlayType) {
+					case 'rotate_handle': {
+						// Re-dispatch as a selection event with the rotate corner handle
+						this.onPointerDown({
+							...info,
+							target: 'selection',
+							handle: overlay.props.handle as any,
+						})
+						break
+					}
+					case 'resize_handle': {
+						// Re-dispatch as a selection event with the resize handle
+						this.onPointerDown({
+							...info,
+							target: 'selection',
+							handle: overlay.props.handle as any,
+						})
+						break
+					}
+					default: {
+						// Unknown overlay type — treat as a selection pointer down
+						this.onPointerDown({
+							...info,
+							target: 'selection',
+						})
+					}
+				}
 				break
 			}
 			case 'shape': {

@@ -164,6 +164,8 @@ import { TextManager } from './managers/TextManager/TextManager'
 import { resolveThemes, ThemeManager } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
+import { OverlayManager } from './overlays/OverlayManager'
+import { OverlayUtil, TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
 import {
 	ShapeUtil,
 	TLEditStartInfo,
@@ -223,6 +225,11 @@ export interface TLEditorOptions {
 	 * An array of asset utils to use in the editor. These will be used to handle asset-type-specific behavior.
 	 */
 	assetUtils?: readonly TLAnyAssetUtilConstructor[]
+	/**
+	 * An array of overlay utils to use in the editor. These define canvas overlay UI elements
+	 * like selection handles, rotation corners, shape handles, etc.
+	 */
+	overlayUtils?: readonly TLAnyOverlayUtilConstructor[]
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
@@ -329,6 +336,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shapeUtils,
 		bindingUtils,
 		assetUtils: assetUtilConstructors,
+		overlayUtils: overlayUtilConstructors,
 		tools,
 		getContainer,
 		// needs to be here for backwards compatibility with TldrawEditor
@@ -485,6 +493,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.scribbles = new ScribbleManager(this)
+
+		// Overlay utils
+		this.overlays = new OverlayManager(this)
+		if (overlayUtilConstructors) {
+			for (const Util of overlayUtilConstructors) {
+				const util = new Util(this)
+				this.overlays.registerUtil(util)
+			}
+		}
 
 		// Cleanup
 
@@ -1057,6 +1074,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly scribbles: ScribbleManager
+
+	/**
+	 * A manager for canvas overlay UI elements (selection handles, shape handles, etc.).
+	 *
+	 * @public
+	 */
+	readonly overlays: OverlayManager
 
 	/**
 	 * A manager for side effects and correct state enforcement. See {@link @tldraw/store#StoreSideEffects} for details.
