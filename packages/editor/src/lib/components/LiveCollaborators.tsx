@@ -45,18 +45,11 @@ const Collaborator = track(function Collaborator({
 }) {
 	const editor = useEditor()
 
-	const {
-		CollaboratorBrush,
-		CollaboratorScribble,
-		CollaboratorCursor,
-		CollaboratorHint,
-		CollaboratorShapeIndicator,
-	} = useEditorComponents()
+	const { CollaboratorCursor, CollaboratorShapeIndicator } = useEditorComponents()
 
 	const zoomLevel = editor.getZoomLevel()
 	const viewportPageBounds = editor.getViewportPageBounds()
-	const { userId, chatMessage, brush, scribbles, selectedShapeIds, userName, cursor, color } =
-		latestPresence
+	const { userId, chatMessage, selectedShapeIds, userName, cursor, color } = latestPresence
 
 	if (!cursor) return null
 
@@ -71,16 +64,6 @@ const Collaborator = track(function Collaborator({
 
 	return (
 		<>
-			{brush && CollaboratorBrush ? (
-				<CollaboratorBrush
-					className="tl-collaborator__brush"
-					key={userId + '_brush'}
-					userId={userId}
-					brush={brush}
-					color={color}
-					opacity={0.1}
-				/>
-			) : null}
 			{isCursorInViewport && CollaboratorCursor ? (
 				<CollaboratorCursor
 					className="tl-collaborator__cursor"
@@ -92,31 +75,6 @@ const Collaborator = track(function Collaborator({
 					name={userName !== 'New User' ? userName : null}
 					chatMessage={chatMessage ?? ''}
 				/>
-			) : CollaboratorHint ? (
-				<CollaboratorHint
-					className="tl-collaborator__cursor-hint"
-					key={userId + '_cursor_hint'}
-					userId={userId}
-					point={cursor}
-					color={color}
-					zoom={zoomLevel}
-					viewport={viewportPageBounds}
-				/>
-			) : null}
-			{CollaboratorScribble && scribbles.length ? (
-				<>
-					{scribbles.map((scribble) => (
-						<CollaboratorScribble
-							key={userId + '_scribble_' + scribble.id}
-							className="tl-collaborator__scribble"
-							userId={userId}
-							scribble={scribble}
-							color={color}
-							zoom={zoomLevel}
-							opacity={scribble.color === 'laser' ? 0.5 : 0.1}
-						/>
-					))}
-				</>
 			) : null}
 			{CollaboratorShapeIndicator &&
 				selectedShapeIds

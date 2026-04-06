@@ -141,7 +141,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					<defs>
 						{shapeSvgDefs}
 						<CursorDef />
-						<CollaboratorHintDef />
 						{SvgDefs && <SvgDefs />}
 					</defs>
 				</svg>
@@ -316,11 +315,6 @@ function CursorDef() {
 			</g>
 		</g>
 	)
-}
-
-function CollaboratorHintDef() {
-	const cursorHintId = useSharedSafeId('cursor_hint')
-	return <path id={cursorHintId} fill="currentColor" d="M -2,-5 2,0 -2,5 Z" />
 }
 
 function DebugSvgCopy({ id, mode }: { id: TLShapeId; mode: 'img' | 'iframe' }) {

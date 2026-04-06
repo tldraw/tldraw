@@ -624,6 +624,52 @@ export function ClipboardMenuGroup(): JSX.Element;
 // @public (undocumented)
 export function CloudToolbarItem(): JSX.Element;
 
+// @public
+export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrushOverlay> {
+    // (undocumented)
+    getOverlays(): TLCollaboratorBrushOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorBrushOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
+// @public
+export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintOverlay> {
+    // (undocumented)
+    getOverlays(): TLCollaboratorHintOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // @internal (undocumented)
+    _isCursorInViewport(cursor: {
+        x: number;
+        y: number;
+    }, viewport: {
+        maxX: number;
+        maxY: number;
+        minX: number;
+        minY: number;
+    }, zoom: number): boolean;
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorHintOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
+// @public
+export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorScribbleOverlay> {
+    // (undocumented)
+    getOverlays(): TLCollaboratorScribbleOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorScribbleOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
 // @public (undocumented)
 export function ColorSchemeMenu(): JSX.Element;
 
@@ -1096,7 +1142,7 @@ export function DefaultMinimap(): JSX.Element;
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
 
 // @public (undocumented)
-export const defaultOverlayUtils: readonly [typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil];
+export const defaultOverlayUtils: readonly [typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorHintOverlayUtil];
 
 // @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
@@ -3587,6 +3633,38 @@ export interface TLBrushOverlay extends TLOverlay {
         w: number;
         x: number;
         y: number;
+    };
+}
+
+// @public (undocumented)
+export interface TLCollaboratorBrushOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        color: string;
+        h: number;
+        w: number;
+        x: number;
+        y: number;
+    };
+}
+
+// @public (undocumented)
+export interface TLCollaboratorHintOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        x: number;
+        rotation: number;
+        color: string;
+        y: number;
+    };
+}
+
+// @public (undocumented)
+export interface TLCollaboratorScribbleOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        color: string;
+        scribble: TLScribble;
     };
 }
 
