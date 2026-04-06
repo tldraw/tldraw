@@ -368,8 +368,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     toSvg(shape: TLArrowShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "arrow";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -561,8 +559,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     static props: RecordProps<TLBookmarkShape>;
     // (undocumented)
     static type: "bookmark";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -644,6 +640,18 @@ export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrus
     isActive(): boolean;
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorBrushOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
+// @public
+export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCursorOverlay> {
+    // (undocumented)
+    getOverlays(): TLCollaboratorCursorOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[]): void;
     // (undocumented)
     static type: string;
 }
@@ -1154,7 +1162,7 @@ export function DefaultMinimap(): JSX.Element;
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
 
 // @public (undocumented)
-export const defaultOverlayUtils: readonly [typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof ArrowHintOverlayUtil];
+export const defaultOverlayUtils: readonly [typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof CollaboratorCursorOverlayUtil];
 
 // @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
@@ -1346,8 +1354,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     toSvg(shape: TLDrawShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "draw";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -1607,8 +1613,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     static setEmbedDefinitions(embedDefinitions: readonly EmbedDefinition[]): void;
     // (undocumented)
     static type: "embed";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -1781,8 +1785,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     toSvg(shape: TLFrameShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "frame";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -1976,8 +1978,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "geo";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -2203,8 +2203,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     toSvg(shape: TLHighlightShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "highlight";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -2299,8 +2297,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     toSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
     // (undocumented)
     static type: "image";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -2465,8 +2461,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     toSvg(shape: TLLineShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "line";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -2607,8 +2601,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     toSvg(shape: TLNoteShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "note";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -3087,8 +3079,6 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
     isActive(): boolean;
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLScribbleOverlay[]): void;
-    // @internal (undocumented)
-    _resolveColor(value: string): string;
     // (undocumented)
     static type: string;
 }
@@ -3552,8 +3542,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     toSvg(shape: TLTextShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "text";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -3698,6 +3686,18 @@ export interface TLCollaboratorBrushOverlay extends TLOverlay {
 }
 
 // @public (undocumented)
+export interface TLCollaboratorCursorOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        chatMessage: string;
+        color: string;
+        name: null | string;
+        x: number;
+        y: number;
+    };
+}
+
+// @public (undocumented)
 export interface TLCollaboratorHintOverlay extends TLOverlay {
     // (undocumented)
     props: {
@@ -3764,9 +3764,6 @@ export function Tldraw(props: TldrawProps): JSX.Element;
 // @public (undocumented)
 export const TLDRAW_FILE_EXTENSION: ".tldr";
 
-// @public @deprecated (undocumented)
-export function TldrawArrowHints(): null;
-
 // @public (undocumented)
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
     assetUrls?: TLUiAssetUrlOverrides;
@@ -3823,13 +3820,7 @@ export interface TldrawImageProps extends TLImageExportOptions {
 }
 
 // @public (undocumented)
-export function TldrawOverlays(): null;
-
-// @public (undocumented)
 export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps;
-
-// @public (undocumented)
-export function TldrawShapeIndicators(): JSX.Element;
 
 // @public (undocumented)
 export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
@@ -6219,8 +6210,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     toSvg(shape: TLVideoShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
     // (undocumented)
     static type: "video";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)

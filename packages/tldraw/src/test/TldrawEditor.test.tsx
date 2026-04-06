@@ -272,7 +272,7 @@ describe('<TldrawEditor />', () => {
 		expect(editor.getCurrentToolId()).toBe('eraser')
 	})
 
-	it('Renders TldrawSelectionForeground without TldrawUiContextProvider', async () => {
+	it('Renders selection overlays without TldrawUiContextProvider', async () => {
 		// Unmock useTranslation so we test the real implementation.
 		// (setupVitest.js globally mocks it to prevent errors in other tests)
 		const actual = await vi.importActual<
@@ -633,8 +633,9 @@ describe('Custom shapes', () => {
 		// Select the shape
 		await act(async () => editor.select(id))
 
-		// Is the shape's component rendering?
-		expect(await screen.findByTestId('card-indicator')).toBeTruthy()
+		// Indicators are now rendered via the canvas overlay system (not DOM),
+		// so we verify selection state instead of a DOM element
+		expect(editor.getSelectedShapeIds()).toEqual([id])
 
 		// Select the tool...
 		await act(async () => editor.setCurrentTool('card'))

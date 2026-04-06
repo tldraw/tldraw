@@ -19,10 +19,6 @@ export {
 	type TLCanvasComponentProps,
 } from './lib/components/default-components/DefaultCanvas'
 export {
-	DefaultCursor,
-	type TLCursorProps,
-} from './lib/components/default-components/DefaultCursor'
-export {
 	DefaultErrorFallback,
 	type TLErrorFallbackComponent,
 } from './lib/components/default-components/DefaultErrorFallback'
@@ -32,15 +28,6 @@ export {
 	type TLSelectionBackgroundProps,
 } from './lib/components/default-components/DefaultSelectionBackground'
 export { type TLShapeErrorFallbackComponent } from './lib/components/default-components/DefaultShapeErrorFallback'
-export {
-	DefaultShapeIndicator,
-	type TLShapeIndicatorProps,
-} from './lib/components/default-components/DefaultShapeIndicator'
-export { type TLShapeIndicatorErrorFallbackComponent } from './lib/components/default-components/DefaultShapeIndicatorErrorFallback'
-export {
-	DefaultShapeIndicators,
-	type TLShapeIndicatorsProps,
-} from './lib/components/default-components/DefaultShapeIndicators'
 export {
 	DefaultShapeWrapper,
 	type TLShapeWrapperProps,

@@ -87,15 +87,15 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 		ctx.lineTo(secondX, secondY)
 		ctx.stroke()
 
-		// Cross marks at each point
+		// Batch-draw crosses for all points in a single stroke
+		ctx.beginPath()
 		for (const p of points) {
-			ctx.beginPath()
 			ctx.moveTo(p.x - l, p.y - l)
 			ctx.lineTo(p.x + l, p.y + l)
 			ctx.moveTo(p.x - l, p.y + l)
 			ctx.lineTo(p.x + l, p.y - l)
-			ctx.stroke()
 		}
+		ctx.stroke()
 	}
 
 	private _renderGaps(
@@ -143,8 +143,9 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 		ctx.strokeStyle = color
 		ctx.lineWidth = 1 / zoom
 
+		// Batch all gap ticks/lines into a single path, then stroke once
+		ctx.beginPath()
 		for (const { startEdge, endEdge } of gaps) {
-			ctx.beginPath()
 			if (horizontal) {
 				// Start edge tick
 				ctx.moveTo(startEdge[0].x, midPoint - 2 * l)
@@ -174,7 +175,7 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 				ctx.moveTo(midPoint - l, cy)
 				ctx.lineTo(midPoint + l, cy)
 			}
-			ctx.stroke()
 		}
+		ctx.stroke()
 	}
 }

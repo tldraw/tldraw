@@ -1712,6 +1712,7 @@ export interface TLThemeDefaultColors {
     green: TLDefaultColor;
     // (undocumented)
     grey: TLDefaultColor;
+    laser: string;
     // (undocumented)
     negativeSpace: string;
     // (undocumented)
@@ -1765,7 +1766,7 @@ export interface TLThemes {
 }
 
 // @public
-export type TLThemeUiColorKeys = 'background' | 'brushFill' | 'brushStroke' | 'cursor' | 'negativeSpace' | 'noteBorder' | 'selectedContrast' | 'selectionFill' | 'selectionStroke' | 'snap' | 'solid' | 'text';
+export type TLThemeUiColorKeys = 'background' | 'brushFill' | 'brushStroke' | 'cursor' | 'laser' | 'negativeSpace' | 'noteBorder' | 'selectedContrast' | 'selectionFill' | 'selectionStroke' | 'snap' | 'solid' | 'text';
 
 // @public
 export type TLUnknownAsset = TLBaseAsset<string, object>;

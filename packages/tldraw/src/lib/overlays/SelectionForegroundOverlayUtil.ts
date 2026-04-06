@@ -16,6 +16,8 @@ import {
 	Vec,
 } from '@tldraw/editor'
 
+const SQUARE_ROOT_PI = Math.sqrt(Math.PI)
+
 /** @public */
 export interface TLSelectionForegroundOverlay extends TLOverlay {
 	props: {
@@ -392,10 +394,63 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			drawCorner(0, height, hideAlternateCornerHandles) // bottom-left
 		}
 
+		// Crop handles
+		if (showCropHandles) {
+			const cropStrokeWidth = size / 3
+			const offset = cropStrokeWidth / 2
+			const hideAlternate = isTinyX || isTinyY
+
+			ctx.beginPath()
+			ctx.strokeStyle = strokeColor
+			ctx.lineWidth = cropStrokeWidth
+			ctx.lineCap = 'butt'
+			ctx.lineJoin = 'miter'
+
+			// top_left corner (always shown)
+			ctx.moveTo(-offset, size)
+			ctx.lineTo(-offset, -offset)
+			ctx.lineTo(size, -offset)
+
+			// bottom_right corner (always shown)
+			ctx.moveTo(width + offset, height - size)
+			ctx.lineTo(width + offset, height + offset)
+			ctx.lineTo(width - size, height + offset)
+
+			if (!hideAlternate) {
+				// top_right corner
+				ctx.moveTo(width - size, -offset)
+				ctx.lineTo(width + offset, -offset)
+				ctx.lineTo(width + offset, size)
+
+				// bottom_left corner
+				ctx.moveTo(size, height + offset)
+				ctx.lineTo(-offset, height + offset)
+				ctx.lineTo(-offset, height - size)
+
+				// Edge handles
+				// top
+				ctx.moveTo(width / 2 - size, -offset)
+				ctx.lineTo(width / 2 + size, -offset)
+
+				// right
+				ctx.moveTo(width + offset, height / 2 - size)
+				ctx.lineTo(width + offset, height / 2 + size)
+
+				// bottom
+				ctx.moveTo(width / 2 - size, height + offset)
+				ctx.lineTo(width / 2 + size, height + offset)
+
+				// left
+				ctx.moveTo(-offset, height / 2 - size)
+				ctx.lineTo(-offset, height / 2 + size)
+			}
+			ctx.stroke()
+		}
+
 		// Mobile rotate handle
 		if (showMobileRotateHandle) {
 			const isSmallX = width < size * 4
-			const isSmallY = height < size * 4
+			// const isSmallY = height < size * 4 // ?
 			const mobileHandleMultiplier = 1.75
 			const targetSize = (6 / zoom) * mobileHandleMultiplier
 
@@ -413,7 +468,6 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 					? height + targetSize * 1.5
 					: -targetSize * 1.5
 
-			const SQUARE_ROOT_PI = Math.sqrt(Math.PI)
 			const fgRadius = size / SQUARE_ROOT_PI
 
 			// Foreground circle

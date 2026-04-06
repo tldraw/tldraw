@@ -3,13 +3,13 @@ import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
 
 /** @public */
-export interface TLOverlay {
+export interface TLOverlay<Props = Record<string, unknown>> {
 	/** Unique id for this overlay instance, e.g. 'selection_fg:top_left_resize' */
 	id: string
 	/** The overlay util type that owns this instance */
 	type: string
 	/** Arbitrary props for the overlay (handle id, corner name, etc.) */
-	props: Record<string, unknown>
+	props: Props
 }
 
 /** @public */

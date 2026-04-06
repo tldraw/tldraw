@@ -231,10 +231,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLImageShape): Path2D | undefined {
 		if (this.editor.getCroppingShapeId() === shape.id) return undefined
 

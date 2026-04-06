@@ -73,6 +73,8 @@ export interface TLThemeDefaultColors {
 	brushStroke: string
 	/** Selected contrast color (handle fills, etc.) */
 	selectedContrast: string
+	/** Laser pointer color */
+	laser: string
 	black: TLDefaultColor
 	grey: TLDefaultColor
 	'light-violet': TLDefaultColor
@@ -182,6 +184,7 @@ export type TLThemeUiColorKeys =
 	| 'brushFill'
 	| 'brushStroke'
 	| 'selectedContrast'
+	| 'laser'
 
 /**
  * A color palette for one color mode. UI colors are always required.

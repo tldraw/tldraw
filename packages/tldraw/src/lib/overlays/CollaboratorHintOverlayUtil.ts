@@ -12,6 +12,16 @@ export interface TLCollaboratorHintOverlay extends TLOverlay {
 	}
 }
 
+// Lazy-init a Path2D for the hint arrow shape to avoid per-frame path building
+let _arrowPath: Path2D | null = null
+function getArrowPath() {
+	if (!_arrowPath) {
+		// Matches the path drawn via: M -2,-5 2,0 -2,5 Z
+		_arrowPath = new Path2D('M -2 -5 L 2 0 L -2 5 Z')
+	}
+	return _arrowPath!
+}
+
 /**
  * Overlay util for off-screen collaborator cursor hints.
  * Shows a small directional arrow at the viewport edge pointing toward the collaborator.
@@ -66,23 +76,17 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 			ctx.scale(scale, scale)
 			ctx.rotate(rotation)
 
-			// Arrow shape: same as the SVG "M -2,-5 2,0 -2,5 Z"
-			ctx.beginPath()
-			ctx.moveTo(-2, -5)
-			ctx.lineTo(2, 0)
-			ctx.lineTo(-2, 5)
-			ctx.closePath()
+			const path = getArrowPath()
 
 			// Outline stroke (white background for contrast)
 			ctx.lineWidth = 3
-			ctx.strokeStyle = 'var(--tl-color-background)'
-			// Canvas doesn't support CSS vars in strokeStyle; use white as fallback
+			// Canvas doesn't support CSS vars in strokeStyle; use white
 			ctx.strokeStyle = '#ffffff'
-			ctx.stroke()
+			ctx.stroke(path)
 
 			// Fill with collaborator color
 			ctx.fillStyle = color
-			ctx.fill()
+			ctx.fill(path)
 
 			ctx.restore()
 		}

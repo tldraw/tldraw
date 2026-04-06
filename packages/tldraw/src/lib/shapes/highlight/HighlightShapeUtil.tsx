@@ -181,10 +181,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		return <path d={strokePath} />
 	}
 
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLHighlightShape): Path2D {
 		const dv = getDisplayValues(this, shape)
 		const strokeWidth = dv.strokeWidth * shape.props.scale

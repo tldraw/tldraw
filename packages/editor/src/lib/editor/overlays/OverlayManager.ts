@@ -23,13 +23,27 @@ export class OverlayManager {
 	}
 
 	/**
-	 * Get an overlay util by type.
+	 * Get an overlay util by type string, overlay instance, or by passing
+	 * a util class as a generic parameter for type-safe lookup.
+	 *
+	 * @example
+	 * ```ts
+	 * const util = editor.overlays.getOverlayUtil('brush')
+	 * const util = editor.overlays.getOverlayUtil<BrushOverlayUtil>('brush')
+	 * const util = editor.overlays.getOverlayUtil(myOverlay)
+	 * ```
+	 *
 	 * @public
 	 */
-	getUtil<T extends OverlayUtil>(type: string): T {
+	getOverlayUtil<T extends OverlayUtil>(
+		type: T extends OverlayUtil<infer O> ? O['type'] : string
+	): T
+	getOverlayUtil<O extends TLOverlay>(overlay: O): OverlayUtil<O>
+	getOverlayUtil(arg: string | TLOverlay): OverlayUtil {
+		const type = typeof arg === 'string' ? arg : arg.type
 		const util = this._overlayUtils.get(type)
 		if (!util) throw new Error(`No overlay util found for type: "${type}"`)
-		return util as T
+		return util
 	}
 
 	/**
@@ -89,13 +103,5 @@ export class OverlayManager {
 			}
 		}
 		return null
-	}
-
-	/**
-	 * Get the overlay util for a given overlay instance.
-	 * @public
-	 */
-	getUtilForOverlay(overlay: TLOverlay): OverlayUtil {
-		return this.getUtil(overlay.type)
 	}
 }

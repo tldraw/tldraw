@@ -977,10 +977,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		)
 	}
 
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLArrowShape) {
 		const info = getArrowInfo(this.editor, shape)
 		if (!info) return undefined

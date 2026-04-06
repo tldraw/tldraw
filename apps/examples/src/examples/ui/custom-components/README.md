@@ -6,15 +6,10 @@ keywords:
   [
     components,
     Background,
-    Brush,
-    Scribble,
-    SnapIndicator,
-    Handles,
     Canvas,
     Grid,
     Cursor,
     ShapeIndicator,
-    SelectionForeground,
     SelectionBackground,
     OnTheCanvas,
     InFrontOfTheCanvas,
@@ -27,6 +22,4 @@ Replace tldraw's on-canvas UI with your own.
 
 ---
 
-tldraw's on-canvas UI is built from replaceable React components.
-
-This example shows how to replace these default components with your own. Try dragging to select or using the eraser tool to see the custom components in this example.
+tldraw's on-canvas UI is built from replaceable React components. This example shows how to replace default components with your own — in this case, changing the canvas background to a custom color.

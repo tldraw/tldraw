@@ -47,14 +47,12 @@ export class ZoomBrushOverlayUtil extends OverlayUtil<TLZoomBrushOverlay> {
 		const zoom = this.editor.getEfficientZoomLevel()
 		const colors = this.editor.getCurrentTheme().colors[this.editor.getColorMode()]
 
-		ctx.beginPath()
-		ctx.rect(x, y, w, h)
-
+		// Use fillRect / strokeRect to avoid path construction overhead
 		ctx.fillStyle = colors.brushFill
-		ctx.fill()
+		ctx.fillRect(x, y, w, h)
 
 		ctx.lineWidth = 1 / zoom
 		ctx.strokeStyle = colors.brushStroke
-		ctx.stroke()
+		ctx.strokeRect(x, y, w, h)
 	}
 }

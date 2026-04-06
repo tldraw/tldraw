@@ -14,7 +14,6 @@ import { useEditor } from '../../hooks/useEditor'
 import { useFixSafariDoubleTapZoomPencilEvents } from '../../hooks/useFixSafariDoubleTapZoomPencilEvents'
 import { useGestureEvents } from '../../hooks/useGestureEvents'
 import { useHandleEvents } from '../../hooks/useHandleEvents'
-import { useSharedSafeId } from '../../hooks/useSafeId'
 import { useScreenBounds } from '../../hooks/useScreenBounds'
 import { ShapeCullingProvider, useShapeCulling } from '../../hooks/useShapeCulling'
 import { Box } from '../../primitives/Box'
@@ -23,7 +22,6 @@ import { toDomPrecision } from '../../primitives/utils'
 import { Vec } from '../../primitives/Vec'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
-import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
 import { Shape } from '../Shape'
 import { CanvasOverlays } from './CanvasOverlays'
@@ -38,11 +36,10 @@ export interface TLCanvasComponentProps {
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
 
-	const { SelectionBackground, Background, SvgDefs, ShapeIndicators } = useEditorComponents()
+	const { SelectionBackground, Background, SvgDefs } = useEditorComponents()
 
 	const rCanvas = useRef<HTMLDivElement>(null)
 	const rHtmlLayer = useRef<HTMLDivElement>(null)
-	const rHtmlLayer2 = useRef<HTMLDivElement>(null)
 	const container = useContainer()
 
 	useScreenBounds(rCanvas)
@@ -90,7 +87,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			)}px,${toDomPrecision(y + offset)}px)`
 
 			setStyleProperty(rHtmlLayer.current, 'transform', transform)
-			setStyleProperty(rHtmlLayer2.current, 'transform', transform)
 		},
 		[editor, container]
 	)
@@ -140,7 +136,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				<svg className="tl-svg-context" aria-hidden="true">
 					<defs>
 						{shapeSvgDefs}
-						<CursorDef />
 						{SvgDefs && <SvgDefs />}
 					</defs>
 				</svg>
@@ -157,11 +152,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				</div>
 				<div className="tl-overlays">
 					<CanvasShapeIndicators />
-					<div ref={rHtmlLayer2} className="tl-html-layer">
-						{ShapeIndicators && <ShapeIndicators />}
-						<OverlaysWrapper />
-						<LiveCollaborators />
-					</div>
 					<CanvasOverlays />
 				</div>
 				<MovingCameraHitTestBlocker />
@@ -196,16 +186,6 @@ function GridWrapper() {
 	if (!(Grid && isGridMode)) return null
 
 	return <Grid x={x} y={y} z={z} size={gridSize} />
-}
-
-function OverlaysWrapper() {
-	const { Overlays } = useEditorComponents()
-	if (!Overlays) return null
-	return (
-		<div className="tl-custom-overlays tl-overlays__item">
-			<Overlays />
-		</div>
-	)
 }
 
 function ShapesLayer() {
@@ -269,25 +249,6 @@ function CullingController() {
 	)
 
 	return null
-}
-
-function CursorDef() {
-	return (
-		<g id={useSharedSafeId('cursor')}>
-			<g fill="rgba(0,0,0,.2)" transform="translate(-11,-11)">
-				<path d="m12 24.4219v-16.015l11.591 11.619h-6.781l-.411.124z" />
-				<path d="m21.0845 25.0962-3.605 1.535-4.682-11.089 3.686-1.553z" />
-			</g>
-			<g fill="white" transform="translate(-12,-12)">
-				<path d="m12 24.4219v-16.015l11.591 11.619h-6.781l-.411.124z" />
-				<path d="m21.0845 25.0962-3.605 1.535-4.682-11.089 3.686-1.553z" />
-			</g>
-			<g fill="currentColor" transform="translate(-12,-12)">
-				<path d="m19.751 24.4155-1.844.774-3.1-7.374 1.841-.775z" />
-				<path d="m13 10.814v11.188l2.969-2.866.428-.139h4.768z" />
-			</g>
-		</g>
-	)
 }
 
 function DebugSvgCopy({ id, mode }: { id: TLShapeId; mode: 'img' | 'iframe' }) {

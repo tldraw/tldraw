@@ -160,18 +160,20 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 			ctx.fill()
 		}
 
-		// Draw edge handle circles
+		// Draw edge handle circles using a single fill+stroke for all handles
 		const handleRadius = 4 / zoom
+		ctx.fillStyle = colors.selectedContrast
+		ctx.strokeStyle = colors.selectionStroke
+		ctx.lineWidth = 1.5 / zoom
+		ctx.beginPath()
 		for (const handle of Object.values(handles)) {
 			if (!handle.isEnabled) continue
-			ctx.beginPath()
+			// Separate subpath for each circle
+			ctx.moveTo(handle.x + handleRadius, handle.y)
 			ctx.arc(handle.x, handle.y, handleRadius, 0, Math.PI * 2)
-			ctx.fillStyle = colors.selectedContrast
-			ctx.fill()
-			ctx.strokeStyle = colors.selectionStroke
-			ctx.lineWidth = 1.5 / zoom
-			ctx.stroke()
 		}
+		ctx.fill()
+		ctx.stroke()
 	}
 
 	/** @internal */

@@ -44,20 +44,20 @@ export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrus
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorBrushOverlay[]): void {
+		const zoom = this.editor.getEfficientZoomLevel()
 		for (const overlay of overlays) {
 			const { x, y, w, h, color } = overlay.props
 
-			ctx.beginPath()
-			ctx.rect(x, y, w, h)
-
+			// Fill with semi-opaque color
 			ctx.globalAlpha = 0.75
 			ctx.fillStyle = color
-			ctx.fill()
+			ctx.fillRect(x, y, w, h)
 
+			// Stroke with lower alpha; avoid path creation via strokeRect
 			ctx.globalAlpha = 0.1
 			ctx.strokeStyle = color
-			ctx.lineWidth = 1 / this.editor.getEfficientZoomLevel()
-			ctx.stroke()
+			ctx.lineWidth = 1 / zoom
+			ctx.strokeRect(x, y, w, h)
 
 			ctx.globalAlpha = 1
 		}

@@ -25,7 +25,6 @@ import { JsonObject } from '@tldraw/utils';
 import { JSX } from 'react/jsx-runtime';
 import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
-import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
 import { PerformanceTracker } from '@tldraw/utils';
 import { PointerEvent as PointerEvent_2 } from 'react';
@@ -673,9 +672,6 @@ export function DefaultBackground(): JSX.Element;
 export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX.Element;
 
 // @public (undocumented)
-export const DefaultCursor: NamedExoticComponent<TLCursorProps>;
-
-// @public (undocumented)
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
@@ -683,12 +679,6 @@ export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX.Element;
 
 // @public (undocumented)
 export function DefaultSelectionBackground({ bounds, rotation }: TLSelectionBackgroundProps): JSX.Element;
-
-// @public (undocumented)
-export const DefaultShapeIndicator: NamedExoticComponent<TLShapeIndicatorProps>;
-
-// @public (undocumented)
-export const DefaultShapeIndicators: NamedExoticComponent<TLShapeIndicatorsProps>;
 
 // @public (undocumented)
 export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps & RefAttributes<HTMLDivElement>>;
@@ -2588,10 +2578,11 @@ export class OverlayManager {
     // (undocumented)
     getHoveredOverlayId(): null | string;
     getOverlayAtPoint(point: VecLike, margin?: number): null | TLOverlay;
-    getUtil<T extends OverlayUtil>(type: string): T;
-    getUtilForOverlay(overlay: TLOverlay): OverlayUtil;
+    getOverlayUtil<T extends OverlayUtil>(type: T extends OverlayUtil<infer O> ? O['type'] : string): T;
+    // (undocumented)
+    getOverlayUtil<O extends TLOverlay>(overlay: O): OverlayUtil<O>;
     // @internal (undocumented)
-    readonly _overlayUtils: Map<string, OverlayUtil<TLOverlay>>;
+    readonly _overlayUtils: Map<string, OverlayUtil<TLOverlay<Record<string, unknown>>>>;
     // @internal
     registerUtil(util: OverlayUtil): void;
     // (undocumented)
@@ -2989,7 +2980,6 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     static type: string;
-    useLegacyIndicator(): boolean;
 }
 
 // @public
@@ -3516,24 +3506,6 @@ export interface TLCurrentUser {
 }
 
 // @public (undocumented)
-export interface TLCursorProps {
-    // (undocumented)
-    chatMessage: string;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    color?: string;
-    // (undocumented)
-    name: null | string;
-    // (undocumented)
-    point: null | VecModel;
-    // (undocumented)
-    userId: string;
-    // (undocumented)
-    zoom: number;
-}
-
-// @public (undocumented)
 export type TLDeepLink = {
     bounds: BoxModel;
     pageId?: TLPageId;
@@ -3777,12 +3749,6 @@ export interface TLEditorComponents {
     // (undocumented)
     Canvas?: ComponentType<TLCanvasComponentProps> | null;
     // (undocumented)
-    CollaboratorCursor?: ComponentType<TLCursorProps> | null;
-    // (undocumented)
-    CollaboratorShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null;
-    // (undocumented)
-    Cursor?: ComponentType<TLCursorProps> | null;
-    // (undocumented)
     ErrorFallback?: TLErrorFallbackComponent;
     // (undocumented)
     Grid?: ComponentType<TLGridProps> | null;
@@ -3793,17 +3759,9 @@ export interface TLEditorComponents {
     // (undocumented)
     OnTheCanvas?: ComponentType | null;
     // (undocumented)
-    Overlays?: ComponentType | null;
-    // (undocumented)
     SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null;
     // (undocumented)
     ShapeErrorFallback?: TLShapeErrorFallbackComponent;
-    // (undocumented)
-    ShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null;
-    // (undocumented)
-    ShapeIndicatorErrorFallback?: TLShapeIndicatorErrorFallbackComponent;
-    // (undocumented)
-    ShapeIndicators?: ComponentType | null;
     // (undocumented)
     ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null;
     // (undocumented)
@@ -4281,9 +4239,9 @@ export const tlmenus: {
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;
 
 // @public (undocumented)
-export interface TLOverlay {
+export interface TLOverlay<Props = Record<string, unknown>> {
     id: string;
-    props: Record<string, unknown>;
+    props: Props;
     type: string;
 }
 
@@ -4462,33 +4420,6 @@ export interface TLSessionStateSnapshot {
 export type TLShapeErrorFallbackComponent = ComponentType<{
     error: any;
 }>;
-
-// @public (undocumented)
-export type TLShapeIndicatorErrorFallbackComponent = ComponentType<{
-    error: unknown;
-}>;
-
-// @public (undocumented)
-export interface TLShapeIndicatorProps {
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    color?: string | undefined;
-    // (undocumented)
-    hidden?: boolean;
-    // (undocumented)
-    opacity?: number;
-    // (undocumented)
-    shapeId: TLShapeId;
-    // (undocumented)
-    userId?: string;
-}
-
-// @public (undocumented)
-export interface TLShapeIndicatorsProps {
-    hideAll?: boolean;
-    showAll?: boolean;
-}
 
 // @public
 export interface TLShapeUtilCanBeLaidOutOpts {

@@ -58,8 +58,6 @@ export { BookmarkAssetUtil } from './lib/assets/BookmarkAssetUtil'
 export { ImageAssetUtil } from './lib/assets/ImageAssetUtil'
 export { VideoAssetUtil } from './lib/assets/VideoAssetUtil'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
-export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
-export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
 export { ArrowHintOverlayUtil, type TLArrowHintOverlay } from './lib/overlays/ArrowHintOverlayUtil'
 export { BrushOverlayUtil, type TLBrushOverlay } from './lib/overlays/BrushOverlayUtil'
 export { ZoomBrushOverlayUtil, type TLZoomBrushOverlay } from './lib/overlays/ZoomBrushOverlayUtil'
@@ -76,6 +74,10 @@ export {
 	CollaboratorHintOverlayUtil,
 	type TLCollaboratorHintOverlay,
 } from './lib/overlays/CollaboratorHintOverlayUtil'
+export {
+	CollaboratorCursorOverlayUtil,
+	type TLCollaboratorCursorOverlay,
+} from './lib/overlays/CollaboratorCursorOverlayUtil'
 export {
 	ShapeHandleOverlayUtil,
 	type TLShapeHandleOverlay,

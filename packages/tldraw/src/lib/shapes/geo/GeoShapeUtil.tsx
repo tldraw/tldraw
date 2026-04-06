@@ -401,10 +401,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		})
 	}
 
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {
 		const isForceSolid = this.editor.getEfficientZoomLevel() < 0.25 / shape.props.scale
 

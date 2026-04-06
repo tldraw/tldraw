@@ -22,7 +22,7 @@ export function updateHoveredOverlayId(editor: Editor): boolean {
 		editor.setHoveredShape(null)
 
 		// Update cursor based on the hovered overlay
-		const util = editor.overlays.getUtilForOverlay(overlay)
+		const util = editor.overlays.getOverlayUtil(overlay)
 		const cursor = util.getCursor(overlay)
 		if (cursor) {
 			editor.setCursor({ type: cursor, rotation: editor.getSelectionRotation() })

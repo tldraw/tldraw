@@ -142,6 +142,7 @@ export const DEFAULT_THEME: TLTheme = {
 			brushFill: 'hsl(0, 0%, 56%, 10.2%)',
 			brushStroke: 'hsl(0, 0%, 56%, 25.1%)',
 			selectedContrast: '#ffffff',
+			laser: 'hsl(0, 100%, 50%)',
 			black: {
 				solid: '#1d1d1d',
 				fill: '#1d1d1d',
@@ -363,6 +364,7 @@ export const DEFAULT_THEME: TLTheme = {
 			brushFill: 'hsl(0, 0%, 56%, 10.2%)',
 			brushStroke: 'hsl(0, 0%, 56%, 25.1%)',
 			selectedContrast: '#ffffff',
+			laser: 'hsl(0, 100%, 50%)',
 			noteBorder: 'rgb(20, 20, 20)',
 
 			black: {
