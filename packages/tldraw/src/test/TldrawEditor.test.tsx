@@ -16,7 +16,6 @@ import {
 } from '@tldraw/editor'
 import { StrictMode } from 'react'
 import { vi } from 'vitest'
-import { TldrawSelectionForeground } from '../lib/canvas/TldrawSelectionForeground'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
 import { createDrawSegments } from '../lib/utils/test-helpers'
@@ -292,7 +291,6 @@ describe('<TldrawEditor />', () => {
 				initialState="select"
 				tools={defaultTools}
 				components={{
-					SelectionForeground: TldrawSelectionForeground,
 					// Use a custom error fallback to detect errors that would
 					// otherwise be silently caught by the default error boundary
 					ErrorFallback: ({ error }) => {

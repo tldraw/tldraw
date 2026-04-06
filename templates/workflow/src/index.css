@@ -15,6 +15,13 @@ body {
 		0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
+.tl-container .tl-theme__light {
+	--tl-color-handle-fill: hsl(210, 100%, 56%, 24%);
+}
+.tl-container .tl-theme__dark {
+	--tl-color-handle-fill: hsl(209, 100%, 57%, 20%);
+}
+
 .NodeShape {
 	border-radius: var(--tl-radius-3);
 	background: var(--tl-color-panel);
@@ -175,7 +182,7 @@ body {
 		}
 
 		&:hover {
-			fill: var(--tl-color-selection-fill);
+			fill: var(--tl-color-handle-fill);
 		}
 	}
 

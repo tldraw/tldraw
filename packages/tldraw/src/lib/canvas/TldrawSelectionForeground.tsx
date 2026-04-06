@@ -2,7 +2,7 @@ import {
 	Box,
 	HALF_PI,
 	RotateCorner,
-	TLSelectionForegroundProps,
+	TLSelectionBackgroundProps,
 	getCursor,
 	tlenv,
 	toDomPrecision,
@@ -22,7 +22,7 @@ import { TldrawCropHandles } from './TldrawCropHandles'
 export const TldrawSelectionForeground = track(function TldrawSelectionForeground({
 	bounds,
 	rotation,
-}: TLSelectionForegroundProps) {
+}: TLSelectionBackgroundProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const rSvg = useRef<SVGSVGElement>(null)

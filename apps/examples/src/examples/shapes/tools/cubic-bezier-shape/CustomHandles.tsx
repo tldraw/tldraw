@@ -1,6 +1,7 @@
-import { TLHandlesProps, useEditor, useValue } from 'tldraw'
+import { ReactNode } from 'react'
+import { useEditor, useValue } from 'tldraw'
 
-export function CustomHandles({ children }: TLHandlesProps) {
+export function CustomHandles({ children }: { children: ReactNode }) {
 	const editor = useEditor()
 
 	const shouldDisplayDefaultHandles = useValue(

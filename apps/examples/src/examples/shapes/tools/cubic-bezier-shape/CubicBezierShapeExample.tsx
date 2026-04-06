@@ -6,7 +6,6 @@ import {
 	TLPointerEventInfo,
 } from 'tldraw'
 import { BezierCurveShapeUtil } from './CubicBezierShape'
-import { CustomHandles } from './CustomHandles'
 import { SneakyUndoRedoWhileEditing } from './SneakyUndoRedoWhileEditing'
 
 const customShapes: TLAnyShapeUtilConstructor[] = [BezierCurveShapeUtil]
@@ -16,9 +15,7 @@ export default function BezierCurveShapeExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				// [9]
-				components={{
-					Handles: CustomHandles,
-				}}
+				components={{}}
 				shapeUtils={customShapes}
 				onMount={(editor) => {
 					editor.user.updateUserPreferences({ isSnapMode: true })

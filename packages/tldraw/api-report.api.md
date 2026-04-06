@@ -117,7 +117,6 @@ import { TLGeoShape } from '@tldraw/editor';
 import { TLGeoShapeProps } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
 import { TLHandleDragInfo } from '@tldraw/editor';
-import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
 import { TLHighlightShapeProps } from '@tldraw/editor';
 import { TLImageAsset } from '@tldraw/editor';
@@ -138,8 +137,6 @@ import { TLResizeInfo } from '@tldraw/editor';
 import { TLRichText } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribble } from '@tldraw/editor';
-import { TLScribbleProps } from '@tldraw/editor';
-import { TLSelectionForegroundProps } from '@tldraw/editor';
 import { TLSelectionHandle } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeCrop } from '@tldraw/editor';
@@ -3729,21 +3726,6 @@ export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, T
 }
 
 // @public (undocumented)
-export function TldrawCropHandles({ size, width, height, hideAlternateHandles }: TldrawCropHandlesProps): JSX.Element;
-
-// @public (undocumented)
-export interface TldrawCropHandlesProps {
-    // (undocumented)
-    height: number;
-    // (undocumented)
-    hideAlternateHandles: boolean;
-    // (undocumented)
-    size: number;
-    // (undocumented)
-    width: number;
-}
-
-// @public (undocumented)
 export interface TldrawFile {
     // (undocumented)
     records: UnknownRecord[];
@@ -3771,9 +3753,6 @@ export type TldrawFileParseError = {
     version: number;
 };
 
-// @public (undocumented)
-export function TldrawHandles({ children }: TLHandlesProps): JSX.Element | null;
-
 // @public
 export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 
@@ -3796,12 +3775,6 @@ export function TldrawOverlays(): JSX.Element | null;
 
 // @public (undocumented)
 export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps;
-
-// @public (undocumented)
-export function TldrawScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX.Element | null;
-
-// @public (undocumented)
-export const TldrawSelectionForeground: NamedExoticComponent<TLSelectionForegroundProps>;
 
 // @public (undocumented)
 export function TldrawShapeIndicators(): JSX.Element;

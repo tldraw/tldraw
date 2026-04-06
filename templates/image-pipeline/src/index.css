@@ -23,6 +23,13 @@ body {
 	--port-color-any: #b0b0b0;
 }
 
+.tl-container .tl-theme__light {
+	--tl-color-handle-fill: hsl(210, 100%, 56%, 24%);
+}
+.tl-container .tl-theme__dark {
+	--tl-color-handle-fill: hsl(209, 100%, 57%, 20%);
+}
+
 /* ---- Node shape ---- */
 
 .NodeShape {
@@ -541,7 +548,7 @@ body {
 		}
 
 		&:hover {
-			fill: var(--tl-color-selection-fill);
+			fill: var(--tl-color-handle-fill);
 		}
 	}
 

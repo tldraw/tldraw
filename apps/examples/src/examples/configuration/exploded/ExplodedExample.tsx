@@ -5,10 +5,7 @@ import {
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultContextMenuContent,
 	TldrawEditor,
-	TldrawHandles,
 	TldrawOverlays,
-	TldrawScribble,
-	TldrawSelectionForeground,
 	TldrawShapeIndicators,
 	TldrawUi,
 	defaultAddFontsFromNode,
@@ -30,11 +27,7 @@ import 'tldraw/tldraw.css'
 
 // [1]
 const defaultComponents = {
-	Scribble: TldrawScribble,
 	ShapeIndicators: TldrawShapeIndicators,
-	CollaboratorScribble: TldrawScribble,
-	SelectionForeground: TldrawSelectionForeground,
-	Handles: TldrawHandles,
 	Overlays: TldrawOverlays,
 }
 

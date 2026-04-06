@@ -670,13 +670,7 @@ export const DEFAULT_THEME: TLTheme;
 export function DefaultBackground(): JSX.Element;
 
 // @public (undocumented)
-export const DefaultBrush: ({ brush, color, opacity, className }: TLBrushProps) => JSX.Element;
-
-// @public (undocumented)
 export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX.Element;
-
-// @public (undocumented)
-export function DefaultCollaboratorHint({ className, zoom, point, color, viewport, opacity }: TLCollaboratorHintProps): JSX.Element;
 
 // @public (undocumented)
 export const DefaultCursor: NamedExoticComponent<TLCursorProps>;
@@ -688,19 +682,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent;
 export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX.Element;
 
 // @public (undocumented)
-export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandleProps): JSX.Element;
-
-// @public (undocumented)
-export const DefaultHandles: ({ children }: TLHandlesProps) => JSX.Element;
-
-// @public (undocumented)
-export function DefaultScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX.Element | null;
-
-// @public (undocumented)
 export function DefaultSelectionBackground({ bounds, rotation }: TLSelectionBackgroundProps): JSX.Element;
-
-// @public (undocumented)
-export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionForegroundProps): JSX.Element;
 
 // @public (undocumented)
 export const DefaultShapeIndicator: NamedExoticComponent<TLShapeIndicatorProps>;
@@ -710,9 +692,6 @@ export const DefaultShapeIndicators: NamedExoticComponent<TLShapeIndicatorsProps
 
 // @public (undocumented)
 export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps & RefAttributes<HTMLDivElement>>;
-
-// @public (undocumented)
-export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX.Element;
 
 // @public (undocumented)
 export function DefaultSpinner(props: React.SVGProps<SVGSVGElement>): JSX.Element;
@@ -3391,20 +3370,6 @@ export interface TLBindingUtilConstructor<T extends TLBinding, U extends Binding
 }
 
 // @public (undocumented)
-export interface TLBrushProps {
-    // (undocumented)
-    brush: BoxModel;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    color?: string;
-    // (undocumented)
-    opacity?: number;
-    // (undocumented)
-    userId?: string;
-}
-
-// @public (undocumented)
 export interface TLCameraConstraints {
     baseZoom: 'default' | 'fit-max-100' | 'fit-max' | 'fit-min-100' | 'fit-min' | 'fit-x-100' | 'fit-x' | 'fit-y-100' | 'fit-y';
     behavior: 'contain' | 'fixed' | 'free' | 'inside' | 'outside' | {
@@ -3494,24 +3459,6 @@ export interface TLClipboardWriteInfo {
     readonly operation: 'copy' | 'cut';
     // (undocumented)
     readonly source: 'menu' | 'native';
-}
-
-// @public (undocumented)
-export interface TLCollaboratorHintProps {
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    color: string;
-    // (undocumented)
-    opacity?: number;
-    // (undocumented)
-    point: VecModel;
-    // (undocumented)
-    userId: string;
-    // (undocumented)
-    viewport: Box;
-    // (undocumented)
-    zoom: number;
 }
 
 // @public (undocumented)
@@ -3828,17 +3775,9 @@ export interface TLEditorComponents {
     // (undocumented)
     Background?: ComponentType | null;
     // (undocumented)
-    Brush?: ComponentType<TLBrushProps> | null;
-    // (undocumented)
     Canvas?: ComponentType<TLCanvasComponentProps> | null;
     // (undocumented)
-    CollaboratorBrush?: ComponentType<TLBrushProps> | null;
-    // (undocumented)
     CollaboratorCursor?: ComponentType<TLCursorProps> | null;
-    // (undocumented)
-    CollaboratorHint?: ComponentType<TLCollaboratorHintProps> | null;
-    // (undocumented)
-    CollaboratorScribble?: ComponentType<TLScribbleProps> | null;
     // (undocumented)
     CollaboratorShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null;
     // (undocumented)
@@ -3848,10 +3787,6 @@ export interface TLEditorComponents {
     // (undocumented)
     Grid?: ComponentType<TLGridProps> | null;
     // (undocumented)
-    Handle?: ComponentType<TLHandleProps> | null;
-    // (undocumented)
-    Handles?: ComponentType<TLHandlesProps> | null;
-    // (undocumented)
     InFrontOfTheCanvas?: ComponentType | null;
     // (undocumented)
     LoadingScreen?: ComponentType | null;
@@ -3860,11 +3795,7 @@ export interface TLEditorComponents {
     // (undocumented)
     Overlays?: ComponentType | null;
     // (undocumented)
-    Scribble?: ComponentType<TLScribbleProps> | null;
-    // (undocumented)
     SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null;
-    // (undocumented)
-    SelectionForeground?: ComponentType<TLSelectionForegroundProps> | null;
     // (undocumented)
     ShapeErrorFallback?: TLShapeErrorFallbackComponent;
     // (undocumented)
@@ -3876,13 +3807,9 @@ export interface TLEditorComponents {
     // (undocumented)
     ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null;
     // (undocumented)
-    SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null;
-    // (undocumented)
     Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null;
     // (undocumented)
     SvgDefs?: ComponentType | null;
-    // (undocumented)
-    ZoomBrush?: ComponentType<TLBrushProps> | null;
 }
 
 // @public (undocumented)
@@ -4198,26 +4125,6 @@ export interface TLHandleDragInfo<T extends TLShape> {
 }
 
 // @public (undocumented)
-export interface TLHandleProps {
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    handle: TLHandle;
-    // (undocumented)
-    isCoarse: boolean;
-    // (undocumented)
-    shapeId: TLShapeId;
-    // (undocumented)
-    zoom: number;
-}
-
-// @public (undocumented)
-export interface TLHandlesProps {
-    // (undocumented)
-    children: ReactNode;
-}
-
-// @public (undocumented)
 export interface TLHistoryBatchOptions {
     history?: 'ignore' | 'record-preserveRedoStack' | 'record';
 }
@@ -4512,31 +4419,7 @@ export interface TLRotationSnapshot {
 }
 
 // @public (undocumented)
-export interface TLScribbleProps {
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    color?: string;
-    // (undocumented)
-    opacity?: number;
-    // (undocumented)
-    scribble: TLScribble;
-    // (undocumented)
-    userId?: string;
-    // (undocumented)
-    zoom: number;
-}
-
-// @public (undocumented)
 export interface TLSelectionBackgroundProps {
-    // (undocumented)
-    bounds: Box;
-    // (undocumented)
-    rotation: number;
-}
-
-// @public (undocumented)
-export interface TLSelectionForegroundProps {
     // (undocumented)
     bounds: Box;
     // (undocumented)
@@ -4655,16 +4538,6 @@ export interface TLShapeWrapperProps extends React.HTMLAttributes<HTMLDivElement
     children: ReactNode;
     isBackground: boolean;
     shape: TLShape;
-}
-
-// @public (undocumented)
-export interface TLSnapIndicatorProps {
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    line: SnapIndicator;
-    // (undocumented)
-    zoom: number;
 }
 
 // @public (undocumented)

@@ -14,15 +14,10 @@ export * from '@tldraw/utils'
 export * from '@tldraw/validate'
 
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
-export { DefaultBrush, type TLBrushProps } from './lib/components/default-components/DefaultBrush'
 export {
 	DefaultCanvas,
 	type TLCanvasComponentProps,
 } from './lib/components/default-components/DefaultCanvas'
-export {
-	DefaultCollaboratorHint,
-	type TLCollaboratorHintProps,
-} from './lib/components/default-components/DefaultCollaboratorHint'
 export {
 	DefaultCursor,
 	type TLCursorProps,
@@ -33,25 +28,9 @@ export {
 } from './lib/components/default-components/DefaultErrorFallback'
 export { DefaultGrid, type TLGridProps } from './lib/components/default-components/DefaultGrid'
 export {
-	DefaultHandle,
-	type TLHandleProps,
-} from './lib/components/default-components/DefaultHandle'
-export {
-	DefaultHandles,
-	type TLHandlesProps,
-} from './lib/components/default-components/DefaultHandles'
-export {
-	DefaultScribble,
-	type TLScribbleProps,
-} from './lib/components/default-components/DefaultScribble'
-export {
 	DefaultSelectionBackground,
 	type TLSelectionBackgroundProps,
 } from './lib/components/default-components/DefaultSelectionBackground'
-export {
-	DefaultSelectionForeground,
-	type TLSelectionForegroundProps,
-} from './lib/components/default-components/DefaultSelectionForeground'
 export { type TLShapeErrorFallbackComponent } from './lib/components/default-components/DefaultShapeErrorFallback'
 export {
 	DefaultShapeIndicator,
@@ -66,10 +45,6 @@ export {
 	DefaultShapeWrapper,
 	type TLShapeWrapperProps,
 } from './lib/components/default-components/DefaultShapeWrapper'
-export {
-	DefaultSnapIndicator,
-	type TLSnapIndicatorProps,
-} from './lib/components/default-components/DefaultSnapIndictor'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
 export {

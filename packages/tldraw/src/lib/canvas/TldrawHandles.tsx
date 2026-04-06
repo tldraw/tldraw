@@ -1,7 +1,8 @@
-import { TLHandlesProps, useEditor, useValue } from '@tldraw/editor'
+import { useEditor, useValue } from '@tldraw/editor'
+import { ReactNode } from 'react'
 
 /** @public @react */
-export function TldrawHandles({ children }: TLHandlesProps) {
+export function TldrawHandles({ children }: { children: ReactNode }) {
 	const editor = useEditor()
 
 	// todo: maybe display note shape handles here?

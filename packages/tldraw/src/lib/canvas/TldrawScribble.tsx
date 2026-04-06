@@ -1,9 +1,21 @@
-import { EASINGS, TLScribbleProps, getSvgPathFromPoints } from '@tldraw/editor'
+import { EASINGS, TLScribble, getSvgPathFromPoints } from '@tldraw/editor'
 import classNames from 'classnames'
 import { getStroke } from '../shapes/shared/freehand/getStroke'
 
 /** @public @react */
-export function TldrawScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps) {
+export function TldrawScribble({
+	scribble,
+	zoom,
+	color,
+	opacity,
+	className,
+}: {
+	scribble: TLScribble
+	zoom: number
+	color?: string
+	opacity?: number
+	className?: string
+}) {
 	if (!scribble.points.length) return null
 
 	const stroke = getStroke(scribble.points, {

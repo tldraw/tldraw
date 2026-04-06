@@ -19,10 +19,7 @@ import { TLAnyAssetUtilConstructor } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { ImageAssetUtil } from './assets/ImageAssetUtil'
 import { VideoAssetUtil } from './assets/VideoAssetUtil'
-import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawOverlays } from './canvas/TldrawOverlays'
-import { TldrawScribble } from './canvas/TldrawScribble'
-import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { TldrawShapeIndicators } from './canvas/TldrawShapeIndicators'
 import { defaultAssetUtils } from './defaultAssetUtils'
 import { defaultBindingUtils } from './defaultBindingUtils'
@@ -178,11 +175,7 @@ export function Tldraw(props: TldrawProps) {
 	}, [rest.hideUi, CustomInFrontOfTheCanvas])
 	const componentsWithDefault = useMemo(
 		() => ({
-			Scribble: TldrawScribble,
 			ShapeIndicators: TldrawShapeIndicators,
-			CollaboratorScribble: TldrawScribble,
-			SelectionForeground: TldrawSelectionForeground,
-			Handles: TldrawHandles,
 			Overlays: TldrawOverlays,
 			Spinner,
 			LoadingScreen,
