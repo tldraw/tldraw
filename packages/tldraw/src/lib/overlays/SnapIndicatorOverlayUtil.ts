@@ -4,7 +4,6 @@ import {
 	PointsSnapIndicator,
 	SnapIndicator,
 	TLOverlay,
-	VecLike,
 	rangeIntersection,
 } from '@tldraw/editor'
 
@@ -15,12 +14,6 @@ export interface TLSnapIndicatorOverlay extends TLOverlay {
 	}
 }
 
-/** @public */
-export interface SnapIndicatorOverlayOptions {
-	pointsColor: string
-	gapsColor: string
-}
-
 /**
  * Overlay util for snap alignment indicators (point snap lines and gap indicators).
  *
@@ -28,11 +21,6 @@ export interface SnapIndicatorOverlayOptions {
  */
 export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay> {
 	static override type = 'snap_indicator'
-
-	override options: SnapIndicatorOverlayOptions = {
-		pointsColor: 'lime',
-		gapsColor: 'cyan',
-	}
 
 	override isActive(): boolean {
 		return this.editor.snaps.getIndicators().length > 0
@@ -48,13 +36,14 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 
 	override render(ctx: CanvasRenderingContext2D, overlays: TLSnapIndicatorOverlay[]): void {
 		const zoom = this.editor.getEfficientZoomLevel()
+		const snapColor = this.editor.getCurrentTheme().colors[this.editor.getColorMode()].snap
 
 		for (const overlay of overlays) {
 			const { line } = overlay.props
 			if (line.type === 'points') {
-				this._renderPoints(ctx, line, zoom)
+				this._renderPoints(ctx, line, zoom, snapColor)
 			} else if (line.type === 'gaps') {
-				this._renderGaps(ctx, line, zoom)
+				this._renderGaps(ctx, line, zoom, snapColor)
 			}
 		}
 	}
@@ -62,7 +51,8 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 	private _renderPoints(
 		ctx: CanvasRenderingContext2D,
 		indicator: PointsSnapIndicator,
-		zoom: number
+		zoom: number,
+		color: string
 	): void {
 		const { points } = indicator
 		if (points.length === 0) return
@@ -88,7 +78,7 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 			secondY = minY
 		}
 
-		ctx.strokeStyle = this.options.pointsColor
+		ctx.strokeStyle = color
 		ctx.lineWidth = 1 / zoom
 
 		// Main snap line
@@ -111,7 +101,8 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 	private _renderGaps(
 		ctx: CanvasRenderingContext2D,
 		indicator: GapsSnapIndicator,
-		zoom: number
+		zoom: number,
+		color: string
 	): void {
 		const { gaps, direction } = indicator
 		const l = 3.5 / zoom
@@ -149,7 +140,7 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 
 		const midPoint = (edgeIntersection[0] + edgeIntersection[1]) / 2
 
-		ctx.strokeStyle = this.options.gapsColor
+		ctx.strokeStyle = color
 		ctx.lineWidth = 1 / zoom
 
 		for (const { startEdge, endEdge } of gaps) {

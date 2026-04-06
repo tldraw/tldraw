@@ -83,7 +83,7 @@ export class OverlayManager {
 			for (const overlay of overlays) {
 				const geometry = util.getGeometry(overlay)
 				if (!geometry) continue
-				if (geometry.hitTestPoint(point, margin, true)) {
+				if (geometry.hitTestPoint(point, geometry.isFilled ? 0 : margin, true)) {
 					return overlay
 				}
 			}

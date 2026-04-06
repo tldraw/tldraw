@@ -1,10 +1,12 @@
 import {
 	Box,
-	Editor,
+	Circle2d,
+	Edge2d,
 	Geometry2d,
 	HALF_PI,
+	Mat,
 	OverlayUtil,
-	Rectangle2d,
+	Polygon2d,
 	RotateCorner,
 	SelectionCorner,
 	SelectionEdge,
@@ -12,8 +14,6 @@ import {
 	TLOverlay,
 	TLSelectionHandle,
 	Vec,
-	getCursor,
-	tlenv,
 } from '@tldraw/editor'
 
 /** @public */
@@ -22,12 +22,6 @@ export interface TLSelectionForegroundOverlay extends TLOverlay {
 		overlayType: 'resize_handle' | 'rotate_handle' | 'mobile_rotate'
 		handle: TLSelectionHandle | RotateCorner
 	}
-}
-
-/** @public */
-export interface SelectionForegroundOverlayOptions {
-	strokeColor: string
-	bgColor: string
 }
 
 /**
@@ -39,26 +33,23 @@ export interface SelectionForegroundOverlayOptions {
 export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForegroundOverlay> {
 	static override type = 'selection_foreground'
 
-	override options: SelectionForegroundOverlayOptions = {
-		strokeColor: 'var(--tl-color-selection-stroke)',
-		bgColor: 'var(--tl-color-background)',
-	}
-
 	override isActive(): boolean {
-		const bounds = this.editor.getSelectionRotatedPageBounds()
-		if (!bounds) return false
+		if (!this.editor.getSelectionRotatedPageBounds()) return false
 
-		const shouldDisplayControls =
-			this.editor.isInAny(
-				'select.idle',
-				'select.pointing_selection',
-				'select.pointing_shape',
-				'select.crop.idle'
-			) &&
-			!this.editor.getInstanceState().isChangingStyle &&
-			!this.editor.getIsReadonly()
-
-		return shouldDisplayControls
+		// Active whenever the selection box or controls should be visible
+		return this.editor.isInAny(
+			'select.idle',
+			'select.brushing',
+			'select.scribble_brushing',
+			'select.pointing_canvas',
+			'select.pointing_selection',
+			'select.pointing_shape',
+			'select.pointing_resize_handle',
+			'select.resizing',
+			'select.crop.idle',
+			'select.crop.pointing_crop',
+			'select.crop.pointing_crop_handle'
+		)
 	}
 
 	override getOverlays(): TLSelectionForegroundOverlay[] {
@@ -123,10 +114,8 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 
 		// Resize corner handles
 		if (showHandles) {
-			if (true) {
-				// top_left — always shown when handles are shown
-				overlays.push(this._makeOverlay('resize_handle', 'top_left'))
-			}
+			// top_left — always shown when handles are shown
+			overlays.push(this._makeOverlay('resize_handle', 'top_left'))
 			if (!hideAlternateCornerHandles) {
 				overlays.push(this._makeOverlay('resize_handle', 'top_right'))
 				overlays.push(this._makeOverlay('resize_handle', 'bottom_left'))
@@ -202,26 +191,63 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		const targetSizeX = (isSmallX ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
 		const targetSizeY = (isSmallY ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
 
+		// Build the same transform used in render():
+		// translate(bounds.x, bounds.y) → rotate(rotation) → translate(expandDx, expandDy)
+		const expandDx = expandedBounds.x - bounds.x
+		const expandDy = expandedBounds.y - bounds.y
+
+		const transform = Mat.Compose(
+			Mat.Translate(bounds.x, bounds.y),
+			Mat.Rotate(rotation),
+			Mat.Translate(expandDx, expandDy)
+		)
+
 		const { overlayType, handle } = overlay.props
 
-		// Compute the geometry in the local coordinate space of the selection bounds,
-		// then rotate to page space.
-		let localRect: { x: number; y: number; w: number; h: number } | null = null
+		// Edge handles → line segments along the selection edge
+		if (
+			overlayType === 'resize_handle' &&
+			(handle === 'top' || handle === 'bottom' || handle === 'left' || handle === 'right')
+		) {
+			const edge = this._getEdgeLocalPoints(handle as SelectionEdge, width, height)
+			return new Edge2d({
+				start: Mat.applyToPoint(transform, edge.start),
+				end: Mat.applyToPoint(transform, edge.end),
+			})
+		}
 
+		// Corner resize handles → filled polygon matching the corner point
 		if (overlayType === 'resize_handle') {
-			localRect = this._getResizeHandleLocalRect(
-				handle as SelectionCorner | SelectionEdge,
+			const cp = this._getCornerLocalPoint(handle as SelectionCorner, width, height)
+			const s = Math.max(targetSizeX, targetSizeY) * 1.5
+			return new Polygon2d({
+				points: this._localRectToPoints(cp.x - s, cp.y - s, s * 2, s * 2).map((p) =>
+					Mat.applyToPoint(transform, p)
+				),
+				isFilled: true,
+			})
+		}
+
+		// Rotate handles → circle centered on the outside corner of the resize handle
+		if (overlayType === 'rotate_handle') {
+			const cornerSize = Math.max(targetSizeX, targetSizeY) * 1.5
+			const center = this._getRotateHandleLocalCenter(
+				handle as RotateCorner,
 				width,
 				height,
-				targetSizeX,
-				targetSizeY,
-				isSmallX,
-				isSmallY
+				cornerSize
 			)
-		} else if (overlayType === 'rotate_handle') {
-			localRect = this._getRotateHandleLocalRect(handle as RotateCorner, width, height, targetSize)
-		} else if (overlayType === 'mobile_rotate') {
-			const size = 8 / zoom
+			const radius = (targetSize * 3) / 2
+			return new Circle2d({
+				x: center.x - radius,
+				y: center.y - radius,
+				radius,
+				isFilled: true,
+			}).transform(transform)
+		}
+
+		// Mobile rotate → filled polygon around the handle circle
+		if (overlayType === 'mobile_rotate') {
 			const bgRadius = Math.max(14 * (1 / zoom), 20 / Math.max(1, zoom))
 			const cx = isSmallX ? -targetSize * 1.5 : width / 2
 			const isMediaShape =
@@ -232,54 +258,18 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 				: isMediaShape
 					? height + targetSize * 1.5
 					: -targetSize * 1.5
-			localRect = {
-				x: cx - bgRadius,
-				y: cy - bgRadius,
-				w: bgRadius * 2,
-				h: bgRadius * 2,
-			}
-		}
-
-		if (!localRect) return null
-
-		// Transform local rect corners to page space using selection origin + rotation
-		const origin = new Vec(
-			expandedBounds.x + (bounds.x - expandedBounds.x),
-			expandedBounds.y + (bounds.y - expandedBounds.y)
-		)
-		// The local rect is relative to the expandedBounds origin, offset by the expand delta
-		const expandDx = expandedBounds.x - bounds.x
-		const expandDy = expandedBounds.y - bounds.y
-
-		const pageX = bounds.x + expandDx + localRect.x
-		const pageY = bounds.y + expandDy + localRect.y
-
-		if (rotation === 0) {
-			return new Rectangle2d({
-				x: pageX,
-				y: pageY,
-				width: localRect.w,
-				height: localRect.h,
+			return new Polygon2d({
+				points: this._localRectToPoints(
+					cx - bgRadius,
+					cy - bgRadius,
+					bgRadius * 2,
+					bgRadius * 2
+				).map((p) => Mat.applyToPoint(transform, p)),
 				isFilled: true,
 			})
 		}
 
-		// For rotated selections, rotate the rect center around the selection center
-		const rectCenter = new Vec(pageX + localRect.w / 2, pageY + localRect.h / 2)
-		const selCenter = bounds.center
-		const rotatedCenter = Vec.RotWith(rectCenter, selCenter, rotation)
-
-		// Use a rectangle centered at the rotated position
-		// Note: This is an approximation — for precise rotated hit testing we'd need
-		// a rotated polygon geometry. For now, using an axis-aligned rect at the
-		// rotated center is good enough since handles are small.
-		return new Rectangle2d({
-			x: rotatedCenter.x - localRect.w / 2,
-			y: rotatedCenter.y - localRect.h / 2,
-			width: localRect.w,
-			height: localRect.h,
-			isFilled: true,
-		})
+		return null
 	}
 
 	override render(ctx: CanvasRenderingContext2D, _overlays: TLSelectionForegroundOverlay[]): void {
@@ -364,8 +354,9 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			!isLockedShape &&
 			(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
 
-		const strokeColor = this._resolveColor(this.options.strokeColor)
-		const bgColor = this._resolveColor(this.options.bgColor)
+		const themeColors = editor.getCurrentTheme().colors[editor.getColorMode()]
+		const strokeColor = themeColors.selectionStroke
+		const bgColor = themeColors.background
 
 		// Transform to local selection space
 		const expandDx = expandedBounds.x - bounds.x
@@ -466,30 +457,24 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 	}
 
 	override getCursor(overlay: TLSelectionForegroundOverlay): TLCursorType | undefined {
-		const editor = this.editor
-		const rotation = editor.getSelectionRotation()
-		const isDefaultCursor = editor.getInstanceState().cursor.type === 'default'
-		if (!isDefaultCursor) return undefined
-
 		const { overlayType, handle } = overlay.props
 
 		if (overlayType === 'rotate_handle') {
-			const cursorMap: Record<string, string> = {
+			const cursorMap: Record<string, TLCursorType> = {
 				top_left_rotate: 'nwse-rotate',
 				top_right_rotate: 'nesw-rotate',
 				bottom_left_rotate: 'swne-rotate',
 				bottom_right_rotate: 'senw-rotate',
 			}
-			const cursor = cursorMap[handle]
-			if (cursor) return getCursor(cursor, rotation) as TLCursorType
+			return cursorMap[handle]
 		}
 
 		if (overlayType === 'mobile_rotate') {
-			return 'grab' as TLCursorType
+			return 'grab'
 		}
 
 		if (overlayType === 'resize_handle') {
-			const cursorMap: Record<string, string> = {
+			const cursorMap: Record<string, TLCursorType> = {
 				top_left: 'nwse-resize',
 				top_right: 'nesw-resize',
 				bottom_right: 'nwse-resize',
@@ -499,8 +484,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 				left: 'ew-resize',
 				right: 'ew-resize',
 			}
-			const cursor = cursorMap[handle]
-			if (cursor) return getCursor(cursor, rotation) as TLCursorType
+			return cursorMap[handle]
 		}
 
 		return undefined
@@ -519,82 +503,60 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		}
 	}
 
-	private _getResizeHandleLocalRect(
-		handle: SelectionCorner | SelectionEdge,
+	private _getEdgeLocalPoints(
+		edge: SelectionEdge,
 		width: number,
-		height: number,
-		targetSizeX: number,
-		targetSizeY: number,
-		isSmallX: boolean,
-		isSmallY: boolean
-	): { x: number; y: number; w: number; h: number } {
-		// These match the positions from TldrawSelectionForeground's ResizeHandle components
-		switch (handle) {
+		height: number
+	): { start: Vec; end: Vec } {
+		switch (edge) {
 			case 'top':
-				return {
-					x: 0,
-					y: 0 - (isSmallY ? targetSizeY * 2 : targetSizeY),
-					w: width,
-					h: Math.max(1, targetSizeY * 2),
-				}
+				return { start: new Vec(0, 0), end: new Vec(width, 0) }
 			case 'right':
-				return {
-					x: width - (isSmallX ? 0 : targetSizeX),
-					y: 0,
-					w: Math.max(1, targetSizeX * 2),
-					h: height,
-				}
+				return { start: new Vec(width, 0), end: new Vec(width, height) }
 			case 'bottom':
-				return {
-					x: 0,
-					y: height - (isSmallY ? 0 : targetSizeY),
-					w: width,
-					h: Math.max(1, targetSizeY * 2),
-				}
+				return { start: new Vec(0, height), end: new Vec(width, height) }
 			case 'left':
-				return {
-					x: 0 - (isSmallX ? targetSizeX * 2 : targetSizeX),
-					y: 0,
-					w: Math.max(1, targetSizeX * 2),
-					h: height,
-				}
-			case 'top_left':
-				return {
-					x: 0 - (isSmallX ? targetSizeX * 2 : targetSizeX * 1.5),
-					y: 0 - (isSmallY ? targetSizeY * 2 : targetSizeY * 1.5),
-					w: targetSizeX * 3,
-					h: targetSizeY * 3,
-				}
-			case 'top_right':
-				return {
-					x: width - (isSmallX ? 0 : targetSizeX * 1.5),
-					y: 0 - (isSmallY ? targetSizeY * 2 : targetSizeY * 1.5),
-					w: targetSizeX * 3,
-					h: targetSizeY * 3,
-				}
-			case 'bottom_right':
-				return {
-					x: width - (isSmallX ? targetSizeX : targetSizeX * 1.5),
-					y: height - (isSmallY ? targetSizeY : targetSizeY * 1.5),
-					w: targetSizeX * 3,
-					h: targetSizeY * 3,
-				}
-			case 'bottom_left':
-				return {
-					x: 0 - (isSmallX ? targetSizeX * 3 : targetSizeX * 1.5),
-					y: height - (isSmallY ? 0 : targetSizeY * 1.5),
-					w: targetSizeX * 3,
-					h: targetSizeY * 3,
-				}
+				return { start: new Vec(0, 0), end: new Vec(0, height) }
 		}
 	}
 
-	/** @internal */
-	_resolveColor(value: string): string {
-		if (!value.startsWith('var(')) return value
-		const varName = value.slice(4, -1)
-		const container = this.editor.getContainer()
-		return getComputedStyle(container).getPropertyValue(varName) || value
+	private _getRotateHandleLocalCenter(
+		corner: RotateCorner,
+		width: number,
+		height: number,
+		cornerSize: number
+	): Vec {
+		// Centered on the outside corner of the resize handle square
+		// (the corner furthest from the selection interior)
+		switch (corner) {
+			case 'top_left_rotate':
+				return new Vec(-cornerSize, -cornerSize)
+			case 'top_right_rotate':
+				return new Vec(width + cornerSize, -cornerSize)
+			case 'bottom_left_rotate':
+				return new Vec(-cornerSize, height + cornerSize)
+			case 'bottom_right_rotate':
+				return new Vec(width + cornerSize, height + cornerSize)
+			default:
+				return new Vec(0, 0)
+		}
+	}
+
+	private _getCornerLocalPoint(corner: SelectionCorner, width: number, height: number): Vec {
+		switch (corner) {
+			case 'top_left':
+				return new Vec(0, 0)
+			case 'top_right':
+				return new Vec(width, 0)
+			case 'bottom_right':
+				return new Vec(width, height)
+			case 'bottom_left':
+				return new Vec(0, height)
+		}
+	}
+
+	private _localRectToPoints(x: number, y: number, w: number, h: number): Vec[] {
+		return [new Vec(x, y), new Vec(x + w, y), new Vec(x + w, y + h), new Vec(x, y + h)]
 	}
 
 	private _roundRect(
@@ -616,27 +578,5 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		ctx.lineTo(x, y + r)
 		ctx.quadraticCurveTo(x, y, x + r, y)
 		ctx.closePath()
-	}
-
-	private _getRotateHandleLocalRect(
-		corner: RotateCorner,
-		width: number,
-		height: number,
-		targetSize: number
-	): { x: number; y: number; w: number; h: number } {
-		// These match RotateCornerHandle positions from TldrawSelectionForeground
-		const s = targetSize * 3
-		switch (corner) {
-			case 'top_left_rotate':
-				return { x: 0 - s, y: 0 - s, w: s, h: s }
-			case 'top_right_rotate':
-				return { x: width, y: 0 - s, w: s, h: s }
-			case 'bottom_left_rotate':
-				return { x: 0 - s, y: height, w: s, h: s }
-			case 'bottom_right_rotate':
-				return { x: width, y: height, w: s, h: s }
-			default:
-				return { x: 0, y: 0, w: 0, h: 0 }
-		}
 	}
 }

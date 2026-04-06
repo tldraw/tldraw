@@ -14,11 +14,26 @@ export function updateHoveredOverlayId(editor: Editor): boolean {
 	const margin = editor.options.hitTestMargin / editor.getZoomLevel()
 	const overlay = editor.overlays.getOverlayAtPoint(currentPagePoint, margin)
 
+	const previousOverlayId = editor.overlays.getHoveredOverlayId()
+
 	if (overlay) {
 		editor.overlays.setHoveredOverlay(overlay.id)
 		// Clear shape hover when over an overlay
 		editor.setHoveredShape(null)
+
+		// Update cursor based on the hovered overlay
+		const util = editor.overlays.getUtilForOverlay(overlay)
+		const cursor = util.getCursor(overlay)
+		if (cursor) {
+			editor.setCursor({ type: cursor, rotation: editor.getSelectionRotation() })
+		}
+
 		return true
+	}
+
+	// Reset cursor when leaving an overlay
+	if (previousOverlayId) {
+		editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	editor.overlays.setHoveredOverlay(null)

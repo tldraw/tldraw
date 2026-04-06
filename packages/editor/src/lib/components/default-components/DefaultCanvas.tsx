@@ -23,7 +23,6 @@ import { toDomPrecision } from '../../primitives/utils'
 import { Vec } from '../../primitives/Vec'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
-import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
 import { Shape } from '../Shape'
@@ -116,9 +115,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	)
 
 	const hideShapes = useValue('debug_shapes', () => debugFlags.hideShapes.get(), [debugFlags])
-	const debugGeometry = useValue('debug_geometry', () => debugFlags.debugGeometry.get(), [
-		debugFlags,
-	])
 	const isEditingAnything = useValue(
 		'isEditingAnything',
 		() => editor.getEditingShapeId() !== null,
@@ -163,7 +159,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				<div className="tl-overlays">
 					<CanvasShapeIndicators />
 					<div ref={rHtmlLayer2} className="tl-html-layer">
-						{debugGeometry ? <GeometryDebuggingView /> : null}
 						{ShapeIndicators && <ShapeIndicators />}
 						<HintedShapeIndicator />
 						<OverlaysWrapper />

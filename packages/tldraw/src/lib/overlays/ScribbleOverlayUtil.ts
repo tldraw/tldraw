@@ -65,6 +65,6 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 		if (!value.startsWith('var(')) return value
 		const varName = value.slice(4, -1)
 		const container = this.editor.getContainer()
-		return getComputedStyle(container).getPropertyValue(varName) || value
+		return getComputedStyle(container).getPropertyValue(varName).trim() || value
 	}
 }

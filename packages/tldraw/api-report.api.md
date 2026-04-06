@@ -575,14 +575,6 @@ export interface BreakPointProviderProps {
     forceMobile?: boolean;
 }
 
-// @public (undocumented)
-export interface BrushOverlayOptions {
-    // (undocumented)
-    fill: string;
-    // (undocumented)
-    stroke: string;
-}
-
 // @public
 export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
     // (undocumented)
@@ -590,11 +582,7 @@ export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
-    options: BrushOverlayOptions;
-    // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[]): void;
-    // @internal (undocumented)
-    _resolveColor(value: string): string;
     // (undocumented)
     static type: string;
 }
@@ -3050,14 +3038,6 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 // @public (undocumented)
 export function SelectAllMenuItem(): JSX.Element;
 
-// @public (undocumented)
-export interface SelectionForegroundOverlayOptions {
-    // (undocumented)
-    bgColor: string;
-    // (undocumented)
-    strokeColor: string;
-}
-
 // @public
 export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForegroundOverlay> {
     // (undocumented)
@@ -3069,11 +3049,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
-    options: SelectionForegroundOverlayOptions;
-    // (undocumented)
     render(ctx: CanvasRenderingContext2D, _overlays: TLSelectionForegroundOverlay[]): void;
-    // @internal (undocumented)
-    _resolveColor(value: string): string;
     // (undocumented)
     static type: string;
 }
@@ -3116,14 +3092,6 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 // @public (undocumented)
 export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
 
-// @public (undocumented)
-export interface ShapeHandleOverlayOptions {
-    // (undocumented)
-    fgColor: string;
-    // (undocumented)
-    strokeColor: string;
-}
-
 // @public
 export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
     // (undocumented)
@@ -3135,11 +3103,7 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
-    options: ShapeHandleOverlayOptions;
-    // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLShapeHandleOverlay[]): void;
-    // @internal (undocumented)
-    _resolveColor(value: string): string;
     // (undocumented)
     static type: string;
 }
@@ -3152,22 +3116,12 @@ export interface ShapeOptionsWithDisplayValues<Shape extends TLShape, DisplayVal
     getDefaultDisplayValues(editor: Editor, shape: Shape, theme: TLTheme, colorMode: 'dark' | 'light'): DisplayValues;
 }
 
-// @public (undocumented)
-export interface SnapIndicatorOverlayOptions {
-    // (undocumented)
-    gapsColor: string;
-    // (undocumented)
-    pointsColor: string;
-}
-
 // @public
 export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay> {
     // (undocumented)
     getOverlays(): TLSnapIndicatorOverlay[];
     // (undocumented)
     isActive(): boolean;
-    // (undocumented)
-    options: SnapIndicatorOverlayOptions;
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLSnapIndicatorOverlay[]): void;
     // (undocumented)
@@ -6176,14 +6130,6 @@ export function ViewSubmenu(): JSX.Element;
 // @public (undocumented)
 export function XBoxToolbarItem(): JSX.Element;
 
-// @public (undocumented)
-export interface ZoomBrushOverlayOptions {
-    // (undocumented)
-    fill: string;
-    // (undocumented)
-    stroke: string;
-}
-
 // @public
 export class ZoomBrushOverlayUtil extends OverlayUtil<TLZoomBrushOverlay> {
     // (undocumented)
@@ -6191,11 +6137,7 @@ export class ZoomBrushOverlayUtil extends OverlayUtil<TLZoomBrushOverlay> {
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
-    options: ZoomBrushOverlayOptions;
-    // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLZoomBrushOverlay[]): void;
-    // @internal (undocumented)
-    _resolveColor(value: string): string;
     // (undocumented)
     static type: string;
 }

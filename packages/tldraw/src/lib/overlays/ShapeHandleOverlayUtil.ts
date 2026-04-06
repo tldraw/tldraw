@@ -18,12 +18,6 @@ export interface TLShapeHandleOverlay extends TLOverlay {
 	}
 }
 
-/** @public */
-export interface ShapeHandleOverlayOptions {
-	fgColor: string
-	strokeColor: string
-}
-
 /**
  * Overlay util for shape handles (arrow endpoints, line vertices, etc.).
  *
@@ -31,11 +25,6 @@ export interface ShapeHandleOverlayOptions {
  */
 export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 	static override type = 'shape_handle'
-
-	override options: ShapeHandleOverlayOptions = {
-		fgColor: 'var(--tl-color-selected-contrast)',
-		strokeColor: 'var(--tl-color-selection-stroke)',
-	}
 
 	override isActive(): boolean {
 		const editor = this.editor
@@ -128,8 +117,9 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 
 		const zoom = editor.getEfficientZoomLevel()
 		const isCoarse = editor.getInstanceState().isCoarsePointer
-		const fgColor = this._resolveColor(this.options.fgColor)
-		const strokeColor = this._resolveColor(this.options.strokeColor)
+		const themeColors = editor.getCurrentTheme().colors[editor.getColorMode()]
+		const fgColor = themeColors.selectedContrast
+		const strokeColor = themeColors.selectionStroke
 
 		ctx.save()
 		// Apply shape's page transform
@@ -152,13 +142,5 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		}
 
 		ctx.restore()
-	}
-
-	/** @internal */
-	_resolveColor(value: string): string {
-		if (!value.startsWith('var(')) return value
-		const varName = value.slice(4, -1)
-		const container = this.editor.getContainer()
-		return getComputedStyle(container).getPropertyValue(varName) || value
 	}
 }
