@@ -123,6 +123,7 @@ import { TLImageAsset } from '@tldraw/editor';
 import { TLImageExportOptions } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
 import { TLImageShapeProps } from '@tldraw/editor';
+import { TLIndicatorPath } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
 import { TLLineShapePoint } from '@tldraw/editor';
@@ -220,6 +221,20 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 
 // @public (undocumented)
 export function ArrowDownToolbarItem(): JSX.Element;
+
+// @public
+export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
+    // (undocumented)
+    getOverlays(): TLArrowHintOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLArrowHintOverlay[]): void;
+    // @internal (undocumented)
+    _renderIndicatorPath(ctx: CanvasRenderingContext2D, indicatorPath: TLIndicatorPath): void;
+    // (undocumented)
+    static type: string;
+}
 
 // @public (undocumented)
 export function ArrowLeftToolbarItem(): JSX.Element;
@@ -1139,7 +1154,7 @@ export function DefaultMinimap(): JSX.Element;
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
 
 // @public (undocumented)
-export const defaultOverlayUtils: readonly [typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorHintOverlayUtil];
+export const defaultOverlayUtils: readonly [typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof ArrowHintOverlayUtil];
 
 // @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
@@ -3610,6 +3625,43 @@ export interface TLArrowBindings {
 }
 
 // @public (undocumented)
+export interface TLArrowHintOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        anchorX: number;
+        anchorY: number;
+        arrowKind: string;
+        handles: {
+            bottom: {
+                isEnabled: boolean;
+                x: number;
+                y: number;
+            };
+            left: {
+                isEnabled: boolean;
+                x: number;
+                y: number;
+            };
+            right: {
+                isEnabled: boolean;
+                x: number;
+                y: number;
+            };
+            top: {
+                isEnabled: boolean;
+                x: number;
+                y: number;
+            };
+        };
+        isExact: boolean;
+        isPrecise: boolean;
+        showEdgeHints: boolean;
+        snap: string;
+        targetId: TLShapeId;
+    };
+}
+
+// @public (undocumented)
 export type TLArrowInfo = TLArcArrowInfo | TLElbowArrowInfo | TLStraightArrowInfo;
 
 // @public (undocumented)
@@ -3712,8 +3764,8 @@ export function Tldraw(props: TldrawProps): JSX.Element;
 // @public (undocumented)
 export const TLDRAW_FILE_EXTENSION: ".tldr";
 
-// @public (undocumented)
-export function TldrawArrowHints(): JSX.Element | null;
+// @public @deprecated (undocumented)
+export function TldrawArrowHints(): null;
 
 // @public (undocumented)
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
@@ -3771,7 +3823,7 @@ export interface TldrawImageProps extends TLImageExportOptions {
 }
 
 // @public (undocumented)
-export function TldrawOverlays(): JSX.Element | null;
+export function TldrawOverlays(): null;
 
 // @public (undocumented)
 export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps;

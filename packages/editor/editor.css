@@ -1078,36 +1078,6 @@ input,
 	height: max-content;
 }
 
-.tl-arrow-hint {
-	stroke: var(--tl-color-text-1);
-	fill: none;
-	stroke-linecap: round;
-	overflow: visible;
-}
-
-.tl-arrow-hint-handle {
-	fill: var(--tl-color-selected-contrast);
-	stroke: var(--tl-color-selection-stroke);
-	stroke-width: calc(1.5px * var(--tl-scale));
-	r: calc(4px * var(--tl-scale));
-}
-
-.tl-arrow-hint-snap {
-	stroke: transparent;
-	fill: var(--tl-color-selection-fill);
-	r: calc(12px * var(--tl-scale));
-}
-
-.tl-arrow-hint-snap__none,
-.tl-arrow-hint-snap__center,
-.tl-arrow-hint-snap__axis {
-	display: none;
-}
-
-.tl-arrow-hint-snap__edge {
-	r: calc(8px * var(--tl-scale));
-}
-
 /* ------------------- Bookmark shape ------------------- */
 
 .tl-bookmark__container {

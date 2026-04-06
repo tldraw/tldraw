@@ -1,3 +1,4 @@
+import { ArrowHintOverlayUtil } from './overlays/ArrowHintOverlayUtil'
 import { BrushOverlayUtil } from './overlays/BrushOverlayUtil'
 import { CollaboratorBrushOverlayUtil } from './overlays/CollaboratorBrushOverlayUtil'
 import { CollaboratorHintOverlayUtil } from './overlays/CollaboratorHintOverlayUtil'
@@ -19,4 +20,5 @@ export const defaultOverlayUtils = [
 	CollaboratorBrushOverlayUtil,
 	CollaboratorScribbleOverlayUtil,
 	CollaboratorHintOverlayUtil,
+	ArrowHintOverlayUtil,
 ] as const
