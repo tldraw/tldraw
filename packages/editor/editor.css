@@ -398,11 +398,6 @@ input,
 	z-index: var(--tl-layer-overlays-collaborator-shape-indicator);
 }
 
-.tl-user-indicator__hint {
-	z-index: var(--tl-layer-overlays-user-indicator-hint);
-	stroke-width: calc(2.5px * var(--tl-scale));
-}
-
 .tl-custom-overlays {
 	z-index: var(--tl-layer-overlays-custom);
 }
