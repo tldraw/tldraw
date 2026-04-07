@@ -2771,6 +2771,9 @@ export interface PathBuilderToDOpts {
 export function PeopleMenu({ children }: PeopleMenuProps): JSX.Element | null;
 
 // @public (undocumented)
+export const PeopleMenuFacePile: NamedExoticComponent<TLUiPeopleMenuFacePileProps>;
+
+// @public (undocumented)
 export interface PeopleMenuProps {
     // (undocumented)
     children?: ReactNode;
@@ -4107,9 +4110,9 @@ export interface TLUiComponents {
     // (undocumented)
     PeopleMenuAvatar?: ComponentType<TLUiPeopleMenuAvatarProps> | null;
     // (undocumented)
-    PeopleMenuItem?: ComponentType<TLUiPeopleMenuItemProps> | null;
+    PeopleMenuFacePile?: ComponentType<TLUiPeopleMenuFacePileProps> | null;
     // (undocumented)
-    PeopleMenuMore?: ComponentType<TLUiPeopleMenuMoreProps> | null;
+    PeopleMenuItem?: ComponentType<TLUiPeopleMenuItemProps> | null;
     // (undocumented)
     QuickActions?: ComponentType<TLUiQuickActionsProps> | null;
     // (undocumented)
@@ -4872,15 +4875,19 @@ export interface TLUiPeopleMenuAvatarProps {
 }
 
 // @public (undocumented)
-export interface TLUiPeopleMenuItemProps {
+export interface TLUiPeopleMenuFacePileProps {
     // (undocumented)
-    userId: string;
+    userColor: string;
+    // (undocumented)
+    userIds: string[];
+    // (undocumented)
+    userName: string;
 }
 
 // @public (undocumented)
-export interface TLUiPeopleMenuMoreProps {
+export interface TLUiPeopleMenuItemProps {
     // (undocumented)
-    count: number;
+    userId: string;
 }
 
 // @public (undocumented)

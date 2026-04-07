@@ -32,7 +32,7 @@ const components: Required<TLUiComponents> = {
 	PeopleMenu: null,
 	PeopleMenuAvatar: null,
 	PeopleMenuItem: null,
-	PeopleMenuMore: null,
+	PeopleMenuFacePile: null,
 	UserPresenceEditor: null,
 }
 

@@ -506,10 +506,14 @@ export {
 } from './lib/ui/components/QuickActions/DefaultQuickActions'
 export { DefaultQuickActionsContent } from './lib/ui/components/QuickActions/DefaultQuickActionsContent'
 export { DefaultSharePanel } from './lib/ui/components/SharePanel/DefaultSharePanel'
-export { PeopleMenu, type PeopleMenuProps } from './lib/ui/components/SharePanel/PeopleMenu'
+export {
+	PeopleMenu,
+	type PeopleMenuProps,
+	PeopleMenuFacePile,
+	type TLUiPeopleMenuFacePileProps,
+} from './lib/ui/components/SharePanel/PeopleMenu'
 export { type TLUiPeopleMenuAvatarProps } from './lib/ui/components/SharePanel/PeopleMenuAvatar'
 export { type TLUiPeopleMenuItemProps } from './lib/ui/components/SharePanel/PeopleMenuItem'
-export { type TLUiPeopleMenuMoreProps } from './lib/ui/components/SharePanel/PeopleMenuMore'
 export { Spinner } from './lib/ui/components/Spinner'
 export {
 	DefaultStylePanel,

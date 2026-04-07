@@ -33,13 +33,16 @@ import {
 	TLUiQuickActionsProps,
 } from '../components/QuickActions/DefaultQuickActions'
 import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
-import { PeopleMenu } from '../components/SharePanel/PeopleMenu'
+import {
+	PeopleMenu,
+	PeopleMenuFacePile,
+	TLUiPeopleMenuFacePileProps,
+} from '../components/SharePanel/PeopleMenu'
 import {
 	PeopleMenuAvatar,
 	TLUiPeopleMenuAvatarProps,
 } from '../components/SharePanel/PeopleMenuAvatar'
 import { PeopleMenuItem, TLUiPeopleMenuItemProps } from '../components/SharePanel/PeopleMenuItem'
-import { PeopleMenuMore, TLUiPeopleMenuMoreProps } from '../components/SharePanel/PeopleMenuMore'
 import { UserPresenceEditor } from '../components/SharePanel/UserPresenceEditor'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
 import { DefaultToasts } from '../components/Toasts'
@@ -84,7 +87,7 @@ export interface TLUiComponents {
 	PeopleMenu?: ComponentType | null
 	PeopleMenuAvatar?: ComponentType<TLUiPeopleMenuAvatarProps> | null
 	PeopleMenuItem?: ComponentType<TLUiPeopleMenuItemProps> | null
-	PeopleMenuMore?: ComponentType<TLUiPeopleMenuMoreProps> | null
+	PeopleMenuFacePile?: ComponentType<TLUiPeopleMenuFacePileProps> | null
 	UserPresenceEditor?: ComponentType | null
 }
 
@@ -137,7 +140,7 @@ export function TldrawUiComponentsProvider({
 					PeopleMenu: PeopleMenu,
 					PeopleMenuAvatar: PeopleMenuAvatar,
 					PeopleMenuItem: PeopleMenuItem,
-					PeopleMenuMore: PeopleMenuMore,
+					PeopleMenuFacePile: PeopleMenuFacePile,
 					UserPresenceEditor: UserPresenceEditor,
 					..._overrides,
 				}),

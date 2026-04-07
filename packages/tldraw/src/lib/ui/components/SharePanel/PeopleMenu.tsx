@@ -1,4 +1,4 @@
-import { useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
+import { track, useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
 import { Popover as _Popover } from 'radix-ui'
 import { ReactNode } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -16,8 +16,7 @@ export interface PeopleMenuProps {
 
 /** @public @react */
 export function PeopleMenu({ children }: PeopleMenuProps) {
-	const { PeopleMenuAvatar, PeopleMenuItem, PeopleMenuMore, UserPresenceEditor } =
-		useTldrawUiComponents()
+	const { PeopleMenuItem, PeopleMenuFacePile, UserPresenceEditor } = useTldrawUiComponents()
 	const msg = useTranslation()
 	const dir = useDirection()
 
@@ -29,8 +28,6 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 	const userName = useValue('user', () => editor.user.getName(), [editor])
 
 	const [isOpen, onOpenChange] = useMenuIsOpen('people menu')
-	const breakpoint = useBreakpoint()
-	const maxAvatars = breakpoint <= PORTRAIT_BREAKPOINT.MOBILE_XS ? 1 : 5
 
 	const collaborationStatus = useCollaborationStatus()
 
@@ -40,7 +37,7 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 
 	if (
 		!userIds.length ||
-		(!children && !PeopleMenuAvatar && !PeopleMenuItem && !PeopleMenuMore && !UserPresenceEditor)
+		(!children && !PeopleMenuFacePile && !PeopleMenuItem && !UserPresenceEditor)
 	) {
 		return null
 	}
@@ -49,25 +46,9 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
 			<_Popover.Trigger dir={dir} asChild>
 				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
-					<div className="tlui-people-menu__avatars">
-						{PeopleMenuAvatar &&
-							userIds
-								.slice(-maxAvatars)
-								.map((userId) => <PeopleMenuAvatar key={userId} userId={userId} />)}
-						{userIds.length > 0 && (
-							<div
-								className="tlui-people-menu__avatar"
-								style={{
-									backgroundColor: userColor,
-								}}
-							>
-								{userName?.[0] ?? ''}
-							</div>
-						)}
-						{PeopleMenuAvatar && PeopleMenuMore && userIds.length > maxAvatars && (
-							<PeopleMenuMore count={userIds.length - maxAvatars} />
-						)}
-					</div>
+					{PeopleMenuFacePile ? (
+						<PeopleMenuFacePile userColor={userColor} userIds={userIds} userName={userName} />
+					) : null}
 				</button>
 			</_Popover.Trigger>
 			<_Popover.Portal container={container}>
@@ -98,3 +79,47 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 		</_Popover.Root>
 	)
 }
+
+/** @public */
+export interface TLUiPeopleMenuFacePileProps {
+	userIds: string[]
+	userName: string
+	userColor: string
+}
+
+/** @public @react */
+export const PeopleMenuFacePile = track(function PeopleMenuFacePile({
+	userIds,
+	userName,
+	userColor,
+}: TLUiPeopleMenuFacePileProps) {
+	const { PeopleMenuAvatar, PeopleMenuItem, UserPresenceEditor, PeopleMenuFacePile } =
+		useTldrawUiComponents()
+
+	const breakpoint = useBreakpoint()
+	const maxAvatars = breakpoint <= PORTRAIT_BREAKPOINT.MOBILE_XS ? 1 : 5
+
+	return (
+		<div className="tlui-people-menu__avatars">
+			{PeopleMenuAvatar &&
+				userIds
+					.slice(-maxAvatars)
+					.map((userId) => <PeopleMenuAvatar key={userId} userId={userId} />)}
+			{userIds.length > 0 && (
+				<div
+					className="tlui-people-menu__avatar"
+					style={{
+						backgroundColor: userColor,
+					}}
+				>
+					{userName?.[0] ?? ''}
+				</div>
+			)}
+			{userIds.length > maxAvatars && (
+				<div className="tlui-people-menu__avatar tlui-people-menu__more">
+					{Math.abs(userIds.length - maxAvatars)}
+				</div>
+			)}
+		</div>
+	)
+})
