@@ -302,3 +302,4 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix NaN propagation from zero-length labeled arrows causing all shapes to disappear. ([#8329](https://github.com/tldraw/tldraw/pull/8329))
 - Fix crash when isolating curved arrows with degenerate geometry. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 - Fix camera state stuck at 'moving' on dispose, blocking shape interactions on the next editor instance. ([#8396](https://github.com/tldraw/tldraw/pull/8396))
+- Fix spiky artifacts on draw-style geometric shapes by using a circular random offset distribution instead of a square one. ([#8466](https://github.com/tldraw/tldraw/pull/8466))
