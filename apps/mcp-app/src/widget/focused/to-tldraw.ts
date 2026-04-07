@@ -6,11 +6,11 @@ import {
 	Box,
 	createShapeId,
 	Editor,
-	FONT_SIZES,
 	IndexKey,
 	reverseRecordsDiff,
 	TLArrowShape,
 	TLBindingCreate,
+	TLDefaultSizeStyle,
 	TLDrawShape,
 	TLGeoShape,
 	TLLineShape,
@@ -74,12 +74,16 @@ function convertTextShapeToTldrawShape(
 ): { shape: TLTextShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const defaultTextShape = defaultShape as TLTextShape
+	const baseFontSize = editor.getTheme('default')?.fontSize ?? 16
 
-	let textSize: keyof typeof FONT_SIZES = 's'
+	let textSize: TLDefaultSizeStyle = 's'
 	let scale = 1
 
 	if (focusedShape.fontSize) {
-		const result = convertFocusedFontSizeToTldrawFontSizeAndScale(focusedShape.fontSize)
+		const result = convertFocusedFontSizeToTldrawFontSizeAndScale(
+			focusedShape.fontSize,
+			baseFontSize
+		)
 		textSize = result.textSize
 		scale = result.scale
 	} else if (defaultTextShape.props?.size) {

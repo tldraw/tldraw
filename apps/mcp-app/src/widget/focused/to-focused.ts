@@ -68,6 +68,7 @@ function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedT
 	const text = util.getText(shape) ?? ''
 	const bounds = getSimpleBounds(editor, shape)
 	const textSize = shape.props.size
+	const baseFontSize = editor.getTheme('default')?.fontSize ?? 16
 
 	const position = new Vec()
 	let anchor: FocusedTextAnchor = 'top-left'
@@ -96,7 +97,11 @@ function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedT
 		_type: 'text',
 		anchor,
 		color: shape.props.color,
-		fontSize: convertTldrawFontSizeAndScaleToFocusedFontSize(textSize, shape.props.scale),
+		fontSize: convertTldrawFontSizeAndScaleToFocusedFontSize(
+			textSize,
+			shape.props.scale,
+			baseFontSize
+		),
 		maxWidth: shape.props.autoSize ? null : shape.props.w,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),

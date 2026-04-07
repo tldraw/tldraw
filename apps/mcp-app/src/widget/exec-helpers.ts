@@ -10,7 +10,6 @@ import {
 	degreesToRadians,
 	fitFrameToContent,
 	getArrowBindings,
-	getDefaultColorTheme,
 	radiansToDegrees,
 	toRichText,
 } from 'tldraw'
@@ -134,7 +133,6 @@ export function createExecHelpers(editor: Editor) {
 		clamp,
 		degreesToRadians,
 		radiansToDegrees,
-		getDefaultColorTheme,
 		getArrowBindings,
 		fitFrameToContent,
 		createArrowBetweenShapes: createArrowBetweenShapesFn(editor),
@@ -167,7 +165,6 @@ async function loadExecModule(code: string) {
 		clamp,
 		degreesToRadians,
 		radiansToDegrees,
-		getDefaultColorTheme,
 		getArrowBindings,
 		fitFrameToContent,
 		createArrowBetweenShapes,

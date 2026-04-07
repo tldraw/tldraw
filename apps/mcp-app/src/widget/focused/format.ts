@@ -2,7 +2,7 @@
  * Focused shape format types and conversion utilities.
  * Ported from tldraw/tldraw templates/agent/shared/format/
  */
-import { FONT_SIZES, TLDefaultFillStyle, TLGeoShapeGeoStyle, TLShapeId } from 'tldraw'
+import { TLDefaultFillStyle, TLDefaultSizeStyle, TLGeoShapeGeoStyle, TLShapeId } from 'tldraw'
 
 // ---- Colors ----
 
@@ -67,31 +67,46 @@ export function convertTldrawFillToFocusedFill(fill: TLDefaultFillStyle): Focuse
 
 // ---- Font Size ----
 
-export function convertFocusedFontSizeToTldrawFontSizeAndScale(targetFontSize: number) {
-	const fontSizeEntries = Object.entries(FONT_SIZES)
-	let closestSize = fontSizeEntries[0]
-	let minDifference = Math.abs(targetFontSize - closestSize[1])
+const FONT_SIZE_MULTIPLIERS: Record<TLDefaultSizeStyle, number> = {
+	s: 1.125,
+	m: 1.5,
+	l: 2.25,
+	xl: 2.75,
+}
 
-	for (const [size, fontSize] of fontSizeEntries) {
-		const difference = Math.abs(targetFontSize - fontSize)
+const DEFAULT_BASE_FONT_SIZE = 16
+
+export function convertFocusedFontSizeToTldrawFontSizeAndScale(
+	targetFontSize: number,
+	baseFontSize = DEFAULT_BASE_FONT_SIZE
+) {
+	const fontSizeEntries = Object.entries(FONT_SIZE_MULTIPLIERS)
+	let closestSize = fontSizeEntries[0]
+	let closestPixelSize = closestSize[1] * baseFontSize
+	let minDifference = Math.abs(targetFontSize - closestPixelSize)
+
+	for (const [size, multiplier] of fontSizeEntries) {
+		const pixelSize = multiplier * baseFontSize
+		const difference = Math.abs(targetFontSize - pixelSize)
 		if (difference < minDifference) {
 			minDifference = difference
-			closestSize = [size, fontSize]
+			closestSize = [size, multiplier]
+			closestPixelSize = pixelSize
 		}
 	}
 
-	const textSize = closestSize[0] as keyof typeof FONT_SIZES
-	const baseFontSize = closestSize[1]
-	const scale = targetFontSize / baseFontSize
+	const textSize = closestSize[0] as TLDefaultSizeStyle
+	const scale = targetFontSize / closestPixelSize
 
 	return { textSize, scale }
 }
 
 export function convertTldrawFontSizeAndScaleToFocusedFontSize(
-	textSize: keyof typeof FONT_SIZES,
-	scale: number
+	textSize: TLDefaultSizeStyle,
+	scale: number,
+	baseFontSize = DEFAULT_BASE_FONT_SIZE
 ) {
-	return Math.round(FONT_SIZES[textSize] * scale)
+	return Math.round(FONT_SIZE_MULTIPLIERS[textSize] * baseFontSize * scale)
 }
 
 // ---- Geo Shape Types ----
