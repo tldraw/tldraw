@@ -1,5 +1,6 @@
 import { InstancePresenceRecordType } from '@tldraw/tlschema'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
+import { CollaboratorHintOverlayUtil } from '../../lib/overlays/CollaboratorHintOverlayUtil'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -11,7 +12,7 @@ beforeEach(() => {
 describe('CollaboratorHintOverlayUtil', () => {
 	describe('isActive', () => {
 		it('returns false when no collaborator cursors are off-screen', () => {
-			const util = editor.overlays.getOverlayUtil('collaborator_hint')
+			const util = editor.overlays.getOverlayUtil<CollaboratorHintOverlayUtil>('collaborator_hint')
 			expect(util.isActive()).toBe(false)
 		})
 
@@ -27,14 +28,14 @@ describe('CollaboratorHintOverlayUtil', () => {
 					cursor: { type: 'default', x: 100000, y: 100000, rotation: 0 },
 				}),
 			])
-			const util = editor.overlays.getOverlayUtil('collaborator_hint')
+			const util = editor.overlays.getOverlayUtil<CollaboratorHintOverlayUtil>('collaborator_hint')
 			expect(util.isActive()).toBe(true)
 		})
 	})
 
 	describe('getOverlays', () => {
 		it('returns empty array when all collaborators are in viewport', () => {
-			const util = editor.overlays.getOverlayUtil('collaborator_hint')
+			const util = editor.overlays.getOverlayUtil<CollaboratorHintOverlayUtil>('collaborator_hint')
 			expect(util.getOverlays()).toEqual([])
 		})
 
@@ -58,12 +59,12 @@ describe('CollaboratorHintOverlayUtil', () => {
 					cursor: { type: 'default', x: -100000, y: -100000, rotation: 0 },
 				}),
 			])
-			const util = editor.overlays.getOverlayUtil('collaborator_hint')
+			const util = editor.overlays.getOverlayUtil<CollaboratorHintOverlayUtil>('collaborator_hint')
 			const overlays = util.getOverlays()
 			expect(overlays).toHaveLength(2)
 			expect(overlays[0].props).toHaveProperty('rotation')
 			expect(typeof overlays[0].props.rotation).toBe('number')
-			expect(overlays.some((o: any) => o.props.color === '#c00')).toBe(true)
+			expect(overlays.some((o) => o.props.color === '#c00')).toBe(true)
 		})
 	})
 })

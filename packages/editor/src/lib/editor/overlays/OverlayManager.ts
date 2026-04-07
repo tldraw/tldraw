@@ -50,7 +50,7 @@ export class OverlayManager {
 	 * Reactively computed list of all currently active overlays.
 	 * @public
 	 */
-	@computed getActiveOverlays(): TLOverlay[] {
+	@computed getCurrentOverlays(): TLOverlay[] {
 		const overlays: TLOverlay[] = []
 		for (const util of this._overlayUtils.values()) {
 			if (util.isActive()) {
@@ -73,7 +73,7 @@ export class OverlayManager {
 	getHoveredOverlay(): TLOverlay | null {
 		const id = this._hoveredOverlayId.get()
 		if (!id) return null
-		return this.getActiveOverlays().find((o) => o.id === id) ?? null
+		return this.getCurrentOverlays().find((o) => o.id === id) ?? null
 	}
 
 	setHoveredOverlay(id: string | null) {

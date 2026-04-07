@@ -12,7 +12,8 @@ beforeEach(() => {
 describe('CollaboratorScribbleOverlayUtil', () => {
 	describe('isActive', () => {
 		it('returns false when no collaborators have scribbles', () => {
-			const util = editor.overlays.getOverlayUtil('collaborator_scribble')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorScribbleOverlayUtil>('collaborator_scribble')
 			expect(util.isActive()).toBe(false)
 		})
 
@@ -39,14 +40,16 @@ describe('CollaboratorScribbleOverlayUtil', () => {
 					],
 				}),
 			])
-			const util = editor.overlays.getOverlayUtil('collaborator_scribble')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorScribbleOverlayUtil>('collaborator_scribble')
 			expect(util.isActive()).toBe(true)
 		})
 	})
 
 	describe('getOverlays', () => {
 		it('returns empty array when no collaborators have scribbles', () => {
-			const util = editor.overlays.getOverlayUtil('collaborator_scribble')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorScribbleOverlayUtil>('collaborator_scribble')
 			expect(util.getOverlays()).toEqual([])
 		})
 

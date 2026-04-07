@@ -11,7 +11,7 @@ beforeEach(() => {
 describe('ScribbleOverlayUtil', () => {
 	describe('isActive', () => {
 		it('returns false when there are no scribbles', () => {
-			const util = editor.overlays.getOverlayUtil('scribble')
+			const util = editor.overlays.getOverlayUtil<ScribbleOverlayUtil>('scribble')
 			expect(util.isActive()).toBe(false)
 		})
 
@@ -31,14 +31,14 @@ describe('ScribbleOverlayUtil', () => {
 					},
 				],
 			})
-			const util = editor.overlays.getOverlayUtil('scribble')
+			const util = editor.overlays.getOverlayUtil<ScribbleOverlayUtil>('scribble')
 			expect(util.isActive()).toBe(true)
 		})
 	})
 
 	describe('getOverlays', () => {
 		it('returns empty array when no scribbles exist', () => {
-			const util = editor.overlays.getOverlayUtil('scribble')
+			const util = editor.overlays.getOverlayUtil<ScribbleOverlayUtil>('scribble')
 			expect(util.getOverlays()).toEqual([])
 		})
 

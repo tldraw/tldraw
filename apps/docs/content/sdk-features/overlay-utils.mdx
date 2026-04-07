@@ -238,7 +238,7 @@ Use [Editor#overlays](?) to interact with the overlay system:
 const brushUtil = editor.overlays.getUtil<BrushOverlayUtil>('brush')
 
 // Get all currently active overlays
-const activeOverlays = editor.overlays.getActiveOverlays()
+const activeOverlays = editor.overlays.getCurrentOverlays()
 
 // Hit test at a page point
 const overlay = editor.overlays.getOverlayAtPoint({ x: 100, y: 200 })

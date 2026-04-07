@@ -1,5 +1,6 @@
 import { InstancePresenceRecordType } from '@tldraw/tlschema'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
+import { CollaboratorCursorOverlayUtil } from '../../lib/overlays/CollaboratorCursorOverlayUtil'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -11,7 +12,8 @@ beforeEach(() => {
 describe('CollaboratorCursorOverlayUtil', () => {
 	describe('isActive', () => {
 		it('returns false when there are no collaborators on the page', () => {
-			const util = editor.overlays.getOverlayUtil('collaborator_cursor')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
 			expect(util.isActive()).toBe(false)
 		})
 
@@ -27,14 +29,16 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					lastActivityTimestamp: Date.now(),
 				}),
 			])
-			const util = editor.overlays.getOverlayUtil('collaborator_cursor')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
 			expect(util.isActive()).toBe(true)
 		})
 	})
 
 	describe('getOverlays', () => {
 		it('returns empty array when no collaborators are present', () => {
-			const util = editor.overlays.getOverlayUtil('collaborator_cursor')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
 			expect(util.getOverlays()).toEqual([])
 		})
 
@@ -60,7 +64,8 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					lastActivityTimestamp: Date.now(),
 				}),
 			])
-			const util = editor.overlays.getOverlayUtil('collaborator_cursor')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
 			const overlays = util.getOverlays()
 			expect(overlays).toHaveLength(2)
 			expect(overlays[0].props).toHaveProperty('x')
@@ -80,7 +85,8 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					lastActivityTimestamp: Date.now(),
 				}),
 			])
-			const util = editor.overlays.getOverlayUtil('collaborator_cursor')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
 			expect(util.getOverlays().length).toBe(0)
 		})
 
@@ -116,7 +122,8 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					lastActivityTimestamp: now,
 				}),
 			])
-			const util = editor.overlays.getOverlayUtil('collaborator_cursor')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
 			const overlays = util.getOverlays()
 			// 2 visible (idle + active)
 			expect(overlays.length).toBe(2)
@@ -136,7 +143,9 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					lastActivityTimestamp: now - 10 * 60 * 1000,
 				}),
 			])
-			const overlays = editor.overlays.getOverlayUtil('collaborator_cursor').getOverlays()
+			const overlays = editor.overlays
+				.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
+				.getOverlays()
 			expect(overlays.length).toBe(1)
 		})
 
@@ -154,7 +163,9 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					lastActivityTimestamp: now - 10 * 60 * 1000,
 				}),
 			])
-			const overlays = editor.overlays.getOverlayUtil('collaborator_cursor').getOverlays()
+			const overlays = editor.overlays
+				.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
+				.getOverlays()
 			expect(overlays.length).toBeGreaterThanOrEqual(1)
 		})
 
@@ -172,7 +183,9 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					followingUserId: editor.user.getId(),
 				}),
 			])
-			const overlays = editor.overlays.getOverlayUtil('collaborator_cursor').getOverlays()
+			const overlays = editor.overlays
+				.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
+				.getOverlays()
 			expect(overlays.length).toBe(0)
 		})
 
@@ -191,7 +204,9 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					chatMessage: 'Hello',
 				}),
 			])
-			const overlays = editor.overlays.getOverlayUtil('collaborator_cursor').getOverlays()
+			const overlays = editor.overlays
+				.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
+				.getOverlays()
 			expect(overlays.length).toBe(1)
 		})
 
@@ -207,7 +222,8 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					lastActivityTimestamp: Date.now(),
 				}),
 			])
-			const util = editor.overlays.getOverlayUtil('collaborator_cursor')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
 			const overlay = util.getOverlays()[0]
 			expect(overlay.props.name).toBeNull()
 		})

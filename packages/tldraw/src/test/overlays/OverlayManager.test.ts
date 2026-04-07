@@ -13,15 +13,15 @@ beforeEach(() => {
 })
 
 describe('OverlayManager', () => {
-	describe('getActiveOverlays', () => {
+	describe('getCurrentOverlays', () => {
 		it('returns empty array when no overlays are active', () => {
-			expect(editor.overlays.getActiveOverlays()).toEqual([])
+			expect(editor.overlays.getCurrentOverlays()).toEqual([])
 		})
 
 		it('returns overlays from active overlay utils and excludes inactive ones', () => {
 			// Only brush will be active after setting brush
 			editor.updateInstanceState({ brush: { x: 1, y: 2, w: 3, h: 4 } })
-			const overlays = editor.overlays.getActiveOverlays()
+			const overlays = editor.overlays.getCurrentOverlays()
 			expect(overlays.some((o) => o.type === 'brush')).toBe(true)
 			expect(overlays.some((o) => o.type === 'zoom_brush')).toBe(false)
 		})
@@ -38,7 +38,7 @@ describe('OverlayManager', () => {
 				{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			])
 			editor.select(ids.box1)
-			const overlays = editor.overlays.getActiveOverlays()
+			const overlays = editor.overlays.getCurrentOverlays()
 			// Should include selection_foreground overlays
 			const anyOverlay = overlays.find((o) => o.type === 'selection_foreground')
 			expect(anyOverlay).toBeTruthy()

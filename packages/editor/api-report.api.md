@@ -2572,7 +2572,7 @@ export class OverlayManager {
     constructor(editor: Editor);
     // (undocumented)
     readonly editor: Editor;
-    getActiveOverlays(): TLOverlay[];
+    getCurrentOverlays(): TLOverlay[];
     // (undocumented)
     getHoveredOverlay(): null | TLOverlay;
     // (undocumented)

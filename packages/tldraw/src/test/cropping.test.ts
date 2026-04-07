@@ -1,8 +1,7 @@
 import { createShapeId, TLImageShape } from '@tldraw/editor'
 import { vi } from 'vitest'
-import { defaultOverlayUtils } from '../lib/defaultOverlayUtils'
 import { MIN_CROP_SIZE } from '../lib/shapes/shared/crop'
-import { TestEditor } from './TestEditor'
+import { defaultHandleOverlays, TestEditor } from './TestEditor'
 
 vi.useFakeTimers()
 
@@ -30,7 +29,7 @@ const imageProps = {
 }
 
 beforeEach(() => {
-	editor = new TestEditor({ overlayUtils: defaultOverlayUtils })
+	editor = new TestEditor({ overlayUtils: defaultHandleOverlays })
 
 	// this side effect is normally added via a hook
 	editor.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next) => {

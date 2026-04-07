@@ -11,7 +11,7 @@ beforeEach(() => {
 describe('SnapIndicatorOverlayUtil', () => {
 	describe('isActive', () => {
 		it('returns false when there are no snap indicators', () => {
-			const util = editor.overlays.getOverlayUtil('snap_indicator')
+			const util = editor.overlays.getOverlayUtil<SnapIndicatorOverlayUtil>('snap_indicator')
 			expect(util.isActive()).toBe(false)
 		})
 
@@ -26,14 +26,14 @@ describe('SnapIndicatorOverlayUtil', () => {
 					],
 				},
 			])
-			const util = editor.overlays.getOverlayUtil('snap_indicator')
+			const util = editor.overlays.getOverlayUtil<SnapIndicatorOverlayUtil>('snap_indicator')
 			expect(util.isActive()).toBe(true)
 		})
 	})
 
 	describe('getOverlays', () => {
 		it('returns empty array when no indicators exist', () => {
-			const util = editor.overlays.getOverlayUtil('snap_indicator')
+			const util = editor.overlays.getOverlayUtil<SnapIndicatorOverlayUtil>('snap_indicator')
 			expect(util.getOverlays()).toEqual([])
 		})
 

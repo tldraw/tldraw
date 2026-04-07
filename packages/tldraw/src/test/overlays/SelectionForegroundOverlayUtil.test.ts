@@ -1,5 +1,6 @@
 import { createShapeId } from '@tldraw/editor'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
+import { SelectionForegroundOverlayUtil } from '../../lib/overlays/SelectionForegroundOverlayUtil'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -17,14 +18,16 @@ beforeEach(() => {
 describe('SelectionForegroundOverlayUtil', () => {
 	describe('isActive', () => {
 		it('returns false when nothing is selected', () => {
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
 			expect(util.isActive()).toBe(false)
 		})
 
 		it('returns true in select.idle with a selected shape', () => {
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
 			expect(util.isActive()).toBe(true)
 		})
 
@@ -47,24 +50,27 @@ describe('SelectionForegroundOverlayUtil', () => {
 
 	describe('getOverlays', () => {
 		it('returns empty array when nothing is selected', () => {
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
 			expect(util.getOverlays()).toEqual([])
 		})
 
 		it('includes resize corner handles for a resizable shape', () => {
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
 			const overlays = util.getOverlays()
 			// Should include at least the top_left resize handle
-			expect(overlays.some((o: any) => o.id === 'selection_fg:top_left')).toBe(true)
+			expect(overlays.some((o) => o.id === 'selection_fg:top_left')).toBe(true)
 		})
 
 		it('includes resize edge handles', () => {
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
-			const idsSet = new Set(util.getOverlays().map((o: any) => o.id))
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const idsSet = new Set(util.getOverlays().map((o) => o.id))
 			expect(idsSet.has('selection_fg:top')).toBe(true)
 			expect(idsSet.has('selection_fg:right')).toBe(true)
 			expect(idsSet.has('selection_fg:bottom')).toBe(true)
@@ -75,8 +81,9 @@ describe('SelectionForegroundOverlayUtil', () => {
 			editor.updateInstanceState({ isCoarsePointer: false })
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
-			const idsSet = new Set(util.getOverlays().map((o: any) => o.id))
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const idsSet = new Set(util.getOverlays().map((o) => o.id))
 			expect(idsSet.has('selection_fg:top_left_rotate')).toBe(true)
 			expect(idsSet.has('selection_fg:top_right_rotate')).toBe(true)
 			expect(idsSet.has('selection_fg:bottom_left_rotate')).toBe(true)
@@ -87,16 +94,18 @@ describe('SelectionForegroundOverlayUtil', () => {
 			editor.updateInstanceState({ isCoarsePointer: true })
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 60, h: 60 } }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
-			const idsSet = new Set(util.getOverlays().map((o: any) => o.id))
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const idsSet = new Set(util.getOverlays().map((o) => o.id))
 			expect(idsSet.has('selection_fg:mobile_rotate')).toBe(true)
 		})
 
 		it('hides alternate corners when selection is tiny', () => {
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 10, h: 20 } }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
-			const idsSet = new Set(util.getOverlays().map((o: any) => o.id))
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const idsSet = new Set(util.getOverlays().map((o) => o.id))
 			// top_left present
 			expect(idsSet.has('selection_fg:top_left')).toBe(true)
 			// alternate corners hidden
@@ -109,8 +118,9 @@ describe('SelectionForegroundOverlayUtil', () => {
 		it('shows only one handle when selection is tiny in both axes', () => {
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 10, h: 10 } }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
-			const idsSet = new Set(util.getOverlays().map((o: any) => o.id))
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const idsSet = new Set(util.getOverlays().map((o) => o.id))
 			expect(idsSet.has('selection_fg:top_left')).toBe(true)
 			expect(idsSet.has('selection_fg:bottom_right')).toBe(false)
 			expect(idsSet.has('selection_fg:top_right')).toBe(false)
@@ -120,16 +130,18 @@ describe('SelectionForegroundOverlayUtil', () => {
 		it('hides rotate handles when shape hides them', () => {
 			editor.createShapes([{ id: ids.box1, type: 'line', x: 0, y: 0 }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
-			const idsSet = new Set(util.getOverlays().map((o: any) => o.id))
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const idsSet = new Set(util.getOverlays().map((o) => o.id))
 			expect([...idsSet].some((id) => id.includes('rotate'))).toBe(false)
 		})
 
 		it('hides resize handles when shape hides them', () => {
 			editor.createShapes([{ id: ids.box1, type: 'line', x: 0, y: 0 }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
-			const idsSet = new Set(util.getOverlays().map((o: any) => o.id))
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const idsSet = new Set(util.getOverlays().map((o) => o.id))
 			expect(
 				[...idsSet].some(
 					(id) =>
@@ -150,19 +162,21 @@ describe('SelectionForegroundOverlayUtil', () => {
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 60 } }])
 			editor.select(ids.box1)
 			editor.updateCurrentPageState({ croppingShapeId: ids.box1 })
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
 			const overlays = util.getOverlays()
 			// In crop mode, still uses 'resize_handle' overlay type but draws crop marks in render;
 			// ensure handles exist at corners at least
-			expect(overlays.some((o: any) => o.id === 'selection_fg:top_left')).toBe(true)
+			expect(overlays.some((o) => o.id === 'selection_fg:top_left')).toBe(true)
 		})
 
 		it('hides edge handles on coarse pointer', () => {
 			editor.updateInstanceState({ isCoarsePointer: true })
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
-			const idsSet = new Set(util.getOverlays().map((o: any) => o.id))
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const idsSet = new Set(util.getOverlays().map((o) => o.id))
 			expect(idsSet.has('selection_fg:top')).toBe(false)
 			expect(idsSet.has('selection_fg:right')).toBe(false)
 			expect(idsSet.has('selection_fg:bottom')).toBe(false)
@@ -174,9 +188,10 @@ describe('SelectionForegroundOverlayUtil', () => {
 		it('returns a geometry for handles', () => {
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
 			for (const o of util.getOverlays()) {
-				const geom = util.getGeometry(o as any)
+				const geom = util.getGeometry(o)
 				if (
 					o.props.overlayType === 'resize_handle' ||
 					o.props.overlayType === 'rotate_handle' ||
@@ -191,9 +206,10 @@ describe('SelectionForegroundOverlayUtil', () => {
 			editor.updateInstanceState({ isCoarsePointer: false })
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
-			const rot = util.getOverlays().find((o: any) => o.id === 'selection_fg:top_left_rotate')!
-			const geom = util.getGeometry(rot as any)!
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const rot = util.getOverlays().find((o) => o.id === 'selection_fg:top_left_rotate')!
+			const geom = util.getGeometry(rot)!
 			// Circle geometry produces a square bounding box
 			const b = geom.getBounds()
 			expect(Math.abs(b.width - b.height)).toBeLessThan(0.001)
@@ -203,9 +219,10 @@ describe('SelectionForegroundOverlayUtil', () => {
 			editor.updateInstanceState({ isCoarsePointer: true })
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 60, h: 60 } }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
-			const mob = util.getOverlays().find((o: any) => o.id === 'selection_fg:mobile_rotate')!
-			const geom = util.getGeometry(mob as any)!
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const mob = util.getOverlays().find((o) => o.id === 'selection_fg:mobile_rotate')!
+			const geom = util.getGeometry(mob)!
 			// Polygon2d duck-typing: no radius, but has vertices/points via bounds defined
 			expect((geom as any).radius).toBeUndefined()
 		})
@@ -231,11 +248,12 @@ describe('SelectionForegroundOverlayUtil', () => {
 		it('returns correct cursors for handle types', () => {
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
 			editor.select(ids.box1)
-			const util = editor.overlays.getOverlayUtil('selection_foreground')
-			const tl = util.getOverlays().find((o: any) => o.id === 'selection_fg:top_left')!
-			expect(util.getCursor(tl as any)).toBe('nwse-resize')
-			const top = util.getOverlays().find((o: any) => o.id === 'selection_fg:top')!
-			expect(util.getCursor(top as any)).toBe('ns-resize')
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const tl = util.getOverlays().find((o) => o.id === 'selection_fg:top_left')!
+			expect(util.getCursor(tl)).toBe('nwse-resize')
+			const top = util.getOverlays().find((o) => o.id === 'selection_fg:top')!
+			expect(util.getCursor(top)).toBe('ns-resize')
 		})
 	})
 })
@@ -251,6 +269,7 @@ it('returns empty array for a locked shape', () => {
 		} as any,
 	])
 	editor.select(ids.box1)
-	const util = editor.overlays.getOverlayUtil('selection_foreground')
+	const util =
+		editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
 	expect(util.getOverlays()).toEqual([])
 })

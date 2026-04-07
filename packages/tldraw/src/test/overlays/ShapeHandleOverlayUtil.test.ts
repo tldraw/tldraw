@@ -18,19 +18,19 @@ beforeEach(() => {
 describe('ShapeHandleOverlayUtil', () => {
 	describe('isActive', () => {
 		it('returns false when no shape is selected', () => {
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			expect(util.isActive()).toBe(false)
 		})
 
 		it('returns false when in readonly mode', () => {
 			editor.updateInstanceState({ isReadonly: true })
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			expect(util.isActive()).toBe(false)
 		})
 
 		it('returns false when changing style', () => {
 			editor.updateInstanceState({ isChangingStyle: true })
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			expect(util.isActive()).toBe(false)
 		})
 
@@ -39,14 +39,14 @@ describe('ShapeHandleOverlayUtil', () => {
 				{ id: ids.geo1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			])
 			editor.select(ids.geo1)
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			expect(util.isActive()).toBe(false)
 		})
 
 		it('returns true in select.idle with a shape that has handles', () => {
 			editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
 			editor.select(ids.line1)
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			expect(util.isActive()).toBe(true)
 		})
 
@@ -59,7 +59,7 @@ describe('ShapeHandleOverlayUtil', () => {
 			editor.pointerMove(pt.x, pt.y)
 			editor.pointerDown(pt.x, pt.y, { target: 'handle', shape, handle })
 			editor.expectToBeIn('select.pointing_handle')
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			expect(util.isActive()).toBe(true)
 			editor.pointerUp()
 		})
@@ -69,7 +69,7 @@ describe('ShapeHandleOverlayUtil', () => {
 			const shape = editor.getShape(ids.line1)!
 			editor.pointerDown(shape.x + 1, shape.y + 1, { target: 'shape', shape })
 			editor.expectToBeIn('select.pointing_shape')
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			expect(util.isActive()).toBe(true)
 			editor.pointerUp()
 		})
@@ -79,7 +79,7 @@ describe('ShapeHandleOverlayUtil', () => {
 			const shape = editor.getShape(ids.geo1)!
 			editor.setEditingShape(shape)
 			editor.expectToBeIn('select.editing_shape')
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			expect(util.isActive()).toBe(true)
 		})
 
@@ -90,21 +90,21 @@ describe('ShapeHandleOverlayUtil', () => {
 			const shape = editor.getShape(ids.geo1)!
 			editor.setEditingShape(shape)
 			// Even if editing state is entered for geo, util should be inactive (only active for notes)
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			expect(util.isActive()).toBe(false)
 		})
 	})
 
 	describe('getOverlays', () => {
 		it('returns empty array when no shape is selected', () => {
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			expect(util.getOverlays()).toEqual([])
 		})
 
 		it('returns overlays for the selected shape handles', () => {
 			editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
 			editor.select(ids.line1)
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			const overlays = util.getOverlays()
 			expect(overlays.length).toBeGreaterThan(0)
 			// id format: handle:<shapeId>:<handleId>
@@ -123,10 +123,10 @@ describe('ShapeHandleOverlayUtil', () => {
 				},
 			] as any)
 			editor.select(ids.line1)
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			const overlays = util.getOverlays()
 			// Expect no 'virtual' middle handle due to threshold filter
-			expect(overlays.every((o: any) => o.props.handle.type !== 'virtual')).toBe(true)
+			expect(overlays.every((o) => o.props.handle.type !== 'virtual')).toBe(true)
 		})
 
 		it('uses coarse handle radius for filtering when pointer is coarse', () => {
@@ -142,20 +142,24 @@ describe('ShapeHandleOverlayUtil', () => {
 				},
 			] as any)
 			editor.select(ids.line1)
-			let overlays = editor.overlays.getOverlayUtil('shape_handle').getOverlays()
+			let overlays = editor.overlays
+				.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
+				.getOverlays()
 			// Virtual present at normal pointer
-			expect(overlays.some((o: any) => o.props.handle.type === 'virtual')).toBe(true)
+			expect(overlays.some((o) => o.props.handle.type === 'virtual')).toBe(true)
 			// Now coarse pointer: virtual should be filtered
 			editor.updateInstanceState({ isCoarsePointer: true })
-			overlays = editor.overlays.getOverlayUtil('shape_handle').getOverlays()
-			expect(overlays.some((o: any) => o.props.handle.type === 'virtual')).toBe(false)
+			overlays = editor.overlays
+				.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
+				.getOverlays()
+			expect(overlays.some((o) => o.props.handle.type === 'virtual')).toBe(false)
 		})
 
 		it('sorts vertex handles after other types', () => {
 			editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
 			editor.select(ids.line1)
-			const util = editor.overlays.getOverlayUtil('shape_handle')
-			const types = util.getOverlays().map((o: any) => o.props.handle.type)
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
+			const types = util.getOverlays().map((o) => o.props.handle.type)
 			// Expect non-vertex first (virtual), then vertices at the end
 			const firstNonVertexIndex = types.findIndex((t: string) => t !== 'vertex')
 			const firstVertexIndex = types.findIndex((t: string) => t === 'vertex')
@@ -191,17 +195,17 @@ describe('ShapeHandleOverlayUtil', () => {
 		it('returns a circle centered on the handle position in page space', () => {
 			editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
 			editor.select(ids.line1)
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			const o = util.getOverlays()[0]
-			const g = util.getGeometry(o as any)!
+			const g = util.getGeometry(o)!
 			expect(g).toBeTruthy()
 		})
 
 		it('accounts for shape page transform (rotation, translation)', () => {
 			editor.createShapes([{ id: ids.line1, type: 'line', x: 50, y: 75, rotation: Math.PI / 6 }])
 			editor.select(ids.line1)
-			const util = editor.overlays.getOverlayUtil('shape_handle')
-			const g = util.getGeometry(util.getOverlays()[0] as any)!
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
+			const g = util.getGeometry(util.getOverlays()[0])!
 			const b = g.getBounds()
 			expect(b.x).toBeGreaterThan(0)
 			expect(b.y).toBeGreaterThan(0)
@@ -210,29 +214,29 @@ describe('ShapeHandleOverlayUtil', () => {
 		it('uses coarse handle radius when pointer is coarse', () => {
 			editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
 			editor.select(ids.line1)
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			const o = util.getOverlays()[0]
 			// Normal pointer
 			editor.updateInstanceState({ isCoarsePointer: false })
-			const g1 = util.getGeometry(o as any)!.getBounds()
+			const g1 = util.getGeometry(o)!.getBounds()
 			// Coarse pointer increases radius
 			editor.updateInstanceState({ isCoarsePointer: true })
-			const g2 = util.getGeometry(o as any)!.getBounds()
+			const g2 = util.getGeometry(o)!.getBounds()
 			expect(g2.width).toBeGreaterThan(g1.width)
 		})
 
 		it('scales radius inversely with zoom', () => {
 			editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
 			editor.select(ids.line1)
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			const o = util.getOverlays()[0]
 			// Zoom 1
 			const camera = editor.getCamera()
 			editor.setCamera({ ...camera, z: 1 })
-			const d1 = util.getGeometry(o as any)!.getBounds().width
+			const d1 = util.getGeometry(o)!.getBounds().width
 			// Zoom 2 yields half diameter
 			editor.setCamera({ ...editor.getCamera(), z: 2 })
-			const d2 = util.getGeometry(o as any)!.getBounds().width
+			const d2 = util.getGeometry(o)!.getBounds().width
 			expect(d2).toBeLessThan(d1)
 		})
 
@@ -246,17 +250,17 @@ describe('ShapeHandleOverlayUtil', () => {
 		it('returns grab cursor for all handles', () => {
 			editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
 			editor.select(ids.line1)
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			const o = util.getOverlays()[0]
-			expect(util.getCursor(o as any)).toBe('grab')
+			expect(util.getCursor(o)).toBe('grab')
 		})
 
 		it('geometry accounts for rotation and translation', () => {
 			editor.createShapes([{ id: ids.line1, type: 'line', x: 200, y: 150, rotation: Math.PI / 4 }])
 			editor.select(ids.line1)
-			const util = editor.overlays.getOverlayUtil('shape_handle')
+			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			const o = util.getOverlays()[0]
-			const g = util.getGeometry(o as any)!
+			const g = util.getGeometry(o)!
 			const b = g.getBounds()
 			// Expect the transformed geometry to be somewhere near the shape's position
 			expect(b.x).toBeGreaterThan(150)

@@ -1,5 +1,6 @@
 import { ArrowShapeKindStyle, createShapeId } from '@tldraw/editor'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
+import { ArrowHintOverlayUtil } from '../../lib/overlays/ArrowHintOverlayUtil'
 import { updateArrowTargetState } from '../../lib/shapes/arrow/arrowTargetState'
 import { TestEditor } from '../TestEditor'
 
@@ -17,20 +18,20 @@ beforeEach(() => {
 describe('ArrowHintOverlayUtil', () => {
 	describe('isActive', () => {
 		it('returns false in select.idle', () => {
-			const util = editor.overlays.getOverlayUtil('arrow_hint')
+			const util = editor.overlays.getOverlayUtil<ArrowHintOverlayUtil>('arrow_hint')
 			expect(util.isActive()).toBe(false)
 		})
 
 		it('returns true in arrow.idle', () => {
 			editor.setCurrentTool('arrow')
-			const util = editor.overlays.getOverlayUtil('arrow_hint')
+			const util = editor.overlays.getOverlayUtil<ArrowHintOverlayUtil>('arrow_hint')
 			expect(util.isActive()).toBe(true)
 		})
 
 		it('returns true in arrow.pointing', () => {
 			editor.setCurrentTool('arrow')
 			editor.pointerDown(0, 0, { target: 'canvas' })
-			const util = editor.overlays.getOverlayUtil('arrow_hint')
+			const util = editor.overlays.getOverlayUtil<ArrowHintOverlayUtil>('arrow_hint')
 			expect(util.isActive()).toBe(true)
 			editor.pointerUp()
 		})
@@ -38,7 +39,7 @@ describe('ArrowHintOverlayUtil', () => {
 
 	describe('getOverlays', () => {
 		it('returns empty array when there is no arrow target', () => {
-			const util = editor.overlays.getOverlayUtil('arrow_hint')
+			const util = editor.overlays.getOverlayUtil<ArrowHintOverlayUtil>('arrow_hint')
 			expect(util.getOverlays()).toEqual([])
 		})
 
@@ -57,7 +58,7 @@ describe('ArrowHintOverlayUtil', () => {
 				currentBinding: undefined,
 				oppositeBinding: undefined,
 			})
-			const util = editor.overlays.getOverlayUtil('arrow_hint')
+			const util = editor.overlays.getOverlayUtil<ArrowHintOverlayUtil>('arrow_hint')
 			const overlays = util.getOverlays()
 			expect(overlays).toHaveLength(1)
 			expect(overlays[0].props).toHaveProperty('targetId')
@@ -79,7 +80,7 @@ describe('ArrowHintOverlayUtil', () => {
 				currentBinding: undefined,
 				oppositeBinding: undefined,
 			})
-			const util = editor.overlays.getOverlayUtil('arrow_hint')
+			const util = editor.overlays.getOverlayUtil<ArrowHintOverlayUtil>('arrow_hint')
 			const overlay = util.getOverlays()[0]
 			expect(overlay.props.showEdgeHints).toBe(true)
 		})
@@ -99,7 +100,7 @@ describe('ArrowHintOverlayUtil', () => {
 				currentBinding: undefined,
 				oppositeBinding: undefined,
 			})
-			const util = editor.overlays.getOverlayUtil('arrow_hint')
+			const util = editor.overlays.getOverlayUtil<ArrowHintOverlayUtil>('arrow_hint')
 			const overlay = util.getOverlays()[0]
 			expect(overlay.props.showEdgeHints).toBe(false)
 		})
@@ -119,7 +120,7 @@ describe('ArrowHintOverlayUtil', () => {
 				currentBinding: undefined,
 				oppositeBinding: undefined,
 			})
-			const util = editor.overlays.getOverlayUtil('arrow_hint')
+			const util = editor.overlays.getOverlayUtil<ArrowHintOverlayUtil>('arrow_hint')
 			const overlay = util.getOverlays()[0]
 			expect(overlay.props.showEdgeHints).toBe(false)
 		})

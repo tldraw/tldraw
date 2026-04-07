@@ -19,6 +19,24 @@ import {
 import { vi } from 'vitest'
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
+import { BrushOverlayUtil } from '../lib/overlays/BrushOverlayUtil'
+import { SelectionForegroundOverlayUtil } from '../lib/overlays/SelectionForegroundOverlayUtil'
+import { SnapIndicatorOverlayUtil } from '../lib/overlays/SnapIndicatorOverlayUtil'
+import { ZoomBrushOverlayUtil } from '../lib/overlays/ZoomBrushOverlayUtil'
+
+/**
+ * Curated set of overlay utils for tests that need canvas hit-testing of
+ * resize/rotate/crop handles. Excludes ArrowHint, ShapeHandle, and scribble
+ * overlays which can cause circular imports or noisy reactivity in tests.
+ *
+ * @internal
+ */
+export const defaultHandleOverlays = [
+	SelectionForegroundOverlayUtil,
+	BrushOverlayUtil,
+	ZoomBrushOverlayUtil,
+	SnapIndicatorOverlayUtil,
+]
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { registerDefaultSideEffects } from '../lib/defaultSideEffects'
 import { defaultTools } from '../lib/defaultTools'
@@ -347,6 +365,77 @@ export class TestEditor extends Editor {
 		this.createShapes(shapes)
 		this.createBindings(bindings)
 		return ids
+	}
+
+	/**
+	 * Move to a named selection handle and pointerDown there. The chained equivalent of
+	 * `pointerDown(x, y, { target: 'selection', handle })` but using a real canvas event
+	 * that exercises the overlay hit-test path. Requires `defaultHandleOverlays`.
+	 */
+	pointerDownOnHandle(
+		handle: string,
+		modifiers?: Partial<{ ctrlKey: boolean; shiftKey: boolean; altKey: boolean }>
+	): this {
+		const p = this.getSelectionHandlePagePoint(handle)
+		this.pointerMove(p.x, p.y)
+		this.pointerDown(p.x, p.y, undefined, modifiers)
+		return this
+	}
+
+	/**
+	 * Move the pointer by the given delta from its current page position.
+	 */
+	pointerMoveBy(
+		dx: number,
+		dy: number,
+		modifiers?: Partial<{ ctrlKey: boolean; shiftKey: boolean; altKey: boolean }>
+	): this {
+		const current = this.inputs.getCurrentPagePoint()
+		this.pointerMove(current.x + dx, current.y + dy, modifiers)
+		return this
+	}
+
+	/**
+	 * Get the page point of a named selection handle (resize, rotate, crop, etc.)
+	 * by querying the SelectionForegroundOverlayUtil. Returns a point that hit-tests
+	 * to the requested overlay first (some handles overlap, e.g. rotate handles can
+	 * extend into the resize square area for small selections). Requires
+	 * `defaultHandleOverlays`.
+	 */
+	getSelectionHandlePagePoint(handle: string): { x: number; y: number } {
+		const util =
+			this.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+		const id = `selection_fg:${handle}`
+		const overlay = util.getOverlays().find((o) => o.id === id)
+		if (!overlay) {
+			throw new Error(`No selection_foreground overlay found for handle "${handle}"`)
+		}
+		const geom = util.getGeometry(overlay)
+		if (!geom) throw new Error(`Overlay "${id}" has no geometry`)
+
+		const c = geom.center
+		// First try the geometric center
+		const initialHit = this.overlays.getOverlayAtPoint({ x: c.x, y: c.y })
+		if (initialHit && initialHit.id === id) return { x: c.x, y: c.y }
+
+		// Walk in a direction that escapes overlapping handles. For rotate handles,
+		// walk away from the selection center (rotate is visually outside the box);
+		// for resize handles, walk toward the selection center.
+		const isRotate = handle.endsWith('_rotate') || handle === 'mobile_rotate'
+		const selBounds = this.getSelectionPageBounds()
+		if (!selBounds) return { x: c.x, y: c.y }
+		const selCenter = selBounds.center
+		const dx = isRotate ? c.x - selCenter.x : selCenter.x - c.x
+		const dy = isRotate ? c.y - selCenter.y : selCenter.y - c.y
+		const len = Math.sqrt(dx * dx + dy * dy) || 1
+		const ux = dx / len
+		const uy = dy / len
+		for (let step = 1; step <= 20; step++) {
+			const p = { x: c.x + ux * step, y: c.y + uy * step }
+			const hit = this.overlays.getOverlayAtPoint(p)
+			if (hit && hit.id === id) return p
+		}
+		return { x: c.x, y: c.y }
 	}
 
 	/* ---- Test assertions ---- */

@@ -1,5 +1,6 @@
 import { InstancePresenceRecordType } from '@tldraw/tlschema'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
+import { CollaboratorBrushOverlayUtil } from '../../lib/overlays/CollaboratorBrushOverlayUtil'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -11,7 +12,8 @@ beforeEach(() => {
 describe('CollaboratorBrushOverlayUtil', () => {
 	describe('isActive', () => {
 		it('returns false when no collaborators have a brush', () => {
-			const util = editor.overlays.getOverlayUtil('collaborator_brush')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorBrushOverlayUtil>('collaborator_brush')
 			expect(util.isActive()).toBe(false)
 		})
 
@@ -26,14 +28,16 @@ describe('CollaboratorBrushOverlayUtil', () => {
 					brush: { x: 1, y: 2, w: 3, h: 4 },
 				}),
 			])
-			const util = editor.overlays.getOverlayUtil('collaborator_brush')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorBrushOverlayUtil>('collaborator_brush')
 			expect(util.isActive()).toBe(true)
 		})
 	})
 
 	describe('getOverlays', () => {
 		it('returns empty array when no collaborators have a brush', () => {
-			const util = editor.overlays.getOverlayUtil('collaborator_brush')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorBrushOverlayUtil>('collaborator_brush')
 			expect(util.getOverlays()).toEqual([])
 		})
 
@@ -57,14 +61,15 @@ describe('CollaboratorBrushOverlayUtil', () => {
 					brush: { x: 5, y: 6, w: 10, h: 12 },
 				}),
 			])
-			const util = editor.overlays.getOverlayUtil('collaborator_brush')
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorBrushOverlayUtil>('collaborator_brush')
 			const overlays = util.getOverlays()
 			expect(overlays).toHaveLength(2)
-			expect(overlays.find((o: any) => o.props.color === '#123456')!.props).toMatchObject({
+			expect(overlays.find((o) => o.props.color === '#123456')!.props).toMatchObject({
 				w: 1,
 				h: 1,
 			})
-			expect(overlays.find((o: any) => o.props.color === '#abcdef')!.props).toMatchObject({
+			expect(overlays.find((o) => o.props.color === '#abcdef')!.props).toMatchObject({
 				x: 5,
 				y: 6,
 				w: 10,
