@@ -31,7 +31,6 @@ export interface EditorApiSpec {
 	categories: string[]
 	members: unknown[]
 	types: {
-		shapeCount: number
 		shapeTypes: string[]
 		shapes: unknown[]
 	}
@@ -97,10 +96,6 @@ function parseEditorApiSpec(value: unknown): EditorApiSpec {
 		),
 		members: value.members,
 		types: {
-			shapeCount:
-				typeof value.types.shapeCount === 'number'
-					? value.types.shapeCount
-					: value.types.shapes.length,
 			shapeTypes: value.types.shapeTypes.filter(
 				(shapeType): shapeType is string => typeof shapeType === 'string'
 			),

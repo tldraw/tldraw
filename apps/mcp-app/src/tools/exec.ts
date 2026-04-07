@@ -20,7 +20,7 @@ export function registerExecTool(
 		'exec',
 		{
 			title: 'Execute Code',
-			description: `Execute JavaScript code on the tldraw canvas. The code runs in the widget with access to the live \`editor\` instance, helper functions, and normal js. Use the \`search\` tool first to discover available Editor methods and shape types.
+			description: `Execute JavaScript code on a tldraw canvas. The code runs in the widget with access to the live \`editor\` instance, helper functions, and normal js. Use the \`search\` tool first to discover available Editor methods and shape types. The canvas forks the previous one in this conversation, if any. Otherwise, it starts from a blank canvas.
 
 Shapes and text grow depending on the amount of text they have. Use clever scripting to ensure there are no unintended overlaps.
 

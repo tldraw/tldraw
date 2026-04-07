@@ -59,6 +59,7 @@ interface ExtractedTypeProperty {
 interface ExtractedShapeType {
 	name: string
 	shapeType: string
+	abstract: boolean
 	signature: string
 	description: string
 	propsType: string
@@ -67,7 +68,6 @@ interface ExtractedShapeType {
 }
 
 interface ExtractedTypesSection {
-	shapeCount: number
 	shapeTypes: string[]
 	shapes: ExtractedShapeType[]
 }
@@ -671,6 +671,8 @@ function extractExecHelpers(): ExtractedExecSection {
 						ts.isReturnStatement(node) && !!node.expression && ts.isArrowFunction(node.expression)
 				)
 				if (returnStatement?.expression && ts.isArrowFunction(returnStatement.expression)) {
+					const returnJsDoc = extractJsDoc(returnStatement, sourceFile)
+					const declarationJsDoc = extractJsDoc(declaration, sourceFile)
 					typeInfo = {
 						name: helperName,
 						kind: 'function',
@@ -679,9 +681,10 @@ function extractExecHelpers(): ExtractedExecSection {
 							returnStatement.expression,
 							ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteArrowStyleSignature
 						),
-						description: extractJsDoc(declaration, sourceFile).description,
-						params: extractJsDoc(declaration, sourceFile).params,
-						examples: extractJsDoc(declaration, sourceFile).examples,
+						description: returnJsDoc.description || declarationJsDoc.description,
+						params: returnJsDoc.params.length > 0 ? returnJsDoc.params : declarationJsDoc.params,
+						examples:
+							returnJsDoc.examples.length > 0 ? returnJsDoc.examples : declarationJsDoc.examples,
 					}
 				}
 			}
@@ -823,6 +826,7 @@ function extractFocusedShapeTypes(): ExtractedTypesSection {
 
 		const props: ExtractedTypeProperty[] = []
 		let shapeType = ''
+		let isAbstract = false
 
 		for (const member of declaration.members) {
 			if (!ts.isPropertySignature(member) && !ts.isPropertyDeclaration(member)) continue
@@ -851,7 +855,7 @@ function extractFocusedShapeTypes(): ExtractedTypesSection {
 					for (const t of memberType.types) {
 						if (t.isStringLiteral()) allShapeTypes.push(t.value)
 					}
-					shapeType = 'geo'
+					isAbstract = true
 				}
 			}
 
@@ -873,6 +877,7 @@ function extractFocusedShapeTypes(): ExtractedTypesSection {
 		shapes.push({
 			name: displayName,
 			shapeType,
+			abstract: isAbstract,
 			signature: `{ ${propNames} }`,
 			description: jsdoc.description,
 			propsType: `${displayName}Props`,
@@ -882,7 +887,6 @@ function extractFocusedShapeTypes(): ExtractedTypesSection {
 	}
 
 	return {
-		shapeCount: shapes.length,
 		shapeTypes: allShapeTypes,
 		shapes,
 	}
@@ -1331,7 +1335,7 @@ function main() {
 
 	fs.writeFileSync(outPath, JSON.stringify(output, null, 2))
 	console.error(
-		`Wrote ${members.length} members (${categories.length} categories), ${types.shapeCount} shape types, and ${exec.helperCount} exec helpers to dist/editor-api.json`
+		`Wrote ${members.length} members (${categories.length} categories), ${types.shapes.length} shape types, and ${exec.helperCount} exec helpers to dist/editor-api.json`
 	)
 }
 

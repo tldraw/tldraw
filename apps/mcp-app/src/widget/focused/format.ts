@@ -182,6 +182,7 @@ export const GEO_TO_FOCUSED_TYPES: Record<TLGeoShapeGeoStyle, FocusedGeoShapeTyp
 // ---- ID Conversion ----
 
 export function convertSimpleIdToTldrawId(id: string): TLShapeId {
+	if (id.startsWith('shape:')) return id as TLShapeId
 	return ('shape:' + id) as TLShapeId
 }
 
@@ -319,7 +320,7 @@ export interface FocusedArrowShape {
 	y1: number
 	/** End Y */
 	y2: number
-	/** Curve amount (-1 to 1) */
+	/** Signed bend amount for the curve */
 	bend?: number
 	/** Arrow routing style */
 	kind?: 'arc' | 'elbow'
