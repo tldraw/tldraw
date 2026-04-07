@@ -50,6 +50,9 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
+	TLTheme,
+	TLThemeId,
+	TLThemes,
 	TLUser,
 	TLUserId,
 	TLVideoAsset,
@@ -95,6 +98,7 @@ import {
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
 import { TLCurrentUser, createTLCurrentUser } from '../config/createTLCurrentUser'
+import { TLAnyAssetUtilConstructor, checkAssets } from '../config/defaultAssets'
 import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
@@ -141,6 +145,7 @@ import { getDroppedShapesToNewParents, kickoutOccludedShapes } from '../utils/re
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
+import { AssetUtil } from './assets/AssetUtil'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
@@ -156,6 +161,7 @@ import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
+import { resolveThemes, ThemeManager } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import {
@@ -214,14 +220,13 @@ export interface TLEditorOptions {
 	 */
 	bindingUtils: readonly TLAnyBindingUtilConstructor[]
 	/**
+	 * An array of asset utils to use in the editor. These will be used to handle asset-type-specific behavior.
+	 */
+	assetUtils?: readonly TLAnyAssetUtilConstructor[]
+	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
 	tools: readonly TLStateNodeConstructor[]
-	/**
-	 * Should return a containing html element which has all the styles applied to the editor. If not
-	 * given, the body element will be used.
-	 */
-	getContainer(): HTMLElement
 	/**
 	 * A user defined externally to replace the default user.
 	 */
@@ -234,25 +239,13 @@ export interface TLEditorOptions {
 	 * Whether to automatically focus the editor when it mounts.
 	 */
 	autoFocus?: boolean
-	/**
-	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
-	 */
-	inferDarkMode?: boolean
-	/**
-	 * Options for the editor's camera.
-	 *
-	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
-	 */
-	cameraOptions?: Partial<TLCameraOptions>
-	options?: Partial<TldrawOptions>
-	/**
-	 * Text options for the editor.
-	 *
-	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
-	 */
-	textOptions?: TLTextOptions
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
+	/**
+	 * Should return a containing html element which has all the styles applied to the editor. If not
+	 * given, the body element will be used.
+	 */
+	getContainer(): HTMLElement
 	/**
 	 * Provides a way to hide shapes.
 	 *
@@ -272,6 +265,41 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+	/**
+	 * Named theme definitions for the editor. Each theme contains shared
+	 * properties (font size, line height, stroke width) and color palettes
+	 * for both light and dark modes.
+	 */
+	themes?: Partial<TLThemes>
+	/**
+	 * The id of the initially active theme. Defaults to `'default'`.
+	 */
+	initialTheme?: TLThemeId
+	/**
+	 * The editor's color scheme preference, controls the default color mode. Defaults to `'light'`.
+	 *
+	 * - `'light'` - Always use light mode.
+	 * - `'dark'` - Always use dark mode.
+	 * - `'system'` - Follow the OS color scheme preference.
+	 */
+	colorScheme?: 'light' | 'dark' | 'system'
+	/**
+	 * Additional configuration options for the tldraw editor.
+	 */
+	options?: Partial<TldrawOptions>
+	// --- Deprecated ----
+	/**
+	 * Options for the editor's camera.
+	 *
+	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
+	 */
+	cameraOptions?: Partial<TLCameraOptions>
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 }
 
 /**
@@ -300,6 +328,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		user,
 		shapeUtils,
 		bindingUtils,
+		assetUtils: assetUtilConstructors,
 		tools,
 		getContainer,
 		// needs to be here for backwards compatibility with TldrawEditor
@@ -307,13 +336,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		cameraOptions,
 		initialState,
 		autoFocus,
-		inferDarkMode,
 		options: _options,
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
+		colorScheme,
 		fontAssetUrls,
+		themes,
+		initialTheme,
 	}: TLEditorOptions) {
 		super()
 
@@ -348,25 +379,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 			...options?.camera,
 		})
 
+		this.getContainer = getContainer
+
 		this._textOptions = atom('text options', options?.text ?? null)
 
-		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), inferDarkMode ?? false)
+		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), colorScheme ?? 'light')
 		this.disposables.add(() => this.user.dispose())
-
-		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
 		this.disposables.add(() => this.textMeasure.dispose())
 
-		this.fonts = new FontManager(this, fontAssetUrls)
+		this._themeManager = new ThemeManager(this, {
+			themes: resolveThemes(themes),
+			initial: initialTheme ?? 'default',
+		})
+		this.disposables.add(() => this._themeManager.dispose())
 
 		this._tickManager = new TickManager(this)
+		this.disposables.add(() => this._tickManager.dispose())
 		this.disposables.add(() => {
 			// Reset camera state to 'idle' so the store isn't left stuck at 'moving'
 			// when tick events stop (e.g. React strict mode disposes while camera is moving)
 			this.off('tick', this._decayCameraStateTimeout)
 			this._setCameraState('idle')
 		})
+
+		this.fonts = new FontManager(this, fontAssetUrls)
 
 		this.inputs = new InputsManager(this)
 
@@ -406,6 +444,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.shapeUtils = _shapeUtils
 		this.styleProps = _styleProps
 
+		const _shapeUtilsByAssetType = {} as Record<string, ShapeUtil<any>>
+		for (const Util of allShapeUtils) {
+			const assetTypes = Util.handledAssetTypes
+			if (assetTypes) {
+				for (const assetType of assetTypes) {
+					_shapeUtilsByAssetType[assetType] = _shapeUtils[Util.type]
+				}
+			}
+		}
+		this._shapeUtilsByAssetType = _shapeUtilsByAssetType
+
 		const allBindingUtils = checkBindings(bindingUtils)
 		const _bindingUtils = {} as Record<string, BindingUtil<any>>
 		for (const Util of allBindingUtils) {
@@ -413,6 +462,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 			_bindingUtils[Util.type] = util
 		}
 		this.bindingUtils = _bindingUtils
+
+		// Asset utils
+		if (assetUtilConstructors) {
+			const allAssetUtils = checkAssets(assetUtilConstructors)
+			const _assetUtils = {} as Record<string, AssetUtil<any>>
+			for (const Util of allAssetUtils) {
+				const util = new Util(this)
+				_assetUtils[Util.type] = util
+			}
+			this.assetUtils = _assetUtils
+		}
 
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
@@ -948,6 +1008,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly snaps: SnapManager
 
+	/**
+	 * A manager for the spatial index, tracking where shapes exist on the canvas.
+	 *
+	 * @internal
+	 */
 	private readonly _spatialIndex: SpatialIndexManager
 
 	/**
@@ -964,6 +1029,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly user: UserPreferencesManager
+
+	/**
+	 * A manager for the editor's themes.
+	 *
+	 * @internal
+	 */
+	private readonly _themeManager: ThemeManager
 
 	/**
 	 * A helper for measuring text.
@@ -1045,11 +1117,132 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	dispose() {
+		// Stop any in-progress camera animations and following before
+		// running disposables, so their cleanup listeners fire first
+		this.stopCameraAnimation()
+		if (this.getInstanceState().followingUserId) {
+			this.stopFollowingUser()
+		}
+
 		this.disposables.forEach((dispose) => dispose())
 		this.disposables.clear()
+
+		// Clear any open menus for this editor's context
+		this.menus.clearOpenMenus()
+
 		this.store.dispose()
 		this.isDisposed = true
 		this.emit('dispose')
+	}
+
+	/* ------------------ Themes (shadowing the theme manager) ------------------ */
+
+	/**
+	 * Get the current color mode (`'light'` or `'dark'`), based on the user's dark mode preference.
+	 *
+	 * @public
+	 */
+	getColorMode(): 'light' | 'dark' {
+		return this._themeManager.getColorMode()
+	}
+
+	/**
+	 * Set the color mode. Note that this is a convenience method that passes the mode to
+	 * `user.updateUserPreferences`, which is the source of truth for the user's color mode preference.
+	 *
+	 * @public
+	 */
+	setColorMode(mode: 'light' | 'dark') {
+		this.user.updateUserPreferences({ colorScheme: mode })
+		return this
+	}
+
+	/**
+	 * Get the id of the current theme.
+	 *
+	 * @public
+	 */
+	getCurrentThemeId(): TLThemeId {
+		return this._themeManager.getCurrentThemeId()
+	}
+
+	/**
+	 * Get the current theme definition.
+	 *
+	 * @public
+	 */
+	getCurrentTheme(): TLTheme {
+		return this._themeManager.getCurrentTheme()
+	}
+
+	/**
+	 * Set the current theme by id.
+	 *
+	 * @public
+	 */
+	setCurrentTheme(id: TLThemeId) {
+		this._themeManager.setCurrentTheme(id)
+		return this
+	}
+
+	/**
+	 * Get all registered theme definitions.
+	 *
+	 * @public
+	 */
+	getThemes(): TLThemes {
+		return this._themeManager.getThemes()
+	}
+
+	/**
+	 * Get a single theme definition by id.
+	 *
+	 * @public
+	 */
+	getTheme(id: TLThemeId): TLTheme | undefined {
+		return this._themeManager.getTheme(id)
+	}
+
+	/**
+	 * Replace all theme definitions, or update them via a callback that receives a deep copy.
+	 * The `'default'` theme must always be present in the result.
+	 *
+	 * @example
+	 * ```ts
+	 * // Replace all themes
+	 * editor.updateThemes({ default: myDefaultTheme, ocean: myOceanTheme })
+	 *
+	 * // Update via callback
+	 * editor.updateThemes((themes) => {
+	 *   delete themes.ocean
+	 *   return themes
+	 * })
+	 * ```
+	 *
+	 * @public
+	 */
+	updateThemes(themes: TLThemes | ((themes: TLThemes) => TLThemes)) {
+		this._themeManager.updateThemes(themes)
+		return this
+	}
+
+	/**
+	 * Register or update a single theme definition. The theme is keyed by its `id` property.
+	 *
+	 * @example
+	 * ```ts
+	 * // Override a property on the default theme
+	 * editor.updateTheme({ ...editor.getTheme('default')!, fontSize: 24 })
+	 *
+	 * // Register a new theme
+	 * editor.updateTheme({ id: 'ocean', ...myOceanTheme })
+	 * ```
+	 *
+	 * @public
+	 */
+	updateTheme(theme: TLTheme) {
+		this._themeManager.updateTheme(theme)
+		return this
 	}
 
 	/* ------------------- Shape Utils ------------------ */
@@ -1060,6 +1253,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	shapeUtils: { readonly [K in string]?: ShapeUtil<TLShape> }
+
+	/** @internal */
+	private _shapeUtilsByAssetType: { readonly [K in string]?: ShapeUtil<TLShape> } = {}
 
 	styleProps: { [key: string]: Map<StyleProp<any>, string> }
 
@@ -1103,6 +1299,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return hasOwnProperty(this.shapeUtils, type)
 	}
 
+	/**
+	 * Get the shape util that handles the given asset type.
+	 * Returns the shape util whose {@link ShapeUtil.handledAssetTypes} includes
+	 * the given asset type, or undefined if none matches.
+	 *
+	 * @param assetType - The asset type string.
+	 * @public
+	 */
+	getShapeUtilForAssetType(assetType: string): ShapeUtil | undefined {
+		return getOwnProperty(this._shapeUtilsByAssetType, assetType)
+	}
+
 	/* ------------------- Binding Utils ------------------ */
 	/**
 	 * A map of shape utility classes (TLShapeUtils) by shape type.
@@ -1136,6 +1344,56 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const bindingUtil = getOwnProperty(this.bindingUtils, type)
 		assert(bindingUtil, `No binding util found for type "${type}"`)
 		return bindingUtil
+	}
+
+	/* ------------------- Asset Utils ------------------ */
+
+	/**
+	 * A map of asset utility classes by asset type.
+	 *
+	 * @public
+	 */
+	assetUtils: { readonly [K in string]?: AssetUtil<TLAsset> } = {}
+
+	/**
+	 * Get an asset util from an asset or asset type.
+	 *
+	 * @param arg - An asset, asset type string, or object with type.
+	 *
+	 * @public
+	 */
+	getAssetUtil<S extends TLAsset>(asset: S | { type: S['type'] }): AssetUtil<S>
+	getAssetUtil(type: string): AssetUtil
+	getAssetUtil(arg: string | { type: string }) {
+		const type = typeof arg === 'string' ? arg : arg.type
+		const assetUtil = getOwnProperty(this.assetUtils, type)
+		assert(assetUtil, `No asset util found for type "${type}"`)
+		return assetUtil
+	}
+
+	/**
+	 * Returns true if the editor has an asset util for the given asset type.
+	 *
+	 * @public
+	 */
+	hasAssetUtil(arg: string | { type: string }): boolean {
+		const type = typeof arg === 'string' ? arg : arg.type
+		return hasOwnProperty(this.assetUtils, type)
+	}
+
+	/**
+	 * Get the asset util that accepts the given MIME type.
+	 * Returns null if no registered asset util accepts the MIME type.
+	 *
+	 * @public
+	 */
+	getAssetUtilForMimeType(mimeType: string): AssetUtil | null {
+		for (const util of Object.values(this.assetUtils)) {
+			if (util && util.acceptsMimeType(mimeType)) {
+				return util
+			}
+		}
+		return null
 	}
 
 	/* --------------------- History -------------------- */

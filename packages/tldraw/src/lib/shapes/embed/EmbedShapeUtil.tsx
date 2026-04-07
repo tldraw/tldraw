@@ -11,6 +11,7 @@ import {
 	lerp,
 	resizeBox,
 	toDomPrecision,
+	useColorMode,
 	useIsEditing,
 	useSvgExportContext,
 	useValue,
@@ -25,19 +26,28 @@ import {
 } from '../../defaultEmbedDefinitions'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
+
+/** @public */
+export interface EmbedShapeUtilDisplayValues {
+	showShadow: boolean
+}
+
+/** @public */
+export interface EmbedShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLEmbedShape,
+	EmbedShapeUtilDisplayValues
+> {
+	/** The embed definitions to use for this shape util. */
+	readonly embedDefinitions: readonly TLEmbedDefinition[]
+}
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 	return Object.entries(permissions)
 		.filter(([_perm, isEnabled]) => isEnabled)
 		.map(([perm]) => perm)
 		.join(' ')
-}
-
-/** @public */
-export interface EmbedShapeOptions {
-	/** The embed definitions to use for this shape util. */
-	readonly embedDefinitions: readonly TLEmbedDefinition[]
 }
 
 /** @public */
@@ -48,6 +58,14 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	override options: EmbedShapeOptions = {
 		embedDefinitions: DEFAULT_EMBED_DEFINITIONS,
+		getDefaultDisplayValues(): EmbedShapeUtilDisplayValues {
+			return {
+				showShadow: true,
+			}
+		},
+		getCustomDisplayValues(): Partial<EmbedShapeUtilDisplayValues> {
+			return {}
+		},
 	}
 
 	override canEditWhileLocked(shape: TLEmbedShape) {
@@ -139,6 +157,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		const svgExport = useSvgExportContext()
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 
 		const embedInfo = this.getEmbedDefinition(url)
 
@@ -169,7 +189,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						className="tl-embed"
 						style={{
 							border: 0,
-							boxShadow: getRotatedBoxShadow(pageRotation),
+							boxShadow: dv.showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
 							borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
 							background: embedInfo?.definition.backgroundColor ?? 'var(--tl-color-background)',
 							width: w,
@@ -215,6 +235,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						height={toDomPrecision(h)!}
 						isInteractive={isInteractive}
 						pageRotation={pageRotation}
+						showShadow={dv.showShadow}
 					/>
 				</HTMLContainer>
 			)
@@ -234,7 +255,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						draggable={false}
 						// eslint-disable-next-line @typescript-eslint/no-deprecated
 						frameBorder="0"
-						referrerPolicy="no-referrer-when-downgrade"
+						referrerPolicy="strict-origin-when-cross-origin"
 						tabIndex={isEditing ? 0 : -1}
 						allowFullScreen
 						style={{
@@ -242,7 +263,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 							pointerEvents: isInteractive ? 'auto' : 'none',
 							// Fix for safari <https://stackoverflow.com/a/49150908>
 							zIndex: isInteractive ? '' : '-1',
-							boxShadow: getRotatedBoxShadow(pageRotation),
+							boxShadow: dv.showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
 							borderRadius: embedInfo?.definition?.overrideOutlineRadius ?? 8,
 							background: embedInfo?.definition?.backgroundColor,
 						}}
@@ -307,6 +328,7 @@ function Gist({
 	height,
 	style,
 	pageRotation,
+	showShadow,
 }: {
 	id: string
 	sandbox: string
@@ -314,6 +336,7 @@ function Gist({
 	width: number
 	height: number
 	pageRotation: number
+	showShadow: boolean
 	style?: React.CSSProperties
 }) {
 	// Security warning:
@@ -337,14 +360,14 @@ function Gist({
 			frameBorder="0"
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			scrolling="no"
-			referrerPolicy="no-referrer-when-downgrade"
+			referrerPolicy="strict-origin-when-cross-origin"
 			tabIndex={isInteractive ? 0 : -1}
 			style={{
 				...style,
 				pointerEvents: isInteractive ? 'all' : 'none',
 				// Fix for safari <https://stackoverflow.com/a/49150908>
 				zIndex: isInteractive ? '' : '-1',
-				boxShadow: getRotatedBoxShadow(pageRotation),
+				boxShadow: showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
 			}}
 			srcDoc={`
 			<html>

@@ -1,11 +1,17 @@
 import { LegacyMigrations, MigrationSequence, StoreSchema, StoreValidator } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
-import { imageAssetMigrations } from './assets/TLImageAsset'
-import { videoAssetMigrations } from './assets/TLVideoAsset'
+import { TLBaseAsset } from './assets/TLBaseAsset'
+import { bookmarkAssetMigrations, bookmarkAssetProps } from './assets/TLBookmarkAsset'
+import { imageAssetMigrations, imageAssetProps } from './assets/TLImageAsset'
+import { videoAssetMigrations, videoAssetProps } from './assets/TLVideoAsset'
 import { arrowBindingMigrations, arrowBindingProps } from './bindings/TLArrowBinding'
-import { AssetRecordType, assetMigrations } from './records/TLAsset'
+import {
+	TLDefaultAsset,
+	TLUnknownAsset,
+	assetMigrations,
+	createAssetRecordType,
+} from './records/TLAsset'
 import { TLBinding, TLDefaultBinding, createBindingRecordType } from './records/TLBinding'
 import { CameraRecordType, cameraMigrations } from './records/TLCamera'
 import {
@@ -48,7 +54,7 @@ import { StyleProp } from './styles/StyleProp'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 
 /**
- * Configuration information for a schema type (shape or binding), including its properties,
+ * Configuration information for a schema type (shape, binding, or asset), including its properties,
  * metadata, and migration sequences for data evolution over time.
  *
  * @public
@@ -73,12 +79,12 @@ export interface SchemaPropsInfo {
 	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
 
 	/**
-	 * Validation schema for the shape or binding properties. Maps property names to their validators.
+	 * Validation schema for the shape, binding, or asset properties.
 	 */
 	props?: Record<string, StoreValidator<any>>
 
 	/**
-	 * Validation schema for metadata fields. Maps metadata field names to their validators.
+	 * Validation schema for metadata fields.
 	 */
 	meta?: Record<string, StoreValidator<any>>
 }
@@ -196,6 +202,30 @@ export const defaultBindingSchemas = {
 } satisfies { [T in TLDefaultBinding['type']]: SchemaPropsInfo }
 
 /**
+ * Default asset schema configurations for all built-in tldraw asset types.
+ *
+ * @public
+ * @example
+ * ```ts
+ * import { createTLSchema, defaultAssetSchemas } from '@tldraw/tlschema'
+ *
+ * const schema = createTLSchema({
+ *   assets: defaultAssetSchemas,
+ * })
+ * ```
+ */
+export const defaultAssetSchemas = {
+	image: { migrations: imageAssetMigrations, props: imageAssetProps },
+	video: { migrations: videoAssetMigrations, props: videoAssetProps },
+	bookmark: { migrations: bookmarkAssetMigrations, props: bookmarkAssetProps },
+} satisfies {
+	[T in TLDefaultAsset['type']]: {
+		migrations: SchemaPropsInfo['migrations']
+		props: RecordProps<TLBaseAsset<T, Extract<TLDefaultAsset, { type: T }>['props']>>
+	}
+}
+
+/**
  * Configuration for extending the user record type with custom metadata
  * validators and migration sequences.
  *
@@ -232,12 +262,13 @@ export interface UserSchemaInfo {
  * validation, and migration sequences for all record types in a tldraw application.
  *
  * The schema includes all core record types (pages, cameras, instances, etc.) plus the
- * shape, binding, and custom record types you specify. Style properties are automatically
- * collected from all shapes to ensure consistency across the application.
+ * shape, binding, asset, and custom record types you specify. Style properties are
+ * automatically collected from all shapes to ensure consistency across the application.
  *
  * @param options - Configuration options for the schema
  *   - shapes - Shape schema configurations. Defaults to defaultShapeSchemas if not provided
  *   - bindings - Binding schema configurations. Defaults to defaultBindingSchemas if not provided
+ *   - assets - Asset schema configurations. Defaults to defaultAssetSchemas if not provided
  *   - user - Custom user record configuration with meta validators and migrations
  *   - records - Custom record type configurations. These are additional record types beyond
  *     the built-in shapes, bindings, assets, etc.
@@ -247,10 +278,15 @@ export interface UserSchemaInfo {
  * @public
  * @example
  * ```ts
- * import { createTLSchema, defaultShapeSchemas, defaultBindingSchemas } from '@tldraw/tlschema'
+ * import {
+ *   createTLSchema,
+ *   defaultShapeSchemas,
+ *   defaultBindingSchemas,
+ *   defaultAssetSchemas,
+ * } from '@tldraw/tlschema'
  * import { Store } from '@tldraw/store'
  *
- * // Create schema with all default shapes and bindings
+ * // Create schema with all default shapes, bindings, and assets
  * const schema = createTLSchema()
  *
  * // Create schema with custom shapes added
@@ -262,6 +298,8 @@ export interface UserSchemaInfo {
  *       migrations: myCustomShapeMigrations,
  *     },
  *   },
+ *   bindings: defaultBindingSchemas,
+ *   assets: defaultAssetSchemas,
  * })
  *
  * // Create schema with custom user metadata
@@ -301,12 +339,14 @@ export interface UserSchemaInfo {
 export function createTLSchema({
 	shapes = defaultShapeSchemas,
 	bindings = defaultBindingSchemas,
+	assets = defaultAssetSchemas,
 	user,
 	records = {},
 	migrations,
 }: {
 	shapes?: Record<string, SchemaPropsInfo>
 	bindings?: Record<string, SchemaPropsInfo>
+	assets?: Record<string, SchemaPropsInfo>
 	user?: UserSchemaInfo
 	records?: Record<string, CustomRecordInfo>
 	migrations?: readonly MigrationSequence[]
@@ -323,6 +363,7 @@ export function createTLSchema({
 
 	const ShapeRecordType = createShapeRecordType(shapes)
 	const BindingRecordType = createBindingRecordType(bindings)
+	const _AssetRecordType = createAssetRecordType(assets)
 	const InstanceRecordType = createInstanceRecordType(stylesById)
 	const CustomUserRecordType = user ? createUserRecordType(user) : UserRecordType
 
@@ -353,7 +394,7 @@ export function createTLSchema({
 
 	return StoreSchema.create(
 		{
-			asset: AssetRecordType,
+			asset: _AssetRecordType,
 			binding: BindingRecordType,
 			camera: CameraRecordType,
 			document: DocumentRecordType,
@@ -380,10 +421,8 @@ export function createTLSchema({
 				rootShapeMigrations,
 
 				userMigrations,
-				bookmarkAssetMigrations,
-				imageAssetMigrations,
-				videoAssetMigrations,
 
+				...processPropsMigrations<TLUnknownAsset>('asset', assets),
 				...processPropsMigrations<TLShape>('shape', shapes),
 				...processPropsMigrations<TLBinding>('binding', bindings),
 				...processCustomRecordMigrations(records),

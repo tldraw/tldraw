@@ -30,6 +30,24 @@ async function dev() {
 			external: ['vscode'],
 			plugins: [
 				{
+					// hotkeys-js uses `module.exports = hotkeys` which clobbers the
+					// bundle's CJS exports, breaking the extension's activate export.
+					// Since it's only used by the tldraw UI (which runs in the webview,
+					// not the extension host), we replace it with an empty module.
+					name: 'exclude-hotkeys',
+					setup(build) {
+						build.onResolve({ filter: /^hotkeys-js$/ }, () => ({
+							path: 'hotkeys-js',
+							namespace: 'exclude',
+						}))
+						build.onLoad({ filter: /.*/, namespace: 'exclude' }, () => ({
+							contents:
+								'module.exports = function hotkeys() {}; module.exports.default = module.exports;',
+							loader: 'js',
+						}))
+					},
+				},
+				{
 					name: 'log-builds',
 					setup(build) {
 						build.onEnd((result) => {

@@ -3,11 +3,15 @@ import { useSvgExportContext } from '../editor/types/SvgExportContext'
 import { useEditor } from './useEditor'
 
 /** @public */
-export function useIsDarkMode() {
+export function useColorMode(): 'light' | 'dark' {
 	const editor = useEditor()
 	const exportContext = useSvgExportContext()
-	return useValue('isDarkMode', () => exportContext?.isDarkMode ?? editor.user.getIsDarkMode(), [
-		exportContext,
-		editor,
-	])
+	return useValue(
+		'colorMode',
+		() => {
+			if (exportContext) return exportContext.colorMode
+			return editor.getColorMode()
+		},
+		[exportContext, editor]
+	)
 }

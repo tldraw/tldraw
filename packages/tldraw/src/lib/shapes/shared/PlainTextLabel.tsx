@@ -1,12 +1,4 @@
-import {
-	Box,
-	ExtractShapeByProps,
-	TLDefaultFillStyle,
-	TLDefaultFontStyle,
-	TLDefaultHorizontalAlignStyle,
-	TLDefaultVerticalAlignStyle,
-	TLShapeId,
-} from '@tldraw/editor'
+import { Box, ExtractShapeByProps, TLShapeId } from '@tldraw/editor'
 import classNames from 'classnames'
 import React from 'react'
 import { PlainTextArea } from '../text/PlainTextArea'
@@ -18,12 +10,11 @@ import { useEditablePlainText } from './useEditablePlainText'
 export interface PlainTextLabelProps {
 	shapeId: TLShapeId
 	type: ExtractShapeByProps<{ text: string }>['type']
-	font: TLDefaultFontStyle
+	fontFamily: string
 	fontSize: number
 	lineHeight: number
-	fill?: TLDefaultFillStyle
-	align: TLDefaultHorizontalAlignStyle
-	verticalAlign: TLDefaultVerticalAlignStyle
+	textAlign: 'start' | 'center' | 'end'
+	verticalAlign: 'start' | 'middle' | 'end'
 	wrap?: boolean
 	text?: string
 	labelColor: string
@@ -50,10 +41,10 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 	type,
 	text: plaintext,
 	labelColor,
-	font,
+	fontFamily,
 	fontSize,
 	lineHeight,
-	align,
+	textAlign,
 	verticalAlign,
 	wrap,
 	isSelected,
@@ -71,7 +62,7 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 	const finalPlainText = TextHelpers.normalizeTextForDom(plaintext || '')
 	const hasText = finalPlainText.length > 0
 
-	const legacyAlign = isLegacyAlign(align)
+	const legacyAlign = isLegacyAlign(textAlign)
 
 	if (!isEditing && !hasText) {
 		return null
@@ -86,16 +77,26 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 		<div
 			className={`${cssPrefix}-label tl-text-wrapper tl-plain-text-wrapper`}
 			aria-hidden={!isEditing}
-			data-font={font}
-			data-align={align}
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
 			data-is-ready-for-editing={isReadyForEditing}
 			data-textwrap={!!wrap}
 			data-isselected={isSelected}
 			style={{
-				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
-				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+				fontFamily,
+				textAlign,
+				justifyContent:
+					textAlign === 'center' || legacyAlign
+						? 'center'
+						: textAlign === 'end'
+							? 'flex-end'
+							: 'flex-start',
+				alignItems:
+					verticalAlign === 'middle'
+						? 'center'
+						: verticalAlign === 'end'
+							? 'flex-end'
+							: 'flex-start',
 				padding,
 				...style,
 			}}
