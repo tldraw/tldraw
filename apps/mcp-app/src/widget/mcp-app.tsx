@@ -370,6 +370,10 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		const bootstrap = getEmbeddedBootstrap()
+
+		// Delete the bootstrap data from the window object to prevent it from being used again.
+		delete window.__TLDRAW_BOOTSTRAP__
+
 		if (bootstrap) {
 			setCurrentSessionId(bootstrap.sessionId)
 			if (bootstrap.isDev) {

@@ -197,13 +197,23 @@ export async function executeCode(
 	const focusedEditor = createFocusedEditorProxy(editor)
 	const helpers = createExecHelpers(editor)
 
-	try {
-		const runExec = await loadExecModule(code)
+	const originalFetch = window.fetch
+	const originalXHR = window.XMLHttpRequest
+	const originalSetInterval = window.setInterval
+	const originalSetTimeout = window.setTimeout
 
+	try {
+		// Disable fetch, XMLHttpRequest, and timers while the exec code runs
+		;(window as any).fetch = undefined
+		;(window as any).XMLHttpRequest = undefined
+		;(window as any).setInterval = undefined
+		;(window as any).setTimeout = undefined
+
+		const runExec = await loadExecModule(code)
 		const result = await Promise.race([
 			runExec({ editor: focusedEditor, helpers }),
 			new Promise((_, reject) =>
-				setTimeout(
+				originalSetTimeout(
 					() => reject(new Error(`Execution timed out after ${EXEC_TIMEOUT_MS}ms`)),
 					EXEC_TIMEOUT_MS
 				)
@@ -214,5 +224,10 @@ export async function executeCode(
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err)
 		return { success: false, error: message }
+	} finally {
+		window.fetch = originalFetch
+		window.XMLHttpRequest = originalXHR
+		window.setInterval = originalSetInterval
+		window.setTimeout = originalSetTimeout
 	}
 }
