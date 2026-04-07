@@ -39,7 +39,7 @@ export interface EditorApiSpec {
 	helpers: unknown[]
 }
 
-type AssetFetcher = {
+interface AssetFetcher {
 	fetch(input: Request): Promise<Response>
 }
 
