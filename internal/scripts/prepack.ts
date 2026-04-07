@@ -11,6 +11,9 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 	}
 
 	const manifest = JSON.parse(readFileSync(path.join(sourcePackageDir, 'package.json'), 'utf8'))
+	const packageName = manifest.name ?? path.basename(sourcePackageDir)
+	const startTime = Date.now()
+	console.log(`[prepack] ${packageName} starting...`)
 
 	execSync('yarn run -T lazy build', { cwd: sourcePackageDir, stdio: 'inherit' })
 
@@ -53,6 +56,9 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 	// files, adding a tiny delay seems to fix it, but we make the delay extra long here just to be
 	// safe.
 	await new Promise((resolve) => setTimeout(resolve, 1000))
+
+	const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
+	console.log(`[prepack] ${packageName} done (${elapsed}s)`)
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
