@@ -34,6 +34,7 @@ initial_size = "__VOLUME_SIZE"
 guest_path = "/etc/litestream.yml"
 # Litestream backup to Cloudflare R2 (S3-compatible)
 raw_value = """
+addr: localhost:4850
 dbs:
   - path: /data/sync-replica.db
     replicas:
