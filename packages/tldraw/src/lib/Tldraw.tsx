@@ -103,9 +103,10 @@ export interface TldrawBaseProps
 	textOptions?: TLTextOptions
 	/**
 	 * The locale to use for the editor's UI. When set, this takes priority over
-	 * the browser's language preferences (`navigator.languages`) but can still be
-	 * overridden by the user's explicit locale preference (e.g. via
-	 * `editor.user.updateUserPreferences({ locale: '...' })`).
+	 * both the browser's language preferences (`navigator.languages`) and the
+	 * user's locale preference (e.g. via
+	 * `editor.user.updateUserPreferences({ locale: '...' })`), giving the
+	 * application explicit control over the displayed language.
 	 *
 	 * @example
 	 * ```tsx
@@ -280,7 +281,7 @@ export function Tldraw(props: TldrawProps) {
 		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(rest.assetUrls)}>
 			<TldrawUiTranslationProvider
 				overrides={useMergedTranslationOverrides(rest.overrides)}
-				locale={rest.user?.userPreferences.get().locale ?? locale ?? defaultUserPreferences.locale}
+				locale={locale ?? rest.user?.userPreferences.get().locale ?? defaultUserPreferences.locale}
 			>
 				<TldrawEditor
 					initialState="select"
