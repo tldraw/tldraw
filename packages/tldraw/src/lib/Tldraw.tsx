@@ -281,6 +281,7 @@ export function Tldraw(props: TldrawProps) {
 		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(rest.assetUrls)}>
 			<TldrawUiTranslationProvider
 				overrides={useMergedTranslationOverrides(rest.overrides)}
+				// If the locale prop is provided, then use that and assume it to be controlled
 				locale={locale ?? rest.user?.userPreferences.get().locale ?? defaultUserPreferences.locale}
 			>
 				<TldrawEditor
