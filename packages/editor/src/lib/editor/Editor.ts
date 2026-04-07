@@ -165,7 +165,7 @@ import { resolveThemes, ThemeManager } from './managers/ThemeManager/ThemeManage
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import { OverlayManager } from './overlays/OverlayManager'
-import { OverlayUtil, TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
+import { TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
 import {
 	ShapeUtil,
 	TLEditStartInfo,

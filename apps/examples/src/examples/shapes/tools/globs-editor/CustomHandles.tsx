@@ -113,7 +113,7 @@ function GlobHandlesWithControlLines({ glob }: { glob: GlobShape }) {
 }
 
 function HandleWrapper({
-	shapeId,
+	shapeId: _shapeId,
 	handle,
 	zoom,
 	isCoarse,

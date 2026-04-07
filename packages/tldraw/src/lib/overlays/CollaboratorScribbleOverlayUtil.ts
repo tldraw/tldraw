@@ -10,7 +10,7 @@ export interface TLCollaboratorScribbleOverlay extends TLOverlay {
 }
 
 // Cache Path2D results for collaborator scribbles similarly to local scribbles
-type CollaboratorScribbleCacheEntry = {
+interface CollaboratorScribbleCacheEntry {
 	len: number
 	lastX: number
 	lastY: number
