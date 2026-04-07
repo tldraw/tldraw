@@ -18,7 +18,7 @@ export interface TLScribbleOverlay extends TLOverlay {
 
 // Cache Path2D results for scribbles when inputs have not changed.
 // Keyed by scribble id; invalidated when points length/last point/zoom/size/taper/state change.
-type ScribbleCacheEntry = {
+interface ScribbleCacheEntry {
 	len: number
 	lastX: number
 	lastY: number

@@ -255,6 +255,26 @@ describe('SelectionForegroundOverlayUtil', () => {
 			const top = util.getOverlays().find((o) => o.id === 'selection_fg:top')!
 			expect(util.getCursor(top)).toBe('ns-resize')
 		})
+
+		it('preserves selection rotation in cursor when pressing a handle on a rotated multi-selection', () => {
+			editor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+				{ id: ids.image1, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } },
+			])
+			editor.select(ids.box1, ids.image1)
+			editor.rotateSelection(Math.PI / 4)
+
+			// Hover the top-left resize handle — cursor should reflect selection rotation
+			const p = editor.getSelectionHandlePagePoint('top_left')
+			editor.pointerMove(p.x, p.y)
+			const hoverRotation = editor.getInstanceState().cursor.rotation
+			expect(hoverRotation).toBeCloseTo(editor.getSelectionRotation())
+
+			// Press — cursor rotation should still match the selection rotation
+			editor.pointerDown(p.x, p.y)
+			const pressRotation = editor.getInstanceState().cursor.rotation
+			expect(pressRotation).toBeCloseTo(editor.getSelectionRotation())
+		})
 	})
 })
 it('returns empty array for a locked shape', () => {
