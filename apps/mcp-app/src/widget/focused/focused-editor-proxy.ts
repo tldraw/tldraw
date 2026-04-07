@@ -14,9 +14,9 @@ import {
 	TLShapeId,
 	TLShapePartial,
 } from 'tldraw'
+import type { MethodMap, RetKind } from '../../shared/generated-data'
 import { getDefaultShape } from './defaults'
 import { convertSimpleIdToTldrawId, convertTldrawIdToSimpleId, type FocusedShape } from './format'
-import { METHOD_MAP, type RetKind } from './generated-method-map'
 import { convertTldrawShapeToFocusedShape } from './to-focused'
 import { convertFocusedShapeToTldrawShape } from './to-tldraw'
 
@@ -257,7 +257,7 @@ function handleUpdateShapes(
 // The Proxy factory
 // ---------------------------------------------------------------------------
 
-export function createFocusedEditorProxy(editor: Editor): Editor {
+export function createFocusedEditorProxy(editor: Editor, methodMap: MethodMap): Editor {
 	const proxy: Editor = new Proxy(editor, {
 		get(target, prop, receiver) {
 			const value = Reflect.get(target, prop, receiver)
@@ -267,7 +267,7 @@ export function createFocusedEditorProxy(editor: Editor): Editor {
 				return value
 			}
 
-			const spec = METHOD_MAP[prop]
+			const spec = methodMap[prop]
 
 			// --- Special-case: create/update need binding handling ---
 			if (prop === 'createShape') {

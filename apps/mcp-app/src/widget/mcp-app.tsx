@@ -17,6 +17,7 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import tldrawLogoUrl from '../../plugins/tldraw-mcp/assets/logo.svg'
+import { primeEmbeddedMethodMap } from '../shared/generated-data'
 import {
 	MCP_SERVER_DESCRIPTION,
 	MCP_SERVER_NAME,
@@ -370,6 +371,7 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		const bootstrap = getEmbeddedBootstrap()
+		primeEmbeddedMethodMap()
 
 		// Delete the bootstrap data from the window object to prevent it from being used again.
 		delete window.__TLDRAW_BOOTSTRAP__

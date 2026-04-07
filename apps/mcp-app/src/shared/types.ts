@@ -1,5 +1,6 @@
 import type { TLShape } from 'tldraw'
 import packageJson from '../../package.json'
+import type { EditorApiSpec, MethodMap } from './generated-data'
 import type { PendingRequests } from './pending-requests'
 
 export interface ServerDeps {
@@ -10,6 +11,8 @@ export interface ServerDeps {
 	getSessionId(): string
 	getMcpSessionId(): string
 	loadWidgetHtml(): Promise<string>
+	loadEditorApiSpec(): Promise<EditorApiSpec>
+	loadMethodMap(): Promise<MethodMap>
 }
 
 export interface RegisterToolsOptions {

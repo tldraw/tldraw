@@ -13,6 +13,7 @@ import {
 	radiansToDegrees,
 	toRichText,
 } from 'tldraw'
+import { getRequiredEmbeddedMethodMap } from '../shared/generated-data'
 import { createFocusedEditorProxy } from './focused/focused-editor-proxy'
 
 function ensureTldrawShapeId(id: string): TLShapeId {
@@ -191,7 +192,7 @@ export async function executeCode(
 	editor: Editor,
 	code: string
 ): Promise<{ success: boolean; result?: unknown; error?: string }> {
-	const focusedEditor = createFocusedEditorProxy(editor)
+	const focusedEditor = createFocusedEditorProxy(editor, getRequiredEmbeddedMethodMap())
 	const helpers = createExecHelpers(editor)
 
 	const originalFetch = window.fetch

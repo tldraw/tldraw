@@ -71,7 +71,12 @@ export function registerTools(
 
 	// --- search (server-side spec query) ---
 
-	registerSearchTool(server, { analytics, log, loader: opts.searchWorkerLoader })
+	registerSearchTool(server, {
+		analytics,
+		log,
+		loader: opts.searchWorkerLoader,
+		loadSpec: deps.loadEditorApiSpec,
+	})
 
 	// --- exec (client-side code execution) ---
 
@@ -254,6 +259,7 @@ export function registerTools(
 				isDev: opts.isDev,
 				workerOrigin: opts.workerOrigin,
 				mcpSessionId: deps.getMcpSessionId(),
+				methodMap: await deps.loadMethodMap(),
 			}
 			if (activeId) {
 				const checkpoint = deps.loadCheckpoint(activeId)

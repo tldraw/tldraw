@@ -11,6 +11,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
 import { Logger } from './logger'
 import { registerTools } from './register-tools'
+import { loadEditorApiSpecFromAssets, loadMethodMapFromAssets } from './shared/generated-data'
 import { PendingRequests } from './shared/pending-requests'
 import {
 	MAX_CHECKPOINTS,
@@ -138,6 +139,8 @@ export class TldrawMCP extends McpAgent<Env> {
 
 		// --- Widget HTML (loaded once from Assets binding) ---
 		const widgetHtml = await loadWidgetHtml(this.env.ASSETS)
+		let editorApiSpecPromise: ReturnType<typeof loadEditorApiSpecFromAssets> | null = null
+		let methodMapPromise: ReturnType<typeof loadMethodMapFromAssets> | null = null
 
 		// --- Build ServerDeps from SQLite ---
 		const deps: ServerDeps = {
@@ -152,6 +155,14 @@ export class TldrawMCP extends McpAgent<Env> {
 			getSessionId: () => this.sessionId,
 			getMcpSessionId: () => this.getMcpSessionId(),
 			loadWidgetHtml: async () => widgetHtml,
+			loadEditorApiSpec: async () => {
+				editorApiSpecPromise ??= loadEditorApiSpecFromAssets(this.env.ASSETS)
+				return editorApiSpecPromise
+			},
+			loadMethodMap: async () => {
+				methodMapPromise ??= loadMethodMapFromAssets(this.env.ASSETS)
+				return methodMapPromise
+			},
 		}
 
 		const workerOrigin = this.env.WORKER_ORIGIN

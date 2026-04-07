@@ -1,23 +1,19 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
-import editorApi from '../editor-api.json'
+import type { EditorApiSpec } from '../shared/generated-data'
 import { WORKER_COMPATIBILITY_DATE } from '../shared/types'
 import type { DynamicWorkerLoader } from '../shared/types'
-
-const spec = {
-	members: editorApi.members,
-	categories: editorApi.categories,
-	types: editorApi.types,
-	helperCount: editorApi.helperCount,
-	helpers: editorApi.helpers,
-}
 
 const SEARCH_TIMEOUT_MS = 5_000
 const SEARCH_RUNNER_MODULE = 'search-runner.js'
 const SEARCH_RUNNER_ENTRYPOINT = 'SearchRunner'
 
 type SearchWorkerResult = { success: true; value: unknown } | { success: false; error: string }
+type SearchSpec = Pick<
+	EditorApiSpec,
+	'members' | 'categories' | 'types' | 'helperCount' | 'helpers'
+>
 
 function createSearchRunnerModule(code: string) {
 	return `import { WorkerEntrypoint } from 'cloudflare:workers'
@@ -49,7 +45,11 @@ ${code}
 `
 }
 
-async function runSearchInDynamicWorker(loader: DynamicWorkerLoader, code: string) {
+async function runSearchInDynamicWorker(
+	loader: DynamicWorkerLoader,
+	spec: SearchSpec,
+	code: string
+) {
 	const worker = loader.load({
 		compatibilityDate: WORKER_COMPATIBILITY_DATE,
 		mainModule: SEARCH_RUNNER_MODULE,
@@ -89,9 +89,12 @@ export function registerSearchTool(
 	opts: {
 		analytics?: AnalyticsEngineDataset
 		loader: DynamicWorkerLoader
+		loadSpec(): Promise<EditorApiSpec>
 		log(...args: unknown[]): void
 	}
 ) {
+	let specPromise: Promise<SearchSpec> | null = null
+
 	server.registerTool(
 		'search',
 		{
@@ -124,7 +127,14 @@ Examples:
 			opts.log('[tldraw-mcp] search called')
 
 			try {
-				const serialized = await runSearchInDynamicWorker(opts.loader, code)
+				specPromise ??= opts.loadSpec().then((editorApi) => ({
+					members: editorApi.members,
+					categories: editorApi.categories,
+					types: editorApi.types,
+					helperCount: editorApi.helperCount,
+					helpers: editorApi.helpers,
+				}))
+				const serialized = await runSearchInDynamicWorker(opts.loader, await specPromise, code)
 
 				return {
 					content: [{ type: 'text', text: JSON.stringify(serialized, null, 2) }],
