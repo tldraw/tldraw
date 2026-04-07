@@ -179,6 +179,9 @@ export async function publish(distTag?: string) {
 				} catch (e) {
 					if (output.includes('You cannot publish over the previously published versions')) {
 						// --tolerate-republish seems to not work for canary versions??? so let's just ignore this error
+						nicelog(
+							`[publish] ${packageDetails.name}@${packageDetails.version} already published, skipping`
+						)
 						return
 					}
 					throw e
