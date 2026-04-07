@@ -59,7 +59,6 @@ interface ExtractedTypeProperty {
 interface ExtractedShapeType {
 	name: string
 	shapeType: string
-	abstract: boolean
 	signature: string
 	description: string
 	propsType: string
@@ -804,6 +803,14 @@ const FOCUSED_SHAPE_INTERFACES = [
 	'FocusedDrawShape',
 ]
 
+function toPascalCase(value: string) {
+	return value
+		.split(/[^a-zA-Z0-9]+/)
+		.filter(Boolean)
+		.map((part) => part[0].toUpperCase() + part.slice(1))
+		.join('')
+}
+
 function extractFocusedShapeTypes(): ExtractedTypesSection {
 	const context = createDeclarationContext([formatTsPath, editorDtsPath, tlschemaDtsPath])
 	const sourceFile = context.sourceFiles.get(formatTsPath)
@@ -826,7 +833,7 @@ function extractFocusedShapeTypes(): ExtractedTypesSection {
 
 		const props: ExtractedTypeProperty[] = []
 		let shapeType = ''
-		let isAbstract = false
+		const unionShapeTypes: string[] = []
 
 		for (const member of declaration.members) {
 			if (!ts.isPropertySignature(member) && !ts.isPropertyDeclaration(member)) continue
@@ -853,9 +860,11 @@ function extractFocusedShapeTypes(): ExtractedTypesSection {
 					shapeType = memberType.value
 				} else if (memberType.isUnion()) {
 					for (const t of memberType.types) {
-						if (t.isStringLiteral()) allShapeTypes.push(t.value)
+						if (t.isStringLiteral()) {
+							allShapeTypes.push(t.value)
+							unionShapeTypes.push(t.value)
+						}
 					}
-					isAbstract = true
 				}
 			}
 
@@ -873,12 +882,35 @@ function extractFocusedShapeTypes(): ExtractedTypesSection {
 
 		const displayName = ifaceName.replace(/^Focused/, '')
 		const propNames = props.map((p) => p.name).join(', ')
+		const signature = `{ ${propNames} }`
+
+		if (unionShapeTypes.length > 0) {
+			for (const concreteShapeType of unionShapeTypes) {
+				const concreteName = `${toPascalCase(concreteShapeType)}Shape`
+				shapes.push({
+					name: concreteName,
+					shapeType: concreteShapeType,
+					signature,
+					description: jsdoc.description,
+					propsType: `${concreteName}Props`,
+					propsDescription: jsdoc.description,
+					props: props.map((prop) =>
+						prop.name === '_type'
+							? {
+									...prop,
+									signature: `"${concreteShapeType}"`,
+								}
+							: prop
+					),
+				})
+			}
+			continue
+		}
 
 		shapes.push({
 			name: displayName,
 			shapeType,
-			abstract: isAbstract,
-			signature: `{ ${propNames} }`,
+			signature,
 			description: jsdoc.description,
 			propsType: `${displayName}Props`,
 			propsDescription: jsdoc.description,
