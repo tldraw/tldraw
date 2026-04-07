@@ -17,7 +17,7 @@
 		"lib": ["DOM", "DOM.Iterable", "ESNext"],
 		"module": "esnext",
 		"target": "esnext",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitAny": true,
 		"noImplicitReturns": true,

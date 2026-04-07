@@ -20,7 +20,6 @@ import {
 } from '@tldraw/editor'
 import React from 'react'
 import { getColorStyleItems, getFontStyleItems, STYLES } from '../../../styles'
-import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
@@ -97,26 +96,16 @@ const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
 /** @public @react */
 export function StylePanelOpacityPicker() {
 	const editor = useEditor()
-	const { onHistoryMark, enhancedA11yMode } = useStylePanelContext()
+	const { onHistoryMark, onOpacityChange, enhancedA11yMode } = useStylePanelContext()
 
 	const opacity = useValue('opacity', () => editor.getSharedOpacity(), [editor])
-	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 
 	const handleOpacityValueChange = React.useCallback(
 		(value: number) => {
-			const item = tldrawSupportedOpacities[value]
-			editor.run(() => {
-				if (editor.isIn('select')) {
-					editor.setOpacityForSelectedShapes(item)
-				}
-				editor.setOpacityForNextShapes(item)
-				editor.updateInstanceState({ isChangingStyle: true })
-			})
-
-			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value })
+			onOpacityChange(tldrawSupportedOpacities[value])
 		},
-		[editor, trackEvent]
+		[onOpacityChange]
 	)
 
 	if (opacity === undefined) return null

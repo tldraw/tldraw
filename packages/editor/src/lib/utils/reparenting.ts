@@ -103,9 +103,13 @@ export function kickoutOccludedShapes(
 					if (oldParentIndex > -1) {
 						// If the old parent is a direct child of the new parent, then we'll add them above the old parent but below the next sibling.
 						const siblingsIndexAbove = oldParentSiblingIds[oldParentIndex + 1]
-						const indexKeyAbove = siblingsIndexAbove
+						const siblingAboveIndex = siblingsIndexAbove
 							? editor.getShape(siblingsIndexAbove)!.index
-							: getIndexAbove(prevParent.index)
+							: undefined
+						const indexKeyAbove =
+							siblingAboveIndex && siblingAboveIndex > prevParent.index
+								? siblingAboveIndex
+								: getIndexAbove(prevParent.index)
 						insertIndexKey = getIndexBetween(prevParent.index, indexKeyAbove)
 					} else {
 						// If the old parent is not a direct child of the new parent, then we'll add them to the "top" of the new parent's children.

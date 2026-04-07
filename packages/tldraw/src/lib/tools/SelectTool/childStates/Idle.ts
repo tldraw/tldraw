@@ -13,6 +13,7 @@ import {
 	kickoutOccludedShapes,
 	pointInPolygon,
 	toRichText,
+	unsafe__withoutCapture,
 } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
@@ -47,11 +48,15 @@ export class Idle extends StateNode {
 	}
 
 	override onExit() {
+		this.editor.updateInstanceState({ isChangingStyle: false })
 		cancelUpdateHoveredShapeId(this.editor)
 	}
 
 	override onPointerMove() {
 		updateHoveredShapeId(this.editor)
+		if (unsafe__withoutCapture(() => this.editor.getInstanceState()).isChangingStyle) {
+			this.editor.updateInstanceState({ isChangingStyle: false })
+		}
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
@@ -649,6 +654,9 @@ export class Idle extends StateNode {
 		if (delta.equals(new Vec(0, 0))) return
 
 		if (!ephemeral) this.editor.markHistoryStoppingPoint('nudge shapes')
+
+		// Hide the selection overlay while nudging, same as when changing styles
+		this.editor.updateInstanceState({ isChangingStyle: true })
 
 		const { gridSize } = this.editor.getDocumentSettings()
 
