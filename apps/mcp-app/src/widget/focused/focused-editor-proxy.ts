@@ -54,6 +54,55 @@ function isFocusedShape(
 	return '_type' in val
 }
 
+/** Detect update payloads that use focused `shapeId` but omit `_type`. */
+function hasFocusedShapeId(
+	val: FocusedShape | TLShapePartial | TLCreateShapePartial
+): val is TLShapePartial & { shapeId: string } {
+	return (
+		typeof val === 'object' &&
+		val !== null &&
+		'shapeId' in val &&
+		typeof (val as { shapeId?: unknown }).shapeId === 'string'
+	)
+}
+
+/** Normalize raw tldraw shape partial IDs when models omit the `shape:` prefix. */
+function normalizeRawShapePartialId<T extends TLShapePartial>(partial: T): T {
+	const rawId = partial.id
+	if (typeof rawId !== 'string') return partial
+	if (rawId.startsWith('shape:')) return partial
+	return { ...partial, id: ensureTldrawId(rawId) } as T
+}
+
+/**
+ * Normalize an incoming partial into focused shape format when possible.
+ * - If `_type` is already present, returns as-is.
+ * - If `shapeId` is present, infers `_type` from the existing canvas shape.
+ * - Otherwise returns null, meaning callers should treat it as raw tldraw input.
+ */
+function toFocusedShapeIfPossible(
+	editor: Editor,
+	partial: FocusedShape | TLShapePartial | TLCreateShapePartial
+): FocusedShape | null {
+	if (isFocusedShape(partial)) return partial
+	if (!hasFocusedShapeId(partial)) return null
+
+	const shapeId = ensureTldrawId(partial.shapeId)
+	const existingShape = editor.getShape(shapeId)
+	if (!existingShape) return null
+
+	const focusedExisting = convertTldrawShapeToFocusedShape(editor, existingShape)
+	const merged = {
+		...focusedExisting,
+		...partial,
+		_type: focusedExisting._type,
+		shapeId: focusedExisting.shapeId,
+	}
+	// `partial` may be a broad TLShapePartial union; runtime merge is safe here
+	// because we anchor on a valid focused shape from the existing record.
+	return merged as unknown as FocusedShape
+}
+
 // ---------------------------------------------------------------------------
 // Output conversion helpers
 // ---------------------------------------------------------------------------
@@ -143,13 +192,14 @@ function convertReturnValue(editor: Editor, proxy: Editor, spec: RetKind, result
 // Special-case handlers for create/update (arrow bindings)
 // ---------------------------------------------------------------------------
 
-type EditorMethod = (...args: Parameters<Editor['createShape']>) => Editor
+type CreateEditorMethod = (...args: Parameters<Editor['createShape']>) => Editor
+type UpdateEditorMethod = (...args: Parameters<Editor['updateShape']>) => Editor
 
 function handleCreateShape(
 	editor: Editor,
 	proxy: Editor,
 	partial: FocusedShape | TLCreateShapePartial,
-	realMethod: EditorMethod
+	realMethod: CreateEditorMethod
 ): Editor {
 	if (!isFocusedShape(partial)) {
 		realMethod.call(editor, partial)
@@ -181,7 +231,7 @@ function handleCreateShapes(
 	editor: Editor,
 	proxy: Editor,
 	partials: Array<FocusedShape | TLCreateShapePartial>,
-	realMethod: EditorMethod
+	realMethod: CreateEditorMethod
 ): Editor {
 	if (!Array.isArray(partials)) {
 		realMethod.call(editor, partials)
@@ -198,20 +248,21 @@ function handleUpdateShape(
 	editor: Editor,
 	proxy: Editor,
 	partial: FocusedShape | TLShapePartial,
-	realMethod: EditorMethod
+	realMethod: UpdateEditorMethod
 ): Editor {
-	if (!isFocusedShape(partial)) {
-		realMethod.call(editor, partial)
+	const focusedPartial = toFocusedShapeIfPossible(editor, partial)
+	if (!focusedPartial) {
+		realMethod.call(editor, normalizeRawShapePartialId(partial as TLShapePartial))
 		return proxy
 	}
 
-	const shapeId = ensureTldrawId(partial.shapeId)
+	const shapeId = ensureTldrawId(focusedPartial.shapeId)
 	const existingShape = editor.getShape(shapeId)
 	if (!existingShape) {
 		return proxy
 	}
 
-	const result = convertFocusedShapeToTldrawShape(editor, partial, {
+	const result = convertFocusedShapeToTldrawShape(editor, focusedPartial, {
 		defaultShape: existingShape,
 	})
 
@@ -240,7 +291,7 @@ function handleUpdateShapes(
 	editor: Editor,
 	proxy: Editor,
 	partials: Array<FocusedShape | TLShapePartial>,
-	realMethod: EditorMethod
+	realMethod: UpdateEditorMethod
 ): Editor {
 	if (!Array.isArray(partials)) {
 		realMethod.call(editor, partials)
@@ -272,34 +323,35 @@ export function createFocusedEditorProxy(editor: Editor, methodMap: MethodMap): 
 			// --- Special-case: create/update need binding handling ---
 			if (prop === 'createShape') {
 				return (partial: FocusedShape | TLCreateShapePartial) =>
-					handleCreateShape(target, proxy, partial, value as EditorMethod)
+					handleCreateShape(target, proxy, partial, value as CreateEditorMethod)
 			}
 			if (prop === 'createShapes') {
 				return (partials: Array<FocusedShape | TLCreateShapePartial>) =>
-					handleCreateShapes(target, proxy, partials, value as EditorMethod)
+					handleCreateShapes(target, proxy, partials, value as CreateEditorMethod)
 			}
 			if (prop === 'updateShape') {
 				return (partial: FocusedShape | TLShapePartial) =>
-					handleUpdateShape(target, proxy, partial, value as EditorMethod)
+					handleUpdateShape(target, proxy, partial, value as UpdateEditorMethod)
 			}
 			if (prop === 'updateShapes') {
 				return (partials: Array<FocusedShape | TLShapePartial>) =>
-					handleUpdateShapes(target, proxy, partials, value as EditorMethod)
+					handleUpdateShapes(target, proxy, partials, value as UpdateEditorMethod)
 			}
 			if (prop === 'animateShape') {
 				return (partial: FocusedShape | TLShapePartial, ...rest: [Record<string, number>?]) => {
-					if (isFocusedShape(partial)) {
-						const shapeId = ensureTldrawId(partial.shapeId)
+					const focusedPartial = toFocusedShapeIfPossible(target, partial)
+					if (focusedPartial) {
+						const shapeId = ensureTldrawId(focusedPartial.shapeId)
 						const existing = target.getShape(shapeId)
 						if (existing) {
-							const converted = convertFocusedShapeToTldrawShape(target, partial, {
+							const converted = convertFocusedShapeToTldrawShape(target, focusedPartial, {
 								defaultShape: existing,
 							})
 							value.call(target, converted.shape, ...rest)
 							return proxy
 						}
 					}
-					value.call(target, partial, ...rest)
+					value.call(target, normalizeRawShapePartialId(partial as TLShapePartial), ...rest)
 					return proxy
 				}
 			}
@@ -310,16 +362,17 @@ export function createFocusedEditorProxy(editor: Editor, methodMap: MethodMap): 
 				) => {
 					if (Array.isArray(partials)) {
 						const converted = partials.map((p) => {
-							if (isFocusedShape(p)) {
-								const shapeId = ensureTldrawId(p.shapeId)
+							const focusedPartial = toFocusedShapeIfPossible(target, p)
+							if (focusedPartial) {
+								const shapeId = ensureTldrawId(focusedPartial.shapeId)
 								const existing = target.getShape(shapeId)
 								if (existing) {
-									return convertFocusedShapeToTldrawShape(target, p, {
+									return convertFocusedShapeToTldrawShape(target, focusedPartial, {
 										defaultShape: existing,
 									}).shape
 								}
 							}
-							return p
+							return normalizeRawShapePartialId(p as TLShapePartial)
 						})
 						value.call(target, converted, ...rest)
 					} else {

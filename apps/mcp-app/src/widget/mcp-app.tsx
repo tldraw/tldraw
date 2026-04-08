@@ -193,6 +193,8 @@ function TldrawCanvas({ app }: { app: App }) {
 	const saveTimerRef = useRef<number | null>(null)
 	const hasUserEditedSinceAiRef = useRef(false)
 	const lastEditorRef = useRef<'user' | 'ai'>('ai')
+	const execPartialDebounceRef = useRef<number | null>(null)
+	const hasExecRunRef = useRef(false)
 
 	const { isDev, isDevLogVisible, devLogEntries, logIfDevMode, toggleDevLog, enableDevMode } =
 		useDevLog()
@@ -264,6 +266,10 @@ function TldrawCanvas({ app }: { app: App }) {
 		if (saveTimerRef.current !== null) {
 			window.clearTimeout(saveTimerRef.current)
 			saveTimerRef.current = null
+		}
+		if (execPartialDebounceRef.current !== null) {
+			window.clearTimeout(execPartialDebounceRef.current)
+			execPartialDebounceRef.current = null
 		}
 		editorRef.current?.dispose()
 		editorRef.current = null
@@ -370,6 +376,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			applyHostThemeToEditor(initialTheme)
 		}
 
+		logIfDevMode('Bootstrap loading...')
 		const bootstrap = getEmbeddedBootstrap()
 		primeEmbeddedMethodMap()
 
@@ -458,14 +465,18 @@ function TldrawCanvas({ app }: { app: App }) {
 			}
 		}
 
-		app.ontoolinput = (params) => {
-			const code = params.arguments?.code
-			if (typeof code !== 'string' || !code.trim()) return
+		const runExec = (code: string, source: string) => {
+			if (hasExecRunRef.current) {
+				logIfDevMode(`Exec: skipping duplicate exec from ${source}`)
+				return
+			}
+			hasExecRunRef.current = true
 
-			logIfDevMode(`Exec called via ontoolinput`)
+			logIfDevMode(`Exec: running from ${source}`)
 			markAiActivity()
 
 			void (async () => {
+				logIfDevMode('Exec: waiting for editor...')
 				const editor = await waitForEditor()
 				logIfDevMode('Exec: editor ready, executing code')
 
@@ -502,7 +513,6 @@ function TldrawCanvas({ app }: { app: App }) {
 				const callbackArgs = execResult.success
 					? { channel: 'exec', result: { success: true, result: execResult.result } }
 					: { channel: 'exec', result: { success: false, error: execResult.error } }
-				logIfDevMode(`Exec: calling _exec_callback: ${JSON.stringify(callbackArgs)}`)
 				try {
 					await app.callServerTool({ name: '_exec_callback', arguments: callbackArgs })
 					logIfDevMode('Exec: _exec_callback succeeded')
@@ -512,11 +522,40 @@ function TldrawCanvas({ app }: { app: App }) {
 			})()
 		}
 
+		app.ontoolinput = (params) => {
+			logIfDevMode('Exec: ontoolinput called')
+			const code = params.arguments?.code
+			if (typeof code !== 'string' || !code.trim()) return
+
+			if (execPartialDebounceRef.current !== null) {
+				window.clearTimeout(execPartialDebounceRef.current)
+			}
+			execPartialDebounceRef.current = window.setTimeout(() => {
+				execPartialDebounceRef.current = null
+				runExec(code, 'ontoolinput (debounced)')
+			}, 500)
+		}
+
+		app.ontoolinputpartial = (params) => {
+			const code = params.arguments?.code
+			if (typeof code !== 'string' || !code.trim()) return
+
+			if (execPartialDebounceRef.current !== null) {
+				window.clearTimeout(execPartialDebounceRef.current)
+			}
+			execPartialDebounceRef.current = window.setTimeout(() => {
+				execPartialDebounceRef.current = null
+				runExec(code, 'ontoolinputpartial (debounced)')
+			}, 1000)
+		}
+
 		app.onteardown = async () => {
 			return {}
 		}
 
 		app.ontoolresult = async (result) => {
+			logIfDevMode('Exec: ontoolresult called')
+			hasExecRunRef.current = false
 			markAiActivity()
 
 			const checkpoint = parseCheckpointFromToolResult(result)
@@ -574,6 +613,11 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		app.ontoolcancelled = (_params) => {
+			hasExecRunRef.current = false
+			if (execPartialDebounceRef.current !== null) {
+				window.clearTimeout(execPartialDebounceRef.current)
+				execPartialDebounceRef.current = null
+			}
 			markAiActivity()
 			logIfDevMode('Tool invocation cancelled')
 		}
