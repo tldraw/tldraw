@@ -44,7 +44,7 @@ export function avoidObstaclesReroute(
 	bindings: TLArrowBindings
 ): void {
 	// Step 1: Early exit
-	if (route.points.length < 4) return // Need at least start, exit-leg, entry-leg, end
+	if (route.points.length < 2) return
 	if (!bindings.start && !bindings.end) return
 
 	// Step 2: Gather obstacles (non-reactive)
@@ -63,34 +63,47 @@ export function avoidObstaclesReroute(
 	}
 	if (intersectingIndices.length === 0) return
 
-	// Step 4: Preserve the original exit/entry legs from the elbow router.
-	// The original route has structure: [start, exitLeg, ...middle..., entryLeg, end]
-	// We extract the actual exit/entry legs to preserve binding semantics.
+	// Step 4: Determine exit/entry edges via center-to-center A*
 	const boundBoxes = gatherBoundShapeBoxes(editor, arrow, bindings)
 	if (boundBoxes.length < 2) return
 	const startBox = boundBoxes[0]
 	const endBox = boundBoxes[1]
 
-	// The first segment (points[0] -> points[1]) is the start-side exit leg
-	// The last segment (points[-2] -> points[-1]) is the end-side entry leg
-	// We preserve these and only reroute the middle
-	const exitPt = route.points[0]
-	const exitLegEnd = route.points[1]
-	const entryLegStart = route.points[route.points.length - 2]
-	const entryPt = route.points[route.points.length - 1]
+	const startCenter: VecLike = {
+		x: (startBox.minX + startBox.maxX) / 2,
+		y: (startBox.minY + startBox.maxY) / 2,
+	}
+	const endCenter: VecLike = {
+		x: (endBox.minX + endBox.maxX) / 2,
+		y: (endBox.minY + endBox.maxY) / 2,
+	}
 
-	// Determine edges from the actual leg directions
-	const exitEdge = edgeFromDirection(exitLegEnd, startBox)
-	const entryEdge = edgeFromDirection(entryLegStart, endBox)
+	// Run 1: center-to-center with only non-bound obstacles blocked
+	const edgePath = gridAStar(startCenter, endCenter, obstacles)
+	if (!edgePath || edgePath.length < 2) return
 
-	// Step 5: A* for the middle (between leg endpoints)
+	// Find exit/entry edges from the path
+	const exitEdge = findExitEdge(edgePath, startBox)
+	const entryEdge = findEntryEdge(edgePath, endBox)
+	if (!exitEdge || !entryEdge) return
+
+	// Step 5: Build exit/entry legs
+	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
+	const legLength = shapeOptions.expandElbowLegLength[arrow.props.size] * arrow.props.scale
+
+	const exitPt = edgeMidpoint(startBox, exitEdge)
+	const exitLegEnd = extendFromEdge(exitPt, exitEdge, legLength)
+	const entryPt = edgeMidpoint(endBox, entryEdge)
+	const entryLegStart = extendFromEdge(entryPt, entryEdge, legLength)
+
+	// Step 6: A* for the middle (between leg endpoints)
 	const middlePath = gridAStar(exitLegEnd, entryLegStart, obstacles)
 	if (!middlePath || middlePath.length < 1) return
 
 	const directDist = manhattanDist(exitLegEnd, entryLegStart)
 	if (directDist > 0 && measurePathDist(middlePath) > directDist * MAX_COST_RATIO) return
 
-	// Step 6: Assemble full path with connectors, preserving original exit/entry legs
+	// Step 7: Assemble full path with connectors
 	const assembled = assemblePath(
 		exitPt,
 		exitLegEnd,
@@ -101,13 +114,13 @@ export function avoidObstaclesReroute(
 		entryEdge
 	)
 
-	// Step 7: Simplify collinear points
+	// Step 8: Simplify collinear points
 	let path = simplifyCollinear(assembled)
 
-	// Step 8: Smooth — remove unnecessary bends
+	// Step 9: Smooth — remove unnecessary bends
 	path = smoothPath(path, obstacles)
 
-	// Step 9: Write back
+	// Step 10: Write back
 	route.points = path
 	route.distance = measurePathDist(path)
 	route.midpointHandle = null
