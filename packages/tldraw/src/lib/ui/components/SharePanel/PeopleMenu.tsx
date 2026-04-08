@@ -93,8 +93,7 @@ export const PeopleMenuFacePile = track(function PeopleMenuFacePile({
 	userName,
 	userColor,
 }: TLUiPeopleMenuFacePileProps) {
-	const { PeopleMenuAvatar, PeopleMenuItem, UserPresenceEditor, PeopleMenuFacePile } =
-		useTldrawUiComponents()
+	const { PeopleMenuAvatar } = useTldrawUiComponents()
 
 	const breakpoint = useBreakpoint()
 	const maxAvatars = breakpoint <= PORTRAIT_BREAKPOINT.MOBILE_XS ? 1 : 5
