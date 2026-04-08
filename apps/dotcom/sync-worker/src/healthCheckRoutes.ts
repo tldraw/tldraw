@@ -91,6 +91,9 @@ export const healthCheckRoutes = createRouter<Environment>()
 			await db.destroy()
 		}
 	})
+	// Combined postgres health check: db size, changelog size, WAL retention, replication slots, and
+	// tlpr replicator status. Grouped into a single endpoint because updown.io charges per check
+	// invocation. Failures include the sub-check name so alerts remain distinguishable.
 	.get('/health-check/postgres', async (_, env) => {
 		const db = createPostgresConnectionPool(env, '/health-check/postgres')
 		const failures: string[] = []
