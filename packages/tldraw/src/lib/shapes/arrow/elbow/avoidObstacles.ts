@@ -44,7 +44,7 @@ export function avoidObstaclesReroute(
 	bindings: TLArrowBindings
 ): void {
 	// Step 1: Early exit
-	if (route.points.length < 2) return
+	if (route.points.length < 4) return // Need at least start, exit-leg, entry-leg, end
 	if (!bindings.start && !bindings.end) return
 
 	// Step 2: Gather obstacles (non-reactive)
@@ -63,47 +63,34 @@ export function avoidObstaclesReroute(
 	}
 	if (intersectingIndices.length === 0) return
 
-	// Step 4: Determine exit/entry edges via center-to-center A*
+	// Step 4: Preserve the original exit/entry legs from the elbow router.
+	// The original route has structure: [start, exitLeg, ...middle..., entryLeg, end]
+	// We extract the actual exit/entry legs to preserve binding semantics.
 	const boundBoxes = gatherBoundShapeBoxes(editor, arrow, bindings)
 	if (boundBoxes.length < 2) return
 	const startBox = boundBoxes[0]
 	const endBox = boundBoxes[1]
 
-	const startCenter: VecLike = {
-		x: (startBox.minX + startBox.maxX) / 2,
-		y: (startBox.minY + startBox.maxY) / 2,
-	}
-	const endCenter: VecLike = {
-		x: (endBox.minX + endBox.maxX) / 2,
-		y: (endBox.minY + endBox.maxY) / 2,
-	}
+	// The first segment (points[0] -> points[1]) is the start-side exit leg
+	// The last segment (points[-2] -> points[-1]) is the end-side entry leg
+	// We preserve these and only reroute the middle
+	const exitPt = route.points[0]
+	const exitLegEnd = route.points[1]
+	const entryLegStart = route.points[route.points.length - 2]
+	const entryPt = route.points[route.points.length - 1]
 
-	// Run 1: center-to-center with only non-bound obstacles blocked
-	const edgePath = gridAStar(startCenter, endCenter, obstacles)
-	if (!edgePath || edgePath.length < 2) return
+	// Determine edges from the actual leg directions
+	const exitEdge = edgeFromDirection(exitLegEnd, startBox)
+	const entryEdge = edgeFromDirection(entryLegStart, endBox)
 
-	// Find exit/entry edges from the path
-	const exitEdge = findExitEdge(edgePath, startBox)
-	const entryEdge = findEntryEdge(edgePath, endBox)
-	if (!exitEdge || !entryEdge) return
-
-	// Step 5: Build exit/entry legs
-	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
-	const legLength = shapeOptions.expandElbowLegLength[arrow.props.size] * arrow.props.scale
-
-	const exitPt = edgeMidpoint(startBox, exitEdge)
-	const exitLegEnd = extendFromEdge(exitPt, exitEdge, legLength)
-	const entryPt = edgeMidpoint(endBox, entryEdge)
-	const entryLegStart = extendFromEdge(entryPt, entryEdge, legLength)
-
-	// Step 6: A* for the middle (between leg endpoints)
+	// Step 5: A* for the middle (between leg endpoints)
 	const middlePath = gridAStar(exitLegEnd, entryLegStart, obstacles)
 	if (!middlePath || middlePath.length < 1) return
 
 	const directDist = manhattanDist(exitLegEnd, entryLegStart)
 	if (directDist > 0 && measurePathDist(middlePath) > directDist * MAX_COST_RATIO) return
 
-	// Step 7: Assemble full path with connectors
+	// Step 6: Assemble full path with connectors, preserving original exit/entry legs
 	const assembled = assemblePath(
 		exitPt,
 		exitLegEnd,
@@ -114,13 +101,13 @@ export function avoidObstaclesReroute(
 		entryEdge
 	)
 
-	// Step 8: Simplify collinear points
+	// Step 7: Simplify collinear points
 	let path = simplifyCollinear(assembled)
 
-	// Step 9: Smooth — remove unnecessary bends
+	// Step 8: Smooth — remove unnecessary bends
 	path = smoothPath(path, obstacles)
 
-	// Step 10: Write back
+	// Step 9: Write back
 	route.points = path
 	route.distance = measurePathDist(path)
 	route.midpointHandle = null
@@ -626,6 +613,27 @@ function smoothPath(points: Vec[], obstacles: Box[]): Vec[] {
 			}
 
 			i++
+		}
+
+		// Additional aggressive pass: skip-3 smoothing to remove longer unnecessary segments
+		if (!changed && result.length > 5) {
+			i = 2
+			while (i < result.length - 4) {
+				const a = result[i]
+				const d = result[i + 3]
+
+				const sameX = Math.abs(a.x - d.x) < eps
+				const sameY = Math.abs(a.y - d.y) < eps
+
+				// If we can skip 2 intermediate points without hitting obstacles, do it
+				if ((sameX || sameY) && !segmentHitsAny(a, d, obstacles)) {
+					result.splice(i + 1, 2)
+					changed = true
+					continue
+				}
+
+				i++
+			}
 		}
 	}
 
