@@ -6,7 +6,7 @@ export interface TLUiPeopleMenuAvatarProps {
 }
 
 /** @public @react */
-export function PeopleMenuAvatar({ userId }: TLUiPeopleMenuAvatarProps) {
+export function DefaultPeopleMenuAvatar({ userId }: TLUiPeopleMenuAvatarProps) {
 	const presence = usePresence(userId)
 
 	if (!presence) return null

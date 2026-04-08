@@ -12,7 +12,10 @@ export interface TLUiPeopleMenuItemProps {
 	userId: string
 }
 
-export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: TLUiPeopleMenuItemProps) {
+/** @public @react */
+export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
+	userId,
+}: TLUiPeopleMenuItemProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const trackEvent = useUiEvents()

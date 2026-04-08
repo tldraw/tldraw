@@ -32,18 +32,22 @@ import {
 	DefaultQuickActions,
 	TLUiQuickActionsProps,
 } from '../components/QuickActions/DefaultQuickActions'
-import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
+import { DefaultPeopleMenu } from '../components/SharePanel/DefaultPeopleMenu'
 import {
-	PeopleMenu,
-	PeopleMenuFacePile,
-	TLUiPeopleMenuFacePileProps,
-} from '../components/SharePanel/PeopleMenu'
-import {
-	PeopleMenuAvatar,
+	DefaultPeopleMenuAvatar,
 	TLUiPeopleMenuAvatarProps,
-} from '../components/SharePanel/PeopleMenuAvatar'
-import { PeopleMenuItem, TLUiPeopleMenuItemProps } from '../components/SharePanel/PeopleMenuItem'
-import { UserPresenceEditor } from '../components/SharePanel/UserPresenceEditor'
+} from '../components/SharePanel/DefaultPeopleMenuAvatar'
+import {
+	TLUiPeopleMenuFacePileProps,
+	DefaultPeopleMenuFacePile,
+} from '../components/SharePanel/DefaultPeopleMenuFacePile'
+import {
+	DefaultPeopleMenuItem,
+	TLUiPeopleMenuItemProps,
+} from '../components/SharePanel/DefaultPeopleMenuItem'
+import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
+import { DefaultUserPresenceEditor } from '../components/SharePanel/DefaultUserPresenceEditor'
+import { UserPresenceColorPicker } from '../components/SharePanel/UserPresenceColorPicker'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
 import { DefaultToasts } from '../components/Toasts'
 import { DefaultImageToolbar } from '../components/Toolbar/DefaultImageToolbar'
@@ -137,11 +141,12 @@ export function TldrawUiComponentsProvider({
 					Toasts: DefaultToasts,
 					A11y: DefaultA11yAnnouncer,
 					FollowingIndicator: DefaultFollowingIndicator,
-					PeopleMenu: PeopleMenu,
-					PeopleMenuAvatar: PeopleMenuAvatar,
-					PeopleMenuItem: PeopleMenuItem,
-					PeopleMenuFacePile: PeopleMenuFacePile,
-					UserPresenceEditor: UserPresenceEditor,
+					PeopleMenu: DefaultPeopleMenu,
+					PeopleMenuAvatar: DefaultPeopleMenuAvatar,
+					PeopleMenuItem: DefaultPeopleMenuItem,
+					PeopleMenuFacePile: DefaultPeopleMenuFacePile,
+					UserPresenceEditor: DefaultUserPresenceEditor,
+					UserPresenceColorPicker: UserPresenceColorPicker,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]

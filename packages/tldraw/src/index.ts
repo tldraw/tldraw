@@ -507,13 +507,24 @@ export {
 export { DefaultQuickActionsContent } from './lib/ui/components/QuickActions/DefaultQuickActionsContent'
 export { DefaultSharePanel } from './lib/ui/components/SharePanel/DefaultSharePanel'
 export {
-	PeopleMenu,
-	type PeopleMenuProps,
-	PeopleMenuFacePile,
+	DefaultPeopleMenu,
+	DefaultPeopleMenu as PeopleMenu,
+	type DefaultPeopleMenuProps,
+	type DefaultPeopleMenuProps as PeopleMenuProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenu'
+export {
+	DefaultPeopleMenuFacePile as PeopleMenuFacePile,
 	type TLUiPeopleMenuFacePileProps,
-} from './lib/ui/components/SharePanel/PeopleMenu'
-export { type TLUiPeopleMenuAvatarProps } from './lib/ui/components/SharePanel/PeopleMenuAvatar'
-export { type TLUiPeopleMenuItemProps } from './lib/ui/components/SharePanel/PeopleMenuItem'
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuFacePile'
+export {
+	type TLUiPeopleMenuAvatarProps,
+	DefaultPeopleMenuAvatar,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuAvatar'
+export {
+	type TLUiPeopleMenuItemProps,
+	DefaultPeopleMenuItem,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuItem'
+export { DefaultUserPresenceEditor } from './lib/ui/components/SharePanel/DefaultUserPresenceEditor'
 export { Spinner } from './lib/ui/components/Spinner'
 export {
 	DefaultStylePanel,

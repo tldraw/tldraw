@@ -1,8 +1,6 @@
-import { track, useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
+import { useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
 import { Popover as _Popover } from 'radix-ui'
 import { ReactNode } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
-import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
 import { useCollaborationStatus } from '../../hooks/useCollaborationStatus'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
@@ -10,12 +8,12 @@ import { useDirection, useTranslation } from '../../hooks/useTranslation/useTran
 import { OfflineIndicator } from '../OfflineIndicator/OfflineIndicator'
 
 /** @public */
-export interface PeopleMenuProps {
+export interface DefaultPeopleMenuProps {
 	children?: ReactNode
 }
 
 /** @public @react */
-export function PeopleMenu({ children }: PeopleMenuProps) {
+export function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps) {
 	const { PeopleMenuItem, PeopleMenuFacePile, UserPresenceEditor } = useTldrawUiComponents()
 	const msg = useTranslation()
 	const dir = useDirection()
@@ -79,46 +77,3 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 		</_Popover.Root>
 	)
 }
-
-/** @public */
-export interface TLUiPeopleMenuFacePileProps {
-	userIds: string[]
-	userName: string
-	userColor: string
-}
-
-/** @public @react */
-export const PeopleMenuFacePile = track(function PeopleMenuFacePile({
-	userIds,
-	userName,
-	userColor,
-}: TLUiPeopleMenuFacePileProps) {
-	const { PeopleMenuAvatar } = useTldrawUiComponents()
-
-	const breakpoint = useBreakpoint()
-	const maxAvatars = breakpoint <= PORTRAIT_BREAKPOINT.MOBILE_XS ? 1 : 5
-
-	return (
-		<div className="tlui-people-menu__avatars">
-			{PeopleMenuAvatar &&
-				userIds
-					.slice(-maxAvatars)
-					.map((userId) => <PeopleMenuAvatar key={userId} userId={userId} />)}
-			{userIds.length > 0 && (
-				<div
-					className="tlui-people-menu__avatar"
-					style={{
-						backgroundColor: userColor,
-					}}
-				>
-					{userName?.[0] ?? ''}
-				</div>
-			)}
-			{userIds.length > maxAvatars && (
-				<div className="tlui-people-menu__avatar tlui-people-menu__more">
-					{Math.abs(userIds.length - maxAvatars)}
-				</div>
-			)}
-		</div>
-	)
-})
