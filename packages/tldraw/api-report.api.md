@@ -1088,6 +1088,18 @@ export { DefaultPeopleMenu as PeopleMenu }
 export function DefaultPeopleMenuAvatar({ userId }: TLUiPeopleMenuAvatarProps): JSX.Element | null;
 
 // @public (undocumented)
+export function DefaultPeopleMenuContent({ userIds }: DefaultPeopleMenuContentProps): JSX.Element;
+
+// @public (undocumented)
+export interface DefaultPeopleMenuContentProps {
+    // (undocumented)
+    userIds: string[];
+}
+
+// @public (undocumented)
+export function DefaultPeopleMenuFacePile({ userIds, userName, userColor }: TLUiPeopleMenuFacePileProps): JSX.Element;
+
+// @public (undocumented)
 export const DefaultPeopleMenuItem: NamedExoticComponent<TLUiPeopleMenuItemProps>;
 
 // @public (undocumented)
@@ -2788,9 +2800,6 @@ export interface PathBuilderToDOpts {
     // (undocumented)
     startIdx?: number;
 }
-
-// @public (undocumented)
-export const PeopleMenuFacePile: NamedExoticComponent<TLUiPeopleMenuFacePileProps>;
 
 // @public
 export const PlainTextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLTextAreaElement>>;

@@ -1,4 +1,3 @@
-import { track } from '@tldraw/editor'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
@@ -11,7 +10,7 @@ export interface TLUiPeopleMenuFacePileProps {
 }
 
 /** @public @react */
-export const DefaultPeopleMenuFacePile = track(function PeopleMenuFacePile({
+export function DefaultPeopleMenuFacePile({
 	userIds,
 	userName,
 	userColor,
@@ -44,4 +43,4 @@ export const DefaultPeopleMenuFacePile = track(function PeopleMenuFacePile({
 			)}
 		</div>
 	)
-})
+}

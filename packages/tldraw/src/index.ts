@@ -1,6 +1,7 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
+import { DefaultPeopleMenu } from './lib/ui/components/SharePanel/DefaultPeopleMenu'
 export { getPointsFromDrawSegment, getPointsFromDrawSegments } from './lib/shapes/draw/getPath'
 export {
 	PathBuilder,
@@ -508,12 +509,17 @@ export { DefaultQuickActionsContent } from './lib/ui/components/QuickActions/Def
 export { DefaultSharePanel } from './lib/ui/components/SharePanel/DefaultSharePanel'
 export {
 	DefaultPeopleMenu,
-	DefaultPeopleMenu as PeopleMenu,
 	type DefaultPeopleMenuProps,
+	// legacy
+	DefaultPeopleMenu as PeopleMenu,
 	type DefaultPeopleMenuProps as PeopleMenuProps,
 } from './lib/ui/components/SharePanel/DefaultPeopleMenu'
 export {
-	DefaultPeopleMenuFacePile as PeopleMenuFacePile,
+	DefaultPeopleMenuContent,
+	type DefaultPeopleMenuContentProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuContent'
+export {
+	DefaultPeopleMenuFacePile,
 	type TLUiPeopleMenuFacePileProps,
 } from './lib/ui/components/SharePanel/DefaultPeopleMenuFacePile'
 export {

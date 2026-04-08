@@ -47,7 +47,6 @@ import {
 } from '../components/SharePanel/DefaultPeopleMenuItem'
 import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
 import { DefaultUserPresenceEditor } from '../components/SharePanel/DefaultUserPresenceEditor'
-import { UserPresenceColorPicker } from '../components/SharePanel/UserPresenceColorPicker'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
 import { DefaultToasts } from '../components/Toasts'
 import { DefaultImageToolbar } from '../components/Toolbar/DefaultImageToolbar'
@@ -146,7 +145,6 @@ export function TldrawUiComponentsProvider({
 					PeopleMenuItem: DefaultPeopleMenuItem,
 					PeopleMenuFacePile: DefaultPeopleMenuFacePile,
 					UserPresenceEditor: DefaultUserPresenceEditor,
-					UserPresenceColorPicker: UserPresenceColorPicker,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]

@@ -5,7 +5,9 @@ import { useTldrawUiComponents } from '../../context/components'
 import { useCollaborationStatus } from '../../hooks/useCollaborationStatus'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { DefaultMainMenuContent } from '../MainMenu/DefaultMainMenuContent'
 import { OfflineIndicator } from '../OfflineIndicator/OfflineIndicator'
+import { DefaultPeopleMenuContent } from './DefaultPeopleMenuContent'
 
 /** @public */
 export interface DefaultPeopleMenuProps {
@@ -14,7 +16,6 @@ export interface DefaultPeopleMenuProps {
 
 /** @public @react */
 export function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps) {
-	const { PeopleMenuItem, PeopleMenuFacePile, UserPresenceEditor } = useTldrawUiComponents()
 	const msg = useTranslation()
 	const dir = useDirection()
 
@@ -29,16 +30,17 @@ export function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps) {
 
 	const collaborationStatus = useCollaborationStatus()
 
+	const { PeopleMenuFacePile } = useTldrawUiComponents()
+
 	if (collaborationStatus === 'offline') {
 		return <OfflineIndicator />
 	}
 
-	if (
-		!userIds.length ||
-		(!children && !PeopleMenuFacePile && !PeopleMenuItem && !UserPresenceEditor)
-	) {
+	if (!userIds.length || (!children && !PeopleMenuFacePile)) {
 		return null
 	}
+
+	const content = children ?? <DefaultPeopleMenuContent userIds={userIds} />
 
 	return (
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
@@ -57,21 +59,7 @@ export function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps) {
 					sideOffset={2}
 					collisionPadding={4}
 				>
-					<div className="tlui-people-menu__wrapper">
-						{UserPresenceEditor && (
-							<div className="tlui-people-menu__section">
-								<UserPresenceEditor />
-							</div>
-						)}
-						{PeopleMenuItem && userIds.length > 0 && (
-							<div className="tlui-people-menu__section">
-								{userIds.map((userId) => {
-									return <PeopleMenuItem key={userId + '_presence'} userId={userId} />
-								})}
-							</div>
-						)}
-						{children}
-					</div>
+					<div className="tlui-people-menu__wrapper">{content}</div>
 				</_Popover.Content>
 			</_Popover.Portal>
 		</_Popover.Root>
