@@ -5,7 +5,6 @@ import { useTldrawUiComponents } from '../../context/components'
 import { useCollaborationStatus } from '../../hooks/useCollaborationStatus'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { DefaultMainMenuContent } from '../MainMenu/DefaultMainMenuContent'
 import { OfflineIndicator } from '../OfflineIndicator/OfflineIndicator'
 import { DefaultPeopleMenuContent } from './DefaultPeopleMenuContent'
 
