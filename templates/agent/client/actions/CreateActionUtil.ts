@@ -181,6 +181,7 @@ const SHAPE_DEFAULTS: ShapeDefaultsMap = {
 			scale: 1,
 			size: 's',
 			start: { x: 0, y: 0 },
+			avoidObstacles: false,
 		},
 	},
 	geo: {

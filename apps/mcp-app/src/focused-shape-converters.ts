@@ -281,6 +281,7 @@ export function convertFocusedShapeToTldrawRecord(shape: FocusedShape): {
 						scale: 1,
 						kind: 'arc',
 						elbowMidPoint: 0.5,
+						avoidObstacles: false,
 					},
 				} as TLShape,
 				bindings,

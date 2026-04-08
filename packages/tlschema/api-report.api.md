@@ -53,6 +53,7 @@ export const arrowShapeProps: RecordProps<TLArrowShape>;
 
 // @public
 export const arrowShapeVersions: {
+    readonly AddAvoidObstacles: "com.tldraw.shape.arrow/9";
     readonly AddElbow: "com.tldraw.shape.arrow/6";
     readonly AddIsPrecise: "com.tldraw.shape.arrow/2";
     readonly AddLabelColor: "com.tldraw.shape.arrow/1";
@@ -850,6 +851,8 @@ export interface TLArrowShapeProps {
     arrowheadEnd: TLArrowShapeArrowheadStyle;
     // (undocumented)
     arrowheadStart: TLArrowShapeArrowheadStyle;
+    // (undocumented)
+    avoidObstacles: boolean;
     // (undocumented)
     bend: number;
     // (undocumented)

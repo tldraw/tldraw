@@ -18,6 +18,7 @@ import {
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { BOUND_ARROW_OFFSET, TLArrowBindings } from '../shared'
+import { avoidObstaclesReroute } from './avoidObstacles'
 import {
 	ElbowArrowAxes,
 	ElbowArrowBox,
@@ -51,6 +52,7 @@ export function getElbowArrowInfo(
 		elbowMidpoint: arrow.props.elbowMidPoint,
 		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size] * arrow.props.scale,
 		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size] * arrow.props.scale,
+		avoidObstaclesPadding: shapeOptions.avoidObstaclesPadding[arrow.props.size] * arrow.props.scale,
 	}
 
 	// Before we can do anything else, we need to find the start and end terminals of the arrow.
@@ -271,13 +273,21 @@ export function getElbowArrowInfo(
 	}
 
 	if (route) {
-		// If we found a route, we need to fix it up. The route will only go to the bounding box of
-		// the shape, so we need to cast the final segments into the actual geometry of the shape.
-		castPathSegmentIntoGeometry('first', info.A, info.B, route)
-		castPathSegmentIntoGeometry('last', info.B, info.A, route)
-		// If we have tiny L-shaped arrows, the arrowheads look super janky. We fix those up by just
-		// drawing a straight line instead.
-		fixTinyEndNubs(route, aTerminal, bTerminal)
+		// If avoidObstacles is enabled, reroute around intervening shapes.
+		// This runs BEFORE geometry casting. The output has axis-aligned exit/entry
+		// legs that satisfy castPathSegmentIntoGeometry's constraints.
+		if (arrow.props.avoidObstacles) {
+			avoidObstaclesReroute(editor, arrow, route, options.avoidObstaclesPadding, bindings)
+		}
+
+		if (!route.avoidObstaclesRerouted) {
+			// Cast endpoints to actual shape geometry and apply arrowhead offsets.
+			// Skipped for avoidObstacles paths because the ray-cast through target.target
+			// creates diagonals when target.target is off-center from the exit leg axis.
+			castPathSegmentIntoGeometry('first', info.A, info.B, route)
+			castPathSegmentIntoGeometry('last', info.B, info.A, route)
+			fixTinyEndNubs(route, aTerminal, bTerminal)
+		}
 
 		// If we swapped the order way back of the start of things, we need to reverse the route so
 		// it flows start -> end instead of A -> B.

@@ -179,6 +179,7 @@ export interface TLArrowShapeProps {
 	labelPosition: number
 	scale: number
 	elbowMidPoint: number
+	avoidObstacles: boolean
 }
 
 /**
@@ -251,6 +252,7 @@ export const arrowShapeProps: RecordProps<TLArrowShape> = {
 	labelPosition: T.number,
 	scale: T.nonZeroNumber,
 	elbowMidPoint: T.number,
+	avoidObstacles: T.boolean,
 }
 
 /**
@@ -278,6 +280,7 @@ export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddElbow: 6,
 	AddRichText: 7,
 	AddRichTextAttrs: 8,
+	AddAvoidObstacles: 9,
 })
 
 function propsMigration(migration: TLPropsMigration) {
@@ -466,6 +469,15 @@ export const arrowShapeMigrations = createMigrationSequence({
 				if (props.richText && 'attrs' in props.richText) {
 					delete props.richText.attrs
 				}
+			},
+		}),
+		propsMigration({
+			id: arrowShapeVersions.AddAvoidObstacles,
+			up: (props) => {
+				props.avoidObstacles = false
+			},
+			down: (props) => {
+				delete props.avoidObstacles
 			},
 		}),
 	],

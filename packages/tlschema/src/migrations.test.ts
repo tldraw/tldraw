@@ -2280,6 +2280,19 @@ describe('Adding color to frame shapes', () => {
 	})
 })
 
+describe('Add avoidObstacles to arrow shape', () => {
+	const { up, down } = getTestMigration(arrowShapeVersions.AddAvoidObstacles)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { avoidObstacles: false } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { avoidObstacles: false } })).toEqual({ props: {} })
+		expect(down({ props: { avoidObstacles: true, other: 1 } })).toEqual({ props: { other: 1 } })
+	})
+})
+
 describe('Add elbow kind to arrow shape', () => {
 	const { up, down } = getTestMigration(arrowShapeVersions.AddElbow)
 

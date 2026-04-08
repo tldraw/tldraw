@@ -119,6 +119,11 @@ export interface ArrowShapeOptions extends ShapeOptionsWithDisplayValues<
 	 * When creating an arrow, should it bind to the target shape.
 	 */
 	shouldIgnoreTargets(editor: Editor): boolean
+	/**
+	 * The padding around obstacle shapes when routing elbow arrows with `avoidObstacles` enabled.
+	 * Larger values create more space between the arrow and the obstacle. Scales with arrow size.
+	 */
+	readonly avoidObstaclesPadding: Record<TLDefaultSizeStyle, number>
 	/** Whether to show the outline of the arrow shape's label (using the same color as the canvas). This helps with overlapping shapes. It does not show up on Safari, where text outline is a performance issues. */
 	readonly showTextOutline: boolean
 }

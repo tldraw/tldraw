@@ -55,6 +55,12 @@ export interface ElbowArrowRoute {
 	 * The midpoint handle of the route, if any.
 	 */
 	midpointHandle: ElbowArrowMidpointHandle | null
+	/**
+	 * Set by avoidObstacles rerouting. When true, castPathSegmentIntoGeometry
+	 * is skipped because the rerouted path handles its own exit/entry geometry.
+	 * @internal
+	 */
+	avoidObstaclesRerouted?: boolean
 }
 
 /**
@@ -82,6 +88,7 @@ export interface ElbowArrowOptions {
 	expandElbowLegLength: number
 	minElbowLegLength: number
 	elbowMidpoint: number
+	avoidObstaclesPadding: number
 }
 
 /**

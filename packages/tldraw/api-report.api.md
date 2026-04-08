@@ -226,6 +226,7 @@ export function ArrowRightToolbarItem(): JSX.Element;
 // @public
 export interface ArrowShapeOptions extends ShapeOptionsWithDisplayValues<TLArrowShape, ArrowShapeUtilDisplayValues> {
     readonly arcArrowCenterSnapDistance: number;
+    readonly avoidObstaclesPadding: Record<TLDefaultSizeStyle, number>;
     readonly elbowArrowAxisSnapDistance: number;
     readonly elbowArrowCenterSnapDistance: number;
     readonly elbowArrowEdgeSnapDistance: number;
@@ -1371,6 +1372,8 @@ export interface ElbowArrowMidpointHandle {
 // @public
 export interface ElbowArrowOptions {
     // (undocumented)
+    avoidObstaclesPadding: number;
+    // (undocumented)
     elbowMidpoint: number;
     // (undocumented)
     expandElbowLegLength: number;
@@ -1390,6 +1393,8 @@ export interface ElbowArrowRange {
 export interface ElbowArrowRoute {
     // @internal
     aEdgePicking: ElbowArrowSideReason;
+    // @internal
+    avoidObstaclesRerouted?: boolean;
     // @internal
     bEdgePicking: ElbowArrowSideReason;
     distance: number;

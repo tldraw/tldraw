@@ -128,6 +128,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		shouldIgnoreTargets(editor: Editor) {
 			return editor.inputs.getCtrlKey()
 		},
+		avoidObstaclesPadding: {
+			s: 16,
+			m: 20,
+			l: 28,
+			xl: 40,
+		},
 		showTextOutline: true,
 		getDefaultDisplayValues(_editor, shape, theme, colorMode): ArrowShapeUtilDisplayValues {
 			const { color, fill, labelColor, size, font } = shape.props
@@ -223,6 +229,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			labelPosition: 0.5,
 			font: 'draw',
 			scale: 1,
+			avoidObstacles: false,
 		}
 	}
 

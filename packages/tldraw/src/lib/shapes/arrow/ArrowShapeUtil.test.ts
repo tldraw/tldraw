@@ -738,6 +738,7 @@ describe('Arrow terminal positioning bug fix', () => {
 						labelPosition: 0.5,
 						font: 'draw',
 						scale: 1,
+						avoidObstacles: false,
 					},
 					parentId: 'page:page',
 					index: 'a2lbpzZG',
