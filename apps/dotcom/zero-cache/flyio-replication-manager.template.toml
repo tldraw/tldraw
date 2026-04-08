@@ -30,22 +30,6 @@ source = "sqlite_repl"
 destination = "/data"
 initial_size = "__VOLUME_SIZE"
 
-[[files]]
-guest_path = "/etc/litestream.yml"
-# Litestream backup to Cloudflare R2 (S3-compatible)
-raw_value = """
-addr: localhost:4850
-dbs:
-  - path: /data/sync-replica.db
-    replicas:
-      - type: s3
-        bucket: __ZERO_R2_BUCKET_NAME
-        path: __BACKUP_PATH
-        endpoint: __ZERO_R2_ENDPOINT
-        region: auto
-        skip-verify: true
-"""
-
 [env]
 ZERO_REPLICA_FILE = "/data/sync-replica.db"
 ZERO_APP_PUBLICATIONS = "zero_data"
@@ -53,8 +37,8 @@ ZERO_NUM_SYNC_WORKERS = "0"
 ZERO_UPSTREAM_MAX_CONNS = "__RM_UPSTREAM_MAX_CONNS"
 ZERO_CVR_MAX_CONNS = "__RM_CVR_MAX_CONNS"
 ZERO_CHANGE_MAX_CONNS = "__RM_CHANGE_MAX_CONNS"
-ZERO_LITESTREAM_CONFIG_PATH = "/etc/litestream.yml"
 ZERO_LITESTREAM_BACKUP_URL = "s3://__ZERO_R2_BUCKET_NAME/__BACKUP_PATH"
+ZERO_LITESTREAM_ENDPOINT = "__ZERO_R2_ENDPOINT"
 ZERO_LOG_LEVEL = "debug"
 DO_NOT_TRACK = "1"
 OTEL_NODE_RESOURCE_DETECTORS = "env,host,os"
