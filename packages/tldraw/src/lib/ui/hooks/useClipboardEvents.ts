@@ -918,7 +918,9 @@ export function useNativeClipboardEvents() {
 			// input instead; e.g. when pasting text into a text shape's content
 			if (editor.getEditingShapeId() !== null || areShortcutsDisabled(editor)) return
 
-			// Cmd+Shift+V / Ctrl+Shift+V = paste as plain text (no formatting)
+			// Cmd+Shift+V / Ctrl+Shift+V = paste as plain text (no formatting).
+			// If there's no plain text on the clipboard (e.g., a copied PNG), fall
+			// through to the normal paste handler so the file still gets pasted.
 			if (nativeShiftKey) {
 				const text = e.clipboardData?.getData('text/plain')
 				if (text?.trim()) {
@@ -927,10 +929,10 @@ export function useNativeClipboardEvents() {
 						: editor.getViewportPageBounds().center
 					editor.markHistoryStoppingPoint('paste')
 					defaultHandleExternalTextContent(editor, { text, point })
+					preventDefault(e)
+					trackEvent('paste', { source: 'kbd' })
+					return
 				}
-				preventDefault(e)
-				trackEvent('paste', { source: 'kbd' })
-				return
 			}
 
 			// Cmd+V: paste at center by default, or at cursor when the preference is on.
