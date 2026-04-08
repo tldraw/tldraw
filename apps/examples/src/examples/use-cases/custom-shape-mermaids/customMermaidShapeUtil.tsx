@@ -1,18 +1,23 @@
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
-	LABEL_FONT_SIZES,
 	RecordProps,
 	RichTextLabel,
 	T,
+	TLDefaultSizeStyle,
 	TLShape,
-	TEXT_PROPS,
 	getColorValue,
 	toRichText,
-	useDefaultColorTheme,
 	useValue,
 	useEditor,
 } from 'tldraw'
+
+const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
+	s: 1.125,
+	m: 1.375,
+	l: 1.625,
+	xl: 2,
+}
 import './customMermaidShapeUtil.css'
 import { type StepStatus, pipelineStateAtom, retryPipelineFromNode } from './mermaidPipelineState'
 
@@ -88,8 +93,9 @@ export class FlowchartShapeUtil extends BaseBoxShapeUtil<ICustomShape> {
 
 function CustomShapeComponent({ shape }: { shape: ICustomShape }) {
 	const { id, type, props } = shape
-	const theme = useDefaultColorTheme()
 	const editor = useEditor()
+	const theme = useValue('theme', () => editor.getCurrentTheme(), [editor])
+	const colors = theme.colors[editor.getColorMode()]
 	const pipeline = useValue(pipelineStateAtom)
 	const status: StepStatus = props.mermaidNodeId
 		? (pipeline.statusByNodeId[props.mermaidNodeId] ?? 'pending')
@@ -113,18 +119,18 @@ function CustomShapeComponent({ shape }: { shape: ICustomShape }) {
 				<RichTextLabel
 					shapeId={id}
 					type={type}
-					font={props.font as any}
+					fontFamily={`var(--tl-font-${props.font})`}
 					fontSize={
-						LABEL_FONT_SIZES[props.size as keyof typeof LABEL_FONT_SIZES] ?? LABEL_FONT_SIZES.m
+						(LABEL_FONT_SIZES[props.size as TLDefaultSizeStyle] ?? LABEL_FONT_SIZES.m) *
+						theme.fontSize
 					}
-					lineHeight={TEXT_PROPS.lineHeight}
+					lineHeight={theme.lineHeight}
 					padding={12}
-					fill={props.fill as any}
-					align={props.align as any}
+					textAlign={props.align === 'middle' ? 'center' : (props.align as any)}
 					verticalAlign={props.verticalAlign as any}
 					richText={props.richText}
 					isSelected={isOnlySelected}
-					labelColor={getColorValue(theme, props.color as any, 'solid')}
+					labelColor={getColorValue(colors, props.color as any, 'solid')}
 					wrap
 					showTextOutline={false}
 				/>

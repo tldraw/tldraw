@@ -296,7 +296,7 @@ Custom asset types follow the same storage lifecycle as built-in types. Your upl
 
 Asset records use the migration system to evolve their schema. Each asset type has its own migration sequence that handles adding properties, renaming fields, and validating data. When you load a document with old asset records, migrations transform them to the current schema automatically.
 
-Validators ensure asset data matches the expected structure at runtime. The [assetValidator](?) uses a discriminated union on the `type` field. If you're creating custom asset types, create validators following the same pattern and add migration sequences to handle schema changes.
+Validators ensure asset data matches the expected structure at runtime. Use [createAssetValidator](?) to build a validator for your custom asset type—it produces a discriminated union on the `type` field. Add migration sequences to handle schema changes over time.
 
 ## Security
 

@@ -1795,6 +1795,29 @@ describe('right clicking', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 	})
 
+	it('keeps multi-selection when right-clicking over a filled shape behind it', () => {
+		// Create a large filled shape behind two smaller shapes
+		editor.createShapes([
+			{
+				id: ids.box1,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				props: { w: 200, h: 200, fill: 'solid' },
+			},
+			{ id: ids.box2, type: 'geo', x: 20, y: 20, props: { w: 20, h: 20 } },
+			{ id: ids.box3, type: 'geo', x: 60, y: 20, props: { w: 20, h: 20 } },
+		])
+		// Select only the two small shapes on top
+		editor.setSelectedShapes([ids.box2, ids.box3])
+		// Right-click at a point within the selection bounds but over the filled back shape
+		editor.pointerMove(50, 30)
+		editor.pointerDown(50, 30, { target: 'canvas', button: 2 })
+		editor.pointerUp()
+		// Selection should be preserved
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box3])
+	})
+
 	it('keeps selection when right-clicking a selection background', () => {
 		editor
 			.selectAll()

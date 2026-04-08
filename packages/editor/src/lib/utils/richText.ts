@@ -2,9 +2,9 @@ import { getSchema, JSONContent, Editor as TTEditor } from '@tiptap/core'
 import { Node, Schema } from '@tiptap/pm/model'
 import { EditorProviderProps } from '@tiptap/react'
 import { TLRichText } from '@tldraw/tlschema'
+import { TLFontFace } from '@tldraw/tlschema'
 import { assert, WeakCache } from '@tldraw/utils'
 import type { Editor } from '../editor/Editor'
-import { TLFontFace } from '../editor/managers/FontManager/FontManager'
 
 /**
  * This is the TipTap editor! Docs are {@link https://tiptap.dev/docs}.

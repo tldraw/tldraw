@@ -3,6 +3,7 @@ import { EMPTY_ARRAY } from '@tldraw/state'
 import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
 	RecordProps,
+	TLAsset,
 	TLHandle,
 	TLParentId,
 	TLPropsMigrations,
@@ -11,14 +12,15 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLUnknownShape,
+	VecModel,
 } from '@tldraw/tlschema'
+import { TLFontFace } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { ReactElement } from 'react'
 import { Box, SelectionHandle } from '../../primitives/Box'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Vec } from '../../primitives/Vec'
 import type { Editor } from '../Editor'
-import { TLFontFace } from '../managers/FontManager/FontManager'
 import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { TLClickEventInfo } from '../types/event-types'
@@ -31,6 +33,7 @@ export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T
 	type: T['type']
 	props?: RecordProps<T>
 	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
+	handledAssetTypes?: readonly string[]
 }
 
 /**
@@ -169,11 +172,33 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	static type: string
 
 	/**
+	 * The asset types that this shape can be created from.
+	 * When a file is dropped on the canvas, the editor finds the shape util
+	 * whose `handledAssetTypes` includes the asset's type and calls
+	 * {@link ShapeUtil.createShapeForAsset} to produce the shape.
+	 *
+	 * @public
+	 */
+	static handledAssetTypes?: readonly string[]
+
+	/**
 	 * Get the default props for a shape.
 	 *
 	 * @public
 	 */
 	abstract getDefaultProps(): Shape['props']
+
+	/**
+	 * Create a shape partial for placing an asset on the canvas.
+	 * Only called for shapes whose constructor declares matching
+	 * {@link ShapeUtil.handledAssetTypes | `handledAssetTypes`}.
+	 *
+	 * @param asset - The asset to create a shape for.
+	 * @param position - Where to place the shape.
+	 * @returns A shape partial, or null if this shape can't be created for the asset.
+	 * @public
+	 */
+	createShapeForAsset?(asset: TLAsset, position: VecModel): TLShapePartial | null
 
 	/**
 	 * Get the shape's geometry.
