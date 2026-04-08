@@ -363,6 +363,7 @@ export {
 	ToggleLockMenuItem,
 	TogglePasteAtCursorItem,
 	ToggleReduceMotionItem,
+	ToggleRightClickToDragItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
 	ToggleTransparentBgMenuItem,

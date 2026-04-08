@@ -142,4 +142,11 @@ export class UserPreferencesManager {
 			defaultUserPreferences.isZoomDirectionInverted
 		)
 	}
+
+	@computed getIsRightClickToDrag() {
+		return (
+			this.user.userPreferences.get().isRightClickToDrag ??
+			defaultUserPreferences.isRightClickToDrag
+		)
+	}
 }
