@@ -806,6 +806,7 @@ export const defaultUserPreferences: Readonly<{
     inputMode: null;
     isDynamicSizeMode: false;
     isPasteAtCursorMode: false;
+    isRightClickToDrag: false;
     isSnapMode: false;
     isWrapMode: false;
     isZoomDirectionInverted: false;
@@ -4813,6 +4814,8 @@ export interface TLUserPreferences {
     // (undocumented)
     isPasteAtCursorMode?: boolean | null;
     // (undocumented)
+    isRightClickToDrag?: boolean | null;
+    // (undocumented)
     isSnapMode?: boolean | null;
     // (undocumented)
     isWrapMode?: boolean | null;
@@ -4995,6 +4998,8 @@ export class UserPreferencesManager {
     getIsDynamicResizeMode(): boolean;
     // (undocumented)
     getIsPasteAtCursorMode(): boolean;
+    // (undocumented)
+    getIsRightClickToDrag(): boolean;
     // (undocumented)
     getIsSnapMode(): boolean;
     // (undocumented)
