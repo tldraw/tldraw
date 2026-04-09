@@ -2,6 +2,15 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import type { TLShape } from 'tldraw'
 import type { MCP_APP_HOST_NAMES } from './types'
 
+const CANVAS_ID_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
+const CANVAS_ID_LENGTH = 8
+
+export function generateCanvasId(): string {
+	const bytes = new Uint8Array(CANVAS_ID_LENGTH)
+	crypto.getRandomValues(bytes)
+	return Array.from(bytes, (b) => CANVAS_ID_CHARS[b % CANVAS_ID_CHARS.length]).join('')
+}
+
 export function isPlainObject(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value)
 }

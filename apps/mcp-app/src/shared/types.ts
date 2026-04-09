@@ -3,11 +3,20 @@ import packageJson from '../../package.json'
 import type { EditorApiSpec, MethodMap } from './generated-data'
 import type { PendingRequests } from './pending-requests'
 
+export interface PendingBootstrap {
+	canvasId: string
+	checkpointId: string | null
+}
+
 export interface ServerDeps {
 	saveCheckpoint(id: string, shapes: TLShape[], assets?: unknown[], bindings?: unknown[]): void
 	loadCheckpoint(id: string): { shapes: unknown[]; assets: unknown[]; bindings: unknown[] } | null
 	getActiveCheckpointId(): string | null
 	setActiveCheckpointId(id: string): void
+	getCanvasCheckpointId(canvasId: string): string | null
+	setCanvasCheckpointId(canvasId: string, checkpointId: string): void
+	setPendingBootstrap(bootstrap: PendingBootstrap): void
+	consumePendingBootstrap(): PendingBootstrap | null
 	getSessionId(): string
 	getMcpSessionId(): string
 	loadWidgetHtml(): Promise<string>

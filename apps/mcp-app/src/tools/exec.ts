@@ -4,6 +4,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
 import type { PendingRequests } from '../shared/pending-requests'
 import { CANVAS_RESOURCE_URI } from '../shared/types'
+import { generateCanvasId } from '../shared/utils'
 
 const EXEC_CALLBACK_TIMEOUT_MS = 30_000
 
@@ -13,6 +14,7 @@ export function registerExecTool(
 		analytics?: AnalyticsEngineDataset
 		log(...args: unknown[]): void
 		pendingRequests: PendingRequests
+		setCurrentExecCanvasId(id: string): void
 	}
 ) {
 	registerAppTool(
@@ -20,7 +22,9 @@ export function registerExecTool(
 		'exec',
 		{
 			title: 'Execute Code',
-			description: `Execute JavaScript code on a tldraw canvas. The code runs in the widget with access to the live \`editor\` instance, helper functions, and normal js. Use the \`search\` tool first to discover available Editor methods and shape types. Using this tool creates a new canvas. If there is a previous canvas in the conversation, it forks from that. Otherwise, it starts from a blank canvas.
+			description: `Execute JavaScript code on a tldraw canvas. The code runs in the widget with access to the live \`editor\` instance, helper functions, and normal js. Use the \`search\` tool first to discover available Editor methods and shape types.
+
+Each canvas has a unique \`canvasId\`. Omit \`canvasId\` to create a new blank canvas. To edit an existing canvas, pass the \`canvasId\` that was returned by a previous exec call.
 
 Shapes and text grow depending on the amount of text they have. Use clever scripting to ensure there are no unintended overlaps.
 
@@ -38,6 +42,12 @@ Examples:
 					.describe(
 						'JavaScript code to execute. Has access to `editor` (tldraw Editor instance) and helper functions.'
 					),
+				canvasId: z
+					.string()
+					.optional()
+					.describe(
+						'Canvas ID to edit. Omit to create a new blank canvas. Pass a canvasId from a previous exec result to continue editing that canvas.'
+					),
 			}),
 			annotations: {
 				readOnlyHint: false,
@@ -47,11 +57,21 @@ Examples:
 			},
 			_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
 		},
-		async ({ code: _code }: { code: string }): Promise<CallToolResult> => {
+		async ({
+			code: _code,
+			canvasId: inputCanvasId,
+		}: {
+			code: string
+			canvasId?: string
+		}): Promise<CallToolResult> => {
 			opts.analytics?.writeDataPoint({
 				blobs: ['tool_called', 'exec'],
 			})
-			opts.log('[tldraw-mcp] exec called, waiting for widget callback...')
+
+			const canvasId = inputCanvasId || generateCanvasId()
+			opts.setCurrentExecCanvasId(canvasId)
+
+			opts.log(`[tldraw-mcp] exec called: canvasId=${canvasId}, existing=${Boolean(inputCanvasId)}`)
 
 			try {
 				const result = (await opts.pendingRequests.create('exec', EXEC_CALLBACK_TIMEOUT_MS)) as {
@@ -66,7 +86,7 @@ Examples:
 						content: [
 							{
 								type: 'text',
-								text: `Runtime error executing code on canvas. The code was NOT applied successfully. Fix the error and try again.\n\nError: ${result.error}`,
+								text: `Runtime error executing code on canvas. The code was NOT applied successfully. Fix the error and try again.\n\nCanvas ID: ${canvasId} — to retry on this canvas, pass this canvasId.\n\nError: ${result.error}`,
 							},
 						],
 						isError: true,
@@ -75,12 +95,15 @@ Examples:
 
 				const resultStr =
 					result.result !== undefined ? JSON.stringify(result.result, null, 2) : undefined
-				const text = resultStr
-					? `Code executed successfully on canvas. Return value:\n${resultStr}`
-					: 'Code executed successfully on canvas.'
+				const lines = [
+					resultStr
+						? `Code executed successfully on canvas. Return value:\n${resultStr}`
+						: 'Code executed successfully on canvas.',
+					`\nCanvas ID: ${canvasId} — to edit this canvas again, pass this as the canvasId parameter.`,
+				]
 
-				opts.log(`[tldraw-mcp] exec succeeded`)
-				return { content: [{ type: 'text', text }] }
+				opts.log(`[tldraw-mcp] exec succeeded, canvasId=${canvasId}`)
+				return { content: [{ type: 'text', text: lines.join('\n') }] }
 			} catch (err) {
 				const message = err instanceof Error ? err.message : String(err)
 				opts.log(`[tldraw-mcp] exec error: ${message}`)

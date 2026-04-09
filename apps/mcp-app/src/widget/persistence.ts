@@ -10,17 +10,27 @@ export interface CanvasSnapshot {
 	bindings?: TLBindingCreate[]
 }
 
-// --- Session-scoped localStorage persistence ---
+// --- Canvas-scoped localStorage persistence ---
 
 let currentSessionId: string | null = null
+let currentCanvasId: string | null = null
 
 export function setCurrentSessionId(id: string): void {
 	currentSessionId = id
 }
 
+export function setCurrentCanvasId(id: string): void {
+	currentCanvasId = id
+}
+
+export function getCurrentCanvasId(): string | null {
+	return currentCanvasId
+}
+
 function localStorageKey(checkpointId: string): string {
-	if (!currentSessionId) return `tldraw:${checkpointId}`
-	return `tldraw:${currentSessionId}:${checkpointId}`
+	if (currentCanvasId) return `tldraw:canvas:${currentCanvasId}:${checkpointId}`
+	if (currentSessionId) return `tldraw:${currentSessionId}:${checkpointId}`
+	return `tldraw:${checkpointId}`
 }
 
 function parseSnapshotData(
@@ -68,16 +78,19 @@ export function saveLocalSnapshot(
 	assets: TLAsset[] = [],
 	bindings: TLBindingCreate[] = []
 ): void {
-	if (!currentSessionId) return
+	const scopeId = currentCanvasId ?? currentSessionId
+	if (!scopeId) return
 	try {
 		// eslint-disable-next-line tldraw/no-direct-storage
 		localStorage.setItem(
 			localStorageKey(checkpointId),
 			JSON.stringify({ shapes, assets, bindings })
 		)
-		// Track this as the latest checkpoint for this session
+		const latestKey = currentCanvasId
+			? `tldraw:canvas:${currentCanvasId}:latest`
+			: `tldraw:${currentSessionId}:latest`
 		// eslint-disable-next-line tldraw/no-direct-storage
-		localStorage.setItem(`tldraw:${currentSessionId}:latest`, checkpointId)
+		localStorage.setItem(latestKey, checkpointId)
 	} catch {
 		// localStorage may be full or unavailable.
 	}
@@ -88,10 +101,14 @@ export function getLatestCheckpointSnapshot(): {
 	assets: TLAsset[]
 	bindings: TLBindingCreate[]
 } | null {
-	if (!currentSessionId) return null
+	const scopeId = currentCanvasId ?? currentSessionId
+	if (!scopeId) return null
 	try {
+		const latestKey = currentCanvasId
+			? `tldraw:canvas:${currentCanvasId}:latest`
+			: `tldraw:${currentSessionId}:latest`
 		// eslint-disable-next-line tldraw/no-direct-storage
-		const latestId = localStorage.getItem(`tldraw:${currentSessionId}:latest`)
+		const latestId = localStorage.getItem(latestKey)
 		if (!latestId) return null
 		return loadLocalSnapshot(latestId)
 	} catch {
@@ -109,6 +126,7 @@ declare global {
 
 export function getEmbeddedBootstrap(): {
 	sessionId: string
+	canvasId?: string
 	checkpointId?: string
 	isDev: boolean
 	workerOrigin?: string
@@ -120,6 +138,7 @@ export function getEmbeddedBootstrap(): {
 	const sessionId = typeof data.sessionId === 'string' ? data.sessionId : null
 	if (!sessionId) return null
 
+	const canvasId = typeof data.canvasId === 'string' ? data.canvasId : undefined
 	const checkpointId = typeof data.checkpointId === 'string' ? data.checkpointId : undefined
 	const isDev = data.isDev === true
 	const workerOrigin = typeof data.workerOrigin === 'string' ? data.workerOrigin : undefined
@@ -140,7 +159,7 @@ export function getEmbeddedBootstrap(): {
 		}
 	}
 
-	return { sessionId, checkpointId, isDev, workerOrigin, mcpSessionId, snapshot }
+	return { sessionId, canvasId, checkpointId, isDev, workerOrigin, mcpSessionId, snapshot }
 }
 
 // --- Tool result parsing ---
@@ -298,6 +317,9 @@ export async function saveCheckpointToServer(
 	}
 	if (bindings.length > 0) {
 		args.bindingsJson = JSON.stringify(bindings)
+	}
+	if (currentCanvasId) {
+		args.canvasId = currentCanvasId
 	}
 	try {
 		const result = await app.callServerTool({

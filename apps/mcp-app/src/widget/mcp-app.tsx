@@ -43,6 +43,7 @@ import {
 	pushCanvasContext,
 	saveCheckpointToServer,
 	saveLocalSnapshot,
+	setCurrentCanvasId,
 	setCurrentSessionId,
 	syncEditorState,
 } from './persistence'
@@ -367,11 +368,14 @@ function TldrawCanvas({ app }: { app: App }) {
 
 		if (bootstrap) {
 			setCurrentSessionId(bootstrap.sessionId)
+			if (bootstrap.canvasId) {
+				setCurrentCanvasId(bootstrap.canvasId)
+			}
 			if (bootstrap.isDev) {
 				enableDevMode()
 			}
 			logIfDevMode(
-				`Bootstrap loaded for session ${bootstrap.sessionId}${bootstrap.isDev ? ' (dev mode)' : ''}`
+				`Bootstrap loaded for session ${bootstrap.sessionId}, canvas ${bootstrap.canvasId ?? 'none'}${bootstrap.isDev ? ' (dev mode)' : ''}`
 			)
 
 			if (bootstrap.snapshot) {
@@ -443,7 +447,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			}
 		}
 
-		const runExec = (code: string, source: string) => {
+		const runExec = (code: string, source: string, canvasId?: string) => {
 			if (hasExecRunRef.current) {
 				logIfDevMode(`Exec: skipping duplicate exec from ${source}`)
 				return
@@ -456,12 +460,95 @@ function TldrawCanvas({ app }: { app: App }) {
 			void (async () => {
 				logIfDevMode('Exec: waiting for editor...')
 				const editor = await waitForEditor()
+
+				if (canvasId) {
+					setCurrentCanvasId(canvasId)
+
+					if (editor.getCurrentPageShapeIds().size === 0) {
+						logIfDevMode(`Exec: canvas empty, fetching state for canvasId=${canvasId}`)
+						try {
+							const response = await app.callServerTool({
+								name: '_get_canvas_state',
+								arguments: { canvasId },
+							})
+							const res = response as any
+							let data: any = null
+							// Try structuredContent first, fall back to parsing text content
+							if (res?.structuredContent) {
+								data = res.structuredContent
+							} else if (Array.isArray(res?.content)) {
+								const textItem = res.content.find(
+									(c: any) => c.type === 'text' && typeof c.text === 'string'
+								)
+								if (textItem) {
+									try {
+										data = JSON.parse(textItem.text)
+									} catch {
+										// not JSON
+									}
+								}
+							}
+							if (data && Array.isArray(data.shapes) && data.shapes.length > 0) {
+								const snapshot: CanvasSnapshot = {
+									shapes: data.shapes,
+									assets: Array.isArray(data.assets) ? data.assets : [],
+									bindings: Array.isArray(data.bindings) ? data.bindings : [],
+								}
+								applySnapshot(editor, snapshot)
+								committedSnapshotRef.current = snapshot
+								if (typeof data.checkpointId === 'string') {
+									checkpointIdRef.current = data.checkpointId
+								}
+								logIfDevMode(
+									`Exec: restored ${data.shapes.length} shape(s) from server for canvasId=${canvasId}`
+								)
+							} else {
+								logIfDevMode(`Exec: no shapes returned from server for canvasId=${canvasId}`)
+							}
+						} catch (err) {
+							logIfDevMode(`Exec: failed to fetch canvas state: ${err}`)
+						}
+					}
+				}
+
 				logIfDevMode('Exec: editor ready, executing code')
 
 				const execResult = await executeCode(editor, code)
 				logIfDevMode(
 					`Exec ${execResult.success ? 'succeeded' : 'failed'}: ${JSON.stringify(execResult.result ?? execResult.error)}`
 				)
+
+				// Call _exec_callback FIRST to get the server-assigned canvasId
+				const callbackArgs = execResult.success
+					? { channel: 'exec', result: { success: true, result: execResult.result } }
+					: { channel: 'exec', result: { success: false, error: execResult.error } }
+				try {
+					const cbResponse = await app.callServerTool({
+						name: '_exec_callback',
+						arguments: callbackArgs,
+					})
+					const cbRes = cbResponse as any
+					let cbData: any = null
+					if (Array.isArray(cbRes?.content)) {
+						const textItem = cbRes.content.find(
+							(c: any) => c.type === 'text' && typeof c.text === 'string'
+						)
+						if (textItem) {
+							try {
+								cbData = JSON.parse(textItem.text)
+							} catch {
+								// not JSON
+							}
+						}
+					}
+					if (cbData?.canvasId) {
+						setCurrentCanvasId(cbData.canvasId)
+						logIfDevMode(`Exec: server canvasId=${cbData.canvasId}`)
+					}
+					logIfDevMode('Exec: _exec_callback succeeded')
+				} catch (err) {
+					logIfDevMode(`Exec: _exec_callback failed: ${err}`)
+				}
 
 				if (execResult.success) {
 					const cpId = checkpointIdRef.current ?? crypto.randomUUID()
@@ -487,16 +574,6 @@ function TldrawCanvas({ app }: { app: App }) {
 					setExecError(execResult.error ?? 'Unknown error')
 					void app.sendSizeChanged({ width: 400, height: ERROR_BANNER_HEIGHT })
 				}
-
-				const callbackArgs = execResult.success
-					? { channel: 'exec', result: { success: true, result: execResult.result } }
-					: { channel: 'exec', result: { success: false, error: execResult.error } }
-				try {
-					await app.callServerTool({ name: '_exec_callback', arguments: callbackArgs })
-					logIfDevMode('Exec: _exec_callback succeeded')
-				} catch (err) {
-					logIfDevMode(`Exec: _exec_callback failed: ${err}`)
-				}
 			})()
 		}
 
@@ -504,26 +581,30 @@ function TldrawCanvas({ app }: { app: App }) {
 			logIfDevMode('Exec: ontoolinput called')
 			const code = params.arguments?.code
 			if (typeof code !== 'string' || !code.trim()) return
+			const canvasId =
+				typeof params.arguments?.canvasId === 'string' ? params.arguments.canvasId : undefined
 
 			if (execPartialDebounceRef.current !== null) {
 				window.clearTimeout(execPartialDebounceRef.current)
 			}
 			execPartialDebounceRef.current = window.setTimeout(() => {
 				execPartialDebounceRef.current = null
-				runExec(code, 'ontoolinput (debounced)')
+				runExec(code, 'ontoolinput (debounced)', canvasId)
 			}, 500)
 		}
 
 		app.ontoolinputpartial = (params) => {
 			const code = params.arguments?.code
 			if (typeof code !== 'string' || !code.trim()) return
+			const canvasId =
+				typeof params.arguments?.canvasId === 'string' ? params.arguments.canvasId : undefined
 
 			if (execPartialDebounceRef.current !== null) {
 				window.clearTimeout(execPartialDebounceRef.current)
 			}
 			execPartialDebounceRef.current = window.setTimeout(() => {
 				execPartialDebounceRef.current = null
-				runExec(code, 'ontoolinputpartial (debounced)')
+				runExec(code, 'ontoolinputpartial (debounced)', canvasId)
 			}, 1000)
 		}
 

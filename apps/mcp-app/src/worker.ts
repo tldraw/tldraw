@@ -22,7 +22,7 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from './shared/types'
-import type { MCP_APP_HOST_NAMES, ServerDeps } from './shared/types'
+import type { MCP_APP_HOST_NAMES, PendingBootstrap, ServerDeps } from './shared/types'
 import { resolveMcpAppHostNameFromServerInfo } from './shared/utils'
 
 // --- Types ---
@@ -84,6 +84,7 @@ export class TldrawMCP extends McpAgent<Env> {
 	logger = new Logger('TldrawMCP', this.logsEnabled)
 	clientHostName: MCP_APP_HOST_NAMES | undefined = undefined
 	pendingRequests = new PendingRequests()
+	pendingBootstrap: PendingBootstrap | null = null
 
 	/** The MCP session ID used for DO routing (extracted from DO name). */
 	getMcpSessionId(): string {
@@ -106,6 +107,8 @@ export class TldrawMCP extends McpAgent<Env> {
 		void this
 			.sql`CREATE TABLE IF NOT EXISTS checkpoints (id TEXT PRIMARY KEY, data TEXT, created_at INTEGER)`
 		void this.sql`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)`
+		void this
+			.sql`CREATE TABLE IF NOT EXISTS canvas_checkpoints (canvas_id TEXT PRIMARY KEY, checkpoint_id TEXT)`
 
 		// Restore active checkpoint on reconnect
 		const rows = [...this.sql`SELECT value FROM meta WHERE key = 'activeCheckpointId'`]
@@ -151,6 +154,24 @@ export class TldrawMCP extends McpAgent<Env> {
 			setActiveCheckpointId: (id) => {
 				this.activeCheckpointId = id
 				void this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
+			},
+			getCanvasCheckpointId: (canvasId) => {
+				const rows = [
+					...this.sql`SELECT checkpoint_id FROM canvas_checkpoints WHERE canvas_id = ${canvasId}`,
+				]
+				return rows.length > 0 ? (rows[0].checkpoint_id as string) : null
+			},
+			setCanvasCheckpointId: (canvasId, checkpointId) => {
+				void this
+					.sql`INSERT OR REPLACE INTO canvas_checkpoints (canvas_id, checkpoint_id) VALUES (${canvasId}, ${checkpointId})`
+			},
+			setPendingBootstrap: (bootstrap) => {
+				this.pendingBootstrap = bootstrap
+			},
+			consumePendingBootstrap: () => {
+				const b = this.pendingBootstrap
+				this.pendingBootstrap = null
+				return b
 			},
 			getSessionId: () => this.sessionId,
 			getMcpSessionId: () => this.getMcpSessionId(),

@@ -80,7 +80,16 @@ export function registerTools(
 
 	// --- exec (client-side code execution) ---
 
-	registerExecTool(server, { analytics, log, pendingRequests: opts.pendingRequests })
+	let currentExecCanvasId: string | null = null
+
+	registerExecTool(server, {
+		analytics,
+		log,
+		pendingRequests: opts.pendingRequests,
+		setCurrentExecCanvasId: (id) => {
+			currentExecCanvasId = id
+		},
+	})
 
 	// --- _exec_callback (app-only: widget resolves pending exec via callServerTool) ---
 
@@ -121,10 +130,62 @@ export function registerTools(
 
 			if (!handled) {
 				log(`[tldraw-mcp] Ignoring exec callback for non-pending channel "${channel}"`)
-				return { content: [{ type: 'text', text: 'ignored' }] }
+				return { content: [{ type: 'text', text: JSON.stringify({ ok: false }) }] }
 			}
 
-			return { content: [{ type: 'text', text: 'ok' }] }
+			const canvasId = currentExecCanvasId
+			currentExecCanvasId = null
+			return { content: [{ type: 'text', text: JSON.stringify({ ok: true, canvasId }) }] }
+		}
+	)
+
+	// --- _get_canvas_state (app-only: widget fetches fork data by canvasId) ---
+
+	server.registerTool(
+		'_get_canvas_state',
+		{
+			title: 'Get Canvas State',
+			description: 'App-only: get the latest checkpoint for a canvas by its canvasId.',
+			inputSchema: z.object({ canvasId: z.string().min(1) }),
+			annotations: {
+				readOnlyHint: true,
+				destructiveHint: false,
+				idempotentHint: true,
+				openWorldHint: false,
+			},
+			_meta: { ui: { visibility: ['app'] } },
+		},
+		async ({ canvasId }: { canvasId: string }): Promise<CallToolResult> => {
+			const checkpointId = deps.getCanvasCheckpointId(canvasId)
+			if (!checkpointId) {
+				return {
+					content: [
+						{ type: 'text', text: JSON.stringify({ shapes: [], assets: [], bindings: [] }) },
+					],
+				}
+			}
+			const checkpoint = deps.loadCheckpoint(checkpointId)
+			if (!checkpoint) {
+				return {
+					content: [
+						{ type: 'text', text: JSON.stringify({ shapes: [], assets: [], bindings: [] }) },
+					],
+				}
+			}
+			const shapes = parseTlShapes(checkpoint.shapes)
+			return {
+				content: [
+					{
+						type: 'text',
+						text: JSON.stringify({
+							checkpointId,
+							shapes,
+							assets: checkpoint.assets,
+							bindings: checkpoint.bindings,
+						}),
+					},
+				],
+			}
 		}
 	)
 
@@ -187,6 +248,7 @@ export function registerTools(
 				shapesJson: z.string(),
 				assetsJson: z.string().optional(),
 				bindingsJson: z.string().optional(),
+				canvasId: z.string().optional(),
 			}),
 			annotations: {
 				readOnlyHint: false,
@@ -201,15 +263,17 @@ export function registerTools(
 			shapesJson,
 			assetsJson,
 			bindingsJson,
+			canvasId,
 		}: {
 			checkpointId: string
 			shapesJson: string
 			assetsJson?: string
 			bindingsJson?: string
+			canvasId?: string
 		}): Promise<CallToolResult> => {
 			try {
 				log(
-					`[tldraw-mcp] save_checkpoint called: checkpointId=${checkpointId}, prev activeCheckpointId=${deps.getActiveCheckpointId()}`
+					`[tldraw-mcp] save_checkpoint called: checkpointId=${checkpointId}, canvasId=${canvasId ?? 'none'}, prev activeCheckpointId=${deps.getActiveCheckpointId()}`
 				)
 				const raw = parseArrayJson(shapesJson, 'shapesJson')
 				const shapes = parseTlShapes(raw)
@@ -217,8 +281,11 @@ export function registerTools(
 				const bindings = bindingsJson ? parseArrayJson(bindingsJson, 'bindingsJson') : []
 				deps.saveCheckpoint(checkpointId, shapes, assets, bindings)
 				deps.setActiveCheckpointId(checkpointId)
+				if (canvasId) {
+					deps.setCanvasCheckpointId(canvasId, checkpointId)
+				}
 				log(
-					`[tldraw-mcp] save_checkpoint done: activeCheckpointId=${deps.getActiveCheckpointId()}, shapes=${shapes.length}, assets=${assets.length}`
+					`[tldraw-mcp] save_checkpoint done: activeCheckpointId=${deps.getActiveCheckpointId()}, canvasId=${canvasId ?? 'none'}, shapes=${shapes.length}, assets=${assets.length}`
 				)
 				return {
 					content: [
@@ -254,7 +321,6 @@ export function registerTools(
 			})
 			let html = await deps.loadWidgetHtml()
 
-			const activeId = deps.getActiveCheckpointId()
 			const sid = deps.getSessionId()
 			const hostName = opts.getClientHostName()
 
@@ -265,15 +331,7 @@ export function registerTools(
 				mcpSessionId: deps.getMcpSessionId(),
 				methodMap: await deps.loadMethodMap(),
 			}
-			if (activeId) {
-				const checkpoint = deps.loadCheckpoint(activeId)
-				if (checkpoint) {
-					bootstrap.checkpointId = activeId
-					bootstrap.shapes = parseTlShapes(checkpoint.shapes)
-					bootstrap.assets = checkpoint.assets
-					bootstrap.bindings = checkpoint.bindings
-				}
-			}
+
 			html = injectBootstrapData(html, bootstrap)
 
 			const domain = await getWidgetDomain(hostName, opts.isDev, opts.workerOrigin)
