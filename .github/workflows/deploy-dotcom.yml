@@ -52,7 +52,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/production" ]]; then
-            echo "DEPLOY_ZERO=flyio-multinode" >> $GITHUB_ENV
+            echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
           elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "DEPLOY_ZERO=flyio-multinode" >> $GITHUB_ENV
           elif echo "${{ toJSON(github.event.pull_request.labels.*.name) }}" | grep -q "preview-flyio-zero-deploy-please"; then
@@ -200,3 +200,5 @@ jobs:
           ZERO_R2_BUCKET_NAME: ${{ secrets.ZERO_R2_BUCKET_NAME }}
           ZERO_R2_ACCESS_KEY_ID: ${{ secrets.ZERO_R2_ACCESS_KEY_ID }}
           ZERO_R2_SECRET_ACCESS_KEY: ${{ secrets.ZERO_R2_SECRET_ACCESS_KEY }}
+          ZERO_OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.ZERO_OTEL_EXPORTER_OTLP_ENDPOINT }}
+          ZERO_OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.ZERO_OTEL_EXPORTER_OTLP_HEADERS }}

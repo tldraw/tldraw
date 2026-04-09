@@ -1,6 +1,7 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
+import { DefaultPeopleMenu } from './lib/ui/components/SharePanel/DefaultPeopleMenu'
 export { getPointsFromDrawSegment, getPointsFromDrawSegments } from './lib/shapes/draw/getPath'
 export {
 	PathBuilder,
@@ -506,7 +507,30 @@ export {
 } from './lib/ui/components/QuickActions/DefaultQuickActions'
 export { DefaultQuickActionsContent } from './lib/ui/components/QuickActions/DefaultQuickActionsContent'
 export { DefaultSharePanel } from './lib/ui/components/SharePanel/DefaultSharePanel'
-export { PeopleMenu, type PeopleMenuProps } from './lib/ui/components/SharePanel/PeopleMenu'
+export {
+	DefaultPeopleMenu,
+	type DefaultPeopleMenuProps,
+	// legacy
+	DefaultPeopleMenu as PeopleMenu,
+	type DefaultPeopleMenuProps as PeopleMenuProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenu'
+export {
+	DefaultPeopleMenuContent,
+	type DefaultPeopleMenuContentProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuContent'
+export {
+	DefaultPeopleMenuFacePile,
+	type TLUiPeopleMenuFacePileProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuFacePile'
+export {
+	type TLUiPeopleMenuAvatarProps,
+	DefaultPeopleMenuAvatar,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuAvatar'
+export {
+	type TLUiPeopleMenuItemProps,
+	DefaultPeopleMenuItem,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuItem'
+export { DefaultUserPresenceEditor } from './lib/ui/components/SharePanel/DefaultUserPresenceEditor'
 export { Spinner } from './lib/ui/components/Spinner'
 export {
 	DefaultStylePanel,

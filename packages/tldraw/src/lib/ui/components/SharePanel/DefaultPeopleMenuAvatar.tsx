@@ -1,13 +1,18 @@
 import { usePresence } from '@tldraw/editor'
 
-export function PeopleMenuAvatar({ userId }: { userId: string }) {
+/** @public */
+export interface TLUiPeopleMenuAvatarProps {
+	userId: string
+}
+
+/** @public @react */
+export function DefaultPeopleMenuAvatar({ userId }: TLUiPeopleMenuAvatarProps) {
 	const presence = usePresence(userId)
 
 	if (!presence) return null
 	return (
 		<div
 			className="tlui-people-menu__avatar"
-			key={userId}
 			style={{
 				backgroundColor: presence.color,
 			}}
