@@ -107,6 +107,7 @@ export function shouldUseProperZero(
 	flags: FeatureFlags,
 	email?: string | null
 ): { value: boolean; reason: string } {
+	return { value: false, reason: 'test' }
 	if (flags.zero_kill_switch?.enabled) {
 		return { value: false, reason: 'kill switch active' }
 	}
