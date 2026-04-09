@@ -142,7 +142,7 @@ describe('replicatorMigrations', () => {
 			await migrate(sqlStorage as any, logger as any)
 
 			migrations = sqlStorage.exec('SELECT id FROM migrations ORDER BY id').toArray()
-			expect(migrations).toHaveLength(8) // All migrations should be applied
+			expect(migrations).toHaveLength(9) // All migrations should be applied
 
 			// Should not duplicate existing migrations
 			const migrationCounts = sqlStorage
