@@ -12,21 +12,22 @@ The server runs in Cloudflare Workers via `src/worker.ts`, using a Durable Objec
 
 It exposes:
 
-- `search` — query the extracted Editor API spec in a sandboxed worker
-- `exec` — execute JavaScript against the live editor in the widget
-- `save_checkpoint` / `read_checkpoint` — app-only support tools used by the widget
+- `search` — query the extracted Editor API spec in a sandboxed dynamic worker
+- `exec` — execute JavaScript against the live editor in the widget via a pending-request callback bridge
+- `_exec_callback` — app-only tool the widget calls to resolve a pending `exec` request
+- `save_checkpoint` / `read_checkpoint` — app-only tools used by the widget for checkpoint persistence
 
 ### Widget
 
 The widget is a React app (`src/widget/mcp-app.tsx`) that renders a full tldraw canvas inside the MCP host's iframe.
 
-The widget executes `exec` code against the live editor, syncs the resulting canvas state back to the server, and keeps the model context updated with raw `TLShape`, asset, and binding data.
+When the AI calls `exec`, the server creates a pending request and the widget picks it up, runs the code through a focused editor proxy (`src/widget/focused/`) that translates between an AI-friendly shape format (simple string IDs, flat `_type` shapes) and tldraw's internal `TLShape`/`TLShapeId` types, then calls `_exec_callback` to resolve the pending request with the result. Canvas state is checkpointed to the Durable Object's SQLite database and to the browser's local storage.
 
 ## Developing
 
 ### Prerequisites
 
-The widget build depends on generated files (`editor-api.json`, `generated-method-map.ts`) that are extracted from the editor's TypeScript declarations. Before you can develop or build the mcp-app, you need to build the core packages first:
+The widget build depends on generated files (`editor-api.json`, `method-map.json`) that are extracted from the editor's TypeScript declarations. Before you can develop or build the mcp-app, you need to build the core packages first:
 
 ```bash
 # from the repo root
