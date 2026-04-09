@@ -29,14 +29,23 @@ export function avoidObstaclesReroute(
 	// If the user has manually dragged the midpoint handle, let the normal elbow router handle it.
 	if (arrow.props.elbowMidPoint !== 0.5) return
 
-	const { obstacles, obstacleIds } = gatherObstacles(editor, arrow, padding, bindings)
+	// Compute the arrow's route bounding box so we only consider nearby obstacles.
+	const routeBounds = Box.FromPoints(route.points)
+	// Expand generously so obstacles approaching the route trigger rerouting before
+	// they actually intersect. This is the "influence zone" of the arrow.
+	const influenceMargin = padding * 4
+	const influenceBounds = routeBounds.clone().expandBy(influenceMargin)
+
+	const { obstacles, obstacleIds } = gatherObstacles(
+		editor,
+		arrow,
+		padding,
+		bindings,
+		influenceBounds
+	)
 	if (obstacles.length === 0) return
 
-	// Create reactive deps on all gathered obstacles so we recompute when any changes.
-	for (const id of obstacleIds) {
-		editor.getShape(id)
-	}
-
+	// Check if any obstacle actually intersects the current route.
 	let hasIntersection = false
 	for (const obs of obstacles) {
 		if (routeIntersectsObstacle(route.points, obs)) {
@@ -44,7 +53,23 @@ export function avoidObstaclesReroute(
 			break
 		}
 	}
-	if (!hasIntersection) return
+
+	// Create reactive deps only on obstacles that intersect OR are very close to
+	// the route. Distant shapes won't trigger recomputation.
+	if (!hasIntersection) {
+		// No intersection — only track nearby obstacles so we detect if they move
+		// into the path. Skip the expensive A* entirely.
+		for (const id of obstacleIds) {
+			editor.getShape(id)
+		}
+		return
+	}
+
+	// Track all obstacles within the influence zone (not just intersecting ones)
+	// so that moving any nearby obstacle triggers a reroute.
+	for (const id of obstacleIds) {
+		editor.getShape(id)
+	}
 
 	const boundBoxes = gatherBoundShapeBoxes(editor, arrow, bindings)
 	if (boundBoxes.length < 2) return
@@ -379,7 +404,8 @@ function gatherObstacles(
 	editor: Editor,
 	arrow: TLArrowShape,
 	padding: number,
-	bindings: TLArrowBindings
+	bindings: TLArrowBindings,
+	influenceBounds: Box
 ): { obstacles: Box[]; obstacleIds: TLShapeId[] } {
 	const excludeIds = new Set<TLShapeId>()
 	excludeIds.add(arrow.id)
@@ -406,13 +432,23 @@ function gatherObstacles(
 
 		const pageBounds = Mat.applyToBounds(editor.getShapePageTransform(id), new Box(0, 0, w, h))
 		const arrowBounds = Mat.applyToBounds(pageToArrow, pageBounds)
-		obstacles.push(arrowBounds.expandBy(padding))
+
+		// Only include obstacles within the arrow's influence zone.
+		// This prevents distant shapes from triggering rerouting.
+		const paddedBounds = arrowBounds.clone().expandBy(padding)
+		if (!boxesOverlap(influenceBounds, paddedBounds)) continue
+
+		obstacles.push(paddedBounds)
 		obstacleIds.push(shape.id)
 
 		if (obstacles.length >= MAX_OBSTACLES) break
 	}
 
 	return { obstacles, obstacleIds }
+}
+
+function boxesOverlap(a: Box, b: Box): boolean {
+	return a.minX < b.maxX && a.maxX > b.minX && a.minY < b.maxY && a.maxY > b.minY
 }
 
 function gatherBoundShapeBoxes(
