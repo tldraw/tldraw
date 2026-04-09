@@ -16,6 +16,7 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import './mcp-app.css'
 import tldrawLogoUrl from '../../plugins/tldraw-mcp/assets/logo.svg'
 import { primeEmbeddedMethodMap } from '../shared/generated-data'
 import {
@@ -28,7 +29,7 @@ import {
 import type { MCP_APP_HOST_NAMES } from '../shared/types'
 import { isHostCodeEditor, resolveMcpAppHostNameFromClientInfo } from '../shared/utils'
 import { McpAppContext } from './app-context'
-import { DEV_LOG_PANEL_GAP, DEV_LOG_PANEL_HEIGHT, DevLogPanel, useDevLog } from './dev-log'
+import { DEV_LOG_PANEL_HEIGHT, DevLogPanel, useDevLog } from './dev-log'
 import { executeCode } from './exec-helpers'
 import { exportTldr } from './export-tldr'
 import { ImageDropGuard, uiOverrides } from './image-guard'
@@ -49,7 +50,6 @@ import { applySnapshot, zoomToFitRequestShapes } from './snapshot'
 
 const LICENSE_KEY = import.meta.env.VITE_TLDRAW_LICENSE_KEY as string
 
-const EDITOR_HEIGHT = 600
 const SAVE_DEBOUNCE_MS = 500
 
 function SharePanelContent() {
@@ -92,7 +92,7 @@ function SharePanelContent() {
 	}, [app, lastEditor])
 
 	return (
-		<div className="tlui-share-zone" draggable={false} style={{ display: 'flex', gap: 4 }}>
+		<div className="tlui-share-zone mcp-app__share-zone" draggable={false}>
 			{canDownload && (
 				<button
 					className="tlui-button tlui-button__low"
@@ -125,21 +125,7 @@ function SharePanelContent() {
 					onClick={handleBuildItClick}
 					disabled={!hasShapes}
 					title="Build it"
-					style={{
-						flex: '0 0 auto',
-						position: 'relative',
-						boxSizing: 'border-box',
-						background: hasShapes ? 'var(--tl-color-primary)' : 'var(--tl-color-muted-2)',
-						color: hasShapes ? 'white' : 'var(--tl-color-muted-1)',
-						border: 'var(--tl-color-background)',
-						font: 'inherit',
-						fontWeight: 600,
-						padding: 'var(--tl-space-3) var(--tl-space-4)',
-						borderRadius: 'var(--tl-radius-2)',
-						margin: 'var(--tl-space-2)',
-						cursor: hasShapes ? 'pointer' : 'not-allowed',
-						pointerEvents: 'all',
-					}}
+					className={`mcp-app__build-button${hasShapes ? ' mcp-app__build-button--enabled' : ''}`}
 				>
 					Build it
 				</button>
@@ -248,10 +234,6 @@ function TldrawCanvas({ app }: { app: App }) {
 
 	const [hostName, setHostName] = useState<MCP_APP_HOST_NAMES | null>(null)
 	const devLogPanelHeight = isDev && isDevLogVisible ? DEV_LOG_PANEL_HEIGHT : 0
-	const inlineCanvasHeight =
-		devLogPanelHeight > 0
-			? Math.max(EDITOR_HEIGHT - devLogPanelHeight - DEV_LOG_PANEL_GAP, 240)
-			: EDITOR_HEIGHT
 
 	useEffect(() => {
 		const resolved = resolveMcpAppHostNameFromClientInfo(hostInfo?.name ?? '')
@@ -392,7 +374,7 @@ function TldrawCanvas({ app }: { app: App }) {
 				`Bootstrap loaded for session ${bootstrap.sessionId}${bootstrap.isDev ? ' (dev mode)' : ''}`
 			)
 
-			if (bootstrap.snapshot && bootstrap.snapshot.shapes.length > 0) {
+			if (bootstrap.snapshot) {
 				if (committedSnapshotRef.current.shapes.length === 0) {
 					const snapshot: CanvasSnapshot = {
 						shapes: bootstrap.snapshot.shapes,
@@ -415,11 +397,7 @@ function TldrawCanvas({ app }: { app: App }) {
 				}
 			} else {
 				const latestSnapshot = getLatestCheckpointSnapshot()
-				if (
-					latestSnapshot &&
-					latestSnapshot.shapes.length > 0 &&
-					committedSnapshotRef.current.shapes.length === 0
-				) {
+				if (latestSnapshot && committedSnapshotRef.current.shapes.length === 0) {
 					logIfDevMode(
 						`Restored latest local snapshot with ${latestSnapshot.shapes.length} shape(s)`
 					)
@@ -711,40 +689,16 @@ function TldrawCanvas({ app }: { app: App }) {
 
 	if (execError) {
 		return (
-			<div
-				style={{
-					width: '100%',
-					height: ERROR_BANNER_HEIGHT,
-					display: 'flex',
-					alignItems: 'center',
-					color: isDarkTheme ? '#f0f0f0' : '#2e2e2e',
-					fontSize: 12,
-					lineHeight: 1.4,
-					marginLeft: -12,
-					marginTop: -1,
-					gap: 10,
-				}}
-			>
+			<div className={`mcp-app__error-banner${isDarkTheme ? ' mcp-app__error-banner--dark' : ''}`}>
 				<img
 					src={tldrawLogoUrl}
 					alt="tldraw logo"
-					style={{
-						width: 16,
-						height: 16,
-						filter: isDarkTheme ? 'none' : 'brightness(0) saturate(100%)',
-					}}
+					className={`mcp-app__error-logo${isDarkTheme ? ' mcp-app__error-logo--dark' : ''}`}
 				/>
-				<span style={{ fontWeight: 500 }}>Error editing canvas:</span>
+				<span className="mcp-app__error-label">Error editing canvas:</span>
 				<span
 					title={execError}
-					style={{
-						flex: 1,
-						overflow: 'hidden',
-						textOverflow: 'ellipsis',
-						whiteSpace: 'nowrap',
-						color: isDarkTheme ? '#bdbdbd' : '#5f5f5f',
-						fontWeight: 400,
-					}}
+					className={`mcp-app__error-message${isDarkTheme ? ' mcp-app__error-message--dark' : ''}`}
 				>
 					{execError}
 				</span>
@@ -757,42 +711,10 @@ function TldrawCanvas({ app }: { app: App }) {
 	return (
 		<McpAppContext.Provider value={mcpAppCtx}>
 			<div
-				style={
-					isFullscreen
-						? {
-								position: 'fixed',
-								top: 0,
-								left: 0,
-								right: 0,
-								bottom: 0,
-								zIndex: 9999,
-								background: '#fff',
-								display: 'flex',
-								flexDirection: 'column',
-							}
-						: {
-								width: '100%',
-								display: 'flex',
-								flexDirection: 'column',
-								height: EDITOR_HEIGHT,
-								gap: DEV_LOG_PANEL_GAP,
-							}
-				}
+				className={`mcp-app__canvas-layout${isFullscreen ? ' mcp-app__canvas-layout--fullscreen' : ''}`}
 			>
 				<div
-					style={
-						isFullscreen
-							? {
-									position: 'relative',
-									flex: 1,
-									minHeight: 0,
-								}
-							: {
-									width: '100%',
-									height: inlineCanvasHeight,
-									position: 'relative',
-								}
-					}
+					className={`mcp-app__canvas-surface${isFullscreen ? ' mcp-app__canvas-surface--fullscreen' : ''}${devLogPanelHeight > 0 && !isFullscreen ? ' mcp-app__canvas-surface--with-dev-log' : ''}`}
 				>
 					<Tldraw
 						licenseKey={LICENSE_KEY}
@@ -831,9 +753,9 @@ function McpApp() {
 	return (
 		<div>
 			{error ? (
-				<div style={{ padding: 20, color: 'red' }}>Error: {error.message}</div>
+				<div className="mcp-app__status mcp-app__status--error">Error: {error.message}</div>
 			) : !isConnected || !app ? (
-				<div style={{ padding: 20, opacity: 0.5 }}>Status: {status}</div>
+				<div className="mcp-app__status mcp-app__status--connecting">Status: {status}</div>
 			) : (
 				<TldrawCanvas app={app} />
 			)}

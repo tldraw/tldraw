@@ -255,17 +255,22 @@ export default {
 
 			// Streamable HTTP transport
 			if (url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) {
-				// Rate limit by MCP session (POST without session ID is the initial handshake)
 				const sessionId = request.headers.get('mcp-session-id')
+				const forwardedFor = request.headers.get('x-forwarded-for')
+				const clientIp =
+					request.headers.get('cf-connecting-ip') ?? forwardedFor?.split(',')[0]?.trim()
+				const rateLimitKey = sessionId
+					? `mcp-session:${sessionId}`
+					: `mcp-ip:${clientIp ?? 'unknown'}`
+
+				const { success } = await env.RATE_LIMITER.limit({ key: rateLimitKey })
+				if (!success) {
+					return corsResponse(new Response('Rate limited', { status: 429 }))
+				}
+
+				// POST without a session ID is the initial handshake.
 				if (!sessionId && request.method !== 'POST') {
 					return corsResponse(new Response('Missing session', { status: 400 }))
-				}
-				if (sessionId) {
-					const { success } = await env.RATE_LIMITER.limit({ key: sessionId })
-
-					if (!success) {
-						return corsResponse(new Response('Rate limited', { status: 429 }))
-					}
 				}
 				return mcpHandler.fetch(request, env, ctx)
 			}

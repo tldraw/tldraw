@@ -115,11 +115,15 @@ export function registerTools(
 			result,
 			error,
 		}: z.infer<typeof execCallbackSchema>): Promise<CallToolResult> => {
-			if (error) {
-				opts.pendingRequests.reject(channel, error)
-			} else {
-				opts.pendingRequests.resolve(channel, result)
+			const handled = error
+				? opts.pendingRequests.reject(channel, error)
+				: opts.pendingRequests.resolve(channel, result)
+
+			if (!handled) {
+				log(`[tldraw-mcp] Ignoring exec callback for non-pending channel "${channel}"`)
+				return { content: [{ type: 'text', text: 'ignored' }] }
 			}
+
 			return { content: [{ type: 'text', text: 'ok' }] }
 		}
 	)

@@ -33,18 +33,20 @@ function parseSnapshotData(
 			(s: unknown): s is TLShape =>
 				isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
 		)
-		return shapes.length > 0 ? { shapes, assets: [], bindings: [] } : null
+		if (parsed.length > 0 && shapes.length === 0) return null
+		return { shapes, assets: [], bindings: [] }
 	}
-	if (!isPlainObject(parsed)) return null
-	const shapes = (Array.isArray(parsed.shapes) ? parsed.shapes : []).filter(
+	if (!isPlainObject(parsed) || !Array.isArray(parsed.shapes)) return null
+	const shapes = parsed.shapes.filter(
 		(s: unknown): s is TLShape =>
 			isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
 	)
+	if (parsed.shapes.length > 0 && shapes.length === 0) return null
 	const assets = (Array.isArray(parsed.assets) ? parsed.assets : []).filter(
 		(a: unknown): a is TLAsset => isPlainObject(a) && typeof a.id === 'string'
 	)
 	const bindings = (Array.isArray(parsed.bindings) ? parsed.bindings : []) as TLBindingCreate[]
-	return shapes.length > 0 ? { shapes, assets, bindings } : null
+	return { shapes, assets, bindings }
 }
 
 export function loadLocalSnapshot(
@@ -124,7 +126,7 @@ export function getEmbeddedBootstrap(): {
 	const mcpSessionId = typeof data.mcpSessionId === 'string' ? data.mcpSessionId : undefined
 
 	let snapshot: CanvasSnapshot | undefined
-	if (Array.isArray(data.shapes) && data.shapes.length > 0) {
+	if (Array.isArray(data.shapes)) {
 		const shapes = data.shapes.filter(
 			(s: unknown): s is TLShape =>
 				isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
@@ -133,7 +135,7 @@ export function getEmbeddedBootstrap(): {
 			(a: unknown): a is TLAsset => isPlainObject(a) && typeof a.id === 'string'
 		)
 		const bindings = (Array.isArray(data.bindings) ? data.bindings : []) as TLBindingCreate[]
-		if (shapes.length > 0) {
+		if (data.shapes.length === 0 || shapes.length > 0) {
 			snapshot = { shapes, assets, bindings }
 		}
 	}
