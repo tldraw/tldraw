@@ -26,6 +26,13 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 
 	const cssFiles = glob.sync(path.join(sourcePackageDir, '*.css'))
 
+	// Include DOCS.md in the published tarball when present. npm auto-includes
+	// README.md and LICENSE but not DOCS.md, so we have to add it explicitly.
+	const extraFiles: string[] = []
+	if (existsSync(path.join(sourcePackageDir, 'DOCS.md'))) {
+		extraFiles.push('DOCS.md')
+	}
+
 	// construct the final package.json
 	// eslint-disable-next-line no-restricted-globals
 	const newManifest = structuredClone({
@@ -45,7 +52,7 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 				cssFiles.map((file) => [`./${path.basename(file)}`, `./${path.basename(file)}`])
 			),
 		},
-		files: [...(manifest.files ?? []), 'dist-esm', 'dist-cjs', 'src'],
+		files: [...(manifest.files ?? []), 'dist-esm', 'dist-cjs', 'src', ...extraFiles],
 		type: undefined,
 	})
 	writeFileSync(

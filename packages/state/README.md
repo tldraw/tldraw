@@ -4,6 +4,10 @@
 
 `@tldraw/state` powers the reactive system at the heart of [tldraw](https://www.tldraw.com), handling everything from canvas updates to collaborative state synchronization. It's designed to work seamlessly with [@tldraw/store](https://github.com/tldraw/tldraw/tree/main/packages/store) and has optional [React bindings](https://github.com/tldraw/tldraw/tree/main/packages/state-react).
 
+## Documentation
+
+A `DOCS.md` file is included alongside this README in the published package, with detailed API documentation and usage examples.
+
 ## Why @tldraw/state?
 
 - **Fine-grained reactivity** - Only re-runs computations when their actual dependencies change
