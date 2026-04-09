@@ -852,8 +852,6 @@ export interface TLArrowShapeProps {
     // (undocumented)
     arrowheadStart: TLArrowShapeArrowheadStyle;
     // (undocumented)
-    avoidObstacles: boolean;
-    // (undocumented)
     bend: number;
     // (undocumented)
     color: TLDefaultColorStyle;

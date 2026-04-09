@@ -131,6 +131,8 @@ export {
 	type ElbowArrowOptions,
 	type ElbowArrowRange,
 	type ElbowArrowRoute,
+	type ElbowArrowRouterContext,
+	type ElbowArrowRouterResult,
 	type ElbowArrowSide,
 	type ElbowArrowSideReason,
 	type ElbowArrowTargetBox,

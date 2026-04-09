@@ -18,7 +18,6 @@ import {
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { BOUND_ARROW_OFFSET, TLArrowBindings } from '../shared'
-import { avoidObstaclesReroute } from './avoidObstacles'
 import {
 	ElbowArrowAxes,
 	ElbowArrowBox,
@@ -255,48 +254,81 @@ export function getElbowArrowInfo(
 		midY: my,
 	}
 
-	// We wrap the info in a working info object that lets us mutate and reset it as needed.
-	const workingInfo = new ElbowArrowWorkingInfo(info)
+	// Compute the default route lazily — the router callback may or may not need it.
+	// Compute the default route lazily — the router callback may or may not need it.
+	let defaultRouteComputed = false
+	let defaultRouteResult: ElbowArrowRoute | null = null
+	function computeDefaultRoute(): ElbowArrowRoute | null {
+		if (defaultRouteComputed) return defaultRouteResult
+		defaultRouteComputed = true
 
-	// Figure out the final sides to use for each terminal.
-	const aSide = getSideToUse(aTerminal, bTerminal, info.A.edges)
-	const bSide = getSideToUse(bTerminal, aTerminal, info.B.edges)
+		const workingInfo = new ElbowArrowWorkingInfo(info)
+		const aSide = getSideToUse(aTerminal, bTerminal, info.A.edges)
+		const bSide = getSideToUse(bTerminal, aTerminal, info.B.edges)
 
-	// try to find a route with the specification we have:
-	let route
-	if (aSide && bSide) {
-		route = routeArrowWithManualEdgePicking(workingInfo, aSide, bSide)
-	} else if (aSide && !bSide) {
-		route = routeArrowWithPartialEdgePicking(workingInfo, aSide)
-	}
-	if (!route) {
-		route = routeArrowWithAutoEdgePicking(workingInfo, aSide || bSide ? 'fallback' : 'auto')
-	}
-
-	if (route) {
-		// If avoidObstacles is enabled, reroute around intervening shapes.
-		// This runs BEFORE geometry casting. The output has axis-aligned exit/entry
-		// legs that satisfy castPathSegmentIntoGeometry's constraints.
-		if (arrow.props.avoidObstacles) {
-			avoidObstaclesReroute(editor, arrow, route, options.avoidObstaclesPadding, bindings)
+		let result: ElbowArrowRoute | null | undefined
+		if (aSide && bSide) {
+			result = routeArrowWithManualEdgePicking(workingInfo, aSide, bSide)
+		} else if (aSide && !bSide) {
+			result = routeArrowWithPartialEdgePicking(workingInfo, aSide)
 		}
-
-		if (route.avoidObstaclesRerouted) {
-			// Compute a midpoint handle for the rerouted path so the user can drag it.
-			// Dragging changes elbowMidPoint from 0.5, which disables obstacle avoidance.
-			route.midpointHandle = computeReroutedMidpointHandle(route.points, mxRange, myRange)
+		if (!result) {
+			result = routeArrowWithAutoEdgePicking(workingInfo, aSide || bSide ? 'fallback' : 'auto')
 		}
+		defaultRouteResult = result ?? null
+		return defaultRouteResult
+	}
 
-		if (!route.avoidObstaclesRerouted) {
-			// Cast endpoints to actual shape geometry and apply arrowhead offsets.
-			// Skipped for avoidObstacles paths because the ray-cast through target.target
-			// creates diagonals when target.target is off-center from the exit leg axis.
+	function measureManhattanPath(points: VecLike[]): number {
+		let d = 0
+		for (let i = 0; i < points.length - 1; i++) {
+			d += Math.abs(points[i + 1].x - points[i].x) + Math.abs(points[i + 1].y - points[i].y)
+		}
+		return d
+	}
+
+	// Invoke the pluggable router if configured.
+	const routerResult = shapeOptions.elbowRouter?.({
+		editor,
+		arrow,
+		bindings,
+		info,
+		computeDefaultRoute,
+	})
+
+	let route: ElbowArrowRoute | null
+	if (routerResult) {
+		// Router provided custom points — build a route from them.
+		route = computeDefaultRoute() ?? {
+			name: 'custom-router',
+			points: [],
+			distance: 0,
+			aEdgePicking: 'auto',
+			bEdgePicking: 'auto',
+			skipPointsWhenDrawing: new Set(),
+			midpointHandle: null,
+		}
+		route.points = routerResult.points
+		route.distance = measureManhattanPath(routerResult.points)
+		route.midpointHandle = computeReroutedMidpointHandle(route.points, mxRange, myRange)
+
+		if (!routerResult.skipGeometryCasting) {
 			castPathSegmentIntoGeometry('first', info.A, info.B, route)
 			castPathSegmentIntoGeometry('last', info.B, info.A, route)
 			fixTinyEndNubs(route, aTerminal, bTerminal)
 		}
+	} else {
+		// No custom router — use default routing with standard post-processing.
+		route = computeDefaultRoute()
+		if (route) {
+			castPathSegmentIntoGeometry('first', info.A, info.B, route)
+			castPathSegmentIntoGeometry('last', info.B, info.A, route)
+			fixTinyEndNubs(route, aTerminal, bTerminal)
+		}
+	}
 
-		// If we swapped the order way back of the start of things, we need to reverse the route so
+	if (route) {
+		// If we swapped the order way back at the start of things, we need to reverse the route so
 		// it flows start -> end instead of A -> B.
 		if (swapOrder) route.points.reverse()
 	}

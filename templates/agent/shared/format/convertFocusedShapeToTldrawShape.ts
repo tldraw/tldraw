@@ -397,7 +397,6 @@ function convertArrowShapeToTldrawShape(
 			scale: defaultArrowShape.props?.scale ?? 1,
 			size: defaultArrowShape.props?.size ?? 's',
 			start: { x: x1 - minX, y: y1 - minY },
-			avoidObstacles: defaultArrowShape.props?.avoidObstacles ?? false,
 		},
 		meta: {
 			note: focusedShape.note ?? defaultArrowShape.meta?.note ?? '',

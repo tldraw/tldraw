@@ -6,7 +6,12 @@ import {
 	VecLike,
 } from '@tldraw/editor'
 import { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
-import { ElbowArrowInfo, ElbowArrowRoute } from './elbow/definitions'
+import {
+	ElbowArrowInfo,
+	ElbowArrowRoute,
+	ElbowArrowRouterContext,
+	ElbowArrowRouterResult,
+} from './elbow/definitions'
 import { TLArrowBindings } from './shared'
 
 /** @public */
@@ -126,6 +131,27 @@ export interface ArrowShapeOptions extends ShapeOptionsWithDisplayValues<
 	readonly avoidObstaclesPadding: Record<TLDefaultSizeStyle, number>
 	/** Whether to show the outline of the arrow shape's label (using the same color as the canvas). This helps with overlapping shapes. It does not show up on Safari, where text outline is a performance issues. */
 	readonly showTextOutline: boolean
+
+	/**
+	 * Custom router for elbow arrows. Called during route computation. Return
+	 * an {@link ElbowArrowRouterResult} to replace the route, or `null` to use the default.
+	 *
+	 * Use {@link ElbowArrowRouterContext.computeDefaultRoute} to lazily get the default route
+	 * if your router wants to post-process it (e.g. obstacle avoidance). Skip it if your router
+	 * provides its own points (e.g. custom waypoints).
+	 *
+	 * @example
+	 * ```tsx
+	 * ArrowShapeUtil.configure({
+	 *   elbowRouter(ctx) {
+	 *     const waypoints = ctx.arrow.meta?.waypoints as Vec[] | undefined
+	 *     if (!waypoints) return null
+	 *     return { points: waypoints, skipGeometryCasting: true }
+	 *   }
+	 * })
+	 * ```
+	 */
+	elbowRouter?(ctx: ElbowArrowRouterContext): ElbowArrowRouterResult | null
 }
 
 /** @public */

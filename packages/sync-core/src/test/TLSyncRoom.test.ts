@@ -87,7 +87,6 @@ const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
 		font: 'draw',
 		labelPosition: 0.5,
 		scale: 1,
-		avoidObstacles: false,
 	},
 	meta: {},
 }
@@ -1292,7 +1291,6 @@ describe('Migration and patch handling', () => {
 				font: 'draw',
 				labelPosition: 0.5,
 				scale: 1,
-				avoidObstacles: false,
 			},
 			meta: {},
 		}

@@ -2,7 +2,6 @@ import React, { useCallback, useRef, useState } from 'react'
 import {
 	createShapeId,
 	Editor,
-	TLArrowShape,
 	TLEditorComponents,
 	TLShapeId,
 	Tldraw,
@@ -21,13 +20,7 @@ function nextId(prefix = 'edge-case') {
 	return createShapeId(`${prefix}-${_nextId++}`)
 }
 
-function createArrowBetween(
-	editor: Editor,
-	startId: TLShapeId,
-	endId: TLShapeId,
-	opts?: { avoidObstacles?: boolean }
-) {
-	const avoidObstacles = opts?.avoidObstacles ?? true
+function createArrowBetween(editor: Editor, startId: TLShapeId, endId: TLShapeId) {
 	const startBounds = editor.getShapePageBounds(startId)
 	const endBounds = editor.getShapePageBounds(endId)
 	if (!startBounds || !endBounds) return
@@ -45,12 +38,6 @@ function createArrowBetween(
 			start: { x: 0, y: 0 },
 			end: { x: 10, y: 10 },
 		},
-	})
-	// Set avoidObstacles separately — createShape's strict types don't include it
-	editor.updateShape<TLArrowShape>({
-		id: arrowId,
-		type: 'arrow',
-		props: { avoidObstacles },
 	})
 	editor.createBindings([
 		{
@@ -409,8 +396,8 @@ const SCENARIOS: Scenario[] = [
 				},
 				{ id: b, type: 'geo', x: ox + 280, y: oy, props: { w: 80, h: 80, geo: 'rectangle' } },
 			])
-			createArrowBetween(editor, a, b, { avoidObstacles: true })
-			createArrowBetween(editor, a, b, { avoidObstacles: false })
+			createArrowBetween(editor, a, b)
+			createArrowBetween(editor, a, b)
 		},
 	},
 ]
@@ -533,32 +520,6 @@ function Controls({
 }) {
 	const editor = useEditor()
 
-	const enableAll = useCallback(() => {
-		const arrows = editor
-			.getCurrentPageShapes()
-			.filter((s): s is TLArrowShape => s.type === 'arrow')
-		for (const arrow of arrows) {
-			editor.updateShape<TLArrowShape>({
-				id: arrow.id,
-				type: 'arrow',
-				props: { avoidObstacles: true, kind: 'elbow' },
-			})
-		}
-	}, [editor])
-
-	const disableAll = useCallback(() => {
-		const arrows = editor
-			.getCurrentPageShapes()
-			.filter((s): s is TLArrowShape => s.type === 'arrow')
-		for (const arrow of arrows) {
-			editor.updateShape<TLArrowShape>({
-				id: arrow.id,
-				type: 'arrow',
-				props: { avoidObstacles: false },
-			})
-		}
-	}, [editor])
-
 	return (
 		<div
 			style={{
@@ -580,14 +541,6 @@ function Controls({
 			}}
 		>
 			<div style={{ fontWeight: 'bold', fontSize: 13, marginBottom: 4 }}>Edge cases</div>
-			<div style={{ display: 'flex', gap: 4 }}>
-				<button onClick={enableAll} style={btnStyle}>
-					Enable all
-				</button>
-				<button onClick={disableAll} style={btnStyle}>
-					Disable all
-				</button>
-			</div>
 			<label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
 				<input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} />
 				Show debug grid
@@ -630,7 +583,7 @@ export default function ArrowObstacleAvoidanceEdgeCasesExample() {
 			if (shape.type === 'arrow') {
 				return {
 					...shape,
-					props: { ...shape.props, avoidObstacles: true, kind: 'elbow' },
+					props: { ...shape.props, kind: 'elbow' },
 				}
 			}
 			return shape
