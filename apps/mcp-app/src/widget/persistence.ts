@@ -1,9 +1,8 @@
 import type { App } from '@modelcontextprotocol/ext-apps/react'
 import { Editor, structuredClone } from 'tldraw'
 import type { TLAsset, TLBindingCreate, TLShape } from 'tldraw'
-import { convertTldrawRecordToFocusedShape } from '../focused-shape-converters'
-import type { FocusedShape } from '../focused-shape-schema'
 import { isPlainObject } from '../shared/utils'
+import { convertTldrawShapeToFocusedShape } from './focused/to-focused'
 
 export interface CanvasSnapshot {
 	shapes: TLShape[]
@@ -17,10 +16,6 @@ let currentSessionId: string | null = null
 
 export function setCurrentSessionId(id: string): void {
 	currentSessionId = id
-}
-
-export function getCurrentSessionId(): string | null {
-	return currentSessionId
 }
 
 function localStorageKey(checkpointId: string): string {
@@ -38,18 +33,20 @@ function parseSnapshotData(
 			(s: unknown): s is TLShape =>
 				isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
 		)
-		return shapes.length > 0 ? { shapes, assets: [], bindings: [] } : null
+		if (parsed.length > 0 && shapes.length === 0) return null
+		return { shapes, assets: [], bindings: [] }
 	}
-	if (!isPlainObject(parsed)) return null
-	const shapes = (Array.isArray(parsed.shapes) ? parsed.shapes : []).filter(
+	if (!isPlainObject(parsed) || !Array.isArray(parsed.shapes)) return null
+	const shapes = parsed.shapes.filter(
 		(s: unknown): s is TLShape =>
 			isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
 	)
+	if (parsed.shapes.length > 0 && shapes.length === 0) return null
 	const assets = (Array.isArray(parsed.assets) ? parsed.assets : []).filter(
 		(a: unknown): a is TLAsset => isPlainObject(a) && typeof a.id === 'string'
 	)
 	const bindings = (Array.isArray(parsed.bindings) ? parsed.bindings : []) as TLBindingCreate[]
-	return shapes.length > 0 ? { shapes, assets, bindings } : null
+	return { shapes, assets, bindings }
 }
 
 export function loadLocalSnapshot(
@@ -114,6 +111,8 @@ export function getEmbeddedBootstrap(): {
 	sessionId: string
 	checkpointId?: string
 	isDev: boolean
+	workerOrigin?: string
+	mcpSessionId?: string
 	snapshot?: CanvasSnapshot
 } | null {
 	const data = window.__TLDRAW_BOOTSTRAP__
@@ -123,9 +122,11 @@ export function getEmbeddedBootstrap(): {
 
 	const checkpointId = typeof data.checkpointId === 'string' ? data.checkpointId : undefined
 	const isDev = data.isDev === true
+	const workerOrigin = typeof data.workerOrigin === 'string' ? data.workerOrigin : undefined
+	const mcpSessionId = typeof data.mcpSessionId === 'string' ? data.mcpSessionId : undefined
 
 	let snapshot: CanvasSnapshot | undefined
-	if (Array.isArray(data.shapes) && data.shapes.length > 0) {
+	if (Array.isArray(data.shapes)) {
 		const shapes = data.shapes.filter(
 			(s: unknown): s is TLShape =>
 				isPlainObject(s) && typeof s.id === 'string' && typeof s.type === 'string'
@@ -134,12 +135,12 @@ export function getEmbeddedBootstrap(): {
 			(a: unknown): a is TLAsset => isPlainObject(a) && typeof a.id === 'string'
 		)
 		const bindings = (Array.isArray(data.bindings) ? data.bindings : []) as TLBindingCreate[]
-		if (shapes.length > 0) {
+		if (data.shapes.length === 0 || shapes.length > 0) {
 			snapshot = { shapes, assets, bindings }
 		}
 	}
 
-	return { sessionId, checkpointId, isDev, snapshot }
+	return { sessionId, checkpointId, isDev, workerOrigin, mcpSessionId, snapshot }
 }
 
 // --- Tool result parsing ---
@@ -201,41 +202,65 @@ export function parseCheckpointFromToolResult(result: unknown): CheckpointResult
 	}
 }
 
-// --- Canvas context push ---
+// --- Snapshot capture + sync ---
 
-export function getEditorFocusedShapes(editor: Editor): FocusedShape[] {
-	const shapes: FocusedShape[] = []
-	for (const record of editor.getCurrentPageShapes()) {
-		try {
-			const focused = convertTldrawRecordToFocusedShape(record)
-			// Enrich arrow shapes with binding info from the editor
-			if (focused._type === 'arrow') {
-				const arrowBindings = editor.getBindingsFromShape(record.id, 'arrow')
-				for (const binding of arrowBindings) {
-					const terminal = (binding.props as { terminal?: string }).terminal
-					const targetId = binding.toId.replace(/^shape:/, '')
-					if (terminal === 'start') {
-						focused.fromId = targetId
-					} else if (terminal === 'end') {
-						focused.toId = targetId
-					}
-				}
-			}
-			shapes.push(focused)
-		} catch {
-			// Ignore malformed records.
-		}
+/**
+ * Capture the current editor state as a cloned snapshot.
+ */
+export function captureEditorSnapshot(editor: Editor): CanvasSnapshot {
+	return {
+		shapes: [...editor.getCurrentPageShapes()].map((s) => structuredClone(s)),
+		assets: [...editor.getAssets()].map((a) => structuredClone(a)),
+		bindings: getEditorBindings(editor),
 	}
-	return shapes
 }
 
-export function pushCanvasContext(app: App, editor: Editor) {
-	const focusedShapes = getEditorFocusedShapes(editor)
-	const text =
-		focusedShapes.length > 0
-			? `Current canvas shapes:\n${JSON.stringify(focusedShapes, null, 2)}`
-			: 'Canvas is empty.'
-	app.updateModelContext({ content: [{ type: 'text', text }] })
+/**
+ * Push model context and persist the editor state to localStorage + server.
+ * Returns the captured snapshot so the caller can store it.
+ */
+export function syncEditorState(
+	app: App,
+	editor: Editor,
+	checkpointId: string | null,
+	opts?: { message?: string }
+): CanvasSnapshot {
+	const snapshot = captureEditorSnapshot(editor)
+	pushCanvasContext(app, editor, opts)
+	if (checkpointId) {
+		saveLocalSnapshot(checkpointId, snapshot.shapes, snapshot.assets, snapshot.bindings ?? [])
+		void saveCheckpointToServer(app, checkpointId, editor)
+	}
+	return snapshot
+}
+
+// --- Canvas context push ---
+
+export function pushCanvasContext(app: App, editor: Editor, opts?: { message?: string }) {
+	const shapes = [...editor.getCurrentPageShapes()].map((shape) =>
+		convertTldrawShapeToFocusedShape(editor, shape)
+	)
+
+	const canvasStatus = shapes.length > 0 ? `Current canvas state is attached.` : 'Canvas is empty.'
+
+	const text = opts?.message ? `${opts.message}\n\n${canvasStatus}` : canvasStatus
+
+	void app.updateModelContext({
+		content: [{ type: 'text', text }],
+		structuredContent: {
+			shapes,
+		},
+	})
+}
+
+export function clearCanvasContext(app: App, opts?: { message?: string }) {
+	const text = opts?.message ?? 'Canvas context was cleared.'
+	void app.updateModelContext({
+		content: [{ type: 'text', text }],
+		structuredContent: {
+			shapes: [],
+		},
+	})
 }
 
 export function getEditorBindings(editor: Editor): TLBindingCreate[] {
@@ -256,7 +281,11 @@ export function getEditorBindings(editor: Editor): TLBindingCreate[] {
 	return bindings
 }
 
-export function saveCheckpointToServer(app: App, checkpointId: string, editor: Editor) {
+export async function saveCheckpointToServer(
+	app: App,
+	checkpointId: string,
+	editor: Editor
+): Promise<boolean> {
 	const shapes = [...editor.getCurrentPageShapes()].map((s) => structuredClone(s))
 	const assets = [...editor.getAssets()].map((a) => structuredClone(a))
 	const bindings = getEditorBindings(editor)
@@ -270,12 +299,13 @@ export function saveCheckpointToServer(app: App, checkpointId: string, editor: E
 	if (bindings.length > 0) {
 		args.bindingsJson = JSON.stringify(bindings)
 	}
-	app
-		.callServerTool({
+	try {
+		const result = await app.callServerTool({
 			name: 'save_checkpoint',
 			arguments: args,
 		})
-		.catch(() => {
-			// Best-effort; failure is non-fatal.
-		})
+		return result.isError !== true
+	} catch {
+		return false
+	}
 }
