@@ -169,6 +169,10 @@ const migrations: Migration[] = [
 		// so we need to regenerate the subscription changes for all existing history rows
 		fn: _updateHistorySubscriptions,
 	},
+	{
+		id: '008_add_slot_generation',
+		sql: `ALTER TABLE meta ADD COLUMN slotGeneration INTEGER NOT NULL DEFAULT 0;`,
+	},
 ]
 
 function _updateHistorySubscriptions(sqlite: SqlStorage) {
