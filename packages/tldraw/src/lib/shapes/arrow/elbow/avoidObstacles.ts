@@ -1,40 +1,20 @@
 import { Box, Editor, Mat, TLArrowShape, TLShape, TLShapeId, Vec, VecLike } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { TLArrowBindings } from '../shared'
-import { ElbowArrowRoute } from './definitions'
+import { ElbowArrowRoute, ElbowArrowSide } from './definitions'
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-/** Target cell size in arrow-space pixels. Grid resolution scales with area. */
 const TARGET_CELL_SIZE = 20
-/** Minimum grid resolution per axis */
 const MIN_GRID_SIZE = 16
-/** Maximum grid resolution per axis to cap performance */
 const MAX_GRID_SIZE = 64
-/** Maximum ratio of A* path length to direct distance before we reject */
 const MAX_COST_RATIO = 5
-/** Maximum number of obstacles to consider */
 const MAX_OBSTACLES = 50
-/** Penalty per direction change to minimize bends */
 const TURN_PENALTY = 200
 
-/** Shape types that are NOT treated as obstacles */
 const NON_OBSTACLE_TYPES = new Set(['arrow', 'group', 'draw', 'highlight', 'line'])
-
-// ---------------------------------------------------------------------------
-// Main entry point
-// ---------------------------------------------------------------------------
 
 /**
  * Reroute an elbow arrow around obstacle shapes using grid-based A* pathfinding.
- *
- * Runs after the elbow router computes its initial route, but BEFORE
- * castPathSegmentIntoGeometry and fixTinyEndNubs. The output satisfies
- * the axis-alignment invariant required by those downstream functions.
- *
- * Mutates route.points in place.
+ * Runs after the elbow router computes its initial route. Mutates route.points in place.
  */
 export function avoidObstaclesReroute(
 	editor: Editor,
@@ -43,25 +23,20 @@ export function avoidObstaclesReroute(
 	padding: number,
 	bindings: TLArrowBindings
 ): void {
-	// Step 1: Early exit
 	if (route.points.length < 2) return
 	if (!bindings.start && !bindings.end) return
 
-	// If the user has manually dragged the midpoint handle, skip obstacle avoidance
-	// and let the normal elbow router's manual midpoint take priority.
+	// If the user has manually dragged the midpoint handle, let the normal elbow router handle it.
 	if (arrow.props.elbowMidPoint !== 0.5) return
 
-	// Step 2: Gather obstacles (non-reactive)
 	const { obstacles, obstacleIds } = gatherObstacles(editor, arrow, padding, bindings)
 	if (obstacles.length === 0) return
 
-	// Step 3: Create reactive deps on ALL gathered obstacles so we recompute
-	// when any nearby obstacle changes (e.g. resized to now intersect the route).
+	// Create reactive deps on all gathered obstacles so we recompute when any changes.
 	for (const id of obstacleIds) {
 		editor.getShape(id)
 	}
 
-	// Check if any obstacle actually intersects the current route
 	let hasIntersection = false
 	for (const obs of obstacles) {
 		if (routeIntersectsObstacle(route.points, obs)) {
@@ -71,7 +46,6 @@ export function avoidObstaclesReroute(
 	}
 	if (!hasIntersection) return
 
-	// Step 4: Try all exit/entry edge combinations and pick the path with fewest bends.
 	const boundBoxes = gatherBoundShapeBoxes(editor, arrow, bindings)
 	if (boundBoxes.length < 2) return
 	const startBox = boundBoxes[0]
@@ -80,17 +54,21 @@ export function avoidObstaclesReroute(
 	const shapeOptions = editor.getShapeUtil<ArrowShapeUtil>(arrow.type).options
 	const legLength = shapeOptions.expandElbowLegLength[arrow.props.size] * arrow.props.scale
 
-	// Include bound shapes as obstacles for the middle A* path.
-	// The middle path must not pass through the start/end shapes.
+	// Include bound shapes as obstacles so the middle path doesn't pass through them.
 	const middleObstacles = [
 		...obstacles,
 		startBox.clone().expandBy(padding),
 		endBox.clone().expandBy(padding),
 	]
 
-	const allEdges: Edge[] = ['top', 'right', 'bottom', 'left']
+	// Build the occupancy grid once — it's shared across all 16 edge combo trials.
+	const grid = buildOccupancyGrid(middleObstacles)
+	if (!grid) return
+
+	// Try all exit/entry edge combinations and pick the path with fewest bends.
+	const allEdges: ElbowArrowSide[] = ['top', 'right', 'bottom', 'left']
 	let bestPath: Vec[] | null = null
-	let bestScore = Infinity // fewer points = fewer bends = better
+	let bestScore = Infinity
 
 	for (const exitEdge of allEdges) {
 		for (const entryEdge of allEdges) {
@@ -99,7 +77,7 @@ export function avoidObstaclesReroute(
 			const entryPt = edgeMidpoint(endBox, entryEdge)
 			const entryLegStart = extendFromEdge(entryPt, entryEdge, legLength)
 
-			const middlePath = gridAStar(exitLegEnd, entryLegStart, middleObstacles)
+			const middlePath = runAStar(grid, exitLegEnd, entryLegStart)
 			if (!middlePath || middlePath.length < 1) continue
 
 			const directDist = manhattanDist(exitLegEnd, entryLegStart)
@@ -121,7 +99,7 @@ export function avoidObstaclesReroute(
 			cleanupEntryJog(candidate, middleObstacles, 0.01)
 			candidate = simplifyCollinear(candidate)
 
-			// Score: prefer fewer points (bends), break ties with shorter distance
+			// Prefer fewer points (fewer bends), break ties with shorter distance
 			const score = candidate.length * 10000 + measurePathDist(candidate)
 			if (score < bestScore) {
 				bestScore = score
@@ -131,72 +109,14 @@ export function avoidObstaclesReroute(
 	}
 
 	if (!bestPath || bestPath.length < 2) return
-	const path = bestPath
 
-	// Step 10: Write back
-	route.points = path
-	route.distance = measurePathDist(path)
-	route.midpointHandle = null // Recomputed by caller with range info
+	route.points = bestPath
+	route.distance = measurePathDist(bestPath)
+	route.midpointHandle = null // recomputed by caller with range info
 	route.avoidObstaclesRerouted = true
 }
 
-// ---------------------------------------------------------------------------
-// Edge detection helpers
-// ---------------------------------------------------------------------------
-
-type Edge = 'top' | 'right' | 'bottom' | 'left'
-
-function findExitEdge(path: Vec[], startBox: Box, endBox: Box): Edge | null {
-	// Find the first point that's outside BOTH boxes (in the "middle" of the path).
-	// This avoids picking an edge based on the path re-entering a box at the same Y.
-	for (const pt of path) {
-		if (!pointInsideBox(pt, startBox) && !pointInsideBox(pt, endBox)) {
-			return edgeFromDirection(pt, startBox)
-		}
-	}
-	// Fallback: first point outside start box
-	for (const pt of path) {
-		if (!pointInsideBox(pt, startBox)) {
-			return edgeFromDirection(pt, startBox)
-		}
-	}
-	return null
-}
-
-function findEntryEdge(path: Vec[], startBox: Box, endBox: Box): Edge | null {
-	// Find the last point that's outside BOTH boxes (in the "middle" of the path).
-	for (let i = path.length - 1; i >= 0; i--) {
-		if (!pointInsideBox(path[i], startBox) && !pointInsideBox(path[i], endBox)) {
-			return edgeFromDirection(path[i], endBox)
-		}
-	}
-	// Fallback: last point outside end box
-	for (let i = path.length - 1; i >= 0; i--) {
-		if (!pointInsideBox(path[i], endBox)) {
-			return edgeFromDirection(path[i], endBox)
-		}
-	}
-	return null
-}
-
-function edgeFromDirection(target: VecLike, box: Box): Edge {
-	const cx = (box.minX + box.maxX) / 2
-	const cy = (box.minY + box.maxY) / 2
-	const dx = target.x - cx
-	const dy = target.y - cy
-	const halfW = (box.maxX - box.minX) / 2
-	const halfH = (box.maxY - box.minY) / 2
-	const nx = halfW > 0 ? Math.abs(dx) / halfW : 0
-	const ny = halfH > 0 ? Math.abs(dy) / halfH : 0
-
-	if (nx > ny) {
-		return dx > 0 ? 'right' : 'left'
-	} else {
-		return dy > 0 ? 'bottom' : 'top'
-	}
-}
-
-function edgeMidpoint(box: Box, edge: Edge): Vec {
+function edgeMidpoint(box: Box, edge: ElbowArrowSide): Vec {
 	const cx = (box.minX + box.maxX) / 2
 	const cy = (box.minY + box.maxY) / 2
 	switch (edge) {
@@ -211,7 +131,7 @@ function edgeMidpoint(box: Box, edge: Edge): Vec {
 	}
 }
 
-function extendFromEdge(pt: Vec, edge: Edge, length: number): Vec {
+function extendFromEdge(pt: Vec, edge: ElbowArrowSide, length: number): Vec {
 	switch (edge) {
 		case 'top':
 			return new Vec(pt.x, pt.y - length)
@@ -224,50 +144,39 @@ function extendFromEdge(pt: Vec, edge: Edge, length: number): Vec {
 	}
 }
 
-function isVerticalEdge(edge: Edge): boolean {
+function isVerticalEdge(edge: ElbowArrowSide): boolean {
 	return edge === 'top' || edge === 'bottom'
 }
-
-// ---------------------------------------------------------------------------
-// Path assembly
-// ---------------------------------------------------------------------------
 
 function assemblePath(
 	exitPt: Vec,
 	exitLegEnd: Vec,
-	exitEdge: Edge,
+	exitEdge: ElbowArrowSide,
 	middlePath: Vec[],
 	entryLegStart: Vec,
 	entryPt: Vec,
-	entryEdge: Edge
+	entryEdge: ElbowArrowSide
 ): Vec[] {
 	const path: Vec[] = [exitPt, exitLegEnd]
 
-	// Connector from exit leg end to first A* cell
 	const firstCell = middlePath[0]
 	if (needsConnector(exitLegEnd, firstCell)) {
 		if (isVerticalEdge(exitEdge)) {
-			// Exit leg is vertical → next move should be horizontal
 			path.push(new Vec(firstCell.x, exitLegEnd.y))
 		} else {
-			// Exit leg is horizontal → next move should be vertical
 			path.push(new Vec(exitLegEnd.x, firstCell.y))
 		}
 	}
 
-	// A* middle cells
 	for (const cell of middlePath) {
 		path.push(cell)
 	}
 
-	// Connector from last A* cell to entry leg start
 	const lastCell = middlePath[middlePath.length - 1]
 	if (needsConnector(lastCell, entryLegStart)) {
 		if (isVerticalEdge(entryEdge)) {
-			// Entry leg is vertical → connector should be horizontal
 			path.push(new Vec(entryLegStart.x, lastCell.y))
 		} else {
-			// Entry leg is horizontal → connector should be vertical
 			path.push(new Vec(lastCell.x, entryLegStart.y))
 		}
 	}
@@ -280,16 +189,21 @@ function needsConnector(a: VecLike, b: VecLike): boolean {
 	return Math.abs(a.x - b.x) > 0.01 && Math.abs(a.y - b.y) > 0.01
 }
 
-// ---------------------------------------------------------------------------
-// Grid A* pathfinding
-// ---------------------------------------------------------------------------
+interface OccupancyGrid {
+	occupied: Uint8Array
+	gridCols: number
+	gridRows: number
+	cellW: number
+	cellH: number
+	minX: number
+	minY: number
+}
 
-function gridAStar(start: VecLike, end: VecLike, obstacles: Box[]): Vec[] | null {
-	// Compute grid bounds from start, end, and all obstacles
-	let minX = Math.min(start.x, end.x)
-	let minY = Math.min(start.y, end.y)
-	let maxX = Math.max(start.x, end.x)
-	let maxY = Math.max(start.y, end.y)
+function buildOccupancyGrid(obstacles: Box[]): OccupancyGrid | null {
+	let minX = Infinity
+	let minY = Infinity
+	let maxX = -Infinity
+	let maxY = -Infinity
 
 	for (const obs of obstacles) {
 		if (obs.minX < minX) minX = obs.minX
@@ -298,7 +212,8 @@ function gridAStar(start: VecLike, end: VecLike, obstacles: Box[]): Vec[] | null
 		if (obs.maxY > maxY) maxY = obs.maxY
 	}
 
-	// 15% margin so paths can route around outer obstacles
+	if (!isFinite(minX)) return null
+
 	const margin = Math.max(maxX - minX, maxY - minY) * 0.15
 	minX -= margin
 	minY -= margin
@@ -309,7 +224,6 @@ function gridAStar(start: VecLike, end: VecLike, obstacles: Box[]): Vec[] | null
 	const height = maxY - minY
 	if (width <= 0 || height <= 0) return null
 
-	// Dynamic grid resolution
 	const gridCols = Math.max(
 		MIN_GRID_SIZE,
 		Math.min(MAX_GRID_SIZE, Math.ceil(width / TARGET_CELL_SIZE))
@@ -321,7 +235,6 @@ function gridAStar(start: VecLike, end: VecLike, obstacles: Box[]): Vec[] | null
 	const cellW = width / gridCols
 	const cellH = height / gridRows
 
-	// Build occupancy grid
 	const occupied = new Uint8Array(gridCols * gridRows)
 	for (const obs of obstacles) {
 		const c0 = Math.max(0, Math.floor((obs.minX - minX) / cellW))
@@ -335,7 +248,14 @@ function gridAStar(start: VecLike, end: VecLike, obstacles: Box[]): Vec[] | null
 		}
 	}
 
-	// Start/end cells
+	return { occupied, gridCols, gridRows, cellW, cellH, minX, minY }
+}
+
+function runAStar(grid: OccupancyGrid, start: VecLike, end: VecLike): Vec[] | null {
+	const { gridCols, gridRows, cellW, cellH, minX, minY } = grid
+	// Clone occupancy so we can clear start/end cells without mutating shared grid
+	const occupied = grid.occupied.slice()
+
 	const clampC = (v: number) => Math.max(0, Math.min(gridCols - 1, v))
 	const clampR = (v: number) => Math.max(0, Math.min(gridRows - 1, v))
 	const sc = clampC(Math.floor((start.x - minX) / cellW))
@@ -343,7 +263,6 @@ function gridAStar(start: VecLike, end: VecLike, obstacles: Box[]): Vec[] | null
 	const ec = clampC(Math.floor((end.x - minX) / cellW))
 	const er = clampR(Math.floor((end.y - minY) / cellH))
 
-	// Ensure start/end cells are passable
 	occupied[sr * gridCols + sc] = 0
 	occupied[er * gridCols + ec] = 0
 
@@ -376,7 +295,6 @@ function gridAStar(start: VecLike, end: VecLike, obstacles: Box[]): Vec[] | null
 		const cc = gi % gridCols
 
 		if (cr === er && cc === ec) {
-			// Reconstruct
 			const path: Vec[] = []
 			let s = cur
 			while (s !== -1) {
@@ -415,7 +333,6 @@ function gridAStar(start: VecLike, end: VecLike, obstacles: Box[]): Vec[] | null
 	return null
 }
 
-/** Minimal binary min-heap */
 class MinHeap {
 	private heap: { idx: number; pri: number }[] = []
 	get size() {
@@ -458,10 +375,6 @@ class MinHeap {
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Obstacle gathering (non-reactive)
-// ---------------------------------------------------------------------------
-
 function gatherObstacles(
 	editor: Editor,
 	arrow: TLArrowShape,
@@ -473,15 +386,11 @@ function gatherObstacles(
 	if (bindings.start) excludeIds.add(bindings.start.toId)
 	if (bindings.end) excludeIds.add(bindings.end.toId)
 
-	const arrowPageTransform = computePageTransform(editor, arrow.id)
-	if (!arrowPageTransform) return { obstacles: [], obstacleIds: [] }
-	const pageToArrow = arrowPageTransform.clone().invert()
+	const pageToArrow = editor.getShapePageTransform(arrow.id).clone().invert()
 
 	const obstacles: Box[] = []
 	const obstacleIds: TLShapeId[] = []
 
-	// Use getCurrentPageShapeIds() which is reactive only on shape add/remove,
-	// not on every property change. Individual shapes are read non-reactively.
 	const shapeIds = editor.getCurrentPageShapeIds()
 	for (const id of shapeIds) {
 		if (excludeIds.has(id)) continue
@@ -495,10 +404,7 @@ function gatherObstacles(
 		const h = typeof props.h === 'number' ? props.h : 0
 		if (w === 0 || h === 0) continue
 
-		const shapeTransform = computePageTransform(editor, shape.id)
-		if (!shapeTransform) continue
-
-		const pageBounds = Mat.applyToBounds(shapeTransform, new Box(0, 0, w, h))
+		const pageBounds = Mat.applyToBounds(editor.getShapePageTransform(id), new Box(0, 0, w, h))
 		const arrowBounds = Mat.applyToBounds(pageToArrow, pageBounds)
 		obstacles.push(arrowBounds.expandBy(padding))
 		obstacleIds.push(shape.id)
@@ -514,9 +420,7 @@ function gatherBoundShapeBoxes(
 	arrow: TLArrowShape,
 	bindings: TLArrowBindings
 ): Box[] {
-	const arrowPageTransform = computePageTransform(editor, arrow.id)
-	if (!arrowPageTransform) return []
-	const pageToArrow = arrowPageTransform.clone().invert()
+	const pageToArrow = editor.getShapePageTransform(arrow.id).clone().invert()
 
 	const boxes: Box[] = []
 	const ids: TLShapeId[] = []
@@ -531,46 +435,12 @@ function gatherBoundShapeBoxes(
 		const h = typeof props.h === 'number' ? props.h : 0
 		if (w === 0 || h === 0) continue
 
-		const shapeTransform = computePageTransform(editor, id)
-		if (!shapeTransform) continue
-
-		const pageBounds = Mat.applyToBounds(shapeTransform, new Box(0, 0, w, h))
+		const pageBounds = Mat.applyToBounds(editor.getShapePageTransform(id), new Box(0, 0, w, h))
 		boxes.push(Mat.applyToBounds(pageToArrow, pageBounds))
 	}
 
 	return boxes
 }
-
-function computePageTransform(editor: Editor, shapeId: TLShapeId): Mat | null {
-	const shape = editor.store.unsafeGetWithoutCapture(shapeId) as TLShape | undefined
-	if (!shape) return null
-
-	let a = 1,
-		b = 0,
-		c = 0,
-		d = 1
-	if (shape.rotation) {
-		const cos = Math.cos(shape.rotation)
-		const sin = Math.sin(shape.rotation)
-		a = cos
-		b = sin
-		c = -sin
-		d = cos
-	}
-	const local = new Mat(a, b, c, d, shape.x, shape.y)
-
-	const parentId = shape.parentId
-	if (typeof parentId === 'string' && parentId.startsWith('page:')) return local
-
-	const parentTransform = computePageTransform(editor, parentId as TLShapeId)
-	if (!parentTransform) return local
-
-	return Mat.Compose(parentTransform, local)
-}
-
-// ---------------------------------------------------------------------------
-// Path simplification and smoothing
-// ---------------------------------------------------------------------------
 
 function simplifyCollinear(points: Vec[]): Vec[] {
 	const result: Vec[] = []
@@ -589,10 +459,9 @@ function simplifyCollinear(points: Vec[]): Vec[] {
 			const d2y = Math.abs(p0.y - p2.y)
 
 			if (d1x < eps && d1y < eps) {
-				// Duplicate point — skip
+				// duplicate — skip
 			} else if (d1x < eps && d2x < eps) {
-				// All same x. Merge unless p0 extends past p2 on the far side of p1
-				// (a genuine zigzag detour). Overshoots that come back are always merged.
+				// All same x. Merge unless p0 extends past p2 on the far side of p1 (genuine detour).
 				const p0PastP2 = (p1.y > p2.y && p0.y < p2.y - eps) || (p1.y < p2.y && p0.y > p2.y + eps)
 				if (p0PastP2) {
 					result.push(p0)
@@ -600,7 +469,6 @@ function simplifyCollinear(points: Vec[]): Vec[] {
 					p1.y = p0.y
 				}
 			} else if (d1y < eps && d2y < eps) {
-				// All same y. Same logic for horizontal segments.
 				const p0PastP2 = (p1.x > p2.x && p0.x < p2.x - eps) || (p1.x < p2.x && p0.x > p2.x + eps)
 				if (p0PastP2) {
 					result.push(p0)
@@ -627,8 +495,8 @@ function smoothPath(points: Vec[], obstacles: Box[]): Vec[] {
 	while (changed && passes < 20) {
 		changed = false
 		passes++
-		// Protect first point (exit position on shape) and last two points (entry leg direction).
-		// We'll clean up exit/entry jogs separately in a direction-preserving pass.
+		// Protect first point and last two points (entry leg direction).
+		// Exit/entry jogs are cleaned up separately in a direction-preserving pass.
 		let i = 1
 		while (i < result.length - 3) {
 			const a = result[i]
@@ -638,28 +506,26 @@ function smoothPath(points: Vec[], obstacles: Box[]): Vec[] {
 			const sameY = Math.abs(a.y - c.y) < eps
 
 			if (sameX || sameY) {
-				// A and C are axis-aligned — check if direct segment is clear
 				if (!segmentHitsAny(a, c, obstacles)) {
 					result.splice(i + 1, 1)
 					changed = true
-					continue // re-check same i since array shrank
+					continue
 				}
 			} else {
-				// A and C differ in both axes — try two L-path corners
 				const corner1 = new Vec(a.x, c.y)
 				const corner2 = new Vec(c.x, a.y)
 
 				if (!segmentHitsAny(a, corner1, obstacles) && !segmentHitsAny(corner1, c, obstacles)) {
 					result.splice(i + 1, 1, corner1)
 					changed = true
-					i++ // advance — replacement, not deletion, can't re-check same i
+					i++
 					continue
 				}
 
 				if (!segmentHitsAny(a, corner2, obstacles) && !segmentHitsAny(corner2, c, obstacles)) {
 					result.splice(i + 1, 1, corner2)
 					changed = true
-					i++ // advance — replacement, not deletion
+					i++
 					continue
 				}
 			}
@@ -667,17 +533,15 @@ function smoothPath(points: Vec[], obstacles: Box[]): Vec[] {
 			i++
 		}
 
-		// Additional aggressive pass: skip-3 smoothing to remove longer unnecessary segments
+		// Skip-3 pass: try removing 2 intermediate points at once
 		if (!changed && result.length > 5) {
 			i = 1
 			while (i < result.length - 3) {
 				const a = result[i]
 				const d = result[i + 3]
-
 				const sameX = Math.abs(a.x - d.x) < eps
 				const sameY = Math.abs(a.y - d.y) < eps
 
-				// If we can skip 2 intermediate points without hitting obstacles, do it
 				if ((sameX || sameY) && !segmentHitsAny(a, d, obstacles)) {
 					result.splice(i + 1, 2)
 					changed = true
@@ -689,8 +553,6 @@ function smoothPath(points: Vec[], obstacles: Box[]): Vec[] {
 		}
 	}
 
-	// Direction-preserving jog cleanup for exit and entry legs.
-	// Shortens exit/entry legs to match the A* path without changing the segment direction.
 	cleanupExitJog(result, obstacles, eps)
 	cleanupEntryJog(result, obstacles, eps)
 
@@ -698,9 +560,8 @@ function smoothPath(points: Vec[], obstacles: Box[]): Vec[] {
 }
 
 /**
- * Clean up a jog between the exit leg and the first middle segment.
- * E.g. (3,42)→(3,78)→(-8,78)→(-8,64) can become (3,42)→(3,64) if the shortcut is clear.
- * Preserves the exit direction (axis of the first segment).
+ * Clean up jog between exit leg and first middle segment.
+ * E.g. (3,42)→(3,78)→(-8,78)→(-8,64) becomes (3,42)→(3,64) if clear.
  */
 function cleanupExitJog(result: Vec[], obstacles: Box[], eps: number) {
 	if (result.length < 4) return
@@ -709,15 +570,11 @@ function cleanupExitJog(result: Vec[], obstacles: Box[], eps: number) {
 	const exitIsVertical = Math.abs(p0.x - p1.x) < eps
 	const exitIsHorizontal = Math.abs(p0.y - p1.y) < eps
 
-	// Walk forward from the exit leg, looking for the furthest point we can
-	// connect to via an L-corner that preserves exit direction.
 	for (let k = 2; k < result.length - 1; k++) {
 		const pk = result[k]
-		// Already aligned with exit — no jog to fix
 		if (exitIsVertical && Math.abs(p0.x - pk.x) < eps) return
 		if (exitIsHorizontal && Math.abs(p0.y - pk.y) < eps) return
 
-		// Try an L-corner from p0 to pk that preserves exit direction
 		let corner: Vec
 		if (exitIsVertical) {
 			corner = new Vec(p0.x, pk.y)
@@ -728,7 +585,6 @@ function cleanupExitJog(result: Vec[], obstacles: Box[], eps: number) {
 		}
 
 		if (!segmentHitsAny(p0, corner, obstacles) && !segmentHitsAny(corner, pk, obstacles)) {
-			// Replace everything between p0 and pk with the corner
 			result.splice(1, k - 1, corner)
 			return
 		}
@@ -736,10 +592,8 @@ function cleanupExitJog(result: Vec[], obstacles: Box[], eps: number) {
 }
 
 /**
- * Clean up a jog between the last middle segment and the entry leg.
- * Handles both simple jogs like (509,64)→(503,64)→(503,42)
- * and multi-point jogs like (510,-151)→(510,-78)→(504,-78)→(504,-42).
- * Preserves the entry direction (axis of the last segment).
+ * Clean up jog between last middle segment and entry leg.
+ * E.g. (510,-151)→(510,-78)→(504,-78)→(504,-42) becomes (504,-151)→(504,-42) if clear.
  */
 function cleanupEntryJog(result: Vec[], obstacles: Box[], eps: number) {
 	if (result.length < 4) return
@@ -748,15 +602,11 @@ function cleanupEntryJog(result: Vec[], obstacles: Box[], eps: number) {
 	const entryIsVertical = Math.abs(pN.x - pN1.x) < eps
 	const entryIsHorizontal = Math.abs(pN.y - pN1.y) < eps
 
-	// Walk backwards from the entry leg, looking for the furthest point we can
-	// connect to via an L-corner that preserves entry direction.
 	for (let k = result.length - 3; k >= 1; k--) {
 		const pk = result[k]
-		// Already aligned with entry — no jog to fix
 		if (entryIsVertical && Math.abs(pN.x - pk.x) < eps) return
 		if (entryIsHorizontal && Math.abs(pN.y - pk.y) < eps) return
 
-		// Try an L-corner from pk to pN that preserves entry direction
 		let corner: Vec
 		if (entryIsVertical) {
 			corner = new Vec(pN.x, pk.y)
@@ -767,16 +617,11 @@ function cleanupEntryJog(result: Vec[], obstacles: Box[], eps: number) {
 		}
 
 		if (!segmentHitsAny(pk, corner, obstacles) && !segmentHitsAny(corner, pN, obstacles)) {
-			// Replace everything between pk and pN with the corner
 			result.splice(k + 1, result.length - k - 2, corner)
 			return
 		}
 	}
 }
-
-// ---------------------------------------------------------------------------
-// Geometry utilities
-// ---------------------------------------------------------------------------
 
 function routeIntersectsObstacle(points: Vec[], obstacle: Box): boolean {
 	for (let i = 0; i < points.length - 1; i++) {
@@ -792,7 +637,7 @@ function segmentHitsAny(p1: VecLike, p2: VecLike, obstacles: Box[]): boolean {
 	return false
 }
 
-/** Axis-aligned segment vs box intersection. Only handles horizontal/vertical segments. */
+/** Axis-aligned segment vs box intersection. */
 function segmentIntersectsBox(p1: VecLike, p2: VecLike, box: Box): boolean {
 	const eps = 0.01
 	const isHorizontal = Math.abs(p1.y - p2.y) < eps
