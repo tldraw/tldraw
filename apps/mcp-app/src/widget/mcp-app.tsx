@@ -195,6 +195,8 @@ function TldrawCanvas({ app }: { app: App }) {
 	const lastEditorRef = useRef<'user' | 'ai'>('ai')
 	const execPartialDebounceRef = useRef<number | null>(null)
 	const hasExecRunRef = useRef(false)
+	const workerOriginRef = useRef<string | null>(null)
+	const mcpSessionIdRef = useRef<string | null>(null)
 
 	const { isDev, isDevLogVisible, devLogEntries, logIfDevMode, toggleDevLog, enableDevMode } =
 		useDevLog()
@@ -388,6 +390,12 @@ function TldrawCanvas({ app }: { app: App }) {
 			if (bootstrap.isDev) {
 				enableDevMode()
 			}
+			if (bootstrap.workerOrigin) {
+				workerOriginRef.current = bootstrap.workerOrigin
+			}
+			if (bootstrap.mcpSessionId) {
+				mcpSessionIdRef.current = bootstrap.mcpSessionId
+			}
 			logIfDevMode(
 				`Bootstrap loaded for session ${bootstrap.sessionId}${bootstrap.isDev ? ' (dev mode)' : ''}`
 			)
@@ -510,14 +518,28 @@ function TldrawCanvas({ app }: { app: App }) {
 					void app.sendSizeChanged({ width: 400, height: ERROR_BANNER_HEIGHT })
 				}
 
-				const callbackArgs = execResult.success
+				const callbackBody = execResult.success
 					? { channel: 'exec', result: { success: true, result: execResult.result } }
 					: { channel: 'exec', result: { success: false, error: execResult.error } }
-				try {
-					await app.callServerTool({ name: '_exec_callback', arguments: callbackArgs })
-					logIfDevMode('Exec: _exec_callback succeeded')
-				} catch (err) {
-					logIfDevMode(`Exec: _exec_callback failed: ${err}`)
+
+				const origin = workerOriginRef.current
+				const sessionId = mcpSessionIdRef.current
+				if (origin && sessionId) {
+					try {
+						await fetch(`${origin}/exec-callback`, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+								'mcp-session-id': sessionId,
+							},
+							body: JSON.stringify(callbackBody),
+						})
+						logIfDevMode('Exec: _exec_callback succeeded')
+					} catch (err) {
+						logIfDevMode(`Exec: _exec_callback failed: ${err}`)
+					}
+				} else {
+					logIfDevMode('Exec: _exec_callback skipped (no worker origin or session)')
 				}
 			})()
 		}

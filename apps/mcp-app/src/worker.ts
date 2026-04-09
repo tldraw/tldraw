@@ -208,6 +208,19 @@ export class TldrawMCP extends McpAgent<Env> {
 			bindings: parsed.bindings ?? [],
 		}
 	}
+
+	/**
+	 * Handle a direct HTTP exec callback from the widget.
+	 * Bypasses `callServerTool` for hosts that don't preserve session affinity.
+	 */
+	handleExecCallback(body: { channel: string; result?: unknown; error?: string }): boolean {
+		if (body.error) {
+			this.pendingRequests.reject(body.channel, body.error)
+		} else {
+			this.pendingRequests.resolve(body.channel, body.result)
+		}
+		return true
+	}
 }
 
 // --- Fetch handler ---
@@ -238,6 +251,27 @@ export default {
 				return new Response('SG4iyi_lKvsvOJA-QN3UOJZeISqeAf4tnnxqgRMTU0k', {
 					headers: { 'Content-Type': 'text/plain' },
 				})
+			}
+
+			// Direct exec callback from widget (no bearer auth — session ID is the secret)
+			if (url.pathname === '/exec-callback' && request.method === 'POST') {
+				const sessionId = request.headers.get('mcp-session-id')
+				if (!sessionId) {
+					return corsResponse(new Response('Missing mcp-session-id', { status: 400 }))
+				}
+				const doId = env.MCP_OBJECT.idFromName(`streamable-http:${sessionId}`)
+				const stub = env.MCP_OBJECT.get(doId) as DurableObjectStub & TldrawMCP
+				try {
+					const body = (await request.json()) as {
+						channel: string
+						result?: unknown
+						error?: string
+					}
+					await stub.handleExecCallback(body)
+					return corsResponse(Response.json({ ok: true }))
+				} catch {
+					return corsResponse(new Response('Bad request', { status: 400 }))
+				}
 			}
 
 			// Require bearer auth only when an auth token is configured.
