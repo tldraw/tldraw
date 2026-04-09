@@ -21,6 +21,15 @@ export function getArrowBodyPathBuilder(info: TLArrowInfo): PathBuilder {
 					{ offset: 0, roundness: 0 }
 				)
 		case 'elbow': {
+			// DEBUG: log rendered path for avoidObstacles arrows
+			if (info.route.avoidObstaclesRerouted) {
+				console.log(
+					'[ArrowPath] rendered:',
+					[info.start.point, ...info.route.points.slice(1)]
+						.map((p) => `(${p.x.toFixed(0)},${p.y.toFixed(0)})`)
+						.join(' → ')
+				)
+			}
 			const path = new PathBuilder()
 			path.moveTo(info.start.point.x, info.start.point.y, {
 				offset: 0,

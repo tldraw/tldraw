@@ -26,6 +26,7 @@ import {
 	ElbowArrowEdge,
 	ElbowArrowInfo,
 	ElbowArrowInfoWithoutRoute,
+	ElbowArrowMidpointHandle,
 	ElbowArrowOptions,
 	ElbowArrowRoute,
 	ElbowArrowSide,
@@ -278,6 +279,12 @@ export function getElbowArrowInfo(
 		// legs that satisfy castPathSegmentIntoGeometry's constraints.
 		if (arrow.props.avoidObstacles) {
 			avoidObstaclesReroute(editor, arrow, route, options.avoidObstaclesPadding, bindings)
+		}
+
+		if (route.avoidObstaclesRerouted) {
+			// Compute a midpoint handle for the rerouted path so the user can drag it.
+			// Dragging changes elbowMidPoint from 0.5, which disables obstacle avoidance.
+			route.midpointHandle = computeReroutedMidpointHandle(route.points, mxRange, myRange)
 		}
 
 		if (!route.avoidObstaclesRerouted) {
@@ -906,4 +913,51 @@ function adjustTerminalForUnclosedPathIfNeeded(
 
 	terminal.side = side
 	return terminal
+}
+
+/**
+ * Compute a midpoint handle for an obstacle-avoidance-rerouted path.
+ * Picks the longest middle segment whose axis matches an available range,
+ * so the drag handler can map the handle position back to elbowMidPoint.
+ */
+function computeReroutedMidpointHandle(
+	points: Vec[],
+	mxRange: { a: number; b: number } | null,
+	myRange: { a: number; b: number } | null
+): ElbowArrowMidpointHandle | null {
+	if (points.length < 4) return null
+	if (!mxRange && !myRange) return null
+
+	const eps = 0.01
+	let bestLen = 0
+	let bestIdx = -1
+	let bestAxis: 'x' | 'y' | null = null
+
+	// Search middle segments (skip first and last which are exit/entry legs)
+	for (let i = 1; i < points.length - 2; i++) {
+		const a = points[i]
+		const b = points[i + 1]
+		const isHoriz = Math.abs(a.y - b.y) < eps
+		const axis = isHoriz ? 'x' : 'y'
+
+		// Only consider segments whose axis has a valid range
+		if (axis === 'x' && !mxRange) continue
+		if (axis === 'y' && !myRange) continue
+
+		const len = Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
+		if (len > bestLen) {
+			bestLen = len
+			bestIdx = i
+			bestAxis = axis
+		}
+	}
+
+	if (bestIdx === -1 || !bestAxis) return null
+
+	return {
+		axis: bestAxis,
+		segmentStart: points[bestIdx],
+		segmentEnd: points[bestIdx + 1],
+		point: Vec.Lrp(points[bestIdx], points[bestIdx + 1], 0.5),
+	}
 }
