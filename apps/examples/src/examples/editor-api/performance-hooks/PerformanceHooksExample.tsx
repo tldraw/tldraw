@@ -68,8 +68,21 @@ function PerfPanel() {
 					<div className="perf-section">
 						<div className="perf-section-title">Context</div>
 						<div className="perf-row">
-							<span className="perf-label">Shapes</span>
+							<span className="perf-label">Selected shapes</span>
+						</div>
+						{Object.entries(lastEvent.selectedShapeTypes).map(([type, count]) => (
+							<div className="perf-row" key={type}>
+								<span className="perf-label">{type.charAt(0).toUpperCase() + type.slice(1)}</span>
+								<span className="perf-value">{count}</span>
+							</div>
+						))}
+						<div className="perf-row">
+							<span className="perf-label">All shapes</span>
 							<span className="perf-value">{lastEvent.shapeCount}</span>
+						</div>
+						<div className="perf-row">
+							<span className="perf-label">Zoom</span>
+							<span className="perf-value">{(lastEvent.zoomLevel * 100).toFixed(0)}%</span>
 						</div>
 					</div>
 				</>
