@@ -1080,6 +1080,37 @@ export const DefaultNavigationPanel: NamedExoticComponent<object>;
 export const DefaultPageMenu: NamedExoticComponent<object>;
 
 // @public (undocumented)
+function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps): JSX.Element | null;
+export { DefaultPeopleMenu }
+export { DefaultPeopleMenu as PeopleMenu }
+
+// @public (undocumented)
+export function DefaultPeopleMenuAvatar({ userId }: TLUiPeopleMenuAvatarProps): JSX.Element | null;
+
+// @public (undocumented)
+export function DefaultPeopleMenuContent({ userIds }: DefaultPeopleMenuContentProps): JSX.Element;
+
+// @public (undocumented)
+export interface DefaultPeopleMenuContentProps {
+    // (undocumented)
+    userIds: string[];
+}
+
+// @public (undocumented)
+export function DefaultPeopleMenuFacePile({ userIds, userName, userColor }: TLUiPeopleMenuFacePileProps): JSX.Element;
+
+// @public (undocumented)
+export const DefaultPeopleMenuItem: NamedExoticComponent<TLUiPeopleMenuItemProps>;
+
+// @public (undocumented)
+interface DefaultPeopleMenuProps {
+    // (undocumented)
+    children?: ReactNode;
+}
+export { DefaultPeopleMenuProps }
+export { DefaultPeopleMenuProps as PeopleMenuProps }
+
+// @public (undocumented)
 export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 
 // @public (undocumented)
@@ -1106,7 +1137,7 @@ export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShape
 export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
 
 // @public (undocumented)
-export function DefaultSharePanel(): JSX.Element;
+export function DefaultSharePanel(): JSX.Element | null;
 
 // @public (undocumented)
 export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
@@ -1141,6 +1172,9 @@ export interface DefaultToolbarProps {
 
 // @public (undocumented)
 export const defaultTools: readonly [typeof EraserTool, typeof HandTool, typeof LaserTool, typeof ZoomTool, typeof SelectTool];
+
+// @public (undocumented)
+export function DefaultUserPresenceEditor(): JSX.Element;
 
 // @public (undocumented)
 export const DefaultVideoToolbar: NamedExoticComponent<TLUiVideoToolbarProps>;
@@ -2773,15 +2807,6 @@ export interface PathBuilderToDOpts {
     startIdx?: number;
 }
 
-// @public (undocumented)
-export function PeopleMenu({ children }: PeopleMenuProps): JSX.Element | null;
-
-// @public (undocumented)
-export interface PeopleMenuProps {
-    // (undocumented)
-    children?: ReactNode;
-}
-
 // @public
 export const PlainTextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLTextAreaElement>>;
 
@@ -3154,6 +3179,8 @@ export interface StylePanelContext {
     enhancedA11yMode: boolean;
     // (undocumented)
     onHistoryMark(id: string): void;
+    // (undocumented)
+    onOpacityChange(opacity: number): void;
     // (undocumented)
     onValueChange<T>(style: StyleProp<T>, value: T): void;
     // (undocumented)
@@ -4107,6 +4134,14 @@ export interface TLUiComponents {
     // (undocumented)
     PageMenu?: ComponentType | null;
     // (undocumented)
+    PeopleMenu?: ComponentType | null;
+    // (undocumented)
+    PeopleMenuAvatar?: ComponentType<TLUiPeopleMenuAvatarProps> | null;
+    // (undocumented)
+    PeopleMenuFacePile?: ComponentType<TLUiPeopleMenuFacePileProps> | null;
+    // (undocumented)
+    PeopleMenuItem?: ComponentType<TLUiPeopleMenuItemProps> | null;
+    // (undocumented)
     QuickActions?: ComponentType<TLUiQuickActionsProps> | null;
     // (undocumented)
     RichTextToolbar?: ComponentType<TLUiRichTextToolbarProps> | null;
@@ -4120,6 +4155,8 @@ export interface TLUiComponents {
     Toolbar?: ComponentType | null;
     // (undocumented)
     TopPanel?: ComponentType | null;
+    // (undocumented)
+    UserPresenceEditor?: ComponentType | null;
     // (undocumented)
     VideoToolbar?: ComponentType | null;
     // (undocumented)
@@ -4857,6 +4894,28 @@ export interface TLUiOverrides {
     tools?(editor: Editor, tools: TLUiToolsContextType, helpers: TLUiOverrideHelpers): TLUiToolsContextType;
     // (undocumented)
     translations?: TLUiTranslationProviderProps['overrides'];
+}
+
+// @public (undocumented)
+export interface TLUiPeopleMenuAvatarProps {
+    // (undocumented)
+    userId: string;
+}
+
+// @public (undocumented)
+export interface TLUiPeopleMenuFacePileProps {
+    // (undocumented)
+    userColor: string;
+    // (undocumented)
+    userIds: string[];
+    // (undocumented)
+    userName: string;
+}
+
+// @public (undocumented)
+export interface TLUiPeopleMenuItemProps {
+    // (undocumented)
+    userId: string;
 }
 
 // @public (undocumented)
