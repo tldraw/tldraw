@@ -81,6 +81,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	static children?: () => TLStateNodeConstructor[]
 	static isLockable = true
 	static useCoalescedEvents = false
+	/** Set to `true` in subclasses to emit interaction:start/end performance events when this state is entered/exited. */
 	static trackPerformance = false
 
 	id: string

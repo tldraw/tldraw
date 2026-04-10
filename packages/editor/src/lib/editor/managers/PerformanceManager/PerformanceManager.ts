@@ -389,6 +389,7 @@ export class PerformanceManager {
 		if (this.emitter.listenerCount('shapes:deleted') === 0) return
 		const shapeTypes: Record<string, number> = {}
 		for (const id of ids) {
+			// Works because 'deleted-shapes' fires before store.remove() in Editor.deleteShapes
 			const shape = this.editor.getShape(id)
 			if (shape) {
 				shapeTypes[shape.type] = (shapeTypes[shape.type] || 0) + 1

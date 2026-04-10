@@ -3185,7 +3185,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     setCurrentToolIdMask(id: string | undefined): void;
     // (undocumented)
     shapeType?: string;
-    // (undocumented)
     static trackPerformance: boolean;
     transition(id: string, info?: any): this;
     // (undocumented)
