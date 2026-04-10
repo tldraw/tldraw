@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { PerformanceApiAdapter, TLInteractionEndPerfEvent, Tldraw, useEditor } from 'tldraw'
+import { Editor, PerformanceApiAdapter, TLInteractionEndPerfEvent, Tldraw, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './performance-hooks.css'
 
@@ -82,7 +82,7 @@ function PerfPanel() {
 
 // [4]
 export default function PerformanceHooksExample() {
-	const handleMount = useCallback((editor: any) => {
+	const handleMount = useCallback((editor: Editor) => {
 		editor.createShapes([
 			{ type: 'geo', x: 100, y: 100, props: { w: 200, h: 200, fill: 'solid' } },
 			{ type: 'geo', x: 400, y: 100, props: { w: 150, h: 150, geo: 'ellipse', fill: 'solid' } },
