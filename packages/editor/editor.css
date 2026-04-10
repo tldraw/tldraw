@@ -1421,7 +1421,9 @@ input,
 
 .tl-image {
 	position: absolute;
-	inset: 0;
+	inset: -0.5px;
+	width: calc(100% + 1px);
+	height: calc(100% + 1px);
 }
 
 .tl-video.tl-video-is-fullscreen {
