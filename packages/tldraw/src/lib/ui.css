@@ -1769,11 +1769,6 @@ tldraw? probably.
 	min-width: 0;
 }
 
-.tlui-command-bar__item-state {
-	color: var(--tl-color-text-3);
-	font-size: 12px;
-}
-
 .tlui-command-bar__item-disabled-description {
 	color: var(--tl-color-text-3);
 	font-size: 12px;

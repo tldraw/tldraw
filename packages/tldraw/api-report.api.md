@@ -616,10 +616,6 @@ export const COMMAND_BAR_MENU_ID = "command-bar";
 
 // @public (undocumented)
 export interface CommandBarItem {
-    // (undocumented)
-    checkbox?: boolean;
-    // (undocumented)
-    checked?: boolean;
     disabledDescription?: string;
     // (undocumented)
     displayKbd?: string;
@@ -4051,7 +4047,6 @@ export interface TLUiA11yContextType {
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
     // (undocumented)
     checkbox?: boolean;
-    checked?(): boolean;
     disabledDescription?: TransationKey;
     enabled(): boolean;
     // (undocumented)

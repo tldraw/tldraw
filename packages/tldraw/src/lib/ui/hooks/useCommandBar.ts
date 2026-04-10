@@ -46,9 +46,7 @@ export interface CommandBarItem {
 	searchTargets: string[]
 	displayKbd?: string
 	icon?: string
-	checkbox?: boolean
 	enabled: boolean
-	checked?: boolean
 	/** The resolved (translated) description of why this item is disabled. */
 	disabledDescription?: string
 }
@@ -151,9 +149,7 @@ export function useCommandBar(options?: UseCommandBarOptions) {
 				searchTargets,
 				displayKbd: getDisplayKbd(action.kbd),
 				icon,
-				checkbox: action.checkbox,
 				enabled,
-				checked: action.checked ? action.checked() : undefined,
 				disabledDescription:
 					!enabled && action.disabledDescription ? msg(action.disabledDescription) : undefined,
 			})

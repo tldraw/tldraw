@@ -60,11 +60,6 @@ export interface TLUiActionItem<
 	 */
 	enabled(): boolean
 	/**
-	 * For checkbox/toggle actions, returns the current checked state.
-	 * Used by the command bar to show toggle state.
-	 */
-	checked?(): boolean
-	/**
 	 * A translation key describing why this action is currently disabled.
 	 * Displayed by the command bar when the action is disabled and selected.
 	 */
@@ -1552,9 +1547,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.user.updateUserPreferences({ isSnapMode: !editor.user.getIsSnapMode() })
 				},
 				checkbox: true,
-				checked() {
-					return editor.user.getIsSnapMode()
-				},
 			},
 			{
 				id: 'toggle-dark-mode',
@@ -1575,9 +1567,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
-				checked() {
-					return editor.user.getIsDarkMode()
-				},
 			},
 			{
 				id: 'toggle-wrap-mode',
@@ -1596,9 +1585,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
-				checked() {
-					return editor.user.getIsWrapMode()
-				},
 			},
 			{
 				id: 'toggle-dynamic-size-mode',
@@ -1617,9 +1603,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
-				checked() {
-					return editor.user.getIsDynamicResizeMode()
-				},
 			},
 			{
 				id: 'toggle-paste-at-cursor',
@@ -1638,9 +1621,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
-				checked() {
-					return editor.user.getIsPasteAtCursorMode()
-				},
 			},
 			{
 				id: 'toggle-reduce-motion',
@@ -1659,9 +1639,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
-				checked() {
-					return editor.user.getAnimationSpeed() === 0
-				},
 			},
 			{
 				id: 'toggle-keyboard-shortcuts',
@@ -1680,9 +1657,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
-				checked() {
-					return editor.user.getAreKeyboardShortcutsEnabled()
-				},
 			},
 			{
 				id: 'enhanced-a11y-mode',
@@ -1701,9 +1675,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
-				checked() {
-					return editor.user.getEnhancedA11yMode()
-				},
 			},
 			{
 				id: 'toggle-edge-scrolling',
@@ -1722,9 +1693,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
-				checked() {
-					return editor.user.getEdgeScrollSpeed() > 0
-				},
 			},
 			{
 				id: 'toggle-invert-zoom',
@@ -1743,9 +1711,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
-				checked() {
-					return editor.user.getIsZoomDirectionInverted()
-				},
 			},
 			{
 				id: 'toggle-transparent',
@@ -1765,9 +1730,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
-				checked() {
-					return !editor.getInstanceState().exportBackground
-				},
 			},
 			{
 				id: 'toggle-tool-lock',
@@ -1784,9 +1746,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.updateInstanceState({ isToolLocked: !editor.getInstanceState().isToolLocked })
 				},
 				checkbox: true,
-				checked() {
-					return editor.getInstanceState().isToolLocked
-				},
 			},
 			{
 				id: 'unlock-all',
@@ -1816,9 +1775,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				kbd: 'cmd+.,ctrl+.',
 				checkbox: true,
-				checked() {
-					return editor.getInstanceState().isFocusMode
-				},
 				enabled() {
 					return true
 				},
@@ -1851,9 +1807,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.updateInstanceState({ isGridMode: !editor.getInstanceState().isGridMode })
 				},
 				checkbox: true,
-				checked() {
-					return editor.getInstanceState().isGridMode
-				},
 			},
 			{
 				id: 'toggle-debug-mode',
@@ -1872,9 +1825,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
-				checked() {
-					return editor.getInstanceState().isDebugMode
-				},
 			},
 			{
 				id: 'print',

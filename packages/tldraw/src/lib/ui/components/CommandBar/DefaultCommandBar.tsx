@@ -124,9 +124,7 @@ const CommandBarItemRow = memo(function CommandBarItemRow({
 	const msg = useTranslation()
 
 	let iconElement: React.ReactNode
-	if (item.checkbox && item.checked !== undefined) {
-		iconElement = <TldrawUiIcon icon={item.checked ? 'check' : 'none'} label="" small />
-	} else if (item.icon) {
+	if (item.icon) {
 		iconElement = <TldrawUiIcon icon={item.icon} label="" small />
 	} else {
 		iconElement = <div className="tlui-command-bar__item-icon-placeholder" />
@@ -147,12 +145,6 @@ const CommandBarItemRow = memo(function CommandBarItemRow({
 			{iconElement}
 			<span className="tlui-command-bar__item-label">
 				{item.label}
-				{item.checkbox && item.checked !== undefined && (
-					<span className="tlui-command-bar__item-state">
-						{' '}
-						— {msg(item.checked ? 'ui.checked' : 'ui.unchecked')}
-					</span>
-				)}
 				{!item.enabled && item.disabledDescription && (
 					<span className="tlui-command-bar__item-disabled-description">
 						{' '}
