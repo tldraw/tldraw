@@ -297,7 +297,7 @@ export function getElbowArrowInfo(
 	})
 
 	let route: ElbowArrowRoute | null
-	if (routerResult) {
+	if (routerResult && routerResult.points.length >= 2) {
 		// Router provided custom points — build a route from them.
 		route = computeDefaultRoute() ?? {
 			name: 'custom-router',

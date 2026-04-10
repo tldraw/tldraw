@@ -1,15 +1,264 @@
 import React, { useCallback, useRef, useState } from 'react'
 import {
+	ArrowShapeUtil,
+	Box,
 	createShapeId,
 	Editor,
+	ElbowArrowRouterContext,
+	ElbowArrowRouterResult,
+	Mat,
 	TLEditorComponents,
 	TLShapeId,
 	Tldraw,
 	track,
 	useEditor,
 	Vec,
+	VecLike,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+
+// ---------------------------------------------------------------------------
+// Obstacle avoidance router (same implementation as main example)
+// ---------------------------------------------------------------------------
+
+const NON_OBSTACLE_TYPES = new Set(['arrow', 'group', 'draw', 'highlight', 'line'])
+const TARGET_CELL_SIZE = 20
+const TURN_PENALTY = 200
+
+function getEdgePoint(from: { original: Box }, toward: { original: Box }): Vec {
+	const box = from.original
+	const other = toward.original
+	const dx = other.center.x - box.center.x
+	const dy = other.center.y - box.center.y
+
+	if (Math.abs(dx) > Math.abs(dy)) {
+		return dx > 0
+			? new Vec(box.maxX, box.center.y)
+			: new Vec(box.minX, box.center.y)
+	} else {
+		return dy > 0
+			? new Vec(box.center.x, box.maxY)
+			: new Vec(box.center.x, box.minY)
+	}
+}
+
+function obstacleAvoidanceRouter(ctx: ElbowArrowRouterContext): ElbowArrowRouterResult | null {
+	if (ctx.arrow.props.elbowMidPoint !== 0.5) return null
+
+	const padding = ctx.info.options.avoidObstaclesPadding
+	const { editor, arrow, info } = ctx
+	const bindings = ctx.bindings
+
+	const start = getEdgePoint(info.A, info.B)
+	const end = getEdgePoint(info.B, info.A)
+
+	const excludeIds = new Set([arrow.id])
+	if (bindings.start) excludeIds.add(bindings.start.toId)
+	if (bindings.end) excludeIds.add(bindings.end.toId)
+
+	const pageToArrow = editor.getShapePageTransform(arrow.id).clone().invert()
+	const obstacles: Box[] = []
+
+	for (const id of editor.getCurrentPageShapeIds()) {
+		if (excludeIds.has(id)) continue
+		const shape = editor.getShape(id)
+		if (!shape) continue
+		if (NON_OBSTACLE_TYPES.has(shape.type)) continue
+		const props = shape.props as Record<string, unknown>
+		const w = typeof props.w === 'number' ? props.w : 0
+		const h = typeof props.h === 'number' ? props.h : 0
+		if (w === 0 || h === 0) continue
+
+		const pageBounds = Mat.applyToBounds(editor.getShapePageTransform(id), new Box(0, 0, w, h))
+		obstacles.push(Mat.applyToBounds(pageToArrow, pageBounds).expandBy(padding))
+	}
+
+	if (obstacles.length === 0) return null
+
+	const regionMinX = Math.min(start.x, end.x)
+	const regionMaxX = Math.max(start.x, end.x)
+	const regionMinY = Math.min(start.y, end.y)
+	const regionMaxY = Math.max(start.y, end.y)
+	let hasObstacleInRegion = false
+	for (const obs of obstacles) {
+		if (obs.maxX > regionMinX && obs.minX < regionMaxX && obs.maxY > regionMinY && obs.minY < regionMaxY) {
+			hasObstacleInRegion = true
+			break
+		}
+	}
+	if (!hasObstacleInRegion) return null
+
+	const allObs = [...obstacles]
+	if (bindings.start) {
+		const b = getBoundBox(editor, bindings.start.toId, pageToArrow)
+		if (b) allObs.push(b.expandBy(padding))
+	}
+	if (bindings.end) {
+		const b = getBoundBox(editor, bindings.end.toId, pageToArrow)
+		if (b) allObs.push(b.expandBy(padding))
+	}
+
+	const path = gridAStar(allObs, start, end)
+	if (!path || path.length < 2) return null
+
+	return { points: path, skipGeometryCasting: true }
+}
+
+function getBoundBox(editor: Editor, shapeId: string, pageToArrow: Mat): Box | null {
+	const shape = editor.getShape(shapeId as any)
+	if (!shape) return null
+	const props = shape.props as Record<string, unknown>
+	const w = typeof props.w === 'number' ? props.w : 0
+	const h = typeof props.h === 'number' ? props.h : 0
+	if (w === 0 || h === 0) return null
+	const pageBounds = Mat.applyToBounds(
+		editor.getShapePageTransform(shapeId as any),
+		new Box(0, 0, w, h)
+	)
+	return Mat.applyToBounds(pageToArrow, pageBounds)
+}
+
+function gridAStar(obstacles: Box[], start: VecLike, end: VecLike): Vec[] | null {
+	let minX = Math.min(start.x, end.x)
+	let minY = Math.min(start.y, end.y)
+	let maxX = Math.max(start.x, end.x)
+	let maxY = Math.max(start.y, end.y)
+	for (const obs of obstacles) {
+		if (obs.minX < minX) minX = obs.minX
+		if (obs.minY < minY) minY = obs.minY
+		if (obs.maxX > maxX) maxX = obs.maxX
+		if (obs.maxY > maxY) maxY = obs.maxY
+	}
+	const margin = Math.max(maxX - minX, maxY - minY) * 0.15
+	minX -= margin
+	minY -= margin
+	maxX += margin
+	maxY += margin
+
+	const width = maxX - minX
+	const height = maxY - minY
+	if (width <= 0 || height <= 0) return null
+
+	const gridCols = Math.max(16, Math.min(64, Math.ceil(width / TARGET_CELL_SIZE)))
+	const gridRows = Math.max(16, Math.min(64, Math.ceil(height / TARGET_CELL_SIZE)))
+	const cellW = width / gridCols
+	const cellH = height / gridRows
+
+	const occupied = new Uint8Array(gridCols * gridRows)
+	for (const obs of obstacles) {
+		const c0 = Math.max(0, Math.floor((obs.minX - minX) / cellW))
+		const c1 = Math.min(gridCols - 1, Math.floor((obs.maxX - minX) / cellW))
+		const r0 = Math.max(0, Math.floor((obs.minY - minY) / cellH))
+		const r1 = Math.min(gridRows - 1, Math.floor((obs.maxY - minY) / cellH))
+		for (let r = r0; r <= r1; r++) {
+			for (let c = c0; c <= c1; c++) {
+				occupied[r * gridCols + c] = 1
+			}
+		}
+	}
+
+	const NUM_DIRS = 3
+	const total = gridCols * gridRows * NUM_DIRS
+	const gScore = new Float64Array(total).fill(Infinity)
+	const fScore = new Float64Array(total).fill(Infinity)
+	const cameFrom = new Int32Array(total).fill(-1)
+
+	const sc = Math.max(0, Math.min(gridCols - 1, Math.floor((start.x - minX) / cellW)))
+	const sr = Math.max(0, Math.min(gridRows - 1, Math.floor((start.y - minY) / cellH)))
+	const ec = Math.max(0, Math.min(gridCols - 1, Math.floor((end.x - minX) / cellW)))
+	const er = Math.max(0, Math.min(gridRows - 1, Math.floor((end.y - minY) / cellH)))
+	occupied[sr * gridCols + sc] = 0
+	occupied[er * gridCols + ec] = 0
+
+	const idx = (r: number, c: number, d: number) => (r * gridCols + c) * NUM_DIRS + d
+	const h = (c: number, r: number) => Math.abs(c - ec) * cellW + Math.abs(r - er) * cellH
+
+	const startState = idx(sr, sc, 2)
+	gScore[startState] = 0
+	fScore[startState] = h(sc, sr)
+
+	const open: { idx: number; pri: number }[] = [{ idx: startState, pri: fScore[startState] }]
+
+	const DC = [1, 0, -1, 0]
+	const DR = [0, 1, 0, -1]
+	const MOVE_DIR = [0, 1, 0, 1]
+
+	while (open.length > 0) {
+		let minI = 0
+		for (let i = 1; i < open.length; i++) {
+			if (open[i].pri < open[minI].pri) minI = i
+		}
+		const cur = open[minI].idx
+		open[minI] = open[open.length - 1]
+		open.pop()
+
+		const cd = cur % NUM_DIRS
+		const gi = (cur - cd) / NUM_DIRS
+		const cr = Math.floor(gi / gridCols)
+		const cc = gi % gridCols
+
+		if (cr === er && cc === ec) {
+			const path: Vec[] = []
+			let s = cur
+			while (s !== -1) {
+				const d = s % NUM_DIRS
+				const g = (s - d) / NUM_DIRS
+				const row = Math.floor(g / gridCols)
+				const col = g % gridCols
+				path.push(new Vec(minX + (col + 0.5) * cellW, minY + (row + 0.5) * cellH))
+				s = cameFrom[s]
+			}
+			path.reverse()
+			path[0] = new Vec(start.x, start.y)
+			path[path.length - 1] = new Vec(end.x, end.y)
+			return simplify(path)
+		}
+
+		for (let dir = 0; dir < 4; dir++) {
+			const nr = cr + DR[dir]
+			const nc = cc + DC[dir]
+			if (nr < 0 || nr >= gridRows || nc < 0 || nc >= gridCols) continue
+			if (occupied[nr * gridCols + nc]) continue
+
+			const nd = MOVE_DIR[dir]
+			const ns = idx(nr, nc, nd)
+			const moveCost = dir % 2 === 0 ? cellW : cellH
+			const turnCost = cd !== 2 && cd !== nd ? TURN_PENALTY : 0
+			const g = gScore[cur] + moveCost + turnCost
+
+			if (g < gScore[ns]) {
+				cameFrom[ns] = cur
+				gScore[ns] = g
+				fScore[ns] = g + h(nc, nr)
+				open.push({ idx: ns, pri: fScore[ns] })
+			}
+		}
+	}
+
+	return null
+}
+
+function simplify(points: Vec[]): Vec[] {
+	const result: Vec[] = [points[0]]
+	for (let i = 1; i < points.length; i++) {
+		const prev = result[result.length - 1]
+		const pprev = result[result.length - 2]
+		if (pprev) {
+			const sameX = Math.abs(prev.x - points[i].x) < 0.1 && Math.abs(pprev.x - prev.x) < 0.1
+			const sameY = Math.abs(prev.y - points[i].y) < 0.1 && Math.abs(pprev.y - prev.y) < 0.1
+			if (sameX || sameY) {
+				result[result.length - 1] = points[i]
+				continue
+			}
+		}
+		result.push(points[i])
+	}
+	return result
+}
+
+const CustomArrowShapeUtil = ArrowShapeUtil.configure({
+	elbowRouter: obstacleAvoidanceRouter,
+})
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -578,7 +827,7 @@ export default function ArrowObstacleAvoidanceEdgeCasesExample() {
 
 	const handleMount = useCallback((editor: Editor) => {
 		editorRef.current = editor
-		// Auto-enable avoidance on new arrows
+		// Default new arrows to elbow kind
 		editor.sideEffects.registerBeforeCreateHandler('shape', (shape) => {
 			if (shape.type === 'arrow') {
 				return {
@@ -621,7 +870,7 @@ export default function ArrowObstacleAvoidanceEdgeCasesExample() {
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw onMount={handleMount} components={components}>
+			<Tldraw onMount={handleMount} components={components} shapeUtils={[CustomArrowShapeUtil]}>
 				<Controls onLoadScenario={loadScenario} showGrid={showGrid} setShowGrid={setShowGrid} />
 			</Tldraw>
 		</div>

@@ -8,7 +8,6 @@ import {
 	ElbowArrowRouterResult,
 	Mat,
 	TLEditorComponents,
-	TLShape,
 	Tldraw,
 	track,
 	useEditor,
@@ -26,16 +25,41 @@ const NON_OBSTACLE_TYPES = new Set(['arrow', 'group', 'draw', 'highlight', 'line
 const TARGET_CELL_SIZE = 20
 const TURN_PENALTY = 200
 
-function obstacleAvoidanceRouter(ctx: ElbowArrowRouterContext): ElbowArrowRouterResult | null {
-	const baseRoute = ctx.computeDefaultRoute()
-	if (!baseRoute || baseRoute.points.length < 2) return null
+/**
+ * Pick the point on a shape's bounding box edge that faces toward the other shape.
+ * This gives us an exit/entry point outside the shape interior, suitable for A* routing.
+ */
+function getEdgePoint(from: { original: Box }, toward: { original: Box }): Vec {
+	const box = from.original
+	const other = toward.original
+	const dx = other.center.x - box.center.x
+	const dy = other.center.y - box.center.y
 
+	if (Math.abs(dx) > Math.abs(dy)) {
+		// Exit horizontally
+		return dx > 0
+			? new Vec(box.maxX, box.center.y)
+			: new Vec(box.minX, box.center.y)
+	} else {
+		// Exit vertically
+		return dy > 0
+			? new Vec(box.center.x, box.maxY)
+			: new Vec(box.center.x, box.minY)
+	}
+}
+
+function obstacleAvoidanceRouter(ctx: ElbowArrowRouterContext): ElbowArrowRouterResult | null {
 	// Only reroute if elbowMidPoint is at default (user hasn't dragged the handle).
 	if (ctx.arrow.props.elbowMidPoint !== 0.5) return null
 
 	const padding = ctx.info.options.avoidObstaclesPadding
-	const { editor, arrow } = ctx
+	const { editor, arrow, info } = ctx
 	const bindings = ctx.bindings
+
+	// Use bounding box edge points facing the other shape — not the centers,
+	// which sit inside the shape obstacles and block the A*.
+	const start = getEdgePoint(info.A, info.B)
+	const end = getEdgePoint(info.B, info.A)
 
 	// Gather obstacles (shapes that aren't arrows, groups, etc.)
 	const excludeIds = new Set([arrow.id])
@@ -61,18 +85,19 @@ function obstacleAvoidanceRouter(ctx: ElbowArrowRouterContext): ElbowArrowRouter
 
 	if (obstacles.length === 0) return null
 
-	// Check if route actually intersects any obstacle
-	let hasIntersection = false
+	// Check if any obstacle sits between the two edge points
+	const regionMinX = Math.min(start.x, end.x)
+	const regionMaxX = Math.max(start.x, end.x)
+	const regionMinY = Math.min(start.y, end.y)
+	const regionMaxY = Math.max(start.y, end.y)
+	let hasObstacleInRegion = false
 	for (const obs of obstacles) {
-		for (let i = 0; i < baseRoute.points.length - 1; i++) {
-			if (segmentIntersectsBox(baseRoute.points[i], baseRoute.points[i + 1], obs)) {
-				hasIntersection = true
-				break
-			}
+		if (obs.maxX > regionMinX && obs.minX < regionMaxX && obs.maxY > regionMinY && obs.minY < regionMaxY) {
+			hasObstacleInRegion = true
+			break
 		}
-		if (hasIntersection) break
 	}
-	if (!hasIntersection) return null
+	if (!hasObstacleInRegion) return null
 
 	// Build occupancy grid and run A*
 	const allObs = [...obstacles]
@@ -86,10 +111,8 @@ function obstacleAvoidanceRouter(ctx: ElbowArrowRouterContext): ElbowArrowRouter
 		if (b) allObs.push(b.expandBy(padding))
 	}
 
-	const start = baseRoute.points[0]
-	const end = baseRoute.points[baseRoute.points.length - 1]
 	const path = gridAStar(allObs, start, end)
-	if (!path) return null
+	if (!path || path.length < 2) return null
 
 	return { points: path, skipGeometryCasting: true }
 }
@@ -248,19 +271,6 @@ function simplify(points: Vec[]): Vec[] {
 		result.push(points[i])
 	}
 	return result
-}
-
-function segmentIntersectsBox(p1: VecLike, p2: VecLike, box: Box): boolean {
-	const eps = 0.01
-	if (Math.abs(p1.y - p2.y) < eps) {
-		const y = p1.y
-		if (y <= box.minY || y >= box.maxY) return false
-		return Math.max(p1.x, p2.x) > box.minX && Math.min(p1.x, p2.x) < box.maxX
-	} else {
-		const x = p1.x
-		if (x <= box.minX || x >= box.maxX) return false
-		return Math.max(p1.y, p2.y) > box.minY && Math.min(p1.y, p2.y) < box.maxY
-	}
 }
 
 // ---------------------------------------------------------------------------
