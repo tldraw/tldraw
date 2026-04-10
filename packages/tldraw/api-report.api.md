@@ -2246,7 +2246,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     indicator(shape: TLImageShape): JSX.Element | null;
     // (undocumented)
-    isAspectRatioLocked(): boolean;
+    isAspectRatioLocked(_shape: TLImageShape): boolean;
     // (undocumented)
     isExportBoundsContainer(): boolean;
     // (undocumented)
@@ -2518,7 +2518,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     indicator(shape: TLNoteShape): JSX.Element;
     // (undocumented)
-    isAspectRatioLocked(): boolean;
+    isAspectRatioLocked(_shape: TLNoteShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -3389,7 +3389,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     indicator(shape: TLTextShape): JSX.Element | null;
     // (undocumented)
-    isAspectRatioLocked(): boolean;
+    isAspectRatioLocked(_shape: TLTextShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -6036,7 +6036,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     indicator(shape: TLVideoShape): JSX.Element;
     // (undocumented)
-    isAspectRatioLocked(): boolean;
+    isAspectRatioLocked(_shape: TLVideoShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)

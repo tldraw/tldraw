@@ -74,7 +74,7 @@ export class UsMapShapeUtil extends ShapeUtil<UsMapShape> {
 	override canResize() {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(_shape: UsMapShape) {
 		return true
 	}
 

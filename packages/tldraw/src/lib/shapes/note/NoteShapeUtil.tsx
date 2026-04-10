@@ -157,7 +157,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		}
 	}
 
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(_shape: TLNoteShape) {
 		return this.options.resizeMode === 'scale'
 	}
 

@@ -67,7 +67,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	override hideSelectionBoundsFg() {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(_shape: NodeShape) {
 		return false
 	}
 	override getBoundsSnapGeometry(_shape: NodeShape) {

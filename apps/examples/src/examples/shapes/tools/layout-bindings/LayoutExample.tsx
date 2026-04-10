@@ -63,7 +63,7 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 	override hideRotateHandle() {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(_shape: ContainerShape) {
 		return true
 	}
 
@@ -122,7 +122,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 	override hideRotateHandle() {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(_shape: ElementShape) {
 		return true
 	}
 

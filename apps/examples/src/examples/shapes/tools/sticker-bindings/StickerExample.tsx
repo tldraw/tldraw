@@ -61,7 +61,7 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 	override hideRotateHandle() {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(_shape: StickerShape) {
 		return true
 	}
 

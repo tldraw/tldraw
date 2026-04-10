@@ -146,7 +146,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return true
 	}
 
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(_shape: TLTextShape) {
 		return true
 	} // WAIT NO THIS IS HARD CODED IN THE RESIZE HANDLER
 

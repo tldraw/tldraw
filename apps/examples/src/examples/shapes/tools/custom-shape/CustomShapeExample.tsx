@@ -52,7 +52,7 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	override canResize() {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(_shape: ICustomShape) {
 		return false
 	}
 
