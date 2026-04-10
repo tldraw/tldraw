@@ -743,6 +743,16 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
+    readonly hostnames: readonly ["canva.com"];
+    readonly title: "Canva";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "canva";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly embedOnPaste: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
     readonly hostnames: readonly ["google.*"];
     readonly overridePermissions: {
         readonly 'allow-presentation': true;
