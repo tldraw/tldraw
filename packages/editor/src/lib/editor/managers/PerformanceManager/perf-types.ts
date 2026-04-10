@@ -1,14 +1,5 @@
 /** @public */
-export interface TLInteractionStartPerfEvent {
-	name: string
-	path: string
-	timestamp: number
-}
-
-/** @public */
-export interface TLInteractionEndPerfEvent {
-	name: string
-	path: string
+export interface TLPerfFrameTimeStats {
 	duration: number
 	fps: number
 	frameCount: number
@@ -20,15 +11,29 @@ export interface TLInteractionEndPerfEvent {
 	maxFrameTime: number
 	/** Raw frame durations for local analysis. Exclude when sending to analytics. */
 	frameTimes: number[]
-	updateCount: number
-	shapeCount: number
-	selectedShapeTypes: Record<string, number>
 	/**
-	 * Long animation frames observed during this interaction (Chromium 123+).
+	 * Long animation frames observed during this period (Chromium 123+).
 	 * Only present when the browser supports the Long Animation Frames API and
 	 * at least one long frame was observed.
 	 */
 	longAnimationFrames?: TLPerfLongAnimationFrame[]
+}
+
+/** @public */
+export interface TLInteractionStartPerfEvent {
+	name: string
+	path: string
+	timestamp: number
+}
+
+/** @public */
+export interface TLInteractionEndPerfEvent extends TLPerfFrameTimeStats {
+	name: string
+	path: string
+	shapeCount: number
+	selectedShapeTypes: Record<string, number>
+	zoomLevel: number
+	timestamp: number
 }
 
 /** @public */
@@ -38,28 +43,15 @@ export interface TLCameraStartPerfEvent {
 }
 
 /** @public */
-export interface TLCameraEndPerfEvent {
+export interface TLCameraEndPerfEvent extends TLPerfFrameTimeStats {
 	type: 'panning' | 'zooming'
-	duration: number
-	fps: number
-	frameCount: number
-	avgFrameTime: number
-	medianFrameTime: number
-	p95FrameTime: number
-	p99FrameTime: number
-	minFrameTime: number
-	maxFrameTime: number
-	/** Raw frame durations for local analysis. Exclude when sending to analytics. */
-	frameTimes: number[]
 	shapeCount: number
 	viewportWidth: number
 	viewportHeight: number
-	/**
-	 * Long animation frames observed during this camera operation (Chromium 123+).
-	 * Only present when the browser supports the Long Animation Frames API and
-	 * at least one long frame was observed.
-	 */
-	longAnimationFrames?: TLPerfLongAnimationFrame[]
+	visibleShapeCount: number
+	culledShapeCount: number
+	zoomLevel: number
+	timestamp: number
 }
 
 /** @public */

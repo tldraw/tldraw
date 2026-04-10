@@ -2615,6 +2615,8 @@ export class PerformanceApiAdapter {
 export class PerformanceManager {
     constructor(editor: Editor);
     // @internal (undocumented)
+    dispose(): void;
+    // @internal (undocumented)
     readonly emitter: EventEmitter<TLPerfEventMap, any>;
     // @internal (undocumented)
     _notifyCameraOperation(type: 'panning' | 'zooming'): void;
@@ -2622,8 +2624,6 @@ export class PerformanceManager {
     _notifyInteractionEnd(): void;
     // @internal (undocumented)
     _notifyInteractionStart(name: string, path: string): void;
-    // @internal (undocumented)
-    _notifyInteractionUpdate(): void;
     // @internal (undocumented)
     _notifyUndoRedo(type: 'redo' | 'undo', undoDepth: number, redoDepth: number): void;
     on<K extends keyof TLPerfEventMap>(event: K, fn: (...args: TLPerfEventMap[K]) => void): () => void;
@@ -3185,6 +3185,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     setCurrentToolIdMask(id: string | undefined): void;
     // (undocumented)
     shapeType?: string;
+    // (undocumented)
+    static trackPerformance: boolean;
     transition(id: string, info?: any): this;
     // (undocumented)
     type: 'branch' | 'leaf' | 'root';
@@ -3402,35 +3404,23 @@ export interface TLCameraConstraints {
 }
 
 // @public (undocumented)
-export interface TLCameraEndPerfEvent {
+export interface TLCameraEndPerfEvent extends TLPerfFrameTimeStats {
     // (undocumented)
-    avgFrameTime: number;
-    // (undocumented)
-    duration: number;
-    // (undocumented)
-    fps: number;
-    // (undocumented)
-    frameCount: number;
-    frameTimes: number[];
-    longAnimationFrames?: TLPerfLongAnimationFrame[];
-    // (undocumented)
-    maxFrameTime: number;
-    // (undocumented)
-    medianFrameTime: number;
-    // (undocumented)
-    minFrameTime: number;
-    // (undocumented)
-    p95FrameTime: number;
-    // (undocumented)
-    p99FrameTime: number;
+    culledShapeCount: number;
     // (undocumented)
     shapeCount: number;
+    // (undocumented)
+    timestamp: number;
     // (undocumented)
     type: 'panning' | 'zooming';
     // (undocumented)
     viewportHeight: number;
     // (undocumented)
     viewportWidth: number;
+    // (undocumented)
+    visibleShapeCount: number;
+    // (undocumented)
+    zoomLevel: number;
 }
 
 // @public (undocumented)
@@ -4289,29 +4279,9 @@ export type TLIndicatorPath = {
 } | Path2D;
 
 // @public (undocumented)
-export interface TLInteractionEndPerfEvent {
-    // (undocumented)
-    avgFrameTime: number;
-    // (undocumented)
-    duration: number;
-    // (undocumented)
-    fps: number;
-    // (undocumented)
-    frameCount: number;
-    frameTimes: number[];
-    longAnimationFrames?: TLPerfLongAnimationFrame[];
-    // (undocumented)
-    maxFrameTime: number;
-    // (undocumented)
-    medianFrameTime: number;
-    // (undocumented)
-    minFrameTime: number;
+export interface TLInteractionEndPerfEvent extends TLPerfFrameTimeStats {
     // (undocumented)
     name: string;
-    // (undocumented)
-    p95FrameTime: number;
-    // (undocumented)
-    p99FrameTime: number;
     // (undocumented)
     path: string;
     // (undocumented)
@@ -4319,7 +4289,9 @@ export interface TLInteractionEndPerfEvent {
     // (undocumented)
     shapeCount: number;
     // (undocumented)
-    updateCount: number;
+    timestamp: number;
+    // (undocumented)
+    zoomLevel: number;
 }
 
 // @public (undocumented)
@@ -4473,6 +4445,30 @@ export interface TLPerfEventMap {
     redo: [TLUndoRedoPerfEvent];
     // (undocumented)
     undo: [TLUndoRedoPerfEvent];
+}
+
+// @public (undocumented)
+export interface TLPerfFrameTimeStats {
+    // (undocumented)
+    avgFrameTime: number;
+    // (undocumented)
+    duration: number;
+    // (undocumented)
+    fps: number;
+    // (undocumented)
+    frameCount: number;
+    frameTimes: number[];
+    longAnimationFrames?: TLPerfLongAnimationFrame[];
+    // (undocumented)
+    maxFrameTime: number;
+    // (undocumented)
+    medianFrameTime: number;
+    // (undocumented)
+    minFrameTime: number;
+    // (undocumented)
+    p95FrameTime: number;
+    // (undocumented)
+    p99FrameTime: number;
 }
 
 // @public
@@ -4785,6 +4781,8 @@ export interface TLStateNodeConstructor {
     initial?: string;
     // (undocumented)
     isLockable: boolean;
+    // (undocumented)
+    trackPerformance: boolean;
     // (undocumented)
     useCoalescedEvents: boolean;
 }

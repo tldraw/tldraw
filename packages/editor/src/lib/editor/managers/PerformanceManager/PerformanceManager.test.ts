@@ -26,6 +26,15 @@ function createMockEditor() {
 		],
 		getCurrentPageShapeIds: () => ({ size: 10 }),
 		getCulledShapes: () => ({ size: 3 }),
+		getCamera: () => ({ x: 0, y: 0, z: 1 }),
+		getShape: (id: string) => {
+			const shapes: Record<string, { type: string }> = {
+				'shape:1': { type: 'geo' },
+				'shape:2': { type: 'draw' },
+				'shape:3': { type: 'geo' },
+			}
+			return shapes[id]
+		},
 		getViewportScreenBounds: () => ({ w: 1920, h: 1080 }),
 		timers: {
 			setTimeout: (fn: () => void, ms: number) => setTimeout(fn, ms),
@@ -129,21 +138,6 @@ describe('PerformanceManager', () => {
 			expect(event.selectedShapeTypes).toEqual({ geo: 2, draw: 1 })
 			expect(event.avgFrameTime).toBe(26)
 			expect(event.duration).toBeGreaterThan(0)
-		})
-
-		it('tracks update count via _notifyInteractionUpdate', () => {
-			const editor = createMockEditor()
-			const pm = new PerformanceManager(editor)
-			const fn = vi.fn()
-			pm.on('interaction:end', fn)
-
-			pm._notifyInteractionStart('translating', 'select.translating')
-			pm._notifyInteractionUpdate()
-			pm._notifyInteractionUpdate()
-			pm._notifyInteractionUpdate()
-			pm._notifyInteractionEnd()
-
-			expect(fn.mock.calls[0][0].updateCount).toBe(3)
 		})
 
 		it('does not emit when no listeners', () => {
@@ -371,7 +365,7 @@ describe('PerformanceManager', () => {
 			expect(fn).not.toHaveBeenCalled()
 		})
 
-		it('emits shapes:deleted with count only', () => {
+		it('emits shapes:deleted with shape types', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
@@ -383,7 +377,7 @@ describe('PerformanceManager', () => {
 			expect(fn.mock.calls[0][0]).toMatchObject({
 				operation: 'delete',
 				count: 2,
-				shapeTypes: {},
+				shapeTypes: { geo: 1, draw: 1 },
 			})
 		})
 	})

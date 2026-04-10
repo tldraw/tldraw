@@ -1,4 +1,4 @@
-import type { TLShapeId } from '@tldraw/tlschema'
+import type { TLRecord, TLShapeId } from '@tldraw/tlschema'
 import { bind } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
 import type { Editor } from '../../Editor'
@@ -69,7 +69,6 @@ export class PerformanceManager {
 		path: string
 		startTime: number
 		frameTimes: number[]
-		updateCount: number
 		selectedShapeTypes: Record<string, number>
 		loafEntries: TLPerfLongAnimationFrame[]
 	} | null = null
@@ -135,6 +134,23 @@ export class PerformanceManager {
 		}
 	}
 
+	/** @internal */
+	dispose() {
+		if (this.activeCamera?.timeout) clearTimeout(this.activeCamera.timeout)
+		this.activeInteraction = null
+		this.activeCamera = null
+		this.frameCleanup?.()
+		this.frameCleanup = null
+		this.shapeCreatedCleanup?.()
+		this.shapeCreatedCleanup = null
+		this.shapeEditedCleanup?.()
+		this.shapeEditedCleanup = null
+		this.shapeDeletedCleanup?.()
+		this.shapeDeletedCleanup = null
+		this._stopLoafObserver()
+		this.emitter.removeAllListeners()
+	}
+
 	// --- Internal notification methods ---
 
 	/** @internal */
@@ -157,7 +173,6 @@ export class PerformanceManager {
 			path,
 			startTime: performance.now(),
 			frameTimes: [],
-			updateCount: 0,
 			selectedShapeTypes,
 			loafEntries: [],
 		}
@@ -195,19 +210,13 @@ export class PerformanceManager {
 			minFrameTime: stats.min,
 			maxFrameTime: stats.max,
 			frameTimes: interaction.frameTimes,
-			updateCount: interaction.updateCount,
 			shapeCount: this.editor.getCurrentPageShapeIds().size,
 			selectedShapeTypes: interaction.selectedShapeTypes,
 			longAnimationFrames: interaction.loafEntries.length > 0 ? interaction.loafEntries : undefined,
+			zoomLevel: this.editor.getCamera().z,
+			timestamp: performance.now(),
 		}
 		this.emitter.emit('interaction:end', event)
-	}
-
-	/** @internal */
-	_notifyInteractionUpdate() {
-		if (this.activeInteraction) {
-			this.activeInteraction.updateCount++
-		}
 	}
 
 	/** @internal */
@@ -283,6 +292,8 @@ export class PerformanceManager {
 		const duration = performance.now() - camera.startTime
 		const stats = computeFrameTimeStats(camera.frameTimes)
 		const viewportBounds = this.editor.getViewportScreenBounds()
+		const totalShapes = this.editor.getCurrentPageShapeIds().size
+		const culledShapeCount = this.editor.getCulledShapes().size
 
 		const event: TLCameraEndPerfEvent = {
 			type: camera.type,
@@ -296,10 +307,14 @@ export class PerformanceManager {
 			minFrameTime: stats.min,
 			maxFrameTime: stats.max,
 			frameTimes: camera.frameTimes,
-			shapeCount: this.editor.getCurrentPageShapeIds().size,
+			shapeCount: totalShapes,
 			viewportWidth: viewportBounds.w,
 			viewportHeight: viewportBounds.h,
 			longAnimationFrames: camera.loafEntries.length > 0 ? camera.loafEntries : undefined,
+			visibleShapeCount: totalShapes - culledShapeCount,
+			culledShapeCount,
+			zoomLevel: this.editor.getCamera().z,
+			timestamp: performance.now(),
 		}
 		this.emitter.emit('camera:end', event)
 	}
@@ -330,7 +345,7 @@ export class PerformanceManager {
 	}
 
 	@bind
-	private _onShapesCreated(records: any[]) {
+	private _onShapesCreated(records: TLRecord[]) {
 		if (this.emitter.listenerCount('shapes:created') === 0) return
 		const shapeTypes: Record<string, number> = {}
 		for (const record of records) {
@@ -350,7 +365,7 @@ export class PerformanceManager {
 	}
 
 	@bind
-	private _onShapesEdited(records: any[]) {
+	private _onShapesEdited(records: TLRecord[]) {
 		if (this.emitter.listenerCount('shapes:updated') === 0) return
 		const shapeTypes: Record<string, number> = {}
 		for (const record of records) {
@@ -372,10 +387,17 @@ export class PerformanceManager {
 	@bind
 	private _onShapesDeleted(ids: TLShapeId[]) {
 		if (this.emitter.listenerCount('shapes:deleted') === 0) return
+		const shapeTypes: Record<string, number> = {}
+		for (const id of ids) {
+			const shape = this.editor.getShape(id)
+			if (shape) {
+				shapeTypes[shape.type] = (shapeTypes[shape.type] || 0) + 1
+			}
+		}
 		const event: TLShapeOperationPerfEvent = {
 			operation: 'delete',
 			count: ids.length,
-			shapeTypes: {},
+			shapeTypes,
 			timestamp: performance.now(),
 		}
 		this.emitter.emit('shapes:deleted', event)

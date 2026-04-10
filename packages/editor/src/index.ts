@@ -183,6 +183,7 @@ export {
 	type TLInteractionEndPerfEvent,
 	type TLInteractionStartPerfEvent,
 	type TLPerfEventMap,
+	type TLPerfFrameTimeStats,
 	type TLPerfLongAnimationFrame,
 	type TLPerfLongAnimationFrameScript,
 	type TLShapeOperationPerfEvent,

@@ -11,6 +11,7 @@ import {
 
 export class ScribbleBrushing extends StateNode {
 	static override id = 'scribble_brushing'
+	static override trackPerformance = true
 
 	hits = new Set<TLShapeId>()
 

@@ -409,6 +409,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.inputs = new InputsManager(this)
 		this.performance = new PerformanceManager(this)
+		this.disposables.add(() => this.performance.dispose())
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -3617,6 +3618,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			new Vec(cx + (x / z - x) - (x / cz - x), cy + (y / z - y) - (y / cz - y), z),
 			opts
 		)
+		this.performance._notifyCameraOperation('zooming')
 		return this
 	}
 
@@ -3660,6 +3662,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				),
 				opts
 			)
+			this.performance._notifyCameraOperation('zooming')
 		}
 
 		return this
@@ -3705,6 +3708,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				),
 				opts
 			)
+			this.performance._notifyCameraOperation('zooming')
 		}
 
 		return this
@@ -3824,6 +3828,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			),
 			opts
 		)
+		this.performance._notifyCameraOperation('zooming')
 
 		return this
 	}
@@ -10864,6 +10869,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							{ immediate: true }
 						)
 
+						this.performance._notifyCameraOperation('zooming')
 						this.emit('event', info)
 						return // Stop here!
 					}

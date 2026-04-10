@@ -13,6 +13,7 @@ type Snapshot = ReturnType<Cropping['createSnapshot']>
 
 export class Cropping extends StateNode {
 	static override id = 'cropping'
+	static override trackPerformance = true
 
 	info = {} as TLPointerEventInfo & {
 		target: 'selection'
