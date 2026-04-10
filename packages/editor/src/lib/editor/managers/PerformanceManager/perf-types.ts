@@ -27,6 +27,7 @@ export interface TLPerfFrameTimeStats {
 	 * Long animation frames observed during this period (Chromium 123+).
 	 * Only present when the browser supports the Long Animation Frames API and
 	 * at least one long frame was observed.
+	 * Exclude when sending to analytics — entries are large and contain script URLs.
 	 */
 	longAnimationFrames?: TLPerfLongAnimationFrame[]
 }
