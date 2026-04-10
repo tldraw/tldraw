@@ -737,11 +737,8 @@ export {
 	COMMAND_BAR_MENU_ID,
 	DEFAULT_EXCLUDED_ACTION_IDS,
 	DEFAULT_POPULAR_ACTION_IDS,
-	DEFAULT_POPULAR_TOOL_IDS,
 	useCommandBar,
 	type CommandBarItem,
-	type CommandBarItemMeta,
-	type CommandBarItemType,
 	type UseCommandBarOptions,
 } from './lib/ui/hooks/useCommandBar'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'

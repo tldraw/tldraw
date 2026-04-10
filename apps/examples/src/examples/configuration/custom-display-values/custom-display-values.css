@@ -1,0 +1,34 @@
+.custom-dv__color-row {
+	display: flex;
+	flex-wrap: wrap;
+	padding: 0 var(--tl-space-3);
+}
+
+.custom-dv__swatch {
+	width: 15px;
+	height: 15px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.custom-dv__font-size-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding-right: var(--tl-space-4);
+}
+
+.custom-dv__font-size-header .tlui-style-panel__subheading {
+	flex: 1;
+}
+
+.custom-dv__reset {
+	all: unset;
+	font-size: 12px;
+	color: var(--color-primary);
+	cursor: pointer;
+}
+
+.custom-dv__reset:hover {
+	text-decoration: underline;
+}

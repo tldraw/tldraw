@@ -153,9 +153,6 @@ const CommandBarItemRow = memo(function CommandBarItemRow({
 						— {msg(item.checked ? 'ui.checked' : 'ui.unchecked')}
 					</span>
 				)}
-				{item.type === 'tool' && (
-					<span className="tlui-command-bar__item-state"> — {msg('command-bar.type-tool')}</span>
-				)}
 				{!item.enabled && item.disabledDescription && (
 					<span className="tlui-command-bar__item-disabled-description">
 						{' '}

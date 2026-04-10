@@ -145,7 +145,6 @@ export type TLUiTranslationKey =
 	| 'command-bar.title'
 	| 'command-bar.placeholder'
 	| 'command-bar.empty'
-	| 'command-bar.type-tool'
 	| 'action.no-shapes-selected'
 	| 'action.no-shapes-on-page'
 	| 'action.undo-disabled-description'

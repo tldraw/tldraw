@@ -146,7 +146,6 @@ export const DEFAULT_TRANSLATION = {
 	'command-bar.title': 'Command bar',
 	'command-bar.placeholder': 'Search actions…',
 	'command-bar.empty': 'No matching actions',
-	'command-bar.type-tool': 'Tool',
 	'action.no-shapes-selected': 'You need to have some shapes selected',
 	'action.no-shapes-on-page': 'There are no shapes on this page',
 	'action.undo-disabled-description': 'Nothing to undo',

@@ -21,6 +21,7 @@ import {
 	kickoutOccludedShapes,
 	openWindow,
 	useMaybeEditor,
+	useValue,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
@@ -123,7 +124,55 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 	const defaultDocumentName = helpers.msg('document.default-name')
 
-	// should this be a useMemo? looks like it doesn't actually deref any reactive values
+	// Reactive state for enabled() closures. These trigger re-creation of the
+	// actions object so that enabled() returns fresh values for the command bar.
+	const _canApplySelection = useValue(
+		'can-apply-selection',
+		() => !!_editor && _editor.isIn('select') && _editor.getSelectedShapeIds().length > 0,
+		[_editor]
+	)
+	const _pageHasShapes = useValue(
+		'page-has-shapes',
+		() => !!_editor && _editor.getCurrentPageShapeIds().size > 0,
+		[_editor]
+	)
+	const _hasShapesOnPageOrSelected = useValue(
+		'has-shapes-or-selected',
+		() =>
+			!!_editor &&
+			(_editor.getSelectedShapeIds().length > 0 || _editor.getCurrentPageShapeIds().size > 0),
+		[_editor]
+	)
+	const _canUndo = useValue('can-undo', () => !!_editor && _editor.getCanUndo(), [_editor])
+	const _canRedo = useValue('can-redo', () => !!_editor && _editor.getCanRedo(), [_editor])
+	const _isPenMode = useValue(
+		'is-pen-mode',
+		() => !!_editor && _editor.getInstanceState().isPenMode,
+		[_editor]
+	)
+	const _isFollowing = useValue(
+		'is-following',
+		() => !!_editor && !!_editor.getInstanceState().followingUserId,
+		[_editor]
+	)
+	const _hasOneEmbedSelected = useValue(
+		'has-one-embed-selected',
+		() => {
+			if (!_editor) return false
+			const ids = _editor.getSelectedShapeIds()
+			if (ids.length !== 1) return false
+			const shape = _editor.getShape(ids[0])
+			return !!shape && _editor.isShapeOfType(shape, 'embed')
+		},
+		[_editor]
+	)
+	const _canDownloadOriginal = useValue(
+		'can-download-original',
+		() =>
+			!!_editor && _editor.getSelectedShapes().some((s) => supportsDownloadingOriginal(s, _editor)),
+		[_editor]
+	)
+
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
 		const editor = _editor as Editor
 		if (!editor) return {}
@@ -191,7 +240,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'edit-link',
 				label: 'action.edit-link',
 				icon: 'link',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -246,7 +297,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'undo',
 				kbd: 'cmd+z,ctrl+z',
 				enabled() {
-					return editor.getCanUndo()
+					return _canUndo
 				},
 				disabledDescription: 'action.undo-disabled-description',
 				onSelect(source) {
@@ -260,7 +311,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'redo',
 				kbd: 'cmd+shift+z,ctrl+shift+z',
 				enabled() {
-					return editor.getCanRedo()
+					return _canRedo
 				},
 				disabledDescription: 'action.redo-disabled-description',
 				onSelect(source) {
@@ -276,7 +327,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.export-as-svg.short',
 				},
 				readonlyOk: true,
-				enabled: hasShapesOnPageOrSelected,
+				enabled() {
+					return _hasShapesOnPageOrSelected
+				},
 				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
@@ -294,7 +347,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.export-as-png.short',
 				},
 				readonlyOk: true,
-				enabled: hasShapesOnPageOrSelected,
+				enabled() {
+					return _hasShapesOnPageOrSelected
+				},
 				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
@@ -312,7 +367,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.export-all-as-svg.short',
 				},
 				readonlyOk: true,
-				enabled: pageHasShapes,
+				enabled() {
+					return _pageHasShapes
+				},
 				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
@@ -333,7 +390,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.export-all-as-png.short',
 				},
 				readonlyOk: true,
-				enabled: pageHasShapes,
+				enabled() {
+					return _pageHasShapes
+				},
 				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					const ids = Array.from(editor.getCurrentPageShapeIds().values())
@@ -351,7 +410,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: 'cmd+shift+c,ctrl+shift+c',
 				readonlyOk: true,
-				enabled: hasShapesOnPageOrSelected,
+				enabled() {
+					return _hasShapesOnPageOrSelected
+				},
 				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
@@ -369,7 +430,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.copy-as-png.short',
 				},
 				readonlyOk: true,
-				enabled: hasShapesOnPageOrSelected,
+				enabled() {
+					return _hasShapesOnPageOrSelected
+				},
 				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
@@ -387,7 +450,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.copy-as-json.short',
 				},
 				readonlyOk: true,
-				enabled: hasShapesOnPageOrSelected,
+				enabled() {
+					return _hasShapesOnPageOrSelected
+				},
 				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
@@ -400,7 +465,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'toggle-auto-size',
 				label: 'action.toggle-auto-size',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.toggle-auto-size-disabled-description',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -440,10 +507,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.open-embed-link',
 				readonlyOk: true,
 				enabled() {
-					const ids = editor.getSelectedShapeIds()
-					if (ids.length !== 1) return false
-					const shape = editor.getShape(ids[0])
-					return !!shape && editor.isShapeOfType(shape, 'embed')
+					return _hasOneEmbedSelected
 				},
 				disabledDescription: 'action.convert-to-bookmark-disabled-description',
 				onSelect(source) {
@@ -492,7 +556,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'convert-to-bookmark',
 				label: 'action.convert-to-bookmark',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.convert-to-bookmark-disabled-description',
 				async onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -532,7 +598,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'convert-to-embed',
 				label: 'action.convert-to-embed',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.convert-to-embed-disabled-description',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -591,7 +659,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'cmd+d,ctrl+d',
 				label: 'action.duplicate',
 				icon: 'duplicate',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -640,7 +710,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.ungroup',
 				kbd: 'cmd+shift+g,ctrl+shift+g',
 				icon: 'ungroup',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -656,7 +728,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.group',
 				kbd: 'cmd+g,ctrl+g',
 				icon: 'group',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -677,7 +751,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'remove-frame',
 				label: 'action.remove-frame',
 				kbd: 'cmd+shift+f,ctrl+shift+f',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -699,7 +775,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'fit-frame-to-content',
 				label: 'action.fit-frame-to-content',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -717,7 +795,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.align-left',
 				kbd: 'alt+A',
 				icon: 'align-left',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -740,7 +820,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: 'alt+H',
 				icon: 'align-center-horizontal',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -760,7 +842,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.align-right',
 				kbd: 'alt+D',
 				icon: 'align-right',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -783,7 +867,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: 'alt+V',
 				icon: 'align-center-vertical',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -803,7 +889,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.align-top',
 				icon: 'align-top',
 				kbd: 'alt+W',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -823,7 +911,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.align-bottom',
 				icon: 'align-bottom',
 				kbd: 'alt+S',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -846,7 +936,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				icon: 'distribute-horizontal',
 				kbd: 'alt+shift+h',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -869,7 +961,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				icon: 'distribute-vertical',
 				kbd: 'alt+shift+V',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -891,7 +985,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.stretch-horizontal.short',
 				},
 				icon: 'stretch-horizontal',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -913,7 +1009,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.stretch-vertical.short',
 				},
 				icon: 'stretch-vertical',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -935,7 +1033,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.flip-horizontal.short',
 				},
 				kbd: 'shift+h',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -954,7 +1054,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'flip-vertical',
 				label: { default: 'action.flip-vertical', ['context-menu']: 'action.flip-vertical.short' },
 				kbd: 'shift+v',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -973,7 +1075,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'pack',
 				label: 'action.pack',
 				icon: 'pack',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -995,7 +1099,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.stack-vertical.short',
 				},
 				icon: 'stack-vertical',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1017,7 +1123,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.stack-horizontal.short',
 				},
 				icon: 'stack-horizontal',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1037,7 +1145,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.bring-to-front',
 				kbd: ']',
 				icon: 'bring-to-front',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1053,7 +1163,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.bring-forward',
 				icon: 'bring-forward',
 				kbd: 'alt+]',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1069,7 +1181,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.send-backward',
 				icon: 'send-backward',
 				kbd: 'alt+[',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1085,7 +1199,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.send-to-back',
 				icon: 'send-to-back',
 				kbd: '[',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1100,7 +1216,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'cut',
 				label: 'action.cut',
 				kbd: 'cmd+x,ctrl+x',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1115,7 +1233,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.copy',
 				kbd: 'cmd+c,ctrl+c',
 				readonlyOk: true,
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1228,7 +1348,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'select-none',
 				label: 'action.select-none',
 				readonlyOk: true,
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1244,7 +1366,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.delete',
 				kbd: '⌫,del',
 				icon: 'trash',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1260,7 +1384,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.rotate-cw',
 				icon: 'rotate-cw',
 				kbd: 'shift+.,shift+alt+.',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1285,7 +1411,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'rotate-ccw',
 				// omg double comma
 				kbd: 'shift+,,shift+alt+,',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1398,7 +1526,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.zoom-to-selection',
 				kbd: 'shift+2',
 				readonlyOk: true,
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1662,7 +1792,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'unlock-all',
 				label: 'action.unlock-all',
 				enabled() {
-					return editor.getCurrentPageShapeIds().size > 0
+					return _pageHasShapes
 				},
 				onSelect(source) {
 					trackEvent('unlock-all', { source })
@@ -1765,7 +1895,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'cross-2',
 				readonlyOk: true,
 				enabled() {
-					return editor.getInstanceState().isPenMode
+					return _isPenMode
 				},
 				disabledDescription: 'action.exit-pen-mode-disabled-description',
 				onSelect(source) {
@@ -1779,7 +1909,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'cross-2',
 				readonlyOk: true,
 				enabled() {
-					return !!editor.getInstanceState().followingUserId
+					return _isFollowing
 				},
 				onSelect(source) {
 					trackEvent('stop-following', { source })
@@ -1808,7 +1938,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-lock',
 				label: 'action.toggle-lock',
 				kbd: 'shift+l',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -1820,7 +1952,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'move-to-new-page',
 				label: 'context.pages.new-page',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					const newPageId = PageRecordType.createId()
@@ -1897,7 +2031,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'flatten-to-image',
 				label: 'action.flatten-to-image',
 				kbd: 'shift+f',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				disabledDescription: 'action.no-shapes-selected',
 				onSelect: async (source) => {
 					const ids = editor.getSelectedShapeIds()
@@ -1986,7 +2122,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'a11y.adjust-shape-styles',
 				kbd: 'cmd+Enter,ctrl+Enter',
 				isRequiredA11yAction: true,
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
 
@@ -2015,7 +2153,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'cmd+shift+Enter,ctrl+shift+Enter',
 				isRequiredA11yAction: true,
 				readonlyOk: true,
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
 
@@ -2049,7 +2189,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'enlarge-shapes',
 				label: 'a11y.enlarge-shape',
 				kbd: 'cmd+alt+shift+=,ctrl+alt+shift+=',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
 					scaleShapes(1.1)
@@ -2060,7 +2202,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'shrink-shapes',
 				label: 'a11y.shrink-shape',
 				kbd: 'cmd+alt+shift+-,ctrl+alt+shift+-',
-				enabled: canApplySelectionAction,
+				enabled() {
+					return _canApplySelection
+				},
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
 					scaleShapes(1 / 1.1)
@@ -2125,7 +2269,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.download-original',
 				readonlyOk: true,
 				enabled() {
-					return editor.getSelectedShapes().some((s) => supportsDownloadingOriginal(s, editor))
+					return _canDownloadOriginal
 				},
 				disabledDescription: 'action.download-original-disabled-description',
 				onSelect: async (source) => {
@@ -2212,6 +2356,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		msg,
 		a11y,
 		components,
+		_canApplySelection,
+		_pageHasShapes,
+		_hasShapesOnPageOrSelected,
+		_canUndo,
+		_canRedo,
+		_isPenMode,
+		_isFollowing,
+		_hasOneEmbedSelected,
+		_canDownloadOriginal,
 	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
