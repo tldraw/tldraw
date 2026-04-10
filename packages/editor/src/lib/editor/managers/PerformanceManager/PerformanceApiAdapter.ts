@@ -72,6 +72,7 @@ export class PerformanceApiAdapter {
 		)
 	}
 
+	/** Remove all listeners and stop piping events. @public */
 	dispose() {
 		for (const cleanup of this.cleanups) {
 			cleanup()

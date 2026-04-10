@@ -2607,7 +2607,6 @@ export type PerfectDashTerminal = 'none' | 'outset' | 'skip';
 // @public
 export class PerformanceApiAdapter {
     constructor(perfManager: PerformanceManager);
-    // (undocumented)
     dispose(): void;
 }
 
@@ -4401,25 +4400,15 @@ export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | un
 
 // @public
 export interface TLPerfEventMap {
-    // (undocumented)
     'camera:end': [TLCameraEndPerfEvent];
-    // (undocumented)
     'camera:start': [TLCameraStartPerfEvent];
-    // (undocumented)
     'interaction:end': [TLInteractionEndPerfEvent];
-    // (undocumented)
     'interaction:start': [TLInteractionStartPerfEvent];
-    // (undocumented)
     'shapes:created': [TLShapeOperationPerfEvent];
-    // (undocumented)
     'shapes:deleted': [TLShapeOperationPerfEvent];
-    // (undocumented)
     'shapes:updated': [TLShapeOperationPerfEvent];
-    // (undocumented)
     frame: [TLFramePerfEvent];
-    // (undocumented)
     redo: [TLUndoRedoPerfEvent];
-    // (undocumented)
     undo: [TLUndoRedoPerfEvent];
 }
 
