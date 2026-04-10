@@ -859,10 +859,8 @@ describe('frame shapes', () => {
 	describe('resizeChildren configuration option', () => {
 		it('has default canResizeChildren behavior as false', () => {
 			const frameUtil = editor.getShapeUtil<TLFrameShape>('frame') as FrameShapeUtil
-			const frameShape =
-				editor.getShape<TLFrameShape>(editor.getSelectedShapeIds()[0]) ?? ({} as TLFrameShape)
 			expect(frameUtil.options.resizeChildren).toBe(false)
-			expect(frameUtil.canResizeChildren(frameShape)).toBe(false)
+			expect(frameUtil.canResizeChildren({} as TLFrameShape)).toBe(false)
 		})
 
 		it('can be configured to allow resizing children', () => {
