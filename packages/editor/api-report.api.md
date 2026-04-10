@@ -3402,23 +3402,15 @@ export interface TLCameraConstraints {
     padding: VecLike;
 }
 
-// @public (undocumented)
+// @public
 export interface TLCameraEndPerfEvent extends TLPerfFrameTimeStats {
-    // (undocumented)
     culledShapeCount: number;
-    // (undocumented)
     shapeCount: number;
-    // (undocumented)
     timestamp: number;
-    // (undocumented)
     type: 'panning' | 'zooming';
-    // (undocumented)
     viewportHeight: number;
-    // (undocumented)
     viewportWidth: number;
-    // (undocumented)
     visibleShapeCount: number;
-    // (undocumented)
     zoomLevel: number;
 }
 
@@ -3443,11 +3435,9 @@ export interface TLCameraOptions {
     zoomSteps: number[];
 }
 
-// @public (undocumented)
+// @public
 export interface TLCameraStartPerfEvent {
-    // (undocumented)
     timestamp: number;
-    // (undocumented)
     type: 'panning' | 'zooming';
 }
 
@@ -4168,15 +4158,11 @@ export interface TLFilesExternalContent extends TLBaseExternalContent {
     type: 'files';
 }
 
-// @public (undocumented)
+// @public
 export interface TLFramePerfEvent {
-    // (undocumented)
     culledShapeCount: number;
-    // (undocumented)
     elapsed: number;
-    // (undocumented)
     shapesOnPage: number;
-    // (undocumented)
     visibleShapeCount: number;
 }
 
@@ -4277,29 +4263,20 @@ export type TLIndicatorPath = {
     path: Path2D;
 } | Path2D;
 
-// @public (undocumented)
+// @public
 export interface TLInteractionEndPerfEvent extends TLPerfFrameTimeStats {
-    // (undocumented)
     name: string;
-    // (undocumented)
     path: string;
-    // (undocumented)
     selectedShapeTypes: Record<string, number>;
-    // (undocumented)
     shapeCount: number;
-    // (undocumented)
     timestamp: number;
-    // (undocumented)
     zoomLevel: number;
 }
 
-// @public (undocumented)
+// @public
 export interface TLInteractionStartPerfEvent {
-    // (undocumented)
     name: string;
-    // (undocumented)
     path: string;
-    // (undocumented)
     timestamp: number;
 }
 
@@ -4422,7 +4399,7 @@ export const tlmenus: {
 // @public
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;
 
-// @public (undocumented)
+// @public
 export interface TLPerfEventMap {
     // (undocumented)
     'camera:end': [TLCameraEndPerfEvent];
@@ -4446,27 +4423,18 @@ export interface TLPerfEventMap {
     undo: [TLUndoRedoPerfEvent];
 }
 
-// @public (undocumented)
+// @public
 export interface TLPerfFrameTimeStats {
-    // (undocumented)
     avgFrameTime: number;
-    // (undocumented)
     duration: number;
-    // (undocumented)
     fps: number;
-    // (undocumented)
     frameCount: number;
     frameTimes: number[];
     longAnimationFrames?: TLPerfLongAnimationFrame[];
-    // (undocumented)
     maxFrameTime: number;
-    // (undocumented)
     medianFrameTime: number;
-    // (undocumented)
     minFrameTime: number;
-    // (undocumented)
     p95FrameTime: number;
-    // (undocumented)
     p99FrameTime: number;
 }
 
@@ -4696,15 +4664,11 @@ export interface TLShapeIndicatorsProps {
     showAll?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export interface TLShapeOperationPerfEvent {
-    // (undocumented)
     count: number;
-    // (undocumented)
     operation: 'create' | 'delete' | 'update';
-    // (undocumented)
     shapeTypes: Record<string, number>;
-    // (undocumented)
     timestamp: number;
 }
 
@@ -4923,13 +4887,10 @@ export interface TLTldrawExternalContentSource {
     type: 'tldraw';
 }
 
-// @public (undocumented)
+// @public
 export interface TLUndoRedoPerfEvent {
-    // (undocumented)
     redoDepth: number;
-    // (undocumented)
     type: 'redo' | 'undo';
-    // (undocumented)
     undoDepth: number;
 }
 

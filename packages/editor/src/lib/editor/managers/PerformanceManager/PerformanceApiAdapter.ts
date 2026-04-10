@@ -1,5 +1,14 @@
 import type { PerformanceManager } from './PerformanceManager'
 
+/** Wrap performance.mark with try/catch — `detail` option may throw in Safari/Firefox. */
+function safeMark(name: string, detail?: Record<string, unknown>) {
+	try {
+		performance.mark(name, detail ? { detail } : undefined)
+	} catch {
+		performance.mark(name)
+	}
+}
+
 /**
  * Optional adapter that pipes PerformanceManager events into browser
  * `performance.mark()` / `performance.measure()` for DevTools integration.
@@ -21,9 +30,7 @@ export class PerformanceApiAdapter {
 	constructor(perfManager: PerformanceManager) {
 		this.cleanups.push(
 			perfManager.on('interaction:start', (event) => {
-				performance.mark(`tldraw:interaction:${event.name}:start`, {
-					detail: { path: event.path },
-				})
+				safeMark(`tldraw:interaction:${event.name}:start`, { path: event.path })
 			})
 		)
 
@@ -31,13 +38,11 @@ export class PerformanceApiAdapter {
 			perfManager.on('interaction:end', (event) => {
 				const startMark = `tldraw:interaction:${event.name}:start`
 				const endMark = `tldraw:interaction:${event.name}:end`
-				performance.mark(endMark, {
-					detail: {
-						path: event.path,
-						fps: event.fps,
-						frameCount: event.frameCount,
-						shapeCount: event.shapeCount,
-					},
+				safeMark(endMark, {
+					path: event.path,
+					fps: event.fps,
+					frameCount: event.frameCount,
+					shapeCount: event.shapeCount,
 				})
 				try {
 					performance.measure(`tldraw:interaction:${event.name}`, startMark, endMark)
@@ -49,7 +54,7 @@ export class PerformanceApiAdapter {
 
 		this.cleanups.push(
 			perfManager.on('camera:start', (event) => {
-				performance.mark(`tldraw:camera:${event.type}:start`)
+				safeMark(`tldraw:camera:${event.type}:start`)
 			})
 		)
 
@@ -57,9 +62,7 @@ export class PerformanceApiAdapter {
 			perfManager.on('camera:end', (event) => {
 				const startMark = `tldraw:camera:${event.type}:start`
 				const endMark = `tldraw:camera:${event.type}:end`
-				performance.mark(endMark, {
-					detail: { fps: event.fps, shapeCount: event.shapeCount },
-				})
+				safeMark(endMark, { fps: event.fps, shapeCount: event.shapeCount })
 				try {
 					performance.measure(`tldraw:camera:${event.type}`, startMark, endMark)
 				} catch {
