@@ -37,7 +37,7 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 	override canBind() {
 		return false
 	}
-	override hideRotateHandle() {
+	override hideRotateHandle(_shape: SlideShape) {
 		return true
 	}
 

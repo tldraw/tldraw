@@ -90,7 +90,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		return true
 	}
 
-	override canEdit() {
+	override canEdit(_shape: SpeechBubbleShape) {
 		return true
 	}
 

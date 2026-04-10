@@ -124,10 +124,10 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 		})
 	}
 
-	override hideSelectionBoundsBg() {
+	override hideSelectionBoundsBg(_shape: IExamMarkShape) {
 		return true
 	}
-	override hideSelectionBoundsFg() {
+	override hideSelectionBoundsFg(_shape: IExamMarkShape) {
 		return true
 	}
 

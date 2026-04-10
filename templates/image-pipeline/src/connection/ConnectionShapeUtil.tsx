@@ -75,28 +75,28 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		}
 	}
 
-	override canEdit() {
+	override canEdit(_shape: ConnectionShape) {
 		return false
 	}
-	override canResize() {
+	override canResize(_shape: ConnectionShape) {
 		return false
 	}
-	override hideResizeHandles() {
+	override hideResizeHandles(_shape: ConnectionShape) {
 		return true
 	}
-	override hideRotateHandle() {
+	override hideRotateHandle(_shape: ConnectionShape) {
 		return true
 	}
-	override hideSelectionBoundsBg() {
+	override hideSelectionBoundsBg(_shape: ConnectionShape) {
 		return true
 	}
-	override hideSelectionBoundsFg() {
+	override hideSelectionBoundsFg(_shape: ConnectionShape) {
 		return true
 	}
-	override canSnap() {
+	override canSnap(_shape: ConnectionShape) {
 		return false
 	}
-	override getBoundsSnapGeometry() {
+	override getBoundsSnapGeometry(_shape: ConnectionShape) {
 		return {
 			points: [],
 		}

@@ -142,7 +142,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
-	override canEdit() {
+	override canEdit(_shape: TLTextShape) {
 		return true
 	}
 
