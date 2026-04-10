@@ -5,6 +5,7 @@ import {
 	DefaultActionsMenu,
 	TLUiActionsMenuProps,
 } from '../components/ActionsMenu/DefaultActionsMenu'
+import { DefaultCommandBar } from '../components/CommandBar/DefaultCommandBar'
 import {
 	DefaultContextMenu,
 	TLUiContextMenuProps,
@@ -92,6 +93,7 @@ export interface TLUiComponents {
 	PeopleMenuItem?: ComponentType<TLUiPeopleMenuItemProps> | null
 	PeopleMenuFacePile?: ComponentType<TLUiPeopleMenuFacePileProps> | null
 	UserPresenceEditor?: ComponentType | null
+	CommandBar?: ComponentType | null
 }
 
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
@@ -145,6 +147,7 @@ export function TldrawUiComponentsProvider({
 					PeopleMenuItem: DefaultPeopleMenuItem,
 					PeopleMenuFacePile: DefaultPeopleMenuFacePile,
 					UserPresenceEditor: DefaultUserPresenceEditor,
+					CommandBar: DefaultCommandBar,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]

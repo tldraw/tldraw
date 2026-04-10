@@ -53,6 +53,21 @@ export interface TLUiActionItem<
 	readonlyOk?: boolean
 	checkbox?: boolean
 	isRequiredA11yAction?: boolean
+	/**
+	 * Returns whether the action is currently enabled.
+	 * Used by the command bar to show disabled actions.
+	 */
+	enabled(): boolean
+	/**
+	 * For checkbox/toggle actions, returns the current checked state.
+	 * Used by the command bar to show toggle state.
+	 */
+	checked?(): boolean
+	/**
+	 * A translation key describing why this action is currently disabled.
+	 * Displayed by the command bar when the action is disabled and selected.
+	 */
+	disabledDescription?: TransationKey
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 
@@ -127,6 +142,14 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			return editor.isIn('select') && editor.getSelectedShapeIds().length > 0
 		}
 
+		function pageHasShapes() {
+			return editor.getCurrentPageShapeIds().size > 0
+		}
+
+		function hasShapesOnPageOrSelected() {
+			return editor.getSelectedShapeIds().length > 0 || pageHasShapes()
+		}
+
 		function scaleShapes(scaleFactor: number) {
 			if (!canApplySelectionAction()) return
 			if (mustGoBackToSelectToolFirst()) return
@@ -153,9 +176,23 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
 			{
+				id: 'open-command-bar',
+				label: 'action.open-command-bar',
+				readonlyOk: true,
+				kbd: 'cmd+k,ctrl+k',
+				enabled() {
+					return true
+				},
+				onSelect() {
+					// noop — shortcut is registered in useKeyboardShortcuts
+				},
+			},
+			{
 				id: 'edit-link',
 				label: 'action.edit-link',
 				icon: 'link',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -169,6 +206,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'insert-embed',
 				label: 'action.insert-embed',
 				kbd: 'cmd+i,ctrl+i',
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('insert-embed', { source })
 					helpers.addDialog({ component: EmbedDialog })
@@ -178,6 +218,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'open-kbd-shortcuts',
 				label: 'action.open-kbd-shortcuts',
 				kbd: 'cmd+alt+/,ctrl+alt+/',
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('open-kbd-shortcuts', { source })
 					helpers.addDialog({
@@ -189,6 +232,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'insert-media',
 				label: 'action.insert-media',
 				kbd: 'cmd+u,ctrl+u',
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('insert-media', { source })
 					helpers.insertMedia()
@@ -199,6 +245,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.undo',
 				icon: 'undo',
 				kbd: 'cmd+z,ctrl+z',
+				enabled() {
+					return editor.getCanUndo()
+				},
+				disabledDescription: 'action.undo-disabled-description',
 				onSelect(source) {
 					trackEvent('undo', { source })
 					editor.undo()
@@ -209,6 +259,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.redo',
 				icon: 'redo',
 				kbd: 'cmd+shift+z,ctrl+shift+z',
+				enabled() {
+					return editor.getCanRedo()
+				},
+				disabledDescription: 'action.redo-disabled-description',
 				onSelect(source) {
 					trackEvent('redo', { source })
 					editor.redo()
@@ -222,6 +276,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.export-as-svg.short',
 				},
 				readonlyOk: true,
+				enabled: hasShapesOnPageOrSelected,
+				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
@@ -238,6 +294,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.export-as-png.short',
 				},
 				readonlyOk: true,
+				enabled: hasShapesOnPageOrSelected,
+				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
@@ -254,6 +312,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.export-all-as-svg.short',
 				},
 				readonlyOk: true,
+				enabled: pageHasShapes,
+				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
@@ -273,6 +333,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.export-all-as-png.short',
 				},
 				readonlyOk: true,
+				enabled: pageHasShapes,
+				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					const ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
@@ -289,6 +351,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: 'cmd+shift+c,ctrl+shift+c',
 				readonlyOk: true,
+				enabled: hasShapesOnPageOrSelected,
+				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
@@ -305,6 +369,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.copy-as-png.short',
 				},
 				readonlyOk: true,
+				enabled: hasShapesOnPageOrSelected,
+				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
@@ -321,6 +387,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.copy-as-json.short',
 				},
 				readonlyOk: true,
+				enabled: hasShapesOnPageOrSelected,
+				disabledDescription: 'action.no-shapes-on-page',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
@@ -332,6 +400,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'toggle-auto-size',
 				label: 'action.toggle-auto-size',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.toggle-auto-size-disabled-description',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -369,6 +439,13 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'open-embed-link',
 				label: 'action.open-embed-link',
 				readonlyOk: true,
+				enabled() {
+					const ids = editor.getSelectedShapeIds()
+					if (ids.length !== 1) return false
+					const shape = editor.getShape(ids[0])
+					return !!shape && editor.isShapeOfType(shape, 'embed')
+				},
+				disabledDescription: 'action.convert-to-bookmark-disabled-description',
 				onSelect(source) {
 					trackEvent('open-embed-link', { source })
 					const ids = editor.getSelectedShapeIds()
@@ -391,6 +468,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.select-zoom-tool',
 				readonlyOk: true,
 				kbd: 'z, !z',
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					// Noop if user is actually cmd/ctrl+z'ing
 					if (editor.inputs.getAccelKey()) return
@@ -412,6 +492,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'convert-to-bookmark',
 				label: 'action.convert-to-bookmark',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.convert-to-bookmark-disabled-description',
 				async onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -450,6 +532,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'convert-to-embed',
 				label: 'action.convert-to-embed',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.convert-to-embed-disabled-description',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -507,6 +591,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'cmd+d,ctrl+d',
 				label: 'action.duplicate',
 				icon: 'duplicate',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -554,6 +640,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.ungroup',
 				kbd: 'cmd+shift+g,ctrl+shift+g',
 				icon: 'ungroup',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -568,6 +656,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.group',
 				kbd: 'cmd+g,ctrl+g',
 				icon: 'group',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -587,6 +677,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'remove-frame',
 				label: 'action.remove-frame',
 				kbd: 'cmd+shift+f,ctrl+shift+f',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 
@@ -607,6 +699,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'fit-frame-to-content',
 				label: 'action.fit-frame-to-content',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 
@@ -623,6 +717,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.align-left',
 				kbd: 'alt+A',
 				icon: 'align-left',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -644,6 +740,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: 'alt+H',
 				icon: 'align-center-horizontal',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -662,6 +760,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.align-right',
 				kbd: 'alt+D',
 				icon: 'align-right',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -683,6 +783,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: 'alt+V',
 				icon: 'align-center-vertical',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -701,6 +803,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.align-top',
 				icon: 'align-top',
 				kbd: 'alt+W',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -719,6 +823,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.align-bottom',
 				icon: 'align-bottom',
 				kbd: 'alt+S',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -740,6 +846,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				icon: 'distribute-horizontal',
 				kbd: 'alt+shift+h',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -761,6 +869,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				icon: 'distribute-vertical',
 				kbd: 'alt+shift+V',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -781,6 +891,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.stretch-horizontal.short',
 				},
 				icon: 'stretch-horizontal',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -801,6 +913,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.stretch-vertical.short',
 				},
 				icon: 'stretch-vertical',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -821,6 +935,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.flip-horizontal.short',
 				},
 				kbd: 'shift+h',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -838,6 +954,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'flip-vertical',
 				label: { default: 'action.flip-vertical', ['context-menu']: 'action.flip-vertical.short' },
 				kbd: 'shift+v',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -855,6 +973,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'pack',
 				label: 'action.pack',
 				icon: 'pack',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -875,6 +995,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.stack-vertical.short',
 				},
 				icon: 'stack-vertical',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -895,6 +1017,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.stack-horizontal.short',
 				},
 				icon: 'stack-horizontal',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -913,6 +1037,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.bring-to-front',
 				kbd: ']',
 				icon: 'bring-to-front',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -927,6 +1053,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.bring-forward',
 				icon: 'bring-forward',
 				kbd: 'alt+]',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -941,6 +1069,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.send-backward',
 				icon: 'send-backward',
 				kbd: 'alt+[',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -955,6 +1085,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.send-to-back',
 				icon: 'send-to-back',
 				kbd: '[',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -968,6 +1100,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'cut',
 				label: 'action.cut',
 				kbd: 'cmd+x,ctrl+x',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -981,6 +1115,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.copy',
 				kbd: 'cmd+c,ctrl+c',
 				readonlyOk: true,
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -992,6 +1128,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'paste',
 				label: 'action.paste',
 				kbd: 'cmd+v,ctrl+v',
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					navigator.clipboard
 						?.read()
@@ -1016,6 +1155,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'paste-at-cursor',
 				label: 'action.paste',
 				kbd: '$?v',
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					const pasteAtCursor = !editor.user.getIsPasteAtCursorMode()
 					const point = pasteAtCursor ? editor.inputs.getCurrentPagePoint() : undefined
@@ -1038,6 +1180,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'paste-plain-text-at-cursor',
 				label: 'action.paste',
 				kbd: '$!?v',
+				enabled() {
+					return true
+				},
 				onSelect() {
 					const pasteAtCursor = !editor.user.getIsPasteAtCursorMode()
 					const point = pasteAtCursor
@@ -1065,6 +1210,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.select-all',
 				kbd: 'cmd+a,ctrl+a',
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					editor.run(() => {
 						if (mustGoBackToSelectToolFirst()) return
@@ -1080,6 +1228,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'select-none',
 				label: 'action.select-none',
 				readonlyOk: true,
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -1094,6 +1244,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.delete',
 				kbd: '⌫,del',
 				icon: 'trash',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -1108,6 +1260,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.rotate-cw',
 				icon: 'rotate-cw',
 				kbd: 'shift+.,shift+alt+.',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -1131,6 +1285,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'rotate-ccw',
 				// omg double comma
 				kbd: 'shift+,,shift+alt+,',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -1153,6 +1309,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.zoom-in',
 				kbd: 'cmd+=,ctrl+=,=',
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: false })
 					editor.zoomIn(undefined, {
@@ -1165,6 +1324,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.zoom-in',
 				kbd: 'shift+cmd+=,shift+ctrl+=,shift+=',
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: true })
 					editor.zoomIn(editor.inputs.getCurrentScreenPoint(), {
@@ -1177,6 +1339,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.zoom-out',
 				kbd: 'cmd+-,ctrl+-,-',
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('zoom-out', { source, towardsCursor: false })
 					editor.zoomOut(undefined, {
@@ -1189,6 +1354,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.zoom-out',
 				kbd: 'shift+cmd+-,shift+ctrl+-,shift+-',
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('zoom-out', { source, towardsCursor: true })
 					editor.zoomOut(editor.inputs.getCurrentScreenPoint(), {
@@ -1202,6 +1370,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'reset-zoom',
 				kbd: 'shift+0',
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('reset-zoom', { source })
 					editor.resetZoom(undefined, {
@@ -1214,6 +1385,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.zoom-to-fit',
 				kbd: 'shift+1',
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('zoom-to-fit', { source })
 					editor.zoomToFit({ animation: { duration: editor.options.animationMediumMs } })
@@ -1224,6 +1398,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.zoom-to-selection',
 				kbd: 'shift+2',
 				readonlyOk: true,
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
@@ -1238,11 +1414,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.toggle-snap-mode',
 					menu: 'action.toggle-snap-mode.menu',
 				},
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('toggle-snap-mode', { source })
 					editor.user.updateUserPreferences({ isSnapMode: !editor.user.getIsSnapMode() })
 				},
 				checkbox: true,
+				checked() {
+					return editor.user.getIsSnapMode()
+				},
 			},
 			{
 				id: 'toggle-dark-mode',
@@ -1252,6 +1434,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: 'cmd+/,ctrl+/',
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					const value = editor.user.getIsDarkMode() ? 'light' : 'dark'
 					trackEvent('color-scheme', { source, value })
@@ -1260,6 +1445,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
+				checked() {
+					return editor.user.getIsDarkMode()
+				},
 			},
 			{
 				id: 'toggle-wrap-mode',
@@ -1268,6 +1456,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-wrap-mode.menu',
 				},
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('toggle-wrap-mode', { source })
 					editor.user.updateUserPreferences({
@@ -1275,6 +1466,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
+				checked() {
+					return editor.user.getIsWrapMode()
+				},
 			},
 			{
 				id: 'toggle-dynamic-size-mode',
@@ -1283,6 +1477,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-dynamic-size-mode.menu',
 				},
 				readonlyOk: false,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('toggle-dynamic-size-mode', { source })
 					editor.user.updateUserPreferences({
@@ -1290,6 +1487,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
+				checked() {
+					return editor.user.getIsDynamicResizeMode()
+				},
 			},
 			{
 				id: 'toggle-paste-at-cursor',
@@ -1298,6 +1498,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-paste-at-cursor.menu',
 				},
 				readonlyOk: false,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('toggle-paste-at-cursor', { source })
 					editor.user.updateUserPreferences({
@@ -1305,6 +1508,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
+				checked() {
+					return editor.user.getIsPasteAtCursorMode()
+				},
 			},
 			{
 				id: 'toggle-reduce-motion',
@@ -1313,6 +1519,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-reduce-motion.menu',
 				},
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('toggle-reduce-motion', { source })
 					editor.user.updateUserPreferences({
@@ -1320,6 +1529,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
+				checked() {
+					return editor.user.getAnimationSpeed() === 0
+				},
 			},
 			{
 				id: 'toggle-keyboard-shortcuts',
@@ -1328,6 +1540,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-keyboard-shortcuts.menu',
 				},
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('toggle-keyboard-shortcuts', { source })
 					editor.user.updateUserPreferences({
@@ -1335,6 +1550,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
+				checked() {
+					return editor.user.getAreKeyboardShortcutsEnabled()
+				},
 			},
 			{
 				id: 'enhanced-a11y-mode',
@@ -1343,6 +1561,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.enhanced-a11y-mode.menu',
 				},
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('enhanced-a11y-mode', { source })
 					editor.user.updateUserPreferences({
@@ -1350,6 +1571,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
+				checked() {
+					return editor.user.getEnhancedA11yMode()
+				},
 			},
 			{
 				id: 'toggle-edge-scrolling',
@@ -1358,6 +1582,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-edge-scrolling.menu',
 				},
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('toggle-edge-scrolling', { source })
 					editor.user.updateUserPreferences({
@@ -1365,6 +1592,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
+				checked() {
+					return editor.user.getEdgeScrollSpeed() > 0
+				},
 			},
 			{
 				id: 'toggle-invert-zoom',
@@ -1373,6 +1603,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-invert-zoom.menu',
 				},
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('toggle-invert-zoom', { source })
 					editor.user.updateUserPreferences({
@@ -1380,6 +1613,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
+				checked() {
+					return editor.user.getIsZoomDirectionInverted()
+				},
 			},
 			{
 				id: 'toggle-transparent',
@@ -1389,6 +1625,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.toggle-transparent.context-menu',
 				},
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('toggle-transparent', { source })
 					editor.updateInstanceState({
@@ -1396,6 +1635,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
+				checked() {
+					return !editor.getInstanceState().exportBackground
+				},
 			},
 			{
 				id: 'toggle-tool-lock',
@@ -1404,15 +1646,24 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-tool-lock.menu',
 				},
 				kbd: 'q',
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('toggle-tool-lock', { source })
 					editor.updateInstanceState({ isToolLocked: !editor.getInstanceState().isToolLocked })
 				},
 				checkbox: true,
+				checked() {
+					return editor.getInstanceState().isToolLocked
+				},
 			},
 			{
 				id: 'unlock-all',
 				label: 'action.unlock-all',
+				enabled() {
+					return editor.getCurrentPageShapeIds().size > 0
+				},
 				onSelect(source) {
 					trackEvent('unlock-all', { source })
 					const updates = [] as TLShapePartial[]
@@ -1435,6 +1686,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				kbd: 'cmd+.,ctrl+.',
 				checkbox: true,
+				checked() {
+					return editor.getInstanceState().isFocusMode
+				},
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					// this needs to be deferred because it causes the menu
 					// UI to unmount which puts us in a dodgy state
@@ -1456,11 +1713,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				kbd: "cmd+',ctrl+'",
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('toggle-grid-mode', { source })
 					editor.updateInstanceState({ isGridMode: !editor.getInstanceState().isGridMode })
 				},
 				checkbox: true,
+				checked() {
+					return editor.getInstanceState().isGridMode
+				},
 			},
 			{
 				id: 'toggle-debug-mode',
@@ -1469,6 +1732,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.toggle-debug-mode.menu',
 				},
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('toggle-debug-mode', { source })
 					editor.updateInstanceState({
@@ -1476,12 +1742,18 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 				checkbox: true,
+				checked() {
+					return editor.getInstanceState().isDebugMode
+				},
 			},
 			{
 				id: 'print',
 				label: 'action.print',
 				kbd: 'cmd+p,ctrl+p',
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('print', { source })
 					helpers.printSelectionOrPages()
@@ -1492,6 +1764,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.exit-pen-mode',
 				icon: 'cross-2',
 				readonlyOk: true,
+				enabled() {
+					return editor.getInstanceState().isPenMode
+				},
+				disabledDescription: 'action.exit-pen-mode-disabled-description',
 				onSelect(source) {
 					trackEvent('exit-pen-mode', { source })
 					editor.updateInstanceState({ isPenMode: false })
@@ -1502,6 +1778,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.stop-following',
 				icon: 'cross-2',
 				readonlyOk: true,
+				enabled() {
+					return !!editor.getInstanceState().followingUserId
+				},
 				onSelect(source) {
 					trackEvent('stop-following', { source })
 					editor.stopFollowingUser()
@@ -1512,6 +1791,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.back-to-content',
 				icon: 'arrow-left',
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('zoom-to-content', { source })
 					const bounds = editor.getSelectionPageBounds() ?? editor.getCurrentPageBounds()
@@ -1526,6 +1808,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-lock',
 				label: 'action.toggle-lock',
 				kbd: 'shift+l',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					editor.markHistoryStoppingPoint('locking')
@@ -1536,6 +1820,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'move-to-new-page',
 				label: 'context.pages.new-page',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect(source) {
 					const newPageId = PageRecordType.createId()
 					const ids = editor.getSelectedShapeIds()
@@ -1554,6 +1840,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'select-white-color',
 				label: 'color-style.white',
 				kbd: 'alt+t',
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					const style = DefaultColorStyle
 					editor.run(() => {
@@ -1570,6 +1859,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'select-fill-fill',
 				label: 'fill-style.fill',
 				kbd: 'alt+f',
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					const style = DefaultFillStyle
 					editor.run(() => {
@@ -1586,6 +1878,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'select-fill-lined-fill',
 				label: 'fill-style.lined-fill',
 				kbd: 'alt+shift+f',
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					const style = DefaultFillStyle
 					editor.run(() => {
@@ -1602,6 +1897,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'flatten-to-image',
 				label: 'action.flatten-to-image',
 				kbd: 'shift+f',
+				enabled: canApplySelectionAction,
+				disabledDescription: 'action.no-shapes-selected',
 				onSelect: async (source) => {
 					const ids = editor.getSelectedShapeIds()
 					if (ids.length === 0) return
@@ -1623,6 +1920,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'select-geo-tool',
 				kbd: 'g',
+				enabled() {
+					return true
+				},
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
 					trackEvent('select-tool', { source, id: `geo-previous` })
@@ -1633,6 +1933,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'change-page-prev',
 				kbd: 'alt+left,alt+up',
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
 					const pages = editor.getPages()
@@ -1646,6 +1949,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'change-page-next',
 				kbd: 'alt+right,alt+down',
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
 					const pages = editor.getPages()
@@ -1680,6 +1986,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'a11y.adjust-shape-styles',
 				kbd: 'cmd+Enter,ctrl+Enter',
 				isRequiredA11yAction: true,
+				enabled: canApplySelectionAction,
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
 
@@ -1708,6 +2015,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'cmd+shift+Enter,ctrl+shift+Enter',
 				isRequiredA11yAction: true,
 				readonlyOk: true,
+				enabled: canApplySelectionAction,
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
 
@@ -1741,6 +2049,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'enlarge-shapes',
 				label: 'a11y.enlarge-shape',
 				kbd: 'cmd+alt+shift+=,ctrl+alt+shift+=',
+				enabled: canApplySelectionAction,
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
 					scaleShapes(1.1)
@@ -1751,6 +2060,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'shrink-shapes',
 				label: 'a11y.shrink-shape',
 				kbd: 'cmd+alt+shift+-,ctrl+alt+shift+-',
+				enabled: canApplySelectionAction,
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
 					scaleShapes(1 / 1.1)
@@ -1763,6 +2073,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'a11y.repeat-shape',
 				isRequiredA11yAction: true,
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 				onSelect: async (source) => {
 					const selectedShapeIds = editor.getSelectedShapeIds()
 					if (!selectedShapeIds.length) return
@@ -1786,6 +2099,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'tool.replace-media',
 				icon: 'arrow-cycle',
 				readonlyOk: false,
+				enabled() {
+					return true
+				},
 				onSelect: async (source) => {
 					trackEvent('image-replace', { source })
 					helpers.replaceImage()
@@ -1796,6 +2112,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'tool.replace-media',
 				icon: 'arrow-cycle',
 				readonlyOk: false,
+				enabled() {
+					return true
+				},
 				onSelect: async (source) => {
 					trackEvent('video-replace', { source })
 					helpers.replaceVideo()
@@ -1805,6 +2124,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'download-original',
 				label: 'action.download-original',
 				readonlyOk: true,
+				enabled() {
+					return editor.getSelectedShapes().some((s) => supportsDownloadingOriginal(s, editor))
+				},
+				disabledDescription: 'action.download-original-disabled-description',
 				onSelect: async (source) => {
 					const selectedShapes = editor.getSelectedShapes()
 					if (selectedShapes.length === 0) return
@@ -1853,6 +2176,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.open-cursor-chat',
 				readonlyOk: true,
 				kbd: '/',
+				enabled() {
+					return true
+				},
 				onSelect(source) {
 					trackEvent('open-cursor-chat', { source })
 

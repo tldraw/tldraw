@@ -7,6 +7,9 @@ export function useDebugging(): TLUiOverrides {
 		actions(editor, actions) {
 			actions['log-shapes'] = {
 				id: 'log-shapes',
+				enabled() {
+					return true
+				},
 				onSelect: () => {
 					const selectedShapes = editor.getSelectedShapes()
 					switch (selectedShapes.length) {
@@ -31,6 +34,9 @@ export function useDebugging(): TLUiOverrides {
 
 			actions['track-changes'] = {
 				id: 'track-changes',
+				enabled() {
+					return true
+				},
 				onSelect: () => {
 					const oneShape = editor.getOnlySelectedShape()
 					if (!oneShape) return

@@ -13,6 +13,9 @@ export default function BasicExample() {
 							icon: 'circle',
 							// [2]
 							kbd: 's',
+							enabled() {
+								return true
+							},
 							onSelect(source) {
 								// [3]
 								helpers.addToast({ title: `My action was selected from ${source}!` })

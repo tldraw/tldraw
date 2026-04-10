@@ -10,6 +10,7 @@ export type TLUiEventSource =
 	| 'navigation-zone'
 	| 'quick-actions'
 	| 'actions-menu'
+	| 'command-bar'
 	| 'kbd'
 	| 'debug-panel'
 	| 'page-menu'
@@ -145,6 +146,9 @@ export interface TLUiEventMap {
 			| 'bulletList'
 	}
 	edit: null
+	'open-command-bar': null
+	'close-command-bar': null
+	'command-bar-action': { actionId: string }
 }
 
 /** @public */

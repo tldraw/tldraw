@@ -274,6 +274,7 @@ export {
 	StackMenuItems,
 	ZoomOrRotateMenuItem,
 } from './lib/ui/components/ActionsMenu/DefaultActionsMenuContent'
+export { DefaultCommandBar } from './lib/ui/components/CommandBar/DefaultCommandBar'
 export {
 	DefaultContextMenu as ContextMenu,
 	DefaultContextMenu,
@@ -732,6 +733,17 @@ export {
 	useCollaborationStatus,
 	useShowCollaborationUi,
 } from './lib/ui/hooks/useCollaborationStatus'
+export {
+	COMMAND_BAR_MENU_ID,
+	DEFAULT_EXCLUDED_ACTION_IDS,
+	DEFAULT_POPULAR_ACTION_IDS,
+	DEFAULT_POPULAR_TOOL_IDS,
+	useCommandBar,
+	type CommandBarItem,
+	type CommandBarItemMeta,
+	type CommandBarItemType,
+	type UseCommandBarOptions,
+} from './lib/ui/hooks/useCommandBar'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'

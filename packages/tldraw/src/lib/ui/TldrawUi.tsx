@@ -123,6 +123,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		Toasts,
 		Dialogs,
 		A11y,
+		CommandBar,
 	} = useTldrawUiComponents()
 
 	useEditorEvents()
@@ -231,6 +232,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			)}
 			{Toasts && <Toasts />}
 			{Dialogs && <Dialogs />}
+			{CommandBar && <CommandBar />}
 		</div>
 	)
 })

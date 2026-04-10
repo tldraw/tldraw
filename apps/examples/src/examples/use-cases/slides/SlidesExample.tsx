@@ -53,6 +53,9 @@ const overrides: TLUiOverrides = {
 				id: 'next-slide',
 				label: 'Next slide',
 				kbd: 'right',
+				enabled() {
+					return true
+				},
 				onSelect() {
 					const slides = $slides.get()
 					const currentSlide = $currentSlide.get()
@@ -68,6 +71,9 @@ const overrides: TLUiOverrides = {
 				id: 'previous-slide',
 				label: 'Previous slide',
 				kbd: 'left',
+				enabled() {
+					return true
+				},
 				onSelect() {
 					const slides = $slides.get()
 					const currentSlide = $currentSlide.get()

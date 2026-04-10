@@ -3,12 +3,14 @@ import {
 	TLPointerEventInfo,
 	isAccelKey,
 	preventDefault,
+	tlmenus,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
 import { useActions } from '../context/actions'
+import { COMMAND_BAR_MENU_ID } from './useCommandBar'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
@@ -19,6 +21,8 @@ const SKIP_KBDS = [
 	'paste',
 	// There's also an upload asset action, so we don't want to set the kbd twice
 	'asset',
+	// Registered directly below, outside the action loop
+	'open-command-bar',
 ]
 
 /** @public */
@@ -136,6 +140,16 @@ export function useKeyboardShortcuts() {
 			}
 
 			editor.dispatch(info)
+		})
+
+		// Command bar shortcut — registered outside the action loop so it works
+		// even when other menus are open (areShortcutsDisabled would block it).
+		hot(getHotkeysStringFromKbd('$k'), () => {
+			if (tlmenus.isMenuOpen(COMMAND_BAR_MENU_ID, editor.contextId)) {
+				tlmenus.deleteOpenMenu(COMMAND_BAR_MENU_ID, editor.contextId)
+			} else {
+				tlmenus.addOpenMenu(COMMAND_BAR_MENU_ID, editor.contextId)
+			}
 		})
 
 		return () => {

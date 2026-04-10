@@ -65,6 +65,9 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					label: 'action.save-copy',
 					readonlyOk: true,
 					kbd: 'cmd+s,ctrl+s',
+					enabled() {
+						return true
+					},
 					onSelect() {
 						trackEvent('save-project-no-action', { source: 'kbd' })
 					},
@@ -73,6 +76,9 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					id: 'save-file-copy',
 					label: intl.formatMessage(messages.downloadFile),
 					readonlyOk: true,
+					enabled() {
+						return true
+					},
 					async onSelect() {
 						trackEvent('download-file', { source: '' })
 						if (app && fileSlug) {
@@ -88,6 +94,9 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					id: 'copy-to-my-files',
 					label: intl.formatMessage(messages.copyToMyfiles),
 					readonlyOk: true,
+					enabled() {
+						return true
+					},
 					async onSelect() {
 						const defaultName = getFileName(editor)
 						const res = await app?.createFile({
