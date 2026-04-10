@@ -56,7 +56,21 @@ function toLoafEntry(entry: PerformanceEntry): TLPerfLongAnimationFrame | null {
 	}
 }
 
-/** @public */
+/**
+ * Manages performance event subscriptions for the editor. Available as `editor.performance`.
+ *
+ * Listeners are lazy — internal editor hooks (frame, shape events) are only attached while
+ * at least one subscriber exists, so there is zero overhead when unused.
+ *
+ * @example
+ * ```ts
+ * const unsub = editor.performance.on('interaction:end', (event) => {
+ *   console.log(`${event.name}: ${event.fps.toFixed(1)} fps, p95=${event.p95FrameTime.toFixed(1)}ms`)
+ * })
+ * ```
+ *
+ * @public
+ */
 export class PerformanceManager {
 	/** @internal */
 	readonly emitter = new EventEmitter<TLPerfEventMap>()
@@ -96,8 +110,15 @@ export class PerformanceManager {
 	}
 
 	/**
-	 * Subscribe to a performance event.
-	 * Returns an unsubscribe function.
+	 * Subscribe to a performance event. Returns an unsubscribe function.
+	 *
+	 * @example
+	 * ```ts
+	 * const unsub = editor.performance.on('interaction:end', (event) => {
+	 *   sendToAnalytics({ name: event.name, fps: event.fps, p95: event.p95FrameTime })
+	 * })
+	 * // later: unsub()
+	 * ```
 	 *
 	 * @public
 	 */
@@ -114,7 +135,8 @@ export class PerformanceManager {
 	}
 
 	/**
-	 * Subscribe to a performance event once.
+	 * Subscribe to a performance event once. The listener is removed after the first invocation.
+	 * Returns an unsubscribe function for early removal.
 	 *
 	 * @public
 	 */

@@ -2611,7 +2611,7 @@ export class PerformanceApiAdapter {
     dispose(): void;
 }
 
-// @public (undocumented)
+// @public
 export class PerformanceManager {
     constructor(editor: Editor);
     // @internal (undocumented)
