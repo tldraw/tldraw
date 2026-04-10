@@ -29,13 +29,13 @@ export class PerformanceApiAdapter {
 
 	constructor(perfManager: PerformanceManager) {
 		this.cleanups.push(
-			perfManager.on('interaction:start', (event) => {
+			perfManager.on('interaction-start', (event) => {
 				safeMark(`tldraw:interaction:${event.name}:start`, { path: event.path })
 			})
 		)
 
 		this.cleanups.push(
-			perfManager.on('interaction:end', (event) => {
+			perfManager.on('interaction-end', (event) => {
 				const startMark = `tldraw:interaction:${event.name}:start`
 				const endMark = `tldraw:interaction:${event.name}:end`
 				safeMark(endMark, {
@@ -53,13 +53,13 @@ export class PerformanceApiAdapter {
 		)
 
 		this.cleanups.push(
-			perfManager.on('camera:start', (event) => {
+			perfManager.on('camera-start', (event) => {
 				safeMark(`tldraw:camera:${event.type}:start`)
 			})
 		)
 
 		this.cleanups.push(
-			perfManager.on('camera:end', (event) => {
+			perfManager.on('camera-end', (event) => {
 				const startMark = `tldraw:camera:${event.type}:start`
 				const endMark = `tldraw:camera:${event.type}:end`
 				safeMark(endMark, { fps: event.fps, shapeCount: event.shapeCount })

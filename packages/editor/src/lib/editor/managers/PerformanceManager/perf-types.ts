@@ -173,19 +173,19 @@ export interface TLPerfLongAnimationFrameScript {
  */
 export interface TLPerfEventMap {
 	/** An interaction state was entered. */
-	'interaction:start': [TLInteractionStartPerfEvent]
+	'interaction-start': [TLInteractionStartPerfEvent]
 	/** An interaction state was exited, with aggregated frame time stats. */
-	'interaction:end': [TLInteractionEndPerfEvent]
+	'interaction-end': [TLInteractionEndPerfEvent]
 	/** A camera operation (pan/zoom) began. */
-	'camera:start': [TLCameraStartPerfEvent]
+	'camera-start': [TLCameraStartPerfEvent]
 	/** A camera operation ended (after debounce), with aggregated frame time stats. */
-	'camera:end': [TLCameraEndPerfEvent]
+	'camera-end': [TLCameraEndPerfEvent]
 	/** Shapes were created. */
-	'shapes:created': [TLShapeOperationPerfEvent]
+	'shapes-created': [TLShapeOperationPerfEvent]
 	/** Shapes were updated. */
-	'shapes:updated': [TLShapeOperationPerfEvent]
+	'shapes-updated': [TLShapeOperationPerfEvent]
 	/** Shapes were deleted. */
-	'shapes:deleted': [TLShapeOperationPerfEvent]
+	'shapes-deleted': [TLShapeOperationPerfEvent]
 	/** An animation frame was rendered. Only fires when listeners are registered. */
 	frame: [TLFramePerfEvent]
 	/** An undo operation was performed. */

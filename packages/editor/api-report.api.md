@@ -4400,13 +4400,13 @@ export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | un
 
 // @public
 export interface TLPerfEventMap {
-    'camera:end': [TLCameraEndPerfEvent];
-    'camera:start': [TLCameraStartPerfEvent];
-    'interaction:end': [TLInteractionEndPerfEvent];
-    'interaction:start': [TLInteractionStartPerfEvent];
-    'shapes:created': [TLShapeOperationPerfEvent];
-    'shapes:deleted': [TLShapeOperationPerfEvent];
-    'shapes:updated': [TLShapeOperationPerfEvent];
+    'camera-end': [TLCameraEndPerfEvent];
+    'camera-start': [TLCameraStartPerfEvent];
+    'interaction-end': [TLInteractionEndPerfEvent];
+    'interaction-start': [TLInteractionStartPerfEvent];
+    'shapes-created': [TLShapeOperationPerfEvent];
+    'shapes-deleted': [TLShapeOperationPerfEvent];
+    'shapes-updated': [TLShapeOperationPerfEvent];
     frame: [TLFramePerfEvent];
     redo: [TLUndoRedoPerfEvent];
     undo: [TLUndoRedoPerfEvent];

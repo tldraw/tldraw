@@ -10,7 +10,7 @@ function PerfPanel() {
 
 	useEffect(() => {
 		// [2]
-		const unsub = editor.performance.on('interaction:end', (event) => {
+		const unsub = editor.performance.on('interaction-end', (event) => {
 			setLastEvent(event)
 		})
 
@@ -105,7 +105,7 @@ interaction. It's placed in the InFrontOfTheCanvas slot, positioned
 in the bottom-right corner.
 
 [2]
-`editor.performance.on('interaction:end', fn)` returns an unsubscribe
+`editor.performance.on('interaction-end', fn)` returns an unsubscribe
 function, which we call on cleanup. The event fires when any interaction
 completes (translate, resize, rotate, draw, etc.) and includes frame
 time distribution stats (avg, median, p95, p99) plus context like

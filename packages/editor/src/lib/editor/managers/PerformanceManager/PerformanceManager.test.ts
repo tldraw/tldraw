@@ -49,7 +49,7 @@ describe('PerformanceManager', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
-			const unsub = pm.on('interaction:end', fn)
+			const unsub = pm.on('interaction-end', fn)
 			expect(typeof unsub).toBe('function')
 			unsub()
 		})
@@ -59,7 +59,7 @@ describe('PerformanceManager', () => {
 			const pm = new PerformanceManager(editor)
 			expect(editor._listeners['frame'] ?? []).toHaveLength(0)
 
-			const unsub = pm.on('interaction:end', vi.fn())
+			const unsub = pm.on('interaction-end', vi.fn())
 			expect(editor._listeners['frame']).toHaveLength(1)
 
 			unsub()
@@ -70,7 +70,7 @@ describe('PerformanceManager', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 
-			const unsub = pm.on('shapes:created', vi.fn())
+			const unsub = pm.on('shapes-created', vi.fn())
 			expect(editor._listeners['created-shapes']).toHaveLength(1)
 
 			unsub()
@@ -81,12 +81,12 @@ describe('PerformanceManager', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 
-			const unsub1 = pm.on('interaction:end', vi.fn())
-			const unsub2 = pm.on('camera:end', vi.fn())
+			const unsub1 = pm.on('interaction-end', vi.fn())
+			const unsub2 = pm.on('camera-end', vi.fn())
 			expect(editor._listeners['frame']).toHaveLength(1)
 
 			unsub1()
-			// still one camera:end listener
+			// still one camera-end listener
 			expect(editor._listeners['frame']).toHaveLength(1)
 
 			unsub2()
@@ -95,11 +95,11 @@ describe('PerformanceManager', () => {
 	})
 
 	describe('interaction tracking', () => {
-		it('emits interaction:start when notified', () => {
+		it('emits interaction-start when notified', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
-			pm.on('interaction:start', fn)
+			pm.on('interaction-start', fn)
 
 			pm._notifyInteractionStart('translating', 'select.translating')
 
@@ -111,11 +111,11 @@ describe('PerformanceManager', () => {
 			expect(fn.mock.calls[0][0].timestamp).toBeGreaterThan(0)
 		})
 
-		it('emits interaction:end with frame stats', () => {
+		it('emits interaction-end with frame stats', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
-			pm.on('interaction:end', fn)
+			pm.on('interaction-end', fn)
 
 			pm._notifyInteractionStart('resizing', 'select.resizing')
 
@@ -153,7 +153,7 @@ describe('PerformanceManager', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
-			pm.on('interaction:end', fn)
+			pm.on('interaction-end', fn)
 
 			pm._notifyInteractionEnd()
 			expect(fn).not.toHaveBeenCalled()
@@ -161,7 +161,7 @@ describe('PerformanceManager', () => {
 	})
 
 	describe('camera tracking', () => {
-		it('emits camera:start and camera:end', () => {
+		it('emits camera-start and camera-end', () => {
 			vi.useFakeTimers()
 			const editor = createMockEditor()
 			// Override timers.setTimeout to use fake timers
@@ -169,8 +169,8 @@ describe('PerformanceManager', () => {
 			const pm = new PerformanceManager(editor)
 			const startFn = vi.fn()
 			const endFn = vi.fn()
-			pm.on('camera:start', startFn)
-			pm.on('camera:end', endFn)
+			pm.on('camera-start', startFn)
+			pm.on('camera-end', endFn)
 
 			pm._notifyCameraOperation('panning')
 			expect(startFn).toHaveBeenCalledTimes(1)
@@ -199,7 +199,7 @@ describe('PerformanceManager', () => {
 			editor.timers.setTimeout = (fn: () => void, ms: number) => setTimeout(fn, ms) as any
 			const pm = new PerformanceManager(editor)
 			const endFn = vi.fn()
-			pm.on('camera:end', endFn)
+			pm.on('camera-end', endFn)
 
 			pm._notifyCameraOperation('panning')
 			editor.emit('frame', 16)
@@ -226,8 +226,8 @@ describe('PerformanceManager', () => {
 			const pm = new PerformanceManager(editor)
 			const startFn = vi.fn()
 			const endFn = vi.fn()
-			pm.on('camera:start', startFn)
-			pm.on('camera:end', endFn)
+			pm.on('camera-start', startFn)
+			pm.on('camera-end', endFn)
 
 			pm._notifyCameraOperation('panning')
 			editor.emit('frame', 16)
@@ -252,7 +252,7 @@ describe('PerformanceManager', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
-			pm.on('interaction:end', fn)
+			pm.on('interaction-end', fn)
 
 			pm._notifyInteractionStart('translating', 'select.translating')
 
@@ -272,7 +272,7 @@ describe('PerformanceManager', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
-			pm.on('interaction:end', fn)
+			pm.on('interaction-end', fn)
 
 			pm._notifyInteractionStart('translating', 'select.translating')
 			editor.emit('frame', 42)
@@ -291,7 +291,7 @@ describe('PerformanceManager', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
-			pm.on('interaction:end', fn)
+			pm.on('interaction-end', fn)
 
 			pm._notifyInteractionStart('translating', 'select.translating')
 			pm._notifyInteractionEnd()
@@ -334,11 +334,11 @@ describe('PerformanceManager', () => {
 	})
 
 	describe('shape operation tracking', () => {
-		it('emits shapes:created events', () => {
+		it('emits shapes-created events', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
-			pm.on('shapes:created', fn)
+			pm.on('shapes-created', fn)
 
 			editor.emit('created-shapes', [
 				{ typeName: 'shape', type: 'geo' },
@@ -358,18 +358,18 @@ describe('PerformanceManager', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
-			pm.on('shapes:created', fn)
+			pm.on('shapes-created', fn)
 
 			editor.emit('created-shapes', [{ typeName: 'page', type: 'page' }])
 
 			expect(fn).not.toHaveBeenCalled()
 		})
 
-		it('emits shapes:deleted with shape types', () => {
+		it('emits shapes-deleted with shape types', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
-			pm.on('shapes:deleted', fn)
+			pm.on('shapes-deleted', fn)
 
 			editor.emit('deleted-shapes', ['shape:1', 'shape:2'])
 
@@ -405,7 +405,7 @@ describe('PerformanceManager', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
-			pm.once('interaction:start', fn)
+			pm.once('interaction-start', fn)
 
 			pm._notifyInteractionStart('resizing', 'select.resizing')
 			pm._notifyInteractionEnd()
@@ -418,7 +418,7 @@ describe('PerformanceManager', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 
-			pm.once('interaction:start', vi.fn())
+			pm.once('interaction-start', vi.fn())
 			expect(editor._listeners['frame']).toHaveLength(1)
 
 			pm._notifyInteractionStart('resizing', 'select.resizing')
@@ -428,7 +428,7 @@ describe('PerformanceManager', () => {
 	})
 
 	describe('LoAF integration', () => {
-		it('attaches LoAF entries to interaction:end events', () => {
+		it('attaches LoAF entries to interaction-end events', () => {
 			let observerCallback: ((list: any) => void) | null = null
 			const mockDisconnect = vi.fn()
 
@@ -445,7 +445,7 @@ describe('PerformanceManager', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
-			pm.on('interaction:end', fn)
+			pm.on('interaction-end', fn)
 
 			pm._notifyInteractionStart('resizing', 'select.resizing')
 			editor.emit('frame', 16)
@@ -476,7 +476,7 @@ describe('PerformanceManager', () => {
 			})
 
 			// Cleanup
-			pm.on('interaction:end', vi.fn())() // subscribe + unsub to trigger detach check
+			pm.on('interaction-end', vi.fn())() // subscribe + unsub to trigger detach check
 			globalThis.PerformanceObserver = origPO
 		})
 
@@ -484,7 +484,7 @@ describe('PerformanceManager', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 			const fn = vi.fn()
-			pm.on('interaction:end', fn)
+			pm.on('interaction-end', fn)
 
 			pm._notifyInteractionStart('resizing', 'select.resizing')
 			editor.emit('frame', 16)
@@ -493,7 +493,7 @@ describe('PerformanceManager', () => {
 			expect(fn.mock.calls[0][0].longAnimationFrames).toBeUndefined()
 		})
 
-		it('starts LoAF observer only when interaction:end or camera:end listeners exist', () => {
+		it('starts LoAF observer only when interaction-end or camera-end listeners exist', () => {
 			const origPO = globalThis.PerformanceObserver
 			const mockObserve = vi.fn()
 			globalThis.PerformanceObserver = class MockPO {
@@ -506,13 +506,13 @@ describe('PerformanceManager', () => {
 			const editor = createMockEditor()
 			const pm = new PerformanceManager(editor)
 
-			// interaction:start alone should NOT start LoAF observer
-			const unsub1 = pm.on('interaction:start', vi.fn())
+			// interaction-start alone should NOT start LoAF observer
+			const unsub1 = pm.on('interaction-start', vi.fn())
 			expect(mockObserve).not.toHaveBeenCalled()
 			unsub1()
 
-			// interaction:end should start LoAF observer
-			const unsub2 = pm.on('interaction:end', vi.fn())
+			// interaction-end should start LoAF observer
+			const unsub2 = pm.on('interaction-end', vi.fn())
 			expect(mockObserve).toHaveBeenCalledTimes(1)
 			unsub2()
 

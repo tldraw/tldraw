@@ -64,7 +64,7 @@ function toLoafEntry(entry: PerformanceEntry): TLPerfLongAnimationFrame | null {
  *
  * @example
  * ```ts
- * const unsub = editor.performance.on('interaction:end', (event) => {
+ * const unsub = editor.performance.on('interaction-end', (event) => {
  *   console.log(`${event.name}: ${event.fps.toFixed(1)} fps, p95=${event.p95FrameTime.toFixed(1)}ms`)
  * })
  * ```
@@ -114,7 +114,7 @@ export class PerformanceManager {
 	 *
 	 * @example
 	 * ```ts
-	 * const unsub = editor.performance.on('interaction:end', (event) => {
+	 * const unsub = editor.performance.on('interaction-end', (event) => {
 	 *   sendToAnalytics({ name: event.name, fps: event.fps, p95: event.p95FrameTime })
 	 * })
 	 * // later: unsub()
@@ -178,8 +178,8 @@ export class PerformanceManager {
 	/** @internal */
 	_notifyInteractionStart(name: string, path: string) {
 		if (
-			this.emitter.listenerCount('interaction:start') === 0 &&
-			this.emitter.listenerCount('interaction:end') === 0
+			this.emitter.listenerCount('interaction-start') === 0 &&
+			this.emitter.listenerCount('interaction-end') === 0
 		) {
 			return
 		}
@@ -204,7 +204,7 @@ export class PerformanceManager {
 			path,
 			timestamp: performance.now(),
 		}
-		this.emitter.emit('interaction:start', event)
+		this.emitter.emit('interaction-start', event)
 	}
 
 	/** @internal */
@@ -213,7 +213,7 @@ export class PerformanceManager {
 		if (!interaction) return
 		this.activeInteraction = null
 
-		if (this.emitter.listenerCount('interaction:end') === 0) return
+		if (this.emitter.listenerCount('interaction-end') === 0) return
 
 		const duration = performance.now() - interaction.startTime
 		const stats = computeFrameTimeStats(interaction.frameTimes)
@@ -238,14 +238,14 @@ export class PerformanceManager {
 			zoomLevel: this.editor.getCamera().z,
 			timestamp: performance.now(),
 		}
-		this.emitter.emit('interaction:end', event)
+		this.emitter.emit('interaction-end', event)
 	}
 
 	/** @internal */
 	_notifyCameraOperation(type: 'panning' | 'zooming') {
 		if (
-			this.emitter.listenerCount('camera:start') === 0 &&
-			this.emitter.listenerCount('camera:end') === 0
+			this.emitter.listenerCount('camera-start') === 0 &&
+			this.emitter.listenerCount('camera-end') === 0
 		) {
 			return
 		}
@@ -294,12 +294,12 @@ export class PerformanceManager {
 			loafEntries: [],
 		}
 
-		if (this.emitter.listenerCount('camera:start') > 0) {
+		if (this.emitter.listenerCount('camera-start') > 0) {
 			const event: TLCameraStartPerfEvent = {
 				type,
 				timestamp: performance.now(),
 			}
-			this.emitter.emit('camera:start', event)
+			this.emitter.emit('camera-start', event)
 		}
 	}
 
@@ -309,7 +309,7 @@ export class PerformanceManager {
 		this.activeCamera = null
 		if (camera.timeout) clearTimeout(camera.timeout)
 
-		if (this.emitter.listenerCount('camera:end') === 0) return
+		if (this.emitter.listenerCount('camera-end') === 0) return
 
 		const duration = performance.now() - camera.startTime
 		const stats = computeFrameTimeStats(camera.frameTimes)
@@ -338,7 +338,7 @@ export class PerformanceManager {
 			zoomLevel: this.editor.getCamera().z,
 			timestamp: performance.now(),
 		}
-		this.emitter.emit('camera:end', event)
+		this.emitter.emit('camera-end', event)
 	}
 
 	@bind
@@ -368,7 +368,7 @@ export class PerformanceManager {
 
 	@bind
 	private _onShapesCreated(records: TLRecord[]) {
-		if (this.emitter.listenerCount('shapes:created') === 0) return
+		if (this.emitter.listenerCount('shapes-created') === 0) return
 		const shapeTypes: Record<string, number> = {}
 		for (const record of records) {
 			if (record.typeName === 'shape') {
@@ -383,12 +383,12 @@ export class PerformanceManager {
 			shapeTypes,
 			timestamp: performance.now(),
 		}
-		this.emitter.emit('shapes:created', event)
+		this.emitter.emit('shapes-created', event)
 	}
 
 	@bind
 	private _onShapesEdited(records: TLRecord[]) {
-		if (this.emitter.listenerCount('shapes:updated') === 0) return
+		if (this.emitter.listenerCount('shapes-updated') === 0) return
 		const shapeTypes: Record<string, number> = {}
 		for (const record of records) {
 			if (record.typeName === 'shape') {
@@ -403,12 +403,12 @@ export class PerformanceManager {
 			shapeTypes,
 			timestamp: performance.now(),
 		}
-		this.emitter.emit('shapes:updated', event)
+		this.emitter.emit('shapes-updated', event)
 	}
 
 	@bind
 	private _onShapesDeleted(ids: TLShapeId[]) {
-		if (this.emitter.listenerCount('shapes:deleted') === 0) return
+		if (this.emitter.listenerCount('shapes-deleted') === 0) return
 		const shapeTypes: Record<string, number> = {}
 		for (const id of ids) {
 			// Works because 'deleted-shapes' fires before store.remove() in Editor.deleteShapes
@@ -423,7 +423,7 @@ export class PerformanceManager {
 			shapeTypes,
 			timestamp: performance.now(),
 		}
-		this.emitter.emit('shapes:deleted', event)
+		this.emitter.emit('shapes-deleted', event)
 	}
 
 	// --- LoAF observer ---
@@ -472,17 +472,17 @@ export class PerformanceManager {
 	private _needsFrameListener(): boolean {
 		return (
 			this.emitter.listenerCount('frame') > 0 ||
-			this.emitter.listenerCount('interaction:start') > 0 ||
-			this.emitter.listenerCount('interaction:end') > 0 ||
-			this.emitter.listenerCount('camera:start') > 0 ||
-			this.emitter.listenerCount('camera:end') > 0
+			this.emitter.listenerCount('interaction-start') > 0 ||
+			this.emitter.listenerCount('interaction-end') > 0 ||
+			this.emitter.listenerCount('camera-start') > 0 ||
+			this.emitter.listenerCount('camera-end') > 0
 		)
 	}
 
 	private _needsLoafObserver(): boolean {
 		return (
-			this.emitter.listenerCount('interaction:end') > 0 ||
-			this.emitter.listenerCount('camera:end') > 0
+			this.emitter.listenerCount('interaction-end') > 0 ||
+			this.emitter.listenerCount('camera-end') > 0
 		)
 	}
 
@@ -491,10 +491,10 @@ export class PerformanceManager {
 		if (
 			!this.frameCleanup &&
 			(event === 'frame' ||
-				event === 'interaction:start' ||
-				event === 'interaction:end' ||
-				event === 'camera:start' ||
-				event === 'camera:end')
+				event === 'interaction-start' ||
+				event === 'interaction-end' ||
+				event === 'camera-start' ||
+				event === 'camera-end')
 		) {
 			if (this._needsFrameListener()) {
 				this.editor.on('frame', this._onFrame)
@@ -502,24 +502,24 @@ export class PerformanceManager {
 			}
 		}
 
-		// LoAF observer needed when interaction:end or camera:end listeners exist
-		if (!this.loafObserver && (event === 'interaction:end' || event === 'camera:end')) {
+		// LoAF observer needed when interaction-end or camera-end listeners exist
+		if (!this.loafObserver && (event === 'interaction-end' || event === 'camera-end')) {
 			if (this._needsLoafObserver()) {
 				this._startLoafObserver()
 			}
 		}
 
-		if (!this.shapeCreatedCleanup && event === 'shapes:created') {
+		if (!this.shapeCreatedCleanup && event === 'shapes-created') {
 			this.editor.on('created-shapes', this._onShapesCreated)
 			this.shapeCreatedCleanup = () => this.editor.off('created-shapes', this._onShapesCreated)
 		}
 
-		if (!this.shapeEditedCleanup && event === 'shapes:updated') {
+		if (!this.shapeEditedCleanup && event === 'shapes-updated') {
 			this.editor.on('edited-shapes', this._onShapesEdited)
 			this.shapeEditedCleanup = () => this.editor.off('edited-shapes', this._onShapesEdited)
 		}
 
-		if (!this.shapeDeletedCleanup && event === 'shapes:deleted') {
+		if (!this.shapeDeletedCleanup && event === 'shapes-deleted') {
 			this.editor.on('deleted-shapes', this._onShapesDeleted)
 			this.shapeDeletedCleanup = () => this.editor.off('deleted-shapes', this._onShapesDeleted)
 		}
@@ -529,10 +529,10 @@ export class PerformanceManager {
 		if (
 			this.frameCleanup &&
 			(event === 'frame' ||
-				event === 'interaction:start' ||
-				event === 'interaction:end' ||
-				event === 'camera:start' ||
-				event === 'camera:end')
+				event === 'interaction-start' ||
+				event === 'interaction-end' ||
+				event === 'camera-start' ||
+				event === 'camera-end')
 		) {
 			if (!this._needsFrameListener()) {
 				this.frameCleanup()
@@ -541,7 +541,7 @@ export class PerformanceManager {
 		}
 
 		// Stop LoAF observer when no longer needed
-		if (this.loafObserver && (event === 'interaction:end' || event === 'camera:end')) {
+		if (this.loafObserver && (event === 'interaction-end' || event === 'camera-end')) {
 			if (!this._needsLoafObserver()) {
 				this._stopLoafObserver()
 			}
@@ -549,8 +549,8 @@ export class PerformanceManager {
 
 		if (
 			this.shapeCreatedCleanup &&
-			event === 'shapes:created' &&
-			this.emitter.listenerCount('shapes:created') === 0
+			event === 'shapes-created' &&
+			this.emitter.listenerCount('shapes-created') === 0
 		) {
 			this.shapeCreatedCleanup()
 			this.shapeCreatedCleanup = null
@@ -558,8 +558,8 @@ export class PerformanceManager {
 
 		if (
 			this.shapeEditedCleanup &&
-			event === 'shapes:updated' &&
-			this.emitter.listenerCount('shapes:updated') === 0
+			event === 'shapes-updated' &&
+			this.emitter.listenerCount('shapes-updated') === 0
 		) {
 			this.shapeEditedCleanup()
 			this.shapeEditedCleanup = null
@@ -567,8 +567,8 @@ export class PerformanceManager {
 
 		if (
 			this.shapeDeletedCleanup &&
-			event === 'shapes:deleted' &&
-			this.emitter.listenerCount('shapes:deleted') === 0
+			event === 'shapes-deleted' &&
+			this.emitter.listenerCount('shapes-deleted') === 0
 		) {
 			this.shapeDeletedCleanup()
 			this.shapeDeletedCleanup = null
