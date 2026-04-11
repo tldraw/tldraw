@@ -69,12 +69,13 @@ npx create-tldraw@latest
 - **Agent** — AI agents that read, interpret, and modify canvas content
 - **Workflow** — drag-and-drop node builder for automation pipelines, visual programming, and no-code platforms
 - **Chat** — canvas-powered AI chat where users sketch, annotate, and mark up images alongside conversations
+- **Image pipeline** — node-based builder for image generation pipelines
 - **Branching chat** — AI chat with visual branching, letting users explore and compare different conversation paths
 - **Shader** — WebGL shaders that respond to canvas interactions
 
 ## Local development
 
-The development server runs the examples app at `localhost:5420`. Clone the repo, then enable [corepack](https://nodejs.org/api/corepack.html) for the correct yarn version:
+The development server runs the examples app at `localhost:5420`. You'll need [Node.js](https://nodejs.org) `^20.0.0`. Clone the repo, then enable [corepack](https://nodejs.org/api/corepack.html) for the correct yarn version:
 
 ```bash
 npm i -g corepack
