@@ -303,3 +303,4 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix crash when isolating curved arrows with degenerate geometry. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 - Fix camera state stuck at 'moving' on dispose, blocking shape interactions on the next editor instance. ([#8396](https://github.com/tldraw/tldraw/pull/8396))
 - Fix spiky artifacts on draw-style geometric shapes by using a circular random offset distribution instead of a square one. ([#8466](https://github.com/tldraw/tldraw/pull/8466))
+- Fix opacity slider drag not working on Safari due to `stopPropagation` interfering with Radix UI Slider's pointer capture handling. ([#8519](https://github.com/tldraw/tldraw/pull/8519))
