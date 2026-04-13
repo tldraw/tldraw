@@ -4,7 +4,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
 import type { PendingRequests } from '../shared/pending-requests'
 import { CANVAS_RESOURCE_URI } from '../shared/types'
-import { generateCanvasId } from '../shared/utils'
+import { generateCanvasId, writeToolAnalytics } from '../shared/utils'
 
 const EXEC_CALLBACK_TIMEOUT_MS = 30_000
 
@@ -58,15 +58,13 @@ Examples:
 			_meta: { ui: { resourceUri: CANVAS_RESOURCE_URI } },
 		},
 		async ({
-			code: _code,
+			code,
 			canvasId: inputCanvasId,
 		}: {
 			code: string
 			canvasId?: string
 		}): Promise<CallToolResult> => {
-			opts.analytics?.writeDataPoint({
-				blobs: ['tool_called', 'exec'],
-			})
+			writeToolAnalytics(opts.analytics, 'exec', code)
 
 			const canvasId = inputCanvasId || generateCanvasId()
 			opts.setCurrentExecCanvasId(canvasId)
