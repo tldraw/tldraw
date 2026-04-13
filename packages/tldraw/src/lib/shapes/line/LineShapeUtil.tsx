@@ -63,16 +63,16 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		},
 	}
 
-	override hideResizeHandles(_shape: TLLineShape) {
+	override hideResizeHandles() {
 		return true
 	}
-	override hideRotateHandle(_shape: TLLineShape) {
+	override hideRotateHandle() {
 		return true
 	}
-	override hideSelectionBoundsFg(_shape: TLLineShape) {
+	override hideSelectionBoundsFg() {
 		return true
 	}
-	override hideSelectionBoundsBg(_shape: TLLineShape) {
+	override hideSelectionBoundsBg() {
 		return true
 	}
 	override hideInMinimap() {

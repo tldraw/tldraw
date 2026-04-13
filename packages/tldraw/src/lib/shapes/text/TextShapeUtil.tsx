@@ -142,11 +142,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
-	override canEdit(_shape: TLTextShape) {
+	override canEdit() {
 		return true
 	}
 
-	override isAspectRatioLocked(_shape: TLTextShape) {
+	override isAspectRatioLocked() {
 		return true
 	} // WAIT NO THIS IS HARD CODED IN THE RESIZE HANDLER
 

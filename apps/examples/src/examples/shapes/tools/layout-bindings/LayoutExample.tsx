@@ -54,16 +54,16 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 			fromShape.type === 'container' && toShape.type === 'element' && bindingType === LAYOUT_TYPE
 		)
 	}
-	override canEdit(_shape: ContainerShape) {
+	override canEdit() {
 		return false
 	}
-	override canResize(_shape: ContainerShape) {
+	override canResize() {
 		return false
 	}
-	override hideRotateHandle(_shape: ContainerShape) {
+	override hideRotateHandle() {
 		return true
 	}
-	override isAspectRatioLocked(_shape: ContainerShape) {
+	override isAspectRatioLocked() {
 		return true
 	}
 
@@ -113,16 +113,16 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 			fromShape.type === 'container' && toShape.type === 'element' && bindingType === LAYOUT_TYPE
 		)
 	}
-	override canEdit(_shape: ElementShape) {
+	override canEdit() {
 		return false
 	}
-	override canResize(_shape: ElementShape) {
+	override canResize() {
 		return false
 	}
-	override hideRotateHandle(_shape: ElementShape) {
+	override hideRotateHandle() {
 		return true
 	}
-	override isAspectRatioLocked(_shape: ElementShape) {
+	override isAspectRatioLocked() {
 		return true
 	}
 

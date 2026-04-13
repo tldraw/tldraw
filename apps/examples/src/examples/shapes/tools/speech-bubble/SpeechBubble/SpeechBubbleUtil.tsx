@@ -82,15 +82,15 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	// [3]
 	static override props = speechBubbleShapeProps
 
-	override isAspectRatioLocked(_shape: SpeechBubbleShape) {
+	override isAspectRatioLocked() {
 		return false
 	}
 
-	override canResize(_shape: SpeechBubbleShape) {
+	override canResize() {
 		return true
 	}
 
-	override canEdit(_shape: SpeechBubbleShape) {
+	override canEdit() {
 		return true
 	}
 

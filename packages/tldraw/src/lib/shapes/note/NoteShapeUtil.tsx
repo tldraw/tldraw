@@ -139,10 +139,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		},
 	}
 
-	override canEdit(_shape: TLNoteShape) {
+	override canEdit() {
 		return true
 	}
-	override hideResizeHandles(_shape: TLNoteShape) {
+	override hideResizeHandles() {
 		const { resizeMode } = this.options
 		switch (resizeMode) {
 			case 'none': {
@@ -157,11 +157,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		}
 	}
 
-	override isAspectRatioLocked(_shape: TLNoteShape) {
+	override isAspectRatioLocked() {
 		return this.options.resizeMode === 'scale'
 	}
 
-	override hideSelectionBoundsFg(_shape: TLNoteShape) {
+	override hideSelectionBoundsFg() {
 		return false
 	}
 

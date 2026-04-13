@@ -78,10 +78,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		},
 	}
 
-	override isAspectRatioLocked(_shape: TLImageShape) {
+	override isAspectRatioLocked() {
 		return true
 	}
-	override canCrop(_shape: TLImageShape) {
+	override canCrop() {
 		return true
 	}
 	override isExportBoundsContainer(): boolean {

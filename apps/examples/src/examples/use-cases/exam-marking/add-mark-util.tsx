@@ -31,7 +31,7 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 	}
 
 	// [1]
-	override canEdit(_shape: IExamMarkShape): boolean {
+	override canEdit(): boolean {
 		return true
 	}
 
@@ -124,14 +124,14 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 		})
 	}
 
-	override hideSelectionBoundsBg(_shape: IExamMarkShape) {
+	override hideSelectionBoundsBg() {
 		return true
 	}
-	override hideSelectionBoundsFg(_shape: IExamMarkShape) {
+	override hideSelectionBoundsFg() {
 		return true
 	}
 
-	override canResize(_shape: IExamMarkShape): boolean {
+	override canResize(): boolean {
 		return false
 	}
 }

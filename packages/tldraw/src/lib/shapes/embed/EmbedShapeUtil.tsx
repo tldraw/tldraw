@@ -105,13 +105,13 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	override hideSelectionBoundsFg(shape: TLEmbedShape) {
 		return !this.canResize(shape)
 	}
-	override canEdit(_shape: TLEmbedShape) {
+	override canEdit() {
 		return true
 	}
 	override canResize(shape: TLEmbedShape) {
 		return this.getEmbedDefinition(shape.props.url)?.definition?.doesResize ?? true
 	}
-	override canEditInReadonly(_shape: TLEmbedShape) {
+	override canEditInReadonly() {
 		return true
 	}
 

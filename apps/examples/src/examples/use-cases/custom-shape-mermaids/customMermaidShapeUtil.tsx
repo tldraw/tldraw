@@ -78,7 +78,7 @@ export class FlowchartShapeUtil extends BaseBoxShapeUtil<ICustomShape> {
 		}
 	}
 
-	override canEdit(_shape: ICustomShape) {
+	override canEdit() {
 		return false
 	}
 
