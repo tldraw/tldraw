@@ -4161,7 +4161,7 @@ export interface TLFilesExternalContent extends TLBaseExternalContent {
 export interface TLFramePerfEvent {
     culledShapeCount: number;
     elapsed: number;
-    shapesOnPage: number;
+    shapeCount: number;
     visibleShapeCount: number;
 }
 

@@ -184,6 +184,12 @@ export class PerformanceManager {
 			return
 		}
 
+		if (this.activeInteraction) {
+			console.warn(
+				`[tldraw] New interaction '${name}' started while '${this.activeInteraction.name}' was still active`
+			)
+		}
+
 		// Capture selected shape types at start
 		const selectedShapeTypes: Record<string, number> = {}
 		for (const shape of this.editor.getSelectedShapes()) {
@@ -358,7 +364,7 @@ export class PerformanceManager {
 			const culledCount = culledShapes.size
 			const event: TLFramePerfEvent = {
 				elapsed,
-				shapesOnPage: totalShapes,
+				shapeCount: totalShapes,
 				culledShapeCount: culledCount,
 				visibleShapeCount: totalShapes - culledCount,
 			}

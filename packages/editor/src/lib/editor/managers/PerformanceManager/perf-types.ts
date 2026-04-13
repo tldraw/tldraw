@@ -121,7 +121,7 @@ export interface TLFramePerfEvent {
 	/** Time since the last frame in ms. */
 	elapsed: number
 	/** Total shapes on the current page. */
-	shapesOnPage: number
+	shapeCount: number
 	/** Number of shapes culled (off-screen) from rendering. */
 	culledShapeCount: number
 	/** Number of shapes visible (not culled) in the viewport. */

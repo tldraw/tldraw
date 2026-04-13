@@ -393,7 +393,7 @@ describe('PerformanceManager', () => {
 
 			expect(fn).toHaveBeenCalledWith({
 				elapsed: 16,
-				shapesOnPage: 10,
+				shapeCount: 10,
 				culledShapeCount: 3,
 				visibleShapeCount: 7,
 			})
