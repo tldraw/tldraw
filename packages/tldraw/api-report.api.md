@@ -262,9 +262,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canBind({ toShape }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean;
     // (undocumented)
-    canEdit(_shape: TLArrowShape): boolean;
+    canEdit(shape: TLArrowShape): boolean;
     // (undocumented)
-    canSnap(_shape: TLArrowShape): boolean;
+    canSnap(shape: TLArrowShape): boolean;
     // (undocumented)
     component(shape: TLArrowShape): JSX.Element | null;
     // (undocumented)
@@ -290,13 +290,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     hideInMinimap(): boolean;
     // (undocumented)
-    hideResizeHandles(_shape: TLArrowShape): boolean;
+    hideResizeHandles(shape: TLArrowShape): boolean;
     // (undocumented)
-    hideRotateHandle(_shape: TLArrowShape): boolean;
+    hideRotateHandle(shape: TLArrowShape): boolean;
     // (undocumented)
-    hideSelectionBoundsBg(_shape: TLArrowShape): boolean;
+    hideSelectionBoundsBg(shape: TLArrowShape): boolean;
     // (undocumented)
-    hideSelectionBoundsFg(_shape: TLArrowShape): boolean;
+    hideSelectionBoundsFg(shape: TLArrowShape): boolean;
     // (undocumented)
     indicator(shape: TLArrowShape): JSX.Element | null;
     // (undocumented)
@@ -477,7 +477,7 @@ export interface BookmarkShapeOptions extends ShapeOptionsWithDisplayValues<TLBo
 // @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
-    canResize(_shape: TLBookmarkShape): boolean;
+    canResize(shape: TLBookmarkShape): boolean;
     // (undocumented)
     component(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
@@ -491,7 +491,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     getText(shape: TLBookmarkShape): string;
     // (undocumented)
-    hideSelectionBoundsFg(_shape: TLBookmarkShape): boolean;
+    hideSelectionBoundsFg(shape: TLBookmarkShape): boolean;
     // (undocumented)
     indicator(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
@@ -1528,9 +1528,9 @@ export const embedShapePermissionDefaults: {
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
-    canEdit(_shape: TLEmbedShape): boolean;
+    canEdit(shape: TLEmbedShape): boolean;
     // (undocumented)
-    canEditInReadonly(_shape: TLEmbedShape): boolean;
+    canEditInReadonly(shape: TLEmbedShape): boolean;
     // (undocumented)
     canEditWhileLocked(shape: TLEmbedShape): boolean;
     // (undocumented)
@@ -1686,9 +1686,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canReceiveNewChildrenOfType(shape: TLShape): boolean;
     // (undocumented)
-    canResize(_shape: TLFrameShape): boolean;
+    canResize(shape: TLFrameShape): boolean;
     // (undocumented)
-    canResizeChildren(_shape: TLFrameShape): boolean;
+    canResizeChildren(shape: TLFrameShape): boolean;
     // (undocumented)
     component(shape: TLFrameShape): JSX.Element;
     // (undocumented)
@@ -1797,7 +1797,7 @@ export class GeoShapeTool extends StateNode {
 // @public (undocumented)
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
-    canEdit(_shape: TLGeoShape): boolean;
+    canEdit(shape: TLGeoShape): boolean;
     // (undocumented)
     component(shape: TLGeoShape): JSX.Element;
     // (undocumented)
@@ -2226,7 +2226,7 @@ export interface ImageShapeOptions extends ShapeOptionsWithDisplayValues<TLImage
 // @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
-    canCrop(_shape: TLImageShape): boolean;
+    canCrop(shape: TLImageShape): boolean;
     // (undocumented)
     component(shape: TLImageShape): JSX.Element;
     // (undocumented)
@@ -2246,7 +2246,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     indicator(shape: TLImageShape): JSX.Element | null;
     // (undocumented)
-    isAspectRatioLocked(_shape: TLImageShape): boolean;
+    isAspectRatioLocked(shape: TLImageShape): boolean;
     // (undocumented)
     isExportBoundsContainer(): boolean;
     // (undocumented)
@@ -2337,13 +2337,13 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     hideInMinimap(): boolean;
     // (undocumented)
-    hideResizeHandles(_shape: TLLineShape): boolean;
+    hideResizeHandles(shape: TLLineShape): boolean;
     // (undocumented)
-    hideRotateHandle(_shape: TLLineShape): boolean;
+    hideRotateHandle(shape: TLLineShape): boolean;
     // (undocumented)
-    hideSelectionBoundsBg(_shape: TLLineShape): boolean;
+    hideSelectionBoundsBg(shape: TLLineShape): boolean;
     // (undocumented)
-    hideSelectionBoundsFg(_shape: TLLineShape): boolean;
+    hideSelectionBoundsFg(shape: TLLineShape): boolean;
     // (undocumented)
     indicator(shape: TLLineShape): JSX.Element;
     // (undocumented)
@@ -2492,7 +2492,7 @@ export class NoteShapeTool extends StateNode {
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
-    canEdit(_shape: TLNoteShape): boolean;
+    canEdit(shape: TLNoteShape): boolean;
     // (undocumented)
     component(shape: TLNoteShape): JSX.Element;
     // (undocumented)
@@ -2512,13 +2512,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getText(shape: TLNoteShape): string;
     // (undocumented)
-    hideResizeHandles(_shape: TLNoteShape): boolean;
+    hideResizeHandles(shape: TLNoteShape): boolean;
     // (undocumented)
-    hideSelectionBoundsFg(_shape: TLNoteShape): boolean;
+    hideSelectionBoundsFg(shape: TLNoteShape): boolean;
     // (undocumented)
     indicator(shape: TLNoteShape): JSX.Element;
     // (undocumented)
-    isAspectRatioLocked(_shape: TLNoteShape): boolean;
+    isAspectRatioLocked(shape: TLNoteShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -3368,7 +3368,7 @@ export class TextShapeTool extends StateNode {
 // @public (undocumented)
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
-    canEdit(_shape: TLTextShape): boolean;
+    canEdit(shape: TLTextShape): boolean;
     // (undocumented)
     component(shape: TLTextShape): JSX.Element;
     // (undocumented)
@@ -3389,7 +3389,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     indicator(shape: TLTextShape): JSX.Element | null;
     // (undocumented)
-    isAspectRatioLocked(_shape: TLTextShape): boolean;
+    isAspectRatioLocked(shape: TLTextShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -6020,7 +6020,7 @@ export interface VideoShapeOptions extends ShapeOptionsWithDisplayValues<TLVideo
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
-    canEdit(_shape: TLVideoShape): boolean;
+    canEdit(shape: TLVideoShape): boolean;
     // (undocumented)
     component(shape: TLVideoShape): JSX.Element;
     // (undocumented)
@@ -6036,7 +6036,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     indicator(shape: TLVideoShape): JSX.Element;
     // (undocumented)
-    isAspectRatioLocked(_shape: TLVideoShape): boolean;
+    isAspectRatioLocked(shape: TLVideoShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)

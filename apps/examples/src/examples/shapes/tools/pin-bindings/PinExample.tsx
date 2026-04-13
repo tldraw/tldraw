@@ -59,13 +59,13 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		// Allow pins to participate in other bindings, e.g. arrows
 		return true
 	}
-	override canEdit(_shape: PinShape) {
+	override canEdit(shape: PinShape) {
 		return false
 	}
-	override canResize(_shape: PinShape) {
+	override canResize(shape: PinShape) {
 		return false
 	}
-	override hideRotateHandle(_shape: PinShape) {
+	override hideRotateHandle(shape: PinShape) {
 		return true
 	}
 	override isAspectRatioLocked() {

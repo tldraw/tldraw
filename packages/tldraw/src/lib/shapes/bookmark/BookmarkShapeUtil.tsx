@@ -54,11 +54,11 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		},
 	}
 
-	override canResize(_shape: TLBookmarkShape) {
+	override canResize(shape: TLBookmarkShape) {
 		return false
 	}
 
-	override hideSelectionBoundsFg(_shape: TLBookmarkShape) {
+	override hideSelectionBoundsFg(shape: TLBookmarkShape) {
 		return true
 	}
 

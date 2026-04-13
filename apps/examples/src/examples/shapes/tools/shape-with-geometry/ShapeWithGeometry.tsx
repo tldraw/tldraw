@@ -33,7 +33,7 @@ class HouseShapeUtil extends ShapeUtil<HouseShape> {
 	static override type = HOUSE_TYPE
 	static override props = houseShapeProps
 
-	override canResize(_shape: HouseShape) {
+	override canResize(shape: HouseShape) {
 		return true
 	}
 	override getDefaultProps() {

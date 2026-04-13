@@ -59,10 +59,10 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		},
 	}
 
-	override canEdit(_shape: TLVideoShape) {
+	override canEdit(shape: TLVideoShape) {
 		return true
 	}
-	override isAspectRatioLocked(_shape: TLVideoShape) {
+	override isAspectRatioLocked(shape: TLVideoShape) {
 		return true
 	}
 

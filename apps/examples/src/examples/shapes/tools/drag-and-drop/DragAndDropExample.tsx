@@ -30,10 +30,10 @@ const SLOT_SIZE = 100
 class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 	static override type = MY_COUNTER_SHAPE_TYPE
 
-	override canResize(_shape: MyCounterShape) {
+	override canResize(shape: MyCounterShape) {
 		return false
 	}
-	override hideResizeHandles(_shape: MyCounterShape) {
+	override hideResizeHandles(shape: MyCounterShape) {
 		return true
 	}
 
@@ -78,10 +78,10 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 		})
 	}
 
-	override canResize(_shape: MyGridShape) {
+	override canResize(shape: MyGridShape) {
 		return false
 	}
-	override hideResizeHandles(_shape: MyGridShape) {
+	override hideResizeHandles(shape: MyGridShape) {
 		return true
 	}
 

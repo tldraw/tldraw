@@ -2065,7 +2065,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     getGeometry(shape: TLGroupShape): Geometry2d;
     // (undocumented)
-    hideSelectionBoundsFg(_shape: TLGroupShape): boolean;
+    hideSelectionBoundsFg(shape: TLGroupShape): boolean;
     // (undocumented)
     indicator(shape: TLGroupShape): JSX.Element;
     // (undocumented)
