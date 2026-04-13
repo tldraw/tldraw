@@ -161,7 +161,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		},
 	}
 
-	override canEdit() {
+	override canEdit(_shape: TLGeoShape) {
 		return true
 	}
 

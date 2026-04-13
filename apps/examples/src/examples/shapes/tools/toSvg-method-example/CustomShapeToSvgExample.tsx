@@ -41,13 +41,13 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 		}
 	}
 
-	override canEdit() {
+	override canEdit(_shape: ICustomShape) {
 		return false
 	}
-	override canResize() {
+	override canResize(_shape: ICustomShape) {
 		return false
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(_shape: ICustomShape) {
 		return false
 	}
 

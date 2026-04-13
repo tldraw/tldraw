@@ -49,28 +49,28 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		}
 	}
 
-	override canEdit() {
+	override canEdit(_shape: NodeShape) {
 		return false
 	}
-	override canResize() {
+	override canResize(_shape: NodeShape) {
 		return false
 	}
-	override hideResizeHandles() {
+	override hideResizeHandles(_shape: NodeShape) {
 		return true
 	}
-	override hideRotateHandle() {
+	override hideRotateHandle(_shape: NodeShape) {
 		return true
 	}
-	override hideSelectionBoundsBg() {
+	override hideSelectionBoundsBg(_shape: NodeShape) {
 		return true
 	}
-	override hideSelectionBoundsFg() {
+	override hideSelectionBoundsFg(_shape: NodeShape) {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(_shape: NodeShape) {
 		return false
 	}
-	override getBoundsSnapGeometry() {
+	override getBoundsSnapGeometry(_shape: NodeShape) {
 		return {
 			points: [{ x: 0, y: 0 }],
 		}

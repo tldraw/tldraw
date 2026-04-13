@@ -27,12 +27,12 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 	}
 
 	// [1]
-	override canEdit() {
+	override canEdit(_shape: IMyEditableShape) {
 		return true
 	}
 
 	// [1b]
-	override canEditWhileLocked() {
+	override canEditWhileLocked(_shape: IMyEditableShape) {
 		return true
 	}
 

@@ -155,26 +155,26 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		},
 	}
 
-	override canEdit() {
+	override canEdit(_shape: TLArrowShape) {
 		return true
 	}
 	override canBind({ toShape }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean {
 		// bindings can go from arrows to shapes, but not from shapes to arrows
 		return toShape.type !== 'arrow'
 	}
-	override canSnap() {
+	override canSnap(_shape: TLArrowShape) {
 		return false
 	}
-	override hideResizeHandles() {
+	override hideResizeHandles(_shape: TLArrowShape) {
 		return true
 	}
-	override hideRotateHandle() {
+	override hideRotateHandle(_shape: TLArrowShape) {
 		return true
 	}
-	override hideSelectionBoundsBg() {
+	override hideSelectionBoundsBg(_shape: TLArrowShape) {
 		return true
 	}
-	override hideSelectionBoundsFg() {
+	override hideSelectionBoundsFg(_shape: TLArrowShape) {
 		return true
 	}
 	override hideInMinimap() {
