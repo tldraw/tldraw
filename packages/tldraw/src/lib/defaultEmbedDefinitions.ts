@@ -69,6 +69,39 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		embedOnPaste: true,
 	},
 	{
+		type: 'canva',
+		title: 'Canva',
+		hostnames: ['canva.com'],
+		width: 720,
+		height: 500,
+		doesResize: true,
+		toEmbedUrl: (url) => {
+			const urlObj = safeParseUrl(url)
+			if (
+				urlObj &&
+				urlObj.pathname.match(/^\/design\/([^/]+)\/.+/) &&
+				!urlObj.searchParams.has('embed')
+			) {
+				urlObj.searchParams.set('embed', '')
+				return urlObj.href
+			}
+			return
+		},
+		fromEmbedUrl: (url) => {
+			const urlObj = safeParseUrl(url)
+			if (
+				urlObj &&
+				urlObj.pathname.match(/^\/design\/([^/]+)\/.+/) &&
+				urlObj.searchParams.has('embed')
+			) {
+				urlObj.searchParams.delete('embed')
+				return urlObj.href
+			}
+			return
+		},
+		embedOnPaste: true,
+	},
+	{
 		type: 'google_maps',
 		title: 'Google Maps',
 		hostnames: ['google.*'],

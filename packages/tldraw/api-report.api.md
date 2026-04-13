@@ -743,6 +743,16 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
+    readonly hostnames: readonly ["canva.com"];
+    readonly title: "Canva";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "canva";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly embedOnPaste: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
     readonly hostnames: readonly ["google.*"];
     readonly overridePermissions: {
         readonly 'allow-presentation': true;
@@ -1807,7 +1817,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getText(shape: TLGeoShape): string;
     // (undocumented)
-    indicator(shape: TLGeoShape): JSX.Element;
+    indicator(shape: TLGeoShape): JSX.Element | null;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -1821,7 +1831,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
             font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
@@ -1856,7 +1866,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
             font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
@@ -2335,7 +2345,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     hideSelectionBoundsFg(): boolean;
     // (undocumented)
-    indicator(shape: TLLineShape): JSX.Element;
+    indicator(shape: TLLineShape): JSX.Element | null;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -2350,7 +2360,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         parentId: TLParentId;
         props: {
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             points: {
                 [x: string]: {
                     id: string;
@@ -2379,7 +2389,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         parentId: TLParentId;
         props: {
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             points: {
                 [x: string]: {
                     id: IndexKey;
@@ -2460,6 +2470,12 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
     opts?: PathBuilderLineOpts;
     // (undocumented)
     type: 'move';
+}
+
+// @public (undocumented)
+export interface NonePathBuilderOpts extends BasePathBuilderOpts {
+    // (undocumented)
+    style: 'none';
 }
 
 // @public (undocumented)
@@ -2726,7 +2742,7 @@ export class PathBuilder {
     // (undocumented)
     toPath2D(opts: PathBuilderOpts): Path2D;
     // (undocumented)
-    toSvg(opts: PathBuilderOpts): JSX.Element;
+    toSvg(opts: PathBuilderOpts): JSX.Element | null;
 }
 
 // @internal (undocumented)
@@ -2789,7 +2805,7 @@ export interface PathBuilderLineOpts extends PathBuilderCommandOpts {
 }
 
 // @public (undocumented)
-export type PathBuilderOpts = DashedPathBuilderOpts | DrawPathBuilderOpts | SolidPathBuilderOpts;
+export type PathBuilderOpts = DashedPathBuilderOpts | DrawPathBuilderOpts | NonePathBuilderOpts | SolidPathBuilderOpts;
 
 // @public (undocumented)
 export interface PathBuilderToDOpts {
