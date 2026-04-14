@@ -121,11 +121,15 @@
 	white-space: nowrap;
 }
 
+:global(.tl-container[dir='rtl']) .cookieAcceptButtonText {
+	animation-direction: reverse;
+}
+
 @keyframes marquee {
-	0% {
+	from {
 		transform: translateX(100%);
 	}
-	100% {
+	to {
 		transform: translateX(-100%);
 	}
 }
