@@ -54,15 +54,17 @@ export function usePerformanceTracking() {
 	return useCallback((editor: Editor) => {
 		let unsubInteraction: (() => void) | undefined
 		let unsubCamera: (() => void) | undefined
+		let disposed = false
 
 		fetchFeatureFlags().then((flags) => {
-			if (!flags.rum_enabled?.enabled) return
+			if (disposed || !flags.rum_enabled?.enabled) return
 
 			unsubInteraction = editor.performance.on('interaction-end', handleInteractionEnd)
 			unsubCamera = editor.performance.on('camera-end', handleCameraEnd)
 		})
 
 		return () => {
+			disposed = true
 			unsubInteraction?.()
 			unsubCamera?.()
 		}
