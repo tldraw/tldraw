@@ -741,7 +741,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		if (customType?.onDoubleClick) {
 			const result = customType.onDoubleClick(shape)
 			if (result) {
-				return { ...shape, ...result }
+				return { ...shape, props: { ...shape.props, ...result.props } }
 			}
 		}
 
