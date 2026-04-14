@@ -860,21 +860,21 @@ describe('frame shapes', () => {
 		it('has default canResizeChildren behavior as false', () => {
 			const frameUtil = editor.getShapeUtil<TLFrameShape>('frame') as FrameShapeUtil
 			expect(frameUtil.options.resizeChildren).toBe(false)
-			expect(frameUtil.canResizeChildren()).toBe(false)
+			expect(frameUtil.canResizeChildren({} as TLFrameShape)).toBe(false)
 		})
 
 		it('can be configured to allow resizing children', () => {
 			const ConfiguredFrameShapeUtil = FrameShapeUtil.configure({ resizeChildren: true })
 			const configuredFrameUtil = new ConfiguredFrameShapeUtil(editor)
 			expect(configuredFrameUtil.options.resizeChildren).toBe(true)
-			expect(configuredFrameUtil.canResizeChildren()).toBe(true)
+			expect(configuredFrameUtil.canResizeChildren({} as TLFrameShape)).toBe(true)
 		})
 
 		it('can be configured to disallow resizing children', () => {
 			const ConfiguredFrameShapeUtil = FrameShapeUtil.configure({ resizeChildren: false })
 			const configuredFrameUtil = new ConfiguredFrameShapeUtil(editor)
 			expect(configuredFrameUtil.options.resizeChildren).toBe(false)
-			expect(configuredFrameUtil.canResizeChildren()).toBe(false)
+			expect(configuredFrameUtil.canResizeChildren({} as TLFrameShape)).toBe(false)
 		})
 
 		it('maintains other options when configuring resizeChildren', () => {

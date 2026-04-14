@@ -33,10 +33,10 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	static override migrations = cardShapeMigrations
 
 	// [3]
-	override isAspectRatioLocked(_shape: ICardShape) {
+	override isAspectRatioLocked(shape: ICardShape) {
 		return false
 	}
-	override canResize(_shape: ICardShape) {
+	override canResize(shape: ICardShape) {
 		return true
 	}
 
