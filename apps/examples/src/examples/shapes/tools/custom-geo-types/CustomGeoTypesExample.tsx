@@ -1,4 +1,14 @@
-import { GeoShapeUtil, PathBuilder, Tldraw, toRichText } from 'tldraw'
+import {
+	DefaultToolbar,
+	DefaultToolbarContent,
+	GeoShapeUtil,
+	PathBuilder,
+	TLComponents,
+	TLUiAssetUrlOverrides,
+	Tldraw,
+	ToolbarItem,
+	toRichText,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // [1]
@@ -21,7 +31,7 @@ const CustomGeoShapeUtil = GeoShapeUtil.configure({
 					.close()
 			},
 			snapType: 'polygon',
-			icon: 'geo-rectangle',
+			icon: 'geo-rounded-rect',
 		},
 		cross: {
 			getPath(w, h, shape) {
@@ -44,7 +54,7 @@ const CustomGeoShapeUtil = GeoShapeUtil.configure({
 					.close()
 			},
 			snapType: 'polygon',
-			icon: 'geo-x-box',
+			icon: 'geo-cross',
 			defaultSize: { w: 200, h: 200 },
 		},
 	},
@@ -53,12 +63,35 @@ const CustomGeoShapeUtil = GeoShapeUtil.configure({
 // [2]
 const shapeUtils = [CustomGeoShapeUtil]
 
+// [3]
+const customAssetUrls: TLUiAssetUrlOverrides = {
+	icons: {
+		'geo-rounded-rect': '/geo-rounded-rect.svg',
+		'geo-cross': '/geo-cross.svg',
+	},
+}
+
+// [4]
+const components: TLComponents = {
+	Toolbar: (props) => {
+		return (
+			<DefaultToolbar {...props}>
+				<ToolbarItem tool="rounded-rect" />
+				<ToolbarItem tool="cross" />
+				<DefaultToolbarContent />
+			</DefaultToolbar>
+		)
+	},
+}
+
 export default function CustomGeoTypesExample() {
 	return (
 		<div className="tldraw__editor">
-			{/* [3] */}
+			{/* [5] */}
 			<Tldraw
 				shapeUtils={shapeUtils}
+				components={components}
+				assetUrls={customAssetUrls}
 				onMount={(editor) => {
 					editor.createShapes([
 						{
@@ -122,6 +155,16 @@ Pass the configured shape util in an array. It replaces the default
 GeoShapeUtil but keeps all built-in geo types alongside your custom ones.
 
 [3]
+Provide custom icon SVGs for your geo types via assetUrls. The icon key
+must be 'geo-' followed by the geo type name (e.g., 'geo-rounded-rect').
+
+[4]
+Override the Toolbar component to add ToolbarItems for your custom geo
+types. The tool ID matches the key in your customGeoTypes map. Custom
+geo types are automatically registered as tools, so you just need to
+reference them by name.
+
+[5]
 Custom geo types appear in the geo style panel picker. They support all
 standard geo features: labels, fill/dash/color styles, resizing, SVG
 export, and snap points.
