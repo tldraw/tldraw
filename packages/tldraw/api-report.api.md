@@ -1778,6 +1778,7 @@ export function FrameToolbarItem(): JSX.Element;
 
 // @public (undocumented)
 export interface GeoShapeOptions extends ShapeOptionsWithDisplayValues<TLGeoShape, GeoShapeUtilDisplayValues> {
+    customGeoTypes?: Record<string, GeoTypeDefinition>;
     // (undocumented)
     showTextOutline: boolean;
 }
@@ -1800,6 +1801,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     canEdit(shape: TLGeoShape): boolean;
     // (undocumented)
     component(shape: TLGeoShape): JSX.Element;
+    // (undocumented)
+    static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
     // (undocumented)
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     // (undocumented)
@@ -1898,24 +1903,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         meta: JsonObject;
         opacity: number;
         parentId: TLParentId;
-        props: {
-            geo: "check-box";
-        };
-        rotation: number;
-        type: "geo";
-        typeName: "shape";
-        x: number;
-        y: number;
-    } | {
-        id: TLShapeId;
-        index: IndexKey;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: number;
-        parentId: TLParentId;
-        props: {
-            geo: "rectangle";
-        };
+        props: Partial<TLGeoShapeProps>;
         rotation: number;
         type: "geo";
         typeName: "shape";
@@ -1984,6 +1972,20 @@ export interface GeoShapeUtilDisplayValues {
     strokeRoundness: number;
     // (undocumented)
     strokeWidth: number;
+}
+
+// @public
+export interface GeoTypeDefinition {
+    defaultSize?: {
+        h: number;
+        w: number;
+    };
+    getPath(w: number, h: number, shape: TLGeoShape, strokeWidth: number): PathBuilder;
+    icon: string;
+    onDoubleClick?: (shape: TLGeoShape) => {
+        props: Partial<TLGeoShape['props']>;
+    } | void;
+    snapType: 'blobby' | 'polygon';
 }
 
 // @public (undocumented)

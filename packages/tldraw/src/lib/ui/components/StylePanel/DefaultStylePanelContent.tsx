@@ -19,7 +19,12 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
-import { getColorStyleItems, getFontStyleItems, STYLES } from '../../../styles'
+import {
+	getColorStyleItems,
+	getCustomGeoStyleItems,
+	getFontStyleItems,
+	STYLES,
+} from '../../../styles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
@@ -320,6 +325,9 @@ export function StylePanelGeoShapePicker() {
 	const geo = styles.get(GeoShapeGeoStyle)
 	if (geo === undefined) return null
 
+	const customItems = getCustomGeoStyleItems()
+	const items = customItems.length > 0 ? [...STYLES.geo, ...customItems] : STYLES.geo
+
 	return (
 		<StylePanelDropdownPicker
 			label="style-panel.geo"
@@ -328,7 +336,7 @@ export function StylePanelGeoShapePicker() {
 			uiType="geo"
 			stylePanelType="geo"
 			style={GeoShapeGeoStyle}
-			items={STYLES.geo}
+			items={items}
 			value={geo}
 		/>
 	)

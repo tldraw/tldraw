@@ -1,7 +1,6 @@
 import {
 	centerOfCircleFromThreePoints,
 	clamp,
-	exhaustiveSwitchError,
 	getPointOnCircle,
 	getPolygonVertices,
 	HALF_PI,
@@ -16,6 +15,54 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import { PathBuilder } from '../shared/PathBuilder'
+
+/**
+ * Defines the behavior for a custom geo shape type. Register custom geo types
+ * via {@link @tldraw/tldraw#GeoShapeUtil.configure | GeoShapeUtil.configure()}.
+ *
+ * @public
+ */
+export interface GeoTypeDefinition {
+	/**
+	 * Generate the path geometry for this geo type.
+	 *
+	 * @param w - The width of the shape (already clamped to min 1)
+	 * @param h - The height of the shape (already clamped to min 1, includes growY)
+	 * @param shape - The full geo shape record, for access to props like id, dash, fill, etc.
+	 * @param strokeWidth - The scaled stroke width (strokeWidth * scale)
+	 */
+	getPath(w: number, h: number, shape: TLGeoShape, strokeWidth: number): PathBuilder
+	/** Snap behavior: 'polygon' snaps to vertices + center, 'blobby' snaps to center only. */
+	snapType: 'polygon' | 'blobby'
+	/** Default creation size when clicking (not dragging). Defaults to 200x200. */
+	defaultSize?: { w: number; h: number }
+	/** Icon name for the style panel geo picker. */
+	icon: string
+	/**
+	 * Optional double-click handler. Return an object with partial props to update the shape,
+	 * or void to do nothing.
+	 */
+	onDoubleClick?: (shape: TLGeoShape) => { props: Partial<TLGeoShape['props']> } | void
+}
+
+const _customGeoTypes = new Map<string, GeoTypeDefinition>()
+
+/** @internal */
+export function registerCustomGeoTypes(types: Record<string, GeoTypeDefinition>) {
+	for (const [key, def] of Object.entries(types)) {
+		_customGeoTypes.set(key, def)
+	}
+}
+
+/** @internal */
+export function getCustomGeoType(name: string): GeoTypeDefinition | undefined {
+	return _customGeoTypes.get(name)
+}
+
+/** @internal */
+export function getCustomGeoTypes(): ReadonlyMap<string, GeoTypeDefinition> {
+	return _customGeoTypes
+}
 
 const pathCache = new WeakCache<TLGeoShape, PathBuilder>()
 export function getGeoShapePath(shape: TLGeoShape, strokeWidth: number) {
@@ -189,8 +236,13 @@ function _getGeoPath(shape: TLGeoShape, strokeWidth: number) {
 
 		case 'cloud':
 			return getCloudPath(w, h, shape.id, shape.props.size, shape.props.scale, isFilled)
-		default:
-			exhaustiveSwitchError(shape.props.geo)
+		default: {
+			const customType = _customGeoTypes.get(shape.props.geo)
+			if (customType) {
+				return customType.getPath(w, h, shape, sw)
+			}
+			throw new Error(`Unknown geo type: ${shape.props.geo}`)
+		}
 	}
 }
 

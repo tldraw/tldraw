@@ -94,6 +94,22 @@ function fontIcon(font: TLThemeFont, name: string): string | TLUiIconJsx {
 	return defaultFontIcons[name] ?? 'font-draw'
 }
 
+const _customGeoStyleItems: { value: string; icon: string }[] = []
+
+/** @internal */
+export function registerCustomGeoStyleItems(items: { value: string; icon: string }[]) {
+	for (const item of items) {
+		if (!_customGeoStyleItems.some((i) => i.value === item.value)) {
+			_customGeoStyleItems.push(item)
+		}
+	}
+}
+
+/** @internal */
+export function getCustomGeoStyleItems(): readonly { value: string; icon: string }[] {
+	return _customGeoStyleItems
+}
+
 // todo: default styles prop?
 export const STYLES = {
 	fill: [
