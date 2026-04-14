@@ -7,7 +7,7 @@ import {
 	createShapeId,
 	maybeSnapToGrid,
 } from '@tldraw/editor'
-import { getCustomGeoType } from '../getGeoShapePath'
+import { GeoShapeUtil } from '../GeoShapeUtil'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -81,8 +81,9 @@ export class Pointing extends StateNode {
 		const scale = this.editor.getResizeScaleFactor()
 
 		const geo = this.editor.getStyleForNextShape(GeoShapeGeoStyle)
+		const geoShapeUtil = this.editor.getShapeUtil('geo') as GeoShapeUtil
 
-		const customType = getCustomGeoType(geo)
+		const customType = geoShapeUtil.options.customGeoTypes?.[geo]
 		const size =
 			geo === 'star'
 				? { w: 200, h: 190 }

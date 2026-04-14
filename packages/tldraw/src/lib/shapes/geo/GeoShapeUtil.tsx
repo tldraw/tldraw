@@ -34,7 +34,6 @@ import {
 	useColorMode,
 	useValue,
 } from '@tldraw/editor'
-import { registerCustomGeoStyleItems } from '../../styles'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
@@ -56,12 +55,7 @@ import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { GeoShapeBody } from './GeoShapeBody'
-import {
-	type GeoTypeDefinition,
-	getCustomGeoType,
-	getGeoShapePath,
-	registerCustomGeoTypes,
-} from './getGeoShapePath'
+import { type GeoTypeDefinition, getCustomGeoType, getGeoShapePath } from './getGeoShapePath'
 
 // imperfect but good enough, should be the width of the W in the font / size combo
 const GEO_SHAPE_MIN_WIDTHS = Object.freeze({
@@ -157,8 +151,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			GeoShapeGeoStyle.addValues(
 				...(entries.map(([k]) => k) as Parameters<typeof GeoShapeGeoStyle.addValues>)
 			)
-			registerCustomGeoTypes(opts.customGeoTypes)
-			registerCustomGeoStyleItems(entries.map(([value, def]) => ({ value, icon: def.icon })))
 		}
 		// @ts-expect-error — same pattern as base ShapeUtil.configure
 		return class extends this {
@@ -237,7 +229,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { props } = shape
 		const { scale } = props
 		const dv = getDisplayValues(this, shape)
-		const path = getGeoShapePath(shape, dv.strokeWidth)
+		const path = getGeoShapePath(shape, dv.strokeWidth, this.options.customGeoTypes)
 		const pathGeometry = path.toGeometry()
 
 		const scaledW = Math.max(1, props.w)
@@ -339,7 +331,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				// blobby shapes only have a snap point in their center
 				return { outline: outline, points: [geometry.bounds.center] }
 			default: {
-				const customType = getCustomGeoType(shape.props.geo)
+				const customType = getCustomGeoType(shape.props.geo, this.options.customGeoTypes)
 				if (customType) {
 					if (customType.snapType === 'blobby') {
 						return { outline: outline, points: [geometry.bounds.center] }
@@ -397,6 +389,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						strokeWidth={dv.strokeWidth}
 						fillColor={dv.fillColor}
 						patternFillFallbackColor={dv.patternFillFallbackColor}
+						customGeoTypes={this.options.customGeoTypes}
 					/>
 				</SVGContainer>
 				{showHtmlContainer && (
@@ -441,7 +434,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { dash, scale } = shape.props
 		const dv = getDisplayValues(this, shape)
 
-		const path = getGeoShapePath(shape, dv.strokeWidth)
+		const path = getGeoShapePath(shape, dv.strokeWidth, this.options.customGeoTypes)
 
 		return path.toSvg({
 			style: dash === 'draw' ? 'draw' : 'solid',
@@ -465,7 +458,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { dash, scale } = shape.props
 		const dv = getDisplayValues(this, shape)
 
-		const path = getGeoShapePath(shape, dv.strokeWidth)
+		const path = getGeoShapePath(shape, dv.strokeWidth, this.options.customGeoTypes)
 
 		return path.toPath2D({
 			style: dash === 'draw' ? 'draw' : 'solid',
@@ -522,6 +515,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					strokeWidth={dv.strokeWidth}
 					fillColor={dv.fillColor}
 					patternFillFallbackColor={dv.patternFillFallbackColor}
+					customGeoTypes={this.options.customGeoTypes}
 				/>
 				{textEl}
 			</>
@@ -743,7 +737,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 		}
 
-		const customType = getCustomGeoType(shape.props.geo)
+		const customType = getCustomGeoType(shape.props.geo, this.options.customGeoTypes)
 		if (customType?.onDoubleClick) {
 			const result = customType.onDoubleClick(shape)
 			if (result) {

@@ -19,12 +19,8 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
-import {
-	getColorStyleItems,
-	getCustomGeoStyleItems,
-	getFontStyleItems,
-	STYLES,
-} from '../../../styles'
+import { GeoShapeUtil } from '../../../shapes/geo/GeoShapeUtil'
+import { getColorStyleItems, getFontStyleItems, STYLES } from '../../../styles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
@@ -321,12 +317,19 @@ export function StylePanelLabelAlignPicker() {
 
 /** @public @react */
 export function StylePanelGeoShapePicker() {
+	const editor = useEditor()
 	const { styles } = useStylePanelContext()
 	const geo = styles.get(GeoShapeGeoStyle)
 	if (geo === undefined) return null
 
-	const customItems = getCustomGeoStyleItems()
-	const items = customItems.length > 0 ? [...STYLES.geo, ...customItems] : STYLES.geo
+	const customGeoTypes = (editor.getShapeUtil('geo') as GeoShapeUtil).options.customGeoTypes
+	const customItems = customGeoTypes
+		? Object.entries(customGeoTypes).map(([value, def]) => ({ value, icon: def.icon }))
+		: []
+	const items =
+		customItems.length > 0
+			? [...STYLES.geo.filter((item) => !customGeoTypes?.[item.value]), ...customItems]
+			: STYLES.geo
 
 	return (
 		<StylePanelDropdownPicker
