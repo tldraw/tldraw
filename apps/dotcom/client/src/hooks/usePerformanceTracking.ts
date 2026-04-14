@@ -24,22 +24,17 @@ function commonStats(event: TLPerfFrameTimeStats & { shapeCount: number; zoomLev
 		max_frame_time: r2(event.maxFrameTime),
 		shape_count: event.shapeCount,
 		zoom_level: r2(event.zoomLevel),
-		has_loaf: !!loafs && loafs.length > 0,
+		has_loaf: (loafs?.length ?? 0) > 0,
 		loaf_count: loafs?.length ?? 0,
 	}
 }
 
 function handleInteractionEnd(event: TLInteractionEndPerfEvent) {
-	if (event.duration < 50) return
-
 	trackEvent('rum', {
 		type: 'interaction',
 		interaction_name: event.name,
 		interaction_path: event.path,
-		selected_shape_count: (Object.values(event.selectedShapeTypes) as number[]).reduce(
-			(a, b) => a + b,
-			0
-		),
+		selected_shape_count: Object.values(event.selectedShapeTypes).reduce((a, b) => a + b, 0),
 		selected_shape_types: event.selectedShapeTypes,
 		...commonStats(event),
 	})

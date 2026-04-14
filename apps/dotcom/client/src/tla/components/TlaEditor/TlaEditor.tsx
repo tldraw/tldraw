@@ -170,7 +170,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}).then(setIsReady)
 
 			return () => {
-				cleanupPerf?.()
+				cleanupPerf()
 				fileStateUpdater.dispose()
 				abortController.abort()
 			}

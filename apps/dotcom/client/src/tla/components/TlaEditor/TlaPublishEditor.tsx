@@ -56,8 +56,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 					;(window as any).editor = editor
 					editor.updateInstanceState({ isReadonly: true })
 					globalEditor.set(editor)
-					const cleanupPerf = trackPerformance(editor)
-					return () => cleanupPerf?.()
+					return trackPerformance(editor)
 				}}
 				components={components}
 				options={{ deepLinks: true }}
