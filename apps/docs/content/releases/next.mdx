@@ -279,6 +279,7 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Tighten iframe referrer policy for embeds to send only the origin instead of the full URL to third-party embed providers. ([#8412](https://github.com/tldraw/tldraw/pull/8412))
 - Move the debug mode toggle into the preferences submenu. ([#8259](https://github.com/tldraw/tldraw/pull/8259))
 - Update hotkeys-js keyboard shortcut library from v3 to v4, picking up TypeScript rewrite and keyboard layout handling improvements. ([#8372](https://github.com/tldraw/tldraw/pull/8372))
+- Improve mermaid fence parsing to handle inner triple-backtick lines, CRLF line endings, and case-insensitive info strings. ([#8360](https://github.com/tldraw/tldraw/pull/8360))
 
 ## Bug fixes
 
@@ -303,3 +304,4 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix crash when isolating curved arrows with degenerate geometry. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 - Fix camera state stuck at 'moving' on dispose, blocking shape interactions on the next editor instance. ([#8396](https://github.com/tldraw/tldraw/pull/8396))
 - Fix spiky artifacts on draw-style geometric shapes by using a circular random offset distribution instead of a square one. ([#8466](https://github.com/tldraw/tldraw/pull/8466))
+- Fix opacity slider drag not working on Safari due to capturing-phase `stopPropagation` interfering with Radix UI Slider's pointer capture handling. ([#8519](https://github.com/tldraw/tldraw/pull/8519))
