@@ -59,7 +59,7 @@ import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { createPierreClient } from './utils/createPierreClient'
+import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
@@ -1368,7 +1368,7 @@ export class TLFileDurableObject extends DurableObject {
 			!this.pierreClient ||
 			!this.documentInfo.isApp ||
 			!this.env.TLDRAW_ENV ||
-			this.env.TLDRAW_ENV === 'production'
+			!isSlugInPierreRollout(this.env, this.documentInfo.slug)
 		) {
 			return null
 		}
@@ -1450,11 +1450,15 @@ export class TLFileDurableObject extends DurableObject {
 					documentClock,
 					schema: snapshot.schema,
 				}
-				commitBuilder.addFileFromString('meta.json', JSON.stringify(meta))
+				const metaJson = JSON.stringify(meta)
+				let incrementalCommitPayloadLength = metaJson.length
+				commitBuilder.addFileFromString('meta.json', metaJson)
 
 				for (const [id, put] of Object.entries(diff.puts)) {
 					const state = Array.isArray(put) ? put[1] : put
-					commitBuilder.addFileFromString(`records/${id}.json`, JSON.stringify(state))
+					const recordJson = JSON.stringify(state)
+					incrementalCommitPayloadLength += recordJson.length
+					commitBuilder.addFileFromString(`records/${id}.json`, recordJson)
 				}
 
 				// Only apply diff.deletes when we have a parent commit and we're not in wipeAll.
@@ -1492,6 +1496,12 @@ export class TLFileDurableObject extends DurableObject {
 					this.pierreState = {
 						headSha: result ? result.refUpdate.newSha : headSha,
 						documentClock,
+					}
+					// Incremental commits only (not the first commit to an empty repo); combined JSON string lengths (meta + record payloads).
+					if (headSha && result) {
+						this.writeEvent('pierre_incremental_write_chars', {
+							doubles: [incrementalCommitPayloadLength],
+						})
 					}
 					return
 				} catch (error) {

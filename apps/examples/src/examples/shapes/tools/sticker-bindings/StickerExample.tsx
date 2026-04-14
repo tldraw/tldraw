@@ -49,19 +49,19 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		// stickers can bind to anything
 		return true
 	}
-	override canEdit() {
+	override canEdit(shape: StickerShape) {
 		return false
 	}
-	override canResize() {
+	override canResize(shape: StickerShape) {
 		return false
 	}
-	override canSnap() {
+	override canSnap(shape: StickerShape) {
 		return false
 	}
-	override hideRotateHandle() {
+	override hideRotateHandle(shape: StickerShape) {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(shape: StickerShape) {
 		return true
 	}
 

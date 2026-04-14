@@ -12,7 +12,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	static override props = groupShapeProps
 	static override migrations = groupShapeMigrations
 
-	override hideSelectionBoundsFg() {
+	override hideSelectionBoundsFg(shape: TLGroupShape) {
 		return true
 	}
 

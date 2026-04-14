@@ -28,7 +28,7 @@ class UncullableShapeUtil extends BaseBoxShapeUtil<UncullableShape> {
 		h: T.number,
 	}
 
-	override canCull() {
+	override canCull(shape: UncullableShape) {
 		return false
 	}
 

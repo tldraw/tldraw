@@ -224,23 +224,23 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		}
 	}
 
-	override hideSelectionBoundsBg(_shape: GlobShape): boolean {
+	override hideSelectionBoundsBg(shape: GlobShape): boolean {
 		return true
 	}
 
-	override hideResizeHandles(_shape: GlobShape): boolean {
+	override hideResizeHandles(shape: GlobShape): boolean {
 		return true
 	}
 
-	override hideRotateHandle(_shape: GlobShape): boolean {
+	override hideRotateHandle(shape: GlobShape): boolean {
 		return true
 	}
 
-	override hideSelectionBoundsFg(_shape: GlobShape): boolean {
+	override hideSelectionBoundsFg(shape: GlobShape): boolean {
 		return true
 	}
 
-	override onResize(_shape: GlobShape, info: TLResizeInfo<GlobShape>) {
+	override onResize(shape: GlobShape, info: TLResizeInfo<GlobShape>) {
 		const { scaleX, scaleY, initialShape } = info
 
 		const scaledEdgeA_d = {

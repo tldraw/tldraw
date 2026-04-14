@@ -28,6 +28,7 @@ import {
 import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -117,11 +118,13 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
+	const trackPerformance = usePerformanceTracking()
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
+			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally
@@ -167,11 +170,21 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}).then(setIsReady)
 
 			return () => {
+				cleanupPerf()
 				fileStateUpdater.dispose()
 				abortController.abort()
 			}
 		},
-		[addDialog, trackRoomLoaded, trackNewRoomCreation, app, fileId, remountImageShapes, setIsReady]
+		[
+			addDialog,
+			trackRoomLoaded,
+			trackNewRoomCreation,
+			trackPerformance,
+			app,
+			fileId,
+			remountImageShapes,
+			setIsReady,
+		]
 	)
 
 	const user = useTldrawCurrentUser()

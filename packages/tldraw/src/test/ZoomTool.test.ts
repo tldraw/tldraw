@@ -530,6 +530,47 @@ describe('ZoomQuick', () => {
 	})
 })
 
+describe('ZoomQuick with non-zero screen bounds offset', () => {
+	beforeEach(() => {
+		editor = new TestEditor()
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+		// Simulate a container offset from the top-left of the window (e.g. a header/sidebar)
+		editor.setScreenBounds({ x: 200, y: 100, w: 1080, h: 720 })
+	})
+
+	it('anchor point is not double-offset by the viewport screen bounds', () => {
+		// Position cursor at center of the viewport
+		editor.pointerMove(540, 360)
+		const cursorPagePoint = editor.inputs.getCurrentPagePoint()
+
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select' })
+
+		// The page point under the cursor should remain the same after zooming,
+		// regardless of where the container sits on the page.
+		const newCursorPagePoint = editor.inputs.getCurrentPagePoint()
+		expect(newCursorPagePoint.x).toBeCloseTo(cursorPagePoint.x)
+		expect(newCursorPagePoint.y).toBeCloseTo(cursorPagePoint.y)
+	})
+
+	it('brush follows cursor correctly when container is offset', () => {
+		editor.pointerMove(540, 360) // center of viewport
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select' })
+
+		// Move beyond threshold to enter moving state
+		editor.pointerMove(600, 400)
+		vi.advanceTimersByTime(16)
+
+		const brush = editor.getInstanceState().zoomBrush!
+		const cursorPage = editor.inputs.getCurrentPagePoint()
+
+		// The cursor should land inside the brush rectangle
+		expect(cursorPage.x).toBeGreaterThanOrEqual(brush.x)
+		expect(cursorPage.x).toBeLessThanOrEqual(brush.x + brush.w)
+		expect(cursorPage.y).toBeGreaterThanOrEqual(brush.y)
+		expect(cursorPage.y).toBeLessThanOrEqual(brush.y + brush.h)
+	})
+})
+
 describe('ZoomTool edge cases', () => {
 	beforeEach(() => {
 		editor = new TestEditor()

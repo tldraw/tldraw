@@ -36,7 +36,7 @@ export class PlayingCardUtil extends BaseBoxShapeUtil<IPlayingCard> {
 	}
 
 	// [4]
-	override isAspectRatioLocked(_shape: IPlayingCard) {
+	override isAspectRatioLocked(shape: IPlayingCard) {
 		return true
 	}
 
