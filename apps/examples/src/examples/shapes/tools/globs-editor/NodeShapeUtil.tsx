@@ -45,19 +45,19 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		}
 	}
 
-	override hideResizeHandles(_shape: NodeShape): boolean {
+	override hideResizeHandles(shape: NodeShape): boolean {
 		return true
 	}
 
-	override hideRotateHandle(_shape: NodeShape): boolean {
+	override hideRotateHandle(shape: NodeShape): boolean {
 		return true
 	}
 
-	override hideSelectionBoundsBg(_shape: NodeShape): boolean {
+	override hideSelectionBoundsBg(shape: NodeShape): boolean {
 		return true
 	}
 
-	override hideSelectionBoundsFg(_shape: NodeShape): boolean {
+	override hideSelectionBoundsFg(shape: NodeShape): boolean {
 		return true
 	}
 
@@ -70,7 +70,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		})
 	}
 
-	override onResize(_shape: NodeShape, info: TLResizeInfo<NodeShape>) {
+	override onResize(shape: NodeShape, info: TLResizeInfo<NodeShape>) {
 		const { scaleX, scaleY, initialShape } = info
 		const avgScale = (Math.abs(scaleX) + Math.abs(scaleY)) / 2
 

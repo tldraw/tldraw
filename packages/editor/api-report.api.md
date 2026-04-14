@@ -2065,7 +2065,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     getGeometry(shape: TLGroupShape): Geometry2d;
     // (undocumented)
-    hideSelectionBoundsFg(): boolean;
+    hideSelectionBoundsFg(shape: TLGroupShape): boolean;
     // (undocumented)
     indicator(shape: TLGroupShape): JSX.Element;
     // (undocumented)
@@ -2883,13 +2883,13 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     // @internal
     backgroundComponent?(shape: Shape): any;
     canBeLaidOut(shape: Shape, info: TLShapeUtilCanBeLaidOutOpts): boolean;
-    canBind(_opts: TLShapeUtilCanBindOpts): boolean;
+    canBind(opts: TLShapeUtilCanBindOpts): boolean;
     canCrop(shape: Shape): boolean;
     canCull(shape: Shape): boolean;
     canEdit(shape: Shape, info: TLEditStartInfo): boolean;
     canEditInReadonly(shape: Shape): boolean;
     canEditWhileLocked(shape: Shape): boolean;
-    canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']): boolean;
+    canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
     canResize(shape: Shape): boolean;
     canResizeChildren(shape: Shape): boolean;
     canScroll(shape: Shape): boolean;

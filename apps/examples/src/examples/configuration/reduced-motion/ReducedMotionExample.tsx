@@ -56,7 +56,7 @@ export class PulseShapeUtil extends ShapeUtil<PulseShape> {
 		return { w: 200, h: 200 }
 	}
 
-	override canEdit() {
+	override canEdit(shape: PulseShape) {
 		return false
 	}
 
