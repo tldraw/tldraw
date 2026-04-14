@@ -84,14 +84,14 @@ export interface TLCameraEndPerfEvent extends TLPerfFrameTimeStats {
 	type: 'panning' | 'zooming'
 	/** Total shapes on the current page. */
 	shapeCount: number
-	/** Viewport width in screen pixels. */
-	viewportWidth: number
-	/** Viewport height in screen pixels. */
-	viewportHeight: number
 	/** Number of shapes visible (not culled) in the viewport. */
 	visibleShapeCount: number
 	/** Number of shapes culled (off-screen) from rendering. */
 	culledShapeCount: number
+	/** Viewport width in screen pixels. */
+	viewportWidth: number
+	/** Viewport height in screen pixels. */
+	viewportHeight: number
 	/** Camera zoom level (`camera.z`) at session end. */
 	zoomLevel: number
 	/** `performance.now()` when the camera session ended. */
