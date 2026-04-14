@@ -127,6 +127,6 @@ export function writeToolAnalytics(
 			blobs: [...baseBlobs, truncateUtf8String(code, maxCodeBytes)],
 		})
 	} catch {
-		// Best-effort analytics should never break a tool call.
+		// writeDataPoint returns immediately and never throws, so we won't know if it failed
 	}
 }
