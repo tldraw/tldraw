@@ -41,6 +41,7 @@ import {
 	getUserDurableObject,
 } from './utils/durableObjects'
 
+// TODO: remove this workaround after upgrading wal2json to a version with eulerto/wal2json#266 fixed.
 // Subclass to work around wal2json bug (eulerto/wal2json#266) where
 // concurrent pg_logical_emit_message produces malformed JSON with leading commas.
 class SafeWal2JsonPlugin extends Wal2JsonPlugin {
