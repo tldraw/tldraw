@@ -44,9 +44,22 @@ import {
 // Subclass to work around wal2json bug (eulerto/wal2json#266) where
 // concurrent pg_logical_emit_message produces malformed JSON with leading commas.
 class SafeWal2JsonPlugin extends Wal2JsonPlugin {
+	// Wal2JsonPlugin.parse() does a bare JSON.parse(buffer.toString()) which throws
+	// on malformed output before our code can catch it. We try parsing first and only
+	// apply fixups on failure to avoid corrupting valid JSON string values that might
+	// contain comma patterns like "items: [, ]" or "a,,b".
 	override parse(buffer: Buffer): any {
-		const str = buffer.toString().replace(/\[,/g, '[').replace(/,]/g, ']').replace(/,,+/g, ',')
-		return JSON.parse(str)
+		const raw = buffer.toString()
+		try {
+			return JSON.parse(raw)
+		} catch {
+			const fixed = raw
+				.replace(/"change"\s*:\s*\[,+/g, '"change":[') // leading commas: [,{ → [{
+				.replace(/,+]/g, ']') // trailing commas: ,] → ]
+				.replace(/,,+/g, ',') // consecutive commas: ,, → ,
+			console.warn('SafeWal2JsonPlugin: fixed malformed wal2json output (eulerto/wal2json#266)')
+			return JSON.parse(fixed)
+		}
 	}
 }
 
