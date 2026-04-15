@@ -287,7 +287,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.copy-as-svg.short',
 					['context-menu']: 'action.copy-as-svg.short',
 				},
-				kbd: 'cmd+shift+c,ctrl+shift+c',
 				readonlyOk: true,
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
@@ -305,6 +304,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.copy-as-png.short',
 				},
 				readonlyOk: true,
+				kbd: 'cmd+shift+c,ctrl+shift+c',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())

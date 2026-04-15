@@ -100,6 +100,8 @@ const env = makeEnv([
 	'ZERO_R2_BUCKET_NAME',
 	'ZERO_R2_ACCESS_KEY_ID',
 	'ZERO_R2_SECRET_ACCESS_KEY',
+	'ZERO_OTEL_EXPORTER_OTLP_ENDPOINT',
+	'ZERO_OTEL_EXPORTER_OTLP_HEADERS',
 ])
 
 // Multinode (flyio-multinode) is for staging + production, previews use single as it is faster / cheaper
@@ -738,6 +740,8 @@ function updateFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
 		.replaceAll('__VOLUME_SIZE', zeroVm.volumeSize)
+		.replaceAll('__TLDRAW_ENV', env.TLDRAW_ENV)
+		.replaceAll('__ZERO_VERSION', zeroVersion)
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 }
@@ -774,6 +778,8 @@ function updateFlyioViewSyncerToml(
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
 		.replaceAll('__VOLUME_SIZE', zeroVm.volumeSize)
+		.replaceAll('__TLDRAW_ENV', env.TLDRAW_ENV)
+		.replaceAll('__ZERO_VERSION', zeroVersion)
 
 	fs.writeFileSync(flyioTomlFile, updatedContent, 'utf-8')
 
@@ -812,6 +818,8 @@ async function deployZeroViaFlyIoMultiNode() {
 			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
 			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
 			`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,
+			`OTEL_EXPORTER_OTLP_ENDPOINT=${env.ZERO_OTEL_EXPORTER_OTLP_ENDPOINT}`,
+			`OTEL_EXPORTER_OTLP_HEADERS=${env.ZERO_OTEL_EXPORTER_OTLP_HEADERS}`,
 			'-a',
 			flyioReplAppName,
 		],
@@ -841,6 +849,8 @@ async function deployZeroViaFlyIoMultiNode() {
 			// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
 			`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
 			`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,
+			`OTEL_EXPORTER_OTLP_ENDPOINT=${env.ZERO_OTEL_EXPORTER_OTLP_ENDPOINT}`,
+			`OTEL_EXPORTER_OTLP_HEADERS=${env.ZERO_OTEL_EXPORTER_OTLP_HEADERS}`,
 			'-a',
 			flyioAppName,
 		],

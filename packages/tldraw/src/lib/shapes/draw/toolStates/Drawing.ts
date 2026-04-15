@@ -27,6 +27,7 @@ type DrawableShape = TLDrawShape | TLHighlightShape
 
 export class Drawing extends StateNode {
 	static override id = 'drawing'
+	static override trackPerformance = true
 
 	info = {} as TLPointerEventInfo
 

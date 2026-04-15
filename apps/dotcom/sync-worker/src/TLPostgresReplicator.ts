@@ -94,7 +94,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private log
 
 	private readonly replicationService
-	private readonly slotName
+	private slotName
+
+	private getNewSlotName() {
+		const slotNameMaxLength = 63 // max postgres identifier length
+		const slotId = uniqueId().toLowerCase()
+		const slotNamePrefix = `tlpr_${slotId}_`
+		const durableObjectId = this.ctx.id.toString()
+		return slotNamePrefix + durableObjectId.slice(0, slotNameMaxLength - slotNamePrefix.length)
+	}
+
 	private readonly wal2jsonPlugin = new Wal2JsonPlugin({
 		addTables:
 			'public.user,public.file,public.file_state,public.user_mutation_number,public.replicator_boot_id,public.group,public.group_user,public.group_file',
@@ -111,11 +120,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			promise: promiseWithResolve(),
 		}
 
-		const slotNameMaxLength = 63 // max postgres identifier length
-		const slotNamePrefix = 'tlpr_' // pick something short so we can get more of the durable object id
-		const durableObjectId = this.ctx.id.toString()
-		this.slotName =
-			slotNamePrefix + durableObjectId.slice(0, slotNameMaxLength - slotNamePrefix.length)
+		let slotName = null
+		try {
+			slotName = this.sqlite.exec('SELECT slotName FROM meta').one().slotName
+		} catch (_e) {
+			// noop
+		}
+		if (typeof slotName !== 'string') {
+			slotName = this.getNewSlotName()
+		}
+		this.slotName = slotName
 
 		this.log = new Logger(env, 'TLPostgresReplicator', this.sentry)
 		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator', 100)
@@ -153,9 +167,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				if (this.sqlite.exec('select slotName from meta').one().slotName !== this.slotName) {
 					this.sqlite.exec('UPDATE meta SET slotName = ?, lsn = null', this.slotName)
 				}
-				await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json') WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = ${this.slotName})`.execute(
-					this.db
-				)
+				await this.ensureValidSlot()
 				this.pruneHistory()
 			})
 			.then(() => {
@@ -301,6 +313,33 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 	}
 
+	private async ensureValidSlot(): Promise<void> {
+		const result = await sql<{ wal_status: string }>`
+			SELECT wal_status FROM pg_replication_slots
+			WHERE slot_name = ${this.slotName}
+		`.execute(this.db)
+
+		const slotInfo = result.rows[0]
+
+		if (!slotInfo) {
+			this.log.debug('creating replication slot', this.slotName)
+			await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json')`.execute(
+				this.db
+			)
+		} else if (slotInfo.wal_status === 'lost') {
+			this.captureException(new Error(`replication slot invalidated: ${this.slotName}`))
+			await sql`SELECT pg_drop_replication_slot(${this.slotName})`.execute(this.db)
+			// increment generation to get a new slot name, which changes all sequenceIds
+			// and guarantees downstream user DOs hard reset
+			this.slotName = this.getNewSlotName()
+			this.sqlite.exec('UPDATE meta SET slotName = ?, lsn = null', this.slotName)
+			this.log.debug('creating replication slot', this.slotName)
+			await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json')`.execute(
+				this.db
+			)
+		}
+	}
+
 	private async boot() {
 		this.log.debug('booting')
 		this.lastPostgresMessageTime = Date.now()
@@ -315,6 +354,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.db
 		)
 		this.log.debug('done')
+
+		await this.ensureValidSlot()
 
 		const promise = 'promise' in this.state ? this.state.promise : promiseWithResolve()
 		this.state = {

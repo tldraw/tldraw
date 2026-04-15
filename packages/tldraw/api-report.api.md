@@ -262,9 +262,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canBind({ toShape }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean;
     // (undocumented)
-    canEdit(): boolean;
+    canEdit(shape: TLArrowShape): boolean;
     // (undocumented)
-    canSnap(): boolean;
+    canSnap(shape: TLArrowShape): boolean;
     // (undocumented)
     component(shape: TLArrowShape): JSX.Element | null;
     // (undocumented)
@@ -290,13 +290,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     hideInMinimap(): boolean;
     // (undocumented)
-    hideResizeHandles(): boolean;
+    hideResizeHandles(shape: TLArrowShape): boolean;
     // (undocumented)
-    hideRotateHandle(): boolean;
+    hideRotateHandle(shape: TLArrowShape): boolean;
     // (undocumented)
-    hideSelectionBoundsBg(): boolean;
+    hideSelectionBoundsBg(shape: TLArrowShape): boolean;
     // (undocumented)
-    hideSelectionBoundsFg(): boolean;
+    hideSelectionBoundsFg(shape: TLArrowShape): boolean;
     // (undocumented)
     indicator(shape: TLArrowShape): JSX.Element | null;
     // (undocumented)
@@ -477,7 +477,7 @@ export interface BookmarkShapeOptions extends ShapeOptionsWithDisplayValues<TLBo
 // @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
-    canResize(): boolean;
+    canResize(shape: TLBookmarkShape): boolean;
     // (undocumented)
     component(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
@@ -491,7 +491,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     getText(shape: TLBookmarkShape): string;
     // (undocumented)
-    hideSelectionBoundsFg(): boolean;
+    hideSelectionBoundsFg(shape: TLBookmarkShape): boolean;
     // (undocumented)
     indicator(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
@@ -737,6 +737,16 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly title: "Figma";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "figma";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly embedOnPaste: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["canva.com"];
+    readonly title: "Canva";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "canva";
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -1080,6 +1090,37 @@ export const DefaultNavigationPanel: NamedExoticComponent<object>;
 export const DefaultPageMenu: NamedExoticComponent<object>;
 
 // @public (undocumented)
+function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps): JSX.Element | null;
+export { DefaultPeopleMenu }
+export { DefaultPeopleMenu as PeopleMenu }
+
+// @public (undocumented)
+export function DefaultPeopleMenuAvatar({ userId }: TLUiPeopleMenuAvatarProps): JSX.Element | null;
+
+// @public (undocumented)
+export function DefaultPeopleMenuContent({ userIds }: DefaultPeopleMenuContentProps): JSX.Element;
+
+// @public (undocumented)
+export interface DefaultPeopleMenuContentProps {
+    // (undocumented)
+    userIds: string[];
+}
+
+// @public (undocumented)
+export function DefaultPeopleMenuFacePile({ userIds, userName, userColor }: TLUiPeopleMenuFacePileProps): JSX.Element;
+
+// @public (undocumented)
+export const DefaultPeopleMenuItem: NamedExoticComponent<TLUiPeopleMenuItemProps>;
+
+// @public (undocumented)
+interface DefaultPeopleMenuProps {
+    // (undocumented)
+    children?: ReactNode;
+}
+export { DefaultPeopleMenuProps }
+export { DefaultPeopleMenuProps as PeopleMenuProps }
+
+// @public (undocumented)
 export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 
 // @public (undocumented)
@@ -1106,7 +1147,7 @@ export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShape
 export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
 
 // @public (undocumented)
-export function DefaultSharePanel(): JSX.Element;
+export function DefaultSharePanel(): JSX.Element | null;
 
 // @public (undocumented)
 export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
@@ -1141,6 +1182,9 @@ export interface DefaultToolbarProps {
 
 // @public (undocumented)
 export const defaultTools: readonly [typeof EraserTool, typeof HandTool, typeof LaserTool, typeof ZoomTool, typeof SelectTool];
+
+// @public (undocumented)
+export function DefaultUserPresenceEditor(): JSX.Element;
 
 // @public (undocumented)
 export const DefaultVideoToolbar: NamedExoticComponent<TLUiVideoToolbarProps>;
@@ -1484,9 +1528,9 @@ export const embedShapePermissionDefaults: {
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
-    canEdit(): boolean;
+    canEdit(shape: TLEmbedShape): boolean;
     // (undocumented)
-    canEditInReadonly(): boolean;
+    canEditInReadonly(shape: TLEmbedShape): boolean;
     // (undocumented)
     canEditWhileLocked(shape: TLEmbedShape): boolean;
     // (undocumented)
@@ -1642,9 +1686,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canReceiveNewChildrenOfType(shape: TLShape): boolean;
     // (undocumented)
-    canResize(): boolean;
+    canResize(shape: TLFrameShape): boolean;
     // (undocumented)
-    canResizeChildren(): boolean;
+    canResizeChildren(shape: TLFrameShape): boolean;
     // (undocumented)
     component(shape: TLFrameShape): JSX.Element;
     // (undocumented)
@@ -1753,7 +1797,7 @@ export class GeoShapeTool extends StateNode {
 // @public (undocumented)
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
-    canEdit(): boolean;
+    canEdit(shape: TLGeoShape): boolean;
     // (undocumented)
     component(shape: TLGeoShape): JSX.Element;
     // (undocumented)
@@ -1773,7 +1817,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getText(shape: TLGeoShape): string;
     // (undocumented)
-    indicator(shape: TLGeoShape): JSX.Element;
+    indicator(shape: TLGeoShape): JSX.Element | null;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -1787,7 +1831,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
             font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
@@ -1822,7 +1866,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
             font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
@@ -2182,7 +2226,7 @@ export interface ImageShapeOptions extends ShapeOptionsWithDisplayValues<TLImage
 // @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
-    canCrop(): boolean;
+    canCrop(shape: TLImageShape): boolean;
     // (undocumented)
     component(shape: TLImageShape): JSX.Element;
     // (undocumented)
@@ -2202,7 +2246,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     indicator(shape: TLImageShape): JSX.Element | null;
     // (undocumented)
-    isAspectRatioLocked(): boolean;
+    isAspectRatioLocked(shape: TLImageShape): boolean;
     // (undocumented)
     isExportBoundsContainer(): boolean;
     // (undocumented)
@@ -2293,15 +2337,15 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     hideInMinimap(): boolean;
     // (undocumented)
-    hideResizeHandles(): boolean;
+    hideResizeHandles(shape: TLLineShape): boolean;
     // (undocumented)
-    hideRotateHandle(): boolean;
+    hideRotateHandle(shape: TLLineShape): boolean;
     // (undocumented)
-    hideSelectionBoundsBg(): boolean;
+    hideSelectionBoundsBg(shape: TLLineShape): boolean;
     // (undocumented)
-    hideSelectionBoundsFg(): boolean;
+    hideSelectionBoundsFg(shape: TLLineShape): boolean;
     // (undocumented)
-    indicator(shape: TLLineShape): JSX.Element;
+    indicator(shape: TLLineShape): JSX.Element | null;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -2316,7 +2360,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         parentId: TLParentId;
         props: {
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             points: {
                 [x: string]: {
                     id: string;
@@ -2345,7 +2389,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         parentId: TLParentId;
         props: {
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             points: {
                 [x: string]: {
                     id: IndexKey;
@@ -2429,6 +2473,12 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
 }
 
 // @public (undocumented)
+export interface NonePathBuilderOpts extends BasePathBuilderOpts {
+    // (undocumented)
+    style: 'none';
+}
+
+// @public (undocumented)
 export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<TLNoteShape, NoteShapeUtilDisplayValues> {
     resizeMode: 'none' | 'scale';
 }
@@ -2448,7 +2498,7 @@ export class NoteShapeTool extends StateNode {
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
-    canEdit(): boolean;
+    canEdit(shape: TLNoteShape): boolean;
     // (undocumented)
     component(shape: TLNoteShape): JSX.Element;
     // (undocumented)
@@ -2468,13 +2518,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getText(shape: TLNoteShape): string;
     // (undocumented)
-    hideResizeHandles(): boolean;
+    hideResizeHandles(shape: TLNoteShape): boolean;
     // (undocumented)
-    hideSelectionBoundsFg(): boolean;
+    hideSelectionBoundsFg(shape: TLNoteShape): boolean;
     // (undocumented)
     indicator(shape: TLNoteShape): JSX.Element;
     // (undocumented)
-    isAspectRatioLocked(): boolean;
+    isAspectRatioLocked(shape: TLNoteShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -2692,7 +2742,7 @@ export class PathBuilder {
     // (undocumented)
     toPath2D(opts: PathBuilderOpts): Path2D;
     // (undocumented)
-    toSvg(opts: PathBuilderOpts): JSX.Element;
+    toSvg(opts: PathBuilderOpts): JSX.Element | null;
 }
 
 // @internal (undocumented)
@@ -2755,7 +2805,7 @@ export interface PathBuilderLineOpts extends PathBuilderCommandOpts {
 }
 
 // @public (undocumented)
-export type PathBuilderOpts = DashedPathBuilderOpts | DrawPathBuilderOpts | SolidPathBuilderOpts;
+export type PathBuilderOpts = DashedPathBuilderOpts | DrawPathBuilderOpts | NonePathBuilderOpts | SolidPathBuilderOpts;
 
 // @public (undocumented)
 export interface PathBuilderToDOpts {
@@ -2765,15 +2815,6 @@ export interface PathBuilderToDOpts {
     onlyFilled?: boolean;
     // (undocumented)
     startIdx?: number;
-}
-
-// @public (undocumented)
-export function PeopleMenu({ children }: PeopleMenuProps): JSX.Element | null;
-
-// @public (undocumented)
-export interface PeopleMenuProps {
-    // (undocumented)
-    children?: ReactNode;
 }
 
 // @public
@@ -3333,7 +3374,7 @@ export class TextShapeTool extends StateNode {
 // @public (undocumented)
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
-    canEdit(): boolean;
+    canEdit(shape: TLTextShape): boolean;
     // (undocumented)
     component(shape: TLTextShape): JSX.Element;
     // (undocumented)
@@ -3354,7 +3395,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     indicator(shape: TLTextShape): JSX.Element | null;
     // (undocumented)
-    isAspectRatioLocked(): boolean;
+    isAspectRatioLocked(shape: TLTextShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -4103,6 +4144,14 @@ export interface TLUiComponents {
     // (undocumented)
     PageMenu?: ComponentType | null;
     // (undocumented)
+    PeopleMenu?: ComponentType | null;
+    // (undocumented)
+    PeopleMenuAvatar?: ComponentType<TLUiPeopleMenuAvatarProps> | null;
+    // (undocumented)
+    PeopleMenuFacePile?: ComponentType<TLUiPeopleMenuFacePileProps> | null;
+    // (undocumented)
+    PeopleMenuItem?: ComponentType<TLUiPeopleMenuItemProps> | null;
+    // (undocumented)
     QuickActions?: ComponentType<TLUiQuickActionsProps> | null;
     // (undocumented)
     RichTextToolbar?: ComponentType<TLUiRichTextToolbarProps> | null;
@@ -4116,6 +4165,8 @@ export interface TLUiComponents {
     Toolbar?: ComponentType | null;
     // (undocumented)
     TopPanel?: ComponentType | null;
+    // (undocumented)
+    UserPresenceEditor?: ComponentType | null;
     // (undocumented)
     VideoToolbar?: ComponentType | null;
     // (undocumented)
@@ -4853,6 +4904,28 @@ export interface TLUiOverrides {
     tools?(editor: Editor, tools: TLUiToolsContextType, helpers: TLUiOverrideHelpers): TLUiToolsContextType;
     // (undocumented)
     translations?: TLUiTranslationProviderProps['overrides'];
+}
+
+// @public (undocumented)
+export interface TLUiPeopleMenuAvatarProps {
+    // (undocumented)
+    userId: string;
+}
+
+// @public (undocumented)
+export interface TLUiPeopleMenuFacePileProps {
+    // (undocumented)
+    userColor: string;
+    // (undocumented)
+    userIds: string[];
+    // (undocumented)
+    userName: string;
+}
+
+// @public (undocumented)
+export interface TLUiPeopleMenuItemProps {
+    // (undocumented)
+    userId: string;
 }
 
 // @public (undocumented)
@@ -5953,7 +6026,7 @@ export interface VideoShapeOptions extends ShapeOptionsWithDisplayValues<TLVideo
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
-    canEdit(): boolean;
+    canEdit(shape: TLVideoShape): boolean;
     // (undocumented)
     component(shape: TLVideoShape): JSX.Element;
     // (undocumented)
@@ -5969,7 +6042,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     indicator(shape: TLVideoShape): JSX.Element;
     // (undocumented)
-    isAspectRatioLocked(): boolean;
+    isAspectRatioLocked(shape: TLVideoShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)

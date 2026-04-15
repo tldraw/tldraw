@@ -12,6 +12,7 @@ import {
 	TLComponents,
 	Tldraw,
 	ViewSubmenu,
+	hardReset,
 	setRuntimeOverrides,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -44,7 +45,7 @@ setRuntimeOverrides({
 		})
 	},
 	hardReset: async () => {
-		await (window as any).__tldraw__hardReset?.()
+		await hardReset({ shouldReload: false })
 		vscode.postMessage({
 			type: 'vscode:hard-reset',
 		})
