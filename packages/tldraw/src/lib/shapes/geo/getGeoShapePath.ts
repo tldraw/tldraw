@@ -42,7 +42,7 @@ export interface GeoTypeDefinition {
 	 * Optional double-click handler. Return an object with partial props to update the shape,
 	 * or void to do nothing.
 	 */
-	onDoubleClick?: (shape: TLGeoShape) => { props: Partial<TLGeoShape['props']> } | void
+	onDoubleClick?(shape: TLGeoShape): { props: Partial<TLGeoShape['props']> } | void
 }
 
 /** @internal */
