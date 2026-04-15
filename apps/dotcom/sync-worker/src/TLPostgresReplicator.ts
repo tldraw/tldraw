@@ -47,18 +47,24 @@ class SafeWal2JsonPlugin extends Wal2JsonPlugin {
 	// Wal2JsonPlugin.parse() does a bare JSON.parse(buffer.toString()) which throws
 	// on malformed output before our code can catch it. We try parsing first and only
 	// apply fixups on failure to avoid corrupting valid JSON string values that might
-	// contain comma patterns like "items: [, ]" or "a,,b".
+	// contain comma patterns like "a,,b".
+	// If fixups also fail, we deliberately let the error propagate — a crash loop is
+	// preferable to silently skipping (and acknowledging) unprocessable changes.
 	override parse(buffer: Buffer): any {
 		const raw = buffer.toString()
 		try {
 			return JSON.parse(raw)
-		} catch {
+		} catch (e) {
 			const fixed = raw
-				.replace(/"change"\s*:\s*\[,+/g, '"change":[') // leading commas: [,{ → [{
+				.replace(/"change":\[,+/g, '"change":[') // leading commas: [,{ → [{
 				.replace(/,+]/g, ']') // trailing commas: ,] → ]
 				.replace(/,,+/g, ',') // consecutive commas: ,, → ,
-			console.warn('SafeWal2JsonPlugin: fixed malformed wal2json output (eulerto/wal2json#266)')
-			return JSON.parse(fixed)
+			const result = JSON.parse(fixed)
+			console.warn(
+				`SafeWal2JsonPlugin: fixed malformed wal2json output (eulerto/wal2json#266). ` +
+					`Original error: ${e}. Payload sample: ${raw.slice(0, 200)}`
+			)
+			return result
 		}
 	}
 }
