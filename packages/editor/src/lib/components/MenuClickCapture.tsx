@@ -42,6 +42,22 @@ export function MenuClickCapture() {
 				}
 				rDidAPointerDownAndDragWhileMenuWasOpen.current = false
 			}
+			if (e.button === 2) {
+				// Swallow the contextmenu event that follows this right-click pointerdown.
+				// clearOpenMenus() below triggers a synchronous render that unmounts this
+				// component, so our React onContextMenu handler won't be around to catch it.
+				// Without this, the contextmenu event reaches the Radix Trigger and briefly
+				// opens a new context menu (which then immediately dismisses — causing a flash).
+				const ownerDocument = editor.getContainerDocument()
+				ownerDocument.addEventListener(
+					'contextmenu',
+					(event) => {
+						event.preventDefault()
+						event.stopImmediatePropagation()
+					},
+					{ capture: true, once: true }
+				)
+			}
 			editor.menus.clearOpenMenus()
 		},
 		[editor]
@@ -117,6 +133,10 @@ export function MenuClickCapture() {
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}
 				onPointerUp={handlePointerUp}
+				onContextMenu={(e) => {
+					e.preventDefault()
+					e.stopPropagation()
+				}}
 			/>
 		)
 	)

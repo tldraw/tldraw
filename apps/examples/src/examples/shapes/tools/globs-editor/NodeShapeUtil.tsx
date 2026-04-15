@@ -11,7 +11,6 @@ import {
 	TLHandleDragInfo,
 	TLResizeInfo,
 	TLShape,
-	useDefaultColorTheme,
 	useValue,
 	Vec,
 	ZERO_INDEX_KEY,
@@ -46,19 +45,19 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		}
 	}
 
-	override hideResizeHandles(_shape: NodeShape): boolean {
+	override hideResizeHandles(shape: NodeShape): boolean {
 		return true
 	}
 
-	override hideRotateHandle(_shape: NodeShape): boolean {
+	override hideRotateHandle(shape: NodeShape): boolean {
 		return true
 	}
 
-	override hideSelectionBoundsBg(_shape: NodeShape): boolean {
+	override hideSelectionBoundsBg(shape: NodeShape): boolean {
 		return true
 	}
 
-	override hideSelectionBoundsFg(_shape: NodeShape): boolean {
+	override hideSelectionBoundsFg(shape: NodeShape): boolean {
 		return true
 	}
 
@@ -71,7 +70,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		})
 	}
 
-	override onResize(_shape: NodeShape, info: TLResizeInfo<NodeShape>) {
+	override onResize(shape: NodeShape, info: TLResizeInfo<NodeShape>) {
 		const { scaleX, scaleY, initialShape } = info
 		const avgScale = (Math.abs(scaleX) + Math.abs(scaleY)) / 2
 
@@ -124,9 +123,9 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	override indicator(shape: NodeShape) {
 		const zoom = this.editor.getZoomLevel()
 
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
-		const blue = getColorValue(theme, 'blue', 'solid')
+		const theme = this.editor.getCurrentTheme()
+		const colors = theme.colors[this.editor.getColorMode()]
+		const blue = getColorValue(colors, 'blue', 'solid')
 
 		return <circle r={shape.props.radius} strokeWidth={1 / zoom} stroke={blue} fill="none" />
 	}

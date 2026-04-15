@@ -13,11 +13,15 @@ import {
 	kickoutOccludedShapes,
 	pointInPolygon,
 	toRichText,
+	unsafe__withoutCapture,
 } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
-import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
+import {
+	cancelUpdateHoveredShapeId,
+	updateHoveredShapeId,
+} from '../../selection-logic/updateHoveredShapeId'
 import { hasRichText, startEditingShapeWithRichText } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
@@ -44,11 +48,15 @@ export class Idle extends StateNode {
 	}
 
 	override onExit() {
-		updateHoveredShapeId.cancel()
+		this.editor.updateInstanceState({ isChangingStyle: false })
+		cancelUpdateHoveredShapeId(this.editor)
 	}
 
 	override onPointerMove() {
 		updateHoveredShapeId(this.editor)
+		if (unsafe__withoutCapture(() => this.editor.getInstanceState()).isChangingStyle) {
+			this.editor.updateInstanceState({ isChangingStyle: false })
+		}
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
@@ -357,11 +365,31 @@ export class Idle extends StateNode {
 	override onRightClick(info: TLPointerEventInfo) {
 		switch (info.target) {
 			case 'canvas': {
+				const selectedShapeIds = this.editor.getSelectedShapeIds()
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
+				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
+
+				// Check selection bounds first so that right-clicking inside the
+				// selection preserves it, even when a filled shape sits behind it.
+				if (
+					selectedShapeIds.length > 1 ||
+					(onlySelectedShape &&
+						!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
+				) {
+					if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
+						this.onRightClick({
+							...info,
+							target: 'selection',
+						})
+						return
+					}
+				}
+
 				const hoveredShape = this.editor.getHoveredShape()
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
 						? hoveredShape
-						: this.editor.getShapeAtPoint(this.editor.inputs.getCurrentPagePoint(), {
+						: this.editor.getShapeAtPoint(currentPagePoint, {
 								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
 								hitInside: false,
 								hitLabels: true,
@@ -377,24 +405,6 @@ export class Idle extends StateNode {
 						target: 'shape',
 					})
 					return
-				}
-
-				const selectedShapeIds = this.editor.getSelectedShapeIds()
-				const onlySelectedShape = this.editor.getOnlySelectedShape()
-				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
-
-				if (
-					selectedShapeIds.length > 1 ||
-					(onlySelectedShape &&
-						!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
-				) {
-					if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
-						this.onRightClick({
-							...info,
-							target: 'selection',
-						})
-						return
-					}
 				}
 
 				this.editor.selectNone()
@@ -644,6 +654,9 @@ export class Idle extends StateNode {
 		if (delta.equals(new Vec(0, 0))) return
 
 		if (!ephemeral) this.editor.markHistoryStoppingPoint('nudge shapes')
+
+		// Hide the selection overlay while nudging, same as when changing styles
+		this.editor.updateInstanceState({ isChangingStyle: true })
 
 		const { gridSize } = this.editor.getDocumentSettings()
 

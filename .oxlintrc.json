@@ -124,7 +124,11 @@
 			{
 				"argsIgnorePattern": "^_",
 				"varsIgnorePattern": "^_",
-				"caughtErrorsIgnorePattern": "^_"
+				"caughtErrorsIgnorePattern": "^_",
+				"fix": {
+					"imports": "safe-fix",
+					"variables": "off"
+				}
 			}
 		],
 		"no-useless-backreference": "error",

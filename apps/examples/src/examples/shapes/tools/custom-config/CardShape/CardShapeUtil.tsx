@@ -7,7 +7,6 @@ import {
 	TLResizeInfo,
 	TLShape,
 	getColorValue,
-	getDefaultColorTheme,
 	resizeBox,
 } from 'tldraw'
 import { cardShapeMigrations } from './card-shape-migrations'
@@ -34,10 +33,10 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	static override migrations = cardShapeMigrations
 
 	// [3]
-	override isAspectRatioLocked(_shape: ICardShape) {
+	override isAspectRatioLocked(shape: ICardShape) {
 		return false
 	}
-	override canResize(_shape: ICardShape) {
+	override canResize(shape: ICardShape) {
 		return true
 	}
 
@@ -61,8 +60,11 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 
 	// [6]
 	component(shape: ICardShape) {
-		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
+		const { editor } = this
+		const bounds = editor.getShapeGeometry(shape).bounds
+		const theme = editor.getCurrentTheme()
+		const colors = theme.colors[editor.getColorMode()]
+		const { color } = shape.props
 
 		//[a]
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -78,8 +80,8 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 					alignItems: 'center',
 					justifyContent: 'center',
 					pointerEvents: 'all',
-					backgroundColor: getColorValue(theme, shape.props.color, 'semi'),
-					color: getColorValue(theme, shape.props.color, 'solid'),
+					backgroundColor: getColorValue(colors, color, 'semi'),
+					color: getColorValue(colors, color, 'solid'),
 				}}
 			>
 				<h2>Clicks: {count}</h2>

@@ -1,6 +1,7 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
+import { DefaultPeopleMenu } from './lib/ui/components/SharePanel/DefaultPeopleMenu'
 export { getPointsFromDrawSegment, getPointsFromDrawSegments } from './lib/shapes/draw/getPath'
 export {
 	PathBuilder,
@@ -10,6 +11,7 @@ export {
 	type DashedPathBuilderOpts,
 	type DrawPathBuilderDOpts,
 	type DrawPathBuilderOpts,
+	type NonePathBuilderOpts,
 	type LineToPathBuilderCommand,
 	type MoveToPathBuilderCommand,
 	type PathBuilderCommand,
@@ -54,6 +56,9 @@ export { DefaultToasts } from './lib/ui/components/Toasts'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
 // eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/editor'
+export { BookmarkAssetUtil } from './lib/assets/BookmarkAssetUtil'
+export { ImageAssetUtil } from './lib/assets/ImageAssetUtil'
+export { VideoAssetUtil } from './lib/assets/VideoAssetUtil'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
 export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
@@ -61,10 +66,12 @@ export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
 export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
+export { defaultAssetUtils } from './lib/defaultAssetUtils'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export {
 	DEFAULT_EMBED_DEFINITIONS,
 	embedShapePermissionDefaults,
+	unknownEmbedShapePermissionOverrides,
 	type CustomEmbedDefinition,
 	type DefaultEmbedDefinitionType,
 	type EmbedDefinition,
@@ -87,7 +94,6 @@ export {
 	defaultHandleExternalUrlAsset,
 	defaultHandleExternalUrlContent,
 	getAssetInfo,
-	getMediaAssetInfoPartial,
 	notifyIfFileNotAllowed,
 	registerDefaultExternalContentHandlers,
 	type TLDefaultExternalContentHandlerOpts,
@@ -99,6 +105,7 @@ export { registerDefaultSideEffects } from './lib/defaultSideEffects'
 export { defaultTools } from './lib/defaultTools'
 export {
 	type ArrowShapeOptions,
+	type ArrowShapeUtilDisplayValues,
 	type TLArcArrowInfo,
 	type TLArcInfo,
 	type TLArrowInfo,
@@ -137,24 +144,57 @@ export {
 	type TLArrowBindings,
 } from './lib/shapes/arrow/shared'
 export { createBookmarkFromUrl } from './lib/shapes/bookmark/bookmarks'
-export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
+export {
+	BookmarkShapeUtil,
+	type BookmarkShapeUtilDisplayValues,
+	type BookmarkShapeOptions,
+} from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
-export { DrawShapeUtil, type DrawShapeOptions } from './lib/shapes/draw/DrawShapeUtil'
-export { EmbedShapeUtil, type EmbedShapeOptions } from './lib/shapes/embed/EmbedShapeUtil'
+export {
+	DrawShapeUtil,
+	type DrawShapeOptions,
+	type DrawShapeUtilDisplayValues,
+} from './lib/shapes/draw/DrawShapeUtil'
+export {
+	EmbedShapeUtil,
+	type EmbedShapeOptions,
+	type EmbedShapeUtilDisplayValues,
+} from './lib/shapes/embed/EmbedShapeUtil'
 export { FrameShapeTool } from './lib/shapes/frame/FrameShapeTool'
-export { FrameShapeUtil, type FrameShapeOptions } from './lib/shapes/frame/FrameShapeUtil'
+export {
+	FrameShapeUtil,
+	type FrameShapeOptions,
+	type FrameShapeUtilDisplayValues,
+} from './lib/shapes/frame/FrameShapeUtil'
 export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
-export { GeoShapeUtil } from './lib/shapes/geo/GeoShapeUtil'
+export {
+	GeoShapeUtil,
+	type GeoShapeUtilDisplayValues,
+	type GeoShapeOptions,
+} from './lib/shapes/geo/GeoShapeUtil'
 export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
 export {
 	HighlightShapeUtil,
 	type HighlightShapeOptions,
+	type HighlightShapeUtilDisplayValues,
 } from './lib/shapes/highlight/HighlightShapeUtil'
-export { ImageShapeUtil } from './lib/shapes/image/ImageShapeUtil'
+export {
+	ImageShapeUtil,
+	type ImageShapeUtilDisplayValues,
+	type ImageShapeOptions,
+} from './lib/shapes/image/ImageShapeUtil'
 export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
-export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
+export {
+	LineShapeUtil,
+	type LineShapeUtilDisplayValues,
+	type LineShapeOptions,
+} from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
-export { NoteShapeUtil, type NoteShapeOptions } from './lib/shapes/note/NoteShapeUtil'
+export {
+	NoteShapeUtil,
+	type NoteShapeUtilDisplayValues,
+	type NoteShapeOptions,
+} from './lib/shapes/note/NoteShapeUtil'
 export {
 	ASPECT_RATIO_OPTIONS,
 	ASPECT_RATIO_TO_VALUE,
@@ -164,14 +204,6 @@ export {
 	type ASPECT_RATIO_OPTION,
 	type CropBoxOptions,
 } from './lib/shapes/shared/crop'
-export {
-	ARROW_LABEL_FONT_SIZES,
-	FONT_FAMILIES,
-	FONT_SIZES,
-	LABEL_FONT_SIZES,
-	STROKE_SIZES,
-	TEXT_PROPS,
-} from './lib/shapes/shared/default-shape-constants'
 export {
 	allDefaultFontFaces,
 	DefaultFontFaces,
@@ -184,6 +216,10 @@ export { getStrokePoints } from './lib/shapes/shared/freehand/getStrokePoints'
 export { setStrokePointRadii } from './lib/shapes/shared/freehand/setStrokePointRadii'
 export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
 export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
+export {
+	getDisplayValues,
+	type ShapeOptionsWithDisplayValues,
+} from './lib/shapes/shared/getDisplayValues'
 export { PlainTextLabel, type PlainTextLabelProps } from './lib/shapes/shared/PlainTextLabel'
 export {
 	RichTextLabel,
@@ -191,7 +227,6 @@ export {
 	type RichTextLabelProps,
 	type RichTextSVGProps,
 } from './lib/shapes/shared/RichTextLabel'
-export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditablePlainText } from './lib/shapes/shared/useEditablePlainText'
 export { useEditableRichText } from './lib/shapes/shared/useEditableRichText'
 export {
@@ -201,9 +236,18 @@ export {
 export { PlainTextArea } from './lib/shapes/text/PlainTextArea'
 export { RichTextArea, type TextAreaProps } from './lib/shapes/text/RichTextArea'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
-export { TextShapeUtil, type TextShapeOptions } from './lib/shapes/text/TextShapeUtil'
-export { VideoShapeUtil, type VideoShapeOptions } from './lib/shapes/video/VideoShapeUtil'
-export { type StyleValuesForUi } from './lib/styles'
+export {
+	TextShapeUtil,
+	type TextShapeOptions,
+	type TextShapeUtilDisplayValues,
+} from './lib/shapes/text/TextShapeUtil'
+export {
+	VideoShapeUtil,
+	type VideoShapeOptions,
+	type VideoShapeUtilDisplayValues,
+} from './lib/shapes/video/VideoShapeUtil'
+export { getFontFamily } from './lib/shapes/shared/default-shape-constants'
+export { getColorStyleItems, getFontStyleItems, type StyleValuesForUi } from './lib/styles'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'
@@ -464,7 +508,30 @@ export {
 } from './lib/ui/components/QuickActions/DefaultQuickActions'
 export { DefaultQuickActionsContent } from './lib/ui/components/QuickActions/DefaultQuickActionsContent'
 export { DefaultSharePanel } from './lib/ui/components/SharePanel/DefaultSharePanel'
-export { PeopleMenu, type PeopleMenuProps } from './lib/ui/components/SharePanel/PeopleMenu'
+export {
+	DefaultPeopleMenu,
+	type DefaultPeopleMenuProps,
+	// legacy
+	DefaultPeopleMenu as PeopleMenu,
+	type DefaultPeopleMenuProps as PeopleMenuProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenu'
+export {
+	DefaultPeopleMenuContent,
+	type DefaultPeopleMenuContentProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuContent'
+export {
+	DefaultPeopleMenuFacePile,
+	type TLUiPeopleMenuFacePileProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuFacePile'
+export {
+	type TLUiPeopleMenuAvatarProps,
+	DefaultPeopleMenuAvatar,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuAvatar'
+export {
+	type TLUiPeopleMenuItemProps,
+	DefaultPeopleMenuItem,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuItem'
+export { DefaultUserPresenceEditor } from './lib/ui/components/SharePanel/DefaultUserPresenceEditor'
 export { Spinner } from './lib/ui/components/Spinner'
 export {
 	DefaultStylePanel,

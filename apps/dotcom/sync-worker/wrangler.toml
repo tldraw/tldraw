@@ -68,10 +68,20 @@ MULTIPLAYER_SERVER = "http://localhost:3000"
 name = "main-tldraw-multiplayer"
 workers_dev = true # todo: remove this once clients are updated
 
+[env.staging.vars]
+HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "4"
+HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
+HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
+
 # production gets the proper name
 [env.production]
 name = "tldraw-multiplayer"
 workers_dev = true # todo: remove this once clients are updated
+
+[env.production.vars]
+HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "10"
+HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
+HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
 
 #################### Routing ####################
 # no custom routes for previews and development

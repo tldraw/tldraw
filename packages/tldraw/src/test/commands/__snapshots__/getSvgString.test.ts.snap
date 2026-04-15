@@ -16,7 +16,7 @@ exports[`Matches a snapshot > Basic SVG 1`] = `
   >
     <defs>
       <mask
-        id="_export_4_r_b_"
+        id="_export_4_r_e_"
       >
         <rect
           fill="white"
@@ -51,14 +51,14 @@ exports[`Matches a snapshot > Basic SVG 1`] = `
       </mask>
       <pattern
         height="8"
-        id="_export_4_r_a__hash_pattern_light_0"
+        id="_export_4_r_d__hash_pattern_light_0"
         patternUnits="userSpaceOnUse"
         width="8"
       >
         <rect
           fill="#fcfffe"
           height="8"
-          mask="url(#_export_4_r_b_)"
+          mask="url(#_export_4_r_e_)"
           width="8"
           x="0"
           y="0"
@@ -127,7 +127,7 @@ exports[`Matches a snapshot > Basic SVG 1`] = `
       />
       <path
         d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
-        fill="url(#_export_4_r_a__hash_pattern_light_0)"
+        fill="url(#_export_4_r_d__hash_pattern_light_0)"
       />
       <path
         d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
@@ -156,7 +156,7 @@ exports[`Returns all shapes when no ids are provided > All shapes 1`] = `
   >
     <defs>
       <mask
-        id="_export_2_r_5_"
+        id="_export_2_r_6_"
       >
         <rect
           fill="white"
@@ -191,14 +191,14 @@ exports[`Returns all shapes when no ids are provided > All shapes 1`] = `
       </mask>
       <pattern
         height="8"
-        id="_export_2_r_4__hash_pattern_light_0"
+        id="_export_2_r_5__hash_pattern_light_0"
         patternUnits="userSpaceOnUse"
         width="8"
       >
         <rect
           fill="#fcfffe"
           height="8"
-          mask="url(#_export_2_r_5_)"
+          mask="url(#_export_2_r_6_)"
           width="8"
           x="0"
           y="0"
@@ -267,7 +267,7 @@ exports[`Returns all shapes when no ids are provided > All shapes 1`] = `
       />
       <path
         d="M 0 0 L 100 0 L 100 100 L 0 100 Z"
-        fill="url(#_export_2_r_4__hash_pattern_light_0)"
+        fill="url(#_export_2_r_5__hash_pattern_light_0)"
       />
       <path
         d="M 0 0 L 100 0 L 100 100 L 0 100 Z"

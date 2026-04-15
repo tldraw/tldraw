@@ -11,16 +11,15 @@ import {
 	DefaultTextAlignStyle,
 	DefaultVerticalAlignStyle,
 	GeoShapeGeoStyle,
-	LineShapeSplineStyle,
-	TLArrowShapeArrowheadStyle,
 	kickoutOccludedShapes,
+	LineShapeSplineStyle,
 	minBy,
+	TLArrowShapeArrowheadStyle,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
-import { STYLES } from '../../../styles'
-import { useUiEvents } from '../../context/events'
+import { getColorStyleItems, getFontStyleItems, STYLES } from '../../../styles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
@@ -74,6 +73,9 @@ export function StylePanelSection({ children }: StylePanelSectionProps) {
 
 /** @public @react */
 export function StylePanelColorPicker() {
+	const editor = useEditor()
+	const theme = editor.getCurrentTheme()
+	const colorMode = editor.getColorMode()
 	const { styles } = useStylePanelContext()
 	const msg = useTranslation()
 	const color = styles.get(DefaultColorStyle)
@@ -84,7 +86,7 @@ export function StylePanelColorPicker() {
 			title={msg('style-panel.color')}
 			uiType="color"
 			style={DefaultColorStyle}
-			items={STYLES.color}
+			items={getColorStyleItems(theme.colors[colorMode])}
 			value={color}
 		/>
 	)
@@ -94,26 +96,16 @@ const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
 /** @public @react */
 export function StylePanelOpacityPicker() {
 	const editor = useEditor()
-	const { onHistoryMark, enhancedA11yMode } = useStylePanelContext()
+	const { onHistoryMark, onOpacityChange, enhancedA11yMode } = useStylePanelContext()
 
 	const opacity = useValue('opacity', () => editor.getSharedOpacity(), [editor])
-	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 
 	const handleOpacityValueChange = React.useCallback(
 		(value: number) => {
-			const item = tldrawSupportedOpacities[value]
-			editor.run(() => {
-				if (editor.isIn('select')) {
-					editor.setOpacityForSelectedShapes(item)
-				}
-				editor.setOpacityForNextShapes(item)
-				editor.updateInstanceState({ isChangingStyle: true })
-			})
-
-			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value })
+			onOpacityChange(tldrawSupportedOpacities[value])
 		},
-		[editor, trackEvent]
+		[onOpacityChange]
 	)
 
 	if (opacity === undefined) return null
@@ -227,6 +219,8 @@ export function StylePanelSizePicker() {
 
 /** @public @react */
 export function StylePanelFontPicker() {
+	const editor = useEditor()
+	const theme = editor.getCurrentTheme()
 	const { styles } = useStylePanelContext()
 	const msg = useTranslation()
 	const font = styles.get(DefaultFontStyle)
@@ -237,7 +231,7 @@ export function StylePanelFontPicker() {
 			title={msg('style-panel.font')}
 			uiType="font"
 			style={DefaultFontStyle}
-			items={STYLES.font}
+			items={getFontStyleItems(theme)}
 			value={font}
 		/>
 	)
