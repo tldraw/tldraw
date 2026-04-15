@@ -1,0 +1,44 @@
+{
+	"name": "tldraw-threeldraw",
+	"private": true,
+	"version": "0.0.0",
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "MIT",
+	"type": "module",
+	"tldraw_template": {
+		"repo": "tldraw/threeldraw-template",
+		"cli": {
+			"name": "3D Canvas",
+			"description": "An experimental template rendering tldraw on an isometric 3D cube using Three.js.",
+			"shortDescription": "tldraw on a 3D isometric cube.",
+			"order": 13
+		},
+		"scripts": {
+			"lint": null
+		}
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
+		"three": "^0.172.0",
+		"tldraw": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"@types/three": "^0.172.0",
+		"@vitejs/plugin-react": "^6.0.1",
+		"typescript": "^5.8.3",
+		"vite": "^8.0.1"
+	}
+}

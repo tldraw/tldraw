@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
+@import url('tldraw/tldraw.css');
+
+body {
+	font-family: 'Inter', sans-serif;
+	overscroll-behavior: none;
+	margin: 0;
+}
+
+.threeldraw-app {
+	position: fixed;
+	inset: 0;
+}
+
+/* Dark background behind shapes — the 3D scene covers this */
+.threeldraw-app[data-scene='cube'] .tl-background__wrapper {
+	background: #1a1a2e;
+}
+
+/* Hide the actual shapes layer — we clone them onto the 3D faces */
+.threeldraw-app[data-scene='cube'] .tl-shapes {
+	visibility: hidden;
+}
+
+/* Also hide overlays on the real canvas — we clone those too */
+.threeldraw-app[data-scene='cube'] .tl-overlays {
+	visibility: hidden;
+}
+
+/* Sphere scenes: hide shapes/overlays (rendered via WebGL texture) */
+.threeldraw-app[data-scene='sphere-equirect'] .tl-shapes,
+.threeldraw-app[data-scene='sphere-dome'] .tl-shapes {
+	visibility: hidden;
+}
+
+.threeldraw-app[data-scene='sphere-equirect'] .tl-overlays,
+.threeldraw-app[data-scene='sphere-dome'] .tl-overlays {
+	visibility: hidden;
+}
+
+.threeldraw-app[data-scene='sphere-equirect'] .tl-background__wrapper,
+.threeldraw-app[data-scene='sphere-dome'] .tl-background__wrapper {
+	background: #1a1a2e;
+}
+
+/* Inside the cube's face mirrors, strip ALL clip-paths. The cloned DOM lives
+   inside a CSS3D preserve-3d container where url(#id) paint-server refs are
+   unreliable in Chrome — they evaluate but the clipped content gets dropped,
+   which hides arrow shafts. We also strip the grey dashed binding-hint path
+   since it's meaningless in the 3D view. */
+.threeldraw-face *,
+.threeldraw-face {
+	clip-path: none !important;
+	-webkit-clip-path: none !important;
+}
+
+.threeldraw-face .tl-arrow-hint {
+	display: none !important;
+}
+
+/* 3D scene fills the canvas area */
+.threeldraw-scene {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	inset: 0;
+	touch-action: none;
+}
+
+.threeldraw-scene > div {
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.threeldraw-share-zone {
+	display: flex;
+	align-items: center;
+}
+
+.threeldraw-share-zone__row {
+	align-items: center;
+	gap: 8px;
+}
+
+.threeldraw-share-zone__select {
+	min-width: 120px;
+}
