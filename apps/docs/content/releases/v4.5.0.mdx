@@ -14,6 +14,8 @@ keywords:
   - v4.5.4
   - v4.5.5
   - v4.5.6
+  - v4.5.7
+  - v4.5.8
   - transparent-pixels
   - embed-definitions
   - high-dpi
@@ -167,3 +169,15 @@ const cleanSvg = sanitizeSvg(untrustedSvgText)
 - Fix crash when isolating curved arrows with degenerate binding geometry. ([#8390](https://github.com/tldraw/tldraw/pull/8390))
 
 [View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.5.6)
+
+### v4.5.7
+
+- Fix VSCode extension bundle incorrectly including `hotkeys-js` as a bundled dependency. ([#8444](https://github.com/tldraw/tldraw/pull/8444))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.5.7)
+
+### v4.5.8
+
+- Fix memory leak where the Editor was retained after unmount via a shared throttled `updateHoveredShapeId` closure. ([#8474](https://github.com/tldraw/tldraw/pull/8474))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v4.5.8)
