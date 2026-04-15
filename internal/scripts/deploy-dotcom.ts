@@ -284,12 +284,16 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // Preview: Supabase branch instance (~60 max_connections per branch, isolated)
 // Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
 // TODO(production): tune these once we know prod Postgres limits
-// Fly.io shared-cpu VM sizes per environment.
-// Max shared-cpu is 8x (8 CPUs, 16 GB RAM).
+// Fly.io VM sizes per environment.
+// Production RM uses performance (dedicated) CPUs; everything else uses shared.
 const zeroVmSizes = {
-	staging: { rm: { cpus: 1, memory: '2gb' }, vs: { cpus: 2, memory: '4gb' }, volumeSize: '1gb' },
+	staging: {
+		rm: { cpus: 1, memory: '2gb', cpuKind: 'shared' },
+		vs: { cpus: 2, memory: '4gb' },
+		volumeSize: '1gb',
+	},
 	production: {
-		rm: { cpus: 4, memory: '8gb' },
+		rm: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		vs: { cpus: 8, memory: '16gb' },
 		volumeSize: '8gb',
 	},
@@ -328,6 +332,7 @@ const zeroConns = zeroConnectionLimits[env.TLDRAW_ENV as keyof typeof zeroConnec
 interface VmSize {
 	cpus: number
 	memory: string
+	cpuKind?: 'shared' | 'performance'
 }
 interface SingleNodeVmSizes {
 	single: VmSize
@@ -737,6 +742,7 @@ function updateFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__RM_UPSTREAM_MAX_CONNS', String(zeroConns.rm.upstream))
 		.replaceAll('__RM_CVR_MAX_CONNS', String(zeroConns.rm.cvr))
 		.replaceAll('__RM_CHANGE_MAX_CONNS', String(zeroConns.rm.change))
+		.replaceAll('__CPU_KIND', zeroVm.rm.cpuKind ?? 'shared')
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
 		.replaceAll('__VOLUME_SIZE', zeroVm.volumeSize)
