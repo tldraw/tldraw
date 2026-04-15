@@ -41,6 +41,15 @@ import {
 	getUserDurableObject,
 } from './utils/durableObjects'
 
+// Subclass to work around wal2json bug (eulerto/wal2json#266) where
+// concurrent pg_logical_emit_message produces malformed JSON with leading commas.
+class SafeWal2JsonPlugin extends Wal2JsonPlugin {
+	override parse(buffer: Buffer): any {
+		const str = buffer.toString().replace(/\[,/g, '[').replace(/,]/g, ']').replace(/,,+/g, ',')
+		return JSON.parse(str)
+	}
+}
+
 const ONE_MINUTE = 60 * 1000
 // IMPORTANT prune interval needs to be at least twice as big as the lsn update request timeout
 // otherwise we might prune users who are still connected.
@@ -104,7 +113,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		return slotNamePrefix + durableObjectId.slice(0, slotNameMaxLength - slotNamePrefix.length)
 	}
 
-	private readonly wal2jsonPlugin = new Wal2JsonPlugin({
+	private readonly wal2jsonPlugin = new SafeWal2JsonPlugin({
 		addTables:
 			'public.user,public.file,public.file_state,public.user_mutation_number,public.replicator_boot_id,public.group,public.group_user,public.group_file',
 	})
