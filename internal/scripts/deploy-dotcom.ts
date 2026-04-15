@@ -284,8 +284,8 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // Preview: Supabase branch instance (~60 max_connections per branch, isolated)
 // Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
 // TODO(production): tune these once we know prod Postgres limits
-// Fly.io shared-cpu VM sizes per environment.
-// Max shared-cpu is 8x (8 CPUs, 16 GB RAM).
+// Fly.io VM sizes per environment.
+// Production RM uses performance (dedicated) CPUs; everything else uses shared.
 const zeroVmSizes = {
 	staging: {
 		rm: { cpus: 1, memory: '2gb', cpuKind: 'shared' },
