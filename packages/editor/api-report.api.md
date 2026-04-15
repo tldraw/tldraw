@@ -194,6 +194,22 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     onResize(shape: any, info: TLResizeInfo<any>): any;
 }
 
+// @public
+export abstract class BaseFrameLikeShapeUtil<Shape extends TLBaseBoxShape> extends BaseBoxShapeUtil<Shape> {
+    // (undocumented)
+    canReceiveNewChildrenOfType(shape: TLShape): boolean;
+    // (undocumented)
+    getClipPath(shape: Shape): undefined | Vec[];
+    // (undocumented)
+    isFrameLike(): boolean;
+    // (undocumented)
+    onDragShapesIn(shape: Shape, draggingShapes: TLShape[], { initialParentIds, initialIndices }: TLDragShapesOverInfo): void;
+    // (undocumented)
+    onDragShapesOut(shape: Shape, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void;
+    // (undocumented)
+    providesBackgroundForChildren(): boolean;
+}
+
 // @public (undocumented)
 export interface BatchMeasurementRequest {
     // (undocumented)
@@ -2954,6 +2970,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked(shape: Shape): boolean;
     isExportBoundsContainer(shape: Shape): boolean;
+    isFrameLike(_shape: Shape): boolean;
     static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     onBeforeCreate?(next: Shape): Shape | void;
     onBeforeUpdate?(prev: Shape, next: Shape): Shape | void;

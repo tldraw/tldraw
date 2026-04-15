@@ -8,6 +8,7 @@ import { AssetUtil } from '@tldraw/editor';
 import { Atom } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
+import { BaseFrameLikeShapeUtil } from '@tldraw/editor';
 import { BindingOnChangeOptions } from '@tldraw/editor';
 import { BindingOnCreateOptions } from '@tldraw/editor';
 import { BindingOnShapeChangeOptions } from '@tldraw/editor';
@@ -88,8 +89,6 @@ import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorStyle } from '@tldraw/tlschema';
 import { TLDefaultFontStyle } from '@tldraw/tlschema';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
-import { TLDragShapesOutInfo } from '@tldraw/editor';
-import { TLDragShapesOverInfo } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TldrawOptions } from '@tldraw/editor';
@@ -1680,11 +1679,9 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 }
 
 // @public (undocumented)
-export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
+export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
     // (undocumented)
     canEdit(shape: TLFrameShape, info: TLEditStartInfo): boolean;
-    // (undocumented)
-    canReceiveNewChildrenOfType(shape: TLShape): boolean;
     // (undocumented)
     canResize(shape: TLFrameShape): boolean;
     // (undocumented)
@@ -1697,8 +1694,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     } ? Partial<Options> : never): T;
     // (undocumented)
     getAriaDescriptor(shape: TLFrameShape): string;
-    // (undocumented)
-    getClipPath(shape: TLFrameShape): Vec[];
     // (undocumented)
     getDefaultProps(): TLFrameShape['props'];
     // (undocumented)
@@ -1730,17 +1725,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
         type: "frame";
     } | undefined;
     // (undocumented)
-    onDragShapesIn(shape: TLFrameShape, draggingShapes: TLShape[], { initialParentIds, initialIndices }: TLDragShapesOverInfo): void;
-    // (undocumented)
-    onDragShapesOut(shape: TLFrameShape, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void;
-    // (undocumented)
-    onResize(shape: any, info: TLResizeInfo<any>): any;
-    // (undocumented)
     options: FrameShapeOptions;
     // (undocumented)
     static props: RecordProps<TLFrameShape>;
-    // (undocumented)
-    providesBackgroundForChildren(): boolean;
     // (undocumented)
     toSvg(shape: TLFrameShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
