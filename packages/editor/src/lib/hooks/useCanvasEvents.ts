@@ -54,10 +54,15 @@ export function useCanvasEvents() {
 				// Static right-click: fire contextmenu at the pointer-up location
 				if (e.button === 2 && !wasRightClickPanning) {
 					rWasStaticRightClick.current = true
-					const contextMenuEvent = new MouseEvent('contextmenu', {
+					const contextMenuEvent = new PointerEvent('contextmenu', {
 						bubbles: true,
 						clientX: e.clientX,
 						clientY: e.clientY,
+						button: 2,
+						buttons: 0,
+						pointerId: e.pointerId,
+						pointerType: e.pointerType,
+						isPrimary: e.isPrimary,
 					})
 					e.currentTarget.dispatchEvent(contextMenuEvent)
 				}
