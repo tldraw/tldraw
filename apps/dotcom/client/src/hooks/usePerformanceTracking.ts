@@ -29,44 +29,56 @@ function commonStats(event: TLPerfFrameTimeStats & { shapeCount: number; zoomLev
 	}
 }
 
-function handleInteractionEnd(event: TLInteractionEndPerfEvent) {
-	trackEvent('rum', {
-		type: 'interaction',
-		interaction_name: event.name,
-		interaction_path: event.path,
-		selected_shape_count: Object.values(event.selectedShapeTypes).reduce((a, b) => a + b, 0),
-		selected_shape_types: event.selectedShapeTypes,
-		...commonStats(event),
-	})
-}
-
-function handleCameraEnd(event: TLCameraEndPerfEvent) {
-	trackEvent('rum', {
-		type: 'camera',
-		camera_type: event.type,
-		visible_shape_count: event.visibleShapeCount,
-		culled_shape_count: event.culledShapeCount,
-		...commonStats(event),
-	})
-}
-
-export function usePerformanceTracking() {
-	return useCallback((editor: Editor) => {
-		let unsubInteraction: (() => void) | undefined
-		let unsubCamera: (() => void) | undefined
-		let disposed = false
-
-		fetchFeatureFlags().then((flags) => {
-			if (disposed || !flags.rum_enabled?.enabled) return
-
-			unsubInteraction = editor.performance.on('interaction-end', handleInteractionEnd)
-			unsubCamera = editor.performance.on('camera-end', handleCameraEnd)
+function makeHandleInteractionEnd(abIndicators: 'canvas' | 'svg') {
+	return function handleInteractionEnd(event: TLInteractionEndPerfEvent) {
+		trackEvent('rum', {
+			type: 'interaction',
+			interaction_name: event.name,
+			interaction_path: event.path,
+			selected_shape_count: Object.values(event.selectedShapeTypes).reduce((a, b) => a + b, 0),
+			selected_shape_types: event.selectedShapeTypes,
+			ab_indicators: abIndicators,
+			...commonStats(event),
 		})
+	}
+}
 
-		return () => {
-			disposed = true
-			unsubInteraction?.()
-			unsubCamera?.()
-		}
-	}, [])
+function makeHandleCameraEnd(abIndicators: 'canvas' | 'svg') {
+	return function handleCameraEnd(event: TLCameraEndPerfEvent) {
+		trackEvent('rum', {
+			type: 'camera',
+			camera_type: event.type,
+			visible_shape_count: event.visibleShapeCount,
+			culled_shape_count: event.culledShapeCount,
+			ab_indicators: abIndicators,
+			...commonStats(event),
+		})
+	}
+}
+
+export function usePerformanceTracking(abIndicators: 'canvas' | 'svg') {
+	return useCallback(
+		(editor: Editor) => {
+			let unsubInteraction: (() => void) | undefined
+			let unsubCamera: (() => void) | undefined
+			let disposed = false
+
+			fetchFeatureFlags().then((flags) => {
+				if (disposed || !flags.rum_enabled?.enabled) return
+
+				unsubInteraction = editor.performance.on(
+					'interaction-end',
+					makeHandleInteractionEnd(abIndicators)
+				)
+				unsubCamera = editor.performance.on('camera-end', makeHandleCameraEnd(abIndicators))
+			})
+
+			return () => {
+				disposed = true
+				unsubInteraction?.()
+				unsubCamera?.()
+			}
+		},
+		[abIndicators]
+	)
 }

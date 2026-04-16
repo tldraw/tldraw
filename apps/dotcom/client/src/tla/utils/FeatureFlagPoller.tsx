@@ -8,6 +8,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 	zero_enabled: { enabled: false },
 	zero_kill_switch: { enabled: false },
 	rum_enabled: { enabled: false },
+	canvas_indicators_ab: { enabled: false },
 }
 
 let flagsPromise: Promise<FeatureFlags> | null = null
@@ -42,6 +43,11 @@ export function fetchFeatureFlags(): Promise<FeatureFlags> {
 
 export function wasAuthenticated(): boolean {
 	return _wasAuthenticated
+}
+
+/** Returns the current (possibly cached) feature flag values synchronously. */
+export function getCurrentFlags(): FeatureFlags {
+	return currentFlags
 }
 
 // Start fetching immediately — fast path for returning users with valid cookies.

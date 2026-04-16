@@ -27,6 +27,13 @@ function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagV
 			enabled: false,
 			description: 'Real User Monitoring for editor performance metrics',
 		},
+		canvas_indicators_ab: {
+			type: 'percentage',
+			percentage: 0,
+			enabled: false,
+			description:
+				'A/B test for canvas indicators vs legacy SVG indicators. Users in the percentage get canvas indicators (treatment); others get SVG (control).',
+		},
 	}
 }
 

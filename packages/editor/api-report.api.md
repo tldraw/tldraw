@@ -792,6 +792,7 @@ export const defaultTldrawOptions: {
     readonly tooltipDelayMs: 700;
     readonly uiCoarseDragDistanceSquared: 625;
     readonly uiDragDistanceSquared: 16;
+    readonly useCanvasIndicators: true;
     readonly zoomToFitPadding: 128;
 };
 
@@ -3798,6 +3799,7 @@ export interface TldrawOptions {
         source: 'clipboard-read' | 'native-event';
     }): Awaitable<false | TLExternalContent<unknown> | void>;
     onClipboardPasteRaw?(info: TLClipboardPasteRawInfo): false | void;
+    // (undocumented)
     readonly quickZoomPreservesScreenBounds: boolean;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
@@ -3811,6 +3813,7 @@ export interface TldrawOptions {
     readonly uiCoarseDragDistanceSquared: number;
     // (undocumented)
     readonly uiDragDistanceSquared: number;
+    readonly useCanvasIndicators: boolean;
     readonly zoomToFitPadding: number;
 }
 

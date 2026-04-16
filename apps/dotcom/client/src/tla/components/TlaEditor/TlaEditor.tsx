@@ -27,6 +27,7 @@ import {
 } from 'tldraw'
 import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { useCanvasIndicatorsAb } from '../../../hooks/useCanvasIndicatorsAb'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
@@ -118,7 +119,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
-	const trackPerformance = usePerformanceTracking()
+	const canvasIndicatorsAb = useCanvasIndicatorsAb()
+	const trackPerformance = usePerformanceTracking(canvasIndicatorsAb)
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
@@ -287,7 +289,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={instanceComponents}
-				options={{ actionShortcutsLocation: 'toolbar', deepLinks: deepLinks ? true : undefined }}
+				options={{
+					actionShortcutsLocation: 'toolbar',
+					deepLinks: deepLinks ? true : undefined,
+					useCanvasIndicators: canvasIndicatorsAb === 'canvas',
+				}}
 				overrides={[overrides, extraDragIconOverrides]}
 				getShapeVisibility={getShapeVisibility}
 			>

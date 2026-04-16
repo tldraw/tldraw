@@ -465,8 +465,11 @@ function HintedShapeIndicator() {
 	const ids = useValue(
 		'hinting shape ids without canvas indicator',
 		() => {
+			const hintingIds = dedupe(editor.getHintingShapeIds())
+			// When canvas indicators are disabled, render all hints via SVG
+			if (!editor.options.useCanvasIndicators) return hintingIds
 			// Filter to only shapes that use legacy SVG indicators
-			return dedupe(editor.getHintingShapeIds()).filter((id) => {
+			return hintingIds.filter((id) => {
 				const shape = editor.getShape(id)
 				if (!shape) return false
 				const util = editor.getShapeUtil(shape)

@@ -2,6 +2,7 @@ import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import { SerializedSchema, TLComponents, TLRecord, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { useCanvasIndicatorsAb } from '../../../hooks/useCanvasIndicatorsAb'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
@@ -30,7 +31,8 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
-	const trackPerformance = usePerformanceTracking()
+	const canvasIndicatorsAb = useCanvasIndicatorsAb()
+	const trackPerformance = usePerformanceTracking(canvasIndicatorsAb)
 	const fileEditorOverrides = useFileEditorOverrides({
 		fileSlug: undefined,
 	})
@@ -59,7 +61,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 					return trackPerformance(editor)
 				}}
 				components={components}
-				options={{ deepLinks: true }}
+				options={{ deepLinks: true, useCanvasIndicators: canvasIndicatorsAb === 'canvas' }}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
