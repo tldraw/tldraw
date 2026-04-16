@@ -17,6 +17,12 @@ declare const editor: {
 
 let page: Page
 
+// Mobile emulation in Playwright dispatches touch events for `mouse.click/down/up`,
+// so it can't simulate a real right-mouse-button sequence. Tests that depend on
+// right-click pointer events only run on desktop (Chromium).
+const skipOnMobile = (testInfo: { project: { name: string } }) =>
+	testInfo.project.name.includes('Mobile')
+
 test.describe('Context menu', async () => {
 	test.beforeEach(async ({ browser }) => {
 		if (!page) {
@@ -52,7 +58,8 @@ test.describe('Context menu', async () => {
 		})
 	})
 
-	test('reopens after moving and right-clicking again', async () => {
+	test('reopens after moving and right-clicking again', async ({}, testInfo) => {
+		test.skip(skipOnMobile(testInfo), 'Mobile emulation does not simulate right-click')
 		await page.mouse.click(200, 200, { button: 'right' })
 		await expect(page.getByTestId('context-menu')).toBeVisible()
 
@@ -72,7 +79,8 @@ test.describe('Context menu', async () => {
 		})
 	})
 
-	test('static right-click on plain canvas opens context menu', async () => {
+	test('static right-click on plain canvas opens context menu', async ({}, testInfo) => {
+		test.skip(skipOnMobile(testInfo), 'Mobile emulation does not simulate right-click')
 		// Right-click on empty canvas (no menu already open)
 		await page.mouse.click(600, 400, { button: 'right' })
 		await expect(page.getByTestId('context-menu')).toBeVisible()
@@ -138,7 +146,8 @@ test.describe('Context menu', async () => {
 		})
 	})
 
-	test('can begin a right-click drag after closing the menu', async () => {
+	test('can begin a right-click drag after closing the menu', async ({}, testInfo) => {
+		test.skip(skipOnMobile(testInfo), 'Mobile emulation does not simulate right-click')
 		await page.mouse.click(200, 200, { button: 'right' })
 		await expect(page.getByTestId('context-menu')).toBeVisible()
 
@@ -185,7 +194,8 @@ test.describe('Context menu', async () => {
 		})
 	})
 
-	test('left-click closes menu and leaves editor idle', async () => {
+	test('left-click closes menu and leaves editor idle', async ({}, testInfo) => {
+		test.skip(skipOnMobile(testInfo), 'Mobile emulation does not simulate right-click')
 		// Move to a clearly empty spot so the right-click doesn't select or hover a shape
 		await page.mouse.move(800, 600)
 		await page.mouse.click(800, 600, { button: 'right' })
@@ -209,7 +219,8 @@ test.describe('Context menu', async () => {
 		})
 	})
 
-	test('left-click drag with menu open starts brush selection', async () => {
+	test('left-click drag with menu open starts brush selection', async ({}, testInfo) => {
+		test.skip(skipOnMobile(testInfo), 'Mobile emulation does not simulate right-click')
 		await page.mouse.move(800, 600)
 		await page.mouse.click(800, 600, { button: 'right' })
 		await expect(page.getByTestId('context-menu')).toBeVisible()
@@ -237,7 +248,8 @@ test.describe('Context menu', async () => {
 		})
 	})
 
-	test('consecutive right-clicks keep menu continuously visible', async () => {
+	test('consecutive right-clicks keep menu continuously visible', async ({}, testInfo) => {
+		test.skip(skipOnMobile(testInfo), 'Mobile emulation does not simulate right-click')
 		await page.mouse.click(200, 200, { button: 'right' })
 		await expect(page.getByTestId('context-menu')).toBeVisible()
 
@@ -262,7 +274,8 @@ test.describe('Context menu', async () => {
 		await expect(menu).toBeVisible()
 	})
 
-	test('left-click drag works after a right-click drag with menu open', async () => {
+	test('left-click drag works after a right-click drag with menu open', async ({}, testInfo) => {
+		test.skip(skipOnMobile(testInfo), 'Mobile emulation does not simulate right-click')
 		// Open a menu
 		await page.mouse.click(200, 200, { button: 'right' })
 		await expect(page.getByTestId('context-menu')).toBeVisible()
