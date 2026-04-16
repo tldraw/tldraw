@@ -188,9 +188,7 @@ zone_name = "myapp.com"
 
 Room data is automatically persisted via SQLite storage in the Durable Object. The `SQLiteSyncStorage` class handles all persistence logic. You don't need to implement custom save logic.
 
-The Durable Object uses lazy room initialization with WebSocket hibernation support. When all clients disconnect, the DO hibernates to save memory while keeping WebSocket connections alive at the Cloudflare layer. When clients reconnect, sessions resume from snapshots.
-
-See `worker/TldrawDurableObject.ts` for the full implementation:
+See `worker/TldrawDurableObject.ts` as an example. The room is created lazily and supports WebSocket hibernation:
 
 ```tsx
 import {
