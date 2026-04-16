@@ -1,7 +1,6 @@
 import { useValue } from '@tldraw/state-react'
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { tlenv } from '../globals/environment'
-import { Vec } from '../primitives/Vec'
 import {
 	elementShouldCaptureKeys,
 	preventDefault,
@@ -16,25 +15,10 @@ export function useCanvasEvents() {
 	const ownerDocument = editor.getContainerDocument()
 	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
-	const rWasStaticRightClick = useRef(false)
-
 	const events = useMemo(
 		function canvasEvents() {
 			function onPointerDown(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
-				rWasStaticRightClick.current = false
-
-				// Handle right-click when right-click-to-drag is disabled
-				// This matches main branch behavior - dispatch right_click and return early
-				if (e.button === 2 && !editor.user.getIsRightClickToDrag()) {
-					editor.dispatch({
-						type: 'pointer',
-						target: 'canvas',
-						name: 'right_click',
-						...getPointerInfo(editor, e),
-					})
-					return
-				}
 
 				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
@@ -52,18 +36,8 @@ export function useCanvasEvents() {
 				if (editor.wasEventAlreadyHandled(e)) return
 				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
-				const pointerDownNearPointerUp =
-					Vec.Dist2(editor.inputs.getOriginScreenPoint(), editor.inputs.getCurrentScreenPoint()) <
-					editor.options.dragDistanceSquared
-				if (pointerDownNearPointerUp && e.button === 2) {
-					rWasStaticRightClick.current = true
-					const contextMenuEvent = new MouseEvent('contextmenu', {
-						bubbles: true,
-						clientX: e.clientX,
-						clientY: e.clientY,
-					})
-					e.currentTarget.dispatchEvent(contextMenuEvent)
-				}
+				// Check before dispatch (which resets isPanning)
+				const wasRightClickPanning = e.button === 2 && editor.inputs.getIsPanning()
 
 				releasePointerCapture(e.currentTarget, e)
 
@@ -73,6 +47,21 @@ export function useCanvasEvents() {
 					name: 'pointer_up',
 					...getPointerInfo(editor, e),
 				})
+
+				// Static right-click: fire contextmenu at the pointer-up location
+				if (e.button === 2 && !wasRightClickPanning) {
+					const contextMenuEvent = new PointerEvent('contextmenu', {
+						bubbles: true,
+						clientX: e.clientX,
+						clientY: e.clientY,
+						button: 2,
+						buttons: 0,
+						pointerId: e.pointerId,
+						pointerType: e.pointerType,
+						isPrimary: e.isPrimary,
+					})
+					e.currentTarget.dispatchEvent(contextMenuEvent)
+				}
 			}
 
 			function onPointerEnter(e: React.PointerEvent) {
@@ -162,7 +151,13 @@ export function useCanvasEvents() {
 			}
 
 			function onContextMenu(e: React.MouseEvent) {
-				if (editor.user.getIsRightClickToDrag() && !rWasStaticRightClick.current) {
+				// Synthetic events — our own dispatch from onPointerUp, or tests using
+				// fireEvent.contextMenu — pass through so Radix can open the menu. The real
+				// browser contextmenu is always suppressed: right-click behavior has
+				// already been decided by our pointer handling (either we dispatched a
+				// synthetic to open the menu at the release position, or we panned and
+				// don't want a menu at all).
+				if (e.nativeEvent.isTrusted) {
 					preventDefault(e)
 				}
 			}
