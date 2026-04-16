@@ -158,6 +158,7 @@ export function useCanvasEvents() {
 				if (!rWasStaticRightClick.current) {
 					preventDefault(e)
 				}
+				rWasStaticRightClick.current = false
 			}
 
 			return {
