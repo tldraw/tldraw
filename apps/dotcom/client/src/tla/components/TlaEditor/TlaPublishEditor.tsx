@@ -32,7 +32,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 
 	const handleUiEvent = useHandleUiEvents()
 	const canvasIndicatorsAb = useCanvasIndicatorsAb()
-	const trackPerformance = usePerformanceTracking(canvasIndicatorsAb)
+	const trackPerformance = usePerformanceTracking()
 	const fileEditorOverrides = useFileEditorOverrides({
 		fileSlug: undefined,
 	})

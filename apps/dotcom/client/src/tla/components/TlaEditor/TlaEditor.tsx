@@ -120,7 +120,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
 	const canvasIndicatorsAb = useCanvasIndicatorsAb()
-	const trackPerformance = usePerformanceTracking(canvasIndicatorsAb)
+	const trackPerformance = usePerformanceTracking()
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
