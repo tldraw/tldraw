@@ -919,7 +919,7 @@ describe('right clicking in detail', () => {
 
 	// TODO: fix this
 	it('should select the group by right-clicking the margin of a hollow shape', () => {
-		editor.pointerMove(4, 4).pointerDown(4, 4, { target: 'canvas', button: 2 }).pointerUp()
+		editor.pointerMove(4, 4).rightClick(4, 4)
 		expect(onlySelectedId()).toBe(groupId)
 	})
 })
@@ -967,21 +967,15 @@ describe('the select tool', () => {
 	it('should select the outermost non-selected group when you right-click on one of the shapes in that group', () => {
 		const boxA = editor.getShape(ids.boxA)
 
-		editor
-			.pointerDown(0, 0, { target: 'shape', shape: boxA, button: 2 })
-			.pointerUp(0, 0, { button: 2 })
+		editor.rightClick(0, 0, { target: 'shape', shape: boxA })
 		expect(onlySelectedId()).toBe(groupCId)
 		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
-		editor
-			.pointerDown(0, 0, { target: 'shape', shape: boxA, button: 2 })
-			.pointerUp(0, 0, { button: 2 })
+		editor.rightClick(0, 0, { target: 'shape', shape: boxA })
 		expect(onlySelectedId()).toBe(groupCId)
 		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 		editor.select(groupAId)
 		expect(editor.getFocusedGroupId()).toBe(groupCId)
-		editor
-			.pointerDown(0, 0, { target: 'shape', shape: boxA, button: 2 })
-			.pointerUp(0, 0, { button: 2 })
+		editor.rightClick(0, 0, { target: 'shape', shape: boxA })
 		expect(onlySelectedId()).toBe(groupAId)
 		expect(editor.getFocusedGroupId()).toBe(groupCId)
 	})

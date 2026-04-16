@@ -1,5 +1,5 @@
 import { useValue } from '@tldraw/state-react'
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { tlenv } from '../globals/environment'
 import {
 	elementShouldCaptureKeys,
@@ -15,13 +15,10 @@ export function useCanvasEvents() {
 	const ownerDocument = editor.getContainerDocument()
 	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
-	const rWasStaticRightClick = useRef(false)
-
 	const events = useMemo(
 		function canvasEvents() {
 			function onPointerDown(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
-				rWasStaticRightClick.current = false
 
 				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
@@ -53,7 +50,6 @@ export function useCanvasEvents() {
 
 				// Static right-click: fire contextmenu at the pointer-up location
 				if (e.button === 2 && !wasRightClickPanning) {
-					rWasStaticRightClick.current = true
 					const contextMenuEvent = new PointerEvent('contextmenu', {
 						bubbles: true,
 						clientX: e.clientX,
@@ -155,10 +151,15 @@ export function useCanvasEvents() {
 			}
 
 			function onContextMenu(e: React.MouseEvent) {
-				if (!rWasStaticRightClick.current) {
+				// Synthetic events — our own dispatch from onPointerUp, or tests using
+				// fireEvent.contextMenu — pass through so Radix can open the menu. The real
+				// browser contextmenu is always suppressed: right-click behavior has
+				// already been decided by our pointer handling (either we dispatched a
+				// synthetic to open the menu at the release position, or we panned and
+				// don't want a menu at all).
+				if (e.nativeEvent.isTrusted) {
 					preventDefault(e)
 				}
-				rWasStaticRightClick.current = false
 			}
 
 			return {
