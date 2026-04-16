@@ -2032,7 +2032,7 @@ export interface GeoTypeDefinition {
     };
     getPath(w: number, h: number, shape: TLGeoShape, strokeWidth: number): PathBuilder;
     icon: string;
-    onDoubleClick?: (shape: TLGeoShape) => {
+    onDoubleClick?(shape: TLGeoShape): {
         props: Partial<TLGeoShape['props']>;
     } | void;
     snapType: 'blobby' | 'polygon';
