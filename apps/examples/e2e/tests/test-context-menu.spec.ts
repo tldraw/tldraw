@@ -5,7 +5,13 @@ declare const __tldraw_ui_event: { name: string }
 // `editor` is a global exposed on the page, not imported at test-runner level.
 // Importing from 'tldraw' (even as `type`) breaks Node's --no-strip-types because
 // the tldraw package re-exports PointerEvent from react, which doesn't exist in Node.
-declare const editor: { inputs: any; getCamera(): { x: number; y: number; z: number } }
+declare const editor: {
+	inputs: any
+	getCamera(): { x: number; y: number; z: number }
+	getCurrentToolId(): string
+	getPath(): string
+	getSelectedShapeIds(): string[]
+}
 
 // We're just testing the events, not the actual results.
 
@@ -177,5 +183,104 @@ test.describe('Context menu', async () => {
 			isPanning: false,
 			isRightPointing: false,
 		})
+	})
+
+	test('left-click closes menu and leaves editor idle', async () => {
+		// Move to a clearly empty spot so the right-click doesn't select or hover a shape
+		await page.mouse.move(800, 600)
+		await page.mouse.click(800, 600, { button: 'right' })
+		await expect(page.getByTestId('context-menu')).toBeVisible()
+
+		// Left-click elsewhere on empty canvas — should close the menu
+		await page.mouse.click(900, 700)
+		await expect(page.getByTestId('context-menu')).toBeHidden()
+
+		// Tool state clean, pointer released — regardless of selection state
+		expect(
+			await page.evaluate(() => ({
+				path: editor.getPath(),
+				isPointing: editor.inputs.getIsPointing(),
+				isRightPointing: editor.inputs.getIsRightPointing(),
+			}))
+		).toMatchObject({
+			path: 'select.idle',
+			isPointing: false,
+			isRightPointing: false,
+		})
+	})
+
+	test('left-click drag with menu open starts brush selection', async () => {
+		await page.mouse.move(800, 600)
+		await page.mouse.click(800, 600, { button: 'right' })
+		await expect(page.getByTestId('context-menu')).toBeVisible()
+
+		// Left-click + drag entirely on empty canvas
+		await page.mouse.move(900, 100)
+		await page.mouse.down({ button: 'left' })
+		await page.mouse.move(1100, 300, { steps: 10 })
+
+		// Menu closes, editor enters brushing state
+		await expect(page.getByTestId('context-menu')).toBeHidden()
+		expect(await page.evaluate(() => editor.getPath())).toBe('select.brushing')
+
+		await page.mouse.up({ button: 'left' })
+
+		// After release: brush ended, editor idle, pointer released
+		expect(
+			await page.evaluate(() => ({
+				path: editor.getPath(),
+				isPointing: editor.inputs.getIsPointing(),
+			}))
+		).toMatchObject({
+			path: 'select.idle',
+			isPointing: false,
+		})
+	})
+
+	test('consecutive right-clicks keep menu continuously visible', async () => {
+		await page.mouse.click(200, 200, { button: 'right' })
+		await expect(page.getByTestId('context-menu')).toBeVisible()
+
+		// Right-click at a new location — observe visibility frequently during the transition
+		// to catch any hidden flash between the old menu closing and the new one opening.
+		await page.mouse.move(600, 400)
+		const menu = page.getByTestId('context-menu')
+		await page.mouse.down({ button: 'right' })
+		await page.mouse.up({ button: 'right' })
+
+		// Poll visibility for ~300ms; it must never be hidden during the transition.
+		const samples = await page.evaluate(async () => {
+			const results: boolean[] = []
+			const el = () => document.querySelector('[data-testid="context-menu"]')
+			for (let i = 0; i < 30; i++) {
+				results.push(!!el())
+				await new Promise((r) => setTimeout(r, 10))
+			}
+			return results
+		})
+		expect(samples.every((v) => v === true)).toBe(true)
+		await expect(menu).toBeVisible()
+	})
+
+	test('left-click drag works after a right-click drag with menu open', async () => {
+		// Open a menu
+		await page.mouse.click(200, 200, { button: 'right' })
+		await expect(page.getByTestId('context-menu')).toBeVisible()
+
+		// Right-click + drag to pan; this should release all pointer capture cleanly
+		await page.mouse.move(600, 400)
+		await page.mouse.down({ button: 'right' })
+		await page.mouse.move(700, 500, { steps: 5 })
+		await page.mouse.up({ button: 'right' })
+		await expect(page.getByTestId('context-menu')).toBeHidden()
+
+		// Now a regular left-click drag must still work — if pointer capture
+		// leaked to the capture div or canvas, this brush would not engage.
+		await page.mouse.move(100, 100)
+		await page.mouse.down({ button: 'left' })
+		await page.mouse.move(400, 400, { steps: 10 })
+		expect(await page.evaluate(() => editor.getPath())).toBe('select.brushing')
+		await page.mouse.up({ button: 'left' })
+		expect(await page.evaluate(() => editor.getPath())).toBe('select.idle')
 	})
 })

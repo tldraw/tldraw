@@ -1,5 +1,5 @@
 import { useValue } from '@tldraw/state-react'
-import { PointerEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { type PointerEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
@@ -15,27 +15,15 @@ import { getPointerInfo } from '../utils/getPointerInfo'
 export function MenuClickCapture() {
 	const editor = useEditor()
 
-	// Whether any menus are open
 	const isMenuOpen = useValue('is menu open', () => editor.menus.hasAnyOpenMenus(), [editor])
 
-	// Whether we're pointing or not—keep this component visible if we're pointing
+	// Keep this component mounted while the pointer is down so pointerup/move still
+	// land here after a synchronous clearOpenMenus() flips isMenuOpen to false.
 	const [isPointing, setIsPointing] = useState(false)
-
 	const showElement = isMenuOpen || isPointing
 
-	// Get the same events that we use on the canvas
 	const canvasEvents = useCanvasEvents()
 
-	const rSuppressNativeContextMenuCleanup = useRef<null | (() => void)>(null)
-
-	useEffect(() => {
-		return () => {
-			rSuppressNativeContextMenuCleanup.current?.()
-			rSuppressNativeContextMenuCleanup.current = null
-		}
-	}, [])
-
-	// Keep track of the pointer state
 	const rPointerState = useRef({
 		isDown: false,
 		isDragging: false,
@@ -43,124 +31,124 @@ export function MenuClickCapture() {
 		start: new Vec(),
 	})
 
+	// Swallow the native contextmenu that follows a right-click pointerdown. Without
+	// this, Radix's trigger catches the native event and opens a menu at the pointer-
+	// DOWN position — then our own synthetic contextmenu (fired on pointerup) opens it
+	// again at the release position, producing a visible flash.
+	const rCancelContextMenuSwallow = useRef<null | (() => void)>(null)
+	useEffect(
+		() => () => {
+			rCancelContextMenuSwallow.current?.()
+			rCancelContextMenuSwallow.current = null
+		},
+		[]
+	)
+	const swallowNextNativeContextMenu = useCallback(() => {
+		rCancelContextMenuSwallow.current?.()
+		const doc = editor.getContainerDocument()
+		const onContextMenu = (event: MouseEvent) => {
+			// Skip our own synthetic contextmenu — only swallow the real browser one
+			if (!event.isTrusted) return
+			rCancelContextMenuSwallow.current?.()
+			rCancelContextMenuSwallow.current = null
+			event.preventDefault()
+			event.stopImmediatePropagation()
+		}
+		const cancel = () => doc.removeEventListener('contextmenu', onContextMenu, true)
+		rCancelContextMenuSwallow.current = cancel
+		doc.addEventListener('contextmenu', onContextMenu, true)
+		// Drop the listener on the next tick if it never fires (e.g. pointer moved off-screen)
+		doc.defaultView?.setTimeout(() => {
+			if (rCancelContextMenuSwallow.current === cancel) {
+				cancel()
+				rCancelContextMenuSwallow.current = null
+			}
+		}, 0)
+	}, [editor])
+
 	const handlePointerDown = useCallback(
 		(e: PointerEvent) => {
-			if (e.button === 0 || e.button === 2) {
-				flushSync(() => {
-					setIsPointing(true)
-				})
-				setPointerCapture(e.currentTarget, e)
-				rPointerState.current = {
-					isDown: true,
-					isDragging: false,
-					button: e.button,
-					start: new Vec(e.clientX, e.clientY),
-				}
-				rDidAPointerDownAndDragWhileMenuWasOpen.current = false
-				if (e.button === 2) {
-					const canvas =
-						editor.getContainer().querySelector<HTMLDivElement>('.tl-canvas') ?? e.currentTarget
-					canvasEvents.onPointerDown?.({
-						...e,
-						currentTarget: canvas,
-					})
-					rDidAPointerDownAndDragWhileMenuWasOpen.current = true
-				}
-			}
-			if (e.button === 2) {
-				const ownerDocument = editor.getContainerDocument()
-				rSuppressNativeContextMenuCleanup.current?.()
-				// Swallow the contextmenu event that follows this right-click pointerdown.
-				// clearOpenMenus() below triggers a synchronous render that unmounts this
-				// component, so our React onContextMenu handler won't be around to catch it.
-				// Without this, the contextmenu event reaches the Radix Trigger and briefly
-				// opens a new context menu (which then immediately dismisses — causing a flash).
-				const handleContextMenu = (event: MouseEvent) => {
-					if (!event.isTrusted) return
-					rSuppressNativeContextMenuCleanup.current?.()
-					rSuppressNativeContextMenuCleanup.current = null
-					event.preventDefault()
-					event.stopImmediatePropagation()
-				}
-				const cleanup = () => {
-					ownerDocument.removeEventListener('contextmenu', handleContextMenu, true)
-				}
-				rSuppressNativeContextMenuCleanup.current = cleanup
-				ownerDocument.addEventListener('contextmenu', handleContextMenu, true)
-				ownerDocument.defaultView?.setTimeout(() => {
-					if (rSuppressNativeContextMenuCleanup.current === cleanup) {
-						cleanup()
-						rSuppressNativeContextMenuCleanup.current = null
-					}
-				}, 0)
-			}
-			// For right-clicks, let Radix's DismissableLayer handle the menu close
-			// naturally (via outside-click detection) so its internal state stays in
-			// sync. clearOpenMenus() only updates the tldraw atom, which desyncs from
-			// Radix's uncontrolled open state and prevents the menu from reopening.
-			if (e.button !== 2) {
-				editor.menus.clearOpenMenus()
-			}
-		},
-		[canvasEvents, editor]
-	)
+			if (e.button !== 0 && e.button !== 2) return
 
-	const rDidAPointerDownAndDragWhileMenuWasOpen = useRef(false)
+			flushSync(() => setIsPointing(true))
+			setPointerCapture(e.currentTarget, e)
+			rPointerState.current = {
+				isDown: true,
+				isDragging: false,
+				button: e.button,
+				start: new Vec(e.clientX, e.clientY),
+			}
+
+			if (e.button === 2) {
+				// Forward right-click pointerdown through the canvas's own handler so
+				// pointer capture is also set on the canvas (load-bearing: without this
+				// the context menu briefly flashes closed during consecutive right-clicks).
+				// We don't clearOpenMenus() — Radix's DismissableLayer closes the menu
+				// via outside-click detection, keeping its internal state in sync.
+				const canvas =
+					editor.getContainer().querySelector<HTMLDivElement>('.tl-canvas') ?? e.currentTarget
+				canvasEvents.onPointerDown?.({ ...e, currentTarget: canvas })
+				swallowNextNativeContextMenu()
+				return
+			}
+
+			editor.menus.clearOpenMenus()
+		},
+		[canvasEvents, editor, swallowNextNativeContextMenu]
+	)
 
 	const handlePointerMove = useCallback(
 		(e: PointerEvent) => {
-			// Do nothing unless we're pointing
-			if (!rPointerState.current.isDown) return
+			const state = rPointerState.current
+			if (!state.isDown) return
 
-			// call the onPointerDown with the original pointer position
-			const { x, y } = rPointerState.current.start
-
-			if (!rDidAPointerDownAndDragWhileMenuWasOpen.current) {
+			// Left-click: wait for the drag threshold before forwarding anything, then
+			// replay pointerdown at the original start so the editor records the
+			// correct drag origin. Right-click forwards moves immediately (pointerdown
+			// was already dispatched in handlePointerDown).
+			if (state.button !== 2 && !state.isDragging) {
 				if (
-					// We're pointing, but are we dragging?
-					Vec.Dist2(rPointerState.current.start, new Vec(e.clientX, e.clientY)) >
+					Vec.Dist2(state.start, new Vec(e.clientX, e.clientY)) <=
 					editor.options.dragDistanceSquared
 				) {
-					rDidAPointerDownAndDragWhileMenuWasOpen.current = true
-					// Wehaddaeventitsadrag
-					rPointerState.current = {
-						...rPointerState.current,
-						isDown: true,
-						isDragging: true,
-					}
-					canvasEvents.onPointerDown?.({
-						...e,
-						clientX: x,
-						clientY: y,
-						button: rPointerState.current.button,
-					})
+					return
 				}
-			}
-
-			if (rDidAPointerDownAndDragWhileMenuWasOpen.current) {
+				state.isDragging = true
 				editor.dispatch({
 					type: 'pointer',
 					target: 'canvas',
-					name: 'pointer_move',
-					...getPointerInfo(editor, e),
+					name: 'pointer_down',
+					...getPointerInfo(editor, { ...e, clientX: state.start.x, clientY: state.start.y }),
 				})
 			}
+
+			editor.dispatch({
+				type: 'pointer',
+				target: 'canvas',
+				name: 'pointer_move',
+				...getPointerInfo(editor, e),
+			})
 		},
-		[canvasEvents, editor]
+		[editor]
 	)
 
 	const handlePointerUp = useCallback(
 		(e: PointerEvent) => {
 			const isStaticRightClick = e.button === 2 && !rPointerState.current.isDragging
-			const canvas =
-				e.button === 2
-					? (editor.getContainer().querySelector<HTMLDivElement>('.tl-canvas') ?? e.currentTarget)
-					: e.currentTarget
-			// Run the pointer up
-			canvasEvents.onPointerUp?.({ ...e, currentTarget: canvas })
+
+			editor.dispatch({
+				type: 'pointer',
+				target: 'canvas',
+				name: 'pointer_up',
+				...getPointerInfo(editor, e),
+			})
+
 			if (isStaticRightClick) {
-				const trigger = (editor.getContainer().querySelector<HTMLDivElement>('.tl-canvas')
-					?.parentElement ?? canvas) as Element
+				// Dispatch contextmenu on the canvas's parent (Radix's trigger) so the
+				// menu opens at the release position. Bypassing the canvas avoids its
+				// own onContextMenu handler, which preventDefaults non-synthesized events.
+				const canvas = editor.getContainer().querySelector<HTMLDivElement>('.tl-canvas')
+				const trigger = canvas?.parentElement ?? e.currentTarget
 				editor.timers.requestAnimationFrame(() => {
 					trigger.dispatchEvent(
 						new PointerEvent('contextmenu', {
@@ -176,19 +164,17 @@ export function MenuClickCapture() {
 					)
 				})
 			}
+
 			releasePointerCapture(e.currentTarget, e)
-			// Then turn off pointing
 			setIsPointing(false)
-			// Reset the pointer state
 			rPointerState.current = {
 				isDown: false,
 				isDragging: false,
 				button: 0,
 				start: new Vec(e.clientX, e.clientY),
 			}
-			rDidAPointerDownAndDragWhileMenuWasOpen.current = false
 		},
-		[canvasEvents, editor]
+		[editor]
 	)
 
 	return (
