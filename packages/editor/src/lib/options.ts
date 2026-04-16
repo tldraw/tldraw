@@ -195,13 +195,13 @@ export interface TldrawOptions {
 	 * return zoom); zooming out expands it. When false, the brush keeps the original
 	 * viewport's page dimensions regardless of overview zoom changes.
 	 */
+	readonly quickZoomPreservesScreenBounds: boolean
 	/**
 	 * Whether to use 2D canvas rendering for shape indicators. When true (default),
 	 * shapes that support it will render indicators on a 2D canvas for better
 	 * performance. When false, all indicators use legacy SVG rendering.
 	 */
 	readonly useCanvasIndicators: boolean
-	readonly quickZoomPreservesScreenBounds: boolean
 	/**
 	 * Called before content is written to the clipboard during a copy or cut operation.
 	 * Receives the serialized content (shapes, bindings, assets) and can filter or transform

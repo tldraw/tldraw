@@ -61,7 +61,9 @@ export function usePerformanceTracking() {
 		fetchFeatureFlags().then((flags) => {
 			if (disposed || !flags.rum_enabled?.enabled) return
 
-			const abIndicators = flags.canvas_indicators_ab?.enabled ? 'canvas' : 'svg'
+			// Derive from the editor option — this is the ground truth for what's
+			// actually rendering, so the RUM tag always matches the UI path.
+			const abIndicators = editor.options.useCanvasIndicators ? 'canvas' : 'svg'
 
 			unsubInteraction = editor.performance.on('interaction-end', (event) =>
 				handleInteractionEnd(event, abIndicators)

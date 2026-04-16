@@ -3799,7 +3799,6 @@ export interface TldrawOptions {
         source: 'clipboard-read' | 'native-event';
     }): Awaitable<false | TLExternalContent<unknown> | void>;
     onClipboardPasteRaw?(info: TLClipboardPasteRawInfo): false | void;
-    // (undocumented)
     readonly quickZoomPreservesScreenBounds: boolean;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
