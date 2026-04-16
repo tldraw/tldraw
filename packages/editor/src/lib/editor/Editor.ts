@@ -11036,7 +11036,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 							this.inputs.setIsPanning(true)
 							clearTimeout(this._longPressTimeout)
-						} else if (info.button === RIGHT_MOUSE_BUTTON) {
+						} else if (info.button === RIGHT_MOUSE_BUTTON && this.options.rightClickPanning) {
 							this.inputs.setIsRightPointing(true)
 							clearTimeout(this._longPressTimeout)
 							return this

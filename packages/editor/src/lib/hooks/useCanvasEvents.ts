@@ -20,6 +20,18 @@ export function useCanvasEvents() {
 			function onPointerDown(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
 
+				// With right-click panning disabled, fire right_click on press and let the
+				// native contextmenu through so the menu opens at the pointer-down location.
+				if (e.button === 2 && !editor.options.rightClickPanning) {
+					editor.dispatch({
+						type: 'pointer',
+						target: 'canvas',
+						name: 'right_click',
+						...getPointerInfo(editor, e),
+					})
+					return
+				}
+
 				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
 				setPointerCapture(e.currentTarget, e)
@@ -36,8 +48,10 @@ export function useCanvasEvents() {
 				if (editor.wasEventAlreadyHandled(e)) return
 				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
+				const rightClickPanning = editor.options.rightClickPanning
 				// Check before dispatch (which resets isPanning)
-				const wasRightClickPanning = e.button === 2 && editor.inputs.getIsPanning()
+				const wasRightClickPanning =
+					rightClickPanning && e.button === 2 && editor.inputs.getIsPanning()
 
 				releasePointerCapture(e.currentTarget, e)
 
@@ -49,7 +63,7 @@ export function useCanvasEvents() {
 				})
 
 				// Static right-click: fire contextmenu at the pointer-up location
-				if (e.button === 2 && !wasRightClickPanning) {
+				if (rightClickPanning && e.button === 2 && !wasRightClickPanning) {
 					const contextMenuEvent = new PointerEvent('contextmenu', {
 						bubbles: true,
 						clientX: e.clientX,
@@ -151,6 +165,9 @@ export function useCanvasEvents() {
 			}
 
 			function onContextMenu(e: React.MouseEvent) {
+				// With right-click panning disabled, let the native contextmenu through so the
+				// menu opens on press.
+				if (!editor.options.rightClickPanning) return
 				// Synthetic events — our own dispatch from onPointerUp, or tests using
 				// fireEvent.contextMenu — pass through so Radix can open the menu. The real
 				// browser contextmenu is always suppressed: right-click behavior has

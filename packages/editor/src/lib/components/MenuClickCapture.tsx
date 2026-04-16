@@ -80,6 +80,13 @@ export function MenuClickCapture() {
 			}
 
 			if (e.button === 2) {
+				if (!editor.options.rightClickPanning) {
+					// Right-click panning off: close the open menu and swallow the native
+					// contextmenu that would otherwise briefly open a new one (causing a flash).
+					swallowNextNativeContextMenu()
+					editor.menus.clearOpenMenus()
+					return
+				}
 				// Forward right-click pointerdown through the canvas's own handler so
 				// pointer capture is also set on the canvas (load-bearing: without this
 				// the context menu briefly flashes closed during consecutive right-clicks).
@@ -143,7 +150,7 @@ export function MenuClickCapture() {
 				...getPointerInfo(editor, e),
 			})
 
-			if (isStaticRightClick) {
+			if (isStaticRightClick && editor.options.rightClickPanning) {
 				// Dispatch contextmenu on the canvas's parent (Radix's trigger) so the
 				// menu opens at the release position. Bypassing the canvas avoids its
 				// own onContextMenu handler, which preventDefaults non-synthesized events.
