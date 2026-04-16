@@ -94,7 +94,13 @@ export function MenuClickCapture() {
 					}
 				}, 0)
 			}
-			editor.menus.clearOpenMenus()
+			// For right-clicks, let Radix's DismissableLayer handle the menu close
+			// naturally (via outside-click detection) so its internal state stays in
+			// sync. clearOpenMenus() only updates the tldraw atom, which desyncs from
+			// Radix's uncontrolled open state and prevents the menu from reopening.
+			if (e.button !== 2) {
+				editor.menus.clearOpenMenus()
+			}
 		},
 		[canvasEvents, editor]
 	)
