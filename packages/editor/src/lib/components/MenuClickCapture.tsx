@@ -28,16 +28,18 @@ export function MenuClickCapture() {
 	const rPointerState = useRef({
 		isDown: false,
 		isDragging: false,
+		button: 0,
 		start: new Vec(),
 	})
 
 	const handlePointerDown = useCallback(
 		(e: PointerEvent) => {
-			if (e.button === 0) {
+			if (e.button === 0 || e.button === 2) {
 				setIsPointing(true)
 				rPointerState.current = {
 					isDown: true,
 					isDragging: false,
+					button: e.button,
 					start: new Vec(e.clientX, e.clientY),
 				}
 				rDidAPointerDownAndDragWhileMenuWasOpen.current = false
@@ -90,7 +92,7 @@ export function MenuClickCapture() {
 						...e,
 						clientX: x,
 						clientY: y,
-						button: 0,
+						button: rPointerState.current.button,
 					})
 				}
 			}
@@ -117,6 +119,7 @@ export function MenuClickCapture() {
 			rPointerState.current = {
 				isDown: false,
 				isDragging: false,
+				button: 0,
 				start: new Vec(e.clientX, e.clientY),
 			}
 			rDidAPointerDownAndDragWhileMenuWasOpen.current = false
