@@ -4,21 +4,33 @@
  * Usage:
  *   npx tsx internal/scripts/fetch-fly-logs.ts [options]
  *
+ * App names:
+ *   production-zero-rm    Production replication manager
+ *   production-zero-vs    Production view syncer
+ *   staging-zero-rm       Staging replication manager
+ *   staging-zero-vs       Staging view syncer
+ *   pr-NNNN-zero-cache    PR preview (single zero-cache process)
+ *
  * Examples:
  *   npx tsx internal/scripts/fetch-fly-logs.ts --app production-zero-rm --last 2h
  *   npx tsx internal/scripts/fetch-fly-logs.ts --app production-zero-rm --last 30m --filter "Purged"
  *   npx tsx internal/scripts/fetch-fly-logs.ts --app production-zero-rm --start 2026-04-15T15:00:00Z --end 2026-04-15T18:00:00Z
  *   npx tsx internal/scripts/fetch-fly-logs.ts --app production-zero-rm --last 1h --filter "NOT DEBUG" -o logs.jsonl
  *   npx tsx internal/scripts/fetch-fly-logs.ts --app production-zero-rm --last 6h --filter "Purged" --pretty
+ *   FLY_TOKEN=fo1_xxx npx tsx internal/scripts/fetch-fly-logs.ts --app production-zero-rm --last 1h
+ *   npx tsx internal/scripts/fetch-fly-logs.ts --token fo1_xxx --app production-zero-rm --last 1h
  */
-
-import { execSync } from 'child_process'
 
 const ORG_SLUG = 'tldraw-gb-ltd'
 const BASE_URL = `https://api.fly.io/victorialogs/${ORG_SLUG}/select/logsql/query`
 
-function getToken(): string {
-	return execSync(`fly tokens org ${ORG_SLUG}`, { encoding: 'utf-8' }).trim()
+function getToken(explicit?: string): string {
+	if (explicit) return explicit
+	if (process.env.FLY_TOKEN) return process.env.FLY_TOKEN
+	console.error(
+		'No token provided. Use --token, FLY_TOKEN env var, or create one with: fly tokens create readonly'
+	)
+	process.exit(1)
 }
 
 function parseDuration(s: string): number {
@@ -37,7 +49,8 @@ function parseArgs() {
 	const args = process.argv.slice(2)
 	const opts: Record<string, string> = {}
 	for (let i = 0; i < args.length; i++) {
-		if (args[i] === '--app' || args[i] === '-a') opts.app = args[++i]
+		if (args[i] === '--token' || args[i] === '-t') opts.token = args[++i]
+		else if (args[i] === '--app' || args[i] === '-a') opts.app = args[++i]
 		else if (args[i] === '--start') opts.start = args[++i]
 		else if (args[i] === '--end') opts.end = args[++i]
 		else if (args[i] === '--last' || args[i] === '-l') opts.last = args[++i]
@@ -51,6 +64,7 @@ function parseArgs() {
 					'Usage: npx tsx internal/scripts/fetch-fly-logs.ts [options]',
 					'',
 					'Options:',
+					'  --token, -t    Fly API token (falls back to FLY_TOKEN env var)',
 					'  --app, -a      Fly app name (required)',
 					'  --last, -l     Duration to look back, e.g. 30m, 2h, 1d (default: 1h)',
 					'  --start        Start time (ISO 8601), overrides --last',
@@ -94,7 +108,7 @@ async function main() {
 	const params = new URLSearchParams({ query, start, end })
 	if (opts.limit) params.set('limit', opts.limit)
 
-	const token = getToken()
+	const token = getToken(opts.token)
 	const url = `${BASE_URL}?${params}`
 
 	const res = await fetch(url, { headers: { Authorization: token } })
