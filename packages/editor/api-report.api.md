@@ -806,7 +806,6 @@ export const defaultUserPreferences: Readonly<{
     inputMode: null;
     isDynamicSizeMode: false;
     isPasteAtCursorMode: false;
-    isRightClickToDrag: false;
     isSnapMode: false;
     isWrapMode: false;
     isZoomDirectionInverted: false;
@@ -2198,6 +2197,7 @@ export class InputsManager {
     getIsPen(): boolean;
     getIsPinching(): boolean;
     getIsPointing(): boolean;
+    getIsRightPointing(): boolean;
     getIsSpacebarPanning(): boolean;
     getMetaKey(): boolean;
     getOriginPagePoint(): Vec;
@@ -2256,6 +2256,8 @@ export class InputsManager {
     setIsPinching(isPinching: boolean): void;
     // @internal (undocumented)
     setIsPointing(isPointing: boolean): void;
+    // @internal (undocumented)
+    setIsRightPointing(isRightPointing: boolean): void;
     // @internal (undocumented)
     setIsSpacebarPanning(isSpacebarPanning: boolean): void;
     // @internal (undocumented)
@@ -4945,8 +4947,6 @@ export interface TLUserPreferences {
     // (undocumented)
     isPasteAtCursorMode?: boolean | null;
     // (undocumented)
-    isRightClickToDrag?: boolean | null;
-    // (undocumented)
     isSnapMode?: boolean | null;
     // (undocumented)
     isWrapMode?: boolean | null;
@@ -5129,8 +5129,6 @@ export class UserPreferencesManager {
     getIsDynamicResizeMode(): boolean;
     // (undocumented)
     getIsPasteAtCursorMode(): boolean;
-    // (undocumented)
-    getIsRightClickToDrag(): boolean;
     // (undocumented)
     getIsSnapMode(): boolean;
     // (undocumented)

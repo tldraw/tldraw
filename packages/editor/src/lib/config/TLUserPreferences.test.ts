@@ -22,7 +22,6 @@ describe('TLUserPreferences consistency', () => {
 		'enhancedA11yMode',
 		'inputMode',
 		'isZoomDirectionInverted',
-		'isRightClickToDrag',
 	] as const
 
 	it('defaultUserPreferences contains all TLUserPreferences keys (except id)', () => {

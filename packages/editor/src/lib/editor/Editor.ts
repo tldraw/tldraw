@@ -10657,9 +10657,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _longPressTimeout = -1 as any
 
 	/** @internal */
-	private _rightClickCursorTimeout = -1 as any
-
-	/** @internal */
 	capturedPointerId: number | null = null
 
 	/** @internal */
@@ -11039,21 +11036,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 							this.inputs.setIsPanning(true)
 							clearTimeout(this._longPressTimeout)
-						} else if (info.button === RIGHT_MOUSE_BUTTON && this.user.getIsRightClickToDrag()) {
-							if (!this.inputs.getIsPanning()) {
-								this._prevCursor = this.getInstanceState().cursor.type
-							}
-
-							this.inputs.setIsPanning(true)
+						} else if (info.button === RIGHT_MOUSE_BUTTON) {
+							this.inputs.setIsRightPointing(true)
 							clearTimeout(this._longPressTimeout)
-							// Debounce the cursor change for right-click to prevent flash on quick clicks
-							clearTimeout(this._rightClickCursorTimeout)
-							this._rightClickCursorTimeout = this.timers.setTimeout(() => {
-								if (this.inputs.getIsPanning()) {
-									this.setCursor({ type: 'grabbing', rotation: 0 })
-								}
-							}, 100)
-							this.stopCameraAnimation()
 							return this
 						}
 
@@ -11073,9 +11058,31 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 
+						// Right-click pointing: waiting to see if this becomes a drag
+						if (this.inputs.getIsRightPointing() && !this.inputs.getIsPanning()) {
+							const currentScreenPoint = this.inputs.getCurrentScreenPoint()
+							const originScreenPoint = this.inputs.getOriginScreenPoint()
+							if (
+								Vec.Dist2(originScreenPoint, currentScreenPoint) > this.options.dragDistanceSquared
+							) {
+								// Passed the drag threshold—transition to panning
+								this._prevCursor = this.getInstanceState().cursor.type
+								this.inputs.setIsPanning(true)
+								this.setCursor({ type: 'grabbing', rotation: 0 })
+								this.stopCameraAnimation()
+								// Apply the initial delta from the pointer down origin
+								const offset = Vec.Sub(currentScreenPoint, originScreenPoint)
+								this.setCamera(new Vec(cx + offset.x / cz, cy + offset.y / cz, cz), {
+									immediate: true,
+								})
+								this.maybeTrackPerformance('Panning')
+							}
+							return
+						}
+
 						// If we've started panning, then clear any long press timeout
 						if (this.inputs.getIsPanning() && this.inputs.getIsPointing()) {
-							// Handle spacebar / middle mouse button panning
+							// Handle spacebar / middle mouse button / right-click panning
 							const currentScreenPoint = this.inputs.getCurrentScreenPoint()
 							const previousScreenPoint = this.inputs.getPreviousScreenPoint()
 							const offset = Vec.Sub(currentScreenPoint, previousScreenPoint)
@@ -11083,14 +11090,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
-							// Show grabbing cursor once the user has moved past the drag threshold
-							if (
-								Vec.Dist2(this.inputs.getOriginScreenPoint(), currentScreenPoint) >
-								this.options.dragDistanceSquared
-							) {
-								clearTimeout(this._rightClickCursorTimeout)
-								this.setCursor({ type: 'grabbing', rotation: 0 })
-							}
 							this.performance._notifyCameraOperation('panning')
 							return
 						}
@@ -11116,13 +11115,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.setIsDragging(false)
 						inputs.setIsPointing(false)
 						clearTimeout(this._longPressTimeout)
-						clearTimeout(this._rightClickCursorTimeout)
-
 						// Remove the button from the buttons set
 						inputs.buttons.delete(info.button)
 
 						// If we're in pen mode and we're not using a pen, stop here
 						if (instanceState.isPenMode && !isPen) return
+
+						// Right-click pointing ended without dragging—this is a static
+						// right-click, so let it through to the state chart as right_click.
+						// Check isPanning first: if we transitioned to panning, isRightPointing
+						// is still true but we want the panning cleanup path instead.
+						if (this.inputs.getIsRightPointing() && !this.inputs.getIsPanning()) {
+							this.inputs.setIsRightPointing(false)
+							this._selectedShapeIdsAtPointerDown = []
+							break // fall through to state chart dispatch as right_click
+						}
+
+						this.inputs.setIsRightPointing(false)
 
 						// Firefox bug fix...
 						// If it's the same pointer that we stored earlier...
