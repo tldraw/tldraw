@@ -55,7 +55,7 @@ editor.createShape({
 const shape = editor.getShape(shapeId)
 
 // Update a shape's position
-editor.updateShape({ id: shape.id, x: 200 })
+editor.updateShape({ id: shape.id, type: shape.type, x: 200 })
 ```
 
 Shapes are immutable records. When you update a shape, the editor creates a new record with the changes and stores it, replacing the old one. This immutability enables efficient change detection and undo/redo.

@@ -124,7 +124,7 @@ GitHub Gist embeds receive special handling: they use `srcDoc` instead of `src` 
 
 ## Custom embed definitions
 
-Replace or extend the default embed definitions using `EmbedShapeUtil.setEmbedDefinitions()`:
+Replace or extend the default embed definitions using `EmbedShapeUtil.configure()`:
 
 ```tsx
 import { Tldraw, EmbedShapeUtil, DEFAULT_EMBED_DEFINITIONS } from 'tldraw'
@@ -158,13 +158,12 @@ const myEmbedDefinitions = [
 	},
 ]
 
-// Set before mounting the editor
-EmbedShapeUtil.setEmbedDefinitions(myEmbedDefinitions)
+const shapeUtils = [EmbedShapeUtil.configure({ embedDefinitions: myEmbedDefinitions })]
 
 export default function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw />
+			<Tldraw shapeUtils={shapeUtils} />
 		</div>
 	)
 }
