@@ -367,12 +367,16 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							labelColor={dv.labelColor}
 							wrap
 							showTextOutline={this.options.showTextOutline}
-							style={{
-								transform: `scale(${shape.props.scale})`,
-								transformOrigin: 'top left',
-								width: shape.props.w / shape.props.scale,
-								height: (shape.props.h + props.growY) / shape.props.scale,
-							}}
+							style={
+								shape.props.scale !== 1
+									? {
+											transform: `scale(${shape.props.scale})`,
+											transformOrigin: 'top left',
+											width: shape.props.w / shape.props.scale,
+											height: (shape.props.h + props.growY) / shape.props.scale,
+										}
+									: undefined
+							}
 						/>
 					</HTMLContainer>
 				)}
