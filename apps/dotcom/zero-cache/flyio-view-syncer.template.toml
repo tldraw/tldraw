@@ -33,20 +33,6 @@ source = "sqlite_db"
 destination = "/data"
 initial_size = "__VOLUME_SIZE"
 
-[[files]]
-guest_path = "/etc/litestream.yml"
-raw_value = """
-dbs:
-  - path: /data/sync-replica.db
-    replicas:
-      - type: s3
-        bucket: __ZERO_R2_BUCKET_NAME
-        path: __BACKUP_PATH
-        endpoint: __ZERO_R2_ENDPOINT
-        region: auto
-        skip-verify: true
-"""
-
 [env]
 ZERO_REPLICA_FILE = "/data/sync-replica.db"
 ZERO_APP_PUBLICATIONS = "zero_data"
@@ -62,3 +48,4 @@ OTEL_NODE_RESOURCE_DETECTORS = "env,host,os"
 OTEL_RESOURCE_ATTRIBUTES = "service.name=zero-vs,service.namespace=dotcom,deployment.environment=__TLDRAW_ENV,service.version=__ZERO_VERSION"
 ZERO_LITESTREAM_CONFIG_PATH = "/etc/litestream.yml"
 ZERO_LITESTREAM_BACKUP_URL = "s3://__ZERO_R2_BUCKET_NAME/__BACKUP_PATH"
+ZERO_LITESTREAM_ENDPOINT = "__ZERO_R2_ENDPOINT"

@@ -41,9 +41,11 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 		if (!elm) return
 
 		function handlePointerMove(event: PointerEvent) {
-			// Prevent pointer move events from propagating to the
-			// canvas when the pointer is over the style panel.
-			event.stopPropagation()
+			// Mark the event as handled so the canvas's pointermove listener
+			// (on document.body) ignores it. We use markEventAsHandled instead
+			// of stopPropagation to avoid interfering with Radix UI's internal
+			// pointer capture handling, which breaks slider drags on Safari.
+			editor.markEventAsHandled(event)
 		}
 
 		function handleKeyDown(event: KeyboardEvent) {
@@ -56,10 +58,10 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 			}
 		}
 
-		elm.addEventListener('pointermove', handlePointerMove, { capture: true })
+		elm.addEventListener('pointermove', handlePointerMove)
 		elm.addEventListener('keydown', handleKeyDown, { capture: true })
 		return () => {
-			elm.removeEventListener('pointermove', handlePointerMove, { capture: true })
+			elm.removeEventListener('pointermove', handlePointerMove)
 			elm.removeEventListener('keydown', handleKeyDown, { capture: true })
 		}
 	}, [editor])

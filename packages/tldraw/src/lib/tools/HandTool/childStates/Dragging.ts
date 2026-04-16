@@ -2,6 +2,7 @@ import { StateNode, Vec } from '@tldraw/editor'
 
 export class Dragging extends StateNode {
 	static override id = 'dragging'
+	static override trackPerformance = true
 
 	initialCamera = new Vec()
 

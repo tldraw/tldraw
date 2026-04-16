@@ -219,6 +219,31 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		url: 'https://www.figma.com/foobar',
 		match: false,
 	},
+	// canva
+	{
+		url: 'https://www.canva.com/design/DAFrLlkQu3Q/view',
+		match: true,
+		output: {
+			type: 'canva',
+			embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/view?embed=',
+		},
+	},
+	{
+		url: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug',
+		match: true,
+		output: {
+			type: 'canva',
+			embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug?embed=',
+		},
+	},
+	{
+		url: 'https://www.canva.com/design/DAFrLlkQu3Q',
+		match: false,
+	},
+	{
+		url: 'https://www.canva.com/templates',
+		match: false,
+	},
 	// google_maps
 	{
 		url: 'https://www.google.com/maps/@52.2449313,0.0813192,14z',
@@ -554,6 +579,27 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 	},
 	{
 		embedUrl: 'https://www.figma.com/embed?foobar=baz',
+		match: false,
+	},
+	// canva
+	{
+		embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/view?embed=',
+		match: true,
+		output: {
+			type: 'canva',
+			url: 'https://www.canva.com/design/DAFrLlkQu3Q/view',
+		},
+	},
+	{
+		embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug?embed=',
+		match: true,
+		output: {
+			type: 'canva',
+			url: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug',
+		},
+	},
+	{
+		embedUrl: 'https://www.canva.com/templates',
 		match: false,
 	},
 	// google_maps

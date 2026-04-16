@@ -11,6 +11,7 @@ export {
 	type DashedPathBuilderOpts,
 	type DrawPathBuilderDOpts,
 	type DrawPathBuilderOpts,
+	type NonePathBuilderOpts,
 	type LineToPathBuilderCommand,
 	type MoveToPathBuilderCommand,
 	type PathBuilderCommand,
