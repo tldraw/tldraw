@@ -8,7 +8,7 @@ status: published
 last_version: v4.5.9
 ---
 
-This release adds a first-class theme system with display values for customizing default shapes, extensible asset types via a new `AssetUtil` system, shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, arbitrary iframe embed pasting, a paste-as-plain-text keyboard shortcut, and smarter export trimming. It also includes various other improvements and bug fixes.
+This release adds a first-class theme system with display values for customizing default shapes, extensible asset types via a new `AssetUtil` system, shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, arbitrary iframe embed pasting, a paste-as-plain-text keyboard shortcut, right-click-and-drag camera panning, a new performance measurement API, and smarter export trimming. It also includes various other improvements and bug fixes.
 
 ## What's new
 
@@ -235,6 +235,22 @@ Tldraw now works correctly when embedded in iframes, Electron pop-out windows, a
 
 New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldraw/editor`, along with `Editor.getContainerDocument()` and `Editor.getContainerWindow()` convenience methods.
 
+### Right-click pan ([#8501](https://github.com/tldraw/tldraw/pull/8501))
+
+You can now pan the camera by right-click-dragging on the canvas. A static right-click still opens the context menu on release. Set the new `rightClickPanning` editor option to `false` to restore the previous behavior where right-click opens the context menu on press without panning.
+
+### Performance measurement API ([#8421](https://github.com/tldraw/tldraw/pull/8421))
+
+A new `editor.performance` manager lets you observe frame times, long animation frames, and interaction latency in your tldraw app. Subscribe with `editor.performance.on('event', handler)` to receive flat, analytics-friendly events with percentile stats ready to forward to services like Datadog or PostHog.
+
+```tsx
+const unsubscribe = editor.performance.on('interaction-end', (event) => {
+	console.log(event.avgFrameTime, event.p95FrameTime)
+})
+```
+
+The manager is zero-overhead when no listeners are attached and automatically captures Long Animation Frame (LoAF) data during interactions and camera operations.
+
 ## API changes
 
 - 💥 Remove `defaultColorNames`, `DefaultColorThemePalette`, `DefaultLabelColorStyle`, `TLDefaultColorTheme` type, and `getDefaultColorTheme()` from `@tldraw/tlschema`. Use `editor.getCurrentTheme().colors` instead. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
@@ -267,6 +283,9 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Add `TLUserStore` interface with `getCurrentUser()` and `resolve()` for connecting tldraw to auth systems. Add unified `TLUser` record type, `UserRecordType`, `createUserId`, `isUserId`, `userIdValidator`, and `createUserRecordType()` for extensible user schemas. Add `user` parameter to `createTLSchema()`. Add `Editor.getAttributionUser()`, `Editor.getAttributionUserId()`, and `Editor.getAttributionDisplayName()`. Add `textFirstEditedBy` prop to `TLNoteShapeProps`. ([#8147](https://github.com/tldraw/tldraw/pull/8147))
 - Add `AssetUtil` base class with `configure()`, `getDefaultProps()`, `getSupportedMimeTypes()`, `getAssetFromFile()`, and `createShape()`. Add `assetUtils` prop to `<Tldraw>`. Add `Editor.getAssetUtil()`, `Editor.hasAssetUtil()`, and `Editor.getAssetUtilForMimeType()`. Add `TLGlobalAssetPropsMap` for type-safe custom asset registration. Add `createAssetRecordType()`, `defaultAssetSchemas`, and `assets` parameter to `createTLSchema()`. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
 - Add `Cmd+Shift+V` / `Ctrl+Shift+V` shortcut to paste clipboard content as plain text. `Cmd+Shift+V` no longer toggles paste-at-cursor positioning. ([#8347](https://github.com/tldraw/tldraw/pull/8347))
+- Add `TldrawOptions.rightClickPanning` (default `true`) to gate right-click + drag camera panning. Add `InputsManager.getIsRightPointing()` and `InputsManager.setIsRightPointing()`. ([#8501](https://github.com/tldraw/tldraw/pull/8501))
+- Add `editor.performance` with `PerformanceManager` for observing frame times, long animation frames, and interaction latency. ([#8421](https://github.com/tldraw/tldraw/pull/8421))
+- Add `'none'` value to `DefaultDashStyle` / `TLDefaultDashStyle` to hide shape borders while preserving fill. Add `NonePathBuilderOpts` to `PathBuilder`; `PathBuilder.toSvg()` returns `null` and `PathBuilder.toPath2D()` returns an empty `Path2D` for the `'none'` style. ([#8453](https://github.com/tldraw/tldraw/pull/8453))
 
 ## Improvements
 
@@ -279,6 +298,7 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Tighten iframe referrer policy for embeds to send only the origin instead of the full URL to third-party embed providers. ([#8412](https://github.com/tldraw/tldraw/pull/8412))
 - Move the debug mode toggle into the preferences submenu. ([#8259](https://github.com/tldraw/tldraw/pull/8259))
 - Update hotkeys-js keyboard shortcut library from v3 to v4, picking up TypeScript rewrite and keyboard layout handling improvements. ([#8372](https://github.com/tldraw/tldraw/pull/8372))
+- 💥 Change the default `Cmd+Shift+C` / `Ctrl+Shift+C` "copy as" keyboard shortcut from SVG to PNG. ([#8532](https://github.com/tldraw/tldraw/pull/8532))
 
 ## Bug fixes
 
@@ -300,3 +320,7 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix crash from duplicate fractional index keys in `kickoutOccludedShapes` during multiplayer sync. ([#8448](https://github.com/tldraw/tldraw/pull/8448))
 - Fix spiky artifacts on draw-style geometric shapes by using a circular random offset distribution instead of a square one. ([#8466](https://github.com/tldraw/tldraw/pull/8466))
 - Fix opacity slider drag not working on Safari due to `stopPropagation` blocking pointer events. ([#8519](https://github.com/tldraw/tldraw/pull/8519))
+- Fix `ShapeUtil.canBind` and `ShapeUtil.canReceiveNewChildrenOfType` signatures so overrides can declare the `shape` parameter without TypeScript errors. ([#8521](https://github.com/tldraw/tldraw/pull/8521))
+- Fix duplicate presence cursors appearing after login or logout in multiplayer sessions. ([#8542](https://github.com/tldraw/tldraw/pull/8542))
+- Fix intermittent `ResizeObserver loop` browser warnings when hovering over toolbar buttons. ([#8574](https://github.com/tldraw/tldraw/pull/8574))
+- Fix crash in browsers without `OffscreenCanvas` support (e.g. older Safari). ([#8582](https://github.com/tldraw/tldraw/pull/8582))
