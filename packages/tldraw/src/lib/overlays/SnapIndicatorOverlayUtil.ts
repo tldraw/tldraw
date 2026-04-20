@@ -21,7 +21,7 @@ export interface TLSnapIndicatorOverlay extends TLOverlay {
  */
 export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay> {
 	static override type = 'snap_indicator'
-	override options = { zIndex: 500 }
+	override options = { zIndex: 500, lineWidth: 1 }
 
 	override isActive(): boolean {
 		return this.editor.snaps.getIndicators().length > 0
@@ -80,7 +80,7 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 		}
 
 		ctx.strokeStyle = color
-		ctx.lineWidth = 1 / zoom
+		ctx.lineWidth = this.options.lineWidth / zoom
 
 		// Main snap line
 		ctx.beginPath()
@@ -142,7 +142,7 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 		const midPoint = (edgeIntersection[0] + edgeIntersection[1]) / 2
 
 		ctx.strokeStyle = color
-		ctx.lineWidth = 1 / zoom
+		ctx.lineWidth = this.options.lineWidth / zoom
 
 		// Batch all gap ticks/lines into a single path, then stroke once
 		ctx.beginPath()

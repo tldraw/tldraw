@@ -230,6 +230,10 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
     isActive(): boolean;
     // (undocumented)
     options: {
+        edgePointRadius: number;
+        edgeRadius: number;
+        handleRadius: number;
+        lineWidth: number;
         zIndex: number;
     };
     // (undocumented)
@@ -595,10 +599,13 @@ export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
     isActive(): boolean;
     // (undocumented)
     options: {
+        lineWidth: number;
         zIndex: number;
     };
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[]): void;
+    // (undocumented)
+    renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[], zoom: number): void;
     // (undocumented)
     static type: string;
 }
@@ -648,10 +655,13 @@ export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrus
     isActive(): boolean;
     // (undocumented)
     options: {
+        lineWidth: number;
         zIndex: number;
     };
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorBrushOverlay[]): void;
+    // (undocumented)
+    renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorBrushOverlay[]): void;
     // (undocumented)
     static type: string;
 }
@@ -664,10 +674,15 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
     isActive(): boolean;
     // (undocumented)
     options: {
+        chatMaxWidth: number;
+        fontSize: number;
+        nameMaxWidth: number;
         zIndex: number;
     };
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[]): void;
+    // (undocumented)
+    renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[], zoom: number): void;
     // (undocumented)
     static type: string;
 }
@@ -690,6 +705,8 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
     }, zoom: number): boolean;
     // (undocumented)
     options: {
+        lineWidth: number;
+        viewportPadding: number;
         zIndex: number;
     };
     // (undocumented)
@@ -706,6 +723,8 @@ export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorS
     isActive(): boolean;
     // (undocumented)
     options: {
+        cacheSize: number;
+        streamline: number;
         zIndex: number;
     };
     // (undocumented)
@@ -3103,6 +3122,8 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
     isActive(): boolean;
     // (undocumented)
     options: {
+        cacheSize: number;
+        streamline: number;
         zIndex: number;
     };
     // (undocumented)
@@ -3126,6 +3147,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
     isActive(): boolean;
     // (undocumented)
     options: {
+        lineWidth: number;
         zIndex: number;
     };
     // (undocumented)
@@ -3184,6 +3206,7 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
     isActive(): boolean;
     // (undocumented)
     options: {
+        lineWidth: number;
         zIndex: number;
     };
     // (undocumented)
@@ -3208,6 +3231,7 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
     isActive(): boolean;
     // (undocumented)
     options: {
+        lineWidth: number;
         zIndex: number;
     };
     // (undocumented)
@@ -6270,10 +6294,13 @@ export class ZoomBrushOverlayUtil extends OverlayUtil<TLZoomBrushOverlay> {
     isActive(): boolean;
     // (undocumented)
     options: {
+        lineWidth: number;
         zIndex: number;
     };
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLZoomBrushOverlay[]): void;
+    // (undocumented)
+    renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLZoomBrushOverlay[], zoom: number): void;
     // (undocumented)
     static type: string;
 }

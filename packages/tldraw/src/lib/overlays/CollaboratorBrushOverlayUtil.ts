@@ -18,7 +18,7 @@ export interface TLCollaboratorBrushOverlay extends TLOverlay {
  */
 export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrushOverlay> {
 	static override type = 'collaborator_brush'
-	override options = { zIndex: 700 }
+	override options = { zIndex: 700, lineWidth: 1 }
 
 	override isActive(): boolean {
 		return this.editor.getCollaboratorsOnCurrentPage().some((c) => c.brush !== null)
@@ -57,10 +57,23 @@ export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrus
 			// Stroke with lower alpha; avoid path creation via strokeRect
 			ctx.globalAlpha = 0.1
 			ctx.strokeStyle = color
-			ctx.lineWidth = 1 / zoom
+			ctx.lineWidth = this.options.lineWidth / zoom
 			ctx.strokeRect(x, y, w, h)
 
 			ctx.globalAlpha = 1
 		}
+	}
+
+	override renderMinimap(
+		ctx: CanvasRenderingContext2D,
+		overlays: TLCollaboratorBrushOverlay[]
+	): void {
+		for (const overlay of overlays) {
+			const { x, y, w, h, color } = overlay.props
+			ctx.globalAlpha = 0.75
+			ctx.fillStyle = color
+			ctx.fillRect(x, y, w, h)
+		}
+		ctx.globalAlpha = 1
 	}
 }

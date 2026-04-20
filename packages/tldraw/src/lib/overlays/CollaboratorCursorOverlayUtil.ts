@@ -1,4 +1,4 @@
-import { OverlayUtil, TLInstancePresence, TLOverlay } from '@tldraw/editor'
+import { OverlayUtil, PI2, TLInstancePresence, TLOverlay } from '@tldraw/editor'
 import type { Editor } from '@tldraw/editor'
 
 /** @public */
@@ -47,7 +47,7 @@ const TRUNCATE_CACHE_MAX = 200
  */
 export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCursorOverlay> {
 	static override type = 'collaborator_cursor'
-	override options = { zIndex: 1100 }
+	override options = { zIndex: 1100, fontSize: 12, nameMaxWidth: 120, chatMaxWidth: 200 }
 
 	override isActive(): boolean {
 		return this.editor.getCollaboratorsOnCurrentPage().length > 0
@@ -56,25 +56,15 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 	override getOverlays(): TLCollaboratorCursorOverlay[] {
 		const overlays: TLCollaboratorCursorOverlay[] = []
 		const editor = this.editor
-		const viewport = editor.getViewportPageBounds()
-		const zoom = editor.getZoomLevel()
 		const now = Date.now()
 
 		for (const presence of editor.getCollaboratorsOnCurrentPage()) {
 			const { cursor, color, userName, chatMessage, userId } = presence
 			if (!cursor) continue
 
-			// Viewport check
-			if (
-				cursor.x < viewport.minX - 12 / zoom ||
-				cursor.y < viewport.minY - 16 / zoom ||
-				cursor.x > viewport.maxX - 12 / zoom ||
-				cursor.y > viewport.maxY - 16 / zoom
-			) {
-				continue
-			}
-
-			// Activity state check
+			// Activity state check — applies to both main canvas and minimap.
+			// The main-canvas viewport cull lives in `render` so these overlays
+			// still show on the minimap when off-screen.
 			if (!this._shouldShow(editor, presence, now)) continue
 
 			overlays.push({
@@ -95,9 +85,22 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 	override render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[]): void {
 		const zoom = this.editor.getEfficientZoomLevel()
 		const scale = 1 / zoom
+		const viewport = this.editor.getViewportPageBounds()
 
 		for (const overlay of overlays) {
 			const { x, y, color, name, chatMessage } = overlay.props
+
+			// Cull cursors outside the main viewport (with a small margin for
+			// the cursor glyph). Off-screen cursors still show on the minimap
+			// via `renderMinimap`.
+			if (
+				x < viewport.minX - 12 / zoom ||
+				y < viewport.minY - 16 / zoom ||
+				x > viewport.maxX - 12 / zoom ||
+				y > viewport.maxY - 16 / zoom
+			) {
+				continue
+			}
 
 			ctx.save()
 			ctx.translate(x, y)
@@ -134,21 +137,22 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 
 	/** Name tag (no chat) - colored background with white text */
 	private _drawNameTag(ctx: CanvasRenderingContext2D, name: string, color: string) {
-		ctx.font = '12px var(--tl-font-body, sans-serif)'
-		const maxWidth = 120
-		const text = this._truncateText(ctx, name, maxWidth)
+		const { fontSize, nameMaxWidth } = this.options
+		ctx.font = `${fontSize}px var(--tl-font-body, sans-serif)`
+		const text = this._truncateText(ctx, name, nameMaxWidth)
 		const metrics = ctx.measureText(text)
-		const textWidth = Math.min(metrics.width, maxWidth)
+		const textWidth = Math.min(metrics.width, nameMaxWidth)
 		const px = 6
 		const py = 3
 		const x = 13
 		const y = 16
-		const h = 12 + py * 2
+		const h = fontSize + py * 2
 		const w = textWidth + px * 2
 
 		// Background
 		ctx.fillStyle = color
-		this._roundRect(ctx, x, y, w, h, 4)
+		ctx.beginPath()
+		ctx.roundRect(x, y, w, h, 4)
 		ctx.fill()
 
 		// Text
@@ -159,7 +163,7 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 
 	/** Name title (when chat is present) - text with shadow, no background */
 	private _drawNameTitle(ctx: CanvasRenderingContext2D, name: string, color: string) {
-		ctx.font = '12px var(--tl-font-body, sans-serif)'
+		ctx.font = `${this.options.fontSize}px var(--tl-font-body, sans-serif)`
 		const x = 13
 		const y = -2
 
@@ -191,13 +195,32 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 
 		// Background
 		ctx.fillStyle = color
-		this._roundRect(ctx, x, y, w, h, 4)
+		ctx.beginPath()
+		ctx.roundRect(x, y, w, h, 4)
 		ctx.fill()
 
 		// Text
 		ctx.fillStyle = '#ffffff'
 		ctx.textBaseline = 'top'
 		ctx.fillText(text, x + px, y + py)
+	}
+
+	override renderMinimap(
+		ctx: CanvasRenderingContext2D,
+		overlays: TLCollaboratorCursorOverlay[],
+		zoom: number
+	): void {
+		// Small filled dot per collaborator, clamped inside the minimap's
+		// page bounds is left to the caller — we just render at the cursor
+		// page-position and let the viewport rounded-rect indicate framing.
+		const radius = 3 / zoom
+		for (const overlay of overlays) {
+			const { x, y, color } = overlay.props
+			ctx.beginPath()
+			ctx.arc(x, y, radius, 0, PI2)
+			ctx.fillStyle = color
+			ctx.fill()
+		}
 	}
 
 	private _shouldShow(editor: Editor, presence: TLInstancePresence, now: number): boolean {
@@ -235,26 +258,5 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		if (_truncateCache.size > TRUNCATE_CACHE_MAX) _truncateCache.clear()
 		_truncateCache.set(key, result)
 		return result
-	}
-
-	private _roundRect(
-		ctx: CanvasRenderingContext2D,
-		x: number,
-		y: number,
-		w: number,
-		h: number,
-		r: number
-	) {
-		ctx.beginPath()
-		ctx.moveTo(x + r, y)
-		ctx.lineTo(x + w - r, y)
-		ctx.quadraticCurveTo(x + w, y, x + w, y + r)
-		ctx.lineTo(x + w, y + h - r)
-		ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
-		ctx.lineTo(x + r, y + h)
-		ctx.quadraticCurveTo(x, y + h, x, y + h - r)
-		ctx.lineTo(x, y + r)
-		ctx.quadraticCurveTo(x, y, x + r, y)
-		ctx.closePath()
 	}
 }

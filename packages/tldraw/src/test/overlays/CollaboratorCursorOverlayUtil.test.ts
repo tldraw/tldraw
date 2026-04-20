@@ -72,7 +72,9 @@ describe('CollaboratorCursorOverlayUtil', () => {
 			expect(overlays[0].props).toHaveProperty('y')
 		})
 
-		it('excludes cursors outside the viewport', () => {
+		it('includes cursors outside the main viewport so they can render on the minimap', () => {
+			// Viewport culling for the main canvas lives in render(), not
+			// getOverlays(), so off-screen collaborators still appear here.
 			const pageId = editor.getCurrentPageId()
 			editor.store.put([
 				InstancePresenceRecordType.create({
@@ -87,7 +89,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 			])
 			const util =
 				editor.overlays.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
-			expect(util.getOverlays().length).toBe(0)
+			expect(util.getOverlays().length).toBe(1)
 		})
 
 		it('filters inactive vs idle vs active appropriately', () => {

@@ -21,7 +21,6 @@ interface CollaboratorScribbleCacheEntry {
 	path: Path2D
 }
 const _collabScribblePathCache = new Map<string, CollaboratorScribbleCacheEntry>()
-const COLLAB_SCRIBBLE_CACHE_MAX = 500
 
 /**
  * Overlay util for collaborator scribble strokes (eraser, lasso, etc.).
@@ -30,7 +29,7 @@ const COLLAB_SCRIBBLE_CACHE_MAX = 500
  */
 export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorScribbleOverlay> {
 	static override type = 'collaborator_scribble'
-	override options = { zIndex: 800 }
+	override options = { zIndex: 800, streamline: 0.32, cacheSize: 500 }
 
 	override isActive(): boolean {
 		return this.editor.getCollaboratorsOnCurrentPage().some((c) => c.scribbles.length > 0)
@@ -80,7 +79,7 @@ export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorS
 					start: { taper: scribble.taper, easing: EASINGS.linear },
 					last: scribble.state === 'complete' || scribble.state === 'stopping',
 					simulatePressure: false,
-					streamline: 0.32,
+					streamline: this.options.streamline,
 				})
 
 				let d: string
@@ -103,8 +102,7 @@ export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorS
 					state: scribble.state,
 					path,
 				})
-				if (_collabScribblePathCache.size > COLLAB_SCRIBBLE_CACHE_MAX)
-					_collabScribblePathCache.clear()
+				if (_collabScribblePathCache.size > this.options.cacheSize) _collabScribblePathCache.clear()
 			}
 
 			ctx.fillStyle = color

@@ -109,4 +109,17 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
 	 * Called reactively when overlays or editor state changes.
 	 */
 	render(_ctx: CanvasRenderingContext2D, _overlays: T[]): void {}
+
+	/**
+	 * Optional: render all active overlays into the minimap canvas.
+	 * The context is already transformed to page space (minimap camera applied),
+	 * so overlays can use the same page-space coordinates as in {@link OverlayUtil.render}.
+	 *
+	 * `zoom` is the minimap's screen-pixels-per-page-unit, analogous to
+	 * `editor.getCamera().z`; use `1 / zoom` for one-minimap-pixel line widths.
+	 *
+	 * Most overlays should leave this blank — only overlays that are meaningful
+	 * at minimap scale (e.g. brushes, collaborator cursors) should opt in.
+	 */
+	renderMinimap(_ctx: CanvasRenderingContext2D, _overlays: T[], _zoom: number): void {}
 }

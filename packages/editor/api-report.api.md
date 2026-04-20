@@ -2608,6 +2608,7 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
         zIndex?: number;
     } & Record<string, unknown>;
     render(_ctx: CanvasRenderingContext2D, _overlays: T[]): void;
+    renderMinimap(_ctx: CanvasRenderingContext2D, _overlays: T[], _zoom: number): void;
     // (undocumented)
     static type: string;
 }

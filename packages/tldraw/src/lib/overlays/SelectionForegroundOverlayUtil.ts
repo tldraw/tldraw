@@ -34,7 +34,7 @@ export interface TLSelectionForegroundOverlay extends TLOverlay {
  */
 export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForegroundOverlay> {
 	static override type = 'selection_foreground'
-	override options = { zIndex: 100 }
+	override options = { zIndex: 100, lineWidth: 1.5 }
 
 	override isActive(): boolean {
 		if (!this.editor.getSelectionRotatedPageBounds()) return false
@@ -375,7 +375,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		// Selection outline
 		if (shouldDisplayBox) {
 			ctx.strokeStyle = strokeColor
-			ctx.lineWidth = 1.5 / zoom
+			ctx.lineWidth = this.options.lineWidth / zoom
 			ctx.strokeRect(0, 0, width, height)
 		}
 
@@ -383,7 +383,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		if (showResizeHandles && !showCropHandles) {
 			ctx.fillStyle = bgColor
 			ctx.strokeStyle = strokeColor
-			ctx.lineWidth = 1.5 / zoom
+			ctx.lineWidth = this.options.lineWidth / zoom
 
 			const drawCorner = (x: number, y: number, hidden: boolean) => {
 				if (hidden) return
@@ -476,7 +476,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			// Foreground circle
 			ctx.fillStyle = bgColor
 			ctx.strokeStyle = strokeColor
-			ctx.lineWidth = 1.5 / zoom
+			ctx.lineWidth = this.options.lineWidth / zoom
 			ctx.beginPath()
 			ctx.arc(cx, cy, fgRadius, 0, Math.PI * 2)
 			ctx.fill()
@@ -495,17 +495,12 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 				const hw = size / 2
 				const r = size / 4
 				// Left handle
-				this._roundRect(ctx, 0 - hw / 2, height / 2 - textHandleHeight / 2, hw, textHandleHeight, r)
+				ctx.beginPath()
+				ctx.roundRect(0 - hw / 2, height / 2 - textHandleHeight / 2, hw, textHandleHeight, r)
 				ctx.fill()
 				// Right handle
-				this._roundRect(
-					ctx,
-					width - hw / 2,
-					height / 2 - textHandleHeight / 2,
-					hw,
-					textHandleHeight,
-					r
-				)
+				ctx.beginPath()
+				ctx.roundRect(width - hw / 2, height / 2 - textHandleHeight / 2, hw, textHandleHeight, r)
 				ctx.fill()
 			}
 		}
@@ -614,26 +609,5 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 
 	private _localRectToPoints(x: number, y: number, w: number, h: number): Vec[] {
 		return [new Vec(x, y), new Vec(x + w, y), new Vec(x + w, y + h), new Vec(x, y + h)]
-	}
-
-	private _roundRect(
-		ctx: CanvasRenderingContext2D,
-		x: number,
-		y: number,
-		w: number,
-		h: number,
-		r: number
-	) {
-		ctx.beginPath()
-		ctx.moveTo(x + r, y)
-		ctx.lineTo(x + w - r, y)
-		ctx.quadraticCurveTo(x + w, y, x + w, y + r)
-		ctx.lineTo(x + w, y + h - r)
-		ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
-		ctx.lineTo(x + r, y + h)
-		ctx.quadraticCurveTo(x, y + h, x, y + h - r)
-		ctx.lineTo(x, y + r)
-		ctx.quadraticCurveTo(x, y, x + r, y)
-		ctx.closePath()
 	}
 }

@@ -25,7 +25,7 @@ export interface TLShapeHandleOverlay extends TLOverlay {
  */
 export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 	static override type = 'shape_handle'
-	override options = { zIndex: 200 }
+	override options = { zIndex: 200, lineWidth: 1.5 }
 
 	override isActive(): boolean {
 		const editor = this.editor
@@ -133,7 +133,7 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 			// Foreground circle
 			ctx.fillStyle = handle.type === 'clone' ? strokeColor : fgColor
 			ctx.strokeStyle = handle.type === 'clone' ? 'none' : strokeColor
-			ctx.lineWidth = 1.5 / zoom
+			ctx.lineWidth = this.options.lineWidth / zoom
 			ctx.beginPath()
 			ctx.arc(handle.x, handle.y, fr, 0, Math.PI * 2)
 			ctx.fill()

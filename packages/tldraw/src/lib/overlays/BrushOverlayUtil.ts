@@ -17,7 +17,7 @@ export interface TLBrushOverlay extends TLOverlay {
  */
 export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
 	static override type = 'brush'
-	override options = { zIndex: 300 }
+	override options = { zIndex: 300, lineWidth: 1 }
 
 	override isActive(): boolean {
 		return this.editor.getInstanceState().brush !== null
@@ -52,7 +52,23 @@ export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
 		ctx.fillStyle = colors.brushFill
 		ctx.fillRect(x, y, w, h)
 
-		ctx.lineWidth = 1 / zoom
+		ctx.lineWidth = this.options.lineWidth / zoom
+		ctx.strokeStyle = colors.brushStroke
+		ctx.strokeRect(x, y, w, h)
+	}
+
+	override renderMinimap(
+		ctx: CanvasRenderingContext2D,
+		overlays: TLBrushOverlay[],
+		zoom: number
+	): void {
+		const overlay = overlays[0]
+		if (!overlay) return
+		const { x, y, w, h } = overlay.props
+		const colors = this.editor.getCurrentTheme().colors[this.editor.getColorMode()]
+		ctx.fillStyle = colors.brushFill
+		ctx.fillRect(x, y, w, h)
+		ctx.lineWidth = this.options.lineWidth / zoom
 		ctx.strokeStyle = colors.brushStroke
 		ctx.strokeRect(x, y, w, h)
 	}

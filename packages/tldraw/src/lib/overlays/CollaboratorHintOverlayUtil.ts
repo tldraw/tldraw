@@ -30,7 +30,7 @@ function getArrowPath() {
  */
 export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintOverlay> {
 	static override type = 'collaborator_hint'
-	override options = { zIndex: 900 }
+	override options = { zIndex: 900, lineWidth: 3, viewportPadding: 5 }
 
 	override isActive(): boolean {
 		const viewport = this.editor.getViewportPageBounds()
@@ -51,7 +51,7 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 			if (!cursor) continue
 			if (this._isCursorInViewport(cursor, viewport, zoom)) continue
 
-			const pad = 5 / zoom
+			const pad = this.options.viewportPadding / zoom
 			const x = clamp(cursor.x, viewport.minX + pad, viewport.maxX - pad)
 			const y = clamp(cursor.y, viewport.minY + pad, viewport.maxY - pad)
 			const rotation = Vec.Angle(viewport.center, cursor)
@@ -80,7 +80,7 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 			const path = getArrowPath()
 
 			// Outline stroke (white background for contrast)
-			ctx.lineWidth = 3
+			ctx.lineWidth = this.options.lineWidth
 			// Canvas doesn't support CSS vars in strokeStyle; use white
 			ctx.strokeStyle = '#ffffff'
 			ctx.stroke(path)

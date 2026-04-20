@@ -40,7 +40,13 @@ const indicatorPathCache = createComputedCache(
  */
 export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 	static override type = 'arrow_hint'
-	override options = { zIndex: 1000 }
+	override options = {
+		zIndex: 1000,
+		lineWidth: 1.5,
+		edgeRadius: 8,
+		edgePointRadius: 12,
+		handleRadius: 4,
+	}
 
 	override isActive(): boolean {
 		const editor = this.editor
@@ -142,7 +148,7 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 					pageTransform.f
 				)
 				ctx.strokeStyle = colors.selectionStroke
-				ctx.lineWidth = 1.5 / zoom
+				ctx.lineWidth = this.options.lineWidth / zoom
 				ctx.lineCap = 'round'
 				ctx.lineJoin = 'round'
 				this._renderIndicatorPath(ctx, indicatorPath)
@@ -154,7 +160,8 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 
 		// Draw the anchor snap circle
 		if (snap === 'edge' || snap === 'edge-point') {
-			const snapRadius = (snap === 'edge-point' ? 12 : 8) / zoom
+			const snapRadius =
+				(snap === 'edge-point' ? this.options.edgePointRadius : this.options.edgeRadius) / zoom
 			ctx.beginPath()
 			ctx.arc(anchorX, anchorY, snapRadius, 0, Math.PI * 2)
 			ctx.fillStyle = colors.selectionFill
@@ -162,10 +169,10 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 		}
 
 		// Draw edge handle circles using a single fill+stroke for all handles
-		const handleRadius = 4 / zoom
+		const handleRadius = this.options.handleRadius / zoom
 		ctx.fillStyle = colors.selectedContrast
 		ctx.strokeStyle = colors.selectionStroke
-		ctx.lineWidth = 1.5 / zoom
+		ctx.lineWidth = this.options.lineWidth / zoom
 		ctx.beginPath()
 		for (const handle of Object.values(handles)) {
 			if (!handle.isEnabled) continue
