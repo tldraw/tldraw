@@ -72,7 +72,7 @@ export class SnapManager {
 		const collectSnappableShapesFromParent = (parentId: TLParentId) => {
 			if (isShapeId(parentId)) {
 				const parent = editor.getShape(parentId)
-				if (parent && editor.isShapeFrameLike(parent)) {
+				if (parent && editor.getShapeUtil(parent).isFrameLike(parent)) {
 					snappableShapes.add(parentId)
 				}
 			}

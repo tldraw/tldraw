@@ -1,5 +1,5 @@
 import {
-	BaseBoxShapeUtil,
+	BaseFrameLikeShapeUtil,
 	Ellipse2d,
 	Geometry2d,
 	Group2d,
@@ -7,8 +7,6 @@ import {
 	SVGContainer,
 	T,
 	TLBaseShape,
-	TLDragShapesInInfo,
-	TLDragShapesOutInfo,
 	TLDropShapesOverInfo,
 	TLResizeInfo,
 	TLShape,
@@ -43,7 +41,7 @@ const COLORS = {
 
 let teleportCount = 0
 
-export class PortalShapeUtil extends BaseBoxShapeUtil<any> {
+export class PortalShapeUtil extends BaseFrameLikeShapeUtil<any> {
 	static override type = PORTAL_SHAPE_TYPE
 	static override props: RecordProps<any> = {
 		w: T.number,
@@ -55,24 +53,8 @@ export class PortalShapeUtil extends BaseBoxShapeUtil<any> {
 		return { w: 250, h: 300, color: 'blue' }
 	}
 
-	override isFrameLike(): boolean {
-		return true
-	}
-
-	override canReceiveNewChildrenOfType(shape: TLShape) {
-		return !shape.isLocked
-	}
-
 	override canResize() {
 		return true
-	}
-
-	override providesBackgroundForChildren(): boolean {
-		return true
-	}
-
-	override getClipPath(shape: any) {
-		return this.editor.getShapeGeometry(shape.id).vertices
 	}
 
 	override getGeometry(shape: any): Geometry2d {
@@ -100,21 +82,6 @@ export class PortalShapeUtil extends BaseBoxShapeUtil<any> {
 				(s as unknown as PortalShape).props.color === otherColor
 		)
 		return linked as PortalShape | undefined
-	}
-
-	override onDragShapesIn(shape: any, shapes: TLShape[], _info: TLDragShapesInInfo) {
-		if (shapes.every((s) => s.parentId === shape.id)) return
-		if (shapes.some((s) => this.editor.hasAncestor(shape, s.id))) return
-		this.editor.reparentShapes(shapes, shape.id)
-	}
-
-	override onDragShapesOut(shape: any, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void {
-		if (!info.nextDraggingOverShapeId) {
-			this.editor.reparentShapes(
-				draggingShapes.filter((s) => s.parentId === shape.id && !s.isLocked),
-				this.editor.getCurrentPageId()
-			)
-		}
 	}
 
 	// On drop, teleport: move shapes from this portal to the linked one.
