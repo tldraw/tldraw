@@ -100,6 +100,23 @@ describe('OverlayManager', () => {
 		})
 	})
 
+	describe('getOverlayGeometry', () => {
+		it('returns the same geometry instance across consecutive calls for the same overlay', () => {
+			editor.createShapes([
+				{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+			])
+			editor.select(ids.box1)
+			const overlay = editor.overlays
+				.getCurrentOverlays()
+				.find((o) => o.type === 'selection_foreground')
+			expect(overlay).toBeTruthy()
+			const first = editor.overlays.getOverlayGeometry(overlay!)
+			const second = editor.overlays.getOverlayGeometry(overlay!)
+			expect(first).toBeTruthy()
+			expect(second).toBe(first)
+		})
+	})
+
 	describe('hovered overlay', () => {
 		it('manages hovered overlay id and lookup', () => {
 			expect(editor.overlays.getHoveredOverlayId()).toBeNull()
@@ -150,6 +167,42 @@ describe('OverlayManager', () => {
 			const editor = new TestEditor({ overlayUtils: [High, Low] })
 			const hit = editor.overlays.getOverlayAtPoint(new Vec(0, 0))
 			expect(hit?.type).toBe('high')
+		})
+	})
+
+	describe('getActiveOverlayEntries', () => {
+		const makeUtil = (
+			type: string,
+			zIndex: number,
+			{ active = true, empty = false }: { active?: boolean; empty?: boolean } = {}
+		) => {
+			class TestOverlay extends OverlayUtil<TLOverlay<{ zIndex: number }>> {
+				static override type = type
+				override options = { zIndex }
+				override isActive() {
+					return active
+				}
+				override getOverlays() {
+					return empty ? [] : [{ id: `${type}:o`, type, props: { zIndex } }]
+				}
+			}
+			return TestOverlay
+		}
+
+		it('returns entries in paint order and skips inactive and empty utils', () => {
+			const High = makeUtil('high', 100)
+			const Mid = makeUtil('mid', 50)
+			const Low = makeUtil('low', 10)
+			const Inactive = makeUtil('inactive', 75, { active: false })
+			const Empty = makeUtil('empty', 25, { empty: true })
+			const editor = new TestEditor({ overlayUtils: [High, Inactive, Mid, Empty, Low] })
+			const entries = editor.overlays.getActiveOverlayEntries()
+			expect(entries.map((e) => (e.util.constructor as typeof OverlayUtil).type)).toEqual([
+				'low',
+				'mid',
+				'high',
+			])
+			expect(entries.every((e) => e.overlays.length > 0)).toBe(true)
 		})
 	})
 })
