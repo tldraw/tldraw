@@ -202,12 +202,3 @@ jobs:
           ZERO_R2_SECRET_ACCESS_KEY: ${{ secrets.ZERO_R2_SECRET_ACCESS_KEY }}
           ZERO_OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.ZERO_OTEL_EXPORTER_OTLP_ENDPOINT }}
           ZERO_OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.ZERO_OTEL_EXPORTER_OTLP_HEADERS }}
-
-      - name: Deploy MCP app
-        # Only deploy MCP app when deploying dotcom to prod
-        if: github.event_name == 'push' && github.ref == 'refs/heads/production'
-        run: yarn workspace mcp-app deploy
-        env:
-          VITE_TLDRAW_LICENSE_KEY: ${{ secrets.MCP_APP_TLDRAW_LICENSE_KEY }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
