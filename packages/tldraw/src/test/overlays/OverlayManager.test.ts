@@ -176,7 +176,7 @@ describe('OverlayManager', () => {
 			type: string,
 			onPointerDown?: (overlay: TLOverlay, info: any) => boolean | void
 		) => {
-			class TestOverlay extends OverlayUtil<TLOverlay<{}>> {
+			class TestOverlay extends OverlayUtil<TLOverlay<Record<string, never>>> {
 				static override type = type
 				override options = { zIndex: 1000 }
 				override isActive() {
