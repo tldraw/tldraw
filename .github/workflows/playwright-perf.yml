@@ -93,7 +93,7 @@ jobs:
         # only upload if we have AWS credentials:
         env:
           HAS_AWS_KEY: ${{ secrets.AWS_S3_SECRET_KEY && '1' || '' }}
-        if: always() && env.HAS_AWS_KEY == '1' && hashFiles('apps/examples/playwright-report/**') != ''
+        if: always() && env.HAS_AWS_KEY == '1' && hashFiles('apps/examples/playwright-report/index.html') != ''
         name: Upload S3
         id: s3
         with:
@@ -103,7 +103,7 @@ jobs:
           source_dir: apps/examples/playwright-report
 
       - name: Log report to summary
-        if: always()
+        if: always() && steps.s3.outputs.object_key != ''
         run: |
           report_url="https://playwright.tldraw.xyz/${{ steps.s3.outputs.object_key }}/index.html"
           echo "Report: $report_url"
