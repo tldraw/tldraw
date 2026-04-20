@@ -1557,6 +1557,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					const style = DefaultColorStyle
 					editor.run(() => {
+						editor.updateInstanceState({ isChangingStyle: true })
 						editor.markHistoryStoppingPoint('change-color')
 						if (editor.isIn('select')) {
 							editor.setStyleForSelectedShapes(style, 'white')
@@ -1573,6 +1574,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					const style = DefaultFillStyle
 					editor.run(() => {
+						editor.updateInstanceState({ isChangingStyle: true })
 						editor.markHistoryStoppingPoint('change-fill')
 						if (editor.isIn('select')) {
 							editor.setStyleForSelectedShapes(style, 'fill')
@@ -1589,6 +1591,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					const style = DefaultFillStyle
 					editor.run(() => {
+						editor.updateInstanceState({ isChangingStyle: true })
 						editor.markHistoryStoppingPoint('change-fill')
 						if (editor.isIn('select')) {
 							editor.setStyleForSelectedShapes(style, 'lined-fill')
@@ -1682,6 +1685,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isRequiredA11yAction: true,
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
+					editor.updateInstanceState({ isChangingStyle: true })
 
 					const onlySelectedShape = editor.getOnlySelectedShape()
 					if (
