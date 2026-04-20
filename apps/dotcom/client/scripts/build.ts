@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
-import glob from 'fast-glob'
+import { glob } from 'fast-glob'
 import json5 from 'json5'
 import _ from 'lodash'
 import regexgen from 'regexgen'
