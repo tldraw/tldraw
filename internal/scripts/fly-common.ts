@@ -12,12 +12,16 @@
 export const FLY_ORG_SLUG = process.env.FLY_ORG_SLUG ?? 'tldraw-gb-ltd'
 
 export function getFlyToken(explicit?: string): string {
-	if (explicit) return explicit
-	if (process.env.FLY_TOKEN) return process.env.FLY_TOKEN
-	console.error(
-		'No token provided. Use --token, FLY_TOKEN env var, or create one with: fly tokens create readonly'
-	)
-	process.exit(1)
+	let token = explicit ?? process.env.FLY_TOKEN
+	if (!token) {
+		console.error(
+			'No token provided. Use --token, FLY_TOKEN env var, or create one with: fly tokens create readonly'
+		)
+		process.exit(1)
+	}
+	// Strip "FlyV1 " prefix if present — callers add it themselves
+	if (token.startsWith('FlyV1 ')) token = token.slice(6)
+	return token
 }
 
 export function parseDuration(s: string, unit: 'ms' | 's' = 's'): number {

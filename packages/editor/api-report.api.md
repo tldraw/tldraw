@@ -784,6 +784,7 @@ export const defaultTldrawOptions: {
     readonly onBeforePasteFromClipboard: undefined;
     readonly onClipboardPasteRaw: undefined;
     readonly quickZoomPreservesScreenBounds: true;
+    readonly rightClickPanning: true;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
@@ -2198,6 +2199,7 @@ export class InputsManager {
     getIsPen(): boolean;
     getIsPinching(): boolean;
     getIsPointing(): boolean;
+    getIsRightPointing(): boolean;
     getIsSpacebarPanning(): boolean;
     getMetaKey(): boolean;
     getOriginPagePoint(): Vec;
@@ -2256,6 +2258,8 @@ export class InputsManager {
     setIsPinching(isPinching: boolean): void;
     // @internal (undocumented)
     setIsPointing(isPointing: boolean): void;
+    // @internal (undocumented)
+    setIsRightPointing(isRightPointing: boolean): void;
     // @internal (undocumented)
     setIsSpacebarPanning(isSpacebarPanning: boolean): void;
     // @internal (undocumented)
@@ -3800,6 +3804,7 @@ export interface TldrawOptions {
     }): Awaitable<false | TLExternalContent<unknown> | void>;
     onClipboardPasteRaw?(info: TLClipboardPasteRawInfo): false | void;
     readonly quickZoomPreservesScreenBounds: boolean;
+    readonly rightClickPanning: boolean;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
     readonly temporaryAssetPreviewLifetimeMs: number;

@@ -858,7 +858,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						padding={0}
 						showTextOutline={this.options.showTextOutline}
 						style={{
-							transform: `translate(${labelPosition.box.center.x}px, ${labelPosition.box.center.y}px) scale(${shape.props.scale})`,
+							transform: `translate(${labelPosition.box.center.x}px, ${labelPosition.box.center.y}px)${shape.props.scale !== 1 ? ` scale(${shape.props.scale})` : ''}`,
 						}}
 					/>
 				)}

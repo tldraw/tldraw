@@ -5,7 +5,7 @@ author: tldraw
 date: 03/18/2026
 order: 0
 status: published
-last_version: v4.5.8
+last_version: v4.5.9
 ---
 
 This release adds a first-class theme system with display values for customizing default shapes, extensible asset types via a new `AssetUtil` system, shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, arbitrary iframe embed pasting, a paste-as-plain-text keyboard shortcut, and smarter export trimming. It also includes various other improvements and bug fixes.
@@ -303,3 +303,4 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix crash when isolating curved arrows with degenerate geometry. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 - Fix camera state stuck at 'moving' on dispose, blocking shape interactions on the next editor instance. ([#8396](https://github.com/tldraw/tldraw/pull/8396))
 - Fix spiky artifacts on draw-style geometric shapes by using a circular random offset distribution instead of a square one. ([#8466](https://github.com/tldraw/tldraw/pull/8466))
+- Fix opacity slider drag not working on Safari due to `stopPropagation` blocking pointer events. ([#8519](https://github.com/tldraw/tldraw/pull/8519))

@@ -1,7 +1,6 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
-import { DefaultPeopleMenu } from './lib/ui/components/SharePanel/DefaultPeopleMenu'
 export { getPointsFromDrawSegment, getPointsFromDrawSegments } from './lib/shapes/draw/getPath'
 export {
 	PathBuilder,
@@ -146,8 +145,8 @@ export {
 export { createBookmarkFromUrl } from './lib/shapes/bookmark/bookmarks'
 export {
 	BookmarkShapeUtil,
-	type BookmarkShapeUtilDisplayValues,
 	type BookmarkShapeOptions,
+	type BookmarkShapeUtilDisplayValues,
 } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
 export {
@@ -169,8 +168,8 @@ export {
 export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
 export {
 	GeoShapeUtil,
-	type GeoShapeUtilDisplayValues,
 	type GeoShapeOptions,
+	type GeoShapeUtilDisplayValues,
 } from './lib/shapes/geo/GeoShapeUtil'
 export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
 export {
@@ -180,20 +179,20 @@ export {
 } from './lib/shapes/highlight/HighlightShapeUtil'
 export {
 	ImageShapeUtil,
-	type ImageShapeUtilDisplayValues,
 	type ImageShapeOptions,
+	type ImageShapeUtilDisplayValues,
 } from './lib/shapes/image/ImageShapeUtil'
 export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export {
 	LineShapeUtil,
-	type LineShapeUtilDisplayValues,
 	type LineShapeOptions,
+	type LineShapeUtilDisplayValues,
 } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export {
 	NoteShapeUtil,
-	type NoteShapeUtilDisplayValues,
 	type NoteShapeOptions,
+	type NoteShapeUtilDisplayValues,
 } from './lib/shapes/note/NoteShapeUtil'
 export {
 	ASPECT_RATIO_OPTIONS,
@@ -204,6 +203,7 @@ export {
 	type ASPECT_RATIO_OPTION,
 	type CropBoxOptions,
 } from './lib/shapes/shared/crop'
+export { getFontFamily } from './lib/shapes/shared/default-shape-constants'
 export {
 	allDefaultFontFaces,
 	DefaultFontFaces,
@@ -246,7 +246,6 @@ export {
 	type VideoShapeOptions,
 	type VideoShapeUtilDisplayValues,
 } from './lib/shapes/video/VideoShapeUtil'
-export { getFontFamily } from './lib/shapes/shared/default-shape-constants'
 export { getColorStyleItems, getFontStyleItems, type StyleValuesForUi } from './lib/styles'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
@@ -507,14 +506,17 @@ export {
 	type TLUiQuickActionsProps,
 } from './lib/ui/components/QuickActions/DefaultQuickActions'
 export { DefaultQuickActionsContent } from './lib/ui/components/QuickActions/DefaultQuickActionsContent'
-export { DefaultSharePanel } from './lib/ui/components/SharePanel/DefaultSharePanel'
 export {
 	DefaultPeopleMenu,
-	type DefaultPeopleMenuProps,
 	// legacy
 	DefaultPeopleMenu as PeopleMenu,
+	type DefaultPeopleMenuProps,
 	type DefaultPeopleMenuProps as PeopleMenuProps,
 } from './lib/ui/components/SharePanel/DefaultPeopleMenu'
+export {
+	DefaultPeopleMenuAvatar,
+	type TLUiPeopleMenuAvatarProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuAvatar'
 export {
 	DefaultPeopleMenuContent,
 	type DefaultPeopleMenuContentProps,
@@ -524,13 +526,10 @@ export {
 	type TLUiPeopleMenuFacePileProps,
 } from './lib/ui/components/SharePanel/DefaultPeopleMenuFacePile'
 export {
-	type TLUiPeopleMenuAvatarProps,
-	DefaultPeopleMenuAvatar,
-} from './lib/ui/components/SharePanel/DefaultPeopleMenuAvatar'
-export {
-	type TLUiPeopleMenuItemProps,
 	DefaultPeopleMenuItem,
+	type TLUiPeopleMenuItemProps,
 } from './lib/ui/components/SharePanel/DefaultPeopleMenuItem'
+export { DefaultSharePanel } from './lib/ui/components/SharePanel/DefaultSharePanel'
 export { DefaultUserPresenceEditor } from './lib/ui/components/SharePanel/DefaultUserPresenceEditor'
 export { Spinner } from './lib/ui/components/Spinner'
 export {
