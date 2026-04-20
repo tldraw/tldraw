@@ -47,7 +47,7 @@
 		"@tldraw/utils": "workspace:*",
 		"ansi-regex": "^6.1.0",
 		"ansi-styles": "^6.2.1",
-		"esbuild": "^0.27.4",
+		"esbuild": "^0.28.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"picocolors": "^1.1.1",
 		"string-width": "^7.2.0",

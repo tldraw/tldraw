@@ -534,7 +534,6 @@ input,
 	overflow: hidden;
 	text-overflow: ellipsis;
 	font-size: 12px;
-	font-family: var(--font-body);
 	border-radius: var(--tl-radius-2);
 	color: var(--tl-color-selected-contrast);
 }
@@ -552,7 +551,6 @@ input,
 	overflow: hidden;
 	text-overflow: ellipsis;
 	font-size: 12px;
-	font-family: var(--font-body);
 	text-shadow: var(--tl-text-outline);
 	color: var(--tl-color-selected-contrast);
 }
@@ -568,7 +566,6 @@ input,
 	position: absolute;
 	padding: 3px 6px;
 	font-size: 12px;
-	font-family: var(--font-body);
 	opacity: 1;
 	border-radius: var(--tl-radius-2);
 }
@@ -579,7 +576,6 @@ input,
 	white-space: nowrap;
 	padding: 3px 6px;
 	font-size: 12px;
-	font-family: var(--font-body);
 	pointer-events: none;
 	z-index: var(--tl-layer-cursor);
 	margin-top: 16px;

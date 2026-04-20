@@ -1,0 +1,210 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Repository overview
+
+This is the tldraw monorepo - an infinite canvas SDK for React applications. It's organized using yarn workspaces with packages for the core editor, UI components, shapes, tools, and supporting infrastructure.
+
+## Setup
+
+Requires Node ^20.0.0. Enable corepack to ensure correct yarn version:
+
+```bash
+npm i -g corepack && yarn
+```
+
+## Essential commands
+
+### Development
+
+- `yarn dev` - Start development server for examples app at localhost:5420
+- `yarn dev-app` - Start tldraw.com client app development
+- `yarn dev-docs` - Start documentation site development
+- `yarn dev-vscode` - Start VSCode extension development
+- `yarn dev-template <template name>` - Runs a template
+
+### Building
+
+- `yarn build` - Build all packages (incremental, builds only what changed)
+- `yarn build-package` - Build SDK packages only
+- `yarn build-app` - Build tldraw.com client app
+- `yarn build-docs` - Build documentation site
+
+### Testing
+
+- `yarn test` in a workspace - Run tests in watch mode (cd to workspace first)
+- `yarn test run` in a workspace - Run tests once without watch mode
+- `yarn test run --grep "pattern"` - Run matching tests in a workspace
+- `yarn vitest` - Run all tests across repo (slow, avoid unless necessary)
+- `yarn e2e` - Run end-to-end tests for examples
+- `yarn e2e-dotcom` - Run end-to-end tests for tldraw.com
+
+### Code quality
+
+- `yarn lint` - Lint package
+- `yarn lint-current` - Lint only changed files (faster)
+- `yarn typecheck` - Type check all packages (run from repo root; also runs `refresh-assets`)
+- `yarn format` - Format code with Prettier
+- `yarn format-current` - Format only changed files (faster)
+- `yarn api-check` - Validate public API consistency
+
+IMPORTANT: NEVER run bare `tsc` - always use `yarn typecheck`.
+If the `typecheck` command is not found, you're not running it from the repo root.
+
+## Architecture overview
+
+### Core packages structure
+
+**@tldraw/editor** - Foundational infinite canvas editor
+
+- No shapes, tools, or UI - just the core engine
+- State management using reactive signals (@tldraw/state)
+- Shape system via ShapeUtil, Tools via StateNode
+- Bindings system for shape relationships
+
+**@tldraw/tldraw** - Complete "batteries included" SDK
+
+- Builds on editor with full UI, shapes, and tools
+- Default shape utilities (text, draw, geo, arrow, etc.)
+- Complete tool set (select, hand, eraser, etc.)
+- Responsive UI system with customizable components
+
+**@tldraw/store** - Reactive client-side database
+
+- Document persistence with IndexedDB
+- Reactive updates using signals
+- Migration system for schema changes
+
+**@tldraw/tlschema** - Type definitions and validators
+
+- Shape, binding, and record type definitions
+- Validation schemas and migrations
+- Shared data structures
+
+### Key architectural patterns
+
+**Reactive state management**
+
+- Uses @tldraw/state for reactive signals (Atom, Computed)
+- All editor state is reactive and observable
+- Automatic dependency tracking prevents unnecessary re-renders
+
+**Shape system**
+
+- Each shape type has a ShapeUtil class defining behavior
+- ShapeUtil handles geometry, rendering, interactions
+- Extensible - custom shapes via new ShapeUtil implementations
+
+**Tools as state machines**
+
+- Tools implemented as StateNode hierarchies
+- Event-driven with pointer, keyboard, tick handlers
+- Complex tools have child states (e.g., SelectTool has Brushing, Translating, etc.)
+
+**Bindings system**
+
+- Relationships between shapes (arrows to shapes, etc.)
+- BindingUtil classes define binding behavior
+- Automatic updates when connected shapes change
+
+## Testing
+
+- Unit tests: `packages/<workspace>/src/**/*.test.ts` (alongside source or in `src/test/`)
+- E2E tests: `apps/examples/e2e/` and `apps/dotcom/client/e2e/`
+- Test in `packages/tldraw` if you need default shapes/tools
+- Run from workspace: `cd packages/tldraw && yarn test run --grep "pattern"`
+
+See `.claude/skills/write-unit-tests/` and `.claude/skills/write-e2e-tests/` for detailed patterns.
+
+## Development workspace structure
+
+```
+apps/
+├── examples/          # SDK examples and demos
+├── docs/             # Documentation site (tldraw.dev)
+├── dotcom/           # tldraw.com application
+│   ├── client/       # Frontend React app
+│   ├── sync-worker/  # Multiplayer backend
+│   └── asset-upload-worker/
+└── vscode/           # VSCode extension
+
+packages/
+├── editor/           # Core editor engine
+├── tldraw/           # Complete SDK with UI
+├── store/            # Reactive database
+├── tlschema/         # Type definitions
+├── state/            # Reactive signals library
+├── sync/             # Multiplayer SDK
+├── utils/            # Shared utilities
+├── validate/         # Lightweight validation library
+├── assets/           # Icons, fonts, translations
+└── create-tldraw/    # npm create tldraw CLI
+
+templates/            # Starter templates for different frameworks
+```
+
+## Build system (LazyRepo)
+
+Uses `lazyrepo` for incremental builds with caching:
+
+- `yarn build` builds only what changed
+- Workspace dependencies handled automatically
+- Caching based on file inputs/outputs
+- Parallel execution where possible
+
+## Key development notes
+
+**TypeScript**
+
+- Uses workspace references for fast incremental compilation
+- Run `yarn typecheck` before commits
+- API surface validated with Microsoft API Extractor
+
+**Monorepo management**
+
+- Yarn workspaces with berry (yarn 4.x)
+- Use `yarn` not `npm` - packageManager field enforces this
+- Dependencies managed at workspace level where possible
+
+**Asset management**
+
+- Icons, fonts, translations in `/assets` (managed centrally)
+- Run `yarn refresh-assets` after asset changes
+- Assets bundled into packages during build
+- Automatic optimization and deduplication
+
+**Example development**
+
+- Main development happens in `apps/examples`
+- Examples showcase SDK capabilities
+- See `apps/examples/writing-examples.md` for guidelines
+
+## Writing style guidelines
+
+**Sentence case for titles and headings**
+
+- Always use sentence case for titles, headings, and labels (NOT Title Case)
+- Examples:
+  - ✅ "Database configuration"
+  - ❌ "Database Configuration"
+  - ✅ "Real-time updates"
+  - ❌ "Real-Time Updates"
+  - ✅ "Custom shapes"
+  - ❌ "Custom Shapes"
+- Exception: Proper nouns, acronyms, and class/component names remain capitalized
+  - ✅ "PostgreSQL database"
+  - ✅ "WebSocket connections"
+  - ✅ "NodeShapeUtil implementation"
+- This applies to:
+  - Markdown headers (##, ###, etc.)
+  - Bold labels in lists (**Label**:)
+  - Documentation titles
+  - Code comments describing features
+
+## Important instruction reminders
+
+- Do what has been asked; nothing more, nothing less.
+- NEVER create files unless they're absolutely necessary for achieving your goal.
+- ALWAYS prefer editing an existing file to creating a new one.
+- NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
