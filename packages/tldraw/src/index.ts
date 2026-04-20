@@ -827,6 +827,10 @@ export {
 	type TldrawFile,
 	type TldrawFileParseError,
 } from './lib/utils/tldr/file'
+export {
+	roomSnapshotToTldrawFile,
+	type RoomSnapshotLike,
+} from './lib/utils/tldr/roomSnapshotToTldrawFile'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,
