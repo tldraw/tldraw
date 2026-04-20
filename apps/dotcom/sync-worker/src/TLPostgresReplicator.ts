@@ -127,7 +127,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private getNewSlotName() {
 		const slotNameMaxLength = 63 // max postgres identifier length
-		const slotId = uniqueId().toLowerCase()
+		// PG slot names only allow [a-z0-9_], replace hyphens from nanoid
+		const slotId = uniqueId().toLowerCase().replace(/-/g, '_')
 		const slotNamePrefix = `tlpr_${slotId}_`
 		const durableObjectId = this.ctx.id.toString()
 		return slotNamePrefix + durableObjectId.slice(0, slotNameMaxLength - slotNamePrefix.length)
