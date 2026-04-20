@@ -1,4 +1,5 @@
 import { Circle2d, createShapeId, Geometry2d, OverlayUtil, TLOverlay, Vec } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
 import { TestEditor } from '../TestEditor'
 
@@ -167,6 +168,66 @@ describe('OverlayManager', () => {
 			const editor = new TestEditor({ overlayUtils: [High, Low] })
 			const hit = editor.overlays.getOverlayAtPoint(new Vec(0, 0))
 			expect(hit?.type).toBe('high')
+		})
+	})
+
+	describe('onPointerDown interrupt', () => {
+		const makeHitUtil = (
+			type: string,
+			onPointerDown?: (overlay: TLOverlay, info: any) => boolean | void
+		) => {
+			class TestOverlay extends OverlayUtil<TLOverlay<{}>> {
+				static override type = type
+				override options = { zIndex: 1000 }
+				override isActive() {
+					return true
+				}
+				override getOverlays() {
+					return [{ id: `${type}:o`, type, props: {} }]
+				}
+				override getGeometry(): Geometry2d {
+					return new Circle2d({ x: -10, y: -10, radius: 10, isFilled: true })
+				}
+				override onPointerDown = onPointerDown
+			}
+			return TestOverlay
+		}
+
+		it('calls util.onPointerDown when an overlay is hit', () => {
+			const spy = vi.fn()
+			const Util = makeHitUtil('tester', spy)
+			const editor = new TestEditor({ overlayUtils: [Util] })
+			editor.pointerMove(0, 0).pointerDown(0, 0)
+			expect(spy).toHaveBeenCalledTimes(1)
+			expect(spy.mock.calls[0][0].id).toBe('tester:o')
+		})
+
+		it('skips default routing when onPointerDown returns a non-false value', () => {
+			const Util = makeHitUtil('tester', () => true)
+			const editor = new TestEditor({ overlayUtils: [Util] })
+			editor.pointerMove(0, 0).pointerDown(0, 0)
+			editor.expectToBeIn('select.idle')
+		})
+
+		it('skips default routing when onPointerDown returns undefined', () => {
+			const Util = makeHitUtil('tester', () => {})
+			const editor = new TestEditor({ overlayUtils: [Util] })
+			editor.pointerMove(0, 0).pointerDown(0, 0)
+			editor.expectToBeIn('select.idle')
+		})
+
+		it('runs default routing when onPointerDown returns false', () => {
+			const Util = makeHitUtil('tester', () => false)
+			const editor = new TestEditor({ overlayUtils: [Util] })
+			editor.pointerMove(0, 0).pointerDown(0, 0)
+			editor.expectToBeIn('select.pointing_selection')
+		})
+
+		it('runs default routing when onPointerDown is not defined', () => {
+			const Util = makeHitUtil('tester')
+			const editor = new TestEditor({ overlayUtils: [Util] })
+			editor.pointerMove(0, 0).pointerDown(0, 0)
+			editor.expectToBeIn('select.pointing_selection')
 		})
 	})
 

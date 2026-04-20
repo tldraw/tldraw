@@ -1,6 +1,7 @@
 import { TLCursorType } from '@tldraw/tlschema'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
+import { TLPointerEventInfo } from '../types/event-types'
 
 /** @public */
 export interface TLOverlay<Props = Record<string, unknown>> {
@@ -102,6 +103,18 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
 	getCursor(_overlay: T): TLCursorType | undefined {
 		return undefined
 	}
+
+	/**
+	 * Called when the user points down on this overlay, before the default
+	 * routing runs. Acts as an interrupt: define it to take over the event.
+	 *
+	 * Return `false` to continue with the default behavior (e.g. the
+	 * built-in rotate/resize handle transitions or shape-handle dispatch).
+	 * Return `true` — or nothing at all — to skip the default. In other
+	 * words, once you override this method you own the event unless you
+	 * explicitly opt back in by returning `false`.
+	 */
+	onPointerDown?(overlay: T, info: TLPointerEventInfo): boolean | void
 
 	/**
 	 * Render all active overlays into the canvas context.

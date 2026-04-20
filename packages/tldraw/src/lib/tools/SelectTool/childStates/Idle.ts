@@ -121,6 +121,16 @@ export class Idle extends StateNode {
 				// describing what kind of overlay it is. Delegate to the appropriate
 				// state transition based on the overlay's props.
 				const { overlay } = info
+				const util = this.editor.overlays.getOverlayUtil(overlay)
+
+				// Give the overlay util a chance to handle the event itself.
+				// Defining onPointerDown acts as an interrupt — unless it
+				// explicitly returns false, we skip the default routing below.
+				if (util.onPointerDown) {
+					const result = util.onPointerDown(overlay, info)
+					if (result !== false) return
+				}
+
 				const overlayType = overlay.props.overlayType as string | undefined
 
 				// Check overlay type to determine how to route the event

@@ -2604,6 +2604,7 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
     getGeometry(_overlay: T): Geometry2d | null;
     abstract getOverlays(): T[];
     abstract isActive(): boolean;
+    onPointerDown?(overlay: T, info: TLPointerEventInfo): boolean | void;
     options: {
         zIndex?: number;
     } & Record<string, unknown>;

@@ -2,11 +2,9 @@ import { useComputed, useQuickReactor } from '@tldraw/state-react'
 import { createComputedCache } from '@tldraw/store'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { dedupe } from '@tldraw/utils'
-import { memo, useEffect, useRef } from 'react'
+import { memo, useRef } from 'react'
 import { Editor } from '../../editor/Editor'
 import { TLIndicatorPath } from '../../editor/shapes/ShapeUtil'
-import { getComputedStyle } from '../../exports/domUtils'
-import { useColorMode } from '../../hooks/useColorMode'
 import { useEditor } from '../../hooks/useEditor'
 import { useActivePeerIds$ } from '../../hooks/usePeerIds'
 
@@ -131,17 +129,6 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 	const editor = useEditor()
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
-	// Cache the selected color to avoid getComputedStyle on every render
-	const rSelectedColor = useRef<string | null>(null)
-	const colorMode = useColorMode()
-
-	useEffect(() => {
-		const timer = editor.timers.setTimeout(() => {
-			rSelectedColor.current = null
-		}, 0)
-		return () => clearTimeout(timer)
-	}, [colorMode, editor])
-
 	// Get active peer IDs (already handles time-based state transitions)
 	const activePeerIds$ = useActivePeerIds$()
 
@@ -261,12 +248,9 @@ export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 			// Reset alpha for local indicators
 			ctx.globalAlpha = 1.0
 
-			// Use cached color, only call getComputedStyle when cache is empty
-			if (!rSelectedColor.current) {
-				rSelectedColor.current = getComputedStyle(canvas).getPropertyValue('--tl-color-selected')
-			}
-
-			ctx.strokeStyle = rSelectedColor.current
+			// Read the selected color from the current theme. Reactive: the quick
+			// reactor re-runs when the theme or color mode changes.
+			ctx.strokeStyle = editor.getCurrentTheme().colors[editor.getColorMode()].selectionStroke
 
 			// Draw selected/hovered indicators (1.5px stroke)
 			ctx.lineWidth = 1.5 / zoom

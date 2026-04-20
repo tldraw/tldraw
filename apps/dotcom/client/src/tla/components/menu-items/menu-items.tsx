@@ -17,10 +17,15 @@ import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
 import { signoutAnalytics } from '../../../utils/analytics'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { UI_THEMES } from '../../themes/ui-themes'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import { resetLocalSessionStateButKeepTheme } from '../../utils/local-session-state'
+import {
+	getLocalSessionState,
+	resetLocalSessionStateButKeepTheme,
+	updateLocalSessionState,
+} from '../../utils/local-session-state'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
 
@@ -78,6 +83,45 @@ export function ColorThemeSubmenu() {
 	const editor = useMaybeEditor()
 	if (!editor) return null
 	return <ColorSchemeMenu />
+}
+
+const THEME_NAMES: Record<string, string> = {
+	default: 'Default',
+	...Object.fromEntries(UI_THEMES.map(({ id, name }) => [id, name])),
+}
+
+export function UIThemeSubmenu() {
+	const editor = useMaybeEditor()
+	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
+	const trackEvent = useTldrawAppUiEvents()
+
+	const themeIds = useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [
+		editor,
+	])
+	if (!editor || themeIds.length === 0) return null
+
+	return (
+		<TldrawUiMenuSubmenu id="ui-theme" label="Color theme">
+			<TldrawUiMenuGroup id="ui-theme-options">
+				{themeIds.map((id) => (
+					<TldrawUiMenuCheckboxItem
+						key={id}
+						id={`ui-theme-${id}`}
+						label={THEME_NAMES[id] ?? id}
+						checked={colorTheme === id}
+						readonlyOk
+						onSelect={() => {
+							updateLocalSessionState(() => ({ colorTheme: id }))
+							trackEvent('set-color-theme', {
+								source: 'user-preferences',
+								theme: id,
+							})
+						}}
+					/>
+				))}
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
 }
 
 export function CookieConsentMenuItem() {
