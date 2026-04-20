@@ -7,7 +7,15 @@ import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiRow } from '../primitives/layout'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 
-export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId: string }) {
+/** @public */
+export interface TLUiPeopleMenuItemProps {
+	userId: string
+}
+
+/** @public @react */
+export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
+	userId,
+}: TLUiPeopleMenuItemProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const trackEvent = useUiEvents()

@@ -288,7 +288,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	canBind(_opts: TLShapeUtilCanBindOpts): boolean {
+	canBind(opts: TLShapeUtilCanBindOpts): boolean {
 		return true
 	}
 
@@ -538,7 +538,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @param type - The shape type.
 	 * @public
 	 */
-	canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']) {
+	canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']) {
 		return false
 	}
 

@@ -40,7 +40,7 @@ export class ClickableShapeUtil extends BaseBoxShapeUtil<ClickableShape> {
 		}
 	}
 
-	override canEdit() {
+	override canEdit(shape: ClickableShape) {
 		return false
 	}
 

@@ -139,10 +139,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		},
 	}
 
-	override canEdit() {
+	override canEdit(shape: TLNoteShape) {
 		return true
 	}
-	override hideResizeHandles() {
+	override hideResizeHandles(shape: TLNoteShape) {
 		const { resizeMode } = this.options
 		switch (resizeMode) {
 			case 'none': {
@@ -157,11 +157,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		}
 	}
 
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(shape: TLNoteShape) {
 		return this.options.resizeMode === 'scale'
 	}
 
-	override hideSelectionBoundsFg() {
+	override hideSelectionBoundsFg(shape: TLNoteShape) {
 		return false
 	}
 
@@ -402,12 +402,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							hasCustomTabBehavior
 							showTextOutline={false}
 							onKeyDown={handleKeyDown}
-							style={{
-								transform: `scale(${scale})`,
-								transformOrigin: 'top left',
-								width: dv.noteWidth,
-								height: dv.noteHeight + shape.props.growY,
-							}}
+							style={
+								scale !== 1
+									? {
+											transform: `scale(${scale})`,
+											transformOrigin: 'top left',
+											width: dv.noteWidth,
+											height: dv.noteHeight + shape.props.growY,
+										}
+									: undefined
+							}
 						/>
 					)}
 				</div>

@@ -753,6 +753,7 @@ export const defaultTldrawOptions: {
     readonly onBeforePasteFromClipboard: undefined;
     readonly onClipboardPasteRaw: undefined;
     readonly quickZoomPreservesScreenBounds: true;
+    readonly rightClickPanning: true;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
@@ -761,6 +762,7 @@ export const defaultTldrawOptions: {
     readonly tooltipDelayMs: 700;
     readonly uiCoarseDragDistanceSquared: 625;
     readonly uiDragDistanceSquared: 16;
+    readonly useCanvasIndicators: true;
     readonly zoomToFitPadding: 128;
 };
 
@@ -1467,6 +1469,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     packShapes(shapes: TLShape[] | TLShapeId[], _gap?: number): this;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
+    readonly performance: PerformanceManager;
     popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, opts?: {
         point?: VecLike;
@@ -2035,7 +2038,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     getGeometry(shape: TLGroupShape): Geometry2d;
     // (undocumented)
-    hideSelectionBoundsFg(): boolean;
+    hideSelectionBoundsFg(shape: TLGroupShape): boolean;
     // (undocumented)
     indicator(shape: TLGroupShape): JSX.Element;
     // (undocumented)
@@ -2166,6 +2169,7 @@ export class InputsManager {
     getIsPen(): boolean;
     getIsPinching(): boolean;
     getIsPointing(): boolean;
+    getIsRightPointing(): boolean;
     getIsSpacebarPanning(): boolean;
     getMetaKey(): boolean;
     getOriginPagePoint(): Vec;
@@ -2224,6 +2228,8 @@ export class InputsManager {
     setIsPinching(isPinching: boolean): void;
     // @internal (undocumented)
     setIsPointing(isPointing: boolean): void;
+    // @internal (undocumented)
+    setIsRightPointing(isRightPointing: boolean): void;
     // @internal (undocumented)
     setIsSpacebarPanning(isSpacebarPanning: boolean): void;
     // @internal (undocumented)
@@ -2621,6 +2627,31 @@ export function parseDeepLinkString(deepLinkString: string): TLDeepLink;
 export type PerfectDashTerminal = 'none' | 'outset' | 'skip';
 
 // @public
+export class PerformanceApiAdapter {
+    constructor(perfManager: PerformanceManager);
+    dispose(): void;
+}
+
+// @public
+export class PerformanceManager {
+    constructor(editor: Editor);
+    // @internal (undocumented)
+    dispose(): void;
+    // @internal (undocumented)
+    readonly emitter: EventEmitter<TLPerfEventMap, any>;
+    // @internal (undocumented)
+    _notifyCameraOperation(type: 'panning' | 'zooming'): void;
+    // @internal (undocumented)
+    _notifyInteractionEnd(): void;
+    // @internal (undocumented)
+    _notifyInteractionStart(name: string, path: string): void;
+    // @internal (undocumented)
+    _notifyUndoRedo(type: 'redo' | 'undo', undoDepth: number, redoDepth: number): void;
+    on<K extends keyof TLPerfEventMap>(event: K, fn: (...args: TLPerfEventMap[K]) => void): () => void;
+    once<K extends keyof TLPerfEventMap>(event: K, fn: (...args: TLPerfEventMap[K]) => void): () => void;
+}
+
+// @public
 export function perimeterOfEllipse(rx: number, ry: number): number;
 
 // @public (undocumented)
@@ -2900,13 +2931,13 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     // @internal
     backgroundComponent?(shape: Shape): any;
     canBeLaidOut(shape: Shape, info: TLShapeUtilCanBeLaidOutOpts): boolean;
-    canBind(_opts: TLShapeUtilCanBindOpts): boolean;
+    canBind(opts: TLShapeUtilCanBindOpts): boolean;
     canCrop(shape: Shape): boolean;
     canCull(shape: Shape): boolean;
     canEdit(shape: Shape, info: TLEditStartInfo): boolean;
     canEditInReadonly(shape: Shape): boolean;
     canEditWhileLocked(shape: Shape): boolean;
-    canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']): boolean;
+    canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
     canResize(shape: Shape): boolean;
     canResizeChildren(shape: Shape): boolean;
     canScroll(shape: Shape): boolean;
@@ -3174,6 +3205,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     setCurrentToolIdMask(id: string | undefined): void;
     // (undocumented)
     shapeType?: string;
+    static trackPerformance: boolean;
     transition(id: string, info?: any): this;
     // (undocumented)
     type: 'branch' | 'leaf' | 'root';
@@ -3379,6 +3411,18 @@ export interface TLCameraConstraints {
     padding: VecLike;
 }
 
+// @public
+export interface TLCameraEndPerfEvent extends TLPerfFrameTimeStats {
+    culledShapeCount: number;
+    shapeCount: number;
+    timestamp: number;
+    type: 'panning' | 'zooming';
+    viewportHeight: number;
+    viewportWidth: number;
+    visibleShapeCount: number;
+    zoomLevel: number;
+}
+
 // @public (undocumented)
 export interface TLCameraMoveOptions {
     animation?: {
@@ -3398,6 +3442,12 @@ export interface TLCameraOptions {
     wheelBehavior: 'none' | 'pan' | 'zoom';
     zoomSpeed: number;
     zoomSteps: number[];
+}
+
+// @public
+export interface TLCameraStartPerfEvent {
+    timestamp: number;
+    type: 'panning' | 'zooming';
 }
 
 // @public (undocumented)
@@ -3724,6 +3774,7 @@ export interface TldrawOptions {
     }): Awaitable<false | TLExternalContent<unknown> | void>;
     onClipboardPasteRaw?(info: TLClipboardPasteRawInfo): false | void;
     readonly quickZoomPreservesScreenBounds: boolean;
+    readonly rightClickPanning: boolean;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
     readonly temporaryAssetPreviewLifetimeMs: number;
@@ -3736,6 +3787,7 @@ export interface TldrawOptions {
     readonly uiCoarseDragDistanceSquared: number;
     // (undocumented)
     readonly uiDragDistanceSquared: number;
+    readonly useCanvasIndicators: boolean;
     readonly zoomToFitPadding: number;
 }
 
@@ -4050,6 +4102,14 @@ export interface TLFilesExternalContent extends TLBaseExternalContent {
 }
 
 // @public
+export interface TLFramePerfEvent {
+    culledShapeCount: number;
+    elapsed: number;
+    shapeCount: number;
+    visibleShapeCount: number;
+}
+
+// @public
 export interface TLGeometryOpts {
     context?: string;
 }
@@ -4125,6 +4185,23 @@ export type TLIndicatorPath = {
     clipPath?: Path2D;
     path: Path2D;
 } | Path2D;
+
+// @public
+export interface TLInteractionEndPerfEvent extends TLPerfFrameTimeStats {
+    name: string;
+    path: string;
+    selectedShapeTypes: Record<string, number>;
+    shapeCount: number;
+    timestamp: number;
+    zoomLevel: number;
+}
+
+// @public
+export interface TLInteractionStartPerfEvent {
+    name: string;
+    path: string;
+    timestamp: number;
+}
 
 // @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;
@@ -4270,6 +4347,50 @@ export interface TLOverlayUtilConstructor<U extends OverlayUtil = OverlayUtil> {
     } ? Partial<Options> : never): T;
     // (undocumented)
     type: string;
+}
+
+// @public
+export interface TLPerfEventMap {
+    'camera-end': [TLCameraEndPerfEvent];
+    'camera-start': [TLCameraStartPerfEvent];
+    'interaction-end': [TLInteractionEndPerfEvent];
+    'interaction-start': [TLInteractionStartPerfEvent];
+    'shapes-created': [TLShapeOperationPerfEvent];
+    'shapes-deleted': [TLShapeOperationPerfEvent];
+    'shapes-updated': [TLShapeOperationPerfEvent];
+    frame: [TLFramePerfEvent];
+    redo: [TLUndoRedoPerfEvent];
+    undo: [TLUndoRedoPerfEvent];
+}
+
+// @public
+export interface TLPerfFrameTimeStats {
+    avgFrameTime: number;
+    duration: number;
+    fps: number;
+    frameCount: number;
+    frameTimes: number[];
+    longAnimationFrames?: TLPerfLongAnimationFrame[];
+    maxFrameTime: number;
+    medianFrameTime: number;
+    minFrameTime: number;
+    p95FrameTime: number;
+    p99FrameTime: number;
+}
+
+// @public
+export interface TLPerfLongAnimationFrame {
+    blockingDuration: number;
+    duration: number;
+    scripts: TLPerfLongAnimationFrameScript[];
+    startTime: number;
+}
+
+// @public
+export interface TLPerfLongAnimationFrameScript {
+    duration: number;
+    invoker: string;
+    sourceURL: string;
 }
 
 // @public (undocumented)
@@ -4437,6 +4558,14 @@ export type TLShapeErrorFallbackComponent = ComponentType<{
 }>;
 
 // @public
+export interface TLShapeOperationPerfEvent {
+    count: number;
+    operation: 'create' | 'delete' | 'update';
+    shapeTypes: Record<string, number>;
+    timestamp: number;
+}
+
+// @public
 export interface TLShapeUtilCanBeLaidOutOpts {
     shapes?: TLShape[];
     type?: 'align' | 'distribute' | 'flip' | 'pack' | 'resize_to_bounds' | 'stack' | 'stretch';
@@ -4498,6 +4627,8 @@ export interface TLStateNodeConstructor {
     initial?: string;
     // (undocumented)
     isLockable: boolean;
+    // (undocumented)
+    trackPerformance: boolean;
     // (undocumented)
     useCoalescedEvents: boolean;
 }
@@ -4637,6 +4768,13 @@ export interface TLTldrawExternalContentSource {
     data: TLContent;
     // (undocumented)
     type: 'tldraw';
+}
+
+// @public
+export interface TLUndoRedoPerfEvent {
+    redoDepth: number;
+    type: 'redo' | 'undo';
+    undoDepth: number;
 }
 
 // @public (undocumented)

@@ -128,11 +128,11 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return info.type === 'click-header' || info.type === 'unknown'
 	}
 
-	override canResize() {
+	override canResize(shape: TLFrameShape) {
 		return true
 	}
 
-	override canResizeChildren() {
+	override canResizeChildren(shape: TLFrameShape) {
 		return this.options.resizeChildren
 	}
 

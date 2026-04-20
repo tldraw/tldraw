@@ -156,6 +156,10 @@ export async function publish(distTag?: string) {
 		await retry(
 			async () => {
 				let output = ''
+				const publishStart = Date.now()
+				nicelog(
+					`[publish] ${packageDetails.name}@${packageDetails.version} starting npm publish...`
+				)
 				try {
 					await exec(
 						`yarn`,
@@ -175,10 +179,17 @@ export async function publish(distTag?: string) {
 				} catch (e) {
 					if (output.includes('You cannot publish over the previously published versions')) {
 						// --tolerate-republish seems to not work for canary versions??? so let's just ignore this error
+						nicelog(
+							`[publish] ${packageDetails.name}@${packageDetails.version} already published, skipping`
+						)
 						return
 					}
 					throw e
 				}
+				const elapsed = ((Date.now() - publishStart) / 1000).toFixed(1)
+				nicelog(
+					`[publish] ${packageDetails.name}@${packageDetails.version} npm publish done (${elapsed}s)`
+				)
 			},
 			{
 				delay: 10_000,

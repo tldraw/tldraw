@@ -7,7 +7,8 @@ import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiInput } from '../primitives/TldrawUiInput'
 import { UserPresenceColorPicker } from './UserPresenceColorPicker'
 
-export function UserPresenceEditor() {
+/** @public @react */
+export function DefaultUserPresenceEditor() {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 	const userName = useValue('userName', () => editor.user.getName(), [])

@@ -413,6 +413,88 @@ input,
 	pointer-events: none;
 }
 
+/* -------------- Nametag / cursor chat ------------- */
+
+.tl-nametag {
+	position: absolute;
+	top: 16px;
+	left: 13px;
+	width: fit-content;
+	height: fit-content;
+	max-width: 120px;
+	padding: 3px 6px;
+	white-space: nowrap;
+	position: absolute;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 12px;
+	border-radius: var(--tl-radius-2);
+	color: var(--tl-color-selected-contrast);
+}
+
+.tl-nametag-title {
+	position: absolute;
+	top: -2px;
+	left: 13px;
+	width: fit-content;
+	height: fit-content;
+	padding: 0px 6px;
+	max-width: 120px;
+	white-space: nowrap;
+	position: absolute;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 12px;
+	text-shadow: var(--tl-text-outline);
+	color: var(--tl-color-selected-contrast);
+}
+
+.tl-nametag-chat {
+	position: absolute;
+	top: 16px;
+	left: 13px;
+	width: fit-content;
+	height: fit-content;
+	color: var(--tl-color-selected-contrast);
+	white-space: nowrap;
+	position: absolute;
+	padding: 3px 6px;
+	font-size: 12px;
+	opacity: 1;
+	border-radius: var(--tl-radius-2);
+}
+
+.tl-cursor-chat {
+	position: absolute;
+	color: var(--tl-color-selected-contrast);
+	white-space: nowrap;
+	padding: 3px 6px;
+	font-size: 12px;
+	pointer-events: none;
+	z-index: var(--tl-layer-cursor);
+	margin-top: 16px;
+	margin-left: 13px;
+	opacity: 1;
+	border: none;
+	user-select: text;
+	border-radius: var(--tl-radius-2);
+}
+
+.tl-cursor-chat .tl-cursor-chat__bubble {
+	padding-right: 12px;
+}
+
+.tl-cursor-chat::selection {
+	background: var(--tl-color-selected);
+	color: var(--tl-color-selected-contrast);
+	text-shadow: none;
+}
+
+.tl-cursor-chat::placeholder {
+	color: var(--tl-color-selected-contrast);
+	opacity: 0.7;
+}
+
 /* ---------------------- Text ---------------------- */
 
 .tl-text-shape-label {

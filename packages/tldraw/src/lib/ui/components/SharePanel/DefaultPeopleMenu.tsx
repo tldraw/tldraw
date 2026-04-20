@@ -1,24 +1,20 @@
 import { useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
 import { Popover as _Popover } from 'radix-ui'
 import { ReactNode } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
-import { useBreakpoint } from '../../context/breakpoints'
+import { useTldrawUiComponents } from '../../context/components'
 import { useCollaborationStatus } from '../../hooks/useCollaborationStatus'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { OfflineIndicator } from '../OfflineIndicator/OfflineIndicator'
-import { PeopleMenuAvatar } from './PeopleMenuAvatar'
-import { PeopleMenuItem } from './PeopleMenuItem'
-import { PeopleMenuMore } from './PeopleMenuMore'
-import { UserPresenceEditor } from './UserPresenceEditor'
+import { DefaultPeopleMenuContent } from './DefaultPeopleMenuContent'
 
 /** @public */
-export interface PeopleMenuProps {
+export interface DefaultPeopleMenuProps {
 	children?: ReactNode
 }
 
 /** @public @react */
-export function PeopleMenu({ children }: PeopleMenuProps) {
+export function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps) {
 	const msg = useTranslation()
 	const dir = useDirection()
 
@@ -30,37 +26,28 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 	const userName = useValue('user', () => editor.user.getName(), [editor])
 
 	const [isOpen, onOpenChange] = useMenuIsOpen('people menu')
-	const breakpoint = useBreakpoint()
-	const maxAvatars = breakpoint <= PORTRAIT_BREAKPOINT.MOBILE_XS ? 1 : 5
 
 	const collaborationStatus = useCollaborationStatus()
+
+	const { PeopleMenuFacePile } = useTldrawUiComponents()
 
 	if (collaborationStatus === 'offline') {
 		return <OfflineIndicator />
 	}
 
-	if (!userIds.length) return null
+	if (!userIds.length || (!children && !PeopleMenuFacePile)) {
+		return null
+	}
+
+	const content = children ?? <DefaultPeopleMenuContent userIds={userIds} />
 
 	return (
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
 			<_Popover.Trigger dir={dir} asChild>
 				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
-					<div className="tlui-people-menu__avatars">
-						{userIds.slice(-maxAvatars).map((userId) => (
-							<PeopleMenuAvatar key={userId} userId={userId} />
-						))}
-						{userIds.length > 0 && (
-							<div
-								className="tlui-people-menu__avatar"
-								style={{
-									backgroundColor: userColor,
-								}}
-							>
-								{userName?.[0] ?? ''}
-							</div>
-						)}
-						{userIds.length > maxAvatars && <PeopleMenuMore count={userIds.length - maxAvatars} />}
-					</div>
+					{PeopleMenuFacePile ? (
+						<PeopleMenuFacePile userColor={userColor} userIds={userIds} userName={userName} />
+					) : null}
 				</button>
 			</_Popover.Trigger>
 			<_Popover.Portal container={container}>
@@ -71,19 +58,7 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 					sideOffset={2}
 					collisionPadding={4}
 				>
-					<div className="tlui-people-menu__wrapper">
-						<div className="tlui-people-menu__section">
-							<UserPresenceEditor />
-						</div>
-						{userIds.length > 0 && (
-							<div className="tlui-people-menu__section">
-								{userIds.map((userId) => {
-									return <PeopleMenuItem key={userId + '_presence'} userId={userId} />
-								})}
-							</div>
-						)}
-						{children}
-					</div>
+					<div className="tlui-people-menu__wrapper">{content}</div>
 				</_Popover.Content>
 			</_Popover.Portal>
 		</_Popover.Root>

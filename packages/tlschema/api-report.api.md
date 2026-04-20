@@ -296,7 +296,7 @@ export const defaultBindingSchemas: {
 export const DefaultColorStyle: EnumStyleProp<TLDefaultColorStyle>;
 
 // @public
-export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
+export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "none" | "solid">;
 
 // @public
 export const DefaultFillStyle: EnumStyleProp<"fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid">;

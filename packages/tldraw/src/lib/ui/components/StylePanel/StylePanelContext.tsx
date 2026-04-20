@@ -41,7 +41,6 @@ export function StylePanelContextProvider({ children, styles }: StylePanelContex
 			const skipNextShapeStyle = unsafe__withoutCapture(
 				() => editor.getSelectedShapeIds().length > 0 && editor.inputs.getAccelKey()
 			)
-
 			editor.run(() => {
 				if (editor.isIn('select')) {
 					editor.setStyleForSelectedShapes(style, value)
