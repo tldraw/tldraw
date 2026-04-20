@@ -181,16 +181,16 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 
 	/** Chat bubble - colored background with white text */
 	private _drawChatBubble(ctx: CanvasRenderingContext2D, chatMessage: string, color: string) {
-		ctx.font = '12px var(--tl-font-body, sans-serif)'
-		const maxWidth = 200
-		const text = this._truncateText(ctx, chatMessage, maxWidth)
+		const { fontSize, chatMaxWidth } = this.options
+		ctx.font = `${fontSize}px var(--tl-font-body, sans-serif)`
+		const text = this._truncateText(ctx, chatMessage, chatMaxWidth)
 		const metrics = ctx.measureText(text)
-		const textWidth = Math.min(metrics.width, maxWidth)
+		const textWidth = Math.min(metrics.width, chatMaxWidth)
 		const px = 6
 		const py = 3
 		const x = 13
 		const y = 16
-		const h = 12 + py * 2
+		const h = fontSize + py * 2
 		const w = textWidth + px * 2
 
 		// Background
