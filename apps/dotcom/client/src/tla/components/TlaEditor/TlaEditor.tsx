@@ -278,6 +278,12 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}
 	}, [])
 
+	// Wait for the canvas_indicators_ab assignment to resolve before mounting
+	// the editor. This avoids misbucketing users into the control group just
+	// because the feature flag fetch hadn't landed yet. The hook has a bounded
+	// 500ms timeout so a slow/unreachable flags endpoint can't block the app.
+	if (canvasIndicatorsAb === null) return null
+
 	return (
 		<TlaEditorWrapper>
 			<Tldraw

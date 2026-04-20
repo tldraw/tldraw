@@ -45,6 +45,11 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 		[schema, records]
 	)
 
+	// Wait for the canvas_indicators_ab assignment to resolve before mounting
+	// the editor. The hook has a bounded 500ms timeout so a slow flags endpoint
+	// can't block the app.
+	if (canvasIndicatorsAb === null) return null
+
 	return (
 		<div className={styles.editor} data-testid="tla-editor">
 			<Tldraw
