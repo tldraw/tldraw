@@ -30,6 +30,7 @@ async function main() {
 		webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 		totalSteps: 4,
 		shouldNotify: true,
+		secretValues: Object.values(env),
 	})
 	await discord.message(`🚀 Triggering dotcom hotfix for PR #${pr.number}...`)
 
@@ -148,10 +149,12 @@ Original Author: @${pr.user?.login}`,
 main().catch(async (e: Error) => {
 	console.error(e)
 
+	const env = getEnv()
 	const discord = new Discord({
-		webhookUrl: process.env.DISCORD_DEPLOY_WEBHOOK_URL!,
+		webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 		totalSteps: 3,
 		shouldNotify: true,
+		secretValues: Object.values(env),
 	})
 
 	await discord
