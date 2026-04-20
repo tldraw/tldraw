@@ -1,5 +1,6 @@
-import type { SerializedSchema, TLAssetId, TLRecord, UnknownRecord } from '@tldraw/editor'
+import type { SerializedSchema, TLRecord, UnknownRecord } from '@tldraw/editor'
 import type { TldrawFile } from './file'
+import { pruneUnusedAssets } from './file'
 
 /**
  * Mirrors the `RoomSnapshot` shape from `@tldraw/sync-core` without importing
@@ -45,13 +46,7 @@ export function roomSnapshotToTldrawFile(snapshot: RoomSnapshotLike): TldrawFile
 		}
 	}
 
-	const usedAssets = new Set<TLAssetId>()
-	for (const record of persistent) {
-		if (record.typeName === 'shape' && 'assetId' in record.props && record.props.assetId) {
-			usedAssets.add(record.props.assetId as TLAssetId)
-		}
-	}
-	const records = persistent.filter((r) => r.typeName !== 'asset' || usedAssets.has(r.id))
+	const records = pruneUnusedAssets(persistent)
 
 	return {
 		tldrawFileFormatVersion: 1,
