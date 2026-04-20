@@ -25,7 +25,7 @@ path = "/"
 
 [[vm]]
 memory = "__VM_MEMORY"
-cpu_kind = "shared"
+cpu_kind = "__CPU_KIND"
 cpus = __VM_CPUS
 
 [mounts]
