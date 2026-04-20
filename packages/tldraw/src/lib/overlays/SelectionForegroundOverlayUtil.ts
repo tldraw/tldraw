@@ -255,9 +255,11 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			const isMediaShape =
 				onlyShape &&
 				(editor.isShapeOfType(onlyShape, 'image') || editor.isShapeOfType(onlyShape, 'video'))
+			const isShapeTooCloseToContextualToolbar =
+				rotation / HALF_PI > 1.6 && rotation / HALF_PI < 2.4
 			const cy = isSmallX
 				? height / 2
-				: isMediaShape
+				: isMediaShape && !isShapeTooCloseToContextualToolbar
 					? height + targetSize * 1.5
 					: -targetSize * 1.5
 			return new Polygon2d({
