@@ -39,9 +39,13 @@ export const deriveShapeIdsInCurrentPage = (store: TLStore, getCurrentPageId: ()
 	function fromScratch() {
 		const currentPageId = getCurrentPageId()
 		lastPageId = currentPageId
-		return new Set(
-			[...shapesIndex.get()].filter((id) => isShapeInPage(store, currentPageId, store.get(id)!))
-		)
+		const result = new Set<TLShapeId>()
+		for (const id of shapesIndex.get()) {
+			if (isShapeInPage(store, currentPageId, store.get(id)!)) {
+				result.add(id)
+			}
+		}
+		return result
 	}
 	return computed<Set<TLShapeId>>('_shapeIdsInCurrentPage', (prevValue, lastComputedEpoch) => {
 		if (isUninitialized(prevValue)) {
