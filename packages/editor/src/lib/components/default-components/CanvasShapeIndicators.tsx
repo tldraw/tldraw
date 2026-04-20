@@ -129,6 +129,17 @@ function renderIndicatorPath(ctx: CanvasRenderingContext2D, indicatorPath: TLInd
 /** @internal @react */
 export const CanvasShapeIndicators = memo(function CanvasShapeIndicators() {
 	const editor = useEditor()
+
+	// Skip canvas indicator rendering when the option is disabled (e.g. A/B test)
+	if (!editor.options.useCanvasIndicators) {
+		return null
+	}
+
+	return <CanvasShapeIndicatorsInner />
+})
+
+const CanvasShapeIndicatorsInner = memo(function CanvasShapeIndicatorsInner() {
+	const editor = useEditor()
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
 	// Cache the selected color to avoid getComputedStyle on every render
