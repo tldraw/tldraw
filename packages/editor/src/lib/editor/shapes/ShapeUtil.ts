@@ -493,7 +493,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	}
 
 	/**
-	 * Whether the shape behaves like a frame — a container that clips children,
+	 * Whether the shape behaves like a frame — a container that has child shapes,
 	 * requires full-brush selection, blocks erasure from inside, etc.
 	 *
 	 * @param shape - The shape.
