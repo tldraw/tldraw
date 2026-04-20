@@ -229,6 +229,10 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
+    options: {
+        zIndex: number;
+    };
+    // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLArrowHintOverlay[]): void;
     // @internal (undocumented)
     _renderIndicatorPath(ctx: CanvasRenderingContext2D, indicatorPath: TLIndicatorPath): void;
@@ -590,6 +594,10 @@ export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
+    options: {
+        zIndex: number;
+    };
+    // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[]): void;
     // (undocumented)
     static type: string;
@@ -639,6 +647,10 @@ export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrus
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
+    options: {
+        zIndex: number;
+    };
+    // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorBrushOverlay[]): void;
     // (undocumented)
     static type: string;
@@ -650,6 +662,10 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
     getOverlays(): TLCollaboratorCursorOverlay[];
     // (undocumented)
     isActive(): boolean;
+    // (undocumented)
+    options: {
+        zIndex: number;
+    };
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[]): void;
     // (undocumented)
@@ -673,6 +689,10 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
         minY: number;
     }, zoom: number): boolean;
     // (undocumented)
+    options: {
+        zIndex: number;
+    };
+    // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorHintOverlay[]): void;
     // (undocumented)
     static type: string;
@@ -684,6 +704,10 @@ export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorS
     getOverlays(): TLCollaboratorScribbleOverlay[];
     // (undocumented)
     isActive(): boolean;
+    // (undocumented)
+    options: {
+        zIndex: number;
+    };
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorScribbleOverlay[]): void;
     // (undocumented)
@@ -3078,6 +3102,10 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
+    options: {
+        zIndex: number;
+    };
+    // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLScribbleOverlay[]): void;
     // (undocumented)
     static type: string;
@@ -3096,6 +3124,10 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
     getOverlays(): TLSelectionForegroundOverlay[];
     // (undocumented)
     isActive(): boolean;
+    // (undocumented)
+    options: {
+        zIndex: number;
+    };
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, _overlays: TLSelectionForegroundOverlay[]): void;
     // (undocumented)
@@ -3151,6 +3183,10 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
+    options: {
+        zIndex: number;
+    };
+    // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLShapeHandleOverlay[]): void;
     // (undocumented)
     static type: string;
@@ -3170,6 +3206,10 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
     getOverlays(): TLSnapIndicatorOverlay[];
     // (undocumented)
     isActive(): boolean;
+    // (undocumented)
+    options: {
+        zIndex: number;
+    };
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLSnapIndicatorOverlay[]): void;
     // (undocumented)
@@ -6228,6 +6268,10 @@ export class ZoomBrushOverlayUtil extends OverlayUtil<TLZoomBrushOverlay> {
     getOverlays(): TLZoomBrushOverlay[];
     // (undocumented)
     isActive(): boolean;
+    // (undocumented)
+    options: {
+        zIndex: number;
+    };
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLZoomBrushOverlay[]): void;
     // (undocumented)

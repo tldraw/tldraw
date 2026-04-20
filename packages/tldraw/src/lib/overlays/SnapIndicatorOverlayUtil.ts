@@ -21,6 +21,7 @@ export interface TLSnapIndicatorOverlay extends TLOverlay {
  */
 export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay> {
 	static override type = 'snap_indicator'
+	override options = { zIndex: 500 }
 
 	override isActive(): boolean {
 		return this.editor.snaps.getIndicators().length > 0

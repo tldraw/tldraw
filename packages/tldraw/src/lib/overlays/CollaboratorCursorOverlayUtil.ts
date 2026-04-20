@@ -47,6 +47,7 @@ const TRUNCATE_CACHE_MAX = 200
  */
 export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCursorOverlay> {
 	static override type = 'collaborator_cursor'
+	override options = { zIndex: 1100 }
 
 	override isActive(): boolean {
 		return this.editor.getCollaboratorsOnCurrentPage().length > 0

@@ -1,4 +1,4 @@
-import { createShapeId } from '@tldraw/editor'
+import { Circle2d, createShapeId, Geometry2d, OverlayUtil, TLOverlay, Vec } from '@tldraw/editor'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
 import { TestEditor } from '../TestEditor'
 
@@ -107,6 +107,49 @@ describe('OverlayManager', () => {
 			expect(editor.overlays.getHoveredOverlayId()).toBe('foo')
 			// Not found overlay returns null
 			expect(editor.overlays.getHoveredOverlay()).toBeNull()
+		})
+	})
+
+	describe('zIndex ordering', () => {
+		const makeOverlappingUtil = (type: string, zIndex: number) => {
+			class TestOverlay extends OverlayUtil<TLOverlay<{ zIndex: number }>> {
+				static override type = type
+				override options = { zIndex }
+				override isActive() {
+					return true
+				}
+				override getOverlays() {
+					return [{ id: `${type}:o`, type, props: { zIndex } }]
+				}
+				override getGeometry(): Geometry2d {
+					return new Circle2d({ x: -10, y: -10, radius: 10, isFilled: true })
+				}
+			}
+			return TestOverlay
+		}
+
+		it('returns utils sorted by zIndex, registration order breaks ties', () => {
+			const LowA = makeOverlappingUtil('low_a', 10)
+			const LowB = makeOverlappingUtil('low_b', 10)
+			const High = makeOverlappingUtil('high', 100)
+			const editor = new TestEditor({ overlayUtils: [High, LowA, LowB] })
+			const types = editor.overlays.getOverlayUtilsInZOrder().map((u) => u.constructor.name)
+			// Sorted by zIndex asc; LowA before LowB (registration); High last.
+			expect(types).toEqual(['TestOverlay', 'TestOverlay', 'TestOverlay'])
+			const zs = editor.overlays.getOverlayUtilsInZOrder().map((u) => u.options.zIndex)
+			expect(zs).toEqual([10, 10, 100])
+			const ids = editor.overlays.getCurrentOverlays().map((o) => o.id)
+			expect(ids).toEqual(['low_a:o', 'low_b:o', 'high:o'])
+		})
+
+		it('topmost util wins hit-test when geometries overlap', () => {
+			const Low = makeOverlappingUtil('low', 10)
+			const High = makeOverlappingUtil('high', 100)
+			// Register low last so registration order would have returned low first
+			// under the old behavior.
+			const editor = new TestEditor({ overlayUtils: [High, Low] })
+			const hit = editor.overlays.getOverlayAtPoint(new Vec(0, 0))
+			expect(hit?.type).toBe('high')
 		})
 	})
 })

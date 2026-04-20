@@ -17,6 +17,7 @@ export interface TLBrushOverlay extends TLOverlay {
  */
 export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
 	static override type = 'brush'
+	override options = { zIndex: 300 }
 
 	override isActive(): boolean {
 		return this.editor.getInstanceState().brush !== null

@@ -34,6 +34,7 @@ export interface TLSelectionForegroundOverlay extends TLOverlay {
  */
 export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForegroundOverlay> {
 	static override type = 'selection_foreground'
+	override options = { zIndex: 100 }
 
 	override isActive(): boolean {
 		if (!this.editor.getSelectionRotatedPageBounds()) return false

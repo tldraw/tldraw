@@ -2572,15 +2572,18 @@ export class OverlayManager {
     constructor(editor: Editor);
     // (undocumented)
     readonly editor: Editor;
+    getActiveOverlayEntries(): TLOverlayEntry[];
     getCurrentOverlays(): TLOverlay[];
     // (undocumented)
     getHoveredOverlay(): null | TLOverlay;
     // (undocumented)
     getHoveredOverlayId(): null | string;
     getOverlayAtPoint(point: VecLike, margin?: number): null | TLOverlay;
+    getOverlayGeometry(overlay: TLOverlay): Geometry2d | null;
     getOverlayUtil<T extends OverlayUtil>(type: T extends OverlayUtil<infer O> ? O['type'] : string): T;
     // (undocumented)
     getOverlayUtil<O extends TLOverlay>(overlay: O): OverlayUtil<O>;
+    getOverlayUtilsInZOrder(): OverlayUtil[];
     // @internal (undocumented)
     readonly _overlayUtils: Map<string, OverlayUtil<TLOverlay<Record<string, unknown>>>>;
     // @internal
@@ -2601,7 +2604,9 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
     getGeometry(_overlay: T): Geometry2d | null;
     abstract getOverlays(): T[];
     abstract isActive(): boolean;
-    options: {};
+    options: {
+        zIndex?: number;
+    } & Record<string, unknown>;
     render(_ctx: CanvasRenderingContext2D, _overlays: T[]): void;
     // (undocumented)
     static type: string;
@@ -4243,6 +4248,14 @@ export interface TLOverlay<Props = Record<string, unknown>> {
     id: string;
     props: Props;
     type: string;
+}
+
+// @public
+export interface TLOverlayEntry {
+    // (undocumented)
+    overlays: TLOverlay[];
+    // (undocumented)
+    util: OverlayUtil;
 }
 
 // @public (undocumented)

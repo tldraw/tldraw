@@ -30,6 +30,7 @@ const COLLAB_SCRIBBLE_CACHE_MAX = 500
  */
 export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorScribbleOverlay> {
 	static override type = 'collaborator_scribble'
+	override options = { zIndex: 800 }
 
 	override isActive(): boolean {
 		return this.editor.getCollaboratorsOnCurrentPage().some((c) => c.scribbles.length > 0)

@@ -41,11 +41,8 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 			ctx.scale(zoom, zoom)
 			ctx.translate(cx, cy)
 
-			// Render all active overlay utils
-			for (const util of editor.overlays._overlayUtils.values()) {
-				if (!util.isActive()) continue
-				const overlays = util.getOverlays()
-				if (overlays.length === 0) continue
+			// Render all active overlay utils in zIndex order (low to high).
+			for (const { util, overlays } of editor.overlays.getActiveOverlayEntries()) {
 				ctx.save()
 				util.render(ctx, overlays)
 				ctx.restore()
@@ -113,11 +110,9 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 				ctx.strokeStyle = 'magenta'
 				ctx.fillStyle = 'rgba(255, 0, 255, 0.1)'
 				ctx.lineWidth = 1 / zoom
-				for (const util of editor.overlays._overlayUtils.values()) {
-					if (!util.isActive()) continue
-					const overlays = util.getOverlays()
+				for (const { overlays } of editor.overlays.getActiveOverlayEntries()) {
 					for (const overlay of overlays) {
-						const geometry = util.getGeometry(overlay)
+						const geometry = editor.overlays.getOverlayGeometry(overlay)
 						if (!geometry) continue
 						const vertices = geometry.vertices
 						if (vertices.length < 2) continue

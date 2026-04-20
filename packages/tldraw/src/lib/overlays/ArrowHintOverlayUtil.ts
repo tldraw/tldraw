@@ -40,6 +40,7 @@ const indicatorPathCache = createComputedCache(
  */
 export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 	static override type = 'arrow_hint'
+	override options = { zIndex: 1000 }
 
 	override isActive(): boolean {
 		const editor = this.editor

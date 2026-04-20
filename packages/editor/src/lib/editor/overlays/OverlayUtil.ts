@@ -46,9 +46,14 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
 	 * Options for this overlay util. Override this to provide customization options.
 	 * Use {@link OverlayUtil.configure} to customize existing overlay utils.
 	 *
+	 * `zIndex` controls paint and hit-test order across utils — higher numbers
+	 * paint on top and are hit-tested first. Ties resolve by registration order.
+	 * Defaults to `0`; built-in utils use larger integers (100, 200, …) with
+	 * gaps so custom utils can slot between.
+	 *
 	 * @public
 	 */
-	options = {}
+	options: { zIndex?: number } & Record<string, unknown> = {}
 
 	/**
 	 * Create a new overlay util class with the given options merged in.

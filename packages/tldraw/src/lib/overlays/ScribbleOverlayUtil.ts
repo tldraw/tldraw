@@ -38,6 +38,7 @@ const SCRIBBLE_CACHE_MAX = 500
  */
 export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 	static override type = 'scribble'
+	override options = { zIndex: 600 }
 
 	override isActive(): boolean {
 		return this.editor.getInstanceState().scribbles.length > 0

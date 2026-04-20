@@ -17,6 +17,7 @@ export interface TLZoomBrushOverlay extends TLOverlay {
  */
 export class ZoomBrushOverlayUtil extends OverlayUtil<TLZoomBrushOverlay> {
 	static override type = 'zoom_brush'
+	override options = { zIndex: 400 }
 
 	override isActive(): boolean {
 		return this.editor.getInstanceState().zoomBrush !== null

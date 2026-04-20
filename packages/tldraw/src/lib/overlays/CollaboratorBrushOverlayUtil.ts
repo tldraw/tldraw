@@ -18,6 +18,7 @@ export interface TLCollaboratorBrushOverlay extends TLOverlay {
  */
 export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrushOverlay> {
 	static override type = 'collaborator_brush'
+	override options = { zIndex: 700 }
 
 	override isActive(): boolean {
 		return this.editor.getCollaboratorsOnCurrentPage().some((c) => c.brush !== null)

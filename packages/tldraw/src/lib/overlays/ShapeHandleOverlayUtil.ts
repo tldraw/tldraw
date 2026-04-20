@@ -25,6 +25,7 @@ export interface TLShapeHandleOverlay extends TLOverlay {
  */
 export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 	static override type = 'shape_handle'
+	override options = { zIndex: 200 }
 
 	override isActive(): boolean {
 		const editor = this.editor

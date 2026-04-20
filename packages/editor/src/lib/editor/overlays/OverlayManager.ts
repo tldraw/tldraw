@@ -1,7 +1,20 @@
 import { atom, computed } from '@tldraw/state'
+import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { VecLike } from '../../primitives/Vec'
 import type { Editor } from '../Editor'
 import { OverlayUtil, TLOverlay } from './OverlayUtil'
+
+/**
+ * An active overlay util paired with the overlays it produced for the current
+ * editor state. Returned by {@link OverlayManager.getActiveOverlayEntries} so
+ * hit-test, render, and debug paths share a single scan per reactive tick.
+ *
+ * @public
+ */
+export interface TLOverlayEntry {
+	util: OverlayUtil
+	overlays: TLOverlay[]
+}
 
 /** @public */
 export class OverlayManager {
@@ -47,17 +60,72 @@ export class OverlayManager {
 	}
 
 	/**
-	 * Reactively computed list of all currently active overlays.
+	 * Returns all registered overlay utils in paint order (ascending zIndex).
+	 * Utils with the same zIndex preserve their registration order.
+	 *
+	 * @public
+	 */
+	@computed getOverlayUtilsInZOrder(): OverlayUtil[] {
+		const utils = Array.from(this._overlayUtils.values())
+		// Stable sort by zIndex (registration order breaks ties).
+		return utils
+			.map((util, i) => ({ util, i, z: util.options.zIndex ?? 0 }))
+			.sort((a, b) => a.z - b.z || a.i - b.i)
+			.map((entry) => entry.util)
+	}
+
+	/**
+	 * Reactive list of active overlay utils paired with the overlays they
+	 * produced for the current editor state, in paint order (ascending
+	 * zIndex). Both the hit-test and render paths read from this single
+	 * cached scan instead of each re-deriving the active set.
+	 *
+	 * @public
+	 */
+	@computed getActiveOverlayEntries(): TLOverlayEntry[] {
+		const entries: TLOverlayEntry[] = []
+		for (const util of this.getOverlayUtilsInZOrder()) {
+			if (!util.isActive()) continue
+			const overlays = util.getOverlays()
+			if (overlays.length === 0) continue
+			entries.push({ util, overlays })
+		}
+		return entries
+	}
+
+	/**
+	 * Reactively computed list of all currently active overlays, in paint order.
 	 * @public
 	 */
 	@computed getCurrentOverlays(): TLOverlay[] {
-		const overlays: TLOverlay[] = []
-		for (const util of this._overlayUtils.values()) {
-			if (util.isActive()) {
-				overlays.push(...util.getOverlays())
-			}
+		const all: TLOverlay[] = []
+		for (const { overlays } of this.getActiveOverlayEntries()) {
+			all.push(...overlays)
 		}
-		return overlays
+		return all
+	}
+
+	// Hit-test geometry cache keyed by overlay identity. Entries remain valid
+	// while getActiveOverlayEntries() keeps returning the same overlay
+	// instances; when its reactive deps change, getOverlays() emits fresh
+	// objects and stale entries fall out by GC.
+	private _geometryCache = new WeakMap<TLOverlay, Geometry2d | null>()
+
+	/**
+	 * Get hit-test geometry for an overlay, cached by overlay identity. Lets
+	 * hit-testing on a pointermove storm skip the per-overlay geometry
+	 * allocation that {@link OverlayUtil.getGeometry} would otherwise do on
+	 * every call.
+	 *
+	 * @public
+	 */
+	getOverlayGeometry(overlay: TLOverlay): Geometry2d | null {
+		const cached = this._geometryCache.get(overlay)
+		if (cached !== undefined) return cached
+		const util = this.getOverlayUtil(overlay)
+		const geometry = util.getGeometry(overlay)
+		this._geometryCache.set(overlay, geometry)
+		return geometry
 	}
 
 	/**
@@ -83,7 +151,9 @@ export class OverlayManager {
 
 	/**
 	 * Hit test all active overlays at a given page point.
-	 * Returns the first overlay whose geometry contains the point, or null.
+	 * Returns the topmost overlay whose geometry contains the point, or null.
+	 * Utils are walked from highest zIndex to lowest so the overlay painted on
+	 * top also wins the hit test.
 	 * Interactive overlays (those with geometry) are checked; non-interactive are skipped.
 	 *
 	 * @param point - Point in page coordinates
@@ -91,11 +161,11 @@ export class OverlayManager {
 	 * @public
 	 */
 	getOverlayAtPoint(point: VecLike, margin = 0): TLOverlay | null {
-		for (const util of this._overlayUtils.values()) {
-			if (!util.isActive()) continue
-			const overlays = util.getOverlays()
+		const entries = this.getActiveOverlayEntries()
+		for (let i = entries.length - 1; i >= 0; i--) {
+			const { overlays } = entries[i]
 			for (const overlay of overlays) {
-				const geometry = util.getGeometry(overlay)
+				const geometry = this.getOverlayGeometry(overlay)
 				if (!geometry) continue
 				if (geometry.hitTestPoint(point, geometry.isFilled ? 0 : margin, true)) {
 					return overlay
