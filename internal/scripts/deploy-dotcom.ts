@@ -128,6 +128,7 @@ const discord = new Discord({
 	shouldNotify: env.TLDRAW_ENV === 'production',
 	totalSteps: previewId ? 10 : 9,
 	messagePrefix: '[DOTCOM]',
+	secretValues: Object.values(env),
 })
 
 const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}-${sha}`
@@ -294,7 +295,7 @@ const zeroVmSizes = {
 	},
 	production: {
 		rm: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
-		vs: { cpus: 8, memory: '16gb' },
+		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
 	},
 	preview: { single: { cpus: 2, memory: '2gb' } },
@@ -783,6 +784,7 @@ function updateFlyioViewSyncerToml(
 		.replaceAll('__VS_CHANGE_MAX_CONNS', String(zeroConns.vs.change))
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
+		.replaceAll('__CPU_KIND', zeroVm.vs.cpuKind ?? 'shared')
 		.replaceAll('__VOLUME_SIZE', zeroVm.volumeSize)
 		.replaceAll('__TLDRAW_ENV', env.TLDRAW_ENV)
 		.replaceAll('__ZERO_VERSION', zeroVersion)
@@ -817,6 +819,7 @@ async function deployZeroViaFlyIoMultiNode() {
 		[
 			'secrets',
 			'set',
+			'--stage',
 			`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 			`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 			`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
@@ -848,6 +851,7 @@ async function deployZeroViaFlyIoMultiNode() {
 		[
 			'secrets',
 			'set',
+			'--stage',
 			`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 			`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 			`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,

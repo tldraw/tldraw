@@ -15,6 +15,7 @@ function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 		zero_enabled: { enabled: false },
 		zero_kill_switch: { enabled: false },
 		rum_enabled: { enabled: false },
+		canvas_indicators_ab: { enabled: false },
 		...overrides,
 	}
 }

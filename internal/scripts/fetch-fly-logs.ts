@@ -86,7 +86,7 @@ async function main() {
 	const token = getFlyToken(opts.token)
 	const url = `${BASE_URL}?${params}`
 
-	const res = await fetch(url, { headers: { Authorization: token } })
+	const res = await fetch(url, { headers: { Authorization: `FlyV1 ${token}` } })
 	if (!res.ok) {
 		console.error(`HTTP ${res.status}: ${await res.text()}`)
 		process.exit(1)

@@ -29,23 +29,25 @@ function commonStats(event: TLPerfFrameTimeStats & { shapeCount: number; zoomLev
 	}
 }
 
-function handleInteractionEnd(event: TLInteractionEndPerfEvent) {
+function handleInteractionEnd(event: TLInteractionEndPerfEvent, abIndicators: 'canvas' | 'svg') {
 	trackEvent('rum', {
 		type: 'interaction',
 		interaction_name: event.name,
 		interaction_path: event.path,
 		selected_shape_count: Object.values(event.selectedShapeTypes).reduce((a, b) => a + b, 0),
 		selected_shape_types: event.selectedShapeTypes,
+		ab_indicators: abIndicators,
 		...commonStats(event),
 	})
 }
 
-function handleCameraEnd(event: TLCameraEndPerfEvent) {
+function handleCameraEnd(event: TLCameraEndPerfEvent, abIndicators: 'canvas' | 'svg') {
 	trackEvent('rum', {
 		type: 'camera',
 		camera_type: event.type,
 		visible_shape_count: event.visibleShapeCount,
 		culled_shape_count: event.culledShapeCount,
+		ab_indicators: abIndicators,
 		...commonStats(event),
 	})
 }
@@ -59,8 +61,16 @@ export function usePerformanceTracking() {
 		fetchFeatureFlags().then((flags) => {
 			if (disposed || !flags.rum_enabled?.enabled) return
 
-			unsubInteraction = editor.performance.on('interaction-end', handleInteractionEnd)
-			unsubCamera = editor.performance.on('camera-end', handleCameraEnd)
+			// Derive from the editor option — this is the ground truth for what's
+			// actually rendering, so the RUM tag always matches the UI path.
+			const abIndicators = editor.options.useCanvasIndicators ? 'canvas' : 'svg'
+
+			unsubInteraction = editor.performance.on('interaction-end', (event) =>
+				handleInteractionEnd(event, abIndicators)
+			)
+			unsubCamera = editor.performance.on('camera-end', (event) =>
+				handleCameraEnd(event, abIndicators)
+			)
 		})
 
 		return () => {
