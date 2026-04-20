@@ -14,7 +14,7 @@ import { TLDragShapesOutInfo, TLDragShapesOverInfo } from './ShapeUtil'
  *
  * - `isFrameLike()` returns `true`
  * - `providesBackgroundForChildren()` returns `true`
- * - `canReceiveNewChildrenOfType()` returns `true` unless the shape is locked
+ * - `canReceiveNewChildrenOfType()` returns `true` unless the container is locked
  * - `getClipPath()` returns the shape geometry's vertices
  * - `onDragShapesIn()` reparents shapes into the frame (with index restoration)
  * - `onDragShapesOut()` reparents shapes back to the page
@@ -54,7 +54,7 @@ export abstract class BaseFrameLikeShapeUtil<
 		return true
 	}
 
-	override canReceiveNewChildrenOfType(shape: TLShape): boolean {
+	override canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']): boolean {
 		return !shape.isLocked
 	}
 
@@ -112,9 +112,7 @@ export abstract class BaseFrameLikeShapeUtil<
 		// reparent the dragging shapes onto the current page instead
 		if (!info.nextDraggingOverShapeId) {
 			editor.reparentShapes(
-				draggingShapes.filter(
-					(s) => s.parentId === shape.id && this.canReceiveNewChildrenOfType(s)
-				),
+				draggingShapes.filter((s) => s.parentId === shape.id && !s.isLocked),
 				editor.getCurrentPageId()
 			)
 		}

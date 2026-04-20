@@ -197,7 +197,7 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 // @public
 export abstract class BaseFrameLikeShapeUtil<Shape extends TLBaseBoxShape> extends BaseBoxShapeUtil<Shape> {
     // (undocumented)
-    canReceiveNewChildrenOfType(shape: TLShape): boolean;
+    canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']): boolean;
     // (undocumented)
     getClipPath(shape: Shape): undefined | Vec[];
     // (undocumented)
