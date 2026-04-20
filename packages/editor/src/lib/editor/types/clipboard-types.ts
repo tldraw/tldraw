@@ -1,5 +1,5 @@
 import { SerializedSchema } from '@tldraw/store'
-import { TLAsset, TLBinding, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { TLAsset, TLBinding, TLShape, TLShapeId, TLUser } from '@tldraw/tlschema'
 
 /** @public */
 export interface TLContent {
@@ -8,4 +8,5 @@ export interface TLContent {
 	rootShapeIds: TLShapeId[]
 	assets: TLAsset[]
 	schema: SerializedSchema
+	users?: TLUser[]
 }

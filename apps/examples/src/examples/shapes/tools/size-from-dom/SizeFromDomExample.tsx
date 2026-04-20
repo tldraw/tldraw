@@ -97,15 +97,15 @@ export class DynamicSizeShapeUtil extends ShapeUtil<DynamicSizeShape> {
 	}
 
 	// [c]
-	override canCull() {
+	override canCull(shape: DynamicSizeShape) {
 		return false
 	}
 
 	// [d]
-	override canEdit() {
+	override canEdit(shape: DynamicSizeShape) {
 		return false
 	}
-	override canResize() {
+	override canResize(shape: DynamicSizeShape) {
 		return false
 	}
 	override isAspectRatioLocked() {

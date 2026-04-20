@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
-import { getColorValue, getDefaultColorTheme, getPointsFromDrawSegment, useEditor } from 'tldraw'
+import { getColorValue, getPointsFromDrawSegment, useEditor } from 'tldraw'
 
 export function CustomRenderer() {
 	const editor = useEditor()
@@ -32,7 +32,8 @@ export function CustomRenderer() {
 			ctx.translate(camera.x, camera.y)
 
 			const renderingShapes = editor.getRenderingShapes()
-			const theme = getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() })
+			const theme = editor.getCurrentTheme()
+			const colors = theme.colors[editor.getColorMode()]
 			const currentPageId = editor.getCurrentPageId()
 
 			for (const { shape, opacity } of renderingShapes) {
@@ -71,17 +72,17 @@ export function CustomRenderer() {
 							}
 						}
 					}
-					ctx.strokeStyle = getColorValue(theme, shape.props.color, 'solid')
+					ctx.strokeStyle = getColorValue(colors, shape.props.color, 'solid')
 					ctx.lineWidth = 4
 					ctx.stroke()
 					if (shape.props.fill !== 'none' && shape.props.isClosed) {
-						ctx.fillStyle = getColorValue(theme, shape.props.color, 'semi')
+						ctx.fillStyle = getColorValue(colors, shape.props.color, 'semi')
 						ctx.fill()
 					}
 				} else if (editor.isShapeOfType(shape, 'geo')) {
 					// Draw a geo shape
 					const bounds = editor.getShapeGeometry(shape).bounds
-					ctx.strokeStyle = getColorValue(theme, shape.props.color, 'solid')
+					ctx.strokeStyle = getColorValue(colors, shape.props.color, 'solid')
 					ctx.lineWidth = 2
 					ctx.strokeRect(bounds.minX, bounds.minY, bounds.width, bounds.height)
 				} else {

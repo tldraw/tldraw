@@ -1,11 +1,6 @@
 import { useAtom, useValue } from '@tldraw/state-react'
-import {
-	TLFrameShape,
-	TLShape,
-	TLShapeId,
-	getColorValue,
-	getDefaultColorTheme,
-} from '@tldraw/tlschema'
+import { TLFrameShape, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { TLFontFace } from '@tldraw/tlschema'
 import { hasOwnProperty, promiseWithResolve, uniqueId } from '@tldraw/utils'
 import {
 	ComponentType,
@@ -21,7 +16,7 @@ import { flushSync } from 'react-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
 import type { Editor, TLRenderingShape } from '../editor/Editor'
-import { TLFontFace } from '../editor/managers/FontManager/FontManager'
+import { getColorValue } from '../editor/managers/ThemeManager/defaultThemes'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { TLImageExportOptions } from '../editor/types/misc-types'
 import {
@@ -54,7 +49,9 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	const renderPadding =
 		typeof opts.padding === 'number' ? opts.padding : editor.options.defaultSvgPadding
 
-	const isDarkMode = opts.darkMode ?? editor.user.getIsDarkMode()
+	const colorMode: 'light' | 'dark' =
+		opts.darkMode !== undefined ? (opts.darkMode ? 'dark' : 'light') : editor.getColorMode()
+	const isDarkMode = colorMode === 'dark'
 
 	// ---Figure out which shapes we need to include
 	const shapeIdsToInclude = editor.getShapeAndDescendantIds(ids)
@@ -116,6 +113,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 			background={background}
 			singleFrameShapeId={singleFrameShapeId}
 			isDarkMode={isDarkMode}
+			colorMode={colorMode}
 			renderingShapes={renderingShapes}
 			onMount={initialEffectPromise.resolve}
 			waitUntil={exportDelay.waitUntil}
@@ -206,6 +204,7 @@ function SvgExport({
 	background,
 	singleFrameShapeId,
 	isDarkMode,
+	colorMode,
 	renderingShapes,
 	onMount,
 	waitUntil,
@@ -218,12 +217,13 @@ function SvgExport({
 	background: boolean
 	singleFrameShapeId: TLShapeId | null
 	isDarkMode: boolean
+	colorMode: 'light' | 'dark'
 	renderingShapes: TLRenderingShape[]
 	onMount(): void
 	waitUntil(promise: Promise<void>): void
 }) {
 	const masksId = useUniqueSafeId()
-	const theme = getDefaultColorTheme({ isDarkMode })
+	const theme = editor.getCurrentTheme()
 
 	const stateAtom = useAtom<{
 		defsById: Record<
@@ -257,6 +257,7 @@ function SvgExport({
 	const exportContext = useMemo(
 		(): SvgExportContext => ({
 			isDarkMode,
+			colorMode,
 			waitUntil,
 			addExportDef,
 			scale,
@@ -272,7 +273,7 @@ function SvgExport({
 				})
 			},
 		}),
-		[isDarkMode, waitUntil, addExportDef, scale, pixelRatio, editor]
+		[isDarkMode, colorMode, waitUntil, addExportDef, scale, pixelRatio, editor]
 	)
 
 	const didRenderRef = useRef(false)
@@ -443,17 +444,22 @@ function SvgExport({
 		onMount()
 	}, [onMount, shapeElements])
 
-	let backgroundColor = background ? theme.background : 'transparent'
+	const colors = theme.colors[colorMode]
+	let backgroundColor = background ? colors.background : 'transparent'
 
 	if (singleFrameShapeId && background) {
 		const frameShapeUtil = editor.getShapeUtil('frame') as any as
 			| undefined
-			| { options: { showColors: boolean } }
+			| {
+					options: {
+						showColors: boolean
+					}
+			  }
 		if (frameShapeUtil?.options.showColors) {
 			const shape = editor.getShape(singleFrameShapeId)! as TLFrameShape
-			backgroundColor = getColorValue(theme, shape.props.color, 'frameFill')
+			backgroundColor = getColorValue(colors, shape.props.color, 'frameFill')
 		} else {
-			backgroundColor = theme.solid
+			backgroundColor = colors.solid
 		}
 	}
 

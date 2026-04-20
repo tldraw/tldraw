@@ -331,6 +331,18 @@ export class InputsManager {
 		this._isPointing.set(isPointing)
 	}
 
+	private _isRightPointing = atom<boolean>('isRightPointing', false)
+	/**
+	 * Whether the user is right-click pointing (before drag threshold).
+	 */
+	getIsRightPointing() {
+		return this._isRightPointing.get()
+	}
+	/** @internal */
+	setIsRightPointing(isRightPointing: boolean) {
+		this._isRightPointing.set(isRightPointing)
+	}
+
 	private _isPinching = atom<boolean>('isPinching', false)
 	/**
 	 * Whether the user is pinching.

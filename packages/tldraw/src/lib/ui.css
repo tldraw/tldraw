@@ -1021,6 +1021,14 @@
 	left: 8px;
 }
 
+/* 
+ * focusing skip-to-main-content hide top ui buttons to make sure we avoid
+ * z-index clashes on hover (see issue #8328)
+ */
+.tl-skip-to-main-content:focus + .tlui-layout__top .tlui-helper-buttons {
+	display: none;
+}
+
 /* ---------------- Offline indicator --------------- */
 
 .tlui-offline-indicator {

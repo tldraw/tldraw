@@ -33,6 +33,7 @@ export type ResizingInfo = TLPointerEventInfo & {
 
 export class Resizing extends StateNode {
 	static override id = 'resizing'
+	static override trackPerformance = true
 
 	info = {} as ResizingInfo
 

@@ -16,6 +16,7 @@ const ONE_DEGREE = Math.PI / 180
 
 export class Rotating extends StateNode {
 	static override id = 'rotating'
+	static override trackPerformance = true
 
 	snapshot = {} as TLRotationSnapshot
 

@@ -19,14 +19,14 @@
 		"docker-down": "docker compose --env-file .env -f ./docker/docker-compose.yml down",
 		"migrate": "yarn tsx ./migrate.ts",
 		"clean": "yarn docker-down && ./clean.sh",
-		"lint": "cd ../../.. && yarn run -T oxlint apps/dotcom/zero-cache",
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"type": "module",
 	"dependencies": {
-		"@rocicorp/zero": "0.26.1",
+		"@rocicorp/zero": "1.3.0-canary.3",
 		"kysely": "^0.28.12",
 		"pg": "^8.13.1"
 	},

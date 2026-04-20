@@ -1,13 +1,13 @@
 import { EvaluatedFeatureFlag, FeatureFlagKey } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
-import { fetch } from 'tldraw'
+import { fetch, getFromLocalStorage } from 'tldraw'
 
 export type FeatureFlags = Record<FeatureFlagKey, EvaluatedFeatureFlag>
 
 export const DEFAULT_FLAGS: FeatureFlags = {
-	sqlite_file_storage: { enabled: false },
 	zero_enabled: { enabled: false },
 	zero_kill_switch: { enabled: false },
+	rum_enabled: { enabled: false },
 }
 
 let flagsPromise: Promise<FeatureFlags> | null = null
@@ -53,12 +53,16 @@ const REFETCH_INTERVAL = 60000 // 1 minute
 
 /**
  * Determines whether a flag change should trigger a page reload.
- * Only reloads when zero_kill_switch transitions to true from any non-true state.
+ * Only reloads when zero_kill_switch transitions to true AND the user
+ * was actually using proper Zero (no point reloading polyfill users).
  */
 export function shouldReloadForFlagChange(prev: FeatureFlags, next: FeatureFlags): boolean {
 	const prevKillSwitch = prev.zero_kill_switch?.enabled
 	const nextKillSwitch = next.zero_kill_switch?.enabled
-	return nextKillSwitch === true && prevKillSwitch !== true
+	if (nextKillSwitch !== true || prevKillSwitch === true) return false
+	// Only reload if this user was actually on proper Zero
+	const wasUsingZero = prev.zero_enabled?.enabled || getFromLocalStorage('useProperZero') === 'true'
+	return !!wasUsingZero
 }
 
 /**

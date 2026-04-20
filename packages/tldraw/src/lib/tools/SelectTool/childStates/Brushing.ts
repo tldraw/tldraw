@@ -17,6 +17,7 @@ import {
 
 export class Brushing extends StateNode {
 	static override id = 'brushing'
+	static override trackPerformance = true
 
 	info = {} as TLPointerEventInfo & { target: 'canvas' }
 

@@ -70,10 +70,7 @@ export const assetIdValidator: T.Validator<TLAssetId>;
 export const assetMigrations: MigrationSequence;
 
 // @public
-export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
-
-// @public
-export const assetValidator: T.Validator<TLAsset>;
+export const AssetRecordType: RecordType<TLAsset<"bookmark" | "image" | "video">, "props" | "type">;
 
 // @public
 export class b64Vecs {
@@ -91,6 +88,18 @@ export class b64Vecs {
 
 // @public
 export const bindingIdValidator: T.Validator<TLBindingId>;
+
+// @public
+export const bookmarkAssetMigrations: MigrationSequence;
+
+// @public (undocumented)
+export const bookmarkAssetProps: {
+    description: T.Validator<string>;
+    favicon: T.Validator<string>;
+    image: T.Validator<string>;
+    src: T.Validator<null | string>;
+    title: T.Validator<string>;
+};
 
 // @public
 export const bookmarkShapeMigrations: TLPropsMigrations;
@@ -126,19 +135,30 @@ export function compressLegacySegments(segments: {
 }[]): TLDrawShapeSegment[];
 
 // @public
-export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
+export function createAssetPropsMigrationIds<S extends string, T extends Record<string, number>>(assetType: S, ids: T): {
+    [k in keyof T]: `com.tldraw.asset.${S}/${T[k]}`;
+};
+
+// @public
+export function createAssetPropsMigrationSequence(migrations: TLPropsMigrations): TLPropsMigrations;
+
+// @internal
+export function createAssetRecordType(assets: Record<string, SchemaPropsInfo>): RecordType<    {
 id: TLAssetId;
 meta: JsonObject;
-props: Props;
-type: Type;
+props: {
+[x: string]: /*elided*/ any;
+};
+type: string;
 typeName: "asset";
-}[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: {
-id: TLAssetId;
-meta: JsonObject;
-props: Props;
-type: Type;
-typeName: "asset";
-}[P] | undefined; }>>;
+}, "props" | "type">;
+
+// @public
+export function createAssetValidator<Type extends string, Props extends JsonObject, Meta extends JsonObject = JsonObject>(type: Type, props?: {
+    [K in keyof Props]: T.Validatable<Props[K]>;
+} | T.Validator<Props>, meta?: {
+    [K in keyof Meta]: T.Validatable<Meta[K]>;
+}): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseAsset<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseAsset<Type, Props>[P] | undefined; }>>;
 
 // @public
 export function createBindingId(id?: string): TLBindingId;
@@ -159,6 +179,9 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
 }): T.ObjectValidator<Expand<    { [P in "fromId" | "id" | "meta" | "toId" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseBinding<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseBinding<Type, Props>[P] | undefined; }>>;
 
 // @public
+export function createCachedUserResolve(resolveFn: (userId: string) => null | TLUser): (userId: string) => Signal<null | TLUser>;
+
+// @public
 export function createCustomRecordId<T extends string>(typeName: T, id?: string): RecordId<UnknownRecord> & `${T}:${string}`;
 
 // @public
@@ -170,7 +193,13 @@ export function createCustomRecordMigrationIds<const S extends string, const T e
 export function createCustomRecordMigrationSequence(migrations: TLPropsMigrations): TLPropsMigrations;
 
 // @public
-export function createPresenceStateDerivation($user: Signal<TLPresenceUserInfo>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence, unknown>;
+export function createPresenceStateDerivation($user: Signal<null | TLUser>, opts?: CreatePresenceStateDerivationOpts): (store: TLStore) => Signal<null | TLInstancePresence, unknown>;
+
+// @public (undocumented)
+export interface CreatePresenceStateDerivationOpts {
+    getUserPresence?(store: TLStore, user: TLUser): null | TLPresenceStateInfo;
+    instanceId?: TLInstancePresence['id'];
+}
 
 // @public
 export function createShapeId(id?: string): TLShapeId;
@@ -191,12 +220,22 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
 
 // @public
-export function createTLSchema({ shapes, bindings, records, migrations }?: {
+export function createTLSchema({ shapes, bindings, assets, user, records, migrations }?: {
+    assets?: Record<string, SchemaPropsInfo>;
     bindings?: Record<string, SchemaPropsInfo>;
     migrations?: readonly MigrationSequence[];
     records?: Record<string, CustomRecordInfo>;
     shapes?: Record<string, SchemaPropsInfo>;
+    user?: UserSchemaInfo;
 }): TLSchema;
+
+// @public (undocumented)
+export function createUserId(id: string): TLUserId;
+
+// @public
+export function createUserRecordType(config?: {
+    meta?: Record<string, T.Validatable<any>>;
+}): RecordType<TLUser, never>;
 
 // @public
 export interface CustomRecordInfo {
@@ -207,6 +246,45 @@ export interface CustomRecordInfo {
 }
 
 // @public
+export const defaultAssetSchemas: {
+    bookmark: {
+        migrations: MigrationSequence;
+        props: {
+            description: T.Validator<string>;
+            favicon: T.Validator<string>;
+            image: T.Validator<string>;
+            src: T.Validator<null | string>;
+            title: T.Validator<string>;
+        };
+    };
+    image: {
+        migrations: MigrationSequence;
+        props: {
+            fileSize: T.Validator<number | undefined>;
+            h: T.Validator<number>;
+            isAnimated: T.Validator<boolean>;
+            mimeType: T.Validator<null | string>;
+            name: T.Validator<string>;
+            pixelRatio: T.Validator<number | undefined>;
+            src: T.Validator<null | string>;
+            w: T.Validator<number>;
+        };
+    };
+    video: {
+        migrations: MigrationSequence;
+        props: {
+            fileSize: T.Validator<number | undefined>;
+            h: T.Validator<number>;
+            isAnimated: T.Validator<boolean>;
+            mimeType: T.Validator<null | string>;
+            name: T.Validator<string>;
+            src: T.Validator<null | string>;
+            w: T.Validator<number>;
+        };
+    };
+};
+
+// @public
 export const defaultBindingSchemas: {
     arrow: {
         migrations: TLPropsMigrations;
@@ -214,20 +292,11 @@ export const defaultBindingSchemas: {
     };
 };
 
-// @public
-export const defaultColorNames: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red", "white"];
+// @public (undocumented)
+export const DefaultColorStyle: EnumStyleProp<TLDefaultColorStyle>;
 
 // @public
-export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-
-// @public
-export const DefaultColorThemePalette: {
-    darkMode: TLDefaultColorTheme;
-    lightMode: TLDefaultColorTheme;
-};
-
-// @public
-export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
+export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "none" | "solid">;
 
 // @public
 export const DefaultFillStyle: EnumStyleProp<"fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid">;
@@ -245,9 +314,6 @@ export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">
 
 // @public
 export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-
-// @public
-export const DefaultLabelColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
 
 // @public
 export const defaultShapeSchemas: {
@@ -339,8 +405,10 @@ export const embedShapeProps: RecordProps<TLEmbedShape>;
 export class EnumStyleProp<T> extends StyleProp<T> {
     // @internal
     constructor(id: string, defaultValue: T, values: readonly T[]);
+    addValues(...newValues: T[]): void;
+    removeValues(...valuesToRemove: T[]): void;
     // (undocumented)
-    readonly values: readonly T[];
+    readonly values: T[];
 }
 
 // @public
@@ -364,18 +432,10 @@ export const geoShapeMigrations: TLPropsMigrations;
 export const geoShapeProps: RecordProps<TLGeoShape>;
 
 // @public
-export function getColorValue(theme: TLDefaultColorTheme, color: TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
-
-// @public
-export function getDefaultColorTheme(opts: {
-    isDarkMode: boolean;
-}): TLDefaultColorTheme;
-
-// @public
 export function getDefaultTranslationLocale(): TLLanguage['locale'];
 
 // @public
-export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo): {
+export function getDefaultUserPresence(store: TLStore, user: TLUser): {
     brush: BoxModel | null;
     camera: {
         x: number;
@@ -397,7 +457,7 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
     screenBounds: BoxModel;
     scribbles: TLScribble[];
     selectedShapeIds: TLShapeId[];
-    userId: string;
+    userId: TLUserId;
     userName: string;
 } | null;
 
@@ -418,6 +478,21 @@ export const highlightShapeProps: RecordProps<TLHighlightShape>;
 
 // @public
 export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
+
+// @public
+export const imageAssetMigrations: MigrationSequence;
+
+// @public (undocumented)
+export const imageAssetProps: {
+    fileSize: T.Validator<number | undefined>;
+    h: T.Validator<number>;
+    isAnimated: T.Validator<boolean>;
+    mimeType: T.Validator<null | string>;
+    name: T.Validator<string>;
+    pixelRatio: T.Validator<number | undefined>;
+    src: T.Validator<null | string>;
+    w: T.Validator<number>;
+};
 
 // @public
 export const ImageShapeCrop: T.ObjectValidator<TLShapeCrop>;
@@ -449,6 +524,9 @@ export function isCustomRecordId(typeName: string, id?: string): boolean;
 // @public
 export function isDocument(record?: UnknownRecord): record is TLDocument;
 
+// @internal (undocumented)
+export function isFontEntry(value: unknown): value is TLThemeFont;
+
 // @public
 export function isPageId(id: string): id is TLPageId;
 
@@ -457,6 +535,9 @@ export function isShape(record?: UnknownRecord): record is TLShape;
 
 // @public
 export function isShapeId(id?: string): id is TLShapeId;
+
+// @public (undocumented)
+export function isUserId(id: string): id is TLUserId;
 
 // @public (undocumented)
 export const LANGUAGES: readonly [{
@@ -654,6 +735,12 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 }>;
 
 // @public
+export function registerColorsFromThemes(definitions: TLThemes): void;
+
+// @public
+export function registerFontsFromThemes(definitions: TLThemes): void;
+
+// @public
 export const richTextValidator: T.ObjectValidator<{
     attrs?: any;
     content: unknown[];
@@ -794,7 +881,7 @@ export interface TLArrowShapeProps {
 }
 
 // @public
-export type TLAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
+export type TLAsset<K extends keyof TLIndexedAssets = keyof TLIndexedAssets> = TLIndexedAssets[K];
 
 // @public
 export interface TLAssetContext {
@@ -961,21 +1048,13 @@ export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 export type TLCustomRecord = TLIndexedRecords[keyof TLIndexedRecords];
 
 // @public
+export type TLDefaultAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
+
+// @public
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
-
-// @public
-export type TLDefaultColorTheme = Expand<{
-    background: string;
-    id: 'dark' | 'light';
-    solid: string;
-    text: string;
-} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>>;
-
-// @public
-export interface TLDefaultColorThemeColor {
+export interface TLDefaultColor {
     // (undocumented)
     fill: string;
     // (undocumented)
@@ -1007,19 +1086,24 @@ export interface TLDefaultColorThemeColor {
 }
 
 // @public
+export type TLDefaultColorStyle = {
+    [K in keyof TLThemeDefaultColors]: TLThemeDefaultColors[K] extends TLDefaultColor ? K : never;
+}[keyof TLThemeDefaultColors] & string;
+
+// @public
 export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
 
 // @public
 export type TLDefaultFillStyle = T.TypeOf<typeof DefaultFillStyle>;
 
 // @public
-export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
+export type TLDefaultFontStyle = keyof TLThemeFonts & string;
 
 // @public
 export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
 
 // @public
-export type TLDefaultRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
+export type TLDefaultRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape | TLUser;
 
 // @public
 export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
@@ -1078,6 +1162,29 @@ export interface TLEmbedShapeProps {
 }
 
 // @public
+export interface TLFontFace {
+    readonly ascentOverride?: string;
+    readonly descentOverride?: string;
+    readonly family: string;
+    readonly featureSettings?: string;
+    readonly lineGapOverride?: string;
+    readonly src: TLFontFaceSource;
+    readonly stretch?: string;
+    readonly style?: string;
+    readonly unicodeRange?: string;
+    readonly weight?: string;
+}
+
+// @public
+export interface TLFontFaceSource {
+    // (undocumented)
+    format?: string;
+    // (undocumented)
+    tech?: string;
+    url: string;
+}
+
+// @public
 export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>;
 
 // @public
@@ -1111,6 +1218,10 @@ export interface TLGeoShapeProps {
     url: string;
     verticalAlign: TLDefaultVerticalAlignStyle;
     w: number;
+}
+
+// @public (undocumented)
+export interface TLGlobalAssetPropsMap {
 }
 
 // @public (undocumented)
@@ -1191,6 +1302,13 @@ export interface TLImageShapeProps {
     url: string;
     w: number;
 }
+
+// @public (undocumented)
+export type TLIndexedAssets = {
+    [K in keyof TLGlobalAssetPropsMap | TLDefaultAsset['type'] as K extends TLDefaultAsset['type'] ? K extends keyof TLGlobalAssetPropsMap ? TLGlobalAssetPropsMap[K] extends null | undefined ? never : K : K : K]: K extends TLDefaultAsset['type'] ? K extends keyof TLGlobalAssetPropsMap ? TLBaseAsset<K, TLGlobalAssetPropsMap[K]> : Extract<TLDefaultAsset, {
+        type: K;
+    }> : TLBaseAsset<K, TLGlobalAssetPropsMap[K & keyof TLGlobalAssetPropsMap]>;
+};
 
 // @public (undocumented)
 export type TLIndexedBindings = {
@@ -1388,12 +1506,13 @@ export interface TLNoteShapeProps {
     align: TLDefaultHorizontalAlignStyle;
     color: TLDefaultColorStyle;
     font: TLDefaultFontStyle;
-    fontSizeAdjustment: number;
+    fontSizeAdjustment: null | number;
     growY: number;
     labelColor: TLDefaultColorStyle;
     richText: TLRichText;
     scale: number;
     size: TLDefaultSizeStyle;
+    textFirstEditedBy: null | string;
     url: string;
     verticalAlign: TLDefaultVerticalAlignStyle;
 }
@@ -1439,13 +1558,6 @@ export type TLPointerId = RecordId<TLPointer>;
 export type TLPresenceStateInfo = Parameters<(typeof InstancePresenceRecordType)['create']>[0];
 
 // @public
-export interface TLPresenceUserInfo {
-    color?: null | string;
-    id: string;
-    name?: null | string;
-}
-
-// @public
 export interface TLPropsMigration {
     // (undocumented)
     readonly dependsOn?: MigrationId[];
@@ -1464,6 +1576,10 @@ export interface TLPropsMigrations {
 
 // @public
 export type TLRecord = TLCustomRecord | TLDefaultRecord;
+
+// @public
+export interface TLRemovedDefaultThemeColors {
+}
 
 // @public
 export type TLRichText = T.TypeOf<typeof richTextValidator>;
@@ -1523,6 +1639,7 @@ export interface TLStoreProps {
     };
     defaultName: string;
     onMount(editor: unknown): (() => void) | void;
+    users: Required<TLUserStore>;
 }
 
 // @public
@@ -1555,10 +1672,124 @@ export interface TLTextShapeProps {
 }
 
 // @public
+export interface TLTheme {
+    // (undocumented)
+    colors: {
+        dark: TLThemeColors;
+        light: TLThemeColors;
+    };
+    fonts: TLThemeFonts;
+    fontSize: number;
+    id: TLThemeId;
+    lineHeight: number;
+    strokeWidth: number;
+}
+
+// @public
+export type TLThemeColors = Pick<TLThemeDefaultColors, TLThemeUiColorKeys> & Omit<TLThemeDefaultColors, keyof TLRemovedDefaultThemeColors | TLThemeUiColorKeys>;
+
+// @public
+export interface TLThemeDefaultColors {
+    // (undocumented)
+    'light-blue': TLDefaultColor;
+    // (undocumented)
+    'light-green': TLDefaultColor;
+    // (undocumented)
+    'light-red': TLDefaultColor;
+    // (undocumented)
+    'light-violet': TLDefaultColor;
+    // (undocumented)
+    background: string;
+    // (undocumented)
+    black: TLDefaultColor;
+    // (undocumented)
+    blue: TLDefaultColor;
+    // (undocumented)
+    cursor: string;
+    // (undocumented)
+    green: TLDefaultColor;
+    // (undocumented)
+    grey: TLDefaultColor;
+    // (undocumented)
+    negativeSpace: string;
+    // (undocumented)
+    noteBorder: string;
+    // (undocumented)
+    orange: TLDefaultColor;
+    // (undocumented)
+    red: TLDefaultColor;
+    // (undocumented)
+    solid: string;
+    // (undocumented)
+    text: string;
+    // (undocumented)
+    violet: TLDefaultColor;
+    // (undocumented)
+    white: TLDefaultColor;
+    // (undocumented)
+    yellow: TLDefaultColor;
+}
+
+// @public
+export interface TLThemeFont {
+    faces?: TLFontFace[];
+    fontFamily: string;
+    icon?: unknown;
+}
+
+// @public
+export interface TLThemeFonts {
+    // (undocumented)
+    draw: TLThemeFont;
+    // (undocumented)
+    mono: TLThemeFont;
+    // (undocumented)
+    sans: TLThemeFont;
+    // (undocumented)
+    serif: TLThemeFont;
+}
+
+// @public (undocumented)
+export type TLThemeId = keyof TLThemes & string;
+
+// @public
+export interface TLThemes {
+    // (undocumented)
+    default: TLTheme;
+}
+
+// @public
+export type TLThemeUiColorKeys = 'background' | 'cursor' | 'negativeSpace' | 'noteBorder' | 'solid' | 'text';
+
+// @public
+export type TLUnknownAsset = TLBaseAsset<string, object>;
+
+// @public
 export type TLUnknownBinding = TLBaseBinding<string, object>;
 
 // @public
 export type TLUnknownShape = TLBaseShape<string, object>;
+
+// @public
+export interface TLUser extends BaseRecord<'user', TLUserId> {
+    // (undocumented)
+    color: string;
+    // (undocumented)
+    imageUrl: string;
+    // (undocumented)
+    meta: JsonObject;
+    // (undocumented)
+    name: string;
+}
+
+// @public (undocumented)
+export type TLUserId = RecordId<TLUser>;
+
+// @public
+export interface TLUserStore {
+    currentUser: Signal<null | TLUser>;
+    resolve?(userId: string): Signal<null | TLUser>;
+}
 
 // @public
 export type TLVideoAsset = TLBaseAsset<'video', {
@@ -1597,6 +1828,18 @@ export interface TLVideoShapeProps {
 // @public
 export function toRichText(text: string): TLRichText;
 
+// @public (undocumented)
+export const userIdValidator: T.Validator<TLUserId>;
+
+// @public (undocumented)
+export const UserRecordType: RecordType<TLUser, never>;
+
+// @public
+export interface UserSchemaInfo {
+    meta?: Record<string, T.Validatable<any>>;
+    migrations?: readonly MigrationSequence[];
+}
+
 // @public
 export interface VecModel {
     // (undocumented)
@@ -1609,6 +1852,20 @@ export interface VecModel {
 
 // @public
 export const vecModelValidator: T.ObjectValidator<VecModel>;
+
+// @public
+export const videoAssetMigrations: MigrationSequence;
+
+// @public (undocumented)
+export const videoAssetProps: {
+    fileSize: T.Validator<number | undefined>;
+    h: T.Validator<number>;
+    isAnimated: T.Validator<boolean>;
+    mimeType: T.Validator<null | string>;
+    name: T.Validator<string>;
+    src: T.Validator<null | string>;
+    w: T.Validator<number>;
+};
 
 // @public
 export const videoShapeMigrations: TLPropsMigrations;

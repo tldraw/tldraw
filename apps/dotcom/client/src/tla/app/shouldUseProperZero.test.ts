@@ -22,9 +22,9 @@ afterEach(() => {
 })
 
 const FLAGS_OFF: FeatureFlags = {
-	sqlite_file_storage: { enabled: false },
 	zero_enabled: { enabled: false },
 	zero_kill_switch: { enabled: false },
+	rum_enabled: { enabled: false },
 }
 
 describe('shouldUseProperZero', () => {
@@ -139,9 +139,9 @@ describe('shouldUseProperZero', () => {
 		it('kill switch > webdriver > localStorage > email > flag', () => {
 			mockedGetFromLocalStorage.mockReturnValue('true')
 			const flags: FeatureFlags = {
-				sqlite_file_storage: { enabled: false },
 				zero_enabled: { enabled: true },
 				zero_kill_switch: { enabled: true },
+				rum_enabled: { enabled: false },
 			}
 			// Kill switch wins over everything
 			const result = shouldUseProperZero(flags, 'dev@tldraw.com')

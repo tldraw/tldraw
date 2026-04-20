@@ -9,6 +9,7 @@ import {
 
 export class Erasing extends StateNode {
 	static override id = 'erasing'
+	static override trackPerformance = true
 
 	private info = {} as TLPointerEventInfo
 	private scribbleId = 'id'

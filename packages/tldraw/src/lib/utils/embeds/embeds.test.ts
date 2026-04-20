@@ -1,5 +1,54 @@
-import { DEFAULT_EMBED_DEFINITIONS } from '../../defaultEmbedDefinitions'
+import {
+	DEFAULT_EMBED_DEFINITIONS,
+	embedShapePermissionDefaults,
+	unknownEmbedShapePermissionOverrides,
+} from '../../defaultEmbedDefinitions'
 import { getEmbedInfo, matchEmbedUrl, matchUrl } from './embeds'
+
+describe('embed sandbox permissions', () => {
+	function getSandboxString(permissions: Record<string, boolean | undefined>): string {
+		return Object.entries(permissions)
+			.filter(([, isEnabled]) => isEnabled)
+			.map(([perm]) => perm)
+			.join(' ')
+	}
+
+	test('known embeds get default permissions including allow-same-origin', () => {
+		const sandbox = getSandboxString(embedShapePermissionDefaults)
+		expect(sandbox).toContain('allow-same-origin')
+		expect(sandbox).toContain('allow-scripts')
+		expect(sandbox).toContain('allow-forms')
+		expect(sandbox).toContain('allow-popups')
+	})
+
+	test('unknown embeds get restricted permissions without allow-same-origin', () => {
+		const sandbox = getSandboxString({
+			...embedShapePermissionDefaults,
+			...unknownEmbedShapePermissionOverrides,
+		})
+		expect(sandbox).not.toContain('allow-same-origin')
+		expect(sandbox).not.toContain('allow-forms')
+		expect(sandbox).not.toContain('allow-popups')
+		expect(sandbox).toContain('allow-scripts')
+	})
+
+	test('known embed overrides still apply on top of defaults', () => {
+		const youtubeEmbed = DEFAULT_EMBED_DEFINITIONS.find((d) => d.type === 'youtube')!
+		const sandbox = getSandboxString({
+			...embedShapePermissionDefaults,
+			...youtubeEmbed.overridePermissions,
+		})
+		expect(sandbox).toContain('allow-same-origin')
+		expect(sandbox).toContain('allow-presentation')
+		expect(sandbox).toContain('allow-popups-to-escape-sandbox')
+	})
+
+	test('unknownEmbedShapePermissionOverrides disables the dangerous permission combination', () => {
+		expect(unknownEmbedShapePermissionOverrides['allow-same-origin']).toBe(false)
+		expect(unknownEmbedShapePermissionOverrides['allow-forms']).toBe(false)
+		expect(unknownEmbedShapePermissionOverrides['allow-popups']).toBe(false)
+	})
+})
 
 interface MatchUrlTestMatchDef {
 	url: string
@@ -168,6 +217,31 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 
 	{
 		url: 'https://www.figma.com/foobar',
+		match: false,
+	},
+	// canva
+	{
+		url: 'https://www.canva.com/design/DAFrLlkQu3Q/view',
+		match: true,
+		output: {
+			type: 'canva',
+			embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/view?embed=',
+		},
+	},
+	{
+		url: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug',
+		match: true,
+		output: {
+			type: 'canva',
+			embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug?embed=',
+		},
+	},
+	{
+		url: 'https://www.canva.com/design/DAFrLlkQu3Q',
+		match: false,
+	},
+	{
+		url: 'https://www.canva.com/templates',
 		match: false,
 	},
 	// google_maps
@@ -505,6 +579,27 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 	},
 	{
 		embedUrl: 'https://www.figma.com/embed?foobar=baz',
+		match: false,
+	},
+	// canva
+	{
+		embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/view?embed=',
+		match: true,
+		output: {
+			type: 'canva',
+			url: 'https://www.canva.com/design/DAFrLlkQu3Q/view',
+		},
+	},
+	{
+		embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug?embed=',
+		match: true,
+		output: {
+			type: 'canva',
+			url: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug',
+		},
+	},
+	{
+		embedUrl: 'https://www.canva.com/templates',
 		match: false,
 	},
 	// google_maps

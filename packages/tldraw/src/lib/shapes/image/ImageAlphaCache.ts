@@ -98,6 +98,7 @@ function extractAlphas(ctx: OffscreenCanvasRenderingContext2D, w: number, h: num
  *   finds data that was preloaded from a resolved URL.
  */
 export function preloadAlphaData(url: string, cacheKey?: string): void {
+	if (typeof OffscreenCanvas === 'undefined') return
 	const key = cacheKey ?? url
 	if (alphaCache.has(key) || pending.has(key)) return
 	pending.add(key)

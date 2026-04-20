@@ -1781,8 +1781,7 @@ describe('right clicking', () => {
 		editor.createShapes([{ id: ids.box1, type: 'geo' }])
 		expect(editor.getSelectedShapeIds()).toEqual([])
 		editor.pointerMove(4, 4)
-		editor.pointerDown(4, 4, { target: 'canvas', button: 2 })
-		editor.pointerUp()
+		editor.rightClick(4, 4)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 	})
 
@@ -1793,6 +1792,29 @@ describe('right clicking', () => {
 		editor.pointerDown(30, 30, { target: 'canvas', button: 2 })
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+	})
+
+	it('keeps multi-selection when right-clicking over a filled shape behind it', () => {
+		// Create a large filled shape behind two smaller shapes
+		editor.createShapes([
+			{
+				id: ids.box1,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				props: { w: 200, h: 200, fill: 'solid' },
+			},
+			{ id: ids.box2, type: 'geo', x: 20, y: 20, props: { w: 20, h: 20 } },
+			{ id: ids.box3, type: 'geo', x: 60, y: 20, props: { w: 20, h: 20 } },
+		])
+		// Select only the two small shapes on top
+		editor.setSelectedShapes([ids.box2, ids.box3])
+		// Right-click at a point within the selection bounds but over the filled back shape
+		editor.pointerMove(50, 30)
+		editor.pointerDown(50, 30, { target: 'canvas', button: 2 })
+		editor.pointerUp()
+		// Selection should be preserved
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box3])
 	})
 
 	it('keeps selection when right-clicking a selection background', () => {
@@ -1812,8 +1834,7 @@ describe('right clicking', () => {
 		// Not inside of the shape but inside of the selection bounds
 		editor.pointerMove(510, 590)
 		expect(editor.getHoveredShapeId()).toBe(null)
-		editor.pointerDown(30, 30, { target: 'canvas', button: 2 })
-		editor.pointerUp()
+		editor.rightClick(30, 30)
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 })
