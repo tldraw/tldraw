@@ -9,7 +9,6 @@ import {
 import 'tldraw/tldraw.css'
 import companionCube from './companion-cube.json'
 import { PortalShapeUtil } from './PortalShapeUtil'
-import './portal-shapes.css'
 
 // [1]
 const shapeUtils = [PortalShapeUtil]
