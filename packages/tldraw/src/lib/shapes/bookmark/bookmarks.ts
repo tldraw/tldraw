@@ -84,7 +84,7 @@ export function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmark
 	}
 }
 
-const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TLBookmarkShape) => {
+async function _createBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) {
 	if (editor.isDisposed) return
 
 	const { url } = shape.props
@@ -111,7 +111,21 @@ const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TL
 			},
 		])
 	})
-}, 500)
+}
+
+const bookmarkDebouncers = new WeakMap<
+	Editor,
+	ReturnType<typeof debounce<[Editor, TLBookmarkShape], void>>
+>()
+
+function createBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) {
+	let fn = bookmarkDebouncers.get(editor)
+	if (!fn) {
+		fn = debounce(_createBookmarkAssetOnUrlChange, 500)
+		bookmarkDebouncers.set(editor, fn)
+	}
+	fn(editor, shape)
+}
 
 /**
  * Creates a bookmark shape from a URL with unfurled metadata.

@@ -1,13 +1,15 @@
 import { FileHelpers, assert, fetch } from '@tldraw/utils'
 
-// TODO(alex): currently, this cache will grow unbounded. we should come up with a better strategy
-// for clearing items from the cache over time.
+// Best-effort memory bound; full clear on overflow trades brief re-fetch cost for simplicity.
+const MAX_FETCH_CACHE_SIZE = 200
+
 export function fetchCache<T>(cb: (response: Response) => Promise<T>, init?: RequestInit) {
 	const cache = new Map<string, Promise<T | null>>()
 
 	return async function fetchCached(url: string): Promise<T | null> {
 		const existing = cache.get(url)
 		if (existing) return existing
+		if (cache.size >= MAX_FETCH_CACHE_SIZE) cache.clear()
 
 		const promise = (async () => {
 			try {
