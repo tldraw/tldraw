@@ -61,7 +61,6 @@ export function usePerformanceTracking() {
 	return useCallback((editor: Editor) => {
 		let unsubInteraction: (() => void) | undefined
 		let unsubCamera: (() => void) | undefined
-		let memoryTimeout: ReturnType<typeof setTimeout> | undefined
 		let memoryInterval: ReturnType<typeof setInterval> | undefined
 		let visibilityHandler: (() => void) | undefined
 		let unsubPageChange: (() => void) | undefined
@@ -93,8 +92,8 @@ export function usePerformanceTracking() {
 
 					const sampleMemory = (reason: 'interval' | 'visibility_hidden' | 'page_change') => {
 						const m = (performance as any).memory
-						if (!m) return
-						const limit = m.jsHeapSizeLimit || 1
+						// Non-cross-origin-isolated contexts get quantized (often 0) heap fields — skip.
+						if (!m || !m.jsHeapSizeLimit) return
 						const event = {
 							type: 'memory' as const,
 							sample_index: sampleIndex,
@@ -103,7 +102,7 @@ export function usePerformanceTracking() {
 							used_js_heap_mb: r2(m.usedJSHeapSize / MB),
 							total_js_heap_mb: r2(m.totalJSHeapSize / MB),
 							heap_limit_mb: r2(m.jsHeapSizeLimit / MB),
-							heap_used_pct: r2(m.usedJSHeapSize / limit),
+							heap_used_pct: r2(m.usedJSHeapSize / m.jsHeapSizeLimit),
 							shape_count: editor.getCurrentPageShapeIds().size,
 							page_count: editor.getPages().length,
 							page_change_count: pageChangeCount,
@@ -113,7 +112,11 @@ export function usePerformanceTracking() {
 							ab_indicators: abIndicators,
 							release: sentryReleaseName,
 						}
-						trackEvent('rum', event)
+						try {
+							trackEvent('rum', event)
+						} catch {
+							// PostHog errors shouldn't break the interval loop.
+						}
 						sampleIndex++
 					}
 
@@ -128,14 +131,10 @@ export function usePerformanceTracking() {
 						}
 					)
 
-					memoryTimeout = setTimeout(() => {
+					memoryInterval = setInterval(() => {
 						if (disposed) return
 						sampleMemory('interval')
-						memoryInterval = setInterval(() => {
-							if (disposed) return
-							sampleMemory('interval')
-						}, 60_000)
-					}, 10_000)
+					}, 60_000)
 
 					visibilityHandler = () => {
 						if (document.visibilityState === 'hidden' && !disposed) {
@@ -153,7 +152,6 @@ export function usePerformanceTracking() {
 			disposed = true
 			unsubInteraction?.()
 			unsubCamera?.()
-			if (memoryTimeout) clearTimeout(memoryTimeout)
 			if (memoryInterval) clearInterval(memoryInterval)
 			unsubPageChange?.()
 			if (visibilityHandler) {
