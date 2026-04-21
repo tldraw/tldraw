@@ -1685,7 +1685,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isRequiredA11yAction: true,
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
-					editor.updateInstanceState({ isChangingStyle: true })
 
 					const onlySelectedShape = editor.getOnlySelectedShape()
 					if (
