@@ -6,7 +6,7 @@ on:
       target:
         description: 'Target ref to deploy'
         required: true
-        default: 'main'
+        default: 'production'
 
 env:
   CI: 1
