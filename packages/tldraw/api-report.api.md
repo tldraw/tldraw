@@ -1778,7 +1778,7 @@ export function FrameToolbarItem(): JSX.Element;
 
 // @public (undocumented)
 export interface GeoShapeOptions extends ShapeOptionsWithDisplayValues<TLGeoShape, GeoShapeUtilDisplayValues> {
-    customGeoTypes?: Record<string, GeoTypeDefinition>;
+    customGeoStyles?: Record<string, GeoTypeDefinition>;
     // (undocumented)
     showTextOutline: boolean;
 }

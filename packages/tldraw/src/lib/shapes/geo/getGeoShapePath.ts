@@ -48,26 +48,26 @@ export interface GeoTypeDefinition {
 /** @internal */
 export function getCustomGeoType(
 	name: string,
-	customGeoTypes?: Record<string, GeoTypeDefinition>
+	customGeoStyles?: Record<string, GeoTypeDefinition>
 ): GeoTypeDefinition | undefined {
-	return customGeoTypes?.[name]
+	return customGeoStyles?.[name]
 }
 
 const pathCache = new WeakCache<TLGeoShape, PathBuilder>()
 export function getGeoShapePath(
 	shape: TLGeoShape,
 	strokeWidth: number,
-	customGeoTypes?: Record<string, GeoTypeDefinition>
+	customGeoStyles?: Record<string, GeoTypeDefinition>
 ) {
 	// Cache is keyed on shape only. For x-box, strokeWidth affects the diagonal
 	// inset, but theme changes are rare enough that stale cache entries are acceptable.
-	return pathCache.get(shape, (s) => _getGeoPath(s, strokeWidth, customGeoTypes))
+	return pathCache.get(shape, (s) => _getGeoPath(s, strokeWidth, customGeoStyles))
 }
 
 function _getGeoPath(
 	shape: TLGeoShape,
 	strokeWidth: number,
-	customGeoTypes?: Record<string, GeoTypeDefinition>
+	customGeoStyles?: Record<string, GeoTypeDefinition>
 ) {
 	const w = Math.max(1, shape.props.w)
 	const h = Math.max(1, shape.props.h + shape.props.growY)
@@ -234,7 +234,7 @@ function _getGeoPath(
 		case 'cloud':
 			return getCloudPath(w, h, shape.id, shape.props.size, shape.props.scale, isFilled)
 		default: {
-			const customType = getCustomGeoType(shape.props.geo, customGeoTypes)
+			const customType = getCustomGeoType(shape.props.geo, customGeoStyles)
 			if (customType) {
 				return customType.getPath(w, h, shape, sw)
 			}

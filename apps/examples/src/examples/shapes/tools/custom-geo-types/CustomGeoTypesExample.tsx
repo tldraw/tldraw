@@ -5,6 +5,7 @@ import {
 	PathBuilder,
 	TLComponents,
 	TLUiAssetUrlOverrides,
+	TLUiOverrides,
 	Tldraw,
 	ToolbarItem,
 	toRichText,
@@ -13,9 +14,12 @@ import 'tldraw/tldraw.css'
 
 // [1]
 const CustomGeoShapeUtil = GeoShapeUtil.configure({
-	customGeoTypes: {
+	customGeoStyles: {
 		'rounded-rect': {
 			getPath(w, h, shape) {
+				// `isFilled` is used by the path builder to determine whether the
+				// geometry should be treated as a filled region (so clicks inside
+				// the shape hit it) or only along its outline.
 				const isFilled = shape.props.fill !== 'none'
 				const r = Math.min(w, h) * 0.2
 				return new PathBuilder()
@@ -72,6 +76,16 @@ const customAssetUrls: TLUiAssetUrlOverrides = {
 }
 
 // [4]
+const uiOverrides: TLUiOverrides = {
+	translations: {
+		en: {
+			'tool.rounded-rect': 'Rounded rectangle',
+			'tool.cross': 'Cross',
+		},
+	},
+}
+
+// [5]
 const components: TLComponents = {
 	Toolbar: (props) => {
 		return (
@@ -87,10 +101,11 @@ const components: TLComponents = {
 export default function CustomGeoTypesExample() {
 	return (
 		<div className="tldraw__editor">
-			{/* [5] */}
+			{/* [6] */}
 			<Tldraw
 				shapeUtils={shapeUtils}
 				components={components}
+				overrides={uiOverrides}
 				assetUrls={customAssetUrls}
 				onMount={(editor) => {
 					editor.createShapes([
@@ -143,8 +158,8 @@ export default function CustomGeoTypesExample() {
 
 /*
 [1]
-Use GeoShapeUtil.configure() with a customGeoTypes map. Each entry
-defines a new geo type with:
+Use GeoShapeUtil.configure() with a customGeoStyles map. Each entry
+defines a new geo style with:
 - getPath: returns a PathBuilder describing the shape outline
 - snapType: 'polygon' (snap to vertices + center) or 'blobby' (center only)
 - icon: icon name for the style panel picker
@@ -152,20 +167,25 @@ defines a new geo type with:
 
 [2]
 Pass the configured shape util in an array. It replaces the default
-GeoShapeUtil but keeps all built-in geo types alongside your custom ones.
+GeoShapeUtil but keeps all built-in geo styles alongside your custom ones.
 
 [3]
-Provide custom icon SVGs for your geo types via assetUrls. The icon key
-must be 'geo-' followed by the geo type name (e.g., 'geo-rounded-rect').
+Provide custom icon SVGs for your geo styles via assetUrls. The icon key
+must be 'geo-' followed by the geo style name (e.g., 'geo-rounded-rect').
 
 [4]
-Override the Toolbar component to add ToolbarItems for your custom geo
-types. The tool ID matches the key in your customGeoTypes map. Custom
-geo types are automatically registered as tools, so you just need to
-reference them by name.
+Provide translations for the tool labels so that the tooltips in the
+toolbar show the right name. The translation keys are 'tool.' followed
+by the geo style name (e.g., 'tool.rounded-rect').
 
 [5]
-Custom geo types appear in the geo style panel picker. They support all
+Override the Toolbar component to add ToolbarItems for your custom geo
+styles. The tool ID matches the key in your customGeoStyles map. Custom
+geo styles are automatically registered as tools, so you just need to
+reference them by name.
+
+[6]
+Custom geo styles appear in the geo style panel picker. They support all
 standard geo features: labels, fill/dash/color styles, resizing, SVG
 export, and snap points.
 */
