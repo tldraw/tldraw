@@ -11,14 +11,6 @@ import { trackEvent } from '../utils/analytics'
 
 const r2 = (n: number) => Math.round(n * 100) / 100
 
-function getCoarsePlatform(): 'ios' | 'android' | 'desktop' {
-	if (typeof navigator === 'undefined') return 'desktop'
-	const ua = navigator.userAgent
-	if (/iPad|iPhone|iPod/.test(ua)) return 'ios'
-	if (/android/i.test(ua)) return 'android'
-	return 'desktop'
-}
-
 function getZoomBucket(zoom: number): string {
 	if (zoom <= 0.15) return 'lte_0.15'
 	if (zoom <= 0.35) return '0.15_0.35'
@@ -26,8 +18,6 @@ function getZoomBucket(zoom: number): string {
 	if (zoom <= 1) return '0.65_1'
 	return 'gt_1'
 }
-
-let coarsePlatform: ReturnType<typeof getCoarsePlatform> | null = null
 
 // Counts editor mounts (file navigations). First mount = 0.
 let editorMountCount = 0
@@ -49,7 +39,6 @@ function commonStats(event: TLPerfFrameTimeStats & { shapeCount: number; zoomLev
 		zoom_bucket: getZoomBucket(event.zoomLevel),
 		has_loaf: (loafs?.length ?? 0) > 0,
 		loaf_count: loafs?.length ?? 0,
-		coarse_platform: (coarsePlatform ??= getCoarsePlatform()),
 		release: sentryReleaseName,
 	}
 }
@@ -130,7 +119,6 @@ export function usePerformanceTracking() {
 							editor_mount_count: editorMountCount,
 							zoom_bucket: getZoomBucket(editor.getZoomLevel()),
 							device_memory_gb: sampleIndex === 0 ? deviceMemoryGb : null,
-							coarse_platform: (coarsePlatform ??= getCoarsePlatform()),
 							ab_indicators: abIndicators,
 							release: sentryReleaseName,
 						}
