@@ -91,9 +91,11 @@ export const DefaultShapeIndicators = memo(function DefaultShapeIndicators({
 	const { ShapeIndicator } = useEditorComponents()
 
 	// Filter out shapes that have canvas indicator support - only render shapes that use legacy SVG indicators
+	// When useCanvasIndicators is disabled, render all shapes via SVG
 	const shapesToRender = useValue(
 		'shapes to render for svg indicators',
 		() => {
+			if (!editor.options.useCanvasIndicators) return renderingShapes
 			return renderingShapes.filter(({ id }) => {
 				const shape = editor.getShape(id)
 				if (!shape) return false

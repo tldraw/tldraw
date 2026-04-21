@@ -30,6 +30,16 @@ function getPinnedVersions(): string[] {
 	})
 }
 
+function getTempDeclarationFilename(packageName: string): string {
+	// Keep filenames unique across similarly named packages like `tldraw` and `@tldraw/tldraw`.
+	return (
+		packageName
+			.replace(/^@/, '')
+			.replace(/\//g, '__')
+			.replace(/[^a-zA-Z0-9_.-]/g, '_') + '.d.ts'
+	)
+}
+
 main()
 
 async function main() {
@@ -49,9 +59,9 @@ async function main() {
 	const tempDir = (await exec('mktemp', ['-d'])).trim()
 	nicelog(`Working in ${tempDir}`)
 
-	const packages = (await getAllWorkspacePackages()).filter(
-		({ packageJson }) => !packageJson.private
-	)
+	const packages = (await getAllWorkspacePackages())
+		.filter(({ packageJson }) => !packageJson.private)
+		.sort((a, b) => a.name.localeCompare(b.name))
 
 	nicelog(
 		'Checking packages:',
@@ -59,16 +69,16 @@ async function main() {
 	)
 
 	for (const { name, relativePath } of packages) {
-		const unprefixedName = name.replace('@tldraw/', '')
+		const declarationFilename = getTempDeclarationFilename(name)
 		const dtsFile = await readFileIfExists(join(relativePath, 'api', 'public.d.ts'))
 		if (!dtsFile) {
 			nicelog(`No public.d.ts for ${name}, skipping`)
 			continue
 		}
 
-		writeFileSync(join(tempDir, `${unprefixedName}.d.ts`), dtsFile, 'utf8')
-		tsconfig.compilerOptions.paths[name] = [`./${unprefixedName}.d.ts`]
-		tsconfig.files.push(`./${unprefixedName}.d.ts`)
+		writeFileSync(join(tempDir, declarationFilename), dtsFile, 'utf8')
+		tsconfig.compilerOptions.paths[name] = [`./${declarationFilename}`]
+		tsconfig.files.push(`./${declarationFilename}`)
 	}
 
 	nicelog('Checking with tsconfig:', tsconfig)

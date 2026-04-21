@@ -155,6 +155,12 @@ export interface TldrawOptions {
 	 */
 	readonly spacebarPanning: boolean
 	/**
+	 * Whether to allow right-click + drag to pan the camera. When true, right-click + drag pans the
+	 * camera and a static right-click opens the context menu at the release position. When false,
+	 * right-click opens the context menu on press (no drag-to-pan).
+	 */
+	readonly rightClickPanning: boolean
+	/**
 	 * The default padding (in pixels) used when zooming to fit content in the viewport.
 	 * This affects methods like `zoomToFit()`, `zoomToSelection()`, and `zoomToBounds()`.
 	 * The actual padding used is the minimum of this value and 28% of the viewport width.
@@ -196,6 +202,12 @@ export interface TldrawOptions {
 	 * viewport's page dimensions regardless of overview zoom changes.
 	 */
 	readonly quickZoomPreservesScreenBounds: boolean
+	/**
+	 * Whether to use 2D canvas rendering for shape indicators. When true (default),
+	 * shapes that support it will render indicators on a 2D canvas for better
+	 * performance. When false, all indicators use legacy SVG rendering.
+	 */
+	readonly useCanvasIndicators: boolean
 	/**
 	 * Called before content is written to the clipboard during a copy or cut operation.
 	 * Receives the serialized content (shapes, bindings, assets) and can filter or transform
@@ -326,11 +338,13 @@ export const defaultTldrawOptions = {
 	debouncedZoom: true,
 	debouncedZoomThreshold: 500,
 	spacebarPanning: true,
+	rightClickPanning: true,
 	zoomToFitPadding: 128,
 	snapThreshold: 8,
 	camera: DEFAULT_CAMERA_OPTIONS,
 	text: {},
 	deepLinks: undefined,
+	useCanvasIndicators: true,
 	quickZoomPreservesScreenBounds: true,
 	onBeforeCopyToClipboard: undefined,
 	onBeforePasteFromClipboard: undefined,

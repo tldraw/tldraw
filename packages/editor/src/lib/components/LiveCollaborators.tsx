@@ -123,8 +123,14 @@ const Collaborator = track(function Collaborator({
 					.filter((id) => {
 						// Skip hidden shapes
 						if (editor.isShapeHidden(id)) return false
-						// Only render SVG indicators for shapes that use legacy indicators
-						// Canvas-based indicators are handled by CanvasShapeIndicators
+						// When canvas indicators are disabled, render SVG indicators for
+						// every selected shape. Otherwise shapes that opt into the canvas
+						// path via useLegacyIndicator() === false would never get a
+						// collaborator indicator drawn.
+						if (!editor.options.useCanvasIndicators) return true
+						// Otherwise, only render SVG indicators for shapes that opt in to
+						// the legacy path — canvas-based indicators are handled by
+						// CanvasShapeIndicators.
 						const shape = editor.getShape(id)
 						if (!shape) return false
 						const util = editor.getShapeUtil(shape)

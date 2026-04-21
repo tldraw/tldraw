@@ -27,7 +27,9 @@ import {
 } from 'tldraw'
 import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { useCanvasIndicatorsAb } from '../../../hooks/useCanvasIndicatorsAb'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -117,11 +119,14 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
+	const canvasIndicatorsAb = useCanvasIndicatorsAb()
+	const trackPerformance = usePerformanceTracking()
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
+			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally
@@ -167,11 +172,21 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}).then(setIsReady)
 
 			return () => {
+				cleanupPerf()
 				fileStateUpdater.dispose()
 				abortController.abort()
 			}
 		},
-		[addDialog, trackRoomLoaded, trackNewRoomCreation, app, fileId, remountImageShapes, setIsReady]
+		[
+			addDialog,
+			trackRoomLoaded,
+			trackNewRoomCreation,
+			trackPerformance,
+			app,
+			fileId,
+			remountImageShapes,
+			setIsReady,
+		]
 	)
 
 	const user = useTldrawCurrentUser()
@@ -263,6 +278,12 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}
 	}, [])
 
+	// Wait for the canvas_indicators_ab assignment to resolve before mounting
+	// the editor. This avoids misbucketing users into the control group just
+	// because the feature flag fetch hadn't landed yet. The hook has a bounded
+	// 500ms timeout so a slow/unreachable flags endpoint can't block the app.
+	if (canvasIndicatorsAb === null) return null
+
 	return (
 		<TlaEditorWrapper>
 			<Tldraw
@@ -274,7 +295,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={instanceComponents}
-				options={{ actionShortcutsLocation: 'toolbar', deepLinks: deepLinks ? true : undefined }}
+				options={{
+					actionShortcutsLocation: 'toolbar',
+					deepLinks: deepLinks ? true : undefined,
+					useCanvasIndicators: canvasIndicatorsAb === 'canvas',
+				}}
 				overrides={[overrides, extraDragIconOverrides]}
 				getShapeVisibility={getShapeVisibility}
 			>

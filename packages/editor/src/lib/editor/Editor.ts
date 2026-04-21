@@ -10,10 +10,10 @@ import {
 import {
 	ComputedCache,
 	RecordType,
+	StoreSideEffects,
+	StoreSnapshot,
 	UnknownRecord,
 	reverseRecordsDiff,
-	StoreSnapshot,
-	StoreSideEffects,
 } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -157,11 +157,12 @@ import { FocusManager } from './managers/FocusManager/FocusManager'
 import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
+import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
-import { resolveThemes, ThemeManager } from './managers/ThemeManager/ThemeManager'
+import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import {
@@ -407,6 +408,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.fonts = new FontManager(this, fontAssetUrls)
 
 		this.inputs = new InputsManager(this)
+		this.performance = new PerformanceManager(this)
+		this.disposables.add(() => this.performance.dispose())
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -1009,6 +1012,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly snaps: SnapManager
 
 	/**
+	 * A manager for performance measurement hooks.
+	 *
+	 * @public
+	 */
+	readonly performance: PerformanceManager
+
+	/**
 	 * A manager for the spatial index, tracking where shapes exist on the canvas.
 	 *
 	 * @internal
@@ -1419,6 +1429,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.undo()
+		this.performance._notifyUndoRedo('undo', this.history.getNumUndos(), this.history.getNumRedos())
 		return this
 	}
 
@@ -1449,6 +1460,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.redo()
+		this.performance._notifyUndoRedo('redo', this.history.getNumUndos(), this.history.getNumRedos())
 		return this
 	}
 
@@ -10853,6 +10865,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							{ immediate: true }
 						)
 
+						this.performance._notifyCameraOperation('zooming')
 						this.emit('event', info)
 						return // Stop here!
 					}
@@ -10945,6 +10958,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Zooming')
+							this.performance._notifyCameraOperation('zooming')
 							this.root.handleEvent(info)
 							this.emit('event', info)
 							return
@@ -10955,6 +10969,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
+							this.performance._notifyCameraOperation('panning')
 							this.root.handleEvent(info)
 							this.emit('event', info)
 							return
@@ -11021,6 +11036,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 							this.inputs.setIsPanning(true)
 							clearTimeout(this._longPressTimeout)
+						} else if (info.button === RIGHT_MOUSE_BUTTON && this.options.rightClickPanning) {
+							this.inputs.setIsRightPointing(true)
+							clearTimeout(this._longPressTimeout)
+							return this
 						}
 
 						// We might be panning because we did a middle mouse click, or because we're holding spacebar and started a regular click
@@ -11039,9 +11058,31 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 
+						// Right-click pointing: waiting to see if this becomes a drag
+						if (this.inputs.getIsRightPointing() && !this.inputs.getIsPanning()) {
+							const currentScreenPoint = this.inputs.getCurrentScreenPoint()
+							const originScreenPoint = this.inputs.getOriginScreenPoint()
+							if (
+								Vec.Dist2(originScreenPoint, currentScreenPoint) > this.options.dragDistanceSquared
+							) {
+								// Passed the drag threshold—transition to panning
+								this._prevCursor = this.getInstanceState().cursor.type
+								this.inputs.setIsPanning(true)
+								this.setCursor({ type: 'grabbing', rotation: 0 })
+								this.stopCameraAnimation()
+								// Apply the initial delta from the pointer down origin
+								const offset = Vec.Sub(currentScreenPoint, originScreenPoint)
+								this.setCamera(new Vec(cx + offset.x / cz, cy + offset.y / cz, cz), {
+									immediate: true,
+								})
+								this.maybeTrackPerformance('Panning')
+							}
+							return
+						}
+
 						// If we've started panning, then clear any long press timeout
 						if (this.inputs.getIsPanning() && this.inputs.getIsPointing()) {
-							// Handle spacebar / middle mouse button panning
+							// Handle spacebar / middle mouse button / right-click panning
 							const currentScreenPoint = this.inputs.getCurrentScreenPoint()
 							const previousScreenPoint = this.inputs.getPreviousScreenPoint()
 							const offset = Vec.Sub(currentScreenPoint, previousScreenPoint)
@@ -11049,6 +11090,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
+							this.performance._notifyCameraOperation('panning')
 							return
 						}
 
@@ -11073,12 +11115,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.setIsDragging(false)
 						inputs.setIsPointing(false)
 						clearTimeout(this._longPressTimeout)
-
 						// Remove the button from the buttons set
 						inputs.buttons.delete(info.button)
 
 						// If we're in pen mode and we're not using a pen, stop here
 						if (instanceState.isPenMode && !isPen) return
+
+						// Right-click pointing ended without dragging—this is a static
+						// right-click, so let it through to the state chart as right_click.
+						// Check isPanning first: if we transitioned to panning, isRightPointing
+						// is still true but we want the panning cleanup path instead.
+						if (this.inputs.getIsRightPointing() && !this.inputs.getIsPanning()) {
+							this.inputs.setIsRightPointing(false)
+							this._selectedShapeIdsAtPointerDown = []
+							break // fall through to state chart dispatch as right_click
+						}
+
+						this.inputs.setIsRightPointing(false)
 
 						// Firefox bug fix...
 						// If it's the same pointer that we stored earlier...
@@ -11102,11 +11155,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 									break
 								}
 								case MIDDLE_MOUSE_BUTTON: {
-									if (this.inputs.keys.has(' ')) {
+									if (this.inputs.keys.has('Space')) {
 										this.setCursor({ type: 'grab', rotation: 0 })
 									} else {
 										this.setCursor({ type: this._prevCursor, rotation: 0 })
 									}
+									break
+								}
+								case RIGHT_MOUSE_BUTTON: {
+									if (this.inputs.keys.has('Space')) {
+										this.setCursor({ type: 'grab', rotation: 0 })
+									} else {
+										this.setCursor({ type: this._prevCursor, rotation: 0 })
+									}
+									// Don't pass right-click panning events to the state chart
+									// as it causes unintended shape selection on release
+									if (slideSpeed > 0) {
+										this.slideCamera({ speed: slideSpeed, direction: slideDirection })
+									}
+									this._selectedShapeIdsAtPointerDown = []
+									return this
 								}
 							}
 

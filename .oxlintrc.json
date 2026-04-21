@@ -222,7 +222,8 @@
 		"tldraw/no-exported-arrow-const": "error",
 		"tldraw/no-focused-tests": "error",
 		"tldraw/enforce-default-message": ["error", "literal"],
-		"tldraw/method-signature-style": "error"
+		"tldraw/method-signature-style": "error",
+		"tldraw/claude-agents-pairing": "error"
 	},
 	"overrides": [
 		{
