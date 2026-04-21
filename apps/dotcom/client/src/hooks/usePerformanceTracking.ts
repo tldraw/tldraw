@@ -28,6 +28,10 @@ function getZoomBucket(zoom: number): string {
 
 const coarsePlatform = getCoarsePlatform()
 
+// Tracks how many times the editor mounts with a new document (file navigations).
+// First mount is the initial load, not a change, so we start at -1.
+let fileChangeCount = -1
+
 function commonStats(event: TLPerfFrameTimeStats & { shapeCount: number; zoomLevel: number }) {
 	const loafs = event.longAnimationFrames
 	return {
@@ -75,11 +79,14 @@ function handleCameraEnd(event: TLCameraEndPerfEvent, abIndicators: 'canvas' | '
 
 export function usePerformanceTracking() {
 	return useCallback((editor: Editor) => {
+		fileChangeCount++
+
 		let unsubInteraction: (() => void) | undefined
 		let unsubCamera: (() => void) | undefined
 		let memoryTimeout: ReturnType<typeof setTimeout> | undefined
 		let memoryInterval: ReturnType<typeof setInterval> | undefined
 		let visibilityHandler: (() => void) | undefined
+		let unsubPageChange: (() => void) | undefined
 		let disposed = false
 
 		fetchFeatureFlags().then((flags) => {
@@ -101,13 +108,14 @@ export function usePerformanceTracking() {
 			if (mem) {
 				const mountTime = Date.now()
 				let sampleIndex = 0
+				let pageChangeCount = 0
 				const toMb = (bytes: number) => Math.round((bytes / 1024 / 1024) * 100) / 100
 				const deviceMemoryGb = (navigator as any).deviceMemory ?? null
 
-				const sampleMemory = (reason: 'interval' | 'visibility_hidden') => {
+				const sampleMemory = (reason: 'interval' | 'visibility_hidden' | 'page_change') => {
 					const m = (performance as any).memory
-					trackEvent('rum', {
-						type: 'memory',
+					const event = {
+						type: 'memory' as const,
 						sample_index: sampleIndex,
 						sample_reason: reason,
 						session_duration_s: Math.round((Date.now() - mountTime) / 1000),
@@ -118,14 +126,27 @@ export function usePerformanceTracking() {
 						shape_count: editor.getCurrentPageShapeIds().size,
 						store_record_count: editor.store.allRecords().length,
 						page_count: editor.getPages().length,
+						page_change_count: pageChangeCount,
+						file_change_count: fileChangeCount,
 						zoom_bucket: getZoomBucket(editor.getZoomLevel()),
 						device_memory_gb: sampleIndex === 0 ? deviceMemoryGb : null,
 						coarse_platform: coarsePlatform,
 						release: sentryReleaseName,
 						ab_indicators: abIndicators,
-					})
+					}
+					trackEvent('rum', event)
 					sampleIndex++
 				}
+
+				unsubPageChange = editor.sideEffects.registerAfterChangeHandler(
+					'instance',
+					(prev, next) => {
+						if (prev.currentPageId !== next.currentPageId) {
+							pageChangeCount++
+							sampleMemory('page_change')
+						}
+					}
+				)
 
 				memoryTimeout = setTimeout(() => {
 					if (disposed) return
@@ -151,6 +172,7 @@ export function usePerformanceTracking() {
 			unsubCamera?.()
 			if (memoryTimeout) clearTimeout(memoryTimeout)
 			if (memoryInterval) clearInterval(memoryInterval)
+			unsubPageChange?.()
 			if (visibilityHandler) {
 				document.removeEventListener('visibilitychange', visibilityHandler)
 			}
