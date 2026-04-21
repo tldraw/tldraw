@@ -1,4 +1,4 @@
-import { Image, VecLike } from '@tldraw/editor'
+import { Image, LruCache, VecLike } from '@tldraw/editor'
 
 /** Mime types of image formats that support transparency / alpha channel. */
 export const TRANSPARENT_IMAGE_MIMETYPES: readonly string[] = [
@@ -65,10 +65,7 @@ export function isImagePointTransparent(
 
 const MAX_SIZE = 256
 
-// Best-effort memory bound; full clear on overflow trades brief re-decode cost for simplicity.
-const MAX_ALPHA_CACHE_SIZE = 500
-
-const alphaCache = new Map<string, AlphaData>()
+const alphaCache = new LruCache<string, AlphaData>(500)
 const pending = new Set<string>()
 let offscreenCanvas: OffscreenCanvas | null = null
 
@@ -142,7 +139,6 @@ export function preloadAlphaData(url: string, cacheKey?: string): void {
 			ctx.drawImage(img, 0, 0, w, h)
 		}
 
-		if (alphaCache.size >= MAX_ALPHA_CACHE_SIZE) alphaCache.clear()
 		alphaCache.set(key, { width: w, height: h, alphas: extractAlphas(ctx, w, h) })
 	}
 	img.onerror = () => {
