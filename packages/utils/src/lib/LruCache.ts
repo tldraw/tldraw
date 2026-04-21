@@ -26,7 +26,7 @@ export class LruCache<K, V> {
 		return this.map.has(key)
 	}
 
-	get size(): number {
+	getSize(): number {
 		return this.map.size
 	}
 }
