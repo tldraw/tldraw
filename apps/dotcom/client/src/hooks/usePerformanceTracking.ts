@@ -11,14 +11,6 @@ import { trackEvent } from '../utils/analytics'
 
 const r2 = (n: number) => Math.round(n * 100) / 100
 
-function getZoomBucket(zoom: number): string {
-	if (zoom <= 0.15) return 'lte_0.15'
-	if (zoom <= 0.35) return '0.15_0.35'
-	if (zoom <= 0.65) return '0.35_0.65'
-	if (zoom <= 1) return '0.65_1'
-	return 'gt_1'
-}
-
 // Counts editor mounts (file navigations). First mount = 0.
 let editorMountCount = 0
 
@@ -36,7 +28,6 @@ function commonStats(event: TLPerfFrameTimeStats & { shapeCount: number; zoomLev
 		max_frame_time: r2(event.maxFrameTime),
 		shape_count: event.shapeCount,
 		zoom_level: r2(event.zoomLevel),
-		zoom_bucket: getZoomBucket(event.zoomLevel),
 		has_loaf: (loafs?.length ?? 0) > 0,
 		loaf_count: loafs?.length ?? 0,
 		release: sentryReleaseName,
@@ -117,7 +108,7 @@ export function usePerformanceTracking() {
 							page_count: editor.getPages().length,
 							page_change_count: pageChangeCount,
 							editor_mount_count: editorMountCount,
-							zoom_bucket: getZoomBucket(editor.getZoomLevel()),
+							zoom_level: r2(editor.getZoomLevel()),
 							device_memory_gb: sampleIndex === 0 ? deviceMemoryGb : null,
 							ab_indicators: abIndicators,
 							release: sentryReleaseName,
