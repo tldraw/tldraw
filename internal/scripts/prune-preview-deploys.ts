@@ -218,32 +218,29 @@ async function listR2BackupPrefixes(): Promise<string[]> {
 	return prefixes
 }
 
-async function deleteR2BackupData(prefix: string) {
-	let continuationToken: string | undefined
-	do {
+async function deleteR2Backup(prefix: string) {
+	nicelog('Deleting R2 backup data:', prefix)
+	while (true) {
 		const list = await R2.send(
 			new ListObjectsV2Command({
 				Bucket: env.ZERO_R2_BUCKET_NAME,
 				Prefix: prefix,
-				ContinuationToken: continuationToken,
 			})
 		)
 		const objects = list.Contents
-		if (objects && objects.length > 0) {
-			await R2.send(
-				new DeleteObjectsCommand({
-					Bucket: env.ZERO_R2_BUCKET_NAME,
-					Delete: { Objects: objects.map((o) => ({ Key: o.Key })) },
-				})
+		if (!objects || objects.length === 0) break
+		const result = await R2.send(
+			new DeleteObjectsCommand({
+				Bucket: env.ZERO_R2_BUCKET_NAME,
+				Delete: { Objects: objects.map((o) => ({ Key: o.Key })) },
+			})
+		)
+		if (result.Errors && result.Errors.length > 0) {
+			throw new Error(
+				`Failed to delete ${result.Errors.length} objects: ${JSON.stringify(result.Errors)}`
 			)
 		}
-		continuationToken = list.IsTruncated ? list.NextContinuationToken : undefined
-	} while (continuationToken)
-}
-
-async function deleteR2Backup(prefix: string) {
-	nicelog('Deleting R2 backup data:', prefix)
-	await deleteR2BackupData(prefix)
+	}
 }
 
 const deletionErrors: string[] = []
