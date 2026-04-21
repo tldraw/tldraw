@@ -6,7 +6,7 @@ import {
 	RecordProps,
 	SVGContainer,
 	T,
-	TLBaseShape,
+	TLBaseBoxShape,
 	TLDropShapesOverInfo,
 	TLResizeInfo,
 	TLShape,
@@ -17,14 +17,16 @@ import {
 
 const PORTAL_SHAPE_TYPE = 'portal'
 
-export type PortalShape = TLBaseShape<
-	typeof PORTAL_SHAPE_TYPE,
-	{
-		w: number
-		h: number
-		color: 'blue' | 'orange'
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[PORTAL_SHAPE_TYPE]: { w: number; h: number; color: string }
 	}
->
+}
+
+export type PortalShape = TLBaseBoxShape & {
+	type: typeof PORTAL_SHAPE_TYPE
+	props: { color: 'blue' | 'orange' }
+}
 
 const COLORS = {
 	blue: {
@@ -41,15 +43,15 @@ const COLORS = {
 
 let teleportCount = 0
 
-export class PortalShapeUtil extends BaseFrameLikeShapeUtil<any> {
+export class PortalShapeUtil extends BaseFrameLikeShapeUtil<PortalShape> {
 	static override type = PORTAL_SHAPE_TYPE
-	static override props: RecordProps<any> = {
+	static override props: RecordProps<PortalShape> = {
 		w: T.number,
 		h: T.number,
 		color: T.literalEnum('blue', 'orange'),
 	}
 
-	override getDefaultProps() {
+	override getDefaultProps(): PortalShape['props'] {
 		return { w: 250, h: 300, color: 'blue' }
 	}
 
@@ -57,7 +59,7 @@ export class PortalShapeUtil extends BaseFrameLikeShapeUtil<any> {
 		return true
 	}
 
-	override getGeometry(shape: any): Geometry2d {
+	override getGeometry(shape: PortalShape): Geometry2d {
 		return new Group2d({
 			children: [
 				new Ellipse2d({
@@ -69,25 +71,22 @@ export class PortalShapeUtil extends BaseFrameLikeShapeUtil<any> {
 		})
 	}
 
-	override onResize(shape: any, info: TLResizeInfo<any>) {
+	override onResize(shape: PortalShape, info: TLResizeInfo<PortalShape>) {
 		return resizeBox(shape, info)
 	}
 
 	private findLinkedPortal(shape: PortalShape): PortalShape | undefined {
 		const otherColor = shape.props.color === 'blue' ? 'orange' : 'blue'
-		const allShapes = this.editor.getCurrentPageShapes()
-		const linked = allShapes.find(
-			(s) =>
-				(s as any).type === PORTAL_SHAPE_TYPE &&
-				(s as unknown as PortalShape).props.color === otherColor
+		const allShapes = this.editor.getCurrentPageShapes() as TLShape[]
+		return allShapes.find(
+			(s): s is PortalShape =>
+				s.type === PORTAL_SHAPE_TYPE && (s as PortalShape).props.color === otherColor
 		)
-		return linked as PortalShape | undefined
 	}
 
 	// On drop, teleport: move shapes from this portal to the linked one.
-	override onDropShapesOver(shape: any, shapes: TLShape[], _info: TLDropShapesOverInfo) {
-		const portal = shape as PortalShape
-		const linked = this.findLinkedPortal(portal)
+	override onDropShapesOver(shape: PortalShape, shapes: TLShape[], _info: TLDropShapesOverInfo) {
+		const linked = this.findLinkedPortal(shape)
 		if (!linked) return
 
 		const { editor } = this
@@ -95,9 +94,9 @@ export class PortalShapeUtil extends BaseFrameLikeShapeUtil<any> {
 		// First, ensure all dropped shapes are children of this portal so we
 		// have consistent local coordinates. Shapes dragged in during the drag
 		// are already parented here; shapes dropped directly may not be.
-		const needsReparent = shapes.filter((s) => s.parentId !== portal.id)
+		const needsReparent = shapes.filter((s) => s.parentId !== shape.id)
 		if (needsReparent.length > 0) {
-			editor.reparentShapes(needsReparent, portal.id)
+			editor.reparentShapes(needsReparent, shape.id)
 		}
 
 		// Re-read shapes after reparenting so local coords are up to date.
@@ -132,13 +131,12 @@ export class PortalShapeUtil extends BaseFrameLikeShapeUtil<any> {
 		}
 	}
 
-	override component(shape: any) {
-		const portal = shape as PortalShape
-		const theme = COLORS[portal.props.color]
-		const cx = portal.props.w / 2
-		const cy = portal.props.h / 2
-		const rx = portal.props.w / 2
-		const ry = portal.props.h / 2
+	override component(shape: PortalShape) {
+		const theme = COLORS[shape.props.color]
+		const cx = shape.props.w / 2
+		const cy = shape.props.h / 2
+		const rx = shape.props.w / 2
+		const ry = shape.props.h / 2
 
 		return (
 			<SVGContainer>
@@ -156,16 +154,13 @@ export class PortalShapeUtil extends BaseFrameLikeShapeUtil<any> {
 		)
 	}
 
-	override indicator(shape: any) {
-		const portal = shape as PortalShape
-		const cx = portal.props.w / 2
-		const cy = portal.props.h / 2
+	override indicator(shape: PortalShape) {
 		return (
 			<ellipse
-				cx={toDomPrecision(cx)}
-				cy={toDomPrecision(cy)}
-				rx={toDomPrecision(portal.props.w / 2)}
-				ry={toDomPrecision(portal.props.h / 2)}
+				cx={toDomPrecision(shape.props.w / 2)}
+				cy={toDomPrecision(shape.props.h / 2)}
+				rx={toDomPrecision(shape.props.w / 2)}
+				ry={toDomPrecision(shape.props.h / 2)}
 			/>
 		)
 	}

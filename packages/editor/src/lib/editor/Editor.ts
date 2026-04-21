@@ -5704,7 +5704,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
 			// Frame-like shapes have labels positioned above the shape (outside bounds), so always include them
-			if (!candidateIds.has(shape.id) && !this.getShapeUtil(shape).isFrameLike(shape)) return false
+			if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) return false
 
 			if (
 				(shape.isLocked && !hitLocked) ||
@@ -5727,7 +5727,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Check labels first
 			const shapeUtil = this.getShapeUtil(shape)
-			const isShapeFrameLike = shapeUtil.isFrameLike(shape)
+			const isShapeFrameLike = this.isShapeFrameLike(shape)
 			if (
 				isShapeFrameLike ||
 				((this.isShapeOfType(shape, 'note') ||
@@ -5906,8 +5906,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getCurrentPageShapesSorted()
 			.filter((shape) => {
 				if (this.isShapeHidden(shape)) return false
-				if (!candidateIds.has(shape.id) && !this.getShapeUtil(shape).isFrameLike(shape))
-					return false
+				if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) return false
 				return this.isPointInShape(shape, point, opts)
 			})
 			.reverse()
@@ -6080,6 +6079,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
 		if (!shape) return false
 		return shape.type === type
+	}
+
+	/**
+	 * Get whether a shape behaves like a frame — a container that has child
+	 * shapes, requires full-brush selection, blocks erasure from inside, etc.
+	 *
+	 * @example
+	 * ```ts
+	 * const isFrameLike = editor.isShapeFrameLike(someShape)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to test.
+	 *
+	 * @public
+	 */
+	isShapeFrameLike(shape: TLShape | TLShapeId): boolean {
+		const _shape = typeof shape === 'string' ? this.getShape(shape) : shape
+		if (!_shape) return false
+		return this.getShapeUtil(_shape).isFrameLike(_shape)
 	}
 
 	/**

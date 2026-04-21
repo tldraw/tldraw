@@ -30,10 +30,7 @@ export class Pointing extends StateNode {
 			) {
 				const hitShape = this.editor.getOutermostSelectableShape(shape)
 				// If we've hit a frame-like shape after hitting any other shape, stop here
-				if (
-					this.editor.getShapeUtil(hitShape).isFrameLike(hitShape) &&
-					erasing.size > initialSize
-				) {
+				if (this.editor.isShapeFrameLike(hitShape) && erasing.size > initialSize) {
 					break
 				}
 

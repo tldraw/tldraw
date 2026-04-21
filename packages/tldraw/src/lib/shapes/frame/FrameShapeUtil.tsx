@@ -10,7 +10,6 @@ import {
 	TLEditStartInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
-	TLResizeInfo,
 	TLShapePartial,
 	TLShapeUtilConstructor,
 	clamp,
@@ -19,7 +18,6 @@ import {
 	frameShapeProps,
 	getColorValue,
 	lerp,
-	resizeBox,
 	toDomPrecision,
 	useColorMode,
 	useValue,
@@ -357,10 +355,6 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 		const path = new Path2D()
 		path.rect(0, 0, shape.props.w, shape.props.h)
 		return path
-	}
-
-	override onResize(shape: any, info: TLResizeInfo<any>) {
-		return resizeBox(shape, info)
 	}
 
 	override getInterpolatedProps(

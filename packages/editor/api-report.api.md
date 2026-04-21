@@ -201,9 +201,9 @@ export abstract class BaseFrameLikeShapeUtil<Shape extends TLBaseBoxShape> exten
     // (undocumented)
     getClipPath(shape: Shape): undefined | Vec[];
     // (undocumented)
-    isFrameLike(): boolean;
+    isFrameLike(_shape: Shape): boolean;
     // (undocumented)
-    onDragShapesIn(shape: Shape, draggingShapes: TLShape[], { initialParentIds, initialIndices }: TLDragShapesOverInfo): void;
+    onDragShapesIn(shape: Shape, draggingShapes: TLShape[], { initialParentIds, initialIndices }: TLDragShapesInInfo): void;
     // (undocumented)
     onDragShapesOut(shape: Shape, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void;
     // (undocumented)
@@ -1475,6 +1475,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
     }): boolean;
+    isShapeFrameLike(shape: TLShape | TLShapeId): boolean;
     // (undocumented)
     isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
     isShapeInPage(shape: TLShape | TLShapeId, pageId?: TLPageId): boolean;

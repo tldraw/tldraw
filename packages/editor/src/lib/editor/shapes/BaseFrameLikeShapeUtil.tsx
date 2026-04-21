@@ -2,7 +2,7 @@ import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { IndexKey, compact } from '@tldraw/utils'
 import { Vec } from '../../primitives/Vec'
 import { BaseBoxShapeUtil, TLBaseBoxShape } from './BaseBoxShapeUtil'
-import { TLDragShapesOutInfo, TLDragShapesOverInfo } from './ShapeUtil'
+import { TLDragShapesInInfo, TLDragShapesOutInfo } from './ShapeUtil'
 
 /**
  * A base class for frame-like shapes — containers that clip their children,
@@ -46,7 +46,7 @@ import { TLDragShapesOutInfo, TLDragShapesOverInfo } from './ShapeUtil'
 export abstract class BaseFrameLikeShapeUtil<
 	Shape extends TLBaseBoxShape,
 > extends BaseBoxShapeUtil<Shape> {
-	override isFrameLike(): boolean {
+	override isFrameLike(_shape: Shape): boolean {
 		return true
 	}
 
@@ -65,7 +65,7 @@ export abstract class BaseFrameLikeShapeUtil<
 	override onDragShapesIn(
 		shape: Shape,
 		draggingShapes: TLShape[],
-		{ initialParentIds, initialIndices }: TLDragShapesOverInfo
+		{ initialParentIds, initialIndices }: TLDragShapesInInfo
 	): void {
 		const { editor } = this
 
@@ -111,8 +111,9 @@ export abstract class BaseFrameLikeShapeUtil<
 		// When a user drags shapes out and we're not dragging into a new shape,
 		// reparent the dragging shapes onto the current page instead
 		if (!info.nextDraggingOverShapeId) {
+			// Locked shapes are already filtered out upstream by DragAndDropManager.
 			editor.reparentShapes(
-				draggingShapes.filter((s) => s.parentId === shape.id && !s.isLocked),
+				draggingShapes.filter((s) => s.parentId === shape.id),
 				editor.getCurrentPageId()
 			)
 		}

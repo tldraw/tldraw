@@ -1725,8 +1725,6 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
         type: "frame";
     } | undefined;
     // (undocumented)
-    onResize(shape: any, info: TLResizeInfo<any>): any;
-    // (undocumented)
     options: FrameShapeOptions;
     // (undocumented)
     static props: RecordProps<TLFrameShape>;
