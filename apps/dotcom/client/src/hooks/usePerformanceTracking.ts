@@ -5,6 +5,7 @@ import {
 	TLInteractionEndPerfEvent,
 	TLPerfFrameTimeStats,
 } from 'tldraw'
+import { sentryReleaseName } from '../../sentry-release-name'
 import { fetchFeatureFlags } from '../tla/utils/FeatureFlagPoller'
 import { trackEvent } from '../utils/analytics'
 
@@ -49,6 +50,7 @@ function commonStats(event: TLPerfFrameTimeStats & { shapeCount: number; zoomLev
 		has_loaf: (loafs?.length ?? 0) > 0,
 		loaf_count: loafs?.length ?? 0,
 		coarse_platform: (coarsePlatform ??= getCoarsePlatform()),
+		release: sentryReleaseName,
 	}
 }
 
@@ -130,6 +132,7 @@ export function usePerformanceTracking() {
 							device_memory_gb: sampleIndex === 0 ? deviceMemoryGb : null,
 							coarse_platform: (coarsePlatform ??= getCoarsePlatform()),
 							ab_indicators: abIndicators,
+							release: sentryReleaseName,
 						}
 						trackEvent('rum', event)
 						sampleIndex++
