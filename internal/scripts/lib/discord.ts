@@ -1,5 +1,17 @@
-function sanitizeVariables(errorOutput: string): string {
+const MASK_PLACEHOLDER = '\x00MASKED\x00'
+
+function sanitizeVariables(errorOutput: string, secretValues?: string[]): string {
 	let sanitized = errorOutput
+
+	// Value-based masking: replace any occurrence of known secret values (like GitHub Actions).
+	// Uses an internal placeholder so regex patterns below can't re-match masked output.
+	// Sort longest-first so a longer secret is masked before a shorter substring of it.
+	if (secretValues) {
+		const sorted = secretValues.filter((v) => v.length >= 8).sort((a, b) => b.length - a.length)
+		for (const value of sorted) {
+			sanitized = sanitized.replaceAll(value, MASK_PLACEHOLDER)
+		}
+	}
 
 	// Sanitize wrangler --var KEY:VALUE patterns
 	sanitized = sanitized.replace(/(--var\s+)(\w+):[^ \n]+/g, '$1$2:`***`')
@@ -17,6 +29,9 @@ function sanitizeVariables(errorOutput: string): string {
 		'$1://`***`'
 	)
 
+	// Replace internal placeholder with final mask
+	sanitized = sanitized.replaceAll(MASK_PLACEHOLDER, '`***`')
+
 	return sanitized
 }
 
@@ -28,11 +43,13 @@ export class Discord {
 		shouldNotify: boolean
 		totalSteps?: number
 		messagePrefix?: string
+		secretValues?: string[]
 	}) {
 		this.webhookUrl = opts.webhookUrl
 		this.shouldNotify = opts.shouldNotify
 		this.totalSteps = opts.totalSteps ?? 0
 		this.messagePrefix = opts.messagePrefix ?? ''
+		this.secretValues = opts.secretValues
 	}
 
 	webhookUrl: string
@@ -40,6 +57,7 @@ export class Discord {
 	totalSteps: number
 	currentStep = 0
 	messagePrefix: string
+	private secretValues?: string[]
 
 	private async send(method: string, url: string, body: unknown): Promise<any> {
 		const response = await fetch(`${this.webhookUrl}${url}`, {
@@ -64,7 +82,7 @@ export class Discord {
 
 		const prefixedContent = this.messagePrefix ? `${this.messagePrefix} ${content}` : content
 		const message = await this.send('POST', '?wait=true', {
-			content: sanitizeVariables(prefixedContent),
+			content: sanitizeVariables(prefixedContent, this.secretValues),
 		})
 
 		return {
@@ -73,7 +91,7 @@ export class Discord {
 					? `${this.messagePrefix} ${newContent}`
 					: newContent
 				await this.send('PATCH', `/messages/${message.id}`, {
-					content: sanitizeVariables(prefixedNewContent),
+					content: sanitizeVariables(prefixedNewContent, this.secretValues),
 				})
 			},
 		}

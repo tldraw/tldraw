@@ -17,12 +17,13 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapeUtilCanvasSvgDef,
+	TLShapeUtilConstructor,
 	Vec,
 	VecLike,
 	WeakCache,
 	approximately,
 	areAnglesCompatible,
-	exhaustiveSwitchError,
+	GeoShapeGeoStyle,
 	geoShapeMigrations,
 	geoShapeProps,
 	getColorValue,
@@ -54,7 +55,7 @@ import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { GeoShapeBody } from './GeoShapeBody'
-import { getGeoShapePath } from './getGeoShapePath'
+import { type GeoTypeDefinition, getCustomGeoType, getGeoShapePath } from './getGeoShapePath'
 
 // imperfect but good enough, should be the width of the W in the font / size combo
 const GEO_SHAPE_MIN_WIDTHS = Object.freeze({
@@ -113,6 +114,26 @@ export interface GeoShapeOptions extends ShapeOptionsWithDisplayValues<
 	GeoShapeUtilDisplayValues
 > {
 	showTextOutline: boolean
+	/**
+	 * A map of custom geo style definitions. Each key becomes a new value for
+	 * {@link @tldraw/editor#GeoShapeGeoStyle} that can be used in the style panel
+	 * and on shapes. Custom styles inherit all standard geo shape behavior
+	 * (labels, resizing, styling, etc.).
+	 *
+	 * @example
+	 * ```ts
+	 * const MyGeoShapeUtil = GeoShapeUtil.configure({
+	 *   customGeoStyles: {
+	 *     'my-shape': {
+	 *       getPath: (w, h) => new PathBuilder().moveTo(0, 0).lineTo(w, 0).lineTo(w, h).lineTo(0, h).close(),
+	 *       snapType: 'polygon',
+	 *       icon: 'geo-rectangle',
+	 *     },
+	 *   },
+	 * })
+	 * ```
+	 */
+	customGeoStyles?: Record<string, GeoTypeDefinition>
 }
 
 /** @public */
@@ -120,6 +141,32 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override type = 'geo' as const
 	static override props = geoShapeProps
 	static override migrations = geoShapeMigrations
+
+	static override configure<T extends TLShapeUtilConstructor<any, any>>(
+		this: T,
+		options: T extends new (...args: any[]) => { options: infer Options } ? Partial<Options> : never
+	): T {
+		const opts = options as Partial<GeoShapeOptions>
+		if (opts.customGeoStyles) {
+			const existingValues = new Set<string>(GeoShapeGeoStyle.values)
+			const newValues: string[] = []
+			for (const key of Object.keys(opts.customGeoStyles)) {
+				if (existingValues.has(key)) {
+					if (process.env.NODE_ENV !== 'production') {
+						console.warn(
+							`[GeoShapeUtil.configure] customGeoStyles key "${key}" collides with a built-in geo style and will be ignored. Please use a unique name.`
+						)
+					}
+					continue
+				}
+				newValues.push(key)
+			}
+			if (newValues.length > 0) {
+				GeoShapeGeoStyle.addValues(...(newValues as Parameters<typeof GeoShapeGeoStyle.addValues>))
+			}
+		}
+		return super.configure(options) as T
+	}
 
 	override options: GeoShapeOptions = {
 		showTextOutline: true,
@@ -191,7 +238,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { props } = shape
 		const { scale } = props
 		const dv = getDisplayValues(this, shape)
-		const path = getGeoShapePath(shape, dv.strokeWidth)
+		const path = getGeoShapePath(shape, dv.strokeWidth, this.options.customGeoStyles)
 		const pathGeometry = path.toGeometry()
 
 		const scaledW = Math.max(1, props.w)
@@ -292,8 +339,16 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			case 'oval':
 				// blobby shapes only have a snap point in their center
 				return { outline: outline, points: [geometry.bounds.center] }
-			default:
-				exhaustiveSwitchError(shape.props.geo)
+			default: {
+				const customType = getCustomGeoType(shape.props.geo, this.options.customGeoStyles)
+				if (customType) {
+					if (customType.snapType === 'blobby') {
+						return { outline: outline, points: [geometry.bounds.center] }
+					}
+					return { outline: outline, points: [...outline.vertices, geometry.bounds.center] }
+				}
+				throw new Error(`Unknown geo type: ${shape.props.geo}`)
+			}
 		}
 	}
 
@@ -343,6 +398,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						strokeWidth={dv.strokeWidth}
 						fillColor={dv.fillColor}
 						patternFillFallbackColor={dv.patternFillFallbackColor}
+						customGeoStyles={this.options.customGeoStyles}
 					/>
 				</SVGContainer>
 				{showHtmlContainer && (
@@ -391,7 +447,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { dash, scale } = shape.props
 		const dv = getDisplayValues(this, shape)
 
-		const path = getGeoShapePath(shape, dv.strokeWidth)
+		const path = getGeoShapePath(shape, dv.strokeWidth, this.options.customGeoStyles)
 
 		return path.toSvg({
 			style: dash === 'draw' ? 'draw' : 'solid',
@@ -415,7 +471,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { dash, scale } = shape.props
 		const dv = getDisplayValues(this, shape)
 
-		const path = getGeoShapePath(shape, dv.strokeWidth)
+		const path = getGeoShapePath(shape, dv.strokeWidth, this.options.customGeoStyles)
 
 		return path.toPath2D({
 			style: dash === 'draw' ? 'draw' : 'solid',
@@ -472,6 +528,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					strokeWidth={dv.strokeWidth}
 					fillColor={dv.fillColor}
 					patternFillFallbackColor={dv.patternFillFallbackColor}
+					customGeoStyles={this.options.customGeoStyles}
 				/>
 				{textEl}
 			</>
@@ -690,6 +747,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						},
 					}
 				}
+			}
+		}
+
+		const customType = getCustomGeoType(shape.props.geo, this.options.customGeoStyles)
+		if (customType?.onDoubleClick) {
+			const result = customType.onDoubleClick(shape)
+			if (result) {
+				return { ...shape, props: { ...shape.props, ...result.props } }
 			}
 		}
 

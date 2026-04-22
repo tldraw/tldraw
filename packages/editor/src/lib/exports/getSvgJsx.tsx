@@ -60,8 +60,9 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		.filter(({ id }) => shapeIdsToInclude.has(id))
 
 	// --- Common bounding box of all shapes
+	const singleFrameShape = ids.length === 1 ? editor.getShape(ids[0]) : null
 	const singleFrameShapeId =
-		ids.length === 1 && editor.isShapeOfType(editor.getShape(ids[0])!, 'frame') ? ids[0] : null
+		singleFrameShape && editor.isShapeFrameLike(singleFrameShape) ? ids[0] : null
 
 	let bbox: null | Box = null
 	let paddingWasApplied = false

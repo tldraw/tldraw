@@ -1,7 +1,6 @@
 import {
 	centerOfCircleFromThreePoints,
 	clamp,
-	exhaustiveSwitchError,
 	getPointOnCircle,
 	getPolygonVertices,
 	HALF_PI,
@@ -17,14 +16,59 @@ import {
 } from '@tldraw/editor'
 import { PathBuilder } from '../shared/PathBuilder'
 
-const pathCache = new WeakCache<TLGeoShape, PathBuilder>()
-export function getGeoShapePath(shape: TLGeoShape, strokeWidth: number) {
-	// Cache is keyed on shape only. For x-box, strokeWidth affects the diagonal
-	// inset, but theme changes are rare enough that stale cache entries are acceptable.
-	return pathCache.get(shape, (s) => _getGeoPath(s, strokeWidth))
+/**
+ * Defines the behavior for a custom geo shape type. Register custom geo types
+ * via {@link @tldraw/tldraw#GeoShapeUtil.configure | GeoShapeUtil.configure()}.
+ *
+ * @public
+ */
+export interface GeoTypeDefinition {
+	/**
+	 * Generate the path geometry for this geo type.
+	 *
+	 * @param w - The width of the shape (already clamped to min 1)
+	 * @param h - The height of the shape (already clamped to min 1, includes growY)
+	 * @param shape - The full geo shape record, for access to props like id, dash, fill, etc.
+	 * @param strokeWidth - The scaled stroke width (strokeWidth * scale)
+	 */
+	getPath(w: number, h: number, shape: TLGeoShape, strokeWidth: number): PathBuilder
+	/** Snap behavior: 'polygon' snaps to vertices + center, 'blobby' snaps to center only. */
+	snapType: 'polygon' | 'blobby'
+	/** Default creation size when clicking (not dragging). Defaults to 200x200. */
+	defaultSize?: { w: number; h: number }
+	/** Icon name for the style panel geo picker. */
+	icon: string
+	/**
+	 * Optional double-click handler. Return an object with partial props to update the shape,
+	 * or void to do nothing.
+	 */
+	onDoubleClick?(shape: TLGeoShape): { props: Partial<TLGeoShape['props']> } | void
 }
 
-function _getGeoPath(shape: TLGeoShape, strokeWidth: number) {
+/** @internal */
+export function getCustomGeoType(
+	name: string,
+	customGeoStyles?: Record<string, GeoTypeDefinition>
+): GeoTypeDefinition | undefined {
+	return customGeoStyles?.[name]
+}
+
+const pathCache = new WeakCache<TLGeoShape, PathBuilder>()
+export function getGeoShapePath(
+	shape: TLGeoShape,
+	strokeWidth: number,
+	customGeoStyles?: Record<string, GeoTypeDefinition>
+) {
+	// Cache is keyed on shape only. For x-box, strokeWidth affects the diagonal
+	// inset, but theme changes are rare enough that stale cache entries are acceptable.
+	return pathCache.get(shape, (s) => _getGeoPath(s, strokeWidth, customGeoStyles))
+}
+
+function _getGeoPath(
+	shape: TLGeoShape,
+	strokeWidth: number,
+	customGeoStyles?: Record<string, GeoTypeDefinition>
+) {
 	const w = Math.max(1, shape.props.w)
 	const h = Math.max(1, shape.props.h + shape.props.growY)
 	const cx = w / 2
@@ -189,8 +233,13 @@ function _getGeoPath(shape: TLGeoShape, strokeWidth: number) {
 
 		case 'cloud':
 			return getCloudPath(w, h, shape.id, shape.props.size, shape.props.scale, isFilled)
-		default:
-			exhaustiveSwitchError(shape.props.geo)
+		default: {
+			const customType = getCustomGeoType(shape.props.geo, customGeoStyles)
+			if (customType) {
+				return customType.getPath(w, h, shape, sw)
+			}
+			throw new Error(`Unknown geo type: ${shape.props.geo}`)
+		}
 	}
 }
 

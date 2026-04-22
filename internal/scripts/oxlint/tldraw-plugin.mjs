@@ -5,11 +5,100 @@
 // ESLint-compatible create(context) API so the plugin works in both oxlint
 // and ESLint if ever needed.
 
+import { existsSync, readdirSync, readFileSync } from 'fs'
+import { dirname, join, relative } from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const REPO_ROOT = join(__dirname, '../../..')
+
 const TIPTAP_IMPORT_PREFIX = '@tiptap/'
+const CLAUDE_AGENT_ROOTS = ['apps', 'packages', 'templates']
+const CLAUDE_FILE_NAME = 'CLAUDE.md'
+const AGENTS_FILE_NAME = 'AGENTS.md'
+const CLAUDE_AGENT_REFERENCE = '@AGENTS.md'
+const SKIPPED_DIR_NAMES = new Set([
+	'node_modules',
+	'out',
+	'dist',
+	'dist-cjs',
+	'dist-esm',
+	'.lazy',
+	'.next',
+	'.wrangler',
+	'.vercel',
+	'coverage',
+])
+
+let cachedClaudeAgentViolations = null
+let hasReportedClaudeAgentViolations = false
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+function normalizePath(filePath) {
+	return filePath.split('\\').join('/')
+}
+
+function shouldSkipDirectory(entryName) {
+	return SKIPPED_DIR_NAMES.has(entryName)
+}
+
+function collectClaudeAgentViolations() {
+	const violations = []
+
+	for (const rootDirName of CLAUDE_AGENT_ROOTS) {
+		collectClaudeAgentViolationsInDirectory(join(REPO_ROOT, rootDirName), violations)
+	}
+
+	return violations
+}
+
+function collectClaudeAgentViolationsInDirectory(dir, violations) {
+	if (!existsSync(dir)) return
+
+	for (const entry of readdirSync(dir, { withFileTypes: true })) {
+		const fullPath = join(dir, entry.name)
+
+		if (entry.isDirectory()) {
+			if (shouldSkipDirectory(entry.name)) continue
+			collectClaudeAgentViolationsInDirectory(fullPath, violations)
+			continue
+		}
+
+		if (!entry.isFile() || entry.name.toLowerCase() !== CLAUDE_FILE_NAME.toLowerCase()) {
+			continue
+		}
+
+		const relativeClaudePath = normalizePath(relative(REPO_ROOT, fullPath))
+		const claudeContents = readFileSync(fullPath, 'utf8')
+		const agentsPath = join(dir, AGENTS_FILE_NAME)
+
+		if (!existsSync(agentsPath)) {
+			violations.push({
+				claudePath: relativeClaudePath,
+				messageId: 'missingAgents',
+			})
+		}
+
+		if (!claudeContents.includes(CLAUDE_AGENT_REFERENCE)) {
+			violations.push({
+				claudePath: relativeClaudePath,
+				messageId: 'missingReference',
+			})
+		}
+	}
+}
+
+function getClaudeAgentViolations() {
+	if (cachedClaudeAgentViolations === null) {
+		cachedClaudeAgentViolations = collectClaudeAgentViolations()
+	}
+
+	return cachedClaudeAgentViolations
+}
 
 function extractParamNames(comment) {
 	const params = []
@@ -84,6 +173,35 @@ const rules = {
 				},
 				TemplateElement(node) {
 					check(node, node.value.raw, node.value.raw)
+				},
+			}
+		},
+	},
+
+	'claude-agents-pairing': {
+		meta: {
+			messages: {
+				missingAgents:
+					'`{{claudePath}}` must have a colocated `AGENTS.md` so the instructions work across coding tools.',
+				missingReference:
+					'`{{claudePath}}` must reference the colocated `AGENTS.md` using `@AGENTS.md`.',
+			},
+			type: 'problem',
+			schema: [],
+		},
+		create(context) {
+			return {
+				Program(node) {
+					if (hasReportedClaudeAgentViolations) return
+					hasReportedClaudeAgentViolations = true
+
+					for (const violation of getClaudeAgentViolations()) {
+						context.report({
+							node,
+							messageId: violation.messageId,
+							data: { claudePath: violation.claudePath },
+						})
+					}
 				},
 			}
 		},

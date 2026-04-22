@@ -10,34 +10,22 @@
  *   npx tsx internal/scripts/fetch-fly-logs.ts --app production-zero-rm --start 2026-04-15T15:00:00Z --end 2026-04-15T18:00:00Z
  *   npx tsx internal/scripts/fetch-fly-logs.ts --app production-zero-rm --last 1h --filter "NOT DEBUG" -o logs.jsonl
  *   npx tsx internal/scripts/fetch-fly-logs.ts --app production-zero-rm --last 6h --filter "Purged" --pretty
+ *   FLY_TOKEN=fo1_xxx npx tsx internal/scripts/fetch-fly-logs.ts --app production-zero-rm --last 1h
+ *   npx tsx internal/scripts/fetch-fly-logs.ts --token fo1_xxx --app production-zero-rm --last 1h
+ *
+ * See fly-common.ts for app names and token configuration.
  */
 
-import { execSync } from 'child_process'
+import { FLY_ORG_SLUG, getFlyToken, parseDuration } from './fly-common'
 
-const ORG_SLUG = 'tldraw-gb-ltd'
-const BASE_URL = `https://api.fly.io/victorialogs/${ORG_SLUG}/select/logsql/query`
-
-function getToken(): string {
-	return execSync(`fly tokens org ${ORG_SLUG}`, { encoding: 'utf-8' }).trim()
-}
-
-function parseDuration(s: string): number {
-	const match = s.match(/^(\d+)(m|h|d)$/)
-	if (!match) {
-		console.error(`Invalid duration: ${s}. Use e.g. 30m, 2h, 1d`)
-		process.exit(1)
-	}
-	const n = parseInt(match[1])
-	const unit = match[2]
-	const multipliers: Record<string, number> = { m: 60_000, h: 3_600_000, d: 86_400_000 }
-	return n * multipliers[unit]
-}
+const BASE_URL = `https://api.fly.io/victorialogs/${FLY_ORG_SLUG}/select/logsql/query`
 
 function parseArgs() {
 	const args = process.argv.slice(2)
 	const opts: Record<string, string> = {}
 	for (let i = 0; i < args.length; i++) {
-		if (args[i] === '--app' || args[i] === '-a') opts.app = args[++i]
+		if (args[i] === '--token' || args[i] === '-t') opts.token = args[++i]
+		else if (args[i] === '--app' || args[i] === '-a') opts.app = args[++i]
 		else if (args[i] === '--start') opts.start = args[++i]
 		else if (args[i] === '--end') opts.end = args[++i]
 		else if (args[i] === '--last' || args[i] === '-l') opts.last = args[++i]
@@ -51,6 +39,7 @@ function parseArgs() {
 					'Usage: npx tsx internal/scripts/fetch-fly-logs.ts [options]',
 					'',
 					'Options:',
+					'  --token, -t    Fly API token (falls back to FLY_TOKEN env var)',
 					'  --app, -a      Fly app name (required)',
 					'  --last, -l     Duration to look back, e.g. 30m, 2h, 1d (default: 1h)',
 					'  --start        Start time (ISO 8601), overrides --last',
@@ -84,7 +73,7 @@ async function main() {
 	if (opts.start) {
 		start = opts.start
 	} else {
-		const ms = parseDuration(opts.last ?? '1h')
+		const ms = parseDuration(opts.last ?? '1h', 'ms')
 		start = new Date(now.getTime() - ms).toISOString()
 	}
 
@@ -94,10 +83,10 @@ async function main() {
 	const params = new URLSearchParams({ query, start, end })
 	if (opts.limit) params.set('limit', opts.limit)
 
-	const token = getToken()
+	const token = getFlyToken(opts.token)
 	const url = `${BASE_URL}?${params}`
 
-	const res = await fetch(url, { headers: { Authorization: token } })
+	const res = await fetch(url, { headers: { Authorization: `FlyV1 ${token}` } })
 	if (!res.ok) {
 		console.error(`HTTP ${res.status}: ${await res.text()}`)
 		process.exit(1)
