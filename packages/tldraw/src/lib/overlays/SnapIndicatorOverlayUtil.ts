@@ -109,13 +109,13 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 		const l = 3.5 / zoom
 		const horizontal = direction === 'horizontal'
 
-		let edgeIntersection: number[] | null = [-Infinity, +Infinity]
+		let edgeIntersection: number[] = [-Infinity, +Infinity]
 		let nextEdgeIntersection: number[] | null = null
 
 		for (const gap of gaps) {
 			nextEdgeIntersection = rangeIntersection(
-				edgeIntersection![0],
-				edgeIntersection![1],
+				edgeIntersection[0],
+				edgeIntersection[1],
 				horizontal ? gap.startEdge[0].y : gap.startEdge[0].x,
 				horizontal ? gap.startEdge[1].y : gap.startEdge[1].x
 			)
@@ -136,8 +136,6 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 				continue
 			}
 		}
-
-		if (edgeIntersection === null) return
 
 		const midPoint = (edgeIntersection[0] + edgeIntersection[1]) / 2
 
