@@ -56,7 +56,11 @@ export class Idle extends StateNode {
 				)
 				if (hitOverlay) {
 					const overlayType = hitOverlay.props.overlayType as string | undefined
-					if (overlayType === 'resize_handle' || overlayType === 'rotate_handle') {
+					if (
+						overlayType === 'resize_handle' ||
+						overlayType === 'rotate_handle' ||
+						overlayType === 'mobile_rotate'
+					) {
 						this.onPointerDown({
 							...info,
 							target: 'selection',

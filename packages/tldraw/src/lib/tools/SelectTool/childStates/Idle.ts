@@ -48,7 +48,6 @@ export class Idle extends StateNode {
 			updateHoveredShapeId(this.editor)
 		}
 		this.selectedShapesOnKeyDown = []
-		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onExit() {
@@ -148,6 +147,14 @@ export class Idle extends StateNode {
 				} else {
 					switch (overlayType) {
 						case 'rotate_handle': {
+							this.onPointerDown({
+								...info,
+								target: 'selection',
+								handle: overlay.props.handle as any,
+							})
+							break
+						}
+						case 'mobile_rotate': {
 							this.onPointerDown({
 								...info,
 								target: 'selection',

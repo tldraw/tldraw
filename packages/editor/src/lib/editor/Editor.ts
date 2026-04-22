@@ -418,6 +418,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.inputs = new InputsManager(this)
 		this.performance = new PerformanceManager(this)
 		this.disposables.add(() => this.performance.dispose())
+		this.timers.setInterval(() => {
+			this._collaboratorVisibilityClock.set(Date.now())
+		}, this.options.collaboratorCheckIntervalMs)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -1049,6 +1052,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly timers = tltime.forContext(this.contextId)
+
+	/** @internal */
+	readonly _collaboratorVisibilityClock = atom('collaboratorVisibilityClock', Date.now())
 
 	/**
 	 * A manager for the user and their preferences.

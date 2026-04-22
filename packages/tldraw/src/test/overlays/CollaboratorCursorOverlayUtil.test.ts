@@ -1,4 +1,5 @@
 import { InstancePresenceRecordType } from '@tldraw/tlschema'
+import { vi } from 'vitest'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
 import { CollaboratorCursorOverlayUtil } from '../../lib/overlays/CollaboratorCursorOverlayUtil'
 import { TestEditor } from '../TestEditor'
@@ -228,6 +229,34 @@ describe('CollaboratorCursorOverlayUtil', () => {
 				editor.overlays.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
 			const overlay = util.getOverlays()[0]
 			expect(overlay.props.name).toBeNull()
+		})
+
+		it('invalidates cached overlays as collaborator activity ages', () => {
+			vi.useFakeTimers()
+			try {
+				const timedEditor = new TestEditor({ overlayUtils: defaultOverlayUtils })
+				const pageId = timedEditor.getCurrentPageId()
+				const now = Date.now()
+				timedEditor.store.put([
+					InstancePresenceRecordType.create({
+						id: InstancePresenceRecordType.createId('peer_timed'),
+						userId: 'peer_timed',
+						userName: 'Timed Peer',
+						currentPageId: pageId,
+						cursor: { type: 'default', x: 10, y: 10, rotation: 0 },
+						lastActivityTimestamp: now,
+					}),
+				])
+
+				expect(timedEditor.overlays.getCurrentOverlays()).toHaveLength(1)
+
+				vi.advanceTimersByTime(timedEditor.options.collaboratorInactiveTimeoutMs + 5000)
+
+				expect(timedEditor.overlays.getCurrentOverlays()).toHaveLength(0)
+				timedEditor.dispose()
+			} finally {
+				vi.useRealTimers()
+			}
 		})
 	})
 })

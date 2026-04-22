@@ -26,6 +26,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 					userName: 'Peer 1',
 					currentPageId: pageId,
 					cursor: { type: 'default', x: 100000, y: 100000, rotation: 0 },
+					lastActivityTimestamp: Date.now(),
 				}),
 			])
 			const util = editor.overlays.getOverlayUtil<CollaboratorHintOverlayUtil>('collaborator_hint')
@@ -41,6 +42,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 
 		it('returns an overlay for each off-screen collaborator with correct props', () => {
 			const pageId = editor.getCurrentPageId()
+			const now = Date.now()
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer1'),
@@ -49,6 +51,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 					currentPageId: pageId,
 					color: '#c00',
 					cursor: { type: 'default', x: 100000, y: 100000, rotation: 0 },
+					lastActivityTimestamp: now,
 				}),
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer2'),
@@ -57,6 +60,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 					currentPageId: pageId,
 					color: '#0c0',
 					cursor: { type: 'default', x: -100000, y: -100000, rotation: 0 },
+					lastActivityTimestamp: now,
 				}),
 			])
 			const util = editor.overlays.getOverlayUtil<CollaboratorHintOverlayUtil>('collaborator_hint')
@@ -65,6 +69,43 @@ describe('CollaboratorHintOverlayUtil', () => {
 			expect(overlays[0].props).toHaveProperty('rotation')
 			expect(typeof overlays[0].props.rotation).toBe('number')
 			expect(overlays.some((o) => o.props.color === '#c00')).toBe(true)
+		})
+
+		it('does not return overlays for inactive collaborators unless they should still be shown', () => {
+			const pageId = editor.getCurrentPageId()
+			const now = Date.now()
+			editor.store.put([
+				InstancePresenceRecordType.create({
+					id: InstancePresenceRecordType.createId('peer1'),
+					userId: 'peer1',
+					userName: 'Peer 1',
+					currentPageId: pageId,
+					color: '#c00',
+					cursor: { type: 'default', x: 100000, y: 100000, rotation: 0 },
+					lastActivityTimestamp: now - 10 * 60 * 1000,
+				}),
+			])
+			const util = editor.overlays.getOverlayUtil<CollaboratorHintOverlayUtil>('collaborator_hint')
+			expect(util.getOverlays()).toEqual([])
+		})
+
+		it('does not return overlays for idle collaborators that are following us', () => {
+			const pageId = editor.getCurrentPageId()
+			const now = Date.now()
+			editor.store.put([
+				InstancePresenceRecordType.create({
+					id: InstancePresenceRecordType.createId('peer1'),
+					userId: 'peer1',
+					userName: 'Peer 1',
+					currentPageId: pageId,
+					color: '#c00',
+					cursor: { type: 'default', x: 100000, y: 100000, rotation: 0 },
+					lastActivityTimestamp: now - 5 * 1000,
+					followingUserId: editor.user.getId(),
+				}),
+			])
+			const util = editor.overlays.getOverlayUtil<CollaboratorHintOverlayUtil>('collaborator_hint')
+			expect(util.getOverlays()).toEqual([])
 		})
 	})
 })

@@ -40,6 +40,18 @@ beforeEach(() => {
 })
 
 describe('When pointing a rotate handle...', () => {
+	it('enters the pointing_rotate_handle state from the mobile rotate handle on coarse pointers', () => {
+		editor.updateInstanceState({ isCoarsePointer: true })
+		editor.select(ids.box1)
+		const p = editor.getSelectionHandlePagePoint('mobile_rotate')
+		editor
+			.pointerMove(p.x, p.y)
+			.pointerDown()
+			.expectToBeIn('select.pointing_rotate_handle')
+			.pointerUp()
+			.expectToBeIn('select.idle')
+	})
+
 	it('enters and exits the pointing_rotate_handle state when pointing a rotate handle', () => {
 		editor.select(ids.box1)
 		const p = editor.getSelectionHandlePagePoint('top_left_rotate')

@@ -50,12 +50,13 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 	override options = { zIndex: 1100, fontSize: 12, nameMaxWidth: 120, chatMaxWidth: 200 }
 
 	override isActive(): boolean {
-		return this.editor.getCollaboratorsOnCurrentPage().length > 0
+		return this.getOverlays().length > 0
 	}
 
 	override getOverlays(): TLCollaboratorCursorOverlay[] {
 		const overlays: TLCollaboratorCursorOverlay[] = []
 		const editor = this.editor
+		;(editor as any)._collaboratorVisibilityClock.get()
 		const now = Date.now()
 
 		for (const presence of editor.getCollaboratorsOnCurrentPage()) {
@@ -225,20 +226,11 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 
 	private _shouldShow(editor: Editor, presence: TLInstancePresence, now: number): boolean {
 		const elapsed = now - (presence.lastActivityTimestamp ?? 0)
-		const { followingUserId, highlightedUserIds } = editor.getInstanceState()
-		const isHighlighted = highlightedUserIds.includes(presence.userId)
-
-		if (elapsed > editor.options.collaboratorInactiveTimeoutMs) {
-			// Inactive: only show if following or highlighted
-			return followingUserId === presence.userId || isHighlighted
-		}
-		if (elapsed > editor.options.collaboratorIdleTimeoutMs) {
-			// Idle: hide if they're following us (unless chat/highlighted)
-			if (presence.followingUserId === editor.user.getId()) {
-				return !!(presence.chatMessage || isHighlighted)
-			}
-		}
-		return true
+		return shouldShowCollaborator(
+			editor,
+			presence,
+			getCollaboratorStateFromElapsedTime(editor, elapsed)
+		)
 	}
 
 	private _truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
@@ -258,5 +250,33 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		if (_truncateCache.size > TRUNCATE_CACHE_MAX) _truncateCache.clear()
 		_truncateCache.set(key, result)
 		return result
+	}
+}
+
+function getCollaboratorStateFromElapsedTime(editor: Editor, elapsed: number) {
+	return elapsed > editor.options.collaboratorInactiveTimeoutMs
+		? 'inactive'
+		: elapsed > editor.options.collaboratorIdleTimeoutMs
+			? 'idle'
+			: 'active'
+}
+
+function shouldShowCollaborator(
+	editor: Editor,
+	presence: TLInstancePresence,
+	state: 'active' | 'idle' | 'inactive'
+) {
+	const { followingUserId, highlightedUserIds } = editor.getInstanceState()
+
+	switch (state) {
+		case 'inactive':
+			return followingUserId === presence.userId || highlightedUserIds.includes(presence.userId)
+		case 'idle':
+			if (presence.followingUserId === editor.user.getId()) {
+				return !!(presence.chatMessage || highlightedUserIds.includes(presence.userId))
+			}
+			return true
+		case 'active':
+			return true
 	}
 }

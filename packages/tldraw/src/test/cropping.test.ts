@@ -382,6 +382,23 @@ describe('When in the crop.idle state', () => {
 			.expectToBeIn('select.crop.idle')
 	})
 
+	it('mobile rotate enters pointing_rotate_handle in crop mode on coarse pointers', () => {
+		editor.updateInstanceState({ isCoarsePointer: true })
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+
+		const p = editor.getSelectionHandlePagePoint('mobile_rotate')
+
+		editor
+			.pointerMove(p.x, p.y)
+			.pointerDown()
+			.expectToBeIn('select.pointing_rotate_handle')
+			.pointerUp()
+			.expectToBeIn('select.crop.idle')
+	})
+
 	it('nudges the cropped image', () => {
 		editor
 			.expectToBeIn('select.idle')
