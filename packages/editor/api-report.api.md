@@ -895,6 +895,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     clearHistory(): this;
     // @internal
     protected _clickManager: ClickManager;
+    // @internal (undocumented)
+    readonly _collaboratorVisibilityClock: Atom<number, unknown>;
     complete(): this;
     // (undocumented)
     readonly contextId: string;

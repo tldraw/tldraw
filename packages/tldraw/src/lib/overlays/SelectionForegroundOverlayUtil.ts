@@ -56,62 +56,21 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 	}
 
 	override getOverlays(): TLSelectionForegroundOverlay[] {
-		const editor = this.editor
-		const bounds = editor.getSelectionRotatedPageBounds()
-		if (!bounds) return []
+		const state = this._computeSelectionState()
+		if (!state) return []
 
-		const onlyShape = editor.getOnlySelectedShape()
-		const isLockedShape = onlyShape && editor.isShapeOrAncestorLocked(onlyShape)
-		if (isLockedShape) return []
-
-		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
-		const zoom = editor.getEfficientZoomLevel()
-
-		const expandOutlineBy = onlyShape
-			? editor.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
-			: 0
-
-		const expandedBounds =
-			expandOutlineBy instanceof Box
-				? bounds.clone().expand(expandOutlineBy).zeroFix()
-				: bounds.clone().expandBy(expandOutlineBy).zeroFix()
-
-		const width = expandedBounds.width
-		const height = expandedBounds.height
-		const size = 8 / zoom
-		const isTinyX = width < size * 2
-		const isTinyY = height < size * 2
-		const isSmallX = width < size * 4
-		const isSmallY = height < size * 4
-
-		const showCropHandles =
-			editor.isInAny(
-				'select.crop.idle',
-				'select.crop.pointing_crop',
-				'select.crop.pointing_crop_handle'
-			) && !editor.getIsReadonly()
-
-		const showResizeHandles =
-			!showCropHandles &&
-			(onlyShape
-				? editor.getShapeUtil(onlyShape).canResize(onlyShape) &&
-					!editor.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
-				: true)
-
-		const showCornerRotateHandles =
-			!isCoarsePointer &&
-			!(isTinyX || isTinyY) &&
-			(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
-
-		const showMobileRotateHandle =
-			isCoarsePointer &&
-			(!isSmallX || !isSmallY) &&
-			(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
-
-		const hideAlternateCornerHandles = isTinyX || isTinyY
-		const showOnlyOneHandle = isTinyX && isTinyY
-
-		const showHandles = showResizeHandles || showCropHandles
+		const {
+			onlyShape,
+			isCoarsePointer,
+			isSmallX,
+			isSmallY,
+			showCropHandles,
+			showCornerRotateHandles,
+			showMobileRotateHandle,
+			showHandles,
+			hideAlternateCornerHandles,
+			showOnlyOneHandle,
+		} = state
 
 		const overlays: TLSelectionForegroundOverlay[] = []
 
@@ -278,86 +237,31 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 	}
 
 	override render(ctx: CanvasRenderingContext2D, _overlays: TLSelectionForegroundOverlay[]): void {
+		const state = this._computeSelectionState()
+		if (!state) return
+
 		const editor = this.editor
-		const bounds = editor.getSelectionRotatedPageBounds()
-		if (!bounds) return
-
-		const onlyShape = editor.getOnlySelectedShape()
-		if (onlyShape && editor.isShapeHidden(onlyShape)) return
-
-		const expandOutlineBy = onlyShape
-			? editor.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
-			: 0
-		const expandedBounds =
-			expandOutlineBy instanceof Box
-				? bounds.clone().expand(expandOutlineBy).zeroFix()
-				: bounds.clone().expandBy(expandOutlineBy).zeroFix()
-
-		const rotation = editor.getSelectionRotation()
-		const zoom = editor.getEfficientZoomLevel()
-		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
-		const isChangingStyle = editor.getInstanceState().isChangingStyle
-		const isLockedShape = onlyShape && editor.isShapeOrAncestorLocked(onlyShape)
-
-		const width = expandedBounds.width
-		const height = expandedBounds.height
-		const size = 8 / zoom
-
-		const isTinyX = width < size * 2
-		const isTinyY = height < size * 2
-
-		const showSelectionBounds =
-			(onlyShape ? !editor.getShapeUtil(onlyShape).hideSelectionBoundsFg(onlyShape) : true) &&
-			!isChangingStyle
-
-		const shouldDisplayBox =
-			showSelectionBounds &&
-			editor.isInAny(
-				'select.idle',
-				'select.brushing',
-				'select.scribble_brushing',
-				'select.pointing_canvas',
-				'select.pointing_selection',
-				'select.pointing_shape',
-				'select.crop.idle',
-				'select.crop.pointing_crop',
-				'select.crop.pointing_crop_handle',
-				'select.pointing_resize_handle'
-			)
-
-		const shouldDisplayControls =
-			editor.isInAny(
-				'select.idle',
-				'select.pointing_selection',
-				'select.pointing_shape',
-				'select.crop.idle'
-			) &&
-			!isChangingStyle &&
-			!editor.getIsReadonly()
-
-		const showResizeHandles =
-			shouldDisplayControls &&
-			!isLockedShape &&
-			(onlyShape
-				? editor.getShapeUtil(onlyShape).canResize(onlyShape) &&
-					!editor.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
-				: true)
-
-		const showCropHandles =
-			editor.isInAny(
-				'select.crop.idle',
-				'select.crop.pointing_crop',
-				'select.crop.pointing_crop_handle'
-			) && !editor.getIsReadonly()
-
-		const hideAlternateCornerHandles = isTinyX || isTinyY
-		const showOnlyOneHandle = isTinyX && isTinyY
-
-		const showMobileRotateHandle =
-			isCoarsePointer &&
-			shouldDisplayControls &&
-			!isLockedShape &&
-			(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
+		const {
+			bounds,
+			expandedBounds,
+			onlyShape,
+			isCoarsePointer,
+			zoom,
+			rotation,
+			width,
+			height,
+			size,
+			isTinyX,
+			isTinyY,
+			isSmallX,
+			shouldDisplayControls,
+			shouldDisplayBox,
+			showCropHandles,
+			showResizeHandles,
+			showMobileRotateHandle,
+			hideAlternateCornerHandles,
+			showOnlyOneHandle,
+		} = state
 
 		const themeColors = editor.getCurrentTheme().colors[editor.getColorMode()]
 		const strokeColor = themeColors.selectionStroke
@@ -380,7 +284,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		}
 
 		// Corner resize handle squares (visual only)
-		if (showResizeHandles && !showCropHandles) {
+		if (showResizeHandles) {
 			ctx.fillStyle = bgColor
 			ctx.strokeStyle = strokeColor
 			ctx.lineWidth = this.options.lineWidth / zoom
@@ -452,17 +356,14 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 
 		// Mobile rotate handle
 		if (showMobileRotateHandle) {
-			const isSmallX = width < size * 4
-			// const isSmallY = height < size * 4 // ?
 			const mobileHandleMultiplier = 1.75
 			const targetSize = (6 / zoom) * mobileHandleMultiplier
 
 			const isMediaShape =
 				onlyShape &&
 				(editor.isShapeOfType(onlyShape, 'image') || editor.isShapeOfType(onlyShape, 'video'))
-			const selectionRotation = editor.getSelectionRotation()
 			const isShapeTooCloseToContextualToolbar =
-				selectionRotation / HALF_PI > 1.6 && selectionRotation / HALF_PI < 2.4
+				rotation / HALF_PI > 1.6 && rotation / HALF_PI < 2.4
 
 			const cx = isSmallX ? -targetSize * 1.5 : width / 2
 			const cy = isSmallX
@@ -485,7 +386,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 
 		// Text resize handles
 		if (shouldDisplayControls && isCoarsePointer && onlyShape && onlyShape.type === 'text') {
-			const isSmallY = height < size * 4
+			const { isSmallY } = state
 			const mobileHandleMultiplier = 1.75
 			const targetSize = (6 / zoom) * mobileHandleMultiplier
 			const targetSizeY = (isSmallY ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
@@ -543,6 +444,136 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 	}
 
 	// --- Private helpers ---
+
+	/**
+	 * Single source of truth for the derived state the selection foreground needs.
+	 * Called once per `getOverlays()` and `render()` so their visibility predicates
+	 * can't drift. Returns `null` when no selection UI should appear at all
+	 * (nothing selected, or the only selected shape is hidden).
+	 */
+	private _computeSelectionState() {
+		const editor = this.editor
+		const bounds = editor.getSelectionRotatedPageBounds()
+		if (!bounds) return null
+
+		const onlyShape = editor.getOnlySelectedShape()
+		if (onlyShape && editor.isShapeHidden(onlyShape)) return null
+
+		const isLockedShape = !!(onlyShape && editor.isShapeOrAncestorLocked(onlyShape))
+
+		const expandOutlineBy = onlyShape
+			? editor.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
+			: 0
+		const expandedBounds =
+			expandOutlineBy instanceof Box
+				? bounds.clone().expand(expandOutlineBy).zeroFix()
+				: bounds.clone().expandBy(expandOutlineBy).zeroFix()
+
+		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
+		const isChangingStyle = editor.getInstanceState().isChangingStyle
+		const zoom = editor.getEfficientZoomLevel()
+		const rotation = editor.getSelectionRotation()
+
+		const width = expandedBounds.width
+		const height = expandedBounds.height
+		const size = 8 / zoom
+		const isTinyX = width < size * 2
+		const isTinyY = height < size * 2
+		const isSmallX = width < size * 4
+		const isSmallY = height < size * 4
+
+		const shouldDisplayControls =
+			editor.isInAny(
+				'select.idle',
+				'select.pointing_selection',
+				'select.pointing_shape',
+				'select.crop.idle'
+			) &&
+			!isChangingStyle &&
+			!editor.getIsReadonly()
+
+		const showCropHandles =
+			editor.isInAny(
+				'select.crop.idle',
+				'select.crop.pointing_crop',
+				'select.crop.pointing_crop_handle'
+			) && !editor.getIsReadonly()
+
+		const showResizeHandles =
+			shouldDisplayControls &&
+			!isLockedShape &&
+			!showCropHandles &&
+			(onlyShape
+				? editor.getShapeUtil(onlyShape).canResize(onlyShape) &&
+					!editor.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
+				: true)
+
+		const showCornerRotateHandles =
+			shouldDisplayControls &&
+			!isLockedShape &&
+			!isCoarsePointer &&
+			!(isTinyX || isTinyY) &&
+			(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
+
+		const showMobileRotateHandle =
+			shouldDisplayControls &&
+			!isLockedShape &&
+			isCoarsePointer &&
+			(!isSmallX || !isSmallY) &&
+			(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
+
+		const hideAlternateCornerHandles = isTinyX || isTinyY
+		const showOnlyOneHandle = isTinyX && isTinyY
+		const showHandles = showResizeHandles || showCropHandles
+
+		const showSelectionBounds =
+			(onlyShape ? !editor.getShapeUtil(onlyShape).hideSelectionBoundsFg(onlyShape) : true) &&
+			!isChangingStyle
+
+		const shouldDisplayBox =
+			(showSelectionBounds &&
+				editor.isInAny(
+					'select.idle',
+					'select.brushing',
+					'select.scribble_brushing',
+					'select.pointing_canvas',
+					'select.pointing_selection',
+					'select.pointing_shape',
+					'select.crop.idle',
+					'select.crop.pointing_crop',
+					'select.crop.pointing_crop_handle',
+					'select.pointing_resize_handle'
+				)) ||
+			(showSelectionBounds &&
+				editor.isIn('select.resizing') &&
+				!!(onlyShape && editor.isShapeOfType(onlyShape, 'text')))
+
+		return {
+			bounds,
+			expandedBounds,
+			onlyShape,
+			isLockedShape,
+			isCoarsePointer,
+			zoom,
+			rotation,
+			width,
+			height,
+			size,
+			isTinyX,
+			isTinyY,
+			isSmallX,
+			isSmallY,
+			shouldDisplayControls,
+			shouldDisplayBox,
+			showCropHandles,
+			showResizeHandles,
+			showCornerRotateHandles,
+			showMobileRotateHandle,
+			showHandles,
+			hideAlternateCornerHandles,
+			showOnlyOneHandle,
+		}
+	}
 
 	private _makeOverlay(
 		overlayType: TLSelectionForegroundOverlay['props']['overlayType'],
