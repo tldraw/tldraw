@@ -68,7 +68,8 @@ export function usePerformanceTracking() {
 
 		fetchFeatureFlags()
 			.then((flags) => {
-				if (disposed || !flags.rum_enabled?.enabled) return
+				const isChromeOS = navigator.userAgent.includes('CrOS')
+				if (disposed || (!flags.rum_enabled?.enabled && !isChromeOS)) return
 
 				// Derive from the editor option — this is the ground truth for what's
 				// actually rendering, so the RUM tag always matches the UI path.
