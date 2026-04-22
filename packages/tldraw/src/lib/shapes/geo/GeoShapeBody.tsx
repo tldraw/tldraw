@@ -1,6 +1,6 @@
 import { TLGeoShape } from '@tldraw/editor'
 import { PatternFill } from '../shared/PatternFill'
-import { getGeoShapePath } from './getGeoShapePath'
+import { GeoTypeDefinition, getGeoShapePath } from './getGeoShapePath'
 
 export function GeoShapeBody({
 	shape,
@@ -10,6 +10,7 @@ export function GeoShapeBody({
 	strokeWidth: unscaledStrokeWidth,
 	fillColor,
 	patternFillFallbackColor,
+	customGeoStyles,
 }: {
 	shape: TLGeoShape
 	shouldScale: boolean
@@ -18,12 +19,13 @@ export function GeoShapeBody({
 	strokeWidth: number
 	fillColor: string
 	patternFillFallbackColor: string
+	customGeoStyles?: Record<string, GeoTypeDefinition>
 }) {
 	const scaleToUse = shouldScale ? shape.props.scale : 1
 	const strokeWidth = unscaledStrokeWidth * scaleToUse
 	const { dash, fill } = shape.props
 
-	const path = getGeoShapePath(shape, unscaledStrokeWidth)
+	const path = getGeoShapePath(shape, unscaledStrokeWidth, customGeoStyles)
 	const fillPath =
 		dash === 'draw' && !forceSolid
 			? path.toDrawD({ strokeWidth, randomSeed: shape.id, passes: 1, offset: 0, onlyFilled: true })

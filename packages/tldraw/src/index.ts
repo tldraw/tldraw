@@ -172,6 +172,7 @@ export {
 	type GeoShapeOptions,
 	type GeoShapeUtilDisplayValues,
 } from './lib/shapes/geo/GeoShapeUtil'
+export { type GeoTypeDefinition } from './lib/shapes/geo/getGeoShapePath'
 export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
 export {
 	HighlightShapeUtil,

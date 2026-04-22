@@ -8,6 +8,7 @@ import { AssetUtil } from '@tldraw/editor';
 import { Atom } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
+import { BaseFrameLikeShapeUtil } from '@tldraw/editor';
 import { BindingOnChangeOptions } from '@tldraw/editor';
 import { BindingOnCreateOptions } from '@tldraw/editor';
 import { BindingOnShapeChangeOptions } from '@tldraw/editor';
@@ -88,8 +89,6 @@ import { TLCropInfo } from '@tldraw/editor';
 import { TLDefaultColorStyle } from '@tldraw/tlschema';
 import { TLDefaultFontStyle } from '@tldraw/tlschema';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
-import { TLDragShapesOutInfo } from '@tldraw/editor';
-import { TLDragShapesOverInfo } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TldrawOptions } from '@tldraw/editor';
@@ -1684,11 +1683,9 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 }
 
 // @public (undocumented)
-export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
+export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
     // (undocumented)
     canEdit(shape: TLFrameShape, info: TLEditStartInfo): boolean;
-    // (undocumented)
-    canReceiveNewChildrenOfType(shape: TLShape): boolean;
     // (undocumented)
     canResize(shape: TLFrameShape): boolean;
     // (undocumented)
@@ -1701,8 +1698,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     } ? Partial<Options> : never): T;
     // (undocumented)
     getAriaDescriptor(shape: TLFrameShape): string;
-    // (undocumented)
-    getClipPath(shape: TLFrameShape): Vec[];
     // (undocumented)
     getDefaultProps(): TLFrameShape['props'];
     // (undocumented)
@@ -1734,17 +1729,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
         type: "frame";
     } | undefined;
     // (undocumented)
-    onDragShapesIn(shape: TLFrameShape, draggingShapes: TLShape[], { initialParentIds, initialIndices }: TLDragShapesOverInfo): void;
-    // (undocumented)
-    onDragShapesOut(shape: TLFrameShape, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void;
-    // (undocumented)
-    onResize(shape: any, info: TLResizeInfo<any>): any;
-    // (undocumented)
     options: FrameShapeOptions;
     // (undocumented)
     static props: RecordProps<TLFrameShape>;
-    // (undocumented)
-    providesBackgroundForChildren(): boolean;
     // (undocumented)
     toSvg(shape: TLFrameShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
@@ -1782,6 +1769,7 @@ export function FrameToolbarItem(): JSX.Element;
 
 // @public (undocumented)
 export interface GeoShapeOptions extends ShapeOptionsWithDisplayValues<TLGeoShape, GeoShapeUtilDisplayValues> {
+    customGeoStyles?: Record<string, GeoTypeDefinition>;
     // (undocumented)
     showTextOutline: boolean;
 }
@@ -1804,6 +1792,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     canEdit(shape: TLGeoShape): boolean;
     // (undocumented)
     component(shape: TLGeoShape): JSX.Element;
+    // (undocumented)
+    static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
     // (undocumented)
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     // (undocumented)
@@ -1903,6 +1895,39 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            color: TLDefaultColorStyle;
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
+            fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
+            font: TLDefaultFontStyle;
+            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            growY: number;
+            h: number;
+            labelColor: TLDefaultColorStyle;
+            richText: {
+                attrs?: any;
+                content: unknown[];
+                type: string;
+            };
+            scale: number;
+            size: "l" | "m" | "s" | "xl";
+            url: string;
+            verticalAlign: "end" | "middle" | "start";
+            w: number;
+        };
+        rotation: number;
+        type: "geo";
+        typeName: "shape";
+        x: number;
+        y: number;
+    } | {
+        id: TLShapeId;
+        index: IndexKey;
+        isLocked: boolean;
+        meta: JsonObject;
+        opacity: number;
+        parentId: TLParentId;
+        props: {
             geo: "check-box";
         };
         rotation: number;
@@ -1988,6 +2013,20 @@ export interface GeoShapeUtilDisplayValues {
     strokeRoundness: number;
     // (undocumented)
     strokeWidth: number;
+}
+
+// @public
+export interface GeoTypeDefinition {
+    defaultSize?: {
+        h: number;
+        w: number;
+    };
+    getPath(w: number, h: number, shape: TLGeoShape, strokeWidth: number): PathBuilder;
+    icon: string;
+    onDoubleClick?(shape: TLGeoShape): {
+        props: Partial<TLGeoShape['props']>;
+    } | void;
+    snapType: 'blobby' | 'polygon';
 }
 
 // @public (undocumented)

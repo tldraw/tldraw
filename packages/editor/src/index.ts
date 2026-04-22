@@ -191,6 +191,7 @@ export {
 } from './lib/editor/managers/PerformanceManager/perf-types'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
+export { BaseFrameLikeShapeUtil } from './lib/editor/shapes/BaseFrameLikeShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
 export {
 	ShapeUtil,

@@ -5703,8 +5703,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? this.getCurrentPageRenderingShapesSorted()
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
-			// Frames have labels positioned above the shape (outside bounds), so always include them
-			if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
+			// Frame-like shapes have labels positioned above the shape (outside bounds), so always include them
+			if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) return false
 
 			if (
 				(shape.isLocked && !hitLocked) ||
@@ -5726,12 +5726,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const pointInShapeSpace = this.getPointInShapeSpace(shape, point)
 
 			// Check labels first
+			const shapeUtil = this.getShapeUtil(shape)
+			const isShapeFrameLike = this.isShapeFrameLike(shape)
 			if (
-				this.isShapeOfType(shape, 'frame') ||
+				isShapeFrameLike ||
 				((this.isShapeOfType(shape, 'note') ||
 					this.isShapeOfType(shape, 'arrow') ||
 					(this.isShapeOfType(shape, 'geo') && shape.props.fill === 'none')) &&
-					this.getShapeUtil(shape).getText(shape)?.trim())
+					shapeUtil.getText(shape)?.trim())
 			) {
 				for (const childGeometry of (geometry as Group2d).children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
@@ -5740,8 +5742,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			if (this.isShapeOfType(shape, 'frame')) {
-				// On the rare case that we've hit a frame (not its label), test again hitInside to be forced true;
+			if (isShapeFrameLike) {
+				// On the rare case that we've hit a frame-like shape (not its label), test again hitInside to be forced true;
 				// this prevents clicks from passing through the body of a frame to shapes behind it.
 
 				// If the hit is within the frame's outer margin, then select the frame
@@ -5900,11 +5902,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, margin)
 
 		// Get all page shapes in z-index order and filter to candidates that pass isPointInShape
-		// Frames are always checked because their labels can be outside their bounds
+		// Frame-like shapes are always checked because their labels can be outside their bounds
 		return this.getCurrentPageShapesSorted()
 			.filter((shape) => {
 				if (this.isShapeHidden(shape)) return false
-				if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
+				if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) return false
 				return this.isPointInShape(shape, point, opts)
 			})
 			.reverse()
@@ -6077,6 +6079,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
 		if (!shape) return false
 		return shape.type === type
+	}
+
+	/**
+	 * Get whether a shape behaves like a frame — a container that has child
+	 * shapes, requires full-brush selection, blocks erasure from inside, etc.
+	 *
+	 * @example
+	 * ```ts
+	 * const isFrameLike = editor.isShapeFrameLike(someShape)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to test.
+	 *
+	 * @public
+	 */
+	isShapeFrameLike(shape: TLShape | TLShapeId): boolean {
+		const _shape = typeof shape === 'string' ? this.getShape(shape) : shape
+		if (!_shape) return false
+		return this.getShapeUtil(_shape).isFrameLike(_shape)
 	}
 
 	/**

@@ -1,0 +1,47 @@
+name: Deploy MCP app
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target ref to deploy'
+        required: true
+        default: 'main'
+
+env:
+  CI: 1
+  PRINT_GITHUB_ANNOTATIONS: 1
+  TLDRAW_ENV: production
+  TARGET: ${{ github.event.inputs.target }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  deploy:
+    name: Deploy MCP app to production
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    environment: deploy-production
+    concurrency: mcp-app-deploy-production
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TARGET }}
+          submodules: true
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup
+
+      - name: Build types
+        run: yarn build-types
+
+      - name: Deploy
+        run: yarn workspace mcp-app deploy
+        env:
+          VITE_TLDRAW_LICENSE_KEY: ${{ secrets.MCP_APP_TLDRAW_LICENSE_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
