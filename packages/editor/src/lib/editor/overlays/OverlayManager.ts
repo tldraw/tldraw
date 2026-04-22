@@ -29,6 +29,9 @@ export class OverlayManager {
 	 */
 	registerUtil(util: OverlayUtil) {
 		const type = (util.constructor as typeof OverlayUtil).type
+		if (!type) {
+			throw new Error(`Overlay util ${util.constructor.name} is missing a static 'type' property.`)
+		}
 		if (this._overlayUtils.has(type)) {
 			throw new Error(`Duplicate overlay util type: "${type}"`)
 		}

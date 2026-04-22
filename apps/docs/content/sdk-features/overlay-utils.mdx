@@ -235,7 +235,7 @@ Use [Editor#overlays](?) to interact with the overlay system:
 
 ```tsx
 // Get a specific overlay util
-const brushUtil = editor.overlays.getUtil<BrushOverlayUtil>('brush')
+const brushUtil = editor.overlays.getOverlayUtil<BrushOverlayUtil>('brush')
 
 // Get all currently active overlays
 const activeOverlays = editor.overlays.getCurrentOverlays()
