@@ -69,8 +69,7 @@ export function usePerformanceTracking() {
 		fetchFeatureFlags()
 			.then((flags) => {
 				if (disposed) return
-				const isChromeOS =
-					typeof navigator !== 'undefined' && navigator.userAgent.includes('CrOS')
+				const isChromeOS = typeof navigator !== 'undefined' && navigator.userAgent.includes('CrOS')
 				if (!flags.rum_enabled?.enabled && !isChromeOS) return
 
 				// Derive from the editor option — this is the ground truth for what's
