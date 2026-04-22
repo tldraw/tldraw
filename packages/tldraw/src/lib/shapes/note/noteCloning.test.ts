@@ -230,6 +230,64 @@ it('Creates an adjacent note when dragging the clone handle', () => {
 	editor.expectToBeIn('select.editing_shape')
 })
 
+describe('Clone handles and attribution', () => {
+	function createNoteWithAttribution() {
+		editor.createShape({ type: 'note', x: 1000, y: 1000 })
+		const shape = editor.getLastCreatedShape<TLNoteShape>()!
+		editor.updateShape<TLNoteShape>({
+			id: shape.id,
+			type: 'note',
+			props: { richText: toRichText('hello world') },
+		})
+		const updated = editor.getShape<TLNoteShape>(shape.id)!
+		// Sanity check - the source note has attribution set
+		expect(updated.props.textFirstEditedBy).not.toBeNull()
+		return updated
+	}
+
+	it('Does not preserve textFirstEditedBy when creating an adjacent note via click', () => {
+		const shape = createNoteWithAttribution()
+
+		editor.select(shape.id)
+		const handle = editor.getShapeHandles(shape.id)![1]
+		editor
+			.pointerDown(handle.x, handle.y, {
+				target: 'handle',
+				shape,
+				handle,
+			})
+			.expectToBeIn('select.pointing_handle')
+			.pointerUp()
+
+		const newShape = editor.getLastCreatedShape<TLNoteShape>()
+		expect(newShape.id).not.toBe(shape.id)
+		expect(newShape.props.textFirstEditedBy).toBeNull()
+	})
+
+	it('Does not preserve textFirstEditedBy when creating an adjacent note via drag', () => {
+		const shape = createNoteWithAttribution()
+
+		editor.select(shape.id)
+		const handle = editor.getShapeHandles(shape.id)![1]
+		editor
+			.pointerDown(handle.x, handle.y, {
+				target: 'handle',
+				shape,
+				handle,
+			})
+			.expectToBeIn('select.pointing_handle')
+			.pointerMove(handle.x + 30, handle.y + 30)
+			.forceTick()
+			.expectToBeIn('select.translating')
+
+		const newShape = editor.getLastCreatedShape<TLNoteShape>()
+		expect(newShape.id).not.toBe(shape.id)
+		expect(newShape.props.textFirstEditedBy).toBeNull()
+
+		editor.pointerUp()
+	})
+})
+
 it('Does not put the new shape into a frame if its center is not in the frame', () => {
 	editor.createShape({ type: 'frame', x: 1321, y: 1000 }) // one pixel too far...
 	const frameA = editor.getLastCreatedShape()!
