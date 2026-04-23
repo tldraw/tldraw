@@ -2,7 +2,6 @@ import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import { SerializedSchema, TLComponents, TLRecord, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
-import { useCanvasIndicatorsAb } from '../../../hooks/useCanvasIndicatorsAb'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
@@ -31,7 +30,6 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
-	const canvasIndicatorsAb = useCanvasIndicatorsAb()
 	const trackPerformance = usePerformanceTracking()
 	const fileEditorOverrides = useFileEditorOverrides({
 		fileSlug: undefined,
@@ -44,11 +42,6 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 		}),
 		[schema, records]
 	)
-
-	// Wait for the canvas_indicators_ab assignment to resolve before mounting
-	// the editor. The hook has a bounded 500ms timeout so a slow flags endpoint
-	// can't block the app.
-	if (canvasIndicatorsAb === null) return null
 
 	return (
 		<div className={styles.editor} data-testid="tla-editor">
@@ -66,7 +59,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 					return trackPerformance(editor)
 				}}
 				components={components}
-				options={{ deepLinks: true, useCanvasIndicators: canvasIndicatorsAb === 'canvas' }}
+				options={{ deepLinks: true }}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />

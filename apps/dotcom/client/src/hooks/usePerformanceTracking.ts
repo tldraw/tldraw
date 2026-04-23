@@ -34,25 +34,23 @@ function commonStats(event: TLPerfFrameTimeStats & { shapeCount: number; zoomLev
 	}
 }
 
-function handleInteractionEnd(event: TLInteractionEndPerfEvent, abIndicators: 'canvas' | 'svg') {
+function handleInteractionEnd(event: TLInteractionEndPerfEvent) {
 	trackEvent('rum', {
 		type: 'interaction',
 		interaction_name: event.name,
 		interaction_path: event.path,
 		selected_shape_count: Object.values(event.selectedShapeTypes).reduce((a, b) => a + b, 0),
 		selected_shape_types: event.selectedShapeTypes,
-		ab_indicators: abIndicators,
 		...commonStats(event),
 	})
 }
 
-function handleCameraEnd(event: TLCameraEndPerfEvent, abIndicators: 'canvas' | 'svg') {
+function handleCameraEnd(event: TLCameraEndPerfEvent) {
 	trackEvent('rum', {
 		type: 'camera',
 		camera_type: event.type,
 		visible_shape_count: event.visibleShapeCount,
 		culled_shape_count: event.culledShapeCount,
-		ab_indicators: abIndicators,
 		...commonStats(event),
 	})
 }
@@ -72,16 +70,8 @@ export function usePerformanceTracking() {
 				const isChromeOS = typeof navigator !== 'undefined' && navigator.userAgent.includes('CrOS')
 				if (!flags.rum_enabled?.enabled && !isChromeOS) return
 
-				// Derive from the editor option — this is the ground truth for what's
-				// actually rendering, so the RUM tag always matches the UI path.
-				const abIndicators = editor.options.useCanvasIndicators ? 'canvas' : 'svg'
-
-				unsubInteraction = editor.performance.on('interaction-end', (event) =>
-					handleInteractionEnd(event, abIndicators)
-				)
-				unsubCamera = editor.performance.on('camera-end', (event) =>
-					handleCameraEnd(event, abIndicators)
-				)
+				unsubInteraction = editor.performance.on('interaction-end', handleInteractionEnd)
+				unsubCamera = editor.performance.on('camera-end', handleCameraEnd)
 
 				editorMountCount++
 				// Memory sampling (Chrome-only via performance.memory)
@@ -111,7 +101,6 @@ export function usePerformanceTracking() {
 							editor_mount_count: editorMountCount,
 							zoom_level: r2(editor.getZoomLevel()),
 							device_memory_gb: sampleIndex === 0 ? deviceMemoryGb : null,
-							ab_indicators: abIndicators,
 							release: sentryReleaseName,
 						}
 						try {

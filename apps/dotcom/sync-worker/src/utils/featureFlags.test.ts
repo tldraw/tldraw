@@ -283,11 +283,6 @@ describe('getFeatureFlagsAdmin (route handler)', () => {
 		const response = await getFeatureFlagsAdmin({} as any, env as any)
 		const body: any = await response.json()
 
-		expect(Object.keys(body).sort()).toEqual([
-			'canvas_indicators_ab',
-			'rum_enabled',
-			'zero_enabled',
-			'zero_kill_switch',
-		])
+		expect(Object.keys(body).sort()).toEqual(['rum_enabled', 'zero_enabled', 'zero_kill_switch'])
 	})
 })
