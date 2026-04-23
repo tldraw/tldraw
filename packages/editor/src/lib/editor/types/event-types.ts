@@ -1,5 +1,6 @@
 import { TLHandle, TLShape, VecModel } from '@tldraw/tlschema'
 import { VecLike } from '../../primitives/Vec'
+import { TLOverlay } from '../overlays/OverlayUtil'
 import { TLSelectionHandle } from './selection-types'
 
 /** @public */
@@ -11,6 +12,7 @@ export type TLPointerEventTarget =
 	| { target: 'selection'; handle?: TLSelectionHandle; shape?: undefined }
 	| { target: 'shape'; shape: TLShape }
 	| { target: 'handle'; shape: TLShape; handle: TLHandle }
+	| { target: 'overlay'; overlay: TLOverlay; shape?: undefined }
 
 /** @public */
 export type TLPointerEventName =
