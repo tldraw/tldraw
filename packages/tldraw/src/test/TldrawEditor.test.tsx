@@ -16,7 +16,6 @@ import {
 } from '@tldraw/editor'
 import { StrictMode } from 'react'
 import { vi } from 'vitest'
-import { TldrawSelectionForeground } from '../lib/canvas/TldrawSelectionForeground'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
 import { createDrawSegments } from '../lib/utils/test-helpers'
@@ -273,7 +272,7 @@ describe('<TldrawEditor />', () => {
 		expect(editor.getCurrentToolId()).toBe('eraser')
 	})
 
-	it('Renders TldrawSelectionForeground without TldrawUiContextProvider', async () => {
+	it('Renders selection overlays without TldrawUiContextProvider', async () => {
 		// Unmock useTranslation so we test the real implementation.
 		// (setupVitest.js globally mocks it to prevent errors in other tests)
 		const actual = await vi.importActual<
@@ -292,7 +291,6 @@ describe('<TldrawEditor />', () => {
 				initialState="select"
 				tools={defaultTools}
 				components={{
-					SelectionForeground: TldrawSelectionForeground,
 					// Use a custom error fallback to detect errors that would
 					// otherwise be silently caught by the default error boundary
 					ErrorFallback: ({ error }) => {
@@ -332,7 +330,9 @@ describe('<TldrawEditor />', () => {
 		// (useTranslation would throw without the fix, which the error boundary catches)
 		expect(errors).toHaveLength(0)
 		expect(document.querySelector('[data-testid="test-error-fallback"]')).toBeNull()
-		expect(document.querySelector('[data-testid="selection-foreground"]')).toBeTruthy()
+		// Selection foreground is now rendered via the OverlayUtil canvas system,
+		// so we verify via the canvas-overlays element instead of the old SVG element
+		expect(document.querySelector('.tl-canvas-overlays')).toBeTruthy()
 
 		spy.mockRestore()
 	})
@@ -633,8 +633,9 @@ describe('Custom shapes', () => {
 		// Select the shape
 		await act(async () => editor.select(id))
 
-		// Is the shape's component rendering?
-		expect(await screen.findByTestId('card-indicator')).toBeTruthy()
+		// Indicators are now rendered via the canvas overlay system (not DOM),
+		// so we verify selection state instead of a DOM element
+		expect(editor.getSelectedShapeIds()).toEqual([id])
 
 		// Select the tool...
 		await act(async () => editor.setCurrentTool('card'))
