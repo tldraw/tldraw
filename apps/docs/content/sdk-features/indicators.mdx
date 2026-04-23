@@ -141,80 +141,6 @@ override getIndicatorPath(shape: MyShape) {
 }
 ```
 
-## Controlling indicator visibility
-
-The [DefaultShapeIndicators](?) component manages which indicators appear. By default, indicators show for:
-
-- All shapes in the current selection
-- The shape under the pointer (when hovering)
-- Shapes marked as "hinting" (drop targets during drag operations)
-
-### Show or hide all indicators
-
-Override the `ShapeIndicators` component to control visibility globally:
-
-```tsx
-import { Tldraw, DefaultShapeIndicators, TLComponents } from 'tldraw'
-import 'tldraw/tldraw.css'
-
-const components: TLComponents = {
-	ShapeIndicators: () => {
-		// Hide all indicators
-		return <DefaultShapeIndicators hideAll />
-	},
-}
-
-export default function App() {
-	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw components={components} />
-		</div>
-	)
-}
-```
-
-Pass `showAll` to always show indicators for every visible shape. Pass `hideAll` to suppress them entirely.
-
-### Custom indicator logic
-
-For custom visibility logic, override `ShapeIndicators` completely:
-
-```tsx
-import { Tldraw, TLComponents, useEditor, useEditorComponents, useValue } from 'tldraw'
-import 'tldraw/tldraw.css'
-
-const components: TLComponents = {
-	ShapeIndicators: () => {
-		const editor = useEditor()
-		const { ShapeIndicator } = useEditorComponents()
-
-		const shapesToShow = useValue(
-			'shapes with indicators',
-			() => {
-				// Show indicators only for geo shapes
-				return editor.getRenderingShapes().filter(({ id }) => {
-					const shape = editor.getShape(id)
-					return shape?.type === 'geo'
-				})
-			},
-			[editor]
-		)
-
-		if (!ShapeIndicator) return null
-
-		return shapesToShow.map(({ id }) => <ShapeIndicator key={id} shapeId={id} />)
-	},
-}
-
-export default function App() {
-	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw components={components} />
-		</div>
-	)
-}
-```
-
 ## Hinting shapes
 
 Hinting shapes are shapes that receive a highlighted indicator during drag operations. Use [Editor#setHintingShapes](?) to mark shapes as drop targets:
@@ -228,41 +154,6 @@ editor.setHintingShapes([])
 ```
 
 Hinting indicators render with a thicker stroke (2.5px vs 1.5px) to distinguish them from regular selection.
-
-## Customizing the indicator component
-
-Override `ShapeIndicator` to change how individual indicators render:
-
-```tsx
-import { Tldraw, TLComponents, TLShapeIndicatorProps, DefaultShapeIndicator } from 'tldraw'
-import 'tldraw/tldraw.css'
-
-const components: TLComponents = {
-	ShapeIndicator: (props: TLShapeIndicatorProps) => {
-		// Use a custom color for all indicators
-		return <DefaultShapeIndicator {...props} color="red" opacity={0.5} />
-	},
-}
-
-export default function App() {
-	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw components={components} />
-		</div>
-	)
-}
-```
-
-The [TLShapeIndicatorProps](?) interface includes:
-
-| Prop        | Description                                    |
-| ----------- | ---------------------------------------------- |
-| `shapeId`   | The shape's ID                                 |
-| `userId`    | User ID for collaborator indicators (optional) |
-| `color`     | Stroke color (defaults to selection color)     |
-| `opacity`   | Opacity from 0 to 1                            |
-| `className` | Additional CSS class                           |
-| `hidden`    | Whether to hide this indicator                 |
 
 ## Related articles
 

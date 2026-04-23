@@ -221,46 +221,9 @@ When `selfConsume` is `false`, points accumulate while the session is active and
 
 ## Customizing scribble rendering
 
-You can override the scribble component to customize how scribbles render. Pass a custom `Scribble` component through [TLEditorComponents](?). The component receives [TLScribbleProps](?) with `scribble`, `zoom`, `color`, `opacity`, and `className`. To customize how other users' scribbles appear in multiplayer, override the `CollaboratorScribble` component instead, which also receives `userId`.
-
-```tsx
-import { Tldraw, TLEditorComponents, getSvgPathFromPoints } from 'tldraw'
-import 'tldraw/tldraw.css'
-
-const components: TLEditorComponents = {
-	Scribble: ({ scribble, zoom, opacity, color }) => {
-		if (!scribble.points.length) return null
-
-		return (
-			<svg className="tl-overlays__item">
-				<path
-					d={getSvgPathFromPoints(scribble.points, false)}
-					stroke={color ?? `var(--tl-color-${scribble.color})`}
-					strokeWidth={8 / zoom}
-					opacity={opacity ?? scribble.opacity}
-					fill="none"
-				/>
-			</svg>
-		)
-	},
-}
-
-export default function App() {
-	return (
-		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw components={components} />
-		</div>
-	)
-}
-```
-
-The `@tldraw/editor` package provides [DefaultScribble](?) which uses [getSvgPathFromPoints](?) for simple stroked paths, as shown above. The `tldraw` package provides [TldrawScribble](?) which uses [getStroke](?) to create smooth, pressure-sensitive filled paths.
+Scribbles are rendered on an HTML Canvas overlay via the [ScribbleOverlayUtil](?). You can customize scribble rendering by extending this class and passing your custom overlay util when creating the editor. See the [OverlayUtil](?) documentation for details on the overlay system.
 
 ## Related articles
 
 - [Tools](/sdk-features/tools) - Learn how tools use state nodes and handle pointer events
-- [UI components](/sdk-features/ui-components) - Customize canvas components including the scribble renderer
-
-## Related examples
-
-- [Custom components](/examples/ui/custom-components) - Override the Scribble component to customize scribble appearance
+- [UI components](/sdk-features/ui-components) - Customize canvas components
