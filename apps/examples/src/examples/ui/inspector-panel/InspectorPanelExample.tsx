@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Editor, EditorProvider, Tldraw, useEditor, useIsDarkMode, useValue } from 'tldraw'
+import { Editor, EditorProvider, Tldraw, useColorMode, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './inspector-panel.css'
 
@@ -30,15 +30,11 @@ function InspectorPanel() {
 		[editor, selectedShapes]
 	)
 
-	const isDarkMode = useIsDarkMode()
-
 	const selectedShape = selectedShapes.length === 1 ? selectedShapes[0] : null
 
 	if (selectedShapes.length === 0) {
 		return (
-			<div
-				className={`${isDarkMode ? 'inspector-panel inspector-panel-dark' : ''} inspector-panel`}
-			>
+			<div className="inspector-panel">
 				<h3>Inspector</h3>
 				<p>No shape selected</p>
 			</div>
@@ -47,9 +43,7 @@ function InspectorPanel() {
 
 	if (selectedShapes.length > 1) {
 		return (
-			<div
-				className={`${isDarkMode ? 'inspector-panel inspector-panel-dark' : ''} inspector-panel`}
-			>
+			<div className="inspector-panel">
 				<h3>Inspector</h3>
 				{sharedStyles && sharedStyles.size > 0 && (
 					<div className="inspector-section">
@@ -66,7 +60,7 @@ function InspectorPanel() {
 
 	// Single shape selected
 	return (
-		<div className={`${isDarkMode ? 'inspector-panel inspector-panel-dark' : ''} inspector-panel`}>
+		<div className="inspector-panel">
 			<h3>Inspector</h3>
 			<div className="inspector-section">
 				{Object.entries(selectedShape!).map(([key, value]) => {
@@ -224,6 +218,15 @@ function BindingRow({ binding, selectedShapeId }: { binding: any; selectedShapeI
 	)
 }
 
+function InspectorPanelWrapper() {
+	const colorMode = useColorMode()
+	return (
+		<div className={colorMode === 'dark' ? 'tl-theme__dark' : 'tl-theme__light'}>
+			<InspectorPanel />
+		</div>
+	)
+}
+
 export default function InspectorPanelExample() {
 	const [editor, setEditor] = useState<Editor | null>(null)
 
@@ -234,7 +237,7 @@ export default function InspectorPanelExample() {
 			</div>
 			{editor && (
 				<EditorProvider editor={editor}>
-					<InspectorPanel />
+					<InspectorPanelWrapper />
 				</EditorProvider>
 			)}
 		</div>

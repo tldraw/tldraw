@@ -75,7 +75,7 @@ const unpack = (value: unknown): Letter => {
 interface FuzzSystemState {
 	atoms: Record<string, Atom<Letter>>
 	atomsInAtoms: Record<string, Atom<Atom<Letter>>>
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	// eslint-disable-next-line tldraw/method-signature-style
 	derivations: Record<string, { derivation: Computed<Letter>; sneakyGet: () => Letter }>
 	derivationsInDerivations: Record<string, Computed<Computed<Letter>>>
 	atomsInDerivations: Record<string, Computed<Atom<Letter>>>
@@ -112,7 +112,7 @@ class Test {
 		reactors: {},
 	}
 
-	// eslint-disable-next-line local/prefer-class-methods
+	// eslint-disable-next-line tldraw/prefer-class-methods
 	unpack_sneaky = (value: unknown): Letter => {
 		if (isComputed(value)) {
 			if (this.systemState.derivations[value.name]) {

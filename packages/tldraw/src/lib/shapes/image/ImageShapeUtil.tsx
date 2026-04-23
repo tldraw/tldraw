@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-empty-object-type
 import {
 	BaseBoxShapeUtil,
 	Editor,
@@ -11,13 +12,17 @@ import {
 	SvgExportContext,
 	TLAsset,
 	TLAssetId,
+	TLImageAsset,
 	TLImageShape,
 	TLImageShapeProps,
 	TLResizeInfo,
 	TLShapePartial,
 	Vec,
+	VecModel,
 	WeakCache,
+	createShapeId,
 	fetch,
+	getGlobalDocument,
 	imageShapeMigrations,
 	imageShapeProps,
 	lerp,
@@ -32,8 +37,9 @@ import {
 import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
-import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { getUncroppedSize } from '../shared/crop'
+import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
+import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 import { TRANSPARENT_IMAGE_MIMETYPES, getAlphaData, preloadAlphaData } from './ImageAlphaCache'
@@ -48,15 +54,34 @@ async function getDataURIFromURL(url: string): Promise<string> {
 const imageSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
+export interface ImageShapeUtilDisplayValues {}
+
+/** @public */
+export interface ImageShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLImageShape,
+	ImageShapeUtilDisplayValues
+> {}
+
+/** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override type = 'image' as const
 	static override props = imageShapeProps
 	static override migrations = imageShapeMigrations
+	static override handledAssetTypes = ['image'] as const
 
-	override isAspectRatioLocked() {
+	override options: ImageShapeOptions = {
+		getDefaultDisplayValues(): ImageShapeUtilDisplayValues {
+			return {}
+		},
+		getCustomDisplayValues(): Partial<ImageShapeUtilDisplayValues> {
+			return {}
+		},
+	}
+
+	override isAspectRatioLocked(shape: TLImageShape) {
 		return true
 	}
-	override canCrop() {
+	override canCrop(shape: TLImageShape) {
 		return true
 	}
 	override isExportBoundsContainer(): boolean {
@@ -74,6 +99,22 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			flipX: false,
 			flipY: false,
 			altText: '',
+		}
+	}
+
+	override createShapeForAsset(asset: TLAsset, position: VecModel): TLShapePartial | null {
+		const imageAsset = asset as TLImageAsset
+		return {
+			id: createShapeId(),
+			type: 'image',
+			x: position.x,
+			y: position.y,
+			opacity: 1,
+			props: {
+				assetId: imageAsset.id,
+				w: imageAsset.props.w,
+				h: imageAsset.props.h,
+			},
 		}
 	}
 
@@ -602,7 +643,7 @@ function getFirstFrameOfAnimatedImage(url: string) {
 		image.onload = () => {
 			if (cancelled) return
 
-			const canvas = document.createElement('canvas')
+			const canvas = getGlobalDocument().createElement('canvas')
 			canvas.width = image.width
 			canvas.height = image.height
 

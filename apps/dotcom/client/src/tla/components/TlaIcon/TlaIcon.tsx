@@ -1,8 +1,7 @@
 import classNames from 'classnames'
 import { CSSProperties, HtmlHTMLAttributes, useLayoutEffect, useRef } from 'react'
-import styles from './icon.module.css'
-
 import mergedSpriteUrl from '../../../assets/0_merged_tla.svg'
+import styles from './icon.module.css'
 
 function getMaskStyle(icon: string): string {
 	return `url(${mergedSpriteUrl}#icon-${icon}) center 100% / 100% no-repeat`

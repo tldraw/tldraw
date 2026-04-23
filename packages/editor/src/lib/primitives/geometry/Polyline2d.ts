@@ -1,5 +1,5 @@
-import { Vec, VecLike } from '../Vec'
 import { pointInPolygon } from '../utils'
+import { Vec, VecLike } from '../Vec'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
@@ -18,7 +18,7 @@ export class Polyline2d extends Geometry2d {
 		}
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	protected get segments() {
 		if (!this._segments) {
 			this._segments = []
@@ -46,6 +46,9 @@ export class Polyline2d extends Geometry2d {
 	}
 
 	nearestPoint(A: VecLike): Vec {
+		// Inlined: for each segment, Edge2d.nearestPoint(A) + Vec.Dist2(result, A), pick closest.
+		// Inlines the per-segment nearest-point math to avoid N Edge2d.nearestPoint Vec allocations;
+		// only allocates a single Vec at the end for the best result.
 		const { vertices } = this
 		let bestX = vertices[0].x
 		let bestY = vertices[0].y

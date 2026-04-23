@@ -8,8 +8,8 @@ import {
 	releasePointerCapture,
 	setPointerCapture,
 	useContainer,
+	useColorMode,
 	useEditor,
-	useIsDarkMode,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -117,15 +117,16 @@ export function DefaultMinimap() {
 				minimapRef.current.originPageCenter.setTo(_vpPageBounds.center)
 			}
 
+			const body = editor.getContainerDocument().body
 			function release(e: PointerEvent) {
 				if (elm) {
 					releasePointerCapture(elm, e)
 				}
 				rPointing.current = false
-				document.body.removeEventListener('pointerup', release)
+				body.removeEventListener('pointerup', release)
 			}
 
-			document.body.addEventListener('pointerup', release)
+			body.addEventListener('pointerup', release)
 		},
 		[editor]
 	)
@@ -189,7 +190,7 @@ export function DefaultMinimap() {
 		[editor]
 	)
 
-	const isDarkMode = useIsDarkMode()
+	const colorMode = useColorMode()
 
 	React.useEffect(() => {
 		// need to wait a tick for next theme css to be applied
@@ -198,7 +199,7 @@ export function DefaultMinimap() {
 			minimapRef.current?.updateColors()
 			minimapRef.current?.render()
 		})
-	}, [isDarkMode, editor])
+	}, [colorMode, editor])
 
 	return (
 		<div className="tlui-minimap">

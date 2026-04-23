@@ -1,4 +1,4 @@
-import { USER_COLORS, track, useContainer, useEditor } from '@tldraw/editor'
+import { USER_COLORS, getOwnerWindow, track, useContainer, useEditor } from '@tldraw/editor'
 import { Popover as _Popover } from 'radix-ui'
 import React, { useCallback, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
@@ -7,6 +7,7 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiGrid } from '../primitives/layout'
 
+/** @public @react */
 export const UserPresenceColorPicker = track(function UserPresenceColorPicker() {
 	const editor = useEditor()
 	const container = useContainer()
@@ -39,7 +40,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 	} = React.useMemo(() => {
 		const handlePointerUp = () => {
 			rPointing.current = false
-			window.removeEventListener('pointerup', handlePointerUp)
+			getOwnerWindow(container).removeEventListener('pointerup', handlePointerUp)
 		}
 
 		const handleButtonClick = (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -57,7 +58,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 			onValueChange(id)
 
 			rPointing.current = true
-			window.addEventListener('pointerup', handlePointerUp) // see TLD-658
+			getOwnerWindow(container).addEventListener('pointerup', handlePointerUp) // see TLD-658
 		}
 
 		const handleButtonPointerEnter = (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -80,7 +81,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 			handleButtonPointerEnter,
 			handleButtonPointerUp,
 		}
-	}, [value, onValueChange])
+	}, [container, value, onValueChange])
 
 	return (
 		<_Popover.Root onOpenChange={handleOpenChange} open={isOpen}>

@@ -12,7 +12,7 @@ interface TldrawLibraryVersionInfo {
 
 const TLDRAW_LIBRARY_VERSION_KEY = '__TLDRAW_LIBRARY_VERSIONS__' as const
 
-// eslint-disable-next-line @typescript-eslint/prefer-namespace-keyword, @typescript-eslint/no-namespace
+// eslint-disable-next-line @typescript-eslint/prefer-namespace-keyword, @typescript-eslint/no-namespace, no-shadow-restricted-names
 declare module globalThis {
 	export const __TLDRAW_LIBRARY_VERSIONS__: TldrawLibraryVersionInfo
 }

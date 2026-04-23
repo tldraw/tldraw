@@ -104,6 +104,9 @@
   "3d0238bf16": {
     "translation": "Acceptera alla"
   },
+  "3e2ae04ff0": {
+    "translation": "Ostödd Mermaid-diagram"
+  },
   "42e53c47c1": {
     "translation": "Kontakta ägaren för att begära åtkomst."
   },
@@ -140,8 +143,14 @@
   "4da5988a2e": {
     "translation": "Radera grupp…"
   },
+  "4dab36ac83": {
+    "translation": "Fler alternativ"
+  },
   "4e6fbf032b": {
     "translation": "Är du säker på att du vill ta bort den här gruppen? Åtgärden kan inte ångras."
+  },
+  "5097d89907": {
+    "translation": "Diagrammet stöds inte, genererar SVG istället"
   },
   "50db1b7e1e": {
     "translation": "Det gick inte att avpublicera filen."
@@ -179,6 +188,9 @@
   "5c6fe42bc2": {
     "translation": "Återkalla den här länken och skapa en ny."
   },
+  "5d04a002ea": {
+    "translation": "Det gick inte att ansluta"
+  },
   "5d26ae7550": {
     "translation": "Vi kunde inte ladda upp en del av innehållet du skapade innan du loggade in."
   },
@@ -199,6 +211,9 @@
   },
   "639bae9ac6": {
     "translation": "du"
+  },
+  "63a6a88c06": {
+    "translation": "Uppdatera"
   },
   "6609dd239e": {
     "translation": "Något gick fel"
@@ -350,6 +365,9 @@
   "9bef626805": {
     "translation": "Ta bort fil"
   },
+  "9ccb565b86": {
+    "translation": "Vi har problem med att ansluta till vår autentiseringstjänst. Detta är vanligtvis tillfälligt. Försök att uppdatera sidan."
+  },
   "9ceb927baa": {
     "translation": "Publicera den här filen"
   },
@@ -458,6 +476,9 @@
   },
   "c87aacf567": {
     "translation": "Logga ut"
+  },
+  "c8a59e7135": {
+    "translation": "Avfärda"
   },
   "c9cc8cce24": {
     "translation": "Spara"

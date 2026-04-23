@@ -221,11 +221,11 @@ Properties:
 
 Configuration options:
 
-| Option              | Type     | Default | Description                                                                                     |
-| ------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------- |
-| `maxPointsPerShape` | `number` | `600`   | Maximum points before starting a new shape. Same behavior as draw shapes.                       |
-| `underlayOpacity`   | `number` | `0.82`  | Opacity of the underlay (background layer). Combined with overlay creates the highlight effect. |
-| `overlayOpacity`    | `number` | `0.35`  | Opacity of the overlay (foreground layer). Lower values create a more subtle highlight.         |
+| Option              | Type     | Default | Description                                                               |
+| ------------------- | -------- | ------- | ------------------------------------------------------------------------- |
+| `maxPointsPerShape` | `number` | `600`   | Maximum points before starting a new shape. Same behavior as draw shapes. |
+
+The highlight's `underlayOpacity` (default `0.82`) and `overlayOpacity` (default `0.35`) are display values that can be overridden via `getCustomDisplayValues`.
 
 ```tsx
 const ConfiguredHighlightUtil = HighlightShapeUtil.configure({

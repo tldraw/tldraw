@@ -1,13 +1,13 @@
 import { ArraySet } from '../ArraySet'
 import { atom } from '../Atom'
-import { computed } from '../Computed'
-import { react } from '../EffectScheduler'
 import {
 	maybeCaptureParent,
 	startCapturingParents,
 	stopCapturingParents,
 	unsafe__withoutCapture,
 } from '../capture'
+import { computed } from '../Computed'
+import { react } from '../EffectScheduler'
 import { advanceGlobalEpoch, getGlobalEpoch } from '../transactions'
 import { Child } from '../types'
 

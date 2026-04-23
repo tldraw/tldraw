@@ -133,6 +133,7 @@ export class MediaHelpers {
 	 * Load a video element from a URL with cross-origin support.
 	 *
 	 * @param src - The URL of the video to load
+	 * @param doc - Optional document to create the video element in
 	 * @returns Promise that resolves to the loaded HTMLVideoElement
 	 * @example
 	 * ```ts
@@ -141,9 +142,10 @@ export class MediaHelpers {
 	 * ```
 	 * @public
 	 */
-	static loadVideo(src: string): Promise<HTMLVideoElement> {
+	static loadVideo(src: string, doc?: Document): Promise<HTMLVideoElement> {
 		return new Promise((resolve, reject) => {
-			const video = document.createElement('video')
+			// eslint-disable-next-line no-restricted-globals
+			const video = (doc ?? document).createElement('video')
 			video.onloadeddata = () => resolve(video)
 			video.onerror = (e) => {
 				console.error(e)
@@ -185,7 +187,8 @@ export class MediaHelpers {
 			}
 
 			if (video.readyState >= video.HAVE_CURRENT_DATA) {
-				const canvas = document.createElement('canvas')
+				// eslint-disable-next-line no-restricted-globals
+				const canvas = (video.ownerDocument ?? document).createElement('canvas')
 				canvas.width = video.videoWidth
 				canvas.height = video.videoHeight
 				const ctx = canvas.getContext('2d')
@@ -228,6 +231,7 @@ export class MediaHelpers {
 	 * Load an image from a URL and get its dimensions along with the image element.
 	 *
 	 * @param src - The URL of the image to load
+	 * @param doc - Optional document to use for DOM operations (e.g. measuring SVG dimensions)
 	 * @returns Promise that resolves to an object with width, height, and the image element
 	 * @example
 	 * ```ts
@@ -239,7 +243,8 @@ export class MediaHelpers {
 	 * @public
 	 */
 	static getImageAndDimensions(
-		src: string
+		src: string,
+		doc?: Document
 	): Promise<{ w: number; h: number; image: HTMLImageElement }> {
 		return new Promise((resolve, reject) => {
 			const img = Image()
@@ -253,12 +258,14 @@ export class MediaHelpers {
 				} else {
 					// Sigh, Firefox doesn't have naturalWidth or naturalHeight for SVGs. :-/
 					// We have to attach to dom and use clientWidth/clientHeight.
-					document.body.appendChild(img)
+					// eslint-disable-next-line no-restricted-globals
+					const body = (doc ?? document).body
+					body.appendChild(img)
 					dimensions = {
 						w: img.clientWidth,
 						h: img.clientHeight,
 					}
-					document.body.removeChild(img)
+					body.removeChild(img)
 				}
 				resolve({ ...dimensions, image: img })
 			}
@@ -280,6 +287,7 @@ export class MediaHelpers {
 	 * Get the size of a video blob
 	 *
 	 * @param blob - A Blob containing the video
+	 * @param doc - Optional document to create elements in
 	 * @returns Promise that resolves to an object with width and height properties
 	 * @example
 	 * ```ts
@@ -289,9 +297,9 @@ export class MediaHelpers {
 	 * ```
 	 * @public
 	 */
-	static async getVideoSize(blob: Blob): Promise<{ w: number; h: number }> {
+	static async getVideoSize(blob: Blob, doc?: Document): Promise<{ w: number; h: number }> {
 		return MediaHelpers.usingObjectURL(blob, async (url) => {
-			const video = await MediaHelpers.loadVideo(url)
+			const video = await MediaHelpers.loadVideo(url, doc)
 			return { w: video.videoWidth, h: video.videoHeight }
 		})
 	}
@@ -300,6 +308,7 @@ export class MediaHelpers {
 	 * Get the size of an image blob
 	 *
 	 * @param blob - A Blob containing the image
+	 * @param doc - Optional document to use for DOM operations
 	 * @returns Promise that resolves to an object with width and height properties
 	 * @example
 	 * ```ts
@@ -309,8 +318,13 @@ export class MediaHelpers {
 	 * ```
 	 * @public
 	 */
-	static async getImageSize(blob: Blob): Promise<{ w: number; h: number; pixelRatio: number }> {
-		const { w, h } = await MediaHelpers.usingObjectURL(blob, MediaHelpers.getImageAndDimensions)
+	static async getImageSize(
+		blob: Blob,
+		doc?: Document
+	): Promise<{ w: number; h: number; pixelRatio: number }> {
+		const { w, h } = await MediaHelpers.usingObjectURL(blob, (url) =>
+			MediaHelpers.getImageAndDimensions(url, doc)
+		)
 
 		try {
 			if (blob.type === 'image/png') {

@@ -1,6 +1,7 @@
 # Performance Testing
 
 FPS performance tests for tldraw to detect regressions and track improvements.
+These are tracked in https://eu.posthog.com/project/45972/insights/ZdpGyj1r
 
 ```bash
 # Run all performance tests

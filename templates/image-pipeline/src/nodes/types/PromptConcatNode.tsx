@@ -40,7 +40,7 @@ export class PromptConcatNodeDefinition extends NodeDefinition<PromptConcatNode>
 	static validator = PromptConcatNode
 	title = 'Concat'
 	heading = 'Prompt concat'
-	icon = (<PromptConcatIcon />)
+	icon = <PromptConcatIcon />
 	category = 'process'
 	getDefault(): PromptConcatNode {
 		return {

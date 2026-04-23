@@ -94,6 +94,7 @@ export { stringEnum } from './lib/stringEnum'
 export { FpsScheduler, fpsThrottle, throttleToNextFrame } from './lib/throttle'
 export { Timers } from './lib/timers'
 export {
+	type Awaitable,
 	type Expand,
 	type MakeUndefinedOptional,
 	type RecursivePartial,

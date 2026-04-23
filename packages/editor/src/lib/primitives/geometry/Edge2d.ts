@@ -16,6 +16,7 @@ export class Edge2d extends Geometry2d {
 		this._start = start
 		this._end = end
 
+		// Precomputed segment delta and squared length (replaces Vec.Sub(end, start) and Vec.Len2)
 		this._dx = end.x - start.x
 		this._dy = end.y - start.y
 		this._len2 = this._dx * this._dx + this._dy * this._dy
@@ -30,10 +31,11 @@ export class Edge2d extends Geometry2d {
 	}
 
 	override nearestPoint(point: VecLike): Vec {
+		// Inlined: Vec.NearestPointOnLineSegment(start, end, point)
+		// Uses precomputed dx/dy/len2 and parametric t-clamping instead of Vec allocations.
 		const { _start: start, _end: end, _dx: dx, _dy: dy, _len2: len2 } = this
 		if (len2 === 0) return start
 
-		// Parametric t = dot(P-A, B-A) / |B-A|^2, clamped to [0,1]
 		const t = ((point.x - start.x) * dx + (point.y - start.y) * dy) / len2
 		if (t <= 0) return start
 		if (t >= 1) return end
@@ -41,6 +43,9 @@ export class Edge2d extends Geometry2d {
 	}
 
 	override distanceToPoint(point: VecLike, _hitInside = false): number {
+		// Inlined: Vec.Dist(point, this.nearestPoint(point))
+		// Finds nearest point via parametric t-projection then returns scalar distance directly,
+		// avoiding the Vec allocation that nearestPoint would create.
 		const { _start: start, _end: end, _dx: dx, _dy: dy, _len2: len2 } = this
 		if (len2 === 0) return Vec.Dist(point, start)
 

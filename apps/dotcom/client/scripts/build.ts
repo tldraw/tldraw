@@ -1,13 +1,14 @@
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
-import glob from 'fast-glob'
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
+import { glob } from 'fast-glob'
 import json5 from 'json5'
+import _ from 'lodash'
 import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
 import { csp } from '../src/utils/csp'
-import { getMultiplayerServerURL } from '../vite.config'
+import { getMultiplayerServerURL } from './multiplayer-server-url'
 import { Config } from './vercel-output-config'
 
 const commonSecurityHeaders = {
@@ -47,7 +48,7 @@ async function build() {
 	// make sure we have the latest routes
 	await exec('yarn', ['test', 'src/routes.test.tsx'])
 	const spaRoutes = loadSpaRoutes()
-	await exec('vite', ['build', '--emptyOutDir'])
+	await exec('../../../node_modules/.bin/vite', ['build', '--emptyOutDir'])
 	await exec('yarn', ['run', '-T', 'sentry-cli', 'sourcemaps', 'inject', 'dist/assets'])
 	// Clear output static folder (in case we are running locally and have already built the app once before)
 	await exec('rm', ['-rf', '.vercel/output'])
@@ -91,8 +92,10 @@ async function build() {
 	writeFileSync('.vercel/output/static/index.html', newIndex)
 
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
+
 	const assetsToCache = assetsList.filter((f) => !f.endsWith('.js.map')).map((f) => `/assets/${f}`)
-	const assetsToCacheRegex = `^${regexgen(assetsToCache).source}$`
+	// need to batch these because Vercel's route limit is 4096 characters
+	const assetsBatches = _.chunk(assetsToCache, 50)
 
 	writeFileSync(
 		'.vercel/output/config.json',
@@ -115,14 +118,14 @@ async function build() {
 							'X-Content-Type-Options': 'nosniff',
 						},
 					},
-					// cache static assets immutably. we use a regex here to match all assets we
-					// know exist so we don't apply caching headers to 404 pages.
-					{
-						src: assetsToCacheRegex,
+					// cache static assets immutably. we match by extension to avoid exceeding
+					// Vercel's 4096-char route limit (see #8286).
+					...assetsBatches.map((batch) => ({
+						src: `^${regexgen(batch).source}$`,
 						headers: {
 							'Cache-Control': 'public, max-age=31536000, immutable',
 						},
-					},
+					})),
 					// server up index.html specifically because we want to include
 					// security headers. otherwise, it goes to the handle: 'miss'
 					// part below (and _not_ to the spaRoutes as maybe expected!)

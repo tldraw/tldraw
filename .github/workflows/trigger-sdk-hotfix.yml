@@ -33,8 +33,12 @@ jobs:
 
       - uses: actions/checkout@v6
         with:
+          persist-credentials: false
           token: ${{ steps.generate_token.outputs.token }}
           fetch-depth: 0
+
+      - name: Configure git credentials
+        run: git config --global url."https://x-access-token:${{ steps.generate_token.outputs.token }}@github.com/".insteadOf "https://github.com/"
 
       - uses: ./.github/actions/setup
 

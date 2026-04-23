@@ -16,13 +16,13 @@ import {
 import { IndexKey, ZERO_INDEX_KEY, mockUniqueId, sortById } from '@tldraw/utils'
 import { vi } from 'vitest'
 import { InMemorySyncStorage } from '../lib/InMemorySyncStorage'
-import { RoomSnapshot, TLRoomSocket, TLSyncRoom } from '../lib/TLSyncRoom'
 import {
 	TLConnectRequest,
 	TLPushRequest,
 	TLSocketServerSentEvent,
 	getTlsyncProtocolVersion,
 } from '../lib/protocol'
+import { RoomSnapshot, TLRoomSocket, TLSyncRoom } from '../lib/TLSyncRoom'
 
 const schema = createTLSchema()
 const compareById = (a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id)

@@ -23,7 +23,6 @@ import {
 	getLocalSessionState,
 	updateLocalSessionState,
 } from '../../../utils/local-session-state'
-import { TlaButton } from '../../TlaButton/TlaButton'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
@@ -32,6 +31,7 @@ import {
 	TlaMenuSelect,
 	TlaMenuSwitch,
 } from '../../tla-menu/tla-menu'
+import { TlaButton } from '../../TlaButton/TlaButton'
 import styles from '../file-share-menu.module.css'
 
 export function TlaExportTab() {

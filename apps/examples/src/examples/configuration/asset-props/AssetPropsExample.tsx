@@ -18,7 +18,7 @@ export default function AssetPropsExample() {
 	)
 }
 
-/* 
+/*
 This example shows how to use props on the Tldraw component to control what types of
 assets can be uploaded.
 

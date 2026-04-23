@@ -48,7 +48,7 @@ export default function LocalImagesExample() {
 	)
 }
 
-/* 
+/*
 This is an example of how you can add a locally hosted image to the editor.
 We need to first create an asset that holds the source image [2], and then 
 create the Image shape itself [3].

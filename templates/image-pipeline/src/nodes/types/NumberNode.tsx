@@ -25,7 +25,7 @@ export class NumberNodeDefinition extends NodeDefinition<NumberNode> {
 	title = 'Number'
 	heading = 'Number'
 	hidden = true as const
-	icon = (<NumberIcon />)
+	icon = <NumberIcon />
 	category = 'input'
 	getDefault(): NumberNode {
 		return {

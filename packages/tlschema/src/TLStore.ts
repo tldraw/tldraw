@@ -1,4 +1,4 @@
-import { Signal } from '@tldraw/state'
+import { Signal, computed } from '@tldraw/state'
 import {
 	SerializedStore,
 	Store,
@@ -15,6 +15,7 @@ import { PageRecordType, TLPageId } from './records/TLPage'
 import { InstancePageStateRecordType, TLInstancePageStateId } from './records/TLPageState'
 import { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
 import { TLRecord } from './records/TLRecord'
+import { TLUser } from './records/TLUser'
 
 /**
  * Redacts the source of an asset record for error reporting.
@@ -201,6 +202,97 @@ export interface TLAssetStore {
 }
 
 /**
+ * Interface for resolving user information in tldraw.
+ *
+ * A `TLUserStore` sits alongside the main {@link TLStore} and provides user
+ * resolution for attribution labels and display names. Implement this interface
+ * to connect tldraw to your auth/user system.
+ *
+ * `currentUser` and `resolve` are reactive {@link @tldraw/state#Signal | Signals}
+ * so that the editor can automatically track changes to user data and
+ * re-render when a user's name, color, or avatar updates.
+ *
+ * Implementations should cache signals returned by `resolve` — e.g. return the
+ * same `Signal` for repeated calls with the same `userId` — to avoid
+ * unnecessary re-computation.
+ *
+ * @public
+ * @example
+ * ```ts
+ * const currentUser = computed('currentUser', () =>
+ *   UserRecordType.create({
+ *     id: createUserId(myAuth.userId),
+ *     name: myAuth.displayName,
+ *     color: myAuth.color,
+ *   })
+ * )
+ *
+ * const userStore: TLUserStore = {
+ *   currentUser,
+ *   resolve(userId) {
+ *     return computed('resolve-' + userId, () =>
+ *       myUserCache.get(userId) ?? null
+ *     )
+ *   },
+ * }
+ * ```
+ */
+export interface TLUserStore {
+	/**
+	 * A signal resolving to the currently authenticated user,
+	 * or `null` for anonymous / unknown.
+	 * Read when stamping attribution on shape create/update.
+	 */
+	currentUser: Signal<TLUser | null>
+
+	/**
+	 * Return a signal resolving an arbitrary user ID to display info.
+	 * Called when rendering attribution labels for shapes that may have been
+	 * created or edited by someone else.
+	 * The signal's value should be `null` if the user cannot be resolved.
+	 */
+	resolve?(userId: string): Signal<TLUser | null>
+}
+
+/**
+ * Create a cached {@link TLUserStore.resolve} implementation.
+ *
+ * Wraps a reactive lookup function so that each `userId` gets a single
+ * stable {@link @tldraw/state#Signal | Signal} that is reused across calls.
+ * The `resolveFn` is evaluated inside a `computed`, so any `.get()` calls
+ * it makes are automatically tracked.
+ *
+ * @param resolveFn - A function that resolves a raw user-ID string to a
+ *   {@link TLUser} or `null`. Called reactively inside a `computed`.
+ * @returns A function suitable for use as `TLUserStore.resolve`.
+ *
+ * @example
+ * ```ts
+ * const users: TLUserStore = {
+ *   currentUser: currentUserSignal,
+ *   resolve: createCachedUserResolve(
+ *     (userId) => usersAtom.get()[createUserId(userId)] ?? null
+ *   ),
+ * }
+ * ```
+ *
+ * @public
+ */
+export function createCachedUserResolve(
+	resolveFn: (userId: string) => TLUser | null
+): (userId: string) => Signal<TLUser | null> {
+	const cache = new Map<string, Signal<TLUser | null>>()
+	return (userId: string) => {
+		let signal = cache.get(userId)
+		if (!signal) {
+			signal = computed('resolve-user-' + userId, () => resolveFn(userId))
+			cache.set(userId, signal)
+		}
+		return signal
+	}
+}
+
+/**
  * Configuration properties for a tldraw store, defining its behavior and integrations.
  * These props are passed when creating a new store instance.
  *
@@ -228,6 +320,8 @@ export interface TLStoreProps {
 	defaultName: string
 	/** Asset store implementation for handling file uploads and storage */
 	assets: Required<TLAssetStore>
+	/** User store implementation for user resolution and attribution */
+	users: Required<TLUserStore>
 	/**
 	 * Called when an {@link @tldraw/editor#Editor} connected to this store is mounted.
 	 * Can optionally return a cleanup function that will be called when unmounted.

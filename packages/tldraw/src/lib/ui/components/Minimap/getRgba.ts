@@ -1,10 +1,12 @@
+import { getGlobalDocument } from '@tldraw/editor'
+
 const memo = {} as Record<string, Float32Array>
 
 export function getRgba(colorString: string) {
 	if (memo[colorString]) {
 		return memo[colorString]
 	}
-	const canvas = document.createElement('canvas')
+	const canvas = getGlobalDocument().createElement('canvas')
 	const context = canvas.getContext('2d')
 	context!.fillStyle = colorString
 	context!.fillRect(0, 0, 1, 1)

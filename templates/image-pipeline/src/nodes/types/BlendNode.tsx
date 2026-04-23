@@ -76,7 +76,7 @@ export class BlendNodeDefinition extends NodeDefinition<BlendNode> {
 	static validator = BlendNode
 	title = 'Blend'
 	heading = 'Blend'
-	icon = (<BlendIcon />)
+	icon = <BlendIcon />
 	category = 'process'
 	resultKeys = ['lastResultUrl'] as const
 	getDefault(): BlendNode {

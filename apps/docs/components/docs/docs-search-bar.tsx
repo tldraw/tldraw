@@ -1,7 +1,7 @@
 'use client'
 
-import { SearchButton } from '@/components/search/SearchButton'
 import { motion } from 'framer-motion'
+import { SearchButton } from '@/components/search/SearchButton'
 
 export function DocsSearchBar() {
 	return (

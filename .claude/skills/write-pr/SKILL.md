@@ -85,6 +85,24 @@ Start with: "In order to X, this PR does Y."
 - Use imperative mood: "Add...", "Fix...", "Remove..."
 - Omit this section entirely for internal work (CI, tooling, tests, etc.) that has no user-facing impact
 
+## Concepts, examples, and FAQ (for large or feature-intensive PRs)
+
+When a PR introduces a new system, several new types/APIs, or otherwise has enough surface area that a reviewer would benefit from a glossary, include extra explanatory sections **above** the standard `### Change type` / `### Test plan` / `### Release notes` block. Skip these for small or focused PRs — they're for features and large refactors.
+
+Pull from this menu, in roughly this order, using only what fits:
+
+- **Concepts** — a table of the new terms/types the PR introduces, with `Term | Type | Meaning` columns. Use this when readers need a shared vocabulary to follow the rest of the description.
+- **Module augmentation** — short code blocks showing how consumers extend the new types, when the PR exposes augmentable interfaces.
+- **Editor API** / **Component props** — `Method | Description` and `Prop | Type | Description` tables for new public surface.
+- **Per-shape / per-feature breakdown** — tables showing what each affected shape/module returns or accepts under the new system.
+- **Example** — a realistic, copy-pastable code snippet showing how a default implementation uses the new system, plus a second snippet showing how a consumer would override it.
+- **FAQ** — anticipated "How do I…?" questions with short code answers. Cover the obvious customization paths a downstream user will reach for first.
+- **New examples** — bullet list of any new entries added under `apps/examples/src/examples/`, with a one-line description each, so reviewers know where to look for runnable demos.
+
+Reference: tldraw/tldraw#8410 is a good worked example of all of these sections together.
+
+These sections come **before** `### Change type`. The standard `### Change type` / `### Test plan` / `### Release notes` / `### API changes` / `### Code changes` blocks still appear at the bottom in the usual order.
+
 ## API changes section
 
 Include when changes affect `api-report.md`:
@@ -126,6 +144,16 @@ Create a table that includes net LOC changes for each of the following sections.
 ## Related issues
 
 Search for and link relevant issues that this PR addresses.
+
+## Human notes (preserve exactly)
+
+The PR author often writes a personal note at the very top of the description, prefaced with a "person" emoji such as 🅯 or 👨 (or similar). This block is human-written and readers trust it as such.
+
+- When **updating** an existing PR description, if the body starts with a paragraph/section led by a person emoji, you MUST preserve it **byte-for-byte exactly** at the top — do not rewrite, reflow, reword, retitle, or "improve" it, even slightly.
+- If the human note is longer than a single paragraph, it will be delimited at the end by a `---` horizontal rule. Preserve everything from the person emoji through (and including) that `---` exactly.
+- If there is no `---`, the human note is just the leading paragraph led by the person emoji.
+- Make all your edits to the content **below** the human note (and below the `---` if present).
+- When **creating** a new PR, do not invent a human note — leave that for the author to add.
 
 ## Important
 

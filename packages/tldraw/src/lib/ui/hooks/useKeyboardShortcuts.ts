@@ -33,10 +33,9 @@ export function useKeyboardShortcuts() {
 		if (!isFocused) return
 
 		const disposables = new Array<() => void>()
-		const container = editor.getContainer()
 
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: container.ownerDocument.body }, callback)
+			hotkeys(keys, { element: editor.getContainerDocument().body }, callback)
 			disposables.push(() => {
 				hotkeys.unbind(keys, callback)
 			})
@@ -45,7 +44,7 @@ export function useKeyboardShortcuts() {
 		const hotUp = (keys: string, callback: (event: KeyboardEvent) => void) => {
 			hotkeys(
 				keys,
-				{ element: container.ownerDocument.body, keyup: true, keydown: false },
+				{ element: editor.getContainerDocument().body, keyup: true, keydown: false },
 				callback
 			)
 			disposables.push(() => {

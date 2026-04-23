@@ -9,6 +9,7 @@ import {
 
 export class Erasing extends StateNode {
 	static override id = 'erasing'
+	static override trackPerformance = true
 
 	private info = {} as TLPointerEventInfo
 	private scribbleId = 'id'
@@ -34,11 +35,8 @@ export class Erasing extends StateNode {
 				.filter((shape) => {
 					//If the shape is locked, we shouldn't erase it
 					if (this.editor.isShapeOrAncestorLocked(shape)) return true
-					//If the shape is a group or frame, check we're inside it when we start erasing
-					if (
-						this.editor.isShapeOfType(shape, 'group') ||
-						this.editor.isShapeOfType(shape, 'frame')
-					) {
+					//If the shape is a group or frame-like, check we're inside it when we start erasing
+					if (this.editor.isShapeOfType(shape, 'group') || this.editor.isShapeFrameLike(shape)) {
 						const pointInShapeShape = this.editor.getPointInShapeSpace(shape, originPagePoint)
 						const geometry = this.editor.getShapeGeometry(shape)
 						return geometry.bounds.containsPoint(pointInShapeShape)
@@ -148,8 +146,17 @@ export class Erasing extends StateNode {
 				continue
 			}
 
+			// If a shape is hit and is part of a group, erase the group
+			// If we started erasing inside a group's bounds, erase child shapes (or nested groups) inside it
 			if (geometry.hitTestLineSegment(A, B, minDist)) {
-				erasing.add(editor.getOutermostSelectableShape(shape).id)
+				const outermost = editor.getOutermostSelectableShape(shape)
+				if (excludedShapeIds.has(outermost.id)) {
+					erasing.add(
+						editor.getOutermostSelectableShape(shape, (s) => !excludedShapeIds.has(s.id)).id
+					)
+				} else {
+					erasing.add(outermost.id)
+				}
 			}
 
 			this._erasingShapeIds = [...erasing]

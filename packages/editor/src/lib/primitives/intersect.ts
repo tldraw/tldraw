@@ -30,13 +30,17 @@ export function intersectLineSegmentLineSegment(
 	const ub_t = AVx * ABy - AVy * ABx
 	const u_b = BVy * AVx - BVx * AVy
 
+	// These comparisons inline approximately(x, 0) and approximatelyLte(x, 0/1)
+	// to avoid 7+ function calls per invocation.
 	if (Math.abs(ua_t) <= precision || Math.abs(ub_t) <= precision) return null // coincident
 
 	if (Math.abs(u_b) <= precision) return null // parallel
 
 	const ua = ua_t / u_b
 	const ub = ub_t / u_b
+	// Inlined: approximately(ua, 0) && approximatelyLte(ua, 1) && same for ub
 	if (ua >= -precision && ua <= 1 + precision && ub >= -precision && ub <= 1 + precision) {
+		// Inlined: Vec.Lrp(a1, a2, ua) — i.e. a1 + ua * (a2 - a1)
 		return new Vec(a1.x + ua * AVx, a1.y + ua * AVy)
 	}
 
@@ -53,6 +57,8 @@ export function intersectLineSegmentLineSegment(
  * @public
  */
 export function intersectLineSegmentCircle(a1: VecLike, a2: VecLike, c: VecLike, r: number) {
+	// Precompute segment delta (dx, dy) and origin-to-center offset (ocx, ocy)
+	// to avoid repeated (a2.x - a1.x) and (a1.x - c.x) subexpressions.
 	const dx = a2.x - a1.x
 	const dy = a2.y - a1.y
 	const ocx = a1.x - c.x
@@ -75,6 +81,7 @@ export function intersectLineSegmentCircle(a1: VecLike, a2: VecLike, c: VecLike,
 
 	const result: VecLike[] = []
 
+	// Inlined: Vec.Lrp(a1, a2, u) — i.e. a1 + u * (a2 - a1)
 	if (u1 >= 0 && u1 <= 1) result.push(new Vec(a1.x + dx * u1, a1.y + dy * u1))
 	if (u2 >= 0 && u2 <= 1) result.push(new Vec(a1.x + dx * u2, a1.y + dy * u2))
 

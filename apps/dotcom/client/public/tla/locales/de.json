@@ -104,6 +104,9 @@
   "3d0238bf16": {
     "translation": "Alle akzeptieren"
   },
+  "3e2ae04ff0": {
+    "translation": "Nicht unterstütztes Mermaid-Diagramm"
+  },
   "42e53c47c1": {
     "translation": "Kontaktieren Sie den Eigentümer, um Zugriff anzufordern."
   },
@@ -140,8 +143,14 @@
   "4da5988a2e": {
     "translation": "Gruppe löschen…"
   },
+  "4dab36ac83": {
+    "translation": "Mehr Optionen"
+  },
   "4e6fbf032b": {
     "translation": "Sind Sie sicher, dass Sie diese Gruppe löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+  },
+  "5097d89907": {
+    "translation": "Nicht unterstütztes Diagramm, es wird stattdessen eine SVG-Datei generiert."
   },
   "50db1b7e1e": {
     "translation": "Die Veröffentlichung für diese Datei kann nicht aufgehoben werden."
@@ -179,6 +188,9 @@
   "5c6fe42bc2": {
     "translation": "Diese Verknüpfung löschen und eine neue erstellen."
   },
+  "5d04a002ea": {
+    "translation": "Verbindung nicht möglich"
+  },
   "5d26ae7550": {
     "translation": "Wir konnten den von Ihnen vor Ihrer Anmeldung erstellten Inhalt teilweise nicht hochladen."
   },
@@ -199,6 +211,9 @@
   },
   "639bae9ac6": {
     "translation": "Du"
+  },
+  "63a6a88c06": {
+    "translation": "Aktualisieren"
   },
   "6609dd239e": {
     "translation": "Es ist ein Fehler aufgetreten"
@@ -350,6 +365,9 @@
   "9bef626805": {
     "translation": "Datei löschen"
   },
+  "9ccb565b86": {
+    "translation": "Es gibt derzeit Probleme mit der Verbindung zu unserem Authentifizierungsdienst. Dies ist in der Regel nur vorübergehend. Bitte aktualisieren Sie die Seite."
+  },
   "9ceb927baa": {
     "translation": "Diese Datei veröffentlichen"
   },
@@ -458,6 +476,9 @@
   },
   "c87aacf567": {
     "translation": "Abmelden"
+  },
+  "c8a59e7135": {
+    "translation": "Schließen"
   },
   "c9cc8cce24": {
     "translation": "Speichern"

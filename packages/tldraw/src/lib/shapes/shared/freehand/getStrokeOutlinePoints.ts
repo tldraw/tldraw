@@ -130,7 +130,7 @@ export function getStrokeOutlineTracks(
 			continue
 		}
 
-		/* 
+		/*
       Add regular points
 
       Project points to either side of the current point, using the
@@ -236,7 +236,7 @@ export function getStrokeOutlinePoints(
 			? strokePoints[strokePoints.length - 1].point
 			: Vec.AddXY(firstStrokePoint.point, 1, 1)
 
-	/* 
+	/*
     Draw a dot for very short or completed strokes
     
     If the line is too short to gather left or right points and if the line is

@@ -903,7 +903,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	// eslint-disable-next-line local/prefer-class-methods
+	// eslint-disable-next-line tldraw/prefer-class-methods
 	private rebase = () => {
 		// need to make sure that our speculative changes are in sync with the actual store instance before
 		// proceeding, to avoid inconsistency bugs.

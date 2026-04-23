@@ -16,14 +16,14 @@ import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
 import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiColumn, TldrawUiRow } from '../primitives/layout'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
-import { TldrawUiColumn, TldrawUiRow } from '../primitives/layout'
-import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 
 export const IsInOverflowContext = createContext(false)
 
@@ -240,8 +240,6 @@ export function OverflowingToolbar({
 		mutationObserver.observe(mainToolsRef.current, {
 			childList: true,
 			subtree: true,
-			attributes: true,
-			characterData: true,
 		})
 
 		const sizingParent = findParentWithClassName(mainToolsRef.current, sizingParentClassName)
@@ -260,7 +258,7 @@ export function OverflowingToolbar({
 		function handleKeyDown(event: KeyboardEvent) {
 			if (
 				areShortcutsDisabled(editor) ||
-				activeElementShouldCaptureKeys(false /* includeButton */)
+				activeElementShouldCaptureKeys(false /* includeButton */, editor.getContainerDocument())
 			) {
 				return
 			}
@@ -274,9 +272,10 @@ export function OverflowingToolbar({
 			}
 		}
 
-		document.addEventListener('keydown', handleKeyDown)
+		const doc = editor.getContainerDocument()
+		doc.addEventListener('keydown', handleKeyDown)
 		return () => {
-			document.removeEventListener('keydown', handleKeyDown)
+			doc.removeEventListener('keydown', handleKeyDown)
 		}
 	}, [editor])
 

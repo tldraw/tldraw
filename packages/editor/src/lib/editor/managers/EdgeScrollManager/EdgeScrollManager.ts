@@ -1,5 +1,5 @@
-import { Vec } from '../../../primitives/Vec'
 import { EASINGS } from '../../../primitives/easings'
+import { Vec } from '../../../primitives/Vec'
 import type { Editor } from '../../Editor'
 
 /** @public */

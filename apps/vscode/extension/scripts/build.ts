@@ -24,6 +24,22 @@ async function build() {
 			},
 			tsconfig: './tsconfig.json',
 			external: ['vscode'],
+			plugins: [
+				{
+					name: 'exclude-hotkeys',
+					setup(build) {
+						build.onResolve({ filter: /^hotkeys-js$/ }, () => ({
+							path: 'hotkeys-js',
+							namespace: 'exclude',
+						}))
+						build.onLoad({ filter: /.*/, namespace: 'exclude' }, () => ({
+							contents:
+								'module.exports = function hotkeys() {}; module.exports.default = module.exports;',
+							loader: 'js',
+						}))
+					},
+				},
+			],
 			loader: {
 				'.woff2': 'dataurl',
 				'.woff': 'dataurl',

@@ -29,6 +29,9 @@ export interface Environment {
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
+	PLAIN_API_KEY?: string
+	PLAIN_LABEL_TYPE_ID?: string
+	PLAIN_WORKSPACE_ID?: string
 
 	MEASURE: Analytics | undefined
 
@@ -65,6 +68,9 @@ export interface Environment {
 	MULTIPLAYER_SERVER: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
+	HEALTH_CHECK_DB_SIZE_THRESHOLD_GB: string | undefined
+	HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB: string | undefined
+	HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB: string | undefined
 
 	ANALYTICS_API_URL: string | undefined
 	ANALYTICS_API_TOKEN: string | undefined

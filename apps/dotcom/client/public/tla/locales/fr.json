@@ -104,6 +104,9 @@
   "3d0238bf16": {
     "translation": "Accepter tout"
   },
+  "3e2ae04ff0": {
+    "translation": "Diagramme Mermaid non pris en charge"
+  },
   "42e53c47c1": {
     "translation": "Contactez le propriétaire pour demander l'accès."
   },
@@ -140,8 +143,14 @@
   "4da5988a2e": {
     "translation": "Supprimer le groupe…"
   },
+  "4dab36ac83": {
+    "translation": "Plus d'options"
+  },
   "4e6fbf032b": {
     "translation": "Êtes-vous sûr de vouloir supprimer ce groupe ? Cette action est irréversible."
+  },
+  "5097d89907": {
+    "translation": "Diagramme non pris en charge, un SVG sera généré à la place."
   },
   "50db1b7e1e": {
     "translation": "Impossible d'annuler la publication du fichier."
@@ -179,6 +188,9 @@
   "5c6fe42bc2": {
     "translation": "Révoquez ce lien et créez-en un nouveau."
   },
+  "5d04a002ea": {
+    "translation": "Impossible de se connecter"
+  },
   "5d26ae7550": {
     "translation": "Nous n'avons pas réussi à importer une partie du contenu que vous avez créé avant de vous connecter."
   },
@@ -199,6 +211,9 @@
   },
   "639bae9ac6": {
     "translation": "toi"
+  },
+  "63a6a88c06": {
+    "translation": "Rafraîchir"
   },
   "6609dd239e": {
     "translation": "Une erreur s'est produite"
@@ -350,6 +365,9 @@
   "9bef626805": {
     "translation": "Supprimer le fichier"
   },
+  "9ccb565b86": {
+    "translation": "Nous rencontrons des difficultés pour nous connecter à notre service d'authentification. Ce problème est généralement temporaire. Veuillez actualiser la page."
+  },
   "9ceb927baa": {
     "translation": "Publier ce fichier"
   },
@@ -458,6 +476,9 @@
   },
   "c87aacf567": {
     "translation": "Se déconnecter"
+  },
+  "c8a59e7135": {
+    "translation": "Fermer"
   },
   "c9cc8cce24": {
     "translation": "Sauvegarder"

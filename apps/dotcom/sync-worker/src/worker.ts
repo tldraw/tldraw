@@ -318,7 +318,8 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				await db
 					.insertInto('asset')
 					.values({ objectName, fileId, userId })
-					.executeTakeFirstOrThrow()
+					.onConflict((oc) => oc.column('objectName').doNothing())
+					.execute()
 				message.ack()
 			} catch (_e) {
 				message.retry({

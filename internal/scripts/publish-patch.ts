@@ -1,5 +1,5 @@
-import { Octokit } from '@octokit/rest'
 import { appendFileSync } from 'node:fs'
+import { Octokit } from '@octokit/rest'
 import { extractChangelog } from './extract-draft-changelog'
 import { getAnyPackageDiff } from './lib/didAnyPackageChange'
 import { exec } from './lib/exec'
@@ -46,6 +46,10 @@ async function main() {
 		await publishProductionDocsAndExamplesAndBemo()
 	}
 
+	// Ensure asset directories exist before comparing package contents.
+	// CI may skip postinstall (and thus refresh-assets) when install-state.gz is cached.
+	await exec('yarn', ['refresh-assets', '--force'])
+
 	// Skip releasing a new version if the package contents are identical.
 	// This may happen when cherry-picking docs-only changes.
 	if (!(await getAnyPackageDiff())) {
@@ -57,15 +61,17 @@ async function main() {
 		appendFileSync(process.env.GITHUB_OUTPUT, `is_latest_version=${isLatestVersion}\n`)
 	}
 
+	// Capture the previous tag BEFORE calling .inc(): semver's SemVer.prototype.inc()
+	// mutates the instance in place, so reading latestVersionInBranch.format() afterwards
+	// would return the new version and leave prevTag === tag, producing an empty changelog.
+	const prevTag = `v${latestVersionInBranch.format()}`
+
 	const nextVersion = latestVersionInBranch.inc('patch').format()
 	nicelog('Releasing version', nextVersion)
 
 	await setAllVersions(nextVersion, { stageChanges: true })
 
 	const tag = `v${nextVersion}`
-
-	// Get the previous tag for changelog generation
-	const prevTag = `v${latestVersionInBranch.format()}`
 
 	// create and push a new tag
 	await exec('git', ['commit', '-m', `${tag} [skip ci]`])

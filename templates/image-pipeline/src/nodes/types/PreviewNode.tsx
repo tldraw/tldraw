@@ -35,7 +35,7 @@ export class PreviewNodeDefinition extends NodeDefinition<PreviewNode> {
 	static validator = PreviewNode
 	title = 'Preview'
 	heading = 'Preview'
-	icon = (<PreviewIcon />)
+	icon = <PreviewIcon />
 	category = 'output'
 	resultKeys = ['lastImageUrl'] as const
 	getDefault(): PreviewNode {

@@ -3,6 +3,7 @@ import { EMPTY_ARRAY } from '@tldraw/state'
 import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
 	RecordProps,
+	TLAsset,
 	TLHandle,
 	TLParentId,
 	TLPropsMigrations,
@@ -11,19 +12,20 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLUnknownShape,
+	VecModel,
 } from '@tldraw/tlschema'
+import { TLFontFace } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { ReactElement } from 'react'
 import { Box, SelectionHandle } from '../../primitives/Box'
-import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
+import { Vec } from '../../primitives/Vec'
 import type { Editor } from '../Editor'
-import { TLFontFace } from '../managers/FontManager/FontManager'
 import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
-import { SvgExportContext } from '../types/SvgExportContext'
 import { TLClickEventInfo } from '../types/event-types'
 import { TLResizeHandle } from '../types/selection-types'
+import { SvgExportContext } from '../types/SvgExportContext'
 
 /** @public */
 export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
@@ -31,6 +33,7 @@ export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T
 	type: T['type']
 	props?: RecordProps<T>
 	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
+	handledAssetTypes?: readonly string[]
 }
 
 /**
@@ -169,11 +172,33 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	static type: string
 
 	/**
+	 * The asset types that this shape can be created from.
+	 * When a file is dropped on the canvas, the editor finds the shape util
+	 * whose `handledAssetTypes` includes the asset's type and calls
+	 * {@link ShapeUtil.createShapeForAsset} to produce the shape.
+	 *
+	 * @public
+	 */
+	static handledAssetTypes?: readonly string[]
+
+	/**
 	 * Get the default props for a shape.
 	 *
 	 * @public
 	 */
 	abstract getDefaultProps(): Shape['props']
+
+	/**
+	 * Create a shape partial for placing an asset on the canvas.
+	 * Only called for shapes whose constructor declares matching
+	 * {@link ShapeUtil.handledAssetTypes | `handledAssetTypes`}.
+	 *
+	 * @param asset - The asset to create a shape for.
+	 * @param position - Where to place the shape.
+	 * @returns A shape partial, or null if this shape can't be created for the asset.
+	 * @public
+	 */
+	createShapeForAsset?(asset: TLAsset, position: VecModel): TLShapePartial | null
 
 	/**
 	 * Get the shape's geometry.
@@ -276,7 +301,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	canBind(_opts: TLShapeUtilCanBindOpts): boolean {
+	canBind(opts: TLShapeUtilCanBindOpts): boolean {
 		return true
 	}
 
@@ -468,6 +493,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	}
 
 	/**
+	 * Whether the shape behaves like a frame — a container that has child shapes,
+	 * requires full-brush selection, blocks erasure from inside, etc.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	isFrameLike(_shape: Shape): boolean {
+		return false
+	}
+
+	/**
 	 * By default, the bounds of an image export are the bounds of all the shapes it contains, plus
 	 * some padding. If an export includes a shape where `isExportBoundsContainer` is true, then the
 	 * padding is skipped _if the bounds of that shape contains all the other shapes_. This is
@@ -526,7 +562,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @param type - The shape type.
 	 * @public
 	 */
-	canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']) {
+	canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']) {
 		return false
 	}
 
@@ -588,6 +624,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 
 	getText(shape: Shape): string | undefined {
 		return undefined
+	}
+
+	/**
+	 * Return user IDs referenced in shape-specific props.
+	 * Used when copying shapes to include referenced users on the clipboard.
+	 * Override this if your shape stores user IDs in custom props.
+	 *
+	 * @public
+	 */
+	getReferencedUserIds(shape: Shape): string[] {
+		return EMPTY_ARRAY
 	}
 
 	getAriaDescriptor(shape: Shape): string | undefined {

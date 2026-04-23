@@ -9,7 +9,6 @@ const components: TLEditorComponents = {
 	// [2]
 	ErrorFallback: ({ error }) => {
 		// [3]
-		// eslint-disable-next-line local/no-at-internal
 		const annotations = error instanceof Error ? getErrorAnnotations(error) : null
 
 		return (

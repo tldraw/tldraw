@@ -19,8 +19,8 @@ import { useScreenBounds } from '../../hooks/useScreenBounds'
 import { ShapeCullingProvider, useShapeCulling } from '../../hooks/useShapeCulling'
 import { Box } from '../../primitives/Box'
 import { Mat } from '../../primitives/Mat'
-import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
+import { Vec } from '../../primitives/Vec'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
@@ -427,7 +427,7 @@ function ReflowIfNeeded() {
 			if (culledShapesRef.current === culledShapes) return
 
 			culledShapesRef.current = culledShapes
-			const canvas = document.getElementsByClassName('tl-canvas')
+			const canvas = editor.getContainerDocument().getElementsByClassName('tl-canvas')
 			if (canvas.length === 0) return
 			// This causes a reflow
 			// https://gist.github.com/paulirish/5d52fb081b3570c81e3a
@@ -465,8 +465,11 @@ function HintedShapeIndicator() {
 	const ids = useValue(
 		'hinting shape ids without canvas indicator',
 		() => {
+			const hintingIds = dedupe(editor.getHintingShapeIds())
+			// When canvas indicators are disabled, render all hints via SVG
+			if (!editor.options.useCanvasIndicators) return hintingIds
 			// Filter to only shapes that use legacy SVG indicators
-			return dedupe(editor.getHintingShapeIds()).filter((id) => {
+			return hintingIds.filter((id) => {
 				const shape = editor.getShape(id)
 				if (!shape) return false
 				const util = editor.getShapeUtil(shape)
@@ -530,7 +533,8 @@ function DebugSvgCopy({ id, mode }: { id: TLShapeId; mode: 'img' | 'iframe' }) {
 			const renderId = Math.random()
 			latest = renderId
 
-			const isSingleFrame = editor.isShapeOfType(id, 'frame')
+			const shape = editor.getShape(id)
+			const isSingleFrame = !!shape && editor.isShapeFrameLike(shape)
 			const padding = isSingleFrame ? 0 : 10
 			let bounds = editor.getShapePageBounds(id)
 			if (!bounds) return

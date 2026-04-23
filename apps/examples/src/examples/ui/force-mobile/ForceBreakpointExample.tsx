@@ -9,7 +9,7 @@ export default function ForceMobileExample() {
 	)
 }
 
-/* 
+/*
 This example shows how you can force the editor to use the mobile breakpoint.
 Simply pass the `forceMobile` prop to the editor component.
 */
