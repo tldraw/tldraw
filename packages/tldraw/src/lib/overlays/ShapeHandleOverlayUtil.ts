@@ -123,17 +123,16 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		const strokeColor = themeColors.selectionStroke
 
 		ctx.save()
-		// Apply shape's page transform
 		ctx.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f)
+
+		ctx.strokeStyle = strokeColor
+		ctx.lineWidth = this.options.lineWidth / zoom
 
 		for (const overlay of overlays) {
 			const { handle } = overlay.props
-			const fr = (handle.type === 'create' && isCoarse ? 3 : 4) / Math.max(zoom, 0.25)
+			const fr = (handle.type === 'create' && isCoarse ? 3 : 4) / zoom
 
-			// Foreground circle
 			ctx.fillStyle = handle.type === 'clone' ? strokeColor : fgColor
-			ctx.strokeStyle = handle.type === 'clone' ? 'none' : strokeColor
-			ctx.lineWidth = this.options.lineWidth / zoom
 			ctx.beginPath()
 			ctx.arc(handle.x, handle.y, fr, 0, Math.PI * 2)
 			ctx.fill()
