@@ -9,6 +9,7 @@ import {
 	defaultAddFontsFromNode,
 	defaultBindingUtils,
 	defaultEditorAssetUrls,
+	defaultOverlayUtils,
 	defaultShapeTools,
 	defaultShapeUtils,
 	defaultTools,
@@ -41,6 +42,7 @@ export default function ExplodedExample() {
 				initialState="select"
 				shapeUtils={defaultShapeUtils}
 				bindingUtils={defaultBindingUtils}
+				overlayUtils={defaultOverlayUtils}
 				tools={allDefaultTools}
 				persistenceKey="exploded-example"
 				options={defaultOptions}
