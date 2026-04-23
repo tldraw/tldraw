@@ -292,11 +292,13 @@ const zeroVmSizes = {
 		rm: { cpus: 1, memory: '2gb', cpuKind: 'shared' },
 		vs: { cpus: 2, memory: '4gb' },
 		volumeSize: '1gb',
+		vsMinMachines: 1,
 	},
 	production: {
-		rm: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
+		rm: { cpus: 2, memory: '4gb', cpuKind: 'performance' },
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
+		vsMinMachines: 3,
 	},
 	preview: { single: { cpus: 2, memory: '2gb' } },
 } as const
@@ -342,6 +344,7 @@ interface MultiNodeVmSizes {
 	rm: VmSize
 	vs: VmSize
 	volumeSize: string
+	vsMinMachines: number
 }
 const zeroVm = zeroVmSizes[env.TLDRAW_ENV as keyof typeof zeroVmSizes] as
 	| SingleNodeVmSizes
@@ -786,6 +789,7 @@ function updateFlyioViewSyncerToml(
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
 		.replaceAll('__CPU_KIND', zeroVm.vs.cpuKind ?? 'shared')
 		.replaceAll('__VOLUME_SIZE', zeroVm.volumeSize)
+		.replaceAll('__VS_MIN_MACHINES', String(zeroVm.vsMinMachines))
 		.replaceAll('__TLDRAW_ENV', env.TLDRAW_ENV)
 		.replaceAll('__ZERO_VERSION', zeroVersion)
 
@@ -869,9 +873,14 @@ async function deployZeroViaFlyIoMultiNode() {
 	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio-view-syncer.toml'], {
 		pwd: zeroCacheFolder,
 	})
-	await exec('flyctl', ['scale', 'count', '2', '-a', flyioAppName, '--yes'], {
-		pwd: zeroCacheFolder,
-	})
+	assert('vsMinMachines' in zeroVm, 'multi-node VM sizes required')
+	await exec(
+		'flyctl',
+		['scale', 'count', String(zeroVm.vsMinMachines), '-a', flyioAppName, '--yes'],
+		{
+			pwd: zeroCacheFolder,
+		}
+	)
 }
 
 async function deployZeroBackend() {
