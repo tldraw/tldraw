@@ -125,6 +125,7 @@ opencode.json
 
 # PR walkthrough intermediate files
 .claude/worktrees
+.claude/settings.local.json
 .claude/skills/pr-walkthrough/tmp
 .claude/skills/pr-walkthrough/out
 .claude/skills/pr-walkthrough/video/node_modules

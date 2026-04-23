@@ -1,4 +1,5 @@
 import * as github from '@actions/github'
+import { DeleteObjectsCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
@@ -11,6 +12,10 @@ const env = makeEnv([
 	'GH_TOKEN',
 	'SUPABASE_ACCESS_TOKEN',
 	'SUPABASE_PREVIEW_PROJECT_ID',
+	'ZERO_R2_ENDPOINT',
+	'ZERO_R2_BUCKET_NAME',
+	'ZERO_R2_ACCESS_KEY_ID',
+	'ZERO_R2_SECRET_ACCESS_KEY',
 ])
 
 interface ListWorkersResult {
@@ -184,6 +189,60 @@ async function listFlyioPreviewApps() {
 	return appNames.filter((name) => ZERO_CACHE_APP_REGEX.test(name))
 }
 
+const R2 = new S3Client({
+	region: 'auto',
+	endpoint: env.ZERO_R2_ENDPOINT,
+	credentials: {
+		accessKeyId: env.ZERO_R2_ACCESS_KEY_ID,
+		secretAccessKey: env.ZERO_R2_SECRET_ACCESS_KEY,
+	},
+})
+
+async function listR2BackupPrefixes(): Promise<string[]> {
+	const prefixes: string[] = []
+	let continuationToken: string | undefined
+	do {
+		const res = await R2.send(
+			new ListObjectsV2Command({
+				Bucket: env.ZERO_R2_BUCKET_NAME,
+				Prefix: 'pr-',
+				Delimiter: '/',
+				ContinuationToken: continuationToken,
+			})
+		)
+		for (const prefix of res.CommonPrefixes ?? []) {
+			if (prefix.Prefix) prefixes.push(prefix.Prefix)
+		}
+		continuationToken = res.IsTruncated ? res.NextContinuationToken : undefined
+	} while (continuationToken)
+	return prefixes
+}
+
+async function deleteR2Backup(prefix: string) {
+	nicelog('Deleting R2 backup data:', prefix)
+	while (true) {
+		const list = await R2.send(
+			new ListObjectsV2Command({
+				Bucket: env.ZERO_R2_BUCKET_NAME,
+				Prefix: prefix,
+			})
+		)
+		const objects = list.Contents
+		if (!objects || objects.length === 0) break
+		const result = await R2.send(
+			new DeleteObjectsCommand({
+				Bucket: env.ZERO_R2_BUCKET_NAME,
+				Delete: { Objects: objects.map((o) => ({ Key: o.Key })) },
+			})
+		)
+		if (result.Errors && result.Errors.length > 0) {
+			throw new Error(
+				`Failed to delete ${result.Errors.length} objects: ${JSON.stringify(result.Errors)}`
+			)
+		}
+	}
+}
+
 const deletionErrors: string[] = []
 
 async function main() {
@@ -193,6 +252,8 @@ async function main() {
 	await processItems(listPreviewDatabases, deletePreviewDatabase)
 	nicelog('\nPruning fly.io preview apps')
 	await processItems(listFlyioPreviewApps, deleteFlyioPreviewApp)
+	nicelog('\nPruning R2 litestream backups')
+	await processItems(listR2BackupPrefixes, deleteR2Backup)
 	nicelog('\nDone')
 	if (deletionErrors.length > 0) {
 		nicelog('\nDeletion errors:')

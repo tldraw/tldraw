@@ -193,6 +193,22 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     onResize(shape: any, info: TLResizeInfo<any>): any;
 }
 
+// @public
+export abstract class BaseFrameLikeShapeUtil<Shape extends TLBaseBoxShape> extends BaseBoxShapeUtil<Shape> {
+    // (undocumented)
+    canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']): boolean;
+    // (undocumented)
+    getClipPath(shape: Shape): undefined | Vec[];
+    // (undocumented)
+    isFrameLike(_shape: Shape): boolean;
+    // (undocumented)
+    onDragShapesIn(shape: Shape, draggingShapes: TLShape[], { initialParentIds, initialIndices }: TLDragShapesInInfo): void;
+    // (undocumented)
+    onDragShapesOut(shape: Shape, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void;
+    // (undocumented)
+    providesBackgroundForChildren(): boolean;
+}
+
 // @public (undocumented)
 export interface BatchMeasurementRequest {
     // (undocumented)
@@ -1430,6 +1446,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
     }): boolean;
+    isShapeFrameLike(shape: TLShape | TLShapeId): boolean;
     // (undocumented)
     isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
     isShapeInPage(shape: TLShape | TLShapeId, pageId?: TLPageId): boolean;
@@ -2977,6 +2994,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked(shape: Shape): boolean;
     isExportBoundsContainer(shape: Shape): boolean;
+    isFrameLike(_shape: Shape): boolean;
     static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     onBeforeCreate?(next: Shape): Shape | void;
     onBeforeUpdate?(prev: Shape, next: Shape): Shape | void;
