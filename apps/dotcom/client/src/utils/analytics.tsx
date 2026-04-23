@@ -1,3 +1,4 @@
+import { FEATURE_FLAG_KEYS } from '@tldraw/dotcom-shared'
 import posthog, { PostHogConfig, Properties } from 'posthog-js'
 import 'posthog-js/dist/web-vitals'
 import { useEffect } from 'react'
@@ -5,6 +6,7 @@ import ReactGA from 'react-ga4'
 import { useLocation } from 'react-router-dom'
 import { atom, getFromLocalStorage, react, setInLocalStorage, useValue, warnOnce } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
+import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/FeatureFlagPoller'
 
 // Local storage key for cookie consent
 export const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
@@ -84,6 +86,21 @@ function filterProperties(value: { [key: string]: any }) {
 	}, {})
 }
 
+/**
+ * App feature flags for PostHog event properties; null until `/api/app/feature-flags` has settled once.
+ * Only used for signed-in users — percentage flags are not evaluated for anonymous requests on the server.
+ * We attach here (not via setPersonProperties) so each event reflects the latest values when flags
+ * change mid-session from polling. Person-level cohorts from flags alone would need extra sync.
+ */
+function getAppFeatureFlagEventProperties(): Record<string, boolean> | null {
+	if (!hasResolvedFlagsOnce()) return null
+	const flags = getCurrentFlags()
+	return FEATURE_FLAG_KEYS.reduce<Record<string, boolean>>((acc, key) => {
+		acc[`ff_${key}`] = !!flags[key]?.enabled
+		return acc
+	}, {})
+}
+
 // Helper functions for localStorage consent management
 export function getStoredCookieConsent(): CookieConsent | null {
 	try {
@@ -147,9 +164,16 @@ function configurePosthog(options: AnalyticsOptions) {
 		disable_surveys: true,
 		before_send: (payload) => {
 			if (!payload) return null
-			payload.properties.is_signed_in = !!options.user
+			const props = payload.properties || {}
+			payload.properties = props
+			props.is_signed_in = !!options.user
 
-			const redactedProperties = filterProperties(payload.properties || {})
+			const flagProps = options.user ? getAppFeatureFlagEventProperties() : null
+			if (flagProps) {
+				Object.assign(props, flagProps)
+			}
+
+			const redactedProperties = filterProperties(props)
 			payload.properties = redactedProperties
 
 			// $set
