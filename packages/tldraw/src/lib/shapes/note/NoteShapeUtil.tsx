@@ -432,10 +432,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLNoteShape): Path2D {
 		const { scale } = shape.props
 		const dv = getDisplayValues(this, shape)

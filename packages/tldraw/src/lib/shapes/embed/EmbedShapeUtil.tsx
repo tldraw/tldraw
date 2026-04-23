@@ -295,10 +295,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		)
 	}
 
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLEmbedShape): Path2D {
 		const path = new Path2D()
 		const embedInfo = this.getEmbedDefinition(shape.props.url)

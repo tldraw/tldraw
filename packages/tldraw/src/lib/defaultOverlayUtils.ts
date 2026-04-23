@@ -1,3 +1,4 @@
+import { ArrowHintOverlayUtil } from './overlays/ArrowHintOverlayUtil'
 import { BrushOverlayUtil } from './overlays/BrushOverlayUtil'
 import { ScribbleOverlayUtil } from './overlays/ScribbleOverlayUtil'
 import { SelectionForegroundOverlayUtil } from './overlays/SelectionForegroundOverlayUtil'
@@ -13,4 +14,5 @@ export const defaultOverlayUtils = [
 	ZoomBrushOverlayUtil,
 	SnapIndicatorOverlayUtil,
 	ScribbleOverlayUtil,
+	ArrowHintOverlayUtil,
 ] as const

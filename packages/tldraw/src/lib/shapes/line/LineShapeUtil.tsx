@@ -235,10 +235,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		})
 	}
 
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLLineShape): Path2D {
 		const strokeWidth = getDisplayValues(this, shape).strokeWidth * shape.props.scale
 		const path = getPathForLineShape(shape)

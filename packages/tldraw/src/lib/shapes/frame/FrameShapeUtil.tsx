@@ -347,10 +347,6 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLFrameShape): Path2D {
 		const path = new Path2D()
 		path.rect(0, 0, shape.props.w, shape.props.h)
