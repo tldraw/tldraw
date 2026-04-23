@@ -35,9 +35,6 @@ function getCursorPaths() {
 	return { shadow: _shadowPath, white: _whitePath!, fill: _fillPath! }
 }
 
-// Cache truncated text results to avoid repeated measureText loops.
-// Key format: `${maxWidth}|${text}` with an upper bound on cache size.
-const _truncateCache = new Map<string, string>()
 const TRUNCATE_CACHE_MAX = 200
 
 /**
@@ -48,6 +45,12 @@ const TRUNCATE_CACHE_MAX = 200
 export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCursorOverlay> {
 	static override type = 'collaborator_cursor'
 	override options = { zIndex: 1100, fontSize: 12, nameMaxWidth: 120, chatMaxWidth: 200 }
+
+	// Cache truncated text results to avoid repeated measureText loops.
+	// Key format: `${maxWidth}|${text}` with an upper bound on cache size.
+	// Per-editor so multiple <Tldraw /> instances on one page don't trample
+	// each other's entries.
+	private _truncateCache = new Map<string, string>()
 
 	override isActive(): boolean {
 		return this.getOverlays().length > 0
@@ -235,11 +238,11 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 
 	private _truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
 		const key = `${maxWidth}|${text}`
-		const cached = _truncateCache.get(key)
+		const cached = this._truncateCache.get(key)
 		if (cached) return cached
 		if (ctx.measureText(text).width <= maxWidth) {
-			if (_truncateCache.size > TRUNCATE_CACHE_MAX) _truncateCache.clear()
-			_truncateCache.set(key, text)
+			if (this._truncateCache.size > TRUNCATE_CACHE_MAX) this._truncateCache.clear()
+			this._truncateCache.set(key, text)
 			return text
 		}
 		let truncated = text
@@ -247,8 +250,8 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 			truncated = truncated.slice(0, -1)
 		}
 		const result = truncated + '…'
-		if (_truncateCache.size > TRUNCATE_CACHE_MAX) _truncateCache.clear()
-		_truncateCache.set(key, result)
+		if (this._truncateCache.size > TRUNCATE_CACHE_MAX) this._truncateCache.clear()
+		this._truncateCache.set(key, result)
 		return result
 	}
 }

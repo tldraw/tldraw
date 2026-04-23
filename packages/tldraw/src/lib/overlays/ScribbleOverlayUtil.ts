@@ -28,7 +28,6 @@ interface ScribbleCacheEntry {
 	state: TLScribble['state']
 	path: Path2D
 }
-const _scribblePathCache = new Map<string, ScribbleCacheEntry>()
 
 /**
  * Overlay util for scribble strokes (eraser, lasso selection, etc.).
@@ -38,6 +37,10 @@ const _scribblePathCache = new Map<string, ScribbleCacheEntry>()
 export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 	static override type = 'scribble'
 	override options = { zIndex: 600, streamline: 0.32, cacheSize: 500 }
+
+	// Per-editor cache so multiple <Tldraw /> instances on one page don't
+	// trample each other's entries.
+	private _scribblePathCache = new Map<string, ScribbleCacheEntry>()
 
 	override isActive(): boolean {
 		return this.editor.getInstanceState().scribbles.length > 0
@@ -61,7 +64,7 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 			if (!ptsLen) continue
 
 			const last = scribble.points[ptsLen - 1]
-			const cached = _scribblePathCache.get(scribble.id)
+			const cached = this._scribblePathCache.get(scribble.id)
 			let path: Path2D
 			if (
 				cached &&
@@ -93,7 +96,7 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 				}
 
 				path = new Path2D(d)
-				_scribblePathCache.set(scribble.id, {
+				this._scribblePathCache.set(scribble.id, {
 					len: ptsLen,
 					lastX: last.x,
 					lastY: last.y,
@@ -103,7 +106,7 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 					state: scribble.state,
 					path,
 				})
-				if (_scribblePathCache.size > this.options.cacheSize) _scribblePathCache.clear()
+				if (this._scribblePathCache.size > this.options.cacheSize) this._scribblePathCache.clear()
 			}
 
 			ctx.fillStyle = resolveCanvasUiColor(colors, scribble.color)

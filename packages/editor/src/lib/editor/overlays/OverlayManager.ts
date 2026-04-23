@@ -81,7 +81,10 @@ export class OverlayManager {
 	 * Reactive list of active overlay utils paired with the overlays they
 	 * produced for the current editor state, in paint order (ascending
 	 * zIndex). Both the hit-test and render paths read from this single
-	 * cached scan instead of each re-deriving the active set.
+	 * cached scan instead of each re-deriving the active set. Active utils
+	 * are included even when their `getOverlays()` returns an empty array,
+	 * since `render()` may still draw non-interactive UI (e.g. the selection
+	 * bounding box during brushing).
 	 *
 	 * @public
 	 */
@@ -89,9 +92,7 @@ export class OverlayManager {
 		const entries: TLOverlayEntry[] = []
 		for (const util of this.getOverlayUtilsInZOrder()) {
 			if (!util.isActive()) continue
-			const overlays = util.getOverlays()
-			if (overlays.length === 0) continue
-			entries.push({ util, overlays })
+			entries.push({ util, overlays: util.getOverlays() })
 		}
 		return entries
 	}

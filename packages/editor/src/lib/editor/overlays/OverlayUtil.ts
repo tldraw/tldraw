@@ -5,7 +5,12 @@ import { TLPointerEventInfo } from '../types/event-types'
 
 /** @public */
 export interface TLOverlay<Props = Record<string, unknown>> {
-	/** Unique id for this overlay instance, e.g. 'selection_fg:top_left_resize' */
+	/**
+	 * Globally unique id for this overlay instance across all overlay utils.
+	 * Hit-test and hover lookup key on `id` alone, so utils must namespace their
+	 * ids (e.g. `'selection_fg:top_left'`, `'handle:<shapeId>:<handleId>'`) to
+	 * avoid colliding with overlays from other utils.
+	 */
 	id: string
 	/** The overlay util type that owns this instance */
 	type: string
@@ -54,7 +59,7 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
 	 *
 	 * @public
 	 */
-	options: { zIndex?: number } & Record<string, unknown> = {}
+	options: { zIndex?: number } = {}
 
 	/**
 	 * Create a new overlay util class with the given options merged in.

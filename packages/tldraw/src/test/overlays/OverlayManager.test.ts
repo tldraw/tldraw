@@ -250,7 +250,7 @@ describe('OverlayManager', () => {
 			return TestOverlay
 		}
 
-		it('returns entries in paint order and skips inactive and empty utils', () => {
+		it('returns entries in paint order, skipping inactive utils but keeping active empty utils so they can render non-interactive UI', () => {
 			const High = makeUtil('high', 100)
 			const Mid = makeUtil('mid', 50)
 			const Low = makeUtil('low', 10)
@@ -260,10 +260,14 @@ describe('OverlayManager', () => {
 			const entries = editor.overlays.getActiveOverlayEntries()
 			expect(entries.map((e) => (e.util.constructor as typeof OverlayUtil).type)).toEqual([
 				'low',
+				'empty',
 				'mid',
 				'high',
 			])
-			expect(entries.every((e) => e.overlays.length > 0)).toBe(true)
+			const emptyEntry = entries.find(
+				(e) => (e.util.constructor as typeof OverlayUtil).type === 'empty'
+			)
+			expect(emptyEntry?.overlays).toEqual([])
 		})
 	})
 })

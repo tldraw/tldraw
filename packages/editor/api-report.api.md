@@ -2614,7 +2614,7 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
     onPointerDown?(overlay: T, info: TLPointerEventInfo): boolean | void;
     options: {
         zIndex?: number;
-    } & Record<string, unknown>;
+    };
     render(_ctx: CanvasRenderingContext2D, _overlays: T[]): void;
     renderMinimap(_ctx: CanvasRenderingContext2D, _overlays: T[], _zoom: number): void;
     // (undocumented)
