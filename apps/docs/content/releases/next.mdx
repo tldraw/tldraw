@@ -8,7 +8,7 @@ status: published
 last_version: v4.5.10
 ---
 
-This release adds a first-class theme system with display values for customizing default shapes, extensible asset types via a new `AssetUtil` system, shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, arbitrary iframe embed pasting, a paste-as-plain-text keyboard shortcut, and smarter export trimming. It also includes various other improvements and bug fixes.
+This release adds a first-class theme system with display values for customizing default shapes, extensible asset types via a new `AssetUtil` system, shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, arbitrary iframe embed pasting, a paste-as-plain-text keyboard shortcut, smarter export trimming, extensibility APIs for custom frame-like shapes and custom geo types. It also includes various other improvements and bug fixes.
 
 ## What's new
 
@@ -243,6 +243,8 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - 💥 Rename `SvgExportContext.themeId` to `SvgExportContext.colorMode` (`string` → `'light' | 'dark'`). ([#8410](https://github.com/tldraw/tldraw/pull/8410))
 - 💥 Change `getColorValue()` first argument from `TLDefaultColorTheme` to `TLThemeColors`. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
 - 💥 Change `PlainTextLabelProps` and `RichTextLabelProps`: `font` → `fontFamily`, `align` → `textAlign`, `fill` removed. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
+- Add `BaseFrameLikeShapeUtil` abstract class and `ShapeUtil.isFrameLike()` so custom shapes can opt into frame-like behaviors (paste parenting, full-brush selection, blocking erasure from inside, clipping children). `FrameShapeUtil` now extends `BaseFrameLikeShapeUtil`. ([#8331](https://github.com/tldraw/tldraw/pull/8331))
+- Add extensibility API for custom geo shape types via `GeoShapeUtil.configure({ customGeoTypes })`. Add `GeoTypeDefinition` interface for defining path geometry, snap behavior, creation size, style panel icon, and double-click handler while inheriting standard geo shape behavior. ([#8543](https://github.com/tldraw/tldraw/pull/8543))
 - 💥 Remove `assetValidator`. Use `imageAssetValidator`, `videoAssetValidator`, or `bookmarkAssetValidator` instead. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
 - 💥 Remove `getMediaAssetInfoPartial`. Use `AssetUtil.getAssetFromFile` instead. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
 - 💥 Change `notifyIfFileNotAllowed` signature from `(file, options)` to `(editor, file, options)`. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
@@ -300,3 +302,4 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix crash from duplicate fractional index keys in `kickoutOccludedShapes` during multiplayer sync. ([#8448](https://github.com/tldraw/tldraw/pull/8448))
 - Fix spiky artifacts on draw-style geometric shapes by using a circular random offset distribution instead of a square one. ([#8466](https://github.com/tldraw/tldraw/pull/8466))
 - Fix opacity slider drag not working on Safari due to `stopPropagation` blocking pointer events. ([#8519](https://github.com/tldraw/tldraw/pull/8519))
+- Fix sticky notes preserving stale attribution when cloned via a nib. ([#8614](https://github.com/tldraw/tldraw/pull/8614))
