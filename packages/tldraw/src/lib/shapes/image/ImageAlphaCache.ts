@@ -65,7 +65,7 @@ export function isImagePointTransparent(
 
 const MAX_SIZE = 256
 
-const alphaCache = new LruCache<string, AlphaData>(500)
+const alphaCache = new LruCache<string, AlphaData>(100)
 const pending = new Set<string>()
 let offscreenCanvas: OffscreenCanvas | null = null
 

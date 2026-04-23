@@ -1,7 +1,7 @@
 import { FileHelpers, LruCache, assert, fetch } from '@tldraw/utils'
 
 export function fetchCache<T>(cb: (response: Response) => Promise<T>, init?: RequestInit) {
-	const cache = new LruCache<string, Promise<T | null>>(200)
+	const cache = new LruCache<string, Promise<T | null>>(100)
 
 	return async function fetchCached(url: string): Promise<T | null> {
 		const existing = cache.get(url)
