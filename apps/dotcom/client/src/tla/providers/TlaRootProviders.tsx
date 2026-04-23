@@ -33,6 +33,7 @@ import { GroupInviteHandler } from '../components/GroupInviteHandler'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
+import { useUITheme } from '../hooks/useUITheme'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { hasNotAcceptedLegal } from '../utils/auth'
@@ -367,6 +368,7 @@ function ThemeContainer({
 	onThemeChange(theme: 'light' | 'dark' | 'system'): void
 }) {
 	const theme = useValue('theme', () => getLocalSessionState().theme, [])
+	useUITheme()
 
 	useEffect(() => {
 		onThemeChange(theme)

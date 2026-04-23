@@ -9,12 +9,8 @@ import {
 	clamp,
 	computed,
 	react,
-	tlenv,
 	uniqueId,
 } from '@tldraw/editor'
-import { getRgba } from './getRgba'
-import { BufferStuff, appendVertices, setupWebGl } from './minimap-webgl-setup'
-import { pie, rectangle, roundedRectangle } from './minimap-webgl-shapes'
 
 export class MinimapManager {
 	disposables = [] as (() => void)[]
@@ -23,33 +19,41 @@ export class MinimapManager {
 	close() {
 		return this.disposables.forEach((d) => d())
 	}
-	gl: ReturnType<typeof setupWebGl>
-	shapeGeometryCache: ComputedCache<Float32Array | null, TLShape>
+
+	private readonly ctx: CanvasRenderingContext2D
+	private readonly shapeRectCache: ComputedCache<Box | null, TLShape>
+
 	constructor(
 		public editor: Editor,
 		public readonly elem: HTMLCanvasElement,
 		public readonly container: HTMLElement
 	) {
-		this.gl = setupWebGl(elem)
-		this.shapeGeometryCache = editor.store.createComputedCache('webgl-geometry', (r: TLShape) => {
-			const bounds = editor.getShapeMaskedPageBounds(r.id)
-			if (!bounds) return null
-			const arr = new Float32Array(12)
-			rectangle(arr, 0, bounds.x, bounds.y, bounds.w, bounds.h)
-			return arr
-		})
+		const ctx = elem.getContext('2d')
+		if (!ctx) throw new Error('Minimap: could not get 2D canvas context')
+		this.ctx = ctx
+		// Per-shape minimap rect cache. Each entry re-derives only when the
+		// underlying shape record (or its masked page bounds) changes, so a
+		// single shape edit invalidates one entry instead of the whole render.
+		// `null` means "do not draw this shape" (hideInMinimap or no bounds).
+		this.shapeRectCache = editor.store.createComputedCache<Box | null, TLShape>(
+			'minimap-shape-rect',
+			(shape) => {
+				const util = editor.getShapeUtil(shape.type)
+				if (util.hideInMinimap?.(shape)) return null
+				return editor.getShapeMaskedPageBounds(shape.id) ?? null
+			}
+		)
 		this.colors = this._getColors()
 		this.disposables.push(this._listenForCanvasResize(), react('minimap render', this.render))
 	}
 
 	private _getColors() {
 		const style = this.editor.getContainerWindow().getComputedStyle(this.editor.getContainer())
-
 		return {
-			shapeFill: getRgba(style.getPropertyValue('--tl-color-text-3').trim()),
-			selectFill: getRgba(style.getPropertyValue('--tl-color-selected').trim()),
-			viewportFill: getRgba(style.getPropertyValue('--tl-color-muted-1').trim()),
-			background: getRgba(style.getPropertyValue('--tl-color-low').trim()),
+			shapeFill: style.getPropertyValue('--tl-color-text-3').trim(),
+			selectFill: style.getPropertyValue('--tl-color-selected').trim(),
+			viewportFill: style.getPropertyValue('--tl-color-muted-1').trim(),
+			background: style.getPropertyValue('--tl-color-low').trim(),
 		}
 	}
 
@@ -141,13 +145,9 @@ export class MinimapManager {
 		return box
 	}
 
+	/** Minimap screen-pixels per page-unit — same convention as `editor.getCamera().z`. */
 	@computed getZoom() {
-		return this.getCanvasPageBounds().width / this.getCanvasScreenBounds().width
-	}
-
-	@computed getCanvasPageBoundsArray() {
-		const { x, y, w, h } = this.getCanvasPageBounds()
-		return new Float32Array([x, y, w, h])
+		return this.getCanvasScreenBounds().width / this.getCanvasPageBounds().width
 	}
 
 	getMinimapPagePoint(clientX: number, clientY: number) {
@@ -211,121 +211,91 @@ export class MinimapManager {
 
 	@bind
 	render() {
-		// make sure we update when dark mode switches
-		const context = this.gl.context
+		const { ctx, editor, elem } = this
 		const canvasSize = this.getCanvasSize()
+		const canvasPageBounds = this.getCanvasPageBounds()
+		const dpr = this.getDpr()
+		const zoom = this.getZoom()
 
-		this.gl.setCanvasPageBounds(this.getCanvasPageBoundsArray())
+		// Size the backing canvas to device pixels. Assigning width/height
+		// also resets the context transform and clears the canvas.
+		if (elem.width !== canvasSize.x || elem.height !== canvasSize.y) {
+			elem.width = canvasSize.x
+			elem.height = canvasSize.y
+		}
 
-		this.elem.width = canvasSize.x
-		this.elem.height = canvasSize.y
-		context.viewport(0, 0, canvasSize.x, canvasSize.y)
+		ctx.resetTransform()
+		// Background fill (opaque — matches the WebGL clear color).
+		ctx.fillStyle = this.colors.background
+		ctx.fillRect(0, 0, canvasSize.x, canvasSize.y)
 
-		// this affects which color transparent shapes are blended with
-		// during rendering. If we were to invert this any shapes narrower
-		// than 1 px in screen space would have much lower contrast. e.g.
-		// draw shapes on a large canvas.
-		context.clearColor(
-			this.colors.background[0],
-			this.colors.background[1],
-			this.colors.background[2],
-			1
-		)
+		// Transform: 1 page unit = `zoom * dpr` device pixels, with the minimap's
+		// page bounds pinned to the top-left of the canvas.
+		ctx.scale(dpr * zoom, dpr * zoom)
+		ctx.translate(-canvasPageBounds.minX, -canvasPageBounds.minY)
 
-		context.clear(context.COLOR_BUFFER_BIT)
+		// Shapes — iterate sorted IDs and pull per-shape rects from the
+		// computed cache so only *changed* shapes re-derive between renders.
+		const selectedIds = new Set<string>(editor.getSelectedShapeIds())
+		const ids = editor.getCurrentPageShapeIdsSorted()
 
-		const selectedShapes = new Set(this.editor.getSelectedShapeIds())
-
-		const colors = this.colors
-		let selectedShapeOffset = 0
-		let unselectedShapeOffset = 0
-
-		const ids = this.editor.getCurrentPageShapeIdsSorted()
+		const shapesPath = new Path2D()
+		const selectedPath = new Path2D()
 
 		for (let i = 0, len = ids.length; i < len; i++) {
 			const shapeId = ids[i]
-			const geometry = this.shapeGeometryCache.get(shapeId)
-			if (!geometry) continue
-
-			const len = geometry.length
-
-			const shape = this.editor.getShape(shapeId)
-			if (shape) {
-				const shapeUtil = this.editor.getShapeUtil(shape.type)
-				if (shapeUtil.hideInMinimap?.(shape)) continue
-			}
-
-			if (selectedShapes.has(shapeId)) {
-				appendVertices(this.gl.selectedShapes, selectedShapeOffset, geometry)
-				selectedShapeOffset += len
-			} else {
-				appendVertices(this.gl.unselectedShapes, unselectedShapeOffset, geometry)
-				unselectedShapeOffset += len
-			}
+			const bounds = this.shapeRectCache.get(shapeId)
+			if (!bounds) continue
+			const target = selectedIds.has(shapeId) ? selectedPath : shapesPath
+			target.rect(bounds.x, bounds.y, bounds.w, bounds.h)
 		}
 
-		this.drawShapes(this.gl.unselectedShapes, unselectedShapeOffset, colors.shapeFill)
-		this.drawShapes(this.gl.selectedShapes, selectedShapeOffset, colors.selectFill)
+		ctx.fillStyle = this.colors.shapeFill
+		ctx.fill(shapesPath)
 
-		this.drawViewport()
-		this.drawCollaborators()
-	}
+		ctx.fillStyle = this.colors.selectFill
+		ctx.fill(selectedPath)
 
-	private drawShapes(stuff: BufferStuff, len: number, color: Float32Array) {
-		this.gl.prepareTriangles(stuff, len)
-		this.gl.setFillColor(color)
-		this.gl.drawTriangles(len)
-	}
+		// Viewport rounded rect
+		const viewport = editor.getViewportPageBounds()
+		const { minX: vx, minY: vy, width: vw, height: vh } = viewport
+		const r = Math.min(vw / 4, vh / 4, 4 / zoom)
+		ctx.beginPath()
+		roundedRect(ctx, vx, vy, vw, vh, r)
+		ctx.closePath()
+		ctx.fillStyle = this.colors.viewportFill
+		ctx.fill()
 
-	private drawViewport() {
-		const viewport = this.editor.getViewportPageBounds()
-		const len = roundedRectangle(this.gl.viewport.vertices, viewport, 4 * this.getZoom())
-
-		this.gl.prepareTriangles(this.gl.viewport, len)
-		this.gl.setFillColor(this.colors.viewportFill)
-		this.gl.drawTrianglesTransparently(len)
-		if (tlenv.isSafari) {
-			this.gl.drawTrianglesTransparently(len)
-			this.gl.drawTrianglesTransparently(len)
-			this.gl.drawTrianglesTransparently(len)
+		// Let active overlay utils contribute to the minimap. The ctx is already
+		// in page space, matching the main-canvas overlay render contract.
+		const entries = editor.overlays.getActiveOverlayEntries()
+		for (const { util, overlays } of entries) {
+			ctx.save()
+			util.renderMinimap(ctx, overlays, zoom)
+			ctx.restore()
 		}
 	}
+}
 
-	drawCollaborators() {
-		const collaborators = this.editor.getCollaboratorsOnCurrentPage()
-		if (!collaborators.length) return
-
-		// just draw a little circle for each collaborator
-		const numSegmentsPerCircle = 20
-		const dataSizePerCircle = numSegmentsPerCircle * 6
-		const totalSize = dataSizePerCircle * collaborators.length
-
-		// expand vertex array if needed
-		if (this.gl.collaborators.vertices.length < totalSize) {
-			this.gl.collaborators.vertices = new Float32Array(totalSize)
-		}
-
-		const vertices = this.gl.collaborators.vertices
-		let offset = 0
-		const zoom = this.getZoom()
-		for (const { cursor } of collaborators) {
-			if (!cursor) continue
-			pie(vertices, {
-				center: Vec.From(cursor),
-				radius: 3 * zoom,
-				offset,
-				numArcSegments: numSegmentsPerCircle,
-			})
-			offset += dataSizePerCircle
-		}
-
-		this.gl.prepareTriangles(this.gl.collaborators, totalSize)
-
-		offset = 0
-		for (const { color } of collaborators) {
-			this.gl.setFillColor(getRgba(color))
-			this.gl.context.drawArrays(this.gl.context.TRIANGLES, offset / 2, dataSizePerCircle / 2)
-			offset += dataSizePerCircle
-		}
+function roundedRect(
+	ctx: CanvasRenderingContext2D | Path2D,
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	r: number
+) {
+	if (r < 1) {
+		ctx.rect(x, y, w, h)
+		return
 	}
+	ctx.moveTo(x + r, y)
+	ctx.lineTo(x + w - r, y)
+	ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+	ctx.lineTo(x + w, y + h - r)
+	ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+	ctx.lineTo(x + r, y + h)
+	ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+	ctx.lineTo(x, y + r)
+	ctx.quadraticCurveTo(x, y, x + r, y)
 }

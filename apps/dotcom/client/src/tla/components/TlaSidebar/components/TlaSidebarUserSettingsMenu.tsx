@@ -16,6 +16,7 @@ import {
 	DebugMenuGroup,
 	ImportFileActionItem,
 	SignOutMenuItem,
+	UIThemeSubmenu,
 } from '../../menu-items/menu-items'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
@@ -62,6 +63,7 @@ export function TlaUserSettingsMenu() {
 					</TldrawUiMenuGroup>
 					<TldrawUiMenuGroup id="preferences">
 						<ColorThemeSubmenu />
+						<UIThemeSubmenu />
 						<LanguageMenu />
 					</TldrawUiMenuGroup>
 					<DebugMenuGroup />
