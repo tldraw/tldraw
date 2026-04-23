@@ -65,9 +65,9 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 		const minY = points.reduce((acc, p) => Math.min(acc, p.y), Infinity)
 		const maxY = points.reduce((acc, p) => Math.max(acc, p.y), -Infinity)
 
-		const useNWtoSEdireciton = points.some((p) => p.x === minX && p.y === minY)
+		const useNWtoSEdirection = points.some((p) => p.x === minX && p.y === minY)
 		let firstX: number, firstY: number, secondX: number, secondY: number
-		if (useNWtoSEdireciton) {
+		if (useNWtoSEdirection) {
 			firstX = minX
 			firstY = minY
 			secondX = maxX

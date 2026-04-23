@@ -24,10 +24,10 @@ body {
 }
 
 .tl-container .tl-theme__light {
-	--tl-color-handle-fill: hsl(210, 100%, 56%, 24%);
+	--tl-color-handle-fill: hsla(210, 100%, 56%, 0.24);
 }
 .tl-container .tl-theme__dark {
-	--tl-color-handle-fill: hsl(209, 100%, 57%, 20%);
+	--tl-color-handle-fill: hsla(209, 100%, 57%, 0.2);
 }
 
 /* ---- Node shape ---- */

@@ -1,5 +1,5 @@
 const SPACING = 20
-const MIN_COUNT = 16
+const MIN_COUNT = 8
 
 /** @internal */
 export function getVerticesCountForArcLength(length: number, spacing = SPACING) {

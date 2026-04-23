@@ -33,7 +33,16 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 	override options = { zIndex: 900, lineWidth: 3, viewportPadding: 5 }
 
 	override isActive(): boolean {
-		return this.getOverlays().length > 0
+		const viewport = this.editor.getViewportPageBounds()
+		const zoom = this.editor.getZoomLevel()
+		const now = this._getNow()
+		return this.editor.getCollaboratorsOnCurrentPage().some((presence) => {
+			const { cursor } = presence
+			if (!cursor) return false
+			if (!this._shouldShow(presence, now)) return false
+			if (this._isCursorInViewport(cursor, viewport, zoom)) return false
+			return true
+		})
 	}
 
 	override getOverlays(): TLCollaboratorHintOverlay[] {

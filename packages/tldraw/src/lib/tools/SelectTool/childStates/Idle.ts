@@ -48,6 +48,7 @@ export class Idle extends StateNode {
 			updateHoveredShapeId(this.editor)
 		}
 		this.selectedShapesOnKeyDown = []
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onExit() {

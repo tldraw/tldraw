@@ -20,7 +20,6 @@ interface CollaboratorScribbleCacheEntry {
 	state: TLCollaboratorScribbleOverlay['props']['scribble']['state']
 	path: Path2D
 }
-const _collabScribblePathCache = new Map<string, CollaboratorScribbleCacheEntry>()
 
 /**
  * Overlay util for collaborator scribble strokes (eraser, lasso, etc.).
@@ -30,6 +29,8 @@ const _collabScribblePathCache = new Map<string, CollaboratorScribbleCacheEntry>
 export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorScribbleOverlay> {
 	static override type = 'collaborator_scribble'
 	override options = { zIndex: 800, streamline: 0.32, cacheSize: 500 }
+
+	private _collabScribblePathCache = new Map<string, CollaboratorScribbleCacheEntry>()
 
 	override isActive(): boolean {
 		return this.editor.getCollaboratorsOnCurrentPage().some((c) => c.scribbles.length > 0)
@@ -59,8 +60,8 @@ export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorS
 			if (!ptsLen) continue
 
 			const last = scribble.points[ptsLen - 1]
-			const cacheKey = `${scribble.id}`
-			const cached = _collabScribblePathCache.get(cacheKey)
+			const cacheKey = overlay.id
+			const cached = this._collabScribblePathCache.get(cacheKey)
 			let path: Path2D
 			if (
 				cached &&
@@ -92,7 +93,7 @@ export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorS
 				}
 
 				path = new Path2D(d)
-				_collabScribblePathCache.set(cacheKey, {
+				this._collabScribblePathCache.set(cacheKey, {
 					len: ptsLen,
 					lastX: last.x,
 					lastY: last.y,
@@ -102,7 +103,8 @@ export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorS
 					state: scribble.state,
 					path,
 				})
-				if (_collabScribblePathCache.size > this.options.cacheSize) _collabScribblePathCache.clear()
+				if (this._collabScribblePathCache.size > this.options.cacheSize)
+					this._collabScribblePathCache.clear()
 			}
 
 			ctx.fillStyle = color
