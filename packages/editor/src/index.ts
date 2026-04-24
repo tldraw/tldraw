@@ -211,6 +211,13 @@ export {
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
 } from './lib/editor/shapes/ShapeUtil'
+export { OverlayManager, type TLOverlayEntry } from './lib/editor/overlays/OverlayManager'
+export {
+	OverlayUtil,
+	type TLAnyOverlayUtilConstructor,
+	type TLOverlay,
+	type TLOverlayUtilConstructor,
+} from './lib/editor/overlays/OverlayUtil'
 export {
 	getPerfectDashProps,
 	type PerfectDashTerminal,
