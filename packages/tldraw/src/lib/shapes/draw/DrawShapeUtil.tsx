@@ -213,10 +213,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return <path d={solidStrokePath} />
 	}
 
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLDrawShape): Path2D {
 		const allPointsFromSegments = getPointsFromDrawSegments(
 			shape.props.segments,

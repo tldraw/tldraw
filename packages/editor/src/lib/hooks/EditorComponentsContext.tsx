@@ -11,8 +11,6 @@ import type { TLScribbleProps } from '../components/default-components/DefaultSc
 import type { TLSelectionBackgroundProps } from '../components/default-components/DefaultSelectionBackground'
 import type { TLSelectionForegroundProps } from '../components/default-components/DefaultSelectionForeground'
 import type { TLShapeErrorFallbackComponent } from '../components/default-components/DefaultShapeErrorFallback'
-import type { TLShapeIndicatorProps } from '../components/default-components/DefaultShapeIndicator'
-import type { TLShapeIndicatorErrorFallbackComponent } from '../components/default-components/DefaultShapeIndicatorErrorFallback'
 import type { TLShapeWrapperProps } from '../components/default-components/DefaultShapeWrapper'
 import type { TLSnapIndicatorProps } from '../components/default-components/DefaultSnapIndictor'
 
@@ -25,7 +23,6 @@ export interface TLEditorComponents {
 	CollaboratorCursor?: ComponentType<TLCursorProps> | null
 	CollaboratorHint?: ComponentType<TLCollaboratorHintProps> | null
 	CollaboratorScribble?: ComponentType<TLScribbleProps> | null
-	CollaboratorShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
 	Cursor?: ComponentType<TLCursorProps> | null
 	Grid?: ComponentType<TLGridProps> | null
 	Handle?: ComponentType<TLHandleProps> | null
@@ -37,8 +34,6 @@ export interface TLEditorComponents {
 	Scribble?: ComponentType<TLScribbleProps> | null
 	SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null
 	SelectionForeground?: ComponentType<TLSelectionForegroundProps> | null
-	ShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
-	ShapeIndicators?: ComponentType | null
 	ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null
 	SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null
 	Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null
@@ -48,7 +43,6 @@ export interface TLEditorComponents {
 	// These will always have defaults
 	ErrorFallback?: TLErrorFallbackComponent
 	ShapeErrorFallback?: TLShapeErrorFallbackComponent
-	ShapeIndicatorErrorFallback?: TLShapeIndicatorErrorFallbackComponent
 }
 
 export const EditorComponentsContext = createContext<null | Required<TLEditorComponents>>(null)

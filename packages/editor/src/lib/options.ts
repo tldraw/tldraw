@@ -203,12 +203,6 @@ export interface TldrawOptions {
 	 */
 	readonly quickZoomPreservesScreenBounds: boolean
 	/**
-	 * Whether to use 2D canvas rendering for shape indicators. When true (default),
-	 * shapes that support it will render indicators on a 2D canvas for better
-	 * performance. When false, all indicators use legacy SVG rendering.
-	 */
-	readonly useCanvasIndicators: boolean
-	/**
 	 * Called before content is written to the clipboard during a copy or cut operation.
 	 * Receives the serialized content (shapes, bindings, assets) and can filter or transform
 	 * it before it reaches the clipboard.
@@ -344,7 +338,6 @@ export const defaultTldrawOptions = {
 	camera: DEFAULT_CAMERA_OPTIONS,
 	text: {},
 	deepLinks: undefined,
-	useCanvasIndicators: true,
 	quickZoomPreservesScreenBounds: true,
 	onBeforeCopyToClipboard: undefined,
 	onBeforePasteFromClipboard: undefined,

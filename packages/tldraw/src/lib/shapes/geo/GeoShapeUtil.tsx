@@ -4,6 +4,7 @@ import {
 	Box,
 	EMPTY_ARRAY,
 	Editor,
+	GeoShapeGeoStyle,
 	Group2d,
 	HTMLContainer,
 	HandleSnapGeometry,
@@ -23,7 +24,6 @@ import {
 	WeakCache,
 	approximately,
 	areAnglesCompatible,
-	GeoShapeGeoStyle,
 	geoShapeMigrations,
 	geoShapeProps,
 	getColorValue,
@@ -459,10 +459,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			props: { strokeWidth: undefined },
 			forceSolid: isZoomedOut,
 		})
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {

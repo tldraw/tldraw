@@ -195,10 +195,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLTextShape): Path2D | undefined {
 		if (shape.props.autoSize && this.editor.getEditingShapeId() === shape.id) return undefined
 		const bounds = this.editor.getShapeGeometry(shape).bounds

@@ -64,9 +64,9 @@ export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
-export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
 export { defaultAssetUtils } from './lib/defaultAssetUtils'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
+export { defaultOverlayUtils } from './lib/defaultOverlayUtils'
 export {
 	DEFAULT_EMBED_DEFINITIONS,
 	embedShapePermissionDefaults,

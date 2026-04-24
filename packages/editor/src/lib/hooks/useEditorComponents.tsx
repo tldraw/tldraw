@@ -12,9 +12,6 @@ import { DefaultLoadingScreen } from '../components/default-components/DefaultLo
 import { DefaultScribble } from '../components/default-components/DefaultScribble'
 import { DefaultSelectionForeground } from '../components/default-components/DefaultSelectionForeground'
 import { DefaultShapeErrorFallback } from '../components/default-components/DefaultShapeErrorFallback'
-import { DefaultShapeIndicator } from '../components/default-components/DefaultShapeIndicator'
-import { DefaultShapeIndicatorErrorFallback } from '../components/default-components/DefaultShapeIndicatorErrorFallback'
-import { DefaultShapeIndicators } from '../components/default-components/DefaultShapeIndicators'
 import { DefaultShapeWrapper } from '../components/default-components/DefaultShapeWrapper'
 import { DefaultSnapIndicator } from '../components/default-components/DefaultSnapIndictor'
 import { DefaultSpinner } from '../components/default-components/DefaultSpinner'
@@ -45,7 +42,6 @@ export function EditorComponentsProvider({
 			CollaboratorCursor: DefaultCursor,
 			CollaboratorHint: DefaultCollaboratorHint,
 			CollaboratorScribble: DefaultScribble,
-			CollaboratorShapeIndicator: DefaultShapeIndicator,
 			Cursor: DefaultCursor,
 			Grid: DefaultGrid,
 			Handle: DefaultHandle,
@@ -57,8 +53,6 @@ export function EditorComponentsProvider({
 			Scribble: DefaultScribble,
 			SelectionBackground: null,
 			SelectionForeground: DefaultSelectionForeground,
-			ShapeIndicator: DefaultShapeIndicator,
-			ShapeIndicators: DefaultShapeIndicators,
 			ShapeWrapper: DefaultShapeWrapper,
 			SnapIndicator: DefaultSnapIndicator,
 			Spinner: DefaultSpinner,
@@ -67,7 +61,6 @@ export function EditorComponentsProvider({
 
 			ErrorFallback: DefaultErrorFallback,
 			ShapeErrorFallback: DefaultShapeErrorFallback,
-			ShapeIndicatorErrorFallback: DefaultShapeIndicatorErrorFallback,
 
 			..._overrides,
 		}),

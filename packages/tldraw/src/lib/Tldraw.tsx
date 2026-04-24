@@ -23,7 +23,6 @@ import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawOverlays } from './canvas/TldrawOverlays'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
-import { TldrawShapeIndicators } from './canvas/TldrawShapeIndicators'
 import { defaultAssetUtils } from './defaultAssetUtils'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { TLEmbedDefinition } from './defaultEmbedDefinitions'
@@ -31,6 +30,7 @@ import {
 	TLExternalContentProps,
 	registerDefaultExternalContentHandlers,
 } from './defaultExternalContentHandlers'
+import { defaultOverlayUtils } from './defaultOverlayUtils'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
@@ -149,6 +149,7 @@ export function Tldraw(props: TldrawProps) {
 		shapeUtils = [],
 		bindingUtils = [],
 		assetUtils = [],
+		overlayUtils = [],
 		tools = [],
 		// needs to be here for backwards compatibility
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -177,7 +178,6 @@ export function Tldraw(props: TldrawProps) {
 	const componentsWithDefault = useMemo(
 		() => ({
 			Scribble: TldrawScribble,
-			ShapeIndicators: TldrawShapeIndicators,
 			CollaboratorScribble: TldrawScribble,
 			SelectionForeground: TldrawSelectionForeground,
 			Handles: TldrawHandles,
@@ -210,6 +210,12 @@ export function Tldraw(props: TldrawProps) {
 				{ maxImageDimension, acceptedImageMimeTypes, acceptedVideoMimeTypes }
 			),
 		[_assetUtils, maxImageDimension, acceptedImageMimeTypes, acceptedVideoMimeTypes]
+	)
+
+	const _overlayUtils = useShallowArrayIdentity(overlayUtils)
+	const overlayUtilsWithDefaults = useMemo(
+		() => mergeArraysAndReplaceDefaults('type', _overlayUtils, defaultOverlayUtils),
+		[_overlayUtils]
 	)
 
 	const _tools = useShallowArrayIdentity(tools)
@@ -276,6 +282,7 @@ export function Tldraw(props: TldrawProps) {
 					shapeUtils={shapeUtilsWithDefaults}
 					bindingUtils={bindingUtilsWithDefaults}
 					assetUtils={assetUtilsWithDefaults}
+					overlayUtils={overlayUtilsWithDefaults}
 					tools={toolsWithDefaults}
 					options={optionsWithDefaults}
 					assetUrls={assets}
