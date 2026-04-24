@@ -43,12 +43,12 @@ export class Idle extends StateNode {
 
 	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 		// Check overlays first, then shapes
 		if (!updateHoveredOverlayId(this.editor)) {
 			updateHoveredShapeId(this.editor)
 		}
 		this.selectedShapesOnKeyDown = []
-		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onExit() {
