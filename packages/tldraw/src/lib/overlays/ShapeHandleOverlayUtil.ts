@@ -3,6 +3,7 @@ import {
 	Geometry2d,
 	Mat,
 	OverlayUtil,
+	SIDES,
 	TLCursorType,
 	TLHandle,
 	TLOverlay,
@@ -64,10 +65,14 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		const minDist =
 			((isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoom) * 2
 
+		// Hide virtual and create handles whose nearest vertex handle is within
+		// ~2× the handle radius in screen space — otherwise the midpoint
+		// affordance collides visually with the endpoint circles when a
+		// segment is short.
 		const filtered = handles
 			.filter(
 				(handle) =>
-					handle.type !== 'virtual' ||
+					(handle.type !== 'virtual' && handle.type !== 'create') ||
 					!handles.some((h) => h !== handle && h.type === 'vertex' && Vec.Dist(handle, h) < minDist)
 			)
 			.sort((a) => (a.type === 'vertex' ? 1 : -1))
@@ -121,6 +126,10 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		const themeColors = editor.getCurrentTheme().colors[editor.getColorMode()]
 		const fgColor = themeColors.selectedContrast
 		const strokeColor = themeColors.selectionStroke
+		const bgFill = themeColors.selectionFill
+		const hoveredOverlayId = editor.overlays.getHoveredOverlayId()
+		const bgRadius =
+			(isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoom
 
 		ctx.save()
 		ctx.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f)
@@ -130,15 +139,53 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 
 		for (const overlay of overlays) {
 			const { handle } = overlay.props
-			const fr = (handle.type === 'create' && isCoarse ? 3 : 4) / zoom
+			const isHovered = overlay.id === hoveredOverlayId
 
-			ctx.fillStyle = handle.type === 'clone' ? strokeColor : fgColor
+			// 'create' handles are invisible on fine pointers and revealed on
+			// hover (matches the old .tl-handle__create opacity rules).
+			if (handle.type === 'create' && !isCoarse && !isHovered) continue
+
+			// Hover halo — matches the old .tl-handle__bg:hover fill rule.
+			if (isHovered) {
+				ctx.fillStyle = bgFill
+				ctx.beginPath()
+				ctx.arc(handle.x, handle.y, bgRadius, 0, Math.PI * 2)
+				ctx.fill()
+			}
+
+			if (handle.type === 'clone') {
+				// Note clone handles render as a side-facing half circle.
+				const fr = 3 / zoom
+				const sideIndex = SIDES.indexOf(handle.id as (typeof SIDES)[number])
+				const rotation = (-Math.PI / 2) * (1 - sideIndex)
+
+				ctx.save()
+				ctx.translate(handle.x, handle.y)
+				ctx.rotate(rotation)
+				ctx.fillStyle = strokeColor
+				ctx.beginPath()
+				ctx.moveTo(0, -fr)
+				ctx.arc(0, 0, fr, -Math.PI / 2, Math.PI / 2)
+				ctx.closePath()
+				ctx.fill()
+				ctx.restore()
+				continue
+			}
+
+			// Match the old DefaultHandle sizing: create handles on coarse
+			// pointers are slightly smaller (3px) since they're always visible;
+			// on fine pointers they render at 4px when revealed by hover so
+			// they match the vertex handles. Clamp the zoom divisor at 0.25 so
+			// the visible circle stops growing past 25% zoom and visually
+			// shrinks as the user zooms further out — the hit-area halo above
+			// still tracks the full zoom so handles remain grabbable.
+			const fr = (handle.type === 'create' && isCoarse ? 3 : 4) / Math.max(zoom, 0.25)
+
+			ctx.fillStyle = fgColor
 			ctx.beginPath()
 			ctx.arc(handle.x, handle.y, fr, 0, Math.PI * 2)
 			ctx.fill()
-			if (handle.type !== 'clone') {
-				ctx.stroke()
-			}
+			ctx.stroke()
 		}
 
 		ctx.restore()

@@ -2991,6 +2991,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     hideRotateHandle(shape: Shape): boolean;
     hideSelectionBoundsBg(shape: Shape): boolean;
     hideSelectionBoundsFg(shape: Shape): boolean;
+    // @deprecated
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked(shape: Shape): boolean;
     isExportBoundsContainer(shape: Shape): boolean;

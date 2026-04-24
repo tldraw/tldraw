@@ -49,12 +49,13 @@ export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrus
 		for (const overlay of overlays) {
 			const { x, y, w, h, color } = overlay.props
 
-			// Fill with semi-opaque color
-			ctx.globalAlpha = 0.75
+			// Match the old SVG path: brush fill at 0.75 modulated by a parent
+			// opacity of 0.1 gave an effective fill alpha of 0.075.
+			ctx.globalAlpha = 0.075
 			ctx.fillStyle = color
 			ctx.fillRect(x, y, w, h)
 
-			// Stroke with lower alpha; avoid path creation via strokeRect
+			// Stroke at 0.1 alpha matches the old parent opacity.
 			ctx.globalAlpha = 0.1
 			ctx.strokeStyle = color
 			ctx.lineWidth = this.options.lineWidth / zoom

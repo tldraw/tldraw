@@ -220,23 +220,27 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	/**
 	 * Get JSX describing the shape's indicator (as an SVG element).
 	 *
+	 * @deprecated Indicators are rendered on a canvas via {@link ShapeUtil.getIndicatorPath}.
+	 * This method is retained for backwards compatibility but is no longer invoked by
+	 * the default canvas indicator renderer; override {@link ShapeUtil.getIndicatorPath}
+	 * instead.
+	 *
 	 * @param shape - The shape.
 	 * @public
 	 */
 	abstract indicator(shape: Shape): any
 
 	/**
-	 * Get a Path2D for rendering the shape's indicator on the canvas.
-	 *
-	 * When implemented, this is used instead of {@link ShapeUtil.indicator} for more
-	 * efficient canvas-based indicator rendering. Shapes that return `undefined` will
-	 * fall back to SVG-based rendering via {@link ShapeUtil.indicator}.
+	 * Get a Path2D (or a richer object with clip/additional paths) for rendering the
+	 * shape's indicator on the canvas. Shapes that return `undefined` will not render
+	 * an indicator — the SVG {@link ShapeUtil.indicator} method is no longer used as
+	 * a fallback by the default canvas renderer.
 	 *
 	 * For complex indicators that need clipping (e.g., arrows with labels), return an
 	 * object with `path`, `clipPath`, and `additionalPaths` properties.
 	 *
 	 * @param shape - The shape.
-	 * @returns A Path2D to stroke, or an object with clipping info, or undefined to use SVG fallback.
+	 * @returns A Path2D to stroke, or an object with clipping info, or undefined to skip.
 	 * @public
 	 */
 	getIndicatorPath(shape: Shape): TLIndicatorPath | undefined {

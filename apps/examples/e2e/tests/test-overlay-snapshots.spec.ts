@@ -135,6 +135,40 @@ test.describe('Overlay snapshots', () => {
 		await snapshotCanvas(page)
 	})
 
+	test('shape handles: line endpoints and hovered center handle', async ({ page }) => {
+		// Capture the two states a user sees on a selected line: the idle state
+		// where only the vertex handles at the start and end are visible, and
+		// the hover state where the midpoint create handle becomes visible
+		// with its hover halo.
+		await page.evaluate(() => {
+			editor.createShape({
+				type: 'line',
+				x: 200,
+				y: 200,
+				props: {
+					dash: 'solid',
+					points: {
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: 0, y: 0 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 280, y: 280 },
+					},
+				},
+			})
+			editor.selectAll()
+		})
+
+		await snapshotCanvas(page)
+
+		// Force-hover the midpoint 'create' handle so the screenshot is frame-
+		// exact regardless of the browser's pointer coordinate rounding.
+		await page.evaluate(() => {
+			const shape = editor.getOnlySelectedShape()!
+			const handles = editor.getShapeHandles(shape)!
+			const midHandle = handles.find((h) => h.type === 'create')!
+			editor.overlays.setHoveredOverlay(`handle:${shape.id}:${midHandle.id}`)
+		})
+		await snapshotCanvas(page)
+	})
+
 	test('brush overlay', async ({ page }) => {
 		await page.evaluate(() => {
 			editor.updateInstanceState({ brush: { x: 180, y: 140, w: 320, h: 200 } })
