@@ -23,7 +23,6 @@ export interface TLEditorComponents {
 	InFrontOfTheCanvas?: ComponentType | null
 	LoadingScreen?: ComponentType | null
 	OnTheCanvas?: ComponentType | null
-	Overlays?: ComponentType | null
 	SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null
 	ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null
 	Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null

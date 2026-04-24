@@ -19,7 +19,6 @@ import { TLAnyAssetUtilConstructor } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { ImageAssetUtil } from './assets/ImageAssetUtil'
 import { VideoAssetUtil } from './assets/VideoAssetUtil'
-import { TldrawOverlays } from './canvas/TldrawOverlays'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { defaultAssetUtils } from './defaultAssetUtils'
 import { defaultBindingUtils } from './defaultBindingUtils'
@@ -176,7 +175,6 @@ export function Tldraw(props: TldrawProps) {
 	const componentsWithDefault = useMemo(
 		() => ({
 			CollaboratorScribble: TldrawScribble,
-			Overlays: TldrawOverlays,
 			Spinner,
 			LoadingScreen,
 			..._components,

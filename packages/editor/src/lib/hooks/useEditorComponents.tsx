@@ -42,7 +42,6 @@ export function EditorComponentsProvider({
 			InFrontOfTheCanvas: null,
 			LoadingScreen: DefaultLoadingScreen,
 			OnTheCanvas: null,
-			Overlays: null,
 			SelectionBackground: null,
 			ShapeWrapper: DefaultShapeWrapper,
 			Spinner: DefaultSpinner,

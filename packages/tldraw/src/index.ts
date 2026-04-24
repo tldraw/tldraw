@@ -59,7 +59,7 @@ export { BookmarkAssetUtil } from './lib/assets/BookmarkAssetUtil'
 export { ImageAssetUtil } from './lib/assets/ImageAssetUtil'
 export { VideoAssetUtil } from './lib/assets/VideoAssetUtil'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
-export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
+export { ArrowHintOverlayUtil, type TLArrowHintOverlay } from './lib/overlays/ArrowHintOverlayUtil'
 export { BrushOverlayUtil, type TLBrushOverlay } from './lib/overlays/BrushOverlayUtil'
 export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
 export {
