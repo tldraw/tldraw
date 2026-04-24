@@ -48,10 +48,6 @@ export {
 	DefaultSelectionBackground,
 	type TLSelectionBackgroundProps,
 } from './lib/components/default-components/DefaultSelectionBackground'
-export {
-	DefaultSelectionForeground,
-	type TLSelectionForegroundProps,
-} from './lib/components/default-components/DefaultSelectionForeground'
 export { type TLShapeErrorFallbackComponent } from './lib/components/default-components/DefaultShapeErrorFallback'
 export {
 	DefaultShapeWrapper,

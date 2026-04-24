@@ -9,7 +9,6 @@ import type { TLHandleProps } from '../components/default-components/DefaultHand
 import type { TLHandlesProps } from '../components/default-components/DefaultHandles'
 import type { TLScribbleProps } from '../components/default-components/DefaultScribble'
 import type { TLSelectionBackgroundProps } from '../components/default-components/DefaultSelectionBackground'
-import type { TLSelectionForegroundProps } from '../components/default-components/DefaultSelectionForeground'
 import type { TLShapeErrorFallbackComponent } from '../components/default-components/DefaultShapeErrorFallback'
 import type { TLShapeWrapperProps } from '../components/default-components/DefaultShapeWrapper'
 
@@ -30,7 +29,6 @@ export interface TLEditorComponents {
 	OnTheCanvas?: ComponentType | null
 	Overlays?: ComponentType | null
 	SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null
-	SelectionForeground?: ComponentType<TLSelectionForegroundProps> | null
 	ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null
 	Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null
 	SvgDefs?: ComponentType | null

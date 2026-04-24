@@ -22,7 +22,6 @@ import { VideoAssetUtil } from './assets/VideoAssetUtil'
 import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawOverlays } from './canvas/TldrawOverlays'
 import { TldrawScribble } from './canvas/TldrawScribble'
-import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { defaultAssetUtils } from './defaultAssetUtils'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { TLEmbedDefinition } from './defaultEmbedDefinitions'
@@ -178,7 +177,6 @@ export function Tldraw(props: TldrawProps) {
 	const componentsWithDefault = useMemo(
 		() => ({
 			CollaboratorScribble: TldrawScribble,
-			SelectionForeground: TldrawSelectionForeground,
 			Handles: TldrawHandles,
 			Overlays: TldrawOverlays,
 			Spinner,

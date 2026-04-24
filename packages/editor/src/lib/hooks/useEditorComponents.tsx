@@ -10,7 +10,6 @@ import { DefaultHandle } from '../components/default-components/DefaultHandle'
 import { DefaultHandles } from '../components/default-components/DefaultHandles'
 import { DefaultLoadingScreen } from '../components/default-components/DefaultLoadingScreen'
 import { DefaultScribble } from '../components/default-components/DefaultScribble'
-import { DefaultSelectionForeground } from '../components/default-components/DefaultSelectionForeground'
 import { DefaultShapeErrorFallback } from '../components/default-components/DefaultShapeErrorFallback'
 import { DefaultShapeWrapper } from '../components/default-components/DefaultShapeWrapper'
 import { DefaultSpinner } from '../components/default-components/DefaultSpinner'
@@ -49,7 +48,6 @@ export function EditorComponentsProvider({
 			OnTheCanvas: null,
 			Overlays: null,
 			SelectionBackground: null,
-			SelectionForeground: DefaultSelectionForeground,
 			ShapeWrapper: DefaultShapeWrapper,
 			Spinner: DefaultSpinner,
 			SvgDefs: DefaultSvgDefs,
