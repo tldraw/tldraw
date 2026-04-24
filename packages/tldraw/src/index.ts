@@ -59,11 +59,13 @@ export { BookmarkAssetUtil } from './lib/assets/BookmarkAssetUtil'
 export { ImageAssetUtil } from './lib/assets/ImageAssetUtil'
 export { VideoAssetUtil } from './lib/assets/VideoAssetUtil'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
-export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
-export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
 export { BrushOverlayUtil, type TLBrushOverlay } from './lib/overlays/BrushOverlayUtil'
 export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
+export {
+	ShapeHandleOverlayUtil,
+	type TLShapeHandleOverlay,
+} from './lib/overlays/ShapeHandleOverlayUtil'
 export {
 	SelectionForegroundOverlayUtil,
 	type TLSelectionForegroundOverlay,

@@ -33,14 +33,6 @@ export {
 } from './lib/components/default-components/DefaultErrorFallback'
 export { DefaultGrid, type TLGridProps } from './lib/components/default-components/DefaultGrid'
 export {
-	DefaultHandle,
-	type TLHandleProps,
-} from './lib/components/default-components/DefaultHandle'
-export {
-	DefaultHandles,
-	type TLHandlesProps,
-} from './lib/components/default-components/DefaultHandles'
-export {
 	DefaultScribble,
 	type TLScribbleProps,
 } from './lib/components/default-components/DefaultScribble'

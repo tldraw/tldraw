@@ -5,8 +5,6 @@ import type { TLCollaboratorHintProps } from '../components/default-components/D
 import type { TLCursorProps } from '../components/default-components/DefaultCursor'
 import type { TLErrorFallbackComponent } from '../components/default-components/DefaultErrorFallback'
 import type { TLGridProps } from '../components/default-components/DefaultGrid'
-import type { TLHandleProps } from '../components/default-components/DefaultHandle'
-import type { TLHandlesProps } from '../components/default-components/DefaultHandles'
 import type { TLScribbleProps } from '../components/default-components/DefaultScribble'
 import type { TLSelectionBackgroundProps } from '../components/default-components/DefaultSelectionBackground'
 import type { TLShapeErrorFallbackComponent } from '../components/default-components/DefaultShapeErrorFallback'
@@ -22,8 +20,6 @@ export interface TLEditorComponents {
 	CollaboratorScribble?: ComponentType<TLScribbleProps> | null
 	Cursor?: ComponentType<TLCursorProps> | null
 	Grid?: ComponentType<TLGridProps> | null
-	Handle?: ComponentType<TLHandleProps> | null
-	Handles?: ComponentType<TLHandlesProps> | null
 	InFrontOfTheCanvas?: ComponentType | null
 	LoadingScreen?: ComponentType | null
 	OnTheCanvas?: ComponentType | null

@@ -6,8 +6,6 @@ import { DefaultCollaboratorHint } from '../components/default-components/Defaul
 import { DefaultCursor } from '../components/default-components/DefaultCursor'
 import { DefaultErrorFallback } from '../components/default-components/DefaultErrorFallback'
 import { DefaultGrid } from '../components/default-components/DefaultGrid'
-import { DefaultHandle } from '../components/default-components/DefaultHandle'
-import { DefaultHandles } from '../components/default-components/DefaultHandles'
 import { DefaultLoadingScreen } from '../components/default-components/DefaultLoadingScreen'
 import { DefaultScribble } from '../components/default-components/DefaultScribble'
 import { DefaultShapeErrorFallback } from '../components/default-components/DefaultShapeErrorFallback'
@@ -41,8 +39,6 @@ export function EditorComponentsProvider({
 			CollaboratorScribble: DefaultScribble,
 			Cursor: DefaultCursor,
 			Grid: DefaultGrid,
-			Handle: DefaultHandle,
-			Handles: DefaultHandles,
 			InFrontOfTheCanvas: null,
 			LoadingScreen: DefaultLoadingScreen,
 			OnTheCanvas: null,
