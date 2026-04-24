@@ -181,6 +181,10 @@ export {
 	type TLOverlayUtilConstructor,
 } from './lib/editor/overlays/OverlayUtil'
 export {
+	ShapeIndicatorOverlayUtil,
+	type TLShapeIndicatorOverlay,
+} from './lib/editor/overlays/ShapeIndicatorOverlayUtil'
+export {
 	getPerfectDashProps,
 	type PerfectDashTerminal,
 } from './lib/editor/shapes/shared/getPerfectDashProps'

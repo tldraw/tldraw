@@ -1,3 +1,4 @@
+import { ShapeIndicatorOverlayUtil } from '@tldraw/editor'
 import { ArrowHintOverlayUtil } from './overlays/ArrowHintOverlayUtil'
 import { BrushOverlayUtil } from './overlays/BrushOverlayUtil'
 import { CollaboratorBrushOverlayUtil } from './overlays/CollaboratorBrushOverlayUtil'
@@ -12,6 +13,7 @@ import { ZoomBrushOverlayUtil } from './overlays/ZoomBrushOverlayUtil'
 
 /** @public */
 export const defaultOverlayUtils = [
+	ShapeIndicatorOverlayUtil,
 	SelectionForegroundOverlayUtil,
 	ShapeHandleOverlayUtil,
 	BrushOverlayUtil,

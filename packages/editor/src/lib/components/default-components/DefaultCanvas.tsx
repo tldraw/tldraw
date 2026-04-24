@@ -22,7 +22,6 @@ import { setStyleProperty } from '../../utils/dom'
 import { MenuClickCapture } from '../MenuClickCapture'
 import { Shape } from '../Shape'
 import { CanvasOverlays } from './CanvasOverlays'
-import { CanvasShapeIndicators } from './CanvasShapeIndicators'
 
 /** @public */
 export interface TLCanvasComponentProps {
@@ -148,7 +147,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					{hideShapes ? null : <ShapesLayer />}
 				</div>
 				<div className="tl-overlays">
-					<CanvasShapeIndicators />
 					<CanvasOverlays />
 				</div>
 				<MovingCameraHitTestBlocker />
