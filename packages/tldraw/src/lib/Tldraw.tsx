@@ -177,7 +177,6 @@ export function Tldraw(props: TldrawProps) {
 	}, [rest.hideUi, CustomInFrontOfTheCanvas])
 	const componentsWithDefault = useMemo(
 		() => ({
-			Scribble: TldrawScribble,
 			CollaboratorScribble: TldrawScribble,
 			SelectionForeground: TldrawSelectionForeground,
 			Handles: TldrawHandles,

@@ -13,7 +13,6 @@ import { DefaultScribble } from '../components/default-components/DefaultScribbl
 import { DefaultSelectionForeground } from '../components/default-components/DefaultSelectionForeground'
 import { DefaultShapeErrorFallback } from '../components/default-components/DefaultShapeErrorFallback'
 import { DefaultShapeWrapper } from '../components/default-components/DefaultShapeWrapper'
-import { DefaultSnapIndicator } from '../components/default-components/DefaultSnapIndictor'
 import { DefaultSpinner } from '../components/default-components/DefaultSpinner'
 import { DefaultSvgDefs } from '../components/default-components/DefaultSvgDefs'
 import { EditorComponentsContext } from './EditorComponentsContext'
@@ -36,7 +35,6 @@ export function EditorComponentsProvider({
 	const value = useMemo(
 		(): Required<TLEditorComponents> => ({
 			Background: DefaultBackground,
-			Brush: DefaultBrush,
 			Canvas: DefaultCanvas,
 			CollaboratorBrush: DefaultBrush,
 			CollaboratorCursor: DefaultCursor,
@@ -50,14 +48,11 @@ export function EditorComponentsProvider({
 			LoadingScreen: DefaultLoadingScreen,
 			OnTheCanvas: null,
 			Overlays: null,
-			Scribble: DefaultScribble,
 			SelectionBackground: null,
 			SelectionForeground: DefaultSelectionForeground,
 			ShapeWrapper: DefaultShapeWrapper,
-			SnapIndicator: DefaultSnapIndicator,
 			Spinner: DefaultSpinner,
 			SvgDefs: DefaultSvgDefs,
-			ZoomBrush: DefaultBrush,
 
 			ErrorFallback: DefaultErrorFallback,
 			ShapeErrorFallback: DefaultShapeErrorFallback,

@@ -12,12 +12,10 @@ import type { TLSelectionBackgroundProps } from '../components/default-component
 import type { TLSelectionForegroundProps } from '../components/default-components/DefaultSelectionForeground'
 import type { TLShapeErrorFallbackComponent } from '../components/default-components/DefaultShapeErrorFallback'
 import type { TLShapeWrapperProps } from '../components/default-components/DefaultShapeWrapper'
-import type { TLSnapIndicatorProps } from '../components/default-components/DefaultSnapIndictor'
 
 /** @public */
 export interface TLEditorComponents {
 	Background?: ComponentType | null
-	Brush?: ComponentType<TLBrushProps> | null
 	Canvas?: ComponentType<TLCanvasComponentProps> | null
 	CollaboratorBrush?: ComponentType<TLBrushProps> | null
 	CollaboratorCursor?: ComponentType<TLCursorProps> | null
@@ -31,14 +29,11 @@ export interface TLEditorComponents {
 	LoadingScreen?: ComponentType | null
 	OnTheCanvas?: ComponentType | null
 	Overlays?: ComponentType | null
-	Scribble?: ComponentType<TLScribbleProps> | null
 	SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null
 	SelectionForeground?: ComponentType<TLSelectionForegroundProps> | null
 	ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null
-	SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null
 	Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null
 	SvgDefs?: ComponentType | null
-	ZoomBrush?: ComponentType<TLBrushProps> | null
 
 	// These will always have defaults
 	ErrorFallback?: TLErrorFallbackComponent

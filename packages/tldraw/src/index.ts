@@ -62,8 +62,14 @@ export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
 export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
-export { TldrawScribble } from './lib/canvas/TldrawScribble'
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
+export { BrushOverlayUtil, type TLBrushOverlay } from './lib/overlays/BrushOverlayUtil'
+export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
+export {
+	SnapIndicatorOverlayUtil,
+	type TLSnapIndicatorOverlay,
+} from './lib/overlays/SnapIndicatorOverlayUtil'
+export { ZoomBrushOverlayUtil, type TLZoomBrushOverlay } from './lib/overlays/ZoomBrushOverlayUtil'
 export { defaultAssetUtils } from './lib/defaultAssetUtils'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export { defaultOverlayUtils } from './lib/defaultOverlayUtils'
