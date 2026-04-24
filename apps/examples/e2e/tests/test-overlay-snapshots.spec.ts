@@ -1,7 +1,7 @@
 import { Page, expect } from '@playwright/test'
 import { Editor, IndexKey } from 'tldraw'
 import test from '../fixtures/fixtures'
-import { hardResetEditor, setup, sleep } from '../shared-e2e'
+import { hardResetEditor, setup } from '../shared-e2e'
 
 declare const editor: Editor
 
@@ -29,9 +29,17 @@ async function prepare(page: Page) {
 }
 
 async function snapshotCanvas(page: Page) {
-	// Let a couple of frames elapse so reactive overlay canvases repaint.
-	await sleep(40)
-	await expect(page.locator('.tl-canvas')).toHaveScreenshot()
+	// Wait for two rAFs so reactive overlay canvases have committed their paint.
+	await page.evaluate(
+		() =>
+			new Promise<void>((resolve) =>
+				requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+			)
+	)
+	// Allow a small tolerance to absorb sub-pixel anti-aliasing variance on
+	// rotated or curved overlay strokes. A real overlay regression (missing
+	// handle, wrong color, moved stroke) changes far more than 0.5% of pixels.
+	await expect(page.locator('.tl-canvas')).toHaveScreenshot({ maxDiffPixelRatio: 0.005 })
 }
 
 test.describe('Overlay snapshots', () => {
