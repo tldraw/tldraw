@@ -1412,6 +1412,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getViewportPageBounds(): Box;
     getViewportScreenBounds(): Box;
     getViewportScreenCenter(): Vec;
+    getVisibleCollaborators(): TLInstancePresence[];
+    getVisibleCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getZoomLevel(): number;
     groupShapes(shapes: TLShape[], opts?: Partial<{
         groupId: TLShapeId;
@@ -5029,7 +5031,7 @@ export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement | null>
 // @public (undocumented)
 export function usePassThroughWheelEvents(ref: RefObject<HTMLElement | null>): void;
 
-// @public (undocumented)
+// @public
 export function usePeerIds(): string[];
 
 // @public (undocumented)

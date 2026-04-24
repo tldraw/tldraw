@@ -1,5 +1,4 @@
-import { OverlayUtil, PI2, TLInstancePresence, TLOverlay } from '@tldraw/editor'
-import type { Editor } from '@tldraw/editor'
+import { OverlayUtil, PI2, TLOverlay } from '@tldraw/editor'
 
 /** @public */
 export interface TLCollaboratorCursorOverlay extends TLOverlay {
@@ -58,18 +57,13 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 
 	override getOverlays(): TLCollaboratorCursorOverlay[] {
 		const overlays: TLCollaboratorCursorOverlay[] = []
-		const editor = this.editor
-		;(editor as any)._collaboratorVisibilityClock.get()
-		const now = Date.now()
 
-		for (const presence of editor.getCollaboratorsOnCurrentPage()) {
+		// Visibility (activity state, following, highlighting) is handled by the
+		// editor. The main-canvas viewport cull lives in `render` so off-screen
+		// cursors still show on the minimap via `renderMinimap`.
+		for (const presence of this.editor.getVisibleCollaboratorsOnCurrentPage()) {
 			const { cursor, color, userName, chatMessage, userId } = presence
 			if (!cursor) continue
-
-			// Activity state check — applies to both main canvas and minimap.
-			// The main-canvas viewport cull lives in `render` so these overlays
-			// still show on the minimap when off-screen.
-			if (!this._shouldShow(editor, presence, now)) continue
 
 			overlays.push({
 				id: `collaborator_cursor:${userId}`,
@@ -227,15 +221,6 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		}
 	}
 
-	private _shouldShow(editor: Editor, presence: TLInstancePresence, now: number): boolean {
-		const elapsed = now - (presence.lastActivityTimestamp ?? 0)
-		return shouldShowCollaborator(
-			editor,
-			presence,
-			getCollaboratorStateFromElapsedTime(editor, elapsed)
-		)
-	}
-
 	private _truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
 		const key = `${maxWidth}|${text}`
 		const cached = this._truncateCache.get(key)
@@ -253,33 +238,5 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		if (this._truncateCache.size > TRUNCATE_CACHE_MAX) this._truncateCache.clear()
 		this._truncateCache.set(key, result)
 		return result
-	}
-}
-
-function getCollaboratorStateFromElapsedTime(editor: Editor, elapsed: number) {
-	return elapsed > editor.options.collaboratorInactiveTimeoutMs
-		? 'inactive'
-		: elapsed > editor.options.collaboratorIdleTimeoutMs
-			? 'idle'
-			: 'active'
-}
-
-function shouldShowCollaborator(
-	editor: Editor,
-	presence: TLInstancePresence,
-	state: 'active' | 'idle' | 'inactive'
-) {
-	const { followingUserId, highlightedUserIds } = editor.getInstanceState()
-
-	switch (state) {
-		case 'inactive':
-			return followingUserId === presence.userId || highlightedUserIds.includes(presence.userId)
-		case 'idle':
-			if (presence.followingUserId === editor.user.getId()) {
-				return !!(presence.chatMessage || highlightedUserIds.includes(presence.userId))
-			}
-			return true
-		case 'active':
-			return true
 	}
 }

@@ -39,7 +39,11 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 	override options = { zIndex: 600, streamline: 0.32, cacheSize: 500 }
 
 	// Per-editor cache so multiple <Tldraw /> instances on one page don't
-	// trample each other's entries.
+	// trample each other's entries. String-keyed (not a WeakMap) because the
+	// cache key is a logical identity — `scribble.id` — not the scribble
+	// object. Tldraw's store replaces record objects on every update, so a
+	// WeakMap keyed on the `TLScribble` instance would cache-miss every frame.
+	// Lifetime is bounded by the Util instance plus the `cacheSize` cap below.
 	private _scribblePathCache = new Map<string, ScribbleCacheEntry>()
 
 	override isActive(): boolean {

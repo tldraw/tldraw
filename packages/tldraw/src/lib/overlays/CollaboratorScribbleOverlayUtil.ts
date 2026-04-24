@@ -30,15 +30,21 @@ export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorS
 	static override type = 'collaborator_scribble'
 	override options = { zIndex: 800, streamline: 0.32, cacheSize: 500 }
 
+	// String-keyed (not a WeakMap) because the cache key is a logical identity
+	// — `${overlay.id}` derived from `scribble.id` — not the scribble object.
+	// Tldraw's store replaces record objects on every update, so a WeakMap
+	// keyed on the `TLScribble` instance would cache-miss every frame. Lifetime
+	// is bounded by the Util instance (so, by the editor) plus the `cacheSize`
+	// cap in `render` below.
 	private _collabScribblePathCache = new Map<string, CollaboratorScribbleCacheEntry>()
 
 	override isActive(): boolean {
-		return this.editor.getCollaboratorsOnCurrentPage().some((c) => c.scribbles.length > 0)
+		return this.editor.getVisibleCollaboratorsOnCurrentPage().some((c) => c.scribbles.length > 0)
 	}
 
 	override getOverlays(): TLCollaboratorScribbleOverlay[] {
 		const overlays: TLCollaboratorScribbleOverlay[] = []
-		for (const presence of this.editor.getCollaboratorsOnCurrentPage()) {
+		for (const presence of this.editor.getVisibleCollaboratorsOnCurrentPage()) {
 			const { scribbles, color, userId } = presence
 			for (const scribble of scribbles) {
 				overlays.push({

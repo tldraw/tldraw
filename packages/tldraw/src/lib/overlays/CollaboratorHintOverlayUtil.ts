@@ -1,4 +1,4 @@
-import { OverlayUtil, TLInstancePresence, TLOverlay, Vec, clamp } from '@tldraw/editor'
+import { OverlayUtil, TLOverlay, Vec, clamp } from '@tldraw/editor'
 
 /** @public */
 export interface TLCollaboratorHintOverlay extends TLOverlay {
@@ -35,13 +35,10 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 	override isActive(): boolean {
 		const viewport = this.editor.getViewportPageBounds()
 		const zoom = this.editor.getZoomLevel()
-		const now = this._getNow()
-		return this.editor.getCollaboratorsOnCurrentPage().some((presence) => {
+		return this.editor.getVisibleCollaboratorsOnCurrentPage().some((presence) => {
 			const { cursor } = presence
 			if (!cursor) return false
-			if (!this._shouldShow(presence, now)) return false
-			if (this._isCursorInViewport(cursor, viewport, zoom)) return false
-			return true
+			return !this._isCursorInViewport(cursor, viewport, zoom)
 		})
 	}
 
@@ -49,12 +46,10 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 		const overlays: TLCollaboratorHintOverlay[] = []
 		const viewport = this.editor.getViewportPageBounds()
 		const zoom = this.editor.getZoomLevel()
-		const now = this._getNow()
 
-		for (const presence of this.editor.getCollaboratorsOnCurrentPage()) {
+		for (const presence of this.editor.getVisibleCollaboratorsOnCurrentPage()) {
 			const { cursor, color, userId } = presence
 			if (!cursor) continue
-			if (!this._shouldShow(presence, now)) continue
 			if (this._isCursorInViewport(cursor, viewport, zoom)) continue
 
 			const pad = this.options.viewportPadding / zoom
@@ -99,20 +94,6 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 		}
 	}
 
-	private _getNow() {
-		;(this.editor as any)._collaboratorVisibilityClock.get()
-		return Date.now()
-	}
-
-	private _shouldShow(presence: TLInstancePresence, now: number) {
-		const elapsed = now - (presence.lastActivityTimestamp ?? 0)
-		return shouldShowCollaborator(
-			this.editor,
-			presence,
-			getCollaboratorStateFromElapsedTime(this.editor, elapsed)
-		)
-	}
-
 	/** @internal */
 	_isCursorInViewport(
 		cursor: { x: number; y: number },
@@ -125,36 +106,5 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 			cursor.x > viewport.maxX - 12 / zoom ||
 			cursor.y > viewport.maxY - 16 / zoom
 		)
-	}
-}
-
-function getCollaboratorStateFromElapsedTime(
-	editor: CollaboratorHintOverlayUtil['editor'],
-	elapsed: number
-) {
-	return elapsed > editor.options.collaboratorInactiveTimeoutMs
-		? 'inactive'
-		: elapsed > editor.options.collaboratorIdleTimeoutMs
-			? 'idle'
-			: 'active'
-}
-
-function shouldShowCollaborator(
-	editor: CollaboratorHintOverlayUtil['editor'],
-	presence: TLInstancePresence,
-	state: 'active' | 'idle' | 'inactive'
-) {
-	const { followingUserId, highlightedUserIds } = editor.getInstanceState()
-
-	switch (state) {
-		case 'inactive':
-			return followingUserId === presence.userId || highlightedUserIds.includes(presence.userId)
-		case 'idle':
-			if (presence.followingUserId === editor.user.getId()) {
-				return !!(presence.chatMessage || highlightedUserIds.includes(presence.userId))
-			}
-			return true
-		case 'active':
-			return true
 	}
 }

@@ -21,12 +21,12 @@ export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrus
 	override options = { zIndex: 700, lineWidth: 1 }
 
 	override isActive(): boolean {
-		return this.editor.getCollaboratorsOnCurrentPage().some((c) => c.brush !== null)
+		return this.editor.getVisibleCollaboratorsOnCurrentPage().some((c) => c.brush !== null)
 	}
 
 	override getOverlays(): TLCollaboratorBrushOverlay[] {
 		const overlays: TLCollaboratorBrushOverlay[] = []
-		for (const presence of this.editor.getCollaboratorsOnCurrentPage()) {
+		for (const presence of this.editor.getVisibleCollaboratorsOnCurrentPage()) {
 			const { brush, color, userId } = presence
 			if (!brush) continue
 			overlays.push({

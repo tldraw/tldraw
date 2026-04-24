@@ -1,12 +1,7 @@
 import { createComputedCache } from '@tldraw/store'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { dedupe } from '@tldraw/utils'
-import {
-	getCollaboratorStateFromElapsedTime,
-	shouldShowCollaborator,
-} from '../../utils/collaboratorState'
 import type { Editor } from '../Editor'
-import { TLIndicatorPath } from '../shapes/ShapeUtil'
 import { OverlayUtil, TLOverlay } from './OverlayUtil'
 
 /** @public */
@@ -77,19 +72,9 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
 			renderingShapeIds.has(id)
 		)
 
-		// Remote collaborator indicators. Re-evaluated when the activity clock
-		// ticks so idle/inactive peers drop out without a separate React timer.
-		;(editor as any)._collaboratorVisibilityClock.get()
-		const now = Date.now()
-		const currentPageId = editor.getCurrentPageId()
+		// Remote collaborator indicators (only currently-visible peers).
 		const collaboratorIndicators: TLShapeIndicatorOverlay['props']['collaboratorIndicators'] = []
-
-		for (const presence of editor.getCollaborators()) {
-			if (presence.currentPageId !== currentPageId) continue
-			const elapsed = Math.max(0, now - (presence.lastActivityTimestamp ?? Infinity))
-			const state = getCollaboratorStateFromElapsedTime(editor, elapsed)
-			if (!shouldShowCollaborator(editor, presence, state)) continue
-
+		for (const presence of editor.getVisibleCollaboratorsOnCurrentPage()) {
 			const visibleShapeIds = presence.selectedShapeIds.filter(
 				(id) => renderingShapeIds.has(id) && !editor.isShapeHidden(id)
 			)
@@ -127,77 +112,86 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
 		ctx.lineJoin = 'round'
 
 		// Remote collaborator indicators — under local indicators, slightly transparent.
+		// One stroke call per collaborator (per unique color).
 		ctx.lineWidth = this.options.lineWidth / zoom
 		ctx.globalAlpha = 0.7
 		for (const collaborator of collaboratorIndicators) {
 			ctx.strokeStyle = collaborator.color
-			for (const shapeId of collaborator.shapeIds) {
-				this._renderShapeIndicator(ctx, shapeId)
-			}
+			this._strokeIndicatorBatch(ctx, collaborator.shapeIds)
 		}
 		ctx.globalAlpha = 1.0
 
-		// Local selected / hovered indicators.
+		// Local selected / hovered indicators — one stroke call for the whole batch.
 		ctx.strokeStyle = editor.getCurrentTheme().colors[editor.getColorMode()].selectionStroke
 		ctx.lineWidth = this.options.lineWidth / zoom
-		for (const shapeId of idsToDisplay) {
-			this._renderShapeIndicator(ctx, shapeId)
-		}
+		this._strokeIndicatorBatch(ctx, idsToDisplay)
 
-		// Hinted shapes — thicker stroke.
+		// Hinted shapes — thicker stroke, one call for the whole batch.
 		if (hintingShapeIds.length > 0) {
 			ctx.lineWidth = this.options.hintedLineWidth / zoom
-			for (const shapeId of hintingShapeIds) {
-				this._renderShapeIndicator(ctx, shapeId)
-			}
+			this._strokeIndicatorBatch(ctx, hintingShapeIds)
 		}
 	}
 
-	private _renderShapeIndicator(ctx: CanvasRenderingContext2D, shapeId: TLShapeId): void {
+	// Combine every batchable shape indicator into a single page-space Path2D
+	// and emit one stroke call. Shapes whose indicator needs an evenodd clip
+	// (e.g. arrows with labels or complex arrowheads) can't be batched — they
+	// still stroke individually inside a save/restore with ctx.clip applied.
+	private _strokeIndicatorBatch(ctx: CanvasRenderingContext2D, shapeIds: TLShapeId[]): void {
+		if (shapeIds.length === 0) return
+
 		const editor = this.editor
-		const shape = editor.getShape(shapeId)
-		if (!shape || shape.isLocked) return
+		const batched = new Path2D()
 
-		const pageTransform = editor.getShapePageTransform(shape)
-		if (!pageTransform) return
+		for (const shapeId of shapeIds) {
+			const shape = editor.getShape(shapeId)
+			if (!shape || shape.isLocked) continue
 
-		const indicatorPath = indicatorPathCache.get(editor, shape.id)
-		if (!indicatorPath) return
+			const pageTransform = editor.getShapePageTransform(shape)
+			if (!pageTransform) continue
 
-		ctx.save()
-		ctx.transform(
-			pageTransform.a,
-			pageTransform.b,
-			pageTransform.c,
-			pageTransform.d,
-			pageTransform.e,
-			pageTransform.f
-		)
-		renderIndicatorPath(ctx, indicatorPath)
-		ctx.restore()
-	}
-}
+			const indicatorPath = indicatorPathCache.get(editor, shape.id)
+			if (!indicatorPath) continue
 
-function renderIndicatorPath(ctx: CanvasRenderingContext2D, indicatorPath: TLIndicatorPath) {
-	if (indicatorPath instanceof Path2D) {
-		ctx.stroke(indicatorPath)
-		return
-	}
+			if (indicatorPath instanceof Path2D) {
+				batched.addPath(indicatorPath, pageTransform)
+				continue
+			}
 
-	const { path, clipPath, additionalPaths } = indicatorPath
+			const { path, clipPath, additionalPaths } = indicatorPath
 
-	if (clipPath) {
-		ctx.save()
-		ctx.clip(clipPath, 'evenodd')
-		ctx.stroke(path)
-		ctx.restore()
-	} else {
-		ctx.stroke(path)
-	}
+			if (!clipPath) {
+				// No clip: the main path and any additional paths can all join
+				// the batch directly.
+				batched.addPath(path, pageTransform)
+				if (additionalPaths) {
+					for (const p of additionalPaths) batched.addPath(p, pageTransform)
+				}
+				continue
+			}
 
-	if (additionalPaths) {
-		for (const additionalPath of additionalPaths) {
-			ctx.stroke(additionalPath)
+			// Clipped case: fall back to an individual stroke. Rare (arrows with
+			// labels / complex arrowheads), so the extra save/restore/stroke
+			// pair per such shape isn't worth batching away.
+			ctx.save()
+			ctx.transform(
+				pageTransform.a,
+				pageTransform.b,
+				pageTransform.c,
+				pageTransform.d,
+				pageTransform.e,
+				pageTransform.f
+			)
+			ctx.save()
+			ctx.clip(clipPath, 'evenodd')
+			ctx.stroke(path)
+			ctx.restore()
+			if (additionalPaths) {
+				for (const p of additionalPaths) ctx.stroke(p)
+			}
+			ctx.restore()
 		}
+
+		ctx.stroke(batched)
 	}
 }
