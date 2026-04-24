@@ -45,7 +45,7 @@ export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
 		if (!overlay) return
 
 		const { x, y, w, h } = overlay.props
-		const zoom = this.editor.getEfficientZoomLevel()
+		const zoom = this.editor.getZoomLevel()
 		const colors = this.editor.getCurrentTheme().colors[this.editor.getColorMode()]
 
 		// Use fillRect / strokeRect to avoid path construction overhead

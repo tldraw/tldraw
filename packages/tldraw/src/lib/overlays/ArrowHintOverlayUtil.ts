@@ -128,7 +128,7 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 		if (!overlay) return
 
 		const editor = this.editor
-		const zoom = editor.getEfficientZoomLevel()
+		const zoom = editor.getZoomLevel()
 		const colors = editor.getCurrentTheme().colors[editor.getColorMode()]
 		const { targetId, handles, anchorX, anchorY, snap, showEdgeHints } = overlay.props
 

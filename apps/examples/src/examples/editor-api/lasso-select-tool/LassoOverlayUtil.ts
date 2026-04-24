@@ -38,7 +38,7 @@ export class LassoOverlayUtil extends OverlayUtil<TLLassoOverlay> {
 		const overlay = overlays[0]
 		if (!overlay) return
 
-		const zoom = this.editor.getEfficientZoomLevel()
+		const zoom = this.editor.getZoomLevel()
 		const colors = this.editor.getCurrentTheme().colors[this.editor.getColorMode()]
 		const path = new Path2D(overlay.props.svgPath)
 

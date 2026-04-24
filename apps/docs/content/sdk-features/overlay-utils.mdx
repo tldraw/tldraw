@@ -93,7 +93,7 @@ class HighlightOverlayUtil extends OverlayUtil<MyHighlightOverlay> {
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: MyHighlightOverlay[]): void {
-		const zoom = this.editor.getEfficientZoomLevel()
+		const zoom = this.editor.getZoomLevel()
 		for (const overlay of overlays) {
 			const { x, y, radius } = overlay.props
 			ctx.beginPath()
@@ -190,7 +190,7 @@ class BlueBrushOverlayUtil extends BrushOverlayUtil {
 		if (!overlay) return
 
 		const { x, y, w, h } = overlay.props
-		const zoom = this.editor.getEfficientZoomLevel()
+		const zoom = this.editor.getZoomLevel()
 
 		ctx.beginPath()
 		ctx.rect(x, y, w, h)

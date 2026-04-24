@@ -59,7 +59,7 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: TLScribbleOverlay[]): void {
-		const zoom = this.editor.getEfficientZoomLevel()
+		const zoom = this.editor.getZoomLevel()
 		const colors = this.editor.getCurrentTheme().colors[this.editor.getColorMode()]
 
 		for (const overlay of overlays) {

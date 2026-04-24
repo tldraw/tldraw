@@ -451,7 +451,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 
 		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
 		const isChangingStyle = editor.getInstanceState().isChangingStyle
-		const zoom = editor.getEfficientZoomLevel()
+		const zoom = editor.getZoomLevel()
 		const rotation = editor.getSelectionRotation()
 
 		const width = expandedBounds.width

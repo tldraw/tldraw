@@ -5,7 +5,7 @@ export class DashedBrushOverlayUtil extends BrushOverlayUtil {
 		const overlay = overlays[0]
 		if (!overlay) return
 		const { x, y, w, h } = overlay.props
-		const zoom = this.editor.getEfficientZoomLevel()
+		const zoom = this.editor.getZoomLevel()
 
 		ctx.fillStyle = 'rgba(147, 51, 234, 0.08)'
 		ctx.fillRect(x, y, w, h)

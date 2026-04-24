@@ -45,7 +45,7 @@ export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrus
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorBrushOverlay[]): void {
-		const zoom = this.editor.getEfficientZoomLevel()
+		const zoom = this.editor.getZoomLevel()
 		for (const overlay of overlays) {
 			const { x, y, w, h, color } = overlay.props
 

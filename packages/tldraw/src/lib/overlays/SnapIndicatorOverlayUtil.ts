@@ -36,7 +36,7 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: TLSnapIndicatorOverlay[]): void {
-		const zoom = this.editor.getEfficientZoomLevel()
+		const zoom = this.editor.getZoomLevel()
 		const snapColor = this.editor.getCurrentTheme().colors[this.editor.getColorMode()].snap
 
 		for (const overlay of overlays) {

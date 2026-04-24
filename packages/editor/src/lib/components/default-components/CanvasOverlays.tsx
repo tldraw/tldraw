@@ -1,4 +1,4 @@
-import { useReactor } from '@tldraw/state-react'
+import { useQuickReactor } from '@tldraw/state-react'
 import { memo, useRef } from 'react'
 import { useEditor } from '../../hooks/useEditor'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
@@ -10,11 +10,7 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 	const editor = useEditor()
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
-	// `useReactor` (not `useQuickReactor`) throttles the effect to at most
-	// once per animation frame. The overlay canvas spans the full viewport,
-	// so coalescing multiple signal changes within a frame into a single
-	// full-canvas repaint is worthwhile.
-	useReactor(
+	useQuickReactor(
 		'canvas overlays render',
 		() => {
 			const canvas = canvasRef.current

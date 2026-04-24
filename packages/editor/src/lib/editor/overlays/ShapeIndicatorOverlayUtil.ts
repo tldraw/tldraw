@@ -105,7 +105,7 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
 		if (!overlay) return
 
 		const editor = this.editor
-		const zoom = editor.getEfficientZoomLevel()
+		const zoom = editor.getZoomLevel()
 		const { idsToDisplay, hintingShapeIds, collaboratorIndicators } = overlay.props
 
 		ctx.lineCap = 'round'

@@ -67,7 +67,7 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorHintOverlay[]): void {
-		const zoom = this.editor.getEfficientZoomLevel()
+		const zoom = this.editor.getZoomLevel()
 		const scale = 1 / zoom
 
 		for (const overlay of overlays) {

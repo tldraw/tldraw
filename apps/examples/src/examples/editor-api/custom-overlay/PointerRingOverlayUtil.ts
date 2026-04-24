@@ -24,7 +24,7 @@ export class PointerRingOverlayUtil extends OverlayUtil<TLPointerRingOverlay> {
 		const overlay = overlays[0]
 		if (!overlay) return
 		const { x, y } = overlay.props
-		const zoom = this.editor.getEfficientZoomLevel()
+		const zoom = this.editor.getZoomLevel()
 		const radius = 24 / zoom
 
 		ctx.lineWidth = 2 / zoom

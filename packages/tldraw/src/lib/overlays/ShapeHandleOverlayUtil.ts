@@ -60,7 +60,7 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 
 		if (editor.isShapeHidden(onlySelectedShape)) return []
 
-		const zoom = editor.getEfficientZoomLevel()
+		const zoom = editor.getZoomLevel()
 		const isCoarse = editor.getInstanceState().isCoarsePointer
 		const minDist =
 			((isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoom) * 2
@@ -95,7 +95,7 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		const transform = editor.getShapePageTransform(shapeId)
 		if (!transform) return null
 
-		const zoom = editor.getEfficientZoomLevel()
+		const zoom = editor.getZoomLevel()
 		const isCoarse = editor.getInstanceState().isCoarsePointer
 		const radius =
 			(isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoom
@@ -123,7 +123,7 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		const transform = editor.getShapePageTransform(shapeId)
 		if (!transform) return
 
-		const zoom = editor.getEfficientZoomLevel()
+		const zoom = editor.getZoomLevel()
 		const isCoarse = editor.getInstanceState().isCoarsePointer
 		const themeColors = editor.getCurrentTheme().colors[editor.getColorMode()]
 		const fgColor = themeColors.selectedContrast

@@ -58,7 +58,7 @@ export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorS
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorScribbleOverlay[]): void {
-		const zoom = this.editor.getEfficientZoomLevel()
+		const zoom = this.editor.getZoomLevel()
 
 		for (const overlay of overlays) {
 			const { scribble, color } = overlay.props
