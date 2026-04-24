@@ -132,6 +132,10 @@ import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '.
 import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
+import {
+	getCollaboratorStateFromElapsedTime,
+	shouldShowCollaborator,
+} from '../utils/collaboratorState'
 import { debugFlags } from '../utils/debug-flags'
 import {
 	TLDeepLink,
@@ -418,6 +422,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.inputs = new InputsManager(this)
 		this.performance = new PerformanceManager(this)
 		this.disposables.add(() => this.performance.dispose())
+		this.timers.setInterval(() => {
+			this._collaboratorVisibilityClock.set(Date.now())
+		}, this.options.collaboratorCheckIntervalMs)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -1049,6 +1056,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly timers = tltime.forContext(this.contextId)
+
+	/** @internal */
+	readonly _collaboratorVisibilityClock = atom('collaboratorVisibilityClock', Date.now())
 
 	/**
 	 * A manager for the user and their preferences.
@@ -4283,6 +4293,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getCollaboratorsOnCurrentPage() {
 		const currentPageId = this.getCurrentPageId()
 		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
+	}
+
+	/**
+	 * Returns a list of presence records for peer collaborators who should currently be
+	 * shown in the UI. Filters {@link Editor.getCollaborators} by activity state
+	 * (active / idle / inactive) and visibility rules such as following and highlighted
+	 * users. Re-evaluates on the collaborator visibility clock, so callers don't need to
+	 * drive their own activity timer.
+	 *
+	 * @public
+	 */
+	@computed
+	getVisibleCollaborators() {
+		this._collaboratorVisibilityClock.get()
+		const now = Date.now()
+		return this.getCollaborators().filter((presence) => {
+			const elapsed = Math.max(0, now - (presence.lastActivityTimestamp ?? Infinity))
+			const state = getCollaboratorStateFromElapsedTime(this, elapsed)
+			return shouldShowCollaborator(this, presence, state)
+		})
+	}
+
+	/**
+	 * Returns a list of presence records for peer collaborators who should currently be
+	 * shown in the UI, filtered to those on the current page.
+	 *
+	 * @public
+	 */
+	@computed
+	getVisibleCollaboratorsOnCurrentPage() {
+		const currentPageId = this.getCurrentPageId()
+		return this.getVisibleCollaborators().filter((c) => c.currentPageId === currentPageId)
 	}
 
 	// Attribution
