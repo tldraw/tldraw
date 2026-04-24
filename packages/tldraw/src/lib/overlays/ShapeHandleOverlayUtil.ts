@@ -65,17 +65,19 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		const minDist =
 			((isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoom) * 2
 
-		// Hide virtual and create handles whose nearest vertex handle is within
-		// ~2× the handle radius in screen space — otherwise the midpoint
-		// affordance collides visually with the endpoint circles when a
-		// segment is short.
+		// Vertex handles come first so they win hit-testing against overlapping
+		// virtual/create handles (e.g., a line's midpoint create handle that
+		// coincides with its endpoint vertices when a segment is very short).
+		// `render` iterates this array in reverse so the painted order puts
+		// vertex handles on top visually, matching the main branch's paint
+		// order where vertex handles were sorted last.
 		const filtered = handles
 			.filter(
 				(handle) =>
-					(handle.type !== 'virtual' && handle.type !== 'create') ||
+					handle.type !== 'virtual' ||
 					!handles.some((h) => h !== handle && h.type === 'vertex' && Vec.Dist(handle, h) < minDist)
 			)
-			.sort((a) => (a.type === 'vertex' ? 1 : -1))
+			.sort((a) => (a.type === 'vertex' ? -1 : 1))
 
 		return filtered.map((handle) => ({
 			id: `handle:${onlySelectedShape.id}:${handle.id}`,
@@ -137,7 +139,11 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		ctx.strokeStyle = strokeColor
 		ctx.lineWidth = this.options.lineWidth / zoom
 
-		for (const overlay of overlays) {
+		// Iterate in reverse: vertex handles come first in the array (for hit-
+		// test priority) but should paint last so they visually sit on top of
+		// overlapping virtual/create handles.
+		for (let i = overlays.length - 1; i >= 0; i--) {
+			const overlay = overlays[i]
 			const { handle } = overlay.props
 			const isHovered = overlay.id === hoveredOverlayId
 

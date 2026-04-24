@@ -157,7 +157,9 @@ export class OverlayManager {
 	 * Hit test all active overlays at a given page point.
 	 * Returns the topmost overlay whose geometry contains the point, or null.
 	 * Utils are walked from highest zIndex to lowest so the overlay painted on
-	 * top also wins the hit test.
+	 * top also wins the hit test. Within a util, overlays are walked in
+	 * array order: the first overlay whose geometry contains the point wins,
+	 * so utils should place highest-priority overlays first in `getOverlays`.
 	 * Interactive overlays (those with geometry) are checked; non-interactive are skipped.
 	 *
 	 * @param point - Point in page coordinates

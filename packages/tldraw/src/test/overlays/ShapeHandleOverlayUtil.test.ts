@@ -155,34 +155,20 @@ describe('ShapeHandleOverlayUtil', () => {
 			expect(overlays.some((o) => o.props.handle.type === 'virtual')).toBe(false)
 		})
 
-		it('sorts vertex handles after other types', () => {
-			// Use an explicit 200-unit segment so the midpoint create handle
-			// clears the minDist filter against its neighbor vertices.
-			editor.createShapes([
-				{
-					id: ids.line1,
-					type: 'line',
-					x: 100,
-					y: 100,
-					props: {
-						points: {
-							a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
-							a2: { id: 'a2', index: 'a2', x: 200, y: 0 },
-						},
-					},
-				},
-			] as any)
+		it('sorts vertex handles before other types for hit-test priority', () => {
+			editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
 			editor.select(ids.line1)
 			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
 			const types = util.getOverlays().map((o) => o.props.handle.type)
-			// Expect non-vertex first (create), then vertices at the end
-			const firstNonVertexIndex = types.findIndex((t: string) => t !== 'vertex')
+			// Expect vertices first (for hit-test priority), then non-vertex (create/virtual)
+			// handles at the end; `render` iterates this array in reverse so
+			// vertex handles still paint on top visually.
 			const firstVertexIndex = types.findIndex((t: string) => t === 'vertex')
-			const lastType = types[types.length - 1]
-			expect(firstNonVertexIndex).toBeGreaterThanOrEqual(0)
+			const firstNonVertexIndex = types.findIndex((t: string) => t !== 'vertex')
 			expect(firstVertexIndex).toBeGreaterThanOrEqual(0)
-			expect(firstNonVertexIndex).toBeLessThan(firstVertexIndex)
-			expect(lastType).toBe('vertex')
+			expect(firstNonVertexIndex).toBeGreaterThanOrEqual(0)
+			expect(firstVertexIndex).toBeLessThan(firstNonVertexIndex)
+			expect(types[0]).toBe('vertex')
 		})
 
 		it('returns empty array when shape is hidden', () => {
