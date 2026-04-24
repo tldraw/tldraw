@@ -1,12 +1,4 @@
-import {
-	DefaultHandle,
-	Mat,
-	TLHandle,
-	TLShapeId,
-	toDomPrecision,
-	useEditor,
-	useValue,
-} from 'tldraw'
+import { Mat, TLHandle, TLShapeId, toDomPrecision, useEditor, useValue } from 'tldraw'
 import { ControlLine, getGlobInfo, getNeighborGlobs, GlobShape } from './GlobShapeUtil'
 
 export function CustomHandles({ children }: { children: React.ReactNode }) {
@@ -121,7 +113,7 @@ function GlobHandlesWithControlLines({ glob }: { glob: GlobShape }) {
 }
 
 function HandleWrapper({
-	shapeId,
+	shapeId: _shapeId,
 	handle,
 	zoom,
 	isCoarse,
@@ -131,9 +123,10 @@ function HandleWrapper({
 	zoom: number
 	isCoarse: boolean
 }) {
+	const size = (isCoarse ? 20 : 12) / zoom
 	return (
 		<g transform={`translate(${handle.x}, ${handle.y})`}>
-			<DefaultHandle shapeId={shapeId} handle={handle} zoom={zoom} isCoarse={isCoarse} />
+			<circle className="tl-handle" r={size / 2} />
 		</g>
 	)
 }

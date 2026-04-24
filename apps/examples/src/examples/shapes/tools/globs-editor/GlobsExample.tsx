@@ -24,7 +24,6 @@ import {
 	useTools,
 	useValue,
 } from 'tldraw'
-import { CustomHandles } from './CustomHandles'
 import { GlobBinding, GlobBindingUtil } from './GlobBindingUtil'
 import { GlobShape, GlobShapeUtil } from './GlobShapeUtil'
 import { GlobTool } from './GlobTool/GlobTool'
@@ -154,7 +153,6 @@ const components: TLComponents = {
 			</DefaultToolbar>
 		)
 	},
-	Handles: CustomHandles,
 }
 
 const shapes = [NodeShapeUtil, GlobShapeUtil]
