@@ -1,0 +1,254 @@
+---
+title: Overlay utils
+status: published
+author: steveruizok
+date: 4/6/2026
+keywords:
+  - overlay
+  - overlays
+  - OverlayUtil
+  - canvas
+  - selection
+  - handles
+  - brush
+  - scribble
+  - snap
+  - hit testing
+---
+
+Overlay utils render ephemeral UI on the canvas — selection handles, brush rectangles, snap lines, scribbles, and shape handles. They draw directly to a `<canvas>` element using the Canvas 2D API and can optionally provide hit-test geometry for pointer interactions.
+
+Each overlay util defines a specific type of canvas UI. The editor queries all registered overlay utils reactively: when the editor state changes, overlay utils determine whether they are active, produce overlay instances, and render them.
+
+## How it works
+
+An [OverlayUtil](?) is an abstract class with four responsibilities:
+
+1. **Activation** — `isActive()` returns whether the overlay should render right now
+2. **Overlay instances** — `getOverlays()` returns the current set of overlay objects
+3. **Rendering** — `render()` draws overlays into a canvas 2D context
+4. **Hit testing** (optional) — `getGeometry()` returns geometry for interactive overlays
+
+The editor calls these methods reactively. When `isActive()` returns `false`, the overlay is skipped entirely. When it returns `true`, the editor calls `getOverlays()` and `render()` on each frame.
+
+## Default overlay utils
+
+The `tldraw` package includes these overlay utils by default:
+
+| Overlay util                         | Purpose                                |
+| ------------------------------------ | -------------------------------------- |
+| [SelectionForegroundOverlayUtil](?)  | Selection box, resize handles, corners |
+| [ShapeHandleOverlayUtil](?)          | Shape handles (arrows, lines, etc.)    |
+| [BrushOverlayUtil](?)                | Selection brush rectangle              |
+| [ZoomBrushOverlayUtil](?)            | Zoom brush rectangle                   |
+| [SnapIndicatorOverlayUtil](?)        | Snap alignment guides                  |
+| [ScribbleOverlayUtil](?)             | Eraser and lasso scribbles             |
+| [CollaboratorBrushOverlayUtil](?)    | Remote users' brush rectangles         |
+| [CollaboratorScribbleOverlayUtil](?) | Remote users' scribbles                |
+| [CollaboratorHintOverlayUtil](?)     | Remote users' viewport hints           |
+
+These are exported as [defaultOverlayUtils](?) from `tldraw`.
+
+## Creating an overlay util
+
+Extend the [OverlayUtil](?) class and implement at least `isActive()`, `getOverlays()`, and `render()`:
+
+```tsx
+import { OverlayUtil, TLOverlay } from '@tldraw/editor'
+
+interface MyHighlightOverlay extends TLOverlay {
+	props: {
+		x: number
+		y: number
+		radius: number
+	}
+}
+
+class HighlightOverlayUtil extends OverlayUtil<MyHighlightOverlay> {
+	static override type = 'highlight'
+
+	override isActive(): boolean {
+		// Active when there's exactly one selected shape
+		return this.editor.getSelectedShapeIds().length === 1
+	}
+
+	override getOverlays(): MyHighlightOverlay[] {
+		const shape = this.editor.getOnlySelectedShape()
+		if (!shape) return []
+
+		const bounds = this.editor.getShapePageBounds(shape)
+		if (!bounds) return []
+
+		return [
+			{
+				id: 'highlight',
+				type: 'highlight',
+				props: {
+					x: bounds.midX,
+					y: bounds.midY,
+					radius: Math.max(bounds.width, bounds.height) / 2 + 20,
+				},
+			},
+		]
+	}
+
+	override render(ctx: CanvasRenderingContext2D, overlays: MyHighlightOverlay[]): void {
+		const zoom = this.editor.getZoomLevel()
+		for (const overlay of overlays) {
+			const { x, y, radius } = overlay.props
+			ctx.beginPath()
+			ctx.arc(x, y, radius, 0, Math.PI * 2)
+			ctx.strokeStyle = 'dodgerblue'
+			ctx.lineWidth = 2 / zoom
+			ctx.stroke()
+		}
+	}
+}
+```
+
+### The overlay interface
+
+Each overlay is a plain object with `id`, `type`, and `props`:
+
+```tsx
+interface TLOverlay {
+	id: string // Unique identifier for this instance
+	type: string // Matches the overlay util's static type
+	props: Record<string, unknown> // Data needed for rendering and hit testing
+}
+```
+
+Define a custom interface extending [TLOverlay](?) to type your props. The `id` should be unique across all overlays of this type — for single-instance overlays like a brush, a fixed string works. For per-item overlays like shape handles, include the item's identity in the id.
+
+### Rendering
+
+The `render()` method receives a `CanvasRenderingContext2D` already transformed to page space (camera offset and zoom applied). Scale line widths and radii by `1 / zoom` to keep them constant on screen:
+
+```tsx
+override render(ctx: CanvasRenderingContext2D, overlays: MyOverlay[]): void {
+    const zoom = this.editor.getEfficientZoomLevel()
+    ctx.lineWidth = 1 / zoom
+    // ...draw your overlays
+}
+```
+
+### Hit testing
+
+By default, overlays are non-interactive. To make an overlay respond to pointer events, implement `getGeometry()` to return a [Geometry2d](?) in page coordinates:
+
+```tsx
+import { Circle2d, Geometry2d } from '@tldraw/editor'
+
+class MyInteractiveOverlayUtil extends OverlayUtil<MyOverlay> {
+	// ...isActive, getOverlays, render...
+
+	override getGeometry(overlay: MyOverlay): Geometry2d | null {
+		return new Circle2d({
+			x: overlay.props.x - 10,
+			y: overlay.props.y - 10,
+			radius: 10,
+			isFilled: true,
+		})
+	}
+
+	override getCursor(): TLCursorType | undefined {
+		return 'pointer'
+	}
+}
+```
+
+When the pointer moves over an overlay with geometry, the editor updates [OverlayManager#getHoveredOverlayId](?) and applies the cursor from `getCursor()`.
+
+## Registering overlay utils
+
+Pass your overlay utils through the `overlayUtils` prop on [Tldraw](?) or [TldrawEditor](?):
+
+```tsx
+import { Tldraw } from 'tldraw'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw overlayUtils={[HighlightOverlayUtil]} />
+		</div>
+	)
+}
+```
+
+When using the [Tldraw](?) component, your custom overlay utils are merged with the defaults — you don't need to re-include them. If your custom overlay util has the same `type` as a default one, it replaces the default.
+
+## Customizing default overlays
+
+To replace a default overlay, extend it and override the methods you want to change. Give it the same static `type` so it replaces the built-in:
+
+```tsx
+import { Tldraw, BrushOverlayUtil, type TLBrushOverlay } from 'tldraw'
+
+class BlueBrushOverlayUtil extends BrushOverlayUtil {
+	override render(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[]): void {
+		const overlay = overlays[0]
+		if (!overlay) return
+
+		const { x, y, w, h } = overlay.props
+		const zoom = this.editor.getZoomLevel()
+
+		ctx.beginPath()
+		ctx.rect(x, y, w, h)
+		ctx.fillStyle = 'rgba(0, 0, 255, 0.1)'
+		ctx.fill()
+		ctx.lineWidth = 1 / zoom
+		ctx.strokeStyle = 'blue'
+		ctx.stroke()
+	}
+}
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw overlayUtils={[BlueBrushOverlayUtil]} />
+		</div>
+	)
+}
+```
+
+Since `BlueBrushOverlayUtil` inherits the same `type` as `BrushOverlayUtil`, it replaces the default brush overlay.
+
+### Options via configure
+
+Overlay utils can define an `options` property for configuration. Use the static [OverlayUtil#configure](?) method to create a customized version without subclassing:
+
+```tsx
+class MyOverlayUtil extends OverlayUtil<MyOverlay> {
+	static override type = 'my_overlay'
+	override options = { color: 'red', radius: 10 }
+
+	// ...use this.options.color and this.options.radius in render()
+}
+
+// Create a variant with different options
+const BlueOverlay = MyOverlayUtil.configure({ color: 'blue' })
+```
+
+## Accessing overlay utils at runtime
+
+Use [Editor#overlays](?) to interact with the overlay system:
+
+```tsx
+// Get a specific overlay util
+const brushUtil = editor.overlays.getOverlayUtil<BrushOverlayUtil>('brush')
+
+// Get all currently active overlays
+const activeOverlays = editor.overlays.getCurrentOverlays()
+
+// Hit test at a page point
+const overlay = editor.overlays.getOverlayAtPoint({ x: 100, y: 200 })
+
+// Check what's hovered
+const hoveredId = editor.overlays.getHoveredOverlayId()
+```
+
+## Related articles
+
+- [Shapes](/sdk-features/shapes) - The shape system that overlays interact with
+- [Indicators](/sdk-features/indicators) - Shape indicators rendered alongside overlays
+- [Scribble](/sdk-features/scribble) - Scribble system rendered via overlay utils

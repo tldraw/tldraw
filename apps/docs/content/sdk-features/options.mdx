@@ -312,18 +312,19 @@ function App() {
 
 These props configure how the editor initializes:
 
-| Prop                 | Type                                                    | Description                                 |
-| -------------------- | ------------------------------------------------------- | ------------------------------------------- |
-| `autoFocus`          | `boolean`                                               | Automatically focus the editor on mount     |
-| `initialState`       | `string`                                                | Initial tool state (defaults to `'select'`) |
-| `shapeUtils`         | `TLShapeUtilConstructor[]`                              | Custom shape utilities                      |
-| `bindingUtils`       | `TLBindingUtilConstructor[]`                            | Custom binding utilities                    |
-| `tools`              | `TLStateNodeConstructor[]`                              | Custom tools                                |
-| `onMount`            | `TLOnMountHandler`                                      | Callback when editor mounts                 |
-| `getShapeVisibility` | `(shape, editor) => 'visible' \| 'hidden' \| 'inherit'` | Conditionally hide shapes                   |
-| `user`               | `TLCurrentUser`                                         | Current user information                    |
-| `colorScheme`        | `'light' \| 'dark' \| 'system'`                         | Color scheme (defaults to `'light'`)        |
-| `licenseKey`         | `string`                                                | License key to remove watermark             |
+| Prop                 | Type                                                    | Description                                             |
+| -------------------- | ------------------------------------------------------- | ------------------------------------------------------- |
+| `autoFocus`          | `boolean`                                               | Automatically focus the editor on mount                 |
+| `initialState`       | `string`                                                | Initial tool state (defaults to `'select'`)             |
+| `shapeUtils`         | `TLShapeUtilConstructor[]`                              | Custom shape utilities                                  |
+| `bindingUtils`       | `TLBindingUtilConstructor[]`                            | Custom binding utilities                                |
+| `overlayUtils`       | `TLAnyOverlayUtilConstructor[]`                         | Custom [overlay utilities](/sdk-features/overlay-utils) |
+| `tools`              | `TLStateNodeConstructor[]`                              | Custom tools                                            |
+| `onMount`            | `TLOnMountHandler`                                      | Callback when editor mounts                             |
+| `getShapeVisibility` | `(shape, editor) => 'visible' \| 'hidden' \| 'inherit'` | Conditionally hide shapes                               |
+| `user`               | `TLCurrentUser`                                         | Current user information                                |
+| `colorScheme`        | `'light' \| 'dark' \| 'system'`                         | Color scheme (defaults to `'light'`)                    |
+| `licenseKey`         | `string`                                                | License key to remove watermark                         |
 
 The `getShapeVisibility` callback lets you conditionally hide shapes based on their properties:
 

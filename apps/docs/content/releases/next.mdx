@@ -8,7 +8,7 @@ status: published
 last_version: v4.5.10
 ---
 
-This release adds a first-class theme system with display values for customizing default shapes, extensible asset types via a new `AssetUtil` system, shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, arbitrary iframe embed pasting, a paste-as-plain-text keyboard shortcut, smarter export trimming, extensibility APIs for custom frame-like shapes and custom geo types. It also includes various other improvements and bug fixes.
+This release adds a first-class theme system with display values for customizing default shapes, a new canvas overlay system that replaces React component overrides with Canvas 2D rendering, extensible asset types via a new `AssetUtil` system, shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, arbitrary iframe embed pasting, a paste-as-plain-text keyboard shortcut, smarter export trimming, and extensibility APIs for custom frame-like shapes and custom geo types. It also includes various other improvements and bug fixes.
 
 ## What's new
 
@@ -229,6 +229,37 @@ A new `Cmd+Shift+V` / `Ctrl+Shift+V` shortcut pastes clipboard content as plain 
 
 Note: `Cmd+Shift+V` previously toggled paste-at-cursor positioning. Since the "Paste at cursor" preference now covers that use case, this shortcut has been repurposed for plain text paste. Users who relied on `Cmd+Shift+V` for paste-at-cursor should use the preference toggle instead.
 
+### 💥 Canvas overlay system ([overlay utils](/sdk-features/overlay-utils))
+
+Canvas overlay UI — the selection foreground, brush rectangles, snap indicators, shape handles, scribbles, and collaborator presence visuals — is now rendered via a new `OverlayUtil` system instead of React components. Overlays draw directly to a `<canvas>` element using the Canvas 2D API, with optional hit-test geometry for pointer interactions.
+
+Pass custom overlay utils through the `overlayUtils` prop on `<Tldraw>` or `<TldrawEditor>`. Custom utils are merged with the defaults; if your util has the same `type` as a built-in, it replaces it:
+
+```tsx
+import { Tldraw, BrushOverlayUtil, type TLBrushOverlay } from 'tldraw'
+
+class BlueBrushOverlayUtil extends BrushOverlayUtil {
+	override render(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[]): void {
+		const overlay = overlays[0]
+		if (!overlay) return
+		const { x, y, w, h } = overlay.props
+		ctx.fillStyle = 'rgba(0, 0, 255, 0.1)'
+		ctx.fillRect(x, y, w, h)
+	}
+}
+
+;<Tldraw overlayUtils={[BlueBrushOverlayUtil]} />
+```
+
+<details>
+<summary>Migration guide</summary>
+
+The following `TLEditorComponents` entries have been removed: `Brush`, `CollaboratorBrush`, `CollaboratorHint`, `CollaboratorScribble`, `Handle`, `Handles`, `Scribble`, `SelectionForeground`, `SnapIndicator`, and `ZoomBrush`. Their corresponding default implementations (`DefaultBrush`, `DefaultScribble`, `DefaultHandles`, `DefaultHandle`, `DefaultSelectionForeground`, `DefaultSnapIndicator`, `DefaultCollaboratorHint`) and prop types (`TLBrushProps`, `TLScribbleProps`, `TLHandleProps`, `TLHandlesProps`, `TLSelectionForegroundProps`, `TLSnapIndicatorProps`, `TLCollaboratorHintProps`) have also been removed.
+
+If you were overriding these via the `components` prop, create a custom `OverlayUtil` subclass instead and pass it via `overlayUtils`. See the [overlay utils documentation](/sdk-features/overlay-utils) for details.
+
+</details>
+
 ### Cross-window embedding support ([#8196](https://github.com/tldraw/tldraw/pull/8196))
 
 Tldraw now works correctly when embedded in iframes, Electron pop-out windows, and Obsidian plugins where the global `document` and `window` differ from the ones tldraw is mounted in. All bare `document` and `window` references have been replaced with container-aware alternatives.
@@ -269,6 +300,9 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Add `TLUserStore` interface with `getCurrentUser()` and `resolve()` for connecting tldraw to auth systems. Add unified `TLUser` record type, `UserRecordType`, `createUserId`, `isUserId`, `userIdValidator`, and `createUserRecordType()` for extensible user schemas. Add `user` parameter to `createTLSchema()`. Add `Editor.getAttributionUser()`, `Editor.getAttributionUserId()`, and `Editor.getAttributionDisplayName()`. Add `textFirstEditedBy` prop to `TLNoteShapeProps`. ([#8147](https://github.com/tldraw/tldraw/pull/8147))
 - Add `AssetUtil` base class with `configure()`, `getDefaultProps()`, `getSupportedMimeTypes()`, `getAssetFromFile()`, and `createShape()`. Add `assetUtils` prop to `<Tldraw>`. Add `Editor.getAssetUtil()`, `Editor.hasAssetUtil()`, and `Editor.getAssetUtilForMimeType()`. Add `TLGlobalAssetPropsMap` for type-safe custom asset registration. Add `createAssetRecordType()`, `defaultAssetSchemas`, and `assets` parameter to `createTLSchema()`. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
 - Add `Cmd+Shift+V` / `Ctrl+Shift+V` shortcut to paste clipboard content as plain text. `Cmd+Shift+V` no longer toggles paste-at-cursor positioning. ([#8347](https://github.com/tldraw/tldraw/pull/8347))
+- 💥 Remove `Brush`, `CollaboratorBrush`, `CollaboratorHint`, `CollaboratorScribble`, `Handle`, `Handles`, `Scribble`, `SelectionForeground`, `SnapIndicator`, and `ZoomBrush` from `TLEditorComponents`. Remove their default implementations and prop types. These are now rendered via the `OverlayUtil` system.
+- Add `OverlayUtil` base class, `OverlayManager`, `TLOverlay`, `TLOverlayUtilConstructor`, and `TLAnyOverlayUtilConstructor` to `@tldraw/editor`. Add `overlayUtils` prop to `<Tldraw>` and `<TldrawEditor>`. Add `Editor.overlays` (`OverlayManager`) with `getUtil()`, `getActiveOverlays()`, `getOverlayAtPoint()`, `getHoveredOverlayId()`, `setHoveredOverlay()`, and `getUtilForOverlay()`.
+- Add `BrushOverlayUtil`, `ZoomBrushOverlayUtil`, `ScribbleOverlayUtil`, `CollaboratorBrushOverlayUtil`, `CollaboratorScribbleOverlayUtil`, `CollaboratorHintOverlayUtil`, `ShapeHandleOverlayUtil`, `SelectionForegroundOverlayUtil`, `SnapIndicatorOverlayUtil`, `ArrowHintOverlayUtil`, and `defaultOverlayUtils` to `tldraw`.
 
 ## Improvements
 
