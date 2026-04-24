@@ -19,7 +19,6 @@ import { TLAnyAssetUtilConstructor } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { ImageAssetUtil } from './assets/ImageAssetUtil'
 import { VideoAssetUtil } from './assets/VideoAssetUtil'
-import { TldrawScribble } from './canvas/TldrawScribble'
 import { defaultAssetUtils } from './defaultAssetUtils'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { TLEmbedDefinition } from './defaultEmbedDefinitions'
@@ -174,7 +173,6 @@ export function Tldraw(props: TldrawProps) {
 	}, [rest.hideUi, CustomInFrontOfTheCanvas])
 	const componentsWithDefault = useMemo(
 		() => ({
-			CollaboratorScribble: TldrawScribble,
 			Spinner,
 			LoadingScreen,
 			..._components,

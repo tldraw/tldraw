@@ -1,13 +1,9 @@
 import { ReactNode, useMemo } from 'react'
 import { DefaultBackground } from '../components/default-components/DefaultBackground'
-import { DefaultBrush } from '../components/default-components/DefaultBrush'
 import { DefaultCanvas } from '../components/default-components/DefaultCanvas'
-import { DefaultCollaboratorHint } from '../components/default-components/DefaultCollaboratorHint'
-import { DefaultCursor } from '../components/default-components/DefaultCursor'
 import { DefaultErrorFallback } from '../components/default-components/DefaultErrorFallback'
 import { DefaultGrid } from '../components/default-components/DefaultGrid'
 import { DefaultLoadingScreen } from '../components/default-components/DefaultLoadingScreen'
-import { DefaultScribble } from '../components/default-components/DefaultScribble'
 import { DefaultShapeErrorFallback } from '../components/default-components/DefaultShapeErrorFallback'
 import { DefaultShapeWrapper } from '../components/default-components/DefaultShapeWrapper'
 import { DefaultSpinner } from '../components/default-components/DefaultSpinner'
@@ -33,11 +29,6 @@ export function EditorComponentsProvider({
 		(): Required<TLEditorComponents> => ({
 			Background: DefaultBackground,
 			Canvas: DefaultCanvas,
-			CollaboratorBrush: DefaultBrush,
-			CollaboratorCursor: DefaultCursor,
-			CollaboratorHint: DefaultCollaboratorHint,
-			CollaboratorScribble: DefaultScribble,
-			Cursor: DefaultCursor,
 			Grid: DefaultGrid,
 			InFrontOfTheCanvas: null,
 			LoadingScreen: DefaultLoadingScreen,

@@ -14,28 +14,15 @@ export * from '@tldraw/utils'
 export * from '@tldraw/validate'
 
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
-export { DefaultBrush, type TLBrushProps } from './lib/components/default-components/DefaultBrush'
 export {
 	DefaultCanvas,
 	type TLCanvasComponentProps,
 } from './lib/components/default-components/DefaultCanvas'
 export {
-	DefaultCollaboratorHint,
-	type TLCollaboratorHintProps,
-} from './lib/components/default-components/DefaultCollaboratorHint'
-export {
-	DefaultCursor,
-	type TLCursorProps,
-} from './lib/components/default-components/DefaultCursor'
-export {
 	DefaultErrorFallback,
 	type TLErrorFallbackComponent,
 } from './lib/components/default-components/DefaultErrorFallback'
 export { DefaultGrid, type TLGridProps } from './lib/components/default-components/DefaultGrid'
-export {
-	DefaultScribble,
-	type TLScribbleProps,
-} from './lib/components/default-components/DefaultScribble'
 export {
 	DefaultSelectionBackground,
 	type TLSelectionBackgroundProps,
