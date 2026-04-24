@@ -8,7 +8,7 @@ status: published
 last_version: v4.5.10
 ---
 
-This release adds a first-class theme system with display values for customizing default shapes, extensible asset types via a new `AssetUtil` system, shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, arbitrary iframe embed pasting, a paste-as-plain-text keyboard shortcut, smarter export trimming, extensibility APIs for custom frame-like shapes and custom geo types. It also includes various other improvements and bug fixes.
+This release adds a first-class theme system with display values for customizing default shapes, extensible asset types via a new `AssetUtil` system, shape attribution with a new `TLUserStore` provider and extensible user records, clipboard hooks for intercepting copy, cut, and paste, custom record types to the store, a new `@tldraw/mermaid` package for converting Mermaid diagrams to native shapes, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, performance measurement hooks on the editor, right-click-and-drag panning, RTL language support in the UI, cross-window embedding support, arbitrary iframe embed pasting, a paste-as-plain-text keyboard shortcut, smarter export trimming, extensibility APIs for custom frame-like shapes and custom geo types. It also includes various other improvements and bug fixes.
 
 ## What's new
 
@@ -229,6 +229,24 @@ A new `Cmd+Shift+V` / `Ctrl+Shift+V` shortcut pastes clipboard content as plain 
 
 Note: `Cmd+Shift+V` previously toggled paste-at-cursor positioning. Since the "Paste at cursor" preference now covers that use case, this shortcut has been repurposed for plain text paste. Users who relied on `Cmd+Shift+V` for paste-at-cursor should use the preference toggle instead.
 
+### Right-click and drag to pan ([#8501](https://github.com/tldraw/tldraw/pull/8501))
+
+Right-click and drag now pans the camera, matching tools like Figma. A static right-click still opens the context menu on release. The new `rightClickPanning` option on `TldrawOptions` defaults to `true` — set it to `false` to restore the previous behavior where right-click opens the context menu on press with no drag-to-pan.
+
+### Performance measurement hooks ([#8421](https://github.com/tldraw/tldraw/pull/8421))
+
+A new `editor.performance` API lets SDK users subscribe to editor performance events: interaction frame times (translating, resizing, drawing), camera pan/zoom sessions, shape create/update/delete operations, and undo/redo timings. Events aggregate frame-time percentiles (avg / median / p95 / p99) and, on Chromium, attach Long Animation Frame data with per-script attribution for diagnosing jank.
+
+```tsx
+const unsubscribe = editor.performance.on('interaction-end', (event) => {
+	// forward to analytics
+	const { frameTimes, longAnimationFrames, ...metrics } = event
+	track('editor.interaction', metrics)
+})
+```
+
+The manager is zero-overhead when no listeners are attached. Custom tools opt in to interaction tracking via `static trackPerformance = true` on the `StateNode`. A `PerformanceApiAdapter` is also available for piping events into the browser Performance API for DevTools timelines.
+
 ### Cross-window embedding support ([#8196](https://github.com/tldraw/tldraw/pull/8196))
 
 Tldraw now works correctly when embedded in iframes, Electron pop-out windows, and Obsidian plugins where the global `document` and `window` differ from the ones tldraw is mounted in. All bare `document` and `window` references have been replaced with container-aware alternatives.
@@ -269,6 +287,14 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Add `TLUserStore` interface with `getCurrentUser()` and `resolve()` for connecting tldraw to auth systems. Add unified `TLUser` record type, `UserRecordType`, `createUserId`, `isUserId`, `userIdValidator`, and `createUserRecordType()` for extensible user schemas. Add `user` parameter to `createTLSchema()`. Add `Editor.getAttributionUser()`, `Editor.getAttributionUserId()`, and `Editor.getAttributionDisplayName()`. Add `textFirstEditedBy` prop to `TLNoteShapeProps`. ([#8147](https://github.com/tldraw/tldraw/pull/8147))
 - Add `AssetUtil` base class with `configure()`, `getDefaultProps()`, `getSupportedMimeTypes()`, `getAssetFromFile()`, and `createShape()`. Add `assetUtils` prop to `<Tldraw>`. Add `Editor.getAssetUtil()`, `Editor.hasAssetUtil()`, and `Editor.getAssetUtilForMimeType()`. Add `TLGlobalAssetPropsMap` for type-safe custom asset registration. Add `createAssetRecordType()`, `defaultAssetSchemas`, and `assets` parameter to `createTLSchema()`. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
 - Add `Cmd+Shift+V` / `Ctrl+Shift+V` shortcut to paste clipboard content as plain text. `Cmd+Shift+V` no longer toggles paste-at-cursor positioning. ([#8347](https://github.com/tldraw/tldraw/pull/8347))
+- 💥 Move the `Cmd+Shift+C` / `Ctrl+Shift+C` shortcut from "Copy as SVG" to "Copy as PNG". ([#8532](https://github.com/tldraw/tldraw/pull/8532))
+- Add `TldrawOptions.rightClickPanning` (default `true`) to gate the new right-click drag-to-pan behavior. Add `InputsManager.getIsRightPointing()` / `setIsRightPointing()`. ([#8501](https://github.com/tldraw/tldraw/pull/8501))
+- Add `Editor.performance` (`PerformanceManager`) with `on()`, `once()`, and `dispose()` for subscribing to interaction, camera, shape-operation, frame, and undo/redo performance events. Add `PerformanceApiAdapter` for piping events into the browser Performance API. Add `StateNode.trackPerformance` static field so custom tools can opt into interaction tracking. Add `TLPerfFrameTimeStats`, `TLPerfEventMap`, `TLInteractionStartPerfEvent`, `TLInteractionEndPerfEvent`, `TLCameraStartPerfEvent`, `TLCameraEndPerfEvent`, `TLShapeOperationPerfEvent`, `TLFramePerfEvent`, `TLUndoRedoPerfEvent`, `TLPerfLongAnimationFrame`, and `TLPerfLongAnimationFrameScript`. ([#8421](https://github.com/tldraw/tldraw/pull/8421))
+- Add Canva to `DEFAULT_EMBED_DEFINITIONS` so Canva design URLs paste as iframe embeds. ([#8459](https://github.com/tldraw/tldraw/pull/8459))
+- Add `'none'` to `TLDefaultDashStyle` for hiding shape borders while preserving fills. The option is not exposed in the style panel — it can only be set programmatically. Add `NonePathBuilderOpts`; `PathBuilder.toSvg()` now returns `null` for the `'none'` style. ([#8453](https://github.com/tldraw/tldraw/pull/8453))
+- Expose `PeopleMenu`, `PeopleMenuItem`, `PeopleMenuFacePile`, and `UserPresenceEditor` through `TldrawUiComponents` so the share panel sub-components can be overridden via the `<Tldraw />` `components` prop. ([#8346](https://github.com/tldraw/tldraw/pull/8346)) (contributed by [@kaneel](https://github.com/kaneel))
+- Export `defaultHandleExternalFileReplaceContent`, which was previously referenced in docs but missing from the package's public exports. ([#8579](https://github.com/tldraw/tldraw/pull/8579)) (contributed by [@angrycaptain19](https://github.com/angrycaptain19))
+- Add `Vec.IsFinite()` for checking whether a vector has finite coordinates. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 
 ## Improvements
 
@@ -303,3 +329,16 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix spiky artifacts on draw-style geometric shapes by using a circular random offset distribution instead of a square one. ([#8466](https://github.com/tldraw/tldraw/pull/8466))
 - Fix opacity slider drag not working on Safari due to `stopPropagation` blocking pointer events. ([#8519](https://github.com/tldraw/tldraw/pull/8519))
 - Fix sticky notes preserving stale attribution when cloned via a nib. ([#8614](https://github.com/tldraw/tldraw/pull/8614))
+- Fix a memory leak where disposed `Editor` instances were retained through the `window.__tldraw__hardReset` global. ([#8476](https://github.com/tldraw/tldraw/pull/8476))
+- Fix a memory leak where disposed `Editor` instances were retained through a shared throttled `updateHoveredShapeId` closure. ([#8439](https://github.com/tldraw/tldraw/pull/8439))
+- Fix camera state getting stuck at `'moving'` when the editor is disposed mid-transition (e.g. deep links under React strict mode), which blocked all pointer interactions on the canvas. ([#8396](https://github.com/tldraw/tldraw/pull/8396))
+- Fix all shapes disappearing when a labeled arrow has zero length (both endpoints overlapping), which previously propagated NaN values through the spatial index. ([#8329](https://github.com/tldraw/tldraw/pull/8329))
+- Fix crash when isolating curved arrows with degenerate binding geometry. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
+- Fix keyboard shortcuts that change styles not marking the change as a style update, causing subsequent shapes to use the wrong defaults. ([#8599](https://github.com/tldraw/tldraw/pull/8599)) (contributed by [@danieljamesross](https://github.com/danieljamesross))
+- Fix quick zoom mode (Z + Shift) cursor anchor and brush misalignment when the tldraw container is offset from the top-left of the window. ([#8520](https://github.com/tldraw/tldraw/pull/8520))
+- Fix context menu items accidentally being selected when right-clicking and quickly moving the mouse. ([#8499](https://github.com/tldraw/tldraw/pull/8499)) (contributed by [@kostyafarber](https://github.com/kostyafarber))
+- Fix context menu briefly flashing when right-clicking to dismiss an already-open context menu. ([#8498](https://github.com/tldraw/tldraw/pull/8498)) (contributed by [@kostyafarber](https://github.com/kostyafarber))
+- Fix crash in browsers without `OffscreenCanvas` support (e.g. older Safari) when preloading image alpha data. ([#8582](https://github.com/tldraw/tldraw/pull/8582))
+- Fix intermittent `ResizeObserver loop` browser warnings when hovering over toolbar buttons. ([#8574](https://github.com/tldraw/tldraw/pull/8574))
+- Fix duplicate presence cursors appearing after login or logout in multiplayer sessions by filtering a session's own stale record from the connect handshake response. ([#8542](https://github.com/tldraw/tldraw/pull/8542))
+- Fix TypeScript signature mismatch on `ShapeUtil` base-class methods so overrides that need a `shape` parameter can declare it without errors. ([#8521](https://github.com/tldraw/tldraw/pull/8521))
