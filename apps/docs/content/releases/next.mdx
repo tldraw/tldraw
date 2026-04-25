@@ -303,3 +303,4 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix spiky artifacts on draw-style geometric shapes by using a circular random offset distribution instead of a square one. ([#8466](https://github.com/tldraw/tldraw/pull/8466))
 - Fix opacity slider drag not working on Safari due to `stopPropagation` blocking pointer events. ([#8519](https://github.com/tldraw/tldraw/pull/8519))
 - Fix sticky notes preserving stale attribution when cloned via a nib. ([#8614](https://github.com/tldraw/tldraw/pull/8614))
+- Fix Cmd+V paste of "Copy as PNG" content silently failing in Chrome 147 by falling back to `image/png` when the unsanitized custom-format blob comes back empty. ([#8615](https://github.com/tldraw/tldraw/pull/8615))
