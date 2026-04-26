@@ -2058,7 +2058,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     getGeometry(shape: TLGroupShape): Geometry2d;
     // (undocumented)
-    getIndicatorPath(): undefined;
+    getIndicatorPath(shape: TLGroupShape): Path2D;
     // (undocumented)
     hideSelectionBoundsFg(shape: TLGroupShape): boolean;
     // (undocumented)
