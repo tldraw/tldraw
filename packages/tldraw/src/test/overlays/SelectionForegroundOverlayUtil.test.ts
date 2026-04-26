@@ -170,6 +170,22 @@ describe('SelectionForegroundOverlayUtil', () => {
 			expect(overlays.some((o) => o.id === 'selection_fg:top_left')).toBe(true)
 		})
 
+		it('hides crop edge targets when alternate crop handles are hidden', () => {
+			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 36, h: 36 } }])
+			editor.select(ids.box1)
+			editor.updateCurrentPageState({ croppingShapeId: ids.box1 })
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const idsSet = new Set(util.getOverlays().map((o) => o.id))
+
+			expect(idsSet.has('selection_fg:top')).toBe(false)
+			expect(idsSet.has('selection_fg:right')).toBe(false)
+			expect(idsSet.has('selection_fg:bottom')).toBe(false)
+			expect(idsSet.has('selection_fg:left')).toBe(false)
+			expect(idsSet.has('selection_fg:top_left')).toBe(true)
+			expect(idsSet.has('selection_fg:bottom_right')).toBe(true)
+		})
+
 		it('hides edge handles on coarse pointer', () => {
 			editor.updateInstanceState({ isCoarsePointer: true })
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])

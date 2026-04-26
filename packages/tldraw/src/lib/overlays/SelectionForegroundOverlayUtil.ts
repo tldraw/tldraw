@@ -73,6 +73,7 @@ interface SelectionState {
 	showMobileRotateHandle: boolean
 	showHandles: boolean
 	hideAlternateCornerHandles: boolean
+	hideAlternateCropHandles: boolean
 	showOnlyOneHandle: boolean
 }
 
@@ -198,8 +199,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 
 		const {
 			showCropHandles,
-			isSmallX,
-			isSmallY,
+			hideAlternateCropHandles,
 			hideAlternateCornerHandles,
 			showOnlyOneHandle,
 			isCoarsePointer,
@@ -207,11 +207,11 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		} = state
 
 		const hideVerticalEdgeTargets = showCropHandles
-			? isSmallX || isSmallY
+			? hideAlternateCropHandles
 			: hideAlternateCornerHandles || showOnlyOneHandle || isCoarsePointer
 		const isMobileAndTextShape = isCoarsePointer && !!onlyShape && onlyShape.type === 'text'
 		const hideHorizontalEdgeTargets = showCropHandles
-			? isSmallX || isSmallY
+			? hideAlternateCropHandles
 			: hideVerticalEdgeTargets && !isMobileAndTextShape
 
 		if (!hideVerticalEdgeTargets) {
@@ -324,10 +324,9 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		if (!state.showCropHandles) return
 
 		const { strokeColor } = this._getThemeColors()
-		const { size, width, height, isTinyX, isTinyY } = state
+		const { size, width, height, hideAlternateCropHandles } = state
 		const cropStrokeWidth = size / 3
 		const offset = cropStrokeWidth / 2
-		const hideAlternate = isTinyX || isTinyY
 
 		ctx.beginPath()
 		ctx.strokeStyle = strokeColor
@@ -345,7 +344,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		ctx.lineTo(width + offset, height + offset)
 		ctx.lineTo(width - size, height + offset)
 
-		if (!hideAlternate) {
+		if (!hideAlternateCropHandles) {
 			// top_right corner
 			ctx.moveTo(width - size, -offset)
 			ctx.lineTo(width + offset, -offset)
@@ -461,6 +460,8 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		const isTinyY = height < size * 2
 		const isSmallX = width < size * 4
 		const isSmallY = height < size * 4
+		const isSmallCropX = width < size * 5
+		const isSmallCropY = height < size * 5
 
 		const mobileHandleMultiplier = isCoarsePointer ? 1.75 : 1
 		const targetSize = (6 / zoom) * mobileHandleMultiplier
@@ -511,6 +512,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
 
 		const hideAlternateCornerHandles = isTinyX || isTinyY
+		const hideAlternateCropHandles = isSmallCropX || isSmallCropY
 		const showOnlyOneHandle = isTinyX && isTinyY
 		const showHandles = showResizeHandles || showCropHandles
 
@@ -564,6 +566,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			showMobileRotateHandle,
 			showHandles,
 			hideAlternateCornerHandles,
+			hideAlternateCropHandles,
 			showOnlyOneHandle,
 		}
 	}
