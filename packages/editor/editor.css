@@ -1037,6 +1037,13 @@ input,
 	height: max-content;
 }
 
+.tl-arrow-hint {
+	stroke: var(--tl-color-text-1);
+	fill: none;
+	stroke-linecap: round;
+	overflow: visible;
+}
+
 /* ------------------- Bookmark shape ------------------- */
 
 .tl-bookmark__container {
