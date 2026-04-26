@@ -231,7 +231,7 @@ Note: `Cmd+Shift+V` previously toggled paste-at-cursor positioning. Since the "P
 
 ### 💥 Canvas overlay system ([overlay utils](/sdk-features/overlay-utils))
 
-Canvas overlay UI — the selection foreground, brush rectangles, snap indicators, shape handles, scribbles, and collaborator presence visuals — is now rendered via a new `OverlayUtil` system instead of React components. Overlays draw directly to a `<canvas>` element using the Canvas 2D API, with optional hit-test geometry for pointer interactions.
+Canvas overlay UI — the selection foreground, brush rectangles, snap indicators, shape indicators, shape handles, scribbles, arrow hints, and collaborator presence visuals — is now rendered via a new `OverlayUtil` system instead of React components. Overlays draw directly to a `<canvas>` element using the Canvas 2D API, with optional hit-test geometry for pointer interactions.
 
 Pass custom overlay utils through the `overlayUtils` prop on `<Tldraw>` or `<TldrawEditor>`. Custom utils are merged with the defaults; if your util has the same `type` as a built-in, it replaces it:
 
@@ -254,9 +254,17 @@ class BlueBrushOverlayUtil extends BrushOverlayUtil {
 <details>
 <summary>Migration guide</summary>
 
-The following `TLEditorComponents` entries have been removed: `Brush`, `CollaboratorBrush`, `CollaboratorHint`, `CollaboratorScribble`, `Handle`, `Handles`, `Scribble`, `SelectionForeground`, `SnapIndicator`, and `ZoomBrush`. Their corresponding default implementations (`DefaultBrush`, `DefaultScribble`, `DefaultHandles`, `DefaultHandle`, `DefaultSelectionForeground`, `DefaultSnapIndicator`, `DefaultCollaboratorHint`) and prop types (`TLBrushProps`, `TLScribbleProps`, `TLHandleProps`, `TLHandlesProps`, `TLSelectionForegroundProps`, `TLSnapIndicatorProps`, `TLCollaboratorHintProps`) have also been removed.
+The following `TLEditorComponents` entries have been removed: `Brush`, `CollaboratorBrush`, `CollaboratorCursor`, `CollaboratorHint`, `CollaboratorScribble`, `CollaboratorShapeIndicator`, `Cursor`, `Handle`, `Handles`, `Overlays`, `Scribble`, `SelectionForeground`, `ShapeIndicator`, `ShapeIndicatorErrorFallback`, `ShapeIndicators`, `SnapIndicator`, and `ZoomBrush`. Their corresponding default implementations (`DefaultBrush`, `DefaultCollaboratorHint`, `DefaultCursor`, `DefaultHandle`, `DefaultHandles`, `DefaultScribble`, `DefaultSelectionForeground`, `DefaultShapeIndicator`, `DefaultShapeIndicators`, `DefaultSnapIndicator`) and prop types (`TLBrushProps`, `TLCollaboratorHintProps`, `TLCursorProps`, `TLHandleProps`, `TLHandlesProps`, `TLScribbleProps`, `TLSelectionForegroundProps`, `TLShapeIndicatorProps`, `TLShapeIndicatorErrorFallbackComponent`, `TLShapeIndicatorsProps`, `TLSnapIndicatorProps`) have also been removed.
 
 If you were overriding these via the `components` prop, create a custom `OverlayUtil` subclass instead and pass it via `overlayUtils`. See the [overlay utils documentation](/sdk-features/overlay-utils) for details.
+
+The following `tldraw` canvas helpers have also been removed: `TldrawArrowHints`, `TldrawCropHandles`, `TldrawCropHandlesProps`, `TldrawHandles`, `TldrawOverlays`, `TldrawScribble`, `TldrawSelectionForeground`, and `TldrawShapeIndicators`.
+
+Custom shape utils must now implement `getIndicatorPath()`. `indicator()` is deprecated and no longer rendered, and `useLegacyIndicator()` has been removed. Return a `Path2D` (or `TLIndicatorPath` for clipped / multi-path indicators) from `getIndicatorPath()` instead.
+
+`TldrawOptions.useCanvasIndicators` has been removed. Shape indicators now always render through `ShapeIndicatorOverlayUtil`; replace that overlay util if you need custom indicator visibility or styling.
+
+Custom themes must include the overlay UI colors `snap`, `selectionStroke`, `selectionFill`, `brushFill`, `brushStroke`, `selectedContrast`, and `laser`.
 
 </details>
 
@@ -298,9 +306,13 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Add `TLUserStore` interface with `getCurrentUser()` and `resolve()` for connecting tldraw to auth systems. Add unified `TLUser` record type, `UserRecordType`, `createUserId`, `isUserId`, `userIdValidator`, and `createUserRecordType()` for extensible user schemas. Add `user` parameter to `createTLSchema()`. Add `Editor.getAttributionUser()`, `Editor.getAttributionUserId()`, and `Editor.getAttributionDisplayName()`. Add `textFirstEditedBy` prop to `TLNoteShapeProps`. ([#8147](https://github.com/tldraw/tldraw/pull/8147))
 - Add `AssetUtil` base class with `configure()`, `getDefaultProps()`, `getSupportedMimeTypes()`, `getAssetFromFile()`, and `createShape()`. Add `assetUtils` prop to `<Tldraw>`. Add `Editor.getAssetUtil()`, `Editor.hasAssetUtil()`, and `Editor.getAssetUtilForMimeType()`. Add `TLGlobalAssetPropsMap` for type-safe custom asset registration. Add `createAssetRecordType()`, `defaultAssetSchemas`, and `assets` parameter to `createTLSchema()`. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
 - Add `Cmd+Shift+V` / `Ctrl+Shift+V` shortcut to paste clipboard content as plain text. `Cmd+Shift+V` no longer toggles paste-at-cursor positioning. ([#8347](https://github.com/tldraw/tldraw/pull/8347))
-- 💥 Remove `Brush`, `CollaboratorBrush`, `CollaboratorHint`, `CollaboratorScribble`, `Handle`, `Handles`, `Scribble`, `SelectionForeground`, `SnapIndicator`, and `ZoomBrush` from `TLEditorComponents`. Remove their default implementations and prop types. These are now rendered via the `OverlayUtil` system.
-- Add `OverlayUtil` base class, `OverlayManager`, `TLOverlay`, `TLOverlayUtilConstructor`, and `TLAnyOverlayUtilConstructor` to `@tldraw/editor`. Add `overlayUtils` prop to `<Tldraw>` and `<TldrawEditor>`. Add `Editor.overlays` (`OverlayManager`) with `getUtil()`, `getActiveOverlays()`, `getOverlayAtPoint()`, `getHoveredOverlayId()`, `setHoveredOverlay()`, and `getUtilForOverlay()`.
-- Add `BrushOverlayUtil`, `ZoomBrushOverlayUtil`, `ScribbleOverlayUtil`, `CollaboratorBrushOverlayUtil`, `CollaboratorScribbleOverlayUtil`, `CollaboratorHintOverlayUtil`, `ShapeHandleOverlayUtil`, `SelectionForegroundOverlayUtil`, `SnapIndicatorOverlayUtil`, `ArrowHintOverlayUtil`, and `defaultOverlayUtils` to `tldraw`.
+- 💥 Remove `Brush`, `CollaboratorBrush`, `CollaboratorCursor`, `CollaboratorHint`, `CollaboratorScribble`, `CollaboratorShapeIndicator`, `Cursor`, `Handle`, `Handles`, `Overlays`, `Scribble`, `SelectionForeground`, `ShapeIndicator`, `ShapeIndicatorErrorFallback`, `ShapeIndicators`, `SnapIndicator`, and `ZoomBrush` from `TLEditorComponents`. Remove their default implementations and prop types. These are now rendered via the `OverlayUtil` system.
+- 💥 Remove `TldrawArrowHints`, `TldrawCropHandles`, `TldrawCropHandlesProps`, `TldrawHandles`, `TldrawOverlays`, `TldrawScribble`, `TldrawSelectionForeground`, and `TldrawShapeIndicators` from `tldraw`.
+- 💥 Change shape indicators from SVG to canvas paths: `ShapeUtil.getIndicatorPath()` is now abstract, `ShapeUtil.indicator()` is deprecated and no longer rendered, and `ShapeUtil.useLegacyIndicator()` has been removed.
+- 💥 Remove `TldrawOptions.useCanvasIndicators`.
+- 💥 Add `snap`, `selectionStroke`, `selectionFill`, `brushFill`, `brushStroke`, `selectedContrast`, and `laser` to the required `TLThemeDefaultColors` / `TLThemeUiColorKeys` UI color keys.
+- Add `OverlayUtil` base class, `OverlayManager`, `TLOverlay`, `TLOverlayEntry`, `TLOverlayUtilConstructor`, and `TLAnyOverlayUtilConstructor` to `@tldraw/editor`. Add `overlayUtils` prop to `<Tldraw>` and `<TldrawEditor>`. Add `Editor.overlays` (`OverlayManager`) with `getOverlayUtil()`, `getOverlayUtilsInZOrder()`, `getActiveOverlayEntries()`, `getCurrentOverlays()`, `getOverlayGeometry()`, `getOverlayAtPoint()`, `getHoveredOverlayId()`, `getHoveredOverlay()`, and `setHoveredOverlay()`.
+- Add `ShapeIndicatorOverlayUtil`, `BrushOverlayUtil`, `ZoomBrushOverlayUtil`, `ScribbleOverlayUtil`, `CollaboratorBrushOverlayUtil`, `CollaboratorCursorOverlayUtil`, `CollaboratorScribbleOverlayUtil`, `CollaboratorHintOverlayUtil`, `ShapeHandleOverlayUtil`, `SelectionForegroundOverlayUtil`, `SnapIndicatorOverlayUtil`, `ArrowHintOverlayUtil`, `ArrowBindingHintOverlayUtil`, their overlay types, and `defaultOverlayUtils` to `tldraw`.
 - Add `Vec.IsFinite()` static method for checking whether a vector has finite coordinates. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 
 ## Improvements

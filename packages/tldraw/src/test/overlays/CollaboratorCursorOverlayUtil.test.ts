@@ -11,6 +11,56 @@ beforeEach(() => {
 })
 
 describe('CollaboratorCursorOverlayUtil', () => {
+	describe('render', () => {
+		it('uses a resolved canvas font for collaborator labels', () => {
+			const getComputedStyleMock = vi
+				.spyOn(editor.getContainerWindow(), 'getComputedStyle')
+				.mockReturnValue({
+					getPropertyValue: (property: string) =>
+						property === '--tl-font-sans' ? '"Custom Sans", sans-serif' : '',
+				} as CSSStyleDeclaration)
+
+			const util =
+				editor.overlays.getOverlayUtil<CollaboratorCursorOverlayUtil>('collaborator_cursor')
+			const { ctx, fontAssignments } = createMockCanvasContext()
+
+			try {
+				util.render(ctx, [
+					{
+						id: 'collaborator_cursor:peer1',
+						type: 'collaborator_cursor',
+						props: {
+							x: 10,
+							y: 10,
+							color: '#123456',
+							name: 'Alice',
+							chatMessage: '',
+						},
+					},
+					{
+						id: 'collaborator_cursor:peer2',
+						type: 'collaborator_cursor',
+						props: {
+							x: 20,
+							y: 20,
+							color: '#654321',
+							name: 'Bob',
+							chatMessage: 'Hello',
+						},
+					},
+				])
+
+				expect(fontAssignments).toEqual([
+					'12px "Custom Sans", sans-serif',
+					'12px "Custom Sans", sans-serif',
+					'12px "Custom Sans", sans-serif',
+				])
+			} finally {
+				getComputedStyleMock.mockRestore()
+			}
+		})
+	})
+
 	describe('isActive', () => {
 		it('returns false when there are no collaborators on the page', () => {
 			const util =
@@ -260,3 +310,34 @@ describe('CollaboratorCursorOverlayUtil', () => {
 		})
 	})
 })
+
+function createMockCanvasContext() {
+	const fontAssignments: string[] = []
+	let font = ''
+	const ctx = {
+		save: vi.fn(),
+		restore: vi.fn(),
+		translate: vi.fn(),
+		scale: vi.fn(),
+		fill: vi.fn(),
+		beginPath: vi.fn(),
+		roundRect: vi.fn(),
+		fillText: vi.fn(),
+		strokeText: vi.fn(),
+		measureText: vi.fn(() => ({ width: 24 })),
+		fillStyle: '',
+		strokeStyle: '',
+		lineWidth: 0,
+		lineJoin: '',
+		textBaseline: '',
+		get font() {
+			return font
+		},
+		set font(value: string) {
+			font = value
+			fontAssignments.push(value)
+		},
+	} as unknown as CanvasRenderingContext2D
+
+	return { ctx, fontAssignments }
+}

@@ -35,6 +35,16 @@ function getCursorPaths() {
 }
 
 const TRUNCATE_CACHE_MAX = 200
+const DEFAULT_LABEL_FONT_FAMILY = "'tldraw_sans', sans-serif"
+
+function getLabelFontFamily(editorContainer: HTMLElement, editorWindow: Window): string {
+	const fontFamily = editorWindow
+		.getComputedStyle(editorContainer)
+		.getPropertyValue('--tl-font-sans')
+		.trim()
+
+	return fontFamily && !fontFamily.includes('var(') ? fontFamily : DEFAULT_LABEL_FONT_FAMILY
+}
 
 /**
  * Overlay util for collaborator cursors (arrow + name tag + chat message).
@@ -84,6 +94,10 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		const zoom = this.editor.getZoomLevel()
 		const scale = 1 / zoom
 		const viewport = this.editor.getViewportPageBounds()
+		const labelFontFamily = getLabelFontFamily(
+			this.editor.getContainer(),
+			this.editor.getContainerWindow()
+		)
 
 		for (const overlay of overlays) {
 			const { x, y, color, name, chatMessage } = overlay.props
@@ -122,11 +136,11 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 			// Draw name tag / chat
 			if (chatMessage) {
 				if (name) {
-					this._drawNameTitle(ctx, name, color)
+					this._drawNameTitle(ctx, name, color, labelFontFamily)
 				}
-				this._drawChatBubble(ctx, chatMessage, color)
+				this._drawChatBubble(ctx, chatMessage, color, labelFontFamily)
 			} else if (name) {
-				this._drawNameTag(ctx, name, color)
+				this._drawNameTag(ctx, name, color, labelFontFamily)
 			}
 
 			ctx.restore()
@@ -134,9 +148,14 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 	}
 
 	/** Name tag (no chat) - colored background with white text */
-	private _drawNameTag(ctx: CanvasRenderingContext2D, name: string, color: string) {
+	private _drawNameTag(
+		ctx: CanvasRenderingContext2D,
+		name: string,
+		color: string,
+		fontFamily: string
+	) {
 		const { fontSize, nameMaxWidth } = this.options
-		ctx.font = `${fontSize}px var(--tl-font-body, sans-serif)`
+		ctx.font = `${fontSize}px ${fontFamily}`
 		const text = this._truncateText(ctx, name, nameMaxWidth)
 		const metrics = ctx.measureText(text)
 		const textWidth = Math.min(metrics.width, nameMaxWidth)
@@ -160,8 +179,13 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 	}
 
 	/** Name title (when chat is present) - text with shadow, no background */
-	private _drawNameTitle(ctx: CanvasRenderingContext2D, name: string, color: string) {
-		ctx.font = `${this.options.fontSize}px var(--tl-font-body, sans-serif)`
+	private _drawNameTitle(
+		ctx: CanvasRenderingContext2D,
+		name: string,
+		color: string,
+		fontFamily: string
+	) {
+		ctx.font = `${this.options.fontSize}px ${fontFamily}`
 		const x = 13
 		const y = -2
 
@@ -178,9 +202,14 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 	}
 
 	/** Chat bubble - colored background with white text */
-	private _drawChatBubble(ctx: CanvasRenderingContext2D, chatMessage: string, color: string) {
+	private _drawChatBubble(
+		ctx: CanvasRenderingContext2D,
+		chatMessage: string,
+		color: string,
+		fontFamily: string
+	) {
 		const { fontSize, chatMaxWidth } = this.options
-		ctx.font = `${fontSize}px var(--tl-font-body, sans-serif)`
+		ctx.font = `${fontSize}px ${fontFamily}`
 		const text = this._truncateText(ctx, chatMessage, chatMaxWidth)
 		const metrics = ctx.measureText(text)
 		const textWidth = Math.min(metrics.width, chatMaxWidth)
