@@ -569,8 +569,10 @@ describe('Custom shapes', () => {
 			)
 		}
 
-		indicator(shape: CardShape) {
-			return <rect data-testid="card-indicator" width={shape.props.w} height={shape.props.h} />
+		getIndicatorPath(shape: CardShape) {
+			const path = new Path2D()
+			path.rect(0, 0, shape.props.w, shape.props.h)
+			return path
 		}
 	}
 

@@ -441,26 +441,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		)
 	}
 
-	indicator(shape: TLGeoShape) {
-		const isZoomedOut = useEfficientZoomThreshold(0.25 / shape.props.scale)
-
-		const { dash, scale } = shape.props
-		const dv = getDisplayValues(this, shape)
-
-		const path = getGeoShapePath(shape, dv.strokeWidth, this.options.customGeoStyles)
-
-		return path.toSvg({
-			style: dash === 'draw' ? 'draw' : 'solid',
-			strokeWidth: 1,
-			passes: 1,
-			randomSeed: shape.id,
-			offset: 0,
-			roundness: dv.strokeRoundness * scale,
-			props: { strokeWidth: undefined },
-			forceSolid: isZoomedOut,
-		})
-	}
-
 	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {
 		const isForceSolid = this.editor.getEfficientZoomLevel() < 0.25 / shape.props.scale
 

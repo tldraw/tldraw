@@ -205,8 +205,10 @@ class FileCardShapeUtil extends BaseBoxShapeUtil<FileCardShape> {
 		)
 	}
 
-	override indicator(shape: FileCardShape) {
-		return <rect width={shape.props.w} height={shape.props.h} rx={8} ry={8} />
+	override getIndicatorPath(shape: FileCardShape) {
+		const path = new Path2D()
+		path.roundRect(0, 0, shape.props.w, shape.props.h, 8)
+		return path
 	}
 }
 

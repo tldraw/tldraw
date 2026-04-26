@@ -2058,9 +2058,9 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     getGeometry(shape: TLGroupShape): Geometry2d;
     // (undocumented)
-    hideSelectionBoundsFg(shape: TLGroupShape): boolean;
+    getIndicatorPath(): undefined;
     // (undocumented)
-    indicator(shape: TLGroupShape): JSX.Element;
+    hideSelectionBoundsFg(shape: TLGroupShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -3000,7 +3000,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
     getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
-    getIndicatorPath(shape: Shape): TLIndicatorPath | undefined;
+    abstract getIndicatorPath(shape: Shape): TLIndicatorPath | undefined;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
     getReferencedUserIds(shape: Shape): string[];
     // (undocumented)
@@ -3012,7 +3012,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     hideSelectionBoundsBg(shape: Shape): boolean;
     hideSelectionBoundsFg(shape: Shape): boolean;
     // @deprecated
-    abstract indicator(shape: Shape): any;
+    indicator(_shape: Shape): any;
     isAspectRatioLocked(shape: Shape): boolean;
     isExportBoundsContainer(shape: Shape): boolean;
     isFrameLike(_shape: Shape): boolean;

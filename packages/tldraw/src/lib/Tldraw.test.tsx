@@ -43,7 +43,7 @@ describe('<Tldraw />', () => {
 			override component(_: any) {
 				throw new Error('Method not implemented.')
 			}
-			override indicator(_: any) {
+			override getIndicatorPath(_: any): undefined {
 				throw new Error('Method not implemented.')
 			}
 		}
@@ -55,7 +55,7 @@ describe('<Tldraw />', () => {
 			override component(_: any) {
 				throw new Error('Method not implemented.')
 			}
-			override indicator(_: any) {
+			override getIndicatorPath(_: any): undefined {
 				throw new Error('Method not implemented.')
 			}
 		}

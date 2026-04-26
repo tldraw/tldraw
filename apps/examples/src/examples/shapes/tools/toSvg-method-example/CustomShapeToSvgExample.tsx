@@ -64,8 +64,10 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 		return <HTMLContainer style={{ backgroundColor: isDarkmode ? DARK_FILL : LIGHT_FILL }} />
 	}
 
-	indicator(shape: ICustomShape) {
-		return this.getSvgRect(shape)
+	getIndicatorPath(shape: ICustomShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 
 	// [1]

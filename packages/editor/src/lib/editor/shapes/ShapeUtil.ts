@@ -218,23 +218,9 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	abstract component(shape: Shape): any
 
 	/**
-	 * Get JSX describing the shape's indicator (as an SVG element).
-	 *
-	 * @deprecated Indicators are rendered on a canvas via {@link ShapeUtil.getIndicatorPath}.
-	 * This method is retained for backwards compatibility but is no longer invoked by
-	 * the default canvas indicator renderer; override {@link ShapeUtil.getIndicatorPath}
-	 * instead.
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	abstract indicator(shape: Shape): any
-
-	/**
 	 * Get a Path2D (or a richer object with clip/additional paths) for rendering the
 	 * shape's indicator on the canvas. Shapes that return `undefined` will not render
-	 * an indicator — the SVG {@link ShapeUtil.indicator} method is no longer used as
-	 * a fallback by the default canvas renderer.
+	 * an indicator.
 	 *
 	 * For complex indicators that need clipping (e.g., arrows with labels), return an
 	 * object with `path`, `clipPath`, and `additionalPaths` properties.
@@ -243,8 +229,21 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @returns A Path2D to stroke, or an object with clipping info, or undefined to skip.
 	 * @public
 	 */
-	getIndicatorPath(shape: Shape): TLIndicatorPath | undefined {
-		return undefined
+	abstract getIndicatorPath(shape: Shape): TLIndicatorPath | undefined
+
+	/**
+	 * Get JSX describing the shape's indicator (as an SVG element).
+	 *
+	 * @deprecated SVG indicators are no longer rendered. Override
+	 * {@link ShapeUtil.getIndicatorPath} instead. This stub is retained so legacy
+	 * subclasses that still call `super.indicator()` keep type-checking; new shapes
+	 * should not implement it.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	indicator(_shape: Shape): any {
+		return null
 	}
 
 	/**

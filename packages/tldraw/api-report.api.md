@@ -326,8 +326,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     hideSelectionBoundsFg(shape: TLArrowShape): boolean;
     // (undocumented)
-    indicator(shape: TLArrowShape): JSX.Element | null;
-    // (undocumented)
     static migrations: MigrationSequence;
     // (undocumented)
     onDoubleClickHandle(shape: TLArrowShape, handle: TLHandle): TLShapePartial<TLArrowShape> | void;
@@ -518,8 +516,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     getText(shape: TLBookmarkShape): string;
     // (undocumented)
     hideSelectionBoundsFg(shape: TLBookmarkShape): boolean;
-    // (undocumented)
-    indicator(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -1427,8 +1423,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     hideSelectionBoundsFg(shape: TLDrawShape): boolean;
     // (undocumented)
-    indicator(shape: TLDrawShape): JSX.Element;
-    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>): {
@@ -1689,8 +1683,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     hideSelectionBoundsFg(shape: TLEmbedShape): boolean;
     // (undocumented)
-    indicator(shape: TLEmbedShape): JSX.Element;
-    // (undocumented)
     isAspectRatioLocked(shape: TLEmbedShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -1837,8 +1829,6 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
     // (undocumented)
     getText(shape: TLFrameShape): string | undefined;
     // (undocumented)
-    indicator(shape: TLFrameShape): JSX.Element;
-    // (undocumented)
     isExportBoundsContainer(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -1938,8 +1928,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     getInterpolatedProps(startShape: TLGeoShape, endShape: TLGeoShape, t: number): TLGeoShapeProps;
     // (undocumented)
     getText(shape: TLGeoShape): string;
-    // (undocumented)
-    indicator(shape: TLGeoShape): JSX.Element | null;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -2314,8 +2302,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     hideSelectionBoundsFg(shape: TLHighlightShape): boolean;
     // (undocumented)
-    indicator(shape: TLHighlightShape): JSX.Element;
-    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>): {
@@ -2408,8 +2394,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
     // (undocumented)
     static handledAssetTypes: readonly ["image"];
-    // (undocumented)
-    indicator(shape: TLImageShape): JSX.Element | null;
     // (undocumented)
     isAspectRatioLocked(shape: TLImageShape): boolean;
     // (undocumented)
@@ -2507,8 +2491,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     hideSelectionBoundsBg(shape: TLLineShape): boolean;
     // (undocumented)
     hideSelectionBoundsFg(shape: TLLineShape): boolean;
-    // (undocumented)
-    indicator(shape: TLLineShape): JSX.Element | null;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -2682,8 +2664,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     hideResizeHandles(shape: TLNoteShape): boolean;
     // (undocumented)
     hideSelectionBoundsFg(shape: TLNoteShape): boolean;
-    // (undocumented)
-    indicator(shape: TLNoteShape): JSX.Element;
     // (undocumented)
     isAspectRatioLocked(shape: TLNoteShape): boolean;
     // (undocumented)
@@ -3628,8 +3608,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     };
     // (undocumented)
     getText(shape: TLTextShape): string;
-    // (undocumented)
-    indicator(shape: TLTextShape): JSX.Element | null;
     // (undocumented)
     isAspectRatioLocked(shape: TLTextShape): boolean;
     // (undocumented)
@@ -6377,8 +6355,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     getIndicatorPath(shape: TLVideoShape): Path2D;
     // (undocumented)
     static handledAssetTypes: readonly ["video"];
-    // (undocumented)
-    indicator(shape: TLVideoShape): JSX.Element;
     // (undocumented)
     isAspectRatioLocked(shape: TLVideoShape): boolean;
     // (undocumented)

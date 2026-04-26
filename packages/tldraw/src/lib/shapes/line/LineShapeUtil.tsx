@@ -219,22 +219,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		)
 	}
 
-	indicator(shape: TLLineShape) {
-		const strokeWidth = getDisplayValues(this, shape).strokeWidth * shape.props.scale
-		const path = getPathForLineShape(shape)
-		const { dash } = shape.props
-
-		return path.toSvg({
-			style: dash === 'draw' ? 'draw' : 'solid',
-			strokeWidth: 1,
-			passes: 1,
-			randomSeed: shape.id,
-			offset: 0,
-			roundness: strokeWidth * 2,
-			props: { strokeWidth: undefined },
-		})
-	}
-
 	override getIndicatorPath(shape: TLLineShape): Path2D {
 		const strokeWidth = getDisplayValues(this, shape).strokeWidth * shape.props.scale
 		const path = getPathForLineShape(shape)

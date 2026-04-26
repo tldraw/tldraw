@@ -78,10 +78,9 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		)
 	}
 
-	indicator(shape: TLGroupShape) {
-		// Not a class component, but eslint can't tell that :(
-		const bounds = this.editor.getShapeGeometry(shape).bounds
-		return <DashedOutlineBox className="" bounds={bounds} />
+	override getIndicatorPath() {
+		// Groups don't render a selection indicator — their children show their own.
+		return undefined
 	}
 
 	override onChildrenChange(group: TLGroupShape) {
