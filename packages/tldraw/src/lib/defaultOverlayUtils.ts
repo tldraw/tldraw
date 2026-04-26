@@ -1,4 +1,5 @@
 import { ShapeIndicatorOverlayUtil } from '@tldraw/editor'
+import { ArrowBindingHintOverlayUtil } from './overlays/ArrowBindingHintOverlayUtil'
 import { ArrowHintOverlayUtil } from './overlays/ArrowHintOverlayUtil'
 import { BrushOverlayUtil } from './overlays/BrushOverlayUtil'
 import { CollaboratorBrushOverlayUtil } from './overlays/CollaboratorBrushOverlayUtil'
@@ -24,5 +25,6 @@ export const defaultOverlayUtils = [
 	CollaboratorScribbleOverlayUtil,
 	CollaboratorHintOverlayUtil,
 	ArrowHintOverlayUtil,
+	ArrowBindingHintOverlayUtil,
 	CollaboratorCursorOverlayUtil,
 ] as const

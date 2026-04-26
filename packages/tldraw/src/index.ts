@@ -58,6 +58,10 @@ export * from '@tldraw/editor'
 export { BookmarkAssetUtil } from './lib/assets/BookmarkAssetUtil'
 export { ImageAssetUtil } from './lib/assets/ImageAssetUtil'
 export { VideoAssetUtil } from './lib/assets/VideoAssetUtil'
+export {
+	ArrowBindingHintOverlayUtil,
+	type TLArrowBindingHintOverlay,
+} from './lib/overlays/ArrowBindingHintOverlayUtil'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
 export { ArrowHintOverlayUtil, type TLArrowHintOverlay } from './lib/overlays/ArrowHintOverlayUtil'
 export { BrushOverlayUtil, type TLBrushOverlay } from './lib/overlays/BrushOverlayUtil'

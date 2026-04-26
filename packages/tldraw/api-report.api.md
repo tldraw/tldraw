@@ -198,6 +198,27 @@ export const allDefaultFontFaces: TLFontFace_2[];
 // @public (undocumented)
 export function ArrangeMenuSubmenu(): JSX.Element | null;
 
+// @public
+export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintOverlay> {
+    // (undocumented)
+    getOverlays(): TLArrowBindingHintOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        crossSize: number;
+        dashLengthRatio: number;
+        dotRadius: number;
+        opacity: number;
+        strokeWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLArrowBindingHintOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
 // @public (undocumented)
 export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
     // (undocumented)
@@ -1215,7 +1236,7 @@ export function DefaultMinimap(): JSX.Element;
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
 
 // @public (undocumented)
-export const defaultOverlayUtils: readonly [typeof ShapeIndicatorOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof CollaboratorCursorOverlayUtil];
+export const defaultOverlayUtils: readonly [typeof ShapeIndicatorOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof ArrowBindingHintOverlayUtil, typeof CollaboratorCursorOverlayUtil];
 
 // @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
@@ -3729,6 +3750,14 @@ export interface TLArcInfo {
     size: number;
     // (undocumented)
     sweepFlag: number;
+}
+
+// @public (undocumented)
+export interface TLArrowBindingHintOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        arrowId: TLShapeId;
+    };
 }
 
 // @public (undocumented)
