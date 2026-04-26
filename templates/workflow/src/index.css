@@ -171,32 +171,6 @@ body {
 	stroke-linecap: round;
 }
 
-.ConnectionCenterHandle {
-	.ConnectionCenterHandle-hover {
-		cursor: pointer;
-		stroke: none;
-		fill: none;
-
-		[data-state='select.idle'] & {
-			pointer-events: all;
-		}
-
-		&:hover {
-			fill: var(--tl-color-handle-fill);
-		}
-	}
-
-	.ConnectionCenterHandle-ring {
-		stroke: none;
-		fill: var(--tl-color-selected);
-	}
-
-	.ConnectionCenterHandle-icon {
-		stroke-width: 2px;
-		stroke: var(--tl-color-selected-contrast);
-	}
-}
-
 .OnCanvasComponentPicker {
 	position: absolute;
 	top: 0;
