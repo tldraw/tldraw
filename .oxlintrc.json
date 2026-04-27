@@ -20,6 +20,7 @@
 		}
 	},
 	"ignorePatterns": [
+		".skills/**/*",
 		".claude/**/*",
 		"**/node_modules/*",
 		"**/out/*",
