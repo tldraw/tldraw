@@ -179,6 +179,9 @@ export {
 	OverlayUtil,
 	type TLAnyOverlayUtilConstructor,
 	type TLOverlay,
+	type TLOverlayDragInfo,
+	type TLOverlayPointerDownRedirect,
+	type TLOverlayPointerEventInfo,
 	type TLOverlayUtilConstructor,
 } from './lib/editor/overlays/OverlayUtil'
 export {

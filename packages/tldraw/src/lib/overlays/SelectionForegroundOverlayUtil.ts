@@ -5,6 +5,7 @@ import {
 	Geometry2d,
 	HALF_PI,
 	Mat,
+	type Editor,
 	OverlayUtil,
 	Polygon2d,
 	RotateCorner,
@@ -12,6 +13,8 @@ import {
 	SelectionEdge,
 	TLCursorType,
 	TLOverlay,
+	TLOverlayPointerDownRedirect,
+	TLPointerEventInfo,
 	TLSelectionHandle,
 	TLShape,
 	Vec,
@@ -173,6 +176,102 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		}
 	}
 
+	static getOverlayForSelectionHandle(handle: TLSelectionHandle | undefined) {
+		switch (handle) {
+			case 'mobile_rotate':
+				return SelectionForegroundOverlayUtil._makeOverlay('mobile_rotate', handle)
+			case 'top_left_rotate':
+			case 'top_right_rotate':
+			case 'bottom_left_rotate':
+			case 'bottom_right_rotate':
+				return SelectionForegroundOverlayUtil._makeOverlay('rotate_handle', handle)
+			case 'top':
+			case 'right':
+			case 'bottom':
+			case 'left':
+			case 'top_left':
+			case 'top_right':
+			case 'bottom_left':
+			case 'bottom_right':
+				return SelectionForegroundOverlayUtil._makeOverlay('resize_handle', handle)
+			default:
+				return null
+		}
+	}
+
+	getOverlayForSelectionHandle(handle: TLSelectionHandle | undefined) {
+		return SelectionForegroundOverlayUtil.getOverlayForSelectionHandle(handle)
+	}
+
+	static getPointerDownRedirectForOverlay(
+		editor: Editor,
+		overlay: TLSelectionForegroundOverlay,
+		info: TLPointerEventInfo & { target: 'overlay' }
+	): TLOverlayPointerDownRedirect | void {
+		const { overlayType, handle } = overlay.props
+		const onInteractionEnd = (info as { onInteractionEnd?: string | (() => void) }).onInteractionEnd
+		const selectionInfo = {
+			...info,
+			target: 'selection' as const,
+			handle,
+		}
+
+		if (onInteractionEnd === 'select.crop.idle' || editor.isIn('select.crop.idle')) {
+			switch (overlayType) {
+				case 'rotate_handle':
+				case 'mobile_rotate': {
+					return {
+						id: 'select.pointing_rotate_handle',
+						info: {
+							...selectionInfo,
+							onInteractionEnd: 'select.crop.idle',
+						},
+					}
+				}
+				case 'resize_handle': {
+					return {
+						id: 'select.crop.pointing_crop_handle',
+						info: {
+							...selectionInfo,
+							onInteractionEnd: 'select.crop.idle',
+						},
+					}
+				}
+			}
+		}
+
+		switch (overlayType) {
+			case 'rotate_handle':
+			case 'mobile_rotate': {
+				if (info.accelKey) {
+					return { id: 'select.brushing', info: selectionInfo }
+				}
+				return { id: 'select.pointing_rotate_handle', info: selectionInfo }
+			}
+			case 'resize_handle': {
+				const onlySelectedShape = editor.getOnlySelectedShape()
+				if (info.ctrlKey && editor.canCropShape(onlySelectedShape)) {
+					return { id: 'select.crop.pointing_crop_handle', info: selectionInfo }
+				}
+				if (info.accelKey) {
+					return { id: 'select.brushing', info: selectionInfo }
+				}
+				return { id: 'select.pointing_resize_handle', info: selectionInfo }
+			}
+		}
+	}
+
+	override getPointerDownRedirect(
+		overlay: TLSelectionForegroundOverlay,
+		info: TLPointerEventInfo & { target: 'overlay' }
+	): TLOverlayPointerDownRedirect | void {
+		return SelectionForegroundOverlayUtil.getPointerDownRedirectForOverlay(
+			this.editor,
+			overlay,
+			info
+		)
+	}
+
 	// --- Overlay collection ---
 
 	private _collectResizeCornerOverlays(
@@ -181,13 +280,13 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 	) {
 		if (!state.showHandles) return
 
-		overlays.push(this._makeOverlay('resize_handle', 'top_left'))
+		overlays.push(SelectionForegroundOverlayUtil._makeOverlay('resize_handle', 'top_left'))
 		if (!state.hideAlternateCornerHandles) {
-			overlays.push(this._makeOverlay('resize_handle', 'top_right'))
-			overlays.push(this._makeOverlay('resize_handle', 'bottom_left'))
+			overlays.push(SelectionForegroundOverlayUtil._makeOverlay('resize_handle', 'top_right'))
+			overlays.push(SelectionForegroundOverlayUtil._makeOverlay('resize_handle', 'bottom_left'))
 		}
 		if (!state.showOnlyOneHandle || state.showCropHandles) {
-			overlays.push(this._makeOverlay('resize_handle', 'bottom_right'))
+			overlays.push(SelectionForegroundOverlayUtil._makeOverlay('resize_handle', 'bottom_right'))
 		}
 	}
 
@@ -215,24 +314,30 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			: hideVerticalEdgeTargets && !isMobileAndTextShape
 
 		if (!hideVerticalEdgeTargets) {
-			overlays.push(this._makeOverlay('resize_handle', 'top'))
-			overlays.push(this._makeOverlay('resize_handle', 'bottom'))
+			overlays.push(SelectionForegroundOverlayUtil._makeOverlay('resize_handle', 'top'))
+			overlays.push(SelectionForegroundOverlayUtil._makeOverlay('resize_handle', 'bottom'))
 		}
 		if (!hideHorizontalEdgeTargets) {
-			overlays.push(this._makeOverlay('resize_handle', 'right'))
-			overlays.push(this._makeOverlay('resize_handle', 'left'))
+			overlays.push(SelectionForegroundOverlayUtil._makeOverlay('resize_handle', 'right'))
+			overlays.push(SelectionForegroundOverlayUtil._makeOverlay('resize_handle', 'left'))
 		}
 	}
 
 	private _collectRotateOverlays(state: SelectionState, overlays: TLSelectionForegroundOverlay[]) {
 		if (state.showCornerRotateHandles) {
-			overlays.push(this._makeOverlay('rotate_handle', 'top_left_rotate'))
-			overlays.push(this._makeOverlay('rotate_handle', 'top_right_rotate'))
-			overlays.push(this._makeOverlay('rotate_handle', 'bottom_left_rotate'))
-			overlays.push(this._makeOverlay('rotate_handle', 'bottom_right_rotate'))
+			overlays.push(SelectionForegroundOverlayUtil._makeOverlay('rotate_handle', 'top_left_rotate'))
+			overlays.push(
+				SelectionForegroundOverlayUtil._makeOverlay('rotate_handle', 'top_right_rotate')
+			)
+			overlays.push(
+				SelectionForegroundOverlayUtil._makeOverlay('rotate_handle', 'bottom_left_rotate')
+			)
+			overlays.push(
+				SelectionForegroundOverlayUtil._makeOverlay('rotate_handle', 'bottom_right_rotate')
+			)
 		}
 		if (state.showMobileRotateHandle) {
-			overlays.push(this._makeOverlay('mobile_rotate', 'mobile_rotate'))
+			overlays.push(SelectionForegroundOverlayUtil._makeOverlay('mobile_rotate', 'mobile_rotate'))
 		}
 	}
 
@@ -597,7 +702,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		}
 	}
 
-	private _makeOverlay(
+	private static _makeOverlay(
 		overlayType: TLSelectionForegroundOverlay['props']['overlayType'],
 		handle: TLSelectionHandle | RotateCorner
 	): TLSelectionForegroundOverlay {

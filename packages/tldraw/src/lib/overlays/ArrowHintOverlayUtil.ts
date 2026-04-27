@@ -52,6 +52,10 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
 		const editor = this.editor
 		if (editor.isInAny('arrow.idle', 'arrow.pointing')) return true
 
+		if (editor.isInAny('select.pointing_overlay', 'select.dragging_overlay')) {
+			return !!getArrowTargetState(editor)
+		}
+
 		if (editor.isIn('select.pointing_handle')) {
 			const node: PointingHandle = editor.getStateDescendant('select.pointing_handle')!
 			if (

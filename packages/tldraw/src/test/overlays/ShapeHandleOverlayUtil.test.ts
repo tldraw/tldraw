@@ -50,6 +50,37 @@ describe('ShapeHandleOverlayUtil', () => {
 			expect(util.isActive()).toBe(true)
 		})
 
+		it('uses the generic overlay pointing state for real shape handle hits', () => {
+			editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
+			editor.select(ids.line1)
+			const shape = editor.getShape(ids.line1)!
+			const handle = editor.getShapeHandles(shape)![0]
+			const pt = editor.getShapePageTransform(shape)!.applyToPoint(handle)
+
+			editor.pointerMove(pt.x, pt.y).pointerDown(pt.x, pt.y)
+
+			editor.expectToBeIn('select.pointing_overlay')
+			editor.pointerUp()
+		})
+
+		it('uses the generic overlay dragging state for real shape handle drags', () => {
+			editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
+			editor.select(ids.line1)
+			const shape = editor.getShape(ids.line1)!
+			const handle = editor.getShapeHandles(shape)![0]
+			const pt = editor.getShapePageTransform(shape)!.applyToPoint(handle)
+			const before = editor.getShape(ids.line1)
+
+			editor
+				.pointerMove(pt.x, pt.y)
+				.pointerDown(pt.x, pt.y)
+				.pointerMove(pt.x + 50, pt.y + 20)
+
+			editor.expectToBeIn('select.dragging_overlay')
+			editor.pointerUp()
+			expect(editor.getShape(ids.line1)).not.toEqual(before)
+		})
+
 		it('returns true in select.pointing_handle', () => {
 			editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
 			editor.select(ids.line1)

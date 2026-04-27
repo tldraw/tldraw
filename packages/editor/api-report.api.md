@@ -2635,10 +2635,18 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
     // (undocumented)
     editor: Editor;
     getCursor(_overlay: T): TLCursorType | undefined;
+    getDragStartRedirect?(overlay: T, initial: TLOverlayPointerEventInfo<T>, current: TLPointerEventInfo): TLOverlayPointerDownRedirect | void;
     getGeometry(_overlay: T): Geometry2d | null;
     abstract getOverlays(): T[];
+    getPointerDownRedirect?(overlay: T, info: TLOverlayPointerEventInfo<T>): TLOverlayPointerDownRedirect | void;
     abstract isActive(): boolean;
-    onPointerDown?(overlay: T, info: TLPointerEventInfo): boolean | void;
+    onClick?(overlay: T, info: TLOverlayPointerEventInfo<T>): boolean | void;
+    onDrag?(overlay: T, info: TLOverlayDragInfo<T>): void;
+    onDragCancel?(overlay: T, info: TLOverlayDragInfo<T>): void;
+    onDragEnd?(overlay: T, info: TLOverlayDragInfo<T>): void;
+    onDragStart?(overlay: T, info: TLOverlayDragInfo<T>): void;
+    onPointerDown?(overlay: T, info: TLOverlayPointerEventInfo<T>): boolean | void;
+    onPointerUp?(overlay: T, info: TLOverlayPointerEventInfo<T>): boolean | void;
     options: {
         zIndex?: number;
     };
@@ -4379,6 +4387,16 @@ export interface TLOverlay<Props = Record<string, unknown>> {
     type: string;
 }
 
+// @public (undocumented)
+export interface TLOverlayDragInfo<T extends TLOverlay = TLOverlay> {
+    // (undocumented)
+    current: TLPointerEventInfo;
+    // (undocumented)
+    initial: TLOverlayPointerEventInfo<T>;
+    // (undocumented)
+    overlay: T;
+}
+
 // @public
 export interface TLOverlayEntry {
     // (undocumented)
@@ -4386,6 +4404,20 @@ export interface TLOverlayEntry {
     // (undocumented)
     util: OverlayUtil;
 }
+
+// @public
+export interface TLOverlayPointerDownRedirect {
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    info?: object;
+}
+
+// @public (undocumented)
+export type TLOverlayPointerEventInfo<T extends TLOverlay = TLOverlay> = TLPointerEventInfo & {
+    overlay: T;
+    target: 'overlay';
+};
 
 // @public (undocumented)
 export interface TLOverlayUtilConstructor<U extends OverlayUtil = OverlayUtil> {
