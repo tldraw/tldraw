@@ -1,5 +1,5 @@
 import { EffectScheduler, computed } from '@tldraw/state'
-import { memo, useEffect, useMemo, useRef } from 'react'
+import { memo, useEffect, useRef } from 'react'
 import { useEditor } from '../../hooks/useEditor'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Group2d } from '../../primitives/geometry/Group2d'
@@ -19,40 +19,37 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 	const editor = useEditor()
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
-	// Bundle the primitive scalars the renderer needs into one computed so the
-	// effect only refires on actual visual change. Reading the whole instance
-	// state directly would otherwise wake the renderer on every cursor move,
-	// brush update, etc.
-	const renderInputs$ = useMemo(
-		() =>
-			computed<RenderInputs>(
-				'canvas overlays render inputs',
-				() => {
-					const instance = editor.getInstanceState()
-					const camera = editor.getCamera()
-					return {
-						dpr: instance.devicePixelRatio,
-						w: instance.screenBounds.w,
-						h: instance.screenBounds.h,
-						cx: camera.x,
-						cy: camera.y,
-						zoom: camera.z,
-					}
-				},
-				{
-					isEqual: (a, b) =>
-						a.dpr === b.dpr &&
-						a.w === b.w &&
-						a.h === b.h &&
-						a.cx === b.cx &&
-						a.cy === b.cy &&
-						a.zoom === b.zoom,
-				}
-			),
-		[editor]
-	)
-
 	useEffect(() => {
+		// Bundle the primitive scalars the renderer needs into one computed so the
+		// effect only refires on actual visual change. Reading the whole instance
+		// state directly would otherwise wake the renderer on every cursor move,
+		// brush update, etc.
+
+		const renderInputs$ = computed<RenderInputs>(
+			'canvas overlays render inputs',
+			() => {
+				const instance = editor.getInstanceState()
+				const camera = editor.getCamera()
+				return {
+					dpr: instance.devicePixelRatio,
+					w: instance.screenBounds.w,
+					h: instance.screenBounds.h,
+					cx: camera.x,
+					cy: camera.y,
+					zoom: camera.z,
+				}
+			},
+			{
+				isEqual: (a, b) =>
+					a.dpr === b.dpr &&
+					a.w === b.w &&
+					a.h === b.h &&
+					a.cx === b.cx &&
+					a.cy === b.cy &&
+					a.zoom === b.zoom,
+			}
+		)
+
 		const scheduler = new EffectScheduler('canvas overlays render', () => {
 			const canvas = canvasRef.current
 			if (!canvas) return
@@ -178,7 +175,7 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 		scheduler.attach()
 		scheduler.execute()
 		return () => scheduler.detach()
-	}, [editor, renderInputs$])
+	}, [editor])
 
 	return <canvas ref={canvasRef} className="tl-canvas-overlays" />
 })
