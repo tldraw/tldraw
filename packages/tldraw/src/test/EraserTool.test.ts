@@ -572,25 +572,6 @@ describe('When holding meta/ctrl key (accel key)', () => {
 		expect(shapesAfterCount).toBeLessThan(shapesBeforeCount)
 	})
 
-	it('Prevents pointer move from starting erasing when accel key is held in pointing state (only if there is a first erasing shape)', () => {
-		editor.setCurrentTool('eraser')
-		editor.expectToBeIn('eraser.idle')
-
-		// Start with accel key held and click on a shape
-		editor.keyDown('Meta')
-		editor.pointerDown(0, 0) // in box1
-		editor.expectToBeIn('eraser.pointing')
-
-		expect(editor.getErasingShapeIds()).toEqual([ids.box1])
-
-		// Try to move pointer - should not start erasing
-		editor.pointerMove(50, 50)
-		editor.expectToBeIn('eraser.pointing') // Should still be in pointing state
-
-		editor.pointerUp()
-		editor.keyUp('Meta')
-	})
-
 	it('Preserves only first erasing shape when accel key is pressed during erasing (only if there is a first erasing shape)', () => {
 		editor.setCurrentTool('eraser')
 		editor.expectToBeIn('eraser.idle')
@@ -661,56 +642,86 @@ describe('When holding meta/ctrl key (accel key)', () => {
 describe('Hold accel to temporarily erase from the draw / highlight tool', () => {
 	for (const tool of ['draw', 'highlight'] as const) {
 		describe(`from ${tool}`, () => {
-			it(`switches into eraser while keeping ${tool} masked when accel is pressed in idle`, () => {
+			it(`holding accel alone does not switch tools`, () => {
 				editor.setCurrentTool(tool)
 				editor.expectToBeIn(`${tool}.idle`)
-				expect(editor.getCurrentToolId()).toBe(tool)
 
 				editor.keyDown('Meta')
 
-				editor.expectToBeIn('eraser.idle')
-				// Eraser is the active tool but the toolbar still reports the originating tool.
-				expect(editor.getCurrentTool().id).toBe('eraser')
+				// No tool switch on key down — the switch only happens on pointer down.
+				editor.expectToBeIn(`${tool}.idle`)
 				expect(editor.getCurrentToolId()).toBe(tool)
 
 				editor.keyUp('Meta')
-
 				editor.expectToBeIn(`${tool}.idle`)
-				expect(editor.getCurrentToolId()).toBe(tool)
 			})
 
-			it(`returns to ${tool} after a transient erase completes`, () => {
+			it(`accel + click in idle goes straight into eraser.pointing with ${tool} masked`, () => {
 				editor.setCurrentTool(tool)
 				editor.keyDown('Meta')
-				editor.expectToBeIn('eraser.idle')
+
+				editor.pointerDown(99, 99) // hits box2
+
+				editor.expectToBeIn('eraser.pointing')
+				// The eraser is active but the toolbar still reports the originating tool.
+				expect(editor.getCurrentTool().id).toBe('eraser')
+				expect(editor.getCurrentToolId()).toBe(tool)
+				expect(editor.getErasingShapeIds()).toEqual([ids.box2])
+			})
+
+			it(`accel + click + release with accel held returns to eraser.idle, masked as ${tool}`, () => {
+				editor.setCurrentTool(tool)
+				editor.keyDown('Meta')
 
 				const shapesBefore = editor.getCurrentPageShapes().length
-				editor.pointerDown(99, 99) // hits box2
+				editor.pointerDown(99, 99)
 				editor.pointerUp()
 
 				expect(editor.getCurrentPageShapes().length).toBe(shapesBefore - 1)
 
-				editor.keyUp('Meta')
-				editor.expectToBeIn(`${tool}.idle`)
+				// Accel still held: stay in transient eraser.idle so the next click also erases.
+				editor.expectToBeIn('eraser.idle')
+				expect(editor.getCurrentTool().id).toBe('eraser')
 				expect(editor.getCurrentToolId()).toBe(tool)
 			})
 
-			it(`stays in eraser while pointer is down even if accel is released, then returns to ${tool}`, () => {
+			it(`releasing accel after a transient erase returns to ${tool}`, () => {
 				editor.setCurrentTool(tool)
 				editor.keyDown('Meta')
 
 				editor.pointerDown(99, 99)
-				// Mid-interaction; releasing accel must not yank the user back to ${tool}.
-				editor.keyUp('Meta')
-				expect(editor.getCurrentTool().id).toBe('eraser')
-
 				editor.pointerUp()
-				// Once the erase finishes and we re-enter eraser idle with accel released, return.
+				editor.expectToBeIn('eraser.idle')
+
+				editor.keyUp('Meta')
 				editor.expectToBeIn(`${tool}.idle`)
 				expect(editor.getCurrentToolId()).toBe(tool)
 			})
 
-			it(`does not switch tools when accel is pressed mid-stroke`, () => {
+			it(`releasing accel mid-erase does not yank back; pointer up returns to ${tool}`, () => {
+				editor.setCurrentTool(tool)
+				editor.keyDown('Meta')
+
+				editor.pointerDown(99, 99)
+				editor.expectToBeIn('eraser.pointing')
+
+				// Simulate accel release mid-interaction. Set both metaKey and
+				// ctrlKey directly to bypass the editor's 150ms debounce on accel
+				// release — in real browsers each subsequent event carries the
+				// up-to-date modifier state, so this models reality even though
+				// `keyUp('Meta')` in tests defers the state update. (The driver
+				// treats Meta as also setting ctrlKey on key down, so both must be
+				// cleared for `inputs.getAccelKey()` to flip on non-Darwin envs.)
+				editor.inputs.setMetaKey(false)
+				editor.inputs.setCtrlKey(false)
+				expect(editor.getCurrentTool().id).toBe('eraser')
+
+				editor.pointerUp()
+				editor.expectToBeIn(`${tool}.idle`)
+				expect(editor.getCurrentToolId()).toBe(tool)
+			})
+
+			it(`accel pressed mid-stroke does not switch tools`, () => {
 				editor.setCurrentTool(tool)
 				editor.pointerDown(0, 0)
 				editor.expectToBeIn(`${tool}.drawing`)
@@ -722,39 +733,15 @@ describe('Hold accel to temporarily erase from the draw / highlight tool', () =>
 				editor.pointerUp()
 			})
 
-			it(`safety net: pointerDown with accel held in ${tool} idle erases instead of drawing`, () => {
+			it(`shift + accel + click does not switch (preserves shift+cmd straight-line snap)`, () => {
 				editor.setCurrentTool(tool)
-				editor.expectToBeIn(`${tool}.idle`)
+				editor.keyDown('Shift')
+				editor.keyDown('Meta')
 
-				const shapesBefore = editor.getCurrentPageShapes().length
+				editor.pointerDown(99, 99)
 
-				// Simulate the case where the keydown was missed (e.g. the editor
-				// wasn't focused yet) by dispatching a pointerDown with accel set
-				// without a prior keyDown('Meta').
-				editor.dispatch({
-					type: 'pointer',
-					name: 'pointer_down',
-					point: { x: 99, y: 99, z: 0 },
-					pointerId: 1,
-					button: 0,
-					isPen: false,
-					target: 'canvas',
-					shiftKey: false,
-					altKey: false,
-					ctrlKey: true,
-					metaKey: true,
-					accelKey: true,
-				})
-
-				// We should have switched to the eraser and started erasing the hit
-				// shape, not started drawing a new shape.
-				expect(editor.getCurrentTool().id).toBe('eraser')
-				expect(editor.getCurrentToolId()).toBe(tool)
-				expect(editor.getErasingShapeIds()).toEqual([ids.box2])
-
-				editor.pointerUp()
-
-				expect(editor.getCurrentPageShapes().length).toBe(shapesBefore - 1)
+				// Should be drawing (straight-line mode), not erasing.
+				editor.expectToBeIn(`${tool}.drawing`)
 			})
 		})
 	}
@@ -766,7 +753,7 @@ describe('Hold accel to temporarily erase from the draw / highlight tool', () =>
 		editor.keyDown('Meta')
 		editor.keyUp('Meta')
 
-		// Still eraser; no transient return.
+		// Still eraser; no transient return because there's no onInteractionEnd.
 		expect(editor.getCurrentToolId()).toBe('eraser')
 		expect(editor.getCurrentTool().id).toBe('eraser')
 	})

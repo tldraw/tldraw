@@ -5,8 +5,8 @@ export class Pointing extends StateNode {
 
 	_isHoldingAccelKey = false
 
-	override onEnter() {
-		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
+	override onEnter(info: TLPointerEventInfo) {
+		this._isHoldingAccelKey = isAccelKey(info)
 
 		const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapesSorted = this.editor.getCurrentPageRenderingShapesSorted()
@@ -55,6 +55,8 @@ export class Pointing extends StateNode {
 	}
 
 	override onLongPress(info: TLPointerEventInfo) {
+		// don't transition to erasing if the user is holding the accel key, they want to keep pointing
+		if (info.accelKey) return
 		this.startErasing(info)
 	}
 
@@ -65,8 +67,6 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this._isHoldingAccelKey) return
-
 		if (this.editor.inputs.getIsDragging()) {
 			this.startErasing(info)
 		}

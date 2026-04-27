@@ -1764,10 +1764,6 @@ export class EraserTool extends StateNode {
     }): void;
     // (undocumented)
     onExit(): void;
-    // (undocumented)
-    onKeyDown(info: TLKeyboardEventInfo): void;
-    // (undocumented)
-    onKeyUp(info: TLKeyboardEventInfo): void;
 }
 
 // @public (undocumented)
