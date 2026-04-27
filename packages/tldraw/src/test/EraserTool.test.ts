@@ -657,3 +657,82 @@ describe('When holding meta/ctrl key (accel key)', () => {
 		editor.keyUp('Meta')
 	})
 })
+
+describe('Hold accel to temporarily erase from the draw / highlight tool', () => {
+	for (const tool of ['draw', 'highlight'] as const) {
+		describe(`from ${tool}`, () => {
+			it(`switches into eraser while keeping ${tool} masked when accel is pressed in idle`, () => {
+				editor.setCurrentTool(tool)
+				editor.expectToBeIn(`${tool}.idle`)
+				expect(editor.getCurrentToolId()).toBe(tool)
+
+				editor.keyDown('Meta')
+
+				editor.expectToBeIn('eraser.idle')
+				// Eraser is the active tool but the toolbar still reports the originating tool.
+				expect(editor.getCurrentTool().id).toBe('eraser')
+				expect(editor.getCurrentToolId()).toBe(tool)
+
+				editor.keyUp('Meta')
+
+				editor.expectToBeIn(`${tool}.idle`)
+				expect(editor.getCurrentToolId()).toBe(tool)
+			})
+
+			it(`returns to ${tool} after a transient erase completes`, () => {
+				editor.setCurrentTool(tool)
+				editor.keyDown('Meta')
+				editor.expectToBeIn('eraser.idle')
+
+				const shapesBefore = editor.getCurrentPageShapes().length
+				editor.pointerDown(99, 99) // hits box2
+				editor.pointerUp()
+
+				expect(editor.getCurrentPageShapes().length).toBe(shapesBefore - 1)
+
+				editor.keyUp('Meta')
+				editor.expectToBeIn(`${tool}.idle`)
+				expect(editor.getCurrentToolId()).toBe(tool)
+			})
+
+			it(`stays in eraser while pointer is down even if accel is released, then returns to ${tool}`, () => {
+				editor.setCurrentTool(tool)
+				editor.keyDown('Meta')
+
+				editor.pointerDown(99, 99)
+				// Mid-interaction; releasing accel must not yank the user back to ${tool}.
+				editor.keyUp('Meta')
+				expect(editor.getCurrentTool().id).toBe('eraser')
+
+				editor.pointerUp()
+				// Once the erase finishes and we re-enter eraser idle with accel released, return.
+				editor.expectToBeIn(`${tool}.idle`)
+				expect(editor.getCurrentToolId()).toBe(tool)
+			})
+
+			it(`does not switch tools when accel is pressed mid-stroke`, () => {
+				editor.setCurrentTool(tool)
+				editor.pointerDown(0, 0)
+				editor.expectToBeIn(`${tool}.drawing`)
+
+				editor.keyDown('Meta')
+				editor.expectToBeIn(`${tool}.drawing`)
+
+				editor.keyUp('Meta')
+				editor.pointerUp()
+			})
+		})
+	}
+
+	it('explicit eraser (not from accel) does not get masked or auto-return on key up', () => {
+		editor.setCurrentTool('eraser')
+		expect(editor.getCurrentToolId()).toBe('eraser')
+
+		editor.keyDown('Meta')
+		editor.keyUp('Meta')
+
+		// Still eraser; no transient return.
+		expect(editor.getCurrentToolId()).toBe('eraser')
+		expect(editor.getCurrentTool().id).toBe('eraser')
+	})
+})

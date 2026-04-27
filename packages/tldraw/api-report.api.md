@@ -1750,11 +1750,24 @@ export class EraserTool extends StateNode {
     // (undocumented)
     static id: string;
     // (undocumented)
+    info: {
+        onInteractionEnd?: string | undefined;
+    };
+    // (undocumented)
     static initial: string;
     // (undocumented)
     static isLockable: boolean;
+    maybeReturnToOriginatingTool(): void;
     // (undocumented)
-    onEnter(): void;
+    onEnter(info?: {
+        onInteractionEnd?: string;
+    }): void;
+    // (undocumented)
+    onExit(): void;
+    // (undocumented)
+    onKeyDown(info: TLKeyboardEventInfo): void;
+    // (undocumented)
+    onKeyUp(info: TLKeyboardEventInfo): void;
 }
 
 // @public (undocumented)
