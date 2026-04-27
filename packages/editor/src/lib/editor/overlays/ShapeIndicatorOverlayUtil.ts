@@ -9,7 +9,6 @@ export interface TLShapeIndicatorOverlay extends TLOverlay {
 	props: {
 		idsToDisplay: TLShapeId[]
 		hintingShapeIds: TLShapeId[]
-		collaboratorIndicators: Array<{ color: string; shapeIds: TLShapeId[] }>
 	}
 }
 
@@ -22,9 +21,83 @@ const indicatorPathCache = createComputedCache(
 )
 
 /**
+ * Combine every batchable shape indicator into a single page-space `Path2D` and
+ * emit one stroke call. Shapes whose indicator needs an evenodd clip (e.g.
+ * arrows with labels or complex arrowheads) can't be batched — they still
+ * stroke individually inside a save/restore with `ctx.clip` applied.
+ *
+ * Shared by {@link ShapeIndicatorOverlayUtil} and any overlay util that paints
+ * shape indicators (e.g. collaborator selections).
+ *
+ * @public
+ */
+export function strokeShapeIndicators(
+	editor: Editor,
+	ctx: CanvasRenderingContext2D,
+	shapeIds: TLShapeId[]
+): void {
+	if (shapeIds.length === 0) return
+
+	const batched = new Path2D()
+
+	for (const shapeId of shapeIds) {
+		const shape = editor.getShape(shapeId)
+		if (!shape || shape.isLocked) continue
+
+		const pageTransform = editor.getShapePageTransform(shape)
+		if (!pageTransform) continue
+
+		const indicatorPath = indicatorPathCache.get(editor, shape.id)
+		if (!indicatorPath) continue
+
+		if (indicatorPath instanceof Path2D) {
+			batched.addPath(indicatorPath, pageTransform)
+			continue
+		}
+
+		const { path, clipPath, additionalPaths } = indicatorPath
+
+		if (!clipPath) {
+			batched.addPath(path, pageTransform)
+			if (additionalPaths) {
+				for (const p of additionalPaths) batched.addPath(p, pageTransform)
+			}
+			continue
+		}
+
+		// Clipped case: fall back to an individual stroke. Rare (arrows with
+		// labels / complex arrowheads), so the extra save/restore/stroke
+		// pair per such shape isn't worth batching away.
+		ctx.save()
+		ctx.transform(
+			pageTransform.a,
+			pageTransform.b,
+			pageTransform.c,
+			pageTransform.d,
+			pageTransform.e,
+			pageTransform.f
+		)
+		ctx.save()
+		ctx.clip(clipPath, 'evenodd')
+		ctx.stroke(path)
+		ctx.restore()
+		if (additionalPaths) {
+			for (const p of additionalPaths) ctx.stroke(p)
+		}
+		ctx.restore()
+	}
+
+	ctx.stroke(batched)
+}
+
+/**
  * Overlay util for shape indicators — the selection / hover / hint outlines drawn
  * under the selection foreground. Paints local indicators in the theme's
- * selection color and remote collaborator indicators in each peer's color.
+ * selection color.
+ *
+ * Remote collaborator selection indicators are drawn by a separate overlay util
+ * (e.g. `CollaboratorShapeIndicatorOverlayUtil` from `tldraw`) that runs at a
+ * lower z-index so peer selections appear under the local indicators.
  *
  * Non-interactive: contributes no hit-test geometry.
  *
@@ -72,22 +145,7 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
 			renderingShapeIds.has(id)
 		)
 
-		// Remote collaborator indicators (only currently-visible peers).
-		const collaboratorIndicators: TLShapeIndicatorOverlay['props']['collaboratorIndicators'] = []
-		for (const presence of editor.getVisibleCollaboratorsOnCurrentPage()) {
-			const visibleShapeIds = presence.selectedShapeIds.filter(
-				(id) => renderingShapeIds.has(id) && !editor.isShapeHidden(id)
-			)
-			if (visibleShapeIds.length === 0) continue
-
-			collaboratorIndicators.push({ color: presence.color, shapeIds: visibleShapeIds })
-		}
-
-		if (
-			idsToDisplay.length === 0 &&
-			hintingShapeIds.length === 0 &&
-			collaboratorIndicators.length === 0
-		) {
+		if (idsToDisplay.length === 0 && hintingShapeIds.length === 0) {
 			return []
 		}
 
@@ -95,7 +153,7 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
 			{
 				id: 'shape_indicator',
 				type: 'shape_indicator',
-				props: { idsToDisplay, hintingShapeIds, collaboratorIndicators },
+				props: { idsToDisplay, hintingShapeIds },
 			},
 		]
 	}
@@ -106,92 +164,20 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
 
 		const editor = this.editor
 		const zoom = editor.getZoomLevel()
-		const { idsToDisplay, hintingShapeIds, collaboratorIndicators } = overlay.props
+		const { idsToDisplay, hintingShapeIds } = overlay.props
 
 		ctx.lineCap = 'round'
 		ctx.lineJoin = 'round'
 
-		// Remote collaborator indicators — under local indicators, slightly transparent.
-		// One stroke call per collaborator (per unique color).
-		ctx.lineWidth = this.options.lineWidth / zoom
-		ctx.globalAlpha = 0.7
-		for (const collaborator of collaboratorIndicators) {
-			ctx.strokeStyle = collaborator.color
-			this._strokeIndicatorBatch(ctx, collaborator.shapeIds)
-		}
-		ctx.globalAlpha = 1.0
-
 		// Local selected / hovered indicators — one stroke call for the whole batch.
 		ctx.strokeStyle = editor.getCurrentTheme().colors[editor.getColorMode()].selectionStroke
 		ctx.lineWidth = this.options.lineWidth / zoom
-		this._strokeIndicatorBatch(ctx, idsToDisplay)
+		strokeShapeIndicators(editor, ctx, idsToDisplay)
 
 		// Hinted shapes — thicker stroke, one call for the whole batch.
 		if (hintingShapeIds.length > 0) {
 			ctx.lineWidth = this.options.hintedLineWidth / zoom
-			this._strokeIndicatorBatch(ctx, hintingShapeIds)
+			strokeShapeIndicators(editor, ctx, hintingShapeIds)
 		}
-	}
-
-	// Combine every batchable shape indicator into a single page-space Path2D
-	// and emit one stroke call. Shapes whose indicator needs an evenodd clip
-	// (e.g. arrows with labels or complex arrowheads) can't be batched — they
-	// still stroke individually inside a save/restore with ctx.clip applied.
-	private _strokeIndicatorBatch(ctx: CanvasRenderingContext2D, shapeIds: TLShapeId[]): void {
-		if (shapeIds.length === 0) return
-
-		const editor = this.editor
-		const batched = new Path2D()
-
-		for (const shapeId of shapeIds) {
-			const shape = editor.getShape(shapeId)
-			if (!shape || shape.isLocked) continue
-
-			const pageTransform = editor.getShapePageTransform(shape)
-			if (!pageTransform) continue
-
-			const indicatorPath = indicatorPathCache.get(editor, shape.id)
-			if (!indicatorPath) continue
-
-			if (indicatorPath instanceof Path2D) {
-				batched.addPath(indicatorPath, pageTransform)
-				continue
-			}
-
-			const { path, clipPath, additionalPaths } = indicatorPath
-
-			if (!clipPath) {
-				// No clip: the main path and any additional paths can all join
-				// the batch directly.
-				batched.addPath(path, pageTransform)
-				if (additionalPaths) {
-					for (const p of additionalPaths) batched.addPath(p, pageTransform)
-				}
-				continue
-			}
-
-			// Clipped case: fall back to an individual stroke. Rare (arrows with
-			// labels / complex arrowheads), so the extra save/restore/stroke
-			// pair per such shape isn't worth batching away.
-			ctx.save()
-			ctx.transform(
-				pageTransform.a,
-				pageTransform.b,
-				pageTransform.c,
-				pageTransform.d,
-				pageTransform.e,
-				pageTransform.f
-			)
-			ctx.save()
-			ctx.clip(clipPath, 'evenodd')
-			ctx.stroke(path)
-			ctx.restore()
-			if (additionalPaths) {
-				for (const p of additionalPaths) ctx.stroke(p)
-			}
-			ctx.restore()
-		}
-
-		ctx.stroke(batched)
 	}
 }

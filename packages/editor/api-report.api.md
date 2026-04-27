@@ -534,6 +534,15 @@ export class ClickManager {
 // @public
 export function clockwiseAngleDist(a0: number, a1: number): number;
 
+// @public
+export class CollaboratorsManager {
+    constructor(editor: Editor);
+    getCollaborators(): TLInstancePresence[];
+    getCollaboratorsOnCurrentPage(): TLInstancePresence[];
+    getVisibleCollaborators(): TLInstancePresence[];
+    getVisibleCollaboratorsOnCurrentPage(): TLInstancePresence[];
+}
+
 // @public (undocumented)
 export function ContainerProvider({ container, children }: ContainerProviderProps): JSX.Element;
 
@@ -911,8 +920,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     clearHistory(): this;
     // @internal
     protected _clickManager: ClickManager;
-    // @internal (undocumented)
-    readonly _collaboratorVisibilityClock: Atom<number, unknown>;
+    readonly collaborators: CollaboratorsManager;
     complete(): this;
     // (undocumented)
     readonly contextId: string;
@@ -3261,6 +3269,9 @@ export const stopEventPropagation: (e: any) => any;
 // @internal (undocumented)
 export type StoreName = (typeof Table)[keyof typeof Table];
 
+// @public
+export function strokeShapeIndicators(editor: Editor, ctx: CanvasRenderingContext2D, shapeIds: TLShapeId[]): void;
+
 // @public (undocumented)
 export function suffixSafeId(id: SafeId, suffix: string): SafeId;
 
@@ -4600,10 +4611,6 @@ export type TLShapeErrorFallbackComponent = ComponentType<{
 export interface TLShapeIndicatorOverlay extends TLOverlay {
     // (undocumented)
     props: {
-        collaboratorIndicators: Array<{
-            color: string;
-            shapeIds: TLShapeId[];
-        }>;
         hintingShapeIds: TLShapeId[];
         idsToDisplay: TLShapeId[];
     };

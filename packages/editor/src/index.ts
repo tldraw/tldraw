@@ -136,6 +136,7 @@ export {
 export { DEFAULT_THEME } from './lib/editor/managers/ThemeManager/defaultThemes'
 export { ThemeManager, resolveThemes } from './lib/editor/managers/ThemeManager/ThemeManager'
 export { TickManager } from './lib/editor/managers/TickManager/TickManager'
+export { CollaboratorsManager } from './lib/editor/managers/CollaboratorsManager/CollaboratorsManager'
 export { PerformanceApiAdapter } from './lib/editor/managers/PerformanceManager/PerformanceApiAdapter'
 export { PerformanceManager } from './lib/editor/managers/PerformanceManager/PerformanceManager'
 export {
@@ -182,6 +183,7 @@ export {
 } from './lib/editor/overlays/OverlayUtil'
 export {
 	ShapeIndicatorOverlayUtil,
+	strokeShapeIndicators,
 	type TLShapeIndicatorOverlay,
 } from './lib/editor/overlays/ShapeIndicatorOverlayUtil'
 export {

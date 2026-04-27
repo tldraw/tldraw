@@ -751,6 +751,24 @@ export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorS
     static type: string;
 }
 
+// @public
+export class CollaboratorShapeIndicatorOverlayUtil extends OverlayUtil<TLCollaboratorShapeIndicatorOverlay> {
+    // (undocumented)
+    getOverlays(): TLCollaboratorShapeIndicatorOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        alpha: number;
+        lineWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorShapeIndicatorOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
 // @public (undocumented)
 export function ColorSchemeMenu(): JSX.Element;
 
@@ -1236,7 +1254,7 @@ export function DefaultMinimap(): JSX.Element;
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
 
 // @public (undocumented)
-export const defaultOverlayUtils: readonly [typeof ShapeIndicatorOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof ArrowBindingHintOverlayUtil, typeof CollaboratorCursorOverlayUtil];
+export const defaultOverlayUtils: readonly [typeof CollaboratorShapeIndicatorOverlayUtil, typeof ShapeIndicatorOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof ArrowBindingHintOverlayUtil, typeof CollaboratorCursorOverlayUtil];
 
 // @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
@@ -3870,6 +3888,17 @@ export interface TLCollaboratorScribbleOverlay extends TLOverlay {
     props: {
         color: string;
         scribble: TLScribble;
+    };
+}
+
+// @public (undocumented)
+export interface TLCollaboratorShapeIndicatorOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        indicators: Array<{
+            color: string;
+            shapeIds: TLShapeId[];
+        }>;
     };
 }
 

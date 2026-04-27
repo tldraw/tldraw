@@ -84,6 +84,10 @@ export {
 	type TLCollaboratorCursorOverlay,
 } from './lib/overlays/CollaboratorCursorOverlayUtil'
 export {
+	CollaboratorShapeIndicatorOverlayUtil,
+	type TLCollaboratorShapeIndicatorOverlay,
+} from './lib/overlays/CollaboratorShapeIndicatorOverlayUtil'
+export {
 	ShapeHandleOverlayUtil,
 	type TLShapeHandleOverlay,
 } from './lib/overlays/ShapeHandleOverlayUtil'

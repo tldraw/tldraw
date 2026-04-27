@@ -89,7 +89,6 @@ import {
 	hasOwnProperty,
 	last,
 	lerp,
-	maxBy,
 	minBy,
 	sortById,
 	sortByIndex,
@@ -132,10 +131,6 @@ import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '.
 import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
-import {
-	getCollaboratorStateFromElapsedTime,
-	shouldShowCollaborator,
-} from '../utils/collaboratorState'
 import { debugFlags } from '../utils/debug-flags'
 import {
 	TLDeepLink,
@@ -156,6 +151,7 @@ import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager/ClickManager'
+import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
 import { FocusManager } from './managers/FocusManager/FocusManager'
 import { FontManager } from './managers/FontManager/FontManager'
@@ -422,9 +418,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.inputs = new InputsManager(this)
 		this.performance = new PerformanceManager(this)
 		this.disposables.add(() => this.performance.dispose())
-		this.timers.setInterval(() => {
-			this._collaboratorVisibilityClock.set(Date.now())
-		}, this.options.collaboratorCheckIntervalMs)
+		this.collaborators = new CollaboratorsManager(this)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -1057,8 +1051,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly timers = tltime.forContext(this.contextId)
 
-	/** @internal */
-	readonly _collaboratorVisibilityClock = atom('collaboratorVisibilityClock', Date.now())
+	/**
+	 * A manager for remote peer collaborators connected to this editor.
+	 *
+	 * @public
+	 */
+	readonly collaborators: CollaboratorsManager
 
 	/**
 	 * A manager for the user and their preferences.
@@ -1946,11 +1944,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Set the cursor.
 	 *
+	 * No-op when the partial wouldn't change the current cursor — `setCursor`
+	 * is called from pointer-move hot paths (see `updateHoveredOverlayId`,
+	 * various tool states) and skipping redundant writes avoids needlessly
+	 * dirtying instance state.
+	 *
 	 * @param cursor - The cursor to set.
 	 * @public
 	 */
 	setCursor(cursor: Partial<TLCursor>) {
-		this.updateInstanceState({ cursor: { ...this.getInstanceState().cursor, ...cursor } })
+		const current = this.getInstanceState().cursor
+		if (
+			(cursor.type === undefined || cursor.type === current.type) &&
+			(cursor.rotation === undefined || cursor.rotation === current.rotation)
+		) {
+			return this
+		}
+		this.updateInstanceState({ cursor: { ...current, ...cursor } })
 		return this
 	}
 
@@ -4256,43 +4266,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	// Collaborators
 
-	@computed
-	private _getCollaboratorsQuery() {
-		return this.store.query.records('instance_presence', () => ({
-			userId: { neq: this.user.getId() },
-		}))
-	}
-
 	/**
 	 * Returns a list of presence records for all peer collaborators.
 	 * This will return the latest presence record for each connected user.
 	 *
+	 * Convenience wrapper for {@link CollaboratorsManager.getCollaborators}.
+	 *
 	 * @public
 	 */
-	@computed
 	getCollaborators() {
-		const allPresenceRecords = this._getCollaboratorsQuery().get()
-		if (!allPresenceRecords.length) return EMPTY_ARRAY
-		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
-		return userIds.map((id) => {
-			const latestPresence = maxBy(
-				allPresenceRecords.filter((c) => c.userId === id),
-				(p) => p.lastActivityTimestamp ?? 0
-			)
-			return latestPresence!
-		})
+		return this.collaborators.getCollaborators()
 	}
 
 	/**
 	 * Returns a list of presence records for all peer collaborators on the current page.
 	 * This will return the latest presence record for each connected user.
 	 *
+	 * Convenience wrapper for {@link CollaboratorsManager.getCollaboratorsOnCurrentPage}.
+	 *
 	 * @public
 	 */
-	@computed
 	getCollaboratorsOnCurrentPage() {
-		const currentPageId = this.getCurrentPageId()
-		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
+		return this.collaborators.getCollaboratorsOnCurrentPage()
 	}
 
 	/**
@@ -4302,29 +4297,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * users. Re-evaluates on the collaborator visibility clock, so callers don't need to
 	 * drive their own activity timer.
 	 *
+	 * Convenience wrapper for {@link CollaboratorsManager.getVisibleCollaborators}.
+	 *
 	 * @public
 	 */
-	@computed
 	getVisibleCollaborators() {
-		this._collaboratorVisibilityClock.get()
-		const now = Date.now()
-		return this.getCollaborators().filter((presence) => {
-			const elapsed = Math.max(0, now - (presence.lastActivityTimestamp ?? Infinity))
-			const state = getCollaboratorStateFromElapsedTime(this, elapsed)
-			return shouldShowCollaborator(this, presence, state)
-		})
+		return this.collaborators.getVisibleCollaborators()
 	}
 
 	/**
 	 * Returns a list of presence records for peer collaborators who should currently be
 	 * shown in the UI, filtered to those on the current page.
 	 *
+	 * Convenience wrapper for {@link CollaboratorsManager.getVisibleCollaboratorsOnCurrentPage}.
+	 *
 	 * @public
 	 */
-	@computed
 	getVisibleCollaboratorsOnCurrentPage() {
-		const currentPageId = this.getCurrentPageId()
-		return this.getVisibleCollaborators().filter((c) => c.currentPageId === currentPageId)
+		return this.collaborators.getVisibleCollaboratorsOnCurrentPage()
 	}
 
 	// Attribution
