@@ -78,7 +78,9 @@ export class CollaboratorsManager {
 		this._visibilityClock.get()
 		const now = Date.now()
 		return this.getCollaborators().filter((presence) => {
-			const elapsed = Math.max(0, now - (presence.lastActivityTimestamp ?? Infinity))
+			// Treat a missing `lastActivityTimestamp` as "active right now" (elapsed = 0)
+			// so newly-joined peers aren't immediately classified as idle/inactive.
+			const elapsed = Math.max(0, now - (presence.lastActivityTimestamp ?? now))
 			const state = getCollaboratorStateFromElapsedTime(this.editor, elapsed)
 			return shouldShowCollaborator(this.editor, presence, state)
 		})

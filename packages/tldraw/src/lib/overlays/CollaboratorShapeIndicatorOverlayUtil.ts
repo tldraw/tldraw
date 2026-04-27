@@ -3,8 +3,8 @@ import { OverlayUtil, strokeShapeIndicators, TLOverlay, TLShapeId } from '@tldra
 /** @public */
 export interface TLCollaboratorShapeIndicatorOverlay extends TLOverlay {
 	props: {
-		// Pre-flattened list of (color, shapeId) pairs so that overlay equality
-		// is shallow and a single render pass can iterate them in order.
+		// One entry per peer, batching the shape IDs they have selected so the
+		// renderer can issue a single stroke call per color.
 		indicators: Array<{ color: string; shapeIds: TLShapeId[] }>
 	}
 }
