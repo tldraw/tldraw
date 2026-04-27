@@ -898,6 +898,12 @@ export const GlobShape = track(function GlobShape({
 	// Use reactive inputs to track if space key is pressed
 	const fillGlob = useValue('space key pressed', () => editor.inputs.keys.has('Space'), [editor])
 
+	const isSelected = useValue(
+		'is glob selected',
+		() => editor.getSelectedShapeIds().includes(shape.id),
+		[editor, shape.id]
+	)
+
 	const globPoints = getGlobInfo(editor, shape)
 	if (!globPoints) return null
 
@@ -936,6 +942,7 @@ export const GlobShape = track(function GlobShape({
 				opacity={fillGlob ? 1 : 0.75}
 				strokeWidth={2 / zoomLevel}
 			/>
+			{isSelected && <path d={pathBuilder.toD()} pointerEvents="none" fill="blue" opacity={0.25} />}
 		</SVGContainer>
 	)
 })
