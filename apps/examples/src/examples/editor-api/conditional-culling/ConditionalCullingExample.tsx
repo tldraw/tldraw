@@ -82,8 +82,10 @@ class GlowShapeUtil extends BaseBoxShapeUtil<GlowShape> {
 		)
 	}
 
-	indicator(shape: GlowShape) {
-		return <rect width={shape.props.w} height={shape.props.h} rx={8} />
+	getIndicatorPath(shape: GlowShape) {
+		const path = new Path2D()
+		path.roundRect(0, 0, shape.props.w, shape.props.h, 8)
+		return path
 	}
 }
 

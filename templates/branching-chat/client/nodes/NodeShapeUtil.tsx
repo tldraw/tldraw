@@ -10,7 +10,6 @@ import {
 	TLResizeInfo,
 	TLShape,
 	useEditor,
-	useUniqueSafeId,
 	useValue,
 } from 'tldraw'
 import { NODE_WIDTH_PX, PORT_RADIUS_PX } from '../constants'
@@ -22,7 +21,6 @@ import {
 	getNodeTypePorts,
 	getNodeWidthPx,
 	NodeType,
-	NodeTypePorts,
 } from './nodeTypes'
 
 const NODE_TYPE = 'node'
@@ -111,43 +109,17 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		return <NodeShape shape={shape} />
 	}
 
-	indicator(shape: NodeShape) {
+	getIndicatorPath(shape: NodeShape) {
+		const height = getNodeHeightPx(this.editor, shape)
+		const path = new Path2D()
+		path.roundRect(0, 0, NODE_WIDTH_PX, height, 9)
 		const ports = getNodePorts(this.editor, shape)
-		return <NodeShapeIndicator shape={shape} ports={ports} />
+		for (const port of Object.values(ports)) {
+			path.moveTo(port.x + PORT_RADIUS_PX, port.y)
+			path.arc(port.x, port.y, PORT_RADIUS_PX, 0, Math.PI * 2)
+		}
+		return path
 	}
-}
-
-// SVG indicator component that shows selection bounds and ports
-function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: NodeTypePorts }) {
-	const editor = useEditor()
-	const id = useUniqueSafeId()
-	const height = useValue('height', () => getNodeHeightPx(editor, shape), [
-		shape.props.node,
-		editor,
-	])
-
-	return (
-		<>
-			{/* Create a mask to show ports as holes in the selection bounds */}
-			<mask id={id}>
-				<rect width={NODE_WIDTH_PX + 10} height={height + 10} fill="white" x={-5} y={-5} />
-				{Object.values(ports).map((port) => (
-					<circle
-						key={port.id}
-						cx={port.x}
-						cy={port.y}
-						r={PORT_RADIUS_PX}
-						fill="black"
-						strokeWidth={0}
-					/>
-				))}
-			</mask>
-			<rect rx={9} width={NODE_WIDTH_PX} height={height} mask={`url(#${id})`} />
-			{Object.values(ports).map((port) => (
-				<circle key={port.id} cx={port.x} cy={port.y} r={PORT_RADIUS_PX} />
-			))}
-		</>
-	)
 }
 
 // Main node component that renders the HTML content

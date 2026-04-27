@@ -19,7 +19,6 @@ import {
 	TLResizeInfo,
 	TLShape,
 	useEditor,
-	useUniqueSafeId,
 	useValue,
 } from 'tldraw'
 import { PlayIcon } from '../components/icons/PlayIcon'
@@ -30,10 +29,9 @@ import {
 	NODE_ROW_BOTTOM_PADDING_PX,
 	NODE_ROW_HEADER_GAP_PX,
 	PORT_RADIUS_PX,
-	PORT_TYPE_COLORS,
 } from '../constants'
 import { executionState, startExecution, stopExecution } from '../execution/executionState'
-import { Port, ShapePort } from '../ports/Port'
+import { Port } from '../ports/Port'
 import { getNodeOutputPortInfo, getNodePorts } from './nodePorts'
 import { getNodeDefinition, getNodeHeightPx, getNodeWidthPx, NodeBody, NodeType } from './nodeTypes'
 import { resizeNode } from './resizeNode'
@@ -156,50 +154,18 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		return <NodeShapeComponent shape={shape} />
 	}
 
-	indicator(shape: NodeShape) {
+	getIndicatorPath(shape: NodeShape) {
+		const width = getNodeWidthPx(this.editor, shape)
+		const height = getNodeHeightPx(this.editor, shape)
+		const path = new Path2D()
+		path.roundRect(0, 0, width, height, 9)
 		const ports = Object.values(getNodePorts(this.editor, shape))
-		return <NodeShapeIndicator shape={shape} ports={ports} />
+		for (const port of ports) {
+			path.moveTo(port.x + PORT_RADIUS_PX, port.y)
+			path.arc(port.x, port.y, PORT_RADIUS_PX, 0, Math.PI * 2)
+		}
+		return path
 	}
-}
-
-function NodeShapeIndicator({ shape, ports }: { shape: NodeShape; ports: ShapePort[] }) {
-	const id = useUniqueSafeId()
-	const editor = useEditor()
-	const width = getNodeWidthPx(editor, shape)
-
-	return (
-		<>
-			<mask id={id}>
-				<rect
-					width={width + 10}
-					height={getNodeHeightPx(editor, shape) + 10}
-					fill="white"
-					x={-5}
-					y={-5}
-				/>
-				{ports.map((port) => (
-					<circle
-						key={port.id}
-						cx={port.x}
-						cy={port.y}
-						r={PORT_RADIUS_PX}
-						fill="black"
-						strokeWidth={0}
-					/>
-				))}
-			</mask>
-			<rect rx={9} width={width} height={getNodeHeightPx(editor, shape)} mask={`url(#${id})`} />
-			{ports.map((port) => (
-				<circle
-					key={port.id}
-					cx={port.x}
-					cy={port.y}
-					r={PORT_RADIUS_PX}
-					style={{ stroke: PORT_TYPE_COLORS[port.dataType] }}
-				/>
-			))}
-		</>
-	)
 }
 
 function NodeShapeComponent({ shape }: { shape: NodeShape }) {

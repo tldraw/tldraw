@@ -1,4 +1,4 @@
-import { createShapeId, TLFrameShape, TLGeoShape, TLLineShape } from '@tldraw/editor'
+import { createShapeId, TLFrameShape, TLGeoShape, TLGroupShape, TLLineShape } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
@@ -151,6 +151,39 @@ describe('When interacting with a shape...', () => {
 	it('cleans up events', () => {
 		const util = editor.getShapeUtil<TLGeoShape>('geo')
 		expect(util.onRotateStart).toBeUndefined()
+	})
+
+	it('returns a dashed indicator path for groups', () => {
+		const groupId = createShapeId('group-indicator')
+		const boxAId = createShapeId('group-indicator-a')
+		const boxBId = createShapeId('group-indicator-b')
+		editor.createShapes([
+			{ id: boxAId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: boxBId, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } },
+		])
+		editor.groupShapes([boxAId, boxBId], { groupId })
+
+		const originalPath2D = globalThis.Path2D
+		const commands: string[] = []
+		class MockPath2D {
+			moveTo() {
+				commands.push('moveTo')
+			}
+			lineTo() {
+				commands.push('lineTo')
+			}
+		}
+		globalThis.Path2D = MockPath2D as unknown as typeof Path2D
+
+		try {
+			const group = editor.getShape<TLGroupShape>(groupId)!
+			const path = editor.getShapeUtil<TLGroupShape>('group').getIndicatorPath(group)
+			expect(path).toBeInstanceOf(MockPath2D)
+			expect(commands.filter((command) => command === 'moveTo').length).toBeGreaterThan(4)
+			expect(commands.filter((command) => command === 'lineTo').length).toBeGreaterThan(4)
+		} finally {
+			globalThis.Path2D = originalPath2D
+		}
 	})
 
 	it('fires double click handler event', () => {

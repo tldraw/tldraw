@@ -58,15 +58,46 @@ export * from '@tldraw/editor'
 export { BookmarkAssetUtil } from './lib/assets/BookmarkAssetUtil'
 export { ImageAssetUtil } from './lib/assets/ImageAssetUtil'
 export { VideoAssetUtil } from './lib/assets/VideoAssetUtil'
+export {
+	ArrowBindingHintOverlayUtil,
+	type TLArrowBindingHintOverlay,
+} from './lib/overlays/ArrowBindingHintOverlayUtil'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
-export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
-export { TldrawHandles } from './lib/canvas/TldrawHandles'
-export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
-export { TldrawScribble } from './lib/canvas/TldrawScribble'
-export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
-export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
+export { ArrowHintOverlayUtil, type TLArrowHintOverlay } from './lib/overlays/ArrowHintOverlayUtil'
+export { BrushOverlayUtil, type TLBrushOverlay } from './lib/overlays/BrushOverlayUtil'
+export { ZoomBrushOverlayUtil, type TLZoomBrushOverlay } from './lib/overlays/ZoomBrushOverlayUtil'
+export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
+export {
+	CollaboratorBrushOverlayUtil,
+	type TLCollaboratorBrushOverlay,
+} from './lib/overlays/CollaboratorBrushOverlayUtil'
+export {
+	CollaboratorScribbleOverlayUtil,
+	type TLCollaboratorScribbleOverlay,
+} from './lib/overlays/CollaboratorScribbleOverlayUtil'
+export {
+	CollaboratorHintOverlayUtil,
+	type TLCollaboratorHintOverlay,
+} from './lib/overlays/CollaboratorHintOverlayUtil'
+export {
+	CollaboratorCursorOverlayUtil,
+	type TLCollaboratorCursorOverlay,
+} from './lib/overlays/CollaboratorCursorOverlayUtil'
+export {
+	ShapeHandleOverlayUtil,
+	type TLShapeHandleOverlay,
+} from './lib/overlays/ShapeHandleOverlayUtil'
+export {
+	SelectionForegroundOverlayUtil,
+	type TLSelectionForegroundOverlay,
+} from './lib/overlays/SelectionForegroundOverlayUtil'
+export {
+	SnapIndicatorOverlayUtil,
+	type TLSnapIndicatorOverlay,
+} from './lib/overlays/SnapIndicatorOverlayUtil'
 export { defaultAssetUtils } from './lib/defaultAssetUtils'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
+export { defaultOverlayUtils } from './lib/defaultOverlayUtils'
 export {
 	DEFAULT_EMBED_DEFINITIONS,
 	embedShapePermissionDefaults,

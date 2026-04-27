@@ -67,7 +67,7 @@ import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { ArrowShapeOptions, type ArrowShapeUtilDisplayValues } from './arrow-types'
 import { getArrowheadPathForType } from './arrowheads'
 import { getArrowLabelDefaultPosition, getArrowLabelPosition } from './arrowLabel'
-import { getArrowBodyPath, getArrowBodyPathBuilder, getArrowHandlePath } from './ArrowPath'
+import { getArrowBodyPath, getArrowBodyPathBuilder } from './ArrowPath'
 import { updateArrowTargetState } from './arrowTargetState'
 import { ElbowArrowAxes } from './elbow/definitions'
 import { ElbowArrowDebug } from './elbow/ElbowArrowDebug'
@@ -788,25 +788,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const { editor } = this
 		const dv = getDisplayValues(this, shape)
 
-		const shouldDisplayHandles = useValue(
-			'should display handles',
-			() => {
-				const { editor } = this
-				return (
-					!editor.getIsReadonly() &&
-					editor.getOnlySelectedShapeId() === shape.id &&
-					editor.isInAny(
-						'select.idle',
-						'select.pointing_handle',
-						'select.dragging_handle',
-						'select.translating',
-						'arrow.dragging'
-					)
-				)
-			},
-			[editor, shape.id]
-		)
-
 		const isSelected = useValue(
 			'is selected',
 			() => editor.getOnlySelectedShape()?.id === shape.id,
@@ -829,7 +810,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
 					<ArrowSvg
 						shape={shape}
-						shouldDisplayHandles={shouldDisplayHandles}
 						strokeColor={dv.strokeColor}
 						strokeWidth={dv.strokeWidth}
 						fillColor={dv.fillColor}
@@ -864,121 +844,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				)}
 			</>
 		)
-	}
-
-	indicator(shape: TLArrowShape) {
-		const isEditing = useIsEditing(shape.id)
-
-		const clipPathId = useSharedSafeId(shape.id + '_clip')
-
-		const dv = getDisplayValues(this, shape)
-
-		const info = getArrowInfo(this.editor, shape)
-		if (!info) return null
-
-		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, info?.bindings)
-		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
-		const bounds = geometry.bounds
-		const isEmpty = isEmptyRichText(shape.props.richText)
-
-		const labelGeometry = isEditing || !isEmpty ? (geometry.children[1] as Rectangle2d) : null
-
-		if (Vec.Equals(start, end)) return null
-
-		const strokeWidth = dv.strokeWidth * shape.props.scale
-
-		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
-		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
-
-		const includeClipPath =
-			(as && info.start.arrowhead !== 'arrow') ||
-			(ae && info.end.arrowhead !== 'arrow') ||
-			!!labelGeometry
-
-		const labelBounds = labelGeometry ? labelGeometry.getBounds() : new Box(0, 0, 0, 0)
-
-		if (isEditing && labelGeometry) {
-			return (
-				<rect
-					x={toDomPrecision(labelBounds.x)}
-					y={toDomPrecision(labelBounds.y)}
-					width={labelBounds.w}
-					height={labelBounds.h}
-					rx={dv.labelBorderRadius * shape.props.scale}
-					ry={dv.labelBorderRadius * shape.props.scale}
-				/>
-			)
-		}
-		const clipStartArrowhead = !(
-			info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow'
-		)
-		const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
-
-		return (
-			<g>
-				{includeClipPath && (
-					<defs>
-						<ArrowClipPath
-							radius={dv.labelBorderRadius * shape.props.scale}
-							hasText={!isEmpty}
-							bounds={bounds}
-							labelBounds={labelBounds}
-							as={clipStartArrowhead && as ? as : ''}
-							ae={clipEndArrowhead && ae ? ae : ''}
-						/>
-					</defs>
-				)}
-				<g
-					style={{
-						clipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
-						WebkitClipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
-					}}
-				>
-					{/* This rect needs to be here if we're creating a mask due to an svg quirk on Chrome */}
-					{includeClipPath && (
-						<rect
-							x={bounds.minX - 100}
-							y={bounds.minY - 100}
-							width={bounds.width + 200}
-							height={bounds.height + 200}
-							opacity={0}
-						/>
-					)}
-
-					{getArrowBodyPath(
-						shape,
-						info,
-						shape.props.dash === 'draw'
-							? {
-									style: 'draw',
-									randomSeed: shape.id,
-									strokeWidth: 1,
-									passes: 1,
-									offset: 0,
-									roundness: strokeWidth * 2,
-									props: { strokeWidth: undefined },
-								}
-							: { style: 'solid', strokeWidth: 1, props: { strokeWidth: undefined } }
-					)}
-				</g>
-				{as && <path d={as} />}
-				{ae && <path d={ae} />}
-				{labelGeometry && (
-					<rect
-						x={toDomPrecision(labelBounds.x)}
-						y={toDomPrecision(labelBounds.y)}
-						width={labelBounds.w}
-						height={labelBounds.h}
-						rx={dv.labelBorderRadius * shape.props.scale}
-						ry={dv.labelBorderRadius * shape.props.scale}
-					/>
-				)}
-			</g>
-		)
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLArrowShape) {
@@ -1133,7 +998,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			<g transform={`scale(${scaleFactor})`}>
 				<ArrowSvg
 					shape={shape}
-					shouldDisplayHandles={false}
 					strokeColor={dv.strokeColor}
 					strokeWidth={dv.strokeWidth}
 					fillColor={dv.fillColor}
@@ -1161,17 +1025,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
-		return [
-			getFillDefForCanvas(),
-			{
-				key: `arrow:dot`,
-				component: ArrowheadDotDef,
-			},
-			{
-				key: `arrow:cross`,
-				component: ArrowheadCrossDef,
-			},
-		]
+		return [getFillDefForCanvas()]
 	}
 	override getInterpolatedProps(
 		startShape: TLArrowShape,
@@ -1207,7 +1061,6 @@ export function getArrowLength(editor: Editor, shape: TLArrowShape): number {
 
 const ArrowSvg = track(function ArrowSvg({
 	shape,
-	shouldDisplayHandles,
 	strokeColor,
 	strokeWidth: baseStrokeWidth,
 	fillColor,
@@ -1215,7 +1068,6 @@ const ArrowSvg = track(function ArrowSvg({
 	labelBorderRadius = 3.5,
 }: {
 	shape: TLArrowShape
-	shouldDisplayHandles: boolean
 	strokeColor: string
 	strokeWidth: number
 	fillColor: string
@@ -1226,13 +1078,10 @@ const ArrowSvg = track(function ArrowSvg({
 	const info = getArrowInfo(editor, shape)
 	const isForceSolid = useEfficientZoomThreshold(0.25 / shape.props.scale)
 	const clipPathId = useSharedSafeId(shape.id + '_clip')
-	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
-	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
 	const isEditing = useIsEditing(shape.id)
 	const geometry = editor.getShapeGeometry(shape)
 	if (!geometry) return null
 	const bounds = Box.ZeroFix(geometry.bounds)
-	const bindings = getArrowBindings(editor, shape)
 	const isEmpty = isEmptyRichText(shape.props.richText)
 
 	if (!info?.isValid) return null
@@ -1241,36 +1090,6 @@ const ArrowSvg = track(function ArrowSvg({
 
 	const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 	const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
-
-	let handlePath: null | React.JSX.Element = null
-
-	if (shouldDisplayHandles && (bindings.start || bindings.end)) {
-		handlePath = getArrowHandlePath(info, {
-			style: 'dashed',
-			start: 'skip',
-			end: 'skip',
-			lengthRatio: 2.5,
-			strokeWidth: 2 / editor.getEfficientZoomLevel(),
-			props: {
-				className: 'tl-arrow-hint',
-				markerStart: bindings.start
-					? bindings.start.props.isExact
-						? ''
-						: bindings.start.props.isPrecise
-							? `url(#${arrowheadCrossId})`
-							: `url(#${arrowheadDotId})`
-					: '',
-				markerEnd: bindings.end
-					? bindings.end.props.isExact
-						? ''
-						: bindings.end.props.isPrecise
-							? `url(#${arrowheadCrossId})`
-							: `url(#${arrowheadDotId})`
-					: '',
-				opacity: 0.16,
-			},
-		})
-	}
 
 	const labelPosition = getArrowLabelPosition(editor, shape, isEditing)
 
@@ -1300,7 +1119,6 @@ const ArrowSvg = track(function ArrowSvg({
 				strokeLinecap="round"
 				pointerEvents="none"
 			>
-				{handlePath}
 				<g
 					style={{
 						clipPath: `url(#${clipPathId})`,
@@ -1430,25 +1248,6 @@ const shapeAtTranslationStart = new WeakMap<
 		>
 	}
 >()
-
-function ArrowheadDotDef() {
-	const id = useSharedSafeId('arrowhead-dot')
-	return (
-		<marker id={id} className="tl-arrow-hint" refX="3.0" refY="3.0" orient="0">
-			<circle cx="3" cy="3" r="2" strokeDasharray="100%" />
-		</marker>
-	)
-}
-
-function ArrowheadCrossDef() {
-	const id = useSharedSafeId('arrowhead-cross')
-	return (
-		<marker id={id} className="tl-arrow-hint" refX="3.0" refY="3.0" orient="auto">
-			<line x1="1.5" y1="1.5" x2="4.5" y2="4.5" strokeDasharray="100%" />
-			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
-		</marker>
-	)
-}
 
 /**
  * Take 2 angles and return true if they are approximately parallel. Angle that point in the same

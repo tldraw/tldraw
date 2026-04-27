@@ -35,8 +35,10 @@ import { TLDragShapesInInfo, TLDragShapesOutInfo } from './ShapeUtil'
  *     return <SVGContainer>...</SVGContainer>
  *   }
  *
- *   override indicator(shape: MyContainerShape) {
- *     return <rect width={shape.props.w} height={shape.props.h} />
+ *   override getIndicatorPath(shape: MyContainerShape) {
+ *     const path = new Path2D()
+ *     path.rect(0, 0, shape.props.w, shape.props.h)
+ *     return path
  *   }
  * }
  * ```

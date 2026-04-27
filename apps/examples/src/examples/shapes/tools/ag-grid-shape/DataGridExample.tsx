@@ -56,8 +56,10 @@ class AgGridShapeUtil extends BaseBoxShapeUtil<AgGridShape> {
 			</div>
 		)
 	}
-	override indicator(shape: AgGridShape) {
-		return <rect width={shape.props.w} height={shape.props.h} rx={8} ry={8} />
+	override getIndicatorPath(shape: AgGridShape) {
+		const path = new Path2D()
+		path.roundRect(0, 0, shape.props.w, shape.props.h, 8)
+		return path
 	}
 }
 

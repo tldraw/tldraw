@@ -12,7 +12,7 @@ min_machines_running = 1
 
 [[http_service.checks]]
 grace_period = "30s"
-interval = "15s"
+interval = "5s"
 method = "GET"
 timeout = "5s"
 path = "/keepalive"

@@ -40,8 +40,10 @@ class HtmlCssShapeUtil extends BaseBoxShapeUtil<HtmlCssShape> {
 	override component(shape: HtmlCssShape) {
 		return <HtmlCssShapeComponent shape={shape} />
 	}
-	override indicator(shape: HtmlCssShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	override getIndicatorPath(shape: HtmlCssShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 function HtmlCssShapeComponent({ shape }: { shape: HtmlCssShape }) {

@@ -132,6 +132,10 @@ import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '.
 import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
+import {
+	getCollaboratorStateFromElapsedTime,
+	shouldShowCollaborator,
+} from '../utils/collaboratorState'
 import { debugFlags } from '../utils/debug-flags'
 import {
 	TLDeepLink,
@@ -165,6 +169,8 @@ import { TextManager } from './managers/TextManager/TextManager'
 import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
+import { OverlayManager } from './overlays/OverlayManager'
+import { TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
 import {
 	ShapeUtil,
 	TLEditStartInfo,
@@ -224,6 +230,11 @@ export interface TLEditorOptions {
 	 * An array of asset utils to use in the editor. These will be used to handle asset-type-specific behavior.
 	 */
 	assetUtils?: readonly TLAnyAssetUtilConstructor[]
+	/**
+	 * An array of overlay utils to use in the editor. These define canvas overlay UI elements
+	 * like selection handles, rotation corners, shape handles, etc.
+	 */
+	overlayUtils?: readonly TLAnyOverlayUtilConstructor[]
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
@@ -330,6 +341,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shapeUtils,
 		bindingUtils,
 		assetUtils: assetUtilConstructors,
+		overlayUtils: overlayUtilConstructors,
 		tools,
 		getContainer,
 		// needs to be here for backwards compatibility with TldrawEditor
@@ -410,6 +422,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.inputs = new InputsManager(this)
 		this.performance = new PerformanceManager(this)
 		this.disposables.add(() => this.performance.dispose())
+		this.timers.setInterval(() => {
+			this._collaboratorVisibilityClock.set(Date.now())
+		}, this.options.collaboratorCheckIntervalMs)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -488,6 +503,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.scribbles = new ScribbleManager(this)
+
+		// Overlay utils
+		this.overlays = new OverlayManager(this)
+		if (overlayUtilConstructors) {
+			for (const Util of overlayUtilConstructors) {
+				const util = new Util(this)
+				this.overlays.registerUtil(util)
+			}
+		}
 
 		// Cleanup
 
@@ -1033,6 +1057,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly timers = tltime.forContext(this.contextId)
 
+	/** @internal */
+	readonly _collaboratorVisibilityClock = atom('collaboratorVisibilityClock', Date.now())
+
 	/**
 	 * A manager for the user and their preferences.
 	 *
@@ -1067,6 +1094,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly scribbles: ScribbleManager
+
+	/**
+	 * A manager for canvas overlay UI elements (selection handles, shape handles, etc.).
+	 *
+	 * @public
+	 */
+	readonly overlays: OverlayManager
 
 	/**
 	 * A manager for side effects and correct state enforcement. See {@link @tldraw/store#StoreSideEffects} for details.
@@ -4259,6 +4293,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getCollaboratorsOnCurrentPage() {
 		const currentPageId = this.getCurrentPageId()
 		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
+	}
+
+	/**
+	 * Returns a list of presence records for peer collaborators who should currently be
+	 * shown in the UI. Filters {@link Editor.getCollaborators} by activity state
+	 * (active / idle / inactive) and visibility rules such as following and highlighted
+	 * users. Re-evaluates on the collaborator visibility clock, so callers don't need to
+	 * drive their own activity timer.
+	 *
+	 * @public
+	 */
+	@computed
+	getVisibleCollaborators() {
+		this._collaboratorVisibilityClock.get()
+		const now = Date.now()
+		return this.getCollaborators().filter((presence) => {
+			const elapsed = Math.max(0, now - (presence.lastActivityTimestamp ?? Infinity))
+			const state = getCollaboratorStateFromElapsedTime(this, elapsed)
+			return shouldShowCollaborator(this, presence, state)
+		})
+	}
+
+	/**
+	 * Returns a list of presence records for peer collaborators who should currently be
+	 * shown in the UI, filtered to those on the current page.
+	 *
+	 * @public
+	 */
+	@computed
+	getVisibleCollaboratorsOnCurrentPage() {
+		const currentPageId = this.getCurrentPageId()
+		return this.getVisibleCollaborators().filter((c) => c.currentPageId === currentPageId)
 	}
 
 	// Attribution

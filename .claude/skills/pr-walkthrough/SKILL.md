@@ -11,7 +11,7 @@ Create a narrated walkthrough video for a pull request. This is designed to be a
 
 **Input:** A GitHub pull request URL (e.g., `https://github.com/tldraw/tldraw/pull/7924`). If given just a PR number or other description, assume that the PR is on the tldraw/tldraw repository.
 
-**Output:** An MP4 video at 1600x900 with audio narration and standardized intro / outro slides, saved to `.claude/skills/pr-walkthrough/out/pr-<number>-walkthrough.mp4`.
+**Output:** An MP4 video at 1280×720 (30 fps) with audio narration, whisper-timed yellow-on-black subtitles, and standardized intro / outro slides, saved to `.claude/skills/pr-walkthrough/out/pr-<number>-walkthrough.mp4`.
 
 All intermediate files (audio, manifest, scripts) go in `.claude/skills/pr-walkthrough/tmp/pr-<number>/`. This directory is gitignored. Only the final `.mp4` lives at `.claude/skills/pr-walkthrough/out/`.
 
@@ -99,7 +99,7 @@ Write a `narration.json` file, then run the `generate-audio.sh` CLI tool:
 
 ### Step 4: Write the manifest
 
-The manifest is a JSON file that describes every slide in the video. It bridges the narration/audio step and the Remotion renderer.
+The manifest is a JSON file that describes every slide in the video. It bridges the narration/audio step and the hyperframes renderer.
 
 Read the `durations.json` from step 3 to get the duration (in seconds) for each audio clip. Then write a `manifest.json` alongside the audio files:
 
@@ -245,9 +245,26 @@ Run the `render.sh` script:
   .claude/skills/pr-walkthrough/out/pr-<number>-walkthrough.mp4
 ```
 
-The script copies manifest + audio files into the Remotion project's `public/` directory, installs npm dependencies if needed, and renders the video.
+The script:
 
-**Dependencies:** Node.js 18+, ffmpeg (for final encoding). The first run installs Remotion (~50MB).
+1. Copies referenced audio/image files into `video/assets/`.
+2. Runs whisper transcription on each audio file → `video/transcripts/audio-NN.json` (idempotent — only re-transcribes if the audio is newer than the existing transcript).
+3. Runs `build.mjs <manifest>` to generate `video/index.html` — a hyperframes composition with timed clips for every slide, GSAP timeline for transitions and code-focus pans, and yellow-on-black caption clips with start/end times derived from the whisper transcripts.
+4. Lints the composition and renders 1920×1080 frames via `npx hyperframes render`.
+5. Downscales to 1280×720 / 30fps and recompresses with ffmpeg (CRF 26 + AAC 96k) for the final small-but-sharp MP4.
+
+**Dependencies:** Node.js 22+, ffmpeg, Python 3 (used by `render.sh` to parse the manifest). `hyperframes` is invoked via `npx --yes`, so no install step. Whisper runs locally (small.en model, ~150MB on first download).
+
+#### Caption sync via whisper
+
+Captions appear as yellow text on a solid black pill, anchored to the bottom of the frame. Their start/end times come from word-level whisper transcripts grouped into 5–7 word chunks, breaking early on natural pauses (>450ms gaps = sentence boundaries). One implication: whisper transcribes brand/code names phonetically — "tldraw" → "TL Draw", "OverlayUtil" → "overlay util". This is acceptable for captions but could be normalized later via a substitution table in `build.mjs`.
+
+#### File size knobs
+
+The default render targets ~30–60 MB for an 8-minute video. To tune:
+
+- `--crf <n>` in the ffmpeg downscale step inside `render.sh` — 22 is near-lossless, 26 is the default, 30+ is much smaller. CRF 28–30 is a good range for a docs-quality result.
+- The 1080p hyperframes render uses `-q draft --crf 30` to keep the intermediate file small (the downscale dominates final size anyway).
 
 ## File organization
 
@@ -258,20 +275,20 @@ Final output lives in `.claude/skills/pr-walkthrough/`. All intermediate files g
 ├── SKILL.md                    # This file
 ├── scripts/                    # CLI tools (checked in)
 │   └── generate-audio.sh       # narration.json → per-slide WAVs + durations.json
-├── video/                      # Remotion project (checked in)
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── remotion.config.ts
-│   ├── render.sh               # manifest.json → MP4
-│   ├── public/                 # Auto-populated at render time
-│   └── src/                    # React components for each slide type
+├── video/                      # Hyperframes project (checked in)
+│   ├── hyperframes.json        # hyperframes config
+│   ├── meta.json               # project meta
+│   ├── build.mjs               # manifest.json → index.html composition
+│   ├── render.sh               # manifest.json → 720p MP4 (full pipeline)
+│   ├── assets/                 # Auto-populated at render time (gitignored)
+│   ├── transcripts/            # Whisper word-level JSON (gitignored, cached)
+│   └── renders/                # Intermediate 1080p renders (gitignored)
 ├── out/                        # Final outputs (gitignored)
 │   └── pr-XXXX-walkthrough.mp4
 └── tmp/                        # Intermediate files (gitignored)
     └── pr-XXXX/
         ├── SCRIPT.md           # Narration script
         ├── narration.json      # Input to generate-audio.sh
-        ├── full-narration.wav  # Full TTS output before splitting
         ├── durations.json      # Audio filename → duration in seconds
         ├── manifest.json       # Input to render.sh
         └── audio-XX.wav        # Per-segment audio clips
@@ -348,4 +365,4 @@ Manifest slide type: `outro` with `durationInSeconds: 3`.
 - [ ] Read durations.json to get per-segment durations
 - [ ] Write manifest.json with slide types, diffs/code, and audio references
 - [ ] Render video with render.sh
-- [ ] Verify final output: 1600x900, audio synced, outro present
+- [ ] Verify final output: 1280×720 / 30 fps, audio synced, captions readable, outro present

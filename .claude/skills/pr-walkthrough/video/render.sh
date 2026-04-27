@@ -1,131 +1,160 @@
 #!/bin/bash
-# render.sh — Render a pr-walkthrough video from a manifest JSON file.
+# render.sh — Render a pr-walkthrough video from a manifest JSON file using
+# hyperframes. The pipeline:
+#   1. Copy referenced audio/image files into ./assets/
+#   2. Run whisper transcription on each audio file → ./transcripts/
+#   3. Run build.mjs to generate index.html
+#   4. Lint + render via npx hyperframes (1080p/30fps)
+#   5. Downscale + recompress to 1280×720 with ffmpeg → final MP4
 #
 # Usage:
 #   ./render.sh <manifest.json> <output.mp4>
-#
-# The manifest references audio files by filename (e.g. "audio-00.wav").
-# This script copies the manifest and all referenced audio/image files into
-# the Remotion public/ directory, installs deps if needed, and renders.
 #
 set -euo pipefail
 
 MANIFEST="${1:?Usage: render.sh <manifest.json> <output.mp4>}"
 OUTPUT="${2:?Usage: render.sh <manifest.json> <output.mp4>}"
 
-# Resolve paths
+# Resolve relative paths
 [[ "$MANIFEST" != /* ]] && MANIFEST="$(pwd)/$MANIFEST"
 [[ "$OUTPUT" != /* ]] && OUTPUT="$(pwd)/$OUTPUT"
 
 if [ ! -f "$MANIFEST" ]; then
-  echo "Error: Manifest not found: $MANIFEST"
-  exit 1
+	echo "Error: Manifest not found: $MANIFEST" >&2
+	exit 1
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PUBLIC_DIR="$SCRIPT_DIR/public"
+ASSETS_DIR="$SCRIPT_DIR/assets"
+TRANSCRIPTS_DIR="$SCRIPT_DIR/transcripts"
+RENDERS_DIR="$SCRIPT_DIR/renders"
 MANIFEST_DIR="$(dirname "$MANIFEST")"
 
-# Clean public/ to avoid stale assets from previous renders, but preserve
-# committed assets like tldraw.svg that are needed for intro/outro slides.
-PRESERVED_FILES=()
-for f in "$PUBLIC_DIR"/tldraw.svg; do
-  if [ -f "$f" ]; then
-    PRESERVED_FILES+=("$f")
-    cp "$f" "/tmp/.render-preserve-$$-$(basename "$f")"
-  fi
-done
-rm -rf "$PUBLIC_DIR"
-mkdir -p "$PUBLIC_DIR"
-for f in "${PRESERVED_FILES[@]}"; do
-  base="$(basename "$f")"
-  cp "/tmp/.render-preserve-$$-$base" "$PUBLIC_DIR/$base"
-  rm -f "/tmp/.render-preserve-$$-$base"
-done
+mkdir -p "$ASSETS_DIR" "$TRANSCRIPTS_DIR" "$RENDERS_DIR"
 mkdir -p "$(dirname "$OUTPUT")"
 
 echo "=== Rendering walkthrough video ==="
 echo "  Manifest: $MANIFEST"
 echo "  Output:   $OUTPUT"
+echo ""
 
-# --- Copy manifest into public/ ---
-cp "$MANIFEST" "$PUBLIC_DIR/manifest.json"
-
-# --- Copy referenced audio + image files into public/ ---
-# Extract all audio/src filenames from the manifest
+# --- 1. Extract referenced audio/image filenames from the manifest ---------
 REFERENCED_FILES=$(python3 -c "
 import json, sys
 with open(sys.argv[1]) as f:
     m = json.load(f)
 files = set()
 for s in m['slides']:
-    if 'audio' in s and s['audio']:
-        files.add(s['audio'])
-    if 'src' in s and s['src']:
-        files.add(s['src'])
+    if 'audio' in s and s['audio']: files.add(s['audio'])
+    if 'src' in s and s['src']:     files.add(s['src'])
 print('\n'.join(sorted(files)))
 " "$MANIFEST")
 
+# --- 2. Copy referenced files into ./assets/ -------------------------------
+echo "  [1/5] Copying assets..."
+# Clear assets to avoid stale files from previous runs.
+rm -rf "$ASSETS_DIR"
+mkdir -p "$ASSETS_DIR"
 for FILE in $REFERENCED_FILES; do
-  SRC="$MANIFEST_DIR/$FILE"
-  if [ -f "$SRC" ]; then
-    mkdir -p "$(dirname "$PUBLIC_DIR/$FILE")"
-    cp "$SRC" "$PUBLIC_DIR/$FILE"
-    echo "  Copied: $FILE"
-  else
-    echo "  Warning: Referenced file not found: $SRC"
-  fi
+	SRC="$MANIFEST_DIR/$FILE"
+	if [ -f "$SRC" ]; then
+		cp "$SRC" "$ASSETS_DIR/$FILE"
+	else
+		echo "    Warning: Referenced file not found: $SRC" >&2
+	fi
 done
 
-# --- Copy tldraw.svg from assets if not already in public/ ---
-ASSETS_DIR="$SCRIPT_DIR/../assets"
-if [ ! -f "$PUBLIC_DIR/tldraw.svg" ] && [ -f "$ASSETS_DIR/tldraw.svg" ]; then
-  cp "$ASSETS_DIR/tldraw.svg" "$PUBLIC_DIR/tldraw.svg"
-  echo "  Copied: tldraw.svg (from assets)"
+# --- 3. Whisper transcribe each audio file (idempotent per file) ----------
+echo "  [2/5] Transcribing audio (whisper)..."
+for WAV in "$ASSETS_DIR"/*.wav; do
+	[ -f "$WAV" ] || continue
+	BASE=$(basename "$WAV" .wav)
+	OUT_JSON="$TRANSCRIPTS_DIR/$BASE.json"
+	# Skip if already transcribed and source is older
+	if [ -f "$OUT_JSON" ] && [ "$OUT_JSON" -nt "$WAV" ]; then
+		continue
+	fi
+	echo "    transcribing $BASE..."
+	(cd "$SCRIPT_DIR" && npx --yes hyperframes transcribe "assets/$BASE.wav" --json >/dev/null)
+	# hyperframes writes to ./transcript.json — move to per-audio location
+	if [ -f "$SCRIPT_DIR/transcript.json" ]; then
+		mv "$SCRIPT_DIR/transcript.json" "$OUT_JSON"
+	fi
+done
+
+# --- 4. Generate index.html ------------------------------------------------
+echo "  [3/5] Building composition..."
+(cd "$SCRIPT_DIR" && node build.mjs "$MANIFEST")
+
+# --- 5. Lint (warn but don't fail) ------------------------------------------
+(cd "$SCRIPT_DIR" && npx --yes hyperframes lint) || {
+	echo "  Warning: lint reported issues (continuing)" >&2
+}
+
+# --- 6. Render at 1080p/30fps with hyperframes -----------------------------
+# hyperframes can hang on telemetry/cleanup after writing the MP4. Run it in
+# the background, wait for the file to appear and stop growing, then kill the
+# process and continue.
+echo "  [4/5] Rendering 1080p frames..."
+RENDER_NAME="walkthrough-$$"
+TEMP_RENDER="$RENDERS_DIR/$RENDER_NAME.mp4"
+rm -f "$TEMP_RENDER"
+(cd "$SCRIPT_DIR" && npx --yes hyperframes render \
+	-q draft --crf 30 \
+	-o "renders/$RENDER_NAME.mp4") >/dev/null 2>&1 &
+RENDER_PID=$!
+
+# Poll until the MP4 exists and its size is stable for 3 consecutive checks
+# (file fully written), then kill the parent npx and any child processes.
+PREV_SIZE=-1
+STABLE=0
+while kill -0 "$RENDER_PID" 2>/dev/null; do
+	if [ -f "$TEMP_RENDER" ]; then
+		SIZE=$(stat -f '%z' "$TEMP_RENDER" 2>/dev/null || echo 0)
+		if [ "$SIZE" -gt 0 ] && [ "$SIZE" -eq "$PREV_SIZE" ]; then
+			STABLE=$((STABLE + 1))
+			if [ "$STABLE" -ge 3 ]; then break; fi
+		else
+			STABLE=0
+		fi
+		PREV_SIZE=$SIZE
+	fi
+	sleep 2
+done
+
+# Reap any lingering hyperframes/node children, then the npx wrapper.
+pkill -P "$RENDER_PID" 2>/dev/null || true
+kill "$RENDER_PID" 2>/dev/null || true
+wait "$RENDER_PID" 2>/dev/null || true
+
+if [ ! -f "$TEMP_RENDER" ]; then
+	echo "Error: hyperframes did not produce $TEMP_RENDER" >&2
+	exit 1
 fi
 
-# --- Install deps if needed ---
-if [ ! -d "$SCRIPT_DIR/node_modules" ]; then
-  echo ""
-  echo "  Installing dependencies..."
-  (cd "$SCRIPT_DIR" && npm install --silent)
-fi
+# --- 7. Downscale 1080p → 720p, recompress for smaller file ---------------
+echo "  [5/5] Downscaling to 720p / 30fps..."
+ffmpeg -y -i "$TEMP_RENDER" \
+	-vf "scale=1280:720:flags=lanczos,fps=30" \
+	-c:v libx264 -preset slow -crf 26 -pix_fmt yuv420p \
+	-c:a aac -b:a 96k -ar 48000 \
+	-movflags +faststart \
+	"$OUTPUT" 2>/dev/null
 
-# --- Render ---
-echo ""
-echo "  Rendering..."
-RENDER_OUTPUT="$OUTPUT"
-# Render to a temp file first so we can re-encode for smaller size
-TEMP_RENDER="$(dirname "$OUTPUT")/.render-temp-$$.mp4"
-cleanup_temp() { rm -f "$TEMP_RENDER"; }
-trap cleanup_temp EXIT
-(cd "$SCRIPT_DIR" && npx remotion render Walkthrough "$TEMP_RENDER" \
-  --props='{"manifestPath":"manifest.json"}' \
-  --log=error)
+rm -f "$TEMP_RENDER"
 
-# --- Re-encode for smaller file size ---
-# Remotion's defaults produce ~2.5 Mbps video which is excessive for mostly-static
-# code slides. CRF 28 with preset slow gives identical visual quality at ~5x smaller.
-if [ -f "$TEMP_RENDER" ]; then
-  echo "  Compressing..."
-  ffmpeg -i "$TEMP_RENDER" \
-    -c:v libx264 -crf 28 -preset slow \
-    -c:a aac -b:a 128k \
-    -y "$OUTPUT" 2>/dev/null
-  rm -f "$TEMP_RENDER"
-fi
-
-# --- Report ---
+# --- Report ------------------------------------------------------------------
 if [ -f "$OUTPUT" ]; then
-  FINAL_DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$OUTPUT" 2>/dev/null || echo "unknown")
-  FINAL_SIZE=$(ls -lh "$OUTPUT" | awk '{print $5}')
-  echo ""
-  echo "=== Done ==="
-  echo "  Output:   $OUTPUT"
-  echo "  Duration: ${FINAL_DUR}s"
-  echo "  Size:     $FINAL_SIZE"
+	FINAL_DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$OUTPUT" 2>/dev/null || echo "?")
+	FINAL_SIZE=$(ls -lh "$OUTPUT" | awk '{print $5}')
+	echo ""
+	echo "=== Done ==="
+	echo "  Output:     $OUTPUT"
+	echo "  Resolution: 1280×720"
+	echo "  FPS:        30"
+	echo "  Duration:   ${FINAL_DUR}s"
+	echo "  Size:       $FINAL_SIZE"
 else
-  echo ""
-  echo "Error: Render failed — output file not created"
-  exit 1
+	echo "Error: render failed — output file not created" >&2
+	exit 1
 fi
