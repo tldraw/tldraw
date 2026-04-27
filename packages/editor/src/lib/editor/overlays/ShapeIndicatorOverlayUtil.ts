@@ -21,7 +21,7 @@ const indicatorPathCache = createComputedCache(
 	},
 	{
 		areRecordsEqual(a, b) {
-			return a.props !== b.props
+			return a.props === b.props
 		},
 	}
 )
