@@ -1,9 +1,9 @@
 ---
-name: take-issue
-description: Find a GitHub issue in tldraw/tldraw, assign it, implement it, verify it, and open a pull request. Use when asked to take an issue, implement an issue, work on issue number or URL, or pick up an issue from a description.
+name: take
+description: Find a GitHub issue in tldraw/tldraw, assign it, implement it, verify it, and open a pull request. Use when the user invokes take, asks to take an issue, implement an issue, work on an issue number or URL, or pick up an issue from a description.
 ---
 
-# Take an issue
+# Take
 
 Find an issue in `tldraw/tldraw`, implement it, and open a pull request.
 
@@ -31,7 +31,7 @@ gh issue list --repo tldraw/tldraw --search "dark mode" --state open --limit 10
 gh issue list --repo tldraw/tldraw --search "dark mode" --state all --limit 10
 ```
 
-If there is one clear match, proceed. If several issues match, ask the user to choose from issue numbers and titles. If none match, ask whether to create a new issue using the `write-issue` skill.
+If there is one clear match, proceed. If several issues match, ask the user to choose from issue numbers and titles. If none match, ask whether to create a new issue using the `issue` skill.
 
 ### 2. Understand the issue
 
@@ -84,7 +84,7 @@ For focused package changes, prefer the relevant workspace tests before repo-wid
 
 ### 7. Create the PR
 
-Use the `write-pr` skill guidance.
+Use the `pr` skill.
 
 - Link the issue with `Closes #<issue-number>`.
 - Include relevant context from the issue discussion.

@@ -165,7 +165,7 @@ git commit -m "docs: update release notes"
 git push -u origin "$BRANCH"
 ```
 
-Then create the PR following the standards in `../write-pr/SKILL.md`:
+Then create the PR using the `../pr/SKILL.md` workflow and the standards in `../write-pr/SKILL.md`:
 
 - **Title**: `docs(releases): update release notes`
 - **Change type**: `other`

@@ -11,7 +11,14 @@ interface ValidationResult {
 	message: string
 }
 
-const ALLOWED_PROPERTIES = new Set(['name', 'description', 'license', 'allowed-tools', 'metadata'])
+const ALLOWED_PROPERTIES = new Set([
+	'name',
+	'description',
+	'license',
+	'compatibility',
+	'allowed-tools',
+	'metadata',
+])
 
 function parseSimpleYaml(text: string): Record<string, string> {
 	const result: Record<string, string> = {}
@@ -89,6 +96,13 @@ export function validateSkill(skillPath: string): ValidationResult {
 				message: `Name is too long (${name.length} characters). Maximum is 64 characters.`,
 			}
 		}
+		const directoryName = path.basename(path.resolve(skillPath))
+		if (name !== directoryName) {
+			return {
+				valid: false,
+				message: `Name '${name}' must match parent directory name '${directoryName}'.`,
+			}
+		}
 	}
 
 	// Validate description
@@ -108,6 +122,19 @@ export function validateSkill(skillPath: string): ValidationResult {
 		}
 	}
 
+	const compatibility = frontmatter.compatibility?.trim()
+	if (compatibility !== undefined) {
+		if (!compatibility) {
+			return { valid: false, message: 'Compatibility cannot be empty or whitespace-only' }
+		}
+		if (compatibility.length > 500) {
+			return {
+				valid: false,
+				message: `Compatibility is too long (${compatibility.length} characters). Maximum is 500 characters.`,
+			}
+		}
+	}
+
 	return { valid: true, message: 'Skill is valid!' }
 }
 
@@ -115,11 +142,11 @@ export function validateSkill(skillPath: string): ValidationResult {
 if (require.main === module) {
 	const args = process.argv.slice(2)
 	if (args.length !== 1) {
-		console.log('Usage: npx tsx quick-validate.ts <skill_directory>')
+		process.stdout.write('Usage: npx tsx quick-validate.ts <skill_directory>\n')
 		process.exit(1)
 	}
 
 	const { valid, message } = validateSkill(args[0])
-	console.log(message)
+	process.stdout.write(`${message}\n`)
 	process.exit(valid ? 0 : 1)
 }

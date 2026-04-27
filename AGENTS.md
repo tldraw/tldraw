@@ -155,7 +155,7 @@ Store and schema:
 - Put reusable scripts, references, and assets inside the relevant skill folder.
 - Do not duplicate skill content for different agents; add compatibility pointers or symlinks instead.
 - See `skills/skill-creator/` before creating or restructuring skills.
-- User-invokable workflow skills include `skills/commit-changes/`, `skills/clean-copy/`, `skills/take-issue/`, `skills/write-issue/`, and `skills/write-pr/`.
+- User-facing workflow skills include `skills/pr/`, `skills/issue/`, `skills/take/`, `skills/commit-changes/`, and `skills/clean-copy/`.
 
 ## Code conventions
 
@@ -194,4 +194,4 @@ Dependencies:
 - Keep commits focused when asked to commit.
 - Use semantic PR titles for pull requests: `<type>(<scope>): <description>`.
 - Never add yourself or an AI tool as a co-author.
-- See `skills/write-pr/` and `skills/write-issue/` for repository standards.
+- See `skills/pr/` and `skills/issue/` for GitHub workflows, and `skills/write-pr/` and `skills/write-issue/` for repository content standards.

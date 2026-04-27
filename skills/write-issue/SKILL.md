@@ -1,43 +1,11 @@
 ---
 name: write-issue
-description: Create, research, write, and maintain GitHub issues for the tldraw repository. Use when asked to create a new issue from a description, edit issue titles or bodies, triage issues, clean up metadata, or add issue research.
+description: Reference standards for writing and maintaining GitHub issues in the tldraw repository. Use as supporting guidance when another skill or workflow needs issue title, body, type, label, or triage standards.
 ---
 
 # Writing and maintaining GitHub issues
 
 Standards for issues in tldraw/tldraw.
-
-## Create and research an issue
-
-When creating a GitHub issue from a user description:
-
-1. Gather context:
-   - User's issue description.
-   - Current branch: `git branch --show-current`.
-   - Recent issues: `gh issue list --repo tldraw/tldraw --limit 5 --json number,title --jq '.[] | "#\(.number) \(.title)"'`.
-2. Do a quick codebase investigation:
-   - Search for relevant files, functions, or patterns mentioned in the description.
-   - Identify likely affected packages, apps, or examples.
-   - Note obvious causes, related issues, or existing code paths.
-3. For visual bugs, try to identify a reproduction target:
-   - Examples app: `localhost:5420` from `yarn dev`.
-   - tldraw.com app: `localhost:3000` from `yarn dev-app`.
-   - Docs site: `localhost:3001` from `yarn dev-docs`.
-   - If screenshots are useful but not feasible locally, ask the user for screenshots and specific reproduction details.
-4. Create the issue with `gh issue create --repo tldraw/tldraw --title "..." --body "..."`.
-5. Set the issue type through GitHub GraphQL when possible, since `gh issue create --type` is not reliable across versions.
-6. Assign a milestone only when there is a clear fit:
-   - `Improve developer resources` for examples, documentation, comments, starter kits, and `npm create tldraw`.
-   - `Improve automations` for GitHub Actions, review bots, CI/CD, and automation work.
-7. Share the issue URL with the user immediately after creation.
-8. Do deeper research after creation:
-   - Identify relevant files and line numbers.
-   - Explain the root cause for bugs.
-   - Summarize architecture context and related code.
-   - Note edge cases, testing needs, and likely implementation risks.
-9. Add the research as an issue comment with `gh issue comment <issue-number> --repo tldraw/tldraw --body "..."`.
-
-Always create the issue before doing deep research so the user can track it.
 
 ## Title standards
 

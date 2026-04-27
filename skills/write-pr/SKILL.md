@@ -1,31 +1,11 @@
 ---
 name: write-pr
-description: Create, update, and write pull requests for the tldraw repository. Use when asked to create a PR, update an existing PR, push current branch changes for review, or write PR titles and descriptions.
+description: Reference standards for writing pull request titles and descriptions in the tldraw repository. Use as supporting guidance when another skill or workflow needs PR content standards, not as the user-facing create/update PR workflow.
 ---
 
 # Writing pull requests
 
 Standards for PR titles and descriptions in tldraw/tldraw.
-
-## Operational workflow
-
-When creating or updating a PR:
-
-1. Gather context:
-   - Current branch: `git branch --show-current`
-   - Working tree: `git status --short`
-   - Existing PR: `gh pr view --json number,title,url 2>/dev/null`
-   - Recent branch commits: `git log main..HEAD --oneline 2>/dev/null || git log -3 --oneline`
-2. Prepare the branch:
-   - If on `main`, create a new branch with a descriptive name.
-   - Commit relevant changes, excluding secrets and explicitly private content.
-   - Push the branch to the remote. Never force push.
-3. If no PR exists, create one with `gh pr create`.
-4. If a PR exists, read it with `gh pr view --json title,body,labels,number` and inspect the changed-file summary with `gh pr diff --stat`.
-5. Update the title or body with `gh pr edit` if the existing PR does not match the current diff or the standards below.
-6. Search for related issues and link them with `Closes #123` or `Relates to #123` where appropriate.
-
-If commit hooks fail, fix formatting, lint, or type issues when the fix is mechanical. If the fix requires meaningful product or implementation decisions, stop and ask the user how to proceed.
 
 ## PR title
 

@@ -35,7 +35,7 @@ Reimplement the current branch on a new branch with a clean, narrative-quality c
 8. Verify correctness:
    - Confirm the final clean branch state exactly matches the original source branch.
    - Run the final commit without `--no-verify` so normal checks run.
-9. Open a pull request using the `write-pr` skill guidance.
+9. Open a pull request using the `pr` skill.
    - Include a link to the original branch in the PR description.
 
 ## Rules
