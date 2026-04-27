@@ -51,16 +51,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ai-sdk/gateway@npm:2.0.77":
-  version: 2.0.77
-  resolution: "@ai-sdk/gateway@npm:2.0.77"
+"@ai-sdk/gateway@npm:2.0.82":
+  version: 2.0.82
+  resolution: "@ai-sdk/gateway@npm:2.0.82"
   dependencies:
     "@ai-sdk/provider": "npm:2.0.1"
     "@ai-sdk/provider-utils": "npm:3.0.23"
     "@vercel/oidc": "npm:3.1.0"
   peerDependencies:
     zod: ^3.25.76 || ^4.1.8
-  checksum: 10/aa398720da8da397ca0258137dde994785511f19f117d00845e32154bcfe1a2d93c6381068df6e3cf2c404121e34c9bcbf0bedc6be8d3fab394e6cc5ac2dde84
+  checksum: 10/5af1a9535259cf51036ca05437b6b0f17067633ca8e5506611ec9af6c6a3e98ab441703032566d981866028d2f2d8e7dc27a74bcf12f242eb64cae60264e5063
   languageName: node
   linkType: hard
 
@@ -14448,16 +14448,16 @@ __metadata:
   linkType: hard
 
 "ai@npm:^5.0.63":
-  version: 5.0.173
-  resolution: "ai@npm:5.0.173"
+  version: 5.0.179
+  resolution: "ai@npm:5.0.179"
   dependencies:
-    "@ai-sdk/gateway": "npm:2.0.77"
+    "@ai-sdk/gateway": "npm:2.0.82"
     "@ai-sdk/provider": "npm:2.0.1"
     "@ai-sdk/provider-utils": "npm:3.0.23"
     "@opentelemetry/api": "npm:1.9.0"
   peerDependencies:
     zod: ^3.25.76 || ^4.1.8
-  checksum: 10/8d7ce23ed642a9d365e127c175525dea6689b0a791cb63c390ccf7bc11b4d5bfd08337e8fa22938f09b480b5712963f92702914b4d6466cec0ee4e4273131331
+  checksum: 10/fdd93c41a474676d981ec28e267d7e540bcdf36d8214905d22ceb32dee12980ba50cd64c42e11993399db39735d025a066f732b9222cb01a21f7ee6e184993bd
   languageName: node
   linkType: hard
 
@@ -25943,13 +25943,13 @@ __metadata:
   linkType: hard
 
 "postcss@npm:^8.4.4, postcss@npm:^8.4.47, postcss@npm:^8.5.1, postcss@npm:^8.5.6, postcss@npm:^8.5.8":
-  version: 8.5.8
-  resolution: "postcss@npm:8.5.8"
+  version: 8.5.10
+  resolution: "postcss@npm:8.5.10"
   dependencies:
     nanoid: "npm:^3.3.11"
     picocolors: "npm:^1.1.1"
     source-map-js: "npm:^1.2.1"
-  checksum: 10/cbacbfd7f767e2c820d4bf09a3a744834dd7d14f69ff08d1f57b1a7defce9ae5efcf31981890d9697a972a64e9965de677932ef28e4c8ba23a87aad45b82c459
+  checksum: 10/7eac6169e535b63c8412e94d4f6047fc23efa3e9dde804b541940043c831b25f1cd867d83cd2c4371ad2450c8abcb42c208aa25668c1f0f3650d7f72faf711a8
   languageName: node
   linkType: hard
 
