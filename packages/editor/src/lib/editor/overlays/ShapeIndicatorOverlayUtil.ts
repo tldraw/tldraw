@@ -18,6 +18,11 @@ const indicatorPathCache = createComputedCache(
 	(editor: Editor, shape: TLShape) => {
 		const util = editor.getShapeUtil(shape)
 		return util.getIndicatorPath(shape)
+	},
+	{
+		areRecordsEqual(a, b) {
+			return a.props !== b.props
+		},
 	}
 )
 
