@@ -34,12 +34,17 @@ export class Erasing extends StateNode {
 				.map((shape) => shape.id)
 		)
 
+		// Set the erasing shapes to be any shapes that are hit at the origin point, except for any excluded shapes
 		this._erasingShapeIds = this.editor
 			.getShapesAtPoint(originPagePoint)
 			.filter((s) => !this.excludedShapeIds.has(s.id))
 			.map((s) => s.id)
 
-		this.editor.setErasingShapes(this._erasingShapeIds)
+		// ...and union that with any shapes that are already being erased
+		this.editor.setErasingShapes([
+			...new Set(this.editor.getErasingShapeIds()),
+			...this._erasingShapeIds,
+		])
 
 		const scribble = this.editor.scribbles.addScribble({
 			color: 'muted-1',
