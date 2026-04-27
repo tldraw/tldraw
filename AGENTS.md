@@ -151,6 +151,8 @@ Store and schema:
 - Canonical agent skills live in `skills/`.
 - `.claude/skills` is a symlink to `../skills` for Claude compatibility. Keep `skills/` as the source of truth.
 - `.codex/skills` is a symlink to `../skills` for Codex compatibility.
+- `.cursor/skills` is a symlink to `../skills` for Cursor compatibility.
+- `.pi/skills` is a symlink to `../skills` for Pi compatibility.
 - Skill folders use `skill-name/SKILL.md` with YAML frontmatter containing at least `name` and `description`.
 - Put reusable scripts, references, and assets inside the relevant skill folder.
 - Do not duplicate skill content for different agents; add compatibility pointers or symlinks instead.
