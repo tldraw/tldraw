@@ -3074,6 +3074,28 @@ export interface RichTextSVGProps {
     wrap?: boolean;
 }
 
+// @public
+export interface RoomSnapshotLike {
+    // (undocumented)
+    clock?: number;
+    // (undocumented)
+    documentClock?: number;
+    // (undocumented)
+    documents: Array<{
+        lastChangedClock: number;
+        state: UnknownRecord;
+    }>;
+    // (undocumented)
+    schema?: SerializedSchema;
+    // (undocumented)
+    tombstoneHistoryStartsAtClock?: number;
+    // (undocumented)
+    tombstones?: Record<string, number>;
+}
+
+// @public
+export function roomSnapshotToTldrawFile(snapshot: RoomSnapshotLike): TldrawFile;
+
 // @public (undocumented)
 export function RotateCWMenuItem(): JSX.Element;
 
