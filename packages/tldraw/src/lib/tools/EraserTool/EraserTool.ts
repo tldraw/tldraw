@@ -31,6 +31,7 @@ export class EraserTool extends StateNode {
 	 * Return to the originating tool. Called from the eraser's `Idle` child
 	 * state when accel is no longer held, so an in-flight pointer interaction
 	 * (Pointing / Erasing) is allowed to complete before we switch back.
+	 * @internal
 	 */
 	maybeReturnToOriginatingTool() {
 		const { onInteractionEnd } = this.info
