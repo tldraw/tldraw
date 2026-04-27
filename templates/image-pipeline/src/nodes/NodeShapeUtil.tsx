@@ -158,7 +158,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		const width = getNodeWidthPx(this.editor, shape)
 		const height = getNodeHeightPx(this.editor, shape)
 		const path = new Path2D()
-		path.roundRect(0, 0, width, height, 9)
+		path.rect(0, 0, width, height)
 		const ports = Object.values(getNodePorts(this.editor, shape))
 		for (const port of ports) {
 			path.moveTo(port.x + PORT_RADIUS_PX, port.y)

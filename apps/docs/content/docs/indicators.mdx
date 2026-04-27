@@ -72,7 +72,7 @@ For most shapes, return a `Path2D`:
 class MyShapeUtil extends ShapeUtil<MyShape> {
 	override getIndicatorPath(shape: MyShape): Path2D | undefined {
 		const path = new Path2D()
-		path.roundRect(0, 0, shape.props.w, shape.props.h, 5)
+		path.rect(0, 0, shape.props.w, shape.props.h)
 		return path
 	}
 }

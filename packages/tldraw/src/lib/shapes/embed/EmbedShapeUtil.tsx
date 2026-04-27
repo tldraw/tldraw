@@ -283,9 +283,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	override getIndicatorPath(shape: TLEmbedShape): Path2D {
 		const path = new Path2D()
-		const embedInfo = this.getEmbedDefinition(shape.props.url)
-		const radius = embedInfo?.definition?.overrideOutlineRadius ?? 8
-		path.roundRect(0, 0, shape.props.w, shape.props.h, radius)
+		path.rect(0, 0, shape.props.w, shape.props.h)
 		return path
 	}
 

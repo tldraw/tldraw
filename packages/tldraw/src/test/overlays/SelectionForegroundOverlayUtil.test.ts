@@ -1,4 +1,5 @@
 import { createShapeId } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
 import { SelectionForegroundOverlayUtil } from '../../lib/overlays/SelectionForegroundOverlayUtil'
 import { TestEditor } from '../TestEditor'
@@ -8,6 +9,8 @@ let editor: TestEditor
 const ids = {
 	box1: createShapeId('box1'),
 	image1: createShapeId('image1'),
+	note1: createShapeId('note1'),
+	note2: createShapeId('note2'),
 	text1: createShapeId('text1'),
 }
 
@@ -257,6 +260,35 @@ describe('SelectionForegroundOverlayUtil', () => {
 
 		it('enlarges hit areas for coarse pointer', () => {
 			expect(true).toBe(true)
+		})
+	})
+
+	describe('render', () => {
+		it('renders the selection box while brushing over multiple notes', () => {
+			editor.createShapes([
+				{ id: ids.note1, type: 'note', x: 200, y: 180 },
+				{ id: ids.note2, type: 'note', x: 460, y: 180 },
+			])
+
+			editor.pointerDown(120, 120)
+			editor.pointerMove(710, 450)
+
+			expect(editor.getPath()).toBe('select.brushing')
+			expect(editor.getSelectedShapeIds()).toHaveLength(2)
+
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const ctx = {
+				save: vi.fn(),
+				restore: vi.fn(),
+				rotate: vi.fn(),
+				strokeRect: vi.fn(),
+				translate: vi.fn(),
+			} as unknown as CanvasRenderingContext2D
+
+			util.render(ctx, [])
+
+			expect(ctx.strokeRect).toHaveBeenCalledWith(0, 0, 460, 200)
 		})
 	})
 

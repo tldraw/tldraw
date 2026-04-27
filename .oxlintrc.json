@@ -219,6 +219,7 @@
 		"tldraw/no-tiptap-default-import": "error",
 		"tldraw/no-setter-getter": "error",
 		"tldraw/no-direct-storage": "error",
+		"tldraw/no-path2d-roundrect": "error",
 		"tldraw/no-exported-arrow-const": "error",
 		"tldraw/no-focused-tests": "error",
 		"tldraw/enforce-default-message": ["error", "literal"],
