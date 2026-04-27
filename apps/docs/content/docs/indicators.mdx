@@ -18,7 +18,7 @@ Indicators are the outlines that appear around shapes when they're selected or h
 
 When you select a shape in tldraw, an indicator appears as a stroke around the shape's geometry. Indicators are separate from the shape's visual appearance so they can be styled consistently across all shape types.
 
-Each [ShapeUtil](?) defines how its indicator should be drawn by implementing the required `indicator` method:
+Each [ShapeUtil](?) defines how its indicator should be drawn by implementing the required `getIndicatorPath` method:
 
 ```tsx
 import { HTMLContainer, Rectangle2d, ShapeUtil } from 'tldraw'
@@ -42,13 +42,15 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
 		return <HTMLContainer>Hello</HTMLContainer>
 	}
 
-	indicator(shape: CardShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: CardShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 ```
 
-The `indicator` method returns SVG elements that describe the shape's outline. The editor automatically positions and styles these elements based on selection state.
+The `getIndicatorPath` method returns paths in the shape's local coordinate space. The editor automatically positions and styles these paths based on selection state.
 
 ## When indicators appear
 
@@ -62,48 +64,21 @@ By default, indicators appear in these situations:
 
 Indicators are hidden during certain interactions, like when changing styles or during tool operations that would make indicators distracting.
 
-## Rendering approaches
+## Defining paths
 
-tldraw supports two ways to render indicators: SVG-based and canvas-based.
-
-### SVG indicators (default)
-
-The default approach uses React to render indicators as SVG elements. This is simpler to implement. It works well for most shapes:
+For most shapes, return a `Path2D`:
 
 ```tsx
 class MyShapeUtil extends ShapeUtil<MyShape> {
-	indicator(shape: MyShape) {
-		return <rect width={shape.props.w} height={shape.props.h} rx={5} />
-	}
-}
-```
-
-SVG indicators support any valid SVG elements. The editor wraps them in a styled `<g>` element that applies the indicator color.
-
-### Canvas indicators
-
-Canvas-based rendering improves performance for complex shapes. Override `useLegacyIndicator` to return `false` and implement `getIndicatorPath`:
-
-```tsx
-class MyShapeUtil extends ShapeUtil<MyShape> {
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: MyShape): Path2D | undefined {
 		const path = new Path2D()
 		path.roundRect(0, 0, shape.props.w, shape.props.h, 5)
 		return path
 	}
-
-	indicator(shape: MyShape) {
-		// Required method. Used only when useLegacyIndicator returns true (the default).
-		return <rect width={shape.props.w} height={shape.props.h} rx={5} />
-	}
 }
 ```
 
-Canvas indicators are drawn on a single canvas layer. This is more efficient when many shapes are selected. Most built-in shapes use canvas indicators.
+Indicators are drawn on a single canvas layer, which is efficient when many shapes are selected.
 
 ### Complex canvas indicators
 
@@ -125,8 +100,8 @@ override getIndicatorPath(shape: MyShape): TLIndicatorPath | undefined {
 
 	return {
 		path: bodyPath,
-		clipPath: labelClipPath,        // Areas to exclude from the main path
-		additionalPaths: [arrowheadPath] // Extra paths to stroke
+		clipPath: labelClipPath, // Areas to exclude from the main path
+		additionalPaths: [arrowheadPath], // Extra paths to stroke
 	}
 }
 ```

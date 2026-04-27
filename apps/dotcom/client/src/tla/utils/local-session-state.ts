@@ -82,6 +82,7 @@ try {
 }
 
 const localSessionState = atom<TldrawAppSessionState>('session', prev)
+const colorThemePreview = atom<string | null>('colorThemePreview', null)
 
 export function getIsSidebarOpen() {
 	return (
@@ -132,6 +133,14 @@ export function getLocalSessionStateUnsafe() {
 
 export function getLocalSessionState() {
 	return localSessionState.get()
+}
+
+export function getColorThemePreview() {
+	return colorThemePreview.get()
+}
+
+export function setColorThemePreview(themeId: string | null) {
+	colorThemePreview.set(themeId)
 }
 
 export function toggleSidebar(open: boolean = !getIsSidebarOpen()) {

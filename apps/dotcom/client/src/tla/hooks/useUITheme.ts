@@ -2,7 +2,11 @@ import { useEffect } from 'react'
 import { react, TLThemeId, useValue } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { UI_THEMES, UIThemeVariant } from '../themes/ui-themes'
-import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
+import {
+	getColorThemePreview,
+	getLocalSessionState,
+	updateLocalSessionState,
+} from '../utils/local-session-state'
 
 const registeredFor = new WeakSet<object>()
 
@@ -40,7 +44,9 @@ function clearProps(el: HTMLElement, keys: string[]) {
  * `theme-init.js` can avoid a flash of the default background on next load.
  */
 export function useUITheme() {
-	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
+	const selectedColorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
+	const previewColorTheme = useValue('colorThemePreview', () => getColorThemePreview(), [])
+	const colorTheme = previewColorTheme ?? selectedColorTheme
 	const theme = useValue('theme', () => getLocalSessionState().theme, [])
 
 	// Apply CSS variable overrides to the tla shell + editor containers.
@@ -101,15 +107,17 @@ export function useUITheme() {
 				editor.setCurrentTheme(nextId)
 			}
 
-			// Keep the cached background color in sync for the flash-prevention
-			// script. Default theme is treated as "no cache" so the script falls
-			// back to its built-in light/dark values.
-			const colorMode = editor.getColorMode()
-			const background = editor.getCurrentTheme().colors[colorMode].background
-			const cachedBackground = nextId === 'default' ? undefined : background
-			if (getLocalSessionState().colorThemeBackground !== cachedBackground) {
-				updateLocalSessionState(() => ({ colorThemeBackground: cachedBackground }))
+			if (!previewColorTheme) {
+				// Keep the cached background color in sync for the flash-prevention
+				// script. Default theme is treated as "no cache" so the script falls
+				// back to its built-in light/dark values.
+				const colorMode = editor.getColorMode()
+				const background = editor.getCurrentTheme().colors[colorMode].background
+				const cachedBackground = nextId === 'default' ? undefined : background
+				if (getLocalSessionState().colorThemeBackground !== cachedBackground) {
+					updateLocalSessionState(() => ({ colorThemeBackground: cachedBackground }))
+				}
 			}
 		})
-	}, [colorTheme])
+	}, [colorTheme, previewColorTheme])
 }

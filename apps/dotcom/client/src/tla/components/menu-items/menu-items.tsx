@@ -1,16 +1,20 @@
 import { useAuth } from '@clerk/clerk-react'
 import { fileOpen } from 'browser-fs-access'
+import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	ColorSchemeMenu,
 	TLDRAW_FILE_EXTENSION,
+	TldrawUiIcon,
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
 	useDialogs,
+	useDirection,
 	useMaybeEditor,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
@@ -24,6 +28,7 @@ import { defineMessages, useMsg } from '../../utils/i18n'
 import {
 	getLocalSessionState,
 	resetLocalSessionStateButKeepTheme,
+	setColorThemePreview,
 	updateLocalSessionState,
 } from '../../utils/local-session-state'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
@@ -90,28 +95,76 @@ const THEME_NAMES: Record<string, string> = {
 	...Object.fromEntries(UI_THEMES.map(({ id, name }) => [id, name])),
 }
 
+function UIThemeMenuCheckboxItem({
+	checked,
+	label,
+	onPreview,
+	onSelect,
+}: {
+	checked: boolean
+	label: string
+	onPreview(): void
+	onSelect(): void
+}) {
+	const dir = useDirection()
+	const msg = useTranslation()
+
+	return (
+		<_DropdownMenu.CheckboxItem
+			dir={dir}
+			className="tlui-button tlui-button__menu tlui-button__checkbox"
+			title={label}
+			checked={checked}
+			onPointerEnter={(e) => {
+				if (e.pointerType !== 'touch') onPreview()
+			}}
+			onSelect={(e) => {
+				onSelect()
+				e.preventDefault()
+			}}
+		>
+			<TldrawUiIcon
+				small
+				label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
+				icon={checked ? 'check' : 'none'}
+			/>
+			<span className="tlui-button__label" draggable={false}>
+				{label}
+			</span>
+		</_DropdownMenu.CheckboxItem>
+	)
+}
+
 export function UIThemeSubmenu() {
 	const editor = useMaybeEditor()
 	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
 	const trackEvent = useTldrawAppUiEvents()
+	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
 
 	const themeIds = useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [
 		editor,
 	])
+
+	useEffect(() => clearThemePreview, [clearThemePreview])
+
 	if (!editor || themeIds.length === 0) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="ui-theme" label="Color theme">
-			<TldrawUiMenuGroup id="ui-theme-options">
+			<div
+				className="tlui-menu__group"
+				onPointerCancel={clearThemePreview}
+				onPointerLeave={clearThemePreview}
+			>
 				{themeIds.map((id) => (
-					<TldrawUiMenuCheckboxItem
+					<UIThemeMenuCheckboxItem
 						key={id}
-						id={`ui-theme-${id}`}
 						label={THEME_NAMES[id] ?? id}
 						checked={colorTheme === id}
-						readonlyOk
+						onPreview={() => setColorThemePreview(id)}
 						onSelect={() => {
 							updateLocalSessionState(() => ({ colorTheme: id }))
+							clearThemePreview()
 							trackEvent('set-color-theme', {
 								source: 'user-preferences',
 								theme: id,
@@ -119,7 +172,7 @@ export function UIThemeSubmenu() {
 						}}
 					/>
 				))}
-			</TldrawUiMenuGroup>
+			</div>
 		</TldrawUiMenuSubmenu>
 	)
 }
