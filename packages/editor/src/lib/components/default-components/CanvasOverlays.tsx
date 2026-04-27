@@ -1,27 +1,63 @@
-import { useQuickReactor } from '@tldraw/state-react'
-import { memo, useRef } from 'react'
+import { EffectScheduler, computed } from '@tldraw/state'
+import { memo, useEffect, useRef } from 'react'
 import { useEditor } from '../../hooks/useEditor'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Group2d } from '../../primitives/geometry/Group2d'
 import { debugFlags } from '../../utils/debug-flags'
+
+interface RenderInputs {
+	dpr: number
+	w: number
+	h: number
+	cx: number
+	cy: number
+	zoom: number
+}
 
 /** @internal @react */
 export const CanvasOverlays = memo(function CanvasOverlays() {
 	const editor = useEditor()
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
-	useQuickReactor(
-		'canvas overlays render',
-		() => {
+	useEffect(() => {
+		// Bundle the primitive scalars the renderer needs into one computed so the
+		// effect only refires on actual visual change. Reading the whole instance
+		// state directly would otherwise wake the renderer on every cursor move,
+		// brush update, etc.
+
+		const renderInputs$ = computed<RenderInputs>(
+			'canvas overlays render inputs',
+			() => {
+				const instance = editor.getInstanceState()
+				const camera = editor.getCamera()
+				return {
+					dpr: instance.devicePixelRatio,
+					w: instance.screenBounds.w,
+					h: instance.screenBounds.h,
+					cx: camera.x,
+					cy: camera.y,
+					zoom: camera.z,
+				}
+			},
+			{
+				isEqual: (a, b) =>
+					a.dpr === b.dpr &&
+					a.w === b.w &&
+					a.h === b.h &&
+					a.cx === b.cx &&
+					a.cy === b.cy &&
+					a.zoom === b.zoom,
+			}
+		)
+
+		const scheduler = new EffectScheduler('canvas overlays render', () => {
 			const canvas = canvasRef.current
 			if (!canvas) return
 
 			const ctx = canvas.getContext('2d')
 			if (!ctx) return
 
-			const { w, h } = editor.getViewportScreenBounds()
-			const dpr = editor.getInstanceState().devicePixelRatio
-			const { x: cx, y: cy, z: zoom } = editor.getCamera()
+			const { dpr, w, h, cx, cy, zoom } = renderInputs$.get()
 
 			const canvasWidth = Math.ceil(w * dpr)
 			const canvasHeight = Math.ceil(h * dpr)
@@ -33,13 +69,12 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 				canvas.style.height = `${h}px`
 			}
 
-			ctx.resetTransform()
+			ctx.setTransform(1, 0, 0, 1, 0, 0)
 			ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-			// Apply DPR scaling and camera transform to get into page space
-			ctx.scale(dpr, dpr)
-			ctx.scale(zoom, zoom)
-			ctx.translate(cx, cy)
+			// One setTransform = DPR scale * zoom scale * camera translate, into page space.
+			const s = dpr * zoom
+			ctx.setTransform(s, 0, 0, s, s * cx, s * cy)
 
 			// Render all active overlay utils in zIndex order (low to high).
 			for (const { util, overlays } of editor.overlays.getActiveOverlayEntries()) {
@@ -135,9 +170,12 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 				}
 				ctx.restore()
 			}
-		},
-		[editor]
-	)
+		})
+
+		scheduler.attach()
+		scheduler.execute()
+		return () => scheduler.detach()
+	}, [editor])
 
 	return <canvas ref={canvasRef} className="tl-canvas-overlays" />
 })
@@ -145,7 +183,12 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 function drawGeometryStroke(ctx: CanvasRenderingContext2D, geometry: Geometry2d) {
 	if (geometry instanceof Group2d) {
 		const prevStroke = ctx.strokeStyle
-		for (const child of [...geometry.children, ...geometry.ignoredChildren]) {
+		for (const child of geometry.children) {
+			if (child.debugColor) ctx.strokeStyle = child.debugColor
+			drawGeometryStroke(ctx, child)
+			ctx.strokeStyle = prevStroke
+		}
+		for (const child of geometry.ignoredChildren) {
 			if (child.debugColor) ctx.strokeStyle = child.debugColor
 			drawGeometryStroke(ctx, child)
 			ctx.strokeStyle = prevStroke

@@ -1,8 +1,14 @@
+import { computed } from '@tldraw/state'
 import { createComputedCache } from '@tldraw/store'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import { dedupe } from '@tldraw/utils'
 import type { Editor } from '../Editor'
 import { OverlayUtil, TLOverlay } from './OverlayUtil'
+
+interface RelevantInstanceFlags {
+	isChangingStyle: boolean
+	isHoveringCanvas: boolean | null
+	isCoarsePointer: boolean
+}
 
 /** @public */
 export interface TLShapeIndicatorOverlay extends TLOverlay {
@@ -18,6 +24,11 @@ const indicatorPathCache = createComputedCache(
 	(editor: Editor, shape: TLShape) => {
 		const util = editor.getShapeUtil(shape)
 		return util.getIndicatorPath(shape)
+	},
+	{
+		areRecordsEqual(a, b) {
+			return a.props === b.props
+		},
 	}
 )
 
@@ -34,6 +45,27 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
 	static override type = 'shape_indicator'
 	override options = { zIndex: 50, lineWidth: 1.5, hintedLineWidth: 2.5 }
 
+	// Narrow projection of instance state. Reading the full record would
+	// re-fire getOverlays on every cursor move / brush update; gating on these
+	// three booleans means we only re-fire when one of them actually flips.
+	private _instanceFlags$ = computed<RelevantInstanceFlags>(
+		'shape indicator instance flags',
+		() => {
+			const i = this.editor.getInstanceState()
+			return {
+				isChangingStyle: i.isChangingStyle,
+				isHoveringCanvas: i.isHoveringCanvas,
+				isCoarsePointer: i.isCoarsePointer,
+			}
+		},
+		{
+			isEqual: (a, b) =>
+				a.isChangingStyle === b.isChangingStyle &&
+				a.isHoveringCanvas === b.isHoveringCanvas &&
+				a.isCoarsePointer === b.isCoarsePointer,
+		}
+	)
+
 	override isActive(): boolean {
 		return true
 	}
@@ -44,8 +76,7 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
 
 		// Local selected / hovered indicators.
 		const idsToDisplay: TLShapeId[] = []
-		const instanceState = editor.getInstanceState()
-		const isChangingStyle = instanceState.isChangingStyle
+		const { isChangingStyle, isHoveringCanvas, isCoarsePointer } = this._instanceFlags$.get()
 		const isIdleOrEditing = editor.isInAny('select.idle', 'select.editing_shape')
 		const isInSelectState = editor.isInAny(
 			'select.brushing',
@@ -59,7 +90,7 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
 			for (const id of editor.getSelectedShapeIds()) {
 				if (renderingShapeIds.has(id)) idsToDisplay.push(id)
 			}
-			if (isIdleOrEditing && instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
+			if (isIdleOrEditing && isHoveringCanvas && !isCoarsePointer) {
 				const hovered = editor.getHoveredShapeId()
 				if (hovered && renderingShapeIds.has(hovered) && !idsToDisplay.includes(hovered)) {
 					idsToDisplay.push(hovered)
@@ -67,10 +98,12 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
 			}
 		}
 
-		// Hinted shapes (drawn thicker). Deduped so repeated entries don't overdraw.
-		const hintingShapeIds = dedupe(editor.getHintingShapeIds()).filter((id) =>
-			renderingShapeIds.has(id)
-		)
+		// Hinted shapes (drawn thicker). Already deduped at write time in
+		// `updateHintingShapeIds`, so no need to dedupe again here.
+		const hintingShapeIds: TLShapeId[] = []
+		for (const id of editor.getHintingShapeIds()) {
+			if (renderingShapeIds.has(id)) hintingShapeIds.push(id)
+		}
 
 		// Remote collaborator indicators (only currently-visible peers).
 		const collaboratorIndicators: TLShapeIndicatorOverlay['props']['collaboratorIndicators'] = []

@@ -207,7 +207,7 @@ class FileCardShapeUtil extends BaseBoxShapeUtil<FileCardShape> {
 
 	override getIndicatorPath(shape: FileCardShape) {
 		const path = new Path2D()
-		path.roundRect(0, 0, shape.props.w, shape.props.h, 8)
+		path.rect(0, 0, shape.props.w, shape.props.h)
 		return path
 	}
 }

@@ -118,6 +118,9 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 		[editor]
 	)
 
+	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
+	const { Grid } = useEditorComponents()
+
 	return (
 		<>
 			<div
@@ -140,11 +143,11 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<Background />
 					</div>
 				)}
-				<GridWrapper />
+				{isGridMode && Grid && <GridWrapper />}
 				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 					<OnTheCanvasWrapper />
 					{SelectionBackground && <SelectionBackgroundWrapper />}
-					{hideShapes ? null : <ShapesLayer />}
+					{hideShapes ? null : <ShapesLayer canvasRef={rCanvas} />}
 				</div>
 				<div className="tl-overlays">
 					<CanvasOverlays />
@@ -183,7 +186,7 @@ function GridWrapper() {
 	return <Grid x={x} y={y} z={z} size={gridSize} />
 }
 
-function ShapesLayer() {
+function ShapesLayer({ canvasRef }: { canvasRef: { readonly current: HTMLDivElement | null } }) {
 	const editor = useEditor()
 	const debugSvg = useValue('debug svg', () => debugFlags.debugSvg.get(), [debugFlags])
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
@@ -201,11 +204,11 @@ function ShapesLayer() {
 				)
 			)}
 			<CullingController />
-			{tlenv.isSafari && <ReflowIfNeeded />}
+			{tlenv.isSafari && <ReflowIfNeeded canvasRef={canvasRef} />}
 		</ShapeCullingProvider>
 	)
 }
-function ReflowIfNeeded() {
+function ReflowIfNeeded({ canvasRef }: { canvasRef: { readonly current: HTMLDivElement | null } }) {
 	const editor = useEditor()
 	const culledShapesRef = useRef<Set<TLShapeId>>(new Set())
 	useQuickReactor(
@@ -215,13 +218,13 @@ function ReflowIfNeeded() {
 			if (culledShapesRef.current === culledShapes) return
 
 			culledShapesRef.current = culledShapes
-			const canvas = editor.getContainerDocument().getElementsByClassName('tl-canvas')
-			if (canvas.length === 0) return
+			const canvas = canvasRef.current
+			if (!canvas) return
 			// This causes a reflow
 			// https://gist.github.com/paulirish/5d52fb081b3570c81e3a
-			const _height = (canvas[0] as HTMLDivElement).offsetHeight
+			const _height = canvas.offsetHeight
 		},
-		[editor]
+		[editor, canvasRef]
 	)
 	return null
 }

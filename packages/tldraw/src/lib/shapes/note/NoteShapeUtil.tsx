@@ -423,7 +423,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const { scale } = shape.props
 		const dv = getDisplayValues(this, shape)
 		const path = new Path2D()
-		path.roundRect(0, 0, dv.noteWidth * scale, getNoteHeight(shape, dv.noteHeight), scale)
+		path.rect(0, 0, dv.noteWidth * scale, getNoteHeight(shape, dv.noteHeight))
 		return path
 	}
 
