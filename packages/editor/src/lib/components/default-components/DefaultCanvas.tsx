@@ -45,6 +45,24 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	useGestureEvents(rCanvas)
 	useFixSafariDoubleTapZoomPencilEvents(rCanvas)
 
+	useQuickReactor(
+		'update canvas state data attributes',
+		() => {
+			const canvas = rCanvas.current
+			if (!canvas) return
+
+			canvas.setAttribute(
+				'data-iseditinganything',
+				editor.getEditingShapeId() === null ? 'false' : 'true'
+			)
+			canvas.setAttribute(
+				'data-isselectinganything',
+				editor.getSelectedShapeIds().length === 0 ? 'false' : 'true'
+			)
+		},
+		[editor]
+	)
+
 	const rMemoizedStuff = useRef({ lodDisableTextOutline: false, allowTextOutline: true })
 
 	useQuickReactor(
@@ -107,16 +125,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	)
 
 	const hideShapes = useValue('debug_shapes', () => debugFlags.hideShapes.get(), [debugFlags])
-	const isEditingAnything = useValue(
-		'isEditingAnything',
-		() => editor.getEditingShapeId() !== null,
-		[editor]
-	)
-	const isSelectingAnything = useValue(
-		'isSelectingAnything',
-		() => !!editor.getSelectedShapeIds().length,
-		[editor]
-	)
 
 	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
 	const { Grid } = useEditorComponents()
@@ -126,8 +134,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			<div
 				ref={rCanvas}
 				draggable={false}
-				data-iseditinganything={isEditingAnything}
-				data-isselectinganything={isSelectingAnything}
 				className={classNames('tl-canvas', className)}
 				data-testid="canvas"
 				{...events}
@@ -178,10 +184,9 @@ function GridWrapper() {
 	const editor = useEditor()
 	const gridSize = useValue('gridSize', () => editor.getDocumentSettings().gridSize, [editor])
 	const { x, y, z } = useValue('camera', () => editor.getCamera(), [editor])
-	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
 	const { Grid } = useEditorComponents()
 
-	if (!(Grid && isGridMode)) return null
+	if (!Grid) return null
 
 	return <Grid x={x} y={y} z={z} size={gridSize} />
 }
