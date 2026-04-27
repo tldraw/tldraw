@@ -164,18 +164,20 @@ The supported languages include: English, Spanish, French, German, Italian, Port
 
 ## Right-to-left support
 
-Languages like Arabic, Hebrew, Farsi, and Urdu automatically set `dir: 'rtl'` in the translation object. The tldraw UI respects this direction, mirroring layout and text alignment.
+Languages like Arabic, Hebrew, Farsi, and Urdu automatically set `dir: 'rtl'` in the translation object. The tldraw UI respects this direction. Layout and text alignment mirror automatically. The `dir` attribute is set on the editor's root container, and the built-in components use CSS logical properties (`margin-inline-start`, `inset-inline-end`, and so on) so they flip without per-component code.
 
-When building custom UI components, use the `dir` property from the translation context:
+When building custom UI components, use the `useDirection` hook to get the current text direction. It returns `'ltr'` or `'rtl'` from the active translation context — the same value you'd read from `useCurrentTranslation().dir`, but without pulling the rest of the translation object into the component:
 
 ```tsx
-import { useCurrentTranslation } from 'tldraw'
+import { useDirection } from 'tldraw'
 
 function CustomPanel() {
-	const { dir } = useCurrentTranslation()
+	const dir = useDirection()
 	return <aside dir={dir}>{/* Panel content */}</aside>
 }
 ```
+
+Use `useCurrentTranslation` instead when you also need the locale, label, or `messages` from the same render.
 
 ## Building a language picker
 

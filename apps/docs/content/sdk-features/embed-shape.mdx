@@ -37,6 +37,12 @@ editor.createShape({
 
 The embed system recognizes URLs from supported services and converts them to their embeddable equivalents. A YouTube watch URL becomes an embed URL automatically.
 
+### Pasting iframe code
+
+You can also paste raw `<iframe>` HTML directly onto the canvas to create an embed shape, even when the source URL doesn't match a known provider. tldraw extracts the iframe's `src` attribute and creates an embed pointing at it. If the iframe element is missing `width` and `height`, the embed uses default dimensions instead.
+
+This covers services tldraw doesn't know about — OpenStreetMap, SoundCloud, Loom, internal tools — without a custom embed definition. Iframes pasted this way receive a stricter sandbox than the built-in providers (no `allow-same-origin`, no top navigation), since tldraw can't make any safety guarantees about the source.
+
 ## Supported services
 
 | Service         | Hostnames                    | Resizable | Aspect ratio locked |

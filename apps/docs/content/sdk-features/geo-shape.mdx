@@ -209,6 +209,50 @@ Pass the configured utility to the `shapeUtils` prop:
 <Tldraw shapeUtils={[ConfiguredGeoUtil]} />
 ```
 
+## Custom geo types
+
+Register custom geo types via `customGeoTypes` to add new shapes that inherit all standard geo behavior — labels, fill/dash/color styling, resizing, SVG export, and hyperlinks — while providing their own path geometry, snap behavior, creation size, and style panel icon. This lets you extend the built-in geo enum without forking `GeoShapeUtil`.
+
+```tsx
+import { GeoShapeUtil, PathBuilder } from 'tldraw'
+
+const MyGeoShapeUtil = GeoShapeUtil.configure({
+	customGeoTypes: {
+		'rounded-rect': {
+			getPath: (w, h, shape, strokeWidth) => {
+				const r = Math.min(w, h) * 0.2
+				return new PathBuilder()
+					.moveTo(r, 0, { geometry: { isFilled: shape.props.fill !== 'none' } })
+					.lineTo(w - r, 0)
+					.circularArcTo(r, false, true, w, r)
+					.lineTo(w, h - r)
+					.circularArcTo(r, false, true, w - r, h)
+					.lineTo(r, h)
+					.circularArcTo(r, false, true, 0, h - r)
+					.lineTo(0, r)
+					.circularArcTo(r, false, true, r, 0)
+					.close()
+			},
+			snapType: 'polygon',
+			icon: 'geo-rectangle',
+			defaultSize: { w: 200, h: 150 },
+		},
+	},
+})
+```
+
+Each entry in `customGeoTypes` is a `GeoTypeDefinition`:
+
+| Field           | Type                                        | Description                                                                                          |
+| --------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `getPath`       | `(w, h, shape, strokeWidth) => PathBuilder` | Returns the path geometry for this type at the given dimensions.                                     |
+| `snapType`      | `'polygon' \| 'blobby'`                     | `'polygon'` snaps to vertices and center; `'blobby'` snaps to center only.                           |
+| `icon`          | `string`                                    | Icon name used in the style panel's geo picker.                                                      |
+| `defaultSize`   | `{ w: number; h: number }` (optional)       | Size used when the shape is created via click rather than drag. Defaults to 200 × 200.               |
+| `onDoubleClick` | `(shape) => { props } \| void` (optional)   | Custom double-click handler. Return a partial props update to mutate the shape, or nothing to no-op. |
+
+Custom types appear in the style panel's geo picker alongside the built-in shapes. See the [custom geo types example](/examples/shapes/tools/custom-geo-types) for a full implementation.
+
 ## Label positioning
 
 The `align` and `verticalAlign` properties control where labels appear within the shape:

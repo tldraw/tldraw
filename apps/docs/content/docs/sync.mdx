@@ -181,6 +181,70 @@ const room = new TLSocketRoom({ storage })
 	`tablePrefix` option to avoid conflicts if you're sharing a database with other data.
 </Callout>
 
+### WebSocket hibernation
+
+Some serverless platforms let WebSocket connections survive while the surrounding object hibernates. [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/best-practices/websockets/) is the most common example. The platform keeps the sockets open, but your in-memory state (including the `TLSocketRoom`) is gone when the object wakes back up. Every wake would force every client to reconnect from scratch.
+
+`TLSocketRoom` exposes three APIs for hibernation. The `onSessionSnapshot` callback fires when a session has had no message activity for about 5 seconds, so you can persist its state. [getSessionSnapshot](?) returns that snapshot on demand. [handleSocketResume](?) restores a session straight into `Connected` state when the object wakes back up.
+
+Here's the pattern in a Cloudflare Durable Object that uses the WebSocket Hibernation API:
+
+```tsx
+import {
+	DurableObjectSqliteSyncWrapper,
+	type SessionStateSnapshot,
+	SQLiteSyncStorage,
+	TLSocketRoom,
+} from '@tldraw/sync-core'
+import { TLRecord } from '@tldraw/tlschema'
+import { DurableObject } from 'cloudflare:workers'
+
+interface SocketAttachment {
+	sessionId: string
+	snapshot?: SessionStateSnapshot
+}
+
+export class TldrawDurableObject extends DurableObject {
+	private room: TLSocketRoom<TLRecord, void> | null = null
+
+	private getOrCreateRoom() {
+		if (this.room) return this.room
+
+		const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
+		const storage = new SQLiteSyncStorage<TLRecord>({ sql })
+
+		this.room = new TLSocketRoom<TLRecord, void>({
+			storage,
+			// Cloudflare keeps WebSockets alive across hibernation, so let it manage timeouts.
+			clientTimeout: Infinity,
+			// Persist each session's snapshot to its WebSocket attachment when it goes idle.
+			onSessionSnapshot: (sessionId, snapshot) => {
+				const ws = this.sessionIdToWs.get(sessionId)
+				if (ws) ws.serializeAttachment({ sessionId, snapshot })
+			},
+		})
+
+		// Resume any sessions whose sockets survived hibernation.
+		for (const ws of this.ctx.getWebSockets()) {
+			const attachment = ws.deserializeAttachment() as SocketAttachment | null
+			if (attachment?.snapshot) {
+				this.room.handleSocketResume({
+					sessionId: attachment.sessionId,
+					socket: ws,
+					snapshot: attachment.snapshot,
+				})
+			}
+		}
+
+		return this.room
+	}
+}
+```
+
+Three pieces make this work. The `onSessionSnapshot` callback persists each session's state to its WebSocket's attachment so the snapshot is still around after hibernation. When the object wakes up with sockets still open, `handleSocketResume` replays each saved snapshot and the session lands straight in `Connected` state without the client noticing. Setting `clientTimeout: Infinity` disables the room's idle timer; hibernating platforms handle keep-alive themselves and would otherwise see the room disconnect perfectly fine clients.
+
+For non-hibernating environments (Node servers, long-lived processes), you don't need any of this. The in-memory `TLSocketRoom` outlives individual sockets, and the default `clientTimeout` keeps idle sessions tidy.
+
 ### Asset storage
 
 Tldraw also needs a way to store and retrieve large binary assets like images and videos.
