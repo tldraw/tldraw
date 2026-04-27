@@ -149,6 +149,7 @@ Store and schema:
 ## Skills
 
 - Canonical agent skills live in `skills/`.
+- `.agents/skills` is a symlink to `../skills` for generic agent compatibility.
 - `.claude/skills` is a symlink to `../skills` for Claude compatibility. Keep `skills/` as the source of truth.
 - `.codex/skills` is a symlink to `../skills` for Codex compatibility.
 - `.cursor/skills` is a symlink to `../skills` for Cursor compatibility.
