@@ -721,6 +721,41 @@ describe('Hold accel to temporarily erase from the draw / highlight tool', () =>
 				editor.keyUp('Meta')
 				editor.pointerUp()
 			})
+
+			it(`safety net: pointerDown with accel held in ${tool} idle erases instead of drawing`, () => {
+				editor.setCurrentTool(tool)
+				editor.expectToBeIn(`${tool}.idle`)
+
+				const shapesBefore = editor.getCurrentPageShapes().length
+
+				// Simulate the case where the keydown was missed (e.g. the editor
+				// wasn't focused yet) by dispatching a pointerDown with accel set
+				// without a prior keyDown('Meta').
+				editor.dispatch({
+					type: 'pointer',
+					name: 'pointer_down',
+					point: { x: 99, y: 99, z: 0 },
+					pointerId: 1,
+					button: 0,
+					isPen: false,
+					target: 'canvas',
+					shiftKey: false,
+					altKey: false,
+					ctrlKey: true,
+					metaKey: true,
+					accelKey: true,
+				})
+
+				// We should have switched to the eraser and started erasing the hit
+				// shape, not started drawing a new shape.
+				expect(editor.getCurrentTool().id).toBe('eraser')
+				expect(editor.getCurrentToolId()).toBe(tool)
+				expect(editor.getErasingShapeIds()).toEqual([ids.box2])
+
+				editor.pointerUp()
+
+				expect(editor.getCurrentPageShapes().length).toBe(shapesBefore - 1)
+			})
 		})
 	}
 
