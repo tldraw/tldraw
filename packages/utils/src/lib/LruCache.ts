@@ -4,12 +4,11 @@ export class LruCache<K, V> {
 	constructor(private maxSize: number) {}
 
 	get(key: K): V | undefined {
-		const value = this.map.get(key)
-		if (value !== undefined) {
-			// Move to most-recent position
-			this.map.delete(key)
-			this.map.set(key, value)
-		}
+		if (!this.map.has(key)) return undefined
+		const value = this.map.get(key)!
+		// Move to most-recent position
+		this.map.delete(key)
+		this.map.set(key, value)
 		return value
 	}
 
@@ -26,7 +25,8 @@ export class LruCache<K, V> {
 		return this.map.has(key)
 	}
 
-	getSize(): number {
+	// eslint-disable-next-line tldraw/no-setter-getter
+	get size(): number {
 		return this.map.size
 	}
 }

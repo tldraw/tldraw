@@ -12,11 +12,11 @@ describe('LruCache', () => {
 
 	it('reports size', () => {
 		const cache = new LruCache<string, number>(5)
-		expect(cache.getSize()).toBe(0)
+		expect(cache.size).toBe(0)
 		cache.set('a', 1)
-		expect(cache.getSize()).toBe(1)
+		expect(cache.size).toBe(1)
 		cache.set('b', 2)
-		expect(cache.getSize()).toBe(2)
+		expect(cache.size).toBe(2)
 	})
 
 	it('has() checks existence without promoting', () => {
@@ -40,7 +40,7 @@ describe('LruCache', () => {
 		expect(cache.get('a')).toBeUndefined()
 		expect(cache.get('b')).toBe(2)
 		expect(cache.get('c')).toBe(3)
-		expect(cache.getSize()).toBe(2)
+		expect(cache.size).toBe(2)
 	})
 
 	it('get() promotes entry so it is not evicted next', () => {
@@ -69,7 +69,7 @@ describe('LruCache', () => {
 		cache.set('c', 3) // should evict 'b'
 		expect(cache.get('b')).toBeUndefined()
 		expect(cache.get('a')).toBe(10)
-		expect(cache.getSize()).toBe(2)
+		expect(cache.size).toBe(2)
 	})
 
 	it('evicts entries in insertion order across many inserts', () => {
@@ -78,7 +78,7 @@ describe('LruCache', () => {
 			cache.set(i, i * 10)
 		}
 		// Only the last 3 should remain
-		expect(cache.getSize()).toBe(3)
+		expect(cache.size).toBe(3)
 		expect(cache.get(7)).toBe(70)
 		expect(cache.get(8)).toBe(80)
 		expect(cache.get(9)).toBe(90)

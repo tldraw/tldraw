@@ -270,11 +270,11 @@ export class LruCache<K, V> {
     // (undocumented)
     get(key: K): undefined | V;
     // (undocumented)
-    getSize(): number;
-    // (undocumented)
     has(key: K): boolean;
     // (undocumented)
     set(key: K, value: V): void;
+    // (undocumented)
+    get size(): number;
 }
 
 // @public
