@@ -1,0 +1,145 @@
+---
+title: Mermaid diagrams
+status: published
+author: guillaumerichard
+date: 4/28/2026
+order: 8
+keywords:
+  - mermaid
+  - diagram
+  - flowchart
+  - sequence
+  - state
+  - mindmap
+  - integration
+  - parse
+  - render
+  - visualization
+---
+
+You can turn [Mermaid](https://mermaid.js.org/) diagram syntax into native, editable tldraw shapes with the **`@tldraw/mermaid`** package. Instead of rendering a static SVG, it parses Mermaid text and creates real geo shapes, arrows, frames, and groups on the canvas—so users can move, resize, restyle, and connect them like any other shape.
+
+## Quick start
+
+Install the package alongside `tldraw`:
+
+```bash
+npm install @tldraw/mermaid
+```
+
+Then call [`createMermaidDiagram`](?) with an [`Editor`](?) and a Mermaid source string:
+
+```tsx
+import { createMermaidDiagram } from '@tldraw/mermaid'
+
+await createMermaidDiagram(
+	editor,
+	`
+  flowchart TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Do something]
+    B -->|No| D[Do something else]
+`
+)
+```
+
+By default the diagram is centered on the current viewport. Pass a `blueprintRender.position` to place it at a specific page point, and set `centerOnPosition: false` to anchor its top-left corner instead of its center.
+
+## Supported diagram types
+
+| Diagram type     | Mermaid keyword      | What you get                                                        |
+| ---------------- | -------------------- | ------------------------------------------------------------------- |
+| Flowchart        | `flowchart`, `graph` | Geo shapes, arrows, subgraph frames                                 |
+| Sequence diagram | `sequenceDiagram`    | Actor shapes, lifelines, signal arrows, fragment frames             |
+| State diagram    | `stateDiagram-v2`    | State shapes, transitions, compound state frames, fork/join, choice |
+| Mindmap          | `mindmap`            | Colored geo shapes, parent-child edges, tree hierarchy              |
+
+For unsupported types (pie, gantt, class, ER, etc.) pass an `onUnsupportedDiagram` callback—for example, to fall back to importing Mermaid's rendered SVG:
+
+```tsx
+await createMermaidDiagram(editor, text, {
+	onUnsupportedDiagram(svgString) {
+		editor.putExternalContent({ type: 'svg-text', text: svgString })
+	},
+})
+```
+
+Without a callback, `createMermaidDiagram` throws a [`MermaidDiagramError`](?) for unsupported types and parse failures.
+
+## Handling pasted Mermaid text
+
+The most common integration is converting Mermaid text when users paste it onto the canvas. Register an external content handler that sniffs for a Mermaid keyword and dynamically imports the package:
+
+```tsx
+import { useEffect } from 'react'
+import { defaultHandleExternalTextContent, useEditor } from 'tldraw'
+
+const MERMAID_KEYWORD =
+	/^\s*(flowchart|graph|sequenceDiagram|stateDiagram|classDiagram|erDiagram|gantt|pie|gitGraph|mindmap)/
+
+export function MermaidPasteHandler() {
+	const editor = useEditor()
+
+	useEffect(() => {
+		editor.registerExternalContentHandler('text', async (content) => {
+			if (!MERMAID_KEYWORD.test(content.text)) {
+				await defaultHandleExternalTextContent(editor, content)
+				return
+			}
+
+			try {
+				const { createMermaidDiagram } = await import('@tldraw/mermaid')
+				await createMermaidDiagram(editor, content.text, {
+					async onUnsupportedDiagram(svgString) {
+						await editor.putExternalContent({ type: 'svg-text', text: svgString })
+					},
+				})
+			} catch {
+				await defaultHandleExternalTextContent(editor, content)
+			}
+		})
+	}, [editor])
+
+	return null
+}
+```
+
+Drop `<MermaidPasteHandler />` inside your [`Tldraw`](?) component and pasting Mermaid text will render it as shapes.
+
+<Callout type="info">
+	The `mermaid` dependency is ~2 MB. The pattern above pre-screens with a lightweight regex and
+	lazy-loads `@tldraw/mermaid` only when the text matches, so users who never paste Mermaid don't
+	pay the cost.
+</Callout>
+
+## Customizing node shapes
+
+By default, blueprint nodes are materialized as tldraw geo shapes. If you want to render them as your own custom shape type instead—for example, sticky notes for mindmap leaves, or a bespoke "actor" shape for sequence diagrams—pass `mapNodeToRenderSpec` on `blueprintRender`:
+
+```tsx
+await createMermaidDiagram(editor, text, {
+	blueprintRender: {
+		mapNodeToRenderSpec(input) {
+			if (input.diagramKind === 'mindmap') {
+				return { variant: 'shape', type: 'note', props: {} }
+			}
+			// Return undefined to keep the package default for this node.
+			return undefined
+		},
+	},
+})
+```
+
+The callback receives `diagramKind`, `nodeId`, `kind`, and the full [`MermaidBlueprintNode`](?), and returns a [`MermaidBlueprintNodeRenderSpec`](?)—either a `geo` variant or a custom `shape` type that's registered on the editor. See [`createMermaidDiagram`](?) and [`renderBlueprint`](?) in the reference for the full API.
+
+## Examples
+
+- [Hundreds of mermaid diagrams](/examples/use-cases/hundred-mermaids) — A runnable demo rendering many diagram types at once
+- [Customizing mermaid diagrams](/examples/use-cases/custom-shape-mermaids) - Converting mermaid diagram nodes into custom shapes
+
+## Related
+
+- [`createMermaidDiagram`](?), [`renderBlueprint`](?), [`MermaidDiagramError`](?) — Entry points and errors
+- [`DiagramMermaidBlueprint`](?), [`MermaidBlueprintNode`](?), [`MermaidBlueprintNodeRenderSpec`](?) — The data model you can customize
+- [Shapes](/docs/shapes) — Define a custom shape you can map Mermaid nodes to
+- [External content handlers](/sdk-features/external-content) — More on `registerExternalContentHandler` for the paste integration

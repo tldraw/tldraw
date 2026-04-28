@@ -154,14 +154,17 @@ export class PortalShapeUtil extends BaseFrameLikeShapeUtil<PortalShape> {
 		)
 	}
 
-	override indicator(shape: PortalShape) {
-		return (
-			<ellipse
-				cx={toDomPrecision(shape.props.w / 2)}
-				cy={toDomPrecision(shape.props.h / 2)}
-				rx={toDomPrecision(shape.props.w / 2)}
-				ry={toDomPrecision(shape.props.h / 2)}
-			/>
+	override getIndicatorPath(shape: PortalShape) {
+		const path = new Path2D()
+		path.ellipse(
+			shape.props.w / 2,
+			shape.props.h / 2,
+			shape.props.w / 2,
+			shape.props.h / 2,
+			0,
+			0,
+			Math.PI * 2
 		)
+		return path
 	}
 }

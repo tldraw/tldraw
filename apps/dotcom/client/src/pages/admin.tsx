@@ -9,6 +9,7 @@ import {
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
+import { sentryReleaseName } from '../../sentry-release-name'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { useTldrawCurrentUser } from '../tla/hooks/useUser'
 import { saveMigrationLog } from './migrationLogsDB'
@@ -166,6 +167,12 @@ export function Component() {
 		<div className={styles.adminContainer}>
 			<header className={styles.adminHeader}>
 				<h1 className="tla-text_ui__big">Admin Panel</h1>
+				<p className={styles.adminReleaseMeta}>
+					<span className={styles.adminReleaseLabel}>Release:</span>{' '}
+					<code className={styles.adminReleaseValue} translate="no">
+						{sentryReleaseName}
+					</code>
+				</p>
 			</header>
 
 			<main className={styles.adminContent}>

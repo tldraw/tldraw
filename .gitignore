@@ -132,3 +132,4 @@ opencode.json
 .claude/skills/pr-walkthrough/video/dist
 .claude/skills/pr-walkthrough/video/public/audio-*
 .claude/skills/pr-walkthrough/video/public/manifest.json
+todo.md

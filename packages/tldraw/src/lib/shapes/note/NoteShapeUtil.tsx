@@ -26,7 +26,6 @@ import {
 	noteShapeProps,
 	resizeScaled,
 	rng,
-	toDomPrecision,
 	toRichText,
 	useColorMode,
 	useEditor,
@@ -420,27 +419,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
-	indicator(shape: TLNoteShape) {
-		const { scale } = shape.props
-		const dv = getDisplayValues(this, shape)
-		return (
-			<rect
-				rx={scale}
-				width={toDomPrecision(dv.noteWidth * scale)}
-				height={toDomPrecision(getNoteHeight(shape, dv.noteHeight))}
-			/>
-		)
-	}
-
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLNoteShape): Path2D {
 		const { scale } = shape.props
 		const dv = getDisplayValues(this, shape)
 		const path = new Path2D()
-		path.roundRect(0, 0, dv.noteWidth * scale, getNoteHeight(shape, dv.noteHeight), scale)
+		path.rect(0, 0, dv.noteWidth * scale, getNoteHeight(shape, dv.noteHeight))
 		return path
 	}
 

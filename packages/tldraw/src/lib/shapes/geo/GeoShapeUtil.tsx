@@ -4,6 +4,7 @@ import {
 	Box,
 	EMPTY_ARRAY,
 	Editor,
+	GeoShapeGeoStyle,
 	Group2d,
 	HTMLContainer,
 	HandleSnapGeometry,
@@ -23,7 +24,6 @@ import {
 	WeakCache,
 	approximately,
 	areAnglesCompatible,
-	GeoShapeGeoStyle,
 	geoShapeMigrations,
 	geoShapeProps,
 	getColorValue,
@@ -439,30 +439,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				{url && <HyperlinkButton url={url} />}
 			</>
 		)
-	}
-
-	indicator(shape: TLGeoShape) {
-		const isZoomedOut = useEfficientZoomThreshold(0.25 / shape.props.scale)
-
-		const { dash, scale } = shape.props
-		const dv = getDisplayValues(this, shape)
-
-		const path = getGeoShapePath(shape, dv.strokeWidth, this.options.customGeoStyles)
-
-		return path.toSvg({
-			style: dash === 'draw' ? 'draw' : 'solid',
-			strokeWidth: 1,
-			passes: 1,
-			randomSeed: shape.id,
-			offset: 0,
-			roundness: dv.strokeRoundness * scale,
-			props: { strokeWidth: undefined },
-			forceSolid: isZoomedOut,
-		})
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {

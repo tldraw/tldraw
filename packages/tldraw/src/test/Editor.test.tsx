@@ -524,7 +524,7 @@ describe('getShapeUtil', () => {
 			component() {
 				throw new Error('Method not implemented.')
 			}
-			indicator() {
+			getIndicatorPath(): undefined {
 				throw new Error('Method not implemented.')
 			}
 		}
@@ -922,7 +922,7 @@ describe('the geometry cache', () => {
 		component() {
 			throw new Error('Method not implemented.')
 		}
-		indicator() {
+		getIndicatorPath(): undefined {
 			throw new Error('Method not implemented.')
 		}
 	}

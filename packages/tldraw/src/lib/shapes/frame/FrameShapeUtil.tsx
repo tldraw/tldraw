@@ -18,7 +18,6 @@ import {
 	frameShapeProps,
 	getColorValue,
 	lerp,
-	toDomPrecision,
 	useColorMode,
 	useValue,
 } from '@tldraw/editor'
@@ -341,14 +340,6 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 				</g>
 			</>
 		)
-	}
-
-	indicator(shape: TLFrameShape) {
-		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLFrameShape): Path2D {

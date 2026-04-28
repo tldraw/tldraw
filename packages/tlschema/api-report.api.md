@@ -1704,12 +1704,15 @@ export interface TLThemeDefaultColors {
     black: TLDefaultColor;
     // (undocumented)
     blue: TLDefaultColor;
+    brushFill: string;
+    brushStroke: string;
     // (undocumented)
     cursor: string;
     // (undocumented)
     green: TLDefaultColor;
     // (undocumented)
     grey: TLDefaultColor;
+    laser: string;
     // (undocumented)
     negativeSpace: string;
     // (undocumented)
@@ -1718,6 +1721,10 @@ export interface TLThemeDefaultColors {
     orange: TLDefaultColor;
     // (undocumented)
     red: TLDefaultColor;
+    selectedContrast: string;
+    selectionFill: string;
+    selectionStroke: string;
+    snap: string;
     // (undocumented)
     solid: string;
     // (undocumented)
@@ -1759,7 +1766,7 @@ export interface TLThemes {
 }
 
 // @public
-export type TLThemeUiColorKeys = 'background' | 'cursor' | 'negativeSpace' | 'noteBorder' | 'solid' | 'text';
+export type TLThemeUiColorKeys = 'background' | 'brushFill' | 'brushStroke' | 'cursor' | 'laser' | 'negativeSpace' | 'noteBorder' | 'selectedContrast' | 'selectionFill' | 'selectionStroke' | 'snap' | 'solid' | 'text';
 
 // @public
 export type TLUnknownAsset = TLBaseAsset<string, object>;

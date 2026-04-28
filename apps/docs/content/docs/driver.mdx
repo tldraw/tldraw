@@ -1,0 +1,101 @@
+---
+title: Driving the editor
+status: published
+author: steveruizok
+date: 4/28/2026
+order: 8
+keywords:
+  - driver
+  - automation
+  - scripting
+  - testing
+  - repl
+  - imperative
+  - input
+  - simulation
+---
+
+You can drive the tldraw editor programmatically with the **`@tldraw/driver`** package. It wraps an [`Editor`](?) with an imperative, fluent API for simulating user input. You can use it for scripting, automation, REPL sessions, and writing tests.
+
+## Quick start
+
+Install the package alongside `tldraw`:
+
+```bash
+npm install @tldraw/driver
+```
+
+Wrap an [`Editor`](?) instance with a [`Driver`](?) and dispatch input:
+
+```ts
+import { Driver } from '@tldraw/driver'
+
+const driver = new Driver(editor)
+
+driver.click(100, 200).pointerDown(300, 400).pointerMove(500, 600).pointerUp()
+
+driver.keyPress('a')
+
+driver.dispose()
+```
+
+Every input method returns `this`, so calls can be chained. Call `dispose` when you're done so the driver can clean up its side-effect handlers.
+
+## Simulating input
+
+Pointer, keyboard, wheel, and pinch events all flow through `editor.dispatch`, so they go through the editor's normal tool state machines—a `pointerDown` → `pointerMove`... → `pointerUp` sequence against the draw tool produces real draw shapes, not an image overlay:
+
+```ts
+editor.setCurrentTool('draw')
+driver.pointerDown(100, 100)
+driver.pointerMove(150, 120)
+driver.pointerMove(200, 140)
+driver.pointerUp()
+```
+
+Pointer coordinates are in screen space. For page-space positions, use `editor.pageToScreen` to convert before dispatching.
+
+Keyboard helpers track modifier state automatically:
+
+```ts
+driver.keyDown('Shift')
+driver.click(100, 100, { target: 'canvas' })
+driver.keyUp('Shift')
+```
+
+## Manipulating the selection
+
+Selection helpers work in page coordinates and convert to screen space internally, so you can move, rotate, and resize the current selection without computing pointer paths by hand:
+
+```ts
+driver.translateSelection(50, 0)
+driver.rotateSelection(Math.PI / 4)
+driver.resizeSelection({ scaleX: 2 }, 'bottom_right')
+```
+
+## Clipboard
+
+The driver keeps its own in-memory clipboard, independent of the system clipboard. Useful for scripted copy/paste flows and testing:
+
+```ts
+driver.copy() // copies the current selection
+driver.paste({ x: 400, y: 400 })
+```
+
+## Queries
+
+The driver tracks shapes it has caused to be created via `editor.sideEffects`, making it easy to grab the most recent result of a scripted action:
+
+```ts
+const shape = driver.getLastCreatedShape()
+const lastFive = driver.getLastCreatedShapes(5)
+```
+
+See [`Driver`](?) for the full list of query helpers (shape/selection page centers, rotations, arrows bound to a shape, etc.).
+
+## Related
+
+- [`Driver`](?) — Full reference for every input, selection, clipboard, and query method
+- [`Editor`](?) — The editor class the driver wraps
+- [Shapes](/docs/shapes) — Defining shape types that driver-produced input will interact with
+- [Tools](/docs/tools) — Understanding the tool state machines that process simulated events
