@@ -289,8 +289,9 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // Production uses performance (dedicated) CPUs for both RM and VS; staging uses shared.
 // killTimeout: window between SIGTERM and SIGKILL on stop. Lets VS drain client
 // WebSockets and RM flush litestream / release /data handles before being killed.
-// Fly caps it at 5m on shared CPU and 24h on dedicated; production uses 10m to
-// match Rocicorp's CZ default, staging is pinned to the 5m shared-CPU ceiling.
+// Fly's API caps it at 5m regardless of CPU kind (the 24h dedicated-CPU figure
+// from their blog is not actually accepted by the Machines API today — deploys
+// fail with "invalid stop_config.timeout, cannot exceed 5 minutes").
 const zeroVmSizes = {
 	staging: {
 		rm: { cpus: 1, memory: '2gb', cpuKind: 'shared' },
@@ -304,7 +305,7 @@ const zeroVmSizes = {
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
 		vsMinMachines: 4,
-		killTimeout: '10m',
+		killTimeout: '5m',
 	},
 	preview: { single: { cpus: 2, memory: '2gb' } },
 } as const
