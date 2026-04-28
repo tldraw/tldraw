@@ -737,7 +737,7 @@ function truncateAttributionForSvg(editor: Editor, name: string, noteWidth: numb
 		fontSize: 11,
 		fontFamily: DefaultFontFamilies['sans'],
 		textAlign: 'end',
-		width: Math.floor(noteWidth * ATTRIBUTION_MAX_WIDTH_RATIO),
+		width: noteWidth * ATTRIBUTION_MAX_WIDTH_RATIO,
 		height: 16,
 		padding: 0,
 		lineHeight: 1,
