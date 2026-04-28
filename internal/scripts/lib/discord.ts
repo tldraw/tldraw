@@ -60,15 +60,21 @@ export class Discord {
 	private secretValues?: string[]
 
 	private async send(method: string, url: string, body: unknown): Promise<any> {
-		const response = await fetch(`${this.webhookUrl}${url}`, {
-			method,
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(body),
-		})
-		if (!response.ok) {
-			throw new Error(`Discord webhook request failed: ${response.status} ${response.statusText}`)
+		try {
+			const response = await fetch(`${this.webhookUrl}${url}`, {
+				method,
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+			if (!response.ok) {
+				console.warn(`Discord webhook request failed: ${response.status} ${response.statusText}`)
+				return null
+			}
+			return response.json()
+		} catch (err) {
+			console.warn(`Discord webhook request failed:`, err)
+			return null
 		}
-		return response.json()
 	}
 
 	async message(content: string, { always = false }: { always?: boolean } = {}) {
@@ -87,6 +93,7 @@ export class Discord {
 
 		return {
 			edit: async (newContent: string) => {
+				if (!message?.id) return
 				const prefixedNewContent = this.messagePrefix
 					? `${this.messagePrefix} ${newContent}`
 					: newContent
