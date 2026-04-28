@@ -3,6 +3,7 @@ import {
 	Box,
 	DefaultFontFamilies,
 	EMPTY_ARRAY,
+	Editor,
 	Group2d,
 	IndexKey,
 	Rectangle2d,
@@ -459,10 +460,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		})
 
 		const { textFirstEditedBy } = shape.props
-		const attributionName =
+		const attributionFirstName =
 			textFirstEditedBy && !isEmptyRichText(shape.props.richText)
 				? this.editor.getAttributionDisplayName(textFirstEditedBy)?.split(' ')[0]
 				: null
+		const attributionName = attributionFirstName
+			? truncateAttributionForSvg(this.editor, attributionFirstName, dv.noteWidth)
+			: null
 
 		return (
 			<>
@@ -722,6 +726,27 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 function getNoteHeight(shape: TLNoteShape, noteHeight: number) {
 	return (noteHeight + shape.props.growY) * shape.props.scale
+}
+
+// Matches `.tl-note__attribution { max-width: 60% }` so SVG export truncates the same way.
+const ATTRIBUTION_MAX_WIDTH_RATIO = 0.6
+
+function truncateAttributionForSvg(editor: Editor, name: string, noteWidth: number) {
+	if (process.env.NODE_ENV === 'test') return name
+	const spans = editor.textMeasure.measureTextSpans(name, {
+		fontSize: 11,
+		fontFamily: DefaultFontFamilies['sans'],
+		textAlign: 'end',
+		width: Math.floor(noteWidth * ATTRIBUTION_MAX_WIDTH_RATIO),
+		height: 16,
+		padding: 0,
+		lineHeight: 1,
+		fontStyle: 'normal',
+		fontWeight: 'normal',
+		overflow: 'truncate-ellipsis',
+	})
+	if (spans.length === 0) return name
+	return spans.map((s) => s.text).join('')
 }
 
 function getNoteShadow(id: string, rotation: number, scale: number) {
