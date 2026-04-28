@@ -325,7 +325,6 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Replace `@use-gesture/react` dependency with custom gesture handling, reducing bundle size and eliminating a stale dependency. ([#8392](https://github.com/tldraw/tldraw/pull/8392))
 - Tighten iframe referrer policy for embeds to send only the origin instead of the full URL to third-party embed providers. ([#8412](https://github.com/tldraw/tldraw/pull/8412))
 - Move the debug mode toggle into the preferences submenu. ([#8259](https://github.com/tldraw/tldraw/pull/8259))
-- Update hotkeys-js keyboard shortcut library from v3 to v4, picking up TypeScript rewrite and keyboard layout handling improvements. ([#8372](https://github.com/tldraw/tldraw/pull/8372))
 
 ## Bug fixes
 
@@ -350,3 +349,4 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix crash when isolating curved arrows whose geometry became degenerate (e.g., during shape deletion). ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 - Fix shapes disappearing when a labeled arrow had zero length, caused by `NaN` propagating through bounds and the spatial index. ([#8329](https://github.com/tldraw/tldraw/pull/8329))
 - Fix memory leak that retained `Editor` instances after disposal due to a shared throttled hover handler. ([#8439](https://github.com/tldraw/tldraw/pull/8439))
+- Fix keyboard shortcuts not matching on alternative Latin keyboard layouts (Dvorak, Colemak, AZERTY) by replacing the `hotkeys-js` library with a small layout-aware native event matcher.
