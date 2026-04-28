@@ -1,4 +1,3 @@
-import { fetchFramerPaths } from '@/utils/framer-sitemap'
 import { nicelog } from '@/utils/nicelog'
 import { connect } from './connect'
 
@@ -109,9 +108,6 @@ function tryRedirect(urlPath: string): string | null {
 export async function checkBrokenLinks(): Promise<number> {
 	const db = await connect({ mode: 'readonly' })
 
-	// Fetch framer paths from the live sitemap so we don't maintain a stale list
-	const framerPaths = await fetchFramerPaths()
-
 	// Build set of all valid paths
 	const validPaths = new Set<string>()
 
@@ -221,8 +217,6 @@ export async function checkBrokenLinks(): Promise<number> {
 			} else if (validPathsLower.has(urlPath.toLowerCase())) {
 				// Case-insensitive fallback (handles macOS FS collisions
 				// where e.g. Atom.mdx and atom.mdx map to the same file)
-				pathValid = true
-			} else if (framerPaths.has(urlPath)) {
 				pathValid = true
 			} else {
 				// Try redirect resolution
