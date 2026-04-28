@@ -284,8 +284,9 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // Staging: Supabase Micro (60 max_connections, 200 pooled clients)
 // Preview: Supabase branch instance (~60 max_connections per branch, isolated)
 // Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
+
 // Fly.io VM sizes per environment.
-// Production RM uses performance (dedicated) CPUs; everything else uses shared.
+// Production uses performance (dedicated) CPUs for both RM and VS; staging uses shared.
 // killTimeout: window between SIGTERM and SIGKILL on stop. Lets VS drain client
 // WebSockets and RM flush litestream / release /data handles before being killed.
 // Fly caps it at 5m on shared CPU and 24h on dedicated; production uses 10m to
