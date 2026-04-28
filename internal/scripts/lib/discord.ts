@@ -67,12 +67,17 @@ export class Discord {
 				body: JSON.stringify(body),
 			})
 			if (!response.ok) {
-				console.warn(`Discord webhook request failed: ${response.status} ${response.statusText}`)
+				console.warn(
+					`Discord webhook request failed: ${method} -> ${response.status} ${response.statusText}`
+				)
 				return null
 			}
 			return response.json()
 		} catch (err) {
-			console.warn(`Discord webhook request failed:`, err)
+			const errString = err instanceof Error ? (err.stack ?? err.message) : String(err)
+			console.warn(
+				`Discord webhook request failed: ${method}\n${sanitizeVariables(errString, this.secretValues)}`
+			)
 			return null
 		}
 	}
