@@ -33,6 +33,7 @@ export type ResizingInfo = TLPointerEventInfo & {
 
 export class Resizing extends StateNode {
 	static override id = 'resizing'
+	static override trackPerformance = true
 
 	info = {} as ResizingInfo
 
@@ -541,7 +542,7 @@ export class Resizing extends StateNode {
 			// descendants (easy) but also flagging with behavior like "resize" or "keep absolute position" or "reposition only with accel key",
 			// though I'm not sure where that would be defined; perhaps better handled with onResizeStart / onResize callbacks on the util, and
 			// pass `accelKeyIsPressed` as well as `accelKeyWasPressed`?
-			if (editor.isShapeOfType(shape, 'frame')) {
+			if (editor.isShapeFrameLike(shape)) {
 				frames.push({
 					id: shape.id,
 					children: compact(

@@ -39,8 +39,10 @@ export class MiniBoxShapeUtil extends BaseBoxShapeUtil<MiniBoxShape> {
 		)
 	}
 	//[d]
-	indicator(shape: MiniBoxShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: MiniBoxShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 

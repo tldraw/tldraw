@@ -910,7 +910,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				sessionSchema,
 				requiresDownMigrations,
 				{
-					puts: Object.fromEntries([...this.presenceStore.values()].map((p) => [p.id, p])),
+					// Exclude the connecting session's own presence — it will push fresh
+					// data immediately after connecting. Sending the stale record back
+					// would leave an orphaned presence in the client's local store (the
+					// server never echoes a session's own updates back to it).
+					puts: Object.fromEntries(
+						[...this.presenceStore.values()]
+							.filter((p) => p.id !== session.presenceId)
+							.map((p) => [p.id, p])
+					),
 					deletes: [],
 				}
 			)

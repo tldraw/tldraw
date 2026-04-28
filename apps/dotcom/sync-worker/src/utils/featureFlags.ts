@@ -21,6 +21,12 @@ function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagV
 			enabled: false,
 			description: 'Emergency kill switch — when enabled, forces all users off Zero immediately',
 		},
+		rum_enabled: {
+			type: 'percentage',
+			percentage: 0,
+			enabled: false,
+			description: 'Real User Monitoring for editor performance metrics',
+		},
 	}
 }
 

@@ -112,8 +112,10 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 		)
 	}
 
-	override indicator() {
-		return <rect width={EXAM_MARK_WIDTH} height={EXAM_MARK_HEIGHT} rx={4} />
+	override getIndicatorPath() {
+		const path = new Path2D()
+		path.rect(0, 0, EXAM_MARK_WIDTH, EXAM_MARK_HEIGHT)
+		return path
 	}
 
 	getGeometry() {

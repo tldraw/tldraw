@@ -108,8 +108,10 @@ class StickyNoteShapeUtil extends ShapeUtil<StickyNoteShape> {
 		return <HTMLContainer>{shape.props.text}</HTMLContainer>
 	}
 
-	indicator(shape: StickyNoteShape) {
-		return <rect width={200} height={200} />
+	getIndicatorPath(shape: StickyNoteShape) {
+		const path = new Path2D()
+		path.rect(0, 0, 200, 200)
+		return path
 	}
 }
 

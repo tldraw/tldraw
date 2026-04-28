@@ -34,6 +34,7 @@ export type TranslatingInfo = TLPointerEventInfo & {
 
 export class Translating extends StateNode {
 	static override id = 'translating'
+	static override trackPerformance = true
 
 	info = {} as TranslatingInfo
 

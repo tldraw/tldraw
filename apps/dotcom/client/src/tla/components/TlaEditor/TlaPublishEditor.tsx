@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { SerializedSchema, TLComponents, TLRecord, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
+import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { globalEditor } from '../../../utils/globalEditor'
@@ -29,6 +30,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
+	const trackPerformance = usePerformanceTracking()
 	const fileEditorOverrides = useFileEditorOverrides({
 		fileSlug: undefined,
 	})
@@ -54,6 +56,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 					;(window as any).editor = editor
 					editor.updateInstanceState({ isReadonly: true })
 					globalEditor.set(editor)
+					return trackPerformance(editor)
 				}}
 				components={components}
 				options={{ deepLinks: true }}

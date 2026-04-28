@@ -10,6 +10,7 @@ import {
 	useContainer,
 	useColorMode,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -191,6 +192,7 @@ export function DefaultMinimap() {
 	)
 
 	const colorMode = useColorMode()
+	const currentThemeId = useValue('current theme id', () => editor.getCurrentThemeId(), [editor])
 
 	React.useEffect(() => {
 		// need to wait a tick for next theme css to be applied
@@ -199,7 +201,7 @@ export function DefaultMinimap() {
 			minimapRef.current?.updateColors()
 			minimapRef.current?.render()
 		})
-	}, [colorMode, editor])
+	}, [colorMode, currentThemeId, editor])
 
 	return (
 		<div className="tlui-minimap">

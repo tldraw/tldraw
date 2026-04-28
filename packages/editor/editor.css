@@ -54,7 +54,6 @@
 	/* User handles need to be above selection edges / corners, matters for sticky note clone handles */
 	--tl-layer-overlays-user-handles: 105;
 	--tl-layer-overlays-user-indicator-hint: 110;
-	--tl-layer-overlays-custom: 115;
 	--tl-layer-overlays-collaborator-cursor-hint: 120;
 	--tl-layer-overlays-collaborator-cursor: 130;
 
@@ -154,14 +153,11 @@
 
 .tl-theme__light {
 	/* Canvas */
-	--tl-color-snap: hsl(0, 76%, 60%);
 	--tl-color-selection-fill: hsl(210, 100%, 56%, 24%);
 	--tl-color-selection-stroke: hsl(214, 84%, 56%);
 	--tl-color-background: hsl(210, 20%, 98%);
 	/* if you ever update --tl-color-background, update the hardcoded values in theme-init.js and globals.css
 	they're there to make sure the background color matches the user's preference before the actual app loads*/
-	--tl-color-brush-fill: hsl(0, 0%, 56%, 10.2%);
-	--tl-color-brush-stroke: hsl(0, 0%, 56%, 25.1%);
 	--tl-color-grid: hsl(0, 0%, 43%);
 	/* UI */
 	--tl-color-low: hsl(204, 16%, 94%);
@@ -195,7 +191,7 @@
 	--tl-color-info: hsl(201, 98%, 41%);
 	--tl-color-warning: hsl(27, 98%, 47%);
 	--tl-color-danger: hsl(0, 90%, 43%);
-	--tl-color-laser: hsl(0, 100%, 50%);
+
 	/* Shadows */
 	--tl-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
 	--tl-shadow-2:
@@ -211,14 +207,11 @@
 
 .tl-theme__dark {
 	/* Canvas */
-	--tl-color-snap: hsl(0, 76%, 60%);
 	--tl-color-selection-fill: hsl(209, 100%, 57%, 20%);
 	--tl-color-selection-stroke: hsl(214, 84%, 56%);
 	--tl-color-background: hsl(240, 5%, 6.5%);
 	/* if you ever update --tl-color-background, update the hardcoded values in theme-init.js and globals.css
 	they're there to make sure the background color matches the user's preference before the actual app loads*/
-	--tl-color-brush-fill: hsl(0, 0%, 71%, 5.1%);
-	--tl-color-brush-stroke: hsl(0, 0%, 71%, 25.1%);
 	--tl-color-grid: hsl(0, 0%, 40%);
 	/* UI */
 	--tl-color-low: hsl(260, 4.5%, 10.5%);
@@ -252,7 +245,7 @@
 	--tl-color-info: hsl(199, 92%, 56%);
 	--tl-color-warning: hsl(36, 100%, 57%);
 	--tl-color-danger: hsl(0, 82%, 66%);
-	--tl-color-laser: hsl(0, 100%, 50%);
+
 	/* Shadows */
 	--tl-shadow-1:
 		0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
@@ -399,62 +392,6 @@ input,
 
 /* --------------- Overlay Stack --------------- */
 
-/* back of the stack, behind user's stuff */
-.tl-collaborator__scribble {
-	z-index: var(--tl-layer-overlays-collaborator-scribble);
-}
-
-.tl-collaborator__brush {
-	z-index: var(--tl-layer-overlays-collaborator-brush);
-}
-
-.tl-collaborator__shape-indicator {
-	z-index: var(--tl-layer-overlays-collaborator-shape-indicator);
-}
-
-.tl-user-scribble {
-	z-index: var(--tl-layer-overlays-user-scribble);
-}
-
-.tl-user-brush {
-	z-index: var(--tl-layer-overlays-user-brush);
-}
-
-.tl-user-handles {
-	z-index: var(--tl-layer-overlays-user-handles);
-}
-
-.tl-user-snapline {
-	z-index: var(--tl-layer-overlays-user-snapline);
-}
-
-.tl-selection__fg {
-	pointer-events: none;
-	z-index: var(--tl-layer-overlays-selection-fg);
-}
-
-.tl-user-indicator__hint {
-	z-index: var(--tl-layer-overlays-user-indicator-hint);
-	stroke-width: calc(2.5px * var(--tl-scale));
-}
-
-.tl-custom-overlays {
-	z-index: var(--tl-layer-overlays-custom);
-}
-
-/* behind collaborator cursor */
-.tl-collaborator__cursor-hint {
-	z-index: var(--tl-layer-overlays-collaborator-cursor-hint);
-}
-
-.tl-collaborator__cursor {
-	z-index: var(--tl-layer-overlays-collaborator-cursor);
-}
-
-.tl-cursor {
-	overflow: visible;
-}
-
 /* -------------- Selection foreground -------------- */
 
 .tl-selection__bg {
@@ -464,49 +401,6 @@ input,
 	transform-origin: top left;
 	background-color: transparent;
 	pointer-events: all;
-}
-
-.tl-selection__fg__outline {
-	fill: none;
-	pointer-events: none;
-	stroke: var(--tl-color-selection-stroke);
-	stroke-width: calc(1.5px * var(--tl-scale));
-}
-
-.tl-corner-handle {
-	pointer-events: none;
-	stroke: var(--tl-color-selection-stroke);
-	fill: var(--tl-color-background);
-	stroke-width: calc(1.5px * var(--tl-scale));
-}
-
-.tl-text-handle {
-	pointer-events: none;
-	fill: var(--tl-color-selection-stroke);
-}
-
-.tl-corner-crop-handle {
-	pointer-events: none;
-	fill: none;
-	stroke: var(--tl-color-selection-stroke);
-}
-
-.tl-corner-crop-edge-handle {
-	pointer-events: none;
-	fill: none;
-	stroke: var(--tl-color-selection-stroke);
-}
-
-.tl-mobile-rotate__bg {
-	pointer-events: all;
-	cursor: var(--tl-cursor-grab);
-}
-
-.tl-mobile-rotate__fg {
-	pointer-events: none;
-	stroke: var(--tl-color-selection-stroke);
-	fill: var(--tl-color-background);
-	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
 .tl-transparent {
@@ -534,7 +428,6 @@ input,
 	overflow: hidden;
 	text-overflow: ellipsis;
 	font-size: 12px;
-	font-family: var(--font-body);
 	border-radius: var(--tl-radius-2);
 	color: var(--tl-color-selected-contrast);
 }
@@ -552,7 +445,6 @@ input,
 	overflow: hidden;
 	text-overflow: ellipsis;
 	font-size: 12px;
-	font-family: var(--font-body);
 	text-shadow: var(--tl-text-outline);
 	color: var(--tl-color-selected-contrast);
 }
@@ -568,7 +460,6 @@ input,
 	position: absolute;
 	padding: 3px 6px;
 	font-size: 12px;
-	font-family: var(--font-body);
 	opacity: 1;
 	border-radius: var(--tl-radius-2);
 }
@@ -579,7 +470,6 @@ input,
 	white-space: nowrap;
 	padding: 3px 6px;
 	font-size: 12px;
-	font-family: var(--font-body);
 	pointer-events: none;
 	z-index: var(--tl-layer-cursor);
 	margin-top: 16px;
@@ -1007,41 +897,6 @@ input,
 	}
 }
 
-/* ---------------------- Brush --------------------- */
-
-.tl-brush {
-	stroke-width: calc(var(--tl-scale) * 1px);
-	contain: size layout;
-}
-
-.tl-brush__default {
-	stroke: var(--tl-color-brush-stroke);
-	fill: var(--tl-color-brush-fill);
-}
-
-/* -------------------- Scribble -------------------- */
-
-.tl-scribble {
-	stroke-linejoin: round;
-	stroke-linecap: round;
-	pointer-events: none;
-	contain: size layout;
-}
-
-/* ---------------------- Snaps --------------------- */
-
-.tl-snap-indicator {
-	stroke: var(--tl-color-snap);
-	stroke-width: calc(1px * var(--tl-scale));
-	fill: none;
-}
-
-.tl-snap-point {
-	stroke: var(--tl-color-snap);
-	stroke-width: calc(1px * var(--tl-scale));
-	fill: none;
-}
-
 /* ---------------- Hyperlink Button ---------------- */
 
 .tl-hyperlink-button {
@@ -1095,51 +950,6 @@ input,
 	display: none;
 }
 
-/* --------------------- Handles -------------------- */
-
-.tl-handle {
-	pointer-events: all;
-}
-
-.tl-handle__bg {
-	fill: transparent;
-	stroke: transparent;
-	pointer-events: all;
-}
-
-.tl-handle__fg {
-	fill: var(--tl-color-selected-contrast);
-	stroke: var(--tl-color-selection-stroke);
-	stroke-width: calc(1.5px * var(--tl-scale));
-	pointer-events: none;
-}
-
-.tl-handle__create {
-	opacity: 0;
-}
-
-.tl-handle__clone > .tl-handle__fg {
-	fill: var(--tl-color-selection-stroke);
-	stroke: none;
-}
-
-.tl-handle__bg:active {
-	fill: none;
-}
-
-.tl-container[data-coarse='true'] .tl-handle__bg:active {
-	fill: var(--tl-color-selection-fill);
-}
-
-.tl-container[data-coarse='true'] .tl-handle__create {
-	opacity: 1;
-}
-
-.tl-rotate-corner:not(:hover),
-.tl-resize-handle:not(:hover) {
-	cursor: none;
-}
-
 /* ----------------- Shape indicator ---------------- */
 
 .tl-shape-indicator {
@@ -1149,7 +959,7 @@ input,
 	contain: size layout;
 }
 
-.tl-canvas-indicators {
+.tl-canvas-overlays {
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
@@ -1225,36 +1035,6 @@ input,
 
 .tl-shape[data-shape-type='arrow'] .tl-text {
 	height: max-content;
-}
-
-.tl-arrow-hint {
-	stroke: var(--tl-color-text-1);
-	fill: none;
-	stroke-linecap: round;
-	overflow: visible;
-}
-
-.tl-arrow-hint-handle {
-	fill: var(--tl-color-selected-contrast);
-	stroke: var(--tl-color-selection-stroke);
-	stroke-width: calc(1.5px * var(--tl-scale));
-	r: calc(4px * var(--tl-scale));
-}
-
-.tl-arrow-hint-snap {
-	stroke: transparent;
-	fill: var(--tl-color-selection-fill);
-	r: calc(12px * var(--tl-scale));
-}
-
-.tl-arrow-hint-snap__none,
-.tl-arrow-hint-snap__center,
-.tl-arrow-hint-snap__axis {
-	display: none;
-}
-
-.tl-arrow-hint-snap__edge {
-	r: calc(8px * var(--tl-scale));
 }
 
 /* ------------------- Bookmark shape ------------------- */

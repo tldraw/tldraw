@@ -4,6 +4,7 @@ import { z } from 'zod'
 import type { EditorApiSpec } from '../shared/generated-data'
 import { WORKER_COMPATIBILITY_DATE } from '../shared/types'
 import type { DynamicWorkerLoader } from '../shared/types'
+import { writeToolAnalytics } from '../shared/utils'
 
 const SEARCH_TIMEOUT_MS = 5_000
 const SEARCH_RUNNER_MODULE = 'search-runner.js'
@@ -121,9 +122,7 @@ Examples:
 			},
 		},
 		async ({ code }: { code: string }): Promise<CallToolResult> => {
-			opts.analytics?.writeDataPoint({
-				blobs: ['tool_called', 'search'],
-			})
+			writeToolAnalytics(opts.analytics, 'search', code)
 			opts.log('[tldraw-mcp] search called')
 
 			try {

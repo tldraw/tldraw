@@ -128,6 +128,7 @@ const discord = new Discord({
 	shouldNotify: env.TLDRAW_ENV === 'production',
 	totalSteps: previewId ? 10 : 9,
 	messagePrefix: '[DOTCOM]',
+	secretValues: Object.values(env),
 })
 
 const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}-${sha}`
@@ -283,15 +284,28 @@ const zeroQueryUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/
 // Staging: Supabase Micro (60 max_connections, 200 pooled clients)
 // Preview: Supabase branch instance (~60 max_connections per branch, isolated)
 // Production: higher limits but sync worker also connects, so ~30% of capacity for Zero
-// TODO(production): tune these once we know prod Postgres limits
-// Fly.io shared-cpu VM sizes per environment.
-// Max shared-cpu is 8x (8 CPUs, 16 GB RAM).
+
+// Fly.io VM sizes per environment.
+// Production uses performance (dedicated) CPUs for both RM and VS; staging uses shared.
+// killTimeout: window between SIGTERM and SIGKILL on stop. Lets VS drain client
+// WebSockets and RM flush litestream / release /data handles before being killed.
+// Fly's API caps it at 5m regardless of CPU kind (the 24h dedicated-CPU figure
+// from their blog is not actually accepted by the Machines API today — deploys
+// fail with "invalid stop_config.timeout, cannot exceed 5 minutes").
 const zeroVmSizes = {
-	staging: { rm: { cpus: 1, memory: '2gb' }, vs: { cpus: 2, memory: '4gb' }, volumeSize: '1gb' },
+	staging: {
+		rm: { cpus: 1, memory: '2gb', cpuKind: 'shared' },
+		vs: { cpus: 2, memory: '4gb' },
+		volumeSize: '1gb',
+		vsMinMachines: 1,
+		killTimeout: '5m',
+	},
 	production: {
-		rm: { cpus: 4, memory: '8gb' },
-		vs: { cpus: 8, memory: '16gb' },
+		rm: { cpus: 2, memory: '4gb', cpuKind: 'performance' },
+		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
+		vsMinMachines: 4,
+		killTimeout: '5m',
 	},
 	preview: { single: { cpus: 2, memory: '2gb' } },
 } as const
@@ -328,6 +342,7 @@ const zeroConns = zeroConnectionLimits[env.TLDRAW_ENV as keyof typeof zeroConnec
 interface VmSize {
 	cpus: number
 	memory: string
+	cpuKind?: 'shared' | 'performance'
 }
 interface SingleNodeVmSizes {
 	single: VmSize
@@ -336,6 +351,8 @@ interface MultiNodeVmSizes {
 	rm: VmSize
 	vs: VmSize
 	volumeSize: string
+	vsMinMachines: number
+	killTimeout: string
 }
 const zeroVm = zeroVmSizes[env.TLDRAW_ENV as keyof typeof zeroVmSizes] as
 	| SingleNodeVmSizes
@@ -737,9 +754,11 @@ function updateFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__RM_UPSTREAM_MAX_CONNS', String(zeroConns.rm.upstream))
 		.replaceAll('__RM_CVR_MAX_CONNS', String(zeroConns.rm.cvr))
 		.replaceAll('__RM_CHANGE_MAX_CONNS', String(zeroConns.rm.change))
+		.replaceAll('__CPU_KIND', zeroVm.rm.cpuKind ?? 'shared')
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
 		.replaceAll('__VOLUME_SIZE', zeroVm.volumeSize)
+		.replaceAll('__KILL_TIMEOUT', zeroVm.killTimeout)
 		.replaceAll('__TLDRAW_ENV', env.TLDRAW_ENV)
 		.replaceAll('__ZERO_VERSION', zeroVersion)
 
@@ -777,7 +796,10 @@ function updateFlyioViewSyncerToml(
 		.replaceAll('__VS_CHANGE_MAX_CONNS', String(zeroConns.vs.change))
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
+		.replaceAll('__CPU_KIND', zeroVm.vs.cpuKind ?? 'shared')
 		.replaceAll('__VOLUME_SIZE', zeroVm.volumeSize)
+		.replaceAll('__VS_MIN_MACHINES', String(zeroVm.vsMinMachines))
+		.replaceAll('__KILL_TIMEOUT', zeroVm.killTimeout)
 		.replaceAll('__TLDRAW_ENV', env.TLDRAW_ENV)
 		.replaceAll('__ZERO_VERSION', zeroVersion)
 
@@ -811,6 +833,7 @@ async function deployZeroViaFlyIoMultiNode() {
 		[
 			'secrets',
 			'set',
+			'--stage',
 			`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 			`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 			`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
@@ -842,6 +865,7 @@ async function deployZeroViaFlyIoMultiNode() {
 		[
 			'secrets',
 			'set',
+			'--stage',
 			`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 			`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 			`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
@@ -859,9 +883,14 @@ async function deployZeroViaFlyIoMultiNode() {
 	await exec('flyctl', ['deploy', '-a', flyioAppName, '-c', 'flyio-view-syncer.toml'], {
 		pwd: zeroCacheFolder,
 	})
-	await exec('flyctl', ['scale', 'count', '2', '-a', flyioAppName, '--yes'], {
-		pwd: zeroCacheFolder,
-	})
+	assert('vsMinMachines' in zeroVm, 'multi-node VM sizes required')
+	await exec(
+		'flyctl',
+		['scale', 'count', String(zeroVm.vsMinMachines), '-a', flyioAppName, '--yes'],
+		{
+			pwd: zeroCacheFolder,
+		}
+	)
 }
 
 async function deployZeroBackend() {

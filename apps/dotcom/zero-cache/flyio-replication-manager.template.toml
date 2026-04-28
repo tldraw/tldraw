@@ -1,5 +1,6 @@
 app = "__APP_NAME"
 primary_region = "fra"
+kill_timeout = "__KILL_TIMEOUT"
 
 [build]
 image = "registry.hub.docker.com/rocicorp/zero:__ZERO_VERSION"
@@ -12,7 +13,7 @@ min_machines_running = 1
 
 [[http_service.checks]]
 grace_period = "30s"
-interval = "15s"
+interval = "5s"
 method = "GET"
 timeout = "5s"
 path = "/keepalive"
@@ -22,7 +23,7 @@ policy = "always"
 
 [[vm]]
 memory = "__VM_MEMORY"
-cpu_kind = "shared"
+cpu_kind = "__CPU_KIND"
 cpus = __VM_CPUS
 
 [mounts]

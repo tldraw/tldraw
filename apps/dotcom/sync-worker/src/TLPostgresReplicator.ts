@@ -41,6 +41,35 @@ import {
 	getUserDurableObject,
 } from './utils/durableObjects'
 
+// TODO: remove this workaround after upgrading wal2json to a version with eulerto/wal2json#266 fixed.
+// Subclass to work around wal2json bug (eulerto/wal2json#266) where
+// concurrent pg_logical_emit_message produces malformed JSON with leading commas.
+class SafeWal2JsonPlugin extends Wal2JsonPlugin {
+	// Wal2JsonPlugin.parse() does a bare JSON.parse(buffer.toString()) which throws
+	// on malformed output before our code can catch it. We try parsing first and only
+	// apply fixups on failure to avoid corrupting valid JSON string values that might
+	// contain comma patterns like "a,,b".
+	// If fixups also fail, we deliberately let the error propagate — a crash loop is
+	// preferable to silently skipping (and acknowledging) unprocessable changes.
+	override parse(buffer: Buffer): any {
+		const raw = buffer.toString()
+		try {
+			return JSON.parse(raw)
+		} catch (e) {
+			const fixed = raw
+				.replace(/"change":\[,+/g, '"change":[') // leading commas: [,{ → [{
+				.replace(/,+]/g, ']') // trailing commas: ,] → ]
+				.replace(/,,+/g, ',') // consecutive commas: ,, → ,
+			const result = JSON.parse(fixed)
+			console.warn(
+				`SafeWal2JsonPlugin: fixed malformed wal2json output (eulerto/wal2json#266). ` +
+					`Original error: ${e}. Payload sample: ${raw.slice(0, 200)}`
+			)
+			return result
+		}
+	}
+}
+
 const ONE_MINUTE = 60 * 1000
 // IMPORTANT prune interval needs to be at least twice as big as the lsn update request timeout
 // otherwise we might prune users who are still connected.
@@ -98,13 +127,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private getNewSlotName() {
 		const slotNameMaxLength = 63 // max postgres identifier length
-		const slotId = uniqueId().toLowerCase()
+		// PG slot names only allow [a-z0-9_], replace hyphens from nanoid
+		const slotId = uniqueId().toLowerCase().replace(/-/g, '_')
 		const slotNamePrefix = `tlpr_${slotId}_`
 		const durableObjectId = this.ctx.id.toString()
 		return slotNamePrefix + durableObjectId.slice(0, slotNameMaxLength - slotNamePrefix.length)
 	}
 
-	private readonly wal2jsonPlugin = new Wal2JsonPlugin({
+	private readonly wal2jsonPlugin = new SafeWal2JsonPlugin({
 		addTables:
 			'public.user,public.file,public.file_state,public.user_mutation_number,public.replicator_boot_id,public.group,public.group_user,public.group_file',
 	})

@@ -5,11 +5,100 @@
 // ESLint-compatible create(context) API so the plugin works in both oxlint
 // and ESLint if ever needed.
 
+import { existsSync, readdirSync, readFileSync } from 'fs'
+import { dirname, join, relative } from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const REPO_ROOT = join(__dirname, '../../..')
+
 const TIPTAP_IMPORT_PREFIX = '@tiptap/'
+const CLAUDE_AGENT_ROOTS = ['apps', 'packages', 'templates']
+const CLAUDE_FILE_NAME = 'CLAUDE.md'
+const AGENTS_FILE_NAME = 'AGENTS.md'
+const CLAUDE_AGENT_REFERENCE = '@AGENTS.md'
+const SKIPPED_DIR_NAMES = new Set([
+	'node_modules',
+	'out',
+	'dist',
+	'dist-cjs',
+	'dist-esm',
+	'.lazy',
+	'.next',
+	'.wrangler',
+	'.vercel',
+	'coverage',
+])
+
+let cachedClaudeAgentViolations = null
+let hasReportedClaudeAgentViolations = false
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+function normalizePath(filePath) {
+	return filePath.split('\\').join('/')
+}
+
+function shouldSkipDirectory(entryName) {
+	return SKIPPED_DIR_NAMES.has(entryName)
+}
+
+function collectClaudeAgentViolations() {
+	const violations = []
+
+	for (const rootDirName of CLAUDE_AGENT_ROOTS) {
+		collectClaudeAgentViolationsInDirectory(join(REPO_ROOT, rootDirName), violations)
+	}
+
+	return violations
+}
+
+function collectClaudeAgentViolationsInDirectory(dir, violations) {
+	if (!existsSync(dir)) return
+
+	for (const entry of readdirSync(dir, { withFileTypes: true })) {
+		const fullPath = join(dir, entry.name)
+
+		if (entry.isDirectory()) {
+			if (shouldSkipDirectory(entry.name)) continue
+			collectClaudeAgentViolationsInDirectory(fullPath, violations)
+			continue
+		}
+
+		if (!entry.isFile() || entry.name.toLowerCase() !== CLAUDE_FILE_NAME.toLowerCase()) {
+			continue
+		}
+
+		const relativeClaudePath = normalizePath(relative(REPO_ROOT, fullPath))
+		const claudeContents = readFileSync(fullPath, 'utf8')
+		const agentsPath = join(dir, AGENTS_FILE_NAME)
+
+		if (!existsSync(agentsPath)) {
+			violations.push({
+				claudePath: relativeClaudePath,
+				messageId: 'missingAgents',
+			})
+		}
+
+		if (!claudeContents.includes(CLAUDE_AGENT_REFERENCE)) {
+			violations.push({
+				claudePath: relativeClaudePath,
+				messageId: 'missingReference',
+			})
+		}
+	}
+}
+
+function getClaudeAgentViolations() {
+	if (cachedClaudeAgentViolations === null) {
+		cachedClaudeAgentViolations = collectClaudeAgentViolations()
+	}
+
+	return cachedClaudeAgentViolations
+}
 
 function extractParamNames(comment) {
 	const params = []
@@ -48,6 +137,78 @@ function findTopLevelParent(node) {
 	return current
 }
 
+function unwrapExpression(node) {
+	let current = node
+	while (
+		current &&
+		(current.type === 'ChainExpression' ||
+			current.type === 'ParenthesizedExpression' ||
+			current.type === 'TSAsExpression' ||
+			current.type === 'TSSatisfiesExpression' ||
+			current.type === 'TSNonNullExpression' ||
+			current.type === 'TSTypeAssertion')
+	) {
+		current = current.expression
+	}
+	return current
+}
+
+function getStaticPropertyName(node) {
+	if (node.type === 'Identifier') return node.name
+	if (node.type === 'Literal' && typeof node.value === 'string') return node.value
+	return null
+}
+
+function isPath2DConstructor(callee) {
+	const unwrapped = unwrapExpression(callee)
+	if (unwrapped?.type === 'Identifier') return unwrapped.name === 'Path2D'
+	if (unwrapped?.type !== 'MemberExpression') return false
+
+	const object = unwrapExpression(unwrapped.object)
+	const propertyName = getStaticPropertyName(unwrapped.property)
+
+	return (
+		propertyName === 'Path2D' &&
+		object?.type === 'Identifier' &&
+		(object.name === 'globalThis' || object.name === 'window')
+	)
+}
+
+function isNewPath2D(node) {
+	const unwrapped = unwrapExpression(node)
+	return unwrapped?.type === 'NewExpression' && isPath2DConstructor(unwrapped.callee)
+}
+
+function isPath2DTypeAnnotation(node) {
+	const annotation = node?.type === 'TSTypeAnnotation' ? node.typeAnnotation : node
+	if (!annotation) return false
+
+	if (annotation.type === 'TSTypeReference') {
+		return annotation.typeName?.type === 'Identifier' && annotation.typeName.name === 'Path2D'
+	}
+
+	if (annotation.type === 'TSUnionType') {
+		return annotation.types.some(isPath2DTypeAnnotation)
+	}
+
+	return false
+}
+
+function getAssignableIdentifier(node) {
+	const unwrapped = unwrapExpression(node)
+
+	switch (unwrapped?.type) {
+		case 'Identifier':
+			return unwrapped
+		case 'AssignmentPattern':
+			return getAssignableIdentifier(unwrapped.left)
+		case 'RestElement':
+			return getAssignableIdentifier(unwrapped.argument)
+		default:
+			return null
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Rules ported from internal/scripts/eslint/eslint-plugin.mts
 // ---------------------------------------------------------------------------
@@ -84,6 +245,35 @@ const rules = {
 				},
 				TemplateElement(node) {
 					check(node, node.value.raw, node.value.raw)
+				},
+			}
+		},
+	},
+
+	'claude-agents-pairing': {
+		meta: {
+			messages: {
+				missingAgents:
+					'`{{claudePath}}` must have a colocated `AGENTS.md` so the instructions work across coding tools.',
+				missingReference:
+					'`{{claudePath}}` must reference the colocated `AGENTS.md` using `@AGENTS.md`.',
+			},
+			type: 'problem',
+			schema: [],
+		},
+		create(context) {
+			return {
+				Program(node) {
+					if (hasReportedClaudeAgentViolations) return
+					hasReportedClaudeAgentViolations = true
+
+					for (const violation of getClaudeAgentViolations()) {
+						context.report({
+							node,
+							messageId: violation.messageId,
+							data: { claudePath: violation.claudePath },
+						})
+					}
 				},
 			}
 		},
@@ -434,6 +624,154 @@ const rules = {
 						}
 						if (node.parent?.type === 'Property' && node.parent.key === node) return
 						context.report({ node, messageId: node.name })
+					}
+				},
+			}
+		},
+	},
+
+	'no-path2d-roundrect': {
+		meta: {
+			messages: {
+				noRoundRect:
+					'Avoid `Path2D#roundRect()`; use `Path2D#rect()`, an SVG path string, or manual path commands instead.',
+			},
+			type: 'problem',
+			schema: [],
+		},
+		create(context) {
+			const scopes = []
+
+			function currentScope() {
+				if (scopes.length === 0) enterScope()
+				return scopes[scopes.length - 1]
+			}
+
+			function enterScope() {
+				scopes.push({
+					declared: new Set(),
+					path2d: new Set(),
+					typedPath2d: new Set(),
+				})
+			}
+
+			function exitScope() {
+				scopes.pop()
+			}
+
+			function declareIdentifier(identifier, isPath2D, isTypedPath2D = false) {
+				const scope = currentScope()
+				scope.declared.add(identifier.name)
+				if (isTypedPath2D) {
+					scope.typedPath2d.add(identifier.name)
+				} else {
+					scope.typedPath2d.delete(identifier.name)
+				}
+				if (isPath2D) {
+					scope.path2d.add(identifier.name)
+				} else {
+					scope.path2d.delete(identifier.name)
+				}
+			}
+
+			function assignIdentifier(identifier, isPath2D) {
+				for (let i = scopes.length - 1; i >= 0; i--) {
+					const scope = scopes[i]
+					if (scope.declared.has(identifier.name)) {
+						if (isPath2D) {
+							scope.path2d.add(identifier.name)
+						} else if (!scope.typedPath2d.has(identifier.name)) {
+							scope.path2d.delete(identifier.name)
+						}
+						return
+					}
+				}
+
+				declareIdentifier(identifier, isPath2D)
+			}
+
+			function isPath2DIdentifier(identifier) {
+				for (let i = scopes.length - 1; i >= 0; i--) {
+					const scope = scopes[i]
+					if (!scope.declared.has(identifier.name)) continue
+					return scope.path2d.has(identifier.name)
+				}
+				return false
+			}
+
+			function declarePattern(pattern, isPath2D) {
+				const identifier = getAssignableIdentifier(pattern)
+				if (identifier) declareIdentifier(identifier, isPath2D, isPath2D)
+			}
+
+			function declareParam(param) {
+				const identifier = getAssignableIdentifier(param)
+				if (!identifier) return
+				const hasPath2DType = isPath2DTypeAnnotation(identifier.typeAnnotation)
+				declareIdentifier(identifier, hasPath2DType, hasPath2DType)
+			}
+
+			function enterFunctionScope(node) {
+				enterScope()
+				for (const param of node.params) {
+					declareParam(param)
+				}
+			}
+
+			function isPath2DTarget(node) {
+				const unwrapped = unwrapExpression(node)
+				if (isNewPath2D(unwrapped)) return true
+				return unwrapped?.type === 'Identifier' && isPath2DIdentifier(unwrapped)
+			}
+
+			function isRoundRectCall(node) {
+				const callee = unwrapExpression(node.callee)
+				if (callee?.type !== 'MemberExpression') return false
+				if (getStaticPropertyName(callee.property) !== 'roundRect') return false
+				return isPath2DTarget(callee.object)
+			}
+
+			return {
+				Program() {
+					enterScope()
+				},
+				'Program:exit'() {
+					exitScope()
+				},
+				BlockStatement() {
+					enterScope()
+				},
+				'BlockStatement:exit'() {
+					exitScope()
+				},
+				FunctionDeclaration: enterFunctionScope,
+				'FunctionDeclaration:exit': exitScope,
+				FunctionExpression: enterFunctionScope,
+				'FunctionExpression:exit': exitScope,
+				ArrowFunctionExpression: enterFunctionScope,
+				'ArrowFunctionExpression:exit': exitScope,
+				CatchClause(node) {
+					if (node.param) {
+						declarePattern(node.param, isPath2DTypeAnnotation(node.param.typeAnnotation))
+					}
+				},
+				VariableDeclarator(node) {
+					const identifier = getAssignableIdentifier(node.id)
+					if (!identifier) return
+
+					const hasPath2DType = isPath2DTypeAnnotation(identifier.typeAnnotation)
+					declareIdentifier(identifier, isNewPath2D(node.init) || hasPath2DType, hasPath2DType)
+				},
+				AssignmentExpression(node) {
+					const identifier = getAssignableIdentifier(node.left)
+					if (!identifier) return
+
+					assignIdentifier(identifier, isNewPath2D(node.right))
+				},
+				CallExpression(node) {
+					if (isRoundRectCall(node)) {
+						const callee = unwrapExpression(node.callee)
+						context.report({ node: callee.property, messageId: 'noRoundRect' })
 					}
 				},
 			}

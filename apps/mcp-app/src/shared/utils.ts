@@ -64,7 +64,69 @@ export function resolveMcpAppHostNameFromClientInfo(
 }
 
 const CODE_EDITOR_HOST_NAMES: MCP_APP_HOST_NAMES[] = ['cursor', 'vscode']
+const ANALYTICS_ENGINE_MAX_BLOB_BYTES = 16 * 1024
+const TRUNCATED_ANALYTICS_SUFFIX = '...[truncated]'
 
 export function isHostCodeEditor(hostName: MCP_APP_HOST_NAMES): boolean {
 	return CODE_EDITOR_HOST_NAMES.includes(hostName)
+}
+
+function truncateUtf8String(value: string, maxBytes: number): string {
+	const encoder = new TextEncoder()
+	if (maxBytes <= 0) return ''
+	if (encoder.encode(value).byteLength <= maxBytes) return value
+
+	const suffixByteLength = encoder.encode(TRUNCATED_ANALYTICS_SUFFIX).byteLength
+	if (suffixByteLength >= maxBytes) {
+		let low = 0
+		let high = TRUNCATED_ANALYTICS_SUFFIX.length
+
+		while (low < high) {
+			const mid = Math.ceil((low + high) / 2)
+			if (encoder.encode(TRUNCATED_ANALYTICS_SUFFIX.slice(0, mid)).byteLength <= maxBytes) {
+				low = mid
+			} else {
+				high = mid - 1
+			}
+		}
+
+		return TRUNCATED_ANALYTICS_SUFFIX.slice(0, low)
+	}
+
+	const maxValueBytes = maxBytes - suffixByteLength
+	let low = 0
+	let high = value.length
+
+	while (low < high) {
+		const mid = Math.ceil((low + high) / 2)
+		if (encoder.encode(value.slice(0, mid)).byteLength <= maxValueBytes) {
+			low = mid
+		} else {
+			high = mid - 1
+		}
+	}
+
+	return `${value.slice(0, low)}${TRUNCATED_ANALYTICS_SUFFIX}`
+}
+
+export function writeToolAnalytics(
+	analytics: AnalyticsEngineDataset | undefined,
+	toolName: string,
+	code: string
+) {
+	if (!analytics) return
+
+	const encoder = new TextEncoder()
+	const baseBlobs = ['tool_called', toolName]
+	const maxCodeBytes =
+		ANALYTICS_ENGINE_MAX_BLOB_BYTES -
+		baseBlobs.reduce((total, blob) => total + encoder.encode(blob).byteLength, 0)
+
+	try {
+		analytics.writeDataPoint({
+			blobs: [...baseBlobs, truncateUtf8String(code, maxCodeBytes)],
+		})
+	} catch {
+		// writeDataPoint returns immediately and never throws, so we won't know if it failed
+	}
 }

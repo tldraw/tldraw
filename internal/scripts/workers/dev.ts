@@ -1,7 +1,11 @@
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
+import { readFileSync } from 'fs'
+import { createServer } from 'net'
+import { resolve } from 'path'
 import kleur from 'kleur'
 import { lock } from 'proper-lockfile'
 import stripAnsi from 'strip-ansi'
+import * as toml from 'toml'
 
 const lockfileName = __dirname
 
@@ -172,16 +176,70 @@ class SizeReporter {
 	}
 }
 
-new MiniflareMonitor('wrangler', [
-	'dev',
-	'--env',
-	'dev',
-	'--test-scheduled',
-	'--log-level',
-	'info',
-	'--var',
-	'IS_LOCAL:true',
-	...process.argv.slice(2),
-]).start()
+function getDevPort(args: string[]): number | null {
+	const portIdx = args.findIndex((a) => a === '--port')
+	if (portIdx >= 0 && args[portIdx + 1]) {
+		const fromArg = Number(args[portIdx + 1])
+		return Number.isFinite(fromArg) ? fromArg : null
+	}
+	try {
+		const parsed = toml.parse(readFileSync(resolve(process.cwd(), 'wrangler.toml'), 'utf8'))
+		const port = parsed?.dev?.port
+		return typeof port === 'number' ? port : null
+	} catch {
+		return null
+	}
+}
 
-new SizeReporter().start()
+function probePortFree(port: number): Promise<void> {
+	return new Promise((res, rej) => {
+		const server = createServer()
+		server.unref()
+		server.once('error', rej)
+		server.once('listening', () => server.close(() => res()))
+		server.listen(port, '0.0.0.0')
+	})
+}
+
+async function ensurePortFreeOrExit(port: number) {
+	try {
+		await probePortFree(port)
+	} catch (err: any) {
+		if (err?.code === 'EADDRINUSE') {
+			console.error(
+				`\n${kleur.red(kleur.bold(`✖ Port ${port} is already in use.`))}\n\n` +
+					`This worker (${kleur.cyan(process.cwd())}) needs port ${port}, but another\n` +
+					`process is already listening on it. Wrangler would silently fall back to a random\n` +
+					`port, but the rest of the dev stack expects ${port} — so /api requests from the\n` +
+					`client would either 404 or hit the wrong worker.\n\n` +
+					`Find what's holding it:\n` +
+					`  ${kleur.bold(`lsof -nP -iTCP:${port} -sTCP:LISTEN`)}\n\n` +
+					`Then stop that process and re-run.\n`
+			)
+		} else {
+			console.error(`Failed to probe port ${port}:`, err)
+		}
+		process.exit(1)
+	}
+}
+
+async function main() {
+	const port = getDevPort(process.argv.slice(2))
+	if (port != null) await ensurePortFreeOrExit(port)
+
+	new MiniflareMonitor('wrangler', [
+		'dev',
+		'--env',
+		'dev',
+		'--test-scheduled',
+		'--log-level',
+		'info',
+		'--var',
+		'IS_LOCAL:true',
+		...process.argv.slice(2),
+	]).start()
+
+	new SizeReporter().start()
+}
+
+main()
