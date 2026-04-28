@@ -5168,7 +5168,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
 		const steppedScreenScale = zoomStepFunction(screenScale)
 		const networkEffectiveType: string | null =
-			'connection' in navigator ? (navigator as any).connection.effectiveType : null
+			'connection' in navigator ? ((navigator as any).connection?.effectiveType ?? null) : null
 
 		return await this.store.props.assets.resolve(asset, {
 			screenScale: screenScale || 1,
