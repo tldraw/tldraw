@@ -5,6 +5,7 @@ import {
 	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
+	TLShapeId,
 	TLShapePartial,
 	createShapeId,
 	debounce,
@@ -114,12 +115,17 @@ const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TL
 }, 500)
 
 /**
- * Creates a bookmark shape from a URL with unfurled metadata.
+ * Creates a bookmark shape from a URL.
+ *
+ * The shape is created immediately as a placeholder so the user gets visible
+ * feedback at the paste location, and the bookmark metadata (title, description,
+ * image, favicon) is fetched in the background. Once metadata resolves, the
+ * shape is patched with the resulting asset. If the fetch fails, the shape is
+ * left as a URL-only bookmark.
  *
  * @returns A Result containing the created bookmark shape or an error
  * @public
  */
-
 export async function createBookmarkFromUrl(
 	editor: Editor,
 	{
@@ -131,10 +137,12 @@ export async function createBookmarkFromUrl(
 	}
 ): Promise<Result<TLBookmarkShape, string>> {
 	try {
-		// Create the bookmark asset with unfurled metadata
-		const asset = await editor.getAssetForExternalContent({ type: 'url', url })
+		// If we already have a bookmark asset for this URL (e.g. another bookmark
+		// shape was created from the same URL earlier), use it immediately rather
+		// than re-fetching.
+		const expectedAssetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
+		const existingAsset = editor.getAsset(expectedAssetId) as TLBookmarkAsset | null
 
-		// Create the bookmark shape
 		const shapeId = createShapeId()
 		const shapePartial: TLShapePartial<TLBookmarkShape> = {
 			id: shapeId,
@@ -145,26 +153,68 @@ export async function createBookmarkFromUrl(
 			opacity: 1,
 			props: {
 				url,
-				assetId: asset?.id || null,
+				assetId: existingAsset?.id ?? null,
 				w: BOOKMARK_WIDTH,
-				h: getBookmarkHeight(editor, asset?.id),
+				h: getBookmarkHeight(editor, existingAsset?.id),
 			},
 		}
 
 		editor.run(() => {
-			// Create the asset if we have one
-			if (asset) {
-				editor.createAssets([asset])
-			}
-
-			// Create the shape
 			editor.createShapes([shapePartial])
 		})
 
-		// Get the created shape
-		const createdShape = editor.getShape(shapeId) as TLBookmarkShape
+		const createdShape = editor.getShape<TLBookmarkShape>(shapeId)
+		if (!createdShape) {
+			return Result.err('Failed to create bookmark shape')
+		}
+
+		// If we already had the asset, we're done — no metadata fetch needed.
+		if (existingAsset) {
+			return Result.ok(createdShape)
+		}
+
+		// Otherwise kick off the metadata fetch in the background. The shape is
+		// already visible as a placeholder; once the asset resolves we'll patch
+		// the shape with its assetId.
+		void hydrateBookmarkShape(editor, shapeId, url)
+
 		return Result.ok(createdShape)
 	} catch (error) {
 		return Result.err(error instanceof Error ? error.message : 'Failed to create bookmark')
 	}
+}
+
+async function hydrateBookmarkShape(editor: Editor, shapeId: TLShapeId, url: string) {
+	let asset
+	try {
+		asset = await editor.getAssetForExternalContent({ type: 'url', url })
+	} catch (error) {
+		console.error(error)
+		return
+	}
+
+	if (editor.isDisposed) return
+	if (!asset) return
+
+	// The shape may have been deleted (e.g. via undo) or had its asset replaced
+	// before the fetch resolved.
+	const shape = editor.getShape<TLBookmarkShape>(shapeId)
+	if (!shape) return
+	if (shape.props.assetId) return
+
+	editor.run(
+		() => {
+			if (!editor.getAsset(asset.id)) {
+				editor.createAssets([asset])
+			}
+			editor.updateShapes([
+				{
+					id: shapeId,
+					type: 'bookmark',
+					props: { assetId: asset.id },
+				},
+			])
+		},
+		{ history: 'ignore' }
+	)
 }
