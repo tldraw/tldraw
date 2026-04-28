@@ -187,19 +187,22 @@ export class DraggingHandle extends StateNode {
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
-		if (
-			info.key.toLowerCase() === 't' &&
-			this.editor.isShapeOfType(this.info.shape, 'arrow') &&
-			(this.info.handle.id === 'start' || this.info.handle.id === 'end')
-		) {
-			dropBoundTextShapeAtArrowTerminal(this.editor, this.info.shape, this.info.handle.id)
-			return
-		}
-
 		this.update()
 	}
 
-	override onKeyUp() {
+	override onKeyUp(info: TLKeyboardEventInfo) {
+		if (
+			info.key.toLowerCase() === 't' &&
+			this.editor.isShapeOfType(this.info.shape, 'arrow') &&
+			this.info.handle.id === 'end'
+		) {
+			const arrow = this.editor.getShape<TLArrowShape>(this.shapeId)
+			if (!arrow) return
+
+			dropBoundTextShapeAtArrowTerminal(this.editor, arrow, this.info.handle.id)
+			return
+		}
+
 		this.update()
 	}
 

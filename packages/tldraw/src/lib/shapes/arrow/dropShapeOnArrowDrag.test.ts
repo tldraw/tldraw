@@ -24,11 +24,18 @@ describe('dropBoundTextShapeAtArrowTerminal', () => {
 		editor.pointerMove(500, 500)
 		editor.expectToBeIn('select.dragging_handle')
 
-		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow') as TLArrowShape
-		expect(arrow).toBeTruthy()
+		const arrowId = editor.getCurrentPageShapes().find((s) => s.type === 'arrow')!
+			.id as TLArrowShape['id']
+		editor.pointerMove(600, 400)
+
+		const arrow = editor.getShape<TLArrowShape>(arrowId)!
 		const terminalBeforeDrop = getArrowTerminalsInPageSpace(editor, arrow).end
 
 		editor.keyDown('t')
+		editor.expectToBeIn('select.dragging_handle')
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'text')).toHaveLength(0)
+
+		editor.keyUp('t')
 
 		editor.expectToBeIn('select.editing_shape')
 

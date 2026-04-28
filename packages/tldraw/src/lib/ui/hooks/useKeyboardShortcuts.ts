@@ -75,6 +75,8 @@ export function useKeyboardShortcuts() {
 
 			hot(getHotkeysStringFromKbd(tool.kbd), (event) => {
 				if (areShortcutsDisabled(editor)) return
+				// only switch tools in idle states, active states handle keys themselves
+				if (!editor.getPath().endsWith('.idle')) return
 				preventDefault(event)
 				tool.onSelect('kbd')
 			})
