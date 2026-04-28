@@ -96,7 +96,11 @@ export default async function Page(props: { params: Promise<{ slug: string | str
 						)}
 					>
 						{content.article.description && (
-							<Content mdx={content.article.description} type={content.article.sectionId} />
+							<Content
+								mdx={content.article.description}
+								type={content.article.sectionId}
+								className="mb-6"
+							/>
 						)}
 						<StarterKitEmbed id={content.article.embed ?? content.article.id} />
 					</div>
