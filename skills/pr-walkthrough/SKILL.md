@@ -42,6 +42,17 @@ git log main..HEAD --oneline
 git diff main..HEAD --stat
 ```
 
+**Skip generated files.** When reading the diff, ignore files that are auto-generated rather than hand-edited. These add noise without informing the walkthrough. Common examples in this repo:
+
+- `**/api-report.md`, `**/api-report.api.md` — generated API surface reports
+- `**/*.api.json`, `**/temp/*.api.json` — API extractor output
+- `apps/docs/content/reference/**` — generated reference docs
+- `yarn.lock`, `package-lock.json` — lockfiles
+- `**/CHANGELOG.md` — auto-generated changelogs
+- Any file the repo's tooling regenerates (snapshots, schema dumps, bundled assets)
+
+If unsure whether a file is generated, check for a header comment like "DO NOT EDIT" or check whether the repo has a generator command that produces it. Filter these out when picking which files to feature in `diff`/`code` slides.
+
 ### Step 2: Write the narration
 
 Write the narration as continuous text, broken into logical segments. Each segment is a beat of the walkthrough — a concept, a change, or a group of related changes. Save this as `tmp/pr-<number>/SCRIPT.md`.

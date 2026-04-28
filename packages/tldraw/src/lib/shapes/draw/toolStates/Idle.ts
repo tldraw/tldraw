@@ -5,9 +5,6 @@ export class Idle extends StateNode {
 
 	override onPointerDown(info: TLPointerEventInfo) {
 		if (info.accelKey && !info.shiftKey) {
-			// If the user is holding the accel key (but not shift, which is used for multi-point drawing),
-			// temporarily switch to pointing to erase shapes instead of drawing. Enter the eraser's pointing
-			// state with the current tool as the onInteractionEnd so we can return to it when accel is released.
 			this.editor.setCurrentTool('eraser.pointing', { ...info, onInteractionEnd: this.parent.id })
 			return
 		}

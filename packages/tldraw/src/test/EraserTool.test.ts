@@ -480,22 +480,19 @@ describe('When shift clicking', () => {
 })
 
 describe('When holding meta/ctrl key (accel key)', () => {
-	it('Only erases the first shape hit when clicking with accel key held', () => {
+	it('Only erases the top shape hit when clicking with accel key held', () => {
 		editor.setCurrentTool('eraser')
 		editor.expectToBeIn('eraser.idle')
 
 		const shapesBeforeCount = editor.getCurrentPageShapes().length
 
-		// Simulate holding meta key (accel key)
 		editor.keyDown('Meta')
 		editor.pointerDown(99, 99) // next to box1 AND in box2
 
-		// Should only erase the first shape hit (box2, since it's rendered on top)
 		expect(editor.getErasingShapeIds()).toEqual([ids.box2])
 
 		editor.pointerUp()
 
-		// Should only delete the first shape
 		expect(editor.getShape(ids.box1)).toBeDefined()
 		expect(editor.getShape(ids.box2)).toBeUndefined()
 
@@ -505,137 +502,55 @@ describe('When holding meta/ctrl key (accel key)', () => {
 		editor.keyUp('Meta')
 	})
 
-	it('Only erases the first shape hit when dragging with accel key held', () => {
+	it('Erases all hit shapes once an accel pointer becomes a drag', () => {
 		editor.setCurrentTool('eraser')
 		editor.expectToBeIn('eraser.idle')
 
-		const shapesBeforeCount = editor.getCurrentPageShapes().length
+		editor.keyDown('Meta')
+		editor.pointerDown(99, 99) // next to box1 AND in box2
 
-		// Start dragging without accel key to establish first erasing shape
-		editor.pointerDown(-100, -100) // outside of any shapes
-		editor.pointerMove(99, 99) // next to box1 AND in box2
+		expect(editor.getErasingShapeIds()).toEqual([ids.box2])
+
+		editor.pointerMove(350, 350) // in box3
+		editor.expectToBeIn('eraser.erasing')
+		expect(new Set(editor.getErasingShapeIds())).toEqual(new Set([ids.box1, ids.box2, ids.box3]))
 
 		vi.advanceTimersByTime(16)
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
-
-		// Should include all shapes hit initially
-		expect(new Set(editor.getErasingShapeIds())).toEqual(new Set([ids.box1, ids.box2]))
-
-		// Now press accel key during erasing
-		editor.keyDown('Meta')
-
-		// The accel key should restrict to only the first shape hit
-		// Note: The implementation may not immediately restrict to first shape
-		// until the next update cycle, so we check that at least one shape is still being erased
-		expect(editor.getErasingShapeIds().length).toBeGreaterThan(0)
+		expect(new Set(editor.getErasingShapeIds())).toEqual(new Set([ids.box1, ids.box2, ids.box3]))
 
 		editor.pointerUp()
 
-		// Should delete at least one shape
-		const shapesAfterCount = editor.getCurrentPageShapes().length
-		expect(shapesAfterCount).toBeLessThan(shapesBeforeCount)
+		expect(editor.getShape(ids.box1)).toBeUndefined()
+		expect(editor.getShape(ids.box2)).toBeUndefined()
+		expect(editor.getShape(ids.box3)).toBeUndefined()
 
 		editor.keyUp('Meta')
 	})
 
-	it('Returns to normal erasing behavior when accel key is released during erasing', () => {
+	it('Still erases normally when accel key is released during erasing', () => {
 		editor.setCurrentTool('eraser')
 		editor.expectToBeIn('eraser.idle')
 
-		const shapesBeforeCount = editor.getCurrentPageShapes().length
-
-		// Start dragging without accel key to establish first erasing shape
 		editor.pointerDown(-100, -100) // outside of any shapes
 		editor.pointerMove(99, 99) // next to box1 AND in box2
 
 		vi.advanceTimersByTime(16)
 		expect(editor.getInstanceState().scribbles.length).toBe(1)
 
-		// Should include all shapes hit initially
 		expect(new Set(editor.getErasingShapeIds())).toEqual(new Set([ids.box1, ids.box2]))
 
-		// Press accel key to restrict to first shape
 		editor.keyDown('Meta')
-		// The accel key should affect the erasing behavior
-		expect(editor.getErasingShapeIds().length).toBeGreaterThan(0)
-
-		// Release the accel key
 		editor.keyUp('Meta')
-
-		// Should still include shapes hit
-		expect(editor.getErasingShapeIds().length).toBeGreaterThan(0)
-
-		editor.pointerUp()
-
-		// Should delete shapes
-		const shapesAfterCount = editor.getCurrentPageShapes().length
-		expect(shapesAfterCount).toBeLessThan(shapesBeforeCount)
-	})
-
-	it('Preserves only first erasing shape when accel key is pressed during erasing (only if there is a first erasing shape)', () => {
-		editor.setCurrentTool('eraser')
-		editor.expectToBeIn('eraser.idle')
-
-		const shapesBeforeCount = editor.getCurrentPageShapes().length
-
-		// Start erasing normally
-		editor.pointerDown(-100, -100) // outside of any shapes
-		editor.pointerMove(99, 99) // next to box1 AND in box2
-
-		vi.advanceTimersByTime(16)
-		expect(editor.getInstanceState().scribbles.length).toBe(1)
-
-		// Should include all shapes hit initially
-		expect(new Set(editor.getErasingShapeIds())).toEqual(new Set([ids.box1, ids.box2]))
-
-		// Press accel key during erasing
-		editor.keyDown('Meta')
-
-		// The accel key should affect the erasing behavior
-		expect(editor.getErasingShapeIds().length).toBeGreaterThan(0)
-
-		editor.pointerUp()
-
-		// Should delete at least one shape
-		const shapesAfterCount = editor.getCurrentPageShapes().length
-		expect(shapesAfterCount).toBeLessThan(shapesBeforeCount)
-
-		editor.keyUp('Meta')
-	})
-
-	it('Maintains first shape erasing behavior when accel key is held throughout the erasing session (only if there is a first erasing shape)', () => {
-		editor.setCurrentTool('eraser')
-		editor.expectToBeIn('eraser.idle')
-
-		const shapesBeforeCount = editor.getCurrentPageShapes().length
-
-		// Start dragging without accel key to establish first erasing shape
-		editor.pointerDown(-100, -100) // outside of any shapes
-		editor.pointerMove(99, 99) // next to box1 AND in box2
-
-		vi.advanceTimersByTime(16)
-		expect(editor.getInstanceState().scribbles.length).toBe(1)
-
-		// Should include all shapes hit initially
-		expect(new Set(editor.getErasingShapeIds())).toEqual(new Set([ids.box1, ids.box2]))
-
-		// Press accel key to restrict to first shape
-		editor.keyDown('Meta')
-		expect(editor.getErasingShapeIds().length).toBeGreaterThan(0)
-
-		// Move to hit more shapes
 		editor.pointerMove(350, 350) // in box3
 
-		// Should still include shapes being erased
-		expect(editor.getErasingShapeIds().length).toBeGreaterThan(0)
+		expect(new Set(editor.getErasingShapeIds())).toEqual(new Set([ids.box1, ids.box2, ids.box3]))
 
 		editor.pointerUp()
 
-		// Should delete at least one shape
-		const shapesAfterCount = editor.getCurrentPageShapes().length
-		expect(shapesAfterCount).toBeLessThan(shapesBeforeCount)
-
-		editor.keyUp('Meta')
+		expect(editor.getShape(ids.box1)).toBeUndefined()
+		expect(editor.getShape(ids.box2)).toBeUndefined()
+		expect(editor.getShape(ids.box3)).toBeUndefined()
 	})
 })
 
@@ -660,10 +575,9 @@ describe('Hold accel to temporarily erase from the draw / highlight tool', () =>
 				editor.setCurrentTool(tool)
 				editor.keyDown('Meta')
 
-				editor.pointerDown(99, 99) // hits box2
+				editor.pointerDown(99, 99) // next to box1 AND in box2
 
 				editor.expectToBeIn('eraser.pointing')
-				// The eraser is active but the toolbar still reports the originating tool.
 				expect(editor.getCurrentTool().id).toBe('eraser')
 				expect(editor.getCurrentToolId()).toBe(tool)
 				expect(editor.getErasingShapeIds()).toEqual([ids.box2])
@@ -678,8 +592,9 @@ describe('Hold accel to temporarily erase from the draw / highlight tool', () =>
 				editor.pointerUp()
 
 				expect(editor.getCurrentPageShapes().length).toBe(shapesBefore - 1)
+				expect(editor.getShape(ids.box1)).toBeDefined()
+				expect(editor.getShape(ids.box2)).toBeUndefined()
 
-				// Accel still held: stay in transient eraser.idle so the next click also erases.
 				editor.expectToBeIn('eraser.idle')
 				expect(editor.getCurrentTool().id).toBe('eraser')
 				expect(editor.getCurrentToolId()).toBe(tool)
@@ -698,27 +613,40 @@ describe('Hold accel to temporarily erase from the draw / highlight tool', () =>
 				expect(editor.getCurrentToolId()).toBe(tool)
 			})
 
+			it(`release event on transient click returns to ${tool}`, () => {
+				editor.setCurrentTool(tool)
+				editor.keyDown('Meta')
+
+				editor.pointerDown(99, 99)
+				editor.expectToBeIn('eraser.pointing')
+				expect(editor.inputs.getAccelKey()).toBe(true)
+
+				editor.pointerUp(99, 99, { accelKey: false, metaKey: false, ctrlKey: false })
+				editor.expectToBeIn(`${tool}.idle`)
+				expect(editor.getCurrentToolId()).toBe(tool)
+			})
+
 			it(`releasing accel mid-erase does not yank back; pointer up returns to ${tool}`, () => {
 				editor.setCurrentTool(tool)
 				editor.keyDown('Meta')
 
 				editor.pointerDown(99, 99)
 				editor.expectToBeIn('eraser.pointing')
+				editor.pointerMove(350, 350)
+				editor.expectToBeIn('eraser.erasing')
+				expect(new Set(editor.getErasingShapeIds())).toEqual(
+					new Set([ids.box1, ids.box2, ids.box3])
+				)
 
-				// Simulate accel release mid-interaction. Set both metaKey and
-				// ctrlKey directly to bypass the editor's 150ms debounce on accel
-				// release — in real browsers each subsequent event carries the
-				// up-to-date modifier state, so this models reality even though
-				// `keyUp('Meta')` in tests defers the state update. (The driver
-				// treats Meta as also setting ctrlKey on key down, so both must be
-				// cleared for `inputs.getAccelKey()` to flip on non-Darwin envs.)
-				editor.inputs.setMetaKey(false)
-				editor.inputs.setCtrlKey(false)
 				expect(editor.getCurrentTool().id).toBe('eraser')
+				expect(editor.inputs.getAccelKey()).toBe(true)
 
-				editor.pointerUp()
+				editor.pointerUp(350, 350, { accelKey: false, metaKey: false, ctrlKey: false })
 				editor.expectToBeIn(`${tool}.idle`)
 				expect(editor.getCurrentToolId()).toBe(tool)
+				expect(editor.getShape(ids.box1)).toBeUndefined()
+				expect(editor.getShape(ids.box2)).toBeUndefined()
+				expect(editor.getShape(ids.box3)).toBeUndefined()
 			})
 
 			it(`accel pressed mid-stroke does not switch tools`, () => {

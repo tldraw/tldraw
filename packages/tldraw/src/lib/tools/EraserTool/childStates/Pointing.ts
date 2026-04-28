@@ -1,13 +1,10 @@
-import { isAccelKey, StateNode, TLPointerEventInfo, TLShapeId } from '@tldraw/editor'
+import { StateNode, TLPointerEventInfo, TLShapeId } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	_isHoldingAccelKey = false
-
 	override onEnter(info: TLPointerEventInfo) {
-		this._isHoldingAccelKey = isAccelKey(info)
-
+		const onlyEraseTopShape = info.accelKey
 		const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapesSorted = this.editor.getCurrentPageRenderingShapesSorted()
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
@@ -36,26 +33,14 @@ export class Pointing extends StateNode {
 
 				erasing.add(hitShape.id)
 
-				// If the user is holding the meta / ctrl key, stop after the first shape
-				if (this._isHoldingAccelKey) {
-					break
-				}
+				if (onlyEraseTopShape) break
 			}
 		}
 
 		this.editor.setErasingShapes([...erasing])
 	}
 
-	override onKeyUp() {
-		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
-	}
-
-	override onKeyDown() {
-		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
-	}
-
 	override onLongPress(info: TLPointerEventInfo) {
-		// don't transition to erasing if the user is holding the accel key, they want to keep pointing
 		if (info.accelKey) return
 		this.startErasing(info)
 	}
@@ -72,8 +57,8 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	override onPointerUp() {
-		this.complete()
+	override onPointerUp(info: TLPointerEventInfo) {
+		this.complete(info)
 	}
 
 	override onCancel() {
@@ -92,7 +77,7 @@ export class Pointing extends StateNode {
 		this.parent.transition('erasing', info)
 	}
 
-	complete() {
+	complete(info?: TLPointerEventInfo) {
 		const erasingShapeIds = this.editor.getErasingShapeIds()
 
 		if (erasingShapeIds.length) {
@@ -100,7 +85,7 @@ export class Pointing extends StateNode {
 			this.editor.deleteShapes(erasingShapeIds)
 		}
 
-		this.parent.transition('idle')
+		this.parent.transition('idle', info)
 	}
 
 	cancel() {

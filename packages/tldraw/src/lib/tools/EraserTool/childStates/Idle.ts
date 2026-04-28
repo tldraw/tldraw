@@ -4,8 +4,8 @@ import type { EraserTool } from '../EraserTool'
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	override onEnter() {
-		if (!this.editor.inputs.getAccelKey()) {
+	override onEnter(info?: TLPointerEventInfo) {
+		if (!(info?.accelKey ?? this.editor.inputs.getAccelKey())) {
 			;(this.parent as EraserTool).maybeReturnToOriginatingTool()
 		}
 	}

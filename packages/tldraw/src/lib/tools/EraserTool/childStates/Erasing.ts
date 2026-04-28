@@ -34,16 +34,13 @@ export class Erasing extends StateNode {
 				.map((shape) => shape.id)
 		)
 
-		// Set the erasing shapes to be any shapes that are hit at the origin point, except for any excluded shapes
 		this._erasingShapeIds = this.editor
 			.getShapesAtPoint(originPagePoint)
 			.filter((s) => !this.excludedShapeIds.has(s.id))
 			.map((s) => s.id)
 
-		// ...and union that with any shapes that are already being erased
 		this.editor.setErasingShapes([
-			...new Set(this.editor.getErasingShapeIds()),
-			...this._erasingShapeIds,
+			...new Set([...this.editor.getErasingShapeIds(), ...this._erasingShapeIds]),
 		])
 
 		const scribble = this.editor.scribbles.addScribble({
@@ -69,8 +66,8 @@ export class Erasing extends StateNode {
 		this.update()
 	}
 
-	override onPointerUp() {
-		this.complete()
+	override onPointerUp(info: TLPointerEventInfo) {
+		this.complete(info)
 	}
 
 	override onCancel() {
@@ -157,10 +154,10 @@ export class Erasing extends StateNode {
 		this.editor.setErasingShapes(this._erasingShapeIds.filter((id) => !excludedShapeIds.has(id)))
 	}
 
-	complete() {
+	complete(info?: TLPointerEventInfo) {
 		const { editor } = this
 		editor.deleteShapes(editor.getCurrentPageState().erasingShapeIds)
-		this.parent.transition('idle')
+		this.parent.transition('idle', info)
 		this._erasingShapeIds = []
 	}
 
