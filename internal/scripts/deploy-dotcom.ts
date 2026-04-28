@@ -293,12 +293,14 @@ const zeroVmSizes = {
 		vs: { cpus: 2, memory: '4gb' },
 		volumeSize: '1gb',
 		vsMinMachines: 1,
+		killTimeout: '5m',
 	},
 	production: {
 		rm: { cpus: 2, memory: '4gb', cpuKind: 'performance' },
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
-		vsMinMachines: 3,
+		vsMinMachines: 4,
+		killTimeout: '10m',
 	},
 	preview: { single: { cpus: 2, memory: '2gb' } },
 } as const
@@ -345,6 +347,7 @@ interface MultiNodeVmSizes {
 	vs: VmSize
 	volumeSize: string
 	vsMinMachines: number
+	killTimeout: string
 }
 const zeroVm = zeroVmSizes[env.TLDRAW_ENV as keyof typeof zeroVmSizes] as
 	| SingleNodeVmSizes
@@ -750,6 +753,7 @@ function updateFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
 		.replaceAll('__VOLUME_SIZE', zeroVm.volumeSize)
+		.replaceAll('__KILL_TIMEOUT', zeroVm.killTimeout)
 		.replaceAll('__TLDRAW_ENV', env.TLDRAW_ENV)
 		.replaceAll('__ZERO_VERSION', zeroVersion)
 
@@ -790,6 +794,7 @@ function updateFlyioViewSyncerToml(
 		.replaceAll('__CPU_KIND', zeroVm.vs.cpuKind ?? 'shared')
 		.replaceAll('__VOLUME_SIZE', zeroVm.volumeSize)
 		.replaceAll('__VS_MIN_MACHINES', String(zeroVm.vsMinMachines))
+		.replaceAll('__KILL_TIMEOUT', zeroVm.killTimeout)
 		.replaceAll('__TLDRAW_ENV', env.TLDRAW_ENV)
 		.replaceAll('__ZERO_VERSION', zeroVersion)
 
