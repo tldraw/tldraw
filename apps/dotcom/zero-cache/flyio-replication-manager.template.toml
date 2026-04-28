@@ -1,5 +1,6 @@
 app = "__APP_NAME"
 primary_region = "fra"
+kill_timeout = "__KILL_TIMEOUT"
 
 [build]
 image = "registry.hub.docker.com/rocicorp/zero:__ZERO_VERSION"
