@@ -313,7 +313,6 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - 💥 Add `snap`, `selectionStroke`, `selectionFill`, `brushFill`, `brushStroke`, `selectedContrast`, and `laser` to the required `TLThemeDefaultColors` / `TLThemeUiColorKeys` UI color keys.
 - Add `OverlayUtil` base class, `OverlayManager`, `TLOverlay`, `TLOverlayEntry`, `TLOverlayUtilConstructor`, and `TLAnyOverlayUtilConstructor` to `@tldraw/editor`. Add `overlayUtils` prop to `<Tldraw>` and `<TldrawEditor>`. Add `Editor.overlays` (`OverlayManager`) with `getOverlayUtil()`, `getOverlayUtilsInZOrder()`, `getActiveOverlayEntries()`, `getCurrentOverlays()`, `getOverlayGeometry()`, `getOverlayAtPoint()`, `getHoveredOverlayId()`, `getHoveredOverlay()`, and `setHoveredOverlay()`.
 - Add `ShapeIndicatorOverlayUtil`, `BrushOverlayUtil`, `ZoomBrushOverlayUtil`, `ScribbleOverlayUtil`, `CollaboratorBrushOverlayUtil`, `CollaboratorCursorOverlayUtil`, `CollaboratorScribbleOverlayUtil`, `CollaboratorHintOverlayUtil`, `ShapeHandleOverlayUtil`, `SelectionForegroundOverlayUtil`, `SnapIndicatorOverlayUtil`, `ArrowHintOverlayUtil`, `ArrowBindingHintOverlayUtil`, their overlay types, and `defaultOverlayUtils` to `tldraw`.
-- Add `Vec.IsFinite()` static method for checking whether a vector has finite coordinates. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 
 ## Improvements
 
@@ -347,6 +346,4 @@ New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldr
 - Fix crash from duplicate fractional index keys in `kickoutOccludedShapes` during multiplayer sync. ([#8448](https://github.com/tldraw/tldraw/pull/8448))
 - Fix spiky artifacts on draw-style geometric shapes by using a circular random offset distribution instead of a square one. ([#8466](https://github.com/tldraw/tldraw/pull/8466))
 - Fix opacity slider drag not working on Safari due to `stopPropagation` blocking pointer events. ([#8519](https://github.com/tldraw/tldraw/pull/8519))
-- Fix crash when isolating curved arrows whose geometry became degenerate (e.g., during shape deletion). ([#8176](https://github.com/tldraw/tldraw/pull/8176))
-- Fix shapes disappearing when a labeled arrow had zero length, caused by `NaN` propagating through bounds and the spatial index. ([#8329](https://github.com/tldraw/tldraw/pull/8329))
 - Fix memory leak that retained `Editor` instances after disposal due to a shared throttled hover handler. ([#8439](https://github.com/tldraw/tldraw/pull/8439))
