@@ -149,8 +149,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const opts = options as Partial<GeoShapeOptions>
 		if (opts.customGeoTypes) {
 			const existingValues = new Set<string>(GeoShapeGeoStyle.values)
-			const newValues: string[] = []
-			for (const key of Object.keys(opts.customGeoTypes)) {
+			const validEntries: Array<[string, GeoTypeDefinition]> = []
+			for (const [key, def] of Object.entries(opts.customGeoTypes)) {
 				if (existingValues.has(key)) {
 					if (process.env.NODE_ENV !== 'production') {
 						console.warn(
@@ -159,11 +159,17 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					}
 					continue
 				}
-				newValues.push(key)
+				validEntries.push([key, def])
 			}
-			if (newValues.length > 0) {
-				GeoShapeGeoStyle.addValues(...(newValues as Parameters<typeof GeoShapeGeoStyle.addValues>))
+			if (validEntries.length > 0) {
+				GeoShapeGeoStyle.addValues(
+					...(validEntries.map(([k]) => k) as Parameters<typeof GeoShapeGeoStyle.addValues>)
+				)
 			}
+			// Strip colliding entries from the options so runtime lookups (tool
+			// defaultSize, style panel icons, double-click handlers) don't see them.
+			const filtered = { ...opts, customGeoTypes: Object.fromEntries(validEntries) }
+			return super.configure(filtered as unknown as typeof options) as T
 		}
 		return super.configure(options) as T
 	}
