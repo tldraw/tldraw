@@ -33,7 +33,7 @@
 	width: 100%;
 	height: 32px;
 	background-color: var(--tla-color-cta);
-	color: white;
+	color: var(--tla-color-contrast);
 	border: none;
 	border-radius: var(--tl-radius-1);
 	font-weight: 500;

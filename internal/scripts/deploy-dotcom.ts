@@ -304,7 +304,7 @@ const zeroVmSizes = {
 		rm: { cpus: 2, memory: '4gb', cpuKind: 'performance' },
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
-		vsMinMachines: 5,
+		vsMinMachines: 7,
 		killTimeout: '5m',
 	},
 	preview: { single: { cpus: 2, memory: '2gb' } },

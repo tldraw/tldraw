@@ -12,26 +12,37 @@ export interface TLCollaboratorCursorOverlay extends TLOverlay {
 }
 
 // Lazy-initialized Path2D objects for the cursor arrow shape (deferred to avoid jsdom issues in tests).
-let _shadowPath: Path2D | null = null
-let _whitePath: Path2D | null = null
-let _fillPath: Path2D | null = null
+// Head and tail are separate Path2D objects per layer so each is filled in its own draw call,
+// mirroring the original SVG's two-<path> layout per group.
+let _shadowHead: Path2D | null = null
+let _shadowTail: Path2D | null = null
+
+let _whiteHead: Path2D | null = null
+let _whiteTail: Path2D | null = null
+
+let _fillHead: Path2D | null = null
+let _fillTail: Path2D | null = null
 
 function getCursorPaths() {
-	if (!_shadowPath) {
+	if (!_shadowHead) {
 		// Shadow layer (original SVG translate(-11,-11) pre-applied):
-		_shadowPath = new Path2D(
-			'M 1 13.4219 V -2.593 L 12.591 9.026 H 5.81 L 5.399 9.15 Z M 10.0845 14.0962 L 6.4795 15.6312 L 1.7975 4.5422 L 5.4835 2.9892 Z'
-		)
+		_shadowHead = new Path2D('M 1 13.4219 V -2.593 L 12.591 9.026 H 5.81 L 5.399 9.15 Z')
+		_shadowTail = new Path2D('M 10.0595 13.9498 L 6.3715 15.4978 L 2.4965 6.2803 L 6.1845 4.7323 Z')
 		// White outline layer (original SVG translate(-12,-12) pre-applied):
-		_whitePath = new Path2D(
-			'M 0 12.4219 V -3.593 L 11.591 8.026 H 4.81 L 4.399 8.15 Z M 9.0845 13.0962 L 5.4795 14.6312 L 0.7975 3.5422 L 4.4835 1.9892 Z'
-		)
+		_whiteHead = new Path2D('M 0 12.4219 V -3.593 L 11.591 8.026 H 4.81 L 4.399 8.15 Z')
+		_whiteTail = new Path2D('M 9.0595 12.9498 L 5.3715 14.4978 L 1.4965 5.2803 L 5.1845 3.7323 Z')
 		// Colored fill layer (original SVG translate(-12,-12) pre-applied):
-		_fillPath = new Path2D(
-			'M 7.751 12.4155 L 5.907 13.1895 L 2.807 5.8155 L 4.648 5.0405 Z M 1 -1.186 V 10.002 L 3.969 7.136 L 4.397 6.997 H 9.165 Z'
-		)
+		_fillHead = new Path2D('M 1 -1.186 V 10.002 L 3.969 7.136 L 4.397 6.997 H 9.165 Z')
+		_fillTail = new Path2D('M 7.751 12.4155 L 5.907 13.1895 L 2.807 5.8155 L 4.648 5.0405 Z')
 	}
-	return { shadow: _shadowPath, white: _whitePath!, fill: _fillPath! }
+	return {
+		shadowHead: _shadowHead,
+		shadowTail: _shadowTail!,
+		whiteHead: _whiteHead!,
+		whiteTail: _whiteTail!,
+		fillHead: _fillHead!,
+		fillTail: _fillTail!,
+	}
 }
 
 const TRUNCATE_CACHE_MAX = 200
@@ -123,15 +134,18 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 
 			// Shadow
 			ctx.fillStyle = 'rgba(0,0,0,0.2)'
-			ctx.fill(paths.shadow)
+			ctx.fill(paths.shadowHead)
+			ctx.fill(paths.shadowTail)
 
 			// White outline
 			ctx.fillStyle = '#ffffff'
-			ctx.fill(paths.white)
+			ctx.fill(paths.whiteHead)
+			ctx.fill(paths.whiteTail)
 
 			// Colored fill
 			ctx.fillStyle = color
-			ctx.fill(paths.fill)
+			ctx.fill(paths.fillHead)
+			ctx.fill(paths.fillTail)
 
 			// Draw name tag / chat
 			if (chatMessage) {

@@ -4,6 +4,7 @@ import { assert, getFromSessionStorage, omit, react } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
+import { TlaAnonDotDevLink } from '../components/TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from '../components/TlaEditor/sneaky/SneakyDebugModeToast'
 import { components } from '../components/TlaEditor/TlaEditor'
@@ -130,6 +131,7 @@ function LocalTldraw() {
 			>
 				<SneakyDarkModeSync />
 				<SneakyDebugModeToast />
+				<TlaAnonDotDevLink />
 			</LocalEditor>
 		</TlaAnonLayout>
 	)

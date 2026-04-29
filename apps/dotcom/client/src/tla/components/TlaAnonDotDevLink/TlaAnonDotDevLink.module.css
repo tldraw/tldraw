@@ -1,0 +1,113 @@
+.anonDotDevLink {
+	position: absolute;
+	bottom: max(var(--tl-space-4), env(safe-area-inset-bottom));
+	right: max(var(--tl-space-2), env(safe-area-inset-right));
+	z-index: calc(var(--tl-layer-watermark) + 1);
+	height: 36px;
+	padding: 2px;
+}
+
+.anonDotDevLink > div {
+	font-size: 12px;
+	color: var(--tl-color-text);
+	pointer-events: all;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	height: 100%;
+	background-color: var(--tl-color-background);
+	border: 1px solid var(--tl-color-text-1);
+	border-radius: 2px;
+}
+
+.anonDotDevLink::after {
+	content: '';
+	position: absolute;
+	top: 4px;
+	left: -4px;
+	right: 4px;
+	bottom: -4px;
+	border-radius: 2px;
+	border: 1px dashed var(--tl-color-text-1);
+	z-index: -1;
+	pointer-events: none;
+}
+
+.anonDotDevLink a {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	height: 100%;
+	padding: 0 8px;
+	color: inherit;
+	text-decoration: none;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.anonDotDevLink a div {
+	position: relative;
+	flex-shrink: 0;
+	transform: rotate(180deg);
+	transition: transform 3s ease-in-out 0s;
+}
+
+.anonDotDevDismissButton {
+	position: relative;
+	height: 28px;
+	width: 28px;
+	min-width: 0;
+	color: var(--tl-color-text-3);
+	transition: opacity 0.2s ease-in-out;
+}
+
+.anonDotDevDismissButton div {
+	width: 12px;
+	height: 12px;
+}
+
+@media (hover: hover) {
+	.anonDotDevLink:hover a div {
+		transform: translate(80px, 0px) rotate(180deg);
+		transition: transform 6s ease-in-out 1s;
+	}
+
+	.anonDotDevLink:has(a:hover) .anonDotDevDismissButton {
+		opacity: 0;
+	}
+
+	.anonDotDevLink:has(a:hover)::after {
+		background-color: var(--tl-color-hover);
+	}
+}
+
+/* Hide on small viewports to match the navigation panel breakpoint */
+@media (max-width: 580px) {
+	.anonDotDevLink {
+		display: none;
+	}
+}
+
+/* Match the watermark's debug-mode offset so we don't overlap the debug panel */
+.anonDotDevLink[data-debug='true'] {
+	bottom: max(46px, env(safe-area-inset-bottom));
+}
+
+/* RTL: mirror to bottom-left like the watermark */
+:global(.tl-container[dir='rtl']) .anonDotDevLink {
+	right: auto;
+	left: max(var(--tl-space-2), env(safe-area-inset-left));
+}
+
+:global(.tl-container[dir='rtl']) .anonDotDevLink::after {
+	left: 4px;
+	right: -4px;
+}
+
+/* Hide the watermark when this button is visible (they share the same corner) */
+:global(.tl-container):has(.anonDotDevLink) :global(.tl-watermark_SEE-LICENSE) {
+	display: none;
+}
