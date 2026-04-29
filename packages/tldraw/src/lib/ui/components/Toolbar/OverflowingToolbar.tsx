@@ -240,6 +240,8 @@ export function OverflowingToolbar({
 		mutationObserver.observe(mainToolsRef.current, {
 			childList: true,
 			subtree: true,
+			attributes: true,
+			characterData: true,
 		})
 
 		const sizingParent = findParentWithClassName(mainToolsRef.current, sizingParentClassName)
