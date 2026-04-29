@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLTheme } from '@tldraw/editor'
+import { Editor, TLShape, TLTheme, unsafe__withoutCapture } from '@tldraw/editor'
 
 /** @public */
 export interface ShapeOptionsWithDisplayValues<
@@ -24,6 +24,8 @@ const dvCache = new WeakMap<
 	{ theme: TLTheme; colorMode: 'light' | 'dark'; values: object }
 >()
 
+const dimensionDvCache = new WeakMap<TLShape, { theme: TLTheme; values: object }>()
+
 /**
  * Get the resolved display values for a shape, merging the base values with any overrides.
  *
@@ -45,5 +47,34 @@ export function getDisplayValues<Shape extends TLShape, DisplayValues extends ob
 		...util.options.getCustomDisplayValues(util.editor, shape, theme, resolvedColorMode),
 	}
 	dvCache.set(shape, { theme, colorMode: resolvedColorMode, values })
+	return values
+}
+
+/**
+ * Get the resolved display values for a shape without taking a reactive dependency on the
+ * current color mode. Use this from text measurement and other dimension-only computations,
+ * so that toggling between light and dark mode does not invalidate downstream caches.
+ *
+ * Color-related fields in the result reflect the color mode at the time the cache was
+ * populated and may be stale relative to the current color mode — only read
+ * dimension-affecting fields from this result.
+ *
+ * @public
+ */
+export function getDimensionDisplayValues<Shape extends TLShape, DisplayValues extends object>(
+	util: { editor: Editor; options: ShapeOptionsWithDisplayValues<Shape, DisplayValues> },
+	shape: Shape
+): DisplayValues {
+	const theme = util.editor.getCurrentTheme()
+	const cached = dimensionDvCache.get(shape)
+	if (cached && cached.theme === theme) {
+		return cached.values as DisplayValues
+	}
+	const colorMode = unsafe__withoutCapture(() => util.editor.getColorMode())
+	const values = {
+		...util.options.getDefaultDisplayValues(util.editor, shape, theme, colorMode),
+		...util.options.getCustomDisplayValues(util.editor, shape, theme, colorMode),
+	}
+	dimensionDvCache.set(shape, { theme, values })
 	return values
 }

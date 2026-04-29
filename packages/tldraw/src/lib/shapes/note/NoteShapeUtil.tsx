@@ -49,7 +49,11 @@ import {
 	getFontFamily,
 } from '../shared/default-shape-constants'
 import { DefaultFontFaces, getThemeFontFaces } from '../shared/defaultFonts'
-import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
+import {
+	ShapeOptionsWithDisplayValues,
+	getDimensionDisplayValues,
+	getDisplayValues,
+} from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
@@ -592,7 +596,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	 * Expensively measure the label size for a note shape.
 	 */
 	private measureNoteLabelSize(shape: TLNoteShape) {
-		const dv = getDisplayValues(this, shape)
+		const dv = getDimensionDisplayValues(this, shape)
 		const { richText } = shape.props
 
 		if (isEmptyRichText(richText)) {

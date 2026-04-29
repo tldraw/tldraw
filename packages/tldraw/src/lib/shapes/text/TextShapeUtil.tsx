@@ -28,7 +28,11 @@ import {
 } from '../../utils/text/richText'
 import { FONT_SIZES, TEXT_PROPS, getFontFamily } from '../shared/default-shape-constants'
 import { getThemeFontFaces } from '../shared/defaultFonts'
-import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
+import {
+	ShapeOptionsWithDisplayValues,
+	getDimensionDisplayValues,
+	getDisplayValues,
+} from '../shared/getDisplayValues'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 
 const sizeCache = createComputedCache(
@@ -36,7 +40,7 @@ const sizeCache = createComputedCache(
 	(editor: Editor, shape: TLTextShape) => {
 		editor.fonts.trackFontsForShape(shape)
 		const util = editor.getShapeUtil(shape) as TextShapeUtil
-		const dv = getDisplayValues(util, shape)
+		const dv = getDimensionDisplayValues(util, shape)
 		return getTextSize(editor, shape.props, dv)
 	},
 	{ areRecordsEqual: (a, b) => a.props === b.props }
@@ -273,7 +277,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const boundsA = this.getMinDimensions(prev)
 
 		// Will always be a fresh call to getTextSize
-		const dv = getDisplayValues(this, next)
+		const dv = getDimensionDisplayValues(this, next)
 		const boundsB = getTextSize(this.editor, next.props, dv)
 
 		const wA = boundsA.width * prev.props.scale

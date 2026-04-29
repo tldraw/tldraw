@@ -1,11 +1,12 @@
-import { TLNoteShape, TLTheme, createShapeId } from '@tldraw/editor'
+import { TLNoteShape, TLTextShape, TLTheme, createShapeId } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../lib/shapes/arrow/ArrowShapeUtil'
 import { DrawShapeUtil } from '../lib/shapes/draw/DrawShapeUtil'
 import { FrameShapeUtil } from '../lib/shapes/frame/FrameShapeUtil'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 import { HighlightShapeUtil } from '../lib/shapes/highlight/HighlightShapeUtil'
 import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
-import { getDisplayValues } from '../lib/shapes/shared/getDisplayValues'
+import { getDimensionDisplayValues, getDisplayValues } from '../lib/shapes/shared/getDisplayValues'
+import { TextShapeUtil } from '../lib/shapes/text/TextShapeUtil'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -268,6 +269,59 @@ describe('WeakMap cache', () => {
 
 		// Should be different objects
 		expect(dv1).not.toBe(dv2)
+	})
+})
+
+describe('getDimensionDisplayValues', () => {
+	it('returns the same dimension values across color mode toggles', () => {
+		editor.user.updateUserPreferences({ colorScheme: 'light' })
+		const textId = createShapeId('text')
+		editor.createShapes([{ id: textId, type: 'text', x: 0, y: 0 }])
+		const util = editor.getShapeUtil('text') as TextShapeUtil
+		const shape = editor.getShape<TLTextShape>(textId)!
+
+		const lightDim = getDimensionDisplayValues(util, shape)
+
+		editor.user.updateUserPreferences({ colorScheme: 'dark' })
+		const darkDim = getDimensionDisplayValues(util, shape)
+
+		// Same cached object — toggling color mode does not invalidate the dimension cache.
+		expect(darkDim).toBe(lightDim)
+		expect(darkDim.fontSize).toBe(lightDim.fontSize)
+		expect(darkDim.fontFamily).toBe(lightDim.fontFamily)
+		expect(darkDim.lineHeight).toBe(lightDim.lineHeight)
+	})
+
+	it('invalidates when the theme definition changes', () => {
+		editor.user.updateUserPreferences({ colorScheme: 'light' })
+		const textId = createShapeId('text')
+		editor.createShapes([{ id: textId, type: 'text', x: 0, y: 0 }])
+		const util = editor.getShapeUtil('text') as TextShapeUtil
+		const shape = editor.getShape<TLTextShape>(textId)!
+
+		const before = getDimensionDisplayValues(util, shape)
+
+		editor.updateTheme({ ...editor.getTheme('default')!, fontSize: 24 })
+		const after = getDimensionDisplayValues(util, shape)
+
+		expect(after).not.toBe(before)
+		expect(after.fontSize).toBeGreaterThan(before.fontSize)
+	})
+
+	it('keeps the text-size cache stable across color mode toggles', () => {
+		editor.user.updateUserPreferences({ colorScheme: 'light' })
+		const textId = createShapeId('text')
+		editor.createShapes([{ id: textId, type: 'text', x: 0, y: 0 }])
+		const util = editor.getShapeUtil('text') as TextShapeUtil
+		const shape = editor.getShape<TLTextShape>(textId)!
+
+		const lightSize = util.getMinDimensions(shape)
+
+		editor.user.updateUserPreferences({ colorScheme: 'dark' })
+		const darkSize = util.getMinDimensions(shape)
+
+		// Same memoized result — measurement is not redone on color mode change.
+		expect(darkSize).toBe(lightSize)
 	})
 })
 
