@@ -322,13 +322,13 @@ export function StylePanelGeoShapePicker() {
 	const geo = styles.get(GeoShapeGeoStyle)
 	if (geo === undefined) return null
 
-	const customGeoStyles = (editor.getShapeUtil('geo') as GeoShapeUtil).options.customGeoStyles
-	const customItems = customGeoStyles
-		? Object.entries(customGeoStyles).map(([value, def]) => ({ value, icon: def.icon }))
+	const customGeoTypes = (editor.getShapeUtil('geo') as GeoShapeUtil).options.customGeoTypes
+	const customItems = customGeoTypes
+		? Object.entries(customGeoTypes).map(([value, def]) => ({ value, icon: def.icon }))
 		: []
 	const items =
 		customItems.length > 0
-			? [...STYLES.geo.filter((item) => !customGeoStyles?.[item.value]), ...customItems]
+			? [...STYLES.geo.filter((item) => !customGeoTypes?.[item.value]), ...customItems]
 			: STYLES.geo
 
 	return (
