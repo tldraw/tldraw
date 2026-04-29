@@ -82,10 +82,6 @@ function usePositionBubble(ref: RefObject<HTMLInputElement | null>) {
 
 // Renders a visible pointer anchor at the user's screen-point while cursor
 // chat is open and they are typing. macOS hides the OS cursor while typing
-// (System Settings → Accessibility → Pointer Control), so without this the
-// user can lose track of where their cursor is. The anchor appears on the
-// first keystroke and disappears as soon as the mouse moves again, mirroring
-// the system behavior.
 function CursorChatAnchor() {
 	const editor = useEditor()
 	const ref = useRef<HTMLInputElement>(null)
