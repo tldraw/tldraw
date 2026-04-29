@@ -335,9 +335,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const nw = dv.noteWidth * scale
 		const nh = getNoteHeight(shape, dv.noteHeight)
 
-		// Shadows are hidden when zoomed out far enough or in dark mode
-		let hideShadows = useEfficientZoomThreshold(0.25 / scale)
-		if (colorMode === 'dark') hideShadows = true
+		// Shadows are hidden when zoomed out far enough; the cheap borderBottom takes over.
+		const hideShadows = useEfficientZoomThreshold(0.25 / scale)
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
