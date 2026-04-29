@@ -315,6 +315,7 @@ export type TLUiTranslationKey =
 	| 'a11y.open-keyboard-shortcuts'
 	| 'menu.title'
 	| 'menu.theme'
+	| 'menu.color-theme'
 	| 'menu.accessibility'
 	| 'menu.copy-as'
 	| 'menu.edit'

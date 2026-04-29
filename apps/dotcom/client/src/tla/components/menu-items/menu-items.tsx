@@ -150,7 +150,7 @@ export function UIThemeSubmenu() {
 	if (!editor || themeIds.length === 0) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="ui-theme" label="Color theme">
+		<TldrawUiMenuSubmenu id="ui-theme" label="menu.color-theme">
 			<div
 				className="tlui-menu__group"
 				onPointerCancel={clearThemePreview}
