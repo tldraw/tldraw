@@ -5661,7 +5661,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getSelectedShapeAtPoint(point: VecLike): TLShape | undefined {
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const sorted = this.getCurrentPageShapesSorted()
-		// iterate from the top (highest z-index) to find the last matching shape
+		// iterate from the top (highest z-index) to find the top-most matching shape
 		for (let i = sorted.length - 1; i >= 0; i--) {
 			const shape = sorted[i]
 			if (shape.type === 'group' || !selectedShapeIds.includes(shape.id)) continue
