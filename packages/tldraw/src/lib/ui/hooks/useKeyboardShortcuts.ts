@@ -118,11 +118,12 @@ export function useKeyboardShortcuts() {
 
 				editor.inputs.keys.delete('Comma')
 
-				const { x, y, z } = editor.inputs.getCurrentScreenPoint()
+				const { x, y, z } = editor.inputs.getCurrentPagePoint()
+				const screenPoint = editor.pageToScreen({ x, y })
 				const info: TLPointerEventInfo = {
 					type: 'pointer',
 					name: 'pointer_up',
-					point: { x, y, z },
+					point: { x: screenPoint.x, y: screenPoint.y, z },
 					shiftKey: e.shiftKey,
 					altKey: e.altKey,
 					ctrlKey: e.metaKey || e.ctrlKey,
