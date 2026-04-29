@@ -1,4 +1,5 @@
 import {
+	GeoShapeGeoStyle,
 	activeElementShouldCaptureKeys,
 	assert,
 	modulate,
@@ -7,6 +8,7 @@ import {
 	useEditor,
 	useEvent,
 	useUniqueSafeId,
+	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { createContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -75,6 +77,18 @@ export function OverflowingToolbar({
 	const [overflowTools, setOverflowTools] = useState<HTMLDivElement | null>(null)
 	const [lastActiveOverflowItem, setLastActiveOverflowItem] = useState<string | null>(null)
 	const [shouldShowOverflow, setShouldShowOverflow] = useState(false)
+
+	// Subscribe to tool and geo style changes so this component re-renders (and the
+	// unconditional useLayoutEffect fires onDomUpdate) when switching between geo
+	// variants directly, e.g. rectangle → ellipse.
+	useValue(
+		'current tool and geo style',
+		() => {
+			const toolId = editor.getCurrentToolId()
+			return toolId === 'geo' ? editor.getSharedStyles().getAsKnownValue(GeoShapeGeoStyle) : toolId
+		},
+		[editor]
+	)
 
 	const onDomUpdate = useEvent(() => {
 		if (!mainToolsRef.current) return
