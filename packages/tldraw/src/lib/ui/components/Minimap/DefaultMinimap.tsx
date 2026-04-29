@@ -74,6 +74,8 @@ export function DefaultMinimap() {
 	const onPointerDown = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
 			if (!minimapRef.current) return
+			if (e.button !== 0) return
+
 			const elm = e.currentTarget
 			setPointerCapture(elm, e)
 			if (!editor.getCurrentPageShapeIds().size) return
@@ -123,6 +125,7 @@ export function DefaultMinimap() {
 				if (rActivePointerId.current !== null && elm.hasPointerCapture(rActivePointerId.current)) {
 					elm.releasePointerCapture(rActivePointerId.current)
 				}
+
 				rPointing.current = false
 				rActivePointerId.current = null
 				body.removeEventListener('pointerup', onPointerUp)
