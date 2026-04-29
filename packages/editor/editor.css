@@ -469,13 +469,13 @@ input,
  */
 .tl-cursor-chat__anchor {
 	position: absolute;
-	margin-top: -6px;
-	margin-left: -9px;
-	width: 24px;
-	height: 24px;
+	margin-top: -10px;
+	margin-left: -13px;
+	width: 32px;
+	height: 32px;
 	background-image: var(--tl-cursor-default-url);
 	background-repeat: no-repeat;
-	background-size: 24px 24px;
+	background-size: 32px 32px;
 	pointer-events: none;
 	z-index: var(--tl-layer-cursor);
 }
