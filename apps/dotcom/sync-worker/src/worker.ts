@@ -22,7 +22,7 @@ import {
 	isAllowedOrigin,
 	notFound,
 } from '@tldraw/worker-shared'
-import { WorkerEntrypoint } from 'cloudflare:workers'
+import { DurableObject, WorkerEntrypoint } from 'cloudflare:workers'
 import { IRequest, cors, json } from 'itty-router'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
@@ -54,7 +54,7 @@ export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLStatsDurableObject } from './TLStatsDurableObject'
 export { TLUserDurableObject } from './TLUserDurableObject'
-export class TLDrawDurableObject {}
+export class TLDrawDurableObject extends DurableObject {}
 
 const { preflight, corsify } = cors({
 	origin: isAllowedOrigin,
