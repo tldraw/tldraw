@@ -2468,6 +2468,9 @@ export interface ImageShapeUtilDisplayValues {
 }
 
 // @public (undocumented)
+export function InputModeMenu(): JSX.Element;
+
+// @public (undocumented)
 export const KeyboardShiftEnterTweakExtension: Extension<any, any>;
 
 // @public (undocumented)
