@@ -5,6 +5,10 @@ kill_timeout = "__KILL_TIMEOUT"
 [build]
 image = "registry.hub.docker.com/rocicorp/zero:__ZERO_VERSION"
 
+# Do not add [http_service] or [[services]] to this app. The replication-manager
+# serves Zero's unauthenticated change-streamer protocol on port 4849 and must
+# only be reachable over Fly's private network from view-syncers.
+
 [checks]
   [checks.keepalive]
   type = "http"
