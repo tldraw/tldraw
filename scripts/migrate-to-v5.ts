@@ -19,6 +19,19 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
+// ─── Colors ───────────────────────────────────────────────────────────────────
+
+const isTTY = process.stdout.isTTY
+const c = {
+	reset: isTTY ? '\x1b[0m' : '',
+	bold: isTTY ? '\x1b[1m' : '',
+	dim: isTTY ? '\x1b[2m' : '',
+	red: isTTY ? '\x1b[31m' : '',
+	green: isTTY ? '\x1b[32m' : '',
+	yellow: isTTY ? '\x1b[33m' : '',
+	cyan: isTTY ? '\x1b[36m' : '',
+}
+
 // ─── CLI args ─────────────────────────────────────────────────────────────────
 
 const args = process.argv.slice(2)
@@ -474,8 +487,10 @@ let totalFlagged = 0
 const fixSummary = new Map<string, number>()
 const flagsByFile = new Map<string, FlagHit[]>()
 
-console.log(`\ntldraw v4 → v5 migration${dryRun ? ' [dry run]' : ''}`)
-console.log(`Scanning ${targetDir}\n`)
+console.log(
+	`\n${c.bold}tldraw v4 → v5 migration${c.reset}${dryRun ? ` ${c.yellow}[dry run]${c.reset}` : ''}`
+)
+console.log(`${c.dim}Scanning ${targetDir}${c.reset}\n`)
 
 for (const file of [...tsFiles, ...cssFiles]) {
 	const isCss = CSS_EXTS.has(path.extname(file))
@@ -487,9 +502,13 @@ for (const file of [...tsFiles, ...cssFiles]) {
 		for (const name of fixes) {
 			fixSummary.set(name, (fixSummary.get(name) ?? 0) + 1)
 		}
-		const label = dryRun ? '[would fix]' : '[fixed]    '
-		console.log(`  ${label} ${rel}`)
-		for (const name of fixes) console.log(`    • ${name}`)
+		if (dryRun) {
+			console.log(`  ${c.yellow}[would fix]${c.reset} ${rel}`)
+			for (const name of fixes) console.log(`    ${c.yellow}•${c.reset} ${name}`)
+		} else {
+			console.log(`  ${c.green}[fixed]${c.reset}     ${rel}`)
+			for (const name of fixes) console.log(`    ${c.green}•${c.reset} ${name}`)
+		}
 	}
 
 	if (flags.length > 0) {
@@ -501,39 +520,53 @@ for (const file of [...tsFiles, ...cssFiles]) {
 // ─── Report ───────────────────────────────────────────────────────────────────
 
 if (fixSummary.size > 0) {
-	console.log('\n── Auto-fixes applied ──────────────────────────────────────────────────────')
+	console.log(
+		`\n${c.bold}── Auto-fixes applied ──────────────────────────────────────────────────────${c.reset}`
+	)
 	for (const [name, count] of fixSummary) {
-		console.log(`  ${count}x  ${name}`)
+		console.log(`  ${c.green}${count}x${c.reset}  ${name}`)
 	}
 }
 
 if (flagsByFile.size > 0) {
-	console.log('\n── Manual review required ──────────────────────────────────────────────────')
-	console.log('  These lines reference APIs that changed or were removed in v5.')
-	console.log('  Run the migrate-to-v5 Claude skill for guided remediation.\n')
+	console.log(
+		`\n${c.bold}${c.red}── Manual review required ──────────────────────────────────────────────────${c.reset}`
+	)
+	console.log(`${c.dim}  These lines reference APIs that changed or were removed in v5.`)
+	console.log(`  Run the migrate-to-v5 Claude skill for guided remediation.${c.reset}\n`)
 	for (const [file, flags] of flagsByFile) {
-		console.log(`  ${file}`)
+		console.log(`  ${c.bold}${file}${c.reset}`)
 		for (const { line, col, flag } of flags) {
-			console.log(`    ${String(line).padStart(4)}:${String(col).padEnd(3)}  [${flag.name}]`)
-			console.log(`           ${flag.note}`)
+			console.log(
+				`    ${c.cyan}${String(line).padStart(4)}:${String(col).padEnd(3)}${c.reset}  ${c.yellow}[${flag.name}]${c.reset}`
+			)
+			console.log(`           ${c.dim}${flag.note}${c.reset}`)
 		}
 		console.log()
 	}
 }
 
-console.log('── Summary ─────────────────────────────────────────────────────────────────')
-console.log(`  Files auto-fixed:    ${totalFixed}`)
-console.log(`  Lines to review:     ${totalFlagged}`)
+console.log(
+	`${c.bold}── Summary ─────────────────────────────────────────────────────────────────${c.reset}`
+)
+console.log(`  Files auto-fixed:    ${c.bold}${totalFixed}${c.reset}`)
+console.log(
+	`  Lines to review:     ${totalFlagged > 0 ? c.yellow : c.bold}${totalFlagged}${c.reset}`
+)
 console.log()
 
 if (totalFlagged > 0) {
-	console.log('Next steps:')
-	console.log('  1. Run `yarn typecheck` to surface type errors from renamed APIs.')
+	console.log(`${c.bold}Next steps:${c.reset}`)
 	console.log(
-		'  2. Use the migrate-to-v5 skill in Claude Code for guided non-deterministic migration:'
+		`  1. Run ${c.cyan}yarn typecheck${c.reset} to surface type errors from renamed APIs.`
 	)
-	console.log('     /migrate-to-v5')
-	console.log('  3. See apps/docs/content/releases/v5.0.0.mdx for full migration guides.')
+	console.log(
+		`  2. Use the migrate-to-v5 skill in Claude Code for guided non-deterministic migration:`
+	)
+	console.log(`     ${c.cyan}/migrate-to-v5${c.reset}`)
+	console.log(
+		`  3. See ${c.dim}apps/docs/content/releases/v5.0.0.mdx${c.reset} for full migration guides.`
+	)
 	console.log()
 }
 
