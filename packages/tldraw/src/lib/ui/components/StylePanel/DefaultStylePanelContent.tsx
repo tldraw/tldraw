@@ -75,11 +75,14 @@ export function StylePanelSection({ children }: StylePanelSectionProps) {
 /** @public @react */
 export function StylePanelColorPicker() {
 	const editor = useEditor()
-	const theme = editor.getCurrentTheme()
-	const colorMode = editor.getColorMode()
 	const { styles } = useStylePanelContext()
 	const msg = useTranslation()
 	const color = styles.get(DefaultColorStyle)
+	const items = useValue(
+		'style panel color items',
+		() => getColorStyleItems(editor.getCurrentTheme().colors[editor.getColorMode()]),
+		[editor]
+	)
 	if (color === undefined) return null
 
 	return (
@@ -87,7 +90,7 @@ export function StylePanelColorPicker() {
 			title={msg('style-panel.color')}
 			uiType="color"
 			style={DefaultColorStyle}
-			items={getColorStyleItems(theme.colors[colorMode])}
+			items={items}
 			value={color}
 		/>
 	)
@@ -221,10 +224,14 @@ export function StylePanelSizePicker() {
 /** @public @react */
 export function StylePanelFontPicker() {
 	const editor = useEditor()
-	const theme = editor.getCurrentTheme()
 	const { styles } = useStylePanelContext()
 	const msg = useTranslation()
 	const font = styles.get(DefaultFontStyle)
+	const items = useValue(
+		'style panel font items',
+		() => getFontStyleItems(editor.getCurrentTheme()),
+		[editor]
+	)
 	if (font === undefined) return null
 
 	return (
@@ -232,7 +239,7 @@ export function StylePanelFontPicker() {
 			title={msg('style-panel.font')}
 			uiType="font"
 			style={DefaultFontStyle}
-			items={getFontStyleItems(theme)}
+			items={items}
 			value={font}
 		/>
 	)
